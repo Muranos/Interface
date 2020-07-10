@@ -1,0 +1,34 @@
+## Author: Potdisc
+## Interface: 80300
+## Notes: Interface for running a Loot Council v2.19.1
+## Title: RCLootCouncil
+## Version: 2.19.1
+## SavedVariables: RCLootCouncilDB, RCLootCouncilLootDB
+## OptionalDeps: LibStub, CallbackHandler-1.0, Ace3, lib-st, LibWindow-1.1, LibDialog-1.0
+
+Patches\UiDropDownMenuTaintCommunities.lua
+
+embeds.xml
+Locale\Locales.xml
+
+Core\Constants.lua
+Core\Defaults.lua
+Core\CoreEvents.lua
+
+core.lua
+Core\ErrorHandler.lua
+ml_core.lua
+
+UI\UI.lua
+UI\Widgets\widgets.xml
+
+Modules\Modules.xml
+
+Utils\BackwardsCompat.lua
+Utils\Utils.lua
+Utils\trinketData.lua
+Utils\tokenData.lua
+Utils\ItemStorage.lua
+Utils\autopass.lua
+Utils\sync.lua
+Utils\popups.lua

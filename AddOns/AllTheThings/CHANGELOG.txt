@@ -1,0 +1,91 @@
+2.0.5 Release Notes
+Contributions made by Crieve:
+* Final version. Works pretty good.
+* Appropriate auto-summarizing commit by build type.
+* Added some more drop locations for the Titanium Links of Lore in Pit of Saron.
+* Super secret project.
+* The Sync Tool now minimizes itself in the taskbar.
+* You can once again export all of your account data to CSV files.
+* Ignore the log file.
+* Removed an unused function.
+* Added the "altAchievements" field for conditions where it is impossible to have Exalted with 2 opposing factions and there's an associated achievement for getting both to Exalted on one character at different times. (Hero if Shattrath)
+* Fixed a bug with the mini and main list scale ratios when customized in the addon.
+* Implemented a DEV ONLY section for code that does NOT go to Live by using the Build Tool!
+* GetDataCache optimization!
+* Updated the Update function to not lag like shit by calling collectgarbage().
+* Mini list no longer refreshes for the same map ID.
+* You can once again toggle the Mini List.
+* New itemDB. Please let me know if something got messed up from this, I need to make a more in-depth way of managing this database module so that I can measure changes in the Blizzard API.
+* Wolf Riding no longer prevents you from executing the parser without hitting Enter.
+* Added a bit more of this source quest chain.
+* Missed a connecting bit.
+* Fixed some Silithus breadcrumbs.
+* I meant to say *Tanaris!
+
+Contributions made by slumber:
+* added entrance coords for atal'dazar, kings' rest, temple of sethraliss, and the underrot
+* more nazmir, added dart to pet database so it tracks properly as collected/uncollected
+* added missing shrine of the storm wq
+* boon of bonk
+* tidied garrison salvage crate sets
+* cleaned up fishing file
+* added altQuests to remaining raid skips
+* corrected npcID for mestrah in battle of dazar'alor
+* added entrance coords for siege of boralus - collectible = false on "losing my profession" achievement headers since not all criteria are collectible in one location - added some missing horde WQs and quests
+* some more bfa dungeon entrance coords - more missing horde WQs and quests
+* more BFA dungeon/raid coordinates - some tracking quests
+* added some missing horde WQs - some tracking quests - clarified description on some horde war campaign quests
+* added missing leather rewards to a tiragarde sound quest - removed unnecessary SQ from a horde war campaign quest - added some legacy DMF quests - a tracking quest
+* added a missing leather azerite reward to "storm's judgment" in stormsong valley
+* added some missing azerite gear to a tiragarde sound quest
+* added missing azerite reward to a stormsong valley quest
+* some horde WQs
+* why
+* thunderfury = all classes that can equip 1h swords
+* uhhhhhhhhhh
+* added coordinates to currency descriptions as requested
+* added some missing horde world quests / quests
+* added some missing horde WQs/quests
+* more island rep item junk for consistency
+* removed wq from wrong zone
+* added a missing horde WQ
+
+Contributions made by mogwai316:
+* Added Skeletal Gauntlets as Westfall zone drop.  Marked On the Outskirts as horde only.
+* Added prereqs for Documenting The Timeways quest
+* Peak of Serenity is not Pandaren-only.  The Monk class restriction is sufficient.
+* Marked She Sells These Shells as a daily quest
+* Added a Cata world drop ring that was unsorted
+
+Contributions made by Gold:
+* item fix
+* some chromie scenario rework/relisting (5/8 areas done)
+* added every item to the chromie scenario and sorted it
+* removed zone drop from world drop, didnt parse
+* quest for chromie, gave timeline bop item an extra tag (probably 10-20 more items need that)
+* some nyi shaman gear and wod s3 fix
+* removed couple world drops from world drops due the items only dropping from specific mobs
+* no message
+
+Contributions made by Gromwind:
+* Quest 'Strained Supplies' (10017) marked as repeatable
+* Fixed duplication of numbers on MoP inscription staves & offhands
+
+Contributions made by Gaulish:
+* Ub3r-Spanner spellid removed.
+* Tagged profession books uncollectible.
+* More profession books.
+
+Contributions made by Dmitry Volodin:
+* some hidden triggers
+* added descriptions to some Un'Goro quest clarifying when they become unavailable - attached Gorian Artifact Fragment and Highmaul Relic to their quests
+* attached Misprinted Draenic Coin to quests
+* updated mount drops in Island Expedition boxes
+* moved some quest triggers to outposts quests we need to revisit it later
+
+Contributions made by sadidorf:
+* Added Ogom the Mangler/Ogom's Manacles to /attbounty (Please Blizzard fix this)
+* Made the Thunderfury, Blessed Blade of the Windseeker Achievemnt only obtainable to classes that can equip it
+* Fixed the Class Hall Druidflightform SpellID
+* Fixed the currency issue on non english clients
+

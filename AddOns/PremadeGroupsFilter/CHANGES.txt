@@ -1,0 +1,10 @@
+lightweight tag ff61bddb8f41d942ffaaeb81e48f4344b372ea53 1.36
+Author:	Bernhard Saumweber <b.saumweber@gmail.com>
+Date:	Sat Apr 18 16:59:55 2020 +0200
+
+commit ff61bddb8f41d942ffaaeb81e48f4344b372ea53
+Author: Bernhard Saumweber <b.saumweber@gmail.com>
+Date:   Sat Apr 18 16:59:55 2020 +0200
+
+    Set version to release version: 1.36
+
