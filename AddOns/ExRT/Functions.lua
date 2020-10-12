@@ -674,6 +674,96 @@ function ExRT.F.GetUnitRole(unit)
 	end
 end
 
+function ExRT.F.TextureToText(textureName,widthInText,heightInText,textureWidth,textureHeight,leftTexCoord,rightTexCoord,topTexCoord,bottomTexCoord)
+	return "|T"..textureName..":"..(widthInText or 0)..":"..(heightInText or 0)..":0:0:"..textureWidth..":"..textureHeight..":"..
+		format("%d",leftTexCoord*textureWidth)..":"..format("%d",rightTexCoord*textureWidth)..":"..format("%d",topTexCoord*textureHeight)..":"..format("%d",bottomTexCoord*textureHeight).."|t"
+end
+function ExRT.F.GetRaidTargetText(icon,size)
+	size = size or 0
+	return ExRT.F.TextureToText([[Interface\TargetingFrame\UI-RaidTargetingIcons]],size,size,256,256,((icon-1)%4)/4,((icon-1)%4+1)/4,floor((icon-1)/4)/4,(floor((icon-1)/4)+1)/4)
+end
+
+function ExRT.F.IterateMediaData(mediaType)
+	local list
+	if LibStub then
+		local loaded,media = pcall(LibStub,"LibSharedMedia-3.0")
+		if loaded and media then
+			list = media:HashTable(mediaType)
+		end
+	end
+	return next, list or {}
+end
+
+--[[
+	for index, name, subgroup, class, guid, rank, level, online, isDead, combatRole in ExRT.F.IterateRoster do
+		<...>
+	end
+]]
+function ExRT.F.IterateRoster(maxGroup,index)
+	index = (index or 0) + 1
+	maxGroup = maxGroup or 8
+
+	if IsInRaid() then
+		if index > GetNumGroupMembers() then
+			return
+		end
+		local name, rank, subgroup, level, class, fileName, zone, online, isDead, role, isML, combatRole = GetRaidRosterInfo(index)
+		if subgroup > maxGroup then
+			return ExRT.F.IterateRoster(maxGroup,index)
+		end
+		local guid = UnitGUID(name or "raid"..index)
+		name = name or ""
+		return index, name, subgroup, fileName, guid, rank, level, online, isDead, combatRole
+	else
+		local name, rank, subgroup, level, class, fileName, online, isDead, combatRole, _
+
+		local unit = index == 1 and "player" or "party"..(index-1)
+
+		local guid = UnitGUID(unit)
+		if not guid then
+			return
+		end
+
+		subgroup = 1
+		name, _ = UnitName(unit)
+		name = name or ""
+		if _ then
+			name = name .. "-" .. _
+		end
+		class, fileName = UnitClass(unit)
+
+		if UnitIsGroupLeader(unit) then
+			rank = 2
+		else
+			rank = 1
+		end
+
+		level = UnitLevel(unit)
+
+		if UnitIsConnected(unit) then
+			online = true
+		end
+
+		if UnitIsDeadOrGhost(unit) then
+			isDead = true
+		end
+
+		combatRole = UnitGroupRolesAssigned(unit)
+
+		return index, name, subgroup, fileName, guid, rank, level, online, isDead, combatRole
+	end
+end
+
+function ExRT.F.vpairs(t)
+	local prev
+	local function it()
+		local k,v = next(t,prev)
+		prev = k
+		return v
+	end
+	return it
+end
+
 do
 	-- UTF8
 	
@@ -999,11 +1089,12 @@ do
 			self:GetParent().OK:Click("LeftButton")
 		end)
 	end
-	function ExRT.F.ShowInput(text,func,arg1,onlyNum,defText)
+	function ExRT.F.ShowInput(text,func,arg1,onlyNum,defText,funcOnEdit)
 		if not alertWindow then
 			CreateWindow()
 		end
 		alertWindow.title:SetText(text)
+		alertWindow.EditBox:SetScript("OnTextChanged",funcOnEdit)
 		alertWindow.EditBox:SetText(defText or "")
 		alertWindow:ClearAllPoints()
 		alertWindow:SetPoint("CENTER",UIParent,0,0)
@@ -1072,12 +1163,36 @@ do
 			exportWindow:SetScript("OnHide",function(self)
 				self.Edit:SetText("")
 			end)
+			exportWindow.Next = ExRT.lib:Button(exportWindow,">>>"):Size(100,16):Point("BOTTOMRIGHT",0,0):OnClick(function (self)
+				self.now = self.now + 1
+				self:SetText(">>> "..self.now.."/"..#exportWindow.hugeText)
+				exportWindow.Edit:SetText(exportWindow.hugeText[self.now])
+				exportWindow.Edit.EditBox:HighlightText()
+				exportWindow.Edit.EditBox:SetFocus()
+				if self.now == #exportWindow.hugeText then
+					self:Hide()
+				end
+			end)
 		end
-		exportWindow.Edit:SetText(stringData)
 		exportWindow:NewPoint("CENTER",UIParent,0,0)
 		exportWindow:Show()
-		exportWindow.Edit.EditBox:HighlightText()
-		exportWindow.Edit.EditBox:SetFocus()
+		if #stringData > 200000 then
+			exportWindow.hugeText = {}
+			while stringData and stringData ~= "" do
+				local newText = stringData:sub(1,200000)..strsplit("\n",stringData:sub(200001))
+				exportWindow.hugeText[#exportWindow.hugeText+1] = newText
+				stringData = select(2,strsplit("\n",stringData:sub(200001),2))
+			end
+			exportWindow.Next.now = 0
+			exportWindow.Next:Show()
+			exportWindow.Next:Click()
+		else
+			exportWindow.hugeText = nil
+			exportWindow.Next:Hide()
+			exportWindow.Edit:SetText(stringData)
+			exportWindow.Edit.EditBox:HighlightText()
+			exportWindow.Edit.EditBox:SetFocus()
+		end
 	end
 
 end

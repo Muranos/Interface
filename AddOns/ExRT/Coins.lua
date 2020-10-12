@@ -4,7 +4,9 @@ if ExRT.isClassic then
 	return
 end 
 
-local module = ExRT.mod:New("Coins",ExRT.L.Coins,nil,true)
+---- Waring! Module is planned to be removed
+
+local module = ExRT.mod:New("Coins",ExRT.L.Coins)
 local ELib,L = ExRT.lib,ExRT.L
 
 local VExRT = nil
@@ -362,11 +364,13 @@ function module.options:Load()
 	
 	self:CreateTilte()
 
+	ELib:Text(self,L.WaringToRemoveExport,11):Point("BOTTOMLEFT",self.title,"BOTTOMRIGHT",10,0):Color(1,.3,.3):Size(400,0)
+
 	local LINES_COUNT = 50
 	local FONT_SIZE = 11
 	local currFilter = nil
 	
-	self.shtml1 = ELib:Text(self,L.CoinsHelp,11):Size(550,200):Point(5,-30):Top()
+	self.shtml1 = ELib:Text(self,L.CoinsHelp,11):Size(550,200):Point(10,-30):Top()
 	
 	self.clearButton = ELib:Button(self,L.MarksClear):Size(100,20):Point("TOPRIGHT",-5,-30):Tooltip(L.CoinsClear):OnClick(function() 
 		StaticPopupDialogs["EXRT_COINS_CLEAR"] = {
@@ -509,7 +513,7 @@ function module.options:Load()
 		module.options.textList.ScrollBar:UpdateButtons()
 	end
 	
-	self.filterEditBox = ELib:Edit(self):Size(655,16):Point("TOP",0,-60):Tooltip(FILTER):OnChange(function (self)
+	self.filterEditBox = ELib:Edit(self):Size(678,16):Point("TOP",0,-60):Tooltip(FILTER):OnChange(function (self)
 		local text = self:GetText()
 		local count
 		if text == "" then
@@ -544,9 +548,11 @@ function module.options:Load()
 		historyBoxUpdate(1)
 	end)
 	
-	self.textList = ExRT.lib:MultiEdit2(self):Size(653,500):Point("TOP",0,-85):Font('x',FONT_SIZE):Hyperlinks()
+	self.textList = ELib:MultiEdit2(self):Size(690,510):Point("TOP",0,-85):Font('x',FONT_SIZE):Hyperlinks()
 	self.textList.ScrollBar:Range(1,1)
 	self.textList.wheelRange = FONT_SIZE
+
+	ELib:Border(self.textList,0)
 	
 	self.textList.ScrollBar:SetScript("OnShow",historyBoxShow)
 	self.textList.ScrollBar:SetScript("OnValueChanged",function (self,val)
@@ -556,21 +562,26 @@ function module.options:Load()
 		historyBoxUpdate(val)
 	end)
 	
-	self.showMessageChk = ELib:Check(self,L.CoinsShowMessage,VExRT.Coins.ShowMessage):Point("TOPLEFT",self.textList,"BOTTOMLEFT",-2,-7):OnClick(function(self,event) 
+	self.showMessageChk = ELib:Check(self,L.CoinsShowMessage,VExRT.Coins.ShowMessage):Point("TOPLEFT",self.textList,"BOTTOMLEFT",2,-7):OnClick(function(self,event) 
 		if self:GetChecked() then
 			VExRT.Coins.ShowMessage = true
 		else
 			VExRT.Coins.ShowMessage = nil
 		end
 	end)
+	self.showMessageChk:Hide()
 	
-	self.buttonExport = ELib:Button(self,L.Export):Point("TOPRIGHT",self.textList,"BOTTOMRIGHT",3,-7):Size(100,20):OnClick(function()
+	self.buttonExport = ELib:Button(self,L.Export):Point("TOPRIGHT",self.textList,"BOTTOMRIGHT",-3,-7):Size(100,20):OnClick(function()
 		local text = ""
 		local pos = 1
 		for i=1,#VExRT.Coins.list do
 			local timestamp,classColor,unitName,spellOrLink,itemIDorSpellID,isItem = HandleString(VExRT.Coins.list[pos])
-			if not isItem and timestamp then
+			if timestamp then
 				local isMatchFilter = not currFilter or IsMatchFilter(unitName,spellOrLink,itemIDorSpellID,timestamp)
+
+				if isItem then
+					pos = pos - 1
+				end
 				
 				local itemStr = nil
 				if VExRT.Coins.list[pos+1] then

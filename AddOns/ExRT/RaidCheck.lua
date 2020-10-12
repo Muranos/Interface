@@ -4,7 +4,7 @@ local IsEncounterInProgress, GetTime, CombatLogGetCurrentEventInfo = IsEncounter
 
 local VExRT = nil
 
-local module = ExRT.mod:New("RaidCheck",ExRT.L.raidcheck,nil,true)
+local module = ExRT.mod:New("RaidCheck",ExRT.L.raidcheck)
 local ELib,L = ExRT.lib,ExRT.L
 
 module.db.isEncounter = nil
@@ -22,7 +22,7 @@ module.db.tableFood = not ExRT.isClassic and {
 	[22790]=true,	[22789]=true,	[25804]=true,
 	[18222]=true,
 }
-module.db.StaminaFood = {[201638]=true,[259457]=true,[288075]=true,[288074]=true,[297119]=true,[297040]=true}
+module.db.StaminaFood = {[201638]=true,[259457]=true,[288075]=true,[288074]=true,[297119]=true,[297040]=true,}
 
 module.db.tableFood_headers = {0,50,75,100,130}
 module.db.tableFlask =  not ExRT.isClassic and {
@@ -74,6 +74,27 @@ module.db.tablePotion = {
 	[250873]=true,	--Invis
 	[250878]=true,	--Run haste
 	[251143]=true,	--Fall
+
+	[307159]=true,	--Agi
+	[307162]=true,	--Int
+	[307163]=true,	--Stam
+	[307164]=true,	--Str
+	[307160]=true,	--Armor
+
+	[307161]=true,	--Mana sleep
+	[307194]=true,	--Mana+hp
+	[307193]=true,	--Mana
+
+	[307497]=true,	--Potion of Deathly Fixation
+	[307494]=true,	--Potion of Empowered Exorcisms
+	[307496]=true,	--Potion of Divine Awakening
+	[307495]=true,	--Potion of Phantom Fire
+	[322302]=true,	--Potion of Sacrificial Anima
+	[344314]=true,	--Run
+	[307199]=true,	--Potion of Soul Purity
+	[342890]=true,	--Potion of Unhindered Passing
+	[307196]=true,	--Potion of Shadow Sight
+	[307195]=true,	--Invis
 }
 module.db.hsSpells = {
 	[6262] = true,
@@ -83,6 +104,8 @@ module.db.hsSpells = {
 	--[188018] = true,
 	[250870] = true,
 	[301308] = true,
+
+	[307192] = true,
 }
 module.db.raidBuffs = {
 	{ATTACK_POWER_TOOLTIP or "AP","WARRIOR",6673,264761},
@@ -126,7 +149,51 @@ module.db.tableVantus = {
 	[313551] = 10,
 	[313554] = 11,
 	[313556] = 12,
+
+	--CN
+	[311445] = 1,
+	[334132] = 2,
+	[311448] = 3,
+	[311446] = 4,
+	[311447] = 5,
+	[311449] = 6,
+	[311450] = 7,
+	[311451] = 8,
+	[311452] = 9,
+	[334131] = 10,
 }
+
+module.db.minFoodLevelToActual = {
+	[100] = 100,
+	[125] = 130,
+}
+
+if ExRT.is90 and UnitLevel'player' > 50 then
+	module.db.tableFood = {
+	--Haste		Mastery		Crit		Versa		Int		Str 		Agi		Stam		Stam		Special
+	[308488]=30,	[308506]=30,	[308434]=30,	[308514]=30,							[308525]=30,			[308637]=30,
+	}
+	module.db.tableFood_headers = {0,30}
+
+	module.db.tableFlask = {
+	--Stamina,	Main stat,
+	[307187]=70,	[307185]=70,	[307166]=70,
+	}
+	module.db.tableFlask_headers = {0,70}
+
+	for i=1,#module.db.raidBuffs do
+		module.db.raidBuffs[i][4] = nil
+	end
+
+	module.db.minFoodLevelToActual = {
+		[100] = 20,
+		[125] = 30,
+	}
+	module.db.tableInt = {[1459]=true,}
+	module.db.tableStamina = {[21562]=true,}
+	module.db.tableAP = {[6673]=true,}
+end
+
 
 module.db.classicBuffs = {
 	{"druid","Druid",136078,{[21850]=7,[21849]=6,[1126]=1,[5232]=2,[5234]=4,[6756]=3,[8907]=5,[9884]=6,[9885]=7,}},	--Gift of the Wild
@@ -163,12 +230,9 @@ module.db.RaidCheckReadyCheckHideSchedule = nil
 
 module.db.tableRunes = {[224001]=15,[270058]=60,[317065]=60,}
 
-module.db.minFoodLevelToActual = {
-	[100] = 100,
-	[125] = 130,
-}
-
 module.db.durability = {}
+module.db.oil = {}
+module.db.kit = {}
 
 local IsSendFoodByMe,IsSendFlaskByMe,IsSendRunesByMe,IsSendBuffsByMe = nil
 
@@ -620,7 +684,7 @@ local function GetRaidBuffs(checkType)
 			if f[k] > 0 and f[-k] then
 				isAnyBuff = false
 				result = result .. buffsList[k][1] .. " ("..f[k].."), "
-			elseif f[buffsListLen + k] > 0 and not f[-k] and UnitLevel'player' >= 120 then	--check for minor buffs (7%), but only in BfA actually
+			elseif f[buffsListLen + k] > 0 and not f[-k] and ((not ExRT.is90 and UnitLevel'player' >= 120) or (ExRT.is90 and UnitLevel'player' == 50)) then	--check for minor buffs (7%), but only in BfA actually
 				isAnyBuff = false
 				result = result .. buffsList[k][1] .. " ("..f[buffsListLen + k].."), "				
 			end
@@ -643,38 +707,38 @@ module.GetRaidBuffs = GetRaidBuffs
 function module.options:Load()
 	self:CreateTilte()
 
-	self.food = ELib:Button(self,L.raidcheckfood):Size(230,20):Point(5,-30):OnClick(function() GetFood() end)
+	self.food = ELib:Button(self,L.raidcheckfood):Size(230,20):Point(15,-30):OnClick(function() GetFood() end)
 	self.food.txt = ELib:Text(self,"/rt food",10):Size(100,20):Point("LEFT",self.food,"RIGHT",5,0)
 	
 	self.foodToChat = ELib:Button(self,L.raidcheckfoodchat):Size(230,20):Point("LEFT",self.food,"RIGHT",71,0):OnClick(function() GetFood(1) end)
 	self.foodToChat.txt = ELib:Text(self,"/rt foodchat",10):Size(100,20):Point("LEFT",self.foodToChat,"RIGHT",5,0)
 
-	self.flask = ELib:Button(self,L.raidcheckflask):Size(230,20):Point(5,-55):OnClick(function() GetFlask() end)
+	self.flask = ELib:Button(self,L.raidcheckflask):Size(230,20):Point(15,-55):OnClick(function() GetFlask() end)
 	self.flask.txt = ELib:Text(self,"/rt flask",10):Size(100,20):Point("LEFT",self.flask,"RIGHT",5,0)
 	
 	self.flaskToChat = ELib:Button(self,L.raidcheckflaskchat):Size(230,20):Point("LEFT",self.flask,"RIGHT",71,0):OnClick(function() GetFlask(1) end)
 	self.flaskToChat.txt = ELib:Text(self,"/rt flaskchat",10):Size(100,20):Point("LEFT",self.flaskToChat,"RIGHT",5,0)
 	
-	self.runes = ELib:Button(self,L.RaidCheckRunesCheck):Size(230,20):Point(5,-80):OnClick(function() GetRunes() end)
+	self.runes = ELib:Button(self,L.RaidCheckRunesCheck):Size(230,20):Point(15,-80):OnClick(function() GetRunes() end)
 	self.runes.txt = ELib:Text(self,"/rt check r",10):Size(60,22):Point("LEFT",self.runes,"RIGHT",5,0)
 	
 	self.runesToChat = ELib:Button(self,L.RaidCheckRunesChat):Size(230,20):Point("LEFT",self.runes,"RIGHT",71,0):OnClick(function() GetRunes(1) end)
 	self.runesToChat.txt = ELib:Text(self,"/rt check rc",10):Size(100,22):Point("LEFT",self.runesToChat,"RIGHT",5,0)
 
-	self.vantusrunes = ELib:Button(self,L.RaidCheckVRunesCheck):Size(230,20):Point(5,-105):OnClick(function() GetVRunes() end)
+	self.vantusrunes = ELib:Button(self,L.RaidCheckVRunesCheck):Size(230,20):Point(15,-105):OnClick(function() GetVRunes() end)
 	self.vantusrunes.txt = ELib:Text(self,"/rt check v",10):Size(60,22):Point("LEFT",self.vantusrunes,"RIGHT",5,0)
 	
 	self.vantusrunesToChat = ELib:Button(self,L.RaidCheckVRunesChat):Size(230,20):Point("LEFT",self.vantusrunes,"RIGHT",71,0):OnClick(function() GetVRunes(1) end)
 	self.vantusrunesToChat.txt = ELib:Text(self,"/rt check vc",10):Size(100,22):Point("LEFT",self.vantusrunesToChat,"RIGHT",5,0)
 
-	self.raidbuffs = ELib:Button(self,L.RaidCheckBuffs):Size(230,20):Point(5,-130):OnClick(function() GetRaidBuffs() end)
+	self.raidbuffs = ELib:Button(self,L.RaidCheckBuffs):Size(230,20):Point(15,-130):OnClick(function() GetRaidBuffs() end)
 	self.raidbuffs.txt = ELib:Text(self,"/rt check b",10):Size(60,22):Point("LEFT",self.raidbuffs,"RIGHT",5,0)
 	
 	self.raidbuffsToChat = ELib:Button(self,L.RaidCheckBuffsToChat):Size(230,20):Point("LEFT",self.raidbuffs,"RIGHT",71,0):OnClick(function() GetRaidBuffs(1) end)
 	self.raidbuffsToChat.txt = ELib:Text(self,"/rt check bc",10):Size(100,22):Point("LEFT",self.raidbuffsToChat,"RIGHT",5,0)
 
 	self.level2optLine = CreateFrame("Frame",nil,self)
-	self.level2optLine:SetPoint("TOPLEFT",0,-155)
+	self.level2optLine:SetPoint("TOPLEFT",10,-155)
 	self.level2optLine:SetSize(1,1)	
 
 	self.chkSlak = ELib:Check(self,L.raidcheckslak,VExRT.RaidCheck.ReadyCheck):Point("TOPLEFT",self.level2optLine,7,0):OnClick(function(self) 
@@ -805,16 +869,16 @@ function module.options:Load()
 	self.hsToChat = ELib:Button(self,L.raidcheckHSLastPullToChat):Size(230,20):Point("LEFT",self.hs,"RIGHT",71,0):OnClick(function() GetHs(1) end):Run(function(s,a) if a then s:Disable() end end,not VExRT.RaidCheck.PotionCheck)
 	
 	self.optReadyCheckFrame = CreateFrame("Frame",nil,self)
-	self.optReadyCheckFrame:SetSize(650,145)
-	self.optReadyCheckFrame:SetBackdrop({bgFile = "Interface/Tooltips/UI-Tooltip-Background",edgeFile = ExRT.F.defBorder,tile = false,edgeSize = 8})
-	self.optReadyCheckFrame:SetBackdropColor(0,0,0,0.3)
-	self.optReadyCheckFrame:SetBackdropBorderColor(.24,.25,.30,0)
-	ELib:Border(self.optReadyCheckFrame,2,.24,.25,.30,1)
-	self.optReadyCheckFrame:SetPoint("TOP",0,-470)
+	self.optReadyCheckFrame:SetSize(688,145)
+	self.optReadyCheckFrame:SetPoint("TOP",0,-480)
 
-	self.optReadyCheckFrameHeader = ELib:Text(self.optReadyCheckFrame,L.raidcheckReadyCheck):Size(550,20):Point("BOTTOMLEFT",self.optReadyCheckFrame,"TOPLEFT",10,1):Bottom()
+	ELib:DecorationLine(self):Point("BOTTOM",self.optReadyCheckFrame,"TOP",0,0):Point("LEFT",self):Point("RIGHT",self):Size(0,1)
 
-	self.chkReadyCheckFrameEnable = ELib:Check(self.optReadyCheckFrame,L.senable,VExRT.RaidCheck.ReadyCheckFrame):Point(15,-10):OnClick(function(self) 
+	self.optReadyCheckFrameHeader = ELib:Text(self.optReadyCheckFrame,L.raidcheckReadyCheck):Point("BOTTOMLEFT",self.optReadyCheckFrame,"TOPLEFT",10,3):Bottom():Color()
+
+	ELib:Text(self.optReadyCheckFrame,"/rt check",10):Point("BOTTOMLEFT",self.optReadyCheckFrameHeader,"BOTTOMRIGHT",5,0)
+
+	self.chkReadyCheckFrameEnable = ELib:Check(self.optReadyCheckFrame,L.Enable,VExRT.RaidCheck.ReadyCheckFrame):Point(15,-10):AddColorState():OnClick(function(self) 
 		if self:GetChecked() then
 			module:RegisterEvents('READY_CHECK_FINISHED','READY_CHECK_CONFIRM')
 			VExRT.RaidCheck.ReadyCheckFrame = true
@@ -970,6 +1034,91 @@ do
 	end
 end
 
+local inspectScantip = CreateFrame("GameTooltip", "ExRTRaidCheckScanningTooltip", nil, "GameTooltipTemplate")
+inspectScantip:SetOwner(UIParent, "ANCHOR_NONE")
+
+do
+	local KitSlots = {
+		5,	--INVSLOT_CHEST
+		7,	--INVSLOT_LEGS
+		10,	--INVSLOT_HAND
+		8,	--INVSLOT_FEET
+	}
+	local L_EncName = "^"..L.RaidCheckReinforced
+	if ExRT.locale == "koKR" then
+		L_EncName = "%([^%)]+%+%d+%) %(%d+"
+	elseif ExRT.locale ~= "ruRU" and ExRT.locale ~= "enGB" and ExRT.locale ~= "enUS" then
+		L_EncName = "%(%+%d+[^%)]+%) %(%d+"
+	end
+
+	function module:KitCheck()
+		local kitNow, kitMax = 0, 4
+		for _,itemSlotID in pairs(KitSlots) do
+			inspectScantip:SetInventoryItem("player", itemSlotID)
+
+			for j=2, inspectScantip:NumLines() do
+				local tooltipLine = _G["ExRTRaidCheckScanningTooltipTextLeft"..j]
+				local text = tooltipLine:GetText()
+				if text and text ~= "" then
+					if text:find(L_EncName) then
+						kitNow = kitNow + 1
+						break
+					end
+				end
+			end
+
+			inspectScantip:ClearLines()
+		end
+		return kitNow, kitMax
+	end
+end
+
+do
+	local OilSlots = {
+		16,	--INVSLOT_MAINHAND
+		17,	--INVSLOT_OFFHAND
+	}
+	local oilTypes = nil
+	function module:OilCheck()
+		if not oilTypes then
+			oilTypes = {
+				{GetSpellInfo(320798),320798},
+				{GetSpellInfo(321389),321389},
+				{GetSpellInfo(322762),322762},
+				{GetSpellInfo(322763),322763},
+				{GetSpellInfo(295623),33757},
+				{GetSpellInfo(194084),318038},
+			}
+			for i=#oilTypes,1,-1 do
+				if not oilTypes[i][1] then
+					tremove(oilTypes,i)
+				end
+			end
+		end
+
+		for _,itemSlotID in pairs(OilSlots) do
+			inspectScantip:SetInventoryItem("player", itemSlotID)
+
+			for j=2, inspectScantip:NumLines() do
+				local tooltipLine = _G["ExRTRaidCheckScanningTooltipTextLeft"..j]
+				local text = tooltipLine:GetText()
+				if text and text ~= "" then
+					for i=1,#oilTypes do
+						if text:find("^"..oilTypes[i][1]) then
+							inspectScantip:ClearLines()
+							return oilTypes[i][2]
+						end
+					end
+				end
+			end
+
+			inspectScantip:ClearLines()
+		end
+		
+		return 0
+	end
+end
+
 function module:timer(elapsed)
 	if VExRT.RaidCheck.PotionCheck then
 		if not module.db.isEncounter and IsEncounterInProgress() then
@@ -1072,8 +1221,25 @@ if ExRT.isClassic then
 	RCW_liveToClassicDiff = RCW_liveToClassicDiff + wideDiff
 end
 
+local RCW_liveToslDiff = 0
+if ExRT.is90 and UnitLevel'player' > 50 then
+	tremove(RCW_iconsList,3)
+	tremove(RCW_iconsListHeaders,3)
+	tremove(RCW_iconsListDebugIcons,3)
+
+	tinsert(RCW_iconsList,7,'oil')
+	tinsert(RCW_iconsListHeaders,7,WEAPON)
+	tinsert(RCW_iconsListDebugIcons,7,463543)
+
+	tinsert(RCW_iconsList,7,'kit')
+	tinsert(RCW_iconsListHeaders,7,BONUS_ARMOR)
+	tinsert(RCW_iconsListDebugIcons,7,3528447)
+
+	RCW_liveToslDiff = 30
+end
+
 module.frame = ELib:Template("ExRTDialogModernTemplate",UIParent)
-module.frame:SetSize(430+(ExRT.isClassic and 30*RCW_liveToClassicDiff or 0),100)
+module.frame:SetSize(430+(ExRT.isClassic and 30*RCW_liveToClassicDiff or 0)+RCW_liveToslDiff,100)
 module.frame:SetPoint("CENTER",UIParent,"CENTER",0,0)
 module.frame:SetFrameStrata("TOOLTIP")
 module.frame:EnableMouse(true)
@@ -1279,7 +1445,7 @@ function module.frame:Create()
 		else
 			line:SetPoint("TOPLEFT", module.frame.lines[i-1], "BOTTOMLEFT", 0, -0)
 		end
-		line:SetSize(420+(ExRT.isClassic and 30*RCW_liveToClassicDiff or 0),14)
+		line:SetSize(420+(ExRT.isClassic and 30*RCW_liveToClassicDiff or 0)+RCW_liveToslDiff,14)
 	
 		line.name = ELib:Text(line,"raid"..i):Size(130,12):Point("LEFT",20,0):Font(ExRT.F.defFont,12):Color():Shadow()
 	
@@ -1725,7 +1891,7 @@ function module.frame:UpdateData(onlyLine)
 						line.food.texture:SetTexture(136000)
 						if type(val)~="number" then
 							val = ""
-						elseif val >= 100 then
+						elseif (not ExRT.is90 and val >= 100) or (ExRT.is90 and val >= 30) then
 							line.food.text:SetTextColor(0,1,0)
 						else
 							line.food.text:SetTextColor(1,0,0)
@@ -1762,7 +1928,7 @@ function module.frame:UpdateData(onlyLine)
 						
 						frame.texture:SetTexture(icon)
 						if type(val)=='number' then
-							if val >= 360 then
+							if (not ExRT.is90 and val >= 360) or (ExRT.is90 and val >= 70) then
 								frame.text:SetTextColor(0,1,0)
 							else
 								frame.text:SetTextColor(1,1,0)
@@ -1794,7 +1960,7 @@ function module.frame:UpdateData(onlyLine)
 						line.vantus.text:SetText("")
 						
 						line.vantus.tooltip = i
-					elseif module.db.tableRunes[spellId] then
+					elseif module.db.tableRunes[spellId] and line.rune then
 						local val = module.db.tableRunes[spellId]
 						
 						line.rune.texture:SetTexture((spellId == 270058 or spellId == 317065) and 840006 or icon)
@@ -1844,6 +2010,42 @@ function module.frame:UpdateData(onlyLine)
 						line.dur.bigText:SetTextColor(1,1,0)
 					else
 						line.dur.bigText:SetTextColor(1,1,1)
+					end
+				end
+				if line.kit and not self.isTest then
+					local durTab, dur = module.db.kit[line.unit_name]
+					if durTab and (durTab.time + (line.rc_status ~= 4 and 60 or 600) > currTime) then
+						dur = durTab.kit
+					end
+					line.kit.bigText:SetText(dur or "-")
+					
+					local kNow,kMax = (dur or ""):match("(%d+)/(%d+)")
+
+					if not kNow or not kMax or kNow == kMax then
+						line.kit.bigText:SetTextColor(1,1,1)
+					elseif kNow == "0" then
+						line.kit.bigText:SetTextColor(1,0,0)
+					else
+						line.dur.bigText:SetTextColor(1,1,0)
+					end
+				end
+				if line.oil and not self.isTest then
+					local durTab, oil = module.db.oil[line.unit_name]
+					if durTab and (durTab.time + (line.rc_status ~= 4 and 60 or 600) > currTime) then
+						oil = durTab.oil
+					end
+					if not oil then
+						line.oil.bigText:SetText("-")
+					elseif oil == "0" then
+
+					else
+						local texture = select(3,GetSpellInfo(tonumber(oil)))
+						if oil == "320798" then texture = 463543
+						elseif oil == "321389" then texture = 463544
+						elseif oil == "322762" then texture = 3528422
+						elseif oil == "322763" then texture = 3528423 end
+						line.oil.texture:SetTexture(texture)
+						line.oil.tooltip = "spell:"..oil
 					end
 				end
 	
@@ -1960,6 +2162,9 @@ function module:ReadyCheckWindow(starter,isTest,manual)
 	if manual then
 		for i=1,#self.frame.lines do 
 			self.frame.lines[i].rc_status = 4
+		end
+		if ((ExRT.is90 and UnitLevel'player' >= 50) or (not ExRT.is90 and UnitLevel'player' >= 120)) and not ExRT.isClassic then
+			ExRT.F.SendExMsg("raidcheckreq","REQ\t1")
 		end
 	end
 	self.frame:UpdateData()
@@ -2098,7 +2303,10 @@ do
 			module.main:READY_CHECK_CONFIRM(ExRT.F.delUnitNameServer(starter),true,isTest)
 		end
 		if not isTest then
-			ExRT.F.SendExMsg("raidcheck","DUR\t"..ExRT.V.."\t"..format("%.2f",module:DurabilityCheck()))
+			ExRT.F.SendExMsg("raidcheck","DUR\t"..ExRT.V.."\t"..format("%.2f",module:DurabilityCheck())..
+				(ExRT.is90 and not ExRT.isClassic and "\tKIT\t"..format("%d/%d",module:KitCheck()) or "")..
+				(ExRT.is90 and not ExRT.isClassic and "\tOIL\t"..format("%d",module:OilCheck()) or "")
+			)
 		end
 	end
 end
@@ -2134,6 +2342,8 @@ do
 	end
 end
 
+module.db.prevReqAntispam = 0
+
 function module:addonMessage(sender, prefix, type, ver, ...)
 	if prefix == "raidcheck" then
 		if sender then
@@ -2147,6 +2357,23 @@ function module:addonMessage(sender, prefix, type, ver, ...)
 				}
 				local shortName = ExRT.F.delUnitNameServer(sender)
 				module.db.durability[shortName] = module.db.durability[sender]
+
+				for i=2, select('#', ...), 2 do
+					local key,val = select(i, ...)
+					if key == "KIT" then
+						module.db.kit[sender] = {
+							time = time(),
+							kit = val,
+						}
+						module.db.kit[shortName] = module.db.kit[sender]
+					elseif key == "OIL" then
+						module.db.oil[sender] = {
+							time = time(),
+							oil = val,
+						}
+						module.db.oil[shortName] = module.db.oil[sender]
+					end
+				end
 
 				local line = RCW_UnitToLine[shortName]
 				if line then
@@ -2178,6 +2405,21 @@ function module:addonMessage(sender, prefix, type, ver, ...)
 				elseif type == "BUFFS" then
 					IsSendBuffsByMe = nil
 				end
+			end
+		end
+	elseif prefix == "raidcheckreq" then
+		if type == "REQ" then
+			if ver == "1" then
+				local currTime = GetTime()
+				if currTime - module.db.prevReqAntispam < 300 then
+					return
+				end
+				module.db.prevReqAntispam = currTime
+
+				ExRT.F.SendExMsg("raidcheck","DUR\t"..ExRT.V.."\t"..format("%.2f",module:DurabilityCheck())..
+					(ExRT.is90 and not ExRT.isClassic and "\tKIT\t"..format("%d/%d",module:KitCheck()) or "")..
+					(ExRT.is90 and not ExRT.isClassic and "\tOIL\t"..format("%d",module:OilCheck()) or "")
+				)
 			end
 		end
 	end

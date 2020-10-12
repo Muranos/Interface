@@ -4,7 +4,7 @@
 local ADDON_NAME, Addon = ...
 local ThreatPlates = Addon.ThreatPlates
 
-local Widget = Addon.Widgets:NewWidget("Quest")
+local Widget = (Addon.CLASSIC and {}) or Addon.Widgets:NewWidget("Quest")
 
 ---------------------------------------------------------------------------------------------------
 -- Imported functions and constants
@@ -461,7 +461,8 @@ function Widget:Create(tp_frame)
 end
 
 function Widget:IsEnabled()
-  return TidyPlatesThreat.db.profile.questWidget.ON or TidyPlatesThreat.db.profile.questWidget.ShowInHeadlineView
+  local db = TidyPlatesThreat.db.profile.questWidget
+  return db.ON or db.ShowInHeadlineView
 end
 
 function Widget:OnEnable()

@@ -7,10 +7,10 @@
 -- Main non-UI code
 ------------------------------------------------------------
 
-PawnVersion = 2.0329
+PawnVersion = 2.0336
 
 -- Pawn requires this version of VgerCore:
-local PawnVgerCoreVersionRequired = 1.11
+local PawnVgerCoreVersionRequired = 1.12
 
 -- Floating point math
 local PawnEpsilon = 0.0000000001
@@ -1686,8 +1686,9 @@ function PawnGetInventoryItemValues(UnitName)
 					local ScaleName, Value = Entry[1], Entry[2]
 					PawnAddStatToTable(Total, ScaleName, Value) -- (not actually stats, but the function does what we want)
 				end
-			elseif Slot == 13 or Slot == 14 then
+			elseif Slot == 13 or Slot == 14 or (VgerCore.IsClassic and Slot == 18) then
 				-- Failures to get stats from trinkets is normal, so don't bail out.  See if we can get the item level in a simpler way.
+				-- (Same with the relic slot in WoW Classic.)
 				local ItemLink = GetInventoryItemLink(UnitName, Slot)
 				if ItemLink then
 					local ThisItemLevel = GetDetailedItemLevelInfo(ItemLink)
@@ -3745,7 +3746,7 @@ function PawnIsArmorBestTypeForPlayer(Item)
 	if (not Stats.IsCloth) and (not Stats.IsLeather) and (not Stats.IsMail) and (not Stats.IsPlate) then return true end
 	-- Before level 50 it's fine if the player is wearing the wrong type of armor.
 	local Level = UnitLevel("player")
-	local IsLevelForSpecialization = (Level >= 50)
+	local IsLevelForSpecialization = Level >= PawnArmorSpecializationLevel
 	-- Now, the rest depends on the user's class.
 	local _, Class = UnitClass("player")
 	if Class == "MAGE" or Class == "PRIEST" or Class == "WARLOCK" then
@@ -3809,7 +3810,11 @@ function PawnGetMaxLevelItemIsUsefulHeirloom(Item)
 	if Item.Rarity == 6 then
 		-- This is an artifact, so the player won't get anything better until level 110 at the earliest.
 		-- (Battle for Azeroth leveling dungeons provide weapons that would be higher ilvl than most players' artifacts.)
-		return 109
+		if VgerCore.IsShadowlands then
+			return 49
+		else
+			return 109
+		end
 	elseif Item.UnenchantedStats and Item.UnenchantedStats.MaxScalingLevel then
 		-- This item scales until you reach MaxScalingLevel.
 		return Item.UnenchantedStats.MaxScalingLevel - 1

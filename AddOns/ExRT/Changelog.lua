@@ -1,6 +1,45 @@
 local GlobalAddonName, ExRT = ...
 
 ExRT.Options.Changelog = [=[
+v.4300
+* Options UI updates
+* New module: Loot History
+* New module: Raid Groups
+* Many shadowlands updates
+* Raid cooldowns: updated options UI, now more user friendly
+* Raid cooldowns: added "/rt cd" command for quick enable/disable
+* Invite tools: added option to invite via "/say" or "/yell"
+* Visual Note: added option to disable updates for specific note
+* Visual Note: added more backgrounds with solid color
+* Timers: added option for default game timer (note: this timer is inaccurate now)
+* Timers: added scale/alpha options
+* Note: added "{p2}...{/p}" template for specific boss phase
+* Note: added option to change note position in list via drag&drop
+* Note: fixed fps lag for truncated note with a lot timers
+* Note: added dbm supprort for timers with phase
+* Note: added help for some timer constructions
+* Note: added "/rt note set notename" command for quick update
+* Bonus Loot: module is planned to be removed in future updates, export data if you need to save it
+* Updated german translation
+* Minor fixes
+
+v.4300-Classic
+* Options UI updates
+* New module: Raid Groups
+* Raid cooldowns: updated options UI, now more user friendly
+* Raid cooldowns: added "/rt cd" command for quick enable/disable
+* Invite tools: added option to invite via "/say" or "/yell"
+* Visual Note: added option to disable updates for specific note
+* Visual Note: added more backgrounds with solid color
+* Timers: added scale/alpha options
+* Note: added option to change note position in list via drag&drop
+* Note: added "/rt note set notename" command for quick update
+* Updated german translation
+* Minor fixes
+
+v.4180
+* Update for possibility use addon on beta client (9.0)
+
 v.4170
 * Raid cooldowns: Added Ineffable Truth support
 * Raid check: added option to sort by class
@@ -172,4 +211,5 @@ v.3940
 
 v.3930
 * BFA Update
+
 ]=]

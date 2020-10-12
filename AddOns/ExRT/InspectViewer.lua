@@ -6,7 +6,7 @@ local parentModule = ExRT.A.Inspect
 if not parentModule then
 	return
 end
-local module = ExRT:New("InspectViewer",ExRT.L.InspectViewer,nil,true)
+local module = ExRT:New("InspectViewer",ExRT.L.InspectViewer)
 local ELib,L = ExRT.lib,ExRT.L
 
 module.db.inspectDB = parentModule.db.inspectDB
@@ -20,10 +20,15 @@ module.db.glyphsIDs = {8,9,10,11,12,13}
 module.db.statsList = {'intellect','agility','strength','haste','mastery','crit','spellpower','multistrike','versatility','armor','leech','avoidance','speed','corruption'}
 module.db.statsListName = {L.InspectViewerInt,L.InspectViewerAgi,L.InspectViewerStr,L.InspectViewerHaste,L.InspectViewerMastery,L.InspectViewerCrit,L.InspectViewerSpd, L.InspectViewerMS, L.InspectViewerVer, L.InspectViewerBonusArmor, L.InspectViewerLeech, L.InspectViewerAvoidance, L.InspectViewerSpeed,ITEM_MOD_CORRUPTION}
 
-module.db.baseStats = {	--By class IDs
+module.db.baseStats = not ExRT.is90 and {	--By class IDs
 	strength =  {	1467,	1467,	0,	0,	0,	1467,	0,	0,	0,	0,	0,	0,	},
 	agility =   {	0,	0,	1467,	1467,	0,	0,	1467,	0,	0,	1467,	1467,	1467,	},
 	intellect = {	0,	1467,	0,	0,	1467,	0,	1467,	1467,	1467,	1467,	1467,	0,	},
+		--	WARRIOR,PALADIN,HUNTER,	ROGUE,	PRIEST,	DK,	SHAMAN,	MAGE,	WARLOCK,MONK,	DRUID,	DH,
+} or {	--By class IDs
+	strength =  {	450,	450,	0,	0,	0,	450,	0,	0,	0,	0,	0,	0,	},
+	agility =   {	0,	0,	450,	450,	0,	0,	450,	0,	0,	450,	450,	450,	},
+	intellect = {	0,	450,	0,	0,	450,	0,	450,	450,	450,	450,	450,	0,	},
 		--	WARRIOR,PALADIN,HUNTER,	ROGUE,	PRIEST,	DK,	SHAMAN,	MAGE,	WARLOCK,MONK,	DRUID,	DH,
 }
 module.db.raceList = {'Human','Dwarf','Night Elf','Orc','Tauren','Undead','Gnome','Troll','Blood Elf','Draenei','Goblin','Worgen','Pandaren'}
@@ -59,9 +64,57 @@ module.db.socketsBonusIDs = {
 	[572]=true,
 	[1808]=true,
 	[4802]=true,
+	[6935]=true,
+	[6672]=true,
+	[6514]=true,
+	[4231]=true,
+	[3522]=true,
+	[3475]=true,
 }
 
-module.db.topEnchGems = {
+local IS_LOW = (ExRT.is90 and UnitLevel'player' < 50) or (not ExRT.is90 and UnitLevel'player' < 120)
+local IS_BFA = (ExRT.is90 and UnitLevel'player' < 60) or (not ExRT.is90 and UnitLevel'player' == 120)
+local IS_SL = (ExRT.is90 and UnitLevel'player' >= 60)
+
+module.db.topEnchGems = ExRT.is90 and IS_SL and {
+	[6202]="cloak:stamina:speed",
+	[6208]="cloak:stamina",
+	[6204]="cloak:stamina:leech",
+	[6203]="cloak:stamina:avoid",
+
+	[6211]="boots:agi",
+	--[6207]="boots:falldmg",
+
+	[6220]="bracer:int",
+	--[6222]="bracer:hs",
+
+	[6230]="chest:stats",
+	[6217]="chest:int:mana",
+	[6214]="chest:str:agi",
+	[6213]="chest:armor:str:agi",
+
+	[6210]="gloves:str",
+	--[6205]="gloves:gather",
+
+	[6170]="ring:vers",
+	[6168]="ring:mastery",
+	[6166]="ring:haste",
+	[6164]="ring:crit",
+
+	[6229]="weapon:stat",
+	[6228]="weapon:damage",
+	[6227]="weapon:heal",
+	[6226]="weapon:heal",
+	[6223]="weapon:damage",
+
+	[6195]="HunterWeapon:haste",
+	[6196]="HunterWeapon:crit",
+
+	[173129]="Gem:vers:16",
+	[173127]="Gem:crit:16",
+	[173130]="Gem:mastery:16",
+	[173128]="Gem:haste:16",
+} or {
 	--[5938]="Ring:Crit:27",
 	--[5939]="Ring:Haste:27",
 	--[5940]="Ring:Mastery:27",
@@ -128,7 +181,13 @@ module.db.topEnchGems = {
 
 
 module.db.achievementsList = {
-	{	--Nyalotha
+	{	--castle Nathria
+		L.S_ZoneT26CastleNathria,
+		14715,14717,14718,14356,14357,14360,14359,14358,14361,14362,14363,14364,14365,14460,14461,
+	},{	--SL 5ppl
+		(EXPANSION_NAME8 or "SL")..": "..DUNGEONS,
+		14418,14409,14411,14413,14415,14199,14325,14368,14417,14531,14532,
+	},{	--Nyalotha
 		L.S_ZoneT25Nyalotha,
 		14193,14194,14195,14196,14041,14043,14044,14045,14050,14046,14051,14048,14049,14052,14054,14055,14068,
 	},{	--EP
@@ -194,7 +253,11 @@ module.db.achievementsList = {
 	},
 }
 module.db.achievementsList_statistic = {
-	{
+	{	--CN
+		0,0,0,{14422,14419,14420,14421},{14426,14423,14424,14425},{14438,14435,14436,14437},{14434,14431,14432,14433},{14430,14427,14428,14429},{14442,14439,14440,14441},{14446,14443,14444,14445},{14450,14447,14448,14449},{14454,14451,14452,14453},{14458,14455,14456,14457},
+	},{
+		0,{14387,14388,14389},{14390,14391,14392},{14393,14394,14395},{14396,14397,14398},{14201,14202,14205},{14399,14400,14401},{14402,14403,14404},{14405,14406,14407}
+	},{
 		0,0,0,0,{14078,14079,14080,14082},{14089,14091,14093,14094},{14095,14096,14097,14098},{14101,14102,14104,14105},{14123,14124,14125,14126},{14107,14108,14109,14110},{14127,14128,14129,14130},{14111,14112,14114,14115},{14117,14118,14119,14120},{14207,14208,14210,14211},{14131,14132,14133,14134},{14135,14136,14137,14138}
 	},{	--EP
 		0,0,0,{13587,13588,13589,13590},{13595,13596,13597,13598},{13591,13592,13593,13594},{13600,13601,13602,13603},{13604,13605,13606,13607},{13608,13609,13610,13611},{13612,13613,13614,13615},{13616,13617,13618,13619},
@@ -282,7 +345,7 @@ module.db.relicLocalizated = {
 	[9] = "|cff403cff"..RELIC_SLOT_TYPE_WIND,
 }
 
-module.db.perPage = 18
+module.db.perPage = 19
 module.db.page = 1
 
 module.db.filter = nil
@@ -329,6 +392,50 @@ function module:Disable()
 	end
 end
 
+do
+	local specToStat = {
+		[62] = "int",
+		[63] = "int",
+		[64] = "int",
+		[65] = "int",
+		[66] = "str",
+		[70] = "str",
+		[71] = "str",
+		[72] = "str",
+		[73] = "str",
+		[102] = "int",
+		[103] = "agi",
+		[104] = "agi",
+		[105] = "int",
+		[250] = "str",
+		[251] = "str",
+		[252] = "str",
+		[253] = "agi",
+		[254] = "agi",
+		[255] = "agi",
+		[256] = "int",
+		[257] = "int",
+		[258] = "int",
+		[259] = "agi",
+		[260] = "agi",
+		[261] = "agi",
+		[262] = "int",
+		[263] = "agi",
+		[264] = "int",
+		[265] = "int",
+		[266] = "int",
+		[267] = "int",
+		[268] = "agi",
+		[269] = "agi",
+		[270] = "int",
+		[577] = "agi",
+		[581] = "agi",
+	}
+	function module:GetSpecMainStat(specID)
+		return specToStat[specID or 0]
+	end
+end
+
 function module.options:Load()
 	self:CreateTilte()
 
@@ -338,60 +445,61 @@ function module.options:Load()
 	end
 	
 	local function reloadChks(self)
-		local clickID = self.id
-		module.options.achievementsDropDown:Hide()
-		module.options.filterDropDown:Show()
-		module.options.chkAchivs.text:Show()
-		
-		module.options.chkItems:SetChecked(false)
-		module.options.chkTalents:SetChecked(false)
-		module.options.chkInfo:SetChecked(false)
-		module.options.chkAchivs:SetChecked(false)
-		module.options.chkArtifact:SetChecked(false)
-		module.options.chkRelics:SetChecked(false)
-		
-		self:SetChecked(true)
+		local clickID = self.selected
 		
 		if clickID == 4 then
 			module.options.achievementsDropDown:Show()
 			module.options.filterDropDown:Hide()
-			module.options.chkAchivs.text:Hide()
+		else
+			module.options.achievementsDropDown:Hide()
+			module.options.filterDropDown:Show()
 		end
+		if clickID == 6 or clickID == 7 then
+			self.selectFunc(self.tabs[5].button)
+		end
+
 		module.db.page = clickID
 		module.options.showPage()
 	end
-	
-	self.chkItems = ELib:Radio(self,L.InspectViewerItems,true):Point(10,-28):AddButton():OnClick(reloadChks)
-	self.chkItems.id = 1
-	
-	self.chkTalents = ELib:Radio(self,L.InspectViewerTalents):Point(135,-28):AddButton():OnClick(reloadChks)
-	self.chkTalents.id = 2
 
-	self.chkInfo = ELib:Radio(self,L.InspectViewerInfo):Point(385,-28+25):AddButton():OnClick(reloadChks)
-	self.chkInfo.id = 3
+	self.decorationLine = ELib:DecorationLine(self,true):Point("TOPLEFT",self,0,-16):Point("BOTTOMRIGHT",self,"TOPRIGHT",0,-36)
 
-	self.chkAchivs = ELib:Radio(self,ACHIEVEMENTS):Point(385,-28):AddButton():OnClick(reloadChks)
-	self.chkAchivs.id = 4
+	self.chkItemsTrack = ELib:Template("ExRTTrackingButtonModernTemplate",self)  
 
 	do
-		local text = TOOLTIP_AZERITE_UNLOCK_LEVELS:gsub(" %(.*","")
+		local text_az = TOOLTIP_AZERITE_UNLOCK_LEVELS:gsub(" %(.*","")
 		if ExRT.locale == "zhTW" or ExRT.locale == "zhCN" then
-			text = TOOLTIP_AZERITE_UNLOCK_LEVELS:gsub(" ?%(.*","")
+			text_az = TOOLTIP_AZERITE_UNLOCK_LEVELS:gsub(" ?%(.*","")
 		end
-		self.chkArtifact = ELib:Radio(self,text):Point(260,-28):AddButton():OnClick(reloadChks)
-		self.chkArtifact.id = 5
+
+		local text_relic = RELIC_TOOLTIP_TYPE:gsub("[%( ]*%%s[%) ]*","")
+
+		local extra_list = {}
+		local contentID
+		if (ExRT.is90 and UnitLevel'player' < 40) or (not ExRT.is90 and UnitLevel'player' < 100) then
+			contentID = 0
+		elseif (ExRT.is90 and UnitLevel'player' < 50) or (not ExRT.is90 and UnitLevel'player' < 110) then
+			contentID = 1
+			extra_list[#extra_list+1] = text_relic
+		elseif (ExRT.is90 and UnitLevel'player' < 60) or (not ExRT.is90 and UnitLevel'player' >= 110) then
+			contentID = 2
+			extra_list[#extra_list+1] = text_az
+		elseif ExRT.is90 then
+			contentID = 3
+			extra_list[#extra_list+1] = LANDING_PAGE_SOULBIND_SECTION_HEADER
+		end
+
+		self.tab = ELib:Tabs(self,0,L.InspectViewerItems.."           ",L.InspectViewerTalents,L.InspectViewerInfo,ACHIEVEMENTS,unpack(extra_list)):Point(0,-36):Size(698,1):SetTo(1)
+		self.tab:SetBackdropBorderColor(0,0,0,0)
+		self.tab:SetBackdropColor(0,0,0,0)
+
+		self.tab.buttonAdditionalFunc = reloadChks
+
+		if self.tab.tabs[5] then
+			self.tab.tabs[5].button.id = contentID == 1 and 6 or contentID == 2 and 5 or contentID == 3 and 7 or 5
+		end
 	end
 	
-	do
-		local text = RELIC_TOOLTIP_TYPE:gsub("[%( ]*%%s[%) ]*","")
-		self.chkRelics = ELib:Radio(self,text):Point(260,-28+25):AddButton():OnClick(reloadChks)
-		self.chkRelics.id = 6
-		
-		if UnitLevel'player' >= 120 then
-			self.chkRelics:Hide()
-		end
-	end
-
 	local inspectScantip = CreateFrame("GameTooltip", "ExRTInspectViewerScanningTooltip", nil, "GameTooltipTemplate")
 	inspectScantip:SetOwner(UIParent, "ANCHOR_NONE")
 
@@ -442,12 +550,24 @@ function module.options:Load()
 	
 	local colorizeLowIlvl630 = 430
 	local colorizeLowIlvl685 = 460
-	if UnitLevel'player' <= 110 then
+	if IS_LOW then
 		colorizeLowIlvl630 = 185
-		colorizeLowIlvl685 = 240	
+		colorizeLowIlvl685 = 240
+	end
+	if IS_LOW and ExRT.is90 then
+		colorizeLowIlvl630 = 50
+		colorizeLowIlvl685 = 80
+	end
+	if IS_BFA and ExRT.is90 then
+		colorizeLowIlvl630 = 100
+		colorizeLowIlvl685 = 120
+	end
+	if IS_SL then
+		colorizeLowIlvl630 = 183
+		colorizeLowIlvl685 = 213	
 	end
 	
-	self.chkItemsTrackDropDown = ELib:DropDown(self,300,7):Point(50,0):Size(50)
+	self.chkItemsTrackDropDown = ELib:DropDown(self,300,6):Point(50,0):Size(50)
 	self.chkItemsTrackDropDown:Hide()
 	self.chkItemsTrackDropDown.List = {
 		{text = L.InspectViewerColorizeNoEnch,checkable = true,checkState = module.db.colorizeNoEnch, checkFunc = function(self,checked) 
@@ -475,18 +595,21 @@ function module.options:Load()
 			VExRT.InspectViewer.ColorizeLowIlvl685 = checked
 			module.options.ReloadPage()
 		end,func = ItemsTrackDropDownClick},
+		--[[
 		{text = L.InspectViewerColorizeNoValorUpgrade,checkable = true,checkState = module.db.colorizeNoValorUpgrade, checkFunc = function(self,checked)
 			module.db.colorizeNoValorUpgrade = checked
 			VExRT.InspectViewer.ColorizeNoValorUpgrade = checked
 			module.options.ReloadPage()
 		end,func = ItemsTrackDropDownClick},
+		]]
 		{text = L.minimapmenuclose,checkable = false, padding = 16, func = function()
 			ELib:DropDownClose()
 		end},
 	}
+
 	
-	self.chkItemsTrack = ELib:Template("ExRTTrackingButtonModernTemplate",self)  
-	self.chkItemsTrack:SetPoint("TOPLEFT", 130, -28)
+	
+	self.chkItemsTrack:SetPoint("RIGHT", self.tab.tabs[1].button.Text, 0,0)
 	self.chkItemsTrack:SetScale(.8)
 	self.chkItemsTrack.Button:SetScript("OnClick",function (this)
 		if ExRT.lib.ScrollDropDown.DropDownList[1]:IsShown() then
@@ -532,7 +655,8 @@ function module.options:Load()
 		},
 	}
 	
-	self.filterDropDown = ELib:DropDown(self,250,6):Point(504,-25):Size(150):SetText(L.InspectViewerFilter)
+	self.filterDropDown = ELib:DropDown(self,250,6):Point("TOPRIGHT",-10,-16-1):Size(150):SetText(L.InspectViewerFilter)
+	self.filterDropDown:_Size(140,18)
 	
 	local EQUIPMENT_SETS_Fixed = EQUIPMENT_SETS or "EQUIPMENT SETS"
 	if EQUIPMENT_SETS_Fixed:find(":") then
@@ -609,7 +733,8 @@ function module.options:Load()
 	end
 	
 	module.db.achievementList = 1
-	self.achievementsDropDown = ELib:DropDown(self,330,#module.db.achievementsList + 2):Point(405,-25):Size(249):SetText(ACHIEVEMENT_FILTER_TITLE)
+	self.achievementsDropDown = ELib:DropDown(self,330,#module.db.achievementsList + 2):Point("TOPRIGHT",-10,-16-1):Size(249):SetText(ACHIEVEMENT_FILTER_TITLE)
+	self.achievementsDropDown:_Size(140,18)
 	self.achievementsDropDown:Hide()
 	self.achievementsDropDown.List = {}
 	for i=1,#module.db.achievementsList do
@@ -628,10 +753,10 @@ function module.options:Load()
 	end}
 
 	if ExRT.isClassic then
-		self.chkInfo:Hide()
-		self.chkAchivs:Hide()
-		self.chkArtifact:Hide()
-		self.chkRelics:Hide()
+		self.tab.tabs[2].button:Hide()
+		self.tab.tabs[3].button:Hide()
+		self.tab.tabs[4].button:Hide()
+		if self.tab.tabs[5] then self.tab.tabs[5].button:Hide() end
 		self.chkItemsTrack:Hide()
 
 		tremove(self.filterDropDown.List,3)
@@ -639,9 +764,9 @@ function module.options:Load()
 	
 		
 	self.borderList = CreateFrame("Frame",nil,self)
-	self.borderList:SetSize(648,module.db.perPage*30)
-	self.borderList:SetPoint("TOP", 0, -50)
-	ELib:Border(self.borderList,2,.24,.25,.30,1)
+	self.borderList:SetSize(698,module.db.perPage*30)
+	self.borderList:SetPoint("TOP", 0, -40)
+	ELib:Border(self.borderList,0)
 	
 	self.borderList:SetScript("OnMouseWheel",function (self,delta)
 		if delta > 0 then
@@ -712,22 +837,9 @@ function module.options:Load()
 	local RefreshArtifactCache = {}
 	
 	local function ReloadPage_CreateNowDB(db)
-		if IsInRaid() then
-			for i=1,GetNumGroupMembers() do
-				local name = GetRaidRosterInfo(i)
-				if name and not ExRT.F.table_find(db,name,1) then
-					db[#db + 1] = {name,nil,true,class = 100}
-				end
-			end
-		else
-			for _,unit in pairs({"party1","party2","party3","party4","party5","player"}) do
-				local name,realm = UnitName(unit)
-				if realm and realm ~= "" and name then
-					name = name .. "-" .. realm
-				end
-				if name and not ExRT.F.table_find(db,name,1) then
-					db[#db + 1] = {name,nil,true,class = 100}
-				end
+		for _, name in ExRT.F.IterateRoster do
+			if name ~= "" and not ExRT.F.table_find(db,name,1) then
+				db[#db + 1] = {name,nil,true,class = 100}
 			end
 		end
 	end
@@ -813,6 +925,7 @@ function module.options:Load()
 					
 					line.refreshArtifact:Hide()
 					line.updateAP:Hide()
+					line.refreshSoulbind:Hide()
 					
 					line.apinfo:SetText("")
 					for _,item in pairs(line.items) do
@@ -823,12 +936,15 @@ function module.options:Load()
 						item.azerite = nil
 						item.azeriteExtra = nil
 						item.star:Hide()
+						item.type_icon:Hide()
 					end
 					line.perksData = nil
 					
 					line.relic1:SetText("")
 					line.relic2:SetText("")
 					line.relic3:SetText("")
+
+					line.time2:SetText("")
 
 					if module.db.page == 1 then
 						line.time:Hide()
@@ -866,14 +982,15 @@ function module.options:Load()
 									itemLevel = items_ilvl[slotID] or itemLevel
 									line.items[j].text:SetText("|c"..(itemColor or "ffffffff")..(itemLevel or ""))
 									
-									if not ExRT.isClassic and ((enchantID == 0 and ((slotID == 2 and UnitLevel'player' < 120) or (slotID == 15 and UnitLevel'player' < 120) or slotID == 11 or slotID == 12 or (slotID == 16 and UnitLevel'player' == 120)) and module.db.colorizeNoEnch) or
+									if not ExRT.isClassic and (
+										(enchantID == 0 and ((slotID == 2 and IS_LOW) or (slotID == 15 and IS_LOW) or slotID == 11 or slotID == 12 or (slotID == 16) or (slotID == 17 and module.db.specHasOffhand[spec or 0]) or (slotID == 15 and IS_SL) or (slotID == 8 and module:GetSpecMainStat(spec)=="agi" and IS_SL) or (slotID == 9 and module:GetSpecMainStat(spec)=="int" and IS_SL) or (slotID == 10 and module:GetSpecMainStat(spec)=="str" and IS_SL) or (slotID == 5 and IS_SL)) and module.db.colorizeNoEnch) or
 										(items_ilvl[slotID] and items_ilvl[slotID] > 0 and items_ilvl[slotID] < colorizeLowIlvl630 and module.db.colorizeLowIlvl) or
 										(module.db.colorizeNoGems and ExRT.F.IsBonusOnItem(item,module.db.socketsBonusIDs) and IsItemHasNotGem(item)) or 
 										(module.db.colorizeNoGems and (slotID == 16 or slotID == 17) and itemQuality == 6 and IsArtifactItemHasNot3rdGem(item)) or 
-										(module.db.colorizeNoTopEnchGems and not IsTopEnchAndGems(item) and ((slotID == 2 and UnitLevel'player' < 120) or (slotID == 15 and UnitLevel'player' < 120) or slotID == 11 or slotID == 12 or (slotID == 16 and UnitLevel'player' == 120))) or
-										(module.db.colorizeNoValorUpgrade and not IsValorUpgraded(item)) or
-										(items_ilvl[slotID] and items_ilvl[slotID] > 0 and items_ilvl[slotID] < colorizeLowIlvl685 and module.db.colorizeLowIlvl685))
-										then
+										(module.db.colorizeNoTopEnchGems and not IsTopEnchAndGems(item) and ((slotID == 2 and IS_LOW) or (slotID == 15 and IS_LOW) or slotID == 11 or slotID == 12 or (slotID == 16) or (slotID == 17 and module.db.specHasOffhand[spec or 0]) or (slotID == 15 and IS_SL) or (slotID == 8 and module:GetSpecMainStat(spec)=="agi" and IS_SL) or (slotID == 9 and module:GetSpecMainStat(spec)=="int" and IS_SL) or (slotID == 10 and module:GetSpecMainStat(spec)=="str" and IS_SL) or (slotID == 5 and IS_SL))) or
+										--(module.db.colorizeNoValorUpgrade and not IsValorUpgraded(item)) or
+										(items_ilvl[slotID] and items_ilvl[slotID] > 0 and items_ilvl[slotID] < colorizeLowIlvl685 and module.db.colorizeLowIlvl685)
+									) then
 										line.items[j].border:Show()
 									end
 									
@@ -889,7 +1006,7 @@ function module.options:Load()
 						end
 					elseif module.db.page == 2 then
 						for j=1,16 do
-							ExRT.lib.ShowOrHide(line.items[j],j<=14)
+							line.items[j]:SetShown(j<=14)
 							line.items[j].border:Hide()
 						end
 						line.time:Hide()
@@ -1130,6 +1247,107 @@ function module.options:Load()
 						if weaponIlvl > 0 then
 							line.ilvl:SetFormattedText("|cffe5cc7f%d",weaponIlvl)
 						end
+					elseif module.db.page == 7 then
+						local data = VExRT.Inspect and VExRT.Inspect.Soulbinds and VExRT.Inspect.Soulbinds[name]
+
+						line.otherInfo:Hide()
+						line.otherInfoTooltipFrame:Hide()
+						
+						line.ilvl:SetText("")
+						line.time:Hide()
+
+						line.refreshSoulbind:Show()
+					
+						if data then
+							local it = 2
+
+							local timeUpdate,covenantID,soulbindID,tree = strsplit(":",data,4)
+
+							line.time2:SetText(date("%d/%m/%Y\n%H:%M:%S",tonumber(timeUpdate),nil))
+
+							do
+								local icon = line.items[it]
+								if not icon then
+									break
+								end
+
+								local texture = covenantID == "1" and "shadowlands-landingbutton-kyrian-up" or
+										covenantID == "2" and "shadowlands-landingbutton-venthyr-up" or
+										covenantID == "3" and "shadowlands-landingbutton-NightFae-up" or
+										covenantID == "4" and "shadowlands-landingbutton-necrolord-up"
+								
+								icon.texture:SetAtlas(texture)
+								icon.link = nil
+								icon.sid = nil
+								icon:Show()
+								
+								it = it + 2
+							end							
+
+							while tree do
+								local powerStr,on = strsplit(":",tree,2)
+								tree = on
+		
+								local spellID = tonumber(powerStr)
+								if spellID then
+									if spellID ~= 0 then
+										local icon = line.items[it]
+										if not icon then
+											break
+										end
+	
+										local texture = select(3,GetSpellInfo(spellID))
+										
+										icon.texture:SetTexture(texture)
+										icon.link = "spell:"..spellID
+										icon.sid = nil
+										icon:Show()
+										
+										it = it + 1
+									end
+								else
+									local conduitID,conduitRank,conduitType = strsplit("-",powerStr,3)
+									
+									if conduitID and conduitRank then
+										conduitID = tonumber(conduitID) or 0
+										conduitRank = tonumber(conduitRank) or 0
+										spellID = C_Soulbinds.GetConduitSpellID(conduitID,conduitRank)
+			
+										local icon = line.items[it]
+										if not icon then
+											break
+										end
+	
+										local texture = select(3,GetSpellInfo(spellID))
+										
+										icon.texture:SetTexture(texture)
+										icon.link = "spell:"..spellID
+										icon.sid = nil
+										icon.text:SetText(conduitRank)
+										icon:Show()
+
+										if conduitType then
+											local atlas
+											conduitType = tonumber(conduitType)
+											if conduitType == Enum.SoulbindConduitType.Potency then
+												atlas = "Soulbinds_Tree_Conduit_Icon_Attack"
+											elseif conduitType == Enum.SoulbindConduitType.Endurance then
+												atlas = "Soulbinds_Tree_Conduit_Icon_Protect"
+											elseif conduitType == Enum.SoulbindConduitType.Finesse then
+												atlas = "Soulbinds_Tree_Conduit_Icon_Utility"
+											end
+
+											if atlas then
+												icon.type_icon:SetAtlas(atlas)
+												icon.type_icon:Show()
+											end
+										end
+										
+										it = it + 1
+									end
+								end
+							end
+						end
 					end
 					
 					local cR,cG,cB = ExRT.F.classColorNum(class)
@@ -1204,41 +1422,17 @@ function module.options:Load()
 	end
 	
 	function module.options.RaidIlvl()
-		local n = GetNumGroupMembers() or 0
-		local isRaid = IsInRaid()
 		local gMax = ExRT.F.GetRaidDiffMaxGroup()
 		local ilvl = 0
 		local countPeople = 0
-		if not isRaid then
-			for i=1,5 do
-				local unit = "party"..i
-				if i==5 then unit = "player" end
-				local name,realm = UnitName(unit)
-				if name then
-					if realm and realm ~= "" then
-						name = name .."-"..realm
-					end
-					if module.db.inspectDB[name] and module.db.inspectDB[name].ilvl and module.db.inspectDB[name].ilvl >= 1 then
-						countPeople = countPeople + 1
-						ilvl = ilvl + module.db.inspectDB[name].ilvl
-					end
-				end
-			end
-		else
-			if GetNumGroupMembers() == 0 then
-				NoIlvl()
-				return
-			end
-			for i=1,n do
-				local name,_,subgroup = GetRaidRosterInfo(i)
-				if name and subgroup <= gMax then
-					if module.db.inspectDB[name] and module.db.inspectDB[name].ilvl and module.db.inspectDB[name].ilvl >= 1 then
-						countPeople = countPeople + 1
-						ilvl = ilvl + module.db.inspectDB[name].ilvl
-					end
-				end
+
+		for _, name, subgroup in ExRT.F.IterateRoster do
+			if subgroup <= gMax and module.db.inspectDB[name] and module.db.inspectDB[name].ilvl and module.db.inspectDB[name].ilvl >= 1 then
+				countPeople = countPeople + 1
+				ilvl = ilvl + module.db.inspectDB[name].ilvl
 			end
 		end
+
 		if countPeople == 0 then
 			NoIlvl()
 			return
@@ -1408,9 +1602,24 @@ function module.options:Load()
 			RefreshArtifactCache[ unit ] = true
 		end
 	end	
+
+	local function Lines_UpdateSoulbindButton_OnClick(self)
+		local t = GetTime()
+		if self.prev and (t - self.prev < 5) then
+			return
+		end
+		self.prev = t
+		local unit = self:GetParent().unit
+		if unit then
+			parentModule:SoulbindReq(unit)
+			self:SetAlpha(0)
+			C_Timer.NewTimer(2,function()
+				self:SetAlpha(1)
+				module.options:showPage()
+			end)
+		end	  
+	end
 		
-	local IconBackDrop = {bgFile = "Interface/Tooltips/UI-Tooltip-Background", edgeFile = "Interface/Tooltips/UI-Tooltip-Border", tile = true, tileSize = 16, edgeSize = 16, insets = { left = 4, right = 4, top = 4, bottom = 4 }}
-	
 	local function Line_OnEnter(self)
 
 	end
@@ -1422,39 +1631,30 @@ function module.options:Load()
 	for i=1,module.db.perPage do
 		local line = CreateFrame("Frame",nil,self.borderList)
 		self.lines[i] = line
-		line:SetSize(625,30)
+		line:SetSize(625+20,30)
 		line:SetPoint("TOPLEFT",0,-(i-1)*30)
 		
-		line.name = ELib:Text(line,"Name",11):Color():Point(5,0):Size(94,30):Shadow()
+		line.name = ELib:Text(line,"Name",11):Color():Point(15,0):Size(109,30):Shadow()
 		
-		line.class = ELib:Icon(line,nil,24):Point(100,-3)
+		line.class = ELib:Icon(line,nil,24):Point(125,-3)
 		
-		line.spec = ELib:Icon(line,nil,24):Point(130,-3)
+		line.spec = ELib:Icon(line,nil,24):Point("LEFT",line.class,30,0)
 		line.spec:SetScript("OnEnter",Lines_SpecIcon_OnEnter)
 		line.spec:SetScript("OnLeave",GameTooltip_Hide)
 		
-		line.apinfo = ELib:Text(line,"",9):Color():Point("LEFT",100,0):Shadow()
+		line.apinfo = ELib:Text(line,"",9):Color():Point("LEFT",125,0):Shadow()
 		
-		line.ilvl = ELib:Text(line,"630.52",11):Color():Point(160-5,0):Size(50,30):Shadow():Center()
+		line.ilvl = ELib:Text(line,"630.52",11):Color():Point(180,0):Size(50,30):Shadow():Center()
 		
 		line.items = {}
 		for j=-1,18 do
-			local item = ELib:Icon(line,nil,21,true):Point("LEFT",210+(24*(j-1)),0)
+			local item = ELib:Icon(line,nil,21,true):Point("LEFT",235+(24*(j-1)),0)
 			line.items[j] = item
 			item:SetScript("OnEnter",Lines_ItemIcon_OnEnter)
 			item:SetScript("OnLeave",Lines_ItemIcon_OnLeave)
 			item:SetScript("OnClick",Lines_ItemIcon_OnClick)
 			
 			item.text = ELib:Text(item,"",8):Color():Point("BOTTOMRIGHT",2,0):Outline()
-			
-			--[[
-			item.border = CreateFrame("Frame",nil,item)
-			item.border:SetPoint("CENTER",0,0)
-			item.border:SetSize(22+8,22+8)
-			item.border:SetBackdrop(IconBackDrop)
-			item.border:SetBackdropColor(1,0,0,.4)
-			item.border:SetBackdropBorderColor(1,0,0,1)
-			]]
 			
 			item.texture:SetTexCoord(.1,.9,.1,.9)
 
@@ -1474,6 +1674,11 @@ function module.options:Load()
 			item.star:SetTexture([[Interface\AddOns\ExRT\media\star]])
 			item.star:Hide()
 
+			item.type_icon = item:CreateTexture(nil,"ARTWORK")
+			item.type_icon:SetPoint("CENTER",item,"TOPLEFT",2,-2)
+			item.type_icon:SetSize(18,18)
+			item.type_icon:Hide()
+
 			--3176475
 
 			--item.ilvl = ELib:Text(item,"",11):Color():Point("RIGHT",item,"LEFT",-2,0):Size(0,30):Outline()
@@ -1486,7 +1691,7 @@ function module.options:Load()
 		line.relic2 = ELib:Text(line,"",11):Color():Point("RIGHT",line.items[10],"LEFT",-2,0):Size(0,30):Outline()
 		line.relic3 = ELib:Text(line,"",11):Color():Point("RIGHT",line.items[15],"LEFT",-2,0):Size(0,30):Outline()
 		
-		line.updateButton = ELib:Icon(line,[[Interface\AddOns\ExRT\media\DiesalGUIcons16x256x128]],18,true):Point(210+(24*16)+4,-8)
+		line.updateButton = ELib:Icon(line,[[Interface\AddOns\ExRT\media\DiesalGUIcons16x256x128]],18,true):Point(235+(24*16)+4,-8)
 		line.updateButton.texture:SetTexCoord(0.125,0.1875,0.5,0.625)
 		line.updateButton.texture:SetVertexColor(1,1,1,0.7)
 		line.updateButton:SetScript("OnEnter",Lines_UpdateButton_OnEnter)
@@ -1502,9 +1707,11 @@ function module.options:Load()
 		line.updateAP:SetScript("OnClick",Lines_RefreshArtifactButton_OnClick)
 		line.updateAP:Hide()
 		
-		line.time = ELib:Text(line,date("%H:%M:%S",time()),11):Color():Point(205,0):Size(80,30):Shadow():Center()
-		line.otherInfo = ELib:Text(line,"",10):Color():Point(285,0):Size(335,30):Shadow()
+		line.time = ELib:Text(line,date("%H:%M:%S",time()),11):Color():Point(230,0):Size(80,30):Shadow():Center()
+		line.otherInfo = ELib:Text(line,"",10):Color():Point(310,0):Size(335,30):Shadow()
 		
+		line.time2 = ELib:Text(line,"",10):Color():Point(180,0):Size(80,30):Shadow():Center()
+
 		line.otherInfoTooltipFrame = CreateFrame("Frame",nil,line)
 		line.otherInfoTooltipFrame:SetAllPoints(line.otherInfo)
 		line.otherInfoTooltipFrame:SetScript("OnEnter",otherInfoHover)
@@ -1516,8 +1723,16 @@ function module.options:Load()
 		line.back:SetColorTexture(1, 1, 1, 1)
 		line.back:SetGradientAlpha("HORIZONTAL", 0, 0, 0, 1, 0, 0, 0, 0)
 		
-		line.refreshArtifact = ELib:Button(line,REFRESH):Point("LEFT",220,0):Size(100,20):OnClick(Lines_RefreshArtifactButton_OnClick)
+		line.refreshArtifact = ELib:Button(line,REFRESH):Point("LEFT",245,0):Size(100,20):OnClick(Lines_RefreshArtifactButton_OnClick)
 		line.refreshArtifact:Hide()
+
+		line.refreshSoulbind = ELib:Icon(line,[[Interface\AddOns\ExRT\media\DiesalGUIcons16x256x128]],18,true):Point(235+(24*16)+4,-8)
+		line.refreshSoulbind.texture:SetTexCoord(0.125,0.1875,0.5,0.625)
+		line.refreshSoulbind.texture:SetVertexColor(1,1,1,0.7)
+		line.refreshSoulbind:SetScript("OnEnter",Lines_UpdateButton_OnEnter)
+		line.refreshSoulbind:SetScript("OnLeave",Lines_UpdateButton_OnLeave)
+		line.refreshSoulbind:SetScript("OnClick",Lines_UpdateSoulbindButton_OnClick)
+		line.refreshSoulbind:Hide()
 		
 		line:SetScript("OnEnter",Line_OnEnter)
 		line:SetScript("OnLeave",Line_OnLeave)
@@ -1539,8 +1754,6 @@ function module.options:Load()
 			for j=1,16 do
 				local frame = self.lines[i].items[j].border
 				if frame:IsVisible() then
-					--frame:SetBackdropBorderColor(1,color,color,1)
-					--frame:SetBackdropColor(1,color,color,1)
 					frame.background:SetColorTexture(1,color,color,.4)
 					
 					frame.border_top:SetColorTexture(.7,colorR,colorR,1)
@@ -1556,20 +1769,19 @@ function module.options:Load()
 	end)
 	
 		
-	self.moreInfoButton = ELib:Button(self,L.InspectViewerMoreInfo):Size(150,20):Point("TOPRIGHT",self.borderList,"BOTTOMRIGHT",2,-4):OnClick(function() module.options.moreInfoWindow:Show() end)
+	self.moreInfoButton = ELib:Button(self,L.InspectViewerMoreInfo):Size(150,20):Point("TOPRIGHT",self.borderList,"BOTTOMRIGHT",-1,1):OnClick(function() module.options.moreInfoWindow:Show() end)
 	
 	self.moreInfoWindow = ELib:Popup(L.InspectViewerMoreInfo):Size(250,170)
 	self.moreInfoWindow:SetScript("OnShow",function (self)
 		local armorCloth,armorLeather,armorMail,armorPlate = 0,0,0,0
 		local roleTank,roleMDD,roleRDD,roleHealer = 0,0,0,0
 	
-		local n = GetNumGroupMembers() or 0
 		local gMax = ExRT.F.GetRaidDiffMaxGroup()
 		local ilvl = 0
 		local countPeople = 0
-		for i=1,n do
-			local name,_,subgroup = GetRaidRosterInfo(i)
-			if name and subgroup <= gMax then
+
+		for _, name, subgroup in ExRT.F.IterateRoster do
+			if subgroup <= gMax then
 				local data = module.db.inspectDB[name]
 				if data then
 					countPeople = countPeople + 1
@@ -1656,51 +1868,24 @@ function module.options:Load()
 		ExRT.F.ScheduleTimer(module.options.showPage, 4)
 	end
 	
-	self.OnShow_disableNil = true
-	self:SetScript("OnShow",module.options.showPage)
+	function self:OnShow()
+		self:showPage()
+	end
 	module:RegisterEvents("INSPECT_READY")
-	self:showPage()
 end
 
 function ExRT.F:RaidItemLevel()
-	local n = GetNumGroupMembers() or 0
-	if GetNumGroupMembers() == 0 then
-		local name = UnitName('player')
-		if module.db.inspectDB[name] and module.db.inspectDB[name].ilvl and module.db.inspectDB[name].ilvl >= 1 then
-			return module.db.inspectDB[name].ilvl
-		end
-		return 0
-	end
-	local isRaid = IsInRaid()
 	local gMax = ExRT.F.GetRaidDiffMaxGroup()
 	local ilvl = 0
 	local countPeople = 0
-	if not isRaid then
-		for i=1,5 do
-			local unit = "party"..i
-			if i==5 then unit = "player" end
-			local name,realm = UnitName(unit)
-			if name and realm and realm ~= "" then
-				name = name.."-"..realm
-			end
-			if name then
-				if module.db.inspectDB[name] and module.db.inspectDB[name].ilvl and module.db.inspectDB[name].ilvl >= 1 then
-					countPeople = countPeople + 1
-					ilvl = ilvl + module.db.inspectDB[name].ilvl
-				end
-			end
-		end
-	else
-		for i=1,n do
-			local name,_,subgroup = GetRaidRosterInfo(i)
-			if name and subgroup <= gMax then
-				if module.db.inspectDB[name] and module.db.inspectDB[name].ilvl and module.db.inspectDB[name].ilvl >= 1 then
-					countPeople = countPeople + 1
-					ilvl = ilvl + module.db.inspectDB[name].ilvl
-				end
-			end
+
+	for _, name, subgroup in ExRT.F.IterateRoster do
+		if subgroup <= gMax and module.db.inspectDB[name] and module.db.inspectDB[name].ilvl and module.db.inspectDB[name].ilvl >= 1 then
+			countPeople = countPeople + 1
+			ilvl = ilvl + module.db.inspectDB[name].ilvl
 		end
 	end
+
 	if countPeople == 0 then
 		return 0
 	end

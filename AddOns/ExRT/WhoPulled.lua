@@ -1,8 +1,12 @@
 local GlobalAddonName, ExRT = ...
 
+if ExRT.isClassic then
+	return
+end 
+
 local VExRT = nil
 
-local module = ExRT.mod:New("WhoPulled",ExRT.L.WhoPulled,nil,true)
+local module = ExRT.mod:New("WhoPulled",ExRT.L.WhoPulled)
 local ELib,L = ExRT.lib,ExRT.L
 
 local UnitAffectingCombat, string_find = UnitAffectingCombat, string.find
@@ -35,10 +39,9 @@ function module.options:Load()
 		VExRT.WhoPulled.DisableChat = not self:GetChecked()
 	end)
 	
-	self.OnShow_disableNil = true
-	self:SetScript("OnShow",UpdatePage)
-	
-	UpdatePage()
+	function self:OnShow()
+		UpdatePage()
+	end
 end
 
 

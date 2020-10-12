@@ -65,6 +65,16 @@ module.db.raidTargets = {
 	[0x20] = 6,
 	[0x40] = 7,
 	[0x80] = 8,
+	[0x100] = 9,
+	[0x200] = 10,
+	[0x400] = 11,
+	[0x800] = 12,
+	[0x1000] = 13,
+	[0x2000] = 14,
+	[0x4000] = 15,
+	[0x8000] = 16,
+	[0x10000] = 17,
+	[0x20000] = 18,
 }
 module.db.energyLocale = {
 	[0] = "|cff69ccf0"..L.BossWatcherEnergyType0,
@@ -239,6 +249,12 @@ module.db.def_trackingDamageSpells = {
 	[206938]=1863,	--Etraeus: Shatter
 	[210546]=1872,	--Elisande: orb
 	[206370]=1866,	--Guldan: 
+
+	[326707]=2407,	--Sire Denathrius: Cleansing Pain
+	[339728]=2417,	--Stone Legion Generals: Pulverizing Meteor
+	[330712]=2398,	--Shriekwing: Bloodcurdling Shriek
+	[334948]=2412,	--The Council of Blood: Unstoppable Charge
+	[331708]=2412,	--The Council of Blood: Scarlet Letter
 	
 	--[2812]=true,	--Test
 }
@@ -345,7 +361,7 @@ end
 function module.options:Load()
 	self:CreateTilte()
 
-	self.checkEnabled = ELib:Check(self,L.senable,VExRT.BossWatcher.enabled):Point(15,-35):OnClick(function(self) 
+	self.checkEnabled = ELib:Check(self,L.Enable,VExRT.BossWatcher.enabled):Point(15,-35):AddColorState():OnClick(function(self) 
 		if self:GetChecked() then
 			module:Enable()
 		else
@@ -389,7 +405,7 @@ function module.options:Load()
 		if ExRT.Options.Frame:IsShown() then
 			module.options:SetParent(ExRT.Options.Frame)
 			module.options:ClearAllPoints()
-			module.options:SetPoint("TOPLEFT",195,-25)
+			module.options:SetPoint("TOPLEFT",ExRT.Options.Frame.ListWidth,-16)
 		end
 	end
 end
@@ -663,334 +679,7 @@ local function addReductionOnPull(unit,destGUID)
 	end
 end
 
-local BossPhasesData = {
-	[1853] = {
-		events = {"COMBAT_LOG_EVENT_UNFILTERED"},
-		func = function()
-			local _,event,_,sourceGUID,sourceName,sourceFlags,sourceFlags2,destGUID,destName,destFlags,destFlags2,spellId = CombatLogGetCurrentEventInfo()
-			if event == "SPELL_CAST_START" and spellId == 203552 then
-				active_phase = 2
-				C_Timer.After(23.7,function()
-					if active_phase then
-						active_phase = 1
-					end
-				end)
-			end
-		end,
-		names = {
-			[1] = -13916,
-			[2] = -13917,
-		},
-	},	--EN: Nethendra
-	[1873] = {
-		events = {"COMBAT_LOG_EVENT_UNFILTERED"},
-		func = function()
-			local _,event,_,sourceGUID,sourceName,sourceFlags,sourceFlags2,destGUID,destName,destFlags,destFlags2,spellId = CombatLogGetCurrentEventInfo()
-			if event == "SPELL_AURA_APPLIED" and spellId == 209915 then
-				active_phase = 1
-			elseif event == "SPELL_AURA_REMOVED" and spellId == 209915 then
-				active_phase = 2
-			end
-		end,
-		names = {
-			[1] = -13184,
-			[2] = -13192,
-		},
-	},	--EN: Illgynoth
-	[1877] = {
-		events = {{"UNIT_SPELLCAST_SUCCEEDED","boss1"}},
-		func = function(_, event, unit, _, spellId)
-			if spellId == 217368 then
-				active_phase = 2
-			end
-		end,
-		names = {
-			[1] = -13479,
-			[2] = -13488,
-		},
-	},	--EN: Cenarius
-	[1864] = {
-		events = {{"UNIT_SPELLCAST_SUCCEEDED","boss1"}},
-		func = function(_, event, unit, _, spellId)
-			if spellId == 226193 then
-				active_phase = 2
-			elseif spellId == 226185 then
-				active_phase = 3
-			end
-		end,
-		names = {
-			[1] = -12971,
-			[2] = -13152,
-			[3] = -13160,
-		},
-	},	--EN: Xavius
-	[1958] = {
-		events = {{"UNIT_SPELLCAST_SUCCEEDED","boss1"}},
-		func = function(_, event, unit, _, spellId)
-			if spellId == 229168 then
-				active_phase = 2
-			elseif spellId == 228740 then
-				active_phase = 3
-			end
-		end,
-		names = {
-			[1] = -14002,
-			[2] = -14010,
-			[3] = -14011,
-		},
-	},	--Tov: Odyn
-	[2008] = {
-		events = {{"UNIT_SPELLCAST_SUCCEEDED","boss1"}},
-		func = function(_, event, unit, _, spellId)
-			if spellId == 34098 then
-				active_phase = 2
-			elseif spellId == 228546 then
-				active_phase = 3
-			end
-		end,
-		names = {
-			[1] = -14212,
-			[2] = -14222,
-			[3] = -14224,
-		},
-	},	--Tov: Helya	
-	[1849] = {
-		events = {{"UNIT_SPELLCAST_SUCCEEDED","boss1"}},
-		func = function(_, event, unit, _, spellId)
-			if spellId == 204448 then
-				active_phase = 1
-			elseif spellId == 204459 then
-				active_phase = 2
-			end
-		end,
-		names = {
-			[1] = -12822,
-			[2] = -12859,
-		},
-	},	--NH: Scorpion
-	[1865] = {
-		events = {{"UNIT_SPELLCAST_SUCCEEDED","boss1"}},
-		func = function(_, event, unit, _, spellId)
-			if spellId == 207012 then
-				active_phase = 1
-			elseif spellId == 207011 then
-				active_phase = 2
-			elseif spellId == 207013 then
-				active_phase = 3
-			end
-		end,
-		names = {
-			[1] = GetSpellInfo(207012),
-			[2] = GetSpellInfo(207011),
-			[3] = GetSpellInfo(207013),
-		},
-	},	--NH: Anomaly	
-	[1867] = {
-		events = {{"UNIT_SPELLCAST_SUCCEEDED","boss1"}},
-		func = function(_, event, unit, _, spellId)
-			if spellId == 206570 then
-				active_phase = 1
-			elseif spellId == 206557 then
-				active_phase = 2
-			elseif spellId == 206559 then
-				active_phase = 3
-			end
-		end,
-		names = {
-			[1] = -13285,
-			[2] = -13281,
-			[3] = -13282,
-		},
-	},	--NH: Trillax
-	[1871] = {
-		events = {{"UNIT_SPELLCAST_SUCCEEDED","boss1"}},
-		func = function(_, event, unit, _, spellId)
-			if spellId == 216389 then
-				active_phase = 1
-			elseif spellId == 213867 then
-				active_phase = 2
-			elseif spellId == 213869 then
-				active_phase = 3
-			end
-		end,
-		names = {
-			[1] = -13376,
-			[2] = -13379,
-			[3] = -13380,
-		},
-	},	--NH: Aluriel
-	[1842] = {
-		events = {{"UNIT_SPELLCAST_SUCCEEDED","boss1"}},
-		func = function(_, event, unit, _, spellId)
-			if spellId == 205862 then
-				encounterSpecial.slam = (encounterSpecial.slam or 0) + 1
-				if (encounterSpecial.slam % 3) == 0 then
-					active_phase = active_phase + 1
-				end
-			end
-		end,
-		names = {
-			[1] = 1,
-			[2] = 2,
-			[3] = 3,
-			[4] = 4,
-			[5] = 5,
-			[6] = 6,
-		},		
-	},	--NH: Krosus
-	[1862] = {
-		events = {{"UNIT_SPELLCAST_SUCCEEDED","boss1"}},
-		func = function(_, event, unit, _, spellId)
-			if spellId == 206311 then
-				active_phase = 2
-				C_Timer.After(30,function()
-					if fightData then
-						active_phase = 1
-					end
-				end)
-			end
-		end,
-		names = {
-			[1] = -13552,
-			[2] = -13553,
-		},		
-	},	--NH: Tichondrius
-	[1863] = {
-		events = {{"UNIT_SPELLCAST_SUCCEEDED","boss1"}},
-		func = function(_, event, unit, _, spellId)
-			if spellId == 222130 then
-				active_phase = 2
-			elseif spellId == 222133 then
-				active_phase = 3
-			elseif spellId == 222134 then
-				active_phase = 4
-			end
-		end,
-		names = {
-			[1] = -13033,
-			[2] = -13036,
-			[3] = -13046,
-			[4] = -13053,
-		},		
-	},	--NH: Etraeus
-	[1886] = {
-		events = {{"UNIT_SPELLCAST_SUCCEEDED","boss1"},{"UNIT_SPELLCAST_SUCCEEDED","boss2"},{"UNIT_SPELLCAST_SUCCEEDED","boss3"}},
-		func = function(_, event, unit, _, spellId)
-			if ((spellId == 216830 or spellId == 216877) and unit == "boss1") or spellId == 70628 then
-				active_phase = active_phase + 1
-			end
-		end,
-		names = {
-			[1] = -13679,
-			[2] = -13681,
-			[3] = -13683,
-		},		
-	},	--NH: Telarn	
-	[1872] = {
-		events = {{"UNIT_SPELLCAST_SUCCEEDED","boss1"}},
-		func = function(_, event, unit, _, spellId)
-			if spellId == 208861 then
-				active_phase = active_phase + 1
-			end
-		end,
-		names = {
-			[1] = -13222,
-			[2] = -13235,
-			[3] = -13232,
-		},		
-	},	--NH: Elisande
-	[1866] = {
-		events = {"UNIT_SPELLCAST_SUCCEEDED"},
-		func = function(_, event, unit, _, spellId)
-			if not unit or not unit:find("^boss") then
-				return
-			elseif spellId == 118357 then
-				active_phase = 2
-			elseif spellId == 227427 then
-				C_Timer.After(7.5,function()
-					if fightData then
-						active_phase = 3
-					end
-				end)
-			elseif spellId == 211439 then
-				active_phase = 4
-			end
-		end,
-		names = {
-			[1] = -14885,
-			[2] = -14062,
-			[3] = -13145,
-			[4] = "The Demon Within",
-		},	
-	},	--NH: Guldan
-	[2037] = {
-		events = {{"UNIT_SPELLCAST_SUCCEEDED","boss1"}},
-		func = function(_, event, unit, _, spellId)
-			if spellId == 239423 then
-				active_phase = min(active_phase + 1, 3)
-			end
-		end,
-		names = {
-			[1] = -14591,
-			[2] = -14605,
-			[3] = -14609,
-		},		
-	},	--ToS: Госпожа Сашж'ин
-	[2052] = {
-		events = {{"UNIT_SPELLCAST_SUCCEEDED","boss1"},{"UNIT_SPELLCAST_CHANNEL_STOP","boss1"}},
-		func = function(_, event, unit, _, spellId)
-			if spellId == 235725 then
-				active_phase = 2
-			elseif event == "UNIT_SPELLCAST_CHANNEL_STOP" and spellId == 234891 then
-				active_phase = 1
-			end
-		end,
-		names = {
-			[1] = -14974,
-			[2] = -14975,
-		},		
-	},	--ToS: Бдительная дева
-	[2038] = {
-		events = {{"UNIT_SPELLCAST_SUCCEEDED","boss1"}},
-		func = function(_, event, unit, _, spellId)
-			if spellId == 235597 then
-				active_phase = 2
-			end
-		end,
-		names = {
-			[1] = -14709,
-			[2] = -14719,
-		},		
-	},	--ToS: Аватара Падшего
-	[2051] = {
-		events = {"COMBAT_LOG_EVENT_UNFILTERED"},
-		func = function()
-			local _,event,_,sourceGUID,sourceName,sourceFlags,sourceFlags2,destGUID,destName,destFlags,destFlags2,spellId = CombatLogGetCurrentEventInfo()
-			if event == "SPELL_CAST_SUCCESS" then
-				if spellId == 244834 then
-					active_phase = 2
-				elseif spellId == 241983 then
-					active_phase = 4
-				end
-			elseif event == "SPELL_AURA_REMOVED" then 
-				if spellId == 244834 and active_phase then
-					active_phase = 3
-				end
-			elseif event == "SPELL_CAST_START" then 
-				if spellId == 238999 and active_phase ~= 5 then
-					active_phase = 5
-				end
-			end
-		end,
-		names = {
-			[1] = -14921,
-			[2] = -15221,
-			[3] = -15229,
-			[4] = -15394,
-			[5] = -15255,
-		},
-	},	--ToS: Kj
-}
+local BossPhasesData = {}
 local BossPhasesFrame = CreateFrame("Frame")
 local BossPhasesBossmodPhaseCounter, BossPhasesBossmodPhase, BossPhasesBossmodEnabled = 1
 local BossPhasesBossmodCL
@@ -1180,66 +869,28 @@ function _BW_Start(encounterID,encounterName)
 	end
 
 	module:RegisterTimer()
-	if IsInRaid() then
-		local gMax = ExRT.F.GetRaidDiffMaxGroup()
-		for i=1,40 do
-			local name,_,subgroup,_,_,class = GetRaidRosterInfo(i)
-			if name and subgroup <= gMax then
-				_graphRaidSnapshot[#_graphRaidSnapshot + 1] = name
-				if module.db.allEnergyMode then
-					class = "ALL"
-				end
-				local energy = energyPerClass[class or "NO"]
-				if name == ExRT.SDB.charName then
-					energy = energy and energy[2]
-				else
-					energy = energy and energy[1]
-				end
-				_graphRaidEnergy[#_graphRaidSnapshot] = energy or energyPerClass_general
-				
-				local guid = UnitGUID(name)
-				if guid then
-					raidGUIDs[ guid ] = name
-					
-					addReductionOnPull(name,guid)
-					
-					fightData.other.rolesGUID[guid] = UnitGroupRolesAssigned(name)
-				end
-				
-				fightData.other.roles[name] = UnitGroupRolesAssigned(name)
-			end
+	for _, name, subgroup, class, guid, rank, level, online, isDead, combatRole in ExRT.F.IterateRoster, ExRT.F.GetRaidDiffMaxGroup() do
+		_graphRaidSnapshot[#_graphRaidSnapshot + 1] = name
+		if module.db.allEnergyMode then
+			class = "ALL"
 		end
-	else
-		for i=1,5 do
-			local unit = i==5 and "player" or "party"..i
-			local name = UnitCombatlogname(unit)
-			if name then
-				_graphRaidSnapshot[#_graphRaidSnapshot + 1] = name
-				
-				local _,class = UnitClass(unit)
-				if module.db.allEnergyMode then
-					class = "ALL"
-				end
-				local energy = energyPerClass[class or "NO"]
-				if i == 5 then
-					energy = energy and energy[2]
-				else
-					energy = energy and energy[1]
-				end
-				_graphRaidEnergy[#_graphRaidSnapshot] = energy or energyPerClass_general
-				
-				local guid = UnitGUID(name)
-				if guid then
-					raidGUIDs[ guid ] = name
-					
-					addReductionOnPull(name,guid)
-					
-					fightData.other.rolesGUID[guid] = UnitGroupRolesAssigned(name)
-				end
-				
-				fightData.other.roles[name] = UnitGroupRolesAssigned(name)
-			end
+		local energy = energyPerClass[class or "NO"]
+		if name == ExRT.SDB.charName then
+			energy = energy and energy[2]
+		else
+			energy = energy and energy[1]
 		end
+		_graphRaidEnergy[#_graphRaidSnapshot] = energy or energyPerClass_general
+		
+		if guid then
+			raidGUIDs[ guid ] = name
+			
+			addReductionOnPull(name,guid)
+			
+			fightData.other.rolesGUID[guid] = combatRole
+		end
+		
+		fightData.other.roles[name] = combatRole
 	end
 end
 
@@ -1342,26 +993,31 @@ do
 			_graphSectionTimerRounded = nowTimer
 			local data = {}
 			graphData[_graphSectionTimerRounded] = data
+			local name, _name, health, hpmax, absorbs, power, powerMax, energy, powerID
 			for i=1,#_graphRaidSnapshot do
-				local name = _graphRaidSnapshot[i]
-				local _name = i <= 7 and UnitCombatlogname(name)
+				name = _graphRaidSnapshot[i]
+				_name = i <= 7 and UnitCombatlogname(name)
 				if i > 7 or _name then
-					local health = UnitHealth(name)
-					local hpmax = UnitHealthMax(name)
-					local absorbs = UnitGetTotalAbsorbs(name)
+					health = UnitHealth(name)
+					hpmax = UnitHealthMax(name)
+					absorbs = UnitGetTotalAbsorbs(name)
+					power = UnitPower(name)
+					powerMax = UnitPowerMax(name)
 					
 					local currData = {
 						name = _name or nil,
 						health = health ~= 0 and health or nil,
 						hpmax = hpmax ~= 0 and hpmax or nil,
 						absorbs = absorbs ~= 0 and absorbs or nil,
+						power = power ~= 0 and power or nil,
+						pmax = powerMax ~=0 and powerMax or nil,
 					}
 					data[name] = currData
 
-					local energy = _graphRaidEnergy[i]
+					energy = _graphRaidEnergy[i]
 					for j=1,#energy do
-						local powerID = energy[j]
-						local power = UnitPower(name,powerID)
+						powerID = energy[j]
+						power = UnitPower(name,powerID)
 						if power ~= 0 then
 							currData[powerID] = power
 						end
@@ -3126,6 +2782,7 @@ function BWInterfaceFrameLoad()
 		end
 		return r
 	end
+	local GetTargetIconText = ExRT.F.GetRaidTargetText
 		
 	---- Locals for functions in code below
 	local SpellsPage_GetCastsNumber,AurasPage_IsAuraOn,Graph_AutoUpdateStep = nil
@@ -3324,9 +2981,9 @@ function BWInterfaceFrameLoad()
 			local name = CurrentFight.segments.phaseNames[i]
 			if type(name)=='number' then
 				if name < 0 then
-					local ej_name = EJ_GetSectionInfo(-name)
+					local ej_name = C_EncounterJournal.GetSectionInfo(-name)
 					if ej_name then
-						name = ej_name
+						name = ej_name.title
 					else
 						name = L.BossWatcherPhase.." "..i
 					end
@@ -3382,17 +3039,11 @@ function BWInterfaceFrameLoad()
 	---- Settings tab-button
 	BWInterfaceFrame.tab.tabs[11]:SetScript("OnShow",function (self)
 		if not module.options.isLoaded then
-			--if InCombatLockdown() then
-			--	print(L.SetErrorInCombat)
-			--	return
-			--end
-			module.options:Load()
-			module.options:SetScript("OnShow",nil)
-			module.options.isLoaded = true
+			module.options:GetScript("OnShow")(module.options)
 		end
 		module.options:SetParent(self)
 		module.options:ClearAllPoints()
-		module.options:SetAllPoints(self)
+		module.options:SetPoint("TOPLEFT",5,-10)
 		module.options:Show()
 	end)	
 		
@@ -3530,130 +3181,7 @@ function BWInterfaceFrameLoad()
 			end
 		end
 		
-		local EncountersPhases = {
-			[1785] = {
-				cast = {
-					[182055] = {phase = -11394},
-					[182066] = {phase = -11393},
-				},
-			},	--"Iron Reaver"
-			[1787] = {
-				chat = {
-					[181293] = {phase = -11119},
-					[181297] = {phase = -11120},
-					[181300] = {phase = -11122},
-				},
-			},	--"Kormrok"
-			[1783] = {
-				cast = {
-					[181973] = {phase = -11542},
-				},
-				aura = {
-					[181973] = {phase = 1, isFade = true,},
-				},
-			},	--"Gorefiend"
-			[1788] = {
-				cast = {
-					[181873] = {phase = 2, next = {
-						isCastStart = true,
-						time = 40,
-						phase = 1,
-					}},
-				},
-			},	--"Shadow-Lord Iskar"
-			[1794] = {
-				cast = {
-					[183023] = {phase = -11451},
-				},
-			},	--"Socrethar the Eternal"
-			[1777] = {
-				cast = {
-					[179681] = {phase = -11107},
-					[179668] = {phase = -11840, next = {
-						time = 35,
-						phase = -11095,
-					}},
-				},			
-			},	--"Fel Lord Zakuun"
-			[1784] = {
-				cast = {
-					[181718] = {phase = -11151},
-					[179986] = {phase = -11158},
-					[179991] = {phase = -11166},
-				},
-			},	--"Tyrant Velhari"
-			[1800] = {
-				hp = {
-					{hp = 0.205,phase = -11741,},
-				},
-			},	--"Xhul'horac"
-			[1795] = {
-				hp = {
-					{hp = 0.999,phase = -11207,},
-					{hp = 0.655,phase = -11219,},
-					{hp = 0.355,phase = -11245,},
-				},
-			},	--"Mannoroth"
-			[1799] = {
-				hp = {
-					{hp = 0.705,phase = -11590,},
-					{hp = 0.405,phase = -11599,},
-				},
-			},	--"Archimonde"
-			
-			--Emerald
-			
-			[1853] = {
-				cast = {
-					[203552] = {phase = -12744, isCastStart = true,},
-				},
-				aura = {
-					[203552] = {phase = 1, isFade = true,},
-				},
-			},	--"Plague Dragon": <Nythendra>
-			[1841] = {
-				aura = {
-					[198388] = {phase = -12740,},
-				},
-			},	--"Ursoc"
-			[1873] = {
-				cast = {
-					[210781] = {phase = -13192, isCastStart = true,},
-					[209915] = {phase = -13184,},
-				},
-			},	--"Il'gynoth, The Heart of Corruption"
-			[1854] = {
-				hp = {
-					{hp = 0.705,phase = 2,},
-					{hp = 0.405,phase = 3,},
-				},
-			},	--"Dragons of Nightmare"
-			[1876] = {
-				cast = {
-					[210547] = {phase = 1,},
-				}
-			},	--"Elerethe Renferal"
-			[1877] = {
-				cast = {
-					[212726] = {phase = -13487,},
-				},
-			},	--"Cenarius"
-			[1864] = {
-				hp = {
-					{hp = 0.655,phase = -13152,},
-					{hp = 0.305,phase = -13160,},
-				},
-			},	--"Xavius"
-			[1866] = {
-				hp = {
-					{hp = 0.855,phase = 1,},
-					{hp = 0.705,phase = 2,},
-					{hp = 0.555,phase = 3,},
-					{hp = 0.405,phase = 4,},
-					{hp = 0.105,phase = 5,},
-				},			
-			},	--"Guldan" [temp]
-		}
+		local EncountersPhases = {}
 		
 		TLframe.redLine = {}
 		local function CreateRedLine(i)
@@ -3701,9 +3229,9 @@ function BWInterfaceFrameLoad()
 			t.pos = t_pos
 			local phaseText = nil
 			if type(phase)=='number' and phase < 0 then
-				local name = EJ_GetSectionInfo(-phase)
+				local name = C_EncounterJournal.GetSectionInfo(-phase)
 				if name then
-					phaseText = name
+					phaseText = name.title
 				end
 			elseif type(phase)=='string' then
 				phaseText = phase
@@ -3759,9 +3287,9 @@ function BWInterfaceFrameLoad()
 						local name = CurrentFight.segments.phaseNames[prev]
 						if type(name)=='number' then
 							if name < 0 then
-								local ej_name = EJ_GetSectionInfo(-name)
+								local ej_name = C_EncounterJournal.GetSectionInfo(-name)
 								if ej_name then
-									name = ej_name
+									name = ej_name.title
 								else
 									name = L.BossWatcherPhase.." "..i
 								end
@@ -6368,6 +5896,7 @@ function BWInterfaceFrameLoad()
 				
 				GameTooltip:AddLine(L.BossWatcherBuffsAndDebuffsTooltipUptimeText..": "..format("%.2f%% (%.1f %s)",uptime*100,uptime*GetFightLength(true),L.BossWatcherBuffsAndDebuffsSecondsText))
 				GameTooltip:AddLine(L.BossWatcherBuffsAndDebuffsTooltipCountText..": "..(self.greenCount or 0))
+				GameTooltip:AddLine("Spell ID: "..(self.spellID or 0))
 				GameTooltip:Show()
 			else
 				if not self.tooltip then
@@ -6925,7 +6454,7 @@ function BWInterfaceFrameLoad()
 				
 				local raidTarget = module.db.raidTargets[ CurrentFight.dies[i][4] or 0 ]
 				if raidTarget then
-					textResult = textResult .. L.BossWatcherMarkOnDeath..": |TInterface\\TargetingFrame\\UI-RaidTargetingIcon_".. raidTarget  ..":0|t ".. string.gsub( L["raidtargeticon"..raidTarget] , "[{}]", "" ) .."\n"
+					textResult = textResult .. L.BossWatcherMarkOnDeath..": "..GetTargetIconText(raidTarget).." ".. string.gsub( L["raidtargeticon"..raidTarget] , "[{}]", "" ) .."\n"
 					reportData[4][3][#reportData[4][3]+1] = L.BossWatcherMarkOnDeath..": "..string.gsub( L["raidtargeticon"..raidTarget] , "[{}]", "" )
 				end
 				
@@ -7012,7 +6541,7 @@ function BWInterfaceFrameLoad()
 						if CurrentFight.dies[i][1]==mobGUID then
 							local raidTarget = module.db.raidTargets[ CurrentFight.dies[i][4] or 0 ]
 							if raidTarget then
-								mobsList[#mobsList][1] = "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_".. raidTarget ..":0|t "..mobsList[#mobsList][1]
+								mobsList[#mobsList][1] = GetTargetIconText(raidTarget).." "..mobsList[#mobsList][1]
 							end
 							break
 						end
@@ -7027,7 +6556,7 @@ function BWInterfaceFrameLoad()
 					if CurrentFight.dies[i][1]==mobGUID then
 						local raidTarget = module.db.raidTargets[ CurrentFight.dies[i][4] or 0 ]
 						if raidTarget then
-							mobsList[#mobsList][1] = "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_".. raidTarget ..":0|t "..mobsList[#mobsList][1]
+							mobsList[#mobsList][1] = GetTargetIconText(raidTarget).." "..mobsList[#mobsList][1]
 						end
 						break
 					end
@@ -7177,6 +6706,7 @@ function BWInterfaceFrameLoad()
 			local data = self.IndexToGUID[index]
 			GameTooltip:SetOwner(hoveredObj or self,"ANCHOR_BOTTOMLEFT")
 			GameTooltip:SetHyperlink(data[1])
+			GameTooltip:AddLine("Spell ID: "..(data[3] or 0))
 			GameTooltip:Show()
 			
 			if hoveredObj.text:IsTruncated() then
@@ -7248,7 +6778,7 @@ function BWInterfaceFrameLoad()
 					local sourceMarker = module.db.raidTargets[ data[5] or 0 ]
 					local destMarker = module.db.raidTargets[ data[6] or 0 ]
 					
-					playersCastsList.L[#playersCastsList.L + 1] = format("[%02d:%06.3f] ",time_ / 60,time_ % 60)..(sourceMarker and "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_".. sourceMarker  ..":0|t" or "")..sourceName.." "..ACTION_SPELL_SUMMON.." "..(destMarker and "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_".. destMarker  ..":0|t" or "")..destName..L.BossWatcherByText..format(" %s%s",spellTexture and "|T"..spellTexture..":0|t " or "",spellName or "???")
+					playersCastsList.L[#playersCastsList.L + 1] = format("[%02d:%06.3f] ",time_ / 60,time_ % 60)..(sourceMarker and GetTargetIconText(sourceMarker) or "")..sourceName.." "..ACTION_SPELL_SUMMON.." "..(destMarker and GetTargetIconText(destMarker) or "")..destName..L.BossWatcherByText..format(" %s%s",spellTexture and "|T"..spellTexture..":0|t " or "",spellName or "???")
 					playersCastsList.IndexToGUID[#playersCastsList.IndexToGUID + 1] = {"spell:"..data[3],time_ / fight_dur,data[3],time_}
 				end
 			end
@@ -7321,12 +6851,12 @@ function BWInterfaceFrameLoad()
 					spellToTime[spellID][#spellToTime[spellID] + 1] = time_ / fight_dur * (data[3] == 2 and -1 or 1)
 
 					local sourceMarker = module.db.raidTargets[ data[6] or 0 ]
-					playersCastsList.L[#playersCastsList.L + 1] = format("[%02d:%06.3f] ",time_ / 60,time_ % 60)..(sourceMarker and "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_".. sourceMarker  ..":0|t" or "")..sourceName..isCast..format("%s%s",spellTexture and "|T"..spellTexture..":0|t " or "",spellName or "???")
+					playersCastsList.L[#playersCastsList.L + 1] = format("[%02d:%06.3f] ",time_ / 60,time_ % 60)..(sourceMarker and GetTargetIconText(sourceMarker) or "")..sourceName..isCast..format("%s%s",spellTexture and "|T"..spellTexture..":0|t " or "",spellName or "???")
 					playersCastsList.IndexToGUID[#playersCastsList.IndexToGUID + 1] = {"spell:"..spellID,time_ / fight_dur,spellID,time_,spellToTime[spellID],data[3] == 2}
 					
 					if data[4] and data[4] ~= "" then
 						local destMarker = module.db.raidTargets[ data[5] or 0 ]
-						playersCastsList.L[#playersCastsList.L] = playersCastsList.L[#playersCastsList.L] .. " > |c"..ExRT.F.classColorByGUID(data[4])..(destMarker and "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_".. destMarker  ..":0|t" or "")..GetGUID( data[4] )..GUIDtoText(" <%s>",data[4]).."|r"
+						playersCastsList.L[#playersCastsList.L] = playersCastsList.L[#playersCastsList.L] .. " > |c"..ExRT.F.classColorByGUID(data[4])..(destMarker and GetTargetIconText(destMarker) or "")..GetGUID( data[4] )..GUIDtoText(" <%s>",data[4]).."|r"
 					
 						if data[3] == 1 then
 							stats.targets[ data[4] ] = (stats.targets[ data[4] ] or 0) + 1
@@ -8247,7 +7777,7 @@ function BWInterfaceFrameLoad()
 						local destMarker = module.db.raidTargets[ isBroke and line[8] or line[7] or 0 ]
 						
 						resultData[#resultData+1] = {
-							"[".. date("%M:%S", timestampToFightTime(line[5])) .. format(".%03d",timestampToFightTime(line[5]) * 1000 % 1000).."] |c".. ExRT.F.classColorByGUID(line[1]) ..(sourceMarker and "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_".. sourceMarker  ..":0|t" or "") .. GetGUID(line[1]) .. GUIDtoText(" (%s)",line[1]) .. "|r "..dispelOrInterrupt.." |c" ..  ExRT.F.classColorByGUID(line[2])..(destMarker and "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_".. destMarker  ..":0|t" or "").. GetGUID(line[2]) .. "'s" .. GUIDtoText(" (%s)",line[2]) .. "|r |Hspell:" .. (line[4] or 0) .. "|h" .. format("%s%s",spellDestTexture and "|T"..spellDestTexture..":0|t " or "",spellDestName or "???") .. "|h"..(brokeType or "").." "..L.BossWatcherByText.." |Hspell:" .. (line[3] or 0) .. "|h" .. format("%s%s",spellSourceTexture and "|T"..spellSourceTexture..":0|t " or "",spellSourceName or "???") .. "|h",
+							"[".. date("%M:%S", timestampToFightTime(line[5])) .. format(".%03d",timestampToFightTime(line[5]) * 1000 % 1000).."] |c".. ExRT.F.classColorByGUID(line[1]) ..(sourceMarker and GetTargetIconText(sourceMarker) or "") .. GetGUID(line[1]) .. GUIDtoText(" (%s)",line[1]) .. "|r "..dispelOrInterrupt.." |c" ..  ExRT.F.classColorByGUID(line[2])..(destMarker and GetTargetIconText(destMarker) or "").. GetGUID(line[2]) .. "'s" .. GUIDtoText(" (%s)",line[2]) .. "|r |Hspell:" .. (line[4] or 0) .. "|h" .. format("%s%s",spellDestTexture and "|T"..spellDestTexture..":0|t " or "",spellDestName or "???") .. "|h"..(brokeType or "").." "..L.BossWatcherByText.." |Hspell:" .. (line[3] or 0) .. "|h" .. format("%s%s",spellSourceTexture and "|T"..spellSourceTexture..":0|t " or "",spellSourceName or "???") .. "|h",
 							line,
 							line[5],
 							i,
@@ -8265,7 +7795,7 @@ function BWInterfaceFrameLoad()
 							local destMarker = module.db.raidTargets[ PlayerCastData[5] or 0 ]
 							subCount = subCount +1
 							resultData[#resultData+1] = {
-								"|cffff9999[".. date("%M:%S", timestampToFightTime(PlayerCastData[1])).. format(".%03d",timestampToFightTime(PlayerCastData[1]) * 1000 % 1000).."] |TInterface\\AddOns\\ExRT\\media\\DiesalGUIcons16x256x128:16:16:0:0:256:128:128:144:64:80|t |c".. ExRT.F.classColorByGUID(GUID) ..(sourceMarker and "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_".. sourceMarker  ..":0|t" or "") .. GetGUID(GUID) .. GUIDtoText(" (%s)",GUID) .. "|r "..L.BossWatcherTimeLineCast.." |Hspell:" .. (PlayerCastData[3] or 0) .. "|h" .. format("%s%s",spellSourceTexture and "|T"..spellSourceTexture..":0|t " or "",spellSourceName or "???") .. "|h"..(PlayerCastData[4] and PlayerCastData[4] ~= "" and (" > |c".. ExRT.F.classColorByGUID(PlayerCastData[4]) ..(destMarker and "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_".. destMarker  ..":0|t" or "") .. GetGUID(PlayerCastData[4]) .. GUIDtoText(" (%s)",PlayerCastData[4]) .. "|r") or ""),
+								"|cffff9999[".. date("%M:%S", timestampToFightTime(PlayerCastData[1])).. format(".%03d",timestampToFightTime(PlayerCastData[1]) * 1000 % 1000).."] |TInterface\\AddOns\\ExRT\\media\\DiesalGUIcons16x256x128:16:16:0:0:256:128:128:144:64:80|t |c".. ExRT.F.classColorByGUID(GUID) ..(sourceMarker and GetTargetIconText(sourceMarker) or "") .. GetGUID(GUID) .. GUIDtoText(" (%s)",GUID) .. "|r "..L.BossWatcherTimeLineCast.." |Hspell:" .. (PlayerCastData[3] or 0) .. "|h" .. format("%s%s",spellSourceTexture and "|T"..spellSourceTexture..":0|t " or "",spellSourceName or "???") .. "|h"..(PlayerCastData[4] and PlayerCastData[4] ~= "" and (" > |c".. ExRT.F.classColorByGUID(PlayerCastData[4]) ..(destMarker and GetTargetIconText(destMarker) or "") .. GetGUID(PlayerCastData[4]) .. GUIDtoText(" (%s)",PlayerCastData[4]) .. "|r") or ""),
 								{nil,nil,nil,PlayerCastData[2],PlayerCastData[1]},
 								PlayerCastData[1],
 								subCount,
@@ -8294,7 +7824,7 @@ function BWInterfaceFrameLoad()
 							if not findEm then
 								subCount = subCount + 1
 								resultData[#resultData+1] = {
-									"|cffff9999[".. date("%M:%S", timestampToFightTime(PlayerCastData[1])).. format(".%03d",timestampToFightTime(PlayerCastData[1]) * 1000 % 1000).."] |TInterface\\AddOns\\ExRT\\media\\DiesalGUIcons16x256x128:16:16:0:0:256:128:128:144:64:80|t |c".. ExRT.F.classColorByGUID(GUID) ..(sourceMarker and "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_".. sourceMarker  ..":0|t" or "") .. GetGUID(GUID) .. GUIDtoText(" (%s)",GUID) .. "|r "..L.BossWatcherTimeLineCast.." |Hspell:" .. (PlayerCastData[3] or 0) .. "|h" .. format("%s%s",spellSourceTexture and "|T"..spellSourceTexture..":0|t " or "",spellSourceName or "???") .. "|h" ..(PlayerCastData[4] and PlayerCastData[4] ~= "" and (" > |c".. ExRT.F.classColorByGUID(PlayerCastData[4]) ..(destMarker and "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_".. destMarker  ..":0|t" or "") .. GetGUID(PlayerCastData[4]) .. GUIDtoText(" (%s)",PlayerCastData[4]) .. "|r") or ""),
+									"|cffff9999[".. date("%M:%S", timestampToFightTime(PlayerCastData[1])).. format(".%03d",timestampToFightTime(PlayerCastData[1]) * 1000 % 1000).."] |TInterface\\AddOns\\ExRT\\media\\DiesalGUIcons16x256x128:16:16:0:0:256:128:128:144:64:80|t |c".. ExRT.F.classColorByGUID(GUID) ..(sourceMarker and GetTargetIconText(sourceMarker) or "") .. GetGUID(GUID) .. GUIDtoText(" (%s)",GUID) .. "|r "..L.BossWatcherTimeLineCast.." |Hspell:" .. (PlayerCastData[3] or 0) .. "|h" .. format("%s%s",spellSourceTexture and "|T"..spellSourceTexture..":0|t " or "",spellSourceName or "???") .. "|h" ..(PlayerCastData[4] and PlayerCastData[4] ~= "" and (" > |c".. ExRT.F.classColorByGUID(PlayerCastData[4]) ..(destMarker and GetTargetIconText(destMarker) or "") .. GetGUID(PlayerCastData[4]) .. GUIDtoText(" (%s)",PlayerCastData[4]) .. "|r") or ""),
 									{nil,nil,nil,PlayerCastData[2],PlayerCastData[1]},
 									PlayerCastData[1],
 									subCount,
@@ -10382,7 +9912,7 @@ function BWInterfaceFrameLoad()
 					local sourceMarker = module.db.raidTargets[ data[i][15] or 0 ]
 					local destMarker = module.db.raidTargets[ data[i][16] or 0 ]
 					
-					local text = HP..(sourceMarker and "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_".. sourceMarker  ..":0|t" or "")..name.." "..L.BossWatcherDeathDamage.." |T"..spellTexture..":0|t"..spellName.." "..L.BossWatcherDeathOn.." "..isCrit..amount..isCrit .. blocked .. absorbed .. overkill .. school
+					local text = HP..(sourceMarker and GetTargetIconText(sourceMarker) or "")..name.." "..L.BossWatcherDeathDamage.." |T"..spellTexture..":0|t"..spellName.." "..L.BossWatcherDeathOn.." "..isCrit..amount..isCrit .. blocked .. absorbed .. overkill .. school
 					
 					DeathTab_SetLine(i,timeText,text,1,0,0,data[i][4])
 					
@@ -10407,7 +9937,7 @@ function BWInterfaceFrameLoad()
 					
 					local sourceMarker = module.db.raidTargets[ data[i][15] or 0 ]
 					
-					local text = HP .. (sourceMarker and "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_".. sourceMarker  ..":0|t" or "")..name.." "..L.BossWatcherDeathHeal..(data[i][14] and (" ("..(ACTION_SPELL_MISSED_ABSORB and strlower(ACTION_SPELL_MISSED_ABSORB) or "absorbed")..")") or "").." |T"..spellTexture..":0|t"..spellName.." "..L.BossWatcherDeathOn.." "..isCrit..amount..isCrit .. absorbed .. overheal .. school
+					local text = HP .. (sourceMarker and GetTargetIconText(sourceMarker) or "")..name.." "..L.BossWatcherDeathHeal..(data[i][14] and (" ("..(ACTION_SPELL_MISSED_ABSORB and strlower(ACTION_SPELL_MISSED_ABSORB) or "absorbed")..")") or "").." |T"..spellTexture..":0|t"..spellName.." "..L.BossWatcherDeathOn.." "..isCrit..amount..isCrit .. absorbed .. overheal .. school
 					
 					DeathTab_SetLine(i,timeText,text,0,1,0,data[i][4])
 					
@@ -10423,7 +9953,7 @@ function BWInterfaceFrameLoad()
 					
 					local sourceMarker = module.db.raidTargets[ data[i][15] or 0 ]
 					
-					local text = (sourceMarker and "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_".. sourceMarker  ..":0|t" or "")..name.." "..(isApplied and L.BossWatcherDeathAuraAdd or L.BossWatcherDeathAuraRemove).." |T"..spellTexture..":0|t"..spellName
+					local text = (sourceMarker and GetTargetIconText(sourceMarker) or "")..name.." "..(isApplied and L.BossWatcherDeathAuraAdd or L.BossWatcherDeathAuraRemove).." |T"..spellTexture..":0|t"..spellName
 					
 					DeathTab_SetLine(i,timeText,text,1,1,0,data[i][4])
 				
@@ -10657,27 +10187,8 @@ function BWInterfaceFrameLoad()
 	tab = BWInterfaceFrame.tab.tabs[9]
 	local posTab = tab
 	
-	--[[
-		Note:
-		
-		minX is higher then maxX in UnitPosition coords
-		minY is higher then maxY in UnitPosition coords
-		
-		GetAreaMapInfo(zoneID) retruns terrainMapID (same as 4th param in UnitPosition)
-		
-		Funcs:
-		GetCurrentMapDungeonLevel()	--> coords
-		GetCurrentMapZone()		--> coords
-		GetMapInfo()			--> map Name
-		
-	]]
 	local PositionsTab_UpdatePage = nil
 	local PositionsTab_Variables = {	--Use this because limit 200 local vars
-		DisableMap = nil,
-		SelectedMap = nil,
-		NamesToDots = {},
-		Maps = {},
-		SelectedDot = nil,
 		DebuffsBlackList = {
 			[160029] = true,	--Resurrecting; haven't CLEU event for removing
 		},
@@ -10709,21 +10220,20 @@ function BWInterfaceFrameLoad()
 
 		local text = ""
 		for destGUID,destData in pairs(PositionsTab_Variables.HPList) do
-			local curHP = 0
-			for seg,hp in pairs(destData.res) do
-				if CurrentFight.segments[seg] and (CurrentFight.segments[seg].t - CurrentFight.encounterStart) > time then
-					break
+			local curHP = destData.res[time]
+
+			if curHP and curHP ~= 0 and curHP ~= destData.maxhp and (not destData.maxhp or curHP < destData.maxhp) then
+				local color1,color2
+				if destData.lastSeen and time > destData.lastSeen then
+					color1,color2 = "|cffaaaaaa", "|r"
 				end
-				curHP = hp
-			end
-			if curHP ~= 0 and curHP ~= destData.maxhp and (not destData.maxhp or curHP < destData.maxhp) and (not destData.lastSeen or segment+15 < destData.lastSeen) then
-				text = text .. GetGUID(destGUID) .. GUIDtoText(" (%s)",destGUID) .. " "..(destData.maxhp and (destData.maxhp-curHP).."/"..destData.maxhp..format(" <%.1f%%>",(1-curHP/destData.maxhp)*100) or "-"..curHP) .. "|n"
+				text = text .. (color1 or "") .. (destData.mark[time] and GetTargetIconText(destData.mark[time]) or "") .. GetGUID(destGUID) .. GUIDtoText(" (%s)",destGUID) .. " "..(destData.maxhp and (destData.maxhp-curHP).."/"..destData.maxhp..format(" <%.1f%%>",(1-curHP/destData.maxhp)*100) or "-"..curHP) .. (color2 or "") .. "|n"
 			end
 		end
 		tab.scroll.mobsText:SetText(text)
 	end
 	
-	tab.timeSlider = ELib:Slider(tab,L.BossWatcherPositionsSlider):Size(780):Point("TOP",-10,-20):Range(1,1):OnChange(function (self,value)
+	tab.timeSlider = ELib:Slider(tab,L.BossWatcherPositionsSlider):Size(800):Point("TOP",0,-20):Range(1,1):OnChange(function (self,value)
 		value = ExRT.F.Round(value)
 		
 		local time = floor(value / 2)
@@ -10740,226 +10250,14 @@ function BWInterfaceFrameLoad()
 		self.High:SetText(format("%d:%02d",_max / 60,_max % 60))
 	end)
 	tab.timeSlider:SetObeyStepOnDrag(true)
-	
-	tab.hideMapChk = ELib:Check(tab,""):Point(833,-16):Tooltip(L.BossWatcherPositionsHideMap):OnClick(function (self)
-		local backgrounds = posTab.scroll.C.backgrounds
-		if self:GetChecked() then
-			for i=1,#backgrounds do
-				backgrounds[i]:Hide()
-			end
-			PositionsTab_Variables.DisableMap = true
-		else
-			for i=1,#backgrounds do
-				backgrounds[i]:Show()
-			end
-			PositionsTab_Variables.DisableMap = nil
-		end
-		PositionsTab_UpdatePage()
-	end)
-		
+			
 	tab.scroll = ELib:ScrollFrame(tab):Size(835,540):Point("TOP",0,-50):Height(540)
 	tab.scroll.ScrollBar:Hide()
 	tab.scroll.C:SetWidth( tab.scroll:GetWidth() - 4 )
 	
-	tab.scroll.C.backgrounds = {}
-	local PositionsTab_BackgroundsWidth = tab.scroll:GetWidth() * 256 / 1002
-	local PositionsTab_BackgroundsHeight = tab.scroll:GetHeight() * 256 / 668
-	
-	for i=1,4 do
-		for j=0,2 do
-			tab.scroll.C.backgrounds[ j * 4 + i ] = tab.scroll.C:CreateTexture(nil, "BACKGROUND",nil,-7)
-			tab.scroll.C.backgrounds[ j * 4 + i ]:SetSize(PositionsTab_BackgroundsWidth,PositionsTab_BackgroundsHeight)
-			tab.scroll.C.backgrounds[ j * 4 + i ]:SetPoint("TOPLEFT",PositionsTab_BackgroundsWidth * (i-1),-j*PositionsTab_BackgroundsHeight)
-		end
-	end
-	
-	tab.scroll.scrollH = 0
-	tab.scroll.scrollV = 0
-	tab.scroll:SetScript("OnMouseWheel",function (self,delta)
-		local x,y = ExRT.F.GetCursorPos(self)
-	
-		local oldScale = self.C:GetScale()
-		local newScale = oldScale + delta * 0.25
-		if newScale < 1 then
-			newScale = 1
-		elseif newScale > 7 then
-			newScale = 7
-		end
-		self.C:SetScale( newScale )
-		
-		self.scrollH = self:GetWidth() - self:GetWidth() / newScale
-		self.scrollV = self:GetHeight() - self:GetHeight() / newScale
-		
-		local scrollNowH = self:GetHorizontalScroll()
-		local scrollNowV = self:GetVerticalScroll()
-
-		scrollNowH = scrollNowH + x / oldScale - x / newScale
-		scrollNowV = scrollNowV + y / oldScale - y / newScale
-		
-		if scrollNowH > self.scrollH then scrollNowH = self.scrollH end
-		if scrollNowH < 0 then scrollNowH = 0 end
-		if scrollNowV > self.scrollV then scrollNowV = self.scrollV end
-		if scrollNowV < 0 then scrollNowV = 0 end
-		
-		self:SetHorizontalScroll(scrollNowH)
-		self:SetVerticalScroll(scrollNowV)
-		
-		for i=1,#posTab.player do
-			posTab.player[i].SubDot:SetScale(1 / newScale)
-		end
-	end)
-	tab.scroll:SetScript("OnMouseDown",function (self)
-		local x, y = GetCursorPosition()
-		self.cursorX = x
-		self.cursorY = y
-		self.scrollNowH = self:GetHorizontalScroll()
-		self.scrollNowV = self:GetVerticalScroll()
-		self.move = true
-		GameTooltip_Hide()
-	end)
-	tab.scroll:SetScript("OnMouseUP",function (self)
-		self.move = nil
-	end)
-		
-	tab.scroll.tooltipShown = {}
-	tab.scroll:SetScript("OnUpdate",function (self)
-		if not self.move then
-			if not MouseIsOver(self) then
-				return
-			end
-			if self.disableTooltip then
-				return
-			end
-			local tooltip = nil
-			for i=1,#self.player do
-				self.tooltipShown[i] = nil
-				local frame = self.player[i].SubDot
-				if frame:IsVisible() and MouseIsOver(frame) then
-					tooltip = true
-					self.tooltipShown[i] = true
-				end
-			end
-			if not tooltip then
-				GameTooltip_Hide()
-			else
-				GameTooltip:SetOwner(self, "ANCHOR_CURSOR")
-				GameTooltip:SetText(TUTORIAL_TITLE19)
-				for i=1,#self.player do
-					if self.tooltipShown[i] then
-						local distText = nil
-						if PositionsTab_Variables.SelectedDot then
-							local dot1,dot2 = PositionsTab_Variables.SelectedDot,self.player[i]
-							if dot1.posX and dot2.posX then
-								local dX = dot1.posX - dot2.posX
-								local dY = dot1.posY - dot2.posY
-								distText = " |cff999999(dist: ".. floor( sqrt(dX * dX + dY * dY) + 0.5 ).."y)"
-							end
-						end
-						GameTooltip:AddLine(self.player[i].playerName..(distText or ""),1,1,1)
-					end
-				end
-				GameTooltip:Show()
-			end
-			return
-		end
-		local x, y = GetCursorPosition()
-		x,y = self.cursorX - x,self.cursorY - y
-		
-		local setH = self.scrollNowH + (x / self.C:GetScale())
-		if setH < 0 then
-			setH = 0
-		elseif setH > self.scrollH then
-			setH = self.scrollH
-		end
-		
-		local setV = self.scrollNowV - (y / self.C:GetScale())
-		if setV < 0 then
-			setV = 0
-		elseif setV > self.scrollV then
-			setV = self.scrollV
-		end
-		
-		self:SetHorizontalScroll(setH)
-		self:SetVerticalScroll(setV)
-	end)
-	
 	tab.player = {}
 	tab.scroll.player = tab.player
-	
-	tab.SelectMapDropDown = ELib:DropDown(tab.scroll,205,5):Size(100):Point("BOTTOMRIGHT",-5,5):SetText("Select Map...")
-	local function PositionsTab_SelectMapDropDown_SetValue(_,arg)
-		PositionsTab_Variables.SelectedMap = arg
-		PositionsTab_UpdatePage()
-		if IsShiftKeyDown() then
-			posTab.SelectMapDropDown:Hide()
-		end
-		ELib:DropDownClose()
-	end
-	do
-		local contentTitles = {
-			[0] = "WoW",
-			[1] = "Classic",
-			[2] = "BC",
-			[3] = "WotLK",
-			[4] = "Cataclysm",
-			[5] = "MoP",
-			[6] = "WoD",
-			[7] = "Legion",
-			[8] = "Brave new world",
-		}
-	
-		tab.SelectMapDropDown.List[1] = {text = "Raids", subMenu = {}, Lines = 15}
-		tab.SelectMapDropDown.List.raid = tab.SelectMapDropDown.List[1].subMenu
-
-		tab.SelectMapDropDown.List[2] = {text = "Dungeons", subMenu = {}, Lines = 15}
-		tab.SelectMapDropDown.List.dungeon = tab.SelectMapDropDown.List[2].subMenu
 		
-		tab.SelectMapDropDown.List[3] = {text = "PvP", subMenu = {}, Lines = 15}
-		tab.SelectMapDropDown.List.pvp = tab.SelectMapDropDown.List[3].subMenu
-
-		tab.SelectMapDropDown.List[4] = {text = "Other", subMenu = {}, Lines = 15}
-		tab.SelectMapDropDown.List.other = tab.SelectMapDropDown.List[4].subMenu
-		
-		for mapID,maps in pairs(PositionsTab_Variables.Maps) do
-			local subMenu = tab.SelectMapDropDown.List[ maps.type or "other" ]
-			if subMenu then
-				for i=1,#maps do
-					subMenu[#subMenu + 1] = {
-						text = maps[i][5]..(maps[i][6] or ""),
-						func = PositionsTab_SelectMapDropDown_SetValue,
-						arg1 = maps[i],
-						_sort = (maps.content or 0) * 1000000 + mapID * 100 + 99 - i,
-						content = (maps.content or 0),
-					}
-				end
-			end
-		end
-		for i=1,#tab.SelectMapDropDown.List do
-			local subMenu = tab.SelectMapDropDown.List[i].subMenu
-			sort(subMenu,function(a,b) return a._sort > b._sort end)
-			local listLen = #subMenu
-			if listLen > 0 then
-				local contentNow = subMenu[listLen].content
-				for j=(listLen-1),1,-1 do
-					local content = subMenu[j].content
-					if content ~= contentNow then
-						if contentNow ~= 0 then
-							tinsert(subMenu,j+1,{text = contentTitles[contentNow], isTitle = true})
-						end
-						contentNow = content
-					end
-				end
-				if contentNow ~= 0 then
-					tinsert(subMenu,1,{text = contentTitles[contentNow], isTitle = true})
-				end
-			end
-		end
-		tab.SelectMapDropDown.List[#tab.SelectMapDropDown.List + 1] = {
-			text = "None",
-			func = PositionsTab_SelectMapDropDown_SetValue,
-		}
-	end
-	
 	local function PositionsTab_RaidFrame_UpdateHP(self,segment)
 		if not self.Unit then
 			self:Hide()
@@ -10979,7 +10277,7 @@ function BWInterfaceFrameLoad()
 			self.hp:Hide()
 		else
 			self.hp:Show()
-			self.hp:SetWidth(max(hpNow / hpMax * 70,1))
+			self.hp:SetWidth(max(hpNow / hpMax * self.WIDTH,1))
 		end
 		
 		local data = self.debuffsData and self.debuffsData[segment]
@@ -11002,6 +10300,22 @@ function BWInterfaceFrameLoad()
 			end
 			for i=#data+1,#self.debuffs do
 				self.debuffs[i]:Hide()
+			end
+		end
+
+		local data = CurrentFight.graphData[sec]
+		local powerNow = data[self.Unit] and data[self.Unit].power or 0
+		local powerMax = data[self.Unit] and data[self.Unit].pmax or 0
+		if powerMax == 0 then
+			self.power:Hide()
+			self.power_text:SetText("")
+		else
+			self.power:SetShown(powerNow ~= 0)
+			self.power:SetWidth(max(0,min(powerNow / powerMax * self.WIDTH,self.WIDTH)))
+			if powerMax >= 1000 then
+				self.power_text:SetFormattedText("%.1f%%",powerNow/powerMax*100)
+			else
+				self.power_text:SetFormattedText("%d/%d",powerNow,powerMax)
 			end
 		end
 	end
@@ -11029,9 +10343,24 @@ function BWInterfaceFrameLoad()
 			return
 		end
 		self.hp:Show()
-		self.hp:SetWidth(max(hpNow / hpMax * 195,1))
+		self.hp:SetWidth(max(hpNow / hpMax * self.WIDTH,1))
 		
 		self.hp_text:SetFormattedText("%.1f",hpNow / hpMax * 100)
+
+		local powerNow = data[self.Unit] and data[self.Unit].power or 0
+		local powerMax = data[self.Unit] and data[self.Unit].pmax or 0
+		if powerMax == 0 then
+			self.power:Hide()
+			self.power_text:SetText("")
+		else
+			self.power:SetShown(powerNow ~= 0)
+			self.power:SetWidth(max(0,min(powerNow / powerMax * self.WIDTH,self.WIDTH)))
+			if powerMax >= 1000 then
+				self.power_text:SetFormattedText("%.1f%%",powerNow/powerMax*100)
+			else
+				self.power_text:SetFormattedText("%d/%d",powerNow,powerMax)
+			end
+		end
 	end
 	
 	local function PositionsTab_RaidFrame_DebuffOnEnter(self)
@@ -11058,48 +10387,38 @@ function BWInterfaceFrameLoad()
 		for j=1,5 do
 			local frame = CreateFrame("Button",nil,tab.scroll)
 			tab.raidFrames[(i-1)*5+j] = frame
-			frame:SetSize(70,26)
-			frame:SetPoint("BOTTOMLEFT",tab.scroll,5+(i-1)*(70+3),5+(j-1)*(26+3))
-			frame.text = ELib:Text(frame,UnitName('player'),10):Size(60,14):Point("BOTTOMLEFT",5,3):Left():Color()
+			local WIDTH,HEIGHT = 100,35
+			frame.WIDTH = WIDTH
+			frame:SetSize(WIDTH,HEIGHT)
+			frame:SetPoint("BOTTOMLEFT",tab.scroll,5+(i-1)*(WIDTH+3),5+(j-1)*(HEIGHT+3))
+			frame.text = ELib:Text(frame,UnitName('player'),12):Size(WIDTH-10,14):Point("BOTTOMLEFT",5,6):Left():Color()
 			frame.text:SetDrawLayer("ARTWORK", 0)
-			
-			frame.bordertop = frame:CreateTexture(nil, "BORDER")
-			frame.borderbottom = frame:CreateTexture(nil, "BORDER")
-			frame.borderleft = frame:CreateTexture(nil, "BORDER")
-			frame.borderright = frame:CreateTexture(nil, "BORDER")
-			
-			frame.bordertop:SetPoint("TOPLEFT",frame,"TOPLEFT",-1,1)
-			frame.bordertop:SetPoint("BOTTOMRIGHT",frame,"TOPRIGHT",1,0)
-		
-			frame.borderbottom:SetPoint("BOTTOMLEFT",frame,"BOTTOMLEFT",-1,-1)
-			frame.borderbottom:SetPoint("TOPRIGHT",frame,"BOTTOMRIGHT",1,0)
-		
-			frame.borderleft:SetPoint("TOPLEFT",frame,"TOPLEFT",-1,0)
-			frame.borderleft:SetPoint("BOTTOMRIGHT",frame,"BOTTOMLEFT",0,0)
-		
-			frame.borderright:SetPoint("TOPLEFT",frame,"TOPRIGHT",0,0)
-			frame.borderright:SetPoint("BOTTOMRIGHT",frame,"BOTTOMRIGHT",1,0)
-		
-			frame.bordertop:SetColorTexture(0,0,0,1)
-			frame.borderbottom:SetColorTexture(0,0,0,1)
-			frame.borderleft:SetColorTexture(0,0,0,1)
-			frame.borderright:SetColorTexture(0,0,0,1)
+
+			ELib:Border(frame,1,0,0,0,1,1)
 			
 			frame.back = frame:CreateTexture(nil, "BACKGROUND",nil,-5)
-			frame.back:SetSize(70,26)
+			frame.back:SetSize(WIDTH,HEIGHT)
 			frame.back:SetPoint("LEFT",0,0)
 			frame.back:SetColorTexture(.05,.05,.05,1)
 
 			frame.hp = frame:CreateTexture(nil, "BACKGROUND",nil,0)
-			frame.hp:SetSize(70,26)
+			frame.hp:SetSize(WIDTH,HEIGHT)
 			frame.hp:SetPoint("LEFT",0,0)
 			frame.hp:SetColorTexture(.3,.3,.3,1)
+
+			frame.power = frame:CreateTexture(nil, "BACKGROUND",nil,3)
+			frame.power:SetSize(WIDTH,3)
+			frame.power:SetPoint("BOTTOMLEFT",0,0)
+			frame.power:SetColorTexture(.3,.3,1,1)
+	
+			frame.power_text = ELib:Text(frame,"99%",8):Point("BOTTOMRIGHT",-2,1):Right():Color()
+			frame.power_text:SetDrawLayer("ARTWORK", 0)
 			
 			frame.Update = PositionsTab_RaidFrame_UpdateHP
 			
 			frame.debuffs = {}
-			for i=1,5 do
-				frame.debuffs[i] = ELib:Frame(frame):Point("CENTER",frame,"TOPLEFT",7 + (i-1)*(12+1),-4):Size(12,12):Texture(GetSpellTexture(25771),nil):TexturePoint('x')
+			for i=1,6 do
+				frame.debuffs[i] = ELib:Frame(frame):Point("TOP",frame,"TOPLEFT",7 + (i-1)*(14+1),1):Size(14,14):Texture(GetSpellTexture(25771),nil):TexturePoint('x')
 				frame.debuffs[i]:SetScript("OnEnter",PositionsTab_RaidFrame_DebuffOnEnter)
 				frame.debuffs[i]:SetScript("OnLeave",PositionsTab_RaidFrame_DebuffOnLeave)
 			end
@@ -11111,45 +10430,35 @@ function BWInterfaceFrameLoad()
 	for i=1,6 do
 		local frame = CreateFrame("Button",nil,tab.scroll)
 		tab.unitFrames[i] = frame
-		frame:SetSize(195,20)
-		frame:SetPoint("TOPLEFT",tab.scroll,5,-200-(i-1)*23)	
-		frame.text = ELib:Text(frame,UnitName('player'),10):Size(155,20):Point(2,0):Color()
+		local WIDTH,HEIGHT = 195,30
+		frame:SetSize(WIDTH,HEIGHT)
+		frame.WIDTH = WIDTH
+		frame:SetPoint("TOPLEFT",tab.scroll,5,-50-(i-1)*(HEIGHT+3))	
+		frame.text = ELib:Text(frame,UnitName('player'),11):Size(WIDTH-40,20):Point("LEFT",2,0):Color()
 		frame.text:SetDrawLayer("ARTWORK", 0)
 
-		frame.hp_text = ELib:Text(frame,"99.9%",10):Size(36,20):Point(157,0):Right():Color()
+		frame.hp_text = ELib:Text(frame,"99.9%",10):Size(36,20):Point("TOPRIGHT",-2,-3):Right():Color()
 		frame.hp_text:SetDrawLayer("ARTWORK", 0)
 		
-		frame.bordertop = frame:CreateTexture(nil, "BORDER")
-		frame.borderbottom = frame:CreateTexture(nil, "BORDER")
-		frame.borderleft = frame:CreateTexture(nil, "BORDER")
-		frame.borderright = frame:CreateTexture(nil, "BORDER")
-		
-		frame.bordertop:SetPoint("TOPLEFT",frame,"TOPLEFT",-1,1)
-		frame.bordertop:SetPoint("BOTTOMRIGHT",frame,"TOPRIGHT",1,0)
-	
-		frame.borderbottom:SetPoint("BOTTOMLEFT",frame,"BOTTOMLEFT",-1,-1)
-		frame.borderbottom:SetPoint("TOPRIGHT",frame,"BOTTOMRIGHT",1,0)
-	
-		frame.borderleft:SetPoint("TOPLEFT",frame,"TOPLEFT",-1,0)
-		frame.borderleft:SetPoint("BOTTOMRIGHT",frame,"BOTTOMLEFT",0,0)
-	
-		frame.borderright:SetPoint("TOPLEFT",frame,"TOPRIGHT",0,0)
-		frame.borderright:SetPoint("BOTTOMRIGHT",frame,"BOTTOMRIGHT",1,0)
-	
-		frame.bordertop:SetColorTexture(0,0,0,1)
-		frame.borderbottom:SetColorTexture(0,0,0,1)
-		frame.borderleft:SetColorTexture(0,0,0,1)
-		frame.borderright:SetColorTexture(0,0,0,1)
+		ELib:Border(frame,1,0,0,0,1,1)
 		
 		frame.back = frame:CreateTexture(nil, "BACKGROUND",nil,-5)
-		frame.back:SetSize(195,20)
+		frame.back:SetSize(WIDTH,HEIGHT)
 		frame.back:SetPoint("LEFT",0,0)
 		frame.back:SetColorTexture(.05,.05,.05,1)
 
 		frame.hp = frame:CreateTexture(nil, "BACKGROUND",nil,0)
-		frame.hp:SetSize(195,20)
+		frame.hp:SetSize(WIDTH,HEIGHT)
 		frame.hp:SetPoint("LEFT",0,0)
 		frame.hp:SetColorTexture(.3,.3,.3,1)
+
+		frame.power = frame:CreateTexture(nil, "BACKGROUND",nil,3)
+		frame.power:SetSize(WIDTH,4)
+		frame.power:SetPoint("BOTTOMLEFT",0,0)
+		frame.power:SetColorTexture(.3,.3,1,1)
+
+		frame.power_text = ELib:Text(frame,"99/120",8):Point("BOTTOMRIGHT",-2,1):Right():Color()
+		frame.power_text:SetDrawLayer("ARTWORK", 0)
 		
 		frame.Update = PositionsTab_UnitFrame_UpdateHP
 		
@@ -11158,40 +10467,6 @@ function BWInterfaceFrameLoad()
 
 	tab.scroll.mobsText = ELib:Text(tab.scroll,"",10):Size(400,0):Point("TOPRIGHT",-5,-3):Left():Color()
 	
-	local function PositionsTab_DotOnUpdate(self,elapsed)
-		self.anim = self.anim + elapsed
-		if self.anim > 0.4 then
-			self.anim = self.anim - 0.4
-		end
-		local alpha = self.anim
-		if alpha > 0.2 then
-			alpha = alpha - 0.2
-			if alpha > 0.2 then
-				alpha = 0.2
-			end
-			self:SetAlpha(0.5 + alpha * 2.5)
-		else
-			self:SetAlpha(1 - alpha * 2.5)
-		end
-		
-	end
-	local function PositionsTab_DotOnClick(self)
-		self.anim = 0
-		local isAnimOn = self.animOn
-		for i=1,#posTab.player do
-			if posTab.player[i].SubDot.animOn then
-				posTab.player[i].SubDot:SetScript("OnUpdate",nil)
-				posTab.player[i].SubDot.animOn = nil
-				posTab.player[i].SubDot:SetAlpha(1)
-			end
-		end
-		PositionsTab_Variables.SelectedDot = nil
-		if not isAnimOn then
-			self:SetScript("OnUpdate",PositionsTab_DotOnUpdate)
-			self.animOn = true
-			PositionsTab_Variables.SelectedDot = self:GetParent()
-		end
-	end
 		
 	function PositionsTab_UpdatePage()
 		local tab = posTab
@@ -11200,41 +10475,9 @@ function BWInterfaceFrameLoad()
 		local knownMap = nil
 		
 		local encounterID = CurrentFight.encounterID
-		if encounterID and PositionsTab_Variables.BossToMap[encounterID] then
-			knownMap = PositionsTab_Variables.BossToMap[encounterID]
-		end
-		knownMap = PositionsTab_Variables.SelectedMap or knownMap
-		
-		if knownMap and not PositionsTab_Variables.DisableMap then
-			tab.minX = knownMap[1]
-			tab.maxX = knownMap[3]
-			tab.minY = knownMap[2]
-			tab.maxY = knownMap[4]
-			for i=1,12 do
-				tab.scroll.C.backgrounds[i]:SetTexture("Interface\\WorldMap\\"..knownMap[5].."\\"..(knownMap[6] and knownMap[5]..knownMap[6].."_"..i or knownMap[5]..i))
-			end
-		elseif positionsData.mapInfo and not PositionsTab_Variables.DisableMap then
-			local mapInfo = positionsData.mapInfo
-			tab.minX = mapInfo.xL
-			tab.maxX = mapInfo.xR
-			tab.minY = mapInfo.yT
-			tab.maxY = mapInfo.yB
-			for i=1,12 do
-				tab.scroll.C.backgrounds[i]:SetTexture("Interface\\WorldMap\\"..mapInfo.map.."\\"..mapInfo.map..(mapInfo.level and mapInfo.level.."_" or "")..i)
-			end
-		else
-			tab.minX = minX
-			tab.maxX = maxX
-			tab.minY = minY
-			tab.maxY = maxY
-			for i=1,12 do
-				tab.scroll.C.backgrounds[i]:SetTexture("")
-			end
-		end
 		for i=1,#tab.player do
 			tab.player[i]:Hide()
 		end
-		wipe(PositionsTab_Variables.NamesToDots)
 		local dotCount = 0
 		local raidFrames = {}
 		local graphData = CurrentFight.graphData
@@ -11336,6 +10579,7 @@ function BWInterfaceFrameLoad()
 			tab.player[i].SubDot:SetScale(1)
 		end
 
+		local HPList = PositionsTab_Variables.HPList
 		wipe(PositionsTab_Variables.HPList)
 
 		for destGUID,destData in pairs(CurrentFight.damage) do
@@ -11349,15 +10593,15 @@ function BWInterfaceFrameLoad()
 						local source = sourceGUID
 						local dest = destGUID
 						
-						local mobData = PositionsTab_Variables.HPList[dest]
+						local mobData = HPList[dest]
 						if not mobData then
 							mobData = {
 								maxhp = CurrentFight.maxHP[dest],
 								damage = {},
-								heal = {},
 								res = {},
+								mark = {},
 							}
-							PositionsTab_Variables.HPList[dest] = mobData
+							HPList[dest] = mobData
 						end
 												
 						for spellID,spellSegments in pairs(sourceData) do
@@ -11377,20 +10621,20 @@ function BWInterfaceFrameLoad()
 						local source = sourceGUID
 						local dest = destGUID
 						
-						local mobData = PositionsTab_Variables.HPList[dest]
+						local mobData = HPList[dest]
 						if not mobData then
 							mobData = {
 								maxhp = CurrentFight.maxHP[dest],
 								damage = {},
-								heal = {},
 								res = {},
+								mark = {},
 							}
-							PositionsTab_Variables.HPList[dest] = mobData
+							HPList[dest] = mobData
 						end
 						
 						for spellID,spellSegments in pairs(destReactData) do
 							for segment,spellAmount in pairs(spellSegments) do
-								mobData.damage[segment] = (mobData.damage[segment] or 0) - (spellAmount.amount - spellAmount.over + spellAmount.absorbed)
+								mobData.damage[segment] = (mobData.damage[segment] or 0) - (spellAmount.amount - spellAmount.over - spellAmount.absorbs)
 							end
 						end
 					end
@@ -11398,7 +10642,23 @@ function BWInterfaceFrameLoad()
 			end
 		end
 
-		for destGUID,destData in pairs(PositionsTab_Variables.HPList) do
+		for GUID,dataGUID in pairs(CurrentFight.cast) do
+			for i,PlayerCastData in ipairs(dataGUID) do
+				local mark, destData
+				if HPList[dataGUID] then
+					mark = PlayerCastData[6]
+					destData = HPList[dataGUID]
+				elseif HPList[ PlayerCastData[4] ] then
+					mark = PlayerCastData[5]
+					destData = HPList[ PlayerCastData[4] ]
+				end
+				if mark then
+					local t = ceil(CurrentFight.segments[ PlayerCastData.s ].t - CurrentFight.encounterStart)
+					destData.mark[t] = module.db.raidTargets[ mark ] or 0
+				end
+			end
+		end
+		for destGUID,destData in pairs(HPList) do
 			local dmgList = {}
 			for seg,dmg in pairs(destData.damage) do
 				dmgList[#dmgList+1] = {seg,dmg}
@@ -11413,9 +10673,41 @@ function BWInterfaceFrameLoad()
 				destData.res[ d[1] ] = now
 				destData.lastSeen = d[1]
 			end
+			local last = ceil(CurrentFight.segments[#CurrentFight.segments].t - CurrentFight.encounterStart)
+			local prev = nil
+			for i=0,last do
+				if i < destData.seen then
+					destData.res[i] = 0
+				elseif i <= (destData.lastSeen + 10) then
+					if destData.res[i] then
+						prev = destData.res[i]
+					else
+						destData.res[i] = prev
+					end
+				end
+			end
+			
+			local prev,first = nil
+			for i=0,last do
+				if destData.mark[i] then
+					prev = destData.mark[i]
+					if not first then
+						for j=0,i-1 do
+							destData.mark[j] = prev
+						end
+						first = true
+					end
+				else
+					destData.mark[i] = prev
+				end
+			end
+			for i=0,last do
+				if destData.mark[i] == 0 then
+					destData.mark[i] = nil
+				end
+			end
 		end
-		
-		
+
 		tab.timeSlider:SetValue(1)
 		PositionsTab_UpdatePositions(1)
 	end
@@ -11424,12 +10716,6 @@ function BWInterfaceFrameLoad()
 		if BWInterfaceFrame.nowFightID ~= self.lastFightID then
 			PositionsTab_UpdatePage()
 			self.lastFightID = BWInterfaceFrame.nowFightID
-		end
-		
-		if IsShiftKeyDown() then
-			posTab.SelectMapDropDown:Hide()
-		else
-			posTab.SelectMapDropDown:Show()
 		end
 	end)
 
@@ -11604,7 +10890,7 @@ function BWInterfaceFrameLoad()
 					amountString = "~"..trackingData[13].."~"
 				end
 				
-				L[#L+1] = {date("%M:%S.", time)..format("%03d",time%1*1000),(sourceRaidTarget and ("|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_"..sourceRaidTarget..":0|t") or "").."|c".. ExRT.F.classColorByGUID(sourceGUID)..GetGUID(sourceGUID)..GUIDtoText(" [%s]",sourceGUID).."|r > "..(destRaidTarget and ("|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_"..destRaidTarget..":0|t") or "").."|c".. ExRT.F.classColorByGUID(destGUID)..GetGUID(destGUID)..GUIDtoText(" [%s]",destGUID).."|r: "..amountString,time}
+				L[#L+1] = {date("%M:%S.", time)..format("%03d",time%1*1000),(sourceRaidTarget and GetTargetIconText(sourceRaidTarget) or "").."|c".. ExRT.F.classColorByGUID(sourceGUID)..GetGUID(sourceGUID)..GUIDtoText(" [%s]",sourceGUID).."|r > "..(destRaidTarget and GetTargetIconText(destRaidTarget) or "").."|c".. ExRT.F.classColorByGUID(destGUID)..GetGUID(destGUID)..GUIDtoText(" [%s]",destGUID).."|r: "..amountString,time}
 			end
 		end
 		local prevTimeText = nil

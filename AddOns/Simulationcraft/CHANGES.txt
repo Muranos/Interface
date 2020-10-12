@@ -1,16 +1,22 @@
-lightweight tag fdd37a05e23f9418ecfcbd6aa113b02b09ba0fdc v1.12.5
+lightweight tag 566a425442c0000329b31cdddd41d60d2a25bcc6 v8.3.0
 Author:	Dave Hendler <sollaires@gmail.com>
-Date:	Fri Jan 24 12:37:32 2020 -0800
+Date:	Thu Oct 8 15:13:26 2020 -0700
 
-commit fdd37a05e23f9418ecfcbd6aa113b02b09ba0fdc
+commit 566a425442c0000329b31cdddd41d60d2a25bcc6
 Author: Dave Hendler <sollaires@gmail.com>
-Date:   Fri Jan 24 12:37:32 2020 -0800
+Date:   Thu Oct 8 15:13:26 2020 -0700
 
-    Bump version
-
-commit c746735037ac9c3b368106e402d5dff43d08ebbd
-Author: Dave Hendler <sollaires@gmail.com>
-Date:   Fri Jan 24 12:37:08 2020 -0800
-
-    Fix bug with main bank slots showing wrong item slot, add header comment with a player summary and date
+    Initial Shadowlands Support
+    
+    * Covenant and Soulbinds are exported if available
+    * Great Vault rewards are included as gear comments
+    * Frame is now resizable and location is persistent across logins
+    * UI Frames are now handled in code rather than XML
+    
+    This version is compatible with both 8.3 and 9.0 so will work on retail,
+    PTR, and beta. Addon will also have version bumps as retail is updated
+    to avoid out-of-date addon warnings.
+    
+    Addon version numbering will now follow the WoW client version more
+    closely as well.
 

@@ -13,8 +13,7 @@ L["A tab delimited output for Excel. Might work with other spreadsheets."] = "Ei
 L["Abort"] = "Abbrechen"
 L["Accept Whispers"] = "Flüsternachrichten akzeptieren"
 L["accept_whispers_desc"] = "Ermöglicht es Spielern, ihre(n) momentanen Gegenstand/-stände zu dir zu flüstern, um dem Abstimmungsfenster hinzugefügt zu werden."
---[[Translation missing --]]
---[[ L["Accepted imports: 'Player Export' and 'CSV'"] = ""--]] 
+L["Accepted imports: 'Player Export' and 'CSV'"] = "Akzeptierte Importe: 'Spieler Export' und 'CSV'"
 L["Active"] = "Aktiv"
 L["active_desc"] = "Abwählen, um RCLootCouncil zu deaktivieren. Dies ist nützlich, wenn du in einem Schlachtzug bist, aber nicht wirklich beteiligt bist. Hinweis: Dies wird beim Abmelden automatisch zurückgesetzt."
 L["Add Item"] = "Gegenstand hinzufügen"
@@ -33,23 +32,20 @@ Klicke auf den Reiter Aktueller Rat, um deine Auswahl zu sehen.]=]
 L["add_rolls_desc"] = "Allen Sessions automatisch einen Zufallswurf von 1 bis 100 hinzufügen."
 L["Additional Buttons"] = "Zusätzliche Buttons"
 L["All items"] = "Alle Gegenstände"
---[[Translation missing --]]
---[[ L["All items have been awarded and the loot session concluded"] = ""--]] 
+L["All items have been awarded and the loot session concluded"] = "Alle Gegenstände wurden vergeben und die Sitzung ist abgeschlossen"
 L["All items usable by the candidate"] = "Alle vom Kandidaten benutzbaren Gegenstände"
 L["All unawarded items"] = "Alle nicht vergebenen Gegenstände"
 L["Alt click Looting"] = "Alt-Klick-Plündern"
 L["alt_click_looting_desc"] = "Aktiviert das Plündern mit Alt-Klick, das heißt, dass eine Plündersitzung beginnt, wenn du Alt gedrückt hältst und auf einen Gegenstand (links)klickst."
 L["Alternatively, flag the loot as award later."] = "Alternativ, Markiere die Beute zur späteren Vergabe."
---[[Translation missing --]]
---[[ L["Always show owner"] = ""--]] 
+L["Always show owner"] = "Besitzer immer zeigen"
 L["Always use RCLootCouncil with Personal Loot"] = "RCLootCouncil immer mit Persönlicher Beute nutzen"
 L["always_show_tooltip_howto"] = "Tooltip durch Doppelklick ein-/ausschalten"
 L["Announce Awards"] = "Vergaben ankündigen"
 L["Announce Considerations"] = "Betrachtungen ankündigen"
 L["announce_&i_desc"] = "|cfffcd400 &i|r: Link zum Gegenstand. "
 L["announce_&l_desc"] = "|cfffcd400 &l|r: Gegenstandsstufe. "
---[[Translation missing --]]
---[[ L["announce_&m_desc"] = ""--]] 
+L["announce_&m_desc"] = "|cfffcd400 &m|r: Notiz des Kandidats."
 L["announce_&n_desc"] = "|cfffcd400 &n|r: Beim Erhalt würfeln. "
 L["announce_&o_desc"] = "|cfffcd400 &o|r: Gegenstandsbesitzer, falls anwendbar."
 L["announce_&p_desc"] = "|cfffcd400 &p|r: Name des Spielers, der die Beute bekommen hat. "
@@ -72,8 +68,7 @@ L["Are you sure you want to give #item to #player?"] = "Bist du sicher, dass du 
 L["Are you sure you want to reannounce all unawarded items to %s?"] = "Möchtest Du wirklich alle nicht vergebenen Gegenstände an %s erneut ankündigen? "
 L["Are you sure you want to request rolls for all unawarded items from %s?"] = "Möchtest Du wirklich um alle nicht vergebenen Gegenstände von %s erneut würfeln lassen? "
 L["Armor Token"] = "Rüstungsmarke"
---[[Translation missing --]]
---[[ L["Ask me every time Personal Loot is enabled"] = ""--]] 
+L["Ask me every time Personal Loot is enabled"] = "Frage mich jedes Mal wenn Persönliche Beute aktiviert wird"
 L["Auto Award"] = "Automatische Vergabe"
 L["Auto Award to"] = "Automatisch vergeben an"
 L["Auto awarded 'item'"] = "%s wurde automatisch vergeben."
@@ -85,8 +80,7 @@ L["Auto Pass"] = "Automatisches Passen"
 L["Auto pass BoE"] = "Auf BoE automatisch passen"
 L["Auto Pass Trinkets"] = "Auf Schmuckstücke automatisch passen"
 L["Auto Start"] = "Automatisch starten"
---[[Translation missing --]]
---[[ L["Auto Trade"] = ""--]] 
+L["Auto Trade"] = "Automatisch Handeln"
 L["auto_award_desc"] = "Aktiviert die automatische Vergabe."
 L["auto_award_to_desc"] = "Der Spieler, dem automatisch Gegenstände gegeben werden. Eine Auswahlliste mit Schlachtzugsmitgliedern wird angezeigt, wenn du in einem Schlachtzug bist."
 L["auto_close_desc"] = "Aktivieren, um das Abstimmungsfenster automatisch zu schließen, wenn der Plündermeister die Sitzung beendet."
@@ -181,8 +175,7 @@ L["confirm_usage_text"] = [=[|cFF87CEFA RCLootCouncil |r
 
 Willst du RCLootCouncil mit dieser Gruppe verwenden?]=]
 L["Conqueror Token"] = "Eroberer-Marke"
---[[Translation missing --]]
---[[ L["Corruption if awarded:"] = ""--]] 
+L["Corruption if awarded:"] = "Verderbnis wenn vergeben:"
 L["Could not Auto Award i because the Loot Threshold is too high!"] = "%s konnte nicht automatisch vergeben werden, weil die Plünderschwelle zu hoch ist!"
 L["Could not find 'player' in the group."] = "Der Spieler %s wurde nicht in der Gruppe gefunden."
 L["Couldn't find any councilmembers in the group"] = "Es konnten keine Ratsmitglieder in der Gruppe gefunden werden"
@@ -201,11 +194,9 @@ L["Delete Skin"] = "Optik löschen"
 L["delete_skin_desc"] = "Löscht die momentan ausgewählte Nicht-Standard-Optik von der Liste."
 L["Deselect responses to filter them"] = "Wähle Antworten ab, um sie zu filtern."
 L["Diff"] = "Diff."
---[[Translation missing --]]
---[[ L["Discord friendly output."] = ""--]] 
+L["Discord friendly output."] = "Discord-freundlicher Output."
 L["disenchant_desc"] = "Auswählen, um diesen Grund zu benutzen, wenn du einen Gegenstand über den Button 'Entzaubern' vergibst."
---[[Translation missing --]]
---[[ L["Do you want to keep %s for yourself or trade?"] = ""--]] 
+L["Do you want to keep %s for yourself or trade?"] = "Willst du %s für dich behalten oder handeln?"
 L["Do you want to keep %s for yourself?"] = "Willst du %s für dich selbst behalten?"
 L["Done syncing"] = "Synchronisierung abgeschlossen"
 L["Double click to delete this entry."] = "Doppelklick, um diesen Eintrag zu löschen"
@@ -217,22 +208,17 @@ L["enable_loot_history_desc"] = "Aktiviert den Verlauf. RCLootCouncil wird nicht
 L["enable_timeout_desc"] = "Anhaken, um eine Zeitbeschränkung im Beutefenster zu aktivieren"
 L["Enter your note:"] = "Gib deine Notiz ein:"
 L["EQdkp-Plus XML output, tailored for Enjin import."] = "EQdkp-Plus-XML-Ausgabe, maßgeschneidert für den Enjin-Import."
---[[Translation missing --]]
---[[ L["error_test_as_non_leader"] = ""--]] 
---[[Translation missing --]]
---[[ L["Everybody is up to date."] = ""--]] 
+L["error_test_as_non_leader"] = "Du kannst keinen Test initiieren, wenn du dich in einer Gruppe befindest aber nicht der Gruppenleiter bist. "
+L["Everybody is up to date."] = "Jeder ist auf dem neuesten Stand."
 L["Everyone have voted"] = "Jeder hat abgestimmt"
 L["Export"] = "Exportieren"
---[[Translation missing --]]
---[[ L["Fake Loot"] = ""--]] 
+L["Fake Loot"] = "Gefälschte Beute"
 L["Following items were registered in the award later list:"] = "Die folgenden Gegenstände wurden in die \"Später vergeben\"-Liste eingetragen:"
 L["Following winners was registered:"] = "Die folgenden Gewinner wurden registriert:"
---[[Translation missing --]]
---[[ L["Found the following outdated versions"] = ""--]] 
+L["Found the following outdated versions"] = "Folgende veraltete Versionen wurden gefunden"
 L["Frame options"] = "Fenstereinstellungen"
 L["Free"] = "Frei"
---[[Translation missing --]]
---[[ L["Full Bags"] = ""--]] 
+L["Full Bags"] = "Taschen voll"
 L["g1"] = true
 L["g2"] = true
 L["Gave the item to you for distribution."] = "Gegenstand wurde Dir zum Verteilen gegeben."
@@ -251,15 +237,11 @@ L["ignore_input_desc"] = "Gib eine Gegenstands-ID ein, die der Ignorierliste hin
 L["ignore_input_usage"] = "Diese Funktion akzeptiert nur Gegenstands-IDs (Nummer), Gegenstandsname oder Gegenstandslink."
 L["ignore_list_desc"] = "Gegenstände, die RCLootCouncil ignoriert. Klicke auf einen Gegenstand, um ihn zu entfernen."
 L["ignore_options_desc"] = "Steuere, welche Gegenstände RCLootCouncil ignorieren soll. Wenn du einen Gegenstand hinzufügst, der nicht zwischengespeichert ist, musst du in einen anderen Reiter wechseln und zurück, bevor du ihn in der Liste siehst. "
---[[Translation missing --]]
---[[ L["Import aborted"] = ""--]] 
+L["Import aborted"] = "Importierung abgebrochen"
 L["import_desc"] = "Daten hier einfügen. Es werden nur die ersten 2500 Zeichen angezeigt, damit das Spiel stabil bleibt."
---[[Translation missing --]]
---[[ L["import_malformed"] = ""--]] 
---[[Translation missing --]]
---[[ L["import_malformed_header"] = ""--]] 
---[[Translation missing --]]
---[[ L["import_not_supported"] = ""--]] 
+L["import_malformed"] = "Der Import war fehlerhaft (keine Zeichenfolge)"
+L["import_malformed_header"] = "Fehlerhafte Kopfzeile"
+L["import_not_supported"] = "Der Import ist entweder fehlerhaft oder wird nicht unterstützt."
 L["Invalid selection"] = "Ungültige Auswahl"
 L["Item"] = "Gegenstand"
 L["'Item' is added to the award later list."] = "%s wurde der \"Später vergeben\"-Liste hinzugefügt."
@@ -270,8 +252,7 @@ L["Item(s) replaced:"] = "Ersetzte(r) Gegenstand/-ände:"
 L["item_in_bags_low_trade_time_remaining_reminder"] = "Die folgenden beim Aufheben gebundenen Gegenstände in Deinem Inventar sind in Deiner \"Später vergeben\"-Liste und Du hast weniger als %s Zeit, um sie noch zu handeln. Um diese Erinnerung nicht wieder anzeigen zu lassen, gib den Gegenstand ab, nutze '/rc remove [index]' um diesen Gegenstand von der Liste zu entfernen, '/rc clear' um die \"Später vergeben\"-Liste zu leeren oder ziehe den Gegenstand an, damit er nicht mehr gehandelt werden kann."
 L["Items stored in the loot master's bag for award later cannot be awarded later."] = "Gegenstände aus der \"Später vergeben\"-Liste im Inventar des Plündermeisters können nicht später vergeben werden."
 L["Items under consideration:"] = "Gegenstände unter Betrachtung:"
---[[Translation missing --]]
---[[ L["Keep"] = ""--]] 
+L["Keep"] = "Behalten"
 L["Latest item(s) won"] = "Kürzliche gewonne Gegenstände"
 L["Length"] = "Länge"
 L["Log"] = "Protokoll"
@@ -279,8 +260,7 @@ L["log_desc"] = "Aktiviert den Beuteverlauf."
 L["Loot announced, waiting for answer"] = "Beute angekündigt, warte auf Antwort"
 L["Loot Everything"] = "Alles plündern"
 L["Loot History"] = "Beuteverlauf"
---[[Translation missing --]]
---[[ L["Loot Status"] = ""--]] 
+L["Loot Status"] = "Status der Beute"
 L["Loot won:"] = "Beute gewann:"
 L["loot_everything_desc"] = "Aktiviert das automatische Plündern von nicht anlegbaren Gegenständen (z.B. Reittiere, Tier-Marken)."
 L["loot_history_desc"] = [=[RCLootCouncil zeichnet automatisch relevante Informationen aus Sitzungen auf.
@@ -288,13 +268,10 @@ Die Rohdaten werden in ".../SavedVariables/RCLootCouncil.lua" gespeichert.
 
 Hinweis: Nicht-Plündermeister können nur Daten speichern, die vom Plündermeister gesendet wurden.
 ]=]
---[[Translation missing --]]
---[[ L["Looted"] = ""--]] 
+L["Looted"] = "Geplündert"
 L["Looted by:"] = "Geplündert von:"
---[[Translation missing --]]
---[[ L["lootFrame_error_note_required"] = ""--]] 
---[[Translation missing --]]
---[[ L["lootHistory_moreInfo_winnersOfItem"] = ""--]] 
+L["lootFrame_error_note_required"] = "Du musst eine Notiz hinzufügen, bevor du eine Antwort übermittelst - %s"
+L["lootHistory_moreInfo_winnersOfItem"] = "Gewinner von %s:"
 L["Looting options"] = "Plünderoptionen"
 L["Lower Quality Limit"] = "Untere Qualitätsgrenze"
 L["lower_quality_limit_desc"] = [=[Wähle die untere Qualitätsgrenze der Gegenstände, die automatisch vergeben werden (Diese Qualität inbegriffen!).
@@ -308,8 +285,7 @@ L["Message for each item"] = "Nachricht für jeden Gegenstand"
 L["message_desc"] = "Die Nachricht, die in den ausgewählten Kanal gesendet werden soll."
 L["Minimize in combat"] = "Im Kampf minimieren"
 L["Minor Upgrade"] = "Geringes Upgrade"
---[[Translation missing --]]
---[[ L["Missing votes from:"] = ""--]] 
+L["Missing votes from:"] = "Fehlende Stimmen von:"
 L["ML sees voting"] = "Plündermeister sieht die Abstimmung"
 L["ml_sees_voting_desc"] = "Erlaubt es dem Plündermeister zu sehen, wer für wen abstimmt."
 L["module_tVersion_outdated_msg"] = "Testversion des neuesten Moduls %s ist: %s"
@@ -332,8 +308,7 @@ L["No winners registered"] = "Keine Gewinner wurden registriert"
 L["non_tradeable_reason_nil"] = "Unbekannt"
 L["non_tradeable_reason_not_tradeable"] = "Nicht handelbar"
 L["non_tradeable_reason_rejected_trade"] = "Wollte den Gegenstand behalten"
---[[Translation missing --]]
---[[ L["Non-tradeable reason:"] = ""--]] 
+L["Non-tradeable reason:"] = "Nicht handelbarer Grund:"
 L["Not announced"] = [=[Nicht angekündigt
 ]=]
 L["Not cached, please reopen."] = "Ist nicht zwischengespeichert, bitte erneut öffnen."
@@ -359,54 +334,35 @@ L["open"] = "Öffnen"
 L["Open the Loot History"] = "Beuteverlauf öffnen"
 L["open_the_loot_history_desc"] = "Klicken, um den Beuteverlauf zu öffnen."
 L["Opens the synchronizer"] = "Öffnet den Synchronisierer"
---[[Translation missing --]]
---[[ L["opt_addButton_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["opt_autoTrade_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["opt_award_later_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["opt_buttonsGroup_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["opt_chatFrameName_desc"] = ""--]] 
+L["opt_addButton_desc"] = "Füge eine neue Schaltflächengruppe für den ausgewählten Slot hinzu."
+L["opt_autoTrade_desc"] = "Anhaken, um vergebene Gegenstände dem Handelsfenster automatisch hinzuzufügen, wenn man mit dem Gewinner handelt. Wenn deaktiviert, wird ein Pop-up eingeblendet bevor die Gegenstände hinzugefügt werden. "
+L["opt_award_later_desc"] = "Anhaken, um die \"Später vergeben\"-Funktion im Sitzungsfenster automatisch zu aktivieren."
+L["opt_buttonsGroup_desc"] = "Optionsgruppe für %s Schaltflächen und Antworten. Für eine detaillierte Erklärung siehe oben. "
+L["opt_chatFrameName_desc"] = "Wähle aus, in welchem Chatfenster RCLootCouncil Informationen ausgeben soll."
 L["opt_deleteDate_confirm"] = [=[Bist du sicher, dass du alles, das älter als das gewählte ist, löschen möchtest?
 Dies kann nicht rückgängig gemacht werden.]=]
---[[Translation missing --]]
---[[ L["opt_deleteDate_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["opt_deleteName_confirm"] = ""--]] 
+L["opt_deleteDate_desc"] = "Lösche alles, was älter als die ausgewählte Anzahl an Tagen ist."
+L["opt_deleteName_confirm"] = "Möchtest du wirklich alle Einträge aus %s löschen? Das kann nicht rückgängig gemacht werden."
 L["opt_deleteName_desc"] = "Löscht alle Einträge des gewählten Kandidaten."
 L["opt_deletePatch_confirm"] = "Bist du sicher, dass du alles, das älter ist als der ausgewählte Patch ist, löschen möchtest? Dies kann nicht rückgängig gemacht werden."
 L["opt_deletePatch_desc"] = "Löscht alle Einträge, die vor dem ausgewählten Patch hinzugefügt wurden."
---[[Translation missing --]]
---[[ L["opt_deleteRaid_confirm"] = ""--]] 
---[[Translation missing --]]
---[[ L["opt_deleteRaid_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["opt_moreButtons_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["opt_printCompletedTrade_Desc"] = ""--]] 
+L["opt_deleteRaid_confirm"] = [=[Möchtest du wirklich alle Einträge aus der ausgewählten Instanz löschen? Das kann nicht rückgängig gemacht werden.
+
+]=]
+L["opt_deleteRaid_desc"] = "Lösche alle Einträge einer bestimmten Instanz."
+L["opt_moreButtons_desc"] = "Füge ein neues Set an Schaltflächen für einen bestimmten Ausrüstungsslot hinzu. Der spezifischste Typ wird verwendet, d. H. das Hinzufügen von Schaltflächen für \"Kopf\" und \"Azerit-Rüstung\" bewirkt, dass Kopf-Rüstungen die Kopfknöpfe anstelle von Azerit-Rüstungen verwenden."
+L["opt_printCompletedTrade_Desc"] = "Anhaken, damit jedes Mal eine Nachricht verschickt wird, wenn ein Kandidat einen vergebenen Gegenstand mit dem Gewinner handelt."
 L["opt_printCompletedTrade_Name"] = "Handelsnachrichten"
---[[Translation missing --]]
---[[ L["opt_rejectTrade_Desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["opt_rejectTrade_Name"] = ""--]] 
---[[Translation missing --]]
---[[ L["opt_saveBonusRolls_Desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["opt_saveBonusRolls_Name"] = ""--]] 
---[[Translation missing --]]
---[[ L["options_autoAwardBoE_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["options_autoAwardBoE_name"] = ""--]] 
---[[Translation missing --]]
---[[ L["options_ml_outOfRaid_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["options_ml_outOfRaid_name"] = ""--]] 
---[[Translation missing --]]
---[[ L["options_requireNotes_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["Original Owner"] = ""--]] 
+L["opt_rejectTrade_Desc"] = "Aktiviere diese Option, damit die Kandidaten auswählen können, ob sie den Gegenstand dem Rat \"geben\" möchten oder nicht. Wenn diese Option nicht aktiviert ist, werden alle handelbaren PL-Gegenstände automatisch hinzugefügt."
+L["opt_rejectTrade_Name"] = "Behalten erlauben"
+L["opt_saveBonusRolls_Desc"] = "Anhaken, um alle Bonuswürfe von Kandidaten im Beuteverlauf zu speichern."
+L["opt_saveBonusRolls_Name"] = "Bonuswürfe speichern"
+L["options_autoAwardBoE_desc"] = "Aktiviere diese Option, um alle epischen BoE-Gegenständie (Beim Anlegen gebunden) aus dem ausgewählten Grund automatisch an eine bestimmte Person zu vergeben."
+L["options_autoAwardBoE_name"] = "BoE's automatisch vergeben"
+L["options_ml_outOfRaid_desc"] = "Wenn diese Option aktiviert ist, wird in einer Gruppe von 8 oder mehr Mitgliedern von jedem, der sich nicht in einer Instanz befindet, wenn eine Sitzung gestartet wird, automatisch die Antwort \"Nicht im Raid\" senden."
+L["options_ml_outOfRaid_name"] = "Nicht im Raid unterstützen"
+L["options_requireNotes_desc"] = "Wenn diese Option aktiviert ist, können Kandidaten ihre Antwort nicht einreichen, ohne eine Notiz eingegeben zu haben."
+L["Original Owner"] = "Originaler Besitzer"
 L["Out of instance"] = "Keine Instanz"
 L["Patch"] = true
 L["Personal Loot - Non tradeable"] = "Persönliche Beute – Nicht handelbar"
@@ -442,8 +398,7 @@ L["Remove All"] = "Alle entfernen"
 L["Remove from consideration"] = "Aus der Betrachtung entfernen"
 L["remove_all_desc"] = "Alle Ratsmitglieder entfernen"
 L["Requested rolls for 'item' from 'target'"] = "Würfe für %s von %s angefordert"
---[[Translation missing --]]
---[[ L["Require Notes"] = ""--]] 
+L["Require Notes"] = "Notizen erforderlich"
 L["Reset Skin"] = "Optik zurücksetzen"
 L["Reset skins"] = "Optiken zurücksetzen"
 L["reset_announce_to_default_desc"] = "Setzt alle Ankündigungsoptionen auf Standardeinstellungen zurück."
@@ -468,11 +423,9 @@ L["save_skin_desc"] = "Gib einen Namen für deine Optik ein und klicke auf OK, u
 L["Self Vote"] = "Selbstwahl"
 L["self_vote_desc"] = "Erlaubt es Wählern, sich selbst zu wählen."
 L["Send History"] = "Verlauf senden"
---[[Translation missing --]]
---[[ L["Send to Guild"] = ""--]] 
+L["Send to Guild"] = "An die Gilde senden"
 L["send_history_desc"] = "Sendet Daten an alle Schlachtzugsmitglieder, unabhängig davon, ob du es selbst protokollierst. RCLootCouncil wird nur Daten senden, wenn du der Plündermeister bist."
---[[Translation missing --]]
---[[ L["send_to_guild_desc"] = ""--]] 
+L["send_to_guild_desc"] = "Sende den Verlauf an Gildenmitglieder anstatt an deine Gruppe. Nützlich, wenn mehrere Schlachtzugsgruppen aktiv sind und du einen kombinierten Verlauf für deine Gilde wünschst. Der Nachteil ist, dass Nicht-Gildenmitglieder in Ihrer Gruppe deine Verlaufseinträge nicht registrieren."
 L["Sending 'type' to 'player'..."] = "Sende %s an %s..."
 L["Sent whisper help to 'player'"] = "Sende Hilfe zur Flüsterfunktion an %s"
 L["session_error"] = "Etwas ist schief gelaufen – Bitte starte die Sitzung erneut"
@@ -495,13 +448,13 @@ L["Something went wrong during syncing, please try again."] = "Während der Sync
 L["Sort Items"] = "Gegenstände sortieren"
 L["sort_items_desc"] = "Sortiere Session nach Gegenstandstyp und -stufe."
 L["Standard .csv output."] = "Standard"
---[[Translation missing --]]
---[[ L["Standard JSON output."] = ""--]] 
+L["Standard JSON output."] = "JSON-Array beinhaltet ein JSON-Objekt pro Verlaufseintrag."
 L["Status texts"] = "Statustexte"
 L["Store in bag and award later"] = "In der Tasche lagern und später verteilen"
 L["Succesfully deleted %d entries"] = "%d Einträge erfolgreich gelöscht"
---[[Translation missing --]]
---[[ L["Succesfully deleted %d entries from %s"] = ""--]] 
+L["Succesfully deleted %d entries from %s"] = [=[%d Einträge wurden erfolgreich aus %s gelöscht
+
+]=]
 L["Successfully imported 'number' entries."] = "%d Einträge wurden erfolgreich importiert."
 L["Successfully received 'type' from 'player'"] = "%s von %s erfolgreich erhalten."
 L["Sync"] = true
@@ -554,8 +507,7 @@ L["Total awards"] = "Zuteilungen insgesamt"
 L["Total items received:"] = "Insgesamt erhaltene Gegenstände:"
 L["Total items won:"] = "Insgesamt gewonnene Gegenstände:"
 L["trade_complete_message"] = "%s handelte %s an %s."
---[[Translation missing --]]
---[[ L["trade_item_to_trade_not_found"] = ""--]] 
+L["trade_item_to_trade_not_found"] = "WARNUNG: zu handelnder Gegenstand %s wurde in deinem Inventar nicht gefunden!"
 L["trade_wrongwinner_message"] = "WARNUNG: %s handelte %s an %s anstatt an %s!"
 L["tVersion_outdated_msg"] = "Die neueste RCLootCouncil-Testversion ist: %s"
 L["Unable to give 'item' to 'player'"] = "Konnte %s nicht an %s geben"
@@ -565,8 +517,7 @@ L["Unawarded"] = "Nicht zugeteilt"
 L["Unguilded"] = "Gildenlos"
 L["Unknown date"] = "Unbekanntes Datum"
 L["Unknown/Chest"] = "Unbekannt/Brust"
---[[Translation missing --]]
---[[ L["Unlooted"] = ""--]] 
+L["Unlooted"] = "Nicht geplündert"
 L["Unvote"] = "Abwählen"
 L["Upper Quality Limit"] = "Obere Qualitätsgrenze"
 L["upper_quality_limit_desc"] = [=[Wähle die obere Qualitätsgrenze der Gegenstände, die automatisch vergeben werden (Diese Qualität inbegriffen!).

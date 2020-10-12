@@ -18,85 +18,7 @@ local module = ExRT:New("ExCD2",ExRT.L.cd2)
 local ELib,L = ExRT.lib,ExRT.L
 
 module._C = {}
-module.db.spellDB = {
-{31821,	"PALADIN",	nil,			{31821,	180,	8},	nil,			nil,			},	--Владение аурами
-{204150,"PALADIN",	nil,			nil,			{204150,180,	6},	nil,			},	--Эгида Света
-{62618,	"PRIEST",	nil,			{62618,	180,	10},	nil,			nil,			},	--Слово силы: Барьер
-{98008,	"SHAMAN",	nil,			nil,			nil,			{98008,	180,	6},	},	--Тотем духовной связи
-{97462,	"WARRIOR",	{97462,	180,	10},	nil,			nil,			nil,			},	--Ободряющий клич
-{31884,	"PALADIN",	nil,			{31884,	120,	20},	{31884,	120,	20},	{31884,	120,	20},	},	--Гнев карателя
-{64843,	"PRIEST",	nil,			nil,			{64843,	180,	8},	nil,			},	--Божественный гимн
-{108280,"SHAMAN",	nil,			nil,			nil,			{108280,180,	10},	},	--Тотем целительного прилива
-{740,	"DRUID",	nil,			nil,			nil,			nil,{740,180,	8},	},	--Спокойствие
-{115310,"MONK",		nil,			nil,			nil,			{115310,180,	0},	},	--Восстановление сил
-{15286,	"PRIEST",	nil,			nil,			nil,			{15286,	120,	15},	},	--Объятия вампира
-{196718,"DEMONHUNTER",	nil,			{196718,180,	8},	nil,						},	--Мрак
-{207399,"SHAMAN",	nil,			nil,			nil,			{207399,300,	30},	},	--Тотем защиты Предков
-{265202,"PRIEST",	nil,			nil,			{265202,720,	0},	nil,			},	--Holy Word: Salvation
-{216331,"PALADIN",	nil,			{216331,120,	20},	nil,			nil,			},	--Avenging Crusader
-{271466,"PRIEST",	nil,			{271466,180,	0},	nil,			nil,			},	--Luminous Barrier
-
-{102342,"DRUID",	nil,			nil,			nil,			nil,{102342,60,	12},	},	--Железная кора
-{47788,	"PRIEST",	nil,			nil,			{47788,	180,	10},	nil,			},	--Оберегающий дух
-{33206,	"PRIEST",	nil,			{33206,	180,	8},	nil,			nil,			},	--Подавление боли
-{6940,	"PALADIN",	nil,			{6940,	120,	12},	{6940,	120,	12},	nil,			},	--Жертвенное благословление
-{633,	"PALADIN",	{633,	600,	0},	nil,			nil,			nil,			},	--Возложение рук
-{116849,"MONK",		nil,			nil,			nil,			{116849,120,	12},	},	--Исцеляющий кокон
-{1022,	"PALADIN",	{1022,	300,	10},	nil,			nil,			nil,			},	--Благословение защиты
-{204018,"PALADIN",	nil,			nil,			{204018,180,	10},	nil,			},	--Благословение защиты от заклинаний
-{1044,	"PALADIN",	{1044,	25,	8},	nil,			nil,			nil,			},	--Благословенная свобода
-{73325,	"PRIEST",	{73325,	90,	0},	nil,			nil,			nil,			},	--Духовное рвение
-
-{106898,"DRUID",	nil,			nil,			{77764,	120,	8},	{77761,	120,	8},nil,	},	--Тревожный рев
-{192077,"SHAMAN",	{192077,120,	15},	nil,			nil,			nil,			},	--Тотем ветряного порыва
-
-{161642,"NO",		{161642,0,	0},	nil,			nil,			nil,			},	--Resurrecting [Raid Combat Res]
-{20484,	"DRUID",	{20484,	600,	0},	nil,			nil,			nil,nil,		},	--Возрождение
-{20707,	"WARLOCK",	{20707,	600,	0},	nil,			nil,			nil,			},	--Камень души
-{61999,	"DEATHKNIGHT",	{61999,	600,	0},	nil,			nil,			nil,			},	--Воскрешение союзника
-{20608,	"SHAMAN",	{21169,	1800,	0},	nil,			nil,			nil,			},	--Реинкарнация
-
-{46968,	"WARRIOR",	nil,			nil,			nil,			{46968,	30,	0},	},	--Ударная волна
-{119381,"MONK",		{119381,60,	3},	nil,			nil,			nil,			},	--Круговой удар ногой
-{179057,"DEMONHUNTER",	nil,			{179057,60,	2},	nil,						},	--Кольцо Хаоса
-{192058,"SHAMAN",	{192058,60,	2},	nil,			nil,			nil,			},	--Тотем выброса тока
-{30283,	"WARLOCK",	{30283,	60,	0},	nil,			nil,			nil,			},	--Shadowfury
-
-{202137,"DEMONHUNTER",	nil,			nil,			{202137,60,	2},				},	--Sigil of Silence
-
-{32375,	"PRIEST",	{32375,	45,	0},	nil,			nil,			nil,			},	--Массовое рассеивание
-{64901,	"PRIEST",	nil,			nil,			{64901,	300,	6},	nil,			},	--Символ надежды
-{29166,	"DRUID",	nil,			{29166,	180,	12},	nil,			nil,{29166,180,	12},	},	--Озарение
-
-{114018,"ROGUE",	{114018,360,	15},	nil,			nil,			nil,			},	--Shroud of Concealment
-
-{108199,"DEATHKNIGHT",	nil,			{108199,120,	0},	nil,			nil,			},	--Хватка Кровожада
-{49576,	"DEATHKNIGHT",	nil,			{49576,	15,	0},	{49576,	25,	0},	{49576,	25,	0},	},	--Хватка смерти
-{2825,	"SHAMAN",	{2825,	300,	40},	nil,			nil,			nil,			},	--Жажда крови
-{80353,	"MAGE",		{80353,	300,	40},	nil,			nil,			nil,			},	--Искажение времени
---{id,	class,		all specs,		spec1,			spec2={spellid,cd,duration},spec3,spec4		},	--name
-}
-
-if ExRT.isClassic then
-	module.db.spellDB = {
-		{29166,	"DRUID",	{29166,	360,	20}},	--Озарение
-		{20748,	"DRUID",	{20748,	1800,	0}},	--BR
-		{6795,	"DRUID",	{6795,	10,	0}},	--Taunt
-		{9863,	"DRUID",	{9863,	300,	10}},	--Tranq
-
-		{355,	"WARRIOR",	{355,	10,	0}},	--Taunt
-		{12975,	"WARRIOR",	{12975,	600,	20}},	--Last stand
-		{871,	"WARRIOR",	{871,	1800,	10}},	--SW
-
-		{11958,	"MAGE",		{11958,	480,	40}},	--IB
-
-		{1020,	"PALADIN",	{1020,	300,	12}},	--DS
-		{10310,	"PALADIN",	{10310,	3600,	0}},	--LoH
-		{19752,	"PALADIN",	{19752,	3600,	0}},	--DI
-
-		{17359,	"SHAMAN",	{17359,	300,	12}},	--MTT
-	}
-end
+module.db.spellDB = {}
 
 module.db.Cmirror = module._C
 module.db.dbCountDef = #module.db.spellDB
@@ -106,12 +28,12 @@ module.db.findspecspells = {
 	[214634] = 64, [116] = 64, [30455] = 64,
 	
 	[20473] = 65, [82326] = 65,
-	[53600] = 66, [31935] = 66,
+	[31935] = 66, [53600] = 66, 
 	[85256] = 70, [53385] = 70, 
 
-	[209577] = 71, [12294] = 71, [167105] = 71,
-	[205546] = 72, [23881] = 72, [184367] = 72,
-	[203524] = 73, [20243] = 73, [23922] = 73,
+	[12294] = 71, [167105] = 71,
+	[23881] = 72, [184367] = 72,
+	[20243] = 73, [23922] = 73,
 	
 	--hard fix on druid spells
 	--[202767] = 102, [190984] = 102, --[78674] = 102, 
@@ -150,6 +72,57 @@ module.db.findspecspells = {
 	[201467] = 577, [162243] = 577, [198013] = 577,
 	[207407] = 581, [203782] = 581, [228477] = 581,
 }
+if ExRT.is90 then
+module.db.findspecspells = {
+	[30451] = 62, [5143] = 62,
+	[11366] = 63, [133] = 63,
+	[30455] = 64, [44614] = 64,
+
+	[20473] = 65, [85222] = 65,
+	[31935] = 66, [204019] = 66, [53595] = 66, 
+	[85256] = 70, [184575] = 70,
+
+	[12294] = 71, [7384] = 71,
+	[23881] = 72, [184367] = 72,
+	[6572] = 73, [6343] = 73,
+
+	[202770] = 102, [102560] = 102, 
+	[202028] = 103, [5217] = 103, 
+	--104
+	[145205] = 105, [157982] = 105,
+
+	[50842] = 250, [206930] = 250, 
+	[49020] = 251, [49143] = 251,
+	[55090] = 252, [85948] = 252,
+
+	[272790] = 253, [193455] = 253, 
+	[19434] = 254, [56641] = 254, 
+	[186270] = 255, [259491] = 255, 
+
+	[194509] = 256, [47540] = 256,
+	[596] = 257, [204883] = 257,
+	[335467] = 258, [34914] = 258,
+
+	[1329] = 259, [32645] = 259, 
+	[193315] = 260, [2098] = 260, 
+	[185438] = 261, [53] = 261, 
+
+	[8042] = 262, [198067] = 262, 
+	[17364] = 263, [60103] = 263, 
+	[61295] = 264, [73920] = 264,
+
+	[198590] = 265, [324536] = 265, 
+	[105174] = 266, [264178] = 266, 
+	[29722] = 267, [116858] = 267, 
+
+	[121253] = 268, [124506] = 268,
+	[113656] = 269, [122470] = 269, 
+	[115151] = 270, [191837] = 270, 
+
+	[162243] = 577, [162794] = 577, [195072] = 577, 
+	[209795] = 581, [228478] = 581, 
+}
+end
 module.db.classNames = ExRT.GDB.ClassList
 
 module.db.specByClass = {}
@@ -163,19 +136,19 @@ end
 
 module.db.specIcons = ExRT.GDB.ClassSpecializationIcons
 module.db.specInDBase = {
-	[253] = 4,	[254] = 5,	[255] = 6,
-	[71] = 4,	[72] = 5,	[73] = 6,
-	[65] = 4,	[66] = 5,	[70] = 6,
-	[62] = 4,	[63] = 5,	[64] = 6,
-	[256] = 4,	[257] = 5,	[258] = 6,
-	[265] = 4,	[266] = 5,	[267] = 6,
-	[250] = 4,	[251] = 5,	[252] = 6,
-	[259] = 4,	[260] = 5,	[261] = 6,
-	[102] = 4,	[103] = 5,	[104] = 6,	[105] = 7,
-	[268] = 4,	[269] = 5,	[270] = 6,
-	[262] = 4,	[263] = 5,	[264] = 6,
-	[577] = 4,	[581] = 5,
-	[0] = 3,
+	[253] = 5,	[254] = 6,	[255] = 7,
+	[71] = 5,	[72] = 6,	[73] = 7,
+	[65] = 5,	[66] = 6,	[70] = 7,
+	[62] = 5,	[63] = 6,	[64] = 7,
+	[256] = 5,	[257] = 6,	[258] = 7,
+	[265] = 5,	[266] = 6,	[267] = 7,
+	[250] = 5,	[251] = 6,	[252] = 7,
+	[259] = 5,	[260] = 6,	[261] = 7,
+	[102] = 5,	[103] = 6,	[104] = 7,	[105] = 8,
+	[268] = 5,	[269] = 6,	[270] = 7,
+	[262] = 5,	[263] = 6,	[264] = 7,
+	[577] = 5,	[581] = 6,
+	[0] = 4,
 }
 
 do
@@ -574,6 +547,7 @@ module.db.spell_speed_list = {		--Спелы, которым менять вре
 	[64843]=true,
 	[12051]=true,
 	[113656]=true,
+	[64901]=true,
 }
 module.db.spell_afterCombatReset = {	--Принудительный сброс кд после боя с боссом (для спелов с кд менее 5 мин., 3мин после 6.1)
 	[161642]=true,
@@ -781,6 +755,8 @@ module.db.spell_dispellsList = {	--Заклинания-диспелы (мгно
 	[2782] = true,
 	[88423] = true,
 	[213644] = true,
+	[213634] = true,
+	[218164] = true,
 }
 
 module.db.spell_startCDbyAuraFade = {	--Заклинания, кд которых запускается только при спадении ауры
@@ -850,6 +826,10 @@ module.db.spell_isRacial = {		--Расовые заклинания
 	[255654]="HighmountainTauren",
 	[274738]="MagharOrc",
 	[265221]="DarkIronDwarf",
+	[312924]="Mechagnome",
+	[287712]="KulTiran",
+	[312411]="Vulpera",
+	[291944]="ZandalariTroll",
 }
 
 module.db.def_col = {			--Стандартные положения в колонках
@@ -1132,8 +1112,6 @@ module.db.vars = {
 	ineffable_active = {},
 }
 
-module.db.playerName = nil
-
 module.db.plugin = {}
 
 module.db.notAClass = { r = 0.8, g = 0.8, b = 0.8, colorStr = "ffcccccc" }
@@ -1228,6 +1206,41 @@ local L_Offline,L_Dead = L.cd2StatusOffline, L.cd2StatusDead
 local _C, _db, _mainFrame = module._C, module.db
 
 local status_UnitsToCheck,status_UnitIsDead,status_UnitIsDisconnected,status_UnitIsOutOfRange = module.db.status_UnitsToCheck,module.db.status_UnitIsDead,module.db.status_UnitIsDisconnected,module.db.status_UnitIsOutOfRange
+
+function module:CreateSpellDB()
+	local spellDB, AllSpells, data = module.db.spellDB, module.db.AllSpells
+	local isTestMode = module.db.testMode
+	wipe(spellDB)
+	for i=1,#AllSpells do
+		data = AllSpells[i]
+		if VExRT.ExCD2.CDE[ data[1] ] or isTestMode then
+			spellDB[#spellDB+1] = data
+		end
+	end
+	for i=1,#VExRT.ExCD2.userDB do
+		data = VExRT.ExCD2.userDB[i]
+		if 	--Prevent any errors for userbased cds
+			VExRT.ExCD2.CDE[ data[1] ] and 
+			(data[4] or data[5] or data[6] or data[7] or data[8]) and
+			((data[4] and data[4][1] and data[4][2] ~= 0 and data[4][3]) or not data[4]) and
+			((data[5] and data[5][1] and data[5][2] ~= 0 and data[5][3]) or not data[5]) and
+			((data[6] and data[6][1] and data[6][2] ~= 0 and data[6][3]) or not data[6]) and
+			((data[7] and data[7][1] and data[7][2] ~= 0 and data[7][3]) or not data[7]) and
+			((data[8] and data[8][1] and data[8][2] ~= 0 and data[8][3]) or not data[8])
+		then
+			spellDB[#spellDB+1] = data
+		end
+	end
+end
+
+function module:UpdateSpellDB(fullUpdate)
+	if fullUpdate then
+		module:CreateSpellDB()
+		module:UpdateRoster()
+	end
+	UpdateAllData()
+	SortAllData()
+end
 
 do
 	local frame = CreateFrame("Frame",nil,UIParent)
@@ -2374,12 +2387,12 @@ local function AfterCombatResetFunction(isArena)
 	if not ExRT.isClassic then
 		for i=1,#_C do
 			local unitSpellData = _C[i]
-			local uSpecID = module.db.specInDBase[globalGUIDs[unitSpellData.fullName] or 0]
-			if not unitSpellData.db[uSpecID] and unitSpellData.db[3] then
-				uSpecID = 3
+			local uSpecID = _db.specInDBase[globalGUIDs[unitSpellData.fullName] or 0]
+			if not unitSpellData.db[uSpecID] and unitSpellData.db[4] then
+				uSpecID = 4
 			end
 	
-			if (unitSpellData.cd > 0 and (module.db.spell_afterCombatReset[unitSpellData.db[1]] or (unitSpellData.db[uSpecID] and unitSpellData.db[uSpecID][2] >= (isArena and 0 or 180) or unitSpellData.cd >= (isArena and 0 or 180)))) and (not module.db.spell_afterCombatNotReset[unitSpellData.db[1]] or isArena) then
+			if (unitSpellData.cd > 0 and (_db.spell_afterCombatReset[unitSpellData.db[1]] or (unitSpellData.db[uSpecID] and unitSpellData.db[uSpecID][2] >= (isArena and 0 or 180) or unitSpellData.cd >= (isArena and 0 or 180)))) and (not _db.spell_afterCombatNotReset[unitSpellData.db[1]] or isArena) then
 				unitSpellData.lastUse = 0 
 				unitSpellData.charge = nil 
 				
@@ -2398,7 +2411,7 @@ local function TestMode(h)
 			local data = _C[i]
 			local uSpecID = module.db.specInDBase[VExRT.ExCD2.gnGUIDs[data.fullName] or 0]
 			if not data.db[uSpecID] then
-				uSpecID = 3
+				uSpecID = 4
 			end
 			if data.db[uSpecID] then
 				if fastrandom(0,100) < 80 then
@@ -2541,10 +2554,10 @@ do
 			local spellID = db[1]
 			
 			local specID = globalGUIDs[name] or 0
-			local unitSpecID = specInDBase[specID] or 3
+			local unitSpecID = specInDBase[specID] or 4
 			
 			if isTestMode or (VExRT_CDE[spellID] and 
-			(db[unitSpecID] or (not db[unitSpecID] and db[3])) and 
+			(db[unitSpecID] or (not db[unitSpecID] and db[4])) and 
 			(not spell_isTalent[spellID] or session_gGUIDs[name][spellID]) and 
 			(not spell_isPvpTalent[spellID] or (session_gGUIDs[name][spellID] and IsPvpTalentsOn(name))) and 
 			(not spell_isPetAbility[spellID] or session_Pets[name] == spell_isPetAbility[spellID] or (session_Pets[name] and petsAbilities[ session_Pets[name] ] and petsAbilities[ session_Pets[name] ][1] == spell_isPetAbility[spellID])) and
@@ -2555,9 +2568,9 @@ do
 				
 				local col = 1
 				if db[unitSpecID] then
-					col = VExRT.ExCD2.CDECol[db[unitSpecID][1]..";"..(unitSpecID-2)] or def_col[db[unitSpecID][1]..";"..(unitSpecID-2)] or 1
-				elseif db[3] then
-					col = VExRT.ExCD2.CDECol[db[3][1]..";1"] or def_col[db[3][1]..";1"] or 1
+					col = VExRT.ExCD2.CDECol[db[unitSpecID][1]..";"..(unitSpecID-3)] or def_col[db[unitSpecID][1]..";"..(unitSpecID-3)] or db[3] or 1
+				elseif db[4] then
+					col = VExRT.ExCD2.CDECol[db[4][1]..";1"] or def_col[db[4][1]..";1"] or db[3] or 1
 				end
 				data.column = col
 				
@@ -2939,7 +2952,7 @@ local function UpdateRoster()
 	if n > 0 then
 		local priorCounter = 0
 		local priorNamesToNumber = {}
-		if not module.db.testMode then
+		if not _db.testMode then
 			for j=1,n do
 				local name = GetRaidRosterInfoFix(j)
 				if name then
@@ -2957,7 +2970,7 @@ local function UpdateRoster()
 		for j=1,n do
 			local name,subgroup,class,level,race,online,isDead = GetRaidRosterInfoFix(j)
 			if name and subgroup <= gMax then
-				for i,spellData in ipairs(module.db.spellDB) do
+				for i,spellData in ipairs(_db.spellDB) do
 					local SpellID = spellData[1]
 					local AddThisSpell = true
 					if level < 100 then
@@ -2966,13 +2979,18 @@ local function UpdateRoster()
 							AddThisSpell = false
 						end
 					end
-					if module.db.spell_isRacial[ SpellID ] and race ~= module.db.spell_isRacial[ SpellID ] then
+					if _db.spell_isRacial[ SpellID ] and race ~= _db.spell_isRacial[ SpellID ] then
 						AddThisSpell = false	
 					end
 					if not GetSpellInfo(SpellID) then	--non exist, removed spells
 						AddThisSpell = false
 					end
-					if AddThisSpell and (spellData[2] == class or spellData[2] == "ALL") then
+					local spellClass = strsplit(",",spellData[2])
+					if not ExRT.GDB.ClassID[spellClass] and spellClass ~= "NO" then
+						spellClass = "ALL"
+					end
+
+					if AddThisSpell and (spellClass == class or spellClass == "ALL") then
 						if not ExRT.F.table_find(status_UnitsToCheck,name) then
 							status_UnitsToCheck[#status_UnitsToCheck + 1] = name
 							
@@ -2991,11 +3009,11 @@ local function UpdateRoster()
 						
 						local spellColumn = 1
 						local _specID = globalGUIDs[name] or 0
-						local uSpecID = _db.specInDBase[_specID] or 3
+						local uSpecID = _db.specInDBase[_specID] or 4
 						if spellData[uSpecID] then
-							spellColumn = VExRT.ExCD2.CDECol[spellData[uSpecID][1]..";"..(uSpecID-2)] or _db.def_col[spellData[uSpecID][1]..";"..(uSpecID-2)] or 1
-						elseif spellData[3] then
-							spellColumn = VExRT.ExCD2.CDECol[spellData[3][1]..";1"] or _db.def_col[spellData[3][1]..";1"] or 1
+							spellColumn = VExRT.ExCD2.CDECol[spellData[uSpecID][1]..";"..(uSpecID-3)] or _db.def_col[spellData[uSpecID][1]..";"..(uSpecID-3)] or spellData[3] or 1
+						elseif spellData[4] then
+							spellColumn = VExRT.ExCD2.CDECol[spellData[4][1]..";1"] or _db.def_col[spellData[4][1]..";1"] or spellData[3] or 1
 						end
 						local getSpellColumn = _mainFrame.colFrame[spellColumn]
 						local prior = nil
@@ -3014,19 +3032,19 @@ local function UpdateRoster()
 							E - classID
 						]]
 						if not getSpellColumn or getSpellColumn.methodsSortingRules == 1 then
-							prior = (VExRT.ExCD2.Priority[SpellID] or 15) * 1000000000000 + (SpellID or 0) * 1000000 + (ExRT.F.table_find(priorNamesToNumber,name) or 0) * 10000 + priorCounter
+							prior = (VExRT.ExCD2.Priority[SpellID] or 50) * 1000000000000 + (SpellID or 0) * 1000000 + (ExRT.F.table_find(priorNamesToNumber,name) or 0) * 10000 + priorCounter
 						elseif getSpellColumn.methodsSortingRules == 2 then
-							prior = (VExRT.ExCD2.Priority[SpellID] or 15) * 1000000000000 + (ExRT.F.table_find(priorNamesToNumber,name) or 0) * 10000000000 + (SpellID or 0) * 10000 + priorCounter
+							prior = (VExRT.ExCD2.Priority[SpellID] or 50) * 1000000000000 + (ExRT.F.table_find(priorNamesToNumber,name) or 0) * 10000000000 + (SpellID or 0) * 10000 + priorCounter
 						elseif getSpellColumn.methodsSortingRules == 3 then
-							prior = (VExRT.ExCD2.Priority[SpellID] or 15) * 100000000000000 + (ExRT.F.table_find(module.db.classNames,class) or 0) * 1000000000000 + (SpellID or 0) * 1000000 + (ExRT.F.table_find(priorNamesToNumber,name) or 0) * 10000 + priorCounter
+							prior = (VExRT.ExCD2.Priority[SpellID] or 50) * 100000000000000 + (ExRT.F.table_find(_db.classNames,class) or 0) * 1000000000000 + (SpellID or 0) * 1000000 + (ExRT.F.table_find(priorNamesToNumber,name) or 0) * 10000 + priorCounter
 						elseif getSpellColumn.methodsSortingRules == 4 then
-							prior = (VExRT.ExCD2.Priority[SpellID] or 15) * 100000000000000 + (ExRT.F.table_find(module.db.classNames,class) or 0) * 1000000000000 + (ExRT.F.table_find(priorNamesToNumber,name) or 0) * 10000000000 + (SpellID or 0) * 10000 + priorCounter
+							prior = (VExRT.ExCD2.Priority[SpellID] or 50) * 100000000000000 + (ExRT.F.table_find(_db.classNames,class) or 0) * 1000000000000 + (ExRT.F.table_find(priorNamesToNumber,name) or 0) * 10000000000 + (SpellID or 0) * 10000 + priorCounter
 						elseif getSpellColumn.methodsSortingRules == 5 then
-							prior = (ExRT.F.table_find(priorNamesToNumber,name) or 0) * 1000000000000 + (VExRT.ExCD2.Priority[SpellID] or 15) * 10000000000 + (SpellID or 0) * 10000 + priorCounter
+							prior = (ExRT.F.table_find(priorNamesToNumber,name) or 0) * 1000000000000 + (VExRT.ExCD2.Priority[SpellID] or 50) * 10000000000 + (SpellID or 0) * 10000 + priorCounter
 						elseif getSpellColumn.methodsSortingRules == 6 then
-							prior = (ExRT.F.table_find(module.db.classNames,class) or 0) * 100000000000000 + (VExRT.ExCD2.Priority[SpellID] or 15) * 1000000000000 + (ExRT.F.table_find(priorNamesToNumber,name) or 0) * 10000000000 + (SpellID or 0) * 10000 + priorCounter
+							prior = (ExRT.F.table_find(_db.classNames,class) or 0) * 100000000000000 + (VExRT.ExCD2.Priority[SpellID] or 50) * 1000000000000 + (ExRT.F.table_find(priorNamesToNumber,name) or 0) * 10000000000 + (SpellID or 0) * 10000 + priorCounter
 						end
-						local secondPrior = (VExRT.ExCD2.Priority[SpellID] or 15) * 1000000 + (SpellID or 0)	--used in columns with option 'new spell - new line'
+						local secondPrior = (VExRT.ExCD2.Priority[SpellID] or 50) * 1000000 + (SpellID or 0)	--used in columns with option 'new spell - new line'
 						
 						local sName = format("%s%d",name or "?",SpellID or 0)
 						local lastUse,nowCd = 0,0
@@ -3039,13 +3057,13 @@ local function UpdateRoster()
 						spellName = spellName or "unk"
 						local shownName = DelUnitNameServer(name)
 						
-						if module.db.differentIcons[SpellID] then
-							spellTexture = module.db.differentIcons[SpellID]
+						if _db.differentIcons[SpellID] then
+							spellTexture = _db.differentIcons[SpellID]
 						end
 						
-						for l=3,7 do
+						for l=4,8 do
 							if spellData[l] then
-								local h = ExRT.isClassic and module.db.cdsNav[name][GetSpellInfo(spellData[l][1])] or module.db.cdsNav[name][spellData[l][1]]
+								local h = ExRT.isClassic and _db.cdsNav[name][GetSpellInfo(spellData[l][1])] or _db.cdsNav[name][spellData[l][1]]
 								if h then
 									h.db = spellData
 									if lastUse ~= 0 and nowCd ~= 0 and h.lastUse == 0 and h.cd == 0 then
@@ -3074,7 +3092,7 @@ local function UpdateRoster()
 								lastUse = lastUse,
 								cd = nowCd,
 								duration = 0,
-								classColor = classColorsTable[class] or module.db.notAClass,
+								classColor = classColorsTable[class] or _db.notAClass,
 								sort = prior,
 								sort2 = secondPrior,
 								column = spellColumn,
@@ -3082,7 +3100,7 @@ local function UpdateRoster()
 						end
 					end
 				end
-				module.db.session_gGUIDs[name] = 1
+				_db.session_gGUIDs[name] = 1
 				if isInRaid then
 					module.main:UNIT_PET("raid"..j)
 				end
@@ -3091,30 +3109,30 @@ local function UpdateRoster()
 		
 		--WOD Raid resurrect
 		if not ExRT.isClassic then
-			local findResSpell = ExRT.F.table_find(module.db.spellDB,161642,1)
+			local findResSpell = ExRT.F.table_find(_db.spellDB,161642,1)
 			if findResSpell then
-				local spellData = module.db.spellDB[findResSpell]
-				local h = module.db.cdsNav["*"][spellData[3][1]]
+				local spellData = _db.spellDB[findResSpell]
+				local h = _db.cdsNav["*"][spellData[4][1]]
 				local prior = 0
 				
 				priorCounter = priorCounter + 1
 				
-				local spellColumn = VExRT.ExCD2.CDECol["161642;1"] or _db.def_col["161642;1"] or 1
+				local spellColumn = VExRT.ExCD2.CDECol["161642;1"] or _db.def_col["161642;1"] or spellData[3] or 1
 				local getSpellColumn = _mainFrame.colFrame[spellColumn]
 				if not getSpellColumn or getSpellColumn.methodsSortingRules == 1 then
-					prior = (VExRT.ExCD2.Priority[161642] or 15) * 1000000000000 + 161642 * 1000000 + priorCounter
+					prior = (VExRT.ExCD2.Priority[161642] or 50) * 1000000000000 + 161642 * 1000000 + priorCounter
 				elseif getSpellColumn.methodsSortingRules == 2 then
-					prior = (VExRT.ExCD2.Priority[161642] or 15) * 1000000000000 + 161642 * 10000 + priorCounter
+					prior = (VExRT.ExCD2.Priority[161642] or 50) * 1000000000000 + 161642 * 10000 + priorCounter
 				elseif getSpellColumn.methodsSortingRules == 3 then
-					prior = (VExRT.ExCD2.Priority[161642] or 15) * 100000000000000 + 161642 * 1000000 + priorCounter
+					prior = (VExRT.ExCD2.Priority[161642] or 50) * 100000000000000 + 161642 * 1000000 + priorCounter
 				elseif getSpellColumn.methodsSortingRules == 4 then
-					prior = (VExRT.ExCD2.Priority[161642] or 15) * 100000000000000 + 161642 * 10000 + priorCounter
+					prior = (VExRT.ExCD2.Priority[161642] or 50) * 100000000000000 + 161642 * 10000 + priorCounter
 				elseif getSpellColumn.methodsSortingRules == 5 then
-					prior = (VExRT.ExCD2.Priority[161642] or 15) * 10000000000 + 161642 * 10000 + priorCounter
+					prior = (VExRT.ExCD2.Priority[161642] or 50) * 10000000000 + 161642 * 10000 + priorCounter
 				elseif getSpellColumn.methodsSortingRules == 6 then
-					prior = (VExRT.ExCD2.Priority[161642] or 15) * 1000000000000 + 161642 * 10000 + priorCounter
+					prior = (VExRT.ExCD2.Priority[161642] or 50) * 1000000000000 + 161642 * 10000 + priorCounter
 				end
-				local secondPrior = (VExRT.ExCD2.Priority[161642] or 15) * 1000000 + (161642 or 0)
+				local secondPrior = (VExRT.ExCD2.Priority[161642] or 50) * 1000000 + (161642 or 0)
 				
 				if not h then
 					local spellName,_,spellTexture = GetSpellInfo(spellData[1])
@@ -3128,7 +3146,7 @@ local function UpdateRoster()
 						lastUse = 0,
 						cd = 0,
 						duration = 0,
-						classColor = module.db.notAClass,
+						classColor = _db.notAClass,
 						sort = prior,
 						sort2 = secondPrior,
 						column = spellColumn,
@@ -3141,7 +3159,7 @@ local function UpdateRoster()
 					h.sort2 = secondPrior
 					h.column = spellColumn
 				end
-				module.db.session_gGUIDs["*"] = 1
+				_db.session_gGUIDs["*"] = 1
 			end
 		end
 		
@@ -3159,7 +3177,7 @@ local function UpdateRoster()
 				tremove(_C,j)
 				j = j - 1
 			else
-				for l=3,7 do 
+				for l=4,8 do 
 					if line.db[l] then
 						cdsNav_set(line.fullName,line.db[l][1],line)
 					end 
@@ -3191,6 +3209,7 @@ local function UpdateRoster()
 	UpdateAllData()
 	SortAllData()
 end
+module.UpdateRoster = UpdateRoster
 
 do
 	local function DispellSchedule(data)
@@ -3225,11 +3244,11 @@ do
 		end
 		local fullName = data.fullName
 		
-		local uSpecID = module.db.specInDBase[globalGUIDs[fullName] or 0]
-		if not data.db[uSpecID] and not data.db[3] then
+		local uSpecID = _db.specInDBase[globalGUIDs[fullName] or 0]
+		if not data.db[uSpecID] and not data.db[4] then
 			return
 		elseif not data.db[uSpecID] then
-			uSpecID = 3
+			uSpecID = 4
 		end
 		local spellID = data.db[uSpecID][1]
 		--WOD Battle Res
@@ -3243,11 +3262,11 @@ do
 		data.duration = data.db[uSpecID][3]
 		
 		--Talents / Glyphs
-		local durationTable = module.db.spell_durationByTalent_fix[spellID]
+		local durationTable = _db.spell_durationByTalent_fix[spellID]
 		if durationTable then
 			for j=1,#durationTable,2 do
 				local talentSpellID = durationTable[j]
-				if module.db.session_gGUIDs[fullName][talentSpellID] and (not module.db.spell_isPvpTalent[talentSpellID] or module.IsPvpTalentsOn(fullName)) then
+				if _db.session_gGUIDs[fullName][talentSpellID] and (not _db.spell_isPvpTalent[talentSpellID] or module.IsPvpTalentsOn(fullName)) then
 					local timeReduce = durationTable[j+1]
 					if type(timeReduce) == 'table' then
 						--artifact power old
@@ -3260,14 +3279,14 @@ do
 				end
 			end
 		end
-		local cdTable = module.db.spell_cdByTalent_fix[spellID]
+		local cdTable = _db.spell_cdByTalent_fix[spellID]
 		if cdTable then
 			for j=1,#cdTable,2 do
 				local talentSpellID = cdTable[j]
-				if module.db.session_gGUIDs[fullName][talentSpellID] and (not module.db.spell_isPvpTalent[talentSpellID] or module.IsPvpTalentsOn(fullName)) then
+				if _db.session_gGUIDs[fullName][talentSpellID] and (not _db.spell_isPvpTalent[talentSpellID] or module.IsPvpTalentsOn(fullName)) then
 					local timeReduce
-					if module.db.spell_cdByTalent_isScalable[talentSpellID] then
-						local scale_data = module.db.spell_cdByTalent_scalable_data[talentSpellID]
+					if _db.spell_cdByTalent_isScalable[talentSpellID] then
+						local scale_data = _db.spell_cdByTalent_scalable_data[talentSpellID]
 						timeReduce = scale_data[fullName] or scale_data[1]
 					else
 						timeReduce = cdTable[j+1]
@@ -3289,26 +3308,26 @@ do
 			end
 		end
 		--Charges
-		local isCharge = module.db.spell_charge_fix[ data.db[1] ]
+		local isCharge = _db.spell_charge_fix[ data.db[1] ]
 		if isCharge and (data.lastUse+data.cd) >= currTime then
 			data.charge = (data.charge or data.lastUse) + data.cd
 			data.lastUse = currTime
-			module.db.session_gGUIDs[fullName] = isCharge
-		elseif isCharge and module.db.session_gGUIDs[fullName][isCharge] then
+			_db.session_gGUIDs[fullName] = isCharge
+		elseif isCharge and _db.session_gGUIDs[fullName][isCharge] then
 			data.charge = currTime
 			data.lastUse = currTime
 		else
 			data.lastUse = currTime
 		end
 		--Haste/Readiness
-		if module.db.spell_speed_list[spellID] then
+		if _db.spell_speed_list[spellID] then
 			data.duration = data.duration / (1 + (UnitSpellHaste(fullName) or 0) /100)
 		end
-		if module.db.spell_reduceCdByHaste[spellID] then
+		if _db.spell_reduceCdByHaste[spellID] then
 			data.cd = data.cd / (1 + (UnitSpellHaste(fullName) or 0) /100) 
 		end
 		--Dispels
-		if module.db.spell_dispellsList[spellID] then
+		if _db.spell_dispellsList[spellID] then
 			ScheduleTimer(DispellSchedule, 0.5, data)
 		end
 		-- Fixes
@@ -3322,7 +3341,7 @@ do
 		UpdateAllData()
 		SortAllData()
 		
-		module.db.historyUsage[#module.db.historyUsage + 1] = {time(),data.db[uSpecID][1],fullName,GetEncounterTime()}
+		_db.historyUsage[#_db.historyUsage + 1] = {time(),data.db[uSpecID][1],fullName,GetEncounterTime()}
 	end
 end
 
@@ -3337,9 +3356,10 @@ function module:Enable()
 	
 	module.frame.IsEnabled = true
 
-	module:RegisterSlash()
 	module:RegisterTimer()
 	module:RegisterEvents('SCENARIO_UPDATE','GROUP_ROSTER_UPDATE','COMBAT_LOG_EVENT_UNFILTERED','UNIT_PET','PLAYER_LOGOUT','ZONE_CHANGED_NEW_AREA','CHALLENGE_MODE_RESET','PLAYER_REGEN_DISABLED','PLAYER_REGEN_ENABLED','ENCOUNTER_START','ENCOUNTER_END')
+
+	module:CreateSpellDB()
 
 	UpdateRoster()
 end
@@ -3356,7 +3376,6 @@ function module:Disable()
 	
 	module.frame.IsEnabled = false
 	
-	module:UnregisterSlash()
 	module:UnregisterTimer()
 	module:UnregisterEvents('SCENARIO_UPDATE','GROUP_ROSTER_UPDATE','COMBAT_LOG_EVENT_UNFILTERED','UNIT_PET','PLAYER_LOGOUT','ZONE_CHANGED_NEW_AREA','CHALLENGE_MODE_RESET','PLAYER_REGEN_DISABLED','PLAYER_REGEN_ENABLED','ENCOUNTER_START','ENCOUNTER_END')
 end
@@ -3401,6 +3420,35 @@ function module.main:ADDON_LOADED()
 			end
 		end
 	end	
+	if VExRT.Addon.Version < 4235 then
+		if VExRT.ExCD2.Priority then
+			for k,v in pairs(VExRT.ExCD2.Priority) do
+				if type(v) == 'number' then
+					VExRT.ExCD2.Priority[k] = floor((v - 1) / 29 * 100)
+				end
+			end
+		end
+	end
+	if VExRT.Addon.Version < 4240 then
+		if VExRT.ExCD2.userDB then
+			for i=1,#VExRT.ExCD2.userDB do
+				for j=8,4,-1 do
+					VExRT.ExCD2.userDB[i][j] = VExRT.ExCD2.userDB[i][j-1]
+				end
+				VExRT.ExCD2.userDB[i][3] = 1
+			end
+			for i=#VExRT.ExCD2.userDB,1,-1 do
+				for j=1,#module.db.AllSpells do
+					if module.db.AllSpells[j][1] == VExRT.ExCD2.userDB[i][1] then
+						tremove(VExRT.ExCD2.userDB,i)
+						break
+					end
+				end
+			end
+		end
+		VExRT.ExCD2.default_userCD = nil
+		VExRT.ExCD2.default_userDuration = nil
+	end	
 	
 	if VExRT.ExCD2.Left and VExRT.ExCD2.Top then
 		module.frame:ClearAllPoints()
@@ -3409,15 +3457,7 @@ function module.main:ADDON_LOADED()
 	
 	VExRT.ExCD2.CDE = VExRT.ExCD2.CDE or {}
 	VExRT.ExCD2.CDECol = VExRT.ExCD2.CDECol or {}
-	if UnitFactionGroup("player") == "Alliance" then	--> BL Faction Fix
-		for i,spellData in ipairs(module.db.spellDB) do
-			if spellData[1] == 2825 then
-				spellData[1] = 32182
-				spellData[3][1] = 32182
-				break
-			end
-		end
-	end
+
 	VExRT_CDE = VExRT.ExCD2.CDE
 	
 	if not VExRT.ExCD2.colSet then
@@ -3436,46 +3476,7 @@ function module.main:ADDON_LOADED()
 		VExRT.ExCD2.colSet[i] = VExRT.ExCD2.colSet[i] or {}
 	end
 	
-	VExRT.ExCD2.default_userCD = VExRT.ExCD2.default_userCD or {}
-	VExRT.ExCD2.default_userDuration = VExRT.ExCD2.default_userDuration or {}
-	do
-		for spellID,spellData in pairs(VExRT.ExCD2.default_userCD) do
-			for i=1,#module.db.spellDB do
-				if module.db.spellDB[i][1] == spellID then
-					for j=1,5 do
-						if spellData[j] and module.db.spellDB[i][2+j] then
-							if spellData[j] == module.db.spellDB[i][2+j][2] then
-								spellData[j] = nil
-							else
-								module.db.spellDB[i][2+j][2] = spellData[j]
-							end
-						end
-					end
-				end
-			end
-		end
-	
-		for spellID,spellData in pairs(VExRT.ExCD2.default_userDuration) do
-			for i=1,#module.db.spellDB do
-				if module.db.spellDB[i][1] == spellID then
-					for j=1,5 do
-						if spellData[j] and module.db.spellDB[i][2+j] then
-							if spellData[j] == module.db.spellDB[i][2+j][3] then
-								spellData[j] = nil
-							else
-								module.db.spellDB[i][2+j][3] = spellData[j]
-							end
-						end
-					end
-				end
-			end
-		end
-	end
-	
 	VExRT.ExCD2.userDB = VExRT.ExCD2.userDB or {}
-	for i=1,#VExRT.ExCD2.userDB do
-		module.db.spellDB[i+module.db.dbCountDef] = VExRT.ExCD2.userDB[i]
-	end
 
 	VExRT.ExCD2.Priority = VExRT.ExCD2.Priority or {}
 
@@ -3514,8 +3515,8 @@ function module.main:ADDON_LOADED()
 		ScheduleTimer(module.ReloadAllSplits,10)
 		module:RegisterEvents('PLAYER_ENTERING_WORLD')
 	end
-	
-	module.db.playerName = ExRT.SDB.charName
+
+	module:RegisterSlash()	
 end
 
 function module.main:PLAYER_ENTERING_WORLD()
@@ -4243,22 +4244,9 @@ end
 function module.options:Load()
 	self:CreateTilte()
 
-	loadstring(module.db.AllClassSpellsInText)()
-	module.db.AllClassSpellsInText = nil
-
-	local SPELL_LINE_HEIGHT = 32
-	local SPELL_PER_PAGE = 17
-	local SPELL_PAGE_HEIGHT = 528
-
-	self.decorationLine = CreateFrame("Frame",nil,self)
-	self.decorationLine.texture = self.decorationLine:CreateTexture(nil, "BACKGROUND", nil, -5)
-	self.decorationLine:SetPoint("TOPLEFT",self,-8,-25)
-	self.decorationLine:SetPoint("BOTTOMRIGHT",self,"TOPRIGHT",8,-45)
-	self.decorationLine.texture:SetAllPoints()
-	self.decorationLine.texture:SetColorTexture(1,1,1,1)
-	self.decorationLine.texture:SetGradientAlpha("VERTICAL",.24,.25,.30,1,.27,.28,.33,1)
+	self.decorationLine = ELib:DecorationLine(self,true,"BACKGROUND",-5):Point("TOPLEFT",self,0,-25):Point("BOTTOMRIGHT",self,"TOPRIGHT",0,-45)
 	
-	self.chkEnable = ELib:Check(self,L.senable,VExRT.ExCD2.enabled):Point(560,-26):Size(18,18):OnClick(function(self) 
+	self.chkEnable = ELib:Check(self,L.Enable,VExRT.ExCD2.enabled):Point(720,-26):Size(18,18):Tooltip("/rt cd"):AddColorState():OnClick(function(self) 
 		if self:GetChecked() then
 			module:Enable()
 		else
@@ -4266,7 +4254,7 @@ function module.options:Load()
 		end
 	end)
 	
-	self.chkLock = ELib:Check(self,L.cd2fix,VExRT.ExCD2.lock):Point(430,-26):Size(18,18):OnClick(function(self) 
+	self.chkLock = ELib:Check(self,L.cd2fix,VExRT.ExCD2.lock):Point(590,-26):Size(18,18):OnClick(function(self) 
 		if self:GetChecked() then
 			VExRT.ExCD2.lock = true
 			ExRT.F.LockMove(module.frame,nil,module.frame.texture)
@@ -4290,1069 +4278,438 @@ function module.options:Load()
 		end
 	end)
 
-	self.tab = ELib:Tabs(self,0,L.cd2Spells,L.cd2Appearance,L.cd2History):Point(0,-45):Size(660,570):SetTo(1)
+	self.tab = ELib:Tabs(self,0,L.cd2Spells,L.cd2Appearance,L.cd2History):Point(0,-45):Size(850,589):SetTo(1)
 	self.tab:SetBackdropBorderColor(0,0,0,0)
 	self.tab:SetBackdropColor(0,0,0,0)
 	
-	local function fastSetupFrameListClick(self,spellsList)
-		for k=1,#spellsList do
-			local bool = nil
-			for j=1,#module.db.spellDB do
-				if module.db.spellDB[j][1] == spellsList[k] then
-					bool = true
+
+	self.CATEGORIES_DEF = {
+		"ALL",
+		"ENABLED",
+	}
+	self.CATEGORIES_VIS = {
+		["ALL"] = {name = L.cd2CatAll,icon = ExRT.isClassic and 133733 or 1495827, sort = 0},
+
+		["RAID"] = {name = L.cd2CatMajor,icon = 136107, sort = 10, ignoreSubcats = true},
+		["DEFTAR"] = {name = L.cd2CatSingleTar,icon = 135928, sort = 15, ignoreSubcats = true},
+		["RES"] = {name = L.cd2CatRes,icon = 136080, sort = 20, ignoreSubcats = true},
+		["RAIDSPEED"] = {name = L.cd2CatRaidMove,icon = 464343, sort = 25, ignoreSubcats = true},
+		["UTIL"] = {name = L.cd2CatUtil,icon = 458224, sort = 30, ignoreSubcats = true},
+		["AOECC"] = {name = L.cd2CatMassStun,icon = 136013, sort = 35, ignoreSubcats = true},
+		["HEALUTIL"] = {name = L.cd2CatHealUtil,icon = 136048, sort = 40, ignoreSubcats = true},
+
+		["KICK"] = {name = L.cd2CatKicks,icon = 132219, sort = 45, ignoreSubcats = true},
+		["DISPEL"] = {name = L.cd2CatDispells,icon = 135894, sort = 50, ignoreSubcats = true},
+		["TAUNT"] = {name = L.cd2CatTaunts,icon = 132270, sort = 55, ignoreSubcats = true},
+
+		["DPS"] = {name = L.cd2CatDPS,icon = 135753, sort = 60, ignoreSubcats = true},
+		["HEAL"] = {name = L.cd2CatHeal,icon = 1060983, sort = 65, ignoreSubcats = true},
+		["DEFTANK"] = {name = L.cd2CatDefTank,icon = 132361, sort = 70, ignoreSubcats = true},
+		["DEF"] = {name = L.cd2CatDef,icon = 135896, sort = 75, ignoreSubcats = true},
+		["CC"] = {name = L.cd2CatCC,icon = 136175, sort = 80, ignoreSubcats = true},
+		["MOVE"] = {name = L.cd2CatMove,icon = 574574, sort = 85, ignoreSubcats = true},
+
+		["WARRIOR"] = {name = L.classLocalizate["WARRIOR"],icon = "Interface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES", iconTcoord = CLASS_ICON_TCOORDS["WARRIOR"], sort = 101},
+		["PALADIN"] = {name = L.classLocalizate["PALADIN"],icon = "Interface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES", iconTcoord = CLASS_ICON_TCOORDS["PALADIN"], sort = 102},
+		["HUNTER"] = {name = L.classLocalizate["HUNTER"],icon = "Interface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES", iconTcoord = CLASS_ICON_TCOORDS["HUNTER"], sort = 103},
+		["ROGUE"] = {name = L.classLocalizate["ROGUE"],icon = "Interface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES", iconTcoord = CLASS_ICON_TCOORDS["ROGUE"], sort = 104},
+		["PRIEST"] = {name = L.classLocalizate["PRIEST"],icon = "Interface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES", iconTcoord = CLASS_ICON_TCOORDS["PRIEST"], sort = 105},
+		["DEATHKNIGHT"] = {name = L.classLocalizate["DEATHKNIGHT"],icon = "Interface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES", iconTcoord = CLASS_ICON_TCOORDS["DEATHKNIGHT"], sort = 106},
+		["SHAMAN"] = {name = L.classLocalizate["SHAMAN"],icon = "Interface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES", iconTcoord = CLASS_ICON_TCOORDS["SHAMAN"], sort = 107},
+		["MAGE"] = {name = L.classLocalizate["MAGE"],icon = "Interface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES", iconTcoord = CLASS_ICON_TCOORDS["MAGE"], sort = 108},
+		["WARLOCK"] = {name = L.classLocalizate["WARLOCK"],icon = "Interface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES", iconTcoord = CLASS_ICON_TCOORDS["WARLOCK"], sort = 109},
+		["MONK"] = {name = L.classLocalizate["MONK"],icon = "Interface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES", iconTcoord = CLASS_ICON_TCOORDS["MONK"], sort = 110},
+		["DRUID"] = {name = L.classLocalizate["DRUID"],icon = "Interface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES", iconTcoord = CLASS_ICON_TCOORDS["DRUID"], sort = 111},
+		["DEMONHUNTER"] = {name = L.classLocalizate["DEMONHUNTER"],icon = "Interface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES", iconTcoord = CLASS_ICON_TCOORDS["DEMONHUNTER"], sort = 112},
+
+		["ITEMS"] = {name = L.cd2CatItems,icon = 135918, sort = 140, ignoreSubcats = true},
+		["ESSENCES"] = {name = L.cd2CatEssences,icon = 2967111, sort = 150, ignoreSubcats = true},
+		["RACIAL"] = {name = L.cd2CatRacial,icon = 135727, sort = 160, ignoreSubcats = true},
+
+		["PET"] = {name = PET,icon = 613074, sort = 185, ignoreSubcats = true},
+
+		["NO"] = {name = L.cd2CatOther,icon = 136011, sort = 195, ignoreSubcats = true, isHidden = true},
+		["OTHER"] = {name = L.cd2CatOther,icon = 136011, sort = 197, ignoreSubcats = true},
+		["USER"] = {name = L.cd2CatUser,icon = 133667, sort = 199, ignoreOwncat = true},
+
+		["ENABLED"] = {name = L.cd2CatEnabled,icon = ExRT.isClassic and 136170 or 236372, sort = 300, ignoreSubcats = true},
+	}
+
+	self.categories = ELib:ScrollFrame(self.tab.tabs[1]):Point("TOPLEFT",0,0):Size(100,589)
+	ELib:Border(self.categories,0)
+	self.categories.C:SetWidth(100)
+
+	self.categories.ScrollBar:Size(8,0):Point("TOPRIGHT",0,0):Point("BOTTOMRIGHT",0,0)
+	self.categories.ScrollBar.thumb:SetHeight(100)
+	self.categories.ScrollBar.buttonUP:Hide()
+	self.categories.ScrollBar.buttonDown:Hide()
+	self.categories.ScrollBar.borderLeft:Hide()
+	self.categories.ScrollBar.borderRight:Hide()
+	self.categories.ScrollBar.bg:Hide()
+
+	self.categories.buttons = {}
+
+	self.categories.border_right = ELib:Texture(self.categories,.24,.25,.30,1,"BORDER"):Point("TOPLEFT",self.categories,"TOPRIGHT",0,0):Point("BOTTOMRIGHT",self.categories,"BOTTOMRIGHT",1,0)
+
+	local function CategoriesButtonOnEnter(self)
+		if not self.isActive then
+			self.background:Show()
+		end
+	end
+	local function CategoriesButtonOnLeave(self)
+		self.background:Hide()
+	end
+	local function CategoriesButtonOnClick(self)
+		for i=1,#module.options.categories.buttons do
+			module.options.categories.buttons[i].isActive = false
+		end
+		self.background:Hide()
+		self.isActive = true
+		module.options.categories:Update()
+		module.options.list:UpdateDB(self.category)
+		module.options.list:Update()
+		module.options.list.ScrollBar.slider:SetValue(0)
+	end
+	local CATEGORIES_INDEX_COUNTER = 200
+
+	function self:GetAllSpells()
+		local new = {}
+		for i=1,#module.db.AllSpells do 
+			new[i] = module.db.AllSpells[i]
+		end
+		for i=1,#VExRT.ExCD2.userDB do
+			new[#new+1] = VExRT.ExCD2.userDB[i]
+
+			local findUserCat = false
+			for cat in string.gmatch(new[#new][2], "[^,]+") do
+				if cat == "USER" then
+					findUserCat = true
 					break
 				end
 			end
-			if not bool then
-				for class,classData in pairs(module.db.allClassSpells) do
-					for j=1,#classData do
-						if classData[j][1] == spellsList[k] then
-							module.options:addNewSpell(class,classData[j],true)
-							bool = true
-							break
-						end
-					end
-					if bool then
-						break
-					end
+			if not findUserCat then
+				new[#new][2] = new[#new][2] .. ",USER"
+			end
+		end
+
+		return new
+	end
+
+	local function SortCategoriesButtons(a,b)
+		return (self.CATEGORIES_VIS[a] and self.CATEGORIES_VIS[a].sort or 200) < (self.CATEGORIES_VIS[b] and self.CATEGORIES_VIS[b].sort or 200)
+	end
+
+	function self.categories:Update()
+		local cats = ExRT.F.table_copy2(module.options.CATEGORIES_DEF)
+		local AllSpells = module.options:GetAllSpells()
+		for _,data in pairs(AllSpells) do
+			for cat in string.gmatch(data[2], "[^,]+") do
+				if not ExRT.F.table_find(cats,cat) then
+					cats[#cats+1] = cat
 				end
 			end
 		end
-		for j=1,#spellsList do
-			VExRT.ExCD2.CDE[ spellsList[j] ] = true
+		for i=#cats,1,-1 do
+			if module.options.CATEGORIES_VIS[ cats[i] ] and module.options.CATEGORIES_VIS[ cats[i] ].isHidden then
+				tremove(cats,i)
+			end
 		end
-		UpdateRoster()
-		module.options:ReloadSpellsPage()
-		ELib:DropDownClose()
-	end
-	local function fastSetupFrameListEnter(self,tooltip)
-		ELib.Tooltip.Show(self,"ANCHOR_LEFT",unpack(tooltip))
-	end
-	local function fastSetupFrameListLeave(self)
-		ELib.Tooltip:Hide()
-	end
-	self.fastSetupFrame = ELib:ListButton(self.tab.tabs[1],L.cd2fastSetupTitle..":",200,7):Size(18,18):Point("TOPRIGHT",-15,-9):Left():OnClick(function(self)
-		local list = {
-			{L.cd2fastSetupTitle1,{31821,204150,62618,98008,97462,31884,64843,108280,740,115310,15286,196718,207399,265202,216331,271466}},		--Raid Save
-			{L.cd2fastSetupTitle2,{102342,47788,33206,6940,633,116849,1022,204018}},								--Direct Save
-			{L.cd2fastSetupTitle3,{20484,20707,61999,20608,161642}},										--Battle Res
-			{L.cd2fastSetupTitle4,{6552,96231,147362,1766,15487,47528,47476,57994,2139,116705,106839,19647,91802,115781,78675,183752,}},	--Kicks
-			{L.cd2fastSetupTitle5,{114192,355,62124,56222,49576,115546,6795,185245,}},								--Taunts
-			{L.cd2fastSetupTitle6,{4987,32375,527,51886,115450,2782,475,115276,89808}},							--Dispels	
-			{STUN,	{46968,109248,205369,192058,30283,119381,179057,	221562,108194,853,408,5211,}},		--Stuns
-		}
-		for i=1,#list do
-			local tooltip = {list[i][1]..":"}
-			for j=1,#list[i][2] do
-				local spellName,_,spellTexture = GetSpellInfo(list[i][2][j])
-				if spellName then
-					tooltip[#tooltip + 1] = "|T"..spellTexture..":0|t |cffffffff"..spellName.."|r"
+		sort(cats,SortCategoriesButtons)
+		for i=1,#cats do
+			local button = self.buttons[i]
+			if not button then
+				button = CreateFrame("Button",nil,self.C)
+				self.buttons[i] = button
+				if i == 1 then
+					button:SetPoint("TOP",0,0)
+				else
+					button:SetPoint("TOP",self.buttons[i-1],"BOTTOM",0,-2)
 				end
-			end
-			self.List[i] = {
-				text = list[i][1],
-				arg1 = list[i][2],
-				func = fastSetupFrameListClick,
-				hoverFunc = fastSetupFrameListEnter,
-				leaveFunc = fastSetupFrameListLeave,
-				hoverArg = tooltip,
-				justifyH = "CENTER",
-			}
-		end
-		self.OnClick = nil
-	end)
-	self.fastSetupFrame.text:FontSize(11):Color(GameFontNormal:GetTextColor())
-	
-	self.borderList = CreateFrame("Frame",nil,self.tab.tabs[1])
-	self.borderList:SetSize(650,SPELL_PAGE_HEIGHT)
-	self.borderList:SetPoint("TOP", 0, -38)
-	ELib:Border(self.borderList,2,.24,.25,.30,1)
-	
-	local function SyncUserDB()
-		table.wipe(VExRT.ExCD2.userDB)
-		local j = 1
-		for i=module.db.dbCountDef+1,#module.db.spellDB do
-			VExRT.ExCD2.userDB[j] = module.db.spellDB[i]
-			j = j + 1
-		end
-	end
-	
-	local function CheckToNil(self)
-		self.chk:SetChecked(nil) 
-		VExRT.ExCD2.CDE[self.sid] = nil
-		UpdateRoster()
-	end
+				button:SetSize(88,62)
 
-	function module.options:ReloadSpellsPage()
-		local page = module.options
-		local scrollBarValue = page.ScrollBar:GetValue()
-		page.spellsListScrollFrame:SetVerticalScroll(scrollBarValue % SPELL_LINE_HEIGHT) 
+				button.icon = button:CreateTexture(nil, "ARTWORK")
+				button.icon:SetPoint("TOP",0,-3)
+				button.icon:SetSize(30,30)
 
-		local pos = floor(scrollBarValue / SPELL_LINE_HEIGHT) + 1
-		page.butSpellsAdd:Hide()
-		page.butSpellsFrame:Hide()
-		local lineNum,lastLine = 0
-		for i=pos,pos+SPELL_PER_PAGE+1 do
-			lineNum = lineNum + 1
-			if not module.db.spellDB[i] then
-				for j=lineNum,#page.spellsList do
-					page.spellsList[j]:Hide()
-				end
-				page.butSpellsAdd:ClearAllPoints()
-				page.butSpellsAdd:SetPoint("TOPLEFT",lastLine,"BOTTOMLEFT",5,-5)
-				page.butSpellsAdd:Show()
-				page.butSpellsFrame:ClearAllPoints()
-				page.butSpellsFrame:SetPoint("TOPLEFT",lastLine,"BOTTOMLEFT",317,-5)
-				page.butSpellsFrame:Show()
-				break
+				button.text = button:CreateFontString(nil,"ARTWORK","ExRTFontNormal")
+				button.text:SetFont(button.text:GetFont(),11)
+				button.text:SetPoint("TOP",button.icon,"BOTTOM",0,-3)
+				button.text:SetPoint("BOTTOM",0,1)
+				button.text:SetPoint("LEFT",2,0)
+				button.text:SetPoint("RIGHT",-2,0)
+				button.text:SetJustifyH("CENTER")
+				button.text:SetJustifyV("TOP")
+
+				button.background = button:CreateTexture(nil, "BACKGROUND")
+				button.background:SetPoint("TOP")
+				button.background:SetPoint("BOTTOM")
+				button.background:SetPoint("LEFT",self,0,0)
+				button.background:SetPoint("RIGHT",self,0,0)
+				button.background:SetColorTexture(1,1,1,.3)
+				button.background:Hide()
+
+				button.active = button:CreateTexture(nil, "BACKGROUND")
+				button.active:SetPoint("TOP")
+				button.active:SetPoint("BOTTOM")
+				button.active:SetPoint("LEFT",self,0,0)
+				button.active:SetPoint("RIGHT",self,0,0)
+				button.active:SetColorTexture(.8,.6,0,1)
+				button.active:Hide()
+
+				button:SetScript("OnEnter",CategoriesButtonOnEnter)
+				button:SetScript("OnLeave",CategoriesButtonOnLeave)
+				button:SetScript("OnClick",CategoriesButtonOnClick)
 			end
-			local spellData = module.db.spellDB[i]
-			local SpellID = spellData[1]
-			local line = module.options.spellsList[lineNum]
-			lastLine = line
-		
-			line.chk:SetChecked(VExRT.ExCD2.CDE[SpellID])
-			local SpellName,_,SpellTexture = GetSpellInfo(SpellID)
-			if module.db.differentIcons[ SpellID ] then
-				SpellTexture = module.db.differentIcons[SpellID]
-			end
-			
-			line.sid = SpellID
-			line.tid = i
-			line.icon:SetTexture(SpellTexture or "Interface\\Icons\\INV_MISC_QUESTIONMARK")
-			line.spellName:SetFormattedText("|cffffffff|Hspell:%d|h%s|h|r",SpellID, SpellName or "?")
-			line.class:SetText(L.classLocalizate[ spellData[2] ] or "?")
-			local cR,cG,cB = ExRT.F.classColorNum(spellData[2])
-			line.class:SetTextColor(cR,cG,cB,1)
-			
-			line.backClassColorR = cR
-			line.backClassColorG = cG
-			line.backClassColorB = cB
-	
-			if not SpellName and spellData.user then
-				line.chk:Disable()
-				line.chk:SetAlpha(0.5)
+			local cat = cats[i]
+			local catData = module.options.CATEGORIES_VIS[cat]
+			button.icon:SetTexture(catData and catData.icon or "Interface\\Icons\\INV_MISC_QUESTIONMARK")
+			if catData and catData.iconTcoord then
+				button.icon:SetTexCoord(unpack(catData.iconTcoord))
 			else
-				line.chk:Enable()
-				line.chk:SetAlpha(1)
+				button.icon:SetTexCoord(0,1,0,1)
 			end
-
-			line:Show()
-
-			ExRT.lib.ShowOrHide(line.tooltipFrame,not spellData.user)
-			ExRT.lib.ShowOrHide(line.spellName,not spellData.user)
-			ExRT.lib.ShowOrHide(line.class,not spellData.user)
-			ExRT.lib.ShowOrHide(line.userSpellName,spellData.user)
-			ExRT.lib.ShowOrHide(line.userClass,spellData.user)
-			ExRT.lib.ShowOrHide(line.userRemove,spellData.user)
-
-			line.dropDownPriority:SetText(format("%d",VExRT.ExCD2.Priority[SpellID] or 15))
-
-			if spellData.user then
-				line.userSpellName:SetText(SpellID or "")
-
-				line.userClass:SetText("|c"..ExRT.F.classColor(spellData[2])..L.classLocalizate[ spellData[2] ])
-				
-				line.isUserSpell = true
-			else
-				line.isUserSpell = nil
+			button.text:SetText(catData and catData.name or cat)
+			button.active:SetShown(button.isActive)
+			button.category = cat
+			if cat == "ALL" then 
+				button.category = nil 
 			end
-			
-			if SpellID == 161642 then
-				line.additionalTooltip = L.cd2ResurrectTooltip
-			else
-				line.additionalTooltip = nil
+			if not catData then
+				module.options.CATEGORIES_VIS[cat] = {sort = CATEGORIES_INDEX_COUNTER,ignoreSubcats = true}
+				CATEGORIES_INDEX_COUNTER = CATEGORIES_INDEX_COUNTER + 1
 			end
+			button:Show()
 		end
-		GameTooltip_Hide()
-		ELib.Tooltip:HideAdd()
-		page.ScrollBar:UpdateButtons()
+		for i=#cats+1,#self.buttons do
+			self.buttons[i]:Hide()
+		end
+		self:Height(64 * #cats - 2)
 	end
-	
-	self.ScrollBar = ELib:ScrollBar(self.borderList):Size(16,0):Point("TOPRIGHT",-3,-3):Point("BOTTOMRIGHT",-3,3):ClickRange(32):Range(0,20):SetTo(0):OnChange(module.options.ReloadSpellsPage)
 
-	function self.ScrollBar:UpdateRange()
-		self:SetMinMaxValues(0,max((#module.db.spellDB+1)*SPELL_LINE_HEIGHT-SPELL_PAGE_HEIGHT,0))
-	end
-	
-	self:SetScript("OnMouseWheel", function(self, delta)
-		delta = -delta
-		local current = module.options.ScrollBar:GetValue()
-		local min_,max_ = module.options.ScrollBar:GetMinMaxValues()
-		current = current + (delta * SPELL_LINE_HEIGHT)
-		if current > max_ then
-			current = max_
-		elseif current < min_ then
-			current = min_
+
+	self.list = ELib:ScrollFrame(self.tab.tabs[1]):Point("TOPLEFT",101,0):Size(749,589)
+	ELib:Border(self.list,0)
+
+	local SPELL_LINE_HEIGHT = 32
+
+	local function SpellsListLineOnUpdate(self)
+		if module.options.list.colBySpecFrame:IsShown() then
+			return
 		end
-		module.options.ScrollBar:SetValue(current)
-	end)
-	
-	local function SpellsListChkOnClick(self)
-		if self:GetChecked() then
-			VExRT.ExCD2.CDE[self:GetParent().sid] = true
-		else
-			VExRT.ExCD2.CDE[self:GetParent().sid] = nil
-		end
-		UpdateRoster()
-	end
-	local function SpellsListOnUpdate(self)
-		if MouseIsOver(self) and not ExRT.lib.ScrollDropDown.DropDownList[1]:IsShown() and not module.options.spellsModifyFrame:IsShown() then
+		if MouseIsOver(self) and not ExRT.lib.ScrollDropDown.DropDownList[1]:IsShown() then
 			self.backClassColor:SetGradientAlpha("HORIZONTAL", self.backClassColorR, self.backClassColorG, self.backClassColorB, 0.8, self.backClassColorR, self.backClassColorG, self.backClassColorB, 0)
 		else
 			self.backClassColor:SetGradientAlpha("HORIZONTAL", self.backClassColorR, self.backClassColorG, self.backClassColorB, 0.4, self.backClassColorR, self.backClassColorG, self.backClassColorB, 0)
 		end
-	end
-	local function SpellsListTooltipFrameOnEnter(self)
-		ELib.Tooltip.Link(self,self:GetParent().spellName:GetText())
-		if self:GetParent().additionalTooltip then
-			ELib.Tooltip:Add(nil,{self:GetParent().additionalTooltip})
+		if MouseIsOver(self.colBack) and not self.colExpand:IsShown() and self.colBack:IsShown() then
+			self.colExpand:Show()
+		elseif not MouseIsOver(self.colBack) and self.colExpand:IsShown() then
+			self.colExpand:Hide()
 		end
 	end
-	local function SpellsListTooltipFrameOnLeave()
+	local function SpellsListTooltipFrameOnEnter(self)
+		local parent = self:GetParent()
+		if not parent.data then
+			return
+		end
+		ELib.Tooltip.Link(self,self.link or "spell:"..parent.data[1])
+
+		local additional = {}
+		if module.db.spell_isTalent[ parent.data[1] ] and not parent.isItem then
+			additional[#additional+1] = "|cffffffff"..L.cd2AddSpellFrameTalent.."|r"
+		end
+		if module.db.spell_dispellsList[ parent.data[1] ] then
+			additional[#additional+1] = "|cffffffaa"..L.cd2AddSpellFrameDispel.."|r"
+		end
+		if module.db.spell_talentReplaceOther[ parent.data[1] ] then
+			local spellID = module.db.spell_talentReplaceOther[ parent.data[1] ]
+			if type(spellID)=='table' then
+				for i=1,#spellID do
+					local sname,_,sicon = GetSpellInfo(spellID[i])
+					additional[#additional+1] = "|cffffaaaa"..L.cd2AddSpellFrameReplace .." "..(sicon and "|T"..sicon..":20|t" or "").. (sname or "???") .."|r"
+				end
+			else
+				local sname,_,sicon = GetSpellInfo(spellID)
+				additional[#additional+1] = "|cffffaaaa"..L.cd2AddSpellFrameReplace .." "..(sicon and "|T"..sicon..":20|t" or "").. (sname or "???") .."|r"
+			end
+		end
+		if module.db.spell_isPetAbility[ parent.data[1] ] then
+			additional[#additional+1] = "|cffffffff"..L.BossWatcherBuffsAndDebuffsFilterPets.."|r"
+		end
+
+		if #additional > 0 then
+			ELib.Tooltip:Add(nil,additional)
+		end
+	end
+	local function SpellsListTooltipFrameOnLeave(self)
 		GameTooltip_Hide()
 		ELib.Tooltip:HideAdd()
 	end
-	local SpellsListDropDownPriorityDataList = {}
-	local function SpellsListDropDownPrioritySelectFunc(self,arg)
-		local list = self:GetParent().parent
-		list:SetText(arg)
-		VExRT.ExCD2.Priority[list:GetParent().sid] = arg
-		ELib:DropDownClose()
-		UpdateRoster()
+	local function SpellsListLineColExpand(self)
+		module.options.list.colBySpecFrame:Open(self:GetParent(),self)
 	end
-	for i=1,30 do
-		SpellsListDropDownPriorityDataList[i] = {text=i,justifyH="CENTER",arg1=i,func=SpellsListDropDownPrioritySelectFunc}
+	local function SpellsListChkOnClick(self)
+		if self.disabled then
+			VExRT.ExCD2.CDE[ self:GetParent().data[1] ] = nil
+			if self:GetChecked() then
+				self:SetChecked(false)
+			end
+		elseif self:GetChecked() then
+			VExRT.ExCD2.CDE[ self:GetParent().data[1] ] = true
+		else
+			VExRT.ExCD2.CDE[ self:GetParent().data[1] ] = nil
+		end	  
+ 		self:UpdateColors()
+
+		module:UpdateSpellDB(true)
+
+		module.options.list:Update()
 	end
-	local function SpellsListDropDownPriorityOnEnter(self)
-		ELib.Tooltip.Show(self,"ANCHOR_LEFT",L.cd2Priority,{L.cd2PriorityTooltip,1,1,1,true})
+	local function SpellsListChkUpdateColors(self)
+		local cR,cG,cB
+		if self.disabled then
+			cR,cG,cB = .5,.5,.5
+		elseif self:GetChecked() then
+			cR,cG,cB = .2,.8,.2
+		else
+			cR,cG,cB = .8,.2,.2
+		end
+		self.BorderTop:SetColorTexture(cR,cG,cB,1)
+		self.BorderLeft:SetColorTexture(cR,cG,cB,1)
+		self.BorderBottom:SetColorTexture(cR,cG,cB,1)
+		self.BorderRight:SetColorTexture(cR,cG,cB,1)
 	end
-	local function SpellsListButtonModifyOnClick(self)
-		local spellsModifyFrame = module.options.spellsModifyFrame
-		spellsModifyFrame:Hide()
-		local parent = self:GetParent()
-		spellsModifyFrame.sid = parent.sid
-		spellsModifyFrame.tid = parent.tid
-		spellsModifyFrame.class = module.db.spellDB[parent.tid][2]
-		spellsModifyFrame:ShowClick("TOPRIGHT")
-	end
-	local function SpellsListUserSpellNameOnTextChanged(self,isUser)
-		if not isUser then
+	local function SpellsListCDTooltipFrameOnEnter(self)
+		local data = self:GetParent().data
+		if not data then
 			return
 		end
-		local tmp = nil
-		local spellID = tonumber(self:GetText())
-		local parentLine = self:GetParent()
-		if spellID then
-			for j=1,#module.db.spellDB do
-				if module.db.spellDB[j][1] == spellID and j ~= parentLine.tid then
-					parentLine.chk:Disable()
-					parentLine.chk:SetAlpha(0.5)
-					return
-				end
-			end
-		end
-	
-		CheckToNil(parentLine)
-		if not spellID then 
-			parentLine.chk:Disable()
-			parentLine.chk:SetAlpha(0.5)
-			return 
-		end
-		local spellName,_,spellTexture = GetSpellInfo(spellID)
-		parentLine.sid = spellID
-		parentLine.icon:SetTexture(spellTexture or "Interface\\Icons\\INV_MISC_QUESTIONMARK")
-		if not spellName then
-			parentLine.chk:Disable()
-			parentLine.chk:SetAlpha(0.5)
-		else
-			parentLine.chk:Enable()
-			parentLine.chk:SetAlpha(1)
-		end
-		module.db.spellDB[parentLine.tid][1] = spellID
-		SyncUserDB()
-	end
-	local function SpellsListUserSpellNameOnEnter(self)
-		local spellID = tonumber(self:GetText())
-		if spellID then
-			local spellName = GetSpellInfo(spellID)
-			if spellName then
-				ELib.Tooltip.Link(self,format("|Hspell:%d|hspell|h",spellID))
-			else
-				ELib.Tooltip.Std(self)
-			end
-		else
-			ELib.Tooltip.Std(self)
-		end
-	end
-
-	local SpellsListClassDropDownList = {}
-	local function SpellsListUserClassDropDownClick(self,classNum,isAll)
-		local parent = self:GetParent().parent
-		local parentLine = parent:GetParent()
-		local class = isAll and "ALL" or module.db.classNames[classNum]
-		CheckToNil(parentLine)
-		ELib:DropDownClose()
-		parent:SetText("|c"..ExRT.F.classColor(class)..L.classLocalizate[ class ])
-		module.db.spellDB[parentLine.tid][2] = class
-		local cR,cG,cB = ExRT.F.classColorNum(class)
-		parentLine.backClassColorR = cR
-		parentLine.backClassColorG = cG
-		parentLine.backClassColorB = cB
-		SyncUserDB()
-	end
-	for i=1,#module.db.classNames do
-		SpellsListClassDropDownList[#SpellsListClassDropDownList + 1] = {
-			text = "|c"..ExRT.F.classColor(module.db.classNames[i])..L.classLocalizate[ module.db.classNames[i] ],
-			justifyH = "CENTER",
-			arg1 = i,
-			func = SpellsListUserClassDropDownClick,
-		}
-	end
-	SpellsListClassDropDownList[#SpellsListClassDropDownList + 1] = {
-		text = "|c"..ExRT.F.classColor("ALL")..L.classLocalizate[ "ALL" ],
-		justifyH = "CENTER",
-		arg1 = 0,
-		arg2 = true,
-		func = SpellsListUserClassDropDownClick,
-	}	
-	
-	local function SpellsListUserRemoveOnClick(self)
-		local parentLine = self:GetParent()
-		VExRT.ExCD2.CDE[parentLine.sid] = nil
-		
-		for j=3,7 do
-			if type(module.db.spellDB[parentLine.tid][j])=="table" then
-				VExRT.ExCD2.CDECol[module.db.spellDB[parentLine.tid][j][1]..";"..(j-2)] = nil
-			end
-		end
-		
-		for j = parentLine.tid + 1,#module.db.spellDB do
-			module.db.spellDB[j-1] = module.db.spellDB[j]
-		end
-		module.db.spellDB[#module.db.spellDB] = nil
-
-		local current = module.options.ScrollBar:GetValue()
-		local min_,max_ = module.options.ScrollBar:GetMinMaxValues()
-		module.options.ScrollBar:UpdateRange()
-		
-		local newVal = current == max_ and max(current-SPELL_LINE_HEIGHT,1) or current
-		if newVal ~= current then
-			module.options.ScrollBar:SetValue(newVal)
-			module.options:ReloadSpellsPage()
-		else
-			module.options.ReloadSpellsPage()
-		end
-
-		SyncUserDB()
-		UpdateRoster()
-		
-		module.options:CleanUPVariables()
-	end
-	
-	self.spellsListScrollFrame = CreateFrame("ScrollFrame", nil, self.borderList)
-	self.spellsListScrollFrame:SetPoint("TOPLEFT")
-	self.spellsListScrollFrame:SetPoint("BOTTOMRIGHT")
-	
-	self.spellsListScrollFrameContent = CreateFrame("Frame", nil, self.spellsListScrollFrame)
-	self.spellsListScrollFrameContent:SetPoint("TOPLEFT",0,0)
-	self.spellsListScrollFrameContent:SetSize(self.spellsListScrollFrame:GetSize())
-	self.spellsListScrollFrame:SetScrollChild(self.spellsListScrollFrameContent)
-	
-	self.spellsList = {}
-	for i=1,(SPELL_PER_PAGE+2) do
-		local line = CreateFrame("Frame",nil,self.spellsListScrollFrameContent)
-		self.spellsList[i] = line
-		line:SetPoint("TOPLEFT",0,-(i-1)*SPELL_LINE_HEIGHT)
-		line:SetPoint("RIGHT",-100,0)
-		line:SetHeight(SPELL_LINE_HEIGHT)
-
-		line.chk = ELib:Check(line):Point("LEFT",10,0):OnClick(SpellsListChkOnClick)
-		line.chk._i = i
-		
-		line.backClassColor = line:CreateTexture(nil, "BACKGROUND")
-		line.backClassColor:SetPoint("LEFT",0,0)
-		line.backClassColor:SetSize(250,SPELL_LINE_HEIGHT)
-		line.backClassColor:SetColorTexture(1, 1, 1, 1)
-		line.backClassColorR = 0
-		line.backClassColorG = 0
-		line.backClassColorB = 0
-		
-		line:SetScript("OnUpdate",SpellsListOnUpdate)
-	
-		line.icon = line:CreateTexture(nil, "ARTWORK")
-		line.icon:SetSize(28,28)
-		line.icon:SetPoint("LEFT", 35, 0)
-		line.icon:SetTexCoord(.1,.9,.1,.9)
-		ELib:Border(line.icon,1,.12,.13,.15,1)
-	
-		line.tooltipFrame = CreateFrame("Frame",nil,line)
-		line.tooltipFrame:SetSize(150,SPELL_LINE_HEIGHT) 
-		line.tooltipFrame:SetPoint("LEFT", 70, 0)
-		line.tooltipFrame._i = i
-		line.tooltipFrame:SetScript("OnEnter", SpellsListTooltipFrameOnEnter)
-		line.tooltipFrame:SetScript("OnLeave", SpellsListTooltipFrameOnLeave)
-
-		line.spellName = ELib:Text(line):Size(155,SPELL_LINE_HEIGHT):Point("LEFT",70,0):Font(ExRT.F.defFont,12):Shadow()
-	
-		line.class = ELib:Text(line):Size(180,SPELL_LINE_HEIGHT):Point("LEFT",235,0):Font(ExRT.F.defFont,14):Shadow()
-	
-		line.dropDownPriority = ELib:DropDown(line,100,15):Size(80):Point("LEFT",375,0)
-		line.dropDownPriority._i = i
-		line.dropDownPriority.List = SpellsListDropDownPriorityDataList
-		line.dropDownPriority:SetScript("OnEnter",SpellsListDropDownPriorityOnEnter)
-		line.dropDownPriority:SetScript("OnLeave",ELib.Tooltip.Hide)
-		
-		line.buttonModify = ELib:Button(line,L.cd2ButtonModify):Size(130,20):Point("LEFT",465,0):OnClick(SpellsListButtonModifyOnClick)
-		line.buttonModify._i = i
-
-		line.userSpellName = ELib:Edit(line,6,true):Size(145,20):Point("LEFT",70,0):Tooltip(L.cd2SpellID):OnChange(SpellsListUserSpellNameOnTextChanged)
-		line.userSpellName._i = i
-		line.userSpellName:SetScript("OnEnter",SpellsListUserSpellNameOnEnter)
-		line.userSpellName:SetScript("OnLeave",ELib.Tooltip.Hide)
-		
-		line.userClass = ELib:DropDown(line,130,13):Size(140):Point("LEFT",225,0):SetText(L.cd2Class)
-		line.userClass._i = i
-		line.userClass.List = SpellsListClassDropDownList
-	
-		line.userRemove = ELib:Button(line,"","UIPanelCloseButton"):Size(18,18):Point("LEFT",600,0):OnClick(SpellsListUserRemoveOnClick)
-		line.userRemove.tooltipText = L.cd2RemoveButton
-		line.userRemove._i = i
-		line.userRemove:SetScript("OnEnter",ELib.Tooltip.Std)
-		line.userRemove:SetScript("OnLeave",ELib.Tooltip.Hide)
-
-		line.userClass:Hide()
-		line.userRemove:Hide()
-	end
-
-	self.butSpellsAdd = ELib:Button(self.spellsListScrollFrameContent,L.cd2AddSpell):Size(305,20):Point(5,-3-SPELL_PER_PAGE*SPELL_LINE_HEIGHT):OnClick(function(self) 
-		module.options:addNewSpell(module.db.classNames[math.random(1,#module.db.classNames)])
-		module.options:CleanUPVariables()
-	end) 
-	self.butSpellsAdd:Hide()
-	
-	self.butSpellsFrame = ELib:Button(self.spellsListScrollFrameContent,L.cd2AddSpellFromList):Size(305,20):Point(317,-3-SPELL_PER_PAGE*SPELL_LINE_HEIGHT):OnClick(function(self) 
-		module.options.addSpellFrame:Show()
-	end) 
-	self.butSpellsFrame:Hide()
-	self.butSpellsFrame.Texture:SetGradientAlpha("VERTICAL",0.05,0.26,0.09,1, 0.20,0.41,0.25,1)
-
-	if ExRT.isClassic then
-		self.butSpellsFrame:Disable()
-		self.butSpellsFrame:Hide()
-		self.butSpellsFrame.Show = ExRT.NULLfunc
-	end
-	
-	self.spellsModifyFrame = ELib:Popup():Size(560,180)
-	self.spellsModifyFrame.isDefaultSpell = nil
-	
-	self.spellsModifyFrame.OnShow = function(self)
-		if not self.class or not self.sid or not self.tid then
-			self:Hide()
-			return
-		end
-		self:SetFrameLevel(120)
-		
-		local titleName,_,titleTexture = GetSpellInfo(self.sid)
-		self.title:SetFormattedText("%s%s",titleTexture and "|T"..titleTexture..":16|t " or "",titleName or L.cd2TextSpell.." #"..self.sid)
-		
-		local spellData = module.db.spellDB[self.tid]
-
-		local specByClassTable = module.db.specByClass[self.class] or {0}
-		local specsCount = #specByClassTable
-		if ExRT.isClassic then
-			specsCount = math.min(specsCount,1)
-		end
-		for i=1,specsCount do
-			local specID = specByClassTable[i]
-			local icon = ""
-			if module.db.specIcons[specID] then
-				icon = "|T".. module.db.specIcons[specID] ..":20|t"
-			else
-				icon = ExRT.F.classIconInText(self.class,20) or ""
-			end
-			local line = module.options.spellsModifyFrame.el[i]
-		
-			line.spec:SetText(icon.." |c"..ExRT.F.classColor(self.class)..L.specLocalizate[module.db.specInLocalizate[specID]])
-			line:Show()
-			
-			if spellData[i+2] then
-				line.cd:SetText(spellData[i+2][2])
-				line.dur:SetText(spellData[i+2][3])
-				line.spellID:SetText(spellData[i+2][1])
-				
-				line.col:SetText( VExRT.ExCD2.CDECol[spellData[i+2][1]..";"..i] or module.db.def_col[spellData[i+2][1]..";"..i] or 1)
-				
-				line.add:Hide()
-				line.col:Show()
-				line.dur:Show()
-				line.spellID:Show()
-				line.cd:Show()
-				line.remove:Show()
-			else
-				line.add:Show()
-				line.col:Hide()
-				line.dur:Hide()
-				line.spellID:Hide()
-				line.cd:Hide()
-				line.remove:Hide()
-			end
-			
-			if not spellData.user then
-				line.spellID:Disable()
-				line.remove:Disable()
-				line.add:Hide()
-			else
-				line.spellID:Enable()
-				line.remove:Enable()
-			end
-		end
-		for i=specsCount+1,5 do
-			self.el[i]:Hide()
-		end
-		if not spellData.user then
-			self.isDefaultSpell = true
-		else
-			self.isDefaultSpell = nil
-		end
-		self:SetHeight(30+32*specsCount)
-	end
-	
-	self.spellsModifyFrame.el = {}
-	for i=1,5 do
-		local line = CreateFrame("Frame",nil,self.spellsModifyFrame)
-		self.spellsModifyFrame.el[i] = line
-		line:SetPoint("TOPLEFT",15,-20-(i-1)*32)
-		line:SetSize(self.spellsModifyFrame:GetWidth(),30)
-		
-		line.spec = ELib:Text(line):Size(160,30):Point(0,0):Font(ExRT.F.defFont,14):Shadow()
-	
-		line.spellID = ELib:Edit(line,6,true):Size(140,20):Point("LEFT",180,0):Tooltip(L.cd2SpellID):OnChange(function(self,isUser)
-			local spellID = tonumber(self:GetText())
-			if not spellID or not isUser then
-				return
-			end
-			local spellName = GetSpellInfo(spellID)
-			local modFrame = self:GetParent():GetParent()
-
-			local c = VExRT.ExCD2.CDECol[module.db.spellDB[modFrame.tid][i+2][1]..";"..i]
-			local tmp = nil
-			for N1=1,#module.db.spellDB do
-				for N2=3,7 do
-					if module.db.spellDB[N1][N2] and module.db.spellDB[N1][N2] and module.db.spellDB[N1][N2][1] == module.db.spellDB[modFrame.tid][i+2][1] and not (modFrame.tid == N1 and (i+2) == N2) then
-						tmp = true
-					end
-				end
-			end
-			if not tmp then
-				VExRT.ExCD2.CDECol[module.db.spellDB[modFrame.tid][i+2][1]..";"..i] = nil
-			end
-			module.db.spellDB[modFrame.tid][i+2][1] = spellID
-			if not VExRT.ExCD2.CDECol[spellID..";"..i] and not module.db.def_col[spellID..";"..i] then
-				VExRT.ExCD2.CDECol[spellID..";"..i] = c
-			else
-				modFrame.el[i].col:SetText( VExRT.ExCD2.CDECol[spellID..";"..i] or module.db.def_col[spellID..";"..i])
-			end
-		end)
-		line.spellID:SetScript("OnEnter",function(self)
-			local spellID = tonumber(self:GetText())
-			if spellID then
-				local spellName = GetSpellInfo(spellID)
-				if spellName then
-					local link = format("|Hspell:%d|hspell|h",spellID)
-					ELib.Tooltip.Link(self,link)
-				else
-					ELib.Tooltip.Std(self)
-				end
-			else
-				ELib.Tooltip.Std(self)
-			end
-		end)
-		line.spellID:SetScript("OnLeave",function(self)
-			ELib.Tooltip:Hide()
-		end)
-		
-		line.col = ELib:DropDown(line,100,10):Size(70):Point("LEFT",330,0):Tooltip(L.cd2ColNum)
-		local function SpellsModifyFrameColSet(self,arg)
-			module.options.spellsModifyFrame.el[i].col:SetText(arg)
-			ELib:DropDownClose()
-			VExRT.ExCD2.CDECol[module.db.spellDB[module.options.spellsModifyFrame.tid][i+2][1]..";"..i] = tonumber(arg)
-			UpdateRoster()
-		end
-		for j=1,10 do
-			line.col.List[j] = {
-				text=j,
-				justifyH="CENTER",
-				arg1=j,
-				func=SpellsModifyFrameColSet,
-			}
-		end
-		
-		
-		line.cd = ELib:Edit(line,6,true):Size(50,20):Point("LEFT",410,0):Tooltip(L.cd2EditBoxCDTooltip):OnChange(function(self,isUser)
-			if not isUser then
-				return
-			end
-			local cd_num = tonumber(self:GetText())
-			if not cd_num then
-				return
-			end
-			local modFrame = self:GetParent():GetParent()
-			module.db.spellDB[modFrame.tid][i+2][2] = cd_num
-			if modFrame.isDefaultSpell then
-				local spellID = module.db.spellDB[modFrame.tid][1]
-				VExRT.ExCD2.default_userCD[spellID] = VExRT.ExCD2.default_userCD[spellID] or {}
-				VExRT.ExCD2.default_userCD[spellID][i] = cd_num
-			end
-		end)
-		
-		line.dur = ELib:Edit(line,6,true):Size(50,20):Point("LEFT",470,0):Tooltip(L.cd2EditBoxDurationTooltip):OnChange(function(self,isUser)
-			if not isUser then
-				return
-			end
-			local duration = tonumber(self:GetText())
-			if not duration then
-				return
-			end
-			local modFrame = self:GetParent():GetParent()
-			module.db.spellDB[modFrame.tid][i+2][3] = duration
-			if modFrame.isDefaultSpell then
-				local spellID = module.db.spellDB[modFrame.tid][1]
-				VExRT.ExCD2.default_userDuration[spellID] = VExRT.ExCD2.default_userDuration[spellID] or {}
-				VExRT.ExCD2.default_userDuration[spellID][i] = duration
-			end
-		end)
-		line.dur:SetTextColor(0.5,1,0.5,1)
-		
-		line.remove = ELib:Button(line,"","UIPanelCloseButton"):Size(18,18):Point("LEFT",520,0):OnClick(function(self) 
-			local parentLine = self:GetParent()
-			parentLine.add:Show()
-			parentLine.col:Hide()
-			parentLine.dur:Hide()
-			parentLine.spellID:Hide()
-			parentLine.cd:Hide()
-			parentLine.remove:Hide()
-			
-			module.db.spellDB[parentLine:GetParent().tid][i+2] = nil
-		end) 
-		line.remove.tooltipText = L.cd2RemoveButton
-		line.remove:SetScript("OnEnter",ELib.Tooltip.Std)
-		line.remove:SetScript("OnLeave",ELib.Tooltip.Hide)
-		
-		line.add = ELib:Button(line,0,1):Size(400,24):Point(140,-4):OnClick(function(self) 
-			local parentLine = self:GetParent()
-			local modFrame = parentLine:GetParent()
-			self:Hide()
-			parentLine.col:Show()
-			parentLine.dur:Show()
-			parentLine.spellID:Show()
-			parentLine.cd:Show()
-			parentLine.remove:Show()
-			
-			parentLine.spellID:SetText(modFrame.sid)
-			
-			module.db.spellDB[modFrame.tid][i+2] = {modFrame.sid,0,0}
-			
-			parentLine.cd:SetText(0)
-			parentLine.dur:SetText(0)
-			parentLine.col:SetText(VExRT.ExCD2.CDECol[module.db.spellDB[modFrame.tid][i+2][1]..";"..i] or 1)
-		end)
-		line.add.html = ELib:Text(line.add,L.cd2TextAdd):Point(0,0):Point("BOTTOMRIGHT",0,0):Center():Color()
-		ExRT.lib.CreateHoverHighlight(line.add)
-		line.add.hl:SetVertexColor(1,1,1,0.5)
-		line.add:SetScript("OnEnter", function(self) self.hl:Show() end)
-		line.add:SetScript("OnLeave", function(self) self.hl:Hide() end)
-	end
-	
-	self.addSpellFrame = ELib:Popup(L.cd2AddSpellFrameName):Size(750,422+10)
-
-	self.addSpellFrame.backClassColor = self.addSpellFrame:CreateTexture(nil, "BORDER",nil,0)
-	self.addSpellFrame.backClassColor:SetPoint("TOPLEFT",0,-72)
-	self.addSpellFrame.backClassColor:SetPoint("RIGHT",0,0)
-	self.addSpellFrame.backClassColor:SetHeight(40)
-	self.addSpellFrame.backClassColor:SetColorTexture( 1, 1, 1, 1)
-	self.addSpellFrame.backClassColor:Hide()
-	
-	self.addSpellFrame.backClassColorBottom = self.addSpellFrame:CreateTexture(nil, "BORDER",nil,0)
-	self.addSpellFrame.backClassColorBottom:SetPoint("BOTTOMLEFT",0,0)
-	self.addSpellFrame.backClassColorBottom:SetPoint("RIGHT",0,0)
-	self.addSpellFrame.backClassColorBottom:SetHeight(15)
-	self.addSpellFrame.backClassColorBottom:SetColorTexture( 1, 1, 1, 1)
-	self.addSpellFrame.backClassColorBottom:Hide()
-	
-	self.addSpellFrame.backVertical = self.addSpellFrame:CreateTexture(nil, "BORDER",nil,-2)
-	self.addSpellFrame.backVertical:SetPoint("TOPLEFT",200,-72)
-	self.addSpellFrame.backVertical:SetPoint("BOTTOM",0,0)
-	self.addSpellFrame.backVertical:SetWidth(7)
-	self.addSpellFrame.backVertical:SetColorTexture( 1, 1, 1, 1)
-	self.addSpellFrame.backVertical:SetGradientAlpha("HORIZONTAL", 0,0,0, .7, 0,0,0, 0)
-	
-	self.addSpellFrame.classButtons = {}
-	for i=1,#module.db.classNames+1 do
-		local button = CreateFrame("Button",nil,self.addSpellFrame)
-		self.addSpellFrame.classButtons[i] = button
-		
-		button:SetSize(57,57)
-		if i==1 then
-			button:SetPoint("TOPLEFT",3,-15)
-		else
-			button:SetPoint("LEFT",self.addSpellFrame.classButtons[i-1],"RIGHT",0,0)
-		end
-		
-		button.icon = button:CreateTexture(nil, "ARTWORK")
-		button.icon:SetPoint("BOTTOM",0,15)
-		button.icon:SetSize(32,32)
-		
-		local isOtherCategory = i > #module.db.classNames
-				
-		local class = module.db.classNames[i]
-		if isOtherCategory then
-			button.icon:SetTexture("Interface\\Icons\\spell_priest_divinestar_holy")		
-		elseif CLASS_ICON_TCOORDS[class] then
-			button.icon:SetTexture("Interface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES")
-			button.icon:SetTexCoord(unpack(CLASS_ICON_TCOORDS[class]))
-		end
-		
-		button.text = button:CreateFontString(nil,"ARTWORK","GameFontNormal")
-		button.text:SetPoint("BOTTOM",0,3)
-		if isOtherCategory then
-			button.text:SetText("|cffb2b2b2"..L.classLocalizate[ "NO" ])
-		elseif class then
-			button.text:SetText("|c"..ExRT.F.classColor(class)..L.classLocalizate[ class ])
-		end
-		button.text:SetWidth(57)
-		button.text:SetMaxLines(1)
-		button.text:SetFont(button.text:GetFont(),10)
-		
-		button:SetScript("OnEnter",function(self)
-			if self.selected then
-				return
-			end
-			self.icon:SetSize(42,42)
-		end)
-		button:SetScript("OnLeave",function(self)
-			if self.selected then
-				return
-			end
-			self.icon:SetSize(32,32)
-		end)
-		button:SetScript("OnClick",function(self)
-			module.options.addSpellFrame.dropDown:SetValue(self.token)
-		end)
-		
-		button.token = class
-		if isOtherCategory then
-			button.token = "OTHER"	
-		end
-	end
-	
-	self.addSpellFrame.specButtons = {}
-	for i=1,4 do
-		local button = CreateFrame("Button",nil,self.addSpellFrame)
-		self.addSpellFrame.specButtons[i] = button
-		
-		button:SetSize(200,60)
-		
-		local cR,cG,cB = .35,.32,.44
-		
-		button.tGt = button:CreateTexture(nil, "BACKGROUND",nil,0)
-		button.tGt:SetPoint("TOPLEFT",0,0)
-		button.tGt:SetPoint("RIGHT",0,0)
-		button.tGt:SetHeight(10)
-		button.tGt:SetColorTexture( 1, 1, 1, 1)
-		button.tGt:SetGradientAlpha("VERTICAL", cR,cG,cB, 0, cR,cG,cB, 0.5)
-		
-		button.tGb = button:CreateTexture(nil, "BACKGROUND",nil,0)
-		button.tGb:SetPoint("BOTTOMLEFT",0,0)
-		button.tGb:SetPoint("RIGHT",0,0)
-		button.tGb:SetHeight(10)
-		button.tGb:SetColorTexture( 1, 1, 1, 1)
-		button.tGb:SetGradientAlpha("VERTICAL", cR,cG,cB, 0.5, cR,cG,cB, 0)
-		
-		button.b = button:CreateTexture(nil, "BACKGROUND",nil,-5)
-		button.b:SetPoint("TOPLEFT")
-		button.b:SetPoint("BOTTOMRIGHT")
-		button.b:SetColorTexture( .06, .06, .12, 1)
-		
-		button.icon = button:CreateTexture(nil, "ARTWORK")
-		button.icon:SetPoint("LEFT",4,0)
-		button.icon:SetSize(48,48)
-		
-		button.text = button:CreateFontString(nil,"ARTWORK","GameFontNormal")
-		button.text:SetPoint("LEFT",button.icon,"RIGHT",3,0)
-		button.text:SetPoint("RIGHT",-5,0)
-		
-		button.SetState = function(self,selected)
-			local cR,cG,cB
-			if selected then
-				cR,cG,cB = 1,.95,.44
-			else
-				cR,cG,cB = .35,.32,.44
-			end
-			self.tGt:SetGradientAlpha("VERTICAL", cR,cG,cB, 0, cR,cG,cB, 0.5)
-			self.tGb:SetGradientAlpha("VERTICAL", cR,cG,cB, 0.5, cR,cG,cB, 0)
-		end
-		button:SetScript("OnEnter",function(self)
-			if self.selected then
-				return
-			end
-			self.b:SetColorTexture( .12, .12, .22, 1)
-		end)
-		button:SetScript("OnLeave",function(self)
-			if self.selected then
-				return
-			end
-			self.b:SetColorTexture( .06, .06, .12, 1)
-		end)
-		button:SetScript("OnClick",function(self)
-			module.options.addSpellFrame.CURR_SPEC[module.options.addSpellFrame.CURR_CLASS] = i
-			module.options.addSpellFrame.dropDown:SetValue(module.options.addSpellFrame.CURR_CLASS)
-		end)
-	end
-	self.addSpellFrame.CURR_CLASS = nil
-	self.addSpellFrame.CURR_SPEC = {}
-	
-	function self.addSpellFrame:SetSpecButtons(class)
-	  	local specByClassTable = module.db.specByClass[class] or {0,-1,-2,-3,-4}
-	  	local addSpellFrame = module.options.addSpellFrame
-	  	
-	  	local height = addSpellFrame:GetHeight() - 72
-	  	for i=2,#specByClassTable do
-	  		local button = addSpellFrame.specButtons[i-1]
-	  		button:SetPoint("LEFT",addSpellFrame,"TOPLEFT",0,-72-height/(#specByClassTable)*(i-1))
-	  		
-		  	local specID = specByClassTable[i]
-	  		if class == "OTHER" then
-	  			if specID == -1 then
-		  			button.text:SetText(L.cd2Racial)
-		  			button.icon:SetTexture("Interface\\Icons\\achievement_character_bloodelf_female")
-		  		elseif specID == -2 then	
-		  			button.text:SetText(L.cd2Items)
-		  			button.icon:SetTexture("Interface\\Icons\\inv_inscription_tarot_volcanocard")
-		  		elseif specID == -3 then	
-		  			button.text:SetText(L.classLocalizate["PET"])
-		  			button.icon:SetTexture("Interface\\Icons\\ability_hunter_aspectofthefox")	 
-		  		elseif specID == -4 then	
-		  			button.text:SetText(AZERITE_ESSENCE_ITEM_TYPE or "Essences")
-		  			button.icon:SetTexture(1869493)	 
-		  		end
-	  		else
-		  		local role = ExRT.GDB.ClassSpecializationRole[specID]
-		  		if role then
-		  			role = "\n|cffffffff"..(role == 'TANK' and TANK or role == 'HEAL' and HEALER or DAMAGER)
-		  		end
-		  		
-		  		button.text:SetText(L.specLocalizate[ module.db.specInLocalizate[specID] ]..(role or ""))
-		  		button.icon:SetTexture(module.db.specIcons[specID])	  		
-	  		end
-	  		
-	  		if addSpellFrame.CURR_SPEC[addSpellFrame.CURR_CLASS] == i-1 then
-	  			button:SetState(true)
-	  		else
-	  			button:SetState(false)
-	  		end
-	  		
-	  		button:Show()
-	  	end
-	  	for i=#specByClassTable,4 do
-	  		addSpellFrame.specButtons[i]:Hide()
-	  	end
-	end
-	
-	self.addSpellFrame.sortedClasses = {}
-	
-	self.addSpellFrame.classNameText = self.addSpellFrame:CreateFontString(nil,"ARTWORK","GameFontWhite")
-	self.addSpellFrame.classNameText:SetPoint("TOP",self.addSpellFrame,"TOPLEFT",100,-80)
-	self.addSpellFrame.classNameText:SetWidth(190)
-	self.addSpellFrame.classNameText:SetMaxLines(1)
-	self.addSpellFrame.classNameText:SetFont(self.addSpellFrame.classNameText:GetFont(),18,"OUTLINE")
-	
-	self.addSpellFrame.dropDown = ELib:DropDown(self.addSpellFrame,200,10):Size(210):Point("TOPRIGHT",-5,-25)
-	self.addSpellFrame.dropDown:Hide()
-	function self.addSpellFrame.dropDown:SetValue(newValue)
-		local addSpellFrame = module.options.addSpellFrame
-		--addSpellFrame.dropDown:SetText("|c"..ExRT.F.classColor(newValue)..(L.classLocalizate[newValue] or newValue == "RACIAL" and L.cd2Racial or newValue == "ITEMS" and L.cd2Items or "Unk"))
-		ELib:DropDownClose()
-		for i=1,#module.db.classNames+1 do
-			local button = addSpellFrame.classButtons[i]
-			if button.token == newValue then
-				button.selected = true
-				button.icon:SetSize(42,42)
-			else
-				button.selected = false
-				button.icon:SetSize(32,32)
-			end
-		end
-		addSpellFrame.CURR_CLASS = newValue
-		addSpellFrame.CURR_SPEC[newValue] = addSpellFrame.CURR_SPEC[newValue] or 1
-		addSpellFrame:SetSpecButtons(newValue)
-		
-		addSpellFrame.classNameText:SetText(newValue == "OTHER" and "" or L.classLocalizate[newValue] or "")
-		
-		local specNum = addSpellFrame.CURR_SPEC[newValue]
-		
-		if newValue == "OTHER" then
-			if specNum == 1 then
-				newValue = "RACIAL"
-			elseif specNum == 2 then
-				newValue = "ITEMS"
-			elseif specNum == 3 then
-				newValue = "PET"
-			elseif specNum == 4 then
-				newValue = "ESSENCES"
-			end
-		end
-		local classDB = module.db.allClassSpells[newValue]
-		
-		if not addSpellFrame.sortedClasses[newValue] then
-			for i=1,#classDB do
-				local spellName = GetSpellInfo(classDB[i][1])
-				classDB[i].spellName = spellName or tostring(classDB[i][1])
-			end
-			sort(classDB,function(a,b) return a.spellName < b.spellName end)
-			addSpellFrame.sortedClasses[newValue] = true
-		end
-		
-		local buttonCount = 0
-		for i=1,#classDB do
-			local spellDB = classDB[i]
-			if spellDB[3] or spellDB[3+specNum] then
-				buttonCount = buttonCount + 1
-				local buttonFrame = module.options.addSpellFrame.buttons[buttonCount]
-				if buttonFrame then
-					local SpellID = spellDB[1]
-					local spellName, _, spellTexture = GetSpellInfo(SpellID)
-					if module.db.differentIcons[ SpellID ] then
-						spellTexture = module.db.differentIcons[SpellID]
-					end
-					
-					buttonFrame.icon:SetTexture(spellTexture or "Interface\\Icons\\INV_MISC_QUESTIONMARK")
-					buttonFrame.text:SetText(spellName or "?")
-					buttonFrame.spellID = SpellID
-					buttonFrame.spellLink = GetSpellLink(SpellID)
-					buttonFrame.colNum = spellDB[2]
-					
-					buttonFrame.line = spellDB
-					
-					if newValue == "PET" then
-						buttonFrame.text:SetText("|c"..ExRT.F.classColor(spellDB[3])..L.classLocalizate[spellDB[3]].."|r "..(spellName or "?"))
-					end
-					
-					buttonFrame.disabled = nil
-					for j=1,#module.db.spellDB do
-						if module.db.spellDB[j][1] == SpellID then
-								buttonFrame.icon:SetDesaturated(true)
-								buttonFrame.text:SetTextColor(0.5,0.5,0.5,1)
-								buttonFrame.disabled = true
-							break
-						end
-					end
-					if not buttonFrame.disabled then
-						buttonFrame.icon:SetDesaturated(nil)
-						buttonFrame.text:SetTextColor(1,1,1,1)
-					end
-		
-					buttonFrame:Show()
-				end
-			end
-		end
-		for i=buttonCount+1,addSpellFrame.buttonsMax do
-			addSpellFrame.buttons[i]:Hide()
-		end
-		addSpellFrame.class = newValue
-		
-		local cR,cG,cB = ExRT.F.classColorNum(newValue)
-		addSpellFrame.backClassColor:SetGradientAlpha("VERTICAL", cR,cG,cB, 0, cR,cG,cB, 0.5)
-		addSpellFrame.backClassColor:Show()
-		addSpellFrame.backClassColorBottom:SetGradientAlpha("VERTICAL", cR,cG,cB, 0.5, cR,cG,cB, 0)		
-		addSpellFrame.backClassColorBottom:Show()
-	end
-	for i=1,#module.db.classNames do
-		local class = module.db.classNames[i]
-		self.addSpellFrame.dropDown.List[#self.addSpellFrame.dropDown.List + 1] = {
-			text = "|c"..ExRT.F.classColor(class)..L.classLocalizate[class],
-			justifyH = "CENTER",
-			func = self.addSpellFrame.dropDown.SetValue,
-			arg1 = class,
-		}
-	end
-	for i,noClassData in ipairs({{"PET",L.classLocalizate["PET"]},{"RACIAL",L.cd2Racial},{"ITEMS",L.cd2Items}}) do
-		self.addSpellFrame.dropDown.List[#self.addSpellFrame.dropDown.List + 1] = {
-			text = "|c"..ExRT.F.classColor(noClassData[1])..noClassData[2],
-			justifyH = "CENTER",
-			func = self.addSpellFrame.dropDown.SetValue,
-			arg1 = noClassData[1],
-		}
-	end
-	self.addSpellFrame.dropDown.Lines = #self.addSpellFrame.dropDown.List
-	
-	local function AddSpellFrameButtonsOnEnter(self)
-		self:SetBackdropBorderColor(1,1,1,0.5)
 		GameTooltip:SetOwner(self, "ANCHOR_LEFT")
-		
-		local isItem,isArtifact = nil
-		for itemID,spellID in pairs(module.db.itemsToSpells) do
-			if spellID == self.line[1] then
-				if module.db.itemsArtifacts[itemID] then
-					isArtifact = itemID
-				else
-					isItem = itemID
-				end
-				break
-			end
-		end
-		
-		if not isItem then
-			if self.spellLink then
-				GameTooltip:SetHyperlink(self.spellLink)
-			end
-		else
-			local _,itemLink = GetItemInfo(isItem)
-			GameTooltip:SetHyperlink(itemLink or self.spellLink)
-		end
-		GameTooltip:AddLine(" ")
-		
-		local className = module.options.addSpellFrame.class
+				
+		local className = self:GetParent().data_class
 		if module.db.specByClass[className] then
 			for i=1,#module.db.specByClass[className] do
-				if self.line[2+i] then
+				if data[3+i] then
 					local icon = ""
 					if module.db.specIcons[module.db.specByClass[className][i]] then
 						icon = "|T".. module.db.specIcons[module.db.specByClass[className][i]] ..":20|t"
 					else
 						icon = ExRT.F.classIconInText(className,20) or ""
 					end
-					GameTooltip:AddLine(icon.." |c"..ExRT.F.classColor(className)..L.specLocalizate[module.db.specInLocalizate[module.db.specByClass[className][i]]].. ":|r|cffffffff "..L.cd2AddSpellFrameCDText.." "..format("%d:%02d",self.line[i+2][2]/60,self.line[i+2][2]%60).. (self.line[i+2][3] > 0 and ", "..L.cd2AddSpellFrameDurationText.." "..self.line[i+2][3] or ""))
-				end
-			end
-		elseif className == "PET" then
-			for petName,petData in pairs(module.db.petsAbilities) do
-				for j=2,#petData do
-					if petData[j][1] == self.line[1] then
-						local petNameInTooltip = petName
-						if tonumber(petNameInTooltip) then
-							petNameInTooltip = L.creatureNames[tonumber(petNameInTooltip)]
-						end
-						GameTooltip:AddLine((ExRT.F.classIconInText(self.line[3],20) or "").." |c"..ExRT.F.classColor(self.line[3])..petNameInTooltip.. ":|r|cffffffff "..L.cd2AddSpellFrameCDText.." "..format("%d:%02d",petData[j][2]/60,petData[j][2]%60).. (petData[j][3] and ", "..L.cd2AddSpellFrameDurationText.." "..petData[j][3] or ""))
-						break
-					end
+					GameTooltip:AddLine(icon.." |c"..ExRT.F.classColor(className)..L.specLocalizate[module.db.specInLocalizate[module.db.specByClass[className][i]]].. ":|r|cffffffff "..L.cd2AddSpellFrameCDText.." "..format("%d:%02d",data[i+3][2]/60,data[i+3][2]%60).. (data[i+3][3] > 0 and ", "..L.cd2AddSpellFrameDurationText.." "..data[i+3][3] or ""))
 				end
 			end
 		else
-			GameTooltip:AddLine("|cffffffff"..L.cd2AddSpellFrameCDText.." "..self.line[3][2].. (self.line[3][3] > 0 and ", "..L.cd2AddSpellFrameDurationText.." "..self.line[3][3] or ""))
+			GameTooltip:AddLine("|cffffffff"..L.cd2AddSpellFrameCDText.." "..data[4][2].. (data[4][3] > 0 and ", "..L.cd2AddSpellFrameDurationText.." "..data[4][3] or ""))
 		end
-		if isArtifact then
-			GameTooltip:AddLine(ARTIFACT_POWER)
+
+		do
+			local cdByTalent_fix = nil
+			local readiness_lines = {}
+			if module.db.spell_cdByTalent_fix[ data[1] ] then
+				cdByTalent_fix = true
+				for j=1,#module.db.spell_cdByTalent_fix[ data[1] ],2 do
+					local sname,_,sicon = GetSpellInfo(module.db.spell_cdByTalent_fix[ data[1] ][j])
+					local cd = module.db.spell_cdByTalent_fix[ data[1] ][j+1]
+					if type(cd) == 'table' then
+						local tal_sid = cd[2]
+						if not tonumber(cd[1]) then
+							cd = tonumber(string.sub(cd[1],2))
+							if cd < 1 then
+								cd = "-"..( (1-cd)*100 ).."%"
+							else
+								cd = "+"..( (cd-1)*100 ).."%"
+							end
+						else
+							cd = "+"..cd
+						end
+						local spellname,_,spellicon = GetSpellInfo(tal_sid)
+						cd = cd .. " during "..(spellicon and "|T"..spellicon..":20|t" or "")..(spellname or tal_sid)
+					elseif not tonumber(cd) then
+						cd = tonumber(string.sub(cd,2))
+						if cd < 1 then
+							cd = "-"..( (1-cd)*100 ).."%"
+						else
+							cd = "+"..( (cd-1)*100 ).."%"
+						end
+					end
+					table.insert(readiness_lines,"|cffffffff - "..(sicon and "|T"..sicon..":20|t" or "")..(sname or "???") .." (".. (tonumber(cd) and cd > 0 and "+" or "").. cd ..")|r")
+					
+					ELib.Tooltip:Add("spell:"..module.db.spell_cdByTalent_fix[ data[1] ][j])
+				end
+			end
+			if cdByTalent_fix then
+				GameTooltip:AddLine("|cffffaaaa"..L.cd2AddSpellFrameCDChange..": |r")
+				for j=1,#readiness_lines do
+					GameTooltip:AddLine(readiness_lines[j])
+				end
+			end
 		end
-		GameTooltip:AddLine("|cffffffff"..L.cd2AddSpellFrameColumnText..": ".. self.colNum .."|r")
-		if module.db.spell_isTalent[self.line[1]] and not className == "ITEMS" then
-			GameTooltip:AddLine("|cffffffff"..L.cd2AddSpellFrameTalent.."|r")
+		if module.db.spell_charge_fix[ data[1] ] then
+			if module.db.spell_charge_fix[ data[1] ] == 1 then
+				GameTooltip:AddLine("|cffffffaa"..L.cd2AddSpellFrameCharge.."|r")
+			else
+				GameTooltip:AddLine("|cffffffaa"..L.cd2AddSpellFrameChargeChange..":|r")
+				local sname = GetSpellInfo(module.db.spell_charge_fix[ data[1] ])
+				GameTooltip:AddLine("|cffffffff - "..(sname or "???") .."|r")
+			end
 		end
-		if module.db.spell_durationByTalent_fix[self.line[1]] then
+
+		if module.db.spell_sharingCD[ data[1] ] then
+			GameTooltip:AddLine("|cffffffaa"..L.cd2AddSpellFrameSharing..": |r")
+			for otherID,otherCD in pairs(module.db.spell_sharingCD[ data[1] ]) do
+				local sname = GetSpellInfo(otherID)
+				GameTooltip:AddLine("|cffffffff - "..(sname or "???") .." (".. otherCD ..")|r")
+			end
+		end
+
+		if module.db.spell_reduceCdByHaste[ data[1] ] then
+			GameTooltip:AddLine("|cffffffaa"..L.cd2AddSpellFrameCDHaste..": |r")
+		end
+
+		for castSpellID,castData in pairs(module.db.spell_reduceCdCast) do
+			for i=1,#castData,2 do
+				local sID = castData[i]
+				if type(sID) == 'table' then
+					if sID[1] == data[1] then
+						local spellname,_,spellicon = GetSpellInfo(castSpellID)
+						if not sID[3] and not sID[4] then
+							local spellnameT,_,spelliconT = GetSpellInfo(sID[2])
+							GameTooltip:AddLine("|cffffffaa"..L.cd2AddSpellFrameCasting1.." "..(spellicon and "|T"..spellicon..":20|t" or "")..(spellname or castSpellID).." "..L.cd2AddSpellFrameCasting3.." "..(spelliconT and "|T"..spelliconT..":20|t" or "")..(spellnameT or sID[2]).." "..L.cd2AddSpellFrameCasting2.." "..castData[i+1].." |r")
+						elseif sID[4] then
+							local spellnameT,_,spelliconT = GetSpellInfo(sID[4])
+							GameTooltip:AddLine("|cffffffaa"..L.cd2AddSpellFrameCasting1.." "..(spellicon and "|T"..spellicon..":20|t" or "")..(spellname or castSpellID).." "..L.cd2AddSpellFrameCasting4.." "..(spelliconT and "|T"..spelliconT..":20|t" or "")..(spellnameT or sID[2]).." "..L.cd2AddSpellFrameCasting2.." "..castData[i+1].." |r")
+						elseif sID[3] then
+							local spellnameT,_,spelliconT = GetSpellInfo(sID[2])
+							GameTooltip:AddLine("|cffffffaa"..L.cd2AddSpellFrameCasting1.." "..(spellicon and "|T"..spellicon..":20|t" or "")..(spellname or castSpellID).." "..L.cd2AddSpellFrameCasting3.." "..(spelliconT and "|T"..spelliconT..":20|t" or "")..(spellnameT or sID[2]).." "..L.cd2AddSpellFrameCasting5.." "..L.specLocalizate[ module.db.specInLocalizate[ sID[3] ] ].." "..L.cd2AddSpellFrameCasting2.." "..castData[i+1].." |r")
+						end
+					end
+				elseif sID == data[1] then
+					local spellname,_,spellicon = GetSpellInfo(castSpellID)
+					GameTooltip:AddLine("|cffffffaa"..L.cd2AddSpellFrameCasting1.." "..(spellicon and "|T"..spellicon..":20|t" or "")..(spellname or castSpellID).." "..L.cd2AddSpellFrameCasting2.." "..castData[i+1].." |r")
+				end
+			end
+		end
+
+		GameTooltip:Show()
+	end
+	local function SpellsListCDTooltipFrameOnLeave(self)
+	  	GameTooltip_Hide()
+	  	ELib.Tooltip:HideAdd()	  
+	end
+	local function SpellsListDurTooltipFrameOnEnter(self)
+		local data = self:GetParent().data
+		if not data then
+			return
+		end
+		GameTooltip:SetOwner(self, "ANCHOR_LEFT")
+		local something
+
+		if module.db.spell_durationByTalent_fix[ data[1] ] then
 			GameTooltip:AddLine("|cffaaffaa"..L.cd2AddSpellFrameDuration..":|r")
-			for j=1,#module.db.spell_durationByTalent_fix[self.line[1]],2 do
-				local sname = GetSpellInfo(module.db.spell_durationByTalent_fix[self.line[1]][j]) or "???"
-				local cd = module.db.spell_durationByTalent_fix[self.line[1]][j+1]
+			for j=1,#module.db.spell_durationByTalent_fix[data[1]],2 do
+				local sname = GetSpellInfo(module.db.spell_durationByTalent_fix[ data[1] ][j]) or "???"
+				local cd = module.db.spell_durationByTalent_fix[ data[1] ][j+1]
 				if type(cd) == 'table' then
 					cd = strjoin(",",unpack(cd))
 				elseif not tonumber(cd) then
@@ -5365,369 +4722,826 @@ function module.options:Load()
 				end
 				GameTooltip:AddLine("|cffffffff - "..sname .." (".. (tonumber(cd) and cd > 0 and "+" or "").. cd ..")|r")
 				
-				ELib.Tooltip:Add("spell:"..module.db.spell_durationByTalent_fix[self.line[1]][j])
+				ELib.Tooltip:Add("spell:"..module.db.spell_durationByTalent_fix[ data[1] ][j])
 			end
-			
-		end
-		do
-			local cdByTalent_fix = nil
-			local readiness_lines = {}
-			if module.db.spell_cdByTalent_fix[self.line[1]] then
-				cdByTalent_fix = true
-				for j=1,#module.db.spell_cdByTalent_fix[self.line[1]],2 do
-					local sname = GetSpellInfo(module.db.spell_cdByTalent_fix[self.line[1]][j]) or "???"
-					local cd = module.db.spell_cdByTalent_fix[self.line[1]][j+1]
-					if type(cd) == 'table' then
-						cd = strjoin(",",unpack(cd))
-					elseif not tonumber(cd) then
-						cd = tonumber(string.sub(cd,2))
-						if cd < 1 then
-							cd = "-"..( (1-cd)*100 ).."%"
-						else
-							cd = "+"..( (cd-1)*100 ).."%"
-						end
-					end
-					table.insert(readiness_lines,"|cffffffff - "..sname .." (".. (tonumber(cd) and cd > 0 and "+" or "").. cd ..")|r")
-					
-					ELib.Tooltip:Add("spell:"..module.db.spell_cdByTalent_fix[self.line[1]][j])
-				end
-			end
-			if cdByTalent_fix then
-				GameTooltip:AddLine("|cffffaaaa"..L.cd2AddSpellFrameCDChange..": |r")
-				for j=1,#readiness_lines do
-					GameTooltip:AddLine(readiness_lines[j])
-				end
-			end
-		end
-		if module.db.spell_charge_fix[self.line[1]] then
-			if module.db.spell_charge_fix[self.line[1]] == 1 then
-				GameTooltip:AddLine("|cffffffaa"..L.cd2AddSpellFrameCharge.."|r")
-			else
-				GameTooltip:AddLine("|cffffffaa"..L.cd2AddSpellFrameChargeChange..":|r")
-				local sname = GetSpellInfo(module.db.spell_charge_fix[self.line[1]]) or "???"
-				GameTooltip:AddLine("|cffffffff - "..sname .."|r")
-			end
+			something = true
 		end
 		do
 			for auraID,sID in pairs(module.db.spell_aura_list) do
-				if sID == self.line[1] then
+				if sID == data[1] then
 					local sname = GetSpellInfo(auraID) or "???"
 					GameTooltip:AddLine("|cffaaffaa"..L.cd2AddSpellFrameDurationLost..":|r")
 					GameTooltip:AddLine("|cffffffff - \""..sname.."\"|r")
+
+					something = true
 				end
 			end
 		end
-		if module.db.spell_sharingCD[self.line[1]] then
-			GameTooltip:AddLine("|cffffffaa"..L.cd2AddSpellFrameSharing..": |r")
-			for otherID,otherCD in pairs(module.db.spell_sharingCD[self.line[1]]) do
-				local sname = GetSpellInfo(otherID) or "???"
-				GameTooltip:AddLine("|cffffffff - "..sname .." (".. otherCD ..")|r")
-			end
+
+		if something then
+			GameTooltip:Show()
 		end
-		if module.db.spell_dispellsList[self.line[1]] then
-			GameTooltip:AddLine("|cffffffaa"..L.cd2AddSpellFrameDispel.."|r")
-		end
-		if module.db.spell_talentReplaceOther[self.line[1]] then
-			local spellID = module.db.spell_talentReplaceOther[self.line[1]]
-			local sname
-			if type(spellID)=='table' then
-				for i=1,#spellID do
-					local sname = GetSpellInfo(spellID[i]) or "???"
-					GameTooltip:AddLine("|cffffaaaa"..L.cd2AddSpellFrameReplace .." ".. sname .."|r")
-				end
-			else
-				local sname = GetSpellInfo(spellID) or "???"
-				GameTooltip:AddLine("|cffffaaaa"..L.cd2AddSpellFrameReplace .." ".. sname .."|r")
-			end
-		end
-		GameTooltip:Show()
 	end
-	local function AddSpellFrameButtonsOnLeave(self)
-	  	self:SetBackdropBorderColor(1,1,1,0)
+	local function SpellsListDurTooltipFrameOnLeave(self)
 	  	GameTooltip_Hide()
-	  	ELib.Tooltip:HideAdd()
+	  	ELib.Tooltip:HideAdd()	 
 	end
-	local function AddSpellFrameButtonsOnClick(self)
-		if not self.disabled then
-			local class = module.options.addSpellFrame.class
-			module.options:addNewSpell((class == "RACIAL" or class == "ITEMS" or class == "ESSENCES") and "ALL" or class,self.line)
-			module.options.addSpellFrame:Hide()
+	local function SpellsListColSetValue(self,value)
+		local isEnabled = VExRT.ExCD2.colSet[value] and VExRT.ExCD2.colSet[value].enabled
+	  	self.text:SetText(L.cd2AddSpellFrameColumnText.." "..(not isEnabled and "|cffff0000" or "")..value)
+		if self.lock then return end
+		if type(self.keystr) == "table" then
+			for i=1,#self.keystr do
+				VExRT.ExCD2.CDECol[ self.keystr[i] ] = value
+			end
+		else
+			VExRT.ExCD2.CDECol[self.keystr] = value
 		end
+		module:UpdateSpellDB()
 	end
-	
-	self.addSpellFrame.buttonsMax = 0
-	for classNum=1,#module.db.classNames do
-		local now = #module.db.allClassSpells[ module.db.classNames[classNum] ]
-		self.addSpellFrame.buttonsMax = max(self.addSpellFrame.buttonsMax,now)
-	end
-	self.addSpellFrame.buttonsMax = max(self.addSpellFrame.buttonsMax,#module.db.allClassSpells["PET"])
-	--self.addSpellFrame:SetHeight( 82 + 35 * ceil( self.addSpellFrame.buttonsMax / 4 ) )
-	self.addSpellFrame:SetHeight( 420 )
-	
-	self.addSpellFrame.buttons = {}
-	for i=1,self.addSpellFrame.buttonsMax do
-		local buttonFrame = CreateFrame("Button",nil,self.addSpellFrame)
-		self.addSpellFrame.buttons[i] = buttonFrame
-		buttonFrame:SetPoint("TOPLEFT",(i-1)%4 * 130 + 15 + 200,-floor((i-1)/4) * 35 - 60 - 57)
-		buttonFrame:SetSize(130,35)
-		buttonFrame:SetBackdrop({edgeFile = ExRT.F.defBorder, edgeSize = 8})
-		buttonFrame:SetBackdropBorderColor(1,1,1,0)
-		
-		buttonFrame:SetScript("OnEnter",AddSpellFrameButtonsOnEnter)
-		buttonFrame:SetScript("OnLeave",AddSpellFrameButtonsOnLeave)
-		
-		buttonFrame:SetScript("OnClick",AddSpellFrameButtonsOnClick)
-		
-		buttonFrame.icon = buttonFrame:CreateTexture(nil, "BACKGROUND")
-		buttonFrame.icon:SetSize(24,24)
-		buttonFrame.icon:SetPoint("TOPLEFT",5,-5)
-		
-		buttonFrame.text = ELib:Text(buttonFrame,"",12):Size(99,31):Point(33,-2):Color():Shadow()
+	local function SpellsListPrioritySetValue(self,value)
+	  	self.text:SetText(L.cd2Priority.." "..(100-value).."%")
+		if self.lock then return end
+		VExRT.ExCD2.Priority[ self:GetParent().data[1] ] = value
+		module:UpdateSpellDB()
 	end
 
-	function module.options:addNewSpell(class,line,doNotScroll)
-		local sbmin,sbmax = module.options.ScrollBar:GetMinMaxValues()
-		--module.options.ScrollBar:SetMinMaxValues(sbmin,sbmax+1)
-		if line then
-			if class ~= "PET" then
-				module.db.spellDB[#module.db.spellDB+1] = {line[1],class,line[3],line[4],line[5],line[6],line[7],user=true}
-				for j=3,7 do
-					if line[j] and not VExRT.ExCD2.CDECol[ line[j][1] .. ";" .. (j-2) ] then
-						VExRT.ExCD2.CDECol[ line[j][1] .. ";" .. (j-2) ] = line[2]
-					end
+	local function SpellsListButtonModifyOnClick(self)
+		if module.options.addModSpellFrame:IsShown() then
+			module.options.addModSpellFrame:Hide()
+		end
+		module.options.addModSpellFrame.data = self:GetParent().data
+		module.options.addModSpellFrame:Show()
+	end
+	local function SpellsListButtonAddOnClick(self)
+		if module.options.addModSpellFrame:IsShown() then
+			module.options.addModSpellFrame:Hide()
+		end
+		module.options.addModSpellFrame.data = nil
+		module.options.addModSpellFrame:Show()
+	end
+
+	self.list.lines = {}
+	for i=1,ceil(589/SPELL_LINE_HEIGHT)+2 do
+		local line = CreateFrame("Frame",nil,self.list.C)
+		self.list.lines[i] = line
+		line:SetPoint("TOPLEFT",0,-(i-1)*SPELL_LINE_HEIGHT)
+		line:SetPoint("RIGHT",0,0)
+		line:SetHeight(SPELL_LINE_HEIGHT)
+
+		line.chk = ELib:Check(line):Point("LEFT",10,0):OnClick(SpellsListChkOnClick)
+		line.chk.UpdateColors = SpellsListChkUpdateColors
+
+		line.chk.CheckedTexture:SetVertexColor(0.2,1,0.2,1)
+		
+		line.backClassColor = line:CreateTexture(nil, "BACKGROUND")
+		line.backClassColor:SetPoint("LEFT",0,0)
+		line.backClassColor:SetSize(350,SPELL_LINE_HEIGHT)
+		line.backClassColor:SetColorTexture(1, 1, 1, 1)
+		line.backClassColorR = 0
+		line.backClassColorG = 0
+		line.backClassColorB = 0
+		
+		line:SetScript("OnUpdate",SpellsListLineOnUpdate)
+	
+		line.icon = line:CreateTexture(nil, "ARTWORK")
+		line.icon:SetSize(28,28)
+		line.icon:SetPoint("LEFT", line.chk,"RIGHT", 10, 0)
+		line.icon:SetTexCoord(.1,.9,.1,.9)
+		ELib:Border(line.icon,1,.12,.13,.15,1)
+	
+		line.spellName = ELib:Text(line):Size(200,SPELL_LINE_HEIGHT):Point("LEFT",line.icon,"RIGHT",5,0):Font(ExRT.F.defFont,12):Shadow()
+
+		line.tooltipFrame = CreateFrame("Frame",nil,line)
+		line.tooltipFrame:SetAllPoints(line.spellName)
+		line.tooltipFrame:SetScript("OnEnter", SpellsListTooltipFrameOnEnter)
+		line.tooltipFrame:SetScript("OnLeave", SpellsListTooltipFrameOnLeave)
+	
+		line.class = line:CreateTexture(nil, "ARTWORK")
+		line.class:SetSize(22,22)
+		line.class:SetPoint("LEFT", line.spellName, "RIGHT", 5, 0)
+		line.class:SetTexture("Interface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES")
+
+		line.spec = line:CreateTexture(nil, "ARTWORK")
+		line.spec:SetSize(22,22)
+		line.spec:SetPoint("RIGHT", line.class, "LEFT", -2, 0)
+
+		line.spec1 = line:CreateTexture(nil, "ARTWORK")
+		line.spec1:SetSize(16,16)
+		line.spec1:SetPoint("TOPRIGHT", line.class, "TOPLEFT", -2, 0)
+
+		line.spec2 = line:CreateTexture(nil, "ARTWORK")
+		line.spec2:SetSize(16,16)
+		line.spec2:SetPoint("RIGHT", line.spec1, "LEFT", -1, 0)
+
+		line.spec3 = line:CreateTexture(nil, "ARTWORK")
+		line.spec3:SetSize(16,16)
+		line.spec3:SetPoint("RIGHT", line.spec2, "LEFT", -1, 0)
+
+		line.spec4 = line:CreateTexture(nil, "ARTWORK")
+		line.spec4:SetSize(16,16)
+		line.spec4:SetPoint("RIGHT", line.spec3, "LEFT", -1, 0)
+
+		line.col = ELib:Slider(line,""):Size(120):Point("LEFT",line.class,"RIGHT",15,-1):Range(1,10):SetTo(11):OnChange(SpellsListColSetValue)
+		line.col:SetObeyStepOnDrag(true)
+		line.col.Low:Hide()
+		line.col.High:Hide()
+		line.col:SetScript("OnEnter",nil)
+		line.col:SetScript("OnLeave",nil)
+		line.col:HideBorders()
+		line.col.Thumb:SetSize(12,12)
+		line.col.Thumb:SetTexture("Interface\\AddOns\\ExRT\\media\\circle256")
+		line.col.Thumb:SetVertexColor(0.44,0.45,0.50,1)
+		line.col.backline = line.col:CreateTexture(nil,"BACKGROUND")
+		line.col.backline:SetColorTexture(0.44,0.45,0.50,0.7)
+		line.col.backline:SetPoint("LEFT")
+		line.col.backline:SetPoint("RIGHT")
+		line.col.backline:SetHeight(4)
+		line.col.Text:SetFont(GameFontHighlight:GetFont(),10)
+		line.col.Text:SetTextColor(0.84,0.85,0.90,1)
+		line.col:SetScript("OnMouseWheel",nil)
+
+		line.colBack = CreateFrame("Frame",nil,line)
+		line.colBack:SetHeight(SPELL_LINE_HEIGHT)
+		line.colBack:SetPoint("LEFT",line.col)
+		line.colBack:SetPoint("RIGHT",line.col)
+
+		line.colExpand = ELib:Button(line,L.cd2BySpec):Size(120,8):Point("LEFT",line.col,0,0):Point("BOTTOM",line,0,0):OnClick(SpellsListLineColExpand)
+		local textObj = line.colExpand:GetTextObj()
+		textObj:SetFont(textObj:GetFont(),8)
+
+
+		line.prior = ELib:Slider(line,""):Size(120):Point("LEFT",line.col,"RIGHT",15,0):Range(0,100):SetTo(101):OnChange(SpellsListPrioritySetValue)
+		line.prior:SetObeyStepOnDrag(true)
+		line.prior.Low:Hide()
+		line.prior.High:Hide()
+		line.prior:SetScript("OnEnter",nil)
+		line.prior:SetScript("OnLeave",nil)
+		line.prior:HideBorders()
+		line.prior.Thumb:SetSize(4,12)
+		line.prior.Thumb:SetColorTexture(0.44,0.45,0.50,1)
+		line.prior.backline = line.prior:CreateTexture(nil,"BACKGROUND")
+		line.prior.backline:SetColorTexture(0.44,0.45,0.50,0.7)
+		line.prior.backline:SetPoint("LEFT")
+		line.prior.backline:SetPoint("RIGHT")
+		line.prior.backline:SetHeight(4)
+		line.prior.Text:SetFont(GameFontHighlight:GetFont(),10)
+		line.prior.Text:SetTextColor(0.84,0.85,0.90,1)
+		line.prior:SetScript("OnMouseWheel",nil)
+	
+		line.cd = ELib:Text(line,""):Size(40,SPELL_LINE_HEIGHT):Point("LEFT",line.prior,"RIGHT",15,1):Font(ExRT.F.defFont,14):Shadow():Center():Color(1,.3,.3)
+		line.cdTooltipFrame = CreateFrame("Frame",nil,line)
+		line.cdTooltipFrame:SetAllPoints(line.cd)
+		line.cdTooltipFrame:SetScript("OnEnter", SpellsListCDTooltipFrameOnEnter)
+		line.cdTooltipFrame:SetScript("OnLeave", SpellsListCDTooltipFrameOnLeave)
+
+		line.dur = ELib:Text(line,""):Size(40,SPELL_LINE_HEIGHT):Point("LEFT",line.cd,"RIGHT",5,0):Font(ExRT.F.defFont,14):Shadow():Center():Color(.3,1,.3)
+		line.durTooltipFrame = CreateFrame("Frame",nil,line)
+		line.durTooltipFrame:SetAllPoints(line.dur)
+		line.durTooltipFrame:SetScript("OnEnter", SpellsListDurTooltipFrameOnEnter)
+		line.durTooltipFrame:SetScript("OnLeave", SpellsListDurTooltipFrameOnLeave)
+
+		line.buttonModify = ELib:Button(line,">>"):Size(40,20):Point("LEFT",line.dur,"RIGHT",5,0):OnClick(SpellsListButtonModifyOnClick)
+
+		line.buttonAddBig = ELib:Button(line,ADD):Size(0,20):Point("LEFT",10,0):Point("RIGHT",-10,0):OnClick(SpellsListButtonAddOnClick)
+
+		line:Hide()
+	end
+
+	self.list.colBySpecFrame = CreateFrame("Frame",nil,self)
+	self.list.colBySpecFrame:SetWidth(155)
+	self.list.colBySpecFrame:SetFrameStrata("DIALOG")
+	self.list.colBySpecFrame.background = self.list.colBySpecFrame:CreateTexture(nil,"BACKGROUND")
+	self.list.colBySpecFrame.background:SetAllPoints()
+	self.list.colBySpecFrame.background:SetColorTexture(0,0,0,.8)
+	ELib:Border(self.list.colBySpecFrame,2,0.44,0.45,0.50,1)
+
+	self.list.colBySpecFrame.close = ELib:Button(self.list.colBySpecFrame,"x"):Size(155-2,10):Point("BOTTOM",0,0):OnClick(function(self) self:GetParent():Hide() end)
+
+	self.list.colBySpecFrame:Hide()
+	self.list.colBySpecFrame.spec = {}
+	function self.list.colBySpecFrame:Open(line,clickObj)
+		if self:IsShown() and self.data == line.data[1] then
+			self:Hide()
+			return
+		end
+
+		self:ClearAllPoints()
+		self:SetPoint("TOPRIGHT",clickObj,"BOTTOMRIGHT",5,-2)
+
+		local class = line.data_class
+		local spellID = line.data[1]
+
+		local r,g,b = ExRT.F.classColorNum(class)
+		self.background:SetColorTexture(r*0.5,g*0.5,b*0.5,1)
+
+		local specs = line.colExpand.specs
+		for i=1,#specs do
+			local slider = self.spec[i]
+			if not slider then
+				slider = ELib:Slider(self,L.cd2AddSpellFrameColumnText.." 1"):Size(120):Point("RIGHT",self,"TOPRIGHT",-5,-3-SPELL_LINE_HEIGHT*(i-1)-SPELL_LINE_HEIGHT/2):Range(1,10):SetTo(1):OnChange(SpellsListColSetValue)
+				self.spec[i] = slider
+				slider:SetObeyStepOnDrag(true)
+				slider.Low:Hide()
+				slider.High:Hide()
+				slider:SetScript("OnEnter",nil)
+				slider:SetScript("OnLeave",nil)
+				slider:HideBorders()
+				slider.Thumb:SetSize(12,12)
+				slider.Thumb:SetTexture("Interface\\AddOns\\ExRT\\media\\circle256")
+				slider.Thumb:SetVertexColor(0.44,0.45,0.50,1)
+				slider.backline = slider:CreateTexture(nil,"BACKGROUND")
+				slider.backline:SetColorTexture(0.44,0.45,0.50,0.7)
+				slider.backline:SetPoint("LEFT")
+				slider.backline:SetPoint("RIGHT")
+				slider.backline:SetHeight(4)
+				slider.Text:SetFont(GameFontHighlight:GetFont(),10)
+				slider.Text:SetTextColor(0.44,0.45,0.50,1)
+
+				slider.icon = slider:CreateTexture(nil,"ARTWORK")
+				slider.icon:SetPoint("RIGHT",slider,"LEFT",-5,0)
+				slider.icon:SetSize(20,20)
+			end
+			slider.icon:SetTexture(ExRT.GDB.ClassSpecializationIcons[ specs[i] ])
+
+			local specPos = line.colExpand.specsPos[i]
+			local col = VExRT.ExCD2.CDECol[line.data[1]..";"..(specPos or 1)] or module.db.def_col[line.data[1]..";"..(specPos or 1)] or line.data[3]
+			slider.keystr = line.data[1]..";"..(specPos or 1)
+			slider.lock = true
+			slider:SetTo(col)
+			slider.lock = false
+
+			slider:Show()
+		end
+		for i=#specs+1,#self.spec do
+			self.spec[i]:Hide()
+		end
+		self:SetHeight(SPELL_LINE_HEIGHT * #specs + 10)
+
+		self.data = line.data[1]
+
+		self:Show()
+	end
+
+	local function SortCategories(cats)
+		local new = {}
+		for k,v in pairs(cats) do 
+			new[#new+1] = k
+		end
+		sort(new,function(a,b) if a and b and self.CATEGORIES_VIS[a] and self.CATEGORIES_VIS[b] then return self.CATEGORIES_VIS[a].sort < self.CATEGORIES_VIS[b].sort end end)
+		return new
+	end
+
+	function self.list:UpdateDB(categoryNow)
+		self.current = categoryNow
+		local list,cats = {},{}
+		local AllSpells = module.options:GetAllSpells()
+		for _,data in pairs(AllSpells) do
+			if not categoryNow then
+				list[#list+1] = data
+				for cat in string.gmatch(data[2], "[^,]+") do
+					cats[cat] = true
 				end
 			else
-				local cd,dur = 0,0
-				for petName,petData in pairs(module.db.petsAbilities) do
-					for j=2,#petData do
-						if petData[j][1] == line[1] then
-							cd = petData[j][2]
-							dur = petData[j][3] or 0
+				for cat in string.gmatch(data[2], "[^,]+") do
+					if cat == categoryNow then
+						list[#list+1] = data
+					end
+					cats[cat] = true
+				end
+				if (categoryNow == "ENABLED" and data[1] and GetSpellInfo(data[1]) and VExRT.ExCD2.CDE[ data[1] ]) then
+					list[#list+1] = data
+				end
+			end
+		end
+		if self.search then
+			for i=#list,1,-1 do
+				local name = GetSpellInfo(list[i][1])
+				if name and not name:lower():find(self.search) then
+					tremove(list,i)
+				end
+			end
+		end
+		cats = SortCategories(cats)
+		if categoryNow and not module.options.CATEGORIES_VIS[categoryNow].ignoreSubcats then
+			local newList = {}
+			for i=1,#cats do
+				if not module.options.CATEGORIES_VIS[categoryNow].ignoreOwncat or cats[i] ~= categoryNow then
+					newList[#newList+1] = {cat = module.options.CATEGORIES_VIS[ cats[i] ] and module.options.CATEGORIES_VIS[ cats[i] ].name or cats[i]}
+					local count = 0
+					for j=1,#list do
+						for cat in string.gmatch(list[j][2], "[^,]+") do
+							if cat == cats[i] then
+								newList[#newList+1] = list[j]
+								count = count + 1
+								break
+							end
+						end
+					end
+					if count == 0 then
+						tremove(newList,#newList)
+					end
+				end
+			end
+			list = newList
+		elseif categoryNow and module.options.CATEGORIES_VIS[categoryNow].ignoreSubcats then
+			tinsert(list,1,{cat = module.options.CATEGORIES_VIS[categoryNow] and module.options.CATEGORIES_VIS[categoryNow].name or categoryNow})
+		elseif not categoryNow then
+			local newList = {}
+			for i=1,#cats do
+				newList[#newList+1] = {cat = module.options.CATEGORIES_VIS[ cats[i] ] and module.options.CATEGORIES_VIS[ cats[i] ].name or cats[i]}
+				local count = 0
+				for j=1,#list do
+					local cat1,cat2 = strsplit(",",list[j][2])
+					local cat = not ExRT.GDB.ClassID[cat1] and cat1 or cat2 or cat1
+					if cat == cats[i] then
+						newList[#newList+1] = list[j]
+						count = count + 1
+					end
+				end
+				if count == 0 then
+					tremove(newList,#newList)
+				end
+			end
+			if not self.search then
+				newList[#newList+1] = {isAddButton = true}
+			end
+			list = newList
+		end
+		self.list = list
+	end
+	function self.list:Update()
+		local scroll = self.ScrollBar:GetValue()
+		self:SetVerticalScroll(scroll % SPELL_LINE_HEIGHT) 
+		local start = floor(scroll / SPELL_LINE_HEIGHT) + 1
+
+		local list = self.list
+		local lineCount = 1
+		for i=start,#list do
+			local data = list[i]
+			local line = self.lines[lineCount]
+			lineCount = lineCount + 1
+			if not line then
+				break
+			end
+			local isHideMost = false
+
+			line.spec:Hide()
+			line.spec1:Hide()
+			line.spec2:Hide()
+			line.spec3:Hide()
+
+			if data.cat then
+				line.spellName:SetText(data.cat)
+
+				line.class:Hide()
+				line.colBack:Hide()
+				line.buttonModify:Hide()
+
+				line.data = nil
+
+				line.buttonAddBig:Hide()
+
+				isHideMost = true
+			elseif data.isAddButton then
+				line.spellName:SetText("")
+
+				line.class:Hide()
+				line.colBack:Hide()
+				line.buttonModify:Hide()
+
+				line.data = nil
+
+				line.buttonAddBig:Show()
+
+				isHideMost = true
+			else
+				local spellName,_,spellTexture = GetSpellInfo(data[1])
+				line.icon:SetTexture(spellTexture)
+				line.spellName:SetText(spellName)
+
+				line.tooltipFrame.link = nil
+				line.isItem = nil
+				if strsplit(",",data[2]) == "ITEMS" then
+					for itemID,itemSpellID in pairs(module.db.itemsToSpells) do
+						if itemSpellID == data[1] then
+							local itemName = GetItemInfo(itemID)
+							if itemName then
+								line.spellName:SetText(itemName)
+							end
+							local itemTexture = select(5,GetItemInfoInstant(itemID))
+							line.icon:SetTexture(itemTexture)
+							line.tooltipFrame.link = "item:"..itemID
 							break
 						end
 					end
+					line.isItem = true
 				end
-				module.db.spellDB[#module.db.spellDB+1] = {line[1],line[3],{line[1],cd,dur},user=true}
-				if not VExRT.ExCD2.CDECol[ line[1] .. ";1" ] then
-					VExRT.ExCD2.CDECol[ line[1] .. ";1" ] = line[2]
+
+				local class,specPos = nil
+				local dataSpecs = 0
+				for cat in string.gmatch(data[2], "[^,]+") do
+					if ExRT.GDB.ClassID[cat] then
+						class = cat
+						break
+					end
 				end
-			end
-		else
-			module.db.spellDB[#module.db.spellDB+1] = {0,class,user=true}
-		end
-		module.options.ScrollBar:UpdateRange()
-		if not doNotScroll then
-			module.options.ScrollBar:SetValue(sbmax+31)
-			module.options:ReloadSpellsPage()
-		end
-		SyncUserDB()
-		UpdateRoster()
-	end
-	
-	self.addSpellFrame.OnShow = function (self)
-		self.dropDown:SetValue(self.CURR_CLASS or module.db.classNames[math.random(1,#module.db.classNames)])
-	end
-	
-	self.tab.tabs[1].decorationLine = CreateFrame("Frame",nil,self.tab.tabs[1])
-	self.tab.tabs[1].decorationLine.texture = self.tab.tabs[1].decorationLine:CreateTexture(nil, "BACKGROUND")
-	self.tab.tabs[1].decorationLine:SetPoint("TOPLEFT",self.tab.tabs[1],-8,-8)
-	self.tab.tabs[1].decorationLine:SetPoint("BOTTOMRIGHT",self.tab.tabs[1],"TOPRIGHT",8,-28)
-	self.tab.tabs[1].decorationLine.texture:SetAllPoints()
-	self.tab.tabs[1].decorationLine.texture:SetColorTexture(1,1,1,1)
-	self.tab.tabs[1].decorationLine.texture:SetGradientAlpha("VERTICAL",.24,.25,.30,1,.27,.28,.33,1)
-	
-	self.tab1tab = ELib:Tabs(self.tab.tabs[1],0,L.cd2Spells,L.cd2Columns):Size(600,100):Point(0,0)
-	self.tab1tab:SetBackdrop({})
-	local function SetFirstTabFrame(self)
-		if self._i == 1 then
-			module.options.borderList:Show()
-			module.options.colsSpells:Hide()
-		else
-			module.options.borderList:Hide()
-			module.options.colsSpells:Show()		
-		end
-	end
-	for i=1,2 do
-		local frame = self.tab1tab.tabs[i].button
-		frame:ClearAllPoints()
-		if i == 1 then
-			frame:SetPoint("TOPLEFT",self.tab.tabs[1],"TOPLEFT",10,-4)
-		else
-			frame:SetPoint("LEFT", self.tab1tab.tabs[1].button, "RIGHT", 0, 0)
-		end
-		frame._i = i
-		frame.additionalFunc = SetFirstTabFrame
-	end
-	
-	self.colsSpells = CreateFrame("Frame",nil,self.tab.tabs[1])
-	self.colsSpells:SetSize(650,SPELL_PAGE_HEIGHT)
-	self.colsSpells:SetPoint("TOP", 0, -38)
-	ELib:Border(self.colsSpells,2,.24,.25,.30,1)
-	self.colsSpells:Hide()
-	
-	self.colsSpells.ScrollFrame = CreateFrame("ScrollFrame", nil, self.colsSpells)
-	self.colsSpells.ScrollFrame:SetPoint("TOPLEFT")
-	self.colsSpells.ScrollFrame:SetPoint("BOTTOMRIGHT")
-	
-	self.colsSpells.C = CreateFrame("Frame", nil, self.colsSpells) 
-	self.colsSpells.C:SetSize(650,SPELL_PAGE_HEIGHT+50)
-	self.colsSpells.ScrollFrame:SetScrollChild(self.colsSpells.C)
-	
-	local function ColsSpellsUpdate()
-		local val = self.colsSpells.ScrollBar:GetValue()
-		self.colsSpells.ScrollBar:UpdateButtons()
-		module.options.colsSpells.ScrollFrame:SetVerticalScroll( val % 24 )
-		val = floor( val / 24 ) + 1
-		local line = 0
-		local count = 0
-		for i=1,#module.db.spellDB do
-			local spellData = module.db.spellDB[i]
-			local spellID = spellData[1]
-			if VExRT_CDE[ spellID ] then
-				local class = spellData[2]
-				local specsCount = module.db.specByClass[class] and #module.db.specByClass[class] or 1
+				local cR,cG,cB = ExRT.F.classColorNum(class)
 			
-				for j=3,3+specsCount do
-					if spellData[j] then
-						count = count + 1
-						if count >= val then
-							line = line + 1
-							if line > #self.colsSpells.lines then
-								return
+				line.backClassColorR = cR
+				line.backClassColorG = cG
+				line.backClassColorB = cB
+
+				if class then
+					line.class:SetTexCoord(unpack(CLASS_ICON_TCOORDS[class]))
+					line.class:Show()
+					
+
+					local specs = ExRT.GDB.ClassSpecializationList[class]
+					local specID = nil
+					for j=4,4+#specs do
+						if data[j] then
+							dataSpecs = dataSpecs + 1
+							specID = specs[j-4]
+						end
+					end
+					if dataSpecs > 1 then
+						line.colBack:Show()
+						line.colExpand.specs = {}
+						line.colExpand.specsPos = {}
+						local specIcon = 1
+						for j=5,4+#specs do
+							if data[j] then
+								line.colExpand.specs[#line.colExpand.specs+1] = specs[j-4]
+								line.colExpand.specsPos[#line.colExpand.specsPos+1] = j - 3
+
+								local icon = line["spec"..specIcon]
+								if icon then
+									icon:SetTexture(ExRT.GDB.ClassSpecializationIcons[ specs[j-4] ])
+									icon:Show()
+									specIcon = specIcon + 1
+								end
 							end
-							local lineFrame = self.colsSpells.lines[line]
-							lineFrame:Show()
-							
-							local spellName,_,spellTexture = GetSpellInfo(spellID)
-							lineFrame.icon:SetTexture(spellTexture)
-							lineFrame.spellName:SetText(spellName)
-							lineFrame.link = "spell:"..(spellData[j][1] or spellID)
-							
-							if j == 3 then
-								lineFrame.iconSpec:Hide()
-							else
-								lineFrame.iconSpec:Show()
-								lineFrame.iconSpec:SetTexture( module.db.specIcons[ module.db.specByClass[class][j - 2] ] or "" )
+						end
+					else
+						if specID then
+							line.spec:SetTexture(ExRT.GDB.ClassSpecializationIcons[specID])
+							line.spec:Show()
+						else
+							line.spec:Hide()
+						end
+						line.colBack:Hide()
+						for j=4,4+#specs do
+							if data[j] then
+								specPos = j - 3
+								break
 							end
-							
-							if CLASS_ICON_TCOORDS[class] then
-								lineFrame.iconClass:SetTexture("Interface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES")
-								lineFrame.iconClass:SetTexCoord(unpack(CLASS_ICON_TCOORDS[class]))
-							else
-								lineFrame.iconClass:SetTexture("")
+						end
+					end
+				else
+					line.class:Hide()
+					line.colBack:Hide()
+				end
+				line.data_class = class
+
+				if module.db.spell_isPetAbility[ data[1] ] then
+					line.spec:SetTexture(613074)
+					line.spec:Show()
+				end
+
+				local col = VExRT.ExCD2.CDECol[data[1]..";"..(specPos or 1)] or module.db.def_col[data[1]..";"..(specPos or 1)] or data[3]
+				line.col.keystr = data[1]..";"..(specPos or 1)
+				if not data[4] and dataSpecs > 1 then
+					line.col.keystr = {}
+					local updateCol
+					for j=5,8 do
+						if data[j] then
+							line.col.keystr[#line.col.keystr+1] = data[1]..";"..(j-3)
+							if not updateCol and VExRT.ExCD2.CDECol[data[1]..";"..(j-3)] then
+								updateCol = true
+								col = VExRT.ExCD2.CDECol[data[1]..";"..(j-3)]
 							end
-							
-							for k=1,10 do
-								lineFrame.chk[k]:SetChecked(false)
-							end
-							local checked = VExRT.ExCD2.CDECol[spellData[j][1]..";"..(j-2)] or module.db.def_col[spellData[j][1]..";"..(j-2)] or 1
-							lineFrame.chk[checked]:SetChecked(true)
-							
-							lineFrame.spellID = spellData[j][1]
-							lineFrame.specNum = j-2
 						end
 					end
 				end
-			end
-		end
-		for i=line+1,#self.colsSpells.lines do
-			self.colsSpells.lines[i]:Hide()
-		end
-	end
-	self.colsSpells:SetScript("OnShow",function(self)
-		local count = 0
-		for i=1,#module.db.spellDB do
-			local spellData = module.db.spellDB[i]
-			if VExRT_CDE[ spellData[1] ] then
-				local class = spellData[2]
-				local specsCount = module.db.specByClass[class] and #module.db.specByClass[class] or 1
-				for j=3,3+specsCount do
-					if spellData[j] then
-						count =  count + 1
+				line.col.lock = true
+				line.col:SetTo(col)
+				line.col.lock = false
+
+				line.prior.lock = true
+				line.prior:SetTo(VExRT.ExCD2.Priority[ data[1] ] or 50)
+				line.prior.lock = false			
+
+				local first = nil
+				for j=4,4+4 do
+					if data[j] then
+						first = data[j]
+						break
 					end
 				end
+				line.cd:SetFormattedText("%d:%02d",first[2]/60,first[2]%60)
+				if first[3] > 0 then
+					line.dur:SetFormattedText("%d:%02d",first[3]/60,first[3]%60)
+				else
+					line.dur:SetText("")
+				end
+
+				local findUserCat = false
+				for cat in string.gmatch(data[2], "[^,]+") do
+					if cat == "USER" then
+						findUserCat = true
+						break
+					end
+				end
+				line.buttonModify:SetShown(findUserCat)
+
+				line.buttonAddBig:Hide()
+
+				if spellName then
+					line.chk.disabled = false
+				else
+					line.chk.disabled = true
+				end
+				line.chk:SetChecked(VExRT.ExCD2.CDE[ data[1] ])
+				line.chk:UpdateColors()
+
+				line.data = data
+			end
+			line.icon:SetShown(not isHideMost)
+			line.icon.border_top:SetShown(not isHideMost)
+			line.icon.border_bottom:SetShown(not isHideMost)
+			line.icon.border_left:SetShown(not isHideMost)
+			line.icon.border_right:SetShown(not isHideMost)
+			line.backClassColor:SetShown(not isHideMost)
+			line.chk:SetShown(not isHideMost)
+			line.col:SetShown(not isHideMost)
+			line.prior:SetShown(not isHideMost)
+			line.cd:SetShown(not isHideMost)
+			line.dur:SetShown(not isHideMost)
+			line.tooltipFrame:SetShown(not isHideMost)
+			
+			line:Show()
+		end
+		for i=lineCount,#self.lines do
+			self.lines[i]:Hide()
+		end
+		self:Height(SPELL_LINE_HEIGHT * #list)		
+	end
+	self.list.ScrollBar.slider:SetScript("OnValueChanged", function(self)
+		self:GetParent():GetParent():Update()
+		self:UpdateButtons()
+	end)
+
+
+	self.searchEditBox = ELib:Edit(self.tab.tabs[1]):Point("TOPLEFT",400,18):Size(140,16):AddSearchIcon():OnChange(function (self,isUser)
+		if not isUser then
+			return
+		end
+		local text = self:GetText():lower()
+		if text == "" then
+			text = nil
+		end
+		module.options.list.search = text
+
+		if self.scheduledUpdate then
+			return
+		end
+		self.scheduledUpdate = C_Timer.NewTimer(.3,function()
+			self.scheduledUpdate = nil
+			module.options.list:UpdateDB(module.options.list.current)
+			module.options.list:Update()
+		end)	
+	end):Tooltip(SEARCH)
+	self.searchEditBox:SetTextColor(0,1,0,1)
+
+
+	self.addModSpellFrame = ELib:Popup():Size(570,250)
+
+	self.addModSpellFrame.Save = ELib:Button(self.addModSpellFrame,L.BossmodsKromogSetupsSave):Size(558,20):Point("BOTTOM",0,1):OnClick(function(self)
+		local parent = self:GetParent()
+		local data = parent.data
+		if not data then
+			return
+		end
+		for i=4,8 do
+			if data[i] and data[i][1] == 0 then
+				data[i] = nil
 			end
 		end
-	
-		self.ScrollBar:SetMinMaxValues(0,max(0,(count+0.2)*24-SPELL_PAGE_HEIGHT))
-		ColsSpellsUpdate()
-	end)
-	self.colsSpells:SetScript("OnMouseWheel", function(self, delta)
-		delta = -delta
-		local current = module.options.colsSpells.ScrollBar:GetValue()
-		local min_,max_ = module.options.colsSpells.ScrollBar:GetMinMaxValues()
-		current = current + delta * 24
-		if current > max_ then
-			current = max_
-		elseif current < min_ then
-			current = min_
+		if data[1] == 0 then
+			return
 		end
-		module.options.colsSpells.ScrollBar:SetValue(current)
+		if data[4] or data[5] or data[6] or data[7] or data[8] then
+			local isNew = true
+			local AllSpells = module.options:GetAllSpells()
+			for _,line in pairs(AllSpells) do
+				if line == data then
+					isNew = false
+					break
+				end
+			end
+			if isNew then
+				VExRT.ExCD2.userDB[#VExRT.ExCD2.userDB+1] = data
+			end
+			module.options.list:UpdateDB(module.options.list.current)
+			module.options.list:Update()
+			
+			module:UpdateSpellDB(true)
+		end
+
+		parent:Hide()
 	end)
-	
-	self.colsSpells.ScrollBar = ELib:ScrollBar(self.colsSpells):Size(16,0):Point("TOPRIGHT",-3,-3):Point("BOTTOMRIGHT",-3,3):Range(0,SPELL_PAGE_HEIGHT):SetTo(0):OnChange(ColsSpellsUpdate)
-	self.colsSpells.ScrollBar.slider:SetObeyStepOnDrag(true)
-	
-	self.colsSpells.lines = {}
-	local function ColsSpellsSpellTooltipOnEnter(self)
-		ELib.Tooltip.Link(self,self:GetParent().link)
-	end
-	local function ColsSpellsSpellCheckboxClick(self)
-		for j=1,10 do
-			if j ~= self._i then
-				self.array[j]:SetChecked(false)
+	function self.addModSpellFrame.Save:Check()
+		local parent = self:GetParent()
+		local spellID = parent.data[1]
+		if not GetSpellInfo(spellID) then
+			self:Disable()
+			parent.spellIDIcon:ColorBorder(true)
+			return
+		end
+		local AllSpells = module.options:GetAllSpells()
+		for _,line in pairs(AllSpells) do
+			if line[1] == spellID and line ~= parent.data then
+				self:Disable()
+				parent.spellIDIcon:ColorBorder(true)
+				return
 			end
 		end
-		if not self:GetChecked() then
-			self:SetChecked(true)
-		end
-		VExRT.ExCD2.CDECol[self.main.spellID..";"..self.main.specNum] = self._i
-		
-		UpdateRoster()
+		parent.spellIDIcon:ColorBorder()
+		self:Enable()
 	end
-	for i=1,23 do
-		local frame = CreateFrame("Frame",nil,self.colsSpells.C)
-		self.colsSpells.lines[i] = frame
-		frame:SetPoint("TOPLEFT",5,-3-(i-1)*24)
-		frame:SetSize(577,24)
-		
-		frame.icon = frame:CreateTexture(nil, "ARTWORK")
-		frame.icon:SetSize(22,22)
-		frame.icon:SetPoint("TOPLEFT", 2, 0)
-		frame.icon:SetTexCoord(.1,.9,.1,.9)
-		ELib:Border(frame.icon,1,.12,.13,.15,1)
-		
-		frame.tooltipFrame = CreateFrame("Frame",nil,frame)
-		frame.tooltipFrame:SetSize(150,24) 
-		frame.tooltipFrame:SetPoint("TOPLEFT", 30, 0)
-		frame.tooltipFrame:SetScript("OnEnter", ColsSpellsSpellTooltipOnEnter)
-		frame.tooltipFrame:SetScript("OnLeave", GameTooltip_Hide)
-		
-		frame.spellName = ELib:Text(frame):Size(156,24):Point(29,0):Font(ExRT.F.defFont,11):Shadow():Color()
-	
-		frame.iconClass = frame:CreateTexture(nil, "ARTWORK")
-		frame.iconClass:SetSize(18,18)
-		frame.iconClass:SetPoint("TOPLEFT", 180, -3)
-		
-		frame.iconSpec = frame:CreateTexture(nil, "ARTWORK")
-		frame.iconSpec:SetSize(18,18)
-		frame.iconSpec:SetPoint("TOPLEFT", 200, -3)
-		
-		frame.chk = {}
-		for j=1,10 do
-			frame.chk[j] = ELib:Check(frame):Point("LEFT",240 + (j-1) * 25,0):Tooltip(j):OnClick(ColsSpellsSpellCheckboxClick)
-			frame.chk[j].array = frame.chk
-			frame.chk[j]._i = j
-			frame.chk[j].main = frame
+	self.addModSpellFrame:SetScript("OnHide",function(self)
+		self.Save:Click()
+	end)
+
+	self.addModSpellFrame.spellIDIcon = ELib:Edit(self.addModSpellFrame):Size(100,20):Point("TOPLEFT",150,-50):LeftText("Spell ID (for icon):"):OnChange(function(self,isUser)
+		local text = self:GetText() or ""
+		if not tonumber(text) then
+			text = "0"
 		end
+		local spellID = tonumber(text)
+		local parent = self:GetParent()
+		parent.data[1] = spellID
+		parent.Save:Check()
+
+		local spellName,_,spellIcon = GetSpellInfo(spellID)
+		self.RightText:SetText((spellIcon and "|T"..spellIcon..":20|t " or "")..(spellName or ""))
+	end)
+	self.addModSpellFrame.spellIDIcon.leftText:Color():Shadow()
+	self.addModSpellFrame.spellIDIcon.RightText = ELib:Text(self.addModSpellFrame.spellIDIcon,"",12):Point("LEFT",self.addModSpellFrame.spellIDIcon,"RIGHT",5,0):Color():Shadow()
+
+	local function addModSpellFrameEditCLEU(self)
+		local text = self:GetText() or ""
+		self.data[1] = tonumber(text) or 0
 	end
-	
-	module.options.ScrollBar:UpdateRange()
-	module.options:ReloadSpellsPage()
+	local function addModSpellFrameEditCD(self)
+		local text = self:GetText() or ""
+		self.data[2] = tonumber(text) or 0
+	end
+	local function addModSpellFrameEditDur(self)
+		local text = self:GetText() or ""
+		self.data[3] = tonumber(text) or 0
+	end
+
+	for i=1,5 do
+		self.addModSpellFrame["spellIDCLEU"..i] = ELib:Edit(self.addModSpellFrame):Size(180,20):Point("TOPLEFT",150,-100-(i-1)*25):OnChange(addModSpellFrameEditCLEU):Tooltip("Leave empty for ignoring"):LeftText("")
+		self.addModSpellFrame["spellIDCLEU"..i].leftText:Color():Shadow()
+
+		self.addModSpellFrame["cd"..i] = ELib:Edit(self.addModSpellFrame):Size(100,20):Point("LEFT",self.addModSpellFrame["spellIDCLEU"..i],"RIGHT",10,0):OnChange(addModSpellFrameEditCD)
+
+		self.addModSpellFrame["dur"..i] = ELib:Edit(self.addModSpellFrame):Size(100,20):Point("LEFT",self.addModSpellFrame["cd"..i],"RIGHT",10,0):OnChange(addModSpellFrameEditDur)
+	end
+	self.addModSpellFrame.spellIDCLEUtext = ELib:Text(self.addModSpellFrame,"Spell ID (for combat log event)",12):Point("BOTTOM",self.addModSpellFrame.spellIDCLEU1,"TOP",0,2):Color():Shadow()
+	self.addModSpellFrame.cdtext = ELib:Text(self.addModSpellFrame,L.cd2EditBoxCDTooltip,12):Point("BOTTOM",self.addModSpellFrame.cd1,"TOP",0,2):Color():Shadow()
+	self.addModSpellFrame.durtext = ELib:Text(self.addModSpellFrame,L.cd2EditBoxDurationTooltip,12):Point("BOTTOM",self.addModSpellFrame.dur1,"TOP",0,2):Color():Shadow()
+
+	self.addModSpellFrame.dropDown = ELib:DropDown(self.addModSpellFrame,200,10):Size(210):Point("TOPLEFT",150,-25)
+	self.addModSpellFrame.dropDown.LeftText = ELib:Text(self.addModSpellFrame.dropDown,L.cd2Class..":",12):Point("RIGHT",self.addModSpellFrame.dropDown,"LEFT",-5,0):Color():Shadow()
+
+	function self.addModSpellFrame.dropDown:SetValue(newValue)
+		ELib:DropDownClose()
+
+		module.options.addModSpellFrame.data[2] = newValue .. ",USER"
+
+		module.options.addModSpellFrame:Update()
+	end
+
+	for i=1,#module.db.classNames do
+		local class = module.db.classNames[i]
+		self.addModSpellFrame.dropDown.List[#self.addModSpellFrame.dropDown.List + 1] = {
+			text = "|c"..ExRT.F.classColor(class)..L.classLocalizate[class],
+			justifyH = "CENTER",
+			func = self.addModSpellFrame.dropDown.SetValue,
+			arg1 = class,
+		}
+	end
+	if ExRT.isClassic then
+		tremove(self.addModSpellFrame.dropDown.List, 12)
+		tremove(self.addModSpellFrame.dropDown.List, 10)
+		tremove(self.addModSpellFrame.dropDown.List, 6)
+	end
+
+	self.addModSpellFrame.dropDown.List[#self.addModSpellFrame.dropDown.List + 1] = {
+		text = ALL,
+		justifyH = "CENTER",
+		func = self.addModSpellFrame.dropDown.SetValue,
+		arg1 = "OTHER",
+	}
+	self.addModSpellFrame.dropDown.Lines = #self.addModSpellFrame.dropDown.List
+
+
+	self.addModSpellFrame.Delete = ELib:Button(self.addModSpellFrame,DELETE):Size(100,20):Point("LEFT",self.addModSpellFrame.dropDown,"RIGHT",50,0):OnClick(function(self)
+		local parent = self:GetParent()
+		local data = parent.data
+		for i=1,#VExRT.ExCD2.userDB do
+			if data == VExRT.ExCD2.userDB[i] then
+				tremove(VExRT.ExCD2.userDB, i)
+				break
+			end
+		end
+		parent.data = nil
+
+		module.options.list:UpdateDB(module.options.list.current)
+		module.options.list:Update()
+		
+		module:UpdateSpellDB(true)
+
+		parent:Hide()
+	end)
+
+
+	self.addModSpellFrame.Update = function(self)
+		local data = self.data
+		self.spellIDIcon:SetText(data[1])
+
+		local class = "OTHER"
+		for i=1,#self.dropDown.List do
+			if strsplit(",",data[2]) == self.dropDown.List[i].arg1 then
+				self.dropDown:SetText(self.dropDown.List[i].text)
+				class = self.dropDown.List[i].arg1
+				break
+			end
+		end
+
+		local specList = not ExRT.isClassic and module.db.specByClass[class] or {0}
+		for i=1,#specList do
+			local specID = specList[i]
+			local icon 
+			if module.db.specIcons[specID] then
+				icon = "|T".. module.db.specIcons[specID] ..":20|t"
+			else
+				icon = ExRT.F.classIconInText(class,20) or ""
+			end
+			
+			self["spellIDCLEU"..i]:LeftText((icon or "").." |c"..ExRT.F.classColor(class)..L.specLocalizate[module.db.specInLocalizate[specID]])
+
+			local dataSpec = data[3+i] or {0,0,0}
+			data[3+i] = dataSpec
+			self["spellIDCLEU"..i]:SetText(dataSpec[1])
+			self["cd"..i]:SetText(dataSpec[2])
+			self["dur"..i]:SetText(dataSpec[3])
+
+			self["spellIDCLEU"..i].data = dataSpec
+			self["cd"..i].data = dataSpec
+			self["dur"..i].data = dataSpec
+
+			self["spellIDCLEU"..i]:Show()
+			self["cd"..i]:Show()
+			self["dur"..i]:Show()
+		end
+		for i=#specList+1,5 do
+			self["spellIDCLEU"..i]:Hide()
+			self["cd"..i]:Hide()
+			self["dur"..i]:Hide()			
+		end
+
+		local isNew = true
+		local AllSpells = module.options:GetAllSpells()
+		for _,line in pairs(AllSpells) do
+			if line == data then
+				isNew = false
+				break
+			end
+		end
+		self.Delete:SetShown(not isNew)
+	end
+
+	self.addModSpellFrame.OnShow = function(self)
+		local data = self.data
+		if not data then
+			data = {0,"OTHER,USER",1,{0,0,0}}
+			self.data = data
+		end
+		self:Update()
+	end
+
+
+	self.categories:Update()
+	self.categories.buttons[1]:Click()
 	
 
 	--> OPTIONS TAB2: Customize
-	self.optColHeader = ELib:Text(self.tab.tabs[2],L.cd2ColSet):Size(560,20):Point(15,-8)
+	self.optColHeader = ELib:Text(self.tab.tabs[2],L.cd2ColSet):Size(560,20):Point(15+80,-8)
 	
 	function self:selectColumnTab()
 		local i = self and self.colID or module.options.optColTabs.selected
@@ -5736,159 +5550,163 @@ function module.options:Load()
 		
 		local isGeneralTab = i == (module.db.maxColumns + 1)
 		
+		local optColSet = module.options.optColSet
+		local defOpt = module.db.colsDefaults
+		local VColOpt = VExRT.ExCD2.colSet[i]
+
 		if isGeneralTab then
-			VExRT.ExCD2.colSet[i].frameGeneral = nil
-			VExRT.ExCD2.colSet[i].iconGeneral = nil
-			VExRT.ExCD2.colSet[i].textureGeneral = nil
-			VExRT.ExCD2.colSet[i].fontGeneral = nil
-			VExRT.ExCD2.colSet[i].textGeneral = nil
-			VExRT.ExCD2.colSet[i].methodsGeneral = nil
+			VColOpt.frameGeneral = nil
+			VColOpt.iconGeneral = nil
+			VColOpt.textureGeneral = nil
+			VColOpt.fontGeneral = nil
+			VColOpt.textGeneral = nil
+			VColOpt.methodsGeneral = nil
 		end
 
-		module.options.optColSet.chkEnable:SetChecked(VExRT.ExCD2.colSet[i].enabled)
-		module.options.optColSet.chkGeneral:SetChecked(VExRT.ExCD2.colSet[i].frameGeneral)
+		optColSet.chkEnable:SetChecked(VColOpt.enabled)
+		optColSet.chkGeneral:SetChecked(VColOpt.frameGeneral)
 		
-		module.options.optColSet.sliderLinesNum:SetValue(VExRT.ExCD2.colSet[i].frameLines or module.db.colsDefaults.frameLines)
-		module.options.optColSet.sliderAlpha:SetValue(VExRT.ExCD2.colSet[i].frameAlpha or module.db.colsDefaults.frameAlpha)
-		module.options.optColSet.sliderScale:SetValue(VExRT.ExCD2.colSet[i].frameScale or module.db.colsDefaults.frameScale)
-		module.options.optColSet.sliderWidth:SetValue(VExRT.ExCD2.colSet[i].frameWidth or module.db.colsDefaults.frameWidth)
-		module.options.optColSet.sliderColsInCol:SetValue(VExRT.ExCD2.colSet[i].frameColumns or module.db.colsDefaults.frameColumns)
-		module.options.optColSet.sliderBetweenLines:SetValue(VExRT.ExCD2.colSet[i].frameBetweenLines or module.db.colsDefaults.frameBetweenLines)
-		module.options.optColSet.sliderBlackBack:SetValue(VExRT.ExCD2.colSet[i].frameBlackBack or module.db.colsDefaults.frameBlackBack)
+		optColSet.sliderLinesNum:SetValue(VColOpt.frameLines or defOpt.frameLines)
+		optColSet.sliderAlpha:SetValue(VColOpt.frameAlpha or defOpt.frameAlpha)
+		optColSet.sliderScale:SetValue(VColOpt.frameScale or defOpt.frameScale)
+		optColSet.sliderWidth:SetValue(VColOpt.frameWidth or defOpt.frameWidth)
+		optColSet.sliderColsInCol:SetValue(VColOpt.frameColumns or defOpt.frameColumns)
+		optColSet.sliderBetweenLines:SetValue(VColOpt.frameBetweenLines or defOpt.frameBetweenLines)
+		optColSet.sliderBlackBack:SetValue(VColOpt.frameBlackBack or defOpt.frameBlackBack)
 		
-		module.options.optColSet.chkGeneral:doAlphas()
+		optColSet.chkGeneral:doAlphas()
 		
-		module.options.optColSet.sliderHeight:SetValue(VExRT.ExCD2.colSet[i].iconSize or module.db.colsDefaults.iconSize)
-		module.options.optColSet.chkGray:SetChecked(VExRT.ExCD2.colSet[i].iconGray)
-		module.options.optColSet.chkCooldown:SetChecked(VExRT.ExCD2.colSet[i].methodsCooldown)	
-		module.options.optColSet.chkCooldownHideNumbers:SetChecked(VExRT.ExCD2.colSet[i].iconCooldownHideNumbers)	
-		module.options.optColSet.chkCooldownShowSwipe:SetChecked(VExRT.ExCD2.colSet[i].iconCooldownShowSwipe)	
-		module.options.optColSet.chkShowTitles:SetChecked(VExRT.ExCD2.colSet[i].iconTitles)	
-		module.options.optColSet.chkHideBlizzardEdges:SetChecked(VExRT.ExCD2.colSet[i].iconHideBlizzardEdges)	
-		module.options.optColSet.chkGeneralIcons:SetChecked(VExRT.ExCD2.colSet[i].iconGeneral)
+		optColSet.sliderHeight:SetValue(VColOpt.iconSize or defOpt.iconSize)
+		optColSet.chkGray:SetChecked(VColOpt.iconGray)
+		optColSet.chkCooldown:SetChecked(VColOpt.methodsCooldown)	
+		optColSet.chkCooldownHideNumbers:SetChecked(VColOpt.iconCooldownHideNumbers)	
+		optColSet.chkCooldownShowSwipe:SetChecked(VColOpt.iconCooldownShowSwipe)	
+		optColSet.chkShowTitles:SetChecked(VColOpt.iconTitles)	
+		optColSet.chkHideBlizzardEdges:SetChecked(VColOpt.iconHideBlizzardEdges)	
+		optColSet.chkGeneralIcons:SetChecked(VColOpt.iconGeneral)
 		do
-			local defIconPos = VExRT.ExCD2.colSet[i].iconPosition or module.db.colsDefaults.iconPosition
-			module.options.optColSet.dropDownIconPos:SetText( module.options.optColSet.dropDownIconPos.PosNames[defIconPos])	
+			local defIconPos = VColOpt.iconPosition or defOpt.iconPosition
+			optColSet.dropDownIconPos:SetText( optColSet.dropDownIconPos.PosNames[defIconPos])	
 		end
 		
-		module.options.optColSet.chkGeneralIcons:doAlphas()
+		optColSet.chkGeneralIcons:doAlphas()
 		
 		do
 			local texturePos = nil
 			for j=1,#ExRT.F.textureList do
-				if ExRT.F.textureList[j] == (VExRT.ExCD2.colSet[i].textureFile or ExRT.F.barImg) then
+				if ExRT.F.textureList[j] == (VColOpt.textureFile or ExRT.F.barImg) then
 					texturePos = j
 					break
 				end
 			end
-			if not texturePos and VExRT.ExCD2.colSet[i].textureFile then
-				texturePos = select(3,string.find(VExRT.ExCD2.colSet[i].textureFile,"\\([^\\]*)$"))
+			if not texturePos and VColOpt.textureFile then
+				texturePos = select(3,string.find(VColOpt.textureFile,"\\([^\\]*)$"))
 			end
 			texturePos = texturePos or "Standart"
-			module.options.optColSet.dropDownTexture:SetText(L.cd2OtherSetTexture.." ["..texturePos.."]")
+			optColSet.dropDownTexture:SetText(L.cd2OtherSetTexture.." ["..texturePos.."]")
 		end
-		module.options.optColSet.colorPickerBorder.color:SetColorTexture(VExRT.ExCD2.colSet[i].textureBorderColorR or module.db.colsDefaults.textureBorderColorR,VExRT.ExCD2.colSet[i].textureBorderColorG or module.db.colsDefaults.textureBorderColorG,VExRT.ExCD2.colSet[i].textureBorderColorB or module.db.colsDefaults.textureBorderColorB, VExRT.ExCD2.colSet[i].textureBorderColorA or module.db.colsDefaults.textureBorderColorA)
-		module.options.optColSet.sliderBorderSize:SetValue(VExRT.ExCD2.colSet[i].textureBorderSize or module.db.colsDefaults.textureBorderSize)
-		module.options.optColSet.chkAnimation:SetChecked(VExRT.ExCD2.colSet[i].textureAnimation)
-		module.options.optColSet.chkHideSpark:SetChecked(VExRT.ExCD2.colSet[i].textureHideSpark)
-		module.options.optColSet.chkSmoothAnimation:SetChecked(VExRT.ExCD2.colSet[i].textureSmoothAnimation)
-		module.options.optColSet.sliderSmoothAnimationDuration:SetValue(VExRT.ExCD2.colSet[i].textureSmoothAnimationDuration or module.db.colsDefaults.textureSmoothAnimationDuration)
-		module.options.optColSet.chkGeneralColorize:SetChecked(VExRT.ExCD2.colSet[i].textureGeneral)
+		optColSet.colorPickerBorder.color:SetColorTexture(VColOpt.textureBorderColorR or defOpt.textureBorderColorR,VColOpt.textureBorderColorG or defOpt.textureBorderColorG,VColOpt.textureBorderColorB or defOpt.textureBorderColorB, VColOpt.textureBorderColorA or defOpt.textureBorderColorA)
+		optColSet.sliderBorderSize:SetValue(VColOpt.textureBorderSize or defOpt.textureBorderSize)
+		optColSet.chkAnimation:SetChecked(VColOpt.textureAnimation)
+		optColSet.chkHideSpark:SetChecked(VColOpt.textureHideSpark)
+		optColSet.chkSmoothAnimation:SetChecked(VColOpt.textureSmoothAnimation)
+		optColSet.sliderSmoothAnimationDuration:SetValue(VColOpt.textureSmoothAnimationDuration or defOpt.textureSmoothAnimationDuration)
+		optColSet.chkGeneralColorize:SetChecked(VColOpt.textureGeneral)
 		
-		module.options.optColSet.chkGeneralColorize:doAlphas()
+		optColSet.chkGeneralColorize:doAlphas()
 			
 		do
-			local FontNameForDropDown = select(3,string.find(VExRT.ExCD2.colSet[i].fontName or module.db.colsDefaults.fontName,"\\([^\\]*)$"))
-			module.options.optColSet.dropDownFont:SetText( (FontNameForDropDown or VExRT.ExCD2.colSet[i].fontName or module.db.colsDefaults.fontName or "?") )
+			local FontNameForDropDown = select(3,string.find(VColOpt.fontName or defOpt.fontName,"\\([^\\]*)$"))
+			optColSet.dropDownFont:SetText( (FontNameForDropDown or VColOpt.fontName or defOpt.fontName or "?") )
 		end
-		module.options.optColSet.sliderFont:SetValue(VExRT.ExCD2.colSet[i].fontSize or module.db.colsDefaults.fontSize)
-		module.options.optColSet.chkFontOutline:SetChecked(VExRT.ExCD2.colSet[i].fontOutline)
-		module.options.optColSet.chkFontShadow:SetChecked(VExRT.ExCD2.colSet[i].fontShadow)
+		optColSet.sliderFont:SetValue(VColOpt.fontSize or defOpt.fontSize)
+		optColSet.chkFontOutline:SetChecked(VColOpt.fontOutline)
+		optColSet.chkFontShadow:SetChecked(VColOpt.fontShadow)
 		do
-			module.options.optColSet.chkFontOtherAvailable:SetChecked(VExRT.ExCD2.colSet[i].fontOtherAvailable)
-			module.options.fontOtherAvailable(VExRT.ExCD2.colSet[i].fontOtherAvailable)
-			if VExRT.ExCD2.colSet[i].fontOtherAvailable then
-				module.options.optColSet.nowFont = "fontLeft"
+			optColSet.chkFontOtherAvailable:SetChecked(VColOpt.fontOtherAvailable)
+			module.options.fontOtherAvailable(VColOpt.fontOtherAvailable)
+			if VColOpt.fontOtherAvailable then
+				optColSet.nowFont = "fontLeft"
 			else
-				module.options.optColSet.nowFont = "font"
+				optColSet.nowFont = "font"
 			end
-			module.options.optColSet.fontsTab.selectFunc(module.options.optColSet.fontsTab.tabs[1].button)
+			optColSet.fontsTab.selectFunc(optColSet.fontsTab.tabs[1].button)
 		end
-		module.options.optColSet.chkGeneralFont:SetChecked(VExRT.ExCD2.colSet[i].fontGeneral)
+		optColSet.chkGeneralFont:SetChecked(VColOpt.fontGeneral)
 		
-		module.options.optColSet.chkGeneralFont:doAlphas()
+		optColSet.chkGeneralFont:doAlphas()
 		
-		module.options.optColSet.textLeftTemEdit:SetText(VExRT.ExCD2.colSet[i].textTemplateLeft or module.db.colsDefaults.textTemplateLeft)
-		module.options.optColSet.textRightTemEdit:SetText(VExRT.ExCD2.colSet[i].textTemplateRight or module.db.colsDefaults.textTemplateRight)
-		module.options.optColSet.textCenterTemEdit:SetText(VExRT.ExCD2.colSet[i].textTemplateCenter or module.db.colsDefaults.textTemplateCenter)
-		module.options.optColSet.chkIconName:SetChecked(VExRT.ExCD2.colSet[i].textIconName)
-		module.options.optColSet.chkGeneralText:SetChecked(VExRT.ExCD2.colSet[i].textGeneral)
+		optColSet.textLeftTemEdit:SetText(VColOpt.textTemplateLeft or defOpt.textTemplateLeft)
+		optColSet.textRightTemEdit:SetText(VColOpt.textTemplateRight or defOpt.textTemplateRight)
+		optColSet.textCenterTemEdit:SetText(VColOpt.textTemplateCenter or defOpt.textTemplateCenter)
+		optColSet.chkIconName:SetChecked(VColOpt.textIconName)
+		optColSet.chkGeneralText:SetChecked(VColOpt.textGeneral)
 		
-		module.options.optColSet.chkGeneralText:doAlphas()
+		optColSet.chkGeneralText:doAlphas()
 
-		module.options.optColSet.chkShowOnlyOnCD:SetChecked(VExRT.ExCD2.colSet[i].methodsShownOnCD)
-		module.options.optColSet.chkBotToTop:SetChecked(VExRT.ExCD2.colSet[i].frameAnchorBottom)
-		module.options.optColSet.chkGeneralMethods:SetChecked(VExRT.ExCD2.colSet[i].methodsGeneral)
+		optColSet.chkShowOnlyOnCD:SetChecked(VColOpt.methodsShownOnCD)
+		optColSet.chkBotToTop:SetChecked(VColOpt.frameAnchorBottom)
+		optColSet.chkGeneralMethods:SetChecked(VColOpt.methodsGeneral)
 		do
-			local defStyleAnimation = VExRT.ExCD2.colSet[i].methodsStyleAnimation or module.db.colsDefaults.methodsStyleAnimation
-			module.options.optColSet.dropDownStyleAnimation:SetText( module.options.optColSet.dropDownStyleAnimation.Styles[defStyleAnimation])
-			local defTimeLineAnimation = VExRT.ExCD2.colSet[i].methodsTimeLineAnimation or module.db.colsDefaults.methodsTimeLineAnimation
-			module.options.optColSet.dropDownTimeLineAnimation:SetText(module.options.optColSet.dropDownTimeLineAnimation.Styles[defTimeLineAnimation])
+			local defStyleAnimation = VColOpt.methodsStyleAnimation or defOpt.methodsStyleAnimation
+			optColSet.dropDownStyleAnimation:SetText( optColSet.dropDownStyleAnimation.Styles[defStyleAnimation])
+			local defTimeLineAnimation = VColOpt.methodsTimeLineAnimation or defOpt.methodsTimeLineAnimation
+			optColSet.dropDownTimeLineAnimation:SetText(optColSet.dropDownTimeLineAnimation.Styles[defTimeLineAnimation])
 			
-			local defSortingRules = VExRT.ExCD2.colSet[i].methodsSortingRules or module.db.colsDefaults.methodsSortingRules
-			module.options.optColSet.dropDownSortingRules:SetText(module.options.optColSet.dropDownSortingRules.Rules[defSortingRules])			
+			local defSortingRules = VColOpt.methodsSortingRules or defOpt.methodsSortingRules
+			optColSet.dropDownSortingRules:SetText(optColSet.dropDownSortingRules.Rules[defSortingRules])			
 		end
-		module.options.optColSet.chkIconTooltip:SetChecked(VExRT.ExCD2.colSet[i].methodsIconTooltip)
-		module.options.optColSet.chkLineClick:SetChecked(VExRT.ExCD2.colSet[i].methodsLineClick)
-		module.options.optColSet.chkLineClickWhisper:SetChecked(VExRT.ExCD2.colSet[i].methodsLineClickWhisper)
-		module.options.optColSet.chkNewSpellNewLine:SetChecked(VExRT.ExCD2.colSet[i].methodsNewSpellNewLine)
-		module.options.optColSet.chkHideOwnSpells:SetChecked(VExRT.ExCD2.colSet[i].methodsHideOwnSpells)
-		module.options.optColSet.chkAlphaNotInRange:SetChecked(VExRT.ExCD2.colSet[i].methodsAlphaNotInRange)
-		module.options.optColSet.sliderAlphaNotInRange:SetValue(VExRT.ExCD2.colSet[i].methodsAlphaNotInRangeNum or module.db.colsDefaults.methodsAlphaNotInRangeNum)
-		module.options.optColSet.chkDisableActive:SetChecked(VExRT.ExCD2.colSet[i].methodsDisableActive)
-		module.options.optColSet.chkOneSpellPerCol:SetChecked(VExRT.ExCD2.colSet[i].methodsOneSpellPerCol)
-		module.options.optColSet.chkOnlyInCombat:SetChecked(VExRT.ExCD2.colSet[i].methodsOnlyInCombat)
+		optColSet.chkIconTooltip:SetChecked(VColOpt.methodsIconTooltip)
+		optColSet.chkLineClick:SetChecked(VColOpt.methodsLineClick)
+		optColSet.chkLineClickWhisper:SetChecked(VColOpt.methodsLineClickWhisper)
+		optColSet.chkNewSpellNewLine:SetChecked(VColOpt.methodsNewSpellNewLine)
+		optColSet.chkHideOwnSpells:SetChecked(VColOpt.methodsHideOwnSpells)
+		optColSet.chkAlphaNotInRange:SetChecked(VColOpt.methodsAlphaNotInRange)
+		optColSet.sliderAlphaNotInRange:SetValue(VColOpt.methodsAlphaNotInRangeNum or defOpt.methodsAlphaNotInRangeNum)
+		optColSet.chkDisableActive:SetChecked(VColOpt.methodsDisableActive)
+		optColSet.chkOneSpellPerCol:SetChecked(VColOpt.methodsOneSpellPerCol)
+		optColSet.chkOnlyInCombat:SetChecked(VColOpt.methodsOnlyInCombat)
 
-		module.options.optColSet.chkGeneralMethods:doAlphas()
+		optColSet.chkGeneralMethods:doAlphas()
 		
-		module.options.optColSet.blacklistEditBox.EditBox:SetText(VExRT.ExCD2.colSet[i].blacklistText or module.db.colsDefaults.blacklistText)
-		module.options.optColSet.whitelistEditBox.EditBox:SetText(VExRT.ExCD2.colSet[i].whitelistText or module.db.colsDefaults.whitelistText)
-		module.options.optColSet.chkGeneralBlackList:SetChecked(VExRT.ExCD2.colSet[i].blacklistGeneral)		
+		optColSet.blacklistEditBox.EditBox:SetText(VColOpt.blacklistText or defOpt.blacklistText)
+		optColSet.whitelistEditBox.EditBox:SetText(VColOpt.whitelistText or defOpt.whitelistText)
+		optColSet.chkGeneralBlackList:SetChecked(VColOpt.blacklistGeneral)		
 		
-		module.options.optColSet.chkGeneralBlackList:doAlphas()
+		optColSet.chkGeneralBlackList:doAlphas()
 		
-		module.options.optColSet.chkVisibilityPartyTypeAlways:SetChecked(not VExRT.ExCD2.colSet[i].visibilityPartyType)
-		module.options.optColSet.chkVisibilityPartyTypeParty:SetChecked(VExRT.ExCD2.colSet[i].visibilityPartyType == 1)
-		module.options.optColSet.chkVisibilityPartyTypeRaid:SetChecked(VExRT.ExCD2.colSet[i].visibilityPartyType == 2)
-		module.options.optColSet.chkVisibilityZoneArena:SetChecked(not VExRT.ExCD2.colSet[i].visibilityDisableArena)
-		module.options.optColSet.chkVisibilityZoneBG:SetChecked(not VExRT.ExCD2.colSet[i].visibilityDisableBG)
-		module.options.optColSet.chkVisibilityZoneScenario:SetChecked(not VExRT.ExCD2.colSet[i].visibilityDisable3ppl)
-		module.options.optColSet.chkVisibilityZone5ppl:SetChecked(not VExRT.ExCD2.colSet[i].visibilityDisable5ppl)
-		module.options.optColSet.chkVisibilityZoneRaid:SetChecked(not VExRT.ExCD2.colSet[i].visibilityDisableRaid)
-		module.options.optColSet.chkVisibilityZoneOutdoor:SetChecked(not VExRT.ExCD2.colSet[i].visibilityDisableWorld)
-		module.options.optColSet.chkGeneralVisibility:SetChecked(VExRT.ExCD2.colSet[i].visibilityGeneral)
+		optColSet.chkVisibilityPartyTypeAlways:SetChecked(not VColOpt.visibilityPartyType)
+		optColSet.chkVisibilityPartyTypeParty:SetChecked(VColOpt.visibilityPartyType == 1)
+		optColSet.chkVisibilityPartyTypeRaid:SetChecked(VColOpt.visibilityPartyType == 2)
+		optColSet.chkVisibilityZoneArena:SetChecked(not VColOpt.visibilityDisableArena)
+		optColSet.chkVisibilityZoneBG:SetChecked(not VColOpt.visibilityDisableBG)
+		optColSet.chkVisibilityZoneScenario:SetChecked(not VColOpt.visibilityDisable3ppl)
+		optColSet.chkVisibilityZone5ppl:SetChecked(not VColOpt.visibilityDisable5ppl)
+		optColSet.chkVisibilityZoneRaid:SetChecked(not VColOpt.visibilityDisableRaid)
+		optColSet.chkVisibilityZoneOutdoor:SetChecked(not VColOpt.visibilityDisableWorld)
+		optColSet.chkGeneralVisibility:SetChecked(VColOpt.visibilityGeneral)
 
-		module.options.optColSet.chkGeneralVisibility:doAlphas()
+		optColSet.chkGeneralVisibility:doAlphas()
 
-		ExRT.lib.ShowOrHide(module.options.optColSet.chkEnable,not isGeneralTab)
-		ExRT.lib.ShowOrHide(module.options.optColSet.chkGeneral,not isGeneralTab)
+		optColSet.chkEnable:SetShown(not isGeneralTab)
+		optColSet.chkGeneral:SetShown(not isGeneralTab)
 
-		ExRT.lib.ShowOrHide(module.options.optColSet.chkGeneralIcons,not isGeneralTab)
-		ExRT.lib.ShowOrHide(module.options.optColSet.chkGeneralColorize,not isGeneralTab)
-		ExRT.lib.ShowOrHide(module.options.optColSet.chkGeneralFont,not isGeneralTab)
-		ExRT.lib.ShowOrHide(module.options.optColSet.chkGeneralText,not isGeneralTab)
-		ExRT.lib.ShowOrHide(module.options.optColSet.chkGeneralMethods,not isGeneralTab)
-		ExRT.lib.ShowOrHide(module.options.optColSet.chkGeneralVisibility,not isGeneralTab)
-		ExRT.lib.ShowOrHide(module.options.optColSet.chkGeneralBlackList,not isGeneralTab)
+		optColSet.chkGeneralIcons:SetShown(not isGeneralTab)
+		optColSet.chkGeneralColorize:SetShown(not isGeneralTab)
+		optColSet.chkGeneralFont:SetShown(not isGeneralTab)
+		optColSet.chkGeneralText:SetShown(not isGeneralTab)
+		optColSet.chkGeneralMethods:SetShown(not isGeneralTab)
+		optColSet.chkGeneralVisibility:SetShown(not isGeneralTab)
+		optColSet.chkGeneralBlackList:SetShown(not isGeneralTab)
 		
-		ExRT.lib.ShowOrHide(module.options.optColSet.chkSortByAvailability,isGeneralTab)
-		ExRT.lib.ShowOrHide(module.options.optColSet.chkSortByAvailability_activeToTop,isGeneralTab)
-		ExRT.lib.ShowOrHide(module.options.optColSet.chkReverseSorting,isGeneralTab)
+		optColSet.chkSortByAvailability:SetShown(isGeneralTab)
+		optColSet.chkSortByAvailability_activeToTop:SetShown(isGeneralTab)
+		optColSet.chkReverseSorting:SetShown(isGeneralTab)
 		
 		module.options.showColorFrame(module.options.colorSetupFrame)
 		
 		if self then
-			module.options.optColSet.templateRestore:Hide()
+			optColSet.templateRestore:Hide()
 		end
 	end
 
@@ -5899,7 +5717,7 @@ function module.options:Load()
 			tmpArr[i] = tostring(i)
 		end
 		tmpArr[module.db.maxColumns+1] = L.cd2GeneralSet
-		self.optColTabs = ELib:Tabs(self.tab.tabs[2],0,unpack(tmpArr)):Size(660,417):Point(0,-48):SetTo(module.db.maxColumns+1)
+		self.optColTabs = ELib:Tabs(self.tab.tabs[2],0,unpack(tmpArr)):Size(660,417):Point("TOP",0,-48):SetTo(module.db.maxColumns+1)
 	end
 	for i=1,module.db.maxColumns+1 do
 		self.optColTabs.tabs[i].button.colID = i
@@ -5909,18 +5727,11 @@ function module.options:Load()
 	self.optColTabs:SetBackdropBorderColor(0,0,0,0)
 	self.optColTabs:SetBackdropColor(0,0,0,0)
 	
-	self.tab.tabs[2].decorationLine = CreateFrame("Frame",nil,self.tab.tabs[2])
-	self.tab.tabs[2].decorationLine.texture = self.tab.tabs[2].decorationLine:CreateTexture(nil, "BACKGROUND")
-	self.tab.tabs[2].decorationLine:SetPoint("TOPLEFT",self.tab.tabs[2],-8,-28)
-	self.tab.tabs[2].decorationLine:SetPoint("BOTTOMRIGHT",self.tab.tabs[2],"TOPRIGHT",8,-48)
-	self.tab.tabs[2].decorationLine.texture:SetAllPoints()
-	self.tab.tabs[2].decorationLine.texture:SetColorTexture(1,1,1,1)
-	self.tab.tabs[2].decorationLine.texture:SetGradientAlpha("VERTICAL",.24,.25,.30,1,.27,.28,.33,1)
+	self.tab.tabs[2].decorationLine = ELib:DecorationLine(self.tab.tabs[2],true,"BACKGROUND",-5):Point("TOPLEFT",self.tab.tabs[2],0,-28):Point("RIGHT",self,0,0):Size(0,20)
 
-	 
 	self.optColSet.superTabFrame = ExRT.lib:ScrollTabsFrame(self.optColTabs,L.cd2OtherSetTabNameGeneral,L.cd2OtherSetTabNameIcons,L.cd2OtherSetTabNameColors,L.cd2OtherSetTabNameFont,L.cd2OtherSetTabNameText,L.cd2OtherSetTabNameOther,L.cd2OtherSetTabNameVisibility,L.cd2OtherSetTabNameBlackList,L.cd2OtherSetTabNameTemplate):Size(660,450):Point("TOP",0,-10)	
 	
-	self.optColSet.chkEnable = ELib:Check(self.optColSet.superTabFrame.tab[1],"|cff00ff00 >>>"..L.senable.."<<<"):Point(10,-10):OnClick(function(self) 
+	self.optColSet.chkEnable = ELib:Check(self.optColSet.superTabFrame.tab[1],"|cff00ff00 >>>"..L.Enable.."<<<"):Point(10,-10):OnClick(function(self) 
 		if self:GetChecked() then
 			VExRT.ExCD2.colSet[module.options.optColTabs.selected].enabled = true
 		else
@@ -7407,7 +7218,7 @@ function module.options:Load()
 	
 	self.optColSet.templatesScrollFrame = ELib:ScrollFrame(self.optColSet.superTabFrame.tab[9]):Size(430,380):Point("TOP",0,-50):Height( ceil(#self.optColSet.templateData/2) * 125 + 10 )
 	for i=1,#self.optColSet.templateData do if i==1 or not self.optColSet.templateData[i-1]._twoSized then
-		local templateFrame = CreateFrame("Button",nil,self.optColSet.templatesScrollFrame.C)
+		local templateFrame = CreateFrame("Button",nil,self.optColSet.templatesScrollFrame.C, BackdropTemplateMixin and "BackdropTemplate")
 		self.optColSet.templates[i] = templateFrame
 		templateFrame:SetPoint(self.optColSet.templateData[i]._twoSized and "TOP" or (i-1)%2 == 0 and "TOPRIGHT" or "TOPLEFT",self.optColSet.templatesScrollFrame.C,"TOP",0,-floor((i-1)/2) * 125 - 5)
 		templateFrame:SetSize(185,120)
@@ -7598,7 +7409,7 @@ function module.options:Load()
 		end end
 	end end
 	
-	self.optColSet.templateRestore = CreateFrame("Button",nil,self.optColSet.superTabFrame.tab[9])
+	self.optColSet.templateRestore = CreateFrame("Button",nil,self.optColSet.superTabFrame.tab[9], BackdropTemplateMixin and "BackdropTemplate")
 	self.optColSet.templateRestore:SetPoint("TOP",0,-10)
 	self.optColSet.templateRestore:SetSize(430,30)
 	self.optColSet.templateRestore:SetBackdrop({edgeFile = ExRT.F.defBorder, edgeSize = 8})
@@ -7656,7 +7467,7 @@ function module.options:Load()
 			module.db.testMode = nil
 			TestMode(1)
 		end
-		UpdateRoster()
+		module:UpdateSpellDB(true)
 	end)
 
 	self.butResetToDef = ELib:Button(self.optSetTab,L.cd2OtherSetReset):Size(160,20):Point("LEFT",480,0):Tooltip(L.cd2HelpButtonDefault):OnClick(function()
@@ -7711,7 +7522,7 @@ function module.options:Load()
 		module.options.historyBox.EditBox:SetText(strjoin("\n",unpack(historyBoxUpdateTable)))
 	end
 	
-	self.historyBox = ELib:MultiEdit2(self.tab.tabs[3]):Size(652,530):Point("TOP",0,-36):Hyperlinks()
+	self.historyBox = ELib:MultiEdit2(self.tab.tabs[3]):Size(840,550):Point("TOP",0,-36):Hyperlinks()
 	self.historyBox.EditBox:SetScript("OnShow",function(self)
 		historyBoxUpdate(1)
 		local count = 0
@@ -7730,87 +7541,20 @@ function module.options:Load()
 	end)
 	
 	self.HelpPlate = {
-		[1] = {
-			FramePos = { x = 0, y = 0 },FrameSize = { width = 660, height = 615 },
-			[1] = { ButtonPos = { x = 500,	y = -40 },  	HighLightBox = { x = 485, y = -50, width = 170, height = 25 },		ToolTipDir = "LEFT",	ToolTipText = L.cd2HelpFastSetup },
-			[2] = { ButtonPos = { x = 0,  y = -135 }, 	HighLightBox = { x = 7, y = -85, width = 34, height = 495 },		ToolTipDir = "RIGHT",	ToolTipText = L.cd2HelpOnOff },
-			[3] = { ButtonPos = { x = 250,  y = -135 }, 	HighLightBox = { x = 225, y = -85, width = 150, height = 495 },		ToolTipDir = "DOWN",	ToolTipText = L.cd2HelpCol },
-			[4] = { ButtonPos = { x = 375,  y = -135},  	HighLightBox = { x = 380, y = -85, width = 85, height = 495 },		ToolTipDir = "DOWN",	ToolTipText = L.cd2HelpPriority },
-			[5] = { ButtonPos = { x = 470,  y = -135 },  	HighLightBox = { x = 465, y = -85, width = 165, height = 495 },		ToolTipDir = "LEFT",	ToolTipText = L.cd2HelpTime },
-			[6] = { ButtonPos = { x = 370,  y = -570 },  	HighLightBox = { x = 7, y = -580, width = 625, height = 30 },		ToolTipDir = "UP",	ToolTipText = L.cd2HelpAddButton },
-		},
+		[1] = {},
 		[2] = {
-			FramePos = { x = 0, y = 0 },FrameSize = { width = 660, height = 615 },
-			[1] = { ButtonPos = { x = 50,	y = -130 },  	HighLightBox = { x = 0, y = -70, width = 660, height = 480 },		ToolTipDir = "RIGHT",	ToolTipText = L.cd2HelpColSetup },
-			[2] = { ButtonPos = { x = 320,	y = -570 },  	HighLightBox = { x = 315, y = -580, width = 140, height = 30 },		ToolTipDir = "LEFT",	ToolTipText = L.cd2HelpTestButton },
-			[3] = { ButtonPos = { x = 500,	y = -570 },  	HighLightBox = { x = 490, y = -580, width = 160, height = 30 },		ToolTipDir = "LEFT",	ToolTipText = L.cd2HelpButtonDefault },
+			FramePos = { x = 90, y = 25 },FrameSize = { width = 660, height = 615 },
+			[1] = { ButtonPos = { x = 50,	y = -110 },  	HighLightBox = { x = 0, y = -50, width = 660, height = 480 },		ToolTipDir = "RIGHT",	ToolTipText = L.cd2HelpColSetup },
+			[2] = { ButtonPos = { x = 320,	y = -550 },  	HighLightBox = { x = 315, y = -560, width = 140, height = 30 },		ToolTipDir = "LEFT",	ToolTipText = L.cd2HelpTestButton },
+			[3] = { ButtonPos = { x = 500,	y = -550 },  	HighLightBox = { x = 490, y = -560, width = 160, height = 30 },		ToolTipDir = "LEFT",	ToolTipText = L.cd2HelpButtonDefault },
 		},
-		[3] = {
-			FramePos = { x = 0, y = 0 },FrameSize = { width = 660, height = 615 },
-			[1] = { ButtonPos = { x = 310,	y = -50 },  	HighLightBox = { x = 0, y = -50, width = 660, height = 565 },		ToolTipDir = "DOWN",	ToolTipText = L.cd2HelpHistory },		
-		}
 	}
 	if not ExRT.isClassic then
-		self.HELPButton = ExRT.lib.CreateHelpButton(self,self.HelpPlate,self.tab)
-		self.HELPButton:SetPoint("CENTER",self,"TOPLEFT",0,15)
-	
-		function self.HELPButton:Click2()
-			local min,max=module.options.ScrollBar:GetMinMaxValues()
-			module.options.ScrollBar:SetValue(max)
-		end
+		self.HELPButton = ExRT.lib.CreateHelpButton(self.tab.tabs[2],self.HelpPlate,self.tab)
+		self.HELPButton:SetPoint("LEFT",self.title,"RIGHT",20,-2)
 	end
-end
 
-function module.options:CleanUPVariables()
-	local cleanUP = {}
-	for sett,col in pairs(VExRT.ExCD2.CDECol) do
-		local bool = nil
-		for i=1,#module.db.spellDB do
-			for j=3,7 do
-				if module.db.spellDB[i][j] then
-					if tonumber( string.gsub(sett,";%d",""),nil ) == module.db.spellDB[i][j][1] then
-						bool = true
-					end
-				end
-			end
-		end
-		if not bool then
-			cleanUP [#cleanUP + 1] = sett
-		end
-	end
-	for i=1,#cleanUP do
-		VExRT.ExCD2.CDECol[cleanUP[i]] = nil
-	end
-	table_wipe2(cleanUP)
-	for sid,val in pairs(VExRT.ExCD2.CDE) do
-		local bool = nil
-		for i=1,#module.db.spellDB do
-			if sid == module.db.spellDB[i][1] then
-				bool = true
-			end
-		end
-		if not bool then
-			cleanUP [#cleanUP + 1] = sid
-		end
-	end
-	for i=1,#cleanUP do
-		VExRT.ExCD2.CDE[cleanUP[i]] = nil
-	end
-	table_wipe2(cleanUP)
-	for sid,val in pairs(VExRT.ExCD2.Priority) do
-		local bool = nil
-		for i=1,#module.db.spellDB do
-			if sid == module.db.spellDB[i][1] then
-				bool = true
-			end
-		end
-		if not bool then
-			cleanUP [#cleanUP + 1] = sid
-		end
-	end
-	for i=1,#cleanUP do
-		VExRT.ExCD2.Priority[cleanUP[i]] = nil
-	end
+	self.isWide = true
 end
 
 local function CreateBlackList(text)
@@ -7870,24 +7614,27 @@ function module:ReloadAllSplits(argScaleFix)
 		if not columnFrame.LOADEDs then
 			columnFrame.LOADEDs = {}
 		end
+		local currColOpt = VExRT_ColumnOptions[i]
+		local generalOpt = VExRT_ColumnOptions[module.db.maxColumns+1]
+		local defOpt = module.db.colsDefaults
 	
-		columnFrame.iconSize = (not VExRT_ColumnOptions[i].iconGeneral and VExRT_ColumnOptions[i].iconSize) or (VExRT_ColumnOptions[i].iconGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].iconSize) or module.db.colsDefaults.iconSize
-		if VExRT_ColumnOptions[i].enabled and columnFrame.iconSize > maxHeight then
+		columnFrame.iconSize = (not currColOpt.iconGeneral and currColOpt.iconSize) or (currColOpt.iconGeneral and generalOpt.iconSize) or defOpt.iconSize
+		if currColOpt.enabled and columnFrame.iconSize > maxHeight then
 			maxHeight = columnFrame.iconSize
 		end
 		
-		local frameBetweenLines = (not VExRT_ColumnOptions[i].frameGeneral and VExRT_ColumnOptions[i].frameBetweenLines) or (VExRT_ColumnOptions[i].frameGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].frameBetweenLines) or module.db.colsDefaults.frameBetweenLines
+		local frameBetweenLines = (not currColOpt.frameGeneral and currColOpt.frameBetweenLines) or (currColOpt.frameGeneral and generalOpt.frameBetweenLines) or defOpt.frameBetweenLines
 
-		local frameColumns = (not VExRT_ColumnOptions[i].frameGeneral and VExRT_ColumnOptions[i].frameColumns) or (VExRT_ColumnOptions[i].frameGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].frameColumns) or module.db.colsDefaults.frameColumns
+		local frameColumns = (not currColOpt.frameGeneral and currColOpt.frameColumns) or (currColOpt.frameGeneral and generalOpt.frameColumns) or defOpt.frameColumns
 		columnFrame.frameColumns = frameColumns
-		local linesShown = (not VExRT_ColumnOptions[i].frameGeneral and VExRT_ColumnOptions[i].frameLines) or (VExRT_ColumnOptions[i].frameGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].frameLines) or module.db.colsDefaults.frameLines	
+		local linesShown = (not currColOpt.frameGeneral and currColOpt.frameLines) or (currColOpt.frameGeneral and generalOpt.frameLines) or defOpt.frameLines	
 		linesShown = ceil(linesShown / frameColumns)
 		local linesTotal = linesShown * frameColumns
 		if VExRT.ExCD2.SplitOpt then 
 			columnFrame:SetHeight(columnFrame.iconSize*linesShown+frameBetweenLines*(linesShown-1)) 
 		else
 			columnFrame:SetHeight(columnFrame.iconSize*linesShown)
-			if VExRT_ColumnOptions[i].enabled then
+			if currColOpt.enabled then
 				if linesShown > maxLine then
 					maxLine = linesShown
 				end
@@ -7899,7 +7646,7 @@ function module:ReloadAllSplits(argScaleFix)
 		end
 		columnFrame.NumberLastLinesActive = module.db.maxLinesInCol
 		
-		if VExRT_ColumnOptions[i].enabled then
+		if currColOpt.enabled then
 			for j=1,linesTotal do
 				if not columnFrame.LOADEDs[j] then
 					columnFrame.lines[j] = CreateBar(columnFrame)
@@ -7912,10 +7659,10 @@ function module:ReloadAllSplits(argScaleFix)
 			columnFrame.IsColumnEnabled = false
 		end
 
-		local frameAlpha = (not VExRT_ColumnOptions[i].frameGeneral and VExRT_ColumnOptions[i].frameAlpha) or (VExRT_ColumnOptions[i].frameGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].frameAlpha) or module.db.colsDefaults.frameAlpha
+		local frameAlpha = (not currColOpt.frameGeneral and currColOpt.frameAlpha) or (currColOpt.frameGeneral and generalOpt.frameAlpha) or defOpt.frameAlpha
 		columnFrame:SetAlpha(frameAlpha/100) 
 
-		local frameScale = (not VExRT_ColumnOptions[i].frameGeneral and VExRT_ColumnOptions[i].frameScale) or (VExRT_ColumnOptions[i].frameGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].frameScale) or module.db.colsDefaults.frameScale
+		local frameScale = (not currColOpt.frameGeneral and currColOpt.frameScale) or (currColOpt.frameGeneral and generalOpt.frameScale) or defOpt.frameScale
 		if VExRT.ExCD2.SplitOpt then 
 			if argScaleFix == "ScaleFix" then
 				ExRT.F.SetScaleFix(columnFrame,frameScale/100)
@@ -7926,100 +7673,100 @@ function module:ReloadAllSplits(argScaleFix)
 			columnFrame:SetScale(1)
 		end
 		
-		local blackBack = (not VExRT_ColumnOptions[i].frameGeneral and VExRT_ColumnOptions[i].frameBlackBack) or (VExRT_ColumnOptions[i].frameGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].frameBlackBack) or module.db.colsDefaults.frameBlackBack
+		local blackBack = (not currColOpt.frameGeneral and currColOpt.frameBlackBack) or (currColOpt.frameGeneral and generalOpt.frameBlackBack) or defOpt.frameBlackBack
 		columnFrame.texture:SetColorTexture(0,0,0,blackBack / 100)
 		
 		--> View options
-		columnFrame.optionClassColorBackground = (not VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[i].textureClassBackground) or (VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].textureClassBackground)
-		columnFrame.optionClassColorTimeLine = (not VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[i].textureClassTimeLine) or (VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].textureClassTimeLine)
-		columnFrame.optionClassColorText = (not VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[i].textureClassText) or (VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].textureClassText)
+		columnFrame.optionClassColorBackground = (not currColOpt.textureGeneral and currColOpt.textureClassBackground) or (currColOpt.textureGeneral and generalOpt.textureClassBackground)
+		columnFrame.optionClassColorTimeLine = (not currColOpt.textureGeneral and currColOpt.textureClassTimeLine) or (currColOpt.textureGeneral and generalOpt.textureClassTimeLine)
+		columnFrame.optionClassColorText = (not currColOpt.textureGeneral and currColOpt.textureClassText) or (currColOpt.textureGeneral and generalOpt.textureClassText)
 
-		columnFrame.optionAnimation = (not VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[i].textureAnimation) or (VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].textureAnimation)
-		columnFrame.optionSmoothAnimation = (not VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[i].textureSmoothAnimation) or (VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].textureSmoothAnimation)
-		columnFrame.optionSmoothAnimationDuration = (not VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[i].textureSmoothAnimationDuration) or (VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].textureSmoothAnimationDuration) or module.db.colsDefaults.textureSmoothAnimationDuration
+		columnFrame.optionAnimation = (not currColOpt.textureGeneral and currColOpt.textureAnimation) or (currColOpt.textureGeneral and generalOpt.textureAnimation)
+		columnFrame.optionSmoothAnimation = (not currColOpt.textureGeneral and currColOpt.textureSmoothAnimation) or (currColOpt.textureGeneral and generalOpt.textureSmoothAnimation)
+		columnFrame.optionSmoothAnimationDuration = (not currColOpt.textureGeneral and currColOpt.textureSmoothAnimationDuration) or (currColOpt.textureGeneral and generalOpt.textureSmoothAnimationDuration) or defOpt.textureSmoothAnimationDuration
 			columnFrame.optionSmoothAnimationDuration = columnFrame.optionSmoothAnimationDuration / 100
 		columnFrame.optionLinesMax = min(linesShown*frameColumns,module.db.maxLinesInCol)
-		columnFrame.optionShownOnCD = (not VExRT_ColumnOptions[i].methodsGeneral and VExRT_ColumnOptions[i].methodsShownOnCD) or (VExRT_ColumnOptions[i].methodsGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].methodsShownOnCD)
-		columnFrame.optionIconPosition = (not VExRT_ColumnOptions[i].iconGeneral and VExRT_ColumnOptions[i].iconPosition) or (VExRT_ColumnOptions[i].iconGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].iconPosition) or module.db.colsDefaults.iconPosition
-		columnFrame.optionStyleAnimation = (not VExRT_ColumnOptions[i].methodsGeneral and VExRT_ColumnOptions[i].methodsStyleAnimation) or (VExRT_ColumnOptions[i].methodsGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].methodsStyleAnimation) or module.db.colsDefaults.methodsStyleAnimation
-		columnFrame.optionTimeLineAnimation = (not VExRT_ColumnOptions[i].methodsGeneral and VExRT_ColumnOptions[i].methodsTimeLineAnimation) or (VExRT_ColumnOptions[i].methodsGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].methodsTimeLineAnimation) or module.db.colsDefaults.methodsTimeLineAnimation
-		columnFrame.optionCooldown = (not VExRT_ColumnOptions[i].iconGeneral and VExRT_ColumnOptions[i].methodsCooldown) or (VExRT_ColumnOptions[i].iconGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].methodsCooldown)
-		columnFrame.optionCooldownHideNumbers = (not VExRT_ColumnOptions[i].iconGeneral and VExRT_ColumnOptions[i].iconCooldownHideNumbers) or (VExRT_ColumnOptions[i].iconGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].iconCooldownHideNumbers)
-		columnFrame.optionCooldownShowSwipe = (not VExRT_ColumnOptions[i].iconGeneral and VExRT_ColumnOptions[i].iconCooldownShowSwipe) or (VExRT_ColumnOptions[i].iconGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].iconCooldownShowSwipe)
-		columnFrame.optionIconName = (not VExRT_ColumnOptions[i].textGeneral and VExRT_ColumnOptions[i].textIconName) or (VExRT_ColumnOptions[i].textGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].textIconName)
-		columnFrame.optionHideSpark = (not VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[i].textureHideSpark) or (VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].textureHideSpark)
-		columnFrame.optionIconTitles = (not VExRT_ColumnOptions[i].iconGeneral and VExRT_ColumnOptions[i].iconTitles) or (VExRT_ColumnOptions[i].iconGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].iconTitles)
+		columnFrame.optionShownOnCD = (not currColOpt.methodsGeneral and currColOpt.methodsShownOnCD) or (currColOpt.methodsGeneral and generalOpt.methodsShownOnCD)
+		columnFrame.optionIconPosition = (not currColOpt.iconGeneral and currColOpt.iconPosition) or (currColOpt.iconGeneral and generalOpt.iconPosition) or defOpt.iconPosition
+		columnFrame.optionStyleAnimation = (not currColOpt.methodsGeneral and currColOpt.methodsStyleAnimation) or (currColOpt.methodsGeneral and generalOpt.methodsStyleAnimation) or defOpt.methodsStyleAnimation
+		columnFrame.optionTimeLineAnimation = (not currColOpt.methodsGeneral and currColOpt.methodsTimeLineAnimation) or (currColOpt.methodsGeneral and generalOpt.methodsTimeLineAnimation) or defOpt.methodsTimeLineAnimation
+		columnFrame.optionCooldown = (not currColOpt.iconGeneral and currColOpt.methodsCooldown) or (currColOpt.iconGeneral and generalOpt.methodsCooldown)
+		columnFrame.optionCooldownHideNumbers = (not currColOpt.iconGeneral and currColOpt.iconCooldownHideNumbers) or (currColOpt.iconGeneral and generalOpt.iconCooldownHideNumbers)
+		columnFrame.optionCooldownShowSwipe = (not currColOpt.iconGeneral and currColOpt.iconCooldownShowSwipe) or (currColOpt.iconGeneral and generalOpt.iconCooldownShowSwipe)
+		columnFrame.optionIconName = (not currColOpt.textGeneral and currColOpt.textIconName) or (currColOpt.textGeneral and generalOpt.textIconName)
+		columnFrame.optionHideSpark = (not currColOpt.textureGeneral and currColOpt.textureHideSpark) or (currColOpt.textureGeneral and generalOpt.textureHideSpark)
+		columnFrame.optionIconTitles = (not currColOpt.iconGeneral and currColOpt.iconTitles) or (currColOpt.iconGeneral and generalOpt.iconTitles)
 			columnFrame.optionIconTitles = columnFrame.optionIconTitles and not (columnFrame.optionIconPosition == 3)
-		columnFrame.optionIconHideBlizzardEdges = (not VExRT_ColumnOptions[i].iconGeneral and VExRT_ColumnOptions[i].iconHideBlizzardEdges) or (VExRT_ColumnOptions[i].iconGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].iconHideBlizzardEdges)
+		columnFrame.optionIconHideBlizzardEdges = (not currColOpt.iconGeneral and currColOpt.iconHideBlizzardEdges) or (currColOpt.iconGeneral and generalOpt.iconHideBlizzardEdges)
 		
-		columnFrame.methodsIconTooltip = (not VExRT_ColumnOptions[i].methodsGeneral and VExRT_ColumnOptions[i].methodsIconTooltip) or (VExRT_ColumnOptions[i].methodsGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].methodsIconTooltip) 
-		columnFrame.methodsLineClick = (not VExRT_ColumnOptions[i].methodsGeneral and VExRT_ColumnOptions[i].methodsLineClick) or (VExRT_ColumnOptions[i].methodsGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].methodsLineClick)
-		columnFrame.methodsLineClickWhisper = (not VExRT_ColumnOptions[i].methodsGeneral and VExRT_ColumnOptions[i].methodsLineClickWhisper) or (VExRT_ColumnOptions[i].methodsGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].methodsLineClickWhisper)
-		columnFrame.methodsNewSpellNewLine = (not VExRT_ColumnOptions[i].methodsGeneral and VExRT_ColumnOptions[i].methodsNewSpellNewLine) or (VExRT_ColumnOptions[i].methodsGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].methodsNewSpellNewLine)
-		columnFrame.methodsSortingRules = (not VExRT_ColumnOptions[i].methodsGeneral and VExRT_ColumnOptions[i].methodsSortingRules) or (VExRT_ColumnOptions[i].methodsGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].methodsSortingRules) or module.db.colsDefaults.methodsSortingRules
-		columnFrame.methodsHideOwnSpells = (not VExRT_ColumnOptions[i].methodsGeneral and VExRT_ColumnOptions[i].methodsHideOwnSpells) or (VExRT_ColumnOptions[i].methodsGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].methodsHideOwnSpells)
-		columnFrame.methodsAlphaNotInRange = (not VExRT_ColumnOptions[i].methodsGeneral and VExRT_ColumnOptions[i].methodsAlphaNotInRange) or (VExRT_ColumnOptions[i].methodsGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].methodsAlphaNotInRange)
-		columnFrame.methodsAlphaNotInRangeNum = (not VExRT_ColumnOptions[i].methodsGeneral and VExRT_ColumnOptions[i].methodsAlphaNotInRangeNum) or (VExRT_ColumnOptions[i].methodsGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].methodsAlphaNotInRangeNum) or module.db.colsDefaults.methodsAlphaNotInRangeNum
+		columnFrame.methodsIconTooltip = (not currColOpt.methodsGeneral and currColOpt.methodsIconTooltip) or (currColOpt.methodsGeneral and generalOpt.methodsIconTooltip) 
+		columnFrame.methodsLineClick = (not currColOpt.methodsGeneral and currColOpt.methodsLineClick) or (currColOpt.methodsGeneral and generalOpt.methodsLineClick)
+		columnFrame.methodsLineClickWhisper = (not currColOpt.methodsGeneral and currColOpt.methodsLineClickWhisper) or (currColOpt.methodsGeneral and generalOpt.methodsLineClickWhisper)
+		columnFrame.methodsNewSpellNewLine = (not currColOpt.methodsGeneral and currColOpt.methodsNewSpellNewLine) or (currColOpt.methodsGeneral and generalOpt.methodsNewSpellNewLine)
+		columnFrame.methodsSortingRules = (not currColOpt.methodsGeneral and currColOpt.methodsSortingRules) or (currColOpt.methodsGeneral and generalOpt.methodsSortingRules) or defOpt.methodsSortingRules
+		columnFrame.methodsHideOwnSpells = (not currColOpt.methodsGeneral and currColOpt.methodsHideOwnSpells) or (currColOpt.methodsGeneral and generalOpt.methodsHideOwnSpells)
+		columnFrame.methodsAlphaNotInRange = (not currColOpt.methodsGeneral and currColOpt.methodsAlphaNotInRange) or (currColOpt.methodsGeneral and generalOpt.methodsAlphaNotInRange)
+		columnFrame.methodsAlphaNotInRangeNum = (not currColOpt.methodsGeneral and currColOpt.methodsAlphaNotInRangeNum) or (currColOpt.methodsGeneral and generalOpt.methodsAlphaNotInRangeNum) or defOpt.methodsAlphaNotInRangeNum
 			columnFrame.methodsAlphaNotInRangeNum = columnFrame.methodsAlphaNotInRangeNum / 100
-		columnFrame.methodsDisableActive = (not VExRT_ColumnOptions[i].methodsGeneral and VExRT_ColumnOptions[i].methodsDisableActive) or (VExRT_ColumnOptions[i].methodsGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].methodsDisableActive)
-		columnFrame.methodsOneSpellPerCol = (not VExRT_ColumnOptions[i].methodsGeneral and VExRT_ColumnOptions[i].methodsOneSpellPerCol) or (VExRT_ColumnOptions[i].methodsGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].methodsOneSpellPerCol)
+		columnFrame.methodsDisableActive = (not currColOpt.methodsGeneral and currColOpt.methodsDisableActive) or (currColOpt.methodsGeneral and generalOpt.methodsDisableActive)
+		columnFrame.methodsOneSpellPerCol = (not currColOpt.methodsGeneral and currColOpt.methodsOneSpellPerCol) or (currColOpt.methodsGeneral and generalOpt.methodsOneSpellPerCol)
 		
-		columnFrame.methodsOnlyInCombat = (not VExRT_ColumnOptions[i].visibilityGeneral and VExRT_ColumnOptions[i].methodsOnlyInCombat) or (VExRT_ColumnOptions[i].visibilityGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].methodsOnlyInCombat)
-		columnFrame.visibilityPartyType = (not VExRT_ColumnOptions[i].visibilityGeneral and VExRT_ColumnOptions[i].visibilityPartyType) or (VExRT_ColumnOptions[i].visibilityGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].visibilityPartyType)
-		columnFrame.visibilityArena = not ( (not VExRT_ColumnOptions[i].visibilityGeneral and VExRT_ColumnOptions[i].visibilityDisableArena) or (VExRT_ColumnOptions[i].visibilityGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].visibilityDisableArena) )
-		columnFrame.visibilityBG = not ( (not VExRT_ColumnOptions[i].visibilityGeneral and VExRT_ColumnOptions[i].visibilityDisableBG) or (VExRT_ColumnOptions[i].visibilityGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].visibilityDisableBG) )
-		columnFrame.visibility3ppl = not ( (not VExRT_ColumnOptions[i].visibilityGeneral and VExRT_ColumnOptions[i].visibilityDisable3ppl) or (VExRT_ColumnOptions[i].visibilityGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].visibilityDisable3ppl) )
-		columnFrame.visibility5ppl = not ( (not VExRT_ColumnOptions[i].visibilityGeneral and VExRT_ColumnOptions[i].visibilityDisable5ppl) or (VExRT_ColumnOptions[i].visibilityGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].visibilityDisable5ppl) )
-		columnFrame.visibilityRaid = not ( (not VExRT_ColumnOptions[i].visibilityGeneral and VExRT_ColumnOptions[i].visibilityDisableRaid) or (VExRT_ColumnOptions[i].visibilityGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].visibilityDisableRaid) )
-		columnFrame.visibilityWorld = not ( (not VExRT_ColumnOptions[i].visibilityGeneral and VExRT_ColumnOptions[i].visibilityDisableWorld) or (VExRT_ColumnOptions[i].visibilityGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].visibilityDisableWorld) )
+		columnFrame.methodsOnlyInCombat = (not currColOpt.visibilityGeneral and currColOpt.methodsOnlyInCombat) or (currColOpt.visibilityGeneral and generalOpt.methodsOnlyInCombat)
+		columnFrame.visibilityPartyType = (not currColOpt.visibilityGeneral and currColOpt.visibilityPartyType) or (currColOpt.visibilityGeneral and generalOpt.visibilityPartyType)
+		columnFrame.visibilityArena = not ( (not currColOpt.visibilityGeneral and currColOpt.visibilityDisableArena) or (currColOpt.visibilityGeneral and generalOpt.visibilityDisableArena) )
+		columnFrame.visibilityBG = not ( (not currColOpt.visibilityGeneral and currColOpt.visibilityDisableBG) or (currColOpt.visibilityGeneral and generalOpt.visibilityDisableBG) )
+		columnFrame.visibility3ppl = not ( (not currColOpt.visibilityGeneral and currColOpt.visibilityDisable3ppl) or (currColOpt.visibilityGeneral and generalOpt.visibilityDisable3ppl) )
+		columnFrame.visibility5ppl = not ( (not currColOpt.visibilityGeneral and currColOpt.visibilityDisable5ppl) or (currColOpt.visibilityGeneral and generalOpt.visibilityDisable5ppl) )
+		columnFrame.visibilityRaid = not ( (not currColOpt.visibilityGeneral and currColOpt.visibilityDisableRaid) or (currColOpt.visibilityGeneral and generalOpt.visibilityDisableRaid) )
+		columnFrame.visibilityWorld = not ( (not currColOpt.visibilityGeneral and currColOpt.visibilityDisableWorld) or (currColOpt.visibilityGeneral and generalOpt.visibilityDisableWorld) )
 
-		columnFrame.textTemplateLeft = (not VExRT_ColumnOptions[i].textGeneral and VExRT_ColumnOptions[i].textTemplateLeft) or (VExRT_ColumnOptions[i].textGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].textTemplateLeft) or module.db.colsDefaults.textTemplateLeft
-		columnFrame.textTemplateRight = (not VExRT_ColumnOptions[i].textGeneral and VExRT_ColumnOptions[i].textTemplateRight) or (VExRT_ColumnOptions[i].textGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].textTemplateRight) or module.db.colsDefaults.textTemplateRight
-		columnFrame.textTemplateCenter = (not VExRT_ColumnOptions[i].textGeneral and VExRT_ColumnOptions[i].textTemplateCenter) or (VExRT_ColumnOptions[i].textGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].textTemplateCenter) or module.db.colsDefaults.textTemplateCenter
+		columnFrame.textTemplateLeft = (not currColOpt.textGeneral and currColOpt.textTemplateLeft) or (currColOpt.textGeneral and generalOpt.textTemplateLeft) or defOpt.textTemplateLeft
+		columnFrame.textTemplateRight = (not currColOpt.textGeneral and currColOpt.textTemplateRight) or (currColOpt.textGeneral and generalOpt.textTemplateRight) or defOpt.textTemplateRight
+		columnFrame.textTemplateCenter = (not currColOpt.textGeneral and currColOpt.textTemplateCenter) or (currColOpt.textGeneral and generalOpt.textTemplateCenter) or defOpt.textTemplateCenter
 		
-		local blacklistText = (not VExRT_ColumnOptions[i].blacklistGeneral and VExRT_ColumnOptions[i].blacklistText) or (VExRT_ColumnOptions[i].blacklistGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].blacklistText) or module.db.colsDefaults.blacklistText
+		local blacklistText = (not currColOpt.blacklistGeneral and currColOpt.blacklistText) or (currColOpt.blacklistGeneral and generalOpt.blacklistText) or defOpt.blacklistText
 		columnFrame.BlackList = CreateBlackList(blacklistText)
-		local whitelistText = (not VExRT_ColumnOptions[i].blacklistGeneral and VExRT_ColumnOptions[i].whitelistText) or (VExRT_ColumnOptions[i].blacklistGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].whitelistText) or module.db.colsDefaults.whitelistText
+		local whitelistText = (not currColOpt.blacklistGeneral and currColOpt.whitelistText) or (currColOpt.blacklistGeneral and generalOpt.whitelistText) or defOpt.whitelistText
 		columnFrame.WhiteList = CreateWhiteList(whitelistText)
 		
-		local frameWidth = (not VExRT_ColumnOptions[i].frameGeneral and VExRT_ColumnOptions[i].frameWidth) or (VExRT_ColumnOptions[i].frameGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].frameWidth) or module.db.colsDefaults.frameWidth
+		local frameWidth = (not currColOpt.frameGeneral and currColOpt.frameWidth) or (currColOpt.frameGeneral and generalOpt.frameWidth) or defOpt.frameWidth
 		columnFrame:SetWidth(frameWidth*frameColumns)
 		columnFrame.barWidth = frameWidth
 		
-		columnFrame.optionGray = (not VExRT_ColumnOptions[i].iconGeneral and VExRT_ColumnOptions[i].iconGray) or (VExRT_ColumnOptions[i].iconGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].iconGray)
-		columnFrame.fontSize = (not VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[i].fontSize) or (VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].fontSize) or module.db.colsDefaults.fontSize
-		columnFrame.fontName = (not VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[i].fontName) or (VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].fontName) or module.db.colsDefaults.fontName
-		columnFrame.fontOutline = (not VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[i].fontOutline) or (VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].fontOutline)
-		columnFrame.fontShadow = (not VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[i].fontShadow) or (VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].fontShadow)
-		columnFrame.textureFile = (not VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[i].textureFile) or (VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].textureFile) or module.db.colsDefaults.textureFile
-		columnFrame.textureBorderSize = (not VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[i].textureBorderSize) or (VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].textureBorderSize) or module.db.colsDefaults.textureBorderSize
+		columnFrame.optionGray = (not currColOpt.iconGeneral and currColOpt.iconGray) or (currColOpt.iconGeneral and generalOpt.iconGray)
+		columnFrame.fontSize = (not currColOpt.fontGeneral and currColOpt.fontSize) or (currColOpt.fontGeneral and generalOpt.fontSize) or defOpt.fontSize
+		columnFrame.fontName = (not currColOpt.fontGeneral and currColOpt.fontName) or (currColOpt.fontGeneral and generalOpt.fontName) or defOpt.fontName
+		columnFrame.fontOutline = (not currColOpt.fontGeneral and currColOpt.fontOutline) or (currColOpt.fontGeneral and generalOpt.fontOutline)
+		columnFrame.fontShadow = (not currColOpt.fontGeneral and currColOpt.fontShadow) or (currColOpt.fontGeneral and generalOpt.fontShadow)
+		columnFrame.textureFile = (not currColOpt.textureGeneral and currColOpt.textureFile) or (currColOpt.textureGeneral and generalOpt.textureFile) or defOpt.textureFile
+		columnFrame.textureBorderSize = (not currColOpt.textureGeneral and currColOpt.textureBorderSize) or (currColOpt.textureGeneral and generalOpt.textureBorderSize) or defOpt.textureBorderSize
 
-		columnFrame.textureBorderColorR = (not VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[i].textureBorderColorR) or (VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].textureBorderColorR) or module.db.colsDefaults.textureBorderColorR
-		columnFrame.textureBorderColorG = (not VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[i].textureBorderColorG) or (VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].textureBorderColorG) or module.db.colsDefaults.textureBorderColorG
-		columnFrame.textureBorderColorB = (not VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[i].textureBorderColorB) or (VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].textureBorderColorB) or module.db.colsDefaults.textureBorderColorB
-		columnFrame.textureBorderColorA = (not VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[i].textureBorderColorA) or (VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].textureBorderColorA) or module.db.colsDefaults.textureBorderColorA
+		columnFrame.textureBorderColorR = (not currColOpt.textureGeneral and currColOpt.textureBorderColorR) or (currColOpt.textureGeneral and generalOpt.textureBorderColorR) or defOpt.textureBorderColorR
+		columnFrame.textureBorderColorG = (not currColOpt.textureGeneral and currColOpt.textureBorderColorG) or (currColOpt.textureGeneral and generalOpt.textureBorderColorG) or defOpt.textureBorderColorG
+		columnFrame.textureBorderColorB = (not currColOpt.textureGeneral and currColOpt.textureBorderColorB) or (currColOpt.textureGeneral and generalOpt.textureBorderColorB) or defOpt.textureBorderColorB
+		columnFrame.textureBorderColorA = (not currColOpt.textureGeneral and currColOpt.textureBorderColorA) or (currColOpt.textureGeneral and generalOpt.textureBorderColorA) or defOpt.textureBorderColorA
 
-		local fontOtherAvailable = (not VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[i].fontOtherAvailable) or (VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].fontOtherAvailable)
+		local fontOtherAvailable = (not currColOpt.fontGeneral and currColOpt.fontOtherAvailable) or (currColOpt.fontGeneral and generalOpt.fontOtherAvailable)
 
-		columnFrame.fontLeftSize = (not fontOtherAvailable and columnFrame.fontSize) or (not VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[i].fontLeftSize) or (VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].fontLeftSize) or module.db.colsDefaults.fontSize
-		columnFrame.fontLeftName = (not fontOtherAvailable and columnFrame.fontName) or (not VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[i].fontLeftName) or (VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].fontLeftName) or module.db.colsDefaults.fontName
-		columnFrame.fontLeftOutline = (not fontOtherAvailable and columnFrame.fontOutline) or (fontOtherAvailable and ((not VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[i].fontLeftOutline) or (VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].fontLeftOutline)))
-		columnFrame.fontLeftShadow = (not fontOtherAvailable and columnFrame.fontShadow) or (fontOtherAvailable and ((not VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[i].fontLeftShadow) or (VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].fontLeftShadow)))
+		columnFrame.fontLeftSize = (not fontOtherAvailable and columnFrame.fontSize) or (not currColOpt.fontGeneral and currColOpt.fontLeftSize) or (currColOpt.fontGeneral and generalOpt.fontLeftSize) or defOpt.fontSize
+		columnFrame.fontLeftName = (not fontOtherAvailable and columnFrame.fontName) or (not currColOpt.fontGeneral and currColOpt.fontLeftName) or (currColOpt.fontGeneral and generalOpt.fontLeftName) or defOpt.fontName
+		columnFrame.fontLeftOutline = (not fontOtherAvailable and columnFrame.fontOutline) or (fontOtherAvailable and ((not currColOpt.fontGeneral and currColOpt.fontLeftOutline) or (currColOpt.fontGeneral and generalOpt.fontLeftOutline)))
+		columnFrame.fontLeftShadow = (not fontOtherAvailable and columnFrame.fontShadow) or (fontOtherAvailable and ((not currColOpt.fontGeneral and currColOpt.fontLeftShadow) or (currColOpt.fontGeneral and generalOpt.fontLeftShadow)))
 
-		columnFrame.fontRightSize = (not fontOtherAvailable and columnFrame.fontSize) or (not VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[i].fontRightSize) or (VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].fontRightSize) or module.db.colsDefaults.fontSize
-		columnFrame.fontRightName = (not fontOtherAvailable and columnFrame.fontName) or (not VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[i].fontRightName) or (VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].fontRightName) or module.db.colsDefaults.fontName
-		columnFrame.fontRightOutline = (not fontOtherAvailable and columnFrame.fontOutline) or (fontOtherAvailable and ((not VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[i].fontRightOutline) or (VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].fontRightOutline)))
-		columnFrame.fontRightShadow = (not fontOtherAvailable and columnFrame.fontShadow) or (fontOtherAvailable and ((not VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[i].fontRightShadow) or (VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].fontRightShadow)))
+		columnFrame.fontRightSize = (not fontOtherAvailable and columnFrame.fontSize) or (not currColOpt.fontGeneral and currColOpt.fontRightSize) or (currColOpt.fontGeneral and generalOpt.fontRightSize) or defOpt.fontSize
+		columnFrame.fontRightName = (not fontOtherAvailable and columnFrame.fontName) or (not currColOpt.fontGeneral and currColOpt.fontRightName) or (currColOpt.fontGeneral and generalOpt.fontRightName) or defOpt.fontName
+		columnFrame.fontRightOutline = (not fontOtherAvailable and columnFrame.fontOutline) or (fontOtherAvailable and ((not currColOpt.fontGeneral and currColOpt.fontRightOutline) or (currColOpt.fontGeneral and generalOpt.fontRightOutline)))
+		columnFrame.fontRightShadow = (not fontOtherAvailable and columnFrame.fontShadow) or (fontOtherAvailable and ((not currColOpt.fontGeneral and currColOpt.fontRightShadow) or (currColOpt.fontGeneral and generalOpt.fontRightShadow)))
 
-		columnFrame.fontCenterSize = (not fontOtherAvailable and columnFrame.fontSize) or (not VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[i].fontCenterSize) or (VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].fontCenterSize) or module.db.colsDefaults.fontSize
-		columnFrame.fontCenterName = (not fontOtherAvailable and columnFrame.fontName) or (not VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[i].fontCenterName) or (VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].fontCenterName) or module.db.colsDefaults.fontName
-		columnFrame.fontCenterOutline = (not fontOtherAvailable and columnFrame.fontOutline) or (fontOtherAvailable and ((not VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[i].fontCenterOutline) or (VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].fontCenterOutline)))
-		columnFrame.fontCenterShadow = (not fontOtherAvailable and columnFrame.fontShadow) or (fontOtherAvailable and ((not VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[i].fontCenterShadow) or (VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].fontCenterShadow)))
+		columnFrame.fontCenterSize = (not fontOtherAvailable and columnFrame.fontSize) or (not currColOpt.fontGeneral and currColOpt.fontCenterSize) or (currColOpt.fontGeneral and generalOpt.fontCenterSize) or defOpt.fontSize
+		columnFrame.fontCenterName = (not fontOtherAvailable and columnFrame.fontName) or (not currColOpt.fontGeneral and currColOpt.fontCenterName) or (currColOpt.fontGeneral and generalOpt.fontCenterName) or defOpt.fontName
+		columnFrame.fontCenterOutline = (not fontOtherAvailable and columnFrame.fontOutline) or (fontOtherAvailable and ((not currColOpt.fontGeneral and currColOpt.fontCenterOutline) or (currColOpt.fontGeneral and generalOpt.fontCenterOutline)))
+		columnFrame.fontCenterShadow = (not fontOtherAvailable and columnFrame.fontShadow) or (fontOtherAvailable and ((not currColOpt.fontGeneral and currColOpt.fontCenterShadow) or (currColOpt.fontGeneral and generalOpt.fontCenterShadow)))
 
-		columnFrame.fontIconSize = (not fontOtherAvailable and columnFrame.fontSize) or (not VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[i].fontIconSize) or (VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].fontIconSize) or module.db.colsDefaults.fontSize
-		columnFrame.fontIconName = (not fontOtherAvailable and columnFrame.fontName) or (not VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[i].fontIconName) or (VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].fontIconName) or module.db.colsDefaults.fontName
-		columnFrame.fontIconOutline = (not fontOtherAvailable and columnFrame.fontOutline) or (fontOtherAvailable and ((not VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[i].fontIconOutline) or (VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].fontIconOutline)))
-		columnFrame.fontIconShadow = (not fontOtherAvailable and columnFrame.fontShadow) or (fontOtherAvailable and ((not VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[i].fontIconShadow) or (VExRT_ColumnOptions[i].fontGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].fontIconShadow)))
+		columnFrame.fontIconSize = (not fontOtherAvailable and columnFrame.fontSize) or (not currColOpt.fontGeneral and currColOpt.fontIconSize) or (currColOpt.fontGeneral and generalOpt.fontIconSize) or defOpt.fontSize
+		columnFrame.fontIconName = (not fontOtherAvailable and columnFrame.fontName) or (not currColOpt.fontGeneral and currColOpt.fontIconName) or (currColOpt.fontGeneral and generalOpt.fontIconName) or defOpt.fontName
+		columnFrame.fontIconOutline = (not fontOtherAvailable and columnFrame.fontOutline) or (fontOtherAvailable and ((not currColOpt.fontGeneral and currColOpt.fontIconOutline) or (currColOpt.fontGeneral and generalOpt.fontIconOutline)))
+		columnFrame.fontIconShadow = (not fontOtherAvailable and columnFrame.fontShadow) or (fontOtherAvailable and ((not currColOpt.fontGeneral and currColOpt.fontIconShadow) or (currColOpt.fontGeneral and generalOpt.fontIconShadow)))
 
 		for j=1,3 do
 			for n=1,3 do
@@ -8029,17 +7776,17 @@ function module:ReloadAllSplits(argScaleFix)
 					columnFrame["optionColor"..object..state] = {}
 				end
 
-				columnFrame["optionColor"..object..state].r = (not VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[i]["textureColor"..object..state.."R"]) or (VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[module.db.maxColumns+1]["textureColor"..object..state.."R"]) or module.db.colsDefaults["textureColor"..object..state.."R"]
-				columnFrame["optionColor"..object..state].g = (not VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[i]["textureColor"..object..state.."G"]) or (VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[module.db.maxColumns+1]["textureColor"..object..state.."G"]) or module.db.colsDefaults["textureColor"..object..state.."G"]
-				columnFrame["optionColor"..object..state].b = (not VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[i]["textureColor"..object..state.."B"]) or (VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[module.db.maxColumns+1]["textureColor"..object..state.."B"]) or module.db.colsDefaults["textureColor"..object..state.."B"]
+				columnFrame["optionColor"..object..state].r = (not currColOpt.textureGeneral and currColOpt["textureColor"..object..state.."R"]) or (currColOpt.textureGeneral and generalOpt["textureColor"..object..state.."R"]) or defOpt["textureColor"..object..state.."R"]
+				columnFrame["optionColor"..object..state].g = (not currColOpt.textureGeneral and currColOpt["textureColor"..object..state.."G"]) or (currColOpt.textureGeneral and generalOpt["textureColor"..object..state.."G"]) or defOpt["textureColor"..object..state.."G"]
+				columnFrame["optionColor"..object..state].b = (not currColOpt.textureGeneral and currColOpt["textureColor"..object..state.."B"]) or (currColOpt.textureGeneral and generalOpt["textureColor"..object..state.."B"]) or defOpt["textureColor"..object..state.."B"]
 			end
 		end
 
-		columnFrame.optionAlphaBackground = (not VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[i].textureAlphaBackground) or (VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].textureAlphaBackground) or module.db.colsDefaults.textureAlphaBackground
-		columnFrame.optionAlphaTimeLine = (not VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[i].textureAlphaTimeLine) or (VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].textureAlphaTimeLine) or module.db.colsDefaults.textureAlphaTimeLine
-		columnFrame.optionAlphaCooldown = (not VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[i].textureAlphaCooldown) or (VExRT_ColumnOptions[i].textureGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].textureAlphaCooldown) or module.db.colsDefaults.textureAlphaCooldown
+		columnFrame.optionAlphaBackground = (not currColOpt.textureGeneral and currColOpt.textureAlphaBackground) or (currColOpt.textureGeneral and generalOpt.textureAlphaBackground) or defOpt.textureAlphaBackground
+		columnFrame.optionAlphaTimeLine = (not currColOpt.textureGeneral and currColOpt.textureAlphaTimeLine) or (currColOpt.textureGeneral and generalOpt.textureAlphaTimeLine) or defOpt.textureAlphaTimeLine
+		columnFrame.optionAlphaCooldown = (not currColOpt.textureGeneral and currColOpt.textureAlphaCooldown) or (currColOpt.textureGeneral and generalOpt.textureAlphaCooldown) or defOpt.textureAlphaCooldown
 
-		if VExRT_ColumnOptions[i].enabled then
+		if currColOpt.enabled then
 			--for n=1,linesTotal do
 			for n=1,#columnFrame.lines do
 				columnFrame.lines[n]:UpdateStyle()
@@ -8048,7 +7795,7 @@ function module:ReloadAllSplits(argScaleFix)
 				end
 			end
 		
-			local frameAnchorBottom = (not VExRT_ColumnOptions[i].methodsGeneral and VExRT_ColumnOptions[i].frameAnchorBottom) or (VExRT_ColumnOptions[i].methodsGeneral and VExRT_ColumnOptions[module.db.maxColumns+1].frameAnchorBottom)
+			local frameAnchorBottom = (not currColOpt.methodsGeneral and currColOpt.frameAnchorBottom) or (currColOpt.methodsGeneral and generalOpt.frameAnchorBottom)
 			if frameAnchorBottom then
 				local lastLine = nil
 				for n=1,linesTotal do 
@@ -8082,7 +7829,7 @@ function module:ReloadAllSplits(argScaleFix)
 			end
 		end
 		
-		if VExRT_ColumnOptions[i].enabled and VExRT.ExCD2.enabled then
+		if currColOpt.enabled and VExRT.ExCD2.enabled then
 			columnFrame.optionIsEnabled = true
 			columnFrame:Show()
 		else
@@ -8093,15 +7840,15 @@ function module:ReloadAllSplits(argScaleFix)
 			columnFrame:ClearAllPoints()
 			columnFrame:SetPoint("TOPLEFT",module.frame,Width, 0)
 		else
-			if VExRT_ColumnOptions[i].posX and VExRT_ColumnOptions[i].posY then
+			if currColOpt.posX and currColOpt.posY then
 				columnFrame:ClearAllPoints()
-				columnFrame:SetPoint("TOPLEFT",UIParent,"BOTTOMLEFT",VExRT_ColumnOptions[i].posX,VExRT_ColumnOptions[i].posY)
+				columnFrame:SetPoint("TOPLEFT",UIParent,"BOTTOMLEFT",currColOpt.posX,currColOpt.posY)
 			else
 				columnFrame:ClearAllPoints()
 				columnFrame:SetPoint("CENTER",UIParent,"CENTER",0,0)
 			end
 		end
-		if VExRT_ColumnOptions[i].enabled then
+		if currColOpt.enabled then
 			Width = Width + frameWidth*frameColumns
 		end
 	end
@@ -8148,694 +7895,677 @@ function module:slash(arg1,arg2)
 		local sid,name = arg2:match("%a+ (%d+) (.+)")
 		if sid and name then
 			print("Run CD "..sid.." by "..name)
-			module.main:COMBAT_LOG_EVENT_UNFILTERED(nil,"SPELL_CAST_SUCCESS",nil,nil,name,nil,nil,nil,nil,nil,nil,sid)
+			sid = tonumber(sid)
+			local line = module.db.cdsNav[name][sid]
+			if line then
+				CLEUstartCD(line)
+			end
 		end
 	elseif string.find(arg1,"resetcd ") then
 		local sid,name = arg2:match("%a+ (%d+) (.+)")
 		if sid and name then
 			print("Reset CD "..sid.." by "..name)
+			sid = tonumber(sid)
 			local j = module.db.cdsNav[name][sid]
 			if j then
 				j[3] = 0
 			end
 		end
+	elseif arg1 == "cd" then
+		if not VExRT.ExCD2.enabled then
+			module:Enable()
+		else
+			module:Disable()
+		end
+		if module.options.chkEnable then
+			module.options.chkEnable:SetChecked(VExRT.ExCD2.enabled)
+		end
 	end
 end
 
+--{id,	"class,cat1,cat2",	col	all specs,		spec1,			spec2={spellid,cd,duration},spec3,spec4		},	--name
+module.db.AllSpells = {
+	{107574,"WARRIOR,DPS",	3,	nil,			{107574,90,	20},	nil,			{107574,90,	0},	},	--Avatar
+	{6673,	"WARRIOR",	1,	{6673,	15,	0},	nil,			nil,			nil,			},	--Battle Shout
+	{18499,	"WARRIOR,DEF",	4,	{18499,	60,	6},	nil,			nil,			nil,			},	--Berserker Rage
+	{227847,"WARRIOR,DPS",	3,	nil,			{227847,90,	6},	nil,			nil,			},	--Bladestorm
+	{100,	"WARRIOR",	3,	nil,			{100,	20,	0},	{100,	20,	0},	nil,			},	--Charge
+	{167105,"WARRIOR",	3,	nil,			{167105,45,	10},	nil,			nil,			},	--Colossus Smash
+	{1160,	"WARRIOR,DEFTANK",	4,	nil,			nil,			nil,			{1160,	45,	8},	},	--Demoralizing Shout
+	{118038,"WARRIOR,DEF",	4,	nil,			{118038,180,	8},	nil,			nil,			},	--Die by the Sword
+	{184364,"WARRIOR,DEF",	4,	nil,			nil,			{184364,120,	8},	nil,			},	--Enraged Regeneration
+	{6544,	"WARRIOR,MOVE",	4,	{52174,	45,	0},	nil,			nil,			nil,			},	--Heroic Leap
+	{57755,	"WARRIOR",	3,	{57755,	6,	0},	nil,			nil,			nil,			},	--Heroic Throw
+	{198304,"WARRIOR",	2,	nil,			nil,			nil,			{198304,15,	0},	},	--Intercept
+	{5246,	"WARRIOR,AOECC",	1,	{5246,	90,	8},	nil,			nil,			nil,			},	--Intimidating Shout
+	{12975,	"WARRIOR,DEFTANK",	4,	nil,			nil,			nil,			{12975,	180,	15},	},	--Last Stand
+	{7384,	"WARRIOR",	3,	nil,			{7384,	12,	0},	nil,			nil,			},	--Overpower
+	{6552,	"WARRIOR,KICK",	5,	{6552,	15,	0},	nil,			nil,			nil,			},	--Pummel
+	{97462,	"WARRIOR,RAID",	1,	{97462,	180,	10},	nil,			nil,			nil,			},	--Rallying Cry
+	{1719,	"WARRIOR,DPS",	3,	nil,			nil,			{1719,	90,	10},	nil,			},	--Recklessness
+	{2565,	"WARRIOR",	4,	nil,			nil,			nil,			{2565,	18,	6},	},	--Shield Block
+	{871,	"WARRIOR,DEFTANK",	4,	nil,			nil,			nil,			{871,	240,	8},	},	--Shield Wall
+	{46968,	"WARRIOR,AOECC",	1,	nil,			nil,			nil,			{46968,	30,	2},	},	--Shockwave
+	{23920,	"WARRIOR,DEFTANK",	4,	nil,			nil,			nil,			{23920,	25,	5},	},	--Spell Reflection
+	{260708,"WARRIOR,DPS",	3,	nil,			{260708,25,	12},	nil,			nil,			},	--Sweeping Strikes
+	{355,	"WARRIOR,TAUNT",	5,	{355,	8,	0},	nil,			nil,			nil,			},	--Taunt
+	{107570,"WARRIOR,CC",	3,	{107570,30,	0},	nil,			nil,			nil,			},	--Storm Bolt
+	
+	{262228,"WARRIOR,DPS",	3,	nil,			{262228,60,	6},	nil,			nil,			},	--Deadly Calm
+	{197690,"WARRIOR",	4,	nil,			{197690,6,	0},	nil,			nil,			},	--Defensive Stance
+	{202168,"WARRIOR,DEF",	3,	{202168,30,	0},	nil,			nil,			nil,			},	--Impending Victory
+	{152277,"WARRIOR,DPS",	3,	nil,			{152277,60,	0},	nil,			nil,			},	--Ravager
+	{260643,"WARRIOR",	3,	nil,			{260643,21,	0},	nil,			nil,			},	--Skullsplitter
+	{262161,"WARRIOR,DPS",	3,	nil,			{262161,45,	0},	nil,			nil,			},	--Warbreaker
+	
+	{46924,	"WARRIOR,DPS",	3,	nil,			nil,			{46924,	60,	4},	nil,			},	--Bladestorm
+	{118000,"WARRIOR",	3,	nil,			nil,			{118000,35,	0},	{118000,35,	0},	},	--Dragon Roar
+	{280772,"WARRIOR",	3,	nil,			nil,			{280772,30,	10},	nil,			},	--Siegebreaker
+	{228920,"WARRIOR,DPS",	3,	nil,			nil,			nil,			{228920,60,	0},	},	--Ravager
 
-module.db.AllClassSpellsInText = [[
---06.07.2018, Build 26999 Beta
-local module = GExRT.A.ExCD2
-module.db.allClassSpells = {
-["WARRIOR"] = {
-	{107574,3,	nil,			nil,			nil,			{107574,90,	0},	},	--Avatar
-	{6673,	1,	{6673,	15,	0},	nil,			nil,			nil,			},	--Battle Shout
-	{18499,	4,	{18499,	60,	6},	nil,			nil,			nil,			},	--Berserker Rage
-	{227847,3,	nil,			{227847,90,	6},	nil,			nil,			},	--Bladestorm
-	{100,	3,	nil,			{100,	20,	0},	{100,	20,	0},	nil,			},	--Charge
-	{167105,3,	nil,			{167105,45,	10},	nil,			nil,			},	--Colossus Smash
-	{1160,	4,	nil,			nil,			nil,			{1160,	45,	8},	},	--Demoralizing Shout
-	{118038,4,	nil,			{118038,180,	8},	nil,			nil,			},	--Die by the Sword
-	{184364,4,	nil,			nil,			{184364,120,	8},	nil,			},	--Enraged Regeneration
-	{6544,	4,	{52174,	45,	0},	nil,			nil,			nil,			},	--Heroic Leap
-	{57755,	3,	{57755,	6,	0},	nil,			nil,			nil,			},	--Heroic Throw
-	{198304,2,	nil,			nil,			nil,			{198304,15,	0},	},	--Intercept
-	{5246,	1,	{5246,	90,	8},	nil,			nil,			nil,			},	--Intimidating Shout
-	{12975,	4,	nil,			nil,			nil,			{12975,	180,	15},	},	--Last Stand
-	{7384,	3,	nil,			{7384,	12,	0},	nil,			nil,			},	--Overpower
-	{6552,	5,	{6552,	15,	0},	nil,			nil,			nil,			},	--Pummel
-	{97462,	1,	{97462,	180,	10},	nil,			nil,			nil,			},	--Rallying Cry
-	{1719,	3,	nil,			nil,			{1719,	90,	10},	nil,			},	--Recklessness
-	{2565,	4,	nil,			nil,			nil,			{2565,	18,	6},	},	--Shield Block
-	{871,	4,	nil,			nil,			nil,			{871,	240,	8},	},	--Shield Wall
-	{46968,	1,	nil,			nil,			nil,			{46968,	30,	2},	},	--Shockwave
-	{23920,	4,	nil,			nil,			nil,			{23920,	25,	5},	},	--Spell Reflection
-	{260708,3,	nil,			{260708,25,	12},	nil,			nil,			},	--Sweeping Strikes
-	{355,	5,	{355,	8,	0},	nil,			nil,			nil,			},	--Taunt
-	{107570,3,	{107570,30,	0},	nil,			nil,			nil,			},	--Storm Bolt
+	{31850,	"PALADIN,DEFTANK",	4,	nil,			nil,			{31850,	120,	8},	nil,			},	--Ardent Defender
+	{31821,	"PALADIN,RAID",	1,	nil,			{31821,	180,	8},	nil,			nil,			},	--Aura Mastery
+	{31935,	"PALADIN",	3,	nil,			nil,			{31935,	15,	0},	nil,			},	--Avenger's Shield
+	{31884,	"PALADIN,RAID,DPS",	1,	nil,			{31884,	120,	20},	{31884,	120,	20},	{31884,	120,	20},	},	--Avenging Wrath
+	{1044,	"PALADIN,DEFTAR",	2,	{1044,	25,	8},	nil,			nil,			nil,			},	--Blessing of Freedom
+	{1022,	"PALADIN,DEFTAR",	2,	{1022,	300,	10},	nil,			nil,			nil,			},	--Blessing of Protection
+	{6940,	"PALADIN,DEFTAR",	2,	nil,			{6940,	120,	12},	{6940,	120,	12},	nil,			},	--Blessing of Sacrifiece	
+	{4987,	"PALADIN,DISPEL",	5,	nil,			{4987,	8,	0},	nil,			nil,			},	--Cleanse
+	{213644,"PALADIN,DISPEL",	5,	nil,			nil,			{213644,8,	0},	{213644,8,	0},	},	--Cleanse Toxins
+	{26573,	"PALADIN",	3,	nil,			{26573,	4.5,	0},	{26573,	4.5,	0},	nil,			},	--Consecration
+	{498,	"PALADIN,DEF",	4,	nil,			{498,	60,	8},	nil,			nil,			},	--Divine Protection
+	{642,	"PALADIN,DEF",	2,	{642,	300,	8},	nil,			nil,			nil,			},	--Divine Shield
+	{190784,"PALADIN,MOVE",	4,	{190784,45,	3},	nil,			nil,			nil,			},	--Divine Steed
+	{86659,	"PALADIN,DEFTANK",	4,	nil,			nil,			{86659,	300,	8},	nil,			},	--Guardian of Ancient Kings
+	{853,	"PALADIN",	3,	{853,	60,	6},	nil,			nil,			nil,			},	--Hammer of Justice
+	{62124,	"PALADIN,TAUNT",	5,	{62124,	8,	0},	nil,			nil,			nil,			},	--Hand of Reckoning
+	{183218,"PALADIN",	3,	nil,			nil,			nil,			{183218,30,	10},	},	--Hand of Hindrance
+	{20473,	"PALADIN",	3,	nil,			{20473,	9,	0},	nil,			nil,			},	--Holy Shock
+	{633,	"PALADIN,DEFTAR",	2,	{633,	600,	0},	nil,			nil,			nil,			},	--Lay on Hands
+	{85222,	"PALADIN",	3,	nil,			{85222,	12,	0},	nil,			nil,			},	--Light of Dawn
+	{96231,	"PALADIN,KICK",	5,	nil,			nil,			{96231,	15,	0},	{96231,	15,	0},	},	--Rebuke
+	{184662,"PALADIN,DEF",	4,	nil,			nil,			nil,			{184662,120,	15},	},	--Shield of Vengeance
 	
-	{107574,3,	nil,			{107574,90,	20},	nil,			nil,			},	--Avatar
-	{262228,3,	nil,			{262228,60,	6},	nil,			nil,			},	--Deadly Calm
-	{197690,4,	nil,			{197690,6,	0},	nil,			nil,			},	--Defensive Stance
-	{202168,3,	{202168,30,	0},	nil,			nil,			nil,			},	--Impending Victory
-	{152277,3,	nil,			{152277,60,	0},	nil,			nil,			},	--Ravager
-	{260643,3,	nil,			{260643,21,	0},	nil,			nil,			},	--Skullsplitter
-	{262161,3,	nil,			{262161,45,	0},	nil,			nil,			},	--Warbreaker
+	{216331,"PALADIN,RAID",	1,	nil,			{216331,120,	20},	nil,			nil,			},	--Avenging Crusader
+	{200025,"PALADIN",	3,	nil,			{200025,15,	8},	nil,			nil,			},	--Beacon of Virtue
+	{223306,"PALADIN",	3,	nil,			{223306,12,	5},	nil,			nil,			},	--Bestow Faith
+	{115750,"PALADIN",	3,	{115750,90,	0},	nil,			nil,			nil,			},	--Blinding Light
+	{105809,"PALADIN,HEAL",	3,	nil,			{105809,90,	20},	nil,			nil,			},	--Holy Avenger
+	{114165,"PALADIN,HEAL",	3,	nil,			{114165,20,	0},	nil,			nil,			},	--Holy Prism
+	{114158,"PALADIN,HEAL",	3,	nil,			{114158,60,	14},	nil,			nil,			},	--Light's Hammer
+	{20066,	"PALADIN,CC",	3,	{20066,	15,	0},	nil,			nil,			nil,			},	--Repentance
+	{214202,"PALADIN,HEAL",	3,	nil,			{214202,30,	10},	nil,			nil,			},	--Rule of Law	
+	{204150,"PALADIN,RAID",	1,	nil,			nil,			{204150,180,	6},	nil,			},	--Aegis of Light
+	{204035,"PALADIN",	3,	nil,			nil,			{204035,120,	0},	nil,			},	--Bastion of Light
+	{204018,"PALADIN,DEFTAR",	2,	nil,			nil,			{204018,180,	10},	nil,			},	--Blessing of Spellwarding
+	{152262,"PALADIN",	3,	nil,			nil,			{152262,45,	0},	nil,			},	--Seraphim
 	
-	{46924,	3,	nil,			nil,			{46924,	60,	4},	nil,			},	--Bladestorm
-	{118000,3,	nil,			nil,			{118000,35,	0},	{118000,35,	0},	},	--Dragon Roar
-	{280772,3,	nil,			nil,			{280772,30,	10},	nil,			},	--Siegebreaker
+	{205228,"PALADIN",	3,	nil,			nil,			nil,			{205228,20,	0},	},	--Consecration
+	{231895,"PALADIN,DPS",	3,	nil,			nil,			nil,			{231895,120,	20},	},	--Crusade
+	{267798,"PALADIN",	3,	nil,			nil,			nil,			{267798,30,	12},	},	--Execution Sentence
+	{205191,"PALADIN",	3,	nil,			nil,			nil,			{205191,60,	0},	},	--Eye for an Eye
+	{24275,	"PALADIN",	3,	nil,			nil,			nil,			{24275,	7.5,	0},	},	--Hammer of Wrath
+	{255937,"PALADIN,DPS",	3,	nil,			nil,			nil,			{255937,45,	0},	},	--Wake of Ashes
+	{210191,"PALADIN,HEAL",	3,	nil,			nil,			nil,			{210191,60,	0},	},	--World of Glory
 
-	{228920,3,	nil,			nil,			nil,			{228920,60,	0},	},	--Ravager
-},
-["PALADIN"] = {
-	{31850,	4,	nil,			nil,			{31850,	120,	8},	nil,			},	--Ardent Defender
-	{31821,	1,	nil,			{31821,	180,	8},	nil,			nil,			},	--Aura Mastery
-	{31935,	3,	nil,			nil,			{31935,	15,	0},	nil,			},	--Avenger's Shield
-	{31884,	1,	{31884,	120,	20},	nil,			nil,			nil,			},	--Avenging Wrath
-	{1044,	2,	{1044,	25,	8},	nil,			nil,			nil,			},	--Blessing of Freedom
-	{1022,	2,	{1022,	300,	10},	nil,			nil,			nil,			},	--Blessing of Protection
-	{6940,	2,	nil,			{6940,	120,	12},	{6940,	120,	12},	nil,			},	--Blessing of Sacrifiece	
-	{4987,	5,	nil,			{4987,	8,	0},	nil,			nil,			},	--Cleanse
-	{213644,5,	nil,			nil,			{213644,8,	0},	{213644,8,	0},	},	--Cleanse Toxins
-	{26573,	3,	nil,			{26573,	4.5,	0},	{26573,	4.5,	0},	nil,			},	--Consecration
-	{498,	4,	nil,			{498,	60,	8},	nil,			nil,			},	--Divine Protection
-	{642,	2,	{642,	300,	8},	nil,			nil,			nil,			},	--Divine Shield
-	{190784,4,	{190784,45,	3},	nil,			nil,			nil,			},	--Divine Steed
-	{86659,	4,	nil,			nil,			{86659,	300,	8},	nil,			},	--Guardian of Ancient Kings
-	{853,	3,	{853,	60,	6},	nil,			nil,			nil,			},	--Hammer of Justice
-	{62124,	5,	{62124,	8,	0},	nil,			nil,			nil,			},	--Hand of Reckoning
-	{183218,3,	nil,			nil,			nil,			{183218,30,	10},	},	--Hand of Hindrance
-	{20473,	3,	nil,			{20473,	9,	0},	nil,			nil,			},	--Holy Shock
-	{633,	2,	{633,	600,	0},	nil,			nil,			nil,			},	--Lay on Hands
-	{85222,	3,	nil,			{85222,	12,	0},	nil,			nil,			},	--Light of Dawn
-	{96231,	5,	nil,			nil,			{96231,	15,	0},	{96231,	15,	0},	},	--Rebuke
-	{184662,4,	nil,			nil,			nil,			{184662,120,	15},	},	--Shield of Vengeance
+	{186257,"HUNTER,MOVE",	4,	{186257,180,	12},	nil,			nil,			nil,			},	--Aspect of the Cheetah
+	{186289,"HUNTER",	3,	nil,			nil,			nil,			{186289,90,	0},	},	--Aspect of the Eagle
+	{186265,"HUNTER,DEF",	4,	{186265,180,	8},	nil,			nil,			nil,			},	--Aspect of the Turtle
+	{193530,"HUNTER,DPS",	3,	nil,			{193530,120,	20},	nil,			nil,			},	--Aspect of the Wild
+	{19574,	"HUNTER,DPS",	3,	nil,			{19574,	90,	15},	nil,			nil,			},	--Bestial Wrath
+	{186387,"HUNTER",	3,	nil,			nil,			{186387,30,	0},	nil,			},	--Bursting Shot
+	{187708,"HUNTER",	3,	nil,			nil,			nil,			{187708,6,	0},	},	--Carve
+	{5116,	"HUNTER",	3,	nil,			{5116,	5,	0},	{5116,	5,	0},	nil,			},	--Concussive Shot
+	{266779,"HUNTER,DPS",	3,	nil,			nil,			nil,			{266779,120,	0},	},	--Coordinated Assault
+	{147362,"HUNTER,KICK",	3,	nil,			{147362,24,	0},	{147362,24,	0},	nil,			},	--Counter Shot
+	{781,	"HUNTER,DEF",	4,	{781,	20,	0},	nil,			nil,			nil,			},	--Disengage
+	{109304,"HUNTER,DEF",	3,	{109304,120,	0},	nil,			nil,			nil,			},	--Exhilaration
+	{5384,	"HUNTER,DEF",	3,	{5384,	30,	0},	nil,			nil,			nil,			},	--Feign Death
+	{1543,	"HUNTER",	3,	{1543,	20,	0},	nil,			nil,			nil,			},	--Flare
+	{187650,"HUNTER,CC",	3,	{187650,30,	0},	nil,			nil,			nil,			},	--Freezing Trap
+	{19577,	"HUNTER,CC",	3,	nil,			{19577,	60,	0},	nil,			{19577,	60,	0},	},	--Intimidation
+	{34026,	"HUNTER",	3,	nil,			{34026,	7.5,	0},	nil,			nil,			},	--Kill Command
+	{34477,	"HUNTER",	3,	{34477,	30,	0},	nil,			nil,			nil,			},	--Misdirection
+	{187707,"HUNTER,KICK",	3,	nil,			nil,			nil,			{187707,15,	0},	},	--Muzzle
+	{257044,"HUNTER",	3,	nil,			nil,			{257044,20,	0},	nil,			},	--Rapid Fire
+	{187698,"HUNTER",	3,	{187698,30,	0},	nil,			nil,			nil,			},	--Tar Trap
+	{288613,"HUNTER,DPS",	3,	nil,			nil,			{288613,120,	15},	nil,			},	--Trueshot
 	
-	{216331,1,	nil,			{216331,120,	20},	nil,			nil,			},	--Avenging Crusader
-	{200025,3,	nil,			{200025,15,	8},	nil,			nil,			},	--Beacon of Virtue
-	{223306,3,	nil,			{223306,12,	5},	nil,			nil,			},	--Bestow Faith
-	{115750,3,	{115750,90,	0},	nil,			nil,			nil,			},	--Blinding Light
-	{105809,3,	nil,			{105809,90,	20},	nil,			nil,			},	--Holy Avenger
-	{114165,3,	nil,			{114165,20,	0},	nil,			nil,			},	--Holy Prism
-	{114158,3,	nil,			{114158,60,	14},	nil,			nil,			},	--Light's Hammer
-	{20066,	3,	{20066,	15,	0},	nil,			nil,			nil,			},	--Repentance
-	{214202,3,	nil,			{214202,30,	10},	nil,			nil,			},	--Rule of Law	
+	{131894,"HUNTER",	3,	{131894,60,	15},	nil,			nil,			nil,			},	--A Murder of Crows
+	{120360,"HUNTER",	3,	nil,			{120360,20,	3},	{120360,20,	3},	nil,			},	--Barrage
+	{109248,"HUNTER,CC",	3,	{109248,45,	0},	nil,			nil,			nil,			},	--Binding Shot
+	{199483,"HUNTER,DEF",	3,	{199483,60,	0},	nil,			nil,			nil,			},	--Camouflage
+	{53209,	"HUNTER",	3,	nil,			{53209,	15,	0},	nil,			nil,			},	--Chimaera Shot
+	{120679,"HUNTER",	3,	nil,			{120679,20,	0},	nil,			nil,			},	--Dire Beast
+	{194407,"HUNTER",	3,	nil,			{194407,90,	0},	nil,			nil,			},	--Spitting Cobra
+	{201430,"HUNTER,DPS",	3,	nil,			{201430,180,	12},	nil,			nil,			},	--Stampede
+	
+	{260402,"HUNTER",	3,	nil,			nil,			{260402,60,	0},	nil,			},	--Double Tap
+	{212431,"HUNTER",	3,	nil,			nil,			{212431,30,	0},	nil,			},	--Explosive Shot
+	{198670,"HUNTER",	3,	nil,			nil,			{198670,30,	0},	nil,			},	--Piercing Shot
+	
+	{259391,"HUNTER",	3,	nil,			nil,			nil,			{259391,20,	0},	},	--Chakrams
+	{269751,"HUNTER",	3,	nil,			nil,			nil,			{269751,40,	0},	},	--Flanking Strike
+	{162488,"HUNTER",	3,	nil,			nil,			nil,			{162488,30,	0},	},	--Steel Trap	
 
-	{204150,1,	nil,			nil,			{204150,180,	6},	nil,			},	--Aegis of Light
-	{204035,3,	nil,			nil,			{204035,120,	0},	nil,			},	--Bastion of Light
-	{204018,2,	nil,			nil,			{204018,180,	10},	nil,			},	--Blessing of Spellwarding
-	{152262,3,	nil,			nil,			{152262,45,	0},	nil,			},	--Seraphim
+	{13750,	"ROGUE,DPS",	3,	nil,			nil,			{13750,	180,	20},	nil,			},	--Adrenaline Rush
+	{199804,"ROGUE,CC",	3,	nil,			nil,			{199804,30,	0},	nil,			},	--Between the Eyes
+	{13877,	"ROGUE",	3,	nil,			nil,			{13877,	25,	12},	nil,			},	--Blade Flurry
+	{2094,	"ROGUE,CC",	3,	{2094,	120,	0},	nil,			nil,			nil,			},	--Blind
+	{31224,	"ROGUE,DEF",	4,	{31224,	120,	5},	nil,			nil,			nil,			},	--Cloak of Shadows
+	{185311,"ROGUE,DEF",	4,	{185311,30,	6},	nil,			nil,			nil,			},	--Crimson Vial
+	{1725,	"ROGUE",	3,	{1725,	30,	10},	nil,			nil,			nil,			},	--Distract
+	{5277,	"ROGUE,DEF",	4,	nil,			{5277,	120,	10},	nil,			{5277,	120,	10},	},	--Evasion
+	{1966,	"ROGUE,DEF",	4,	{1966,	15,	5},	nil,			nil,			nil,			},	--Feint
+	{703,	"ROGUE",	3,	nil,			{703,	6,	0},	nil,			nil,			},	--Garrote
+	{1776,	"ROGUE,CC",	3,	nil,			nil,			{1776,	15,	0},	nil,			},	--Gouge
+	{195457,"ROGUE,MOVE",	3,	nil,			nil,			{195457,60,	0},	nil,			},	--Grappling Hook
+	{1766,	"ROGUE,KICK",	5,	{1766,	15,	0},	nil,			nil,			nil,			},	--Kick
+	{408,	"ROGUE,CC",	3,	nil,			{408,	20,	0},	nil,			{408,	20,	0},	},	--Kidney Shot
+	{199754,"ROGUE,DEF",	3,	nil,			nil,			{199754,120,	0},	nil,			},	--Riposte
+	{185313,"ROGUE,DPS",	3,	nil,			nil,			nil,			{185313,60,	5},	},	--Shadow dance
+	{36554,	"ROGUE,MOVE",	4,	nil,			{36554,	30,	2},	nil,			{36554,	30,	2},	},	--Shadowstep
+	{121471,"ROGUE,DPS",	3,	nil,			nil,			nil,			{121471,180,	20},	},	--Shadow Blades
+	{114018,"ROGUE,UTIL",	1,	{114018,360,	15},	nil,			nil,			nil,			},	--Shroud of Concealment
+	{2983,	"ROGUE,MOVE",	4,	{2983,	120,	8},	nil,			nil,			nil,			},	--Sprint
+	{212283,"ROGUE,DPS",	3,	nil,			nil,			nil,			{212283,30,	10},	},	--Symbols of Death
+	{57934,	"ROGUE",	3,	{57934,	30,	6},	nil,			nil,			nil,			},	--Tricks of the Trade
+	{1856,	"ROGUE,DEF",	4,	{1856,	120,	3},	nil,			nil,			nil,			},	--Vanish
+	{79140,	"ROGUE,DPS",	3,	nil,			{79140,	120,	20},	nil,			nil,			},	--Vendetta
 	
-	{205228,3,	nil,			nil,			nil,			{205228,20,	0},	},	--Consecration
-	{231895,3,	nil,			nil,			nil,			{231895,120,	20},	},	--Crusade
-	{267798,3,	nil,			nil,			nil,			{267798,30,	12},	},	--Execution Sentence
-	{205191,3,	nil,			nil,			nil,			{205191,60,	0},	},	--Eye for an Eye
-	{24275,	3,	nil,			nil,			nil,			{24275,	7.5,	0},	},	--Hammer of Wrath
-	{255937,3,	nil,			nil,			nil,			{255937,45,	0},	},	--Wake of Ashes
-	{210191,3,	nil,			nil,			nil,			{210191,60,	0},	},	--World of Glory
-},
-["HUNTER"] = {
-	{186257,4,	{186257,180,	12},	nil,			nil,			nil,			},	--Aspect of the Cheetah
-	{186289,3,	nil,			nil,			nil,			{186289,90,	0},	},	--Aspect of the Eagle
-	{186265,4,	{186265,180,	8},	nil,			nil,			nil,			},	--Aspect of the Turtle
-	{193530,3,	nil,			{193530,120,	20},	nil,			nil,			},	--Aspect of the Wild
-	{19574,	3,	nil,			{19574,	90,	15},	nil,			nil,			},	--Bestial Wrath
-	{186387,3,	nil,			nil,			{186387,30,	0},	nil,			},	--Bursting Shot
-	{187708,3,	nil,			nil,			nil,			{187708,6,	0},	},	--Carve
-	{5116,	3,	nil,			{5116,	5,	0},	{5116,	5,	0},	nil,			},	--Concussive Shot
-	{266779,3,	nil,			nil,			nil,			{266779,120,	0},	},	--Coordinated Assault
-	{147362,3,	nil,			{147362,24,	0},	{147362,24,	0},	nil,			},	--Counter Shot
-	{781,	4,	{781,	20,	0},	nil,			nil,			nil,			},	--Disengage
-	{109304,3,	{109304,120,	0},	nil,			nil,			nil,			},	--Exhilaration
-	{5384,	3,	{5384,	30,	0},	nil,			nil,			nil,			},	--Feign Death
-	{1543,	3,	{1543,	20,	0},	nil,			nil,			nil,			},	--Flare
-	{187650,3,	{187650,30,	0},	nil,			nil,			nil,			},	--Freezing Trap
-	{19577,	3,	nil,			{19577,	60,	0},	nil,			{19577,	60,	0},	},	--Intimidation
-	{34026,	3,	nil,			{34026,	7.5,	0},	nil,			nil,			},	--Kill Command
-	{34477,	3,	{34477,	30,	0},	nil,			nil,			nil,			},	--Misdirection
-	{187707,3,	nil,			nil,			nil,			{187707,15,	0},	},	--Muzzle
-	{257044,3,	nil,			nil,			{257044,20,	0},	nil,			},	--Rapid Fire
-	{187698,3,	{187698,30,	0},	nil,			nil,			nil,			},	--Tar Trap
-	{288613,3,	nil,			nil,			{288613,120,	15},	nil,			},	--Trueshot
+	{200806,"ROGUE,DPS",	3,	nil,			{200806,45,	0},	nil,			nil,			},	--Exsanguinate
+	{137619,"ROGUE,DPS",	3,	{137619,60,	0},	nil,			nil,			nil,			},	--Marked for Death
+	{245388,"ROGUE",	3,	nil,			{245388,25,	0},	nil,			nil,			},	--Toxic Blade
 	
-	{131894,3,	{131894,60,	15},	nil,			nil,			nil,			},	--A Murder of Crows
-	{120360,3,	nil,			{120360,20,	3},	{120360,20,	3},	nil,			},	--Barrage
-	{109248,3,	{109248,45,	0},	nil,			nil,			nil,			},	--Binding Shot
-	{199483,3,	{199483,60,	0},	nil,			nil,			nil,			},	--Camouflage
-	{53209,	3,	nil,			{53209,	15,	0},	nil,			nil,			},	--Chimaera Shot
-	{120679,3,	nil,			{120679,20,	0},	nil,			nil,			},	--Dire Beast
-	{194407,3,	nil,			{194407,90,	0},	nil,			nil,			},	--Spitting Cobra
-	{201430,3,	nil,			{201430,180,	12},	nil,			nil,			},	--Stampede
+	{271877,"ROGUE",	3,	nil,			nil,			{271877,45,	0},	nil,			},	--Blade Rush
+	{196937,"ROGUE",	3,	nil,			nil,			{196937,35,	0},	nil,			},	--Ghostly Strike
+	{51690,	"ROGUE,DPS",	3,	nil,			nil,			{51690,	120,	0},	nil,			},	--Killing Spree
 	
-	{260402,3,	nil,			nil,			{260402,60,	0},	nil,			},	--Double Tap
-	{212431,3,	nil,			nil,			{212431,30,	0},	nil,			},	--Explosive Shot
-	{198670,3,	nil,			nil,			{198670,30,	0},	nil,			},	--Piercing Shot
-	
-	{259391,3,	nil,			nil,			nil,			{259391,20,	0},	},	--Chakrams
-	{269751,3,	nil,			nil,			nil,			{269751,40,	0},	},	--Flanking Strike
-	{162488,3,	nil,			nil,			nil,			{162488,30,	0},	},	--Steel Trap	
-},
-["ROGUE"] = {
-	{13750,	3,	nil,			nil,			{13750,	180,	20},	nil,			},	--Adrenaline Rush
-	{199804,3,	nil,			nil,			{199804,30,	0},	nil,			},	--Between the Eyes
-	{13877,	3,	nil,			nil,			{13877,	25,	12},	nil,			},	--Blade Flurry
-	{2094,	3,	{2094,	120,	0},	nil,			nil,			nil,			},	--Blind
-	{31224,	4,	{31224,	120,	5},	nil,			nil,			nil,			},	--Cloak of Shadows
-	{185311,4,	{185311,30,	6},	nil,			nil,			nil,			},	--Crimson Vial
-	{1725,	3,	{1725,	30,	10},	nil,			nil,			nil,			},	--Distract
-	{5277,	4,	nil,			{5277,	120,	10},	nil,			{5277,	120,	10},	},	--Evasion
-	{1966,	4,	{1966,	15,	5},	nil,			nil,			nil,			},	--Feint
-	{703,	3,	nil,			{703,	6,	0},	nil,			nil,			},	--Garrote
-	{1776,	3,	nil,			nil,			{1776,	15,	0},	nil,			},	--Gouge
-	{195457,3,	nil,			nil,			{195457,60,	0},	nil,			},	--Grappling Hook
-	{1766,	5,	{1766,	15,	0},	nil,			nil,			nil,			},	--Kick
-	{408,	3,	nil,			{408,	20,	0},	nil,			{408,	20,	0},	},	--Kidney Shot
-	{199754,3,	nil,			nil,			{199754,120,	0},	nil,			},	--Riposte
-	{185313,3,	nil,			nil,			nil,			{185313,60,	5},	},	--Shadow dance
-	{36554,	4,	nil,			{36554,	30,	2},	nil,			{36554,	30,	2},	},	--Shadowstep
-	{121471,3,	nil,			nil,			nil,			{121471,180,	20},	},	--Shadow Blades
-	{114018,1,	{114018,360,	15},	nil,			nil,			nil,			},	--Shroud of Concealment
-	{2983,	4,	{2983,	120,	8},	nil,			nil,			nil,			},	--Sprint
-	{212283,3,	nil,			nil,			nil,			{212283,30,	10},	},	--Symbols of Death
-	{57934,	3,	{57934,	30,	6},	nil,			nil,			nil,			},	--Tricks of the Trade
-	{1856,	4,	{1856,	120,	3},	nil,			nil,			nil,			},	--Vanish
-	{79140,	3,	nil,			{79140,	120,	20},	nil,			nil,			},	--Vendetta
-	
-	{200806,3,	nil,			{200806,45,	0},	nil,			nil,			},	--Exsanguinate
-	{137619,3,	{137619,60,	0},	nil,			nil,			nil,			},	--Marked for Death
-	{245388,3,	nil,			{245388,25,	0},	nil,			nil,			},	--Toxic Blade
-	
-	{271877,3,	nil,			nil,			{271877,45,	0},	nil,			},	--Blade Rush
-	{196937,3,	nil,			nil,			{196937,35,	0},	nil,			},	--Ghostly Strike
-	{51690,	3,	nil,			nil,			{51690,	120,	0},	nil,			},	--Killing Spree
-	
-	{280719,3,	nil,			nil,			nil,			{280719,45,	0},	},	--Secret Technique
-	{277925,3,	nil,			nil,			nil,			{277925,60,	4},	},	--Shuriken Tornado
-},
-["PRIEST"] = {
-	{19236,	4,	nil,			{19236,	90,	10},	{19236,	90,	10},	nil,			},	--Desperate Prayer
-	{47585,	4,	nil,			nil,			nil,			{47585,	120,	6},	},	--Dispersion
-	{64843,	1,	nil,			nil,			{64843,	180,	8},	nil,			},	--Divine Hymn
-	{586,	4,	{586,	30,	10},	nil,			nil,			nil,			},	--Fade
-	{47788,	2,	nil,			nil,			{47788,	180,	10},	nil,			},	--Guardian Spirit
-	{14914,	3,	nil,			nil,			{14914,	10,	0},	nil,			},	--Holy Fire
-	{88625,	3,	nil,			nil,			{88625,	60,	0},	nil,			},	--Holy Word: Chastise
-	{34861,	3,	nil,			nil,			{34861,	60,	0},	nil,			},	--Holy Word: Sanctify
-	{2050,	3,	nil,			nil,			{2050,	60,	0},	nil,			},	--Holy Word: Serenity
-	{73325,	2,	{73325,	90,	0},	nil,			nil,			nil,			},	--Leap of Faith
-	{32375,	1,	{32375,	45,	0},	nil,			nil,			nil,			},	--Mass Dispel
-	{33206,	2,	nil,			{33206,	180,	8},	nil,			nil,			},	--Pain Suppression
-	{62618,	1,	nil,			{62618,	180,	10},	nil,			nil,			},	--Power Word: Barrier
-	{194509,3,	nil,			{194509,20,	0},	nil,			nil,			},	--Power Word: Radiance
-	{33076,	3,	nil,			nil,			{33076,	12,	0},	nil,			},	--Prayer of Mending
-	{8122,	3,	{8122,	60,	8},	nil,			nil,			nil,			},	--Psychic Scream
-	{527,	5,	nil,			{527,	8,	0},	{527,	8,	0},	nil,			},	--Purify
-	{213634,5,	nil,			nil,			nil,			{213634,8,	0},	},	--Purify Disease
-	{47536,	1,	nil,			{47536,	90,	10},	nil,			nil,			},	--Rapture
-	{34433,	3,	nil,			{34433,	180,	15},	nil,			{34433,	180,	15},	},	--Shadowfiend
-	{15487,	3,	nil,			nil,			nil,			{15487,	45,	4},	},	--Silence
-	{64901,	1,	nil,			nil,			{64901,	300,	6},	nil,			},	--Symbol of Hope
-	{15286,	1,	nil,			nil,			nil,			{15286,	120,	15},	},	--Vampiric Embrace
-	
-	{121536,3,	nil,			{121536,20,	0},	{121536,20,	0},	nil,			},	--Angelic Feather
-	{110744,3,	nil,			{110744,15,	0},	{110744,15,	0},	nil,			},	--Divine Star
-	{246287,3,	nil,			{246287,90,	0},	nil,			nil,			},	--Evangelism
-	{120517,3,	nil,			{120517,40,	0},	{120517,40,	0},	nil,			},	--Halo
-	{271466,1,	nil,			{271466,180,	0},	nil,			nil,			},	--Luminous Barrier
-	{123040,3,	nil,			{123040,60,	12},	nil,			nil,			},	--Mindbender
-	{129250,3,	nil,			{129250,12,	0},	nil,			nil,			},	--Power Word: Solace
-	{214621,3,	nil,			{214621,24,	9},	nil,			nil,			},	--Schism
-	{204065,3,	nil,			{204065,12,	0},	nil,			nil,			},	--Shadow Covenant
-	{204263,3,	nil,			{204263,45,	0},	{204263,45,	0},	nil,			},	--Shining Force
-	
-	{200183,3,	nil,			nil,			{200183,120,	0},	nil,			},	--Apotheosis
-	{204883,3,	nil,			nil,			{204883,15,	0},	nil,			},	--Circle of Healing
-	{265202,1,	nil,			nil,			{265202,720,	0},	nil,			},	--Holy Word: Salvation
-	
-	{280711,3,	nil,			nil,			nil,			{280711,60,	0},	},	--Dark Ascension
-	{263346,3,	nil,			nil,			nil,			{263346,30,	0},	},	--Dark Void
-	{205369,3,	nil,			nil,			nil,			{205369,30,	0},	},	--Mind Bomb
-	{200174,3,	nil,			nil,			nil,			{200174,60,	0},	},	--Mindbender
-	{64044,	3,	nil,			nil,			nil,			{64044,	45,	4},	},	--Psychic Horror
-	{205385,3,	nil,			nil,			nil,			{205385,20,	0},	},	--Shadow Crash
-	{193223,3,	nil,			nil,			nil,			{193223,240,	0},	},	--Surrender to Madness
-	{263165,3,	nil,			nil,			nil,			{263165,45,	4},	},	--Void Torrent
-},
-["DEATHKNIGHT"] = {
-	{48707,	4,	{48707,	60,	5},	nil,			nil,			nil,			},	--Anti-Magic Shell
-	{275699,3,	nil,			nil,			nil,			{275699,90,	15},	},	--Apocalypse
-	{42650,	3,	nil,			nil,			nil,			{42650,	480,	30},	},	--Army of the Dead
-	{221562,3,	nil,			{221562,45,	5},	nil,			nil,			},	--Asphyxiate
-	{49028,	4,	nil,			{49028,	120,	8},	nil,			nil,			},	--Dancing Rune Weapon
-	{56222,	5,	{56222,	8,	0},	nil,			nil,			nil,			},	--Dark Command
-	{63560,	3,	nil,			nil,			nil,			{63560,	60,	15},	},	--Dark Transformation
-	{50977,	3,	{50977,	60,	0},	nil,			nil,			nil,			},	--Death Gate
-	{49576,	5,	nil,			{49576,	15,	0},	{49576,	25,	0},	{49576,	25,	0},	},	--Death Grip
-	{43265,	3,	nil,			{43265,	15,	0},	nil,			{43265,	30,	0},	},	--Death and Decay
-	{48265,	4,	{48265,	45,	0},	nil,			nil,			nil,			},	--Death's Advance
-	{47568,	3,	nil,			nil,			{47568,	120,	20},	nil,			},	--Empower Rune Weapon
-	{108199,1,	nil,			{108199,120,	0},	nil,			nil,			},	--Gorefiend's Grasp
-	{48792,	4,	{48792,	180,	8},	nil,			nil,			nil,			},	--Icebound Fortitude
-	{47528,	5,	{47528,	15,	0},	nil,			nil,			nil,			},	--Mind Freeze
-	{51271,	3,	nil,			nil,			{51271,	45,	15},	nil,			},	--Pillar of Frost
-	{61999,	3,	{61999,	600,	0},	nil,			nil,			nil,			},	--Raise Ally
-	{46584,	3,	nil,			nil,			nil,			{46584,	30,	0},	},	--Raise Dead
-	{196770,3,	nil,			nil,			{196770,20,	8},	nil,			},	--Remorseless Winter
-	{55233,	3,	nil,			{55233,	90,	10},	nil,			nil,			},	--Vampiric Blood
-	
-	{206931,3,	nil,			{206931,30,	0},	nil,			nil,			},	--Blooddrinker
-	{194844,3,	nil,			{194844,60,	0},	nil,			nil,			},	--Bonestorm
-	{274156,3,	nil,			{274156,45,	0},	nil,			nil,			},	--Consumption
-	{206940,3,	nil,			{206940,6,	0},	nil,			nil,			},	--Mark of Blood
-	{194679,4,	nil,			{194679,25,	4},	nil,			nil,			},	--Rune Tap
-	{219809,3,	nil,			{219809,60,	0},	nil,			nil,			},	--Tombstone
-	{212552,3,	{212552,60,	4},	nil,			nil,			nil,			},	--Wraith Walk
-	
-	{108194,3,	nil,			nil,			{108194,45,	0},	{108194,45,	0},	},	--Asphyxiate
-	{207167,3,	nil,			nil,			{207167,60,	0},	nil,			},	--Blinding Sleet
-	{152279,3,	nil,			nil,			{152279,120,	0},	nil,			},	--Breath of Sindragosa
-	{48743,	3,	nil,			nil,			{48743,	120,	15},	{48743,	120,	15},	},	--Death Pact
-	{279302,3,	nil,			nil,			{279302,180,	10},	nil,			},	--Frostwyrm's Fury
-	{194913,3,	nil,			nil,			{194913,6,	0},	nil,			},	--Glacial Advance
-	{57330,	3,	nil,			nil,			{57330,	45,	0},	nil,			},	--Horn of Winter
-	
-	{152280,3,	nil,			nil,			nil,			{152280,20,	0},	},	--Defile
-	{130736,3,	nil,			nil,			nil,			{130736,45,	0},	},	--Soul Reaper
-	{49206,	3,	nil,			nil,			nil,			{49206,	180,	30},	},	--Summon Gargoyle
-	{115989,3,	nil,			nil,			nil,			{115989,45,	0},	},	--Unholy Blight
-	{207289,3,	nil,			nil,			nil,			{207289,75,	12},	},	--Unholy Frenzy
-},
-["SHAMAN"] = {
-	{556,	3,	{556,	600,	0},	nil,			nil,			nil,			},	--Astral Recall
-	{108271,4,	{108271,90,	8},	nil,			nil,			nil,			},	--Astral Shift
-	{2825,	3,	{2825,	300,	0},	nil,			nil,			nil,			},	--Bloodlust
-	{32182,	3,	{32182,	300,	0},	nil,			nil,			nil,			},	--Героизм
-	{192058,1,	{192058,60,	2},	nil,			nil,			nil,			},	--Capacitor Totem
-	{51886,	5,	nil,			{51886,	8,	0},	{51886,	8,	0},	nil,			},	--Cleanse Spirit
-	{187874,3,	nil,			nil,			{187874,6,	0},	nil,			},	--Crash Lightning
-	{198103,2,	{198103,300,	60},	nil,			nil,			nil,			},	--Earth Elemental
-	{2484,	3,	{2484,	30,	20},	nil,			nil,			nil,			},	--Earthbind Totem
-	{51533,	3,	nil,			nil,			{51533,	120,	15},	nil,			},	--Feral Spirit
-	{198067,3,	nil,			{198067,150,	30},	nil,			nil,			},	--Fire Elemental
-	{188389,3,	nil,			{188389,6,	0},	nil,			{188838,6,	0},	},	--Flame Shock
-	{193796,3,	nil,			nil,			{193796,12,	0},	nil,			},	--Flametongue
-	{73920,	3,	nil,			nil,			nil,			{73920,	10,	0},	},	--Healing Rain
-	{108280,3,	nil,			nil,			nil,			{108280,180,	10},	},	--Healing Tide Totem
-	{51514,	3,	{51514,	30,	0},	nil,			nil,			nil,			},	--Hex
-	{20608,	2,	{21169,	1800,	0},	nil,			nil,			nil,			},	--Reincarnation
-	{58875,	3,	nil,			nil,			{58875,	60,	0},	nil,			},	--Spirit Walk
-	{79206,	3,	nil,			nil,			nil,			{79206,	120,	15},	},	--Spiritwalker's Grace
-	{17364,	3,	nil,			nil,			{17364,	9,	0},	nil,			},	--Stormstrike
-	{51490,	3,	nil,			{51490,	45,	0},	nil,			nil,			},	--Thunderstorm
-	{8143,	1,	{8143,	60,	10},	nil,			nil,			nil,			},	--Tremor Totem
-	{57994,	5,	{57994,	12,	0},	nil,			nil,			nil,			},	--Wind Shear
-	{77130,	5,	nil,			nil,			nil,			{77130,	8,	0},	},	--Purify Spirit
-	
-	{108281,1,	nil,			{108281,120,	10},	nil,			nil,			},	--Ancestral Guidance
-	{114050,3,	nil,			{114050,180,	15},	nil,			nil,			},	--Ascendance
-	{117014,3,	nil,			{117014,12,	10},	nil,			nil,			},	--Elemental Blast
-	{210714,3,	nil,			{210714,30,	0},	nil,			nil,			},	--Icefury
-	{192222,3,	nil,			{192222,60,	0},	nil,			nil,			},	--Liquid Magma Totem
-	{16166,	3,	nil,			{16166,	120,	15},	nil,			nil,			},	--Master of the Elements
-	{192249,3,	nil,			{192249,150,	30},	nil,			nil,			},	--Storm Elemental
-	{191634,3,	nil,			{191634,60,	0},	nil,			nil,			},	--Stormkeeper
-	{192077,1,	{192077,120,	15},	nil,			nil,			nil,			},	--Wind Rush Totem
-	
-	{114051,3,	nil,			nil,			{114051,180,	15},	nil,			},	--Ascendance
-	{188089,3,	nil,			nil,			{188089,20,	0},	nil,			},	--Earthen Spike
-	{196884,3,	nil,			nil,			{196884,30,	0},	nil,			},	--Feral Lunge
-	{197214,3,	nil,			nil,			{197214,40,	0},	nil,			},	--Sundering
-	
-	{207399,1,	nil,			nil,			nil,			{207399,300,	30},	},	--Ancestral Protection Totem
-	{114052,3,	nil,			nil,			nil,			{114052,180,	15},	},	--Ascendance
-	{207778,3,	nil,			nil,			nil,			{207778,5,	0},	},	--Downpour
-	{198838,3,	nil,			nil,			nil,			{198838,60,	15},	},	--Earthen Wall Totem
-	{51485,	3,	nil,			nil,			nil,			{51485,	30,	20},	},	--Earthgrab Totem
-	{197995,3,	nil,			nil,			nil,			{197995,20,	0},	},	--Wellspring
-	{73685,	3,	nil,			nil,			nil,			{73685,	15,	0},	},	--Unleash Life
-	{157153,3,	nil,			nil,			nil,			{157153,30,	15},	},	--CBT
-	{5394,	3,	nil,			nil,			nil,			{5394,	30,	15},	},	--HST
-	{61295,	3,	nil,			nil,			nil,			{61295,	6,	0},	},	--Riptide
-},
-["MAGE"] = {
-	{12042,	3,	nil,			{12042,	90,	10},	nil,			nil,			},	--Arcane Power
-	{1953,	4,	{1953,	15,	0},	nil,			nil,			nil,			},	--Blink
-	{235313,3,	nil,			nil,			{235313,25,	0},	nil,			},	--Blazing Barrier
-	{190356,3,	nil,			nil,			nil,			{190356,8,	0},	},	--Blizzard
-	{235219,3,	nil,			nil,			nil,			{235219,300,	0},	},	--Cold Snap
-	{190319,3,	nil,			nil,			{190319,120,	10},	nil,			},	--Combustion
-	{120,	3,	nil,			nil,			nil,			{120,	12,	0},	},	--Cone of Cold
-	{190336,3,	{190336,15,	0},	nil,			nil,			nil,			},	--Conjure Refreshment
-	{2139,	5,	{2139,	24,	0},	nil,			nil,			nil,			},	--Counterspell
-	{195676,3,	nil,			{195676,30,	0},	nil,			nil,			},	--Displacement
-	{31661,	3,	nil,			nil,			{31661,	20,	0},	nil,			},	--Dragon's Breath
-	{12051,	3,	nil,			{12051,	90,	6},	nil,			nil,			},	--Evocation
-	{84714,	3,	nil,			nil,			nil,			{84714,	60,	0},	},	--Frozen Orb
-	{122,	3,	{122,	30,	0},	nil,			nil,			nil,			},	--Frost nova
-	{110960,4,	nil,			{110960,120,	0},	nil,			nil,			},	--Greather invis
-	{66,	4,	nil,			nil,			{66,	300,	0},	{66,	300,	0},	},	--Invis
-	{11426,	3,	nil,			nil,			nil,			{11426,	25,	0},	},	--Ice Barrier
-	{45438,	3,	{45438,	240,	10},	nil,			nil,			nil,			},	--Ice Block
-	{12472,	3,	nil,			nil,			nil,			{12472,	180,	20},	},	--Icy Veins
-	{66,	3,	{66,	300,	0},	nil,			nil,			nil,			},	--Invisibility
-	{205025,3,	nil,			{205025,60,	0},	nil,			nil,			},	--Presence of Mind
-	{235450,4,	nil,			{235450,25,	0},	nil,			nil,			},	--Prismatic Barrier
-	{475,	5,	{475,	8,	0},	nil,			nil,			nil,			},	--Remove Curse
-	{31687,	3,	nil,			nil,			nil,			{31687,	30,	0},	},	--Summon Water Elemental
-	{80353,	3,	{80353,	300,	0},	nil,			nil,			nil,			},	--Time Warp
-	
-	{205022,3,	nil,			{205022,10,	0},	nil,			nil,			},	--Arcane Familiar
-	{153626,3,	nil,			{153626,20,	0},	nil,			nil,			},	--Arcane Orb
-	{205032,3,	nil,			{205032,40,	0},	nil,			nil,			},	--Charged Up
-	{55342,	3,	{55342,	120,	40},	nil,			nil,			nil,			},	--Mirror Image
-	{113724,3,	{113724,45,	0},	nil,			nil,			nil,			},	--Ring of Frost
-	{116011,3,	{116011,40,	10},	nil,			nil,			nil,			},	--Rune of Power
-	{157980,3,	nil,			{157980,25,	0},	nil,			nil,			},	--Supernova
-	{212653,4,	{212653,20,	0},	nil,			nil,			nil,			},	--Shimmer
-	
-	{235870,3,	nil,			nil,			{235870,45,	0},	nil,			},	--Alexstrasza's Fury
-	{157981,3,	nil,			nil,			{157981,25,	0},	nil,			},	--Blast Wave
-	{44457,	3,	nil,			nil,			{44457,	12,	0},	nil,			},	--Living Bomb
-	{153561,3,	nil,			nil,			{153561,45,	0},	nil,			},	--Meteor
-	{257541,3,	nil,			nil,			{257541,30,	0},	nil,			},	--Phoenix flames
-	
-	{153595,3,	nil,			nil,			nil,			{153595,30,	0},	},	--Comet Storm
-	{257537,3,	nil,			nil,			nil,			{257537,45,	0},	},	--Ebonbolt
-	{205030,3,	nil,			nil,			nil,			{205030,30,	0},	},	--Frozen Touch
-	{157997,3,	nil,			nil,			nil,			{157997,25,	0},	},	--Ice Nova
-	{205021,3,	nil,			nil,			nil,			{205021,75,	0},	},	--Ray of Frost
-},
-["WARLOCK"] = {
-	{104316,3,	nil,			nil,			{104316,20,	0},	nil,			},	--Call Dreadstalkers
-	{29893,	3,	{29893,	120,	0},	nil,			nil,			nil,			},	--Create Soulwell
-	{111771,3,	{111771,10,	0},	nil,			nil,			nil,			},	--Demonic Gateway
-	{80240,	3,	nil,			nil,			nil,			{80240,	25,	0},	},	--Havoc
-	{698,	3,	{698,	120,	0},	nil,			nil,			nil,			},	--Ritual of Summoning
-	{30283,	1,	{30283,	60,	0},	nil,			nil,			nil,			},	--Shadowfury
-	{20707,	3,	{20707,	600,	0},	nil,			nil,			nil,			},	--Soulstone
-	{205180,3,	nil,			{205180,180,	20},	nil,			nil,			},	--Summon Darkglare
-	{265187,3,	nil,			nil,			{265187,90,	0},	nil,			},	--Summon Demonic Tyrant
-	{1122,	3,	nil,			nil,			nil,			{1122,	180,	0},	},	--Summon Infernal
-	{104773,4,	{104773,180,	8},	nil,			nil,			nil,			},	--Unending Resolve
-	
-	{108416,3,	{108416,60,	0},	nil,			nil,			nil,			},	--Dark Pact
-	{113860,3,	nil,			{113860,120,	0},	nil,			nil,			},	--Dark Soul: Misery
-	{264106,3,	nil,			{264106,30,	0},	nil,			nil,			},	--Deathbolt
-	{268358,3,	{268358,10,	0},	nil,			nil,			nil,			},	--Demonic Circle
-	{108503,3,	nil,			{108503,30,	0},	nil,			{108503,30,	0},	},	--Grimoire of Sacrifice
-	{48181,	3,	nil,			{48181,	15,	0},	nil,			nil,			},	--Haunt
-	{6789,	3,	{6789,	45,	0},	nil,			nil,			nil,			},	--Mortal Coil
-	{205179,3,	nil,			{205179,45,	0},	nil,			nil,			},	--Phantom Singularity
-	{278350,3,	nil,			{278350,20,	0},	nil,			nil,			},	--Vile Taint
-	
-	{267211,3,	nil,			nil,			{267211,30,	0},	nil,			},	--Bilescourge Bombers
-	{267171,3,	nil,			nil,			{267171,60,	0},	nil,			},	--Demonic Strength
-	{111898,3,	nil,			nil,			{111898,90,	0},	nil,			},	--Grimoire: Felguard
-	{267217,3,	nil,			nil,			{267217,180,	0},	nil,			},	--Nether Portal
-	{264130,3,	nil,			nil,			{264130,30,	0},	nil,			},	--Power Siphon
-	{264057,3,	nil,			nil,			{264057,10,	0},	nil,			},	--Soul Strike
-	{264119,3,	nil,			nil,			{264119,45,	0},	nil,			},	--Summon Vilefiend
-	
-	{152108,3,	nil,			nil,			nil,			{152108,30,	0},	},	--Cataclysm
-	{196447,3,	nil,			nil,			nil,			{196447,25,	0},	},	--Channel Demonfire
-	{113858,3,	nil,			nil,			nil,			{113858,120,	0},	},	--Dark Soul: Instability
-	{6353,	3,	nil,			nil,			nil,			{6353,	20,	0},	},	--Soul Fire
-},
-["MONK"] = {
-	{100784,3,	{100784,3,	0},	nil,			nil,			nil,			},	--Blackout Kick
-	{115181,3,	nil,			{115181,15,	0},	nil,			nil,			},	--Breath of Fire
-	{218164,5,	nil,			{218164,8,	0},	{218164,8,	0},	nil,			},	--Detox
-	{115450,5,	nil,			nil,			nil,			{115450,8,	0},	},	--Detox
-	{191837,3,	nil,			nil,			nil,			{191837,12,	0},	},	--Essence Font
-	{113656,3,	nil,			nil,			{113656,24,	0},nil,				},	--Fists of Fury
-	{101545,3,	nil,			nil,			{101545,25,	0},nil,				},	--Flying Serpent Kick
-	{115203,4,	nil,			{115203,420,	15},	nil,			nil,			},	--Fortifying Brew
-	{243435,4,	nil,			nil,			nil,			{243435,90,	15},	},	--Fortifying Brew
-	{119381,1,	{119381,60,	3},	nil,			nil,			nil,			},	--Leg Sweep
-	{116849,2,	nil,			nil,			nil,			{116849,120,	12},	},	--Life Cocoon
-	{115078,3,	{115078,45,	0},	nil,			nil,			nil,			},	--Paralysis
-	{115546,5,	{115546,8,	0},	nil,			nil,			nil,			},	--Provoke
-	{115310,1,	nil,			nil,			nil,			{115310,180,	0},	},	--Revival
-	{107428,3,	nil,			nil,			{107428,10,	0},	{107428,10,	0},	},	--Rising Sun Kick
-	{109132,3,	{107428,20,	0},	nil,			nil,			nil,			},	--Roll	
-	{116705,3,	nil,			{116705,15,	0},	{116705,15,	0},	nil,			},	--Spear Hand Strike
-	{137639,3,	nil,			nil,			{137639,90,	15},	nil,			},	--Storm, Earth, and Fire
-	{116680,3,	nil,			nil,			nil,			{116680,30,	0},	},	--Thunder Focus Tea
-	{115080,3,	nil,			nil,			{115080,120,	8},	nil,				},	--Touch of Death
-	{122470,3,	nil,			nil,			{122470,90,	10},	nil,			},	--Touch of Karma
-	{101643,4,	{101643,10,	0},	nil,			nil,			nil,			},	--Transcendence
-	{119996,4,	{119996,45,	0},	nil,			nil,			nil,			},	--Transcendence: Transfer
-	{115176,4,	nil,			{115176,300,	8},	nil,			nil,			},	--Zen Meditation
-	{126892,3,	{126892,60,	0},	nil,			nil,			nil,			},	--Zen Pilgrimage
-	
-	{115399,3,	nil,			{115399,120,	0},	nil,			nil,			},	--Black Ox Brew
-	{123986,3,	{123986,30,	0},	nil,			nil,			nil,			},	--Chi Burst
-	{115008,4,	{115008,20,	0},	nil,			nil,			nil,			},	--Chi Torpedo
-	{115098,3,	{115098,15,	0},	nil,			nil,			nil,			},	--Chi Wave
-	{122278,3,	{122278,120,	10},	nil,			nil,			nil,			},	--Dampen Harm
-	{115295,3,	nil,			{115295,30,	0},	nil,			nil,			},	--Guard
-	{132578,3,	nil,			{132578,180,	0},	nil,			nil,			},	--Invoke Niuzao, the Black Ox
-	{116844,1,	{116844,45,	5},	nil,			nil,			nil,			},	--Ring of Peace
-	{116847,3,	nil,			{116847,6,	0},	nil,			nil,			},	--Rushing Jade Wind
-	{115315,3,	nil,			{115315,10,	0},	nil,			nil,			},	--Summon Black Ox Statue
-	{116841,2,	{116841,30,	6},	nil,			nil,			nil,			},	--Tiger's Lust
-	
-	{122783,4,	nil,			nil,			{122783,90,	6},	{122783,90,	6},	},	--Diffuse Magic
-	{198664,3,	nil,			nil,			nil,			{198664,180,	25},	},	--Invoke Chi-Ji, the Red Crane
-	{197908,3,	nil,			nil,			nil,			{197908,90,	12},	},	--Mana Tea
-	{196725,3,	nil,			nil,			nil,			{196725,9,	0},	},	--Refreshing Jade Wind
-	{198898,3,	nil,			nil,			nil,			{198898,30,	0},	},	--Song of Chi-Ji
-	{115313,3,	nil,			nil,			nil,			{115313,10,	0},	},	--Summon Jade Serpent Statue
-	
-	{115288,3,	nil,			nil,			{115288,60,	0},	nil,			},	--Energizing Elixir
-	{261947,3,	nil,			nil,			{261947,30,	0},	nil,			},	--Fist of the White Tiger
-	{123904,3,	nil,			nil,			{123904,120,	20},	nil,			},	--Invoke Xuen, the White Tiger
-	{261715,3,	nil,			nil,			{261715,6,	0},	nil,			},	--Rushing Jade Wind
-	{152173,3,	nil,			nil,			{152173,90,	12},	nil,			},	--Serenity
-	{152175,3,	nil,			nil,			{152175,24,	0},	nil,			},	--Whirling Dragon Punch
+	{280719,"ROGUE",	3,	nil,			nil,			nil,			{280719,45,	0},	},	--Secret Technique
+	{277925,"ROGUE",	3,	nil,			nil,			nil,			{277925,60,	4},	},	--Shuriken Tornado
 
-},
-["DRUID"] = {
-	{22812,	4,	nil,			{22812,	60,	12},	nil,			{22812,	60,	12},	{22812,	60,	12},	},	--Barkskin
-	{106951,3,	nil,			nil,			{106951,180,	15},	nil,			nil,			},	--Berserk
-	{194223,3,	nil,			{194223,180,	20},	nil,			nil,			nil,			},	--Celestial Alignment
-	{1850,	4,	{1850,	120,	10},	nil,			nil,			nil,			nil,			},	--Dash
-	{22842,	4,	nil,			nil,			nil,			{22842,	36,	3},	nil,			},	--Frenzied Regeneration
-	{6795,	5,	{6795,	8,	0},	nil,			nil,			nil,			nil,			},	--Growl
-	{99,	3,	nil,			nil,			nil,			{99,	30,	0},	nil,			},	--Incapacitating Roar
-	{29166,	2,	nil,			{29166,	180,	12},	nil,			nil,			{29166,	180,	12},	},	--Innervate
-	{102342,2,	nil,			nil,			nil,			nil,			{102342,60,	12},	},	--Ironbark
-	{22570,	3,	nil,			nil,			{22570,	20,	0},	nil,			nil,			},	--Maim
-	{33917,	3,	{33917,	6,	0},	nil,			nil,			nil,			nil,			},	--Mangle
-	{5215,	3,	{5215,	6,	0},	nil,			nil,			nil,			nil,			},	--Prowl
-	{20484,	1,	{20484,	600,	0},	nil,			nil,			nil,			nil,			},	--Rebirth
-	{2782,	5,	nil,			{2782,	8,	0},	{2782,	8,	0},	{2782,	8,	0},	nil,			},	--Remove Corruption
-	{106839,5,	nil,			nil,			{106839,15,	0},	{106839,15,	0},	nil,			},	--Skull Bash
-	{78675,	5,	nil,			{78675,	60,	8},	nil,			nil,			nil,			},	--Solar Beam
-	{2908,	5,	nil,			{2908,	10,	0},	{2908,	10,	0},	nil,			{2908,	10,	0},	},	--Soothe
-	{106898,1,	nil,			nil,			{106898,120,	8},	{106898,120,	8},	nil,			},	--Stampeding Roar
-	{61336,	3,	nil,			nil,			{61336,	120,	6},	{61336,	240,	6},	nil,			},	--Survival Instincts
-	{18562,	3,	nil,			nil,			nil,			nil,			{18562,	25,	0},	},	--Swiftmend
-	{5217,	3,	nil,			nil,			{5217,	30,	10},	nil,			nil,			},	--Tiger's Fury
-	{740,	1,	nil,			nil,			nil,			nil,			{740,	180,	8},	},	--Tranquility
-	{102793,3,	nil,			nil,			nil,			{102793,60,	10},	{102793,60,	10},	},	--Ursol's Vortex
-	{48438,	3,	nil,			nil,			nil,			nil,			{48438,	10,	0},	},	--Wild Growth
+	{19236,	"PRIEST,DEF",	4,	nil,			{19236,	90,	10},	{19236,	90,	10},	nil,			},	--Desperate Prayer
+	{47585,	"PRIEST,DEF",	4,	nil,			nil,			nil,			{47585,	120,	6},	},	--Dispersion
+	{64843,	"PRIEST,RAID",	1,	nil,			nil,			{64843,	180,	8},	nil,			},	--Divine Hymn
+	{586,	"PRIEST,DEF",	4,	{586,	30,	10},	nil,			nil,			nil,			},	--Fade
+	{47788,	"PRIEST,DEFTAR",	2,	nil,			nil,			{47788,	180,	10},	nil,			},	--Guardian Spirit
+	{14914,	"PRIEST",	3,	nil,			nil,			{14914,	10,	0},	nil,			},	--Holy Fire
+	{88625,	"PRIEST",	3,	nil,			nil,			{88625,	60,	0},	nil,			},	--Holy Word: Chastise
+	{34861,	"PRIEST",	3,	nil,			nil,			{34861,	60,	0},	nil,			},	--Holy Word: Sanctify
+	{2050,	"PRIEST,DEFTAR",	3,	nil,			nil,			{2050,	60,	0},	nil,			},	--Holy Word: Serenity
+	{73325,	"PRIEST,UTIL",	2,	{73325,	90,	0},	nil,			nil,			nil,			},	--Leap of Faith
+	{32375,	"PRIEST,DISPEL",	1,	{32375,	45,	0},	nil,			nil,			nil,			},	--Mass Dispel
+	{33206,	"PRIEST,DEFTAR",	2,	nil,			{33206,	180,	8},	nil,			nil,			},	--Pain Suppression
+	{62618,	"PRIEST,RAID",	1,	nil,			{62618,	180,	10},	nil,			nil,			},	--Power Word: Barrier
+	{194509,"PRIEST",	3,	nil,			{194509,20,	0},	nil,			nil,			},	--Power Word: Radiance
+	{33076,	"PRIEST",	3,	nil,			nil,			{33076,	12,	0},	nil,			},	--Prayer of Mending
+	{8122,	"PRIEST,AOECC",	3,	{8122,	60,	8},	nil,			nil,			nil,			},	--Psychic Scream
+	{527,	"PRIEST,DISPEL",	5,	nil,			{527,	8,	0},	{527,	8,	0},	nil,			},	--Purify
+	{213634,"PRIEST,DISPEL",	5,	nil,			nil,			nil,			{213634,8,	0},	},	--Purify Disease
+	{47536,	"PRIEST,HEAL",	1,	nil,			{47536,	90,	10},	nil,			nil,			},	--Rapture
+	{34433,	"PRIEST,DPS,HEAL",	3,	nil,			{34433,	180,	15},	nil,			{34433,	180,	15},	},	--Shadowfiend
+	{15487,	"PRIEST,CC",	3,	nil,			nil,			nil,			{15487,	45,	4},	},	--Silence
+	{64901,	"PRIEST,HEALUTIL",	1,	nil,			nil,			{64901,	300,	6},	nil,			},	--Symbol of Hope
+	{15286,	"PRIEST,RAID",	1,	nil,			nil,			nil,			{15286,	120,	15},	},	--Vampiric Embrace
 	
-	{205636,3,	nil,			{205636,60,	0},	nil,			nil,			nil,			},	--Force of Nature
-	{202770,3,	nil,			{202770,60,	0},	nil,			nil,			nil,			},	--Fury of Elune
-	{102560,3,	nil,			{102560,180,	30},	nil,			nil,			nil,			},	--Incarnation: Chosen of Elune
-	{102359,3,	{102359,30,	0},	nil,			nil,			nil,			nil,			},	--Mass Entanglement
-	{5211,	3,	{5211,	50,	0},	nil,			nil,			nil,			nil,			},	--Mighty Bash
-	{108238,3,	nil,			{108238,90,	0},	{108238,90,	0},	nil,			{108238,90,	0},	},	--Renewal
-	{252216,3,	{252216,45,	5},	nil,			nil,			nil,			nil,			},	--Tiger Dash
-	{132469,3,	{61391,	30,	0},	nil,			nil,			nil,			nil,			},	--Typhoon
-	{202425,3,	nil,			{202425,45,	0},	nil,			nil,			nil,			},	--Warrior of Elune
-	{102401,3,	{102401,15,	0},	nil,			nil,			nil,			nil,			},	--Wild Charge
+	{121536,"PRIEST,MOVE",	3,	nil,			{121536,20,	0},	{121536,20,	0},	nil,			},	--Angelic Feather
+	{110744,"PRIEST",	3,	nil,			{110744,15,	0},	{110744,15,	0},	nil,			},	--Divine Star
+	{246287,"PRIEST,HEAL",	3,	nil,			{246287,90,	0},	nil,			nil,			},	--Evangelism
+	{120517,"PRIEST",	3,	nil,			{120517,40,	0},	{120517,40,	0},	nil,			},	--Halo
+	{271466,"PRIEST,RAID",	1,	nil,			{271466,180,	0},	nil,			nil,			},	--Luminous Barrier
+	{123040,"PRIEST",	3,	nil,			{123040,60,	12},	nil,			nil,			},	--Mindbender
+	{129250,"PRIEST",	3,	nil,			{129250,12,	0},	nil,			nil,			},	--Power Word: Solace
+	{214621,"PRIEST,HEAL",	3,	nil,			{214621,24,	9},	nil,			nil,			},	--Schism
+	{204065,"PRIEST,HEAL",	3,	nil,			{204065,12,	0},	nil,			nil,			},	--Shadow Covenant
+	{204263,"PRIEST,UTIL",	3,	nil,			{204263,45,	0},	{204263,45,	0},	nil,			},	--Shining Force
 	
-	{274837,3,	nil,			nil,			{274837,45,	0},	nil,			nil,			},	--Feral Frenzy
-	{102543,3,	nil,			nil,			{102543,180,	30},	nil,			nil,			},	--Incarnation: King of the Jungle
+	{200183,"PRIEST,HEAL",	3,	nil,			nil,			{200183,120,	0},	nil,			},	--Apotheosis
+	{204883,"PRIEST",	3,	nil,			nil,			{204883,15,	0},	nil,			},	--Circle of Healing
+	{265202,"PRIEST,RAID",	1,	nil,			nil,			{265202,720,	0},	nil,			},	--Holy Word: Salvation
 	
-	{155835,3,	nil,			nil,			nil,			{155835,40,	0},	nil,			},	--Bristling Fur
-	{102558,3,	nil,			nil,			nil,			{102558,180,	30},	nil,			},	--Incarnation: Guardian of Ursoc
-	{204066,3,	nil,			nil,			nil,			{204066,75,	0},	nil,			},	--Lunar Beam
-	
-	{102351,3,	nil,			nil,			nil,			nil,			{102351,30,	0},	},	--Cenarion Ward
-	{197721,3,	nil,			nil,			nil,			nil,			{197721,90,	8},	},	--Flourish
-	{33891,	3,	nil,			nil,			nil,			nil,			{33891,	180,	30},	},	--Incarnation: Tree of Life
-},
-["DEMONHUNTER"] = {
-	{188499,3,	nil,			{188499,9,	0},	nil,			},	--Blade Dance
-	{198589,4,	nil,			{198589,60,	10},	nil,			},	--Blur
-	{179057,1,	nil,			{179057,60,	2},	nil,			},	--Chaos Nova
-	{278326,5,	{278326,10,	0},	nil,			nil,			},	--Consume Magic
-	{196718,1,	nil,			{196718,180,	8},	nil,			},	--Darkness
-	{203720,4,	nil,			nil,			{203720,20,	6},	},	--Demon Spikes
-	{183752,5,	{183752,15,	0},	nil,			nil,			},	--Disrupt
-	{198013,3,	nil,			{198013,30,	0},	nil,			},	--Eye Beam
-	{195072,4,	nil,			{195072,10,	0},	nil,			},	--Fel rush
-	{204021,4,	nil,			nil,			{204021,60,	8},	},	--Fiery Brand
-	{178740,3,	nil,			nil,			{178740,15,	0},	},	--Immolation Aura
-	{217832,3,	{217832,45,	0},	nil,			nil,			},	--Imprison
-	{195072,4,	nil,			nil,			{195072,20,	0},	},	--Infernal Strike
-	{191427,3,	nil,			{191427,240,	30},	nil,			},	--Metamorphosis
-	{187827,4,	nil,			nil,			{187827,180,	0},	},	--Metamorphosis
-	{204596,3,	nil,			nil,			{204596,30,	2},	},	--Sigil of Flame
-	{207684,1,	nil,			nil,			{207684,60,	2},	},	--Sigil of Misery
-	{202137,1,	nil,			nil,			{202137,60,	2},	},	--Sigil of Silence
-	{188501,3,	{188501,30,	10},	nil,			nil,			},	--Spectral Sight
-	{281854,5,	nil,			{281854,8,	0},	nil,			},	--Torment
-	{185245,5,	nil,			nil,			{185245,8,	0},	},	--Torment
-	{198793,3,	nil,			{198793,25,	0},	nil,			},	--Vengeful Retreat
-	
-	{258860,3,	nil,			{258860,20,	0},	nil,			},	--Dark Slash
-	{258925,3,	nil,			{258925,60,	0},	nil,			},	--Fel Barrage
-	{211881,3,	nil,			{211881,30,	0},	nil,			},	--Fel Eruption
-	{232893,3,	{232893,15,	0},	nil,			nil,			},	--Felblade
-	{258920,3,	nil,			{258920,30,	0},	nil,			},	--Immolation Aura
-	{206491,3,	nil,			{206491,120,	0},	nil,			},	--Nemesis
-	{196555,3,	nil,			{196555,120,	5},	nil,			},	--Netherwalk
-	
-	{212084,3,	nil,			nil,			{212084,60,	0},	},	--Fel Devastation
-	{202138,3,	nil,			nil,			{202138,90,	2},	},	--Sigil of Chains
-	{263648,3,	nil,			nil,			{263648,30,	0},	},	--Soul Barrier
-},
+	{280711,"PRIEST,DPS",	3,	nil,			nil,			nil,			{280711,60,	0},	},	--Dark Ascension
+	{263346,"PRIEST",	3,	nil,			nil,			nil,			{263346,30,	0},	},	--Dark Void
+	{205369,"PRIEST,AOECC",	3,	nil,			nil,			nil,			{205369,30,	0},	},	--Mind Bomb
+	{200174,"PRIEST",	3,	nil,			nil,			nil,			{200174,60,	0},	},	--Mindbender
+	{64044,	"PRIEST,CC",	3,	nil,			nil,			nil,			{64044,	45,	4},	},	--Psychic Horror
+	{205385,"PRIEST",	3,	nil,			nil,			nil,			{205385,20,	0},	},	--Shadow Crash
+	{193223,"PRIEST,DPS",	3,	nil,			nil,			nil,			{193223,240,	0},	},	--Surrender to Madness
+	{263165,"PRIEST",	3,	nil,			nil,			nil,			{263165,45,	4},	},	--Void Torrent
 
-["PET"] = {
-	{90355,	3,	"HUNTER"},
-	{159931,3,	"HUNTER"},
-	{26064,	3,	"HUNTER"},
-	{159956,3,	"HUNTER"},
-	{55709,	3,	"HUNTER"},
-	{53480,	2,	"HUNTER"},
-	{53478,	3,	"HUNTER"},
-	{61685,	3,	"HUNTER"},
-	{126393,3,	"HUNTER"},
-	{137798,3,	"HUNTER"},
-	{90361,	3,	"HUNTER"},
-	{91802,	5,	"DEATHKNIGHT"},
-	{91797,	3,	"DEATHKNIGHT"},
-	{89751,	3,	"WARLOCK"},
-	{89766,	5,	"WARLOCK"},
-	{115276,5,	"WARLOCK"},
-	{17767,	3,	"WARLOCK"},
-	{89808,	5,	"WARLOCK"},
-	{119899,4,	"WARLOCK"},
-	{89792,	3,	"WARLOCK"},
-	{115781,5,	"WARLOCK"},
-	{115831,3,	"WARLOCK"},
-	{115268,3,	"WARLOCK"},
-	{6358,	3,	"WARLOCK"},
-	{19647,	5,	"WARLOCK"},
-	{19505,	3,	"WARLOCK"},
-	{135029,3,	"MAGE"},
-	{33395,	3,	"MAGE"},
-},
-["RACIAL"] = {
-	{68992,	3,	{68992,	120,	10},	},	--Worgen
-	{20589,	3,	{20589,	60,	0},	},	--Gnome
-	{20594,	3,	{20594,	120,	8},	},	--Dwarf
-	{121093,3,	{121093,180,	5},	},	--Draenei
-	{58984,	3,	{58984,	120,	0},	},	--NightElf
-	{59752,	3,	{59752,	180,	0},	},	--Human
-	{69041,	3,	{69041,	90,	0},	},	--Goblin
-	{69070,	3,	{69070,	90,	0},	},	--Goblin
-	{7744,	3,	{7744,	120,	0},	},	--Undead
-	{20577,	3,	{20577,	120,	10},	},	--Undead
-	{20572,	3,	{20572,	120,	15},	},	--Orc
-	{20549,	3,	{20549,	90,	0},	},	--Tauren
-	{26297,	3,	{26297,	180,	10},	},	--Troll
-	{28730,	3,	{28730,	120,	0},	},	--BloodElf
-	{107079,3,	{107079,120,	4},	},	--Pandaren
-	{256948,3,	{256948,180,	0},	},	--VoidElf
-	{260364,3,	{260364,180,	12},	},	--Nightborne
-	{255647,3,	{255647,150,	0},	},	--LightforgedDraenei
-	{255654,3,	{255654,120,	0},	},	--HighmountainTauren
-	{274738,3,	{274738,120,	15},	},	--MagharOrc
-	{265221,3,	{265221,120,	8},	},	--DarkIronDwarf
-},
-["ITEMS"] = {
-	{67826,	3,	{67826,	3600,	0},	},	--Jeevs
-	--{177592,3,	{177592,120,	0},	},	--Candle
-	--{176873,3,	{176873,120,	20},	},	--Tank BRF
-	--{176875,3,	{176875,120,	20},	},	--Shard of nothing
-	--{177597,3,	{177597,120,	20},	},	--Coin
-	--{177594,3,	{177594,120,	20},	},	--Couplend
-	--{177189,3,	{177189,90,	15},	},	--Kyanos
-	--{176460,3,	{176460,120,	20},	},	--Kyb
-	--{183929,3,	{183929,90,	15},	},	--Intuition's Gift
-	--{184270,3,	{184270,60,	20},	},	--Mirror of the Blademaster
-	{201414,3,	{201414,60,	0},	},	--Purified Shard of the Third Moon
-	{201371,3,	{201371,60,	0},	},	--Judgment of the Naaru
-	{90633,	3,	{90633,	600,	0},	},	--Guild Battle Standard
-	{90632,	3,	{90632,	600,	0},	},	--Guild Battle Standard
-	{90631,	3,	{90631,	600,	0},	},	--Guild Battle Standard
-	{215956,3,	{215956,120,	30},	},	--Horn of Valor
-	{215648,3,	{215648,90,	20},	},	--Moonlit Prism
-	{214962,3,	{214962,120,	30},	},	--Faulty Countermeasure
-	{215936,3,	{215936,120,	20},	},	--Orb of Torment
-	{215658,3,	{215658,75,	15},	},	--Tirathon's Betrayal
-	{214980,3,	{214980,120,	6},	},	--Windscar Whetstone
-	{215206,3,	{215206,20,	0},	},	--Jewel of Insatiable Desire
-	{214584,3,	{214584,60,	10},	},	--Shivermaw's Jawbone
-	{215467,3,	{215467,60,	15},	},	--Obelisk of the Void
-	{214971,3,	{214971,60,	8},	},	--Giant Ornamental Pearl
-	{214423,3,	{214423,60,	15},	},	--Talisman of the Cragshaper
-	{214366,3,	{214366,120,	30},	},	--Shard of Rokmora
-	{215670,3,	{215670,120,	15},	},	--Figurehead of the Naglfar
-	{214203,3,	{214203,60,	0},	},	--Gift of Radiance
-	{214198,3,	{214198,90,	0},	},	--Mote of Sanctification
-	{221837,3,	{221837,120,	10},	},	--Cocoon of Enforced Solitude
-	{221992,3,	{221992,60,	0},	},	--Horn of Cenarius
-	{221695,3,	{221695,120,	25},	},	--Unbridled Fury
-	{222046,3,	{222046,120,	0},	},	--Wriggling Sinew
-	{221803,3,	{221803,60,	10},	},	--Ravaged Seed Pod
-	{235169,3,	{235169,75,	10},	},	--Archimonde's Hatred Reborn
-	{235966,3,	{235966,75,	10},	},	--Velen's Future Sight
-	{235991,3,	{235991,75,	0},	},	--Kil'jaeden's Burning Wish
-	{251946,3,	{251946,120,	3},	},	--ABT Bulwark of Flame
-	{295271,3,	{295271,120,	0},	},	--Void Stone
-},
-["ESSENCES"] = {
-	{295373,3,	{295373,30,	0},	},	--The Crucible of Flame
-	{295186,3,	{295186,60,	0},	},	--Worldvein Resonance
-	{302731,3,	{302731,60,	2},	},	--Ripple in Space
-	{298357,3,	{298357,120,	0},	},	--Memory of Lucid Dreams
-	{293019,3,	{293019,60,	4},	},	--Azeroth's Undying Gift
-	{294926,3,	{294926,150,	0},	},	--Anima of Life and Death
-	{298168,3,	{298168,120,	15},	},	--Aegis of the Deep
-	{295746,3,	{295746,180,	0},	},	--Nullification Dynamo
-	{293031,3,	{293031,60,	0},	},	--Sphere of Suppression
-	{296197,3,	{296197,15,	0},	},	--The Well of Existence
-	{296094,3,	{296094,180,	0},	},	--Artifice of Time
-	{293032,3,	{293032,120,	0},	},	--Life-Binder's Invocation
-	{296072,3,	{296072,30,	8},	},	--The Ever-Rising Tide
-	{296230,3,	{296230,60,	0},	},	--Vitality Conduit
-	{295258,3,	{295258,90,	0},	},	--Essence of the Focusing Iris
-	{295840,3,	{295840,180,	0},	},	--Condensed Life-Force
-	{297108,3,	{297108,120,	0},	},	--Blood of the Enemy
-	{295337,3,	{295337,60,	0},	},	--Purification Protocol
-	{298452,3,	{298452,60,	0},	},	--The Unbound Force
-},
+	{48707,	"DEATHKNIGHT,DEF",	4,	{48707,	60,	5},	nil,			nil,			nil,			},	--Anti-Magic Shell
+	{275699,"DEATHKNIGHT,DPS",	3,	nil,			nil,			nil,			{275699,90,	15},	},	--Apocalypse
+	{42650,	"DEATHKNIGHT,DPS",	3,	nil,			nil,			nil,			{42650,	480,	30},	},	--Army of the Dead
+	{221562,"DEATHKNIGHT,CC",	3,	nil,			{221562,45,	5},	nil,			nil,			},	--Asphyxiate
+	{49028,	"DEATHKNIGHT,DEFTANK",	4,	nil,			{49028,	120,	8},	nil,			nil,			},	--Dancing Rune Weapon
+	{56222,	"DEATHKNIGHT,TAUNT",	5,	{56222,	8,	0},	nil,			nil,			nil,			},	--Dark Command
+	{63560,	"DEATHKNIGHT,DPS",	3,	nil,			nil,			nil,			{63560,	60,	15},	},	--Dark Transformation
+	{50977,	"DEATHKNIGHT",	3,	{50977,	60,	0},	nil,			nil,			nil,			},	--Death Gate
+	{49576,	"DEATHKNIGHT,UTIL",	5,	nil,			{49576,	15,	0},	{49576,	25,	0},	{49576,	25,	0},	},	--Death Grip
+	{43265,	"DEATHKNIGHT",	3,	nil,			{43265,	15,	0},	nil,			{43265,	30,	0},	},	--Death and Decay
+	{48265,	"DEATHKNIGHT,MOVE",	4,	{48265,	45,	0},	nil,			nil,			nil,			},	--Death's Advance
+	{47568,	"DEATHKNIGHT,DPS",	3,	nil,			nil,			{47568,	120,	20},	nil,			},	--Empower Rune Weapon
+	{108199,"DEATHKNIGHT,UTIL",	1,	nil,			{108199,120,	0},	nil,			nil,			},	--Gorefiend's Grasp
+	{48792,	"DEATHKNIGHT,DEFTANK,DEF",	4,	{48792,	180,	8},	nil,			nil,			nil,			},	--Icebound Fortitude
+	{47528,	"DEATHKNIGHT,KICK",	5,	{47528,	15,	0},	nil,			nil,			nil,			},	--Mind Freeze
+	{51271,	"DEATHKNIGHT,DPS,DEF",	3,	nil,			nil,			{51271,	45,	15},	nil,			},	--Pillar of Frost
+	{61999,	"DEATHKNIGHT,RES",	3,	{61999,	600,	0},	nil,			nil,			nil,			},	--Raise Ally
+	{46584,	"DEATHKNIGHT",	3,	nil,			nil,			nil,			{46584,	30,	0},	},	--Raise Dead
+	{196770,"DEATHKNIGHT",	3,	nil,			nil,			{196770,20,	8},	nil,			},	--Remorseless Winter
+	{55233,	"DEATHKNIGHT,DEFTANK",	3,	nil,			{55233,	90,	10},	nil,			nil,			},	--Vampiric Blood
+	
+	{206931,"DEATHKNIGHT,DEFTANK",	3,	nil,			{206931,30,	0},	nil,			nil,			},	--Blooddrinker
+	{194844,"DEATHKNIGHT",	3,	nil,			{194844,60,	0},	nil,			nil,			},	--Bonestorm
+	{274156,"DEATHKNIGHT",	3,	nil,			{274156,45,	0},	nil,			nil,			},	--Consumption
+	{206940,"DEATHKNIGHT",	3,	nil,			{206940,6,	0},	nil,			nil,			},	--Mark of Blood
+	{194679,"DEATHKNIGHT,DEFTANK",	4,	nil,			{194679,25,	4},	nil,			nil,			},	--Rune Tap
+	{219809,"DEATHKNIGHT",	3,	nil,			{219809,60,	0},	nil,			nil,			},	--Tombstone
+	{212552,"DEATHKNIGHT,MOVE",	3,	{212552,60,	4},	nil,			nil,			nil,			},	--Wraith Walk
+	
+	{108194,"DEATHKNIGHT,CC",	3,	nil,			nil,			{108194,45,	0},	{108194,45,	0},	},	--Asphyxiate
+	{207167,"DEATHKNIGHT,AOECC",	3,	nil,			nil,			{207167,60,	0},	nil,			},	--Blinding Sleet
+	{152279,"DEATHKNIGHT,DPS",	3,	nil,			nil,			{152279,120,	0},	nil,			},	--Breath of Sindragosa
+	{48743,	"DEATHKNIGHT,DEF",	3,	nil,			nil,			{48743,	120,	15},	{48743,	120,	15},	},	--Death Pact
+	{279302,"DEATHKNIGHT",	3,	nil,			nil,			{279302,180,	10},	nil,			},	--Frostwyrm's Fury
+	{194913,"DEATHKNIGHT",	3,	nil,			nil,			{194913,6,	0},	nil,			},	--Glacial Advance
+	{57330,	"DEATHKNIGHT",	3,	nil,			nil,			{57330,	45,	0},	nil,			},	--Horn of Winter
+	
+	{152280,"DEATHKNIGHT",	3,	nil,			nil,			nil,			{152280,20,	0},	},	--Defile
+	{130736,"DEATHKNIGHT",	3,	nil,			nil,			nil,			{130736,45,	0},	},	--Soul Reaper
+	{49206,	"DEATHKNIGHT,DPS",	3,	nil,			nil,			nil,			{49206,	180,	30},	},	--Summon Gargoyle
+	{115989,"DEATHKNIGHT",	3,	nil,			nil,			nil,			{115989,45,	0},	},	--Unholy Blight
+	{207289,"DEATHKNIGHT,DPS",	3,	nil,			nil,			nil,			{207289,75,	12},	},	--Unholy Frenzy
+
+	{556,	"SHAMAN",	3,	{556,	600,	0},	nil,			nil,			nil,			},	--Astral Recall
+	{108271,"SHAMAN,DEF",	4,	{108271,90,	8},	nil,			nil,			nil,			},	--Astral Shift
+	{2825,	"SHAMAN,UTIL",	3,	{2825,	300,	0},	nil,			nil,			nil,			},	--Bloodlust
+	{32182,	"SHAMAN,UTIL",	3,	{32182,	300,	0},	nil,			nil,			nil,			},	--Героизм
+	{192058,"SHAMAN,AOECC",	1,	{192058,60,	2},	nil,			nil,			nil,			},	--Capacitor Totem
+	{51886,	"SHAMAN,DISPEL",	5,	nil,			{51886,	8,	0},	{51886,	8,	0},	nil,			},	--Cleanse Spirit
+	{187874,"SHAMAN",	3,	nil,			nil,			{187874,6,	0},	nil,			},	--Crash Lightning
+	{198103,"SHAMAN,UTIL",	2,	{198103,300,	60},	nil,			nil,			nil,			},	--Earth Elemental
+	{2484,	"SHAMAN,AOECC",	3,	{2484,	30,	20},	nil,			nil,			nil,			},	--Earthbind Totem
+	{51533,	"SHAMAN,DPS",	3,	nil,			nil,			{51533,	120,	15},	nil,			},	--Feral Spirit
+	{198067,"SHAMAN,DPS",	3,	nil,			{198067,150,	30},	nil,			nil,			},	--Fire Elemental
+	{188389,"SHAMAN",	3,	nil,			{188389,6,	0},	nil,			{188838,6,	0},	},	--Flame Shock
+	{193796,"SHAMAN",	3,	nil,			nil,			{193796,12,	0},	nil,			},	--Flametongue
+	{73920,	"SHAMAN",	3,	nil,			nil,			nil,			{73920,	10,	0},	},	--Healing Rain
+	{108280,"SHAMAN,RAID",	3,	nil,			nil,			nil,			{108280,180,	10},	},	--Healing Tide Totem
+	{51514,	"SHAMAN,CC",	3,	{51514,	30,	0},	nil,			nil,			nil,			},	--Hex
+	{20608,	"SHAMAN,RES",	2,	{21169,	1800,	0},	nil,			nil,			nil,			},	--Reincarnation
+	{58875,	"SHAMAN,MOVE",	3,	nil,			nil,			{58875,	60,	0},	nil,			},	--Spirit Walk
+	{79206,	"SHAMAN,MOVE",	3,	nil,			nil,			nil,			{79206,	120,	15},	},	--Spiritwalker's Grace
+	{17364,	"SHAMAN",	3,	nil,			nil,			{17364,	9,	0},	nil,			},	--Stormstrike
+	{51490,	"SHAMAN,UTIL",	3,	nil,			{51490,	45,	0},	nil,			nil,			},	--Thunderstorm
+	{8143,	"SHAMAN,UTIL",	1,	{8143,	60,	10},	nil,			nil,			nil,			},	--Tremor Totem
+	{57994,	"SHAMAN,KICK",	5,	{57994,	12,	0},	nil,			nil,			nil,			},	--Wind Shear
+	{77130,	"SHAMAN,DISPEL",	5,	nil,			nil,			nil,			{77130,	8,	0},	},	--Purify Spirit
+	{98008,	"SHAMAN,RAID",	1,	nil,			nil,			nil,			{98008,	180,	6},	},	--Тотем духовной связи
+
+	
+	{108281,"SHAMAN",	1,	nil,			{108281,120,	10},	nil,			nil,			},	--Ancestral Guidance
+	{114050,"SHAMAN,DPS",	3,	nil,			{114050,180,	15},	nil,			nil,			},	--Ascendance
+	{117014,"SHAMAN",	3,	nil,			{117014,12,	10},	nil,			nil,			},	--Elemental Blast
+	{210714,"SHAMAN",	3,	nil,			{210714,30,	0},	nil,			nil,			},	--Icefury
+	{192222,"SHAMAN",	3,	nil,			{192222,60,	0},	nil,			nil,			},	--Liquid Magma Totem
+	{16166,	"SHAMAN",	3,	nil,			{16166,	120,	15},	nil,			nil,			},	--Master of the Elements
+	{192249,"SHAMAN,DPS",	3,	nil,			{192249,150,	30},	nil,			nil,			},	--Storm Elemental
+	{191634,"SHAMAN,DPS",	3,	nil,			{191634,60,	0},	nil,			nil,			},	--Stormkeeper
+	{192077,"SHAMAN,RAIDSPEED",	1,	{192077,120,	15},	nil,			nil,			nil,			},	--Wind Rush Totem
+	
+	{114051,"SHAMAN,DPS",	3,	nil,			nil,			{114051,180,	15},	nil,			},	--Ascendance
+	{188089,"SHAMAN",	3,	nil,			nil,			{188089,20,	0},	nil,			},	--Earthen Spike
+	{196884,"SHAMAN",	3,	nil,			nil,			{196884,30,	0},	nil,			},	--Feral Lunge
+	{197214,"SHAMAN,AOECC",	3,	nil,			nil,			{197214,40,	0},	nil,			},	--Sundering
+	
+	{207399,"SHAMAN,RAID",	1,	nil,			nil,			nil,			{207399,300,	30},	},	--Ancestral Protection Totem
+	{114052,"SHAMAN,HEAL",	3,	nil,			nil,			nil,			{114052,180,	15},	},	--Ascendance
+	{207778,"SHAMAN",	3,	nil,			nil,			nil,			{207778,5,	0},	},	--Downpour
+	{198838,"SHAMAN,HEAL",	3,	nil,			nil,			nil,			{198838,60,	15},	},	--Earthen Wall Totem
+	{51485,	"SHAMAN,AOECC",	3,	nil,			nil,			nil,			{51485,	30,	20},	},	--Earthgrab Totem
+	{197995,"SHAMAN",	3,	nil,			nil,			nil,			{197995,20,	0},	},	--Wellspring
+	{73685,	"SHAMAN",	3,	nil,			nil,			nil,			{73685,	15,	0},	},	--Unleash Life
+	{157153,"SHAMAN",	3,	nil,			nil,			nil,			{157153,30,	15},	},	--CBT
+	{5394,	"SHAMAN",	3,	nil,			nil,			nil,			{5394,	30,	15},	},	--HST
+	{61295,	"SHAMAN",	3,	nil,			nil,			nil,			{61295,	6,	0},	},	--Riptide
+
+	{12042,	"MAGE,DPS",	3,	nil,			{12042,	90,	10},	nil,			nil,			},	--Arcane Power
+	{1953,	"MAGE,MOVE",	4,	{1953,	15,	0},	nil,			nil,			nil,			},	--Blink
+	{235313,"MAGE,DEF",	3,	nil,			nil,			{235313,25,	0},	nil,			},	--Blazing Barrier
+	{190356,"MAGE",	3,	nil,			nil,			nil,			{190356,8,	0},	},	--Blizzard
+	{235219,"MAGE",	3,	nil,			nil,			nil,			{235219,300,	0},	},	--Cold Snap
+	{190319,"MAGE,DPS",	3,	nil,			nil,			{190319,120,	10},	nil,			},	--Combustion
+	{120,	"MAGE",	3,	nil,			nil,			nil,			{120,	12,	0},	},	--Cone of Cold
+	{190336,"MAGE",	3,	{190336,15,	0},	nil,			nil,			nil,			},	--Conjure Refreshment
+	{2139,	"MAGE,KICK",	5,	{2139,	24,	0},	nil,			nil,			nil,			},	--Counterspell
+	{195676,"MAGE,MOVE",	3,	nil,			{195676,30,	0},	nil,			nil,			},	--Displacement
+	{31661,	"MAGE",	3,	nil,			nil,			{31661,	20,	0},	nil,			},	--Dragon's Breath
+	{12051,	"MAGE",	3,	nil,			{12051,	90,	6},	nil,			nil,			},	--Evocation
+	{84714,	"MAGE",	3,	nil,			nil,			nil,			{84714,	60,	0},	},	--Frozen Orb
+	{122,	"MAGE",	3,	{122,	30,	0},	nil,			nil,			nil,			},	--Frost nova
+	{110960,"MAGE,DEF",	4,	nil,			{110960,120,	0},	nil,			nil,			},	--Greather invis
+	{66,	"MAGE,DEF",	4,	nil,			nil,			{66,	300,	0},	{66,	300,	0},	},	--Invis
+	{11426,	"MAGE,DEF",	3,	nil,			nil,			nil,			{11426,	25,	0},	},	--Ice Barrier
+	{45438,	"MAGE,DEF",	3,	{45438,	240,	10},	nil,			nil,			nil,			},	--Ice Block
+	{12472,	"MAGE,DPS",	3,	nil,			nil,			nil,			{12472,	180,	20},	},	--Icy Veins
+	{205025,"MAGE",	3,	nil,			{205025,60,	0},	nil,			nil,			},	--Presence of Mind
+	{235450,"MAGE,DEF",	4,	nil,			{235450,25,	0},	nil,			nil,			},	--Prismatic Barrier
+	{475,	"MAGE,DISPEL",	5,	{475,	8,	0},	nil,			nil,			nil,			},	--Remove Curse
+	{31687,	"MAGE",	3,	nil,			nil,			nil,			{31687,	30,	0},	},	--Summon Water Elemental
+	{80353,	"MAGE,UTIL",	3,	{80353,	300,	0},	nil,			nil,			nil,			},	--Time Warp
+	
+	{205022,"MAGE",	3,	nil,			{205022,10,	0},	nil,			nil,			},	--Arcane Familiar
+	{153626,"MAGE",	3,	nil,			{153626,20,	0},	nil,			nil,			},	--Arcane Orb
+	{205032,"MAGE",	3,	nil,			{205032,40,	0},	nil,			nil,			},	--Charged Up
+	{55342,	"MAGE,DEF",	3,	{55342,	120,	40},	nil,			nil,			nil,			},	--Mirror Image
+	{113724,"MAGE,AOECC",	3,	{113724,45,	0},	nil,			nil,			nil,			},	--Ring of Frost
+	{116011,"MAGE,DPS",	3,	{116011,40,	10},	nil,			nil,			nil,			},	--Rune of Power
+	{157980,"MAGE",	3,	nil,			{157980,25,	0},	nil,			nil,			},	--Supernova
+	{212653,"MAGE,MOVE",	4,	{212653,20,	0},	nil,			nil,			nil,			},	--Shimmer
+	
+	{235870,"MAGE",	3,	nil,			nil,			{235870,45,	0},	nil,			},	--Alexstrasza's Fury
+	{157981,"MAGE",	3,	nil,			nil,			{157981,25,	0},	nil,			},	--Blast Wave
+	{44457,	"MAGE",	3,	nil,			nil,			{44457,	12,	0},	nil,			},	--Living Bomb
+	{153561,"MAGE",	3,	nil,			nil,			{153561,45,	0},	nil,			},	--Meteor
+	{257541,"MAGE",	3,	nil,			nil,			{257541,30,	0},	nil,			},	--Phoenix flames
+	
+	{153595,"MAGE",	3,	nil,			nil,			nil,			{153595,30,	0},	},	--Comet Storm
+	{257537,"MAGE",	3,	nil,			nil,			nil,			{257537,45,	0},	},	--Ebonbolt
+	{205030,"MAGE",	3,	nil,			nil,			nil,			{205030,30,	0},	},	--Frozen Touch
+	{157997,"MAGE",	3,	nil,			nil,			nil,			{157997,25,	0},	},	--Ice Nova
+	{205021,"MAGE",	3,	nil,			nil,			nil,			{205021,75,	0},	},	--Ray of Frost
+
+	{104316,"WARLOCK",	3,	nil,			nil,			{104316,20,	0},	nil,			},	--Call Dreadstalkers
+	{29893,	"WARLOCK",	3,	{29893,	120,	0},	nil,			nil,			nil,			},	--Create Soulwell
+	{111771,"WARLOCK",	3,	{111771,10,	0},	nil,			nil,			nil,			},	--Demonic Gateway
+	{80240,	"WARLOCK,DPS",	3,	nil,			nil,			nil,			{80240,	25,	0},	},	--Havoc
+	{698,	"WARLOCK",	3,	{698,	120,	0},	nil,			nil,			nil,			},	--Ritual of Summoning
+	{30283,	"WARLOCK,AOECC",	1,	{30283,	60,	0},	nil,			nil,			nil,			},	--Shadowfury
+	{20707,	"WARLOCK,RES",	3,	{20707,	600,	0},	nil,			nil,			nil,			},	--Soulstone
+	{205180,"WARLOCK,DPS",	3,	nil,			{205180,180,	20},	nil,			nil,			},	--Summon Darkglare
+	{265187,"WARLOCK,DPS",	3,	nil,			nil,			{265187,90,	0},	nil,			},	--Summon Demonic Tyrant
+	{1122,	"WARLOCK,DPS",	3,	nil,			nil,			nil,			{1122,	180,	0},	},	--Summon Infernal
+	{104773,"WARLOCK,DEF",	4,	{104773,180,	8},	nil,			nil,			nil,			},	--Unending Resolve
+	
+	{108416,"WARLOCK,DEF",	3,	{108416,60,	0},	nil,			nil,			nil,			},	--Dark Pact
+	{113860,"WARLOCK,DPS",	3,	nil,			{113860,120,	0},	nil,			nil,			},	--Dark Soul: Misery
+	{264106,"WARLOCK",	3,	nil,			{264106,30,	0},	nil,			nil,			},	--Deathbolt
+	{268358,"WARLOCK",	3,	{268358,10,	0},	nil,			nil,			nil,			},	--Demonic Circle
+	{108503,"WARLOCK",	3,	nil,			{108503,30,	0},	nil,			{108503,30,	0},	},	--Grimoire of Sacrifice
+	{48181,	"WARLOCK",	3,	nil,			{48181,	15,	0},	nil,			nil,			},	--Haunt
+	{6789,	"WARLOCK,CC",	3,	{6789,	45,	0},	nil,			nil,			nil,			},	--Mortal Coil
+	{205179,"WARLOCK",	3,	nil,			{205179,45,	0},	nil,			nil,			},	--Phantom Singularity
+	{278350,"WARLOCK",	3,	nil,			{278350,20,	0},	nil,			nil,			},	--Vile Taint
+	
+	{267211,"WARLOCK",	3,	nil,			nil,			{267211,30,	0},	nil,			},	--Bilescourge Bombers
+	{267171,"WARLOCK",	3,	nil,			nil,			{267171,60,	0},	nil,			},	--Demonic Strength
+	{111898,"WARLOCK",	3,	nil,			nil,			{111898,90,	0},	nil,			},	--Grimoire: Felguard
+	{267217,"WARLOCK",	3,	nil,			nil,			{267217,180,	0},	nil,			},	--Nether Portal
+	{264130,"WARLOCK",	3,	nil,			nil,			{264130,30,	0},	nil,			},	--Power Siphon
+	{264057,"WARLOCK",	3,	nil,			nil,			{264057,10,	0},	nil,			},	--Soul Strike
+	{264119,"WARLOCK",	3,	nil,			nil,			{264119,45,	0},	nil,			},	--Summon Vilefiend
+	
+	{152108,"WARLOCK",	3,	nil,			nil,			nil,			{152108,30,	0},	},	--Cataclysm
+	{196447,"WARLOCK",	3,	nil,			nil,			nil,			{196447,25,	0},	},	--Channel Demonfire
+	{113858,"WARLOCK,DPS",	3,	nil,			nil,			nil,			{113858,120,	0},	},	--Dark Soul: Instability
+	{6353,	"WARLOCK",	3,	nil,			nil,			nil,			{6353,	20,	0},	},	--Soul Fire
+
+	{100784,"MONK",	3,	{100784,3,	0},	nil,			nil,			nil,			},	--Blackout Kick
+	{115181,"MONK",	3,	nil,			{115181,15,	0},	nil,			nil,			},	--Breath of Fire
+	{218164,"MONK,DISPEL",	5,	nil,			{218164,8,	0},	{218164,8,	0},	nil,			},	--Detox
+	{115450,"MONK,DISPEL",	5,	nil,			nil,			nil,			{115450,8,	0},	},	--Detox
+	{191837,"MONK",	3,	nil,			nil,			nil,			{191837,12,	0},	},	--Essence Font
+	{113656,"MONK",	3,	nil,			nil,			{113656,24,	0},nil,				},	--Fists of Fury
+	{101545,"MONK,MOVE",	3,	nil,			nil,			{101545,25,	0},nil,				},	--Flying Serpent Kick
+	{115203,"MONK,DEFTANK",	4,	nil,			{115203,420,	15},	nil,			nil,			},	--Fortifying Brew
+	{243435,"MONK,DEF",	4,	nil,			nil,			nil,			{243435,90,	15},	},	--Fortifying Brew
+	{119381,"MONK,AOECC",	1,	{119381,60,	3},	nil,			nil,			nil,			},	--Leg Sweep
+	{116849,"MONK,DEFTAR",	2,	nil,			nil,			nil,			{116849,120,	12},	},	--Life Cocoon
+	{115078,"MONK,CC",	3,	{115078,45,	0},	nil,			nil,			nil,			},	--Paralysis
+	{115546,"MONK,TAUNT",	5,	{115546,8,	0},	nil,			nil,			nil,			},	--Provoke
+	{115310,"MONK,RAID",	1,	nil,			nil,			nil,			{115310,180,	0},	},	--Revival
+	{107428,"MONK",	3,	nil,			nil,			{107428,10,	0},	{107428,10,	0},	},	--Rising Sun Kick
+	{109132,"MONK,MOVE",	3,	{107428,20,	0},	nil,			nil,			nil,			},	--Roll	
+	{116705,"MONK,KICK",	3,	nil,			{116705,15,	0},	{116705,15,	0},	nil,			},	--Spear Hand Strike
+	{137639,"MONK,DPS",	3,	nil,			nil,			{137639,90,	15},	nil,			},	--Storm, Earth, and Fire
+	{116680,"MONK",	3,	nil,			nil,			nil,			{116680,30,	0},	},	--Thunder Focus Tea
+	{115080,"MONK,DPS",	3,	nil,			nil,			{115080,120,	8},	nil,				},	--Touch of Death
+	{122470,"MONK,DEF",	3,	nil,			nil,			{122470,90,	10},	nil,			},	--Touch of Karma
+	{101643,"MONK",	4,	{101643,10,	0},	nil,			nil,			nil,			},	--Transcendence
+	{119996,"MONK,MOVE",	4,	{119996,45,	0},	nil,			nil,			nil,			},	--Transcendence: Transfer
+	{115176,"MONK,DEFTANK",	4,	nil,			{115176,300,	8},	nil,			nil,			},	--Zen Meditation
+	{126892,"MONK",	3,	{126892,60,	0},	nil,			nil,			nil,			},	--Zen Pilgrimage
+	
+	{115399,"MONK",	3,	nil,			{115399,120,	0},	nil,			nil,			},	--Black Ox Brew
+	{123986,"MONK",	3,	{123986,30,	0},	nil,			nil,			nil,			},	--Chi Burst
+	{115008,"MONK,MOVE",	4,	{115008,20,	0},	nil,			nil,			nil,			},	--Chi Torpedo
+	{115098,"MONK",	3,	{115098,15,	0},	nil,			nil,			nil,			},	--Chi Wave
+	{122278,"MONK,DEF",	3,	{122278,120,	10},	nil,			nil,			nil,			},	--Dampen Harm
+	{115295,"MONK,DEFTANK",	3,	nil,			{115295,30,	0},	nil,			nil,			},	--Guard
+	{132578,"MONK",	3,	nil,			{132578,180,	0},	nil,			nil,			},	--Invoke Niuzao, the Black Ox
+	{116844,"MONK,UTIL",	1,	{116844,45,	5},	nil,			nil,			nil,			},	--Ring of Peace
+	{116847,"MONK",	3,	nil,			{116847,6,	0},	nil,			nil,			},	--Rushing Jade Wind
+	{115315,"MONK",	3,	nil,			{115315,10,	0},	nil,			nil,			},	--Summon Black Ox Statue
+	{116841,"MONK,UTIL,RAIDSPEED",	2,	{116841,30,	6},	nil,			nil,			nil,			},	--Tiger's Lust
+	
+	{122783,"MONK,DEF",	4,	nil,			nil,			{122783,90,	6},	{122783,90,	6},	},	--Diffuse Magic
+	{198664,"MONK,HEAL",	3,	nil,			nil,			nil,			{198664,180,	25},	},	--Invoke Chi-Ji, the Red Crane
+	{197908,"MONK,HEAL",	3,	nil,			nil,			nil,			{197908,90,	12},	},	--Mana Tea
+	{196725,"MONK",	3,	nil,			nil,			nil,			{196725,9,	0},	},	--Refreshing Jade Wind
+	{198898,"MONK",	3,	nil,			nil,			nil,			{198898,30,	0},	},	--Song of Chi-Ji
+	{115313,"MONK",	3,	nil,			nil,			nil,			{115313,10,	0},	},	--Summon Jade Serpent Statue
+	
+	{115288,"MONK",	3,	nil,			nil,			{115288,60,	0},	nil,			},	--Energizing Elixir
+	{261947,"MONK",	3,	nil,			nil,			{261947,30,	0},	nil,			},	--Fist of the White Tiger
+	{123904,"MONK,DPS",	3,	nil,			nil,			{123904,120,	20},	nil,			},	--Invoke Xuen, the White Tiger
+	{261715,"MONK",	3,	nil,			nil,			{261715,6,	0},	nil,			},	--Rushing Jade Wind
+	{152173,"MONK,DPS",	3,	nil,			nil,			{152173,90,	12},	nil,			},	--Serenity
+	{152175,"MONK",	3,	nil,			nil,			{152175,24,	0},	nil,			},	--Whirling Dragon Punch
+
+	{22812,	"DRUID,DEFTANK,DEF",	4,	nil,			{22812,	60,	12},	nil,			{22812,	60,	12},	{22812,	60,	12},	},	--Barkskin
+	{106951,"DRUID,DPS",	3,	nil,			nil,			{106951,180,	15},	nil,			nil,			},	--Berserk
+	{194223,"DRUID,DPS",	3,	nil,			{194223,180,	20},	nil,			nil,			nil,			},	--Celestial Alignment
+	{1850,	"DRUID,MOVE",	4,	{1850,	120,	10},	nil,			nil,			nil,			nil,			},	--Dash
+	{22842,	"DRUID,DEFTANK",	4,	nil,			nil,			nil,			{22842,	36,	3},	nil,			},	--Frenzied Regeneration
+	{6795,	"DRUID,TAUNT",	5,	{6795,	8,	0},	nil,			nil,			nil,			nil,			},	--Growl
+	{99,	"DRUID,CC",	3,	nil,			nil,			nil,			{99,	30,	0},	nil,			},	--Incapacitating Roar
+	{29166,	"DRUID,HEALUTIL",	2,	nil,			{29166,	180,	12},	nil,			nil,			{29166,	180,	12},	},	--Innervate
+	{102342,"DRUID,DEFTAR",	2,	nil,			nil,			nil,			nil,			{102342,60,	12},	},	--Ironbark
+	{22570,	"DRUID",	3,	nil,			nil,			{22570,	20,	0},	nil,			nil,			},	--Maim
+	{33917,	"DRUID",	3,	{33917,	6,	0},	nil,			nil,			nil,			nil,			},	--Mangle
+	{5215,	"DRUID",	3,	{5215,	6,	0},	nil,			nil,			nil,			nil,			},	--Prowl
+	{20484,	"DRUID,RES",	1,	{20484,	600,	0},	nil,			nil,			nil,			nil,			},	--Rebirth
+	{2782,	"DRUID,DISPEL",	5,	nil,			{2782,	8,	0},	{2782,	8,	0},	{2782,	8,	0},	nil,			},	--Remove Corruption
+	{88423,	"DRUID,DISPEL",	5,	nil,			nil,			nil,			nil,			{88423,	8,	0}	},	--Dispel
+	{106839,"DRUID,KICK",	5,	nil,			nil,			{106839,15,	0},	{106839,15,	0},	nil,			},	--Skull Bash
+	{78675,	"DRUID,KICK",	5,	nil,			{78675,	60,	8},	nil,			nil,			nil,			},	--Solar Beam
+	{2908,	"DRUID",	5,	nil,			{2908,	10,	0},	{2908,	10,	0},	nil,			{2908,	10,	0},	},	--Soothe
+	{106898,"DRUID,RAIDSPEED",	1,	nil,			nil,			{106898,120,	8},	{106898,120,	8},	nil,			},	--Stampeding Roar
+	{61336,	"DRUID,DEFTANK,DEF",	3,	nil,			nil,			{61336,	120,	6},	{61336,	240,	6},	nil,			},	--Survival Instincts
+	{18562,	"DRUID",	3,	nil,			nil,			nil,			nil,			{18562,	25,	0},	},	--Swiftmend
+	{5217,	"DRUID,DPS",	3,	nil,			nil,			{5217,	30,	10},	nil,			nil,			},	--Tiger's Fury
+	{740,	"DRUID,RAID",	1,	nil,			nil,			nil,			nil,			{740,	180,	8},	},	--Tranquility
+	{102793,"DRUID,UTIL",	3,	nil,			nil,			nil,			{102793,60,	10},	{102793,60,	10},	},	--Ursol's Vortex
+	{48438,	"DRUID",	3,	nil,			nil,			nil,			nil,			{48438,	10,	0},	},	--Wild Growth
+	
+	{205636,"DRUID,UTIL",	3,	nil,			{205636,60,	0},	nil,			nil,			nil,			},	--Force of Nature
+	{202770,"DRUID",	3,	nil,			{202770,60,	0},	nil,			nil,			nil,			},	--Fury of Elune
+	{102560,"DRUID,DPS",	3,	nil,			{102560,180,	30},	nil,			nil,			nil,			},	--Incarnation: Chosen of Elune
+	{102359,"DRUID,UTIL",	3,	{102359,30,	0},	nil,			nil,			nil,			nil,			},	--Mass Entanglement
+	{5211,	"DRUID,CC",	3,	{5211,	50,	0},	nil,			nil,			nil,			nil,			},	--Mighty Bash
+	{108238,"DRUID,DEF",	3,	nil,			{108238,90,	0},	{108238,90,	0},	nil,			{108238,90,	0},	},	--Renewal
+	{252216,"DRUID,MOVE",	3,	{252216,45,	5},	nil,			nil,			nil,			nil,			},	--Tiger Dash
+	{132469,"DRUID,UTIL",	3,	{61391,	30,	0},	nil,			nil,			nil,			nil,			},	--Typhoon
+	{202425,"DRUID",	3,	nil,			{202425,45,	0},	nil,			nil,			nil,			},	--Warrior of Elune
+	{102401,"DRUID,MOVE",	3,	{102401,15,	0},	nil,			nil,			nil,			nil,			},	--Wild Charge
+	
+	{274837,"DRUID",	3,	nil,			nil,			{274837,45,	0},	nil,			nil,			},	--Feral Frenzy
+	{102543,"DRUID,DPS",	3,	nil,			nil,			{102543,180,	30},	nil,			nil,			},	--Incarnation: King of the Jungle
+	
+	{155835,"DRUID,DEFTANK",	3,	nil,			nil,			nil,			{155835,40,	0},	nil,			},	--Bristling Fur
+	{102558,"DRUID,DEFTANK",	3,	nil,			nil,			nil,			{102558,180,	30},	nil,			},	--Incarnation: Guardian of Ursoc
+	{204066,"DRUID",	3,	nil,			nil,			nil,			{204066,75,	0},	nil,			},	--Lunar Beam
+	
+	{102351,"DRUID",	3,	nil,			nil,			nil,			nil,			{102351,30,	0},	},	--Cenarion Ward
+	{197721,"DRUID,HEAL",	3,	nil,			nil,			nil,			nil,			{197721,90,	8},	},	--Flourish
+	{33891,	"DRUID,HEAL",	3,	nil,			nil,			nil,			nil,			{33891,	180,	30},	},	--Incarnation: Tree of Life
+
+	{188499,"DEMONHUNTER",	3,	nil,			{188499,9,	0},	nil,			},	--Blade Dance
+	{198589,"DEMONHUNTER,DEF",	4,	nil,			{198589,60,	10},	nil,			},	--Blur
+	{179057,"DEMONHUNTER,AOECC",	1,	nil,			{179057,60,	2},	nil,			},	--Chaos Nova
+	{278326,"DEMONHUNTER",	5,	{278326,10,	0},	nil,			nil,			},	--Consume Magic
+	{196718,"DEMONHUNTER,RAID",	1,	nil,			{196718,180,	8},	nil,			},	--Darkness
+	{203720,"DEMONHUNTER,DEFTANK",	4,	nil,			nil,			{203720,20,	6},	},	--Demon Spikes
+	{183752,"DEMONHUNTER,KICK",	5,	{183752,15,	0},	nil,			nil,			},	--Disrupt
+	{198013,"DEMONHUNTER",	3,	nil,			{198013,30,	0},	nil,			},	--Eye Beam
+	{195072,"DEMONHUNTER,MOVE",	4,	nil,			{195072,10,	0},	{195072,20,	0},	},	--Fel rush
+	{204021,"DEMONHUNTER,DEFTANK",	4,	nil,			nil,			{204021,60,	8},	},	--Fiery Brand
+	{178740,"DEMONHUNTER",	3,	nil,			nil,			{178740,15,	0},	},	--Immolation Aura
+	{217832,"DEMONHUNTER,CC",	3,	{217832,45,	0},	nil,			nil,			},	--Imprison
+	{191427,"DEMONHUNTER,DPS",	3,	nil,			{191427,240,	30},	nil,			},	--Metamorphosis
+	{187827,"DEMONHUNTER,DEFTANK",	4,	nil,			nil,			{187827,180,	0},	},	--Metamorphosis
+	{204596,"DEMONHUNTER",	3,	nil,			nil,			{204596,30,	2},	},	--Sigil of Flame
+	{207684,"DEMONHUNTER,AOECC",	1,	nil,			nil,			{207684,60,	2},	},	--Sigil of Misery
+	{202137,"DEMONHUNTER,UTIL",	1,	nil,			nil,			{202137,60,	2},	},	--Sigil of Silence
+	{188501,"DEMONHUNTER",	3,	{188501,30,	10},	nil,			nil,			},	--Spectral Sight
+	{281854,"DEMONHUNTER,TAUNT",	5,	nil,			{281854,8,	0},	nil,			},	--Torment
+	{185245,"DEMONHUNTER,TAUNT",	5,	nil,			nil,			{185245,8,	0},	},	--Torment
+	{198793,"DEMONHUNTER",	3,	nil,			{198793,25,	0},	nil,			},	--Vengeful Retreat
+	
+	{258860,"DEMONHUNTER",	3,	nil,			{258860,20,	0},	nil,			},	--Dark Slash
+	{258925,"DEMONHUNTER",	3,	nil,			{258925,60,	0},	nil,			},	--Fel Barrage
+	{211881,"DEMONHUNTER,CC",	3,	nil,			{211881,30,	0},	nil,			},	--Fel Eruption
+	{232893,"DEMONHUNTER",	3,	{232893,15,	0},	nil,			nil,			},	--Felblade
+	{258920,"DEMONHUNTER",	3,	nil,			{258920,30,	0},	nil,			},	--Immolation Aura
+	{206491,"DEMONHUNTER",	3,	nil,			{206491,120,	0},	nil,			},	--Nemesis
+	{196555,"DEMONHUNTER,DEF",	3,	nil,			{196555,120,	5},	nil,			},	--Netherwalk
+	
+	{212084,"DEMONHUNTER",	3,	nil,			nil,			{212084,60,	0},	},	--Fel Devastation
+	{202138,"DEMONHUNTER,UTIL",	3,	nil,			nil,			{202138,90,	2},	},	--Sigil of Chains
+	{263648,"DEMONHUNTER",	3,	nil,			nil,			{263648,30,	0},	},	--Soul Barrier
+
+	{161642,"NO,RES",		3,	{161642,0,	0},	},	--Resurrecting [Raid Combat Res]
+
+	{90355,	"PET,HUNTER,UTIL",	3,	{90355,360,40}	},
+	{26064,	"PET,HUNTER",	3,	{26064,60,12}	},
+	{55709,	"PET,HUNTER",	3,	{55709,480,0}	},
+	{53480,	"PET,HUNTER",	2,	{53480,60,12}	},
+	{53478,	"PET,HUNTER",	3,	{53478,360,20}	},
+	{61685,	"PET,HUNTER",	3,	{61685,25,0}	},
+	{90361,	"PET,HUNTER",	3,	{90361,30,0}	},
+	{91802,	"PET,DEATHKNIGHT",	5,	{91802,30,0}	},
+	{91797,	"PET,DEATHKNIGHT",	3,	{91797,90,0}	},
+	{89751,	"PET,WARLOCK",	3,	{89751,45,6}	},
+	{89766,	"PET,WARLOCK,CC",	5,	{89766,30,0}	},
+	{115276,"PET,WARLOCK,DISPEL",	5,	{115276,10,0}	},
+	{17767,	"PET,WARLOCK",	3,	{17767,120,20}	},
+	{89808,	"PET,WARLOCK,DISPEL",	5,	{89808,10,0}	},
+	{119899,"PET,WARLOCK",	4,	{119899,30,12}	},
+	{89792,	"PET,WARLOCK",	3,	{89792,20,0}	},
+	{115781,"PET,WARLOCK,KICK",	5,	{115781,24,0}	},
+	{115831,"PET,WARLOCK",	3,	{115831,45,6}	},
+	{115268,"PET,WARLOCK,CC",	3,	{115268,30,0}	},
+	{6358,	"PET,WARLOCK,CC",	3,	{6358,30,0}	},
+	{19647,	"PET,WARLOCK,KICK",	5,	{19647,24,0}	},
+	{19505,	"PET,WARLOCK",	3,	{19505,15,0}	},
+	{33395,	"PET,MAGE",	3,	{33395,25,0}	},
+
+	{68992,	"RACIAL",	3,	{68992,	120,	10},	},	--Worgen
+	{20589,	"RACIAL",	3,	{20589,	60,	0},	},	--Gnome
+	{20594,	"RACIAL",	3,	{20594,	120,	8},	},	--Dwarf
+	{121093,"RACIAL",	3,	{121093,180,	5},	},	--Draenei
+	{58984,	"RACIAL",	3,	{58984,	120,	0},	},	--NightElf
+	{59752,	"RACIAL",	3,	{59752,	180,	0},	},	--Human
+	{69041,	"RACIAL",	3,	{69041,	90,	0},	},	--Goblin
+	{69070,	"RACIAL",	3,	{69070,	90,	0},	},	--Goblin
+	{7744,	"RACIAL",	3,	{7744,	120,	0},	},	--Undead
+	{20577,	"RACIAL",	3,	{20577,	120,	10},	},	--Undead
+	{20572,	"RACIAL",	3,	{20572,	120,	15},	},	--Orc
+	{20549,	"RACIAL",	3,	{20549,	90,	0},	},	--Tauren
+	{26297,	"RACIAL",	3,	{26297,	180,	10},	},	--Troll
+	{28730,	"RACIAL",	3,	{28730,	120,	0},	},	--BloodElf
+	{107079,"RACIAL",	3,	{107079,120,	4},	},	--Pandaren
+	{256948,"RACIAL",	3,	{256948,180,	0},	},	--VoidElf
+	{260364,"RACIAL",	3,	{260364,180,	12},	},	--Nightborne
+	{255647,"RACIAL",	3,	{255647,150,	0},	},	--LightforgedDraenei
+	{255654,"RACIAL",	3,	{255654,120,	0},	},	--HighmountainTauren
+	{274738,"RACIAL",	3,	{274738,120,	15},	},	--MagharOrc
+	{265221,"RACIAL",	3,	{265221,120,	8},	},	--DarkIronDwarf
+	{312924,"RACIAL",	3,	{312924,180,	0},	},	--Mechagnome
+	{287712,"RACIAL",	3,	{287712,150,	3},	},	--Kul Tiran
+	{312411,"RACIAL",	3,	{312411,90,	0},	},	--Vulpera
+	{291944,"RACIAL",	3,	{291944,150,	6},	},	--Zandalari Troll
+
+	{67826,	"ITEMS",	3,	{67826,	3600,	0},	},	--Jeevs
+	{201414,"ITEMS",	3,	{201414,60,	0},	},	--Purified Shard of the Third Moon
+	{201371,"ITEMS",	3,	{201371,60,	0},	},	--Judgment of the Naaru
+	{90633,	"ITEMS",	3,	{90633,	600,	0},	},	--Guild Battle Standard
+	{90632,	"ITEMS",	3,	{90632,	600,	0},	},	--Guild Battle Standard
+	{90631,	"ITEMS",	3,	{90631,	600,	0},	},	--Guild Battle Standard
+	{215956,"ITEMS",	3,	{215956,120,	30},	},	--Horn of Valor
+	{215648,"ITEMS",	3,	{215648,90,	20},	},	--Moonlit Prism
+	{214962,"ITEMS",	3,	{214962,120,	30},	},	--Faulty Countermeasure
+	{215936,"ITEMS",	3,	{215936,120,	20},	},	--Orb of Torment
+	{215658,"ITEMS",	3,	{215658,75,	15},	},	--Tirathon's Betrayal
+	{214980,"ITEMS",	3,	{214980,120,	6},	},	--Windscar Whetstone
+	{215206,"ITEMS",	3,	{215206,20,	0},	},	--Jewel of Insatiable Desire
+	{214584,"ITEMS",	3,	{214584,60,	10},	},	--Shivermaw's Jawbone
+	{215467,"ITEMS",	3,	{215467,60,	15},	},	--Obelisk of the Void
+	{214971,"ITEMS",	3,	{214971,60,	8},	},	--Giant Ornamental Pearl
+	{214423,"ITEMS",	3,	{214423,60,	15},	},	--Talisman of the Cragshaper
+	{214366,"ITEMS",	3,	{214366,120,	30},	},	--Shard of Rokmora
+	{215670,"ITEMS",	3,	{215670,120,	15},	},	--Figurehead of the Naglfar
+	{214203,"ITEMS",	3,	{214203,60,	0},	},	--Gift of Radiance
+	{214198,"ITEMS",	3,	{214198,90,	0},	},	--Mote of Sanctification
+	{221837,"ITEMS",	3,	{221837,120,	10},	},	--Cocoon of Enforced Solitude
+	{221992,"ITEMS",	3,	{221992,60,	0},	},	--Horn of Cenarius
+	{221695,"ITEMS",	3,	{221695,120,	25},	},	--Unbridled Fury
+	{222046,"ITEMS",	3,	{222046,120,	0},	},	--Wriggling Sinew
+	{221803,"ITEMS",	3,	{221803,60,	10},	},	--Ravaged Seed Pod
+	{235169,"ITEMS",	3,	{235169,75,	10},	},	--Archimonde's Hatred Reborn
+	{235966,"ITEMS",	3,	{235966,75,	10},	},	--Velen's Future Sight
+	{235991,"ITEMS",	3,	{235991,75,	0},	},	--Kil'jaeden's Burning Wish
+	{251946,"ITEMS",	3,	{251946,120,	3},	},	--ABT Bulwark of Flame
+	{295271,"ITEMS",	3,	{295271,120,	0},	},	--Void Stone
+	{295373,"ESSENCES",	3,	{295373,30,	0},	},	--The Crucible of Flame
+	{295186,"ESSENCES",	3,	{295186,60,	0},	},	--Worldvein Resonance
+	{302731,"ESSENCES",	3,	{302731,60,	2},	},	--Ripple in Space
+	{298357,"ESSENCES",	3,	{298357,120,	0},	},	--Memory of Lucid Dreams
+	{293019,"ESSENCES",	3,	{293019,60,	4},	},	--Azeroth's Undying Gift
+	{294926,"ESSENCES",	3,	{294926,150,	0},	},	--Anima of Life and Death
+	{298168,"ESSENCES",	3,	{298168,120,	15},	},	--Aegis of the Deep
+	{295746,"ESSENCES",	3,	{295746,180,	0},	},	--Nullification Dynamo
+	{293031,"ESSENCES",	3,	{293031,60,	0},	},	--Sphere of Suppression
+	{296197,"ESSENCES",	3,	{296197,15,	0},	},	--The Well of Existence
+	{296094,"ESSENCES",	3,	{296094,180,	0},	},	--Artifice of Time
+	{293032,"ESSENCES",	3,	{293032,120,	0},	},	--Life-Binder's Invocation
+	{296072,"ESSENCES",	3,	{296072,30,	8},	},	--The Ever-Rising Tide
+	{296230,"ESSENCES",	3,	{296230,60,	0},	},	--Vitality Conduit
+	{295258,"ESSENCES",	3,	{295258,90,	0},	},	--Essence of the Focusing Iris
+	{295840,"ESSENCES",	3,	{295840,180,	0},	},	--Condensed Life-Force
+	{297108,"ESSENCES",	3,	{297108,120,	0},	},	--Blood of the Enemy
+	{295337,"ESSENCES",	3,	{295337,60,	0},	},	--Purification Protocol
+	{298452,"ESSENCES",	3,	{298452,60,	0},	},	--The Unbound Force
 }
-]]
+
 if ExRT.isClassic then
-module.db.AllClassSpellsInText = [[
-local module = GExRT.A.ExCD2
-module.db.allClassSpells = {
-["WARRIOR"] = {},
-["PALADIN"] = {},
-["HUNTER"] = {},
-["ROGUE"] = {},
-["PRIEST"] = {},
-["DEATHKNIGHT"] = {},
-["SHAMAN"] = {},
-["MAGE"] = {},
-["WARLOCK"] = {},
-["MONK"] = {},
-["DRUID"] = {},
-["DEMONHUNTER"] = {},
-["PET"] = {},
-}
-]]
+	module.db.AllSpells = {
+		{29166,	"DRUID",	1,	{29166,	360,	20}},	--Озарение
+		{20748,	"DRUID",	1,	{20748,	1800,	0}},	--BR
+		{6795,	"DRUID",	1,	{6795,	10,	0}},	--Taunt
+		{9863,	"DRUID",	1,	{9863,	300,	10}},	--Tranq
+
+		{355,	"WARRIOR",	1,	{355,	10,	0}},	--Taunt
+		{12975,	"WARRIOR",	1,	{12975,	600,	20}},	--Last stand
+		{871,	"WARRIOR",	1,	{871,	1800,	10}},	--SW
+
+		{11958,	"MAGE",		1,	{11958,	480,	40}},	--IB
+
+		{1020,	"PALADIN",	1,	{1020,	300,	12}},	--DS
+		{10310,	"PALADIN",	1,	{10310,	3600,	0}},	--LoH
+		{19752,	"PALADIN",	1,	{19752,	3600,	0}},	--DI
+
+		{17359,	"SHAMAN",	1,	{17359,	300,	12}},	--MTT
+
+		{20765,	"WARLOCK",	1,	{20765,	1800,	0}},	--Soulstone
+	}
 end

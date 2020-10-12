@@ -9,6 +9,7 @@
 --------------------------------------------------------------------------------
 --				This script is called directly after the Core.lua file. 	  --
 --------------------------------------------------------------------------------
+
 local name, app = ...;
 app.L = {
 	-- General Text
@@ -109,19 +110,22 @@ app.L = {
 	["COLLECTED_ICON"] = "|TInterface\\Addons\\AllTheThings\\assets\\known:0|t";	-- Acquired the colors and icon from CanIMogIt.
 	["COLLECTED_APPEARANCE_ICON"] = "|TInterface\\Addons\\AllTheThings\\assets\\known_circle:0|t";		-- Acquired the colors and icon from CanIMogIt.
 	["COMPLETE_ICON"] = "|TInterface\\Addons\\AllTheThings\\assets\\known_green:0|t";		-- Acquired the colors and icon from CanIMogIt.
+    ["INCOMPLETE_ICON"] = "|TInterface\\Addons\\AllTheThings\\assets\\incomplete:0|t";        -- Acquired the colors and icon from CanIMogIt.
 	["NOT_COLLECTED_ICON"] = "|TInterface\\Addons\\AllTheThings\\assets\\unknown:0|t";		-- Acquired the colors and icon from CanIMogIt.
 	["COLLECTED"] = "|TInterface\\Addons\\AllTheThings\\assets\\known:0|t |cff15abffCollected|r";		-- Acquired the colors and icon from CanIMogIt.
 	["COLLECTED_APPEARANCE"] = "|TInterface\\Addons\\AllTheThings\\assets\\known_circle:0|t |cff15abffCollected*|r";	-- Acquired the colors and icon from CanIMogIt.
 	["NOT_COLLECTED"] = "|TInterface\\Addons\\AllTheThings\\assets\\unknown:0|t |cffff9333Not Collected|r";		-- Acquired the colors and icon from CanIMogIt.
 	["COMPLETE"] = "|TInterface\\Addons\\AllTheThings\\assets\\known_green:0|t |cff6dce47Complete|r";		-- Acquired the colors and icon from CanIMogIt.
 	["COMPLETE_OTHER"] = "|TInterface\\Addons\\AllTheThings\\assets\\known_green:0|t |cff6dce47Complete*|r";		-- Acquired the colors and icon from CanIMogIt.
-	["INCOMPLETE"] = "|TInterface\\Addons\\AllTheThings\\assets\\unknown:0|t |cffff9333Incomplete|r";		-- Acquired the colors and icon from CanIMogIt.
+    ["INCOMPLETE"] = "|TInterface\\Addons\\AllTheThings\\assets\\incomplete:0|t |cff15abffIncomplete|r";        -- Acquired the colors and icon from CanIMogIt.
 	["KNOWN_ON_CHARACTER"] = "|TInterface\\Addons\\AllTheThings\\assets\\known:0|t |cff15abffKnown on current character|r";
 	["UNKNOWN_ON_CHARACTER"] = "|TInterface\\Addons\\AllTheThings\\assets\\unknown:0|t |cffff9333Unknown on current character|r";
 
 	["ABBREVIATIONS"] = {
 		["ALL THE THINGS"] = "ATT",
+		["Antorus, the Burning Throne"] = "Antorus",
 		["Expansion Pre"] = "Pre",
+		["Expansion Features"] = "EF",
 		["Dungeons & Raids"] = "D&R",
 		["Classic -> "] = "",
 		["Burning Crusade"] = "BC",
@@ -136,6 +140,7 @@ app.L = {
 		["Normal"] = "N",
 		["Heroic"] = "H",
 		["Mythic"] = "M",
+		["Ny'alotha, the Waking City"] = "Ny'alotha",
 		["10 Player"] = "10M",
 		["10 Player (Heroic)"] = "10M (H)",
 		["25 Player"] = "25M",
@@ -146,7 +151,7 @@ app.L = {
 		["Zone Wide"] = LFG_TYPE_ZONE,
 		["Item Sets"] = WARDROBE_SETS,
 		["Pet Journal"] = PETS,
-		["Pet Battles"] = PETS,
+--		["Pet Battles"] = PETS,
 		["Toy Box"] = TOY,
 		["Monthly World Events"] = CALENDAR_REPEAT_MONTHLY,
 		["Weekly World Events"] = CALENDAR_REPEAT_WEEKLY,
@@ -154,7 +159,6 @@ app.L = {
 		["Emissary Quests"] = "Emissary",
 		["World Quests"] = "WQ",
 		["WoW Anniversary"] = "Anniversary",
-
 	};
 	["CUSTOM_DIFFICULTIES"] = {
 		[-1] = "Raid Finder (5.4)",
@@ -232,46 +236,46 @@ app.L = {
 		[999] = "Event Item",
 	};
 	["FILTER_ID_ICONS"] = {
-		[1] = "Interface\\Icons\\inv_misc_orb_01",							-- Held in Off-hand
-		[2] = "Interface\\Icons\\Ability_Mage_IceForm",						-- Cosmetic
-		[3] = "Interface\\Icons\\inv_misc_cape_11",							-- Cloaks
-		[4] = "Interface\\Icons\\inv_chest_cloth_21",						-- Cloth Armor
-		[5] = "Interface\\Icons\\inv_chest_leather_09",						-- Leather Armor
-		[6] = "Interface\\Icons\\inv_chest_chain_05",						-- Mail Armor
-		[7] = "Interface\\Icons\\inv_chest_plate01",						-- Plate Armor
-		[8] = "Interface\\Icons\\inv_shield_06",							-- Shield
-		[9] = "Interface\\Icons\\inv_misc_tournaments_tabard_gnome",		-- Tabards
-		[10] = "Interface\\Icons\\inv_shirt_grey_01",						-- Shirts
-		[11] = "Interface\\Icons\\Paladin_Protection",						-- Artifacts
-		[20] = "Interface\\Icons\\inv_weapon_shortblade_01",				-- Daggers
-		[21] = "Interface\\Icons\\inv_axe_17",								-- 1H Axes
-		[22] = "Interface\\Icons\\inv_axe_09",								-- 2H Axes
-		[23] = "Interface\\Icons\\inv_mace_02",								-- 1H Maces
-		[24] = "Interface\\Icons\\inv_hammer_16",							-- 2H Maces
-		[25] = "Interface\\Icons\\inv_sword_04",							-- 1H Swords
-		[26] = "Interface\\Icons\\inv_sword_07",							-- 2H Swords
-		[27] = "Interface\\Icons\\inv_wand_02",								-- Wands
-		[28] = "Interface\\Icons\\inv_staff_27",							-- Staves
-		[29] = "Interface\\Icons\\inv_spear_04",							-- Polearms
-		[31] = "Interface\\Icons\\inv_weapon_rifle_01",						-- Guns
-		[32] = "Interface\\Icons\\inv_weapon_bow_05",						-- Bows
-		[33] = "Interface\\Icons\\inv_weapon_crossbow_01",					-- Crossbows
-		[34] = "Interface\\Icons\\inv_misc_monsterclaw_02",					-- Fist Weapons
-		[35] = "Interface\\Icons\\inv_weapon_glave_01",						-- Warglaives
-		[50] = "Interface\\Icons\\Spell_Misc_Drink",						-- Miscellaneous
-		[51] = "Interface\\Icons\\INV_Jewelry_Necklace_02",					-- Neck
-		[52] = "Interface\\Icons\\INV_Jewelry_Ring_04",						-- Finger
-		[53] = "Interface\\Icons\\INV_Trinket_Naxxramas05",					-- Trinket
-		[54] = "Interface\\Icons\\inv_staff_2h_felfireraid_d_03",			-- Relic
-		[55] = "Interface\\Icons\\INV_Drink_25_HoneyTea",					-- Consumables
-		[59] = "Interface\\Icons\\INV_Misc_Book_03",						-- Class Books
-		[100] = "Interface\\Icons\\ability_mount_fireravengodmountgreen",	-- Mounts
-		[101] = "Interface\\Icons\\Tracking_WildPet", 						-- Battle Pet
-		[102] = "Interface\\Icons\\INV_Misc_Toy_10",						-- Toy
-		[113] = "Interface\\Icons\\INV_Misc_Bag_08",						-- Bag
+		[1] = "Interface\\Icons\\inv_misc_orb_01",								-- Held in Off-hand
+		[2] = "Interface\\Icons\\Ability_Mage_IceForm",							-- Cosmetic
+		[3] = "Interface\\Icons\\inv_misc_cape_11",								-- Cloaks
+		[4] = "Interface\\Icons\\inv_chest_cloth_21",							-- Cloth Armor
+		[5] = "Interface\\Icons\\inv_chest_leather_09",							-- Leather Armor
+		[6] = "Interface\\Icons\\inv_chest_chain_05",							-- Mail Armor
+		[7] = "Interface\\Icons\\inv_chest_plate01",							-- Plate Armor
+		[8] = "Interface\\Icons\\inv_shield_06",								-- Shield
+		[9] = "Interface\\Icons\\inv_misc_tournaments_tabard_gnome",			-- Tabards
+		[10] = "Interface\\Icons\\inv_shirt_grey_01",							-- Shirts
+		[11] = "Interface\\Icons\\Paladin_Protection",							-- Artifacts
+		[20] = "Interface\\Icons\\inv_weapon_shortblade_01",					-- Daggers
+		[21] = "Interface\\Icons\\inv_axe_17",									-- 1H Axes
+		[22] = "Interface\\Icons\\inv_axe_09",									-- 2H Axes
+		[23] = "Interface\\Icons\\inv_mace_02",									-- 1H Maces
+		[24] = "Interface\\Icons\\inv_hammer_16",								-- 2H Maces
+		[25] = "Interface\\Icons\\inv_sword_04",								-- 1H Swords
+		[26] = "Interface\\Icons\\inv_sword_07",								-- 2H Swords
+		[27] = "Interface\\Icons\\inv_wand_02",									-- Wands
+		[28] = "Interface\\Icons\\inv_staff_27",								-- Staves
+		[29] = "Interface\\Icons\\inv_spear_04",								-- Polearms
+		[31] = "Interface\\Icons\\inv_weapon_rifle_01",							-- Guns
+		[32] = "Interface\\Icons\\inv_weapon_bow_05",							-- Bows
+		[33] = "Interface\\Icons\\inv_weapon_crossbow_01",						-- Crossbows
+		[34] = "Interface\\Icons\\inv_misc_monsterclaw_02",						-- Fist Weapons
+		[35] = "Interface\\Icons\\inv_weapon_glave_01",							-- Warglaives
+		[50] = "Interface\\Icons\\Spell_Misc_Drink",							-- Miscellaneous
+		[51] = "Interface\\Icons\\INV_Jewelry_Necklace_02",						-- Neck
+		[52] = "Interface\\Icons\\INV_Jewelry_Ring_04",							-- Finger
+		[53] = "Interface\\Icons\\INV_Trinket_Naxxramas05",						-- Trinket
+		[54] = "Interface\\Icons\\inv_staff_2h_felfireraid_d_03",				-- Relic
+		[55] = "Interface\\Icons\\INV_Drink_25_HoneyTea",						-- Consumables
+		[59] = "Interface\\Icons\\INV_Misc_Book_03",							-- Class Books
+		[100] = "Interface\\Icons\\ability_mount_fireravengodmountgreen",		-- Mounts
+		[101] = "Interface\\Icons\\Tracking_WildPet", 							-- Battle Pet
+		[102] = "Interface\\Icons\\INV_Misc_Toy_10",							-- Toy
+		[113] = "Interface\\Icons\\INV_Misc_Bag_08",							-- Bag
 		[114] = "Interface\\Icons\\inv_blacksmith_leystonehoofplates_orange",	-- Mount Equipment
-		[200] = "Interface\\Icons\\inv_scroll_05",							-- Recipes
-		[999] = "Interface\\Icons\\INV_Holiday_Christmas_Present_01",		-- Event Item
+		[200] = "Interface\\Icons\\inv_scroll_05",								-- Recipes
+		[999] = "Interface\\Icons\\INV_Holiday_Christmas_Present_01",			-- Event Item
 
 	},
 
@@ -308,7 +312,7 @@ app.L = {
 		[-36] = "Interface\\Icons\\WoW_Token01", 											-- In-Game Shop
 		[-37] = "Interface\\Icons\\Garrison_Building_MageTower",							-- Discovery
 		[-38] = "Interface\\Icons\\achievement_general_workingasateam",						-- Professions
-		[-39] = "Interface\\Icons\\Inv_misc_book_17", 										-- Legacy Quest
+		[-39] = "Interface\\Icons\\Inv_misc_book_17",
 		[-40] = "Interface\\Icons\\Inv_misc_book_17", 										-- Legacy
 		[-41] = "Interface\\Icons\\TRADE_ARCHAEOLOGY", 										-- Cache of Madness
 		[-43] = "Interface\\Icons\\inv_chest_cloth_21",										-- Cloth Armor
@@ -321,7 +325,7 @@ app.L = {
 		[-52] = "Interface\\Icons\\inv_misc_toy_04",										-- Children's Week
 		[-53] = "Interface\\Icons\\inv_summerfest_symbol_high",								-- Midsummer Fire Festival
 		[-54] = "Interface\\Icons\\inv_summerfest_symbol_low",								-- Unused (Previously: Midsummer Fire Festival [Horde])
-		[-55] = "Interface\\Icons\\inv_helmet_66",											-- Pirate's Day",
+		[-55] = "Interface\\Icons\\inv_helmet_66",											-- Pirates' Day",
 		[-56] = "Interface\\Icons\\achievement_worldevent_brewmaster",						-- Brewfest
 		[-57] = "Interface\\Icons\\INV_Holiday_Thanksgiving_Cornucopia", 					-- Harvest Festival
 		[-58] = "Interface\\Addons\\AllTheThings\\assets\\hallows_end",						-- Hallow's End
@@ -522,6 +526,7 @@ app.L = {
 		[-396] = "Interface\\Icons\\achievement_dungeon_icecrown_frostwinghalls",			-- The Frostwing Halls
 		[-397] = "Interface\\Icons\\inv_icon_daily_mission_scroll",							-- Outposts
 		[-491] = "Interface\\Icons\\inv_misc_ticket_tarot_rogue",							-- Tarot Cards
+		[-492] = "Interface\\Icons\\inv_inscription_weaponscroll03",						-- Illusions
 		[-494] = "Interface\\Icons\\Ability_Shaman_Ascendance",								-- Miscellaneous
 		[-498] = "Interface\\Icons\\inv_offhand_hyjal_d_01",								-- Twisting Nether (Demon Hunter Order Hall advancement)
 		[-500] = "Interface\\Icons\\inv_misc_celebrationcake_01",							-- WoW Anniversary
@@ -624,8 +629,30 @@ app.L = {
 		[-807] = "Interface\\Icons\\inv_hivemind",											-- Hivemind
 		[-850] = "Interface\\Icons\\INV_Eng_Crate2",										-- Mechanized Chest
 		[-851] = "Interface\\Icons\\INV_Eng_Crate2",										-- Irontide Chest
+		[-852] = "Interface\\Icons\\inv_heartofazeroth",									-- Azerite Essences
+		[-853] = "Interface\\Icons\\inv_azeritedebuff",										-- All Roles
+		[-854] = "Interface\\Icons\\spell_fire_twilightpyroblast",							-- DPS
+		[-855] = "Interface\\Icons\\spell_nature_healingwavegreater",						-- Healers
+		[-856] = "Interface\\Icons\\ability_warrior_shieldwall",							-- Tanks
+		[-857] = "Interface\\Icons\\inv_relics_hourglass",									-- Mythic+
+		[-858] = "Interface\\Icons\\inv_smallazeritefragment",								-- Rank 1
+		[-859] = "Interface\\Icons\\inv_tinyazeritesplinter",								-- Rank 2
+		[-860] = "Interface\\Icons\\inv_smallazeriteshard",									-- Rank 3
+		[-861] = "Interface\\Icons\\inv_smallazeritecluster",								-- Rank 4
 		[-1000] = "Interface\\Icons\\achievement_transmog_collections",						-- Sets
 		[-1001] = "Interface\\Icons\\Racial_Dwarf_FindTreasure",							-- The Black Vault
+		[-2200] = "Interface\\Icons\\inv_scroll_11",										-- Warrior order hall lore item
+		[-2201] = "Interface\\Icons\\inv_scroll_11",										-- Warrior order hall lore item
+		[-2202] = "Interface\\Icons\\inv_scroll_11",										-- Warrior order hall lore item
+		[-2203] = "Interface\\Icons\\inv_scroll_11",										-- Warrior order hall lore item
+		[-2204] = "Interface\\Icons\\inv_scroll_11",										-- Warrior order hall lore item
+		[-2205] = "Interface\\Icons\\inv_scroll_11",										-- Warrior order hall lore item
+		[-2206] = "Interface\\Icons\\inv_scroll_11",										-- Warrior order hall lore item
+		[-2207] = "Interface\\Icons\\inv_scroll_11",										-- Warrior order hall lore item
+		[-2208] = "Interface\\Icons\\inv_scroll_11",										-- Warrior order hall lore item
+		[-2209] = "Interface\\Icons\\inv_scroll_11",										-- Warrior order hall lore item
+		[-2210] = "Interface\\Icons\\inv_scroll_11",										-- Warrior order hall lore item
+		[-2211] = "Interface\\Icons\\inv_scroll_11",										-- Warrior order hall lore item
 		[-3178] = "Interface\\Icons\\achievement_boss_warlord_kalithresh",					-- Tier 3.5
 		[-3181] = "Interface\\Icons\\achievement_boss_ossiriantheunscarred",				-- Cenarion Circle Set (Ruins of Ahn'Qiraj)
 		[-3183] = "Interface\\Icons\\achievement_boss_hakkar",								-- Tier 1.5
@@ -735,7 +762,7 @@ app.L = {
 		[-3342] = "Interface\\Icons\\inv_helm_cloth_vrykulcaster_b_01",						-- Fallen Runelord
 		[-3343] = "Interface\\Icons\\inv_helmet_153",										-- Choking Winter
 		[-3344] = "Interface\\Icons\\inv_helmet_157",										-- Frostsworn
-		[-3345] = "Interface\\Icons\\Inv_helmet_151",		
+		[-3345] = "Interface\\Icons\\Inv_helmet_151",
 		[-3347] = "Interface\\Icons\\inv_plate_draenorlfr_c_01helm",						-- Black Tooth Grunt
 
 		[-4189] = "Interface\\Icons\\achievement_legionpvptier4",							-- Instance Item Sets, PvP
@@ -909,7 +936,7 @@ app.L = {
 		[-10060] = "Interface\\Icons\\achievement_arena_3v3_1",						-- Arena of Annihilation (Scenario)
 		[-10061] = "Interface\\Icons\\achievement_faction_celestials",				-- The Four Celestials
 		[-10070] = "Interface\\Icons\\Paladin_Protection",							--
-		[-10071] = "Interface\\Icons\\Paladin_Protection",							-- 
+		[-10071] = "Interface\\Icons\\Paladin_Protection",							--
 		[-10072] = "Interface\\Icons\\ability_deathwing_assualtaspects",			-- N'Zoth Assault
 		[-10073] = "Interface\\Icons\\spell_arcane_teleportorgrimmar",				-- Horrific Vision of Orgrimmar
 		[-10074] = "Interface\\Icons\\spell_arcane_teleportstormwind",				-- Horrific Vision of Stomrwind
@@ -974,7 +1001,7 @@ app.L = {
 		[-51] = select(1,GetCategoryInfo(159)),									-- Noblegarden
 		[-52] = select(1,GetCategoryInfo(163)),									-- Children's Week
 		[-53] = "Midsummer Fire Festival",										-- Midsummer Fire Festival
-		[-55] = "Pirate's Day",
+		[-55] = "Pirates' Day",
 		[-56] = select(1,GetCategoryInfo(162)),									-- Brewfest
 		[-58] = select(1,GetCategoryInfo(158)),									-- Hallow's End
 		[-59] = "Day of the Dead",
@@ -998,7 +1025,7 @@ app.L = {
 		[-93] = "Silithus (The Wound)",
 		[-94] = "Black Market Auction House",									-- Black Market Auction House"
 -- Garrison Note: These will be changed into a new class soon(TM)
-		--[-99] = select(2,C_Garrison.GetBuildingInfo(65) ), 					-- Stables
+		--[-99] = select(2,C_Garrison.GetBuildingInfo(65)), 					-- Stables
 		[-99] = "Buildings",
 		[-101] = "Followers",
 --Horde [Swaps based on faction ONLY after a reloadui]
@@ -1374,12 +1401,37 @@ app.L = {
 		[-1000] = WARDROBE_SETS, 												-- Sets
 		[-1001] = "The Black Vault",
 
+		[-852] = "Azerite Essences",											-- Azerite Essences
+		[-853] = "All Roles",													-- All Roles
+		[-854] = "DPS",															-- DPS
+		[-855] = "Healers",														-- Healers
+		[-856] = "Tanks",														-- Tanks
+		[-857] = "Mythic+",														-- Mythic+
+		[-858] = "Rank 1",														-- Rank 1
+		[-859] = "Rank 2",														-- Rank 2
+		[-860] = "Rank 3",														-- Rank 3
+		[-861] = "Rank 4",														-- Rank 4
+
 -- Temporarily Header
 
 
 
 -- Weapon Sets
 		[-2000] = GetSpellInfo(41433),											-- Twin Blades of Azzinoth
+
+-- Warrior order hall lore items
+		[-2200] = "Great Odyn and the Firelord",
+		[-2201] = "The Wanderer and the Serpent",
+		[-2202] = "Halls of GOld and Glory",
+		[-2203] = "The Keeper's Eye",
+		[-2204] = "First of the Val'kyr",
+		[-2205] = "The Sealing of the Halls of Valor",
+		[-2206] = "His Name Is Dragonblood",
+		[-2207] = "The Last Words of Asgrim the Dreadkiller",
+		[-2208] = "A Shieldmaiden's Creed",
+		[-2209] = "The Prophecy of Rythas the Oracle",
+		[-2210] = "The Lessons of the Blacklist",
+		[-2211] = "Volund's Folly",
 
 -- Other Sets
 		[-3159] = GARRISON_TIER.." 6.5 "..WARDROBE_SETS,
@@ -1876,6 +1928,7 @@ app.L = {
 		[177491] = "Interface\\Icons\\inv_cask_01",
 		[179485] = "Interface\\Icons\\Ability_Hunter_TrapLauncher",
 		[179501] = "Interface\\Icons\\INV_Crate_01",
+		[179697] = "Interface\\Icons\\INV_Box_02",
 		[179827] = "Interface\\Icons\\INV_inscription_scrollofwisdom_01",
 		[179832] = "Interface\\Icons\\inv_misc_armorkit_06",
 		[180366] = "Interface\\Icons\\INV_Fishingpole_02",
@@ -2485,6 +2538,8 @@ app.L = {
 		[332575] = "Interface\\Icons\\trade_archaeology_catstatueemeraldeyes",
 		[332576] = "Interface\\Icons\\trade_archaeology_catstatueemeraldeyes",
 		[332577] = "Interface\\Icons\\trade_archaeology_catstatueemeraldeyes",
+		[332704] = "Interface\\Icons\\inv_trinket_80_titan02e",
+		[339211] = "Interface\\Icons\\inv_misc_bowl_01",
 		[343611] = "Interface\\Icons\\inv_misc_food_legion_gooamberpurple_chunk",
 		[9999890] = "Interface\\Icons\\INV_Heart_of_the_Thunder King_Icon",
 		[9999891] = "Interface\\Icons\\ability_paladin_blessedmending",
@@ -3977,6 +4032,8 @@ app.L = {
 		[332575] = "Crystalline Cat Figurine",
 		[332576] = "Crystalline Cat Figurine",
 		[332577] = "Crystalline Cat Figurine",	-- Need to be confirmed
+		[332704] = "Corrupted Chest",
+		[339211] = "|cFFFFFFFFStep 2:|r Empty Dish",
 		[343611] = "Voidtouched Egg",
 		[9999890] = "Corrupted Loot",
 		[9999891] = "Main Objective Only",
@@ -4000,6 +4057,7 @@ app.L = {
 		[9999918] = "|cFFFFFFFFStep 11:|r Metal Gate",
 		[9999919] = "|cFFFFFFFFStep 12:|r Wisdom Cube",
 		[9999920] = "|cFFFFFFFFStep 13:|r Tarnished Plaque",
+		[9999921] = "Placement",
 		[9999938] = "Uuna's World Tour",
 		[9999946] = "Summon Baa'l",
 		[9999990] = "Treasure Chest",	-- Use these until objectID is found
@@ -4113,7 +4171,7 @@ app.L = {
 		"Interface\\FriendsFrame\\StatusIcon-Offline",	-- Children's Week
 		"Interface\\FriendsFrame\\StatusIcon-Offline",	-- Midsummer Fire Festival
 		"Interface\\FriendsFrame\\StatusIcon-Offline",	-- Trial of Style
-		"Interface\\FriendsFrame\\StatusIcon-Offline",	-- Pirate's Day
+		"Interface\\FriendsFrame\\StatusIcon-Offline",	-- Pirates' Day
 		"Interface\\FriendsFrame\\StatusIcon-Offline",	-- Brewfest
 		"Interface\\FriendsFrame\\StatusIcon-Offline",	-- Harvest Festival
 		"Interface\\FriendsFrame\\StatusIcon-Offline",	-- Hallow's End
@@ -4126,52 +4184,50 @@ app.L = {
 	};
 	["UNOBTAINABLE_ITEM_REASONS"] = {
 		-- {header, description, name}, header: header id, 1-3 as above, 4 is legacy.
-		{1, "|CFFFF0000The source of this item was never available to players.|r", "Never Available (1)"}, -- No Hope -- 1
-		{1, "|CFFFF0000The source of this item has been removed and the item is Bind on Pickup or Bind on Account.|r", "BoP / BoA Item (2)"}, -- No Hope -- 2
-		{1, "|CFFFF0000This was obtainable only during a special promotion or one time event by Blizzard.|r", "Blizzard Promotion (3)"}, -- No Hope -- 3
-		{1, "|CFFFF0000The achievement criteria required to obtain these rewards is no longer obtainable or was only available for a limited time.|r", "Legacy Achievement (4)"},	-- Little Hope -- 4
-		{2, "|CFFFF0000The recipe to learn to craft this item has been removed, the item is bind on pickup and only available to a crafter with the recipe.|r", "Recipe: BoP Craftable Removed (5)"}, -- Little Hope -- 5
-		{2, "|CFFFF0000Item is included in Collector's Edition's, you can still find these for sale online in very low quantities.|r", "Collector's Edition (6)"}, -- Little Hope -- 6
-		{3, "|CFFFF0000The source of this item has been removed, but the item is Bind on Equip or a cageable pet.|r", "BoE Item (7)"}, -- There is Hope -- 7
-		{3, "|CFFFF0000The recipe to learn to craft this item has been removed and the item is Bind on Equip. This can be crafted or posted on the Auction House.|r", "Recipe: BoE Craftable Removed (8)"}, -- There is Hope -- 8
+		{1, "|CFFFF0000This was never available to players.|r", "Never Available (1)"}, -- No Hope -- 1
+		{1, "|CFFFF0000This has been removed from the game.|r", "Removed From Game (2)"}, -- No Hope -- 2
+		{0, "", ""}, -- 3
+		{0, "", ""}, -- 4
+		{0, "", ""}, -- 5
+		{0, "", ""}, -- 6
+		{0, "", ""}, -- 7
+		{0, "", ""}, -- 8
 		{3, "|CFFFF0000The source of this item has been removed and is only available with the Black Market Auction House.|r", "Black Market AH [BMAH] (9)"}, -- There is Hope -- 9
 		{3, "|CFFFF0000Item from TCG card is no longer in print, but still purchaseable online, sometimes BMAH, and possibly AH.|r", "Trading Card  Game [TCG] (10)"}, -- There is Hope -- 10
 		{3, "|CFFFF0000This item is Bind on Pickup but can be obtained if you have access to the items to summon the boss.|r", "Requires Summoning Items (11)"}, -- There is Hope -- 11
-		{4, "|CFFFF0000This is legacy instance or boss that is no longer available.|r", "Legacy Instance (12)"}; -- 12
-		{1, "|CFFFF0000Your followers are too high and the mission for the cache will no longer spawn.|r", "Legacy Cache (13)"}; -- 13
-		{2, "|CFFFF0000These items can't be purchased unless you have the required PvP Rating or were in the Top % of that season.|r", "PvP Elite/Gladiator (14)"}, -- 14
+		{0, "", ""}, -- 12
+		{1, "|CFFFF0000Your followers are too high and the mission for the cache will no longer spawn.|r", "Legacy Cache (13)"}, -- 13
+		{3, "|CFFFF0000These items can't be purchased unless you have the required PvP Rating or were in the Top % of that season.|r", "PvP Elite/Gladiator (14)"}, -- 14
 		{1, "|CFFFF0000This item has a Source ID (Tempest Keep Legendaries), but can't be learned (training recipes). |r", "Training Recipes / Unlearnable (15)"}, -- 15
-		{2, "|CFFFF0000These items require either attending Blizzcon or purchasing a virtual ticket.  You may also find codes on various sites for high prices.|r", "Blizzcon (16)"},--16
-		{6, "|CFF00FFDEMay require Lunar Festival to be active to obtain this item.|r", "Lunar Festival (17)"};--17
-		{7, "|CFF00FFDEMay require Love is In the Air to be active to obtain this item.|r", "Love is In the Air (18)"};--18
-		{8, "|CFF00FFDEMay require Noblegarden to be active to obtain this item.|r", "Noblegarden (19)"};--19
-		{9, "|CFF00FFDEMay require Children's Week to be active to obtain this item.|r", "Children's Week (20)"};--20
-		{10, "|CFF00FFDEMay require Midsummer Fire Festival to be active to obtain this item.|r", "Midsummer Fire Festival (21)"};--21
-		{11, "", "Micro-Holiday (22)"};--22 Description written on item
-		{12, "|CFF00FFDEMay require Pirate's Day to be active to obtain this item.|r", "Pirate's Day (23)"};--23
-		{13, "|CFF00FFDEMay require Brewfest to be active to obtain this item.|r", "Brewfest (24)"};--24
-		{14, "|CFF00FFDEMay require Harvest Festival to be active to obtain this item.|r", "Harvest Festival (25)"};--25
-		{15, "|CFF00FFDEMay require Hallow's End to be active to obtain this item.|r", "Hallow's End (26)"};--26
-		{16, "|CFF00FFDEMay require Day of the Dead to be active to obtain this item.|r", "Day of the Dead (27)"};--27
-		{17, "|CFF00FFDEMay require Pilgrim's Bounty to be active to obtain this item.|r", "Pilgrim's Bounty (28)"};--28
-		{18, "|CFF00FFDEMay require Feast of Winter Veil to be active to obtain this item.|r", "Feast of Winter Veil (29)"};--29
-		{19, "|CFF00FFDEMay require Stranglethorn Fishing Extravaganza to be active.|r", "Stranglethorn Fishing Extravaganza (30) "};--30
-		{20, "|CFF00FFDEThis is obtainable only during the WoW Anniversary it was active.\nIt's a possibility future anniversaries may include this item.|r\n", "WoW Anniversary (31)"};--31
-		{4, "|CFFFF0000This is an original reward for this quest. The quest was later reworked with new rewards. If you did complete this quest it is likely this item will not be added to your transmog as Blizzard will add the rewards from the revamped quest.|r", "Reworked Rewards (32)"};--32
-		{4, "|CFFFF0000This vendor is no longer available in this spot or in game.|r", "Legacy Vendors (33)"}; -- 33
-		{4, "|CFFFF0000This item was a quest award from a Legacy Quest that is no longer obtainable.|r", "Legacy Quest Reward (34)"}; --34
-		{3, "|CFFFF0000This item is purchased from the In-Game Store.|r", "In-Game Store (35)"}; --35
-		{21, "|CFFFF0000This was obtainable only during the WoW Anniversary when it was active and is no longer available.|r\n", "WoW Anniversary [Removed] (36)"}; -- 36
-		{1, "|CFFFF0000This title is no longer obtainable in game.|r", "Titles (37)"}; --37
-		{4, "|CFFFF0000These items are only available for players that completed the Legendary Cloak quest chain during Mists of Pandaria or via the BMAH|r", "Ordos - Legendary Cloak (38)"}; --38
-		{4, "|CFFFF0000This title is no longer available.|r", "Legacy Titles (39)"}; --39
-		{4, "|CFFFF0000This is a Legacy quest or quest item, and is no longer available.|r", "Legacy Quests (40)"}; -- 40
-		{4, "|CFFFF0000These appearances are only available for players that completed the respective Mage Tower Artifact Challenges and earned the base appearance.|r", "Mage Tower Appearances (41)"}; -- 41
-		{21, "|CFFFF0000These appearances are only available during the weekly Timewalking Event.\nOnly dungeons released during the featured expansion will be available.|r", "Timewalking (42)"}; -- 42
-		{1, "|CFFFF0000This NPC or creature has been removed from the game.|r", "Removed NPCs (43)"}; -- 43
-		{2, "|CFFFF0000This Item was only available from the BMAH for a limited Time.|r", "BMAH Limited Time (44)"}; -- 44
-		{1, "|CFFFF0000Blizzard's Loot changes broke several Items and made them Unobtainable.\nHouse of Nobles Cape/Gurubashi Empire Greatcloak (both BFA Emissary Rewards) & Ogom the Mangler \nare currently broken and need to be fixed.|r", "Broken Loot (45)"}; -- 45
-	--	{3, "|CFFFF0000This item is only available from War Chests while under max level.|r", "Incursion Loot (46)"}; -- 46
-	--	{1, "|CFFFF0000With 8.0, Blizzard's Legacy Loot implementation broke Gruul' loot table.|r", "Gruul Non-Tier Loot (47)"}; -- 47
+		{0, "", ""},--16
+		{6, "|CFF00FFDEMay require Lunar Festival to be active to obtain this item.|r", "Lunar Festival (17)"},--17
+		{7, "|CFF00FFDEMay require Love is In the Air to be active to obtain this item.|r", "Love is In the Air (18)"},--18
+		{8, "|CFF00FFDEMay require Noblegarden to be active to obtain this item.|r", "Noblegarden (19)"},--19
+		{9, "|CFF00FFDEMay require Children's Week to be active to obtain this item.|r", "Children's Week (20)"},--20
+		{10, "|CFF00FFDEMay require Midsummer Fire Festival to be active to obtain this item.|r", "Midsummer Fire Festival (21)"},--21
+		{11, "", "Micro-Holiday (22)"},--22 Description written on item
+		{12, "|CFF00FFDEMay require Pirates' Day to be active to obtain this item.|r", "Pirates' Day (23)"},--23
+		{13, "|CFF00FFDEMay require Brewfest to be active to obtain this item.|r", "Brewfest (24)"},--24
+		{14, "|CFF00FFDEMay require Harvest Festival to be active to obtain this item.|r", "Harvest Festival (25)"},--25
+		{15, "|CFF00FFDEMay require Hallow's End to be active to obtain this item.|r", "Hallow's End (26)"},--26
+		{16, "|CFF00FFDEMay require Day of the Dead to be active to obtain this item.|r", "Day of the Dead (27)"},--27
+		{17, "|CFF00FFDEMay require Pilgrim's Bounty to be active to obtain this item.|r", "Pilgrim's Bounty (28)"},--28
+		{18, "|CFF00FFDEMay require Feast of Winter Veil to be active to obtain this item.|r", "Feast of Winter Veil (29)"},--29
+		{19, "|CFF00FFDEMay require Stranglethorn Fishing Extravaganza to be active.|r", "Stranglethorn Fishing Extravaganza (30) "},--30
+		{20, "|CFF00FFDEThis was only obtainable during the WoW Anniversary it was active.\nIt's a possibility future anniversaries may include this item.|r\n", "WoW Anniversary (31)"},--31
+		{0, "", ""}, --32
+		{0, "", ""}, -- 33
+		{0, "", ""}, --34
+		{3, "|CFFFF0000This can be purchased from the In-Game Shop.|r", "In-Game Shop (35)"}, --35
+		{21, "|CFFFF0000This was obtainable only during the WoW Anniversary when it was active and is no longer available.|r\n", "WoW Anniversary [Removed] (36)"}, -- 36
+		{0, "", ""}, --37
+		{1, "|CFFFF0000These items are only available for players that completed the Legendary Cloak quest chain during Mists of Pandaria or via the BMAH|r", "Ordos - Legendary Cloak (38)"}, --38
+		{0, "", ""}, --39
+		{0, "", ""}, -- 40
+		{1, "|CFFFF0000These appearances are only available for players that completed the respective Mage Tower Artifact Challenges and earned the base appearance.|r", "Mage Tower Appearances (41)"}, -- 41
+		{21, "|CFFFF0000These appearances are only available during the weekly Timewalking Event.\nOnly dungeons released during the featured expansion will be available.|r", "Timewalking (42)"}, -- 42
+		{0, "", ""}, -- 43
+		{0, "", ""}, -- 44
+		{1, "|CFFFF0000Blizzard's Loot changes broke several Items and made them Unobtainable.\nHouse of Nobles Cape/Gurubashi Empire Greatcloak (both BFA Emissary Rewards) & Ogom the Mangler \nare currently broken and need to be fixed.|r", "Broken Loot (45)"}, -- 45
 	};
 };

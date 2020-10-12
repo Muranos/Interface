@@ -1,7 +1,9 @@
 local GlobalAddonName, ExRT = ...
 
 local ELib,L = ExRT.lib,ExRT.L
-local module = ExRT:New("VisNote",L.VisualNote,nil,true)
+local module = ExRT:New("VisNote",L.VisualNote)
+
+local VExRT = nil
 
 local LibDeflate = LibStub:GetLibrary("LibDeflate")
 
@@ -216,14 +218,14 @@ function module.options:Load()
 	end
 
 
-	self.main = ELib:ScrollFrame(self):Size(790,535):Point("TOPLEFT",0,-76):Height(535)
+	self.main = ELib:ScrollFrame(self):Size(790,535):Point("TOP",0,-81):Height(535)
 	self.main.ScrollBar:Hide()
 
 	-----------------------
 	--- Select tools ------
 	-----------------------
 
-	self.tool_select_brush = ELib:Icon(self,"Interface\\AddOns\\ExRT\\media\\circle256",25,true):Point("TOPLEFT",0,-15):OnClick(function()
+	self.tool_select_brush = ELib:Icon(self,"Interface\\AddOns\\ExRT\\media\\circle256",25,true):Point("TOPLEFT",10,-20):OnClick(function()
 		tool_selected = 1
 		self.curr_color_texture:Show()
 		self.curr_color_texture:SetColorTexture(unpack(colors[curr_color]))
@@ -449,7 +451,7 @@ function module.options:Load()
 
 	local COLOR_SIZE = 45
 	self.curr_color_texture = self:CreateTexture()
-	self.curr_color_texture:SetPoint("TOPLEFT",260,-26)
+	self.curr_color_texture:SetPoint("TOPLEFT",270,-31)
 	self.curr_color_texture:SetSize(COLOR_SIZE,COLOR_SIZE)
 	self.curr_color_texture:SetColorTexture(0,0,0)
 	self.curr_color_texture._SetTexture = self.curr_color_texture.SetTexture
@@ -501,14 +503,14 @@ function module.options:Load()
 		end
 	end	
 
-	self.size = ELib:Slider(self,L.VisualNoteSize):Size(100):Point("TOPLEFT",140,-45):Range(3,36):SetTo(8):OnChange(function(self,val)
+	self.size = ELib:Slider(self,L.VisualNoteSize):Size(100):Point("TOPLEFT",150,-50):Range(3,36):SetTo(8):OnChange(function(self,val)
 		dot_size = floor(val+0.5)
 		half_dot_size_sq = (dot_size / 3) ^ 2
 		self.tooltipText = dot_size
 		self:tooltipReload()
 	end)
 
-	self.trans = ELib:Slider(self,L.bossmodsalpha):Size(100):Point("TOPLEFT",140,-45):Range(1,50):SetTo(50):OnChange(function(self,val)
+	self.trans = ELib:Slider(self,L.bossmodsalpha):Size(100):Point("TOPLEFT",150,-50):Range(1,50):SetTo(50):OnChange(function(self,val)
 		curr_trans = floor(val+0.5) * 2
 		self.tooltipText = curr_trans
 		self:tooltipReload()
@@ -518,7 +520,7 @@ function module.options:Load()
 	self.trans.Low.SetText = function() end
 	self.trans.High.SetText = function() end
 
-	self.textAddData = ELib:Edit(self):Size(100,20):Point("TOPLEFT",130,-45):TopText(L.VisualNoteTextToAdd):OnChange(function(self)
+	self.textAddData = ELib:Edit(self):Size(100,20):Point("TOPLEFT",140,-50):TopText(L.VisualNoteTextToAdd):OnChange(function(self)
 		curr_text = self:GetText()
 	end)
 	self.textAddData:SetMaxBytes(100)
@@ -552,37 +554,19 @@ function module.options:Load()
 	self.textAddData.Button:SetScript("OnClick",function(self)
 		self.List = {}
 
-		if IsInRaid() then 
-			local n = GetNumGroupMembers() or 0
-			for i=1,n do
-				local name,_,subgroup,_,_,class = GetRaidRosterInfo(i)
-				name = ExRT.F.delUnitNameServer(name)
-				self.List[#self.List + 1] = {
-					text = name,
-					colorCode = "|cff"..format("%02x%02x%02x",colors[ classToColor[class] ][1]*255,colors[ classToColor[class] ][2]*255,colors[ classToColor[class] ][3]*255),
-					justifyH = "CENTER",
-					arg1 = name,
-					arg2 = classToColor[class],
-					func = TextAddData_SetValue,
-				}				
-			end
-		else
-			local uids = {"player","party1","party2","party3","party4"}
-			for i=1,#uids do
-				local name = UnitName(uids[i])
-				if name then
-					local _,class = UnitClass(uids[i])
-					self.List[#self.List + 1] = {
-						text = name,
-						colorCode = "|cff"..format("%02x%02x%02x",colors[ classToColor[class] ][1]*255,colors[ classToColor[class] ][2]*255,colors[ classToColor[class] ][3]*255),
-						justifyH = "CENTER",
-						arg1 = name,
-						arg2 = classToColor[class],
-						func = TextAddData_SetValue,
-					}
-				end
-			end
+		for _, name, _, class in ExRT.F.IterateRoster do
+			name = ExRT.F.delUnitNameServer(name)
+			local colorTable = colors[ classToColor[class] ]
+			self.List[#self.List + 1] = {
+				text = name,
+				colorCode = "|cff"..format("%02x%02x%02x",colorTable[1]*255,colorTable[2]*255,colorTable[3]*255),
+				justifyH = "CENTER",
+				arg1 = name,
+				arg2 = classToColor[class],
+				func = TextAddData_SetValue,
+			}
 		end
+
 		ELib.ScrollDropDown.ClickButton(self)
 	end)
 	self.textAddData.Button.Width = 200
@@ -621,6 +605,12 @@ function module.options:Load()
 			b:SetTexture(background)
 			b:SetPoint("TOPLEFT",0,0)
 			return b
+		elseif type(background) == 'table' then
+			local b = GetBackground()
+			b:SetSize(self.main:GetSize())
+			b:SetColorTexture(unpack(background))
+			b:SetPoint("TOPLEFT",0,0)
+			return b
 		elseif type(background) == 'number' then
 			local layers = C_Map.GetMapArtLayers(background)
 			if layers and layers[1] then
@@ -652,7 +642,8 @@ function module.options:Load()
 	end
 	self.SetBackground = SetBackground
 
-	self.SelectMapDropDown = ELib:DropDown(self,260,10):Size(100):Point("TOPLEFT",585,-50):SetText(L.VisualNoteSelectMap.."...")
+	self.SelectMapDropDown = ELib:DropDown(self,260,11):Size(100):Point("TOPLEFT",595,-55):SetText(L.VisualNoteSelectMap.."...")
+	self.SelectMapDropDown.Lines = nil
 	local function SelectMapDropDown_SetValue(_,arg1,arg2)
 		ELib:DropDownClose()
 		SetBackground(unpack(arg1))
@@ -671,10 +662,10 @@ function module.options:Load()
 		{L.S_ZoneT22Uldir..": "..L.bossName[2145],{1154,0.5,0.53,1.5}},	--Zul
 		{L.S_ZoneT22Uldir..": "..L.bossName[2135],{1155,0.52,0.85,3}},	--Mythrax
 		{L.S_ZoneT22Uldir..": "..L.bossName[2122],{1155,0.52,0.27,2.2}},	--G'huun
-		{"White",{"Interface/Buttons/WHITE8X8"}},
+		{ICON_TAG_RAID_TARGET_SKULL3 or "white",{"Interface/Buttons/WHITE8X8"}},
 		
 		--11-20
-		{L.S_ZoneT22Uldir..": "..L.bossName[2135].." [S]",{"Interface/AddOns/ExRT/media/Uldir7"}},
+		{L.S_ZoneT22Uldir..": "..L.bossName[2135].." [S]",{"Interface/AddOns/ExRT/mediamodern/Uldir7"}},
 		{L.EJInstanceName[968],{934,0.54}},
 		{L.EJInstanceName[1001],{936,nil,nil,0.9}},
 		{L.EJInstanceName[1041],{1004,nil,nil,0.9}},
@@ -753,28 +744,61 @@ function module.options:Load()
 		{"Militairy Quarter",{"Interface/AddOns/ExRT/mediaclassic/naxx_militairy.tga"}},
 		{"Plague Quarter",{"Interface/AddOns/ExRT/mediaclassic/naxx_plague.tga"}},
 		{"Sapphiron / Kel'thuzad",{"Interface/AddOns/ExRT/mediaclassic/naxx_sapp_kel.tga"}},
-		
+		{L.S_ZoneT26CastleNathria..": "..L.bossName[2398],{1735,0.59,0.80,5}},	--Shriekwing
+		{L.S_ZoneT26CastleNathria..": "..L.bossName[2418],{1735,0.67,0.50,5}},	--Huntsman Altimor
+		{L.S_ZoneT26CastleNathria..": "..L.bossName[2402],{1746,0.53,0.53,1.5}},--Kael'thas
+		{L.S_ZoneT26CastleNathria..": "..L.bossName[2383],{1735,0.36,0.35,5}},	--Hungering Destroyer
+
+		--81-90
+		{L.S_ZoneT26CastleNathria..": "..L.bossName[2399],{1735,0.59,0.80,5}},	--Sludgefist
+		{L.S_ZoneT26CastleNathria..": "..L.bossName[2405],{1745,0.65,0.24,5}},	--Broker Curator
+		{L.S_ZoneT26CastleNathria..": "..L.bossName[2406],{1744,0.44,0.44,3}},	--Lady Inerva Darkvein
+		{L.S_ZoneT26CastleNathria..": "..L.bossName[2412],{1750,0.56,0.54,2}},--The Council of Blood
+		{L.S_ZoneT26CastleNathria..": "..L.bossName[2417],{1747,0.29,0.51,3}},	--Stone Legion Generals
+		{L.S_ZoneT26CastleNathria..": "..L.bossName[2407].." 1",{1747,0.52,0.52,2.5}},	--Sire Denathrius
+		{L.S_ZoneT26CastleNathria..": "..L.bossName[2407].." 2",{1748,0.49,0.53,1}},	--Sire Denathrius
+		{L.S_ZoneT26CastleNathria..": "..L.bossName[2407].." 2",{"Interface/AddOns/ExRT/mediamodern/nathria102"}},
+		{L.S_ZoneT26CastleNathria..": "..L.bossName[2407].." 1",{"Interface/AddOns/ExRT/mediamodern/nathria101"}},
+		{L.S_ZoneT26CastleNathria..": "..L.bossName[2417],{"Interface/AddOns/ExRT/mediamodern/nathria9"}},
+
+		--91-100
+		{L.S_ZoneT26CastleNathria..": "..L.bossName[2417],{"Interface/AddOns/ExRT/mediamodern/nathria8"}},
+		{L.S_ZoneT26CastleNathria..": "..L.bossName[2405],{"Interface/AddOns/ExRT/mediamodern/nathria6"}},
+		{L.S_ZoneT26CastleNathria..": "..L.bossName[2402],{"Interface/AddOns/ExRT/mediamodern/nathria7"}},
+		{L.NoteColorBlack:lower(),{{0,0,0,1}}},
+		{L.NoteColorGrey:lower(),{{.5,.5,.5,1}}},
+		{L.NoteColorGreen:lower(),{{.5,1,.5,1}}},
+		{L.NoteColorRed:lower(),{{1,.5,.5,1}}},
+		{L.NoteColorBlue:lower(),{{.5,.5,1,1}}},
+		{L.NoteColorYellow:lower(),{{1,1,.5,1}}},
+		{L.S_ZoneT26CastleNathria..": "..L.bossName[2398].."/"..L.bossName[2399],{"Interface/AddOns/ExRT/mediamodern/nathria1"}},	--Shriekwing/Sludgefist
 	}
-	--[[
-	MC: 243
-	ZA: 345
-	ZG: 349
-	AQ20: 258
-	AQ40: 331-333
-	Naxx: 167-172
-	]]
 	local mapsSorted = {
-		1,10,
+		1,
+		{L.NoteColor,10,94,95,96,97,98,99},
 		{L.S_ZoneT25Nyalotha,45,46,47,48,49,50,51,52,53,54,55,56},
 		{L.S_ZoneT24Eternal,40,39,38,37,36,35,34,33},
 		{L.S_ZoneT23Storms,32,31},
 		{L.S_ZoneT23Siege,30,29,28,27,26,25,24,23,22,21,20},
 		{L.S_ZoneT22Uldir,9,8,11,7,6,5,4,2,3},
-		{DUNGEONS,41,42,43,44,12,13,14,15,16,17,18,19},
+		{DUNGEONS..": "..EXPANSION_NAME7,41,42,43,44,12,13,14,15,16,17,18,19},
 	}
+	if ExRT.is90 then
+		tinsert(mapsSorted,3,{L.S_ZoneT26CastleNathria,77,78,79,80,81,82,83,84,85,86,87})
+		tinsert(mapsSorted,3,{L.S_ZoneT26CastleNathria.." Ingame",100,93,91,92,90,89,88})
+	end
 	if ExRT.isClassic then
+		--[[
+		MC: 243
+		ZA: 345
+		ZG: 349
+		AQ20: 258
+		AQ40: 331-333
+		Naxx: 167-172
+		]]
 		mapsSorted = {
-			1,10,
+			1,
+			{L.NoteColor,10,94,95,96,97,98,99},
 			{"Blackwing Lair","by Wollie",57,58,59,60,61,62,63,64},
 			{"Molten Core",65},
 			{"Naxxramas","by Wollie",71,72,73,74,75,76},
@@ -2170,6 +2194,8 @@ function module.options:Load()
 		else
 			module.options.lastUpdate:SetText("")
 		end
+
+		module.options.chkStopUpdate:SetChecked(data.disableUpdate) 
 	end
 	function self:CreateNew()
 		local new = {}
@@ -2225,16 +2251,16 @@ function module.options:Load()
 		return curr_data
 	end
 
-	self.clearAll = ELib:Button(self,L.messagebutclear):Size(100,20):Point("TOPLEFT",585,-25):OnClick(function(self)
+	self.clearAll = ELib:Button(self,L.messagebutclear):Size(100,20):Point("TOPLEFT",595,-30):OnClick(function(self)
 		module.options:Clear()
 		module.options:SaveData()
 	end)
 
-	self.sendButton = ELib:Button(self,L.messagebutsend):Size(100,20):Point("TOPLEFT",690,-25):OnClick(function(self)
+	self.sendButton = ELib:Button(self,L.messagebutsend):Size(100,20):Point("TOPLEFT",700,-30):OnClick(function(self)
 		module.options:GenerateString()
 	end)
 
-	self.liveButton = ELib:Button(self,L.VisualNoteLiveSession):Size(100,20):Point("TOPLEFT",690,-50):OnClick(function(self)
+	self.liveButton = ELib:Button(self,L.VisualNoteLiveSession):Size(100,20):Point("TOPLEFT",700,-55):OnClick(function(self)
 		if not isLiveSession then
 			module.options:GenerateString()
 			self.Texture:SetGradientAlpha("VERTICAL",0.05,0.26,0.09,1, 0.20,0.41,0.25,1)
@@ -2244,7 +2270,7 @@ function module.options:Load()
 		isLiveSession = not isLiveSession
 	end)
 
-	self.SelectNote = ELib:DropDown(self,205,10):Size(135):Point("TOPLEFT",165,0):SetText(L.VisualNoteSelectNote.."...")
+	self.SelectNote = ELib:DropDown(self,205,10):Size(135):Point("TOPLEFT",175,-5):SetText(L.VisualNoteSelectNote.."...")
 	local function SelectNote_SetValue(_,arg)
 		ELib:DropDownClose()
 		module.options:LoadData(arg)
@@ -2276,13 +2302,13 @@ function module.options:Load()
 		end
 	end
 
-	self.NoteName = ELib:Edit(self):Size(200,20):Point(380,0):LeftText(LFG_LIST_TITLE..":"):OnChange(function(self,isUser)
+	self.NoteName = ELib:Edit(self):Size(200,20):Point(390,-5):LeftText(LFG_LIST_TITLE..":"):OnChange(function(self,isUser)
 		if not isUser then return end
 		curr_data.name = self:GetText()
 	end)
 	self.NoteName:SetMaxBytes(50)
 
-	self.removeButton = ELib:Button(self,L.cd2RemoveButton):Size(100,20):Point("TOPLEFT",585,0):OnClick(function(self)
+	self.removeButton = ELib:Button(self,L.cd2RemoveButton):Size(100,20):Point("TOPLEFT",595,-5):OnClick(function(self)
 		StaticPopupDialogs["EXRT_VISNOTE_REMOVE"] = {
 			text = L.cd2RemoveButton,
 			button1 = L.YesText,
@@ -2307,9 +2333,9 @@ function module.options:Load()
 		StaticPopup_Show("EXRT_VISNOTE_REMOVE")
 	end)
 
-	self.lastUpdate = ELib:Text(self,"",8):Point("TOPLEFT",self,"BOTTOMLEFT",3,2):Color()
+	self.lastUpdate = ELib:Text(self,"",8):Point("BOTTOMLEFT",self,"BOTTOMLEFT",5,2):Color()
 
-	self.chkHidePopup = ELib:Check(self,L.VisualNoteDisablePopup,VExRT.VisNote.DisablePopup):Point("TOPRIGHT",self,"BOTTOMRIGHT",165,0):Scale(.8):Size(10,10):Left():OnClick(function(self) 
+	self.chkHidePopup = ELib:Check(self,L.VisualNoteDisablePopup,VExRT.VisNote.DisablePopup):Point("BOTTOMRIGHT",self,"BOTTOMRIGHT",-10,5):Scale(.8):Size(10,10):Left():OnClick(function(self) 
 		if self:GetChecked() then
 			VExRT.VisNote.DisablePopup = true
 		else
@@ -2317,7 +2343,11 @@ function module.options:Load()
 		end
 	end) 	
 
-	self.copyButton = ELib:Button(self,L.BossmodsKormrokCopy):Size(100,20):Point("TOPLEFT",690,0):OnClick(function()
+	self.chkStopUpdate = ELib:Check(self,L.VisualNoteDisableUpdateShort):Tooltip(L.VisualNoteDisableUpdate):Point("BOTTOMRIGHT",self,"BOTTOMRIGHT",-240,5):Scale(.8):Size(10,10):Left():OnClick(function(self) 
+		curr_data.disableUpdate = self:GetChecked()
+	end) 	
+
+	self.copyButton = ELib:Button(self,L.BossmodsKormrokCopy):Size(100,20):Point("TOPLEFT",700,-5):OnClick(function()
 		self:SaveData()
 		local new = self:CreateNew()
 		for i=2,#curr_data do
@@ -2383,13 +2413,13 @@ function module.options:Load()
 	self.showPopup.texture:SetPoint("CENTER")
 	self.showPopup.texture:SetSize(18,18)
 
-	local function ResizeOptionFrameShow() 
-		ExRT.Options.Frame:SetWidth( 1000 ) 
+	self.isWide = 810
+	function self:OnShow()
 		if self.main.C.popup then
 			self.main:SetScale(1)
 			self.main:SetParent(self)
 			self.main:ClearAllPoints()
-			self.main:SetPoint("TOPLEFT",0,-76)
+			self.main:SetPoint("TOP",0,-81)
 
 			self.main.C.popup = nil
 
@@ -2402,15 +2432,8 @@ function module.options:Load()
 			self.main:ResetScale()
 		end
 
-		self:LoadNewest()
+		self:LoadNewest()	  
 	end
-	local function ResizeOptionFrameHide() ExRT.Options.Frame:SetWidth( ExRT.Options.Frame.Width ) end
-	self.onShowFrame = CreateFrame('Frame',nil,self)
-	self.onShowFrame:SetPoint("TOPLEFT",0,0)
-	self.onShowFrame:SetSize(1,1)
-	self.onShowFrame:SetScript("OnShow",ResizeOptionFrameShow)
-	self.onShowFrame:SetScript("OnHide",ResizeOptionFrameHide)
-	ResizeOptionFrameShow()
 end
 
 function module.main:ADDON_LOADED()
@@ -2443,6 +2466,10 @@ function module:UnpackString(str,sender)
 			local found = nil
 			for i=1,#VExRT.VisNote.data do
 				if VExRT.VisNote.data[i][1] == module.db.await[1] then
+					if VExRT.VisNote.data[i].disableUpdate then
+						module.db.await = nil
+						return
+					end
 					VExRT.VisNote.data[i] = module.db.await
 					found = true
 					break
@@ -2658,7 +2685,7 @@ function module:addonMessage(sender, prefix, ...)
 end
 
 do
-	local frame = CreateFrame("Frame",nil,UIParent)
+	local frame = CreateFrame("Frame",nil,UIParent,BackdropTemplateMixin and "BackdropTemplate")
 	module.popup = frame
 	
 	frame:SetBackdrop({bgFile="Interface\\Addons\\ExRT\\media\\White"})

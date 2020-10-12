@@ -1,6 +1,6 @@
-## Interface: 80205
+## Interface: 80300
 ## Title: OPie
-## Version: Walnut 6
+## Version: Xe 1a
 ## Notes: Group abilities into rings that appear when you hold down a binding.
 ## Notes-deDE: Gruppiere Fähigkeiten in Ringen die erscheinen wenn eine Tastenbelegung ausgelöst wird.
 ## Notes-esES: Agrupar habilitades en anillos que se aparecen al presionar teclados.
@@ -8,8 +8,7 @@
 ## Notes-zhCN: 当你按下快捷键时显示一个环形的技能分组.
 ## Notes-zhTW: 當你按下快捷鍵時顯示一個環形的技能分組.
 ## Author: foxlit
-## SavedVariables: OneRing_Config
-## X-URL-UpdateRSS: https://www.townlong-yak.com/opie/rss/main
+## SavedVariables: OneRing_Config, OPie_SavedData
 ## X-Website: https://www.townlong-yak.com/opie/
 ## X-M6-AB: OneRingLib.ext.ActionBook
 Libs\Evie.lua
@@ -29,5 +28,4 @@ Meta\RingKeeperConfig.lua
 Meta\SpecSet.lua
 Meta\DataBroker.lua
 Rings\Common.lua
-Rings\Ancient.lua
 Rings\RKRings.lua

@@ -12,7 +12,7 @@ local max, gsub, tonumber = math.max, string.gsub, tonumber
 local select, pairs, tostring  = select, pairs, tostring 			    -- Local function copy
 
 -- WoW APIs
-local wipe = wipe
+local wipe, strsplit = wipe, strsplit
 local WorldFrame, UIParent, INTERRUPTED = WorldFrame, UIParent, INTERRUPTED
 local GetNamePlateForUnit = C_NamePlate.GetNamePlateForUnit
 local UnitName, UnitIsUnit, UnitReaction, UnitExists = UnitName, UnitIsUnit, UnitReaction, UnitExists
@@ -32,11 +32,52 @@ local GetPlayerInfoByGUID, RAID_CLASS_COLORS = GetPlayerInfoByGUID, RAID_CLASS_C
 local TidyPlatesThreat = TidyPlatesThreat
 local Widgets = Addon.Widgets
 local Animations = Addon.Animations
+local LibClassicCasterino = Addon.LibClassicCasterino
+
+local GetNameForNameplate
+local UnitCastingInfo
 
 local _G =_G
 -- Global vars/functions that we don't upvalue since they might get hooked, or upgraded
 -- List them here for Mikk's FindGlobals script
 -- GLOBALS: CreateFrame, UnitAffectingCombat, UnitCastingInfo, UnitClassification, UnitGUID, UnitHealth, UnitHealthMax, UnitIsTapDenied, UnitLevel, UnitSelectionColor
+
+---------------------------------------------------------------------------------------------------
+-- Wrapper functions for WoW Classic
+---------------------------------------------------------------------------------------------------
+
+if Addon.CLASSIC then
+  GetNameForNameplate = function(plate) return plate:GetName():gsub("NamePlate", "Plate") end
+  UnitEffectiveLevel = function(...) return _G.UnitLevel(...) end
+
+  UnitChannelInfo = function(...)
+    local text, _, texture, startTime, endTime, _, _, _, spellID = LibClassicCasterino:UnitChannelInfo(...)
+
+    -- With LibClassicCasterino, startTime is nil sometimes which means that no casting information
+    -- is available
+    if not startTime then
+      text = nil
+    end
+
+    return text, text, texture, startTime or 0, endTime or 0, false, false, spellID
+  end
+
+  UnitCastingInfo = function(...)
+    local text, _, texture, startTime, endTime, _, _, _, spellID = LibClassicCasterino:UnitCastingInfo(...)
+
+    -- With LibClassicCasterino, startTime is nil sometimes which means that no casting information
+    -- is available
+    if not startTime then
+      text = nil
+    end
+
+    return text, text, texture, startTime or 0, endTime or 0, false, nil, false, spellID
+  end
+else
+  GetNameForNameplate = function(plate) return plate:GetName() end
+
+  UnitCastingInfo = function(...) return _G.UnitCastingInfo(...) end
+end
 
 -- Constants
 -- Raid Icon Reference
@@ -72,6 +113,7 @@ local CVAR_NameplateOccludedAlphaMult
 local SettingsEnabledFading
 local SettingsOccludedAlpha, SettingsEnabledOccludedAlpha
 local SettingsShowEnemyBlizzardNameplates, SettingsShowFriendlyBlizzardNameplates
+local SettingsTargetUnitHide, SettingsShowOnlyForTarget
 
 -- External references to internal data
 Addon.PlatesCreated = PlatesCreated
@@ -108,6 +150,7 @@ local OnUpdateCasting, OnStartCasting, OnStopCasting, OnUpdateCastMidway
 -- Event Functions
 local OnNewNameplate, OnShowNameplate, OnUpdateNameplate, OnResetNameplate
 local OnHealthUpdate, ProcessUnitChanges
+local UNIT_TARGET
 
 -- Main Loop
 local OnUpdate
@@ -168,7 +211,7 @@ do
 
 	function OnNewNameplate(plate)
     -- Parent could be: WorldFrame, UIParent, plate
-    local extended = _G.CreateFrame("Frame",  "ThreatPlatesFrame" .. plate:GetName(), WorldFrame)
+    local extended = _G.CreateFrame("Frame",  "ThreatPlatesFrame" .. GetNameForNameplate(plate), WorldFrame)
     extended:Hide()
 
     extended:SetFrameStrata("BACKGROUND")
@@ -189,9 +232,7 @@ do
     local textframe = _G.CreateFrame("Frame", nil, extended)
 
 		textframe:SetAllPoints()
-    textframe:SetFrameLevel(extended:GetFrameLevel() + 6)
 
-    --extended.widgetParent = widgetParent
 		visual.healthbar = healthbar
 		visual.castbar = castbar
     visual.textframe = textframe
@@ -202,24 +243,24 @@ do
     visual.eliteborder = healthbar.EliteBorder
 
     -- Parented to Extended - Middle Frame
-    visual.raidicon = textframe:CreateTexture(nil, "ARTWORK", 5)
-    visual.skullicon = textframe:CreateTexture(nil, "ARTWORK", 2)
-    visual.eliteicon = textframe:CreateTexture(nil, "ARTWORK", 1)
+    visual.raidicon = textframe:CreateTexture(nil, "OVERLAY", nil, 7)
+    visual.eliteicon = healthbar:CreateTexture(nil, "OVERLAY", nil, 1)
+    visual.skullicon = healthbar:CreateTexture(nil, "OVERLAY", nil, 2)
 
 		-- TextFrame
-    visual.name = textframe:CreateFontString(nil, "ARTWORK", 0)
+    visual.name = textframe:CreateFontString(nil, "ARTWORK")
 		visual.name:SetFont("Fonts\\FRIZQT__.TTF", 11)
     visual.name:SetWordWrap(false) -- otherwise text is wrapped when plate is scaled down
-    visual.customtext = textframe:CreateFontString(nil, "ARTWORK", -1)
+    visual.customtext = textframe:CreateFontString(nil, "ARTWORK")
 		visual.customtext:SetFont("Fonts\\FRIZQT__.TTF", 11)
     visual.customtext:SetWordWrap(false) -- otherwise text is wrapped when plate is scaled down
-		visual.level = textframe:CreateFontString(nil, "ARTWORK", -2)
+		-- Level text is not shown in headline view, so anchoring it to the healthbar is ok
+    visual.level = healthbar:CreateFontString(nil, "ARTWORK")
 		visual.level:SetFont("Fonts\\FRIZQT__.TTF", 11)
 
 		-- Cast Bar Frame - Highest Frame
-		visual.castborder = castbar.Border
-		visual.spellicon = castbar.Overlay:CreateTexture(nil, "ARTWORK", 7)
-		visual.spelltext = castbar.Overlay:CreateFontString(nil, "OVERLAY")
+		visual.spellicon = castbar:CreateTexture(nil, "OVERLAY", nil, 7)
+		visual.spelltext = castbar:CreateFontString(nil, "ARTWORK")
 		visual.spelltext:SetFont("Fonts\\FRIZQT__.TTF", 11)
     visual.spelltext:SetWordWrap(false) -- otherwise text is wrapped when plate is scaled down
 
@@ -230,7 +271,7 @@ do
 
     extended.widgets = {}
 
-		Addon:CreateExtensions(extended)
+		Addon.CreateExtensions(extended)
     Widgets:OnPlateCreated(extended)
 
     -- Allocate Tables
@@ -260,7 +301,7 @@ do
 			extended.stylename = stylename
 			unit.style = stylename
 
-      Addon:CreateExtensions(extended, unit.unitid, stylename)
+      Addon.CreateExtensions(extended, unit.unitid, stylename)
       Widgets:OnUnitAdded(extended, unit)
     else
       -- Update the unique icon widget and style may be the same, but a different trigger might be active, e.g.,
@@ -354,9 +395,11 @@ do
     Addon.UnitStyle_NameDependent(unit)
     ProcessUnitChanges()
 
-		Addon:UpdateExtensions(extended, unit.unitid, stylename)
+		Addon.UpdateExtensions(extended, unit.unitid, stylename)
 
-    Addon:UpdateNameplateStyle(nameplate, unitid)
+    Addon:UpdateNameplateStyle(plate, unitid)
+
+    UNIT_TARGET("UNIT_TARGET", unitid) -- requires tp_frame.Active, which is set in UpdateNameplateStyle
 
     -- Call this after the plate is shown as OnStartCasting checks if the plate is shown; if not, the castbar is hidden and
     -- nothing is updated
@@ -447,7 +490,7 @@ function Addon:UpdateUnitIdentity(unit, unitid)
   unit.isRare = RareReference[unit.classification] or false
   unit.isMini = unit.classification == "minus"
 
-  unit.isBoss = _G.UnitLevel(unitid) == -1
+  unit.isBoss = UnitEffectiveLevel(unitid) == -1
   if unit.isBoss then
     unit.classification = "boss"
   end
@@ -459,6 +502,9 @@ function Addon:UpdateUnitIdentity(unit, unitid)
   else
     unit.class = ""
     unit.type = "NPC"
+
+    local _, _, _, _, _, npc_id = strsplit("-", unit.guid or "")
+    unit.NPCID = npc_id
   end
 end
 
@@ -512,9 +558,10 @@ end
 -- Update the health bar and name coloring, if needed
 function Addon:UpdateIndicatorNameplateColor(tp_frame)
   local visual = tp_frame.visual
+  local healthbar = visual.healthbar
 
-  if visual.healthbar:IsShown() then
-    visual.healthbar:SetAllColors(Addon:SetHealthbarColor(tp_frame.unit))
+  if healthbar:IsShown() then
+    healthbar:SetAllColors(Addon:SetHealthbarColor(tp_frame.unit))
 
     -- Updates warning glow for threat
     if visual.threatborder:IsShown() then
@@ -525,6 +572,9 @@ function Addon:UpdateIndicatorNameplateColor(tp_frame)
   if visual.name:IsShown() then
     visual.name:SetTextColor(Addon:SetNameColor(tp_frame.unit))
   end
+
+  -- Update nameplate's target unit's color
+  healthbar:ShowTargetUnit()
 end
 
 function Addon.UpdateCustomStyleAfterAuraTrigger(unit)
@@ -751,7 +801,7 @@ do
       name, text, texture, startTime, endTime, isTradeSkill, notInterruptible, spellID = UnitChannelInfo(unitid)
       castbar.Value = (endTime / 1000) - GetTime()
 		else
-      name, text, texture, startTime, endTime, isTradeSkill, _, notInterruptible, spellID = _G.UnitCastingInfo(unitid)
+      name, text, texture, startTime, endTime, isTradeSkill, _, notInterruptible, spellID = UnitCastingInfo(unitid)
       castbar.Value = GetTime() - (startTime / 1000)
     end
 
@@ -790,6 +840,8 @@ do
 
     visual.spelltext:SetText(text)
 		visual.spellicon:SetTexture(texture)
+    local target_unit = unit.unitid .. "target"
+    castbar.CastTarget:SetText(UnitName(target_unit))
 
     castbar.IsCasting = not channeled
     castbar.IsChanneling = channeled
@@ -825,7 +877,7 @@ do
 		if not ShowCastBars then return end
 
 		-- Check to see if there's a spell being cast
-		if _G.UnitCastingInfo(unitid) then
+		if UnitCastingInfo(unitid) then
       OnStartCasting(plate, unitid, false)
     elseif UnitChannelInfo(unitid) then
       OnStartCasting(plate, unitid, true)
@@ -860,17 +912,6 @@ do
 	local function WorldConditionChanged()
 		SetUpdateAll()
 	end
-
-	-- Update spell currently being cast
-	local function UnitSpellcastMidway(event, unitid, ...)
-    if unitid == "target" or UnitIsUnit("player", unitid) or not ShowCastBars then return end
-
-		local plate = GetNamePlateForUnit(unitid)
-		if plate then
-      UpdateReferences(plate)
-      OnUpdateCastMidway(plate, unitid)
-		end
-	 end
 
   local function FrameOnShow(UnitFrame)
     -- Hide nameplates that have not yet an unit added
@@ -1033,6 +1074,9 @@ do
 
       -- Update mouseover, if the mouse was hovering over the targeted unit
       extended.unit.isTarget = false
+      if SettingsShowOnlyForTarget then
+        extended.visual.healthbar:HideTargetUnit()
+      end
       CoreEvents:UPDATE_MOUSEOVER_UNIT()
     end
 
@@ -1049,29 +1093,50 @@ do
       LastTargetPlate = plate
 
       extended.unit.isTarget = true
+      UNIT_TARGET("UNIT_TARGET", extended.unit.unitid)
     end
 
     SetUpdateAll()
 	end
 
-  if not Addon.CLASSIC then
-    function CoreEvents:PLAYER_FOCUS_CHANGED()
-      local extended
-      if LastFocusPlate and LastFocusPlate.TPFrame.Active then
-        LastFocusPlate.TPFrame.unit.IsFocus = false
-        LastFocusPlate = nil
-        -- Update mouseover, if the mouse was hovering over the targeted unit
-        CoreEvents:UPDATE_MOUSEOVER_UNIT()
+  UNIT_TARGET = function(event, unitid)
+    if SettingsTargetUnitHide or unitid == "player" or unitid == "target" then return end
+
+    local plate = GetNamePlateForUnit(unitid)
+    if plate and plate.TPFrame.Active then
+      local healthbar = plate.TPFrame.visual.healthbar
+
+      if SettingsShowOnlyForTarget and not UnitIsUnit("target", unitid) then
+        healthbar:HideTargetUnit()
+        return
       end
 
-      local plate = GetNamePlateForUnit("focus")
-      if plate and plate.TPFrame.Active then
-        plate.TPFrame.unit.IsFocus = true
-        LastFocusPlate = plate
+      local target_of_target_name = UnitName(unitid .. "target")
+      if target_of_target_name then
+        local _, class_name = UnitClass(unitid .. "target")
+        healthbar:ShowTargetUnit(target_of_target_name, class_name)
+      else
+        healthbar:HideTargetUnit()
       end
-
-      SetUpdateAll()
     end
+  end
+
+  local function PLAYER_FOCUS_CHANGED(event)
+    local extended
+    if LastFocusPlate and LastFocusPlate.TPFrame.Active then
+      LastFocusPlate.TPFrame.unit.IsFocus = false
+      LastFocusPlate = nil
+      -- Update mouseover, if the mouse was hovering over the targeted unit
+      CoreEvents:UPDATE_MOUSEOVER_UNIT()
+    end
+
+    local plate = GetNamePlateForUnit("focus")
+    if plate and plate.TPFrame.Active then
+      plate.TPFrame.unit.IsFocus = true
+      LastFocusPlate = plate
+    end
+
+    SetUpdateAll()
   end
 
   function CoreEvents:UPDATE_MOUSEOVER_UNIT()
@@ -1092,7 +1157,7 @@ do
 
     if plate and plate.TPFrame.Active then
       OnHealthUpdate(plate)
-      Addon:UpdateExtensions(plate.TPFrame, unitid, plate.TPFrame.stylename)
+      Addon.UpdateExtensions(plate.TPFrame, unitid, plate.TPFrame.stylename)
     end
 	end
 
@@ -1101,14 +1166,14 @@ do
 
     if plate and plate.TPFrame.Active then
       OnHealthUpdate(plate)
-      Addon:UpdateExtensions(plate.TPFrame, unitid, plate.TPFrame.stylename)
+      Addon.UpdateExtensions(plate.TPFrame, unitid, plate.TPFrame.stylename)
     end
   end
 
-  function  CoreEvents:UNIT_THREAT_LIST_UPDATE(unitid)
+  function CoreEvents:UNIT_THREAT_LIST_UPDATE(unitid)
     if unitid == "player" or unitid == "target" then return end
-    local plate = PlatesByUnit[unitid]
 
+    local plate = PlatesByUnit[unitid]
     if plate then
       --local threat_value = UnitThreatSituation("player", unitid) or 0
       --if threat_value ~= plate.TPFrame.unit.threatValue then
@@ -1128,6 +1193,9 @@ do
         --ProcessUnitChanges()
         --OnUpdateCastMidway(nameplate, unit.unitid)
       end
+
+      -- UNIT_TARGET does not update correctly, so use this in in-combat situations as a work-around
+      UNIT_TARGET("UNIT_TARGET", unitid)
     end
   end
 
@@ -1139,7 +1207,7 @@ do
 		SetUpdateAll()
 	end
 
-	function CoreEvents:UNIT_SPELLCAST_START(unitid)
+	local function UNIT_SPELLCAST_START(event, unitid, ...)
     if unitid == "target" or UnitIsUnit("player", unitid) or not ShowCastBars then return end
 
     local plate = GetNamePlateForUnit(unitid)
@@ -1148,7 +1216,18 @@ do
 		end
 	end
 
-  function CoreEvents:UNIT_SPELLCAST_STOP(unitid)
+  -- Update spell currently being cast
+  local function UnitSpellcastMidway(event, unitid, ...)
+    if unitid == "target" or UnitIsUnit("player", unitid) or not ShowCastBars then return end
+
+    local plate = GetNamePlateForUnit(unitid)
+    if plate then
+      UpdateReferences(plate)
+      OnUpdateCastMidway(plate, unitid)
+    end
+  end
+
+  local function UNIT_SPELLCAST_STOP(event, unitid, ...)
     if unitid == "target" or UnitIsUnit("player", unitid) or not ShowCastBars then return end
 
     -- plate can be nil, e.g., if unitid = player, combat ends and the player resource bar is already hidden
@@ -1159,7 +1238,7 @@ do
     end
   end
 
-	function CoreEvents:UNIT_SPELLCAST_CHANNEL_START(unitid)
+  local function UNIT_SPELLCAST_CHANNEL_START(event, unitid, ...)
     if unitid == "target" or UnitIsUnit("player", unitid) or not ShowCastBars then return end
 
 		local plate = GetNamePlateForUnit(unitid)
@@ -1169,7 +1248,7 @@ do
 		end
 	end
 
-	function CoreEvents:UNIT_SPELLCAST_CHANNEL_STOP(unitid)
+  local function UNIT_SPELLCAST_CHANNEL_STOP(event, unitid, ...)
     if unitid == "target" or UnitIsUnit("player", unitid) or not ShowCastBars then return end
 
 		local plate = GetNamePlateForUnit(unitid)
@@ -1177,6 +1256,54 @@ do
 			OnStopCasting(plate)
 		end
 	end
+
+  function Addon.UNIT_SPELLCAST_INTERRUPTED(event, unitid, castGUID, spellID, sourceName, interrupterGUID)
+    if unitid == "target" or UnitIsUnit("player", unitid) or not ShowCastBars then return end
+
+    local plate = GetNamePlateForUnit(unitid)
+
+    if plate and plate.TPFrame.Active then
+      if sourceName then
+        UpdateReferences(plate)
+
+        local castbar = visual.castbar
+        if castbar:IsShown() then
+          local db = TidyPlatesThreat.db.profile
+
+          sourceName = gsub(sourceName, "%-[^|]+", "") -- UnitName(sourceName) only works in groups
+          local _, class_name = GetPlayerInfoByGUID(interrupterGUID)
+          if class_name then
+            sourceName = "|c" .. db.Colors.Classes[class_name].colorStr .. sourceName .. "|r"
+          end
+          visual.spelltext:SetText(INTERRUPTED .. " [" .. sourceName .. "]")
+
+          local _, max_val = castbar:GetMinMaxValues()
+          castbar:SetValue(max_val)
+          castbar.Spark:Hide()
+
+          local color = db.castbarColorInterrupted
+          castbar:SetStatusBarColor(color.r, color.g, color.b, color.a)
+          castbar.FlashTime = CASTBAR_INTERRUPT_HOLD_TIME
+
+          -- Code from OnStopCasting
+          castbar.IsCasting = false
+          castbar.IsChanneling = false
+          unit.isCasting = false
+          UpdateIndicator_CustomScale(extended, unit)
+          UpdatePlate_Transparency(extended, unit)
+
+          -- I am assuming that OnStopCasting is called always when a cast is interrupted from
+          -- _STOP events
+          unit.IsInterrupted = true
+
+          -- Should not be necessary any longer ... as OnStopCasting is not hiding the castbar anymore
+          castbar:Show()
+        end
+      else
+        OnStopCasting(plate)
+      end
+    end
+  end
 
   function CoreEvents:COMBAT_LOG_EVENT_UNFILTERED()
     local timeStamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags = CombatLogGetCurrentEventInfo()
@@ -1191,9 +1318,9 @@ do
         if castbar:IsShown() then
           local db = TidyPlatesThreat.db.profile
           sourceName = gsub(sourceName, "%-[^|]+", "") -- UnitName(sourceName) only works in groups
-          local _, class_id = GetPlayerInfoByGUID(sourceGUID)
-          if class_id then
-            sourceName = "|c" .. db.Colors.Classes[class_id].colorStr .. sourceName .. "|r"
+          local _, class_name = GetPlayerInfoByGUID(sourceGUID)
+          if class_name then
+            sourceName = "|c" .. db.Colors.Classes[class_name].colorStr .. sourceName .. "|r"
           end
           visual.spelltext:SetText(INTERRUPTED .. " [" .. sourceName .. "]")
 
@@ -1226,30 +1353,28 @@ do
     Addon:ForceUpdate()
 	end
 
-  if not Addon.CLASSIC then
-    function CoreEvents:UNIT_ABSORB_AMOUNT_CHANGED(unitid)
-      local plate = GetNamePlateForUnit(unitid)
+  local function UNIT_ABSORB_AMOUNT_CHANGED(event, unitid)
+    local plate = GetNamePlateForUnit(unitid)
 
-      if plate and plate.TPFrame.Active then
-        local tp_frame = plate.TPFrame
-        local unit = tp_frame.unit
-        local unitid  = unit.unitid
+    if plate and plate.TPFrame.Active then
+      local tp_frame = plate.TPFrame
+      local unit = tp_frame.unit
+      local unitid  = unit.unitid
 
-        -- As this does not use OnUpdate with OnHealthUpdate, we have to update this values here
-        unit.health = _G.UnitHealth(unit.unitid) or 0
-        unit.healthmax = _G.UnitHealthMax(unit.unitid) or 1
+      -- As this does not use OnUpdate with OnHealthUpdate, we have to update this values here
+      unit.health = _G.UnitHealth(unit.unitid) or 0
+      unit.healthmax = _G.UnitHealthMax(unit.unitid) or 1
 
-        Addon:UpdateExtensions(tp_frame, unitid, tp_frame.stylename)
-        UpdateIndicator_CustomText(tp_frame)
-      end
+      Addon.UpdateExtensions(tp_frame, unitid, tp_frame.stylename)
+      UpdateIndicator_CustomText(tp_frame)
     end
+  end
 
-    function CoreEvents:UNIT_HEAL_ABSORB_AMOUNT_CHANGED(unitid)
-      local plate = GetNamePlateForUnit(unitid)
+  local function UNIT_HEAL_ABSORB_AMOUNT_CHANGED(event, unitid)
+    local plate = GetNamePlateForUnit(unitid)
 
-      if plate and plate.TPFrame.Active then
-        Addon:UpdateExtensions(plate.TPFrame, unitid, plate.TPFrame.stylename)
-      end
+    if plate and plate.TPFrame.Active then
+      Addon.UpdateExtensions(plate.TPFrame, unitid, plate.TPFrame.stylename)
     end
   end
 
@@ -1268,25 +1393,58 @@ do
     end
   end
 
+  -- Only registered for player unit
+  --local RIGHTEOUS_FURY_SPELL_IDs = { 20468, 20469, 20470, 25780 }
+  local function UNIT_AURA(event, unitid)
+    local _, name, spellId
+    for i = 1, 40 do
+      name , _, _, _, _, _, _, _, _, spellId = _G.UnitBuff("player", i, "PLAYER")
+      if not name then
+        break
+      elseif spellId == 25780 then --RIGHTEOUS_FURY_SPELL_IDs[spellId] then
+        Addon.PlayerIsPaladinTank = true
+        return
+      end
+    end
+
+    Addon.PlayerIsPaladinTank = false
+  end
+
   --  function CoreEvents:UNIT_SPELLCAST_INTERRUPTED(unitid, lineid, spellid)
   --    if unitid == "target" or UnitIsUnit("player", unitid) or not ShowCastBars then return end
   --  end
 
-  -- The following events should not have worked before adjusting UnitSpellcastMidway
-	CoreEvents.UNIT_SPELLCAST_DELAYED = UnitSpellcastMidway
-	CoreEvents.UNIT_SPELLCAST_CHANNEL_UPDATE = UnitSpellcastMidway
-	CoreEvents.UNIT_SPELLCAST_INTERRUPTIBLE = UnitSpellcastMidway
-	CoreEvents.UNIT_SPELLCAST_NOT_INTERRUPTIBLE = UnitSpellcastMidway
-  -- UNIT_SPELLCAST_SUCCEEDED
-  -- UNIT_SPELLCAST_FAILED
-  -- UNIT_SPELLCAST_FAILED_QUIET
-  -- UNIT_SPELLCAST_INTERRUPTED - handled by COMBAT_LOG_EVENT_UNFILTERED / SPELL_INTERRUPT as it's the only way to find out the interruptorom
-  -- UNIT_SPELLCAST_SENT
+  if Addon.CLASSIC then
+    Addon.UNIT_SPELLCAST_START = UNIT_SPELLCAST_START
+    Addon.UNIT_SPELLCAST_STOP = UNIT_SPELLCAST_STOP
+    Addon.UNIT_SPELLCAST_CHANNEL_START = UNIT_SPELLCAST_CHANNEL_START
+    Addon.UNIT_SPELLCAST_CHANNEL_STOP = UNIT_SPELLCAST_CHANNEL_STOP
+    Addon.UnitSpellcastMidway = UnitSpellcastMidway
+  else
+    -- The following events should not have worked before adjusting UnitSpellcastMidway
+    CoreEvents.UNIT_SPELLCAST_START = UNIT_SPELLCAST_START
+    CoreEvents.UNIT_SPELLCAST_STOP = UNIT_SPELLCAST_STOP
+    CoreEvents.UNIT_SPELLCAST_CHANNEL_START = UNIT_SPELLCAST_CHANNEL_START
+    CoreEvents.UNIT_SPELLCAST_CHANNEL_STOP = UNIT_SPELLCAST_CHANNEL_STOP
+
+    CoreEvents.UNIT_SPELLCAST_DELAYED = UnitSpellcastMidway
+    CoreEvents.UNIT_SPELLCAST_CHANNEL_UPDATE = UnitSpellcastMidway
+    CoreEvents.UNIT_SPELLCAST_INTERRUPTIBLE = UnitSpellcastMidway
+    CoreEvents.UNIT_SPELLCAST_NOT_INTERRUPTIBLE = UnitSpellcastMidway
+    -- UNIT_SPELLCAST_SUCCEEDED
+    -- UNIT_SPELLCAST_FAILED
+    -- UNIT_SPELLCAST_FAILED_QUIET
+    -- UNIT_SPELLCAST_INTERRUPTED - handled by COMBAT_LOG_EVENT_UNFILTERED / SPELL_INTERRUPT as it's the only way to find out the interruptorom
+    -- UNIT_SPELLCAST_SENT
+
+    CoreEvents.UNIT_ABSORB_AMOUNT_CHANGED = UNIT_ABSORB_AMOUNT_CHANGED
+    CoreEvents.UNIT_HEAL_ABSORB_AMOUNT_CHANGED = UNIT_HEAL_ABSORB_AMOUNT_CHANGED
+    CoreEvents.PLAYER_FOCUS_CHANGED = PLAYER_FOCUS_CHANGED
+  end
 
 	CoreEvents.UNIT_LEVEL = UnitConditionChanged
 	--CoreEvents.UNIT_THREAT_SITUATION_UPDATE = UnitConditionChanged -- did not work anyway (no unitid)
   CoreEvents.RAID_TARGET_UPDATE = WorldConditionChanged
-	CoreEvents.PLAYER_FOCUS_CHANGED = WorldConditionChanged
 	CoreEvents.PLAYER_CONTROL_LOST = WorldConditionChanged
 	CoreEvents.PLAYER_CONTROL_GAINED = WorldConditionChanged
 
@@ -1294,6 +1452,15 @@ do
 	TidyPlatesCore:SetFrameStrata("TOOLTIP") 	-- When parented to WorldFrame, causes OnUpdate handler to run close to last
 	TidyPlatesCore:SetScript("OnEvent", EventHandler)
 	for eventName in pairs(CoreEvents) do TidyPlatesCore:RegisterEvent(eventName) end
+
+  CoreEvents.UNIT_TARGET = UNIT_TARGET
+
+  -- Do this after events are registered, otherwise UNIT_AURA would be registered as a general event, not only as
+  -- an unit event.
+  if Addon.CLASSIC and Addon.PlayerClass == "PALADIN" then
+    CoreEvents.UNIT_AURA = UNIT_AURA
+    TidyPlatesCore:RegisterUnitEvent("UNIT_AURA", "player")
+  end
 end
 
 ---------------------------------------------------------------------------------------------------------------------
@@ -1424,18 +1591,15 @@ do
       SetFontGroupObject(object, objectstyle)
     end
 
+    local db = TidyPlatesThreat.db.profile.settings
+
     -- Healthbar
 		SetAnchorGroupObject(visual.healthbar, style.healthbar, extended)
-		visual.healthbar:SetHealthBarTexture(style.healthbar)
-		visual.healthbar:SetStatusBarBackdrop(style.healthbar.backdrop, style.healthborder.texture, style.healthborder.edgesize, style.healthborder.offset)
-		visual.healthborder:SetShown(style.healthborder.show)
-    visual.healthbar:SetEliteBorder(style.eliteborder.texture)
+    visual.healthbar:UpdateLayout(db, style)
 
     -- Castbar
     SetAnchorGroupObject(visual.castbar, style.castbar, extended)
-    visual.castbar:SetStatusBarTexture(style.castbar.texture or EMPTY_TEXTURE)
-    visual.castbar:SetStatusBarBackdrop(style.castbar.backdrop, style.castborder.texture, style.castborder.edgesize, style.castborder.offset)
-    visual.castborder:SetShown(style.castborder.show)
+    visual.castbar:UpdateLayout(db, style)
     -- Set castbar color here otherwise it may be shown sometimes with non-initialized backdrop color (white)
     if visual.castbar:IsShown() then
       visual.castbar:SetAllColors(Addon:SetCastbarColor(unit))
@@ -1460,16 +1624,15 @@ do
     -- Raid Icon Texture
 		if style.raidicon and style.raidicon.texture then
 			visual.raidicon:SetTexture(style.raidicon.texture)
-      visual.raidicon:SetDrawLayer("ARTWORK", 5)
     end
     -- TOODO: does not really work with ForceUpdate() as isMarked is not set there (no call to UpdateUnitCondition)
     if not unit.isMarked then
       visual.raidicon:Hide()
     end
 
-    visual.castbar:ClearAllPoints()
+    db = TidyPlatesThreat.db.profile.settings.castbar
 
-    local db = TidyPlatesThreat.db.profile.settings.castbar
+    visual.castbar:ClearAllPoints()
     if UnitIsUnit("target", unit.unitid) then
       SetObjectAnchor(visual.castbar, style.castbar.anchor or "CENTER", extended, style.castbar.x + db.x_target or 0, style.castbar.y + db.y_target or 0)
     else
@@ -1592,7 +1755,7 @@ end
 function Addon:DisableCastBars() ShowCastBars = false end
 function Addon:EnableCastBars() ShowCastBars = true end
 
-function Addon:ForceUpdate()
+function Addon:ForceUpdate(all_visible_plates)
   wipe(PlateOnUpdateQueue)
 
   Addon:UpdateConfigurationStatusText()
@@ -1622,8 +1785,16 @@ function Addon:ForceUpdate()
     UpdatePlate_Transparency = UpdatePlate_SetAlpha
   end
 
+  SettingsTargetUnitHide = not db.settings.healthbar.TargetUnit.Show
+  SettingsShowOnlyForTarget = db.settings.healthbar.TargetUnit.ShowOnlyForTarget
+  if SettingsTargetUnitHide then
+    TidyPlatesCore:UnregisterEvent("UNIT_TARGET")
+  else
+    TidyPlatesCore:RegisterEvent("UNIT_TARGET")
+  end
+
   for plate in pairs(self.PlatesVisible) do
-    if plate.TPFrame.Active then
+    if plate.TPFrame.Active or all_visible_plates then
       OnResetNameplate(plate)
     end
   end

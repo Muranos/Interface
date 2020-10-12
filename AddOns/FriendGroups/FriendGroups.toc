@@ -1,4 +1,4 @@
-## Interface: 80200
+## Interface: 80300
 ## Title: Friend Groups
 ## Author: Mikeprod
 ## Version: 8.3

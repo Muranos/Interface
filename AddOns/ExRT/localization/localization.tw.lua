@@ -919,7 +919,7 @@ L.Export = "匯出"
 L.ExportInfo = "* 可用於 Google試算表或 Excel 等"			
 L.S_Strata = "顯示層級"			
 			
-L.senable = "啟用"			
+L.Enable = "啟用"			
 			
 L.minimaptooltiplmp = "左鍵 - 設定"			
 L.minimaptooltiprmp = "右鍵 - 選單"			

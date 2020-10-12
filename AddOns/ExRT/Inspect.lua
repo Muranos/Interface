@@ -583,12 +583,18 @@ function module:Disable()
 	module:UnregisterAddonMessage()
 end
 
+local sessionSoulbindCheckLimit = false
+
 function module.main:ADDON_LOADED()
 	VExRT = _G.VExRT
 	if ExRT.SDB.charName then
 		module.db.inspectQuery[ExRT.SDB.charName] = GetTime()
 		module.db.inspectNotItemsOnly[ExRT.SDB.charName] = true
 	end
+	
+	VExRT.Inspect = VExRT.Inspect or {}
+	VExRT.Inspect.Soulbinds = VExRT.Inspect.Soulbinds or {}
+
 	module:Enable()
 end
 
@@ -899,6 +905,48 @@ function module.main:PLAYER_EQUIPMENT_CHANGED(arg)
 	module.db.inspectQuery[name] = GetTime()
 end
 
+local function sortSoulbindTree(a,b)
+	return a.row < b.row
+end
+function module:PrepCovenantData()
+	if not ExRT.is90 or ExRT.isClassic then
+		return
+	end
+
+	local covenantID = C_Covenants.GetActiveCovenantID()
+	if covenantID == 0 then
+		return
+	end
+
+	local soulbindID = C_Soulbinds.GetActiveSoulbindID()
+	if soulbindID == 0 then
+		return
+	end
+
+	local soulbindData = C_Soulbinds.GetSoulbindData(soulbindID)
+	local covenantData = C_Covenants.GetCovenantData(soulbindData.covenantID)
+
+	local soulbinds
+	if soulbindData and soulbindData.tree and soulbindData.tree.nodes then
+		soulbinds = "S:"..covenantID..":"..soulbindID
+		sort(soulbindData.tree.nodes,sortSoulbindTree)
+		for i=1,#soulbindData.tree.nodes do
+			local node = soulbindData.tree.nodes[i]
+			if node.state == Enum.SoulbindNodeState.Selected then
+				if node.conduitID ~= 0 then
+					soulbinds = soulbinds .. ":" .. node.conduitID .. "-".. node.conduitRank .. "-"..node.conduitType
+				else
+					soulbinds = soulbinds .. ":" .. node.spellID
+				end
+			end
+		end
+	end
+	return soulbinds
+end
+
+function module:SoulbindReq(unit)
+	ExRT.F.SendExMsg("inspect","REQ\tS\t"..unit)
+end
 
 function module.main:ENCOUNTER_START()
 	if ExRT.isClassic then
@@ -971,6 +1019,11 @@ function module.main:ENCOUNTER_START()
 	end
 	if azerite ~= "" then
 		str = str .. (str ~= "" and "^" or "") .. "A" .. azerite
+	end
+
+	local soulbinds = module:PrepCovenantData()
+	if soulbinds then
+		str = str .. (str ~= "" and "^" or "") .. soulbinds
 	end
 
 	if str ~= "" then
@@ -1058,6 +1111,65 @@ function module:addonMessage(sender, prefix, subPrefix, ...)
 								--print(sender,'added azerite',powerID)
 							end
 						end
+					end
+				elseif key == "S" then
+					cooldownsModule:ClearSessionDataReason(sender,"soulbind")
+					cooldownsModule:ClearSessionDataReason(senderFull,"soulbind")
+
+					local _,covenantID,soulbindID,tree = strsplit(":",main,4)
+					while tree do
+						local powerStr,on = strsplit(":",tree,2)
+						tree = on
+
+						local spellID = tonumber(powerStr)
+						if spellID then
+							cooldownsModule.db.session_gGUIDs[sender] = {spellID,"soulbind"}
+							cooldownsModule.db.session_gGUIDs[senderFull] = {spellID,"soulbind"}
+						else
+							local conduitID,conduitRank,conduitType = strsplit("-",powerStr,3)
+							
+							if conduitID and conduitRank then
+								conduitID = tonumber(conduitID) or 0
+								conduitRank = tonumber(conduitRank) or 0
+								spellID = C_Soulbinds.GetConduitSpellID(conduitID,conduitRank)
+	
+								cooldownsModule.db.session_gGUIDs[sender] = {spellID,"soulbind"}
+								cooldownsModule.db.session_gGUIDs[senderFull] = {spellID,"soulbind"}
+							end
+						end
+					end
+
+					if not sessionSoulbindCheckLimit then
+						sessionSoulbindCheckLimit = true
+						local count = 0
+						for _ in pairs(VExRT.Inspect.Soulbinds) do count = count + 1 end
+						if count > 1500 then
+							wipe(VExRT.Inspect.Soulbinds)
+						end
+					end
+
+					VExRT.Inspect.Soulbinds[senderFull] = time()..main:sub(2)
+				end
+			end
+		elseif subPrefix == "REQ" then
+			local arg1, unit = ...
+			if unit and (unit == UnitName'player' or strsplit("-",unit) == UnitName'player') then
+				local currTime = GetTime()
+				if module.db.reqantispam and (currTime - module.db.reqantispam < 5) then
+					return
+				end
+				module.db.reqantispam = currTime
+
+				if arg1 == "S" then
+					local soulbinds = module:PrepCovenantData()
+					local str = ""
+
+					if soulbinds then
+						str = str .. (str ~= "" and "^" or "") .. soulbinds
+					end
+				
+					if str ~= "" then
+						ExRT.F.SendExMsg("inspect","R\t"..str)
 					end
 				end
 			end

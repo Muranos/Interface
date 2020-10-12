@@ -19,6 +19,11 @@ Have lots of friends and find them hard to manage? This addon allows you to sort
 - expand and collapse groups by clicking the group title
 - group right click options to invite, rename and remove
 - group right click to hide offline contacts or character name color
+- group right click to show mobile friends always as afk
+- group right click to show mobile friends always with "Mobile" addition
+- group right click to show only battle tags (no more real ids!)
+- group right click to sort your friends by status (online > dnd > afk > offline)
+- group right click to show only friends online in wow or wow classic
 - friend right click option to move to existing group or remove from group
 
 
@@ -29,3 +34,4 @@ Credits
 - 7.1 Fixes : Mikeprod - [Github](https://github.com/Mikeprod/FriendGroups)
 - 8.2 Fixes : y368413
 - 8.2.5 Fixes : Mudohir - [Github](https://github.com/mudohir/FriendGroups)
+- 8.3 : Hayato2846 - [Github](https://github.com/Hayato2846/FriendGroups/)
