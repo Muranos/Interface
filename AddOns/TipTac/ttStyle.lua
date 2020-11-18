@@ -1,8 +1,12 @@
 local _G = getfenv(0);
 local unpack = unpack;
 local UnitName = UnitName;
-local GetQuestGreenRange = GetQuestGreenRange;
+local UnitQuestTrivialLevelRange = UnitQuestTrivialLevelRange;
 local gtt = GameTooltip;
+
+-- classic support
+local UnitIsWildBattlePet = UnitIsWildBattlePet or function() return false end;
+local UnitIsBattlePetCompanion = UnitIsBattlePetCompanion or function() return false end;
 
 -- TipTac refs
 local tt = TipTac;
@@ -48,7 +52,7 @@ local function GetDifficultyLevelColor(level)
 		return "|cffff8040"; -- orange
 	elseif (level >= -2) then
 		return "|cffffff00"; -- yellow
-	elseif (level >= -GetQuestGreenRange()) then
+	elseif (level >= -UnitQuestTrivialLevelRange("player")) then
 		return "|cff40c040"; -- green
 	else
 		return "|cff808080"; -- gray
@@ -244,8 +248,13 @@ function ttStyle:ModifyUnitTooltip(u,first)
 
 	-- Info Line
 	local gttLine = _G["GameTooltipTextLeft"..lineInfo.Index];
-	gttLine:SetText(lineInfo:Concat());
-	gttLine:SetTextColor(1,1,1);
+	
+	-- 8.2 made the default XML template have only 2 lines, so it's possible to get here without the desired line existing (yet?)
+	if (gttLine) then
+		gttLine:SetText(lineInfo:Concat());
+		gttLine:SetTextColor(1,1,1);
+	end
+
 	lineInfo:Clear();
 end
 

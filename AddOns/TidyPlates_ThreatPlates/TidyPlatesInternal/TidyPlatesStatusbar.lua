@@ -15,6 +15,7 @@ local InCombatLockdown = InCombatLockdown
 
 -- ThreatPlates APIs
 local TidyPlatesThreat = TidyPlatesThreat
+local BackdropTemplate = Addon.BackdropTemplate
 local Font = Addon.Font
 
 local _G =_G
@@ -201,9 +202,9 @@ function Addon:CreateHealthbar(parent)
 	local frame = _G.CreateFrame("StatusBar", nil, parent)
 
   frame.Background = frame:CreateTexture(nil, "ARTWORK")
-  frame.Border = _G.CreateFrame("Frame", nil, frame)
-  frame.EliteBorder = _G.CreateFrame("Frame", nil, frame)
-  frame.ThreatBorder = _G.CreateFrame("Frame", nil, frame)
+  frame.Border = _G.CreateFrame("Frame", nil, frame, BackdropTemplate)
+  frame.EliteBorder = _G.CreateFrame("Frame", nil, frame, BackdropTemplate)
+  frame.ThreatBorder = _G.CreateFrame("Frame", nil, frame, BackdropTemplate)
 
   frame.ThreatBorder:SetPoint("TOPLEFT", frame, "TOPLEFT", - OFFSET_THREAT, OFFSET_THREAT)
   frame.ThreatBorder:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", OFFSET_THREAT, - OFFSET_THREAT)
@@ -317,9 +318,9 @@ function Addon:CreateCastbar(parent)
   local frame = _G.CreateFrame("StatusBar", nil, parent)
   frame:Hide()
 
-  frame.Border = _G.CreateFrame("Frame", nil, frame)
+  frame.Border = _G.CreateFrame("Frame", nil, frame, BackdropTemplate)
   frame.Background = frame:CreateTexture(nil, "ARTWORK")
-  frame.InterruptBorder = _G.CreateFrame("Frame", nil, frame)
+  frame.InterruptBorder = _G.CreateFrame("Frame", nil, frame, BackdropTemplate)
 
   local overlay = frame:CreateTexture(nil, "ARTWORK", nil, 2)
   overlay:SetTexture(ART_PATH .. "Striped_Texture")

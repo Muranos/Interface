@@ -45,7 +45,7 @@ end
 --
 
 function mod:ClawsOfArgus(args)
-	self:Message(args.spellId, "yellow")
+	self:MessageOld(args.spellId, "yellow")
 	self:Bar(args.spellId, 91)
 	self:Bar(args.spellId, 20, CL.cast:format(args.spellName))
 end
@@ -53,7 +53,7 @@ end
 
 function mod:CurtainOfFlame(args)
 	curtainPlayers[args.destName] = true
-	self:TargetMessage(args.spellId, args.destName, "red", "Warning")
+	self:TargetMessageOld(args.spellId, args.destName, "red", "warning")
 	self:TargetBar(args.spellId, self:Normal() and 9 or 12, args.destName)
 	self:PrimaryIcon(args.spellId, args.destName)
 	if self:Me(args.destGUID) then

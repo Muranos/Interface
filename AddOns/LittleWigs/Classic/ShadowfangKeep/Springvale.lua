@@ -58,7 +58,7 @@ do
 			local t = GetTime()
 			if t - prev > 2 then
 				prev = t
-				self:Message(93687, "blue", "Alert", CL.underyou:format(args.spellName))
+				self:MessageOld(93687, "blue", "alert", CL.underyou:format(args.spellName))
 			end
 		end
 	end
@@ -70,17 +70,17 @@ do
 		local t = GetTime()
 		if t - prev > 2 then -- adds cast this, he spawns 2 at a time
 			prev = t
-			self:Message(args.spellId, "orange", "Alarm", CL.casting:format(args.spellName))
+			self:MessageOld(args.spellId, "orange", "alarm", CL.casting:format(args.spellName))
 		end
 	end
 end
 
 function mod:WordOfShame(args)
-	self:TargetMessage(args.spellId, args.destName, "red")
+	self:TargetMessageOld(args.spellId, args.destName, "red")
 end
 
 --function mod:ShieldOfThePerfidious(args)
 --	if self.Me(args.destGUID) then
---		self:TargetMessage(args.spellId, args.destName, "blue")
+--		self:TargetMessageOld(args.spellId, args.destName, "blue")
 --	end
 --end

@@ -1,10 +1,7 @@
 # LittleWigs
 
-## [v8.3.11](https://github.com/BigWigsMods/LittleWigs/tree/v8.3.11) (2020-03-08)
-[Full Changelog](https://github.com/BigWigsMods/LittleWigs/compare/v8.3.10...v8.3.11)
+## [v9.0.4](https://github.com/BigWigsMods/LittleWigs/tree/v9.0.4) (2020-11-18)
+[Full Changelog](https://github.com/BigWigsMods/LittleWigs/compare/v9.0.3...v9.0.4) [Previous Releases](https://github.com/BigWigsMods/LittleWigs/releases)
 
-- Update ruRU (#519)  
-- Update ruRU (#518)  
-- Update ruRU (#516)  
-- Update ruRU (#514)  
-- BfA/WaycrestManor/Heartsbane: Improve timers (#517)  
+- bump toc  
+- MoP/ScarletHalls/ArmsmasterHarlan: Add :Flash icon  

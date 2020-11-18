@@ -823,7 +823,7 @@ function TitanPanelRightClickMenu_AddHide(id, level)
 	local info = {};
 	info.notCheckable = true;
 	info.text = L["TITAN_PANEL_MENU_HIDE"];
-	info.value = value;
+	info.value = nil -- value; huh - what should this be?
 	info.func = function()
 		TitanPanelRightClickMenu_Hide(id)
 	end
@@ -1036,6 +1036,7 @@ function TitanUtils_ShiftButtonOnBarLeft(name)
 	local from_idx = TitanUtils_GetCurrentIndex(TitanPanelSettings.Buttons,name)
 	local side = TitanPanel_GetPluginSide(name)
 	local bar = TitanUtils_GetWhichBar(name)
+	local to_idx = nil
 
 	-- buttons on Left are placed L to R;
 	-- buttons on Right are placed R to L
@@ -1436,7 +1437,7 @@ function TitanUtils_RegisterPluginList()
 	local id
 	local cnt = 0
 	if TitanPluginToBeRegisteredNum > 0 then
-		if not Titan__InitializedPEW and not TitanAllGetVar("Silenced") then
+		if not Titan__InitializedPEW and TitanAllGetVar("Registered") then
 			TitanDebug(L["TITAN_PANEL_REGISTER_START"], "normal")
 		end
 		for index, value in ipairs(TitanPluginToBeRegistered) do
@@ -1445,7 +1446,7 @@ function TitanUtils_RegisterPluginList()
 			end
 			cnt = cnt + 1
 		end
-		if not Titan__InitializedPEW and not TitanAllGetVar("Silenced") then
+		if not Titan__InitializedPEW and TitanAllGetVar("Registered") then
 			TitanDebug((L["TITAN_PANEL_REGISTER_END"].." "..cnt), "normal")
 		end
 	end
@@ -1650,7 +1651,7 @@ function TitanPanelDisplayRightClickMenu_Toggle(self, isChildButton)
 	-- Per updated menu lib LibUIDropDownMenu Dec 2018
 	-- This could have been done in some initialize code but here it can react 
 	-- better to future Titan frame code changes
-	desired_frame = frame.."RightClickMenu"
+	local desired_frame = frame.."RightClickMenu"
 	if _G[desired_frame] then
 		-- all is good - frame exists
 	else
@@ -1909,6 +1910,7 @@ end
 
 function TitanDumpPluginList()
 	-- Just dump the current list of plugins
+	local plug_in = {}
 	for idx, value in pairs(TitanPluginsIndex) do
 		plug_in = TitanUtils_GetPlugin(TitanPluginsIndex[idx])
 		if plug_in then
@@ -1962,7 +1964,7 @@ TitanDebug("_GetFrameName "
 end
 
 function TitanDumpTimers()
-	str = "Titan-timers: "
+	local str = "Titan-timers: "
 		.."'"..(TitanAllGetVar("TimerPEW") or "?").."' "
 		.."'"..(TitanAllGetVar("TimerDualSpec") or "?").."' "
 		.."'"..(TitanAllGetVar("TimerLDB") or "?").."' "

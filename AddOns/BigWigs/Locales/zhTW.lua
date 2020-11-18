@@ -1,13 +1,15 @@
 local L = BigWigsAPI:NewLocale("BigWigs", "zhTW")
 if not L then return end
 
-L.getNewRelease = "你的 BigWigs 已過期（/bwv）但是可以使用 Twitch 客戶端簡單升級。另外，也可以從 curseforge.com 或 wowinterface.com 手動升級。"
+--L.guildRelease = "You are running version %d of BigWigs made for your guild, based on version %d of the official addon."
+L.getNewRelease = "你的 BigWigs 已過期（/bwv）但是可以使用 CurseForge 客戶端簡單升級。另外，也可以從 curseforge.com 或 wowinterface.com 手動升級。"
 L.warnTwoReleases = "你的 BigWigs 已過期2個發行版！你的版本可能有錯誤，功能缺失或不正確的計時器。所以強烈建議你升級。"
 L.warnSeveralReleases = "|cffff0000你的 BigWigs 已過期%d發行版！！我們「強烈」建議你更新，以防止把問題同步給其他玩家！|r"
+--L.warnOldBase = "You are using a guild version of BigWigs (%d), but your base version (%d) is %d releases out of date. This may cause issues."
 
-L.gitHubDesc = "BigWigs 是一個在 GitHub 上的開源軟體。我們一直在尋找新的朋友幫助我們和歡迎任何人檢測我們的代碼，做出貢獻和提交錯誤報告。BigWigs 今天的偉大很大程度上一部分因為偉大的魔獸世界社區幫助我們。"
+L.gitHubDesc = "|cFF33FF99BigWigs 是一個在 GitHub 上的開源軟體。我們一直在尋找新的朋友幫助我們和歡迎任何人檢測我們的代碼，做出貢獻和提交錯誤報告。BigWigs 今天的偉大很大程度上一部分因為偉大的魔獸世界社區幫助我們。|r"
 
-L.testNameplate = "檢測到目標，在目標名條上創建一個測試計時條。"
+L.testNameplate = "檢測到目標，在目標名條上創建一個測試計時條。 |cFF33FF99This feature is rarely used, is usually just 1 bar, and is needed to keep track of cooldowns when fighting multiple bosses/ads that cast the same spell.|r"
 
 L.classicWarning1 = "|cFF33FF99BigWigs|r：你在經典版魔獸世界使用了正式版的 BigWigs，這是錯誤的版本。"
 L.classicWarning2 = "|cFF33FF99BigWigs|r：請安裝經典版的 BigWigs。"

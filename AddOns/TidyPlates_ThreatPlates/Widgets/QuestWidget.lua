@@ -17,7 +17,10 @@ local string, tonumber, next, pairs, ipairs = string, tonumber, next, pairs, ipa
 local WorldFrame = WorldFrame
 local InCombatLockdown, IsInInstance = InCombatLockdown, IsInInstance
 local UnitName, UnitIsUnit, UnitDetailedThreatSituation = UnitName, UnitIsUnit, UnitDetailedThreatSituation
-local GetNumQuestLeaderBoards, GetQuestObjectiveInfo, GetQuestLogTitle, GetNumQuestLogEntries, GetQuestLogIndexByID = GetNumQuestLeaderBoards, GetQuestObjectiveInfo, GetQuestLogTitle, GetNumQuestLogEntries, GetQuestLogIndexByID
+
+local GetQuestObjectives, GetQuestInfo, GetQuestLogIndex = C_QuestLog.GetQuestObjectives, C_QuestLog.GetInfo, C_QuestLog.GetLogIndexForQuestID
+local GetQuestLogTitle, GetNumQuestLogEntries = C_QuestLog.GetQuestLogTitle, C_QuestLog.GetNumQuestLogEntries
+
 local GetNamePlateForUnit = C_NamePlate.GetNamePlateForUnit
 
 -- ThreatPlates APIs
@@ -243,17 +246,18 @@ function Widget:CreateQuest(questID, questIndex)
   }
 
   function Quest:UpdateObjectives()
-    local objectives = GetNumQuestLeaderBoards(self.index)
+    local objectives = GetQuestObjectives(self.id)
 
-    for objIndex = 1, objectives do
-      local text, objectiveType, finished, numFulfilled, numRequired = GetQuestObjectiveInfo(self.id, objIndex, false)
+    local objective, text, objectiveType, finished, numFulfilled, numRequired
+    for objIndex = 1, #objectives do
+      objective = objectives[objIndex]
+      text, objectiveType, numFulfilled, numRequired = objective.text, objective.type, objective.numFulfilled, objective.numRequired
 
       -- Occasionally the game will return nil text, this happens when some world quests/bonus area quests finish (the objective no longer exists)
       -- Does not make sense to add "progressbar" type quests here as there progress is not updated via QUEST_WATCH_UPDATE
       if text and objectiveType ~= "progressbar" then
         local objectiveName = string.gsub(text, "(%d+)/(%d+)", "")
         -- Normally, the quest objective should come before the :, but while the QUEST_LOG_UPDATE events (after login/reload)
-        -- GetQuestObjectiveInfo just returns nil as text
 
         -- It does seem that this is no longer necessary
         QuestLogNotComplete = QuestLogNotComplete or (objectiveName == " : ")
@@ -282,15 +286,16 @@ function Widget:CreateQuest(questID, questIndex)
 end
 
 function Widget:AddQuestCacheEntry(questIndex)
-  local title, _, _, isHeader, _, _, _, questID = GetQuestLogTitle(questIndex)
+  if questIndex then
+    local info = GetQuestInfo(questIndex)
 
-  if not isHeader and title then --ignore quest log headers
-    local quest = Widget:CreateQuest(questID, questIndex)
+    if info and not info.isHeader and info.title then --ignore quest log headers
+      local quest = Widget:CreateQuest(info.questID, questIndex)
 
-    quest:UpdateObjectives()
-
-    QuestList[title] = quest
-    QuestIDs[questID] = title --so it can be found by remove
+      quest:UpdateObjectives()
+      QuestList[info.title] = quest
+      QuestIDs[info.questID] = info.title --so it can be found by remove
+    end
   end
 end
 
@@ -326,14 +331,15 @@ function Widget:PLAYER_ENTERING_WORLD()
   self:UpdateAllFramesAndNameplateColor()
 end
 
-function Widget:QUEST_WATCH_UPDATE(questIndex)
-  local title, _, _, _, _, _, _, questID = GetQuestLogTitle(questIndex)
+function Widget:QUEST_WATCH_UPDATE(questID)
+  local questIndex = GetQuestLogIndex(questID)
+  local info = GetQuestInfo(questIndex)
 
-  if not title then
+  if not info or not info.title then
     return
   end
 
-  QuestsToUpdate[questID] = title
+  QuestsToUpdate[questID] = info.title
 end
 
 function Widget:UNIT_QUEST_LOG_CHANGED(...)
@@ -349,7 +355,7 @@ function Widget:QUEST_LOG_UPDATE()
     -- Update the cached quest progress (for non-progressbar quests) after QUEST_WATCH_UPDATE
     local QuestsToUpdate = QuestsToUpdate
     for questID, title in pairs(QuestsToUpdate) do
-      local questIndex = GetQuestLogIndexByID(questID)
+      local questIndex = GetQuestLogIndex(questID)
 
       self:UpdateQuestCacheEntry(questIndex, title)
       QuestsToUpdate[questID] = nil
@@ -613,7 +619,7 @@ function Addon:PrintQuests()
 
   print ("Waiting for quest log updates for the following quests:")
   for questID, title in pairs(QuestsToUpdate) do
-    local questIndex = GetQuestLogIndexByID(questID)
+    local questIndex = GetQuestLogIndex(questID)
     print ("  Quest:", title .. " [" .. tostring(questIndex) .. "]")
   end
 end

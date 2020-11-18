@@ -351,6 +351,14 @@ L["open_the_loot_history_desc"] = "打開拾取歷史"
 L["Opens the synchronizer"] = "開啟同步"
 L["opt_addButton_desc"] = "對選擇部位增加新的按鈕群組"
 --[[Translation missing --]]
+--[[ L["opt_autoAddBoEs_desc"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["opt_autoAddBoEs_name"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["opt_autoAddItems_desc"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["opt_autoAddItems_name"] = ""--]] 
+--[[Translation missing --]]
 --[[ L["opt_autoTrade_desc"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["opt_award_later_desc"] = ""--]] 
@@ -358,6 +366,8 @@ L["opt_addButton_desc"] = "對選擇部位增加新的按鈕群組"
 --[[ L["opt_buttonsGroup_desc"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["opt_chatFrameName_desc"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["opt_chatFrameName_name"] = ""--]] 
 L["opt_deleteDate_confirm"] = "你確定你要將比選項舊的紀錄刪除嗎? 刪除後無法復原。"
 L["opt_deleteDate_desc"] = "刪除所有比選項中的天數舊的紀錄。"
 L["opt_deleteName_confirm"] = "你確定你要刪除所有 %s 的紀錄嗎? 刪除後無法復原。"
@@ -384,6 +394,10 @@ L["opt_rejectTrade_Name"] = "允許保留裝備"
 --[[ L["opt_saveBonusRolls_Desc"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["opt_saveBonusRolls_Name"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["opt_skipSessionFrame_desc"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["opt_skipSessionFrame_name"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["options_autoAwardBoE_desc"] = ""--]] 
 --[[Translation missing --]]

@@ -887,7 +887,7 @@ end
 local lastStartEvent,lastEndEvent = 0,0
 
 local function EncounterStartLog(encounterID, encounterName, difficultyID, groupSize)
-	if not (difficultyID == 14 or difficultyID == 15 or difficultyID == 16) then
+	if (not ExRT.isClassic and not (difficultyID == 14 or difficultyID == 15 or difficultyID == 16)) or (ExRT.isClassic and not (difficultyID == 9 or difficultyID == 148)) then
 		return
 	end
 	if (VExRT.Attendance.enabled == 1 and isFirstEncounterByRaid) or VExRT.Attendance.enabled == 3 or CheckSpecialConditions(encounterID,encounterName,difficultyID) then
@@ -896,7 +896,7 @@ local function EncounterStartLog(encounterID, encounterName, difficultyID, group
 	end
 end
 local function EncounterEndLog(encounterID, encounterName, difficultyID, groupSize, isKill)
-	if not (difficultyID == 14 or difficultyID == 15 or difficultyID == 16) or not (isKill == 1) then
+	if not (isKill == 1) or (not ExRT.isClassic and not (difficultyID == 14 or difficultyID == 15 or difficultyID == 16)) or (ExRT.isClassic and not (difficultyID == 9 or difficultyID == 148)) then
 		return
 	end
 	if (VExRT.Attendance.enabled == 2 and isFirstEncounterByRaid) or VExRT.Attendance.enabled == 4 or CheckSpecialConditions(encounterID,encounterName,difficultyID,isKill==1) then

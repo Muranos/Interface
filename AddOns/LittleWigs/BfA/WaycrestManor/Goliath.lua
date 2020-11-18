@@ -77,7 +77,7 @@ do
 		if self:Me(args.destGUID) then
 			self:Say(args.spellId)
 		end
-		self:TargetMessage2(args.spellId, "orange", args.destName)
+		self:TargetMessage(args.spellId, "orange", args.destName)
 		self:PlaySound(args.spellId, "alarm", nil, args.destName)
 		self:TargetBar(args.spellId, 15, args.destName)
 		if self:GetOption(soulThornsMarker) then
@@ -92,13 +92,13 @@ function mod:SoulThornsRemoved(args)
 end
 
 function mod:Crush(args)
-	self:Message2(args.spellId, "yellow")
+	self:Message(args.spellId, "yellow")
 	self:PlaySound(args.spellId, "alert")
 	self:CDBar(args.spellId, 17)
 end
 
 function mod:BurningBrush(args)
-	self:Message2(args.spellId, "cyan", CL.other:format(args.spellName, args.destName))
+	self:Message(args.spellId, "cyan", CL.other:format(args.spellName, args.destName))
 	self:PlaySound(args.spellId, "long")
 end
 

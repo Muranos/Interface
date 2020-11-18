@@ -30,7 +30,6 @@ local GetNumQuestLogRewardCurrencies = GetNumQuestLogRewardCurrencies
 local GetQuestLogRewardInfo = GetQuestLogRewardInfo
 local GetQuestLogRewardCurrencyInfo = GetQuestLogRewardCurrencyInfo
 local GetQuestLogRewardMoney = GetQuestLogRewardMoney
-local GetQuestTagInfo = GetQuestTagInfo
 local GetNumQuestLogRewards = GetNumQuestLogRewards
 local GetQuestInfoByQuestID = C_TaskQuest.GetQuestInfoByQuestID
 
@@ -790,7 +789,7 @@ function WorldQuestTracker.UpdateRareIcons (mapID)
 		
 			local questCompleted = false
 			local npcQuestCompletedID = WorldQuestTracker.MapData.RaresQuestIDs [npcId]
-			if (npcQuestCompletedID and IsQuestFlaggedCompleted (npcQuestCompletedID)) then
+			if (npcQuestCompletedID and C_QuestLog.IsQuestFlaggedCompleted (npcQuestCompletedID)) then
 				questCompleted = true
 			end
 

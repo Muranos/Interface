@@ -59,17 +59,18 @@ function mod:GOSSIP_SHOW()
 	if self:GetOption("custom_on_autotalk") then
 		local mobId = self:MobId(UnitGUID("npc"))
 		if mobId == 26527 or mobId == 27915 then -- Chromie
-			if GetGossipAvailableQuests() or GetGossipActiveQuests() then return end -- let the player take / turn in the quest
-			local first, _, second = GetGossipOptions()
+			if C_GossipInfo.GetNumAvailableQuests() > 0 or C_GossipInfo.GetNumActiveQuests() > 0 then return end -- let the player take / turn in the quest
+
+			local first, second = self:GetGossipOptions()
 			if second then
-				SelectGossipOption(2) -- skip the roleplay if possible
+				self:SelectGossipOption(2) -- skip the roleplay if possible
 				self:UnregisterEvent("CHAT_MSG_MONSTER_SAY")
 			elseif first then
-				SelectGossipOption(1)
+				self:SelectGossipOption(1)
 			end
 		elseif mobId == 26499 then -- Arthas
-			if GetGossipOptions() then
-				SelectGossipOption(1)
+			if self:GetGossipOptions() then
+				self:SelectGossipOption(1)
 			end
 		end
 	end

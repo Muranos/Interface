@@ -161,6 +161,32 @@ function module.options:Load()
 					ExRT.F.LinkItem(nil,itemLink)
 				end
 			end
+		elseif IsControlKeyDown() then
+			local data = obj:GetParent().table
+			if not data then
+				return
+			end
+			local posI = data.posI
+			if not module.options.list.ENABLE_DEL then
+				StaticPopupDialogs["EXRT_LOOTHISTORY_REMOVEONE"] = {
+					text = L.LootHistoryDelOne,
+					button1 = L.YesText,
+					button2 = L.NoText,
+					OnAccept = function()
+						module.options.list.ENABLE_DEL = true
+						tremove(VExRT.LootHistory.list,posI)
+						module.options:UpdatePage()
+					end,
+					timeout = 0,
+					whileDead = true,
+					hideOnEscape = true,
+					preferredIndex = 3,
+				}
+				StaticPopup_Show("EXRT_LOOTHISTORY_REMOVEONE")
+			else
+				tremove(VExRT.LootHistory.list,posI)
+				module.options:UpdatePage()
+			end
 		end
 	end
 
@@ -224,7 +250,7 @@ function module.options:Load()
 			end
 
 			if toAdd then
-				result[#result+1] = {dateRec,instanceName,"",encounterName,diffName or "",playerNameStyle,"","",itemLink = itemLink,quantity = quantity}
+				result[#result+1] = {dateRec,instanceName,"",encounterName,diffName or "",playerNameStyle,"","",itemLink = itemLink,quantity = quantity,posI = i}
 			end
 		end
 

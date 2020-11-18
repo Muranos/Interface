@@ -30,12 +30,12 @@ function mod:UNIT_HEALTH_FREQUENT(event, unit)
 	local hp = UnitHealth(unit) / UnitHealthMax(unit) * 100
 	if hp < 35 then
 		self:UnregisterUnitEvent(event, unit)
-		self:Message(68872, "red", nil, CL.soon:format(self:SpellName(68872))) -- Soulstorm
+		self:MessageOld(68872, "red", nil, CL.soon:format(self:SpellName(68872))) -- Soulstorm
 	end
 end
 
 function mod:CorruptSoul(args)
-	self:TargetMessage(args.spellId, args.destName, "orange", "Alert")
+	self:TargetMessageOld(args.spellId, args.destName, "orange", "alert")
 	self:TargetBar(args.spellId, 4, args.destName)
 	self:PrimaryIcon(args.spellId, args.destName)
 end

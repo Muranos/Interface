@@ -84,7 +84,7 @@ do
 		local t = args.time
 		if t-prev > 2 then
 			prev = t
-			self:Message2(args.spellId, "orange")
+			self:Message(args.spellId, "orange")
 			self:PlaySound(args.spellId, "alarm")
 		end
 	end
@@ -121,7 +121,7 @@ do
 		local t = args.time
 		if t-prev > 6 then
 			prev = t
-			self:Message2(args.spellId, "yellow")
+			self:Message(args.spellId, "yellow")
 			self:PlaySound(args.spellId, "alert")
 			self:CDBar(args.spellId, 30)
 		end
@@ -138,7 +138,7 @@ do
 			self:Bar(264166, 32)
 		end
 		if stage == 1 then
-			self:TargetMessage2(264166, "orange", args.destName)
+			self:TargetMessage(264166, "orange", args.destName)
 			if self:Healer() or self:Me(args.destGUID) then
 				self:PlaySound(264166, "warning", nil, args.destName)
 			end
@@ -164,7 +164,7 @@ do
 			self:Bar(args.spellId, 32)
 		end
 		if stage == 1 then
-			self:TargetMessage2(args.spellId, "orange", args.destName)
+			self:TargetMessage(args.spellId, "orange", args.destName)
 			self:PlaySound(args.spellId, "info", nil, args.destName)
 		else
 			playerList[#playerList+1] = args.destName
@@ -176,7 +176,7 @@ end
 
 function mod:EruptingWaters(args)
 	stage = 2
-	self:Message2("stages", "cyan", CL.intermission, false)
+	self:Message("stages", "cyan", CL.intermission, false)
 	self:PlaySound("stages", "long", "intermission")
 	self:Bar(264560, 13.5) -- Choking Brine _success
 	self:Bar(264101, 18.5) -- Surging Rush _start
@@ -188,7 +188,7 @@ end
 
 function mod:EruptingWatersRemoved(args)
 	stage = 1
-	self:Message2("stages", "cyan", CL.over:format(CL.intermission), false)
+	self:Message("stages", "cyan", CL.over:format(CL.intermission), false)
 	self:PlaySound("stages", "long")
 	self:Bar(264560, 9.5) -- Choking Brine _success
 	self:Bar(264101, 15.5) -- Surging Rush _start

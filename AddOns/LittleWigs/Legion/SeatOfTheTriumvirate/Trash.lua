@@ -81,17 +81,17 @@ end
 
 function mod:PersonalAurasWithSay(args)
 	if self:Me(args.destGUID) then
-		self:TargetMessage(args.spellId, args.destName, "blue", "Alarm")
+		self:TargetMessageOld(args.spellId, args.destName, "blue", "alarm")
 		self:Say(args.spellId)
 	end
 end
 
 function mod:VoidDiffusionCast(args)
-	self:Message(args.spellId, "yellow", self:Interrupter() and "Info", CL.casting:format(args.spellName))
+	self:MessageOld(args.spellId, "yellow", self:Interrupter() and "info", CL.casting:format(args.spellName))
 end
 
 function mod:DarkMatterCast(args)
-	self:Message(args.spellId, "red", "Warning", CL.casting:format(args.spellName))
+	self:MessageOld(args.spellId, "red", "warning", CL.casting:format(args.spellName))
 	if self:GetOption(matterMarker) then
 		self:RegisterTargetEvents("MarkMatter")
 	end
@@ -110,8 +110,8 @@ end
 
 function mod:GOSSIP_SHOW()
 	if self:GetOption("custom_on_autotalk") and self:MobId(UnitGUID("npc")) == 125836 then
-		if GetGossipOptions() then
-			SelectGossipOption(1)
+		if self:GetGossipOptions() then
+			self:SelectGossipOption(1)
 		end
 	end
 end

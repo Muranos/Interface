@@ -1,15 +1,17 @@
 --[[
-	### Rev 09 ###
+	———————————————— Rev 09 ———
 	- Fixed GetChecked() now returning a boolean instead of nil/1
-	### Rev 10 - 7.0.3/Legion ###
+	——— 16.07.23 ——— Rev 10 ——— 7.0.3/Legion ———
 	- Changed SetTexture(r,g,b,a) -> SetColorTexture(r,g,b,a)
-	### Rev 11 - 8.0/BfA ###
+	——— 18.08.12 ——— Rev 11 ——— 8.0/BfA ———
 	- Added native LSM support to the dropdown
 	- The building of the options page is now done internally, instead of in the client addon.
 	- Some code restructure.
+	——— 20.10.31 ——— Rev 12 ——— 9.0.1/Shadowlands ———
+	- CreateFrame() now uses the "BackdropTemplate"
 --]]
 
-local REVISION = 11;
+local REVISION = 12;
 if (type(AzOptionsFactory) == "table") and (AzOptionsFactory.vers >= REVISION) then
 	return;
 end
@@ -549,7 +551,7 @@ azof.objects.Text = {
 		self:SetText(cfgValue:gsub("|","||"));
 	end,
 	CreateNew = function(self)
-		local f = CreateFrame("EditBox",nil,self.owner);
+		local f = CreateFrame("EditBox",nil,self.owner,BackdropTemplateMixin and "BackdropTemplate");	-- 9.0.1: Using BackdropTemplate
 		f:SetSize(180,24);
 		f:SetScript("OnTextChanged",TextEdit_OnTextChanged);
 		f:SetScript("OnEnterPressed",f.ClearFocus);

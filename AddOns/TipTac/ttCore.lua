@@ -9,7 +9,7 @@ local tconcat = table.concat;
 
 -- Addon
 local modName = ...;
-local tt = CreateFrame("Frame",modName,UIParent);
+local tt = CreateFrame("Frame",modName,UIParent,BackdropTemplateMixin and "BackdropTemplate");	-- 9.0.1: Using BackdropTemplate
 
 -- Global Chat Message Function
 function AzMsg(msg) DEFAULT_CHAT_FRAME:AddMessage(tostring(msg):gsub("|1","|cffffff80"):gsub("|2","|cffffffff"),0.5,0.75,1.0); end
@@ -228,8 +228,9 @@ local targetedByList;
 
 tt.u = u;
 
--- Hi-jack the GTT backdrop table for our own evil needs
-local tipBackdrop = GAME_TOOLTIP_BACKDROP_STYLE_DEFAULT;
+-- Tooltip Backdrop -- Az: use this instead: TOOLTIP_BACKDROP_STYLE_DEFAULT;
+--local tipBackdrop = TOOLTIP_BACKDROP_STYLE_DEFAULT;
+local tipBackdrop = { bgFile = "Interface\\Tooltips\\UI-Tooltip-Background", edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", tile = 1, tileSize = 16, edgeSize = 16, insets = { left = 4, right = 4, top = 4, bottom = 4 } };
 tipBackdrop.backdropColor = CreateColor(1,1,1);
 tipBackdrop.backdropBorderColor = CreateColor(1,1,1);
 
@@ -499,7 +500,7 @@ function tt:ApplySettings()
 			end
 			SetupGradientTip(tip);
 			tip:SetScale(cfg.gttScale);
-			tt:ApplyBackdrop(tip);
+			tt:ApplyTipBackdrop(tip);
 		end
 	end
 
@@ -515,8 +516,8 @@ function tt:ApplySettings()
 end
 
 -- Applies the backdrop, color and border color. The GTT will often reset these internally.
-function tt:ApplyBackdrop(tip)
-	GameTooltip_SetBackdropStyle(tip,tipBackdrop)
+function tt:ApplyTipBackdrop(tip)
+	SharedTooltip_SetBackdropStyle(tip,tipBackdrop);
 end
 
 --------------------------------------------------------------------------------------------------------
@@ -822,7 +823,7 @@ end
 function gttScriptHooks:OnTooltipCleared()
 	-- WoD: resetting the back/border color seems to be a necessary action, otherwise colors may stick when showing the next tooltip thing (world object tips)
 	-- BfA: The tooltip now also clears the backdrop in adition to color and bordercolor, so set it again here
-	tt:ApplyBackdrop(self);
+	tt:ApplyTipBackdrop(self);
 
 	-- remove the padding that might have been set to fit health/power bars
 	tt.xPadding = 0;
@@ -839,16 +840,17 @@ function gttScriptHooks:OnTooltipCleared()
 	tt:SendElementEvent("OnCleared",self);
 end
 
--- OnHide Script -- Used to default the background and border color
---function gttScriptHooks:OnHide()
---	tt:ApplyBackdrop(self);
---end
+-- OnHide Script -- Used to default the background and border color -- Az: May cause issues with embedded tooltips, see GameTooltip.lua:396
+function gttScriptHooks:OnHide()
+	tt:ApplyTipBackdrop(self);
+end
 
 --------------------------------------------------------------------------------------------------------
 --                                      GameTooltip Other Hooks                                       --
 --------------------------------------------------------------------------------------------------------
 
 -- HOOK: GTT:FadeOut -- This allows us to check when the tip is fading out.
+-- This function might have been made secure in 8.2?
 local gttFadeOut = gtt.FadeOut;
 gtt.FadeOut = function(self,...)
 	if (not u.token) or (not cfg.overrideFade) then

@@ -169,7 +169,9 @@ function TidyPlatesThreat:ChatCommandDebug(cmd_list)
 		--Addon:PrintEventService()
 	elseif command == "quest" then
 		Addon:PrintQuests()
-	elseif command == "custom-styles" then
+	elseif command == "social" then
+		Addon.PrintFriendlist()
+ 	elseif command == "custom-styles" then
 		for k, v in pairs(TidyPlatesThreat.db.profile.uniqueSettings) do
 			print ("Style:", k, "=>", v.Trigger.Type, " - ", v.Trigger[v.Trigger.Type].Input or "nil" )
 		end
@@ -230,7 +232,7 @@ function TidyPlatesThreat:ChatCommandDebug(cmd_list)
 	elseif command == "dbm2" then
 		DBM.Nameplate:Hide(true, UnitGUID("target"), 255824, nil, nil, nil, true, {0.5, 0, 0.55, 0.75})
 	else
-		TP.Print(L["Unknown option: "] .. input, true)
+		TP.Print(L["Unknown option: "] .. command, true)
 		PrintHelp()
 	end
 end

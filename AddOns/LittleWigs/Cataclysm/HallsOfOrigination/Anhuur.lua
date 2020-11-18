@@ -44,7 +44,7 @@ end
 function mod:UNIT_HEALTH_FREQUENT(event, unit)
 	local hp = UnitHealth(unit) / UnitHealthMax(unit) * 100
 	if hp < nextShieldOfLightWarning then
-		self:Message(74938, "yellow", nil, CL.soon:format(self:SpellName(74938))) -- Shield of Light
+		self:MessageOld(74938, "yellow", nil, CL.soon:format(self:SpellName(74938))) -- Shield of Light
 		nextShieldOfLightWarning = nextShieldOfLightWarning - 33
 		if nextShieldOfLightWarning < 33 then
 			self:UnregisterUnitEvent(event, unit)
@@ -53,7 +53,7 @@ function mod:UNIT_HEALTH_FREQUENT(event, unit)
 end
 
 function mod:ShieldOfLight(args)
-	self:Message(args.spellId, "red", "Long")
+	self:MessageOld(args.spellId, "red", "long")
 end
 
 function mod:DivineReckoning(args)
@@ -65,7 +65,7 @@ function mod:DivineReckoning(args)
 	else
 		self:OpenProximity(args.spellId, 7, args.destName)
 	end
-	self:TargetMessage(args.spellId, args.destName, "yellow", "Alert", nil, nil, self:Dispeller("magic"))
+	self:TargetMessageOld(args.spellId, args.destName, "yellow", "alert", nil, nil, self:Dispeller("magic"))
 	self:TargetBar(args.spellId, 8, args.destName)
 	self:PrimaryIcon(args.spellId, args.destName)
 end

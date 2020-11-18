@@ -64,18 +64,18 @@ end
 --
 
 function mod:Casts(args)
-	self:Message(args.spellId, "red", "Alert")
+	self:MessageOld(args.spellId, "red", "alert")
 end
 
 function mod:FelPrison(args)
-	self:TargetMessage(args.spellId, args.destName, "orange", "Alarm", nil, nil, true)
+	self:TargetMessageOld(args.spellId, args.destName, "orange", "alarm", nil, nil, true)
 end
 
 -- Lieutenant Sinclari
 function mod:GOSSIP_SHOW()
 	if self:GetOption("custom_on_autotalk") and self:MobId(UnitGUID("npc")) == 102278 then
-		if GetGossipOptions() then
-			SelectGossipOption(1) -- Only skip gossip, don't skip confirmation box
+		if self:GetGossipOptions() then
+			self:SelectGossipOption(1)
 		end
 	end
 end

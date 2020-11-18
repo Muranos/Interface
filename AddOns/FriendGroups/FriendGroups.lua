@@ -151,7 +151,6 @@ local function GetFriendInfoById(id)
 			bnetAccountId = accountInfo.bnetAccountID
 			isAFK = accountInfo.isAFK
 			isDND = accountInfo.isDND
-			zoneName = accountInfo.areaName
 			lastOnline = accountInfo.lastOnlineTime
 			battleTag = accountInfo.battleTag
 
@@ -177,7 +176,7 @@ local function GetFriendInfoById(id)
 	else
 		bnetIDAccount, accountName, _, _, characterName, bnetAccountId, client,
 		isOnline, lastOnline, isAFK, isDND, _, _, _, _, wowProjectID, _, _,
-		isFavorite, mobile = BNGetFriendInfo(id)
+		isFavorite, mobile = BNetAccountInfo(id)
 
 		if isOnline then
 			_, _, _, realmName, realmID, faction, _, class, _, zoneName, level,
@@ -238,8 +237,14 @@ local function FriendGroups_GetBNetButtonNameText(accountName, client, canCoop, 
 		end
 
 		if client == BNET_CLIENT_WOW then
-			local nameColor = FriendGroups_SavedVars.colour_classes and ClassColourCode(class)
-			nameText = nameText.." "..nameColor.."("..characterName..characterNameSuffix..")"..FONT_COLOR_CODE_CLOSE
+			if not canCoop and FriendGroups_SavedVars.gray_faction then
+				nameText = "|CFF949694"..nameText.." ".."("..characterName..characterNameSuffix..")".."|r"
+			elseif FriendGroups_SavedVars.colour_classes then
+				local nameColor = ClassColourCode(class)
+				nameText = nameText.." "..nameColor.."("..characterName..characterNameSuffix..")"..FONT_COLOR_CODE_CLOSE
+			else
+				nameText = nameText.." ".."("..characterName..characterNameSuffix..")"..FONT_COLOR_CODE_CLOSE
+			end
 		else
 			if ENABLE_COLORBLIND_MODE == "1" then
 				characterName = characterName..coopLabel
@@ -716,7 +721,8 @@ local function FriendGroups_Update(forceUpdate)
 
 	-- favorite friends online
 	for i = 1, numBNetFavoriteOnline do
-		local noteText = select(13,BNGetFriendInfo(i))
+		local accountInfo = C_BattleNet.GetFriendAccountInfo(i)
+		local noteText = accountInfo.note
 		local client = select(8,GetFriendInfoById(i))
 		
 		if (FriendGroups_SavedVars.ingame_only and client == BNET_CLIENT_WOW) or not FriendGroups_SavedVars.ingame_only then
@@ -739,7 +745,8 @@ local function FriendGroups_Update(forceUpdate)
 	--favorite friends offline
 	for i = 1, numBNetFavoriteOffline do
 		local j = i + numBNetFavoriteOnline
-		local noteText = select(13,BNGetFriendInfo(j))
+		local accountInfo = C_BattleNet.GetFriendAccountInfo(j)
+		local noteText = accountInfo.note
 		local client = select(8,GetFriendInfoById(j))
 		
 		if (FriendGroups_SavedVars.ingame_only and client == BNET_CLIENT_WOW) or not FriendGroups_SavedVars.ingame_only then
@@ -760,7 +767,8 @@ local function FriendGroups_Update(forceUpdate)
 	-- online Battlenet friends
 	for i = 1, numBNetOnline - numBNetFavoriteOnline do
 		local j = i + numBNetFavorite
-		local noteText = select(13,BNGetFriendInfo(j))
+		local accountInfo = C_BattleNet.GetFriendAccountInfo(j)
+		local noteText = accountInfo.note
 		local client = select(8,GetFriendInfoById(j))
 		
 		if (FriendGroups_SavedVars.ingame_only and client == BNET_CLIENT_WOW) or not FriendGroups_SavedVars.ingame_only then
@@ -796,7 +804,8 @@ local function FriendGroups_Update(forceUpdate)
 	-- offline Battlenet friends
 	for i = 1, numBNetOffline - numBNetFavoriteOffline do
 		local j = i + numBNetFavorite + numBNetOnline - numBNetFavoriteOnline
-		local noteText = select(13,BNGetFriendInfo(j))
+		local accountInfo = C_BattleNet.GetFriendAccountInfo(j)
+		local noteText = accountInfo.note
 		local client = select(8,GetFriendInfoById(j))
 		
 		if (FriendGroups_SavedVars.ingame_only and client == BNET_CLIENT_WOW) or not FriendGroups_SavedVars.ingame_only then
@@ -1002,9 +1011,10 @@ local function FriendGroups_OnFriendMenuClick(self)
 		local source = OPEN_DROPDOWNMENUS_SAVE[1] and OPEN_DROPDOWNMENUS_SAVE[1].which or self.owner -- OPEN_DROPDOWNMENUS is nil on click
 
 		if source == "BN_FRIEND" or source == "BN_FRIEND_OFFLINE" then
-			local note = select(13, BNGetFriendInfoByID(dropdown.bnetIDAccount))
+			local accountInfo = C_BattleNet.GetAccountInfoByID(dropdown.bnetIDAccount)
+			note = accountInfo.note
 			if creating then
-				StaticPopup_Show("FRIEND_GROUP_CREATE", nil, nil, { id = dropdown.bnetIDAccount, note = note, set = BNSetFriendNote })
+				StaticPopup_Show("FRIEND_GROUP_CREATE", nil, nil, { id = accountInfo.bnetAccountID, note = note, set = BNSetFriendNote })
 			else
 				if add then
 					note = AddGroup(note, add)
@@ -1020,14 +1030,14 @@ local function FriendGroups_OnFriendMenuClick(self)
 				local note = friend_info.notes
 				if dropdown.name and name:find(dropdown.name) then
 					if creating then
-						StaticPopup_Show("FRIEND_GROUP_CREATE", nil, nil, { id = i, note = note, set = SetFriendNotes })
+						StaticPopup_Show("FRIEND_GROUP_CREATE", nil, nil, { name = name, note = note, set = C_FriendList.SetFriendNotes })
 					else
 						if add then
 							note = AddGroup(note, add)
 						else
 							note = RemoveGroup(note, del)
 						end
-						SetFriendNotes(i, note)
+						C_FriendList.SetFriendNotes(name, note)
 					end
 					break
 				end
@@ -1059,7 +1069,8 @@ local function FriendGroups_HideButtons()
 		local note = nil
 
 		if dropdown.bnetIDAccount then
-			note = select(13, BNGetFriendInfoByID(dropdown.bnetIDAccount))
+			local accountInfo = C_BattleNet.GetAccountInfoByID(dropdown.bnetIDAccount)
+			note = accountInfo.note
 		else
 			for i = 1, C_FriendList.GetNumFriends() do
 				local friend_info = C_FriendList.GetFriendInfoByIndex(i)
@@ -1099,7 +1110,8 @@ local function FriendGroups_Rename(self, old)
 	end
 	local groups = {}
 	for i = 1, BNGetNumFriends() do
-		local presenceID, _, _, _, _, _, _, _, _, _, _, _, noteText = BNGetFriendInfo(i)
+		local presenceID = C_BattleNet.GetFriendAccountInfo(i).bnetAccountID
+		local noteText = C_BattleNet.GetFriendAccountInfo(i).note
 		local note = NoteAndGroups(noteText, groups)
 		if groups[old] then
 			groups[old] = nil
@@ -1109,13 +1121,15 @@ local function FriendGroups_Rename(self, old)
 		end
 	end
 	for i = 1, C_FriendList.GetNumFriends() do
-		local note = C_FriendList.GetFriendInfoByIndex(i) and C_FriendList.GetFriendInfoByIndex(i).notes
+		local note = C_FriendList.GetFriendInfoByIndex(i).notes
+		local name = C_FriendList.GetFriendInfoByIndex(i).name
 		note = NoteAndGroups(note, groups)
+
 		if groups[old] then
 			groups[old] = nil
 			groups[input] = true
 			note = CreateNote(note, groups)
-			SetFriendNotes(i, note)
+			C_FriendList.SetFriendNotes(name, note)
 		end
 	end
 	FriendGroups_Update()
@@ -1127,7 +1141,11 @@ local function FriendGroups_Create(self, data)
 		return
 	end
 	local note = AddGroup(data.note, input)
-	data.set(data.id, note)
+	if data.name then
+		data.set(data.name, note)
+	else
+		data.set(data.id, note)
+	end
 end
 
 StaticPopupDialogs["FRIEND_GROUP_RENAME"] = {
@@ -1165,7 +1183,7 @@ StaticPopupDialogs["FRIEND_GROUP_CREATE"] = {
 local function InviteOrGroup(clickedgroup, invite)
 	local groups = {}
 	for i = 1, BNGetNumFriends() do
-		local presenceID, _, _, _, _, toonID, _, _, _, _, _, _, noteText = BNGetFriendInfo(i)
+		local presenceID, _, _, _, _, toonID, _, _, _, _, _, _, noteText = C_BattleNet.GetFriendAccountInfo(i)
 		local note = NoteAndGroups(noteText, groups)
 		if groups[clickedgroup] then
 			if invite and toonID then
@@ -1189,7 +1207,7 @@ local function InviteOrGroup(clickedgroup, invite)
 			elseif not invite then
 				groups[clickedgroup] = nil
 				note = CreateNote(note, groups)
-				SetFriendNotes(i, note)
+				C_FriendList.SetFriendNotes(i, note)
 			end
 		end
 	end
@@ -1209,6 +1227,7 @@ local menu_items = {
 		{ text = "Hide all offline", checked = function() return FriendGroups_SavedVars.hide_offline end, func = function() CloseDropDownMenus() FriendGroups_SavedVars.hide_offline = not FriendGroups_SavedVars.hide_offline FriendGroups_Update() end },
 		{ text = "Hide level of max level players", checked = function() return FriendGroups_SavedVars.hide_high_level end, func = function() CloseDropDownMenus() FriendGroups_SavedVars.hide_high_level = not FriendGroups_SavedVars.hide_high_level FriendGroups_Update() end },
 		{ text = "Colour names", checked = function() return FriendGroups_SavedVars.colour_classes end, func = function() CloseDropDownMenus() FriendGroups_SavedVars.colour_classes = not FriendGroups_SavedVars.colour_classes FriendGroups_Update() end },
+		{ text = "Gray out other Faction", checked = function() return FriendGroups_SavedVars.gray_faction end, func = function() CloseDropDownMenus() FriendGroups_SavedVars.gray_faction = not FriendGroups_SavedVars.gray_faction FriendGroups_Update() end },
 		{ text = "Show Mobile always as AFK", checked = function() return FriendGroups_SavedVars.show_mobile_afk end, func = function() CloseDropDownMenus() FriendGroups_SavedVars.show_mobile_afk = not FriendGroups_SavedVars.show_mobile_afk FriendGroups_Update() end },
 		{ text = "Add Mobile Text", checked = function() return FriendGroups_SavedVars.add_mobile_text end, func = function() CloseDropDownMenus() FriendGroups_SavedVars.add_mobile_text = not FriendGroups_SavedVars.add_mobile_text FriendGroups_Update() end },
 		{ text = "Show only Ingame Friends", checked = function() return FriendGroups_SavedVars.ingame_only end, func = function() CloseDropDownMenus() FriendGroups_SavedVars.ingame_only = not FriendGroups_SavedVars.ingame_only FriendGroups_Update() end },
@@ -1316,6 +1335,7 @@ frame:SetScript("OnEvent", function(self, event, ...)
 				collapsed = {},
 				hide_offline = false,
 				colour_classes = true,
+				gray_faction = false,
 				hide_high_level = false,
 				show_mobile_afk = false,
 				add_mobile_text = false,

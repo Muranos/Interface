@@ -94,7 +94,7 @@ do
     if (callbackList == nil) then return end
 
     for x = 1, #callbackList, 1 do
-      callbackList[1](...);
+      callbackList[x](...);
     end
   end
 end

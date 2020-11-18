@@ -73,10 +73,10 @@ end
 
 function mod:ArcaneBlitz(args)
 	if self:Interrupter(args.sourceGUID) then
-		self:TargetMessage(args.spellId, args.sourceName, "yellow", "Alarm")
+		self:TargetMessageOld(args.spellId, args.sourceName, "yellow", "alarm")
 	end
 end
 
 function mod:BonecrushingStrike(args)
-	self:Message(args.spellId, "red", "Alarm", CL.incoming:format(args.spellName))
+	self:MessageOld(args.spellId, "red", "alarm", CL.incoming:format(args.spellName))
 end

@@ -1,8 +1,15 @@
 ------------------------------------------------------------------------
-r235 | xbeeps | 2018-07-22 20:22:22 +0000 (Sun, 22 Jul 2018) | 1 line
+r238 | xbeeps | 2020-10-19 21:37:46 +0000 (Mon, 19 Oct 2020) | 1 line
+Changed paths:
+   M /trunk/Castbars.toc
+
+Bump TOC
+------------------------------------------------------------------------
+r237 | xbeeps | 2020-10-19 21:34:53 +0000 (Mon, 19 Oct 2020) | 2 lines
 Changed paths:
    M /trunk/Castbars.lua
 
-Fix lua error when mirror timer bars are shown
+Fix Loading Errors due to SetBackdrop usage
+Fix GCD Spark texture
 ------------------------------------------------------------------------
 

@@ -40,7 +40,7 @@ local MAX_REQUESTED_ITEM_INFO = 50
 local MAX_REQUESTS_PER_ITEM = 5
 local UNKNOWN_ITEM_NAME = L["Unknown Item"]
 local PLACEHOLDER_ITEM_NAME = L["Example Item"]
-local DB_VERSION = 6
+local DB_VERSION = 7
 local ENCODING_NUM_BITS = 6
 local ENCODING_NUM_VALUES = 2 ^ ENCODING_NUM_BITS
 local ENCODING_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
@@ -550,7 +550,9 @@ end
 -- @treturn ?number The quality
 function ItemInfo.GetQuality(item)
 	local itemString = ItemString.Get(item)
-	if not itemString then return end
+	if not itemString then
+		return
+	end
 	local itemType, _, randOrLevel, bonusOrQuality = strsplit(":", itemString)
 	randOrLevel = tonumber(randOrLevel)
 	bonusOrQuality = tonumber(bonusOrQuality)
@@ -572,6 +574,8 @@ function ItemInfo.GetQuality(item)
 	end
 	if quality then
 		private.SetSingleField(itemString, "quality", quality)
+	else
+		ItemInfo.FetchInfo(itemString)
 	end
 	return quality
 end
@@ -1185,7 +1189,7 @@ function private.StoreGetItemInfoInstant(itemString)
 		local classId = LE_ITEM_CLASS_BATTLEPET
 		local subClassId = petTypeId - 1
 		local invSlotId = 0
-		local minLevel = 0
+		local minLevel = extra1 or 0
 		local itemLevel = extra1 or 0
 		local quality = extra2 or 0
 		local maxStack = 1
@@ -1196,6 +1200,7 @@ function private.StoreGetItemInfoInstant(itemString)
 		private.SetGetItemInfoFields(itemString, name, minLevel, itemLevel, maxStack, vendorSell, quality, isBOP, isCraftingReagent)
 		local baseItemString = ItemString.GetBase(itemString)
 		if baseItemString ~= itemString then
+			minLevel = 0
 			itemLevel = 0
 			quality = 0
 			private.SetItemInfoInstantFields(baseItemString, texture, classId, subClassId, invSlotId)

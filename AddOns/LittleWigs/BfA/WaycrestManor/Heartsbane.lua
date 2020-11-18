@@ -14,6 +14,8 @@ mod.respawnTime = 20
 --
 
 local playersWithRunicMark = 0
+local bossWithIris = nil
+local isMCApplied = false
 
 --------------------------------------------------------------------------------
 -- Initialization
@@ -55,6 +57,8 @@ end
 
 function mod:OnEngage()
 	playersWithRunicMark = 0
+	bossWithIris = nil
+	isMCApplied = false
 	self:Bar(260907, 8.5) -- Soul Manipulation
 end
 
@@ -63,9 +67,12 @@ end
 --
 
 function mod:ClaimTheIris(args)
-	self:Message2(260805, "cyan", CL.other:format(self:SpellName(260805), args.sourceName)) -- Focusing Iris
+	bossWithIris = args.sourceGUID
+	self:Message(260805, "cyan", CL.other:format(self:SpellName(260805), args.sourceName)) -- Focusing Iris
 	self:PlaySound(260805, "long") -- Focusing Iris
-	self:PrimaryIcon(260805, self:GetBossId(args.sourceGUID)) -- Focusing Iris
+	if not isMCApplied then
+		self:PrimaryIcon(260805, self:GetBossId(bossWithIris)) -- Focusing Iris
+	end
 	self:StopBar(260741) -- Jagged Nettles
 	self:StopBar(260703) -- Unstable Runic Mark
 	self:StopBar(260907) -- Soul Manipulation
@@ -83,7 +90,7 @@ function mod:FocusingIris(args)
 end
 
 function mod:DireRitual(args)
-	self:Message2(args.spellId, "red")
+	self:Message(args.spellId, "red")
 	self:PlaySound(args.spellId, "warning")
 end
 
@@ -93,14 +100,18 @@ function mod:SoulManipulation(args)
 end
 
 function mod:SoulManipulationApplied(args)
-	self:TargetMessage2(260907, "orange", args.destName) -- Soul Manipulation
+	isMCApplied = true
+	self:TargetMessage(260907, "orange", args.destName) -- Soul Manipulation
 	self:PlaySound(260907, "alarm", nil, args.destName) -- Soul Manipulation
 	self:PrimaryIcon(260907, args.destName) -- Soul Manipulation, Move icon from boss to player
 end
 
 function mod:SoulManipulationRemovedFromBoss(args)
-	-- Move the icon away from the player and back to the boss
-	self:PrimaryIcon(260805, self:GetBossId(args.destGUID)) -- Focusing Iris
+	isMCApplied = false
+	if bossWithIris then -- safety-check for occasional disconnects
+		-- Move the icon away from the player and back to the boss
+		self:PrimaryIcon(260805, self:GetBossId(bossWithIris)) -- Focusing Iris
+	end
 end
 
 function mod:AuraOfDread(args)
@@ -113,7 +124,7 @@ function mod:AuraOfDread(args)
 end
 
 function mod:UnstableRunicMark(args)
-	self:Message2(args.spellId, "orange")
+	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alarm")
 	self:Bar(args.spellId, 12)
 end
@@ -142,7 +153,7 @@ end
 
 do
 	local function printTarget(self, name, guid)
-		self:TargetMessage2(260741, "orange", name) -- Jagged Nettles
+		self:TargetMessage(260741, "orange", name) -- Jagged Nettles
 		self:PlaySound(260741, "alarm", nil, name) -- Jagged Nettles
 	end
 

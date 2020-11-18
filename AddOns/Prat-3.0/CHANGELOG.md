@@ -1,17 +1,19 @@
 # Prat 3.0
 
-## [3.8.26](https://github.com/sylvanaar/prat-3-0/tree/3.8.26) (2020-07-08)
-[Full Changelog](https://github.com/sylvanaar/prat-3-0/compare/3.8.25...3.8.26) [Previous Releases](https://github.com/sylvanaar/prat-3-0/releases)
+## [3.9.1](https://github.com/sylvanaar/prat-3-0/tree/3.9.1) (2020-10-25)
+[Full Changelog](https://github.com/sylvanaar/prat-3-0/compare/3.9.0...3.9.1) [Previous Releases](https://github.com/sylvanaar/prat-3-0/releases)
 
-- Memory: Fix spelling error  
-- Memory: Smarter channel leaving behavior - only leave channels that are incorrect.  Prevents most instances of #114  
-- Core: Better implementation of IsrRetail  
-- Core: Trim whitespaces from all chat messages  
-- Filtering: Change AI filtering from blacklist to whitelist. Improve feedback messges  
-- Filtering: Improve the training UI a bilt by re-scoring the line after clicking the ++  or -- links  
-- Filtering: Do not allow the API to filter our the player's own messages  
-- Scrollback: Handle nil battletag case #107  
-- Customfilters: Remove tristate options- too confusing  
-- Customfilters: Another implementation of the option to apply a filter to specific channels #101  
-- Revert "Revert "CustomFilters: Support filtering by channel #101""  
-- Filtering: Support for ignoring certain chat types from AI filtering  
+- Merge pull request #175 from WanderingFox/master  
+    Adds 9.0 Newcomer/Guide icons  
+- need _G on constants too  
+- use _G  
+- user proper check for newcomer status  
+- formatting  
+- account for 9.0 guide/newcomer icons  
+- Merge pull request #167 from KyrosKrane/GuildRoster-Fix  
+    Fix for GuildRoster issues  
+- Merge pull request #162 from KyrosKrane/master  
+    Fixes to invite.lua module (works with both classic and retail)  
+- Fix for GuildRoster issues  
+- Fix to allow for Classic to continue working  
+- Change InviteUnit() to C\_PartyInfo.InviteUnit()  

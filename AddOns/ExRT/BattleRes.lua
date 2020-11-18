@@ -65,6 +65,25 @@ function module.options:Load()
 			module.frame.time:Show()
 		end
 	end)
+
+	self.frameStrataDropDown = ELib:DropDown(self,275,8):Point(15,-225):Size(260):SetText(L.S_Strata)
+	local function FrameStrataDropDown_SetVaule(_,arg)
+		VExRT.BattleRes.Strata = arg
+		ELib:DropDownClose()
+		for i=1,#self.frameStrataDropDown.List do
+			self.frameStrataDropDown.List[i].checkState = arg == self.frameStrataDropDown.List[i].arg1
+		end
+		module.frame:SetFrameStrata(arg)
+	end
+	for i,strataString in ipairs({"BACKGROUND","LOW","MEDIUM","HIGH","DIALOG","FULLSCREEN","FULLSCREEN_DIALOG","TOOLTIP"}) do
+		self.frameStrataDropDown.List[i] = {
+			text = strataString,
+			checkState = VExRT.BattleRes.Strata == strataString,
+			radio = true,
+			arg1 = strataString,
+			func = FrameStrataDropDown_SetVaule,
+		}
+	end
 end
 
 function module:Enable()
@@ -97,6 +116,9 @@ function module.main:ADDON_LOADED()
 	if VExRT.BattleRes.enabled then
 		module:Enable()
 	end
+
+	VExRT.BattleRes.Strata = VExRT.BattleRes.Strata or "HIGH"
+	module.frame:SetFrameStrata(VExRT.BattleRes.Strata)
 end
 
 function module:timer(elapsed)
@@ -140,7 +162,7 @@ function module:timer(elapsed)
 end
 
 do
-	local frame = CreateFrame("Frame",nil,UIParent)
+	local frame = CreateFrame("Frame","ExRTBattleRes",UIParent)
 	module.frame = frame
 	frame:SetSize(64,64)
 	frame:SetPoint("TOP", 0,-200)

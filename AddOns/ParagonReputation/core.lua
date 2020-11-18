@@ -1,5 +1,5 @@
 		-------------------------------------------------
-		-- Paragon Reputation 1.27 by Fail US-Ragnaros --
+		-- Paragon Reputation 1.32 by Fail US-Ragnaros --
 		-------------------------------------------------
 
 		  --[[	  Special thanks to Ammako for
@@ -45,6 +45,12 @@ local PARAGON_QUEST_ID = { --[questID] = {factionID,rewardID}
 		[54457] = {2162,166294}, --Storm's Wake
 		[54454] = {2159,166300}, --The 7th Legion
 		[55976] = {2400,169939}, --Waveblade Ankoan
+	
+	--Shadowlands
+		[61100] = {2413,180648}, --Court of Harvesters
+		[61097] = {2407,180647}, --The Ascended
+		[61095] = {2410,180646}, --The Undying Army
+		[61098] = {2465,180649}, --The Wild Hunt
 }
 
 -- [Reputation Watchbar] Color the Reputation Watchbar by the settings. (Thanks Hoalz)
@@ -60,7 +66,7 @@ hooksecurefunc("ReputationParagonFrame_SetupParagonTooltip",function(self)
 	local _,_,rewardQuestID,hasRewardPending = C_Reputation.GetFactionParagonInfo(self.factionID)
 	if hasRewardPending then
 		local factionName = GetFactionInfoByID(self.factionID)
-		local questIndex = GetQuestLogIndexByID(rewardQuestID)
+		local questIndex = C_QuestLog.GetLogIndexForQuestID(rewardQuestID)
 		local description = GetQuestLogCompletionText(questIndex) or ""
 		EmbeddedItemTooltip:SetText(PR.L["PARAGON"])
 		EmbeddedItemTooltip:AddLine(description,HIGHLIGHT_FONT_COLOR.r,HIGHLIGHT_FONT_COLOR.g,HIGHLIGHT_FONT_COLOR.b,1)
@@ -142,11 +148,10 @@ end
 -- [Paragon Toast] Handle the QUEST_ACCEPTED event.
 local reward = CreateFrame("FRAME")
 reward:RegisterEvent("QUEST_ACCEPTED")
-reward:SetScript("OnEvent",function(self,event,...)
-	local questIndex,questID = ...
+reward:SetScript("OnEvent",function(self,event,questID)
 	if PR.DB.toast and PARAGON_QUEST_ID[questID] then
 		local name = GetFactionInfoByID(PARAGON_QUEST_ID[questID][1])
-		local text = GetQuestLogCompletionText(questIndex)
+		local text = GetQuestLogCompletionText(C_QuestLog.GetLogIndexForQuestID(questID))
 		if ACTIVE_TOAST then
 			WAITING_TOAST[#WAITING_TOAST+1] = {name,text} --Toast is already active, put this info on the line.
 		else

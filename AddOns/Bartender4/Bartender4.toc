@@ -1,9 +1,9 @@
-## Interface: 80300
+## Interface: 90001
 
 ## Title: Bartender4
 ## Notes: Simple and Advanced combined - Bartender4 ActionBar AddOn
 
-## Version: 4.9.0
+## Version: 4.10.5
 
 ## Author: Nevcairiel
 ## X-Email: h.leppkes at gmail dot com
@@ -65,7 +65,6 @@ MicroMenu.lua
 VehicleBar.lua
 BlizzardArt.lua
 ExtraActionBar.lua
-ZoneAbilityBar.lua
 StatusTrackingBar.lua
 
 ## Classic-only ##
@@ -87,7 +86,6 @@ Options\StanceBar.lua
 Options\VehicleBar.lua
 Options\BlizzardArt.lua
 Options\ExtraActionBar.lua
-Options\ZoneAbilityBar.lua
 Options\StatusTrackingBar.lua
 
 ## Classic-only ##

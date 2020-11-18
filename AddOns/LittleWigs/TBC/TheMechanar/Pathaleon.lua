@@ -70,16 +70,16 @@ function mod:UNIT_HEALTH_FREQUENT(event, unit)
 	local hp = UnitHealth(unit) / UnitHealthMax(unit) * 100
 	if hp < 28 then
 		self:UnregisterUnitEvent(event, "target", "focus")
-		self:Message(35285, "red", nil, L.despawn_message)
+		self:MessageOld(35285, "red", nil, L.despawn_message)
 	end
 end
 
 function mod:NetherWraith()
-	self:Message(35285, "red")
+	self:MessageOld(35285, "red")
 end
 
 function mod:Domination(args)
-	self:TargetMessage(args.spellId, args.destName, "red")
+	self:TargetMessageOld(args.spellId, args.destName, "red")
 	self:TargetBar(args.spellId, 10, args.destName)
 end
 

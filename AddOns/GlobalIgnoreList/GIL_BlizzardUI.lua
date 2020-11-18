@@ -180,7 +180,6 @@ local function IgnoreButtonClick(self, button, down)
 		{ text = L["RCM_2"], notCheckable = true, func = function() if (nameUI ~= nil) then StaticPopup_Show("GIL_EXPIRE", nameUI) end end },
 		{ text = L["RCM_3"], notCheckable = true, func = function() GlobalIgnoreDB.expList[hasGlobalIgnored(nameUI)] = 0 IgnoreList_Update() end },
 		{ text = "", disabled = true, notCheckable = true },
---		{ text = L["RCM_4"], notCheckable = true, func = function() C_FriendList.DelIgnore(C_FriendList.GetIgnoreName(GetSelectedIgnore())) end },
 		{ text = L["RCM_4"], notCheckable = true, func = function() C_FriendList.DelIgnoreByIndex(GetSelectedIgnore(), true) end },
 		{ text = "", notCheckable = true, disabled = true },
 		{ text = L["RCM_5"], notCheckable = true }

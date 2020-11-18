@@ -36,8 +36,6 @@ function mod:OnRegister()
 end
 
 function mod:OnBossEnable()
-	self:RegisterEvent("ENCOUNTER_START")
-
 	self:Log("SPELL_CAST_START", "SeismicSlam", 297746)
 	self:Log("SPELL_CAST_SUCCESS", "SurgingDarkness", 297822)
 	self:Log("SPELL_CAST_START", "CriesOfTheVoid", 304976)
@@ -49,36 +47,29 @@ function mod:OnEngage()
 	self:Bar(297822, 12) -- Surging Darkness
 end
 
--- There are no boss frames to trigger the engage
-function mod:ENCOUNTER_START(_, encounterId)
-	if encounterId == self.engageId then
-		self:Engage()
-	end
-end
-
 --------------------------------------------------------------------------------
 -- Event Handlers
 --
 
 function mod:SeismicSlam(args)
-	self:Message2(args.spellId, "orange")
+	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alert")
 	self:Bar(args.spellId, 12.1)
 end
 
 function mod:SurgingDarkness(args)
-	self:Message2(args.spellId, "orange")
+	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alarm")
 	self:Bar(args.spellId, 23)
 end
 
 function mod:CriesOfTheVoid(args)
-	self:Message2(args.spellId, "red")
+	self:Message(args.spellId, "red")
 	self:PlaySound(args.spellId, "warning")
 end
 
 function mod:DefiledGround(args)
-	self:Message2(args.spellId, "orange")
+	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alert")
 	self:Bar(args.spellId, 12.1)
 end

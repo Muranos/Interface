@@ -1,4 +1,4 @@
-## Interface: 80300
+## Interface: 90002
 
 ## Title: BigWigs [|cffeda55fNy'alotha, the Waking City|r]
 ## Title-deDE: BigWigs [|cffeda55fNy'alotha, die Erwachte Stadt|r]
@@ -22,6 +22,7 @@
 ## Notes-itIT: BigWigs Ny'alotha, the Waking City Modules
 ## Notes-ptBR: BigWigs Ny'alotha, the Waking City Modules
 ## Notes-koKR: BigWigs Ny'alotha, the Waking City Modules
+## Version: v187
 
 ## LoadOnDemand: 1
 ## Dependencies: BigWigs

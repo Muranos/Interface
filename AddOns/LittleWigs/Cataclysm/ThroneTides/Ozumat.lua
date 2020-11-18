@@ -55,23 +55,23 @@ do
 		local t = GetTime()
 		if t-prev > 10 then
 			prev = t
-			self:Message("stages", "yellow", "Info", CL.stage:format(2), false)
+			self:MessageOld("stages", "yellow", "info", CL.stage:format(2), false)
 		end
 	end
 	function mod:EntanglingGraspRemoved()
 		addsAlive = addsAlive - 1
-		self:Message("stages", "green", nil, CL.add_remaining:format(addsAlive), false)
+		self:MessageOld("stages", "green", nil, CL.add_remaining:format(addsAlive), false)
 	end
 end
 
 function mod:TidalSurge()
-	self:Message("stages", "yellow", "Info", CL.stage:format(3), false)
+	self:MessageOld("stages", "yellow", "info", CL.stage:format(3), false)
 end
 
 function mod:GOSSIP_SHOW()
 	if self:GetOption("custom_on_autotalk") and self:MobId(UnitGUID("npc")) == 40792 then
-		if GetGossipOptions() then
-			SelectGossipOption(1, "", true) -- auto confirm it
+		if self:GetGossipOptions() then
+			self:SelectGossipOption(1, true) -- auto confirm it
 		end
 	end
 end

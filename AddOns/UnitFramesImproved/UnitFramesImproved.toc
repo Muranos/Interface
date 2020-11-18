@@ -1,0 +1,15 @@
+# Interface: 11302
+## Interface: 90001
+#11302 = 1.13.2 classic
+#90001 = 9.0.1 latest retail
+## Title: UnitFramesImproved
+## Notes: Extends the Blizzard unitframes for better visuals, with a minimal footprint.
+## Version: 1.7.2
+## Author: Althalla (Kim Forsberg)
+## SavedVariables: globalSettings
+## SavedVariablesPerCharacter: characterSettings
+
+## X-License: Public Domain
+## X-Category: Unit Frames
+
+UnitFramesImproved.lua

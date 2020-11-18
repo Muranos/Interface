@@ -122,18 +122,18 @@ function mod:OnEngage()
 		self:Bar(-18390, 55.5, nil, 275772) -- Qiraji Warrior
 	end
 
-	self:RegisterUnitEvent("UNIT_HEALTH_FREQUENT", nil, "boss1")
+	self:RegisterUnitEvent("UNIT_HEALTH", nil, "boss1")
 end
 
 --------------------------------------------------------------------------------
 -- Event Handlers
 --
 
-function mod:UNIT_HEALTH_FREQUENT(event, unit)
+function mod:UNIT_HEALTH(event, unit)
 	local hp = UnitHealth(unit) / UnitHealthMax(unit) * 100
 	if hp < nextStageWarning then -- Mythic: 40%, other: 65% and 30%
 		local nextStage = stage + 1
-		self:Message2("stages", "green", CL.soon:format(CL.stage:format(nextStage)), false)
+		self:Message("stages", "green", CL.soon:format(CL.stage:format(nextStage)), false)
 		nextStageWarning = nextStageWarning - 35
 		if nextStageWarning < 35 then
 			self:UnregisterUnitEvent(event, unit)
@@ -144,11 +144,11 @@ end
 function mod:UNIT_SPELLCAST_SUCCEEDED(_, _, _, spellId)
 	if self:Mythic() then return end -- Adds are handled better in Mythic
 	if spellId == 266913 then -- Spawn Qiraji Warrior
-		self:Message2(-18390, "cyan", -18390, 275772)
+		self:Message(-18390, "cyan", -18390, 275772)
 		self:PlaySound(-18390, "long")
 		self:Bar(-18390, 60, nil, 275772)
 	elseif spellId == 267192 then -- Spawn Anub'ar Caster
-		self:Message2(-18397, "cyan", -18397, 267180)
+		self:Message(-18397, "cyan", -18397, 267180)
 		self:PlaySound(-18397, "long")
 		self:Bar(-18397, 80, nil, 267180)
 	end
@@ -156,7 +156,7 @@ end
 
 --[[ General ]]--
 function mod:SurgingDarkness(args)
-	self:Message2(args.spellId, "red")
+	self:Message(args.spellId, "red")
 	self:PlaySound(args.spellId, "long")
 	self:Bar(args.spellId, 83)
 	surgingDarknessCount = 1
@@ -174,7 +174,7 @@ end
 
 function mod:VoidLash(args)
 	self:PlaySound(265231, "alarm")
-	self:Message2(265231, "orange")
+	self:Message(265231, "orange")
 	if args.spellId == 265231 then
 		self:Bar(265248, 4) -- Shatter
 		self:Bar(265231, 6.5) -- Void Lash (Secondary)
@@ -185,12 +185,12 @@ end
 
 function mod:Shatter(args)
 	self:PlaySound(args.spellId, "alert")
-	self:Message2(args.spellId, "purple")
+	self:Message(args.spellId, "purple")
 end
 
 function mod:Stages()
 	stage = stage + 1
-	self:Message2("stages", "green", CL.stage:format(stage), false)
+	self:Message("stages", "green", CL.stage:format(stage), false)
 	self:PlaySound("stages", "long")
 	self:Bar(265530, 80) -- Surging Darkness
 	if self:Mythic() then
@@ -218,7 +218,7 @@ end
 do
 	local function printTarget(self, name, guid)
 		local count = CL.count:format(self:SpellName(264382), eyeBeamCount)
-		self:TargetMessage2(264382, "yellow", name, count)
+		self:TargetMessage(264382, "yellow", name, count)
 		self:PrimaryIcon(264382, name)
 		if self:Me(guid) then
 			self:PlaySound(264382, "warning")
@@ -257,7 +257,7 @@ do
 	local function printTarget(self, name, guid)
 		roilingDeceitTargets[guid] = true
 		local count = CL.count:format(self:SpellName(265360), roilingDeceitCount)
-		self:TargetMessage2(265360, "yellow", name, count)
+		self:TargetMessage(265360, "yellow", name, count)
 		if self:Me(guid) then
 			self:PlaySound(265360, "warning")
 			self:Say(265360, count)
@@ -275,7 +275,7 @@ do
 
 	function mod:RoilingDeceitApplied(args)
 		if not roilingDeceitTargets[args.destGUID] then -- Backup for target scan
-			self:TargetMessage2(args.spellId, "yellow", args.destName)
+			self:TargetMessage(args.spellId, "yellow", args.destName)
 			if self:Me(args.destGUID) then
 				self:PlaySound(args.spellId, "warning")
 				self:SayCountdown(args.spellId, 12)
@@ -299,7 +299,7 @@ end
 function mod:VoidBolt(args)
 	local canDo, ready = self:Interrupter(args.sourceGUID)
 	if canDo then
-		self:Message2(args.spellId, "yellow")
+		self:Message(args.spellId, "yellow")
 		if ready then
 			self:PlaySound(args.spellId, "alert")
 		end
@@ -308,7 +308,7 @@ end
 
 --[[ Stage 3 ]]--
 function mod:OrbofCorruption(args)
-	self:Message2(args.spellId, "yellow")
+	self:Message(args.spellId, "yellow")
 	self:PlaySound(args.spellId, "alert")
 end
 
@@ -327,13 +327,13 @@ function mod:CorruptorsPactRemoved(args)
 end
 
 function mod:WillOfTheCorruptor(args)
-	self:TargetMessage2(args.spellId, "red", args.destName)
+	self:TargetMessage(args.spellId, "red", args.destName)
 	self:PlaySound(args.spellId, "warning", nil, args.destName)
 end
 
 --[[ Mythic ]]--
 function mod:MythicAdds()
-	self:Message2("mythic_adds", "cyan", CL.incoming:format(CL.adds), L.mythic_adds_icon)
+	self:Message("mythic_adds", "cyan", CL.incoming:format(CL.adds), L.mythic_adds_icon)
 	self:PlaySound("mythic_adds", "long")
 	self:Bar("mythic_adds", 120, CL.adds, L.mythic_adds_icon)
 end

@@ -326,10 +326,20 @@ L["Open the Loot History"] = "Abrir Hitorial de botin"
 L["open_the_loot_history_desc"] = "Pulsar para abrir historial de botin"
 L["Opens the synchronizer"] = "Abrir el sincronizador"
 L["opt_addButton_desc"] = "Añade un nuevo grupo de botones para la casilla seleccionada."
+--[[Translation missing --]]
+--[[ L["opt_autoAddBoEs_desc"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["opt_autoAddBoEs_name"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["opt_autoAddItems_desc"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["opt_autoAddItems_name"] = ""--]] 
 L["opt_autoTrade_desc"] = "Seleccionar para añadir automáticamente los objetos a la ventana de comercio cuando se comercie con un ganador. Si se deshabilita, se pedirá confirmación antes de añadir los objetos."
 L["opt_award_later_desc"] = "Activar para comprobar automáticamente la opción 'Recompensar más tarde' en la ventana de sesión."
 L["opt_buttonsGroup_desc"] = "Grupo de opciones para los botones de %s y las respuestas. Ver más arriba para una explicación detallada."
 L["opt_chatFrameName_desc"] = "Selecciona en qué ventana de chat quieres que RCLootCouncil muestre la información de salida."
+--[[Translation missing --]]
+--[[ L["opt_chatFrameName_name"] = ""--]] 
 L["opt_deleteDate_confirm"] = "¿Estás seguro de que quieres borrar todo lo anterior a la selección? Esta acción no se puede deshacer."
 L["opt_deleteDate_desc"] = "Borrar todo lo anterior al número de días seleccionados."
 L["opt_deleteName_confirm"] = "¿Seguro que borrar todas las entradas de %s? Esta acción no se puede deshacer."
@@ -345,6 +355,10 @@ L["opt_rejectTrade_Desc"] = "Activar para permitir a los candidatos elegir si de
 L["opt_rejectTrade_Name"] = "Permitir quedarse los objetos"
 L["opt_saveBonusRolls_Desc"] = "Activar para guardar todas las tiradas de dados de los candidatos al Histórico de Recompensas."
 L["opt_saveBonusRolls_Name"] = "Guardar tiradas de dados"
+--[[Translation missing --]]
+--[[ L["opt_skipSessionFrame_desc"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["opt_skipSessionFrame_name"] = ""--]] 
 L["options_autoAwardBoE_desc"] = "Habilitar para asignar automáticamente todo los objetos tipo BoE (ligado al equipar) a la persona especificada por la razón seleccionada."
 L["options_autoAwardBoE_name"] = "Auto asignar BoE's"
 L["options_ml_outOfRaid_desc"] = "Si se habilita, mientras se esté en un grupo de 8 o más personas, a todo aquel que no esté en una instancia al inicio de la sesión se le enviará automáticamente una notificación de 'Fuera de Raid'."

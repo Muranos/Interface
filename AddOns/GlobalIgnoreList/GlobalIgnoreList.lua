@@ -673,6 +673,10 @@ local function ApplicationStartup(self)
 	filterDefFilter[#filterDefFilter + 1] = "[nonlatin]"
 	filterDefActive[#filterDefActive + 1] = false
 
+	filterDefDesc[#filterDefDesc + 1]     = "Filter American Politics"
+	filterDefFilter[#filterDefFilter + 1] = "[contains=trump] or [contains=communist] or [contains=communism] or [word=president] or [word=biden] or [word=hillary] or [word=hilary] or [contains=democrat] or [contains=republican] or [contains=liberals] or [word=maga] or [word=libs] or [contains=conservatives] or [contains=libtard] or [word=pelosi] or [word=epstein] or [word=AOC] or [word=putin] or [contains=right\\ wing] or [word=dems] or [word=socialism]"
+	filterDefActive[#filterDefActive + 1] = false
+
 	faction = UnitFactionGroup("player")
 		
 	if GlobalIgnoreDB == nil then	
@@ -1708,6 +1712,7 @@ local chatEvents = (
 		"CHAT_MSG_CHANNEL",
 		"CHAT_MSG_CHANNEL_JOIN",
 		"CHAT_MSG_CHANNEL_LEAVE",
+		"CHAT_MSG_CHANNEL_NOTICE_USER",
 		"CHAT_MSG_EMOTE",
 		"CHAT_MSG_GUILD",
 		"CHAT_MSG_GUILD_ACHIEVEMENT",	

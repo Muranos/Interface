@@ -7,7 +7,7 @@
 -- Main non-UI code
 ------------------------------------------------------------
 
-PawnVersion = 2.0336
+PawnVersion = 2.0406
 
 -- Pawn requires this version of VgerCore:
 local PawnVgerCoreVersionRequired = 1.12
@@ -399,8 +399,9 @@ function PawnInitialize()
 
 	-- In-bag upgrade icons
 	if ContainerFrame_UpdateItemUpgradeIcons then
+
 		PawnOriginalIsContainerItemAnUpgrade = IsContainerItemAnUpgrade
-		IsContainerItemAnUpgrade = function(bagID, slot, ...)
+		PawnIsContainerItemAnUpgrade = function(bagID, slot, ...)
 			if PawnCommon.ShowBagUpgradeAdvisor then
 				local _, Count, _, _, _, _, ItemLink = GetContainerItemInfo(bagID, slot)
 				if not Count then return false end -- If the stack count is 0, it's clearly not an upgrade
@@ -409,8 +410,24 @@ function PawnInitialize()
 			else
 				return PawnOriginalIsContainerItemAnUpgrade(bagID, slot, ...)
 			end
-			-- FUTURE: Consider hooking ContainerFrameItemButton_UpdateItemUpgradeIcon / ContainerFrame_UpdateItemUpgradeIcons instead, but then Pawn would need its own "retry when not enough information is available" logic.  And Pawn also would no longer automatically integrate with other bag addons.
 		end
+
+		-- Changing IsContainerItemAnUpgrade now causes taint errors, and replacing this function with a copy of itself
+		-- works on its own, but breaks other addons that hook this function like CanIMogIt. So, our best option appears to
+		-- be to just let the default version run, and then change its results immediately after.
+		hooksecurefunc("ContainerFrameItemButton_UpdateItemUpgradeIcon", function(self)
+			if self.isExtended then return end
+			local IsUpgrade = PawnIsContainerItemAnUpgrade(self:GetParent():GetID(), self:GetID())
+
+			if IsUpgrade == nil then
+				self.UpgradeIcon:SetShown(false)
+				self:SetScript("OnUpdate", ContainerFrameItemButton_TryUpdateItemUpgradeIcon)
+			else
+				self.UpgradeIcon:SetShown(IsUpgrade)
+				self:SetScript("OnUpdate", nil)
+			end
+		end)
+
 	end
 
 	-- We're now effectively initialized.  Just the last steps of scale initialization remain.
@@ -434,7 +451,7 @@ function PawnInitialize()
 		-- The separator strings are completely wrong on French WoW Classic.  :(
 		if (LARGE_NUMBER_SEPERATOR and PawnLocal.ThousandsSeparator ~= LARGE_NUMBER_SEPERATOR) or
 		(DECIMAL_SEPERATOR and PawnLocal.DecimalSeparator ~= DECIMAL_SEPERATOR) then
-			VgerCore.Fail("Pawn may provide incorrect advice due to a potential addon conflict: Pawn is not compatible with Combat Numbers Separator, Titan Panel Artifact Power, or other addons that change the way that numbers appear.")
+			VgerCore.Fail("Pawn may provide incorrect advice due to a potential addon conflict: Pawn is not compatible with Combat Numbers Separator, Titan Panel Artifact Power, or other addons that change the way that numbers appear. Or, if you're seeing this right after a patch, please let Vger know which language you're playing in.")
 		end
 	end
 
@@ -641,6 +658,22 @@ function PawnInitializeOptions()
 		else
 			PawnCommon.ShowItemLevelUpgrades = true
 		end
+	end
+	if PawnCommon.LastVersion < 2.0403 then
+		-- Pawn 2.4 came out with patch 9.0 and the level squish, so reset everything.
+		-- Pawn 2.4.3 improved this behavior, so do it one last time.
+		PawnInvalidateBestItems()
+	end
+	if PawnOptions.LastVersion < 2.0400 then
+		-- The best item level data is still per-character, so we have to wait until first logon for that character.
+		-- If we already did that back in 2.4.0 we don't need to do this part again.
+		PawnClearBestItemLevelData()
+	end
+	if PawnCommon.LastVersion < 2.0402 and not VgerCore.IsClassic then
+		-- Frost death knights can fully use 2H weapons again, but the setting to hide 2H upgrades is persistent.
+		-- Clear it this one time; people can go back to hiding them if they want.
+		local FrostDK = PawnCommon.Scales["\"MrRobot\":DEATHKNIGHT2"]
+		if FrostDK then FrostDK.DoNotShow2HUpgrades = false end
 	end
 	if ((not VgerCore.IsClassic) and PawnCommon.LastVersion < PawnMrRobotLastUpdatedVersion) or
 		(VgerCore.IsClassic and PawnCommon.LastVersion < PawnClassicLastUpdatedVersion) then
@@ -2798,6 +2831,9 @@ function PawnCorrectScaleErrors(ScaleName)
 	-- Versions of Pawn before 2.1.16 had an error where the Role property was being incorrectly set to true/false
 	-- due to an API change.  If that happened to this scale, fix it.
 	if ThisScaleOptions.Role == true or ThisScaleOptions.Role == false then ThisScaleOptions.Role = nil end
+
+	-- Patch 9.0 removed the Corruption stat, though it still shows up on items.
+	ThisScale.Corruption = nil
 end
 
 -- Replaces one incorrect stat with a correct stat.
@@ -3086,9 +3122,6 @@ function PawnIsItemAnUpgrade(Item, DoNotRescan)
 		end
 	end
 
-	-- Is this item an heirloom or artifact that will continue to either scale or provide an XP boost?
-	local IsScalingHeirloom = (UnitLevel("player") <= PawnGetMaxLevelItemIsUsefulHeirloom(Item))
-	
 	local _
 	local UpgradeTable, BestItemTable, SecondBestItemTable
 	local ScaleName, Scale
@@ -3209,10 +3242,9 @@ function PawnIsItemAnUpgrade(Item, DoNotRescan)
 							elseif TwoSlotsForThisItemType and BestData[4] == nil then
 								-- There's an empty slot for this item to go into.
 								NewTableEntry = { ["ScaleName"] = ScaleName, ["LocalizedScaleName"] = Scale.LocalizedName or ScaleName, ["PercentUpgrade"] = PawnBigUpgradeThreshold }
-							elseif ThisValue > BestValue * 1.005 and (IsScalingHeirloom or UnitLevel("player") > BestMaxHeirloomLevel) then
+							elseif ThisValue > BestValue * 1.005 then
 								-- Hooray, it's an upgrade!  Add it to the table.
 								-- (Only count upgrades that are at least 0.5% better.)
-								-- If the best item is an heirloom, either the new one must be or the player must have outleveled it.
 								local Difference = ThisValue - BestValue
 								local PercentUpgrade
 								if CompareUsingItemLevelOnly then
@@ -3744,7 +3776,7 @@ function PawnIsArmorBestTypeForPlayer(Item)
 	if not Stats then return false end
 	-- If the item isn't armor then we don't need to check anything.	
 	if (not Stats.IsCloth) and (not Stats.IsLeather) and (not Stats.IsMail) and (not Stats.IsPlate) then return true end
-	-- Before level 50 it's fine if the player is wearing the wrong type of armor.
+	-- Before level 27 it's fine if the player is wearing the wrong type of armor.
 	local Level = UnitLevel("player")
 	local IsLevelForSpecialization = Level >= PawnArmorSpecializationLevel
 	-- Now, the rest depends on the user's class.
@@ -3808,13 +3840,8 @@ end
 -- these same requirements.
 function PawnGetMaxLevelItemIsUsefulHeirloom(Item)
 	if Item.Rarity == 6 then
-		-- This is an artifact, so the player won't get anything better until level 110 at the earliest.
-		-- (Battle for Azeroth leveling dungeons provide weapons that would be higher ilvl than most players' artifacts.)
-		if VgerCore.IsShadowlands then
-			return 49
-		else
-			return 109
-		end
+		-- This is an artifact, so the player won't get anything better until level 50.
+		return 49
 	elseif Item.UnenchantedStats and Item.UnenchantedStats.MaxScalingLevel then
 		-- This item scales until you reach MaxScalingLevel.
 		return Item.UnenchantedStats.MaxScalingLevel - 1

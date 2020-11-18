@@ -27,8 +27,9 @@ module.db.diffNames = {
 	[15] = L.sencounterWODHeroic,	-- Heroic,	PLAYER_DIFFICULTY2
 	[16] = L.sencounterWODMythic,	-- Mythic,	PLAYER_DIFFICULTY6
 	[23] = DUNGEON_DIFFICULTY_5PLAYER..": "..PLAYER_DIFFICULTY6,
+	[148] = "20ppl raid",
 }
-module.db.diffPos = {24,1,2,23,8,9,3,4,5,6,172,7,14,15,16}
+module.db.diffPos = ExRT.isClassic and {1,148,9} or {24,1,2,23,8,9,3,4,5,6,172,7,14,15,16}
 module.db.dropDownNow = nil
 module.db.onlyMy = nil
 module.db.scrollPos = 1
@@ -458,7 +459,7 @@ function module.options:Load()
 				if encounterLine.wipeTime == 0 then optionsLine.longest:SetText("-") end
 				if encounterLine.killTime == 0 then optionsLine.fastest:SetText("-") end
 
-				if ExRT.GDB.encounterIDtoEJ[encounterLine.id] then
+				if ExRT.GDB.encounterIDtoEJ[encounterLine.id] and not ExRT.isClassic then
 					local displayInfo = select(4, EJ_GetCreatureInfo(1, ExRT.GDB.encounterIDtoEJ[encounterLine.id]))
 					if displayInfo then
 						SetPortraitTextureFromCreatureDisplayID(optionsLine.bossImg, displayInfo)
@@ -506,7 +507,7 @@ function module.options:Load()
 			self.hl:Show() 
 		end 
 		
-		if self.data and ExRT.GDB.encounterIDtoEJ[self.data.id] then
+		if self.data and ExRT.GDB.encounterIDtoEJ[self.data.id] and not ExRT.isClassic then
 			local displayInfo, bossImage = select(4, EJ_GetCreatureInfo(1, ExRT.GDB.encounterIDtoEJ[self.data.id]))
 			if displayInfo then
 				SetPortraitTextureFromCreatureDisplayID(module.options.bigImage, displayInfo)

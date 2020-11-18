@@ -1,5 +1,6 @@
 select(2, ...).locales.AddLocaleLookup("enUS", {
 	["Click to view Creature Details"] = "Click to view Creature Details",
+	["Control-Click TomTom"]           = "Control-Click to set a TomTom waypoint",
 	["Installed Components"]           = "Installed Components",
 	["News"]                           = "News",
 	["Rare Creatures Log"]             = "Rare Creatures Log",

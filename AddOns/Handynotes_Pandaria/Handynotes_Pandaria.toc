@@ -1,6 +1,6 @@
-## Interface: 80300
+## Interface: 90001
 ## Title: Handynotes Pandaria
-## Version: 1.4.2
+## Version: 1.4.3
 ## Notes: Shows locations of treasures and rares in Pandaria
 ## Author: syndenbock
 ## RequiredDeps: HandyNotes
@@ -23,3 +23,7 @@ modules\node_hiding.lua
 modules\data_parsing.lua
 modules\node_validation.lua
 modules\handynotes_integration.lua
+
+# tools
+# tools\convert.lua
+# tools\datacheck.lua

@@ -46,7 +46,7 @@ end
 --
 
 function mod:GatlingGun(args)
-	self:Message2(args.spellId, "yellow")
+	self:Message(args.spellId, "yellow")
 	self:PlaySound(args.spellId, "alert")
 	self:Bar(args.spellId, 20)
 end
@@ -55,7 +55,7 @@ function mod:HomingMissile(args)
 	if self:Me(args.destGUID) then
 		self:Say(args.spellId)
 	end
-	self:TargetMessage2(args.spellId, "red", args.destName)
+	self:TargetMessage(args.spellId, "red", args.destName)
 	self:PlaySound(args.spellId, "warning", nil, args.destName)
 	self:TargetBar(args.spellId, 10, args.destName)
 	self:PrimaryIcon(args.spellId, args.destName)
@@ -69,7 +69,7 @@ function mod:HomingMissileRemoved(args)
 end
 
 function mod:ConfigurationDrill(args)
-	self:Message2("stages", "cyan", args.spellName, args.spellId)
+	self:Message("stages", "cyan", args.spellName, args.spellId)
 	self:PlaySound("stages", "info")
 	self:StopBar(260829) -- Homing Missile
 	self:StopBar(260280) -- Gatling Gun
@@ -78,7 +78,7 @@ end
 
 do
 	local function printTarget(self, name, guid)
-		self:TargetMessage2(271456, "orange", name)
+		self:TargetMessage(271456, "orange", name)
 		self:PlaySound(271456, "alert", "watchstep", name)
 	end
 
@@ -94,7 +94,7 @@ do
 		local t = args.time
 		if t-prev > 2 then
 			prev = t
-			self:Message2(args.spellId, "red")
+			self:Message(args.spellId, "red")
 			self:PlaySound(args.spellId, "alarm")
 			self:CastBar(args.spellId, 5)
 		end
@@ -102,7 +102,7 @@ do
 end
 
 function mod:ConfigurationCombat(args)
-	self:Message2("stages", "cyan", args.spellName, args.spellId)
+	self:Message("stages", "cyan", args.spellName, args.spellId)
 	self:PlaySound("stages", "info")
 	self:CDBar(260829, 9) -- Homing Missile
 	self:Bar(260280, 17) -- Gatling Gun

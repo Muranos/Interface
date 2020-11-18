@@ -238,30 +238,30 @@ function mod:OnEngage()
 	if self:GetOption("custom_off_sparkbot_marker") then
 		self:RegisterTargetEvents("sparkBotMark")
 	end
-	self:RegisterUnitEvent("UNIT_HEALTH_FREQUENT", nil, "boss1")
+	self:RegisterUnitEvent("UNIT_HEALTH", nil, "boss1")
 end
 
 --------------------------------------------------------------------------------
 -- Event Handlers
 --
 
-function mod:UNIT_HEALTH_FREQUENT(event, unit)
+function mod:UNIT_HEALTH(event, unit)
 	local hp = UnitHealth(unit) / UnitHealthMax(unit) * 100
 	if hp < 43 then -- Evasive Maneuvers! at 40%
-		self:Message2("stages", "green", CL.soon:format(CL.stage:format(2)), false)
+		self:Message("stages", "green", CL.soon:format(CL.stage:format(2)), false)
 		self:UnregisterUnitEvent(event, unit)
 	end
 end
 
 function mod:BusterCannon(args)
-	self:Message2(args.spellId, "yellow", CL.count:format(args.spellName, cannonCount))
+	self:Message(args.spellId, "yellow", CL.count:format(args.spellName, cannonCount))
 	self:PlaySound(args.spellId, "warning")
 	cannonCount = cannonCount + 1
 	self:Bar(args.spellId, timers[args.spellId][stage][cannonCount], CL.count:format(args.spellName, cannonCount))
 end
 
 function mod:BlastOff(args)
-	self:Message2(args.spellId, "orange", CL.count:format(args.spellName, blastCount))
+	self:Message(args.spellId, "orange", CL.count:format(args.spellName, blastCount))
 	self:PlaySound(args.spellId, "alarm")
 	blastCount = blastCount + 1
 	self:Bar(args.spellId, timers[args.spellId][stage][blastCount], CL.count:format(args.spellName, blastCount))
@@ -306,14 +306,14 @@ do
 end
 
 function mod:WormholeGenerator(args)
-	self:Message2(args.spellId, "red", CL.count:format(args.spellName, wormholeCount))
+	self:Message(args.spellId, "red", CL.count:format(args.spellName, wormholeCount))
 	self:PlaySound(args.spellId, "alert")
 	wormholeCount = wormholeCount + 1
 	self:Bar(args.spellId, timers[args.spellId][stage][wormholeCount], CL.count:format(args.spellName, wormholeCount))
 end
 
 function mod:DeploySparkBot(args)
-	self:Message2(288410, "cyan", CL.count:format(args.spellName, sparkBotCount))
+	self:Message(288410, "cyan", CL.count:format(args.spellName, sparkBotCount))
 	self:PlaySound(288410, "info")
 	sparkBotCount = sparkBotCount + 1
 	self:Bar(288410, timers[288410][stage][sparkBotCount], CL.count:format(args.spellName, sparkBotCount))
@@ -328,7 +328,7 @@ function mod:sparkBotMark(event, unit, guid)
 end
 
 function mod:WorldEnlarger(args)
-	self:Message2(286693, "yellow", CL.count:format(args.spellName, enlargerCount))
+	self:Message(286693, "yellow", CL.count:format(args.spellName, enlargerCount))
 	self:PlaySound(286693, "long")
 	enlargerCount = enlargerCount + 1
 	self:Bar(286693, timers[286693][stage][enlargerCount], CL.count:format(args.spellName, enlargerCount))
@@ -378,7 +378,7 @@ do
 
 	function mod:ShrunkApplied(args)
 		if self:Me(args.destGUID) then
-			self:TargetMessage2(args.spellId, "blue", args.destName)
+			self:TargetMessage(args.spellId, "blue", args.destName)
 			self:PlaySound(args.spellId, "alert")
 			if not shrunkTimer and self:GetOption("custom_on_repeating_shrunk_say") and not self:LFR() then
 				SendChatMessage(args.spellName, "SAY")
@@ -433,7 +433,7 @@ end
 function mod:EvasiveManeuvers(args)
 	stage = 2
 	self.stage = stage
-	self:Message2("stages", "cyan", CL.stage:format(stage), false)
+	self:Message("stages", "cyan", CL.stage:format(stage), false)
 	self:PlaySound("stages", "long")
 	self:StopBar(CL.count:format(self:SpellName(282153), cannonCount)) -- Buster Cannon
 	self:StopBar(CL.count:format(self:SpellName(282205), blastCount)) -- Blast Off
@@ -461,7 +461,7 @@ end
 function mod:CrashDown(args)
 	stage = 3
 	self.stage = stage
-	self:Message2("stages", "cyan", CL.stage:format(stage), false)
+	self:Message("stages", "cyan", CL.stage:format(stage), false)
 	self:PlaySound("stages", "long")
 	self:StopBar(CL.count:format(self:SpellName(282153), cannonCount)) -- Buster Cannon
 	self:StopBar(CL.count:format(self:SpellName(282205), blastCount)) -- Blast Off
@@ -489,7 +489,7 @@ function mod:CrashDown(args)
 end
 
 function mod:SignalExplodingSheep(args)
-	self:Message2(args.spellId, "yellow", CL.count:format(args.spellName, sheepCount))
+	self:Message(args.spellId, "yellow", CL.count:format(args.spellName, sheepCount))
 	self:PlaySound(args.spellId, "long")
 	sheepCount = sheepCount + 1
 	self:Bar(args.spellId, timers[args.spellId][stage][sheepCount], CL.count:format(args.spellName, sheepCount))

@@ -1,6 +1,106 @@
 local GlobalAddonName, ExRT = ...
 
 ExRT.Options.Changelog = [=[
+v.4390
+* Raid cooldowns: added avenger's shield reset support
+* Raid cooldowns: added "only visual" option for import
+* Raid cooldowns: added pvp talents support
+* Raid cooldowns: options "Sort By Availability" and "Reverse Sorting" now can be different for each column
+* Visual Note: added "custom image" object
+* Visual Note: added new type of lines
+* Visual Note: added option to lock/unlock objects for moving/removing
+* Raid Groups: added import/export current roster buttons
+* Added global names for major frames (note, cooldowns columns, battle res, marks bar)
+* Updated localizations
+* Minor fixes
+
+v.4390-Classic
+* Raid cooldowns: added "only visual" option for import
+* Raid cooldowns: options "Sort By Availability" and "Reverse Sorting" now can be different for each column
+* Visual Note: added "custom image" object
+* Visual Note: added new type of lines
+* Visual Note: added option to lock/unlock objects for moving/removing
+* Raid Groups: added import/export current roster buttons
+* Added global names for major frames (note, cooldowns columns, battle res, marks bar)
+* Updated localizations
+* Minor fixes
+
+v.4370-Classic
+* Fixed consumables check for raid check windows
+* Minor fixes
+
+v.4360
+* Added import/export profiles
+* Visual Note: popup window now saves its state (size and position)
+* Raid Groups: added option for quick-list with guild roster
+* Raid cooldowns: Added import/export profiles just for cooldowns module
+* Raid cooldowns: Fixed cooldowns/durations for some spells during prepatch
+* Raid cooldowns: Fixed vision of perfection cdr
+* Raid cooldowns: Readded option to set column for general class abilities
+* Raid cooldowns: [options] Spells now sorted by spec for class categories
+* Raid cooldowns: Added glow options for icons with active cooldowns
+* Invite tools: fixed massinvite feature
+* Updated Traditional Chinese translation
+* Updated Chinese translation
+* Minor fixes
+* Bugfixes
+
+v.4360-Classic
+* Added import/export profiles
+* Visual Note: popup window now saves its state (size and position)
+* Raid Groups: added option for quick-list with guild roster
+* Raid cooldowns: Added import/export profiles just for cooldowns module
+* Raid cooldowns: Added glow options for icons with active cooldowns
+* Invite tools: fixed massinvite feature
+* Fixed error on autoaccept invite
+* Updated Traditional Chinese translation
+* Updated Chinese translation
+* Minor fixes
+* Bugfixes
+
+v.4330
+* Shadowlands update
+* Options: now can be closed on esc, also added option to disable this
+* Raid cooldowns: added attach to raidframe option [beta]
+* Raid cooldowns: added favorites button/category for options
+* Raid cooldowns: added sort by column for options
+* Raid cooldowns: added options for custom items/equip
+* Marks Bar: added option "Show only on hover"
+* Note: added "{!p:playerName}...{/p}" template (for all except "playerName")
+* Note: added "{!c:class}...{/c}" template (for all except "class")
+* Note: added "{race:raceName}...{/race}" template (only for race "raceName")
+* Battle Res: added option to change frame strata
+* Fight log: added timeline for players casts
+* Fight log: added raid frames page
+* Bonus Loot: module is removed
+* Updated Traditional Chinese translation
+* Minor fixes
+* Bugfixes
+
+v.4330-Classic
+* Options UI updates
+* Options: now can be closed on esc, also added option to disable this
+* New module: Raid Groups
+* Raid cooldowns: updated options UI, now more user friendly
+* Raid cooldowns: added "/rt cd" command for quick enable/disable
+* Raid cooldowns: added favorites button/category for options
+* Invite tools: added option to invite via "/say" or "/yell"
+* Visual Note: added option to disable updates for specific note
+* Visual Note: added more backgrounds with solid color
+* Timers: added scale/alpha options
+* Marks Bar: added option "Show only on hover"
+* Note: added option to change note position in list via drag&drop
+* Note: added "/rt note set notename" command for quick update
+* Note: added "{!p:playerName}...{/p}" template (for all except "playerName")
+* Note: added "{!c:class}...{/c}" template (for all except "class")
+* Note: added "{race:raceName}...{/race}" template (only for race "raceName")
+* Battle Res: added option to change frame strata
+* Raid Inspect: added ranged slot
+* Updated german translation
+* Updated Traditional Chinese translation
+* Minor fixes
+* Bugfixes
+
 v.4300
 * Options UI updates
 * New module: Loot History
@@ -20,20 +120,6 @@ v.4300
 * Note: added help for some timer constructions
 * Note: added "/rt note set notename" command for quick update
 * Bonus Loot: module is planned to be removed in future updates, export data if you need to save it
-* Updated german translation
-* Minor fixes
-
-v.4300-Classic
-* Options UI updates
-* New module: Raid Groups
-* Raid cooldowns: updated options UI, now more user friendly
-* Raid cooldowns: added "/rt cd" command for quick enable/disable
-* Invite tools: added option to invite via "/say" or "/yell"
-* Visual Note: added option to disable updates for specific note
-* Visual Note: added more backgrounds with solid color
-* Timers: added scale/alpha options
-* Note: added option to change note position in list via drag&drop
-* Note: added "/rt note set notename" command for quick update
 * Updated german translation
 * Minor fixes
 

@@ -28,7 +28,6 @@ local GetNumQuestLogRewardCurrencies = GetNumQuestLogRewardCurrencies
 local GetQuestLogRewardInfo = GetQuestLogRewardInfo
 local GetQuestLogRewardCurrencyInfo = GetQuestLogRewardCurrencyInfo
 local GetQuestLogRewardMoney = GetQuestLogRewardMoney
-local GetQuestTagInfo = GetQuestTagInfo
 local GetNumQuestLogRewards = GetNumQuestLogRewards
 local GetQuestInfoByQuestID = C_TaskQuest.GetQuestInfoByQuestID
 
@@ -49,68 +48,8 @@ local taxyMapWidgets = {}
 --quando dar zoom mostrar o icone do reward no lugar da exclama��o
 
 function WorldQuestTracker:GetQuestFullInfo (questID)
-
-	--> attempt to get the quest information from the cache
-	--[=[
-	local can_cache = true
-	if (not HaveQuestRewardData (questID)) then
-		C_TaskQuest.RequestPreloadRewardData (questID)
-		can_cache = false
-	end
-	--]=]
-	
 	local title, factionID, tagID, tagName, worldQuestType, rarity, isElite, tradeskillLineIndex, tagID, tagName, worldQuestType, rarity, isElite, tradeskillLineIndex, allowDisplayPastCritical, gold, goldFormated, rewardName, rewardTexture, numRewardItems, itemName, itemTexture, itemLevel, quantity, quality, isUsable, itemID, isArtifact, artifactPower, isStackable, stackAmount = WorldQuestTracker.GetOrLoadQuestData (questID, false, true)
-	--local filter, order = WorldQuestTracker.GetQuestFilterTypeAndOrder (worldQuestType, gold, rewardName, itemName, isArtifact, stackAmount, numRewardItems, rewardTexture)
-
 	return title, factionID, tagID, tagName, worldQuestType, rarity, isElite, tradeskillLineIndex, tagID, tagName, worldQuestType, rarity, isElite, tradeskillLineIndex, allowDisplayPastCritical, gold, goldFormated, rewardName, rewardTexture, numRewardItems, itemName, itemTexture, itemLevel, quantity, quality, isUsable, itemID, isArtifact, artifactPower, isStackable, stackAmount
-	
-	--[=[
-	
-	--info
-	local title, factionID, tagID, tagName, worldQuestType, rarity, isElite, tradeskillLineIndex = WorldQuestTracker.GetQuest_Info (questID)
-	--tempo restante
-	local timeLeft = WorldQuestTracker.GetQuest_TimeLeft (questID)
-	--se � da faction selecionada
-	
-	local bountyQuestID = WorldQuestTracker.GetCurrentBountyQuest()
-	local isCriteria = IsQuestCriteriaForBounty (questID, bountyQuestID)
-	
-	local selected = questID == GetSuperTrackedQuestID()
-	local isSpellTarget = SpellCanTargetQuest() and IsQuestIDValidSpellTarget (questID)
-	
-	--gold
-	local gold, goldFormated = WorldQuestTracker.GetQuestReward_Gold (questID)
-	--class hall resource
-	local rewardName, rewardTexture, numRewardItems = WorldQuestTracker.GetQuestReward_Resource (questID)
-	--item
-	local itemName, itemTexture, itemLevel, quantity, quality, isUsable, itemID, isArtifact, artifactPower, isStackable = WorldQuestTracker.GetQuestReward_Item (questID)
-	local questType = 0x0
-	local texture
-	
-	if (gold > 0) then
-		questType = QUESTTYPE_GOLD
-		texture = WorldQuestTracker.GetGoldIcon()
-	end
-	
-	if (rewardName) then
-		questType = QUESTTYPE_RESOURCE
-		texture = rewardTexture
-	end
-	
-	if (itemName) then
-		if (isArtifact) then
-			questType = QUESTTYPE_ARTIFACTPOWER
-			local artifactIcon = WorldQuestTracker.GetArtifactPowerIcon (artifactPower)
-			texture = artifactIcon .. "_round"
-		else
-			questType = QUESTTYPE_ITEM
-			texture = itemTexture
-		end
-	end
-	
-	return title, questType, texture, factionID, tagID, tagName, worldQuestType, rarity, isElite, tradeskillLineIndex, selected, isSpellTarget, timeLeft, isCriteria, gold, goldFormated, rewardName, rewardTexture, numRewardItems, itemName, itemTexture, itemLevel, quantity, quality, isUsable, itemID, isArtifact, artifactPower, isStackable
-	
-	--]=]
 end
 
 function WorldQuestTracker.TaxyFrameHasZoom()
@@ -214,7 +153,7 @@ function WorldQuestTracker:TAXIMAP_OPENED()
 		_G ["topright"] = nil
 	
 		--tracking options
-		FlightMapFrame.WorldQuestTrackerOptions = CreateFrame ("frame", "WorldQuestTrackerTaxyMapFrame", FlightMapFrame.BorderFrame)
+		FlightMapFrame.WorldQuestTrackerOptions = CreateFrame ("frame", "WorldQuestTrackerTaxyMapFrame", FlightMapFrame.BorderFrame, "BackdropTemplate")
 		FlightMapFrame.WorldQuestTrackerOptions:SetSize (1, 1)
 		FlightMapFrame.WorldQuestTrackerOptions:SetPoint ("bottomleft", FlightMapFrame.BorderFrame, "bottomleft", 3, 3)
 		local doubleTapBackground = FlightMapFrame.WorldQuestTrackerOptions:CreateTexture (nil, "overlay")
@@ -244,17 +183,19 @@ function WorldQuestTracker:TAXIMAP_OPENED()
 		local checkboxShowTrackedOnlyString = DF:CreateLabel (checkboxShowTrackedOnly, L["S_FLYMAP_SHOWTRACKEDONLY"], 12, "orange", nil, "checkboxShowTrackedOnlyLabel", nil, "overlay")
 		checkboxShowTrackedOnlyString:SetPoint ("left", checkboxShowTrackedOnly, "right", 2, 0)
 		
+		--[[
 		if (not WorldQuestTracker.db.profile.TutorialTaxyMap) then
-			local alert = CreateFrame ("frame", "WorldQuestTrackerTaxyTutorial", checkboxShowTrackedOnly.widget, "MicroButtonAlertTemplate")
+			local alert = CreateFrame ("frame", "WorldQuestTrackerTaxyTutorial", checkboxShowTrackedOnly.widget, "MicroButtonAlertTemplate_BFA")
 			alert:SetFrameLevel (302)
 			alert.label = "Options are here, show all quests or only those being tracked"
 			alert.Text:SetSpacing (4)
 			MicroButtonAlert_SetText (alert, alert.label)
 			alert:SetPoint ("bottom", checkboxShowTrackedOnly.widget, "top", 0, 30)
 			alert:Show()
-			WorldQuestTracker.db.profile.TutorialTaxyMap = true
+			--WorldQuestTracker.db.profile.TutorialTaxyMap = true
 		end
-		
+		--]]
+
 		local filters = WorldQuestTracker.db.profile.filters
 		
 		hooksecurefunc (FlightMapFrame.ScrollContainer, "ZoomIn", function()

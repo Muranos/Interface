@@ -1,4 +1,4 @@
-## Interface: 80300
+## Interface: 90002
 
 ## Title: BigWigs [|cffeda55fUldir|r]
 ## Title-deDE: BigWigs [|cffeda55fUldir|r]
@@ -22,6 +22,7 @@
 ## Notes-itIT: BigWigs Uldir Modules
 ## Notes-ptBR: BigWigs Uldir Modules
 ## Notes-koKR: BigWigs Uldir Modules
+## Version: v187
 
 ## LoadOnDemand: 1
 ## Dependencies: BigWigs

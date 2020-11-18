@@ -49,7 +49,7 @@ end
 --
 
 function mod:PreyTime(args)
-	self:TargetMessage(args.spellId, args.destName, "red", "Alarm", nil, nil, self:Healer())
+	self:TargetMessageOld(args.spellId, args.destName, "red", "alarm", nil, nil, self:Healer())
 	self:TargetBar(args.spellId, 5, args.destName)
 	self:CDBar(args.spellId, 15.6)
 end
@@ -69,7 +69,7 @@ do
 			local t = GetTime()
 			if t-prev > 1.5 then
 				prev = t
-				self:Message(args.spellId == 115458 and args.spellId or -5660, "blue", "Alert", CL.underyou:format(args.spellName))
+				self:MessageOld(args.spellId == 115458 and args.spellId or -5660, "blue", "alert", CL.underyou:format(args.spellName))
 			end
 		end
 	end
@@ -79,7 +79,7 @@ function mod:UNIT_HEALTH_FREQUENT(event, unit)
 	local hp = UnitHealth(unit) / UnitHealthMax(unit) * 100
 	if hp < nextStrafingWarning then
 		nextStrafingWarning = nextStrafingWarning - 40
-		self:Message(-5660, "yellow", nil, CL.soon:format(self:SpellName(-5660)), false)
+		self:MessageOld(-5660, "yellow", nil, CL.soon:format(self:SpellName(-5660)), false)
 		if nextStrafingWarning < 30 then
 			self:UnregisterUnitEvent(event, unit)
 		end

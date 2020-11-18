@@ -1,4 +1,4 @@
-## Interface: 80300
+## Interface: 90001
 ## Title: Scrap Merchant
 ## Notes: Load on demand merchant UI for Scrap.
 

@@ -1,4 +1,4 @@
-## Interface: 80300
+## Interface: 90002
 
 ## Title: BigWigs [|cffeda55fBattle of Dazar'alor|r]
 ## Title-deDE: BigWigs [|cffeda55fSchlacht von Dazar'alor|r]
@@ -22,6 +22,7 @@
 ## Notes-itIT: BigWigs Battle of Dazar'alor Modules
 ## Notes-ptBR: BigWigs Battle of Dazar'alor Modules
 ## Notes-koKR: BigWigs Battle of Dazar'alor Modules
+## Version: v187
 
 ## LoadOnDemand: 1
 ## Dependencies: BigWigs

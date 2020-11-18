@@ -1,4 +1,4 @@
-## Interface: 80300
+## Interface: 90002
 
 ## Title: BigWigs [|cffeda55fPlugins|r]
 ## Title-zhCN: BigWigs [|cffeda55f插件|r]
@@ -22,6 +22,7 @@
 ## Notes-ptBR: Plugins principais do BigWigs
 ## Notes-esES: Plugins del núcleo de BigWigs.
 ## Notes-esMX: Plugins del núcleo de BigWigs.
+## Version: v187
 
 ## LoadOnDemand: 1
 ## Dependencies: BigWigs, BigWigs_Core

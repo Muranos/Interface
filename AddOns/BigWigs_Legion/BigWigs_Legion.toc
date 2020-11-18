@@ -1,4 +1,4 @@
-## Interface: 80000
+## Interface: 90002
 
 ## Title: BigWigs [|cffeda55fLegion|r]
 ## Title-zhCN: BigWigs [|cffeda55f军团再临|r]
@@ -25,7 +25,7 @@
 
 ## LoadOnDemand: 1
 ## Dependencies: BigWigs
-## Version: v8.0.2
+## Version: v9.0.1
 
 ## X-Category: Raid
 ## X-License: All Rights Reserved: You are free to fork and modify on GitHub, please ask us about anything else.

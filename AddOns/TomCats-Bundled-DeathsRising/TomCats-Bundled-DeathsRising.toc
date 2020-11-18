@@ -1,0 +1,13 @@
+## Interface: 90001
+## Title: TomCat's Tours: Rares of Death's Rising (bundled)
+## Author: TomCat
+## X-Website: https://www.tomcatstours.com
+## Version: 2.0.19
+## DefaultState: enabled
+## LoadOnDemand: 1
+## RequiredDeps: TomCats
+## X-Part-Of: TomCat's Tours:
+## X-Category: Achievements, Map, Miscellaneous
+## X-Localizations: enUS, deDE, esES, esMX, frFR, itIT, koKR, ptBR, ruRU, zhCN, zhTW
+
+Main.xml

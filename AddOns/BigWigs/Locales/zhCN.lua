@@ -1,13 +1,15 @@
 local L = BigWigsAPI:NewLocale("BigWigs", "zhCN")
 if not L then return end
 
-L.getNewRelease = "你的 BigWigs 已过期（/bwv）但是可以使用 Twitch 客户端简单升级。另外，也可以从 curseforge.com 或 wowinterface.com 手动升级。"
+--L.guildRelease = "You are running version %d of BigWigs made for your guild, based on version %d of the official addon."
+L.getNewRelease = "你的 BigWigs 已过期（/bwv）但是可以使用 CurseForge 客户端简单升级。另外，也可以从 curseforge.com 或 wowinterface.com 手动升级。"
 L.warnTwoReleases = "你的 BigWigs 已过期2个发行版！你的版本可能有错误，功能缺失或不正确的计时器。所以强烈建议你升级。"
 L.warnSeveralReleases = "|cffff0000你的 BigWigs 已过期%d发行版！！我们*强烈*建议你更新，以防止把问题同步给其他玩家！|r"
+--L.warnOldBase = "You are using a guild version of BigWigs (%d), but your base version (%d) is %d releases out of date. This may cause issues."
 
-L.gitHubDesc = "BigWigs 是一个在 GitHub 上的开源软件。我们一直在寻找新的朋友帮助我们和欢迎任何人检测我们的代码，做出贡献和提交错误报告。BigWigs 今天的伟大很大程度上一部分因为伟大的魔兽世界社区帮助我们。"
+L.gitHubDesc = "|cFF33FF99BigWigs 是一个在 GitHub 上的开源软件。我们一直在寻找新的朋友帮助我们和欢迎任何人检测我们的代码，做出贡献和提交错误报告。BigWigs 今天的伟大很大程度上一部分因为伟大的魔兽世界社区帮助我们。|r"
 
-L.testNameplate = "已检测到目标，在目标姓名板上创建一个测试姓名板条。"
+L.testNameplate = "已检测到目标，在目标姓名板上创建一个测试姓名板条。 |cFF33FF99此功能很少用到，当与多个首领/增援战斗时通常一个计时条并且需要保持追踪冷却施放相同的法术。|r"
 
 L.classicWarning1 = "|cFF33FF99BigWigs|r：你在经典怀旧服务器上正在使用错误版本的 BigWigs。"
 L.classicWarning2 = "|cFF33FF99BigWigs|r：请安装经典怀旧版本 BigWigs。"
@@ -111,7 +113,7 @@ L.TANK_HEALER_desc = "有些技能只对坦克和治疗重要。如想看到这�
 L.test = "测试"
 L.testBarsBtn = "创建测试计时条"
 L.testBarsBtn_desc = "创建一个测试计时条以便于测试当前显示设置。"
-L.toggleAnchorsBtn = "切换锚点"
+L.toggleAnchorsBtn = "切换移动锚点"
 L.toggleAnchorsBtn_desc = "切换显示或隐藏全部锚点。"
 L.tooltipHint = "|cffeda55f右击|r打开选项。"
 L.upToDate = "已更新："

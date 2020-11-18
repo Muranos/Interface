@@ -1,8 +1,8 @@
-## Interface: 80205
+## Interface: 90001
 ## Title: Global Ignore List
 ## Notes: Maintain ignore list across all characters, filter chat spam and more
 ## Author: IceyPop
-## Version: 8.2.5
+## Version: 9.0.2
 ## SavedVariables: GlobalIgnoreDB
 ## SavedVariablesPerCharacter: GlobalIgnoreImported
 

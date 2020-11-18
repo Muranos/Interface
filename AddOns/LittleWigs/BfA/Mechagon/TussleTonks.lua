@@ -15,6 +15,12 @@ mod:RegisterEnableMob(
 mod.engageId = 2257
 
 --------------------------------------------------------------------------------
+-- Locals
+--
+
+local platingStacks = 3
+
+--------------------------------------------------------------------------------
 -- Localization
 --
 
@@ -50,16 +56,19 @@ function mod:OnBossEnable()
 	self:RegisterEvent("CHAT_MSG_MONSTER_YELL", "Warmup")
 
 	self:Log("SPELL_AURA_REMOVED", "PlatinumPlatingRemoved", 282801)
-	self:Log("SPELL_AURA_REMOVED_DOSE", "PlatinumPlatingRemoved", 282801)
 	self:Log("SPELL_CAST_START", "WhirlingEdge", 285020)
 	self:Log("SPELL_CAST_SUCCESS", "LayMine", 285344)
 	self:Log("SPELL_CAST_SUCCESS", "FoeFlipper", 285152)
 	self:Log("SPELL_CAST_START", "VentJets", 285388)
 	self:Log("SPELL_CAST_SUCCESS", "VentJetsSuccess", 285388)
 	self:Log("SPELL_CAST_START", "MaximumThrust", 283422)
+
+	self:Death("PlatinumPummelerDeath", 144244)
+	self:Death("GnomercyDeath", 145185)
 end
 
 function mod:OnEngage()
+	platingStacks = 3
 	self:Bar(285020, 8.2) -- Whirling Edge
 	self:Bar(285388, 22) -- Vent Jets
 end
@@ -75,33 +84,27 @@ function mod:Warmup(event, msg)
 	end
 end
 
-do
-	-- If the event fires more than once, args.amount is the same for both events
-	local prev = 0
-	function mod:PlatinumPlatingRemoved(args)
-		local t = args.time
-		if t-prev > 0.1 then
-			prev = t
-			self:StackMessage(args.spellId, args.destName, args.amount, "green")
-			self:PlaySound(args.spellId, "long")
-		end
-	end
+function mod:PlatinumPlatingRemoved(args)
+	-- Manually track stacks since every time a stack is removed, the entire aura is removed and reapplied
+	platingStacks = platingStacks - 1
+	self:StackMessage(args.spellId, args.destName, platingStacks, "green")
+	self:PlaySound(args.spellId, "long")
 end
 
 function mod:WhirlingEdge(args)
-	self:Message2(args.spellId, "red")
+	self:Message(args.spellId, "red")
 	self:PlaySound(args.spellId, "alert")
 	self:Bar(args.spellId, 32.8)
 end
 
 function mod:LayMine(args)
-	self:Message2(args.spellId, "orange")
+	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "info")
 end
 
 do
 	local function printTarget(self, name, guid)
-		self:TargetMessage2(285152, "yellow", name)
+		self:TargetMessage(285152, "yellow", name)
 		self:PlaySound(285152, "alert", nil, name)
 		if self:Me(guid) then
 			self:Say(285152)
@@ -115,7 +118,7 @@ do
 end
 
 function mod:VentJets(args)
-	self:Message2(args.spellId, "red")
+	self:Message(args.spellId, "red")
 	self:PlaySound(args.spellId, "alarm")
 	self:Bar(args.spellId, 43.7)
 end
@@ -126,7 +129,7 @@ end
 
 do
 	local function printTarget(self, name, guid)
-		self:TargetMessage2(283422, "yellow", name)
+		self:TargetMessage(283422, "yellow", name)
 		self:PlaySound(283422, "alert", nil, name)
 		if self:Me(guid) then
 			self:Say(283422)
@@ -138,4 +141,13 @@ do
 		self:GetBossTarget(printTarget, 0.4, args.sourceGUID)
 		self:Bar(args.spellId, 43.7)
 	end
+end
+
+function mod:PlatinumPummelerDeath()
+	self:StopBar(285020) -- Whirling Edge
+end
+
+function mod:GnomercyDeath()
+	self:StopBar(285388) -- Vent Jets
+	self:StopBar(283422) -- Maximum Thrust
 end

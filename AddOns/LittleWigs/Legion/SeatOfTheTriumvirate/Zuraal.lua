@@ -57,27 +57,27 @@ end
 --
 
 function mod:NullPalm(args)
-	self:Message(args.spellId, "red", "Alarm")
+	self:MessageOld(args.spellId, "red", "alarm")
 	self:CDBar(args.spellId, 55)
 end
 
 function mod:Decimate(args)
-	self:Message(args.spellId, "orange", "Warning")
+	self:MessageOld(args.spellId, "orange", "warning")
 	self:CDBar(args.spellId, 12.5)
 end
 
 function mod:CoalescedVoid()
-	self:Message(244602, "yellow", "Alert")
+	self:MessageOld(244602, "yellow", "alert")
 	self:CDBar(244602, 55)
 end
 
 function mod:UmbraShift(args)
-	self:TargetMessage(args.spellId, args.destName, "blue", "Warning")
+	self:TargetMessageOld(args.spellId, args.destName, "blue", "warning")
 	self:CDBar(args.spellId, 55)
 end
 
 function mod:Fixate(args)
-	self:TargetMessage(args.spellId, args.destName, "blue", "Warning")
+	self:TargetMessageOld(args.spellId, args.destName, "blue", "warning")
 	if self:Me(args.destGUID) then
 		self:Say(args.spellId)
 	end
@@ -89,12 +89,12 @@ function mod:VoidTear(args)
 	self:StopBar(244602) -- Coalesced Void
 	self:StopBar(244433) -- Umbra Shift
 
-	self:Message(args.spellId, "green", "Long", args.spellName)
+	self:MessageOld(args.spellId, "green", "long", args.spellName)
 	self:Bar(args.spellId, 20)
 end
 
 function mod:VoidTearRemoved(args)
-	self:Message(args.spellId, "cyan", "Info", CL.removed:format(args.spellName))
+	self:MessageOld(args.spellId, "cyan", "info", CL.removed:format(args.spellName))
 	self:CDBar(246134, 10.5) -- Null Palm _start
 	self:CDBar(244579, 18) -- Decimate _start
 	self:CDBar(244602, 20) -- Coalesced Void _success

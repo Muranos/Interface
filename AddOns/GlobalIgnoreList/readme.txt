@@ -9,7 +9,7 @@ Global Ignore also gives you full access to its chat filtering engine so you can
 * Ability to ignore players, NPCs, monsters, and entire servers
 * Ability to set notes for ignored entries, and expiration times for automatic removal from ignore
 * Chat spam filtering with robust chat spam filter editor, allowing players to create their own custom filters.
-* Default spam filters catch the majority of gold sellers and spammers (defaults for English servers) including gold spam, Guild recruitment, community invites, Asian languages, and so on.
+* Default spam filters catch the majority of gold sellers and spammers (defaults for English servers) including gold spam, Guild recruitment, community invites, Asian languages, political spam, and so on.
 * Warnings to prevent inviting or being a member of a group with a player on your ignore list
 * Automatic decline of duels and party invites from ignored players
 * Greatly improved UI over the default
@@ -18,11 +18,13 @@ Global Ignore also gives you full access to its chat filtering engine so you can
 
 Type /gi in game for chat help, or open your ignore list for features and options
 
-**NOTES AND KNOWN ISSUES:**
+**NOTES, ISSUES AND FREQUENT QUESTIONS:**
+
+* Unfortunately I cannot add guild-wide ignores.  Blizzard does not supply guild information with the chat data and they've limited the ability for addons to collect their own data on guilds (Census addons were causing server lag).  If I can find a way to do it properly in the future I will try to add it in.
 
 * There is a bug where WoW sometimes reports all members of the ignore list as "Unknown" during login which prevents GIL from synchronizing your character ignore lists. If this happens, GIL will print a message duing login and then attempt to synchronize when you open the GIL UI. You can also force a sync by a chat command line.
 
-* There is an issue where WoW reports the wrong server name when ignoring someone from right clicking chat. When a character with no server name is reported, GIL will search the members of your current raid, battlegroud, instance, and so on to try to find someone with that name. It wlll check your chat tab history and search for any reference of the name in order to determine the server. If no data is found during this search, GIL will ultimately assume the person is on your server.
+* There is an issue where WoW reports the wrong server name when ignoring someone from right clicking chat. When a character with no server name is reported, GIL will search the members of your current raid, battleground, instance, and so on to try to find someone with that name. It will check your chat tab history and search for any reference of the name in order to determine the server. If no data is found during this search, GIL will ultimately assume the person is on your server.
 
 * Account wide ignore only works for up to 50 accounts per character due to a WoW limitation. GIL uses logic to select the "best" 50 players on a per-character basis, in an attempt to maximize usefulness of account wide ignore limitations. No other ignore addon can do this. This is significant because it prevents you from messages, duel requests, being grouped in a dungeon, BG, or LFR queue system for not only their main character but for their alts that you don't know about too. GIL will also perform all of those same checks and warnings for non-account wide ignore. 
 
@@ -132,6 +134,22 @@ number.  For example, channel 1 would be zone, 2 would be city/trade, and so on.
 you wanted a filter to apply only to trade chat you could do "[channel=2]" somewhere
 in your filter.
 
+**SPECIAL CHARACTERS IN FILTERS**
+
+Spaces can be used in a [Contains] tag by escaping the character by putting a
+forward slash before the space (\).  Other characters can be escaped the same
+way: parenthesis (), brackets [], and backslash.  For example:
+
+  [contains=Filter\ this]
+
+Here are some other examples:
+
+   \( would mean (
+   \) would mean )
+   \[ would mean [
+   \] would mean ]
+   \\ would mean \
+
 **USING LOGICAL EVALUATION:**
 
 Chat filters can include some logical evaluations by enclosing tags within
@@ -183,6 +201,20 @@ The following commands are accessible by typing /gignore or /gi in the chat box:
 /gi server servername - Add or remove a whole-server ignore
 
 => VERSION HISTORY
+
+=> 9.0.2
+
+Added filter for American Politics (disabled by default)
+Added some German translations by LadyBellaSilver
+Forgot to update the version in the TOC for the last release!
+
+=> 9.0.1
+
+Updated for 9.0.1.  This is a first attempt after taking a good break from WoW, so there could be some issues.
+
+=> 8.2.5.1
+
+Added Chinese localization.  Thank you for the translation help: Translated by 堕落治疗
 
 => 8.2.5
 

@@ -65,7 +65,7 @@ end
 
 do
 	local function printTarget(self, player, guid)
-		self:TargetMessage(227789, player, "red", "Alarm")
+		self:TargetMessageOld(227789, player, "red", "alarm")
 		if self:Me(guid) then
 			self:Say(227789)
 			self:Flash(227789)
@@ -90,12 +90,12 @@ function mod:HolyShock(args)
 	end
 	shockCount = shockCount + 1
 	if self:Interrupter(args.sourceGUID) then
-		self:Message(args.spellId, "yellow", "Alarm", CL.incoming:format(args.spellName))
+		self:MessageOld(args.spellId, "yellow", "alarm", CL.incoming:format(args.spellName))
 	end
 end
 
 function mod:HolyWrath(args)
-	self:Message(args.spellId, "red", "Alarm", CL.incoming:format(args.spellName))
+	self:MessageOld(args.spellId, "red", "alarm", CL.incoming:format(args.spellName))
 end
 
 do
@@ -103,16 +103,16 @@ do
 
 	local function checkForSacredGround()
 		if not sacredGroundOnMe then
-			mod:Message(227789, "blue", "Warning", CL.no:format(mod:SpellName(227848)))
+			mod:MessageOld(227789, "blue", "warning", CL.no:format(mod:SpellName(227848)))
 			sacredGroundCheck = mod:ScheduleTimer(checkForSacredGround, 1.5)
 		else
-			mod:Message(227789, "green", nil, CL.you:format(mod:SpellName(227848)))
+			mod:MessageOld(227789, "green", nil, CL.you:format(mod:SpellName(227848)))
 			sacredGroundCheck = nil
 		end
 	end
 
 	function mod:MassRepentance(args)
-		self:Message(args.spellId, "yellow", "Warning", CL.casting:format(args.spellName))
+		self:MessageOld(args.spellId, "yellow", "warning", CL.casting:format(args.spellName))
 		self:Bar(args.spellId, 5, CL.cast:format(args.spellName))
 		self:Bar(args.spellId, 51)
 		checkForSacredGround()
@@ -143,12 +143,12 @@ do
 end
 
 function mod:HolyBulwarkRemoved(args)
-	self:Message(227823, "orange", self:Interrupter(args.sourceGUID) and "Alert", CL.casting:format(self:SpellName(227823)))
+	self:MessageOld(227823, "orange", self:Interrupter(args.sourceGUID) and "alert", CL.casting:format(self:SpellName(227823)))
 end
 
 do
 	local function printTarget(self, player)
-		self:TargetMessage(227809, player, "red")
+		self:TargetMessageOld(227809, player, "red")
 	end
 
 	function mod:HolyBolt(args)

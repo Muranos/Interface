@@ -32,6 +32,7 @@ local Font = Addon.Font
 local UpdateCustomStyleAfterAuraTrigger = Addon.UpdateCustomStyleAfterAuraTrigger
 local UnitStyle_AuraDependent = Addon.UnitStyle_AuraDependent
 local CUSTOM_GLOW_FUNCTIONS, CUSTOM_GLOW_WRAPPER_FUNCTIONS = Addon.CUSTOM_GLOW_FUNCTIONS, Addon.CUSTOM_GLOW_WRAPPER_FUNCTIONS
+local BackdropTemplate = Addon.BackdropTemplate
 
 local LibClassicDurations
 
@@ -1134,7 +1135,7 @@ function Widget:CreateAuraFrameIconMode(parent)
   frame:SetFrameLevel(parent:GetFrameLevel())
 
   frame.Icon = frame:CreateTexture(nil, "ARTWORK", nil, -5)
-  frame.Border = _G.CreateFrame("Frame", nil, frame)
+  frame.Border = _G.CreateFrame("Frame", nil, frame, BackdropTemplate)
   frame.Border:SetFrameLevel(parent:GetFrameLevel())
   frame.Cooldown = CreateCooldown(frame)
   frame.Cooldown:SetFrameLevel(parent:GetFrameLevel())

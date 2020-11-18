@@ -45,7 +45,7 @@ end
 --
 
 function mod:AlphaBeamsCast(args)
-	self:Message(args.spellId, "yellow", nil, CL.casting:format(args.spellName))
+	self:MessageOld(args.spellId, "yellow", nil, CL.casting:format(args.spellName))
 end
 
 do
@@ -55,14 +55,14 @@ do
 			local t = GetTime()
 			if t - prev > 1.5 then
 				prev = t
-				self:Message(76184, "blue", "Alert", CL.underyou:format(args.spellName))
+				self:MessageOld(76184, "blue", "alert", CL.underyou:format(args.spellName))
 			end
 		end
 	end
 end
 
 function mod:OmegaStance(args)
-	self:Message(args.spellId, "red", "Alarm", CL.casting:format(args.spellName))
+	self:MessageOld(args.spellId, "red", "alarm", CL.casting:format(args.spellName))
 	self:CDBar(args.spellId, 41)
 end
 
@@ -74,7 +74,7 @@ end
 
 function mod:NemesisStrike(args)
 	if self:Me(args.destGUID) or self:Dispeller("magic") then
-		self:TargetMessage(args.spellId, args.destName, "orange")
+		self:TargetMessageOld(args.spellId, args.destName, "orange")
 		self:TargetBar(args.spellId, 10, args.destName)
 	end
 end

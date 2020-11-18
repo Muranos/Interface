@@ -335,10 +335,20 @@ L["Open the Loot History"] = "Beuteverlauf öffnen"
 L["open_the_loot_history_desc"] = "Klicken, um den Beuteverlauf zu öffnen."
 L["Opens the synchronizer"] = "Öffnet den Synchronisierer"
 L["opt_addButton_desc"] = "Füge eine neue Schaltflächengruppe für den ausgewählten Slot hinzu."
+--[[Translation missing --]]
+--[[ L["opt_autoAddBoEs_desc"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["opt_autoAddBoEs_name"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["opt_autoAddItems_desc"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["opt_autoAddItems_name"] = ""--]] 
 L["opt_autoTrade_desc"] = "Anhaken, um vergebene Gegenstände dem Handelsfenster automatisch hinzuzufügen, wenn man mit dem Gewinner handelt. Wenn deaktiviert, wird ein Pop-up eingeblendet bevor die Gegenstände hinzugefügt werden. "
 L["opt_award_later_desc"] = "Anhaken, um die \"Später vergeben\"-Funktion im Sitzungsfenster automatisch zu aktivieren."
 L["opt_buttonsGroup_desc"] = "Optionsgruppe für %s Schaltflächen und Antworten. Für eine detaillierte Erklärung siehe oben. "
 L["opt_chatFrameName_desc"] = "Wähle aus, in welchem Chatfenster RCLootCouncil Informationen ausgeben soll."
+--[[Translation missing --]]
+--[[ L["opt_chatFrameName_name"] = ""--]] 
 L["opt_deleteDate_confirm"] = [=[Bist du sicher, dass du alles, das älter als das gewählte ist, löschen möchtest?
 Dies kann nicht rückgängig gemacht werden.]=]
 L["opt_deleteDate_desc"] = "Lösche alles, was älter als die ausgewählte Anzahl an Tagen ist."
@@ -357,6 +367,10 @@ L["opt_rejectTrade_Desc"] = "Aktiviere diese Option, damit die Kandidaten auswä
 L["opt_rejectTrade_Name"] = "Behalten erlauben"
 L["opt_saveBonusRolls_Desc"] = "Anhaken, um alle Bonuswürfe von Kandidaten im Beuteverlauf zu speichern."
 L["opt_saveBonusRolls_Name"] = "Bonuswürfe speichern"
+--[[Translation missing --]]
+--[[ L["opt_skipSessionFrame_desc"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["opt_skipSessionFrame_name"] = ""--]] 
 L["options_autoAwardBoE_desc"] = "Aktiviere diese Option, um alle epischen BoE-Gegenständie (Beim Anlegen gebunden) aus dem ausgewählten Grund automatisch an eine bestimmte Person zu vergeben."
 L["options_autoAwardBoE_name"] = "BoE's automatisch vergeben"
 L["options_ml_outOfRaid_desc"] = "Wenn diese Option aktiviert ist, wird in einer Gruppe von 8 oder mehr Mitgliedern von jedem, der sich nicht in einer Instanz befindet, wenn eine Sitzung gestartet wird, automatisch die Antwort \"Nicht im Raid\" senden."

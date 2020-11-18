@@ -1,0 +1,47 @@
+v2.2.3
+Fixed Forbearance being applied to the wrong target.
+Added missing CD reduction for Ardent Defender/Shield of Vengeance by Unbreakable Spirit.
+Dispel abilities will no longer go on CD when nothing has been dispelled.
+Forward compatibility updates for 9.0.
+
+v2.2.2
+Hotfixes
+July 27, 2020
+	Ineffable Truth (Corruption Effect) no longer reduces the cooldown of Gladiator's Medallion (PvP Talent).
+Fixed Retribution Paladins holy power spenders from Divine Purpose proc incorrectly reducing Hammer of Justice CD.
+Updated Sync to include Vision of Perfection (Minor) cooldown reduction in PvP.
+#BFA Fried
+
+v2.2.1g
+Azerite Trait
+	Crashing Chaos - Summon Infernal cooldown reduction added.
+Azerite Essences
+	In PvP only: Vision of Perfection (Minor) cooldown reduction is now reduced to approximate numbers with a 500+ level neck. How Blizzard implements this is unknown.
+Minor bug fixes.
+zhCN localization updated.
+
+v2.2.1f
+Hotfixes
+June 9, 2020
+Monk
+	Mistweaver
+		Chrysalis (PvP Talent) now reduces the cooldown of Life Cocoon by 25 seconds (was 45 seconds).
+Azerite Essences
+	Reaping Flames (Major – Rank 3) no longer activates on player-controlled targets such as pets, totems, or guardians.
+
+v2.2.1e
+Requires a client restart after updating.
+Spells: Fixed Avatar, Ursol's Vertex. Added Lingering Psychic Shell
+Added API to register Raidframe AddOns.
+Added Aptechka support.
+ruRU, zhCN localization updated.
+
+v2.2.1d
+Quick fix for pvp trinkets
+
+v2.2.1c
+Position: Fixed Double Row layout (spell priority lower than the selected Breakpoint will always anchor to the 2nd row).
+Icons: Desaturate Color is delayed while an icon is being highlighted.
+Spells: Added trinkets Forbidden Obsidian Claw, Writhing Segment of Drest'agath, Corrupted Gladiator's Breach.
+Spell Editor: Added buff ID option for Highlights.
+Fixed an issue that could cause a talent to be missing if it was changed as the Arena gates opened.

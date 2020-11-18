@@ -1,3 +1,7 @@
+TipTacItemRef Changes | 2020 Oct 31
+-----------------------------------
+- Updated the TOC version to 90001 for the Shadowlands 9.0.1 pre-patch.
+
 TipTacItemRef Changes | 2019 Mar 31
 -----------------------------------
 - Updated the TOC version to 80100 for the Tides of Vengeance 8.1 patch.

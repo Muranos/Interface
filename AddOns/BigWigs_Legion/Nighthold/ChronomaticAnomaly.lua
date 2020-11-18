@@ -280,7 +280,9 @@ end
 
 local function timeBombCountdown(self)
 	local me = self:UnitName("player")
-	local name, _, _, expires = self:UnitDebuff("player", self:SpellName(206617))
+	-- 206617 on heroic & mythic, probably on normal as well.
+	-- If that's the case, then this call can be safely replaced with self:UnitDebuff("player", 206617).
+	local name, _, _, expires = self:UnitDebuff("player", self:SpellName(206617), 206617)
 	for _,timer in pairs(bombSayTimers) do
 		self:CancelTimer(timer)
 	end
@@ -309,11 +311,11 @@ function mod:UNIT_SPELLCAST_SUCCEEDED(_, _, _, spellId)
 		fastPhase = fastPhase + 1
 		currentTimers = timers["fast" .. fastPhase]
 	elseif spellId == 206700 then -- Summon Slow Add
-		self:Message(-13022, "cyan", "Info", CL.spawning:format(self:Mythic() and CL.adds or CL.add), false)
+		self:MessageOld(-13022, "cyan", "info", CL.spawning:format(self:Mythic() and CL.adds or CL.add), false)
 	end
 
 	if spellId == 207012 or spellId == 207011 or spellId == 207013 then -- Speed: Normal / Slow / Fast
-		self:Message("stages", "cyan", "Info", spellId)
+		self:MessageOld("stages", "cyan", "info", spellId)
 
 		timeBombCountdown(self)
 		self:ScheduleTimer(timeBombCountdown, 2, self) -- XXX let's see if this fixes wrong time bomb says
@@ -359,7 +361,7 @@ end
 function mod:ChronometricParticles(args)
 	local amount = args.amount or 1
 	if amount % 2 == 0 or amount > 6 then -- might be different for each speed
-		self:StackMessage(args.spellId, args.destName, amount, "red", amount > 6 and "Warning")
+		self:StackMessage(args.spellId, args.destName, amount, "red", amount > 6 and "warning")
 	end
 end
 
@@ -417,7 +419,7 @@ do
 		list[#list+1] = args.destName
 		infoBoxList[#infoBoxList+1] = {args.destName, args.amount}
 		if #list == 1 then
-			self:ScheduleTimer("TargetMessage", 0.1, args.spellId, list, "orange")
+			self:ScheduleTimer("TargetMessageOld", 0.1, args.spellId, list, "orange")
 		end
 
 		if #infoBoxList == 1 and self:CheckOption(args.spellId, "INFOBOX") then
@@ -457,7 +459,7 @@ function mod:TimeReleaseRemoved(args)
 end
 
 function mod:TimeReleaseSuccess(args)
-	self:Message(206609, "yellow", "Alarm", CL.incoming:format(args.spellName))
+	self:MessageOld(206609, "yellow", "alarm", CL.incoming:format(args.spellName))
 
 	releaseCount = releaseCount + 1
 	local releaseTime = currentTimers and currentTimers[206609][releaseCount]
@@ -471,7 +473,7 @@ do
 	function mod:TimeBomb(args)
 		list[#list+1] = args.destName
 		if #list == 1 then
-			self:ScheduleTimer("TargetMessage", 0.2, args.spellId, list, "red", "Alert")
+			self:ScheduleTimer("TargetMessageOld", 0.2, args.spellId, list, "red", "alert")
 
 			bombCount = bombCount + 1
 			local bombTime = currentTimers and currentTimers[args.spellId][bombCount]
@@ -488,7 +490,7 @@ do
 end
 
 function mod:TemporalOrb(args)
-	self:Message(args.spellId, "yellow", "Alert")
+	self:MessageOld(args.spellId, "yellow", "alert")
 
 	temporalCount = temporalCount + 1
 	local temporalTime = currentTimers and currentTimers[args.spellId][temporalCount]
@@ -503,27 +505,27 @@ do
 		local t = GetTime()
 		if self:Me(args.destGUID) and t-prev > 1.5 then
 			prev = t
-			self:Message(args.spellId, "blue", "Alert", CL.underyou:format(args.spellName))
+			self:MessageOld(args.spellId, "blue", "alert", CL.underyou:format(args.spellName))
 		end
 	end
 end
 
 function mod:TemporalCharge(args)
 	if UnitIsPlayer(args.destName) then
-		self:TargetMessage(args.spellId, args.destName, "green", "Info")
+		self:TargetMessageOld(args.spellId, args.destName, "green", "info")
 	end
 end
 
 function mod:PowerOverwhelming(args)
-	self:Message(args.spellId, "yellow", "Long", CL.casting:format(args.spellName))
+	self:MessageOld(args.spellId, "yellow", "long", CL.casting:format(args.spellName))
 	self:StopBar(206609) -- Time Release
 	self:StopBar(206617) -- Time Bomb
 end
 
 function mod:WarpNightwell(args)
-	self:Message(args.spellId, "orange", self:Interrupter(args.sourceGUID) and "Alert")
+	self:MessageOld(args.spellId, "orange", self:Interrupter(args.sourceGUID) and "alert")
 end
 
 function mod:FullPower(args)
-	self:Message(args.spellId, "cyan", "Long")
+	self:MessageOld(args.spellId, "cyan", "long")
 end

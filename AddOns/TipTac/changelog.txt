@@ -1,3 +1,17 @@
+TipTac Changes | 2020 Nov 04
+----------------------------
+- ItemRef: Fixed currency tooltips using the GetCurrencyInfo() API.
+- Fix for the API change GetQuestGreenRange() -> UnitQuestTrivialLevelRange().
+
+TipTac Changes | 2020 Oct 31
+----------------------------
+- Updated the TOC version to 90001 for the Shadowlands 9.0.1 pre-patch.
+- Frames that use backdrops are now created using the "BackdropTemplate".
+- Options: Updated the AzDropDown library to Rev 14.
+- Options: Updated the AzOptionsFactory library to Rev 12.
+- Fixed issue "attempt to index local 'gttLine' (a nil value)" on line 247.
+- Added some minor support for Classic. Thanks PrivateSniper.
+
 TipTac Changes | 2019 Mar 31
 ----------------------------
 - Updated the TOC version to 80100 for the Tides of Vengeance 8.1 patch.

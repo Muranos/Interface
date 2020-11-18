@@ -368,15 +368,19 @@ end
 
 -- currency -- Thanks to Vladinator for adding this!
 function LinkTypeFuncs:currency(link,linkType,id)
-	local _, currencyCount, currencyTexture = GetCurrencyInfo(id);
 	if (self.SetIconTextureAndText) then
-		self:SetIconTextureAndText(currencyTexture,currencyCount);	-- As of 5.2 GetCurrencyInfo() now returns full texture path. Previously you had to prefix it with "Interface\\Icons\\"
+		local info = C_CurrencyInfo.GetCurrencyInfo(id);
+		if (info) then 
+			self:SetIconTextureAndText(info.iconFileID,info.quantity);	-- As of 5.2 GetCurrencyInfo() now returns full texture path. Previously you had to prefix it with "Interface\\Icons\\"
+		end
 	end
+
 	-- ID
 	if (cfg.if_showCurrencyId) then
 		self:AddLine(format("CurrencyID: %d",id),unpack(cfg.if_infoColor));
 		self:Show();	-- call Show() to resize tip after adding lines
 	end
+
   	-- TipType Border Color -- Disable these 3 lines to color border. Az: Work into options?
 --	if (cfg.if_itemQualityBorder) then
 --		self:SetBackdropBorderColor(0, .67, 0, 1);

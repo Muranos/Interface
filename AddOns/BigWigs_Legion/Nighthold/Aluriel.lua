@@ -192,15 +192,15 @@ end
 
 function mod:UNIT_SPELLCAST_SUCCEEDED(_, _, _, spellId)
 	if spellId == 215455 then -- Arcane Orb
-		self:Message(213520, "red")
+		self:MessageOld(213520, "red")
 	elseif spellId == 213390 then -- Detonate: Arcane Orb
-		self:Message(spellId, "red", "Alarm")
+		self:MessageOld(spellId, "red", "alarm")
 	end
 end
 
 --[[ General ]]--
 function mod:AnnihilateCast(args)
-	self:Message(args.spellId, "red", self:Tank() and "Alarm", CL.casting:format(CL.count:format(args.spellName, annihilateCount)))
+	self:MessageOld(args.spellId, "red", self:Tank() and "alarm", CL.casting:format(CL.count:format(args.spellName, annihilateCount)))
 	self:StopBar(CL.count:format(args.spellName, annihilateCount))
 	self:CastBar(args.spellId, 7, CL.count:format(args.spellName, annihilateCount))
 	annihilateCount = annihilateCount + 1
@@ -210,14 +210,14 @@ end
 function mod:AnnihilateApplied(args)
 	if self:Tank() then
 		local amount = args.amount or 1
-		self:StackMessage(212492, args.destName, amount, "red", amount > 1 and "Warning") -- check sound amount
+		self:StackMessage(212492, args.destName, amount, "red", amount > 1 and "warning") -- check sound amount
 	end
 end
 
 do
 	function mod:Stages(args)
 		phase = phase + 1
-		self:Message("stages", "cyan", "Long", args.spellName, args.spellId)
+		self:MessageOld("stages", "cyan", "long", args.spellName, args.spellId)
 
 		if args.spellId == 216389 then -- Icy
 			if self:Mythic() then -- Fel Soul
@@ -266,7 +266,7 @@ do
 	function mod:PreMarkOfFrostApplied(args)
 		if self:Me(args.destGUID) then
 			preDebuffApplied = GetTime()
-			self:TargetMessage(args.spellId, args.destName, "yellow", "Alert")
+			self:TargetMessageOld(args.spellId, args.destName, "yellow", "alert")
 			self:Say(args.spellId)
 			self:Flash(args.spellId)
 			markOfFrostOnMe = true
@@ -287,14 +287,14 @@ do
 	function mod:MarkOfFrostApplied(args)
 		list[#list+1] = args.destName
 		if #list == 1 then
-			self:ScheduleTimer("TargetMessage", 1, args.spellId, list, "orange")
+			self:ScheduleTimer("TargetMessageOld", 1, args.spellId, list, "orange")
 		end
 
 		if self:Me(args.destGUID) then
 			markOfFrostOnMe = true
 			local t = GetTime()
 			if t-preDebuffApplied > 5.5 then
-				self:TargetMessage(args.spellId, args.destName, "yellow", "Alert")
+				self:TargetMessageOld(args.spellId, args.destName, "yellow", "alert")
 				self:Say(args.spellId)
 				self:Flash(args.spellId)
 			end
@@ -339,7 +339,7 @@ end
 function mod:Frostbitten(args)
 	local amount = args.amount or 1
 	if self:Me(args.destGUID) and amount % 2 == 0 and amount > 5 then
-		self:StackMessage(args.spellId, args.destName, amount, "red", amount > 7 and "Warning")
+		self:StackMessage(args.spellId, args.destName, amount, "red", amount > 7 and "warning")
 	end
 
 	frostbittenStacks[args.destName] = amount
@@ -353,25 +353,25 @@ function mod:Frostbitten(args)
 end
 
 function mod:DetonateMarkOfFrost(args)
-	self:Message(args.spellId, "red", "Alarm")
+	self:MessageOld(args.spellId, "red", "alarm")
 	if markOfFrostOnMe then
 		self:Say(args.spellId, 151913) -- "Detonate"
 	end
 end
 
 function mod:AnimateMarkOfFrost(args)
-	self:Message(args.spellId, "red", "Info", nil, 31687) -- Water Elemental icon
+	self:MessageOld(args.spellId, "red", "info", nil, 31687) -- Water Elemental icon
 end
 
 function mod:ReplicateMarkOfFrost(args)
-	self:Message(args.spellId, "red", "Alarm")
+	self:MessageOld(args.spellId, "red", "alarm")
 end
 
 do
 	local guid = ""
 	function mod:FrozenTempest(args)
 		guid = args.sourceGUID
-		self:Message(args.spellId, "red")
+		self:MessageOld(args.spellId, "red")
 		self:CastBar(args.spellId, self:Mythic() and 10 or 12)
 	end
 
@@ -388,7 +388,7 @@ do
 	function mod:PreSearingBrandApplied(args)
 		list[#list+1] = args.destName
 		if #list == 1 then
-			self:ScheduleTimer("TargetMessage", 0.3, args.spellId, list, "orange")
+			self:ScheduleTimer("TargetMessageOld", 0.3, args.spellId, list, "orange")
 		end
 
 		if not tContains(searingBrandTargets, args.destName) then
@@ -414,7 +414,7 @@ end
 function mod:SearingBrandApplied(args)
 	if self:Me(args.destGUID) then
 		searingBrandOnMe = true
-		local _, _, _, expires = self:UnitDebuff("player", args.spellName, args.spellId)
+		local _, _, _, expires = self:UnitDebuff("player", args.spellId)
 		if expires and expires > 0 then
 			local timeLeft = expires - GetTime()
 			self:TargetBar(args.spellId, timeLeft, args.destName)
@@ -455,7 +455,7 @@ function mod:SearingBrandRemoved(args)
 end
 
 function mod:DetonateSearingBrand(args)
-	self:Message(args.spellId, "red", "Alarm")
+	self:MessageOld(args.spellId, "red", "alarm")
 	if searingBrandOnMe then
 		self:Say(args.spellId, 151913) -- "Detonate"
 	end
@@ -489,7 +489,7 @@ do
 	end
 
 	function mod:AnimateSearingBrand(args)
-		self:Message(args.spellId, "red", "Info")
+		self:MessageOld(args.spellId, "red", "info")
 
 		if self:GetOption(fieryAddMarker) then
 			wipe(fieryAddMarks)
@@ -501,11 +501,11 @@ end
 
 --[[ Master of the Arcane ]]--
 function mod:ReplicateArcaneOrb(args)
-	self:Message(args.spellId, "red", "Alarm")
+	self:MessageOld(args.spellId, "red", "alarm")
 end
 
 function mod:AnimateArcaneOrb(args)
-	self:Message(args.spellId, "red", "Info")
+	self:MessageOld(args.spellId, "red", "info")
 end
 
 do
@@ -514,7 +514,7 @@ do
 		local t = GetTime()
 		if t-prev > 1 then -- Throttle because 8 adds cast it simultaneously
 			prev = t
-			self:Message(args.spellId, "orange", "Info")
+			self:MessageOld(args.spellId, "orange", "info")
 			self:CastBar(args.spellId, self:Mythic() and 15 or 30)
 		end
 	end
@@ -522,7 +522,7 @@ end
 
 --[[ Mythic ]]--
 function mod:SeveredSoul()
-	self:Message(230901, "green", "Info")
+	self:MessageOld(230901, "green", "info")
 	self:Bar(230901, 45, CL.over:format(self:SpellName(230901))) -- Fel Soul
 	self:CDBar(230504, phase % 3 == 1 and 18 or phase % 3 == 2 and 11 or 10) -- Decimate
 	if phase % 3 == 0 then -- Magic
@@ -537,12 +537,12 @@ function mod:SeveredSoulRemoved()
 end
 
 function mod:Decimate(args)
-	self:Message(args.spellId, "orange")
+	self:MessageOld(args.spellId, "orange")
 	self:CDBar(args.spellId, phase % 3 == 1 and 20.5 or phase % 3 == 2 and 17 or 18)
 end
 
 function mod:FelLash(args)
-	self:Message(args.spellId, "green", "Long", CL.count:format(args.spellName, felLashCount))
+	self:MessageOld(args.spellId, "green", "long", CL.count:format(args.spellName, felLashCount))
 	felLashCount = felLashCount + 1
 	local timer = timers[args.spellId][felLashCount]
 	if timer then
@@ -557,7 +557,7 @@ do
 		local t = GetTime()
 		if self:Me(args.destGUID) and t-prev > 1.5 then
 			prev = t
-			self:Message(args.spellId, "blue", "Alert", CL.underyou:format(args.spellName))
+			self:MessageOld(args.spellId, "blue", "alert", CL.underyou:format(args.spellName))
 		end
 	end
 end

@@ -94,7 +94,7 @@ do
 			end
 
 			if stage == 2 or stage == 3 then
-				self:Message2("stages", "cyan", CL.stage:format(stage), false)
+				self:Message("stages", "cyan", CL.stage:format(stage), false)
 				self:PlaySound("stages", "long")
 				-- The dead bosses use their abilities a number of seconds after the current living one spawns
 				startTimer(bossOrder[1], 15.8)
@@ -122,7 +122,7 @@ end
 
 function mod:CHAT_MSG_RAID_BOSS_EMOTE(_, msg, _, _, _, destName)
 	if msg:find("266951") then -- Barrel Through
-		self:TargetMessage2(266951, "red", destName)
+		self:TargetMessage(266951, "red", destName)
 		self:PlaySound(266951, "warning", nil, destName)
 		local guid = UnitGUID(destName)
 		if self:Me(guid) then
@@ -140,20 +140,20 @@ function mod:CHAT_MSG_RAID_BOSS_EMOTE(_, msg, _, _, _, destName)
 end
 
 function mod:PoisonNova(args)
-	self:Message2(args.spellId, "orange")
+	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alarm")
 	local mobId = self:MobId(UnitGUID("boss1"))
 	self:Bar(args.spellId, mobId == 135472 and 29.2 or 51) -- Zanazal the Wise
 end
 
 function mod:CalloftheElements(args)
-	self:Message2(args.spellId, "yellow")
+	self:Message(args.spellId, "yellow")
 	self:PlaySound(args.spellId, "long")
 	self:CDBar(args.spellId, 53.5) -- Can be delayed if the boss is casting Poison Nova
 end
 
 function mod:WhirlingAxes(args)
-	self:Message2(args.spellId, "yellow")
+	self:Message(args.spellId, "yellow")
 	self:PlaySound(args.spellId, "alert")
 	local mobId = self:MobId(UnitGUID("boss1"))
 	self:Bar(args.spellId, mobId == 135475 and 10.9 or 50) -- Kula the Butcher
@@ -164,13 +164,13 @@ function mod:SeveringAxeSuccess(args)
 end
 
 function mod:SeveringAxeApplied(args)
-	self:TargetMessage2(args.spellId, "orange", args.destName)
+	self:TargetMessage(args.spellId, "orange", args.destName)
 	if self:Me(args.destGUID) or self:Healer() then
 		self:PlaySound(args.spellId, "alarm", nil, args.destName)
 	end
 end
 
 function mod:DebilitatingBackhand(args)
-	self:Message2(args.spellId, "purple")
+	self:Message(args.spellId, "purple")
 	self:PlaySound(args.spellId, "alarm")
 end

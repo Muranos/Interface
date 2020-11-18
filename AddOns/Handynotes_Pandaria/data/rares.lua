@@ -23,7 +23,7 @@ shared.rareData = {
   },
   [69769] = {
     name = 'Zandalari Warbringer',
-    description = 'The color of the NPC\'s mount determines the color of the mount that can drop.',
+    description = 'The color of the NPCs mount determines the color of the mount that can drop.',
   },
   [69768] = {
     name = 'Zandalari Warscout',

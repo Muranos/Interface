@@ -236,7 +236,7 @@ do
 		end
 	end
 
-	local blockPrint = false
+	local lastNamePlateBar = 0
 	local lastSpell = 1
 	local lastTest = 1
 	function core:Test()
@@ -261,11 +261,12 @@ do
 
 		local guid = UnitGUID("target")
 		if guid then
-			if not blockPrint then
-				blockPrint = true
+			local t = GetTime()
+			if (t - lastNamePlateBar) > 25 then
+				lastNamePlateBar = t
 				core:Print(L.testNameplate)
+				core:SendMessage("BigWigs_StartNameplateBar", core, msg, msg, 25, icon, false, guid)
 			end
-			core:SendMessage("BigWigs_StartNameplateBar", core, msg, msg, time, icon, false, guid)
 		end
 	end
 end
@@ -455,6 +456,7 @@ end
 do
 	local EJ_GetEncounterInfo = EJ_GetEncounterInfo
 	local errorAlreadyRegistered = "%q already exists as a module in BigWigs, but something is trying to register it again."
+	local errorJournalIdInvalid = "%q is using the invalid journal id of %q."
 	local bossMeta = { __index = bossPrototype, __metatable = false }
 	function core:NewBoss(moduleName, zoneId, journalId, instanceId)
 		if bosses[moduleName] then
@@ -477,8 +479,14 @@ do
 			initModules[#initModules+1] = m
 
 			if journalId then
-				m.journalId = journalId
-				m.displayName = EJ_GetEncounterInfo(journalId)
+				local name = EJ_GetEncounterInfo(journalId)
+				if name then
+					m.journalId = journalId
+					m.displayName = EJ_GetEncounterInfo(journalId)
+				else
+					m.displayName = moduleName
+					core:Print(errorJournalIdInvalid:format(moduleName, journalId))
+				end
 			else
 				m.displayName = moduleName
 			end

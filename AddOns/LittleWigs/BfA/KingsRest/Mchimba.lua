@@ -38,13 +38,13 @@ end
 --
 
 function mod:BurnCorruption(args)
-	self:Message2(args.spellId, "red")
+	self:Message(args.spellId, "red")
 	self:PlaySound(args.spellId, "warning")
 	self:CDBar(args.spellId, 13) -- pull:11.1, 13.3, 23.9, 13.4, 19.5, 32.8
 end
 
 function mod:DrainFluids(args)
-	self:TargetMessage2(args.spellId, "orange", args.destName)
+	self:TargetMessage(args.spellId, "orange", args.destName)
 	if self:Me(args.destGUID) or self:Healer() then
 		self:PlaySound(args.spellId, "alarm", nil, args.destName)
 	end
@@ -52,7 +52,7 @@ function mod:DrainFluids(args)
 end
 
 function mod:EntombApplied(args)
-	self:TargetMessage2(args.spellId, "yellow", args.destName)
+	self:TargetMessage(args.spellId, "yellow", args.destName)
 	self:PlaySound(args.spellId, "info", nil, args.destName)
 	self:StopBar(267639) -- Burn Corruption
 	self:StopBar(267618) -- Drain Fluids
@@ -60,7 +60,7 @@ function mod:EntombApplied(args)
 end
 
 function mod:EntombRemoved(args)
-	self:Message2(args.spellId, "green", CL.over:format(args.spellName))
+	self:Message(args.spellId, "green", CL.over:format(args.spellName))
 	self:PlaySound(args.spellId, "long")
 	self:CDBar(267639, 10.4) -- Burn Corruption
 	self:CDBar(267618, 17.3) -- Drain Fluids

@@ -42,6 +42,11 @@ local PlaySound = PlaySound
 local RegisterStateDriver = RegisterStateDriver
 local UnitName = UnitName
 
+local CONTAINER_WIDTH = 192
+local VISIBLE_CONTAINER_SPACING = 3
+local CONTAINER_SCALE = 0.75
+local CONTAINER_SPACING = 0
+
 local UIParent = UIParent
 
 local MOVANY = _G.MOVANY
@@ -131,6 +136,8 @@ local MovAny = {
 		["ArenaPrepFrames"] = true,
 		--["ArenaEnemyFrames"] = true,
 		["PetBattleFrame"] = true,
+		["ExtraActionBarFrame"] = true,
+		["ZoneAbilityFrame"] = true,
 		["StoreFrame"] = true
 	},
 	lCreateVMs = {
@@ -278,6 +285,8 @@ local MovAny = {
 		BuffFrame = "BuffFrame",
 		ConsolidatedBuffFrame = "ConsolidatedBuffFrame",
 		TemporaryEnchantFrame = "TemporaryEnchantFrame",
+		ExtraActionBarFrame = "ExtraActionBarFrame",
+		ZoneAbilityFrame = "ZoneAbilityFrame",
 	},
 	rendered = nil,
 	nextFrameIdx = 1,
@@ -1477,6 +1486,7 @@ function MovAny.hSetPoint(f, ...)
 					f.MAPoint = nil
 					f:ClearAllPoints()
 					if p then
+						f:ClearAllPoints()
 						f:SetPoint(unpack(p))
 						f.MAPoint = p
 					end
@@ -3133,7 +3143,7 @@ function MovAny:MoverOnSizeChanged(mover)
 			mover:SetWidth(w)
 			mover:SetHeight(h)
 			local label = _G[ mover:GetName().."BackdropInfoLabel"]
-			label:SetWidth(w+100)
+			label:SetWidth(w + 100)
 			label:SetHeight(h)
 		end
 		local label = _G[ mover:GetName().."BackdropInfoLabel"]
@@ -3825,27 +3835,24 @@ function MovAny:Center(lock)
 	if lock == 0 then
 		-- Both
 		mover:ClearAllPoints()
-		mover:SetPoint("CENTER",0,0)
+		mover:SetPoint("CENTER", 0, 0)
 		x = mover:GetLeft()
 		y = mover:GetBottom()
-		mover:ClearAllPoints()
-		mover:SetPoint("BOTTOMLEFT",x,y)
+		mover:SetPoint("BOTTOMLEFT", x, y)
 	else
 		x = mover:GetLeft()
 		y = mover:GetBottom()
 		mover:ClearAllPoints()
 		if lock == 1 then
 			-- Horizontal
-			mover:SetPoint("CENTER",0,0)
+			mover:SetPoint("CENTER", 0, 0)
 			x = mover:GetLeft()
-			mover:ClearAllPoints()
-			mover:SetPoint("BOTTOMLEFT",x,y)
+			mover:SetPoint("BOTTOMLEFT", x, y)
 		elseif lock == 2 then
 			-- Vertical
-			mover:SetPoint("CENTER",0,0)
+			mover:SetPoint("CENTER", 0, 0)
 			y = mover:GetBottom()
-			mover:ClearAllPoints()
-			mover:SetPoint("BOTTOMLEFT",x,y)
+			mover:SetPoint("BOTTOMLEFT", x, y)
 		end
 	end
 	mover.skipGroups = true
@@ -3899,13 +3906,13 @@ function MovAny:SizingAnchor(button)
 	local anchorto = string.sub(button:GetName(), e + 1)
 	local anchor
 	if anchorto == "LEFT"  then
-		anchor = "RIGHT"
-	elseif anchorto == "RIGHT" then
 		anchor = "LEFT"
+	elseif anchorto == "RIGHT" then
+		anchor = "RIGHT"
 	elseif anchorto == "TOP"  then
-		anchor = "BOTTOM"
-	elseif anchorto == "BOTTOM" then
 		anchor = "TOP"
+	elseif anchorto == "BOTTOM" then
+		anchor = "BOTTOM"
 	end
 	return anchorto, anchor
 end
@@ -5277,8 +5284,10 @@ function MovAny_OptionsOnShow()
 	end
 	if type(MADB.characters) == "table" then
 		local profile = MovAny:GetProfileName()
-		Lib_UIDropDownMenu_Initialize(MAOptProfileDropDown, MovAny.ProfileDropDownInit)
-		Lib_UIDropDownMenu_SetSelectedValue(MAOptProfileDropDown, profile)
+		if MAOptProfileFrame_DropDown then
+			MSA_DropDownMenu_Initialize(MAOptProfileFrame_DropDown, MovAny.ProfileDropDownInit)
+			MSA_DropDownMenu_SetSelectedName(MAOptProfileFrame_DropDown, profile)
+		end
 		if "default" == profile then
 			MAOptProfileRename:Disable()
 			MAOptProfileDelete:Disable()
@@ -5331,21 +5340,29 @@ function MovAny:ProfileDeleteClicked(b)
 	StaticPopup_Show("MOVEANYTHING_PROFILE_DELETE", MovAny:GetProfileName())
 end
 
+function MovAny:ProfileDropdownOnLoad(frame)
+	local dropdown = MSA_DropDownMenu_Create(frame:GetName().."_DropDown", frame)
+	dropdown:SetAllPoints(frame)
+	MSA_DropDownMenu_Initialize(dropdown, MovAny.ProfileDropDownInit)
+	MSA_DropDownMenu_SetWidth(dropdown, 200)
+end
+
 function MovAny.ProfileDropDownClicked(b)
 	MovAny:ChangeProfile(b.value)
 	MovAny_OptionsOnShow()
 end
+
 function MovAny.ProfileDropDownInit()
 	local sel = MovAny:GetProfileName()
 	local info
-	info = Lib_UIDropDownMenu_CreateInfo()
+	info = MSA_DropDownMenu_CreateInfo()
 	info.text = "default"
 	info.value = "default"
 	info.func = MovAny.ProfileDropDownClicked
 	if "default" == sel then
 		info.checked = true
 	end
-	Lib_UIDropDownMenu_AddButton(info)
+	MSA_DropDownMenu_AddButton(info)
 	local names = { }
 	for name, _ in pairs(MADB.profiles) do
 		tinsert(names, name)
@@ -5355,14 +5372,14 @@ function MovAny.ProfileDropDownInit()
 	end)
 	for _, name in pairs(names) do
 		if "default" ~= name then
-			info = Lib_UIDropDownMenu_CreateInfo()
+			info = MSA_DropDownMenu_CreateInfo()
 			info.text = name
 			info.value = name
 			info.func = MovAny.ProfileDropDownClicked
 			if name == sel then
 				info.checked = true
 			end
-			Lib_UIDropDownMenu_AddButton(info)
+			MSA_DropDownMenu_AddButton(info)
 		end
 	end
 end

@@ -1,4 +1,4 @@
-## Interface: 80300
+## Interface: 90002
 
 ## Title: BigWigs [|cffeda55fCastle Nathria|r]
 ## Title-deDE: BigWigs [|cffeda55fCastle Nathria|r]
@@ -6,8 +6,8 @@
 ## Title-esMX: BigWigs [|cffeda55fCastle Nathria|r]
 ## Title-frFR: BigWigs [|cffeda55fCastle Nathria|r]
 ## Title-ruRU: BigWigs [|cffeda55fCastle Nathria|r]
-## Title-zhCN: BigWigs [|cffeda55fCastle Nathria|r]
-## Title-zhTW: BigWigs [|cffeda55fCastle Nathria|r]
+## Title-zhCN: BigWigs [|cffeda55f纳斯利亚堡|r]
+## Title-zhTW: BigWigs [|cffeda55f納撒亞城|r]
 ## Title-itIT: BigWigs [|cffeda55fCastle Nathria|r]
 ## Title-ptBR: BigWigs [|cffeda55fCastle Nathria|r]
 ## Title-koKR: BigWigs [|cffeda55fCastle Nathria|r]
@@ -17,11 +17,12 @@
 ## Notes-esMX: BigWigs Castle Nathria Modules
 ## Notes-frFR: BigWigs Castle Nathria Modules
 ## Notes-ruRU: BigWigs Castle Nathria Modules
-## Notes-zhCN: BigWigs Castle Nathria Modules
-## Notes-zhTW: BigWigs Castle Nathria Modules
+## Notes-zhCN: BigWigs 纳斯利亚堡模块。
+## Notes-zhTW: BigWigs 納撒亞城模組。
 ## Notes-itIT: BigWigs Castle Nathria Modules
 ## Notes-ptBR: BigWigs Castle Nathria Modules
 ## Notes-koKR: BigWigs Castle Nathria Modules
+## Version: v187
 
 ## LoadOnDemand: 1
 ## Dependencies: BigWigs

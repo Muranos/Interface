@@ -31,17 +31,17 @@ end
 --
 
 function mod:EmbraceOfTheVampyr(args)
-	self:TargetMessage(59513, args.destName, "red", "Warning", nil, nil, true)
+	self:TargetMessageOld(59513, args.destName, "red", "warning", nil, nil, true)
 	self:Bar(59513, 20)
 end
 
 function mod:EmbraceOfTheVampyrRemoved(args)
-	self:Message(59513, "green", nil, CL.over:format(args.spellName))
+	self:MessageOld(59513, "green", nil, CL.over:format(args.spellName))
 	self:StopBar(args.spellName)
 end
 
 function mod:ConjureFlameSphere(args)
-	self:Message(args.spellId, "red")
+	self:MessageOld(args.spellId, "red")
 	self:Bar(args.spellId, 10)
 end
 

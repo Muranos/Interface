@@ -356,7 +356,7 @@ For more information on customizing Pawn, please see the help file (Readme.htm) 
 		["ScopeCrit"] = "^Scope %(%+# Critical Strike%)$",
 		["ScopeRangedCrit"] = "^%+?# Ranged Critical Strike$",
 		["ShadowResist"] = "^Устойчивость: %+# тьма$",
-		["ShadowSpellDamage"] = "^%+# урону от заклинаний темной магии$",
+		["ShadowSpellDamage"] = "^%+# к урону от заклинаний темной магии$",
 		["ShadowSpellDamage2"] = "^Если на персонаже: Увеличение урона, наносимого заклинаниями и эффектами темной магии, на # ед%.$",
 		["ShadowSpellDamage3"] = "^UNUSED$",
 		["Shield"] = "^Щит$",
@@ -708,6 +708,10 @@ end
 
 if GetLocale() == "ruRU" then
 	PawnUseThisLocalization()
+
+	if not VgerCore.IsClassic then
+		PawnLocal.ThousandsSeparator = ""
+	end
 end
 
 -- After using this localization or deciding that we don't need it, remove it from memory.

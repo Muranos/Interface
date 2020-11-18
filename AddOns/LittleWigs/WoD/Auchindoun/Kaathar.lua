@@ -48,7 +48,7 @@ end
 
 do
 	local function printTarget(self, player)
-		self:TargetMessage(153002, player, "orange", "Alert", nil, nil, true)
+		self:TargetMessageOld(153002, player, "orange", "alert", nil, nil, true)
 	end
 	function mod:HolyShield(args)
 		self:GetBossTarget(printTarget, 0.4, args.sourceGUID)
@@ -58,7 +58,7 @@ do
 end
 
 function mod:ConsecratedLight(args)
-	self:Message(args.spellId, "red", "Warning")
+	self:MessageOld(args.spellId, "red", "warning")
 	self:Bar(args.spellId, self:Normal() and 12 or 8, CL.cast:format(args.spellName))
 	self:Flash(args.spellId)
 end
@@ -70,7 +70,7 @@ end
 
 function mod:SanctifiedStrike(args)
 	strikeCount = strikeCount + 1
-	self:Message(args.spellId, "red")
+	self:MessageOld(args.spellId, "red")
 	if strikeCount < 3 then
 		self:CDBar(args.spellId, 8.5)
 	end
@@ -78,6 +78,6 @@ end
 
 function mod:SanctifiedGround(args)
 	if self:Me(args.destGUID) then
-		self:Message(args.spellId, "blue", "Alarm", CL.underyou:format(args.spellName))
+		self:MessageOld(args.spellId, "blue", "alarm", CL.underyou:format(args.spellName))
 	end
 end

@@ -48,13 +48,18 @@ function Crafting.OnInitialize()
 	local used = TempTable.Acquire()
 	for _, craftInfo in pairs(TSM.db.factionrealm.internalData.crafts) do
 		for itemString in pairs(craftInfo.mats) do
-			used[itemString] = true
-			if not TSM.db.factionrealm.internalData.mats[itemString] then
-				TSM.db.factionrealm.internalData.mats[itemString] = {}
+			if strmatch(itemString, "^o:") then
+				local _, _, matList = strsplit(":", itemString)
+				for matItemId in String.SplitIterator(matList, ",") do
+					used["i:"..matItemId] = true
+				end
+			else
+				used[itemString] = true
 			end
-			-- clear the old name field
-			TSM.db.factionrealm.internalData.mats[itemString].name = nil
 		end
+	end
+	for itemString in pairs(used) do
+		TSM.db.factionrealm.internalData.mats[itemString] = TSM.db.factionrealm.internalData.mats[itemString] or {}
 	end
 	for itemString in pairs(TSM.db.factionrealm.internalData.mats) do
 		if not used[itemString] then
@@ -101,10 +106,20 @@ function Crafting.OnInitialize()
 		for matItemString, matQuantity in pairs(craftInfo.mats) do
 			private.matDB:BulkInsertNewRow(spellId, matItemString, matQuantity)
 			professionItems[craftInfo.profession] = professionItems[craftInfo.profession] or TempTable.Acquire()
-			professionItems[craftInfo.profession][matItemString] = true
 			matSpellCount[spellId] = (matSpellCount[spellId] or 0) + 1
-			matFirstItemString[spellId] = matItemString
-			matFirstQuantity[spellId] = matQuantity
+			if matQuantity > 0 then
+				matFirstItemString[spellId] = matItemString
+				matFirstQuantity[spellId] = matQuantity
+			end
+			if strmatch(matItemString, "^o:") then
+				local _, _, matList = strsplit(":", matItemString)
+				for matItemId in String.SplitIterator(matList, ",") do
+					local optionalMatItemString = "i:"..matItemId
+					professionItems[craftInfo.profession][optionalMatItemString] = true
+				end
+			else
+				professionItems[craftInfo.profession][matItemString] = true
+			end
 		end
 	end
 	TempTable.Release(playersTemp)
@@ -114,10 +129,12 @@ function Crafting.OnInitialize()
 	private.matDBMatsInTableQuery = private.matDB:NewQuery()
 		:Select("itemString", "quantity")
 		:Equal("spellId", Database.BoundQueryParam())
+		:GreaterThan("quantity", 0)
 	private.matDBMatNamesQuery = private.matDB:NewQuery()
 		:Select("name")
 		:InnerJoin(ItemInfo.GetDBForJoin(), "itemString")
 		:Equal("spellId", Database.BoundQueryParam())
+		:GreaterThan("quantity", 0)
 
 	private.matItemDB = Database.NewSchema("CRAFTING_MAT_ITEMS")
 		:AddUniqueStringField("itemString")
@@ -309,6 +326,18 @@ function Crafting.MatIterator(spellId)
 	return private.matDB:NewQuery()
 		:Select("itemString", "quantity")
 		:Equal("spellId", spellId)
+		:GreaterThan("quantity", 0)
+		:IteratorAndRelease()
+end
+
+function Crafting.GetOptionalMatIterator(spellId)
+	return private.matDB:NewQuery()
+		:Select("itemString", "slotId", "text")
+		:VirtualField("slotId", "number", private.OptionalMatSlotIdVirtualField, "itemString")
+		:VirtualField("text", "string", private.OptionalMatTextVirtualField, "itemString")
+		:Equal("spellId", spellId)
+		:LessThan("quantity", 0)
+		:OrderBy("slotId", true)
 		:IteratorAndRelease()
 end
 
@@ -517,23 +546,13 @@ function Crafting.SetMats(spellId, matQuantities)
 				:SetField("itemString", itemString)
 				:SetField("quantity", quantity)
 				:Create()
-			local matItemRow = private.matItemDB:GetUniqueRow("itemString", itemString)
-			if matItemRow then
-				-- update the professions if necessary
-				local professions = TempTable.Acquire(strsplit(PROFESSION_SEP, matItemRow:GetField("professions")))
-				if not Table.KeyByValue(professions, profession) then
-					tinsert(professions, profession)
-					sort(professions)
-					matItemRow:SetField("professions", table.concat(professions, PROFESSION_SEP))
-						:Update()
-				end
-				TempTable.Release(professions)
+			if quantity > 0 then
+				private.MatItemDBUpdateOrInsert(itemString, profession)
 			else
-				private.matItemDB:NewRow()
-					:SetField("itemString", itemString)
-					:SetField("professions", profession)
-					:SetField("customValue", TSM.db.factionrealm.internalData.mats[itemString].customValue or "")
-					:Create()
+				local _, _, matList = strsplit(":", itemString)
+				for matItemId in String.SplitIterator(matList, ",") do
+					private.MatItemDBUpdateOrInsert("i:"..matItemId, profession)
+				end
 			end
 		end
 	end
@@ -650,6 +669,16 @@ function private.MatCostVirtualField(itemString)
 	return TSM.Crafting.Cost.GetMatCost(itemString) or Math.GetNan()
 end
 
+function private.OptionalMatSlotIdVirtualField(matStr)
+	local _, slotId = strsplit(":", matStr)
+	return tonumber(slotId)
+end
+
+function private.OptionalMatTextVirtualField(matStr)
+	local _, _, matList = strsplit(":", matStr)
+	return TSM.Crafting.ProfessionUtil.GetOptionalMatText(matList) or OPTIONAL_REAGENT_POSTFIX
+end
+
 function private.GetRestockHelpMessage(itemString)
 	-- check if the item is in a group
 	local groupPath = TSM.Groups.GetPathByItem(itemString)
@@ -723,4 +752,25 @@ end
 
 function private.GetTotalQuantity(itemString)
 	return CustomPrice.GetItemPrice(itemString, "NumInventory") or 0
+end
+
+function private.MatItemDBUpdateOrInsert(itemString, profession)
+	local matItemRow = private.matItemDB:GetUniqueRow("itemString", itemString)
+	if matItemRow then
+		-- update the professions if necessary
+		local professions = TempTable.Acquire(strsplit(PROFESSION_SEP, matItemRow:GetField("professions")))
+		if not Table.KeyByValue(professions, profession) then
+			tinsert(professions, profession)
+			sort(professions)
+			matItemRow:SetField("professions", table.concat(professions, PROFESSION_SEP))
+				:Update()
+		end
+		TempTable.Release(professions)
+	else
+		private.matItemDB:NewRow()
+			:SetField("itemString", itemString)
+			:SetField("professions", profession)
+			:SetField("customValue", TSM.db.factionrealm.internalData.mats[itemString].customValue or "")
+			:Create()
+	end
 end

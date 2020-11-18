@@ -91,7 +91,7 @@ do
 end
 
 function mod:BreathOfFire(args)
-	self:Message2(args.spellId, "red", CL.casting:format(args.spellName))
+	self:Message(args.spellId, "red", CL.casting:format(args.spellName))
 	local _, ready = self:Interrupter()
 	if ready then
 		self:PlaySound(args.spellId, "long")
@@ -104,7 +104,7 @@ do
 			self:Say(288959)
 			self:PlaySound(288959, "warning")
 		end
-		self:TargetMessage2(288959, "yellow", player)
+		self:TargetMessage(288959, "yellow", player)
 	end
 	function mod:SpectralCharge(args)
 		self:GetUnitTarget(printTarget, 0.3, args.sourceGUID)
@@ -116,7 +116,7 @@ function mod:Impale(args)
 		self:Say(args.spellId)
 	end
 	self:PlaySound(args.spellId, "long")
-	self:TargetMessage2(args.spellId, "red", args.destName)
+	self:TargetMessage(args.spellId, "red", args.destName)
 	self:TargetBar(args.spellId, 15, args.destName)
 end
 
@@ -126,21 +126,21 @@ end
 
 function mod:ThunderingSlam(args)
 	self:PlaySound(args.spellId, "long")
-	self:Message2(args.spellId, "yellow", CL.casting:format(args.spellName))
+	self:Message(args.spellId, "yellow", CL.casting:format(args.spellName))
 end
 
 function mod:BwonsamdisPact(args)
 	if self:Me(args.destGUID) then
 		self:PlaySound(args.spellId, "warning")
 	end
-	self:TargetMessage2(args.spellId, "orange", args.destName)
+	self:TargetMessage(args.spellId, "orange", args.destName)
 end
 
 function mod:BwonsamdisKnife(args)
 	if self:Me(args.destGUID) then
 		self:PlaySound(args.spellId, "warning") -- Only if you were the target, the caster already knows
-		self:Message2(args.spellId, "blue", L.victim:format(self:ColorName(args.sourceName), args.spellName))
+		self:Message(args.spellId, "blue", L.victim:format(self:ColorName(args.sourceName), args.spellName))
 	else
-		self:Message2(args.spellId, "red", L.witness:format(self:ColorName(args.sourceName), self:ColorName(args.destName), args.spellName))
+		self:Message(args.spellId, "red", L.witness:format(self:ColorName(args.sourceName), self:ColorName(args.destName), args.spellName))
 	end
 end

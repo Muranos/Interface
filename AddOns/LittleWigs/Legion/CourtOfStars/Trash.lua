@@ -510,7 +510,7 @@ do
 			knownClues[clue] = true
 			clueCount = clueCount + 1
 			self:SetInfo("spy_helper", (clueCount*2)-1, L.hints[clue])
-			self:Message("spy_helper", "cyan", "Info", L.clueFound:format(clueCount, L.hints[clue]), false)
+			self:MessageOld("spy_helper", "cyan", "info", L.clueFound:format(clueCount, L.hints[clue]), false)
 		end
 	end
 
@@ -523,7 +523,7 @@ do
 	local function printNew(locale, clue)
 		timer = nil
 		knownClues[clue] = true -- Throttle to only show once per new message
-		if clue == GetGossipText() then -- Extra safety
+		if clue == C_GossipInfo.GetText() then -- Extra safety
 			RaidNotice_AddMessage(RaidWarningFrame, "LittleWigs: Unknown clue detected, see chat for info.", {r=1,g=1,b=1})
 			BigWigs:Print("LittleWigs has found an unknown clue, please report it on Discord or GitHub so we can add it and shorten the message.")
 			BigWigs:Error(("|cffffff00TELL THE AUTHORS:|r New clue '%s' with '%s'"):format(clue, locale))
@@ -540,8 +540,8 @@ do
 		local mobId = self:MobId(UnitGUID("npc"))
 		local spyEventHelper = self:GetOption("spy_helper") > 0
 		if autoTalk[mobId] or buffItems[mobId] then
-			if not GetGossipOptions() and mobId == 107486 then -- Chatty Rumormonger
-				local clue = GetGossipText()
+			if not self:GetGossipOptions() and mobId == 107486 then -- Chatty Rumormonger
+				local clue = C_GossipInfo.GetText()
 				local num = L[clue]
 				if num then
 					prev = GetTime()
@@ -558,14 +558,14 @@ do
 				end
 			end
 			if (spyEventHelper and autoTalk[mobId]) or (self:GetOption("custom_on_use_buff_items") and buffItems[mobId]) then
-				SelectGossipOption(1)
+				self:SelectGossipOption(1)
 			end
 		end
 	end
 
 	function mod:CHAT_MSG_MONSTER_SAY(_, msg, _, _, _, target)
 		if msg:find(L.spyFoundPattern) and self:GetOption("spy_helper") > 0 then
-			self:Message("spy_helper", "green", "Info", L.spyFound:format(self:ColorName(target)), false)
+			self:MessageOld("spy_helper", "green", "info", L.spyFound:format(self:ColorName(target)), false)
 			self:CloseInfo("spy_helper")
 			if target == self:UnitName("player") then
 				sendChatMessage(L.spyFoundChat, englishSpyFound ~= L.spyFoundChat and englishSpyFound)
@@ -645,7 +645,7 @@ do
 			end
 		end
 
-		self:Message("announce_buff_items", "cyan", "Info", message, false)
+		self:MessageOld("announce_buff_items", "cyan", "info", message, false)
 	end
 
 	local prevTable, lastProfessionUpdate = {}, 0
@@ -732,12 +732,12 @@ end
 
 function mod:AlertCasts(args)
 	if throttleMessages(args.spellId) then return end
-	self:Message(args.spellId, "yellow", "Alert", CL.casting:format(args.spellName))
+	self:MessageOld(args.spellId, "yellow", "alert", CL.casting:format(args.spellName))
 end
 
 function mod:AlarmCasts(args)
 	if throttleMessages(args.spellId) then return end
-	self:Message(args.spellId, "red", "Alarm", CL.casting:format(args.spellName))
+	self:MessageOld(args.spellId, "red", "alarm", CL.casting:format(args.spellName))
 end
 
 do
@@ -747,7 +747,7 @@ do
 			local t = GetTime()
 			if t-prev > 1.5 then
 				prev = t
-				self:Message(args.spellId, "blue", "Warning", CL.underyou:format(args.spellName))
+				self:MessageOld(args.spellId, "blue", "warning", CL.underyou:format(args.spellName))
 			end
 		end
 	end
@@ -755,18 +755,18 @@ end
 
 function mod:Fortification(args)
 	if self:Dispeller("magic", true) and not UnitIsPlayer(args.destName) then -- mages can spellsteal it
-		self:TargetMessage(args.spellId, args.destName, "orange", not throttleMessages(args.spellId) and "Alert", nil, nil, true)
+		self:TargetMessageOld(args.spellId, args.destName, "orange", not throttleMessages(args.spellId) and "alert", nil, nil, true)
 	end
 end
 
 function mod:Suppress(args)
-	self:TargetMessage(args.spellId, args.destName, "orange", not throttleMessages(args.spellId) and "Alert", nil, nil, self:Dispeller("magic"))
+	self:TargetMessageOld(args.spellId, args.destName, "orange", not throttleMessages(args.spellId) and "alert", nil, nil, self:Dispeller("magic"))
 	self:TargetBar(args.spellId, 6, args.destName)
 end
 
 function mod:SingleTargetDebuffs(args)
 	if self:Me(args.destGUID) or self:Dispeller("magic") then
-		self:TargetMessage(args.spellId, args.destName, "orange", not throttleMessages(args.spellId) and "Alert", nil, nil, self:Dispeller("magic"))
+		self:TargetMessageOld(args.spellId, args.destName, "orange", not throttleMessages(args.spellId) and "alert", nil, nil, self:Dispeller("magic"))
 		self:TargetBar(args.spellId, 8, args.destName)
 	end
 end
@@ -780,18 +780,18 @@ do
 	function mod:SealMagic(args)
 		playerList[#playerList + 1] = args.destName
 		if #playerList == 1 then
-			self:ScheduleTimer("TargetMessage", 0.3, args.spellId, args.destName, "orange", not throttleMessages(args.spellId) and "Alert", nil, nil, self:Dispeller("magic"))
+			self:ScheduleTimer("TargetMessageOld", 0.3, args.spellId, args.destName, "orange", not throttleMessages(args.spellId) and "alert", nil, nil, self:Dispeller("magic"))
 		end
 	end
 end
 
 function mod:DisintegrationBeam(args)
-	self:Message(args.spellId, "yellow", "Long")
+	self:MessageOld(args.spellId, "yellow", "long")
 	self:CastBar(args.spellId, 5)
 end
 
 function mod:EyeStorm(args)
-	self:Message(args.spellId, "yellow", "Long")
+	self:MessageOld(args.spellId, "yellow", "long")
 	self:CastBar(args.spellId, 8)
 end
 
@@ -801,7 +801,7 @@ do
 		local t = GetTime()
 		if t-prev > 10 then
 			prev = t
-			self:TargetMessage(args.spellId, args.sourceName, "cyan", "Info")
+			self:TargetMessageOld(args.spellId, args.sourceName, "cyan", "info")
 		end
 	end
 end
@@ -812,7 +812,7 @@ do
 		local t = GetTime()
 		if t-prev > 10 then
 			prev = t
-			self:TargetMessage(args.spellId, args.sourceName, "green", "Long", args.destName)
+			self:TargetMessageOld(args.spellId, args.sourceName, "green", "long", args.destName)
 		end
 	end
 end

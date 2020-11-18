@@ -1,4 +1,4 @@
-Get [VuhDo release v3.112](https://www.curseforge.com/wow/addons/vuhdo/download/2898609) now with support for patch 8.3.0 Visions of N'Zoth!
+Get [VuhDo release v3.116](https://www.curseforge.com/wow/addons/vuhdo/download/3096761) now with support for patch 9.0.1 Shadowlands Pre-Expansion Event!
 
 To get started read the updated [guide over at Icy-Veins](https://www.icy-veins.com/forums/topic/11805-vuhdo-a-comprehensive-guide/).
 

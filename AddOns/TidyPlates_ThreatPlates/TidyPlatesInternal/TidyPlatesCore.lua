@@ -33,6 +33,7 @@ local TidyPlatesThreat = TidyPlatesThreat
 local Widgets = Addon.Widgets
 local Animations = Addon.Animations
 local LibClassicCasterino = Addon.LibClassicCasterino
+local BackdropTemplate = Addon.BackdropTemplate
 
 local GetNameForNameplate
 local UnitCastingInfo
@@ -981,17 +982,32 @@ do
     CoreEvents[event](event, ...)
   end
 
+  local function NamePlateDriverFrame_AcquireUnitFrame(_, plate)
+    local unit_frame = plate.UnitFrame
+    if not unit_frame:IsForbidden() and not unit_frame.ThreatPlates then
+      unit_frame.ThreatPlates = true
+      unit_frame:HookScript("OnShow", FrameOnShow)
+    end
+  end
+
+  function CoreEvents:PLAYER_LOGIN()
+    -- Fix for Blizzard default plates being shown at random times
+    if NamePlateDriverFrame and NamePlateDriverFrame.AcquireUnitFrame then
+      hooksecurefunc(NamePlateDriverFrame, "AcquireUnitFrame", NamePlateDriverFrame_AcquireUnitFrame)
+    end
+  end
+
   function CoreEvents:PLAYER_ENTERING_WORLD()
 		TidyPlatesCore:SetScript("OnUpdate", OnUpdate)
+
   end
 
 	function CoreEvents:NAME_PLATE_CREATED(plate)
     OnNewNameplate(plate)
 
-    if plate.UnitFrame then -- not plate.TPFrame.onShowHooked then
-      plate.UnitFrame:HookScript("OnShow", FrameOnShow)
-      -- TODO: Idea from ElvUI, I think
-      -- plate.TPFrame.onShowHooked = true
+    -- NamePlateDriverFrame.AcquireUnitFrame is not used in Classic
+    if Addon.CLASSIC and plate.UnitFrame then
+      NamePlateDriverFrame_AcquireUnitFrame(nil, plate)
     end
 
     plate:HookScript('OnHide', FrameOnHide)
@@ -1152,7 +1168,7 @@ do
     end
   end
 
-  function CoreEvents:UNIT_HEALTH_FREQUENT(unitid)
+  local function UNIT_HEALTH(event, unitid)
     local plate = GetNamePlateForUnit(unitid)
 
     if plate and plate.TPFrame.Active then
@@ -1420,6 +1436,7 @@ do
     Addon.UNIT_SPELLCAST_CHANNEL_START = UNIT_SPELLCAST_CHANNEL_START
     Addon.UNIT_SPELLCAST_CHANNEL_STOP = UNIT_SPELLCAST_CHANNEL_STOP
     Addon.UnitSpellcastMidway = UnitSpellcastMidway
+    CoreEvents.UNIT_HEALTH_FREQUENT = UNIT_HEALTH
   else
     -- The following events should not have worked before adjusting UnitSpellcastMidway
     CoreEvents.UNIT_SPELLCAST_START = UNIT_SPELLCAST_START
@@ -1440,6 +1457,8 @@ do
     CoreEvents.UNIT_ABSORB_AMOUNT_CHANGED = UNIT_ABSORB_AMOUNT_CHANGED
     CoreEvents.UNIT_HEAL_ABSORB_AMOUNT_CHANGED = UNIT_HEAL_ABSORB_AMOUNT_CHANGED
     CoreEvents.PLAYER_FOCUS_CHANGED = PLAYER_FOCUS_CHANGED
+    -- UNIT_HEALTH_FREQUENT no longer supported in Retail since 9.0.1
+    CoreEvents.UNIT_HEALTH = UNIT_HEALTH
   end
 
 	CoreEvents.UNIT_LEVEL = UnitConditionChanged
@@ -1705,7 +1724,7 @@ function Addon:ConfigClickableArea(toggle_show)
         local extended = ConfigModePlate.TPFrame
 
         -- Draw background to show for clickable area
-        extended.Background = _G.CreateFrame("Frame", nil, plate)
+        extended.Background = _G.CreateFrame("Frame", nil, extended, BackdropTemplate)
         extended.Background:SetBackdrop({
           bgFile = ThreatPlates.Art .. "TP_WhiteSquare.tga",
           edgeFile = ThreatPlates.Art .. "TP_WhiteSquare.tga",

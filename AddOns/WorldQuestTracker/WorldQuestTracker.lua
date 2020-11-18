@@ -32,17 +32,13 @@ if (true) then
 	--return - nah, not today
 end
 
-
 local WorldQuestTracker = WorldQuestTrackerAddon
 local ff = WorldQuestTrackerFinderFrame
 local rf = WorldQuestTrackerRareFrame
 
-
-
 -- 219978
 -- /run SetSuperTrackedQuestID(44033);
 -- TaskPOI_OnClick
- 
 
 
 local GameCooltip = GameCooltip2
@@ -59,7 +55,6 @@ local GetNumQuestLogRewardCurrencies = GetNumQuestLogRewardCurrencies
 local GetQuestLogRewardInfo = GetQuestLogRewardInfo
 local GetQuestLogRewardCurrencyInfo = GetQuestLogRewardCurrencyInfo
 local GetQuestLogRewardMoney = GetQuestLogRewardMoney
-local GetQuestTagInfo = GetQuestTagInfo
 local GetNumQuestLogRewards = GetNumQuestLogRewards
 local GetQuestInfoByQuestID = C_TaskQuest.GetQuestInfoByQuestID
 local GetQuestTimeLeftMinutes = C_TaskQuest.GetQuestTimeLeftMinutes
@@ -67,13 +62,6 @@ local GetQuestTimeLeftMinutes = C_TaskQuest.GetQuestTimeLeftMinutes
 local MapRangeClamped = DF.MapRangeClamped
 local FindLookAtRotation = DF.FindLookAtRotation
 local GetDistance_Point = DF.GetDistance_Point
-
---importing FindLookAtRotation
-if (not FindLookAtRotation) then
-	FindLookAtRotation = function (_, x1, y1, x2, y2)
-		return atan2 (y2 - y1, x2 - x1) + pi
-	end
-end
 
 local _
 
@@ -244,7 +232,7 @@ function WorldQuestTracker:OnInit()
 	C_Timer.After (11, WorldQuestTracker.RequestRares)
 	C_Timer.After (12, WorldQuestTracker.CheckForOldRareFinderData)
 	
-	local canLoad = IsQuestFlaggedCompleted (WORLD_QUESTS_AVAILABLE_QUEST_ID)
+	local canLoad = C_QuestLog.IsQuestFlaggedCompleted(WORLD_QUESTS_AVAILABLE_QUEST_ID)
 	
 	local re_ZONE_CHANGED_NEW_AREA = function()
 		WorldQuestTracker:ZONE_CHANGED_NEW_AREA()
@@ -642,13 +630,27 @@ end
 	end
 
 	--pega os dados da quest
-	function WorldQuestTracker.GetQuest_Info (questID)
-		if (not HaveQuestData (questID)) then
+	function WorldQuestTracker.GetQuest_Info(questID)
+		if (not HaveQuestData(questID)) then
 			return
 		end
-		local title, factionID = GetQuestInfoByQuestID (questID)
-		local tagID, tagName, worldQuestType, rarity, isElite, tradeskillLineIndex = GetQuestTagInfo (questID)
-		return title, factionID, tagID, tagName, worldQuestType, rarity, isElite, tradeskillLineIndex
+
+		local title, factionID = GetQuestInfoByQuestID(questID)
+
+		local tagInfo = C_QuestLog.GetQuestTagInfo(questID)
+		if (not tagInfo) then
+			WorldQuestTracker:Msg("no tag info for quest:", questID, title)
+			return
+		end
+		
+		local tagID = tagInfo.tagID
+		local tagName = tagInfo.tagName
+		local worldQuestType = tagInfo.worldQuestType
+		local rarity = tagInfo.quality
+		local isElite = tagInfo.isElite
+		--local quality = tagInfo.quality
+
+		return title, factionID, tagID, tagName, worldQuestType, rarity, isElite
 	end
 
 	--pega o icone para as quest que dao goild
@@ -759,7 +761,7 @@ end
 
 --point of interest frame ~poiframe ~frame ~start
 --local worldFramePOIs = CreateFrame ("frame", "WorldQuestTrackerWorldMapPOI", WorldMapFrame.BorderFrame)
-local worldFramePOIs = CreateFrame ("frame", "WorldQuestTrackerWorldMapPOI", WorldMapFrame.ScrollContainer)
+local worldFramePOIs = CreateFrame ("frame", "WorldQuestTrackerWorldMapPOI", WorldMapFrame.ScrollContainer, "BackdropTemplate")
 worldFramePOIs:SetAllPoints()
 worldFramePOIs:SetFrameLevel (6701)
 local fadeInAnimation = worldFramePOIs:CreateAnimationGroup()
@@ -819,13 +821,12 @@ end
 local tutorial_one = function()
 
 	local widget = WorldQuestTracker.WorldSummaryQuestsSquares [1]
-	print (widget, widget and widget:IsShown())
 
 	local alert = CreateFrame ("frame", "WorldQuestTrackerTutorialAlert1", worldFramePOIs, "MicroButtonAlertTemplate")
 	alert:SetFrameLevel (302)
 	alert.label = L["S_TUTORIAL_CLICKTOTRACK"]
 	alert.Text:SetSpacing (4)
-	MicroButtonAlert_SetText (alert, alert.label)
+	MicroButtonAlert_SetText2 (alert, alert.label)
 	
 	if (widget and widget:IsShown()) then
 		alert:SetPoint ("bottom", widget, "top", 0, 28)
@@ -845,7 +846,7 @@ local tutorial_two = function()
 		alert:SetFrameLevel (302)
 		alert.label = L["S_TUTORIAL_WORLDBUTTONS"]
 		alert.Text:SetSpacing (4)
-		MicroButtonAlert_SetText (alert, alert.label)
+		MicroButtonAlert_SetText2 (alert, alert.label)
 		
 		alert:SetPoint ("bottom", WorldQuestTrackerToggleQuestsSummaryButton, "top", 0, 28)
 		
@@ -866,7 +867,7 @@ local tutorial_three = function()
 	alert:SetFrameLevel (302)
 	alert.label = L["S_TUTORIAL_STATISTICS_BUTTON"]
 	alert.Text:SetSpacing (4)
-	MicroButtonAlert_SetText (alert, alert.label)
+	MicroButtonAlert_SetText2 (alert, alert.label)
 	alert:SetPoint ("bottomleft", WorldQuestTrackerStatisticsButton, "topleft", 0, 32)
 	alert.Arrow:ClearAllPoints()
 	alert.Arrow:SetPoint ("topleft", alert, "bottomleft", 10, 0)
@@ -883,7 +884,12 @@ local tutorial_four = function()
 end
 
 function WorldQuestTracker.ShowTutorialAlert()
-	
+
+	if (true) then
+		--disabled tutorials for 9.0.1, due to "MicroButtonAlertTemplate" being nil, need to replace with the new animation
+		return
+	end
+
 	WorldQuestTracker.db.profile.TutorialPopupID = WorldQuestTracker.db.profile.TutorialPopupID or 1
 	
 	--WorldQuestTracker.db.profile.TutorialPopupID = 3
@@ -894,36 +900,31 @@ function WorldQuestTracker.ShowTutorialAlert()
 			return
 		end
 	
-		if (not WorldMapFrame:IsShown() or not IsQuestFlaggedCompleted (WORLD_QUESTS_AVAILABLE_QUEST_ID or 1) or InCombatLockdown()) then
+		if (not WorldMapFrame:IsShown() or not C_QuestLog.IsQuestFlaggedCompleted (WORLD_QUESTS_AVAILABLE_QUEST_ID or 1) or InCombatLockdown()) then
 			C_Timer.After (10, wait_ShowTutorialAlert)
 			WorldQuestTracker.TutorialAlertOnHold = true
 			return
 		end
-		
-		if (GetExpansionLevel() == 6 or UnitLevel ("player") == 110) then --legion
-			WorldMapFrame:SetMapID (WorldQuestTracker.MapData.ZoneIDs.BROKENISLES)
-		elseif (GetExpansionLevel() == 7 or UnitLevel ("player") == 120) then --bfa
-			WorldMapFrame:SetMapID (WorldQuestTracker.MapData.ZoneIDs.KULTIRAS)
-		end
-		
+
+		WorldMapFrame:SetMapID (WorldQuestTracker.MapData.ZoneIDs.KULTIRAS)
 		WorldQuestTracker.UpdateWorldQuestsOnWorldMap (true)
 		
-		C_Timer.After (4, tutorial_one)
+		--C_Timer.After (4, tutorial_one)
 		return
 		
 	elseif (WorldQuestTracker.db.profile.TutorialPopupID == 2) then
 	
-		C_Timer.After (.5, tutorial_two)
+		--C_Timer.After (.5, tutorial_two)
 		return
 
 	elseif (WorldQuestTracker.db.profile.TutorialPopupID == 3) then
 	
-		C_Timer.After (.5, tutorial_three)
+		--C_Timer.After (.5, tutorial_three)
 		return
 		
 	elseif (WorldQuestTracker.db.profile.TutorialPopupID == 4) then
 	
-		C_Timer.After (.5, tutorial_four)
+		--C_Timer.After (.5, tutorial_four)
 		return
 		
 	end
@@ -967,7 +968,7 @@ end)
 
 --C_Timer.NewTicker (5, function()WorldQuestTracker.PlayLoadingAnimation()end)
 function WorldQuestTracker.CreateLoadingIcon()
-	local f = CreateFrame ("frame", nil, WorldMapFrame)
+	local f = CreateFrame ("frame", nil, WorldMapFrame, "BackdropTemplate")
 	f:SetSize (48, 48)
 	f:SetPoint ("bottom", WorldMapScrollFrame, "top", 0, -75) --289/2 = 144
 	f:SetFrameLevel (3000)
@@ -1002,7 +1003,7 @@ function WorldQuestTracker.CreateLoadingIcon()
 	f.Text:Hide()
 	f.TextBackground:Hide()
 	
-	f.CircleAnimStatic = CreateFrame ("frame", nil, f)
+	f.CircleAnimStatic = CreateFrame ("frame", nil, f, "BackdropTemplate")
 	f.CircleAnimStatic:SetAllPoints()
 	f.CircleAnimStatic.Alpha = f.CircleAnimStatic:CreateTexture (nil, "overlay")
 	f.CircleAnimStatic.Alpha:SetTexture ([[Interface\COMMON\StreamFrame]])
@@ -1011,7 +1012,7 @@ function WorldQuestTracker.CreateLoadingIcon()
 	f.CircleAnimStatic.Background:SetTexture ([[Interface\COMMON\StreamBackground]])
 	f.CircleAnimStatic.Background:SetAllPoints()
 	
-	f.CircleAnim = CreateFrame ("frame", nil, f)
+	f.CircleAnim = CreateFrame ("frame", nil, f, "BackdropTemplate")
 	f.CircleAnim:SetAllPoints()
 	f.CircleAnim.Spinner = f.CircleAnim:CreateTexture (nil, "artwork")
 	f.CircleAnim.Spinner:SetTexture ([[Interface\COMMON\StreamCircle]])
@@ -1175,7 +1176,43 @@ function SlashCmdList.WQTRACKER (msg, editbox)
 	end
 end
 
+--all quests are with red circle for invasion quests
+--need to fill the factions of Shadowlands
+--need to test the group finder
 
+--old and simple alerts frame, all globals has been renamed to avoid conflicts
+local g_visibleMicroButtonAlerts = {};
+local g_acknowledgedMicroButtonAlerts = {};
+
+--Micro Button alerts
+function MicroButtonAlert_SetText2(self, text)
+	self.Text:SetText(text or "");
+end
+
+function MicroButtonAlert_OnLoad2(self)
+	if self.MicroButton then
+		self:SetParent(self.MicroButton);
+		self:SetFrameStrata("DIALOG");
+	end
+	self.Text:SetSpacing(4);
+	MicroButtonAlert_SetText2(self, self.label);
+end
+
+function MicroButtonAlert_OnShow2(self)
+	self:SetHeight(self.Text:GetHeight() + 42);
+	if ( self.tutorialIndex and GetCVarBitfield("closedInfoFrames", self.tutorialIndex) ) then
+		self:Hide();
+	end
+end
+
+function MicroButtonAlert_OnAcknowledged2(self)
+	g_acknowledgedMicroButtonAlerts[self] = true;
+end
+
+function MicroButtonAlert_OnHide2(self)
+	g_visibleMicroButtonAlerts[self] = nil;
+	MainMenuMicroButton_UpdateAlertsEnabled(self);
+end
 
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------

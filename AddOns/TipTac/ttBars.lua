@@ -32,10 +32,22 @@ function HealthBarMixin:GetColor(u)
 	end
 end
 
-function HealthBarMixin:GetValueParams(u)
-	local val = UnitHealth(u.token);
-	local max = UnitHealthMax(u.token);
-	return val, max, cfg.healthBarText;
+if (RealMobHealth) then
+	local RMH = RealMobHealth;
+	function HealthBarMixin:GetValueParams(u)
+		local val, max = RMH.GetUnitHealth(u.token);
+		if (not val) or (not max) then
+			val = UnitHealth(u.token);
+			max = UnitHealthMax(u.token);
+		end
+		return val, max, cfg.healthBarText;
+	end
+else
+	function HealthBarMixin:GetValueParams(u)
+		local val = UnitHealth(u.token);
+		local max = UnitHealthMax(u.token);
+		return val, max, cfg.healthBarText;
+	end
 end
 
 --------------------------------------------------------------------------------------------------------

@@ -22,14 +22,12 @@ local comboSpells = {}
 local comboCastEnd = 0
 local currentCombo = nil
 local comboSpellLookup = {
-	[245458] = {color = "|cff00fff9", castTime = mod:Easy() and 3.5 or 2.75}, -- Foe Breaker
-	[245463] = {color = "|cffffff00", castTime = mod:Easy() and 3.5 or 2.75}, -- Flame Rend
-	[245301] = {color = "|cffffa000", castTime = 6}, -- Searing Tempest
+	[245458] = {color = "|cff00fff9", icon = 135811, castTime = mod:Easy() and 3.5 or 2.75}, -- Foe Breaker
+	[245463] = {color = "|cffffff00", icon = 460698, castTime = mod:Easy() and 3.5 or 2.75}, -- Flame Rend
+	[245301] = {color = "|cffffa000", icon = 135826, castTime = 6}, -- Searing Tempest
 }
-for id,_ in pairs(comboSpellLookup) do
+for id in pairs(comboSpellLookup) do
 	comboSpellLookup[id].name = mod:SpellName(id)
-	local _, _, icon = GetSpellInfo(id)
-	comboSpellLookup[id].icon = icon
 end
 
 local blazeTick = 1
@@ -243,7 +241,7 @@ end
 function mod:UNIT_HEALTH_FREQUENT(event, unit)
 	local hp = UnitHealth(unit) / UnitHealthMax(unit) * 100
 	if hp < nextIntermissionSoonWarning then
-		self:Message("stages", "green", nil, CL.soon:format(CL.intermission), false)
+		self:MessageOld("stages", "green", nil, CL.soon:format(CL.intermission), false)
 		nextIntermissionSoonWarning = self:Mythic() and nextIntermissionSoonWarning - 45 or nextIntermissionSoonWarning - 40
 		if nextIntermissionSoonWarning < 35 then
 			self:UnregisterUnitEvent(event, unit)
@@ -267,7 +265,7 @@ function mod:BlazingEruption(args) -- Add Death/Raid Explosion
 	end
 
 	if waveEmberCounter > 0 then
-		self:Message("track_ember", "cyan", "Info", CL.mob_remaining:format(self:SpellName(-16686), waveEmberCounter), false)
+		self:MessageOld("track_ember", "cyan", "info", CL.mob_remaining:format(self:SpellName(-16686), waveEmberCounter), false)
 		if self:GetOption("custom_off_ember_marker") then
 			for key,guid in pairs(emberAddMarks) do -- Remove icon from used list
 				if guid == args.sourceGUID then
@@ -276,7 +274,7 @@ function mod:BlazingEruption(args) -- Add Death/Raid Explosion
 			end
 		end
 	else
-		self:Message("track_ember", "cyan", "Info", L.wave_cleared:format(currentEmberWave), false)
+		self:MessageOld("track_ember", "cyan", "info", L.wave_cleared:format(currentEmberWave), false)
 		self:StopBar(CL.count:format(self:SpellName(245911), currentEmberWave)) -- Wrought in Flame (x)
 		if not self:Mythic() or not waveTimeCollector[currentEmberWave+1] then -- No more waves
 			self:UnregisterTargetEvents()
@@ -292,7 +290,7 @@ end
 function mod:EmberDeath(args)
 	waveEmberCounter = waveEmberCounter - 1
 	if waveEmberCounter > 0 then
-		self:Message("track_ember", "cyan", "Info", CL.mob_remaining:format(self:SpellName(-16686), waveEmberCounter), false)
+		self:MessageOld("track_ember", "cyan", "info", CL.mob_remaining:format(self:SpellName(-16686), waveEmberCounter), false)
 		if self:GetOption("custom_off_ember_marker") then -- Remove icon from used list
 			for key,guid in pairs(emberAddMarks) do
 				if guid == args.sourceGUID then
@@ -301,7 +299,7 @@ function mod:EmberDeath(args)
 			end
 		end
 	else
-		self:Message("track_ember", "cyan", "Info", L.wave_cleared:format(currentEmberWave), false)
+		self:MessageOld("track_ember", "cyan", "info", L.wave_cleared:format(currentEmberWave), false)
 		self:StopBar(CL.count:format(self:SpellName(245911), currentEmberWave)) -- Wrought in Flame (x)
 		self:UnregisterTargetEvents()
 		wipe(emberAddMarks)
@@ -367,12 +365,12 @@ function mod:UNIT_SPELLCAST_SUCCEEDED(_, _, _, spellId)
 			end
 		end
 	elseif spellId == 245983 then -- Flare
-		self:Message(spellId, "red", "Warning")
+		self:MessageOld(spellId, "red", "warning")
 		if comboTime > GetTime() + 15.8 and not self:Mythic() then
 			self:Bar(spellId, 15.8)
 		end
 	elseif spellId == 246037 then -- Empowered Flare
-		self:Message(spellId, "red", "Warning")
+		self:MessageOld(spellId, "red", "warning")
 		if self:Mythic() then -- Start tracking new ember wave (mythic)
 			wave = wave + 1
 			waveCollector[wave] = {}
@@ -395,14 +393,14 @@ end
 function mod:TaeshalachsReach(args)
 	local amount = args.amount or 1
 	if amount % 3 == 0 or amount > 7 then
-		self:StackMessage(args.spellId, args.destName, amount, "purple", amount > 7 and "Alarm") -- Swap on 8+
+		self:StackMessage(args.spellId, args.destName, amount, "purple", amount > 7 and "alarm") -- Swap on 8+
 	end
 end
 
 do
 	local function warn()
 		if not blazeOnMe then
-			mod:Message(245994, "red") -- Scorching Blaze
+			mod:MessageOld(245994, "red") -- Scorching Blaze
 		end
 	end
 
@@ -410,8 +408,8 @@ do
 		blazeProxList[#blazeProxList+1] = args.destName
 		if self:Me(args.destGUID) then
 			blazeOnMe = true
-			self:PlaySound(args.spellId, "Warning")
-			self:TargetMessage2(args.spellId, "red", args.destName)
+			self:PlaySound(args.spellId, "warning")
+			self:TargetMessage(args.spellId, "red", args.destName)
 			self:Say(args.spellId)
 		end
 		if #blazeProxList == 1 then
@@ -434,8 +432,8 @@ end
 
 do
 	local function printTarget(self, name, guid)
-		self:PlaySound(244693, "Alert", nil, name)
-		self:TargetMessage2(244693, "yellow", name)
+		self:PlaySound(244693, "alert", nil, name)
+		self:TargetMessage(244693, "yellow", name)
 		if self:Me(guid) then
 			self:Say(244693)
 		end
@@ -450,7 +448,7 @@ do
 end
 
 function mod:FoeBreaker(args)
-	self:Message(245458, "yellow", "Alert", CL.count:format(args.spellName, foeBreakerCount))
+	self:MessageOld(245458, "yellow", "alert", CL.count:format(args.spellName, foeBreakerCount))
 	foeBreakerCount = foeBreakerCount + 1
 	comboSpells[#comboSpells+1] = 245458
 	comboCastEnd = GetTime() + (self:Easy() and 3.5 or 2.75)
@@ -466,7 +464,7 @@ function mod:FoeBreakerSuccess()
 end
 
 function mod:FlameRend(args)
-	self:Message(args.spellId, "red", "Alarm", CL.count:format(args.spellName, flameRendCount))
+	self:MessageOld(args.spellId, "red", "alarm", CL.count:format(args.spellName, flameRendCount))
 	flameRendCount = flameRendCount + 1
 	comboSpells[#comboSpells+1] = 245463
 	comboCastEnd = GetTime() + (self:Easy() and 3.5 or 2.75)
@@ -484,7 +482,7 @@ function mod:FlameRendSuccess()
 end
 
 function mod:SearingTempest(args)
-	self:Message(args.spellId, "orange", "Warning")
+	self:MessageOld(args.spellId, "orange", "warning")
 	self:CastBar(args.spellId, 6)
 	comboSpells[#comboSpells+1] = 245301
 	comboCastEnd = GetTime() + 6
@@ -501,7 +499,7 @@ function mod:CorruptAegis()
 	intermission = true
 	techniqueStarted = nil -- End current technique
 	self:CloseInfo(244688)
-	self:Message("stages", "cyan", "Long", CL.intermission, false)
+	self:MessageOld("stages", "cyan", "long", CL.intermission, false)
 	self:StopBar(245994) -- Scorching Blaze
 	self:StopBar(244693) -- Wake of Flame
 	self:StopBar(244688) -- Taeshalach Technique
@@ -533,7 +531,7 @@ function mod:CorruptAegisRemoved()
 	stage = stage + 1
 	intermission = false
 	comboTime = GetTime() + 37.5
-	self:Message("stages", "cyan", "Long", CL.stage:format(stage), false)
+	self:MessageOld("stages", "cyan", "long", CL.stage:format(stage), false)
 
 	if self:Mythic() then
 		self:Bar(254452, 23) -- Ravenous Blaze
@@ -565,7 +563,7 @@ do
 			blazeOnMe = true
 			self:Flash(args.spellId)
 			self:Say(args.spellId)
-			self:PlaySound(args.spellId, "Warning")
+			self:PlaySound(args.spellId, "warning")
 		end
 		playerList[#playerList+1] = args.destName
 		blazeProxList[#blazeProxList+1] = args.destName

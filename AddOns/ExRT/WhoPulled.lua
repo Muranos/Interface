@@ -1,9 +1,5 @@
 local GlobalAddonName, ExRT = ...
 
-if ExRT.isClassic then
-	return
-end 
-
 local VExRT = nil
 
 local module = ExRT.mod:New("WhoPulled",ExRT.L.WhoPulled)

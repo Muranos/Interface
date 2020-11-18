@@ -1,4 +1,4 @@
-## Interface: 80300
+## Interface: 90002
 
 ## Title: BigWigs [|cffeda55fThe Eternal Palace|r]
 ## Title-deDE: BigWigs [|cffeda55fDer Ewige Palast|r]
@@ -22,6 +22,7 @@
 ## Notes-itIT: BigWigs The Eternal Palace Modules
 ## Notes-ptBR: BigWigs The Eternal Palace Modules
 ## Notes-koKR: BigWigs The Eternal Palace Modules
+## Version: v187
 
 ## LoadOnDemand: 1
 ## Dependencies: BigWigs

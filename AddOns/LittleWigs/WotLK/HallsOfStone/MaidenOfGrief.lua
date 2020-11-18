@@ -43,7 +43,7 @@ end
 
 function mod:ShockOfSorrow(args)
 	shouldBeTakingDamage = true
-	self:Message(59726, "red", "Warning", CL.casting:format(args.spellName))
+	self:MessageOld(59726, "red", "warning", CL.casting:format(args.spellName))
 	self:Bar(59726, 4, CL.casting:format(args.spellName))
 end
 
@@ -51,15 +51,19 @@ do
 	local playerList = mod:NewTargetList()
 
 	function mod:ShockOfSorrowDebuff(args)
+		if bit.band(args.destFlags, 0x400) == 0 then return end -- COMBATLOG_OBJECT_TYPE_PLAYER
+
 		playerList[#playerList + 1] = args.destName
 		playersIncapacitated = playersIncapacitated + 1
 		if #playerList == 1 then
-			self:ScheduleTimer("TargetMessage", 0.2, 59726, playerList, "orange")
+			self:ScheduleTimer("TargetMessageOld", 0.2, 59726, playerList, "orange")
 			self:Bar(59726, args.spellId == 59726 and 10 or 6)
 		end
 	end
 
 	function mod:ShockOfSorrowDebuffRemoved(args)
+		if bit.band(args.destFlags, 0x400) == 0 then return end -- COMBATLOG_OBJECT_TYPE_PLAYER
+
 		playersIncapacitated = playersIncapacitated - 1
 		if playersIncapacitated == 0 then
 			self:StopBar(args.spellName)
@@ -78,7 +82,7 @@ do
 			local t = GetTime()
 			if t-prev > 2 then
 				prev = t
-				self:Message(59772, "blue", "Alert", CL.underyou:format(args.spellName))
+				self:MessageOld(59772, "blue", "alert", CL.underyou:format(args.spellName))
 			end
 		end
 	end

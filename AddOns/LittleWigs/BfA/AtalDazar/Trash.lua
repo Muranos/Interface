@@ -94,14 +94,14 @@ end
 
 -- Feasting Skyscreamer
 function mod:TerrifyingScreech(args)
-	self:Message2(args.spellId, "orange", CL.casting:format(args.spellName))
+	self:Message(args.spellId, "orange", CL.casting:format(args.spellName))
 	self:PlaySound(args.spellId, "warning", "interrupt")
 end
 
 -- T'lonja
 do
 	local function printTarget(self, name, guid)
-		self:TargetMessage2(255567, "yellow", name)
+		self:TargetMessage(255567, "yellow", name)
 		self:PlaySound(255567, "alert", "watchstep", name)
 		if self:Me(guid) then
 			self:Say(255567)
@@ -115,7 +115,7 @@ end
 
 -- Shieldbearer of Zul
 function mod:BulwarkofJuju(args)
-	self:Message2(args.spellId, "yellow")
+	self:Message(args.spellId, "yellow")
 	self:PlaySound(args.spellId, "long", "mobout")
 end
 
@@ -144,13 +144,13 @@ end
 
 -- Dinomancer Kish'o
 function mod:DinoMight(args)
-	self:Message2(args.spellId, "orange", CL.casting:format(args.spellName))
+	self:Message(args.spellId, "orange", CL.casting:format(args.spellName))
 	self:PlaySound(args.spellId, "alert", "interrupt")
 end
 
 -- Gilded Priestess
 function mod:Transfusion(args)
-	self:Message2(args.spellId, "yellow", CL.casting:format(args.spellName))
+	self:Message(args.spellId, "yellow", CL.casting:format(args.spellName))
 	self:PlaySound(args.spellId, "alert", "interrupt")
 end
 
@@ -164,17 +164,17 @@ end
 
 --Dazar'ai Confessor
 function mod:BwonsamdisMantle(args)
-	self:Message2(args.spellId, "orange", CL.casting:format(args.spellName))
+	self:Message(args.spellId, "orange", CL.casting:format(args.spellName))
 	self:PlaySound(args.spellId, "warning", "interrupt")
 end
 
 function mod:MendingWord(args)
-	self:Message2(args.spellId, "yellow", CL.casting:format(args.spellName))
+	self:Message(args.spellId, "yellow", CL.casting:format(args.spellName))
 	self:PlaySound(args.spellId, "info", "interrupt")
 end
 
 -- Dazar'ai Augur
 function mod:FieryEnchant(args)
-	self:Message2(args.spellId, "red", CL.casting:format(args.spellName))
+	self:Message(args.spellId, "red", CL.casting:format(args.spellName))
 	self:PlaySound(args.spellId, "alarm", "interrupt")
 end

@@ -35,19 +35,19 @@ end
 --
 
 function mod:ChargedSmash(args)
-	self:Message2(args.spellId, "orange")
+	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alert")
 	self:CastBar(args.spellId, 3)
 	self:CDBar(args.spellId, 33)
 end
 
 function mod:ElectricalChargeApplied(args)
-	self:TargetMessage2(args.spellId, "yellow", args.destName)
+	self:TargetMessage(args.spellId, "yellow", args.destName)
 	self:PlaySound(args.spellId, "info", nil, args.destName)
 end
 
 function mod:Rumble(args)
-	self:Message2(args.spellId, "red")
+	self:Message(args.spellId, "red")
 	self:PlaySound(args.spellId, "alarm")
 	self:CastBar(args.spellId, 5)
 	self:CDBar(args.spellId, 50)

@@ -7,26 +7,22 @@ if not L then return end
 L[" is not active in this raid."] = "не участвует в текущем рейде."
 L[" you are now the Master Looter and RCLootCouncil is now handling looting."] = "вы теперь Ответственный за Добычу и RCLootCouncil теперь занимается распределением добычи."
 L["&p was awarded with &i for &r!"] = "&p получил &i для &r!"
---[[Translation missing --]]
---[[ L["A format to copy/paste to another player."] = ""--]] 
+L["A format to copy/paste to another player."] = "Формат для копирования / вставки для другого игрока."
 L["A new session has begun, type '/rc open' to open the voting frame."] = "Новая сессия запущена, введите '/rc open' для открытия окна голосования."
---[[Translation missing --]]
---[[ L["A tab delimited output for Excel. Might work with other spreadsheets."] = ""--]] 
+L["A tab delimited output for Excel. Might work with other spreadsheets."] = "Вывод с разделителями табуляции для Excel. Может работать с другими табличными редакторами."
 L["Abort"] = "Сбросить"
 L["Accept Whispers"] = "Принимать Личные сообщения"
 --[[Translation missing --]]
 --[[ L["accept_whispers_desc"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["Accepted imports: 'Player Export' and 'CSV'"] = ""--]] 
---[[Translation missing --]]
---[[ L["Active"] = ""--]] 
+L["Active"] = "Активный"
 --[[Translation missing --]]
 --[[ L["active_desc"] = ""--]] 
 L["Add Item"] = "Добавить Предмет"
 L["Add Note"] = "Добавить Заметку"
 L["Add ranks"] = "Добавить ранги"
---[[Translation missing --]]
---[[ L["Add rolls"] = ""--]] 
+L["Add rolls"] = "Добавить броски"
 L["Add Rolls"] = "Добавить броски"
 L["add_ranks_desc"] = "Выберите минимальный ранг для участия в распределении добычи"
 --[[Translation missing --]]
@@ -150,24 +146,18 @@ L["Autopass"] = "Автопас"
 --[[ L["Autopassed on 'item'"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["Autostart isn't supported when testing"] = ""--]] 
---[[Translation missing --]]
---[[ L["award"] = ""--]] 
+L["award"] = "вручить"
 L["Award"] = "Вручить"
---[[Translation missing --]]
---[[ L["Award Announcement"] = ""--]] 
-L["Award for ..."] = "Вручить для..."
-L["Award later"] = "Наградить позже"
---[[Translation missing --]]
---[[ L["Award later isn't supported when testing."] = ""--]] 
---[[Translation missing --]]
---[[ L["Award later?"] = ""--]] 
+L["Award Announcement"] = "Анонс Вручения"
+L["Award for ..."] = "Вручить игроку..."
+L["Award later"] = "Вручить позже"
+L["Award later isn't supported when testing."] = "\"Вручить позже\" не поддерживается в режиме тестирования."
+L["Award later?"] = "Вручить позже?"
 L["Award Reasons"] = "Причина Вручения"
 L["award_reasons_desc"] = [=[Причины вручения, которые не могут быть выбраны во время ролла.
 Используется при изменении ответа в меню по правой кнопки мыши, и для автоматического вручения.]=]
---[[Translation missing --]]
---[[ L["Awarded"] = ""--]] 
---[[Translation missing --]]
---[[ L["Awarded item cannot be awarded later."] = ""--]] 
+L["Awarded"] = "Вручено"
+L["Awarded item cannot be awarded later."] = "Врученные ранее вещи не могут быть переданы позднее."
 L["Awards"] = "Награды"
 L["Azerite Armor"] = "Азеритовая броня"
 L["Background"] = "Фон"
@@ -503,6 +493,14 @@ L["Open the Loot History"] = "Открыть Историю Лута"
 --[[Translation missing --]]
 --[[ L["opt_addButton_desc"] = ""--]] 
 --[[Translation missing --]]
+--[[ L["opt_autoAddBoEs_desc"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["opt_autoAddBoEs_name"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["opt_autoAddItems_desc"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["opt_autoAddItems_name"] = ""--]] 
+--[[Translation missing --]]
 --[[ L["opt_autoTrade_desc"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["opt_award_later_desc"] = ""--]] 
@@ -510,6 +508,8 @@ L["Open the Loot History"] = "Открыть Историю Лута"
 --[[ L["opt_buttonsGroup_desc"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["opt_chatFrameName_desc"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["opt_chatFrameName_name"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["opt_deleteDate_confirm"] = ""--]] 
 --[[Translation missing --]]
@@ -540,6 +540,10 @@ L["Open the Loot History"] = "Открыть Историю Лута"
 --[[ L["opt_saveBonusRolls_Desc"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["opt_saveBonusRolls_Name"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["opt_skipSessionFrame_desc"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["opt_skipSessionFrame_name"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["options_autoAwardBoE_desc"] = ""--]] 
 --[[Translation missing --]]

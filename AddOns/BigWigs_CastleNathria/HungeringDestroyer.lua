@@ -1,4 +1,4 @@
-if not IsTestBuild() then return end
+
 --------------------------------------------------------------------------------
 -- Module Declaration
 --
@@ -41,7 +41,7 @@ end
 
 function mod:OnBossEnable()
 	self:Log("SPELL_AURA_APPLIED", "GluttonousMiasmaApplied", 329298)
-	self:Log("SPELL_AURA_APPLIED", "GluttonousMiasmaRemoved", 329298)
+	self:Log("SPELL_AURA_REMOVED", "GluttonousMiasmaRemoved", 329298)
 	self:Log("SPELL_CAST_START", "Consume", 334522)
 	-- self:Log("SPELL_AURA_APPLIED", "ExpungeApplied", 329725)
 	self:RegisterEvent("RAID_BOSS_WHISPER")
@@ -83,7 +83,7 @@ do
 		playerList[count] = args.destName
 		playerIcons[count] = count
 		if self:Me(args.destGUID) then
-			self:Say(args.spellId, CL.count_rticon:format(self:SpellName(335114), count, count))
+			self:Say(args.spellId, CL.count_rticon:format(args.spellName, count, count))
 			self:PlaySound(args.spellId, "alarm")
 		end
 		if self:GetOption(gluttonousMiasmaMarker) then
@@ -93,7 +93,7 @@ do
 			miasmaCount = miasmaCount + 1
 		 self:Bar(args.spellId, 24, CL.count:format(args.spellName, miasmaCount))
 		end
-		self:TargetsMessage(args.spellId, "yellow", playerList, CL.count:format(args.spellName, miasmaCount-1), nil, nil, nil, playerIcons)
+		self:TargetsMessage(args.spellId, "yellow", playerList, nil, CL.count:format(args.spellName, miasmaCount-1), nil, nil, nil, playerIcons)
 	end
 end
 
@@ -104,16 +104,16 @@ function mod:GluttonousMiasmaRemoved(args)
 end
 
 function mod:Consume(args)
-	self:Message2(args.spellId, "orange", CL.count:format(args.spellName, consumeCount))
+	self:Message(args.spellId, "orange", CL.count:format(args.spellName, consumeCount))
 	self:PlaySound(args.spellId, "long")
 	self:CastBar(args.spellId, 10, CL.count:format(args.spellName, consumeCount)) -- 2s Cast, 8s Channel
 	consumeCount = consumeCount + 1
-	self:Bar(args.spellId, 110, CL.count:format(args.spellName, consumeCount))
+	self:Bar(args.spellId, 119, CL.count:format(args.spellName, consumeCount))
 end
 
 -- XXX Redo when they add events for the debuff
 -- function mod:Expunge(args)
--- 	self:Message2(args.spellId, "orange", CL.count:format(self:SpellName(329725), expungeCount))
+-- 	self:Message(args.spellId, "orange", CL.count:format(self:SpellName(329725), expungeCount))
 -- 	self:PlaySound(args.spellId, "warning")
 -- 	self:CastBar(args.spellId, 5, CL.count:format(args.spellName, expungeCount))
 --	expungeCount = expungeCount + 1
@@ -121,14 +121,14 @@ end
 -- end
 
 do
-	local prev, debuff = 0, mod:SpellName(329725) -- Expunge
+	local prev = 0
 	function mod:UNIT_AURA(_, unit)
-		local debuffFound = self:UnitDebuff(unit, debuff)
+		local debuffFound = self:UnitDebuff(unit, 329725) -- Expunge
 		if debuffFound then
 			local t = GetTime()
 			if t-prev > 10 then
 				prev = t
-				self:Message2(329725, "orange", CL.count:format(self:SpellName(329725), expungeCount)) -- Expunge
+				self:Message(329725, "orange", CL.count:format(self:SpellName(329725), expungeCount)) -- Expunge
 				self:PlaySound(329725, "warning")
 				self:CastBar(329725, 5, CL.count:format(self:SpellName(329725), expungeCount)) -- Expunge
 				expungeCount = expungeCount + 1
@@ -160,17 +160,15 @@ end
 -- end
 
 do
-	local playerList, playerIcons, removeIconList = mod:NewTargetList(), {}, {}
+	local playerList = {}
 	local function addPlayerToList(self, name)
 		if not tContains(playerList, name) then
 			local count = #playerList+1
 			playerList[count] = name
-			playerIcons[count] = count+4
+			self:TargetsMessage(334266, "orange", self:ColorName(playerList), self:Mythic() and 5 or 3, nil, nil, 2)
 			if self:GetOption(volatileEjectionMarker) then
-				SetRaidTarget(name, playerIcons[count])
-				removeIconList[count] = name
+				SetRaidTarget(name, count+4)
 			end
-			self:TargetsMessage(334266, "orange", playerList, nil, CL.count:format(self:SpellName(334266), volatileCount-1), nil, 2, playerIcons)
 		end
 	end
 
@@ -196,23 +194,23 @@ do
 
 	function mod:VolatileEjectionSuccess(args)
 		if self:GetOption(volatileEjectionMarker) then
-			for _, name in pairs(removeIconList) do
+			for _, name in pairs(playerList) do
 				SetRaidTarget(name, 0)
 			end
-			wipe(removeIconList)
 		end
+		playerList = {}
 	end
 end
 
 function mod:Desolate(args)
-	self:Message2(args.spellId, "yellow", CL.count:format(args.spellName, desolateCount))
+	self:Message(args.spellId, "yellow", CL.count:format(args.spellName, desolateCount))
 	self:PlaySound(args.spellId, "alert")
 	desolateCount = desolateCount + 1
 	self:Bar(args.spellId, 60, CL.count:format(args.spellName, desolateCount)) -- Desolate
 end
 
 function mod:Overwhelm(args)
-	self:Message2(args.spellId, "purple")
+	self:Message(args.spellId, "purple")
 	self:PlaySound(args.spellId, "alert")
 	self:Bar(args.spellId, 11.5)
 end

@@ -210,19 +210,19 @@ end
 
 -- Irontide Enforcer
 function mod:BrutalBackhand(args)
-	self:Message2(args.spellId, "red")
+	self:Message(args.spellId, "red")
 	self:PlaySound(args.spellId, "alarm")
 end
 
 -- Irontide Bonesaw
 function mod:HealingBalm(args)
-	self:Message2(args.spellId, "yellow")
+	self:Message(args.spellId, "yellow")
 	self:PlaySound(args.spellId, "warning")
 end
 
 function mod:HealingBalmApplied(args)
 	if self:MobId(args.sourceGUID) ~= 129788 then return end -- filter out Spellsteal
-	self:Message2(args.spellId, "cyan", CL.other:format(args.spellName, args.destName))
+	self:Message(args.spellId, "cyan", CL.other:format(args.spellName, args.destName))
 	self:PlaySound(args.spellId, "info")
 end
 
@@ -235,7 +235,7 @@ end
 
 -- Irontide Crackshot
 function mod:AzeriteGrenade(args)
-	self:Message2(args.spellId, "orange")
+	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alarm")
 end
 
@@ -253,7 +253,7 @@ do
 		if self:Me(guid) then
 			self:Say(274400)
 		end
-		self:TargetMessage2(274400, "red", name)
+		self:TargetMessage(274400, "red", name)
 		self:PlaySound(274400, "alarm", nil, name)
 	end
 
@@ -264,7 +264,7 @@ end
 
 -- Irontide Oarsman
 function mod:SeaSpout(args)
-	self:Message2(args.spellId, "yellow")
+	self:Message(args.spellId, "yellow")
 	self:PlaySound(args.spellId, "alert")
 end
 
@@ -274,7 +274,7 @@ do
 		if self:Me(guid) then
 			self:Say(272402)
 		end
-		self:TargetMessage2(272402, "orange", name)
+		self:TargetMessage(272402, "orange", name)
 		self:PlaySound(272402, "alert", nil, name)
 	end
 
@@ -300,13 +300,13 @@ end
 
 -- Blacktooth Knuckleduster
 function mod:ShatteringBellow(args)
-	self:Message2(args.spellId, "orange")
+	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "warning")
 end
 
 -- Bilge Rat Swabby
 function mod:SlipperySuds(args)
-	self:Message2(args.spellId, "red")
+	self:Message(args.spellId, "red")
 	self:PlaySound(args.spellId, "long")
 end
 
@@ -319,13 +319,13 @@ end
 
 -- Vermin Trapper
 function mod:RatTraps(args)
-	self:Message2(args.spellId, "yellow")
+	self:Message(args.spellId, "yellow")
 	self:PlaySound(args.spellId, "alert")
 end
 
 -- Bilge Rat Buccaneer
 function mod:GoinBananas(args)
-	self:Message2(args.spellId, "orange")
+	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "warning")
 end
 
@@ -347,25 +347,25 @@ end
 
 -- Irontide Crusher
 function mod:BoulderThrow(args)
-	self:Message2(args.spellId, "orange")
+	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alarm")
 	self:NameplateCDBar(args.spellId, 14, args.sourceGUID)
 end
 
 function mod:GroundShatter(args)
-	self:Message2(args.spellId, "yellow")
+	self:Message(args.spellId, "yellow")
 	self:PlaySound(args.spellId, "alert")
 end
 
 -- Irontide Buccaneer
 function mod:BladeBarrage(args)
-	self:Message2(args.spellId, "yellow")
+	self:Message(args.spellId, "yellow")
 	self:PlaySound(args.spellId, "alert")
 end
 
 -- Irontide Ravager
 function mod:PainfulMotivation(args)
-	self:Message2(args.spellId, "yellow", CL.casting:format(args.spellName))
+	self:Message(args.spellId, "yellow", CL.casting:format(args.spellName))
 	self:PlaySound(args.spellId, "alarm")
 end
 
@@ -375,7 +375,7 @@ do
 		local t = args.time
 		if t-prev > 2 then
 			prev = t
-			self:Message2(args.spellId, "red")
+			self:Message(args.spellId, "red")
 			self:PlaySound(args.spellId, "warning")
 		end
 	end
@@ -384,13 +384,13 @@ end
 -- Irontide Officer
 function mod:OiledBladeApplied(args)
 	if self:Me(args.destGUID) or self:Dispeller("magic") then
-		self:TargetMessage2(args.spellId, "blue", args.destName)
+		self:TargetMessage(args.spellId, "blue", args.destName)
 		self:PlaySound(args.spellId, "warning", nil, args.destName)
 	end
 end
 
 -- Irontide Stormcaller
 function mod:ThunderingSquall(args)
-	self:Message2(args.spellId, "orange")
+	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "long")
 end

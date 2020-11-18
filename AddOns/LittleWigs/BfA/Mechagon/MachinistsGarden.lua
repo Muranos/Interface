@@ -41,7 +41,7 @@ end
 
 function mod:UNIT_SPELLCAST_SUCCEEDED(_, _, _, spellId)
 	if spellId == 294853 then -- Activate Plant
-		self:Message2(spellId, "orange")
+		self:Message(spellId, "orange")
 		self:PlaySound(spellId, "long")
 		self:Bar(spellId, 45)
 	end
@@ -49,20 +49,20 @@ end
 
 function mod:BlossomBlast(args)
 	if self:Healer() or self:Me(args.destGUID) then
-		self:TargetMessage2(args.spellId, "orange", args.destName)
+		self:TargetMessage(args.spellId, "orange", args.destName)
 		self:PlaySound(args.spellId, "alert", nil, args.destName)
 	end
 end
 
 function mod:HiddenFlameCannon(args)
-	self:Message2(args.spellId, "red")
+	self:Message(args.spellId, "red")
 	self:PlaySound(args.spellId, "alarm")
 	self:CastBar(args.spellId, 12.5)
 	self:Bar(args.spellId, 47.3)
 end
 
 function mod:Discombombulator(args)
-	self:Message2(args.spellId, "yellow")
+	self:Message(args.spellId, "yellow")
 	self:PlaySound(args.spellId, "info")
 	self:Bar(args.spellId, 18.2)
 end

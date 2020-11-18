@@ -40,13 +40,13 @@ function mod:UNIT_HEALTH_FREQUENT(event, unit)
 		local hp = UnitHealth(unit) / UnitHealthMax(unit) * 100
 		if hp < 55 then
 			self:UnregisterUnitEvent(event, unit)
-			self:Message("stages", "green", nil, CL.soon:format(CL.stage:format(2)), false)
+			self:MessageOld("stages", "green", nil, CL.soon:format(CL.stage:format(2)), false)
 		end
 	end
 end
 
 function mod:Enslave(args)
-	self:TargetMessage(args.spellId, args.destName, "red", "Alert")
+	self:TargetMessageOld(args.spellId, args.destName, "red", "alert")
 	self:PrimaryIcon(args.spellId, args.destName)
 end
 
@@ -55,12 +55,12 @@ function mod:EnslaveRemoved(args)
 end
 
 function mod:AbsorbMagic(args)
-	self:Message(args.spellId, "orange", nil, CL.casting:format(args.spellName))
+	self:MessageOld(args.spellId, "orange", nil, CL.casting:format(args.spellName))
 end
 
 function mod:MindFog(args)
 	if self:Me(args.destGUID) then
-		self:TargetMessage(args.spellId, args.destName, "blue", "Alarm")
+		self:TargetMessageOld(args.spellId, args.destName, "blue", "alarm")
 	end
 end
 

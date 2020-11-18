@@ -42,11 +42,11 @@ end
 function mod:GOSSIP_SHOW()
 	local mobId = self:MobId(UnitGUID("npc"))
 	if self:GetOption("custom_on_autotalk") and (mobId == 35004 or mobId == 35005) then
-		local first, _, second = GetGossipOptions()
+		local first, second = self:GetGossipOptions()
 		if second then
-			SelectGossipOption(2) -- skip roleplay on Grand Champions if possible
+			self:SelectGossipOption(2) -- skip roleplay on Grand Champions if possible
 		elseif first then
-			SelectGossipOption(1)
+			self:SelectGossipOption(1)
 		end
 	end
 end

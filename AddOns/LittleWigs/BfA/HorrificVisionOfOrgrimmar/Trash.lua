@@ -168,7 +168,7 @@ do
 	function mod:UNIT_SPELLCAST_START(_, _, castGUID, spellId)
 		if spellId == 311996 and castGUID ~= prevCastGUID then -- Open Vision
 			prevCastGUID = castGUID
-			self:Message2(311996, "cyan")
+			self:Message(311996, "cyan")
 			self:PlaySound(311996, "long")
 			self:Bar(311996, 10) -- Open Vision
 		end
@@ -197,14 +197,14 @@ do
 	function mod:LeadenFootRemoved(args)
 		if self:Me(args.destGUID) and showRemovedWarning then
 			showRemovedWarning = false
-			self:Message2(args.spellId, "blue", CL.removed:format(args.spellName))
+			self:Message(args.spellId, "blue", CL.removed:format(args.spellName))
 			self:PlaySound(args.spellId, "info")
 		end
 	end
 end
 
 function mod:EndlessHungerTotem(args)
-	self:Message2(args.spellId, "red")
+	self:Message(args.spellId, "red")
 	self:PlaySound(args.spellId, "alert")
 end
 
@@ -214,30 +214,30 @@ do
 		local t = args.time
 		if t-prev > 1.5 then
 			prev = t
-			self:Message2(args.spellId, "orange")
+			self:Message(args.spellId, "orange")
 			self:PlaySound(args.spellId, "alarm")
 		end
 	end
 end
 
 function mod:HorrifyingShout(args)
-	self:Message2(args.spellId, "red")
+	self:Message(args.spellId, "red")
 	self:PlaySound(args.spellId, "alert")
 end
 
 function mod:Shockwave(args)
-	self:Message2(args.spellId, "orange")
+	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alarm")
 end
 
 function mod:Decimator(args)
-	self:Message2(args.spellId, "red")
+	self:Message(args.spellId, "red")
 	self:PlaySound(args.spellId, "warning")
 	self:Bar(args.spellId, 9.7)
 end
 
 function mod:SurgingFist(args)
-	self:Message2(args.spellId, "orange")
+	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alarm")
 	self:Bar(args.spellId, 9.7)
 end
@@ -249,19 +249,19 @@ end
 
 function mod:ShadowBrandApplied(args)
 	if self:Me(args.destGUID) or self:Dispeller("curse", nil, args.spellId)then
-		self:TargetMessage2(args.spellId, "yellow", args.destName)
+		self:TargetMessage(args.spellId, "yellow", args.destName)
 		self:PlaySound(args.spellId, "alert", nil, args.destName)
 	end
 end
 
 function mod:VoidBuffet(args)
-	self:Message2(args.spellId, "orange")
+	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alert")
 end
 
 do
 	local function printTarget(self, name, guid)
-		self:TargetMessage2(299055, "orange", name)
+		self:TargetMessage(299055, "orange", name)
 		self:PlaySound(299055, "alarm", nil, name)
 		self:Bar(299055, 12.1)
 		if self:Me(guid) then
@@ -279,7 +279,7 @@ function mod:AnnihilatorLakhalDeath(args)
 end
 
 function mod:TouchOfTheAbyss(args)
-	self:Message2(args.spellId, "red")
+	self:Message(args.spellId, "red")
 	self:PlaySound(args.spellId, "warning")
 end
 
@@ -293,7 +293,7 @@ do
 			local t = GetTime()
 			if UnitPower(unit) == 84 and t-prev > 1.5 then
 				prev = t
-				self:Message2(300530, "orange", CL.soon:format(self:SpellName(300530))) -- Mind Carver
+				self:Message(300530, "orange", CL.soon:format(self:SpellName(300530))) -- Mind Carver
 				self:PlaySound(300530, "info") -- Mind Carver
 			end
 		end
@@ -301,13 +301,13 @@ do
 end
 
 function mod:VisceralFluid(args)
-	self:Message2(args.spellId, "red")
+	self:Message(args.spellId, "red")
 	self:PlaySound(args.spellId, "alarm")
 	self:Bar(args.spellId, 12.1)
 end
 
 function mod:SanguneResidue(args)
-	self:Message2(args.spellId, "orange")
+	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alert")
 	self:CDBar(args.spellId, 9.7)
 end
@@ -318,13 +318,13 @@ function mod:CoagulatedHorrorDeath(args)
 end
 
 function mod:HowlingInPain(args)
-	self:Message2(args.spellId, "yellow")
+	self:Message(args.spellId, "yellow")
 	self:PlaySound(args.spellId, "alarm")
 	self:CDBar(args.spellId, 12)
 end
 
 function mod:ExplosiveLeap(args)
-	self:Message2(args.spellId, "orange")
+	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alert")
 end
 
@@ -335,23 +335,23 @@ end
 
 function mod:DesperateRetchingApplied(args)
 	if self:Me(args.destGUID) or self:Dispeller("disease", nil, args.spellId) then
-		self:TargetMessage2(args.spellId, "yellow", args.destName)
+		self:TargetMessage(args.spellId, "yellow", args.destName)
 		self:PlaySound(args.spellId, "info", nil, args.destName)
 	end
 end
 
 function mod:MaddeningRoar(args)
-	self:Message2(args.spellId, "red")
+	self:Message(args.spellId, "red")
 	self:PlaySound(args.spellId, "alert")
 end
 
 function mod:ToxicBreath(args)
-	self:Message2(args.spellId, "orange")
+	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alert")
 end
 
 function mod:VenomBolt(args)
-	self:Message2(args.spellId, "orange")
+	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alert")
 end
 

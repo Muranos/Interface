@@ -1,4 +1,4 @@
-## Interface: 80300
+## Interface: 90002
 
 ## Title: BigWigs [|cffeda55fAzeroth|r]
 ## Title-deDE: BigWigs [|cffeda55fAzeroth|r]
@@ -22,6 +22,7 @@
 ## Notes-itIT: BigWigs Azeroth Modules
 ## Notes-ptBR: BigWigs Azeroth Modules
 ## Notes-koKR: BigWigs Azeroth Modules
+## Version: v187
 
 ## LoadOnDemand: 1
 ## Dependencies: BigWigs

@@ -34,17 +34,8 @@ function mod:OnRegister()
 end
 
 function mod:OnBossEnable()
-	self:RegisterEvent("ENCOUNTER_START")
-
 	self:Log("SPELL_CAST_START", "VoidTorrent", 307863)
 	self:Log("SPELL_CAST_START", "CriesOfTheVoid", 304976)
-end
-
--- There are no boss frames to trigger the engage
-function mod:ENCOUNTER_START(_, encounterId)
-	if encounterId == self.engageId then
-		self:Engage()
-	end
 end
 
 --------------------------------------------------------------------------------
@@ -53,7 +44,7 @@ end
 
 do
 	local function printTarget(self, name, guid)
-		self:TargetMessage2(307863, "orange", name)
+		self:TargetMessage(307863, "orange", name)
 		self:PlaySound(307863, "alarm", nil, name)
 		if self:Me(guid) then
 			self:Say(307863)
@@ -67,6 +58,6 @@ do
 end
 
 function mod:CriesOfTheVoid(args)
-	self:Message2(args.spellId, "red")
+	self:Message(args.spellId, "red")
 	self:PlaySound(args.spellId, "warning")
 end

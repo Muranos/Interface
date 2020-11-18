@@ -76,6 +76,7 @@ local SORT_PROGRESS = "SORT_PROGRESS"
 local SORT_CATEGORY = "SORT_CATEGORY"
 local SORT_ZONE = "SORT_ZONE"
 
+Rarity.CONSTANTS = addonTable.constants
 
 --[[
       UPVALUES -----------------------------------------------------------------------------------------------------------------
@@ -131,6 +132,7 @@ do
 	-- Set up the debug cache (TODO: Move to initialisation routine after the refactoring is complete)
 	Rarity.Utils.DebugCache:SetOutputHandler(Rarity.Utils.PrettyPrint.DebugMsg)
 	function Rarity:Error(message, ...)
+		if R.db.profile.disableCustomErrors then return end
 		Rarity.Utils.PrettyPrint.Error(message, ...)
 	end
 end
@@ -291,14 +293,14 @@ do
 		-- Delayed calendar init a few times
 		self:ScheduleTimer(function()
 			if type(CalendarFrame) ~= "table" or not CalendarFrame:IsShown() then
-				local CalendarTime = C_Calendar.GetDate()
+				local CalendarTime = C_DateAndTime.GetCurrentCalendarTime()
 				local month, year = CalendarTime.month, CalendarTime.year
 				C_Calendar.SetAbsMonth(month, year)
 			end
 		end, 7)
 		self:ScheduleTimer(function()
 			if type(CalendarFrame) ~= "table" or not CalendarFrame:IsShown() then
-				local CalendarTime = C_Calendar.GetDate()
+				local CalendarTime = C_DateAndTime.GetCurrentCalendarTime()
 				local month, year = CalendarTime.month, CalendarTime.year
 				C_Calendar.SetAbsMonth(month, year)
 			end
@@ -644,8 +646,12 @@ function R:IsAttemptAllowed(item)
 	if item == nil then return true end
 
 	-- Check disabled classes
-	if not Rarity.Caching:GetPlayerClass() then Rarity.Caching:SetPlayerClass(select(2, UnitClass("player"))) end
-	if item.disableForClass and type(item.disableForClass == "table") and item.disableForClass[Rarity.Caching:GetPlayerClass()] == true then return false end
+	local playerClass = Rarity.Caching:GetPlayerClass() -- Why is this cached in the first place?
+	if not playerClass then Rarity.Caching:SetPlayerClass(select(2, UnitClass("player"))) end
+	if item.disableForClass and type(item.disableForClass) == "table" and item.disableForClass[playerClass] == true then
+		Rarity:Debug(format("Attempts for item %s are disallowed (disabled for class %s)", item.name, playerClass))
+		return false
+	end
 
 	-- No valid instance difficulty configuration; allow (this needs to be the second-to-last check)
 	if item.instanceDifficulties == nil or type(item.instanceDifficulties) ~= "table" or next(item.instanceDifficulties) == nil then return true end
@@ -746,24 +752,6 @@ end
 --[[
       CORE FUNCTIONALITY -------------------------------------------------------------------------------------------------------
   ]]
-
-  -- TODO: Pretty sure this is broken? It SHOULD display a popup on MOP world bosse etc. but I've never seen one (nor in EN at the dragon bosses, which have a bonus-rollable pet)
-hooksecurefunc("BonusRollFrame_StartBonusRoll", function(spellID, text, duration, currencyID)
-	local self = Rarity
-	if self.lastCoinItem and self.lastCoinItem.enableCoin and self.lastCoinItem.enabled ~= false then
-		if self.lastCoinItem.itemId then
-			if not currencyID then currencyID = BONUS_ROLL_REQUIRED_CURRENCY end
-			local _, count, icon = GetCurrencyInfo(currencyID)
-			if count == 0 then return end
-			local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(self.lastCoinItem.itemId)
-			local _, _, _, fontString = StorePurchaseAlertFrame:GetRegions()
-			fontString:SetText(L["Use your bonus roll for a chance at this item"])
-			self:ScheduleTimer(function() fontString:SetText(BLIZZARD_STORE_PURCHASE_COMPLETE_DESC) end, duration + 2)
-			StorePurchaseAlertFrame_ShowAlert(texture, link, self.lastCoinItem.itemId)
-		end
-	end
-end)
-
 
 function R:Update(reason)
  Rarity.Collections:ScanExistingItems(reason)

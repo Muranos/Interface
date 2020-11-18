@@ -23,6 +23,7 @@ ns.realmSlugs = {
   ["AltarofStorms"] = "altar-of-storms",
   ["AlteracMountains"] = "alterac-mountains",
   ["Aman'Thul"] = "amanthul",
+  ["Aman'thul"] = "amanthul",
   ["Amani"] = "amani",
   ["Ambossar"] = "ambossar",
   ["Anachronos"] = "anachronos",

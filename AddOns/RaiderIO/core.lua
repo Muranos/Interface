@@ -46,7 +46,7 @@ do
         DEFAULT_CHAT_FRAME:AddMessage(tostring(text), r, g, b, ...)
     end
 
-    ns.EXPANSION = max(GetClientDisplayExpansionLevel(), GetAccountExpansionLevel(), GetExpansionLevel())
+    ns.EXPANSION = GetExpansionLevel()
     ns.MAX_LEVEL = GetMaxLevelForExpansionLevel(ns.EXPANSION)
     ns.REGION_TO_LTD = {"us", "kr", "eu", "tw", "cn"}
     ns.FACTION_TO_ID = {Alliance = 1, Horde = 2, Neutral = 3}
@@ -1056,7 +1056,7 @@ do
         end
         local collection = {}
         local collectionIndex = 0
-        for i = 1, BNGetNumFriendGameAccounts(index), 1 do
+        for i = 1, C_BattleNet.GetFriendNumGameAccounts(index), 1 do
             local accountInfo = C_BattleNet.GetFriendGameAccountInfo(index, i)
             if accountInfo and accountInfo.clientProgram == BNET_CLIENT_WOW and (not accountInfo.wowProjectID or accountInfo.wowProjectID ~= WOW_PROJECT_CLASSIC) then
                 if accountInfo.realmName then
@@ -2297,13 +2297,13 @@ do
         for encoderIndex = 1, #encodingOrder do
             local field = encodingOrder[encoderIndex]
             if field == ENCODER_MYTHICPLUS_FIELDS.CURRENT_SCORE then
-                results.currentScore, bitOffset = ReadBitsFromString(bucket, bitOffset, 13)
+                results.currentScore, bitOffset = ReadBitsFromString(bucket, bitOffset, 14)
                 results.hasRenderableData = results.hasRenderableData or results.currentScore > 0
             elseif field == ENCODER_MYTHICPLUS_FIELDS.CURRENT_ROLES then
                 value, bitOffset = ReadBitsFromString(bucket, bitOffset, 7)
                 results.currentRoleOrdinalIndex = 1 + value -- indexes are one-based
             elseif field == ENCODER_MYTHICPLUS_FIELDS.PREVIOUS_SCORE then
-                results.previousScore, bitOffset = ReadBitsFromString(bucket, bitOffset, 12)
+                results.previousScore, bitOffset = ReadBitsFromString(bucket, bitOffset, 13)
                 results.previousScoreSeason, bitOffset = ReadBitsFromString(bucket, bitOffset, 2)
                 results.hasRenderableData = results.hasRenderableData or results.previousScore > 0
             elseif field == ENCODER_MYTHICPLUS_FIELDS.PREVIOUS_ROLES then
@@ -2316,7 +2316,7 @@ do
                 value, bitOffset = ReadBitsFromString(bucket, bitOffset, 7)
                 results.mainCurrentRoleOrdinalIndex = 1 + value -- indexes are one-based
             elseif field == ENCODER_MYTHICPLUS_FIELDS.MAIN_PREVIOUS_SCORE then
-                value, bitOffset = ReadBitsFromString(bucket, bitOffset, 9)
+                value, bitOffset = ReadBitsFromString(bucket, bitOffset, 10)
                 results.mainPreviousScore = 10 * value
                 results.mainPreviousScoreSeason, bitOffset = ReadBitsFromString(bucket, bitOffset, 2)
                 results.hasRenderableData = results.hasRenderableData or results.mainPreviousScore > 0
@@ -3046,8 +3046,8 @@ do
             ["Ravencrest"] = {
                 ["Voidzone"] = "Raider.IO AddOn Author"
             },
-            ["Sargeras"] = {
-                ["Isak"] = "Raider.IO Contributor"
+            ["Ysondre"] = {
+                ["Isakem"] = "Raider.IO Contributor"
             }
         },
         ["us"] = {
@@ -3437,7 +3437,10 @@ do
                         tooltip:AddDoubleLine(format(L.RAIDERIO_AVERAGE_PLAYER_SCORE, keystone.level), avgScore, 1, 1, 1, util:GetScoreColor(avgScore))
                     end
                     if keystone.instance then
-                        AppendGroupLevelsToTooltip(tooltip, keystone, util:GetDungeonByKeystoneID(keystone.instance))
+                        local dungeon = util:GetDungeonByKeystoneID(keystone.instance)
+                        if dungeon then
+                            AppendGroupLevelsToTooltip(tooltip, keystone, dungeon)
+                        end
                     end
                     -- keystone information added to tooltip successfully
                     return true
@@ -3722,13 +3725,16 @@ do
         local button = self.button
         local fullName, faction, level
         if button.buttonType == FRIENDS_BUTTON_TYPE_BNET then
-            local bnetIDAccount = BNGetFriendInfo(button.id)
-            if bnetIDAccount then
-                fullName, faction, level = util:GetNameRealmForBNetFriend(bnetIDAccount)
+            local bnetIDAccountInfo = C_BattleNet.GetFriendAccountInfo(button.id)
+            if bnetIDAccountInfo then
+                fullName, faction, level = util:GetNameRealmForBNetFriend(bnetIDAccountInfo.bnetAccountID)
             end
         elseif button.buttonType == FRIENDS_BUTTON_TYPE_WOW then
-            fullName, level = GetFriendInfo(button.id)
-            faction = ns.PLAYER_FACTION
+            local friendInfo = C_FriendList.GetFriendInfoByIndex(button.id)
+            if friendInfo then
+                fullName, level = friendInfo.name, friendInfo.level
+                faction = ns.PLAYER_FACTION
+            end
         end
         if not fullName or not util:IsMaxLevel(level) then
             return

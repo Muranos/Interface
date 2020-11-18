@@ -139,7 +139,7 @@ end
 --
 
 function mod:HeavingBlow(args)
-	self:Message2(args.spellId, "red")
+	self:Message(args.spellId, "red")
 	self:PlaySound(args.spellId, "alarm")
 end
 
@@ -149,7 +149,7 @@ do
 		local t = args.time
 		if t-prev > 2 then
 			prev = t
-			self:Message2(args.spellId, "yellow")
+			self:Message(args.spellId, "yellow")
 			self:PlaySound(args.spellId, "alert")
 		end
 	end
@@ -161,7 +161,7 @@ do
 		local t = args.time
 		if t-prev > 2 then
 			prev = t
-			self:Message2(args.spellId, "orange")
+			self:Message(args.spellId, "orange")
 			self:PlaySound(args.spellId, "alert")
 		end
 	end
@@ -175,7 +175,7 @@ do
 			local unit = self:GetUnitIdByGUID(args.sourceGUID)
 			if unit and IsItemInRange(37727, unit .. "target") then -- Ruby Acorn, 5yd
 				prev = t
-				self:Message2(args.spellId, "blue", CL.near:format(args.spellName))
+				self:Message(args.spellId, "blue", CL.near:format(args.spellName))
 				self:PlaySound(args.spellId, "alarm")
 			end
 		end
@@ -184,28 +184,28 @@ end
 
 function mod:Swiftness(args)
 	if self:Dispeller("magic", true, args.spellId) and bit.band(args.destFlags, 0x400) == 0 then -- COMBATLOG_OBJECT_TYPE_PLAYER
-		self:TargetMessage2(args.spellId, "yellow", args.destName)
+		self:TargetMessage(args.spellId, "yellow", args.destName)
 		self:PlaySound(args.spellId, "info")
 	end
 end
 
 function mod:MendingRapids(args)
-	self:Message2(args.spellId, "orange")
+	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alert")
 end
 
 function mod:Tempest(args)
-	self:Message2(args.spellId, "orange")
+	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alert")
 end
 
 function mod:Windblast(args)
-	self:Message2(args.spellId, "orange")
+	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alert")
 end
 
 function mod:GaleWinds(args)
-	self:Message2(args.spellId, "orange")
+	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alert")
 	self:CDBar(args.spellId, 22)
 end
@@ -216,13 +216,13 @@ function mod:WindspeakerDeath(args)
 end
 
 function mod:MinorSwiftnessWard(args)
-	self:Message2(args.spellId, "yellow")
+	self:Message(args.spellId, "yellow")
 	self:PlaySound(args.spellId, "info")
 	self:CDBar(args.spellId, 32)
 end
 
 function mod:LesserBlessingOfIronsides(args)
-	self:Message2(args.spellId, "orange")
+	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alert")
 end
 
@@ -234,18 +234,18 @@ function mod:SunderingBlow(args)
 end
 
 function mod:WhirlingSlam(args)
-	self:Message2(args.spellId, "red")
+	self:Message(args.spellId, "red")
 	self:PlaySound(args.spellId, "alarm")
 end
 
 function mod:MinorReinforcingWard(args)
-	self:Message2(args.spellId, "yellow")
+	self:Message(args.spellId, "yellow")
 	self:PlaySound(args.spellId, "info")
 end
 
 do
 	local function printTarget(self, name, guid)
-		self:TargetMessage(268214, name, "orange") -- Carve Flesh
+		self:TargetMessage(268214, "orange", name) -- Carve Flesh
 		self:PlaySound(268214, "alert") -- Carve Flesh
 	end
 
@@ -262,27 +262,27 @@ function mod:RunecarverDeath(args)
 end
 
 function mod:ShipbreakerStorm(args)
-	self:Message2(args.spellId, "orange")
+	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alert")
 	self:CDBar(args.spellId, 13)
 end
 
 function mod:ElectrifyingShock(args)
 	if self:Dispeller("magic", nil, args.spellId) then
-		self:TargetMessage(args.spellId, args.destName, "yellow")
+		self:TargetMessage(args.spellId, "yellow", args.destName)
 		self:PlaySound(args.spellId, "info")
 		self:CDBar(args.spellId, 15)
 	end
 end
 
 function mod:UnendingDarkness(args)
-	self:Message2(args.spellId, "orange")
+	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alert")
 end
 
 function mod:VoidSeedApplied(args)
 	if self:Me(args.destGUID) then
-		self:TargetMessage(args.spellId, args.destName, "blue")
+		self:TargetMessage(args.spellId, "blue", args.destName)
 		self:PlaySound(args.spellId, "alarm")
 		-- Duration seems to vary, so we can't hardcode a fixed duration
 		local count = 0
@@ -314,7 +314,7 @@ end
 
 function mod:VoidSeedRemoved(args)
 	if self:Me(args.destGUID) then
-		self:Message2(args.spellId, "blue", CL.removed:format(args.spellName))
+		self:Message(args.spellId, "blue", CL.removed:format(args.spellName))
 		self:PlaySound(args.spellId, "info")
 		self:StopBar(args.spellId, args.destName)
 		self:CancelSayCountdown(args.spellId)
@@ -327,7 +327,7 @@ do
 		local t = args.time
 		if t-prev > 1 then
 			prev = t
-			self:Message2(args.spellId, "orange")
+			self:Message(args.spellId, "orange")
 			self:PlaySound(args.spellId, "alert")
 		end
 	end
@@ -339,7 +339,7 @@ do
 		local t = args.time
 		if t-prev > 1 then
 			prev = t
-			self:Message2(args.spellId, "yellow")
+			self:Message(args.spellId, "yellow")
 			self:PlaySound(args.spellId, "info")
 		end
 	end
@@ -351,7 +351,7 @@ do
 		local t = args.time
 		if t-prev > 1 then
 			prev = t
-			self:Message2(args.spellId, "orange")
+			self:Message(args.spellId, "orange")
 			self:PlaySound(args.spellId, "alert")
 		end
 	end
@@ -360,13 +360,13 @@ end
 function mod:TouchOfTheDrownedApplied(args)
 	if self:UnitBuff(args.destName, 5697) then return end -- Warlock Unending Breath
 	if self:Dispeller("magic") or IsSpellKnown(5697) then -- Warlock Unending Breath
-		self:TargetMessage(args.spellId, args.destName, "yellow")
+		self:TargetMessage(args.spellId, "yellow", args.destName)
 		self:PlaySound(args.spellId, "info")
 	end
 end
 
 function mod:RisingTides(args)
-	self:Message2(args.spellId, "orange")
+	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alarm")
 	self:Bar(args.spellId, 23)
 end
@@ -381,7 +381,7 @@ do
 		local t = args.time
 		if self:Tank() and t-prev > 1 then
 			prev = t
-			self:Message2(args.spellId, "purple")
+			self:Message(args.spellId, "purple")
 			self:PlaySound(args.spellId, "alert")
 		end
 	end
@@ -390,7 +390,7 @@ do
 		local t = args.time
 		if not self:Tank() and t-prev > 1 then
 			prev = t
-			self:Message2(args.spellId, "orange")
+			self:Message(args.spellId, "orange")
 			self:PlaySound(args.spellId, "alert")
 		end
 	end

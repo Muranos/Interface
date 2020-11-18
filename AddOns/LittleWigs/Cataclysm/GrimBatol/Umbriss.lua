@@ -43,17 +43,17 @@ end
 function mod:Blitz(_, msg, _, _, _, player)
 	if msg:find(self:SpellName(74670)) then
 		if player then
-			self:TargetMessage(74670, player, "red", "Alert")
+			self:TargetMessageOld(74670, player, "red", "alert")
 			self:PrimaryIcon(74670, player)
 			self:ScheduleTimer("PrimaryIcon", 3.5, 74670)
 		else
-			self:Message(74670, "red", "Alert")
+			self:MessageOld(74670, "red", "alert")
 		end
 	end
 end
 
 function mod:Siege(args)
-	self:Message(args.spellId, "orange")
+	self:MessageOld(args.spellId, "orange")
 end
 
 function mod:UNIT_HEALTH_FREQUENT(event, unit)
@@ -61,17 +61,17 @@ function mod:UNIT_HEALTH_FREQUENT(event, unit)
 		local hp = UnitHealth(unit) / UnitHealthMax(unit) * 100
 		if hp < 36 then
 			self:UnregisterUnitEvent(event, unit)
-			self:Message(74853, "yellow", nil, CL.soon:format(self:SpellName(74853)))
+			self:MessageOld(74853, "yellow", nil, CL.soon:format(self:SpellName(74853)))
 		end
 	end
 end
 
 function mod:Frenzy(args)
-	self:Message(args.spellId, "yellow", "Long")
+	self:MessageOld(args.spellId, "yellow", "long")
 end
 
 function mod:Wound(args)
-	self:TargetMessage(args.spellId, args.destName, "yellow")
+	self:TargetMessageOld(args.spellId, args.destName, "yellow")
 	self:TargetBar(args.spellId, 10, args.destName)
 end
 

@@ -11,6 +11,7 @@ local ThreatPlates = Addon.ThreatPlates
 local UnitExists, UnitIsUnit = UnitExists, UnitIsUnit
 
 -- ThreatPlates APIs
+local BackdropTemplate = Addon.BackdropTemplate
 
 local _G =_G
 -- Global vars/functions that we don't upvalue since they might get hooked, or upgraded
@@ -90,7 +91,7 @@ function Addon:Element_Mouseover_Create(parent)
   frame:SetFrameLevel(frame_level)
 
   -- Highlight for healthbar
-  frame.Highlight = _G.CreateFrame("Frame", nil, healthbar)
+  frame.Highlight = _G.CreateFrame("Frame", nil, healthbar, BackdropTemplate)
   frame.Highlight:SetFrameLevel(frame_level)
   frame.Highlight:SetPoint("TOPLEFT", healthbar, "TOPLEFT", - OFFSET_HIGHLIGHT, OFFSET_HIGHLIGHT)
   frame.Highlight:SetPoint("BOTTOMRIGHT", healthbar, "BOTTOMRIGHT", OFFSET_HIGHLIGHT, - OFFSET_HIGHLIGHT)

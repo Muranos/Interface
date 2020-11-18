@@ -102,14 +102,14 @@ end
 
 function mod:UNIT_SPELLCAST_SUCCEEDED(_, unit, _, spellId)
 	if spellId == 282190 then -- Megatomic Seeker Missile
-		self:Message2(282215, "red")
+		self:Message(282215, "red")
 		self:PlaySound(282215, "warning")
 		self:CDBar(282215, 23)
 	end
 end
 
 function mod:Tantrum(args)
-	self:Message2(args.spellId, "orange", CL.count:format(args.spellName, tantrumCount))
+	self:Message(args.spellId, "orange", CL.count:format(args.spellName, tantrumCount))
 	self:PlaySound(args.spellId, "alarm")
 	self:CastBar(args.spellId, 5, CL.count:format(args.spellName, tantrumCount)) -- 1s + 4s Channel
 	tantrumCount = tantrumCount + 1
@@ -134,7 +134,7 @@ function mod:BestialThrow(args)
 end
 
 function mod:BestialThrowTarget(args)
-	self:TargetMessage2(289401, "purple", args.destName)
+	self:TargetMessage(289401, "purple", args.destName)
 	self:PlaySound(289401, "alarm", nil, args.destName)
 	if self:Me(args.destGUID) then
 		self:Say(289401)
@@ -143,19 +143,19 @@ function mod:BestialThrowTarget(args)
 end
 
 function mod:ReverberatingSlam(args)
-	self:Message2(args.spellId, "yellow")
+	self:Message(args.spellId, "yellow")
 	self:PlaySound(args.spellId, "alert")
 	self:CDBar(args.spellId, 29)
 end
 
 function mod:FerociousRoar(args)
-	self:Message2(285994, "red")
+	self:Message(285994, "red")
 	self:PlaySound(285994, "warning")
 	self:Bar(285994, 36.5)
 end
 
 --function mod:MegatomicSeekerMissile(args)
---	self:TargetMessage2(args.spellId, "orange", args.destName)
+--	self:TargetMessage(args.spellId, "orange", args.destName)
 --	self:PlaySound(args.spellId, "alarm")
 --	if self:Me(args.destGUID) then
 --		self:Say(args.spellId)
@@ -178,7 +178,7 @@ do
 end
 
 function mod:Apetagonizer3000Bomb(args)
-	self:Message2(args.spellId, "yellow", CL.incoming:format(CL.count:format(self:Mythic() and CL.adds or CL.add, addCount)))
+	self:Message(args.spellId, "yellow", CL.incoming:format(CL.count:format(self:Mythic() and CL.adds or CL.add, addCount)))
 	self:PlaySound(args.spellId, "long")
 	addCount = addCount + 1
 	self:Bar(args.spellId, self:Mythic() and 120 or 60.5, CL.count:format(self:Mythic() and CL.adds or CL.add, addCount))
@@ -190,14 +190,14 @@ do
 		local t = args.time
 		if t-prev > 1.5 then
 			prev = t
-			self:Message2(args.spellId, "yellow")
+			self:Message(args.spellId, "yellow")
 			self:PlaySound(args.spellId, "alert")
 		end
 	end
 end
 
 function mod:ApetagonizerCore(args)
-	self:TargetMessage2(args.spellId, "green", args.destName, args.spellName)
+	self:TargetMessage(args.spellId, "green", args.destName, args.spellName)
 	if self:Me(args.destGUID) then
 		self:TargetBar(args.spellId, 20, args.destName)
 	end
@@ -210,6 +210,6 @@ function mod:ApetagonizerCoreRemoved(args)
 end
 
 function mod:DischargeApetagonizerCore(args)
-	self:Message2(args.spellId, "green")
+	self:Message(args.spellId, "green")
 	self:PlaySound(args.spellId, "info")
 end

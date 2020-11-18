@@ -45,7 +45,7 @@ function mod:UNIT_HEALTH_FREQUENT(event, unit)
 		if splitPhase > 1 or self:Normal() then -- No 2nd split on Normal mode
 			self:UnregisterUnitEvent(event, unit)
 		end
-		self:Message(-7395, "green", nil, CL.soon:format(self:SpellName(-7395)), false)
+		self:MessageOld(-7395, "green", nil, CL.soon:format(self:SpellName(-7395)), false)
 	end
 end
 
@@ -55,7 +55,7 @@ do
 	function mod:Critter(args)
 		playerList[#playerList+1] = args.destName
 		if #playerList == 1 then
-			self:ScheduleTimer("TargetMessage", 0.3, args.spellId, playerList, "orange", "Alert", nil, nil, self:Dispeller("magic"))
+			self:ScheduleTimer("TargetMessageOld", 0.3, args.spellId, playerList, "orange", "alert", nil, nil, self:Dispeller("magic"))
 		end
 	end
 end

@@ -19,13 +19,15 @@ app.L = {
 
 	-- Instructional Text
 	["MINIMAP_MOUSEOVER_TEXT"] = "Right click to change settings.\nLeft click to open the Main List.\nCtrl + Left click to open the Mini List.\nShift + Left click to Refresh Collections.";
-	["TOP_ROW_INSTRUCTIONS"] = "|cff3399ffLeft Click and Drag to Move|r\n|cff3399ffRight Click to Open the Settings Menu|r\n|cff3399ffShift + Click to Refresh Collections|r";
-    ["OTHER_ROW_INSTRUCTIONS"] = "|cff3399ffLeft Click to Expand/Collapse|r\n|cff3399ffRight Click to Pop Out to Mini List|r\n|cff3399ffShift + Click to Refresh Collections|r\n|cff3399ffAlt + Right Click to Plot Waypoints|r";
+	["TOP_ROW_INSTRUCTIONS"] = "|cff3399ffLeft Click and Drag to Move|r\n|cff3399ffRight Click to Open the Settings Menu|r\n|cff3399ffShift + Click to Refresh Collections|r\n|cff3399ffCtrl + Click to Expand/Collapse Recursively|r";
+    ["OTHER_ROW_INSTRUCTIONS"] = "|cff3399ffLeft Click to Expand/Collapse|r\n|cff3399ffRight Click to Pop Out to Mini List|r\n|cff3399ffShift + Click to Refresh Collections|r\n|cff3399ffCtrl + Click to Expand/Collapse Recursively|r\n|cff3399ffAlt + Right Click to Plot Waypoints|r";
 	["TOP_ROW_INSTRUCTIONS_AH"] = "|cff3399ffLeft Click and Drag to Move|r\n|cff3399ffRight Click to Open the Settings Menu|r\n|cff3399ffShift + Click to Search the Auction House|r";
 	["OTHER_ROW_INSTRUCTIONS_AH"] = "|cff3399ffLeft Click to Expand/Collapse|r\n|cff3399ffRight Click to Pop Out to Mini List|r\n|cff3399ffShift + Click to Search the Auction House|r";
 	["RECENTLY_MADE_OBTAINABLE"] = "|CFFFF0000If this recently dropped for you (anywhere but Salvage\nCrates), please post in Discord where you got it to drop!|r";
 	["RECENTLY_MADE_OBTAINABLE_PT2"] = "|CFFFF0000The more information, the better.  Thanks!|r";
 	["I_ONLY_CARE_ABOUT_MY_MAIN"] = "|cff3399ffI only care about my main.|r";
+	["TOP_ROW_TO_LOCK"] = "|cff3399ffAlt + Click to Lock this Window";
+	["TOP_ROW_TO_UNLOCK"] = "|cffcf0000Alt + Click to Unlock this Window";
 
 	-- Binding Localizations
 	["TOGGLE_ACCOUNT_MODE"] = "Toggle Account Mode";
@@ -217,7 +219,7 @@ app.L = {
 		[100] = GetItemSubClassInfo(15,5),						-- Mounts
 		[101] = TOOLTIP_BATTLE_PET,								-- Battle Pet
 		[102] = TOY,											-- Toy
-		[103] = "Illusions",
+		[103] = "Illusions",									-- Illusions
 		[104] = ITEM_BIND_QUEST, 								-- Quest Items
 		[105] = TRACKER_FILTER_ACHIEVEMENTS, 					-- Achievements
 		[106] = CALENDAR_FILTER_WEEKLY_HOLIDAYS, 				-- Holiday
@@ -272,6 +274,7 @@ app.L = {
 		[100] = "Interface\\Icons\\ability_mount_fireravengodmountgreen",		-- Mounts
 		[101] = "Interface\\Icons\\Tracking_WildPet", 							-- Battle Pet
 		[102] = "Interface\\Icons\\INV_Misc_Toy_10",							-- Toy
+		[111] = "Interface\\Icons\\Inv_glyph_minorwarrior",						-- Glyph
 		[113] = "Interface\\Icons\\INV_Misc_Bag_08",							-- Bag
 		[114] = "Interface\\Icons\\inv_blacksmith_leystonehoofplates_orange",	-- Mount Equipment
 		[200] = "Interface\\Icons\\inv_scroll_05",								-- Recipes
@@ -287,7 +290,7 @@ app.L = {
 		[-1] = "Interface\\Icons\\Achievement_Garrison_Horde_PVE", 							-- Common Boss Drop
 		[-2] = "Interface\\Icons\\INV_Misc_Coin_02", 										-- Vendors
 		[-3] = "Interface\\Icons\\Achievement_Halloween_Bat_01", 							-- World Event
-		[-4] = "Interface\\Icons\\Achievement_Dungeon_GloryoftheHERO", 						-- Achievement
+		[-4] = "Interface\\Addons\\AllTheThings\\assets\\ach", 						-- Achievement
 		[-5] = "Interface\\Icons\\inv_misc_gem_bloodgem_01",								-- Prospecting
 		[-7] = "Interface\\Icons\\Inv_offhand_1h_artifactskulloferedar_d_05",				-- World Bosses (Achievement_Boss_ShadeOfEranikus)
 		[-8] = "Interface\\Icons\\ability_monk_dragonkick",									-- PvE
@@ -309,9 +312,9 @@ app.L = {
 		[-32] = "Interface\\Icons\\ACHIEVEMENT_GUILDPERK_LADYLUCK", 						-- Trading Card Game
 		[-33] = "Interface\\Icons\\trade_fishing", 											-- Fishing
 		[-34] = "Interface\\Icons\\Achievement_Reputation_06", 								-- World Quests
-		[-36] = "Interface\\Icons\\WoW_Token01", 											-- In-Game Shop
+		[-36] = "Interface\\Addons\\AllTheThings\\assets\\gshop", 											-- In-Game Shop
 		[-37] = "Interface\\Icons\\Garrison_Building_MageTower",							-- Discovery
-		[-38] = "Interface\\Icons\\achievement_general_workingasateam",						-- Professions
+		[-38] = "Interface\\Addons\\AllTheThings\\assets\\prof",						-- Professions
 		[-39] = "Interface\\Icons\\Inv_misc_book_17",
 		[-40] = "Interface\\Icons\\Inv_misc_book_17", 										-- Legacy
 		[-41] = "Interface\\Icons\\TRADE_ARCHAEOLOGY", 										-- Cache of Madness
@@ -375,8 +378,8 @@ app.L = {
 		[-149] = "Interface\\Icons\\ClassIcon_Paladin", 									-- Paladin
 		[-150] = "Interface\\Icons\\ClassIcon_Hunter", 										-- Hunter
 		[-152] = "Interface\\Icons\\achievement_zone_draenor_01", 							-- Garrison Campaign
-		[-160] = "Interface\\Icons\\ability_mount_fireravengodmountgreen",					-- Mounts
-		[-161] = "Interface\\Icons\\garrison_bronzechest",									-- Toy
+		[-160] = "Interface\\Addons\\AllTheThings\\assets\\mounts",					-- Mounts
+		[-161] = "Interface\\Addons\\AllTheThings\\assets\\toy",									-- Toy
 		[-162] = "Interface\\Icons\\inv_box_petcarrier_01",	 								-- Pets
 		[-163] = "Interface\\Icons\\garrison_purplearmor", 									-- Armor
 		[-168] = "Interface\\Icons\\Achievement_Quests_Completed_04",						-- Other Quests
@@ -434,7 +437,7 @@ app.L = {
 		[-225] = "Interface\\Icons\\spell_lightning_lightningbolt01",						-- Elemental Bonds
 		[-226] = "Interface\\ICONS\\INV_Misc_Map02",										-- World Drops
 		[-227] = "Interface\\ICONS\\spell_holy_divinepurpose",								-- Victory
-		[-228] = "Interface\\Minimap\\Tracking\\Flightmaster",								-- Flight Paths
+		[-228] = "Interface\\Addons\\AllTheThings\\assets\\fpl",								-- Flight Paths
 		[-230] = "Interface\\Icons\\achievement_legionpvp2tier3",							-- Conquest
 		[-231] = "Interface\\Icons\\Spell_Shadow_DeathScream",
 		[-232] = "Interface\\Icons\\Spell_Shadow_DeathScream",
@@ -619,6 +622,7 @@ app.L = {
 		[-690] = "Interface\\Icons\\inv_protodrakegladiatormount_blue",						-- Sinister Gladiator: Battle for Azeroth Season 2
 		[-691] = "Interface\\Icons\\inv_protodrakegladiatormount_purple",					-- Notorious Gladiator: Battle for Azeroth Season 3
 		[-692] = "Interface\\Icons\\inv_protodrakegladiatormount_black",					-- Corrupted Gladiator: Battle for Azeroth Season 4
+		[-693] = "Interface\\Icons\\inv_shadebeastmount",									-- Sinful Gladiator: Shadowlands Season 1
 		[-800] = "Interface\\Icons\\inv_horse2purple",										-- Lucid Nightmare
 		[-801] = "Interface\\Icons\\inv_serpentmount_darkblue",								-- Riddler's Mind-Worm
 		[-802] = "Interface\\Icons\\inv_faeriedragon2_orange",								-- Sun Darter Hatchling
@@ -639,6 +643,7 @@ app.L = {
 		[-859] = "Interface\\Icons\\inv_tinyazeritesplinter",								-- Rank 2
 		[-860] = "Interface\\Icons\\inv_smallazeriteshard",									-- Rank 3
 		[-861] = "Interface\\Icons\\inv_smallazeritecluster",								-- Rank 4
+		[-862] = "Interface\\Icons\\inv_heartofazeroth",									-- Heart of Azeroth
 		[-1000] = "Interface\\Icons\\achievement_transmog_collections",						-- Sets
 		[-1001] = "Interface\\Icons\\Racial_Dwarf_FindTreasure",							-- The Black Vault
 		[-2200] = "Interface\\Icons\\inv_scroll_11",										-- Warrior order hall lore item
@@ -773,7 +778,7 @@ app.L = {
 		[-5350] = "Interface\\Icons\\ability_bossmagistrix_timewarp1",						-- Class Trial Item Sets
 		[-5351] = "Interface\\Icons\\misc_arrowlup",										-- Character Boost
 		[-5352] = "Interface\\Icons\\creatureportrait_portal_eyeofthestormhorde",			-- Tier Sets
-		[-6013] = "Interface\\Icons\\achievement_reputation_08",							-- Faction
+		[-6013] = "Interface\\Addons\\AllTheThings\\assets\\factions",							-- Faction
 		[-6014] = "Interface\\Icons\\Spell_Arcane_PortalUnderCity",							-- Cities
 		[-6015] = "Interface\\Icons\\battleground_strongbox_gold_horde",					-- Rewards
 
@@ -1385,6 +1390,9 @@ app.L = {
 		[-691] = select(2, GetAchievementInfo(13630)),							-- Notorious Gladiator: Battle for Azeroth Season 3
 		[-692] = select(2, GetAchievementInfo(13957)),							-- Corrupted Gladiator: Battle for Azeroth Season 4
 
+-- Shadowlands PvP Seasons
+		[-693] = select(2, GetAchievementInfo(14690)),							-- Sinful Gladiator: Shadowlands Season 1
+
 -- Secret Header [Maybe need to change the numbers again when I need more space for PvP -- sadidorf]
 		[-800] = GetSpellInfo(247402), 											-- Lucid Nightmare
 		[-801] = GetSpellInfo(243025),											-- Riddler's Mind-Worm
@@ -1398,6 +1406,7 @@ app.L = {
 -- Mechagon
 		[-850] = "Mechanized Chest",											-- Mechanized Chest
 		[-851] = "Irontide Chest",												-- Irontide Chest
+		[-862] = GetSpellInfo(275825),											-- Heart of Azeroth
 		[-1000] = WARDROBE_SETS, 												-- Sets
 		[-1001] = "The Black Vault",
 
@@ -1662,6 +1671,7 @@ app.L = {
 		[-5362] = select(2,GetAchievementInfo(11848)),	-- 13th Anniversary
 		[-5363] = select(2,GetAchievementInfo(12827)),	-- 14th Anniversary
 		[-5364] = select(2,GetAchievementInfo(13917)),	-- 15th Anniversary
+		[-5365] = select(2,GetAchievementInfo(14271)),	-- 16th Anniversary
 --[[
 		-- Tier Set Numbers Localization
 		[-5992] = GARRISON_CURRENT_LEVEL.." "..WARDROBE_SETS, -- Tier 9 Sets
@@ -1735,7 +1745,7 @@ app.L = {
 		[-9962] = BATTLE_PET_SOURCE_7,					-- World Events
 		[-9963] = SHOW_PET_BATTLES_ON_MAP_TEXT,			-- Pet Battles
 		[-9964] = COLLECTIONS,							-- Collections
-		[-9965] = select(1,GetCategoryInfo(15281)),		-- Class Hall
+		[-9965] = select(1,GetCategoryInfo(15304)),		-- Class Hall
 		[-9966] = select(1,GetCategoryInfo(15303)),		-- Draenor Garrison
 		[-9967] = SCENARIOS,							-- Scenarios
 		[-9968] = LFG_LIST_LEGACY,						-- Legacy
@@ -1856,6 +1866,7 @@ app.L = {
 		[-10080] = "Horrific Visions",
 		[-10081] = "Corrupted Area",
 		[-10082] = "Lost Area",
+		-- 9.0
 	},
 
 	["OBJECT_ID_ICONS"] = {
@@ -2527,7 +2538,10 @@ app.L = {
 		[326418] = "Interface\\Icons\\inv_misc_treasurechest01c",
 		[326419] = "Interface\\Icons\\inv_misc_treasurechest01c",
 		[327230] = "Interface\\Icons\\inv_cooking_80_choralhoney3",
+		[327407] = "Interface\\Icons\\inv_misc_treasurechest01c",
 		[329783] = "Interface\\Icons\\inv_misc_treasurechest01b",
+		[329918] = "Interface\\Icons\\inv_misc_treasurechest01c",
+		[329919] = "Interface\\Icons\\inv_misc_treasurechest01c",
 		[332220] = "Interface\\Icons\\inv_misc_treasurechest01b",
 		[332569] = "Interface\\Icons\\trade_archaeology_catstatueemeraldeyes",
 		[332570] = "Interface\\Icons\\trade_archaeology_catstatueemeraldeyes",
@@ -2540,7 +2554,9 @@ app.L = {
 		[332577] = "Interface\\Icons\\trade_archaeology_catstatueemeraldeyes",
 		[332704] = "Interface\\Icons\\inv_trinket_80_titan02e",
 		[339211] = "Interface\\Icons\\inv_misc_bowl_01",
+		[339770] = "Interface\\Icons\\inv_misc_treasurechest01c",
 		[343611] = "Interface\\Icons\\inv_misc_food_legion_gooamberpurple_chunk",
+		[357758] = "Interface\\Icons\\ability_vehicle_plaguebarrel",
 		[9999890] = "Interface\\Icons\\INV_Heart_of_the_Thunder King_Icon",
 		[9999891] = "Interface\\Icons\\ability_paladin_blessedmending",
 		[9999892] = "Interface\\Icons\\spell_holy_healingfocus",
@@ -2979,6 +2995,7 @@ app.L = {
 		[215844] = "Flagpole",
 		[216322] = "Bounty Board",
 		[218750] = "Work Orders",
+		[218949] = "Lei Shen's Burial Trove",
 		[220641] = "Thunderlord's Cache",
 		[220820] = "|cFFFFFFFFStep 6:|r Page 1127",
 		[220821] = "|cFFFFFFFFStep 5:|r Page 845",
@@ -3372,6 +3389,7 @@ app.L = {
 		[241664] = "Borrowed Enchanted Spyglass",
 		[241665] = "Treasure Chest",
 		[241671] = "Forgotten Shard of the Cipher",
+		[241673] = "Looted Bleeding Hollow Treasure",
 		[241674] = "Skull of the Mad Chief",
 		[241680] = "Small Treasure Chest",
 		[241692] = "Axe of the Weeping Wolf",
@@ -4013,6 +4031,7 @@ app.L = {
 		[326588] = "Azerite Weapons Cache",
 		[327170] = "Weapon Rack",
 		[327230] = "Jelly Deposit",
+		[327407] = "Precious Ogre Stash",
 		[327548] = "Powerpack Blueprints",
 		[327585] = "Bounty Board",
 		[327591] = "Preserved Journal",
@@ -4022,6 +4041,8 @@ app.L = {
 		[329641] = "Wanted: Junkbrat and Roadtrogg",
 		[329783] = "Glowing Arcane Trunk",
 		[329805] = "Strange Crystal",
+		[329918] = "Quilboar Treasure",
+		[329919] = "Stolen Supplies",
 		[332220] = "Glowing Arcane Trunk",
 		[332569] = "Crystalline Cat Figurine",
 		[332570] = "Crystalline Cat Figurine",
@@ -4034,7 +4055,9 @@ app.L = {
 		[332577] = "Crystalline Cat Figurine",	-- Need to be confirmed
 		[332704] = "Corrupted Chest",
 		[339211] = "|cFFFFFFFFStep 2:|r Empty Dish",
+		[339770] = "Abandoned Treasure Chest",
 		[343611] = "Voidtouched Egg",
+		[357758] = "Plague Barrel",
 		[9999890] = "Corrupted Loot",
 		[9999891] = "Main Objective Only",
 		[9999892] = "Main Objective + 2 Bonus Areas",
@@ -4218,8 +4241,8 @@ app.L = {
 		{0, "", ""}, --32
 		{0, "", ""}, -- 33
 		{0, "", ""}, --34
-		{3, "|CFFFF0000This can be purchased from the In-Game Shop.|r", "In-Game Shop (35)"}, --35
-		{21, "|CFFFF0000This was obtainable only during the WoW Anniversary when it was active and is no longer available.|r\n", "WoW Anniversary [Removed] (36)"}, -- 36
+		{3, "|CFFFF0000This may be locked behind a paywall, probably the in-game shop, another Blizzard game, or Recruit A Friend.|r", "Blizzard Balance (35)"}, --35
+		{1, "|CFFFF0000This was obtainable only during the WoW Anniversary when it was active and is no longer available.|r\n", "WoW Anniversary [Removed] (36)"}, -- 36
 		{0, "", ""}, --37
 		{1, "|CFFFF0000These items are only available for players that completed the Legendary Cloak quest chain during Mists of Pandaria or via the BMAH|r", "Ordos - Legendary Cloak (38)"}, --38
 		{0, "", ""}, --39

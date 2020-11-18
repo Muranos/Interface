@@ -35,8 +35,6 @@ function mod:OnRegister()
 end
 
 function mod:OnBossEnable()
-	self:RegisterEvent("ENCOUNTER_START")
-
 	self:Log("SPELL_CAST_START", "DefiledGround", 306726)
 	self:Log("SPELL_CAST_START", "RingOfChaos", 306617)
 	self:Log("SPELL_CAST_SUCCESS", "UnleashCorruption", 306656)
@@ -46,29 +44,22 @@ function mod:OnEngage()
 	self:Bar(306726, 3.3) -- Defiled Ground
 end
 
--- There are no boss frames to trigger the engage
-function mod:ENCOUNTER_START(_, encounterId)
-	if encounterId == self.engageId then
-		self:Engage()
-	end
-end
-
 --------------------------------------------------------------------------------
 -- Event Handlers
 --
 
 function mod:DefiledGround(args)
-	self:Message2(args.spellId, "orange")
+	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alarm")
 	self:CDBar(args.spellId, 11.6)
 end
 
 function mod:RingOfChaos(args)
-	self:Message2(args.spellId, "red")
+	self:Message(args.spellId, "red")
 	self:PlaySound(args.spellId, "alarm")
 end
 
 function mod:UnleashCorruption(args)
-	self:Message2(args.spellId, "orange")
+	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alert")
 end

@@ -222,6 +222,7 @@ local m = {
 			if type(opt.orgPos) == "table" then
 				if type(opt.orgPos[1]) == "table" then
 					for i, v in pairs(opt.orgPos) do
+						f:ClearAllPoints()
 						if f.MASetPoint then
 							f:MASetPoint(unpack(v))
 						else
@@ -229,6 +230,7 @@ local m = {
 						end
 					end
 				else
+					f:ClearAllPoints()
 					if f.MASetPoint then
 						f:MASetPoint(unpack(opt.orgPos))
 					else

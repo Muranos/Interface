@@ -329,7 +329,7 @@ do
 		end
 
 		if not bd.tukiborder then
-			local border = CreateFrame("Frame", nil, bd)
+			local border = CreateFrame("Frame", nil, bd, "BackdropTemplate")
 			if C then
 				border:SetInside(bd, 1, 1)
 			else
@@ -345,7 +345,7 @@ do
 		end
 
 		if not bd.tukoborder then
-			local border = CreateFrame("Frame", nil, bd)
+			local border = CreateFrame("Frame", nil, bd, "BackdropTemplate")
 			if C then
 				border:SetOutside(bd, 1, 1)
 			else
@@ -1832,6 +1832,7 @@ end
 --
 
 local function barClicked(bar, button)
+	if not plugin.db.profile[button] then return end
 	for action, enabled in next, plugin.db.profile[button] do
 		if enabled then clickHandlers[action](bar) end
 	end

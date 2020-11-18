@@ -1,49 +1,42 @@
-## Interface: 80205
+## Interface: 90001
 ## Title: SavedInstances
 ## Notes: Tracks Raid, Instance, World Boss lockouts for all your characters, daily/weekly quests, currencies, trade cooldowns, and more!
 ## Author: oscarucb and the Saved Instances Community
-## Version: 8.3.4
-## X-ReleaseDate: 2020-05-25T2:22:22Z
+## Version: 9.0.2
+## X-ReleaseDate: 2020-10-23T15:52:10Z
 ## X-License: All Rights Reserved
 ## X-Category: Raid
+## X-LoadOn-Always: delayed
+## X-Curse-Project-ID: 13998
 ## OptionalDeps: Ace3, CallbackHandler-1.0, LibDataBroker-1.1, LibDBIcon-1.0, LibQTip-1.0
 ## SavedVariables: SavedInstancesDB
 ## LoadManagers: AddonLoader
-## X-LoadOn-Always: delayed
 
-#@no-lib-strip@
-Libs\LibStub\LibStub.lua
-Libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
-Libs\AceAddon-3.0\AceAddon-3.0.xml
-Libs\AceEvent-3.0\AceEvent-3.0.xml
-Libs\AceTimer-3.0\AceTimer-3.0.xml
-Libs\AceBucket-3.0\AceBucket-3.0.xml
-Libs\AceGUI-3.0\AceGUI-3.0.xml
-Libs\AceConfig-3.0\AceConfig-3.0.xml
-Libs\AceConsole-3.0\AceConsole-3.0.xml
-Libs\LibQTip-1.0\lib.xml
-#@end-no-lib-strip@
+# external code + initialization
+embeds.xml
+Init.lua
+Locales\Locale.lua
 
-Libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
+# core files
+Core\Functions.lua
+Core\Time.lua
 
-#@no-lib-strip@
-Libs\LibDBIcon-1.0\LibDBIcon-1.0.lua
-#@end-no-lib-strip@
+Core\Debug.lua
+Core\Config.lua
 
-locale.lua
+# modules
+# load Quest.lua first, required by Currency.lua
+Modules\Quest.lua
 
-Core.lua
-BonusRoll.lua
-Tradeskills.lua
-LFR.lua
-Emissary.lua
-WorldBosses.lua
-Quests.lua
-Currency.lua
-MythicPlus.lua
-Paragon.lua
-Progress.lua
-Warfront.lua
-SavedInstances.lua
+Modules\BonusRoll.lua
+Modules\Currency.lua
+Modules\Emissary.lua
+Modules\LFR.lua
+Modules\MythicPlus.lua
+Modules\Paragon.lua
+Modules\Progress.lua
+Modules\TradeSkill.lua
+Modules\Warfront.lua
+Modules\WorldBoss.lua
 
-config.lua
+Core\Core.lua
