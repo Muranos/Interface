@@ -2,7 +2,7 @@
 ## Title: TomCat's Tours: Rares of Death's Rising (bundled)
 ## Author: TomCat
 ## X-Website: https://www.tomcatstours.com
-## Version: 2.0.19
+## Version: 2.0.22
 ## DefaultState: enabled
 ## LoadOnDemand: 1
 ## RequiredDeps: TomCats

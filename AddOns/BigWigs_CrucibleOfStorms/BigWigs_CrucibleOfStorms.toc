@@ -22,7 +22,7 @@
 ## Notes-itIT: BigWigs Crucible of Storms Modules
 ## Notes-ptBR: BigWigs Crucible of Storms Modules
 ## Notes-koKR: BigWigs Crucible of Storms Modules
-## Version: v187
+## Version: v187.1
 
 ## LoadOnDemand: 1
 ## Dependencies: BigWigs

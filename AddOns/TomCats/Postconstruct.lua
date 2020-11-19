@@ -91,7 +91,7 @@ SlashCmdList["TOMCATS"] = handleSlashCommand
 local slashCommandsHtmlHead = "<html>\n<body>\n<h1>Slash Commands</h1>\n<br />\n"
 local slashCommandHtmlTemplate = "<h3>%s:</h3>\n<p>/TOMCATS %s</p>\n<br />\n"
 local slashCommandsHtmlFoot = "</body>\n</html>"
-TomCats.version = unpack(addon.split("2.0.19","-"))
+TomCats.version = unpack(addon.split("2.0.22","-"))
 local function refreshInterfaceControlPanels()
 	local slashCommandsHtml = slashCommandsHtmlHead
 	slashCommandsHtml = slashCommandsHtml .. format(slashCommandHtmlTemplate, "Open the TomCat's Tours Control Panel", "")
@@ -418,6 +418,8 @@ do
 						})
 					end
 				end
+			elseif (IsControlKeyDown()) then
+				ChatFrame1:AddMessage(("|cffff0000%s|r"):format(L["Must have TomTom"]))
 			else
 				PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
 				TomCatsRareMapFrame.RaresFrame:Hide()
@@ -445,7 +447,8 @@ do
 				footerText = ("|cff00ff00<%s>|r"):format(L["Click to view creature details"]) .. "\n\n" ..
 						("|cff00ff00<%s>|r"):format(L["Control-Click TomTom"]) .. "\n\n" .. PIN_SHARING
 			else
-				footerText = ("|cff00ff00<%s>|r"):format(L["Click to view creature details"]) .. "\n\n" .. PIN_SHARING
+				footerText = ("|cff00ff00<%s>|r"):format(L["Click to view creature details"]) .. "\n\n" ..
+						("|cff999999<%s>|r"):format(L["Control-Click TomTom"]) .. "\n\n" .. PIN_SHARING
 			end
 			if (creature["Loot"]) then
 				local itemID
@@ -541,23 +544,21 @@ do
 		end
 
 		do
-			local eventStarts = {
-				EU = 1605097200 + 120,
-				NA = 1605054000 + 120
-			}
 			spawnTimer = 600
 
-			local function ServerRegion()
-				local region = GetCurrentRegionName();
-				if (region == "EU") then return "EU" end
-				return "NA";
-			end
+			local eventStarts = {
+				[1] = 1605054000 + 120, -- NA
+				[2] = 1605054000 + 120 - spawnTimer * 12, -- KR
+				[3] = 1605097200 + 120, -- EU
+				[4] = 1605054000 + 120 - spawnTimer * 12, -- TW
+				[5] = 1605054000 + 120 - spawnTimer * 12, -- CN
+			}
 
 			local eventStartsTime
 
 			local function EventStartTime()
 				if (not eventStartsTime) then
-					eventStartsTime = eventStarts[ServerRegion()]
+					eventStartsTime = eventStarts[GetCurrentRegion()] or eventStarts[1]
 				end
 				return eventStartsTime
 			end

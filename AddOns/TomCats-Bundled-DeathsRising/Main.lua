@@ -7,24 +7,21 @@ local GetVignettes_Orig = C_VignetteInfo.GetVignettes
 
 local zoneMapID = 118
 
-local eventStarts = {
-    EU = 1605097200 + 120,
-    NA = 1605054000 + 120
-}
 local spawnTimer = 600
 
-
-local function ServerRegion()
-    local region = GetCurrentRegionName();
-    if (region == "EU") then return "EU" end
-    return "NA";
-end
+local eventStarts = {
+    [1] = 1605054000 + 120, -- NA
+    [2] = 1605054000 + 120 - spawnTimer * 12, -- KR
+    [3] = 1605097200 + 120, -- EU
+    [4] = 1605054000 + 120 - spawnTimer * 12, -- TW
+    [5] = 1605054000 + 120 - spawnTimer * 12, -- CN
+}
 
 local eventStartsTime
 
 local function EventStartTime()
     if (not eventStartsTime) then
-        eventStartsTime = eventStarts[ServerRegion()]
+        eventStartsTime = eventStarts[GetCurrentRegion()] or eventStarts[1]
     end
     return eventStartsTime
 end
@@ -293,7 +290,8 @@ function addon.showItemTooltip(self, creature, showCreatureName, _, _)
             footerText = footerText .. ("\n\n|cff00ff00<%s>|r"):format(L["Click to view creature details"]) .. "\n\n" ..
                     ("|cff00ff00<%s>|r"):format(L["Control-Click TomTom"]) .. "\n\n" .. PIN_SHARING
         else
-            footerText = footerText .. ("\n\n|cff00ff00<%s>|r"):format(L["Click to view creature details"]) .. "\n\n" .. PIN_SHARING
+            footerText = footerText .. ("\n\n|cff00ff00<%s>|r"):format(L["Click to view creature details"]) .. "\n\n" ..
+                    ("|cff999999<%s>|r"):format(L["Control-Click TomTom"]) .. "\n\n" .. PIN_SHARING
         end
     end
     if footerText then
@@ -365,6 +363,8 @@ local function ClickRarePin(self, isCreature)
                     })
                 end
             end
+        elseif (IsControlKeyDown()) then
+            ChatFrame1:AddMessage(("|cffff0000%s|r"):format(L["Must have TomTom"]))
         else
             if WorldMapFrame:IsMaximized() then
                 WorldMapFrame.BorderFrame.MaximizeMinimizeFrame:Minimize()
@@ -526,7 +526,7 @@ if (TomCats and TomCats.Register) then
                     }
                 },
                 name = "Rares of Death's Rising",
-                version = "2.0.19",
+                version = "2.0.22",
                 raresLogHandlers = {
                     [zoneMapID] = {
                         raresLog = GetRaresLog

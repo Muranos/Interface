@@ -1,7 +1,0 @@
-changeset:   243:d8204e0fcbaa
-tag:         v4.80
-user:        Elvenbane <elvenbane@clanyawa.com>
-date:        Tue Oct 27 13:27:13 2020 -0500
-summary:     Pull updated LibDialog
-
-
