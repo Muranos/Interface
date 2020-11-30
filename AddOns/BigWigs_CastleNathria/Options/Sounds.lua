@@ -5,7 +5,6 @@ BigWigs:AddSounds("Shriekwing", {
 	[328921] = "long",
 	[329362] = "info",
 	[330711] = "long",
-	[340047] = "warning",
 	[340324] = "alarm",
 	[341489] = "info",
 	[341684] = {"info","warning"},
@@ -114,6 +113,7 @@ BigWigs:AddSounds("Sludgefist", {
 	[335361] = "alarm",
 	[335470] = "warning",
 	[340817] = "long",
+	[341250] = "alert",
 })
 
 BigWigs:AddSounds("Stone Legion Generals", {

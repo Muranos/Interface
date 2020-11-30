@@ -1,7 +1,7 @@
-## Interface: 90001
-## Title: Titan Panel |cff00aa005.19.2.90001|r
+## Interface: 90002
+## Title: Titan Panel |cff00aa005.20.0.90002|r
 ## Author: Titan Panel Development Team
-## Version: 5.19.2.90001
+## Version: 5.20.0.90002
 ## SavedVariables: TitanAll, TitanSettings, TitanSkins, ServerTimeOffsets, ServerHourFormat
 ## OptionalDeps: Ace3, AceGUI-3.0-SharedMediaWidgets, LibSharedMedia-3.0, LibQTip-1.0, !LibUIDropDownMenu
 ## Notes: Adds a display bar on the top and/or bottom of the screen. Allows users to show and control information/launcher plugins.
@@ -26,6 +26,7 @@ locale\Localization.ES.lua
 locale\Localization.FR.lua
 locale\Localization.IT.lua
 locale\Localization.KR.lua
+locale\Localization.MX.lua
 locale\Localization.RU.lua
 locale\Localization.TW.lua
 

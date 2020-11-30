@@ -185,8 +185,8 @@ L["Colorpicker"] = "選擇顏色"
 L["Colossal Tentacle"] = "巨型触须"
 --[[Translation missing --]]
 --[[ L["Congealed Slime"] = ""--]] 
---[[Translation missing --]]
---[[ L["ConnectedTip"] = ""--]] 
+L["ConnectedTip"] = [=[MDT 中連在一起群組不代表遊戲內的 NPC 也會連結在一起。
+]=]
 L["Control Undead"] = "控制不死生物"
 L["Copy"] = "複製"
 --[[Translation missing --]]
@@ -609,8 +609,7 @@ L["Lady Waycrest"] = "维克雷斯夫人"
 --[[ L["Lakesis"] = ""--]] 
 L["Language"] = "語言"
 L["LargePresetWarning"] = "你正嘗試分享非常龐大的路線 (%d 個字元)%s建議使用匯出的功能，將大型的路線改為分享到 wago.io。%s是否確定要現在分享這個路線?%s"
---[[Translation missing --]]
---[[ L["Legion"] = ""--]] 
+L["Legion"] = "軍臨天下"
 L["Level %d %s"] = "等級 %d %s"
 L["Levels below 10 will hide enemies related to seasonal affixes"] = "10 層以下會隱藏季詞綴相關的敵人"
 L["Library Floor"] = "圖書館底層"

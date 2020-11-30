@@ -171,7 +171,7 @@ local function ScanInventory()
 end
 
 local function ScanQuestLog()	
-	for questIndex = 1, GetNumQuestLogEntries() do
+	for questIndex = 1, C_QuestLog.GetNumQuestLogEntries() do
 		--Special/usable items
 		local itemLink = GetQuestLogSpecialItemInfo(questIndex)
 		if itemLink then
@@ -179,7 +179,8 @@ local function ScanQuestLog()
 			questItems[itemId] = true
 			usableQuestItems[itemId] = GetItemSpell(itemId) or true
 			activeQuestItems[itemId] = true
-			questItemText[itemId] = GetQuestLogTitle(questIndex)
+			questItemText[itemId] = C_QuestLog.GetInfo(questIndex)
+      questItemText[itemId] = questItemText[itemId][title]
 		end
 		
 		--Required items (to complete quest). The player may not actually have this item (yet).
@@ -192,7 +193,7 @@ local function ScanQuestLog()
 					local itemLink = select(2, GetItemInfo(itemName))
 					if itemLink then
 						local itemId = getbaseid(itemLink)
-						local questName = GetQuestLogTitle(questIndex)
+						local questName = C_QuestLog.GetInfo(questIndex).title
 						questItemText[itemId] = questName .. " - " .. objectiveText
 					end
 				end

@@ -1,10 +1,10 @@
-## Interface: 90001
-## Title: Titan Panel [|cffeda55fLocation|r] |cff00aa005.19.2.90001|r
+## Interface: 90002
+## Title: Titan Panel [|cffeda55fLocation|r] |cff00aa005.20.0.90002|r
 ## Notes: Adds coordinates and location information to Titan Panel
 ## Author: Titan Panel Development Team (http://www.titanpanel.org)
 ## SavedVariables: 
 ## OptionalDeps: 
 ## Dependencies: Titan
-## Version: 5.19.2.90001
+## Version: 5.20.0.90002
 ## X-Child-Of: Titan
 TitanLocation.xml

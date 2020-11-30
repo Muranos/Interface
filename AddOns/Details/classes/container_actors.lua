@@ -27,7 +27,8 @@
 
 	local GetNumDeclensionSets = _G.GetNumDeclensionSets
 	local DeclineName = _G.DeclineName
-
+	
+	local GetLocale = _G.GetLocale
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --> constants
 
@@ -437,7 +438,7 @@
 				--if the user client is in russian language
 				--make an attempt to remove declensions from the character's name
 				--this is equivalent to remove 's from the owner on enUS
-				if (CONST_CLIENT_LANGUAGE == "ruRU") then
+				if (GetLocale() == "ruRU") then
 					if (find_name_declension (text1, playerName)) then
 						return find_pet_found_owner (pName, serial, nome, flag, self)
 					else
@@ -461,7 +462,7 @@
 				local pName = playerName
 				playerName = playerName:gsub ("%-.*", "") --remove realm name
 
-				if (CONST_CLIENT_LANGUAGE == "ruRU") then
+				if (GetLocale() == "ruRU") then
 					if (find_name_declension (text2, playerName)) then
 						return find_pet_found_owner (pName, serial, nome, flag, self)
 					else

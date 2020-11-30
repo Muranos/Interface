@@ -46,7 +46,7 @@ do
         DEFAULT_CHAT_FRAME:AddMessage(tostring(text), r, g, b, ...)
     end
 
-    ns.EXPANSION = GetExpansionLevel()
+    ns.EXPANSION = max(LE_EXPANSION_BATTLE_FOR_AZEROTH, GetExpansionLevel() - 1)
     ns.MAX_LEVEL = GetMaxLevelForExpansionLevel(ns.EXPANSION)
     ns.REGION_TO_LTD = {"us", "kr", "eu", "tw", "cn"}
     ns.FACTION_TO_ID = {Alliance = 1, Horde = 2, Neutral = 3}
@@ -54,8 +54,8 @@ do
     ns.PLAYER_REGION_ID = nil
     ns.PLAYER_FACTION = nil
     ns.PLAYER_FACTION_TEXT = nil
-    ns.OUTDATED_CUTOFF = 86400 * 3 -- number of seconds before we start warning about stale data (warning the user should update their addon)
-    ns.OUTDATED_BLOCK_CUTOFF = 86400 * 7 -- number of seconds before we hide the data (block showing score as its most likely inaccurate)
+    ns.OUTDATED_CUTOFF = 10 * 86400 * 3 -- number of seconds before we start warning about stale data (warning the user should update their addon)
+    ns.OUTDATED_BLOCK_CUTOFF = 10 * 86400 * 7 -- number of seconds before we hide the data (block showing score as its most likely inaccurate)
     ns.PROVIDER_DATA_TYPE = {MythicKeystone = 1, Raid = 2, PvP = 3}
     ns.LOOKUP_MAX_SIZE = floor(2^18-1)
     ns.CURRENT_SEASON = 4 -- TODO: dynamic?
@@ -2831,6 +2831,13 @@ do
 
     callback:RegisterEvent(OnAddOnLoaded, "ADDON_LOADED")
 
+    local function OnExpansionChanged()
+        ns.EXPANSION = max(LE_EXPANSION_BATTLE_FOR_AZEROTH, GetExpansionLevel() - 1)
+        ns.MAX_LEVEL = GetMaxLevelForExpansionLevel(ns.EXPANSION)
+    end
+
+    callback:RegisterEvent(OnExpansionChanged, "UPDATE_EXPANSION_LEVEL")
+
 end
 
 -- render.lua
@@ -3052,7 +3059,7 @@ do
         },
         ["us"] = {
             ["Skullcrusher"] = {
-                ["Aspyrox"] = "Raider.IO Creator",
+                ["Aspyric"] = "Raider.IO Creator",
                 ["Ulsoga"] = "Raider.IO Creator",
 				["Mccaffrey"] = "Killing Keys Since 1977!",
 				["Oscassey"] = "Master of dis guys"

@@ -876,6 +876,7 @@
 		new_custom_object.__index = Details.atributo_custom
 
 		return instance:TrocaTabela (instance.segmento, 5, #Details.custom)
+		
 	end
 	
 	local DTBS_format_name = function (player_name) return Details:GetOnlyName (player_name) end

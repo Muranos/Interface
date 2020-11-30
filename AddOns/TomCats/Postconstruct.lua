@@ -16,52 +16,45 @@ end
 --todo: Internationalize
 addon.supportedMaps = {
 	[14]   = {
-		name            = "TomCats-ArathiHighlandsRares",
+		name            = "TomCats-Bundled-ArathiHighlandsRares",
 		title           = "TomCat's Tours: Rares of Arathi Highlands",
 		zone            = "Arathi Highlands",
 		iconTexture     = "Interface\\AddOns\\TomCats\\images\\00012",
 		backgroundColor = { 118 / 255, 18 / 255, 20 / 255, 0.80 }
 	},
 	[62]   = {
-		name            = "TomCats-DarkshoreRares",
+		name            = "TomCats-Bundled-DarkshoreRares",
 		title           = "TomCat's Tours: Rares of Darkshore",
 		zone            = "Darkshore",
 		iconTexture     = "Interface\\AddOns\\TomCats\\images\\00006",
 		backgroundColor = { 68 / 255, 34 / 255, 68 / 255, 0.80 }
 	},
 	[1355] = {
-		name            = "TomCats-Nazjatar",
+		name            = "TomCats-Bundled-Nazjatar",
 		title           = "TomCat's Tours: Nazjatar",
 		zone            = "Nazjatar",
 		iconTexture     = "Interface\\AddOns\\TomCats\\images\\00008",
 		backgroundColor = { 0.0, 0.0, 0.0, 1.0 }
 	},
 	[1462] = {
-		name            = "TomCats-Mechagon",
+		name            = "TomCats-Bundled-Mechagon",
 		title           = "TomCat's Tours: Mechagon",
 		zone            = "Mechagon",
 		iconTexture     = "Interface\\AddOns\\TomCats\\images\\00007",
 		backgroundColor = { 0.0, 0.0, 0.0, 1.0 },
 	},
 	[1527] = {
-		name            = "TomCats-Nzoth",
+		name            = "TomCats-Bundled-Nzoth",
 		title           = "TomCat's Tours: Uldum",
 		zone            = "Uldum",
 		iconTexture     = "Interface\\AddOns\\TomCats\\images\\00018",
 		backgroundColor = { 0.0, 0.0, 0.0, 1.0 },
 	},
 	[1530] = {
-		name            = "TomCats-Nzoth",
+		name            = "TomCats-Bundled-Nzoth",
 		title           = "TomCat's Tours: Vale of Eternal Blossoms",
 		zone            = "Vale of Eternal Blossoms",
 		iconTexture     = "Interface\\AddOns\\TomCats\\images\\00018",
-		backgroundColor = { 0.0, 0.0, 0.0, 1.0 },
-	},
-	[118] = {
-		name            = "TomCats-Bundled-DeathsRising",
-		title           = "TomCat's Tours: Death's Rising",
-		zone            = "Death's Rising (Icecrown)",
-		iconTexture     = "Interface\\ICONS\\achievement_reputation_argentcrusader",
 		backgroundColor = { 0.0, 0.0, 0.0, 1.0 },
 	},
 }
@@ -91,7 +84,7 @@ SlashCmdList["TOMCATS"] = handleSlashCommand
 local slashCommandsHtmlHead = "<html>\n<body>\n<h1>Slash Commands</h1>\n<br />\n"
 local slashCommandHtmlTemplate = "<h3>%s:</h3>\n<p>/TOMCATS %s</p>\n<br />\n"
 local slashCommandsHtmlFoot = "</body>\n</html>"
-TomCats.version = unpack(addon.split("2.0.22","-"))
+TomCats.version = unpack(addon.split("2.0.27","-"))
 local function refreshInterfaceControlPanels()
 	local slashCommandsHtml = slashCommandsHtmlHead
 	slashCommandsHtml = slashCommandsHtml .. format(slashCommandHtmlTemplate, "Open the TomCat's Tours Control Panel", "")
@@ -194,87 +187,6 @@ local function ADDON_LOADED(_, _, arg1)
 		TomCats_Config_Slash_Commands.parent = "TomCat's Tours"
 		InterfaceOptions_AddCategory(TomCats_Config_Slash_Commands)
 		refreshInterfaceControlPanels()
-		local offset = -68
-		local buttonSpacing = -32
-		local count = 0
-		local mapIDs = { 118, 1462, 1355, 62, 14 }
-		for i = 1, #mapIDs do
-			local k = mapIDs[i]
-			local v = addon.supportedMaps[k]
-			local enabled = GetAddOnEnableState(UnitName("player"), v.name)
-			if (enabled ~= 0) then
-				local rareMapShortcut = Charms.Create({
-					name            = "TomCatsWorldmapRaresButton" .. k,
-					iconTexture     = v.iconTexture,
-					backgroundColor = v.backgroundColor,
-					handler_onclick = function(this)
-						local loading = IsAddOnLoaded(addon.supportedMaps[k].name)
-						if (not loading) then
-							LoadAddOn(addon.supportedMaps[k].name)
-						end
-						ChangeMap(this)
-					end,
-					ignoreSexyMap   = true
-				})
-				rareMapShortcut:SetParent(WorldMapFrame)
-				rareMapShortcut:SetFrameStrata("MEDIUM")
-				rareMapShortcut:SetFrameLevel(9999)
-				rareMapShortcut:ClearAllPoints()
-				rareMapShortcut:SetPoint("TOPRIGHT", WorldMapFrame:GetCanvasContainer(), "TOPRIGHT",
-				                         offset + buttonSpacing * count, -1)
-				rareMapShortcut.tooltip = {
-					Show = function(this)
-						GameTooltip:ClearLines()
-						GameTooltip:SetOwner(this, "ANCHOR_LEFT")
-						GameTooltip:SetText(v.zone, 1, 1, 1)
-						GameTooltip:Show()
-					end,
-					Hide = function()
-						GameTooltip:Hide()
-					end
-				}
-				rareMapShortcut.mapID = k
-				count = count + 1
-			else
-				addon.supportedMaps[k] = nil
-			end
-		end
-    	local charmInfo = addon.supportedMaps[118]
-		if (charmInfo) then
-			TomCats.DeathsRising = TomCats.DeathsRising or { }
-			TomCats.DeathsRising.charm = Charms.Create({
-				name = "TomCatsBundledDeathsRisingMinimapButton",
-				iconTexture = charmInfo.iconTexture,
-				backgroundColor = charmInfo.backgroundColor,
-				handler_onclick = function()
-					TomCats.DeathsRising.openOnStart = true
-					local loading = IsAddOnLoaded("TomCats-Bundled-DeathsRising")
-					if (not loading) then
-						LoadAddOn("TomCats-Bundled-DeathsRising")
-					end
-				end,
-				title = charmInfo.title
-			})
-			TomCats.DeathsRising.charm.tooltip = {
-				Show = function(this)
-					GameTooltip:ClearLines()
-					GameTooltip:SetOwner(this, "ANCHOR_LEFT")
-					GameTooltip:SetText("TomCat's Tours:", 1, 1, 1)
-					GameTooltip:AddLine("Rares of Death's Rising", nil, nil, nil, true)
-					GameTooltip:AddLine("Icecrown", nil, nil, nil, true)
-					--GameTooltip:AddLine("(" .. addon.params["Title Line 2"] .. ")", nil, nil, nil, true)
-					GameTooltip:Show()
-				end,
-				Hide = function()
-					GameTooltip:Hide()
-				end
-			}
-			TomCats.DeathsRising.charm:SetupForMinimap()
-			local cpanel = TomCatsBundledDeathsRisingInterfaceOptionsPanel
-			cpanel.name = "Rares of Death's Rising"
-			cpanel.parent = "TomCat's Tours"
-			InterfaceOptionsPanel_OnLoad(cpanel);
-		end
 	end
 end
 addon.events.registerEvent("ADDON_LOADED", ADDON_LOADED)
@@ -368,32 +280,33 @@ do
 				local linktemplate = "|cffffff00|Hworldmap:%s:%s:%s|h[|A:Waypoint-MapPin-ChatIcon:13:13:0:0|a Map Pin Location]|h|r %s %s"
 				local location = self.creature["Location"] or self.creature["Locations"][raresLog.locationIndex]
 				if (location) then
-					local timerText
-					if (raresLog and raresLog.zone == 118) then
-						local seconds = SpawnTimerByIndex(self.creature["Spawn Index"])
-						if (seconds > (20 * spawnTimer - spawnTimer)) then
-							timerText = "up now"
-						else
-							local foundPin
-							for pin in WorldMapFrame:EnumeratePinsByTemplate("VignettePinTemplate") do
-								if (pin.vignetteID and pin.vignetteID == self.creature["Vignette ID"]) then
-									if (pin:IsShown() and pin.Texture:GetAtlas() == "nazjatar-nagaevent") then
-										foundPin = pin
-									end
-								end
-							end
-							if (foundPin) then
-								timerText = "up now"
-							else
-								local hours = math.floor(seconds / 3600);
-								local minutes = math.floor((seconds % 3600) / 60);
-								seconds = seconds % 60
-								timerText = " in " .. rareCreaturesLogTimeFormatter:format(hours, minutes)
-							end
-						end
-					else
-						timerText = ""
-					end
+					local timerText = ""
+					--local timerText
+					--if (raresLog and raresLog.zone == 118) then
+					--	local seconds = SpawnTimerByIndex(self.creature["Spawn Index"])
+					--	if (seconds > (20 * spawnTimer - spawnTimer)) then
+					--		timerText = "up now"
+					--	else
+					--		local foundPin
+					--		for pin in WorldMapFrame:EnumeratePinsByTemplate("VignettePinTemplate") do
+					--			if (pin.vignetteID and pin.vignetteID == self.creature["Vignette ID"]) then
+					--				if (pin:IsShown() and pin.Texture:GetAtlas() == "nazjatar-nagaevent") then
+					--					foundPin = pin
+					--				end
+					--			end
+					--		end
+					--		if (foundPin) then
+					--			timerText = "up now"
+					--		else
+					--			local hours = math.floor(seconds / 3600);
+					--			local minutes = math.floor((seconds % 3600) / 60);
+					--			seconds = seconds % 60
+					--			timerText = " in " .. rareCreaturesLogTimeFormatter:format(hours, minutes)
+					--		end
+					--	end
+					--else
+					--	timerText = ""
+					--end
 					local link = string.format(linktemplate,WorldMapFrame:GetMapID(),math.floor(location[1] * 10000),math.floor(location[2] * 10000),self.creature["Name"], timerText)
 					if (IsControlKeyDown()) then
 						ChatEdit_InsertLink(link)
@@ -429,18 +342,23 @@ do
 
 		local function ShowRareLogEntryTooltip(self, tooltipParent)
 			local creature = self.creature or self:GetParent().creature
+			local creatureName
+			if (creature) then
+				creatureName = creature["Name"]
+			end
+			if (not creatureName) then return end
 			tooltipParent = tooltipParent or self
 			EmbeddedItemTooltip:ClearAllPoints()
 			EmbeddedItemTooltip:SetOwner(tooltipParent, "ANCHOR_PRESERVE")
 			EmbeddedItemTooltip:SetPoint("TOPLEFT", tooltipParent, "TOPRIGHT", -55, 0)
 			local color = WORLD_QUEST_QUALITY_COLORS[1]
-			EmbeddedItemTooltip:SetText(creature["Name"], color.r, color.g, color.b)
+			EmbeddedItemTooltip:SetText(creatureName , color.r, color.g, color.b)
 			local tooltipWidth = 20 + max(231, EmbeddedItemTooltipTextLeft1:GetStringWidth())
 			if (tooltipWidth > UIParent:GetRight() - QuestMapFrame:GetParent():GetRight()) then
 				EmbeddedItemTooltip:ClearAllPoints()
 				EmbeddedItemTooltip:SetPoint("TOPRIGHT", tooltipParent, "TOPLEFT", -34, 0)
 				EmbeddedItemTooltip:SetOwner(tooltipParent, "ANCHOR_PRESERVE")
-				EmbeddedItemTooltip:SetText(creature["Name"], color.r, color.g, color.b)
+				EmbeddedItemTooltip:SetText(creatureName, color.r, color.g, color.b)
 			end
 			local footerText
 			if (TomTom) then
@@ -466,14 +384,14 @@ do
 					GameTooltip_AddBlankLinesToTooltip(EmbeddedItemTooltip, 1)
 					GameTooltip_AddColoredLine(EmbeddedItemTooltip, LOOT_NOUN, LOOT_NOUN_COLOR, true)
 					EmbeddedItemTooltip_SetItemByID(EmbeddedItemTooltip.ItemTooltip, itemID)
-					if (raresLog and raresLog.zone == 118) then
-						C_Timer.NewTimer(0, function()
-							local ilevelText = EmbeddedItemTooltipTooltipTextLeft2:GetText()
-							if (ilevelText) then
-								EmbeddedItemTooltipTooltipTextLeft2:SetText(string.gsub(ilevelText, "100","110"))
-							end
-						end)
-					end
+					--if (raresLog and raresLog.zone == 118) then
+					--	C_Timer.NewTimer(0, function()
+					--		local ilevelText = EmbeddedItemTooltipTooltipTextLeft2:GetText()
+					--		if (ilevelText) then
+					--			EmbeddedItemTooltipTooltipTextLeft2:SetText(string.gsub(ilevelText, "100","110"))
+					--		end
+					--	end)
+					--end
 				end
 			end
 			EmbeddedItemTooltip.BottomFontString:SetText(footerText)
@@ -527,11 +445,12 @@ do
 		end
 		function TomCatsRareRewardItem_OnEnter(self)
 			GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-			if (raresLog and raresLog.zone == 118) then
-				GameTooltip:SetHyperlink("item:" .. self:GetID() .. "::::::::100:268::3:1:631")
-			else
-				GameTooltip:SetItemByID(self:GetID())
-			end
+			GameTooltip:SetItemByID(self:GetID())
+			--if (raresLog and raresLog.zone == 118) then
+			--	GameTooltip:SetHyperlink("item:" .. self:GetID() .. "::::::::100:268::3:1:631")
+			--else
+			--	GameTooltip:SetItemByID(self:GetID())
+			--end
 			GameTooltip:Show()
 			CursorUpdate(self);
 			self.UpdateTooltip = TomCatsRareRewardItem_OnEnter;
@@ -611,20 +530,21 @@ do
 							local button = self.titleFramePool:Acquire()
 							button.creature = creature
 							button.Text:SetText(creature["Name"])
-							if (raresLog and raresLog.zone == 118) then
-								local seconds = SpawnTimerByIndex(creature["Spawn Index"])
-								if (seconds > (20 * spawnTimer - spawnTimer)) then
-									button.Timer:SetText("NOW")
-								else
-									local hours = math.floor(seconds / 3600);
-									local minutes = math.floor((seconds % 3600) / 60);
-									seconds = seconds % 60
-									button.Timer:SetText(rareCreaturesLogTimeFormatter:format(hours, minutes))
-								end
-								button.Timer:Show()
-							else
-								button.Timer:Hide()
-							end
+							button.Timer:Hide()
+							--if (raresLog and raresLog.zone == 118) then
+							--	local seconds = SpawnTimerByIndex(creature["Spawn Index"])
+							--	if (seconds > (20 * spawnTimer - spawnTimer)) then
+							--		button.Timer:SetText("NOW")
+							--	else
+							--		local hours = math.floor(seconds / 3600);
+							--		local minutes = math.floor((seconds % 3600) / 60);
+							--		seconds = seconds % 60
+							--		button.Timer:SetText(rareCreaturesLogTimeFormatter:format(hours, minutes))
+							--	end
+							--	button.Timer:Show()
+							--else
+							--	button.Timer:Hide()
+							--end
 							local textColor = RareTextColorLookup[creature["Status"]][1]
 							button.Text:SetTextColor(textColor.r, textColor.g, textColor.b)
 							button:ClearAllPoints()
@@ -658,12 +578,13 @@ do
 		function TomCatsRareLogMixin:Refresh()
 			self.RaresFrame.Contents.LogHeader.Text:SetText(L["Rare Creatures Log"])
 			self.RaresFrame.Contents.LogHeader:Show()
+			self.RaresFrame.Contents.LogHeader.Location:SetText(C_Map.GetMapInfo(WorldMapFrame:GetMapID())["name"])
 			-- todo: Remove this hardcode
-			if (WorldMapFrame:GetMapID() == 118) then
-				self.RaresFrame.Contents.LogHeader.Location:SetText(C_Map.GetMapInfo(WorldMapFrame:GetMapID())["name"] .. " (in spawn order)")
-			else
-				self.RaresFrame.Contents.LogHeader.Location:SetText(C_Map.GetMapInfo(WorldMapFrame:GetMapID())["name"])
-			end
+			--if (WorldMapFrame:GetMapID() == 118) then
+			--	self.RaresFrame.Contents.LogHeader.Location:SetText(C_Map.GetMapInfo(WorldMapFrame:GetMapID())["name"] .. " (in spawn order)")
+			--else
+			--	self.RaresFrame.Contents.LogHeader.Location:SetText(C_Map.GetMapInfo(WorldMapFrame:GetMapID())["name"])
+			--end
 			self.layoutIndexManager:Reset()
 			self:RefreshRaresLog()
 			self.RaresFrame.Contents:Layout()
@@ -682,7 +603,17 @@ do
 				end
 			end
 		end
+		local function GetSupportedMap(mapID)
+			local supportedMap = supportedMaps[WorldMapFrame:GetMapID()]
+			if (supportedMap) then
+				if (IsAddOnLoaded(supportedMap.name)) then
+					return supportedMap
+				end
+			end
+		end
+
 		function TomCatsRareLogMixin:UpdateDisplayState()
+			local supportedMap = GetSupportedMap(WorldMapFrame:GetMapID())
 			if not WorldMapFrame:IsShown() then
 				setLastDisplayState(DISPLAY_STATE_CLOSED)
 			elseif QuestMapFrame:IsShown() or QuestMapFrame.DetailsFrame:IsShown() then
@@ -690,7 +621,7 @@ do
 					self:Hide()
 					QuestScrollFrame:Hide()
 				else
-					if supportedMaps[WorldMapFrame:GetMapID()] and SavedVariables.character.preferQuestLog == nil then
+					if supportedMap and SavedVariables.character.preferQuestLog == nil then
 						self:SetShown(true)
 						QuestScrollFrame:Hide()
 						self:Refresh()
@@ -734,18 +665,12 @@ do
 		local lastMapID = 0
 		local helpPlate_override
 		local function UpdateAll(_, mapID)
-			if (mapID and mapID == 118) then
-				local loading = IsAddOnLoaded("TomCats-Bundled-DeathsRising")
-				if (not loading) then
-					LoadAddOn("TomCats-Bundled-DeathsRising")
-				end
-			end
 			if WorldMapFrame:GetMapID() ~= lastMapID then
 				lastMapID = WorldMapFrame:GetMapID()
 				if TomCatsRareMapFrame:IsShown() then
-					local supportedMap = supportedMaps[WorldMapFrame:GetMapID()]
+					local supportedMap = GetSupportedMap(WorldMapFrame:GetMapID())
 					if supportedMap then
-						local handlers = supportedMaps[WorldMapFrame:GetMapID()].handlers
+						local handlers = supportedMap.handlers
 						if handlers and handlers.raresLog then
 							raresLog = handlers.raresLog()
 						else
@@ -775,7 +700,7 @@ do
 			end
 		end
 		local function Hook_WorldMapFrame_SidePanelToggle()
-			if supportedMaps[WorldMapFrame:GetMapID()] then
+			if GetSupportedMap(WorldMapFrame:GetMapID()) then
 				SavedVariables.character.preferQuestLog = true
 			end
 			if (lastDisplayStates[1] == DISPLAY_STATE_OPEN_MINIMIZED_WITH_RARE_LOG and lastDisplayStates[2] == DISPLAY_STATE_OPEN_MINIMIZED_NO_LOG) or
@@ -810,7 +735,7 @@ do
 			WorldMapFrame.SidePanelToggle.CloseButton:Hide()
 		end
 		function TomCatsWorldMapRareSidePanelToggleMixin:Refresh()
-			if WorldMapFrame.SidePanelToggle:IsShown() and supportedMaps[WorldMapFrame:GetMapID()] then
+			if WorldMapFrame.SidePanelToggle:IsShown() and GetSupportedMap(WorldMapFrame:GetMapID()) then
 				self:Show()
 				if TomCatsRareMapFrame:IsShown() then
 					self.OpenButton:Hide()
@@ -882,36 +807,7 @@ do
 				hooksecurefunc("QuestMapFrame_ShowQuestDetails", UpdateAll)
 				hooksecurefunc("ToggleQuestLog", Hook_ToggleQuestLog)
 				hooksecurefunc("HideUIPanel", UpdateAll)
-				if WorldMapFrame.SidePanelToggle.OpenButton.isSkinned then
-					WorldMapFrame.SidePanelToggle:Hide()
-					WorldMapFrame.SidePanelToggle = WorldMapFrame:AddOverlayFrame("WorldMapSidePanelToggleTemplate",
-					                                                              "BUTTON", "BOTTOMRIGHT",
-					                                                              WorldMapFrame:GetCanvasContainer(),
-					                                                              "BOTTOMRIGHT", -2, 1)
-					hooksecurefunc(WorldMapFrame.SidePanelToggle, "OnClick", Hook_WorldMapFrame_SidePanelToggle)
-				else
-					local hooked
-					hooksecurefunc(WorldMapFrame.SidePanelToggle.OpenButton:GetNormalTexture(), "SetVertexColor",
-					               function()
-						               if not hooked then
-							               WorldMapFrame.SidePanelToggle:Hide()
-							               WorldMapFrame.SidePanelToggle = WorldMapFrame:AddOverlayFrame("WorldMapSidePanelToggleTemplate",
-							                                                                             "BUTTON",
-							                                                                             "BOTTOMRIGHT",
-							                                                                             WorldMapFrame:GetCanvasContainer(),
-							                                                                             "BOTTOMRIGHT",
-							                                                                             -2, 1)
-							               hooksecurefunc(WorldMapFrame.SidePanelToggle, "OnClick",
-							                              Hook_WorldMapFrame_SidePanelToggle)
-						               end
-						               hooked = true
-					               end)
-				end
 			end
-			-- todo: Re-establish this as LOD based on moving into Icecrown
-			C_Timer.NewTimer(0, function()
-				LoadAddOn("TomCats-Bundled-DeathsRising")
-			end)
 		end
 		local lastWaypoint
 		function TomCatsRareLogEntryIcon_OnEnter(self)

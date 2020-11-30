@@ -30,9 +30,9 @@ local ipairs = _G.ipairs; assert(ipairs ~= nil,'ipairs')
 local IsPlayerSpell = _G.IsPlayerSpell; assert(IsPlayerSpell ~= nil,'IsPlayerSpell')
 local ITEM_OPENABLE = _G.ITEM_OPENABLE; assert(ITEM_OPENABLE ~= nil,'ITEM_OPENABLE')
 local ITEM_SPELL_TRIGGER_ONUSE = _G.ITEM_SPELL_TRIGGER_ONUSE; assert(ITEM_SPELL_TRIGGER_ONUSE ~= nil,'ITEM_SPELL_TRIGGER_ONUSE')
-local LE_FOLLOWER_TYPE_SHIPYARD_6_2 = _G.LE_FOLLOWER_TYPE_SHIPYARD_6_2; assert(LE_FOLLOWER_TYPE_SHIPYARD_6_2 ~= nil,'LE_FOLLOWER_TYPE_SHIPYARD_6_2')
-local LE_GARRISON_TYPE_6_0 = _G.LE_GARRISON_TYPE_6_0; assert(LE_GARRISON_TYPE_6_0 ~= nil,'LE_GARRISON_TYPE_6_0')
-local LE_GARRISON_TYPE_7_0 = _G.LE_GARRISON_TYPE_7_0; assert(LE_GARRISON_TYPE_7_0 ~= nil,'LE_GARRISON_TYPE_7_0')
+local LE_FOLLOWER_TYPE_SHIPYARD_6_2 = Enum.GarrisonFollowerType.FollowerType_6_2; assert(LE_FOLLOWER_TYPE_SHIPYARD_6_2 ~= nil,'LE_FOLLOWER_TYPE_SHIPYARD_6_2')
+local LE_GARRISON_TYPE_6_0 = Enum.GarrisonType.Type_6_0; assert(LE_GARRISON_TYPE_6_0 ~= nil,'LE_GARRISON_TYPE_6_0')
+local LE_GARRISON_TYPE_7_0 = Enum.GarrisonType.Type_7_0; assert(LE_GARRISON_TYPE_7_0 ~= nil,'LE_GARRISON_TYPE_7_0')
 local LibStub = _G.LibStub; assert(LibStub ~= nil,'LibStub')
 local math = _G.math; assert(math ~= nil,'math')
 local NUM_CHAT_WINDOWS = _G.NUM_CHAT_WINDOWS; assert(NUM_CHAT_WINDOWS ~= nil,'NUM_CHAT_WINDOWS')
@@ -386,8 +386,8 @@ function NOP:CheckBuilding(toCheck) -- recheck (force request landing page) and 
       local completeTalentID = C_Garrison.GetCompleteTalent(LE_GARRISON_TYPE_7_0)
       if completeTalentID and not HERALD_ANNOUNCED[completeTalentID] then
         for treeIndex, treeID in ipairs(talentTrees) do
-          local _, _, tree = C_Garrison.GetTalentTreeInfoForID(treeID)
-          for talentIndex, talent in ipairs(tree) do
+          local treeInfo = C_Garrison.GetTalentTreeInfo(treeID)
+          for talentIndex, talent in ipairs(treeInfo.talents) do
             if (talent.id == completeTalentID) then
               self:PrintToActive((TALENT_ANNOUNCE):format(talent.name))
               HERALD_ANNOUNCED[completeTalentID] = true
@@ -396,8 +396,8 @@ function NOP:CheckBuilding(toCheck) -- recheck (force request landing page) and 
         end
       end
       for treeIndex, treeID in ipairs(talentTrees) do
-        local _, _, tree = C_Garrison.GetTalentTreeInfoForID(treeID)
-        for talentIndex, talent in ipairs(tree) do
+        local treeInfo = C_Garrison.GetTalentTreeInfo(treeID)
+        for talentIndex, talent in ipairs(treeInfo.talents) do
           if talent.selected and not HERALD_ANNOUNCED[talent.perkSpellID] and NOP.T_INSTA_WQ[talent.perkSpellID] then
             local ability = GetSpellInfo(talent.perkSpellID) -- spell name
             local _, duration = GetSpellCooldown(talent.perkSpellID)
@@ -411,7 +411,7 @@ function NOP:CheckBuilding(toCheck) -- recheck (force request landing page) and 
           end
         end
       end
-    end
+    end    
   end -- /run local _, _, t = C_Garrison.GetTalentTreeInfoForID(119); for a,b in ipairs(t) do print(a, b.selected, b.perkSpellID) end
   for i = 1, GetNumArchaeologyRaces() do -- archaelogy can be completed
     local raceName, _, _, have, required = GetArchaeologyRaceInfo(i)

@@ -63,18 +63,6 @@
 			end
 		end
 	end
-
-	function Details:GetRaidLeader()
-		if (IsInRaid()) then
-			for i = 1, GetNumGroupMembers() do
-				local name, rank = GetRaidRosterInfo(i)
-				if (rank == 2) then
-					return name, "raid" .. i
-				end
-			end
-		end
-		return
-	end
 	
 	function _detalhes:UnpackDeathTable (t)
 		local deathevents = t[1]
@@ -872,9 +860,6 @@ end
 					return true
 				end
 			end
-
-		elseif (Details.Coach.Server.IsEnabled()) then
-			return true
 		end
 		
 		--> don't leave the combat if is in the argus encounter ~REMOVE on 8.0

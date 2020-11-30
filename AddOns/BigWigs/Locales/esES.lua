@@ -1,4 +1,4 @@
-local L = BigWigsAPI:NewLocale("BigWigs", "esES") or BigWigsAPI:NewLocale("BigWigs", "esMX")
+local L = BigWigsAPI:NewLocale("BigWigs", "esES")
 if not L then return end
 
 -- Core.lua

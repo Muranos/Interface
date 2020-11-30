@@ -5,7 +5,6 @@ BigWigs:AddColors("Shriekwing", {
 	[328921] = "green",
 	[329362] = "cyan",
 	[330711] = "red",
-	[340047] = "orange",
 	[340324] = "blue",
 	[341489] = {"cyan","green"},
 	[341684] = {"blue","green","red"},
@@ -117,6 +116,7 @@ BigWigs:AddColors("Sludgefist", {
 	[335361] = "blue",
 	[335470] = {"blue","yellow"},
 	[340817] = "yellow",
+	[341250] = "yellow",
 })
 
 BigWigs:AddColors("Stone Legion Generals", {

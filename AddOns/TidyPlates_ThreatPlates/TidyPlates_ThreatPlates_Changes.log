@@ -1,4 +1,27 @@
 ﻿------------------------------------------------------
+10.0.7
+------------------------------------------------------
+* Fixed a bug with Quest widget not showing the correct quest status [Issue #450, Comment #5065].
+* Updated list of stealth-detecting mobs.
+
+------------------------------------------------------
+10.0.6
+------------------------------------------------------
+* Fixed a bug where the reaction color of unfriendly, non-attackable hostile units was not correct (red instead of brown).
+* Added support for special-purpose nameplates used for some quests in Shadowlands [Comment #5049, #5052, #5054, #5039, Issue #447].
+* Improved coloring of non-attackable, unfriendly units (brown healthbars).
+* Fixed a bug in Quest widget where quest information was not correctly detected from tooltips.
+* Fixed some missing translations.
+
+------------------------------------------------------
+10.0.5
+------------------------------------------------------
+* Fixed a Lua error with Quest widget that could occur when the a (delayed) quest log update was processed for a quest no longer existing.
+* Shaman's Prime Earth Elemental is now recognized as off-tank [Issue #445].
+* Fixed a Lua error in Social widget related to Battle.net friend list updates [Comment TPC#687].
+* Updated TOC version.
+
+------------------------------------------------------
 10.0.4
 ------------------------------------------------------
 * Fixed a bug Combo Points widget where Death Knight runes where not shown in the correct color when style Blizzard was used [Comment #4894, #4954, PM, Issue #440].
@@ -277,7 +300,7 @@
 * Fixed a Lua error with Combo Points widget when talent Ascension (6 Chi) was used by Monks [Issue #325].
 * Removed information popup about new look and feel when using the addon the first time.
 
-﻿------------------------------------------------------
+------------------------------------------------------
 9.1.1
 ------------------------------------------------------
 * Fixed a Lua error with Combo Points widget resulting from a wrong migration of combo point widget settings [Comment #1764].

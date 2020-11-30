@@ -458,17 +458,11 @@ function Details:StartMeUp() --I'll never stop!
 		C_Timer.After(2, reset_player_detail_window)
 	end
 	
-	--coach feature startup
-	Details.Coach.StartUp()
-
 	--enforce to show 6 abilities on the tooltip
 	--_detalhes.tooltip.tooltip_max_abilities = 6 freeeeeedooommmmm
 
 	--force the group edit be always enabled when Details! starts
 	_detalhes.options_group_edit = true
-
-	--remove standard skin on 9.0.1
-		_detalhes.standard_skin = false
 	
 	--enforce to use the new animation code
 	if (_detalhes.streamer_config) then
@@ -486,6 +480,10 @@ function Details:StartMeUp() --I'll never stop!
 	else
 		print ("|CFFFFFF00[Details!]: you're using Details! for RETAIL on Classic WOW, please get the classic version (Details! Damage Meter Classic WoW), if you need help see our Discord (/details discord).")
 	end
+
+	print ("|CFFFFFF00[Details!]: you're using Details! for Shadowlands BETA, please install 'Details! Damage Meter' from here: 'https://www.curseforge.com/wow/addons/details' or download on Curseforge App. If you need help see our Discord (/details discord).")
+	print ("|CFFFFFF00[Details!]: the version you are using is deprecated and must be updated!")
+	_detalhes:RefreshUpdater(10)
 
 	if (math.random(10) == 1) then
 		Details:Msg("use '/details me' macro to open the player breakdown for you!")

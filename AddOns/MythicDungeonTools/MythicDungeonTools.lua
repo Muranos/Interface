@@ -17,7 +17,6 @@ MDT.BackdropColor = { 0.058823399245739, 0.058823399245739, 0.058823399245739, 0
 local AceGUI = LibStub("AceGUI-3.0")
 local db
 local icon = LibStub("LibDBIcon-1.0")
-local LibDD = LibStub:GetLibrary("LibUIDropDownMenu-4.0")
 local LDB = LibStub("LibDataBroker-1.1"):NewDataObject("MythicDungeonTools", {
 	type = "data source",
 	text = "Mythic Dungeon Tools",
@@ -88,7 +87,7 @@ local initFrames
 local defaultSavedVars = {
 	global = {
         toolbarExpanded = true,
-        currentSeason = 4,
+        currentSeason = 5,
 		currentExpansion = 3,
         scale = 1,
         enemyForcesFormat = 2,
@@ -195,6 +194,7 @@ do
                 MDT.main_frame.LiveSessionButton.text:SetTextColor(0.5,0.5,0.5)
             end
             last = now
+            MDT:RequestDataCollectionUpdate()
         end
     end
     function MDT.PLAYER_ENTERING_WORLD(self, addon)
@@ -214,8 +214,9 @@ end
 MDT.mapInfo = {}
 MDT.dungeonTotalCount = {}
 MDT.scaleMultiplier = {}
---IDs: https://dl.dropboxusercontent.com/s/eknkfgkq6oc8uvc/chrome_Np07WrFii4.png
 --affixID as used in C_ChallengeMode.GetAffixInfo(affixID)
+--https://www.wowhead.com/affixes
+--lvl 4 affix, lvl 7 affix, tyrannical/fortified, seasonal affix
 local affixWeeks = {
     [1] =  {[1]=0,[2]=0,[3]=0,[4]=0},
     [2] =  {[1]=0,[2]=0,[3]=0,[4]=0},
@@ -224,9 +225,9 @@ local affixWeeks = {
     [5] =  {[1]=0,[2]=0,[3]=0,[4]=0},
     [6] =  {[1]=0,[2]=0,[3]=0,[4]=0},
     [7] =  {[1]=0,[2]=0,[3]=0,[4]=0},
-    [8] =  {[1]=0,[2]=0,[3]=0,[4]=0},  -->>Bolstering, Necrotic, Tyrannical
-    [9] =  {[1]=0,[2]=0,[3]=0,[4]=0},   -->>Storming, Inspiring, Fortified
-    [10] = {[1]=11,[2]=2,[3]=9,[4]=120},  -->>Bursting, Explosive, Tyrannical
+    [8] =  {[1]=7,[2]=4,[3]=9,[4]=121},  -->>Bolstering, Necrotic, Tyrannical
+    [9] =  {[1]=124,[2]=122,[3]=10,[4]=121},   -->>Storming, Inspiring, Fortified
+    [10] = {[1]=11,[2]=13,[3]=9,[4]=121},  -->>Bursting, Explosive, Tyrannical
     [11] = {[1]=0,[2]=0,[3]=0,[4]=0},
     [12] = {[1]=0,[2]=0,[3]=0,[4]=0},
 }
@@ -3691,7 +3692,7 @@ function MDT:MakePullSelectionButtons(frame)
 
     frame.newPullButtons = {}
 	--rightclick context menu
-    frame.optionsDropDown = LibDD:Create_UIDropDownMenu("PullButtonsOptionsDropDown", nil)
+    frame.optionsDropDown = L_Create_UIDropDownMenu("PullButtonsOptionsDropDown", nil)
 end
 
 
@@ -4962,7 +4963,7 @@ function initFrames()
 	-- Set frame position
 	main_frame:ClearAllPoints()
 	main_frame:SetPoint(db.anchorTo, UIParent,db.anchorFrom, db.xoffset, db.yoffset)
-    main_frame.contextDropdown = LibDD:Create_UIDropDownMenu("MDTContextDropDown", nil)
+    main_frame.contextDropdown = L_Create_UIDropDownMenu("MDTContextDropDown", nil)
 
     MDT:CheckCurrentZone(true)
     MDT:EnsureDBTables()
