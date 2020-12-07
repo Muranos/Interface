@@ -2,20 +2,53 @@ local E, L, C = select(2, ...):unpack()
 
 local P = E["Party"]
 
+local timer
+
+local forceRefresh = function(info, value)
+	P:Refresh(true)
+	timer = nil
+end
+
+local function ConfigGroupSize(info, value)
+	E.DB.profile.Party.visibility[info[#info]] = value
+	if not timer then
+		timer = E.TimerAfter(2, forceRefresh)
+	end
+end
+
 local visibility = {
 	name = L["Visibility"],
-	order = 50,
+	order = 0,
 	type = "group",
-	get = function(info) local option = info[#info] return E.db.visibility[option] end,
-	set = function(info, value) local option = info[#info] E.db.visibility[option] = value P:Refresh(true) end,
+	get = function(info) return E.DB.profile.Party.visibility[info[#info]] end,
+	set = function(info, value) E.DB.profile.Party.visibility[info[#info]] = value P:Refresh(true) end,
 	args = {
+		title = {
+			name = "|cffffff20" .. L["Visibility"],
+			order = 0,
+			type = "description",
+			fontSize = "large",
+		},
 		zone = {
 			name = ZONE,
 			order = 10,
 			type = "multiselect",
+			width = "full",
 			values = E.L_ZONE,
-			get = function(_, key) return E.db.visibility[key] end,
-			set = function(_, key, value) E.db.visibility[key] = value P:Refresh(true) end,
+			descStyle = "inline",
+			get = function(_, k) return E.DB.profile.Party.visibility[k] end,
+			set = function(_, k, value)
+				E.DB.profile.Party.visibility[k] = value
+				if P.test and P.testZone == k then
+					P:Test()
+				end
+				P:Refresh(true)
+			end,
+		},
+		lb1= {
+			name = L["|cff9d9d9d \* Scenarios and Outdoor Zones will use Arena settings."] .. "\n\n",
+			order = 11,
+			type = "description",
 		},
 		groupType = {
 			name = DUNGEONS_BUTTON,
@@ -41,6 +74,8 @@ local visibility = {
 					width = "double",
 					type = "range",
 					min = 2, max = 40, step = 1,
+					descStyle = "inline",
+					set = ConfigGroupSize,
 				},
 			}
 		}

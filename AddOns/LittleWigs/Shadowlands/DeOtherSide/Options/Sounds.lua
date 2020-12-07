@@ -21,4 +21,5 @@ BigWigs:AddSounds("Mueh'zala", {
 	[325258] = "warning",
 	[325725] = "alarm",
 	[326171] = "long",
+	[334970] = "info",
 })

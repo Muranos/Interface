@@ -21,4 +21,5 @@ BigWigs:AddColors("Mueh'zala", {
 	[325258] = "yellow",
 	[325725] = "blue",
 	[326171] = "red",
+	[334970] = "cyan",
 })

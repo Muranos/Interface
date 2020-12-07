@@ -4,13 +4,10 @@
 	<Script file="Spells\core.lua"/>
 	<Script file="Spells\spells.lua"/>
 	<Script file="Spells\modifiers.lua"/>
-	<Script file="Spells\azerites.lua"/>
-	<Script file="Spells\essences.lua"/>
 
 	<!-- Party -->
 	<Include file="Party\templates.xml"/>
 	<Script file="Party\core.lua"/>
-	<Script file="Party\rosterinfo.lua"/>
 	<Script file="Party\bars.lua"/>
 	<Script file="Party\icons.lua"/>
 	<Script file="Party\position.lua"/>
@@ -18,11 +15,13 @@
 	<Script file="Party\cooldowns.lua"/>
 	<Script file="Party\highlights.lua"/>
 	<Script file="Party\test.lua"/>
+	<Script file="Party\extraBars.lua"/>
+	<Include file="Party\statusBar.xml"/>
+	<Script file="Party\statusBar.lua"/>
 
 	<!-- Comms -->
 	<Script file="Comms\core.lua"/>
 	<Script file="Comms\inspect.lua"/>
-	<Script file="Comms\inspectitems.lua"/>
 	<Script file="Comms\sync.lua"/>
 
 	<!-- Cooldowns -->

@@ -4,7 +4,7 @@ local tinsert = table.insert
 local tremove = table.remove
 
 E.Write = function(...)
-	print(E.MyClassHexColor .. "OmniCD|r: ", ...)
+	print(E.userClassHexColor .. "OmniCD|r: ", ...)
 end
 
 E.IsTableExact = function(a, b)
@@ -24,7 +24,6 @@ E.DeepCopy = function(source)
 	else
 		copy = source
 	end
-
 	return copy
 end
 
@@ -43,15 +42,16 @@ E.SetModuleEnabled = function(k, v)
 	end
 end
 
-E.UpdateEnabledLT = function(module)
-	wipe(module.enabledLT)
+E.UpdateEnabledSpells = function(module)
+	wipe(module.spell_enabled)
 
-	for _, v in pairs(E.spellList) do
+	for _, v in pairs(E.spell_db) do
 		local n = #v
 		for i = 1, n do
 			local t = v[i]
-			if module.IsSpellEnabled(t) then
-				module.enabledLT[t.spellID] = true
+			local id = t.spellID
+			if module.IsEnabledSpell(id) then
+				module.spell_enabled[id] = true
 			end
 		end
 	end
@@ -64,23 +64,21 @@ local function SavePosition(f)
 	x = x * s
 	y = y * s
 
-	local db = f.settings or E.DB.profile[f.modname]
+	local db = f.settings or E.db
 	db = db.manualPos[f.key]
 	db.x = x
 	db.y = y
 end
 
-E.LoadPosition = function(f)
-	local db = f.settings or E.DB.profile[f.modname] -- external plug-in namespace or internal
-
-	db.manualPos[f.key] = db.manualPos[f.key] or {}
-
-	db = db.manualPos[f.key]
+E.LoadPosition = function(f, key)
+	key = key or f.key
+	local db = f.settings or E.db -- [57]
+	db.manualPos[key] = db.manualPos[key] or {}
+	db = db.manualPos[key]
 	local x = db.x
 	local y = db.y
 
 	f:ClearAllPoints()
-
 	if not x then
 		f:SetPoint("CENTER", UIParent)
 		SavePosition(f)
@@ -88,15 +86,12 @@ E.LoadPosition = function(f)
 		local s = f:GetEffectiveScale()
 		x = x / s
 		y = y / s
-
 		f:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", x, y)
 	end
 end
 
 E.UpdatePosition = function(f)
-	if not f.settings then
-		return
-	end
+	if not f.settings then return end
 
 	E.LoadPosition(f)
 
@@ -124,62 +119,67 @@ E.SetWidth = function(anchor)
 	anchor:SetWidth(width)
 end
 
-E.ButtonOnLeave = function(self)
-	self:SetBackdropBorderColor(0, 0, 0, 1)
-end
+do
+	local Timers = CreateFrame("Frame")
+	local unusedTimers = {}
 
-E.ButtonOnEnter = function(self)
-	local r, g, b = GetClassColor(E.MyClass)
-	self:SetBackdropBorderColor(r, g, b, 1)
-end
+	local TimerFinished = function(self)
+		self.func(unpack(self.args))
+		tinsert(unusedTimers, self)
+	end
 
-E.OnMouseDown = function(self, button)
-	if button == "LeftButton" and not self.isMoving then
-		self:StartMoving()
-		self.isMoving = true
+	local function CreateTimer()
+		local TimerAnim = Timers:CreateAnimationGroup()
+		local Timer = TimerAnim:CreateAnimation("Alpha")
+		Timer:SetScript("OnFinished", TimerFinished)
+		Timer.TimerAnim = TimerAnim
+
+		return Timer
+	end
+
+	E.TimerAfter = function(delay, func, ...)
+		local Timer = tremove(unusedTimers)
+		if not Timer then
+			Timer = CreateTimer()
+		end
+		Timer.args = {...}
+		Timer.func = func
+		Timer:SetDuration(delay)
+		Timer.TimerAnim:Play()
+
+		return Timer
 	end
 end
 
-E.OnMouseUp = function(self, button)
-	if button == "LeftButton" and self.isMoving then
-		self:StopMovingOrSizing()
-		self.isMoving = false
+E.IsPercentChance = function(percent)
+	return percent >= math.random(1, 100)
+end
+
+E.FormatConcat = function(tbl, template, template2)
+	local t = {}
+	for k, v in ipairs(tbl) do
+		if template2 then
+			if (k % 2 == 0) then
+				t[k] = v and template2:format(v) or ""
+			else
+				t[k] = v and template:format(v) or ""
+			end
+		else
+			t[k] = v and template:format(v) or ""
+		end
 	end
+	return table.concat(t)
 end
 
-E.GetClassHexColor = function(class)
-	local hex = select(4, GetClassColor(class))
-	return "|c" .. hex
-end
-
-E.cropBorder = {0.07, 0.93, 0.07, 0.93}
-
-local Timers = CreateFrame("Frame")
-local unusedTimers = {}
-
-local TimerFinished = function(self)
-	self.func(unpack(self.args))
-	tinsert(unusedTimers, self)
-end
-
-local function GetTimer()
-	local TimerAnim = Timers:CreateAnimationGroup()
-	local Timer = TimerAnim:CreateAnimation("Alpha")
-	Timer:SetScript("OnFinished", TimerFinished)
-	Timer.TimerAnim = TimerAnim
-
-	return Timer
-end
-
-E.TimerAfter = function(delay, func, ...)
-	local Timer = tremove(unusedTimers)
-
-	if not Timer then
-		Timer = GetTimer()
+E.pairs = function(t, ...)
+	local i, a, k, v = 1, {...}
+	return function()
+		repeat
+			k, v = next(t, k)
+			if k == nil then
+				i, t = i + 1, a[i]
+			end
+		until k ~= nil or not t
+		return k, v
 	end
-
-	Timer.args = {...}
-	Timer.func = func
-	Timer:SetDuration(delay)
-	Timer.TimerAnim:Play()
 end

@@ -1,7 +1,7 @@
 local E, L, C = select(2, ...):unpack()
 
 StaticPopupDialogs["OMNICD_Elv_MSG"] = {
-	text = E.MyClassHexColor .. "OmniCD:|r " .. L["Changing party display options in your UF addon while OmniCD is active will break the anchors. Type (/oc rl) to fix the anchors"],
+	text = E.userClassHexColor .. "OmniCD:|r " .. L["Changing party display options in your UF addon while OmniCD is active will break the anchors. Type (/oc rl) to fix the anchors"],
 	button1 = OKAY,
 	button3 = L["Don't show again"],
 	OnAlt = function()
@@ -14,7 +14,7 @@ StaticPopupDialogs["OMNICD_Elv_MSG"] = {
 }
 
 StaticPopupDialogs["OMNICD_RELOADUI"] = {
-	text = E.MyClassHexColor .. "OmniCD:|r %s",
+	text = E.userClassHexColor .. "OmniCD:|r %s",
 	OnAccept = function(_, data, data2)
 		if data then
 			EnableAddOn("Blizzard_CompactRaidFrames")

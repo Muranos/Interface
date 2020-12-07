@@ -1,361 +1,426 @@
 local E, L, C = select(2, ...):unpack()
 
-local P = E["Party"]
 local tinsert = table.insert
 local tremove = table.remove
 local wipe = table.wipe
 local GetSpellLevelLearned = GetSpellLevelLearned
 local UnitGUID = UnitGUID
-local spellList = E.spellList
-local cdModifiedByTalent = E.cdModifiedByTalent
-local chModifiedByTalent = E.chModifiedByTalent
-local cdModifiedByTalentMult = E.cdModifiedByTalentMult
-local cxModifiedByAzerite = E.cxModifiedByAzerite
-local cdModifiedByEssence = E.cdModifiedByEssence
-local essRank2 = E.essRank2
-local essRank2CdFix = E.essRank2CdFix
-local essRank3ChFix = E.essRank3ChFix
-local essStrive = E.essStrive
-local LUMINOUS_BARRIER = 271466
+local P = E["Party"]
+local spell_db = E.spell_db
+local spell_cdmod_haste = E.spell_cdmod_haste
+local spell_cdmod_talents = E.spell_cdmod_talents
+local spell_chmod_talents = E.spell_chmod_talents
+local spell_cdmod_talents_mult = E.spell_cdmod_talents_mult
+local spell_cdmod_conduits = E.spell_cdmod_conduits
+local spell_cdmod_conduits_mult = E.spell_cdmod_conduits_mult
+local covenant_cdmod_conduits = E.covenant_cdmod_conduits
+local covenant_chmod_conduits = E.covenant_chmod_conduits
+local covenant_cdmod_items_mult = E.covenant_cdmod_items_mult
+local FEIGN_DEATH = 5384
+local TOUCH_OF_KARMA = 125174
 
-P.spellBars = {}
-P.enabledLT = {}
-P.numBars = 0
+local bars = {}
+local unusedBars = {}
+local numBars = 0
 
 local unusedIcons = {}
 local numIcons = 0
 
--- 9.0 backward compatible
-local OmniCDButtonTemplate = E.Shadowlands and "OmniCDButtonTemplate, BackdropTemplate" or "OmniCDButtonTemplate"
-
-function P:CreateBar(i)
-	local bar = CreateFrame("Frame", "OmniCD" .. i, UIParent, "OmniCDTemplate")
-	bar.modname = "Party"
-	bar.key = i
-	bar.icons = {}
-	bar.numIcons = 0
-	bar.anchor:Hide()
-	bar.anchor.text:SetText(i)
-
-	self.numBars = self.numBars + 1
-
-	self.spellBars[i] = bar
-end
-
-function P:CreateBars()
-	if self.numBars > 0 then return end
-
-	for i = 1, 40 do -- [18]
-		self:CreateBar(i)
-	end
-end
-
-local function SetIconBackdrop(icon)
-	local scale = P.iconScale or E.db.icons.scale
-	local numPixels = E.db.icons.twoPixelBorder and (2 * E.NumPixels) or E.NumPixels
-	icon:SetBackdrop({
-		edgeFile = E.TEXTURES.White8x8,
-		edgeSize = numPixels / scale,
-	})
-	icon:SetBackdropBorderColor(E.db.icons.borderColor.r, E.db.icons.borderColor.g, E.db.icons.borderColor.b, 1)
-end
-
-function P:UpdateBarBackdrop(bar)
-	local icons = bar.icons
-	for i = 1, bar.numIcons do
-		local icon = icons[i]
-		SetIconBackdrop(icon)
-	end
-end
-
-function P:UpdateBackdrop()
-	if not E.db.icons.displayBorder or not E.db.icons.pixelPerfect then
+function OmniCD_BarOnHide(self)
+	local guid = self.guid
+	if P.groupInfo[guid] then
 		return
 	end
 
-	for i = 1, self.numBars do
-		local bar = self.spellBars[i]
-		self:UpdateBarBackdrop(bar)
+	if guid == E.userGUID then
+		P.userData.bar = nil
 	end
 
-	for i = 1, #unusedIcons do
-		local icon = unusedIcons[i]
-		SetIconBackdrop(icon)
+	for i = #bars, 1, -1 do -- [31]
+		local f = bars[i]
+		if f == self then
+			tremove(bars, i)
+			break
+		end
+	end
+	tinsert(unusedBars, self)
+
+	P:RemoveUnusedIcons(self, 1)
+	self.numIcons = 0
+
+	for key, f in pairs(P.extraBars) do
+		local icons = f.icons
+		local n = 0
+		for j = f.numIcons, 1, -1 do
+			local icon = icons[j]
+			local iconGUID = icon.guid
+			if guid == iconGUID then
+				P:RemoveIcon(icon)
+				tremove(icons, j)
+				n = n + 1
+			end
+		end
+		f.numIcons = f.numIcons - n
+
+		P:SetExIconLayout(key)
+	end
+
+	if self.timer_inCombatTicker then
+		self.timer_inCombatTicker:Cancel()
+	end
+
+	self:UnregisterEvent("UNIT_AURA")
+	self:UnregisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+	self:UnregisterEvent("PLAYER_SPECIALIZATION_CHANGED")
+end
+
+function OmniCD_BarOnShow(self) -- [41]
+	local unit = self.unit
+	self:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", unit, unit == "player" and "pet" or unit .. "pet")
+	self:RegisterUnitEvent("PLAYER_SPECIALIZATION_CHANGED", unit)
+end
+
+local function CooldownBarFrame_OnEvent(self, event, ...)
+	local guid = self.guid
+	local info = P.groupInfo[guid]
+	if not info then
+		return
+	end
+
+	if event == "UNIT_SPELLCAST_SUCCEEDED" then
+		local unit, _, spellID = ...
+		if (P.spell_enabled[spellID] or E.spell_modifiers[spellID]) and not E.cd_start_dispels[spellID] then
+			E.ProcessSpell(spellID, guid)
+		end
+	elseif event == "UNIT_AURA" then
+		local unit = ...
+		if info.glowIcons[TOUCH_OF_KARMA] then
+			if not P:GetBuffDuration(unit, TOUCH_OF_KARMA) then
+				local icon = info.glowIcons[TOUCH_OF_KARMA] -- [40]
+				if icon then
+					P:RemoveHighlight(icon)
+				end
+				self:UnregisterEvent(event)
+			end
+		elseif info.preActiveIcons[FEIGN_DEATH] then
+			if not P:GetBuffDuration(unit, FEIGN_DEATH) then
+				local icon = info.preActiveIcons[FEIGN_DEATH] -- [40]
+				if icon then
+					info.preActiveIcons[FEIGN_DEATH] = nil
+					icon.icon:SetVertexColor(1, 1, 1)
+					P:StartCooldown(icon, icon.duration)
+				end
+				self:UnregisterEvent(event)
+			end
+		else
+			self:UnregisterEvent(event)
+		end
+	elseif event == "PLAYER_SPECIALIZATION_CHANGED" then
+		local unit = ...
+		if guid == E.userGUID then
+			E.Comms:InspectPlayer()
+			E.Comms:SendSync()
+			E.Comms:RegisterEventUnitPower()
+		elseif ( UnitIsConnected(unit) ) then
+			E.Comms:EnqueueInspect(nil, guid)
+		end
 	end
 end
 
-local function GetIcon(bar)
+local function GetBar()
+	local f = tremove(unusedBars)
+	if not f then
+		numBars = numBars + 1
+		f = CreateFrame("Frame", "OmniCD" .. numBars, UIParent, "OmniCDTemplate")
+	end
+	f.modname = "Party"
+	f.icons = {}
+	f.numIcons = 0
+	f.anchor:Hide()
+	f:SetScript("OnEvent", CooldownBarFrame_OnEvent)
+
+	bars[#bars + 1] = f
+	return f
+end
+
+function P:HideAllBars()
+	for i = #bars, 1, -1 do
+		local f = bars[i]
+		f:Hide()
+	end
+end
+
+local function GetIcon(f, iconIndex)
 	local icon = tremove(unusedIcons)
 	if not icon then
 		numIcons = numIcons + 1
-		icon = CreateFrame("Button", "OmniCDIcon" .. numIcons, UIParent, OmniCDButtonTemplate)
+		icon = CreateFrame("Button", nil, UIParent, "OmniCDButtonTemplate")
 		icon.counter = icon.cooldown:GetRegions()
-		SetIconBackdrop(icon)
 	end
-	icon:SetParent(bar.container)
+	icon:SetParent(f.container)
+	icon.Name:Hide()
 
-	bar.icons[bar.numIcons] = icon
-
+	f.icons[iconIndex] = icon
 	return icon
 end
 
-local function RemoveIcons(bar, numIcons)
-	for i = #bar.icons, numIcons, -1 do
-		local icon = bar.icons[i]
-		P:HideOverlayGlow(icon)
-		icon:Hide()
-		tinsert(unusedIcons, icon)
-		bar.icons[i] = nil
+function P:RemoveIcon(icon)
+	local statusBar = icon.statusBar
+	if statusBar then
+		self.RemoveStatusBar(statusBar)
+		icon.statusBar = nil
+	end
+
+	self:HideOverlayGlow(icon)
+	icon:Hide()
+	tinsert(unusedIcons, icon)
+end
+
+function P:RemoveUnusedIcons(f, n)
+	for i = #f.icons, n, -1 do
+		local icon = f.icons[i]
+		self:RemoveIcon(icon)
+		f.icons[i] = nil
 	end
 end
 
-function OmniCD_BarOnHide(self)
-	if P.groupInfo[self.guid] and P.groupInfo[self.guid].index == self.key then -- Bypass UpdatePosition Hide
-		return
+function P:SetBarBackdrop(f) -- [52]
+	local icons = f.icons
+	for i = 1, f.numIcons do
+		local icon = icons[i]
+		self:SetBorder(icon)
 	end
-
-	RemoveIcons(self, 1)
-	self.numIcons = 0
 end
 
-local function IsSpellSpecTalent(v, guid)
-	local spec = v.spec
-	if not spec then return true end
-
-	local specID = P.groupInfo[guid].spec
+local function IsSpellSpecTalent(guid, spec, spellID)
+	local info = P.groupInfo[guid]
+	local specID = info.spec
 	if specID then
 		if type(spec) == "table" then
 			for _, id in pairs(spec) do
-				if id == specID then return true end
-				if id == true then -- Avatar and Ursol's Vertex
-					return P:IsTalent(v.spellID, guid)
+				if id < 599 then -- TODO: Temp fix
+					if id == specID then return true end
+				else
+					if P:IsTalent(id, guid) then return true end -- [62]
 				end
 			end
+		elseif type(spec) == "number" then
+			return P:IsTalent(spec, guid)
 		else
-			local talentID = type(spec) == "number" and spec or v.spellID
-			return P:IsTalent(talentID, guid)
+			return P:IsTalent(spellID, guid)
 		end
 	end
 end
 
-local function AddIcon(bar, v, guid, i)
-	local info = P.groupInfo[guid]
-
-	if not info then
-		return
-	end
-
-	bar.numIcons = bar.numIcons + 1
-
-	local spellID, type, buff, texture = v.spellID, v.type, v.buff, v.icon
-	local cd = P:GetValueByType(v.duration, guid)
-	local ch = P:GetValueByType(v.charges, guid) or 1
-
-	if info.talentLT and info.slotLT then
-		if i == 5 then
-			local essCdFix = essRank2CdFix[spellID]
-			if essCdFix then
-				if essRank2[ info.slots[3] ] then
-					cd = cd - essCdFix
-				end
-			end
-
-			local essChFix = essRank3ChFix[spellID]
-			if essChFix then
-				if essChFix[1] == info.slots[3] then
-					ch = ch + essChFix[2]
-				end
-			end
-		elseif i == 4 then
-			local modData = cdModifiedByTalent[spellID]
-			if modData and P:IsTalent(modData.talent, guid) then
-				cd = cd - modData.duration
-			end
-
-			local modData = chModifiedByTalent[spellID]
-			if modData and P:IsTalent(modData.talent, guid) then
-				ch = ch + modData.charges
-			end
-
-			local modData = cdModifiedByTalentMult[spellID]
-			if modData and P:IsTalent(modData.talent, guid) then
-				cd = cd * modData.multiplier
-			end
-
-			local modData = cxModifiedByAzerite[spellID]
-			if modData and P:IsEquipped(modData.azerite, guid) then
-				if modData.duration then
-					cd = cd - modData.duration
-				elseif modData.charges then
-					ch = ch + modData.charges
-				end
-			end
-
-			if essStrive[ info.talents[13] ] then
-				local modData = cdModifiedByEssence[spellID]
-				if modData == true or modData == info.spec then
-					cd = cd * info.slotLT.mult
-
-					info.slotLT["multID"] = spellID
-				elseif spellID == 107574 and info.spec == 71 then -- Blizzard bug
-					cd = cd - 5
-				end
-			end
-
-			if spellID == 197590 then -- Luminous Barrier with Dome of Light temp fix
-				if P:IsTalent(LUMINOUS_BARRIER, guid) then
-					buff = LUMINOUS_BARRIER
-					texture = select(2, GetSpellTexture(LUMINOUS_BARRIER))
-				end
-			end
-		end
-	end
-
-	local icon = bar.icons[bar.numIcons] or GetIcon(bar)
-	icon.guid = guid
-	icon.spellID = spellID
-	icon.type = type
-	icon.buff = buff or spellID
-	icon.duration = cd
-	icon.maxcharges = ch > 1 and ch
-	icon.Count:SetText(icon.maxcharges or "")
-	icon.icon:SetTexture(texture)
-	icon.active = nil
-
-	P:HideOverlayGlow(icon)
-
-	local active = info.active[spellID]
-	if active then
-		local charges
-		if icon.maxcharges then
-			if not active.charges then
-				charges = icon.maxcharges - 1
-				active.charges = charges
-			else
-				charges = active.charges
-			end
-			icon.Count:SetText(charges)
-		else
-			active.charges = nil -- rmk#10 Fix
-			charges = -1
-		end
-
-		P:UpdateCooldown(icon, 0, charges)
-	else
-		icon.cooldown:Clear()
-	end
-
-	if info[spellID] and not icon.overlay then -- Enabled spell type
-		icon.icon:SetVertexColor(0.4, 0.4, 0.4)
-	else
-		icon.icon:SetVertexColor(1, 1, 1)
-	end
-
-	info.spellIcons[spellID] = icon
-end
-
-local ignored = {}
-
-function P:UpdateUnitBar(index)
-	local unit = self:GetUnitByIndex(index)
-	local guid = UnitGUID(unit)
+function P:UpdateUnitBar(guid)
 	local info = self.groupInfo[guid]
+	local class = info.class
+	local raceID = info.raceID
+	local index = info.index
+	local unit = info.unit
 
-	if not info then
-		return
+	wipe(info.spellIcons)
+
+	if not info.bar then
+		info.bar = GetBar()
 	end
 
-	info.active = info.active or {}
-	if info.spellIcons then
-		wipe(info.spellIcons)
-	else
-		info.spellIcons = {}
-	end
-	info.isPvpMultApplied = nil
+	local f = info.bar
+	f.key = index
+	f.guid = guid
+	f.class = class
+	f.raceID = raceID
+	f.unit = unit
+	f.anchor.text:SetText(index)
 
-	local class, raceID = info.class, info.raceID
-	local classSpells = spellList[class]
-	local numClassSpells = #classSpells
-	local numCategories = self.isInBG and E.db.general.bgTrinket and 1 or 5
+	local isInspectedUnit = info.spec
+	local lvl = info.level
+	local classSpells = spell_db[class]
+	local iconIndex = 0
 
-	local bar = self.spellBars[index]
-	bar.guid = guid
-	bar.class = class
-	bar.raceID = raceID
-	bar.numIcons = 0
-
-	wipe(ignored)
-
-	for i = 1, numClassSpells do
-		local v = classSpells[i]
-		local spellID = v.spellID
-
-		if IsSpellSpecTalent(v, guid) then
-			local parent = v.parent
-			if parent then
-				local id = v.parent2 or (v.hide and spellID)
-				if id then
-					ignored[id] = true
-				end
-
-				ignored[parent] = true
-			end
-
-			if v.pve and self.pvp then
-				ignored[spellID] = true
-			end
-		else
-			ignored[spellID] = true
-		end
-	end
-
-	for i = 1, numCategories do
-		local catagory = (i == 1 and self.pvp and "TRINKET") or (i == 2 and "RACIAL") or (i == 3 and "ALL") or (i == 4 and class) or (i == 5 and "ESSENCES")
-		local n = catagory and #spellList[catagory] or 0
-
+	for i = 1, 5 do
+		local catagory = i == 1 and "PVPTRINKET" or (i == 2 and "RACIAL") or (i == 3 and "TRINKET") or (i == 4 and "COVENANT")
+		local n = i == 5 and #classSpells or #spell_db[catagory]
 		for j = 1, n do
-			local v = spellList[catagory][j]
-			local spellID = v.spellID
-			if self.enabledLT[spellID] then
-				if i == 4 then
-					if not ignored[spellID] and info.level >= GetSpellLevelLearned(spellID) then
-						AddIcon(bar, v, guid, i)
-					end
-				elseif i == 1 then
-					if IsSpellSpecTalent(v, guid) then -- #iss48
-						AddIcon(bar, v, guid)
+			local spell = i == 5 and classSpells[j] or spell_db[catagory][j]
+			local spellID, spec, race, item, item2, talent, pve = spell.spellID, spell.spec, spell.race, spell.item, spell.item2, spell.talent, spell.pve
 
-						break
+			local isValidSpell -- [62]
+			if self.spell_enabled[spellID] then
+				if i == 2 then
+					isValidSpell = race == raceID
+				elseif isInspectedUnit then
+					if i == 5 then
+						isValidSpell = lvl >= GetSpellLevelLearned(spellID) and (not spec or IsSpellSpecTalent(guid, spec, spellID)) and (not talent or not IsSpellSpecTalent(guid, talent, spellID)) and (not pve or not self.isInPvPInstance)
+					elseif i == 4 then
+						isValidSpell = IsSpellSpecTalent(guid, spec, spellID)
+					elseif i == 3 or i == 1 then
+						isValidSpell = self:IsEquipped(item, guid, item2)
 					end
-				elseif i == 2 then
-					if v.race == raceID then
-						AddIcon(bar, v, guid)
+				else
+					if i == 5 then
+						isValidSpell = lvl >= GetSpellLevelLearned(spellID) and not spec and not talent
+					elseif i == 3 then
+						isValidSpell = not item
+					end
+				end
+			end
 
-						break
+			if isValidSpell then
+				local spellType, category, buffID, iconTexture = spell.type, spell.class, spell.buff, spell.icon
+				local cd = P:GetValueByType(spell.duration, guid, item2)
+				local ch = P:GetValueByType(spell.charges, guid) or 1
+				if isInspectedUnit then
+					if i == 5 then
+						if spell_cdmod_haste[spellID] then
+							local haste = UnitSpellHaste(unit) or 0
+							cd = cd * (1 - haste/100)
+						end
+
+						local cdData = spell_cdmod_talents[spellID]
+						if cdData then
+							if type(cdData[1]) == "table" then
+								for i = 1, #cdData do
+									local t = cdData[i]
+									if P:IsTalent(t[1], guid) then
+										cd = cd - t[2]
+									end
+								end
+							else
+								if P:IsTalent(cdData[1], guid) then
+									cd = cd - cdData[2]
+								end
+							end
+						end
+
+						local conduitData = spell_cdmod_conduits[spellID]
+						if conduitData then
+							local rankValue = info.talentData[conduitData]
+							if rankValue then
+								if spellID == 212653 then --TODO: Shimmer
+									rankValue = rankValue / 2
+								end
+								cd = cd - rankValue
+							end
+						end
+
+						local cdMult = spell_cdmod_talents_mult[spellID]
+						if cdMult then
+							if type(cdMult[1]) == "table" then
+								for i = 1, #cdMult do
+									local t = cdMult[i]
+									if P:IsTalent(t[1], guid) then
+										cd = cd * t[2]
+									end
+								end
+							else
+								if P:IsTalent(cdMult[1], guid) then
+									cd = cd * cdMult[2]
+								end
+							end
+						end
+
+						local conduitMult = spell_cdmod_conduits_mult[spellID]
+						if conduitMult then
+							local rankValue = info.talentData[conduitMult]
+							if rankValue then
+								cd = cd * rankValue
+							end
+						end
+
+						local chData = spell_chmod_talents[spellID]
+						if chData and P:IsTalent(chData[1], guid) then
+							ch = ch + chData[2]
+						end
+					elseif i == 4 then
+						local cdData = covenant_cdmod_conduits[spellID]
+						if cdData and info.talentData[cdData[1]] then
+							cd = cd - cdData[2]
+						end
+
+						local cdMult = covenant_cdmod_items_mult[spellID]
+						if cdMult and self:IsEquipped(cdMult[1], guid) then
+							cd = cd * cdMult[2]
+						end
+
+						local chData = covenant_chmod_conduits[spellID]
+						if chData and info.talentData[chData[1]] then
+							ch = ch + chData[2]
+						end
 					end
-				elseif not v.item or self:IsEquipped(v.item, guid) or self:IsEquipped(v.item2, guid) then
-					AddIcon(bar, v, guid, i)
+				end
+				ch = ch > 1 and ch
+
+				iconIndex = iconIndex + 1
+
+				local icon = f.icons[iconIndex] or GetIcon(f, iconIndex)
+				icon:Hide() -- [28]
+				icon.guid = guid
+				icon.spellID = spellID
+				icon.class = class
+				icon.type = spellType
+				icon.category = category
+				icon.buff = buffID
+				icon.duration = cd
+				icon.maxcharges = ch
+				icon.Count:SetText(ch or "")
+				icon.icon:SetTexture(iconTexture)
+				icon.active = nil
+
+				P:HideOverlayGlow(icon)
+
+				local active = info.active[spellID]
+				if active then
+					local charges
+					if icon.maxcharges then
+						if not active.charges then -- [15]
+							charges = icon.maxcharges - 1
+							active.charges = charges
+						else
+							charges = active.charges
+						end
+						icon.Count:SetText(charges)
+					else
+						active.charges = nil -- [15]
+						charges = -1
+					end
+
+					P:UpdateCooldown(icon, 0, charges) -- [40]
+				else
+					icon.cooldown:Clear()
+				end
+
+				if info.preActiveIcons[spellID] then
+					info.preActiveIcons[spellID] = icon -- [40]
+					if not icon.overlay then
+						icon.icon:SetVertexColor(0.4, 0.4, 0.4)
+					end
+				else
+					icon.icon:SetVertexColor(1, 1, 1)
+				end
+
+				info.spellIcons[spellID] = icon -- [40]
+
+				if i == 2 then
+					break
 				end
 			end
 		end
 	end
+	f.numIcons = iconIndex
 
-	RemoveIcons(bar, bar.numIcons + 1)
+	self:RemoveUnusedIcons(f, iconIndex + 1)
 
-	self:SetIconLayout(bar)
-	self:ApplySettings(bar)
+	self:UpdateExBars(f) -- [26]
+
+	self:SetIconLayout(f, true)
+	self:ApplySettings(f)
 end
 
 function P:UpdateBars()
-	local n = self:GetGroupSize()
-	for i = 1, n do
-		local index = not self.isInRaid and i == n and 5 or i
-		if index == self.groupInfo[E.MyGUID].index then
-			if not self.hideMe then
-				E.Comms:InspectUnit(E.MyGUID)
-			end
-		else
-			self:UpdateUnitBar(index)
-		end
+	self:HideExBars() -- [27]
+
+	for guid in pairs(self.groupInfo) do
+		self:UpdateUnitBar(guid)
 	end
 end

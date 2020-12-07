@@ -2,6 +2,7 @@ local E, L, C = select(2, ...):unpack()
 
 local L_PVP_TRINKET = GetSpellInfo(283167)
 local RACIAL_TRAITS = gsub(RACIAL_TRAITS, ":", "")
+local DISARMROOTSILENCE = format("%s %s %s",LOC_TYPE_DISARM, LOC_TYPE_ROOT, LOC_TYPE_SILENCE)
 
 E.BASE_ICON_SIZE = 36
 
@@ -44,70 +45,45 @@ E.RAID_UNIT = {
 	"raid31","raid32","raid33","raid34","raid35","raid36","raid37","raid38","raid39","raid40",
 }
 
-E.RAID_INDEX = {
-	["raid1"]=1,["raid2"]=2,["raid3"]=3,["raid4"]=4,["raid5"]=5,
-	["raid6"]=6,["raid7"]=7,["raid8"]=8,["raid9"]=9,["raid10"]=10,
-	["raid11"]=11,["raid12"]=12,["raid13"]=13,["raid14"]=14,["raid15"]=15,
-	["raid16"]=16,["raid17"]=17,["raid18"]=18,["raid19"]=19,["raid20"]=20,
-	["raid21"]=21,["raid22"]=22,["raid23"]=23,["raid24"]=24,["raid25"]=25,
-	["raid26"]=26,["raid27"]=27,["raid28"]=28,["raid29"]=29,["raid30"]=30,
-	["raid31"]=31,["raid32"]=32,["raid33"]=33,["raid34"]=34,["raid35"]=35,
-	["raid36"]=36,["raid37"]=37,["raid38"]=38,["raid39"]=39,["raid40"]=40,
-}
-
-E.RAID_PET_INDEX = {
-	["raid1"]=1,["raid2"]=2,["raid3"]=3,["raid4"]=4,["raid5"]=5,
-	["raid6"]=6,["raid7"]=7,["raid8"]=8,["raid9"]=9,["raid10"]=10,
-	["raid11"]=11,["raid12"]=12,["raid13"]=13,["raid14"]=14,["raid15"]=15,
-	["raid16"]=16,["raid17"]=17,["raid18"]=18,["raid19"]=19,["raid20"]=20,
-	["raid21"]=21,["raid22"]=22,["raid23"]=23,["raid24"]=24,["raid25"]=25,
-	["raid26"]=26,["raid27"]=27,["raid28"]=28,["raid29"]=29,["raid30"]=30,
-	["raid31"]=31,["raid32"]=32,["raid33"]=33,["raid34"]=34,["raid35"]=35,
-	["raid36"]=36,["raid37"]=37,["raid38"]=38,["raid39"]=39,["raid40"]=40,
-	["raidpet1"]=1,["raidpet2"]=2,["raidpet3"]=3,["raidpet4"]=4,["raidpet5"]=5,
-	["raidpet6"]=6,["raidpet7"]=7,["raidpet8"]=8,["raidpet9"]=9,["raidpet10"]=10,
-	["raidpet11"]=11,["raidpet12"]=12,["raidpet13"]=13,["raidpet14"]=14,["raidpet15"]=15,
-	["raidpet16"]=16,["raidpet17"]=17,["raidpet18"]=18,["raidpet19"]=19,["raidpet20"]=20,
-	["raidpet21"]=21,["raidpet22"]=22,["raidpet23"]=23,["raidpet24"]=24,["raidpet25"]=25,
-	["raidpet26"]=26,["raidpet27"]=27,["raidpet28"]=28,["raidpet29"]=29,["raidpet30"]=30,
-	["raidpet31"]=31,["raidpet32"]=32,["raidpet33"]=33,["raidpet34"]=34,["raidpet35"]=35,
-	["raidpet36"]=36,["raidpet37"]=37,["raidpet38"]=38,["raidpet39"]=39,["raidpet40"]=40,
+E.unitToPetId = {
+	["party1"]="partypet1",["party2"]="partypet2",["party3"]="partypet3",["party4"]="partypet4",["player"]="pet",
+	["raid1"]="raidpet1",["raid2"]="raidpet2",["raid3"]="raidpet3",["raid4"]="raidpet4",["raid5"]="raidpet5",
+	["raid6"]="raidpet6",["raid7"]="raidpet7",["raid8"]="raidpet8",["raid9"]="raidpet9",["raid10"]="raidpet10",
+	["raid11"]="raidpet11",["raid12"]="raidpet12",["raid13"]="raidpet13",["raid14"]="raidpet14",["raid15"]="raidpet15",
+	["raid16"]="raidpet16",["raid17"]="raidpet17",["raid18"]="raidpet18",["raid19"]="raidpet19",["raid20"]="raidpet20",
+	["raid21"]="raidpet21",["raid22"]="raidpet22",["raid23"]="raidpet23",["raid24"]="raidpet24",["raid25"]="raidpet25",
+	["raid26"]="raidpet26",["raid27"]="raidpet27",["raid28"]="raidpet28",["raid29"]="raidpet29",["raid30"]="raidpet30",
+	["raid31"]="raidpet31",["raid32"]="raidpet32",["raid33"]="raidpet33",["raid34"]="raidpet34",["raid35"]="raidpet35",
+	["raid36"]="raidpet36",["raid37"]="raidpet37",["raid38"]="raidpet38",["raid39"]="raidpet39",["raid40"]="raidpet40",
 }
 
 E.PARTY_UNIT = {
 	"party1","party2","party3","party4","player",
 }
 
-E.PARTY_INDEX = {
-	["party1"]=1,["party2"]=2,["party3"]=3,["party4"]=4,["player"]=5,
+E.TANK_SPEC = {
+	[250] = true,   -- Blood DK
+	[581] = true,   -- Vengeance DH
+	[104] = true,   -- Guardian Druid
+	[268] = true,   -- Brewmaster Monk
+	[66]  = true,   -- Prot Paladin
+	[73]  = true,   -- Prot Warrior
 }
 
-E.PARTY_PET_INDEX = {
-	["party1"]=1,["party2"]=2,["party3"]=3,["party4"]=4,["player"]=5,
-	["partypet1"]=1,["partypet2"]=2,["partypet3"]=3,["partypet4"]=4,["pet"]=5,
+E.HEALER_SPEC = {
+	[105] = true,   -- Restoration Druid
+	[270] = true,   -- Mistweaver
+	[65]  = true,   -- Holy Paladin
+	[256] = true,   -- Disipline Priest
+	[257] = true,   -- Holy Priest
+	[264] = true,   -- Restoration Shaman
 }
 
-E.CFG_GROUP_TYPE = {
-	["arena"] = {
-		[1] = DEFAULT, --COMPACT_UNIT_FRAME_PROFILE_AUTOACTIVATE3PLAYERS
-		[2] = 1,
-		[3] = L["Group Size"] .. ": 1 - 3",
-	},
-	["party"] = {
-		[1] = COMPACT_UNIT_FRAME_PROFILE_AUTOACTIVATE5PLAYERS,
-		[2] = 2,
-		[3] = L["Group Size"] .. ": 4 - 5",
-	},
-	["raid"] = {
-		[1] = COMPACT_UNIT_FRAME_PROFILE_AUTOACTIVATE40PLAYERS,
-		[2] = 3,
-		[3] = L["Group Size"] .. ": 6 - 40",
-	},
-	["manual"] = {
-		[1] = TRACKER_SORT_MANUAL,
-		[2] = 4,
-		[3] = "",
-	}
+E.CFG_ZONE = {
+	["arena"] = ARENA,
+	["pvp"] = BATTLEGROUNDS,
+	["party"] = DUNGEONS,
+	["raid"] = RAIDS,
 }
 
 E.L_PRESETS = {
@@ -126,18 +102,9 @@ E.L_POINTS = {
 }
 
 E.L_LAYOUT = {
-	["horizontal"] = L["Vertical Groups"],
-	["vertical"] = COMPACT_UNIT_FRAME_PROFILE_HORIZONTALGROUPS,
+	["horizontal"] = L["Horizontal"],
+	["vertical"] = L["Vertical"],
 	["doubleRow"] = L["Use Double Row"],
-}
-
-E.L_GLOW_ATLAS ={
-	["bags-glow-white"] = ICON_TAG_RAID_TARGET_SKULL3,
-	["bags-glow-green"] = ICON_TAG_RAID_TARGET_TRIANGLE3,
-	["bags-glow-blue"] = ICON_TAG_RAID_TARGET_SQUARE3,
-	["bags-glow-purple"] = ICON_TAG_RAID_TARGET_DIAMOND3,
-	["bags-glow-orange"] = ICON_TAG_RAID_TARGET_CIRCLE3,
-	["bags-glow-artifact"] = ICON_TAG_RAID_TARGET_STAR3,
 }
 
 E.L_ALIGN = {
@@ -156,82 +123,72 @@ E.L_ZONE = {
 }
 
 E.L_PRIORITY = {
-	["interrupt"] = L["Interrupts"],
+	["pvptrinket"] = L_PVP_TRINKET,
+	["racial"] = RACIAL_TRAITS,
+	["trinket"] = INVTYPE_TRINKET,
+	["covenant"] = L["Covenant"],
+	["interrupt"] = LOC_TYPE_INTERRUPT,
+	["dispel"] = DISPELS,
 	["cc"] = L["Crowd Control"],
+	["disarm"] = DISARMROOTSILENCE,
 	["immunity"] = L["Immunity"],
 	["defensive"] = L["Defensive"],
+	["raidDefensive"] = L["Raid Defensive"],
 	["offensive"] = L["Offensive"],
-	["others"] = OTHER,
-	["custom"] = CUSTOM,
-	["all"] = ALL_CLASSES,
-	["trinket"] = L_PVP_TRINKET,
-	["racial"] = RACIAL_TRAITS,
-	["essence"] = AZERITE_ESSENCE_ITEM_TYPE,
+	["counterCC"] = L["Counter CC"],
+	["other"] = OTHER,
 }
 
-E.L_SPELL_TYPE = {
-	["interrupt"] = L["Interrupts"], -- INTERRUPTS
-	["cc"] = L["Crowd Control"],
-	["immunity"] = L["Immunity"],
-	["defensive"] = L["Defensive"],
-	["offensive"] = L["Offensive"],
-	["others"] = OTHER,
-	["custom"] = CUSTOM,
+E.BOOKTYPE_CATEGORY = {
+	["WARRIOR"] = true,
+	["PALADIN"] = true,
+	["HUNTER"] = true,
+	["ROGUE"] = true,
+	["PRIEST"] = true,
+	["DEATHKNIGHT"] = true,
+	["SHAMAN"] = true,
+	["MAGE"] = true,
+	["WARLOCK"] = true,
+	["MONK"] = true,
+	["DRUID"] = true,
+	["DEMONHUNTER"] = true,
 }
 
 E.L_HIGHLIGHTS = {
 	["immunity"] = L["Immunity"],
 	["defensive"] = L["Defensive"],
+	["raidDefensive"] = L["Raid Defensive"],
 	["offensive"] = L["Offensive"],
-	["others"] = OTHER,
-}
-
-E.BOOKTYPE_SPELLS = { -- [34]
-	-- Hotfixed July 27, 2020
-	--[[
-	[208683] = true,
-	[195710] = true,
-	]]
-	["interrupt"] = true,
-	["cc"] = true,
-	["immunity"] = true,
-	["defensive"] = true,
-	["offensive"] = true,
-	["others"] = true,
-	["custom"] = true,
+	["counterCC"] = L["Counter CC"],
+	["other"] = OTHER,
 }
 
 E.OTHER_SORT_ORDER = {
-	"ALL",
+	"PVPTRINKET",
 	"RACIAL",
 	"TRINKET",
-	"ESSENCES"
+	"COVENANT",
 }
 
 E.L_CATAGORY_OTHER = {
-	["ALL"] = ALL_CLASSES,
+	["PVPTRINKET"] = L_PVP_TRINKET,
 	["RACIAL"] = RACIAL_TRAITS,
-	["TRINKET"] = L_PVP_TRINKET,
-	["ESSENCES"] = AZERITE_ESSENCE_ITEM_TYPE,
+	["TRINKET"] = INVTYPE_TRINKET,
+	["COVENANT"] = format("%s (%s)", COVENANT_PREVIEW_RACIAL_ABILITY, L["Covenant"]),
 }
 
 E.ICO = {
-	["CLASS"] = "Interface\\Icons\\classicon_",
-	["ALL"] = "Interface\\Icons\\inv_60pvp_trinket2d",
+	["CLASS"] = "Interface\\Glues\\CharacterCreate\\UI-CharacterCreate-Classes",
+	["PVPTRINKET"] = "Interface\\Icons\\ability_pvp_gladiatormedallion",
 	["RACIAL"] = "Interface\\Icons\\Achievement_character_human_female",
-	["TRINKET"] = "Interface\\Icons\\ability_pvp_gladiatormedallion",
-	["ESSENCES"] = "Interface\\Icons\\inv_heartofazeroth",
+	["TRINKET"] = "Interface\\Icons\\inv_60pvp_trinket2d",
+	["COVENANT"] = 3257750,
 }
 
 E.STR = {
 	["RELOAD_UI"] = L["Reload UI?"],
-	["BLIZZARD_CRF_DISABLED"] = L["Blizzard Raid Frames has been disabled by your AddOn(s). Enable and reload UI?"],
-	-- TODO: L
-	--["UNSUPPORTED_ADDON"] = L["Test Mode Disabled: Non-Blizzard party frames"],
-	["UNSUPPORTED_ADDON"] = "Test function is disabled for %s. Configure OmniCD while in a group.",
-	["PIXEL_ON"] = L["Pixel Perfect ON."],
-	["ICO_SCALE_CHANGED"] = L["Icon Scale Changed."],
-	["UI_SCALE_CHANGED"] = L["UI Scale Changed."],
+	["ENABLE_BLIZZARD_CRF"] = L["Blizzard Raid Frames has been disabled by your AddOn(s). Enable and reload UI?"],
+	["UNSUPPORTED_ADDON"] = L["Raid Frames for testing doesn't exist for %s. If it fails to load, configure OmniCD while in a group or temporarily set it to \'Manual Mode\'."],
 	["MAX_RANGE"] = MAXIMUM .. ": 999",
 }
 
@@ -239,28 +196,19 @@ E.TEXTURES = {
 	White8x8 = [[Interface\BUTTONS\White8x8]],
 }
 
-E.backdrop = {
-	bgFile = E.TEXTURES.White8x8,
-	edgeFile = E.TEXTURES.White8x8,
-	edgeSize = E.NumPixels,
-}
-
-E.INVSLOT_INDEX = {
-	13, --INVSLOT_TRINKET1
-	14, --INVSLOT_TRINKET2
-	2,  --INVSLOT_NECK
-	1,  --INVSLOT_HEAD
-	3,  --INVSLOT_SHOULDER
-	5,  --INVSLOT_CHEST
-}
-
-E.INVSLOTS = {
-	[13] = true,
-	[14] = true,
-	[2] = true,
-	[1] = true,
-	[3] = true,
-	[5] = true,
+E.CLASSID = {
+	"WARRIOR",
+	"PALADIN",
+	"HUNTER",
+	"ROGUE",
+	"PRIEST",
+	"DEATHKNIGHT",
+	"SHAMAN",
+	"MAGE",
+	"WARLOCK",
+	"MONK",
+	"DRUID",
+	"DEMONHUNTER"
 }
 
 E.POWER_TYPE_SPEC = {
@@ -269,20 +217,33 @@ E.POWER_TYPE_SPEC = {
 	[254] = 1,
 	[255] = 1,
 	[269] = true,
+	[65] = true,
+	[66] = true,
 	[70] = true,
 	[260] = true,
 	[261] = true,
 	[71] = 1,
 	[72] = 1,
 	[73] = 1,
+	[265] = true,
+	[266] = true,
+	[267] = true,
 }
 
 E.POWER_TYPE_IDS = {
-	--["RUNES"] = 5, -- [3]
-	["RUNIC_POWER"] = 6,
-	["FOCUS"] = 2,
-	["CHI"] = 12,
-	["HOLY_POWER"] = 9,
-	["RAGE"] = 1,
-	["COMBO_POINTS"] = 4,
+	["RUNIC_POWER"] = 6,        -- Enum.PowerType.RunicPower
+	["FOCUS"] = 2,              -- Enum.PowerType.Focus
+	["CHI"] = 12,               -- Enum.PowerType.Chi
+	["HOLY_POWER"] = 9,         -- Enum.PowerType.HolyPower
+	["RAGE"] = 1,               -- Enum.PowerType.Rage
+	["COMBO_POINTS"] = 4,       -- Enum.PowerType.ComboPoints
+	["SOUL_SHARDS"] = 7,        -- Enum.PowerType.SoulShards
 }
+
+E.COVENANT_HEX_COLOR = {
+	[321076] = "|cff2aa2ff",    -- KYRIAN_BLUE_COLOR
+	[321079] = "|cffe40d0d",    -- VENTHYR_RED_COLOR
+	[321077] = "|cff80b5fd",    -- NIGHT_FAE_BLUE_COLOR
+	[321078] = "|cff17c864",    -- NECROLORD_GREEN_COLOR
+}
+--> Desc

@@ -1,34 +1,28 @@
 local E, L, C = select(2, ...):unpack()
 
-E.modifierLT = {}
+E.spell_highlighted = {}
+E.spell_modifiers = {}
 
-function E:CreateModifierLT()
-	for _, v in ipairs({E.sharedCdWithTrinkets, E.mergedSpells, E.cdReducingCast, E.cdResettingCast, E.cdReducingPowerSpenders, E.cdReducingCastByAzerite}) do
-		for id in pairs(v) do
-			E.modifierLT[id] = true
-		end
-	end
-end
-
-E.bigSpells = {
-	[205596] = "Interface\\Icons\\inv_misc_steelweaponchain",
-	[227635] = "Interface\\Icons\\ability_demonhunter_darkness",
-	[203340] = "Interface\\Icons\\ability_mage_coldasice",
-	[199452] = "Interface\\Icons\\spell_holy_sealofsacrifice",
-	[197590] = "Interface\\Icons\\spell_holy_powerwordbarrier",
-	[228049] = "Interface\\Icons\\spell_holy_heroism",
-}
-
-E.buffFixNoCLEU = {
-	[125174] = 10,
-}
-
-E.buffFixNoDuration = {
-	[51052]  = 10,
-	[116011] = 10,
-	[228049] = 10,
-	[81782]  = 10,
-	[197590] = 10,
-	[62618]  = 10,
-	[236320] = 15,
+E.spell_marked = {
+	[48707]  = 205727,  -- Anti-Magic Barrier
+	[287250] = true,    -- Dead of Winter
+	[51052]  = 328718,  -- Dome of Ancient Shadow
+	[198589] = 205411,  -- Desperate Instincts
+	[196718] = 227635,  -- Cover of Darkness
+	[217832] = 205596,  -- Detainment
+	[187650] = 203340,  -- Diamond Ice
+	[122470] = 280195,  -- Good Karma
+	[228049] = true,    -- Guardian of the Forgotten Queen
+	[199452] = true,    -- Ultimate Sacrifice
+	[62618]  = 197590,  -- Dome of Light
+	[88625]  = 200199,  -- Censure
+	[213602] = true,    -- Greater Fade
+	[1966]   = 79008,   -- Elusiveness
+	[79206]  = 290254,  -- Ancestral Gift
+	--[[
+	[190784] = 199542,  -- Steed of Glory
+	[23920]  = 213915,  -- Rebound
+	[5246]   = 275338,  -- Menace
+	[199086] = true,    -- Warpath
+	--]]
 }

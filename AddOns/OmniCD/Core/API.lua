@@ -1,31 +1,37 @@
 local E, L, C = select(2, ...):unpack()
 
---------------------------------------------------------------------------------
--- OmniCD.AddUnitFrameData
--- Add new or overwrite pre-existing raid frame data for anchoring cooldown bars
---
--- @param Addon: The name of the addon.
--- @param RaidFrame: The name of raid frame used for party groups.
--- @param UnitKey: The key used by the raid frames for unitId value.
--- @param Delay: The delay time required to aquire correct unitId to raid frame
--- association when GROUP_ROSTER_UPDATE event fires. (defaults to 1)
--- @param TestFunc(Optional): Reference to a function that toggles test frames or the player
--- raid frame. Boolean value gets passed as the first argument. (true = test enabled, false = test disabled)
--- @usage
--- -- Add raid frame data before PLAYER_LOGIN event
--- function MyAddon:ADDON_LOADED(arg1)
---  if arg1 == "OmniCD" then
---      OmniCD.AddUnitFrameData("Grid2", "Grid2LayoutHeader1UnitButton", "unit", 1)
---  end
--- end
--- -- Create reference func if it doesn't exist or can't use boolean as an argument to toggle on and off.
--- function MyAddon.TestFunc(enabledTest)
---  if enabledTest then
---      -- toggle frames on
---  else
---      -- toggle frames off
---  end
--- end
+--[[
+OmniCD.AddUnitFrameData
+	Add new or overwrite pre-existing raid frame data for anchoring cooldown bars
+
+@param Addon: The name of the addon.
+@param RaidFrame: The name of raid frame used for party groups.
+@param UnitKey: The key used by the raid frames for unitId value.
+@param Delay: The delay time required to aquire correct unitId to raid frame
+	association when GROUP_ROSTER_UPDATE event fires. (defaults to 1)
+@param TestFunc(Optional): Reference to a function that toggles test frames or the player
+	raid frame. Boolean value gets passed as the first argument. (true = test enabled, false = test disabled)
+
+@usage
+Add raid frame data before PLAYER_LOGIN event:
+function MyAddon:ADDON_LOADED(arg1)
+	if arg1 == "MyAddon" or arg1 == "OmniCD" then
+		local func = OmniCD and OmniCD.AddUnitFrameData
+		if func then
+			func("MyAddon", "MyRaidFrame", "MyUnitKey", 1)
+		end
+	end
+end
+
+Create reference func if it doesn't exist or can't use boolean as an argument to toggle on and off:
+function MyAddon.TestFunc(enabledTest)
+	if enabledTest then
+		toggle frames on
+	else
+		toggle frames off
+	end
+end
+]]
 
 function OmniCD.AddUnitFrameData(Addon, RaidFrame, UnitKey, Delay, TestFunc)
 	if type(Addon) ~= "string" then

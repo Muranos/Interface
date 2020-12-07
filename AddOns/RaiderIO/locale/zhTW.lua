@@ -43,19 +43,35 @@ L["DUNGEON_SHORT_NAME_BRH"] = "玄鴉"
 L["DUNGEON_SHORT_NAME_COEN"] = "永夜"
 L["DUNGEON_SHORT_NAME_COS"] = "眾星"
 L["DUNGEON_SHORT_NAME_DHT"] = "暗心"
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_DOS"] = ""--]] 
 L["DUNGEON_SHORT_NAME_EOA"] = "艾眼"
 L["DUNGEON_SHORT_NAME_FH"] = "自由"
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_HOA"] = ""--]] 
 L["DUNGEON_SHORT_NAME_HOV"] = "英靈"
 L["DUNGEON_SHORT_NAME_KR"] = "諸王"
 L["DUNGEON_SHORT_NAME_LOWR"] = "卡拉下"
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_MISTS"] = ""--]] 
 L["DUNGEON_SHORT_NAME_ML"] = "晶喜"
 L["DUNGEON_SHORT_NAME_MOS"] = "靈魂"
 L["DUNGEON_SHORT_NAME_NL"] = "奈巢"
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_NW"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_PF"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_SD"] = ""--]] 
 L["DUNGEON_SHORT_NAME_SEAT"] = "三傑"
 L["DUNGEON_SHORT_NAME_SIEGE"] = "圍城"
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_SOA"] = ""--]] 
 L["DUNGEON_SHORT_NAME_SOTS"] = "風暴"
 L["DUNGEON_SHORT_NAME_TD"] = "監獄"
 L["DUNGEON_SHORT_NAME_TM"] = "晶喜"
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_TOP"] = ""--]] 
 L["DUNGEON_SHORT_NAME_TOS"] = "神廟"
 L["DUNGEON_SHORT_NAME_UNDR"] = "幽腐"
 L["DUNGEON_SHORT_NAME_UPPR"] = "卡拉上"
@@ -115,6 +131,8 @@ L["OUTDATED_EXPIRED_ALERT"] = "|cffFFFFFF%s|r正使用過期的數據。請立�
 L["OUTDATED_EXPIRED_TITLE"] = "Raider.IO數據已經過期"
 L["OUTDATED_EXPIRES_IN_DAYS"] = "Raider.IO數據將於 %d天後過期"
 L["OUTDATED_EXPIRES_IN_HOURS"] = "Raider.IO數據將於 %d小時後過期"
+--[[Translation missing --]]
+--[[ L["OUTDATED_EXPIRES_IN_MINUTES"] = ""--]] 
 L["OUTDATED_PROFILE_TOOLTIP_MESSAGE"] = "請立即更新您的插件，以查看最準確的數據。玩家努力提升自己的進度，而顯示非常古老的數據對不起這些玩家。您可以使用Raider.IO Client自動保持數據同步。"
 L["PLAYER_PROFILE_TITLE"] = "玩家M+紀錄"
 L["PREV_SEASON_SUFFIX"] = "(*)"
@@ -142,6 +160,26 @@ L["RAID_BOSS_BOD_6"] = "神王拉斯塔哈"
 L["RAID_BOSS_BOD_7"] = "大工匠梅卡托克"
 L["RAID_BOSS_BOD_8"] = "風暴屏障封鎖部隊"
 L["RAID_BOSS_BOD_9"] = "珍娜‧普勞德摩爾女士"
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_1"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_10"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_2"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_3"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_4"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_5"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_6"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_7"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_8"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_9"] = ""--]] 
 L["RAID_BOSS_EP_1"] = "深淵指揮官希瓦菈"
 L["RAID_BOSS_EP_2"] = "黑水巨鰻 "
 L["RAID_BOSS_EP_3"] = "艾薩拉光輝"
@@ -234,6 +272,10 @@ L["SHOW_ROLE_ICONS"] = "在工具提示顯示角色類型圖示"
 L["SHOW_ROLE_ICONS_DESC"] = "啟用後，玩家的傳奇+最佳角色類型將會顯示在他們的工具提示。"
 L["SHOW_SCORE_IN_COMBAT"] = "戰鬥中顯示分數"
 L["SHOW_SCORE_IN_COMBAT_DESC"] = "當玩家戰鬥中停用可將效能影響降到最低。"
+--[[Translation missing --]]
+--[[ L["SHOW_SCORE_WITH_MODIFIER"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["SHOW_SCORE_WITH_MODIFIER_DESC"] = ""--]] 
 L["TANK"] = "坦克"
 L["TANK_SCORE"] = "坦克分數"
 L["TIMED_10_RUNS"] = "時限內10-14+次數"

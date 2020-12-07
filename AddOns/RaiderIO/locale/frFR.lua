@@ -46,19 +46,35 @@ L["DUNGEON_SHORT_NAME_BRH"] = "BRH"
 L["DUNGEON_SHORT_NAME_COEN"] = "COEN"
 L["DUNGEON_SHORT_NAME_COS"] = "COS"
 L["DUNGEON_SHORT_NAME_DHT"] = "DHT"
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_DOS"] = ""--]] 
 L["DUNGEON_SHORT_NAME_EOA"] = "EOA"
 L["DUNGEON_SHORT_NAME_FH"] = "FH"
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_HOA"] = ""--]] 
 L["DUNGEON_SHORT_NAME_HOV"] = "HOV"
 L["DUNGEON_SHORT_NAME_KR"] = "KR"
 L["DUNGEON_SHORT_NAME_LOWR"] = "LOWR"
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_MISTS"] = ""--]] 
 L["DUNGEON_SHORT_NAME_ML"] = "ML"
 L["DUNGEON_SHORT_NAME_MOS"] = "MOS"
 L["DUNGEON_SHORT_NAME_NL"] = "NL"
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_NW"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_PF"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_SD"] = ""--]] 
 L["DUNGEON_SHORT_NAME_SEAT"] = "SEAT"
 L["DUNGEON_SHORT_NAME_SIEGE"] = "SIEGE"
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_SOA"] = ""--]] 
 L["DUNGEON_SHORT_NAME_SOTS"] = "SOTS"
 L["DUNGEON_SHORT_NAME_TD"] = "TD"
 L["DUNGEON_SHORT_NAME_TM"] = "ML"
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_TOP"] = ""--]] 
 L["DUNGEON_SHORT_NAME_TOS"] = "TOS"
 L["DUNGEON_SHORT_NAME_UNDR"] = "UNDR"
 L["DUNGEON_SHORT_NAME_UPPR"] = "UPPR"
@@ -118,6 +134,8 @@ L["OUTDATED_EXPIRED_ALERT"] = "|cffFFFFFF%s|r utilise des données périmées. V
 L["OUTDATED_EXPIRED_TITLE"] = "Les données de Raider.IO ont expiré"
 L["OUTDATED_EXPIRES_IN_DAYS"] = "Les données de Raider.IO expirent dans %d jours"
 L["OUTDATED_EXPIRES_IN_HOURS"] = "Les données de Raider.IO expirent dans %d heures"
+--[[Translation missing --]]
+--[[ L["OUTDATED_EXPIRES_IN_MINUTES"] = ""--]] 
 L["OUTDATED_PROFILE_TOOLTIP_MESSAGE"] = "Veuillez mettre à jour maintenant votre addon pour avoir des données les plus précises. Les joueurs travaillent dur pour améliorer leurs progression, et l'affichage de données très anciennes ne leur rend pas service. Vous pouvez utiliser le client Raider.IO pour synchroniser automatiquement vos données."
 L["PLAYER_PROFILE_TITLE"] = "Profil Mythic+ du joueur"
 L["PREV_SEASON_SUFFIX"] = "(*)"
@@ -145,6 +163,26 @@ L["RAID_BOSS_BOD_6"] = "Roi Rastakhan"
 L["RAID_BOSS_BOD_7"] = "Grand Bricoleur Mekkanivelle"
 L["RAID_BOSS_BOD_8"] = "Rempart tempétueux"
 L["RAID_BOSS_BOD_9"] = "Dame Jaina Portvaillant"
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_1"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_10"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_2"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_3"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_4"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_5"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_6"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_7"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_8"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_9"] = ""--]] 
 L["RAID_BOSS_EP_1"] = "Commandant abyssal Sivara"
 L["RAID_BOSS_EP_2"] = "Béhémoth des flots noirs"
 L["RAID_BOSS_EP_3"] = "Radiance d'Azshara"
@@ -239,6 +277,10 @@ L["SHOW_ROLE_ICONS"] = "Afficher les icônes de rôles dans les info-bulles"
 L["SHOW_ROLE_ICONS_DESC"] = "Lorsque cette option est activée, les principaux rôles du joueur en Mythique+ seront affichés dans les info-bulles."
 L["SHOW_SCORE_IN_COMBAT"] = "Afficher le score en combat"
 L["SHOW_SCORE_IN_COMBAT_DESC"] = "Le désactiver pour diminuer l'impact sur les performances lorsque l'on survole un joueur en combat."
+--[[Translation missing --]]
+--[[ L["SHOW_SCORE_WITH_MODIFIER"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["SHOW_SCORE_WITH_MODIFIER_DESC"] = ""--]] 
 L["TANK"] = "Tank"
 L["TANK_SCORE"] = "Score en tank"
 L["TIMED_10_RUNS"] = "10-14+ dans les temps"

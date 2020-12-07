@@ -1,191 +1,229 @@
 local E, L, C = select(2, ...):unpack()
 
-local P = E["Party"]
-local wipe = table.wipe
 local GetNumGroupMembers = GetNumGroupMembers
-local GetRaidRosterInfo = GetRaidRosterInfo
-local IsInRaid = IsInRaid
 local UnitExists = UnitExists
-local C_TimerAfter = C_Timer.After
-local C_UIWidgetManager_GetIconAndTextWidgetVisualizationInfo = C_UIWidgetManager.GetIconAndTextWidgetVisualizationInfo
-local LE_PARTY_CATEGORY_HOME = LE_PARTY_CATEGORY_HOME
+local UnitGUID = UnitGUID
+local P = E["Party"]
 
-local lastGroup = {}
-local tempGroup = {}
+P.groupInfo = {}
+P.pendingQueue = {}
+
+P.userData = {
+	class = E.userClass,
+	raceID = E.userRaceID,
+	name = E.userName,
+	level = E.userLevel,
+	active = {},
+	auras = {},
+	spellIcons = {},
+	preActiveIcons = {},
+	glowIcons = {},
+	talentData = {},
+	invSlotData = {},
+	shadowlandsData = {}
+}
 
 do
-	local requestSyncFunc = function()
-		if not P.enabled or P.disabled then return end
-		E.Comms:RequestSync()
+	local timer
+
+	local function SendRequestSync() -- [58]
+		local success = E.Comms:InspectPlayer()
+		if success then
+			E.Comms:RequestSync()
+			P.groupJoined = false
+		else
+			C_Timer.After(5, SendRequestSync)
+		end
 	end
 
-	function P:SyncGroup()
-		E.Comms:InspectUnit(E.MyGUID)
-		C_TimerAfter((E.customUF.delay or 0) + 10, requestSyncFunc)
+	local function updateRosterInfo(refresh)
+		if not refresh then
+			timer = nil
+		end
+
+		local size = P:GetEffectiveNumGroupMembers()
+		local oldDisabled = P.disabled
+		P.disabled = P.disabledzone or size == 0 or
+			(size == 1 and P.isUserHidden) or
+			(not P.test and GetNumGroupMembers(LE_PARTY_CATEGORY_HOME) == 0 and not E.DB.profile.Party.visibility.finder) or
+			(size > E.DB.profile.Party.visibility.size) or
+			(size > 5 and not not E.customUF.enabled)
+		if P.disabled then
+			if oldDisabled == false then
+				P:ResetModule()
+			end
+			P.groupJoined = false
+			return
+		elseif oldDisabled ~= false then
+			E.Comms:Enable()
+			E.Cooldowns:Enable()
+		end
+
+		for guid, info in pairs(P.groupInfo) do -- [42]
+			if not UnitExists(info.name) or (guid == E.userGUID and P.isUserHidden) then
+				P.groupInfo[guid] = nil
+				info.bar:Hide()
+
+				local cap = info.auras.capTotemGUID
+				if cap then
+					E.Cooldowns.totemGUIDS[cap] = nil
+				end
+				local petGUID = info.petGUID
+				if petGUID then
+					E.Cooldowns.petGUIDS[petGUID] = nil
+				end
+				E.Comms.syncGUIDS[guid] = nil
+				E.Comms:DequeueInspect(guid)
+			end
+		end
+
+		local isInRaid = IsInRaid()
+		for i = 1, size do
+			local index = not isInRaid and i == size and 5 or i
+			local unit = isInRaid and E.RAID_UNIT[index] or E.PARTY_UNIT[index]
+			local guid = UnitGUID(unit)
+			local info = P.groupInfo[guid]
+			local _, class = UnitClass(unit)
+
+			local pet = class == "HUNTER" and E.unitToPetId[unit]
+			if pet then
+				local petGUID = UnitGUID(pet)
+				if petGUID then
+					pet = petGUID
+					E.Cooldowns.petGUIDS[petGUID] = guid
+				end
+			end
+
+			if info then
+				if info.unit ~= unit then
+					info.index = index
+					info.unit = unit
+					info.bar.key = index
+					info.bar.unit = unit
+					info.bar.anchor.text:SetText(index)
+				end
+			elseif guid == E.userGUID then
+				if not P.isUserHidden then
+					P.groupInfo[guid] = P.userData
+					P.groupInfo[guid].index = index
+					P.groupInfo[guid].unit = unit
+					P.groupInfo[guid].petGUID = pet
+
+					P:UpdateUnitBar(guid) -- [49]
+				end
+			elseif class then -- [32]
+				local _,_, race = UnitRace(unit)
+				local name = GetUnitName(unit, true)
+				local level = UnitLevel(unit)
+				if level == 0 then
+					level = 200
+				end
+				P.groupInfo[guid] = {
+					class = class,
+					raceID = race,
+					name = name,
+					level = level,
+					index = index,
+					unit = unit,
+					petGUID = pet,
+					active = {},
+					auras = {},
+					spellIcons = {},
+					preActiveIcons = {},
+					glowIcons = {},
+					talentData = {},
+					invSlotData = {},
+					shadowlandsData = {},
+				}
+
+				P.pendingQueue[#P.pendingQueue + 1] = guid
+				P:UpdateUnitBar(guid)
+			else
+				C_Timer.After(3, P.GROUP_ROSTER_UPDATE)
+			end
+		end
+
+		if P.groupJoined then
+			SendRequestSync()
+		end
+		P:UpdatePosition()
+		P:UpdateExPosition()
+		E.Comms:EnqueueInspect()
+	end
+
+	function P:GROUP_ROSTER_UPDATE(refresh) -- [50]
+		local n = GetNumGroupMembers()
+		if refresh or n == 0 then
+			updateRosterInfo(true)
+		elseif not timer then
+			timer = E.TimerAfter(2, updateRosterInfo)
+		end
 	end
 end
 
-function P:PLAYER_ENTERING_WORLD(isInitialLogin, isReloadingUi)
+function P:GROUP_JOINED(arg)
+	if self.test then
+		self:Test()
+	end
+	self.groupJoined = true
+end
+
+function P:PLAYER_ENTERING_WORLD(isInitialLogin, isReloadingUi, refresh)
 	local _, instanceType = IsInInstance()
 	self.zone = instanceType
 	self.isInArena = instanceType == "arena"
 	self.isInBG = instanceType == "pvp"
 	self.isInPvPInstance = self.isInArena or self.isInBG
 
-	if isReloadingUi then
-		self:SyncGroup()
-	elseif self.test then
+	if not refresh and self.test then
 		self:Test()
 	end
 
-	self.disabledzone = not self.test and not E.db.visibility[instanceType]
-
-	if not self.disabledzone then
-		if instanceType == "none" then
-			self.pvp = C_PvP.IsWarModeDesired()
-
-			self:UnregisterEvent("CHALLENGE_MODE_START")
-			self:RegisterEvent("PLAYER_FLAGS_CHANGED")
-		elseif self.isInArena or self.isInBG then
-			self.pvp = true
-			self:ResetAllIcons()
-
-			self:UnregisterEvent("PLAYER_FLAGS_CHANGED")
-			self:RegisterEvent("PLAYER_REGEN_DISABLED")
-			self:RegisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL")
-			self:RegisterEvent("UPDATE_UI_WIDGET")
-		else
-			self.pvp = false
-
-			self:UnregisterEvent("PLAYER_FLAGS_CHANGED")
-			if instanceType == "party" then
-				self:RegisterEvent("CHALLENGE_MODE_START")
-			end
-		end
-	else
+	self.disabledzone = not self.test and not E.DB.profile.Party.visibility[instanceType]
+	if self.disabledzone then
 		self:UnregisterEvent("PLAYER_FLAGS_CHANGED")
 		self:UnregisterEvent("CHALLENGE_MODE_START")
-	end
 
-	self:GROUP_ROSTER_UPDATE(true) -- Set zone before GRU in LFR
-end
-
-function P:GROUP_JOINED(arg) -- Silent on reloadUI
-	if self.test then
-		self:Test()
-	end
-
-	self:SyncGroup()
-end
-
-function P:GROUP_ROSTER_UPDATE(force)
-	local oldsize = self.size or 0
-	local size = GetNumGroupMembers()
-
-	self.size = size
-
-	local oldDisabled = self.disabled
-	self.disabled = not self.test and ( self.disabledzone or size == 0 or
-		(GetNumGroupMembers(LE_PARTY_CATEGORY_HOME) == 0 and not E.db.visibility.finder) or
-		(size > E.db.visibility.size) or
-		(size > 5 and not not E.customUF.enabled) )
-
-	if self.disabled then
-		if oldDisabled == false then
-			wipe(lastGroup)
-
-			self:ResetModule()
-		end
-
+		self:ResetModule()
+		self.disabled = true
 		return
 	end
 
-	if oldDisabled ~= false then
-		E.Comms:Enable()
-		E.Cooldowns:Enable()
-	end
+	local key = self.test and self.testZone or (E.CFG_ZONE[instanceType] and instanceType) or "arena"
+	E.db = E.DB.profile.Party[key]
+	self.isUserHidden = not self.test and not E.db.general.showPlayer
+	E.Cooldowns:UpdateCombatLogVar()
 
-	if oldsize > size then -- [42]
-		for guid, info in pairs(self.groupInfo) do
-			if not UnitExists(info.name) then
-				self.groupInfo[guid] = nil
-				if self.specialAuras[guid] then
-					self:RemoveSpecialAura(guid)
-				end
+	E:SetActiveUnitFrameData()
+	P:UpdatePositionValues()
+	P:UpdateExPositionValues()
+	E.UpdateEnabledSpells(self)
 
-				E.Comms.syncGUIDS[guid] = nil
-				E.Comms:DequeueInspect(guid)
-			end
+	if instanceType == "none" then
+		self:UnregisterEvent("CHALLENGE_MODE_START")
+
+		self:RegisterEvent("PLAYER_FLAGS_CHANGED")
+		self.isPvP = C_PvP.IsWarModeDesired()
+	elseif self.isInArena or self.isInBG then
+		self:UnregisterEvent("PLAYER_FLAGS_CHANGED")
+
+		self:RegisterEvent("PLAYER_REGEN_DISABLED")
+		self:RegisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL")
+		self:RegisterEvent("UPDATE_UI_WIDGET")
+		self:ResetAllIcons()
+		self.isPvP = true
+	else
+		self:UnregisterEvent("PLAYER_FLAGS_CHANGED")
+
+		if instanceType == "party" then
+			self:RegisterEvent("CHALLENGE_MODE_START")
 		end
+		self.isPvP = false
 	end
 
-	self:UpdateGroup(force)
-end
-
-do
-	local rosterTimer
-
-	local updateGroupFunc = function()
-		if not P.enabled or P.disabled or not rosterTimer then return end
-		rosterTimer = nil
-		P:UpdateGroup()
-	end
-
-	local updateAllFunc = function()
-		if not P.enabled or P.disabled then return end
-		P:UpdateGroupInfo()
-		P:UpdatePosition()
-		E.Comms:EnqueueInspect()
-	end
-
-	local updateAllFunc2 = function()
-		if not P.enabled or P.disabled then return end
-		P:UpdateGroupInfo(true)
-		P:UpdateBars()
-		P:UpdatePosition()
-		E.Comms:EnqueueInspect(true)
-	end
-
-	function P:UpdateGroup(force)
-		local size = self.size
-
-		tempGroup = {}
-
-		for i = 1, size do
-			local name = GetRaidRosterInfo(i)
-			if not name then -- [43]
-				if not rosterTimer then
-					rosterTimer = true
-					C_TimerAfter(2, updateGroupFunc)
-				end
-
-				return
-			else
-				tempGroup[#tempGroup + 1] = name
-			end
-		end
-
-		rosterTimer = nil
-
-		local control = self.isInRaid
-		self.isInRaid = IsInRaid()
-
-		if not force and control == self.isInRaid and E.IsTableExact(tempGroup, lastGroup) then
-			return
-		end
-
-		lastGroup = tempGroup
-
-		if not E.db.position.arena.noTheme and not E.db.position.detached then
-			local control = size > 5 and "raid" or (size > 3 and "party") or "arena"
-			if self.theme ~= control then
-				self.theme = control
-				self:UpdatePositionValues()
-				force = true
-			end
-		end
-
-		C_TimerAfter(not self.test and E.customUF.delay or 0, force and updateAllFunc2 or updateAllFunc) -- [44]
+	if IsInGroup() or refresh then -- [37]
+		self.groupJoined = true
+		self:GROUP_ROSTER_UPDATE(refresh)
 	end
 end
 
@@ -196,12 +234,19 @@ function P:CHAT_MSG_BG_SYSTEM_NEUTRAL(arg1)
 	end
 end
 
-function P:UPDATE_UI_WIDGET(widgetInfo)
-	if widgetInfo.widgetSetID == 1 and widgetInfo.widgetType == 0 then
-		local info = C_UIWidgetManager_GetIconAndTextWidgetVisualizationInfo(widgetInfo.widgetID)
-		if info and info.state == 1 then
-			self:UnregisterEvent("UPDATE_UI_WIDGET")
-			E.TimerAfter(1, E.Comms.EnqueueInspect, E.Comms, true)
+do
+	local inspectAll = function()
+		E.Comms.EnqueueInspect(true)
+	end
+
+	function P:UPDATE_UI_WIDGET(widgetInfo)
+		if self.disabled then return end
+		if widgetInfo.widgetSetID == 1 and widgetInfo.widgetType == 0 then
+			local info = C_UIWidgetManager.GetIconAndTextWidgetVisualizationInfo(widgetInfo.widgetID)
+			if info and info.state == 1 then
+				self:UnregisterEvent("UPDATE_UI_WIDGET")
+				C_Timer.After(1, inspectAll)
+			end
 		end
 	end
 end
@@ -215,9 +260,9 @@ end
 function P:PLAYER_FLAGS_CHANGED()
 	if ( InCombatLockdown() ) then return end
 
-	local oldpvp = self.pvp
-	self.pvp = C_PvP.IsWarModeDesired()
-	if oldpvp ~= self.pvp then
+	local oldpvp = self.isPvP
+	self.isPvP = C_PvP.IsWarModeDesired()
+	if oldpvp ~= self.isPvP then
 		self:UpdateBars()
 		E.Comms:EnqueueInspect(true)
 	end

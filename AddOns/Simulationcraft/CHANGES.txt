@@ -1,10 +1,10 @@
-lightweight tag 59ac6cdc6011f1eda4efbd280bcf7ff21bcfe550 v9.0.2-06
+lightweight tag d63e2cc39a219e78d53a963d09f5949cd6695103 v9.0.2-10
 Author:	Dave Hendler <sollaires@gmail.com>
-Date:	Wed Nov 25 11:31:44 2020 -0800
+Date:	Thu Dec 3 17:56:21 2020 -0800
 
-commit 59ac6cdc6011f1eda4efbd280bcf7ff21bcfe550
+commit d63e2cc39a219e78d53a963d09f5949cd6695103
 Author: Dave Hendler <sollaires@gmail.com>
-Date:   Wed Nov 25 11:31:44 2020 -0800
+Date:   Thu Dec 3 17:56:21 2020 -0800
 
-    Export secondary stat data for crafted items
+    Fixes potential crash if an item has no item level from GetDetailedItemLevelInfo()
 

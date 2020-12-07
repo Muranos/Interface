@@ -20,7 +20,7 @@ local unitFrameData = {
 	{   [1] = "VuhDo",
 		[2] = "Vd1H",
 		[3] = "raidid",
-		[4] = 8,
+		[4] = 4, -- idc if it doesn't work. needs an insane amount of delay on some settings
 	},
 	{   [1] = "Aptechka",
 		[2] = "NugRaid1UnitButton",
@@ -47,15 +47,34 @@ local unitFrameData = {
 		[3] = "partyid",
 		[4] = 1,
 	},
+	{   [1] = "PitBull4",
+		[2] = "PitBull4_Groups_PartyUnitButton",
+		[3] = "unit",
+		[4] = 1,
+	},
+	{   [1] = "InvenRaidFrame3",
+		[2] = "InvenRaidFrame3Group0UnitButton",
+		[3] = "unit",
+		[4] = 1,
+	},
+	{   [1] = "NDui",
+		[2] = "oUF_PartyUnitButton",
+		[3] = "unit",
+		[4] = 1,
+	},
 }
 
 function E:SetActiveUnitFrameData()
-	local active = self.db.position.uf == "auto" and self.customUF.prio or self.db.position.uf
-	local enabled = self.customUF.enabled[active]
-	self.customUF.active = active
-	self.customUF.frame = enabled and enabled.frame
-	self.customUF.unit = enabled and enabled.unit
-	self.customUF.delay = enabled and enabled.delay or 0
+	if self.customUF.enabled then
+		local active = self.db.position.uf == "auto" and self.customUF.prio or self.db.position.uf
+		local enabled = self.customUF.enabled[active]
+		if enabled then
+			self.customUF.frame = enabled.frame
+			self.customUF.unit = enabled.unit
+			self.customUF.delay = enabled.delay
+		end
+		self.customUF.active = active
+	end
 end
 
 function E:UnitFrames()
@@ -69,7 +88,6 @@ function E:UnitFrames()
 	for i = 1, #unitFrameData do
 		local name = unitFrameData[i][1]
 		local frame = _G[name] or IsAddOnLoaded(name)
-
 		if frame then
 			self.customUF.enabled = self.customUF.enabled or {}
 			self.customUF.enabled[name] = {
@@ -77,6 +95,7 @@ function E:UnitFrames()
 				["unit"] = unitFrameData[i][3],
 				["delay"] = unitFrameData[i][4],
 			}
+
 			self.customUF.optionTable[name] = name
 
 			if not self.customUF.prio then
@@ -94,7 +113,6 @@ function E:UnitFrames()
 		if uf ~= "blizz" and not self.customUF.enabled[uf] then
 			self.db.position.uf = "auto"
 		end
-
 		E:SetActiveUnitFrameData()
 
 		if not E.DB.global.disableElvMsg then
@@ -104,10 +122,6 @@ function E:UnitFrames()
 end
 
 function E:LoadAddOns()
-	if self.enabled then
-		return
-	end
-
 	self:Counters()
 	self:UnitFrames()
 end

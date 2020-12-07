@@ -43,19 +43,35 @@ L["DUNGEON_SHORT_NAME_BRH"] = "Крепость Черной Ладьи"
 L["DUNGEON_SHORT_NAME_COEN"] = "Собор Вечной Ночи"
 L["DUNGEON_SHORT_NAME_COS"] = "Квартал звёзд"
 L["DUNGEON_SHORT_NAME_DHT"] = "Чаща Темного Сердца"
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_DOS"] = ""--]] 
 L["DUNGEON_SHORT_NAME_EOA"] = "Око Азшары"
 L["DUNGEON_SHORT_NAME_FH"] = "Вольная гавань"
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_HOA"] = ""--]] 
 L["DUNGEON_SHORT_NAME_HOV"] = "Чертоги Доблести"
 L["DUNGEON_SHORT_NAME_KR"] = "Гробница Королей"
 L["DUNGEON_SHORT_NAME_LOWR"] = "LOWR"
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_MISTS"] = ""--]] 
 L["DUNGEON_SHORT_NAME_ML"] = "ЗОЛОТАЯ ЖИЛА!!!"
 L["DUNGEON_SHORT_NAME_MOS"] = "Утесы Адской Пасти"
 L["DUNGEON_SHORT_NAME_NL"] = "Логово Нелтариона"
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_NW"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_PF"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_SD"] = ""--]] 
 L["DUNGEON_SHORT_NAME_SEAT"] = "Престол Триумвирата"
 L["DUNGEON_SHORT_NAME_SIEGE"] = "Осада Боралуса"
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_SOA"] = ""--]] 
 L["DUNGEON_SHORT_NAME_SOTS"] = "Святилище Штормов"
 L["DUNGEON_SHORT_NAME_TD"] = "Тол Дагор"
 L["DUNGEON_SHORT_NAME_TM"] = "ЗОЛОТАЯ ЖИЛА!!!"
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_TOP"] = ""--]] 
 L["DUNGEON_SHORT_NAME_TOS"] = "Храм Сетралисс"
 L["DUNGEON_SHORT_NAME_UNDR"] = "Подгнилье"
 L["DUNGEON_SHORT_NAME_UPPR"] = "UPPR"
@@ -115,6 +131,8 @@ L["OUTDATED_EXPIRED_ALERT"] = "|cffFFFFFF%s|r использует устаре�
 L["OUTDATED_EXPIRED_TITLE"] = "Raider.IO Срок Действия Данных Истекло"
 L["OUTDATED_EXPIRES_IN_DAYS"] = "Raider.IO срок действия данных истекает через %d дней"
 L["OUTDATED_EXPIRES_IN_HOURS"] = "Raider.IO срок действия данных истекает через %d часов"
+--[[Translation missing --]]
+--[[ L["OUTDATED_EXPIRES_IN_MINUTES"] = ""--]] 
 L["OUTDATED_PROFILE_TOOLTIP_MESSAGE"] = "Пожалуйста, обновите свой аддон сейчас, чтобы увидеть самые точные данные. Игроки упорно работают, чтобы улучшить свой прогресс, и отображение очень старых данных является для них медвежьей услугой. Вы можете использовать Raider.IO клиент для автоматической синхронизации ваших данных."
 L["PLAYER_PROFILE_TITLE"] = "Профиль игрока"
 L["PREV_SEASON_SUFFIX"] = "(*)"
@@ -142,6 +160,26 @@ L["RAID_BOSS_BOD_6"] = "Король Растахан"
 L["RAID_BOSS_BOD_7"] = "Меггакрут"
 L["RAID_BOSS_BOD_8"] = "Штормовая блокада"
 L["RAID_BOSS_BOD_9"] = "Джайна Праудмур"
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_1"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_10"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_2"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_3"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_4"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_5"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_6"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_7"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_8"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_9"] = ""--]] 
 L["RAID_BOSS_EP_1"] = "Командир глубин Сивара"
 L["RAID_BOSS_EP_2"] = "Темноводный левиафан"
 L["RAID_BOSS_EP_3"] = "Великолепие Азшары"
@@ -234,6 +272,10 @@ L["SHOW_ROLE_ICONS"] = "Показывать значок роли в подск
 L["SHOW_ROLE_ICONS_DESC"] = "Если включено, то лучшая роль игрока в Эпх+ будет отображаться в его подсказке."
 L["SHOW_SCORE_IN_COMBAT"] = "Показывать очки в бою"
 L["SHOW_SCORE_IN_COMBAT_DESC"] = "Отключите, чтобы минимизировать влияние на производительность при наведении на игроков во время боя."
+--[[Translation missing --]]
+--[[ L["SHOW_SCORE_WITH_MODIFIER"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["SHOW_SCORE_WITH_MODIFIER_DESC"] = ""--]] 
 L["TANK"] = "Танк"
 L["TANK_SCORE"] = "Очки танка"
 L["TIMED_10_RUNS"] = "Пройдено +10-14 вовремя"

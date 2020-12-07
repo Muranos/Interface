@@ -54,11 +54,11 @@ do
     ns.PLAYER_REGION_ID = nil
     ns.PLAYER_FACTION = nil
     ns.PLAYER_FACTION_TEXT = nil
-    ns.OUTDATED_CUTOFF = 10 * 86400 * 3 -- number of seconds before we start warning about stale data (warning the user should update their addon)
-    ns.OUTDATED_BLOCK_CUTOFF = 10 * 86400 * 7 -- number of seconds before we hide the data (block showing score as its most likely inaccurate)
+    ns.OUTDATED_CUTOFF = 86400 * 3 -- number of seconds before we start warning about stale data (warning the user should update their addon)
+    ns.OUTDATED_BLOCK_CUTOFF = 86400 * 7 -- number of seconds before we hide the data (block showing score as its most likely inaccurate)
     ns.PROVIDER_DATA_TYPE = {MythicKeystone = 1, Raid = 2, PvP = 3}
     ns.LOOKUP_MAX_SIZE = floor(2^18-1)
-    ns.CURRENT_SEASON = 4 -- TODO: dynamic?
+    ns.CURRENT_SEASON = 1 -- TODO: dynamic?
     ns.RAIDERIO_ADDON_DOWNLOAD_URL = "https://rio.gg/addon"
 
     ns.HEADLINE_MODE = {

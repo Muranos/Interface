@@ -1,59 +1,10 @@
 local E, L, C = select(2, ...):unpack()
 
-local DB_VERSION = 2
+local DB_VERSION = 2.5
 
 function E:OnInitialize()
-	if not OmniCDDB then
+	if not OmniCDDB or not OmniCDDB.version or OmniCDDB.version < DB_VERSION then
 		OmniCDDB = { version = DB_VERSION }
-	else
-		if not OmniCDDB.version then
-			if OmniCDDB.profiles then
-				for k, v in pairs(OmniCDDB.profiles) do
-					if v.visibility then
-						OmniCDDB.profiles[k].visibility.premade = nil
-					end
-
-					v.Party = self.DeepCopy(v)
-					v.Party.spells = {}
-
-					for s, p in pairs(v) do
-						if s ~= "Party" then
-							OmniCDDB.profiles[k][s] = nil
-						else
-							for key, value in pairs(p) do
-								if strmatch(key, "^spell") and type(value) == "boolean" then
-									v.Party.spells[key] = value
-									OmniCDDB.profiles[k].Party[key] = nil
-								end
-							end
-						end
-					end
-				end
-			end
-		end
-
-		if OmniCDDB.version ~= DB_VERSION then
-			local opt = { "general", "position", "icons", "highlight"}
-			if OmniCDDB.profiles then
-				for k, v in pairs(OmniCDDB.profiles) do
-					if v.Party then
-						for s, p in pairs(v.Party) do
-							for i = 1, 4 do
-								local t = opt[i]
-								if C.Party[t][s] or C.Party[t][s] == false then
-									v.Party[t] = v.Party[t] or {}
-									v.Party[t][s] = self.DeepCopy(p)
-
-									OmniCDDB.profiles[k].Party[s] = nil
-								end
-							end
-						end
-					end
-				end
-			end
-
-			OmniCDDB.version = DB_VERSION
-		end
 	end
 
 	OmniCDDB.cooldowns = OmniCDDB.cooldowns or {}
@@ -63,19 +14,22 @@ function E:OnInitialize()
 	self.DB.RegisterCallback(self, "OnProfileCopied", "Refresh")
 	self.DB.RegisterCallback(self, "OnProfileReset", "Refresh")
 
-	self.db = self.DB.profile.Party
+	self.global = self.DB.global
+	self.profile = self.DB.profile
+	self.db = self.DB.profile.Party.arena
 
-	self:CreateModifierLT()
-	self:AddCustomSpells(true)
+	self:UpdateSpellList()
 	self:SetupOptions()
+	self:EnableVersionCheck()
 end
 
 function E:OnEnable()
 	C_ChatInfo.RegisterAddonMessagePrefix("OmniCD")
+
 	self:LoadAddOns()
 	self:Refresh()
 
-	if self.db.general.loginMsg then
+	if self.DB.profile.loginMsg then
 		print(E.LoginMessage)
 	end
 
@@ -83,12 +37,11 @@ function E:OnEnable()
 end
 
 function E:Refresh(arg)
-	self.db = self.DB.profile.Party
+	self.profile = self.DB.profile
 
 	for k in pairs(self.moduleOptions) do
 		local module = self[k]
-		local enabled = self.GetModuleEnabled(k)
-
+		local enabled = self.GetModuleEnabled(k) -- [36]
 		if enabled then
 			if module.enabled then
 				module:Refresh(true)
@@ -108,6 +61,92 @@ function E:Refresh(arg)
 	self.TooltipID:SetHooks()
 
 	if arg == "OnProfileReset" then
-		self.DB.global.disableElvMsg = nil
+		self.global.disableElvMsg = nil
+	end
+end
+
+do
+	local today = tonumber(date("%y%m%d"))
+	local groupSize = 0
+	local version = E.Version:gsub("[^%d]","")
+	version = tonumber(version)
+	local enabled
+	local timer
+
+	local function DisableVersionCheck(f)
+		f:UnregisterAllEvents()
+		f:SetScript("OnEvent", nil)
+		enabled = nil
+	end
+
+	local function sendVersion()
+		if enabled then
+			if IsInRaid() then
+				C_ChatInfo.SendAddonMessage("OMNICD_VERSION", version, (not IsInRaid(LE_PARTY_CATEGORY_HOME) and IsInRaid(LE_PARTY_CATEGORY_INSTANCE)) and "INSTANCE_CHAT" or "RAID")
+			elseif IsInGroup() then
+				C_ChatInfo.SendAddonMessage("OMNICD_VERSION", version, (not IsInGroup(LE_PARTY_CATEGORY_HOME) and IsInGroup(LE_PARTY_CATEGORY_INSTANCE)) and "INSTANCE_CHAT" or "PARTY")
+			elseif IsInGuild() then
+				C_ChatInfo.SendAddonMessage("OMNICD_VERSION", version, "GUILD")
+			end
+		end
+		timer = nil
+	end
+
+	local function VersionCheck_OnEvent(f, event, prefix, message, _, sender)
+		if event == "CHAT_MSG_ADDON" then
+			if prefix ~= "OMNICD_VERSION" or sender == E.userNameWithRealm then
+				return
+			end
+
+			local ver = tonumber(message)
+			if ver and ver > version then
+				local text = ver - version > 99 and L["Major update"] or (ver - version > 9 and L["Minor update"]) or L["Hotfix"]
+				text = format(L["A new update is available. (|cff99cdff%s)"], text)
+				if E.DB.profile.notifyNew then
+					E.Write(text)
+				end
+				E.DB.global.oodMsg = text
+				E.DB.global.oodVer = ver
+				E.DB.global.oodChk = today
+
+				DisableVersionCheck(f)
+			end
+		elseif event == "GROUP_ROSTER_UPDATE" then
+			local num = GetNumGroupMembers()
+			if num and num > groupSize then
+				if not timer then
+					timer = E.TimerAfter(10, sendVersion)
+				end
+			end
+			groupSize = num
+		elseif event == "PLAYER_ENTERING_WORLD" then
+			if not timer then
+				timer = E.TimerAfter(10, sendVersion)
+			end
+		end
+	end
+
+	function E:EnableVersionCheck()
+		if today <= (self.DB.global.oodChk or 0) then
+			return
+		end
+
+		local ver = E.DB.global.oodVer
+		if ver then
+			if ver > version then
+				if E.DB.profile.notifyNew then
+					E.Write(E.DB.global.oodMsg)
+				end
+				return
+			end
+			E.DB.global.oodMsg = nil
+		end
+
+		enabled = C_ChatInfo.RegisterAddonMessagePrefix("OMNICD_VERSION")
+		local f = CreateFrame("Frame")
+		f:RegisterEvent("CHAT_MSG_ADDON")
+		f:RegisterEvent("GROUP_ROSTER_UPDATE")
+		f:RegisterEvent("PLAYER_ENTERING_WORLD")
+		f:SetScript("OnEvent", VersionCheck_OnEvent)
 	end
 end

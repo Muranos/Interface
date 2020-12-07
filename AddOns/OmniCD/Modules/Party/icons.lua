@@ -1,16 +1,19 @@
 local E, L, C = select(2, ...):unpack()
 
 local P = E["Party"]
-local sort = table.sort
 
-function P:SetIconLayout(f)
-	sort(f.icons, function(a, b)
-		if E.db.priority[a.type] == E.db.priority[b.type] then
-			return a.spellID < b.spellID
-		end
+local sortPriority = function(a, b)
+	local aprio, bprio = E.db.priority[a.type], E.db.priority[b.type]
+	if aprio == bprio then
+		return a.spellID < b.spellID
+	end
+	return aprio > bprio
+end
 
-		return E.db.priority[a.type] > E.db.priority[b.type]
-	end)
+function P:SetIconLayout(f, sortOrder)
+	if sortOrder then
+		sort(f.icons, sortPriority)
+	end
 
 	local count, rows, numActive, lastActiveIndex = 0, 1, 1
 
@@ -21,13 +24,10 @@ function P:SetIconLayout(f)
 
 		if self.displayInactive or icon.active then
 			icon:ClearAllPoints()
-
 			if numActive > 1 then
 				count = count + 1
-
 				if not self.doubleRow and count == self.columns or (self.doubleRow and rows == 1 and E.db.priority[icon.type] <= self.breakPoint) then
 					icon:SetPoint(self.point, f.container, self.ofsX * rows, self.ofsY * rows)
-
 					count = 0
 					rows = rows + 1
 				else
@@ -41,7 +41,6 @@ function P:SetIconLayout(f)
 					icon:SetPoint(self.point, f.container)
 				end
 			end
-
 			numActive = numActive + 1
 			lastActiveIndex = i
 
@@ -59,64 +58,105 @@ function P:SetAnchor(f)
 
 	if not E.db.position.detached or E.db.position.locked then
 		f.anchor:EnableMouse(false)
-		f.anchor.background:SetColorTexture(1, 0.1, 0.1, 0.6)
+		f.anchor.background:SetColorTexture(0.8, 0, 0, 0.7)
 	else
 		f.anchor:EnableMouse(true)
-		f.anchor.background:SetColorTexture(0.1, 0.9, 0.1, 0.7)
+		f.anchor.background:SetColorTexture(0, 0.8, 0, 0.7)
 	end
 end
 
 function P:SetIconScale(f)
-	if E.db.position.detached or not E.db.icons.autoScale then
-		local scale = E.db.icons.scale
-		f.anchor:SetScale(math.min(scale, 1))
-		f.container:SetScale(scale)
-	end
+	local scale = E.db.icons.scale
+	f.anchor:SetScale(math.min(scale, 1))
+	f.container:SetScale(scale)
 end
 
 function P:SetBorder(icon)
-	if E.db.icons.displayBorder then
-		if E.db.icons.pixelPerfect then
-			icon:SetBackdropBorderColor(E.db.icons.borderColor.r, E.db.icons.borderColor.g, E.db.icons.borderColor.b, 1)
-			icon.IconBorder:Hide()
-		else
-			icon:SetBackdropBorderColor(0, 0, 0, 0)
-			icon.IconBorder:SetVertexColor(E.db.icons.borderColor.r, E.db.icons.borderColor.g, E.db.icons.borderColor.b)
-			icon.IconBorder:Show()
-		end
+	local db = E.db.icons
+	local edgeSize = db.borderPixels * E.NumPixels / db.scale
+	if db.displayBorder then
+		icon.borderTop:ClearAllPoints()
+		icon.borderBottom:ClearAllPoints()
+		icon.borderRight:ClearAllPoints()
+		icon.borderLeft:ClearAllPoints()
 
-		icon.icon:SetTexCoord(unpack(E.cropBorder))
+		icon.borderTop:SetPoint("TOPLEFT", icon, "TOPLEFT")
+		icon.borderTop:SetPoint("BOTTOMRIGHT", icon, "TOPRIGHT", 0, -edgeSize)
+		icon.borderBottom:SetPoint("BOTTOMLEFT", icon, "BOTTOMLEFT")
+		icon.borderBottom:SetPoint("TOPRIGHT", icon, "BOTTOMRIGHT", 0, edgeSize)
+		icon.borderLeft:SetPoint("TOPLEFT", icon, "TOPLEFT")
+		icon.borderLeft:SetPoint("BOTTOMRIGHT", icon, "BOTTOMLEFT", edgeSize, 0)
+		icon.borderRight:SetPoint("TOPRIGHT", icon, "TOPRIGHT")
+		icon.borderRight:SetPoint("BOTTOMLEFT", icon, "BOTTOMRIGHT", -edgeSize, 0)
+
+		icon.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+
+		local r, g, b = db.borderColor.r, db.borderColor.g, db.borderColor.b
+		icon.borderTop:SetColorTexture(r, g, b)
+		icon.borderBottom:SetColorTexture(r, g, b)
+		icon.borderRight:SetColorTexture(r, g, b)
+		icon.borderLeft:SetColorTexture(r, g, b)
+
+		icon.borderTop:Show()
+		icon.borderBottom:Show()
+		icon.borderRight:Show()
+		icon.borderLeft:Show()
 	else
+		icon.borderTop:Hide()
+		icon.borderBottom:Hide()
+		icon.borderRight:Hide()
+		icon.borderLeft:Hide()
+
 		icon.icon:SetTexCoord(0, 1, 0, 1)
-		icon:SetBackdropBorderColor(0, 0, 0, 0)
-		icon.IconBorder:Hide()
 	end
 end
 
 function P:SetMarker(icon)
-	if E.db.highlight.markEnhanced and E.bigSpells[icon.spellID] then
-		icon.IconMarker:Show()
+	local hotkey = icon.HotKey
+	if E.db.icons.markEnhanced then
+		local spellID = icon.spellID
+		local mark = E.spell_marked[spellID] or E.db.highlight.markedSpells[spellID]
+		if mark and (mark == true or self:IsTalent(mark, icon.guid)) then
+			hotkey:SetText(RANGE_INDICATOR)
+			hotkey:SetTextColor(1, 0.1, 0.1)
+			hotkey:Show()
+		else
+			hotkey:Hide()
+		end
 	else
-		icon.IconMarker:Hide()
+		hotkey:Hide()
 	end
 end
 
 function P:SetAlpha(icon)
-	local charges = tonumber(icon.Count:GetText())
-	icon:SetAlpha(icon.active and E.db.icons.activeAlpha or E.db.icons.inactiveAlpha)
+	if icon.statusBar and not E.db.extraBars[icon.statusBar.key].useIconAlpha then
+		icon:SetAlpha(1.0)
+	else
+		icon:SetAlpha(icon.active and E.db.icons.activeAlpha or E.db.icons.inactiveAlpha)
+	end
+
+	local charges = icon.maxcharges and tonumber(icon.Count:GetText())
 	icon.icon:SetDesaturated(E.db.icons.desaturateActive and icon.active and not icon.overlay and (not charges or charges == 0));
 end
 
 function P:SetSwipe(icon)
-	icon.cooldown:SetReverse(E.db.icons.reverse)
-	icon.cooldown:SetSwipeColor(0, 0, 0, E.db.icons.swipeAlpha)
+	if icon.statusBar then
+		icon.cooldown:SetSwipeColor(0, 0, 0, 0)
+	else
+		icon.cooldown:SetReverse(E.db.icons.reverse)
+		icon.cooldown:SetSwipeColor(0, 0, 0, E.db.icons.swipeAlpha)
+	end
 end
 
 function P:SetCounter(icon)
-	local charges = tonumber(icon.Count:GetText())
-	local noCount = charges and charges > 0 or (icon.overlay and true) or not E.db.icons.showCounter
-	icon.cooldown:SetHideCountdownNumbers(noCount) -- [11]
-	icon.counter:SetScale(E.db.icons.counterScale)
+	if icon.statusBar then
+		icon.cooldown:SetHideCountdownNumbers(true)
+	else
+		local charges = icon.maxcharges and tonumber(icon.Count:GetText())
+		local noCount = charges and charges > 0 or (icon.overlay and true) or not E.db.icons.showCounter
+		icon.cooldown:SetHideCountdownNumbers(noCount) -- [11]
+		icon.counter:SetScale(E.db.icons.counterScale)
+	end
 end
 
 function P:SetChargeScale(icon)
@@ -124,7 +164,7 @@ function P:SetChargeScale(icon)
 end
 
 function P:SetTooltip(icon)
-	icon:EnableMouse(E.db.general.tooltip)
+	icon:EnableMouse(E.db.icons.showTooltip)
 end
 
 function P:ApplySettings(f)

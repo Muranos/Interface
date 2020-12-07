@@ -10,9 +10,15 @@ function Comms:Enable()
 
 	self:RegisterEventUnitPower()
 	self:RegisterEvent("CHAT_MSG_ADDON")
-	self:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
 	self:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
-	self:RegisterEvent("AZERITE_ESSENCE_UPDATE")
+	self:RegisterEvent("UNIT_PET")
+	self:RegisterEvent("COVENANT_CHOSEN")
+	self:RegisterEvent("SOULBIND_ACTIVATED")
+	self:RegisterEvent("SOULBIND_NODE_LEARNED")
+	self:RegisterEvent("SOULBIND_NODE_UNLEARNED")
+	self:RegisterEvent("SOULBIND_NODE_UPDATED")
+	self:RegisterEvent("SOULBIND_CONDUIT_INSTALLED")
+	self:RegisterEvent("SOULBIND_PATH_CHANGED")
 	self:SetScript("OnEvent", function(self, event, ...)
 		self[event](self, ...)
 	end)
@@ -34,110 +40,69 @@ function Comms:Disable()
 	self.enabled = false
 end
 
-function Comms:UpdateTalentLT(guid)
-	local info = P.groupInfo[guid]
-
-	if not info.talentLT then
-		info.talentLT = {}
-	else
-		wipe(info.talentLT)
-	end
-
-	local n = #info.talents
-	for i = 1, n do
-		local id = info.talents[i]
-		info.talentLT[id] = (i > 7 and i < 12) and 1 or 0
-	end
-end
-
-function Comms:UpdateSlotLT(guid)
-	local info = P.groupInfo[guid]
-
-	if not info.slotLT then
-		info.slotLT = {}
-	else
-		wipe(info.slotLT)
-	end
-
-	local n = #info.slots
-	for i = 1, n do
-		local id = info.slots[i]
-		if id > 0 then
-			if i == n then -- 'Strive for Perfection' multiplier
-				info.slotLT["mult"] = id
-			else
-				if i == 3 then -- Major Essence
-					local Rank1 = E.essRank2[id] or id
-					if Rank1 then
-						info.slotLT[Rank1] = true
-						info.slotLT["essMajor"] = Rank1
-					end
-				end
-
-				info.slotLT[id] = true
-			end
-		end
-	end
-end
-
 function Comms:RegisterEventUnitPower()
-	if P.disableSync then
-		return
-	end
+	local specIndex = GetSpecialization()
+	local specID = GetSpecializationInfo(specIndex)
+	local powerSpec = E.POWER_TYPE_SPEC[specID]
 
-	local powerSpec = E.POWER_TYPE_SPEC[P.groupInfo[E.MyGUID].spec]
-	if powerSpec then
-		if ( InCombatLockdown() ) then
+	self.oocThreshold = powerSpec == 1 and 3 or 1
+
+	if E.DB.profile.Party.sync and powerSpec then
+		if InCombatLockdown() then
 			self:PLAYER_REGEN_DISABLED()
 		else
 			self:RegisterEvent("PLAYER_REGEN_DISABLED")
 		end
-
-		if powerSpec == 1 then
-			self:RegisterEvent("UNIT_POWER_FREQUENT")
-		else
-			self:RegisterEvent("UNIT_POWER_UPDATE")
-		end
+		self:RegisterUnitEvent("UNIT_POWER_UPDATE", "player")
+	else
+		self:UnregisterEvent("UNIT_POWER_UPDATE")
 	end
 end
 
-function Comms:AZERITE_ESSENCE_UPDATE()
-	self:InspectUnit(E.MyGUID)
-	self:SendSync(true)
+do
+	local isOnDelay
+	local resetDelay = function() isOnDelay = nil end
+
+	function Comms:PLAYER_EQUIPMENT_CHANGED(slotID)
+		if isOnDelay or slotID == 4 or slotID > 15 then
+			return
+		end
+
+		self:InspectPlayer()
+		self:SendSync()
+		isOnDelay = true
+		C_Timer.After(0.05, resetDelay)
+	end
 end
 
-function Comms:PLAYER_SPECIALIZATION_CHANGED(unit)
-	local index = P:FindIndexByUnit(unit)
-
-	if not index then
+function Comms:UNIT_PET(unit) -- [73]
+	local pet = E.unitToPetId[unit]
+	if not pet then
 		return
 	end
 
-	local guid = P.spellBars[index].guid
+	local guid = UnitGUID(unit)
 	local info = P.groupInfo[guid]
-	if info then
-		if guid == E.MyGUID then
-			self:InspectUnit(E.MyGUID)
-			self:SendSync(true)
-		elseif ( UnitIsConnected(unit) ) then
-			self:EnqueueInspect(nil, guid)
+	if info and info.spec == 253 then
+		local petGUID = UnitGUID(pet)
+		if petGUID then
+			info.petGUID = petGUID
+			E.Cooldowns.petGUIDS[petGUID] = guid
 		end
 	end
-
-	self:RegisterEventUnitPower()
 end
 
-local lastEventTime = 0
-
-function Comms:PLAYER_EQUIPMENT_CHANGED(slotID)
-	if not E.INVSLOTS[slotID] then return end
-
-	local now = GetTime()
-	if now - lastEventTime > 0.05 then
-		self:InspectUnit(E.MyGUID)
-		self:SendSync(true)
-		lastEventTime = now
-	end
+local updateCovenantSoulbind = function()
+	Comms:InspectPlayer()
+	Comms:SendSync()
 end
+
+Comms.COVENANT_CHOSEN = updateCovenantSoulbind
+Comms.SOULBIND_ACTIVATED = updateCovenantSoulbind
+Comms.SOULBIND_NODE_LEARNED = updateCovenantSoulbind
+Comms.SOULBIND_NODE_UNLEARNED = updateCovenantSoulbind
+Comms.SOULBIND_NODE_UPDATED = updateCovenantSoulbind
+Comms.SOULBIND_CONDUIT_INSTALLED = updateCovenantSoulbind
+Comms.SOULBIND_PATH_CHANGED = updateCovenantSoulbind
 
 E["Comms"] = Comms

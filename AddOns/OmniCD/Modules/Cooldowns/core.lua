@@ -7,7 +7,6 @@ function CD:Enable()
 		return
 	end
 
-	self:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 	self:SetScript("OnEvent", function(self, event, ...)
 		self[event](self, ...)
@@ -21,10 +20,10 @@ function CD:Disable()
 		return
 	end
 
-	self:UnregisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 	self:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 
 	wipe(self.totemGUIDS)
+	wipe(self.petGUIDS)
 
 	self.enabled = false
 end

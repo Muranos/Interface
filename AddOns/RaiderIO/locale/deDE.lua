@@ -41,19 +41,35 @@ L["DUNGEON_SHORT_NAME_BRH"] = "Rabenwehr"
 L["DUNGEON_SHORT_NAME_COEN"] = "Kathedrale"
 L["DUNGEON_SHORT_NAME_COS"] = "Hof der Sterne"
 L["DUNGEON_SHORT_NAME_DHT"] = "Finsterherzdickicht"
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_DOS"] = ""--]] 
 L["DUNGEON_SHORT_NAME_EOA"] = "Auge Azsharas"
 L["DUNGEON_SHORT_NAME_FH"] = "Freihafen"
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_HOA"] = ""--]] 
 L["DUNGEON_SHORT_NAME_HOV"] = "Hallen der Tapferkeit"
 L["DUNGEON_SHORT_NAME_KR"] = "Königsruh"
 L["DUNGEON_SHORT_NAME_LOWR"] = "Unteres Karazhan"
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_MISTS"] = ""--]] 
 L["DUNGEON_SHORT_NAME_ML"] = "Riesenflöz"
 L["DUNGEON_SHORT_NAME_MOS"] = "Seelenschlund"
 L["DUNGEON_SHORT_NAME_NL"] = "Neltharions Hort"
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_NW"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_PF"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_SD"] = ""--]] 
 L["DUNGEON_SHORT_NAME_SEAT"] = "Sitz des Triumvirats"
 L["DUNGEON_SHORT_NAME_SIEGE"] = "Belagerung von Boralus"
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_SOA"] = ""--]] 
 L["DUNGEON_SHORT_NAME_SOTS"] = "Schrein des Sturms"
 L["DUNGEON_SHORT_NAME_TD"] = "Tol Dagor"
 L["DUNGEON_SHORT_NAME_TM"] = "Riesenflöz"
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_TOP"] = ""--]] 
 L["DUNGEON_SHORT_NAME_TOS"] = "Tempel von Sethraliss"
 L["DUNGEON_SHORT_NAME_UNDR"] = "Tiefenpfuhl"
 L["DUNGEON_SHORT_NAME_UPPR"] = "Oberes Karazhan"
@@ -111,6 +127,8 @@ L["OUTDATED_EXPIRED_ALERT"] = "|cffFFFFFF%s|r verwendet abgelaufene Daten. Bitte
 L["OUTDATED_EXPIRED_TITLE"] = "Raider.IO-Daten sind abgelaufen"
 L["OUTDATED_EXPIRES_IN_DAYS"] = "Raider.IO-Daten laufen in %d Tagen ab"
 L["OUTDATED_EXPIRES_IN_HOURS"] = "Raider.IO-Daten laufen in %d Stunden ab"
+--[[Translation missing --]]
+--[[ L["OUTDATED_EXPIRES_IN_MINUTES"] = ""--]] 
 L["OUTDATED_PROFILE_TOOLTIP_MESSAGE"] = "Bitte aktualisiere jetzt dein Addon, um die genauesten Daten zu sehen. Die Spieler arbeiten hart daran, ihre Fortschritte zu verbessern und die Anzeige sehr alter Daten ist für alle ein schlechter Dienst. Mit dem Raider.IO-Client kannst du deine Daten automatisch synchronisieren."
 L["PLAYER_PROFILE_TITLE"] = "Spieler M+ Profil"
 L["PREV_SEASON_SUFFIX"] = "(*)"
@@ -138,6 +156,26 @@ L["RAID_BOSS_BOD_6"] = "König Rastakhan"
 L["RAID_BOSS_BOD_7"] = "Hochtüftler Mekkadrill"
 L["RAID_BOSS_BOD_8"] = "Sturmwallblockade"
 L["RAID_BOSS_BOD_9"] = "Lady Jaina Prachtmeer"
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_1"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_10"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_2"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_3"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_4"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_5"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_6"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_7"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_8"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_9"] = ""--]] 
 L["RAID_BOSS_EP_1"] = "Abyssalkommandantin Sivara"
 L["RAID_BOSS_EP_2"] = "Schwarzwasserungetüm"
 L["RAID_BOSS_EP_3"] = "Azsharas Glanz"
@@ -230,6 +268,10 @@ L["SHOW_ROLE_ICONS"] = "Rollensymbole in Tooltips anzeigen"
 L["SHOW_ROLE_ICONS_DESC"] = "Wenn diese Option aktiviert ist, werden die Hauptrollen des Spielers in Mythic+ in den Tooltips angezeigt."
 L["SHOW_SCORE_IN_COMBAT"] = "Zeigt Raider.IO Tooltip-Info im Kampf an"
 L["SHOW_SCORE_IN_COMBAT_DESC"] = "Deaktiviere diese Option, um die Auswirkungen auf die Leistung zu minimieren, während du Spieler während des Kampfes mit \"mausüber\" inspizierst"
+--[[Translation missing --]]
+--[[ L["SHOW_SCORE_WITH_MODIFIER"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["SHOW_SCORE_WITH_MODIFIER_DESC"] = ""--]] 
 L["TANK"] = "Tank"
 L["TANK_SCORE"] = "Tank Wertung"
 L["TIMED_10_RUNS"] = "Zeitliche +10-14 Durchläufe"

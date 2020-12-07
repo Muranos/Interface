@@ -18,11 +18,11 @@
 				<Layers>
 					<Layer level="BACKGROUND">
 						<Texture name="$parentBG" setAllPoints="true" parentKey="background">
-							<Color r="1" g="0.1" b="0.1" a="0.6"/>
+							<Color r="0.8" g="0" b="0" a="0.7"/>
 						</Texture>
 					</Layer>
 					<Layer level="ARTWORK">
-						<FontString name="$parentText" inherits="GameFontNormal" parentKey="text" text="">
+						<FontString name="$parentText" inherits="OmniCDGameFontNormal" parentKey="text" text="">
 							<Color r="1" g="0.82" b="0" a="1"/>
 							<Anchors>
 								<Anchor point="CENTER"/>
@@ -52,6 +52,9 @@
 			<OnHide>
 				OmniCD_BarOnHide(self);
 			</OnHide>
+			<OnShow>
+				OmniCD_BarOnShow(self);
+			</OnShow>
 		</Scripts>
 	</Frame>
 	<Button name="OmniCDButtonTemplate" inherits="ActionButtonTemplate" hidden="true" virtual="true">
@@ -64,19 +67,18 @@
 			</Anchors>
 		</Anchors>
 		<Layers>
-			<Layer level="BORDER">
-				<Texture parentKey="IconBorder" file="Interface\AddOns\OmniCD\Media\border2px" hidden="true">
-					<Size x="36" y="36"/>
-					<Anchors>
-						<Anchor point="CENTER"/>
-					</Anchors>
+			<Layer level="BACKGROUND" textureSubLevel="1">
+				<Texture parentKey="borderTop">
+					<Color r="0" g="0" b="0"/>
 				</Texture>
-				<Texture parentKey="IconMarker" file="Interface\BUTTONS\White8x8" hidden="true">
-					<Size x="4" y="4"/>
-					<Anchors>
-						<Anchor point="TOPRIGHT" x="-1" y="-1" />
-					</Anchors>
-					<Color r="1" g="0.1" b="0.1" a="0.8"/>
+				<Texture parentKey="borderBottom">
+					<Color r="0" g="0" b="0"/>
+				</Texture>
+				<Texture parentKey="borderLeft">
+					<Color r="0" g="0" b="0"/>
+				</Texture>
+				<Texture parentKey="borderRight">
+					<Color r="0" g="0" b="0"/>
 				</Texture>
 			</Layer>
 			<Layer level="OVERLAY">
@@ -90,16 +92,22 @@
 						<Anchor point="CENTER"/>
 					</Anchors>
 				</Texture>
+				<FontString name="$parentName" parentKey="Name" inherits="OmniCDGameFontHighlightSmallOutline">
+					<Size x="36" y="10"/>
+					<Anchors>
+						<Anchor point="BOTTOM" x="0" y="2"/>
+					</Anchors>
+				</FontString>
 			</Layer>
 		</Layers>
 		<Animations>
 			<AnimationGroup parentKey="newitemglowAnim" setToFinalAlpha="true" looping="NONE">
-				<Alpha childKey="NewItemTexture" smoothing="NONE" duration="0.8" order="1" fromAlpha="1" toAlpha="0.2"/>
-				<Alpha childKey="NewItemTexture" smoothing="NONE" duration="0.8" order="2" fromAlpha="0.2" toAlpha="1"/>
-				<Alpha childKey="NewItemTexture" smoothing="NONE" duration="0.8" order="3" fromAlpha="1" toAlpha="0"/>
+				<Alpha childKey="NewItemTexture" smoothing="NONE" duration="1" order="1" fromAlpha="1" toAlpha="0.2"/>
+				<Alpha childKey="NewItemTexture" smoothing="NONE" duration="1" order="2" fromAlpha="0.2" toAlpha="1"/>
+				<Alpha childKey="NewItemTexture" smoothing="NONE" duration="1" order="3" fromAlpha="1" toAlpha="0"/>
 			</AnimationGroup>
 			<AnimationGroup parentKey="flashAnim" setToFinalAlpha="true">
-				<Alpha childKey="flash" smoothing="OUT" duration="0.9" order="1" fromAlpha="1" toAlpha="0"/>
+				<Alpha childKey="flash" smoothing="OUT" duration="1" order="1.1" fromAlpha="1" toAlpha="0"/>
 			</AnimationGroup>
 		</Animations>
 		<Frames>

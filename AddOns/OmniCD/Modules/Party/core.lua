@@ -1,9 +1,11 @@
 local E, L, C = select(2, ...):unpack()
 
 local P = CreateFrame("Frame")
-local IsInRaid = IsInRaid
 local UnitBuff = UnitBuff
 local UnitDebuff = UnitDebuff
+local runeforge_specID = E.runeforge_specID
+
+P.spell_enabled = {}
 
 function P:Enable()
 	if self.enabled then
@@ -21,8 +23,10 @@ function P:Enable()
 
 	self.enabled = true
 
+	E.Comms:InspectPlayer() -- [58]
+
 	self:SetHooks()
-	self:CreateBars()
+	self:CreateExBars()
 	self:Refresh(true)
 end
 
@@ -46,8 +50,9 @@ function P:ResetModule()
 	E.Comms:Disable()
 	E.Cooldowns:Disable()
 
-	self:ResetGroupInfo()
+	wipe(self.groupInfo)
 	self:HideAllBars()
+	self:HideExBars()
 end
 
 function P:Refresh(full)
@@ -55,90 +60,57 @@ function P:Refresh(full)
 		return
 	end
 
-	self.hideMe = not self.test and not E.db.general.player
-	self:UpdatePositionValues()
-
-	E.Cooldowns:RefreshCD()
+	local zone = self.zone or select(2, IsInInstance()) -- [59]
+	local key = self.test and self.testZone or (E.CFG_ZONE[zone] and zone) or "arena"
+	E.db = E.DB.profile.Party[key]
 
 	if full then
-		if not E.db.icons.autoScale then
-			local oldScale = self.iconScale
-			self.iconScale = E.db.icons.scale
-
-			if oldScale ~= self.iconScale then
-				self:UpdateBackdrop()
-			end
-		end
-		--> autoScale in UpdatePosition
-
-		E.UpdateEnabledLT(self)
-
-		self:PLAYER_ENTERING_WORLD(nil, true)
+		self:PLAYER_ENTERING_WORLD(nil, nil, true)
 	else
+		E:SetActiveUnitFrameData()
+		self:UpdatePositionValues()
+		self:UpdateExPositionValues()
 		self:UpdateBars()
 		self:UpdatePosition()
+		self:UpdateExPosition()
 	end
 end
 
 function P:UpdatePositionValues()
-	local k
+	local db = E.db.position
 
-	if E.db.position.detached then
-		k = "manual"
-	elseif E.db.position.arena.noTheme then
-		k = "arena"
-	else
-		if not self.theme then
-			local size = self.size or GetNumGroupMembers()
-			self.theme = size > 5 and "raid" or (size > 3 and "party") or "arena"
-		end
+	self.point = db.anchor
+	self.relativePoint = db.attach
 
-		k = self.theme
-	end
-
-	self.point = E.db.position[k].anchor
-	self.relativePoint = E.db.position[k].attach
-	self.columns = E.db.position[k].columns
-	self.doubleRow = E.db.position[k].layout == "doubleRow"
-	self.breakPoint = E.db.position[k].breakPoint
-	self.displayInactive = E.db.position[k].displayInactive
-
-	local growUpward = E.db.position[k].growUpward
 	local growLeft = string.find(self.point, "RIGHT")
 	local growX = growLeft and -1 or 1
-	local growY = growUpward and 1 or -1
 
 	self.anchorPoint = growLeft and "BOTTOMLEFT" or "BOTTOMRIGHT"
-	self.containerOfsX = E.db.position[k].offsetX * growX
-	self.containerOfsY = -E.db.position[k].offsetY
+	self.containerOfsX = db.offsetX * growX
+	self.containerOfsY = -db.offsetY
+	self.columns = db.columns
+	self.doubleRow = db.layout == "doubleRow"
+	self.breakPoint = E.db.priority[db.breakPoint]
+	self.displayInactive = db.displayInactive
 
-	if E.db.position[k].layout == "vertical" then
+	local growUpward = db.growUpward
+	local growY = growUpward and 1 or -1
+	local px = E.NumPixels / E.db.icons.scale
+	if db.layout == "vertical" then
 		self.point2 = growUpward and "BOTTOMRIGHT" or "TOPRIGHT"
 		self.relativePoint2 = growUpward and "TOPRIGHT" or "BOTTOMRIGHT"
-		self.ofsX = growX * (E.BASE_ICON_SIZE + E.db.icons.paddingX)
+		self.ofsX = growX * (E.BASE_ICON_SIZE + db.paddingX  * px)
 		self.ofsY = 0
 		self.ofsX2 = 0
-		self.ofsY2 = growY * E.db.icons.paddingY
+		self.ofsY2 = growY * db.paddingY * px
 	else
 		self.point2 = growLeft and "TOPRIGHT" or "TOPLEFT"
 		self.relativePoint2 = growLeft and "TOPLEFT" or "TOPRIGHT"
 		self.ofsX = 0
-		self.ofsY = growY * (E.BASE_ICON_SIZE + E.db.icons.paddingY)
-		self.ofsX2 = growX * E.db.icons.paddingX
+		self.ofsY = growY * (E.BASE_ICON_SIZE + db.paddingY * px)
+		self.ofsX2 = growX * db.paddingX * px
 		self.ofsY2 = 0
 	end
-end
-
--- Event fires multiple times with different unitIDs
-function P:FindIndexByUnit(unit, includePets)
-	local t
-	if self.isInRaid then
-		t = includePets and E.RAID_PET_INDEX or E.RAID_INDEX
-	else
-		t = includePets and E.PARTY_PET_INDEX or E.PARTY_INDEX
-	end
-
-	return t[unit]
 end
 
 function P:GetBuffDuration(unit, spellID)
@@ -161,58 +133,60 @@ function P:GetDebuffDuration(unit, spellID)
 	end
 end
 
-function P:GetGroupSize()
-	return self.size == 0 and self.test and 1 or self.size or 0
+function P:GetEffectiveNumGroupMembers()
+	local size = GetNumGroupMembers()
+	return size == 0 and self.test and 1 or size
 end
 
-function P:GetUnitByIndex(index)
-	local raid = self.isInRaid or IsInRaid()
-	return raid and E.RAID_UNIT[index] or E.PARTY_UNIT[index]
-end
-
-function P:GetValueByType(v, guid)
-	if not v then return end
-
-	if type(v) == "table" then
-		return v[self.groupInfo[guid].spec] or v.default
-	else
-		return v
-	end
-end
-
-function P:HideAllBars()
-	for i = 1, self.numBars do
-		local bar = self.spellBars[i]
-		bar:Hide()
+function P:GetValueByType(v, guid, item2)
+	if v then
+		if type(v) == "table" then
+			if item2 then
+				return self.groupInfo[guid].invSlotData[item2] and v[item2] or v.default
+			end
+			return v[self.groupInfo[guid].spec] or v.default
+		else
+			return v
+		end
 	end
 end
 
 function P:IsTalent(talentID, guid)
-	if not talentID then return true end
-
-	local talentLT = self.groupInfo[guid].talentLT
-	if talentLT and talentLT[talentID] and (talentLT[talentID] == 0 or self.pvp) then
+	if not talentID then
 		return true
+	end
+
+	local talent = self.groupInfo[guid].talentData[talentID]
+	if not talent then
+		return false
+	end
+
+	if talent == "PVP" then
+		return self.isPvP
+	elseif talent == "R" then
+		local spec = runeforge_specID[talentID]
+		return not spec and true or spec == self.groupInfo[guid].spec
+	else
+		return talent -- [60]
 	end
 end
 
-function P:IsEquipped(itemID, guid)
-	local slotLT = self.groupInfo[guid].slotLT
-	if itemID and slotLT and slotLT[itemID] then
+function P:IsEquipped(itemID, guid, item2)
+	if not itemID then
 		return true
 	end
+
+	local invSlotData = self.groupInfo[guid].invSlotData
+	if invSlotData[itemID] then
+		return true
+	end
+	return invSlotData[item2]
 end
 
-function P.IsSpellEnabled(v)
-	local spellID = v.spellID
-	local key = "spell" .. spellID
-	if type(E.db.spells[key]) == "boolean" then
-		if E.db.spells[key] then
-			return true
-		end
-	elseif not E.db.noDefault and v.default then
-		return true
-	end
+function P.IsEnabledSpell(id, key)
+	local db = key and E.DB.profile.Party[key] or E.db
+	id = tostring(id)
+	return db.spells[id]
 end
 
 function P:ConfirmReload(text, data, data2)
@@ -222,9 +196,9 @@ function P:ConfirmReload(text, data, data2)
 	dialog:SetFrameStrata("TOOLTIP")
 end
 
-function P:UI_SCALE_CHANGED() -- windowed mode Elv
+function P:UI_SCALE_CHANGED() -- [61]
 	E:SetNumPixels()
-	self:ConfigSize()
+	self:ConfigSize(nil, true)
 end
 
 E["Party"] = P

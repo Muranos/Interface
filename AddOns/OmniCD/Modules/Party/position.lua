@@ -1,19 +1,16 @@
 local E, L, C = select(2, ...):unpack()
 
-local P = E["Party"]
 local _G = _G
 local UnitGUID = UnitGUID
+local P = E["Party"]
 
 local function IsCRFActive() -- [21]
-	return P.isInRaid and not P.isInArena or P.useCRF
+	return IsInRaid() and not P.isInArena or P.useCRF
 end
 
-local function FindAnchorFrame(index)
-	local unit = P:GetUnitByIndex(index)
-	local guid = UnitGUID(unit)
-
+local function FindAnchorFrame(guid)
 	if E.customUF.enabled then
-		if P.size > 5 then return end
+		if GetNumGroupMembers() > 5 then return end
 
 		if E.db.position.uf ~= "blizz" then
 			for i = 1, 5 do
@@ -30,7 +27,7 @@ local function FindAnchorFrame(index)
 
 	if ( IsCRFActive() or P.test ) then
 		if P.isShownCRFM then
-			local crf = not P.useKGT and E.CRF_RAID or (P.isInRaid and E.CRF_KGT or E.CRF_PARTY)
+			local crf = not P.useKGT and E.CRF_RAID or ( IsInRaid() and E.CRF_KGT or E.CRF_PARTY )
 			local n = #crf
 			for i = 1, n do
 				local name = crf[i]
@@ -38,20 +35,10 @@ local function FindAnchorFrame(index)
 				if f and f.unit and UnitGUID(f.unit) == guid then return f end
 			end
 		end
-	elseif index ~= 5 then
+	elseif guid ~= E.userGUID then
+		local index = P.groupInfo[guid].index
 		return _G["PartyMemberFrame" .. index]
 	end
-end
-
-function P:GetRelativeScale(f)
-	local effectiveScale
-	if E.customUF.enabled then -- VuhDo, Grid2, ZPerl
-		effectiveScale = f:GetEffectiveScale() / UIParent:GetEffectiveScale()
-	else
-		effectiveScale = 1
-	end
-
-	return f:GetHeight() * effectiveScale / E.BASE_ICON_SIZE * E.db.icons.scale
 end
 
 function P:SetAnchorPosition(f)
@@ -69,47 +56,24 @@ function P:UpdatePosition()
 		return
 	end
 
-	self:HideAllBars()
+	self:HideAllBars() -- [63]
 
-	local scale, updateBackdrop
-	local n = self:GetGroupSize() -- iss#30
-
-	for i = 1, n do
-		local index = not self.isInRaid and i == n and 5 or i
-		if not self.hideMe or index ~= self.groupInfo[E.MyGUID].index then
-			local bar = self.spellBars[index]
-			if E.db.position.detached then
-				E.LoadPosition(bar)
-				bar:Show()
-			else
-				local frame = FindAnchorFrame(index)
-				if frame then
-					if E.db.icons.autoScale then
-						if not scale then
-							scale = self:GetRelativeScale(frame)
-							if scale ~= self.iconScale then
-								updateBackdrop = true
-							end
-							self.iconScale = scale
-						end
-
-						bar.anchor:SetScale(math.min(scale, 1))
-						bar.container:SetScale(scale)
-
-						if E.db.icons.displayBorder and E.db.icons.pixelPerfect and updateBackdrop then
-							self:UpdateBarBackdrop(bar)
-						end
-					end
-
-					bar:ClearAllPoints()
-					bar:SetPoint(self.point, frame, self.relativePoint)
-					bar:Show()
-				end
+	for guid, info in pairs(self.groupInfo) do
+		local f = info.bar
+		if E.db.position.detached then
+			E.LoadPosition(f)
+			f:Show()
+		else
+			local frame = FindAnchorFrame(guid)
+			if frame then
+				f:ClearAllPoints()
+				f:SetPoint(self.point, frame, self.relativePoint)
+				f:Show()
 			end
-
-			self:SetAnchorPosition(bar)
-			self:SetOffset(bar)
 		end
+
+		self:SetAnchorPosition(f)
+		self:SetOffset(f)
 	end
 end
 
@@ -123,40 +87,51 @@ function P:CVAR_UPDATE(cvar, value)
 	end
 end
 
-local hookFunc = function()
-	if P.enabled and not E.db.position.detached and IsCRFActive() then
+do
+	local hookTimer
+
+	local onTimerEnd = function()
 		P:UpdatePosition()
-	end
-end
-
-function P:SetHooks()
-	if self.hooked then
-		return
+		hookTimer = nil
 	end
 
-	-- Grid2
-	if ( not IsAddOnLoaded("Blizzard_CompactRaidFrames") or not IsAddOnLoaded("Blizzard_CUFProfiles") ) then return end
-
-	self.useCRF = C_CVar.GetCVarBool("useCompactPartyFrames")
-	self.useKGT = CompactRaidFrameManager_GetSetting("KeepGroupsTogether")
-	self.isShownCRFM = CompactRaidFrameManager_GetSetting("IsShown")
-	self.activeRaidProfile = GetActiveRaidProfile()
-
-	hooksecurefunc("CompactRaidFrameManager_SetSetting", function(arg)
-		if arg == "IsShown" then
-			local isShown = CompactRaidFrameManager_GetSetting("IsShown")
-			if P.isShownCRFM ~= isShown then
-				P.isShownCRFM = isShown
-				hookFunc()
+	local hookFunc = function()
+		if P.enabled and not E.db.position.detached and IsCRFActive() then
+			if not hookTimer then
+				hookTimer = C_Timer.NewTicker(0.5, onTimerEnd, 1)
 			end
-		elseif arg == "KeepGroupsTogether" then
-			P.useKGT = CompactRaidFrameManager_GetSetting("KeepGroupsTogether")
 		end
-	end)
+	end
 
-	hooksecurefunc("CompactUnitFrameProfiles_ApplyProfile", function()
-		hookFunc()
-	end)
+	function P:SetHooks()
+		if self.hooked then
+			return
+		end
 
-	self.hooked = true
+		-- Grid2
+		if ( not IsAddOnLoaded("Blizzard_CompactRaidFrames") or not IsAddOnLoaded("Blizzard_CUFProfiles") ) then return end
+
+		self.useCRF = C_CVar.GetCVarBool("useCompactPartyFrames")
+		self.useKGT = CompactRaidFrameManager_GetSetting("KeepGroupsTogether")
+		self.isShownCRFM = CompactRaidFrameManager_GetSetting("IsShown")
+		self.activeRaidProfile = GetActiveRaidProfile()
+
+		hooksecurefunc("CompactRaidFrameManager_SetSetting", function(arg) -- [64]
+			if arg == "IsShown" then
+				local isShown = CompactRaidFrameManager_GetSetting("IsShown")
+				if P.isShownCRFM ~= isShown then
+					P.isShownCRFM = isShown
+					hookFunc()
+				end
+			elseif arg == "KeepGroupsTogether" then
+				P.useKGT = CompactRaidFrameManager_GetSetting("KeepGroupsTogether")
+			end
+		end)
+
+		hooksecurefunc("CompactUnitFrameProfiles_ApplyProfile", function(profile)
+			hookFunc()
+		end)
+
+		self.hooked = true
+	end
 end

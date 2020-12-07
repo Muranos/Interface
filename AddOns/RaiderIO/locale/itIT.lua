@@ -42,19 +42,35 @@ L["DUNGEON_SHORT_NAME_BRH"] = "FC"
 L["DUNGEON_SHORT_NAME_COEN"] = "CDNE"
 L["DUNGEON_SHORT_NAME_COS"] = "CDS"
 L["DUNGEON_SHORT_NAME_DHT"] = "BC"
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_DOS"] = ""--]] 
 L["DUNGEON_SHORT_NAME_EOA"] = "ODA"
 L["DUNGEON_SHORT_NAME_FH"] = "CDL"
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_HOA"] = ""--]] 
 L["DUNGEON_SHORT_NAME_HOV"] = "SDV"
 L["DUNGEON_SHORT_NAME_KR"] = "RDR"
 L["DUNGEON_SHORT_NAME_LOWR"] = "KINF"
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_MISTS"] = ""--]] 
 L["DUNGEON_SHORT_NAME_ML"] = "VM"
 L["DUNGEON_SHORT_NAME_MOS"] = "FDA"
 L["DUNGEON_SHORT_NAME_NL"] = "ADN"
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_NW"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_PF"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_SD"] = ""--]] 
 L["DUNGEON_SHORT_NAME_SEAT"] = "SDT"
 L["DUNGEON_SHORT_NAME_SIEGE"] = "ADB"
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_SOA"] = ""--]] 
 L["DUNGEON_SHORT_NAME_SOTS"] = "SDT"
 L["DUNGEON_SHORT_NAME_TD"] = "TD"
 L["DUNGEON_SHORT_NAME_TM"] = "VM"
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_TOP"] = ""--]] 
 L["DUNGEON_SHORT_NAME_TOS"] = "TDS"
 L["DUNGEON_SHORT_NAME_UNDR"] = "GRO"
 L["DUNGEON_SHORT_NAME_UPPR"] = "KSUP"
@@ -122,6 +138,8 @@ L["OUTDATED_DATABASE_S"] = "| cffFFFFFF% s | r sta utilizzando dati | cffFF6666%
 --[[Translation missing --]]
 --[[ L["OUTDATED_EXPIRES_IN_HOURS"] = ""--]] 
 --[[Translation missing --]]
+--[[ L["OUTDATED_EXPIRES_IN_MINUTES"] = ""--]] 
+--[[Translation missing --]]
 --[[ L["OUTDATED_PROFILE_TOOLTIP_MESSAGE"] = ""--]] 
 L["PLAYER_PROFILE_TITLE"] = "Profilo M+ Giocatore"
 L["PREV_SEASON_SUFFIX"] = "(*)"
@@ -149,6 +167,26 @@ L["RAID_BOSS_BOD_6"] = "Re Rastakhan"
 L["RAID_BOSS_BOD_7"] = "Gran Meccanista Meccatork"
 L["RAID_BOSS_BOD_8"] = "Blocco Navale Frangitempeste"
 L["RAID_BOSS_BOD_9"] = "Dama Jaina Marefiero"
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_1"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_10"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_2"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_3"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_4"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_5"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_6"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_7"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_8"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_CN_9"] = ""--]] 
 L["RAID_BOSS_EP_1"] = "Comandante Abissale Sivara"
 L["RAID_BOSS_EP_2"] = "Behemoth Acquanera"
 L["RAID_BOSS_EP_3"] = "Radiosità di Azshara"
@@ -268,6 +306,10 @@ L["SHOW_RAIDERIO_PROFILE_DESC"] = "Mostra il Popup del Profilo RaiderIO"
 L["SHOW_ROLE_ICONS_DESC"] = "Quando abilitata, il miglior ruolo del giocatore nelle Mitiche+ verrà mostrato nel tooltip"
 L["SHOW_SCORE_IN_COMBAT"] = "Mostra Punteggio in Combattimento"
 L["SHOW_SCORE_IN_COMBAT_DESC"] = "Disabilita per minimizzare l'impatto sulle prestazioni mentre si passa il mouse sopra i giocatori durante il combattimento."
+--[[Translation missing --]]
+--[[ L["SHOW_SCORE_WITH_MODIFIER"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["SHOW_SCORE_WITH_MODIFIER_DESC"] = ""--]] 
 L["TANK"] = "Difensore"
 L["TANK_SCORE"] = "Punteggio Difensore"
 L["TIMED_10_RUNS"] = "+10-14 In Tempo"

@@ -2,7 +2,7 @@
 ## Title: TomCat's Tours / Rares of Visions of N'zoth
 ## Author: TomCat
 ## X-Website: https://www.tomcatstours.com
-## Version: 2.0.27
+## Version: 2.0.28
 ## DefaultState: enabled
 ## LoadOnDemand: 1
 ## RequiredDeps: TomCats

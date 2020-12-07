@@ -19,22 +19,8 @@ if (not L) then
 	return
 end
 
-local ff = WorldQuestTrackerFinderFrame
-local rf = WorldQuestTrackerRareFrame
-
 local _
-local QuestMapFrame_IsQuestWorldQuest = QuestMapFrame_IsQuestWorldQuest or QuestUtils_IsQuestWorldQuest
-local GetNumQuestLogRewardCurrencies = GetNumQuestLogRewardCurrencies
-local GetQuestLogRewardInfo = GetQuestLogRewardInfo
-local GetQuestLogRewardCurrencyInfo = GetQuestLogRewardCurrencyInfo
-local GetQuestLogRewardMoney = GetQuestLogRewardMoney
-local GetNumQuestLogRewards = GetNumQuestLogRewards
-local GetQuestInfoByQuestID = C_TaskQuest.GetQuestInfoByQuestID
-
-local MapRangeClamped = DF.MapRangeClamped
-local FindLookAtRotation = DF.FindLookAtRotation
-local GetDistance_Point = DF.GetDistance_Point
-
+local isWorldQuest = QuestUtils_IsQuestWorldQuest
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------
 --> taxy map widgets ~taxy ~fly
 local taxyMapWidgets = {}
@@ -245,7 +231,7 @@ function WorldQuestTracker:TAXIMAP_OPENED()
 		
 		hooksecurefunc (FlightMapFrame, "ApplyPinPosition", function (self, pin, normalizedX, normalizedY, insetIndex)
 			
-			if (pin.questID and QuestMapFrame_IsQuestWorldQuest (pin.questID)) then
+			if (pin.questID and isWorldQuest(pin.questID)) then
 				--> setting a pin for a world quest
 				
 				
@@ -255,7 +241,7 @@ function WorldQuestTracker:TAXIMAP_OPENED()
 			
 			--if true then return end
 			
-			if (not pin.questID or not QuestMapFrame_IsQuestWorldQuest (pin.questID)) then
+			if (not pin.questID or not isWorldQuest(pin.questID)) then
 			
 				--> invasion point (disable due to the end of Legion)
 				--[=[

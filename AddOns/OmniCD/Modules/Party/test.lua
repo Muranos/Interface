@@ -3,20 +3,9 @@ local E, L, C = select(2, ...):unpack()
 local TestMod = CreateFrame("Frame")
 local P = E["Party"]
 local indicator
-local config
+local config = {}
 
 local addOnTestMode = {}
-
-local function CreateIndicator()
-	indicator = CreateFrame("Frame", nil, UIParent, "OmniCDTemplate")
-	indicator:SetScript("OnHide", nil)
-
-	indicator.anchor.text:SetText(L["Test"])
-	indicator.anchor.background:SetColorTexture(0, 0, 0, 0.6)
-	indicator.anchor:EnableMouse(false)
-	indicator.anchor:SetHeight(15)
-	E.SetWidth(indicator.anchor)
-end
 
 addOnTestMode.Grid2 = function(enabledTest)
 	if enabledTest then
@@ -24,12 +13,12 @@ addOnTestMode.Grid2 = function(enabledTest)
 			LoadAddOn("Grid2Options")
 		end
 
-		config = Grid2Options.editedTheme.layout.layouts["solo"]
-		if config == "None" then
+		config.Grid2 = Grid2Options.editedTheme.layout.layouts["solo"]
+		if config.Grid2 == "None" then
 			Grid2Options.editedTheme.layout.layouts["solo"] = "By Group"
 		end
 	else
-		Grid2Options.editedTheme.layout.layouts["solo"] = config
+		Grid2Options.editedTheme.layout.layouts["solo"] = config.Grid2
 	end
 
 	Grid2Layout:ReloadLayout()
@@ -37,10 +26,10 @@ end
 
 addOnTestMode.VuhDo = function(enabledTest)
 	if enabledTest then
-		config = VUHDO_CONFIG["HIDE_PANELS_SOLO"]
+		config.VuhDo = VUHDO_CONFIG["HIDE_PANELS_SOLO"]
 		VUHDO_CONFIG["HIDE_PANELS_SOLO"] = false
 	else
-		VUHDO_CONFIG["HIDE_PANELS_SOLO"] = config
+		VUHDO_CONFIG["HIDE_PANELS_SOLO"] = config.VuhDo
 	end
 
 	VUHDO_getAutoProfile()
@@ -52,104 +41,109 @@ end
 
 addOnTestMode.Aptechka = function(enabledTest)
 	if enabledTest then
-		config = Aptechka.db.profile.showSolo
+		config.Aptechka = Aptechka.db.profile.showSolo
 		Aptechka.db.profile.showSolo = true
 	else
-		Aptechka.db.profile.showSolo = config
+		Aptechka.db.profile.showSolo = config.Aptechka
 	end
 
 	Aptechka:ReconfigureProtected()
 end
 
 local callback = function()
-	if P.test then
-		indicator.anchor:ClearAllPoints()
-		indicator.anchor:SetPoint("BOTTOMLEFT", P.spellBars[P.groupInfo[E.MyGUID].index], "TOPLEFT")
-		indicator:Show()
-	end
+	local f = P.groupInfo[E.userGUID].bar
 
-	local f = P.spellBars[P.groupInfo[E.MyGUID].index]
+	indicator.anchor:ClearAllPoints()
+	indicator.anchor:SetPoint("BOTTOMLEFT", f, "TOPLEFT")
+	indicator:Show()
+
 	for i = 1, f.numIcons do
 		local icon = f.icons[i]
 		local flash = icon.flashAnim
 		local newItemAnim = icon.newitemglowAnim
-
 		if ( flash:IsPlaying() or newItemAnim:IsPlaying() ) then
 			flash:Stop();
 			newItemAnim:Stop();
 		end
-
-		if P.test and icon:IsVisible() then
+		if icon:IsVisible() then
 			flash:Play();
 			newItemAnim:Play();
 		end
 	end
 end
 
-function TestMod:Test()
-	if not indicator then
-		CreateIndicator()
-
-		self:SetScript("OnEvent", function(self, event, ...)
-			self[event](self, ...)
-		end)
-	end
-
+function TestMod:Test(key)
 	local active = E.customUF.active or "blizz"
 
 	if not addOnTestMode[active] and active ~= "blizz" then
-		return E.Write(string.format(E.STR.UNSUPPORTED_ADDON, active))
-	end
-
-	if not P.test then
-		--if ( P.size > 0 ) then
-			--return E.Write(ERR_CANT_DO_THAT_IN_A_GROUP) -- TODO:
-		if ( InCombatLockdown() ) then
-			return E.Write(ERR_NOT_IN_COMBAT)
-		end
-
-		self:RegisterEvent("PLAYER_LEAVING_WORLD")
+		E.Write(string.format(E.STR.UNSUPPORTED_ADDON, active))
 	end
 
 	P.test = not P.test
 
-	if active == "blizz" then
-		if not P.test then
-			if ( InCombatLockdown() ) then
-				self:RegisterEvent("PLAYER_REGEN_ENABLED")
-				E.Write(L["Test frames will be hidden once player is out of combat"])
-			elseif ( P.size == 0 and IsAddOnLoaded("Blizzard_CompactRaidFrames") and IsAddOnLoaded("Blizzard_CUFProfiles") ) then
-				CompactRaidFrameManager:Hide()
-				CompactRaidFrameContainer:Hide()
-			end
-		else
-			if ( IsAddOnLoaded("Blizzard_CompactRaidFrames") and IsAddOnLoaded("Blizzard_CUFProfiles") ) then
+	if P.test then
+		if InCombatLockdown() then
+			P.test = false
+			return E.Write(ERR_NOT_IN_COMBAT)
+		end
+
+		if active == "blizz" then
+			if IsAddOnLoaded("Blizzard_CompactRaidFrames") and IsAddOnLoaded("Blizzard_CUFProfiles") then -- Grid2
 				CompactRaidFrameManager:Show()
 				CompactRaidFrameContainer:Show()
 			elseif not E.db.position.detached then
-				P:ConfirmReload(E.STR.BLIZZARD_CRF_DISABLED, true)
-				P.test = false
+				P:ConfirmReload(E.STR.ENABLE_BLIZZARD_CRF, true)
 
+				P.test = false
 				return
 			end
+		elseif addOnTestMode[active] then
+			addOnTestMode[active](P.test)
 		end
-	elseif addOnTestMode[active] then
-		addOnTestMode[active](P.test)
-	end
 
-	if not P.test then
-		config = nil
+		if not indicator then
+			indicator = CreateFrame("Frame", nil, UIParent, "OmniCDTemplate")
+			indicator.anchor.background:SetColorTexture(0, 0, 0, 0.7)
+			indicator.anchor:SetHeight(15)
+			indicator.anchor:EnableMouse(false)
+			indicator:SetScript("OnHide", nil)
+			indicator:SetScript("OnShow", nil)
+
+			self:SetScript("OnEvent", function(self, event, ...)
+				self[event](self, ...)
+			end)
+		end
+		indicator.anchor.text:SetText(L["Test"] .. "-" .. E.CFG_ZONE[key])
+		E.SetWidth(indicator.anchor)
+
+		self:RegisterEvent("PLAYER_LEAVING_WORLD")
+
+		P:Refresh(true)
+		callback()
+	else
+		if active == "blizz" then
+			if InCombatLockdown() then
+				E.Write(L["Test frames will be hidden once player is out of combat"])
+
+				self:RegisterEvent("PLAYER_REGEN_ENABLED")
+			elseif GetNumGroupMembers() == 0 and IsAddOnLoaded("Blizzard_CompactRaidFrames") and IsAddOnLoaded("Blizzard_CUFProfiles") then
+				CompactRaidFrameManager:Hide()
+				CompactRaidFrameContainer:Hide()
+			end
+		elseif addOnTestMode[active] then
+			addOnTestMode[active](P.test)
+		end
+
+		table.wipe(config)
 		indicator:Hide()
 		self:UnregisterEvent("PLAYER_LEAVING_WORLD")
+
+		P:Refresh(true)
 	end
-
-	P:Refresh(true)
-
-	C_Timer.After(0, callback)
 end
 
 function TestMod:PLAYER_REGEN_ENABLED()
-	if not P.test and P.size == 0 then
+	if P:GetEffectiveNumGroupMembers() == 0 then
 		CompactRaidFrameManager:Hide()
 		CompactRaidFrameContainer:Hide()
 	end
@@ -157,14 +151,19 @@ function TestMod:PLAYER_REGEN_ENABLED()
 	self:UnregisterEvent("PLAYER_REGEN_ENABLED")
 end
 
-function TestMod:PLAYER_LEAVING_WORLD() -- Revert db
+function TestMod:PLAYER_LEAVING_WORLD() -- [68]
 	if P.test then
 		self:Test()
 	end
 end
 
-function P:Test()
-	TestMod:Test()
+function P:Test(key)
+	key = type(key) == "table" and key[2] or key
+	self.testZone = key
+	E.db = E.DB.profile.Party[key or (E.CFG_ZONE[self.zone] and self.zone) or "arena"]
+	E:SetActiveUnitFrameData()
+
+	TestMod:Test(key)
 end
 
 E["addOnTestMode"] = addOnTestMode
