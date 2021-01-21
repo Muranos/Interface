@@ -5,23 +5,29 @@ local P = E["Party"]
 do
 	local timers = {}
 
-	local updatePixelObj = function(key)
+	local updatePixelObj = function(key, noDelay)
 		local f = P.extraBars[key]
 		P:UpdateExBarBackdrop(f, key)
 		P:UpdateExPositionValues()
 		P:SetExIconLayout(key, true)
 
-		timers[key] = nil
+		if not noDelay then
+			timers[key] = nil
+		end
 	end
 
-	function P:ConfigExSize(key)
+	function P:ConfigExSize(key, slider)
 		local db = E.db.extraBars[key]
 		local f = self.extraBars[key]
 		f.container:SetScale(db.scale)
 
 		if db.layout == "vertical" and db.progressBar or E.db.icons.displayBorder then
-			if not timers[key] then
-				timers[key] = E.TimerAfter(0.5, updatePixelObj, key)
+			if slider then
+				if not timers[key] then
+					timers[key] = E.TimerAfter(0.5, updatePixelObj, key)
+				end
+			else
+				updatePixelObj(key, true)
 			end
 		end
 	end
@@ -60,9 +66,11 @@ local function ConfigExBar(key, arg)
 		end
 	end
 
-	if arg == "layout" or arg == "progressBar" or arg == "sortBy" or arg == "columns" or arg == "paddingX" or arg == "paddingY" or arg == "statusBarWidth" then
+	local sortOrder = arg == "sortBy" or arg == "growUpward" or arg == "sortDirection"
+	local noDelay = arg == "layout" or sortOrder
+	if noDelay or arg == "progressBar" or arg == "columns" or arg == "paddingX" or arg == "paddingY" or arg == "statusBarWidth" then
 		P:UpdateExPositionValues()
-		P:SetExIconLayout(key, nil, arg == "sortBy")
+		P:SetExIconLayout(key, noDelay, sortOrder, true)
 	end
 end
 
@@ -78,7 +86,7 @@ P.setExBar = function(info, state)
 		elseif option == "scale" then
 			P:ConfigExSize(bar, true)
 		elseif option == "enabled" then
-			P:Refresh()
+			P:Refresh(true) -- [82]
 		else
 			ConfigExBar(bar, option)
 		end
@@ -242,31 +250,41 @@ local extraBarsInfo = {
 		type = "select",
 		values = function(info) return sortByValues[info[#info-1]] end,
 	},
+	sortDirection = {
+		hidden = isRaidCDBar,
+		name = "|TInterface\\OptionsFrame\\UI-OptionsFrame-NewFeatureIcon:0:0:0:-1|t" .. L["Sort Direction"],
+		order = 12,
+		type = "select",
+		values = {
+			asc = L["Ascending"],
+			dsc = L["Descending"],
+		}
+	},
 	columns = {
 		name = function(info) return E.DB.profile.Party[info[2]].extraBars[info[#info-1]].layout == "vertical" and L["Rows"] or L["Columns"] end,
 		desc = function(info) return E.DB.profile.Party[info[2]].extraBars[info[#info-1]].layout == "vertical" and L["Set the number of icons per column"] or L["Set the number of icons per row"] end,
-		order = 12,
+		order = 13,
 		type = "range",
 		min = 1, max = 100, softMax = 20, step = 1,
 	},
 	paddingX = {
 		name = L["Padding X"],
 		desc = L["Set the padding space between icon columns"],
-		order = 13,
+		order = 14,
 		type = "range",
 		min = -5, max = 100, softMax = 10, step = 1,
 	},
 	paddingY = {
 		name = L["Padding Y"],
 		desc = L["Set the padding space between icon rows"],
-		order = 14,
+		order = 15,
 		type = "range",
 		min = -5, max = 100, softMax = 10, step = 1,
 	},
 	scale = {
 		name = L["Icon Size"],
 		desc = L["Set the size of icons"],
-		order = 15,
+		order = 16,
 		type = "range",
 		min = 0.2, max = 2.0, step = 0.01, isPercent = true,
 	},
@@ -277,11 +295,18 @@ local extraBarsInfo = {
 		end,
 		name = NAME,
 		desc = L["Show name on icons"],
-		order = 16,
+		order = 17,
+		type = "toggle",
+	},
+	growUpward = {
+		hidden = isRaidCDBar,
+		name = "|TInterface\\OptionsFrame\\UI-OptionsFrame-NewFeatureIcon:0:0:0:-1|t" .. L["Grow Rows Upward"],
+		desc = L["Toggle the grow direction of icon rows"],
+		order = 18,
 		type = "toggle",
 	},
 	lb2 = {
-		name = "\n", order = 17, type = "description"
+		name = "\n", order = 19, type = "description"
 	},
 	progressBar = {
 		disabled = function(info)
@@ -348,29 +373,30 @@ local extraBarsInfo = {
 			},
 			statusBarWidth = {
 				name = L["Bar width"],
-				desc = L["Set the status bar width. Adjust height with \'Icon Size\'."],
+				desc = L["Set the status bar width. Adjust height with \'Icon Size\'."] .. "\n\n" .. E.STR.MAX_RANGE,
 				order = 50,
 				type = "range",
-				min = 100, max = 300, step = 1,
+				min = 100, max = 999, softMax = 300, step = 1,
 			},
 			reverseFill = {
 				name = L["Reverse Fill"],
 				desc = L["Timer will progress from right to left"],
 				order = 51,
 				type = "toggle",
-				width = 0.9,
 			},
 			useIconAlpha = {
 				name = L["Use Icon Alpha"],
 				desc = L["Apply \'Icons\' alpha settings to the status bar"],
 				order = 52,
 				type = "toggle",
-				width = 0.9,
+			},
+			lb2 = {
+				name = "\n\n", order = 53, type = "description"
 			},
 			resetBar = {
 				name = RESET_TO_DEFAULT,
 				desc = L["Reset Status Bar Timer settings to default"],
-				order = 53,
+				order = 60,
 				type = "execute",
 				func = function(info)
 					local key, bar = info[2], info[4]
@@ -400,7 +426,7 @@ local extraBars = {
 	args = {
 		interruptBar = {
 			disabled = P.isExBarDisabled,
-			name = L["Interrupt Bar"],
+			name = "|TInterface\\OptionsFrame\\UI-OptionsFrame-NewFeatureIcon:0:0:0:-1|t" .. L["Interrupt Bar"],
 			order = 10,
 			type = "group",
 			args = extraBarsInfo

@@ -24,8 +24,10 @@ function OmniCD_CooldownOnHide(self)
 		return
 	end
 
-	local charges = active.charges
+	-- End ResetAllIcons
+
 	local maxcharges = icon.maxcharges
+	local charges = active.charges
 	if maxcharges and charges then -- [10]
 		if charges + 1 < maxcharges then
 			P:StartCooldown(icon, icon.duration, true)
@@ -92,7 +94,6 @@ function P:ResetCooldown(icon)
 		active.charges = charges
 	else
 		icon.cooldown:Clear()
-
 		local statusBar = icon.statusBar
 		if statusBar then
 			self.OmniCDCastingBarFrame_OnEvent(statusBar.CastingBar, "UNIT_SPELLCAST_FAILED")
@@ -100,30 +101,52 @@ function P:ResetCooldown(icon)
 	end
 end
 
-function P:ResetAllIcons()
+function P:ResetAllIcons(isEncounterEnd)
 	for _, info in pairs(self.groupInfo) do
-		wipe(info.active)
-
 		for spellID, icon in pairs(info.spellIcons) do -- [70]
-			if icon.active then
-				local maxcharges = icon.maxcharges
-				if maxcharges then
-					icon.Count:SetText(maxcharges)
-				end
-				icon.cooldown:Clear()
-				icon.active = nil -- [71]
-				self:RemoveHighlight(icon)
-			end
+			if not isEncounterEnd or (not E.spell_noReset[spellID] and icon.duration >= 180) then
+				local statusBar = icon.statusBar
+				if icon.active then
+					local maxcharges = icon.maxcharges
+					if maxcharges then
+						icon.Count:SetText(maxcharges)
+					end
 
-			if info.preActiveIcons[spellID] then
-				info.preActiveIcons[spellID] = nil
-				icon.icon:SetVertexColor(1, 1, 1)
+					info.active[spellID] = nil -- [71]
+					icon.active = nil
+					icon.icon:SetDesaturated(false)
+					icon.cooldown:Clear()
+					if icon.overlay then
+						self:RemoveHighlight(icon)
+					end
+
+					local bar = icon:GetParent():GetParent()
+					local key = bar.key
+					if statusBar then
+						icon:SetAlpha(E.db.extraBars[key].useIconAlpha and E.db.icons.inactiveAlpha or 1.0)
+						self.OmniCDCastingBarFrame_OnEvent(statusBar.CastingBar, "UNIT_SPELLCAST_FAILED")
+					else
+						icon:SetAlpha(E.db.icons.inactiveAlpha)
+					end
+				end
+
+				if info.preActiveIcons[spellID] then
+					info.preActiveIcons[spellID] = nil
+					if statusBar then
+						self:SetExStatusBarColor(icon, statusBar.key)
+					end
+					icon.icon:SetVertexColor(1, 1, 1)
+				end
 			end
+		end
+
+		if not self.displayInactive then -- isEncounterEnd can have active icons
+			self:SetIconLayout(info.bar)
 		end
 	end
 
-	if self.rearrangeInterrupts then
-		self:SetExIconLayout("interruptBar", nil, true)
+	if E.db.extraBars.interruptBar.enabled and self.rearrangeInterrupts then
+		self:SetExIconLayout("interruptBar", true, true)
 	end
 end
 
@@ -133,7 +156,7 @@ function P:SetCooldownElements(icon, charges, highlight)
 	icon.cooldown:SetDrawSwipe( not icon.statusBar and not highlight and (not charges or charges < 1) )
 	icon.cooldown:SetHideCountdownNumbers(noCount)
 	if E.OmniCC then
-		icon.cooldown.noCooldownCount = noCount
+		icon.cooldown.noCooldownCount = noCount -- [91]
 	end
 end
 
@@ -170,6 +193,7 @@ function P:UpdateCooldown(icon, reducedTime, updateUnitBarCharges, mult)
 		if not statusBar or E.db.extraBars[statusBar.key].useIconAlpha then
 			icon:SetAlpha(E.db.icons.activeAlpha)
 		end
+
 		icon.cooldown:SetCooldown(startTime, duration, modRate) -- [22]
 		icon.active = true
 		return
@@ -187,12 +211,14 @@ function P:UpdateCooldown(icon, reducedTime, updateUnitBarCharges, mult)
 	end
 
 	startTime = startTime - reducedTime
+
 	if active.charges then
 		local overTime = GetTime() - startTime - duration
 		if overTime > 0 and active.charges + 1 < icon.maxcharges then
 			active.overTime = overTime
 		end
 	end
+
 	icon.cooldown:SetCooldown(startTime, duration, modRate)
 	active.startTime = startTime
 	active.duration = duration
@@ -203,9 +229,7 @@ function P:UpdateCooldown(icon, reducedTime, updateUnitBarCharges, mult)
 end
 
 function P:StartCooldown(icon, cd, recharge, noGlow)
-	local guid = icon.guid
-	local info = self.groupInfo[guid]
-
+	local info = self.groupInfo[icon.guid]
 	if not info then -- [1]
 		return
 	end
@@ -253,7 +277,7 @@ function P:StartCooldown(icon, cd, recharge, noGlow)
 		else
 			charges = charges - 1
 			now = active.startTime
-			if E.OmniCC and charges == 0 or auraMult then
+			if E.OmniCC and charges == 0 or auraMult then -- [90]
 				SetActiveIcon(icon, now, cd, charges, modRate)
 			end
 		end
@@ -281,6 +305,7 @@ function P:StartCooldown(icon, cd, recharge, noGlow)
 	else
 		local statusBar = icon.statusBar
 		if statusBar then
+			self:SetExStatusBarColor(icon, statusBar.key)
 			self.OmniCDCastingBarFrame_OnEvent(statusBar.CastingBar, E.db.extraBars[key].reverseFill and "UNIT_SPELLCAST_CHANNEL_START" or "UNIT_SPELLCAST_START")
 			if E.db.extraBars[key].useIconAlpha then
 				icon:SetAlpha(E.db.icons.activeAlpha)
@@ -289,17 +314,20 @@ function P:StartCooldown(icon, cd, recharge, noGlow)
 			icon:SetAlpha(E.db.icons.activeAlpha)
 		end
 
-		if self.rearrangeInterrupts and key == "interruptBar" then
+		if key == "interruptBar" and self.rearrangeInterrupts then
 			self:SetExIconLayout(key, true, true)
 		end
 	end
 
+	--[[ xml
+	noGlow = noGlow or icon.isCropped
+	--]]
 	if E.OmniCC and not icon.overlay or (not E.OmniCC and not self:HighlightIcon(icon)) then
 		if not recharge and not noGlow then
 			self:SetGlow(icon)
 		end
 
-		if not E.OmniCC then
+		if not E.OmniCC then -- [13]
 			self:SetCooldownElements(icon, charges)
 		end
 		icon.icon:SetDesaturated(E.db.icons.desaturateActive and (not charges or charges == 0))

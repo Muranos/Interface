@@ -36,8 +36,7 @@ L["Anodized Coilbearer"] = "Anodisierter Spulenträger"
 L["Apply to preset"] = "Auf Route anwenden"
 L["Aqu'sirr"] = "Aqu'sirr"
 L["Arcane Eye"] = "Arkanes Auge"
---[[Translation missing --]]
---[[ L["Ardenweald"] = ""--]] 
+L["Ardenweald"] = "Ardenwald"
 L["Ashvane Cannoneer"] = "Aschenwindkanonier"
 L["Ashvane Commander"] = "Aschenwindkommandant"
 L["Ashvane Deckhand"] = "Aschenwinddeckmatrose"
@@ -73,8 +72,7 @@ L["Azerokk"] = "Azerokk"
 L["Azules"] = "Azules"
 L["Banish"] = "Verbannen"
 L["Banquet Steward"] = "Bankettbediensteter"
---[[Translation missing --]]
---[[ L["Battle for Azeroth"] = ""--]] 
+L["Battle for Azeroth"] = "Schlacht für Azeroth"
 L["Battlefield Ritualist"] = "Schlachtfeldritualist"
 L["Beast"] = "Wildtier"
 L["Befouled Spirit"] = "Besudelter Geist"
@@ -159,8 +157,7 @@ L["Color Blind Friendly"] = "Farbenblind freundlich"
 L["Colorpicker"] = "Farbauswahl"
 L["Colossal Tentacle"] = "Kolossales Tentakel"
 L["Congealed Slime"] = "Geronnener Schleim"
---[[Translation missing --]]
---[[ L["ConnectedTip"] = ""--]] 
+L["ConnectedTip"] = "Gruppenverbindungen in MDT spiegeln nicht wider, ob NPCs in der Spielwelt miteinander verbunden sind."
 L["Control Undead"] = "Untote kontrollieren"
 L["Copy"] = "Kopieren"
 L["Corpse Collector"] = "Leichensammler"
@@ -188,13 +185,14 @@ L["Cutwater Striker"] = "Angreifer der Schwertwasserkorsaren"
 L["Dark Acolyte"] = "Dunkle Akolythin"
 L["Darkheart Thicket"] = "Das Finsterherzdickicht"
 L["Darkheart Thicket Sublevel"] = "Das Finsterherzdickicht"
+--[[Translation missing --]]
+--[[ L["DataImportButtonTooltip"] = ""--]] 
 L["Dazar'ai Augur"] = "Augur der Dazar'ai"
 L["Dazar'ai Colossus"] = "Koloss der Dazar'ai"
 L["Dazar'ai Confessor"] = "Bekenner der Dazar'ai"
 L["Dazar'ai Honor Guard"] = "Ehrenwache der Dazar'ai"
 L["Dazar'ai Juggernaut"] = "Moloch der Dazar'ai"
---[[Translation missing --]]
---[[ L["De Other Side"] = ""--]] 
+L["De Other Side"] = "Die Andre Seite"
 L["Dealer Xy'exa"] = "Händlerin Xy'exa"
 L["Death Speaker"] = "Todessprecher"
 L["Decaying Flesh Giant"] = "Verwesender Fleischriese"
@@ -254,6 +252,8 @@ L["Drust Boughbreaker"] = "Drustzweigbrecher"
 L["Drust Harvester"] = "Drusternter"
 L["Drust Soulcleaver"] = "Drustseelenspalter"
 L["Drust Spiteclaw"] = "Drustteufelsklaue"
+--[[Translation missing --]]
+--[[ L["Dungeon Data Missing"] = ""--]] 
 L["Dungeon Level"] = "Instanz Stufe"
 L["Earlier Version"] = "Du hast eine frühere Version dieser Route mit dem Namen '%s'%sMöchtest du sie aktualisieren oder eine neue Kopie erstellen?%s%s%s"
 L["Earthrager"] = "Erdwüter"
@@ -308,8 +308,7 @@ L["Field of the Eternal Hunt"] = "Die Felder der ewigen Jagd"
 L["Finger Food"] = "Fingerfood"
 L["Fleeting Manifestation"] = "Flüchtige Manifestation"
 L["Flesh Crafter"] = "Fleischformer"
---[[Translation missing --]]
---[[ L["Font of Fealty"] = ""--]] 
+L["Font of Fealty"] = "Quell der Treue"
 L["Footbomb Hooligan"] = "Fußbombenrandalierer"
 L["Forces"] = "Streitkräfte"
 L["Forces only: 5/200"] = "Nur Streitkräfte: 5/200"
@@ -348,8 +347,7 @@ L["Galecaller Apprentice"] = "Sturmbeschwörerlehrling"
 L["Galecaller Faye"] = "Sturmbeschwörerin Faye"
 L["Galvazzt"] = "Galvazzt"
 L["Gamesman's Hall"] = "Halle der Spiele"
---[[Translation missing --]]
---[[ L["Gardens of Repose"] = ""--]] 
+L["Gardens of Repose"] = "Gärten der Rast"
 L["General Kaal"] = "Generalin Kaal"
 L["Giant"] = "Riese"
 L["Gilded Priestess"] = "Goldene Priesterin"
@@ -381,16 +379,12 @@ L["Hadal Darkfathom"] = "Hadal Dunkelgrund"
 L["Hakkar the Soulflayer"] = "Hakkar der Seelenschinder"
 L["Halkias"] = "Halkias"
 L["Hall of the Moon"] = "Die Halle des Mondes"
---[[Translation missing --]]
---[[ L["Halls of Atonement"] = ""--]] 
+L["Halls of Atonement"] = "Hallen der Sühne"
 L["Halls of Valor"] = "Die Hallen der Tapferkeit"
 L["Halls of Valor Sublevel"] = "Die Hallen der Tapferkeit"
---[[Translation missing --]]
---[[ L["HallsOfAtonementFloor1"] = ""--]] 
---[[Translation missing --]]
---[[ L["HallsOfAtonementFloor2"] = ""--]] 
---[[Translation missing --]]
---[[ L["HallsOfAtonementFloor3"] = ""--]] 
+L["HallsOfAtonementFloor1"] = "Hallen der Sühne"
+L["HallsOfAtonementFloor2"] = "Das Schiff der Schmerzen"
+L["HallsOfAtonementFloor3"] = "Die Zuflucht der Seelen"
 L["Harlan Sweete"] = "Harlan der Schmierige"
 L["Harugia the Bloodthirsty"] = "Harugia die Blutrünstige"
 L["Hatchling Nest"] = "Kükennest"
@@ -416,8 +410,7 @@ L["Hold CTRL to single-select enemies."] = "STRG gedrückt halten um einzelne Ge
 L["Hold SHIFT to create a new pull while selecting enemies."] = "Halte UMSCHALT gedrückt um einen neuen Pull zu erstellen während Gegner ausgewählt werden"
 L["Hold SHIFT to delete all presets with the delete preset button."] = "Halte UMSCHALT um alle Routen mit dem Route-löschen Button zu löschen"
 L["Honored Raptor"] = "Geehrter Raptor"
---[[Translation missing --]]
---[[ L["Honor's Ascent"] = ""--]] 
+L["Honor's Ascent"] = "Aufstieg der Ehre"
 L["Hoodoo Hexer"] = "Hoodooverhexer"
 L["Humanoid"] = "Humanoide"
 L["Ickor Bileflesh"] = "Ickor Gallenfleisch"
@@ -425,6 +418,8 @@ L["If the Minimap Button is enabled"] = "Ob der Minimap Button angezeigt wird"
 L["Imbued Stormcaller"] = "Mächtiger Sturmrufer"
 L["Import"] = "Import"
 L["Import a preset from a text string"] = "Importiere eine Route aus einem Text String"
+--[[Translation missing --]]
+--[[ L["Import Data"] = ""--]] 
 L["Import Preset"] = "Importiere Route"
 L["Imprison"] = "Einkerkern"
 L["In the bottom right corner"] = "In der unteren rechten Ecke"
@@ -437,8 +432,7 @@ L["Ingra Maloch"] = "Ingra Maloch"
 L["Inquisitor Sigar"] = "Inquisitor Sigar"
 L["Insatiable Brute"] = "Unersättlicher Schläger"
 L["Insert Note"] = "Notiz einfügen"
---[[Translation missing --]]
---[[ L["Inspiring"] = ""--]] 
+L["Inspiring"] = "Inspirierend"
 L["Interment Construct"] = "Bestattungskonstrukt"
 L["Invalid import string"] = "Ungültiger Import String"
 L["Ironhull Apprentice"] = "Lehrling von Eisenkiel"
@@ -497,8 +491,7 @@ L["Lady Waycrest"] = "Lady Kronsteig"
 L["Lakesis"] = "Lakesis"
 L["Language"] = "Sprache"
 L["LargePresetWarning"] = "Du versuchst eine sehr große Route zu teilen (%d Zeichen)%sEs wird stattdessen empfohlen die Export-Funktion zu verwenden um große Routen auf wago.io zu teilen.%sBist du dir sicher diese Route zu teilen?%s"
---[[Translation missing --]]
---[[ L["Legion"] = ""--]] 
+L["Legion"] = "Legion"
 L["Level %d %s"] = "Stufe %d %s"
 L["Levels below 10 will hide enemies related to seasonal affixes"] = "Unter Stufe 10 werden betroffene Gegner vom saisonalen Affix versteckt"
 L["Library Floor"] = "Bibliotheksetage"
@@ -539,8 +532,7 @@ L["MDI Mode"] = "MDI Modus"
 L["MDT: Error importing preset"] = "MDT: Fehler beim importieren der Route"
 L["MDT: Spells for %s:"] = "Zauber für %s:"
 L["Mech Jockey"] = "Mechjockey"
---[[Translation missing --]]
---[[ L["Mechagon"] = ""--]] 
+L["Mechagon"] = "Mechagon"
 L["Mechagon - Junkyard"] = "Mechagon - Schrottplatz"
 L["Mechagon - Workshop"] = "Mechagon - Werkstatt"
 L["Mechagon Cavalry"] = "Kavallerist von Mechagon"
@@ -564,8 +556,7 @@ L["minecartNote"] = "Minenwagen%sVon Spielern benutzbar"
 L["Minion of Zul"] = "Diener von Zul"
 L["Mire Soldier"] = "Morastsoldat"
 L["Mistcaller"] = "Nebelruferin"
---[[Translation missing --]]
---[[ L["Mists of Tirna Scithe"] = ""--]] 
+L["Mists of Tirna Scithe"] = "Der Nebel von Tirna Scithe"
 L["Mistveil Defender"] = "Nebelschleierverteidigerin"
 L["Mistveil Gorgegullet"] = "Nebelschleierschlingrachen"
 L["Mistveil Guardian"] = "Nebelschleierwächter"
@@ -601,6 +592,12 @@ L["New Patrol Waypoint at Cursor Position"] = "Neuer Patroullienwegpunkt auf Mau
 L["New Preset"] = "Neue Route"
 L["Next to the NPC"] = "Neben dem NPC"
 L["Noble Skirmisher"] = "Adliger Scharmützler"
+--[[Translation missing --]]
+--[[ L["noDungeonData1"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["noDungeonData2"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["noDungeonData3"] = ""--]] 
 L["Not specified"] = "Nicht kategorisiert"
 L["Note Text:"] = "Notiz Text:"
 L["Off-Duty Laborer"] = "Arbeiter außer Dienst"
@@ -634,10 +631,8 @@ L["Plagueborer"] = "Seuchenbohrer"
 L["Plaguebound"] = "Seuchengebundener"
 L["Plaguebound Devoted"] = "Seuchengebundene Ergebene"
 L["Plaguebound Fallen"] = "Seuchengebundene Gefallene"
---[[Translation missing --]]
---[[ L["Plaguefall"] = ""--]] 
---[[Translation missing --]]
---[[ L["plaguefallDevotedNote"] = ""--]] 
+L["Plaguefall"] = "Seuchensturz"
+L["plaguefallDevotedNote"] = "Seuchengebundene Ergebene die bereits von Schleimiger Kadaver verwandelt wurden, bevor Ickor Gallenfleisch angegriffen wurde, geben keine feindlichen Kräfte."
 L["Plagueroc"] = "Seuchenroc"
 L["Plain Texture"] = "Einfache Textur"
 L["Players can join the live session by either clicking this button or the Live Session chat link"] = "Spieler können der Live Sitzung beitreten indem sie entweder auf diesen Button oder auf einen Livesitzungs-Link im Chat klicken"
@@ -649,8 +644,7 @@ L["Posh Vacationer"] = "Luxusurlauberin"
 L["Preset '%s' already exists"] = "Route '%s' ist bereits vorhanden"
 L["Preset Export"] = "Route exportieren"
 L["Preset Name"] = "Name der Route"
---[[Translation missing --]]
---[[ L["Prideful"] = ""--]] 
+L["Prideful"] = "Stolz"
 L["Priestess Alun'za"] = "Priesterin Alun'za"
 L["Prison Bars"] = "Gefängnisgitter"
 L["Prison Gate"] = "Gefängnistor"
@@ -744,12 +738,9 @@ L["Sandfury Stonefist"] = "Steinfaust der Sandwüter"
 L["Sandswept Marksman"] = "Sandgepeitschter Schütze"
 L["Sanguine"] = "Blutig"
 L["Sanguine Cadet"] = "Blutroter Kadett"
---[[Translation missing --]]
---[[ L["Sanguine Depths"] = ""--]] 
---[[Translation missing --]]
---[[ L["Sanguine DepthsFloor1"] = ""--]] 
---[[Translation missing --]]
---[[ L["Sanguine DepthsFloor2"] = ""--]] 
+L["Sanguine Depths"] = "Die Blutigen Tiefen"
+L["Sanguine DepthsFloor1"] = "Tiefen der Verzweiflung"
+L["Sanguine DepthsFloor2"] = "Amphitheater der Trauer"
 L["Sap"] = "Kopfnuss"
 L["Sathel the Accursed"] = "Sathel der Verfluchte"
 L["Saurolisk Bonenipper"] = "Knochenbeißersaurolisk"
@@ -764,8 +755,7 @@ L["Scraphound"] = "Schrotthund"
 L["Scrimshaw Enforcer"] = "Vollstrecker der Knochenritzer"
 L["Scrimshaw Gutter"] = "Schlächter der Knochenritzer"
 L["Seasonal Affix:"] = "Saisonaler Affix:"
---[[Translation missing --]]
---[[ L["Seat of the Archon"] = ""--]] 
+L["Seat of the Archon"] = "Sitz des Archon"
 L["Seat of the Triumvirate"] = "Sitz des Triumpfads"
 L["Seat of the Triumvirate Sublevel"] = "Sitz des Triumpfads"
 L["Select the dungeon level"] = "Wähle die Instanz Stufe"
@@ -784,8 +774,7 @@ L["Shadowblade Stalker"] = "Schattenklingenpirscher"
 L["Shadow-Borne Champion"] = "Schattengeborener Champion"
 L["Shadow-Borne Warrior"] = "Schattengeborener Krieger"
 L["Shadow-Borne Witch Doctor"] = "Schattengeborener Hexendoktor"
---[[Translation missing --]]
---[[ L["Shadowlands"] = ""--]] 
+L["Shadowlands"] = "Die Schattenlande"
 L["Shalebiter"] = "Schieferbeißer"
 L["Shambling Arbalest"] = "Schlurfender Armbrustschütze"
 L["Shard of Halkias"] = "Splitter von Halkias"
@@ -848,10 +837,8 @@ L["Spinemaw Gorger"] = "Stachelschlundfresser"
 L["Spinemaw Larva"] = "Stachelschlundlarve"
 L["Spinemaw Reaver"] = "Stachelschlundhäscher"
 L["Spinemaw Staghorn"] = "Stachelschlundzottelhorn"
---[[Translation missing --]]
---[[ L["Spires of Ascension"] = ""--]] 
---[[Translation missing --]]
---[[ L["Spiteful"] = ""--]] 
+L["Spires of Ascension"] = "Die Spitzen des Aufstiegs"
+L["Spiteful"] = "Boshaft"
 L["Sporecaller Zancha"] = "Sporenrufer Zancha"
 L["Spriggan Barkbinder"] = "Sprigganborkenbinder"
 L["Spriggan Mendbender"] = "Spriggangeistbeuger"
@@ -868,8 +855,7 @@ L["Stoneborn Slasher"] = "Steingeborener Schlitzer"
 L["Stonefiend Anklebiter"] = "Knöchelbeißersteinscheusal"
 L["Stonefury"] = "Steinzorn"
 L["Stonewall Gargon"] = "Steinwallgargon"
---[[Translation missing --]]
---[[ L["Storming"] = ""--]] 
+L["Storming"] = "Stürmisch"
 L["Storm's End"] = "Sturmend"
 L["Strider Tonk"] = "Schreitpanzer"
 L["Stun"] = "Betäubt"
@@ -902,8 +888,7 @@ L["The Brig"] = "Die Brigg"
 L["The Cellar"] = "Der Keller"
 L["The Drain"] = "Der Abfluss"
 L["The Emerald Archives"] = "Das Smaragdgrüne Archiv"
---[[Translation missing --]]
---[[ L["The Festering Sanctum"] = ""--]] 
+L["The Festering Sanctum"] = "Das Schwärende Sanktum"
 L["The Golden Serpent"] = "Die Goldschlange"
 L["The Grand Foyer"] = "Das Große Foyer"
 L["The Grand Hall"] = "Die Große Halle"
@@ -915,8 +900,7 @@ L["The Menagerie"] = "Die Menagerie"
 L["The MOTHERLODE!!"] = "Das RIEZENFLÖZ!!"
 L["The MOTHERLODE!! Sublevel"] = "Das RIEZENFLÖZ!!"
 L["The Naglfar"] = "Die Naglfar"
---[[Translation missing --]]
---[[ L["The Necrotic Wake"] = ""--]] 
+L["The Necrotic Wake"] = "Die Nekrotische Schneise"
 L["The Platinum Pummeler"] = "Der Platinprügler"
 L["The preset will continuously synchronize between all party members participating in the Live Session"] = "Die Route wird kontinuierlich zwischen allen Gruppenmitgliedern die an der Live Sitzung teilnehmen synchronisiert"
 L["The Raven's Crown"] = "Des Rabens Krone"
@@ -933,26 +917,16 @@ L["The Under Junk"] = "Die Unterhalde"
 L["The Underrot"] = "Der Tiefenpfuhl"
 L["The Underrot Sublevel"] = "Der Tiefenpfuhl"
 L["The Warden's Court"] = "Der Richthof der Wächterinnen"
---[[Translation missing --]]
---[[ L["Theater of Pain"] = ""--]] 
---[[Translation missing --]]
---[[ L["theaterOfPain_miniBossNote"] = ""--]] 
---[[Translation missing --]]
---[[ L["TheaterOfPainFloor1"] = ""--]] 
---[[Translation missing --]]
---[[ L["TheaterOfPainFloor2"] = ""--]] 
---[[Translation missing --]]
---[[ L["TheaterOfPainFloor3"] = ""--]] 
---[[Translation missing --]]
---[[ L["TheaterOfPainFloor4"] = ""--]] 
---[[Translation missing --]]
---[[ L["TheaterOfPainFloor5"] = ""--]] 
---[[Translation missing --]]
---[[ L["TheNecroticWakeFloor1"] = ""--]] 
---[[Translation missing --]]
---[[ L["TheNecroticWakeFloor2"] = ""--]] 
---[[Translation missing --]]
---[[ L["TheNecroticWakeFloor3"] = ""--]] 
+L["Theater of Pain"] = "Theater der Schmerzen"
+L["theaterOfPain_miniBossNote"] = "Nur ein Kämpfer wird am Leben sein."
+L["TheaterOfPainFloor1"] = "Theater der Schmerzen"
+L["TheaterOfPainFloor2"] = "Kammer der Eroberung"
+L["TheaterOfPainFloor3"] = "Altäre der Agonie"
+L["TheaterOfPainFloor4"] = "Oberer Tunnel des Gemetzels"
+L["TheaterOfPainFloor5"] = "Unterer Tunnel des Gemetzels"
+L["TheNecroticWakeFloor1"] = "Die Nekrotische Schneise"
+L["TheNecroticWakeFloor2"] = "Flickwerke"
+L["TheNecroticWakeFloor3"] = "Zolramus"
 L["Thistle Acolyte"] = "Distelakolythin"
 L["Thornguard"] = "Dornwächter"
 L["Tidesage Enforcer"] = "Vollstrecker der Gezeitenweisen"
@@ -1052,6 +1026,5 @@ L["Zolramus Gatekeeper"] = "Torwächter von Zolramus"
 L["Zolramus Necromancer"] = "Nekromant von Zolramus"
 L["Zolramus Siphoner"] = "Schröpferin von Zolramus"
 L["Zolramus Sorcerer"] = "Zauberer von Zolramus"
---[[Translation missing --]]
---[[ L["Zul'Gurub"] = ""--]] 
+L["Zul'Gurub"] = "Zul'Gurub"
 

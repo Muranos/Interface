@@ -607,7 +607,7 @@ function E:AddSpellEditor()
 	for id in pairs(OmniCDDB.cooldowns) do
 		if not C_Spell.DoesSpellExist(id) then
 			OmniCDDB.cooldowns[id] = nil
-			E.Write("Removing Invalid ID (User Added): |cffffd200" .. id)
+			--E.Write("Removing Invalid ID (User Added): |cffffd200" .. id)
 		else
 			id = tostring(id)
 			spellEditor.args.editor.args[id] = customSpellGroup

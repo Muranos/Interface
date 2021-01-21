@@ -11,6 +11,9 @@ function GottaGoFast.VersionCheck()
     -- First Time Run
     ggf.VersionFirstRun();
   elseif (lastVersion < version) then
+    if (lastVersion < 40000) then
+      GottaGoFast.SetUseMdt(nil, false)
+    end
     ggf:Print("Welcome To v" .. constants.VersionName);
     ggf:Print("Check The Changelog For Information About The Update!");
   end

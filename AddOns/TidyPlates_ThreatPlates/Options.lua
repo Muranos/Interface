@@ -1835,6 +1835,21 @@ local function CreateComboPointsWidgetOptions()
             hasAlpha = false,
             disabled = function() return #db.ComboPoints.ColorBySpec[db.ComboPoints.Specialization] < 6 end
           },
+          ColorAnimacharge = {
+            name = L["Animacharge"],
+            type = "color",
+            order = 170,
+            get = function(info)
+              local color = db.ComboPoints.ColorBySpec.ROGUE.Animacharge or t.RGB(0, 0, 0)
+              return color.r, color.g, color.b
+            end,
+            set = function(info, r, g, b)
+              db.ComboPoints.ColorBySpec.ROGUE.Animacharge = t.RGB(r * 255, g * 255, b * 255)
+              Addon.Widgets:UpdateSettings(MAP_OPTION_TO_WIDGET[info[2]])
+            end,
+            hasAlpha = false,
+            hidden = function() return Addon.PlayerClass ~= "ROGUE" end
+          },
         },
       },
       Layout = {
@@ -6491,9 +6506,9 @@ CreateCustomNameplateEntry = function(index)
             width = 3,
             desc = L["Apply these custom settings to the nameplate of a unit with a particular name. You can add multiple entries separated by a semicolon. You can use use * as wildcard character."],
             set = function(info, val)
-              -- Only "*" and "." should be allowed, so check for other magic characters: ( ) . % + - ? [ ^ $
+              -- Only "*" and "." should be allowed, so check for other magic characters: ( ) . % + ? [ ^ $
               -- "." is allowed as there a units names with this character
-              local position, _ = string.find(val, "[%(%)%%%+%-%?%[%]%^%$]")
+              local position, _ = string.find(val, "[%(%)%%%+%?%[%]%^%$]")
               if position then
                 t.Print(L["Illegal character used in Name trigger at position: "] .. tostring(position), true)
               else

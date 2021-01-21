@@ -149,7 +149,9 @@ function Comms:EnqueueInspect(force, guid)
 
 		for i = #P.pendingQueue, 1, -1 do
 			local guid = P.pendingQueue[i]
-			queueEntries[guid] = added
+			if guid ~= E.userGUID then
+				queueEntries[guid] = added
+			end
 			P.pendingQueue[i] = nil
 		end
 	end
@@ -196,10 +198,11 @@ function Comms:RequestInspect()
 
 	for guid, added in pairs(queueEntries) do
 		local info = P.groupInfo[guid]
-		if info then
+		local isSyncedUnit = self.syncGUIDS[guid]
+		if info and not isSyncedUnit then -- [85]
 			local unit = info.unit
 			local elapsed = now - added
-			if ( not UnitIsConnected(unit) or elapsed > INS_TIME_LIMIT ) then
+			if ( not UnitIsConnected(unit) or elapsed > INS_TIME_LIMIT ) then -- [80]
 				self:DequeueInspect(guid)
 			elseif ( not CanInspect(unit) ) then -- [54]
 				staleEntries[guid] = added
@@ -224,7 +227,7 @@ end
 
 function Comms:InspectUnit(guid)
 	local info = P.groupInfo[guid]
-	if not info then
+	if not info or self.syncGUIDS[guid] then -- [85]
 		return
 	end
 
@@ -327,7 +330,7 @@ local function GetCovenantSoulbindData()
 	local soulbindData = C_Soulbinds.GetSoulbindData(soulbindID);
 	local nodes = soulbindData.tree and soulbindData.tree.nodes
 	if not nodes then
-		return
+		return covenantID .. "," .. soulbindID
 	end
 
 	local t = { covenantID, soulbindID }

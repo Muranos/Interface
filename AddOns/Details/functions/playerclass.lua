@@ -95,6 +95,9 @@ do
 	
 	function _detalhes:GetSpecIcon (spec, useAlpha)
 		if (spec) then
+			if (spec > 600) then --hack to new spec ids on new leveling zones from level 1-10
+				spec = 65
+			end
 			if (useAlpha) then
 				return [[Interface\AddOns\Details\images\spec_icons_normal_alpha]], unpack (_detalhes.class_specs_coords [spec])
 			else
@@ -114,8 +117,10 @@ do
 		elseif (type (class) == "string") then
 			return unpack (_detalhes.class_colors [class] or default_color)
 			
+		elseif (self.color) then
+			return unpack(self.color)
 		else
-			unpack (default_color)
+			return unpack (default_color)
 		end
 	end
 	

@@ -12,18 +12,33 @@ local unitFrameData = {
 	--  [3] = Party frame unit key
 	--  [4] = Delay
 
-	{   [1] = "Grid2",
-		[2] = "Grid2LayoutHeader1UnitButton",
-		[3] = "unit",
-		[4] = 1,
-	},
 	{   [1] = "VuhDo",
 		[2] = "Vd1H",
 		[3] = "raidid",
 		[4] = 4, -- idc if it doesn't work. needs an insane amount of delay on some settings
 	},
+	{   [1] = "Grid2",
+		[2] = "Grid2LayoutHeader1UnitButton",
+		[3] = "unit",
+		[4] = 1,
+	},
 	{   [1] = "Aptechka",
 		[2] = "NugRaid1UnitButton",
+		[3] = "unit",
+		[4] = 1,
+	},
+	{   [1] = "InvenRaidFrame3",
+		[2] = "InvenRaidFrame3Group0UnitButton",
+		[3] = "unit",
+		[4] = 1,
+	},
+	{   [1] = "Plexus",
+		[2] = "PlexusLayoutHeader1UnitButton",
+		[3] = "unit",
+		[4] = 1,
+	},
+	{   [1] = "HealBot",
+		[2] = "HealBot_Action_HealUnit",
 		[3] = "unit",
 		[4] = 1,
 	},
@@ -52,11 +67,6 @@ local unitFrameData = {
 		[3] = "unit",
 		[4] = 1,
 	},
-	{   [1] = "InvenRaidFrame3",
-		[2] = "InvenRaidFrame3Group0UnitButton",
-		[3] = "unit",
-		[4] = 1,
-	},
 	{   [1] = "NDui",
 		[2] = "oUF_PartyUnitButton",
 		[3] = "unit",
@@ -82,18 +92,19 @@ function E:UnitFrames()
 		["optionTable"] = {
 			auto = L["Auto"],
 			blizz = "Blizzard",
-		}
+		},
+		["enabled"] = false, -- [86]
 	}
 
 	for i = 1, #unitFrameData do
-		local name = unitFrameData[i][1]
-		local frame = _G[name] or IsAddOnLoaded(name)
-		if frame then
+		local unitFrame = unitFrameData[i]
+		local name = unitFrame[1]
+		if _G[name] or IsAddOnLoaded(name) then
 			self.customUF.enabled = self.customUF.enabled or {}
 			self.customUF.enabled[name] = {
-				["frame"] = unitFrameData[i][2],
-				["unit"] = unitFrameData[i][3],
-				["delay"] = unitFrameData[i][4],
+				["frame"] = unitFrame[2],
+				["unit"] = unitFrame[3],
+				["delay"] = unitFrame[4],
 			}
 
 			self.customUF.optionTable[name] = name
@@ -109,9 +120,11 @@ function E:UnitFrames()
 	end
 
 	if self.customUF.enabled then
-		local uf = self.db.position.uf
-		if uf ~= "blizz" and not self.customUF.enabled[uf] then
-			self.db.position.uf = "auto"
+		for zone in pairs(E.CFG_ZONE) do
+			local uf = E.DB.profile.Party[zone].position.uf
+			if uf ~= "blizz" and not self.customUF.enabled[uf] then
+				E.DB.profile.Party[zone].position.uf = "auto"
+			end
 		end
 		E:SetActiveUnitFrameData()
 

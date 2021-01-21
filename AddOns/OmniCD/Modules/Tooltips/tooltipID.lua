@@ -31,8 +31,10 @@ local function AppendID(tooltip, id, strType)
 end
 
 local function AddAuraID(self, unit, index, auraType)
-	local id = select(10, UnitAura(unit, index, auraType))
-	if id then AppendID(self, id, ID_TYPE[auraType]) end
+	if auraType == "HELPFUL" or auraType == "HARMFUL" then -- TODO: auraType == "MAW"
+		local id = select(10, UnitAura(unit, index, auraType))
+		if id then AppendID(self, id, ID_TYPE[auraType]) end
+	end
 end
 
 local function AddBuffID(self, ...)

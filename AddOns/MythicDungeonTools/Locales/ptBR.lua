@@ -193,6 +193,8 @@ L["Darkheart Thicket"] = [=[Bosque Corenegro
 ]=]
 L["Darkheart Thicket Sublevel"] = [=[Bosque Corenegro Subnível 1
 ]=]
+--[[Translation missing --]]
+--[[ L["DataImportButtonTooltip"] = ""--]] 
 L["Dazar'ai Augur"] = "Áugure Dazar'ai"
 L["Dazar'ai Colossus"] = "Colosso Dazar'ai"
 L["Dazar'ai Confessor"] = "Confessor Dazar'ai"
@@ -259,6 +261,8 @@ L["Drust Boughbreaker"] = "Quebrarramo Drusto"
 L["Drust Harvester"] = "Ceifador Drusto"
 L["Drust Soulcleaver"] = "Rachalma Drusto"
 L["Drust Spiteclaw"] = "Garramal Drusto"
+--[[Translation missing --]]
+--[[ L["Dungeon Data Missing"] = ""--]] 
 L["Dungeon Level"] = "Nível da masmorra"
 L["Earlier Version"] = "Você possuí uma versão antiga da rota com o nome '%s'%s Você deseja atualizar ou criar uma nova copia? %s%s%s"
 L["Earthrager"] = "Furitérreo"
@@ -433,6 +437,8 @@ L["If the Minimap Button is enabled"] = "Se o botão do Minimapa estiver habilit
 L["Imbued Stormcaller"] = "Tempestário Imbuído"
 L["Import"] = "Importar"
 L["Import a preset from a text string"] = "Importar uma rota de uma cadeia de texto"
+--[[Translation missing --]]
+--[[ L["Import Data"] = ""--]] 
 L["Import Preset"] = "Importar Rota"
 L["Imprison"] = "Aprisionar"
 L["In the bottom right corner"] = "No canto inferior direito"
@@ -617,6 +623,12 @@ L["New Patrol Waypoint at Cursor Position"] = "Novo Waypoint de Patrulha na Posi
 L["New Preset"] = "Nova Rota"
 L["Next to the NPC"] = "Próximo ao NPC"
 L["Noble Skirmisher"] = "Escaramuçador Nobre"
+--[[Translation missing --]]
+--[[ L["noDungeonData1"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["noDungeonData2"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["noDungeonData3"] = ""--]] 
 L["Not specified"] = "Não Especificado "
 L["Note Text:"] = "Nota de texto"
 L["Off-Duty Laborer"] = "Operário de Folga"

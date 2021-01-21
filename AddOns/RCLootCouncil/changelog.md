@@ -1,3 +1,76 @@
+# v3.1.4
+
+## Bugfixes
+
+* *A candidates mainhand/offhand is now always shown in the voting frame when dealing with context tokens. (Curse#470)*
+* *Hopefully fixed the remaining issues plaguing the addon the last couple of weeks. (Curse#457-472)*
+
+# v3.1.3
+
+## Bugfixes
+
+* *Suppressed errors in Voting Frame. Exact cause is still unknown, and this fix while supressing errors can still lead to blank spaces in voting frame. Please report back if you're experiencing any of this. (Curse#457-465)*
+
+# v3.1.2
+
+## Bugfixes
+
+* *Context tokens were unintentionally ignored.*
+* *Fixed errors from missing functions (Curse#453).*
+* *Council should now be more reliably sent before first kill to avoid non showing voting frame for council members (Curse#456, #202).*
+* *Sorting of the default buttons in the voting frame now works again. Note you may need to move buttons up/down to properly register. (#203).*
+
+# v3.1.1
+
+## Bugfixes
+
+* *Fixed issue with Blizzard functions occasionally returning nil upon entering a group (Curse#452).*
+* *Fixed issue related to player classes (Curse#449).*
+
+# v3.1.0
+
+## Changes
+
+### Auto Awards
+
+Auto Awards now works on a priority based list, so that you can have fallbacks in case your usual recipient is on an alt etc.
+
+The input field is updated to handle multiple entries at once (seperated by commas and/or spaces) when ungrouped, while still listing group members when grouped.
+
+Candidates in the list have class icons and colors added if you've seen them recently. If they're in your group but don't have the class infomation, then you probably have misspelled their name.
+
+All stored Auto Award settings has been reset as part of the update.
+
+### Anima
+
+Anima is no longer registered in the voting frame or history, and any anima in the history has been removed.
+
+## Added
+
+### Companion Pets
+
+Pets now have a button group.
+
+Added option to ignore all pets when looting.
+
+### Version Check
+
+The version checks now shows the totals of installed versions.
+
+## Bugfixes
+
+* *Players' enchating level again shows up in the disenchant menu in the voting frame.*
+* *The list of candidates now updates much more frequently to avoid listing candidates that have left the group.*
+* *Fixed corrupted player caches, introduced in v3.0.2, leading to a total breakdown (Curse#443-448 + #201).*
+
+# v3.0.2
+
+## Bugfixes
+
+* *Group version checks could break the addon.*
+* *Cancelling the session frame while a session was running led to unexpected behaviors.*
+* *Fixed issue with guild ranks that could break the voting frame.*
+
 # v3.0.1
 
 ## Changes

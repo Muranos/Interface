@@ -87,6 +87,7 @@ MDT.mapPOIs[dungeonIndex] = {
         };
     };
 };
+
 MDT.dungeonEnemies[dungeonIndex] = {
     [1] = {
         ["clones"] = {
@@ -99,35 +100,63 @@ MDT.dungeonEnemies[dungeonIndex] = {
             [2] = {
                 ["sublevel"] = 1;
                 ["inspiring"] = true;
-                ["y"] = -118.24636426947;
-                ["g"] = 3;
                 ["x"] = 584.29408095585;
+                ["g"] = 3;
+                ["y"] = -118.24636426947;
             };
             [3] = {
                 ["sublevel"] = 2;
                 ["inspiring"] = true;
-                ["y"] = -335.34629822493;
-                ["g"] = 4;
                 ["x"] = 340.76680878558;
+                ["g"] = 4;
+                ["y"] = -335.34629822493;
             };
         };
         ["id"] = 163459;
-        ["scale"] = 1;
+        ["spells"] = {
+            [288865] = {};
+            [317898] = {};
+            [334882] = {};
+            [317936] = {};
+            [207707] = {};
+            [121308] = {};
+            [132951] = {};
+            [327331] = {};
+            [224729] = {};
+            [327332] = {};
+            [326868] = {};
+        };
+        ["characteristics"] = {
+            ["Taunt"] = true;
+            ["Incapacitate"] = true;
+            ["Root"] = true;
+            ["Repentance"] = true;
+            ["Disorient"] = true;
+            ["Polymorph"] = true;
+            ["Mind Control"] = true;
+            ["Sap"] = true;
+            ["Stun"] = true;
+            ["Silence"] = true;
+            ["Slow"] = true;
+            ["Fear"] = true;
+            ["Imprison"] = true;
+        };
+        ["name"] = "Forsworn Mender";
         ["health"] = 64080;
         ["displayId"] = 94304;
         ["creatureType"] = "Humanoid";
         ["level"] = 60;
         ["count"] = 4;
-        ["name"] = "Forsworn Mender";
+        ["scale"] = 1;
     };
     [2] = {
         ["clones"] = {
             [1] = {
                 ["sublevel"] = 1;
                 ["inspiring"] = true;
-                ["x"] = 420.98967344245;
-                ["g"] = 1;
                 ["y"] = -284.54584323099;
+                ["g"] = 1;
+                ["x"] = 420.98967344245;
             };
             [2] = {
                 ["y"] = -269.13781521478;
@@ -161,13 +190,38 @@ MDT.dungeonEnemies[dungeonIndex] = {
             };
         };
         ["id"] = 163457;
-        ["scale"] = 1;
+        ["spells"] = {
+            [317943] = {};
+            [207707] = {};
+            [317898] = {};
+            [334882] = {};
+            [121308] = {};
+            [132951] = {};
+            [224729] = {};
+            [288865] = {};
+        };
+        ["characteristics"] = {
+            ["Taunt"] = true;
+            ["Incapacitate"] = true;
+            ["Root"] = true;
+            ["Repentance"] = true;
+            ["Imprison"] = true;
+            ["Polymorph"] = true;
+            ["Mind Control"] = true;
+            ["Sap"] = true;
+            ["Stun"] = true;
+            ["Silence"] = true;
+            ["Slow"] = true;
+            ["Disorient"] = true;
+            ["Fear"] = true;
+        };
+        ["name"] = "Forsworn Vanguard";
         ["health"] = 80100;
         ["displayId"] = 93491;
         ["creatureType"] = "Humanoid";
         ["level"] = 60;
         ["count"] = 4;
-        ["name"] = "Forsworn Vanguard";
+        ["scale"] = 1;
     };
     [3] = {
         ["clones"] = {
@@ -261,17 +315,18 @@ MDT.dungeonEnemies[dungeonIndex] = {
                 ["sublevel"] = 2;
             };
             [5] = {
-                ["y"] = -426.36915937991;
-                ["x"] = 638.3643389787;
-                ["g"] = 16;
                 ["sublevel"] = 2;
+                ["x"] = 638.3643389787;
+                ["patrol"] = {};
+                ["g"] = 16;
+                ["y"] = -426.36915937991;
             };
             [6] = {
                 ["sublevel"] = 2;
                 ["inspiring"] = true;
-                ["y"] = -56.066082968468;
-                ["g"] = 21;
                 ["x"] = 493.1330710124;
+                ["g"] = 21;
+                ["y"] = -56.066082968468;
             };
             [7] = {
                 ["y"] = -360.18714634998;
@@ -287,13 +342,26 @@ MDT.dungeonEnemies[dungeonIndex] = {
             };
         };
         ["id"] = 168318;
-        ["scale"] = 1.5;
+        ["spells"] = {
+            [326868] = {};
+            [207707] = {};
+            [288865] = {};
+            [327413] = {};
+            [132466] = {};
+            [132951] = {};
+            [327416] = {};
+            [324392] = {};
+        };
+        ["characteristics"] = {
+            ["Taunt"] = true;
+        };
+        ["name"] = "Forsworn Goliath";
         ["health"] = 176220;
         ["displayId"] = 92664;
         ["creatureType"] = "Mechanical";
         ["level"] = 60;
         ["count"] = 8;
-        ["name"] = "Forsworn Goliath";
+        ["scale"] = 1.5;
     };
     [4] = {
         ["clones"] = {
@@ -323,13 +391,40 @@ MDT.dungeonEnemies[dungeonIndex] = {
             };
         };
         ["id"] = 163458;
-        ["scale"] = 1;
+        ["spells"] = {
+            [288865] = {};
+            [317898] = {};
+            [334882] = {};
+            [207707] = {};
+            [317959] = {};
+            [132951] = {};
+            [224729] = {};
+            [121308] = {};
+            [326868] = {};
+            [317963] = {};
+        };
+        ["characteristics"] = {
+            ["Taunt"] = true;
+            ["Incapacitate"] = true;
+            ["Root"] = true;
+            ["Repentance"] = true;
+            ["Disorient"] = true;
+            ["Polymorph"] = true;
+            ["Mind Control"] = true;
+            ["Sap"] = true;
+            ["Stun"] = true;
+            ["Silence"] = true;
+            ["Slow"] = true;
+            ["Fear"] = true;
+            ["Imprison"] = true;
+        };
+        ["name"] = "Forsworn Castigator";
         ["health"] = 80100;
         ["displayId"] = 93483;
         ["creatureType"] = "Humanoid";
         ["level"] = 60;
         ["count"] = 4;
-        ["name"] = "Forsworn Castigator";
+        ["scale"] = 1;
     };
     [5] = {
         ["clones"] = {
@@ -341,13 +436,27 @@ MDT.dungeonEnemies[dungeonIndex] = {
             };
         };
         ["id"] = 163077;
-        ["scale"] = 1;
+        ["spells"] = {
+            [324370] = {};
+            [326868] = {};
+            [331249] = {};
+            [324368] = {};
+            [139885] = {};
+            [288865] = {};
+            [345561] = {};
+            [331251] = {};
+            [132951] = {};
+        };
+        ["characteristics"] = {
+            ["Taunt"] = true;
+        };
+        ["name"] = "Azules";
         ["health"] = 640800;
         ["displayId"] = 93471;
         ["creatureType"] = "Beast";
         ["level"] = 60;
         ["count"] = 0;
-        ["name"] = "Azules";
+        ["scale"] = 1;
     };
     [6] = {
         ["clones"] = {
@@ -358,17 +467,33 @@ MDT.dungeonEnemies[dungeonIndex] = {
                 ["sublevel"] = 2;
             };
         };
+        ["characteristics"] = {
+            ["Taunt"] = true;
+        };
         ["id"] = 162059;
+        ["spells"] = {
+            [288865] = {};
+            [326868] = {};
+            [320966] = {};
+            [321034] = {};
+            [132951] = {};
+            [327481] = {};
+            [321009] = {};
+            [325748] = {};
+            [324662] = {};
+            [345561] = {};
+            [139885] = {};
+        };
         ["isBoss"] = true;
         ["encounterID"] = 2399;
         ["instanceID"] = 1186;
-        ["scale"] = 1;
+        ["name"] = "Kin-Tara";
         ["health"] = 640800;
         ["displayId"] = 95068;
         ["creatureType"] = "Humanoid";
         ["level"] = 60;
         ["count"] = 0;
-        ["name"] = "Kin-Tara";
+        ["scale"] = 1;
     };
     [7] = {
         ["clones"] = {
@@ -411,9 +536,9 @@ MDT.dungeonEnemies[dungeonIndex] = {
             [7] = {
                 ["sublevel"] = 2;
                 ["inspiring"] = true;
-                ["y"] = -506.98998031172;
-                ["g"] = 13;
                 ["x"] = 478.2392160174;
+                ["g"] = 13;
+                ["y"] = -506.98998031172;
             };
             [8] = {
                 ["y"] = -428.77058401298;
@@ -430,9 +555,10 @@ MDT.dungeonEnemies[dungeonIndex] = {
             [10] = {
                 ["sublevel"] = 2;
                 ["inspiring"] = true;
-                ["y"] = -417.54610965942;
-                ["g"] = 15;
+                ["patrol"] = {};
                 ["x"] = 603.10570647994;
+                ["g"] = 15;
+                ["y"] = -417.54610965942;
             };
             [11] = {
                 ["y"] = -414.74942061427;
@@ -467,44 +593,44 @@ MDT.dungeonEnemies[dungeonIndex] = {
             [16] = {
                 ["sublevel"] = 2;
                 ["inspiring"] = true;
-                ["y"] = -289.88595888437;
-                ["g"] = 18;
                 ["x"] = 565.7949436188;
+                ["g"] = 18;
+                ["y"] = -289.88595888437;
             };
             [17] = {
                 ["sublevel"] = 2;
                 ["inspiring"] = true;
-                ["y"] = -203.22151537539;
-                ["g"] = 19;
                 ["x"] = 507.59507820221;
+                ["g"] = 19;
+                ["y"] = -203.22151537539;
             };
             [18] = {
                 ["sublevel"] = 2;
                 ["inspiring"] = true;
-                ["y"] = -61.006022506303;
-                ["g"] = 21;
                 ["x"] = 481.05849194255;
+                ["g"] = 21;
+                ["y"] = -61.006022506303;
             };
             [19] = {
                 ["sublevel"] = 2;
                 ["inspiring"] = true;
-                ["y"] = -68.428381301385;
-                ["g"] = 21;
                 ["x"] = 499.7107092531;
+                ["g"] = 21;
+                ["y"] = -68.428381301385;
             };
             [20] = {
                 ["sublevel"] = 2;
                 ["inspiring"] = true;
-                ["y"] = -68.944086791456;
-                ["g"] = 21;
                 ["x"] = 489.39374765089;
+                ["g"] = 21;
+                ["y"] = -68.944086791456;
             };
             [21] = {
                 ["sublevel"] = 2;
                 ["inspiring"] = true;
-                ["y"] = -169.51047144141;
-                ["g"] = 25;
                 ["x"] = 316.80444694554;
+                ["g"] = 25;
+                ["y"] = -169.51047144141;
             };
             [22] = {
                 ["y"] = -163.66667829221;
@@ -532,13 +658,38 @@ MDT.dungeonEnemies[dungeonIndex] = {
             };
         };
         ["id"] = 163503;
-        ["scale"] = 0.7;
+        ["spells"] = {
+            [288865] = {};
+            [317898] = {};
+            [207707] = {};
+            [132951] = {};
+            [323645] = {};
+            [224729] = {};
+            [132466] = {};
+            [317661] = {};
+            [326868] = {};
+        };
+        ["characteristics"] = {
+            ["Taunt"] = true;
+            ["Incapacitate"] = true;
+            ["Root"] = true;
+            ["Imprison"] = true;
+            ["Polymorph"] = true;
+            ["Mind Control"] = true;
+            ["Sap"] = true;
+            ["Disorient"] = true;
+            ["Silence"] = true;
+            ["Slow"] = true;
+            ["Stun"] = true;
+            ["Fear"] = true;
+        };
+        ["name"] = "Etherdiver";
         ["health"] = 48060;
         ["displayId"] = 93471;
         ["creatureType"] = "Beast";
         ["level"] = 60;
         ["count"] = 2;
-        ["name"] = "Etherdiver";
+        ["scale"] = 0.7;
     };
     [8] = {
         ["clones"] = {
@@ -569,9 +720,9 @@ MDT.dungeonEnemies[dungeonIndex] = {
             [5] = {
                 ["sublevel"] = 2;
                 ["inspiring"] = true;
-                ["y"] = -229.59704911519;
-                ["g"] = 10;
                 ["x"] = 377.1743414741;
+                ["g"] = 10;
+                ["y"] = -229.59704911519;
             };
             [6] = {
                 ["y"] = -438.40391678238;
@@ -582,28 +733,52 @@ MDT.dungeonEnemies[dungeonIndex] = {
             [7] = {
                 ["sublevel"] = 2;
                 ["inspiring"] = true;
-                ["y"] = -126.81483178582;
-                ["g"] = 24;
                 ["x"] = 283.69792862068;
+                ["g"] = 24;
+                ["y"] = -126.81483178582;
             };
         };
         ["id"] = 163501;
-        ["scale"] = 1;
+        ["spells"] = {
+            [288865] = {};
+            [207707] = {};
+            [317898] = {};
+            [323682] = {};
+            [121308] = {};
+            [132951] = {};
+            [224729] = {};
+        };
+        ["characteristics"] = {
+            ["Taunt"] = true;
+            ["Incapacitate"] = true;
+            ["Root"] = true;
+            ["Repentance"] = true;
+            ["Mind Control"] = true;
+            ["Polymorph"] = true;
+            ["Disorient"] = true;
+            ["Sap"] = true;
+            ["Silence"] = true;
+            ["Stun"] = true;
+            ["Slow"] = true;
+            ["Fear"] = true;
+            ["Imprison"] = true;
+        };
+        ["name"] = "Forsworn Skirmisher";
         ["health"] = 80100;
         ["displayId"] = 93491;
         ["creatureType"] = "Humanoid";
         ["level"] = 60;
         ["count"] = 4;
-        ["name"] = "Forsworn Skirmisher";
+        ["scale"] = 1;
     };
     [9] = {
         ["clones"] = {
             [1] = {
                 ["sublevel"] = 2;
                 ["inspiring"] = true;
-                ["y"] = -233.74924820048;
-                ["g"] = 10;
                 ["x"] = 367.38957586906;
+                ["g"] = 10;
+                ["y"] = -233.74924820048;
             };
             [2] = {
                 ["y"] = -447.46529853318;
@@ -614,87 +789,128 @@ MDT.dungeonEnemies[dungeonIndex] = {
             [3] = {
                 ["sublevel"] = 2;
                 ["inspiring"] = true;
-                ["y"] = -284.16875495241;
-                ["g"] = 18;
                 ["x"] = 556.14868737631;
+                ["g"] = 18;
+                ["y"] = -284.16875495241;
             };
             [4] = {
                 ["sublevel"] = 2;
                 ["inspiring"] = true;
-                ["y"] = -196.46131556745;
-                ["g"] = 19;
                 ["x"] = 524.88628114361;
+                ["g"] = 19;
+                ["y"] = -196.46131556745;
             };
             [5] = {
                 ["sublevel"] = 2;
                 ["inspiring"] = true;
-                ["y"] = -94.057400017449;
-                ["g"] = 20;
                 ["x"] = 499.60136639113;
+                ["g"] = 20;
+                ["y"] = -94.057400017449;
             };
         };
         ["id"] = 168420;
-        ["scale"] = 1;
+        ["spells"] = {
+            [327655] = {};
+            [317898] = {};
+            [317936] = {};
+            [121308] = {};
+            [132951] = {};
+            [224729] = {};
+            [326868] = {};
+            [288865] = {};
+            [327653] = {};
+        };
+        ["characteristics"] = {
+            ["Taunt"] = true;
+            ["Incapacitate"] = true;
+            ["Root"] = true;
+            ["Repentance"] = true;
+            ["Disorient"] = true;
+            ["Polymorph"] = true;
+            ["Mind Control"] = true;
+            ["Sap"] = true;
+            ["Stun"] = true;
+            ["Silence"] = true;
+            ["Slow"] = true;
+            ["Fear"] = true;
+            ["Imprison"] = true;
+        };
+        ["name"] = "Forsworn Champion";
         ["health"] = 64080;
         ["displayId"] = 94313;
         ["creatureType"] = "Humanoid";
         ["level"] = 60;
         ["count"] = 4;
-        ["name"] = "Forsworn Champion";
+        ["scale"] = 1;
     };
     [10] = {
         ["clones"] = {
             [1] = {
                 ["sublevel"] = 2;
                 ["inspiring"] = true;
-                ["y"] = -240.23717527145;
-                ["g"] = 10;
                 ["x"] = 375.99936462736;
+                ["g"] = 10;
+                ["y"] = -240.23717527145;
             };
             [2] = {
                 ["sublevel"] = 2;
                 ["inspiring"] = true;
-                ["y"] = -390.09417725635;
-                ["g"] = 17;
                 ["x"] = 622.38196728369;
+                ["g"] = 17;
+                ["y"] = -390.09417725635;
             };
             [3] = {
                 ["sublevel"] = 2;
                 ["inspiring"] = true;
-                ["y"] = -296.11155006192;
-                ["g"] = 18;
                 ["x"] = 555.78218026632;
+                ["g"] = 18;
+                ["y"] = -296.11155006192;
             };
             [4] = {
                 ["sublevel"] = 2;
                 ["inspiring"] = true;
-                ["y"] = -199.77269114267;
-                ["g"] = 19;
                 ["x"] = 516.13039751157;
+                ["g"] = 19;
+                ["y"] = -199.77269114267;
             };
             [5] = {
                 ["sublevel"] = 2;
                 ["inspiring"] = true;
-                ["y"] = -101.54692574708;
-                ["g"] = 20;
                 ["x"] = 492.46936339433;
+                ["g"] = 20;
+                ["y"] = -101.54692574708;
             };
             [6] = {
                 ["sublevel"] = 2;
                 ["inspiring"] = true;
-                ["y"] = -141.83769668237;
-                ["g"] = 24;
                 ["x"] = 284.57516093744;
+                ["g"] = 24;
+                ["y"] = -141.83769668237;
             };
         };
         ["id"] = 163520;
-        ["scale"] = 1;
+        ["spells"] = {
+            [323740] = {};
+            [326868] = {};
+            [317985] = {};
+            [121308] = {};
+            [132951] = {};
+            [336447] = {};
+            [323739] = {};
+            [327808] = {};
+            [327812] = {};
+            [288865] = {};
+        };
+        ["characteristics"] = {
+            ["Taunt"] = true;
+        };
+        ["name"] = "Forsworn Squad-Leader";
         ["health"] = 128160;
         ["displayId"] = 94919;
         ["creatureType"] = "Humanoid";
         ["level"] = 60;
         ["count"] = 6;
-        ["name"] = "Forsworn Squad-Leader";
+        ["scale"] = 1;
     };
     [11] = {
         ["clones"] = {
@@ -743,9 +959,9 @@ MDT.dungeonEnemies[dungeonIndex] = {
             [8] = {
                 ["sublevel"] = 2;
                 ["inspiring"] = true;
-                ["y"] = -187.78179272496;
-                ["g"] = 19;
                 ["x"] = 518.59758087323;
+                ["g"] = 19;
+                ["y"] = -187.78179272496;
             };
             [9] = {
                 ["y"] = -83.632152327349;
@@ -792,20 +1008,44 @@ MDT.dungeonEnemies[dungeonIndex] = {
             [16] = {
                 ["sublevel"] = 2;
                 ["inspiring"] = true;
-                ["y"] = -134.9925862069;
-                ["g"] = 24;
                 ["x"] = 292.84781609195;
+                ["g"] = 24;
+                ["y"] = -134.9925862069;
             };
         };
         ["id"] = 163506;
+        ["spells"] = {
+            [288865] = {};
+            [30831] = {};
+            [27638] = {};
+            [132466] = {};
+            [323744] = {};
+            [132951] = {};
+            [224729] = {};
+            [317898] = {};
+        };
+        ["characteristics"] = {
+            ["Taunt"] = true;
+            ["Incapacitate"] = true;
+            ["Root"] = true;
+            ["Imprison"] = true;
+            ["Polymorph"] = true;
+            ["Mind Control"] = true;
+            ["Sap"] = true;
+            ["Disorient"] = true;
+            ["Silence"] = true;
+            ["Slow"] = true;
+            ["Stun"] = true;
+            ["Fear"] = true;
+        };
+        ["name"] = "Forsworn Stealthclaw";
         ["stealth"] = true;
-        ["scale"] = 0.7;
-        ["health"] = 80100;
+        ["count"] = 4;
         ["displayId"] = 93462;
         ["creatureType"] = "Beast";
         ["level"] = 60;
-        ["count"] = 4;
-        ["name"] = "Forsworn Stealthclaw";
+        ["health"] = 80100;
+        ["scale"] = 0.7;
     };
     [12] = {
         ["clones"] = {
@@ -827,10 +1067,11 @@ MDT.dungeonEnemies[dungeonIndex] = {
                 ["sublevel"] = 2;
             };
             [4] = {
-                ["y"] = -496.30718718673;
-                ["x"] = 473.38893692436;
-                ["g"] = 13;
                 ["sublevel"] = 2;
+                ["x"] = 473.38893692436;
+                ["patrol"] = {};
+                ["g"] = 13;
+                ["y"] = -496.30718718673;
             };
             [5] = {
                 ["y"] = -436.98084457573;
@@ -841,40 +1082,62 @@ MDT.dungeonEnemies[dungeonIndex] = {
             [6] = {
                 ["sublevel"] = 2;
                 ["inspiring"] = true;
-                ["y"] = -388.71385437505;
-                ["g"] = 17;
+                ["patrol"] = {};
                 ["x"] = 630.23712110311;
+                ["g"] = 17;
+                ["y"] = -388.71385437505;
             };
             [7] = {
                 ["sublevel"] = 2;
                 ["inspiring"] = true;
-                ["y"] = -286.64564851729;
-                ["g"] = 18;
                 ["x"] = 546.53647178034;
+                ["g"] = 18;
+                ["y"] = -286.64564851729;
             };
             [8] = {
                 ["sublevel"] = 2;
                 ["inspiring"] = true;
-                ["y"] = -191.18801265382;
-                ["g"] = 19;
                 ["x"] = 506.46842243128;
+                ["g"] = 19;
+                ["y"] = -191.18801265382;
             };
             [9] = {
                 ["sublevel"] = 2;
                 ["inspiring"] = true;
-                ["y"] = -91.29181617176;
-                ["g"] = 22;
                 ["x"] = 455.76063752292;
+                ["g"] = 22;
+                ["y"] = -91.29181617176;
             };
         };
         ["id"] = 163524;
-        ["scale"] = 1;
+        ["spells"] = {
+            [326868] = {};
+            [323804] = {};
+            [317898] = {};
+            [334882] = {};
+            [288865] = {};
+            [132951] = {};
+            [323786] = {};
+            [224729] = {};
+        };
+        ["characteristics"] = {
+            ["Taunt"] = true;
+            ["Incapacitate"] = true;
+            ["Root"] = true;
+            ["Polymorph"] = true;
+            ["Disorient"] = true;
+            ["Stun"] = true;
+            ["Slow"] = true;
+            ["Silence"] = true;
+            ["Fear"] = true;
+        };
+        ["name"] = "Kyrian Dark-Praetor";
         ["health"] = 104130;
         ["displayId"] = 92193;
         ["creatureType"] = "Mechanical";
         ["level"] = 60;
         ["count"] = 5;
-        ["name"] = "Kyrian Dark-Praetor";
+        ["scale"] = 1;
     };
     [13] = {
         ["clones"] = {
@@ -887,33 +1150,61 @@ MDT.dungeonEnemies[dungeonIndex] = {
             [2] = {
                 ["sublevel"] = 2;
                 ["inspiring"] = true;
-                ["y"] = -298.63622250596;
-                ["g"] = 18;
                 ["x"] = 544.18337685741;
+                ["g"] = 18;
+                ["y"] = -298.63622250596;
             };
             [3] = {
                 ["sublevel"] = 2;
                 ["inspiring"] = true;
-                ["y"] = -102.97397124752;
-                ["g"] = 20;
                 ["x"] = 504.23346953768;
+                ["g"] = 20;
+                ["y"] = -102.97397124752;
             };
             [4] = {
                 ["sublevel"] = 2;
                 ["inspiring"] = true;
-                ["y"] = -134.41949006722;
-                ["g"] = 24;
                 ["x"] = 277.0064198426;
+                ["g"] = 24;
+                ["y"] = -134.41949006722;
             };
         };
         ["id"] = 168418;
-        ["scale"] = 1;
+        ["spells"] = {
+            [288865] = {};
+            [327648] = {};
+            [334882] = {};
+            [121308] = {};
+            [132951] = {};
+            [201657] = {};
+            [224729] = {};
+            [326868] = {};
+            [327647] = {};
+            [317898] = {};
+            [317959] = {};
+        };
+        ["characteristics"] = {
+            ["Taunt"] = true;
+            ["Incapacitate"] = true;
+            ["Root"] = true;
+            ["Repentance"] = true;
+            ["Imprison"] = true;
+            ["Polymorph"] = true;
+            ["Disorient"] = true;
+            ["Sap"] = true;
+            ["Stun"] = true;
+            ["Silence"] = true;
+            ["Slow"] = true;
+            ["Mind Control"] = true;
+            ["Fear"] = true;
+        };
+        ["name"] = "Forsworn Inquisitor";
         ["health"] = 80100;
         ["displayId"] = 94316;
         ["creatureType"] = "Humanoid";
         ["level"] = 60;
         ["count"] = 4;
-        ["name"] = "Forsworn Inquisitor";
+        ["scale"] = 1;
     };
     [14] = {
         ["clones"] = {
@@ -923,17 +1214,31 @@ MDT.dungeonEnemies[dungeonIndex] = {
                 ["sublevel"] = 2;
             };
         };
+        ["characteristics"] = {
+            ["Taunt"] = true;
+        };
         ["id"] = 162058;
+        ["spells"] = {
+            [324205] = {};
+            [324146] = {};
+            [338070] = {};
+            [324154] = {};
+            [132951] = {};
+            [132466] = {};
+            [288865] = {};
+            [324148] = {};
+            [334485] = {};
+        };
         ["isBoss"] = true;
         ["encounterID"] = 2416;
         ["instanceID"] = 1186;
-        ["scale"] = 1;
+        ["name"] = "Ventunax";
         ["health"] = 480600;
         ["displayId"] = 92193;
         ["creatureType"] = "Mechanical";
         ["level"] = 60;
         ["count"] = 0;
-        ["name"] = "Ventunax";
+        ["scale"] = 1;
     };
     [15] = {
         ["clones"] = {
@@ -962,13 +1267,29 @@ MDT.dungeonEnemies[dungeonIndex] = {
             };
         };
         ["id"] = 168681;
-        ["scale"] = 1;
+        ["spells"] = {
+            [323740] = {};
+            [328203] = {};
+            [121308] = {};
+            [132951] = {};
+            [288865] = {};
+            [328205] = {};
+            [323739] = {};
+            [326868] = {};
+            [328217] = {};
+            [324392] = {};
+            [336444] = {};
+        };
+        ["characteristics"] = {
+            ["Taunt"] = true;
+        };
+        ["name"] = "Forsworn Helion";
         ["health"] = 128160;
         ["displayId"] = 94919;
         ["creatureType"] = "Humanoid";
         ["level"] = 60;
         ["count"] = 6;
-        ["name"] = "Forsworn Helion";
+        ["scale"] = 1;
     };
     [16] = {
         ["clones"] = {
@@ -981,9 +1302,9 @@ MDT.dungeonEnemies[dungeonIndex] = {
             [2] = {
                 ["sublevel"] = 3;
                 ["inspiring"] = true;
-                ["y"] = -322.82719227387;
-                ["g"] = 27;
                 ["x"] = 394.63622002074;
+                ["g"] = 27;
+                ["y"] = -322.82719227387;
             };
             [3] = {
                 ["y"] = -275.28384020815;
@@ -1017,13 +1338,41 @@ MDT.dungeonEnemies[dungeonIndex] = {
             };
         };
         ["id"] = 168718;
-        ["scale"] = 1;
+        ["spells"] = {
+            [288865] = {};
+            [328289] = {};
+            [326868] = {};
+            [328290] = {};
+            [121308] = {};
+            [132951] = {};
+            [328295] = {};
+            [224729] = {};
+            [328288] = {};
+            [324392] = {};
+            [317898] = {};
+        };
+        ["characteristics"] = {
+            ["Taunt"] = true;
+            ["Incapacitate"] = true;
+            ["Root"] = true;
+            ["Repentance"] = true;
+            ["Disorient"] = true;
+            ["Polymorph"] = true;
+            ["Mind Control"] = true;
+            ["Sap"] = true;
+            ["Stun"] = true;
+            ["Silence"] = true;
+            ["Slow"] = true;
+            ["Fear"] = true;
+            ["Imprison"] = true;
+        };
+        ["name"] = "Forsworn Warden";
         ["health"] = 72090;
         ["displayId"] = 94313;
         ["creatureType"] = "Humanoid";
         ["level"] = 60;
         ["count"] = 4;
-        ["name"] = "Forsworn Warden";
+        ["scale"] = 1;
     };
     [17] = {
         ["clones"] = {
@@ -1059,13 +1408,42 @@ MDT.dungeonEnemies[dungeonIndex] = {
             };
         };
         ["id"] = 168717;
-        ["scale"] = 1;
+        ["spells"] = {
+            [288865] = {};
+            [317898] = {};
+            [328331] = {};
+            [317959] = {};
+            [132951] = {};
+            [328332] = {};
+            [326868] = {};
+            [224729] = {};
+            [132466] = {};
+            [324392] = {};
+            [121308] = {};
+            [328330] = {};
+        };
+        ["characteristics"] = {
+            ["Taunt"] = true;
+            ["Incapacitate"] = true;
+            ["Root"] = true;
+            ["Repentance"] = true;
+            ["Disorient"] = true;
+            ["Polymorph"] = true;
+            ["Mind Control"] = true;
+            ["Sap"] = true;
+            ["Stun"] = true;
+            ["Silence"] = true;
+            ["Slow"] = true;
+            ["Fear"] = true;
+            ["Imprison"] = true;
+        };
+        ["name"] = "Forsworn Justicar";
         ["health"] = 80100;
         ["displayId"] = 95754;
         ["creatureType"] = "Humanoid";
         ["level"] = 60;
         ["count"] = 4;
-        ["name"] = "Forsworn Justicar";
+        ["scale"] = 1;
     };
     [18] = {
         ["clones"] = {
@@ -1143,13 +1521,35 @@ MDT.dungeonEnemies[dungeonIndex] = {
             };
         };
         ["id"] = 166411;
-        ["scale"] = 0.7;
+        ["spells"] = {
+            [288865] = {};
+            [317898] = {};
+            [323682] = {};
+            [132951] = {};
+            [224729] = {};
+        };
+        ["characteristics"] = {
+            ["Taunt"] = true;
+            ["Incapacitate"] = true;
+            ["Root"] = true;
+            ["Repentance"] = true;
+            ["Disorient"] = true;
+            ["Polymorph"] = true;
+            ["Mind Control"] = true;
+            ["Sap"] = true;
+            ["Stun"] = true;
+            ["Silence"] = true;
+            ["Slow"] = true;
+            ["Imprison"] = true;
+            ["Fear"] = true;
+        };
+        ["name"] = "Forsworn Usurper";
         ["health"] = 16020;
         ["displayId"] = 93482;
         ["creatureType"] = "Humanoid";
         ["level"] = 60;
         ["count"] = 1;
-        ["name"] = "Forsworn Usurper";
+        ["scale"] = 0.7;
     };
     [19] = {
         ["clones"] = {
@@ -1159,17 +1559,37 @@ MDT.dungeonEnemies[dungeonIndex] = {
                 ["sublevel"] = 3;
             };
         };
+        ["characteristics"] = {
+            ["Taunt"] = true;
+        };
         ["id"] = 162060;
+        ["spells"] = {
+            [288865] = {};
+            [338729] = {};
+            [334053] = {};
+            [324427] = {};
+            [326868] = {};
+            [324608] = {};
+            [132951] = {};
+            [331997] = {};
+            [338731] = {};
+            [323195] = {};
+            [324444] = {};
+            [323878] = {};
+            [324392] = {};
+            [324046] = {};
+            [323372] = {};
+        };
         ["isBoss"] = true;
         ["encounterID"] = 2414;
         ["instanceID"] = 1186;
-        ["scale"] = 1;
+        ["name"] = "Oryphrion";
         ["health"] = 881100;
         ["displayId"] = 97621;
         ["creatureType"] = "Mechanical";
         ["level"] = 60;
         ["count"] = 0;
-        ["name"] = "Oryphrion";
+        ["scale"] = 1;
     };
     [20] = {
         ["clones"] = {
@@ -1180,13 +1600,34 @@ MDT.dungeonEnemies[dungeonIndex] = {
             };
         };
         ["id"] = 168843;
-        ["scale"] = 1.5;
+        ["spells"] = {
+            [328435] = {};
+            [225832] = {};
+            [326868] = {};
+            [328462] = {};
+            [328466] = {};
+            [336420] = {};
+            [121308] = {};
+            [132951] = {};
+            [328452] = {};
+            [336496] = {};
+            [288865] = {};
+            [328434] = {};
+            [328453] = {};
+            [324662] = {};
+            [336444] = {};
+            [323739] = {};
+        };
+        ["characteristics"] = {
+            ["Taunt"] = true;
+        };
+        ["name"] = "Klotos";
         ["health"] = 240300;
         ["displayId"] = 95759;
         ["creatureType"] = "Humanoid";
         ["level"] = 60;
         ["count"] = 12;
-        ["name"] = "Klotos";
+        ["scale"] = 1.5;
     };
     [21] = {
         ["clones"] = {
@@ -1197,13 +1638,35 @@ MDT.dungeonEnemies[dungeonIndex] = {
             };
         };
         ["id"] = 168844;
-        ["scale"] = 1.5;
+        ["spells"] = {
+            [326868] = {};
+            [328434] = {};
+            [328458] = {};
+            [328435] = {};
+            [132466] = {};
+            [336496] = {};
+            [324662] = {};
+            [132951] = {};
+            [328453] = {};
+            [336444] = {};
+            [328454] = {};
+            [328462] = {};
+            [225832] = {};
+            [288865] = {};
+            [328466] = {};
+            [336420] = {};
+            [121308] = {};
+        };
+        ["characteristics"] = {
+            ["Taunt"] = true;
+        };
+        ["name"] = "Lakesis";
         ["health"] = 240300;
         ["displayId"] = 95759;
         ["creatureType"] = "Humanoid";
         ["level"] = 60;
         ["count"] = 12;
-        ["name"] = "Lakesis";
+        ["scale"] = 1.5;
     };
     [22] = {
         ["clones"] = {
@@ -1214,13 +1677,30 @@ MDT.dungeonEnemies[dungeonIndex] = {
             };
         };
         ["id"] = 168845;
-        ["scale"] = 1.5;
+        ["spells"] = {
+            [288865] = {};
+            [326868] = {};
+            [328462] = {};
+            [328466] = {};
+            [121308] = {};
+            [132951] = {};
+            [336496] = {};
+            [328434] = {};
+            [328453] = {};
+            [333887] = {};
+            [336444] = {};
+            [324662] = {};
+        };
+        ["characteristics"] = {
+            ["Taunt"] = true;
+        };
+        ["name"] = "Astronos";
         ["health"] = 240300;
         ["displayId"] = 95759;
         ["creatureType"] = "Humanoid";
         ["level"] = 60;
         ["count"] = 12;
-        ["name"] = "Astronos";
+        ["scale"] = 1.5;
     };
     [23] = {
         ["clones"] = {
@@ -1230,18 +1710,37 @@ MDT.dungeonEnemies[dungeonIndex] = {
                 ["sublevel"] = 4;
             };
         };
+        ["characteristics"] = {
+            ["Taunt"] = true;
+        };
         ["id"] = 162061;
+        ["spells"] = {
+            [288865] = {};
+            [322814] = {};
+            [323943] = {};
+            [132951] = {};
+            [323010] = {};
+            [322999] = {};
+            [325748] = {};
+            [335817] = {};
+            [323011] = {};
+            [334625] = {};
+            [326868] = {};
+            [322818] = {};
+            [322817] = {};
+            [322893] = {};
+            [322908] = {};
+        };
         ["isBoss"] = true;
         ["encounterID"] = 2412;
         ["instanceID"] = 0;
-        ["scale"] = 1.5;
+        ["name"] = "Devos";
         ["health"] = 961200;
         ["displayId"] = 95665;
         ["creatureType"] = "Humanoid";
         ["level"] = 60;
         ["count"] = 0;
-        ["name"] = "Devos";
+        ["scale"] = 1.5;
     };
 };
-
 

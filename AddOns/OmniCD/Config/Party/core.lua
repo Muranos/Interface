@@ -13,7 +13,7 @@ P.options = {
 	args = {},
 }
 
-for key, name in pairs(E.CFG_ZONE) do
+for key, name in pairs(E.L_ZONE) do
 	P.options.args[key] = {
 		disabled = function(info) return info[3] and not E.DB.profile.Party.visibility[info[2]] or not E.GetModuleEnabled(modname) end,
 		name = name,
@@ -21,7 +21,7 @@ for key, name in pairs(E.CFG_ZONE) do
 		childGroups = "tab",
 		args = {
 			title = {
-				name = "|cffffff20" .. name,
+				name = name,
 				order = 0,
 				type = "description",
 				fontSize = "large",
@@ -52,7 +52,27 @@ for key, name in pairs(E.CFG_ZONE) do
 			},
 		}
 	}
+
+	if key == "none" or key == "scenario" then
+		P.options.args[key].args.lb1 = {
+			name = "\n", order = 10, type = "description",
+		}
+		P.options.args[key].args.zoneSetting = {
+			name = L["Use Zone Settings From:"],
+			desc = L["Select the zone setting to use for this zone."],
+			order = 20,
+			type = "select",
+			values = E.CFG_ZONE,
+			get = function(info) return E.DB.profile.Party[info[2] == "none" and "noneZoneSetting" or "scenarioZoneSetting"] end, -- [83]
+			set = function(info, value)
+				E.DB.profile.Party[info[2] == "none" and "noneZoneSetting" or "scenarioZoneSetting"] = value
+
+				P:Refresh(true) -- [76]
+			end,
+		}
+	end
 end
+
 
 do
 	local timer
@@ -61,6 +81,9 @@ do
 		P:UpdatePositionValues()
 		for _, info in pairs(P.groupInfo) do
 			local f = info.bar
+			--[[ xml
+			P:SetOffset(f) -- after UpdatePositionValues
+			--]]
 			P:SetBarBackdrop(f)
 			P:SetIconLayout(f)
 		end
@@ -70,19 +93,17 @@ do
 		end
 	end
 
-	function P:ConfigSize(key, slider)
+	function P:ConfigSize(key, slider, force)
 		if key and E.db ~= E.DB.profile.Party[key] then
 			return
 		end
 
-		local scale = E.db.icons.scale
 		for _, info in pairs(self.groupInfo) do
 			local f = info.bar
-			f.anchor:SetScale(math.min(scale, 1))
-			f.container:SetScale(scale)
+			self:SetIconScale(f)
 		end
 
-		if E.db.icons.displayBorder then
+		if E.db.icons.displayBorder or force then
 			if slider then
 				if not timer then
 					timer = E.TimerAfter(0.5, updatePixelObj)
@@ -110,7 +131,7 @@ function P:ConfigBars(key, arg)
 		if arg == "preset" or arg == "anchor" or arg == "attach" then
 			if not E.db.position.detached then
 				local _, relativeTo = f:GetPoint()
-				if relativeTo ~= "UIParent" then
+				if relativeTo ~= UIParent then
 					f:ClearAllPoints()
 					f:SetPoint(self.point, relativeTo, self.relativePoint)
 				end
@@ -120,13 +141,29 @@ function P:ConfigBars(key, arg)
 			self:SetOffset(f)
 			self:SetIconLayout(f)
 		elseif arg == "offsetX" or arg == "offsetY" then
+		--[[ xml
+		elseif arg == "offsetX" or arg == "offsetY" or arg == "modRowOfsX" then
+		--]]
 			self:SetOffset(f)
 		elseif arg == "showAnchor" or arg == "locked" or arg == "detached" then
 			self:SetAnchor(f)
 		elseif arg == "reset" then
 			E.LoadPosition(f)
-		else -- [20]
+		--[[ xml
+		elseif arg == "layout" or arg == "breakPoint" or arg == "priority" then
+			if self.doubleRow and E.db.icons.modRowEnabled and arg == "layout" then
+				self:ConfigSize(key)
+			end
+			self:SetBarBackdrop(f)
 			self:SetIconLayout(f, arg == "priority")
+		--]]
+		else -- [20]
+			--[[ xml
+			if self.doubleRow and E.db.icons.modRowEnabled and (arg == "paddingY" or arg == "growUpward") then
+				self:SetOffset(f)
+			end
+			--]]
+			self:SetIconLayout(f)
 		end
 	end
 end
@@ -150,6 +187,12 @@ function P:ConfigIconSettings(f, arg, key)
 			else
 				self:SetBorder(icon)
 			end
+		--[[ xml
+		elseif arg == "modRowCropped" then
+			if E.db.icons.displayBorder and not key then -- main unit bar border only
+				self:SetBorder(icon)
+			end
+		--]]
 		elseif arg == "borderColor" then
 			local r, g, b = E.db.icons.borderColor.r, E.db.icons.borderColor.g, E.db.icons.borderColor.b
 			if key then
@@ -206,8 +249,8 @@ function P:ResetOptions(key, tab, subtab)
 	end
 end
 
-P.UpdateExecuteNames = function() -- [2]
-	if not E.options then
+P.UpdateExecuteNames = function()
+	if not E.options then -- [2]
 		return
 	end
 

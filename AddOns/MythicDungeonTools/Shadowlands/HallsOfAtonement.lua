@@ -68,6 +68,7 @@ MDT.mapPOIs[dungeonIndex] = {
         };
     };
 };
+
 MDT.dungeonEnemies[dungeonIndex] = {
     [1] = {
         ["clones"] = {
@@ -181,13 +182,41 @@ MDT.dungeonEnemies[dungeonIndex] = {
             };
         };
         ["id"] = 165515;
+        ["spells"] = {
+            [288865] = {};
+            [317898] = {};
+            [334882] = {};
+            [121308] = {};
+            [132951] = {};
+            [201657] = {};
+            [224729] = {};
+            [325523] = {};
+            [320297] = {};
+            [325748] = {};
+            [186439] = {};
+        };
         ["scale"] = 1;
         ["health"] = 80100;
+        ["count"] = 4;
         ["displayId"] = 93074;
         ["creatureType"] = "Humanoid";
         ["level"] = 60;
-        ["count"] = 4;
         ["name"] = "Depraved Darkblade";
+        ["characteristics"] = {
+            ["Taunt"] = true;
+            ["Incapacitate"] = true;
+            ["Root"] = true;
+            ["Fear"] = true;
+            ["Mind Control"] = true;
+            ["Polymorph"] = true;
+            ["Disorient"] = true;
+            ["Sap"] = true;
+            ["Stun"] = true;
+            ["Silence"] = true;
+            ["Slow"] = true;
+            ["Imprison"] = true;
+            ["Repentance"] = true;
+        };
     };
     [2] = {
         ["clones"] = {
@@ -435,13 +464,43 @@ MDT.dungeonEnemies[dungeonIndex] = {
             };
         };
         ["id"] = 164562;
+        ["spells"] = {
+            [288865] = {};
+            [325799] = {};
+            [317898] = {};
+            [334882] = {};
+            [121308] = {};
+            [325793] = {};
+            [325797] = {};
+            [326450] = {};
+            [224729] = {};
+            [325535] = {};
+            [320297] = {};
+            [132951] = {};
+            [201657] = {};
+        };
         ["scale"] = 1;
         ["health"] = 72090;
+        ["count"] = 4;
         ["displayId"] = 97001;
         ["creatureType"] = "Humanoid";
         ["level"] = 60;
-        ["count"] = 4;
         ["name"] = "Depraved Houndmaster";
+        ["characteristics"] = {
+            ["Taunt"] = true;
+            ["Incapacitate"] = true;
+            ["Root"] = true;
+            ["Fear"] = true;
+            ["Imprison"] = true;
+            ["Polymorph"] = true;
+            ["Disorient"] = true;
+            ["Sap"] = true;
+            ["Stun"] = true;
+            ["Silence"] = true;
+            ["Slow"] = true;
+            ["Mind Control"] = true;
+            ["Repentance"] = true;
+        };
     };
     [3] = {
         ["clones"] = {
@@ -574,13 +633,40 @@ MDT.dungeonEnemies[dungeonIndex] = {
             };
         };
         ["id"] = 164563;
+        ["spells"] = {
+            [288865] = {};
+            [329324] = {};
+            [317898] = {};
+            [334882] = {};
+            [329321] = {};
+            [132951] = {};
+            [201657] = {};
+            [224729] = {};
+            [132466] = {};
+            [320297] = {};
+            [344993] = {};
+        };
         ["scale"] = 1;
         ["health"] = 88110;
+        ["count"] = 4;
         ["displayId"] = 93163;
         ["creatureType"] = "Beast";
         ["level"] = 60;
-        ["count"] = 4;
         ["name"] = "Vicious Gargon";
+        ["characteristics"] = {
+            ["Taunt"] = true;
+            ["Incapacitate"] = true;
+            ["Root"] = true;
+            ["Fear"] = true;
+            ["Polymorph"] = true;
+            ["Mind Control"] = true;
+            ["Sap"] = true;
+            ["Silence"] = true;
+            ["Stun"] = true;
+            ["Slow"] = true;
+            ["Disorient"] = true;
+            ["Imprison"] = true;
+        };
     };
     [4] = {
         ["clones"] = {
@@ -712,13 +798,44 @@ MDT.dungeonEnemies[dungeonIndex] = {
             };
         };
         ["id"] = 165414;
+        ["spells"] = {
+            [288865] = {};
+            [317898] = {};
+            [334882] = {};
+            [325879] = {};
+            [121308] = {};
+            [132951] = {};
+            [325872] = {};
+            [325876] = {};
+            [201657] = {};
+            [224729] = {};
+            [338003] = {};
+            [320297] = {};
+            [326868] = {};
+            [186439] = {};
+        };
         ["scale"] = 1;
         ["health"] = 72090;
+        ["count"] = 4;
         ["displayId"] = 93680;
         ["creatureType"] = "Humanoid";
         ["level"] = 60;
-        ["count"] = 4;
         ["name"] = "Depraved Obliterator";
+        ["characteristics"] = {
+            ["Taunt"] = true;
+            ["Incapacitate"] = true;
+            ["Root"] = true;
+            ["Fear"] = true;
+            ["Repentance"] = true;
+            ["Polymorph"] = true;
+            ["Disorient"] = true;
+            ["Sap"] = true;
+            ["Silence"] = true;
+            ["Stun"] = true;
+            ["Slow"] = true;
+            ["Mind Control"] = true;
+            ["Imprison"] = true;
+        };
     };
     [5] = {
         ["clones"] = {
@@ -764,13 +881,34 @@ MDT.dungeonEnemies[dungeonIndex] = {
             };
         };
         ["id"] = 174175;
+        ["spells"] = {
+            [288865] = {};
+            [80354] = {};
+            [118459] = {};
+            [342021] = {};
+            [35079] = {};
+            [186439] = {};
+            [132951] = {};
+            [346866] = {};
+            [201657] = {};
+            [57724] = {};
+            [342189] = {};
+            [328123] = {};
+            [96243] = {};
+            [328506] = {};
+            [344991] = {};
+        };
         ["scale"] = 1;
         ["health"] = 128160;
+        ["count"] = 4;
         ["displayId"] = 95706;
         ["creatureType"] = "Humanoid";
         ["level"] = 60;
-        ["count"] = 4;
         ["name"] = "Loyal Stoneborn";
+        ["characteristics"] = {
+            ["Taunt"] = true;
+            ["Mind Control"] = true;
+        };
     };
     [6] = {
         ["clones"] = {
@@ -924,8 +1062,8 @@ MDT.dungeonEnemies[dungeonIndex] = {
                 ["sublevel"] = 1;
             };
             [15] = {
-                ["y"] = -369.89746727959;
-                ["x"] = 506.27323337648;
+                ["y"] = -417.82554377915;
+                ["x"] = 547.51366424943;
                 ["patrol"] = {
                     [1] = {
                         ["y"] = -369.89746727959;
@@ -1148,13 +1286,39 @@ MDT.dungeonEnemies[dungeonIndex] = {
             };
         };
         ["id"] = 165415;
+        ["spells"] = {
+            [338005] = {};
+            [317898] = {};
+            [121308] = {};
+            [132951] = {};
+            [201657] = {};
+            [224729] = {};
+            [132466] = {};
+            [338004] = {};
+            [288865] = {};
+        };
         ["scale"] = 0.6;
         ["health"] = 48060;
+        ["count"] = 2;
         ["displayId"] = 93814;
         ["creatureType"] = "Humanoid";
         ["level"] = 60;
-        ["count"] = 2;
         ["name"] = "Toiling Groundskeeper";
+        ["characteristics"] = {
+            ["Taunt"] = true;
+            ["Incapacitate"] = true;
+            ["Root"] = true;
+            ["Fear"] = true;
+            ["Mind Control"] = true;
+            ["Polymorph"] = true;
+            ["Disorient"] = true;
+            ["Sap"] = true;
+            ["Silence"] = true;
+            ["Stun"] = true;
+            ["Slow"] = true;
+            ["Imprison"] = true;
+            ["Repentance"] = true;
+        };
     };
     [7] = {
         ["clones"] = {
@@ -1185,13 +1349,40 @@ MDT.dungeonEnemies[dungeonIndex] = {
             };
         };
         ["id"] = 165529;
+        ["spells"] = {
+            [288865] = {};
+            [317898] = {};
+            [334882] = {};
+            [121308] = {};
+            [132951] = {};
+            [325700] = {};
+            [224729] = {};
+            [320297] = {};
+            [325701] = {};
+            [326868] = {};
+        };
         ["scale"] = 1;
         ["health"] = 80100;
+        ["count"] = 4;
         ["displayId"] = 94573;
         ["creatureType"] = "Humanoid";
         ["level"] = 60;
-        ["count"] = 4;
         ["name"] = "Depraved Collector";
+        ["characteristics"] = {
+            ["Taunt"] = true;
+            ["Incapacitate"] = true;
+            ["Root"] = true;
+            ["Fear"] = true;
+            ["Mind Control"] = true;
+            ["Polymorph"] = true;
+            ["Disorient"] = true;
+            ["Sap"] = true;
+            ["Stun"] = true;
+            ["Silence"] = true;
+            ["Slow"] = true;
+            ["Imprison"] = true;
+            ["Repentance"] = true;
+        };
     };
     [8] = {
         ["clones"] = {
@@ -1215,13 +1406,28 @@ MDT.dungeonEnemies[dungeonIndex] = {
             };
         };
         ["id"] = 164557;
+        ["spells"] = {
+            [326440] = {};
+            [326868] = {};
+            [326426] = {};
+            [132951] = {};
+            [325509] = {};
+            [326409] = {};
+            [132466] = {};
+            [326438] = {};
+            [326441] = {};
+            [288865] = {};
+        };
         ["scale"] = 1.5;
         ["health"] = 192240;
+        ["count"] = 10;
         ["displayId"] = 94868;
         ["creatureType"] = "Elemental";
         ["level"] = 60;
-        ["count"] = 10;
         ["name"] = "Shard of Halkias";
+        ["characteristics"] = {
+            ["Taunt"] = true;
+        };
     };
     [9] = {
         ["clones"] = {
@@ -1232,16 +1438,33 @@ MDT.dungeonEnemies[dungeonIndex] = {
             };
         };
         ["id"] = 165408;
+        ["scale"] = 1;
+        ["spells"] = {
+            [322945] = {};
+            [324044] = {};
+            [326868] = {};
+            [132951] = {};
+            [339237] = {};
+            [322711] = {};
+            [339235] = {};
+            [322943] = {};
+            [322936] = {};
+            [322977] = {};
+            [323001] = {};
+            [288865] = {};
+        };
         ["isBoss"] = true;
         ["encounterID"] = 2406;
         ["instanceID"] = 1185;
-        ["scale"] = 1;
         ["health"] = 560700;
+        ["count"] = 0;
         ["displayId"] = 98764;
         ["creatureType"] = "Elemental";
         ["level"] = 60;
-        ["count"] = 0;
         ["name"] = "Halkias";
+        ["characteristics"] = {
+            ["Taunt"] = true;
+        };
     };
     [10] = {
         ["clones"] = {
@@ -1283,13 +1506,26 @@ MDT.dungeonEnemies[dungeonIndex] = {
             };
         };
         ["id"] = 167612;
+        ["spells"] = {
+            [326623] = {};
+            [326632] = {};
+            [326868] = {};
+            [326636] = {};
+            [326617] = {};
+            [132951] = {};
+            [326607] = {};
+            [288865] = {};
+        };
         ["scale"] = 1;
         ["health"] = 128160;
+        ["count"] = 6;
         ["displayId"] = 93829;
         ["creatureType"] = "Humanoid";
         ["level"] = 60;
-        ["count"] = 6;
         ["name"] = "Stoneborn Reaver";
+        ["characteristics"] = {
+            ["Taunt"] = true;
+        };
     };
     [11] = {
         ["clones"] = {
@@ -1547,13 +1783,37 @@ MDT.dungeonEnemies[dungeonIndex] = {
             };
         };
         ["id"] = 167610;
+        ["spells"] = {
+            [288865] = {};
+            [317898] = {};
+            [326879] = {};
+            [132466] = {};
+            [334882] = {};
+            [132951] = {};
+            [224729] = {};
+            [326874] = {};
+        };
         ["scale"] = 0.6;
         ["health"] = 24030;
+        ["count"] = 1;
         ["displayId"] = 94765;
         ["creatureType"] = "Humanoid";
         ["level"] = 60;
-        ["count"] = 1;
         ["name"] = "Stonefiend Anklebiter";
+        ["characteristics"] = {
+            ["Taunt"] = true;
+            ["Incapacitate"] = true;
+            ["Root"] = true;
+            ["Fear"] = true;
+            ["Polymorph"] = true;
+            ["Mind Control"] = true;
+            ["Sap"] = true;
+            ["Stun"] = true;
+            ["Silence"] = true;
+            ["Slow"] = true;
+            ["Disorient"] = true;
+            ["Imprison"] = true;
+        };
     };
     [12] = {
         ["clones"] = {
@@ -1595,13 +1855,43 @@ MDT.dungeonEnemies[dungeonIndex] = {
             };
         };
         ["id"] = 167611;
+        ["spells"] = {
+            [288865] = {};
+            [317898] = {};
+            [326632] = {};
+            [326636] = {};
+            [35079] = {};
+            [326644] = {};
+            [132951] = {};
+            [326637] = {};
+            [224729] = {};
+            [326638] = {};
+            [326642] = {};
+            [326868] = {};
+            [334882] = {};
+        };
         ["scale"] = 1;
         ["health"] = 80100;
+        ["count"] = 4;
         ["displayId"] = 94724;
         ["creatureType"] = "Humanoid";
         ["level"] = 60;
-        ["count"] = 4;
         ["name"] = "Stoneborn Eviscerator";
+        ["characteristics"] = {
+            ["Taunt"] = true;
+            ["Incapacitate"] = true;
+            ["Root"] = true;
+            ["Fear"] = true;
+            ["Imprison"] = true;
+            ["Polymorph"] = true;
+            ["Mind Control"] = true;
+            ["Sap"] = true;
+            ["Silence"] = true;
+            ["Stun"] = true;
+            ["Slow"] = true;
+            ["Disorient"] = true;
+            ["Repentance"] = true;
+        };
     };
     [13] = {
         ["clones"] = {
@@ -1705,13 +1995,23 @@ MDT.dungeonEnemies[dungeonIndex] = {
             };
         };
         ["id"] = 167607;
+        ["spells"] = {
+            [326868] = {};
+            [326771] = {};
+            [132951] = {};
+            [326997] = {};
+            [288865] = {};
+        };
         ["scale"] = 1.3;
         ["health"] = 160200;
+        ["count"] = 7;
         ["displayId"] = 95707;
         ["creatureType"] = "Humanoid";
         ["level"] = 60;
-        ["count"] = 7;
         ["name"] = "Stoneborn Slasher";
+        ["characteristics"] = {
+            ["Taunt"] = true;
+        };
     };
     [14] = {
         ["clones"] = {
@@ -1722,16 +2022,35 @@ MDT.dungeonEnemies[dungeonIndex] = {
             };
         };
         ["id"] = 164185;
+        ["scale"] = 1;
+        ["spells"] = {
+            [288865] = {};
+            [326868] = {};
+            [319702] = {};
+            [319703] = {};
+            [326389] = {};
+            [132951] = {};
+            [319962] = {};
+            [328206] = {};
+            [319941] = {};
+            [344874] = {};
+            [319603] = {};
+            [319592] = {};
+            [327411] = {};
+            [319733] = {};
+        };
         ["isBoss"] = true;
         ["encounterID"] = 2387;
         ["instanceID"] = 1185;
-        ["scale"] = 1;
         ["health"] = 560700;
+        ["count"] = 0;
         ["displayId"] = 96260;
         ["creatureType"] = "Humanoid";
         ["level"] = 60;
-        ["count"] = 0;
         ["name"] = "Echelon";
+        ["characteristics"] = {
+            ["Taunt"] = true;
+        };
     };
     [15] = {
         ["clones"] = {
@@ -1742,16 +2061,28 @@ MDT.dungeonEnemies[dungeonIndex] = {
             };
         };
         ["id"] = 165410;
+        ["scale"] = 1;
+        ["spells"] = {
+            [288865] = {};
+            [323538] = {};
+            [132466] = {};
+            [329340] = {};
+            [132951] = {};
+            [323552] = {};
+            [326868] = {};
+        };
         ["isBoss"] = true;
         ["encounterID"] = 2411;
         ["instanceID"] = 1185;
-        ["scale"] = 1;
         ["health"] = 560700;
+        ["count"] = 0;
         ["displayId"] = 94503;
         ["creatureType"] = "Humanoid";
         ["level"] = 60;
-        ["count"] = 0;
         ["name"] = "High Adjudicator Aleez";
+        ["characteristics"] = {
+            ["Taunt"] = true;
+        };
     };
     [16] = {
         ["clones"] = {
@@ -1901,13 +2232,32 @@ MDT.dungeonEnemies[dungeonIndex] = {
             };
         };
         ["id"] = 167892;
+        ["spells"] = {
+            [288865] = {};
+            [132951] = {};
+            [317898] = {};
+            [320297] = {};
+        };
         ["scale"] = 1;
         ["health"] = 16020;
+        ["count"] = 0;
         ["displayId"] = 90426;
         ["creatureType"] = "Undead";
         ["level"] = 60;
-        ["count"] = 0;
         ["name"] = "Tormented Soul";
+        ["characteristics"] = {
+            ["Taunt"] = true;
+            ["Incapacitate"] = true;
+            ["Shackle Undead"] = true;
+            ["Root"] = true;
+            ["Control Undead"] = true;
+            ["Polymorph"] = true;
+            ["Disorient"] = true;
+            ["Silence"] = true;
+            ["Slow"] = true;
+            ["Stun"] = true;
+            ["Fear"] = true;
+        };
     };
     [17] = {
         ["clones"] = {
@@ -1918,13 +2268,30 @@ MDT.dungeonEnemies[dungeonIndex] = {
             };
         };
         ["id"] = 167876;
+        ["spells"] = {
+            [288865] = {};
+            [326868] = {};
+            [326846] = {};
+            [121308] = {};
+            [132951] = {};
+            [326847] = {};
+            [326806] = {};
+            [326829] = {};
+            [132466] = {};
+            [326794] = {};
+            [326891] = {};
+            [325748] = {};
+        };
         ["scale"] = 1.5;
         ["health"] = 240300;
+        ["count"] = 20;
         ["displayId"] = 93070;
         ["creatureType"] = "Humanoid";
         ["level"] = 60;
-        ["count"] = 20;
         ["name"] = "Inquisitor Sigar";
+        ["characteristics"] = {
+            ["Taunt"] = true;
+        };
     };
     [18] = {
         ["clones"] = {
@@ -1935,16 +2302,37 @@ MDT.dungeonEnemies[dungeonIndex] = {
             };
         };
         ["id"] = 164218;
+        ["scale"] = 1;
+        ["spells"] = {
+            [288865] = {};
+            [323414] = {};
+            [326868] = {};
+            [323392] = {};
+            [323437] = {};
+            [327885] = {};
+            [329104] = {};
+            [323393] = {};
+            [329262] = {};
+            [323236] = {};
+            [335345] = {};
+            [329113] = {};
+            [323143] = {};
+            [335338] = {};
+            [328791] = {};
+            [132951] = {};
+        };
         ["isBoss"] = true;
         ["encounterID"] = 2413;
         ["instanceID"] = 1185;
-        ["scale"] = 1;
         ["health"] = 640800;
+        ["count"] = 0;
         ["displayId"] = 95103;
         ["creatureType"] = "Humanoid";
         ["level"] = 60;
-        ["count"] = 0;
         ["name"] = "Lord Chamberlain";
+        ["characteristics"] = {
+            ["Taunt"] = true;
+        };
     };
 };
 

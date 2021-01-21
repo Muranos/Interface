@@ -2,6 +2,7 @@ local E, L, C = select(2, ...):unpack()
 
 local P = E["Party"]
 local date = date
+local ceil = math.ceil
 
 local unusedStatusBars = {}
 local numStatusBars = 0
@@ -130,7 +131,7 @@ local function CastingBarFrame_OnLoad(self, key, icon)
 		self.Spark.offsetY = offsetY;
 	end
 
-	if P.groupInfo[icon.guid].active[icon.spellID] then -- [67]
+	if P.groupInfo[icon.guid].active[icon.spellID] then -- [67] [81]
 		P.OmniCDCastingBarFrame_OnEvent(self, E.db.extraBars[key].reverseFill and  "UNIT_SPELLCAST_CHANNEL_START" or "UNIT_SPELLCAST_START")
 	end
 end
@@ -179,7 +180,9 @@ function P.CastingBarFrame_FinishSpell(self)
 		self.Flash:Show();
 	end]]
 	--self.flash = true;
-	self.fadeOut = true;
+	if self.statusBar.key == "raidCDBar" then
+		self.fadeOut = true;
+	end
 	self.casting = nil;
 	self.channeling = nil;
 end
@@ -241,7 +244,7 @@ function OmniCDCastingBarFrame_OnUpdate(self, elapsed)
 			self.Spark:SetPoint("CENTER", self, "LEFT", sparkPosition, self.Spark.offsetY or 2);
 		end
 
-		local counter = date("%M:%S", self.maxValue - self.value) -- [67]
+		local counter = self.statusBar.key == "raidCDBar" and date("%M:%S", self.maxValue - self.value) or ceil(self.maxValue - self.value) -- [67]
 		self.Timer:SetText(counter)
 	elseif ( self.channeling ) then
 		self.value = self.value - elapsed;
@@ -254,7 +257,7 @@ function OmniCDCastingBarFrame_OnUpdate(self, elapsed)
 			self.Flash:Hide();
 		end]]
 
-		local counter = date("%M:%S", self.value) -- [67]
+		local counter = self.statusBar.key == "raidCDBar" and date("%M:%S", self.value) or ceil(self.value) -- [67]
 		self.Timer:SetText(counter)
 		if ( self.Spark ) then
 			local sparkPosition = (self.value / self.maxValue) * self:GetWidth();
@@ -289,6 +292,12 @@ function OmniCDCastingBarFrame_OnUpdate(self, elapsed)
 			statusBar.Text:Show()
 			statusBar.BG:Show()
 		end
+	else -- [67]
+		self:Hide();
+
+		local statusBar = self.statusBar
+		statusBar.Text:Show()
+		statusBar.BG:Show()
 	end
 end
 

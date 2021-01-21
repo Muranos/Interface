@@ -8,7 +8,7 @@ local markEnhancedDesc = {}
 for k, v in pairs(E.spell_marked) do
 	if not C_Spell.DoesSpellExist(k) or (v ~= true and not C_Spell.DoesSpellExist(v)) then
 		E.spell_marked[k] = nil
-		E.Write("Removing Invalid ID (Enhanced): |cffffd200" .. k)
+		--E.Write("Removing Invalid ID (Enhanced): |cffffd200" .. k)
 	else
 		local id = v == true and k or v
 		local name = GetSpellInfo(id)

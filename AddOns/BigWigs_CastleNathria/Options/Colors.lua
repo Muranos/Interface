@@ -1,7 +1,7 @@
 
 BigWigs:AddColors("Shriekwing", {
-	[328857] = "purple",
-	[328897] = {"blue","green"},
+	[328857] = {"blue","purple"},
+	[328897] = {"blue","green","purple"},
 	[328921] = "green",
 	[329362] = "cyan",
 	[330711] = "red",
@@ -9,8 +9,10 @@ BigWigs:AddColors("Shriekwing", {
 	[341489] = {"cyan","green"},
 	[341684] = {"blue","green","red"},
 	[342074] = {"blue","yellow"},
-	[342863] = "yellow",
+	[342863] = "cyan",
 	[343005] = "yellow",
+	[345397] = "orange",
+	[345936] = "red",
 	["stages"] = "green",
 })
 
@@ -32,14 +34,14 @@ BigWigs:AddColors("Hungering Destroyer", {
 	[329298] = {"blue","yellow"},
 	[329455] = "yellow",
 	[329725] = "orange",
-	[329774] = "purple",
+	[329774] = {"blue","purple"},
 	[332295] = {"blue","purple"},
 	[334266] = {"blue","orange"},
 	[334522] = "orange",
 })
 
 BigWigs:AddColors("Artificer Xy'mox", {
-	[325236] = {"blue","purple"},
+	[325236] = {"blue","purple","yellow"},
 	[325399] = "yellow",
 	[326271] = "red",
 	[327414] = {"blue","red"},
@@ -75,6 +77,7 @@ BigWigs:AddColors("Sun King's Salvation", {
 	[333145] = "cyan",
 	[337859] = {"cyan","red"},
 	[339251] = "blue",
+	[343026] = {"cyan","red"},
 	["stages"] = "green",
 })
 
@@ -88,22 +91,30 @@ BigWigs:AddColors("Lady Inerva Darkvein", {
 	[331573] = {"blue","yellow"},
 	[331870] = "cyan",
 	[332664] = {"blue","yellow"},
+	[340452] = {"blue","purple"},
 	[341621] = "purple",
 	["anima_tracking"] = "cyan",
 })
 
 BigWigs:AddColors("The Council of Blood", {
-	[327497] = "orange",
-	[330848] = "red",
+	[327497] = {"blue","orange","purple"},
+	[330848] = {"blue","orange"},
 	[330959] = "green",
+	[330965] = "cyan",
+	[330978] = "yellow",
 	[331634] = {"blue","green","orange"},
 	[337110] = "yellow",
+	[346303] = "orange",
 	[346651] = {"blue","cyan"},
 	[346657] = "red",
-	[346690] = "purple",
-	[346698] = "yellow",
+	[346681] = {"blue","cyan","orange"},
+	[346690] = {"blue","purple"},
+	[346698] = "red",
+	[346790] = "purple",
 	[346800] = "yellow",
+	[346945] = "blue",
 	[347350] = {"blue","orange"},
+	["dance_assist"] = "blue",
 	["stages"] = "green",
 })
 
@@ -116,7 +127,9 @@ BigWigs:AddColors("Sludgefist", {
 	[335361] = "blue",
 	[335470] = {"blue","yellow"},
 	[340817] = "yellow",
+	[341193] = "yellow",
 	[341250] = "yellow",
+	["fun_info"] = "green",
 })
 
 BigWigs:AddColors("Stone Legion Generals", {
@@ -125,7 +138,6 @@ BigWigs:AddColors("Stone Legion Generals", {
 	[332406] = "green",
 	[332683] = "red",
 	[333387] = {"blue","orange"},
-	[334009] = {"blue","red"},
 	[334498] = "orange",
 	[334765] = {"blue","orange"},
 	[334929] = "yellow",
@@ -141,15 +153,21 @@ BigWigs:AddColors("Stone Legion Generals", {
 	[342733] = {"blue","red"},
 	[342985] = "cyan",
 	[343063] = "blue",
+	[344496] = {"blue","red"},
+	["stages"] = "cyan",
 })
 
 BigWigs:AddColors("Sire Denathrius", {
+	[-22131] = "yellow",
 	[326699] = {"blue","green","red"},
 	[326707] = "purple",
-	[326851] = "blue",
+	[326851] = {"blue","red"},
+	[327039] = {"blue","orange"},
 	[327122] = "orange",
+	[327227] = "yellow",
 	[327796] = {"blue","orange"},
 	[327992] = "blue",
+	[328276] = "green",
 	[328936] = "cyan",
 	[329181] = {"blue","purple","yellow"},
 	[329906] = "blue",
@@ -158,10 +176,31 @@ BigWigs:AddColors("Sire Denathrius", {
 	[332585] = {"blue","purple"},
 	[332619] = "orange",
 	[332794] = {"blue","orange"},
-	[332937] = "orange",
-	[333111] = "red",
+	[332849] = "orange",
 	[333932] = "orange",
-	[333979] = "yellow",
+	[333979] = "red",
+	[333980] = "red",
 	[335873] = "blue",
+	[336162] = "blue",
+	[338738] = "green",
+	[344776] = "yellow",
+	["hymn_stacks"] = {"blue","green"},
 	["stages"] = "green",
+})
+
+BigWigs:AddColors("Castle Nathria Trash", {
+	[325382] = {"blue","purple"},
+	[329298] = {"blue","yellow"},
+	[329989] = "orange",
+	[339525] = {"blue","orange"},
+	[339553] = "blue",
+	[339557] = "yellow",
+	[340630] = {"blue","purple"},
+	[341352] = "yellow",
+	[343155] = {"orange","red"},
+	[343302] = "orange",
+	[343316] = "yellow",
+	[343320] = "yellow",
+	[343322] = "yellow",
+	[343325] = "yellow",
 })

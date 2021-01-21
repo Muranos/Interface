@@ -53,6 +53,10 @@ function Details:StartMeUp() --I'll never stop!
 			self:InitializeRunCodeWindow()
 			self:InitializePlaterIntegrationWindow()
 			self:InitializeMacrosWindow()
+
+			if (self.ocd_tracker.show_options) then
+				self:InitializeCDTrackerWindow()
+			end
 			
 		--custom window
 			self.custom = self.custom or {}
@@ -458,16 +462,25 @@ function Details:StartMeUp() --I'll never stop!
 		C_Timer.After(2, reset_player_detail_window)
 	end
 	
-	--enforce to show 6 abilities on the tooltip
-	--_detalhes.tooltip.tooltip_max_abilities = 6 freeeeeedooommmmm
+	--coach feature startup
+	Details.Coach.StartUp()
 
 	--force the group edit be always enabled when Details! starts
 	_detalhes.options_group_edit = true
-	
+
 	--enforce to use the new animation code
 	if (_detalhes.streamer_config) then
 		_detalhes.streamer_config.use_animation_accel = true
 	end
+
+	--shutdown pre-pot announcer
+	Details.announce_prepots.enabled = false
+	--disable the min healing to show
+	Details.deathlog_healingdone_min =  1
+	--remove standard skin on 9.0.1
+	_detalhes.standard_skin = false
+	--enforce to show 6 abilities on the tooltip
+	--_detalhes.tooltip.tooltip_max_abilities = 6 freeeeeedooommmmm
 
 	--Plater integration
 	C_Timer.After(2, function()
@@ -481,13 +494,13 @@ function Details:StartMeUp() --I'll never stop!
 		print ("|CFFFFFF00[Details!]: you're using Details! for RETAIL on Classic WOW, please get the classic version (Details! Damage Meter Classic WoW), if you need help see our Discord (/details discord).")
 	end
 
-	print ("|CFFFFFF00[Details!]: you're using Details! for Shadowlands BETA, please install 'Details! Damage Meter' from here: 'https://www.curseforge.com/wow/addons/details' or download on Curseforge App. If you need help see our Discord (/details discord).")
-	print ("|CFFFFFF00[Details!]: the version you are using is deprecated and must be updated!")
-	_detalhes:RefreshUpdater(10)
+	Details:InstallHook("HOOK_DEATH", Details.Coach.Client.SendMyDeath)
 
 	if (math.random(10) == 1) then
 		Details:Msg("use '/details me' macro to open the player breakdown for you!")
 	end
+
+	Details.cached_specs[UnitGUID("player")] = GetSpecializationInfo(GetSpecialization() or 0)
 
 	function Details:InstallOkey()
 		return true

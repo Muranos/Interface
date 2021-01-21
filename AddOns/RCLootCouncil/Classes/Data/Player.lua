@@ -96,6 +96,7 @@ function Player:Get(input)
 					-- Not much we can do at this point, so log an error
 					ErrorHandler:ThrowSilentError("Couldn't produce GUID for "
                               									.. tostring(input))
+					return private:GetNilPlayer()
 				end
 			end
 		end
@@ -103,18 +104,25 @@ function Player:Get(input)
 	else
 		error(format("%s invalid player", tostring(input)), 2)
 	end
-	return private:GetFromCache(guid) or private:CreatePlayer(guid)
+	if private:IsCached(guid) then
+		local player = private:GetFromCache(guid)
+		private:UpdateCachedPlayer(player)
+		return player
+	else
+		return private:CreatePlayer(guid)
+	end
 end
 
 function private:CreatePlayer(guid)
 	Log:f("<Data.Player>", "CreatePlayer", guid)
-	if not guid then return {name = "Unknown"} end
-	local _, class, _, _, _, name, realm = GetPlayerInfoByGUID(guid)
-	realm = (not realm or realm == "") and select(2, UnitFullName("player")) or realm
+	if not guid then return private:GetNilPlayer() end -- TODO Ensure code can handle nil player objects
+
+	local name, realm, class = private:GetPlayerInfoByGUID(guid)
+	if not name then return private:GetNilPlayer() end
 	---@class Player
 	local player = setmetatable({
 		---@field name string
-		name = addon.Utils:UnitName(name.."-"..realm),
+		name = addon.Utils:UnitNameFromNameRealm(name, realm),
 		guid = guid,
 		class = class,
 		realm = realm
@@ -125,11 +133,31 @@ end
 
 function private:GetFromCache(guid)
 	if self.cache[guid] then
-		if GetServerTime() - self.cache[guid].cache_time <= MAX_CACHE_TIME then
-			return setmetatable(CopyTable(self.cache[guid]), PLAYER_MT)
-		end
-		-- No need to delete the cache as it will be overwritten shortly
+		return setmetatable(CopyTable(self.cache[guid]), PLAYER_MT)
 	end
+end
+
+--- Attempts to update the cached player with available data
+---@param player Player
+function private:UpdateCachedPlayer(player)
+	if not player and player.guid then return end
+
+	local name, realm, class = self:GetPlayerInfoByGUID(player.guid)
+	if not name then return end -- Might not be available
+
+	player.name = addon.Utils:UnitNameFromNameRealm(name, realm)
+	player.class = class
+	player.realm = realm
+	self:CachePlayer(player)
+end
+
+function private:GetPlayerInfoByGUID(guid)
+	local _, class, _, _, _, name, realm = GetPlayerInfoByGUID(guid)
+	return name, realm, class
+end
+
+function private:IsCached(guid)
+	return self.cache[guid] ~= nil
 end
 
 function private:CachePlayer(player)
@@ -149,4 +177,8 @@ function private:GetGUIDFromPlayerNameByGuild(name)
 						GetGuildRosterInfo(i)
 		if Ambiguate(name2, "short") == name then return guid end
 	end
+end
+
+function private:GetNilPlayer()
+	return {name = "Unknown"}
 end

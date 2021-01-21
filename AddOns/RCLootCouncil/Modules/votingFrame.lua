@@ -28,7 +28,10 @@ local Comms = addon.Require "Services.Comms"
 local Council = addon.Require "Data.Council"
 ---@type Data.Player
 local Player = addon.Require "Data.Player"
+---@type Utils.TempTable
 local TempTable = addon.Require "Utils.TempTable"
+---@type Services.ErrorHandler
+local ErrorHandler = addon.Require "Services.ErrorHandler"
 
 local ROW_HEIGHT = 20;
 local NUM_ROWS = 15;
@@ -309,7 +312,11 @@ function RCVotingFrame:SetupSession(session, t)
 	t.candidates = {}
 	for name in addon:GroupIterator() do
 		local player = Player:Get(name)
-		t.candidates[player.name] = {
+		-- REVIEW Seems like we occasionally get wrong/invalid names here.
+		-- but we still need to create the candidate, so use the name provided by 
+		-- GroupIterator, which should be the same as the one from `Player`.
+		name = player and player.name or name
+		t.candidates[name] = {
 			class = player.class or "Unknown",
 			rank = player.rank or "Unknown",
 			role = player.role or "NONE",
@@ -1134,6 +1141,10 @@ end
 
 function RCVotingFrame.SetCellClass(rowFrame, frame, data, cols, row, realrow, column, fShow, table, ...)
 	local name = data[realrow].name
+	if not (lootTable[session] and lootTable[session].candidates[name] and lootTable[session].candidates[name].specID) then
+		addon.Log:E("Missing data for 'SetCellClass'", session, name)
+		return
+	end
 	local specID = lootTable[session].candidates[name].specID
 	local specIcon = specID and select(4, GetSpecializationInfoByID(specID))
 	if specIcon and db.showSpecIcon then
@@ -1330,7 +1341,12 @@ end
 function RCVotingFrame.filterFunc(table, row)
 	if not db.modules["RCVotingFrame"].filters then return true end -- db hasn't been initialized, so just show it
 	local name = row.name
+	if not (lootTable[session] and lootTable[session].candidates[name]) then
+		ErrorHandler:ThrowSilentError(string.format("Couldn't get rank at session %d for candidate %s", session, tostring(name)))
+		return true
+	end
 	local rank = lootTable[session].candidates[name].rank
+	local rank = lootTable[session].candidates[name] and lootTable[session].candidates[name].rank
 
 	if db.modules["RCVotingFrame"].filters.alwaysShowOwner then
 		if addon:UnitIsUnit(name, lootTable[session].owner) then
@@ -1364,6 +1380,9 @@ end
 function ResponseSort(table, rowa, rowb, sortbycol)
 	local column = table.cols[sortbycol]
 	local a, b = table:GetRow(rowa), table:GetRow(rowb);
+	if not (lootTable[session].candidates[a.name] and lootTable[session].candidates[a.name].response) or not (lootTable[session].candidates[b.name] and lootTable[session].candidates[b.name].response) then
+		return true
+	end
 	a, b = addon:GetResponse(lootTable[session].typeCode or lootTable[session].equipLoc, lootTable[session].candidates[a.name].response).sort,
 			 addon:GetResponse(lootTable[session].typeCode or lootTable[session].equipLoc, lootTable[session].candidates[b.name].response).sort
 	if a == b then
@@ -1931,7 +1950,7 @@ do
 				local player = Player:Get(name)
 				if player.enchanter then
 					local c = addon:GetClassColor(player.class)
-					info.text = "|cff"..addon.Utils:RGBToHex(c.r, c.g, c.b)..addon.Ambiguate(name).."|r "..tostring(player.enchant_lvl)
+					info.text = "|cff"..addon.Utils:RGBToHex(c.r, c.g, c.b)..addon.Ambiguate(name).."|r "..tostring(player.enchantingLvl)
 					info.notCheckable = true
 					info.func = function()
 						for _,v1 in ipairs(db.awardReasons) do

@@ -1,9 +1,10 @@
 
 BigWigs:AddSounds("Kin-Tara", {
 	[320966] = "alarm",
-	[321009] = "alert",
+	[321009] = {"alarm","alert"},
 	[324368] = "long",
 	[327481] = "alert",
+	[331251] = {"alert","warning"},
 })
 
 BigWigs:AddSounds("Ventunax", {
@@ -23,5 +24,5 @@ BigWigs:AddSounds("Oryphrion", {
 BigWigs:AddSounds("Devos, Paragon of Doubt", {
 	[322818] = {"alarm","info"},
 	[323943] = "alert",
-	[334625] = "alert",
+	[334625] = "warning",
 })

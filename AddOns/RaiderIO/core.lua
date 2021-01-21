@@ -234,6 +234,24 @@ do
         return ns.GUILD_BEST_DATA
     end
 
+    ---@class ClientConfig
+    ---@field public lastModified string @A date like "2017-06-03T00:41:07Z"
+    ---@field public enableCombatLogTracking boolean
+    ---@field public syncMode string @"all"
+    ---@field public syncAmericasHorde boolean
+	---@field public syncEuropeHorde boolean
+	---@field public syncKoreaHorde boolean
+	---@field public syncTaiwanHorde boolean
+	---@field public syncAmericasAlliance boolean
+	---@field public syncEuropeAlliance boolean
+	---@field public syncKoreaAlliance boolean
+	---@field public syncTaiwanAlliance boolean
+
+    ---@return ClientConfig
+    function ns:GetClientConfig()
+        return ns.CLIENT_CONFIG
+    end
+
     ---@class Dungeon
     ---@field public id number
     ---@field public keystone_instance number
@@ -556,7 +574,7 @@ do
                 end
             end
             if not eventCallbacks[1] then
-                handler:UnregisterEvent(event)
+                pcall(handler.UnregisterEvent, handler, event)
             end
         end
     end
@@ -637,6 +655,8 @@ do
         enableClientEnhancements = true,
         showClientGuildBest = true,
         displayWeeklyGuildBest = false,
+        allowClientToControlCombatLog = true,
+        enableCombatLogTracking = false,
         showRaiderIOProfile = true,
         hidePersonalRaiderIOProfile = false,
         showRaidEncountersInProfile = true,
@@ -2067,7 +2087,14 @@ do
         return 20 + (value - 20) * 4
     end
 
-    local function Split64BitNumber(dword)
+    local function DecodeBits8(value)
+        if value < 200 then
+            return value
+        end
+        return 200 + (value - 200) * 2
+    end
+
+	local function Split64BitNumber(dword)
         local lo = band(dword, 0xfffffffff)
         return lo, (dword - lo) / 0x100000000
     end
@@ -2297,20 +2324,20 @@ do
         for encoderIndex = 1, #encodingOrder do
             local field = encodingOrder[encoderIndex]
             if field == ENCODER_MYTHICPLUS_FIELDS.CURRENT_SCORE then
-                results.currentScore, bitOffset = ReadBitsFromString(bucket, bitOffset, 14)
+                results.currentScore, bitOffset = ReadBitsFromString(bucket, bitOffset, 12)
                 results.hasRenderableData = results.hasRenderableData or results.currentScore > 0
             elseif field == ENCODER_MYTHICPLUS_FIELDS.CURRENT_ROLES then
                 value, bitOffset = ReadBitsFromString(bucket, bitOffset, 7)
                 results.currentRoleOrdinalIndex = 1 + value -- indexes are one-based
             elseif field == ENCODER_MYTHICPLUS_FIELDS.PREVIOUS_SCORE then
-                results.previousScore, bitOffset = ReadBitsFromString(bucket, bitOffset, 13)
+                results.previousScore, bitOffset = ReadBitsFromString(bucket, bitOffset, 12)
                 results.previousScoreSeason, bitOffset = ReadBitsFromString(bucket, bitOffset, 2)
                 results.hasRenderableData = results.hasRenderableData or results.previousScore > 0
             elseif field == ENCODER_MYTHICPLUS_FIELDS.PREVIOUS_ROLES then
                 value, bitOffset = ReadBitsFromString(bucket, bitOffset, 7)
                 results.previousRoleOrdinalIndex = 1 + value -- indexes are one-based
             elseif field == ENCODER_MYTHICPLUS_FIELDS.MAIN_CURRENT_SCORE then
-                results.mainCurrentScore, bitOffset = ReadBitsFromString(bucket, bitOffset, 13)
+                results.mainCurrentScore, bitOffset = ReadBitsFromString(bucket, bitOffset, 12)
                 results.hasRenderableData = results.hasRenderableData or results.mainCurrentScore > 0
             elseif field == ENCODER_MYTHICPLUS_FIELDS.MAIN_CURRENT_ROLES then
                 value, bitOffset = ReadBitsFromString(bucket, bitOffset, 7)
@@ -2324,14 +2351,14 @@ do
                 value, bitOffset = ReadBitsFromString(bucket, bitOffset, 7)
                 results.mainPreviousRoleOrdinalIndex = 1 + value -- indexes are one-based
             elseif field == ENCODER_MYTHICPLUS_FIELDS.DUNGEON_RUN_COUNTS then
-                value, bitOffset = ReadBitsFromString(bucket, bitOffset, 6)
-                results.keystoneFivePlus = DecodeBits6(value)
-                value, bitOffset = ReadBitsFromString(bucket, bitOffset, 6)
-                results.keystoneTenPlus = DecodeBits6(value)
-                value, bitOffset = ReadBitsFromString(bucket, bitOffset, 6 or 7) -- TODO: enable once the new feature `show-more-15s` is live
-                results.keystoneFifteenPlus = (DecodeBits6 or DecodeBits7)(value) -- TODO: enable once the new feature `show-more-15s` is live
-                value, bitOffset = ReadBitsFromString(bucket, bitOffset, 6)
-                results.keystoneTwentyPlus = DecodeBits6(value)
+                value, bitOffset = ReadBitsFromString(bucket, bitOffset, 8)
+                results.keystoneFivePlus = DecodeBits8(value)
+                value, bitOffset = ReadBitsFromString(bucket, bitOffset, 8)
+                results.keystoneTenPlus = DecodeBits8(value)
+                value, bitOffset = ReadBitsFromString(bucket, bitOffset, 8)
+                results.keystoneFifteenPlus = DecodeBits8(value)
+                value, bitOffset = ReadBitsFromString(bucket, bitOffset, 8)
+                results.keystoneTwentyPlus = DecodeBits8(value)
                 results.hasRenderableData = results.hasRenderableData or results.keystoneFivePlus > 0 or results.keystoneTenPlus > 0 or results.keystoneFifteenPlus > 0 or results.keystoneTwentyPlus > 0
             elseif field == ENCODER_MYTHICPLUS_FIELDS.DUNGEON_LEVELS then
                 results.dungeons = {}
@@ -3207,12 +3234,12 @@ do
                 local keystoneProfile = profile.mythicKeystoneProfile
                 local raidProfile = profile.raidProfile
                 local pvpProfile = profile.pvpProfile
-                local isKeystoneBlockShown = keystoneProfile and keystoneProfile.hasRenderableData and not keystoneProfile.blocked
+                local isExtendedProfile = Has(state.options, render.Flags.PROFILE_TOOLTIP)
+                local isKeystoneBlockShown = keystoneProfile and ((isExtendedProfile or keystoneProfile.hasRenderableData) and not keystoneProfile.blocked)
                 local isBlocked = keystoneProfile and (keystoneProfile.blocked or keystoneProfile.softBlocked)
                 local isOutdated = keystoneProfile and keystoneProfile.outdated
-                local isExtendedProfile = Has(state.options, render.Flags.PROFILE_TOOLTIP)
                 local showRaidEncounters = config:Get("showRaidEncountersInProfile")
-                local isRaidBlockShown = raidProfile and raidProfile.hasRenderableData and (not isExtendedProfile or showRaidEncounters)
+                local isRaidBlockShown = raidProfile and ((isExtendedProfile and showRaidEncounters) or raidProfile.hasRenderableData) and (not isExtendedProfile or showRaidEncounters)
                 local isPvpBlockShown = pvpProfile and pvpProfile.hasRenderableData
                 local isAnyBlockShown = isKeystoneBlockShown or isRaidBlockShown or isPvpBlockShown
                 local isUnitTooltip = Has(state.options, render.Flags.UNIT_TOOLTIP)
@@ -3304,7 +3331,7 @@ do
                                 break
                             end
                         end
-                        if hasBestDungeons then
+                        if hasBestDungeons or true then -- HOTFIX: we prefer to always display this in the expanded profile so even empty profiles can display what dungeons there are for the player to complete
                             if showHeader then
                                 if showPadding then
                                     tooltip:AddLine(" ")
@@ -5843,8 +5870,8 @@ do
         configSliderFrame:SetPoint("TOPLEFT", configScrollFrame, "TOPRIGHT", -35, -18)
         configSliderFrame:SetPoint("BOTTOMLEFT", configScrollFrame, "BOTTOMRIGHT", -35, 18)
         configSliderFrame:SetMinMaxValues(1, 1)
-        configSliderFrame:SetValueStep(1)
-        configSliderFrame.scrollStep = 1
+        configSliderFrame:SetValueStep(50)
+        configSliderFrame.scrollStep = 50
         configSliderFrame:SetValue(0)
         configSliderFrame:SetWidth(16)
         configSliderFrame:SetScript("OnValueChanged", function (self, value)
@@ -5853,7 +5880,7 @@ do
 
         configScrollFrame:HookScript("OnMouseWheel", function(self, delta)
             local currentValue = configSliderFrame:GetValue()
-            local changes = -delta * 20
+            local changes = -delta * 50
             configSliderFrame:SetValue(currentValue + changes)
         end)
 
@@ -5969,6 +5996,38 @@ do
             }
         }
 
+        function configOptions.UpdateWidgetStates(self)
+            for i = 1, #self.options do
+                local f = self.options[i]
+                if f.isDisabled then
+                    if f:isDisabled() then
+                        f.text:SetVertexColor(0.5, 0.5, 0.5)
+                        f.help.icon:SetVertexColor(0.5, 0.5, 0.5)
+                        f.checkButton:SetEnabled(false)
+                        f.checkButton2:SetEnabled(false)
+                    else
+                        f.text:SetVertexColor(1, 1, 1)
+                        f.help.icon:SetVertexColor(1, 1, 1)
+                        f.checkButton:SetEnabled(true)
+                        f.checkButton2:SetEnabled(true)
+                    end
+                end
+                if f.isFakeChecked then
+                    local useFakeCheckMark, useGrayCheckMark = f:isFakeChecked()
+                    if useFakeCheckMark then
+                        if useGrayCheckMark then
+                            f.checkButton.fakeCheck:SetVertexColor(0.5, 0.5, 0.5)
+                        else
+                            f.checkButton.fakeCheck:SetVertexColor(1, 1, 1)
+                        end
+                        f.checkButton.fakeCheck:Show()
+                    else
+                        f.checkButton.fakeCheck:Hide()
+                    end
+                end
+            end
+        end
+
         function configOptions.Update(self)
             for i = 1, #self.modules do
                 local f = self.modules[i]
@@ -6008,15 +6067,20 @@ do
             widget.text:SetPoint("RIGHT", -8, 0)
             widget.text:SetJustifyH("LEFT")
 
-            widget.checkButton = CreateFrame("CheckButton", "$parentCheckButton1", widget, "UICheckButtonTemplate")
+            widget.checkButton = CreateFrame("CheckButton", nil, widget, "UICheckButtonTemplate")
             widget.checkButton:Hide()
             widget.checkButton:SetPoint("RIGHT", -4, 0)
             widget.checkButton:SetScale(0.7)
 
-            widget.checkButton2 = CreateFrame("CheckButton", "$parentCheckButton2", widget, "UICheckButtonTemplate")
+            widget.checkButton2 = CreateFrame("CheckButton", nil, widget, "UICheckButtonTemplate")
             widget.checkButton2:Hide()
             widget.checkButton2:SetPoint("RIGHT", widget.checkButton, "LEFT", -4, 0)
             widget.checkButton2:SetScale(0.7)
+
+            widget.checkButton.fakeCheck = widget.checkButton:CreateTexture(nil, "OVERLAY")
+            widget.checkButton.fakeCheck:Hide()
+            widget.checkButton.fakeCheck:SetTexture("Interface\\Buttons\\UI-CheckBox-Check")
+            widget.checkButton.fakeCheck:SetAllPoints()
 
             widget.help = CreateFrame("Frame", nil, widget)
             widget.help:Hide()
@@ -6068,6 +6132,7 @@ do
 
         function configOptions.CreateModuleToggle(self, name, addon1, addon2)
             local frame = self:CreateWidget("Frame")
+            frame.text:SetTextColor(1, 1, 1)
             frame.text:SetText(name)
             frame.addon2 = addon1
             frame.addon1 = addon2
@@ -6079,20 +6144,25 @@ do
 
         function configOptions.CreateToggle(self, label, description, cvar, configOptions)
             local frame = self:CreateWidget("Frame")
+            frame.text:SetTextColor(1, 1, 1)
             frame.text:SetText(label)
             frame.tooltip = description
             frame.cvar = cvar
             frame.needReload = (configOptions and configOptions.needReload) or false
+            frame.isDisabled = (configOptions and configOptions.isDisabled) or nil
+            frame.isFakeChecked = (configOptions and configOptions.isFakeChecked) or nil
             frame.callback = (configOptions and configOptions.callback) or nil
             frame.help.tooltip = description
             frame.help:Show()
             frame.checkButton:Show()
-
             return frame
         end
 
         function configOptions.CreateOptionToggle(self, label, description, cvar, configOptions)
             local frame = self:CreateToggle(label, description, cvar, configOptions)
+            frame.checkButton:SetScript("OnClick", function ()
+                self:UpdateWidgetStates()
+            end)
             self.options[#self.options + 1] = frame
             return frame
         end
@@ -6133,6 +6203,7 @@ do
                     HideUIPanel(GameMenuFrame)
                 end
                 configOptions:Update()
+                configOptions:UpdateWidgetStates()
             end
 
             local function ConfigFrame_OnDragStart(self)
@@ -6227,6 +6298,19 @@ do
             configOptions:CreateOptionToggle(L.SHOW_CLIENT_GUILD_BEST, L.SHOW_CLIENT_GUILD_BEST_DESC, "showClientGuildBest")
 
             configOptions:CreatePadding()
+            configOptions:CreateHeadline(L.RAIDERIO_LIVE_TRACKING)
+            local allowClientToControlCombatLogFrame = configOptions:CreateOptionToggle(L.USE_RAIDERIO_CLIENT_LIVE_TRACKING_SETTINGS, L.USE_RAIDERIO_CLIENT_LIVE_TRACKING_SETTINGS_DESC, "allowClientToControlCombatLog")
+            local allowClientToControlCombatLogFrameIsChecked = function() return allowClientToControlCombatLogFrame.checkButton:GetChecked() end
+            local clientConfig = ns:GetClientConfig()
+            local isClientAutoCombatLoggingEnabled = function()
+                if not allowClientToControlCombatLogFrameIsChecked() then
+                    return
+                end
+                return clientConfig and clientConfig.enableCombatLogTracking, config:Get("enableCombatLogTracking")
+            end
+            configOptions:CreateOptionToggle(L.AUTO_COMBATLOG, L.AUTO_COMBATLOG_DESC, "enableCombatLogTracking", { isDisabled = allowClientToControlCombatLogFrameIsChecked, isFakeChecked = isClientAutoCombatLoggingEnabled })
+
+            configOptions:CreatePadding()
             configOptions:CreateHeadline(L.COPY_RAIDERIO_PROFILE_URL)
             configOptions:CreateOptionToggle(L.ALLOW_ON_PLAYER_UNITS, L.ALLOW_ON_PLAYER_UNITS_DESC, "showDropDownCopyURL")
             configOptions:CreateOptionToggle(L.ALLOW_IN_LFD, L.ALLOW_IN_LFD_DESC, "enableLFGDropdown")
@@ -6269,9 +6353,9 @@ do
 
             -- adjust frame height dynamically
             local children = {configFrame:GetChildren()}
-            local height = 70
+            local height = 0
             for i = 1, #children do
-                height = height + children[i]:GetHeight() + 2
+                height = height + children[i]:GetHeight() + 3.5
             end
 
             configSliderFrame:SetMinMaxValues(1, height - 440)
@@ -6423,5 +6507,116 @@ do
     -- always have the interface panel and slash commands available
     CreateInterfacePanel()
     CreateSlashCommand()
+
+end
+
+-- combatlog.lua
+-- dependencies: module, callback, config
+do
+
+    ---@class CombatLogModule : Module
+    local combatlog = ns:NewModule("CombatLog") ---@type CombatLogModule
+    local callback = ns:GetModule("Callback") ---@type CallbackModule
+    local config = ns:GetModule("Config") ---@type ConfigModule
+
+    local clientConfig = ns:GetClientConfig()
+
+    local function UpdateModuleState()
+        local enableCombatLogTracking
+        if config:Get("allowClientToControlCombatLog") then
+            enableCombatLogTracking = clientConfig and clientConfig.enableCombatLogTracking
+        end
+        if enableCombatLogTracking == nil then
+            enableCombatLogTracking = config:Get("enableCombatLogTracking")
+        end
+        if enableCombatLogTracking then
+            C_CVar.SetCVar("advancedCombatLogging", 1)
+            combatlog:Enable()
+        else
+            combatlog:Disable()
+        end
+    end
+
+    function combatlog:CanLoad()
+        return config:IsEnabled()
+    end
+
+    function combatlog:OnLoad()
+        UpdateModuleState()
+        callback:RegisterEvent(UpdateModuleState, "RAIDERIO_SETTINGS_SAVED")
+    end
+
+    local autoLogInstanceMapIDs
+    local autoLogDifficultyIDs do
+        autoLogInstanceMapIDs = {
+            -- [2162] = true, -- Torghast, Tower of the Damned
+            [2296] = true, -- Castle Nathria
+        }
+        autoLogDifficultyIDs = {
+            -- scenario
+            [167] = true, -- Torghast
+            -- party
+            [23] = true, -- Mythic
+            [8] = true, -- Mythic Keystone
+            -- raid
+            [14] = true, -- Normal
+            [15] = true, -- Heroic
+            [16] = true, -- Mythic
+        }
+        local dungeons = ns:GetDungeonData()
+        for _, dungeon in ipairs(dungeons) do
+            autoLogInstanceMapIDs[dungeon.instance_map_id] = true
+        end
+    end
+
+    local lastActive
+    local previouslyEnabledLogging
+
+    local function CheckInstance(newModuleState)
+        local _, _, difficultyID, _, _, _, _, instanceMapID = GetInstanceInfo()
+        if not difficultyID or not instanceMapID then
+            return
+        end
+        local isActive = not not (autoLogInstanceMapIDs[instanceMapID] and autoLogDifficultyIDs[difficultyID])
+        if isActive == lastActive then
+            return
+        end
+        lastActive = isActive
+        local isLogging = LoggingCombat()
+        local setLogging
+        if isActive and isLogging and newModuleState == true then
+            setLogging = true
+        elseif isActive and isLogging and newModuleState == false then
+            setLogging = false
+        elseif isActive and not isLogging then
+            setLogging = true
+        elseif not isActive and isLogging then
+            setLogging = false
+        end
+        if setLogging == nil then
+            return
+        end
+        if not setLogging and not previouslyEnabledLogging then
+            return
+        end
+        previouslyEnabledLogging = setLogging
+        config:Set("previouslyEnabledLogging", setLogging)
+        LoggingCombat(setLogging)
+        local info = ChatTypeInfo["SYSTEM"]
+        DEFAULT_CHAT_FRAME:AddMessage("|cffFFFFFFRaider.IO|r: " .. (setLogging and COMBATLOGENABLED or COMBATLOGDISABLED), info.r, info.g, info.b, info.id)
+    end
+
+    function combatlog:OnEnable()
+        previouslyEnabledLogging = config:Get("previouslyEnabledLogging")
+        CheckInstance(true)
+        callback:RegisterEvent(CheckInstance, "PLAYER_ENTERING_WORLD", "ZONE_CHANGED", "ZONE_CHANGED_NEW_AREA")
+    end
+
+    function combatlog:OnDisable()
+        lastActive = nil
+        CheckInstance(false)
+        callback:UnregisterCallback(CheckInstance)
+        lastActive = nil
+    end
 
 end

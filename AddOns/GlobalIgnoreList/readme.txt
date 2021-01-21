@@ -202,6 +202,12 @@ The following commands are accessible by typing /gignore or /gi in the chat box:
 
 => VERSION HISTORY
 
+=> 9.0.3
+
+Updated for Shadowlands live patch
+Fixed issue with Copy Character Name causing an error
+Attempted to improve performance on system message processing that could cause some micro stuttering with super larger ignore lists
+
 => 9.0.2
 
 Added filter for American Politics (disabled by default)

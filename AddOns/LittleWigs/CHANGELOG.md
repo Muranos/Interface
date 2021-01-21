@@ -1,7 +1,9 @@
 # LittleWigs
 
-## [v9.0.8](https://github.com/BigWigsMods/LittleWigs/tree/v9.0.8) (2020-12-02)
-[Full Changelog](https://github.com/BigWigsMods/LittleWigs/compare/v9.0.7...v9.0.8) [Previous Releases](https://github.com/BigWigsMods/LittleWigs/releases)
+## [v9.0.21](https://github.com/BigWigsMods/LittleWigs/tree/v9.0.21) (2021-01-21)
+[Full Changelog](https://github.com/BigWigsMods/LittleWigs/compare/v9.0.20...v9.0.21) [Previous Releases](https://github.com/BigWigsMods/LittleWigs/releases)
 
-- Shadowlands/MistsOfTirnaScithe/Mistcaller: Correct engageId  
-- Shadowlands/DeOtherSide/Muehzala: Add a message and castbar for Coalescing  
+- Update option files  
+- Shadowlands/MistsOfTirnaScithe: Update locale  
+- Shadowlands/MistsOfTirnaScithe/Tredova: Always play a sound for parasite, only show a target name/say message if you fail to interrupt it. Closes #564  
+- Shadowlands/DeOtherSide/Trash: Add warnings for "Self-Cleaning Cycle", "Spinning Up", "Lightning Discharge" and "Wailing Grief" (#563)  

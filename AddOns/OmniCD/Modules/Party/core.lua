@@ -51,6 +51,7 @@ function P:ResetModule()
 	E.Cooldowns:Disable()
 
 	wipe(self.groupInfo)
+
 	self:HideAllBars()
 	self:HideExBars()
 end
@@ -60,8 +61,10 @@ function P:Refresh(full)
 		return
 	end
 
-	local zone = self.zone or select(2, IsInInstance()) -- [59]
-	local key = self.test and self.testZone or (E.CFG_ZONE[zone] and zone) or "arena"
+	local instanceType = self.zone or select(2, IsInInstance()) -- [59]
+	local key = self.test and self.testZone or instanceType
+	E.DB.profile.Party.none = E.DB.profile.Party[E.DB.profile.Party.noneZoneSetting]
+	E.DB.profile.Party.scenario = E.DB.profile.Party[E.DB.profile.Party.scenarioZoneSetting]
 	E.db = E.DB.profile.Party[key]
 
 	if full then
@@ -110,6 +113,17 @@ function P:UpdatePositionValues()
 		self.ofsY = growY * (E.BASE_ICON_SIZE + db.paddingY * px)
 		self.ofsX2 = growX * db.paddingX * px
 		self.ofsY2 = 0
+		--[[ xml
+		if growUpward then
+			self.point3 = growLeft and "BOTTOMRIGHT" or "BOTTOMLEFT"
+		else
+			self.point3 = self.point2
+		end
+		self.relativePoint3 = self.point2
+		self.modRowOfsX = E.db.icons.modRowOfsX * growX
+		self.modRowOfsY = growUpward and db.paddingY * px or -E.BASE_ICON_SIZE - db.paddingY * px
+		self.ofsX4 = growX * db.paddingX * px / E.db.icons.modRowScale
+		--]]
 	end
 end
 
@@ -199,6 +213,9 @@ end
 function P:UI_SCALE_CHANGED() -- [61]
 	E:SetNumPixels()
 	self:ConfigSize(nil, true)
+	for key in pairs(self.extraBars) do
+		self:ConfigExSize(key, true)
+	end
 end
 
 E["Party"] = P

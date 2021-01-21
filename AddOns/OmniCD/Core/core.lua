@@ -115,7 +115,7 @@ function OmniCD_AnchorOnMouseUp(self)
 end
 
 E.SetWidth = function(anchor)
-	local width = anchor.text:GetWidth() + 28
+	local width = anchor.text:GetWidth() + 20
 	anchor:SetWidth(width)
 end
 

@@ -204,7 +204,7 @@
 		<BarTexture file="Interface\AddOns\OmniCD\Media\texture_flat"/>
 		<BarColor r="1.0" g="1.0" b="1.0" a="1"/>
 	</StatusBar>
-	<Button name="OmniCDStatusBar" frameStrata="LOW" toplevel="true" hidden="true" virtual="true">
+	<Button name="OmniCDStatusBar" frameStrata="LOW" hidden="true" virtual="true">
 		<Size x="205" y="36"/>
 		<Layers>
 			<Layer level="BACKGROUND">

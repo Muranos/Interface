@@ -23,7 +23,7 @@
 					</Layer>
 					<Layer level="ARTWORK">
 						<FontString name="$parentText" inherits="OmniCDGameFontNormal" parentKey="text" text="">
-							<Color r="1" g="0.82" b="0" a="1"/>
+							<Color r="1" g="1" b="1" a="1"/>
 							<Anchors>
 								<Anchor point="CENTER"/>
 							</Anchors>
@@ -52,9 +52,6 @@
 			<OnHide>
 				OmniCD_BarOnHide(self);
 			</OnHide>
-			<OnShow>
-				OmniCD_BarOnShow(self);
-			</OnShow>
 		</Scripts>
 	</Frame>
 	<Button name="OmniCDButtonTemplate" inherits="ActionButtonTemplate" hidden="true" virtual="true">
@@ -67,7 +64,7 @@
 			</Anchors>
 		</Anchors>
 		<Layers>
-			<Layer level="BACKGROUND" textureSubLevel="1">
+			<Layer level="BACKGROUND" textureSubLevel="1" hidden="true">
 				<Texture parentKey="borderTop">
 					<Color r="0" g="0" b="0"/>
 				</Texture>

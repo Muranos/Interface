@@ -64,10 +64,20 @@ SI.WorldBosses = {
   -- Uldum
   [2381] = { quest=55466, expansion=7, level=50 }, -- Vuk'laz the Earthbreaker
 
+  -- Shadowlands
+  [2430] = { quest=61813, expansion=8, level=60 }, -- Valinor, the Light of Eons
+  [2431] = { quest=61816, expansion=8, level=60 }, -- Mortanis
+  [2432] = { quest=61815, expansion=8, level=60 }, -- Oranomonos the Everbranching
+  [2433] = { quest=61814, expansion=8, level=60 }, -- Nurgash Muckformed
+
   -- bosses with no EJ entry (eid is a placeholder)
   [9001] = { quest=38276, name=GARRISON_LOCATION_TOOLTIP.." "..BOSS, expansion=5, level=40 },
   -- Old Vanilla Bosses during Anniversary Event
   [9002] = { quest=47461, name=L["Lord Kazzak"],         expansion=8, level=60, remove=true }, -- Lord Kazzak
   [9003] = { quest=47462, name=L["Azuregos"],            expansion=8, level=60, remove=true }, -- Azuregos
   [9004] = { quest=47463, name=L["Dragon of Nightmare"], expansion=8, level=60, remove=true }, -- Dragon of Nightmare
+  -- Eastern Plaguelands (Shadowlands pre-patch event)
+  [9005] = { quest=60542, name=L["Nathanos Blightcaller"], expansion=7, level=50 }, -- Nathanos Blightcaller
+  -- The Maw
+  [9006] = { quest=63414, name=L["Wrath of the Jailer"], expansion=8, level=60 }, -- Wrath of the Jailer
 }

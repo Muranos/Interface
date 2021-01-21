@@ -1,14 +1,15 @@
 local E, L, C = select(2, ...):unpack()
 
 local _G = _G
+local IsInRaid = IsInRaid
 local UnitGUID = UnitGUID
 local P = E["Party"]
 
-local function IsCRFActive() -- [21]
-	return IsInRaid() and not P.isInArena or P.useCRF
+function P:IsCRFActive() -- [21]
+	return IsInRaid() and not self.isInArena or self.useCRF
 end
 
-local function FindAnchorFrame(guid)
+local function FindAnchorFrame(guid) --[87]
 	if E.customUF.enabled then
 		if GetNumGroupMembers() > 5 then return end
 
@@ -17,15 +18,13 @@ local function FindAnchorFrame(guid)
 				local f = _G[E.customUF.frame .. i]
 				if f then
 					local unit = f[E.customUF.unit]
-					if unit and UnitGUID(unit) == guid then
-						return f
-					end
+					if unit and UnitGUID(unit) == guid then return f end
 				end
 			end
 		end
 	end
 
-	if ( IsCRFActive() or P.test ) then
+	if ( P:IsCRFActive() or P.test ) then
 		if P.isShownCRFM then
 			local crf = not P.useKGT and E.CRF_RAID or ( IsInRaid() and E.CRF_KGT or E.CRF_PARTY )
 			local n = #crf
@@ -36,8 +35,10 @@ local function FindAnchorFrame(guid)
 			end
 		end
 	elseif guid ~= E.userGUID then
-		local index = P.groupInfo[guid].index
-		return _G["PartyMemberFrame" .. index]
+		for i = 1, 4 do
+			local f = _G["PartyMemberFrame" .. i]
+			if f and f.unit and UnitGUID(f.unit) == guid then return f end
+		end
 	end
 end
 
@@ -48,7 +49,15 @@ end
 
 function P:SetOffset(f)
 	f.container:ClearAllPoints()
-	f.container:SetPoint("CENTER", f, self.containerOfsX, self.containerOfsY)
+	--f.container:SetPoint(self.point, f, self.containerOfsX, self.containerOfsY)
+	f.container:SetPoint("TOPLEFT", f, self.containerOfsX, self.containerOfsY)
+
+	--[[ xml
+	if self.doubleRow and E.db.icons.modRowEnabled then
+		f.bottomRow:ClearAllPoints()
+		f.bottomRow:SetPoint("TOPLEFT", f.container, self.modRowOfsX, self.modRowOfsY)
+	end
+	--]]
 end
 
 function P:UpdatePosition()
@@ -96,7 +105,7 @@ do
 	end
 
 	local hookFunc = function()
-		if P.enabled and not E.db.position.detached and IsCRFActive() then
+		if P.enabled and not E.db.position.detached and P:IsCRFActive() then
 			if not hookTimer then
 				hookTimer = C_Timer.NewTicker(0.5, onTimerEnd, 1)
 			end

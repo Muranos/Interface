@@ -1,10 +1,10 @@
-lightweight tag 899ac439a17c19a799d30a6a2a0e2faf5cc215e1 DetailsRetail.8.3.0.7348.141
+lightweight tag 778e02b5837074dabacb176e6de04a3f8ced0db4 DetailsRetail.9.0.2.8154.144(b)
 Author:	Tercio Jose <terciob19@hotmail.com>
-Date:	Mon Jul 6 11:27:35 2020 -0300
+Date:	Tue Jan 19 12:05:46 2021 -0300
 
-commit 899ac439a17c19a799d30a6a2a0e2faf5cc215e1
+commit 778e02b5837074dabacb176e6de04a3f8ced0db4
 Author: Tercio Jose <terciob19@hotmail.com>
-Date:   Mon Jul 6 11:27:35 2020 -0300
+Date:   Tue Jan 19 12:05:46 2021 -0300
 
-    Fixed an issue affecting the Auto Hide for some users
+    updated nicktag to version 14
 

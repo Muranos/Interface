@@ -1,10 +1,10 @@
-lightweight tag d63e2cc39a219e78d53a963d09f5949cd6695103 v9.0.2-10
+lightweight tag f7e67db4ced21b62603e71aa8a9ffbc169e722a2 v9.0.2-15
 Author:	Dave Hendler <sollaires@gmail.com>
-Date:	Thu Dec 3 17:56:21 2020 -0800
+Date:	Wed Dec 16 00:03:20 2020 -0800
 
-commit d63e2cc39a219e78d53a963d09f5949cd6695103
+commit f7e67db4ced21b62603e71aa8a9ffbc169e722a2
 Author: Dave Hendler <sollaires@gmail.com>
-Date:   Thu Dec 3 17:56:21 2020 -0800
+Date:   Wed Dec 16 00:03:20 2020 -0800
 
-    Fixes potential crash if an item has no item level from GetDetailedItemLevelInfo()
+    Clean up weapon token debugging
 

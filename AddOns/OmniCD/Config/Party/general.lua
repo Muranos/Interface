@@ -71,10 +71,16 @@ local general = {
 			order = 11,
 			type = "toggle",
 		},
+		showPlayerEx = {
+			name = L["Show Player in Extra Bars"],
+			desc = L["Show player spells in the Extra Bars regardless of 'Show Player' setting."],
+			order = 12,
+			type = "toggle",
+		},
 		showTooltip = {
 			name = L["Show Tooltip"],
 			desc = L["Show spell information when you mouseover an icon"] .. ". " .. L["Disable to make the icons click through"],
-			order = 12,
+			order = 13,
 			type = "toggle",
 			get = P.getIcons,
 			set = P.setIcons,

@@ -1,3 +1,66 @@
+v2.5.7
+	Bug Fixes
+		Fixed pre-existing group member's info not updating.
+		Fixed anchoring to Blizzard's non-raid style party frames.
+		Resetting timers will apply the correct icon alpha.
+	Feature Updates
+		Interrupt Bar: Added options to grow upward, reverse sort, and increased width limit to 999.
+		CDs > 3min will reset when a raid encounter ends.
+		HealBot support added.
+	Spell Updates
+		Emergency Failsafe (Mechagnome) passive racial added.
+
+v2.5.6
+	Bug Fixes
+		Fixed an issue that caused spell detection to stop working when a group member's unit ID changed.
+		Heartstop Aura (Frost DK - PvP Talent) will corectly apply reduced CD recovery rate.
+		Surge of Power procs will correctly register instead of throwing a lua error.
+		Primal Rage (Hunter pet ability) will correctly start it's CD when used from the pet bar.
+
+v2.5.5
+	Bug Fixes
+		Custom spells without an Item ID will no longer cause an error.
+		Running Test mode while disabled will no longer cause an error.
+		Fixed an issue that caused multiple frames to be created for the same unit.
+
+v2.5.4
+	Trinkets no longer show correctly if your teammate is using version-2.2.3 for BFA.
+
+	Bug Fixes
+		Fixed an issue that caused the wrong profile to load on zone change.
+		Guardian Druid: Berserk will correctly reduce Frenzied Regen's CD while it is active.
+	Feature Updates
+		Supported UIs: Interrupt/Raid bars are now usable in any group size.(beta)
+
+v2.5.3
+	Bug Fixes
+		Fixed an issue that caused covenant data to be cleared from synced units.
+		Fixed player spells in UIs with hidden player frames.
+
+v2.5.2
+	TL:DR
+		Bug fixes.
+		Added option to always show player's CD in the Interrupt/Raid bar.
+
+	Bug Fixes
+		Pandaren racial will correctly show for Horde factions.
+		Party Bars will no longer anchor to hidden frames.
+		Interrupt/Raid Bar will correctly show when the UI is toggled off and on.
+		Status bar timers will retain it's color state when reloading addon.
+		Fixed an issue that caused the wrong profile to load on entering LFG instances.
+	Feature Updates
+		General: Added option to always show player's CD in the Interrupt/Raid bar.
+		Interrupt Bar: Removed finish animation and changed timer format.
+		Outdoor/Scenario zones can now select which setting to use.
+		Plexus (Grid) support added.
+	Spell Updates
+		Fixed Foryfying Brew CD for Brewmaster Monk.
+		Removed Premonition from Disc Priest (PvP Talent).
+	Localization Updates
+		zhTW
+	Known Issues
+		Trinkets will not show if your group member is using ver 2.2.3. (no fix planned)
+
 v2.5.1
 	Bug Fixes
 		General: 'Show Player' will correctly update on zone change.
@@ -8,7 +71,6 @@ v2.5.1
 		Default offset/padding values have changed accordingly.
 	Localization Updates
 		ruRU
-
 
 v2.5.0
 	TL;DR

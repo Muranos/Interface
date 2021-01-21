@@ -23,6 +23,8 @@ L["Add ranks"] = "Ajouter des rangs"
 L["Add rolls"] = "Ajouter un lancer de dés"
 --[[Translation missing --]]
 --[[ L["Add Rolls"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["add_candidate"] = ""--]] 
 L["add_ranks_desc"] = "Définir le rang minimum pour pouvoir participer au conseil du butin :"
 L["add_ranks_desc2"] = [=[Sélectionnez un rang ci-dessus pour ajouter au conseil tous les membres de ce rang et au-dessus.
 Cliquez sur les rangs à gauche pour ajouter des joueurs précis au conseil.
@@ -38,8 +40,6 @@ L["All items"] = "Tous les objets"
 --[[ L["All items usable by the candidate"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["All unawarded items"] = ""--]] 
-L["Alt click Looting"] = "Butin en Alt-clic"
-L["alt_click_looting_desc"] = "Active le butin en Alt-clic, c.-à-d. qu'une session sera lancée en laissant appuyer le bouton Alt et en cliquant (clic gauche) avec la souris sur un objet."
 L["Alternatively, flag the loot as award later."] = "Sinon, désigner le butin comme devant être attribué plus tard."
 --[[Translation missing --]]
 --[[ L["Always show owner"] = ""--]] 
@@ -100,26 +100,17 @@ L["Auto Pass"] = "Passer automatiquement"
 L["Auto pass BoE"] = "Passer automatiquement sur les objets LqE"
 --[[Translation missing --]]
 --[[ L["Auto Pass Trinkets"] = ""--]] 
-L["Auto Start"] = "Lancement automatique"
 --[[Translation missing --]]
 --[[ L["Auto Trade"] = ""--]] 
 L["auto_award_desc"] = "Active l'attribution automatique."
 L["auto_award_to_desc"] = "Joueur à qui les objets seront automatiquement attribués. Une liste de sélection des membres du raid s'affichera si vous êtes dans un groupe de raid. "
 L["auto_close_desc"] = "Cocher pour fermer la fenêtre de vote automatiquement lorsque le Maître de Butin termine la session"
 L["auto_enable_desc"] = "Cochez cette case pour que le butin soit toujours géré par RCLootCouncil. En laissant cette case vide, l'add-on vous demandera à chaque fois que vous entrez dans un raid ou que vous êtes nommé maître du butin si vous voulez l'utiliser."
-L["auto_loot_desc"] = "Active la fouille automatique de tous les objets pouvant être équipés"
 L["auto_open_desc"] = "Cochez cette case pour que la fenêtre de vote s'ouvre automatiquement lorsque nécessaire. La fenêtre de vote peut indifféremment être ouverte en tapant /rc open. Remarque : cette option nécessite la permission du maître du butin."
 L["auto_pass_boe_desc"] = "Décocher pour ne jamais passer automatiquement sur des objets liés quand équipés."
 L["auto_pass_desc"] = "Cocher pour passer automatiquement sur les objets inutilisables par votre classe."
 --[[Translation missing --]]
 --[[ L["auto_pass_trinket_desc"] = ""--]] 
-L["auto_start_desc"] = "Active le lancement automatique, c.-à-d. qu'une session sera lancée avec tous les objets éligibles. En désactivant cette option, une liste d'objets modifiable s'affichera avant chaque début de session. "
---[[Translation missing --]]
---[[ L["Autoloot all BoE"] = ""--]] 
-L["Autoloot BoE"] = "Butin automatique des LqE"
-L["autoloot_BoE_desc"] = "Active la fouille automatique des objets LqE (liés quand équipés)."
---[[Translation missing --]]
---[[ L["autoloot_others_BoE_desc"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["autoloot_others_item_combat"] = ""--]] 
 L["Autopass"] = "Passer automatiquement"
@@ -198,8 +189,6 @@ L["chat version String"] = "|cFF87CEFARCLootCouncil |cFFFFFFFFversion |cFFFFA500
 --[[ L["chat_commands_version"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["chat_commands_whisper"] = ""--]] 
---[[Translation missing --]]
---[[ L["chat_commands_winners"] = ""--]] 
 L["Check this to loot the items and distribute them later."] = "Cocher cette case pour récupérer les objets et les attribuer plus tard."
 L["Check to append the realmname of a player from another realm"] = "Cocher pour ajouter le nom du royaume d'un joueur provenant d'un autre royaume"
 L["Check to have all frames minimize when entering combat"] = "Cocher pour minimiser toutes les fenêtres en entrant en combat. "
@@ -245,8 +234,6 @@ L["Diff"] = true
 L["disenchant_desc"] = "Sélectionner cette option pour que ce motif soit choisi lorsque vous attribuez un objet par le biais du bouton 'Désenchanter'"
 --[[Translation missing --]]
 --[[ L["Do you want to keep %s for yourself or trade?"] = ""--]] 
---[[Translation missing --]]
---[[ L["Do you want to keep %s for yourself?"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["Done syncing"] = ""--]] 
 L["Double click to delete this entry."] = "Double cliquez pour supprimer cette occurence."
@@ -331,12 +318,10 @@ L["Length"] = "Durée"
 L["Log"] = "Journal"
 L["log_desc"] = "Active le répertoriage dans l'historique du butin."
 L["Loot announced, waiting for answer"] = "Butin divulgué, en attente d'une réponse"
-L["Loot Everything"] = "Tout fouiller"
 L["Loot History"] = "Historique du butin"
 --[[Translation missing --]]
 --[[ L["Loot Status"] = ""--]] 
 L["Loot won:"] = "Butin remporté :"
-L["loot_everything_desc"] = "Active la fouille automatique des non-objets (p. ex. les montures, les jetons de sets de tier)"
 L["loot_history_desc"] = [=[RCLootCouncil enregistre automatiquement les informations pertinentes durant les sessions.
 Les données brutes sont enregistrées dans le fichier ".../SavedVariables/RCLootCouncil.lua".
 Remarque : les joueurs autres que le maître du butin peuvent uniquement enregistrer les données qui leur sont envoyées par ce dernier.]=]
@@ -405,7 +390,6 @@ L["Not Found"] = "Introuvable"
 --[[ L["Not in your guild"] = ""--]] 
 L["Not installed"] = "Pas installé"
 L["Notes"] = true
-L["notes_desc"] = "Permet aux candidats d'envoyer une note au conseil en plus du choix de leur réponse."
 L["Now handles looting"] = "Gère à présent l'attribution du butin"
 L["Number of buttons"] = "Nombre de boutons"
 --[[Translation missing --]]
@@ -435,6 +419,12 @@ L["open_the_loot_history_desc"] = "Cliquer pour ouvrir l'historique du butin."
 --[[ L["opt_autoAddItems_desc"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["opt_autoAddItems_name"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["opt_autoAddPets_desc"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["opt_autoAddPets_name"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["opt_autoAwardPrioList_desc"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["opt_autoTrade_desc"] = ""--]] 
 --[[Translation missing --]]
@@ -471,10 +461,6 @@ L["open_the_loot_history_desc"] = "Cliquer pour ouvrir l'historique du butin."
 --[[ L["opt_rejectTrade_Desc"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["opt_rejectTrade_Name"] = ""--]] 
---[[Translation missing --]]
---[[ L["opt_saveBonusRolls_Desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["opt_saveBonusRolls_Name"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["opt_skipSessionFrame_desc"] = ""--]] 
 --[[Translation missing --]]

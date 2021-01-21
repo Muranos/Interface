@@ -2,8 +2,22 @@ local E, L, C = select(2, ...):unpack()
 
 local P = E["Party"]
 
+local setScale = function(info, value)
+	local key = info[2]
+	local option = info[#info]
+	E.DB.profile.Party[key].icons[option] = value
+
+	P:ConfigSize(key, true)
+	--[[ xml
+	P:ConfigSize(key, option == "scale" or option == "modRowScale")
+	--]]
+end
+
 local icons = {
 	name = L["Icons"],
+	--[[ xml
+	name = "|TInterface\\OptionsFrame\\UI-OptionsFrame-NewFeatureIcon:0:0:0:-1|t" .. L["Icons"],
+	--]]
 	order = 30,
 	type = "group",
 	get = P.getIcons,
@@ -36,11 +50,7 @@ local icons = {
 			order = 10,
 			type = "range",
 			min = 0.2, max = 2.0, step = 0.01, isPercent = true,
-			set = function(info, value)
-				local key = info[2]
-				E.DB.profile.Party[key].icons.scale = value
-				P:ConfigSize(key, true)
-			end,
+			set = setScale,
 		},
 		chargeScale = {
 			name = L["Charge Size"],
@@ -121,6 +131,53 @@ local icons = {
 				},
 			}
 		},
+		--[=[ xml
+		modRowIcons = {
+			disabled = function(info) return not E.DB.profile.Party[info[2]].icons.modRowEnabled end,
+			name = "|TInterface\\OptionsFrame\\UI-OptionsFrame-NewFeatureIcon:0:0:0:-1|t" .. L["2nd Row Icons (Double Row Layout)"],
+			order = 30,
+			type = "group",
+			inline = true,
+			args = {
+				modRowEnabled = {
+					disabled = false,
+					name = ENABLE,
+					desc = L["Enable to customize the 2nd row icons when using 'Double Row' layout."],
+					order = 0,
+					type = "toggle",
+					set = setScale,
+				},
+				modRowCropped = {
+					name = L["Crop"],
+					desc = L["Crop Icons 1.5:1."] .. "\n\n" .. L["|cffff2020Glow and Highlights are never applied on cropped icons. \"Border\" must be enabled."],
+					order = 1,
+					type = "toggle",
+				},
+				modRowScale = {
+					name = L["Icon Size"],
+					desc = L["Set the size of icons"],
+					order = 2,
+					type = "range",
+					min = 0.2, max = 2.0, step = 0.01, isPercent = true,
+					set = setScale,
+				},
+				modRowOfsX = {
+					name = L["Offset X"],
+					desc = E.STR.MAX_RANGE,
+					order = 3,
+					type = "range",
+					min = 0, max = 999, softMax = 100, step = 1,
+					set = function(info, value) -- should be in position but,
+						local key = info[2]
+						local option = info[#info]
+						E.DB.profile.Party[key].icons[option] = value
+
+						P:ConfigBars(key, option)
+					end
+				},
+			}
+		},
+		--]=]
 	}
 }
 

@@ -30,6 +30,12 @@ function ggf.Changelog()
 end
 
 local changes = {};
+table.insert(changes, "# v4.0.0");
+table.insert(changes, "- Mythic+: Add Mob Count");
+table.insert(changes, "- Mythic+: Update MDT Compatibility");
+table.insert(changes, "");
+table.insert(changes, "# v3.1.2");
+table.insert(changes, "- Addons: Shadowlands Version Bump");
 table.insert(changes, "# v3.1.1");
 table.insert(changes, "- Mythic+: Fix tooltip bug");
 table.insert(changes, "");

@@ -22,6 +22,8 @@ L["Add Note"] = "增加筆記"
 L["Add ranks"] = "增加階級"
 L["Add rolls"] = "添加擲骰"
 L["Add Rolls"] = "添加擲骰"
+--[[Translation missing --]]
+--[[ L["add_candidate"] = ""--]] 
 L["add_ranks_desc"] = "擇參與戰利品分配議會的最低會階"
 L["add_ranks_desc2"] = [=[
 在上方選擇一個會階，添加該會階以及高於此會階的所有公會成員為議會成員。
@@ -35,8 +37,6 @@ L["All items"] = "所有物品"
 L["All items have been awarded and the loot session concluded"] = "所有裝備都已經分配完成，結束分裝程序。"
 L["All items usable by the candidate"] = "所有此人可用的物品"
 L["All unawarded items"] = "所有未分配物品"
-L["Alt click Looting"] = "Alt+左鍵分配"
-L["alt_click_looting_desc"] = "啟用Alt+左鍵分配。使用Alt+左鍵點擊物品以開始分配。"
 L["Alternatively, flag the loot as award later."] = "另外，標記該物品為稍后分配。"
 --[[Translation missing --]]
 --[[ L["Always show owner"] = ""--]] 
@@ -83,23 +83,16 @@ L["Auto Open"] = "自動開啓"
 L["Auto Pass"] = "自動放棄"
 L["Auto pass BoE"] = "自動放棄裝綁"
 L["Auto Pass Trinkets"] = "自動放棄飾品"
-L["Auto Start"] = "自動開始"
 --[[Translation missing --]]
 --[[ L["Auto Trade"] = ""--]] 
 L["auto_award_desc"] = "啓用自動分配"
 L["auto_award_to_desc"] = "自動獲得物品的玩家"
 L["auto_close_desc"] = "分裝者結束分裝程序後自動關閉投票視窗"
 L["auto_enable_desc"] = "總是允許RCLootCouncil 管理拾取。不勾每次加入隊伍或獲得分裝權時都會詢問"
-L["auto_loot_desc"] = "啓用自動拾取所有可裝備物品"
 L["auto_open_desc"] = "自動開啟分配界面。不勾也可輸入/rc open 手動開啟但需要分裝者授權"
 L["auto_pass_boe_desc"] = "自動放棄裝備綁定物品"
 L["auto_pass_desc"] = "自動放棄你不能用的物品"
 L["auto_pass_trinket_desc"] = "選中以自動放棄地下城手冊中不屬於你的職業的飾品"
-L["auto_start_desc"] = "啓用自動開始分配，取消將會在每次分配前顯示物品列表"
-L["Autoloot all BoE"] = "自動拾取所有裝綁"
-L["Autoloot BoE"] = "自動拾取裝綁"
-L["autoloot_BoE_desc"] = "啓用自動拾取裝綁物品"
-L["autoloot_others_BoE_desc"] = "啟用以自動將裝綁物品加入分配。"
 L["autoloot_others_item_combat"] = "%s 拾取了%s。此物品將會在戰斗結束后加入分配。"
 L["Autopass"] = "自動放棄"
 L["Autopassed on 'item'"] = "自動放棄%s"
@@ -158,7 +151,6 @@ L["chat_commands_sync"] = "打開設置同步器"
 L["chat_commands_test"] = "模擬有#個物品的分配進程。如果省略默認為一個物品"
 L["chat_commands_version"] = "打開版本檢查器 (簡稱： 'v' 或者 'ver')"
 L["chat_commands_whisper"] = "顯示密語幫助"
-L["chat_commands_winners"] = "顯示稍后分配的物品的獲勝者。"
 L["Check this to loot the items and distribute them later."] = "點擊拾取物品稍後分配"
 L["Check to append the realmname of a player from another realm"] = "顯示不同伺服器玩家的伺服器名稱"
 L["Check to have all frames minimize when entering combat"] = "進入戰鬥時最小化"
@@ -201,7 +193,6 @@ L["Discord friendly output."] = "Discord格式輸出"
 L["disenchant_desc"] = "當你經由分解按鈕贏得物品時使用這個理由"
 --[[Translation missing --]]
 --[[ L["Do you want to keep %s for yourself or trade?"] = ""--]] 
-L["Do you want to keep %s for yourself?"] = "是否要保留 %s 給自己?"
 L["Done syncing"] = "同步結束"
 L["Double click to delete this entry."] = "點擊兩下刪除此條目"
 L["Dropped by:"] = "掉落來源:"
@@ -271,12 +262,10 @@ L["Length"] = "長度"
 L["Log"] = "日誌"
 L["log_desc"] = "啓用拾取歷史記錄"
 L["Loot announced, waiting for answer"] = "拾取已發送，正在等待回應"
-L["Loot Everything"] = "拾取全部"
 L["Loot History"] = "拾取歷史"
 --[[Translation missing --]]
 --[[ L["Loot Status"] = ""--]] 
 L["Loot won:"] = "獲得裝備:"
-L["loot_everything_desc"] = "啓用自動拾取非裝備物品(坐騎、兌換物)"
 L["loot_history_desc"] = [=[RCLootCouncil 將自動記錄分配相關訊息
 原始數據儲存於".../SavedVariables/RCLootCouncil.lua" 
 
@@ -331,7 +320,6 @@ L["Not Found"] = "沒找到"
 L["Not in your guild"] = "不在你的公會"
 L["Not installed"] = "沒有安裝"
 L["Notes"] = "筆記"
-L["notes_desc"] = "允許成員發送筆記"
 L["Now handles looting"] = "現在負責拾取"
 L["Number of buttons"] = "按鈕數量"
 L["Number of raids received loot from:"] = "團本中獲得物品數量："
@@ -358,6 +346,12 @@ L["opt_addButton_desc"] = "對選擇部位增加新的按鈕群組"
 --[[ L["opt_autoAddItems_desc"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["opt_autoAddItems_name"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["opt_autoAddPets_desc"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["opt_autoAddPets_name"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["opt_autoAwardPrioList_desc"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["opt_autoTrade_desc"] = ""--]] 
 --[[Translation missing --]]
@@ -390,10 +384,6 @@ L["opt_deleteName_confirm"] = "你確定你要刪除所有 %s 的紀錄嗎? 刪�
 --[[Translation missing --]]
 --[[ L["opt_rejectTrade_Desc"] = ""--]] 
 L["opt_rejectTrade_Name"] = "允許保留裝備"
---[[Translation missing --]]
---[[ L["opt_saveBonusRolls_Desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["opt_saveBonusRolls_Name"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["opt_skipSessionFrame_desc"] = ""--]] 
 --[[Translation missing --]]

@@ -87,27 +87,20 @@ function Comms:CHAT_MSG_ADDON(prefix, message, dist, sender) -- [29]
 		return
 	end
 
-	local syncedUnit = self.syncGUIDS[guid]
+	local isSyncedUnit = self.syncGUIDS[guid]
 
 	if header == MSG_DESYNC then
-		if syncedUnit then
+		if isSyncedUnit then
 			self.syncGUIDS[guid] = nil
 		end
 		return
 	elseif header == MSG_POWER then
-		if syncedUnit then
+		if isSyncedUnit then
 			SyncRemainingCD(guid, body)
 		end
 		return
 	elseif header == MSG_INFO_REQUEST then
 		self:SendSync(sender)
-		if syncedUnit then
-			return
-		end
-	elseif header == MSG_INFO then
-		if syncedUnit then
-			return
-		end
 	end
 
 	info.talentData = {}
@@ -135,11 +128,11 @@ function Comms:CHAT_MSG_ADDON(prefix, message, dist, sender) -- [29]
 				local rankValue = soulbind_conduits_rank[spellID] and (soulbind_conduits_rank[spellID][conduitRank] or soulbind_conduits_rank[spellID][1])
 				info.shadowlandsData[conduitID] = conduitRank
 				info.talentData[spellID] = rankValue
-			else
+			elseif conduitID then
 				info.shadowlandsData[conduitID] = 0
 				info.talentData[conduitID] = 0
 			end
-		else
+		elseif v ~= "0" then
 			v = tonumber(v)
 			if i == 16 then
 				info.shadowlandsData.soulbindID = v
@@ -180,7 +173,7 @@ do
 			if power < lastPower then
 				local spent = lastPower - power
 				if isInCombat or spent > self.oocThreshold then -- [12]
-					if not P.isUserHidden then
+					if not P.isUserDisabled then -- [82]
 						if isRogueClass and P.userData.spec == 260 then -- BTE
 							self.spentPower = spent
 						end

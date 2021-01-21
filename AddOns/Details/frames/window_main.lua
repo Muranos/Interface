@@ -7,35 +7,26 @@ local _
 local gump = 			_detalhes.gump
 local SharedMedia = LibStub:GetLibrary ("LibSharedMedia-3.0")
 
-local atributos = _detalhes.atributos
-local sub_atributos = _detalhes.sub_atributos
 local segmentos = _detalhes.segmentos
 
 --lua locals
-local _cstr = tostring
 local _math_ceil = math.ceil
 local _math_floor = math.floor
 local _math_max = math.max
 local _ipairs = ipairs
 local _pairs = pairs
 local abs = _G.abs
-local _string_lower = string.lower
 local _unpack = unpack
 --api locals
 local CreateFrame = CreateFrame
 local _GetTime = GetTime
 local _GetCursorPosition = GetCursorPosition
-local _GameTooltip = GameTooltip
 local _UIParent = UIParent
-local _GetScreenWidth = GetScreenWidth
-local _GetScreenHeight = GetScreenHeight
 local _IsAltKeyDown = IsAltKeyDown
 local _IsShiftKeyDown = IsShiftKeyDown
 local _IsControlKeyDown = IsControlKeyDown
 local modo_raid = _detalhes._detalhes_props["MODO_RAID"]
 local modo_alone = _detalhes._detalhes_props["MODO_ALONE"]
-local modo_grupo = _detalhes._detalhes_props["MODO_GROUP"]
-local modo_all = _detalhes._detalhes_props["MODO_ALL"]
 local IsInInstance = _G.IsInInstance
 
 local tok_functions = _detalhes.ToKFunctions
@@ -46,8 +37,7 @@ local gump_fundo_backdrop = {
 	bgFile = [[Interface\AddOns\Details\images\background]], tile = true, tileSize = 16,
 	insets = {left = 0, right = 0, top = 0, bottom = 0}}
 
-
-function  _detalhes:ScheduleUpdate (instancia)
+function _detalhes:ScheduleUpdate (instancia)
 	instancia.barraS = {nil, nil}
 	instancia.update = true
 	if (instancia.showing) then
@@ -62,66 +52,30 @@ function  _detalhes:ScheduleUpdate (instancia)
 end
 
 --> skins TCoords
-
---	0.00048828125
-	
 	local DEFAULT_SKIN = [[Interface\AddOns\Details\images\skins\classic_skin]]
-	
-	--local COORDS_LEFT_BALL = {0.15673828125, 0.27978515625, 0.08251953125, 0.20556640625} -- 160 84 287 211 (updated)
-	--local COORDS_LEFT_BALL = {0.15576171875, 0.27978515625, 0.08251953125, 0.20556640625} -- 160 84 287 211 (updated)
 	local COORDS_LEFT_BALL = {0.15625, 0.2802734375, 0.08203125, 0.2060546875} -- 160 287 84 211
-	
-	--local COORDS_LEFT_CONNECTOR = {0.29541015625, 0.30126953125, 0.08251953125, 0.20556640625} --302 84 309 211 (updated)
 	local COORDS_LEFT_CONNECTOR = {0.294921875, 0.3017578125, 0.08203125, 0.2060546875} --302 84 309 211 (updated)
-	
-	--local COORDS_LEFT_CONNECTOR_NO_ICON = {0.58837890625, 0.59423828125, 0.08251953125, 0.20556640625} -- 602 84 609 211 (updated)
 	local COORDS_LEFT_CONNECTOR_NO_ICON = {0.587890625+0.00048828125, 0.5947265625, 0.08203125, 0.2060546875} -- 602 609 x 84 211
-
-	--local COORDS_TOP_BACKGROUND = {0.15673828125, 0.65478515625, 0.22314453125, 0.34619140625} -- 160 228 671 355 (updated)
 	local COORDS_TOP_BACKGROUND = {0.15625, 0.6552734375, 0.22265625, 0.3466796875} -- 160 671 x 228 355
-	
-	--local COORDS_RIGHT_BALL = {0.31591796875, 0.43994140625, 0.08251953125, 0.20556640625} --324 84 451 211 (updated)
-	--local COORDS_RIGHT_BALL = {0.3154296875+0.00048828125, 0.439453125+0.00048828125, 0.08203125, 0.2060546875-0.00048828125} --323 84 450 211 (updated)
 	local COORDS_RIGHT_BALL = {0.3154296875, 0.439453125, 0.08203125, 0.2060546875} -- 323 450 x 84 211
-	
-	--local COORDS_LEFT_BALL_NO_ICON = {0.44970703125, 0.57275390625, 0.08251953125, 0.20556640625} --460 84 587 211 (updated)
-	--local COORDS_LEFT_BALL_NO_ICON = {0.44921875, 0.57421875, 0.08203125, 0.20703125} --460 84 588 212 (updated)
-	--local COORDS_LEFT_BALL_NO_ICON = {0.44970703125, 0.57275390625, 0.08251953125, 0.20556640625} --460 84 587 211 (updated) 588 212
 	local COORDS_LEFT_BALL_NO_ICON = {0.44921875, 0.5732421875, 0.08203125, 0.2060546875} -- 460 587 84 211
-
-	--local COORDS_LEFT_SIDE_BAR = {0.76611328125, 0.82763671875, 0.00244140625, 0.50146484375} -- 784 2 848 514 (updated)
 	local COORDS_LEFT_SIDE_BAR = {0.765625, 0.828125, 0.001953125, 0.501953125} -- 784 2 848 514 (updated)
-
-	--local COORDS_RIGHT_SIDE_BAR = {0.70068359375, 0.76220703125, 0.00244140625, 0.50146484375} -- 717 2 781 514 (updated)
-	--local COORDS_RIGHT_SIDE_BAR = {0.7001953125, 0.763671875, 0.00244140625, 0.50146484375} -- 717 2 781 514 (updated)
-	--local COORDS_RIGHT_SIDE_BAR = {0.7001953125+0.00048828125, 0.76171875, 0.001953125, 0.5009765625} -- --717 2 780 513
 	local COORDS_RIGHT_SIDE_BAR = {0.7001953125, 0.7626953125, 0.001953125, 0.501953125} -- --717 2 781 513
-	
 	local COORDS_BOTTOM_SIDE_BAR = {0.32861328125, 0.82666015625, 0.50537109375, 0.56494140625} -- 336 517 847 579 (updated)
-	
 	local COORDS_SLIDER_TOP = {0.00146484375, 0.03076171875, 0.00244140625, 0.03173828125} -- 1 2 32 33 -ok
 	local COORDS_SLIDER_MIDDLE = {0.00146484375, 0.03076171875, 0.03955078125, 0.10009765625} -- 1 40 32 103 -ok
 	local COORDS_SLIDER_DOWN = {0.00146484375, 0.03076171875, 0.10986328125, 0.13916015625} -- 1 112 32 143 -ok
-
-	--local COORDS_STRETCH = {0.00146484375, 0.03076171875, 0.21435546875, 0.22802734375} -- 1 219 32 234 -ok
 	local COORDS_STRETCH = {0.0009765625, 0.03125, 0.2138671875, 0.228515625} -- 1 32 219 234
-	
 	local COORDS_RESIZE_RIGHT = {0.00146484375, 0.01513671875, 0.24560546875, 0.25927734375} -- 1 251 16 266 -ok
 	local COORDS_RESIZE_LEFT = {0.02001953125, 0.03173828125, 0.24560546875, 0.25927734375} -- 20 251 33 266 -ok
-	
 	local COORDS_UNLOCK_BUTTON = {0.00146484375, 0.01513671875, 0.27197265625, 0.28564453125} -- 1 278 16 293 -ok
-	
 	local COORDS_BOTTOM_BACKGROUND = {0.15673828125, 0.65478515625, 0.35400390625, 0.47705078125} -- 160 362 671 489 -ok
 	local COORDS_PIN_LEFT = {0.00146484375, 0.03076171875, 0.30126953125, 0.33056640625} -- 1 308 32 339 -ok
 	local COORDS_PIN_RIGHT = {0.03564453125, 0.06494140625, 0.30126953125, 0.33056640625} -- 36 308 67 339 -ok
-	
-	-- icones: 365 = 0.35693359375 // 397 = 0.38720703125
 
 	local menus_backdrop = {
 		edgeFile = [[Interface\Buttons\WHITE8X8]],
 		edgeSize=1,
-		--bgFile="Interface\\DialogFrame\\UI-DialogBox-Background-Dark",
-		--bgFile = [[Interface\Tooltips\UI-Tooltip-Background]], 
 		bgFile = [[Interface\AddOns\Details\images\background]],
 		tileSize=16,
 		tile=true,
@@ -132,7 +86,6 @@ end
 	local menus_bordercolor = {0, 0, 0, .25}
 	
 	--menus are ignoring the value set on the profile
-	
 	_detalhes.menu_backdrop_config = {
 		menus_backdrop = menus_backdrop,
 		menus_backdropcolor = menus_backdropcolor,
@@ -141,7 +94,7 @@ end
 	}
 	
 	
-function _detalhes:RefreshScrollBar (x) --> x = quantas barras esta sendo mostrado
+function _detalhes:RefreshScrollBar(x) --> x = quantas barras esta sendo mostrado
 
 	local cabe = self.rows_fit_in_window --> quantas barras cabem na janela
 
@@ -174,7 +127,7 @@ function _detalhes:RefreshScrollBar (x) --> x = quantas barras esta sendo mostra
 			local nao_mostradas = self.rows_showing - self.rows_fit_in_window
 			local slider_height = nao_mostradas*self.row_height
 			self.scroll.scrollMax = slider_height
-			self.scroll:SetMinMaxValues (0, slider_height)
+			self.scroll:SetMinMaxValues(0, slider_height)
 			
 		else	--> diminuiu a quantidade, acontece depois de uma coleta de lixo
 			self.rows_showing = x
@@ -188,7 +141,6 @@ function _detalhes:RefreshScrollBar (x) --> x = quantas barras esta sendo mostra
 				self.scroll.scrollMax = slider_height
 				self.scroll:SetMinMaxValues (0, slider_height)
 			end
-			
 		end
 	end
 	
@@ -199,13 +151,15 @@ function _detalhes:RefreshScrollBar (x) --> x = quantas barras esta sendo mostra
 	end
 end
 
---> self � a janela das barras
+--> self é a janela das barras
 local function move_barras (self, elapsed)
 	self._move_func.time = self._move_func.time+elapsed
 	if (self._move_func.time > 0.01) then
+
 		if (self._move_func.instancia.bgdisplay_loc == self._move_func._end) then --> se o tamanho atual � igual ao final declarado
 			self:SetScript ("OnUpdate", nil)
 			self._move_func = nil
+
 		else
 			self._move_func.time = 0
 			self._move_func.instancia.bgdisplay_loc = self._move_func.instancia.bgdisplay_loc + self._move_func.inc --> inc � -1 ou 1 e ir� crescer ou diminuir a janela
@@ -213,8 +167,8 @@ local function move_barras (self, elapsed)
 			for index = 1, self._move_func.instancia.rows_fit_in_window do
 				self._move_func.instancia.barras [index]:SetWidth (self:GetWidth()+self._move_func.instancia.bgdisplay_loc-3)
 			end
+
 			self._move_func.instancia.bgdisplay:SetPoint ("bottomright", self, "bottomright", self._move_func.instancia.bgdisplay_loc, 0)
-			
 			self._move_func.instancia.bar_mod = self._move_func.instancia.bgdisplay_loc+(-3)
 			
 			--> verifica o tamanho do text
@@ -245,6 +199,7 @@ function _detalhes:MoveBarrasTo (destino)
 	janela:SetScript ("OnUpdate", move_barras)
 end
 
+--almost deprecated
 function _detalhes:MostrarScrollBar (sem_animacao)
 
 	if (self.rolagem) then
@@ -267,7 +222,7 @@ function _detalhes:MostrarScrollBar (sem_animacao)
 	else
 		--> set size of rows
 		for index = 1, self.rows_fit_in_window do
-			self.barras [index]:SetWidth (self.baseframe:GetWidth()+mover_para -3) --> -3 distance between row end and scroll start
+			self.barras[index]:SetWidth (self.baseframe:GetWidth()+mover_para -3) --> -3 distance between row end and scroll start
 		end
 		--> move the semi-background to the left (which moves the scroll)
 		self.bgdisplay:SetPoint ("bottomright", self.baseframe, "bottomright", mover_para, 0)
@@ -300,6 +255,7 @@ function _detalhes:MostrarScrollBar (sem_animacao)
 
 end
 
+--almost deprecated
 function _detalhes:EsconderScrollBar (sem_animacao, force)
 
 	if (not self.rolagem) then
@@ -483,65 +439,7 @@ _detalhes.VPT, _detalhes.VPR, _detalhes.VPB, _detalhes.VPL = VPT, VPR, VPB, VPL
 
 local color_red = {1, 0.2, 0.2}
 local color_green = {0.2, 1, 0.2}
-
-local update_line = function (self, target_frame)
-
-	--> based on weak auras frame movement code
-	--local selfX, selfY = target_frame:GetCenter()
-	local selfX, selfY = target_frame.instance:GetPositionOnScreen()
-	--local anchorX, anchorY = self:GetCenter()
-	local anchorX, anchorY = self.instance:GetPositionOnScreen()
-	
-	selfX, selfY = selfX or 0, selfY or 0
-	anchorX, anchorY = anchorX or 0, anchorY or 0
-	
-	local dX = selfX - anchorX
-	local dY = selfY - anchorY
-	local distance = sqrt (dX^2 + dY^2)
-
-	local angle = atan2(dY, dX)
-	local numInterim = floor(distance/40)
-    
-	local guide_balls = _detalhes.guide_balls
-	if (not guide_balls) then
-		_detalhes.guide_balls = {}
-		guide_balls = _detalhes.guide_balls
-	end
-    
-	for index, ball in ipairs (guide_balls) do
-		ball:Hide()
-	end
-	
-	self.instance:AtualizaPontos()
-	target_frame.instance:AtualizaPontos()
-	
-	local color = color_red
-	local _R, _T, _L, _B = VPL (self.instance, target_frame.instance), VPB (self.instance, target_frame.instance), VPR (self.instance, target_frame.instance), VPT (self.instance, target_frame.instance)
-	if (_R or _T or _L or _B) then
-		color = color_green
-	end
-
-	for i = 0, numInterim do
-		local x = (distance - (i * 40)) * cos (angle)
-		local y = (distance - (i * 40)) * sin (angle)
-
-		local ball = guide_balls [i]
-		if (not ball) then
-			ball = _detalhes.overlay_frame:CreateTexture (nil, "Overlay")
-			ball:SetTexture ([[Interface\AddOns\Details\images\icons]])
-			ball:SetSize (16, 16)
-			ball:SetAlpha (0.3)
-			ball:SetTexCoord (410/512, 426/512, 2/512, 18/512)
-			tinsert (guide_balls, ball)
-		end
-		
-		ball:ClearAllPoints()
-		ball:SetPoint("CENTER", self, "CENTER", x, y) --baseframse center
-		ball:Show()
-		ball:SetVertexColor (unpack (color))
-	end
-
-end
+local pixels_per_arrow = 50
 
 local show_instance_ids = function()
 
@@ -594,10 +492,65 @@ local show_instance_ids = function()
 				instance.baseframe.id_texture1:Show()
 				instance.baseframe.id_texture2:Hide()
 			end
-
 		end
 	end
+end
+
+local update_line = function (self, target_frame)
+	local target_instance_PosX, target_instance_PosY = target_frame.instance:GetPositionOnScreen()
+	local moving_instance_PosX, moving_instance_PosY = self.instance:GetPositionOnScreen()
 	
+	target_instance_PosX = target_instance_PosX or 0
+	target_instance_PosY = target_instance_PosY or 0
+	moving_instance_PosX = moving_instance_PosX or 0
+	moving_instance_PosY = moving_instance_PosY or 0
+	
+	local dX = target_instance_PosX - moving_instance_PosX
+	local dY = target_instance_PosY - moving_instance_PosY
+	local distance = (dX^2 + dY^2) ^ 0.5
+	local angle = atan2(dY, dX)
+    
+	local guide_balls = _detalhes.guide_balls
+	if (not guide_balls) then
+		_detalhes.guide_balls = {}
+		guide_balls = _detalhes.guide_balls
+	end
+    
+	for index, ball in ipairs (guide_balls) do
+		ball:Hide()
+	end
+	
+	self.instance:AtualizaPontos()
+	target_frame.instance:AtualizaPontos()
+	
+	local color = color_red
+	local _R, _T, _L, _B = VPL (self.instance, target_frame.instance), VPB (self.instance, target_frame.instance), VPR (self.instance, target_frame.instance), VPT (self.instance, target_frame.instance)
+	if (_R or _T or _L or _B) then
+		color = color_green
+	end
+
+	for i = 0, (distance/pixels_per_arrow) do
+		local x = distance - (i * pixels_per_arrow)
+		x = x * cos(angle)
+		local y = distance - (i * pixels_per_arrow)
+		y = y * sin(angle)
+
+		local ball = guide_balls [i]
+		if (not ball) then
+			ball = _detalhes.overlay_frame:CreateTexture (nil, "Overlay")
+			ball:SetTexture ([[Interface\AddOns\Details\images\icons]])
+			ball:SetSize (16, 16)
+			ball:SetAlpha (0.3)
+			ball:SetTexCoord (410/512, 426/512, 2/512, 18/512)
+			tinsert (guide_balls, ball)
+		end
+		
+		ball:ClearAllPoints()
+		ball:SetPoint("CENTER", self, "CENTER", x, y) --baseframse center
+		ball:Show()
+		ball:SetVertexColor (unpack (color))
+	end
+
 end
 
 local tempo_movendo, precisa_ativar, instancia_alvo, tempo_fades, nao_anexados, flash_bounce, start_draw_lines, instance_ids_shown, need_show_group_guide
@@ -846,7 +799,6 @@ local function move_janela (baseframe, iniciando, instancia, just_updating)
 			if (need_start) then --> se a inst�ncia n�o tiver sido aberta ainda
 
 				local lower_instance = _detalhes:GetLowerInstanceNumber()
-				--print (lower_instance, instancia_alvo.meu_id, DEATHGRAPHICS_BUTTON:GetParent():GetName())
 			
 				instancia_alvo:RestauraJanela (instancia_alvo.meu_id, true)
 				if (instancia_alvo:IsSoloMode()) then
@@ -2054,9 +2006,7 @@ local barra_scripts_onmouseup = function (self, button)
 				
 				return _detalhes:ReportSingleLine (self._instance, self)
 			end
-			
-			--print (self.minha_tabela)
-			-- /dump DetailsBarra_1_1.minha_tabela
+
 			if (not self.minha_tabela) then
 				return _detalhes:Msg ("this bar is waiting update.")
 			end
@@ -2636,6 +2586,7 @@ local function button_stretch_scripts (baseframe, backgrounddisplay, instancia)
 		instancia.rowframe:SetFrameStrata ("TOOLTIP")
 		
 		local _r, _g, _b, _a = baseframe:GetBackdropColor()
+
 		gump:GradientEffect ( baseframe, "frame", _r, _g, _b, _a, _r, _g, _b, 0.9, 1.5)
 		if (instancia.wallpaper.enabled) then
 			_r, _g, _b = baseframe.wallpaper:GetVertexColor()
@@ -3058,7 +3009,7 @@ end
 function _detalhes:InstanceAlert (msg, icon, time, clickfunc, doflash, forceAlert)
 	
 	if (not forceAlert and _detalhes.streamer_config.no_alerts) then
-		return
+		--return
 	end
 	
 	if (not self.meu_id) then
@@ -4000,7 +3951,6 @@ function _detalhes:SetBarGrowDirection (direction)
 	else
 		for index = 1, #bars do
 			bars [index]:SetWidth (baseframe:GetWidth() + self.row_info.space.right)
-			--print (bars [index]:GetWidth(), baseframe:GetWidth())
 		end
 	end
 end
@@ -5041,9 +4991,6 @@ end
 
 -- ~autohide �utohide
 function _detalhes:SetWindowAlphaForCombat (entering_in_combat, true_hide, alphaAmount)
-
---print(entering_in_combat, "|", true_hide, "|", alphaAmount)
-
 	local amount, rowsamount, menuamount
 
 	--get the values
@@ -5083,8 +5030,6 @@ function _detalhes:SetWindowAlphaForCombat (entering_in_combat, true_hide, alpha
 		end
 		self.combat_changes_alpha = nil
 	end
-
-	--print ("baseframe:",amount,"rowframe:",rowsamount,"menu:",menuamount)
 	
 	--apply
 	if (true_hide and amount == 0) then
@@ -5109,12 +5054,6 @@ function _detalhes:SetWindowAlphaForCombat (entering_in_combat, true_hide, alpha
 		self:InstanceAlpha(min (amount, self.color[4]))
 		gump:Fade(self.rowframe, "ALPHAANIM", rowsamount)
 		gump:Fade(self.baseframe, "ALPHAANIM", rowsamount)
-
-		--self:SetIconAlpha(menuamount)
-		
-		if (_detalhes.debug) then
-			_detalhes:Msg ("(debug) showing window SetWindowAlphaForCombat()", amount, rowsamount, menuamount)
-		end
 	--]]
 	end
 	
@@ -5220,7 +5159,6 @@ function _detalhes:InstanceColor (red, green, blue, alpha, no_save, change_statu
 		self:StatusBarColor (nil, nil, nil, alpha, true)
 	end
 
---	print (self.skin, self.meu_id)
 	local skin = _detalhes.skins [self.skin]
 	if (not skin) then --the skin isn't available any more
 		Details:Msg ("Skin " .. (self.skin or "?") .. " not found, changing to 'Dark Theme'.")
@@ -5228,15 +5166,6 @@ function _detalhes:InstanceColor (red, green, blue, alpha, no_save, change_statu
 		skin = _detalhes.skins ["Minimalistic"]
 		self.skin = "Minimalistic"
 	end
-	
-	--[[
-	self.baseframe.rodape.esquerdo:SetVertexColor (red, green, blue)
-		self.baseframe.rodape.esquerdo:SetAlpha (alpha)
-	self.baseframe.rodape.direita:SetVertexColor (red, green, blue)
-		self.baseframe.rodape.direita:SetAlpha (alpha)
-	self.baseframe.rodape.top_bg:SetVertexColor (red, green, blue)
-		self.baseframe.rodape.top_bg:SetAlpha (alpha)
-	--]]
 	
 	self.baseframe.cabecalho.ball_r:SetVertexColor (red, green, blue)
 		self.baseframe.cabecalho.ball_r:SetAlpha (alpha)
@@ -6245,8 +6174,6 @@ local build_segment_list = function (self, elapsed)
 					
 					segments_used = segments_used + 1
 
-					--print (thisCombat.is_boss.name, thisCombat.instance_type, _detalhes:GetRaidIcon (thisCombat.is_boss.mapid), thisCombat.is_boss.ej_instance_id)
-
 					if (thisCombat.is_mythic_dungeon_segment) then
 					
 						if (not isMythicDungeon) then
@@ -6915,6 +6842,7 @@ function _detalhes:ChangeSkin (skin_name)
 	local this_skin = _detalhes.skins [skin_name]
 
 	if (not this_skin) then
+		Details:Msg("error 0x4546", skin_name)
 		skin_name = _detalhes.default_skin_to_use
 		this_skin = _detalhes.skins [skin_name]
 	end
@@ -6927,7 +6855,6 @@ function _detalhes:ChangeSkin (skin_name)
 	if (not just_updating) then
 
 		--> skin updater
-		--print ("debug", self.meu_id, self.iniciada, self.baseframe, self.bgframe)
 		if (self.bgframe.skin_script) then
 			self.bgframe:SetScript ("OnUpdate", nil)
 			self.bgframe.skin_script = false
@@ -7090,7 +7017,7 @@ function _detalhes:ChangeSkin (skin_name)
 		self.baseframe.cabecalho.atributo_icon:SetPoint ("topright", self.baseframe.cabecalho.ball_point, "topright", icon_anchor[1], icon_anchor[2])
 		self:ChangeIcon()
 	end
-	
+
 ----------> lock alpha head	
 	
 	if (not this_skin.can_change_alpha_head) then
@@ -7112,10 +7039,10 @@ function _detalhes:ChangeSkin (skin_name)
 		self:SetBarBackdropSettings()
 		self:SetBarSpecIconSettings()
 		self:SetBarRightTextSettings()
-	
+
 	--> update toolbar
 		self:ToolbarSide()
-	
+
 	--> update stretch button
 		self:StretchButtonAnchor()
 	
@@ -7144,7 +7071,7 @@ function _detalhes:ChangeSkin (skin_name)
 		else
 			self:InstanceWallpaper (false)
 		end
-	
+
 	--> update instance color
 		self:InstanceColor()
 		self:SetBackgroundColor()
@@ -7563,6 +7490,14 @@ function _detalhes:AdjustAlphaByContext(interacting)
 	end
 end
 
+function _detalhes:LeftMenuAnchorSide (side)
+	if (not side) then
+		side = self.menu_anchor.side
+	end
+	
+	self.menu_anchor.side = side
+	return self:MenuAnchor()
+end
 
 function _detalhes:SetFrameStrata (strata)
 	
@@ -7608,18 +7543,6 @@ function _detalhes:SetFrameStrata (strata)
 	end
 	
 	self:StretchButtonAlwaysOnTop()
-end
-
-function _detalhes:LeftMenuAnchorSide (side)
-	
-	if (not side) then
-		side = self.menu_anchor.side
-	end
-	
-	self.menu_anchor.side = side
-	
-	return self:MenuAnchor()
-	
 end
 
 -- ~attributemenu (text with attribute name)
@@ -7725,7 +7648,7 @@ function _detalhes:AttributeMenu (enabled, pos_x, pos_y, font, size, color, side
 	if (type (enabled) ~= "boolean") then
 		enabled = self.attribute_text.enabled
 	end
-	
+
 	if (not pos_x) then
 		pos_x = self.attribute_text.anchor [1]
 	end
@@ -7753,7 +7676,10 @@ function _detalhes:AttributeMenu (enabled, pos_x, pos_y, font, size, color, side
 		shadow = self.attribute_text.shadow
 	end
 	
-	if (type (timer_encounter) ~= "boolean") then
+	if (type(self.attribute_text.show_timer) ~= "boolean") then
+		self.attribute_text.show_timer = true
+	end
+	if (type(timer_encounter) ~= "boolean") then
 		timer_encounter = self.attribute_text.show_timer
 	end
 	
@@ -8278,7 +8204,7 @@ function _detalhes:ToolbarSide (side, only_update_anchors)
 		self.baseframe.UPFrameLeftPart:SetPoint ("topleft", self.baseframe, "bottomleft", 0, 0)
 
 	end
-	
+
 	if (only_update_anchors) then
 		--> ShowSideBars depends on this and creates a infinite loop
 		return
@@ -8286,10 +8212,10 @@ function _detalhes:ToolbarSide (side, only_update_anchors)
 	
 	--> update top menus
 	self:LeftMenuAnchorSide()
-	
+
 	self:StretchButtonAnchor()
-	
-	self:HideMainIcon()
+
+	self:HideMainIcon() --attribute menu reseting value
 	
 	if (self.show_sidebars) then
 		self:ShowSideBars()
@@ -8362,7 +8288,6 @@ function _detalhes:StretchButtonAnchor (side)
 end
 
 function _detalhes:MenuAnchor (x, y)
-
 	if (self.toolbar_side == 1) then --top
 		if (not x) then
 			x = self.menu_anchor [1]
@@ -8412,7 +8337,6 @@ function _detalhes:MenuAnchor (x, y)
 	end
 	
 	self:ToolbarMenuButtons()
-	
 end
 
 function _detalhes:HideMainIcon (value)
@@ -8435,7 +8359,6 @@ function _detalhes:HideMainIcon (value)
 			self.baseframe.cabecalho.ball:SetTexCoord (l, r, b, t)
 			local l, r, t, b = unpack (COORDS_LEFT_CONNECTOR_NO_ICON)
 			self.baseframe.cabecalho.emenda:SetTexCoord (l, r, b, t)
-		
 		end
 		
 		local skin = _detalhes.skins [self.skin]
@@ -8463,19 +8386,6 @@ function _detalhes:HideMainIcon (value)
 			self.baseframe.cabecalho.emenda:SetTexCoord (l, r, b, t)
 		end
 	end
-
-	if (_detalhes.skins [self.skin].icon_titletext_position) then
-		if (not value and self.attribute_text.enabled and self.attribute_text.side == self.toolbar_side) then
-			self.attribute_text.anchor [1] = _detalhes.skins [self.skin].icon_titletext_position [1]
-			self.attribute_text.anchor [2] = _detalhes.skins [self.skin].icon_titletext_position [2]
-			self:AttributeMenu()
-		elseif (value and self.attribute_text.enabled and self.attribute_text.side == self.toolbar_side) then
-			self.attribute_text.anchor [1] = _detalhes.skins [self.skin].instance_cprops.attribute_text.anchor [1]
-			self.attribute_text.anchor [2] = _detalhes.skins [self.skin].instance_cprops.attribute_text.anchor [2]
-			self:AttributeMenu()
-		end
-	end
-	
 end
 
 --> search key: ~desaturate

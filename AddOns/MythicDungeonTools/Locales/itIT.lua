@@ -188,6 +188,8 @@ L["Cutwater Striker"] = "Inseguitore Sferzamaree"
 L["Dark Acolyte"] = "Accolita Oscura"
 L["Darkheart Thicket"] = "Boschetto Cuortetro"
 L["Darkheart Thicket Sublevel"] = "Boschetto Cuortetro"
+--[[Translation missing --]]
+--[[ L["DataImportButtonTooltip"] = ""--]] 
 L["Dazar'ai Augur"] = "Divinatore Dazar'ai"
 L["Dazar'ai Colossus"] = "Colosso Dazar'ai"
 L["Dazar'ai Confessor"] = "Confessore Dazar'ai"
@@ -254,6 +256,8 @@ L["Drust Boughbreaker"] = "Spezzarami Drust"
 L["Drust Harvester"] = "Mietitore Drust"
 L["Drust Soulcleaver"] = "Fendianime Drust"
 L["Drust Spiteclaw"] = "Grinfiaperfida Drust"
+--[[Translation missing --]]
+--[[ L["Dungeon Data Missing"] = ""--]] 
 L["Dungeon Level"] = "Livello della spedizione"
 L["Earlier Version"] = "Stai utilizzando una versione precedente di questo percorso con il nome '%s'%sDesideri aggiornarlo o crearne una nuova copia?%s%s%s"
 L["Earthrager"] = "Spaccaterra"
@@ -425,6 +429,8 @@ L["If the Minimap Button is enabled"] = "Se il pulsante della minimappa è abili
 L["Imbued Stormcaller"] = "Invocatore delle Tempeste Infuso"
 L["Import"] = "Importa"
 L["Import a preset from a text string"] = "Importa un percorso da una stringa di testo"
+--[[Translation missing --]]
+--[[ L["Import Data"] = ""--]] 
 L["Import Preset"] = "Importa percorso"
 L["Imprison"] = "Imprigionamento"
 L["In the bottom right corner"] = "Nell'angolo destro inferiore"
@@ -601,6 +607,12 @@ L["New Patrol Waypoint at Cursor Position"] = "Nuova tappa di pattuglia alla pos
 L["New Preset"] = "Nuovo percorso"
 L["Next to the NPC"] = "Accanto al PNG"
 L["Noble Skirmisher"] = "Schermagliatore Nobile"
+--[[Translation missing --]]
+--[[ L["noDungeonData1"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["noDungeonData2"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["noDungeonData3"] = ""--]] 
 L["Not specified"] = "Non specificato"
 L["Note Text:"] = "Testo della nota:"
 L["Off-Duty Laborer"] = "Bracciante Fuori Servizio"

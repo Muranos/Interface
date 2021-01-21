@@ -3,7 +3,11 @@ local L = LibStub("AceLocale-3.0"):NewLocale("OmniCD", "ruRU")
 L = L or {}
 L["%d: spellID.\n%d-%d: spellID-talentID (Mark spell if talent is selected)."] = "%d: ID способности.\n%d-%d: ID способности - ID таланта (Помечает способность если выбран талант)."
 L["|cff9d9d9d * Scenarios and Outdoor Zones will use Arena settings."] = "|cff9d9d9d * Сценарии и Зоны Мира будут использовать настройки Арены."
+--[[Translation missing --]]
+L["|cffff2020Glow and Highlights are never applied on cropped icons. \"Border\" must be enabled."] = "|cffff2020Glow and Highlights are never applied on cropped icons. \"Border\" must be enabled."
 L["|cffff2020Important!|r Covenant and Soulbind Conduit data can only be acquired from group members with OmniCD installed."] = "|cffff2020Важно!|r Данные Ковенанта и Медиума членов группы могут быть получены только если эти члены группы используют OmniCD."
+--[[Translation missing --]]
+L["2nd Row Icons (Double Row Layout)"] = "2nd Row Icons (Double Row Layout)"
 L["2px Border"] = "Граница в два пикселя"
 L["A new update is available. (|cff99cdff%s)"] = "Доступно новое обновление. (|cff99cdff%s)"
 L["Active"] = "Активно"
@@ -65,6 +69,10 @@ L["Counter Size"] = "Размер времени перезарядки"
 L["Covenant"] = "Ковенант"
 L["Create Bar"] = "Создать полосу"
 L["Credits"] = "Авторы"
+--[[Translation missing --]]
+L["Crop"] = "Crop"
+--[[Translation missing --]]
+L["Crop Icons 1.5:1."] = "Crop Icons 1.5:1."
 L["Crowd Control"] = "Контроль"
 L["Current Unit Frame Addon"] = "Текущий аддон юнит фреймов"
 L["Custom Priority"] = "Модифицированный Приоритет"
@@ -90,6 +98,8 @@ L["Enable if the spell is a base ability for this specialization"] = "Включ
 L["Enable in automated instance groups"] = "Включить в автоматически собранных группах"
 L["Enable initial spark and marching-ants animation"] = "Включить анимации стартового свечения и двигающихся шариков"
 L["Enable spell for this specialization"] = "Включить заклинание для этой специализации"
+--[[Translation missing --]]
+L["Enable to customize the 2nd row icons when using 'Double Row' layout."] = "Enable to customize the 2nd row icons when using 'Double Row' layout."
 L["Enter buff ID if it differs from spell ID for Highlights to work"] = "Введите ID баффа если он отличается от ID заклинания для того, чтобы Подсвечивание работало"
 L["Enter item ID to enable spell when the item is equipped only"] = "Введите ID предмета для того, чтобы заклинание отслеживалось только при надетом предмете"
 L["Enter Spell ID to Add/Edit"] = "Введите ID Способности чтобы добавить/изменить"
@@ -181,6 +191,8 @@ L["Select how the player frame is displayed inside the party frame"] = "Зада
 L["Select the group size for which you want to set the spell bar position"] = "Выбирает размер группы для которой изменять позицию полос с заклинаниями"
 L["Select the highest priority spell type to use as the start of the 2nd row"] = "Выбирает с какого типа заклинаний начинать вторую строку иконок"
 L["Select the icon layout"] = "Выбрать расположение иконок"
+--[[Translation missing --]]
+L["Select the zone setting to use for this zone."] = "Select the zone setting to use for this zone."
 L["Select the zone you want to copy settings from."] = "Выберите зону, из которой вы хотите скопировать настройки."
 L["Select your default party frame layout"] = "Выбирает расположение фреймов группы по-умолчанию"
 L["Send a chat message when a newer version is found."] = "Отправлять сообщение в чат при доступности новой версии."
@@ -210,6 +222,10 @@ L["Show anchor with party/raid numbers"] = "Показать точку закр
 L["Show Forbearance CD"] = "Показывать время восстановления Воздержанности"
 L["Show name on icons"] = "Показывать имя на иконках"
 L["Show Player"] = "Показывать для игрока"
+--[[Translation missing --]]
+L["Show Player in Extra Bars"] = "Show Player in Extra Bars"
+--[[Translation missing --]]
+L["Show player spells in the Extra Bars regardless of 'Show Player' setting."] = "Show player spells in the Extra Bars regardless of 'Show Player' setting."
 L["Show player's spell bar"] = "Показывать панель заклинаний игрока"
 L["Show pvp trinket only while in Battlegrounds"] = "Показывать только PvP-аксессуар на Полях Боя"
 L["Show Spell ID in Tooltips"] = "Показывать ID заклинания во всплывающих подсказках"
@@ -218,6 +234,8 @@ L["Show timer on spells while under the effect of Forbearance or Hypothermia. Sp
 L["Show Tooltip"] = "Показывать всплывающие подсказки"
 L["Show Trinket Only"] = "Показывать только PvP-аксессуар"
 L["Slash Commands"] = "Команды, доступные через '/'"
+--[[Translation missing --]]
+L["Sort Direction"] = "Sort Direction"
 L["Sort Order"] = "Направление сортировки"
 L["Spacing"] = "Расстояние между"
 L["Spell Editor"] = "Редактор заклинаний"
@@ -254,6 +272,8 @@ L["Use Double Row"] = "Двойная строка"
 L["Use Icon Alpha"] = "Использовать Прозрачность Иконок"
 L["Use Relative Size"] = "Использовать относительный размер"
 L["Use this setting for all group sizes"] = "Использовать эту настройку для групп любых размеров"
+--[[Translation missing --]]
+L["Use Zone Settings From:"] = "Use Zone Settings From:"
 L["Utils"] = "Утилиты"
 L["Version"] = "Версия"
 L["Vertical"] = "Вертикально"

@@ -21,6 +21,8 @@ L["Add Note"] = "Notiz hinzufügen"
 L["Add ranks"] = "Ränge hinzufügen"
 L["Add rolls"] = "Würfe hinzufügen"
 L["Add Rolls"] = "Würfe hinzufügen"
+--[[Translation missing --]]
+--[[ L["add_candidate"] = ""--]] 
 L["add_ranks_desc"] = "Wähle einen Mindestrang aus, der am Beuterat teilnehmen darf:"
 L["add_ranks_desc2"] = [=[
 
@@ -35,8 +37,6 @@ L["All items"] = "Alle Gegenstände"
 L["All items have been awarded and the loot session concluded"] = "Alle Gegenstände wurden vergeben und die Sitzung ist abgeschlossen"
 L["All items usable by the candidate"] = "Alle vom Kandidaten benutzbaren Gegenstände"
 L["All unawarded items"] = "Alle nicht vergebenen Gegenstände"
-L["Alt click Looting"] = "Alt-Klick-Plündern"
-L["alt_click_looting_desc"] = "Aktiviert das Plündern mit Alt-Klick, das heißt, dass eine Plündersitzung beginnt, wenn du Alt gedrückt hältst und auf einen Gegenstand (links)klickst."
 L["Alternatively, flag the loot as award later."] = "Alternativ, Markiere die Beute zur späteren Vergabe."
 L["Always show owner"] = "Besitzer immer zeigen"
 L["Always use RCLootCouncil with Personal Loot"] = "RCLootCouncil immer mit Persönlicher Beute nutzen"
@@ -79,22 +79,15 @@ L["Auto Open"] = "Automatisch öffnen"
 L["Auto Pass"] = "Automatisches Passen"
 L["Auto pass BoE"] = "Auf BoE automatisch passen"
 L["Auto Pass Trinkets"] = "Auf Schmuckstücke automatisch passen"
-L["Auto Start"] = "Automatisch starten"
 L["Auto Trade"] = "Automatisch Handeln"
 L["auto_award_desc"] = "Aktiviert die automatische Vergabe."
 L["auto_award_to_desc"] = "Der Spieler, dem automatisch Gegenstände gegeben werden. Eine Auswahlliste mit Schlachtzugsmitgliedern wird angezeigt, wenn du in einem Schlachtzug bist."
 L["auto_close_desc"] = "Aktivieren, um das Abstimmungsfenster automatisch zu schließen, wenn der Plündermeister die Sitzung beendet."
 L["auto_enable_desc"] = "Aktivieren, dass RCLootCouncil sich um die Beute kümmert. Bei Deaktivierung frägt dich das Addon jedes Mal, wenn du einen Schlachtzug betrittst oder Plündermeister wirst, ob du es benutzen willst."
-L["auto_loot_desc"] = "Aktiviert automatisches Plündern für alle anlegbaren Gegenstände."
 L["auto_open_desc"] = "Aktivieren, um das Abstimmungsfenster automatisch zu öffnen, falls es verfügbar ist. Das Abstimmungsfenster kann anderenfalls mit \"/rc open\" geöffnet werden. Hinweis: Dies erfordert die Erlaubnis des Plündermeisters."
 L["auto_pass_boe_desc"] = "Deaktivieren, um niemals auf beim Anlegen gebundene Gegenstände automatisch zu passen."
 L["auto_pass_desc"] = "Aktivieren, um automatisch auf Gegenstände zu passen, die deine Klasse nicht benutzen kann."
 L["auto_pass_trinket_desc"] = "Auswählen, um automatisch auf Schmuckstücke zu passen, die laut Dungeonjournal nicht für Deine Klasse geeignet sind"
-L["auto_start_desc"] = "Aktiviert den automatischen Start, das heißt, dass eine Sitzung mit allen geeigneten Gegenständen gestartet wird. Deaktivieren, um eine editierbare Liste von Gegenständen vor dem Start einer Sitzung zu zeigen."
-L["Autoloot all BoE"] = "Auto-Loot BoE"
-L["Autoloot BoE"] = "BoE automatisch plündern"
-L["autoloot_BoE_desc"] = "Aktiviert das automatische Plündern von BoE-Gegenständen (Bind on Equip – Beim Anlegen gebunden) ."
-L["autoloot_others_BoE_desc"] = "Aktivieren, um automatisch die von anderen Spielern gelooteten BoE-Gegenstände der Sitzung hinzuzufügen."
 L["autoloot_others_item_combat"] = [=[%s hat %s geplündert. Der Gegenstand wird der Session hinzugefügt, sobald der Kampf endet.
 ]=]
 L["Autopass"] = "Automatisches Passen"
@@ -156,7 +149,6 @@ L["chat_commands_sync"] = "Das Synchronisationsfenster öffnen"
 L["chat_commands_test"] = "Simuliere eine Vergabesitzung mit # Gegenständen, 1 zum Auslassen "
 L["chat_commands_version"] = "Den Versionscheck öffnen (alt. 'v' oder 'ver')"
 L["chat_commands_whisper"] = "Bietet Unterstützung für Flüsterkommandos"
-L["chat_commands_winners"] = "Zeigt die Gewinner von zugeteilten Gegenständen an, die sich in Deinem Inventar befinden"
 L["Check this to loot the items and distribute them later."] = "Aktiviere dies, um die Gegenstände zu plündern und sie später zu verteilen."
 L["Check to append the realmname of a player from another realm"] = "Hake diese Option an, damit der Realmname eines Spielers hinzugefügt wird, falls dieser Spieler auf einem anderen Realm spielt."
 L["Check to have all frames minimize when entering combat"] = "Aktivieren, um alle Fenster bei Kampfbeitritt zu minimieren"
@@ -197,7 +189,6 @@ L["Diff"] = "Diff."
 L["Discord friendly output."] = "Discord-freundlicher Output."
 L["disenchant_desc"] = "Auswählen, um diesen Grund zu benutzen, wenn du einen Gegenstand über den Button 'Entzaubern' vergibst."
 L["Do you want to keep %s for yourself or trade?"] = "Willst du %s für dich behalten oder handeln?"
-L["Do you want to keep %s for yourself?"] = "Willst du %s für dich selbst behalten?"
 L["Done syncing"] = "Synchronisierung abgeschlossen"
 L["Double click to delete this entry."] = "Doppelklick, um diesen Eintrag zu löschen"
 L["Dropped by:"] = "Fallengelassen von:"
@@ -258,11 +249,9 @@ L["Length"] = "Länge"
 L["Log"] = "Protokoll"
 L["log_desc"] = "Aktiviert den Beuteverlauf."
 L["Loot announced, waiting for answer"] = "Beute angekündigt, warte auf Antwort"
-L["Loot Everything"] = "Alles plündern"
 L["Loot History"] = "Beuteverlauf"
 L["Loot Status"] = "Status der Beute"
 L["Loot won:"] = "Beute gewann:"
-L["loot_everything_desc"] = "Aktiviert das automatische Plündern von nicht anlegbaren Gegenständen (z.B. Reittiere, Tier-Marken)."
 L["loot_history_desc"] = [=[RCLootCouncil zeichnet automatisch relevante Informationen aus Sitzungen auf.
 Die Rohdaten werden in ".../SavedVariables/RCLootCouncil.lua" gespeichert.
 
@@ -316,7 +305,6 @@ L["Not Found"] = "Nicht gefunden"
 L["Not in your guild"] = "Nicht in Deiner Gilde."
 L["Not installed"] = "Nicht installiert"
 L["Notes"] = "Notizen"
-L["notes_desc"] = "Erlaubt es Kandidaten, eine Notiz an den Rat zusammen mit ihrem Wurf zu schicken."
 L["Now handles looting"] = "Greift jetzt ins Plündern ein"
 L["Number of buttons"] = "Anzahl der Buttons"
 L["Number of raids received loot from:"] = "Anzahl der Schlachtzüge, in denen es Beute gab:"
@@ -341,14 +329,17 @@ L["opt_addButton_desc"] = "Füge eine neue Schaltflächengruppe für den ausgew�
 --[[ L["opt_autoAddBoEs_name"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["opt_autoAddItems_desc"] = ""--]] 
+L["opt_autoAddItems_name"] = "Gegenstände automatisch hinzugefügen"
 --[[Translation missing --]]
---[[ L["opt_autoAddItems_name"] = ""--]] 
+--[[ L["opt_autoAddPets_desc"] = ""--]] 
+L["opt_autoAddPets_name"] = "Begleiter hinzufügen"
+--[[Translation missing --]]
+--[[ L["opt_autoAwardPrioList_desc"] = ""--]] 
 L["opt_autoTrade_desc"] = "Anhaken, um vergebene Gegenstände dem Handelsfenster automatisch hinzuzufügen, wenn man mit dem Gewinner handelt. Wenn deaktiviert, wird ein Pop-up eingeblendet bevor die Gegenstände hinzugefügt werden. "
 L["opt_award_later_desc"] = "Anhaken, um die \"Später vergeben\"-Funktion im Sitzungsfenster automatisch zu aktivieren."
 L["opt_buttonsGroup_desc"] = "Optionsgruppe für %s Schaltflächen und Antworten. Für eine detaillierte Erklärung siehe oben. "
 L["opt_chatFrameName_desc"] = "Wähle aus, in welchem Chatfenster RCLootCouncil Informationen ausgeben soll."
---[[Translation missing --]]
---[[ L["opt_chatFrameName_name"] = ""--]] 
+L["opt_chatFrameName_name"] = "Chatfenster"
 L["opt_deleteDate_confirm"] = [=[Bist du sicher, dass du alles, das älter als das gewählte ist, löschen möchtest?
 Dies kann nicht rückgängig gemacht werden.]=]
 L["opt_deleteDate_desc"] = "Lösche alles, was älter als die ausgewählte Anzahl an Tagen ist."
@@ -365,8 +356,6 @@ L["opt_printCompletedTrade_Desc"] = "Anhaken, damit jedes Mal eine Nachricht ver
 L["opt_printCompletedTrade_Name"] = "Handelsnachrichten"
 L["opt_rejectTrade_Desc"] = "Aktiviere diese Option, damit die Kandidaten auswählen können, ob sie den Gegenstand dem Rat \"geben\" möchten oder nicht. Wenn diese Option nicht aktiviert ist, werden alle handelbaren PL-Gegenstände automatisch hinzugefügt."
 L["opt_rejectTrade_Name"] = "Behalten erlauben"
-L["opt_saveBonusRolls_Desc"] = "Anhaken, um alle Bonuswürfe von Kandidaten im Beuteverlauf zu speichern."
-L["opt_saveBonusRolls_Name"] = "Bonuswürfe speichern"
 --[[Translation missing --]]
 --[[ L["opt_skipSessionFrame_desc"] = ""--]] 
 --[[Translation missing --]]
@@ -376,7 +365,7 @@ L["options_autoAwardBoE_name"] = "BoE's automatisch vergeben"
 L["options_ml_outOfRaid_desc"] = "Wenn diese Option aktiviert ist, wird in einer Gruppe von 8 oder mehr Mitgliedern von jedem, der sich nicht in einer Instanz befindet, wenn eine Sitzung gestartet wird, automatisch die Antwort \"Nicht im Raid\" senden."
 L["options_ml_outOfRaid_name"] = "Nicht im Raid unterstützen"
 L["options_requireNotes_desc"] = "Wenn diese Option aktiviert ist, können Kandidaten ihre Antwort nicht einreichen, ohne eine Notiz eingegeben zu haben."
-L["Original Owner"] = "Originaler Besitzer"
+L["Original Owner"] = "Ursprünglicher Besitzer"
 L["Out of instance"] = "Keine Instanz"
 L["Patch"] = true
 L["Personal Loot - Non tradeable"] = "Persönliche Beute – Nicht handelbar"

@@ -40,7 +40,7 @@ ns.dungeons = {
 		["instance_map_id"] = 2286,
 		["lfd_activity_ids"] = { 712, 713, 714, 715 },
 		["name"] = "The Necrotic Wake",
-		["shortName"] = "WAKE",
+		["shortName"] = "NW",
 	},
 	[6] = {
 		["id"] = 13228,

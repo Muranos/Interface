@@ -24,6 +24,8 @@ L["Add Note"] = "Добавить Заметку"
 L["Add ranks"] = "Добавить ранги"
 L["Add rolls"] = "Добавить броски"
 L["Add Rolls"] = "Добавить броски"
+--[[Translation missing --]]
+--[[ L["add_candidate"] = ""--]] 
 L["add_ranks_desc"] = "Выберите минимальный ранг для участия в распределении добычи"
 --[[Translation missing --]]
 --[[ L["add_ranks_desc2"] = ""--]] 
@@ -37,10 +39,6 @@ L["All items"] = "Все предметы"
 --[[ L["All items usable by the candidate"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["All unawarded items"] = ""--]] 
---[[Translation missing --]]
---[[ L["Alt click Looting"] = ""--]] 
---[[Translation missing --]]
---[[ L["alt_click_looting_desc"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["Alternatively, flag the loot as award later."] = ""--]] 
 L["Always show owner"] = "Всегда показывать владельца"
@@ -111,8 +109,6 @@ L["Auto Open"] = "Автоматически открывать"
 --[[Translation missing --]]
 --[[ L["Auto Pass Trinkets"] = ""--]] 
 --[[Translation missing --]]
---[[ L["Auto Start"] = ""--]] 
---[[Translation missing --]]
 --[[ L["Auto Trade"] = ""--]] 
 L["auto_award_desc"] = "Включить автоматическое распределение"
 L["auto_award_to_desc"] = "Игроки для автоматического распределения. Список игроков для выбора появляется если вы в рейдовой группе."
@@ -121,8 +117,6 @@ L["auto_award_to_desc"] = "Игроки для автоматического р
 --[[Translation missing --]]
 --[[ L["auto_enable_desc"] = ""--]] 
 --[[Translation missing --]]
---[[ L["auto_loot_desc"] = ""--]] 
---[[Translation missing --]]
 --[[ L["auto_open_desc"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["auto_pass_boe_desc"] = ""--]] 
@@ -130,15 +124,6 @@ L["auto_award_to_desc"] = "Игроки для автоматического р
 --[[ L["auto_pass_desc"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["auto_pass_trinket_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["auto_start_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["Autoloot all BoE"] = ""--]] 
-L["Autoloot BoE"] = "Автосбор БОЕ-предметов"
---[[Translation missing --]]
---[[ L["autoloot_BoE_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["autoloot_others_BoE_desc"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["autoloot_others_item_combat"] = ""--]] 
 L["Autopass"] = "Автопас"
@@ -221,8 +206,6 @@ L["Changing LootMethod to Master Looting"] = "Разделение добычи 
 --[[Translation missing --]]
 --[[ L["chat_commands_whisper"] = ""--]] 
 --[[Translation missing --]]
---[[ L["chat_commands_winners"] = ""--]] 
---[[Translation missing --]]
 --[[ L["Check this to loot the items and distribute them later."] = ""--]] 
 --[[Translation missing --]]
 --[[ L["Check to append the realmname of a player from another realm"] = ""--]] 
@@ -279,7 +262,6 @@ L["Diff"] = "Илвл"
 --[[ L["disenchant_desc"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["Do you want to keep %s for yourself or trade?"] = ""--]] 
-L["Do you want to keep %s for yourself?"] = "Вы хотите оставить %s себе?"
 --[[Translation missing --]]
 --[[ L["Done syncing"] = ""--]] 
 --[[Translation missing --]]
@@ -379,14 +361,10 @@ L["Log"] = "Лог"
 --[[Translation missing --]]
 --[[ L["log_desc"] = ""--]] 
 L["Loot announced, waiting for answer"] = "Добыча объявлена, ожидание ответа"
---[[Translation missing --]]
---[[ L["Loot Everything"] = ""--]] 
 L["Loot History"] = "История Лута"
 --[[Translation missing --]]
 --[[ L["Loot Status"] = ""--]] 
 L["Loot won:"] = "Предмет выиграл:"
---[[Translation missing --]]
---[[ L["loot_everything_desc"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["loot_history_desc"] = ""--]] 
 --[[Translation missing --]]
@@ -461,7 +439,6 @@ L["Not Found"] = "Не найдено"
 L["Not in your guild"] = "Не в гильдии"
 L["Not installed"] = "Не установлено"
 L["Notes"] = "Заметки"
-L["notes_desc"] = "Позволяет кандидатам отправлять их заметки консулу вместе с результатами бросков."
 --[[Translation missing --]]
 --[[ L["Now handles looting"] = ""--]] 
 L["Number of buttons"] = "Количество кнопок"
@@ -501,6 +478,12 @@ L["Open the Loot History"] = "Открыть Историю Лута"
 --[[Translation missing --]]
 --[[ L["opt_autoAddItems_name"] = ""--]] 
 --[[Translation missing --]]
+--[[ L["opt_autoAddPets_desc"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["opt_autoAddPets_name"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["opt_autoAwardPrioList_desc"] = ""--]] 
+--[[Translation missing --]]
 --[[ L["opt_autoTrade_desc"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["opt_award_later_desc"] = ""--]] 
@@ -536,10 +519,6 @@ L["Open the Loot History"] = "Открыть Историю Лута"
 --[[ L["opt_rejectTrade_Desc"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["opt_rejectTrade_Name"] = ""--]] 
---[[Translation missing --]]
---[[ L["opt_saveBonusRolls_Desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["opt_saveBonusRolls_Name"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["opt_skipSessionFrame_desc"] = ""--]] 
 --[[Translation missing --]]

@@ -297,7 +297,7 @@ E.spell_db = {
 		{ spellID = 122278, duration = 120, type = "defensive", spec = true     },
 		{ spellID = 122783, duration = 90,  type = "defensive", spec = true     },
 		{ spellID = 325153, duration = 60,  type = "defensive", spec = true     },
-		{ spellID = 115203, duration = 420, type = "defensive", spec = {268}    },
+		{ spellID = 115203, duration = 360, type = "defensive", spec = {268}    },
 		{ spellID = 243435, duration = 180, type = "defensive", spec = {269, 270}},
 		{ spellID = 122281, duration = 30,  type = "defensive", spec = true,    charges = 2 },
 		{ spellID = 132578, duration = 180, type = "defensive", spec = {268}    },
@@ -437,7 +437,6 @@ E.spell_db = {
 		{ spellID = 200174, duration = 60,  type = "offensive", spec = true,    parent = 34433  },
 		{ spellID = 213610, duration = 30,  type = "counterCC", spec = true     },
 		{ spellID = 289657, duration = 45,  type = "counterCC", spec = true     },
-		{ spellID = 305498, duration = 12,  type = "counterCC", spec = true     },
 		{ spellID = 121536, duration = 20,  type = "other",     spec = true,    charges = 3 },
 		{ spellID = 586,    duration = 30,  type = "other",     talent = 213602 },
 		{ spellID = 73325,  duration = 90,  type = "other"  },
@@ -675,7 +674,7 @@ E.spell_db = {
 		{ spellID = 129597, duration = 120, type = "racial",    race = 10   },
 		{ spellID = 59542,  duration = 180, type = "racial",    race = 11   },
 		{ spellID = 68992,  duration = 120, type = "racial",    race = 22   },
-		{ spellID = 107079, duration = 120, type = "racial",    race = 25   },
+		{ spellID = 107079, duration = 120, type = "racial",    race = {25, 26} },
 		{ spellID = 260364, duration = 180, type = "racial",    race = 27   },
 		{ spellID = 255654, duration = 120, type = "racial",    race = 28   },
 		{ spellID = 256948, duration = 180, type = "racial",    race = 29   },
@@ -686,6 +685,7 @@ E.spell_db = {
 		{ spellID = 312411, duration = 90,  type = "racial",    race = 35   },
 		{ spellID = 274738, duration = 120, type = "racial",    race = 36   },
 		{ spellID = 312924, duration = 180, type = "racial",    race = 37   },
+		{ spellID = 312916, duration = 150, type = "racial",    race = 37   },
 	},
 	["TRINKET"] = {
 		{ spellID = 344384, duration = 120, type = "trinket",   item = 184017   },
@@ -781,7 +781,7 @@ for k, v in pairs(E.spell_db) do
 
 		if not C_Spell.DoesSpellExist(id) then
 			tremove(v, i)
-			E.Write("Removing Invalid ID: |cffffd200" .. id)
+			--E.Write("Removing Invalid ID: |cffffd200" .. id)
 		else
 			if k == "TRINKET" then
 				t.icon = GetItemIcon(itemID)

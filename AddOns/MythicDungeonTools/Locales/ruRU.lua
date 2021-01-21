@@ -36,8 +36,7 @@ L["Anodized Coilbearer"] = "Анодированный разрядниконо�
 L["Apply to preset"] = "Применить к шаблону;"
 L["Aqu'sirr"] = "Аква'сирр"
 L["Arcane Eye"] = "Чародейское око"
---[[Translation missing --]]
---[[ L["Ardenweald"] = ""--]] 
+L["Ardenweald"] = "Арденвельд"
 L["Ashvane Cannoneer"] = "Канонир дома Эшвейнов"
 L["Ashvane Commander"] = "Командир из корпорации Эшвейнов"
 L["Ashvane Deckhand"] = "Матрос корпорации Эшвейнов"
@@ -73,8 +72,7 @@ L["Azerokk"] = "Азерокк"
 L["Azules"] = "Азуль"
 L["Banish"] = "Изгнание"
 L["Banquet Steward"] = "Распорядитель банкета"
---[[Translation missing --]]
---[[ L["Battle for Azeroth"] = ""--]] 
+L["Battle for Azeroth"] = "Битва за Азерот"
 L["Battlefield Ritualist"] = "Боевой ритуалист"
 L["Beast"] = "Животное"
 L["Befouled Spirit"] = "Оскверненный дух"
@@ -159,8 +157,7 @@ L["Color Blind Friendly"] = "Режим для людей с дальтониз�
 L["Colorpicker"] = "Палитра цветов"
 L["Colossal Tentacle"] = "Огромное щупальце"
 L["Congealed Slime"] = "Сгусток слизи"
---[[Translation missing --]]
---[[ L["ConnectedTip"] = ""--]] 
+L["ConnectedTip"] = "Группы обведенные в МДТ не соответстуют объеденению НИП в игре"
 L["Control Undead"] = "Порабощение нежити"
 L["Copy"] = "Копировать"
 L["Corpse Collector"] = "Собиратель трупов"
@@ -188,13 +185,14 @@ L["Cutwater Striker"] = "Боец из братства Волнорезов"
 L["Dark Acolyte"] = "Темная прислужница"
 L["Darkheart Thicket"] = "Чаща Темного Сердца"
 L["Darkheart Thicket Sublevel"] = "Чаща Темного Сердца"
+--[[Translation missing --]]
+--[[ L["DataImportButtonTooltip"] = ""--]] 
 L["Dazar'ai Augur"] = "Дазар'айский авгур"
 L["Dazar'ai Colossus"] = "Дазар'айский колосс"
 L["Dazar'ai Confessor"] = "Дазар'айский духовник"
 L["Dazar'ai Honor Guard"] = "Дазар'айский почетный страж"
 L["Dazar'ai Juggernaut"] = "Дазар'айский сокрушитель"
---[[Translation missing --]]
---[[ L["De Other Side"] = ""--]] 
+L["De Other Side"] = "Та Сторона"
 L["Dealer Xy'exa"] = "Дилер Зи'екса"
 L["Death Speaker"] = "Вестник смерти"
 L["Decaying Flesh Giant"] = "Разлагающийся великан"
@@ -209,13 +207,11 @@ L["Defiled Spire of Ny'alotha"] = "Оскверненный шпиль Ни'ал
 L["Defunct Dental Drill"] = "Испорченная бормашина"
 L["Delete"] = "Удалить"
 L["Delete %s?"] = "Удалить %s?"
---[[Translation missing --]]
---[[ L["Delete ALL drawings"] = ""--]] 
+L["Delete ALL drawings"] = "Удалить ВСЕ нарисованные объекты"
 L["Delete ALL presets"] = "Удалить ВСЕ маршруты"
 L["Delete Preset"] = "Удалить шаблон"
 L["Delete this preset"] = "Удалить этот шаблон"
---[[Translation missing --]]
---[[ L["deleteAllDrawingsPrompt"] = ""--]] 
+L["deleteAllDrawingsPrompt"] = "Вы уверены, что хотите удалить ВСЕ нарисованные объекты из текущего маршрута?%sЭто действие невозможно отменить."
 L["deleteAllWarning"] = "!!Внимание!!%sВы действительно хотите удалить ВСЕ маршруты для этого подземелья?%sВы собираетесь удалить %s маршрут(а/ов)%sПосле удаления их нельзя будет восстановить"
 L["Demolishing Terror"] = "Крушащий ужас"
 L["Demon"] = "Демон"
@@ -243,14 +239,10 @@ L["Dokigg the Brutalizer"] = "Докигг Изверг"
 L["Domina Venomblade"] = "Домина Отравленный Клинок"
 L["Drag the bottom right edge to resize MDT."] = "Потяните за нижний правый угол, чтобы изменить размер MDT"
 L["Dragonkin"] = "Драконид"
---[[Translation missing --]]
---[[ L["Drawing: Arrow"] = ""--]] 
---[[Translation missing --]]
---[[ L["Drawing: Eraser"] = ""--]] 
---[[Translation missing --]]
---[[ L["Drawing: Freehand"] = ""--]] 
---[[Translation missing --]]
---[[ L["Drawing: Line"] = ""--]] 
+L["Drawing: Arrow"] = "Рисование: Стрелка"
+L["Drawing: Eraser"] = "Рисование: Ластик"
+L["Drawing: Freehand"] = "Рисование: Карандаш"
+L["Drawing: Line"] = "Рисование: линия"
 L["Dread Captain Lockwood"] = "Жуткий капитан Локвуд"
 L["Dreadful Huntmaster"] = "Жуткий егерь"
 L["Dreadwing Raven"] = "Грознокрылый ворон"
@@ -261,6 +253,8 @@ L["Drust Boughbreaker"] = "Друст-древолом"
 L["Drust Harvester"] = "Друст-жнец"
 L["Drust Soulcleaver"] = "Друст-душеруб"
 L["Drust Spiteclaw"] = "Друст - злобный коготь"
+--[[Translation missing --]]
+--[[ L["Dungeon Data Missing"] = ""--]] 
 L["Dungeon Level"] = "Уровень подземелья"
 L["Earlier Version"] = "У вас уже есть маршрут с таким названием '%s'\\nХотите внести изменения в него или создать новый?\\n\\n\\n"
 L["Earthrager"] = "Земляной яростень"
@@ -315,8 +309,7 @@ L["Field of the Eternal Hunt"] = "Поля вечной охоты"
 L["Finger Food"] = "Пикантные пальчики"
 L["Fleeting Manifestation"] = "Изменчивое воплощение"
 L["Flesh Crafter"] = "Изготовитель кадавров"
---[[Translation missing --]]
---[[ L["Font of Fealty"] = ""--]] 
+L["Font of Fealty"] = "Источник Преданности"
 L["Footbomb Hooligan"] = "Футбомбный хулиган"
 L["Forces"] = "Силы врага"
 L["Forces only: 5/200"] = "Силы врага: 5/200"
@@ -358,8 +351,7 @@ L["Galecaller Apprentice"] = "Ученик призывательницы што
 L["Galecaller Faye"] = "Призывательница штормов Фэй"
 L["Galvazzt"] = "Гальваззт"
 L["Gamesman's Hall"] = "Игровой зал"
---[[Translation missing --]]
---[[ L["Gardens of Repose"] = ""--]] 
+L["Gardens of Repose"] = "Сады Отдохновения"
 L["General Kaal"] = "Генерал Кааль"
 L["Giant"] = "Великан"
 L["Gilded Priestess"] = "Позолоченная жрица"
@@ -391,16 +383,12 @@ L["Hadal Darkfathom"] = "Хадал Черная Бездна"
 L["Hakkar the Soulflayer"] = "Хаккар Свежеватель Душ"
 L["Halkias"] = "Халкиас"
 L["Hall of the Moon"] = "Зал Луны"
---[[Translation missing --]]
---[[ L["Halls of Atonement"] = ""--]] 
+L["Halls of Atonement"] = "Чертоги Покаяния"
 L["Halls of Valor"] = "Чертоги Доблести"
 L["Halls of Valor Sublevel"] = "Чертоги Доблести"
---[[Translation missing --]]
---[[ L["HallsOfAtonementFloor1"] = ""--]] 
---[[Translation missing --]]
---[[ L["HallsOfAtonementFloor2"] = ""--]] 
---[[Translation missing --]]
---[[ L["HallsOfAtonementFloor3"] = ""--]] 
+L["HallsOfAtonementFloor1"] = "Чертоги Покаяния"
+L["HallsOfAtonementFloor2"] = "Неф Боли"
+L["HallsOfAtonementFloor3"] = "Святилище Душ"
 L["Harlan Sweete"] = "Красавчик Харлан"
 L["Harugia the Bloodthirsty"] = "Харугия Кровожадная"
 L["Hatchling Nest"] = "Чумное гнездо"
@@ -426,8 +414,7 @@ L["Hold CTRL to single-select enemies."] = "Зажмите CTRL, чтобы вы
 L["Hold SHIFT to create a new pull while selecting enemies."] = "Зажмите SHIFT, чтобы создавать отельные пулы при выборе врагов"
 L["Hold SHIFT to delete all presets with the delete preset button."] = "Зажмите SHIFT, чтобы удалить все шаблоны при помощи кнопки \"удалить шаблон\""
 L["Honored Raptor"] = "Почитаемый ящер"
---[[Translation missing --]]
---[[ L["Honor's Ascent"] = ""--]] 
+L["Honor's Ascent"] = "Подъем Чести"
 L["Hoodoo Hexer"] = "Проклинатель худу"
 L["Humanoid"] = "Гуманоид"
 L["Ickor Bileflesh"] = "Икор Желчная Плоть"
@@ -435,6 +422,8 @@ L["If the Minimap Button is enabled"] = "Если кнопка мини-карт
 L["Imbued Stormcaller"] = "Усиленный призыватель шторма"
 L["Import"] = "Импортировать"
 L["Import a preset from a text string"] = "Импортировать шаблон из текстовой строки"
+--[[Translation missing --]]
+--[[ L["Import Data"] = ""--]] 
 L["Import Preset"] = "Импорт шаблона"
 L["Imprison"] = "Пленение"
 L["In the bottom right corner"] = "В правом нижнем углу"
@@ -447,8 +436,7 @@ L["Ingra Maloch"] = "Ингра Малох"
 L["Inquisitor Sigar"] = "Инквизитор Зигар"
 L["Insatiable Brute"] = "Ненасытный громила"
 L["Insert Note"] = "Добавить записку"
---[[Translation missing --]]
---[[ L["Inspiring"] = ""--]] 
+L["Inspiring"] = "Воодушевляющий"
 L["Interment Construct"] = "Погребальный голем"
 L["Invalid import string"] = "Неправильная строка импорта"
 L["Ironhull Apprentice"] = "Ученик Айронхалла"
@@ -509,8 +497,7 @@ L["Lady Waycrest"] = "Леди Уэйкрест"
 L["Lakesis"] = "Лакезис"
 L["Language"] = "Язык"
 L["LargePresetWarning"] = "Вы пытаетесь поделиться очень большим шаблоном (%d characters)\\nВам рекомендуется использовать функцию экспорта и делиться крупными шаблонами используя wago.io \\nВы уверены, что хотите поделиться этим шаблоном?\\n"
---[[Translation missing --]]
---[[ L["Legion"] = ""--]] 
+L["Legion"] = "Легион"
 L["Level %d %s"] = "Уровень %d %s"
 L["Levels below 10 will hide enemies related to seasonal affixes"] = "В подземельях ниже 10-го уровня враги, относящиеся к сезонному аффиксу, будут скрыты"
 L["Library Floor"] = "Библиотека Хранителя"
@@ -552,8 +539,7 @@ L["MDI Mode"] = "Режим MDI"
 L["MDT: Error importing preset"] = "MDT: Ошибка импорта шаблона"
 L["MDT: Spells for %s:"] = "MDT: Заклинания для %s:"
 L["Mech Jockey"] = "Механожокей"
---[[Translation missing --]]
---[[ L["Mechagon"] = ""--]] 
+L["Mechagon"] = "Мехагон"
 L["Mechagon - Junkyard"] = "Операция \"Мехагон\" - свалка"
 L["Mechagon - Workshop"] = "Операция \"Мехагон\" - мастерская"
 L["Mechagon Cavalry"] = "Мехагонский кавалерист"
@@ -577,8 +563,7 @@ L["minecartNote"] = "Вагонетка%sМожет быть использов�
 L["Minion of Zul"] = "Прислужник Зула"
 L["Mire Soldier"] = "Болотный солдат"
 L["Mistcaller"] = "Призывательница Туманов"
---[[Translation missing --]]
---[[ L["Mists of Tirna Scithe"] = ""--]] 
+L["Mists of Tirna Scithe"] = "Туманы Тирна Скитта"
 L["Mistveil Defender"] = "Туманная защитница"
 L["Mistveil Gorgegullet"] = "Жоробрюх Туманной Завесы"
 L["Mistveil Guardian"] = "Туманный страж"
@@ -601,8 +586,7 @@ L["Monzumi"] = "Монзуми"
 L["Mordretha, the Endless Empress"] = "Мордрета, Вечная императрица"
 L["Mouseover a patrolling enemy with a blue border to view the patrol path."] = "Наведите мышкой поверх патрульного с синей рамкой чтобы увидеть его путь"
 L["Mouseover the Live button while in a group to learn more about Live mode."] = "Наведите мышкой поверх кнопки Совместный сеанс во время нахождения в группе чтобы узнать больше о Совместном сеансе"
---[[Translation missing --]]
---[[ L["Move Object"] = ""--]] 
+L["Move Object"] = "Передвинуть объект"
 L["Mueh'zala"] = "Мве'зала"
 L["Mythresh, Sky's Talons"] = "Мифреш Небесный Коготь"
 L["Naeno Megacrash"] = "Нано Мегабум"
@@ -620,9 +604,13 @@ L["New Preset"] = "Новый шаблон"
 L["Next to the NPC"] = "Рядом с НИП"
 L["Noble Skirmisher"] = "Аристократ-дуэлянт"
 --[[Translation missing --]]
---[[ L["Not specified"] = ""--]] 
+--[[ L["noDungeonData1"] = ""--]] 
 --[[Translation missing --]]
---[[ L["Note Text:"] = ""--]] 
+--[[ L["noDungeonData2"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["noDungeonData3"] = ""--]] 
+L["Not specified"] = "Не указано"
+L["Note Text:"] = "Текст записки"
 L["Off-Duty Laborer"] = "Отдыхающий работник"
 L["Officer Quarters"] = "Офицерская"
 L["Omega Buster"] = ""
@@ -654,10 +642,8 @@ L["Plagueborer"] = "Чумной бурильщик"
 L["Plaguebound"] = "Чумной труп"
 L["Plaguebound Devoted"] = "Чумная прислужница"
 L["Plaguebound Fallen"] = "Чумная падшая воительница"
---[[Translation missing --]]
---[[ L["Plaguefall"] = ""--]] 
---[[Translation missing --]]
---[[ L["plaguefallDevotedNote"] = ""--]] 
+L["Plaguefall"] = "Чумные Каскады"
+L["plaguefallDevotedNote"] = "Чумные прислужники которые были трансформированны при помощи умения \"Сочащийся остов\" до входа в бой с НИП Икор Желчная Плоть не засчитываются как силы врага"
 L["Plagueroc"] = "Чумной рух"
 L["Plain Texture"] = "Чистая текстура "
 L["Players can join the live session by either clicking this button or the Live Session chat link"] = "Игроки могут присоединиться к совместному сеансу нажав на эту кнопку или на ссылку совместного сеанса в чате"
@@ -670,8 +656,7 @@ L["Posh Vacationer"] = "Пафосная курортница"
 L["Preset '%s' already exists"] = "Шаблон '%s' уже существует"
 L["Preset Export"] = "Экспорт шаблона"
 L["Preset Name"] = "Имя шаблона"
---[[Translation missing --]]
---[[ L["Prideful"] = ""--]] 
+L["Prideful"] = "Полный гордыни"
 L["Priestess Alun'za"] = "Жрица Алун'за"
 --[[Translation missing --]]
 --[[ L["Prison Bars"] = ""--]] 
@@ -715,8 +700,7 @@ L["Reaping"] = "Пожинающий"
 --[[ L["receiveErrorUpdate"] = ""--]] 
 L["Receiving: ..."] = "Загрузка: ..."
 L["Red, Green and Blue"] = "Красный, Зелёный и Синий"
---[[Translation missing --]]
---[[ L["Redo"] = ""--]] 
+L["Redo"] = "Повторить"
 L["Refreshment Vendor"] = "Продавщица закусок"
 L["Regal Mistdancer"] = "Благородный туманный танцор"
 L["Relentless"] = "Непреклонный"
@@ -771,12 +755,9 @@ L["Sandfury Stonefist"] = "Крушитель из племени Песчано
 L["Sandswept Marksman"] = "Песчаный стрелок"
 L["Sanguine"] = "Кровавый"
 L["Sanguine Cadet"] = "Кровавый кадет"
---[[Translation missing --]]
---[[ L["Sanguine Depths"] = ""--]] 
---[[Translation missing --]]
---[[ L["Sanguine DepthsFloor1"] = ""--]] 
---[[Translation missing --]]
---[[ L["Sanguine DepthsFloor2"] = ""--]] 
+L["Sanguine Depths"] = "Кровавые Катакомбы"
+L["Sanguine DepthsFloor1"] = "Глубины Отчаяния"
+L["Sanguine DepthsFloor2"] = "Амфитеатр Скорби"
 L["Sap"] = "Ошеломление"
 L["Sathel the Accursed"] = "Сатель Злосчастный"
 L["Saurolisk Bonenipper"] = "Завролиск-костеглод"
@@ -791,8 +772,7 @@ L["Scraphound"] = "Утильхаунд"
 L["Scrimshaw Enforcer"] = "Вышибала из банды Резчиков"
 L["Scrimshaw Gutter"] = "Кишкодер из банды Резчиков"
 L["Seasonal Affix:"] = "Сезонный модификатор:"
---[[Translation missing --]]
---[[ L["Seat of the Archon"] = ""--]] 
+L["Seat of the Archon"] = "Престол Архонта"
 L["Seat of the Triumvirate"] = "Престол Триумвирата"
 L["Seat of the Triumvirate Sublevel"] = "Престол Триумвирата"
 L["Select the dungeon level"] = "Выбрать уровень подземелья"
@@ -814,8 +794,7 @@ L["Shadowblade Stalker"] = "Крадущийся теневой клинок"
 L["Shadow-Borne Champion"] = "Тенеликий защитник"
 L["Shadow-Borne Warrior"] = "Тенеликий воин"
 L["Shadow-Borne Witch Doctor"] = "Тенеликий колдун"
---[[Translation missing --]]
---[[ L["Shadowlands"] = ""--]] 
+L["Shadowlands"] = "Темные земли"
 L["Shalebiter"] = "Сланцеед"
 L["Shambling Arbalest"] = "Шаркающий арбалетчик"
 L["Shard of Halkias"] = "Фрагмент Халкиаса"
@@ -884,10 +863,8 @@ L["Spinemaw Gorger"] = "Иглобрюх-поглотитель"
 L["Spinemaw Larva"] = "Личинка иглобрюха"
 L["Spinemaw Reaver"] = "Иглобрюх-разоритель"
 L["Spinemaw Staghorn"] = "Иглобрюх-рогач"
---[[Translation missing --]]
---[[ L["Spires of Ascension"] = ""--]] 
---[[Translation missing --]]
---[[ L["Spiteful"] = ""--]] 
+L["Spires of Ascension"] = "Шпили Перерождения"
+L["Spiteful"] = "Злопамятный"
 L["Sporecaller Zancha"] = "Заклинатель спор Занча"
 L["Spriggan Barkbinder"] = "Спригган - заклинатель коры"
 L["Spriggan Mendbender"] = "Спригган - подчинитель разума"
@@ -904,8 +881,7 @@ L["Stoneborn Slasher"] = "Камнерожденный-рассекатель"
 L["Stonefiend Anklebiter"] = "Мелкий камнебес"
 L["Stonefury"] = "Каменный яростень"
 L["Stonewall Gargon"] = "Гаргон-защитник"
---[[Translation missing --]]
---[[ L["Storming"] = ""--]] 
+L["Storming"] = "Бушующий"
 L["Storm's End"] = "Предел шторма"
 L["Strider Tonk"] = "Танк-долгоног"
 L["Stun"] = "Оглушение"
@@ -946,8 +922,7 @@ L["The Brig"] = "Гауптвахта"
 L["The Cellar"] = "Погреб"
 L["The Drain"] = "Стоки"
 L["The Emerald Archives"] = "Изумрудные архивы"
---[[Translation missing --]]
---[[ L["The Festering Sanctum"] = ""--]] 
+L["The Festering Sanctum"] = "Гниющее святилище"
 L["The Golden Serpent"] = "Золотой Змей"
 L["The Grand Foyer"] = "Главный вестибюль"
 L["The Grand Hall"] = "Главный зал"
@@ -959,8 +934,7 @@ L["The Menagerie"] = "Зверинец"
 L["The MOTHERLODE!!"] = "ЗОЛОТАЯ ЖИЛА!!!"
 L["The MOTHERLODE!! Sublevel"] = "ЗОЛОТАЯ ЖИЛА!!!"
 L["The Naglfar"] = "\"Нагльфар\""
---[[Translation missing --]]
---[[ L["The Necrotic Wake"] = ""--]] 
+L["The Necrotic Wake"] = "Смертельная тризна"
 L["The Platinum Pummeler"] = ""
 L["The preset will continuously synchronize between all party members participating in the Live Session"] = "Этот шаблон будет постоянно синхронизироваться между всеми членами группы, которые участвуют в Совместном Сеансе"
 L["The Raven's Crown"] = "Корона Ворона"
@@ -977,26 +951,17 @@ L["The Under Junk"] = "Барахлимб"
 L["The Underrot"] = "Подгнилье"
 L["The Underrot Sublevel"] = "Подгнилье"
 L["The Warden's Court"] = "Суд Стражей"
---[[Translation missing --]]
---[[ L["Theater of Pain"] = ""--]] 
+L["Theater of Pain"] = "Театр Боли"
 --[[Translation missing --]]
 --[[ L["theaterOfPain_miniBossNote"] = ""--]] 
---[[Translation missing --]]
---[[ L["TheaterOfPainFloor1"] = ""--]] 
---[[Translation missing --]]
---[[ L["TheaterOfPainFloor2"] = ""--]] 
---[[Translation missing --]]
---[[ L["TheaterOfPainFloor3"] = ""--]] 
---[[Translation missing --]]
---[[ L["TheaterOfPainFloor4"] = ""--]] 
---[[Translation missing --]]
---[[ L["TheaterOfPainFloor5"] = ""--]] 
---[[Translation missing --]]
---[[ L["TheNecroticWakeFloor1"] = ""--]] 
---[[Translation missing --]]
---[[ L["TheNecroticWakeFloor2"] = ""--]] 
---[[Translation missing --]]
---[[ L["TheNecroticWakeFloor3"] = ""--]] 
+L["TheaterOfPainFloor1"] = "Театр Боли"
+L["TheaterOfPainFloor2"] = "Зал Победы"
+L["TheaterOfPainFloor3"] = "Алтари Агонии"
+L["TheaterOfPainFloor4"] = "Верхний уровень кургана Резни"
+L["TheaterOfPainFloor5"] = "Нижний уровень кургана Резни"
+L["TheNecroticWakeFloor1"] = "Смертельная тризна"
+L["TheNecroticWakeFloor2"] = "Трупосшивальня"
+L["TheNecroticWakeFloor3"] = "\"Золрамус\""
 L["Thistle Acolyte"] = "Ведьма-послушница"
 L["Thornguard"] = "Шипастый страж"
 L["Tidesage Enforcer"] = "Жрец моря - каратель"
@@ -1099,6 +1064,5 @@ L["Zolramus Gatekeeper"] = "Хранитель врат с "
 L["Zolramus Necromancer"] = "Некромант с "
 L["Zolramus Siphoner"] = "Похитительница с "
 L["Zolramus Sorcerer"] = "Чародей с "
---[[Translation missing --]]
---[[ L["Zul'Gurub"] = ""--]] 
+L["Zul'Gurub"] = "Зул'Гуруб"
 

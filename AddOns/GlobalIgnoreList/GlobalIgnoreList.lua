@@ -21,6 +21,7 @@ local GILFRAME			= nil
 local gotLoaded			= false
 local gotEntering		= false
 local safeToLoad		= false
+local doLoginIgnore		= true
 local faction			= nil
 local maxIgnoreSize		= 50
 local maxSyncTries		= 1
@@ -40,6 +41,9 @@ local needPartyClose	= false
 local gotGroup          = IsInGroup()
 local partyNameUI		= ""
 local groupWarning      = {}
+local MSG_LOGOFF		= ERR_FRIEND_OFFLINE_S:gsub("%%s", ".+")
+local MSG_LOGON			= ERR_FRIEND_ONLINE_SS:gsub("|Hplayer:%%s|h%[%%s%]|h", "|Hplayer:.+|h%%[.+%%]|h")
+local filterLoginMsgs   = true
 
 --print ("DEBUG gotGroup=" .. (tostring(gotGroup) or "NIL"))
 
@@ -674,7 +678,7 @@ local function ApplicationStartup(self)
 	filterDefActive[#filterDefActive + 1] = false
 
 	filterDefDesc[#filterDefDesc + 1]     = "Filter American Politics"
-	filterDefFilter[#filterDefFilter + 1] = "[contains=trump] or [contains=communist] or [contains=communism] or [word=president] or [word=biden] or [word=hillary] or [word=hilary] or [contains=democrat] or [contains=republican] or [contains=liberals] or [word=maga] or [word=libs] or [contains=conservatives] or [contains=libtard] or [word=pelosi] or [word=epstein] or [word=AOC] or [word=putin] or [contains=right\\ wing] or [word=dems] or [word=socialism]"
+	filterDefFilter[#filterDefFilter + 1] = "[contains=trump] or [contains=communist] or [contains=communism] or [word=president] or [contains=biden] or [word=hillary] or [word=hilary] or [contains=democrat] or [contains=republican] or [contains=liberals] or [word=maga] or [word=libs] or [contains=conservatives] or [contains=libtard] or [word=pelosi] or [word=epstein] or [word=AOC] or [word=putin] or [contains=right\\ wing] or [word=dems] or [word=socialism]"
 	filterDefActive[#filterDefActive + 1] = false
 
 	faction = UnitFactionGroup("player")
@@ -1561,17 +1565,17 @@ local function chatMessageFilter (self, event, message, from, t1, t2, t3, t4, t5
 		--lastMsg = message
 	--end
 
-	if event == "CHAT_MSG_SYSTEM" then	
-		if message == ERR_IGNORE_NOT_FOUND and GetTime() - loadedTime < 60 then
-			return true
-		end
-
-		if message == ERR_IGNORE_ALREADY_S and GetTime() - loadedTime < 60 then
-			return true
-		end
-			
+	if event == "CHAT_MSG_SYSTEM" then		
 		if message == ERR_IGNORE_FULL then
 			return true
+		end
+	
+		if doLoginIgnore == true then
+			if GetTime() - loadedTime > 90 then
+				doLoginIgnore = false
+			elseif message == ERR_IGNORE_NOT_FOUND or message == ERR_IGNORE_ALREADY_S then
+				return true
+			end		
 		end
 	end
 			
@@ -1585,35 +1589,36 @@ local function chatMessageFilter (self, event, message, from, t1, t2, t3, t4, t5
         	return (hasNPCIgnored(Proper(from, true)) > 0)
 		
 	elseif event == "CHAT_MSG_SYSTEM" then
-				
-		local pName = ""
-
-		for count = 1, #GlobalIgnoreDB.ignoreList do
+	
+		if filterLoginMsgs == true and (message:find(MSG_LOGOFF) or message:find(MSG_LOGON)) then		
+			local pName = ""
 			
-			if GlobalIgnoreDB.typeList[count] == "server" then
+			for count = 1, #GlobalIgnoreDB.ignoreList do
 			
-				if string.find(message, "-"..GlobalIgnoreDB.ignoreList[count], 1, true) ~= nil then
-					return true
-				end
-			else
-				if serverName == getServer(GlobalIgnoreDB.ignoreList[count]) then
-					pName = removeServer(GlobalIgnoreDB.ignoreList[count])
+				if GlobalIgnoreDB.typeList[count] == "server" then
+			
+					if string.find(message, "-"..GlobalIgnoreDB.ignoreList[count], 1, true) ~= nil then
+						return true
+					end
 				else
-					pName = GlobalIgnoreDB.ignoreList[count]
-				end
+					if serverName == getServer(GlobalIgnoreDB.ignoreList[count]) then
+						pName = removeServer(GlobalIgnoreDB.ignoreList[count])
+					else
+						pName = GlobalIgnoreDB.ignoreList[count]
+					end
 				
+					local msgOffline = strDown(string.format(ERR_FRIEND_OFFLINE_S, pName))
+					local msgOnline  = strDown(string.format(ERR_FRIEND_ONLINE_SS, pName, pName))
 
-				local msgOffline = strDown(string.format(ERR_FRIEND_OFFLINE_S, pName))
-				local msgOnline  = strDown(string.format(ERR_FRIEND_ONLINE_SS, pName, pName))
-
-				message = strDown(message)
+					message = strDown(message)
 					
-				if (message == msgOffline) or (message == msgOnline) then
-					return true
+					if (message == msgOffline) or (message == msgOnline) then
+						return true
+					end
 				end
-	  		end
-	  	end
-			
+			end			
+		end
+
 		return false
 
 	elseif (from ~= nil) and (from ~= "") then

@@ -24,7 +24,7 @@ local visibility = {
 	set = function(info, value) E.DB.profile.Party.visibility[info[#info]] = value P:Refresh(true) end,
 	args = {
 		title = {
-			name = "|cffffff20" .. L["Visibility"],
+			name = L["Visibility"],
 			order = 0,
 			type = "description",
 			fontSize = "large",
@@ -44,11 +44,6 @@ local visibility = {
 				end
 				P:Refresh(true)
 			end,
-		},
-		lb1= {
-			name = L["|cff9d9d9d \* Scenarios and Outdoor Zones will use Arena settings."] .. "\n\n",
-			order = 11,
-			type = "description",
 		},
 		groupType = {
 			name = DUNGEONS_BUTTON,

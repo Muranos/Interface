@@ -7,6 +7,11 @@ local P = E["Party"]
 P.extraBars = {}
 
 local function OmniCD_ExBarOnHide(self)
+	local key = self.key
+	if not P.disabled and E.db.extraBars[key].enabled then
+		return
+	end
+
 	P:RemoveUnusedIcons(self, 1)
 	self.numIcons = 0
 end
@@ -25,13 +30,12 @@ local function CreateBar(key)
 	f:SetScript("OnShow", nil)
 	f:SetScript("OnHide", OmniCD_ExBarOnHide)
 
-	local anchor = f.anchor
-	anchor:SetPoint("BOTTOMLEFT", f, "TOPRIGHT")
-	anchor.background:SetColorTexture(0, 0, 0, 0.7)
 	local name = key == "interruptBar" and L["Interrupts"] or L["Raid CD"]
-	anchor.text:SetText(name)
-	anchor:EnableMouse(true)
+	f.anchor.text:SetText(name)
 	E.SetWidth(f.anchor)
+	f.anchor.background:SetColorTexture(0, 0, 0, 1)
+	f.anchor.background:SetGradientAlpha("Horizontal", 1, 1, 1, 1, 1, 1, 1, 0)
+	f.anchor:EnableMouse(true)
 
 	return f
 end
@@ -53,7 +57,7 @@ function P:UpdateExBars(bar)
 		local f_container = f.container
 		local db = E.db.extraBars[key]
 		if db.enabled then
-			local n = 0
+			local n  = 0
 			for j = bar.numIcons, 1, -1 do
 				local icons = bar.icons
 				local icon = icons[j]
@@ -77,7 +81,7 @@ function P:UpdateExBars(bar)
 			bar.numIcons = bar.numIcons - n
 			f.numIcons = f.numIcons + n
 
-			self:SetExIconLayout(key, nil, true)
+			self:SetExIconLayout(key, nil, true, true)
 		end
 	end
 end
@@ -87,23 +91,27 @@ function P:UpdateExPositionValues()
 		local db = E.db.extraBars[key]
 		local px = E.NumPixels / db.scale
 		local isProgressBarShown = db.enabled and db.progressBar
+		local growUpward = db.growUpward
+		local growY = growUpward and 1 or -1
+
+		f.startPoint = growUpward and "BOTTOMLEFT" or "TOPLEFT"
 		if db.layout == "horizontal" then
 			f.point = "TOPLEFT"
 			f.relat = "TOPRIGHT"
 			f.ofsX1 = 0
-			f.ofsY1 = -E.BASE_ICON_SIZE - (db.paddingY * px)
+			f.ofsY1 = growY * (E.BASE_ICON_SIZE + db.paddingY * px)
 			f.ofsX2 = db.paddingX * px
 			f.ofsY2 = 0
 			if key == "interruptBar" then
 				self.rearrangeInterrupts = nil
 			end
 		else
-			f.point = "TOPLEFT"
-			f.relat = "BOTTOMLEFT"
+			f.point = growUpward and "BOTTOMLEFT" or "TOPLEFT"
+			f.relat = growUpward and "TOPLEFT" or "BOTTOMLEFT"
 			f.ofsX1 = E.BASE_ICON_SIZE + (db.paddingX  * px) + (isProgressBarShown and db.statusBarWidth or 0)
 			f.ofsY1 = 0
 			f.ofsX2 = 0
-			f.ofsY2 = -db.paddingY * px
+			f.ofsY2 = growY * db.paddingY * px
 			if key == "interruptBar" then
 				self.rearrangeInterrupts = isProgressBarShown and db.sortBy == 2
 			end
@@ -167,7 +175,11 @@ do
 		end,
 	}
 
-	local updateLayout = function(key, sortOrder)
+	local reverseSort = function(b, a)
+		return sorters[E.db.extraBars.interruptBar.sortBy](a, b)
+	end
+
+	local updateLayout = function(key, noDelay, sortOrder, updateSettings)
 		local f = P.extraBars[key]
 		local db = E.db.extraBars[key]
 
@@ -188,8 +200,9 @@ do
 		end
 		f.numIcons = f.numIcons - n
 
+		local sortFunc = db.sortDirection == "dsc" and reverseSort or sorters[db.sortBy]
 		if sortOrder then
-			sort(f.icons, sorters[db.sortBy])
+			sort(f.icons, sortFunc)
 		end
 
 		local count, rows = 0, 1
@@ -199,30 +212,32 @@ do
 			if i > 1 then
 				count = count + 1
 				if count == columns then
-					icon:SetPoint("TOPLEFT", f.container, f.ofsX1 * rows, f.ofsY1 * rows)
+					icon:SetPoint(f.startPoint, f.container, f.ofsX1 * rows, f.ofsY1 * rows)
 					count = 0
 					rows = rows + 1
 				else
 					icon:SetPoint(f.point, f.icons[i-1], f.relat, f.ofsX2, f.ofsY2)
 				end
 			else
-				icon:SetPoint("TOPLEFT", f.container)
+				icon:SetPoint(f.startPoint, f.container)
 			end
 
 			icon:Show()
 		end
 
-		P:ApplyExSettings(key)
+		if not noDelay or updateSettings then -- [88]
+			P:ApplyExSettings(key) -- TODO: ?
+		end
 
 		timers[key] = nil
 	end
 
-	function P:SetExIconLayout(key, noDelay, sortOrder)
+	function P:SetExIconLayout(key, noDelay, sortOrder, updateSettings)
 		if noDelay then
-			updateLayout(key, sortOrder)
+			updateLayout(key, noDelay, sortOrder, updateSettings)
 		else
 			if not timers[key] then -- [33]
-				timers[key] = E.TimerAfter(0.5, updateLayout, key, sortOrder)
+				timers[key] = E.TimerAfter(0.5, updateLayout, key, noDelay, sortOrder, updateSettings)
 			end
 		end
 	end
@@ -233,6 +248,12 @@ function P:SetExAnchor(key)
 	if E.db.extraBars[key].locked then
 		f.anchor:Hide()
 	else
+		f.anchor:ClearAllPoints()
+		if E.db.extraBars[key].growUpward then
+			f.anchor:SetPoint("TOPLEFT", f, "BOTTOMLEFT")
+		else
+			f.anchor:SetPoint("BOTTOMLEFT", f, "TOPLEFT")
+		end
 		f.anchor:Show()
 	end
 end
@@ -278,6 +299,11 @@ function P:SetExBorder(icon, key)
 
 		icon.icon:SetTexCoord(0, 1, 0, 1)
 	end
+
+	--[[ xml
+	icon:SetHeight(36)
+	icon.isCropped = nil
+	--]]
 
 	if isProgressBarShown then
 		local statusBar = icon.statusBar
@@ -337,17 +363,19 @@ function P:SetExStatusBarColor(icon, key)
 
 	local db_bar = db.barColors.inactiveColor
 	local alpha = db.useIconAlpha and 1 or db_bar.a
-	if db.barColors.classColor then
+	if P.groupInfo[icon.guid].preActiveIcons[icon.spellID] then -- [81]
+		r, g, b = 0.7, 0.7, 0.7
+	elseif db.barColors.classColor then
 		r, g, b, a = c.r, c.g, c.b, alpha
 	else
 		r, g, b, a =  db_bar.r, db_bar.g, db_bar.b, alpha
 	end
 	statusBar.BG:SetVertexColor(r, g, b, a)
 
-	local db_text = db.textColors.inactiveColor
 	if db.textColors.classColor then
 		r, g, b = c.r, c.g, c.b
 	else
+		local db_text = db.textColors.inactiveColor
 		r, g, b = db_text.r, db_text.g, db_text.b
 	end
 	statusBar.Text:SetTextColor(r, g, b)

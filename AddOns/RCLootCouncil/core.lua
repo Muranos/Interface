@@ -175,7 +175,8 @@ function RCLootCouncil:OnInitialize()
 			all = true
 		},
 		[5] = { -- Reagents
-			all = true
+			[0] = true, -- Reagent
+			[1] = true -- Keystone
 		},
 		[7] = { -- Tradeskills
 			all = true
@@ -185,6 +186,7 @@ function RCLootCouncil:OnInitialize()
 		},
 		[15] = { -- Misc
 			[1] = true, -- Reagent
+			[4] = true, -- Other (Anima)
 		}
 	}
 
@@ -818,6 +820,12 @@ function RCLootCouncil:GetPlayersGear(link, equipLoc, gearsTable)
 	if not slot then
 		-- Check if we have a typecode for it
 		slot = self.INVTYPE_Slots[self:GetTypeCodeForItem(link)]
+
+		-- TODO Dirty hack for context tokens. Could do with a better system for both determining typecode and equiploc overrides
+		local _, _, _, _, _, itemClassID, itemSubClassID = GetItemInfoInstant(link)
+		if itemClassID == 5 and itemSubClassID == 2 then
+			slot = self.INVTYPE_Slots.CONTEXT_TOKEN
+		end
 	end
 	if not slot then return nil, nil end
 	item1 = GetInventoryItemLink("player", GetInventorySlotInfo(slot[1] or slot))
@@ -1316,8 +1324,16 @@ function RCLootCouncil:GetGuildRanks()
 end
 
 function RCLootCouncil:UpdateCandidatesInGroup()
+	wipe(self.candidatesInGroup)
+	local name;
 	for i = 1, GetNumGroupMembers() do
-		self.candidatesInGroup[self:UnitName((GetRaidRosterInfo(i)))] = true
+		name = GetRaidRosterInfo(i)
+		if not name then -- Not ready yet, delay a bit
+			self.Log:D("GetRaidRosterInfo returned nil in UpdateCandidatesInGroup")
+			self:ScheduleTimer("UpdateCandidatesInGroup", 1)
+			return
+		end
+		self.candidatesInGroup[self:UnitName(name)] = true
 	end
 	-- Ensure we're there
 	self.candidatesInGroup[self.player.name] = true
@@ -1394,15 +1410,21 @@ function RCLootCouncil:GetLootStatusData ()
 	return status, list
 end
 
+local function CandidateAndNewMLCheck()
+	RCLootCouncil:UpdateCandidatesInGroup()
+	RCLootCouncil:NewMLCheck()
+end
+
 function RCLootCouncil:OnEvent(event, ...)
 	if event == "PARTY_LOOT_METHOD_CHANGED" then
 		self.Log:d("Event:", event, ...)
-		self:NewMLCheck()
+		self:ScheduleTimer(CandidateAndNewMLCheck, 2)
 	elseif event == "PARTY_LEADER_CHANGED" then
 		self.Log:d("Event:", event, ...)
-		self:NewMLCheck()
+		self:ScheduleTimer(CandidateAndNewMLCheck, 2)
 	elseif event == "GROUP_LEFT" then
 		self.Log:d("Event:", event, ...)
+		self:UpdateCandidatesInGroup()
 		self:NewMLCheck()
 
 	elseif event == "RAID_INSTANCE_WELCOME" then
@@ -1413,7 +1435,7 @@ function RCLootCouncil:OnEvent(event, ...)
 
 	elseif event == "PLAYER_ENTERING_WORLD" then
 		self.Log:d("Event:", event, ...)
-		self:NewMLCheck()
+		self:ScheduleTimer(CandidateAndNewMLCheck, 2)
 		self:ScheduleTimer(function() -- This needs some time to be ready
 			local instanceName, _, _, difficultyName = GetInstanceInfo()
 			self.currentInstanceName = instanceName..(difficultyName ~= "" and "-"..difficultyName or "")
@@ -2039,6 +2061,7 @@ function RCLootCouncil:GetClassColor(class)
 	end
 end
 
+-- REVIEW: Blizzard has functions for this in ColorUtil.lua 
 function RCLootCouncil:GetUnitClassColoredName(name)
 	local player = Player:Get(name)
 	if player then
@@ -2398,7 +2421,7 @@ function RCLootCouncil:SubscribeToPermanentComms ()
 
 		lt_add = function(data, sender)
 			if not self.Utils:UnitIsUnit(sender, self.masterLooter) then
-				return self.Log.E(tostring(sender), "sent 'lt_add' but was not ML!")
+				return self.Log:E(tostring(sender), "sent 'lt_add' but was not ML!")
 			end
 			self:OnLootTableAdditionsReceived(unpack(data))
 		end,

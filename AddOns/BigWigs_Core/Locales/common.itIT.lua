@@ -6,7 +6,6 @@ L.add_killed = "Add ucciso (%d/%d)"
 L.add_remaining = "Add ucciso, %d rimasti"
 L.adds = "Adds"
 L.add_spawned = "Add Apparso"
-L.big_add = "Add Maggiore"
 L.cast = "<Lancio di %s>"
 L.casting = "Lancio di %s"
 L.count = "%s (%d)"
@@ -43,7 +42,6 @@ L.phase = "Fase %d"
 L.removed = "%s Rimosso"
 --L.removed_from = "%s Removed From %s"
 --L.removed_by = "%s removed by %s" -- spell removed by player
-L.small_adds = "Add Minori"
 L.soon = "%s tra poco"
 L.spawned = "%s Reinizializzato"
 L.spawning = "Apparizione di %s"
@@ -54,6 +52,12 @@ L.trash = "Trash"
 L.underyou = "%s sotto di TE"
 L.you = "%s su di TE"
 L.you_icon = "%s su di |T13700%d:0|tTE"
+--L.on_group = "%s on GROUP" -- spell on group
+
+L.big_add = "Add Maggiore" -- singular
+L.big_adds = "Adds Maggiore" -- plural
+L.small_add = "Add Minori" -- singular
+L.small_adds = "Adds Minori" -- plural
 
 --L.active = "Active" -- When a boss becomes active, after speech finishes
 
@@ -63,7 +67,9 @@ L.you_icon = "%s su di |T13700%d:0|tTE"
 --L.marker_npc_desc = "Mark %s with %s, requires promoted or leader."
 
 -- Ability where two players have to move close to each other
---L.link = "Linked with %s"
+L.link = "Vincolo"
+--L.link_with = "Linked with %s"
+--L.link_with_icon = "Linked with |T13700%d:0|t%s"
 --L.link_short = "Linked: %s"
 --L.link_both = "%s linked with %s"
 --L.link_removed = "Link removed"
@@ -73,3 +79,10 @@ L.you_icon = "%s su di |T13700%d:0|tTE"
 --L.amount_two = "%dM" -- Millions 1,000,000
 --L.amount_three = "%dK" -- Thousands 1,000
 --L.seconds = "%.1fs" -- 1.1 seconds
+
+-- Common ability name replacements
+--L.laser = "Laser" -- Used for abilities that act like a laser. Usually from the boss to a player, or, from the boss to a specific area
+L.bomb = "Bomba" -- Used for debuffs that make players explode
+L.fixate = "Ossessione" -- Used when a boss or add is chasing/fixated on a player
+--L.knockback = "Knockback" -- Used when an abily knocks players away from a certain point, like a "smash" type ability that knocks you back 10 meters
+L.traps = "Trappole" -- Used for abilities that act like traps on the floor e.g. move into it and something bad happens like you die, or are rooted, etc.

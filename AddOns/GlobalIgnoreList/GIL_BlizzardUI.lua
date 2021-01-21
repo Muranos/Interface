@@ -26,8 +26,6 @@ local function getButtonElement (list, name)
 	return -1
 end
 
-table.remove(UnitPopupMenus["FRIEND"], getButtonElement(UnitPopupMenus["FRIEND"], "IGNORE"))
-
 local function GilUnitMenu (dropdownMenu, which, unit, name, userData, ...)
 
 	if (UIDROPDOWNMENU_MENU_LEVEL > 1) then
@@ -35,7 +33,7 @@ local function GilUnitMenu (dropdownMenu, which, unit, name, userData, ...)
 	end
 	
 	if (which and (which == "FRIEND")) then
-
+		
 		local info = UIDropDownMenu_CreateInfo()
 				
 		info.dist = 0
@@ -113,7 +111,7 @@ hooksecurefunc("UnitPopup_ShowMenu", GilUnitMenu)
 -- IGNORE LIST HACKS --
 -----------------------
 
-BlizzardIgnoreListUpdate	= IgnoreList_Update
+BlizzardIgnoreListUpdate = IgnoreList_Update
 
 local function IgnoreButtonEnter(self, ...)
 

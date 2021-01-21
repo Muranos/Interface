@@ -19,6 +19,7 @@ C["Party"] = {
 		general = {
 			["showAnchor"] = false,
 			["showPlayer"] = false,
+			["showPlayerEx"] = true,
 			["showTooltip"] = false,
 		},
 		position = {
@@ -34,6 +35,7 @@ C["Party"] = {
 			["paddingY"] = 3,
 			["breakPoint"] = "offensive",
 			["displayInactive"] = true,
+			["growUpward"] = false,
 			["detached"] = false,
 		},
 		manualPos = {},
@@ -52,6 +54,12 @@ C["Party"] = {
 			["displayBorder"] = true,
 			["borderPixels"] = 1,
 			["borderColor"] = { r = 0, g = 0, b = 0 },
+			--[[ xml
+			["modRowEnabled"] = true,
+			["modRowCropped"] = true,
+			["modRowScale"] = 0.7,
+			["modRowOfsX"] = 0,
+			--]]
 		},
 		highlight = {
 			["glow"] = true,
@@ -87,13 +95,15 @@ C["Party"] = {
 			["interruptBar"] = {
 				["enabled"] = false,
 				["locked"] = false,
-				["showName"] = true,
 				["layout"] = "vertical",
+				["sortBy"] = 2,
+				["sortDirection"] = "asc",
 				["columns"] = 15,
 				["scale"] = 0.6,
 				["paddingX"] = -1,
 				["paddingY"] = -1,
-				["sortBy"] = 2,
+				["showName"] = true,
+				["growUpward"] = false,
 				["progressBar"] = true,
 				["textColors"] = {
 					["activeColor"] = {r=1,g=1,b=1},
@@ -120,14 +130,14 @@ C["Party"] = {
 			["raidCDBar"] = {
 				["enabled"] = false,
 				["locked"] = false,
-				["showName"] = true,
 				["layout"] = "vertical",
+				["sortBy"] = 3,
 				["columns"] = 15,
 				["breakPoint"] = "other",
 				["scale"] = 0.5,
 				["paddingX"] = -1,
 				["paddingY"] = -1,
-				["sortBy"] = 3,
+				["showName"] = true,
 				["progressBar"] = true,
 				["textColors"] = {
 					["activeColor"] = {r=1,g=1,b=1},
@@ -156,6 +166,10 @@ C["Party"] = {
 		spells = {},
 		raidCDS = {},
 	},
+	noneZoneSetting = "arena",
+	scenarioZoneSetting = "arena",
+	none = {},
+	scenario = {},
 	customPriority = {},
 }
 

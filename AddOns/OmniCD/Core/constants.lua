@@ -247,3 +247,10 @@ E.COVENANT_HEX_COLOR = {
 	[321078] = "|cff17c864",    -- NECROLORD_GREEN_COLOR
 }
 --> Desc
+
+E.HEX_C = {
+	CURSE_ORANGE = "|cfff16436",
+	TWITCH_PURPLE = "|cff9146ff",
+	PERFORMANCE_BLUE = "|cff99cdff",
+	OMNICD_RED = "|cffc10003",
+}

@@ -130,7 +130,7 @@ local function FormatSpellDesc(spellID, spec, vtype, desc, icon, duration, charg
 	return E.FormatConcat(tmp, "\n\n|cffffd200%s|r ", "%s")
 end
 
-local isRaidCDOption = function(info) return info[3] ~= "spells" end
+local isRaidCDOption = function(info) return info[3] ~= "spells" end -- cf:> info[3] == extraBars info[4] == raidCDS
 local isSpellsOption = function(info) return not isRaidCDOption(info) end
 local isRaidOptDisabledID = function(info)
 	local key = info[2]
@@ -138,34 +138,40 @@ local isRaidOptDisabledID = function(info)
 end
 
 local runClearAllDefault = function(info)
+	local modName = info[1]
+	local module = E[modName]
 	local key = info[2]
+	local db = modName == "Party" and E.DB.profile.Party[key] or module.profile[key]
 	if isRaidCDOption(info) then
-		wipe(E.DB.profile.Party[key].raidCDS)
 		if info[#info] == "default" then
 			P:ResetOptions(key, "raidCDS")
 		else
+			wipe(db.raidCDS)
 			for i = 1, #E.raidDefaults do
 				local id = E.raidDefaults[i]
 				id = tostring(id)
-				E.DB.profile.Party[key].raidCDS[id] = false
+				db.raidCDS[id] = false
 			end
 		end
 	else
-		wipe(E.DB.profile.Party[key].spells)
 		if info[#info] == "default" then
-			P:ResetOptions(key, "spells")
+			module:ResetOptions(key, "spells")
 		else
+			wipe(db.spells)
 			for i = 1, #E.spellDefaults do
 				local id = E.spellDefaults[i]
 				id = tostring(id)
-				E.DB.profile.Party[key].spells[id] = false
+				db.spells[id] = false
 			end
 		end
 	end
 
-	if E.db == E.DB.profile.Party[key] then
+	if db == E.db then
 		E.UpdateEnabledSpells(P)
 		P:Refresh()
+	elseif db == module.db then
+		E.UpdateEnabledSpells(module)
+		module:Refresh()
 	end
 end
 
@@ -175,23 +181,31 @@ local spells = {
 	type = "group",
 	childGroups = "tab",
 	get = function(info)
+		local modName = info[1]
+		local module = E[modName]
 		if isRaidCDOption(info) then
 			return E.DB.profile.Party[info[2]].raidCDS[info[#info]]
 		else
-			return P.IsEnabledSpell(info[#info], info[2])
+			return module.IsEnabledSpell(info[#info], info[2])
 		end
 	end,
 	set = function(info, state)
+		local modName = info[1]
+		local module = E[modName]
 		local key = info[2]
+		local db = modName == "Party" and E.DB.profile.Party[key] or module.profile[key]
 		if isRaidCDOption(info) then
 			E.DB.profile.Party[key].raidCDS[info[#info]] = state
 		else
-			E.DB.profile.Party[key].spells[info[#info]] = state
+			db.spells[info[#info]] = state
 		end
 
-		if E.db == E.DB.profile.Party[key] then
+		if db == E.db then
 			E.UpdateEnabledSpells(P)
 			P:Refresh()
+		elseif db == module.db then
+			E.UpdateEnabledSpells(module)
+			module:Refresh()
 		end
 	end,
 	args = {
@@ -219,7 +233,7 @@ local spells = {
 			descStyle = "inline",
 		},
 		showForbearanceCounter = {
-			hidden = isRaidCDOption,
+			hidden = function(info) return info[1] ~= "Party" or info[3] ~= "spells" end,
 			name = L["Show Forbearance CD"],
 			desc = L["Show timer on spells while under the effect of Forbearance or Hypothermia. Spells castable to others will darken instead"],
 			order = 3,
@@ -437,7 +451,7 @@ function P:AddSpellPickerSpells()
 						t[vtype].args[sId].desc = FormatSpellDesc(spellID, v.spec, vtype, desc, icon, v.duration, v.charges, v.parent, v.class)
 					end)
 
-					if class == "TRINKET" or class == "PVPTRINKET" then -- TODO: SpellMixin isn't working for Covenant and Trinket spellIDs
+					if v.item then -- SpellMixin not working for Covenant and Trinkets has been Hotfixed
 						local item = Item:CreateFromItemID(v.item)
 						item:ContinueOnItemLoad(function()
 							local itemName = item:GetItemName()
@@ -472,3 +486,5 @@ for key in pairs(E.CFG_ZONE) do
 end
 
 E:RegisterModuleOptions("Party", P.options, "Party")
+
+E.spellsOptionTbl = spells

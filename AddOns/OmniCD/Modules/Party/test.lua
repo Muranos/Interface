@@ -50,11 +50,16 @@ addOnTestMode.Aptechka = function(enabledTest)
 	Aptechka:ReconfigureProtected()
 end
 
+addOnTestMode.HealBot = function(enabledTest) -- player frame always shown ?
+	--HealBot_TestBars(enabledTest and 5) -- doesnt work. has test-names for unit key
+end
+
 local callback = function()
 	local f = P.groupInfo[E.userGUID].bar
 
 	indicator.anchor:ClearAllPoints()
-	indicator.anchor:SetPoint("BOTTOMLEFT", f, "TOPLEFT")
+	indicator.anchor:SetPoint("BOTTOMLEFT", f.anchor, "BOTTOMRIGHT")
+	indicator.anchor:SetPoint("TOPLEFT", f.anchor, "TOPRIGHT")
 	indicator:Show()
 
 	for i = 1, f.numIcons do
@@ -66,6 +71,9 @@ local callback = function()
 			newItemAnim:Stop();
 		end
 		if icon:IsVisible() then
+		--[[ xml
+		if icon:IsVisible() and not icon.isCropped then
+		--]]
 			flash:Play();
 			newItemAnim:Play();
 		end
@@ -74,14 +82,15 @@ end
 
 function TestMod:Test(key)
 	local active = E.customUF.active or "blizz"
-
-	if not addOnTestMode[active] and active ~= "blizz" then
-		E.Write(string.format(E.STR.UNSUPPORTED_ADDON, active))
-	end
+	local groupSize = GetNumGroupMembers()
 
 	P.test = not P.test
 
 	if P.test then
+		if groupSize < 2 and not addOnTestMode[active] and active ~= "blizz" then
+			E.Write(string.format(E.STR.UNSUPPORTED_ADDON, active))
+		end
+
 		if InCombatLockdown() then
 			P.test = false
 			return E.Write(ERR_NOT_IN_COMBAT)
@@ -103,7 +112,8 @@ function TestMod:Test(key)
 
 		if not indicator then
 			indicator = CreateFrame("Frame", nil, UIParent, "OmniCDTemplate")
-			indicator.anchor.background:SetColorTexture(0, 0, 0, 0.7)
+			indicator.anchor.background:SetColorTexture(0, 0, 0, 1)
+			indicator.anchor.background:SetGradientAlpha("Horizontal", 1, 1, 1, 1, 1, 1, 1, 0)
 			indicator.anchor:SetHeight(15)
 			indicator.anchor:EnableMouse(false)
 			indicator:SetScript("OnHide", nil)
@@ -113,7 +123,7 @@ function TestMod:Test(key)
 				self[event](self, ...)
 			end)
 		end
-		indicator.anchor.text:SetText(L["Test"] .. "-" .. E.CFG_ZONE[key])
+		indicator.anchor.text:SetText(L["Test"] .. "-" .. E.L_ZONE[key])
 		E.SetWidth(indicator.anchor)
 
 		self:RegisterEvent("PLAYER_LEAVING_WORLD")
@@ -126,7 +136,7 @@ function TestMod:Test(key)
 				E.Write(L["Test frames will be hidden once player is out of combat"])
 
 				self:RegisterEvent("PLAYER_REGEN_ENABLED")
-			elseif GetNumGroupMembers() == 0 and IsAddOnLoaded("Blizzard_CompactRaidFrames") and IsAddOnLoaded("Blizzard_CUFProfiles") then
+			elseif IsAddOnLoaded("Blizzard_CompactRaidFrames") and IsAddOnLoaded("Blizzard_CUFProfiles") and (groupSize == 0 or not P:IsCRFActive()) then
 				CompactRaidFrameManager:Hide()
 				CompactRaidFrameContainer:Hide()
 			end
@@ -143,7 +153,7 @@ function TestMod:Test(key)
 end
 
 function TestMod:PLAYER_REGEN_ENABLED()
-	if P:GetEffectiveNumGroupMembers() == 0 then
+	if IsAddOnLoaded("Blizzard_CompactRaidFrames") and IsAddOnLoaded("Blizzard_CUFProfiles") and (P:GetEffectiveNumGroupMembers() == 0 or not P:IsCRFActive()) then
 		CompactRaidFrameManager:Hide()
 		CompactRaidFrameContainer:Hide()
 	end
@@ -160,7 +170,7 @@ end
 function P:Test(key)
 	key = type(key) == "table" and key[2] or key
 	self.testZone = key
-	E.db = E.DB.profile.Party[key or (E.CFG_ZONE[self.zone] and self.zone) or "arena"]
+	E.db = E.DB.profile.Party[key or self.zone]
 	E:SetActiveUnitFrameData()
 
 	TestMod:Test(key)

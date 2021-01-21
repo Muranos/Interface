@@ -1,7 +1,7 @@
 # BigWigs
 
-## [v188.3](https://github.com/BigWigsMods/BigWigs/tree/v188.3) (2020-12-04)
-[Full Changelog](https://github.com/BigWigsMods/BigWigs/compare/v188.2...v188.3) [Previous Releases](https://github.com/BigWigsMods/BigWigs/releases)
+## [v206.1](https://github.com/BigWigsMods/BigWigs/tree/v206.1) (2021-01-19)
+[Full Changelog](https://github.com/BigWigsMods/BigWigs/compare/v206...v206.1) [Previous Releases](https://github.com/BigWigsMods/BigWigs/releases)
 
-- Plugins/Bars: Temporary (hopefully) workaround for WoW's font loading issue causing initial bars to be blank.  
-- Core: Add some debug to the enable handler  
+- Update koKR (#963)  
+- CastleNathria/HungeringDestroyer: Prevent the Laser say message from repeating after you defeat the encounter  

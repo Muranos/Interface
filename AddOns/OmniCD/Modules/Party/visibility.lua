@@ -36,18 +36,18 @@ do
 		end
 	end
 
-	local function updateRosterInfo(refresh)
-		if not refresh then
+	local function updateRosterInfo(force)
+		if not force then
 			timer = nil
 		end
 
 		local size = P:GetEffectiveNumGroupMembers()
 		local oldDisabled = P.disabled
-		P.disabled = P.disabledzone or size == 0 or
-			(size == 1 and P.isUserHidden) or
-			(not P.test and GetNumGroupMembers(LE_PARTY_CATEGORY_HOME) == 0 and not E.DB.profile.Party.visibility.finder) or
+		P.disabled = not P.test and (P.disabledzone or size == 0 or
+			(size == 1 and P.isUserDisabled) or -- [82]
+			(GetNumGroupMembers(LE_PARTY_CATEGORY_HOME) == 0 and not E.DB.profile.Party.visibility.finder) or
 			(size > E.DB.profile.Party.visibility.size) or
-			(size > 5 and not not E.customUF.enabled)
+			(size > 5 and E.customUF.enabled and not E.db.extraBars.raidCDBar.enabled))
 		if P.disabled then
 			if oldDisabled == false then
 				P:ResetModule()
@@ -57,10 +57,11 @@ do
 		elseif oldDisabled ~= false then
 			E.Comms:Enable()
 			E.Cooldowns:Enable()
+			force = true
 		end
 
 		for guid, info in pairs(P.groupInfo) do -- [42]
-			if not UnitExists(info.name) or (guid == E.userGUID and P.isUserHidden) then
+			if not UnitExists(info.name) or (guid == E.userGUID and P.isUserDisabled) then -- [82]
 				P.groupInfo[guid] = nil
 				info.bar:Hide()
 
@@ -77,7 +78,7 @@ do
 			end
 		end
 
-		local isInRaid = IsInRaid()
+		local isInRaid = IsInRaid() -- [89]
 		for i = 1, size do
 			local index = not isInRaid and i == size and 5 or i
 			local unit = isInRaid and E.RAID_UNIT[index] or E.PARTY_UNIT[index]
@@ -101,9 +102,15 @@ do
 					info.bar.key = index
 					info.bar.unit = unit
 					info.bar.anchor.text:SetText(index)
+					info.bar:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", unit, unit == "player" and "pet" or unit .. "pet") -- [41]*
+					info.bar:RegisterUnitEvent("PLAYER_SPECIALIZATION_CHANGED", unit)
+				end
+				if force then -- [37]*
+					P.pendingQueue[#P.pendingQueue + 1] = guid
+					P:UpdateUnitBar(guid)
 				end
 			elseif guid == E.userGUID then
-				if not P.isUserHidden then
+				if not P.isUserDisabled then -- [82]
 					P.groupInfo[guid] = P.userData
 					P.groupInfo[guid].index = index
 					P.groupInfo[guid].unit = unit
@@ -143,20 +150,20 @@ do
 			end
 		end
 
-		if P.groupJoined then
-			SendRequestSync()
-		end
 		P:UpdatePosition()
 		P:UpdateExPosition()
 		E.Comms:EnqueueInspect()
+		if P.groupJoined or force then
+			SendRequestSync()
+		end
 	end
 
-	function P:GROUP_ROSTER_UPDATE(refresh) -- [50]
+	function P:GROUP_ROSTER_UPDATE(force) -- [50]
 		local n = GetNumGroupMembers()
-		if refresh or n == 0 then
+		if force or n == 0 then
 			updateRosterInfo(true)
 		elseif not timer then
-			timer = E.TimerAfter(2, updateRosterInfo)
+			timer = E.TimerAfter(2, updateRosterInfo) -- TODO: custom UI delays
 		end
 	end
 end
@@ -183,15 +190,17 @@ function P:PLAYER_ENTERING_WORLD(isInitialLogin, isReloadingUi, refresh)
 	if self.disabledzone then
 		self:UnregisterEvent("PLAYER_FLAGS_CHANGED")
 		self:UnregisterEvent("CHALLENGE_MODE_START")
+		self:UnregisterEvent("ENCOUNTER_END")
 
 		self:ResetModule()
 		self.disabled = true
 		return
 	end
 
-	local key = self.test and self.testZone or (E.CFG_ZONE[instanceType] and instanceType) or "arena"
+	local key = self.test and self.testZone or instanceType
 	E.db = E.DB.profile.Party[key]
 	self.isUserHidden = not self.test and not E.db.general.showPlayer
+	self.isUserDisabled = self.isUserHidden and (not E.db.general.showPlayerEx or (not E.db.extraBars.interruptBar.enabled and not E.db.extraBars.raidCDBar.enabled))
 	E.Cooldowns:UpdateCombatLogVar()
 
 	E:SetActiveUnitFrameData()
@@ -201,29 +210,43 @@ function P:PLAYER_ENTERING_WORLD(isInitialLogin, isReloadingUi, refresh)
 
 	if instanceType == "none" then
 		self:UnregisterEvent("CHALLENGE_MODE_START")
+		self:UnregisterEvent("ENCOUNTER_END")
 
 		self:RegisterEvent("PLAYER_FLAGS_CHANGED")
 		self.isPvP = C_PvP.IsWarModeDesired()
 	elseif self.isInArena or self.isInBG then
 		self:UnregisterEvent("PLAYER_FLAGS_CHANGED")
+		self:UnregisterEvent("CHALLENGE_MODE_START")
+		self:UnregisterEvent("ENCOUNTER_END")
 
 		self:RegisterEvent("PLAYER_REGEN_DISABLED")
 		self:RegisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL")
 		self:RegisterEvent("UPDATE_UI_WIDGET")
 		self:ResetAllIcons()
 		self.isPvP = true
+	elseif instanceType == "party" then
+		self:UnregisterEvent("PLAYER_FLAGS_CHANGED")
+		self:UnregisterEvent("ENCOUNTER_END")
+
+		self:RegisterEvent("CHALLENGE_MODE_START")
+		self.isPvP = false
+	elseif instanceType == "raid" then
+		self:UnregisterEvent("PLAYER_FLAGS_CHANGED")
+		self:UnregisterEvent("CHALLENGE_MODE_START")
+
+		self:RegisterEvent("ENCOUNTER_END")
+		self.isPvP = false
 	else
 		self:UnregisterEvent("PLAYER_FLAGS_CHANGED")
+		self:UnregisterEvent("CHALLENGE_MODE_START")
+		self:UnregisterEvent("ENCOUNTER_END")
 
-		if instanceType == "party" then
-			self:RegisterEvent("CHALLENGE_MODE_START")
-		end
 		self.isPvP = false
 	end
 
 	if IsInGroup() or refresh then -- [37]
 		self.groupJoined = true
-		self:GROUP_ROSTER_UPDATE(refresh)
+		self:GROUP_ROSTER_UPDATE(true)
 	end
 end
 
@@ -272,4 +295,10 @@ function P:CHALLENGE_MODE_START()
 	E.Comms:EnqueueInspect(true)
 	self:ResetAllIcons()
 	self:UnregisterEvent("CHALLENGE_MODE_START")
+end
+
+function P:ENCOUNTER_END(encounterID, encounterName, difficultyID, groupSize, success)
+	if groupSize > 5 then
+		self:ResetAllIcons(true)
+	end
 end

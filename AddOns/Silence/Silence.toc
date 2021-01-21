@@ -1,7 +1,7 @@
-## Interface: 90001
+## Interface: 90002
 ## Title: |cffEEE4AESilence|r
 ## Author: Yuyuli
-## Version: 1.0.7
+## Version: 1.0.8
 ## Notes: |cff58C6FASilence these pesky Talking Heads if you heard them previously or block them completely.|r|n|n|cffFFC700Slash command: /silence|r
 ## SavedVariables: SilenceDB
 

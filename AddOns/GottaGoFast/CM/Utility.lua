@@ -183,20 +183,6 @@ function GottaGoFast.MobPointsToInteger(mobPoints)
   return tonumber(utility.ShortenStr(mobPoints, 1));
 end
 
-function GottaGoFast.IsAlternate(cmID, mapID)
-  -- isAlternate is for upper kara, or the horde version of siege of boralus
-  local isAlternate = cmID == 234;
-  if (not isAlternate and mapID == 1822) then
-    isAlternate = ggf.PlayerIsHorde();
-  end
-
-  return isAlternate;
-end
-
-function GottaGoFast.PlayerIsHorde()
-  return UnitFactionGroup("player") == "Horde"
-end
-
 function GottaGoFast.HasTeeming(affixes)
   if (next(affixes) ~= nil) then
     for k, v in pairs(affixes) do
@@ -246,31 +232,30 @@ function GottaGoFast.CalculateIndividualMobPoints(mobPercentage, totalMobPoints)
   return mobPercentage * totalMobPoints;
 end
 
+function GottaGoFast.GetMobPointValue(npcID)
+  if (GottaGoFast.MobCountTable ~= nil and GottaGoFast.MobCountTable[npcID] ~= nil) then
+    return GottaGoFast.MobCountTable[npcID]["count"], GottaGoFast.MobCountTable[npcID]["maxCount"];
+  else
+    return nil;
+  end
+end
+
 function GottaGoFast.AddMobPointsToTooltip()
   local npcID = GottaGoFast.MouseoverUnitID();
   local mapID = ggf.CurrentCM["ZoneID"];
   local cmID = ggf.CurrentCM["CmID"]
-  local isTeeming = ggf.HasTeeming(ggf.CurrentCM["Affixes"]);
-  if (npcID ~= nil and mapID ~= nil and isTeeming ~= nil) then
-    local weight = nil;
+  if (npcID ~= nil and mapID ~= nil) then
+    local count = nil;
+    local maxCount = nil;
 
-    if (ggf.GetUseMdt() and MethodDungeonTools ~= nil and MethodDungeonTools.GetEnemyForces ~= nil) then
-      local count, max, maxTeeming = MethodDungeonTools:GetEnemyForces(npcID);
-
-      if (count ~= nil and max ~= nil and maxTeeming ~= nil) then
-        if (isTeeming) then
-          weight = count / maxTeeming;
-        else
-          weight = count / max;
-        end
-        weight = weight * 100;
-      end
+    if (ggf.GetUseMdt() and MDT ~= nil and MDT.GetEnemyForces ~= nil) then
+      count, maxCount = MDT:GetEnemyForces(npcID);
     else
-      local isAlternate = GottaGoFast.IsAlternate(cmID, mapID);
-      weight = ggf.LOP:GetNPCWeightByMap(mapID, npcID, isTeeming, isAlternate);
+      count, maxCount = GottaGoFast.GetMobPointValue(npcID)
     end
 
-    if (weight ~= nil) then
+    if (count ~= nil and maxCount ~= nil) then
+      local weight = (count / maxCount) * 100;
       local appendString = string.format(" (%.2f%%)", weight);
 
       -- Give Point Estimate

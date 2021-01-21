@@ -375,6 +375,7 @@ StaticPopupDialogs["WEAKAURAS_CONFIRM_DELETE"] = {
   button2 = L["Cancel"],
   OnAccept = function(self)
     if self.data then
+      OptionsPrivate.Private.PauseAllDynamicGroups()
       OptionsPrivate.massDelete = true
       for _, auraData in pairs(self.data.toDelete) do
         WeakAuras.Delete(auraData)
@@ -397,6 +398,7 @@ StaticPopupDialogs["WEAKAURAS_CONFIRM_DELETE"] = {
           WeakAuras.UpdateDisplayButton(parentData)
         end
       end
+      OptionsPrivate.Private.ResumeAllDynamicGroups()
       WeakAuras.SortDisplayButtons()
     end
   end,
@@ -1562,9 +1564,9 @@ function OptionsPrivate.InsertCollapsed(id, namespace, path, value)
 end
 
 
-function OptionsPrivate.AddTextFormatOption(input, withHeader, get, addOption, hidden, setHidden)
+function OptionsPrivate.AddTextFormatOption(input, withHeader, get, addOption, hidden, setHidden, index, total)
   local headerOption
-  if withHeader then
+  if withHeader and (not index or index == 1) then
     headerOption =  {
       type = "execute",
       control = "WeakAurasExpandSmall",
@@ -1621,7 +1623,7 @@ function OptionsPrivate.AddTextFormatOption(input, withHeader, get, addOption, h
     end
   end)
 
-  if withHeader then
+  if withHeader and (not index or index == total) then
     addOption("header_anchor",
     {
       type = "description",
@@ -1635,7 +1637,7 @@ function OptionsPrivate.AddTextFormatOption(input, withHeader, get, addOption, h
   )
   end
 
-  if not next(seenSymbols) and withHeader then
+  if not next(seenSymbols) and headerOption and not index then
     headerOption.hidden = true
   end
 

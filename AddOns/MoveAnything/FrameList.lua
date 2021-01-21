@@ -177,6 +177,7 @@ local m = {
 		API:AddElement({name = "ActionBarUpButton", displayName = "Action Bar Page Up"}, c)
 		API:AddElement({name = "ActionBarDownButton", displayName = "Action Bar Page Down"}, c)
 		API:AddElement({name = "ExtraAbilityContainer", displayName = "Extra Ability Bar"}, c)
+		API:AddElement({name = "UIWidgetPowerBarContainerFrame", displayName = "Power Ability Bar"}, c)
 		API:AddElement({name = "PetActionButtonsMover", displayName = "Pet Action Bar"}, c)
 		API:AddElement({name = "PetActionButtonsVerticalMover", displayName = "Pet Action Bar - Vertical"}, c)
 		API:AddElement({name = "StanceButtonsMover", displayName = "Stance Buttons"}, c)

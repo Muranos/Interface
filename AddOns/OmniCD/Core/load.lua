@@ -18,6 +18,11 @@ function E:OnInitialize()
 	self.profile = self.DB.profile
 	self.db = self.DB.profile.Party.arena
 
+	--[[
+	self.LSM = LibStub("LibSharedMedia-3.0")
+	self.LSM:Register("font", "PT Sans Narrow Bold", "Interface\\Addons\\OmniCD\\Media\\Fonts\\PTSansNarrow-Bold.ttf")
+	]]
+
 	self:UpdateSpellList()
 	self:SetupOptions()
 	self:EnableVersionCheck()

@@ -18,7 +18,7 @@ E.SlashHandler = function(msg)
 		E.Write("reload or rl: " ..  L["Reload addon."])
 		E.Write("reset or rt: " .. L["Reset all cooldown timers."])
 	elseif (command == "rl" or command == "reload") then
-		E:Refresh()
+		E:Refresh(true)
 	elseif (command == "rt" or command == "reset") then
 		if (value == "") then
 			P:ResetAllIcons()
@@ -30,7 +30,7 @@ E.SlashHandler = function(msg)
 			E.DB:ResetProfile()
 			E.Write("Profile reset.")
 			AceRegistry:NotifyChange("OmniCD")
-		elseif E.CFG_ZONE[value] then
+		elseif E.L_ZONE[value] then
 			P:ResetOptions(value)
 			E.Write(value, "-settings reset.")
 			AceRegistry:NotifyChange("OmniCD")
@@ -39,7 +39,7 @@ E.SlashHandler = function(msg)
 		end
 	elseif (command == "t" or command == "test") then
 		if E.GetModuleEnabled("Party") then
-			local key = not P.test and (E.CFG_ZONE[value] and value or "arena")
+			local key = not P.test and (P.zone or select(2, IsInInstance()))
 			P:Test(key)
 		else
 			E.Write("Module not enabled!")
@@ -70,12 +70,15 @@ E.SlashHandler = function(msg)
 		local zone = E.CFG_ZONE[command] and command or "arena"
 		if value == "?" then
 			if not spelltypeStr then
-				spelltypeStr = ""
 				for k in pairs(E.L_PRIORITY) do
-					spelltypeStr = strjoin(", ", spelltypeStr, k)
+					if not spelltypeStr then
+						spelltypeStr = k
+					else
+						spelltypeStr = strjoin(", ", spelltypeStr, k)
+					end
 				end
 			end
-			E.Write(L["Spell Types"], spelltypeStr)
+			E.Write(L["Spell Types"] .. ": ", spelltypeStr)
 			E.Write("prepend \'-\' to remove spell type")
 			E.Write(SYSTEMOPTIONS_MENU, ": all, clear, default")
 			return
@@ -83,6 +86,11 @@ E.SlashHandler = function(msg)
 
 		if value == "clear" then
 			wipe(E.DB.profile.Party[zone].spells)
+			for i = 1, #E.spellDefaults do
+				local id = E.spellDefaults[i]
+				id = tostring(id)
+				E.DB.profile.Party[zone].spells[id] = false
+			end
 		elseif value == "default" then
 			P:ResetOptions(zone, "spells")
 		else
@@ -90,11 +98,12 @@ E.SlashHandler = function(msg)
 			for _, v in pairs(E.spell_db) do
 				for i = 1, #v do
 					local spell = v[i]
-					local sid = tostring(spell.spellID)
+					local spellID = spell.spellID
+					local sid = tostring(spellID)
 					if not spell.hide and (value == "all" or value == spell.type) then
 						E.DB.profile.Party[zone].spells[sid] = true
 					elseif val == spell.type then
-						E.DB.profile.Party[zone].spells[sid] = nil
+						E.DB.profile.Party[zone].spells[sid] = false
 					end
 				end
 			end
@@ -102,10 +111,16 @@ E.SlashHandler = function(msg)
 		E.UpdateEnabledSpells(P)
 		P:Refresh()
 		AceRegistry:NotifyChange("OmniCD")
-	elseif (command == "r" or command == "raidcd" or E.CFG_ZONE[command]) then
-		local zone = E.CFG_ZONE[value] or "arena"
+	elseif (command == "r" or command == "raidcd" or E.CFG_ZONE[gsub(command, "^r", "")]) then
+		local zone = gsub(command, "^r", "")
+		zone = E.CFG_ZONE[zone] and zone or "arena"
 		if value == "clear" then
 			wipe(E.DB.profile.Party[zone].raidCDS)
+			for i = 1, #E.raidDefaults do
+				local id = E.raidDefaults[i]
+				id = tostring(id)
+				E.DB.profile.Party[zone].raidCDS[id] = false
+			end
 		elseif value == "default" then
 			P:ResetOptions(zone, "raidCDS")
 		else
@@ -113,11 +128,12 @@ E.SlashHandler = function(msg)
 			for _, v in pairs(E.spell_db) do
 				for i = 1, #v do
 					local spell = v[i]
-					local sid = tostring(spell.spellID)
+					local spellID = spell.spellID
+					local sid = tostring(spellID)
 					if not spell.hide and (value == "all" or value == spell.type) then
 						E.DB.profile.Party[zone].raidCDS[sid] = true
 					elseif val == spell.type then
-						E.DB.profile.Party[zone].raidCDS[sid] = nil
+						E.DB.profile.Party[zone].raidCDS[sid] = false
 					end
 				end
 			end
@@ -131,6 +147,10 @@ E.SlashHandler = function(msg)
 		local AceDialog = LibStub("AceConfigDialog-3.0")
 		AceDialog:SetDefaultSize("OmniCD", 960,650)
 		AceDialog:Open("OmniCD")
+
+		AceDialog:SelectGroup(E.AddOn, "Party") -- [47]*
+		AceDialog:SelectGroup(E.AddOn, "Enemy")
+		AceDialog:SelectGroup(E.AddOn, "")
 	end
 end
 

@@ -1,9 +1,10 @@
 
 BigWigs:AddColors("Kin-Tara", {
-	[320966] = "orange",
-	[321009] = "yellow",
+	[320966] = "purple",
+	[321009] = {"blue","yellow"},
 	[324368] = "cyan",
-	[327481] = "orange",
+	[327481] = {"blue","orange"},
+	[331251] = {"blue","red"},
 })
 
 BigWigs:AddColors("Ventunax", {
@@ -22,6 +23,6 @@ BigWigs:AddColors("Oryphrion", {
 
 BigWigs:AddColors("Devos, Paragon of Doubt", {
 	[322818] = {"blue","green","yellow"},
-	[323943] = "orange",
+	[323943] = {"blue","orange"},
 	[334625] = "yellow",
 })

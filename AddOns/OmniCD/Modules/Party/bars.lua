@@ -65,19 +65,9 @@ function OmniCD_BarOnHide(self)
 		P:SetExIconLayout(key)
 	end
 
-	if self.timer_inCombatTicker then
-		self.timer_inCombatTicker:Cancel()
-	end
-
 	self:UnregisterEvent("UNIT_AURA")
 	self:UnregisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 	self:UnregisterEvent("PLAYER_SPECIALIZATION_CHANGED")
-end
-
-function OmniCD_BarOnShow(self) -- [41]
-	local unit = self.unit
-	self:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", unit, unit == "player" and "pet" or unit .. "pet")
-	self:RegisterUnitEvent("PLAYER_SPECIALIZATION_CHANGED", unit)
 end
 
 local function CooldownBarFrame_OnEvent(self, event, ...)
@@ -94,6 +84,10 @@ local function CooldownBarFrame_OnEvent(self, event, ...)
 		end
 	elseif event == "UNIT_AURA" then
 		local unit = ...
+		if unit ~= info.unit then
+			return
+		end
+
 		if info.glowIcons[TOUCH_OF_KARMA] then
 			if not P:GetBuffDuration(unit, TOUCH_OF_KARMA) then
 				local icon = info.glowIcons[TOUCH_OF_KARMA] -- [40]
@@ -117,6 +111,10 @@ local function CooldownBarFrame_OnEvent(self, event, ...)
 		end
 	elseif event == "PLAYER_SPECIALIZATION_CHANGED" then
 		local unit = ...
+		if unit ~= info.unit then
+			return
+		end
+
 		if guid == E.userGUID then
 			E.Comms:InspectPlayer()
 			E.Comms:SendSync()
@@ -132,6 +130,13 @@ local function GetBar()
 	if not f then
 		numBars = numBars + 1
 		f = CreateFrame("Frame", "OmniCD" .. numBars, UIParent, "OmniCDTemplate")
+		--[[ xml
+		f.bottomRow = CreateFrame("Frame", nil, f.container)
+		f.bottomRow:SetSize(1, 1)
+		f.bottomRow.container = CreateFrame("Frame", nil, f.bottomRow)
+		f.bottomRow.container:SetSize(1, 1)
+		f.bottomRow.container:SetAllPoints(f.bottomRow)
+		--]]
 	end
 	f.modname = "Party"
 	f.icons = {}
@@ -154,7 +159,7 @@ local function GetIcon(f, iconIndex)
 	local icon = tremove(unusedIcons)
 	if not icon then
 		numIcons = numIcons + 1
-		icon = CreateFrame("Button", nil, UIParent, "OmniCDButtonTemplate")
+		icon = CreateFrame("Button", "OmniCDIcon" .. numIcons, UIParent, "OmniCDButtonTemplate")
 		icon.counter = icon.cooldown:GetRegions()
 	end
 	icon:SetParent(f.container)
@@ -232,6 +237,8 @@ function P:UpdateUnitBar(guid)
 	f.raceID = raceID
 	f.unit = unit
 	f.anchor.text:SetText(index)
+	f:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", unit, unit == "player" and "pet" or unit .. "pet") -- [41]
+	f:RegisterUnitEvent("PLAYER_SPECIALIZATION_CHANGED", unit)
 
 	local isInspectedUnit = info.spec
 	local lvl = info.level
@@ -243,12 +250,21 @@ function P:UpdateUnitBar(guid)
 		local n = i == 5 and #classSpells or #spell_db[catagory]
 		for j = 1, n do
 			local spell = i == 5 and classSpells[j] or spell_db[catagory][j]
-			local spellID, spec, race, item, item2, talent, pve = spell.spellID, spell.spec, spell.race, spell.item, spell.item2, spell.talent, spell.pve
+			local spellID, spellType, spec, race, item, item2, talent, pve = spell.spellID, spell.type, spell.spec, spell.race, spell.item, spell.item2, spell.talent, spell.pve
 
 			local isValidSpell -- [62]
-			if self.spell_enabled[spellID] then
+			if self.spell_enabled[spellID] and (guid ~= E.userGUID or (not self.isUserHidden or (E.db.extraBars.interruptBar.enabled and spellType == "interrupt") or (E.db.extraBars.raidCDBar.enabled and E.db.raidCDS[tostring(spellID)]))) then
 				if i == 2 then
-					isValidSpell = race == raceID
+					if type(race) == "table" then
+						for i = 1, #race do
+							local id = race[i]
+							if id == raceID then
+								isValidSpell = true
+							end
+						end
+					elseif race == raceID then
+						isValidSpell = true
+					end
 				elseif isInspectedUnit then
 					if i == 5 then
 						isValidSpell = lvl >= GetSpellLevelLearned(spellID) and (not spec or IsSpellSpecTalent(guid, spec, spellID)) and (not talent or not IsSpellSpecTalent(guid, talent, spellID)) and (not pve or not self.isInPvPInstance)
@@ -267,7 +283,7 @@ function P:UpdateUnitBar(guid)
 			end
 
 			if isValidSpell then
-				local spellType, category, buffID, iconTexture = spell.type, spell.class, spell.buff, spell.icon
+				local category, buffID, iconTexture = spell.class, spell.buff, spell.icon
 				local cd = P:GetValueByType(spell.duration, guid, item2)
 				local ch = P:GetValueByType(spell.charges, guid) or 1
 				if isInspectedUnit then
@@ -401,7 +417,7 @@ function P:UpdateUnitBar(guid)
 
 				info.spellIcons[spellID] = icon -- [40]
 
-				if i == 2 then
+				if i == 2 and race ~= 37 then
 					break
 				end
 			end
@@ -413,8 +429,10 @@ function P:UpdateUnitBar(guid)
 
 	self:UpdateExBars(f) -- [26]
 
-	self:SetIconLayout(f, true)
-	self:ApplySettings(f)
+	if guid ~= E.userGUID or not self.isUserHidden then -- [82]
+		self:ApplySettings(f)
+		self:SetIconLayout(f, true)
+	end
 end
 
 function P:UpdateBars()

@@ -21,6 +21,7 @@ L["Add Note"] = "Añadir una nota"
 L["Add ranks"] = "Agregar Rangos"
 L["Add rolls"] = "Agregar Especializacion"
 L["Add Rolls"] = "Añadir tiradas de dados"
+L["add_candidate"] = "Añadir candidato"
 L["add_ranks_desc"] = "Seleccionar una rango mínimo para poder usar el lootcouncil:"
 L["add_ranks_desc2"] = [=[Seleccione el rango de mayor categoría para añadir a todos los miembros en ese y por encima del mismo al consejo.
 
@@ -33,8 +34,6 @@ L["All items"] = "Todos los objetos"
 L["All items have been awarded and the loot session concluded"] = "Todos los objetos han sido adjudicados y el sorteo ha concluido"
 L["All items usable by the candidate"] = "Todos los objetos utilizables por el candidato"
 L["All unawarded items"] = "Todos los objetos que no se deseen"
-L["Alt click Looting"] = "Pulsar ALT para Repartir"
-L["alt_click_looting_desc"] = "Activar el clic de ALT para repartir el loot, es decir, se inicia una sesión de reparto del loot manteniendo pulsada la tecla Alt (izquierdo) y haciendo clic en un objeto."
 L["Alternatively, flag the loot as award later."] = "Alternativamente, marcar el loot para premiar más tarde."
 L["Always show owner"] = "Mostrar siempre al propietario"
 L["Always use RCLootCouncil with Personal Loot"] = "Usar siempre RCLootCouncil con el botín personal"
@@ -76,22 +75,15 @@ L["Auto Open"] = "Abrir automaticamente"
 L["Auto Pass"] = "Auto pasar"
 L["Auto pass BoE"] = "Auto entregar BoE"
 L["Auto Pass Trinkets"] = "Auto pasar abalorios."
-L["Auto Start"] = "Inicio automatico"
 L["Auto Trade"] = "Auto comerciar"
 L["auto_award_desc"] = "Activa Recompensa Automatica."
 L["auto_award_to_desc"] = "El jugador a recompensar automaticamente. Una lista seleccionable de miembros de la raid aparece si se está en un grupo de raid."
 L["auto_close_desc"] = "marca la casilla para cerrar la ventana de votación cuando el Maestro despojador termine la sesión"
 L["auto_enable_desc"] = "Compruebe siempre dejar RCLootCouncil marcado botin. Desmarcando hara que el addon pregunte si desea utilizar cada vez que entra en una banda o convertirse en maestro saqueador."
-L["auto_loot_desc"] = "Permite autorepartir  todos los articulos que se ligan al equipar"
 L["auto_open_desc"] = "Compruebe en abre automaticamente el marco de la votacion cuando este disponible. El marco de la votacion de lo contrario se puede abrir con /rc open. Nota: Esto requiere el permiso del maestro despojador."
 L["auto_pass_boe_desc"] = "Desmarcar No Permite autorepartir los articulos que se ligan al equipar"
 L["auto_pass_desc"] = "Marque para activar autopasar de articulos que su clase no puede usar."
 L["auto_pass_trinket_desc"] = "Comprobar para pasar automáticamente de abalorios que no estén en la lista de la Guía de Aventuras para tu clase"
-L["auto_start_desc"] = "Permite el Auto iniciar, es decir, iniciar una sesion con todos los articulos elegibles. La desactivacion mostrara una lista de elementos editable antes de iniciar una sesion."
-L["Autoloot all BoE"] = "Botín automático para todos los ítems BoE"
-L["Autoloot BoE"] = "Botin automatico BoE"
-L["autoloot_BoE_desc"] = "Activa auto reparto de botin del mundo ( BoE )"
-L["autoloot_others_BoE_desc"] = "Habilitar añadir automáticamente todos los objetos BoE despojados por otros dentro de una sesión."
 L["autoloot_others_item_combat"] = "%s ha conseguido %s. Este objetos sera añadido al cuadro de sesion una vez el combate termine."
 L["Autopass"] = "Pasar Automaticamente"
 L["Autopassed on 'item'"] = "Auto pasar de %s"
@@ -150,7 +142,6 @@ L["chat_commands_sync"] = "Abrir la vista de sincronización"
 L["chat_commands_test"] = "Emular una sesión de recompensas con n objetos, 1 si se omite el número"
 L["chat_commands_version"] = "Abre el Comprobador de Versión (alt. 'v' o 'ver')"
 L["chat_commands_whisper"] = "Muestra los comandos de susurro"
-L["chat_commands_winners"] = "Muestra los ganadores de objetos asignados que estén en tu inventario"
 L["Check this to loot the items and distribute them later."] = "Marque esta para recojer los articulos y distribuirlos despues."
 L["Check to append the realmname of a player from another realm"] = "marca la casilla para ajunta el nombre del reino al que el jugador pertenece"
 L["Check to have all frames minimize when entering combat"] = "Compruebe que todas las ventanas se minimizan al entrar en combate"
@@ -190,7 +181,6 @@ L["Diff"] = "Diferente"
 L["Discord friendly output."] = "Salida de desacuerdo amistoso."
 L["disenchant_desc"] = "Seleccionar para usar esta razon en la adjudicacion de un elemento a traves del boton 'Desencantar'"
 L["Do you want to keep %s for yourself or trade?"] = "¿Deseas quedarte %s para ti o comerciarlo?"
-L["Do you want to keep %s for yourself?"] = "¿Quieres quedarte %s para ti?"
 L["Done syncing"] = "Sincronización completa"
 L["Double click to delete this entry."] = "Doble click para borrar esta entrada."
 L["Dropped by:"] = "Despojado de"
@@ -251,11 +241,9 @@ L["Length"] = "Duración"
 L["Log"] = "Registro"
 L["log_desc"] = "Permite incluir botin en el historial"
 L["Loot announced, waiting for answer"] = "Botin anunciado, esperando respuesta"
-L["Loot Everything"] = "Todo el botin"
 L["Loot History"] = "Hitorial de botin"
 L["Loot Status"] = "Estado del botín"
 L["Loot won:"] = "objetos ganados:"
-L["loot_everything_desc"] = "Activar auto botin de no equipo ( monturas,mascotas,etc)"
 L["loot_history_desc"] = [=[RCLootCouncil registra automaticamente informacion relevante de sesiones.
 Los datos se almacena en "... / SavedVariables/RCLootCouncil.lua".
 
@@ -307,7 +295,6 @@ L["Not Found"] = "No encontrado"
 L["Not in your guild"] = "No esta en tu hermandad"
 L["Not installed"] = "No instalado"
 L["Notes"] = "Notas"
-L["notes_desc"] = "Posibilita a los candidatos enviar una nota al consejo junto con su tirada."
 L["Now handles looting"] = "Maneja el loot desde ahora"
 L["Number of buttons"] = "Numero de botones"
 L["Number of raids received loot from:"] = "Número de raids en las que se recibió recompensa:"
@@ -326,14 +313,18 @@ L["Open the Loot History"] = "Abrir Hitorial de botin"
 L["open_the_loot_history_desc"] = "Pulsar para abrir historial de botin"
 L["Opens the synchronizer"] = "Abrir el sincronizador"
 L["opt_addButton_desc"] = "Añade un nuevo grupo de botones para la casilla seleccionada."
---[[Translation missing --]]
---[[ L["opt_autoAddBoEs_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["opt_autoAddBoEs_name"] = ""--]] 
+L["opt_autoAddBoEs_desc"] = "Añadir automáticamente todos los BoE (Ligados al equipar) a la sesión."
+L["opt_autoAddBoEs_name"] = "Añadir automáticamente BoEs"
 --[[Translation missing --]]
 --[[ L["opt_autoAddItems_desc"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["opt_autoAddItems_name"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["opt_autoAddPets_desc"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["opt_autoAddPets_name"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["opt_autoAwardPrioList_desc"] = ""--]] 
 L["opt_autoTrade_desc"] = "Seleccionar para añadir automáticamente los objetos a la ventana de comercio cuando se comercie con un ganador. Si se deshabilita, se pedirá confirmación antes de añadir los objetos."
 L["opt_award_later_desc"] = "Activar para comprobar automáticamente la opción 'Recompensar más tarde' en la ventana de sesión."
 L["opt_buttonsGroup_desc"] = "Grupo de opciones para los botones de %s y las respuestas. Ver más arriba para una explicación detallada."
@@ -353,8 +344,6 @@ L["opt_printCompletedTrade_Desc"] = "Activar para habilitar un mensaje cada vez 
 L["opt_printCompletedTrade_Name"] = "Mensajes de objetos comerciados"
 L["opt_rejectTrade_Desc"] = "Activar para permitir a los candidatos elegir si desean 'dar' lo que les toque al consejo o no. Si se deshabilita, todos los objetos que sean comerciables por Loot Personal se añadirán automáticamente."
 L["opt_rejectTrade_Name"] = "Permitir quedarse los objetos"
-L["opt_saveBonusRolls_Desc"] = "Activar para guardar todas las tiradas de dados de los candidatos al Histórico de Recompensas."
-L["opt_saveBonusRolls_Name"] = "Guardar tiradas de dados"
 --[[Translation missing --]]
 --[[ L["opt_skipSessionFrame_desc"] = ""--]] 
 --[[Translation missing --]]

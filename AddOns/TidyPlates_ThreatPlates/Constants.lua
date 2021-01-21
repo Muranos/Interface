@@ -260,6 +260,7 @@ local TOTEM_DATA_RETAIL = {
   { SpellID = 108280, ID = "S3", GroupColor = "ffb31f"},		-- Healing Tide Totem
   { SpellID = 160161, ID = "S4", GroupColor = "ffb31f"}, 	  -- Earthquake Totem
   { SpellID = 2484,   ID = "S5",	GroupColor = "ffb31f"},   -- Earthbind Totem (added patch 7.2, TP v8.4.0)
+  { SpellID = 8512,   ID = "S6", GroupColor = "ffb31f", Icon = "spell_nature_windfury" },	  -- Windfury Totem (re-added with 9.0.1)
 
   -- Totems from Totem Mastery
   { SpellID = 202188, ID = "M1", GroupColor = "b8d1ff"}, 	  -- Resonance Totem
@@ -279,7 +280,6 @@ local TOTEM_DATA_RETAIL = {
   { SpellID = 204330, ID = "P2", GroupColor = "2b76ff"},	  -- Skyfury Totem
   { SpellID = 204336, ID = "P4", GroupColor = "2b76ff"},	  -- Grounding Totem
 
-  --{ SpellID = 204332, ID = "P3", GroupColor = "2b76ff"},	  -- Windfury Totem (removed in patch 8.0.1)p
   --{ SpellID = 196932, ID = "N6", GroupColor = "4c9900"},		-- Voodoo Totem (removed in patch 8.0.1)
   --{ SpellID = 192058, ID = "N3", GroupColor = "4c9900"},		-- Lightning  Surge Totem (renamed to Capacitator Totem in patch 8.0.1)
 }
@@ -908,6 +908,7 @@ ThreatPlates.DEFAULT_SETTINGS = {
           [4] = RGB(255, 105, 0),
           [5] = RGB(255, 0, 0),
           [6] = RGB(255, 0, 0),
+          Animacharge = RGB(0, 221, 225),
         },
         WARLOCK = {
           [1] = RGB(148, 130, 201),

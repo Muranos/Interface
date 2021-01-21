@@ -86,6 +86,14 @@ local DETECTION_UNITS = {
   ["151127"] = true, -- Lord of Torment
   ["152905"] = true, -- Tower Sentinel
   ["155828"] = true, -- Runecarved Colossus
+  ["157322"] = true, -- Lord of Locks
+  ["167331"] = true, -- Nascent Shade
+  ["151817"] = true, -- Deadsoul Devil
+  ["152656"] = true, -- Deadsoul Stalker
+  ["152898"] = true, -- Deadsoul Chorus
+  ["151818"] = true, -- Deadsoul Miscreation
+  ["175502"] = true, -- Grand Automaton
+  ["156244"] = true, -- Winged Automaton
 }
 
 ---------------------------------------------------------------------------------------------------
