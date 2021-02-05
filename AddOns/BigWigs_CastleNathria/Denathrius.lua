@@ -7,13 +7,12 @@ if not mod then return end
 mod:RegisterEnableMob(167406) -- Sire Denathrius
 mod.engageId = 2407
 mod.respawnTime = 30
+mod:SetStage(1)
 
 --------------------------------------------------------------------------------
 -- Locals
 --
 
-local stage = 1
-mod.stage = stage
 local intermission = nil
 local nextStageWarning = 73
 local burdenPlayerTracker = {}
@@ -34,11 +33,12 @@ local balefulShadowsList = {}
 local mobCollector = {}
 local balefulShadowCount = 1
 local mirrorCount = 0
+local isMoving = false
 
 local timersEasy = {
 	[1] = {
 		-- Feeding Time
-		[327039] = {15, 25, 35, 25},
+		[327039] = {15, 25, 35, 25, 35},
 		-- Cleansing Pain
 		[326707] = {8.7, 26.7, 32.8, 26.7, 34, 26.8}, -- From _success to _start, so timers are adjusted by -3s for the cast time
 	},
@@ -152,7 +152,7 @@ function mod:GetOptions()
 		326707, -- Cleansing Pain
 		326851, -- Blood Price
 		{327039, "SAY", "SAY_COUNTDOWN", "ME_ONLY_EMPHASIZE"}, -- Feeding Time (Normal mode version of Night Hunter)
-		{327796, "SAY", "SAY_COUNTDOWN", "ME_ONLY_EMPHASIZE"}, -- Night Hunter
+		{327796, "SAY", "ME_ONLY_EMPHASIZE"}, -- Night Hunter
 		"custom_on_repeating_nighthunter",
 		nightHunterMarker,
 		{327227, "EMPHASIZE"}, -- Command: Ravage
@@ -160,6 +160,7 @@ function mod:GetOptions()
 		327992, -- Desolation
 		-- Intermission: March of the Penitent
 		328276, -- March of the Penitent
+		-- Stage Two: The Crimson Chorus
 		329906, -- Carnage
 		{329951, "SAY", "SAY_COUNTDOWN", "ME_ONLY_EMPHASIZE"}, -- Impale
 		"custom_on_repeating_impale",
@@ -192,24 +193,26 @@ function mod:GetOptions()
 		[332585] = -22195,-- Stage Three: Indignation
 		["hymn_stacks"] = "mythic",
 	},{
-		[327039] = CL.normal,
-		[327796] = CL.heroic .."/".. CL.mythic,
-		[327227] = CL.soon:format(self:SpellName(327122)),
-		[328276] = CL.intermission,
-		[-22131] = CL.adds,
-		[332619] = CL.knockback,
+		[327039] = CL.normal, -- Feeding Time (Normal mode)
+		[327796] = CL.heroic .."/".. CL.mythic, -- Night Hunter (Heroic mode/Mythic mode)
+		[327227] = CL.soon:format(self:SpellName(327122)), -- Command: Ravage (Ravage soon)
+		[328276] = CL.intermission, -- March of the Penitent (Intermission)
+		[-22131] = CL.adds, -- Crimson Cabalist (Adds)
+		[332619] = CL.knockback, -- Shattering Pain (Knockback)
 	}
 end
 
 function mod:OnBossEnable()
 	self:RegisterEvent("RAID_BOSS_EMOTE")
+	self:RegisterEvent("PLAYER_STARTED_MOVING")
+	self:RegisterEvent("PLAYER_STOPPED_MOVING")
 
 	-- Stage One: Sinners Be Cleansed
 	self:Log("SPELL_CAST_SUCCESS", "Inevitable", 328936)
-	self:Log("SPELL_AURA_APPLIED", "BurdenofSinStacks", 326699)
-	self:Log("SPELL_AURA_APPLIED_DOSE", "BurdenofSinStacks", 326699)
-	self:Log("SPELL_AURA_REMOVED_DOSE", "BurdenofSinStacks", 326699)
-	self:Log("SPELL_AURA_REMOVED", "BurdenofSinRemoved", 326699)
+	self:Log("SPELL_AURA_APPLIED", "BurdenOfSinStacks", 326699)
+	self:Log("SPELL_AURA_APPLIED_DOSE", "BurdenOfSinStacks", 326699)
+	self:Log("SPELL_AURA_REMOVED_DOSE", "BurdenOfSinStacks", 326699)
+	self:Log("SPELL_AURA_REMOVED", "BurdenOfSinRemoved", 326699)
 	self:Log("SPELL_CAST_START", "CleansingPain", 326707)
 	self:Log("SPELL_CAST_SUCCESS", "CleansingPainSuccess", 326707)
 	self:Log("SPELL_CAST_START", "BloodPriceStart", 326851)
@@ -221,10 +224,10 @@ function mod:OnBossEnable()
 	self:Log("SPELL_CAST_START", "Ravage", 327122)
 
 	-- Intermission: March of the Penitent
-	self:Log("SPELL_CAST_START", "MarchofthePenitentStart", 328117)
+	self:Log("SPELL_CAST_START", "MarchOfThePenitentStart", 328117)
 
 	-- Stage Two: The Crimson Chorus
-	self:Log("SPELL_CAST_SUCCESS", "BegintheChorus", 329697)
+	self:Log("SPELL_CAST_SUCCESS", "BeginTheChorus", 329697)
 	self:Log("SPELL_AURA_APPLIED", "CarnageApplied", 329906)
 	self:Log("SPELL_AURA_APPLIED_DOSE", "CarnageApplied", 329906)
 	self:Log("SPELL_AURA_APPLIED", "ImpaleApplied", 329951)
@@ -232,7 +235,7 @@ function mod:OnBossEnable()
 	self:Log("SPELL_CAST_START", "WrackingPain", 329181)
 	self:Log("SPELL_AURA_APPLIED", "WrackingPainApplied", 329181)
 	self:Log("SPELL_AURA_APPLIED_DOSE", "WrackingPainApplied", 329181)
-	self:Log("SPELL_CAST_START", "HandofDestruction", 333932)
+	self:Log("SPELL_CAST_START", "HandOfDestruction", 333932)
 	self:Log("SPELL_CAST_SUCCESS", "CommandMassacre", 330042)
 
 	self:Death("AddDeaths", 169196, 169470, 173161, 173162, 173163, 173164) -- Crimson Cabalist x2, Lady Sinsear, Lord Evershade, Baron Duskhollow, Countess Gloomveil
@@ -270,10 +273,10 @@ end
 
 function mod:OnEngage()
 	timers = self:Mythic() and timersMythic or self:Heroic() and timersHeroic or timersEasy
-	stage = 1
-	self.stage = stage
 	intermission = nil
 	nextStageWarning = 73
+	isMoving = false
+	self:SetStage(1)
 
 	cleansingPainCount = 1
 	bloodPriceCount = 1
@@ -285,16 +288,6 @@ function mod:OnEngage()
 	balefulShadowCount = 1
 	mirrorCount = 0
 
-	self:Bar(326707, timers[stage][326707][cleansingPainCount], CL.count:format(self:SpellName(326707), cleansingPainCount)) -- Cleansing Pain
-	self:Bar(326851, 23, CL.count:format(self:SpellName(326851), bloodPriceCount)) -- Blood Price
-	if self:Easy() then
-		self:Bar(327039, timers[stage][327039][nightHunterCount], CL.count:format(self:SpellName(327039), nightHunterCount)) -- Feeding Time
-	else
-		self:Bar(327796, timers[stage][327796][nightHunterCount], CL.count:format(self:SpellName(327796), nightHunterCount)) -- Night Hunter
-	end
-	self:Bar(327122, 53, CL.count:format(self:SpellName(327122), ravageCount)) -- Ravage
-
-	self:RegisterUnitEvent("UNIT_HEALTH", nil, "boss1")
 	burdenStackTable = {
 		[0] = 0,
 		[1] = 0,
@@ -307,6 +300,17 @@ function mod:OnEngage()
 	burdenPlayerTracker = {}
 	burdenStacksOnMe = 0
 
+	self:Bar(326707, timers[1][326707][cleansingPainCount], CL.count:format(self:SpellName(326707), cleansingPainCount)) -- Cleansing Pain
+	self:Bar(326851, 23, CL.count:format(self:SpellName(326851), bloodPriceCount)) -- Blood Price
+	if self:Easy() then
+		self:Bar(327039, timers[1][327039][nightHunterCount], CL.count:format(self:SpellName(327039), nightHunterCount)) -- Feeding Time
+	else
+		self:Bar(327796, timers[1][327796][nightHunterCount], CL.count:format(self:SpellName(327796), nightHunterCount)) -- Night Hunter
+	end
+	self:Bar(327122, 53, CL.count:format(self:SpellName(327122), ravageCount)) -- Ravage
+
+	self:RegisterUnitEvent("UNIT_HEALTH", nil, "boss1")
+
 	self:OpenInfo(326699, self:SpellName(326699)) -- Burden of Sin
 end
 
@@ -314,14 +318,22 @@ end
 -- Event Handlers
 --
 
+function mod:PLAYER_STARTED_MOVING()
+	isMoving = true
+end
+function mod:PLAYER_STOPPED_MOVING()
+	isMoving = false
+end
+
 do
 	local prev, prevFlash = 0, 0
 	local function crescendoMessage()
+		if UnitIsDead("player") then return end
 		mod:PersonalMessage(336162, "underyou")
-		mod:PlaySound(336162, "warning")
 		local t = GetTime()
-		if t-prevFlash > 5 then
+		if t-prevFlash > 1.5 and not isMoving then
 			prevFlash = t
+			mod:PlaySound(336162, "warning") -- Not using underyou as sound, you're not standing in something
 			mod:Flash(336162)
 		end
 	end
@@ -342,17 +354,13 @@ function mod:RAID_BOSS_EMOTE(_, msg)
 		self:Message(-22131, "yellow", CL.incoming:format(CL.count:format(CL.adds, addCount)), 329711) -- Crimson Chorus Icon
 		self:PlaySound(-22131, "alert")
 		addCount = addCount + 1
-		self:Bar(-22131, timers[stage][-22131][addCount], CL.count:format(CL.adds, addCount), 329711) -- Crimson Chorus Icon
+		self:Bar(-22131, timers[self:GetStage()][-22131][addCount], CL.count:format(CL.adds, addCount), 329711) -- Crimson Chorus Icon
 	end
 end
 
 function mod:UNIT_HEALTH(event, unit)
-	if stage == 3 then -- Already phased early, skip further messages
-		self:UnregisterUnitEvent(event, unit)
-		return
-	end
 	if self:GetHealth(unit) < nextStageWarning then -- Stage changes at 70% and 40%
-		local nextStage = stage == 1 and CL.intermission or CL.stage:format(stage + 1)
+		local nextStage = self:GetStage() == 1 and CL.intermission or CL.stage:format(3)
 		self:Message("stages", "green", CL.soon:format(nextStage), false)
 		nextStageWarning = nextStageWarning - 30
 		if nextStageWarning < 30 then
@@ -418,12 +426,13 @@ do
 		scheduled = nil
 	end
 
-	function mod:BurdenofSinStacks(args)
+	function mod:BurdenOfSinStacks(args)
 		local oldValue = burdenPlayerTracker[args.destName]
 		if oldValue then
 			burdenStackTable[oldValue] = burdenStackTable[oldValue] - 1
 		end
 		local _, amount = self:UnitDebuff(args.destName, args.spellId) -- no amount in the event, checking ourselves
+		amount = amount or self:Mythic() and 6 or self:Heroic() and 5 or 4 -- Can rarely be nil on engage
 		burdenPlayerTracker[args.destName] = amount
 		burdenStackTable[amount] = burdenStackTable[amount] + 1
 		if self:Me(args.destGUID) then
@@ -435,7 +444,7 @@ do
 		mod:UpdateInfoBox()
 	end
 
-	function mod:BurdenofSinRemoved(args)
+	function mod:BurdenOfSinRemoved(args)
 		if scheduled then
 			self:CancelTimer(scheduled)
 			scheduled = nil
@@ -453,16 +462,16 @@ do
 	end
 
 	function mod:BloodPriceStart(args)
-		if stage == 3 then -- Mythic, Depends on phasing not stacks
+		if self:GetStage() == 3 then -- Mythic, Depends on phasing not stacks
 			self:Message(args.spellId, "red")
 		else
 			self:StackMessage(args.spellId, playerName, burdenStackTable[burdenStacksOnMe], "blue")
 		end
 		self:PlaySound(args.spellId, "alarm")
 		bloodPriceCount = bloodPriceCount + 1
-		if stage == 3 and bloodPriceCount < 4 then -- Mythic, only 3x in stage 3
+		if self:GetStage() == 3 and bloodPriceCount < 4 then -- Mythic, only 3x in stage 3
 			self:Bar(args.spellId, 72, CL.count:format(args.spellName, bloodPriceCount))
-		elseif stage == 1 and bloodPriceCount < 4 then  -- Only 3x in stage 1
+		elseif self:GetStage() == 1 and bloodPriceCount < 4 then  -- Only 3x in stage 1
 			self:Bar(args.spellId, 58, CL.count:format(args.spellName, bloodPriceCount))
 		end
 	end
@@ -475,7 +484,7 @@ end
 
 function mod:CleansingPainSuccess(args)
 	cleansingPainCount = cleansingPainCount + 1
-	self:Bar(args.spellId, timers[stage][args.spellId][cleansingPainCount], CL.count:format(args.spellName, cleansingPainCount))
+	self:Bar(args.spellId, timers[self:GetStage()][args.spellId][cleansingPainCount], CL.count:format(args.spellName, cleansingPainCount))
 end
 
 do
@@ -485,7 +494,7 @@ do
 			prev = args.time
 			self:Message(args.spellId, "orange", CL.count:format(args.spellName, nightHunterCount))
 			nightHunterCount = nightHunterCount + 1
-			self:Bar(args.spellId, timers[stage][args.spellId][nightHunterCount], CL.count:format(args.spellName, nightHunterCount))
+			self:Bar(args.spellId, timers[self:GetStage()][args.spellId][nightHunterCount], CL.count:format(args.spellName, nightHunterCount))
 		end
 		if self:Me(args.destGUID)then
 			self:PersonalMessage(args.spellId)
@@ -504,17 +513,26 @@ end
 
 do
 	local playerList, playerIcons = mod:NewTargetList(), {}
-	local sayTimer = nil
+	local timeLeft, icon = 0, 0
+	local function printYell()
+		if timeLeft > 0 then -- We didn't die within the 2 sec initial delay
+			mod:Yell(false, ("{rt%d}{rt%d}{rt%d}%d"):format(icon, icon, icon, timeLeft), true)
+			timeLeft = timeLeft - 1
+			if timeLeft > 0 then
+				mod:SimpleTimer(printYell, 1)
+			end
+		end
+	end
 	function mod:NightHunterApplied(args)
 		local count = #playerList+1
 		playerList[count] = args.destName
 		playerIcons[count] = count
 		if self:Me(args.destGUID)then
-			--self:YellCountdown(args.spellId, 6, count)
 			self:Yell(args.spellId, CL.count_rticon:format(args.spellName, count, count))
 			if self:GetOption("custom_on_repeating_nighthunter") then
-				local icon = ("{rt%d}{rt%d}{rt%d}"):format(count, count, count)
-				sayTimer = self:ScheduleRepeatingTimer("Yell", 1.5, false, icon, true)
+				icon = count
+				timeLeft = 4
+				self:SimpleTimer(printYell, 2)
 			end
 		end
 		self:TargetsMessage(args.spellId, "orange", playerList, self:Mythic() and 3 or 2, CL.count:format(args.spellName, nightHunterCount), nil, nil, playerIcons)
@@ -522,21 +540,15 @@ do
 			self:PlaySound(args.spellId, "warning")
 			self:CastBar(args.spellId, 6, CL.count:format(args.spellName, nightHunterCount))
 			nightHunterCount = nightHunterCount + 1
-			self:Bar(args.spellId, timers[stage][args.spellId][nightHunterCount], CL.count:format(args.spellName, nightHunterCount))
+			self:Bar(args.spellId, timers[self:GetStage()][args.spellId][nightHunterCount], CL.count:format(args.spellName, nightHunterCount))
 		end
 		self:CustomIcon(nightHunterMarker, args.destName, count)
 	end
 
 	function mod:NightHunterRemoved(args)
 		if self:Me(args.destGUID) then
-			if sayTimer then
-				self:CancelTimer(sayTimer)
-				sayTimer = nil
-			end
+			timeLeft, icon = 0, 0
 		end
-		-- if self:Me(args.destGUID) then
-		-- 	self:CancelSayCountdown(args.spellId)
-		-- end
 		self:CustomIcon(nightHunterMarker, args.destName)
 	end
 end
@@ -555,9 +567,8 @@ function mod:Ravage(args)
 end
 
 -- Intermission: March of the Penitent
-function mod:MarchofthePenitentStart(args)
-	stage = 2
-	self.stage = stage
+function mod:MarchOfThePenitentStart(args)
+	self:SetStage(2)
 	intermission = true
 	self:Message(328276, "green", CL.percent:format(70, args.spellName), false)
 	self:PlaySound(328276, "long")
@@ -565,16 +576,17 @@ function mod:MarchofthePenitentStart(args)
 
 	self:StopBar(CL.count:format(self:SpellName(326707), cleansingPainCount)) -- Cleansing Pain
 	self:StopBar(CL.count:format(self:SpellName(326851), bloodPriceCount)) -- Blood Price
+	self:StopBar(CL.count:format(self:SpellName(327039), nightHunterCount)) -- Feeding Time
 	self:StopBar(CL.count:format(self:SpellName(327796), nightHunterCount)) -- Night Hunter
 	self:StopBar(CL.count:format(self:SpellName(327122), ravageCount)) -- Ravage
 	self:StopBar(CL.cast:format(CL.count:format(self:SpellName(327122), ravageCount-1))) -- Casting: Ravage
 end
 
 -- Stage Two: The Crimson Chorus
-function mod:BegintheChorus(args)
+function mod:BeginTheChorus(args)
 	intermission = nil
 	self:CloseInfo(326699)
-	self:Message("stages", "green", CL.stage:format(stage), false)
+	self:Message("stages", "green", CL.stage:format(2), false)
 	self:PlaySound("stages", "long")
 
 	impaleCount = 1
@@ -583,11 +595,12 @@ function mod:BegintheChorus(args)
 	massacreCount = 1
 	addCount = 1
 	balefulShadowCount = 1
+	ravageCount = 1
 
-	self:Bar(-22131, timers[stage][-22131][addCount], CL.count:format(CL.adds, addCount), 329711) -- Adds // Crimson Chorus Icon
-	self:Bar(329951, timers[stage][329951][impaleCount], CL.count:format(self:SpellName(329951), impaleCount)) -- Impale
+	self:Bar(-22131, timers[2][-22131][addCount], CL.count:format(CL.adds, addCount), 329711) -- Adds // Crimson Chorus Icon
+	self:Bar(329951, timers[2][329951][impaleCount], CL.count:format(self:SpellName(329951), impaleCount)) -- Impale
 	self:Bar(329181, 15.7, CL.count:format(self:SpellName(329181), wrackingPainCount)) -- Wracking Pain
-	self:Bar(333932, timers[stage][333932][handCount], CL.count:format(self:SpellName(333932), handCount)) -- Hand of Destruction
+	self:Bar(333932, timers[2][333932][handCount], CL.count:format(self:SpellName(333932), handCount)) -- Hand of Destruction
 	self:Bar(330042, self:Mythic() and 55 or 62, CL.count:format(self:SpellName(330068), massacreCount), 333980) -- Massacre
 	self:Bar("stages", 214, CL.stage:format(3), 338738) -- Stage 3
 
@@ -602,6 +615,8 @@ function mod:CarnageApplied(args)
 	if self:Me(args.destGUID) then
 		self:StackMessage(args.spellId, args.destName, args.amount, "blue")
 		self:PlaySound(args.spellId, "alarm")
+	elseif args.amount and args.amount > 2 and self:Tank() and self:Tank(args.destName) then
+		self:StackMessage(args.spellId, args.destName, args.amount, "purple")
 	end
 end
 
@@ -627,7 +642,7 @@ do
 		self:TargetsMessage(args.spellId, "orange", playerList, self:Mythic() and 4 or 3, CL.count:format(args.spellName, impaleCount), nil, 2, playerIcons) -- debuffs are late
 		if count == 1 then
 			impaleCount = impaleCount + 1
-			self:Bar(args.spellId, timers[stage][args.spellId][impaleCount], CL.count:format(args.spellName, impaleCount))
+			self:Bar(args.spellId, timers[self:GetStage()][args.spellId][impaleCount], CL.count:format(args.spellName, impaleCount))
 		end
 		self:CustomIcon(impaleMarker, args.destName, count)
 	end
@@ -662,12 +677,12 @@ function mod:WrackingPainApplied(args)
 	end
 end
 
-function mod:HandofDestruction(args)
+function mod:HandOfDestruction(args)
 	self:Message(args.spellId, "orange", CL.casting:format(CL.count:format(args.spellName, handCount)))
 	self:PlaySound(args.spellId, "warning")
 	self:CastBar(args.spellId, 6, CL.count:format(args.spellName, handCount))
 	handCount = handCount + 1
-	self:Bar(args.spellId, timers[stage][args.spellId][handCount], CL.count:format(args.spellName, handCount))
+	self:Bar(args.spellId, timers[self:GetStage()][args.spellId][handCount], CL.count:format(args.spellName, handCount))
 end
 
 function mod:CommandMassacre(args)
@@ -681,6 +696,8 @@ end
 
 -- Stage Three: Indignation
 function mod:IndignationSuccess(args) -- not setting stage yet, incase some spells triggered the second you transition
+	self:UnregisterUnitEvent("UNIT_HEALTH", "boss1") -- Safety
+
 	self:Message("stages", "green", CL.stage:format(3), false)
 	self:PlaySound("stages", "long")
 
@@ -696,8 +713,7 @@ function mod:IndignationEnd(args)
 	if self:GetOption(balefulShadowsMarker) then
 		self:UnregisterTargetEvents()
 	end
-	stage = 3
-	self.stage = stage
+	self:SetStage(3)
 
 	-- These spells could have triggered right after the channel started
 	self:StopBar(CL.count:format(self:SpellName(329951), impaleCount)) -- Impale
@@ -713,7 +729,7 @@ function mod:IndignationEnd(args)
 	mirrorCount = 0
 
 	self:Bar(332619, self:Mythic() and 5.4 or 6, CL.count:format(CL.knockback, shatteringPainCount)) -- Shattering Pain
-	self:Bar(332794, timers[stage][332794][fatalFinesseCount], CL.count:format(self:SpellName(332794), fatalFinesseCount)) -- Fatal Finesse
+	self:Bar(332794, timers[self:GetStage()][332794][fatalFinesseCount], CL.count:format(self:SpellName(332794), fatalFinesseCount)) -- Fatal Finesse
 
 	if self:Mythic() then
 		self:Bar(326851, 12.6, CL.count:format(self:SpellName(326851), bloodPriceCount)) -- Blood Price
@@ -721,7 +737,7 @@ function mod:IndignationEnd(args)
 		self:OpenInfo(338738, self:SpellName(338738)) -- Through the Mirror
 	else
 		self:Bar(332849, 42, CL.count:format(self:SpellName(332937), ravageCount))
-		self:Bar(333932, timers[stage][333932][handCount], CL.count:format(self:SpellName(333932), handCount)) -- Hand of Destruction
+		self:Bar(333932, timers[self:GetStage()][333932][handCount], CL.count:format(self:SpellName(333932), handCount)) -- Hand of Destruction
 	end
 end
 
@@ -755,7 +771,7 @@ do
 		self:TargetsMessage(args.spellId, "orange", playerList, 3, CL.count:format(args.spellName, fatalFinesseCount), nil, nil, playerIcons)
 		if count == 1 then
 			fatalFinesseCount = fatalFinesseCount + 1
-			self:Bar(args.spellId, timers[stage][args.spellId][fatalFinesseCount], CL.count:format(args.spellName, fatalFinesseCount))
+			self:Bar(args.spellId, timers[self:GetStage()][args.spellId][fatalFinesseCount], CL.count:format(args.spellName, fatalFinesseCount))
 		end
 		self:CustomIcon(fatalFinesseMarker, args.destName, count)
 	end
@@ -791,11 +807,11 @@ end
 do
 	local prev = 0
 	function mod:GroundDamage(args)
-		if self:Me(args.destGUID) then
+		if self:Me(args.destGUID) and ravageCount < 3 then -- Reset ravageCount at start of stage 2 so Rancor is not affected
 			local t = args.time
 			if t-prev > 2 then
 				prev = t
-				self:PlaySound(args.spellId, "alarm")
+				self:PlaySound(args.spellId, "underyou")
 				self:PersonalMessage(args.spellId, "underyou")
 			end
 		end

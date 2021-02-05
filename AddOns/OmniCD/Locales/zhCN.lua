@@ -64,6 +64,8 @@ L["Cannot edit protected spell"] = "无法编辑受保护的技能"
 L["Cannot test while in combat"] = "无法再战斗中进行测试"
 L["CENTER"] = "中"
 L["Center Horizontally"] = "水平居中"
+--[[Translation missing --]]
+L["Changelog"] = "Changelog"
 L["Changing party display options in your UF addon while OmniCD is active will break the anchors. Type (/oc rl) to fix the anchors"] = "当OmniCD处于启用状态，更改你的队伍框架设定可能会打乱OmniCD的锚点设置。请输入 /oc rl 来修正锚点。"
 L["Charge Color"] = "充能颜色"
 L["Charge Size"] = "充能大小"
@@ -76,6 +78,8 @@ L["Columns"] = "列"
 --[[Translation missing --]]
 L["Commands:"] = "Commands:"
 L["Cooldown"] = "冷却"
+--[[Translation missing --]]
+L["Cooldown Remaining"] = "Cooldown Remaining"
 --[[Translation missing --]]
 L["Copy"] = "Copy"
 L["Copy Default"] = "复制默认值"
@@ -96,9 +100,13 @@ L["Crop"] = "Crop"
 --[[Translation missing --]]
 L["Crop Icons 1.5:1."] = "Crop Icons 1.5:1."
 L["Crowd Control"] = "群体控制"
+--[[Translation missing --]]
+L["Current Profile"] = "Current Profile"
 L["Current Unit Frame Addon"] = "目前所使用的单位框体插件"
 --[[Translation missing --]]
 L["Custom Priority"] = "Custom Priority"
+--[[Translation missing --]]
+L["Custom Spells"] = "Custom Spells"
 L["Custom UI"] = "自定UI"
 L["Default spells are reverted back to original values and removed from the list only"] = "默认技能将恢复初始值并从列表中删除"
 L["Defensive"] = "防御"
@@ -135,11 +143,19 @@ L["Enter talent ID if the spell is a talent ability in any of the class speciali
 --[[Translation missing --]]
 L["Enter value to set a custom spell priority. This value is applied to all zones."] = "Enter value to set a custom spell priority. This value is applied to all zones."
 --[[Translation missing --]]
+L["Export Profile"] = "Export Profile"
+--[[Translation missing --]]
 L["Extra Bars"] = "Extra Bars"
 L["Fade In Time"] = "淡入时间"
 L["Fade Out Time"] = "淡出时间"
 --[[Translation missing --]]
 L["Feedback"] = "Feedback"
+--[[Translation missing --]]
+L["Font"] = "Font"
+--[[Translation missing --]]
+L["Font Outline"] = "Font Outline"
+--[[Translation missing --]]
+L["Fonts"] = "Fonts"
 L["Glow Icons"] = "图标闪光"
 L["Group Size"] = "团队规模"
 L["Group Type"] = "团队类型"
@@ -170,6 +186,8 @@ L["Icon size auto adjusts as a percentage of the anchored frame height"] = "根�
 L["Icons"] = "图标"
 L["Immunity"] = "免疫"
 --[[Translation missing --]]
+L["Import Profile"] = "Import Profile"
+--[[Translation missing --]]
 L["Inactive"] = "Inactive"
 L["Inactive Icon Opacity"] = "不在冷却中的图标透明度"
 L["INNER"] = "内部"
@@ -177,6 +195,8 @@ L["INNER"] = "内部"
 L["Interrupt Bar"] = "Interrupt Bar"
 L["Interrupts"] = "打断"
 L["Invalid ID"] = "无效的ID"
+--[[Translation missing --]]
+L["Invalid Profile"] = "Invalid Profile"
 L["Item ID (Optional)"] = "物品ID（可选）"
 --[[Translation missing --]]
 L["Jump to Extra Bars settings"] = "Jump to Extra Bars settings"
@@ -211,7 +231,15 @@ L["Pixel Perfect"] = "完美像素"
 L["Pixel Perfect ON."] = "完美像素开启"
 L["Player Frame in Party"] = "小队中的玩家框体"
 L["Position"] = "位置"
+--[[Translation missing --]]
+L["Press Ctrl+C to copy profile"] = "Press Ctrl+C to copy profile"
+--[[Translation missing --]]
+L["Press Ctrl+C to copy URL"] = "Press Ctrl+C to copy URL"
 L["Priority"] = "优先级"
+--[[Translation missing --]]
+L["Profile"] = "Profile"
+--[[Translation missing --]]
+L["Profile Sharing"] = "Profile Sharing"
 --[[Translation missing --]]
 L["Raid Bar"] = "Raid Bar"
 --[[Translation missing --]]
@@ -309,7 +337,11 @@ L["Spell Types"] = "Spell Types"
 --[[Translation missing --]]
 L["Spells"] = "Spells"
 --[[Translation missing --]]
+L["Status Bar"] = "Status Bar"
+--[[Translation missing --]]
 L["Status Bar Timer"] = "Status Bar Timer"
+--[[Translation missing --]]
+L["Strong Yellow Glow"] = "Strong Yellow Glow"
 --[[Translation missing --]]
 L["Supported UI"] = "Supported UI"
 L["Swipe Opacity"] = "滑动透明度"
@@ -356,3 +388,5 @@ L["Version"] = "版本"
 L["Vertical"] = "Vertical"
 L["Vertical Groups"] = "垂直显示队伍"
 L["Visibility"] = "可见度"
+--[[Translation missing --]]
+L["Weak Purple Glow"] = "Weak Purple Glow"

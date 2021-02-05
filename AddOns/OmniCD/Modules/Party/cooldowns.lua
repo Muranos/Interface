@@ -116,7 +116,7 @@ function P:ResetAllIcons(isEncounterEnd)
 					icon.active = nil
 					icon.icon:SetDesaturated(false)
 					icon.cooldown:Clear()
-					if icon.overlay then
+					if icon.isHighlighted then
 						self:RemoveHighlight(icon)
 					end
 
@@ -150,7 +150,7 @@ function P:ResetAllIcons(isEncounterEnd)
 	end
 end
 
-function P:SetCooldownElements(icon, charges, highlight)
+function P:SetCooldownElements(icon, charges, highlight) -- [92]
 	local noCount = (icon.statusBar and true) or (charges and charges > 0) or highlight or not E.db.icons.showCounter
 	icon.cooldown:SetDrawEdge(charges and charges > -1 or false)
 	icon.cooldown:SetDrawSwipe( not icon.statusBar and not highlight and (not charges or charges < 1) )
@@ -176,14 +176,23 @@ function P:UpdateCooldown(icon, reducedTime, updateUnitBarCharges, mult)
 		return
 	end
 
-	local active = info.active[icon.spellID]
+	local spellID = icon.spellID
+	local active = info.active[spellID]
 	if not active then
 		return
 	end
 
 	local startTime = active.startTime
 	local duration = active.duration
-	local modRate = info.modRate
+	local modRate
+	if BOOKTYPE_CATEGORY[icon.category] then
+		local majorCD = spell_benevolentFaeMajorCD[spellID]
+		if majorCD and (majorCD == true or majorCD == info.spec) and info.auras.benevolent then
+			modRate = info.auras.benevolent * (info.modRate or 1)
+		else
+			modRate = info.modRate
+		end
+	end
 	local statusBar = icon.statusBar
 
 	if updateUnitBarCharges then
@@ -196,6 +205,7 @@ function P:UpdateCooldown(icon, reducedTime, updateUnitBarCharges, mult)
 
 		icon.cooldown:SetCooldown(startTime, duration, modRate) -- [22]
 		icon.active = true
+
 		return
 	end
 
@@ -245,13 +255,14 @@ function P:StartCooldown(icon, cd, recharge, noGlow)
 	local modRate
 	if BOOKTYPE_CATEGORY[icon.category] then
 		local majorCD = spell_benevolentFaeMajorCD[spellID]
-		if majorCD and (majorCD == true or majorCD == info.spec) then
-			modRate = info.auras.benevolent or info.modRate
+		if majorCD and (majorCD == true or majorCD == info.spec) and info.auras.benevolent then
+			modRate = info.auras.benevolent * (info.modRate or 1)
 		else
 			modRate = info.modRate
 		end
-		if modRate then -- [23]
-			cd = cd * modRate
+
+		if modRate then
+			cd = cd * modRate -- [23]
 		end
 	end
 
@@ -267,6 +278,7 @@ function P:StartCooldown(icon, cd, recharge, noGlow)
 				now = now - overTime
 			end
 			active.overTime = nil
+
 			charges = charges + 1
 			SetActiveIcon(icon, now, cd, charges, modRate)
 		elseif charges == icon.maxcharges then
@@ -281,6 +293,7 @@ function P:StartCooldown(icon, cd, recharge, noGlow)
 				SetActiveIcon(icon, now, cd, charges, modRate)
 			end
 		end
+
 		icon.Count:SetText(charges)
 		active.charges = charges
 	else
@@ -322,7 +335,7 @@ function P:StartCooldown(icon, cd, recharge, noGlow)
 	--[[ xml
 	noGlow = noGlow or icon.isCropped
 	--]]
-	if E.OmniCC and not icon.overlay or (not E.OmniCC and not self:HighlightIcon(icon)) then
+	if E.OmniCC and not icon.isHighlighted or (not E.OmniCC and not self:HighlightIcon(icon)) then
 		if not recharge and not noGlow then
 			self:SetGlow(icon)
 		end

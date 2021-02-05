@@ -142,6 +142,16 @@ function P.GetStatusBar(icon, key) -- [35]
 		numStatusBars = numStatusBars + 1
 		f = CreateFrame("Frame", "OmniCDStatusBar" .. numStatusBars, UIParent, "OmniCDStatusBar")
 		f.CastingBar.statusBar = f
+
+		local db = E.profile.General.fonts.statusBar
+		E.SetFontObj(f.Text, db)
+		E.SetFontObj(f.CastingBar.Text, db)
+		E.SetFontObj(f.CastingBar.Timer, db)
+
+		local texture = E.LSM:Fetch("statusbar", E.DB.profile.General.textures.statusBar.bar)
+		f.BG:SetTexture(texture)
+		f.CastingBar:SetStatusBarTexture(texture)
+		f.CastingBar.BG:SetTexture(E.LSM:Fetch("statusbar", E.DB.profile.General.textures.statusBar.BG))
 	end
 
 	local name = gsub(P.groupInfo[icon.guid].name, "%-(.*)", "")
@@ -563,3 +573,4 @@ function P.OmniCDCastingBarFrame_OnEvent(self, event, ...)
 end
 
 P.CastingBarFrame_OnLoad = CastingBarFrame_OnLoad
+P.unusedStatusBars = unusedStatusBars

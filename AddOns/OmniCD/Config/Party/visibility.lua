@@ -73,7 +73,7 @@ local visibility = {
 					set = ConfigGroupSize,
 				},
 			}
-		}
+		},
 	}
 }
 

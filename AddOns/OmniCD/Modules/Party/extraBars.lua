@@ -16,9 +16,13 @@ local function OmniCD_ExBarOnHide(self)
 	self.numIcons = 0
 end
 
-function P:HideExBars()
+function P:HideExBars(force)
 	for _, f in pairs(self.extraBars) do
 		f:Hide()
+		if force then
+			self:RemoveUnusedIcons(f, 1)
+			f.numIcons = 0
+		end
 	end
 end
 
@@ -30,6 +34,7 @@ local function CreateBar(key)
 	f:SetScript("OnShow", nil)
 	f:SetScript("OnHide", OmniCD_ExBarOnHide)
 
+	E.SetFontObj(f.anchor.text, E.profile.General.fonts.anchor)
 	local name = key == "interruptBar" and L["Interrupts"] or L["Raid CD"]
 	f.anchor.text:SetText(name)
 	E.SetWidth(f.anchor)
@@ -49,17 +54,17 @@ function P:CreateExBars()
 	end
 end
 
-function P:UpdateExBars(bar)
+function P:UpdateExBar(bar)
 	for i = 1, 2 do
 		local key = i == 1 and "interruptBar" or "raidCDBar"
 		local f = self.extraBars[key]
 		local f_icons = f.icons
 		local f_container = f.container
+		local icons = bar.icons
 		local db = E.db.extraBars[key]
 		if db.enabled then
 			local n  = 0
 			for j = bar.numIcons, 1, -1 do
-				local icons = bar.icons
 				local icon = icons[j]
 				local spellID = icon.spellID
 				local sId = tostring(spellID)
@@ -68,7 +73,7 @@ function P:UpdateExBars(bar)
 					tinsert(f_icons, icon)
 					icon:SetParent(f_container)
 
-					local statusBar = icon.statusBar
+					local statusBar = icon.statusBar -- always nil
 					if db.layout == "vertical" and db.progressBar then
 						statusBar = statusBar or self.GetStatusBar(icon, key)
 					elseif statusBar then
@@ -193,9 +198,6 @@ do
 				P:RemoveIcon(icon)
 				tremove(icons, i)
 				n = n + 1
-			else
-				icon:Hide()
-				icon:ClearAllPoints()
 			end
 		end
 		f.numIcons = f.numIcons - n
@@ -209,6 +211,9 @@ do
 		local columns = db.columns
 		for i = 1, f.numIcons do
 			local icon = f.icons[i]
+			icon:Hide()
+			icon:ClearAllPoints()
+
 			if i > 1 then
 				count = count + 1
 				if count == columns then
@@ -226,7 +231,7 @@ do
 		end
 
 		if not noDelay or updateSettings then -- [88]
-			P:ApplyExSettings(key) -- TODO: ?
+			P:ApplyExSettings(key)
 		end
 
 		timers[key] = nil
@@ -255,6 +260,23 @@ function P:SetExAnchor(key)
 			f.anchor:SetPoint("BOTTOMLEFT", f, "TOPLEFT")
 		end
 		f.anchor:Show()
+	end
+end
+
+function P:UpdateExBarBackdrop(f, key)
+	local icons = f.icons
+	for i = 1, f.numIcons do
+		local icon = icons[i]
+		self:SetExBorder(icon, key)
+	end
+end
+
+function P:SetExScale(key)
+	local f = self.extraBars[key]
+	local db = E.db.extraBars[key]
+	f.container:SetScale(db.scale)
+	if db.layout == "vertical" and db.progressBar or E.db.icons.displayBorder then
+		self:UpdateExBarBackdrop(f, key)
 	end
 end
 
@@ -324,23 +346,6 @@ function P:SetExBorder(icon, key)
 	end
 end
 
-function P:UpdateExBarBackdrop(f, key)
-	local icons = f.icons
-	for i = 1, f.numIcons do
-		local icon = icons[i]
-		self:SetExBorder(icon, key)
-	end
-end
-
-function P:SetExScale(key)
-	local f = self.extraBars[key]
-	local db = E.db.extraBars[key]
-	f.container:SetScale(db.scale)
-	if db.layout == "vertical" and db.progressBar or E.db.icons.displayBorder then
-		self:UpdateExBarBackdrop(f, key)
-	end
-end
-
 function P:SetExStatusBarWidth(f, key)
 	local width = E.db.extraBars[key].statusBarWidth
 	f:SetWidth(width)
@@ -401,6 +406,7 @@ function P:ApplyExSettings(key)
 		self:SetCounter(icon)
 		self:SetChargeScale(icon)
 		self:SetTooltip(icon)
+		self:SetAtlas(icon)
 	end
 end
 

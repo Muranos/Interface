@@ -23,6 +23,15 @@ P.userData = {
 	shadowlandsData = {}
 }
 
+P.zoneEvents = {
+	none  = { "PLAYER_FLAGS_CHANGED" },
+	arena = { "PLAYER_REGEN_DISABLED", "CHAT_MSG_BG_SYSTEM_NEUTRAL", "UPDATE_UI_WIDGET" },
+	pvp   = { "PLAYER_REGEN_DISABLED", "CHAT_MSG_BG_SYSTEM_NEUTRAL", "UPDATE_UI_WIDGET" },
+	party = { "CHALLENGE_MODE_START" },
+	raid  = { "ENCOUNTER_END" },
+	all   = { "PLAYER_REGEN_DISABLED", "CHAT_MSG_BG_SYSTEM_NEUTRAL", "UPDATE_UI_WIDGET", "PLAYER_FLAGS_CHANGED", "CHALLENGE_MODE_START", "ENCOUNTER_END" },
+}
+
 do
 	local timer
 
@@ -45,9 +54,9 @@ do
 		local oldDisabled = P.disabled
 		P.disabled = not P.test and (P.disabledzone or size == 0 or
 			(size == 1 and P.isUserDisabled) or -- [82]
-			(GetNumGroupMembers(LE_PARTY_CATEGORY_HOME) == 0 and not E.DB.profile.Party.visibility.finder) or
-			(size > E.DB.profile.Party.visibility.size) or
-			(size > 5 and E.customUF.enabled and not E.db.extraBars.raidCDBar.enabled))
+			(GetNumGroupMembers(LE_PARTY_CATEGORY_HOME) == 0 and not E.profile.Party.visibility.finder) or
+			(size > E.profile.Party.visibility.size) or
+			(size > 5 and not P.isInDungeon and E.customUF.enabled and E.db.position.uf ~= "blizz" and not E.db.extraBars.raidCDBar.enabled))
 		if P.disabled then
 			if oldDisabled == false then
 				P:ResetModule()
@@ -73,6 +82,7 @@ do
 				if petGUID then
 					E.Cooldowns.petGUIDS[petGUID] = nil
 				end
+
 				E.Comms.syncGUIDS[guid] = nil
 				E.Comms:DequeueInspect(guid)
 			end
@@ -163,7 +173,7 @@ do
 		if force or n == 0 then
 			updateRosterInfo(true)
 		elseif not timer then
-			timer = E.TimerAfter(2, updateRosterInfo) -- TODO: custom UI delays
+			timer = E.TimerAfter(E.customUF.delay or 0.5, updateRosterInfo)
 		end
 	end
 end
@@ -181,67 +191,39 @@ function P:PLAYER_ENTERING_WORLD(isInitialLogin, isReloadingUi, refresh)
 	self.isInArena = instanceType == "arena"
 	self.isInBG = instanceType == "pvp"
 	self.isInPvPInstance = self.isInArena or self.isInBG
+	self.isInDungeon = instanceType == "party"
 
 	if not refresh and self.test then
 		self:Test()
 	end
 
-	self.disabledzone = not self.test and not E.DB.profile.Party.visibility[instanceType]
+	self.disabledzone = not self.test and not E.profile.Party.visibility[instanceType]
 	if self.disabledzone then
-		self:UnregisterEvent("PLAYER_FLAGS_CHANGED")
-		self:UnregisterEvent("CHALLENGE_MODE_START")
-		self:UnregisterEvent("ENCOUNTER_END")
-
 		self:ResetModule()
-		self.disabled = true
 		return
 	end
 
+	-- TODO: if zone changed or refresh or first run
 	local key = self.test and self.testZone or instanceType
-	E.db = E.DB.profile.Party[key]
+	key = key == "none" and E.profile.Party.noneZoneSetting or (key == "scenario" and E.profile.Party.scenarioZoneSetting) or key
+	E.db = E.profile.Party[key]
 	self.isUserHidden = not self.test and not E.db.general.showPlayer
-	self.isUserDisabled = self.isUserHidden and (not E.db.general.showPlayerEx or (not E.db.extraBars.interruptBar.enabled and not E.db.extraBars.raidCDBar.enabled))
+	self.isUserDisabled = self.isUserHidden and (not E.db.general.showPlayerEx or (not E.db.extraBars.interruptBar.enabled and not E.db.extraBars.raidCDBar.enabled)) -- [82]
+
 	E.Cooldowns:UpdateCombatLogVar()
-
 	E:SetActiveUnitFrameData()
-	P:UpdatePositionValues()
-	P:UpdateExPositionValues()
 	E.UpdateEnabledSpells(self)
+	self:UpdatePositionValues()
+	self:UpdateExPositionValues()
 
-	if instanceType == "none" then
-		self:UnregisterEvent("CHALLENGE_MODE_START")
-		self:UnregisterEvent("ENCOUNTER_END")
+	E.UnregisterEvents(self, self.zoneEvents.all)
+	E.RegisterEvents(self, self.zoneEvents[instanceType])
 
-		self:RegisterEvent("PLAYER_FLAGS_CHANGED")
-		self.isPvP = C_PvP.IsWarModeDesired()
-	elseif self.isInArena or self.isInBG then
-		self:UnregisterEvent("PLAYER_FLAGS_CHANGED")
-		self:UnregisterEvent("CHALLENGE_MODE_START")
-		self:UnregisterEvent("ENCOUNTER_END")
+	self.isPvP = self.isInPvPInstance or (instanceType == "none" and C_PvP.IsWarModeDesired())
+	--
 
-		self:RegisterEvent("PLAYER_REGEN_DISABLED")
-		self:RegisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL")
-		self:RegisterEvent("UPDATE_UI_WIDGET")
+	if isInPvPInstance then
 		self:ResetAllIcons()
-		self.isPvP = true
-	elseif instanceType == "party" then
-		self:UnregisterEvent("PLAYER_FLAGS_CHANGED")
-		self:UnregisterEvent("ENCOUNTER_END")
-
-		self:RegisterEvent("CHALLENGE_MODE_START")
-		self.isPvP = false
-	elseif instanceType == "raid" then
-		self:UnregisterEvent("PLAYER_FLAGS_CHANGED")
-		self:UnregisterEvent("CHALLENGE_MODE_START")
-
-		self:RegisterEvent("ENCOUNTER_END")
-		self.isPvP = false
-	else
-		self:UnregisterEvent("PLAYER_FLAGS_CHANGED")
-		self:UnregisterEvent("CHALLENGE_MODE_START")
-		self:UnregisterEvent("ENCOUNTER_END")
-
-		self.isPvP = false
 	end
 
 	if IsInGroup() or refresh then -- [37]
@@ -267,7 +249,7 @@ do
 		if widgetInfo.widgetSetID == 1 and widgetInfo.widgetType == 0 then
 			local info = C_UIWidgetManager.GetIconAndTextWidgetVisualizationInfo(widgetInfo.widgetID)
 			if info and info.state == 1 then
-				self:UnregisterEvent("UPDATE_UI_WIDGET")
+				E.UnregisterEvents(self, "UPDATE_UI_WIDGET")
 				C_Timer.After(1, inspectAll)
 			end
 		end
@@ -275,9 +257,7 @@ do
 end
 
 function P:PLAYER_REGEN_DISABLED()
-	self:UnregisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL")
-	self:UnregisterEvent("PLAYER_REGEN_DISABLED")
-	self:UnregisterEvent("UPDATE_UI_WIDGET")
+	E.UnregisterEvents(self, self.zoneEvents.arena)
 end
 
 function P:PLAYER_FLAGS_CHANGED()
@@ -287,6 +267,7 @@ function P:PLAYER_FLAGS_CHANGED()
 	self.isPvP = C_PvP.IsWarModeDesired()
 	if oldpvp ~= self.isPvP then
 		self:UpdateBars()
+		self:UpdateExPosition()
 		E.Comms:EnqueueInspect(true)
 	end
 end
@@ -294,7 +275,7 @@ end
 function P:CHALLENGE_MODE_START()
 	E.Comms:EnqueueInspect(true)
 	self:ResetAllIcons()
-	self:UnregisterEvent("CHALLENGE_MODE_START")
+	E.UnregisterEvents(self, "CHALLENGE_MODE_START")
 end
 
 function P:ENCOUNTER_END(encounterID, encounterName, difficultyID, groupSize, success)

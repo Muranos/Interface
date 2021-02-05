@@ -16,6 +16,7 @@ mod:RegisterEnableMob(
 	--[[ Shriekwing -> Huntsman Altimor ]]--
 	174069, -- Hulking Gargon
 	173189, 174092, 173973, -- Nathrian Hawkeye, Nathrian Gargon Rider, Nathrian Tracker
+	174070, 174336, -- Kennel Overseer x2
 
 	--[[ Huntsman Altimor -> Hungering Destroyer ]]--
 	173798, -- Rat of Unusual Size
@@ -48,6 +49,7 @@ if L then
 	--[[ Shriekwing -> Huntsman Altimor ]]--
 	L.gargon = "Hulking Gargon"
 	L.hawkeye = "Nathrian Hawkeye"
+	L.overseer = "Kennel Overseer"
 
 	--[[ Huntsman Altimor -> Hungering Destroyer ]]--
 	L.feaster = "Dread Feaster"
@@ -76,16 +78,18 @@ function mod:GetOptions()
 
 		--[[ Shriekwing -> Huntsman Altimor ]]--
 		{329989, "DISPEL"}, -- Enrage
+		341441, -- Ground Smash
 		341352, -- Mastercrafted Gamesman's Snare
+		341735, -- Restore Stone
 
 		--[[ Huntsman Altimor -> Hungering Destroyer ]]--
-		340630, -- Rotting
+		{340630, "DISPEL"}, -- Rotting
 		{329298, "SAY"}, -- Gluttonous Miasma
 
 		--[[ Hungering Destroyer -> Lady Inerva Darkvein ]]--
 		339553, -- Lingering Anima
 		339557, -- Bottled Anima
-		{325382, "TANK"}, -- Warped Desires
+		{339528, "TANK"}, -- Warped Desires
 		{339525, "SAY", "SAY_COUNTDOWN"}, -- Concentrate Anima
 	},{
 		[343322] = L.moldovaak,
@@ -95,10 +99,11 @@ function mod:GetOptions()
 		[343155] = L.moldovaak .."/".. L.caramain .."/".. L.sindrel .."/".. L.hargitas,
 		[329989] = L.gargon,
 		[341352] = L.hawkeye,
+		[341735] = L.overseer,
 		[340630] = L.rat,
 		[329298] = L.feaster,
 		[339553] = L.deplina,
-		[325382] = L.dragost,
+		[339528] = L.dragost,
 		[339525] = L.kullan,
 	},{
 		[343302] = CL.knockback, -- Granite Wings (Knockback)
@@ -121,7 +126,9 @@ function mod:OnBossEnable()
 
 	--[[ Shriekwing -> Huntsman Altimor ]]--
 	self:Log("SPELL_AURA_APPLIED", "Enrage", 329989)
-	self:Log("SPELL_CAST_START", "MastercraftedGamesmansSnare", 341352, 341520)
+	self:Log("SPELL_CAST_START", "GroundSmash", 341441)
+	self:Log("SPELL_CAST_SUCCESS", "MastercraftedGamesmansSnare", 341352, 341520)
+	self:Log("SPELL_CAST_START", "RestoreStone", 341735)
 
 	--[[ Huntsman Altimor -> Hungering Destroyer ]]--
 	self:Log("SPELL_AURA_APPLIED_DOSE", "Rotting", 340630)
@@ -132,7 +139,8 @@ function mod:OnBossEnable()
 	self:Log("SPELL_PERIODIC_DAMAGE", "GroundDamage", 339553)
 	self:Log("SPELL_PERIODIC_MISSED", "GroundDamage", 339553)
 	self:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
-	self:Log("SPELL_AURA_APPLIED_DOSE", "WarpedDesiresApplied", 325382)
+	self:Log("SPELL_AURA_APPLIED", "WarpedDesiresApplied", 339528)
+	self:Log("SPELL_AURA_APPLIED_DOSE", "WarpedDesiresApplied", 339528)
 	self:Log("SPELL_AURA_APPLIED", "ConcentrateAnimaApplied", 339525)
 	self:Log("SPELL_AURA_REMOVED", "ConcentrateAnimaRemoved", 339525)
 end
@@ -167,9 +175,21 @@ end
 
 --[[ Shriekwing -> Huntsman Altimor ]]--
 function mod:Enrage(args)
-	if self:Dispeller("magic", nil, args.spellId) then
+	if self:Dispeller("enrage", true, args.spellId) then
 		self:Message(args.spellId, "orange", CL.buff_other:format(L.gargon, args.spellName))
 		self:PlaySound(args.spellId, "info")
+	end
+end
+
+do
+	local prev = 0
+	function mod:GroundSmash(args)
+		local t = args.time
+		if t-prev > 1.5 then
+			prev = t
+			self:Message(args.spellId, "red", CL.casting:format(args.spellName))
+			self:PlaySound(args.spellId, "long")
+		end
 	end
 end
 
@@ -178,15 +198,23 @@ function mod:MastercraftedGamesmansSnare(args)
 	self:PlaySound(341352, "warning")
 end
 
+function mod:RestoreStone(args)
+	self:Message(args.spellId, "orange", CL.casting:format(args.spellName))
+	self:PlaySound(args.spellId, "alert")
+end
+
 --[[ Huntsman Altimor -> Hungering Destroyer ]]--
 function mod:Rotting(args)
 	local amount = args.amount or 1
-	if amount % 4 == 0 then
+	if amount % 5 == 0 then
 		if self:Me(args.destGUID) then
 			self:StackMessage(args.spellId, args.destName, amount, "blue")
-		elseif (self:Tank() or self:Healer()) and self:Tank(args.destName) then
+			if amount > 14 then
+				self:PlaySound(args.spellId, "info")
+			end
+		elseif (self:Tank() or self:Dispeller("disease", nil, args.spellId)) and self:Tank(args.destName) then
 			self:StackMessage(args.spellId, args.destName, amount, "purple")
-			if amount > 11 then
+			if amount > 14 then
 				self:PlaySound(args.spellId, "info")
 			end
 		end
@@ -211,7 +239,7 @@ do
 			local t = args.time
 			if t-prev > 2 then
 				prev = t
-				self:PlaySound(args.spellId, "alarm")
+				self:PlaySound(args.spellId, "underyou")
 				self:PersonalMessage(args.spellId, "underyou")
 			end
 		end
@@ -231,21 +259,27 @@ end
 
 function mod:WarpedDesiresApplied(args)
 	self:StackMessage(args.spellId, args.destName, args.amount, "purple")
-	if args.amount > 2 then
+	if args.amount then -- 2+
 		self:PlaySound(args.spellId, "alarm")
 	end
 end
 
-function mod:ConcentrateAnimaApplied(args)
-	self:TargetMessage(args.spellId, "orange", args.destName)
-	if self:Me(args.destGUID) then
-		self:PlaySound(args.spellId, "alarm")
-		self:Say(args.spellId)
-		self:SayCountdown(args.spellId, 10)
+do
+	local playerList = mod:NewTargetList()
+	function mod:ConcentrateAnimaApplied(args)
+		playerList[#playerList+1] = args.destName
+		self:TargetsMessage(args.spellId, "orange", playerList)
+		self:TargetBar(args.spellId, 10, args.destName)
+		if self:Me(args.destGUID) then
+			self:PlaySound(args.spellId, "alarm")
+			self:Say(args.spellId)
+			self:SayCountdown(args.spellId, 10)
+		end
 	end
 end
 
 function mod:ConcentrateAnimaRemoved(args)
+	self:StopBar(args.spellId, args.destName)
 	if self:Me(args.destGUID) then
 		self:CancelSayCountdown(args.spellId)
 	end

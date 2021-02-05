@@ -38,22 +38,29 @@ function P:Disable()
 	if self.test then
 		self:Test()
 	end
-	self:UnregisterAllEvents()
-	self:ResetModule()
-
-	self.disabled = true
 	self.disabledzone = true
+	self:UnregisterAllEvents()
+	self:ResetModule(true)
+
 	self.enabled = false
 end
 
-function P:ResetModule()
+function P:HideAllBars()
+	self:HideBars()
+	self:HideExBars()
+end
+
+function P:ResetModule(isModuleDisabled)
+	if not isModuleDisabled then
+		E.UnregisterEvents(self, self.zoneEvents.all)
+	end
 	E.Comms:Disable()
 	E.Cooldowns:Disable()
 
 	wipe(self.groupInfo)
 
+	self.disabled = true
 	self:HideAllBars()
-	self:HideExBars()
 end
 
 function P:Refresh(full)
@@ -63,11 +70,12 @@ function P:Refresh(full)
 
 	local instanceType = self.zone or select(2, IsInInstance()) -- [59]
 	local key = self.test and self.testZone or instanceType
-	E.DB.profile.Party.none = E.DB.profile.Party[E.DB.profile.Party.noneZoneSetting]
-	E.DB.profile.Party.scenario = E.DB.profile.Party[E.DB.profile.Party.scenarioZoneSetting]
-	E.db = E.DB.profile.Party[key]
+	key = key == "none" and E.profile.Party.noneZoneSetting or (key == "scenario" and E.profile.Party.scenarioZoneSetting) or key
+	E.db = E.profile.Party[key]
 
 	if full then
+		self:UpdateFontObj() -- shared frames still needs to be updated on every call
+		self:UpdateTextureObj()
 		self:PLAYER_ENTERING_WORLD(nil, nil, true)
 	else
 		E:SetActiveUnitFrameData()
@@ -76,6 +84,65 @@ function P:Refresh(full)
 		self:UpdateBars()
 		self:UpdatePosition()
 		self:UpdateExPosition()
+	end
+end
+
+function P:UpdateFontObj()
+	local db_anchor = E.profile.General.fonts.anchor
+	for i = 1, #self.bars do
+		local f = self.bars[i]
+		E.SetFontObj(f.anchor.text, db_anchor)
+	end
+
+	for i = 1, #self.unusedBars do
+		local f = self.unusedBars[i]
+		E.SetFontObj(f.anchor.text, db_anchor)
+	end
+
+	for _, f in pairs(self.extraBars) do
+		E.SetFontObj(f.anchor.text, db_anchor)
+		E.SetWidth(f.anchor)
+	end
+
+	self.TestMod:SetAnchor(self.testZone)
+
+	local db_icon = E.profile.General.fonts.icon
+	local db_statusBar = E.profile.General.fonts.statusBar
+	for _, info in pairs(self.groupInfo) do
+		local icons = info.spellIcons
+		for _, icon in pairs(icons) do
+			local statusBar = icon.statusBar
+			if statusBar then
+				E.SetFontObj(statusBar.Text, db_statusBar)
+				E.SetFontObj(statusBar.CastingBar.Text, db_statusBar)
+				E.SetFontObj(statusBar.CastingBar.Timer, db_statusBar)
+			end
+			E.SetFontObj(icon.Name, db_icon)
+		end
+	end
+
+	for i = 1, #self.unusedIcons do
+		local icon = self.unusedIcons[i]
+		E.SetFontObj(icon.Name, db_icon)
+	end
+
+	for i = 1, #self.unusedStatusBars do
+		local statusBar = self.unusedStatusBars[i]
+		E.SetFontObj(statusBar.Text, db_statusBar)
+		E.SetFontObj(statusBar.CastingBar.Text, db_statusBar)
+		E.SetFontObj(statusBar.CastingBar.Timer, db_statusBar)
+	end
+end
+
+function P:UpdateTextureObj()
+	local texture = E.LSM:Fetch("statusbar", E.profile.General.textures.statusBar.bar)
+	self:ConfigTextures()
+
+	for i = 1, #self.unusedStatusBars do
+		local statusBar = self.unusedStatusBars[i]
+		statusBar.BG:SetTexture(texture)
+		statusBar.CastingBar:SetStatusBarTexture(texture)
+		statusBar.CastingBar.BG:SetTexture(E.LSM:Fetch("statusbar", E.profile.General.textures.statusBar.BG))
 	end
 end
 
@@ -198,15 +265,25 @@ function P:IsEquipped(itemID, guid, item2)
 end
 
 function P.IsEnabledSpell(id, key)
-	local db = key and E.DB.profile.Party[key] or E.db
+	local db = key and E.profile.Party[key] or E.db
 	id = tostring(id)
 	return db.spells[id]
 end
 
-function P:ConfirmReload(text, data, data2)
+function P:IsDeBuffActive(unit, spellID)
+	for i = 1, 40 do
+		local _,_,_,_, duration, expTime,_,_,_, id = UnitDebuff(unit, i)
+		if not id then return end
+		if id == spellID then
+			return true
+		end
+	end
+end
+
+function P:ConfirmReload(text, data, arg)
 	local dialog = StaticPopup_Show("OMNICD_RELOADUI", text)
 	dialog.data = data
-	dialog.data2 = data2
+	dialog.data2 = arg
 	dialog:SetFrameStrata("TOOLTIP")
 end
 

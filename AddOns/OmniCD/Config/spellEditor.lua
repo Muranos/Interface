@@ -39,21 +39,22 @@ function E:UpdateSpell(id, isInit, oldClass, oldType) -- [39]
 			if class then
 				tremove(spell_db[class], i)
 			else
-				if E.L_HIGHLIGHTS[v.type] then
-					self.Cooldowns:RegisterRemoveHighlightByCLEU(v.buff or id)
-				end
 				force = true
 			end
 			spell_db[vclass][#spell_db[vclass] + 1] = v
 		elseif not v.custom and not defaultBackup[id] then
 			defaultBackup[id] = self.DeepCopy(spell_db[class][i])
 			spell_db[class][i] = v
+			if E.L_HIGHLIGHTS[vtype] then
+				self.Cooldowns:RegisterRemoveHighlightByCLEU(v.buff or id)
+			end
 			return
 		else
 			spell_db[class][i] = v
-			if E.L_HIGHLIGHTS[v.type] then
-				self.Cooldowns:RegisterRemoveHighlightByCLEU(v.buff or id)
-			end
+		end
+
+		if E.L_HIGHLIGHTS[vtype] then
+			self.Cooldowns:RegisterRemoveHighlightByCLEU(v.buff or id)
 		end
 	else
 		v = defaultBackup[id]
@@ -126,7 +127,7 @@ local setItem = function(info, v)
 	if v == "" then
 		OmniCDDB.cooldowns[id][option] = nil
 	else
-		if ( string.match(v, "[^%d]+") or strlen(v) > 9 or not C_Spell.DoesSpellExist(v) ) then
+		if ( string.match(v, "[^%d]+") or strlen(v) > 9 or not C_Item.DoesItemExistByID(v) ) then
 			E.Write(L["Invalid ID"], v)
 			return
 		end
@@ -171,7 +172,7 @@ local customSpellInfo = {
 			end
 			OmniCDDB.cooldowns[id] = nil
 			E.DB.profile.Party.customPriority[id] = nil
-			E.options.args.spellEditor.args.editor.args[ info[#info-1] ] = nil
+			E.options.args.spellEditor.args.editor.args[sId] = nil
 
 			E:UpdateSpell(id, nil, oldClass, oldType)
 		end,
@@ -536,7 +537,7 @@ end
 
 local spellEditor = {
 	name = title,
-	order = 20,
+	order = 1000,
 	type = "group",
 	childGroups = "tab",
 	get = function(info)
@@ -619,8 +620,8 @@ function E:AddSpellEditor()
 	self:AddSpellPickers()
 end
 
-function E:UpdateSpellList()
+function E:UpdateSpellList(isInit)
 	for id in pairs(OmniCDDB.cooldowns) do
-		self:UpdateSpell(id, true)
+		self:UpdateSpell(id, isInit)
 	end
 end

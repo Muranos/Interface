@@ -139,6 +139,24 @@ E.L_PRIORITY = {
 	["other"] = OTHER,
 }
 
+E.L_GLOW_ATLAS ={
+	["bags-glow-white"] = ICON_TAG_RAID_TARGET_SKULL3,
+	["bags-glow-green"] = ICON_TAG_RAID_TARGET_TRIANGLE3,
+	["bags-glow-blue"] = ICON_TAG_RAID_TARGET_SQUARE3,
+	["bags-glow-purple"] = ICON_TAG_RAID_TARGET_DIAMOND3,
+	["bags-glow-orange"] = ICON_TAG_RAID_TARGET_CIRCLE3,
+	["bags-glow-artifact"] = ICON_TAG_RAID_TARGET_STAR3,
+}
+
+E.L_HIGHLIGHTS = {
+	["immunity"] = L["Immunity"],
+	["defensive"] = L["Defensive"],
+	["raidDefensive"] = L["Raid Defensive"],
+	["offensive"] = L["Offensive"],
+	["counterCC"] = L["Counter CC"],
+	["other"] = OTHER,
+}
+
 E.BOOKTYPE_CATEGORY = {
 	["WARRIOR"] = true,
 	["PALADIN"] = true,
@@ -152,15 +170,6 @@ E.BOOKTYPE_CATEGORY = {
 	["MONK"] = true,
 	["DRUID"] = true,
 	["DEMONHUNTER"] = true,
-}
-
-E.L_HIGHLIGHTS = {
-	["immunity"] = L["Immunity"],
-	["defensive"] = L["Defensive"],
-	["raidDefensive"] = L["Raid Defensive"],
-	["offensive"] = L["Offensive"],
-	["counterCC"] = L["Counter CC"],
-	["other"] = OTHER,
 }
 
 E.OTHER_SORT_ORDER = {

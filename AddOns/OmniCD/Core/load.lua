@@ -1,10 +1,27 @@
 local E, L, C = select(2, ...):unpack()
 
-local DB_VERSION = 2.5
+local DB_VERSION = 2.51
 
 function E:OnInitialize()
-	if not OmniCDDB or not OmniCDDB.version or OmniCDDB.version < DB_VERSION then
+	if not OmniCDDB or not OmniCDDB.version or OmniCDDB.version < 2.5 then
 		OmniCDDB = { version = DB_VERSION }
+	elseif OmniCDDB.version < DB_VERSION then
+		if OmniCDDB.version < 2.51 then
+			for profileKey, v in pairs(OmniCDDB.profiles) do
+				local moduleOption = v.Party
+				if moduleOption then
+					for zone, t in pairs(moduleOption) do
+						if zone == "none" or zone == "scenario" then
+							OmniCDDB.profiles[profileKey].Party[zone] = nil
+						elseif t.highlight and t.highlight.markedSpells then
+							wipe(OmniCDDB.profiles[profileKey].Party[zone].highlight.markedSpells)
+						end
+					end
+				end
+			end
+		end
+
+		OmniCDDB.version = DB_VERSION
 	end
 
 	OmniCDDB.cooldowns = OmniCDDB.cooldowns or {}
@@ -18,18 +35,14 @@ function E:OnInitialize()
 	self.profile = self.DB.profile
 	self.db = self.DB.profile.Party.arena
 
-	--[[
-	self.LSM = LibStub("LibSharedMedia-3.0")
-	self.LSM:Register("font", "PT Sans Narrow Bold", "Interface\\Addons\\OmniCD\\Media\\Fonts\\PTSansNarrow-Bold.ttf")
-	]]
-
-	self:UpdateSpellList()
+	self:UpdateSpellList(true)
 	self:SetupOptions()
 	self:EnableVersionCheck()
 end
 
 function E:OnEnable()
-	C_ChatInfo.RegisterAddonMessagePrefix("OmniCD")
+	--[AC] C_ChatInfo.RegisterAddonMessagePrefix("OmniCD")
+	E.Comms:RegisterComm("OmniCD", "CHAT_MSG_ADDON")
 
 	self:LoadAddOns()
 	self:Refresh()
@@ -66,14 +79,14 @@ function E:Refresh(arg)
 	self.TooltipID:SetHooks()
 
 	if arg == "OnProfileReset" then
-		self.global.disableElvMsg = nil
+		--self.global.disableElvMsg = nil
 	end
 end
 
 do
 	local today = tonumber(date("%y%m%d"))
 	local groupSize = 0
-	local version = E.Version:gsub("[^%d]","")
+	local version = E.Version:gsub("[^%d]", "")
 	version = tonumber(version)
 	local enabled
 	local timer
@@ -105,8 +118,8 @@ do
 
 			local ver = tonumber(message)
 			if ver and ver > version then
-				local text = ver - version > 99 and L["Major update"] or (ver - version > 9 and L["Minor update"]) or L["Hotfix"]
-				text = format(L["A new update is available. (|cff99cdff%s)"], text)
+				local text = ver - version > 999 and L["Major update"] or (ver - version > 99 and L["Minor update"]) or L["Hotfix"]
+				text = format("|cfff16436 " .. L["A new update is available. (%s)"], text)
 				if E.DB.profile.notifyNew then
 					E.Write(text)
 				end
@@ -154,4 +167,38 @@ do
 		f:RegisterEvent("PLAYER_ENTERING_WORLD")
 		f:SetScript("OnEvent", VersionCheck_OnEvent)
 	end
+end
+
+do
+	local function ShowHideAllBars_OnEvent(f, event)
+		if event == "PET_BATTLE_OPENING_START" then
+			for k in pairs(E.moduleOptions) do
+				local module = E[k]
+				if module.test then
+					module:Test()
+				end
+
+				local func = module.HideAllBars
+				if func then
+					func(module)
+				end
+			end
+
+			f:RegisterEvent("PET_BATTLE_CLOSE")
+		elseif event == "PET_BATTLE_CLOSE" then
+			for k in pairs(E.moduleOptions) do
+				local module = E[k]
+				local func = module.Refresh
+				if func then
+					func(module)
+				end
+			end
+
+			f:UnregisterEvent("PET_BATTLE_CLOSE")
+		end
+	end
+
+	local f = CreateFrame("Frame")
+	f:RegisterEvent("PET_BATTLE_OPENING_START")
+	f:SetScript("OnEvent", ShowHideAllBars_OnEvent)
 end

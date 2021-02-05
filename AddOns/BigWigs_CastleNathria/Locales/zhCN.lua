@@ -19,6 +19,8 @@ if L then
 
 	L.custom_on_repeating_say_laser = "重复不稳定的喷发说话"
 	L.custom_on_repeating_say_laser_desc = "重复不稳定的喷发说话信息来帮助没有看到您的第一条消息的玩家移入聊天范围。"
+
+	L.tempPrint = "我们已经替瘴气添增加了大喊提示。如果你之前使用过 WeakAuras 的字符串，可能需要将其删除以防止出现重覆的大喊。"
 end
 
 L = BigWigs:NewBossLocale("Artificer Xy'mox", "zhCN")
@@ -62,7 +64,7 @@ if L then
 
 	L.custom_off_select_boss_order = "标记首领击杀顺序"
 	L.custom_off_select_boss_order_desc = "使用叉子 {rt7} 标记团队首领击杀顺序。需要权限。"
-	L.custom_off_select_boss_order_value1 = "堡主 -> 男爵 -> 勋爵"
+	L.custom_off_select_boss_order_value1 = "堡主 -> 女男爵 -> 勋爵"
 	L.custom_off_select_boss_order_value2 = "女男爵 -> 堡主 -> 勋爵"
 	L.custom_off_select_boss_order_value3 = "勋爵 -> 堡主 -> 女男爵"
 	L.custom_off_select_boss_order_value4 = "堡主 -> 勋爵 -> 女男爵"
@@ -101,6 +103,12 @@ if L then
 
 	L.custom_on_stop_timers = "总是显示技能条"
 	L.custom_on_stop_timers_desc = "为了马上测试"
+
+	L.goliath_short = "巨怪"
+	L.goliath_desc = "显示警告和计时器，提示何时会刷新顽石军团巨怪。"
+
+	L.commando_short = "特种兵"
+	L.commando_desc = "当击杀顽石军团特种兵时显示警告。"
 end
 
 L = BigWigs:NewBossLocale("Sire Denathrius", "zhCN")
@@ -137,6 +145,7 @@ if L then
 	--[[ Shriekwing -> Huntsman Altimor ]]--
 	L.gargon = "魁梧的加尔贡"
 	L.hawkeye = "纳斯利亚鹰眼射手"
+	L.overseer = "狗舍监督者"
 
 	--[[ Huntsman Altimor -> Hungering Destroyer ]]--
 	L.feaster = "恐惧吞食者"

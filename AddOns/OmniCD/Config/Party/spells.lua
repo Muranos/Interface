@@ -389,7 +389,7 @@ function P:UpdateSpellsOption(id, oldClass, oldType, class, stype, force)
 	else
 		local tbl = OmniCDDB.cooldowns[id]
 		local class, stype = tbl.class, tbl.type
-		local tab = GetSpellTab(tbl.class)
+		local tab = GetSpellTab(class)
 
 		local spell = Spell:CreateFromSpellID(id)
 		spell:ContinueOnSpellLoad(function()

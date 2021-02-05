@@ -6,7 +6,7 @@ local strfind = string.find
 local strmatch = string.match
 local GetNumGroupMembers = GetNumGroupMembers
 local UnitPower = UnitPower
-local SendAddonMessage = C_ChatInfo.SendAddonMessage
+--[AC] local SendAddonMessage = C_ChatInfo.SendAddonMessage
 local Comms = E["Comms"]
 local P = E["Party"]
 local spell_cdmod_powerSpent = E.spell_cdmod_powerSpent
@@ -48,9 +48,11 @@ end
 
 local function SendComm(...)
 	if IsInRaid() then
-		C_ChatInfo.SendAddonMessage("OmniCD", strjoin(",", ...), (not IsInRaid(LE_PARTY_CATEGORY_HOME) and IsInRaid(LE_PARTY_CATEGORY_INSTANCE)) and "INSTANCE_CHAT" or "RAID")
+		--[AC] C_ChatInfo.SendAddonMessage("OmniCD", strjoin(",", ...), (not IsInRaid(LE_PARTY_CATEGORY_HOME) and IsInRaid(LE_PARTY_CATEGORY_INSTANCE)) and "INSTANCE_CHAT" or "RAID")
+		Comms:SendCommMessage("OmniCD", strjoin(",", ...), (not IsInRaid(LE_PARTY_CATEGORY_HOME) and IsInRaid(LE_PARTY_CATEGORY_INSTANCE)) and "INSTANCE_CHAT" or "RAID")
 	elseif IsInGroup() then
-		C_ChatInfo.SendAddonMessage("OmniCD", strjoin(",", ...), (not IsInGroup(LE_PARTY_CATEGORY_HOME) and IsInGroup(LE_PARTY_CATEGORY_INSTANCE)) and "INSTANCE_CHAT" or "PARTY")
+		--[AC] C_ChatInfo.SendAddonMessage("OmniCD", strjoin(",", ...), (not IsInGroup(LE_PARTY_CATEGORY_HOME) and IsInGroup(LE_PARTY_CATEGORY_INSTANCE)) and "INSTANCE_CHAT" or "PARTY")
+		Comms:SendCommMessage("OmniCD", strjoin(",", ...), (not IsInGroup(LE_PARTY_CATEGORY_HOME) and IsInGroup(LE_PARTY_CATEGORY_INSTANCE)) and "INSTANCE_CHAT" or "PARTY")
 	end
 end
 
@@ -65,7 +67,8 @@ function Comms:SendSync(sender)
 	end
 
 	if sender then -- [75]
-		C_ChatInfo.SendAddonMessage("OmniCD", strjoin(",", MSG_INFO, E.syncData), "WHISPER", sender)
+		--[AC] C_ChatInfo.SendAddonMessage("OmniCD", strjoin(",", MSG_INFO, E.syncData), "WHISPER", sender)
+		self:SendCommMessage("OmniCD", strjoin(",", MSG_INFO, E.syncData), "WHISPER", sender)
 	else
 		SendComm(MSG_INFO_UPDATE, E.syncData)
 	end
@@ -77,7 +80,8 @@ function Comms:Desync()
 end
 
 function Comms:CHAT_MSG_ADDON(prefix, message, dist, sender) -- [29]
-	if prefix ~= "OmniCD" or sender == E.userNameWithRealm then
+	--[AC] if prefix ~= "OmniCD" or sender == E.userNameWithRealm then
+	if prefix ~= "OmniCD" or sender == E.userName then
 		return
 	end
 
@@ -101,6 +105,10 @@ function Comms:CHAT_MSG_ADDON(prefix, message, dist, sender) -- [29]
 		return
 	elseif header == MSG_INFO_REQUEST then
 		self:SendSync(sender)
+	elseif header == MSG_INFO_UPDATE then
+		if not isSyncedUnit then
+			return
+		end
 	end
 
 	info.talentData = {}
@@ -180,7 +188,7 @@ do
 						SyncRemainingCD(userGUID, spent)
 					end
 
-					if P.isInArena and isRogueClass and next(self.syncGUIDS) then
+					if next(self.syncGUIDS) then
 						SendComm(MSG_POWER, userGUID, spent)
 					end
 				end
@@ -199,3 +207,52 @@ do
 		self:RegisterEvent("PLAYER_REGEN_ENABLED")
 	end
 end
+
+function Comms:RegisterEventUnitPower()
+	local specIndex = GetSpecialization()
+	local specID = GetSpecializationInfo(specIndex)
+	local powerSpec = E.POWER_TYPE_SPEC[specID]
+
+	self.oocThreshold = powerSpec == 1 and 3 or 1
+
+	if E.profile.Party.sync and powerSpec then
+		if UnitAffectingCombat("player") then
+			self:PLAYER_REGEN_DISABLED()
+		else
+			self:RegisterEvent("PLAYER_REGEN_DISABLED")
+		end
+		self:RegisterUnitEvent("UNIT_POWER_UPDATE", "player")
+	else
+		self:UnregisterEvent("UNIT_POWER_UPDATE")
+	end
+end
+
+local sendUpdatedSyncInfo = function()
+	Comms:InspectPlayer()
+	Comms:SendSync()
+end
+
+do
+	local timer
+
+	local onTimerEnd = function()
+		sendUpdatedSyncInfo()
+		timer = nil
+	end
+
+	function Comms:PLAYER_EQUIPMENT_CHANGED(slotID)
+		if timer or slotID > 15 then
+			return
+		end
+
+		timer = C_Timer.NewTicker(0.1, onTimerEnd, 1)
+	end
+end
+
+Comms.COVENANT_CHOSEN = sendUpdatedSyncInfo
+Comms.SOULBIND_ACTIVATED = sendUpdatedSyncInfo
+Comms.SOULBIND_NODE_LEARNED = sendUpdatedSyncInfo
+Comms.SOULBIND_NODE_UNLEARNED = sendUpdatedSyncInfo
+Comms.SOULBIND_NODE_UPDATED = sendUpdatedSyncInfo
+Comms.SOULBIND_CONDUIT_INSTALLED = sendUpdatedSyncInfo
+Comms.SOULBIND_PATH_CHANGED = sendUpdatedSyncInfo

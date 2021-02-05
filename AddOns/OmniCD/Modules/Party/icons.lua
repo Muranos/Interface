@@ -12,18 +12,19 @@ end
 
 ---[[
 function P:SetIconLayout(f, sortOrder)
+	local icons = f.icons
+	local displayInactive = self.displayInactive
+
 	if sortOrder then
-		sort(f.icons, sortPriority)
+		sort(icons, sortPriority)
 	end
 
 	local count, rows, numActive, lastActiveIndex = 0, 1, 1
-
 	for i = 1, f.numIcons do
-		local icon = f.icons[i]
-
+		local icon = icons[i]
 		icon:Hide()
 
-		if self.displayInactive or icon.active then
+		if displayInactive or icon.active then
 			icon:ClearAllPoints()
 			if numActive > 1 then
 				count = count + 1
@@ -32,7 +33,7 @@ function P:SetIconLayout(f, sortOrder)
 					count = 0
 					rows = rows + 1
 				else
-					icon:SetPoint(self.point2, f.icons[lastActiveIndex], self.relativePoint2, self.ofsX2, self.ofsY2)
+					icon:SetPoint(self.point2, icons[lastActiveIndex], self.relativePoint2, self.ofsX2, self.ofsY2)
 				end
 			else
 				if self.doubleRow and E.db.priority[icon.type] <= self.breakPoint then
@@ -53,8 +54,11 @@ end
 
 --[[ xml
 function P:SetIconLayout(f, sortOrder)
+	local icons = f.icons
+	local displayInactive = self.displayInactive
+
 	if sortOrder then
-		sort(f.icons, sortPriority)
+		sort(icons, sortPriority)
 	end
 
 	local count, rows, numActive, lastActiveIndex = 0, 1, 1
@@ -63,10 +67,10 @@ function P:SetIconLayout(f, sortOrder)
 	local isModRowEnabled = isDoubleRow and E.db.icons.modRowEnabled
 
 	for i = 1, f.numIcons do
-		local icon = f.icons[i]
+		local icon = icons[i]
 		icon:Hide()
 
-		if self.displayInactive or icon.active then
+		if displayInactive or icon.active then
 			icon:ClearAllPoints()
 			if numActive > 1 then
 				count = count + 1
@@ -83,10 +87,10 @@ function P:SetIconLayout(f, sortOrder)
 				else
 					if isModRowEnabled and rows > 1 then
 						icon:SetParent(f.bottomRow.container)
-						icon:SetPoint(self.point2, f.icons[lastActiveIndex], self.relativePoint2, self.ofsX4, 0)
+						icon:SetPoint(self.point2, icons[lastActiveIndex], self.relativePoint2, self.ofsX4, 0)
 					else
 						icon:SetParent(f.container)
-						icon:SetPoint(self.point2, f.icons[lastActiveIndex], self.relativePoint2, self.ofsX2, self.ofsY2)
+						icon:SetPoint(self.point2, icons[lastActiveIndex], self.relativePoint2, self.ofsX2, self.ofsY2)
 					end
 				end
 			else
@@ -122,7 +126,7 @@ function P:SetAnchor(f)
 
 	if not E.db.position.detached or E.db.position.locked then
 		f.anchor:EnableMouse(false)
-		f.anchor.background:SetColorTexture(0, 0, 0, 1)
+		f.anchor.background:SetColorTexture(0.756, 0, 0.012, 0.7)
 	else
 		f.anchor:EnableMouse(true)
 		f.anchor.background:SetColorTexture(0, 0.8, 0, 1)
@@ -149,7 +153,7 @@ function P:SetBorder(icon)
 		--[[ xml
 		local isModRow = self.doubleRow and db.modRowEnabled and E.db.priority[icon.type] <= self.breakPoint
 		if isModRow and db.modRowCropped then
-			if icon.overlay then
+			if icon.isHighlighted then
 				P:RemoveHighlight(icon)
 			end
 
@@ -218,7 +222,7 @@ function P:SetMarker(icon)
 		local mark = E.spell_marked[spellID] or E.db.highlight.markedSpells[spellID]
 		if mark and (mark == true or self:IsTalent(mark, icon.guid)) then
 			hotkey:SetText(RANGE_INDICATOR)
-			hotkey:SetTextColor(0, 0.8, 0) -- 2.5.6+
+			hotkey:SetTextColor(0.0, 0.901, 0.796) -- 2.5.8
 			hotkey:Show()
 		else
 			hotkey:Hide()
@@ -236,7 +240,7 @@ function P:SetAlpha(icon)
 	end
 
 	local charges = icon.maxcharges and tonumber(icon.Count:GetText())
-	icon.icon:SetDesaturated(E.db.icons.desaturateActive and icon.active and not icon.overlay and (not charges or charges == 0));
+	icon.icon:SetDesaturated(E.db.icons.desaturateActive and icon.active and not icon.isHighlighted and (not charges or charges == 0));
 end
 
 function P:SetSwipe(icon)
@@ -253,7 +257,7 @@ function P:SetCounter(icon)
 		icon.cooldown:SetHideCountdownNumbers(true)
 	else
 		local charges = icon.maxcharges and tonumber(icon.Count:GetText())
-		local noCount = charges and charges > 0 or (icon.overlay and true) or not E.db.icons.showCounter
+		local noCount = charges and charges > 0 or (icon.isHighlighted and true) or not E.db.icons.showCounter
 		icon.cooldown:SetHideCountdownNumbers(noCount) -- [11]
 		icon.counter:SetScale(E.db.icons.counterScale)
 	end
@@ -265,6 +269,12 @@ end
 
 function P:SetTooltip(icon)
 	icon:EnableMouse(E.db.icons.showTooltip)
+end
+
+function P:SetAtlas(icon)
+	if E.db.highlight.glow then
+		icon.NewItemTexture:SetAtlas(E.db.highlight.glowColor)
+	end
 end
 
 function P:ApplySettings(f)
@@ -280,5 +290,6 @@ function P:ApplySettings(f)
 		self:SetCounter(icon)
 		self:SetChargeScale(icon)
 		self:SetTooltip(icon)
+		self:SetAtlas(icon)
 	end
 end

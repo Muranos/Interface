@@ -6,7 +6,7 @@ local P = E[modname]
 P.options = {
 	disabled = function(info) return info[2] and not E.GetModuleEnabled(modname) end,
 	name = FRIENDLY,
-	order = 10,
+	order = 30,
 	type = "group",
 	get = function(info) return E.DB.profile.Party[info[#info]] end,
 	set = function(info, value) E.DB.profile.Party[info[#info]] = value end,
@@ -72,7 +72,6 @@ for key, name in pairs(E.L_ZONE) do
 		}
 	end
 end
-
 
 do
 	local timer
@@ -163,7 +162,7 @@ function P:ConfigBars(key, arg)
 				self:SetOffset(f)
 			end
 			--]]
-			self:SetIconLayout(f)
+			self:SetIconLayout(f, arg == "priority")
 		end
 	end
 end
@@ -223,7 +222,6 @@ function P:ConfigIcons(key, arg)
 			local f = info.bar
 			self:ConfigIconSettings(f, arg)
 		end
-
 		for _, f in pairs(self.extraBars) do
 			self:ConfigIconSettings(f, arg, f.key)
 		end
@@ -235,6 +233,53 @@ P.setIcons = function(info, value)
 	local key, option = info[2], info[#info]
 	E.DB.profile.Party[key].icons[option] = value
 	P:ConfigIcons(key, option)
+end
+
+function P:ConfigFonts(arg)
+	if arg == "anchor" then
+		local db_anchor = E.DB.profile.General.fonts.anchor
+		for _, info in pairs(self.groupInfo) do
+			local f = info.bar
+			E.SetFontObj(f.anchor.text, db_anchor)
+		end
+
+		for _, f in pairs(self.extraBars) do
+			E.SetFontObj(f.anchor.text, db_anchor)
+			E.SetWidth(f.anchor)
+		end
+
+		self.TestMod:SetAnchor(self.testZone)
+	else
+		local db_icon = E.DB.profile.General.fonts.icon
+		local db_statusBar = E.DB.profile.General.fonts.statusBar
+		for _, info in pairs(self.groupInfo) do
+			local icons = info.spellIcons
+			for _, icon in pairs(icons) do
+				local statusBar = icon.statusBar
+				if statusBar then
+					E.SetFontObj(statusBar.Text, db_statusBar)
+					E.SetFontObj(statusBar.CastingBar.Text, db_statusBar)
+					E.SetFontObj(statusBar.CastingBar.Timer, db_statusBar)
+				end
+				E.SetFontObj(icon.Name, db_icon)
+			end
+		end
+	end
+end
+
+function P:ConfigTextures()
+	local texture = E.LSM:Fetch("statusbar", E.DB.profile.General.textures.statusBar.bar)
+	for _, f in pairs(self.extraBars) do
+		for i = 1, f.numIcons do
+			local icon = f.icons[i]
+			local statusBar = icon.statusBar
+			if statusBar then
+				statusBar.BG:SetTexture(texture)
+				statusBar.CastingBar:SetStatusBarTexture(texture)
+				statusBar.CastingBar.BG:SetTexture(E.LSM:Fetch("statusbar", E.DB.profile.General.textures.statusBar.BG))
+			end
+		end
+	end
 end
 
 function P:ResetOptions(key, tab, subtab)

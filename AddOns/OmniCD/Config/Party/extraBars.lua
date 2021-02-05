@@ -122,11 +122,10 @@ local temp = {
 	bgColors = L["BG"],
 }
 
-local COOLDOWN_REMAINING = COOLDOWN_REMAINING:gsub(":", "")
 local sortByValues = {
 	interruptBar = {
 		[1] = L["Cooldown"] ..  " > " .. CLASS .. " > " .. NAME,
-		[2] = COOLDOWN_REMAINING .. " > " ..  L["Cooldown"] ..  " > " .. CLASS .. " > " .. NAME,
+		[2] = L["Cooldown Remaining"] .. " > " ..  L["Cooldown"] ..  " > " .. CLASS .. " > " .. NAME,
 	},
 	raidCDBar = {
 		[3] = L["Priority"] .. " > " .. CLASS .. " > " .. L["Spell ID"],
@@ -252,7 +251,7 @@ local extraBarsInfo = {
 	},
 	sortDirection = {
 		hidden = isRaidCDBar,
-		name = "|TInterface\\OptionsFrame\\UI-OptionsFrame-NewFeatureIcon:0:0:0:-1|t" .. L["Sort Direction"],
+		name = L["Sort Direction"],
 		order = 12,
 		type = "select",
 		values = {
@@ -300,7 +299,7 @@ local extraBarsInfo = {
 	},
 	growUpward = {
 		hidden = isRaidCDBar,
-		name = "|TInterface\\OptionsFrame\\UI-OptionsFrame-NewFeatureIcon:0:0:0:-1|t" .. L["Grow Rows Upward"],
+		name = L["Grow Rows Upward"],
 		desc = L["Toggle the grow direction of icon rows"],
 		order = 18,
 		type = "toggle",
@@ -417,7 +416,7 @@ local extraBarsInfo = {
 }
 
 local extraBars = {
-	name = "|TInterface\\OptionsFrame\\UI-OptionsFrame-NewFeatureIcon:0:0:0:-1|t" .. L["Extra Bars"],
+	name = L["Extra Bars"],
 	type = "group",
 	childGroups = "tab",
 	order = 70,
@@ -426,7 +425,7 @@ local extraBars = {
 	args = {
 		interruptBar = {
 			disabled = P.isExBarDisabled,
-			name = "|TInterface\\OptionsFrame\\UI-OptionsFrame-NewFeatureIcon:0:0:0:-1|t" .. L["Interrupt Bar"],
+			name = L["Interrupt Bar"],
 			order = 10,
 			type = "group",
 			args = extraBarsInfo

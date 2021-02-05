@@ -80,7 +80,7 @@ local position = {
 							P:Test(key)
 						else
 							E.DB.profile.Party[key].position.uf = value
-							P:Refresh()
+							P:Refresh(true) -- [82]
 						end
 					end
 				else

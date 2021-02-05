@@ -19,6 +19,8 @@ if L then
 
 	L.custom_on_repeating_say_laser = "Wiederholte Instabiler Ausstoß Ansage"
 	L.custom_on_repeating_say_laser_desc = "Gibt wiederholt Chatnachrichten für Instabilen Ausstoß aus um beim Annähern an Spieler in Reichweite der Chatnachrichten zu helfen, falls diese die erste Nachricht nicht gelesen haben."
+
+	L.tempPrint = "Es wurde eine Gesundheitsansage für Miasma hinzugefügt. Falls bislang eine WeakAura hierfür verwendet wurde, kann diese gelöscht werden um doppelte Ansagen zu vermeiden."
 end
 
 L = BigWigs:NewBossLocale("Artificer Xy'mox", "deDE")
@@ -101,6 +103,12 @@ if L then
 
 	L.custom_on_stop_timers = "Fähigkeitenleisten immer anzeigen"
 	L.custom_on_stop_timers_desc = "Derzeit nur zum Testen"
+
+	L.goliath_short = "Goliath"
+	L.goliath_desc = "Zeigt Warnungen und Timer für das Erscheinen eines Goliaths der Steinlegion."
+
+	L.commando_short = "Kommandosoldat"
+	L.commando_desc = "Zeigt Warnungen wenn ein Kommandosoldat der Steinlegion getötet wird."
 end
 
 L = BigWigs:NewBossLocale("Sire Denathrius", "deDE")
@@ -137,6 +145,7 @@ if L then
 	--[[ Shriekwing -> Huntsman Altimor ]]--
 	L.gargon = "Bulliger Gargon"
 	L.hawkeye = "Scharfschütze von Nathria"
+	L.overseer = "Zwingeraufseherin"
 
 	--[[ Huntsman Altimor -> Hungering Destroyer ]]--
 	L.feaster = "Schreckensschmauser"

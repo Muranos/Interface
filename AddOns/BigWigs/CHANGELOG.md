@@ -1,7 +1,12 @@
 # BigWigs
 
-## [v206.1](https://github.com/BigWigsMods/BigWigs/tree/v206.1) (2021-01-19)
-[Full Changelog](https://github.com/BigWigsMods/BigWigs/compare/v206...v206.1) [Previous Releases](https://github.com/BigWigsMods/BigWigs/releases)
+## [v211.2](https://github.com/BigWigsMods/BigWigs/tree/v211.2) (2021-02-04)
+[Full Changelog](https://github.com/BigWigsMods/BigWigs/compare/v211.1...v211.2) [Previous Releases](https://github.com/BigWigsMods/BigWigs/releases)
 
-- Update koKR (#963)  
-- CastleNathria/HungeringDestroyer: Prevent the Laser say message from repeating after you defeat the encounter  
+- Plugins/Sound: Add warning when disabling  
+- Plugins/AltPower: Add warning when disabling  
+- Plugins/Messages: Re-arrange options layout, add temporary checkbox to disable messages until we can implement a better solution.  
+- Media: Remove old icons  
+- Update koKR (#985)  
+- Update koKR (#983)  
+- Update zhCN (#981)  

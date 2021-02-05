@@ -10,18 +10,18 @@ function P:IsCRFActive() -- [21]
 end
 
 local function FindAnchorFrame(guid) --[87]
-	if E.customUF.enabled then
-		if GetNumGroupMembers() > 5 then return end
+	if E.customUF.enabled and E.db.position.uf ~= "blizz" then
+		if not P.isInDungeon and GetNumGroupMembers() > 5 then return end -- MDI
 
-		if E.db.position.uf ~= "blizz" then
-			for i = 1, 5 do
-				local f = _G[E.customUF.frame .. i]
-				if f then
-					local unit = f[E.customUF.unit]
-					if unit and UnitGUID(unit) == guid then return f end
-				end
+		for i = 1, 5 do
+			local f = _G[E.customUF.frame .. i]
+			if f and f:GetPoint() then -- [93]
+				local unit = f[E.customUF.unit]
+				if unit and UnitGUID(unit) == guid then return f end
 			end
 		end
+
+		if E.db.position.uf ~= "auto" then return end
 	end
 
 	if ( P:IsCRFActive() or P.test ) then
@@ -65,7 +65,7 @@ function P:UpdatePosition()
 		return
 	end
 
-	self:HideAllBars() -- [63]
+	self:HideBars() -- [63]
 
 	for guid, info in pairs(self.groupInfo) do
 		local f = info.bar

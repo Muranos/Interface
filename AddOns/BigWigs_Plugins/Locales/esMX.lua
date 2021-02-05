@@ -12,6 +12,7 @@ L.width = "Ancho"
 L.height = "Alto"
 L.sizeDesc = "Normalmente se ajusta el tamaño arrastrando el ancla. Si necesitas un tamaño exacto puedes usar este deslizador o escribir el valor en el recuadro, que no tiene un máximo."
 --L.fontSizeDesc = "Adjust the font size using the slider or type the value into the box which has a much higher maximum of 200."
+--L.disableDesc = "You are about to disable the feature '%s' which is |cffff4411not recommended|r.\n\nAre you sure you want to do this?"
 
 -----------------------------------------------------------------------
 -- AltPower.lua
@@ -100,7 +101,6 @@ L.emphasizeMultiplierDesc = "Si desactiva las barras moviéndose el anclaje enfa
 L.enable = "Habilitar"
 L.move = "Mover"
 L.moveDesc = "Mueve las barras enfatizadas al anclaje de Enfatizar. Si esta opción está deshabilitada, las barras enfatizadas simplemente cambiarán de tamaño y color."
-L.regularBars = "Barras regulares"
 L.emphasizedBars = "Barras enfatizadas"
 L.align = "Alinear"
 L.alignText = "Alinear el texto"
@@ -242,10 +242,8 @@ L.resetMessagesDesc = "Restablece todas las opciones relacionadas con los mensaj
 
 L.bwEmphasized = "BigWigs enfatizado"
 L.messages = "Menajes"
-L.normalMessages = "Mensajes normales"
 L.emphasizedMessages = "Mensajes enfatizados"
 L.emphasizedDesc = "El punto de un mensaje enfatizado es conseguir su atención siendo un mensaje grande en el medio de su pantalla. Rara vez está activado de forma predeterminada, pero puedes activarlo para cualquier habilidad del jefe cuando mires la configuración específica del encuentro con el jefe."
-L.output = "Resultado"
 L.uppercase = "MAYÚSCULAS"
 L.uppercaseDesc = "Todos los mensajes enfatizados se convertirán en MAYÚSCULAS."
 

@@ -319,6 +319,11 @@ do
 								plugin:Close()
 							end
 						end,
+						confirm = function(_, value)
+							if value then
+								return L.disableDesc:format(L.altPowerTitle)
+							end
+						end,
 					},
 				},
 			},
@@ -448,7 +453,7 @@ do
 		display:EnableMouse(true)
 		display:SetFrameStrata("MEDIUM")
 		display:SetFixedFrameStrata(true)
-		display:SetFrameLevel(20)
+		display:SetFrameLevel(125)
 		display:SetFixedFrameLevel(true)
 		display:RegisterForDrag("LeftButton")
 		display:SetScript("OnDragStart", function(self)
@@ -472,7 +477,7 @@ do
 		local close = CreateFrame("Button", nil, display)
 		close:SetPoint("BOTTOMRIGHT", display, "TOPRIGHT", -2, 2)
 		close:SetSize(16, 16)
-		close:SetNormalTexture("Interface\\AddOns\\BigWigs\\Media\\Textures\\icons\\close")
+		close:SetNormalTexture("Interface\\AddOns\\BigWigs\\Media\\Icons\\close")
 		close:SetScript("OnClick", function()
 			if inTestMode then
 				plugin:Close()
@@ -485,7 +490,7 @@ do
 		local expand = CreateFrame("Button", nil, display)
 		expand:SetPoint("BOTTOMLEFT", display, "TOPLEFT", 2, 2)
 		expand:SetSize(16, 16)
-		expand:SetNormalTexture("Interface\\AddOns\\BigWigs\\Media\\Textures\\icons\\arrows_down")
+		expand:SetNormalTexture("Interface\\AddOns\\BigWigs\\Media\\Icons\\arrows_down")
 		expand:SetScript("OnClick", function()
 			if db.expanded then
 				plugin:Contract()
@@ -648,7 +653,7 @@ end
 function plugin:Expand()
 	db.expanded = true
 	display:SetHeight(210+(db.additionalHeight*13))
-	display.expand:SetNormalTexture("Interface\\AddOns\\BigWigs\\Media\\Textures\\icons\\arrows_up")
+	display.expand:SetNormalTexture("Interface\\AddOns\\BigWigs\\Media\\Icons\\arrows_up")
 	if not inTestMode then
 		UpdateDisplay()
 	end
@@ -657,7 +662,7 @@ end
 function plugin:Contract()
 	db.expanded = false
 	display:SetHeight(82+(db.additionalHeight*5))
-	display.expand:SetNormalTexture("Interface\\AddOns\\BigWigs\\Media\\Textures\\icons\\arrows_down")
+	display.expand:SetNormalTexture("Interface\\AddOns\\BigWigs\\Media\\Icons\\arrows_down")
 	for i = 11, 26 do
 		display.text[i]:SetText("")
 	end

@@ -18,6 +18,7 @@ local covenant_chmod_conduits = E.covenant_chmod_conduits
 local covenant_cdmod_items_mult = E.covenant_cdmod_items_mult
 local FEIGN_DEATH = 5384
 local TOUCH_OF_KARMA = 125174
+local DEBUFF_HEARTSTOP_AURA = 214975
 
 local bars = {}
 local unusedBars = {}
@@ -84,8 +85,22 @@ local function CooldownBarFrame_OnEvent(self, event, ...)
 		end
 	elseif event == "UNIT_AURA" then
 		local unit = ...
-		if unit ~= info.unit then
+		if unit ~= info.unit then -- [94]
 			return
+		end
+
+		if P.isInArena then -- [95]
+			if P:IsDeBuffActive(unit, DEBUFF_HEARTSTOP_AURA) then
+				if not info.auras.isHeartStopped then
+					P.UpdateCDRR(info, 1/0.7)
+					info.auras.isHeartStopped = true
+				end
+			else
+				if info.auras.isHeartStopped then
+					P.UpdateCDRR(info, 0.7)
+					info.auras.isHeartStopped = nil
+				end
+			end
 		end
 
 		if info.glowIcons[TOUCH_OF_KARMA] then
@@ -94,7 +109,9 @@ local function CooldownBarFrame_OnEvent(self, event, ...)
 				if icon then
 					P:RemoveHighlight(icon)
 				end
-				self:UnregisterEvent(event)
+				if not P.isInArena then
+					self:UnregisterEvent(event)
+				end
 			end
 		elseif info.preActiveIcons[FEIGN_DEATH] then
 			if not P:GetBuffDuration(unit, FEIGN_DEATH) then
@@ -104,9 +121,11 @@ local function CooldownBarFrame_OnEvent(self, event, ...)
 					icon.icon:SetVertexColor(1, 1, 1)
 					P:StartCooldown(icon, icon.duration)
 				end
-				self:UnregisterEvent(event)
+				if not P.isInArena then
+					self:UnregisterEvent(event)
+				end
 			end
-		else
+		elseif not P.isInArena then
 			self:UnregisterEvent(event)
 		end
 	elseif event == "PLAYER_SPECIALIZATION_CHANGED" then
@@ -137,18 +156,19 @@ local function GetBar()
 		f.bottomRow.container:SetSize(1, 1)
 		f.bottomRow.container:SetAllPoints(f.bottomRow)
 		--]]
+		f.modname = "Party"
+		f.icons = {}
+		f.numIcons = 0
+		f.anchor:Hide()
+		E.SetFontObj(f.anchor.text, E.profile.General.fonts.anchor)
+		f:SetScript("OnEvent", CooldownBarFrame_OnEvent)
 	end
-	f.modname = "Party"
-	f.icons = {}
-	f.numIcons = 0
-	f.anchor:Hide()
-	f:SetScript("OnEvent", CooldownBarFrame_OnEvent)
 
 	bars[#bars + 1] = f
 	return f
 end
 
-function P:HideAllBars()
+function P:HideBars()
 	for i = #bars, 1, -1 do
 		local f = bars[i]
 		f:Hide()
@@ -161,6 +181,7 @@ local function GetIcon(f, iconIndex)
 		numIcons = numIcons + 1
 		icon = CreateFrame("Button", "OmniCDIcon" .. numIcons, UIParent, "OmniCDButtonTemplate")
 		icon.counter = icon.cooldown:GetRegions()
+		E.SetFontObj(icon.Name, E.profile.General.fonts.icon)
 	end
 	icon:SetParent(f.container)
 	icon.Name:Hide()
@@ -237,19 +258,26 @@ function P:UpdateUnitBar(guid)
 	f.raceID = raceID
 	f.unit = unit
 	f.anchor.text:SetText(index)
+
+	if self.isInArena then
+		f:RegisterUnitEvent("UNIT_AURA", unit)
+	else
+		f:UnregisterEvent("UNIT_AURA")
+	end
+	if guid ~= E.userGUID then -- [96]
+		f:RegisterUnitEvent("PLAYER_SPECIALIZATION_CHANGED", unit)
+	end
 	f:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", unit, unit == "player" and "pet" or unit .. "pet") -- [41]
-	f:RegisterUnitEvent("PLAYER_SPECIALIZATION_CHANGED", unit)
 
 	local isInspectedUnit = info.spec
 	local lvl = info.level
-	local classSpells = spell_db[class]
 	local iconIndex = 0
 
 	for i = 1, 5 do
-		local catagory = i == 1 and "PVPTRINKET" or (i == 2 and "RACIAL") or (i == 3 and "TRINKET") or (i == 4 and "COVENANT")
-		local n = i == 5 and #classSpells or #spell_db[catagory]
+		local spells = i == 1 and spell_db.PVPTRINKET or (i == 2 and spell_db.RACIAL) or (i == 3 and spell_db.TRINKET) or (i == 4 and spell_db.COVENANT) or (i == 5 and spell_db[class])
+		local n = #spells
 		for j = 1, n do
-			local spell = i == 5 and classSpells[j] or spell_db[catagory][j]
+			local spell = spells[j]
 			local spellID, spellType, spec, race, item, item2, talent, pve = spell.spellID, spell.type, spell.spec, spell.race, spell.item, spell.item2, spell.talent, spell.pve
 
 			local isValidSpell -- [62]
@@ -408,7 +436,7 @@ function P:UpdateUnitBar(guid)
 
 				if info.preActiveIcons[spellID] then
 					info.preActiveIcons[spellID] = icon -- [40]
-					if not icon.overlay then
+					if not icon.isHighlighted then
 						icon.icon:SetVertexColor(0.4, 0.4, 0.4)
 					end
 				else
@@ -427,7 +455,7 @@ function P:UpdateUnitBar(guid)
 
 	self:RemoveUnusedIcons(f, iconIndex + 1)
 
-	self:UpdateExBars(f) -- [26]
+	self:UpdateExBar(f) -- [26]
 
 	if guid ~= E.userGUID or not self.isUserHidden then -- [82]
 		self:ApplySettings(f)
@@ -436,9 +464,13 @@ function P:UpdateUnitBar(guid)
 end
 
 function P:UpdateBars()
-	self:HideExBars() -- [27]
+	self:HideExBars(true) -- [27]
 
 	for guid in pairs(self.groupInfo) do
 		self:UpdateUnitBar(guid)
 	end
 end
+
+P.bars = bars
+P.unusedBars = unusedBars
+P.unusedIcons = unusedIcons

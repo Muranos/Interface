@@ -1,161 +1,5 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 ..\FrameXML\UI.xsd">
-	<FontFamily name="OmniCDGameFontHighlightHuge" virtual="true">
-		<Member alphabet="roman">
-			<Font font="Interface\AddOns\OmniCD\Media\Fonts\PTSansNarrow-Bold.TTF" height="22">
-				<Shadow>
-					<Offset>
-						<AbsDimension x="1" y="-1"/>
-					</Offset>
-					<Color r="0" g="0" b="0"/>
-				</Shadow>
-			</Font>
-		</Member>
-		<Member alphabet="korean">
-			<Font font="Fonts\2002.TTF" height="22">
-				<Shadow>
-					<Offset>
-						<AbsDimension x="1" y="-1"/>
-					</Offset>
-					<Color r="0" g="0" b="0"/>
-				</Shadow>
-			</Font>
-		</Member>
-		<Member alphabet="simplifiedchinese">
-			<Font font="Fonts\ARKai_T.ttf" height="22">
-				<Shadow>
-					<Offset>
-						<AbsDimension x="1" y="-1"/>
-					</Offset>
-					<Color r="0" g="0" b="0"/>
-				</Shadow>
-			</Font>
-		</Member>
-		<Member alphabet="traditionalchinese">
-			<Font font="Fonts\blei00d.TTF" height="22">
-				<Shadow>
-					<Offset>
-						<AbsDimension x="1" y="-1"/>
-					</Offset>
-					<Color r="0" g="0" b="0"/>
-				</Shadow>
-			</Font>
-		</Member>
-		<Member alphabet="russian">
-			<Font font="Interface\AddOns\OmniCD\Media\Fonts\PTSansNarrow-Bold.TTF" height="22">
-				<Shadow>
-					<Offset>
-						<AbsDimension x="1" y="-1"/>
-					</Offset>
-					<Color r="0" g="0" b="0"/>
-				</Shadow>
-			</Font>
-		</Member>
-	</FontFamily>
-	<FontFamily name="OmniCDGameFontNormal" virtual="true">
-		<Member alphabet="roman">
-			<Font font="Interface\AddOns\OmniCD\Media\Fonts\PTSansNarrow-Bold.TTF" height="12">
-				<Shadow>
-					<Offset>
-						<AbsDimension x="1" y="-1"/>
-					</Offset>
-					<Color r="0" g="0" b="0"/>
-				</Shadow>
-			</Font>
-		</Member>
-		<Member alphabet="korean">
-			<Font font="Fonts\2002.TTF" height="12">
-				<Shadow>
-					<Offset>
-						<AbsDimension x="1" y="-1"/>
-					</Offset>
-					<Color r="0" g="0" b="0"/>
-				</Shadow>
-			</Font>
-		</Member>
-		<Member alphabet="simplifiedchinese">
-			<Font font="Fonts\ARKai_T.ttf" height="15">
-				<Shadow>
-					<Offset>
-						<AbsDimension x="1" y="-1"/>
-					</Offset>
-					<Color r="0" g="0" b="0"/>
-				</Shadow>
-			</Font>
-		</Member>
-		<Member alphabet="traditionalchinese">
-			<Font font="Fonts\blei00d.TTF" height="15">
-				<Shadow>
-					<Offset>
-						<AbsDimension x="1" y="-1"/>
-					</Offset>
-					<Color r="0" g="0" b="0"/>
-				</Shadow>
-			</Font>
-		</Member>
-		<Member alphabet="russian">
-			<Font font="Interface\AddOns\OmniCD\Media\Fonts\PTSansNarrow-Bold.TTF" height="12">
-				<Shadow>
-					<Offset>
-						<AbsDimension x="1" y="-1"/>
-					</Offset>
-					<Color r="0" g="0" b="0"/>
-				</Shadow>
-			</Font>
-		</Member>
-	</FontFamily>
-	<FontFamily name="OmniCDGameFontHighlightSmallOutline" virtual="true">
-		<Member alphabet="roman">
-			<Font font="Interface\AddOns\OmniCD\Media\Fonts\PTSansNarrow-Bold.TTF" height="10">
-				<Shadow>
-					<Offset>
-						<AbsDimension x="1" y="-1"/>
-					</Offset>
-					<Color r="0" g="0" b="0"/>
-				</Shadow>
-			</Font>
-		</Member>
-		<Member alphabet="korean">
-			<Font font="Fonts\2002.TTF" height="10">
-				<Shadow>
-					<Offset>
-						<AbsDimension x="1" y="-1"/>
-					</Offset>
-					<Color r="0" g="0" b="0"/>
-				</Shadow>
-			</Font>
-		</Member>
-		<Member alphabet="simplifiedchinese">
-			<Font font="Fonts\ARKai_T.ttf" height="15">
-				<Shadow>
-					<Offset>
-						<AbsDimension x="1" y="-1"/>
-					</Offset>
-					<Color r="0" g="0" b="0"/>
-				</Shadow>
-			</Font>
-		</Member>
-		<Member alphabet="traditionalchinese">
-			<Font font="Fonts\blei00d.TTF" height="15">
-				<Shadow>
-					<Offset>
-						<AbsDimension x="1" y="-1"/>
-					</Offset>
-					<Color r="0" g="0" b="0"/>
-				</Shadow>
-			</Font>
-		</Member>
-		<Member alphabet="russian">
-			<Font font="Interface\AddOns\OmniCD\Media\Fonts\PTSansNarrow-Bold.TTF" height="10">
-				<Shadow>
-					<Offset>
-						<AbsDimension x="1" y="-1"/>
-					</Offset>
-					<Color r="0" g="0" b="0"/>
-				</Shadow>
-			</Font>
-		</Member>
-	</FontFamily>
 	<StatusBar name="OmniCDArenaCastingBarFrameTemplate" drawLayer="BORDER" virtual="true" hidden="true">
 		<Size x="205" y="36"/>
 		<Layers>
@@ -163,30 +7,18 @@
 				<Texture parentKey="BG" setAllPoints="true" file="Interface\AddOns\OmniCD\Media\texture_flat"/>
 			</Layer>
 			<Layer level="ARTWORK">
-				<!--Texture parentKey="BorderShield" file="Interface\CastingBar\UI-CastingBar-Arena-Shield" hidden="true">
-					<Size x="42" y="42"/>
+				<FontString parentKey="Text" inherits="GameFontHighlightHuge" justifyH="LEFT">
 					<Anchors>
-						<Anchor point="LEFT" x="-25" y="0"/>
-					</Anchors>
-				</Texture-->
-				<FontString parentKey="Text" inherits="OmniCDGameFontHighlightHuge" justifyH="LEFT">
-					<Anchors>
-						<Anchor point="TOPLEFT" x="5" y="0"/>
-						<Anchor point="BOTTOMRIGHT" x="0" y="0"/>
+						<Anchor point="TOPLEFT" x="3" y="0"/>
+						<Anchor point="BOTTOMRIGHT" x="-75" y="0"/>
 					</Anchors>
 				</FontString>
-				<FontString parentKey="Timer" inherits="OmniCDGameFontHighlightHuge" justifyH="RIGHT">
+				<FontString parentKey="Timer" inherits="GameFontHighlightHuge" justifyH="RIGHT">
 					<Anchors>
 						<Anchor point="TOPLEFT" x="0" y="0"/>
 						<Anchor point="BOTTOMRIGHT" x="-5" y="0"/>
 					</Anchors>
 				</FontString>
-				<!--Texture parentKey="Icon">
-					<Size x="41" y="41"/>
-					<Anchors>
-						<Anchor point="RIGHT" relativeTo="$parent" relativePoint="LEFT" x="-5" y="0"/>
-					</Anchors>
-				</Texture-->
 			</Layer>
 			<Layer level="OVERLAY">
 				<Texture parentKey="Spark" file="Interface\CastingBar\UI-CastingBar-Spark" alphaMode="ADD">
@@ -209,10 +41,10 @@
 		<Layers>
 			<Layer level="BACKGROUND">
 				<Texture setAllPoints="true" parentKey="BG" file="Interface\AddOns\OmniCD\Media\texture_flat"/>
-				<FontString parentKey="Text" inherits="OmniCDGameFontHighlightHuge"  justifyH="LEFT">
+				<FontString parentKey="Text" inherits="GameFontHighlightHuge" justifyH="LEFT">
 					<Anchors>
-						<Anchor point="TOPLEFT" x="5" y="0"/>
-						<Anchor point="BOTTOMRIGHT" x="0" y="0"/>
+						<Anchor point="TOPLEFT" x="3" y="0"/>
+						<Anchor point="BOTTOMRIGHT" x="-75" y="0"/>
 					</Anchors>
 				</FontString>
 			</Layer>

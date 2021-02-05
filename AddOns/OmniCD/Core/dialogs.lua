@@ -16,7 +16,9 @@ StaticPopupDialogs["OMNICD_Elv_MSG"] = {
 StaticPopupDialogs["OMNICD_RELOADUI"] = {
 	text = E.userClassHexColor .. "OmniCD:|r %s",
 	OnAccept = function(_, data, data2)
-		if data then
+		if type(data) == "function" then
+			data(data2)
+		elseif data == true then
 			EnableAddOn("Blizzard_CompactRaidFrames")
 			EnableAddOn("Blizzard_CUFProfiles")
 		end
@@ -24,7 +26,11 @@ StaticPopupDialogs["OMNICD_RELOADUI"] = {
 		ReloadUI()
 	end,
 	OnCancel = function(_, data)
-		if data and E.Party.test then E.Party:Test() end
+		if data == true then
+			if E.Party.test then
+				E.Party:Test()
+			end
+		end
 	end,
 	button1 = ACCEPT,
 	button2 = CANCEL,

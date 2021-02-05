@@ -14,13 +14,13 @@
 -- @class file
 -- @name LibCandyBar-3.0
 
-local GetTime, floor, next, wipe = GetTime, floor, next, wipe
+local GetTime, floor, next = GetTime, floor, next
 local CreateFrame, error, setmetatable, UIParent = CreateFrame, error, setmetatable, UIParent
 
 if not LibStub then error("LibCandyBar-3.0 requires LibStub.") end
 local cbh = LibStub:GetLibrary("CallbackHandler-1.0")
 if not cbh then error("LibCandyBar-3.0 requires CallbackHandler-1.0") end
-local lib = LibStub:NewLibrary("LibCandyBar-3.0", 97) -- Bump minor on changes
+local lib = LibStub:NewLibrary("LibCandyBar-3.0", 98) -- Bump minor on changes
 if not lib then return end
 lib.callbacks = lib.callbacks or cbh:New(lib)
 local cb = lib.callbacks
@@ -49,8 +49,8 @@ local SetWidth, SetHeight, SetSize = lib.dummyFrame.SetWidth, lib.dummyFrame.Set
 
 local function stopBar(bar)
 	bar.updater:Stop()
-	if bar.data then wipe(bar.data) end
-	if bar.funcs then wipe(bar.funcs) end
+	bar.data = nil
+	bar.funcs = nil
 	bar.running = nil
 	bar.paused = nil
 	bar:Hide()
@@ -461,6 +461,8 @@ function lib:New(texture, width, height)
 		barCache[bar] = nil
 	end
 
+	bar:SetFrameStrata("MEDIUM")
+	bar:SetFrameLevel(100) -- Lots of room to create above or below this level
 	bar.candyBarBar:SetStatusBarTexture(texture)
 	bar.candyBarBackground:SetTexture(texture)
 	bar.width = width

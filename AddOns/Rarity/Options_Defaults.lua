@@ -182,6 +182,7 @@ function R:PrepareDefaults()
    enableAnnouncements = true,
    feedText = FEED_NORMAL,
    statusTip = TIP_LEFT,
+   tooltipActivation = CONSTANTS.TOOLTIP.ACTIVATION_METHOD_HOVER,
    sortMode = SORT_CATEGORY,
 			hideHighChance = false,
 			enableTooltipAdditions = true,
@@ -1461,21 +1462,21 @@ function R:PrepareDefaults()
 			requiredCovenantID = CONSTANTS.COVENANT_IDS.VENTHYR
 		},
 
-		["Bonehoof Tauralus"] = {
-			cat = SHADOWLANDS,
-			type = MOUNT,
-			method = NPC,
-			name = L["Bonehoof Tauralus"],
-			itemId = 182075,
-			spellId = 332457,
-			npcs = { 162586 },
-			chance = 100,
-			coords = {
-				{ m = CONSTANTS.UIMAPIDS.MALDRAXXUS, x = 44.2, y = 51.2, n = L["Tahonta"] },
-			},
-			requiresCovenant = true,
-			requiredCovenantID = CONSTANTS.COVENANT_IDS.NECROLORD
-		},
+		-- ["Bonehoof Tauralus"] = { -- NYI as of 21/01/2021 ?
+		-- 	cat = SHADOWLANDS,
+		-- 	type = MOUNT,
+		-- 	method = NPC,
+		-- 	name = L["Bonehoof Tauralus"],
+		-- 	itemId = 182075,
+		-- 	spellId = 332457,
+		-- 	npcs = { 162586 },
+		-- 	chance = 100,
+		-- 	coords = {
+		-- 		{ m = CONSTANTS.UIMAPIDS.MALDRAXXUS, x = 44.2, y = 51.2, n = L["Tahonta"] },
+		-- 	},
+		-- 	requiresCovenant = true,
+		-- 	requiredCovenantID = CONSTANTS.COVENANT_IDS.NECROLORD
+		-- },
 
 		["Hopecrusher Gargon"] = {
 			cat = SHADOWLANDS,
@@ -2219,6 +2220,8 @@ function R:PrepareDefaults()
 			spellId = 332466,
 			npcs = { 168147 },
 			chance = 100,	-- Estimate
+			questId = { 58784 },
+			tooltipNpcs = { 168148 },
 			groupSize = 5,
 			equalOdds = true,
 			coords = {
@@ -2228,21 +2231,24 @@ function R:PrepareDefaults()
 			requiredCovenantID = CONSTANTS.COVENANT_IDS.NECROLORD
 		},
 
-		["Bonecleaver's Skullboar"] = {
-			cat = SHADOWLANDS,
-			type = MOUNT,
-			method = NPC,
-			name = L["Bonecleaver's Skullboar"],
-			itemId = 182083,
-			spellId = 332482,
-			npcs = { 168147 },
-			chance = 100,	-- Estimate
-			groupSize = 5,
-			equalOdds = true,
-			coords = {
-				{ m = CONSTANTS.UIMAPIDS.MALDRAXXUS, x = 50.67, y = 47.37, n = L["Sabriel the Bonecleaver"] },
-			},
-		},
+		-- Note: This appears to not have made it to live, so I'm disabling it until further notice
+		-- ["Bonecleaver's Skullboar"] = {
+		-- 	cat = SHADOWLANDS,
+		-- 	type = MOUNT,
+		-- 	method = NPC,
+		-- 	name = L["Bonecleaver's Skullboar"],
+		-- 	itemId = 182083,
+		-- 	spellId = 332482,
+		-- 	npcs = { 168147 },
+		-- 	chance = 100,	-- Estimate
+		-- 	questId = { 58784 },
+		-- 	tooltipNpcs = { 168148 },
+		-- 	groupSize = 5,
+		-- 	equalOdds = true,
+		-- 	coords = {
+		-- 		{ m = CONSTANTS.UIMAPIDS.MALDRAXXUS, x = 50.67, y = 47.37, n = L["Sabriel the Bonecleaver"] },
+		-- 	},
+		-- },
 
 		["Mawsworn Soulhunter"] = {
 			cat = SHADOWLANDS,
@@ -2271,7 +2277,6 @@ function R:PrepareDefaults()
 			npcs = { 162873, 162880, 162875, 162853, 162874, 162872 },
 			chance = 100,	-- Estimate
 			questId =  62786 ,
-			questCompletesAfterLooting = true,
 			groupSize = 5,
 			equalOdds = true,
 			coords = {
@@ -2298,10 +2303,42 @@ function R:PrepareDefaults()
 			},
 		},
 
-    },
+		["Impressionable Gorger Spawn"] = {
+			cat = SHADOWLANDS,
+			type = MOUNT,
+			method = NPC,
+			name = L["Impressionable Gorger Spawn"],
+			itemId = 180583,
+			spellId = 333027,
+			npcs = { 160821 },
+			chance = 100, -- Estimate,
+			questId = 58259,
+			groupSize = 5,
+			equalOdds = true,
+			coords = {
+				{ m = CONSTANTS.UIMAPIDS.REVENDRETH, x = 38.60, y = 72.00, n = L["Worldedge Gorger"] },
+			},
+		},
 
+		["Ascended Skymane"] = {
+			cat = SHADOWLANDS,
+			type = MOUNT,
+			method = SPECIAL,
+			name = L["Ascended Skymane"],
+			spellId = 342335,
+			itemId = 183741,
+			items = { 354175 },
+			chance = 20,
+			tooltipNpcs = { 170834, 170835, 170833, 170832, 170836 },
+			questId = { 60933 },
+			groupSize = 5,
+			equalOdds = true,
+			coords = {
+				{ m = CONSTANTS.UIMAPIDS.BASTION, x = 53.50, y = 88.37, n = L["Cache of the Ascended"] },
+			},
+		},
 
-
+		},
 
 				--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 				-- BATTLE PETS
@@ -3206,6 +3243,22 @@ function R:PrepareDefaults()
 			chance = 20,
 			coords = {
 				{ m = CONSTANTS.UIMAPIDS.ARATHI_HIGHLANDS, x =  36.9, y = 66, n = L["Plaguefeather"] },
+			},
+		},
+
+		["Filthy Bucket"] = {
+			cat = BFA,
+			type = PET,
+			method = NPC,
+			name = L["Filthy Bucket"],
+			itemId = 160704,
+			spellId = 273184,
+			creatureId = 139049,
+			npcs = { 135448 },
+			chance = 10,
+			instanceDifficulties = { [CONSTANTS.INSTANCE_DIFFICULTIES.MYTHIC_DUNGEON] = true },
+			coords = {
+				{ m = CONSTANTS.UIMAPIDS.TOLDAGOR, n = L["Gol'than the Malodorous"] },
 			},
 		},
 
@@ -5325,7 +5378,7 @@ function R:PrepareDefaults()
 		itemId = 181270,
 		chance = 40,
 		creatureId = 172149,
-		--questId = ,
+		questId = 61724,
 		coords = {
 			{ m = CONSTANTS.UIMAPIDS.MALDRAXXUS, x = 58.6, y = 74.2, n = L["Oily Invertebrate"] },
 		},
@@ -5419,6 +5472,7 @@ function R:PrepareDefaults()
 		creatureId = 171714,
 		npcs = { 171041, 171013, 171040 },
 		chance = 20,
+		questId = 61001,
 		coords = {
 			{ m = CONSTANTS.UIMAPIDS.BASTION },
 		},
@@ -5451,6 +5505,7 @@ function R:PrepareDefaults()
 		creatureId = 171118,
 		npcs = { 170048, 165175 },
 		chance = 20,
+		questId = { 60729 },
 		coords = {
 			{ m = CONSTANTS.UIMAPIDS.REVENDRETH, x = 49.84, y = 35.02, n = L["Manifestation of Wrath"] },
 			{ m = CONSTANTS.UIMAPIDS.REVENDRETH, x = 67.8, y = 82, n = L["Prideful Hulk"] },
@@ -5555,7 +5610,7 @@ function R:PrepareDefaults()
 		itemId = 180586,
 		spellId = 333796,
 		creatureId = 171119,
-		npcs = { 164388, 164388 },
+		npcs = { 164388, 160604, 165687 },
 		chance = 1000, -- It's about 5% from the rare, but two sources with different drop rates aren't currently supported
 		coords = {
 			{ m = CONSTANTS.UIMAPIDS.REVENDRETH, x = 25.8, y = 48.4, n = L["Amalgamation of Light"] },
@@ -5739,6 +5794,51 @@ function R:PrepareDefaults()
 		groupSize = 5,
 		coords = {
 			{ m = CONSTANTS.UIMAPIDS.MISTS_OF_TIRNA_SCITHE },
+		},
+	},
+
+	["Skittering Venomspitter"] = {
+		cat = SHADOWLANDS,
+		type = PET,
+		method = SPECIAL,
+		name = L["Skittering Venomspitter"],
+		itemId = 181173,
+		spellId = 335765,
+		creatureId = 171987,
+		chance = 75,
+		coords = {
+			{ m = CONSTANTS.UIMAPIDS.MALDRAXXUS },
+		},
+	},
+
+	["Bubbling Pustule"] = {
+		cat = SHADOWLANDS,
+		type = PET,
+		method = SPECIAL,
+		name = L["Bubbling Pustule"],
+		itemId = 181262,
+		spellId = 335966,
+		creatureId = 172132,
+		chance = 33,
+		coords = {
+			{ m = CONSTANTS.UIMAPIDS.MALDRAXXUS },
+		},
+	},
+
+	["Silvershell Snapper"] = {
+		cat = SHADOWLANDS,
+		type = PET,
+		method = SPECIAL,
+		name = L["Silvershell Snapper"],
+		itemId = 180856,
+		spellId = 335050,
+		creatureId = 171693,
+		chance = 20,
+		tooltipNpcs = { 163460 },
+		questId = { 62650 },
+		sourceText = L["This can be looted after killing Dionae."],
+		coords = {
+			{ m = CONSTANTS.UIMAPIDS.BASTION, x = 41.5, y = 49.1, n = L["Stewart's Stewpendous Stew"] },
 		},
 	},
 
@@ -6924,29 +7024,29 @@ function R:PrepareDefaults()
 	},
 
 	["Acrobatic Steward"] = {
-			cat = SHADOWLANDS,
-			type = ITEM,
-			isToy = true,
-			method = SPECIAL,
-			name = L["Acrobatic Steward"],
-			itemId = 184418,
-			items = {
-				353234,
-				353019,
-				353503,
-				352754,
-				353325,
-				353516,
-				353205,
-				363825,
-				353500,
-				353643
-			},
-			chance = 20, -- Average
-			coords = {
-				{ m = CONSTANTS.UIMAPIDS.BASTION },
-			},
+		cat = SHADOWLANDS,
+		type = ITEM,
+		isToy = true,
+		method = SPECIAL,
+		name = L["Acrobatic Steward"],
+		itemId = 184418,
+		items = {
+			353234,
+			353019,
+			353503,
+			352754,
+			353325,
+			353516,
+			353205,
+			363825,
+			353500,
+			353643
 		},
+		chance = 20, -- Average
+		coords = {
+			{ m = CONSTANTS.UIMAPIDS.BASTION },
+		},
+	},
 
 	["Ever-Abundant Hearth"] = {
 		cat = SHADOWLANDS,
@@ -7021,6 +7121,20 @@ function R:PrepareDefaults()
 		chance = 7,
 		coords = {
 			{ m = CONSTANTS.UIMAPIDS.SEAT_OF_THE_TRIUMVIRATE },
+		},
+	},
+
+	["Kevin's Party Supplies"] = {
+		cat = SHADOWLANDS,
+		type = ITEM,
+		isToy = true,
+		method = SPECIAL,
+		name = L["Kevin's Party Supplies"],
+		itemId = 184447,
+		items = { 354856, },
+		chance = 11,
+		coords = {
+			{ m = CONSTANTS.UIMAPIDS.MALDRAXXUS },
 		},
 	},
 

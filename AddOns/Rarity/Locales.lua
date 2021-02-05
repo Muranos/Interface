@@ -2,6 +2,8 @@ local L
 L = LibStub("AceLocale-3.0"):NewLocale("Rarity", "enUS", true)
 
 -- L["AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"] = true
+L["Rarity"] = true
+L["Ascended Skymane"] = true
 L["Unstable Portal Emitter"] = true
 L["Vixx's Chest of Tricks"] = true
 L["Jar of Ashes"] = true
@@ -652,6 +654,18 @@ L["Adjusts the scale of the primary tooltip. This will take effect the next time
 L["Rarity Tooltip Options"] = true
 L["World Tooltip Options"] = true
 L["General Options"] = true
+L["Tooltip activation"] = true
+L["On hover"] = true
+L["On click"] = true
+L["If \"On click\" is selected, activating the tracker is done via CTRL + SHIFT + Click, otherwise it's activated with a simple click."] = true
+L["Left click"] = true
+L["Open Rarity window"] = true
+L["Right click"] = true
+L["Toggle tracker"] = true
+L["Shift + Left click"] = true
+L["Open settings"] = true
+L["Ctrl + Left click"] = true
+L["Change sorting"] = true
 L["Secondary tooltip display"] = true
 L["Requires Pickpocketing"] = true
 L["When enabled, the item can only be obtained by pickpocketing. The item will be marked Unavailable for non-rogues."] = true
@@ -1534,7 +1548,7 @@ L["Nerissa Heartless"] = true
 L["Blisterback Bloodtusk"] = true
 L["Warbringer Mal'Korak"] = true
 L["Armored Bonehoof Tauralus"] = true
-L["Bonecleaver's Skullboar"] = true
+-- L["Bonecleaver's Skullboar"] = true // NYI as far as I can tell
 L["Sabriel the Bonecleaver"] = true
 L["Mawsworn Soulhunter"] = true
 L["Gorged Shadehound"] = true
@@ -1601,6 +1615,19 @@ L["Contained Essence of Dread"] = true
 L["Eternas the Tormentor"] = true
 L["Tower Deathroach"] = true
 L["Decayspeaker"] = true
+L["Impressionable Gorger Spawn"] = true
+L["Worldedge Gorger"] = true
+L["Cache of the Ascended"] = true
+L["Filthy Bucket"] = true
+L["Gol'than the Malodorous"] = true
+L["Slime-Coated Crate"] = true
+L["Kevin's Party Supplies"] = true
+L["Sprouting Growth"] = true
+L["Skittering Venomspitter"] = true
+L["Bubbling Pustule"] = true
+L["Silvershell Snapper"] = true
+L["This can be looted after killing Dionae."] = true
+L["Stewart's Stewpendous Stew"] = true
 
 --[[
 					The rest of this file is auto-generated using the WoWAce localization application.

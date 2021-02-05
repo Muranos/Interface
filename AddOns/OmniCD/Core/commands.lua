@@ -24,7 +24,7 @@ E.SlashHandler = function(msg)
 			P:ResetAllIcons()
 			E.Write("Timers reset.")
 		elseif (value == "db" or value == "database") then
-			OmniCDDB = {}
+			OmniCDDB = {} --E.DB:ResetDB("Default")
 			ReloadUI()
 		elseif (value == "pf" or value == "profile") then
 			E.DB:ResetProfile()
@@ -49,13 +49,6 @@ E.SlashHandler = function(msg)
 		E.DB.profile.Party[key].position.detached = not E.DB.profile.Party[key].position.detached
 		local state = E.DB.profile.Party[key].position.detached and VIDEO_OPTIONS_ENABLED or VIDEO_OPTIONS_DISABLED
 		E.Write(key, L["Manual Mode"], state)
-		P:Refresh()
-		AceRegistry:NotifyChange("OmniCD")
-	elseif (command == "animate") then
-		local key = E.CFG_ZONE[value] and value or "arena"
-		E.DB.profile.Party[key].highlight.animate = not E.DB.profile.Party[key].highlight.animate
-		local state = E.DB.profile.Party[key].highlight.animate and VIDEO_OPTIONS_ENABLED or VIDEO_OPTIONS_DISABLED
-		E.Write(key, ANIMATION, state)
 		P:Refresh()
 		AceRegistry:NotifyChange("OmniCD")
 	elseif (command == "sync") then
@@ -94,7 +87,7 @@ E.SlashHandler = function(msg)
 		elseif value == "default" then
 			P:ResetOptions(zone, "spells")
 		else
-			local val = gsub(value, "-", "")
+			local removeType = gsub(value, "-", "")
 			for _, v in pairs(E.spell_db) do
 				for i = 1, #v do
 					local spell = v[i]
@@ -102,7 +95,7 @@ E.SlashHandler = function(msg)
 					local sid = tostring(spellID)
 					if not spell.hide and (value == "all" or value == spell.type) then
 						E.DB.profile.Party[zone].spells[sid] = true
-					elseif val == spell.type then
+					elseif removeType == spell.type then
 						E.DB.profile.Party[zone].spells[sid] = false
 					end
 				end
@@ -124,7 +117,7 @@ E.SlashHandler = function(msg)
 		elseif value == "default" then
 			P:ResetOptions(zone, "raidCDS")
 		else
-			local val = gsub(value, "-", "")
+			local removeType = gsub(value, "-", "")
 			for _, v in pairs(E.spell_db) do
 				for i = 1, #v do
 					local spell = v[i]
@@ -132,7 +125,7 @@ E.SlashHandler = function(msg)
 					local sid = tostring(spellID)
 					if not spell.hide and (value == "all" or value == spell.type) then
 						E.DB.profile.Party[zone].raidCDS[sid] = true
-					elseif val == spell.type then
+					elseif removeType == spell.type then
 						E.DB.profile.Party[zone].raidCDS[sid] = false
 					end
 				end
@@ -148,8 +141,9 @@ E.SlashHandler = function(msg)
 		AceDialog:SetDefaultSize("OmniCD", 960,650)
 		AceDialog:Open("OmniCD")
 
-		AceDialog:SelectGroup(E.AddOn, "Party") -- [47]*
-		AceDialog:SelectGroup(E.AddOn, "Enemy")
+		for modName in pairs(E.moduleOptions) do -- [47]*
+			AceDialog:SelectGroup(E.AddOn, modName)
+		end
 		AceDialog:SelectGroup(E.AddOn, "")
 	end
 end

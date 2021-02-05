@@ -20,7 +20,7 @@ end
 markEnhancedDesc = E.FormatConcat(markEnhancedDesc, "%s\n")
 
 local highlight = {
-	name = HIGHLIGHTING,
+	name = "|TInterface\\OptionsFrame\\UI-OptionsFrame-NewFeatureIcon:0:0:0:-1|t" .. HIGHLIGHTING,
 	order = 35,
 	type = "group",
 	get = function(info) return E.DB.profile.Party[info[2]].highlight[info[#info]] end,
@@ -45,6 +45,12 @@ local highlight = {
 					order = 1,
 					type = "toggle",
 				},
+				glowColor = {
+					name = COLOR,
+					order = 2,
+					type = "select",
+					values = E.L_GLOW_ATLAS,
+				},
 			}
 		},
 		highlight = {
@@ -61,11 +67,14 @@ local highlight = {
 					order = 1,
 					type = "toggle",
 				},
-				animate = {
-					name = L["Animate"],
-					desc = L["Enable initial spark and marching-ants animation"],
+				glowType = {
+					name = TYPE,
 					order = 2,
-					type = "toggle",
+					type = "select",
+					values = {
+						actionBar = L["Strong Yellow Glow"],
+						wardrobe = L["Weak Purple Glow"],
+					}
 				},
 				buffTypes = {
 					name = L["Spell Types"],
@@ -109,7 +118,8 @@ local highlight = {
 					multiline = 1,
 					width = "full",
 					get = function(info)
-						return table.concat(E.DB.profile.Party[info[2]].highlight.markedSpells, ";")
+						local t = E.DB.profile.Party[info[2]].highlight.markedSpells.str
+						return t and table.concat(t, ";")
 					end,
 					set = function(info, value)
 						local key = info[2]
@@ -123,17 +133,18 @@ local highlight = {
 							if s == nil then break end
 							s = e + 1
 							local a, b = strsplit("-", v)
-							if strlen(a) < 9 and C_Spell.DoesSpellExist(a) then
-								a = tonumber(a)
-								if not t[a] and not E.spell_marked[a] then
+							if strlen(a) > 1 and strlen(a) < 9 and C_Spell.DoesSpellExist(a) then
+								local a = tonumber(a)
+								if not E.spell_marked[a] then -- overwrite t[a]
+									t.str = t.str or {}
 									if b then
-										if strlen(b) < 9 and C_Spell.DoesSpellExist(b) then
+										if strlen(b) > 1  and strlen(b) < 9 and C_Spell.DoesSpellExist(b) then
 											t[a] = tonumber(b)
-											table.insert(t, v)
+											table.insert(t.str, v)
 										end
 									else
 										t[a] = true
-										table.insert(t, v)
+										table.insert(t.str, v)
 									end
 								end
 							end

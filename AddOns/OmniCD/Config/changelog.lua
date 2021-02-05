@@ -1,6 +1,22 @@
 local E, L, C = select(2, ...):unpack()
 
-C.changelog = [=[
+E.changelog = [=[
+v2.5.10
+    Bug Fixes
+        Fixed talent info not updating when a synced unit had show-player disabled.
+        Combustion's CD reduction fixed.
+        Cooldown reduction by spending resources will correctly apply to synced players.
+        Heartstop Aura (Frost DK - PvP Talent) will correctly apply reduced CD recovery rate. (Arena only)
+        |cffff2020None of the CD counter skins support modrate. Timers will fluctuate erratically whenever CD recovery rate is modulated.|r
+    Feature Updates
+        New Font and Texture option added.
+        Highlighting: Added a weaker glow effect and removed Animate option.
+        Raid support in dungeon instances for MDI.
+        ShadowUF-Raid1, Cell support.
+    Spell Updates
+        Blizzard HotFix applied.
+        Gift of the Naaru (Racial) for non-Paladin classes merged.
+
 v2.5.7
     Bug Fixes
         Fixed pre-existing group member's info not updating.
@@ -109,6 +125,4 @@ v2.5.0
         Aspirant's Medallion used while under the effect of Blessing of Autumn results in slower CD recovery when it ends.
         Thundercharge CD recovery rate doubling when casted on player. (temp fix applied)
         Shifting Power's CD reduction not applying to Alter time for Arcane Mage. (temp fix applied)
-
-
 ]=]

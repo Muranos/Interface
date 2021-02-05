@@ -49,6 +49,8 @@ L["Cannot edit protected spell"] = "無法編輯受保護的法術"
 L["Cannot test while in combat"] = "戰鬥中無法測試"
 L["CENTER"] = "中"
 L["Center Horizontally"] = "水平置中"
+--[[Translation missing --]]
+L["Changelog"] = "Changelog"
 L["Changing party display options in your UF addon while OmniCD is active will break the anchors. Type (/oc rl) to fix the anchors"] = "當OmniCD處於啟用狀態，更改你的隊伍框架設定可能會打亂OmniCD的對齊位置。請輸入 /oc rl 來修正對齊位置。"
 L["Charge Color"] = "次數顏色"
 L["Charge Size"] = "次數大小"
@@ -59,6 +61,8 @@ L["Clean wipe the savedvariable file. |cffff2020Warning|r: This can not be undon
 L["Columns"] = "行數"
 L["Commands:"] = "指令:"
 L["Cooldown"] = "冷卻"
+--[[Translation missing --]]
+L["Cooldown Remaining"] = "Cooldown Remaining"
 L["Copy"] = "複製"
 L["Copy Default"] = "複製預設"
 L["Copy selected zone settings to the current zone"] = "將選取區域的設定複製到當前區域"
@@ -74,8 +78,12 @@ L["Crop"] = "Crop"
 --[[Translation missing --]]
 L["Crop Icons 1.5:1."] = "Crop Icons 1.5:1."
 L["Crowd Control"] = "控場"
+--[[Translation missing --]]
+L["Current Profile"] = "Current Profile"
 L["Current Unit Frame Addon"] = "目前使用的單位框架插件"
 L["Custom Priority"] = "自訂排序"
+--[[Translation missing --]]
+L["Custom Spells"] = "Custom Spells"
 L["Custom UI"] = "自訂介面"
 L["Default spells are reverted back to original values and removed from the list only"] = "預設法術只會恢復成原始值並且從清單中移除"
 L["Defensive"] = "防禦"
@@ -105,10 +113,18 @@ L["Enter item ID to enable spell when the item is equipped only"] = "輸入物�
 L["Enter Spell ID to Add/Edit"] = "輸入法術 ID 來新增 / 編輯"
 L["Enter talent ID if the spell is a talent ability in any of the class specializations. This ensures proper spell detection."] = "法術是任何職業專精的天賦能力時，請輸入天賦 ID，以確保能夠正確的偵測。"
 L["Enter value to set a custom spell priority. This value is applied to all zones."] = "輸入數值來設定自訂的法術排列順序，此設定會套用到所有區域。"
+--[[Translation missing --]]
+L["Export Profile"] = "Export Profile"
 L["Extra Bars"] = "額外技能列"
 L["Fade In Time"] = "淡入時間"
 L["Fade Out Time"] = "淡出時間"
 L["Feedback"] = "問題與建議"
+--[[Translation missing --]]
+L["Font"] = "Font"
+--[[Translation missing --]]
+L["Font Outline"] = "Font Outline"
+--[[Translation missing --]]
+L["Fonts"] = "Fonts"
 L["Glow Icons"] = "圖示發光"
 L["Group Size"] = "隊伍大小"
 L["Group Type"] = "隊伍類型"
@@ -133,12 +149,16 @@ L["Icon Size"] = "圖示大小"
 L["Icon size auto adjusts as a percentage of the anchored frame height"] = "依據所對齊框架的高度百分比自動調整圖示大小"
 L["Icons"] = "圖示"
 L["Immunity"] = "免疫"
+--[[Translation missing --]]
+L["Import Profile"] = "Import Profile"
 L["Inactive"] = "未啟動"
 L["Inactive Icon Opacity"] = "非冷卻中圖示不透明度"
 L["INNER"] = "內部"
 L["Interrupt Bar"] = "斷法技能列"
 L["Interrupts"] = "斷法"
 L["Invalid ID"] = "無效的 ID"
+--[[Translation missing --]]
+L["Invalid Profile"] = "Invalid Profile"
 L["Item ID (Optional)"] = "物品 ID (選擇性)"
 L["Jump to Extra Bars settings"] = "跳至額外技能列設定"
 L["Layout"] = "版面配置"
@@ -166,7 +186,15 @@ L["Pixel Perfect"] = "像素完美模式"
 L["Pixel Perfect ON."] = "像素完美模式已開啟。"
 L["Player Frame in Party"] = "隊伍中的玩家框架"
 L["Position"] = "位置"
+--[[Translation missing --]]
+L["Press Ctrl+C to copy profile"] = "Press Ctrl+C to copy profile"
+--[[Translation missing --]]
+L["Press Ctrl+C to copy URL"] = "Press Ctrl+C to copy URL"
 L["Priority"] = "排序"
+--[[Translation missing --]]
+L["Profile"] = "Profile"
+--[[Translation missing --]]
+L["Profile Sharing"] = "Profile Sharing"
 L["Raid Bar"] = "團隊技能列"
 L["Raid CD"] = "團隊冷卻"
 L["Raid Defensive"] = "團隊防禦"
@@ -239,7 +267,11 @@ L["Spell Editor"] = "法術編輯器"
 L["Spell ID"] = "法術 ID"
 L["Spell Types"] = "法術類型"
 L["Spells"] = "法術"
+--[[Translation missing --]]
+L["Status Bar"] = "Status Bar"
 L["Status Bar Timer"] = "狀態列計時器"
+--[[Translation missing --]]
+L["Strong Yellow Glow"] = "Strong Yellow Glow"
 L["Supported UI"] = "支援的插件"
 L["Swipe Opacity"] = "轉圈不透明度"
 L["Synchronize"] = "同步"
@@ -275,3 +307,5 @@ L["Version"] = "版本"
 L["Vertical"] = "垂直"
 L["Vertical Groups"] = "垂直隊伍"
 L["Visibility"] = "顯示"
+--[[Translation missing --]]
+L["Weak Purple Glow"] = "Weak Purple Glow"

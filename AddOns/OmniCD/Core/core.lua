@@ -7,23 +7,41 @@ E.Write = function(...)
 	print(E.userClassHexColor .. "OmniCD|r: ", ...)
 end
 
+E.DeepCopy = function(source, blackList)
+	local copy = {}
+	if type(source) == "table" then
+		for k, v in pairs(source) do
+			if not blackList or not blackList[k] then
+				copy[k] = E.DeepCopy(v)
+			end
+		end
+	else
+		copy = source
+	end
+
+	return copy
+end
+
 E.IsTableExact = function(a, b)
 	if #a ~= #b then return false end
 	for i = 1, #a do
 		if (a[i] ~= b[i]) then return false end
 	end
+
 	return true
 end
 
-E.DeepCopy = function(source)
+E.RemoveTableDuplicates = function(dest, src)
 	local copy = {}
-	if type(source) == "table" then
-		for k, v in pairs(source) do
-			copy[k] = E.DeepCopy(v)
+	for k, v in pairs(dest) do
+		local srcV = src[k]
+		if type(v) == 'table' and type(srcV) == 'table' then
+			copy[k] = E.RemoveTableDuplicates(v, srcV)
+		elseif v ~= srcV then
+			copy[k] = v
 		end
-	else
-		copy = source
 	end
+
 	return copy
 end
 
@@ -64,7 +82,7 @@ local function SavePosition(f)
 	x = x * s
 	y = y * s
 
-	local db = f.settings or E.db
+	local db = f.db or E.db
 	db = db.manualPos[f.key]
 	db.x = x
 	db.y = y
@@ -72,7 +90,7 @@ end
 
 E.LoadPosition = function(f, key)
 	key = key or f.key
-	local db = f.settings or E.db -- [57]
+	local db = f.db or E.db -- [57]
 	db.manualPos[key] = db.manualPos[key] or {}
 	db = db.manualPos[key]
 	local x = db.x
@@ -91,14 +109,14 @@ E.LoadPosition = function(f, key)
 end
 
 E.UpdatePosition = function(f)
-	if not f.settings then return end
+	if not f.isExBar then return end
 
 	E.LoadPosition(f)
 
 	local parentWidth = UIParent:GetWidth()
-	local clamp = f.settings.center and (1 - parentWidth)/2 or 0
+	local clamp = f.db.center and (1 - parentWidth)/2 or 0
 	f:SetClampRectInsets(clamp, -clamp, 0, 0)
-	clamp = f.settings.center and (f.anchor:GetWidth() - parentWidth)/2 or 0
+	clamp = f.db.center and (f.anchor:GetWidth() - parentWidth)/2 or 0
 	f.anchor:SetClampRectInsets(clamp, -clamp, 0, 0)
 end
 
@@ -168,6 +186,7 @@ E.FormatConcat = function(tbl, template, template2)
 			t[k] = v and template:format(v) or ""
 		end
 	end
+
 	return table.concat(t)
 end
 
@@ -183,3 +202,41 @@ E.pairs = function(t, ...)
 		return k, v
 	end
 end
+
+E.RegisterEvents = function(f, t)
+	if not t then return end
+	f.eventMap = f.eventMap or {}
+
+	if type(t) == "table" then
+		for i = 1, #t do
+			local event = t[i]
+			if not f.eventMap[event] then
+				f:RegisterEvent(event)
+				f.eventMap[event] = true
+			end
+		end
+	elseif not f.eventMap[t] then
+		f:RegisterEvent(t)
+		f.eventMap[t] = true
+	end
+end
+
+E.UnregisterEvents = function(f, t)
+	if not t then return end
+	f.eventMap = f.eventMap or {}
+
+	if type(t) == "table" then
+		for i = 1, #t do
+			local event = t[i]
+			if f.eventMap[event] then
+				f:UnregisterEvent(event)
+				f.eventMap[event] = nil
+			end
+		end
+	elseif f.eventMap[t] then
+		f:UnregisterEvent(t)
+		f.eventMap[t] = nil
+	end
+end
+
+E.noop = function() end

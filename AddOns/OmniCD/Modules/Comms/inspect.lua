@@ -81,8 +81,8 @@ function Comms:InitInspect()
 		return
 	end
 
-	InspectQueueFrame:SetScript("OnUpdate", InspectQueueFrame_OnUpdate)
 	InspectQueueFrame:Hide()
+	InspectQueueFrame:SetScript("OnUpdate", InspectQueueFrame_OnUpdate)
 
 	self.init = true
 end

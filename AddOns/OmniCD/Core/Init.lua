@@ -16,7 +16,7 @@ end
 function AddOn:SetNumPixels()
 	local _, screenheight = GetPhysicalScreenSize()
 	local uiUnitFactor = 768 / screenheight
-	local uiScale = ElvUI and not ElvUI[1].global.general.AutoScale and ElvUI[1].global.general.UIScale or UIParent:GetScale()
+	local uiScale = UIParent:GetScale()
 	self.NumPixels = uiUnitFactor / uiScale
 end
 

@@ -24,15 +24,23 @@ end
 
 L["Localizations"] = LANGUAGES_LABEL
 
-local fields = {
+local labels = {
 	"Version",
 	"Author",
 	"Supported UI",
 	"Localizations",
+	"/oc t:",
+	"/oc rl:",
+	"/oc rt:",
+	"/oc rt db:",
 }
 
-local values = {
+local fields = {
 	["Localizations"] = GetLocalization(),
+	["/oc t:"] = L["Toggle test frames for current zone."],
+	["/oc rl:"] = L["Reload addon."],
+	["/oc rt:"] = L["Reset all cooldown timers."],
+	["/oc rt db:"] = L["Clean wipe the savedvariable file. |cffff2020Warning|r: This can not be undone!"],
 }
 
 do
@@ -43,11 +51,15 @@ do
 		t[i] = uf
 	end
 
-	values["Supported UI"] = E.FormatConcat(t, "%s, ")
+	fields["Supported UI"] = E.FormatConcat(t, "%s, ")
+	t = nil
 end
 
+local getField = function(info) local label = info[#info] return fields[label] or E[label] or "" end
+local COPY_URL =  L["Press Ctrl+C to copy URL"]
+
 local isFound
-local changelog = C.changelog:gsub("^[ \t\n]*", E.HEX_C.PERFORMANCE_BLUE):gsub("v(%d[^\n%s]+)",function(ver)
+local changelog = E.changelog:gsub("^[ \t\n]*", E.HEX_C.PERFORMANCE_BLUE):gsub("v(%d[^\n%s]+)",function(ver)
 	if not isFound and ver ~= E.Version then
 		isFound = true
 		return "|cff9d9d9dv"..ver
@@ -67,8 +79,8 @@ local function GetOptions()
 					order = 0,
 					type = "group",
 					childGroups = "tab",
-					get = function(info) local option = info[#info] return E.DB.profile[option] end,
-					set = function(info, value) local option = info[#info] E.DB.profile[option] = value end,
+					get = function(info) return E.DB.profile[info[#info]] end,
+					set = function(info, value) E.DB.profile[info[#info]] = value end,
 					args = {
 						title = {
 							image = "Interface\\AddOns\\OmniCD\\Media\\logo64", imageWidth = 64, imageHeight = 64, imageCoords = { 0, 1, 0, 1 },
@@ -97,8 +109,8 @@ local function GetOptions()
 						pd3 = {
 							name = "\n", order = 13, type = "description",
 						},
-						whatsNew = {
-							name = SPLASH_BASE_HEADER,
+						changelog = {
+							name = L["Changelog"],
 							order = 20,
 							type = "group",
 							args = {
@@ -110,7 +122,7 @@ local function GetOptions()
 								lb1 = {
 									name = "\n", order = 2, type = "description",
 								},
-								whatsNew = {
+								changelog = {
 									name = changelog,
 									order = 3,
 									type = "description",
@@ -121,19 +133,12 @@ local function GetOptions()
 							name = L["Slash Commands"],
 							order = 30,
 							type = "group",
+							get = getField,
 							args = {
-								H1 = {name = L["Usage:"], order = 1, type = "description"},
-								d1 = {name = "/oc <command> <value:optional>", order = 2, type = "description"},
-								lb = {name = "\n\n", order = 3, type = "description"},
-								H2 = {name = L["Commands:"], order = 4, type = "description"},
-								f1 = {name = E.HEX_C.PERFORMANCE_BLUE .. "/oc t:", order = 5, type = "description", width = 0.6},
-								v1 = {name = L["Toggle test frames for current zone."], order = 6, type = "description", width = 3.5},
-								f2 = {name = E.HEX_C.PERFORMANCE_BLUE .. "/oc rl:", order = 7, type = "description", width = 0.6},
-								v2 = {name = L["Reload addon."], order = 8, type = "description", width = 3.5},
-								f3 = {name = E.HEX_C.PERFORMANCE_BLUE .. "/oc rt:", order = 9, type = "description", width = 0.6},
-								v3 = {name = L["Reset all cooldown timers."], order = 10, type = "description", width = 3.5},
-								f4 = {name = E.HEX_C.PERFORMANCE_BLUE .. "/oc rt db:", order = 11, type = "description", width = 0.6},
-								v4 = {name = L["Clean wipe the savedvariable file. |cffff2020Warning|r: This can not be undone!"], order = 12, type = "description", width = 3.5},
+								lb1 = { name = L["Usage:"], order = 1, type = "description" },
+								lb2 = { name = "/oc <command> <value:optional>", order = 2, type = "description"},
+								lb3 = { name = "\n\n", order = 3, type = "description"},
+								lb4 = { name = L["Commands:"], order = 4, type = "description"},
 							}
 						},
 						feedback = {
@@ -141,33 +146,21 @@ local function GetOptions()
 							order = 40,
 							type = "group",
 							args = {
-								f1 = {
+								issues = {
 									name = SUGGESTFRAME_TITLE,
+									desc = COPY_URL,
 									order = 1,
-									type = "description",
-									width = 0.6,
+									type = "input",
+									get = function(info) return "https://www.curseforge.com/wow/addons/omnicd/issues" end,
+									dialogControl = "Link-OmniCD",
 								},
-								v1 = {
-									name = "",
+								translate = {
+									name = L["Help Translate"],
+									desc = COPY_URL,
 									order = 2,
 									type = "input",
-									width = 3.5,
-									get = function() return "https://www.curseforge.com/wow/addons/omnicd/issues" end,
-									set = function() return end,
-								},
-								f2 = {
-									name = L["Help Translate"],
-									order = 3,
-									type = "description",
-									width = 0.6,
-								},
-								v2 = {
-									name = "",
-									order = 4,
-									type = "input",
-									width = 3.5,
 									get = function() return "https://www.curseforge.com/wow/addons/omnicd/localization" end,
-									set = function() return end,
+									dialogControl = "Link-OmniCD",
 								},
 							}
 						},
@@ -181,24 +174,24 @@ local function GetOptions()
 			},
 		}
 
-		for i = 1, #fields do
-			local field = fields[i]
-			local value = E[field] or values[field] or ""
-			E.options.args.home.args[field] = {
-				name = "|cffffd200" .. (L[field] or field),
-				order = i,
-				type = "description",
-				width = 0.6,
-			}
-			E.options.args.home.args[field .. "value"] = {
-				name = i == 1 and function() return value .. " " .. (E.DB.global.oodMsg or "") end or value,
-				order = i + 0.1,
-				type = "description",
-				width = 3.5,
-			}
-			E.options.args.home.args["lb" .. i] = {
-				name = "", order = i + 0.2, type = "description"
-			}
+		for i = 1, #labels do
+			local label = labels[i]
+			if i > 4 then
+				E.options.args.home.args.slashCommands.args[label] = {
+					name = E.HEX_C.PERFORMANCE_BLUE .. label,
+					order = i,
+					type = "input",
+					dialogControl = "Info-OmniCD",
+				}
+			else
+				E.options.args.home.args[label] = {
+					name = L[label] or label,
+					order = i,
+					type = "input",
+					dialogControl = "Info-OmniCD",
+					get = i == 1 and function() return E[label] .. " " .. (E.DB.global.oodMsg or "") end or getField,
+				}
+			end
 		end
 
 		for k, v in pairs(E.moduleOptions) do
@@ -230,6 +223,7 @@ local function GetOptions()
 			}
 		end
 
+		E:AddGeneral()
 		E:AddSpellEditor()
 	end
 
@@ -241,7 +235,7 @@ function E:SetupOptions()
 	self.optionsFrames.OmniCD = AceDialog:AddToBlizOptions(E.AddOn)
 
 	self.optionsFrames.profiles = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.DB)
-	self.optionsFrames.profiles.order = -1
+	self.optionsFrames.profiles.order = 2000
 	self.optionsFrames.profiles.args.title = {
 		name = "|cffffd200" .. self.optionsFrames.profiles.name,
 		order = 0,

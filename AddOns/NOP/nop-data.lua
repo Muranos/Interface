@@ -119,6 +119,8 @@ NOP.T_RECIPES = { -- [ItemId] = {{count_to_use,priority}, "gsub regex" | tooltip
   [141991] = {{1,PRI_REP},1,nil,nil,1894}, -- Greater Wardens Insignia
 }
 NOP.T_ITEMS = { -- [itemID] = {{count_to_use,priority},{"sub-Zone",...},{[mapID]=true,...},auraID}, table for opening/use item by itemID, when is no possible to check for any common text
+  [168207] = {{1,PRI_OPEN},nil,nil}, -- [Plundered Anima Cell]
+  [184662] = {{1,PRI_OPEN},nil,nil}, -- [Requisitioned Anima Cell]
   [166999] = {{1,PRI_OPEN},nil,nil}, -- [Treasure Map]
   [ 47030] = {{1,PRI_OPEN},nil,nil}, -- [Huge Seaforium Bombs]
   [ 46847] = {{1,PRI_OPEN},nil,nil}, -- [Huge Seaforium Bombs]

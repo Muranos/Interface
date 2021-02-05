@@ -63,8 +63,9 @@ C["Party"] = {
 		},
 		highlight = {
 			["glow"] = true,
+			["glowColor"] = "bags-glow-white",
 			["glowBuffs"] = true,
-			["animate"] = true,
+			["glowType"] = "wardrobe",
 			["glowBuffTypes"] = {
 				["defensive"] = true,
 				["raidDefensive"] = true,
@@ -168,8 +169,6 @@ C["Party"] = {
 	},
 	noneZoneSetting = "arena",
 	scenarioZoneSetting = "arena",
-	none = {},
-	scenario = {},
 	customPriority = {},
 }
 

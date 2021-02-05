@@ -4185,6 +4185,7 @@ local function AddTomTomWaypoint(group, auto, recur)
 			};
 			if group.title then opt.title = opt.title .. "\n" .. group.title; end
 			if group.criteriaID then opt.title = opt.title .. "\nCriteria for " .. GetAchievementLink(group.achievementID); end
+			if group.description then opt.from = opt.from .. "\n" .. string.gsub(group.description, "%.% ", ".\n"); end
 			local defaultMapID = GetRelativeMap(group, app.GetCurrentMapID());
 			local displayID = GetDisplayID(group);
 			if displayID then
@@ -4868,27 +4869,42 @@ local function RefreshCollections()
 		app.print("Done refreshing collection.");
 	end);
 end
-local function RefreshMountCollection()
+local function RefreshMountCollection(newMountID)
 	StartCoroutine("RefreshMountCollection", function()
+		-- print("Mount Collected",newMountID)
 		while InCombatLockdown() do coroutine.yield(); end
 
 		-- Cache current counts
 		local previousProgress = app:GetDataCache().progress or 0;
+		-- print("Previous Progress",previousProgress)
 
 		-- Refresh Mounts
 		local collectedSpells = GetDataMember("CollectedSpells", {});
 		local collectedSpellsPerCharacter = GetTempDataMember("CollectedSpells", {});
-		for i,mountID in ipairs(C_MountJournal.GetMountIDs()) do
-			local _, spellID, _, _, _, _, _, _, _, _, isCollected = C_MountJournal_GetMountInfoByID(mountID);
+		-- specific mount collected
+		if newMountID then
+			local _, spellID, _, _, _, _, _, _, _, _, isCollected = C_MountJournal_GetMountInfoByID(newMountID);
 			if spellID and isCollected then
+				-- print("collected spellID",spellID);
 				collectedSpells[spellID] = 1;
 				collectedSpellsPerCharacter[spellID] = 1;
+			end
+		-- or just check all mounts
+		else
+			for i,mountID in ipairs(C_MountJournal.GetMountIDs()) do
+				local _, spellID, _, _, _, _, _, _, _, _, isCollected = C_MountJournal_GetMountInfoByID(mountID);
+				if spellID and isCollected then
+					-- print("collected spellID",spellID);
+					collectedSpells[spellID] = 1;
+					collectedSpellsPerCharacter[spellID] = 1;
+				end
 			end
 		end
 
 		-- Wait a frame before harvesting item collection status.
 		coroutine.yield();
-		app:RefreshData(false, true);
+		-- print("Refresh to check progress after collection...")
+		app:RefreshData(false, true);		
 
 		-- Wait 2 frames before refreshing states.
 		coroutine.yield();
@@ -4896,12 +4912,16 @@ local function RefreshMountCollection()
 
 		-- Compare progress
 		local progress = app:GetDataCache().progress or 0;
-		if progress < previousProgress then
+		-- print("New Progress",progress)
+		-- decrease in progress and not a specific mount ID added
+		if progress < previousProgress and not newMountID then
+			-- print("Play Remove")
 			app:PlayRemoveSound();
-		elseif progress > previousProgress then
-			app:PlayFanfare();
+		-- increase in progress or new mount ID specifically added
+		elseif progress > previousProgress or newMountID then
+			-- print("Play Rare Find",newMountID)
+			app:PlayRareFindSound();
 		end
-		wipe(searchCache);
 	end);
 end
 local function GetGroupSortValue(group)
@@ -4929,8 +4949,8 @@ local function SortGroup(group, sortType, row, recur)
 		if sortType == "name" then
 			local txtA, txtB;
 			table.sort(group.g, function(a, b)
-				txtA = a and tostring(a.sorttext or a.text) or "";
-				txtB = b and tostring(b.sorttext or b.text) or "";
+				txtA = a and tostring(a.name or a.text) or "";
+				txtB = b and tostring(b.name or b.text) or "";
 				if txtA then
 					if txtB then return txtA < txtB; end
 					return true;
@@ -5874,12 +5894,10 @@ app.BaseCategory = {
 	__index = function(t, key)
 		if key == "key" then
 			return "categoryID";
+		elseif key == "name" then
+			return app.GetDataSubMember("Categories", t.categoryID) or "Open your Professions to Cache";
 		elseif key == "text" then
-			local info = app.GetDataSubMember("Categories", t.categoryID);
-			if info then
-				return app.TryColorizeName(t, info);
-			end
-			return "Open your Professions to Cache";
+			return app.TryColorizeName(t, t.name);
 		elseif key == "icon" then
 			return "Interface/ICONS/INV_Garrison_Blueprints1";
 		else
@@ -6107,7 +6125,7 @@ app.BaseEncounter = {
 			return "encounterID";
 		elseif key == "text" then
 			return app.TryColorizeName(t, t.name);
-		elseif key == "name" or key == "sorttext" then
+		elseif key == "name" then
 			return select(1, EJ_GetEncounterInfo(t.encounterID)) or "";
 		elseif key == "description" then
 			return select(2, EJ_GetEncounterInfo(t.encounterID)) or "";
@@ -6198,26 +6216,29 @@ app.BaseFaction = {
 		elseif key == "trackable" or key == "collectible" then
 			return app.CollectibleReputations;
 		elseif key == "saved" or key == "collected" then
-			-- this character is exalted
-			if GetTempDataSubMember("CollectedFactions", t.factionID) then return 1; end
-			-- another character exalted with account-wide
-			if app.AccountWideReputations and GetDataSubMember("CollectedFactions", t.factionID) then return 2; end
-			if t.isFriend and not select(9, GetFriendshipReputation(t.factionID)) or t.standing == 8 then
-				SetTempDataSubMember("CollectedFactions", t.factionID, 1);
-				SetDataSubMember("CollectedFactions", t.factionID, 1);
-				return 1;
-			end
-			if t.altAchievements then
-				for i,achID in ipairs(t.altAchievements) do
-					if select(4, GetAchievementInfo(achID)) then
-						return 2;
-					end
-				end
-			end
-			if t.achievementID then
-				return select(4, GetAchievementInfo(t.achievementID));
-			end
-		elseif key == "name" or key == "sorttext" then
+			return app.GetFactionCollected(t.factionID,t.altAchievements) or t.achievementID and select(4, GetAchievementInfo(t.achievementID));
+			-- -- this character is exalted
+			-- if GetTempDataSubMember("CollectedFactions", t.factionID) then return 1; end
+			-- -- another character exalted with account-wide
+			-- if app.AccountWideReputations and GetDataSubMember("CollectedFactions", t.factionID) then return 2; end
+			-- if t.isFriend and not select(9, GetFriendshipReputation(t.factionID)) or t.standing == 8 then
+			-- 	SetTempDataSubMember("CollectedFactions", t.factionID, 1);
+			-- 	SetDataSubMember("CollectedFactions", t.factionID, 1);
+			-- 	return 1;
+			-- end
+			-- if t.altAchievements then
+			-- 	for i,achID in ipairs(t.altAchievements) do
+			-- 		if select(4, GetAchievementInfo(achID)) then
+			-- 			SetTempDataSubMember("CollectedFactions", t.factionID, 1);
+			-- 			SetDataSubMember("CollectedFactions", t.factionID, 1);
+			-- 			return 2;
+			-- 		end
+			-- 	end
+			-- end
+			-- if t.achievementID then
+			-- 	return select(4, GetAchievementInfo(t.achievementID));
+			-- end
+		elseif key == "name" then
 			return select(1, GetFactionInfoByID(t.factionID)) or (t.creatureID and NPCNameFromID[t.creatureID]) or ("Faction #" .. t.factionID);
 		elseif key == "text" then
 			return app.TryColorizeName(t, t.name);
@@ -6280,6 +6301,52 @@ app.GetFactionStandingText = function(standingId, colorCode)
 		end
 	end
 	return "|cCC222200UNKNOWN|r"
+end
+-- Returns whether the given factionID is considered 'collected' for the current character with the current settings, including altAchievements for factions which are
+-- considered completed via an achievement which requires completing multiple
+app.GetFactionCollected = function(factionID, altAchievements)
+	if factionID then
+		local factionName = GetFactionInfoByID(factionID);
+		-- print("check factionID",factionID,factionName)
+		-- this character is cached exalted
+		if GetTempDataSubMember("CollectedFactions", factionID) then return 1; end
+		-- print("character not exalted")
+		-- another character cached exalted with account-wide
+		if app.AccountWideReputations and GetDataSubMember("CollectedFactions", factionID) then return 2; end
+		-- print("not account-wide exalted")
+		-- character is freshly exalted
+		if select(3, GetFactionInfoByID(factionID)) == 8 then
+			-- print("fresh exalted")
+			SetTempDataSubMember("CollectedFactions", factionID, 1);
+			SetDataSubMember("CollectedFactions", factionID, 1);
+			return 1;
+		end
+		-- is a 'friendship' reputation
+		local friendID, _, _, _, _, _, _, _, nextFriendThreshold = GetFriendshipReputation(factionID);
+		if friendID and not nextFriendThreshold then
+			-- print("fresh exalted friendship")
+			SetTempDataSubMember("CollectedFactions", factionID, 1);
+			SetDataSubMember("CollectedFactions", factionID, 1);
+			return 1;
+		end
+		-- reputation is 'completed' via completion of an achievement (i.e. 2 conflicting exalted reps achieve)
+		if altAchievements then
+			for i,achID in ipairs(altAchievements) do
+				if select(4, GetAchievementInfo(achID)) then
+					-- print("completed via ach",achID)
+					SetTempDataSubMember("CollectedFactions", factionID, 1);
+					SetDataSubMember("CollectedFactions", factionID, 1);
+					-- return 2 since it's not 'technically' completed reputation currently for this character
+					return 2;
+				end
+			end
+		end
+		-- print("incomplete rep")
+		-- not sure when this is useful?
+		-- if t.achievementID then
+		-- 	return select(4, GetAchievementInfo(t.achievementID));
+		-- end
+	end
 end
 end)();
 
@@ -6380,8 +6447,10 @@ end)();
 						end
 					end
 				end
+			elseif key == "name" then
+				return t.info.name or L["VISIT_FLIGHT_MASTER"];		-- L["VISIT_FLIGHT_MASTER"] = "Visit the Flight Master to cache."
 			elseif key == "text" then
-				return app.TryColorizeName(t, t.info.name or L["VISIT_FLIGHT_MASTER"]);		-- L["VISIT_FLIGHT_MASTER"] = "Visit the Flight Master to cache."
+				return app.TryColorizeName(t, t.name);
 			elseif key == "u" then
 				return t.info.u;
 			elseif key == "coord" then
@@ -6896,22 +6965,23 @@ app.BaseHeirloom = {
 			-- heirloom for a faction (grand commendation/rep item/etc.)
 			if t.factionID then
 				if t.repeatable then
-					-- This is used by reputation tokens.
-					if app.AccountWideReputations then
-						if GetDataSubMember("CollectedFactions", t.factionID) then
-							return 1;
-						end
-					else
-						if GetTempDataSubMember("CollectedFactions", t.factionID) then
-							return 1;
-						end
-					end
+					return app.GetFactionCollected(t.factionID);
+					-- -- This is used by reputation tokens.
+					-- if app.AccountWideReputations then
+					-- 	if GetDataSubMember("CollectedFactions", t.factionID) then
+					-- 		return 1;
+					-- 	end
+					-- else
+					-- 	if GetTempDataSubMember("CollectedFactions", t.factionID) then
+					-- 		return 1;
+					-- 	end
+					-- end
 
-					if select(1, GetFriendshipReputation(t.factionID)) and not select(9, GetFriendshipReputation(t.factionID)) or select(3, GetFactionInfoByID(t.factionID)) == 8 then
-						SetTempDataSubMember("CollectedFactions", t.factionID, 1);
-						SetDataSubMember("CollectedFactions", t.factionID, 1);
-						return 1;
-					end
+					-- if select(1, GetFriendshipReputation(t.factionID)) and not select(9, GetFriendshipReputation(t.factionID)) or select(3, GetFactionInfoByID(t.factionID)) == 8 then
+					-- 	SetTempDataSubMember("CollectedFactions", t.factionID, 1);
+					-- 	SetDataSubMember("CollectedFactions", t.factionID, 1);
+					-- 	return 1;
+					-- end
 				else
 					-- This is used for the Grand Commendations unlocking Bonus Reputation
 					if GetDataSubMember("CollectedFactionBonusReputation", t.factionID) then return 1; end
@@ -7206,23 +7276,29 @@ local itemFields = {
 		-- if the item is collectible because it's tied to a factionID
 		if cache then
 			if t.repeatable then
-				-- This is used by reputation tokens.
-				if app.AccountWideReputations then
-					if GetDataSubMember("CollectedFactions", cache) then
-						return 1;
-					end
-				else
-					if GetTempDataSubMember("CollectedFactions", cache) then
-						return 1;
-					end
-				end
+				-- This is used by reputation-granting items.
+				return app.GetFactionCollected(cache);
+				-- if app.AccountWideReputations then
+				-- 	print("account-wide reps")
+				-- 	if GetDataSubMember("CollectedFactions", cache) then
+				-- 		print("collected")
+				-- 		return 1;
+				-- 	end
+				-- else
+				-- 	if GetTempDataSubMember("CollectedFactions", cache) then
+				-- 		print("collected")
+				-- 		return 1;
+				-- 	end
+				-- end
 
-				if select(1, GetFriendshipReputation(cache)) and not select(9, GetFriendshipReputation(cache)) or select(3, GetFactionInfoByID(cache)) == 8 then
-					SetTempDataSubMember("CollectedFactions", cache, 1);
-					SetDataSubMember("CollectedFactions", cache, 1);
-					return 1;
-				end
+				-- if select(1, GetFriendshipReputation(cache)) and not select(9, GetFriendshipReputation(cache)) or select(3, GetFactionInfoByID(cache)) == 8 then
+				-- 	SetTempDataSubMember("CollectedFactions", cache, 1);
+				-- 	SetDataSubMember("CollectedFactions", cache, 1);
+				-- 	return 1;
+				-- end
+				-- print("incomplete rep")
 			else
+				-- print("non-repeatable reputaiton item")
 				-- This is used for the Grand Commendations unlocking Bonus Reputation
 				if GetDataSubMember("CollectedFactionBonusReputation", cache) then return 1; end
 				if select(15, GetFactionInfoByID(cache)) then
@@ -7418,8 +7494,10 @@ app.BaseMap = {
 			end
 		elseif key == "key" then
 			return "mapID";
+		elseif key == "name" then
+			return app.GetMapName(t.mapID);
 		elseif key == "text" then
-			return app.TryColorizeName(t, app.GetMapName(t.mapID));
+			return app.TryColorizeName(t, t.name);
 		elseif key == "back" then
 			if app.CurrentMapID == t.mapID or (t.maps and contains(t.maps, app.CurrentMapID)) then
 				return 1;
@@ -7633,17 +7711,13 @@ local npcFields = {
 	end,
 	["name"] = function(t)
 		_cache = rawget(t, "npcID");
-		return app.TryColorizeName(t, NPCNameFromID[_cache]);
+		return NPCNameFromID[_cache];
 	end,
 	["repeatable"] = function(t)
 		return rawget(t, "isDaily") or rawget(t, "isWeekly") or rawget(t, "isMonthly") or rawget(t, "isYearly")  or rawget(t, "isWorldQuest");
 	end,
 	["text"] = function(t)
-		_cache = t.name;
-		if rawget(t, "isRaid") and _cache then
-			return "|cffff8000" .. _cache .. "|r";
-		end
-		return _cache;
+		return app.TryColorizeName(t, t.name);
 	end,
 	["title"] = function(t)
 		_cache = rawget(t, "npcID");
@@ -7675,11 +7749,11 @@ app.BaseObject = {
 	__index = function(t, key)
 		if key == "key" then
 			return "objectID";
+		elseif key == "name" then
+			rawset(t, "name", L["OBJECT_ID_NAMES"][t.objectID] or ("Object ID #" .. t.objectID));
+			return rawget(t, "name");
 		elseif key == "text" then
-			local name = L["OBJECT_ID_NAMES"][t.objectID] or ("Object ID #" .. t.objectID);
-			name = app.TryColorizeName(t, name);
-			rawset(t, "text", name);
-			return name;
+			return app.TryColorizeName(t, t.name);
 		elseif key == "icon" then
 			return L["OBJECT_ID_ICONS"][t.objectID] or "Interface\\Icons\\INV_Misc_Bag_10";
 		elseif key == "collectible" then
@@ -7846,17 +7920,15 @@ app.BaseQuest = {
 		if key == "key" then
 			return "questID";
 		elseif key == "text" then
+			-- Quests may have hard-coded 'title' set in Source for when the game does not return the information for the Quest
 			if rawget(t, "title") then
-				rawset(t, "text", rawget(t, "title"));
-				t.title = false;
-				return t.text;
-			end
-			local questName = t.questName;
-			if t.retries and t.retries > 120 then
+				rawset(t, "name", rawget(t, "title"));
+				t.title = nil;
+			elseif t.retries and t.retries > 120 then
 				return NPCNameFromID[t.npcID];
 			end
-			return app.TryColorizeName(t, questName);
-		elseif key == "questName" then
+			return app.TryColorizeName(t, t.name);
+		elseif key == "questName" or key == "name" then
 			local questID = t.altQuestID and app.FactionID == Enum.FlightPathFaction.Horde and t.altQuestID or t.questID;
 			return QuestTitleFromID[questID];
 		elseif key == "link" then
@@ -8251,8 +8323,9 @@ local meta = {
 local collectedSpecies = setmetatable({}, meta);
 app.events.NEW_PET_ADDED = function(petID)
 	local speciesID = select(1, C_PetJournal.GetPetInfoByPetID(petID));
-	--print("NEW_PET_ADDED", petID, speciesID);
+	-- print("NEW_PET_ADDED", petID, speciesID);
 	if speciesID and C_PetJournal.GetNumCollectedInfo(speciesID) > 0 and not rawget(collectedSpecies, speciesID) then
+		-- print("not already learned pet")
 		rawset(collectedSpecies, speciesID, 1);
 		UpdateSearchResults(SearchForField("speciesID", speciesID));
 		app:PlayFanfare();
@@ -8263,7 +8336,7 @@ app.events.PET_JOURNAL_PET_DELETED = function(petID)
 	-- /dump C_PetJournal.GetPetInfoByPetID("BattlePet-0-00001006503D")
 	-- local speciesID = select(1, C_PetJournal.GetPetInfoByPetID(petID));
 	-- NOTE: Above APIs do not work in the DELETED API, THANKS BLIZZARD
-	-- print("PET_JOURNAL_PET_DELETED", petID);
+	-- print("PET_JOURNAL_PET_DELETED", petID,C_PetJournal.GetPetInfoByPetID(petID));
 
 	-- Check against all of the collected species for a species that is no longer 1/X
 	local atLeastOne = false;
@@ -8276,7 +8349,7 @@ app.events.PET_JOURNAL_PET_DELETED = function(petID)
 	if atLeastOne then
 		app:PlayRemoveSound();
 		app:RefreshData(false, true);
-		wipe(searchCache);
+		-- wipe(searchCache); -- handled by refresth data
 	end
 end
 app.BaseSpecies = {
@@ -10778,9 +10851,14 @@ local function RowOnClick(self, button)
 
 				-- If this reference is anything else, expand the groups.
 				if reference.g then
+					-- mark the window if it is being fully-collapsed
+					local window = self:GetParent():GetParent();
+					if self.index < 1 then
+						window.fullCollapsed = HasExpandedSubgroup(reference);
+					end
 					-- always expand if collapsed or if clicked the header and all immediate subgroups are collapsed, otherwise collapse
-					ExpandGroupsRecursively(reference, not reference.expanded or (self.index < 1 and not HasExpandedSubgroup(reference)), true);
-					self:GetParent():GetParent():Update();
+					ExpandGroupsRecursively(reference, not reference.expanded or (self.index < 1 and not window.fullCollapsed), true);
+					window:Update();
 					return true;
 				end
 			end
@@ -11859,6 +11937,7 @@ function app:GetDataCache()
 		if app.Categories.Factions then
 			db = {};
 			db.g = app.Categories.Factions;
+			db.npcID = -6013;	-- Factions, for 'mapping' tech on Factions to work properly
 			-- db = app.CreateAchievement(11177, app.Categories.Factions);
 			db.expanded = false;
 			db.text = "Factions";
@@ -12802,6 +12881,8 @@ app:GetWindow("CurrentInstance", UIParent, function(self, force, got)
 								if group.npcID ~= -16 then group = app.CreateNPC(-16, { g = { group }, u = u  }); end
 							elseif GetRelativeField(group, "npcID", -212) then	-- It's a Treasure.
 								if group.npcID ~= -212 then group = app.CreateNPC(-212, { g = { group }, u = u  }); end
+							elseif GetRelativeField(group, "npcID", -6013) then	-- It's a Faction.
+								if group.npcID ~= -6013 then group = app.CreateNPC(-6013, { g = { group }, u = u  }); end
 							end
 						elseif group.key == "questID" then
 							if group.npcID ~= -17 then group = app.CreateNPC(-17, { g = { group }, u = u }); end
@@ -12853,6 +12934,8 @@ app:GetWindow("CurrentInstance", UIParent, function(self, force, got)
 								if group.npcID ~= -16 then group = app.CreateNPC(-16, { g = { group } }); end
 							elseif GetRelativeField(group, "npcID", -212) then	-- It's a Treasure.
 								if group.npcID ~= -212 then group = app.CreateNPC(-212, { g = { group } }); end
+							elseif GetRelativeField(group, "npcID", -6013) then	-- It's a Faction.
+								if group.npcID ~= -6013 then group = app.CreateNPC(-6013, { g = { group } }); end
 							end
 						end
 
@@ -12994,12 +13077,15 @@ app:GetWindow("CurrentInstance", UIParent, function(self, force, got)
 				-- sort by name if not in an instance
 				if not self.data.instanceID then
 					self.data.visible = true;
-					-- print("sortname");
+					-- print("sort",self.mapID);
 					SortGroup(self.data, "name", nil, false);
 				end
 				-- check to expand groups after they have been built and updated
-				-- print("expand current zone");
-				ExpandGroupsRecursively(self.data, true);
+				-- dont re-expand if the user has previously full-collapsed the minilist
+				if not self.fullCollapsed then
+					-- print("expand current zone");
+					ExpandGroupsRecursively(self.data, true);
+				end
 
 				-- if enabled, minimize rows based on difficulty
 				local difficultyID = select(3, GetInstanceInfo());
@@ -14063,7 +14149,7 @@ app:GetWindow("Random", UIParent, function(self)
 						['description'] = L["ITEM_DESC"],		-- L["ITEM_DESC"] = "Click this button to select a random item based on what you're missing."
 						['visible'] = true,
 						['OnClick'] = function(row, button)
-							app.SetDataMember("RandomSearchFilter", L["ITEM"]);
+							app.SetDataMember("RandomSearchFilter", "Item");
 							self.data = mainHeader;
 							self:Reroll();
 							return true;
@@ -14078,7 +14164,7 @@ app:GetWindow("Random", UIParent, function(self)
 						['description'] = L["INSTANCE_DESC"],		-- L["INSTANCE_DESC"] = "Click this button to select a random instance based on what you're missing."
 						['visible'] = true,
 						['OnClick'] = function(row, button)
-							app.SetDataMember("RandomSearchFilter", L["INSTANCE"]);
+							app.SetDataMember("RandomSearchFilter", "Instance");
 							self.data = mainHeader;
 							self:Reroll();
 							return true;
@@ -14093,7 +14179,7 @@ app:GetWindow("Random", UIParent, function(self)
 						['description'] = L["DUNGEON_DESC"],		-- L["DUNGEON_DESC"] = "Click this button to select a random dungeon based on what you're missing."
 						['visible'] = true,
 						['OnClick'] = function(row, button)
-							app.SetDataMember("RandomSearchFilter", L["DUNGEON"]);
+							app.SetDataMember("RandomSearchFilter", "Dungeon");
 							self.data = mainHeader;
 							self:Reroll();
 							return true;
@@ -14108,7 +14194,7 @@ app:GetWindow("Random", UIParent, function(self)
 						['description'] = L["RAID_DESC"],		-- L["RAID_DESC"] = "Click this button to select a random raid based on what you're missing."
 						['visible'] = true,
 						['OnClick'] = function(row, button)
-							app.SetDataMember("RandomSearchFilter", L["RAID"]);
+							app.SetDataMember("RandomSearchFilter", "Raid");
 							self.data = mainHeader;
 							self:Reroll();
 							return true;
@@ -14123,7 +14209,7 @@ app:GetWindow("Random", UIParent, function(self)
 						['description'] = L["MOUNT_DESC"],		-- L["MOUNT_DESC"] = "Click this button to select a random mount based on what you're missing."
 						['visible'] = true,
 						['OnClick'] = function(row, button)
-							app.SetDataMember("RandomSearchFilter", L["MOUNT"]);
+							app.SetDataMember("RandomSearchFilter", "Mount");
 							self.data = mainHeader;
 							self:Reroll();
 							return true;
@@ -14138,7 +14224,7 @@ app:GetWindow("Random", UIParent, function(self)
 						['description'] = L["PET_DESC"],		-- L["PET_DESC"] = "Click this button to select a random pet based on what you're missing."
 						['visible'] = true,
 						['OnClick'] = function(row, button)
-							app.SetDataMember("RandomSearchFilter", L["PET"]);
+							app.SetDataMember("RandomSearchFilter", "Pet");
 							self.data = mainHeader;
 							self:Reroll();
 							return true;
@@ -14154,7 +14240,7 @@ app:GetWindow("Random", UIParent, function(self)
 						['description'] = L["QUEST_DESC"],		-- L["QUEST_DESC"] = "Click this button to select a random quest based on what you're missing."
 						['visible'] = true,
 						['OnClick'] = function(row, button)
-							app.SetDataMember("RandomSearchFilter", L["QUEST"]);
+							app.SetDataMember("RandomSearchFilter", "Quest");
 							self.data = mainHeader;
 							self:Reroll();
 							return true;
@@ -14169,7 +14255,7 @@ app:GetWindow("Random", UIParent, function(self)
 						['description'] = L["TOY_DESC"],		-- L["TOY_DESC"] = "Click this button to select a random toy based on what you're missing."
 						['visible'] = true,
 						['OnClick'] = function(row, button)
-							app.SetDataMember("RandomSearchFilter", L["TOY"]);
+							app.SetDataMember("RandomSearchFilter", "Toy");
 							self.data = mainHeader;
 							self:Reroll();
 							return true;
@@ -14184,7 +14270,7 @@ app:GetWindow("Random", UIParent, function(self)
 						['description'] = L["ZONE_DESC"],		-- L["ZONE_DESC"] = "Click this button to select a random zone based on what you're missing."
 						['visible'] = true,
 						['OnClick'] = function(row, button)
-							app.SetDataMember("RandomSearchFilter", L["ZONE"]);
+							app.SetDataMember("RandomSearchFilter", "Zone");
 							self.data = mainHeader;
 							self:Reroll();
 							return true;
@@ -14231,10 +14317,10 @@ app:GetWindow("Random", UIParent, function(self)
 				wipe(self.data.g);
 
 				-- Call to our method and build a list to draw from
-				local method = app.GetDataMember("RandomSearchFilter", L["INSTANCE"]);
+				local method = app.GetDataMember("RandomSearchFilter", "Instance");
 				if method then
 					rerollOption.text = L["REROLL_2"] .. method;		-- L["REROLL_2"] = "Reroll: "
-					method = L["SELECT"] .. method;		-- L["SELECT"] = "Select"
+					method = "Select" .. method;		-- L["SELECT"] = "Select"
 					local temp = self[method]() or {};
 					local totalWeight = 0;
 					for i,o in ipairs(temp) do
@@ -14274,7 +14360,7 @@ app:GetWindow("Random", UIParent, function(self)
 			for i,o in ipairs(self.data.options) do
 				tinsert(self.data.g, o);
 			end
-			rerollOption.text = L["REROLL_2"] .. app.GetDataMember("RandomSearchFilter", L["INSTANCE"]);		--
+			rerollOption.text = L["REROLL_2"] .. app.GetDataMember("RandomSearchFilter", "Instance");		--
 		end
 
 		-- Update the window and all of its row data
@@ -15902,9 +15988,10 @@ app:RegisterEvent("BOSS_KILL");
 app:RegisterEvent("CHAT_MSG_ADDON");
 app:RegisterEvent("PLAYER_LOGIN");
 app:RegisterEvent("VARIABLES_LOADED");
-app:RegisterEvent("COMPANION_LEARNED");
-app:RegisterEvent("COMPANION_UNLEARNED");
+app:RegisterEvent("COMPANION_LEARNED");		-- might be obsolete?
+app:RegisterEvent("COMPANION_UNLEARNED");	-- might be obsolete?
 app:RegisterEvent("NEW_PET_ADDED");
+app:RegisterEvent("NEW_MOUNT_ADDED");
 app:RegisterEvent("PET_JOURNAL_PET_DELETED");
 app:RegisterEvent("PLAYER_DIFFICULTY_CHANGED");
 app:RegisterEvent("TRANSMOG_COLLECTION_SOURCE_ADDED");
@@ -16541,12 +16628,16 @@ app.events.UPDATE_INSTANCE_INFO = function()
 	RefreshSaves();
 end
 app.events.COMPANION_LEARNED = function(...)
-	--print("COMPANION_LEARNED", ...);
+	-- print("COMPANION_LEARNED", ...);
 	RefreshMountCollection();
 end
 app.events.COMPANION_UNLEARNED = function(...)
-	--print("COMPANION_UNLEARNED", ...);
+	-- print("COMPANION_UNLEARNED", ...);
 	RefreshMountCollection();
+end
+app.events.NEW_MOUNT_ADDED = function(...)
+	-- print("NEW_MOUNT_ADDED", ...);
+	RefreshMountCollection(...);
 end
 app.events.HEIRLOOMS_UPDATED = function(itemID, kind, ...)
 	RefreshQuestCompletionState()

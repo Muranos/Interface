@@ -24,8 +24,8 @@ function MyAddon:ADDON_LOADED(arg1)
 end
 
 Create reference func if it doesn't exist or can't use boolean as an argument to toggle on and off:
-function MyAddon.TestFunc(enabledTest)
-	if enabledTest then
+function MyAddon.TestFunc(isTestEnabled)
+	if isTestEnabled then
 		toggle frames on
 	else
 		toggle frames off
