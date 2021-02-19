@@ -110,7 +110,7 @@ function mod:OnBossEnable()
 	self:Log("SPELL_AURA_REMOVED", "ChangeOfHeartRemoved", 340452)
 
 	-- Container of Bottled Anima
-	self:Log("SPELL_CAST_SUCCESS", "BottledAnima", 342280, 342281, 342282) -- Bottled Anima, Lingering Anima, Replicating Anima
+	self:Log("SPELL_CAST_START", "BottledAnima", 342280, 342281, 342282) -- Bottled Anima, Lingering Anima, Replicating Anima
 
 	-- Container of Sin
 	self:RegisterEvent("RAID_BOSS_WHISPER")
@@ -119,7 +119,7 @@ function mod:OnBossEnable()
 	self:Log("SPELL_AURA_REMOVED", "SharedSufferingRemoved", 324983)
 
 	-- Container of Concentrated Anima
-	self:Log("SPELL_CAST_SUCCESS", "ConcentratedAnima", 342320, 342321) -- Lightly Concentrated Anima, Concentrated Anima
+	self:Log("SPELL_CAST_START", "ConcentratedAnima", 342320, 342321) -- Lightly Concentrated Anima, Concentrated Anima
 	self:Log("SPELL_AURA_APPLIED", "ConcentratedAnimaApplied", 332664, 340477) -- Concentrated Anima, Highly Concentrated Anima
 	self:Log("SPELL_AURA_REMOVED", "ConcentratedAnimaRemoved", 332664, 340477)
 	self:Log("SPELL_AURA_APPLIED", "UnconscionableGuiltApplied", 331573)
@@ -307,7 +307,7 @@ end
 
 function mod:WarpedDesiresApplied(args)
 	local amount = args.amount or 1
-	self:StackMessage(args.spellId, args.destName, amount, "purple")
+	self:NewStackMessage(args.spellId, "purple", args.destName, amount, 2)
 	if amount > 1 and not self:Tanking("boss1") then
 		self:PlaySound(args.spellId, "alarm")
 	end
@@ -470,7 +470,7 @@ end
 
 function mod:UnconscionableGuiltApplied(args)
 	local amount = args.amount or 1
-	self:StackMessage(args.spellId, args.destName, amount, "yellow")
+	self:NewStackMessage(args.spellId, "yellow", args.destName, amount)
 	self:PlaySound(args.spellId, "alarm", nil, args.destName)
 end
 

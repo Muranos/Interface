@@ -1246,6 +1246,7 @@ do
 	registeredEvents.SPELL_CAST_SUCCESS[324739] = function(info)
 		local icon = info.spellIcons[PURIFY_SOUL]
 		if icon then
+			info.auras.purifySoulStacks = 3
 			icon.Count:SetText(3)
 		end
 	end
@@ -1279,6 +1280,7 @@ do
 		local stacks = icon.Count:GetText()
 		stacks = (tonumber(stacks) or 3) - 1
 		icon.Count:SetText(stacks)
+		info.auras.purifySoulStacks = stacks
 
 		if info.bar.timer_inCombatTicker then
 			info.bar.timer_inCombatTicker:Cancel()

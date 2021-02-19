@@ -43,7 +43,7 @@ function Comms:Disable()
 	self.enabled = false
 end
 
-function Comms:PLAYER_SPECIALIZATION_CHANGED(unit)
+function Comms:PLAYER_SPECIALIZATION_CHANGED()
 	E.Comms:InspectPlayer()
 	E.Comms:SendSync()
 	E.Comms:RegisterEventUnitPower()

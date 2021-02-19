@@ -73,6 +73,16 @@ local cloakOfFlamesCount = 1
 local phoenixCount = 0
 
 --------------------------------------------------------------------------------
+-- Localization
+--
+
+local L = mod:GetLocale()
+if L then
+	L.shield_removed = "%s removed after %.1fs" -- "Shield removed after 1.1s" s = seconds
+	L.shield_remaining = "%s remaining: %s (%.1f%%)" -- "Shield remaining: 2.1K (5.3%)"
+end
+
+--------------------------------------------------------------------------------
 -- Initialization
 --
 
@@ -109,8 +119,8 @@ function mod:GetOptions()
 		-- High Torturer Darithos
 		{328889, "SAY", "PROXIMITY"}, -- Greater Castigation
 		-- Mythic
-		337859, -- Cloak of Flames
-		343026, -- Damage Cloak of Flames
+		337859, -- Cloak of Flames // Healing absorb
+		343026, -- Cloak of Flames // Damage absorb
 	},{
 		["stages"] = "general",
 		[326455] = -21966, -- Shade of Kael'thas
@@ -120,6 +130,7 @@ function mod:GetOptions()
 		[338600] = "mythic",
 	},{
 		[328479] = CL.fixate, -- Eyes on Target (Fixate)
+		[337859] = CL.shield, -- Cloak of Flames (Shield)
 	}
 end
 
@@ -152,6 +163,7 @@ function mod:OnBossEnable()
 	-- Infusing Essences
 	self:Log("SPELL_AURA_APPLIED", "DrainedSoul", 339251)
 	self:Log("SPELL_AURA_APPLIED", "InfusersBoonApplied", 326078)
+	self:Log("SPELL_AURA_APPLIED_DOSE", "InfusersBoonApplied", 326078)
 
 	-- High Torturer Darithos
 	self:Log("SPELL_CAST_START", "GreaterCastigation", 328885)
@@ -162,6 +174,7 @@ function mod:OnBossEnable()
 
 	-- Mythic
 	self:Log("SPELL_AURA_APPLIED", "CloakOfFlamesApplied", 337859, 343026)
+	self:RegisterUnitEvent("UNIT_SPELLCAST_INTERRUPTED", "UnleashedPyroclasmInterrupted", "boss1", "boss2") -- No SPELL_INTERRUPT
 	self:Log("SPELL_AURA_REMOVED", "CloakOfFlamesRemoved", 337859, 343026)
 
 	self:Log("SPELL_AURA_APPLIED", "GroundDamage", 328579) -- Smoldering Remnants
@@ -208,7 +221,7 @@ function mod:OnEngage()
 	end
 
 	if self:Mythic() then
-		self:Bar(337859, 62, CL.count:format(self:SpellName(337859), cloakOfFlamesCount)) -- Cloak of Flames
+		self:Bar(337859, 62, CL.count:format(CL.shield, cloakOfFlamesCount)) -- Cloak of Flames
 	end
 
 	self:RegisterUnitEvent("UNIT_HEALTH", nil, "boss1")
@@ -312,7 +325,7 @@ function mod:ReflectionOfGuiltApplied(args)
 			self:CancelDelayedMessage(text)
 			self:StopBar(text)
 		end
-		self:StopBar(CL.count:format(self:SpellName(337859), cloakOfFlamesCount)) -- Cloak of Flames
+		self:StopBar(CL.count:format(CL.shield, cloakOfFlamesCount)) -- Cloak of Flames
 
 		for key, scheduled in pairs(addScheduledTimers) do -- cancel all scheduled add timers
 			self:CancelTimer(scheduled)
@@ -328,7 +341,7 @@ function mod:ReflectionOfGuiltApplied(args)
 		self:Bar(329518, 29.5, CL.count:format(self:SpellName(329518), blazingSurgeCount)) -- Blazing Surge
 
 		if self:Mythic() then
-			self:Bar(343026, 38.9, CL.count:format(self:SpellName(343026), cloakOfFlamesCount))
+			self:Bar(343026, 38.9, CL.count:format(CL.shield, cloakOfFlamesCount))
 		end
 	end
 end
@@ -342,11 +355,11 @@ end
 function mod:BurningRemnantsApplied(args)
 	local amount = args.amount or 1
 	if self:Me(args.destGUID) and not self:Tank() then
-		self:StackMessage(args.spellId, args.destName, amount, "blue")
+		self:NewStackMessage(args.spellId, "blue", args.destName, amount)
 		self:PlaySound(args.spellId, "alarm")
 	elseif self:Tank() and self:Tank(args.destName) then
-		self:StackMessage(args.spellId, args.destName, amount, "purple")
-		if amount > 1 then -- 2+
+		self:NewStackMessage(args.spellId, "purple", args.destName, amount, 3)
+		if amount > 2 then -- 3+
 			self:PlaySound(args.spellId, "alarm")
 		end
 	end
@@ -358,7 +371,11 @@ do
 			self:PlaySound(325877, "warning")
 			self:Yell(325877)
 			self:Flash(325877)
-			self:YellCountdown(325877, 3, nil, 2)
+			if self:LFR() then
+				self:YellCountdown(325877, 5)
+			else
+				self:YellCountdown(325877, 3, nil, 2)
+			end
 		else
 			self:PlaySound(325877, "alert")
 		end
@@ -367,7 +384,7 @@ do
 
 	function mod:EmberBlast(args)
 		self:GetNextBossTarget(printTarget, args.sourceGUID)
-		self:CastBar(args.spellId, 3, CL.count:format(args.spellName, emberBlastCount))
+		self:CastBar(args.spellId, self:LFR() and 5 or 3, CL.count:format(args.spellName, emberBlastCount))
 		emberBlastCount = emberBlastCount + 1
 		self:Bar(args.spellId, 20.5, CL.count:format(args.spellName, emberBlastCount))
 	end
@@ -395,7 +412,7 @@ function mod:ReflectionOfGuiltRemoved()
 	self:StopBar(CL.count:format(self:SpellName(325877), emberBlastCount)) -- Ember Blast
 	self:StopBar(CL.cast:format(CL.count:format(self:SpellName(325877), emberBlastCount-1))) -- Ember Blast
 	self:CancelSayCountdown(325877) -- Ember Blast
-	self:StopBar(CL.count:format(self:SpellName(343026), cloakOfFlamesCount)) -- Cloak of Flames
+	self:StopBar(CL.count:format(CL.shield, cloakOfFlamesCount)) -- Cloak of Flames
 
 	local stage = self:GetStage() + 1
 	if stage == 3 then return end -- You win
@@ -414,7 +431,7 @@ function mod:ReflectionOfGuiltRemoved()
 
 	cloakOfFlamesCount = 1
 	if self:Mythic() then
-		self:Bar(337859, 34.3, CL.count:format(self:SpellName(337859), cloakOfFlamesCount))
+		self:Bar(337859, 34.3, CL.count:format(CL.shield, cloakOfFlamesCount))
 	end
 end
 
@@ -427,8 +444,8 @@ end
 
 function mod:VanquishedApplied(args)
 	local amount = args.amount or 1
-	self:StackMessage(args.spellId, args.destName, amount, "purple")
-	if amount > 1 then -- 2+
+	self:NewStackMessage(args.spellId, "purple", args.destName, amount, 3)
+	if amount > 2 then
 		self:PlaySound(args.spellId, "alarm")
 	end
 end
@@ -480,7 +497,7 @@ end
 -- Infusing Essences
 function mod:InfusersBoonApplied(args)
 	local amount = args.amount or 1
-	self:StackMessage(args.spellId, args.destName, amount, "green")
+	self:NewStackMessage(args.spellId, "green", args.destName, amount)
 	self:StopBar(CL.count:format(args.spellName, amount-1), args.destName)
 	self:TargetBar(args.spellId, 14, args.destName, CL.count:format(args.spellName, amount))
 	if self:Me(args.destGUID) then
@@ -563,18 +580,35 @@ function mod:DarithosDeath()
 end
 
 -- Mythic
-function mod:CloakOfFlamesApplied(args)
-	self:Message(args.spellId, "red", CL.count:format(args.spellName, cloakOfFlamesCount))
-	self:PlaySound(args.spellId, "warning")
-	self:CastBar(args.spellId, 6, CL.count:format(args.spellName, cloakOfFlamesCount))
-	cloakOfFlamesCount = cloakOfFlamesCount + 1
-	self:Bar(args.spellId, shadeUp and 30 or 60, CL.count:format(args.spellName, cloakOfFlamesCount))
-end
+do
+	local prevTime, prevAmount, pyroclasmInterrupted = 0, 0, false
+	function mod:CloakOfFlamesApplied(args)
+		prevTime, prevAmount = args.time, args.amount
+		self:Message(args.spellId, "red", CL.count:format(CL.shield, cloakOfFlamesCount))
+		self:PlaySound(args.spellId, "warning")
+		self:CastBar(args.spellId, 6, CL.count:format(CL.shield, cloakOfFlamesCount))
+		cloakOfFlamesCount = cloakOfFlamesCount + 1
+		self:Bar(args.spellId, shadeUp and 30 or 60, CL.count:format(CL.shield, cloakOfFlamesCount))
+		pyroclasmInterrupted = false
+	end
 
-function mod:CloakOfFlamesRemoved(args)
-	self:Message(args.spellId, "cyan", CL.removed:format(args.spellName))
-	self:PlaySound(args.spellId, "info")
-	self:StopBar(CL.cast:format(CL.count:format(args.spellName, cloakOfFlamesCount-1)))
+	function mod:UnleashedPyroclasmInterrupted(_, _, _, spellId)
+		if spellId == 337865 then -- Unleashed Pyroclasm
+			pyroclasmInterrupted = true
+		end
+	end
+
+	function mod:CloakOfFlamesRemoved(args)
+		local amount = args.amount or 0
+		if pyroclasmInterrupted or amount == 0 then -- Shield Broken
+			self:Message(args.spellId, "green", L.shield_removed:format(CL.shield, args.time - prevTime))
+			self:StopBar(CL.cast:format(CL.count:format(CL.shield, cloakOfFlamesCount-1)))
+		else
+			local percentRemaining = amount / prevAmount * 100
+			self:Message(args.spellId, "red", L.shield_remaining:format(CL.shield, self:AbbreviateNumber(amount), percentRemaining))
+		end
+		self:PlaySound(args.spellId, "info")
+	end
 end
 
 do

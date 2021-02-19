@@ -9,4 +9,6 @@ if L then
 	L.collector = "Coletor Depravado"
 	L.shard = "Estilhaço de Hálkias"
 	L.reaver = "Aniquiladora Litonata"
+	L.slasher = "Rasgador Litonato"
+	L.sigar = "Inquisidor Sigarro"
 end

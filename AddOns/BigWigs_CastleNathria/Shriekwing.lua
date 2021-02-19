@@ -108,7 +108,9 @@ function mod:OnEngage()
 	self:CDBar(345397, 13, CL.count:format(self:SpellName(345397), waveOfBloodCount)) -- Wave of Blood
 	self:CDBar(342074, 14.5, CL.count:format(self:SpellName(342074), echolocationCount)) -- Echolocation
 	self:CDBar(343005, 20.5,  CL.count:format(self:SpellName(343005), blindSwipeCount)) -- Blind Swipe
-	self:CDBar(342863, 28.5, CL.count:format(self:SpellName(342863), echoingScreechCount)) -- Echoing Screech
+	if not self:Easy() then
+		self:CDBar(342863, 28.5, CL.count:format(self:SpellName(342863), echoingScreechCount)) -- Echoing Screech
+	end
 	self:CDBar(330711, 48.5, CL.count:format(self:SpellName(330711), shriekCount)) -- Earsplitting Shriek
 	self:CDBar(328921, 105) -- Blood Shroud
 
@@ -143,21 +145,26 @@ function mod:EarsplittingShriek(args)
 end
 
 do
-	local playerList = mod:NewTargetList()
+	local playerList = {}
+	local prev = 0
 	function mod:EcholocationApplied(args)
+		local t = args.time
+		if t-prev > 5 then
+			prev = t
+			playerList = {}
+			echolocationCount = echolocationCount + 1
+			if echolocationCount < 5 then -- 4 in stage 1
+				self:Bar(342074, 23, CL.count:format(self:SpellName(342074), echolocationCount))
+			end
+		end
+
 		playerList[#playerList+1] = args.destName
 		if self:Me(args.destGUID) then
 			self:Say(342074)
 			self:SayCountdown(342074, self:Mythic() and 6 or 8)
 			self:PlaySound(342074, "warning")
 		end
-		if #playerList == 1 then
-			echolocationCount = echolocationCount + 1
-			if echolocationCount < 5 then -- 4 in stage 1
-				self:Bar(342074, 23, CL.count:format(self:SpellName(342074), echolocationCount))
-			end
-		end
-		self:TargetsMessage(342074, "yellow", playerList, nil, CL.count:format(self:SpellName(342074), echolocationCount-1), nil, 2)
+		self:NewTargetsMessage(342074, "yellow", playerList, nil, CL.count:format(self:SpellName(342074), echolocationCount-1), nil, 2)
 	end
 end
 
@@ -211,7 +218,7 @@ end
 
 function mod:ExsanguinatedApplied(args)
 	if self:Tank() and self:Tank(args.destName) then
-		self:StackMessage(args.spellId, args.destName, 10, "purple")
+		self:NewStackMessage(args.spellId, "purple", args.destName, 10)
 		if not self:Me(args.destGUID) and not self:Tanking("boss1") then
 			self:PlaySound(args.spellId, "warning") -- Not taunted? Play again.
 		end
@@ -275,7 +282,9 @@ function mod:BloodShroudRemoved(args)
 	self:CDBar(342074, 15.5, CL.count:format(self:SpellName(342074), echolocationCount)) -- Echolocation
 	self:CDBar(345397, 12.2, CL.count:format(self:SpellName(345397), waveOfBloodCount)) -- Wave of Blood
 	self:CDBar(343005, 20.5, CL.count:format(self:SpellName(343005), blindSwipeCount)) -- Blind Swipe
-	self:CDBar(342863, 28.5, CL.count:format(self:SpellName(342863), echoingScreechCount)) -- Echoing Screech
+	if not self:Easy() then
+		self:CDBar(342863, 28.5, CL.count:format(self:SpellName(342863), echoingScreechCount)) -- Echoing Screech
+	end
 	self:CDBar(330711, 48.5, CL.count:format(self:SpellName(330711), shriekCount)) -- Earsplitting Shriek
 	self:CDBar(328921, 106) -- Blood Shroud
 end

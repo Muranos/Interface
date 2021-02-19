@@ -2,7 +2,6 @@
 ..\FrameXML\UI.xsd">
 
 
-<Include file="BfA\modules.xml"/>
 <Include file="Shadowlands\modules.xml"/>
 
 </Ui>

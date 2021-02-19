@@ -48,7 +48,9 @@ do
 
 	for i = 1, #E.unitFrameData do
 		local uf = E.unitFrameData[i][1]
-		t[i] = uf
+		if not strfind(uf, "-") then
+			t[#t + 1] = uf
+		end
 	end
 
 	fields["Supported UI"] = E.FormatConcat(t, "%s, ")
@@ -117,6 +119,11 @@ local function GetOptions()
 								notice = {
 									name = L["|cffff2020Important!|r Covenant and Soulbind Conduit data can only be acquired from group members with OmniCD installed."],
 									order = 0,
+									type = "description",
+								},
+								notice2 = {
+									name = "|cffff2020None of the CD counter skins support modrate. Timers will fluctuate erratically whenever CD recovery rate is modulated.",
+									order = 1,
 									type = "description",
 								},
 								lb1 = {

@@ -13,8 +13,8 @@ function E:OnInitialize()
 					for zone, t in pairs(moduleOption) do
 						if zone == "none" or zone == "scenario" then
 							OmniCDDB.profiles[profileKey].Party[zone] = nil
-						elseif t.highlight and t.highlight.markedSpells then
-							wipe(OmniCDDB.profiles[profileKey].Party[zone].highlight.markedSpells)
+						elseif type(t) == "table" and t.highlight and t.highlight.markedSpells then
+							wipe(t.highlight.markedSpells)
 						end
 					end
 				end

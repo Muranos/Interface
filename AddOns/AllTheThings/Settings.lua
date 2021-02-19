@@ -236,21 +236,21 @@ settings.GetFilter = function(self, filterID)
 	return AllTheThingsSettingsPerCharacter.Filters[filterID];
 end
 settings.GetModeString = function(self)
-	local mode = "Mode" .. " v" .. app.Version;
+	local mode = L["MODE"] .. " " .. app.Version;		-- L["MODE"] = "Mode"
 	if settings:Get("Thing:Transmog") or settings:Get("DebugMode") then
 		if self:Get("Completionist") then
-			mode = "Completionist " .. mode;
+			mode = L["TITLE_COMPLETIONIST"] .. mode;	-- L["TITLE_COMPLETIONIST"] = "Completionist ";
 		else
-			mode = "Unique Appearance " .. mode;
+			mode = L["TITLE_UNIQUE_APPEARANCE"] .. mode;		-- L["TITLE_UNIQUE_APPEARANCE"] = "Unique Appearance ";
 		end
 	end
 	if self:Get("DebugMode") then
-		mode = "Debug " .. mode;
+		mode = L["TITLE_DEBUG"] .. mode;		-- L["TITLE_DEBUG"] = "Debug "
 	else
 		if self:Get("AccountMode") then
-			mode = "Account " .. mode;
+			mode = L["TITLE_ACCOUNT"] .. mode;		-- L["TITLE_ACCOUNT"] = "Account ";
 		elseif self:Get("MainOnly") and not self:Get("Completionist") then
-			mode = mode .. " (Main Only)";
+			mode = mode .. L["TITLE_MAIN_ONLY"];		-- L["TITLE_MAIN_ONLY"] = " (Main Only)";
 		end
 		
 		local things = {};
@@ -266,19 +266,19 @@ settings.GetModeString = function(self)
 			end
 		end
 		if thingCount == 0 then
-			mode = "None of the Things " .. mode;
+			mode = L["TITLE_NONE_THINGS"] .. mode;		-- L["TITLE_NONE_THINGS"] = "None of the Things ";
 		elseif thingCount == 1 then
-			mode = things[1] .. " Only " .. mode;
+			mode = things[1] .. L["TITLE_ONLY"] .. mode;		-- L["TITLE_ONLY"] = " Only ";
 		elseif thingCount == 2 then
-			mode = things[1] .. " + " .. things[2] .. " Only " .. mode;
+			mode = things[1] .. " + " .. things[2] .. L["TITLE_ONLY"] .. mode;
 		elseif thingCount == totalThingCount then
-			mode = "Insane " .. mode;
+			mode = L["TITLE_INSANE"] .. mode;		-- L["TITLE_INSANE"] = "Insane ";
 		elseif not settings:Get("Thing:Transmog") then
-			mode = "Some of the Things " .. mode;
+			mode = L["TITLE_SOME_THINGS"] .. mode;		-- L["TITLE_SOME_THINGS"] = "Some of the Things ";
 		end
 	end
 	if self:Get("Filter:ByLevel") then
-		mode = "Level " .. app.Level .. " " .. mode;
+		mode = L["TITLE_LEVEL"] .. app.Level .. " " .. mode;		-- L["TITLE_LEVEL"] = "Level ";
 	end
 	return mode;
 end
@@ -561,6 +561,10 @@ settings.UpdateMode = function(self, doRefresh)
 		app.UnobtainableItemFilter = app.NoFilter;
 		app.VisibilityFilter = app.ObjectVisibilityFilter;
 		app.ShowIncompleteThings = app.NoFilter;
+		app.ItemTypeFilter = app.NoFilter;
+		app.ClassRequirementFilter = app.NoFilter;
+		app.RaceRequirementFilter = app.NoFilter;
+		app.RequiredSkillFilter = app.NoFilter;
 		
 		app.AccountWideAchievements = true;
 		app.AccountWideAzeriteEssences = true;
@@ -596,6 +600,9 @@ settings.UpdateMode = function(self, doRefresh)
 		app.CollectibleTitles = true;
 		app.CollectibleToys = true;
 		app.CollectibleTransmog = true;
+
+		app.MODE_ACCOUNT = nil;
+		app.MODE_DEBUG = true;
 	else
 		app.VisibilityFilter = app.ObjectVisibilityFilter;
 		app.GroupFilter = app.FilterItemClass;
@@ -649,17 +656,24 @@ settings.UpdateMode = function(self, doRefresh)
 		app.CollectibleTitles = self:Get("Thing:Titles");
 		app.CollectibleToys = self:Get("Thing:Toys");
 		app.CollectibleTransmog = self:Get("Thing:Transmog");
-	end
-	if self:Get("AccountMode") then
-		app.ItemTypeFilter = app.NoFilter;
-		app.ClassRequirementFilter = app.NoFilter;
-		app.RaceRequirementFilter = app.NoFilter;
-		app.RequiredSkillFilter = app.NoFilter;
-	else
-		app.ItemTypeFilter = app.FilterItemClass_RequireItemFilter;
-		app.ClassRequirementFilter = app.FilterItemClass_RequireClasses;
-		app.RaceRequirementFilter = app.FilterItemClass_RequireRaces;
-		app.RequiredSkillFilter = app.FilterItemClass_RequiredSkill;
+
+		if self:Get("AccountMode") then
+			app.ItemTypeFilter = app.NoFilter;
+			app.ClassRequirementFilter = app.NoFilter;
+			app.RaceRequirementFilter = app.NoFilter;
+			app.RequiredSkillFilter = app.NoFilter;
+
+			app.MODE_ACCOUNT = true;
+		else
+			app.ItemTypeFilter = app.FilterItemClass_RequireItemFilter;
+			app.ClassRequirementFilter = app.FilterItemClass_RequireClasses;
+			app.RaceRequirementFilter = app.FilterItemClass_RequireRaces;
+			app.RequiredSkillFilter = app.FilterItemClass_RequiredSkill;
+
+			app.MODE_ACCOUNT = nil;
+		end
+
+		app.MODE_DEBUG = nil;
 	end
 	if self:Get("Show:CompletedGroups") then
 		app.GroupVisibilityFilter = app.NoFilter;
@@ -2173,7 +2187,7 @@ unobtainableAll:SetPoint("TOPLEFT",unobtainable, 300, -20)
 -- no chance
 local noChance = child:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge");
 noChance:SetPoint("TOPLEFT", unobtainable, 10, -50)
-noChance:SetText("No Chance");
+noChance:SetText(L["NO_CHANCE_LABEL"]);		-- L["NO_CHANCE_LABEL"] = "No Chance";
 
 local noChanceFrame = CreateFrame("Frame", nil, child, "ThinBorderTemplate");
 noChanceFrame:SetPoint("TOP",noChance,0,-20);
@@ -2254,7 +2268,7 @@ end
 -- high
 local highChance = child:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge");
 highChance:SetPoint("TOPLEFT", noChance, 0, -(noChanceFrame:GetHeight() + (2*20)))
-highChance:SetText("High Chance");
+highChance:SetText(L["HIGH_CHENCE_LABEL"]);		-- L["HIGH_CHENCE_LABEL"] = "High Chance";
 
 local highChanceFrame = CreateFrame("Frame", nil, child, "ThinBorderTemplate");
 highChanceFrame:SetPoint("TOP",highChance,0,-20);
@@ -2867,8 +2881,25 @@ end);
 ShowSourceLocationsForUnsortedCheckBox:SetATTTooltip(L["FOR_UNSORTED_CHECKBOX_TOOLTIP"]);
 ShowSourceLocationsForUnsortedCheckBox:SetPoint("TOPLEFT", ShowSourceLocationsForThingsCheckBox, "BOTTOMLEFT", 0, 4);
 
+local ShowSourceLocationsWithWrappingCheckBox = settings:CreateCheckBox(L["WITH_WRAPPING_CHECKBOX"],
+function(self)
+	self:SetChecked(settings:GetTooltipSetting("SourceLocations:Wrapping"));
+	if not settings:GetTooltipSetting("Enabled") or not settings:GetTooltipSetting("SourceLocations") then
+		self:Disable();
+		self:SetAlpha(0.2);
+	else
+		self:Enable();
+		self:SetAlpha(1);
+	end
+end,
+function(self)
+	settings:SetTooltipSetting("SourceLocations:Wrapping", self:GetChecked());
+end);
+ShowSourceLocationsWithWrappingCheckBox:SetATTTooltip(L["WITH_WRAPPING_CHECKBOX_TOOLTIP"]);
+ShowSourceLocationsWithWrappingCheckBox:SetPoint("TOPLEFT", ShowSourceLocationsForUnsortedCheckBox, "BOTTOMLEFT", 0, 4);
+
 local MiscLabel = settings:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge");
-MiscLabel:SetPoint("TOPLEFT", ShowSourceLocationsForUnsortedCheckBox, "BOTTOMLEFT", -12, 0); -- 8,4
+MiscLabel:SetPoint("TOPLEFT", ShowSourceLocationsWithWrappingCheckBox, "BOTTOMLEFT", -12, 0); -- 8,4
 MiscLabel:SetJustifyH("LEFT");
 MiscLabel:SetText(L["MISC_LABEL"]);
 MiscLabel:Show();
@@ -3258,7 +3289,7 @@ end)();
 -- The "About" Tab.				--
 ------------------------------------------
 (function()
-local tab = settings:CreateTab("About");
+local tab = settings:CreateTab(L["ABOUT"]);		-- L["ABOUT"] = "About"
 local AboutText = settings:CreateFontString(nil, "ARTWORK", "GameFontNormal");
 AboutText:SetPoint("TOPLEFT", line, "BOTTOMLEFT", 8, -8);
 AboutText:SetPoint("TOPRIGHT", line, "BOTTOMRIGHT", -8, -8);

@@ -87,7 +87,7 @@ function Comms:CHAT_MSG_ADDON(prefix, message, dist, sender) -- [29]
 
 	local header, guid, body = strmatch(message, "(.-),(.-),(.+)")
 	local info = P.groupInfo[guid]
-	if not info then
+	if not info then -- class nil in updateRoster
 		return
 	end
 

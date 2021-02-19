@@ -89,7 +89,7 @@ local function CooldownBarFrame_OnEvent(self, event, ...)
 			return
 		end
 
-		if P.isInArena then -- [95]
+		if P.isInArena then -- [95] -- HSA + Thundercharge tested
 			if P:IsDeBuffActive(unit, DEBUFF_HEARTSTOP_AURA) then
 				if not info.auras.isHeartStopped then
 					P.UpdateCDRR(info, 1/0.7)
@@ -128,17 +128,13 @@ local function CooldownBarFrame_OnEvent(self, event, ...)
 		elseif not P.isInArena then
 			self:UnregisterEvent(event)
 		end
-	elseif event == "PLAYER_SPECIALIZATION_CHANGED" then
+	elseif event == "PLAYER_SPECIALIZATION_CHANGED" then -- player handled by Comms
 		local unit = ...
 		if unit ~= info.unit then
 			return
 		end
 
-		if guid == E.userGUID then
-			E.Comms:InspectPlayer()
-			E.Comms:SendSync()
-			E.Comms:RegisterEventUnitPower()
-		elseif ( UnitIsConnected(unit) ) then
+		if ( UnitIsConnected(unit) ) then
 			E.Comms:EnqueueInspect(nil, guid)
 		end
 	end
@@ -407,7 +403,7 @@ function P:UpdateUnitBar(guid)
 				icon.buff = buffID
 				icon.duration = cd
 				icon.maxcharges = ch
-				icon.Count:SetText(ch or "")
+				icon.Count:SetText(ch or (spellID == 323436 and info.auras.purifySoulStacks) or "")
 				icon.icon:SetTexture(iconTexture)
 				icon.active = nil
 

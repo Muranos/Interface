@@ -7,26 +7,30 @@ end
 
 L = BigWigs:NewBossLocale("Huntsman Altimor", "esMX")
 if L then
-	-- L.killed = "%s Killed"
+	L.killed = "%s Muerto"
+end
+
+L = BigWigs:NewBossLocale("Sun King's Salvation", "esMX")
+if L then
+	L.shield_removed = "%s removido después de %.1fs" -- "Shield removed after 1.1s" s = seconds
+	L.shield_remaining = "%s restante: %s (%.1f%%)" -- "Shield remaining: 2.1K (5.3%)"
 end
 
 L = BigWigs:NewBossLocale("Hungering Destroyer", "esMX")
 if L then
 	L.miasma = "Miasma" -- Short for Gluttonous Miasma
 
-	--L.custom_on_repeating_yell_miasma = "Repeating Miasma Health Yell"
-	--L.custom_on_repeating_yell_miasma_desc = "Repeating yell messages for Gluttonous Miasma to let others know when you are below 75% health."
+	L.custom_on_repeating_yell_miasma = "Repetir alerta de vida de Miasma en /gritar"
+	L.custom_on_repeating_yell_miasma_desc = "Repite en /gritar mensajes para Miasma Glotona for Gluttonous Miasma para que los demás sepan cuando estás por debajo del 75% de salud."
 
-	--L.custom_on_repeating_say_laser = "Repeating Volatile Ejection Say"
-	--L.custom_on_repeating_say_laser_desc = "Repeating say messages for Volatile Ejection to help when moving into chat range of players that didn't see your first message."
+	L.custom_on_repeating_say_laser = "Repeating Volatile Ejection Say"
+	L.custom_on_repeating_say_laser_desc = "Repeating en /decir mensajes para for Eyección volátil para ayudar al entrar en el rango de chat de los jugadores que no vieron tu primer mensaje."
 
-	--L.tempPrint = "We've added health yells for Miasma. If you previously used a WeakAura for this, you might want to delete it to prevent double yells."
+	L.tempPrint = "Hemos añadido alertas de /gritar para alertar la salud para Miasma. Si antes usabas un WeakAura para esto, es posible que quieras eliminarla para evitar mensajes repetiros en /gritar."
 end
 
 L = BigWigs:NewBossLocale("Artificer Xy'mox", "esMX")
 if L then
-	L.stage2_yell = "Las ganas de usar la reliquia me están matando! Aunque imagino que os matará a vosotros!"
-	L.stage3_yell = "Espero que esta maravilla sea tan letal como pinta!"
 	L.tear = "Ruptura" -- Short for Dimensional Tear
 	L.spirits = "Espíritus" -- Short for Fleeting Spirits
 	L.seeds = "Semillas" -- Short for Seeds of Extinction
@@ -78,10 +82,10 @@ if L then
 	L.dance_assist_down = "|T450905:0:0:0:0:64:64:4:60:4:60|t Baila hacia abajo |T450905:0:0:0:0:64:64:4:60:4:60|t"
 	L.dance_assist_left = "|T450906:0:0:0:0:64:64:4:60:4:60|t Baila a la izquierda |T450906:0:0:0:0:64:64:4:60:4:60|t"
 	-- These need to match the in-game boss yells
-	--L.dance_yell_up = "Forward" -- Prance Forward!
-	--L.dance_yell_right = "right" -- Shimmy right!
-	--L.dance_yell_down = "down" -- Boogie down!
-	--L.dance_yell_left = "left" -- Sashay left!
+	L.dance_yell_up = "Un paso al frente" -- Prance Forward!
+	L.dance_yell_right = "Hombros a la derecha" -- Shimmy right!
+	L.dance_yell_down = "A bailar" -- Boogie down!
+	L.dance_yell_left = "Chassé a la izquierda" -- Sashay left!
 end
 
 L = BigWigs:NewBossLocale("Sludgefist", "esMX")
@@ -91,7 +95,7 @@ if L then
 	L.fun_info = "Información de daño"
 	L.fun_info_desc = "Muestra un mensaje que indica cuánta salud perdió el jefe durante Impacto Destructivo."
 
-	--L.health_lost = "Sludgefist went down %.1f%%!"
+	L.health_lost = "Fangopuño perdió %.1f%%!"
 end
 
 L = BigWigs:NewBossLocale("Stone Legion Generals", "esMX")
@@ -104,16 +108,16 @@ if L then
 	L.custom_on_stop_timers = "Siempre mostrar las barras de habilidad"
 	L.custom_on_stop_timers_desc = "Sólo para pruebas por el momento"
 
-	--L.goliath_short = "Goliath"
-	--L.goliath_desc = "Show warnings and timers for when the Stone Legion Goliath is going to spawn."
+	L.goliath_short = "Goliat"
+	L.goliath_desc = "Muestra avisos y temporizadores para cuando el Goliat de la Legión Pétrea está apunto de aparecer."
 
-	--L.commando_short = "Commando"
-	--L.commando_desc = "Show warnings when a Stone Legion Commando is killed."
+	L.commando_short = "Comando"
+	L.commando_desc = "Muestra avisos cuando un Comando de la Legión Pétrea es eliminado."
 end
 
 L = BigWigs:NewBossLocale("Sire Denathrius", "esMX")
 if L then
-	--L.add_spawn = "Crimson Cabalists answer the call of Denathrius." -- [RAID_BOSS_EMOTE] Crimson Cabalists answer the call of Denathrius.#Sire Denathrius#4#true"
+	L.add_spawn = "Los Cabalistas Carmesíes responden a la llamada de Denathrius." -- [RAID_BOSS_EMOTE] Crimson Cabalists answer the call of Denathrius.#Sire Denathrius#4#true"
 
 	L.infobox_stacks = "%d |4Acumulación:Acumulaciones;: %d |4jugador:jugadores;" -- 4 Stacks: 5 players // 1 Stack: 1 player
 
@@ -156,4 +160,12 @@ if L then
 	L.deplina = "Deplina"
 	L.dragost = "Dragost"
 	L.kullan = "Kullan"
+
+	--[[ Shriekwing -> Xy'mox ]]--
+	L.antiquarian = "Anticuaria siniestra"
+	L.conservator = "Conservador de Nathria"
+	L.archivist = "Archivista de Nathria"
+
+	--[[ Sludgefist -> Stone Legion Generals ]]--
+	L.goliath = "Goliat de la Legión Pétrea"
 end

@@ -112,8 +112,10 @@ do
 					info.bar.key = index
 					info.bar.unit = unit
 					info.bar.anchor.text:SetText(index)
+					if guid ~= E.userGUID then -- [96]
+						info.bar:RegisterUnitEvent("PLAYER_SPECIALIZATION_CHANGED", unit)
+					end
 					info.bar:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", unit, unit == "player" and "pet" or unit .. "pet") -- [41]*
-					info.bar:RegisterUnitEvent("PLAYER_SPECIALIZATION_CHANGED", unit)
 				end
 				if force then -- [37]*
 					P.pendingQueue[#P.pendingQueue + 1] = guid
@@ -156,7 +158,7 @@ do
 				P.pendingQueue[#P.pendingQueue + 1] = guid
 				P:UpdateUnitBar(guid)
 			else
-				C_Timer.After(3, P.GROUP_ROSTER_UPDATE)
+				E.TimerAfter(3, updateRosterInfo, true) -- [97]
 			end
 		end
 
@@ -222,7 +224,7 @@ function P:PLAYER_ENTERING_WORLD(isInitialLogin, isReloadingUi, refresh)
 	self.isPvP = self.isInPvPInstance or (instanceType == "none" and C_PvP.IsWarModeDesired())
 	--
 
-	if isInPvPInstance then
+	if self.isInPvPInstance then
 		self:ResetAllIcons()
 	end
 

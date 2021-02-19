@@ -15,7 +15,27 @@ local unitFrameData = {
 	{   [1] = "VuhDo",
 		[2] = "Vd1H",
 		[3] = "raidid",
-		[4] = 2, -- idc if it doesn't anchor properly on /reload
+		[4] = 2, -- idc if it doesn't work. needs an insane amount of delay on reload
+	},
+	{   [1] = "VuhDo-Panel2",
+		[2] = "Vd2H",
+		[3] = "raidid",
+		[4] = 2,
+	},
+	{   [1] = "VuhDo-Panel3",
+		[2] = "Vd3H",
+		[3] = "raidid",
+		[4] = 2,
+	},
+	{   [1] = "VuhDo-Panel4",
+		[2] = "Vd4H",
+		[3] = "raidid",
+		[4] = 2,
+	},
+	{   [1] = "VuhDo-Panel5",
+		[2] = "Vd5H",
+		[3] = "raidid",
+		[4] = 2,
 	},
 	{   [1] = "Grid2",
 		[2] = "Grid2LayoutHeader1UnitButton",
@@ -63,7 +83,7 @@ local unitFrameData = {
 		[4] = 1,
 	},
 	{   [1] = "ShadowUF-Raid1",
-		[2] = "SUFHeaderraid1UnitButton",
+		[2] = "SUFHeaderraid1UnitButton", -- Must enable 'Raid/Visibility/Separate raid frames' in SUF
 		[3] = "unit",
 		[4] = 1,
 	},
@@ -79,6 +99,17 @@ local unitFrameData = {
 	},
 	{   [1] = "NDui",
 		[2] = "oUF_PartyUnitButton",
+		[3] = "unit",
+		[4] = 1,
+	},
+	{   [1] = "KkthnxUI",
+		[2] = "oUF_PartyUnitButton",
+		[3] = "unit",
+		[4] = 1,
+	},
+	{
+		[1] = "RUF",
+		[2] = "oUF_RUF_PartyUnitButton",
 		[3] = "unit",
 		[4] = 1,
 	},
@@ -109,7 +140,7 @@ function E:UnitFrames()
 	for i = 1, #unitFrameData do
 		local unitFrame = unitFrameData[i]
 		local name = unitFrame[1]
-		local addonName = name:gsub("-Raid1", "")
+		local addonName = name:gsub("-.+", "")
 		if _G[addonName] or IsAddOnLoaded(addonName) then
 			self.customUF.enabled = self.customUF.enabled or {}
 			self.customUF.enabled[name] = {
@@ -123,25 +154,24 @@ function E:UnitFrames()
 			if not self.customUF.prio then
 				self.customUF.prio = name
 			end
-
-			if name == "ElvUI" then
-				self:SetNumPixels()
-			end
 		end
 	end
 
-	if self.customUF.enabled then
-		for zone in pairs(E.CFG_ZONE) do
-			local uf = E.DB.profile.Party[zone].position.uf
+	if self.customUF.enabled then -- retain db value if no UI is enabled
+		for zone in pairs(self.CFG_ZONE) do
+			local uf = self.DB.profile.Party[zone].position.uf
 			if uf ~= "blizz" and not self.customUF.enabled[uf] then
-				E.DB.profile.Party[zone].position.uf = "auto"
+				self.DB.profile.Party[zone].position.uf = "auto"
 			end
 		end
-		E:SetActiveUnitFrameData()
 
-		if not E.DB.global.disableElvMsg then
+		self:SetActiveUnitFrameData()
+
+		if not self.DB.global.disableElvMsg then
 			StaticPopup_Show("OMNICD_Elv_MSG")
 		end
+
+		self:SetNumPixels() -- set after UFs load
 	end
 end
 

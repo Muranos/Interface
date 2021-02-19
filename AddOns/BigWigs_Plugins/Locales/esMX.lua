@@ -11,31 +11,32 @@ L.positionDesc = "Escriba en el recuadro o mueva el deslizador si necesita un po
 L.width = "Ancho"
 L.height = "Alto"
 L.sizeDesc = "Normalmente se ajusta el tamaño arrastrando el ancla. Si necesitas un tamaño exacto puedes usar este deslizador o escribir el valor en el recuadro, que no tiene un máximo."
---L.fontSizeDesc = "Adjust the font size using the slider or type the value into the box which has a much higher maximum of 200."
---L.disableDesc = "You are about to disable the feature '%s' which is |cffff4411not recommended|r.\n\nAre you sure you want to do this?"
+L.fontSizeDesc = "Ajuste el tamaño de la fuente utilizando el control deslizante o escriba el valor en la casilla que tiene un máximo de 200."
+L.disableDesc = "Está a punto de desactivar la función '%s' que |cffff4411no se recomienda|r.\n\n¿Estás seguro de que quieres hacer esto?"
+--L.transparency = "Transparency"
 
 -----------------------------------------------------------------------
 -- AltPower.lua
 --
 
 L.altPowerTitle = "PoderAlternativo"
---L.altPowerDesc = "The AltPower display will only appear for bosses that apply AltPower to players, which is extremely rare. The display measures the amount of 'Alternative Power' you and your group has, displaying it in a list. To move the display around, please use the test button below."
+L.altPowerDesc = "La pantalla de Poder Alternativo sólo aparecerá para los jefes que apliquen Poder Alternativo a los jugadores, lo cual es extremadamente raro. La pantalla mide la cantidad de Poder Alternativo que tienes tú y tu grupo, mostrándolo en una lista. Para mover la pantalla, por favor usa el botón de prueba de abajo."
 L.toggleDisplayPrint = "La pantalla mostrará la próxima vez. Para desactivarlo completamente para este encuentro, debes desactivarlo en las opciones del encuentro."
 L.disabled = "Desactivado"
 L.disabledDisplayDesc = "Desactiva la pantalla para todos los módulos que la utilicen."
 L.resetAltPowerDesc = "Restablece todas las opciones relacionadas con el Poder Alterno, incluyendo la posición del ancla de este."
---L.test = "Test"
---L.altPowerTestDesc = "Show the 'Alternative Power' display, allowing you to move it, and simulating the power changes you would see on a boss encounter."
---L.yourPowerBar = "Your Power Bar"
---L.barColor = "Bar color"
---L.barTextColor = "Bar text color"
---L.additionalWidth = "Additional Width"
---L.additionalHeight = "Additional Height"
---L.additionalSizeDesc = "Add to the size of the standard display by adjusting this slider, or type the value into the box which has a much higher maximum of 100."
---L.yourPowerTest = "Your Power: %d" -- Your Power: 42
---L.yourAltPower = "Your %s: %d" -- e.g. Your Corruption: 42
---L.player = "Player %d" -- Player 7
---L.disableAltPowerDesc = "Globally disable the AltPower display, it will never show for any boss encounter."
+L.test = "Prueba"
+L.altPowerTestDesc = "Muestra la pantalla de Poder Alternativo, permitiéndote moverlo, y simulando los cambios de poder que verías en un encuentro con un jefe."
+L.yourPowerBar = "Tu barra de poder"
+L.barColor = "Color de la barra"
+L.barTextColor = "Color del texto de la barra"
+L.additionalWidth = "Ancho adicional"
+L.additionalHeight = "Altura adicional"
+L.additionalSizeDesc = "Aumente el tamaño de la pantalla estándar ajustando este deslizador, o escriba el valor en la casilla que tiene un máximo de 100."
+L.yourPowerTest = "Tu poder: %d" -- Your Power: 42
+L.yourAltPower = "Tu %s: %d" -- e.g. Your Corruption: 42
+L.player = "Jugador %d" -- Player 7
+L.disableAltPowerDesc = "Deshabilita la pantalla de Poder Alternativo, nunca se mostrará para ningún encuentro con el jefe."
 
 -----------------------------------------------------------------------
 -- AutoReply.lua
@@ -73,6 +74,7 @@ L.nameplateAutoWidth = "Igualar anchura de la placa de nombre"
 L.nameplateAutoWidthDesc = "Establece el ancho de las barras de nombres con la anchura de la barra de nombre padre."
 L.nameplateOffsetY = "Desplazamiento en Y"
 L.nameplateOffsetYDesc = "Desplazamiento de la parte superior de la placa de nombre para las barras hacia arriba y la parte inferior de la placa de nombre para las barras hacia abajo."
+--L.nameplateAlphaDesc = "Control how transparent the nameplate bars should be."
 
 L.clickableBars = "Barra cliqueable"
 L.clickableBarsDesc = "Las barras de BigWigs se les puede hacer clic por defecto. De esta manera puedes seleccionar objetos, lanzar hechizos AoE, cambiar el ángulo de la cámara, etc., mientras tu cursor está encima de las mismas. |cffff4411Si activas esta opción ya no se comportarán de esta forma.|r Las barras interceptarán los clics que hagas en ellas.\n"
@@ -250,7 +252,7 @@ L.uppercaseDesc = "Todos los mensajes enfatizados se convertirán en MAYÚSCULAS
 L.useIcons = "Usar íconos"
 L.useIconsDesc = "Mostrar íconos al lado de los mensajes."
 L.classColors = "Colores de clase"
-L.classColorsDesc = "Colorea los nombres de los jugadores de acuerdo con su clase."
+--L.classColorsDesc = "Messages will sometimes contain player names. Enabling this option will color those names using class colors."
 L.chatMessages  = "Mensajes del marco de chat"
 L.chatMessagesDesc  = "Todos los mensajes de salida de BigWigs a la ventana de chat por defecto en adición a los ajustes mostrados"
 

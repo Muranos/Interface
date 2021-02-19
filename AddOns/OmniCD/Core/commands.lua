@@ -52,6 +52,7 @@ E.SlashHandler = function(msg)
 		P:Refresh()
 		AceRegistry:NotifyChange("OmniCD")
 	elseif (command == "sync") then
+		-- Toggles sync for cooldown reduction by spending resources only. Talent changes etc are unaffected.
 		E.DB.profile.Party.sync = not E.DB.profile.Party.sync
 		local state = E.DB.profile.Party.sync and VIDEO_OPTIONS_ENABLED or VIDEO_OPTIONS_DISABLED
 		E.Write(L["Synchronize"], state)

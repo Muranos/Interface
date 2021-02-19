@@ -1,7 +1,9 @@
 # LittleWigs
 
-## [v9.0.25](https://github.com/BigWigsMods/LittleWigs/tree/v9.0.25) (2021-02-03)
-[Full Changelog](https://github.com/BigWigsMods/LittleWigs/compare/v9.0.24...v9.0.25) [Previous Releases](https://github.com/BigWigsMods/LittleWigs/releases)
+## [v9.0.29](https://github.com/BigWigsMods/LittleWigs/tree/v9.0.29) (2021-02-17)
+[Full Changelog](https://github.com/BigWigsMods/LittleWigs/compare/v9.0.28...v9.0.29) [Previous Releases](https://github.com/BigWigsMods/LittleWigs/releases)
 
-- Shadowlands/MistsOfTirnaScithe: Add trash module (#573)  
 - Update option files  
+- Shadowlands/HallsOfAtonement/Halkias: Swap to CL.beams  
+- Shadowlands/SanguineDepths: Add trash module (#583)  
+- Shadowlands/HallsOfAtonement: Various tweaks  

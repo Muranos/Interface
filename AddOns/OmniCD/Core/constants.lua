@@ -2,7 +2,7 @@ local E, L, C = select(2, ...):unpack()
 
 local L_PVP_TRINKET = GetSpellInfo(283167)
 local RACIAL_TRAITS = gsub(RACIAL_TRAITS, ":", "")
-local DISARMROOTSILENCE = format("%s %s %s",LOC_TYPE_DISARM, LOC_TYPE_ROOT, LOC_TYPE_SILENCE)
+local DISARMROOTSILENCE = format("%s, %s, %s",LOC_TYPE_DISARM, LOC_TYPE_ROOT, LOC_TYPE_SILENCE)
 
 E.BASE_ICON_SIZE = 36
 
@@ -221,32 +221,32 @@ E.CLASSID = {
 }
 
 E.POWER_TYPE_SPEC = {
-	[250] = 1,
-	[253] = 1,
-	[254] = 1,
-	[255] = 1,
-	[269] = true,
-	[65] = true,
-	[66] = true,
-	[70] = true,
-	[260] = true,
-	[261] = true,
-	[71] = 1,
-	[72] = 1,
-	[73] = 1,
-	[265] = true,
-	[266] = true,
-	[267] = true,
+	[250] = 1,      -- DK (Blood)
+	[253] = 1,      -- HUnter(BM)
+	[254] = 1,      -- Hunter (MM)
+	[255] = 1,      -- Hunter (SV)
+	[269] = true,   -- Monk (WW)
+	[65]  = true,   -- Paladin (Holy)
+	[66]  = true,   -- Paladin (Prot)
+	[70]  = true,   -- Paladin (Ret)
+	[260] = true,   -- Rogue (Outlaw)
+	[261] = true,   -- Rogue (Sub)
+	[71]  = 1,      -- Warrior (Arms)
+	[72]  = 1,      -- Warrior (Firu)
+	[73]  = 1,      -- Warrior (Prot)
+	[265] = true,   -- Warlock (Aff)
+	[266] = true,   -- Warlock (Demo)
+	[267] = true,   -- Warlock (Dest)
 }
 
 E.POWER_TYPE_IDS = {
-	["RUNIC_POWER"] = 6,        -- Enum.PowerType.RunicPower
-	["FOCUS"] = 2,              -- Enum.PowerType.Focus
-	["CHI"] = 12,               -- Enum.PowerType.Chi
-	["HOLY_POWER"] = 9,         -- Enum.PowerType.HolyPower
-	["RAGE"] = 1,               -- Enum.PowerType.Rage
-	["COMBO_POINTS"] = 4,       -- Enum.PowerType.ComboPoints
-	["SOUL_SHARDS"] = 7,        -- Enum.PowerType.SoulShards
+	["RUNIC_POWER"] = Enum.PowerType.RunicPower,    -- 6
+	["FOCUS"] = Enum.PowerType.Focus,   -- 2
+	["CHI"] = Enum.PowerType.Chi,   -- 12
+	["HOLY_POWER"] = Enum.PowerType.HolyPower,  -- 9
+	["RAGE"] = Enum.PowerType.Rage, -- 1
+	["COMBO_POINTS"] = Enum.PowerType.ComboPoints,  -- 4
+	["SOUL_SHARDS"] = Enum.PowerType.SoulShards,    -- 7
 }
 
 E.COVENANT_HEX_COLOR = {
