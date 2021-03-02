@@ -175,6 +175,14 @@ L.blockTooltipQuestsDesc = "Quando você precisa matar um chefe para uma missão
 L.blockObjectiveTracker = "Esconder rastreador de missão"
 L.blockObjectiveTrackerDesc = "O rastreador de objetivos de missão será escondido durante um encontro de chefe para liberar espaço na tela.\n\nIsso NÃO irá acontecer se você estiver em uma Mítica+ ou estiver rastreando uma conquista."
 
+L.blockTalkingHead = "Esconder o popup de diálogo 'Cabeça Falante' do NPC"
+L.blockTalkingHeadDesc = "A 'Cabeça Falante' é um popup de diálogo que tem uma cabeça do NPC e um texto de chat embaixo no meio da tela que |cffff4411às vezes|r é mostrada quando um NPC está falando.\n\nVocê pode escolher diferentes tipos de instâncias para quando isso deve ser bloqueado de ser mostrado.\n\n|cFF33FF99Por favor note que:|r\n 1) Essa funcionalidade irá permitir que a vozd o NPC continue reproduzindo para que você continue a ouvi-lo.\n 2) Por segurança, somente cabeças falantes específicas serão bloqueadas. Qualquer uma especial ou única, como as missões de uma única vez, não serão bloqueadas."
+L.blockTalkingHeadDungeons = "Masmorras Normal & Heróica"
+L.blockTalkingHeadMythics = "Masmorras Míticas & Míticas+"
+L.blockTalkingHeadRaids = "Raides"
+L.blockTalkingHeadTimewalking = "Caminhada Temporal (Masmorras & Raides)"
+L.blockTalkingHeadScenarios = "Cenários"
+
 L.subzone_grand_bazaar = "Grande Bazar" -- Battle of Dazar'alor raid (Battle for Azeroth)
 L.subzone_port_of_zandalar = "Porto de Zandalar" -- Battle of Dazar'alor raid (Battle for Azeroth)
 L.subzone_eastern_transept = "Transepto Oriental" -- Auchindoun dungeon (Warlords of Draenor)

@@ -16,4 +16,6 @@ if L then
 	L.fungalmancer = "Fungimante"
 	L.pestilent_harvester = "Ceifador Pestilento"
 	L.fungi_stormer = "Estrondeador Fungal"
+
+	L.summon_stealthlings_desc = "Mostra um aviso para quando os Furtivinhos forem aparecer."
 end

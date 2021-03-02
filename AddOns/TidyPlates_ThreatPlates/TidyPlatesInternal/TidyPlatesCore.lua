@@ -9,7 +9,7 @@ local TidyPlatesCore = CreateFrame("Frame", nil, WorldFrame)
 -- Local References
 local _
 local max, gsub, tonumber = math.max, string.gsub, tonumber
-local select, pairs, tostring  = select, pairs, tostring 			    -- Local function copy
+local select, pairs, tostring = select, pairs, tostring 			    -- Local function copy
 
 -- WoW APIs
 local wipe, strsplit = wipe, strsplit
@@ -1816,35 +1816,12 @@ function Addon:ForceUpdate()
     TidyPlatesCore:RegisterEvent("UNIT_TARGET")
   end
 
-  -- Add LibDogTagSupport
-  if (TidyPlatesThreat.db.profile.HeadlineView.FriendlySubtext == "CUSTOM" or
-    TidyPlatesThreat.db.profile.HeadlineView.EnemySubtext == "CUSTOM" or
-    TidyPlatesThreat.db.profile.settings.customtext.FriendlySubtext == "CUSTOM" or
-    TidyPlatesThreat.db.profile.settings.customtext.EnemySubtext == "CUSTOM") and not Addon.LibDogTag then
-
-    Addon.LibDogTag = LibStub("LibDogTag-3.0", true)
-    LibStub("LibDogTag-Unit-3.0", true)
-
-    -- Insert nameplate unitids as legitimate units for LibDogTag-Unit-3.0
-    -- Replate metatable of LibDogTag-Unit
-    setmetatable(Addon.LibDogTag.IsLegitimateUnit, {
-      __index = function(self, key)
-        if type(key) ~= "string" then
-          return false
-        end
-        --if key:sub(1, #"nameplate") == "nameplate" then
-        if key:sub(1, #"nameplate") == "nameplate" then
-          Addon.LibDogTag.IsNormalUnit[key] = true
-          self[key] = true
-          return self[key]
-        elseif key:match("target$") then
-          self[key] = self[key:sub(1, -7)]
-          return self[key]
-        end
-        self[key] = false
-        return false
-      end
-    })
+  -- Enable or disable LibDogTagSupport based on custom status text being actually used
+  if db.HeadlineView.FriendlySubtext == "CUSTOM" or db.HeadlineView.EnemySubtext == "CUSTOM" or db.settings.customtext.FriendlySubtext == "CUSTOM" or db.settings.customtext.EnemySubtext == "CUSTOM" then
+    if not Addon.LibDogTag then
+      Addon.LibDogTag = LibStub("LibDogTag-3.0")
+      LibStub("LibDogTag-Unit-3.0")
+    end
   end
 
   for plate, unitid in pairs(self.PlatesVisible) do

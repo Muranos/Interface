@@ -1,3 +1,6 @@
+local _, addon = ...
+if (not addon.lunarfestival.IsEventActive()) then return end
+
 local Coords = CreateVector2D
 select(2, ...).TomCatsLibs.Data.loadData(
 	"Quests",

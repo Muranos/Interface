@@ -1,4 +1,6 @@
 local addonName, addon = ...
+if (not addon.lunarfestival.IsEventActive()) then return end
+
 local libs = { "Events", "BulletinBoard", "Copyright", "Holidays", "Tooltips", "SavedVariables", "Charms", "Data", "Arrows", "Colors", "UUID", "Locales", "Books" }
 local libIndexes = {}
 local TomCatsLibs = {}

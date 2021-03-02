@@ -1,4 +1,5 @@
 local _, addon = ...
+if (not addon.loveisintheair.IsEventActive()) then return end
 
 local CreateFromMixins = CreateFromMixins
 

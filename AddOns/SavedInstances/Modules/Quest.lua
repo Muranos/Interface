@@ -51,6 +51,19 @@ local _specialQuests = {
   [55901] = { daily=true, zid=1462, }, -- Rustbolt Rebellion
   [56141] = { daily=true, zid=1462, }, -- Security First
 
+  -- Assault Coffers
+  [57628] = { name=L["Cursed Coffer"] },      -- Cursed Coffer
+  [57214] = { name=L["Mogu Strongbox"] },     -- Mogu Strongbox
+  [58137] = { name=L["Infested Strongbox"] }, -- Infested Strongbox
+  [55692] = { name=L["Amathet Reliquary"] },  -- Amathet Reliquary
+  [58770] = { name=L["Ambered Coffer"] },     -- Ambered Coffer
+
+  -- Beastwarrens Hunts
+  [63180] = { name=L["Hunt: Shadehounds"] },        -- Hunt: Shadehounds
+  [63194] = { name=L["Hunt: Winged Soul Eaters"] }, -- Hunt: Winged Soul Eaters
+  [63198] = { name=L["Hunt: Death Elementals"] },   -- Hunt: Death Elementals
+  [63199] = { name=L["Hunt: Soul Eaters"] },        -- Hunt: Soul Eaters
+
   -- Old Vanilla Bosses during Anniversary Event
   [47461] = { daily=true, name=L["Lord Kazzak"] },          -- Lord Kazzak
   [47462] = { daily=true, name=L["Azuregos"] },             -- Azuregos
@@ -165,6 +178,19 @@ local QuestExceptions = {
   [59017] = "Weekly", -- Call to Arms: Vale of Eternal Blossoms (Horde)
   [59019] = "Weekly", -- Call to Arms: Uldum (Alliance)
   [59016] = "Weekly", -- Call to Arms: Uldum (Horde)
+  -- BfA Zone Invasions
+  [51982] = "Daily", -- Storm's Rage
+  [53701] = "Daily", -- A Drust Cause
+  [53711] = "Daily", -- A Sound Defense
+  [53883] = "Daily", -- Shores of Zuldazar
+  [53885] = "Daily", -- Isolated Victory
+  [53939] = "Daily", -- Breaching Boralus
+  [54132] = "Daily", -- Horde of Heroes
+  [54134] = "Daily", -- Many Fine Heroes
+  [54135] = "Daily", -- Romp in the Swamp
+  [54136] = "Daily", -- March on the Marsh
+  [54137] = "Daily", -- In Every Dark Corner
+  [54138] = "Daily", -- Ritual Rampage
   -- Nazjatar
   [55121] = "Weekly", -- The Laboratory of Mardivas
   [56969] = "Weekly", -- Ancient Reefwalker Bark
@@ -209,13 +235,33 @@ local QuestExceptions = {
   [62285] = "Weekly", -- Observing War
   [62286] = "Weekly", -- Observing Skirmishes
   [62287] = "Weekly", -- Observing Arenas
+  [62288] = "Weekly", -- Observing Teamwork
   [62289] = "Weekly", -- Observing Conflict
+  -- Ve'nari Weekly
+  [60622] = "Weekly", -- Eye of the Scryer
+  [60646] = "Weekly", -- Misery Business
+  [60762] = "Weekly", -- Death Motes
+  [60775] = "Weekly", -- A Suitable Demise
+  [61075] = "Weekly", -- A Spark of Light
+  [61088] = "Weekly", -- Dust to Dust
+  [61104] = "Weekly", -- Grathalax, the Extractor
+  [61765] = "Weekly", -- Words of Warding
+  [62214] = "Weekly", -- Forces of Perdition
+  [62234] = "Weekly", -- Power of the Colossus
+  [63206] = "Weekly", -- Soulless Husks
+  -- Queen's Conservatory
+  [62441] = "Weekly", -- Fair Exchange for a Soul
+  [62445] = "Weekly", -- A Spirit's Pride
+  [62449] = "Weekly", -- A Spirit's Duty
+  [62450] = "Weekly", -- A Spirit's Heart
+  [62452] = "Weekly", -- A Spirit's Might
 
   -- General
   -- Darkmoon Faire
-  [7905]  = "Regular", -- Darkmoon Faire referral -- old addon versions misidentified this as monthly
-  [7926]  = "Regular", -- Darkmoon Faire referral
-  [37819] = "Regular", -- Darkmoon Faire races referral
+  [7905]  = "Regular",  -- Darkmoon Faire referral -- old addon versions misidentified this as monthly
+  [7926]  = "Regular",  -- Darkmoon Faire referral
+  [37819] = "Regular",  -- Darkmoon Faire races referral
+  [47767] = "Darkmoon", -- Death Metal Knight
 
   -- Blingtron
   -- update `ShowQuestTooltip` in SavedInstances.lua when updating Blingtron quest list
@@ -232,16 +278,16 @@ local QuestExceptions = {
   [58458] = "AccountWeekly", -- Pet Battle Challenge: Blackrock Depths
 
   -- Weekend Event
-  [53030] = "Weekly", -- The World Awaits - World Quests
-  [53032] = "Weekly", -- A Burning Path Through Time - TBC Timewalking
-  [53033] = "Weekly", -- A Frozen Path Through Time - WLK Timewalking
-  [53034] = "Weekly", -- A Shattered Path Through Time - CTM Timewalking
-  [53035] = "Weekly", -- A Shattered Path Through Time - MOP Timewalking
-  [54995] = "Weekly", -- A Savage Path Through Time - WOD Timewalking
-  [53036] = "Weekly", -- A Call to Battle - Battlegrounds
-  [53037] = "Weekly", -- Emissary of War - Mythic Dungeons
-  [53038] = "AccountWeekly", -- The Very Best - PvP Pet Battles
-  [53039] = "Weekly", -- The Arena Calls - Arena Skirmishes
+  [62631] = "Weekly", -- The World Awaits - World Quests
+  [62632] = "Weekly", -- A Burning Path Through Time - TBC Timewalking
+  [62633] = "Weekly", -- A Frozen Path Through Time - WLK Timewalking
+  [62634] = "Weekly", -- A Shattered Path Through Time - CTM Timewalking
+  [62635] = "Weekly", -- A Shattered Path Through Time - MOP Timewalking
+  [62636] = "Weekly", -- A Savage Path Through Time - WOD Timewalking
+  [62637] = "Weekly", -- A Call to Battle - Battlegrounds
+  [62638] = "Weekly", -- Emissary of War - Mythic Dungeons
+  [62639] = "AccountWeekly", -- The Very Best - PvP Pet Battles
+  [62640] = "Weekly", -- The Arena Calls - Arena Skirmishes
 }
 SI.QuestExceptions = QuestExceptions
 

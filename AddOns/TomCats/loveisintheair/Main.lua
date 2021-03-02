@@ -1,7 +1,9 @@
 local addonName, addon = ...
+if (not addon.loveisintheair.IsEventActive()) then return end
 
 local C_ClassTrial = C_ClassTrial
 local C_Timer = C_Timer
+local CreateFrame = CreateFrame
 local DEFAULT_CHAT_FRAME = DEFAULT_CHAT_FRAME
 local GameTooltip = GameTooltip
 local GetItemCount = GetItemCount
@@ -9,11 +11,14 @@ local GetLFGDungeonRewardInfo = GetLFGDungeonRewardInfo
 local GetLFGDungeonRewards = GetLFGDungeonRewards
 local GetServerTime = GetServerTime
 local RequestLFDPlayerLockInfo = RequestLFDPlayerLockInfo
+local UIParent = UIParent
 local UnitClass = UnitClass
 local UnitFactionGroup = UnitFactionGroup
 local UnitFullName = UnitFullName
 local UnitGUID = UnitGUID
 local UnitLevel = UnitLevel
+
+CreateFrame("FRAME", "TomCats-LoveIsInTheAirTourGuideFrame", UIParent, "TomCats-LoveIsInTheAirTourGuideFrameTemplate")
 
 local Books = addon.loveisintheair.Books
 local AP
@@ -92,7 +97,7 @@ local function LFG_UPDATE_RANDOM_INFO()
             end
         end
     end
-    if (character.canLootMount and (not character.completedDungeon)) then
+    if (character.canLootMount and (not (character.completedDungeon and (character.timestamp >= addon.loveisintheair:GetLastResetTimestamp())))) then
         local completedDungeon = GetLFGDungeonRewards(288)
         if (completedDungeon) then
             character.completedDungeon = true
@@ -113,7 +118,7 @@ local function PLAYER_LEVEL_UP(_, level)
     end
 end
 local function LFG_COMPLETION_REWARD()
-    if (not character.completedDungeon) then
+    if (not (character.completedDungeon and (character.timestamp >= addon.loveisintheair:GetLastResetTimestamp()))) then
         RequestLFDPlayerLockInfo()
     end
 end

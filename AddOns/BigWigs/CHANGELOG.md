@@ -1,9 +1,18 @@
 # BigWigs
 
-## [v215.1](https://github.com/BigWigsMods/BigWigs/tree/v215.1) (2021-02-18)
-[Full Changelog](https://github.com/BigWigsMods/BigWigs/compare/v215...v215.1) [Previous Releases](https://github.com/BigWigsMods/BigWigs/releases)
+## [v217](https://github.com/BigWigsMods/BigWigs/tree/v217) (2021-02-28)
+[Full Changelog](https://github.com/BigWigsMods/BigWigs/compare/v216.2...v217) [Previous Releases](https://github.com/BigWigsMods/BigWigs/releases)
 
-- CastleNathria/Denathrius: Tweak player check  
-- CastleNathria/Trash: Exclude players from Stoneskin warning  
-- CastleNathria/TheCouncilofBlood: Fix a weird bar text for Dancing Fevers  
-- CastleNathria/SunKingsSalvation: Check if a shield had 0 value left as well  
+- Update zhTW (#1024)  
+- Update zhTW (#1023)  
+- Update zhCN (#1022)  
+- bump version  
+- Plugins: More validation & tweaks  
+- CastleNathria: Use :SetEncounterID & SetRespawnTime where appropriate  
+- Core/BossPrototype: Add `:SetEncounterID(number)` & `:SetRespawnTime(number)`  
+- Update ruRU (#1020)  
+- Update ptBR (#1021)  
+- Update ruRU (#1019)  
+- Plugins/Countdown: Validate stored options  
+- Plugins/Messages: Finish off options validation  
+- CastleNathria/TheCouncilofBlood: Show a shorter but paused Dancing Fever bar to better display when it will happen, change Castellans Cadre back to _SUCCES as the cooldown starts then, not on _START.  

@@ -77,7 +77,6 @@
             </OnLoad>
         </Scripts>
     </Frame>
-    <Frame name="TomCats-LoveIsInTheAirTourGuideFrameTemplate" virtual="true" mixin="TomCats-LoveIsInTheAirTourGuideFrameMixin"/>
     <Frame name="TomCats-LoveIsInTheAirLFDRoleButtonTemplate" virtual="true" inherits="LFGRoleButtonWithBackgroundTemplate" scale="1.0">
         <Size x="32" y="32"/>
         <Scripts>
@@ -93,7 +92,7 @@
             </OnClick>
         </Scripts>
     </Frame>
-    <Frame name="TomCats-LoveIsInTheAirTourGuideFrame" toplevel="true" movable="true" enableMouse="true" hidden="true" parent="UIParent" inherits="ButtonFrameTemplate, TomCats-LoveIsInTheAirTourGuideFrameTemplate" frameStrata="MEDIUM">
+    <Frame name="TomCats-LoveIsInTheAirTourGuideFrameTemplate" virtual="true" toplevel="true" movable="true" enableMouse="true" hidden="true" parent="UIParent" inherits="ButtonFrameTemplate" mixin="TomCats-LoveIsInTheAirTourGuideFrameMixin" frameStrata="MEDIUM">
         <Size>
             <AbsDimension x="550" y="525"/>
         </Size>

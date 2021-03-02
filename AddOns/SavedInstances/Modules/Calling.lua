@@ -10,7 +10,10 @@ local C_CovenantCallings_RequestCallings = C_CovenantCallings.RequestCallings
 local C_QuestLog_GetTitleForQuestID = C_QuestLog.GetTitleForQuestID
 local C_QuestLog_IsOnQuest = C_QuestLog.IsOnQuest
 local C_TaskQuest_GetQuestTimeLeftMinutes = C_TaskQuest.GetQuestTimeLeftMinutes
+local GetNumQuestLogRewards = GetNumQuestLogRewards
+local GetQuestLogRewardInfo = GetQuestLogRewardInfo
 local GetQuestObjectiveInfo = GetQuestObjectiveInfo
+local GetQuestProgressBarPercent = GetQuestProgressBarPercent
 
 function Module:PostRefresh()
   if self.initialized then
@@ -61,11 +64,25 @@ function Module:COVENANT_CALLINGS_UPDATED(_, callings)
 
       if isOnQuest then
         local text, objectiveType, isFinished, questDone, questNeed = GetQuestObjectiveInfo(data.questID, 1, false)
+        if objectiveType == 'progressbar' then
+          questDone = GetQuestProgressBarPercent(data.questID)
+          questNeed = 100
+        end
         t.Calling[day].text = text
         t.Calling[day].objectiveType = objectiveType
         t.Calling[day].isFinished = isFinished
         t.Calling[day].questDone = questDone
         t.Calling[day].questNeed = questNeed
+
+        local numQuestRewards = GetNumQuestLogRewards(data.questID)
+        if numQuestRewards > 0 then
+          local itemName, _, _, quality = GetQuestLogRewardInfo(1, data.questID)
+          if itemName then
+            t.Calling[day].questReward = t.Calling[day].questReward and wipe(t.Calling[day].questReward) or {}
+            t.Calling[day].questReward.itemName = itemName
+            t.Calling[day].questReward.quality = quality
+          end
+        end
       end
   end
 end

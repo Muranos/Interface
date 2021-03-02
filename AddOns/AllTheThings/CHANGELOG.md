@@ -1,29 +1,42 @@
 # AllTheThings
 
-## [1.1.0](https://github.com/DFortun81/AllTheThings/tree/1.1.0) (2021-02-18)
-[Full Changelog](https://github.com/DFortun81/AllTheThings/compare/2.2.4...1.1.0) [Previous Releases](https://github.com/DFortun81/AllTheThings/releases)
+## [2.2.6](https://github.com/DFortun81/AllTheThings/tree/2.2.6) (2021-02-22)
+[Full Changelog](https://github.com/DFortun81/AllTheThings/compare/2.2.5...2.2.6) [Previous Releases](https://github.com/DFortun81/AllTheThings/releases)
 
-- RELEASE: 1.1.0  
-- - fixed bug when directly attempting to open a popout window for a sourceID which does not exist in Source  
-- new source harvest using proper modID correlation  
-    fixed Quests having variable collectibility while in Debug mode  
-    fixed Account Mode modifying the collectibility of Things in Debug mode  
-    adjusted the Version display when using a Git version of ATT  
-    Parser: removed some filter switches for Classic/Retail differences based on logic adjustments in Retail  
-    Parser: added forced exclusion of 'modID' to certain Thing-types  
-    Parser: added abritrary level exclusion since the Blizz API still reports various Things require players above level 60... sigh  
-- more unsorted removed-from-game quests/formatting/suffering  
-- a venthyr tracking quest  
-    some unsorted, removed-from-game quests  
-    formatting updates to appease my brain worms  
-- Fixed Gormbore description  
-- Some internal code tidying  
-    Added some classic lockboxes to Junkboxes category  
-- Removed description from "Winterspring!" 28768 breadcrumb as we no longer know its max level  
-- Added more Timewalking quests from Chromie  
-- Add packager workflow (#701)  
-- - timewalking cost   
-- - couple HQT for abominable stitching  
-- - added Ember Court: Mikanikos RSVP  
-    - note to myself about crafting tooltip improvement....  
-- There are now some distinct Classic / Retail differences in ATT.  
+- categories didn't refresh on last commit...  
+- - found out a source quest for CEN world quests  
+- Forgot to change toc  
+- Groundwork for further localization efforts  
+- Small clarification in out internal notes  
+- Switched back to official packager  
+- Removed duplicate of Eyes In The Sky quest, which was not marked as a breadcrumb  
+- - an additional provider for first Threads/Skip quest  
+- moved storming stormwind, downing the dark lady, and bleeding bloodhoof achievements to legacy  
+    fixed a couple wonky criteria in the mainlist "junkyard architect" achievement  
+- - continued horde/allianceAchievementID destruction  
+- Marked "The Maelstrom" 27203 as a breadcrumb quest  
+- - some sourcequests while doing torghast intro chain  
+- more horde/allianceAchievementID destruction  
+- Fixed some level requirements after squish  
+- Ignored another uncollectable item  
+- Ignored some uncollectible items  
+- Removed wrong description on "Remnants of Hope" 62935  
+- Fxied questgiver for "Into the Maw" 59181  
+- trashed hordeAchievementID/allianceAchievementID in 5man ToC  
+    updated formatting of achievements in 5man ToC  
+    removed description for faceroller achievement (hyperspecific how-to had changed 2x since we added it, and it seems silly to try to maintain descriptions for relatively straightforward achievements)  
+    a couple more unsorted/removed quests  
+- Ru locale sync  
+- - more unsorted/removed quests  
+- - maybe fixed the BRF Quest Tokens again now that modID is also fixed...  
+- - fixed caching logic due to LUA iteration functionality  
+    - fixed potential case for a cost item to be cached using the modID of the item for which it was the cost  
+- More Classic specific modifications.  
+- split up midsummer  
+    added "races" to faction-specific midsummer criteria to hopefully avoid any "maps" blunders similar to the spring fling thing  
+    a couple more unsorted/removed quests  
+- A bunch of reagent satchels freed from ATT shackles  
+- fixed alliance/horde spring fling criteria showing up for opposite faction  
+    removed duplicated "maps" linkage since all holiday stuff is handled in the holiday files already  
+- more unsorted/removed quests  
+    ongoing internal beautification updates because it provides dopamine to my desiccated husk of a brain  

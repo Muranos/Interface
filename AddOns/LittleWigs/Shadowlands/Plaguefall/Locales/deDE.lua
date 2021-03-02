@@ -16,4 +16,6 @@ if L then
 	L.fungalmancer = "Fungumant"
 	L.pestilent_harvester = "Pestilenter Ernter"
 	L.fungi_stormer = "Fungistürmer"
+
+	 L.summon_stealthlings_desc = "Zeigt eine Warnung wenn die Tarnlinge erscheinen."
 end

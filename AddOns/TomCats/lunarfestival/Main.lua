@@ -1,4 +1,6 @@
 local addonName, addon = ...
+if (not addon.lunarfestival.IsEventActive()) then return end
+
 local TCL = addon.TomCatsLibs
 local WorldMapFrame
 local BattlefieldMapFrame

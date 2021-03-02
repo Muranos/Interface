@@ -147,8 +147,8 @@ BigWigs:AddSounds("Stone Legion Generals", {
 	[342698] = "alert",
 	[342722] = "alert",
 	[342733] = "warning",
-	[342985] = "alert",
 	[343063] = "alarm",
+	[343898] = "alert",
 	[344496] = "warning",
 	["goliath"] = "info",
 })

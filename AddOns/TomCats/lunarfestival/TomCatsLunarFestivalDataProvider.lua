@@ -1,4 +1,6 @@
 local _, addon = ...
+if (not addon.lunarfestival.IsEventActive()) then return end
+
 local TCL = addon.TomCatsLibs
 local D = TCL.Data
 -- hard disabled due to no saved variables at current release

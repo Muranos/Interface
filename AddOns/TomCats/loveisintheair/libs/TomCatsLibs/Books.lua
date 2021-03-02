@@ -1,4 +1,5 @@
 local _, addon = ...
+if (not addon.loveisintheair.IsEventActive()) then return end
 
 local C_DateAndTime = C_DateAndTime
 local CalendarUtil = CalendarUtil
@@ -7,7 +8,6 @@ local ConfirmOrLeaveLFGParty = ConfirmOrLeaveLFGParty
 local CreateFrame = CreateFrame
 local CreateFromMixins = CreateFromMixins
 local GameTime_GetFormattedTime = GameTime_GetFormattedTime
-local GetCurrentRegionName = GetCurrentRegionName
 local GetCVarBool = GetCVarBool
 local GetItemCount = GetItemCount
 local GetServerTime = GetServerTime
@@ -22,6 +22,10 @@ local SetItemButtonCount = SetItemButtonCount
 local SetItemButtonQuality = SetItemButtonQuality
 local SetItemButtonTexture = SetItemButtonTexture
 local UnitGUID = UnitGUID
+
+local getCurrentOffsetMinutes = addon.loveisintheair.getCurrentOffsetMinutes
+local getEventEndsTime = addon.loveisintheair.getEventEndsTime
+local getEventStartsTime = addon.loveisintheair.getEventStartsTime
 
 addon.loveisintheair.Books = { }
 local Books = addon.loveisintheair.Books
@@ -60,90 +64,13 @@ function PageMixin:CreateInset( points )
     return inset
 end
 
-local function setupGlobalEventTimes(val, euOffset, naOffset, krOffset, cnOffset, twOffset) -- setup event time relative to EU
-    local times = { }
-    times.EU = val + euOffset
-    times.NA = val + naOffset
-    times.KR = val + krOffset
-    times.CN = val + cnOffset
-    times.TW = val + twOffset
-    return times
-end
-
--- 2/8/2021 7:00am UTC in EU
-local eventResets = setupGlobalEventTimes(1612767600, 0, 28800, -28800, -28800, -28800)
--- 2/8/2021 10:00am CET in EU
-local eventStarts = setupGlobalEventTimes(1612774800, 0, 32400, -28800, -25200, -25200)
--- 2/22/2021 10:00am CET in EU
-local eventEnds = setupGlobalEventTimes(1613984400, 0, 32400, -28800, -25200, -25200)
-
-local currentOffsetMinutes
-local function getCurrentOffsetMinutes()
-    if (currentOffsetMinutes) then return currentOffsetMinutes end
-    local localTime = C_DateAndTime.GetCalendarTimeFromEpoch(GetServerTime()* 1000000)
-    local serverTime = C_DateAndTime.GetCurrentCalendarTime()
-    local minutesOffset = serverTime.minute - localTime.minute
-    local hoursOffset = serverTime.hour - localTime.hour
-    local daysOffset = serverTime.weekday - localTime.weekday
-    if (daysOffset > 1) then daysOffset = -1 end
-    if (daysOffset < -1) then daysOffset = 1 end
-    currentOffsetMinutes = math.floor( (minutesOffset + (hoursOffset * 60) + (daysOffset * 60 * 24)) / 15 + 0.5) * 15
-    return currentOffsetMinutes
-end
-local availableRegions = {
-    EU = true, NA = true, KR = true, CN = true, TW = true
-}
-local function getRegion()
-    local region = GetCurrentRegionName();
-    if (availableRegions[region]) then return region end
-    return "NA";
-end
-
-local lastResetTimestamp
-local eventEndsTime
-local function getEventEndsTime()
-    if (not eventEndsTime) then
-        eventEndsTime = eventEnds[getRegion()]
-    end
-    return eventEndsTime
-end
-local eventStartsTime
-local function getEventStartsTime()
-    if (not eventStartsTime) then
-        eventStartsTime = eventStarts[getRegion()]
-    end
-    return eventStartsTime
-end
-function addon.loveisintheair:GetNextResetTimestamp()
-    if (not lastResetTimestamp) then
-        addon.loveisintheair:GetLastResetTimestamp()
-    end
-    return lastResetTimestamp + 60 * 60 * 24
-end
-function addon.loveisintheair:GetLastResetTimestamp()
-    if (not lastResetTimestamp) then
-        local serverTime = GetServerTime()
-        local firstReset = eventResets[getRegion()]
-        lastResetTimestamp = firstReset
-        for i = firstReset, firstReset + (60 * 60 * 24 * 15), 60 * 60 * 24 do
-            if (i > serverTime) then
-                break
-            end
-            lastResetTimestamp = i
-        end
-    end
-    local time = GetServerTime()
-    if (addon.loveisintheair:GetNextResetTimestamp() <= time) then
-        lastResetTimestamp = addon.loveisintheair:GetNextResetTimestamp()
-    end
-    return lastResetTimestamp
-end
 local function SetupCharacterButton(button, character)
     if (character) then
         if (character.boxes > 0 and character ~= addon.loveisintheair.character) then
             button.Alert:Show()
             button.Complete:Hide()
         else
+            button.Alert:Hide()
             if (character.completedDungeon and (character.timestamp >= addon.loveisintheair:GetLastResetTimestamp())) then
                 button.Complete:Show()
             else
@@ -479,7 +406,7 @@ function addon.loveisintheair:UpdateCompleted()
     addon.loveisintheair.eligibleCharacters = 0
     addon.loveisintheair.completedCharacters = 0
     local characters = TomCats_Account.loveisintheair.characters
-    local lastResetTimestamp1 = addon.loveisintheair:GetLastResetTimestamp()
+    local lastResetTimestamp1 = addon.loveisintheair.GetLastResetTimestamp()
     for _, character in pairs(characters) do
         if (character.canLootMount) then
             addon.loveisintheair.eligibleCharacters = addon.loveisintheair.eligibleCharacters + 1

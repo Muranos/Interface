@@ -5,8 +5,8 @@
 local mod, CL = BigWigs:NewBoss("Shriekwing", 2296, 2393)
 if not mod then return end
 mod:RegisterEnableMob(164406) -- Shriekwing
-mod.engageId = 2398
-mod.respawnTime = 30
+mod:SetEncounterID(2398)
+mod:SetRespawnTime(30)
 mod:SetStage(1)
 
 --------------------------------------------------------------------------------
@@ -205,7 +205,7 @@ function mod:ExsanguinatingBite(args)
 	local bossUnit = self:GetBossId(args.sourceGUID)
 	for i = 1, #tankList do
 		local unit = tankList[i]
-		if bossUnit and self:TopThreat(bossUnit, unit) then
+		if bossUnit and self:Tanking(bossUnit, unit) then
 			self:TargetMessage(args.spellId, "yellow", self:UnitName(unit), CL.casting:format(args.spellName))
 			break
 		elseif i == #tankList then

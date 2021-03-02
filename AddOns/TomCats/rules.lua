@@ -82,9 +82,9 @@ local function OnUpdate(_, elapsed)
 		if C_TaskQuest.GetQuestTimeLeftMinutes(58705) or C_QuestLog.IsQuestFlaggedCompleted(58705) then
 			addon.globals.uldumPhase = 1
 			if secondsUntilWeeklyReset < 302400 then
-				addon.globals.valePhase = 4
-			else
 				addon.globals.valePhase = 2
+			else
+				addon.globals.valePhase = 4
 			end
 		elseif C_TaskQuest.GetQuestTimeLeftMinutes(55466) or C_QuestLog.IsQuestFlaggedCompleted(55466) then
 			addon.globals.valePhase = 1

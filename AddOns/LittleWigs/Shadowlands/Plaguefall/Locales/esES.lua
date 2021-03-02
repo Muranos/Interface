@@ -16,4 +16,6 @@ if L then
 	L.fungalmancer = "Fungimántico"
 	L.pestilent_harvester = "Cosechador pestilente"
 	L.fungi_stormer = "Agitador de hongos"
+
+	-- L.summon_stealthlings_desc = "Show a warning when the Stealthlings spawn."
 end

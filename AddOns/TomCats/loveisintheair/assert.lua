@@ -1,3 +1,6 @@
+local _, addon = ...
+if (not addon.loveisintheair.IsEventActive()) then return end
+
 assert(ButtonFrameTemplate_HideAttic)
 assert(ButtonFrameTemplate_HideButtonBar)
 assert(C_ClassTrial)

@@ -1,6 +1,5 @@
 local addonName, addon = ...
-
-addon.lunarfestival = addon.lunarfestival or { }
+if (not addon.lunarfestival.IsEventActive()) then return end
 
 local function OnEvent(event, arg1)
 	if (event == "ADDON_LOADED" and addonName == arg1) then

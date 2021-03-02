@@ -5,8 +5,8 @@
 local mod, CL = BigWigs:NewBoss("Lady Inerva Darkvein", 2296, 2420)
 if not mod then return end
 mod:RegisterEnableMob(165521) -- Lady Inerva Darkvein
-mod.engageId = 2406
-mod.respawnTime = 30
+mod:SetEncounterID(2406)
+mod:SetRespawnTime(30)
 
 --------------------------------------------------------------------------------
 -- Locals
@@ -436,11 +436,11 @@ do
 		if self:Me(args.destGUID) then
 			isOnMe = true
 			self:PlaySound(332664, "alarm")
-			self:Say(332664, CL.count_rticon:format(args.spellId == 340477 and CL.big_add or CL.small_add, icon, icon))
-			self:SayCountdown(332664, 10)
+			self:Say(332664, CL.rticon:format(args.spellId == 340477 and CL.big_add or CL.small_add, icon))
+			self:SayCountdown(332664, 10, icon)
 			self:OpenProximity(332664, 8)
 		end
-		self:NewTargetsMessage(332664, "yellow", playerList)
+		self:NewTargetsMessage(332664, "yellow", playerList, CL.adds)
 
 		self:CustomIcon(concentratedAnimaMarker, args.destName, icon)
 		if not isOnMe then

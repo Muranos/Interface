@@ -1,4 +1,6 @@
-local addon = select(2,...)
+local _, addon = ...
+if (not addon.lunarfestival.IsEventActive()) then return end
+
 local lib = addon.TomCatsLibs.Data
 local recordMetatable = {
     __index = function(table, key)

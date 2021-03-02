@@ -1,5 +1,6 @@
 --noinspection UnusedDef
-local addon = select(2,...)
+local _, addon = ...
+if (not addon.lunarfestival.IsEventActive()) then return end
 local eventFrame = CreateFrame("Frame")
 local onUpdate, eventHandler
 local eventListeners = { }

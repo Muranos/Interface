@@ -1,6 +1,7 @@
 local addonName, addon = ...
+if (not addon.loveisintheair.IsEventActive()) then return end
 
-addon.loveisintheair = { }
+addon.loveisintheair = addon.loveisintheair or { }
 
 local function OnEvent(event, arg1)
 	if (event == "ADDON_LOADED" and addonName == arg1) then

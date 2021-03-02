@@ -2,7 +2,7 @@
 ## Title: TomCat's Tours
 ## Author: TomCat
 ## X-Website: https://www.tomcatstours.com
-## Version: 2.1.6
+## Version: 2.1.10
 ## DefaultState: enabled
 ## SavedVariables: TomCats_Account
 ## SavedVariablesPerCharacter: TomCats_Character
@@ -34,5 +34,5 @@ ui_vignettes_section.lua
 ui_vignettes_section.xml
 ui_vignettes_pins.lua
 ui_vignettes_pins.xml
-lunarfestival/Main.xml
+#lunarfestival/Main.xml
 loveisintheair/Main.xml

@@ -1,4 +1,5 @@
 local addonName, addon = ...
+if (not addon.lunarfestival.IsEventActive()) then return end
 
 local CreateFrame = CreateFrame
 local InCombatLockdown = InCombatLockdown

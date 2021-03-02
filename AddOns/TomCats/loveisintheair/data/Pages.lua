@@ -1,4 +1,6 @@
 local _, addon = ...
+if (not addon.loveisintheair.IsEventActive()) then return end
+
 addon.loveisintheair.Data["Pages"] = {
 	{
 		{ content = "<html>\r\n<body>\r\n<h1 align=\"center\">|cffff0000Welcome to Love is in the Air</h1>\r\n<br />\r\n<p align=\"center\">|cffff575cThank you for installing our addon.loveisintheair. We are in the process of building out the most requested features to help you enjoy the Love is in the Air holiday more than ever!\r\n<br /><br />\r\n|cffff575cPlease be sure to visit our community to make any requests and to give us your feedback:\r\n<br /><br />\r\n|cff00d8ff|HclubTicket:nlvbGvmib2a|h[click here for our in-game community]|h|r\r\n<br /><br />\r\n|cffff575cTo preview what we are going to release over the course of the next several days, check out the next pages</p>\r\n</body>\r\n</html>\r\n" },

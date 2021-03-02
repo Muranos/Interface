@@ -1,4 +1,5 @@
 local addonName, addon = ...
+if (not addon.loveisintheair.IsEventActive()) then return end
 
 local CreateFrame = CreateFrame
 local InCombatLockdown = InCombatLockdown

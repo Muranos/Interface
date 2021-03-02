@@ -1,3 +1,6 @@
+local _, addon = ...
+if (not addon.lunarfestival.IsEventActive()) then return end
+
 local Coords = CreateVector2D
 local TYPE_NONE = 0
 local TYPE_ENTRANCE = 1

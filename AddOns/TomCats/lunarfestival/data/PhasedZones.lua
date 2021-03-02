@@ -1,4 +1,6 @@
 local _, addon = ...
+if (not addon.lunarfestival.IsEventActive()) then return end
+
 local D = addon.TomCatsLibs.Data
 D.loadData(
     "Phased Zones",

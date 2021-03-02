@@ -22,7 +22,7 @@
 ## Notes-itIT: BigWigs Castle Nathria Modules
 ## Notes-ptBR: BigWigs Castle Nathria Modules
 ## Notes-koKR: BigWigs Castle Nathria Modules
-## Version: v215.1
+## Version: v217
 
 ## LoadOnDemand: 1
 ## Dependencies: BigWigs
