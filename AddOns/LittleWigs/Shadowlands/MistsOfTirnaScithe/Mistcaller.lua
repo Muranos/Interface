@@ -33,19 +33,19 @@ function mod:GetOptions()
 		336499, -- Guessing Game
 		321834, -- Dodge Ball
 		{321828, "ME_ONLY_EMPHASIZE"}, -- Patty Cake
-		326180, -- Freeze Tag
+		341709, -- Freeze Tag
 		{321891, "SAY", "ME_ONLY_EMPHASIZE"}, -- Freeze Tag Fixation
 	},nil,{
-		[326180] = L.vulpin, -- Freeze Tag (Vulpin)
+		[341709] = L.vulpin, -- Freeze Tag (Vulpin)
 		[321891] = CL.fixate, -- Freeze Tag Fixation (Fixate)
 	}
 end
 
 function mod:OnBossEnable()
-	self:Log("SPELL_CAST_START", "GuessingGame", 336499)
+	self:Log("SPELL_CAST_START", "GuessingGame", 336499, 321471) -- Mythic, Heroic/Normal
 	self:Log("SPELL_CAST_START", "DodgeBall", 321834)
 	self:Log("SPELL_CAST_START", "PattyCake", 321828)
-	self:Log("SPELL_CAST_START", "FreezeTag", 326180)
+	self:Log("SPELL_CAST_START", "FreezeTag", 341709)
 	self:Log("SPELL_AURA_APPLIED", "FreezeTagFixation", 321891)
 end
 
@@ -53,7 +53,7 @@ function mod:OnEngage()
 	guessingGameHp = 100
 	self:CDBar(321834, 7) -- Dodge Ball
 	self:CDBar(321828, 13.7) -- Patty Cake
-	self:CDBar(326180, 18.1, L.vulpin) -- Freeze Tag
+	self:CDBar(341709, 18.1, L.vulpin) -- Freeze Tag
 end
 
 --------------------------------------------------------------------------------
@@ -62,8 +62,8 @@ end
 
 function mod:GuessingGame(args)
 	guessingGameHp = guessingGameHp - 30 -- 70, 40, 10
-	self:Message(args.spellId, "cyan", CL.percent:format(guessingGameHp, args.spellName))
-	self:PlaySound(args.spellId, "long")
+	self:Message(336499, "cyan", CL.percent:format(guessingGameHp, args.spellName))
+	self:PlaySound(336499, "long")
 end
 
 function mod:DodgeBall(args)

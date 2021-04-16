@@ -19,7 +19,7 @@ local ldbi = LibStub("LibDBIcon-1.0")
 -- Generate our version variables
 --
 
-local BIGWIGS_VERSION = 217
+local BIGWIGS_VERSION = 220
 local BIGWIGS_RELEASE_STRING, BIGWIGS_VERSION_STRING = "", ""
 local versionQueryString, versionResponseString = "Q^%d^%s^%d^%s", "V^%d^%s^%d^%s"
 local customGuildName = false
@@ -34,7 +34,7 @@ do
 	local RELEASE = "RELEASE"
 
 	local releaseType = RELEASE
-	local myGitHash = "6737501" -- The ZIP packager will replace this with the Git hash.
+	local myGitHash = "14b5b69" -- The ZIP packager will replace this with the Git hash.
 	local releaseString = ""
 	--[=[@alpha@
 	-- The following code will only be present in alpha ZIPs.
@@ -212,6 +212,7 @@ do
 		--[[ BigWigs: Shadowlands ]]--
 		[-1647] = s, -- Shadowlands (Fake Menu)
 		[2296] = s, -- Castle Nathria
+		[2450] = s, -- Sanctum of Domination
 
 		--[[ LittleWigs: Classic ]]--
 		[33] = lw_c, -- Shadowfang Keep
@@ -749,15 +750,18 @@ function mod:ADDON_LOADED(addon)
 	end
 	self:BigWigs_CoreOptionToggled(nil, "fakeDBMVersion", self.isFakingDBM)
 
-	if self.isSoundOn ~= false then -- Only if sounds are enabled
-		local num = tonumber(C_CVar.GetCVar("Sound_NumChannels")) or 0
-		if num < 64 then
-			C_CVar.SetCVar("Sound_NumChannels", "64") -- Blizzard keeps screwing with addon sound priority so we force this minimum
-		end
+	local num = tonumber(C_CVar.GetCVar("Sound_NumChannels")) or 0
+	if num < 64 then
+		C_CVar.SetCVar("Sound_NumChannels", "64") -- Blizzard keeps screwing with addon sound priority so we force this minimum
+	end
+	num = tonumber(C_CVar.GetCVar("Sound_MaxCacheSizeInBytes")) or 0
+	if num < 67108864 then
+		C_CVar.SetCVar("Sound_MaxCacheSizeInBytes", "67108864") -- Set the cache to the "Small (64MB)" setting as a minimum
 	end
 
 	bwFrame:UnregisterEvent("ADDON_LOADED")
 	self.ADDON_LOADED = nil
+	bwFrame.UnregisterEvent(UIParent, "TALKINGHEAD_REQUESTED") -- Prevent the event order re-shuffling mid-instance
 end
 
 -- We can't do our addon loading in ADDON_LOADED as the target addons may be registering that
@@ -903,11 +907,13 @@ do
 	if #delayedMessages > 0 then
 		function mod:LOADING_SCREEN_DISABLED()
 			bwFrame:UnregisterEvent("LOADING_SCREEN_DISABLED")
-			CTimerAfter(15, function()
-				for i = 1, #delayedMessages do
-					sysprint(delayedMessages[i])
-				end
-				delayedMessages = nil
+			CTimerAfter(0, function() -- Timers aren't fully functional until 1 frame after loading is done
+				CTimerAfter(15, function()
+					for i = 1, #delayedMessages do
+						sysprint(delayedMessages[i])
+					end
+					delayedMessages = nil
+				end)
 			end)
 			self.LOADING_SCREEN_DISABLED = nil
 		end
@@ -993,9 +999,9 @@ end
 --
 
 do
-	local DBMdotRevision = "20210219045155" -- The changing version of the local client, changes with every new zip using the project-date-integer packager replacement.
-	local DBMdotDisplayVersion = "9.0.21" -- "N.N.N" for a release and "N.N.N alpha" for the alpha duration.
-	local DBMdotReleaseRevision = "20210218000000" -- Hardcoded time, manually changed every release, they use it to track the highest release version, a new DBM release is the only time it will change.
+	local DBMdotRevision = "20210330155402" -- The changing version of the local client, changes with every new zip using the project-date-integer packager replacement.
+	local DBMdotDisplayVersion = "9.0.25" -- "N.N.N" for a release and "N.N.N alpha" for the alpha duration.
+	local DBMdotReleaseRevision = "20210330000000" -- Hardcoded time, manually changed every release, they use it to track the highest release version, a new DBM release is the only time it will change.
 
 	local timer, prevUpgradedUser = nil, nil
 	local function sendMsg()

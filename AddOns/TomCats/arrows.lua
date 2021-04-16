@@ -1,3 +1,4 @@
+--[[ See license.txt for license and copyright information ]]
 local addonName, addon = ...
 
 local C_Minimap = C_Minimap
@@ -9,6 +10,7 @@ local Mixin = Mixin
 
 local arrows = { }
 local active = false
+local betaFeaturesEnabled = false
 
 local function OnUpdate()
     if (active) then
@@ -48,6 +50,7 @@ frame:SetScript("OnUpdate", OnUpdate)
 local ArrowMixin = { }
 
 function ArrowMixin:SetTarget(targetX, targetY, mapID)
+    if (not betaFeaturesEnabled) then return end
     assert(type(targetX) == "number")
     assert(type(targetY) == "number")
     assert(type(mapID) == "number")
@@ -99,4 +102,17 @@ function addon.CreateArrow(r, g, b)
     arrow.overlay = mask
     arrow.background = background
     return arrow
+end
+
+function addon.EnableArrows(enable)
+    if (enable) then
+        betaFeaturesEnabled = true
+        frame:Show()
+    else
+        betaFeaturesEnabled = false
+        frame:Hide()
+        for arrow in pairs(arrows) do
+            arrow:Hide()
+        end
+    end
 end

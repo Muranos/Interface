@@ -62,7 +62,6 @@ end
 
 L = BigWigs:NewBossLocale("The Council of Blood", "zhCN")
 if L then
-	L.macabre_start_emote = "找到你的位置，准备开始断魂之舞！" -- [RAID_BOSS_EMOTE] Take your places for the Danse Macabre!#Dance Controller#4#false"
 	L.custom_on_repeating_dark_recital = "重复黑暗伴舞"
 	L.custom_on_repeating_dark_recital_desc = "重复黑暗伴舞喊话信息使用 {rt1}，{rt2} 图标，和伙伴共舞。"
 
@@ -118,8 +117,6 @@ end
 
 L = BigWigs:NewBossLocale("Sire Denathrius", "zhCN")
 if L then
-	L.add_spawn = "赤红秘法师回应了德纳修斯的召唤。" -- [RAID_BOSS_EMOTE] Crimson Cabalists answer the call of Denathrius.#Sire Denathrius#4#true"
-
 	L.infobox_stacks = "%d 堆叠：%d 玩家" -- 4 Stacks: 5 players // 1 Stack: 1 player
 
 	L.custom_on_repeating_nighthunter = "重复午夜猎手喊话"

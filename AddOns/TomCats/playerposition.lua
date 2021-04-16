@@ -1,3 +1,4 @@
+--[[ See license.txt for license and copyright information ]]
 local _, addon = ...
 
 local C_Map = C_Map

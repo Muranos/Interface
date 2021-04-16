@@ -62,7 +62,6 @@ end
 
 L = BigWigs:NewBossLocale("The Council of Blood", "esMX")
 if L then
-	L.macabre_start_emote = "Tomen sus lugares para la Danza macabra!" -- [RAID_BOSS_EMOTE] Tomen sus lugares para la Danza macabra!#Dance Controller#4#false"
 	L.custom_on_repeating_dark_recital = "Repetir Recital Oscuro"
 	L.custom_on_repeating_dark_recital_desc = "Repite mensajes en decir para la habilidad Recital oscuro con íconos {rt1}, {rt2} para que encuentres a tu pareja mientras danzas."
 
@@ -119,8 +118,6 @@ end
 
 L = BigWigs:NewBossLocale("Sire Denathrius", "esMX")
 if L then
-	L.add_spawn = "Los Cabalistas Carmesíes responden a la llamada de Denathrius." -- [RAID_BOSS_EMOTE] Crimson Cabalists answer the call of Denathrius.#Sire Denathrius#4#true"
-
 	L.infobox_stacks = "%d |4Acumulación:Acumulaciones;: %d |4jugador:jugadores;" -- 4 Stacks: 5 players // 1 Stack: 1 player
 
 	L.custom_on_repeating_nighthunter = "Repetir gritar Cazador nocturno"
@@ -156,7 +153,7 @@ if L then
 	--[[ Huntsman Altimor -> Hungering Destroyer ]]--
 	L.feaster = "Descarnador aterrador"
 	L.rat = "Rata de tamaño inusual"
-	L.miasma = "Miasma glotona" -- Short for Gluttonous Miasma
+	L.miasma = "Miasma" -- Short for Gluttonous Miasma
 
 	--[[ Hungering Destroyer -> Lady Inerva Darkvein ]]--
 	L.deplina = "Deplina"

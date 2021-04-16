@@ -276,6 +276,10 @@ L["Minimize in combat"] = "Im Kampf minimieren"
 L["Minor Upgrade"] = "Geringes Upgrade"
 L["Missing votes from:"] = "Fehlende Stimmen von:"
 L["ML sees voting"] = "Plündermeister sieht die Abstimmung"
+--[[Translation missing --]]
+--[[ L["ML_ADD_INVALID_ITEM"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["ML_ADD_ITEM_MAX_ATTEMPTS"] = ""--]] 
 L["ml_sees_voting_desc"] = "Erlaubt es dem Plündermeister zu sehen, wer für wen abstimmt."
 L["module_tVersion_outdated_msg"] = "Testversion des neuesten Moduls %s ist: %s"
 L["module_version_outdated_msg"] = "Die Version des Moduls %s ist veraltet. Neueste Version ist %s. "

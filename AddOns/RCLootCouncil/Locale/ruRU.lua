@@ -395,6 +395,10 @@ L["Minor Upgrade"] = "Незначительное улучшение"
 L["Missing votes from:"] = "Отсутствуют голоса от:"
 L["ML sees voting"] = "МЛ видит результаты голосования"
 --[[Translation missing --]]
+--[[ L["ML_ADD_INVALID_ITEM"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["ML_ADD_ITEM_MAX_ATTEMPTS"] = ""--]] 
+--[[Translation missing --]]
 --[[ L["ml_sees_voting_desc"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["module_tVersion_outdated_msg"] = ""--]] 

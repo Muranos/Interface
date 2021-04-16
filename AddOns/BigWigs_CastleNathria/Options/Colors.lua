@@ -68,7 +68,6 @@ BigWigs:AddColors("Sun King's Salvation", {
 	[326078] = {"blue","green"},
 	[326455] = "purple",
 	[326456] = {"blue","purple"},
-	[326583] = "blue",
 	[328479] = "blue",
 	[328579] = "blue",
 	[328889] = "yellow",
@@ -77,6 +76,7 @@ BigWigs:AddColors("Sun King's Salvation", {
 	[333145] = "cyan",
 	[337859] = {"green","red"},
 	[339251] = "blue",
+	[341473] = "blue",
 	[343026] = {"green","red"},
 	["stages"] = "green",
 })

@@ -292,6 +292,10 @@ L["Minor Upgrade"] = "小提升"
 --[[Translation missing --]]
 --[[ L["Missing votes from:"] = ""--]] 
 L["ML sees voting"] = "分裝者可見投票"
+--[[Translation missing --]]
+--[[ L["ML_ADD_INVALID_ITEM"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["ML_ADD_ITEM_MAX_ATTEMPTS"] = ""--]] 
 L["ml_sees_voting_desc"] = "允許分裝者查看投票詳情"
 L["module_tVersion_outdated_msg"] = "最新模塊 %s 的測試版本為: %s"
 L["module_version_outdated_msg"] = "模塊 %s 版本 %s 已過期。新版本為 %s。"

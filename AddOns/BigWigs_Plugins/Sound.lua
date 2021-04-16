@@ -21,7 +21,7 @@ local sounds = {
 	Alert = "BigWigs: Alert",
 	Alarm = "BigWigs: Alarm",
 	Warning = "BigWigs: Raid Warning",
-	onyou = BL.spell_on_you,
+	--onyou = BL.spell_on_you,
 	underyou = BL.spell_under_you,
 }
 
@@ -30,16 +30,21 @@ local sounds = {
 --
 
 plugin.defaultDB = {
-	sound = true,
 	media = {
-		Long = "BigWigs: Long",
-		Info = "BigWigs: Info",
-		Alert = "BigWigs: Alert",
-		Alarm = "BigWigs: Alarm",
-		Warning = "BigWigs: Raid Warning",
-		onyou = BL.spell_on_you,
+		Long = sounds.Long,
+		Info = sounds.Info,
+		Alert = sounds.Alert,
+		Alarm = sounds.Alarm,
+		Warning = sounds.Warning,
+		--onyou = BL.spell_on_you,
 		underyou = BL.spell_under_you,
 	},
+	Long = {},
+	Info = {},
+	Alert = {},
+	Alarm = {},
+	Warning = {},
+	underyou = {},
 }
 
 plugin.pluginOptions = {
@@ -58,42 +63,26 @@ plugin.pluginOptions = {
 		PlaySoundFile(media:Fetch(SOUND, soundList[value]), "Master")
 	end,
 	args = {
-		sound = {
-			type = "toggle",
-			name = L.sound,
-			desc = L.soundDesc,
-			get = function() return db.sound end,
-			set = function(_, v) db.sound = v end,
+		heading = {
+			type = "description",
+			name = L.soundsDesc,
 			order = 1,
 			width = "full",
-			descStyle = "inline",
-			confirm = function(_, value)
-				if not value then
-					return L.disableDesc:format(L.Sounds)
-				end
-			end,
-		},
-		newline1 = {
-			type = "description",
-			name = "\n",
-			order = 1.5,
+			fontSize = "medium",
 		},
 		-- Begin sound dropdowns
-		onyou = {
-			type = "select",
-			name = L.onyou,
-			order = 2,
-			disabled = function() return not db.sound end,
-			values = function() return soundList end,
-			width = "full",
-			itemControl = "DDI-Sound",
-			hidden = function() return true end,
-		},
+		--onyou = {
+		--	type = "select",
+		--	name = L.onyou,
+		--	order = 2,
+		--	values = function() return soundList end,
+		--	width = "full",
+		--	itemControl = "DDI-Sound",
+		--},
 		underyou = {
 			type = "select",
 			name = L.underyou,
 			order = 3,
-			disabled = function() return not db.sound end,
 			values = function() return soundList end,
 			width = "full",
 			itemControl = "DDI-Sound",
@@ -112,7 +101,6 @@ plugin.pluginOptions = {
 			type = "select",
 			name = L.Alarm,
 			order = 5,
-			disabled = function() return not db.sound end,
 			values = function() return soundList end,
 			width = "full",
 			itemControl = "DDI-Sound",
@@ -121,7 +109,6 @@ plugin.pluginOptions = {
 			type = "select",
 			name = L.Alert,
 			order = 6,
-			disabled = function() return not db.sound end,
 			values = function() return soundList end,
 			width = "full",
 			itemControl = "DDI-Sound",
@@ -130,7 +117,6 @@ plugin.pluginOptions = {
 			type = "select",
 			name = L.Info,
 			order = 7,
-			disabled = function() return not db.sound end,
 			values = function() return soundList end,
 			width = "full",
 			itemControl = "DDI-Sound",
@@ -139,7 +125,6 @@ plugin.pluginOptions = {
 			type = "select",
 			name = L.Long,
 			order = 8,
-			disabled = function() return not db.sound end,
 			values = function() return soundList end,
 			width = "full",
 			itemControl = "DDI-Sound",
@@ -148,7 +133,6 @@ plugin.pluginOptions = {
 			type = "select",
 			name = L.Warning,
 			order = 9,
-			disabled = function() return not db.sound end,
 			values = function() return soundList end,
 			width = "full",
 			itemControl = "DDI-Sound",
@@ -223,6 +207,22 @@ end
 
 local function updateProfile()
 	db = plugin.db.profile
+	for k, v in next, db do
+		local defaultType = type(plugin.defaultDB[k])
+		if defaultType == "nil" then
+			db[k] = nil
+		elseif type(v) ~= defaultType then
+			db[k] = plugin.defaultDB[k]
+		end
+	end
+	for k, v in next, db.media do
+		local defaultType = type(plugin.defaultDB.media[k])
+		if defaultType == "nil" then
+			db.media[k] = nil
+		elseif type(v) ~= defaultType then
+			db.media[k] = plugin.defaultDB.media[k]
+		end
+	end
 end
 
 function plugin:OnRegister()
@@ -239,7 +239,7 @@ function plugin:OnRegister()
 				local optionName = info[#info]
 				for i, v in next, soundList do
 					-- If no custom sound exists for this option, fall back to global sound option
-					if v == (db[optionName] and db[optionName][name] and db[optionName][name][key] or db.media[optionName]) then
+					if v == (db[optionName][name] and db[optionName][name][key] or db.media[optionName]) then
 						return i
 					end
 				end
@@ -247,7 +247,6 @@ function plugin:OnRegister()
 			set = function(info, value)
 				local name, key = unpack(info.arg)
 				local optionName = info[#info]
-				if not db[optionName] then db[optionName] = {} end
 				if not db[optionName][name] then db[optionName][name] = {} end
 				db[optionName][name][key] = soundList[value]
 				PlaySoundFile(media:Fetch(SOUND, soundList[value]), "Master")
@@ -305,19 +304,17 @@ do
 	local PlaySoundFile = PlaySoundFile
 	function plugin:BigWigs_Sound(event, module, key, soundName)
 		soundName = tmp[soundName] or soundName
-		if db.sound then
-			local sDb = db[soundName]
-			if not module or not key or not sDb or not sDb[module.name] or not sDb[module.name][key] then
-				local path = db.media[soundName] and media:Fetch(SOUND, db.media[soundName], true) or media:Fetch(SOUND, soundName, true)
-				if path then
-					PlaySoundFile(path, "Master")
-				end
-			else
-				local newSound = sDb[module.name][key]
-				local path = db.media[newSound] and media:Fetch(SOUND, db.media[newSound], true) or media:Fetch(SOUND, newSound, true)
-				if path then
-					PlaySoundFile(path, "Master")
-				end
+		local sDb = db[soundName]
+		if not module or not key or not sDb or not sDb[module.name] or not sDb[module.name][key] then
+			local path = db.media[soundName] and media:Fetch(SOUND, db.media[soundName], true) or media:Fetch(SOUND, soundName, true)
+			if path then
+				PlaySoundFile(path, "Master")
+			end
+		else
+			local newSound = sDb[module.name][key]
+			local path = db.media[newSound] and media:Fetch(SOUND, db.media[newSound], true) or media:Fetch(SOUND, newSound, true)
+			if path then
+				PlaySoundFile(path, "Master")
 			end
 		end
 	end

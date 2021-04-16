@@ -1,9 +1,9 @@
 local _, T = ...
-local EV, L, U = T.Evie, T.L, T.Util
+local EV, L, U, S = T.Evie, T.L, T.Util, T.Shadows
 
-local W = {} do
+local AddMissionAchievementInfo do
 	local missionCreditCriteria = {}
-	function W.AddMissionAchievementInfo(missions)
+	function AddMissionAchievementInfo(missions)
 		if not missions or #missions == 0 then
 			return missions
 		end
@@ -59,7 +59,7 @@ local startedMissions, finishedMissions, FlagMissionFinish, GetReservedAnima = {
 		followerLock = {}
 		costLock, lockedCosts = {}, 0
 		if MissionList then
-			MissionList:ReturnToTop()
+			S[MissionList]:ReturnToTop()
 		end
 	end
 	function EV:GARRISON_MISSION_STARTED(_, mid)
@@ -90,8 +90,8 @@ local startedMissions, finishedMissions, FlagMissionFinish, GetReservedAnima = {
 	end
 end
 
-local function LogCounter_OnClick(self)
-	local cb = self:GetParent().CopyBox
+local function LogCounter_OnClick()
+	local cb = MissionPage.CopyBox
 	cb.Title:SetText(L"Wanted: Adventure Reports")
 	cb.Intro:SetText(L"The Cursed Adventurer's Guide hungers. Only the tales of your companions' adventures, conveyed in excruciating detail, will satisfy it.")
 	cb.FirstInputBoxLabel:SetText(L"To submit your adventure reports," .. "|n" .. L"1. Visit:")
@@ -113,58 +113,59 @@ end
 local function ConfigureMission(me, mi, isAvailable, haveSpareCompanions, availAnima)
 	local mid = mi.missionID
 	local emi = C_Garrison.GetMissionEncounterIconInfo(mid)
+	local ms = S[me]
 	mi.encounterIconInfo, mi.isElite, mi.isRare = emi, emi.isElite, emi.isRare
 	
-	me.missionID, me.isAvailable, me.offerEndTime = mid, isAvailable, mi.offerEndTime
-	me.baseCost, me.baseCostCurrency = mi.basecost, mi.costCurrencyTypesID
-	me.baseXPReward = mi.xp or 0
-	me.Name:SetText(mi.name)
+	ms.missionID, ms.isAvailable, ms.offerEndTime = mid, isAvailable, mi.offerEndTime
+	ms.baseCost, ms.baseCostCurrency = mi.basecost, mi.costCurrencyTypesID
+	ms.baseXPReward = mi.xp or 0
+	ms.Name:SetText(mi.name)
 	if (mi.description or "") ~= "" then
-		me.Description:SetText(mi.description)
+		ms.Description:SetText(mi.description)
 	end
 	
 	local mdi = C_Garrison.GetMissionDeploymentInfo(mid)
 	
 	local timeNow = GetTime()
 	local expirePrefix, expireAt, expireRoundUp = false, nil, nil, false
-	me.completableAfter = nil
+	ms.completableAfter = nil
 	if mi.offerEndTime then
 		expirePrefix = "|A:worldquest-icon-clock:0:0:0:0|a"
 		expireAt = mi.offerEndTime
 	elseif mi.timeLeftSeconds then
-		me.completableAfter = timeNow+mi.timeLeftSeconds
-		me.ProgressBar.Text:SetText("")
-		me.ProgressBar:SetProgressCountdown(me.completableAfter, mi.durationSeconds, L"Click to complete", true, true)
+		ms.completableAfter = timeNow+mi.timeLeftSeconds
+		ms.ProgressBar.Text:SetText("")
+		ms.ProgressBar:SetProgressCountdown(ms.completableAfter, mi.durationSeconds, L"Click to complete", true, true)
 	elseif mi.completed then
-		me.completableAfter = timeNow-1
-		me.ProgressBar:SetProgress(1)
-		me.ProgressBar.Text:SetText(L"Click to complete")
+		ms.completableAfter = timeNow-1
+		ms.ProgressBar:SetProgress(1)
+		ms.ProgressBar.Text:SetText(L"Click to complete")
 	end
-	me.ProgressBar:SetMouseMotionEnabled(me.completableAfter and me.completableAfter <= timeNow)
-	me.ExpireTime.tooltipHeader = L"Adventure Expires In:"
-	me.ExpireTime.tooltipCountdownTo = expireAt
+	ms.ProgressBar:SetMouseMotionEnabled(ms.completableAfter and ms.completableAfter <= timeNow)
+	ms.ExpireTime.tooltipHeader = L"Adventure Expires In:"
+	ms.ExpireTime.tooltipCountdownTo = expireAt
 	me:SetCountdown(expirePrefix, expireAt, nil, nil, true, expireRoundUp)
-	me.Rewards:SetRewards(mdi.xp, mi.rewards)
-	me.AchievementReward.assetID = mi.missionID
-	me.AchievementReward.achievementID = mi.achievementID
-	me.AchievementReward:SetShown(mi.achievementID and not mi.achievementComplete)
+	ms.Rewards:SetRewards(mdi.xp, mi.rewards)
+	ms.AchievementReward.assetID = mi.missionID
+	ms.AchievementReward.achievementID = mi.achievementID
+	ms.AchievementReward:SetShown(mi.achievementID and not mi.achievementComplete)
 	
 	local cost = (mi.cost or 0) + (mi.hasTentativeGroup and U.GetTentativeMissionTroopCount(mid) or 0)
 	local isSufficientAnima = not availAnima or (cost <= availAnima)
 	local isMissionActive = not not (mi.completed or mi.timeLeftSeconds)
 	local veilShade = mi.timeLeftSeconds and 0.65 or 1
 	local showDoomRun = haveSpareCompanions and not isMissionActive and isSufficientAnima and not mi.hasTentativeGroup
-	local showTentative = not not mi.hasTentativeGroup
+	local showTentative = not not mi.hasTentativeGroup and not isMissionActive
 	local shiftView = showDoomRun or showTentative
-	me.Veil:SetShown(isMissionActive)
-	me.ProgressBar:SetShown(isMissionActive and not mi.isFakeStart)
-	me.ViewButton:SetShown(not isMissionActive)
-	me.ViewButton:SetText(isSufficientAnima and (showTentative and L"Edit party" or L"Select adventurers") or L"Insufficient anima")
-	me.DoomRunButton:SetShown(showDoomRun)
-	me.TentativeClear:SetShown(showTentative)
-	me.ViewButton:SetPoint("BOTTOM", shiftView and 20 or 0, 12)
-	for i=1,#me.Rewards do
-		me.Rewards[i].RarityBorder:SetVertexColor(veilShade, veilShade, veilShade)
+	ms.Veil:SetShown(isMissionActive)
+	ms.ProgressBar:SetShown(isMissionActive and not mi.isFakeStart)
+	ms.ViewButton:SetShown(not isMissionActive)
+	ms.ViewButton:SetText(isSufficientAnima and (showTentative and L"Edit party" or L"Select adventurers") or L"Insufficient anima")
+	ms.DoomRunButton:SetShown(showDoomRun)
+	ms.TentativeClear:SetShown(showTentative)
+	ms.ViewButton:SetPoint("BOTTOM", shiftView and 20 or 0, 12)
+	for i=1,#ms.Rewards do
+		ms.Rewards[i].RarityBorder:SetVertexColor(veilShade, veilShade, veilShade)
 	end
 	local hasNovelSpells, enemies = false, mdi.enemies
 	for i=1,#enemies do
@@ -183,16 +184,16 @@ local function ConfigureMission(me, mi, isAvailable, haveSpareCompanions, availA
 			totalATK = totalATK + e.attack
 		end
 	end
-	local tag = "[" .. (mi.missionScalar or 0) .. (mi.isElite and "+]" or mi.isRare and "r]" or "]")
+	local tag = "[" .. (mi.missionScalar or 0) .. (mi.isElite and "+]" or mi.isRare and "*]" or "]")
 	if hasNovelSpells then
 		tag = tag .. " |TInterface/EncounterJournal/UI-EJ-WarningTextIcon:16:16|t"
 	end
-	me.enemyATK:SetText(BreakUpLargeNumbers(totalATK))
-	me.enemyHP:SetText(BreakUpLargeNumbers(totalHP))
-	me.animaCost:SetText(BreakUpLargeNumbers(cost))
-	me.duration:SetText(mi.duration)
-	me.statLine:SetWidth(me.duration:GetRight() - me.statLine:GetLeft())
-	me.TagText:SetText(tag)
+	ms.enemyATK:SetText(BreakUpLargeNumbers(totalATK))
+	ms.enemyHP:SetText(BreakUpLargeNumbers(totalHP))
+	ms.animaCost:SetText(BreakUpLargeNumbers(cost))
+	ms.duration:SetText(mi.duration)
+	ms.statLine:SetWidth(ms.duration:GetRight() - ms.statLine:GetLeft())
+	ms.TagText:SetText(tag)
 	
 	me:Show()
 end
@@ -212,6 +213,10 @@ local function cmpMissionInfo(a,b)
 	if ac ~= bc then
 		return ac
 	end
+	ac, bc = a.sortGroup, b.sortGroup
+	if ac ~= bc then
+		return ac and ac > (bc or -1)
+	end
 	ac, bc = a.offerEndTime, b.offerEndTime
 	if ac and bc and ac ~= bc then
 		return ac < bc
@@ -228,15 +233,18 @@ local function UpdateMissions()
 	local missions = C_Garrison.GetAvailableMissions(123) or {}
 	local inProgressMissions = C_Garrison.GetInProgressMissions(123)
 	local cMissions = C_Garrison.GetCompleteMissions(123)
-	local hasSpareFollowers = false do
+	local numFreeCompanions, numFreeCompanionsL, haveRookies = 0, 0, false do
 		local ft = C_Garrison.GetFollowers(123)
 		EV("I_MARK_FALSESTART_FOLLOWERS", ft)
 		for i=1,#ft do
 			local fi = ft[i]
-			if fi.isCollected and not fi.isMaxLevel and fi.status ~= GARRISON_FOLLOWER_ON_MISSION and not U.FollowerHasTentativeGroup(fi.followerID) then
-				hasSpareFollowers = true
-				break
+			if fi.isCollected and fi.status ~= GARRISON_FOLLOWER_ON_MISSION then
+				numFreeCompanions = numFreeCompanions + 1
+				if not fi.isMaxLevel and not U.FollowerHasTentativeGroup(fi.followerID) then
+					numFreeCompanionsL = numFreeCompanionsL + 1
+				end
 			end
+			haveRookies = haveRookies or (fi.isCollected and not fi.isMaxLevel)
 		end
 	end
 	for i=1,#missions do
@@ -244,6 +252,17 @@ local function UpdateMissions()
 		local mid = m.missionID
 		if startedMissions[mid] and not m.timeLeftSeconds then
 			m.timeLeftSeconds, m.offerEndTime = m.durationSeconds
+		else
+			local rs = 0
+			for i=1, m.rewards and #m.rewards or 0 do
+				i = m.rewards[i]
+				if haveRookies and i.followerXP and rs < 1 then
+					rs = 1
+				elseif i.currencyID == 1828 and rs < 2 then
+					rs = 2
+				end
+			end
+			m.sortGroup = rs
 		end
 		m.hasTentativeGroup = U.MissionHasTentativeGroup(mid)
 	end
@@ -262,14 +281,14 @@ local function UpdateMissions()
 			missions[#missions+1] = cMissions[i]
 		end
 	end
-	W.AddMissionAchievementInfo(missions)
+	AddMissionAchievementInfo(missions)
 	table.sort(missions, cmpMissionInfo)
 	
 	local anima = C_CurrencyInfo.GetCurrencyInfo(1813)
 	anima = (anima and anima.quantity or 0) - GetReservedAnima()
 	local Missions = MissionList.Missions
 	for i=1,#missions do
-		ConfigureMission(Missions[i], missions[i], true, hasSpareFollowers, anima)
+		ConfigureMission(Missions[i], missions[i], true, numFreeCompanionsL > 0, anima)
 	end
 	MissionList.numMissions = #missions
 	for i=#missions+1, #Missions do
@@ -277,9 +296,10 @@ local function UpdateMissions()
 	end
 	MissionPage.hasCompletedMissions = cMissions and #cMissions > 0 or false
 	MissionPage.UnButton:Sync()
+	MissionPage.CompanionCounter:SetText(numFreeCompanions)
 end
 local function CheckRewardCache()
-	if MissionList.clearedRewardSync == true or not MissionList:IsVisible() then
+	if MissionList.clearedRewardSync == true or not S[MissionList]:IsVisible() then
 		return
 	end
 	local mwa, isCleared = MissionList.Missions, true
@@ -287,10 +307,10 @@ local function CheckRewardCache()
 		local w = mwa[i]
 		if w:IsShown() then
 			for j=2,3 do
-				local rw = w.Rewards[j]
+				local rw = S[w].Rewards[j]
 				if rw:IsShown() and rw.itemID and rw.itemLink and rw.itemLink:match("|h%[%]|h") then
-					local mi = C_Garrison.GetBasicMissionInfo(w.missionID)
-					w.Rewards:SetRewards(mi.xp, mi.rewards)
+					local mi = C_Garrison.GetBasicMissionInfo(S[w].missionID)
+					S[w].Rewards:SetRewards(mi.xp, mi.rewards)
 					isCleared = nil
 					break
 				end
@@ -301,7 +321,7 @@ local function CheckRewardCache()
 end
 
 local function QueueListSync()
-	if MissionList:IsShown() and not MissionList.dirty then
+	if S[MissionList]:IsShown() and not MissionList.dirty then
 		MissionList.dirty = true
 		C_Timer.After(0, UpdateMissions)
 	end
@@ -330,7 +350,6 @@ local function MissionComplete_Toast(_, mid, won, mi)
 	end
 	toast.Detail:SetText(mi and mi.name or C_Garrison.GetMissionName(mid))
 	toast.Icon:SetTexture("Interface/Icons/Temp")
-	toast.IconBorder:Hide()
 	for i=1, mi and mi.rewards and #mi.rewards or 0 do
 		local rew = mi.rewards[i]
 		if rew.icon then
@@ -339,8 +358,6 @@ local function MissionComplete_Toast(_, mid, won, mi)
 			toast.Icon:SetTexture(GetItemIcon(rew.itemID))
 		end
 		if rew.currencyID then
-			toast.IconBorder:SetAtlas("loottoast-itemborder-gold")
-			toast.IconBorder:Show()
 			local ci = C_CurrencyInfo.GetCurrencyContainerInfo(rew.currencyID, rew.quantity)
 			if ci then
 				toast.Icon:SetTexture(ci.icon)
@@ -355,7 +372,6 @@ local function MissionComplete_Toast(_, mid, won, mi)
 			break
 		elseif rew.itemID or rew.itemLink then
 			local r = select(3,GetItemInfo(rew.itemLink or rew.itemID)) or select(3,GetItemInfo(rew.itemID))
-			toast.IconBorder:Show()
 			if r and r > 1 then
 				toast.IconBorder:SetAtlas(
 					(r == 2) and "loottoast-itemborder-green"
@@ -363,10 +379,24 @@ local function MissionComplete_Toast(_, mid, won, mi)
 					or r == 4 and "loottoast-itemborder-purple"
 					or "loottoast-itemborder-orange"
 				)
-			else
-				toast.IconBorder:Hide()
 			end
 			break
+		end
+	end
+	local nct = 0
+	for i=1, mi.followerInfo and #mi.followerInfo or 0 do
+		local fi = mi.followerInfo[i]
+		if fi.newLevel then
+			nct = nct + 1
+			C_Timer.After(0.075*nct, function()
+				local toast = MissionPage:AcquireToast(true)
+				toast.Sheen:SetVertexColor(0, 0.55, 1)
+				toast.PreGlow:SetVertexColor(1, 0.90, 0.90)
+				toast.Outcome:SetText(UNIT_LEVEL_TEMPLATE:format(fi.newLevel))
+				toast.Detail:SetText(fi.name)
+				toast.Portrait:SetTexture(fi.portraitIconID)
+				PlaySound(167127, nil, false)
+			end)
 		end
 	end
 end
@@ -378,16 +408,17 @@ local function HookAndCallOnShow(frame, f)
 	end
 end
 function EV:I_ADVENTURES_UI_LOADED()
-	MissionPage, MissionList = T.CreateObject("MissionPage", CovenantMissionFrame.MissionTab)
+	MissionPage = T.CreateObject("MissionPage", CovenantMissionFrame.MissionTab)
+	MissionList = MissionPage.MissionList
 	T.MissionList = MissionList
 	local lc = MissionPage.LogCounter
 	lc.tooltipHeader, lc.tooltipText = "|cff1eff00" .. L"Adventure Report", NORMAL_FONT_COLOR_CODE .. L"A detailed record of an adventure completed by your companions." .. "|n|n|cff1eff00" .. L"Use: Feed the Cursed Adventurer's Guide."
 	lc:SetScript("OnClick", LogCounter_OnClick)
 	HookAndCallOnShow(CovenantMissionFrame.MissionTab.MissionList, function(self)
 		self:Hide()
-		MissionPage:Show()
+		S[MissionPage]:Show()
 	end)
-	HookAndCallOnShow(MissionList, function()
+	HookAndCallOnShow(S[MissionList], function()
 		CovenantMissionFrameFollowers:Hide()
 		UpdateMissions()
 		LogCounter_Update()

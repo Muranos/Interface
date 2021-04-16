@@ -40,7 +40,8 @@ L.blockMoviesDesc = "Los vídeos de un encuentro solo se visionarán una vez (lo
 L.blockSpellErrors = "Bloquear mensajes de hechizos fallidos"
 L.blockSpellErrorsDesc = "Mensajes como \"Ese hechizo no está listo todavía\" que normalmente se muestran arriba de la pantalla serán bloqueados."
 L.bossBlock = "Bloque de Jefe"
-L.bossBlockDesc = "Configura varias cosas que puedes bloquear durante un encuentro."
+L.bossBlockDesc = "Configura varias cosas que puedes bloquear durante un encuentro.\n\n"
+--L.bossBlockAudioDesc = "Configure what audio to mute during a boss encounter.\n\n"
 L.bossDefeatDurationPrint = "Derrotado '%s' después de %s."
 L.bossStatistics = "Estadísticas de Jefe"
 L.bossStatsDescription = "Registro de estadísticas de Jefes, como el número de veces que ha sido derrotado, cantidad de wipes, tiempo total que duró el combate, o la muerte más rápida. Estas estadísticas se pueden ver en la ventana de configuración de cada jefe, pero permanecerán ocultas en los jefes que no tengan todavía registro de estadísticas."
@@ -186,7 +187,6 @@ L.soundButton = "Botón de sonido"
 L.soundButtonDesc = "Muestra/oculta el botón de sonido"
 L.soundDelay = "Retardo de sonido"
 L.soundDelayDesc = "Especifica el tiempo que BigWigs debería esperar entre cada repetición de sonido cuando alguien está demasiado cerca de ti."
-L.soundDesc = "Los mensajes podrían llegar con un sonido. A algunas personas les resulta más fácil escucahr. Cuando aprenden que 'tal' sonido va con 'cual' mensaje, en vez de leer dicho mensaje."
 L.Sounds = "Sonidos"
 L.style = "Estilo"
 L.text = "Texto"
@@ -292,9 +292,11 @@ L.audio = "Audio"
 L.music = "Música"
 L.ambience = "Sonido ambiental"
 L.sfx = "Efectos de sonido"
+L.errorSpeech = "Sonidos de error"
 --L.disableMusic = "Mute music (recommended)"
 --L.disableAmbience = "Mute ambient sounds (recommended)"
 --L.disableSfx = "Mute sound effects (not recommended)"
+--L.disableErrorSpeech = "Mute error speech (recommended)"
 L.disableAudioDesc = "La opción de '%s' en las opciones de sonido de WoW se desactivará, luego se vovlerá a activar cuando el encuentro con el jefe finalice. Esto puede ayudarte a concentrarte en los sonidos de avisos de BigWigs."
 --L.blockTooltipQuests = "Block tooltip quest objectives"
 --L.blockTooltipQuestsDesc = "When you need to kill a boss for a quest, it will usually show as '0/1 complete' in the tooltip when you place your mouse over the boss. This will be hidden whilst in combat with that boss to prevent the tooltip growing very large."
@@ -368,9 +370,17 @@ L.chatMessagesDesc  = "Todos los mensajes de salida de BigWigs a la ventana de c
 --L.resetProximityDesc = "Reset all the options related to proximity, including the position of the proximity anchor."
 
 -----------------------------------------------------------------------
+-- Pull.lua
+--
+
+--L.countdownBegins = "Begin Countdown"
+--L.countdownBegins_desc = "Choose how much time should be remaining on the pull timer (in seconds) when the countdown begins."
+
+-----------------------------------------------------------------------
 -- Sound.lua
 --
 
+--L.soundsDesc = "BigWigs uses the 'Master' sound channel to play all of its sounds. If you find that sounds are too quiet or too loud, open WoW's sound settings and adjust the 'Volumen general' slider to a level you like.\n\nBelow you can globally configure the different sounds that play for specific actions, or set them to 'None' to disable them. If you only want to change a sound for a specific boss ability, that can be done at the boss encounter settings.\n\n"
 --L.oldSounds = "Old Sounds"
 --L.resetSoundDesc = "Resets the above sounds to their defaults."
 --L.onyou = "A spell, buff, or debuff is on you"

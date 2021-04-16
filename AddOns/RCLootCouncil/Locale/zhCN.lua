@@ -306,6 +306,10 @@ L["Minor Upgrade"] = "小提升"
 --[[Translation missing --]]
 --[[ L["Missing votes from:"] = ""--]] 
 L["ML sees voting"] = "物品分配者可见投票"
+--[[Translation missing --]]
+--[[ L["ML_ADD_INVALID_ITEM"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["ML_ADD_ITEM_MAX_ATTEMPTS"] = ""--]] 
 L["ml_sees_voting_desc"] = "允许物品分配者查看投票详情。"
 L["module_tVersion_outdated_msg"] = "最新模块 %s 的测试版本为: %s"
 L["module_version_outdated_msg"] = "模块 %s 版本 %s 已过期。新版本为 %s。"

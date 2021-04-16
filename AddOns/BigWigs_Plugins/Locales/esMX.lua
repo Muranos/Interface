@@ -13,7 +13,7 @@ L.height = "Alto"
 L.sizeDesc = "Normalmente se ajusta el tamaño arrastrando el ancla. Si necesitas un tamaño exacto puedes usar este deslizador o escribir el valor en el recuadro, que no tiene un máximo."
 L.fontSizeDesc = "Ajuste el tamaño de la fuente utilizando el control deslizante o escriba el valor en la casilla que tiene un máximo de 200."
 L.disableDesc = "Está a punto de desactivar la función '%s' que |cffff4411no se recomienda|r.\n\n¿Estás seguro de que quieres hacer esto?"
---L.transparency = "Transparency"
+L.transparency = "Transparencia"
 
 -----------------------------------------------------------------------
 -- AltPower.lua
@@ -74,7 +74,7 @@ L.nameplateAutoWidth = "Igualar anchura de la placa de nombre"
 L.nameplateAutoWidthDesc = "Establece el ancho de las barras de nombres con la anchura de la barra de nombre padre."
 L.nameplateOffsetY = "Desplazamiento en Y"
 L.nameplateOffsetYDesc = "Desplazamiento de la parte superior de la placa de nombre para las barras hacia arriba y la parte inferior de la placa de nombre para las barras hacia abajo."
---L.nameplateAlphaDesc = "Control how transparent the nameplate bars should be."
+L.nameplateAlphaDesc = "Controla qué tan transparentes las barras de nombres deben ser."
 
 L.clickableBars = "Barra cliqueable"
 L.clickableBarsDesc = "Las barras de BigWigs se les puede hacer clic por defecto. De esta manera puedes seleccionar objetos, lanzar hechizos AoE, cambiar el ángulo de la cámara, etc., mientras tu cursor está encima de las mismas. |cffff4411Si activas esta opción ya no se comportarán de esta forma.|r Las barras interceptarán los clics que hagas en ellas.\n"
@@ -151,7 +151,8 @@ L.breakFinished = "El descanso ha terminado!"
 --
 
 L.bossBlock = "Bloque de Jefe"
-L.bossBlockDesc = "Configura las diferentes cosas que puedes bloquear durante un encuentro con el jefe."
+L.bossBlockDesc = "Configura las diferentes cosas que puedes bloquear durante un encuentro con el jefe.\n\n"
+L.bossBlockAudioDesc = "Configura qué sonido silenciar durante un encuentro con un jefe.\n\n"
 L.movieBlocked = "Ya has visto esta cinemática antes, saltándola."
 L.blockEmotes = "Bloquear los emotes de la pantalla central"
 L.blockEmotesDesc = "Algunos jefes muestran emotes para ciertas habilidades, estos mensajes son demasiado largos y descriptivos. Intentamos acortarlos, y ajustarlos para que no interfieran con el juego, y que no te digan específicamente qué tienes que hacer.\n\nTen en cuenta: Los emotes de Jefe seguirán siendo visibles en el chat si deseas leerlos."
@@ -167,22 +168,24 @@ L.audio = "Audio"
 L.music = "Música"
 L.ambience = "Sonido ambiental"
 L.sfx = "Efectos de sonido"
+L.errorSpeech = "Sonidos de error"
 L.disableMusic = "Silenciar la música (recomendado)"
 L.disableAmbience = "Silenciar sonidos ambientales (recomendado)"
 L.disableSfx = "Silenciar efectos de sonido (no recomendado)"
+L.disableErrorSpeech = "Silenciar sonidos de error (recomendado)"
 L.disableAudioDesc = "La opción '%s' en las opciones de sonido de WoW será deshabilitada, luego se volverá a habilidad cuando el encuentro con el jefe termina. Esto puede ayudarte a enfocarte en los sonidos de alerta de BigWigs."
 L.blockTooltipQuests = "Bloquea la ventana de información de los objetivos de misiones"
 L.blockTooltipQuestsDesc = "Cuando necesitas matar a un jefe para una misión, normalmente se mostrará como '0/1 completado' en la ventana de información cuando pasas tu mouse sobre el jefe. Esto se esconderá durante el combate con ese jefe para evitar que la ventana de información crezca mucho."
 L.blockObjectiveTracker = "Ocultar el seguimiento de misión"
 L.blockObjectiveTrackerDesc = "El seguimiento de misión se ocultará durante encuentros de jefes para limpiar el espacio en pantalla.\n\nEsto no sucederá si estás en una mítica + o estás haciendo seguimiento de un logro."
 
---L.blockTalkingHead = "Hide 'Talking Head' NPC dialog popup"
---L.blockTalkingHeadDesc = "The 'Talking Head' is a popup dialog box that has an NPC head and NPC chat text at the middle-bottom of your screen that |cffff4411sometimes|r shows when an NPC is talking.\n\nYou can choose the different types of instances where this should be blocked from showing.\n\n|cFF33FF99Please Note:|r\n 1) This feature will allow the NPC voice to continue playing so you can still hear it.\n 2) For safety, only specific talking heads will be blocked. Anything special or unique, such as a one-time quest, will not be blocked."
---L.blockTalkingHeadDungeons = "Normal & Heroic Dungeons"
---L.blockTalkingHeadMythics = "Mythic & Mythic+ Dungeons"
---L.blockTalkingHeadRaids = "Raids"
---L.blockTalkingHeadTimewalking = "Timewalking (Dungeons & Raids)"
---L.blockTalkingHeadScenarios = "Scenarios"
+L.blockTalkingHead = "Ocultar la ventana emergente de diálogo 'Cabeza Parlante' del NPC"
+L.blockTalkingHeadDesc = "La 'Cabeza Parlante' es un cuadro de diálogo emergente que tiene una cabeza de NPC y un texto de chat de NPC en la parte media-baja de tu pantalla que |cffff4411en ocasiones|r muestra cuando un NPC está hablando.\n\nPuedes elegir los diferentes tipos de instancias en las que esto debe ser bloqueado para que no se muestre.\n\n|cFF33FF99Ten en cuenta:|r\n 1) Esta característica permitirá que la voz del NPC se continúe reproduciéndo para que puedas seguir escuchándola.\n 2) Por seguridad, sólo se bloquearán cabezas parlantes específicas. Cualquier cosa especial o única, como una búsqueda única, no se bloqueará."
+L.blockTalkingHeadDungeons = "Calabozos Normales & Heroicos"
+L.blockTalkingHeadMythics = "Cabozos Míticos y Míticos+"
+L.blockTalkingHeadRaids = "Bandas"
+L.blockTalkingHeadTimewalking = "Cronoviaje (Calabozos & Bandas)"
+L.blockTalkingHeadScenarios = "Escenarios"
 
 L.subzone_grand_bazaar = "Gran Bazar" -- Battle of Dazar'alor raid (Battle for Azeroth)
 L.subzone_port_of_zandalar = "Puerto de Zandalar" -- Battle of Dazar'alor raid (Battle for Azeroth)
@@ -260,7 +263,7 @@ L.uppercaseDesc = "Todos los mensajes enfatizados se convertirán en MAYÚSCULAS
 L.useIcons = "Usar íconos"
 L.useIconsDesc = "Mostrar íconos al lado de los mensajes."
 L.classColors = "Colores de clase"
---L.classColorsDesc = "Messages will sometimes contain player names. Enabling this option will color those names using class colors."
+L.classColorsDesc = "Los mensajes a veces contienen nombres de jugadores. Al activar esta opción, esos nombres serán coloreados con los colores de la clase."
 L.chatMessages  = "Mensajes del marco de chat"
 L.chatMessagesDesc  = "Todos los mensajes de salida de BigWigs a la ventana de chat por defecto en adición a los ajustes mostrados"
 
@@ -330,6 +333,8 @@ L.pullStoppedCombat = "Temporizador de llamado de jefe cancelado porque tu entra
 L.pullIn = "Llamado de jefe en %d seg"
 L.sendPull = "Enviando un temporizador de llamado de jefe para los usuarios de BigWigs y DBM."
 L.wrongPullFormat = "Debe estar entre 1 y 60 segundos. Un ejemplo correcto es: /pull 5"
+L.countdownBegins = "Comenzar cuenta regresiva"
+L.countdownBegins_desc = "Elige cuánto tiempo restante debe de quedar en el llamado de jefe (en segundos) cuando la cuenta regresiva comience."
 
 -----------------------------------------------------------------------
 -- RaidIcon.lua
@@ -348,6 +353,7 @@ L.secondaryDesc = "El segundo ícono de banda que un encuentro debería usar."
 --
 
 L.Sounds = "Sonidos"
+L.soundsDesc = "BigWigs utiliza el canal de sonido 'General' para reproducir todos sus sonidos. Si encuentras que los sonidos son demasiado silenciosos o demasiado fuertes, abre la configuración de sonido de WoW y ajusta el deslizador de 'Volumen general' a un nivel que te guste.\n\nA continuación puedes configurar globalmente los diferentes sonidos que se reproducen para acciones específicas, o ponerlos en 'Ninguno' para desactivarlos. Si sólo quieres cambiar un sonido para una habilidad específica del jefe, puedes hacerlo en la configuración del encuentro con el jefe.\n\n"
 L.oldSounds = "Sonidos viejos"
 
 L.Alarm = "Alarma"
@@ -359,7 +365,6 @@ L.onyou = "Una hechizo, efecto o debuff está en ti"
 L.underyou = "Debes moverte fuera del hechizo que está debajo de ti"
 
 L.sound = "Sonido"
-L.soundDesc = "Los mensajes pueden venir con un sonido. A algunas personas les resulta más fácil escucharlos una vez que han aprendido qué sonido va con cada mensaje, en lugar de leer los mensajes reales."
 
 L.customSoundDesc = "Reproduce el sonido personalizado seleccionado en lugar del suministrado por el módulo."
 L.resetSoundDesc = "Restablece los sonidos anteriores a sus valores predeterminados."

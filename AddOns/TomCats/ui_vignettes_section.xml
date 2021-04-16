@@ -32,7 +32,7 @@
 						</Texture>
 					</Layer>
 				</Layers>
-				<ButtonText nonspacewrap="true" parentKey="ButtonText" justifyH="LEFT" text="Vignettes">
+				<ButtonText nonspacewrap="true" parentKey="text" justifyH="LEFT" text="Points of Interest">
 					<Size x="234" y="10"/>
 					<Anchors>
 						<Anchor point="LEFT" relativePoint="RIGHT" x="5" y="0"/>
@@ -83,7 +83,7 @@
 			<OnEnter method="OnEnter" />
 			<OnLeave method="OnLeave" />
 		</Scripts>
-		<ButtonText nonspacewrap="true" parentKey="ButtonText">
+		<ButtonText nonspacewrap="true" parentKey="text">
 			<Size x="0" y="10"/>
 			<Anchors>
 				<Anchor point="LEFT" x="20" y="0"/>

@@ -17,7 +17,7 @@ local function RefreshVignetteSectionHeader(section)
 	section.Header:SetNormalAtlas(section.state.collapsed and "Campaign_HeaderIcon_Closed" or "Campaign_HeaderIcon_Open" )
 	section.Header:SetPushedAtlas(section.state.collapsed and "Campaign_HeaderIcon_ClosedPressed" or "Campaign_HeaderIcon_OpenPressed")
 	section.Header:SetHighlightTexture("Interface\\Buttons\\UI-PlusButton-Hilight")
-	section.Header:SetHitRectInsets(-12, 18 - section.Header.ButtonText:GetWidth(), -18, -18)
+	section.Header:SetHitRectInsets(-12, 18 - section.Header.text:GetWidth(), -18, -18)
 end
 
 local function RefreshVignetteSection(section)
@@ -33,11 +33,11 @@ local function RefreshVignetteSection(section)
 		state.mapID = nil
 		state.vignettes = nil
 		state.vignettesSorted = nil
-		if (section.Header:IsShown()) then
+		if (section:IsShown()) then
 			if (not section:IsDirty()) then
 				section:MarkDirty()
 			end
-			section.Header:Hide()
+			section:Hide()
 		end
 		return
 	end
@@ -47,17 +47,19 @@ local function RefreshVignetteSection(section)
 		state.vignettesSorted = nil
 	end
 	if (not state.vignettes) then
+		state.mapID = nil
+		state.vignettes = nil
 		state.vignettesSorted = nil
-		if (section.Header:IsShown()) then
+		if (section:IsShown()) then
 			if (not section:IsDirty()) then
 				section:MarkDirty()
 			end
-			section.Header:Hide()
+			section:Hide()
 		end
 		return
 	end
-	if (not section.Header:IsShown()) then
-		section.Header:Show()
+	if (not section:IsShown()) then
+		section:Show()
 		if (not section:IsDirty()) then
 			section:MarkDirty()
 		end
@@ -91,7 +93,7 @@ local function RefreshVignetteSection(section)
 		if (vignette.isVisible) then
 			local button = state.titles[titleIndex]
 			titleIndex = titleIndex + 1
-			button.ButtonText:SetText(vignette["Name"])
+			button.text:SetText(vignette["Name"])
 			button.vignette = vignette
 			lastShown = button
 			button:Show()
@@ -120,6 +122,7 @@ function TomCatsVignettesSectionMixin:OnLoad()
 	self:SetParent(QuestScrollFrame.Contents)
 	local section = self
 	hooksecurefunc(QuestScrollFrame.Contents, "Layout", function(self)
+		if (not section:IsShown()) then return end
 		local children = self:GetLayoutChildren()
 		for _, v in ipairs(children) do
 			v.layoutIndex = v.layoutIndex + 1

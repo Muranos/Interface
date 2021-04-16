@@ -38,7 +38,7 @@ end
 
 L = BigWigs:NewBossLocale("Lady Inerva Darkvein", "ruRU")
 if L then
-	-- L.times = "%dx %s"
+	--L.times = "%dx %s"
 
 	L.level = "%s (Уровень |cffffff00%d|r)"
 	L.full = "%s (|cffff0000ПОЛНЫЙ|r)"
@@ -62,7 +62,6 @@ end
 
 L = BigWigs:NewBossLocale("The Council of Blood", "ruRU")
 if L then
-	L.macabre_start_emote = "Занимайте свои места и приготовьтесь к пляске смерти!" -- [RAID_BOSS_EMOTE] Take your places for the Danse Macabre!#Dance Controller#4#false"
 	L.custom_on_repeating_dark_recital = "Повторение Тёмного бала"
 	L.custom_on_repeating_dark_recital_desc = "Спам сообщений в /сказать с метками {rt1}, {rt2} чтобы найти своего партнёра для танца во время Тёмного бала."
 
@@ -118,8 +117,6 @@ end
 
 L = BigWigs:NewBossLocale("Sire Denathrius", "ruRU")
 if L then
-	L.add_spawn = "Алые кабалисты откликнулись на призыв Денатрия." -- [RAID_BOSS_EMOTE] Crimson Cabalists answer the call of Denathrius.#Sire Denathrius#4#true"
-
 	L.infobox_stacks = "%d |4Стак:Стака:Стаков;: %d |4игрок:игрока:игроков;" -- 4 Stacks: 5 players // 1 Stack: 1 player
 
 	L.custom_on_repeating_nighthunter = "Повторение крика о Ночном охотнике"

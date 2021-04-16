@@ -36,7 +36,8 @@ L.blockMoviesDesc = "首領戰鬥中的動畫只會播放一次（你每部都�
 L.blockSpellErrors = "封鎖施法失敗訊息"
 L.blockSpellErrorsDesc = "如「法術還沒準備好」等顯示於畫面上方的訊息會被封鎖。"
 L.bossBlock = "首領戰訊息封鎖"
-L.bossBlockDesc = "設定首領戰鬥期間可封鎖的訊息。"
+L.bossBlockDesc = "設定首領戰鬥期間要封鎖的訊息。\n\n"
+L.bossBlockAudioDesc = "設定首領戰鬥期間要靜音的音效。\n\n"
 L.bossDefeatDurationPrint = "「%s」已被擊敗，耗時 %s。"
 L.bossStatistics = "首領統計"
 L.bossStatsDescription = "首領戰鬥相關的統計數據，如首領被擊殺數量、團滅次數、戰鬥持續時間和最快擊殺記錄。你可以在每個首領的頁面查看統計數據，沒有首領記錄的統計數據會被隱藏。"
@@ -173,7 +174,6 @@ L.soundButton = "音效按鈕"
 L.soundButtonDesc = "顯示或隱藏音效按鈕。"
 L.soundDelay = "音效延遲"
 L.soundDelayDesc = "當有人太靠近你時指定多長時間 BigWigs 重複間隔等待指定的音效。"
-L.soundDesc = "訊息出現時伴隨著音效。有些人更容易在聽到何種音效後發現何種警報，而不是閱讀的實際訊息。"
 L.Sounds = "音效"
 L.style = "風格"
 L.text = "文字"
@@ -279,9 +279,11 @@ L.audio = "音效"
 L.music = "音樂"
 L.ambience = "環境音效"
 L.sfx = "音效"
+L.errorSpeech = "錯誤提示語音"
 L.disableMusic = "關閉音樂（推薦）"
 L.disableAmbience = "關閉環境音效（推薦）"
 L.disableSfx = "關閉音效（不推薦）"
+L.disableErrorSpeech = "關閉錯誤提示語音（推薦）"
 L.disableAudioDesc = "關閉魔獸世界的音效選項中的「%s」部份，然後在首領戰之後恢復。這可以幫助您專注在BigWigs的警告音效。"
 L.blockTooltipQuests = "滑鼠提示不顯示任務資訊"
 L.blockTooltipQuestsDesc = "當你在進行擊殺某首領的任務時，滑鼠提示指向首領會顯示「0/1 完成」，導致滑鼠提示框變得很大，啟用這項功能可以避免這個情況。"
@@ -323,7 +325,7 @@ L.purpleDesc = "坦克相關警報，例如對坦減益效果疊加（特定層�
 -- Countdown.lua
 --
 
-L.countdownAt_desc = "選擇開始播報倒數計時的閾值，當首領技能低於此秒數就會開使倒數（以秒為單位）。"
+L.countdownAt_desc = "以秒為單位，選擇在首領技能來臨前幾秒開始倒數。"
 L.countdown = "倒數"
 L.countdownDesc = "倒數功能包括語音和文字倒數。預設情況下，此功能很少啟用，但你可以為任何技能單獨啟用；在首領模組的技能列表中點擊「>>」，就可以選擇單獨啟用特定技能的倒數。"
 L.countdownAudioHeader = "語音倒數"
@@ -355,9 +357,17 @@ L.chatMessagesDesc = "除了顯示設定，輸出所有 BigWigs 訊息到預設�
 L.resetProximityDesc = "重設所有玩家雷達自訂選項，包括錨點和位置。"
 
 -----------------------------------------------------------------------
+-- Pull.lua
+--
+
+L.countdownBegins = "開始倒數"
+L.countdownBegins_desc = "以秒為單位，選擇在開怪計時器剩餘幾秒時開始倒數。"
+
+-----------------------------------------------------------------------
 -- Sound.lua
 --
 
+L.soundsDesc = "BigWigs 使用「主音量」通道播放全部音效。如果你覺得音量過小或過大，打開系統音效設定並調整「主音量」捲動軸至適中。\n\n下列選項可以全局設定特定動作播放的提示音效，或設為「None」來停用它們。如果你想更改特定首領技能的提示音效，在首領模組的技能列表中點擊「>>」即可單獨指定。\n\n"
 L.oldSounds = "傳統音效設定"
 L.resetSoundDesc = "將前面的音效設定重設為預設值。"
 L.onyou = "當一個法術或增減益光環施放在你身上時（點名）"

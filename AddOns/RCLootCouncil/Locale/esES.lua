@@ -267,6 +267,10 @@ L["Minimize in combat"] = "Minimizar en combate"
 L["Minor Upgrade"] = "Mejora Menor"
 L["Missing votes from:"] = "Faltan votos de:"
 L["ML sees voting"] = "MS ve la votacion"
+--[[Translation missing --]]
+--[[ L["ML_ADD_INVALID_ITEM"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["ML_ADD_ITEM_MAX_ATTEMPTS"] = ""--]] 
 L["ml_sees_voting_desc"] = "Permitir al Maestro Despojador ver quien vota por quien."
 L["module_tVersion_outdated_msg"] = "La versión de prueba del módulo %s es: %s"
 L["module_version_outdated_msg"] = "El módulo % versión %s está desactualizado. La versión más nueva el %s."

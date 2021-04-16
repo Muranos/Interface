@@ -1,12 +1,3 @@
--- TODO:
--- TODO:
--- Test/fix Bar spam test bug report
--- Test /reload then add via chat, open UI and use remove button
--- Test /reload then add via unit right click, open UI and use remove
--- Do the above two for NPC and players
--- Need to set needSorted to true always in any add or remove function
--- Or change it from "needSorted" to "needIndex"
-
 ----------------------------------
 -- Global Ignore List Variables --
 ----------------------------------
@@ -24,7 +15,7 @@ local safeToLoad		= false
 local doLoginIgnore		= true
 local faction			= nil
 local maxIgnoreSize		= 50
-local maxSyncTries		= 1
+local maxSyncTries		= 2
 local maxHistorySize	= 100
 local firstClear		= false
 local firstPrune		= false
@@ -56,6 +47,12 @@ local BlizzardInviteUnit		= nil
 ----------------------------------
 -- Global Ignore List Functions --
 ----------------------------------
+
+function debugMsg (msg)
+--	if GlobalIgnoreDB.showIgnoreDebug == true then
+		print("|cffffff00Global Ignore: " .. msg)
+--	end
+end
 
 function ShowMsg (msg)
 	print ("|cff33ff99Global Ignore: |cffffffff" .. (msg or "Critical error"))
@@ -130,15 +127,17 @@ local function getSyncValue (index)
 	return 0, 0
 end
 
-local function setSyncValue (index)
+local function setSyncValue (name, index)
 
 	local val,idx = getSyncValue(index)
 	
 	if idx == 0 then
 		idx = #GlobalIgnoreDB.syncInfo[index] + 1	
 	end
-	
+		
 	val = val + 1
+	
+	--debugMsg("Setting "..name.. " failed add attempts to "..val)
 	
 	GlobalIgnoreDB.syncInfo[index][idx] = playerName .. "@" .. val
 end		
@@ -388,7 +387,9 @@ local function ResetIgnoreDB()
 		filterList		= {},
 		skipGuild		= true,
 		skipParty		= false,
-		skipPrivate		= true
+		skipPrivate		= true,
+		showIgnoreDebug = false,
+		showWarning     = true
 	}
 	
 	GlobalIgnoreImported = false
@@ -413,7 +414,9 @@ local function isValidList()
 		end
  			
 		if str == nil or str == UNKNOWN then
-			ShowMsg(format(L["LOAD_5"], found, UNKNOWN))
+			if GlobalIgnoreDB.showWarning == true then
+				ShowMsg(format(L["LOAD_5"], found, UNKNOWN))
+			end
 					
 			return false
 		end
@@ -481,6 +484,7 @@ function SyncIgnoreList (silent)
 		
 		if GlobalIgnoreDB.expList[count] > 0 and daysFromToday(GlobalIgnoreDB.dateList[count]) >= GlobalIgnoreDB.expList[count] then
 			local name = addServer(GlobalIgnoreDB.ignoreList[count])		
+			debugMsg ("Removing character "..(name or "nil").." due to expiration date")			
 			C_FriendList.DelIgnore(name)
 			count = 0
 		end
@@ -494,27 +498,32 @@ function SyncIgnoreList (silent)
 		local skipRemove = false
 		local globIdx	 = hasGlobalIgnored(name)
 	
-		if globIdx == 0 then
-			if GlobalIgnoreDB.trackChanges == true then
+		if name ~= nil then
+			if globIdx == 0 then
+				if GlobalIgnoreDB.trackChanges == true then
 			
-				local idx = hasDeleted(name)
+					local idx = hasDeleted(name)
 				
-				if idx == 0 then
-					skipRemove = true
-					C_FriendList.AddIgnore(name, true)
+					if idx == 0 then
+						debugMsg ("New player "..name.. " found on character, adding to Global Ignore List")
+						skipRemove = true
+						C_FriendList.AddIgnore(name, true)
+					end
 				end
-			end
 			
-			if skipRemove == false then
+				if skipRemove == false then
 
-				if not silent then
-					ShowMsg (format(L["SYNC_1"], name))
-				end			
+					if not silent then
+						ShowMsg (format(L["SYNC_1"], name))
+					end			
 				
-				BlizzardDelIgnoreByIndex (hasIgnored(name))
+					debugMsg ("Removing "..name.." from character ignore because they are not on Global Ignore List")
+				
+					BlizzardDelIgnoreByIndex (hasIgnored(name))
+				end
+			else
+				GlobalIgnoreDB.syncInfo[globIdx] = {}
 			end
-		else
-			GlobalIgnoreDB.syncInfo[globIdx] = {}
 		end
 	end
 	
@@ -528,6 +537,7 @@ function SyncIgnoreList (silent)
 				local tries = getSyncValue(listCount)
 
 				if tries >= maxSyncTries then
+					debugMsg ("Removing "..GlobalIgnoreDB.ignoreList[listCount].." after "..tries.." failed attempts to add to ignore list")
 					C_FriendList.DelIgnore(removeServer(GlobalIgnoreDB.ignoreList[listCount]))
 					listCount = listCount - 1				
 				end
@@ -578,7 +588,7 @@ function SyncIgnoreList (silent)
 					if ok then
 						ignoreCount = ignoreCount + 1
 						
-						setSyncValue(key)
+						setSyncValue(name, key)
 						
 						name = removeServer(name)
 
@@ -688,6 +698,14 @@ local function ApplicationStartup(self)
 	end
 	
 	-- set missing defaults or upgrade if needed
+	
+	if GlobalIgnoreDB.showWarning == nil then
+		GlobalIgnoreDB.showWarning = true
+	end
+	
+	if GlobalIgnoreDB.showIgnoreDebug == nil then
+		GlobalIgnoreDB.showIgnoreDebug = false
+	end
 
 	if GlobalIgnoreDB.skipPrivate == nil then
 		GlobalIgnoreDB.skipPrivate = true

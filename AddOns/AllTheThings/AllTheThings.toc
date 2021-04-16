@@ -1,18 +1,17 @@
 ## Author: Crieve-Sargeras
-## Interface: 90002
+## Interface: 90005
 ## X-Curse-Project-ID: 267285
-## Title: .|TInterface\Addons\AllTheThings\assets\logo_32x32:0|t AllTheThings |TInterface\Addons\AllTheThings\assets\logo_32x32:0|t
+## Title: AllTheThings |TInterface\Addons\AllTheThings\assets\logo_32x32:0|t
 ## Name: AllTheThings
 ## SavedVariables: AllTheThingsSettings, AllTheThingsAD, AllTheThingsAuctionConfig, AllTheThingsAuctionData, AllTheThingsDebugData, AllTheThingsHarvestItems
 ## SavedVariablesPerCharacter: AllTheThingsSettingsPerCharacter
 ## Notes: Addon for Tracking Collections & Account Completion
-## Version: 2.2.6
+## Version: Shadowlands-2.2.9
 lib\LibStub\LibStub.lua
 lib\CallbackHandler-1.0\CallbackHandler-1.0.lua
 lib\LibDataBroker-1.1\LibDataBroker-1.1.lua
 src\base.lua
 locales\enUS.lua
-locales\enGB.lua
 locales\esES.lua
 locales\esMX.lua
 locales\deDE.lua
@@ -28,6 +27,3 @@ AllTheThings.lua
 db\FlightPathDB.lua
 db\RaceDB.lua
 db\Categories.lua
-# DEV ONLY START
-DevTools.lua
-# DEV ONLY END

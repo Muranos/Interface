@@ -1,4 +1,4 @@
-## Interface: 90002
+## Interface: 90005
 
 ## Title: BigWigs [|cffeda55fOptions|r]
 ## Title-zhCN: BigWigs [|cffeda55f选项|r]
@@ -22,7 +22,7 @@
 ## Notes-ptBR: BigWigs Configuration Options
 ## Notes-esES: Opciones de configuración de BigWigs.
 ## Notes-esMX: Opciones de configuración de BigWigs.
-## Version: v217
+## Version: v220.3
 
 ## LoadOnDemand: 1
 ## Dependencies: BigWigs, BigWigs_Core, BigWigs_Plugins

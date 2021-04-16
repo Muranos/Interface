@@ -1,6 +1,3 @@
---------------------------------------------------------------------------------
--- TODO:
--- -- Fallback if yells are not detected for stage changes
 
 --------------------------------------------------------------------------------
 -- Module Declaration
@@ -84,7 +81,7 @@ end
 
 function mod:OnBossEnable()
 	self:RegisterEvent("RAID_BOSS_EMOTE") -- Used for Relics
-	self:Log("SPELL_CAST_SUCCESS", "EncounterEvent", 181089)
+	self:Log("SPELL_CAST_SUCCESS", "EncounterEvent", 181089) -- Stage changes
 
 	self:Log("SPELL_CAST_SUCCESS", "DimensionalTear", 328437, 342310)
 	self:Log("SPELL_AURA_APPLIED", "DimensionalTearApplied", 328448, 328468)
@@ -189,13 +186,14 @@ function mod:RAID_BOSS_EMOTE(_, msg)
 	end
 end
 
-function mod:EncounterEvent()
+function mod:EncounterEvent() -- Stage changes
 	local prevStage = self:GetStage()
 	local nextStage = prevStage + 1
 	if nextStage == 2 then
 		self:StopBar(CL.count:format(CL.traps, trapCount)) -- Stasis Trap
 		self:StopBar(CL.count:format(L.tear, dimensionalTearCount)) -- Dimensional Tear
 		self:StopBar(CL.count:format(L.spirits, spiritCount)) -- Fleeting Spirit
+		self:StopBar(CL.count:format(self:SpellName(325399), sparkCount)) -- Hyperlight Spark
 
 		self:SetStage(2)
 		lastStaged = GetTime()
@@ -222,6 +220,7 @@ function mod:EncounterEvent()
 		self:StopBar(CL.count:format(L.tear, dimensionalTearCount)) -- Dimensional Tear
 		self:StopBar(CL.count:format(L.spirits, spiritCount)) -- Fleeting Spirit
 		self:StopBar(CL.count:format(L.seeds, seedCount)) -- Seeds of Extinction
+		self:StopBar(CL.count:format(self:SpellName(325399), sparkCount)) -- Hyperlight Spark
 
 		self:SetStage(3)
 		lastStaged = GetTime()

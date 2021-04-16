@@ -9,16 +9,24 @@ end
 T.Util, T.L, T.LT = U, L, nil
 
 local overdesc = {
-	[91]=L"Reduces the damage dealt by the furthest enemy by 1 for 3 rounds.",
-	[85]=L"Reduces the damage taken by the closest ally by 5000% for two rounds.",
-	[198]={L"For two rounds, reduces the damage dealt by incoming attacks by 1 and retaliates for {}.", "thornsATK"},
-	[52]={L"Inflicts {} damage to all enemies at range.", "damageATK"},
+	[ 25]={L"Inflicts {} damage to all enemies in melee, and increases own damage dealt by 20% for three turns.", "damageATK"},
+	[ 52]={L"Inflicts {} damage to all enemies at range.", "damageATK"},
+	[ 85]=L"Reduces the damage taken by the closest ally by 5000% for two turns.",
+	[107]={L"Debuffs all enemies, dealing {} damage this turn and during each of the next three turns.", "damageATK",
+	       L"Increases all damage taken by the nearest enemy by {} for three turns.", "plusDamageTakenATK"},
+	[121]={L"Reduces all enemies' damage dealt by {}% during the next turn.", "modDamageDealt"},
 	[125]={L"Inflicts {} damage to a random enemy.", "damageATK"},
-	[229]=L"Reduces damage taken by a random ally by 50%. Forever.",
-	[301]={L"Every other turn, a random enemy is attacked for {}% of their maximum health.", "damagePerc"},
+	[194]={L"Increases damage dealt by the closest ally by {} for two turns.", "plusDamageDealtATK",
+	       L"Reduces all damage taken by the closest ally by {}% for two turns.", "modDamageTaken",
+	       L"Inflicts {} damage to self.","damageATK"},
 	[227]={L"Every other turn, a random enemy is attacked for {}% of their maximum health.", "damagePerc"},
-	[25]={L"Inflicts {} damage to all enemies in melee, and increases own damage dealt by 20% for three turns.", "damageATK"},
+	[242]={L"Heals the closest ally for {}.", "healATK",
+	       L"Increases all damage taken by the closest ally by {}% for two turns.", "modDamageTaken"},
+	[251]={L"Reduces all enemies' damage dealt by {}% for two turns.", "modDamageDealt"},
+	[301]={L"Every other turn, a random enemy is attacked for {}% of their maximum health.", "damagePerc"},
 }
+local overdescUnscaledKeys = {damagePerc=1, modDamageDealt=1, modDamageTaken=1}
+local covenFastHealingTalentID = {1078, 1081, 1075, 1084}
 
 local GetMaskBoard do
 	local b, u, om = {}, {curHP=1}
@@ -281,6 +289,7 @@ end
 do -- completeQueue
 	local curStack, curState, curIndex
 	local completionStep, lastAction, delayIndex, delayMID
+	local xpTable
 	local function After(t, f)
 		if t == 0 then
 			securecall(f)
@@ -313,7 +322,7 @@ do -- completeQueue
 	local function delayDone()
 		local os = curState
 		if os == "ABORT" or os == "DONE" then
-			curState, curStack, curIndex, delayMID, delayIndex = nil
+			curState, curStack, curIndex, delayMID, delayIndex, xpTable = nil
 			EV("I_COMPLETE_QUEUE_UPDATE", os)
 		end
 	end
@@ -325,6 +334,27 @@ do -- completeQueue
 			et = et .. " " .. tostring(e and e.missionID or "?") .. (e and e.skipped and "S" or "") .. (e and e.failed and "F" or "")
 		end
 		return et .. ")"
+	end
+	local function addFollowerInfo(mi, followers, didWin)
+		local xpGain = mi.xp or 0
+		local fa = {}
+		for i=1, didWin and mi.rewards and #mi.rewards or 0 do
+			xpGain = xpGain + (mi.rewards[i].followerXP or 0)
+		end
+		for i=1,#followers do
+			local fi = C_Garrison.GetFollowerMissionCompleteInfo(followers[i].followerID)
+			local xp = (fi.currentXP or 0) + xpGain
+			if not fi.isTroop and (fi.maxXP or 0) > 0 and xp >= fi.maxXP then
+				xpTable = xpTable or C_Garrison.GetFollowerXPTable(123)
+				local nl = fi.level
+				repeat
+					nl, xp = nl + 1, xp - xpTable[nl]
+				until nl < 60 and xp < (xpTable[nl] or 1e6)
+				fi.newLevel, fi.xpToNextLevel = nl, xpTable[nl] and (xpTable[nl]-xp) or nil
+			end
+			fa[i] = fi
+		end
+		mi.followerInfo = fa
 	end
 	function completionStep(ev, ...)
 		if not curState then return end
@@ -339,15 +369,18 @@ do -- completeQueue
 			EV("I_COMPLETE_QUEUE_UPDATE", "NEXT")
 			if mi.completed then
 				curState, delayIndex, delayMID = "BONUS", curIndex, mi.missionID
+				C_Garrison.RegenerateCombatLog(delayMID)
 				delayRoll(... ~= "IMMEDIATE" and 0.2)
 			else
 				curState, delayIndex, delayMID = "COMPLETE", curIndex, mi.missionID
 				delayOpen(... ~= "IMMEDIATE" and 0.2)
 			end
 		elseif curState == "COMPLETE" and ev == "GARRISON_MISSION_COMPLETE_RESPONSE" then
-			local mid, cc, ok, _brOK = ...
+			local mid, cc, ok, _brOK, followers, acr = ...
 			if mid ~= mi.missionID and not cc then return end
+			if not (acr and acr.combatLog and #acr.combatLog > 0) then return end
 			if mid == mi.missionID or securecall(error, whineAboutUnexpectedState("Unexpected mission completion", mid, (cc and "C" or "c") .. (ok and "K" or "k")), 2) then
+				addFollowerInfo(mi, followers, acr.winner)
 				if ok then
 					curState = "BONUS"
 				else
@@ -408,9 +441,13 @@ function U.GetTimeStringFromSeconds(sec, shorter, roundUp, disallowSeconds)
 		return (shorter and COOLDOWN_DURATION_DAYS or INT_GENERAL_DURATION_DAYS):format(h(sec/84600))
 	end
 end
+function U.GetCompanionRecoveryTime(missingShare)
+	local fastHealing = C_Garrison.GetTalentInfo(covenFastHealingTalentID[C_Covenants.GetActiveCovenantID()] or 1075)
+	return missingShare * (fastHealing and fastHealing.researched and 49600 or 60000)
+end
 function U.SetFollowerInfo(GameTooltip, info, autoCombatSpells, autoCombatantStats, mid, boardIndex, boardMask, showHealthFooter)
 	local mhp, hp, atk, role, aat, level
-	autoCombatantStats = autoCombatantStats or info and info.autoCombatantStats
+	autoCombatantStats = autoCombatantStats or info and (info.followerID and C_Garrison.GetFollowerAutoCombatStats(info.followerID) or info.autoCombatantStats)
 	if info then
 		role, level = info.role, info.level and ("|cffa8a8a8" .. UNIT_LEVEL_TEMPLATE:format(info.level)) or ""
 	end
@@ -426,6 +463,8 @@ function U.SetFollowerInfo(GameTooltip, info, autoCombatSpells, autoCombatantSta
 	local atype = U.FormatTargetBlips(GetTargetMask(T.KnownSpells[aat], boardIndex, boardMask), boardMask, " ")
 	if atype == "" then
 		atype = aat == 11 and " " .. L"(melee)" or aat == 15 and " " .. L"(ranged)" or ""
+	else
+		atype = "  " .. atype
 	end
 	GameTooltip:AddLine("|A:ui_adv_health:20:20|a" .. (hp and BreakUpLargeNumbers(hp) or "???") .. (mhp and mhp ~= hp and ("|cffa0a0a0/|r" .. BreakUpLargeNumbers(mhp)) or "").. "  |A:ui_adv_atk:20:20|a" .. (atk and BreakUpLargeNumbers(atk) or "???") .. "|cffa8a8a8" .. atype, 1,1,1)
 	if info and info.isMaxLevel == false and info.xp and info.levelXP and info.level and not info.isAutoTroop then
@@ -451,8 +490,7 @@ function U.SetFollowerInfo(GameTooltip, info, autoCombatSpells, autoCombatantSta
 	end
 
 	if showHealthFooter and info and info.status ~= GARRISON_FOLLOWER_ON_MISSION and autoCombatantStats and autoCombatantStats.currentHealth < autoCombatantStats.maxHealth then
-		local fastHealing = C_Garrison.GetTalentInfo(1075)
-		local rt = (1-(autoCombatantStats.currentHealth/autoCombatantStats.maxHealth)) * (fastHealing and fastHealing.researched and 49600 or 60000)
+		local rt = U.GetCompanionRecoveryTime(1 - (autoCombatantStats.currentHealth/autoCombatantStats.maxHealth))
 		GameTooltip:AddLine(" ")
 		GameTooltip:AddLine("|cffffd926" .. (L"Full recovery in %s"):format(U.GetTimeStringFromSeconds(rt, false, true, true)), 1, 0.85, 0.15, 1)
 	end
@@ -529,13 +567,18 @@ function U.GetAbilityDescriptionOverride(spellID, atk)
 		return L"It does nothing."
 	end
 	local od = overdesc[spellID]
-	if od then
-		if type(od) == "table" then
-			local vk = od[2]
-			local vv = si and (si[vk] or si[1] and si[1][vk] or si[2] and si[2][vk])
-			local rv = vk == "damagePerc" and vv or vv and atk and math.floor(vv*(atk or -1)/100) or ""
-			od = od[1]:gsub("{}", rv)
+	if type(od) == "table" then
+		local o
+		for i=1, #od, 2 do
+			local vk = od[i+1]
+			local vv = si and si[vk]
+			for i=1,si and not vv and #si or 0 do
+				vv = vv or si[i][vk]
+			end
+			local rv = vv and (overdescUnscaledKeys[vk] and (vv < 0 and -vv or vv) or atk and math.floor(vv*(atk or -1)/100)) or ""
+			o = (i > 1 and o .. " " or "") .. od[i]:gsub("{}", rv)
 		end
-		return od
+		od = o
 	end
+	return od
 end

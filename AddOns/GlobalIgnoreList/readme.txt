@@ -202,6 +202,16 @@ The following commands are accessible by typing /gignore or /gi in the chat box:
 
 => VERSION HISTORY
 
+=> 9.0.5.1
+
+Some players have reported an error where the Blizzard ignore list seems to be returning a blank value for a person on the ignore list so I've put a check in to try to prevent issues when that happens.
+
+=> 9.0.5
+
+Updated for 9.0.5 version
+Increased max failed sync attempts to 2 instead of 1 before removing a character.  At some point occasional failures started happening and this aggressively low number could cause characters to be prematurely removed.
+Increased the max length of a chat filter to 1000 characters, up from 500.  Someone actually hit that limit for a chat filter!
+
 => 9.0.3
 
 Updated for Shadowlands live patch

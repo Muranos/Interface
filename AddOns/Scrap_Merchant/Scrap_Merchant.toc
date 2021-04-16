@@ -1,4 +1,4 @@
-## Interface: 90001
+## Interface: 90005
 ## Title: Scrap Merchant
 ## Notes: Load on demand merchant UI for Scrap.
 

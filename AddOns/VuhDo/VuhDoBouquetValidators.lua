@@ -46,6 +46,7 @@ local VUHDO_getRedGreenForDistance;
 local VUHDO_getTexCoordsForCell;
 local VUHDO_getUnitGroupPrivileges;
 local VUHDO_getLatestCustomDebuff;
+local VUHDO_getUnitOverallShieldRemain;
 
 local sIsInverted;
 local sBarColors;
@@ -87,6 +88,7 @@ function VUHDO_bouquetValidatorsInitLocalOverrides()
 	VUHDO_getTexCoordsForCell = _G["VUHDO_getTexCoordsForCell"];
 	VUHDO_getUnitGroupPrivileges = _G["VUHDO_getUnitGroupPrivileges"];
 	VUHDO_getLatestCustomDebuff = _G["VUHDO_getLatestCustomDebuff"];
+	VUHDO_getUnitOverallShieldRemain = _G["VUHDO_getUnitOverallShieldRemain"];
 
 	sIsInverted = VUHDO_INDICATOR_CONFIG["CUSTOM"]["HEALTH_BAR"]["invertGrowth"];
 	sBarColors = VUHDO_PANEL_SETUP["BAR_COLORS"];
@@ -192,7 +194,7 @@ end
 
 --
 local function VUHDO_isPhasedValidator(anInfo, _)
-	if UnitPhaseReason(anInfo["unit"]) then
+	if VUHDO_unitPhaseReason(anInfo["unit"]) then
 		return true, "Interface\\TargetingFrame\\UI-PhasingIcon", 
 			-1, -1, -1, nil, nil, 0.15625, 0.84375, 0.15625, 0.84375;
 	else
@@ -205,7 +207,7 @@ end
 --
 local function VUHDO_isWarModePhasedValidator(anInfo, _)
 
-	local tPhaseReason = UnitPhaseReason(anInfo["unit"]);
+	local tPhaseReason = VUHDO_unitPhaseReason(anInfo["unit"]);
 
 	if tPhaseReason and tPhaseReason == Enum.PhaseReason.WarMode then
 		return true, "Interface\\TargetingFrame\\UI-PhasingIcon", 
@@ -713,8 +715,13 @@ end
 local tHealth, tHealthMax;
 local function VUHDO_statusHealthValidator(anInfo, _)
 	if sIsInverted then
-		return true, nil, anInfo["health"] + VUHDO_getIncHealOnUnit(anInfo["unit"]), -1,
-			anInfo["healthmax"], nil, anInfo["health"];
+		if VUHDO_CONFIG["SHOW_SHIELD_BAR"] then
+			tHealth = anInfo["health"] + VUHDO_getIncHealOnUnit(anInfo["unit"]) + VUHDO_getUnitOverallShieldRemain(anInfo["unit"]);
+		else
+			tHealth = anInfo["health"] + VUHDO_getIncHealOnUnit(anInfo["unit"]);
+		end
+
+		return true, nil, tHealth, -1, anInfo["healthmax"], nil, anInfo["health"];
 	else
 		return true, nil, anInfo["health"], -1,
 			anInfo["healthmax"], nil, anInfo["health"];
@@ -735,6 +742,14 @@ end
 local function VUHDO_statusManaHealerOnlyValidator(anInfo, _)
 	return (anInfo["powertype"] == 0 and anInfo["role"] == VUHDO_ID_RANGED_HEAL), nil, anInfo["power"], -1,
 		anInfo["powermax"], VUHDO_copyColor(VUHDO_POWER_TYPE_COLORS[0]);
+end
+
+
+
+--
+local function VUHDO_statusPowerTankOnlyValidator(anInfo, _)
+	return (anInfo["powertype"] ~= 0 and anInfo["role"] == VUHDO_ID_MELEE_TANK), nil, anInfo["power"], -1,
+		anInfo["powermax"], VUHDO_copyColor(VUHDO_POWER_TYPE_COLORS[anInfo["powertype"] or 0]);
 end
 
 
@@ -1676,6 +1691,14 @@ VUHDO_BOUQUET_BUFFS_SPECIAL = {
 		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_STATUSBAR,
 		["no_color"] = true,
 		["interests"] = { VUHDO_UPDATE_MANA, VUHDO_UPDATE_DC },
+	},
+
+	["STATUS_POWER_TANK_ONLY"] = {
+		["displayName"] = VUHDO_I18N_BOUQUET_STATUS_POWER_TANK_ONLY,
+		["validator"] = VUHDO_statusPowerTankOnlyValidator,
+		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_STATUSBAR,
+		["no_color"] = true,
+		["interests"] = { VUHDO_UPDATE_OTHER_POWERS, VUHDO_UPDATE_DC },
 	},
 
 	["STATUS_OTHER_POWERS"] = {

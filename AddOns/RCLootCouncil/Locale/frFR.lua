@@ -351,6 +351,10 @@ L["Minor Upgrade"] = "Légère amél."
 --[[Translation missing --]]
 --[[ L["Missing votes from:"] = ""--]] 
 L["ML sees voting"] = "MdB voit les votes"
+--[[Translation missing --]]
+--[[ L["ML_ADD_INVALID_ITEM"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["ML_ADD_ITEM_MAX_ATTEMPTS"] = ""--]] 
 L["ml_sees_voting_desc"] = "Permet au maître du butin de voir qui a voté pour qui."
 --[[Translation missing --]]
 --[[ L["module_tVersion_outdated_msg"] = ""--]] 

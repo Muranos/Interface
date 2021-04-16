@@ -80,7 +80,7 @@ function mod:OnEngage()
 	self:Bar(197969, self:Mythic() and 20 or 40, CL.count:format(self:SpellName(197969), cacophonyCount)) -- Roaring Cacophony
 	self:Berserk(300)
 
-	self:RegisterUnitEvent("UNIT_HEALTH_FREQUENT", nil, "boss1")
+	self:RegisterUnitEvent("UNIT_HEALTH", nil, "boss1")
 end
 
 --------------------------------------------------------------------------------
@@ -118,7 +118,7 @@ end
 
 function mod:RendFleshCast(args)
 	self:MessageOld(204859, "yellow", nil, CL.casting:format(args.spellName))
-	if self:Tank() and not UnitDetailedThreatSituation("player", "boss1") then
+	if self:Tank() and not self:Tanking("boss1") then
 		local _, _, _, expiration = self:UnitDebuff("player", self:SpellName(197943)) -- Overwhelm
 		if not expiration or expiration-GetTime() < 2.5 then
 			self:PlaySound(204859, "warning") -- Warning = taunt
@@ -181,7 +181,7 @@ do
 	end
 end
 
-function mod:UNIT_HEALTH_FREQUENT(event, unit)
+function mod:UNIT_HEALTH(event, unit)
 	local hp = UnitHealth(unit) / UnitHealthMax(unit)
 	if hp < 0.35 then -- Blood Frenzy at 30%
 		self:UnregisterUnitEvent(event, unit)
