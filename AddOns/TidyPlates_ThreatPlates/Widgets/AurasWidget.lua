@@ -34,17 +34,10 @@ local UnitStyle_AuraDependent = Addon.UnitStyle_AuraDependent
 local CUSTOM_GLOW_FUNCTIONS, CUSTOM_GLOW_WRAPPER_FUNCTIONS = Addon.CUSTOM_GLOW_FUNCTIONS, Addon.CUSTOM_GLOW_WRAPPER_FUNCTIONS
 local BackdropTemplate = Addon.BackdropTemplate
 
-local LibClassicDurations
-
 local _G =_G
 -- Global vars/functions that we don't upvalue since they might get hooked, or upgraded
 -- List them here for Mikk's FindGlobals script
 -- GLOBALS: CreateFrame, UnitAffectingCombat
-
-if Addon.CLASSIC then
-  LibClassicDurations = LibStub("LibClassicDurations")
-  UnitAura = LibClassicDurations.UnitAuraWithBuffs
-end
 
 ---------------------------------------------------------------------------------------------------
 -- Auras Widget Functions
@@ -301,6 +294,7 @@ local CROWD_CONTROL_SPELLS_RETAIL = {
   [196364] = CC_SILENCE,      -- Unstable Affliction, silence effect after dispell of Unstable Affliction
   [213688] = LOC_STUN,        -- Fel Cleave aura from Call Fel Lord (Honor)
   [233582] = PC_SNARE,        -- Entrenched in Flame
+  [5484] = LOC_FEAR,          -- Howl of Terror
 
   ---------------------------------------------------------------------------------------------------
   -- Warrior
@@ -1727,17 +1721,19 @@ function Widget:OnEnable()
   -- LOSS_OF_CONTROL_UPDATE
 
   if Addon.CLASSIC then
+    UnitAura = Addon.LibClassicDurations.UnitAuraWithBuffs
+
     -- Add duration handling from LibClassicDurations
-    LibClassicDurations:Register("ThreatPlates")
+    Addon.LibClassicDurations:Register("ThreatPlates")
     -- NOTE: Enemy buff tracking won't start until you register UNIT_BUFF
-    LibClassicDurations.RegisterCallback(TidyPlatesThreat, "UNIT_BUFF", UnitBuffEventHandler)
+    Addon.LibClassicDurations.RegisterCallback(TidyPlatesThreat, "UNIT_BUFF", UnitBuffEventHandler)
   end
 end
 
 function Widget:OnDisable()
   self:UnregisterAllEvents()
   if Addon.CLASSIC then
-    LibClassicDurations.UnregisterCallback(TidyPlatesThreat, "UNIT_BUFF")
+    Addon.LibClassicDurations.UnregisterCallback(TidyPlatesThreat, "UNIT_BUFF")
   end
   for plate, _ in pairs(Addon.PlatesVisible) do
     plate.TPFrame.widgets.Auras:UnregisterAllEvents()

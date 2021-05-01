@@ -22,7 +22,7 @@
 ## Notes-itIT: BigWigs Sanctum of Domination Modules
 ## Notes-ptBR: BigWigs Sanctum of Domination Modules
 ## Notes-koKR: BigWigs Sanctum of Domination Modules
-## Version: v220.3
+## Version: v221
 
 ## LoadOnDemand: 1
 ## Dependencies: BigWigs

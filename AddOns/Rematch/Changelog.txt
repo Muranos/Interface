@@ -1,3 +1,8 @@
+04/24/2021 version 4.11.13
+- Pet cards now display a background based on the expansion the pet is from, when applicable.
+- Fix for Gnawface and Gorefu target recognition.
+- Fix for total pets tooltip on 9.1 clients.
+
 03/13/2021 version 4.11.12
 - toc updated for 9.0.5
 

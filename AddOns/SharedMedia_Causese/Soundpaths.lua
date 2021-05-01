@@ -46,6 +46,7 @@ LSM:Register("sound", "|cFFFF0000Debuff|r", [[Interface\Addons\SharedMedia_Cause
 LSM:Register("sound", "|cFFFF0000Dispell|r", [[Interface\Addons\SharedMedia_Causese\sound\Dispell.ogg]])
 LSM:Register("sound", "|cFFFF0000Dodge|r", [[Interface\Addons\SharedMedia_Causese\sound\Dodge.ogg]])
 LSM:Register("sound", "|cFFFF0000Dont Move|r", [[Interface\Addons\SharedMedia_Causese\sound\Dont Move.ogg]])
+LSM:Register("sound", "|cFFFF0000Dot|r", [[Interface\Addons\SharedMedia_Causese\sound\Dot.ogg]])
 LSM:Register("sound", "|cFFFF0000Drop|r", [[Interface\Addons\SharedMedia_Causese\sound\Drop.ogg]])
 LSM:Register("sound", "|cFFFF0000Enter|r", [[Interface\Addons\SharedMedia_Causese\sound\Enter.ogg]])
 LSM:Register("sound", "|cFFFF0000Escort|r", [[Interface\Addons\SharedMedia_Causese\sound\Escort.ogg]])
