@@ -1,6 +1,6 @@
-## Interface: 90002
+## Interface: 90005
 ## Title: OPie
-## Version: Xe 2a
+## Version: Xe 6
 ## Notes: Group abilities into rings that appear when you hold down a binding.
 ## Notes-deDE: Fähigkeiten in Ringen gruppieren, die erscheinen, wenn eine Tastenbelegung ausgelöst wird.
 ## Notes-esES: Agrupar habilitades en anillos que se aparecen al presionar teclados.

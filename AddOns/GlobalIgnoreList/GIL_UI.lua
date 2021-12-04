@@ -1202,7 +1202,7 @@ local function CreateUIFrames()
 			local chatStr   = string.lower(GILFrame2EditTestField.EditBox:GetText())
 			local filterStr = GILFrame2EditFilterField.EditBox:GetText()
 						
-			local res = filterComplex (filterStr, chatStr)
+			local res = filterComplex (filterStr, chatStr, 1)
 			
 			if lastFilterError == true then
 				GILFrame2EditTestResult:SetText("|cffffff00FILTER ERROR")

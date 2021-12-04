@@ -71,6 +71,7 @@ LSM:Register("sound", "|cFFFF0000Melee|r", [[Interface\Addons\SharedMedia_Causes
 LSM:Register("sound", "|cFFFF0000Moon|r", [[Interface\Addons\SharedMedia_Causese\sound\Moon.ogg]])
 LSM:Register("sound", "|cFFFF0000Move|r", [[Interface\Addons\SharedMedia_Causese\sound\Move.ogg]])
 LSM:Register("sound", "|cFFFF0000Next|r", [[Interface\Addons\SharedMedia_Causese\sound\Next.ogg]])
+LSM:Register("sound", "|cFFFF0000NuclearLaunch|r", [[Interface\Addons\SharedMedia_Causese\sound\Nuclear.ogg]])
 LSM:Register("sound", "|cFFFF0000Orange|r", [[Interface\Addons\SharedMedia_Causese\sound\Orange.ogg]])
 LSM:Register("sound", "|cFFFF0000Orb|r", [[Interface\Addons\SharedMedia_Causese\sound\Orb.ogg]])
 LSM:Register("sound", "|cFFFF0000Out|r", [[Interface\Addons\SharedMedia_Causese\sound\Out.ogg]])

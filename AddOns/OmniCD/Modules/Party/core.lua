@@ -23,7 +23,7 @@ function P:Enable()
 
 	self.enabled = true
 
-	E.Comms:InspectPlayer() -- [58]
+	E.Comms:InspectPlayer()
 
 	self:SetHooks()
 	self:CreateExBars()
@@ -52,7 +52,7 @@ end
 
 function P:ResetModule(isModuleDisabled)
 	if not isModuleDisabled then
-		E.UnregisterEvents(self, self.zoneEvents.all)
+		E.UnregisterEvents(self)
 	end
 	E.Comms:Disable()
 	E.Cooldowns:Disable()
@@ -68,13 +68,14 @@ function P:Refresh(full)
 		return
 	end
 
-	local instanceType = self.zone or select(2, IsInInstance()) -- [59]
+	local instanceType = self.zone or select(2, IsInInstance()) -- nil on init /rl
 	local key = self.test and self.testZone or instanceType
 	key = key == "none" and E.profile.Party.noneZoneSetting or (key == "scenario" and E.profile.Party.scenarioZoneSetting) or key
 	E.db = E.profile.Party[key]
+	P.profile = E.profile.Party -- TODO: migrate
+	P.db = E.db
 
 	if full then
-		--self:UpdateFonts() -- TODO: shared frames still needs to be updated on every call
 		self:UpdateTextures()
 		self:UpateTimerFormat()
 		self:PLAYER_ENTERING_WORLD(nil, nil, true)
@@ -109,6 +110,21 @@ function P:UpateTimerFormat()
 	self.ssColor = db.ssColor
 end
 
+function P:UpdateEnabledSpells()
+	wipe(self.spell_enabled) -- wipe upvalue
+
+	for _, v in pairs(E.spell_db) do
+		local n = #v
+		for i = 1, n do
+			local t = v[i]
+			local id = t.spellID
+			if self.IsEnabledSpell(id) then
+				self.spell_enabled[id] = true
+			end
+		end
+	end
+end
+
 function P:UpdatePositionValues()
 	local db = E.db.position
 
@@ -131,7 +147,7 @@ function P:UpdatePositionValues()
 	local growUpward = db.growUpward
 	local growY = growUpward and 1 or -1
 	local px = E.PixelMult / E.db.icons.scale
-	if db.layout == "vertical" or  db.layout == "doubleColumn" or db.layout == "tripleColumn" then
+	if db.layout == "vertical" or db.layout == "doubleColumn" or db.layout == "tripleColumn" then
 		self.point2 = growUpward and "BOTTOMRIGHT" or "TOPRIGHT"
 		self.relativePoint2 = growUpward and "TOPRIGHT" or "BOTTOMRIGHT"
 		self.ofsX = growX * (E.BASE_ICON_SIZE + db.paddingX  * px)
@@ -196,23 +212,24 @@ function P:IsTalent(talentID, guid)
 		return false
 	end
 
+	-- TODO: move to inspect? (warmode)
 	if talent == "PVP" then
 		return self.isPvP
 	elseif talent == "R" then
 		local spec = runeforge_specID[talentID]
 		return not spec and true or spec == self.groupInfo[guid].spec
 	else
-		return talent -- [60]
+		return talent -- rankValue for Conduits
 	end
 end
 
-function P:IsEquipped(itemID, guid, item2)
-	if not itemID then
+function P:IsEquipped(item, guid, item2)
+	if not item then
 		return true
 	end
 
 	local invSlotData = self.groupInfo[guid].invSlotData
-	if invSlotData[itemID] then
+	if invSlotData[item] then
 		return true
 	end
 	return invSlotData[item2]
@@ -234,7 +251,7 @@ function P:IsDeBuffActive(unit, spellID)
 	end
 end
 
-function P:UI_SCALE_CHANGED() -- [61]
+function P:UI_SCALE_CHANGED()
 	E:SetPixelMult()
 	self:ConfigSize(nil, true)
 	for key in pairs(self.extraBars) do

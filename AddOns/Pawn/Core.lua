@@ -1,6 +1,6 @@
 ﻿-- Pawn by Vger-Azjol-Nerub
 -- www.vgermods.com
--- © 2006-2021 Green Eclipse.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
+-- © 2006-2021 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
 -- See Readme.htm for more information.
 
 -- 
@@ -21,9 +21,18 @@ PawnSingleStatMultiplier = "_SingleMultiplier"
 PawnMultipleStatsFixed = "_MultipleFixed"
 PawnMultipleStatsExtract = "_MultipleExtract"
 
-local IsClassic = VgerCore.IsClassic
+local IsShadowlands = VgerCore.IsShadowlands
 
-PawnArmorSpecializationLevel = 27 -- https://shadowlands.wowhead.com/spell=86538/mail-specialization
+if IsShadowlands then
+	-- From Legion onward, there's no minimum level for wearing your class's best armor.
+	PawnBestArmorMinimumLevel = 0
+	-- From Cataclysm onward, armor specializations heavily penalize using the wrong armor type starting at level 50, changed to 27 in Shadowlands. https://wowhead.com/spell=86538/mail-specialization
+	PawnArmorSpecializationLevel = 27
+else
+	-- In Classic, the best armor for mail and plate classes wasn't available until level 40.
+	PawnBestArmorMinimumLevel = 40
+	PawnArmorSpecializationLevel = nil
+end
 
 ------------------------------------------------------------
 -- Localization
@@ -42,8 +51,8 @@ end
 
 -- Turns a game constant into a regular expression but without the ^ and $ on the ends.
 function PawnGameConstantUnwrapped(Text)
-	-- Some of these constants don't exist on Classic, so skip them: but not on live, where we would want this to error out.
-	if Text == nil and IsClassic then return "^UNUSED$" end
+	-- Some of these constants don't exist on Classic versions, so skip them: but not on live, where we would want this to error out.
+	if Text == nil and not IsShadowlands then return "^UNUSED$" end
 
 	local Ret1 = gsub(Text, "%%", "%%%%")
 	return gsub(Ret1, "%-", "%%-")
@@ -62,4 +71,9 @@ end
 -- Turns a game constant with "%d" placeholders into a pattern that can be used to match that string.
 function PawnGameConstantIgnoredNumberPlaceholder(Text)
 	return gsub(PawnGameConstant(Text), "%%%%d", "%%d+")
+end
+
+-- Escapes a string so that it can be more easily printed.
+function PawnEscapeString(String)
+	return gsub(gsub(gsub(String, "\r", "\\r"), "\n", "\\n"), "|", "||")
 end

@@ -529,7 +529,6 @@ local VUHDO_DEFAULT_CONFIG = {
 	["LOCK_PANELS"] = false,
 	["LOCK_CLICKS_THROUGH"] = false,
 	["LOCK_IN_FIGHT"] = true,
-	["SHOW_MINIMAP"] = true,
 	["PARSE_COMBAT_LOG"] = true,
 	["HIDE_EMPTY_BUTTONS"] = false,
 
@@ -601,7 +600,7 @@ local VUHDO_DEFAULT_CONFIG = {
 		["isName"] = false, 
 		["isShowOnlyForFriendly"] = false, 
 		["blacklistModi"] = "ALT-CTRL-SHIFT",
-		["selected"] = "",
+		["SELECTED"] = "",
 		["point"] = "TOPRIGHT",
 		["xAdjust"] = -2,
 		["yAdjust"] = -34,
@@ -2137,6 +2136,41 @@ function VUHDO_loadDefaultConfig()
 		329951  -- Impale
 		-- 332619  -- Shattering Pain (tank)
 		-- 334016  -- Unworthy
+	);
+
+	-- 9.1.0 - Shadowlands
+	VUHDO_addCustomSpellIds(51, 
+		-- [[ Sanctum of Domination ]]
+		-- The Tarragrue
+		347668, -- Grasp of Death
+		-- Eye of the Jailer
+		350713, -- Slothful Corruption
+		-- The Nine
+		350542, -- Fragments of Destiny
+		-- 350184, -- Daschla's Mighty Impact
+		350109, -- Brynja's Mournful Dirge
+		-- Remnant of Ner'zhul
+		350073, -- Torment
+		-- 350469, -- Curse of Malevolence
+		-- Soulrender Dormazain
+		353429, -- Tormented
+		-- Painsmith Raznal
+		-- Guardian of the First Ones
+		350496, -- Threat Neutralization
+		352833, -- Disintegration
+		-- 350455, -- Unstable Energy
+		-- Fatescribe Roh-Kalo
+		353931, -- Twist Fate
+		350568, -- Call of Eternity
+		-- Kel'Thuzad
+		354289, -- Necrotic Miasma
+		348760, -- Frost Blast
+		-- Sylvanas Windrunner
+		347670, -- Shadow Dagger
+		347807, -- Barbed Arrow
+		347607, -- Banshee's Mark
+		351091, -- Destabilize (heal absorb)
+		347704  -- Veil of Darkness (heal absorb)
 	);
 
 	local debuffRemovalList = {};

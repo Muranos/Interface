@@ -25,8 +25,6 @@ if L then
 
 	L.custom_on_repeating_say_laser = "반복적으로 순간 방출 알리기"
 	L.custom_on_repeating_say_laser_desc = "순간 방출 걸렸을때 반복적으로 말을 해서 혹시나 처음 메세지를 보지 못한 사람들에게 알리기."
-
-	L.tempPrint = "독기에 걸렸을때 체력을 외침으로 알리는 기능을 추가했습니다. 전까진 위크오라를 썼다면. 위크오라를 지워서 두번 외치는일이 없도록 하는게 좋을수도 있습니다."
 end
 
 L = BigWigs:NewBossLocale("Artificer Xy'mox", "koKR")
@@ -163,6 +161,7 @@ if L then
 	L.antiquarian = "사악한 골동품 수집가"
 	L.conservator = "나스리아 정원지기"
 	L.archivist = "나스리아 기록관"
+	L.hierarch = "궁정 신관"
 
 	--[[ Sludgefist -> Stone Legion Generals ]]--
 	L.goliath = "돌 군단 거수"

@@ -202,6 +202,10 @@ The following commands are accessible by typing /gignore or /gi in the chat box:
 
 => VERSION HISTORY
 
+=> 9.0.5.2
+
+Fixed the prune function which could cause the game to freeze for a period of time if there were ignored NPCs or guilds on the global ignore list
+
 => 9.0.5.1
 
 Some players have reported an error where the Blizzard ignore list seems to be returning a blank value for a person on the ignore list so I've put a check in to try to prevent issues when that happens.

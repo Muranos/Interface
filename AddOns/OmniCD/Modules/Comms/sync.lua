@@ -30,9 +30,9 @@ local function SyncRemainingCD(guid, spentPower)
 	end
 
 	for k, t in pairs(spell_cdmod_powerSpent) do
-		local talent, duration, base = t[1], t[2], t[3]
-		local icon = info.spellIcons[k] -- [1]
-		if icon and icon.active then
+		local talent, duration, base, aura = t[1], t[2], t[3], t[4]
+		local icon = info.spellIcons[k]
+		if icon and icon.active and (not aura or info.auras[aura]) then
 			local reducedTime = P:IsTalent(talent, guid) and P:GetValueByType(duration, guid) or base
 			if reducedTime then
 				reducedTime = reducedTime * spentPower
@@ -48,26 +48,26 @@ end
 
 local function SendComm(...)
 	if IsInRaid() then
-		--[AC] C_ChatInfo.SendAddonMessage("OmniCD", strjoin(",", ...), (not IsInRaid(LE_PARTY_CATEGORY_HOME) and IsInRaid(LE_PARTY_CATEGORY_INSTANCE)) and "INSTANCE_CHAT" or "RAID")
+--      [AC] C_ChatInfo.SendAddonMessage("OmniCD", strjoin(",", ...), (not IsInRaid(LE_PARTY_CATEGORY_HOME) and IsInRaid(LE_PARTY_CATEGORY_INSTANCE)) and "INSTANCE_CHAT" or "RAID")
 		Comms:SendCommMessage("OmniCD", strjoin(",", ...), (not IsInRaid(LE_PARTY_CATEGORY_HOME) and IsInRaid(LE_PARTY_CATEGORY_INSTANCE)) and "INSTANCE_CHAT" or "RAID")
 	elseif IsInGroup() then
-		--[AC] C_ChatInfo.SendAddonMessage("OmniCD", strjoin(",", ...), (not IsInGroup(LE_PARTY_CATEGORY_HOME) and IsInGroup(LE_PARTY_CATEGORY_INSTANCE)) and "INSTANCE_CHAT" or "PARTY")
+--      [AC] C_ChatInfo.SendAddonMessage("OmniCD", strjoin(",", ...), (not IsInGroup(LE_PARTY_CATEGORY_HOME) and IsInGroup(LE_PARTY_CATEGORY_INSTANCE)) and "INSTANCE_CHAT" or "PARTY")
 		Comms:SendCommMessage("OmniCD", strjoin(",", ...), (not IsInGroup(LE_PARTY_CATEGORY_HOME) and IsInGroup(LE_PARTY_CATEGORY_INSTANCE)) and "INSTANCE_CHAT" or "PARTY")
 	end
 end
 
 function Comms:RequestSync()
-	--wipe(self.syncGUIDS)
+--  wipe(self.syncGUIDS) -- removed on GRU now
 	SendComm(MSG_INFO_REQUEST, E.syncData)
 end
 
 function Comms:SendSync(sender)
-	if not E.syncData then
+	if E.syncData == "" then
 		self:InspectPlayer()
 	end
 
-	if sender then -- [75]
-		--[AC] C_ChatInfo.SendAddonMessage("OmniCD", strjoin(",", MSG_INFO, E.syncData), "WHISPER", sender)
+	if sender then
+--      [AC] C_ChatInfo.SendAddonMessage("OmniCD", strjoin(",", MSG_INFO, E.syncData), "WHISPER", sender)
 		self:SendCommMessage("OmniCD", strjoin(",", MSG_INFO, E.syncData), "WHISPER", sender)
 	else
 		SendComm(MSG_INFO_UPDATE, E.syncData)
@@ -79,8 +79,8 @@ function Comms:Desync()
 	SendComm(MSG_DESYNC, userGUID, 1)
 end
 
-function Comms:CHAT_MSG_ADDON(prefix, message, dist, sender) -- [29]
-	--[AC] if prefix ~= "OmniCD" or sender == E.userNameWithRealm then
+function Comms:CHAT_MSG_ADDON(prefix, message, dist, sender) -- Ace strips realm if same server
+--  [AC] if prefix ~= "OmniCD" or sender == E.userNameWithRealm then
 	if prefix ~= "OmniCD" or sender == E.userName then
 		return
 	end
@@ -88,7 +88,7 @@ function Comms:CHAT_MSG_ADDON(prefix, message, dist, sender) -- [29]
 	local header, guid, body = strmatch(message, "(.-),(.-),(.+)")
 	local info = P.groupInfo[guid]
 	if not info then -- class nil in updateRoster
-		return
+		return -- can't distinguish 'server delay' from 'no longer in group' so return instead of building info
 	end
 
 	local isSyncedUnit = self.syncGUIDS[guid]
@@ -117,6 +117,7 @@ function Comms:CHAT_MSG_ADDON(prefix, message, dist, sender) -- [29]
 
 	local s, e, v = 1
 	local i = 0
+	local isInvSlot = false
 
 	while true do
 		s, e, v = strfind(body, "([^,]+)", s)
@@ -127,38 +128,62 @@ function Comms:CHAT_MSG_ADDON(prefix, message, dist, sender) -- [29]
 		s = e + 1
 		i = i + 1
 
-		if i > 16 then
-			local conduitID, conduitRank = strsplit("-", v)
-			conduitID = tonumber(conduitID)
-			conduitRank = tonumber(conduitRank)
-			if conduitRank then
-				local spellID = C_Soulbinds.GetConduitSpellID(conduitID, conduitRank)
-				local rankValue = soulbind_conduits_rank[spellID] and (soulbind_conduits_rank[spellID][conduitRank] or soulbind_conduits_rank[spellID][1])
-				info.shadowlandsData[conduitID] = conduitRank
-				info.talentData[spellID] = rankValue
-			elseif conduitID then
-				info.shadowlandsData[conduitID] = 0
-				info.talentData[conduitID] = 0
-			end
-		elseif v ~= "0" then
-			v = tonumber(v)
-			if i == 16 then
-				info.shadowlandsData.soulbindID = v
-			elseif i == 15 then
-				local covenantSpellID = covenant_IDToSpellID[v]
-				if covenantSpellID then
-					info.shadowlandsData.covenantID = covenantSpellID
-					info.talentData[covenantSpellID] = "C"
-				end
-			elseif i == 14 then
-				info.shadowlandsData.runeforgeDescID = v
-				info.talentData[v] = "R"
-			elseif i > 11 then
-				info.invSlotData[v] = true
-			elseif i > 1 then
-				info.talentData[v] = i > 8 and "PVP" or true
+		if E.isPreBCC then
+			if v == "|" then
+				isInvSlot = true
 			else
-				info.spec = v
+				v = tonumber(v)
+
+				if isInvSlot then
+					info.invSlotData[v] = true
+				elseif i > 1 then
+					if v < 1 then
+						info.RAS = -v
+					else
+						info.talentData[v] = true
+					end
+				else
+					info.spec = v
+				end
+			end
+		else
+			if i > 16 then
+				local conduitID, conduitRank = strsplit("-", v)
+				conduitID = tonumber(conduitID)
+				conduitRank = tonumber(conduitRank)
+				if conduitRank then
+					local spellID = C_Soulbinds.GetConduitSpellID(conduitID, conduitRank)
+					local rankValue = soulbind_conduits_rank[spellID] and (soulbind_conduits_rank[spellID][conduitRank] or soulbind_conduits_rank[spellID][1])
+					info.shadowlandsData[conduitID] = conduitRank
+					info.talentData[spellID] = rankValue
+				elseif conduitID then
+					info.shadowlandsData[conduitID] = 0
+					info.talentData[conduitID] = 0
+				end
+			elseif v ~= "0" then
+				v = tonumber(v)
+				if i == 16 then
+					if info.shadowlandsData.covenantID then
+						info.shadowlandsData.soulbindID = v
+					else -- backwards compatible. add snowflake if no active soulbind
+						info.talentData[v] = true
+					end
+				elseif i == 15 then
+					local covenantSpellID = covenant_IDToSpellID[v]
+					if covenantSpellID then
+						info.shadowlandsData.covenantID = v
+						info.talentData[covenantSpellID] = "C"
+					end
+				elseif i == 14 then
+					info.shadowlandsData.runeforgeDescID = v
+					info.talentData[v] = "R"
+				elseif i > 11 then
+					info.invSlotData[v] = true
+				elseif i > 1 then
+					info.talentData[v] = i > 8 and "PVP" or true
+				else
+					info.spec = v
+				end
 			end
 		end
 	end
@@ -172,27 +197,28 @@ end
 do
 	local lastPower = 0
 	local isInCombat
-	local isRogueClass = E.userClass == "ROGUE"
 
-	function Comms:UNIT_POWER_UPDATE(unit, powerType)
+	function Comms:UNIT_POWER_UPDATE(unit, powerType) -- fires every 2s on regen/decay (2-3 ticks)
 		local powerID = POWER_TYPE_IDS[powerType]
 		if powerID then
-			local power = UnitPower(unit, powerID)
+			local power = UnitPower(unit, powerID) -- doesn't return current power for others
 			if power < lastPower then
 				local spent = lastPower - power
-				if isInCombat or spent > self.oocThreshold then -- [12]
-					if not P.isUserDisabled then -- [82]
-						if isRogueClass and P.userData.spec == 260 then -- BTE
-							self.spentPower = spent
-						end
-						SyncRemainingCD(userGUID, spent)
+
+				-- DONT TOUCH THIS, BROKE IT FOR THE NTH TIME!
+				if isInCombat or spent > self.oocThreshold then
+					local info = P.groupInfo[userGUID]
+					if info and info.spellIcons[315341] then -- Between the Eyes
+						self.spentPower = spent
 					end
+					SyncRemainingCD(userGUID, spent) -- user
 
 					if next(self.syncGUIDS) then
 						SendComm(MSG_POWER, userGUID, spent)
 					end
 				end
 			end
+
 			lastPower = power
 		end
 	end
@@ -208,51 +234,44 @@ do
 	end
 end
 
-function Comms:RegisterEventUnitPower()
-	local specIndex = GetSpecialization()
-	local specID = GetSpecializationInfo(specIndex)
-	local powerSpec = E.POWER_TYPE_SPEC[specID]
-
-	self.oocThreshold = powerSpec == 1 and 3 or 1
-
-	if E.profile.Party.sync and powerSpec then
-		if UnitAffectingCombat("player") then
-			self:PLAYER_REGEN_DISABLED()
-		else
-			self:RegisterEvent("PLAYER_REGEN_DISABLED")
-		end
-		self:RegisterUnitEvent("UNIT_POWER_UPDATE", "player")
-	else
-		self:UnregisterEvent("UNIT_POWER_UPDATE")
-	end
-end
-
-local sendUpdatedSyncInfo = function()
-	Comms:InspectPlayer()
-	Comms:SendSync()
-end
-
 do
+	local function SendUpdatedSyncData()
+		Comms:InspectPlayer()
+		Comms:SendSync()
+	end
+
+	function Comms:CHARACTER_POINTS_CHANGED(change)
+		if change == -1 then
+			SendUpdatedSyncData()
+		end
+	end
+
+	function Comms:PLAYER_SPECIALIZATION_CHANGED()
+		SendUpdatedSyncData()
+		self:RegisterEventUnitPower()
+	end
+
 	local timer
 
 	local onTimerEnd = function()
-		sendUpdatedSyncInfo()
+		SendUpdatedSyncData()
 		timer = nil
 	end
 
 	function Comms:PLAYER_EQUIPMENT_CHANGED(slotID)
-		if timer or slotID > 15 then
+		if timer or slotID > 16 then
 			return
 		end
 
 		timer = C_Timer.NewTicker(0.1, onTimerEnd, 1)
 	end
-end
 
-Comms.COVENANT_CHOSEN = sendUpdatedSyncInfo
-Comms.SOULBIND_ACTIVATED = sendUpdatedSyncInfo
-Comms.SOULBIND_NODE_LEARNED = sendUpdatedSyncInfo
-Comms.SOULBIND_NODE_UNLEARNED = sendUpdatedSyncInfo
-Comms.SOULBIND_NODE_UPDATED = sendUpdatedSyncInfo
-Comms.SOULBIND_CONDUIT_INSTALLED = sendUpdatedSyncInfo
-Comms.SOULBIND_PATH_CHANGED = sendUpdatedSyncInfo
+	Comms.COVENANT_CHOSEN = SendUpdatedSyncData
+	Comms.SOULBIND_ACTIVATED = SendUpdatedSyncData
+	Comms.SOULBIND_NODE_LEARNED = SendUpdatedSyncData
+	Comms.SOULBIND_NODE_UNLEARNED = SendUpdatedSyncData
+	Comms.SOULBIND_NODE_UPDATED = SendUpdatedSyncData
+	Comms.SOULBIND_CONDUIT_INSTALLED = SendUpdatedSyncData
+	Comms.SOULBIND_PATH_CHANGED = SendUpdatedSyncData
+	Comms.COVENANT_SANCTUM_RENOWN_LEVEL_CHANGED = SendUpdatedSyncData
+end

@@ -11,7 +11,7 @@ local function GetOverlayGlow()
 	local overlay = tremove(unusedOverlayGlows)
 	if not overlay then
 		numOverlays = numOverlays + 1
-		overlay = CreateFrame("Frame", "OmniCDOverlayGlow".. numOverlays, UIParent, "OmniCDButtonSpellActivationAlert") -- [65]
+		overlay = CreateFrame("Frame", "OmniCDOverlayGlow".. numOverlays, UIParent, "OmniCDButtonSpellActivationAlert") -- frame name required for anim
 	end
 
 	return overlay
@@ -136,12 +136,12 @@ function P:RemoveHighlight(icon)
 
 	local active = icon.active and info.active[icon.spellID]
 	if active then
-		if info.preActiveIcons[icon.spellID] then -- [66]
+		if info.preActiveIcons[icon.spellID] then -- Forbearance
 			icon.icon:SetVertexColor(0.4, 0.4, 0.4)
 		end
 
 		self:SetCooldownElements(icon, active.charges)
-		if E.OmniCC then -- [91]
+		if E.OmniCC then
 			icon.cooldown:SetCooldown(active.startTime, active.duration, info.modRate)
 		end
 		icon.icon:SetDesaturated(E.db.icons.desaturateActive and (not active.charges or active.charges == 0))
@@ -157,14 +157,15 @@ function P:HighlightIcon(icon, isRefresh)
 	if buff == 0 then
 		return
 	end
+
 	local info = self.groupInfo[icon.guid]
 	local unit = info.unit
 	local duration = info and self:GetBuffDuration(unit, buff)
 
 	if duration then
-		if E.buffFixNoCLEU[buff] and not self.isInArena then
-			local f = info.bar
-			f:RegisterUnitEvent("UNIT_AURA", unit)
+--      if E.buffFixNoCLEU[buff] and (E.isPreBCC or not P.isInArena) then -- Patch 9.1 HSA removed
+		if E.buffFixNoCLEU[buff] then
+			info.bar:RegisterUnitEvent("UNIT_AURA", unit)
 		end
 
 		ShowOverlayGlow(icon, duration, isRefresh)
@@ -178,12 +179,6 @@ function P:HighlightIcon(icon, isRefresh)
 end
 
 function P:SetGlow(icon)
-	if not E.db.highlight.glow then return end
-
-	local flash = icon.flashAnim
-	local newItemAnim = icon.newitemglowAnim
-	if not flash:IsPlaying() and not newItemAnim:IsPlaying() then
-		flash:Play()
-		newItemAnim:Play()
-	end
+	icon.AnimFrame:Show() -- changed drawlayer to overlay to fix Transition being covered
+	icon.AnimFrame.Anim:Play()
 end

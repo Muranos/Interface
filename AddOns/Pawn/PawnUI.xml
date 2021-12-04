@@ -330,7 +330,13 @@
 		</Frames>
 		<Scripts>
 			<OnLoad>
-				self:SetBackdrop({})
+				if self.NineSlice then
+					-- WoW 9.1.5
+					self.NineSlice:Hide()
+				elseif self.SetBackdrop then
+					-- Burning Crusade Classic
+					self:SetBackdrop({})
+				end
 			</OnLoad>
 		</Scripts>
 	</GameTooltip>
@@ -1676,8 +1682,8 @@
 				self:RegisterEvent("UNIT_INVENTORY_CHANGED")
 				self:RegisterEvent("ITEM_LOCKED")
 				self:RegisterEvent("GROUP_ROSTER_UPDATE")
-				if not VgerCore.IsClassic then
-					-- These events don't exist on Classic.
+				if VgerCore.IsShadowlands then
+					-- These events don't exist on Classic or Burning Crusade Classic.
 					self:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
 					self:RegisterEvent("ARTIFACT_UPDATE")
 				end
@@ -1793,6 +1799,8 @@
 				<Size><AbsDimension x="250" y="25" /></Size>
 				<Scripts>
 					<OnTextChanged function="PawnUIStringDialog_TextBox_OnTextChanged" />
+					<OnEnterPressed function="PawnUIStringDialog_OKButton_OnClick" />
+					<OnEscapePressed function="PawnUIStringDialog_CancelButton_OnClick" />
 				</Scripts>
 			</EditBox>
 			
@@ -1816,6 +1824,7 @@
 
 		<Scripts>
 			<OnLoad>
+				tinsert(UISpecialFrames, self:GetName()) -- closes when you press Escape
 				if BackdropTemplateMixin then Mixin(self, BackdropTemplateMixin) end
 				self:SetBackdrop({
 					bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
@@ -1909,6 +1918,8 @@
 		
 		<Scripts>
 			<OnLoad>
+				tinsert(UISpecialFrames, self:GetName()) -- closes when you press Escape
+
 				PawnUIStringDialogMultiLine.TextBox = PawnUIStringDialogMultiLine_TextBox
 
 				if BackdropTemplateMixin then Mixin(self, BackdropTemplateMixin) end

@@ -1,6 +1,5 @@
 
 BigWigs:AddColors("Nythendra", {
-	[202977] = "orange",
 	[203045] = "blue",
 	[203096] = {"blue","red"},
 	[203552] = "cyan",
@@ -30,7 +29,6 @@ BigWigs:AddColors("Elerethe Renferal", {
 	[210547] = "red",
 	[210864] = {"blue","orange"},
 	[210948] = "cyan",
-	[212364] = "red",
 	[212707] = "yellow",
 	[213124] = "blue",
 	[214348] = "yellow",
@@ -54,7 +52,6 @@ BigWigs:AddColors("Dragons of Nightmare", {
 	[-13460] = "cyan",
 	[-12809] = {"blue","green","red"},
 	[203028] = "orange",
-	[203147] = "red",
 	[203770] = {"blue","yellow"},
 	[203787] = {"blue","yellow"},
 	[203888] = "red",
@@ -71,7 +68,6 @@ BigWigs:AddColors("Dragons of Nightmare", {
 
 BigWigs:AddColors("Cenarius", {
 	[210279] = {"blue","green","orange"},
-	[210290] = "orange",
 	[210346] = {"blue","green","orange"},
 	[211192] = {"blue","yellow"},
 	[211368] = {"blue","orange","red"},
@@ -82,7 +78,6 @@ BigWigs:AddColors("Cenarius", {
 	[213162] = "orange",
 	[214505] = {"blue","orange"},
 	[214529] = {"blue","orange"},
-	[214876] = "red",
 	[214884] = "yellow",
 	[226821] = "orange",
 	["stages"] = "cyan",
@@ -92,7 +87,6 @@ BigWigs:AddColors("Xavius", {
 	[205588] = "yellow",
 	[205741] = "blue",
 	[205771] = "blue",
-	[205843] = "green",
 	[206005] = "blue",
 	[206651] = {"blue","orange"},
 	[207409] = {"blue","red"},

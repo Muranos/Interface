@@ -25,8 +25,6 @@ if L then
 
 	L.custom_on_repeating_say_laser = "Wiederholte Instabiler Ausstoß Ansage"
 	L.custom_on_repeating_say_laser_desc = "Gibt wiederholt Chatnachrichten für Instabilen Ausstoß aus um beim Annähern an Spieler in Reichweite der Chatnachrichten zu helfen, falls diese die erste Nachricht nicht gelesen haben."
-
-	L.tempPrint = "Es wurde eine Gesundheitsansage für Miasma hinzugefügt. Falls bislang eine WeakAura hierfür verwendet wurde, kann diese gelöscht werden um doppelte Ansagen zu vermeiden."
 end
 
 L = BigWigs:NewBossLocale("Artificer Xy'mox", "deDE")
@@ -163,6 +161,7 @@ if L then
 	L.antiquarian = "Finstere Antiquarin"
 	L.conservator = "Konservator von Nathria"
 	L.archivist = "Archivarin von Nathria"
+	L.hierarch = "Hofhierarchin"
 
 	--[[ Sludgefist -> Stone Legion Generals ]]--
 	L.goliath = "Goliath der Steinlegion"

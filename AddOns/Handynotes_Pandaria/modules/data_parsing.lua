@@ -1,5 +1,8 @@
 local addonName, shared = ...;
 
+local GetAchievementNumCriteria = _G.GetAchievementNumCriteria;
+local GetAchievementCriteriaInfo = _G.GetAchievementCriteriaInfo;
+
 local addon = shared.addon;
 
 local function parseData ()
@@ -60,13 +63,12 @@ local function parseData ()
     shared.toyData = nil;
   end
 
-
   local function parseAchievementdata ()
     local achievementData = shared.achievementData;
 
     if (achievementData == nil) then return end
 
-    local function addAchievementInfo (infoTable, id, achievementId, criteriaIndex)
+    local function addAchievementInfo (infoTable, id, achievementId, criteriaIndex, description)
       local data;
 
       infoTable[id] = infoTable[id] or {};
@@ -77,6 +79,12 @@ local function parseData ()
         id = achievementId,
         index = criteriaIndex,
       });
+
+      if (description ~= nil and data.description == nil) then
+        data.description = description;
+      end
+
+      return data;
     end
 
     local function parseRareData ()
@@ -85,11 +93,7 @@ local function parseData ()
       if (rareAchievementData == nil) then return end
 
       local function addRareAchievementInfo (rareId, achievementId, criteriaIndex, description)
-        local rareData;
-
-        addAchievementInfo(rareInfo, rareId, achievementId, criteriaIndex);
-
-        rareData = rareInfo[rareId];
+        local rareData = addAchievementInfo(rareInfo, rareId, achievementId, criteriaIndex, description);
 
         if (rareData.name == nil and criteriaIndex > 0) then
           local numCriteria = GetAchievementNumCriteria(achievementId);
@@ -100,8 +104,6 @@ local function parseData ()
             rareData.name = criteriaInfo[1];
           end
         end
-
-        rareData.description = rareData.description or description;
       end
 
       local function parseDynamicData ()
@@ -155,8 +157,8 @@ local function parseData ()
 
       if (treasureAchievementData == nil) then return end
 
-      local function addTreasureAchievementInfo (treasureId, achievementId, criteriaIndex)
-        addAchievementInfo(treasureInfo, treasureId, achievementId, criteriaIndex);
+      local function addTreasureAchievementInfo (treasureId, achievementId, criteriaIndex, description)
+        addAchievementInfo(treasureInfo, treasureId, achievementId, criteriaIndex, description);
       end
 
       local function parseStaticData ()

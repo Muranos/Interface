@@ -1,0 +1,16 @@
+﻿## Interface: 90105
+## Title: Altoholic_Guild
+## Notes: Altoholic's Guild UI
+## Author: Thaoky (EU-Marécages de Zangar)
+## Version: 9.1.006
+## Dependencies: Altoholic, DataStore, DataStore_Characters
+## LoadOnDemand: 1
+## X-Category: Interface Enhancements
+
+Locale.xml
+
+Templates\UITemplates.xml
+TabGuild.xml
+
+Frames\GuildMembers.xml
+Frames\GuildBank.xml

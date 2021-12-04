@@ -631,6 +631,7 @@ function tt:ApplyUnitAppearance(tip,u,first)
 	self:SendElementEvent("OnPreStyleTip",tip,u,first);
 	--------------------------------------------------
 
+	Mixin(tip, BackdropTemplateMixin)Mixin(tip, BackdropTemplateMixin)
 	-- Backdrop Color: Reaction
 	if (cfg.reactColoredBackdrop) then
 		tip:SetBackdropColor(unpack(cfg["colReactBack"..u.reactionIndex]));

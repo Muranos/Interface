@@ -242,14 +242,30 @@
 						novo_objeto.displayName = nome
 					end
 				end
-				
+
 				if (_detalhes.all_players_are_group or _detalhes.immersion_enabled) then
 					novo_objeto.grupo = true
 				end
-				
+
+				--special spells to add into the group view
+				local spellId = Details.SpecialSpellActorsName[novo_objeto.nome]
+				if (spellId) then
+					novo_objeto.grupo = true
+
+					if (Details.KyrianWeaponSpellIds[spellId]) then
+						novo_objeto.spellicon = GetSpellTexture(Details.KyrianWeaponActorSpellId)
+						novo_objeto.nome = Details.KyrianWeaponActorName
+						novo_objeto.displayName = Details.KyrianWeaponActorName
+						novo_objeto.customColor = Details.KyrianWeaponColor
+						nome = Details.KyrianWeaponActorName
+					else
+						novo_objeto.spellicon = GetSpellTexture(spellId)
+					end
+				end
+
 				if ((_bit_band (flag, IS_GROUP_OBJECT) ~= 0 and novo_objeto.classe ~= "UNKNOW" and novo_objeto.classe ~= "UNGROUPPLAYER") or _detalhes:IsInCache (serial)) then
 					novo_objeto.grupo = true
-					
+
 					if (_detalhes:IsATank (serial)) then
 						novo_objeto.isTank = true
 					end
@@ -258,7 +274,7 @@
 						novo_objeto.grupo = true
 					end
 				end
-				
+
 				--> pvp duel
 				if (_detalhes.duel_candidates [serial]) then
 					--> check if is recent
@@ -267,25 +283,24 @@
 						novo_objeto.enemy = true
 					end
 				end
-				
+
 				if (_detalhes.is_in_arena) then
-				
 					local my_team_color = GetBattlefieldArenaFaction and GetBattlefieldArenaFaction() or 0
-				
+
 					if (novo_objeto.grupo) then --> is ally
 						novo_objeto.arena_ally = true
-						novo_objeto.arena_team = my_team_color
+						novo_objeto.arena_team = 0 --my_team_color | forcing the player team to always be the same color
 					else --> is enemy
 						novo_objeto.enemy = true
 						novo_objeto.arena_enemy = true
-						novo_objeto.arena_team = 1 - my_team_color
+						novo_objeto.arena_team = 1 -- - my_team_color
 					end
-					
+
 					local arena_props = _detalhes.arena_table [nome]
 
 					if (arena_props) then
 						novo_objeto.role = arena_props.role
-						
+
 						if (arena_props.role == "NONE") then
 							local role = UnitGroupRolesAssigned and UnitGroupRolesAssigned(nome)
 							if (role and role ~= "NONE") then

@@ -256,7 +256,7 @@ function toolbar:ButtonOnEnter(once)
 			GameTooltip:SetSpellByID(tonumber(spellID))
 		end
 		rematch:SmartAnchor(GameTooltip,self)
-		GameTooltip:SetBackdropBorderColor(0.5,0.5,0.5)
+		--GameTooltip:SetBackdropBorderColor(0.5,0.5,0.5)
 		GameTooltip:Show()
 	end
 
@@ -358,6 +358,21 @@ function toolbar:ButtonOnClick(button)
 		rematch:ShowImportDialog()
 	end
 end
+
+function toolbar:ButtonOnDragStart()
+    local attribType = self:GetAttribute("type")
+    local attribValue = attribType and self:GetAttribute(attribType)
+    if self==toolbar.SummonRandom then
+        C_PetJournal.PickupSummonRandomPet()
+    elseif self==toolbar.SafariHat then
+        C_ToyBox.PickupToyBoxItem(92738)
+    elseif attribType=="spell" then
+        PickupSpell(attribValue)
+    elseif attribType=="item" then
+        PickupItem(attribValue)
+    end
+end
+
 
 function toolbar:UpdateItemButton(button,itemID,showTimeLeft)
 	local count = GetItemCount(itemID)

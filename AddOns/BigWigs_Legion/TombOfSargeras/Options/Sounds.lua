@@ -14,7 +14,7 @@ BigWigs:AddSounds("Demonic Inquisition", {
 	[233426] = "alert",
 	[233431] = "alert",
 	[233441] = "warning",
-	[233895] = {"alert","info"},
+	[233895] = "alert",
 	[233983] = "alert",
 	[234015] = "long",
 	[235230] = "warning",
@@ -31,7 +31,6 @@ BigWigs:AddSounds("Harjatan the Bludger", {
 	[231998] = "warning",
 	[232061] = {"alarm","alert"},
 	[232174] = "warning",
-	[232192] = "alert",
 	[233429] = "alarm",
 	[240319] = "warning",
 })
@@ -97,7 +96,6 @@ BigWigs:AddSounds("Maiden of Vigilance", {
 	[235271] = {"info","warning"},
 	[238028] = "alert",
 	[238408] = "alert",
-	[239153] = "alert",
 	[241593] = "info",
 	[241635] = "alert",
 	[241636] = "alert",
@@ -139,7 +137,6 @@ BigWigs:AddSounds("Kil'jaeden", {
 	[241564] = "alarm",
 	[241721] = {"alert","long"},
 	[243982] = "alarm",
-	[244856] = "alert",
 	["stages"] = "long",
 })
 

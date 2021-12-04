@@ -27,8 +27,10 @@ function P:SetIconLayout(f, sortOrder)
 			icon:ClearAllPoints()
 			if numActive > 1 then
 				count = count + 1
-				--if not self.multiline and count == self.columns or (self.multiline and rows == 1 and E.db.priority[icon.type] <= self.breakPoint) then
 				if not self.multiline and count == self.columns or (self.multiline and (rows == 1 and E.db.priority[icon.type] <= self.breakPoint or (self.tripleline and rows == 2 and E.db.priority[icon.type] <= self.breakPoint2))) then
+					if self.tripleline and rows == 1 and E.db.priority[icon.type] <= self.breakPoint2 then
+						rows = rows + 1
+					end
 					icon:SetPoint(self.point, f.container, self.ofsX * rows, self.ofsY * rows)
 					count = 0
 					rows = rows + 1
@@ -68,8 +70,7 @@ function P:SetAnchor(f)
 end
 
 function P:SetIconScale(f)
-	local db = E.db.icons
-	local scale = db.scale
+	local scale = E.db.icons.scale
 	f.anchor:SetScale(math.min(math.max(0.7, scale), 1))
 	f.container:SetScale(scale)
 end
@@ -94,7 +95,12 @@ function P:SetBorder(icon)
 		icon.borderRight:SetPoint("TOPRIGHT", icon, "TOPRIGHT")
 		icon.borderRight:SetPoint("BOTTOMLEFT", icon, "BOTTOMRIGHT", -edgeSize, 0)
 
-		local r, g, b = db.borderColor.r, db.borderColor.g, db.borderColor.b
+		local r, g, b
+		if icon.spellID == 355589 then
+			r, g, b = 1.0, 0.50196, 0.0
+		else
+			r, g, b = db.borderColor.r, db.borderColor.g, db.borderColor.b
+		end
 		icon.borderTop:SetColorTexture(r, g, b)
 		icon.borderBottom:SetColorTexture(r, g, b)
 		icon.borderRight:SetColorTexture(r, g, b)
@@ -132,32 +138,48 @@ function P:SetMarker(icon)
 end
 
 function P:SetAlpha(icon)
+	-- Alpha
 	if icon.statusBar and not E.db.extraBars[icon.statusBar.key].useIconAlpha then
 		icon:SetAlpha(1.0)
 	else
 		icon:SetAlpha(icon.active and E.db.icons.activeAlpha or E.db.icons.inactiveAlpha)
 	end
 
-	local charges = icon.maxcharges and tonumber(icon.Count:GetText())
-	icon.icon:SetDesaturated(E.db.icons.desaturateActive and icon.active and not icon.isHighlighted and (not charges or charges == 0));
-end
-
-function P:SetSwipe(icon)
-	if icon.statusBar then
-		icon.cooldown:SetSwipeColor(0, 0, 0, 0)
+	-- Color and Saturation
+	local info = P.groupInfo[icon.guid]
+	if not info then return end
+	if info.isDeadOrOffline then
+		icon.icon:SetDesaturated(true)
+		icon.icon:SetVertexColor(0.3, 0.3, 0.3)
 	else
-		icon.cooldown:SetReverse(E.db.icons.reverse)
-		icon.cooldown:SetSwipeColor(0, 0, 0, E.db.icons.swipeAlpha)
+		if info.preActiveIcons[icon.spellID] and not icon.isHighlighted then
+			icon.icon:SetVertexColor(0.4, 0.4, 0.4)
+		else
+			icon.icon:SetVertexColor(1, 1, 1)
+		end
+		local charges = icon.maxcharges and tonumber(icon.Count:GetText())
+		icon.icon:SetDesaturated(E.db.icons.desaturateActive and icon.active and not icon.isHighlighted and (not charges or charges == 0));
 	end
 end
 
+function P:SetSwipe(icon)
+	if icon.statusBar and not E.db.extraBars[icon.statusBar.key].hideBar then
+		icon.cooldown:SetDrawSwipe(false)
+	else
+		local charges = icon.maxcharges and tonumber(icon.Count:GetText())
+		icon.cooldown:SetReverse(E.db.icons.reverse)
+		icon.cooldown:SetDrawSwipe( not icon.isHighlighted and (not charges or charges < 1) )
+	end
+	icon.cooldown:SetSwipeColor(0, 0, 0, E.db.icons.swipeAlpha)
+end
+
 function P:SetCounter(icon)
-	if icon.statusBar then
+	if icon.statusBar and not E.db.extraBars[icon.statusBar.key].hideBar then
 		icon.cooldown:SetHideCountdownNumbers(true)
 	else
 		local charges = icon.maxcharges and tonumber(icon.Count:GetText())
 		local noCount = charges and charges > 0 or (icon.isHighlighted and true) or not E.db.icons.showCounter
-		icon.cooldown:SetHideCountdownNumbers(noCount) -- [11]
+		icon.cooldown:SetHideCountdownNumbers(noCount) -- [11]*
 		icon.counter:SetScale(E.db.icons.counterScale)
 	end
 end
@@ -168,12 +190,6 @@ end
 
 function P:SetTooltip(icon)
 	icon:EnableMouse(E.db.icons.showTooltip)
-end
-
-function P:SetAtlas(icon)
-	if E.db.highlight.glow then
-		icon.NewItemTexture:SetAtlas(E.db.highlight.glowColor)
-	end
 end
 
 function P:ApplySettings(f)
@@ -189,6 +205,5 @@ function P:ApplySettings(f)
 		self:SetCounter(icon)
 		self:SetChargeScale(icon)
 		self:SetTooltip(icon)
-		self:SetAtlas(icon)
 	end
 end

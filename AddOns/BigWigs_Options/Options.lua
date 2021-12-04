@@ -44,6 +44,50 @@ local acOptions = {
 			type = "group",
 			name = "BigWigs",
 			args = {
+				introduction = {
+					type = "description",
+					name = L.introduction,
+					order = 12,
+					fontSize = "medium",
+					width = "full",
+				},
+				anchorsButton = {
+					type = "execute",
+					name = function()
+						if options:InConfigureMode() then
+							return L.toggleAnchorsBtnHide
+						else
+							return L.toggleAnchorsBtnShow
+						end
+					end,
+					desc = function()
+						if options:InConfigureMode() then
+							return L.toggleAnchorsBtnHide_desc
+						else
+							return L.toggleAnchorsBtnShow_desc
+						end
+					end,
+					func = function() 
+						if not BigWigs:IsEnabled() then BigWigs:Enable() end
+						if options:InConfigureMode() then
+							options:SendMessage("BigWigs_StopConfigureMode")
+						else
+							options:SendMessage("BigWigs_StartConfigureMode")
+						end
+					end,
+					width = 1.5,
+					order = 12.4,
+				},
+				testButton = {
+					type = "execute",
+					name = L.testBarsBtn,
+					desc = L.testBarsBtn_desc,
+					func = function() 
+						BigWigs:Test()
+					end,
+					width = 1.5,
+					order = 12.5,
+				},
 				minimap = {
 					type = "toggle",
 					name = L.minimapIcon,
@@ -200,7 +244,8 @@ do
 		f:UnregisterEvent("ADDON_LOADED")
 
 		acOptions.args.general.args.profileOptions = adbo:GetOptionsTable(BigWigs.db)
-		acOptions.args.general.args.profileOptions.order = 1
+		acOptions.args.general.args.profileOptions.order = 100
+		acOptions.args.general.args.profileOptions.name = "|TInterface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\Profile:20|t " .. acOptions.args.general.args.profileOptions.name
 		lds:EnhanceOptions(acOptions.args.general.args.profileOptions, BigWigs.db)
 
 		acr:RegisterOptionsTable("BigWigs", getOptions, true)
@@ -341,6 +386,9 @@ end
 
 local function slaveOptionMouseOver(self, event, value)
 	bwTooltip:SetOwner(self.frame, "ANCHOR_TOP")
+	if self:GetUserData("label") then
+		bwTooltip:AddLine(self:GetUserData("label"))
+	end
 	bwTooltip:AddLine(self:GetUserData("desc"), 1, 1, 1, true)
 	bwTooltip:Show()
 end
@@ -366,7 +414,12 @@ local function getSlaveToggle(label, desc, key, module, flag, master, icon, ...)
 		if ... then
 			toggle:SetImage(icon, ...)
 		else
-			toggle:SetImage(icon, 0.07, 0.93, 0.07, 0.93)
+			if type(icon) == "string" then
+				toggle:SetImage(icon) -- custom icon
+				toggle:SetUserData("label", "|T"..icon..":20|t "..label)
+			else
+				toggle:SetImage(icon, 0.07, 0.93, 0.07, 0.93)
+			end
 		end
 	end
 	toggle:SetUserData("key", key)
@@ -383,20 +436,27 @@ local function getSlaveToggle(label, desc, key, module, flag, master, icon, ...)
 end
 
 local icons = {
-	MESSAGE = 134332, -- Interface\\Icons\\INV_MISC_NOTE_06
-	ME_ONLY = 463836, -- Interface\\Icons\\Priest_spell_leapoffaith_b
-	SOUND = 130977, -- "Interface\\Common\\VoiceChat-On"
-	ICON = 137008, -- Interface\\TARGETINGFRAME\\UI-RaidTargetingIcon_8
-	FLASH = 135849, -- Interface\\Icons\\Spell_Frost_FrostShock
-	PULSE = 135731, -- Interface\\Icons\\Spell_Arcane_Arcane04
-	PROXIMITY = 132181, -- Interface\\Icons\\ability_hunter_pathfinding
-	ALTPOWER = 429383, -- Interface\\Icons\\spell_arcane_invocation
-	INFOBOX = 443374, -- Interface\\Icons\\INV_MISC_CAT_TRINKET05
-	COUNTDOWN = 1035057, -- Interface\\Icons\\Achievement_GarrisonQuests_0005
-	SAY = 2056011, -- Interface\\Icons\\UI_Chat
-	SAY_COUNTDOWN = 2056011, -- Interface\\Icons\\UI_Chat
-	VOICE = 589118, -- Interface\\Icons\\Warrior_DisruptingShout
-	NAMEPLATEBAR = 134377, -- Interface\\Icons\\inv_misc_pocketwatch_02
+	MESSAGE = "Interface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\Messages",
+	ME_ONLY = "Interface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\MeOnly",
+	SOUND = "Interface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\Sounds",
+	ICON = "Interface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\Markers",
+	FLASH = "Interface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\Flash",
+	PULSE = "Interface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\Pulse",
+	PROXIMITY = "Interface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\Proximity",
+	ALTPOWER = "Interface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\AltPower",
+	INFOBOX = "Interface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\Info",
+	COUNTDOWN = "Interface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\Countdown",
+	SAY = "Interface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\Say",
+	SAY_COUNTDOWN = "Interface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\SayCountdown",
+	VOICE = "Interface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\Voice",
+	BAR = "Interface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\Bars",
+	CASTBAR = "Interface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\Bars",
+	NAMEPLATEBAR = "Interface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\Bars",
+	TANK = "Interface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\Role_Tank",
+	HEALER = "Interface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\Role_Healer",
+	EMPHASIZE = "Interface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\EmphasizeMessage",
+	ME_ONLY_EMPHASIZE = "Interface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\EmphasizeMessageMeOnly",
+	DISPEL = "Interface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\Dispel",
 }
 
 local function hasOptionFlag(dbKey, module, key)
@@ -418,37 +478,37 @@ local function advancedToggles(dbKey, module, check)
 
 	if bit.band(dbv, C.MESSAGE) == C.MESSAGE then
 		-- Emphasize & Countdown widgets
-		advancedOptions[1] = getSlaveToggle(L.EMPHASIZE, L.EMPHASIZE_desc, dbKey, module, C.EMPHASIZE, check)
-		advancedOptions[2] = getSlaveToggle(L.ME_ONLY_EMPHASIZE, L.ME_ONLY_EMPHASIZE_desc, dbKey, module, C.ME_ONLY_EMPHASIZE, check)
-		advancedOptions[3] = getSlaveToggle(L.COUNTDOWN, L.COUNTDOWN_desc, dbKey, module, C.COUNTDOWN, check, icons["COUNTDOWN"])
+		advancedOptions[1] = getSlaveToggle(L.EMPHASIZE, L.EMPHASIZE_desc, dbKey, module, C.EMPHASIZE, check, icons.EMPHASIZE)
+		advancedOptions[2] = getSlaveToggle(L.ME_ONLY_EMPHASIZE, L.ME_ONLY_EMPHASIZE_desc, dbKey, module, C.ME_ONLY_EMPHASIZE, check, icons.ME_ONLY_EMPHASIZE)
+		advancedOptions[3] = getSlaveToggle(L.COUNTDOWN, L.COUNTDOWN_desc, dbKey, module, C.COUNTDOWN, check, icons.COUNTDOWN)
 		--
 
 		-- Messages & Sound
-		advancedOptions[4] = getSlaveToggle(L.MESSAGE, L.MESSAGE_desc, dbKey, module, C.MESSAGE, check, icons["MESSAGE"])
-		advancedOptions[5] = getSlaveToggle(L.ME_ONLY, L.ME_ONLY_desc, dbKey, module, C.ME_ONLY, check, icons["ME_ONLY"])
-		advancedOptions[6] = getSlaveToggle(L.SOUND, L.SOUND_desc, dbKey, module, C.SOUND, check, icons["SOUND"])
+		advancedOptions[4] = getSlaveToggle(L.MESSAGE, L.MESSAGE_desc, dbKey, module, C.MESSAGE, check, icons.MESSAGE)
+		advancedOptions[5] = getSlaveToggle(L.ME_ONLY, L.ME_ONLY_desc, dbKey, module, C.ME_ONLY, check, icons.ME_ONLY)
+		advancedOptions[6] = getSlaveToggle(L.SOUND, L.SOUND_desc, dbKey, module, C.SOUND, check, icons.SOUND)
 		--
 
 		-- Bars
-		advancedOptions[7] = getSlaveToggle(L.BAR, L.BAR_desc, dbKey, module, C.BAR, check)
-		advancedOptions[8] = getSlaveToggle(L.CASTBAR, L.CASTBAR_desc, dbKey, module, C.CASTBAR, check)
+		advancedOptions[7] = getSlaveToggle(L.BAR, L.BAR_desc, dbKey, module, C.BAR, check, icons.BAR)
+		advancedOptions[8] = getSlaveToggle(L.CASTBAR, L.CASTBAR_desc, dbKey, module, C.CASTBAR, check, icons.CASTBAR)
 		--
 	end
 
 	if bit.band(dbv, C.NAMEPLATEBAR) == C.NAMEPLATEBAR and hasOptionFlag(dbKey, module, "NAMEPLATEBAR") then
-		advancedOptions[#advancedOptions + 1] = getSlaveToggle(L.NAMEPLATEBAR, L.NAMEPLATEBAR_desc, dbKey, module, C.NAMEPLATEBAR, check, icons["NAMEPLATEBAR"])
+		advancedOptions[#advancedOptions + 1] = getSlaveToggle(L.NAMEPLATEBAR, L.NAMEPLATEBAR_desc, dbKey, module, C.NAMEPLATEBAR, check, icons.NAMEPLATEBAR)
 	end
 
 	-- Flash & Pulse
 	if bit.band(dbv, C.FLASH) == C.FLASH and hasOptionFlag(dbKey, module, "FLASH") then
-		advancedOptions[#advancedOptions + 1] = getSlaveToggle(L.FLASH, L.FLASH_desc, dbKey, module, C.FLASH, check, icons["FLASH"])
-		advancedOptions[#advancedOptions + 1] = getSlaveToggle(L.PULSE, L.PULSE_desc, dbKey, module, C.PULSE, check, icons["PULSE"])
+		advancedOptions[#advancedOptions + 1] = getSlaveToggle(L.FLASH, L.FLASH_desc, dbKey, module, C.FLASH, check, icons.FLASH)
+		advancedOptions[#advancedOptions + 1] = getSlaveToggle(L.PULSE, L.PULSE_desc, dbKey, module, C.PULSE, check, icons.PULSE)
 	end
 	--
 
 	if bit.band(dbv, C.MESSAGE) == C.MESSAGE then
 		if API:HasVoicePack() then
-			advancedOptions[#advancedOptions + 1] = getSlaveToggle(L.VOICE, L.VOICE_desc, dbKey, module, C.VOICE, check, icons["VOICE"])
+			advancedOptions[#advancedOptions + 1] = getSlaveToggle(L.VOICE, L.VOICE_desc, dbKey, module, C.VOICE, check, icons.VOICE)
 		end
 	end
 
@@ -501,15 +561,15 @@ end
 
 local advancedTabs = {
 	{
-		text = L.advanced,
+		text = "|TInterface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\Sliders:20|t ".. L.advanced,
 		value = "options",
 	},
 	{
-		text = L.colors,
+		text = "|TInterface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\Colors:20|t ".. L.colors,
 		value = "colors",
 	},
 	{
-		text = L.sound,
+		text = "|TInterface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\Sounds:20|t ".. L.sound,
 		value = "sounds",
 	},
 }
@@ -548,11 +608,11 @@ function getAdvancedToggleOption(scrollFrame, dropdown, module, bossOption)
 		if bit.band(dbv, flag) == flag then
 			local roleName, roleDesc = BigWigs:GetOptionDetails(key)
 			if key == "TANK" then
-				roleRestrictionCheckbox = getSlaveToggle(roleName, roleDesc, dbKey, module, flag, check, 337497, 0, 0.296875, 0.34375, 0.640625) -- TANK icon
+				roleRestrictionCheckbox = getSlaveToggle(roleName, roleDesc, dbKey, module, flag, check, icons.TANK)
 			elseif key == "HEALER" then
-				roleRestrictionCheckbox = getSlaveToggle(roleName, roleDesc, dbKey, module, flag, check, 337497, 0.3125, 0.609375, 0.015625, 0.3125) -- HEALER icon
+				roleRestrictionCheckbox = getSlaveToggle(roleName, roleDesc, dbKey, module, flag, check, icons.HEALER)
 			elseif key == "DISPEL" then
-				roleRestrictionCheckbox = getSlaveToggle(roleName, roleDesc, dbKey, module, flag, check, 521749, 0.8984375, 0.9765625, 0.09375, 0.40625) -- DISPEL icon
+				roleRestrictionCheckbox = getSlaveToggle(roleName, roleDesc, dbKey, module, flag, check, icons.DISPEL)
 			else
 				roleRestrictionCheckbox = getSlaveToggle(roleName, roleDesc, dbKey, module, flag, check) -- No icon
 			end
@@ -728,7 +788,7 @@ local function getDefaultToggleOption(scrollFrame, dropdown, module, bossOption)
 	}
 	for i = 1, #showFlags do
 		local key = showFlags[i]
-		if hasOptionFlag(dbKey, module, key) and (key ~= "SAY_COUNTDOWN" or not hasOptionFlag(dbKey, module, "SAY")) then -- don't show both SAY and SAY_COUNTDOWN
+		if hasOptionFlag(dbKey, module, key) then
 			local icon = AceGUI:Create("Icon")
 			icon:SetWidth(16)
 			icon:SetImageSize(16, 16)
@@ -736,16 +796,11 @@ local function getDefaultToggleOption(scrollFrame, dropdown, module, bossOption)
 			icon:SetCallback("OnEnter", flagOnEnter)
 			icon:SetCallback("OnLeave", flagOnLeave)
 
-			-- 337497 = Interface/LFGFrame/UI-LFG-ICON-PORTRAITROLES, 521749 = Interface/EncounterJournal/UI-EJ-Icons
-			if key == "TANK" then
-				icon:SetImage(337497, 0, 0.296875, 0.34375, 0.640625)
-			elseif key == "HEALER" then
-				icon:SetImage(337497, 0.3125, 0.609375, 0.015625, 0.3125)
-			elseif key == "TANK_HEALER" then
+			if key == "TANK_HEALER" then
 				-- add both "TANK" and "HEALER" icons
 				local icon1 = AceGUI:Create("Icon")
 				icon1:SetWidth(16)
-				icon1:SetImage(337497, 0, 0.2968754, 0.34375, 0.640625) -- TANK
+				icon1:SetImage(icons.TANK)
 				icon1:SetImageSize(16, 16)
 				icon1:SetUserData("tooltipText", L[key])
 				icon1:SetCallback("OnEnter", flagOnEnter)
@@ -755,20 +810,13 @@ local function getDefaultToggleOption(scrollFrame, dropdown, module, bossOption)
 				flagIcons[#flagIcons+1] = icon1
 				-- first icon, don't bother with SetPoint
 
-				icon:SetImage(337497, 0.3125, 0.609375, 0.015625, 0.3125) -- HEALER
-			elseif key == "DISPEL" then
-				icon:SetImage(521749, 0.8984375, 0.9765625, 0.09375, 0.40625)
-			-- elseif key == "INTERRUPT" then -- just incase :p EJ interrupt icon
-			-- 	icon:SetImage(521749, 0.7734375, 0.8515625, 0.09375, 0.40625)
-			elseif key == "EMPHASIZE" or key == "ME_ONLY_EMPHASIZE" then
-				icon:SetImage(521749, 0.6484375, 0.7265625, 0.09375, 0.40625)
+				icon:SetImage(icons.HEALER)
 			else
-				icon:SetImage(icons[key], 0.07, 0.93, 0.07, 0.93)
-			end
-
-			-- Combine the two SAY options
-			if key == "SAY" and hasOptionFlag(dbKey, module, "SAY_COUNTDOWN") then
-				icon:SetUserData("tooltipText", L[key] .. PLAYER_LIST_DELIMITER .. L["SAY_COUNTDOWN"])
+				if type(icons[key]) == "string" then
+					icon:SetImage(icons[key]) -- custom icon
+				else
+					icon:SetImage(icons[key], 0.07, 0.93, 0.07, 0.93)
+				end
 			end
 
 			icon.frame:SetParent(check.frame)
@@ -1320,34 +1368,28 @@ do
 			configFrame = nil
 		end)
 
-		local introduction = AceGUI:Create("Label")
-		introduction:SetText(L.introduction)
-		introduction:SetFontObject(GameFontHighlight)
-		introduction:SetFullWidth(true)
-		bw:AddChild(introduction)
-
-		local anchors = AceGUI:Create("Button")
-		if self:InConfigureMode() then
-			anchors:SetText(L.toggleAnchorsBtnHide)
-			anchors:SetUserData("desc", L.toggleAnchorsBtnHide_desc)
-		else
-			anchors:SetText(L.toggleAnchorsBtnShow)
-			anchors:SetUserData("desc", L.toggleAnchorsBtnShow_desc)
-		end
-		anchors:SetRelativeWidth(0.5)
-		anchors:SetCallback("OnClick", toggleAnchors)
-		anchors:SetCallback("OnEnter", onControlEnter)
-		anchors:SetCallback("OnLeave", onControlLeave)
-
-		local testing = AceGUI:Create("Button")
-		testing:SetText(L.testBarsBtn)
-		testing:SetUserData("desc", L.testBarsBtn_desc)
-		testing:SetRelativeWidth(0.5)
-		testing:SetCallback("OnClick", BigWigs.Test)
-		testing:SetCallback("OnEnter", onControlEnter)
-		testing:SetCallback("OnLeave", onControlLeave)
-
-		bw:AddChildren(anchors, testing)
+		--local anchors = AceGUI:Create("Button")
+		--if self:InConfigureMode() then
+		--	anchors:SetText(L.toggleAnchorsBtnHide)
+		--	anchors:SetUserData("desc", L.toggleAnchorsBtnHide_desc)
+		--else
+		--	anchors:SetText(L.toggleAnchorsBtnShow)
+		--	anchors:SetUserData("desc", L.toggleAnchorsBtnShow_desc)
+		--end
+		--anchors:SetRelativeWidth(0.5)
+		--anchors:SetCallback("OnClick", toggleAnchors)
+		--anchors:SetCallback("OnEnter", onControlEnter)
+		--anchors:SetCallback("OnLeave", onControlLeave)
+		--
+		--local testing = AceGUI:Create("Button")
+		--testing:SetText(L.testBarsBtn)
+		--testing:SetUserData("desc", L.testBarsBtn_desc)
+		--testing:SetRelativeWidth(0.5)
+		--testing:SetCallback("OnClick", BigWigs.Test)
+		--testing:SetCallback("OnEnter", onControlEnter)
+		--testing:SetCallback("OnLeave", onControlLeave)
+		--
+		--bw:AddChildren(anchors, testing)
 
 		local tabs = AceGUI:Create("TabGroup")
 		tabs:SetLayout("Flow")

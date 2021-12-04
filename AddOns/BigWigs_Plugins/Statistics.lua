@@ -82,9 +82,10 @@ plugin.defaultDB = {
 do
 	local function checkDisabled() return not plugin.db.profile.enabled end
 	plugin.pluginOptions = {
-		name = BigWigsAPI:GetLocale("BigWigs").statistics,
+		name = "|TInterface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\Stats:20|t ".. BigWigsAPI:GetLocale("BigWigs").statistics,
 		type = "group",
 		childGroups = "tab",
+		order = 12,
 		get = function(i) return plugin.db.profile[i[#i]] end,
 		set = function(i, value) plugin.db.profile[i[#i]] = value end,
 		args = {

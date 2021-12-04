@@ -4,7 +4,7 @@
 local ADDON_NAME, Addon = ...
 local ThreatPlates = Addon.ThreatPlates
 
-local Widget = (Addon.CLASSIC and {}) or Addon.Widgets:NewWidget("Quest")
+local Widget = ((Addon.IS_CLASSIC or Addon.IS_TBC_CLASSIC) and {}) or Addon.Widgets:NewWidget("Quest")
 
 ---------------------------------------------------------------------------------------------------
 -- Imported functions and constants
@@ -655,7 +655,7 @@ end
 -- Load settings from the configuration which are shared across all aura widgets
 -- used (for each widget) in UpdateWidgetConfig
 function Widget:UpdateSettings()
-  Font = ThreatPlates.Media:Fetch('font', TidyPlatesThreat.db.profile.questWidget.Font)
+  Font = Addon.LibSharedMedia:Fetch('font', TidyPlatesThreat.db.profile.questWidget.Font)
 end
 
 function Addon:PrintQuests(command)

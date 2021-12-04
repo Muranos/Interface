@@ -1,91 +1,91 @@
-**r707:**
+**r713:**
 
-Changes:
-> The tooltip text for faction-restricted items is now dynamically colored based on whether it's available to the logged-in character
+Additions:
+> Attempts for Reins of the Infinite Timereaver should now also accumulate in Legion Timewalking dungeons
+<br>REVERTED: Added tracking for Illidari Doomhawk and Doomwalker Trophy Stand (17th anniversary)
+<br>Added tracking for the convenant-specific toys added in patch 9.1.5 (obtained from Callings)
 
 Fixes:
-> Fixed an issue where looting Forgotten Chests in Stormsong Valley would cause attempts to be added for Silessa's Battle Harness and Stony's Infused Ruby
+> Fixed an error in the spell detection that caused attempts for custom items using Pick Pocket to not be detected
+
+Developer Notes:
+> Blizzard hotfixed the anniversary drops to be guaranteed. As such they've been removed from Rarity again.
 
 Contributors (in alphabetical order):
-> Nick Bayley
 > Tommy Godejord
 
 -----
 
-**r706:**
+**r712:**
 
 Additions:
-> Added an option to disable the achievement toast (popup) and sound effect triggered whenever a tracked item is found
-> Added tracking for Pterrordax Egg (Zandalar)
-> Added tracking for Piccolo of the Flaming Fire (Stratholme)
-> Added an option to delay the tooltip (i.e., how long the icon should be hovered over before it is shown)
-> Added tracking for Lucy's Lost Collar (Shadowlands)
-
-Changes:
-> Skyshards are now tracked repeatedly by default
+> Added tracking for Gilded Darknight
 
 Fixes:
-> Clicking the achievement toast (popup) displayed when a tracked item is found should no longer cause a script error
-> Skyshards should now also be tracked in the corrupted (instanced) version of the Shrine of Seven Stars
-> Calendar-based notifications should now be triggered correctly for all holiday event items that Rarity tracks by default
+> The main window should again be rendered properly (previously broken by patch 9.1.5 API changes)
 
 Contributors (in alphabetical order):
-> Nick Bayley
 > Tommy Godejord
 
 -----
 
-**r705:**
+**r711:**
 
 Additions:
-> Added tracking for various Shadowlands pets and toys that were previously missing
-> Added tracking for Smoldering Ember Wyrm (Return to Karazhan)
-> Added tracking for Gloop (Corrupted Vale of Eternal Blossoms/Uldum)
-> Added tooltips for achievement-related rares in Nazjatar, Mechagon Island, as well as Shadowlands zones
+> Added tracking for Adamant Vaults Cell
 
 Changes:
-> The main tooltip's sort order can now also be changed by CTRL-clicking on the tooltip header (in addition to clicking on the LDB icon/minimap button)
+> The mini map button is now displayed by default, to hopefully improve the experience for first-time users
 
 Fixes:
-> Fixed an issue where duplicate attempts would be detected when defeating certain Timewalking encounters
-> Fixed waypoint data (including the displayed zone) for certain legacy collectibles
-> Fixed tracking for Mechagon Peacekeeper, Golden Snorf, and Microbot 8D (Operation: Mechagon)
-> Mining Elementium veins should now add attempts for Elementium Geode in all Cataclysm zones
+> Fixed an issue that prevented item information being displayed in the game tooltip for items using the ZONE (zonewide) detection method
 
 Contributors (in alphabetical order):
-> Tommy Godejord (https://github.com/godejord)
+> Tommy Godejord
 
 -----
 
-**r704:**
+**r710:**
 
 Additions:
-> Added tracking for various Shadowlands pets and toys that were previously missing
+> Added an overview of the tracking data to each item's settings in the Options UI
+<br>Added tracking for toys obtained from Zovaal's Vault
+<br>Added links to the Rarity Discord and GitHub repository to the Options UI
+
+Changes:
+> The main window should now render MUCH faster, depending on the sort method selected (sorting by zone is still relatively slow)
 
 Fixes:
-> Mechagon Peacekeeper should now correctly be displayed in the Group category
-> Attempts for Gahz'rooki's Summoning Stone should now be tracked correctly when looting relevant Kor'kron NPCs in The Barrens
+> Fixed tracking for Wilderling Saddle
+<br>Fixed tracking for Rook
+<br>Fixed tracking for Intact Aquilon Core
+<br>Fixed an issue that could prevent items using the COLLECTION method from being tracked correctly
+
+Developer Notes:
+> By improving the sorting algorithms used internally, we were able to reduce the time spent on rendering the addon's main window significantly. The remaining time for all sort modes except "by zone" is now limited by the WOW client's UI system and can't be reduced as easily, though we're looking at workarounds to this problem. If you're still experiencing significant performance issues after updating, please let us know!
 
 Contributors (in alphabetical order):
-> Tommy Godejord (https://github.com/godejord)
+> AySz88
+<br>Tommy Godejord
+<br>Matthew Rowland
 
 -----
 
-**r703:**
+**r709:**
 
 Additions:
-> Added tracking for various Shadowlands pets and toys that were previously missing
-> Added a setting to show the addon's tooltip on click instead of hover
+> Added tracking for mounts introduced in Chains of Domination 
+<br>Added tracking for various toys introduced in Chains of Domination
+<br>Added tracking for most pets introduced in Chains of Domination
 
 Changes:
-> Removed tracking for various items that appear to have never made it to live servers
+> Rarity's achievement toast now also supports two lines of text properly, similar to Blizzard's recently-updated version
 
 Fixes:
-> Removed restrictions placed on the tracking for Theater of Pain rares (to account for Blizzard's stealth hotfix)
-> Fixed an issue where killing covenant-restricted rares on characters that haven't selected a covenant yet would cause an error
-> Fixed tracking for Lightbinders (pet)
+> Fixed an issue where two icons would be displayed in the achievement toast
+
+Developer Notes:
+> There are a number of collectibles we don't currently have sufficient data on. These will be added as soon™ as possible, but it might still take a while.
 
 Contributors (in alphabetical order):
-> Nick Bayley (https://github.com/nickbayley)
-> Tommy Godejord (https://github.com/godejord)
-> Mikael Jelveby (https://github.com/jelveby)
+> Tommy Godejord

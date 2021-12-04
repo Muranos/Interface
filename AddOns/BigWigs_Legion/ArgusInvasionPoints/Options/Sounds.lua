@@ -16,7 +16,7 @@ BigWigs:AddSounds("Mistress Alluradel", {
 BigWigs:AddSounds("Inquisitor Meto", {
 	[247492] = {"alarm","alert"},
 	[247495] = {"alert","warning"},
-	[247585] = {"info","long"},
+	[247585] = "info",
 	[247632] = "alarm",
 })
 

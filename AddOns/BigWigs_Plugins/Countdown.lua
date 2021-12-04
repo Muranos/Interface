@@ -225,7 +225,7 @@ end
 do
 	local checkTextDisabled = function() return not plugin.db.profile.textEnabled end
 	plugin.pluginOptions = {
-		name = L.countdown,
+		name = "|TInterface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\Countdown:20|t ".. L.countdown,
 		type = "group",
 		childGroups = "tab",
 		get = function(info) return plugin.db.profile[info[#info]] end,
@@ -233,6 +233,7 @@ do
 			plugin.db.profile[info[#info]] = value
 			UpdateFont()
 		end,
+		order = 5,
 		args = {
 			general = {
 				type = "group",

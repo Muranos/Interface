@@ -64,10 +64,17 @@ local _specialQuests = {
   [63198] = { name=L["Hunt: Death Elementals"] },   -- Hunt: Death Elementals
   [63199] = { name=L["Hunt: Soul Eaters"] },        -- Hunt: Soul Eaters
 
+  -- Covenant Assaults
+  [63543] = { zid=1543 }, -- Necrolord Assault
+  [63822] = { zid=1543 }, -- Venthyr Assault
+  [63823] = { zid=1543 }, -- Night Fae Assault
+  [63824] = { zid=1543 }, -- Kyrian Assault
+
   -- Old Vanilla Bosses during Anniversary Event
   [47461] = { daily=true, name=L["Lord Kazzak"] },          -- Lord Kazzak
   [47462] = { daily=true, name=L["Azuregos"] },             -- Azuregos
   [47463] = { daily=true, name=L["Dragon of Nightmare"] },  -- Dragon of Nightmare
+  [60214] = { daily=true, name=L["Doomwalker"] },           -- Doomwalker
 }
 
 function SI:specialQuests()
@@ -243,7 +250,9 @@ local QuestExceptions = {
   [60762] = "Weekly", -- Death Motes
   [60775] = "Weekly", -- A Suitable Demise
   [61075] = "Weekly", -- A Spark of Light
+  [61079] = "Weekly", -- The Jailer's Share
   [61088] = "Weekly", -- Dust to Dust
+  [61103] = "Weekly", -- Disrupting the Cycle
   [61104] = "Weekly", -- Grathalax, the Extractor
   [61765] = "Weekly", -- Words of Warding
   [62214] = "Weekly", -- Forces of Perdition

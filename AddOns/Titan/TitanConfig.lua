@@ -710,7 +710,7 @@ local optionsBars = {
 			get = function() return (TitanPanelGetVar("Bar_Show")) end,
 			set = function()
 					TitanPanelToggleVar("Bar_Show")
-					TitanPanelBarButton_DisplayBarsWanted()
+					TitanPanelBarButton_DisplayBarsWanted("Bar_Show "..tostring(TitanPanelGetVar("Bar_Show")))
 					end,
 		},
 		optiontophide = {
@@ -747,7 +747,7 @@ local optionsBars = {
 			get = function() return TitanPanelGetVar("Bar2_Show") end,
 			set = function()
 					TitanPanelToggleVar("Bar2_Show")
-					TitanPanelBarButton_DisplayBarsWanted()
+					TitanPanelBarButton_DisplayBarsWanted("Bar2_Show "..tostring(TitanPanelGetVar("Bar2_Show")))
 					end,
 		},
 		optionbottomhide = {
@@ -828,7 +828,7 @@ local optionsAuxBars = {
 			get = function() return (TitanPanelGetVar("AuxBar_Show")) end,
 			set = function()
 					TitanPanelToggleVar("AuxBar_Show")
-					TitanPanelBarButton_DisplayBarsWanted()
+					TitanPanelBarButton_DisplayBarsWanted("AuxBar_Show "..tostring(TitanPanelGetVar("AuxBar_Show")))
 					end,
 		},
 		optiontophide = {
@@ -861,7 +861,7 @@ local optionsAuxBars = {
 			get = function() return TitanPanelGetVar("AuxBar2_Show") end,
 			set = function()
 					TitanPanelToggleVar("AuxBar2_Show")
-					TitanPanelBarButton_DisplayBarsWanted()
+					TitanPanelBarButton_DisplayBarsWanted("AuxBar2_Show "..tostring(TitanPanelGetVar("AuxBar2_Show")))
 					end,
 		},
 		optionbottomhide = {
@@ -1482,6 +1482,16 @@ local optionsAddons = {
 	type = "group",
 	args = {}
 }
+local function ColorVisible(name)
+	local res = "?"
+	if TitanPanel_IsPluginShown(name) then 
+		res = (name or "")
+	else 
+		res = "|cff808080"..name.._G["FONT_COLOR_CODE_CLOSE"]
+	end
+	
+	return res
+end
 --[[ local
 NAME: TitanUpdateConfigAddons
 DESC: Allow the user to control each plugin registered to Titan.
@@ -1515,13 +1525,13 @@ local function TitanUpdateConfigAddons()
 		plug_in = TitanUtils_GetPlugin(TitanPluginsIndex[idx])
 		if plug_in then
 			if plug_in.version then
-				plug_version = TitanUtils_GetGreenText(" (v"..plug_in.version..")")
+				plug_version = TitanUtils_GetGreenText(" ("..plug_in.version..")")
 			else
 				plug_version = ""
 			end
 			args[plug_in.id] = {
 				type = "group",
-				name = (plug_in.menuText or ""),
+				name = ColorVisible(plug_in.menuText or ""),
 				order = idx,
 				args = {
 					name = {
@@ -1542,6 +1552,7 @@ local function TitanUpdateConfigAddons()
 							else -- Hide / remove
 								TitanPanel_RemoveButton(name)
 							end
+							TitanUpdateConfigAddons()
 							end,
 					},
 				}

@@ -1,5 +1,5 @@
-## v4.10.35 Changes
+## v4.11.17 Changes
 
-* [Classic] Reverted change to migrate settings for players on German realms which Blizzard had renamed since they've since renamed them back. You'll need to restore a backup (i.e. via the TSM Desktop App) from before the original rename if you logged in since then.
+* [Classic] Fixed TSM macro not updating properly
 
-[Known Issues](http://support.tradeskillmaster.com/display/KB/TSM4+Currently+Known+Issues)
+[Known Issues](https://support.tradeskillmaster.com/en_US/known_issues)

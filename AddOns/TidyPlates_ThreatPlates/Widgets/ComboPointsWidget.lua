@@ -18,7 +18,7 @@ local sort = sort
 -- WoW APIs
 local GetTime = GetTime
 local UnitClass, UnitCanAttack = UnitClass, UnitCanAttack
-local UnitPower, UnitPowerMax, GetRuneCooldown = UnitPower, UnitPowerMax, GetRuneCooldown
+local UnitPower, UnitPowerMax, GetRuneCooldown, GetComboPoints = UnitPower, UnitPowerMax, GetRuneCooldown, GetComboPoints
 local GetUnitChargedPowerPoints = GetUnitChargedPowerPoints
 local GetShapeshiftFormID = GetShapeshiftFormID
 local GetNamePlateForUnit = C_NamePlate.GetNamePlateForUnit
@@ -200,7 +200,14 @@ local DeathKnightSpecColor, ShowRuneCooldown
 -- Combo Points Widget Functions
 ---------------------------------------------------------------------------------------------------
 
-if Addon.CLASSIC then
+if Addon.IS_CLASSIC or Addon.IS_TBC_CLASSIC then
+  -- This should not be necessary as in Classic only Rogues and Druids had combo points
+  if Addon.PlayerClass == "ROGUE" or Addon.PlayerClass == "DRUID" then
+    UnitPower = function(unitToken , powerType)
+      return GetComboPoints("player", "target")
+    end
+  end
+
   function Widget:DetermineUnitPower()
     local power_type = UNIT_POWER[PlayerClass]
 
@@ -276,14 +283,16 @@ function Widget:UpdateComboPointsRogueAnimacharge(widget_frame)
     local cp_texture, cp_texture_off, cp_color
 
     local charged_points = GetUnitChargedPowerPoints("player")
-    -- there's only going to be 1 max (WoW source code)
-    local charged_index = charged_points and charged_points[1]
+    -- for i = 1, #charged_points do
+    --   widget_frame.ComboPoints[charged_points[i].MarkAsCharged = true
+    -- end
 
     for i = 1, self.UnitPowerMax do
       cp_texture = widget_frame.ComboPoints[i]
       cp_texture_off = widget_frame.ComboPointsOff[i]
 
-      if i == charged_index then
+      local point_is_chared = charged_points and tContains(charged_points, i)
+      if point_is_chared then
         cp_texture.IsCharged = true
         if self.db.Style == "Blizzard" then
           cp_texture:SetAtlas("ClassOverlay-ComboPoint-Kyrian")
@@ -321,6 +330,8 @@ function Widget:UpdateComboPointsRogueAnimacharge(widget_frame)
       end
     end
   end
+
+  --cp_texture.MarkAsCharged = false
 end
 
 local function OnUpdateWidget(widget_frame, elapsed)
@@ -491,8 +502,8 @@ function Widget:IsEnabled()
   local db = TidyPlatesThreat.db.profile.ComboPoints
   local enabled = db.ON or db.ShowInHeadlineView
 
-  if enabled and not Addon.CLASSIC then
-    -- Register ACTIVE_TALENT_GROUP_CHANGED here otherwise it won't be registerd when an spec is active that does not have combo points.
+  if enabled and not (Addon.IS_CLASSIC or Addon.IS_TBC_CLASSIC) then
+    -- Register ACTIVE_TALENT_GROUP_CHANGED here otherwise it won't be registered when an spec is active that does not have combo points.
     -- If you then switch to a spec with talent points, the widget won't be enabled.
     self:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
   end
@@ -513,10 +524,13 @@ end
 function Widget:OnEnable()
   self:RegisterEvent("PLAYER_ENTERING_WORLD")
   self:RegisterEvent("PLAYER_TARGET_CHANGED")
-  self:RegisterUnitEvent("UNIT_POWER_UPDATE", "player", EventHandler)
-  self:RegisterUnitEvent("UNIT_DISPLAYPOWER", "player", EventHandler)
   self:RegisterUnitEvent("UNIT_MAXPOWER", "player")
-  if not Addon.CLASSIC then
+  
+  if Addon.IS_CLASSIC or Addon.IS_TBC_CLASSIC then
+    self:RegisterUnitEvent("UNIT_POWER_FREQUENT", "player", EventHandler)
+  else
+    self:RegisterUnitEvent("UNIT_POWER_UPDATE", "player", EventHandler)
+    self:RegisterUnitEvent("UNIT_DISPLAYPOWER", "player", EventHandler)
     self:RegisterUnitEvent("UNIT_POWER_POINT_CHARGE", "player", EventHandler)
   end
 
@@ -528,18 +542,24 @@ function Widget:OnEnable()
     self:RegisterEvent("RUNE_POWER_UPDATE", EventHandler)
   end
 
-  -- self:RegisterUnitEvent("UNIT_POWER_FREQUENT", "player", EventHandler)
   -- self:RegisterUnitEvent("UNIT_FLAGS", "player", EventHandler)
 end
 
 function Widget:OnDisable()
   self:UnregisterEvent("PLAYER_ENTERING_WORLD")
   self:UnregisterEvent("PLAYER_TARGET_CHANGED")
-  self:UnregisterEvent("UNIT_POWER_UPDATE")
-  self:UnregisterEvent("UNIT_DISPLAYPOWER")
   self:UnregisterEvent("UNIT_MAXPOWER")
+  
+  if Addon.IS_CLASSIC or Addon.IS_TBC_CLASSIC then
+    self:UnregisterEvent("UNIT_POWER_FREQUENT")
+  else
+    self:UnregisterEvent("UNIT_POWER_UPDATE")
+    self:UnregisterEvent("UNIT_DISPLAYPOWER")
+    self:UnregisterEvent("UNIT_POWER_POINT_CHARGE")
+  end
 
-  if not Addon.CLASSIC then
+  self:UnregisterEvent("UPDATE_SHAPESHIFT_FORM")
+  if not (Addon.IS_CLASSIC or Addon.IS_TBC_CLASSIC) then
     self:UnregisterEvent("RUNE_POWER_UPDATE")
   end
 
@@ -683,7 +703,7 @@ function Widget:UpdateSettings()
   -- Update widget variables, only dependent from settings and static information (like player's class)
   local texture_info = TEXTURE_INFO[self.db.Style][PlayerClass] or TEXTURE_INFO[self.db.Style]
 
-  if not Addon.CLASSIC then
+  if not (Addon.IS_CLASSIC or Addon.IS_TBC_CLASSIC) then
     ActiveSpec = _G.GetSpecialization()
   end
 

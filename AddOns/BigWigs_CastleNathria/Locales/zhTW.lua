@@ -25,8 +25,6 @@ if L then
 
 	L.custom_on_repeating_say_laser = "重覆猛烈噴射說話"
 	L.custom_on_repeating_say_laser_desc = "當你你被標記為猛烈噴射的目標時，重覆發送說話訊息，以便接近你的玩家可以立刻看見並避開。"
-
-	L.tempPrint = "我們已經替瘴氣添增加了喊話提示。如果你之前為此使用過 WeakAuras 字符串，可能需要將其刪除以防止出現重覆喊話。"
 end
 
 L = BigWigs:NewBossLocale("Artificer Xy'mox", "zhTW")
@@ -163,6 +161,7 @@ if L then
 	L.antiquarian = "邪惡的古物收藏家"
 	L.conservator = "納撒亞栽培者"
 	L.archivist = "納撒亞文獻管理員"
+	--L.hierarch = "Court Hierarch"
 
 	--[[ Sludgefist -> Stone Legion Generals ]]--
 	L.goliath = "石源魔軍團巨人"

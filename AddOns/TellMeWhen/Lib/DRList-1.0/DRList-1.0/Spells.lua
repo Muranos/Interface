@@ -1,5 +1,5 @@
 local Lib, version = LibStub("DRList-1.0")
-if Lib.spellList and version >= 22 then return end
+if Lib.spellList and version >= 25 then return end
 
 if Lib.gameExpansion == "retail" then
 
@@ -85,6 +85,7 @@ if Lib.gameExpansion == "retail" then
         [204490]  = "silence",         -- Sigil of Silence
 --      [78675]   = "silence",         -- Solar Beam (doesn't seem to DR)
         [202933]  = "silence",         -- Spider Sting
+        [356727]  = "silence",         -- Spider Venom
         [217824]  = "silence",         -- Shield of Virtue
         [15487]   = "silence",         -- Silence
         [1330]    = "silence",         -- Garrote
@@ -149,6 +150,7 @@ if Lib.gameExpansion == "retail" then
         [102359]  = "root",            -- Mass Entanglement
         [117526]  = "root",            -- Binding Shot (Note: debuff says stun but it's actually a root)
         [162480]  = "root",            -- Steel Trap
+        [273909]  = "root",            -- Steelclaw Trap
 --      [190927]  = "root_harpoon",    -- Harpoon (TODO: check if DRs with itself)
         [212638]  = "root",            -- Tracker's Net
         [201158]  = "root",            -- Super Sticky Tar
@@ -214,12 +216,10 @@ elseif Lib.gameExpansion == "tbc" then
     Lib.spellList = {
         -- Incaps:
         [22570] = "incapacitate", -- Maim
-        [3355]  = "incapacitate", -- Freezing Trap Effect (Rank 1)
-        [14308] = "incapacitate", -- Freezing Trap Effect (Rank 2)
-        [14309] = "incapacitate", -- Freezing Trap Effect (Rank 3)
         [118]   = "incapacitate", -- Polymorph (Rank 1)
         [12824] = "incapacitate", -- Polymorph (Rank 2)
         [12825] = "incapacitate", -- Polymorph (Rank 3)
+        [12826] = "incapacitate", -- Polymorph (Rank 4)
         [28271] = "incapacitate", -- Polymorph: Turtle
         [28272] = "incapacitate", -- Polymorph: Pig
         [20066] = "incapacitate", -- Repentance
@@ -236,7 +236,6 @@ elseif Lib.gameExpansion == "tbc" then
 
         -- Disorients
         [33786] = "disorient", -- Cyclone
-        [19503] = "disorient", -- Scatter Shot -- TODO: confirm category
         [31661] = "disorient", -- Dragon's Breath (Rank 1) -- TODO: confirm category
         [33041] = "disorient", -- Dragon's Breath (Rank 2)
         [33042] = "disorient", -- Dragon's Breath (Rank 3)
@@ -262,9 +261,15 @@ elseif Lib.gameExpansion == "tbc" then
         [30414] = "stun", -- Shadowfury (Rank 3)
         [22703] = "stun", -- Inferno Effect
         [12809] = "stun", -- Concussion Blow
+        [7922]  = "stun", -- Charge Stun
         [30153] = "stun", -- Intercept Stun (Rank 1)
         [30195] = "stun", -- Intercept Stun (Rank 2)
         [30197] = "stun", -- Intercept Stun (Rank 3)
+        [25273] = "stun", -- Intercept Stun (Rank 4)
+        [25274] = "stun", -- Intercept Stun (Rank 5)
+        [20253] = "stun", -- Intercept Stun 1 (These are probably invalid/unnecessary but im too lazy to test atm)
+        [20614] = "stun", -- Intercept Stun 2
+        [20615] = "stun", -- Intercept Stun 3
         [20549] = "stun", -- War Stomp (Racial)
         [4064]  = "stun", -- Rough Copper Bomb
         [4065]  = "stun", -- Large Copper Bomb
@@ -284,6 +289,7 @@ elseif Lib.gameExpansion == "tbc" then
         [835]   = "stun", -- Tidal Charm
 
         -- Random/short stuns
+        [16922]   = "random_stun",  -- Celestial Focus (Starfire Stun)
         [19410]   = "random_stun",  -- Improved Concussive Shot
         [12355]   = "random_stun",  -- Impact
         [20170]   = "random_stun",  -- Seal of Justice Stun
@@ -336,19 +342,19 @@ elseif Lib.gameExpansion == "tbc" then
         [19971] = "root", -- Nature's Grasp (Rank 5)
         [19970] = "root", -- Nature's Grasp (Rank 6)
         [27010] = "root", -- Nature's Grasp (Rank 7)
-        [16979] = "root", -- Feral Charge
+        --[16979] = "root", -- Feral Charge
         [19306] = "root", -- Counterattack (Rank 1)
         [20909] = "root", -- Counterattack (Rank 2)
         [20910] = "root", -- Counterattack (Rank 3)
         [27067] = "root", -- Counterattack (Rank 4)
-        [19185] = "root", -- Entrapment
+        --[19185] = "root", -- Entrapment
         [122]   = "root", -- Frost Nova (Rank 1)
         [865]   = "root", -- Frost Nova (Rank 2)
         [6131]  = "root", -- Frost Nova (Rank 3)
         [10230] = "root", -- Frost Nova (Rank 4)
         [27088] = "root", -- Frost Nova (Rank 5)
         [33395] = "root", -- Freeze (Water Elemental)
-        [12494] = "root", -- Frostbite TODO: confirm
+        --[12494] = "root", -- Frostbite
         --[44047] = "root", -- Chastise TODO: confirm
         [39965] = "root", -- Frost Grenade
 
@@ -365,12 +371,17 @@ elseif Lib.gameExpansion == "tbc" then
         -- Spells that DR with itself only
         [408]   = "kidney_shot",         -- Kidney Shot (Rank 1)
         [8643]  = "kidney_shot",         -- Kidney Shot (Rank 2)
-        [43523] = "unstable_affliction", -- Unstable Affliction 1
+        [43523] = "unstable_affliction", -- Unstable Affliction 1 TODO: confirm
         [31117] = "unstable_affliction", -- Unstable Affliction 2
-        [6789]  = "death_coil", -- Death Coil (Rank 1)
-        [17925] = "death_coil", -- Death Coil (Rank 2)
-        [17926] = "death_coil", -- Death Coil (Rank 3)
-        [27223] = "death_coil", -- Death Coil (Rank 4)
+        [6789]  = "death_coil",          -- Death Coil (Rank 1)
+        [17925] = "death_coil",          -- Death Coil (Rank 2)
+        [17926] = "death_coil",          -- Death Coil (Rank 3)
+        [27223] = "death_coil",          -- Death Coil (Rank 4)
+        [3355]  = "freezing_trap",       -- Freezing Trap Effect (Rank 1)
+        [14308] = "freezing_trap",       -- Freezing Trap Effect (Rank 2)
+        [14309] = "freezing_trap",       -- Freezing Trap Effect (Rank 3)
+        [19503] = "scatter_shot",        -- Scatter Shot
+        [12494] = "random_root",         -- Frostbite (Seems to only be Frostbite for random_root)
     }
 
 elseif Lib.gameExpansion == "classic" then

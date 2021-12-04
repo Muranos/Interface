@@ -3,7 +3,53 @@ local E, L, C = select(2, ...):unpack()
 local ACD_Tooltip = E.Libs.ACD.tooltip
 local DB_VERSION = 2.51
 
+function E:CreateFontObjects()
+	self.GameFontNormal = CreateFont("GameFontNormal-OmniCD")
+	self.GameFontNormal:CopyFontObject("GameFontNormal")
+	self.GameFontHighlight = CreateFont("GameFontHighlight-OmniCD")
+	self.GameFontHighlight:CopyFontObject("GameFontHighlight")
+	self.GameFontDisabled = CreateFont("GameFontDisable-OmniCD")
+	self.GameFontDisabled:CopyFontObject("GameFontDisable")
+	self.GameFontNormalSmall = CreateFont("GameFontNormalSmall-OmniCD")
+	self.GameFontNormalSmall:CopyFontObject("GameFontNormalSmall")
+	self.GameFontHighlightSmall = CreateFont("GameFontHighlightSmall-OmniCD")
+	self.GameFontHighlightSmall:CopyFontObject("GameFontHighlightSmall")
+
+	self.IconFont = CreateFont("IconFont-OmniCD")
+	self.IconFont:CopyFontObject("GameFontHighlightSmallOutline")
+	self.AnchorFont = CreateFont("AnchorFont-OmniCD")
+	self.AnchorFont:CopyFontObject("GameFontNormal")
+	self.StatusBarFont = CreateFont("StatusBarFont-OmniCD")
+	self.StatusBarFont:CopyFontObject("GameFontHighlightHuge")
+end
+
+function E:UpdateFontObjects()
+	local optionFont = self.profile.General.fonts.option
+
+	-- Update tooltip font
+	for i = 1, select("#", ACD_Tooltip:GetRegions()) do
+		local region = select(i, ACD_Tooltip:GetRegions())
+		if region and region:GetObjectType() == "FontString" then
+			self.SetFont(region, optionFont)
+		end
+	end
+
+	-- Update our fontobjects
+	self.SetFont(self.GameFontNormal, optionFont)
+	self.SetFont(self.GameFontHighlight, optionFont)
+	self.SetFont(self.GameFontDisabled, optionFont)
+	local optionFontSmall = self.profile.General.fonts.optionSmall
+	self.SetFont(self.GameFontNormalSmall, optionFontSmall)
+	self.SetFont(self.GameFontHighlightSmall, optionFontSmall)
+
+	self.SetFont(self.AnchorFont, self.profile.General.fonts.anchor)
+	self.SetFont(self.IconFont, self.profile.General.fonts.icon)
+	self.SetFont(self.StatusBarFont, self.profile.General.fonts.statusBar)
+end
+
 function E:OnInitialize()
+	-- Make changes to profile import on db updates
+
 	if not OmniCDDB or not OmniCDDB.version or OmniCDDB.version < 2.5 then
 		OmniCDDB = { version = DB_VERSION }
 	elseif OmniCDDB.version < DB_VERSION then
@@ -36,6 +82,10 @@ function E:OnInitialize()
 	self.profile = self.DB.profile
 	self.db = self.DB.profile.Party.arena
 
+	E.BackdropTemplate(ACD_Tooltip)
+	ACD_Tooltip:SetBackdropColor(0, 0, 0)
+	ACD_Tooltip:SetBackdropBorderColor(0.3, 0.3, 0.3)
+
 	self:CreateFontObjects()
 	self:UpdateSpellList(true)
 	self:SetupOptions()
@@ -43,11 +93,10 @@ function E:OnInitialize()
 end
 
 function E:OnEnable()
-	--[AC] C_ChatInfo.RegisterAddonMessagePrefix("OmniCD")
-	E.Comms:RegisterComm("OmniCD", "CHAT_MSG_ADDON")
+--  [AC] C_ChatInfo.RegisterAddonMessagePrefix("OmniCD")
+	self.Comms:RegisterComm("OmniCD", "CHAT_MSG_ADDON")
 
-	-- 15 dummy lines to set font (2 doublelines exists as default)
-	for i = 1, 13 do
+	for i = 1, 13 do -- dummy lines to set font (2 doublelines exists as default)
 		if i > 3 then
 			ACD_Tooltip:AddLine(".")
 		else
@@ -59,7 +108,7 @@ function E:OnEnable()
 	self:Refresh()
 
 	if self.DB.profile.loginMsg then
-		print(E.LoginMessage)
+		print(self.LoginMessage)
 	end
 
 	self.enabled = true
@@ -68,11 +117,18 @@ end
 function E:Refresh(arg)
 	self.profile = self.DB.profile
 
-	E:UpdateFontObjects()
+	self:UpdateFontObjects()
 
 	for k in pairs(self.moduleOptions) do
 		local module = self[k]
-		local enabled = self.GetModuleEnabled(k) -- [36]
+
+		local init = module.Initialize
+		if init and type(init) == "function" then
+			init()
+			module.Initialize = nil
+		end
+
+		local enabled = self.GetModuleEnabled(k)
 		if enabled then
 			if module.enabled then
 				module:Refresh(true)
@@ -128,7 +184,7 @@ do
 			if ver and ver > version then
 				local diff = ver - version
 				local text = diff > 10 and L["Major update"] or (diff > 1 and L["Minor update"]) or L["Hotfix"]
-				text = format("|cfff16436 " .. L["A new update is available. (%s)"], text)
+				text = format("|cfff16436 " .. L["A new update is available. (|cff99cdff%s)"], text)
 				if E.DB.profile.notifyNew then
 					E.Write(text)
 				end
@@ -158,15 +214,15 @@ do
 			return
 		end
 
-		local ver = E.DB.global.oodVer
+		local ver = self.DB.global.oodVer
 		if ver then
 			if ver > version then
-				if E.DB.profile.notifyNew then
-					E.Write(E.DB.global.oodMsg)
+				if self.DB.profile.notifyNew then
+					self.Write(self.DB.global.oodMsg)
 				end
 				return
 			end
-			E.DB.global.oodMsg = nil
+			self.DB.global.oodMsg = nil
 		end
 
 		enabled = C_ChatInfo.RegisterAddonMessagePrefix("OMNICD_VERSION")
@@ -179,6 +235,11 @@ do
 end
 
 do
+	local f = CreateFrame("Frame")
+	E.dummyFrame = f
+
+	if E.isPreBCC then return end
+
 	local function ShowHideAllBars_OnEvent(f, event)
 		if event == "PET_BATTLE_OPENING_START" then
 			for k in pairs(E.moduleOptions) do
@@ -199,7 +260,7 @@ do
 				local module = E[k]
 				local func = module.Refresh
 				if func then
-					func(module)
+					func(module, true)
 				end
 			end
 
@@ -207,53 +268,6 @@ do
 		end
 	end
 
-	local f = CreateFrame("Frame")
 	f:RegisterEvent("PET_BATTLE_OPENING_START")
 	f:SetScript("OnEvent", ShowHideAllBars_OnEvent)
-
-	E.dummyFrame = f
-end
-
-function E:CreateFontObjects()
-	self.GameFontNormal = CreateFont("GameFontNormal-OmniCD")
-	self.GameFontNormal:CopyFontObject("GameFontNormal")
-	self.GameFontHighlight = CreateFont("GameFontHighlight-OmniCD")
-	self.GameFontHighlight:CopyFontObject("GameFontHighlight")
-	self.GameFontDisabled = CreateFont("GameFontDisable-OmniCD")
-	self.GameFontDisabled:CopyFontObject("GameFontDisable")
-	self.GameFontNormalSmall = CreateFont("GameFontNormalSmall-OmniCD")
-	self.GameFontNormalSmall:CopyFontObject("GameFontNormalSmall")
-	self.GameFontHighlightSmall = CreateFont("GameFontHighlightSmall-OmniCD")
-	self.GameFontHighlightSmall:CopyFontObject("GameFontHighlightSmall")
-
-	self.IconFont = CreateFont("IconFont-OmniCD")
-	self.IconFont:CopyFontObject("GameFontHighlightSmallOutline")
-	self.AnchorFont = CreateFont("AnchorFont-OmniCD")
-	self.AnchorFont:CopyFontObject("GameFontNormal")
-	self.StatusBarFont = CreateFont("StatusBarFont-OmniCD")
-	self.StatusBarFont:CopyFontObject("GameFontHighlightHuge")
-end
-
-function E:UpdateFontObjects()
-	-- Update tooltip font
-	local optionFont = self.profile.General.fonts.option
-
-	for i = 1, select("#", ACD_Tooltip:GetRegions()) do
-		local region = select(i, ACD_Tooltip:GetRegions())
-		if region and region:GetObjectType() == "FontString" then
-			self.SetFont(region, optionFont)
-		end
-	end
-
-	-- Update our fontobjects
-	self.SetFont(self.GameFontNormal, optionFont)
-	self.SetFont(self.GameFontHighlight, optionFont)
-	self.SetFont(self.GameFontDisabled, optionFont)
-	local optionFontSmall = self.profile.General.fonts.optionSmall
-	self.SetFont(self.GameFontNormalSmall, optionFontSmall)
-	self.SetFont(self.GameFontHighlightSmall, optionFontSmall)
-
-	self.SetFont(self.AnchorFont, self.profile.General.fonts.anchor)
-	self.SetFont(self.IconFont, self.profile.General.fonts.icon)
-	self.SetFont(self.StatusBarFont, self.profile.General.fonts.statusBar)
 end

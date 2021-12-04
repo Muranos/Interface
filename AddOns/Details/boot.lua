@@ -4,12 +4,15 @@
 		_ = nil
 		_detalhes = LibStub("AceAddon-3.0"):NewAddon("_detalhes", "AceTimer-3.0", "AceComm-3.0", "AceSerializer-3.0", "NickTag-1.0")
 		
-		_detalhes.build_counter = 8406
-		_detalhes.alpha_build_counter = 8406 --if this is higher than the regular counter, use it instead
+		local version, build, date, tocversion = GetBuildInfo()
+
+		_detalhes.build_counter = 9108
+		_detalhes.alpha_build_counter = 9108 --if this is higher than the regular counter, use it instead
+		_detalhes.bcc_counter = 28
 		_detalhes.dont_open_news = true
-		_detalhes.game_version = "v9.0.5"
-		_detalhes.userversion = "v9.0.5." .. _detalhes.build_counter
-		_detalhes.realversion = 144 --core version, this is used to check API version for scripts and plugins (see alias below)
+		_detalhes.game_version = version
+		_detalhes.userversion = version .. _detalhes.build_counter
+		_detalhes.realversion = 145 --core version, this is used to check API version for scripts and plugins (see alias below)
 		_detalhes.APIVersion = _detalhes.realversion --core version
 		_detalhes.version = _detalhes.userversion .. " (core " .. _detalhes.realversion .. ")" --simple stirng to show to players
 		
@@ -20,6 +23,7 @@
 		
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --> initialization stuff
+local _
 
 do
 	local _detalhes = _G._detalhes
@@ -29,6 +33,54 @@ do
 	local Loc = _G.LibStub("AceLocale-3.0"):GetLocale( "Details" )
 
 	local news = {
+		{"v9.1.5.9108.145", "November 02th, 2021"},
+		"Necrotic Wake: weapons damage does not count anymore for the player which uses it.",
+		"Necrotic Wake: a new 'fake player' is shown showing the damage done of all weapons during combat.",
+		"Necrotic Wake: these npcs now does not award damage done to players anymore: Brittlebone Mage, Brittlebone Warrior, Brittlebone Crossbowman",
+		"The Other Side: the npc Volatile Memory does not award anymore damage to players.",
+		"Plaguefall: the npcs Fungret Shroomtender and Plaguebound Fallen does not award anymore damage to players.",
+		"Sanguine Affix: the amount of healing done by sanguine pools now shows on all segments (was shown only in the overall).",
+		"Tiny Threat (plugin): fixed an issue when hidding the pull aggro bar makes the first line be invisible.",
+		"Statistics: fixed several small bugs with guild statistics (/details stats).",
+		"Scale slider (top left slider shown on panels) are now more responsible.",
+
+		{"v9.1.0.8888.145", "October 7th, 2021"},
+		"Search has been added into the options panel",
+		"Improvements on overkill amount of damage",
+		"Fonts 'Oswald' and 'NuevaStd' enabled again.",
+		"Added critical hits to Death Log (by C. Raethke)",
+		"Added settings to change the color on death log, they are within the class colors panel.",
+		"Don't show TaintWarning frame if MiniMapBattlefieldFrame is hidden (by Flamanis).",
+
+		{"v9.1.0.8812.145", "September 5th, 2021"},
+		"Fonts 'Oswald' and 'NuevaStd' disabled due to some erros on the client side.",
+		"Death Knight adds now include the icon of the spell whose summoned them.",
+		"Fixes and improvements on the backend of the addon.",
+
+		{"v9.1.0.8782.145", "August 11th, 2021"},
+		"Clicking on the minimap while the options panel is open will close it.",
+		"Fixed Raid Check plugin position when the window is anchored at the top of the monitor.",
+		"Shadow priest Void Erruption spells got merged into only one.",
+		"Added settings to adjust the scale or font size of the title bar menu (right click): /run Details.all_switch_config.font_size = 12; /run Details.all_switch_config.scale = 1.0;",
+		"Added transliteration to healing done.",
+		"Tiny Threat (plugin): added options to Hide the Pull Bar and Use Focus Target.",
+
+		{"v9.0.5.8637.144", "June 22nd, 2021"},
+		"Major update on Vanguard plugin.",
+		"Added utility module to Coach, this module will send interrupt, dispel, cc breaks, cooldown usege and battle resses to the Coach.",
+		"Added plugins into the title bar display menu.",
+
+		{"v9.0.5.8502.144", "May 21th, 2021"},
+		"Added options to change the color of each team during an arena match.",
+		"Fixed One Segment Battleground.",
+		"Fixed an error with Howl of Terror on Demo Warlocks.",
+
+		{"v9.0.5.8501.144", "May 17th, 2021"},
+		"Complete overhaul and rerritten on Fade In and Out animations, this should fix all bugs related to animations not being consistent.",
+		"Complete overhaul on the broadcaster tool for arenas 'Current DPS'. It shows now a bar indicating the dps of both teams.",
+		"Yellow arena team now has purple color.",
+		"Several updates on the combat log engine and bug fixes.",
+
 		{"v9.0.5.8357.144", "March 15th, 2021"},
 		"Max amount of segments raised to 40, was 30.",
 		"Added a 'Sanguine Heal' actor to show how much the void zone healed enemies, shown on Everything mode.",
@@ -176,8 +228,9 @@ do
 		--> current instances of the exp (need to maintain)
 			_detalhes.InstancesToStoreData = { --mapId
 				[2296] = true, --castle narnia
+				[2450] = true, --sanctum of domination
 			}
-			
+
 		--> armazena os escudos - Shields information for absorbs
 			_detalhes.escudos = {}
 		--> armazena as fun��es dos frames - Frames functions
@@ -710,7 +763,7 @@ do
 		SharedMedia:Register ("statusbar", "WorldState Score", [[Interface\WorldStateFrame\WORLDSTATEFINALSCORE-HIGHLIGHT]])
 		SharedMedia:Register ("statusbar", "DGround", [[Interface\AddOns\Details\images\bar_background]])
 		SharedMedia:Register ("statusbar", "Details Flat", [[Interface\AddOns\Details\images\bar_background]])
-
+		SharedMedia:Register ("statusbar", "Splitbar", [[Interface\AddOns\Details\images\bar_textures\split_bar]])
 		SharedMedia:Register ("statusbar", "Details2020", [[Interface\AddOns\Details\images\bar_textures\texture2020]])
 		
 		--window bg and bar border
@@ -720,8 +773,8 @@ do
 		SharedMedia:Register ("border", "Details BarBorder 3", [[Interface\AddOns\Details\images\border_3]])
 		SharedMedia:Register ("border", "1 Pixel", [[Interface\Buttons\WHITE8X8]])
 		--misc fonts
-		SharedMedia:Register ("font", "Oswald", [[Interface\Addons\Details\fonts\Oswald-Regular.otf]])
-		SharedMedia:Register ("font", "Nueva Std Cond", [[Interface\Addons\Details\fonts\NuevaStd-Cond.otf]])
+		SharedMedia:Register ("font", "Oswald", [[Interface\Addons\Details\fonts\Oswald-Regular.ttf]])
+		SharedMedia:Register ("font", "Nueva Std Cond", [[Interface\Addons\Details\fonts\NuevaStd-Cond.ttf]])
 		SharedMedia:Register ("font", "Accidental Presidency", [[Interface\Addons\Details\fonts\Accidental Presidency.ttf]])
 		SharedMedia:Register ("font", "TrashHand", [[Interface\Addons\Details\fonts\TrashHand.TTF]])
 		SharedMedia:Register ("font", "Harry P", [[Interface\Addons\Details\fonts\HARRYP__.TTF]])
@@ -731,25 +784,33 @@ do
 		SharedMedia:Register ("sound", "d_gun2", [[Interface\Addons\Details\sounds\sound_gun3.ogg]])
 		SharedMedia:Register ("sound", "d_jedi1", [[Interface\Addons\Details\sounds\sound_jedi1.ogg]])
 		SharedMedia:Register ("sound", "d_whip1", [[Interface\Addons\Details\sounds\sound_whip1.ogg]])
+
+		SharedMedia:Register ("sound", "Details Threat Warning Volume 1", [[Interface\Addons\Details\sounds\threat_warning_1.ogg]])
+		SharedMedia:Register ("sound", "Details Threat Warning Volume 2", [[Interface\Addons\Details\sounds\threat_warning_2.ogg]])
+		SharedMedia:Register ("sound", "Details Threat Warning Volume 3", [[Interface\Addons\Details\sounds\threat_warning_3.ogg]])
+		SharedMedia:Register ("sound", "Details Threat Warning Volume 4", [[Interface\Addons\Details\sounds\threat_warning_4.ogg]])
+
+		
+
 	
-	--> global 'vardump' for dump table contents over chat panel
-		function vardump (t)
+	--> dump table contents over chat panel
+		function Details.VarDump(t)
 			if (type (t) ~= "table") then
 				return
 			end
-			for a,b in pairs (t) do 
+			for a,b in pairs (t) do
 				print (a,b)
 			end
 		end
-		
-	--> global 'table_deepcopy' copies a full table	
-		function table_deepcopy (orig)
+
+	--> copies a full table
+		function Details.CopyTable(orig)
 			local orig_type = type(orig)
 			local copy
 			if orig_type == 'table' then
 				copy = {}
 				for orig_key, orig_value in next, orig, nil do
-					copy [table_deepcopy (orig_key)] = table_deepcopy (orig_value)
+					copy [Details.CopyTable (orig_key)] = Details.CopyTable (orig_value)
 				end
 			else
 				copy = orig

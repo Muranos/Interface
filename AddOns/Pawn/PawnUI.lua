@@ -1,6 +1,6 @@
 ﻿-- Pawn by Vger-Azjol-Nerub
 -- www.vgermods.com
--- © 2006-2021 Green Eclipse.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
+-- © 2006-2021 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
 -- See Readme.htm for more information.
 --
 -- User interface code
@@ -123,11 +123,11 @@ function PawnUI_InventoryPawnButton_OnEnter(this)
 end
 
 function PawnUI_InspectPawnButton_OnEnter(this)
-	VgerCore.Assert(INSPECTED_UNIT, "Pawn doesn't know who you're inspecting.")
 	GameTooltip:ClearLines()
 	GameTooltip:SetOwner(this, "ANCHOR_BOTTOMRIGHT")
 	GameTooltip:AddLine("Pawn", 1, 1, 1, 1)
-	if INSPECTED_UNIT then PawnUI_AddInventoryTotalsToTooltip(GameTooltip, INSPECTED_UNIT) end
+	-- For some reason INSPECTED_UNIT isn't getting set in Classic, so fall back to target if it's nil.
+	PawnUI_AddInventoryTotalsToTooltip(GameTooltip, INSPECTED_UNIT or "target")
 	GameTooltip:Show()
 end
 
@@ -570,7 +570,7 @@ function PawnUIFrame_DeleteScaleButton_OnOK(ConfirmationText)
 end
 
 function PawnUI_ScalesTab_SelectFrame()
-	if VgerCore.IsClassic then
+	if not VgerCore.SpecsExist then
 		PawnUIFrame_AutoSelectScalesOnButton:Hide()
 		PawnUIFrame_AutoSelectScalesOffButton.SelectedTexture:Show()
 		PawnUIScalesTab_AutoFrame:Hide()
@@ -789,7 +789,7 @@ function PawnUIFrame_StatsList_SelectStat(Index)
 		else
 			PawnUIFrame_NoUpgradesCheck:Show()
 		end
-		if (not VgerCore.IsClassic) and (ThisStat == "IsCloth" or ThisStat == "IsLeather" or ThisStat == "IsMail" or ThisStat == "IsPlate") then
+		if (PawnArmorSpecializationLevel ~= nil) and (ThisStat == "IsCloth" or ThisStat == "IsLeather" or ThisStat == "IsMail" or ThisStat == "IsPlate") then
 			PawnUIFrame_FollowSpecializationCheck:Show()
 		else
 			PawnUIFrame_FollowSpecializationCheck:Hide()
@@ -1235,7 +1235,7 @@ function PawnUI_CompareItems(IsAutomatedRefresh)
 	PawnUICompareItemScoreArrow2:Hide()
 	PawnUIFrame_CompareSwapButton:Hide()
 	PawnUI_DeleteComparisonLines()
-	
+
 	-- There must be a scale selected to perform a comparison.
 	PawnUI_EnsureLoaded()
 	if (not PawnUICurrentScale) or (PawnUICurrentScale == PawnLocal.NoScale) then return end
@@ -1252,13 +1252,13 @@ function PawnUI_CompareItems(IsAutomatedRefresh)
 	local ItemSocketBonusStats2 = Item2.UnenchantedSocketBonusStats
 	local ThisScale = PawnCommon.Scales[PawnUICurrentScale]
 	local ThisScaleValues = ThisScale.Values
-	
+
 	-- For items that have socket bonuses, we actually go through the list twice -- the first loop goes until we get to
 	-- the place in the list where the socket bonus should be displayed, and then we pause the first loop and go into
 	-- the second loop.  Once the second loop completes, we return to the first loop and finish it.
 	if (not ItemStats1) or (not ItemStats2) then return end
 	local CurrentItemStats1, CurrentItemStats2 = ItemStats1, ItemStats2
-	
+
 	local StatCount = #PawnStats
 	local LastFoundHeader
 	local i = 1
@@ -1268,7 +1268,7 @@ function PawnUI_CompareItems(IsAutomatedRefresh)
 		local Title, StatName = ThisStatInfo[1], ThisStatInfo[2]
 		
 		-- Is this a stat header, or an actual stat?
-		if StatName then
+		if StatName and StatName ~= "MetaSocketEffect" and StatName ~= "DominationSocket" then
 			-- This is a stat name.  Is this stat present in the scale AND one of the items?
 			local StatValue = ThisScaleValues[StatName]
 			local Stats1, Stats2 = CurrentItemStats1[StatName], CurrentItemStats2[StatName]
@@ -1291,20 +1291,32 @@ function PawnUI_CompareItems(IsAutomatedRefresh)
 	-- Add gem and socket information.
 	LastFoundHeader = PawnLocal.UI.CompareSocketsHeader
 
-	local HasSockets1 = Item1.UnenchantedStats.PrismaticSocket
-	local HasSockets2 = Item2.UnenchantedStats.PrismaticSocket
-	if not HasSockets1 or HasSockets1 <= 0 then HasSockets1 = nil end
-	if not HasSockets2 or HasSockets2 <= 0 then HasSockets2 = nil end
-	if HasSockets1 or HasSockets2 then
-		if LastFoundHeader then
-			PawnUI_AddComparisonHeaderLine(LastFoundHeader)
-			LastFoundHeader = nil
+	local AddSockets = function(Stat, FriendlyName)
+		local HasSockets1 = Item1.UnenchantedStats[Stat]
+		local HasSockets2 = Item2.UnenchantedStats[Stat]
+		if not HasSockets1 or HasSockets1 <= 0 then HasSockets1 = nil end
+		if not HasSockets2 or HasSockets2 <= 0 then HasSockets2 = nil end
+		if HasSockets1 or HasSockets2 then
+			if LastFoundHeader then
+				PawnUI_AddComparisonHeaderLine(LastFoundHeader)
+				LastFoundHeader = nil
+			end
+			PawnUI_AddComparisonStatLineNumbers(FriendlyName, HasSockets1, HasSockets2, false) -- hide differential
 		end
-		PawnUI_AddComparisonStatLineNumbers(PawnLocal.UI.CompareColoredSockets, HasSockets1, HasSockets2, false) -- hide differential
 	end
 
-	local _, TotalSocketValue1 = PawnGetItemValue(ItemStats1, Item1.Level, ItemSocketBonusStats1, PawnUICurrentScale, false, true)
-	local _, TotalSocketValue2 = PawnGetItemValue(ItemStats2, Item2.Level, ItemSocketBonusStats2, PawnUICurrentScale, false, true)
+	AddSockets("PrismaticSocket", PawnLocal.UI.CompareColoredSockets)
+	AddSockets("RedSocket", RED_GEM)
+	AddSockets("YellowSocket", YELLOW_GEM)
+	AddSockets("BlueSocket", BLUE_GEM)
+	AddSockets("MetaSocket", META_GEM)
+	AddSockets("DominationSocket", EMPTY_SOCKET_DOMINATION)
+
+	local _, TotalSocketValue1, SocketBonusValue1 = PawnGetItemValue(ItemStats1, Item1.Level, ItemSocketBonusStats1, PawnUICurrentScale, false, true)
+	local _, TotalSocketValue2, SocketBonusValue2 = PawnGetItemValue(ItemStats2, Item2.Level, ItemSocketBonusStats2, PawnUICurrentScale, false, true)
+	if TotalSocketValue1 and SocketBonusValue1 then TotalSocketValue1 = TotalSocketValue1 - SocketBonusValue1 end -- socket bonus is already included in total socket value
+	if TotalSocketValue2 and SocketBonusValue2 then TotalSocketValue2 = TotalSocketValue2 - SocketBonusValue2 end
+
 	if not TotalSocketValue1 or TotalSocketValue1 <= 0 then TotalSocketValue1 = nil end
 	if not TotalSocketValue2 or TotalSocketValue2 <= 0 then TotalSocketValue2 = nil end
 	if TotalSocketValue1 or TotalSocketValue2 then
@@ -1314,10 +1326,19 @@ function PawnUI_CompareItems(IsAutomatedRefresh)
 		end
 		PawnUI_AddComparisonStatLineNumbers(PawnLocal.UI.CompareGemTotalValue, TotalSocketValue1, TotalSocketValue2, false) -- hide differential
 	end
+	if not SocketBonusValue1 or SocketBonusValue1 <= 0 then SocketBonusValue1 = nil end
+	if not SocketBonusValue2 or SocketBonusValue2 <= 0 then SocketBonusValue2 = nil end
+	if SocketBonusValue1 or SocketBonusValue2 then
+		if LastFoundHeader then
+			PawnUI_AddComparisonHeaderLine(LastFoundHeader)
+			LastFoundHeader = nil
+		end
+		PawnUI_AddComparisonStatLineNumbers(PawnLocal.UI.CompareSocketBonus, SocketBonusValue1, SocketBonusValue2, false) -- hide differential
+	end
 
 	-- Everything else below this point goes under an "Other" header.
 	LastFoundHeader = PawnLocal.UI.CompareOtherHeader
-	
+
 	-- Add item level information if the user normally has item levels visible.
 	-- Note that for upgradeable items, this won't be the upgradeable level of the item—the GetItemInfo API doesn't return the
 	-- correct item level for upgraded items.  We don't use the item level for anything important, so that'll just be a known limitation for now.
@@ -1331,7 +1352,7 @@ function PawnUI_CompareItems(IsAutomatedRefresh)
 		end
 		PawnUI_AddComparisonStatLineNumbers(PawnLocal.ItemLevelTooltipLine, Level1, Level2, false) -- hide differential
 	end
-	
+
 	-- Add asterisk indicator.
 	local Asterisk1, Asterisk2
 	if Item1.UnknownLines then Asterisk1 = YES end
@@ -1343,10 +1364,10 @@ function PawnUI_CompareItems(IsAutomatedRefresh)
 		end
 		PawnUI_AddComparisonStatLineStrings(PawnLocal.UI.CompareSpecialEffects .. " " .. PawnDiamondTexture, Asterisk1, Asterisk2)
 	end
-	
+
 	-- Update the scrolling stat area's height.
 	PawnUI_RefreshCompareScrollFrame()
-	
+
 	-- Update the total item score row.
 	local ValueFormat = "%." .. PawnCommon.Digits .. "f"
 	local r, g, b = VgerCore.HexToRGB(PawnCommon.Scales[PawnUICurrentScale].Color)
@@ -1401,7 +1422,7 @@ function PawnUI_CompareItems(IsAutomatedRefresh)
 
 	-- Hack for WoW Classic: after a moment, refresh the whole thing, because we might have gotten
 	-- incomplete data from the tooltip the first time.
-	if not IsAutomatedRefresh and VgerCore.IsClassic then
+	if not IsAutomatedRefresh and (VgerCore.IsClassic or VgerCore.IsBurningCrusade) then
 		local AutomatedRefresh = function()
 			if PawnUIComparisonItems[1] then PawnUIComparisonItems[1] = PawnGetItemData(PawnUIComparisonItems[1].Link) end
 			if PawnUIComparisonItems[2] then PawnUIComparisonItems[2] = PawnGetItemData(PawnUIComparisonItems[2].Link) end
@@ -1513,11 +1534,24 @@ end
 
 -- Gets all of the text from an item tooltip and then puts it into a box where it can be copied.
 function PawnUIGetAllTextForItem(Item)
-	if not Item or not Item.Link then return end
+	if not Item then return end
+	local ItemLink
+	if type(Item) == "table" then
+		if Item.Link then
+			ItemLink = Item.Link
+		else
+			return 
+		end
+	elseif type(Item) == "string" then
+		ItemLink = Item
+		PawnGetItemData(ItemLink) -- Not actually used, but call this here so we can use /pawn debug.
+		Item = nil
+	end
 	local Tooltip = _G[PawnPrivateTooltipName]
 	VgerCore.Assert(Tooltip, "Failed to find the private tooltip.")
 
-	Tooltip:SetHyperlink(Item.Link)
+	Tooltip:ClearLines()
+	Tooltip:SetHyperlink(ItemLink)
 
 	local NumLines = Tooltip:NumLines()
 	local i
@@ -1533,9 +1567,15 @@ function PawnUIGetAllTextForItem(Item)
 			end
 		end
 	end
-	AllText = AllText .. "\n/pawn compare " .. PawnGetItemIDsForDisplay(Item.Link, false)
+	AllText = AllText .. "\n/pawn compare " .. PawnGetItemIDsForDisplay(ItemLink, false)
 
-	PawnUIShowCopyableString(Item.Name, AllText, nil, true)
+	local ItemName
+	if Item then
+		ItemName = Item.Name
+	else
+		ItemName = (_G[PawnPrivateTooltipName .. "TextLeft1"]):GetText()
+	end
+	PawnUIShowCopyableString(ItemName, AllText, nil, true)
 
 	-- Tip: If this doesn't work for your particular situation, you can also open an item link and then do this:
 	-- /script PawnUIShowCopyableString("", ItemRefTooltipTextLeft8:GetText(), nil, true)
@@ -1651,11 +1691,10 @@ end
 function PawnUI_ShowBestGems()
 	-- Always clear out the existing gems, no matter what happens next.
 	PawnUI_DeleteGemLines()
+	-- If no scale is selected, we can't show a gem list.  (This is a valid case!)
 	if not PawnUICurrentScale or PawnUICurrentScale == PawnLocal.NoScale then return end
 	
 	-- Update the gem list for this scale.
-	
-	-- If no scale is selected, we can't show a gem list.  (This is a valid case!)
 	if not PawnScaleBestGems[PawnUICurrentScale] then
 		VgerCore.Fail("Failed to build a gem list because no best-gem data was available for this scale.")
 		return
@@ -1666,11 +1705,37 @@ function PawnUI_ShowBestGems()
 
 	local GemQualityLevel = PawnGetGemQualityForItem(PawnGemQualityLevels, PawnUIGemQualityLevel)
 
-	if #(PawnScaleBestGems[PawnUICurrentScale].PrismaticSocket[GemQualityLevel]) > 0 then
-		for _, GemData in pairs(PawnScaleBestGems[PawnUICurrentScale].PrismaticSocket[GemQualityLevel]) do
-			PawnUI_AddGemLine(GemData.Name, GemData.Texture, GemData.ID)
+	if not VgerCore.IsClassic and not VgerCore.IsShadowlands then
+		-- Burning Crusade Classic: Divide by color
+		if #(PawnScaleBestGems[PawnUICurrentScale].RedSocket[GemQualityLevel]) > 0 then
+			PawnUI_AddGemHeaderLine(format(PawnLocal.UI.GemsColorHeader, RED_GEM))
+			for _, GemData in pairs(PawnScaleBestGems[PawnUICurrentScale].RedSocket[GemQualityLevel]) do
+				PawnUI_AddGemLine(GemData.Name, GemData.Texture, GemData.ID)
+			end
+			ShownGems = true
 		end
-		ShownGems = true
+		if #(PawnScaleBestGems[PawnUICurrentScale].YellowSocket[GemQualityLevel]) > 0 then
+			PawnUI_AddGemHeaderLine(format(PawnLocal.UI.GemsColorHeader, YELLOW_GEM))
+			for _, GemData in pairs(PawnScaleBestGems[PawnUICurrentScale].YellowSocket[GemQualityLevel]) do
+				PawnUI_AddGemLine(GemData.Name, GemData.Texture, GemData.ID)
+			end
+			ShownGems = true
+		end
+		if #(PawnScaleBestGems[PawnUICurrentScale].BlueSocket[GemQualityLevel]) > 0 then
+			PawnUI_AddGemHeaderLine(format(PawnLocal.UI.GemsColorHeader, BLUE_GEM))
+			for _, GemData in pairs(PawnScaleBestGems[PawnUICurrentScale].BlueSocket[GemQualityLevel]) do
+				PawnUI_AddGemLine(GemData.Name, GemData.Texture, GemData.ID)
+			end
+			ShownGems = true
+		end
+	else
+		-- Non-Classic WoW: All sockets are prismatic
+		if #(PawnScaleBestGems[PawnUICurrentScale].PrismaticSocket[GemQualityLevel]) > 0 then
+			for _, GemData in pairs(PawnScaleBestGems[PawnUICurrentScale].PrismaticSocket[GemQualityLevel]) do
+				PawnUI_AddGemLine(GemData.Name, GemData.Texture, GemData.ID)
+			end
+			ShownGems = true
+		end
 	end
 
 	if not ShownGems then
@@ -1823,7 +1888,7 @@ function PawnUIOptionsTabPage_OnShow()
 	PawnUIFrame_UpgradeTrackingList_UpdateSelection()
 
 	-- Advisor options
-	if VgerCore.IsClassic then
+	if not VgerCore.IsShadowlands then
 		-- The bag upgrade advisor isn't supported on Classic.
 		PawnUIFrame_ShowBagUpgradeAdvisorCheck:Hide()
 	else
@@ -1966,7 +2031,7 @@ function PawnUIAboutTabPage_OnShow()
 	if Version then 
 		PawnUIFrame_AboutVersionLabel:SetText(format(PawnUIFrame_AboutVersionLabel_Text, Version))
 	end
-	if VgerCore.IsClassic then
+	if not VgerCore.IsShadowlands then
 		-- WoW Classic doesn't use the Mr. Robot scales, so hide that logo and information.
 		PawnUIFrame_MrRobotLogo:Hide()
 		PawnUIFrame_MrRobotLabel:SetPoint("TOPLEFT", 25, -210)
@@ -1979,6 +2044,7 @@ end
 ------------------------------------------------------------
 
 function PawnUI_OnSocketUpdate()
+	if PawnSocketingTooltip then PawnSocketingTooltip:Hide() end
 	if not PawnCommon.ShowSocketingAdvisor then return end
 
 	-- Find out what item it is.
@@ -1993,6 +2059,16 @@ function PawnUI_OnSocketUpdate()
 		return
 	end
 	if not Item.UnenchantedStats then return end -- Can't do anything interesting if we couldn't get unenchanted item data
+
+	local ItemStats = Item.UnenchantedStats
+	local SocketCount = 0
+		+ (ItemStats.PrismaticSocket or 0)
+		+ (ItemStats.RedSocket or 0)
+		+ (ItemStats.YellowSocket or 0)
+		+ (ItemStats.BlueSocket or 0)
+	-- We intentionally ignore meta and domination sockets, because meta gems and domination sockets should be selected for their non-stat effects.
+	-- If there are no supported gems in the item, don't add our advisor tooltip to the window.
+	if SocketCount == 0 then return end
 	
 	-- Add the annotation lines to the tooltip.
 	CreateFrame("GameTooltip", "PawnSocketingTooltip", ItemSocketingFrame, "PawnUI_HintTooltip_PointsUp")
@@ -2009,24 +2085,47 @@ function PawnUI_OnSocketUpdate()
 		if PawnIsScaleVisible(ScaleName) then
 			local Scale = PawnCommon.Scales[ScaleName]
 			local ScaleValues = Scale.Values
-			local ItemStats = Item.UnenchantedStats
 			local TextColor = VgerCore.Color.Blue
 			if Scale.Color and strlen(Scale.Color) == 6 then TextColor = "|cff" .. Scale.Color end
-			
-			local SocketCount = GetNumSockets()
-			local PrismaticSockets = ItemStats.PrismaticSocket
-			if PrismaticSockets and PrismaticSockets > 0 then
-				local BestGems = PawnGetGemListString(ScaleName, PawnOptions.AutoSelectScales, Item.Level)
-				if BestGems then
-					if PawnOptions.AutoSelectScales then
-						-- Use a simplified list if the auto-select scales option is enabled.
-						PawnSocketingTooltip:AddLine(BestGems, 1, 1, 1)
-					else
-						local TooltipText = TextColor .. PawnGetScaleLocalizedName(ScaleName) .. ":  |r" .. BestGems
-						PawnSocketingTooltip:AddLine(TooltipText, 1, 1, 1)
-					end
+
+			local _, _, SocketBonusValue = PawnGetItemValue(Item.UnenchantedStats, Item.Level, Item.SocketBonusStats, ScaleName, false, true)
+			local GemListString, IsVague
+			if SocketBonusValue and SocketBonusValue > 0 then
+				local ThisColorGemList
+				if ItemStats.PrismaticSocket then
+					ThisColorGemList = PawnGetGemListString(ScaleName, PawnOptions.AutoSelectScales, Item.Level, "Prismatic")
+					if ItemStats.PrismaticSocket > 1 then ThisColorGemList = ItemStats.PrismaticSocket .. " " .. ThisColorGemList end
+					if GemListString then GemListString = GemListString .. ", " .. ThisColorGemList else GemListString = ThisColorGemList end
+				end
+				if ItemStats.RedSocket then
+					ThisColorGemList = PawnGetGemListString(ScaleName, PawnOptions.AutoSelectScales, Item.Level, "Red")
+					if ItemStats.RedSocket > 1 then ThisColorGemList = ItemStats.RedSocket .. " " .. ThisColorGemList end
+					if GemListString then GemListString = GemListString .. ", " .. ThisColorGemList else GemListString = ThisColorGemList end
+				end
+				if ItemStats.YellowSocket then
+					ThisColorGemList = PawnGetGemListString(ScaleName, PawnOptions.AutoSelectScales, Item.Level, "Yellow")
+					if ItemStats.YellowSocket > 1 then ThisColorGemList = ItemStats.YellowSocket .. " " .. ThisColorGemList end
+					if GemListString then GemListString = GemListString .. ", " .. ThisColorGemList else GemListString = ThisColorGemList end
+				end
+				if ItemStats.BlueSocket then
+					ThisColorGemList = PawnGetGemListString(ScaleName, PawnOptions.AutoSelectScales, Item.Level, "Blue")
+					if ItemStats.BlueSocket > 1 then ThisColorGemList = ItemStats.BlueSocket .. " " .. ThisColorGemList end
+					if GemListString then GemListString = GemListString .. ", " .. ThisColorGemList else GemListString = ThisColorGemList end
+				end
+			else
+				GemListString, IsVague = PawnGetGemListString(ScaleName, PawnOptions.AutoSelectScales, Item.Level, "Prismatic")
+				if IsVague then GemListString = PawnLocal.GemListMany end
+			end
+			if GemListString then
+				if PawnOptions.AutoSelectScales then
+					-- Use a simplified list when Automatic mode is enabled, since we don't need to list multiple scales.
+					PawnSocketingTooltip:AddLine(GemListString, 1, 1, 1)
+				else
+					local TooltipText = TextColor .. PawnGetScaleLocalizedName(ScaleName) .. ":  |r" .. GemListString
+					PawnSocketingTooltip:AddLine(TooltipText, 1, 1, 1)
 				end
 			end
+
 		end
 	end
 	
@@ -2430,11 +2529,12 @@ function PawnUI_EnsureLoaded()
 		PawnUIFrame_ScaleSelector_Refresh()
 		PawnUIFrame_ShowScaleCheck_Label:SetText(format(PawnUIFrame_ShowScaleCheck_Label_Text, UnitName("player")))
 		if VgerCore.IsClassic then
-			-- WoW Classic doesn't have gems or specs.
+			-- WoW Classic Era doesn't have gems.
 			PawnUIFrameTab4:Hide()
 			PawnUIFrame_IgnoreGemsWhileLevelingCheck:Hide()
 			PawnUIFrame_ShowSocketingAdvisorCheck:Hide()
-
+		end
+		if not VgerCore.HasSpecs then
 			PawnUIFrame_ShowSpecIconsCheck:Hide()
 		end
 		if not PawnCommon then
@@ -2532,11 +2632,12 @@ end
 
 -- Cancels the string dialog if it's open.
 function PawnUIGetStringCancel()
-	if not PawnUIStringDialog:IsVisible() then return end
+	if not PawnUIStringDialog or not PawnUIStringDialog:IsVisible() then return end
 	PawnUIStringDialog_CancelButton_OnClick()
 end
 
 function PawnUIStringDialog_OKButton_OnClick()
+	if not PawnUIStringDialog.OKButton:IsVisible() or not PawnUIStringDialog.OKButton:IsEnabled() then return end
 	PawnUIStringDialog:Hide()
 	if PawnUIStringDialog.OKCallbackFunction then PawnUIStringDialog.OKCallbackFunction(PawnUIStringDialog.TextBox:GetText()) end
 end

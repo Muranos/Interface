@@ -21,7 +21,6 @@ BigWigs:AddSounds("Odyn-TrialOfValor", {
 BigWigs:AddSounds("Guarm-TrialOfValor", {
 	[227816] = "long",
 	[227883] = "info",
-	[228187] = "warning",
 	[228228] = "alarm",
 	[228248] = "alarm",
 	[228253] = "alarm",

@@ -118,6 +118,7 @@ local function createOptions(parentData, data, index, subIndex)
     },
     glowColor = {
       type = "color",
+      hasAlpha = true,
       width = WeakAuras.normalWidth,
       name = L["Custom Color"],
       order = 7,
@@ -231,7 +232,7 @@ local function createOptions(parentData, data, index, subIndex)
       hidden = function() return hiddenGlowExtra() or data.glowType ~= "Pixel" end,
     },
 
-    glow_anchor = {
+    glow_expand_anchor = {
       type = "description",
       name = "",
       order = 20,

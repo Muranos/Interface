@@ -1,6 +1,5 @@
 
 BigWigs:AddSounds("Nythendra", {
-	[202977] = "alarm",
 	[203045] = "alert",
 	[203096] = "warning",
 	[203552] = "info",
@@ -28,7 +27,6 @@ BigWigs:AddSounds("Elerethe Renferal", {
 	[210547] = "alarm",
 	[210864] = {"long","warning"},
 	[210948] = "info",
-	[212364] = "info",
 	[212707] = "long",
 	[213124] = "alert",
 	[214348] = "alarm",
@@ -52,7 +50,6 @@ BigWigs:AddSounds("Dragons of Nightmare", {
 	[-13460] = "long",
 	[-12809] = {"info","warning"},
 	[203028] = "info",
-	[203147] = "alert",
 	[203770] = {"alarm","alert"},
 	[203787] = "alert",
 	[203888] = "alert",
@@ -68,7 +65,6 @@ BigWigs:AddSounds("Dragons of Nightmare", {
 
 BigWigs:AddSounds("Cenarius", {
 	[210279] = {"info","warning"},
-	[210290] = "alarm",
 	[210346] = {"alarm","info"},
 	[211192] = "alert",
 	[211368] = "alarm",
@@ -79,7 +75,6 @@ BigWigs:AddSounds("Cenarius", {
 	[213162] = "alert",
 	[214505] = "alarm",
 	[214529] = "warning",
-	[214876] = "alert",
 	[214884] = "info",
 	[226821] = "long",
 	["stages"] = "long",
@@ -89,7 +84,6 @@ BigWigs:AddSounds("Xavius", {
 	[205588] = "info",
 	[205741] = "alert",
 	[205771] = "long",
-	[205843] = "long",
 	[206005] = "info",
 	[206651] = "warning",
 	[207409] = "alarm",

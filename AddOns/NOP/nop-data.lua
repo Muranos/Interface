@@ -119,8 +119,6 @@ NOP.T_RECIPES = { -- [ItemId] = {{count_to_use,priority}, "gsub regex" | tooltip
   [141991] = {{1,PRI_REP},1,nil,nil,1894}, -- Greater Wardens Insignia
 }
 NOP.T_ITEMS = { -- [itemID] = {{count_to_use,priority},{"sub-Zone",...},{[mapID]=true,...},auraID}, table for opening/use item by itemID, when is no possible to check for any common text
-  [168207] = {{1,PRI_OPEN},nil,nil}, -- [Plundered Anima Cell]
-  [184662] = {{1,PRI_OPEN},nil,nil}, -- [Requisitioned Anima Cell]
   [166999] = {{1,PRI_OPEN},nil,nil}, -- [Treasure Map]
   [ 47030] = {{1,PRI_OPEN},nil,nil}, -- [Huge Seaforium Bombs]
   [ 46847] = {{1,PRI_OPEN},nil,nil}, -- [Huge Seaforium Bombs]
@@ -371,4 +369,38 @@ NOP.T_ITEMS = { -- [itemID] = {{count_to_use,priority},{"sub-Zone",...},{[mapID]
   [152998] = {{1,PRI_OPEN},nil,nil}, -- Carefully Hidden Muffin
   [153113] = {{1,PRI_REP},nil,{[1135] = true, [1170] = true, [1171] = true}}, -- Demon's Soulstone, usable on Argus maps
   [153114] = {{1,PRI_REST},nil,nil}, -- Nathrezim Tome of Manipulation
+-- 9.0
+-- Memorys of the Runecarver
+  [183242] = {{1,PRI_REP},nil,{[1912] = true,}}, -- Memory of Akaari's Soul Fragment
+  [183244] = {{1,PRI_REP},nil,{[1912] = true,}}, -- Memory of the Rattle of the Maw
+  [183245] = {{1,PRI_REP},nil,{[1912] = true,}}, -- Memory of the Rotten
+  [183346] = {{1,PRI_REP},nil,{[1912] = true,}}, -- Memory of an Ancestral Reminder
+  [183348] = {{1,PRI_REP},nil,{[1912] = true,}}, -- Memory of Deeply Rooted Elements
+  [183352] = {{1,PRI_REP},nil,{[1912] = true,}}, -- Memory of the Demise of Skybreaker
+  [183353] = {{1,PRI_REP},nil,{[1912] = true,}}, -- Memory of the Windspeaker's Lava Resurgence
+  [183355] = {{1,PRI_REP},nil,{[1912] = true,}}, -- Memory of the Frost Witch
+  [183356] = {{1,PRI_REP},nil,{[1912] = true,}}, -- Memory of the Primal Lava Actuators
+  [183357] = {{1,PRI_REP},nil,{[1912] = true,}}, -- Memory of the Witch Doctor
+  [183361] = {{1,PRI_REP},nil,{[1912] = true,}}, -- Memory of the Spiritwalker's Tidal Totem
+-- The Maw & Torghas upgrades
+  [180949] = {{1,PRI_OPEN},nil,nil}, -- Animaflow Stabilizer
+  [184588] = {{1,PRI_OPEN},nil,nil}, -- Soul-Stabilizing Talisman
+  [184605] = {{1,PRI_OPEN},nil,nil}, -- Sigil of the Unseen
+  [184613] = {{1,PRI_OPEN},nil,nil}, -- Encased Riftwalker Essence
+  [184615] = {{1,PRI_OPEN},nil,nil}, -- Extradimensional Pockets, Thorgast
+  [184618] = {{1,PRI_OPEN},nil,nil}, -- Rank Insignia: Acquisitionist, Thorgast
+  [184619] = {{1,PRI_OPEN},nil,nil}, -- Loupe of Unusual Charm, Thorgast
+  [184620] = {{1,PRI_OPEN},nil,nil}, -- Vessel of Unfortunate Spirits
+  [184621] = {{1,PRI_OPEN},nil,nil}, -- Ritual Prism of Fortune
+  [184617] = {{1,PRI_OPEN},nil,nil}, -- Bangle of Seniority
+  [184653] = {{1,PRI_OPEN},nil,nil}, -- Animated Levitating Chain
+  [184901] = {{1,PRI_OPEN},nil,nil}, -- Broker Traversal Enhancer, Thorgast
+  [168207] = {{1,PRI_OPEN},nil,nil}, -- Broker Traversal Enhancer, Thorgast
+  [184662] = {{1,PRI_OPEN},nil,nil}, -- Broker Traversal Enhancer, Thorgast
+-- Court of Embers
+  [181536] = {{1,PRI_OPEN},nil,nil}, -- Guest List Page
+  [176131] = {{1,PRI_OPEN},nil,nil}, -- Contract: Glimpse of the Wilds
+  [177235] = {{1,PRI_OPEN},nil,nil}, -- Tubbins's Lucky Teapot
+  [178040] = {{1,PRI_OPEN},nil,nil}, -- Guest List Page
+
 }

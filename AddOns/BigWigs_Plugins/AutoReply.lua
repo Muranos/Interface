@@ -65,10 +65,11 @@ do
 	}
 
 	plugin.pluginOptions = {
-		name = L.autoReply,
+		name = "|TInterface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\AutoReply:20|t ".. L.autoReply,
 		desc = L.autoReplyDesc,
 		type = "group",
 		childGroups = "tab",
+		order = 9,
 		get = function(info)
 			return plugin.db.profile[info[#info]]
 		end,

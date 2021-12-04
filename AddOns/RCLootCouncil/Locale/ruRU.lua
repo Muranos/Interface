@@ -5,48 +5,37 @@ local L = LibStub("AceLocale-3.0"):NewLocale("RCLootCouncil", "ruRU")
 if not L then return end
 
 L[" is not active in this raid."] = "не участвует в текущем рейде."
-L[" you are now the Master Looter and RCLootCouncil is now handling looting."] = "вы теперь Ответственный за Добычу и RCLootCouncil теперь занимается распределением добычи."
+L[" you are now the Master Looter and RCLootCouncil is now handling looting."] = "теперь вы мастерлутер и RCLootCouncil отвечает за распределение лута."
 L["&p was awarded with &i for &r!"] = "&p получил &i для &r!"
 L["A format to copy/paste to another player."] = "Формат для копирования / вставки для другого игрока."
 L["A new session has begun, type '/rc open' to open the voting frame."] = "Новая сессия запущена, введите '/rc open' для открытия окна голосования."
 L["A tab delimited output for Excel. Might work with other spreadsheets."] = "Вывод с разделителями табуляции для Excel. Может работать с другими табличными редакторами."
 L["Abort"] = "Сбросить"
-L["Accept Whispers"] = "Принимать Личные сообщения"
---[[Translation missing --]]
---[[ L["accept_whispers_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["Accepted imports: 'Player Export' and 'CSV'"] = ""--]] 
-L["Active"] = "Активный"
---[[Translation missing --]]
---[[ L["active_desc"] = ""--]] 
-L["Add Item"] = "Добавить Предмет"
-L["Add Note"] = "Добавить Заметку"
-L["Add ranks"] = "Добавить ранги"
-L["Add rolls"] = "Добавить броски"
-L["Add Rolls"] = "Добавить броски"
---[[Translation missing --]]
---[[ L["add_candidate"] = ""--]] 
-L["add_ranks_desc"] = "Выберите минимальный ранг для участия в распределении добычи"
+L["Accept Whispers"] = "Принимать ЛС"
+L["accept_whispers_desc"] = "Позволяет игрокам шептать их нынешние вещи для того что бы добавить в окно голосования."
+L["Accepted imports: 'Player Export' and 'CSV'"] = "Разрешенный импорт: 'Player Export' и 'CSV'"
+L["Active"] = "Включен"
+L["active_desc"] = "Снимите галочку что бы выключить RCLootCouncil. Полезно если вы в рейдовой группе, но не являетесь участником голосования. Заметка: Сбрасывается после каждого логаута."
+L["Add Item"] = "Добавить предмет"
+L["Add Note"] = "Добавить заметку"
+L["Add ranks"] = "Добавить звания"
+L["Add rolls"] = "Добавить роллы"
+L["Add Rolls"] = "Добавить роллы"
+L["add_candidate"] = "Добавить кандидата"
+L["add_ranks_desc"] = "Выберите минимальное звание для участия в лутконсуле:"
 --[[Translation missing --]]
 --[[ L["add_ranks_desc2"] = ""--]] 
---[[Translation missing --]]
---[[ L["add_rolls_desc"] = ""--]] 
+L["add_rolls_desc"] = "Автоматически добавлять случайный ролл 1-100 для каждой сессии."
 L["Additional Buttons"] = "Дополнительные кнопки"
 L["All items"] = "Все предметы"
---[[Translation missing --]]
---[[ L["All items have been awarded and the loot session concluded"] = ""--]] 
---[[Translation missing --]]
---[[ L["All items usable by the candidate"] = ""--]] 
---[[Translation missing --]]
---[[ L["All unawarded items"] = ""--]] 
---[[Translation missing --]]
---[[ L["Alternatively, flag the loot as award later."] = ""--]] 
+L["All items have been awarded and the loot session concluded"] = "Все предметы были распределены и сессия лута завершена."
+L["All items usable by the candidate"] = "Все предметы используемые кандидатом"
+L["All unawarded items"] = "Все не распределенные предметы"
+L["Alternatively, flag the loot as award later."] = "Альтернативно, пометьте лут что бы распределить позже."
 L["Always show owner"] = "Всегда показывать владельца"
---[[Translation missing --]]
---[[ L["Always use RCLootCouncil with Personal Loot"] = ""--]] 
---[[Translation missing --]]
---[[ L["always_show_tooltip_howto"] = ""--]] 
-L["Announce Awards"] = "Огласить награды"
+L["Always use RCLootCouncil with Personal Loot"] = "Всегда использовать RCLootCouncil с Персональной Добычей"
+L["always_show_tooltip_howto"] = "Двойное нажатие что бы вызвать подсказку"
+L["Announce Awards"] = "Анонс наград"
 --[[Translation missing --]]
 --[[ L["Announce Considerations"] = ""--]] 
 --[[Translation missing --]]
@@ -77,39 +66,32 @@ L["Announce Awards"] = "Огласить награды"
 --[[ L["announce_considerations_desc2"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["announce_item_string_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["Announcements"] = ""--]] 
-L["Anonymous Voting"] = "Анонимное Голосование"
+L["Announcements"] = "Анонсы"
+L["Anonymous Voting"] = "Анонимное голосование"
 L["anonymous_voting_desc"] = "Включить анонимное голосование (т.е. люди не видят кто за что проголосовал)"
 L["Append realm names"] = "Добавлять названия игровых миров"
 L["Are you sure you want to abort?"] = "Вы уверены, что хотите отменить?"
-L["Are you sure you want to give #item to #player?"] = "Вы уверены, что хотите передать %s персонажу %s?"
+L["Are you sure you want to give #item to #player?"] = "Вы уверены, что хотите передать %s игроку %s?"
 --[[Translation missing --]]
 --[[ L["Are you sure you want to reannounce all unawarded items to %s?"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["Are you sure you want to request rolls for all unawarded items from %s?"] = ""--]] 
---[[Translation missing --]]
---[[ L["Armor Token"] = ""--]] 
+L["Armor Token"] = "Токен брони"
 --[[Translation missing --]]
 --[[ L["Ask me every time Personal Loot is enabled"] = ""--]] 
-L["Auto Award"] = "Автоматическое Вручение"
-L["Auto Award to"] = "Автоматически Вручать"
---[[Translation missing --]]
---[[ L["Auto awarded 'item'"] = ""--]] 
-L["Auto Close"] = "Автоматически закрывать"
+L["Auto Award"] = "Автовручение"
+L["Auto Award to"] = "Автовручить"
+L["Auto awarded 'item'"] = "Автовручено %s"
+L["Auto Close"] = "Автозакрытие"
 --[[Translation missing --]]
 --[[ L["Auto Enable"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["Auto extracted from whisper"] = ""--]] 
-L["Auto Open"] = "Автоматически открывать"
---[[Translation missing --]]
---[[ L["Auto Pass"] = ""--]] 
---[[Translation missing --]]
---[[ L["Auto pass BoE"] = ""--]] 
---[[Translation missing --]]
---[[ L["Auto Pass Trinkets"] = ""--]] 
---[[Translation missing --]]
---[[ L["Auto Trade"] = ""--]] 
+L["Auto Open"] = "Автооткрытие"
+L["Auto Pass"] = "Автопас"
+L["Auto pass BoE"] = "Автопас БоЕ"
+L["Auto Pass Trinkets"] = "Автопас Тринькетов"
+L["Auto Trade"] = "Автотрейд"
 L["auto_award_desc"] = "Включить автоматическое распределение"
 L["auto_award_to_desc"] = "Игроки для автоматического распределения. Список игроков для выбора появляется если вы в рейдовой группе."
 --[[Translation missing --]]
@@ -133,12 +115,12 @@ L["Autopass"] = "Автопас"
 --[[ L["Autostart isn't supported when testing"] = ""--]] 
 L["award"] = "вручить"
 L["Award"] = "Вручить"
-L["Award Announcement"] = "Анонс Вручения"
+L["Award Announcement"] = "Анонс вручения"
 L["Award for ..."] = "Вручить игроку..."
 L["Award later"] = "Вручить позже"
 L["Award later isn't supported when testing."] = "\"Вручить позже\" не поддерживается в режиме тестирования."
 L["Award later?"] = "Вручить позже?"
-L["Award Reasons"] = "Причина Вручения"
+L["Award Reasons"] = "Причина вручения"
 L["award_reasons_desc"] = [=[Причины вручения, которые не могут быть выбраны во время ролла.
 Используется при изменении ответа в меню по правой кнопки мыши, и для автоматического вручения.]=]
 L["Awarded"] = "Вручено"
@@ -147,14 +129,13 @@ L["Awards"] = "Награды"
 L["Azerite Armor"] = "Азеритовая броня"
 L["Background"] = "Фон"
 L["Background Color"] = "Цвет фона"
-L["Banking"] = "В банк"
+L["Banking"] = "Банк"
 --[[Translation missing --]]
 --[[ L["BBCode export, tailored for SMF."] = ""--]] 
 L["Border"] = "Граница"
 L["Border Color"] = "Цвет границы"
 L["Button"] = "Кнопка"
---[[Translation missing --]]
---[[ L["Buttons and Responses"] = ""--]] 
+L["Buttons and Responses"] = "Кнопки и ответы"
 --[[Translation missing --]]
 --[[ L["buttons_and_responses_desc"] = ""--]] 
 L["Candidate didn't respond on time"] = "Кандидат не ответил вовремя"
@@ -163,8 +144,7 @@ L["Candidate is not in the instance"] = "Кандидат отсутствует
 L["Candidate is selecting response, please wait"] = "Кандидат делает выбор, пожалуйста подождите"
 L["Candidate removed"] = "Кандидат удален"
 L["Candidates that can't use the item"] = "Кандидаты которые не могут использовать предмет"
---[[Translation missing --]]
---[[ L["Cannot autoaward:"] = ""--]] 
+L["Cannot autoaward:"] = "Невозможно автонаградить:"
 --[[Translation missing --]]
 --[[ L["Cannot give 'item' to 'player' due to Blizzard limitations. Gave it to you for distribution."] = ""--]] 
 --[[Translation missing --]]
@@ -172,9 +152,8 @@ L["Candidates that can't use the item"] = "Кандидаты которые н�
 --[[Translation missing --]]
 --[[ L["Change Response"] = ""--]] 
 L["Changing loot threshold to enable Auto Awarding"] = "Измените порог распределения добычи, чтобы включить Автоматическое Вручение"
-L["Changing LootMethod to Master Looting"] = "Разделение добычи производится по системе Ответственный за добычу."
---[[Translation missing --]]
---[[ L["channel_desc"] = ""--]] 
+L["Changing LootMethod to Master Looting"] = "Изменить систему лута на Мастерлут"
+L["channel_desc"] = "Канал в который отправить сообщение."
 --[[Translation missing --]]
 --[[ L["Chat print"] = ""--]] 
 --[[Translation missing --]]
@@ -218,8 +197,7 @@ L["Changing LootMethod to Master Looting"] = "Разделение добычи 
 L["Clear Loot History"] = "Очистить историю лута"
 --[[Translation missing --]]
 --[[ L["Clear Selection"] = ""--]] 
---[[Translation missing --]]
---[[ L["clear_loot_history_desc"] = ""--]] 
+L["clear_loot_history_desc"] = "Удалить всю историю лута."
 L["Click to add note to send to the council."] = "Нажмите что бы добавить записку для консула."
 L["Click to change your note."] = "Нажмите для изменения записки."
 L["Click to expand/collapse more info"] = "Нажмите что бы развернуть/свернуть информацию"
@@ -227,21 +205,18 @@ L["Click to switch to 'item'"] = "Нажмите чтобы переключит
 L["config"] = "настройка"
 --[[Translation missing --]]
 --[[ L["confirm_award_later_text"] = ""--]] 
---[[Translation missing --]]
---[[ L["confirm_usage_text"] = ""--]] 
---[[Translation missing --]]
---[[ L["Conqueror Token"] = ""--]] 
+L["confirm_usage_text"] = "|cFF87CEFA RCLootCouncil |r Хотите использовать RCLootCouncil с этой группой?"
+L["Conqueror Token"] = "Токен завоевателя"
 --[[Translation missing --]]
 --[[ L["Corruption if awarded:"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["Could not Auto Award i because the Loot Threshold is too high!"] = ""--]] 
---[[Translation missing --]]
---[[ L["Could not find 'player' in the group."] = ""--]] 
-L["Couldn't find any councilmembers in the group"] = "Члены консула в группе не найдены"
-L["council"] = "совет"
+L["Could not find 'player' in the group."] = "Невозможно найти игрока %s в группе."
+L["Couldn't find any councilmembers in the group"] = "Невозможно найти члена консула в группе"
+L["council"] = "консул"
 L["Council"] = "Консул"
 L["Current Council"] = "Текущий Консул"
-L["current_council_desc"] = "Нажмите, чтобы удалить определенных людей из совета"
+L["current_council_desc"] = "Нажмите, чтобы удалить определенных людей из консула"
 --[[Translation missing --]]
 --[[ L["Customize appearance"] = ""--]] 
 --[[Translation missing --]]
@@ -251,26 +226,23 @@ L["Date"] = "Дата"
 L["days and x months"] = "%s и %d месяцев"
 L["days, x months, y years"] = "%s, %d месяцев и %d лет"
 L["Delete Skin"] = "Удалить скин"
---[[Translation missing --]]
---[[ L["delete_skin_desc"] = ""--]] 
+L["delete_skin_desc"] = "Удалить выбранный не стандартный скин из списка."
 --[[Translation missing --]]
 --[[ L["Deselect responses to filter them"] = ""--]] 
-L["Diff"] = "Илвл"
+L["Diff"] = "Разница"
 --[[Translation missing --]]
 --[[ L["Discord friendly output."] = ""--]] 
 --[[Translation missing --]]
 --[[ L["disenchant_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["Do you want to keep %s for yourself or trade?"] = ""--]] 
+L["Do you want to keep %s for yourself or trade?"] = "Хотите оставить %s себе или передать?"
 --[[Translation missing --]]
 --[[ L["Done syncing"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["Double click to delete this entry."] = ""--]] 
---[[Translation missing --]]
---[[ L["Dropped by:"] = ""--]] 
+L["Dropped by:"] = "Упало с:"
 --[[Translation missing --]]
 --[[ L["Edit Entry"] = ""--]] 
-L["Enable Loot History"] = "Включить Историю Лута"
+L["Enable Loot History"] = "Включить историю лута"
 --[[Translation missing --]]
 --[[ L["Enable Timeout"] = ""--]] 
 L["enable_loot_history_desc"] = "Включает ведение истории. RCLootCouncil не будет ничего записывать если отключено."
@@ -279,8 +251,7 @@ L["enable_loot_history_desc"] = "Включает ведение истории.
 L["Enter your note:"] = "Введите вашу записку:"
 --[[Translation missing --]]
 --[[ L["EQdkp-Plus XML output, tailored for Enjin import."] = ""--]] 
---[[Translation missing --]]
---[[ L["error_test_as_non_leader"] = ""--]] 
+L["error_test_as_non_leader"] = "Вы не можете начать тестирование пока вы не являетесь лидером группы."
 --[[Translation missing --]]
 --[[ L["Everybody is up to date."] = ""--]] 
 L["Everyone have voted"] = "Все проголосовали"
@@ -293,41 +264,32 @@ L["Export"] = "Экспорт"
 --[[ L["Following winners was registered:"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["Found the following outdated versions"] = ""--]] 
---[[Translation missing --]]
---[[ L["Frame options"] = ""--]] 
-L["Free"] = "Бесплатно"
+L["Frame options"] = "Настройки окна"
+L["Free"] = "Даром"
 L["Full Bags"] = "Полные сумки"
 L["g1"] = "п1"
 L["g2"] = "п2"
 --[[Translation missing --]]
 --[[ L["Gave the item to you for distribution."] = ""--]] 
-L["General options"] = "Основные опции"
-L["Group Council Members"] = "Групповые Участники Консула"
-L["group_council_members_desc"] = "Используйте это, чтобы добавить членов совета с другого сервера или гильдии."
-L["group_council_members_head"] = "Добавить члена совета из текущей группы."
-L["Guild Council Members"] = "Гильдейские Участники Консула"
-L["Hide Votes"] = "Скрыть Голоса"
-L["hide_votes_desc"] = "Только проголосовавшие игроки могут видеть результаты голосования"
---[[Translation missing --]]
---[[ L["How to sync"] = ""--]] 
+L["General options"] = "Основные настройки"
+L["Group Council Members"] = "Групповые участники Консула"
+L["group_council_members_desc"] = "Используйте это, чтобы добавить членов консула с другого сервера или гильдии."
+L["group_council_members_head"] = "Добавить члена консула из текущей группы."
+L["Guild Council Members"] = "Гильдейские участники Консула"
+L["Hide Votes"] = "Скрыть голоса"
+L["hide_votes_desc"] = "Только проголосовавшие игроки могут видеть результаты голосования."
+L["How to sync"] = "Как синхронизировать"
 --[[Translation missing --]]
 --[[ L["huge_export_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["Ignore List"] = ""--]] 
---[[Translation missing --]]
---[[ L["Ignore Options"] = ""--]] 
---[[Translation missing --]]
---[[ L["ignore_input_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["ignore_input_usage"] = ""--]] 
---[[Translation missing --]]
---[[ L["ignore_list_desc"] = ""--]] 
+L["Ignore List"] = "Список исключений"
+L["Ignore Options"] = "Настройки исключений"
+L["ignore_input_desc"] = "Введите itemID что бы RCLootCouncil добавил его в список исключений и никогда не выводил этот предмет на голосование"
+L["ignore_input_usage"] = "Эта функция принимает только itemIDs (цифры), itemName или itemLink."
+L["ignore_list_desc"] = "Предметы которые игнорирует RCLootCouncil. Нажмите на предмет что бы убрать."
 --[[Translation missing --]]
 --[[ L["ignore_options_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["Import aborted"] = ""--]] 
---[[Translation missing --]]
---[[ L["import_desc"] = ""--]] 
+L["Import aborted"] = "Импорт прерван"
+L["import_desc"] = "Вставить данные сюда. Показывает только первые 2500 символов что бы игра не зависала."
 --[[Translation missing --]]
 --[[ L["import_malformed"] = ""--]] 
 --[[Translation missing --]]
@@ -337,54 +299,41 @@ L["hide_votes_desc"] = "Только проголосовавшие игроки
 --[[Translation missing --]]
 --[[ L["Invalid selection"] = ""--]] 
 L["Item"] = "Предмет"
---[[Translation missing --]]
---[[ L["'Item' is added to the award later list."] = ""--]] 
+L["'Item' is added to the award later list."] = "%s добавлен в список для награждения позже."
 --[[Translation missing --]]
 --[[ L["Item quality is below the loot threshold"] = ""--]] 
---[[Translation missing --]]
---[[ L["Item received and added from 'player'"] = ""--]] 
+L["Item received and added from 'player'"] = "Предмет получен и добавлен от игрока %s."
 L["Item was awarded to"] = "Предмет был выдан"
---[[Translation missing --]]
---[[ L["Item(s) replaced:"] = ""--]] 
+L["Item(s) replaced:"] = "Предмет(ы) заменены:"
 --[[Translation missing --]]
 --[[ L["item_in_bags_low_trade_time_remaining_reminder"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["Items stored in the loot master's bag for award later cannot be awarded later."] = ""--]] 
 L["Items under consideration:"] = "Предметы, ожидающие рассмотрения:"
---[[Translation missing --]]
---[[ L["Keep"] = ""--]] 
---[[Translation missing --]]
---[[ L["Latest item(s) won"] = ""--]] 
+L["Keep"] = "Оставить"
+L["Latest item(s) won"] = "Последние вещи выиграны"
 --[[Translation missing --]]
 --[[ L["Length"] = ""--]] 
 L["Log"] = "Лог"
---[[Translation missing --]]
---[[ L["log_desc"] = ""--]] 
+L["log_desc"] = "Включить запись логов в истории лута."
 L["Loot announced, waiting for answer"] = "Добыча объявлена, ожидание ответа"
-L["Loot History"] = "История Лута"
---[[Translation missing --]]
---[[ L["Loot Status"] = ""--]] 
-L["Loot won:"] = "Предмет выиграл:"
+L["Loot History"] = "История лута"
+L["Loot Status"] = "Статус лута"
+L["Loot won:"] = "Лут выиграл:"
 --[[Translation missing --]]
 --[[ L["loot_history_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["Looted"] = ""--]] 
-L["Looted by:"] = "Предмет забрал:"
---[[Translation missing --]]
---[[ L["lootFrame_error_note_required"] = ""--]] 
---[[Translation missing --]]
---[[ L["lootHistory_moreInfo_winnersOfItem"] = ""--]] 
---[[Translation missing --]]
---[[ L["Looting options"] = ""--]] 
-L["Lower Quality Limit"] = "Нижняя Граница Качества"
+L["Looted"] = "Полутано"
+L["Looted by:"] = "Полутал:"
+L["lootFrame_error_note_required"] = "Вы должны добавить заметку прежде чем отправлять ваш ответ - %s"
+L["lootHistory_moreInfo_winnersOfItem"] = "Победители %s:"
+L["Looting options"] = "Настройки лута"
+L["Lower Quality Limit"] = "Нижняя граница качества"
 L["lower_quality_limit_desc"] = [=[Выберите нижний предел качества для автораспределения (это качество включается!).
 Примечание: Это отменяет нормальный порог лута.]=]
 L["Mainspec/Need"] = "Основной спек/Нужно"
---[[Translation missing --]]
---[[ L["Mass deletion of history entries."] = ""--]] 
-L["Master Looter"] = "Ответственный за Добычу"
---[[Translation missing --]]
---[[ L["master_looter_desc"] = ""--]] 
+L["Mass deletion of history entries."] = "Массовое удаление записей истории."
+L["Master Looter"] = "Мастерлутер"
+L["master_looter_desc"] = "Заметка: Данные настройки будут использоваться только если вы являетесь мастерлутером."
 L["Message"] = "Сообщение"
 --[[Translation missing --]]
 --[[ L["Message for each item"] = ""--]] 
@@ -393,13 +342,12 @@ L["Message"] = "Сообщение"
 L["Minimize in combat"] = "Свернуть в бою"
 L["Minor Upgrade"] = "Незначительное улучшение"
 L["Missing votes from:"] = "Отсутствуют голоса от:"
-L["ML sees voting"] = "МЛ видит результаты голосования"
+L["ML sees voting"] = "МЛ видит голосование"
 --[[Translation missing --]]
 --[[ L["ML_ADD_INVALID_ITEM"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["ML_ADD_ITEM_MAX_ATTEMPTS"] = ""--]] 
---[[Translation missing --]]
---[[ L["ml_sees_voting_desc"] = ""--]] 
+L["ml_sees_voting_desc"] = "Позволяет мастерлутеру видеть кто голосует за кого."
 --[[Translation missing --]]
 --[[ L["module_tVersion_outdated_msg"] = ""--]] 
 --[[Translation missing --]]
@@ -410,32 +358,24 @@ L["More Info"] = "Больше информации"
 --[[ L["more_info_desc"] = ""--]] 
 L["Multi Vote"] = "Множественное голосование"
 L["multi_vote_desc"] = "Включить возможность голосовать за нескольких кандидатов."
---[[Translation missing --]]
---[[ L["'n days' ago"] = ""--]] 
+L["'n days' ago"] = "%s назад"
 L["Never use RCLootCouncil"] = "Никогда не использовать RCLootCouncil"
 --[[Translation missing --]]
 --[[ L["new_ml_bagged_items_reminder"] = ""--]] 
---[[Translation missing --]]
---[[ L["No (dis)enchanters found"] = ""--]] 
-L["No entries in the Loot History"] = "Нет доступной информации в Истории Лута"
+L["No (dis)enchanters found"] = "Не найдено зачарователей"
+L["No entries in the Loot History"] = "Нет доступной информации в истории лута"
 --[[Translation missing --]]
 --[[ L["No entry in the award later list is removed."] = ""--]] 
 --[[Translation missing --]]
 --[[ L["No items to award later registered"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["No recipients available"] = ""--]] 
---[[Translation missing --]]
---[[ L["No session running"] = ""--]] 
---[[Translation missing --]]
---[[ L["No winners registered"] = ""--]] 
---[[Translation missing --]]
---[[ L["non_tradeable_reason_nil"] = ""--]] 
---[[Translation missing --]]
---[[ L["non_tradeable_reason_not_tradeable"] = ""--]] 
---[[Translation missing --]]
---[[ L["non_tradeable_reason_rejected_trade"] = ""--]] 
---[[Translation missing --]]
---[[ L["Non-tradeable reason:"] = ""--]] 
+L["No session running"] = "Нет запущенных сессий"
+L["No winners registered"] = "Победителей не зарегистрировано"
+L["non_tradeable_reason_nil"] = "Неизвестно"
+L["non_tradeable_reason_not_tradeable"] = "Не передается"
+L["non_tradeable_reason_rejected_trade"] = "Хотел оставить предмет"
+L["Non-tradeable reason:"] = "Не передается, причина:"
 L["Not announced"] = "Не анонсированно"
 --[[Translation missing --]]
 --[[ L["Not cached, please reopen."] = ""--]] 
@@ -443,48 +383,34 @@ L["Not Found"] = "Не найдено"
 L["Not in your guild"] = "Не в гильдии"
 L["Not installed"] = "Не установлено"
 L["Notes"] = "Заметки"
---[[Translation missing --]]
---[[ L["Now handles looting"] = ""--]] 
+L["Now handles looting"] = "Сейчас занимается распределением лута"
 L["Number of buttons"] = "Количество кнопок"
 --[[Translation missing --]]
 --[[ L["Number of raids received loot from:"] = ""--]] 
 L["Number of reasons"] = "Количество причин"
---[[Translation missing --]]
---[[ L["Number of responses"] = ""--]] 
---[[Translation missing --]]
---[[ L["number_of_buttons_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["number_of_reasons_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["Observe"] = ""--]] 
---[[Translation missing --]]
---[[ L["observe_desc"] = ""--]] 
+L["Number of responses"] = "Количество ответов"
+L["number_of_buttons_desc"] = "Двигай ползунок что бы изменить количество кнопок."
+L["number_of_reasons_desc"] = "Двигай ползунок что бы изменить количество ответов."
+L["Observe"] = "Наблюдение"
+L["observe_desc"] = "Разрешить не членам консула наблюдать за голосованием. Они не смогут голосовать."
 L["Offline or RCLootCouncil not installed"] = "Не в игре или RCLootCouncil не установлен"
 L["Offspec/Greed"] = "Оффспек/Не откажусь"
---[[Translation missing --]]
---[[ L["Only use in raids"] = ""--]] 
---[[Translation missing --]]
---[[ L["onlyUseInRaids_desc"] = ""--]] 
+L["Only use in raids"] = "Использовать только в рейдах"
+L["onlyUseInRaids_desc"] = "Выбери что бы автоматически отключать RCLootCouncil в группах."
 L["open"] = "открыть"
-L["Open the Loot History"] = "Открыть Историю Лута"
---[[Translation missing --]]
---[[ L["open_the_loot_history_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["Opens the synchronizer"] = ""--]] 
+L["Open the Loot History"] = "Открыть историю лута"
+L["open_the_loot_history_desc"] = "Нажми что бы открыть историю лута."
+L["Opens the synchronizer"] = "Открыть синхронизатор"
 --[[Translation missing --]]
 --[[ L["opt_addButton_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["opt_autoAddBoEs_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["opt_autoAddBoEs_name"] = ""--]] 
+L["opt_autoAddBoEs_desc"] = "Автоматически добавлять все БоЕ в сессию."
+L["opt_autoAddBoEs_name"] = "Автодобавление БоЕ"
 --[[Translation missing --]]
 --[[ L["opt_autoAddItems_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["opt_autoAddItems_name"] = ""--]] 
+L["opt_autoAddItems_name"] = "Автодобавление предметов"
 --[[Translation missing --]]
 --[[ L["opt_autoAddPets_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["opt_autoAddPets_name"] = ""--]] 
+L["opt_autoAddPets_name"] = "Добавить питомцев"
 --[[Translation missing --]]
 --[[ L["opt_autoAwardPrioList_desc"] = ""--]] 
 --[[Translation missing --]]
@@ -495,8 +421,7 @@ L["Open the Loot History"] = "Открыть Историю Лута"
 --[[ L["opt_buttonsGroup_desc"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["opt_chatFrameName_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["opt_chatFrameName_name"] = ""--]] 
+L["opt_chatFrameName_name"] = "Окно чата"
 --[[Translation missing --]]
 --[[ L["opt_deleteDate_confirm"] = ""--]] 
 --[[Translation missing --]]
@@ -521,16 +446,13 @@ L["Open the Loot History"] = "Открыть Историю Лута"
 --[[ L["opt_printCompletedTrade_Name"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["opt_rejectTrade_Desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["opt_rejectTrade_Name"] = ""--]] 
+L["opt_rejectTrade_Name"] = "Разрешить оставить"
 --[[Translation missing --]]
 --[[ L["opt_skipSessionFrame_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["opt_skipSessionFrame_name"] = ""--]] 
+L["opt_skipSessionFrame_name"] = "Пропустить окно сессии"
 --[[Translation missing --]]
 --[[ L["options_autoAwardBoE_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["options_autoAwardBoE_name"] = ""--]] 
+L["options_autoAwardBoE_name"] = "Автонаграждение БоЕ"
 --[[Translation missing --]]
 --[[ L["options_ml_outOfRaid_desc"] = ""--]] 
 --[[Translation missing --]]
@@ -539,55 +461,35 @@ L["Open the Loot History"] = "Открыть Историю Лута"
 --[[ L["options_requireNotes_desc"] = ""--]] 
 L["Original Owner"] = "Изначальный владелец"
 L["Out of instance"] = "Вне подземелья"
---[[Translation missing --]]
---[[ L["Patch"] = ""--]] 
---[[Translation missing --]]
---[[ L["Personal Loot - Non tradeable"] = ""--]] 
---[[Translation missing --]]
---[[ L["Personal Loot - Rejected Trade"] = ""--]] 
---[[Translation missing --]]
---[[ L["'player' can't receive 'type'"] = ""--]] 
---[[Translation missing --]]
---[[ L["'player' declined your sync request"] = ""--]] 
---[[Translation missing --]]
---[[ L["'player' has asked you to reroll"] = ""--]] 
---[[Translation missing --]]
---[[ L["'player' has ended the session"] = ""--]] 
+L["Patch"] = "Патч"
+L["Personal Loot - Non tradeable"] = "Персональный лут - Не передается"
+L["Personal Loot - Rejected Trade"] = "Персональный лут - Отмененный трейд"
+L["'player' can't receive 'type'"] = "%s не может получить %s - версии не совпадают?"
+L["'player' declined your sync request"] = "%s отклонил ваш запрос на синхронизацию"
+L["'player' has asked you to reroll"] = "%s попросил реролл"
+L["'player' has ended the session"] = "%s завершил сессию"
 --[[Translation missing --]]
 --[[ L["'player' has rolled 'roll' for: 'item'"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["'player' hasn't opened the sync window"] = ""--]] 
---[[Translation missing --]]
---[[ L["Player is ineligible for this item"] = ""--]] 
---[[Translation missing --]]
---[[ L["Player is not in the group"] = ""--]] 
---[[Translation missing --]]
---[[ L["Player is not in this instance"] = ""--]] 
---[[Translation missing --]]
---[[ L["Player is offline"] = ""--]] 
---[[Translation missing --]]
---[[ L["Please wait a few seconds until all data has been synchronized."] = ""--]] 
---[[Translation missing --]]
---[[ L["Please wait before trying to sync again."] = ""--]] 
---[[Translation missing --]]
---[[ L["Print Responses"] = ""--]] 
+L["Player is ineligible for this item"] = "Игрок не может пользоваться этим предметом"
+L["Player is not in the group"] = "Игрок не в группе"
+L["Player is not in this instance"] = "Игрок не в инсте"
+L["Player is offline"] = "Игрок не в сети"
+L["Please wait a few seconds until all data has been synchronized."] = "Пожалуйста подождите пока вся информация синхронизируется."
+L["Please wait before trying to sync again."] = "Пожалуйста подождите перед тем как синхронизировать еще раз."
+L["Print Responses"] = "Вывести ответы"
 --[[Translation missing --]]
 --[[ L["print_response_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["Protector Token"] = ""--]] 
+L["Protector Token"] = "Токен защитника"
 --[[Translation missing --]]
 --[[ L["Raw lua output. Doesn't work well with date selection."] = ""--]] 
---[[Translation missing --]]
---[[ L["RCLootCouncil - Synchronizer"] = ""--]] 
---[[Translation missing --]]
---[[ L["RCLootCouncil Loot Frame"] = ""--]] 
-L["RCLootCouncil Loot History"] = "История Лута RCLootCouncil"
---[[Translation missing --]]
---[[ L["RCLootCouncil Session Setup"] = ""--]] 
---[[Translation missing --]]
---[[ L["RCLootCouncil Version Checker"] = ""--]] 
---[[Translation missing --]]
---[[ L["RCLootCouncil Voting Frame"] = ""--]] 
+L["RCLootCouncil - Synchronizer"] = "RCLootCouncil - Синхронизатор"
+L["RCLootCouncil Loot Frame"] = "Окно добычи RCLootCouncil"
+L["RCLootCouncil Loot History"] = "История лута RCLootCouncil"
+L["RCLootCouncil Session Setup"] = "Настройка сессии RCLootCouncil"
+L["RCLootCouncil Version Checker"] = "Проверка версии RCLootCouncil"
+L["RCLootCouncil Voting Frame"] = "Окно голосования RCLootCouncil"
 --[[Translation missing --]]
 --[[ L["rclootcouncil_trade_add_item_confirm"] = ""--]] 
 --[[Translation missing --]]
@@ -595,78 +497,56 @@ L["RCLootCouncil Loot History"] = "История Лута RCLootCouncil"
 --[[Translation missing --]]
 --[[ L["Reannounced 'item' to 'target'"] = ""--]] 
 L["Reason"] = "Причина"
---[[Translation missing --]]
---[[ L["reason_desc"] = ""--]] 
-L["Remove All"] = "Убрать всё"
+L["reason_desc"] = "Причина награждения в истории лута когда происходит автонаграждение."
+L["Remove All"] = "Убрать всёх"
 L["Remove from consideration"] = "Убрать с голосования"
---[[Translation missing --]]
---[[ L["remove_all_desc"] = ""--]] 
+L["remove_all_desc"] = "Убрать всех членов консула"
 --[[Translation missing --]]
 --[[ L["Requested rolls for 'item' from 'target'"] = ""--]] 
---[[Translation missing --]]
---[[ L["Require Notes"] = ""--]] 
+L["Require Notes"] = "Требовать заметки"
 L["Reset Skin"] = "Сбросить скин"
---[[Translation missing --]]
---[[ L["Reset skins"] = ""--]] 
---[[Translation missing --]]
---[[ L["reset_announce_to_default_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["reset_buttons_to_default_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["reset_skin_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["reset_skins_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["reset_to_default_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["Response"] = ""--]] 
---[[Translation missing --]]
---[[ L["Response color"] = ""--]] 
+L["Reset skins"] = "Сбросить скины"
+L["reset_announce_to_default_desc"] = "Сбрасывает настройки сообщений по умолчанию"
+L["reset_buttons_to_default_desc"] = "Сбрасывает все кнопки, цвета и ответы по умолчанию"
+L["reset_skin_desc"] = "Сбросить все цвета и фон текущего скина."
+L["reset_skins_desc"] = "Сбросить стандартные скины."
+L["reset_to_default_desc"] = "Сбросить причины награждения к стандартным."
+L["Response"] = "Ответ"
+L["Response color"] = "Цвет ответа"
 L["Response isn't available. Please upgrade RCLootCouncil."] = "Ответ не доступен. Пожалуйста обновите RCLootCouncil."
-L["Response options"] = "Опции ответов"
+L["Response options"] = "Настройки ответов"
 --[[Translation missing --]]
 --[[ L["Response to 'item'"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["Response to 'item' acknowledged as 'response'"] = ""--]] 
---[[Translation missing --]]
---[[ L["response_color_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["Responses"] = ""--]] 
---[[Translation missing --]]
---[[ L["Responses from Chat"] = ""--]] 
+L["response_color_desc"] = "Установите цвет для ответа."
+L["Responses"] = "Ответы"
+L["Responses from Chat"] = "Ответы из чата"
 --[[Translation missing --]]
 --[[ L["responses_from_chat_desc"] = ""--]] 
 L["Save Skin"] = "Сохранить скин"
---[[Translation missing --]]
---[[ L["save_skin_desc"] = ""--]] 
-L["Self Vote"] = "Своё голосование"
---[[Translation missing --]]
---[[ L["self_vote_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["Send History"] = ""--]] 
-L["Send to Guild"] = "Отправить в Гильдию"
---[[Translation missing --]]
---[[ L["send_history_desc"] = ""--]] 
+L["save_skin_desc"] = "Введите название вашего скина и нажмите OK что бы сохранить его. Учтите, это может перезаписать любой не стандартный скин."
+L["Self Vote"] = "Голос за себя"
+L["self_vote_desc"] = "Разрешает голосовать за себя."
+L["Send History"] = "Отправить историю"
+L["Send to Guild"] = "Отправить в гильдию"
+L["send_history_desc"] = "Отправить данные всем в рейде, несмотря на то пишите ли вы логи. Будет отправлено только если вы являетесь мастерлутером."
 --[[Translation missing --]]
 --[[ L["send_to_guild_desc"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["Sending 'type' to 'player'..."] = ""--]] 
 --[[Translation missing --]]
 --[[ L["Sent whisper help to 'player'"] = ""--]] 
---[[Translation missing --]]
---[[ L["session_error"] = ""--]] 
---[[Translation missing --]]
---[[ L["session_help_from_bag"] = ""--]] 
---[[Translation missing --]]
---[[ L["session_help_not_direct"] = ""--]] 
+L["session_error"] = "Что то пошло не так - перезапустите сессию"
+L["session_help_from_bag"] = "После окончания сессии вы можете использовать' /rc winners'  что бы увидеть кому что должен передать."
+L["session_help_not_direct"] = "Вещи в данной сессии не передаются автоматически и должны быть переданы вручную."
 --[[Translation missing --]]
 --[[ L["Set the text for button i's response."] = ""--]] 
 --[[Translation missing --]]
 --[[ L["Set the text on button 'number'"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["Set the whisper keys for button i."] = ""--]] 
---[[Translation missing --]]
---[[ L["Show Spec Icon"] = ""--]] 
+L["Show Spec Icon"] = "Показывать иконку спека"
 --[[Translation missing --]]
 --[[ L["show_spec_icon_desc"] = ""--]] 
 --[[Translation missing --]]
@@ -675,53 +555,38 @@ L["Send to Guild"] = "Отправить в Гильдию"
 --[[ L["silent_auto_pass_desc"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["Simple BBCode output."] = ""--]] 
---[[Translation missing --]]
---[[ L["Skins"] = ""--]] 
---[[Translation missing --]]
---[[ L["skins_description"] = ""--]] 
---[[Translation missing --]]
---[[ L["Slot"] = ""--]] 
---[[Translation missing --]]
---[[ L["Socket"] = ""--]] 
+L["Skins"] = "Скины"
+L["skins_description"] = "Выберите один из стандартных скинов или создадите свой. Это влияет только на внешний вид. Откройте проверку версии что бы увидеть результат ('/rc version')."
+L["Slot"] = "Слот"
+L["Socket"] = "Сокет"
 L["Something went wrong :'("] = "Что-то пошло не так :'("
---[[Translation missing --]]
---[[ L["Something went wrong during syncing, please try again."] = ""--]] 
---[[Translation missing --]]
---[[ L["Sort Items"] = ""--]] 
---[[Translation missing --]]
---[[ L["sort_items_desc"] = ""--]] 
+L["Something went wrong during syncing, please try again."] = "Что то пошло не так во время синхронизации, попробуйте еще раз."
+L["Sort Items"] = "Сортировать"
+L["sort_items_desc"] = "Сортировать сессии по слоту и илвлу."
 --[[Translation missing --]]
 --[[ L["Standard .csv output."] = ""--]] 
 --[[Translation missing --]]
 --[[ L["Standard JSON output."] = ""--]] 
---[[Translation missing --]]
---[[ L["Status texts"] = ""--]] 
---[[Translation missing --]]
---[[ L["Store in bag and award later"] = ""--]] 
+L["Status texts"] = "Текст статуса"
+L["Store in bag and award later"] = "Оставить в сумке и наградить позже"
 --[[Translation missing --]]
 --[[ L["Succesfully deleted %d entries"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["Succesfully deleted %d entries from %s"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["Successfully imported 'number' entries."] = ""--]] 
---[[Translation missing --]]
---[[ L["Successfully received 'type' from 'player'"] = ""--]] 
---[[Translation missing --]]
---[[ L["Sync"] = ""--]] 
+L["Successfully received 'type' from 'player'"] = "%s успешно получен от игрока %s."
+L["Sync"] = "Синхронизировать"
 --[[Translation missing --]]
 --[[ L["sync_detailed_description"] = ""--]] 
 L["test"] = "тест"
-L["Test"] = "Тест"
---[[Translation missing --]]
---[[ L["test_desc"] = ""--]] 
+L["Test"] = "Проверка"
+L["test_desc"] = "Нажмите что бы сымитировать окно мастерлута для себя и других участников рейда."
 L["Text color"] = "Цвет текста"
 L["Text for reason #i"] = "Текст причины #"
---[[Translation missing --]]
---[[ L["text_color_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["The award later list has been cleared."] = ""--]] 
---[[Translation missing --]]
---[[ L["The award later list is empty."] = ""--]] 
+L["text_color_desc"] = "Цвет текста при отображении."
+L["The award later list has been cleared."] = "Список предметов для награждения позже не был очищен."
+L["The award later list is empty."] = "Список предметов для награждения пуст."
 L["The following council members have voted"] = "Данные участники консула проголосовали"
 --[[Translation missing --]]
 --[[ L["The following entries are removed from the award later list:"] = ""--]] 
@@ -729,85 +594,62 @@ L["The following council members have voted"] = "Данные участники
 --[[ L["The following items are removed from the award later list and traded to 'player'"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["The item can only be looted by you but it is not bind on pick up"] = ""--]] 
---[[Translation missing --]]
---[[ L["The item will be awarded later"] = ""--]] 
---[[Translation missing --]]
---[[ L["The item would now be awarded to 'player'"] = ""--]] 
+L["The item will be awarded later"] = "Предмет будет награжден позже"
+L["The item would now be awarded to 'player'"] = "Предмет будет выдан игроку %s"
 --[[Translation missing --]]
 --[[ L["The loot is already on the list"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["The loot master"] = ""--]] 
 L["The Master Looter doesn't allow multiple votes."] = "Ответственный за добычу не разрешил голосование за нескольких."
 L["The Master Looter doesn't allow votes for yourself."] = "Ответственный за добычу не разрешил голосовать за себя."
---[[Translation missing --]]
---[[ L["The session has ended."] = ""--]] 
+L["The session has ended."] = "Сессия окончена. "
 L["This item"] = "Этот предмет"
 L["This item has been awarded"] = "Этот предмет был вручен"
---[[Translation missing --]]
---[[ L["Tier 19"] = ""--]] 
---[[Translation missing --]]
---[[ L["Tier 20"] = ""--]] 
---[[Translation missing --]]
---[[ L["Tier 21"] = ""--]] 
+L["Tier 19"] = "Тир 19"
+L["Tier 20"] = "Тир 20"
+L["Tier 21"] = "Тир 21"
 --[[Translation missing --]]
 --[[ L["Tier Tokens ..."] = ""--]] 
 --[[Translation missing --]]
 --[[ L["Tier tokens received from here:"] = ""--]] 
---[[Translation missing --]]
---[[ L["tier_token_heroic"] = ""--]] 
---[[Translation missing --]]
---[[ L["tier_token_mythic"] = ""--]] 
---[[Translation missing --]]
---[[ L["tier_token_normal"] = ""--]] 
+L["tier_token_heroic"] = "Героический"
+L["tier_token_mythic"] = "Эпохальный"
+L["tier_token_normal"] = "Обычный"
 L["Time"] = "Время"
 --[[Translation missing --]]
 --[[ L["time_remaining_warning"] = ""--]] 
---[[Translation missing --]]
---[[ L["Timeout"] = ""--]] 
+L["Timeout"] = "Время вышло"
 --[[Translation missing --]]
 --[[ L["Timeout when giving 'item' to 'player'"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["To target"] = ""--]] 
---[[Translation missing --]]
---[[ L["Tokens received"] = ""--]] 
+L["Tokens received"] = "Токен получен"
 --[[Translation missing --]]
 --[[ L["Total awards"] = ""--]] 
---[[Translation missing --]]
---[[ L["Total items received:"] = ""--]] 
---[[Translation missing --]]
---[[ L["Total items won:"] = ""--]] 
---[[Translation missing --]]
---[[ L["trade_complete_message"] = ""--]] 
---[[Translation missing --]]
---[[ L["trade_item_to_trade_not_found"] = ""--]] 
---[[Translation missing --]]
---[[ L["trade_wrongwinner_message"] = ""--]] 
---[[Translation missing --]]
---[[ L["tVersion_outdated_msg"] = ""--]] 
---[[Translation missing --]]
---[[ L["Unable to give 'item' to 'player'"] = ""--]] 
---[[Translation missing --]]
---[[ L["Unable to give 'item' to 'player' - (player offline, left group or instance?)"] = ""--]] 
+L["Total items received:"] = "Всего вещей получено:"
+L["Total items won:"] = "Всего вещей выиграно:"
+L["trade_complete_message"] = "%s передал %s игроку %s."
+L["trade_item_to_trade_not_found"] = "ВНИМАНИЕ: Вещь на трейд: %s невозможно найти в твоем инвентаре!"
+L["trade_wrongwinner_message"] = "ВНИМАНИЕ: %s отдал %s игроку %s вместо %s!"
+L["tVersion_outdated_msg"] = "Новейшая тест версия RCLootCouncil: %s"
+L["Unable to give 'item' to 'player'"] = "Невозможно дать %s для %s"
+L["Unable to give 'item' to 'player' - (player offline, left group or instance?)"] = "Невозможно дать %s для %s - (игрок оффлайн, вышел из группы или подземелья?)"
 --[[Translation missing --]]
 --[[ L["Unable to give out loot without the loot window open."] = ""--]] 
 --[[Translation missing --]]
 --[[ L["Unawarded"] = ""--]] 
 L["Unguilded"] = "Не в гильдии"
 L["Unknown date"] = "Неизвестная дата"
---[[Translation missing --]]
---[[ L["Unknown/Chest"] = ""--]] 
+L["Unknown/Chest"] = "Неизвестно/Сундук"
 --[[Translation missing --]]
 --[[ L["Unlooted"] = ""--]] 
-L["Unvote"] = "Снять"
+L["Unvote"] = "Не голосовать"
 L["Upper Quality Limit"] = "Лимит улучшения качества"
 --[[Translation missing --]]
 --[[ L["upper_quality_limit_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["Usage"] = ""--]] 
---[[Translation missing --]]
---[[ L["Usage Options"] = ""--]] 
---[[Translation missing --]]
---[[ L["Vanquisher Token"] = ""--]] 
+L["Usage"] = "Использование"
+L["Usage Options"] = "Настройки использования"
+L["Vanquisher Token"] = "Токен покорителя"
 L["version"] = "версия"
 L["Version"] = "Версия"
 L["Version Check"] = "Проверка версии"
@@ -816,12 +658,11 @@ L["version_outdated_msg"] = "Ваша версия аддона %s устаре�
 L["Vote"] = "Голос"
 L["Voters"] = "Голосующие"
 L["Votes"] = "Голоса"
-L["Voting options"] = "Опции голосования"
+L["Voting options"] = "Настройки голосования"
 L["Waiting for response"] = "Ожидание ответа"
 --[[Translation missing --]]
 --[[ L["whisper_guide"] = ""--]] 
---[[Translation missing --]]
---[[ L["whisper_guide2"] = ""--]] 
+L["whisper_guide2"] = "[RCLootCouncil]: Вы получите сообщение если вы были успешно добавлены."
 L["whisper_help"] = [=[Рейдеры могут использовать систему личных сообщений, в случае если кто-то не имеет аддона.
 Шепнув "rchelp" ответственному за добычу, они получат список ключевых слов, который может быть изменен в меню "Кнопки и Ответы".
 Ответственному за добычу рекомендуется включить "Анонс Сообщений" для каждого предмета, потому что номер каждого предмета необходим для использования системы личных сообщений.
@@ -833,18 +674,18 @@ L["Windows reset"] = "Окна сброшены"
 L["winners"] = "выигравшие"
 L["x days"] = "%d дней"
 L["x out of x have voted"] = "%d из %d проголосовало"
-L["You are not allowed to see the Voting Frame right now."] = "Вы не можете видеть окно голосования прямо сейчас."
+L["You are not allowed to see the Voting Frame right now."] = "Вам не разрешено просматривать окно голосования в данный момент."
 L["You are not in an instance"] = "Вы не в подземелье"
 L["You can only auto award items with a quality lower than 'quality' to yourself due to Blizaard restrictions"] = "Вы можете автоматически передавать себе только те предметы, качество которых ниже, чем %s , из-за ограничений, установленных разработчиками игры"
-L["You cannot start an empty session."] = "Вы не можете начать \"пустую\" сессию распределения добычи."
-L["You cannot use the menu when the session has ended."] = "Вы не можете использовать меню, если распределение добычи завершено."
-L["You cannot use this command without being the Master Looter"] = "Вы не можете использовать эту команду, не будучи ответственным за распределение добычи"
-L["You can't start a loot session while in combat."] = "Вы не можете запустить распределение добычи, находясь в бою."
-L["You can't start a session before all items are loaded!"] = "Вы не можете начать распределение добычи, прежде чем будут загружены все предметы!"
+L["You cannot start an empty session."] = "Вы не можете начать пустую сессию распределения лута."
+L["You cannot use the menu when the session has ended."] = "Вы не можете использовать меню, если распределение лута завершено."
+L["You cannot use this command without being the Master Looter"] = "Вы не можете использовать эту команду, не будучи мастерлутером"
+L["You can't start a loot session while in combat."] = "Вы не можете запустить распределение лута находясь в бою."
+L["You can't start a session before all items are loaded!"] = "Вы не можете начать распределение лута прежде чем будут загружены все предметы!"
 --[[Translation missing --]]
 --[[ L["You haven't selected an award reason to use for disenchanting!"] = ""--]] 
 L["You haven't set a council! You can edit your council by typing '/rc council'"] = "Вы не выбрали членов консула! Вы можете изменить состав консула через команду '/rc council'"
 L["You must select a target"] = "Вы должны выбрать цель"
 L["Your note:"] = "Ваша заметка:"
-L["You're already running a session."] = "Вы уже запустили сессию распределения добычи."
+L["You're already running a session."] = "Вы уже запустили сессию распределения лута."
 

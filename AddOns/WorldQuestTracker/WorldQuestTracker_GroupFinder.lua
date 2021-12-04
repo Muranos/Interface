@@ -22,6 +22,8 @@ end
 local ff = WorldQuestTrackerFinderFrame
 local rf = WorldQuestTrackerRareFrame
 
+
+
 ff.cannot_group_quest = {}
 
 --> store players near the player
@@ -184,10 +186,13 @@ local GetDistance_Point = DF.GetDistance_Point
 			--hook onclick from buttons in the result frame
 			for i = 1, #LFGListFrame.SearchPanel.ScrollFrame.buttons do
 				local button = LFGListFrame.SearchPanel.ScrollFrame.buttons[i]
-				button:HookScript("OnClick", function(self)
-					--print("clicked on me!")
-					--if already applied to a group, reclicking should cancel the apply
+				button:HookScript("OnClick", function(self, button)
 
+					if (button == "RightButton") then
+						return
+					end
+
+					--if already applied to a group, reclicking should cancel the apply
 					--check if the entry is valid
 					if (LFGListFrame.SearchPanel.selectedResult) then
 						_G.LFGListSearchPanel_SignUp(LFGListFrame.SearchPanel)
@@ -470,6 +475,15 @@ local GetDistance_Point = DF.GetDistance_Point
 	ff.divbar:SetVertexColor(0.5, 0.5, 0.5, 1)
 	ff.divbar:SetPoint("topleft", ff, "topleft", 3, ff.divBarY)
 	ff.divbar:SetPoint("topright", ff, "topright", -3, ff.divBarY)
+
+	ff.overlayCaptcha = CreateFrame("frame", nil, ff, "BackdropTemplate")
+	ff.overlayCaptcha:SetPoint("topleft", ff.divbar, "topleft", -2, 0)
+	ff.overlayCaptcha:SetPoint("bottomright", ff, "bottomright", 0, 0)
+	ff.overlayCaptcha:SetFrameStrata("DIALOG")
+	ff.overlayCaptcha:SetBackdrop({bgFile = [[Interface\ACHIEVEMENTFRAME\UI-GuildAchievement-Parchment-Horizontal-Desaturated]], tileSize = 64, tile = true})
+	ff.overlayCaptcha:SetBackdropColor(0, 0, 0, 1)
+	ff.overlayCaptcha:EnableMouse(true)
+	ff.overlayCaptcha:Hide(true)
 
 	--row with buttons
 	ff.GroupButtonsFrame = CreateFrame("frame", nil, ff)
@@ -761,9 +775,17 @@ end
 		end
 	end)
 
-function ff:PlayerEnteredWorldQuestZone(questID, npcID, npcName)
-	--> update the frame
+local playerEnteredWorldQuestZone = function(questID, npcID, npcName)
 
+	if (ff.buttonAcquired) then
+		ff.buttonAcquired:Hide()
+		QuestObjectiveFindGroup_ReleaseButton(ff.buttonAcquired)
+		ff.buttonAcquired = nil
+	end
+
+	ff.overlayCaptcha:Hide()
+
+	--> update the frame
 	local title, isNpc, factionID, tagID, tagName, worldQuestType, rarity, isElite, tradeskillLineIndex
 	if (npcID) then
 		--> check if the group finder can search for rares
@@ -806,11 +828,38 @@ function ff:PlayerEnteredWorldQuestZone(questID, npcID, npcName)
 		
 		if (type (questID) == "number") then
 			title, factionID, tagID, tagName, worldQuestType, rarity, isElite, tradeskillLineIndex = WorldQuestTracker.GetQuest_Info (questID)
+
+			--print(tagID, worldQuestType, rarity, isElite) -- 136, 2, 1, true
+
 			if (isElite) then
 				groupButtons_OpenGroupFinder:Disable()
 				C_Timer.After (3, function()
 					groupButtons_OpenGroupFinder:Enable()
 				end)
+			end
+
+			--print(tagID, tagName, worldQuestType , rarity , isElite)
+
+			if ((tagID == 112 or tagID == 136) and worldQuestType == 2 and (rarity == 1 or rarity == 2) and isElite) then
+				groupButtons_OpenGroupFinder:Disable()
+				C_Timer.After(3, function()
+					groupButtons_OpenGroupFinder:Enable()
+				end)
+
+				local findButton = QuestObjectiveFindGroup_AcquireButton(ff, questID)
+				findButton:ClearAllPoints()
+				findButton:SetPoint("center", ff, "center", 0, -28)
+				findButton:SetSize(64, 64)
+				findButton:SetFrameStrata("FULLSCREEN")
+				findButton:Show()
+				ff.overlayCaptcha:Show()
+
+				--TODO > arrumar o auto hide to painel quando completar a quest
+				--TODO > fechar o painel quando entrar em grupo
+				--TODO > reabrir o painel se sair do grupo e ainda estiver na quest
+				--TODO > não poder abrir o frame do LFG enquanto estiver em combate
+
+				ff.buttonAcquired = findButton
 			end
 		end
 
@@ -877,6 +926,36 @@ function ff:PlayerEnteredWorldQuestZone(questID, npcID, npcName)
 			ff.QuestCancelledHidingTimer:Cancel()
 		end
 	end
+end
+
+hooksecurefunc("QuestObjectiveSetupBlockButton_AddRightButton", function(block, groupFinderButton, buttonType)
+	if (buttonType == "groupFinder") then
+--		for a, b in pairs(block.TrackedQuest) do
+--			print(a,b)
+--		end
+--		groupFinderButton
+
+		local questID = block and block.TrackedQuest and block.TrackedQuest.questID
+		if (questID) then
+			local questName = C_TaskQuest.GetQuestInfoByQuestID(questID)
+			if (questName) then
+				C_Timer.After(0.5, function()
+					if (ff:IsShown()) then
+						if (ff.CurrentQuestName == questName) then
+							--print("Hello!")
+						end
+					end
+				end)
+			end
+		end
+	end
+end)
+
+function ff:PlayerEnteredWorldQuestZone(questID, npcID, npcName)
+	C_Timer.After(0.6, function()
+		--delay the call for the enter zone
+		playerEnteredWorldQuestZone(questID, npcID, npcName)
+	end)
 end
 
 function ff:PlayerLeftWorldQuestZone (questID, questCompleted)
@@ -1214,6 +1293,10 @@ ff:SetScript ("OnEvent", function (self, event, questID, arg2, arg3)
 				ff.IsInWQGroup = false
 				ff.PreviousLeader = nil
 				C_Timer.After (2, ff.DelayedCheckForDisband)
+
+				--check if the player is in a world quest zone
+				--may popup the group finder again
+				ff.CheckForQuestsInTheArea()
 			else
 				ff.GroupMembers = GetNumGroupMembers (LE_PARTY_CATEGORY_HOME) + 1
 				--> tell the rare finder the group has been modified
@@ -1221,11 +1304,13 @@ ff:SetScript ("OnEvent", function (self, event, questID, arg2, arg3)
 			end
 		else
 			if (IsInGroup()) then
+				--player entered in a group
 				ff.IsInWQGroup = true
 				ff.GroupMembers = GetNumGroupMembers (LE_PARTY_CATEGORY_HOME) + 1
-				
-				--> player entered in a group
-				
+
+				if (ff.buttonAcquired) then
+					ff:HideFrame(true)
+				end
 			end
 		end
 		
@@ -1263,21 +1348,25 @@ ff:SetScript ("OnEvent", function (self, event, questID, arg2, arg3)
 	elseif (event == "PLAYER_LOGIN") then
 		if (not IsInGroup()) then
 			--attempt to get the quest the player is in at the login
-			local allQuestsInTheMap = C_TaskQuest.GetQuestsForPlayerByMapID(WorldQuestTracker.GetCurrentStandingMapAreaID())
-			if (allQuestsInTheMap) then
-				for index, questInfo in ipairs(allQuestsInTheMap) do
-					local questId = questInfo.questId
-					if(questInfo.inProgress) then
-						--show world quest popup
-						C_Timer.After(3, function()
-							ff:GetScript("OnEvent")(ff, "QUEST_ACCEPTED", questId)
-						end)
-					end
-				end
-			end
+			ff.CheckForQuestsInTheArea()
 		end
 	end
 end)
+
+function ff.CheckForQuestsInTheArea()
+	local allQuestsInTheMap = C_TaskQuest.GetQuestsForPlayerByMapID(WorldQuestTracker.GetCurrentStandingMapAreaID())
+	if (allQuestsInTheMap) then
+		for index, questInfo in ipairs(allQuestsInTheMap) do
+			local questId = questInfo.questId
+			if(questInfo.inProgress) then
+				--show world quest popup
+				C_Timer.After(3, function()
+					ff:GetScript("OnEvent")(ff, "QUEST_ACCEPTED", questId)
+				end)
+			end
+		end
+	end
+end
 
 ff.BQuestTrackerFreeWidgets = {}
 ff.BQuestTrackerUsedWidgets = {}
@@ -1738,6 +1827,11 @@ end
 
 function kspam.FilterSortedResult(results)
 
+	if (WorldQuestTracker.db.profile.groupfinder.kfilter.wipe_counter == 0) then
+		WorldQuestTracker.db.profile.groupfinder.kfilter.wipe_counter = WorldQuestTracker.db.profile.groupfinder.kfilter.wipe_counter + 1
+		wipe(WorldQuestTracker.db.profile.groupfinder.kfilter.leaders_ignored)
+	end
+
 	local maxAge = WorldQuestTracker.db.profile.groupfinder.kfilter.ignore_by_time * 60
 
 	for i = #results, 1, -1 do
@@ -1763,22 +1857,31 @@ function kspam.FilterSortedResult(results)
 			canAdd = false
 		end
 
-		if (searchResultInfo1 and not searchResultInfo1.isDelisted and canAdd) then
+		if (canAdd and searchResultInfo1 and not searchResultInfo1.isDelisted) then
 			--cut by age (default 30 minutes)
 			if (searchResultInfo1.age > maxAge) then
 				canAdd = false
-			
-			elseif (searchResultInfo1.voiceChat ~= "") then
+			end
+
+			--elseif (searchResultInfo1.voiceChat ~= "") then
+			--	canAdd = false
+			--end
+
+			--if this group is exposed more than two hours
+			if (searchResultInfo1.age > maxAge+7200 and searchResultInfo1.leaderName) then
+				if (WorldQuestTracker.db.profile.groupfinder.kfilter.ignore_leaders_enabled) then
+					WorldQuestTracker.db.profile.groupfinder.kfilter.leaders_ignored[searchResultInfo1.leaderName] = true
+				end
 				canAdd = false
 			end
 
 			if (not canAdd) then
 				tremove(results, i)
-				if (searchResultInfo1.leaderName) then
-					if (WorldQuestTracker.db.profile.groupfinder.kfilter.ignore_leaders_enabled) then
-						WorldQuestTracker.db.profile.groupfinder.kfilter.leaders_ignored[searchResultInfo1.leaderName] = true
-					end
-				end
+				--if (searchResultInfo1.leaderName) then
+					--if (WorldQuestTracker.db.profile.groupfinder.kfilter.ignore_leaders_enabled) then
+					--	WorldQuestTracker.db.profile.groupfinder.kfilter.leaders_ignored[searchResultInfo1.leaderName] = true
+					--end
+				--end
 			end
 
 			--[[ searchResultInfo1 members
@@ -1803,7 +1906,141 @@ function kspam.FilterSortedResult(results)
 	end
 end
 
-hooksecurefunc("LFGListUtil_SortSearchResults", kspam.OnSortResults)
+--hooksecurefunc("LFGListUtil_SortSearchResults", kspam.OnSortResults)
+
+local onClickBanButton = function(banButton)
+	local buttonObject =  banButton.MyObject
+	local searchResultInfo = C_LFGList.GetSearchResultInfo(buttonObject.resultID)
+	local leaderName = searchResultInfo.leaderName
+
+	WorldQuestTracker.db.profile.groupfinder.kfilter.leaders_ignored[leaderName] = true
+	banButton:GetParent().isBanned = buttonObject.resultID
+	banButton:GetParent().disabledOverlay:Show()
+
+	banButton:Hide()
+end
+
+local allowedCache = {}
+
+function kspam.OnUpdateButtonStatus(button)
+	--get the result info
+	local searchResultInfo = C_LFGList.GetSearchResultInfo(button.resultID)
+
+	--is this result banned
+	if (WorldQuestTracker.db.profile.groupfinder.kfilter.leaders_ignored[searchResultInfo.leaderName]) then
+		if (button.disabledOverlay) then
+			button.disabledOverlay:Show()
+			for _, texture in pairs(button.DataDisplay.Enumerate.Icons) do
+				texture:Hide()
+			end
+		end
+
+		if (button.banButton) then
+			button.banButton.text = ""
+		end
+	else
+		if (button.disabledOverlay) then
+			button.disabledOverlay:Hide()
+		end
+	end
+
+	local shouldShowBan = button.VoiceChat:IsShown()
+
+	--check timer
+	if (searchResultInfo.age > 420) then
+		local tankAmount = tonumber(button.DataDisplay.RoleCount.TankCount:GetText())
+		local healerAmount = tonumber(button.DataDisplay.RoleCount.HealerCount:GetText())
+		local dpsAmount = tonumber(button.DataDisplay.RoleCount.DamagerCount:GetText())
+
+		if (tankAmount and healerAmount and dpsAmount) then
+			local playerAmount = tankAmount + healerAmount + dpsAmount
+			if (playerAmount == 1) then
+				shouldShowBan = true
+			end
+		end
+	end
+
+	--check if the voice icon is shown
+	if (shouldShowBan) then
+		local buttonAlpha = 0.7
+
+		if ((allowedCache[searchResultInfo.leaderName] or 0) > 100) then
+			if (button.banButton) then
+				button.banButton:Hide()
+			end
+			return
+
+		elseif ((allowedCache[searchResultInfo.leaderName] or 0) > 0) then
+			buttonAlpha = buttonAlpha - (allowedCache[searchResultInfo.leaderName] * 0.007)
+		end
+
+		if (not button.banButton) then
+			--create the ban button if not exists
+			local alpha = 0.7
+			button.banButton = DF:CreateButton(button, onClickBanButton, 36, 12, "Ban!", _, _, _, _, _, false, DF:GetTemplate("dropdown", "OPTIONS_DROPDOWN_TEMPLATE"))
+			button.banButton.widget.text:ClearAllPoints()
+			button.banButton.widget.text:SetPoint("left", button.banButton.widget, "left", 2, 0)
+			button.banButton.widget.text:SetTextColor(.7, .7, 0, alpha)
+			button.banButton:SetPoint("topright", button, "topright", 8, -1)
+			button.banButton:SetFrameLevel(button:GetFrameLevel()+10)
+			button.banButton:SetBackdropColor(0, 0, 0, alpha)
+			button.banButton.onleave_backdrop = {0, 0, 0, alpha}
+			button.banButton.onenter_backdrop = {0, 0, 0, alpha}
+			button.banButton.tooltip = "|cFFFFFF00World Quest Tracker|r\nIf this is an #Ad, Spam, Trash, hit this button!"
+
+			--dark texture to be placed above the result rectangle when it get banned
+			button.disabledOverlay = CreateFrame("frame", nil, button)
+			button.disabledOverlay:SetAllPoints()
+			button.disabledOverlay.texture = button.disabledOverlay:CreateTexture(nil, "overlay")
+			button.disabledOverlay.texture:SetColorTexture(.0, .0, .0, .863)
+			button.disabledOverlay.texture:SetAllPoints()
+			button.disabledOverlay:Hide()
+		else
+			if (not WorldQuestTracker.db.profile.groupfinder.kfilter.leaders_ignored[searchResultInfo.leaderName]) then
+				button.banButton.text = "Ban!"
+			end
+		end
+
+		button.banButton:Show()
+		button.banButton:SetAlpha(buttonAlpha)
+		button.banButton.resultID = button.resultID
+		if (searchResultInfo.leaderName) then
+			allowedCache[searchResultInfo.leaderName] = (allowedCache[searchResultInfo.leaderName] or 0) + 1
+		end
+	else
+		if (button.banButton) then
+			button.banButton:Hide()
+		end
+	end
+
+	--[=[
+		[18:26:50] LFGListSearchPanelScrollFrameButton5 312 36.000007629395
+		[18:26:50] 0 userdata: 000002E4B3633E58
+		[18:26:50] Spinner table: 000002E536255480
+		[18:26:50] Highlight table: 000002E536254DF0
+		[18:26:50] DataDisplay table: 000002E536255070
+			[18:28:18] Enumerate table: 000002E58EA65470
+			[18:28:18] PlayerCount table: 000002E58EA65C90
+			[18:28:18] RoleCount table: 000002E58EA644D0
+		[18:26:50] ActivityName table: 000002E536254CB0
+		[18:26:50] VoiceChat table: 000002E5362553E0
+		[18:26:50] PendingLabel table: 000002E536254D50
+		[18:26:50] ExpirationTime table: 000002E536254D00
+		[18:26:50] Selected table: 000002E536254DA0
+		[18:26:50] resultID 1255
+		[18:26:50] CancelButton table: 000002E536255700
+		[18:26:50] expiration 372979.737
+		[18:26:50] ResultBG table: 000002E536254BC0
+		[18:26:50] ApplicationBG table: 000002E536254C10
+		[18:26:50] Name table: 000002E536254C60
+	
+	--]=]
+	
+
+end
+
+--hooksecurefunc("LFGListSearchEntry_Update", kspam.OnUpdateButtonStatus)
+
 
 
 

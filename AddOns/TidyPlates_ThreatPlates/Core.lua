@@ -20,7 +20,6 @@ local NamePlateDriverFrame = NamePlateDriverFrame
 -- ThreatPlates APIs
 local TidyPlatesThreat = TidyPlatesThreat
 local LibStub = LibStub
-local LSM = t.Media
 local L = t.L
 
 local _G =_G
@@ -207,7 +206,7 @@ function TidyPlatesThreat:CheckForFirstStartUp()
   if not self.db.char.welcome then
     self.db.char.welcome = true
 
-    if not Addon.CLASSIC then
+    if not Addon.IS_CLASSIC and not Addon.IS_TBC_CLASSIC then
       local Welcome = L["|cff89f559Welcome to |r|cff89f559Threat Plates!\nThis is your first time using Threat Plates and you are a(n):\n|r|cff"]..t.HCC[Addon.PlayerClass]..self:SpecName().." "..UnitClass("player").."|r|cff89F559.|r\n"
 
       -- initialize roles for all available specs (level > 10) or set to default (dps/healing)
@@ -289,7 +288,7 @@ function Addon:SetBaseNamePlateSize()
   isInstance = isInstance and (instanceType == "party" or instanceType == "raid")
 
   db = TidyPlatesThreat.db.profile
-  if Addon.CLASSIC then
+  if Addon.IS_CLASSIC or Addon.IS_TBC_CLASSIC then
     -- Classic has the same nameplate size for friendly and enemy units, so either set both or non at all (= set it to default values)
     if not db.ShowFriendlyBlizzardNameplates and not db.ShowEnemyBlizzardNameplates and not isInstance then
       C_NamePlate.SetNamePlateFriendlySize(width, height)
@@ -343,8 +342,27 @@ function TidyPlatesThreat:OnInitialize()
   local db = LibStub('AceDB-3.0'):New('ThreatPlatesDB', defaults, 'Default')
   self.db = db
 
-  -- Change defaults if deprecated custom nameplates are used (not yet migrated)
-  Addon.SetDefaultsForCustomNameplates()
+  Addon.LibAceConfigDialog = LibStub("AceConfigDialog-3.0")
+  Addon.LibAceConfigRegistry = LibStub("AceConfigRegistry-3.0")
+  Addon.LibSharedMedia = LibStub("LibSharedMedia-3.0")
+  Addon.LibCustomGlow = LibStub("LibCustomGlow-1.0")
+
+  if Addon.IS_CLASSIC then
+    Addon.LibClassicDurations = LibStub("LibClassicDurations")
+
+    Addon.LibClassicCasterino = LibStub("LibClassicCasterino-ThreatPlates")
+    -- Register callsbacks for spellcasting library
+    Addon.LibClassicCasterino.RegisterCallback(self,"UNIT_SPELLCAST_START", Addon.UNIT_SPELLCAST_START)
+    Addon.LibClassicCasterino.RegisterCallback(self,"UNIT_SPELLCAST_DELAYED", Addon.UnitSpellcastMidway) -- only for player
+    Addon.LibClassicCasterino.RegisterCallback(self,"UNIT_SPELLCAST_STOP", Addon.UNIT_SPELLCAST_STOP)
+    Addon.LibClassicCasterino.RegisterCallback(self,"UNIT_SPELLCAST_FAILED", Addon.UNIT_SPELLCAST_STOP)
+    Addon.LibClassicCasterino.RegisterCallback(self,"UNIT_SPELLCAST_INTERRUPTED", Addon.UNIT_SPELLCAST_INTERRUPTED)
+    Addon.LibClassicCasterino.RegisterCallback(self,"UNIT_SPELLCAST_CHANNEL_START", Addon.UNIT_SPELLCAST_CHANNEL_START)
+    Addon.LibClassicCasterino.RegisterCallback(self,"UNIT_SPELLCAST_CHANNEL_UPDATE", Addon.UnitSpellcastMidway) -- only for player
+    Addon.LibClassicCasterino.RegisterCallback(self,"UNIT_SPELLCAST_CHANNEL_STOP", Addon.UNIT_SPELLCAST_CHANNEL_STOP)
+  end
+
+  Addon.LoadOnDemandLibraries()
 
   local RegisterCallback = db.RegisterCallback
   RegisterCallback(self, 'OnProfileChanged', 'ProfChange')
@@ -355,41 +373,10 @@ function TidyPlatesThreat:OnInitialize()
   local app_name = t.ADDON_NAME
   local dialog_name = app_name .. " Dialog"
   LibStub("AceConfig-3.0"):RegisterOptionsTable(dialog_name, t.GetInterfaceOptionsTable())
-  LibStub("AceConfigDialog-3.0"):AddToBlizOptions(dialog_name, t.ADDON_NAME)
+  Addon.LibAceConfigDialog:AddToBlizOptions(dialog_name, t.ADDON_NAME)
 
   -- Setup chat commands
   self:RegisterChatCommand("tptp", "ChatCommand")
-
-  if Addon.CLASSIC then
-    local LibClassicCasterino = Addon.LibClassicCasterino
-
-    -- Register callsbacks for spellcasting library
-    LibClassicCasterino.RegisterCallback(self,"UNIT_SPELLCAST_START", Addon.UNIT_SPELLCAST_START)
-    LibClassicCasterino.RegisterCallback(self,"UNIT_SPELLCAST_DELAYED", Addon.UnitSpellcastMidway) -- only for player
-    LibClassicCasterino.RegisterCallback(self,"UNIT_SPELLCAST_STOP", Addon.UNIT_SPELLCAST_STOP)
-    LibClassicCasterino.RegisterCallback(self,"UNIT_SPELLCAST_FAILED", Addon.UNIT_SPELLCAST_STOP)
-    LibClassicCasterino.RegisterCallback(self,"UNIT_SPELLCAST_INTERRUPTED", Addon.UNIT_SPELLCAST_INTERRUPTED)
-    LibClassicCasterino.RegisterCallback(self,"UNIT_SPELLCAST_CHANNEL_START", Addon.UNIT_SPELLCAST_CHANNEL_START)
-    LibClassicCasterino.RegisterCallback(self,"UNIT_SPELLCAST_CHANNEL_UPDATE", Addon.UnitSpellcastMidway) -- only for player
-    LibClassicCasterino.RegisterCallback(self,"UNIT_SPELLCAST_CHANNEL_STOP", Addon.UNIT_SPELLCAST_CHANNEL_STOP)
-  end
-end
-
-local function SetCVarHook(name, value, c)
-  -- Used as detection for switching between small and large nameplates
-  if name == "NamePlateVerticalScale" then
-    local db = TidyPlatesThreat.db.profile.Automation
-    local isInstance, instanceType = IsInInstance()
-
-    if not NamePlateDriverFrame:IsUsingLargerNamePlateStyle() then
-      -- reset to previous setting
-      Addon.CVars:RestoreFromProfile("nameplateGlobalScale")
-    elseif db.SmallPlatesInInstances and isInstance then
-      Addon.CVars:Set("nameplateGlobalScale", 0.4)
-    end
-
-    Addon:CallbackWhenOoC(function() Addon:SetBaseNamePlateSize() end)
-  end
 end
 
 -- The OnEnable() and OnDisable() methods of your addon object are called by AceAddon when your addon is
@@ -401,22 +388,18 @@ function TidyPlatesThreat:OnEnable()
   TidyPlatesThreat:CheckForFirstStartUp()
   TidyPlatesThreat:CheckForIncompatibleAddons()
 
-  if Addon.CLASSIC then
-    Addon.LibClassicDurations = LibStub("LibClassicDurations")
-  else
+  if not (Addon.IS_CLASSIC or Addon.IS_TBC_CLASSIC) then
     Addon.CVars:OverwriteBoolProtected("nameplateResourceOnTarget", self.db.profile.PersonalNameplate.ShowResourceOnTarget)
   end
 
   Addon.LoadOnDemandLibraries()
+
   TidyPlatesThreat:ReloadTheme()
 
   -- Register callbacks at LSM, so that we can refresh everything if additional media is added after TP is loaded
   -- Register this callback after ReloadTheme as media will be updated there anyway
-  LSM.RegisterCallback(self, "LibSharedMedia_SetGlobal", "MediaUpdate" )
-  LSM.RegisterCallback(self, "LibSharedMedia_Registered", "MediaUpdate" )
-
-  -- Get updates for changes regarding: Large Nameplates
-  hooksecurefunc("SetCVar", SetCVarHook)
+  Addon.LibSharedMedia.RegisterCallback(self, "LibSharedMedia_SetGlobal", "MediaUpdate" )
+  Addon.LibSharedMedia.RegisterCallback(self, "LibSharedMedia_Registered", "MediaUpdate" )
 
   EnableEvents()
 end
@@ -442,7 +425,7 @@ end
 
 -- Register callbacks at LSM, so that we can refresh everything if additional media is added after TP is loaded
 function TidyPlatesThreat.MediaUpdate(addon_name, name, mediatype, key)
-  if mediatype ~= LSM.MediaType.SOUND and not LSMUpdateTimer then
+  if mediatype ~= Addon.LibSharedMedia.MediaType.SOUND and not LSMUpdateTimer then
     LSMUpdateTimer = true
 
     -- Delay the update for one second to avoid firering this several times when multiple media are registered by another addon
@@ -508,7 +491,7 @@ function TidyPlatesThreat:PLAYER_ENTERING_WORLD()
   -- SetCVar("ShowClassColorInNameplate", 1)
 
   local db = self.db.profile.questWidget
-  if not Addon.CLASSIC then
+  if not (Addon.IS_CLASSIC or Addon.IS_TBC_CLASSIC) then
     if db.ON or db.ShowInHeadlineView then
       Addon.CVars:Set("showQuestTrackingTooltips", 1)
     else
@@ -525,13 +508,6 @@ function TidyPlatesThreat:PLAYER_ENTERING_WORLD()
   else
     -- reset to previous setting
     Addon.CVars:RestoreFromProfile("nameplateShowFriends")
-  end
-
-  if isInstance and db.SmallPlatesInInstances and NamePlateDriverFrame:IsUsingLargerNamePlateStyle() then
-    Addon.CVars:Set("nameplateGlobalScale", 0.4)
-  else
-    -- reset to previous setting
-    Addon.CVars:RestoreFromProfile("nameplateGlobalScale")
   end
 
   -- Update custom styles for the current instance
@@ -592,7 +568,8 @@ function TidyPlatesThreat:PLAYER_REGEN_DISABLED()
   -- Dont't use automation for friendly nameplates if in an instance and Hide Friendly Nameplates is enabled
   if db.FriendlyUnits ~= "NONE" and not (isInstance and db.HideFriendlyUnitsInInstances) then
     _G.SetCVar("nameplateShowFriends", (db.FriendlyUnits == "SHOW_COMBAT" and 1) or 0)
-  end  if db.EnemyUnits ~= "NONE" then
+  end
+  if db.EnemyUnits ~= "NONE" then
     _G.SetCVar("nameplateShowEnemies", (db.EnemyUnits == "SHOW_COMBAT" and 1) or 0)
   end
 end

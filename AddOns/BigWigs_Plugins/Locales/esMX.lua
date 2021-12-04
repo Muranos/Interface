@@ -152,7 +152,7 @@ L.breakFinished = "El descanso ha terminado!"
 
 L.bossBlock = "Bloque de Jefe"
 L.bossBlockDesc = "Configura las diferentes cosas que puedes bloquear durante un encuentro con el jefe.\n\n"
-L.bossBlockAudioDesc = "Configura qué sonido silenciar durante un encuentro con un jefe.\n\n"
+L.bossBlockAudioDesc = "Configura qué sonido silenciar durante un encuentro con un jefe.\n\nAny option here that is |cff808080greyed out|r has been disabled in WoW's sound options.\n\n"
 L.movieBlocked = "Ya has visto esta cinemática antes, saltándola."
 L.blockEmotes = "Bloquear los emotes de la pantalla central"
 L.blockEmotesDesc = "Algunos jefes muestran emotes para ciertas habilidades, estos mensajes son demasiado largos y descriptivos. Intentamos acortarlos, y ajustarlos para que no interfieran con el juego, y que no te digan específicamente qué tienes que hacer.\n\nTen en cuenta: Los emotes de Jefe seguirán siendo visibles en el chat si deseas leerlos."
@@ -264,8 +264,8 @@ L.useIcons = "Usar íconos"
 L.useIconsDesc = "Mostrar íconos al lado de los mensajes."
 L.classColors = "Colores de clase"
 L.classColorsDesc = "Los mensajes a veces contienen nombres de jugadores. Al activar esta opción, esos nombres serán coloreados con los colores de la clase."
-L.chatMessages  = "Mensajes del marco de chat"
-L.chatMessagesDesc  = "Todos los mensajes de salida de BigWigs a la ventana de chat por defecto en adición a los ajustes mostrados"
+L.chatFrameMessages = "Mensajes del marco de chat"
+L.chatFrameMessagesDesc = "Todos los mensajes de salida de BigWigs a la ventana de chat por defecto en adición a los ajustes mostrados"
 
 L.fontSize = "Tamaño de la fuente"
 L.none = "Ninguno"
@@ -291,8 +291,6 @@ L.proximity_name = "Proximidad"
 L.soundDelay = "Retraso de sonido"
 L.soundDelayDesc = "Especifica el tiempo que BigWigs debería esperar entre cada repetición de sonido cuando alguien está demasiado cerca de ti."
 
-L.proximity = "Pantalla de proximidad"
-L.proximity_desc = "Muestra la ventana de proximidad cuando sea apropiado para este encuentro, enumerando los jugadores que están demasiado cerca de ti."
 L.resetProximityDesc = "Restablece todas las opciones relacionadas con las proximidad, incluyendo la posición de anclas de este."
 
 L.close = "Cerrar"
@@ -341,7 +339,6 @@ L.countdownBegins_desc = "Elige cuánto tiempo restante debe de quedar en el lla
 --
 
 L.icons = "Íconos"
-L.raidIconsDesc = "Algunos encuentros usan los iconos de banda para marcar jugadores de interés especial para tu grupo. Por ejemplo, los efectos tipo 'bomba' y control mental. Si la deshabilitas, no marcarás a nadie.\n\n|cffff4411¡Sólo se aplica si eres el líder del grupo o si te tienes ayudante!|r"
 L.raidIconsDescription = "Algunos encuentros pueden incluir elementos como habilidades de tipo bomba dirigidas a un jugador específico, un jugador perseguido, o un jugador específico puede ser de interés. Aquí puedes personalizar los íconos de banda que deben utilizarse para marcar a estos jugadores.\n\nSi un encuentro sólo tiene una habilidad por la que vale la pena marcar, sólo se utilizará el primer icono. Un icono nunca se usará para dos habilidades diferentes en el mismo encuentro, y cualquier habilidad dada siempre usará el mismo icono la próxima vez.\n\n|cffff4411Ten en cuenta que si un jugador ya ha sido marcado manualmente, BigWigs nunca cambiará su icono.|r"
 L.primary = "Primario"
 L.primaryDesc = "El primer ícono de banda que un encuentro debería usar. "

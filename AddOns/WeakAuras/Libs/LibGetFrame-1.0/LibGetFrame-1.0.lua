@@ -1,5 +1,5 @@
 local MAJOR_VERSION = "LibGetFrame-1.0"
-local MINOR_VERSION = 26
+local MINOR_VERSION = 28
 if not LibStub then error(MAJOR_VERSION .. " requires LibStub.") end
 local lib = LibStub:NewLibrary(MAJOR_VERSION, MINOR_VERSION)
 if not lib then return end
@@ -29,9 +29,12 @@ local defaultFramePriorities = {
     "^oUF_.-Raid", -- generic oUF
     "^LimeGroup", -- lime
     "^SUFHeaderraid", -- suf
+    "^LUFHeaderraid", -- luf
+    "^AshToAsh", -- AshToAsh
     -- party frames
     "^AleaUI_GroupHeader", -- Alea
     "^SUFHeaderparty", --suf
+    "^LUFHeaderparty", --luf
     "^ElvUF_PartyGroup", -- elv
     "^oUF_.-Party", -- generic oUF
     "^PitBull4_Groups_Party", -- pitbull4
@@ -39,6 +42,7 @@ local defaultFramePriorities = {
     "^CompactParty", -- blizz
     -- player frame
     "^SUFUnitplayer",
+    "^LUFUnitplayer",
     "^PitBull4_Frames_Player",
     "^ElvUF_Player",
     "^oUF_.-Player",
@@ -47,6 +51,7 @@ local defaultFramePriorities = {
 
 local defaultPlayerFrames = {
     "SUFUnitplayer",
+    "LUFUnitplayer",
     "PitBull4_Frames_Player",
     "ElvUF_Player",
     "oUF_.-Player",
@@ -55,6 +60,7 @@ local defaultPlayerFrames = {
 }
 local defaultTargetFrames = {
     "SUFUnittarget",
+    "LUFUnittarget",
     "PitBull4_Frames_Target",
     "ElvUF_Target",
     "oUF_.-Target",
@@ -62,6 +68,7 @@ local defaultTargetFrames = {
 }
 local defaultTargettargetFrames = {
     "SUFUnittargetarget",
+    "LUFUnittargetarget",
     "PitBull4_Frames_Target's target",
     "ElvUF_TargetTarget",
     "oUF_.-TargetTarget",
@@ -71,13 +78,20 @@ local defaultTargettargetFrames = {
 local defaultPartyFrames = {
     "^AleaUI_GroupHeader",
     "^SUFHeaderparty",
+    "^LUFHeaderparty",
     "^ElvUF_PartyGroup",
     "^oUF_.-Party",
     "^PitBull4_Groups_Party",
+    "^AshToAsh",
     "^CompactParty",
 }
 local defaultPartyTargetFrames = {
     "SUFChildpartytarget%d",
+}
+local defaultFocusFrames = {
+    "ElvUF_FocusTarget",
+    "LUFUnitfocus",
+    "FocusFrame"
 }
 local defaultRaidFrames = {
     "^Vd",
@@ -87,8 +101,10 @@ local defaultRaidFrames = {
     "^PlexusLayout",
     "^ElvUF_RaidGroup",
     "^oUF_.-Raid",
+    "^AshToAsh",
     "^LimeGroup",
     "^SUFHeaderraid",
+    "^LUFHeaderraid",
     "^CompactRaid",
 }
 
@@ -203,17 +219,18 @@ local defaultOptions = {
     ignoreTargettargetFrame = true,
     ignorePartyFrame = false,
     ignorePartyTargetFrame = true,
+    ignoreFocusFrame = true,
     ignoreRaidFrame = false,
     playerFrames = defaultPlayerFrames,
     targetFrames = defaultTargetFrames,
     targettargetFrames = defaultTargettargetFrames,
     partyFrames = defaultPartyFrames,
     partyTargetFrames = defaultPartyTargetFrames,
+    focusFrames = defaultFocusFrames,
     raidFrames = defaultRaidFrames,
     ignoreFrames = {
         "PitBull4_Frames_Target's target's target",
         "ElvUF_PartyGroup%dUnitButton%dTarget",
-        "ElvUF_FocusTarget",
         "RavenButton"
     },
     returnAll = false,
@@ -261,6 +278,11 @@ function lib.GetUnitFrame(target, opt)
     end
     if opt.ignorePartyTargetFrame then
         for _,v in pairs(opt.partyTargetFrames) do
+            tinsert(ignoredFrames, v)
+        end
+    end
+    if opt.ignoreFocusFrame then
+        for _,v in pairs(opt.focusFrames) do
             tinsert(ignoredFrames, v)
         end
     end

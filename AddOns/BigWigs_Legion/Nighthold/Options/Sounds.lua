@@ -49,7 +49,6 @@ BigWigs:AddSounds("Spellblade Aluriel", {
 	[212736] = "alert",
 	[213275] = "alarm",
 	[213278] = "alert",
-	[213390] = "alarm",
 	[213504] = "alert",
 	[213520] = "alert",
 	[213564] = "info",
@@ -83,7 +82,6 @@ BigWigs:AddSounds("Krosus", {
 	[205420] = "info",
 	[205862] = "alert",
 	[206677] = "warning",
-	[208203] = "alert",
 	["smashingBridge"] = "alert",
 })
 

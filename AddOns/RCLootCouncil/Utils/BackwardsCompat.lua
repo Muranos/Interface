@@ -2,7 +2,8 @@
 -- Creates 'RCLootCouncil.Compat' as a namespace for compatibility functions.
 -- @author Potdisc
 -- Create Date : 31/5-2019 05:21:28
-local _, addon = ...
+--- @type RCLootCouncil
+local addon = select(2, ...)
 local Compat = {}
 addon.Compat = Compat
 
@@ -105,7 +106,6 @@ Compat.list = {
 	{
 		name = "Changes to auto awards",
 		version = "3.1.0",
-		tVersion = "Beta.2",
 		func = function()
 			for _,db in pairs(addon.db.profiles) do
 				db.autoAwardTo = {}

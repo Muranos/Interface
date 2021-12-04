@@ -12,21 +12,41 @@ local overdesc = {
 	[ 25]={L"Inflicts {} damage to all enemies in melee, and increases own damage dealt by 20% for three turns.", "damageATK"},
 	[ 52]={L"Inflicts {} damage to all enemies at range.", "damageATK"},
 	[ 85]=L"Reduces the damage taken by the closest ally by 5000% for two turns.",
-	[107]={L"Debuffs all enemies, dealing {} damage this turn and during each of the next three turns.", "damageATK",
-	       L"Increases all damage taken by the nearest enemy by {} for three turns.", "plusDamageTakenATK"},
+	[107]={L"Debuffs all enemies, dealing {1} damage this turn and during each of the next three turns. Additionally, increases all damage taken by the nearest enemy by {2} for three turns.", "damageATK", "plusDamageTakenATK"},
 	[121]={L"Reduces all enemies' damage dealt by {}% during the next turn.", "modDamageDealt"},
 	[125]={L"Inflicts {} damage to a random enemy.", "damageATK"},
-	[194]={L"Increases damage dealt by the closest ally by {} for two turns.", "plusDamageDealtATK",
-	       L"Reduces all damage taken by the closest ally by {}% for two turns.", "modDamageTaken",
-	       L"Inflicts {} damage to self.","damageATK"},
+	[194]={L"Buffs the closest ally, increasing all damage dealt by {1} and reducing all damage taken by {2}% for two turns. Inflicts {3} damage to self.", "plusDamageDealtATK", "modDamageTaken", "damageATK"},
 	[227]={L"Every other turn, a random enemy is attacked for {}% of their maximum health.", "damagePerc"},
-	[242]={L"Heals the closest ally for {}.", "healATK",
-	       L"Increases all damage taken by the closest ally by {}% for two turns.", "modDamageTaken"},
+	[242]={L"Heals the closest ally for {1}, and increases all damage taken by the ally by {2}% for two turns.", "healATK", "modDamageTaken"},
 	[251]={L"Reduces all enemies' damage dealt by {}% for two turns.", "modDamageDealt"},
+	[223]={L"Debuffs all enemies, dealing {1} damage during each of the next {2} turns. Multiple applications of this effect overlap.", "eDamage", "duration1"},
+	[300]={L"Debuffs all enemies, dealing {1} damage during each of the next {2} turns. Multiple applications of this effect overlap.", "eDamage", "duration1"},
 	[301]={L"Every other turn, a random enemy is attacked for {}% of their maximum health.", "damagePerc"},
 }
-local overdescUnscaledKeys = {damagePerc=1, modDamageDealt=1, modDamageTaken=1}
-local covenFastHealingTalentID = {1078, 1081, 1075, 1084}
+local CLOCK_ICON do
+	local ai = C_Texture.GetAtlasInfo("auctionhouse-icon-clock")
+	CLOCK_ICON = ("|T%s:0:0:0:-0.5:%d:%d:%d:%d:%d:%d:%%d:%%d:%%d|t "):format(ai.file, 2048, 2048, ai.leftTexCoord*2048, ai.rightTexCoord*2048, ai.topTexCoord*2048, ai.bottomTexCoord*2048)
+end
+local SPC = {} do
+	local m = {}
+	function m:__index(k)
+		if type(VP_SPC) == "table" then
+			return VP_SPC[k]
+		end
+	end
+	function m:__newindex(k,v)
+		if type(VP_SPC) ~= "table" then
+			VP_SPC = {}
+		end
+		VP_SPC[k] = v
+	end
+	setmetatable(SPC, m)
+end
+local MS_TIER = {} do
+	for i, x in ("01027a152637482716493817394a2829183a4b4c2a3b19"):gmatch("()(..)") do
+		MS_TIER[tonumber(x,16)] = (i+1)/2
+	end
+end
 
 local GetMaskBoard do
 	local b, u, om = {}, {curHP=1}
@@ -46,14 +66,13 @@ local function GetTargetMask(si, casterBoardIndex, boardMask)
 	if not (si and casterBoardIndex) then
 		return 0
 	end
-	local TP = T.VSim.TP
 	local board, tm, isForked = GetMaskBoard(boardMask), 0, false
 	for i=si.type and 0 or 1,#si do
 		local ei = si[i] or si
 		local eit = ei and ei.target
 		if eit then
-			isForked = isForked or TP.forkTargetMap[eit]
-			local ta = TP.GetTargets(casterBoardIndex, TP.forkTargetMap[eit] or eit, board)
+			isForked = isForked or T.VSim.forkTargetMap[eit]
+			local ta = T.VSim.GetTargets(casterBoardIndex, T.VSim.forkTargetMap[eit] or eit, board)
 			for i=1,ta and #ta or 0 do
 				tm = bit.bor(tm, 2^ta[i])
 			end
@@ -77,7 +96,8 @@ local GetBlipWidth do
 end
 local function FormatSpellPulse(si)
 	local t = si.type
-	local on, off = "|TInterface/Minimap/PartyRaidBlipsV2:8:8:0:0:64:32:0:20:0:20:255:120:0|t", "|TInterface/Minimap/PartyRaidBlipsV2:8:8:0:0:64:32:0:20:0:20:80:80:80|t"
+	local bm = "|TInterface/Minimap/PartyRaidBlipsV2:8:8:0:0:64:32:0:20:0:20:%s|t"
+	local on, off = bm:format("255:120:0"), bm:format("80:80:80")
 	if t == "heal" or t == "nuke" or t == "nukem" or (si.duration and si.duration <= 1 and si.echo) then
 		if si.echo then
 			return on .. (off):rep(si.echo-1) .. on
@@ -85,17 +105,54 @@ local function FormatSpellPulse(si)
 	elseif (t == "heal" or t == "nuke") and (si.duration and si.duration > 1) then
 		return on .. (off):rep(si.duration-1)
 	elseif t == "aura" then
-		local r, p = (si.noFirstTick or si.period) and off or on, si.period or 1
+		local r, p = (si.noFirstTick or si.period) and (si.damageATK1 and bm:format("255:220:0") or off) or on, si.period or 1
 		for i=2, si.duration do
 			r = r .. (i % p == 0 and on or off)
 		end
 		return r
 	end
 end
+local FormatAbilityDescriptionOverride do
+	local overdescUnscaledKeys = {damagePerc=1, modDamageDealt=1, modDamageTaken=1}
+	local function getSpellData(si, vk)
+		local vv = si and si[vk]
+		for i=1,si and not vv and #si or 0 do
+			vv = vv or si[i][vk]
+		end
+		return vv
+	end
+	local function getSpellValue(si, vk, atk, ms)
+		if vk == "eDamage" and ms and si.cATKb and si.cATKa and si.damageATK then
+			return math.floor((si.cATKa+si.cATKb*ms)*si.damageATK/100)
+		elseif vk == "duration1" then
+			local vv = getSpellData(si, "duration")
+			return vv and (vv - 1)
+		end
+		local vv = getSpellData(si, vk)
+		if vv then
+			return overdescUnscaledKeys[vk] and (vv < 0 and -vv or vv) or atk and math.floor(vv*(atk or -1)/100)
+		end
+	end
+	local repl = {}
+	local function getReplacement(k)
+		return repl[k ~= "" and (k+0) or 1]
+	end
+	function FormatAbilityDescriptionOverride(si, od, atk, ms)
+		for i=2, #od do
+			local rv = getSpellValue(si, od[i], atk, ms) or "??"
+			repl[i-1] = rv
+		end
+		for i=#repl, #od, -1 do
+			repl[i] = nil
+		end
+		return (od[1]:gsub("{(%d*)}", getReplacement))
+	end
+end
 
 do -- Tentative Groups
 	local groups, followerMissionID = {}, {}
 	local autoTroops = {["0xFFFFFFFFFFFFFFFF"]=1, ["0xFFFFFFFFFFFFFFFE"]=1}
+	local healthyCompanions = {}
 	function EV:GARRISON_MISSION_NPC_CLOSED()
 		groups, followerMissionID = {}, {}
 	end
@@ -114,6 +171,22 @@ do -- Tentative Groups
 		fi.autoCombatSpells = C_Garrison.GetFollowerAutoCombatSpells(fid, fi.level)
 		fi.autoCombatantStats = C_Garrison.GetFollowerAutoCombatStats(fid)
 		return fi
+	end
+	local function StopBoardAnimations(board)
+		local as, af = board.socketsByBoardIndex, board.framesByBoardIndex
+		for i=0, 12 do
+			local f, f2 = as[i], af[i]
+			f.EnemyTargetingIndicatorFrame:Stop()
+			f2.EnemyTargetingIndicatorFrame:Stop()
+			if f.FriendlyTargetingIndicatorFrame then
+				f.FriendlyTargetingIndicatorFrame:Stop()
+			end
+			for _, v in pairs(f.AuraContainer) do
+				if type(v) == "table" and v.FadeIn then
+					v.FadeIn:Stop()
+				end
+			end
+		end
 	end
 	function U.ShowMission(mid, listFrame)
 		local mi, mi2, g = C_Garrison.GetMissionDeploymentInfo(mid), C_Garrison.GetBasicMissionInfo(mid), groups[mid]
@@ -138,19 +211,21 @@ do -- Tentative Groups
 					CovenantMissionFrame:AssignFollowerToMission(MP.Board.framesByBoardIndex[i], GetFollowerInfo(f))
 				end
 			end
+			StopBoardAnimations(CovenantMissionFrame.MissionTab.MissionPage.Board)
 		end
 	end
 	function U.StoreMissionGroup(mid, gt, disbandGroups)
 		if gt and next(gt) ~= nil then
-			for _, v in pairs(gt) do
+			local gn = {}
+			for k, v in pairs(gt) do
 				U.ReleaseTentativeFollower(v, disbandGroups, true)
-			end
-			groups[mid] = gt
-			for _, v in pairs(gt) do
+				gn[k] = v
 				if not autoTroops[v] then
 					followerMissionID[v] = mid
+					healthyCompanions[v] = nil
 				end
 			end
+			groups[mid] = gn
 			EV("I_TENTATIVE_GROUPS_CHANGED")
 		elseif gt == nil and groups[mid] then
 			for _, v in pairs(groups[mid]) do
@@ -210,16 +285,39 @@ do -- Tentative Groups
 			U.SendMissionGroup(mid, g)
 		end
 	end
+	function U.SendTentativeGroup(mid)
+		local g = groups[mid]
+		if g then
+			U.SendMissionGroup(mid, g)
+		end
+	end
+	function U.GetTentativeGroup(mid, into)
+		local g = groups[mid]
+		if g then
+			into = type(into) == "table" and wipe(into) or {}
+			for i=0,4 do
+				into[i] = g[i]
+			end
+			return into
+		end
+	end
 	local function nextTent(_, k)
 		local mid, g = next(groups, k)
 		if mid then
-			local nt = 0
+			local nt, zeroHealth = 0, false
 			for i=0,4 do
-				if autoTroops[g[i]] then
+				local fid = g[i]
+				if autoTroops[fid] then
 					nt = nt + 1
+				elseif fid and not zeroHealth then
+					if healthyCompanions[fid] or C_Garrison.GetFollowerAutoCombatStats(fid).currentHealth ~= 0 then
+						healthyCompanions[fid] = true
+					else
+						zeroHealth = true
+					end
 				end
 			end
-			return mid, nt
+			return mid, nt, zeroHealth
 		end
 	end
 	function U.EnumerateTentativeGroups()
@@ -278,12 +376,125 @@ do -- startQueue
 		local ng, oql = {}, startQueueLength
 		for i=0,4 do
 			ng[i] = g[i]
+			local acs = g[i] and C_Garrison.GetFollowerAutoCombatStats(g[i])
+			if acs and acs.currentHealth == 0 then
+				return
+			end
 		end
 		startQueue[mid], startQueueLength = ng, oql + (startQueue[mid] and 0 or 1)
 		if oql == 0 then
 			queuePing()
 		end
 		EV("I_MISSION_QUEUE_CHANGED")
+	end
+end
+do -- delayStart
+	local delayedStart, delayTime = {}, nil
+	local stickHandle, stickLast, stickNext
+	local function checkStart()
+		local now = GetTime()
+		if delayTime and now >= delayTime then
+			delayTime = nil
+			for k in pairs(delayedStart) do
+				U.SendTentativeGroup(k)
+				delayedStart[k] = nil
+			end
+			EV("I_DELAYED_START_UPDATE")
+		elseif delayTime then
+			C_Timer.After(math.max(0.005,delayTime-now), checkStart)
+		end
+	end
+	local function tick()
+		if not (delayTime and stickNext) then
+			return
+		end
+		local now = GetTime()
+		if stickNext > now then
+			C_Timer.After(math.max(0.005, stickNext-now), tick)
+		else
+			stickHandle, stickLast = nil
+			local wp, h = PlaySoundFile(1064507)
+			if wp then
+				stickHandle, stickLast = h, now
+			end
+			stickNext = nil
+		end
+	end
+	local function cancelTicking()
+		if stickHandle and stickLast and GetTime()-stickLast < 1 then
+			StopSound(stickHandle)
+			stickHandle, stickNext = nil
+		end
+	end
+	local function startTicking(now)
+		cancelTicking()
+		stickNext = now
+		tick()
+		stickNext = now+1
+		C_Timer.After(1.01, tick)
+	end
+	function U.HasDelayedStartMissions()
+		return not not delayTime
+	end
+	function U.ClearDelayedStartMissions()
+		wipe(delayedStart)
+		cancelTicking()
+		delayTime = nil
+		EV("I_DELAYED_START_UPDATE")
+	end
+	function U.StartMissionWithDelay(mid, g)
+		local mi, now = C_Garrison.GetBasicMissionInfo(mid), GetTime()
+		if mi then
+			U.StoreMissionGroup(mid, g, true)
+			if mi.offerEndTime and (mi.offerEndTime-now) <= 4 then
+				U.SendTentativeGroup(mid)
+			else
+				delayedStart[mid], delayTime = true, now+2
+				C_Timer.After(2.01, checkStart)
+				startTicking(now)
+				EV("I_DELAYED_START_UPDATE")
+				return true
+			end
+		end
+	end
+	function U.ClearDelayedStartMission(mid)
+		delayedStart[mid] = nil
+		if next(delayedStart) == nil then
+			delayTime = nil
+			cancelTicking()
+		end
+		EV("I_DELAYED_START_UPDATE")
+	end
+	function U.RushDelayedStartMissions()
+		cancelTicking()
+		delayTime = GetTime()-1
+		return checkStart()
+	end
+	function U.IsMissionStartingSoon(mid)
+		return not not delayedStart[mid]
+	end
+	function EV:I_TENTATIVE_GROUPS_CHANGED()
+		local changed = false
+		for k in pairs(delayedStart) do
+			if not U.MissionHasTentativeGroup(k) then
+				changed, delayedStart[k] = true, nil
+			end
+		end
+		if changed then
+			if next(delayedStart) == nil then
+				delayTime = nil
+			end
+			EV("I_DELAYED_START_UPDATE")
+		end
+	end
+	function EV:GARRISON_MISSION_NPC_CLOSED()
+		if delayTime then
+			delayTime = nil
+			for k in pairs(delayedStart) do
+				delayedStart[k] = nil
+			end
+			EV("I_DELAYED_START_UPDATE")
+		end
 	end
 end
 do -- completeQueue
@@ -347,10 +558,10 @@ do -- completeQueue
 			if not fi.isTroop and (fi.maxXP or 0) > 0 and xp >= fi.maxXP then
 				xpTable = xpTable or C_Garrison.GetFollowerXPTable(123)
 				local nl = fi.level
-				repeat
+				while (xpTable[nl] or 0) ~= 0 and xp >= xpTable[nl] do
 					nl, xp = nl + 1, xp - xpTable[nl]
-				until nl < 60 and xp < (xpTable[nl] or 1e6)
-				fi.newLevel, fi.xpToNextLevel = nl, xpTable[nl] and (xpTable[nl]-xp) or nil
+				end
+				fi.newLevel, fi.xpToNextLevel = nl, (xpTable[nl] or 0) ~= 0 and (xpTable[nl]-xp) or nil
 			end
 			fa[i] = fi
 		end
@@ -377,25 +588,32 @@ do -- completeQueue
 			end
 		elseif curState == "COMPLETE" and ev == "GARRISON_MISSION_COMPLETE_RESPONSE" then
 			local mid, cc, ok, _brOK, followers, acr = ...
-			if mid ~= mi.missionID and not cc then return end
-			if not (acr and acr.combatLog and #acr.combatLog > 0) then return end
-			if mid == mi.missionID or securecall(error, whineAboutUnexpectedState("Unexpected mission completion", mid, (cc and "C" or "c") .. (ok and "K" or "k")), 2) then
-				addFollowerInfo(mi, followers, acr.winner)
-				if ok then
-					curState = "BONUS"
-				else
-					mi.failed, curState, curIndex = cc and true or nil, "NEXT", curIndex + 1
+			if mid ~= mi.missionID then return end
+			if not (acr and acr.combatLog and #acr.combatLog > 0) then
+				C_Garrison.RegenerateCombatLog(mid)
+				return
+			elseif cc == false and ok == false then
+				local bi = C_Garrison.GetBasicMissionInfo(mid)
+				if not (bi and bi.completed) then
+					return
 				end
-				if ok then
-					delayIndex, delayMID = curIndex, mi.missionID
-					delayRoll(0.2)
-				else
-					-- Awkward: need other GMCR handlers to finish before a certain IMCS handler runs
-					C_Timer.After(0, function()
-						EV("I_MISSION_COMPLETION_STEP", mid, false, mi)
-					end)
-					After(0.45, delayStep)
-				end
+				cc, ok = true, acr.winner
+			end
+			addFollowerInfo(mi, followers, acr.winner)
+			if ok then
+				curState = "BONUS"
+			else
+				mi.failed, curState, curIndex = cc and true or nil, "NEXT", curIndex + 1
+			end
+			if ok then
+				delayIndex, delayMID = curIndex, mi.missionID
+				delayRoll(0.2)
+			else
+				-- Awkward: need other GMCR handlers to finish before a certain IMCS handler runs
+				C_Timer.After(0, function()
+					EV("I_MISSION_COMPLETION_STEP", mid, false, mi)
+				end)
+				After(0.45, delayStep)
 			end
 		elseif curState == "BONUS" and ev == "GARRISON_MISSION_BONUS_ROLL_COMPLETE" then
 			local mid, ok = ...
@@ -424,12 +642,22 @@ do -- completeQueue
 		end
 	end
 end
+function U.InitiateMissionCompletion(mid)
+	local cm = C_Garrison.GetCompleteMissions(123)
+	for i=1, cm and #cm or 0 do
+		local ci = cm[i]
+		if ci.missionID == mid or mid == "first" then
+			ci.encounterIconInfo = C_Garrison.GetMissionEncounterIconInfo(ci.missionID)
+			return CovenantMissionFrame:InitiateMissionCompletion(ci)
+		end
+	end
+end
 
 function U.GetTimeStringFromSeconds(sec, shorter, roundUp, disallowSeconds)
 	local h = roundUp and math.ceil or math.floor
 	if sec < 90 and not disallowSeconds then
 		return (shorter and COOLDOWN_DURATION_SEC or INT_GENERAL_DURATION_SEC):format(sec < 0 and 0 or h(sec))
-	elseif (sec < 3600*(shorter and shorter ~= 2 and 3 or 1) and (sec % 3600 >= 1 or sec < 3600)) then
+	elseif (sec < 3600*(shorter and shorter ~= 2 and 3 or 1.65) and (sec % 3600 >= 1 or sec < 3600)) then
 		return (shorter and COOLDOWN_DURATION_MIN or INT_GENERAL_DURATION_MIN):format(h(sec/60))
 	elseif sec <= 3600*72 and not shorter then
 		sec = h(sec/60)*60
@@ -441,10 +669,6 @@ function U.GetTimeStringFromSeconds(sec, shorter, roundUp, disallowSeconds)
 		return (shorter and COOLDOWN_DURATION_DAYS or INT_GENERAL_DURATION_DAYS):format(h(sec/84600))
 	end
 end
-function U.GetCompanionRecoveryTime(missingShare)
-	local fastHealing = C_Garrison.GetTalentInfo(covenFastHealingTalentID[C_Covenants.GetActiveCovenantID()] or 1075)
-	return missingShare * (fastHealing and fastHealing.researched and 49600 or 60000)
-end
 function U.SetFollowerInfo(GameTooltip, info, autoCombatSpells, autoCombatantStats, mid, boardIndex, boardMask, showHealthFooter)
 	local mhp, hp, atk, role, aat, level
 	autoCombatantStats = autoCombatantStats or info and (info.followerID and C_Garrison.GetFollowerAutoCombatStats(info.followerID) or info.autoCombatantStats)
@@ -454,7 +678,7 @@ function U.SetFollowerInfo(GameTooltip, info, autoCombatSpells, autoCombatantSta
 	if autoCombatantStats then
 		local s1 = autoCombatSpells and autoCombatSpells[1]
 		mhp, hp, atk = autoCombatantStats.maxHealth, autoCombatantStats.currentHealth, autoCombatantStats.attack
-		aat = T.VSim.TP:GetAutoAttack(role, boardIndex, mid, s1 and s1.autoCombatSpellID)
+		aat = T.VSim:GetAutoAttack(role, boardIndex, mid, s1 and s1.autoCombatSpellID)
 	end
 	
 	GameTooltip:ClearLines()
@@ -489,10 +713,10 @@ function U.SetFollowerInfo(GameTooltip, info, autoCombatSpells, autoCombatantSta
 		end
 	end
 
-	if showHealthFooter and info and info.status ~= GARRISON_FOLLOWER_ON_MISSION and autoCombatantStats and autoCombatantStats.currentHealth < autoCombatantStats.maxHealth then
-		local rt = U.GetCompanionRecoveryTime(1 - (autoCombatantStats.currentHealth/autoCombatantStats.maxHealth))
+	if showHealthFooter and info and info.status ~= GARRISON_FOLLOWER_ON_MISSION and autoCombatantStats and autoCombatantStats.currentHealth < autoCombatantStats.maxHealth and autoCombatantStats.minutesHealingRemaining then
+		local t = " " .. U.GetTimeStringFromSeconds(autoCombatantStats.minutesHealingRemaining*60, false, true, true)
 		GameTooltip:AddLine(" ")
-		GameTooltip:AddLine("|cffffd926" .. (L"Full recovery in %s"):format(U.GetTimeStringFromSeconds(rt, false, true, true)), 1, 0.85, 0.15, 1)
+		GameTooltip:AddLine("|cffffd926" .. CLOCK_ICON:format(255, 0.85*255, 0.15*255) .. ADVENTURES_FOLLOWER_HEAL_TIME:format(t):gsub("  +", " "), 1, 0.85, 0.15, 1)
 	end
 
 	GameTooltip:Show()
@@ -561,24 +785,77 @@ function U.GetAbilityGuide(spellID, boardIndex, boardMask, padHeight)
 	end
 	return guideLine
 end
-function U.GetAbilityDescriptionOverride(spellID, atk)
+function U.GetAbilityDescriptionOverride(spellID, atk, ms)
 	local si = T.KnownSpells[spellID]
 	if si and si.type == "nop" then
 		return L"It does nothing."
 	end
 	local od = overdesc[spellID]
 	if type(od) == "table" then
-		local o
-		for i=1, #od, 2 do
-			local vk = od[i+1]
-			local vv = si and si[vk]
-			for i=1,si and not vv and #si or 0 do
-				vv = vv or si[i][vk]
-			end
-			local rv = vv and (overdescUnscaledKeys[vk] and (vv < 0 and -vv or vv) or atk and math.floor(vv*(atk or -1)/100)) or ""
-			o = (i > 1 and o .. " " or "") .. od[i]:gsub("{}", rv)
-		end
-		od = o
+		od = FormatAbilityDescriptionOverride(si, od, atk, ms)
 	end
 	return od
+end
+
+function U.GetInProgressGroup(followers, into)
+	into = type(into) == "table" and wipe(into) or {}
+	for i=1, #followers do
+		local fid = followers[i]
+		local ii = C_Garrison.GetFollowerMissionCompleteInfo(fid)
+		into[ii and ii.boardIndex or -1] = fid
+	end
+	into[-1] = nil
+	return into
+end
+
+function U.FollowerIsFavorite(id)
+	local f = SPC.Favorites
+	return f and f[id] or false
+end
+function U.FollowerSetFavorite(id, nv)
+	local f = SPC.Favorites or {}
+	f[id] = nv or nil
+	SPC.Favorites = next(f) ~= nil and f or nil
+end
+
+function U.GetShiftedCurrencyValue(id, q)
+	if id == 1889 and q and C_Covenants.GetActiveCovenantID() == SPC.ccsCoven then
+		local s = SPC.ccsDelta
+		q = q - (type(s) == "number" and s <= q and s or 0)
+	end
+	return q
+end
+function U.SetCurrencyValueShiftTarget(id, s)
+	local c, co = C_CurrencyInfo.GetCurrencyInfo(id), C_Covenants.GetActiveCovenantID()
+	if id ~= 1889 or not c then return end
+	if SPC.ccsCoven ~= co then
+		SPC.ccsLV, SPC.ccsLH = nil, nil
+	end
+	SPC.ccsCoven, SPC.ccsDelta = co, s and (c.quantity-s) or 0
+	EV("I_UPDATE_CURRENCY_SHIFT", id)
+end
+function U.ObserveMissionShift(t, q)
+	local c = C_Covenants.GetActiveCovenantID()
+	local b, l, h = math.ceil((t-3)/4), 0, 0
+	if b > 0 then
+		l, h = (b-1)*4, b*4 - (b == 5 and 0 or 1)
+	end
+	if (q or h) <= h then return end
+	if b == 0 or ((SPC.ccsLV or -5) == (q-1) and (SPC.ccsLH or 10) < l and SPC.ccsCoven == c) then
+		SPC.ccsCoven, SPC.ccsDelta = c, q-l
+		EV("I_UPDATE_CURRENCY_SHIFT", 1889)
+	elseif U.GetShiftedCurrencyValue(1889, q) > h then
+		SPC.ccsCoven, SPC.ccsDelta = c, nil
+	end
+	SPC.ccsLV, SPC.ccsLH = q, h
+end
+function EV:I_OBSERVE_AVAIL_MISSIONS(ma)
+	for i=1,#ma do
+		local t = MS_TIER[ma[i].missionID-2173]
+		if t then
+			local cv = C_CurrencyInfo.GetCurrencyInfo(1889)
+			U.ObserveMissionShift(t, cv and cv.quantity)
+			break
+		end
+	end
 end

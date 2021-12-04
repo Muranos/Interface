@@ -152,7 +152,7 @@ L.breakFinished = "Die Pause ist vorbei!"
 
 L.bossBlock = "Boss Block"
 L.bossBlockDesc = "Legt fest, was während einer Bossbegegnung blockiert wird.\n\n"
-L.bossBlockAudioDesc = "Konfiguriert, welche Sounds während Bossbegegnungen stummgeschaltet werden.\n\n"
+L.bossBlockAudioDesc = "Konfiguriert, welche Sounds während Bossbegegnungen stummgeschaltet werden.\n\nJede hier |cff808080ausgegraute|r Option wurde in den WoW Soundeinstellungen deaktiviert.\n\n"
 L.movieBlocked = "Da Du diese Zwischensequenz bereits gesehen hast, wird sie übersprungen."
 L.blockEmotes = "Hinweise in der Bildschirmmitte blockieren"
 L.blockEmotesDesc = "Einige Bosse zeigen sehr lange und ungenaue Hinweise für spezielle Fähigkeiten an. BigWigs versucht kürzere und passendere Mitteilungen zu erstellen, die den Spielfluss weniger beeinflussen.\n\nHinweis: Bossmitteilungen werden weiterhin im Chat sichtbar sein und können dort gelesen werden."
@@ -264,8 +264,8 @@ L.useIcons = "Symbole verwenden"
 L.useIconsDesc = "Zeigt Symbole neben Nachrichten an."
 L.classColors = "Klassenfarben"
 L.classColorsDesc = "Teilweise enthalten Nachrichten Spielernamen. Durch Aktivierung dieser Option werden die Namen in Ihrer Klassenfarbe angezeigt."
-L.chatMessages = "Chatfenster-Nachrichten"
-L.chatMessagesDesc = "Gibt alle BigWigs-Nachrichten im Standard-Chatfenster aus, zusätzlich zu der Einstellung unter 'Ausgabe'."
+L.chatFrameMessages = "Chatfenster-Nachrichten"
+L.chatFrameMessagesDesc = "Gibt alle BigWigs-Nachrichten im Standard-Chatfenster aus, zusätzlich zu der Einstellung unter 'Ausgabe'."
 
 L.fontSize = "Schriftgröße"
 L.none = "Nichts"
@@ -291,8 +291,6 @@ L.proximity_name = "Nähe"
 L.soundDelay = "Soundverzögerung"
 L.soundDelayDesc = "Gibt an, wie lange BigWigs zwischen den Soundwiederholungen wartet, wenn jemand zu nahe steht."
 
-L.proximity = "Näherungsanzeige"
-L.proximity_desc = "Zeigt, falls für diese Begegnung relevant, das Näherungsfenster an. Es listet alle Spieler auf, die Dir zu nahe stehen."
 L.resetProximityDesc = "Setzt alle Optionen im Zusammenhang mit Nähe zurück, inklusive der Position des Ankers für Nähe."
 
 L.close = "Schließen"
@@ -341,7 +339,6 @@ L.countdownBegins_desc = "Verbleibende Zeit des Pulltimers (in Sekunden) wählen
 --
 
 L.icons = "Symbole"
-L.raidIconsDesc = "Einige Bossmodule benutzen Schlachtzugssymbole, um Spieler zu markieren, die von speziellem Interesse für Deine Gruppe sind. Beispielsweise Bombeneffekte und Gedankenkontrolle. Wenn Du diese Option ausschaltest, markierst Du niemanden mehr.n\n|cffff4411Trifft nur zu, sofern Du Schlachtzugsleiter oder Assistent bist!|r"
 L.raidIconsDescription = "Einige Begegnungen schließen Elemente wie 'Bombenfähigkeiten' ein, die einen bestimmten Spieler zum Ziel haben, ihn verfolgen oder er ist in sonst einer Art und Weise interessant. Hier kannst du bestimmen, welche Schlachtzugs-Symbole benutzt werden sollen, um die Spieler zu markieren.\n\nFalls nur ein Symbol benötigt wird, wird nur das erste benutzt. Ein Symbol wird niemals für zwei verschiedene Fähigkeiten innerhalb einer Begegnung benutzt.\n\n|cffff4411Beachte, dass ein manuell markierter Spieler von BigWigs nicht ummarkiert wird.|r"
 L.primary = "Erstes Symbol"
 L.primaryDesc = "Das erste Schlachtzugssymbol, das verwendet wird."

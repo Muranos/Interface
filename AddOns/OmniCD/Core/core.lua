@@ -35,7 +35,7 @@ E.RemoveEmptyDuplicateTables = function(dest, src)
 	local copy = {}
 	for k, v in pairs(dest) do
 		local srcV = src[k]
-		if type(v) == 'table' and type(srcV) == 'table' then
+		if type(v) == "table" and type(srcV) == "table" then
 			copy[k] = E.RemoveEmptyDuplicateTables(v, srcV)
 		elseif v ~= srcV then
 			copy[k] = v
@@ -60,21 +60,6 @@ E.SetModuleEnabled = function(k, v)
 	end
 end
 
-E.UpdateEnabledSpells = function(module)
-	wipe(module.spell_enabled)
-
-	for _, v in pairs(E.spell_db) do
-		local n = #v
-		for i = 1, n do
-			local t = v[i]
-			local id = t.spellID
-			if module.IsEnabledSpell(id) then
-				module.spell_enabled[id] = true
-			end
-		end
-	end
-end
-
 local function SavePosition(f)
 	local x = f:GetLeft()
 	local y = f:GetTop()
@@ -90,7 +75,7 @@ end
 
 E.LoadPosition = function(f, key)
 	key = key or f.key
-	local db = f.db or E.db -- [57]
+	local db = f.db or E.db -- new namespace or internal
 	db.manualPos[key] = db.manualPos[key] or {}
 	db = db.manualPos[key]
 	local x = db.x
@@ -108,18 +93,6 @@ E.LoadPosition = function(f, key)
 	end
 end
 
-E.UpdatePosition = function(f)
-	if not f.isExBar then return end
-
-	E.LoadPosition(f)
-
-	local parentWidth = UIParent:GetWidth()
-	local clamp = f.db.center and (1 - parentWidth)/2 or 0
-	f:SetClampRectInsets(clamp, -clamp, 0, 0)
-	clamp = f.db.center and (f.anchor:GetWidth() - parentWidth)/2 or 0
-	f.anchor:SetClampRectInsets(clamp, -clamp, 0, 0)
-end
-
 function OmniCD_AnchorOnMouseDown(self)
 	local bar = self:GetParent()
 	bar:StartMoving()
@@ -129,11 +102,11 @@ function OmniCD_AnchorOnMouseUp(self)
 	local bar = self:GetParent()
 	bar:StopMovingOrSizing()
 	SavePosition(bar)
-	E.Libs.ACR:NotifyChange("OmniCD")
+--  E:ACR_NotifyChange() -- if we're adding X/Y coordinates in option
 end
 
-E.SetWidth = function(anchor)
-	local width = anchor.text:GetWidth() + 20
+E.SetWidth = function(anchor, padding)
+	local width = anchor.text:GetWidth() + (padding or 20)
 	anchor:SetWidth(width)
 end
 
@@ -222,27 +195,33 @@ E.RegisterEvents = function(f, t)
 end
 
 E.UnregisterEvents = function(f, t)
-	if not t then return end
-	f.eventMap = f.eventMap or {}
+	local map = f.eventMap
+	if not map then return end
 
-	if type(t) == "table" then
-		for i = 1, #t do
-			local event = t[i]
-			if f.eventMap[event] then
-				f:UnregisterEvent(event)
-				f.eventMap[event] = nil
+	if t then
+		if type(t) == "table" then
+			for i = 1, #t do
+				local event = t[i]
+				if map[event] then
+					f:UnregisterEvent(event)
+					map[event] = nil
+				end
 			end
+		elseif map[t] then
+			f:UnregisterEvent(t)
+			map[t] = nil
 		end
-	elseif f.eventMap[t] then
-		f:UnregisterEvent(t)
-		f.eventMap[t] = nil
+	else
+		for event in pairs(map) do
+			f:UnregisterEvent(event)
+			map[event] = nil
+		end
 	end
 end
 
 E.Noop = function() end
 
 do
-	local backdropFrames = {}
 	local backdropStyle = {}
 	local textureUVs = {
 		"TopLeftCorner",
@@ -261,23 +240,19 @@ do
 		obj:SetSnapToPixelGrid(false)
 	end
 
-	E.BackdropTemplate = function(frame, style, bgFile, edgeFile, edgeSize, update)
+	E.BackdropTemplate = function(frame, style, bgFile, edgeFile, edgeSize)
 		style = style or "default"
-		bgFile = bgFile or E.TEXTURES.White8x8
-		edgeFile = edgeFile or E.TEXTURES.White8x8
-		edgeSize = edgeSize or 1
 
 		local backdrop = backdropStyle[style]
-		if not backdrop or update then
+		if not backdrop then
 			backdrop = {
-				bgFile = bgFile,
-				edgeFile = edgeFile,
-				edgeSize = edgeSize * E.PixelMult,
+				bgFile = bgFile or E.TEXTURES.White8x8,
+				edgeFile = edgeFile or E.TEXTURES.White8x8,
+				edgeSize = (edgeSize or 1) * E.PixelMult,
 			}
+
 			backdropStyle[style] = backdrop
 		end
-
-		backdropFrames[frame] = backdrop
 
 		frame:SetBackdrop(backdrop)
 
@@ -286,12 +261,6 @@ do
 			if region then
 				E.DisablePixelSnap(region)
 			end
-		end
-	end
-
-	E.UpdateBackdrops = function()
-		for frame, backdrop in pairs(backdropFrames) do
-			-- TODO: update Ace backdrop for opt scale
 		end
 	end
 end

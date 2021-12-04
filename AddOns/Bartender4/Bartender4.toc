@@ -1,9 +1,9 @@
-## Interface: 90005
+## Interface: 90100
 
 ## Title: Bartender4
 ## Notes: Simple and Advanced combined - Bartender4 ActionBar AddOn
 
-## Version: 4.10.7
+## Version: 4.10.10
 
 ## Author: Nevcairiel
 ## X-Email: h.leppkes at gmail dot com
@@ -17,11 +17,14 @@
 ## SavedVariables: Bartender4DB
 ## OptionalDeps: Ace3, Masque, LibButtonGlow-1.0, LibActionButton-1.0, LibKeyBound-1.0, LibDBIcon-1.0, LibWindow-1.1, LibDualSpec-1.0
 
+#@no-lib-strip@
 libs\LibStub\LibStub.lua
 libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
+#@end-no-lib-strip@
 
 libs\LibDataBroker-1.1.lua
 
+#@no-lib-strip@
 libs\AceAddon-3.0\AceAddon-3.0.xml
 libs\AceDB-3.0\AceDB-3.0.xml
 libs\AceDBOptions-3.0\AceDBOptions-3.0.xml
@@ -39,6 +42,7 @@ libs\LibActionButton-1.0\LibActionButton-1.0.lua
 libs\LibDBIcon-1.0\LibDBIcon-1.0.lua
 libs\LibWindow-1.1\LibWindow-1.1.lua
 libs\LibDualSpec-1.0\LibDualSpec-1.0.lua
+#@end-no-lib-strip@
 
 libs\SimpleSticky.lua
 

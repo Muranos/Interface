@@ -1,4 +1,4 @@
-local _, ns = ...
+local ns = select(2, ...) ---@type ns @The addon namespace.
 
 if ns:IsSameLocale("koKR") then
 	local L = ns.L or ns:NewLocale()
@@ -184,6 +184,16 @@ L["RAID_BOSS_NYA_6"] = "만족할 줄 모르는 샤드하르"
 L["RAID_BOSS_NYA_7"] = "드레스타가스"
 L["RAID_BOSS_NYA_8"] = "다시 태어난 타락 일기노스"
 L["RAID_BOSS_NYA_9"] = "벡시오나"
+L["RAID_BOSS_SOD_1"] = "대지공포"
+L["RAID_BOSS_SOD_10"] = "실바나스 윈드러너"
+L["RAID_BOSS_SOD_2"] = "간수의 눈"
+L["RAID_BOSS_SOD_3"] = "아홉 발키르"
+L["RAID_BOSS_SOD_4"] = "넬쥴의 잔재"
+L["RAID_BOSS_SOD_5"] = "영혼분리자 도르마잔"
+L["RAID_BOSS_SOD_6"] = "고통장이 라즈날"
+L["RAID_BOSS_SOD_7"] = "태초의 존재의 수호자"
+L["RAID_BOSS_SOD_8"] = "운명필경사 로칼로"
+L["RAID_BOSS_SOD_9"] = "켈투자드"
 L["RAID_BOSS_ULD_1"] = "탈록"
 L["RAID_BOSS_ULD_2"] = "마더"
 L["RAID_BOSS_ULD_3"] = "악취나는 포식자"

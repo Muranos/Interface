@@ -68,10 +68,9 @@ local function CreateBar(key)
 	f.anchor.text:SetFontObject(E.AnchorFont)
 	local name = key == "interruptBar" and L["Interrupts"] or L["Raid CD"]
 	f.anchor.text:SetText(name)
-	--f.anchor.text:SetTextColor(1, 0.824, 0) -- #ffd200
-	E.SetWidth(f.anchor)
+	f.anchor.text:SetTextColor(1, 0.824, 0) -- #ffd200
 	f.anchor.background:SetColorTexture(0, 0, 0, 1)
-	f.anchor.background:SetGradientAlpha("Horizontal", 1, 1, 1, 1, 1, 1, 1, 0)
+	f.anchor.background:SetGradientAlpha("Horizontal", 1, 1, 1, 1, 1, 1, 1, .05)
 	f.anchor:EnableMouse(true)
 
 	return f
@@ -82,6 +81,13 @@ function P:CreateExBars()
 		for i = 1, 2 do
 			local key = i == 1 and "interruptBar" or "raidCDBar"
 			self.extraBars[key] = CreateBar(key)
+		end
+
+		for i = 1, 8 do
+			local f = CreateBar("raidCDBar" .. i)
+			f.anchor.text:SetText(format(L["CD-Group %d"], i))
+			f:SetScript("OnHide", nil)
+			f:SetParent(self.extraBars.raidCDBar)
 		end
 	end
 end
@@ -131,30 +137,64 @@ function P:UpdateExPositionValues()
 		local px = E.PixelMult / db.scale
 		local isProgressBarShown = db.enabled and db.progressBar
 		local growUpward = db.growUpward
+		local growLeft = db.growLeft
+		local growX = growLeft and -1 or 1
 		local growY = growUpward and 1 or -1
 
-		if db.layout == "horizontal" then
-			f.point = "TOPLEFT"
-			f.relat = "TOPRIGHT"
+		f.point = "TOPLEFT"
+		f.anchorPoint = "BOTTOMLEFT"
+		f.anchorOfsY = growUpward and -E.BASE_ICON_SIZE * db.scale - 15 or 0
+
+		if db.layout == "horizontal" or db.layout == "multirow" then
+			f.point2 = growLeft and "TOPRIGHT" or "TOPLEFT"
+			f.relat2 = growLeft and "TOPLEFT" or "TOPRIGHT"
 			f.ofsX1 = 0
 			f.ofsY1 = growY * (E.BASE_ICON_SIZE + db.paddingY * px)
-			f.ofsX2 = db.paddingX * px
+			f.ofsX2 = growX * db.paddingX * px
 			f.ofsY2 = 0
-			if key == "interruptBar" then
-				self.rearrangeInterrupts = nil
-			end
 			f.isProgressBarShown = nil
 		else
-			f.point = growUpward and "BOTTOMLEFT" or "TOPLEFT"
-			f.relat = growUpward and "TOPLEFT" or "BOTTOMLEFT"
-			f.ofsX1 = E.BASE_ICON_SIZE + (db.paddingX  * px) + (isProgressBarShown and db.statusBarWidth or 0)
+			f.point2 = growUpward and "BOTTOMLEFT" or "TOPLEFT"
+			f.relat2 = growUpward and "TOPLEFT" or "BOTTOMLEFT"
+			f.ofsX1 = growX * (E.BASE_ICON_SIZE + (db.paddingX  * px) + (isProgressBarShown and db.statusBarWidth or 0))
 			f.ofsY1 = 0
 			f.ofsX2 = 0
 			f.ofsY2 = growY * db.paddingY * px
-			if key == "interruptBar" then
-				self.rearrangeInterrupts = isProgressBarShown and db.sortBy == 2
-			end
 			f.isProgressBarShown = isProgressBarShown
+		end
+
+		if key == "interruptBar" then -- #iss259
+			self.rearrangeInterrupts = db.sortBy == 2
+		else
+			for i = 1, 8 do
+				local g = _G["OmniCDraidCDBar" .. i]
+				local growLeft = db.groupGrowLeft[i]
+				local growUpward = db.groupGrowUpward[i]
+				local growX = growLeft and -1 or 1
+				local growY = growUpward and 1 or -1
+
+				g.point = "TOPLEFT"
+				g.anchorPoint = "BOTTOMLEFT"
+				g.anchorOfsY = growUpward and -E.BASE_ICON_SIZE * db.scale -15 or 0
+
+				if db.layout == "horizontal" or db.layout == "multirow" then
+					g.point2 = growLeft and "TOPRIGHT" or "TOPLEFT"
+					g.relat2 = growLeft and "TOPLEFT" or "TOPRIGHT"
+					g.ofsX1 = 0
+					g.ofsY1 = growY * (E.BASE_ICON_SIZE + db.paddingY * px)
+					g.ofsX2 = growX * db.paddingX * px
+					g.ofsY2 = 0
+				else
+					g.point2 = growUpward and "BOTTOMLEFT" or "TOPLEFT"
+					g.relat2 = growUpward and "TOPLEFT" or "BOTTOMLEFT"
+					g.ofsX1 = growX * (E.BASE_ICON_SIZE + (db.paddingX  * px) + (isProgressBarShown and db.statusBarWidth or 0))
+					g.ofsY1 = 0
+					g.ofsX2 = 0
+					g.ofsY2 = growY * db.paddingY * px
+				end
+			end
+
+			f.groupPadding = (db.layout == "multicolumn" and growX or (db.layout == "multirow" and growY) or 0) * db.groupPadding
 		end
 	end
 end
@@ -197,7 +237,7 @@ do
 				local aclass, bclass = a.class, b.class
 				if aclass == bclass then
 					if a.spellID == b.spellID then
-						return P.groupInfo[a.guid].name < P.groupInfo[b.guid].name -- end with name so we don't see it shuffling around
+						return P.groupInfo[a.guid].name < P.groupInfo[b.guid].name -- end with name so it doesn't shuffle around on rl
 					end
 					return a.spellID < b.spellID
 				end
@@ -247,6 +287,8 @@ do
 		local f = P.extraBars[key]
 		local db = E.db.extraBars[key]
 		local isMulticolumn = db.layout == "multicolumn"
+		local isMultirow = db.layout == "multirow"
+		local isMultiline = isMulticolumn or isMultirow
 
 		local n = 0
 		for i = f.numIcons, 1, -1 do
@@ -254,7 +296,7 @@ do
 			local icon = icons[i]
 			local info = P.groupInfo[icon.guid]
 			local spellIcon = info and info.spellIcons[icon.spellID]
-			if icon ~= spellIcon then
+			if icon ~= spellIcon then -- for when UpdateUnitBar is called directly. <cf., UpdateBars pre-hide(remove all icons) extraBars>
 				P:RemoveIcon(icon)
 				tremove(icons, i)
 				n = n + 1
@@ -263,39 +305,66 @@ do
 		f.numIcons = f.numIcons - n
 
 		if sortOrder then
-			local sortFunc = isMulticolumn and sorters[5] or (db.sortDirection == "dsc" and reverseSort or sorters[db.sortBy])
+			local sortFunc = isMultiline and sorters[5] or (db.sortDirection == "dsc" and reverseSort or sorters[db.sortBy])
 			sort(f.icons, sortFunc)
 		end
 
-		local count, rows, groups = 0, 1, 1
+		local count, rows, gRows, groups, detached, g = 0, 0, 0, 0, 0
 		local columns = db.columns
 		for i = 1, f.numIcons do
 			local icon = f.icons[i]
 			icon:Hide()
 			icon:ClearAllPoints()
 
+			local columnIndex = P.raidGroup[icon.type]
 			if i > 1 then
 				count = count + 1
-				if isMulticolumn and P.raidGroup[icon.type] ~= P.raidGroup[f.icons[i-1].type] then
-					icon:SetPoint(f.point, f.container, f.ofsX1 * rows + db.groupPadding * groups, 0)
+				if isMultiline and columnIndex ~= P.raidGroup[f.icons[i-1].type] then
+					if columnIndex and db.groupDetached[columnIndex] then
+						g = _G["OmniCDraidCDBar" .. columnIndex]
+						icon:SetPoint(g.point, g.container)
+						gRows = gRows + 1
+						detached = detached + 1
+					else
+						g = nil
+						icon:SetPoint(f.point, f.container, isMulticolumn and (f.ofsX1 * rows + f.groupPadding * (groups - detached)) or 0, isMultirow and (f.ofsY1 * rows + f.groupPadding * (groups - detached)) or 0)
+						rows = rows + 1
+					end
 					count = 0
-					rows = rows + 1
 					groups = groups + 1
 				elseif count == columns then
-					icon:SetPoint(f.point, f.container, isMulticolumn and (f.ofsX1 * rows + db.groupPadding * (groups-1)) or f.ofsX1 * rows, f.ofsY1 * rows)
+					if g then
+						icon:SetPoint(g.point, g.container, g.ofsX1 * gRows, g.ofsY1 * gRows)
+						gRows = gRows + 1
+					else
+						icon:SetPoint(f.point, f.container, isMulticolumn and (f.ofsX1 * rows + f.groupPadding * (groups-1 - detached)) or f.ofsX1 * rows, isMultirow and (f.ofsY1 * rows + f.groupPadding * (groups-1 - detached)) or f.ofsY1 * rows)
+						rows = rows + 1
+					end
 					count = 0
-					rows = rows + 1
 				else
-					icon:SetPoint(f.point, f.icons[i-1], f.relat, f.ofsX2, f.ofsY2)
+					if g then
+						icon:SetPoint(g.point2, f.icons[i-1], g.relat2, g.ofsX2, g.ofsY2)
+					else
+						icon:SetPoint(f.point2, f.icons[i-1], f.relat2, f.ofsX2, f.ofsY2)
+					end
 				end
 			else
-				icon:SetPoint(f.point, f.container)
+				if columnIndex and db.groupDetached[columnIndex] then
+					g = _G["OmniCDraidCDBar" .. columnIndex]
+					icon:SetPoint(g.point, g.container)
+					gRows = gRows + 1
+					detached = detached + 1
+				else
+					icon:SetPoint(f.point, f.container)
+					rows = rows + 1
+				end
+				groups = groups + 1
 			end
 
 			icon:Show()
 		end
 
-		if not noDelay or updateSettings then -- [88]
+		if not noDelay or updateSettings then -- run on no delay (nil-updateSettings can ignore subsequent true-updateSettings calls being on the same timer)
 			P:ApplyExSettings(key)
 		end
 
@@ -303,33 +372,62 @@ do
 	end
 
 
-	function P:SetExIconLayout(key, noDelay, sortOrder, updateSettings) -- removed all delay from options. we don't want a slouchy response
-		if self.disabled then -- [102]
+	function P:SetExIconLayout(key, noDelay, sortOrder, updateSettings)
+		if self.disabled then
 			return
 		end
 
 		if noDelay then
 			updateLayout(key, noDelay, sortOrder, updateSettings)
 		else
-			if not timers[key] then -- [33]
+			if not timers[key] then -- nil info err in sort on hideall w/o delay
 				timers[key] = E.TimerAfter(0.5, updateLayout, key, noDelay, sortOrder, updateSettings)
 			end
 		end
 	end
 end
 
+function P:ToggleColumnAnchors()
+	local db = E.db.extraBars.raidCDBar
+	for i = 1, 8 do
+		local g = _G["OmniCDraidCDBar" .. i]
+		if (db.layout == "multicolumn" or db.layout == "multirow")and db.groupDetached[i] then
+			g.anchor:ClearAllPoints()
+			g.anchor:SetPoint(g.anchorPoint, g, g.point, 0, g.anchorOfsY)
+			if self.extraBars.raidCDBar.isProgressBarShown then
+				g.anchor:SetWidth(( E.BASE_ICON_SIZE + db.statusBarWidth) * db.scale)
+			else
+				E.SetWidth(g.anchor)
+			end
+
+			E.LoadPosition(g)
+			g:Show()
+			g.anchor:SetShown(not db.locked)
+		else
+			g:Hide()
+			g.anchor:Hide()
+		end
+	end
+end
+
 function P:SetExAnchor(key)
 	local f = self.extraBars[key]
-	if E.db.extraBars[key].locked then
+	local db = E.db.extraBars[key]
+	if db.locked then
 		f.anchor:Hide()
 	else
 		f.anchor:ClearAllPoints()
-		if E.db.extraBars[key].growUpward then
-			f.anchor:SetPoint("TOPLEFT", f, "BOTTOMLEFT")
+		f.anchor:SetPoint(f.anchorPoint, f, f.point, 0, f.anchorOfsY)
+		if f.isProgressBarShown then
+			f.anchor:SetWidth(( E.BASE_ICON_SIZE + db.statusBarWidth) * db.scale)
 		else
-			f.anchor:SetPoint("BOTTOMLEFT", f, "TOPLEFT")
+			E.SetWidth(f.anchor)
 		end
 		f.anchor:Show()
+	end
+
+	if key == "raidCDBar" then
+		P:ToggleColumnAnchors()
 	end
 end
 
@@ -345,7 +443,7 @@ function P:SetExScale(key)
 	local f = self.extraBars[key]
 	local db = E.db.extraBars[key]
 	f.container:SetScale(db.scale)
-	if db.layout ~= "horizontal" and db.progressBar or E.db.icons.displayBorder then
+	if E.db.icons.displayBorder or (db.layout ~= "horizontal" or db.layout ~= "multirow") and db.progressBar then
 		self:UpdateExBarBackdrop(f, key)
 	end
 end
@@ -383,6 +481,40 @@ function P:SetExBorder(icon, key)
 		icon.borderRight:Show()
 
 		icon.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+
+		if isProgressBarShown then
+			local statusBar = icon.statusBar
+			if db.hideBar then
+				statusBar:DisableDrawLayer("BORDER")
+			else
+				statusBar:EnableDrawLayer("BORDER")
+			end
+
+			statusBar.borderTop:ClearAllPoints()
+			statusBar.borderBottom:ClearAllPoints()
+			statusBar.borderRight:ClearAllPoints()
+
+			statusBar.borderTop:SetPoint("TOPLEFT", statusBar, "TOPLEFT")
+			statusBar.borderTop:SetPoint("BOTTOMRIGHT", statusBar, "TOPRIGHT", 0, -edgeSize)
+			statusBar.borderBottom:SetPoint("BOTTOMLEFT", statusBar, "BOTTOMLEFT")
+			statusBar.borderBottom:SetPoint("TOPRIGHT", statusBar, "BOTTOMRIGHT", 0, edgeSize)
+			statusBar.borderRight:SetPoint("TOPRIGHT", statusBar.borderTop, "BOTTOMRIGHT")
+			statusBar.borderRight:SetPoint("BOTTOMLEFT", statusBar.borderBottom, "TOPRIGHT", -edgeSize, 0)
+			--> required for castingbar setpoint for hideBorder
+
+			if db.hideBorder then
+				statusBar.borderTop:Hide()
+				statusBar.borderBottom:Hide()
+				statusBar.borderRight:Hide()
+			else
+				statusBar.borderTop:SetColorTexture(r, g, b)
+				statusBar.borderBottom:SetColorTexture(r, g, b)
+				statusBar.borderRight:SetColorTexture(r, g, b)
+				statusBar.borderTop:Show()
+				statusBar.borderBottom:Show()
+				statusBar.borderRight:Show()
+			end
+		end
 	else
 		icon.borderTop:Hide()
 		icon.borderBottom:Hide()
@@ -391,29 +523,14 @@ function P:SetExBorder(icon, key)
 
 		icon.icon:SetTexCoord(0, 1, 0, 1)
 	end
-
-	if isProgressBarShown then
-		local statusBar = icon.statusBar
-		statusBar.borderTop:ClearAllPoints()
-		statusBar.borderBottom:ClearAllPoints()
-		statusBar.borderRight:ClearAllPoints()
-
-		statusBar.borderTop:SetPoint("TOPLEFT", statusBar, "TOPLEFT")
-		statusBar.borderTop:SetPoint("BOTTOMRIGHT", statusBar, "TOPRIGHT", 0, -edgeSize)
-		statusBar.borderBottom:SetPoint("BOTTOMLEFT", statusBar, "BOTTOMLEFT")
-		statusBar.borderBottom:SetPoint("TOPRIGHT", statusBar, "BOTTOMRIGHT", 0, edgeSize)
-		statusBar.borderRight:SetPoint("TOPRIGHT", statusBar.borderTop, "BOTTOMRIGHT")
-		statusBar.borderRight:SetPoint("BOTTOMLEFT", statusBar.borderBottom, "TOPRIGHT", -edgeSize, 0)
-
-		statusBar.borderTop:SetColorTexture(r, g, b)
-		statusBar.borderBottom:SetColorTexture(r, g, b)
-		statusBar.borderRight:SetColorTexture(r, g, b)
-	end
 end
 
 function P:SetExStatusBarWidth(f, key)
-	local width = E.db.extraBars[key].statusBarWidth
-	f:SetWidth(width)
+	local db = E.db.extraBars[key]
+	f:SetWidth(db.statusBarWidth)
+	f.Text:SetPoint("LEFT", f, db.textOfsX, db.textOfsY)
+	f.CastingBar.Text:SetPoint("LEFT", f.CastingBar, db.textOfsX, db.textOfsY)
+	f.CastingBar.Timer:SetPoint("RIGHT", f.CastingBar, -3, db.textOfsY)
 end
 
 function P:SetExIconName(icon, key)
@@ -427,18 +544,39 @@ function P:SetExIconName(icon, key)
 end
 
 function P:SetExStatusBarColor(icon, key)
+	local info = P.groupInfo[icon.guid]
+	if not info then return end
+
 	local db = E.db.extraBars[key]
 	local c, r, g, b, a = RAID_CLASS_COLORS[icon.class]
 	local statusBar = icon.statusBar
 
-	-- inactive bg doesn't exist
+	-- Inactive bg doesn't exist
 
-	-- inactive bar
+	-- Inactive text
+	if not db.hideBar or not icon.active then
+		if info.isDeadOrOffline then
+			r, g, b = 0.3, 0.3, 0.3
+		elseif db.textColors.useClassColor.inactive then
+			r, g, b = c.r, c.g, c.b
+		else
+			local db_text = db.textColors.inactiveColor
+			r, g, b = db_text.r, db_text.g, db_text.b
+		end
+		statusBar.Text:SetTextColor(r, g, b)
+	end
+
+	statusBar.BG:SetShown(not db.hideBar and not icon.active)
+	statusBar.Text:SetShown(db.hideBar or not icon.active)
+
+	-- Inactive bar
 	local db_bar = db.barColors.inactiveColor
 	local alpha = db.useIconAlpha and 1 or db_bar.a
 	local spellID = icon.spellID
-	if P.groupInfo[icon.guid].preActiveIcons[spellID] and spellID ~= 1022 and spellID ~= 204018 then -- [81] filter BOP/BOS
-		r, g, b, a = 0.7, 0.7, 0.7, alpha -- [A]
+	if info.isDeadOrOffline then
+		r, g, b, a = 0.3, 0.3, 0.3, alpha
+	elseif info.preActiveIcons[spellID] and spellID ~= 1022 and spellID ~= 204018 then -- BoP/BoS
+		r, g, b, a = 0.7, 0.7, 0.7, alpha
 	elseif db.barColors.useClassColor.inactive then
 		r, g, b, a = c.r, c.g, c.b, alpha
 	else
@@ -446,16 +584,7 @@ function P:SetExStatusBarColor(icon, key)
 	end
 	statusBar.BG:SetVertexColor(r, g, b, a)
 
-	-- inactive text
-	if db.textColors.useClassColor.inactive then
-		r, g, b = c.r, c.g, c.b
-	else
-		local db_text = db.textColors.inactiveColor
-		r, g, b = db_text.r, db_text.g, db_text.b
-	end
-	statusBar.Text:SetTextColor(r, g, b)
-
-	--> active & recharge done in CastingBarFrame_OnLoad
+	--> Active & Recharge done in CastingBarFrame_OnLoad
 end
 
 function P:ApplyExSettings(key)
@@ -478,7 +607,6 @@ function P:ApplyExSettings(key)
 		self:SetCounter(icon)
 		self:SetChargeScale(icon)
 		self:SetTooltip(icon)
-		self:SetAtlas(icon)
 	end
 end
 
@@ -489,7 +617,7 @@ function P:UpdateExPosition()
 
 	for key, f in pairs(self.extraBars) do
 		if E.db.extraBars[key].enabled then
-			self:SetExIconLayout(key, nil, true, true)
+			self:SetExIconLayout(key, true, true, true) -- if isGRU run once after iterating roster
 			E.LoadPosition(f)
 			f:Show()
 		else

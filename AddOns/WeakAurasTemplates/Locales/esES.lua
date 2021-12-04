@@ -99,6 +99,8 @@ local L = WeakAuras.L
 	--[[Translation missing --]]
 	L["Health"] = "Health"
 	--[[Translation missing --]]
+	L["Highlight while action is queued."] = "Highlight while action is queued."
+	--[[Translation missing --]]
 	L["Highlight while active, red when out of range."] = "Highlight while active, red when out of range."
 	--[[Translation missing --]]
 	L["Highlight while active."] = "Highlight while active."
@@ -110,6 +112,8 @@ local L = WeakAuras.L
 	L["Highlight while spell is active."] = "Highlight while spell is active."
 	--[[Translation missing --]]
 	L["Hold CTRL to create multiple auras at once"] = "Hold CTRL to create multiple auras at once"
+	--[[Translation missing --]]
+	L["Initial Buff"] = "Initial Buff"
 	--[[Translation missing --]]
 	L["Keeps existing triggers intact"] = "Keeps existing triggers intact"
 	--[[Translation missing --]]
@@ -137,6 +141,8 @@ local L = WeakAuras.L
 	L["Pet alive"] = "Mascota viva"
 	L["Pet Behavior"] = "Comportamiento de mascota"
 	--[[Translation missing --]]
+	L["Preparation"] = "Preparation"
+	--[[Translation missing --]]
 	L["PvP Talents"] = "PvP Talents"
 	--[[Translation missing --]]
 	L["Replace all existing triggers"] = "Replace all existing triggers"
@@ -149,9 +155,13 @@ local L = WeakAuras.L
 	--[[Translation missing --]]
 	L["Rogue cooldown"] = "Rogue cooldown"
 	--[[Translation missing --]]
+	L["Root"] = "Root"
+	--[[Translation missing --]]
 	L["Runes"] = "Runes"
 	--[[Translation missing --]]
 	L["Shapeshift Form"] = "Shapeshift Form"
+	--[[Translation missing --]]
+	L["Shards Of Domination"] = "Shards Of Domination"
 	--[[Translation missing --]]
 	L["Show Always, Glow on Missing"] = "Show Always, Glow on Missing"
 	--[[Translation missing --]]
@@ -162,6 +172,8 @@ local L = WeakAuras.L
 	L["Show Charges with Range Tracking"] = "Show Charges with Range Tracking"
 	--[[Translation missing --]]
 	L["Show Charges with Usable Check"] = "Show Charges with Usable Check"
+	--[[Translation missing --]]
+	L["Show Cooldown and Action Queued"] = "Show Cooldown and Action Queued"
 	L["Show Cooldown and Buff"] = "Mostrar tiempo de reutilización y beneficio"
 	L["Show Cooldown and Buff and Check for Target"] = "Mostrar Tiempo de reutilización, Beneficio y Comprobar objetivo"
 	L["Show Cooldown and Buff and Check Usable"] = "Mostrar Tiempo de reutilización, Beneficio y Comprobar utilizable"
@@ -204,6 +216,8 @@ local L = WeakAuras.L
 	--[[Translation missing --]]
 	L["Slow"] = "Slow"
 	L["slow debuff"] = "Perjuicio de ralentización"
+	--[[Translation missing --]]
+	L["Sprint"] = "Sprint"
 	--[[Translation missing --]]
 	L["Stance"] = "Stance"
 	L["stun debuff"] = "Perjuicio de aturdimiento"

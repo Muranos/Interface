@@ -2,7 +2,6 @@
 -- Note: Spell names are no longer needed, and dealing with them is actually more complicated after the 8.0.1 API changes. They're only used for readability's sake
 Rarity.relevantSpells = {
 	-- Tested (confirmed working in 8.0.1)
-	[921] = "Pick Pocket",
 	[3365] = "Opening",
 	[13262] = "Disenchant",
 	[22810] = "Opening - No Text",
@@ -21,6 +20,7 @@ Rarity.relevantSpells = {
 	-- 8.3
 	[312881] = "Searching Mailbox",
 	-- 9.0
+	[329997] = "Opening", -- Silver Strongbox (Bastion, Shadowlands)
 	[345071] = "Looting", -- Dirty Glinting Object (Shadowlands zones for Lucy's Lost Collar pet)
 	-- Not tested (but added just in case)
 	[7731] = "Fishing",

@@ -3,7 +3,8 @@
 -- @author Potdisc
 -- Create Date : 1/20/2015 3:48:38 AM
 ---@type RCLootCouncil
-local _,addon = ...
+--- @type RCLootCouncil
+local addon = select(2, ...)
 local RCSessionFrame = addon:NewModule("RCSessionFrame", "AceTimer-3.0", "AceEvent-3.0")
 local ST = LibStub("ScrollingTable")
 local L = LibStub("AceLocale-3.0"):GetLocale("RCLootCouncil")
@@ -74,10 +75,10 @@ function RCSessionFrame:Show(data, disableAwardLater)
 			-- that's already in a running session.
 			ml:SortLootTable(data)
 		end
-		self:ExtractData(data)
-		self.frame.st:SetData(self.frame.rows)
-		self:Update()
 	end
+	self:ExtractData(data)
+	self.frame.st:SetData(self.frame.rows)
+	self:Update()
 end
 
 function RCSessionFrame:Hide()
@@ -252,7 +253,7 @@ function RCSessionFrame:GetFrame()
 	f.lootStatus.text:SetJustifyH("LEFT")
 
 	local st = ST:CreateST(self.scrollCols, 5, ROW_HEIGHT, nil, f.content)
-	st.frame:SetPoint("TOPLEFT",f,"TOPLEFT",10,-20)
+	st.frame:SetPoint("TOPLEFT",f,"TOPLEFT",10,-ROW_HEIGHT-10)
 	st:RegisterEvents({
 		["OnClick"] = function(_, _, _, _, row, realrow)
 			if not (row or realrow) then
@@ -261,7 +262,7 @@ function RCSessionFrame:GetFrame()
 		end
 	})
 	f:SetWidth(st.frame:GetWidth()+20)
-	f:SetHeight(305)
+	f:SetHeight(325)
 	f.rows = {} -- the row data
 	f.st = st
 	return f

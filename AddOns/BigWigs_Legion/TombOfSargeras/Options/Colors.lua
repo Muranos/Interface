@@ -14,7 +14,7 @@ BigWigs:AddColors("Demonic Inquisition", {
 	[233426] = "yellow",
 	[233431] = {"blue","orange"},
 	[233441] = "red",
-	[233895] = {"blue","yellow"},
+	[233895] = "blue",
 	[233983] = "red",
 	[234015] = "yellow",
 	[235230] = "red",
@@ -31,7 +31,6 @@ BigWigs:AddColors("Harjatan the Bludger", {
 	[231998] = {"blue","orange"},
 	[232061] = {"orange","red"},
 	[232174] = "orange",
-	[232192] = "red",
 	[233429] = {"blue","orange"},
 	[240319] = "red",
 })
@@ -97,7 +96,6 @@ BigWigs:AddColors("Maiden of Vigilance", {
 	[235271] = {"cyan","green","red"},
 	[238028] = "blue",
 	[238408] = "blue",
-	[239153] = "yellow",
 	[241593] = "cyan",
 	[241635] = "orange",
 	[241636] = "orange",
@@ -139,7 +137,6 @@ BigWigs:AddColors("Kil'jaeden", {
 	[241564] = "yellow",
 	[241721] = "blue",
 	[243982] = "red",
-	[244856] = "yellow",
 	["stages"] = "green",
 })
 

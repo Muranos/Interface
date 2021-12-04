@@ -21,9 +21,14 @@ C.DEFEAT_DETECTION = {
 
 -- Embedded mapIDs: It's best to avoid hardcoding these in case of yet another re-mapping on Blizzard's end...
 C.UIMAPIDS = {
+	-- Dummy Zone (For items that can be obtained anywhere.)
+	NONE = 0,
+	-- Classic Zones
 	ARATHI_HIGHLANDS = 14,
+	HILLSBRAD_FOOTHILLS = 25,
 	DARKSHORE = 62,
 	SILITHUS = 81,
+	--
 	ICECROWN = 118,
 	DEEPHOLM = 207,
 	TWILIGHT_HIGHLANDS = 241,
@@ -32,13 +37,32 @@ C.UIMAPIDS = {
 	ULDUM_CATACLYSM = 249,
 	MAGISTERS_TERRACE_GRAND_MAGISTERS_ASYLUM = 348,
 	MAGISTERS_TERRACE_OBSERVATION_GROUNDS = 349,
+	-- Mists of Pandaria Zones
+	JADE_FOREST = 371,
+	VALLEY_OF_THE_FOUR_WINDS = 376,
+	KUNLAI_SUMMIT = 379,
+	TOWNLONG_STEPPES = 388,
+	VALE_OF_ETERNAL_BLOSSOMS_MOP = 390,
+	KRASARANG_WILDS = 418,
+	DREAD_WASTES = 422,
+	-- Warlords of Draenor Zones
 	FROSTFIRE_RIDGE = 525,
+	NAGRAND_DRAENOR = 550,
 	LUNARFALL_GARRISON = 582,
 	FROSTWALL_GARRISON = 590,
+	-- Legion Zones
+	AZSUNA = 630,
+	STORMHEIM = 634,
+	VALSHARAH = 641,
+	HIGHMOUNTAIN = 650,
+	SURAMAR = 680,
+	SKYHOLD = 695,
 	KROKUUN = 830,
 	MACAREE = 882,
 	ANTORAN_WASTES = 885,
+	-- Legion Instances
 	SEAT_OF_THE_TRIUMVIRATE = 903,
+	-- Battle for Azeroth Zones
 	ZANDALAR = 875,
 	KULTIRAS = 876,
 	ATALDAZAR = 934,
@@ -59,6 +83,7 @@ C.UIMAPIDS = {
 	TIRAGARDE_SOUND = 895,
 	DRUSTVAR = 896,
 	STORMSONG_VALLEY = 942,
+	THE_ETERNAL_PALACE = 1515,
 	ULDUM = 1527,
 	VALE_OF_ETERNAL_BLOSSOMS = 1530,
 	HORRIFIC_VISION_OF_STORMWIND = 1470,
@@ -74,7 +99,10 @@ C.UIMAPIDS = {
 	MISTS_OF_TIRNA_SCITHE = 1669,
 	PLAGUEFALL = 1674,
 	SANGUINE_DEPTHS = 1675,
-	CASTLE_NATHRIA = 1735
+	CASTLE_NATHRIA = 1735,
+	KORTHIA = 1961,
+	TAZAVESH_THE_VEILED_MARKET = 1989,
+	SANCTUM_OF_DOMINATION = 1998,
 }
 
 -- Types of items
@@ -94,7 +122,8 @@ C.DETECTION_METHODS = {
 	ARCH = "ARCH",
 	SPECIAL = "SPECIAL",
 	MINING = "MINING",
-	COLLECTION = "COLLECTION"
+	COLLECTION = "COLLECTION",
+	LOOT_TOAST = "LOOT_TOAST" -- Unused/NYI (but we'll get there later)
 }
 
 -- Categories (expansions-based, with some special types of items)
@@ -142,6 +171,7 @@ C.TOOLTIP_POSITIONS = {
 }
 
 C.SORT_METHODS = {
+	SORT_NONE = "None",
 	SORT_NAME = "SORT_NAME",
 	SORT_DIFFICULTY = "SORT_DIFFICULTY",
 	SORT_PROGRESS = "SORT_PROGRESS",
@@ -171,6 +201,29 @@ C.HOLIDAY_TEXTURES = {
 	MIDSUMMER_FESTIVAL = "Calendar_Midsummer",
 	FIREWORKS = "calendar_fireworks", -- What is this used for?
 	PIRATES_DAY = "Calendar_PiratesDay"
+}
+
+C.ARCHAEOLOGY_RACES = {
+	DRUST = 1,
+	ZANDALARI = 2,
+	DEMONIC = 3,
+	HIGHMOUNTAIN_TAUREN = 4,
+	HIGHBORNE = 5,
+	OGRE = 6,
+	DRAENOR_CLANS = 7,
+	ARAKKOA = 8,
+	MOGU = 9,
+	PANDAREN = 10,
+	MANTID = 11,
+	VRYKUL = 12,
+	TROLL = 13,
+	TOL_VIR = 14,
+	ORC = 15,
+	NERUBIAN = 16,
+	NIGHT_ELF = 17,
+	FOSSIL = 18,
+	DRAENEI = 19,
+	DWARF = 20
 }
 
 -- This doesn't really belong here and needs streamlining anyway, but for now this is the best place.
@@ -213,4 +266,19 @@ C.TOOLTIP_ACTIONS = {
 	end
 }
 
+C.Colors = {
+	Red = {r = 1.0, g = 0.2, b = 0.2},
+	Blue = {r = 0.4, g = 0.4, b = 1.0},
+	Green = {r = 0.2, g = 1.0, b = 0.2},
+	Yellow = {r = 1.0, g = 1.0, b = 0.2},
+	Gray = {r = 0.5, g = 0.5, b = 0.5},
+	Black = {r = 0.0, g = 0.0, b = 0.0},
+	White = {r = 1.0, g = 1.0, b = 1.0}
+}
+
+-- Legacy method of sharing constants (awkward, but better than not sharing them I guess)
+-- DEPRECATED: Use Rarity.Enum instead
 addonTable.constants = C
+
+-- More consistent with Blizzard's method as of Shadowlands (global Enum table); it's probably easier to use, as well
+Rarity.Enum = C

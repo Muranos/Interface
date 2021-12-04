@@ -76,7 +76,7 @@ local function CreateExtensions(tp_frame)
       visual.absorbbar = absorbbar
     end
 
-    absorbbar:SetTexture(ThreatPlates.Media:Fetch('statusbar', db.texture), true, false)
+    absorbbar:SetTexture(Addon.LibSharedMedia:Fetch('statusbar', db.texture), true, false)
     local color = db.AbsorbColor
     absorbbar:SetVertexColor(color.r, color.g, color.b, color.a)
     color = db.OverlayColor
@@ -250,7 +250,7 @@ local function UpdateExtensions(tp_frame, unitid, style)
   end
 end
 
-if Addon.CLASSIC then
+if Addon.IS_CLASSIC or Addon.IS_TBC_CLASSIC then
   Addon.CreateExtensions = function() end
   Addon.UpdateExtensions = function() end
 else

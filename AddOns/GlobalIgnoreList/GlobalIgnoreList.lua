@@ -627,8 +627,17 @@ local function PruneIgnoreList (days, doit)
 			
 			local name = addServer(GlobalIgnoreDB.ignoreList[count])
 					
+			--if doit ~= true then
+			--	ShowMsg("Prune will remove: "..name)
+			--end
+			
 			if doit == true then
-				C_FriendList.DelIgnore(name)
+				if GlobalIgnoreDB.typeList[count] == "player" then
+					C_FriendList.DelIgnore(name)
+				else
+					RemoveFromList(count)
+				end
+
 				count = 0
 			end
 		end
@@ -873,9 +882,9 @@ local function EventHandler (self, event, sender, ...)
 	--print ("DEBUG event=".. (event or "nil"))
 	--print ("DEBUG event=".. (event or "nil") .. " sender=" .. (sender or "nil"))
 	
-	if (event == "CHANNEL_INVITE_REQUEST") then
-		print ("DEBUG RECEIVED CHANNEL INVITE REQUEST")
-	end
+	--if (event == "CHANNEL_INVITE_REQUEST") then
+	--	print ("DEBUG RECEIVED CHANNEL INVITE REQUEST")
+	--end
 
 	if (event == "ADDON_LOADED") and (sender == "GlobalIgnoreList") then
 		gotLoaded = true
@@ -1325,11 +1334,13 @@ function filterComplex (filterStr, chatStr, chNum)
 								result = result .. "F"									
 							end
 						elseif token == "[channel]" then
+							--print("DEBUG channel="..tostring(chNum))
 							if tonumber(tokenData) == chNum then
 								result = result .. "T"
 							else
 								result = result .. "F"
 							end								
+							--print("DEBUG done")
 						elseif token == "[words]" then
 							if tonumber(tokenData) == #chatData then
 								result = result .. "T"

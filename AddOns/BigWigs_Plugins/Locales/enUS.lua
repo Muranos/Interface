@@ -151,7 +151,7 @@ L.breakFinished = "Break time is now over!"
 
 L.bossBlock = "Boss Block"
 L.bossBlockDesc = "Configure the various things you can block during a boss encounter.\n\n"
-L.bossBlockAudioDesc = "Configure what audio to mute during a boss encounter.\n\n"
+L.bossBlockAudioDesc = "Configure what audio to mute during a boss encounter.\n\nAny option here that is |cff808080greyed out|r has been disabled in WoW's sound options.\n\n"
 L.movieBlocked = "You've seen this movie before, skipping it."
 L.blockEmotes = "Block middle-screen emotes"
 L.blockEmotesDesc = "Some bosses show emotes for certain abilities, these messages are both way too long and descriptive. We try to produce smaller, more fitting messages that do not interfere with the gameplay, and don't tell you specifically what to do.\n\nPlease note: Boss emotes will still be visible in chat if you wish to read them."
@@ -263,8 +263,8 @@ L.useIcons = "Use icons"
 L.useIconsDesc = "Show icons next to messages."
 L.classColors = "Class colors"
 L.classColorsDesc = "Messages will sometimes contain player names. Enabling this option will color those names using class colors."
-L.chatMessages = "Chat frame messages"
-L.chatMessagesDesc = "Outputs all BigWigs messages to the default chat frame in addition to the display setting."
+L.chatFrameMessages = "Chat frame messages"
+L.chatFrameMessagesDesc = "Outputs all BigWigs messages to the default chat frame in addition to the display setting."
 
 L.fontSize = "Font size"
 L.none = "None"
@@ -290,8 +290,6 @@ L.proximity_name = "Proximity"
 L.soundDelay = "Sound delay"
 L.soundDelayDesc = "Specify how long BigWigs should wait between repeating the specified sound when someone is too close to you."
 
-L.proximity = "Proximity display"
-L.proximity_desc = "Show the proximity window when appropriate for this encounter, listing players who are standing too close to you."
 L.resetProximityDesc = "Reset all the options related to proximity, including the position of the proximity anchor."
 
 L.close = "Close"
@@ -340,7 +338,6 @@ L.countdownBegins_desc = "Choose how much time should be remaining on the pull t
 --
 
 L.icons = "Icons"
-L.raidIconsDesc = "Some encounter scripts use raid icons to mark players that are of special interest to your group. For example 'bomb'-type effects and mind control. If you turn this off, you won't mark anyone.\n\n|cffff4411Only applies if you're either the group leader or promoted!|r"
 L.raidIconsDescription = "Some encounters might include elements such as bomb-type abilities targetted on a specific player, a player being chased, or a specific player might be of interest in other ways. Here you can customize which raid icons should be used to mark these players.\n\nIf an encounter only has one ability that is worth marking for, only the first icon will be used. One icon will never be used for two different abilities on the same encounter, and any given ability will always use the same icon next time.\n\n|cffff4411Note that if a player has already been marked manually, BigWigs will never change their icon.|r"
 L.primary = "Primary"
 L.primaryDesc = "The first raid target icon that a encounter script should use."

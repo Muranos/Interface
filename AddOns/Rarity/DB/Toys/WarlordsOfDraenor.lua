@@ -63,6 +63,25 @@ local wodToys = {
 			["WARLOCK"] = true,
 			["WARRIOR"] = true
 		},
+		lockoutDetails = {
+			mode = CONSTANTS.DEFEAT_DETECTION.MODE_AND,
+			{
+				encounterName = "Majordomo Staghelm",
+				instanceDifficulties = {
+					[CONSTANTS.INSTANCE_DIFFICULTIES.NORMAL_RAID] = true
+				}
+			},
+			{
+				encounterName = "Majordomo Staghelm",
+				instanceDifficulties = {
+					[CONSTANTS.INSTANCE_DIFFICULTIES.HEROIC_RAID] = true
+				}
+			},
+		},
+		instanceDifficulties = {
+			[CONSTANTS.INSTANCE_DIFFICULTIES.NORMAL_RAID] = true,
+			[CONSTANTS.INSTANCE_DIFFICULTIES.HEROIC_RAID] = true,
+		},
 		sourceText = L["Will only drop for druids."],
 		coords = {{m = 369, x = 50.9, y = 72.4, i = true}}
 	},
@@ -78,6 +97,20 @@ local wodToys = {
 		chance = 5,
 		coords = {
 			{m = 543, x = 69.2, y = 44.8, n = L["Basten"]}
+		}
+	},
+	["Outrider's Bridle Chain"] = {
+		cat = CONSTANTS.ITEM_CATEGORIES.WOD,
+		type = CONSTANTS.ITEM_TYPES.ITEM,
+		isToy = true,
+		method = CONSTANTS.DETECTION_METHODS.NPC,
+		name = L["Outrider's Bridle Chain"],
+		itemId = 120276,
+		questId = 37546,
+		npcs = {81330},
+		chance = 8,
+		coords = {
+			{m = CONSTANTS.UIMAPIDS.NAGRAND_DRAENOR}
 		}
 	}
 }

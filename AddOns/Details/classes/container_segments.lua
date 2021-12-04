@@ -310,7 +310,6 @@ function historico:adicionar (tabela)
 		end
 		
 		if (_detalhes.trash_auto_remove) then
-		
 			local _terceiro_combate = self.tabelas[3]
 		
 			if (_terceiro_combate and not _terceiro_combate.is_mythic_dungeon_segment) then
@@ -390,7 +389,6 @@ function historico:adicionar (tabela)
 		--> remover
 		_table_remove (self.tabelas, combat_index)
 		_detalhes:SendEvent ("DETAILS_DATA_SEGMENTREMOVED")
-		
 	end
 	
 	--> chama a fun��o que ir� atualizar as inst�ncias com segmentos no hist�rico
@@ -539,10 +537,10 @@ function historico:resetar()
 		_detalhes.schedule_hard_garbage_collect = true
 	end
 	
-	_detalhes:InstanciaCallFunction (_detalhes.AtualizaSegmentos) -- atualiza o instancia.showing para as novas tabelas criadas
-	_detalhes:InstanciaCallFunction (_detalhes.AtualizaSoloMode_AfertReset) -- verifica se precisa zerar as tabela da janela solo mode
-	_detalhes:InstanciaCallFunction (_detalhes.ResetaGump) --_detalhes:ResetaGump ("de todas as instancias")
-	_detalhes:InstanciaCallFunction (gump.Fade, "in", nil, "barras")
+	_detalhes:InstanciaCallFunction(_detalhes.AtualizaSegmentos) -- atualiza o instancia.showing para as novas tabelas criadas
+	_detalhes:InstanciaCallFunction(_detalhes.AtualizaSoloMode_AfertReset) -- verifica se precisa zerar as tabela da janela solo mode
+	_detalhes:InstanciaCallFunction(_detalhes.ResetaGump) --_detalhes:ResetaGump ("de todas as instancias")
+	_detalhes:InstanciaCallFunction(Details.FadeHandler.Fader, "IN", nil, "barras")
 	
 	_detalhes:RefreshMainWindow (-1) --atualiza todas as instancias
 	

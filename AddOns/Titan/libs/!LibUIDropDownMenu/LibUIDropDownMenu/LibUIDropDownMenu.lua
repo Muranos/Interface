@@ -349,6 +349,17 @@ local BACKDROP_DIALOG_DARK = {
 		edgeSize = 32,
 		insets = { left = 11, right = 12, top = 12, bottom = 9, },
 }
+local back_drop_info =
+	{
+		bgFile="Interface\\Tooltips\\UI-Tooltip-Background",
+		edgeFile="Interface\\Tooltips\\UI-Tooltip-Border",
+		tile = true,
+		tileEdge = true,
+		insets = { left = 1, right = 1, top = 1, bottom = 1 },
+		tileSize = 8,
+		edgeSize = 8,
+	}
+
 local function creatre_DropDownList(name, parent)
 	local f = _G[name] or CreateFrame("Button", name)
 	f:SetParent(parent or nil)
@@ -365,7 +376,7 @@ local function creatre_DropDownList(name, parent)
 	--local fmb = _G[name.."MenuBackdrop"] or CreateFrame("Frame", name.."MenuBackdrop", f, BackdropTemplateMixin and "TooltipBackdropTemplate" or nil)
 	local fmb = _G[name.."MenuBackdrop"] or CreateFrame("Frame", name.."MenuBackdrop", f, BackdropTemplateMixin and "BackdropTemplate" or nil)
 	fmb:SetAllPoints()
-	fmb:SetBackdrop(BACKDROP_TOOLTIP_16_16_5555)
+	fmb:SetBackdrop(back_drop_info)
 	fmb:SetBackdropBorderColor(TOOLTIP_DEFAULT_COLOR.r, TOOLTIP_DEFAULT_COLOR.g, TOOLTIP_DEFAULT_COLOR.b)
 	fmb:SetBackdropColor(TOOLTIP_DEFAULT_BACKGROUND_COLOR.r, TOOLTIP_DEFAULT_BACKGROUND_COLOR.g, TOOLTIP_DEFAULT_BACKGROUND_COLOR.b)
 	f.MenuBackdrop = fmb

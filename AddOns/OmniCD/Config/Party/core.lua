@@ -63,11 +63,11 @@ for key, name in pairs(E.L_ZONE) do
 			order = 20,
 			type = "select",
 			values = E.CFG_ZONE,
-			get = function(info) return E.DB.profile.Party[info[2] == "none" and "noneZoneSetting" or "scenarioZoneSetting"] end, -- [83]
+			get = function(info) return E.DB.profile.Party[info[2] == "none" and "noneZoneSetting" or "scenarioZoneSetting"] end,
 			set = function(info, value)
 				E.DB.profile.Party[info[2] == "none" and "noneZoneSetting" or "scenarioZoneSetting"] = value
 
-				P:Refresh(true) -- [76]
+				P:Refresh(true) -- don't cross check zone. We just changed it
 			end,
 		}
 	end
@@ -118,7 +118,7 @@ function P:ConfigBars(key, arg)
 
 	if arg == "priority" then
 		self:UpdateRaidPriority()
-		self:SetExIconLayout("raidCDBar", true, true) -- changed to nodelay
+		self:SetExIconLayout("raidCDBar", true, true)
 	elseif arg ~= "showAnchor" and arg ~= "locked" then
 		self:UpdatePositionValues()
 	end
@@ -143,7 +143,7 @@ function P:ConfigBars(key, arg)
 			self:SetAnchor(f)
 		elseif arg == "reset" then
 			E.LoadPosition(f)
-		else -- [20]
+		else -- columns/growUpward/displayInactive/paddingXY
 			self:SetIconLayout(f, arg == "priority")
 		end
 	end
@@ -168,24 +168,20 @@ function P:ConfigIconSettings(f, arg, key)
 			else
 				self:SetBorder(icon)
 			end
-		elseif arg == "borderColor" then
+		elseif arg == "borderColor" then -- border enabled
 			local r, g, b = E.db.icons.borderColor.r, E.db.icons.borderColor.g, E.db.icons.borderColor.b
 			if key then
-				icon.borderTop:SetColorTexture(r, g, b)
-				icon.borderBottom:SetColorTexture(r, g, b)
-				icon.borderRight:SetColorTexture(r, g, b)
-				icon.borderLeft:SetColorTexture(r, g, b)
-
 				local statusBar = icon.statusBar
-				statusBar.borderTop:SetColorTexture(r, g, b)
-				statusBar.borderBottom:SetColorTexture(r, g, b)
-				statusBar.borderRight:SetColorTexture(r, g, b)
-			elseif E.db.icons.displayBorder then
-				icon.borderTop:SetColorTexture(r, g, b)
-				icon.borderBottom:SetColorTexture(r, g, b)
-				icon.borderRight:SetColorTexture(r, g, b)
-				icon.borderLeft:SetColorTexture(r, g, b)
+				if statusBar then
+					statusBar.borderTop:SetColorTexture(r, g, b)
+					statusBar.borderBottom:SetColorTexture(r, g, b)
+					statusBar.borderRight:SetColorTexture(r, g, b)
+				end
 			end
+			icon.borderTop:SetColorTexture(r, g, b)
+			icon.borderBottom:SetColorTexture(r, g, b)
+			icon.borderRight:SetColorTexture(r, g, b)
+			icon.borderLeft:SetColorTexture(r, g, b)
 		elseif arg == "markEnhanced" then
 			self:SetMarker(icon)
 		end

@@ -326,12 +326,18 @@
 				end
 				return table1 [4] < table2 [4]
 			end
-			
+
 --[[exported]]	function Details:GetBarColor (actor)
 				actor = actor or self
 				if (actor.monster) then
 					return _unpack (Details.class_colors.ENEMY)
-					
+
+				elseif (actor.customColor) then
+					return unpack(actor.customColor)
+
+				elseif (actor.spellicon) then
+					return 0.729, 0.917, 1
+
 				elseif (actor.owner) then
 					return _unpack (Details.class_colors [actor.owner.classe or "UNKNOW"])
 
@@ -982,7 +988,7 @@
 		end
 		
 		if (thisLine.hidden or thisLine.fading_in or thisLine.faded) then
-			gump:Fade (thisLine, "out")
+			Details.FadeHandler.Fader (thisLine, "out")
 		end
 		
 		if (instancia.row_info.texture_class_colors) then
@@ -1169,7 +1175,7 @@
 		thisLine.lineText4:SetTextColor (1, 1, 1, 1)		
 		
 		if (thisLine.hidden or thisLine.fading_in or thisLine.faded) then
-			gump:Fade (thisLine, "out")
+			Details.FadeHandler.Fader (thisLine, "out")
 		end
 
 		Details:SetBarColors (thisLine, instancia, _unpack (Details.class_colors [tabela [3]]))
@@ -1586,7 +1592,7 @@
 		thisLine:SetValue (100)
 		
 		if (thisLine.hidden or thisLine.fading_in or thisLine.faded) then
-			gump:Fade (thisLine, "out")
+			Details.FadeHandler.Fader (thisLine, "out")
 		end
 		
 		local _, _, icon = GetSpellInfo (self.damage_spellid)
@@ -2026,14 +2032,29 @@ function atributo_damage:RefreshWindow (instancia, tabela_do_combate, forcar, ex
 		return Details:EndRefresh (instancia, total, tabela_do_combate, showing) --> retorna a tabela que precisa ganhar o refresh
 		
 	else
-	
-		if (keyName == "enemies") then 
-		
-			--amount, total = Details:ContainerSortEnemies (conteudo, amount, "total")
+	--/run Details:Dump(Details:GetCurrentCombat():GetActor(1, "Injured Steelspine 1"))
+		if (keyName == "enemies") then
 			amount, total = Details:ContainerSortEnemies (conteudo, amount, "damage_taken")
-			--keyName = "enemies"
-			--> grava o total
-			instancia.top = conteudo[1][keyName]
+
+			--remove actors with zero damage taken
+			local newAmount = 0
+			for i = 1, #conteudo do
+				if (conteudo[i].damage_taken < 1) then
+					newAmount = i-1
+					break
+				end
+			end
+
+			--if all units shown are enemies and all have damage taken, check if newAmount is zero and #conteudo has value bigger than 0
+			if (newAmount == 0 and #conteudo > 0) then
+				amount = amount
+			else
+				amount = newAmount
+			end
+
+			--keyName = "damage_taken"
+			--result of the first actor
+			instancia.top = conteudo[1] and conteudo[1][keyName]
 			
 		elseif (modo == modo_ALL) then --> mostrando ALL
 		
@@ -2136,7 +2157,7 @@ function atributo_damage:RefreshWindow (instancia, tabela_do_combate, forcar, ex
 		if (forcar) then
 			if (instancia.modo == 2) then --> group
 				for i = 1, instancia.rows_fit_in_window  do
-					gump:Fade (instancia.barras [i], "in", 0.3)
+					Details.FadeHandler.Fader (instancia.barras [i], "in", Details.fade_speed)
 				end
 			end
 		end
@@ -2241,7 +2262,7 @@ function atributo_damage:RefreshWindow (instancia, tabela_do_combate, forcar, ex
 			row1.icone_classe:SetTexture (instancia.total_bar.icon)
 			row1.icone_classe:SetTexCoord (0.0625, 0.9375, 0.0625, 0.9375)
 			
-			gump:Fade (row1, "out")
+			Details.FadeHandler.Fader (row1, "out")
 			totalBarIsShown = true
 			
 			if (following and myPos and myPos > instancia.rows_fit_in_window and instancia.barraS[2] < myPos) then
@@ -2313,7 +2334,7 @@ function atributo_damage:RefreshWindow (instancia, tabela_do_combate, forcar, ex
 			row1.icone_classe:SetTexture (instancia.total_bar.icon)
 			row1.icone_classe:SetTexCoord (0.0625, 0.9375, 0.0625, 0.9375)
 			
-			gump:Fade (row1, "out")
+			Details.FadeHandler.Fader (row1, "out")
 			totalBarIsShown = true
 			
 			if (following and myPos and myPos > instancia.rows_fit_in_window and instancia.barraS[2] < myPos) then
@@ -2370,7 +2391,7 @@ function atributo_damage:RefreshWindow (instancia, tabela_do_combate, forcar, ex
 	if (forcar) then
 		if (instancia.modo == 2) then --> group
 			for i = whichRowLine, instancia.rows_fit_in_window  do
-				gump:Fade (instancia.barras [i], "in", 0.3)
+				Details.FadeHandler.Fader (instancia.barras [i], "in", Details.fade_speed)
 			end
 		end
 	end
@@ -2689,7 +2710,7 @@ end
 			thisLine:SetValue (100)
 			
 			if (thisLine.hidden or thisLine.fading_in or thisLine.faded) then
-				gump:Fade (thisLine, "out")
+				Details.FadeHandler.Fader (thisLine, "out")
 			end
 			
 			return self:RefreshBarra (thisLine, instance)
@@ -2707,7 +2728,7 @@ end
 				thisLine.animacao_ignorar = true
 			end
 			
-			gump:Fade (thisLine, "out")
+			Details.FadeHandler.Fader (thisLine, "out")
 
 			return self:RefreshBarra (thisLine, instance)
 		else
@@ -2864,7 +2885,6 @@ end
 	elseif (self.spellicon) then
 		texture:SetTexture (self.spellicon)
 		texture:SetTexCoord (0.078125, 0.921875, 0.078125, 0.921875)
-		texture:SetVertexColor (1, 1, 1)
 		
 	elseif (classe == "UNKNOW") then
 		texture:SetTexture ([[Interface\AddOns\Details\images\classes_plus]])
@@ -5410,6 +5430,94 @@ function atributo_damage:ColetarLixo (lastevent)
 	return Details:ColetarLixo (class_type, lastevent)
 end
 
+
+--actor 1 is who will receive the sum from actor2
+function Details.SumDamageActors(actor1, actor2, actorContainer)
+	--general
+	actor1.total = actor1.total + actor2.total
+	actor1.damage_taken = actor1.damage_taken + actor2.damage_taken
+	actor1.totalabsorbed = actor1.totalabsorbed + actor2.totalabsorbed
+	actor1.total_without_pet = actor1.total_without_pet + actor2.total_without_pet
+	actor1.friendlyfire_total = actor1.friendlyfire_total + actor2.friendlyfire_total
+
+	--damage taken from
+	for actorName in pairs(actor2.damage_from) do
+		actor1.damage_from[actorName] = true
+
+		--add the damage done to actor2 into the damage done to target1
+		if (actorContainer) then
+			--get the actor that caused the damage on actor2
+			local actorObject = actorContainer:GetActor(actorName)
+			if (actorObject) then
+				local damageToActor2 = (actorObject.targets[actor2.nome]) or 0
+				actorObject.targets[actor1.nome] = (actorObject.targets[actor1.nome] or 0) + damageToActor2
+			end
+		end
+	end
+
+	--targets
+	for actorName, damageDone in pairs(actor2.targets) do
+		actor1.targets[actorName] = (actor1.targets[actorName] or 0) + damageDone
+	end
+
+	--pets
+	for i = 1, #actor2.pets do
+		DetailsFramework.table.addunique(actor1.pets, actor2.pets[i])
+	end
+
+	--raid targets
+	for raidTargetFlag, damageDone in pairs(actor2.raid_targets) do
+		actor1.raid_targets[raidTargetFlag] = (actor1.raid_targets[raidTargetFlag] or 0) + damageDone
+	end
+
+	--friendly fire
+	for actorName, ffTable in pairs(actor2.friendlyfire) do
+		actor1.friendlyfire[actorName] = actor1.friendlyfire[actorName] or actor1:CreateFFTable(actorName)
+		actor1.friendlyfire[actorName].total = actor1.friendlyfire[actorName].total + ffTable.total
+
+		for spellId, damageDone in pairs(ffTable.spells) do
+			actor1.friendlyfire[actorName].spells[spellId] = (actor1.friendlyfire[actorName].spells[spellId] or 0) + damageDone
+		end
+	end
+
+	--spells
+	local ignoredKeys = {
+		id = true,
+		spellschool =  true,
+	}
+
+	local actor1Spells = actor1.spells
+	for spellId, spellTable in pairs(actor2.spells._ActorTable) do
+
+		local actor1Spell = actor1Spells:GetOrCreateSpell(spellId, true, "DAMAGE_DONE")
+
+		--genetal spell attributes
+		for key, value in pairs(spellTable) do
+			if (type(value) == "number") then
+				if (not ignoredKeys[key]) then
+					if (key == "n_min" or key == "c_min") then
+						if (actor1Spell[key] > value) then
+							actor1Spell[key] = value
+						end
+					elseif (key == "n_max" or key == "c_max") then
+						if (actor1Spell[key] < value) then
+							actor1Spell[key] = value
+						end
+					else
+						actor1Spell[key] = actor1Spell[key] + value
+					end
+				end
+			end
+		end
+
+		--spell targets
+		for targetName, damageDone in pairs(spellTable) do
+			actor1Spell.targets[targetName] = (actor1Spell.targets[targetName] or 0) + damageDone
+		end
+	end
+end
+
+
 atributo_damage.__add = function (tabela1, tabela2)
 
 	--> tempo decorrido
@@ -5463,7 +5571,7 @@ atributo_damage.__add = function (tabela1, tabela2)
 
 			--> soma os alvos
 			for target_name, amount in _pairs (habilidade.targets) do 	
-				habilidade_tabela1.targets = (habilidade_tabela1.targets [target_name] or 0) + amount
+				habilidade_tabela1.targets[target_name] = (habilidade_tabela1.targets [target_name] or 0) + amount
 			end
 
 			--> soma os extras

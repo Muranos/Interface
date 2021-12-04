@@ -87,7 +87,7 @@ local initFrames
 local defaultSavedVars = {
 	global = {
         toolbarExpanded = true,
-        currentSeason = 5,
+        currentSeason = 6,
 		currentExpansion = 3,
         scale = 1,
         enemyForcesFormat = 2,
@@ -219,18 +219,18 @@ MDT.scaleMultiplier = {}
 --https://www.wowhead.com/affixes
 --lvl 4 affix, lvl 7 affix, tyrannical/fortified, seasonal affix
 local affixWeeks = {
-    [1] =  {[1]=11,[2]=3,[3]=10,[4]=121}, -->>Bursting, Volcanic, Fortified
-    [2] =  {[1]=7,[2]=124,[3]=9,[4]=121}, -->>Bolstering, Storming, Tyrannical
-    [3] =  {[1]=123,[2]=12,[3]=10,[4]=121}, -->>Spiteful, Grievous, Fortified
-    [4] =  {[1]=122,[2]=4,[3]=9,[4]=121}, -->>Inspiring, Necrotic, Tyrannical
-    [5] =  {[1]=8,[2]=14,[3]=10,[4]=121}, -->>Sanguine, Quaking, Fortified
-    [6] =  {[1]=6,[2]=13,[3]=9,[4]=121}, -->>Raging, Explosive, Tyrannical
-    [7] =  {[1]=123,[2]=3,[3]=10,[4]=121}, -->>Spiteful, Volcanic, Fortified
-    [8] =  {[1]=7,[2]=4,[3]=9,[4]=121},  -->>Bolstering, Necrotic, Tyrannical
-    [9] =  {[1]=122,[2]=124,[3]=10,[4]=121},   -->>Inspiring, Storming, Fortified
-    [10] = {[1]=11,[2]=13,[3]=9,[4]=121},  -->>Bursting, Explosive, Tyrannical
-    [11] = {[1]=8,[2]=12,[3]=10,[4]=121},      -->>Sanguine, Grievous, Fortified
-    [12] = {[1]=6,[2]=14,[3]=9,[4]=121},   -->>Raging, Quaking, Tyrannical
+    [1] =  {11,124,10,128}, --bursting storming fortified tormented
+    [2] =  {6,3,9,128}, --raging volcanic tyrannical tormented
+    [3] =  {122,12,10,128}, -- inspiring grievous fortified tormented
+    [4] =  {123,4,9,128}, -- spiteful necrotic tyrannical tormented
+    [5] =  {7,14,10,128}, -- bolstering quaking fortified tormented
+    [6] =  {8,124,9,128}, --sanguine storming tyrannical tormented
+    [7] =  {6,13,10,128}, --raging explosive fortified tormented
+    [8] =  {11,3,9,128}, --bursting volcanic tyrannical tormented
+    [9] =  {123,12,10,128}, --spiteful grievous fortified tormented
+    [10] = {122,14,9,128},  --inspiring quaking tyrannical tormented
+    [11] = {8,4,10,128},  --sanguine necrotic fortified tormented
+    [12] = {7,13,9,128},  --bolstering explosive tyrannical tormented
 }
 
 local dungeonList = {
@@ -1236,7 +1236,7 @@ function MDT:MakeSidePanel(frame)
 	frame.sidePanel.WidgetGroup:AddChild(dropdown)
 
 	---new profile,rename,export,delete
-	local buttonWidth = 80
+	local buttonWidth = 75
 	frame.sidePanelNewButton = AceGUI:Create("Button")
 	frame.sidePanelNewButton:SetText(L["New"])
 	frame.sidePanelNewButton:SetWidth(buttonWidth)
@@ -1506,7 +1506,7 @@ function MDT:MakeSidePanel(frame)
     local colorCogwheel = frame.AutomaticColorsCogwheel
     colorCogwheel:SetImage("Interface\\AddOns\\MythicDungeonTools\\Textures\\helpIconRnbw")
     colorCogwheel:SetImageSize(25,25)
-    colorCogwheel:SetWidth(35)
+    colorCogwheel:SetWidth(30)
     colorCogwheel:SetCallback("OnEnter",function(...)
         GameTooltip:SetOwner(colorCogwheel.frame, "ANCHOR_CURSOR")
         GameTooltip:AddLine(L["Click to adjust color settings"],1,1,1)
@@ -1624,7 +1624,7 @@ function MDT:MakeSidePanel(frame)
     local affixWeekWarning = frame.sidePanel.affixWeekWarning
     affixWeekWarning:SetImage("Interface\\DialogFrame\\UI-Dialog-Icon-AlertNew")
     affixWeekWarning:SetImageSize(25,25)
-    affixWeekWarning:SetWidth(35)
+    affixWeekWarning:SetWidth(30)
     affixWeekWarning:SetCallback("OnEnter",function(...)
         GameTooltip:SetOwner(affixDropdown.frame, "ANCHOR_CURSOR")
         GameTooltip:AddLine(L["The selected affixes are not the ones of the current week"],1,1,1)
@@ -1705,7 +1705,7 @@ function MDT:MakeSidePanel(frame)
     local difficultyWarning = frame.sidePanel.difficultyWarning
     difficultyWarning:SetImage("Interface\\DialogFrame\\UI-Dialog-Icon-AlertNew")
     difficultyWarning:SetImageSize(25,25)
-    difficultyWarning:SetWidth(35)
+    difficultyWarning:SetWidth(30)
     difficultyWarning:SetCallback("OnEnter",function(...)
         GameTooltip:SetOwner(frame.sidePanel.DifficultySlider.frame, "ANCHOR_CURSOR")
         GameTooltip:AddLine(L["The selected dungeon level is below 10"],1,1,1)
@@ -2291,7 +2291,7 @@ end
 
 ---MouseDownHook
 function MDT:MouseDownHook()
-    return
+
 end
 
 ---Handles mouse-down events on the map scrollframe
@@ -2594,8 +2594,8 @@ function MDT:CalculateEnemyHealth(boss, baseHealth, level, ignoreFortified)
     local tyrannical = MDT:IsCurrentPresetTyrannical()
 	local mult = 1
 	if boss == false and fortified == true and (not ignoreFortified) then mult = 1.2 end
-	if boss == true and tyrannical == true then mult = 1.4 end
-	mult = round((1.10^math.max(level-2,0))*mult,2)
+	if boss == true and tyrannical == true then mult = 1.3 end
+	mult = round((1.08^math.max(level-2,0))*mult,2)
 	return round(mult*baseHealth,0)
 end
 
@@ -2605,8 +2605,8 @@ function MDT:ReverseCalcEnemyHealth(unit, level, boss)
     local tyrannical = MDT:IsCurrentPresetTyrannical()
     local mult = 1
     if boss == false and fortified == true then mult = 1.2 end
-    if boss == true and tyrannical == true then mult = 1.4 end
-    mult = round((1.10^math.max(level-2,0))*mult,2)
+    if boss == true and tyrannical == true then mult = 1.3 end
+    mult = round((1.08^math.max(level-2,0))*mult,2)
     local baseHealth = health/mult
     return baseHealth
 end
@@ -2756,9 +2756,13 @@ function MDT:CreateDungeonSelectDropdown(frame)
 	--Simple Group to hold both dropdowns
 	frame.DungeonSelectionGroup = AceGUI:Create("SimpleGroup")
 	local group = frame.DungeonSelectionGroup
+    if not group.frame.SetBackdrop then
+        Mixin(group.frame, BackdropTemplateMixin)
+    end
+    group.frame:SetBackdropColor(unpack(MDT.BackdropColor))
     group.frame:SetFrameStrata("HIGH")
     group.frame:SetFrameLevel(50)
-	group:SetWidth(200)
+	group:SetWidth(204) --idk ace added weird margin on left
 	group:SetHeight(50)
 	group:SetPoint("TOPLEFT",frame.topPanel,"BOTTOMLEFT",0,2)
     group:SetLayout("List")
@@ -3741,7 +3745,7 @@ function MDT:MakePullSelectionButtons(frame)
 
     frame.newPullButtons = {}
 	--rightclick context menu
-    frame.optionsDropDown = L_Create_UIDropDownMenu("PullButtonsOptionsDropDown", nil)
+    frame.optionsDropDown = CreateFrame("frame", "MDTPullButtonsOptionsDropDown", nil, "UIDropDownMenuTemplate")
 end
 
 
@@ -3982,6 +3986,12 @@ function MDT:UpdatePullButtonNPCData(idx)
         frame.newPullButtons[idx]:ShowPridefulIcon(true,currentPercent,oldPercent)
     else
         frame.newPullButtons[idx]:ShowPridefulIcon(false,currentPercent,oldPercent)
+    end
+    --count per health
+    if pullForces>0 then
+        frame.newPullButtons[idx]:ShowCountPerHealth(true,pullForces,totalForcesMax)
+    else
+        frame.newPullButtons[idx]:ShowCountPerHealth(true,pullForces,totalForcesMax)
     end
 end
 
@@ -4532,7 +4542,7 @@ function MDT:HSVtoRGB(H, S, V)
 	H = H % 361
 
 	local function f(n)
-		k = (n + H/60) % 6
+		local k = (n + H/60) % 6
 		return V - V * S * math.max(math.min(k, 4 - k, 1), 0)
 	end
 
@@ -4810,6 +4820,7 @@ function MDT:PrintCurrentAffixes()
         [122] =L["Inspiring"],
         [123] =L["Spiteful"],
         [124] =L["Storming"],
+        [128] =L["Tormented"],
     }
     local affixIds = C_MythicPlus.GetCurrentAffixes()
     for idx,data in ipairs(affixIds) do
@@ -5013,7 +5024,7 @@ function initFrames()
 	-- Set frame position
 	main_frame:ClearAllPoints()
 	main_frame:SetPoint(db.anchorTo, UIParent,db.anchorFrom, db.xoffset, db.yoffset)
-    main_frame.contextDropdown = L_Create_UIDropDownMenu("MDTContextDropDown", nil)
+    main_frame.contextDropdown = CreateFrame("frame", "MDTContextDropDown", nil, "UIDropDownMenuTemplate")
 
     MDT:CheckCurrentZone(true)
     MDT:EnsureDBTables()
@@ -5050,17 +5061,13 @@ function initFrames()
     --ElvUI skinning
     local skinTooltip = function(tooltip)
         if IsAddOnLoaded("ElvUI") and ElvUI[1].Tooltip then
-            local borderTextures = {"BorderBottom","BorderBottomLeft","BorderBottomRight","BorderLeft","BorderRight","BorderTop","BorderTopLeft","BorderTopRight"}
-            for k,v in pairs(borderTextures) do
-                tooltip[v]:Kill()
-            end
-            tooltip.Background:Kill()
             if not tooltip.SetBackdrop then
                 Mixin(tooltip, BackdropTemplateMixin)
             end
-            tooltip:HookScript("OnShow",function(self)
+            tooltip:HookScript("OnShow",function(self) --ignore updates
                 if self:IsForbidden() then return end
-                self:SetTemplate("Transparent", nil, true) --ignore updates
+                self:ClearBackdrop()
+                self:CreateBackdrop('Transparent')
                 local r, g, b = self:GetBackdropColor()
                 self:SetBackdropColor(r, g, b, ElvUI[1].Tooltip.db.colorAlpha)
             end)

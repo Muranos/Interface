@@ -205,7 +205,7 @@ local function TorghastUpdate(index)
 
     if nameInfo and levelInfo then
       local available = nameInfo.shownState == 1
-      local levelText = strmatch(levelInfo.text, '|cFF00FF00.+(%d+).+|r')
+      local levelText = strmatch(levelInfo.text, '|cFF00FF00.-(%d+).+|r')
 
       SI.db.Toons[SI.thisToon].Progress[index]['Available' .. i] = available
       SI.db.Toons[SI.thisToon].Progress[index]['Level' .. i] = levelText
@@ -231,6 +231,41 @@ local function TorghastShow(toon, index)
 end
 
 local function TorghastReset(toon, index)
+  local t = SI.db.Toons[toon]
+  if not t or not t.Progress or not t.Progress[index] then return end
+
+  local unlocked = t.Progress[index].unlocked
+  wipe(t.Progress[index])
+  t.Progress[index].unlocked = unlocked
+end
+
+-- Covenant Assaults (index 7)
+
+local function CovenantAssaultUpdate(index)
+  SI.db.Toons[SI.thisToon].Progress[index] = wipe(SI.db.Toons[SI.thisToon].Progress[index] or {})
+  for _, questID in ipairs(Module.TrackedQuest[index].relatedQuest) do
+    SI.db.Toons[SI.thisToon].Progress[index][questID] = C_TaskQuest_IsActive(questID)
+  end
+  SI.db.Toons[SI.thisToon].Progress[index].unlocked = IsQuestFlaggedCompleted(64556) -- In Need of Assistance
+end
+
+local function CovenantAssaultShow(toon, index)
+  local t = SI.db.Toons[toon]
+  if not t or not t.Quests then return end
+  if not t or not t.Progress or not t.Progress[index] then return end
+
+  if t.Progress[index].unlocked then
+    local count = 0
+    for _, questID in ipairs(Module.TrackedQuest[index].relatedQuest) do
+      if t.Quests[questID] then
+        count = count + 1
+      end
+    end
+    return count == 0 and "" or tostring(count)
+  end
+end
+
+local function CovenantAssaultReset(toon, index)
   local t = SI.db.Toons[toon]
   if not t or not t.Progress or not t.Progress[index] then return end
 
@@ -350,6 +385,27 @@ Module.TrackedQuest = {
       {2929, 2940}, -- The Upper Reaches
     },
   },
+  -- Covenant Assaults
+  {
+    name = L["Covenant Assaults"],
+    weekly = true,
+    func = CovenantAssaultUpdate,
+    showFunc = CovenantAssaultShow,
+    resetFunc = CovenantAssaultReset,
+    tooltipKey = 'ShowCovenantAssaultTooltip',
+    relatedQuest = {
+      63823, -- Night Fae Assault
+      63822, -- Venthyr Assault
+      63824, -- Kyrian Assault
+      63543, -- Necrolord Assault
+    },
+  },
+  {
+    name = L["The World Awaits"],
+    weekly = true,
+    quest = 62631,
+    relatedQuest = {62631},
+  },
 }
 
 function Module:OnEnable()
@@ -421,13 +477,15 @@ function Module:OnWeeklyReset(toon)
         tbl.resetFunc(toon, i)
       else
         local prev = t.Progress[i]
-        t.Progress[i] = {
-          unlocked = prev.unlocked,
-          isComplete = false,
-          isFinish = false,
-          numFulfilled = 0,
-          numRequired = prev.numRequired,
-        }
+        if prev then
+          t.Progress[i] = {
+            unlocked = prev.unlocked,
+            isComplete = false,
+            isFinish = false,
+            numFulfilled = 0,
+            numRequired = prev.numRequired,
+          }
+        end
       end
     end
   end

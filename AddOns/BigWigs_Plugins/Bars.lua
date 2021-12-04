@@ -603,7 +603,7 @@ do
 
 	plugin.pluginOptions = {
 		type = "group",
-		name = L.bars,
+		name = "|TInterface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\Bars:20|t ".. L.bars,
 		childGroups = "tab",
 		get = function(info)
 			return db[info[#info]]
@@ -615,7 +615,47 @@ do
 				BigWigsEmphasizeAnchor:RefixPosition()
 			end
 		end,
+		order = 1,
 		args = {
+			anchorsButton = {
+				type = "execute",
+				name = function()
+					local BL = BigWigsAPI:GetLocale("BigWigs")
+					if BigWigsOptions:InConfigureMode() then
+						return BL.toggleAnchorsBtnHide
+					else
+						return BL.toggleAnchorsBtnShow
+					end
+				end,
+				desc = function()
+					local BL = BigWigsAPI:GetLocale("BigWigs")
+					if BigWigsOptions:InConfigureMode() then
+						return BL.toggleAnchorsBtnHide_desc
+					else
+						return BL.toggleAnchorsBtnShow_desc
+					end
+				end,
+				func = function()
+					if not BigWigs:IsEnabled() then BigWigs:Enable() end
+					if BigWigsOptions:InConfigureMode() then
+						plugin:SendMessage("BigWigs_StopConfigureMode")
+					else
+						plugin:SendMessage("BigWigs_StartConfigureMode")
+					end
+				end,
+				width = 1.5,
+				order = 0.2,
+			},
+			testButton = {
+				type = "execute",
+				name = BigWigsAPI:GetLocale("BigWigs").testBarsBtn,
+				desc = BigWigsAPI:GetLocale("BigWigs").testBarsBtn_desc,
+				func = function()
+					BigWigs:Test()
+				end,
+				width = 1.5,
+				order = 0.4,
+			},
 			custom = {
 				type = "group",
 				name = L.general,
@@ -1085,7 +1125,7 @@ do
 						name = L.emphasizeAt,
 						order = 6,
 						min = 6,
-						max = 20,
+						max = 30,
 						step = 1,
 					},
 					fontSizeEmph = {
@@ -2148,15 +2188,17 @@ do
 	anim:SetDuration(0.2)
 end
 
-function plugin:EmphasizeBar(bar, start)
+function plugin:EmphasizeBar(bar, freshBar)
 	if db.emphasizeMove then
 		normalAnchor.bars[bar] = nil
 		emphasizeAnchor.bars[bar] = true
 		bar:Set("bigwigs:anchor", emphasizeAnchor)
 	end
-	currentBarStyler.BarStopped(bar)
-	if not start and db.emphasizeRestart then
-		bar:Start() -- restart the bar -> remaining time is a full length bar again after moving it to the emphasize anchor
+	if not freshBar then
+		currentBarStyler.BarStopped(bar) -- Only call BarStopped on bars that have already started (ApplyStyle was called on them first)
+		if db.emphasizeRestart then
+			bar:Start() -- restart the bar -> remaining time is a full length bar again after moving it to the emphasize anchor
+		end
 	end
 	local module = bar:Get("bigwigs:module")
 	local key = bar:Get("bigwigs:option")

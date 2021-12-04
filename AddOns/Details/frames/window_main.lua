@@ -313,7 +313,7 @@ local function OnLeaveMainWindow (instancia, self)
 		end
 		
 		--> stretch button
-		gump:Fade (instancia.baseframe.button_stretch, "ALPHA", 0)
+		Details.FadeHandler.Fader (instancia.baseframe.button_stretch, "ALPHA", 0)
 	
 	elseif (instancia.modo ~= _detalhes._detalhes_props["MODO_ALONE"] and instancia.baseframe.isLocked) then
 	
@@ -323,7 +323,7 @@ local function OnLeaveMainWindow (instancia, self)
 			instancia.break_snap_button:SetAlpha (0)
 		end
 		
-		gump:Fade (instancia.baseframe.button_stretch, "ALPHA", 0)
+		Details.FadeHandler.Fader (instancia.baseframe.button_stretch, "ALPHA", 0)
 		
 	end
 end
@@ -362,7 +362,7 @@ local function OnEnterMainWindow (instancia, self)
 		
 		--> stretch button
 		if (not _detalhes.disable_stretch_button) then
-			gump:Fade (instancia.baseframe.button_stretch, "ALPHA", 0.6)
+			Details.FadeHandler.Fader (instancia.baseframe.button_stretch, "ALPHA", 0.4)
 		end
 		
 	elseif (instancia.modo ~= _detalhes._detalhes_props["MODO_ALONE"] and instancia.baseframe.isLocked) then
@@ -381,7 +381,7 @@ local function OnEnterMainWindow (instancia, self)
 		end
 		
 		if (not _detalhes.disable_stretch_button) then
-			gump:Fade (instancia.baseframe.button_stretch, "ALPHA", 0.6)
+			Details.FadeHandler.Fader (instancia.baseframe.button_stretch, "ALPHA", 0.4)
 		end
 	end
 end
@@ -582,9 +582,9 @@ local movement_onupdate = function (self, elapsed)
 		if (tempo_movendo and tempo_movendo < 0) then
 
 			if (precisa_ativar) then --> se a inst�ncia estiver fechada
-				gump:Fade (instancia_alvo.baseframe, "ALPHA", 0.2)
-				gump:Fade (instancia_alvo.baseframe.cabecalho.ball, "ALPHA", 0.2)
-				gump:Fade (instancia_alvo.baseframe.cabecalho.atributo_icon, "ALPHA", 0.2)
+				Details.FadeHandler.Fader (instancia_alvo.baseframe, "ALPHA", 0.15)
+				Details.FadeHandler.Fader (instancia_alvo.baseframe.cabecalho.ball, "ALPHA", 0.15)
+				Details.FadeHandler.Fader (instancia_alvo.baseframe.cabecalho.atributo_icon, "ALPHA", 0.15)
 				instancia_alvo:SaveMainWindowPosition()
 				instancia_alvo:RestoreMainWindowPosition()
 				precisa_ativar = false
@@ -810,9 +810,9 @@ local function move_janela (baseframe, iniciando, instancia, just_updating)
 				instancia_alvo:SaveMainWindowPosition()
 				instancia_alvo:RestoreMainWindowPosition()
 				
-				gump:Fade (instancia_alvo.baseframe, 1)
-				gump:Fade (instancia_alvo.rowframe, 1)
-				gump:Fade (instancia_alvo.baseframe.cabecalho.ball, 1)
+				Details.FadeHandler.Fader (instancia_alvo.baseframe, 1)
+				Details.FadeHandler.Fader (instancia_alvo.rowframe, 1)
+				Details.FadeHandler.Fader (instancia_alvo.baseframe.cabecalho.ball, 1)
 				
 				need_start = false
 			end
@@ -939,9 +939,9 @@ local function move_janela (baseframe, iniciando, instancia, just_updating)
 				if (not esta_instancia:IsAtiva() and esta_instancia.iniciada) then
 					esta_instancia:ResetaGump()
 					
-					gump:Fade (esta_instancia.baseframe, "in", 0.2)
-					gump:Fade (esta_instancia.baseframe.cabecalho.ball, "in", 0.2)
-					gump:Fade (esta_instancia.baseframe.cabecalho.atributo_icon, "in", 0.2)
+					Details.FadeHandler.Fader (esta_instancia.baseframe, "in", 0.15)
+					Details.FadeHandler.Fader (esta_instancia.baseframe.cabecalho.ball, "in", 0.15)
+					Details.FadeHandler.Fader (esta_instancia.baseframe.cabecalho.atributo_icon, "in", 0.15)
 					
 					if (esta_instancia.modo == modo_raid) then
 						_detalhes.raid = nil
@@ -2163,10 +2163,12 @@ local icon_frame_on_enter = function (self)
 			_detalhes:AddTooltipHeaderStatusbar()
 			
 			local talent_string = ""
-			if (talents) then
+			if (talents and not DetailsFramework.IsTBCWow()) then
 				for i = 1, #talents do
-					local talentID, name, texture, selected, available = GetTalentInfoByID (talents [i])
-					talent_string = talent_string ..  " |T" .. texture .. ":" .. 24 .. ":" .. 24 ..":0:0:64:64:4:60:4:60|t"
+					local talentID, name, texture, selected, available = GetTalentInfoByID(talents [i])
+					if (texture) then
+						talent_string = talent_string ..  " |T" .. texture .. ":" .. 24 .. ":" .. 24 ..":0:0:64:64:4:60:4:60|t"
+					end
 				end
 			end
 			
@@ -2560,12 +2562,12 @@ local function button_stretch_scripts (baseframe, backgrounddisplay, instancia)
 	button:SetScript ("OnEnter", function (self)
 		self.mouse_over = true
 		if (not _detalhes.disable_stretch_button) then
-			gump:Fade (self, "ALPHA", 1)
+			Details.FadeHandler.Fader (self, "ALPHA", 1)
 		end
 	end)
 	button:SetScript ("OnLeave", function (self)
 		self.mouse_over = false
-		gump:Fade (self, "ALPHA", 0)
+		Details.FadeHandler.Fader (self, "ALPHA", 0)
 	end)	
 
 	button:SetScript ("OnMouseDown", function (self, button)
@@ -3560,7 +3562,7 @@ function gump:CriaJanelaPrincipal (ID, instancia, criando)
 		baseframe.button_stretch:SetHeight (16)
 		
 		baseframe.button_stretch:Show()
-		gump:Fade (baseframe.button_stretch, "ALPHA", 0)
+		Details.FadeHandler.Fader (baseframe.button_stretch, "ALPHA", 0)
 
 		button_stretch_scripts (baseframe, backgrounddisplay, instancia)
 
@@ -3698,7 +3700,7 @@ function gump:CriaJanelaPrincipal (ID, instancia, criando)
 			lockFunctionOnClick (baseframe.lock_button, nil, nil, true)
 		end
 	
-		gump:Fade (baseframe.lock_button, -1, 3.0)
+		Details.FadeHandler.Fader (baseframe.lock_button, -1, 3.0)
 
 -- scripts ------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -4013,7 +4015,13 @@ function gump:CreateNewLine (instancia, index)
 	new_row.border:SetAllPoints (new_row)
 	
 	--border
-	local lineBorder = CreateFrame("frame", nil, new_row, "NamePlateFullBorderTemplate, BackdropTemplate")
+	local lineBorder
+	if (DetailsFramework.IsTBCWow()) then
+		lineBorder = DetailsFramework:CreateFullBorder(nil, new_row)
+		--lineBorder = CreateFrame("frame", nil, new_row, "DFNamePlateFullBorderTemplate, BackdropTemplate")
+	else
+		lineBorder = CreateFrame("frame", nil, new_row, "NamePlateFullBorderTemplate, BackdropTemplate")
+	end
 	new_row.lineBorder = lineBorder
 
 	-- search key: ~model
@@ -4079,7 +4087,7 @@ function gump:CreateNewLine (instancia, index)
 	barra_scripts (new_row, instancia, index)
 
 	--> hide
-	gump:Fade (new_row, 1) 
+	Details.FadeHandler.Fader (new_row, 1) 
 
 	--> adds the window container
 	instancia.barras [index] = new_row
@@ -4833,7 +4841,7 @@ function _detalhes:InstanceWallpaper (texture, anchor, alpha, texcoord, width, h
 		
 	elseif (type (texture) == "boolean" and not texture) then
 		self.wallpaper.enabled = false
-		return gump:Fade (self.baseframe.wallpaper, "in")
+		return Details.FadeHandler.Fader (self.baseframe.wallpaper, "in")
 		
 	elseif (type (texture) == "table") then
 		anchor = texture.anchor or wallpaper.anchor
@@ -4924,7 +4932,7 @@ function _detalhes:InstanceWallpaper (texture, anchor, alpha, texcoord, width, h
 
 	t:Show()
 	--t:SetAlpha (alpha)
-	gump:Fade (t, "ALPHAANIM", alpha)
+	Details.FadeHandler.Fader (t, "ALPHAANIM", alpha)
 
 end
 
@@ -5036,9 +5044,9 @@ function _detalhes:SetWindowAlphaForCombat (entering_in_combat, true_hide, alpha
 		self.baseframe:Hide()
 		self.rowframe:Hide()
 		self.windowSwitchButton:Hide()
-		--gump:Fade (self.baseframe, _unpack (_detalhes.windows_fade_in))
-		--gump:Fade (self.rowframe, _unpack (_detalhes.windows_fade_in))
-		--gump:Fade (self.windowSwitchButton, _unpack (_detalhes.windows_fade_in))
+		--Details.FadeHandler.Fader (self.baseframe, _unpack (_detalhes.windows_fade_in))
+		--Details.FadeHandler.Fader (self.rowframe, _unpack (_detalhes.windows_fade_in))
+		--Details.FadeHandler.Fader (self.windowSwitchButton, _unpack (_detalhes.windows_fade_in))
 		
 		--self:SetIconAlpha (nil, true)
 		
@@ -5052,8 +5060,8 @@ function _detalhes:SetWindowAlphaForCombat (entering_in_combat, true_hide, alpha
 		self.baseframe:SetAlpha (1)
 		
 		self:InstanceAlpha(min (amount, self.color[4]))
-		gump:Fade(self.rowframe, "ALPHAANIM", rowsamount)
-		gump:Fade(self.baseframe, "ALPHAANIM", rowsamount)
+		Details.FadeHandler.Fader(self.rowframe, "ALPHAANIM", rowsamount)
+		Details.FadeHandler.Fader(self.baseframe, "ALPHAANIM", rowsamount)
 	--]]
 	end
 	
@@ -5394,12 +5402,12 @@ function _detalhes:SetIconAlpha (alpha, hide, no_animations)
 		end
 		
 		if (hide) then
-			gump:Fade (self.menu_attribute_string.widget, _unpack (_detalhes.windows_fade_in))
+			Details.FadeHandler.Fader (self.menu_attribute_string.widget, _unpack (_detalhes.windows_fade_in))
 		else
 			if (no_animations) then
 				self.menu_attribute_string:SetAlpha (alpha)
 			else
-				gump:Fade (self.menu_attribute_string.widget, "ALPHAANIM", alpha)
+				Details.FadeHandler.Fader (self.menu_attribute_string.widget, "ALPHAANIM", alpha)
 			end
 		end
 	end
@@ -5419,7 +5427,7 @@ function _detalhes:SetIconAlpha (alpha, hide, no_animations)
 	for index, button in _ipairs (SetIconAlphaCacheButtonsTable) do
 		if (self.menu_icons [index]) then
 			if (hide) then
-				--gump:Fade (button, _unpack (_detalhes.windows_fade_in))	
+				--Details.FadeHandler.Fader (button, _unpack (_detalhes.windows_fade_in))	
 				button:Hide()
 			else
 				button:Show()
@@ -5427,7 +5435,7 @@ function _detalhes:SetIconAlpha (alpha, hide, no_animations)
 				--if (no_animations) then
 				--	button:SetAlpha (alpha)
 				--else
-				--	gump:Fade (button, "ALPHAANIM", alpha)
+				--	Details.FadeHandler.Fader (button, "ALPHAANIM", alpha)
 				--end
 			end
 		end
@@ -5437,12 +5445,12 @@ function _detalhes:SetIconAlpha (alpha, hide, no_animations)
 		if (#_detalhes.ToolBar.Shown > 0) then
 			for index, button in ipairs (_detalhes.ToolBar.Shown) do
 				if (hide) then
-					gump:Fade (button, _unpack (_detalhes.windows_fade_in))		
+					Details.FadeHandler.Fader (button, _unpack (_detalhes.windows_fade_in))		
 				else
 					if (no_animations) then
 						button:SetAlpha (alpha)
 					else
-						gump:Fade (button, "ALPHAANIM", alpha)
+						Details.FadeHandler.Fader (button, "ALPHAANIM", alpha)
 					end
 				end
 			end
@@ -5755,13 +5763,9 @@ function _detalhes:SetTooltipMinWidth()
 end
 
 function _detalhes:FormatCooltipBackdrop()
-
 	local CoolTip = GameCooltip
-
 	CoolTip:SetBackdrop (1, menus_backdrop, menus_backdropcolor, menus_bordercolor)
 	CoolTip:SetBackdrop (2, menus_backdrop, menus_backdropcolor_sec, menus_bordercolor)
-	--CoolTip:SetWallpaper (1, _detalhes.tooltip.menus_bg_texture, _detalhes.tooltip.menus_bg_coords, _detalhes.tooltip.menus_bg_color, true)
-
 end
 
 local build_mode_list = function (self, elapsed)
@@ -5803,40 +5807,28 @@ local build_mode_list = function (self, elapsed)
 		CoolTip:AddMenu (1, instancia.AlteraModo, 3, true)
 		CoolTip:AddIcon ([[Interface\AddOns\Details\images\modo_icones]], 1, 1, 20, 20, 32/256*2, 32/256*3, 0, 1)
 	
-		CoolTip:AddLine (Loc ["STRING_MODE_RAID"])
+		CoolTip:AddLine (Loc ["STRING_OPTIONS_PLUGINS"])
 		CoolTip:AddMenu (1, instancia.AlteraModo, 4, true)
 		CoolTip:AddIcon ([[Interface\AddOns\Details\images\modo_icones]], 1, 1, 20, 20, 32/256*3, 32/256*4, 0, 1)
 
 		--build raid plugins list
-		local available_plugins = _detalhes.RaidTables:GetAvailablePlugins()
-
-		if (#available_plugins >= 0) then
-			local amt = 0
-			
-			for index, ptable in _ipairs (available_plugins) do
-				if (ptable [3].__enabled) then
-					CoolTip:AddMenu (2, _detalhes.RaidTables.EnableRaidMode, instancia, ptable [4], true, ptable [1], ptable [2], true) --PluginName, PluginIcon, PluginObject, PluginAbsoluteName
-					amt = amt + 1
+		local raidPlugins = _detalhes.RaidTables:GetAvailablePlugins()
+		if (#raidPlugins >= 0) then
+			for index, ptable in _ipairs (raidPlugins) do
+				--if a plugin has the member 'NoMenu', it won't be shown on menus to select plugins
+				if (ptable[3].__enabled and not ptable[3].NoMenu) then
+					--PluginName, PluginIcon, PluginObject, PluginAbsoluteName
+					CoolTip:AddMenu (2, _detalhes.RaidTables.EnableRaidMode, instancia, ptable[4], true, ptable[1], ptable[2], true)
 				end
 			end
-			
-			--CoolTip:SetWallpaper (2, _detalhes.tooltip.menus_bg_texture, _detalhes.tooltip.menus_bg_coords, _detalhes.tooltip.menus_bg_color, true)
 		end
-
-		CoolTip:AddLine (Loc ["STRING_MODE_SELF"])
-		CoolTip:AddMenu (1, instancia.AlteraModo, 1, true)
-		CoolTip:AddIcon ([[Interface\AddOns\Details\images\modo_icones]], 1, 1, 20, 20, 0, 32/256, 0, 1)
-		
 		--build self plugins list
-		
-		--pega a list de plugins solo:
 		if (#_detalhes.SoloTables.Menu > 0) then
-			for index, ptable in _ipairs (_detalhes.SoloTables.Menu) do 
-				if (ptable [3].__enabled) then
-					CoolTip:AddMenu (2, _detalhes.SoloTables.EnableSoloMode, instancia, ptable [4], true, ptable [1], ptable [2], true)
+			for index, ptable in _ipairs (_detalhes.SoloTables.Menu) do
+				if (ptable[3].__enabled and not ptable[3].NoMenu) then
+					CoolTip:AddMenu (2, _detalhes.SoloTables.EnableSoloMode, instancia, ptable[4], true, ptable[1], ptable[2], true)
 				end
 			end
-			--CoolTip:SetWallpaper (2, _detalhes.tooltip.menus_bg_texture, _detalhes.tooltip.menus_bg_coords, _detalhes.tooltip.menus_bg_color, true)
 		end
 		
 		--> window control
@@ -6798,10 +6790,6 @@ local build_segment_list = function (self, elapsed)
 		CoolTip:SetOption ("HeighMod", 12)
 		
 		_detalhes:SetTooltipMinWidth()
-
-		--CoolTip:SetWallpaper (1, _detalhes.tooltip.menus_bg_texture, _detalhes.tooltip.menus_bg_coords, _detalhes.tooltip.menus_bg_color, true)
-		--CoolTip:SetBackdrop (1, menus_backdrop, nil, menus_bordercolor)
-		--CoolTip:SetBackdrop (2, menus_backdrop, nil, menus_bordercolor)
 		
 		_detalhes:FormatCooltipBackdrop()
 		
@@ -6867,7 +6855,7 @@ function _detalhes:ChangeSkin (skin_name)
 			local overwrite_cprops = this_skin.instance_cprops
 			if (overwrite_cprops) then
 				
-				local copy = table_deepcopy (overwrite_cprops)
+				local copy = Details.CopyTable(overwrite_cprops)
 				
 				for cprop, value in _pairs (copy) do
 					if (not _detalhes.instance_skin_ignored_values [cprop]) then
@@ -8365,7 +8353,7 @@ function _detalhes:HideMainIcon (value)
 	if (value) then
 	
 		self.hide_icon = true
-		gump:Fade (self.baseframe.cabecalho.atributo_icon, 1)
+		Details.FadeHandler.Fader (self.baseframe.cabecalho.atributo_icon, 1)
 		
 		if (self.toolbar_side == 1) then
 			self.baseframe.cabecalho.ball:SetTexCoord (unpack (COORDS_LEFT_BALL_NO_ICON))
@@ -8388,7 +8376,7 @@ function _detalhes:HideMainIcon (value)
 		
 	else
 		self.hide_icon = false
-		gump:Fade (self.baseframe.cabecalho.atributo_icon, 0)
+		Details.FadeHandler.Fader (self.baseframe.cabecalho.atributo_icon, 0)
 		
 		if (self.toolbar_side == 1) then
 
@@ -8698,9 +8686,6 @@ end
 		
 		_detalhes:FormatCooltipBackdrop()
 		
-		--GameCooltip:SetWallpaper (1, _detalhes.tooltip.menus_bg_texture, _detalhes.tooltip.menus_bg_coords, _detalhes.tooltip.menus_bg_color, true)
-		--GameCooltip:SetBackdrop (1, menus_backdrop, nil, menus_bordercolor)
-		
 		show_anti_overlap (self.instance, self, "top")
 		
 		_detalhes:SetMenuOwner (self, self.instance)
@@ -8911,9 +8896,6 @@ local report_on_enter = function (self, motion, forced, from_click)
 	
 	_detalhes:FormatCooltipBackdrop()
 	
-	--GameCooltip:SetWallpaper (1, _detalhes.tooltip.menus_bg_texture, _detalhes.tooltip.menus_bg_coords, _detalhes.tooltip.menus_bg_color, true)
-	--GameCooltip:SetBackdrop (1, menus_backdrop, nil, menus_bordercolor)
-	
 	show_anti_overlap (instancia, self, "top")
 	_detalhes:SetMenuOwner (self, instancia)
 	
@@ -8993,8 +8975,6 @@ local atributo_on_enter = function (self, motion, forced, from_click)
 		GameCooltip:SetOption ("YSpacingModSub", -2)
 	end
 	
-	--GameCooltip:SetBackdrop (1, menus_backdrop, nil, menus_bordercolor)
-	--GameCooltip:SetBackdrop (2, menus_backdrop, nil, menus_bordercolor)
 	GameCooltip:SetOption ("TextSize", _detalhes.font_sizes.menus)
 	
 	_detalhes:FormatCooltipBackdrop()

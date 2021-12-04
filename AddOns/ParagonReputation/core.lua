@@ -1,5 +1,5 @@
 		-------------------------------------------------
-		-- Paragon Reputation 1.33 by Fail US-Ragnaros --
+		-- Paragon Reputation 1.38 by Fail US-Ragnaros --
 		-------------------------------------------------
 
 		  --[[	  Special thanks to Ammako for
@@ -8,50 +8,6 @@
 
 local ADDON_NAME,ParagonReputation = ...
 local PR = ParagonReputation
-
-local ACTIVE_TOAST = false
-local WAITING_TOAST = {}
-
-local PARAGON_QUEST_ID = { --[questID] = {factionID,rewardID}
-	--Legion
-		[48976] = {2170,152922}, -- Argussian Reach
-		[46777] = {2045,152108}, -- Armies of Legionfall
-		[48977] = {2165,152923}, -- Army of the Light
-		[46745] = {1900,152102}, -- Court of Farondis
-		[46747] = {1883,152103}, -- Dreamweavers
-		[46743] = {1828,152104}, -- Highmountain Tribes
-		[46748] = {1859,152105}, -- The Nightfallen
-		[46749] = {1894,152107}, -- The Wardens
-		[46746] = {1948,152106}, -- Valarjar
-	
-	--Battle for Azeroth
-		--Neutral
-		[54453] = {2164,166298}, --Champions of Azeroth
-		[58096] = {2415,174483}, --Rajani
-		[55348] = {2391,170061}, --Rustbolt Resistance
-		[54451] = {2163,166245}, --Tortollan Seekers
-		[58097] = {2417,174484}, --Uldum Accord
-		
-		--Horde
-		[54460] = {2156,166282}, --Talanji's Expedition
-		[54455] = {2157,166299}, --The Honorbound
-		[53982] = {2373,169940}, --The Unshackled
-		[54461] = {2158,166290}, --Voldunai
-		[54462] = {2103,166292}, --Zandalari Empire
-		
-		--Alliance
-		[54456] = {2161,166297}, --Order of Embers
-		[54458] = {2160,166295}, --Proudmoore Admiralty
-		[54457] = {2162,166294}, --Storm's Wake
-		[54454] = {2159,166300}, --The 7th Legion
-		[55976] = {2400,169939}, --Waveblade Ankoan
-	
-	--Shadowlands
-		[61100] = {2413,180648}, --Court of Harvesters
-		[61097] = {2407,180647}, --The Ascended
-		[61095] = {2410,180646}, --The Undying Army
-		[61098] = {2465,180649}, --The Wild Hunt
-}
 
 -- [Reputation Watchbar] Color the Reputation Watchbar by the settings. (Thanks Hoalz)
 hooksecurefunc(ReputationBarMixin,"Update",function(self)
@@ -68,25 +24,75 @@ hooksecurefunc("ReputationParagonFrame_SetupParagonTooltip",function(self)
 		local factionName = GetFactionInfoByID(self.factionID)
 		local questIndex = C_QuestLog.GetLogIndexForQuestID(rewardQuestID)
 		local description = GetQuestLogCompletionText(questIndex) or ""
-		EmbeddedItemTooltip:SetText(PR.L["PARAGON"])
-		EmbeddedItemTooltip:AddLine(description,HIGHLIGHT_FONT_COLOR.r,HIGHLIGHT_FONT_COLOR.g,HIGHLIGHT_FONT_COLOR.b,1)
-		GameTooltip_AddQuestRewardsToTooltip(EmbeddedItemTooltip,rewardQuestID)
-		EmbeddedItemTooltip:Show()
+		GameTooltip:ClearLines()
+		GameTooltip_SetTitle(GameTooltip,PR.L["PARAGON"],NORMAL_FONT_COLOR)
+		GameTooltip_AddHighlightLine(GameTooltip,description)
+		GameTooltip_AddQuestRewardsToTooltip(GameTooltip,rewardQuestID)
+		GameTooltip:Show()
 	else
-		EmbeddedItemTooltip:Hide()
+		GameTooltip:Hide()
 	end
 end)
 
--- [GameTooltip] Show the GameTooltip with the Item Reward Hyperlink on mouseover. (Thanks Brudarek)
+-- [Pet Rewards] Check if a Pet Reward is already owned.
+local ParagonPetSearchTooltip = CreateFrame("GameTooltip","ParagonPetSearchTooltip",nil,"GameTooltipTemplate")
+local ParagonIsPetOwned = function(link)
+	ParagonPetSearchTooltip:SetOwner(UIParent,"ANCHOR_NONE")
+	ParagonPetSearchTooltip:SetHyperlink(link)
+	for index=3,5 do
+		local text = _G["ParagonPetSearchTooltipTextLeft"..index] and _G["ParagonPetSearchTooltipTextLeft"..index]:GetText()
+		if text and string.find(text,"(%d)/(%d)") then
+			return true
+		end
+	end
+	return false
+end
+
+-- [GameTooltip] Add Paragon Rewards to the Tooltip.
+local ParagonItemInfoReceivedQueue = {}
+local function AddParagonRewardsToTooltip(self,tooltip,rewards)
+	if rewards then
+		for index,data in ipairs(rewards) do
+			local collected
+			local name,link,quality,_,_,_,_,_,_,icon = GetItemInfo(data.itemID)
+			if data.type == MOUNT then
+				collected = select(11,C_MountJournal.GetMountInfoByID(data.mountID))
+			elseif data.type == PET and link then
+				collected = ParagonIsPetOwned(link)
+			elseif data.type == TOY then
+				collected = PlayerHasToy(data.itemID)
+			elseif data.type == BINDING_HEADER_OTHER then
+				collected = C_QuestLog.IsQuestFlaggedCompleted(data.questID)
+			end
+			if name then
+				tooltip:AddLine(string.format("%s|T%d:0|t %s |cffffd000(|r|cffffffff%s|r|cffffd000)|r",collected and "|A:common-icon-checkmark:14:14|a " or "|A:common-icon-redx:14:14|a ",icon,name,data.type),ITEM_QUALITY_COLORS[quality].r,ITEM_QUALITY_COLORS[quality].g,ITEM_QUALITY_COLORS[quality].b)
+			else
+				tooltip:AddLine(ERR_TRAVEL_PASS_NO_INFO,1,0,0)
+				ParagonItemInfoReceivedQueue[data.itemID] = self
+			end
+		end
+	else
+		tooltip:AddLine(VIDEO_OPTIONS_NONE,1,0,0)
+	end
+end
+
+-- [GameTooltip] Show the GameTooltip with the Item Reward on mouseover. (Thanks Brudarek)
 function ParagonReputation:Tooltip(self,event)
-	if not self.questID then return end
+	if not self.questID or not PR.PARAGON_DATA[self.questID] then return end
 	if event == "OnEnter" then
-		local _,link = GetItemInfo(PARAGON_QUEST_ID[self.questID][2])
-		if link ~= nil then
+		local name,_,quality = GetItemInfo(PR.PARAGON_DATA[self.questID].cache)
+		if name then
 			GameTooltip:SetOwner(self,"ANCHOR_NONE")
 			GameTooltip:SetPoint("TOPLEFT",self,"BOTTOMRIGHT")
-			GameTooltip:SetHyperlink(link)
+			GameTooltip:ClearLines()
+			GameTooltip:AddLine(self.name)
+			GameTooltip:AddLine(name..self.count,ITEM_QUALITY_COLORS[quality].r,ITEM_QUALITY_COLORS[quality].g,ITEM_QUALITY_COLORS[quality].b)
+			GameTooltip:AddLine(" ")
+			GameTooltip:AddLine(GUILD_TAB_REWARDS)
+			AddParagonRewardsToTooltip(self,GameTooltip,PR.PARAGON_DATA[self.questID].rewards)
 			GameTooltip:Show()
+		else
+			ParagonItemInfoReceivedQueue[PR.PARAGON_DATA[self.questID].cache] = self
 		end
 	elseif event == "OnLeave" then
 		GameTooltip_SetDefaultAnchor(GameTooltip,UIParent)
@@ -101,12 +107,17 @@ function ParagonReputation:HookScript()
 			_G["ReputationBar"..n]:HookScript("OnEnter",function(self)
 				PR:Tooltip(self,"OnEnter")
 			end)
+			_G["ReputationBar"..n].OnEnter = _G["ReputationBar"..n]:GetScript("OnEnter")
 			_G["ReputationBar"..n]:HookScript("OnLeave",function(self)
 				PR:Tooltip(self,"OnLeave")
 			end)
+			_G["ReputationBar"..n].OnLeave = _G["ReputationBar"..n]:GetScript("OnLeave")
 		end
 	end
 end
+
+local ACTIVE_TOAST = false
+local WAITING_TOAST = {}
 
 -- [Paragon Toast] Show the Paragon Toast if a Paragon Reward Quest is accepted.
 function ParagonReputation:ShowToast(name,text)
@@ -145,18 +156,24 @@ function ParagonReputation:WaitToast()
 	PR:ShowToast(name,text)
 end
 
--- [Paragon Toast] Handle the QUEST_ACCEPTED event.
-local reward = CreateFrame("FRAME")
-reward:RegisterEvent("QUEST_ACCEPTED")
-reward:SetScript("OnEvent",function(self,event,questID)
-	if PR.DB.toast and PARAGON_QUEST_ID[questID] then
-		local name = GetFactionInfoByID(PARAGON_QUEST_ID[questID][1])
-		local text = GetQuestLogCompletionText(C_QuestLog.GetLogIndexForQuestID(questID))
+-- [Paragon Toast] Handle QUEST_ACCEPTED and GET_ITEM_INFO_RECEIVED events.
+local events = CreateFrame("FRAME")
+events:RegisterEvent("QUEST_ACCEPTED")
+events:RegisterEvent("GET_ITEM_INFO_RECEIVED")
+events:SetScript("OnEvent",function(self,event,arg1,arg2)
+	if event == "QUEST_ACCEPTED" and PR.DB.toast and PR.PARAGON_DATA[arg1] then
+		local name = GetFactionInfoByID(PR.PARAGON_DATA[arg1].factionID)
+		local text = GetQuestLogCompletionText(C_QuestLog.GetLogIndexForQuestID(arg1))
 		if ACTIVE_TOAST then
 			WAITING_TOAST[#WAITING_TOAST+1] = {name,text} --Toast is already active, put this info on the line.
 		else
 			PR:ShowToast(name,text)
 		end
+	elseif event == "GET_ITEM_INFO_RECEIVED" and arg2 and ParagonItemInfoReceivedQueue[arg1] then
+		if ParagonItemInfoReceivedQueue[arg1]:IsMouseOver() and GameTooltip:GetOwner() == ParagonItemInfoReceivedQueue[arg1] then
+			PR:Tooltip(ParagonItemInfoReceivedQueue[arg1],"OnEnter")
+		end
+		ParagonItemInfoReceivedQueue[arg1] = nil
 	end
 end)
 
@@ -191,6 +208,8 @@ hooksecurefunc("ReputationFrame_Update",function()
 			local name,_,_,_,_,_,_,_,_,_,_,_,_,factionID = GetFactionInfo(factionIndex)
 			if factionID and C_Reputation.IsFactionParagon(factionID) then
 				local currentValue,threshold,rewardQuestID,hasRewardPending = C_Reputation.GetFactionParagonInfo(factionID)
+				factionRow.name = name
+				factionRow.count = " |cffffffffx"..floor(currentValue/threshold)-(hasRewardPending and 1 or 0).."|r"
 				factionRow.questID = rewardQuestID
 				if currentValue then
 					local r,g,b = unpack(PR.DB.value)
@@ -239,17 +258,16 @@ hooksecurefunc("ReputationFrame_Update",function()
 						end
 						factionRow.rolloverText = nil
 					end
-					if factionIndex == GetSelectedFaction() and ReputationDetailFrame:IsShown() then
-						local count = floor(currentValue/threshold)
-						if hasRewardPending then count = count-1 end
-						if count > 0 then
-							ReputationDetailFactionName:SetText(name.." |cffffffffx"..count.."|r")
-						end
-					end
 				end
 			else
+				factionRow.name = nil
+				factionRow.count = nil
 				factionRow.questID = nil
 				if factionBar.ParagonOverlay then factionBar.ParagonOverlay:Hide() end
+			end
+			if factionRow:IsMouseOver() then
+				if GameTooltip:GetOwner() == factionRow then GameTooltip:Hide() end
+				factionRow:OnEnter()
 			end
 		else
 			factionRow:Hide()

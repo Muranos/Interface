@@ -49,6 +49,12 @@
 				_detalhes.RaidTables:EnableRaidMode (self, plugin_name)
 			end
 		end
+
+		--force hide wait for plugins
+		if (_G["DetailsWaitFrameBG"..self.meu_id] and _G["DetailsWaitForPluginFrame" .. self.meu_id]) then
+			_G["DetailsWaitForPluginFrame" .. self.meu_id]:Hide()
+			_G["DetailsWaitFrameBG"..self.meu_id]:Hide()
+		end
 	end
 	
 	function _detalhes.RaidTables:EnableRaidMode (instance, plugin_name, from_cooltip, from_mode_menu)
@@ -67,7 +73,7 @@
 		instance.modo = modo_raid
 		
 		--> hide rows, scrollbar
-		gump:Fade (instance, 1, nil, "barras")
+		Details.FadeHandler.Fader (instance, 1, nil, "barras")
 		if (instance.rolagem) then
 			instance:EsconderScrollBar (true) --> hida a scrollbar
 		end
@@ -214,6 +220,12 @@
 			if (update_menu) then
 				GameCooltip:ExecFunc (instance.baseframe.cabecalho.atributo)
 				--instance _detalhes.popup:ExecFunc (DeleteButton)
+			end
+
+			--force hide wait for plugins
+			if (_G["DetailsWaitFrameBG"..instance.meu_id] and _G["DetailsWaitForPluginFrame" .. instance.meu_id]) then
+				_G["DetailsWaitForPluginFrame" .. instance.meu_id]:Hide()
+				_G["DetailsWaitFrameBG"..instance.meu_id]:Hide()
 			end
 		else
 			if (not instance.wait_for_plugin) then

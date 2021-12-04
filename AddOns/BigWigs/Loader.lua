@@ -15,11 +15,13 @@ local bwFrame = CreateFrame("Frame")
 local ldb = LibStub("LibDataBroker-1.1")
 local ldbi = LibStub("LibDBIcon-1.0")
 
+local strfind = string.find
+
 -----------------------------------------------------------------------
 -- Generate our version variables
 --
 
-local BIGWIGS_VERSION = 221
+local BIGWIGS_VERSION = 233
 local BIGWIGS_RELEASE_STRING, BIGWIGS_VERSION_STRING = "", ""
 local versionQueryString, versionResponseString = "Q^%d^%s^%d^%s", "V^%d^%s^%d^%s"
 local customGuildName = false
@@ -34,7 +36,7 @@ do
 	local RELEASE = "RELEASE"
 
 	local releaseType = RELEASE
-	local myGitHash = "bab0882" -- The ZIP packager will replace this with the Git hash.
+	local myGitHash = "7b6549a" -- The ZIP packager will replace this with the Git hash.
 	local releaseString = ""
 	--[=[@alpha@
 	-- The following code will only be present in alpha ZIPs.
@@ -42,7 +44,7 @@ do
 	--@end-alpha@]=]
 
 	-- If we find "@" then we're running from Git directly.
-	if myGitHash:find("@", nil, true) then
+	if strfind(myGitHash, "@", nil, true) then
 		myGitHash = "repo"
 		releaseType = REPO
 	end
@@ -86,6 +88,7 @@ local next, tonumber, type, strsplit = next, tonumber, type, strsplit
 local SendAddonMessage, Ambiguate, CTimerAfter, CTimerNewTicker = C_ChatInfo.SendAddonMessage, Ambiguate, C_Timer.After, C_Timer.NewTicker
 local GetInstanceInfo, GetBestMapForUnit, GetMapInfo = GetInstanceInfo, C_Map.GetBestMapForUnit, C_Map.GetMapInfo
 local UnitName, UnitGUID = UnitName, UnitGUID
+local debugstack, print = debugstack, print
 
 -- Try to grab unhooked copies of critical funcs (hooked by some crappy addons)
 public.GetBestMapForUnit = GetBestMapForUnit
@@ -112,6 +115,7 @@ local highestFoundVersion = BIGWIGS_VERSION
 local highestFoundGuildVersion = BIGWIGS_GUILD_VERSION
 
 -- Loading
+local isMouseDown = false
 local loadOnCoreEnabled = {} -- BigWigs modulepacks that should load when a hostile zone is entered or the core is manually enabled, this would be the default plugins Bars, Messages etc
 local loadOnZone = {} -- BigWigs modulepack that should load on a specific zone
 local loadOnSlash = {} -- BigWigs modulepacks that can load from a chat command
@@ -163,7 +167,6 @@ do
 		[544] = bc, -- Magtheridon's Lair
 		[534] = bc, -- The Battle for Mount Hyjal
 		[564] = bc, -- Black Temple
-		[560] = bc, -- The Escape from Durnholde
 		[580] = bc, -- The Sunwell
 		--[[ BigWigs: Wrath of the Lich King ]]--
 		[533] = wotlk, -- Naxxramas
@@ -319,6 +322,7 @@ do
 		[2290] = lw_s, -- Mists of Tirna Scithe
 		[2291] = lw_s, -- De Other Side
 		[2293] = lw_s, -- Theater of Pain
+		[2441] = lw_s, -- Tazavesh, the Veiled Market
 	}
 
 	public.zoneTblWorld = {
@@ -339,6 +343,12 @@ local EnableAddOn, GetAddOnEnableState, GetAddOnInfo, IsAddOnLoaded, LoadAddOn =
 local GetAddOnMetadata, IsInGroup, IsInRaid, UnitAffectingCombat, UnitGroupRolesAssigned = GetAddOnMetadata, IsInGroup, IsInRaid, UnitAffectingCombat, UnitGroupRolesAssigned
 local GetSpecialization, GetSpecializationRole, IsPartyLFG, UnitIsDeadOrGhost, UnitSetRole = GetSpecialization, GetSpecializationRole, IsPartyLFG, UnitIsDeadOrGhost, UnitSetRole
 
+local reqFuncAddons = {
+	BigWigs_Core = true,
+	BigWigs_Options = true,
+	BigWigs_Plugins = true,
+}
+
 local function IsAddOnEnabled(addon)
 	local character = UnitName("player")
 	return GetAddOnEnableState(character, addon) > 0
@@ -358,6 +368,13 @@ local function load(obj, index)
 			end
 		end
 		loadOnSlash[index] = nil
+	end
+
+	if reqFuncAddons[index] then
+		reqFuncAddons[index] = nil
+		if index == "BigWigs_Core" then
+			reqFuncAddons.BigWigs_Plugins = nil
+		end
 	end
 
 	EnableAddOn(index) -- Make sure it wasn't left disabled for whatever reason
@@ -419,8 +436,17 @@ local dataBroker = ldb:NewDataObject("BigWigs",
 )
 
 function dataBroker.OnClick(self, button)
+	-- If you are a dev and need the BigWigs options loaded to do something, please come talk to us on Discord about your use case
 	if button == "RightButton" then
-		loadCoreAndOpenOptions()
+		--if isMouseDown then
+			loadCoreAndOpenOptions()
+		--else
+		--	local trace = debugstack(2)
+		--	public.mstack = trace
+		--	sysprint("|cFFff0000WARNING!|r")
+		--	sysprint("One of your addons was prevented from force loading the BigWigs options.")
+		--	sysprint("Contact us on the BigWigs Discord about this, it should not be happening.")
+		--end
 	end
 end
 
@@ -470,11 +496,6 @@ end
 --
 
 do
-	local reqFuncAddons = {
-		BigWigs_Core = true,
-		BigWigs_Options = true,
-		BigWigs_Plugins = true,
-	}
 	local loadOnInstanceAddons = {} -- Will contain all names of addons with an X-BigWigs-LoadOn-InstanceId directive
 	local loadOnWorldBoss = {} -- Addons that should load when targetting a specific mob
 	local extraMenus = {} -- Addons that contain extra zone menus to appear in the GUI
@@ -518,9 +539,10 @@ do
 				local tbl = {strsplit(",", meta)}
 				for j=1, #tbl do
 					local slash = tbl[j]:trim():upper()
-					_G["SLASH_"..slash..1] = slash
-					SlashCmdList[slash] = function(text)
-						if name:find("BigWigs", nil, true) then
+					local slashName = "BIGWIGS"..strsub(slash, 2) -- strip the "/"
+					_G["SLASH_"..slashName.."1"] = slash
+					SlashCmdList[slashName] = function(text)
+						if strfind(name, "BigWigs", nil, true) then
 							-- Attempting to be smart. Only load core & config if it's a BW plugin.
 							loadAndEnableCore()
 							load(BigWigsOptions, "BigWigs_Options")
@@ -528,16 +550,16 @@ do
 						if load(nil, i) then -- Load the addon/plugin
 							-- Call the slash command again, which should have been set by the addon.
 							-- Authors, do NOT delay setting it in OnInitialize/OnEnable/etc.
-							ChatFrame_ImportAllListsToHash()
+							ChatFrame_ImportListToHash(SlashCmdList, hash_SlashCmdList)
 							local func = hash_SlashCmdList[slash]
 							if func then
 								func(text)
-							else
-								-- Addon didn't register the slash command for whatever reason, print the default invalid slash message.
-								local info = ChatTypeInfo["SYSTEM"]
-								DEFAULT_CHAT_FRAME:AddMessage(HELP_TEXT_SIMPLE, info.r, info.g, info.b, info.id)
+								return
 							end
 						end
+						-- Addon didn't register the slash command for whatever reason, print the default invalid slash message.
+						local info = ChatTypeInfo["SYSTEM"]
+						DEFAULT_CHAT_FRAME:AddMessage(HELP_TEXT_SIMPLE, info.r, info.g, info.b, info.id)
 					end
 					loadOnSlash[i][j] = slash
 				end
@@ -559,7 +581,7 @@ do
 		end
 
 		if next(loadOnSlash) then
-			ChatFrame_ImportAllListsToHash() -- Add our slashes to the hash.
+			ChatFrame_ImportListToHash(SlashCmdList, hash_SlashCmdList) -- Add our slashes to the hash.
 		end
 	end
 
@@ -699,7 +721,21 @@ do
 end
 
 function mod:ADDON_LOADED(addon)
-	if addon ~= "BigWigs" then return end
+	if addon ~= "BigWigs" then
+		-- If you are a dev and need the BigWigs options loaded to do something, please come talk to us on Discord about your use case
+		--if reqFuncAddons[addon] then
+		--	local trace = debugstack(2)
+		--	public.lstack = trace
+		--	sysprint("|cFFff0000WARNING!|r")
+		--	sysprint("One of your addons is force loading the BigWigs options.")
+		--	sysprint("Contact us on the BigWigs Discord about this, it should not be happening.")
+		--	reqFuncAddons = {}
+		--end
+		return
+	end
+
+	--bwFrame:RegisterEvent("GLOBAL_MOUSE_DOWN")
+	--bwFrame:RegisterEvent("GLOBAL_MOUSE_UP")
 
 	bwFrame:RegisterEvent("ZONE_CHANGED")
 	bwFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
@@ -740,7 +776,7 @@ function mod:ADDON_LOADED(addon)
 		-- TODO: look into having a way for our boss modules not to create a table when no options are changed.
 		if BigWigs3DB.namespaces then
 			for k,v in next, BigWigs3DB.namespaces do
-				if k:find("BigWigs_Bosses_", nil, true) and not next(v) then
+				if strfind(k, "BigWigs_Bosses_", nil, true) and not next(v) then
 					BigWigs3DB.namespaces[k] = nil
 				end
 			end
@@ -759,9 +795,21 @@ function mod:ADDON_LOADED(addon)
 		C_CVar.SetCVar("Sound_MaxCacheSizeInBytes", "67108864") -- Set the cache to the "Small (64MB)" setting as a minimum
 	end
 
-	bwFrame:UnregisterEvent("ADDON_LOADED")
-	self.ADDON_LOADED = nil
+	--bwFrame:UnregisterEvent("ADDON_LOADED")
+	--self.ADDON_LOADED = nil
 	bwFrame.UnregisterEvent(UIParent, "TALKINGHEAD_REQUESTED") -- Prevent the event order re-shuffling mid-instance
+end
+
+function mod:GLOBAL_MOUSE_DOWN(button)
+	if button == "RightButton" then
+		isMouseDown = true
+	end
+end
+
+function mod:GLOBAL_MOUSE_UP(button)
+	if button == "RightButton" then
+		isMouseDown = false
+	end
 end
 
 -- We can't do our addon loading in ADDON_LOADED as the target addons may be registering that
@@ -1027,9 +1075,9 @@ end
 --
 
 do
-	local DBMdotRevision = "20210422012805" -- The changing version of the local client, changes with every new zip using the project-date-integer packager replacement.
-	local DBMdotDisplayVersion = "9.0.26" -- "N.N.N" for a release and "N.N.N alpha" for the alpha duration.
-	local DBMdotReleaseRevision = "20210421000000" -- Hardcoded time, manually changed every release, they use it to track the highest release version, a new DBM release is the only time it will change.
+	local DBMdotRevision = "20211102000000" -- The changing version of the local client, changes with every new zip using the project-date-integer packager replacement.
+	local DBMdotDisplayVersion = "9.1.20" -- "N.N.N" for a release and "N.N.N alpha" for the alpha duration.
+	local DBMdotReleaseRevision = "20211102000000" -- Hardcoded time, manually changed every release, they use it to track the highest release version, a new DBM release is the only time it will change.
 
 	local timer, prevUpgradedUser = nil, nil
 	local function sendMsg()
@@ -1039,7 +1087,7 @@ do
 		timer, prevUpgradedUser = nil, nil
 	end
 	function mod:DBM_VersionCheck(prefix, sender, revision, releaseRevision, displayVersion)
-		if prefix == "H" and (BigWigs and BigWigs.db.profile.fakeDBMVersion or self.isFakingDBM) then
+		if prefix == "H" and (BigWigs and BigWigs.db and BigWigs.db.profile.fakeDBMVersion or self.isFakingDBM) then
 			if timer then timer:Cancel() end
 			timer = CTimerNewTicker(3.3, sendMsg, 1)
 		elseif prefix == "V" then
@@ -1047,7 +1095,7 @@ do
 			--if BigWigs and BigWigs.db.profile.fakeDBMVersion or self.isFakingDBM then
 			--	-- If there are people with newer versions than us, suddenly we've upgraded!
 			--	local rev, dotRev = tonumber(revision), tonumber(DBMdotRevision)
-			--	if rev and displayVersion and rev ~= 99999 and rev > dotRev and not displayVersion:find("alpha", nil, true) then -- Failsafes
+			--	if rev and displayVersion and rev ~= 99999 and rev > dotRev and not strfind(displayVersion, "alpha", nil, true) then -- Failsafes
 			--		if not prevUpgradedUser then
 			--			prevUpgradedUser = sender
 			--		elseif prevUpgradedUser ~= sender then
@@ -1372,7 +1420,7 @@ do
 		if (BigWigs and BigWigs.db.profile.showZoneMessages == false) or self.isShowingZoneMessages == false then return end
 		local zoneAddon = public.zoneTbl[id]
 		if zoneAddon and zoneAddon ~= "BigWigs_Shadowlands" then
-			if zoneAddon:find("LittleWigs_", nil, true) then zoneAddon = "LittleWigs" end -- Collapse into one addon
+			if strfind(zoneAddon, "LittleWigs_", nil, true) then zoneAddon = "LittleWigs" end -- Collapse into one addon
 			if id > 0 and not fakeZones[id] and not warnedThisZone[id] and not IsAddOnEnabled(zoneAddon) then
 				warnedThisZone[id] = true
 				local msg = L.missingAddOn:format(zoneAddon)
@@ -1460,6 +1508,11 @@ function mod:BigWigs_CoreEnabled()
 	self.isFakingDBM = nil
 	self.isShowingZoneMessages = nil
 	self.isSoundOn = nil
+
+	-- Make sure we've loaded everything. git checkout installs will load core
+	-- immediately, but won't hit loadAndEnableCore until a boss module loads.
+	-- E.g., LoD assets not being available for local, break, and pull bars.
+	loadAddons(loadOnCoreEnabled)
 end
 public.RegisterMessage(mod, "BigWigs_CoreEnabled")
 
@@ -1503,7 +1556,19 @@ end
 
 SLASH_BigWigs1 = "/bw"
 SLASH_BigWigs2 = "/bigwigs"
-SlashCmdList.BigWigs = loadCoreAndOpenOptions
+SlashCmdList.BigWigs = function()
+	-- If you are a dev and need the BigWigs options loaded to do something, please come talk to us on Discord about your use case
+	--local trace = debugstack(2)
+	--if strfind(trace, "[string \"*:OnEnterPressed\"]:1: in function <[string \"*:OnEnterPressed\"]:1>", nil, true) then
+		loadCoreAndOpenOptions()
+	--else
+	--	public.stack = trace
+	--	sysprint("|cFFff0000WARNING!|r")
+	--	sysprint("One of your addons was prevented from force loading the BigWigs options.")
+	--	sysprint("Contact us on the BigWigs Discord about this, it should not be happening.")
+	--	return
+	--end
+end
 
 SLASH_BigWigsVersion1 = "/bwv"
 SlashCmdList.BigWigsVersion = function()

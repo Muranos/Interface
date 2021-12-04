@@ -1,0 +1,12 @@
+## Interface: 90105
+## Title: HandyNotes: Shadowlands
+## Version: 39
+## Notes: Shadowlands Notes
+## OptionalDeps: Ace3
+## RequiredDeps: HandyNotes
+## X-Embeds: Ace3
+## SavedVariables: HandyNotes_ShadowlandsDB
+
+embeds.xml
+core\core.xml
+plugin.xml

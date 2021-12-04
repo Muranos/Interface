@@ -69,6 +69,8 @@ local L = WeakAuras.L
 	L["Frost"] = "냉기"
 	L["General"] = "일반"
 	L["Health"] = "생명력"
+	--[[Translation missing --]]
+	L["Highlight while action is queued."] = "Highlight while action is queued."
 	L["Highlight while active, red when out of range."] = "활성화 된 동안 강조, 사정거리를 벗어나면 붉은색으로 표시"
 	L["Highlight while active."] = "활성화된 동안 강조합니다."
 	L["Highlight while buffed, red when out of range."] = "강화 효과가 있는 동안 강조, 사정거리를 벗어나면 붉은색으로 표시"
@@ -77,6 +79,8 @@ local L = WeakAuras.L
 	L["Highlight while debuffed."] = "약화 효과가 있는 동안 강조합니다."
 	L["Highlight while spell is active."] = "주문이 활성화 되어 있는 동안 강조"
 	L["Hold CTRL to create multiple auras at once"] = "한 번에 여러 효과를 만드려면 CTRL 키를 누르세요"
+	--[[Translation missing --]]
+	L["Initial Buff"] = "Initial Buff"
 	L["Keeps existing triggers intact"] = "활성 조건 그대로 유지"
 	L["Legendaries"] = "전설"
 	--[[Translation missing --]]
@@ -95,6 +99,8 @@ local L = WeakAuras.L
 	L["Other cooldown"] = "Other cooldown"
 	L["Pet alive"] = "소환수 생존"
 	L["Pet Behavior"] = "소환수 행동"
+	--[[Translation missing --]]
+	L["Preparation"] = "Preparation"
 	L["PvP Talents"] = "명예 특성"
 	L["Replace all existing triggers"] = "모든 활성 조건 교체"
 	L["Replace Triggers"] = "활성 조건 교체"
@@ -102,8 +108,12 @@ local L = WeakAuras.L
 	L["Resources and Shapeshift Form"] = "자원과 태세 변환"
 	--[[Translation missing --]]
 	L["Rogue cooldown"] = "Rogue cooldown"
+	--[[Translation missing --]]
+	L["Root"] = "Root"
 	L["Runes"] = "룬"
 	L["Shapeshift Form"] = "태세 변환"
+	--[[Translation missing --]]
+	L["Shards Of Domination"] = "Shards Of Domination"
 	--[[Translation missing --]]
 	L["Show Always, Glow on Missing"] = "Show Always, Glow on Missing"
 	--[[Translation missing --]]
@@ -114,6 +124,8 @@ local L = WeakAuras.L
 	L["Show Charges with Range Tracking"] = "Show Charges with Range Tracking"
 	--[[Translation missing --]]
 	L["Show Charges with Usable Check"] = "Show Charges with Usable Check"
+	--[[Translation missing --]]
+	L["Show Cooldown and Action Queued"] = "Show Cooldown and Action Queued"
 	L["Show Cooldown and Buff"] = "재사용 대기시간 및 강화 효과 표시"
 	L["Show Cooldown and Buff and Check for Target"] = "재사용 대기시간과 강화 효과 표시 및 대상 확인"
 	--[[Translation missing --]]
@@ -154,6 +166,8 @@ local L = WeakAuras.L
 	L["Slow"] = "Slow"
 	--[[Translation missing --]]
 	L["slow debuff"] = "slow debuff"
+	--[[Translation missing --]]
+	L["Sprint"] = "Sprint"
 	L["Stance"] = "태세"
 	L["stun debuff"] = "기절 약화 효과"
 	L["Stun Debuff"] = "기절 약화 효과"

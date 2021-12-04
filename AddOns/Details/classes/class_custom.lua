@@ -190,7 +190,7 @@
 			if (force) then
 				if (instance:IsGroupMode()) then
 					for i = 1, instance.rows_fit_in_window  do
-						gump:Fade (instance.barras [i], "in", 0.3)
+						Details.FadeHandler.Fader (instance.barras [i], "in", Details.fade_speed)
 					end
 				end
 			end
@@ -428,7 +428,7 @@
 				row1.icone_classe:SetTexture (instance.total_bar.icon)
 				row1.icone_classe:SetTexCoord (0.0625, 0.9375, 0.0625, 0.9375)
 				
-				gump:Fade (row1, "out")
+				Details.FadeHandler.Fader (row1, "out")
 				
 				for i = instance.barraS[1], iter_last, 1 do
 					instance_container._ActorTable[i]:UpdateBar (barras_container, whichRowLine, percentage_type, i, total, top, instance, force, percent_script, total_script, combat, bars_show_data, bars_brackets, bars_separator)
@@ -464,7 +464,7 @@
 				row1.icone_classe:SetTexture (instance.total_bar.icon)
 				row1.icone_classe:SetTexCoord (0.0625, 0.9375, 0.0625, 0.9375)
 				
-				gump:Fade (row1, "out")
+				Details.FadeHandler.Fader (row1, "out")
 				
 				for i = iter_last, instance.barraS[1], -1 do --> vai atualizar s� o range que esta sendo mostrado
 					instance_container._ActorTable[i]:UpdateBar (barras_container, whichRowLine, percentage_type, i, total, top, instance, force, percent_script, total_script, combat, bars_show_data, bars_brackets, bars_separator)
@@ -483,7 +483,7 @@
 		if (force) then
 			if (instance:IsGroupMode()) then
 				for i = whichRowLine, instance.rows_fit_in_window  do
-					gump:Fade (instance.barras [i], "in", 0.3)
+					Details.FadeHandler.Fader (instance.barras [i], "in", Details.fade_speed)
 				end
 			end
 		end
@@ -599,7 +599,7 @@
 				esta_barra:SetValue (100)
 				
 				if (esta_barra.hidden or esta_barra.fading_in or esta_barra.faded) then
-					gump:Fade (esta_barra, "out")
+					Details.FadeHandler.Fader (esta_barra, "out")
 				end
 				
 				return self:RefreshBarra (esta_barra, instancia)
@@ -611,7 +611,7 @@
 			if (esta_barra.hidden or esta_barra.fading_in or esta_barra.faded) then
 			
 				esta_barra:SetValue (esta_porcentagem)
-				gump:Fade (esta_barra, "out")
+				Details.FadeHandler.Fader (esta_barra, "out")
 				
 				if (instancia.row_info.texture_class_colors) then
 					esta_barra.textura:SetVertexColor (actor_class_color_r, actor_class_color_g, actor_class_color_b)
@@ -723,7 +723,7 @@
 				esta_barra.icone_classe:SetTexture (self.icon)
 			else
 				if (instancia.row_info.use_spec_icons) then
-					if (self.spec or self.my_actor.spec) then
+					if ((self.spec and self.spec ~= 0) or (self.my_actor.spec and self.my_actor.spec ~= 0)) then
 						esta_barra.icone_classe:SetTexture (instancia.row_info.spec_file)
 						esta_barra.icone_classe:SetTexCoord (_unpack (_detalhes.class_specs_coords [self.spec or self.my_actor.spec]))
 					else
@@ -977,7 +977,7 @@
 				if (func) then
 					
 				end
-				local okey, errortext = _pcall (func, actor, instance.showing, instance)
+				local okey, errortext = _pcall (func, actor, instance.showing, instance, keydown)
 				if (not okey) then
 					_detalhes:Msg ("|cFFFF9900error on custom display tooltip function|r:", errortext)
 					return false
@@ -2283,7 +2283,7 @@
 			desc = "Show overall damage done on the fly.",
 			source = false,
 			target = false,
-			script_version = 6,
+			script_version = 7,
 			script = [[
 				--init:
 				local combat, instance_container, instance = ...
@@ -2353,12 +2353,14 @@
 				end
 
 				--current
-				local player = CurrentCombat [1]:GetActor (actor.nome)
-				if (player) then
-					playerTotal = playerTotal + player.total
-					local playerSpells = player:GetSpellList()
-					for spellID, spellTable in pairs (playerSpells) do
-						AllSpells [spellID] = (AllSpells [spellID] or 0) + (spellTable.total or 0)
+				if (Details.in_combat) then
+					local player = CurrentCombat [1]:GetActor (actor.nome)
+					if (player) then
+						playerTotal = playerTotal + player.total
+						local playerSpells = player:GetSpellList()
+						for spellID, spellTable in pairs (playerSpells) do
+							AllSpells [spellID] = (AllSpells [spellID] or 0) + (spellTable.total or 0)
+						end
 					end
 				end
 

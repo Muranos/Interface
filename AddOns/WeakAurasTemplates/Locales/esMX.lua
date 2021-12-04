@@ -54,8 +54,7 @@ local L = WeakAuras.L
 	L["Bloodlust/Heroism"] = "Sed de sangre/Heroísmo"
 	--[[Translation missing --]]
 	L["Bonded Buff"] = "Bonded Buff"
-	--[[Translation missing --]]
-	L["Buff"] = "Buff"
+	L["Buff"] = "Beneficio"
 	L["buff"] = "beneficio"
 	--[[Translation missing --]]
 	L["Buff on Other"] = "Buff on Other"
@@ -76,17 +75,14 @@ local L = WeakAuras.L
 	L["Combustion Ready"] = "Combustion Ready"
 	--[[Translation missing --]]
 	L["Conduits"] = "Conduits"
-	--[[Translation missing --]]
-	L["Cooldown"] = "Cooldown"
+	L["Cooldown"] = "Reutilización"
 	L["cooldown"] = "enfriamiento"
 	--[[Translation missing --]]
 	L["Cooldown Tracking"] = "Cooldown Tracking"
 	--[[Translation missing --]]
 	L["Create Auras"] = "Create Auras"
-	--[[Translation missing --]]
-	L["Debuff"] = "Debuff"
-	--[[Translation missing --]]
-	L["debuff"] = "debuff"
+	L["Debuff"] = "Perjuicio"
+	L["debuff"] = "Perjuicio"
 	L["Debuffs"] = "Perjuicios"
 	--[[Translation missing --]]
 	L["Empowered Buff"] = "Empowered Buff"
@@ -96,6 +92,8 @@ local L = WeakAuras.L
 	L["Frost"] = "Frost"
 	L["General"] = "General"
 	L["Health"] = "Salud"
+	--[[Translation missing --]]
+	L["Highlight while action is queued."] = "Highlight while action is queued."
 	--[[Translation missing --]]
 	L["Highlight while active, red when out of range."] = "Highlight while active, red when out of range."
 	--[[Translation missing --]]
@@ -112,6 +110,8 @@ local L = WeakAuras.L
 	L["Highlight while spell is active."] = "Highlight while spell is active."
 	--[[Translation missing --]]
 	L["Hold CTRL to create multiple auras at once"] = "Hold CTRL to create multiple auras at once"
+	--[[Translation missing --]]
+	L["Initial Buff"] = "Initial Buff"
 	L["Keeps existing triggers intact"] = "Desencadenadores intactos"
 	--[[Translation missing --]]
 	L["Legendaries"] = "Legendaries"
@@ -139,6 +139,8 @@ local L = WeakAuras.L
 	L["Other cooldown"] = "Other cooldown"
 	L["Pet alive"] = "Mascota viva"
 	L["Pet Behavior"] = "Comportamiento de la mascota"
+	--[[Translation missing --]]
+	L["Preparation"] = "Preparation"
 	L["PvP Talents"] = "JcJ - Talentos"
 	L["Replace all existing triggers"] = "Reemplazar todos los desencadenadores existentes"
 	L["Replace Triggers"] = "Reemplazar desencadenadores"
@@ -146,8 +148,12 @@ local L = WeakAuras.L
 	L["Resources and Shapeshift Form"] = "Recursos y cambios de forma"
 	--[[Translation missing --]]
 	L["Rogue cooldown"] = "Rogue cooldown"
+	--[[Translation missing --]]
+	L["Root"] = "Root"
 	L["Runes"] = "Runas"
 	L["Shapeshift Form"] = "Cambiar de forma"
+	--[[Translation missing --]]
+	L["Shards Of Domination"] = "Shards Of Domination"
 	--[[Translation missing --]]
 	L["Show Always, Glow on Missing"] = "Show Always, Glow on Missing"
 	--[[Translation missing --]]
@@ -158,6 +164,8 @@ local L = WeakAuras.L
 	L["Show Charges with Range Tracking"] = "Show Charges with Range Tracking"
 	--[[Translation missing --]]
 	L["Show Charges with Usable Check"] = "Show Charges with Usable Check"
+	--[[Translation missing --]]
+	L["Show Cooldown and Action Queued"] = "Show Cooldown and Action Queued"
 	--[[Translation missing --]]
 	L["Show Cooldown and Buff"] = "Show Cooldown and Buff"
 	--[[Translation missing --]]
@@ -208,6 +216,8 @@ local L = WeakAuras.L
 	L["Slow"] = "Slow"
 	--[[Translation missing --]]
 	L["slow debuff"] = "slow debuff"
+	--[[Translation missing --]]
+	L["Sprint"] = "Sprint"
 	--[[Translation missing --]]
 	L["Stance"] = "Stance"
 	--[[Translation missing --]]

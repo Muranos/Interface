@@ -215,6 +215,8 @@ function _detalhes:ToolTipDead (instancia, morte, esta_barra, keydown)
 	GameCooltip:AddIcon ([[Interface\TUTORIALFRAME\UI-TUTORIAL-FRAME]], 1, 1, 12, 16, 0.015625, 0.13671875, 0.4375, 0.59765625)
 	GameCooltip:AddStatusBar (0, 1, 1, 1, 1, 1, false, {value = 100, color = {.3, .3, .3, 1}, specialSpark = false, texture = [[Interface\AddOns\Details\images\bar_serenity]]})
 	
+	local barTypeColors = Details.death_log_colors
+
 	--death parser
 	for index, event in _ipairs (eventos) do 
 	
@@ -238,6 +240,10 @@ function _detalhes:ToolTipDead (instancia, morte, esta_barra, keydown)
 					--> damage
 					
 					local overkill = event [10] or 0
+					local critical = event[11] and (" " .. TEXT_MODE_A_STRING_RESULT_CRITICAL) or "" -- (Critical)
+					local crushing = event[12] and (" " .. TEXT_MODE_A_STRING_RESULT_CRUSHING) or "" -- (Crushing)
+					local critOrCrush = critical .. crushing
+
 					if (overkill > 0) then
 						--check the type of overkill that should be shown
 						--if show_totalhitdamage_on_overkill is true it'll show the total damage of the hit
@@ -247,34 +253,34 @@ function _detalhes:ToolTipDead (instancia, morte, esta_barra, keydown)
 						end
 						
 						overkill = " (" .. _detalhes:ToK (overkill) .. " |cFFFF8800overkill|r)"
-						GameCooltip:AddLine ("" .. _cstr ("%.1f", time - hora_da_morte) .. "s |cFFFFFF00" .. spellname .. "|r (|cFFC6B0D9" .. source .. "|r)", "-" .. _detalhes:ToK (amount) .. overkill .. " (" .. hp .. "%)", 1, "white", "white")
+						GameCooltip:AddLine ("" .. _cstr ("%.1f", time - hora_da_morte) .. "s |cFFFFFF00" .. spellname .. "|r (|cFFC6B0D9" .. source .. "|r)", "-" .. _detalhes:ToK (amount) .. critOrCrush .. overkill .. " (" .. hp .. "%)", 1, "white", "white")
 					else
 						overkill = ""
-						GameCooltip:AddLine ("" .. _cstr ("%.1f", time - hora_da_morte) .. "s " .. spellname .. " (|cFFC6B0D9" .. source .. "|r)", "-" .. _detalhes:ToK (amount) .. overkill .. " (" .. hp .. "%)", 1, "white", "white")
+						GameCooltip:AddLine ("" .. _cstr ("%.1f", time - hora_da_morte) .. "s " .. spellname .. " (|cFFC6B0D9" .. source .. "|r)", "-" .. _detalhes:ToK (amount) .. critOrCrush .. overkill .. " (" .. hp .. "%)", 1, "white", "white")
 					end
 					
 					GameCooltip:AddIcon (spellicon)
 					
 					if (event [9]) then
 						--> friendly fire
-						GameCooltip:AddStatusBar (hp, 1, "darkorange", true, backgroud_bar_damage)
+						GameCooltip:AddStatusBar (hp, 1, barTypeColors.friendlyfire, true, backgroud_bar_damage)
 					else
 						--> from a enemy
-						GameCooltip:AddStatusBar (hp, 1, "red", true, backgroud_bar_damage)
+						GameCooltip:AddStatusBar (hp, 1, barTypeColors.damage, true, backgroud_bar_damage)
 					end
 				else
 					--> heal
 					if (amount > _detalhes.deathlog_healingdone_min) then
 						if (combatObject.is_arena) then
 							if (amount > _detalhes.deathlog_healingdone_min_arena) then
-								GameCooltip:AddLine ("" .. _cstr ("%.1f", time - hora_da_morte) .. "s " .. spellname .. " (|cFFC6B0D9" .. source .. "|r)", "+" .. _detalhes:ToK (amount) .. " (" .. hp .. "%)", 1, "white", "white")
-								GameCooltip:AddIcon (spellicon)
-								GameCooltip:AddStatusBar (hp, 1, "green", true)
+								GameCooltip:AddLine("" .. _cstr ("%.1f", time - hora_da_morte) .. "s " .. spellname .. " (|cFFC6B0D9" .. source .. "|r)", "+" .. _detalhes:ToK (amount) .. " (" .. hp .. "%)", 1, "white", "white")
+								GameCooltip:AddIcon(spellicon)
+								GameCooltip:AddStatusBar(hp, 1, barTypeColors.heal, true)
 							end
 						else
-							GameCooltip:AddLine ("" .. _cstr ("%.1f", time - hora_da_morte) .. "s " .. spellname .. " (|cFFC6B0D9" .. source .. "|r)", "+" .. _detalhes:ToK (amount) .. " (" .. hp .. "%)", 1, "white", "white")
-							GameCooltip:AddIcon (spellicon)
-							GameCooltip:AddStatusBar (hp, 1, "green", true)
+							GameCooltip:AddLine("" .. _cstr ("%.1f", time - hora_da_morte) .. "s " .. spellname .. " (|cFFC6B0D9" .. source .. "|r)", "+" .. _detalhes:ToK (amount) .. " (" .. hp .. "%)", 1, "white", "white")
+							GameCooltip:AddIcon(spellicon)
+							GameCooltip:AddStatusBar(hp, 1, barTypeColors.heal, true)
 						end
 					end
 				end
@@ -284,7 +290,7 @@ function _detalhes:ToolTipDead (instancia, morte, esta_barra, keydown)
 					--> cooldown
 					GameCooltip:AddLine ("" .. _cstr ("%.1f", time - hora_da_morte) .. "s " .. spellname .. " (" .. source .. ")", "cooldown (" .. hp .. "%)", 1, "white", "white")
 					GameCooltip:AddIcon (spellicon)
-					GameCooltip:AddStatusBar (100, 1, "yellow", true)
+					GameCooltip:AddStatusBar (100, 1, barTypeColors.cooldown, true)
 					
 				elseif (evtype == 2 and not battleress) then
 					--> battle ress
@@ -298,7 +304,7 @@ function _detalhes:ToolTipDead (instancia, morte, esta_barra, keydown)
 					--> debuff
 					GameCooltip:AddLine ("" .. _cstr ("%.1f", time - hora_da_morte) .. "s [x" .. amount .. "] " .. spellname .. " (" .. source .. ")", "debuff (" .. hp .. "%)", 1, "white", "white")
 					GameCooltip:AddIcon (spellicon)
-					GameCooltip:AddStatusBar (100, 1, "purple", true)
+					GameCooltip:AddStatusBar (100, 1, barTypeColors.debuff, true)
 				
 				end
 			end
@@ -590,7 +596,7 @@ function atributo_misc:DeadAtualizarBarra (morte, whichRowLine, colocacao, insta
 	
 	esta_barra:SetValue (100)
 	if (esta_barra.hidden or esta_barra.fading_in or esta_barra.faded) then
-		gump:Fade (esta_barra, "out")
+		Details.FadeHandler.Fader (esta_barra, "out")
 	end
 	
 	--> seta a cor da barra e a cor do texto caso eles esteja mostrando com a cor da classe
@@ -600,9 +606,9 @@ function atributo_misc:DeadAtualizarBarra (morte, whichRowLine, colocacao, insta
 	if (instancia.row_info.use_spec_icons) then
 		local nome = morte[3]
 		local spec = instancia.showing (1, nome) and instancia.showing (1, nome).spec or (instancia.showing (2, nome) and instancia.showing (2, nome).spec)
-		if (spec) then
+		if (spec and spec ~= 0) then
 			esta_barra.icone_classe:SetTexture (instancia.row_info.spec_file)
-			esta_barra.icone_classe:SetTexCoord (_unpack (_detalhes.class_specs_coords [spec]))
+			esta_barra.icone_classe:SetTexCoord (_unpack (_detalhes.class_specs_coords[spec]))
 		else
 			if (CLASS_ICON_TCOORDS [morte[4]]) then
 				esta_barra.icone_classe:SetTexture (instancia.row_info.icon_file)
@@ -864,7 +870,7 @@ function atributo_misc:RefreshWindow (instancia, tabela_do_combate, forcar, expo
 	if (forcar) then
 		if (instancia.modo == 2) then --> group
 			for i = whichRowLine, instancia.rows_fit_in_window  do
-				gump:Fade (instancia.barras [i], "in", 0.3)
+				Details.FadeHandler.Fader (instancia.barras [i], "in", Details.fade_speed)
 			end
 		end
 	end
@@ -943,7 +949,7 @@ function atributo_misc:RefreshBarra2 (esta_barra, instancia, tabela_anterior, fo
 			esta_barra:SetValue (100)
 			
 			if (esta_barra.hidden or esta_barra.fading_in or esta_barra.faded) then
-				gump:Fade (esta_barra, "out")
+				Details.FadeHandler.Fader (esta_barra, "out")
 			end
 			
 			return self:RefreshBarra (esta_barra, instancia)
@@ -961,7 +967,7 @@ function atributo_misc:RefreshBarra2 (esta_barra, instancia, tabela_anterior, fo
 				esta_barra.animacao_ignorar = true
 			end
 			
-			gump:Fade (esta_barra, "out")
+			Details.FadeHandler.Fader (esta_barra, "out")
 			
 			if (instancia.row_info.texture_class_colors) then
 				esta_barra.textura:SetVertexColor (actor_class_color_r, actor_class_color_g, actor_class_color_b)

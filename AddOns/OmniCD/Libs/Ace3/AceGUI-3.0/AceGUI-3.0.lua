@@ -24,14 +24,14 @@
 -- f:AddChild(btn)
 -- @class file
 -- @name AceGUI-3.0
--- @release $Id: AceGUI-3.0.lua 1231 2020-04-14 22:20:36Z nevcairiel $
+-- @release $Id: AceGUI-3.0.lua 1247 2021-01-23 23:16:39Z funkehdude $
 local ACEGUI_MAJOR, ACEGUI_MINOR = "AceGUI-3.0", 41
 local AceGUI, oldminor = LibStub:NewLibrary(ACEGUI_MAJOR, ACEGUI_MINOR)
 
 if not AceGUI then return end -- No upgrade needed
 
 -- Lua APIs
-local tinsert = table.insert
+local tinsert, wipe = table.insert, table.wipe
 local select, pairs, next, type = select, pairs, next, type
 local error, assert = error, assert
 local setmetatable, rawget = setmetatable, rawget
@@ -185,8 +185,8 @@ function AceGUI:Release(widget)
 
 	if widget.OnRelease then
 		widget:OnRelease()
---	else
---		error(("Widget type %s doesn't supply an OnRelease Function"):format(widget.type))
+--  else
+--      error(("Widget type %s doesn't supply an OnRelease Function"):format(widget.type))
 	end
 	for k in pairs(widget.userdata) do
 		widget.userdata[k] = nil
@@ -410,10 +410,10 @@ do
 		end
 	end
 
---	local function LayoutOnUpdate(this)
---		this:SetScript("OnUpdate",nil)
---		this.obj:PerformLayout()
---	end
+--  local function LayoutOnUpdate(this)
+--      this:SetScript("OnUpdate",nil)
+--      this.obj:PerformLayout()
+--  end
 
 	local WidgetContainerBase = AceGUI.WidgetContainerBase
 
@@ -435,9 +435,9 @@ do
 	--call this function to layout, makes sure layed out objects get a frame to get sizes etc
 	WidgetContainerBase.DoLayout = function(self)
 		self:PerformLayout()
---		if not self.parent then
---			self.frame:SetScript("OnUpdate", LayoutOnUpdate)
---		end
+--      if not self.parent then
+--          self.frame:SetScript("OnUpdate", LayoutOnUpdate)
+--      end
 	end
 
 	WidgetContainerBase.AddChild = function(self, child, beforeWidget)

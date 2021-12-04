@@ -70,7 +70,7 @@ function Details:StartMeUp() --I'll never stop!
 			
 		--actor details window
 			self.playerDetailWindow = self.gump:CriaJanelaInfo()
-			self.gump:Fade(self.playerDetailWindow, 1)
+			Details.FadeHandler.Fader(self.playerDetailWindow, 1)
 			
 		--copy and paste window
 			self:CreateCopyPasteWindow()
@@ -247,7 +247,6 @@ function Details:StartMeUp() --I'll never stop!
 
 			self.parser_frame:RegisterEvent ("COMBAT_LOG_EVENT_UNFILTERED")
 
-
 	--update is in group
 	self.details_users = {}
 	self.in_group = IsInGroup() or IsInRaid()
@@ -297,7 +296,7 @@ function Details:StartMeUp() --I'll never stop!
 	function self:AnnounceVersion()
 		for index, instancia in _detalhes:ListInstances() do
 			if (instancia.ativa) then
-				self.gump:Fade(instancia._version, "in", 0.1)
+				Details.FadeHandler.Fader(instancia._version, "in", 0.1)
 			end
 		end
 	end
@@ -369,7 +368,7 @@ function Details:StartMeUp() --I'll never stop!
 			dev_text:SetAlpha (.3)
 	
 			--version
-			self.gump:Fade (instance._version, 0)
+			Details.FadeHandler.Fader (instance._version, 0)
 			instance._version:SetText ("Details! " .. _detalhes.userversion .. " (core " .. self.realversion .. ")")
 			instance._version:SetTextColor (1, 1, 1, .35)
 			instance._version:SetPoint ("bottomleft", instance.baseframe, "bottomleft", 5, 1)
@@ -379,9 +378,9 @@ function Details:StartMeUp() --I'll never stop!
 			end
 
 			function _detalhes:FadeStartVersion()
-				_detalhes.gump:Fade (dev_icon, "in", 2)
-				_detalhes.gump:Fade (dev_text, "in", 2)
-				self.gump:Fade (instance._version, "in", 2)
+				Details.FadeHandler.Fader (dev_icon, "in", 2)
+				Details.FadeHandler.Fader (dev_text, "in", 2)
+				Details.FadeHandler.Fader (instance._version, "in", 2)
 			end
 			Details.Schedules.NewTimer(12, Details.FadeStartVersion, Details)
 		end
@@ -477,6 +476,8 @@ function Details:StartMeUp() --I'll never stop!
 	--enforce to show 6 abilities on the tooltip
 	--_detalhes.tooltip.tooltip_max_abilities = 6 freeeeeedooommmmm
 
+	Details.InstallRaidInfo()
+
 	--Plater integration
 	C_Timer.After(2, function()
 		_detalhes:RefreshPlaterIntegration()
@@ -484,7 +485,7 @@ function Details:StartMeUp() --I'll never stop!
 	
 	--show warning message about classic beta
 	if (not DetailsFramework.IsClassicWow()) then
-		--print ("|CFFFFFF00[Details!]: Details! now has a separated version for Classic, Twitch app should give the right version, any issues report at Discord (/details discord).")
+
 	else
 		print ("|CFFFFFF00[Details!]: you're using Details! for RETAIL on Classic WOW, please get the classic version (Details! Damage Meter Classic WoW), if you need help see our Discord (/details discord).")
 	end
@@ -531,11 +532,12 @@ function Details:StartMeUp() --I'll never stop!
 		end)
 	end
 
-	if (DetailsFramework.IsTimewalkWoW()) then
-		Details:Msg("TBC Beta Version: 0011")
-	end
-
 	if (DetailsFramework.IsTBCWow()) then
+		--remover isso em versões mais atualizadas
+		if (_detalhes.bcc_counter == 18 or _detalhes.bcc_counter == 19) then
+			_detalhes.trash_auto_remove = false
+		end
+		
 		local originalPosition
 		local isOnOriginalPosition = true
 
@@ -547,46 +549,47 @@ function Details:StartMeUp() --I'll never stop!
 	
 		local warningMessage = taintWarning:CreateFontString (nil, "overlay", "GameFontNormal")
 		warningMessage:SetText ("< right click and choose 'Enter Battle' if 'Enter Battle' button does not work")
-	
-		C_Timer.NewTicker(1, function()
-			if (StaticPopup1:IsShown()) then
-				if (StaticPopup1.which == "CONFIRM_BATTLEFIELD_ENTRY") then
+		
+		C_Timer.NewTicker(3, function() -- default = 1
+			if (not Details.DontMoveMinimapIconOnBattlegroundError) then
+				if (StaticPopup1:IsShown() or StaticPopup2:IsShown()) then
+					if (StaticPopup1.which == "ADDON_ACTION_FORBIDDEN" or (StaticPopup2 and StaticPopup2:IsShown() and StaticPopup2.which == "ADDON_ACTION_FORBIDDEN")) then
 
-					if (StaticPopup2:IsShown()) then
-						if (StaticPopup2.which == "ADDON_ACTION_FORBIDDEN") then
-							StaticPopup_Hide("ADDON_ACTION_FORBIDDEN")
-						end
-					end
-	
-					taintWarning:Show()
-					taintWarning:SetPoint ("topleft", StaticPopup1, "bottomleft", 0, -10)
-					if (MiniMapBattlefieldFrame:IsShown())then
-						if (not originalPosition) then
-							local a = {}
-							for i = 1, MiniMapBattlefieldFrame:GetNumPoints() do
-								a[#a + 1] = {MiniMapBattlefieldFrame:GetPoint(i)}
+						if (StaticPopup2:IsShown()) then
+							if (StaticPopup2.which == "ADDON_ACTION_FORBIDDEN") then
+								StaticPopup_Hide("ADDON_ACTION_FORBIDDEN")
 							end
-							originalPosition = a
 						end
-	
-						MiniMapBattlefieldFrame:ClearAllPoints()
-						MiniMapBattlefieldFrame:SetPoint("left", taintWarning, "left", 10, -2)
-						warningMessage:SetPoint ("left", MiniMapBattlefieldFrame, "right", 9, 0)
-						MiniMapBattlefieldFrame:SetFrameStrata("HIGH")
+		
+						
+						if (MiniMapBattlefieldFrame:IsShown())then
+							taintWarning:Show()
+							taintWarning:SetPoint ("topleft", StaticPopup1, "bottomleft", 0, -10)
+							if (not originalPosition) then
+								local a = {}
+								for i = 1, MiniMapBattlefieldFrame:GetNumPoints() do
+									a[#a + 1] = {MiniMapBattlefieldFrame:GetPoint(i)}
+								end
+								originalPosition = a
+							end
+		
+							MiniMapBattlefieldFrame:ClearAllPoints()
+							MiniMapBattlefieldFrame:SetPoint("left", taintWarning, "left", 10, -2)
+							warningMessage:SetPoint ("left", MiniMapBattlefieldFrame, "right", 9, 0)
+							MiniMapBattlefieldFrame:SetFrameStrata("HIGH")
 
-						--
-	
-						isOnOriginalPosition = false
+							isOnOriginalPosition = false
+						end
 					end
-				end
-			else
-				if (originalPosition and not isOnOriginalPosition) then
-					MiniMapBattlefieldFrame:ClearAllPoints()
-					for i = 1, #originalPosition do
-						MiniMapBattlefieldFrame:SetPoint(unpack (originalPosition[i]))
+				else
+					if (originalPosition and not isOnOriginalPosition) then
+						MiniMapBattlefieldFrame:ClearAllPoints()
+						for i = 1, #originalPosition do
+							MiniMapBattlefieldFrame:SetPoint(unpack (originalPosition[i]))
+						end
+						taintWarning:Hide()
+						isOnOriginalPosition = true
 					end
-					taintWarning:Hide()
-					isOnOriginalPosition = true
 				end
 			end
 		end)
