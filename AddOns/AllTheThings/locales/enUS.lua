@@ -252,7 +252,7 @@ app.L = {
 	["QUEST_ONCE_PER_ACCOUNT_FORMAT"] = "Completed By: %s";
 
 	-- Settings.lua
-		["SKIP_AUTO_REFRESH"] = "Do Not Auto-Refresh!";
+		["SKIP_AUTO_REFRESH"] = "Skip Settings-Toggle Data Refreshes!";
 		["SKIP_AUTO_REFRESH_TOOLTIP"] = "By default (unchecked), any Settings change which may affect visible data will cause an automatic refresh.\n\nBy enabling this option, Settings changes won't take effect until the User performs a Full Refresh by Shift-Clicking on an ATT window.";
 		["AFTER_REFRESH"] = "After Refresh";
 
@@ -376,6 +376,14 @@ app.L = {
 	["REPORT_UNSORTED_CHECKBOX"] = "Only 'Unsourced'";
 	["REPORT_UNSORTED_CHECKBOX_TOOLTIP"] = "Enable this option if you only want to see the QuestID if it isn't already Sourced.";
 	["BEHAVIOR_LABEL"] = "List Behavior";
+	["DYNAMIC_CATEGORY_LABEL"] = "Dynamic Categories";
+	["DYNAMIC_CATEGORY_OFF"] = OFF;
+	["DYNAMIC_CATEGORY_OFF_TOOLTIP"] = "Do not generate any Dynamic Categories.";
+	["DYNAMIC_CATEGORY_SIMPLE"] = "Simple";
+	["DYNAMIC_CATEGORY_SIMPLE_TOOLTIP"] = "Generate Dynamic Categories based only on the very highest Category.";
+	["DYNAMIC_CATEGORY_NESTED"] = "Nested";
+	["DYNAMIC_CATEGORY_NESTED_TOOLTIP"] = "Generate Dynamic Categories based on their exact Source. This will lead to duplicates of Things that are also Sourced in multiple places.";
+	["DYNAMIC_CATEGORY_TOOLTIP_NOTE"] = "\n\n|cffff0000Requires Reload|r";
 
 	-- Account Wide Checkboxes
 	["ACCOUNT_WIDE_ACHIEVEMENTS_TOOLTIP"] = "|cff00AB00Track Account-wide|R\n\nAchievement tracking is usually account wide, but there are a number of achievements exclusive to specific classes and races that you can't get on your main.";
@@ -802,6 +810,7 @@ app.L = {
 		[53] = "Interface\\Icons\\INV_Trinket_Naxxramas05",						-- Trinket
 		[54] = "Interface\\Icons\\inv_staff_2h_felfireraid_d_03",				-- Relic
 		[55] = "Interface\\Icons\\INV_Drink_25_HoneyTea",						-- Consumables
+		[57] = 132932,															-- Fishing Poles
 		[59] = "Interface\\Icons\\INV_Misc_Book_03",							-- Class Books
 		[100] = app.asset("Category_Mounts"),									-- Mounts
 		[101] = "Interface\\Icons\\Tracking_WildPet",							-- Battle Pets
@@ -904,8 +913,6 @@ app.L = {
 		[-60] = "Interface\\Icons\\inv_thanksgiving_turkey",								-- Pilgrim's Bounty
 		[-61] = "Interface\\Icons\\achievement_worldevent_merrymaker",						-- The Feast of Winter Veil
 		[-62] = "Interface\\Icons\\inv_misc_fish_06",										-- Stranglethorn Fishing Extravaganza
-	-- Emerald Nightmare
-		[-68] = "Interface\\Icons\\spell_arcane_portalshattrath",							-- The Emerald Dream
 	-- Maraudon
 		[-69] = "Interface\\Icons\\spell_arcane_portalironforge",							-- Maraudon Purple
 		[-70] = "Interface\\Icons\\INV_Jewelcrafting_ArgusGemUncut_Orange_MiscIcons",		-- Orange
@@ -970,8 +977,6 @@ app.L = {
 	-- Druid Feral Druid Hidden Artifact Appearance
 		[-157] = "Interface\\Icons\\achievement_zone_hinterlands_01",						-- The Hinterlands Activated
 		[-158] = "Interface\\Icons\\achievement_zone_feralas",								-- Feralas Activated
-	-- Class Hall /Artifact
-		-- [-159] = Uses different icons													-- Daily Dreamway Event Roll
 	-- Junkboxes
 		[-165] = "Interface\\Icons\\inv_box_01",											-- Junkboxes
 	-- Emissary
@@ -979,7 +984,6 @@ app.L = {
 	-- Legion Artifact Questline
 		[-170] = "Interface\\Icons\\spell_shaman_maelstromweapon",							-- Balance of Power
 	-- Events
-		[-173] = "Interface\\Icons\\spell_holy_borrowedtime",								-- Timewalking
 		[-176] = 3753381,																	-- Weekly Holidays
 	-- Item Sets
 		[-211] = 1530081,																	-- New Characters
@@ -996,8 +1000,6 @@ app.L = {
 		[-220] = "Interface\\MINIMAP\\TRACKING\\Class",										-- Class
 	-- Bonus Objectives
 		[-221] = 237387,																	-- Bonus Objectives
-	-- Misc Victory (Used in many Places)
-		[-227] = "Interface\\ICONS\\spell_holy_divinepurpose",								-- Victory
 	-- Flight Path
 		[-228] = app.asset("Category_FlightPaths"),											-- Flight Paths
 	-- Warfronts
@@ -1030,8 +1032,6 @@ app.L = {
 		[-321] = "Interface\\Icons\\inv_shoulder_05",										-- Shoulder
 		[-322] = "Interface\\Icons\\inv_misc_cape_11",										-- Back
 		[-323] = "Interface\\Icons\\inv_chest_chain",										-- Chest
-		[-324] = "Interface\\Icons\\inv_shirt_grey_01",										-- Shirt
-		[-325] = "Interface\\Icons\\inv_misc_tournaments_tabard_gnome",						-- Tabard
 		[-326] = "Interface\\Icons\\inv_bracer_07",											-- Wrist
 		[-327] = "Interface\\Icons\\Inv_gauntlets_24",										-- Hands
 		[-328] = "Interface\\Icons\\inv_belt_24",											-- Waist
@@ -1090,10 +1090,9 @@ app.L = {
 		[-491] = "Interface\\Icons\\inv_misc_ticket_tarot_rogue",							-- Tarot Cards
 	-- Misc
 		[-493] = "Interface\\Icons\\Inv_icon_mission_complete_order",						-- Temporary Header WoD Mission Loot
-		[-494] = "Interface\\Icons\\Ability_Shaman_Ascendance",								-- Miscellaneous
 	-- Class Hall Demon Hunter
 		[-498] = "Interface\\Icons\\inv_offhand_hyjal_d_01",								-- Twisting Nether (Demon Hunter Order Hall advancement)
-		-- Mole Machine
+	-- Mole Machine
 		[-517] = "Interface\\Icons\\ability_racial_molemachine",							-- Mole Machine
 	-- Blizzard Events and Anniversaries
 		[-519] = app.asset("Category_Event"),												-- World Events
@@ -1131,8 +1130,6 @@ app.L = {
 		[-578] = app.asset("Expansion_CLASSIC"),											-- World of Warcraft 15th Anniversary
 		[-579] = "Interface\\Icons\\achievement_dungeon_outland_dungeonmaster",				-- Dark Portal Pass
 		[-580] = "Interface\\Icons\\inv_misc_mdi_banner01",									-- The Great Push: Season 2
-	-- Quest Items - Used in NYI
-		--[-600] = Doesnt need icon															-- Quest Items
 	-- PvP Headers
 		[-650] = 1455894,																	-- Rated Battlegrounds
 		--[-651] = "Interface\\Worldmap\\GlowSkull_64Grey",									-- Not used yet. Future PvP Icons if needed
@@ -1209,8 +1206,7 @@ app.L = {
 		[-808] = 2998185,																	-- Bound Shadehound
 	-- More Secrets are likely to come dont use IDs here
 	-- Chests
-		[-850] = "Interface\\Icons\\INV_Eng_Crate2",										-- Mechanized Chest
-		[-851] = "Interface\\Icons\\INV_Eng_Crate2",										-- Irontide Lockbox
+		[-851] = "Interface\\Icons\\INV_Eng_Crate2",										-- Black Empire Cache (Is a placeholder since no ObjectID are assigned to chests!)
 	-- Heart of Azeroth
 		[-852] = app.asset("Category_AzeriteEssences"),										-- Azerite Essences
 		[-853] = "Interface\\Icons\\inv_azeritedebuff",										-- All Roles
@@ -1230,7 +1226,6 @@ app.L = {
 		[-903] = app.asset("Interface_Rewards"),											-- Zone Rewards
 		[-904] = "Interface\\Icons\\ui_torghast",											-- Wrath of the Jailer
 		[-905] = "Interface\\Icons\\Sanctum_features_missiontable",							-- Command Table
-		--[-906] = 3675495,																	-- Tier 1: Tactical Insight
 		[-913] = "Interface\\Icons\\ui_torghast",											-- Tormentors of Torghast
 		--[-915] = Uses Different Icons														-- Anima Conductor
 		--[-916] = Uses Different Icons														-- Tier 1
@@ -1243,37 +1238,20 @@ app.L = {
 		--[-924] = Uses Different Icons														-- Transport Network
 		--[-925] = Uses Different Icons														-- Tier 4
 		--[-926] = Uses Different Icons														-- Tier 5
-		[-927] = "Interface\\Icons\\ui_sigil_necrolord",									-- Abomination Factory (Necrolord) Tier 3
-		[-928] = "Interface\\Icons\\ui_sigil_necrolord",									-- Abomination Factory (Necrolord) Tier 4
 		[-929] = "Interface\\Icons\\ui_sigil_nightfae",										-- Covenant: Night Fae
-		[-930] = 136059,																	-- Queen's Conservatory
+		[-930] = "Interface\\Icons\\Sanctum_features_gardenweald",							-- Queen's Conservatory
 		[-1002] = 3528288,																	-- Dutiful Spirit
 		[-1003] = 3528296,																	-- Martial Spirit
 		[-1004] = 3528312,																	-- Prideful Spirit
 		[-1005] = 3528280,																	-- Untamed Spirit
-		[-935] = "Interface\\Icons\\ui_sigil_nightfae",										-- Sanctum Upgrades (Night Fae)
-		[-936] = "Interface\\Icons\\ui_sigil_nightfae",										-- Soulshape Forms (Night Fae)
-		[-937] = "Interface\\Icons\\ui_sigil_nightfae",										-- Transport Network (Night Fae)
-		[-938] = "Interface\\Icons\\ui_sigil_necrolord",									-- Abomination Factory (Necrolord) Tier 5
+		[-936] = "Interface\\Icons\\Ability_nightfae_flicker",								-- Soulshape Forms (Night Fae)
 		[-939] = "Interface\\Icons\\ui_sigil_kyrian",										-- Covenant: Kyrian
 		[-942] = 3675496,																	-- Path of Ascension
 		[-949] = "Interface\\Icons\\ui_sigil_venthyr",										-- Covenant: Venthyr
-		[-950] = 3854020,																	-- Transport Network
-		[-951] = 3854020,																	-- Tier 1: Mirror Mirror
-		[-952] = 3854020,																	-- Tier 2: Looking Glass
-		[-953] = 3854020,																	-- Tier 3: Mirror's Edge
 		[-954] = "Interface\\Icons\\spell_animarevendreth_buff",							-- Inquisitors
 		[-955] = "Interface\\Icons\\spell_animarevendreth_buff",							-- High Inquisitors
 		[-956] = "Interface\\Icons\\spell_animarevendreth_buff",							-- Grand Inquisitors
-		[-957] = "Interface\\Icons\\ui_sigil_venthyr",										-- Sanctum Upgrades (Venthyr)
-		[-958] = 3675495,																	-- Tier 2: Deserved Feast
-		[-959] = 3675495,																	-- Tier 3: Superior Efficiency
 		[-960] = 3675493,																	-- The Ember Court
-		[-961] = 3675493,																	-- Tier 1: A New Court
-		[-962] = 3675493,																	-- Tier 2: Homegrown Help
-		[-963] = 3675493,																	-- Tier 3: Court Influencer
-		[-964] = 3675493,																	-- Tier 4: Discerning Taste
-		[-965] = 3675493,																	-- Tier 5: The Professionals
 		[-966] = 979574,																	-- Blueprints & Crafting (for Kyrian Path of Ascension)
 		[-967] = 3854020,																	-- Mirror Restoration
 		[-968] = 3854020,																	-- Set A
@@ -1364,13 +1342,10 @@ app.L = {
 		[-9965] = "Interface\\Icons\\achievement_level_110",						-- Class Hall
 		[-9966] = 1041860,															-- Dreanor Garrison
 		[-9983] = "Interface\\Icons\\Paladin_Protection",							-- Honor
-		[-10044] = app.asset("Category_D&R"),										-- Raids
-		[-10045] = "Interface\\Icons\\Paladin_Protection",							-- Currencies
 		[-10048] = "Interface\\Icons\\buff_feltreasures",							-- Mage Tower
 		[-10050] = "Interface\\Icons\\buff_epichunter",								-- Nether Disruptor
 		[-10057] = "Interface\\Icons\\Ability_Warrior_OffensiveStance",				-- War Effort
 		[-10058] = "Interface\\Icons\\Paladin_Protection",							-- World
-		[-10059] = "Interface\\Icons\\pandarenracial_innerpeace",					-- Pandaria Scenarios
 		[-10061] = "Interface\\Icons\\achievement_faction_celestials",				-- The Four Celestials
 		[-10067] = app.asset("Weapon_Type_Artifact"),								-- Artifacts
 	-- 8.3
@@ -1446,7 +1421,6 @@ app.L = {
 		[-61] = GetSpellInfo(21953),											-- The Feast of Winter Veil
 		[-62] = "Stranglethorn Fishing Extravaganza",							-- Stranglethorn Fishing Extravaganza
 
-		[-68] = DUNGEON_FLOOR_NIGHTMARERAID13,									-- The Emerald Dream
 		[-69] = GetSpellInfo(21127),											-- Maraudon Portal
 		[-70] = DUNGEON_FLOOR_DESOLACE22.." - "..GetSpellInfo(251097),			-- Foulspore Cavern [Orange]
 		[-71] = DUNGEON_FLOOR_DESOLACE21.." - "..GetSpellInfo(251095),			-- The Wicked Grotto [Purple]
@@ -1509,10 +1483,6 @@ app.L = {
 		[-158] = DUNGEON_FLOOR_NIGHTMARERAID9.." "..GetSpellInfo(78741),		-- Feralas Activated
 	-- Class Hall /Artifact
 		[-159] = "Event Roll",													-- Daily Dreamway Event Roll
-	-- Collections
-		[-160] = TUTORIAL_TITLE53,												-- Mounts
-		[-161] = TOY_BOX,														-- Toy Box
-		[-162] = PETS,															-- Pets
 	-- Junkboxes
 		[-165] = GetItemSubClassInfo(13,1),										-- Junkboxes
 	-- Emissary
@@ -1520,7 +1490,6 @@ app.L = {
 	-- Legion Artifact Questline
 		[-170] = GetSpellInfo(41341),											-- Balance of Power
 	-- Events
-		[-173] = PLAYER_DIFFICULTY_TIMEWALKER,									-- Timewalking
 		[-176] = CALENDAR_FILTER_WEEKLY_HOLIDAYS,								-- Weekly Holidays
 	-- Item Sets
 		[-211] = NEW.." "..CHARACTER,											-- New Character
@@ -1537,8 +1506,6 @@ app.L = {
 		[-220] = CLASS,															-- Class
 	-- Bonus Objectives
 		[-221] = TRACKER_HEADER_BONUS_OBJECTIVES,								-- Bonus Objectives
-	-- Misc Victory (Used in many places)
-		[-227] = GetSpellInfo(109382),											-- Victory
 	-- Flight Path
 		[-228] = GetSpellInfo(218950),											-- Flight Path
 	-- Warfronts
@@ -1571,8 +1538,6 @@ app.L = {
 		[-321] = INVTYPE_SHOULDER,												-- Shoulder
 		[-322] = INVTYPE_CLOAK,													-- Back
 		[-323] = INVTYPE_CHEST,													-- Chest
-		[-324] = INVTYPE_BODY,													-- Shirt
-		[-325] = INVTYPE_TABARD,												-- Tabard
 		[-326] = INVTYPE_WRIST,													-- Wrist
 		[-327] = INVTYPE_HAND,													-- Hands
 		[-328] = INVTYPE_WAIST,													-- Waist
@@ -1634,7 +1599,6 @@ app.L = {
 		[-491] = "Tarot Cards",													-- Tarot Cards
 	-- Misc
 		[-493] = "Broken Mission Loot",											-- Temporary Header for WoD Mission Loot.
-		[-494] = MAC_OPTIONS_MISC, 												-- Miscellaneous
 	-- Class Hall Demon Hunter
 		[-498] = C_Map.GetAreaInfo(7576),										-- Twisting Nether (Demon Hunter Order Hall advancement)
 	-- Mole Machine
@@ -1675,8 +1639,6 @@ app.L = {
 		[-578] = select(2, GetAchievementInfo(13917)),							-- WoW's 15th Anniversary
 		[-579] = "Dark Portal Pass",											-- Dark Portal Pass
 		[-580] = "The Great Push: Season 2",									-- The Great Push: Season 2
-	--
-		[-600] = AUCTION_CATEGORY_QUEST_ITEMS,									-- Quest Items
 	-- PvP Header
 		-- Special Season Tags
 		--[-650] = "Rated Battleground",										-- Listed under Cata PvP Seasons
@@ -1761,8 +1723,7 @@ app.L = {
 		[-808] = GetSpellInfo(344577),											-- Bound Shadehound
 	-- More Secrets are likely to come dont use IDs here
 	-- Chests
-		[-850] = "Mechanized Chest",											-- Mechanized Chest
-		[-851] = "Black Empire Cache",											-- Black Empire Cache
+		[-851] = "Black Empire Cache",											-- Black Empire Cache (Is a placeholder since no ObjectID are assigned to chests!)
 	-- Heart of Azeroth
 		[-852] = SPLASH_BATTLEFORAZEROTH_8_2_0_FEATURE2_TITLE,					-- Heart of Azeroth Essences
 		[-853] = "All Roles",													-- All Roles
@@ -1782,7 +1743,6 @@ app.L = {
 		[-903] = "Zone Rewards",												-- Zone Rewards
 		[-904] = GetSpellInfo(347208),											-- Wrath of the Jailer
 		[-905] = GetSpellInfo(280630),											-- Command Table
-		[-906] = "Tier 1: Tactical Insight",									-- Tier 1: Tactical Insight
 		[-907] = "Dead Blanchy",												-- Dead Blanchy
 		[-909] = "Hunt: Death Elementals",										-- Hunt: Death Elementals
 		[-910] = "Hunt: Alpha Devourers",										-- Hunt: Alpha Devourers
@@ -1806,17 +1766,11 @@ app.L = {
 		[-924] = "Transport Network",											-- Transport Network (Necrolord)
 		[-925] = string.format(COVENANT_SANCTUM_TIER, 4),						-- Tier 4
 		[-926] = string.format(COVENANT_SANCTUM_TIER, 5),						-- Tier 5
-		[-927] = string.format(COVENANT_SANCTUM_TIER, 3)..": Bring Them to Life",	-- Abomination Factory (Necrolord) Tier 3
-		[-928] = string.format(COVENANT_SANCTUM_TIER, 4)..": Forged Friends",	-- Abomination Factory (Necrolord) Tier 4
-		[-938] = string.format(COVENANT_SANCTUM_TIER, 5)..": Best Fiends Forever",	-- Abomination Factory (Necrolord) Tier 5
 		-- SL Ardenweald/Night Fae
 		[-929] = GetSpellInfo(321077),											-- Night Fae
 		[-930] = COVENANT_SANCTUM_FEATURE_NIGHT_FAE,							-- Queen's Conservatory
 		[-934] = C_Map.GetAreaInfo(12840),										-- Star Lake Amphitheater
-		[-935] = "Sanctum Upgrades",											-- Sanctum Upgrades (Night Fae)
 		[-936] = "Soulshape Forms",												-- Soulshape Forms (Night Fae)
-		[-937] = "Transport Network",											-- Transport Network (Night Fae)
-		--[-938] is stolen for Necrolord because I ran out of numbers
 		[-1002] = "Dutiful Spirit",												-- Dutiful Spirit
 		[-1003] = "Martial Spirit",												-- Martial Spirit
 		[-1004] = "Prideful Spirit",											-- Prideful Spirit
@@ -1824,17 +1778,7 @@ app.L = {
 		-- SL Bastion/Kyrian
 		[-939] = GetSpellInfo(321076),											-- Kyrian
 		[-940] = "Ascended Council",											-- Ascended Counil
-		[-941] = "Sanctum Upgrades",											-- Sanctum Upgrades (Kyrian)
 		[-942] = COVENANT_SANCTUM_FEATURE_KYRIAN,								-- Path of Ascension
-		[-943] = string.format(COVENANT_SANCTUM_TIER, 1)..": First Steps",		-- Tier 1: First Steps
-		[-944] = string.format(COVENANT_SANCTUM_TIER, 2)..": Sacred Trials",	-- Tier 2: Sacred Trials
-		[-945] = string.format(COVENANT_SANCTUM_TIER, 3)..": Continued Training",	-- Tier 3: Continued Teaching
-		[-946] = string.format(COVENANT_SANCTUM_TIER, 4)..": Teachings of Wisdom",	-- Tier 4: Teachings of Wisdom
-		[-947] = string.format(COVENANT_SANCTUM_TIER, 5)..": Trials of Humility",	-- Tier 5: Trials of Humility
-		[-948] = "Transport Network",											-- Transport Network (Kyrian)
-		[-3348] = string.format(COVENANT_SANCTUM_TIER, 1)..": Step of Faith",	-- Tier 1: Step of Faith
-		[-3349] = string.format(COVENANT_SANCTUM_TIER, 2)..": Leap of Power",	-- Tier 2: Leap of Power
-		[-3350] = string.format(COVENANT_SANCTUM_TIER, 3)..": Eternal Paths",	-- Tier 3: Eternal Paths
 		[-966] = "Blueprints & Crafting",										-- Blueprints (for Path of Ascension)
 		[-972] = C_PetJournal.GetPetInfoBySpeciesID(3065),						-- Courage
 		[-973] = "Loyalty",														-- Loyalty
@@ -1842,22 +1786,10 @@ app.L = {
 		[-975] = "Humility",													-- Humility
 		-- SL Revendreth/Venthyr
 		[-949] = GetSpellInfo(321079),											-- Venthyr
-		[-950] = "Transport Network",											-- Transport Network
-		[-951] = string.format(COVENANT_SANCTUM_TIER, 1)..": Mirror, Mirror",	-- Tier 1: Mirror, Mirror
-		[-952] = string.format(COVENANT_SANCTUM_TIER, 2)..": Looking Glass",	-- Tier 2: Looking Glass
-		[-953] = string.format(COVENANT_SANCTUM_TIER, 3)..": Mirror's Edge",	-- Tier 3: Mirror's Edge
 		[-954] = "Inquisitors",													-- Inquisitors
 		[-955] = "High Inquisitors",											-- High Inquisitors
 		[-956] = "Grand Inquisitors",											-- Grand Inquisitors
-		[-957] = "Sanctum Upgrades",											-- Sanctum Upgrades (Venthyr)
-		[-958] = string.format(COVENANT_SANCTUM_TIER, 2)..": Deserved Feast",	-- Tier 2: Deserved Feast
-		[-959] = string.format(COVENANT_SANCTUM_TIER, 3)..": Superior Efficiency",	-- Tier 3: Superior Efficiency
 		[-960] = COVENANT_SANCTUM_FEATURE_VENTHYR,								-- The Ember Court
-		[-961] = string.format(COVENANT_SANCTUM_TIER, 1)..": A New Court",		-- Tier 1: A New Court
-		[-962] = string.format(COVENANT_SANCTUM_TIER, 2)..": Homegrown Help",	-- Tier 2: Homegrown Help
-		[-963] = string.format(COVENANT_SANCTUM_TIER, 3)..": Court Influencer",	-- Tier 3: Court Influencer
-		[-964] = string.format(COVENANT_SANCTUM_TIER, 4)..": Discerning Taste",	-- Tier 4: Discerning Taste
-		[-965] = string.format(COVENANT_SANCTUM_TIER, 5)..": The Professionals",	-- Tier 5: The Professionals
 		[-967] = "Mirror Restoration",											-- "Mirror Restoration",
 		[-968] = "Set A",														-- Set A
 		[-969] = "Set B",														-- Set B
@@ -1949,13 +1881,10 @@ app.L = {
 		[-9965] = select(1,GetCategoryInfo(15304)),								-- Class Hall
 		[-9966] = select(1,GetCategoryInfo(15303)),								-- Draenor Garrison
 		[-9983] = HONOR,														-- Honor
-		[-10044] = RAIDS,														-- Raids
-		[-10045] = select(1,GetCategoryInfo(15280)),							-- Currencies
 		[-10048] = BROKENSHORE_BUILDING_MAGETOWER,								-- Mage Tower
 		[-10050] = BROKENSHORE_BUILDING_NETHERDISRUPTOR,						-- Nether Disruptor
 		[-10057] = select(1,GetCategoryInfo(15308)),							-- War Effort
 		[-10058] = WORLD,														-- World
-		[-10059] = select(1,GetCategoryInfo(15302)),							-- Pandaria Scenarios
 		[-10061] = select(2,GetAchievementInfo(7333)),							-- The Four Celestials
 		[-10066] = BATTLE_PET_BREED_QUALITY6,									-- "Legendary";
 		[-10067] = ITEM_QUALITY6_DESC, 											-- Artifact

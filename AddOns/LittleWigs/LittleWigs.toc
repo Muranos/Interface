@@ -22,6 +22,6 @@
 ## X-BigWigs-LoadOn-InstanceId: 2284, 2285, 2286, 2287, 2289, 2290, 2291, 2293, 2441
 ## Dependencies: BigWigs
 ## LoadOnDemand: 1
-## Version: v9.1.4
+## Version: v9.1.6
 
 modules.xml

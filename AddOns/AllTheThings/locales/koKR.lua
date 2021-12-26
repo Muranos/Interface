@@ -239,7 +239,7 @@ local L = app.L;
 	--TODO: L.QUEST_ONCE_PER_ACCOUNT_FORMAT = "Completed By: %s";
 
 -- Settings.lua
-	--TODO: L.SKIP_AUTO_REFRESH = "Do Not Auto-Refresh!";
+	--TODO: L.SKIP_AUTO_REFRESH = "Skip Settings-Toggle Data Refreshes!";
 	--TODO: L.SKIP_AUTO_REFRESH_TOOLTIP = "By default (unchecked), any Settings change which may affect visible data will cause an automatic refresh.\n\nBy enabling this option, Settings changes won't take effect until the User performs a Full Refresh by Shift-Clicking on an ATT window.";
 	--TODO: L.AFTER_REFRESH = "After Refresh";
 
@@ -343,6 +343,13 @@ local L = app.L;
 		--TODO: L.REPORT_UNSORTED_CHECKBOX = "Only 'Unsourced'";
 		--TODO: L.REPORT_UNSORTED_CHECKBOX_TOOLTIP = "Enable this option if you only want to see the QuestID if it isn't already Sourced.";
 		--TODO: L.BEHAVIOR_LABEL = "List Behavior";
+		--TODO: L.DYNAMIC_CATEGORY_LABEL = "Dynamic Categories";
+		--TODO: L.DYNAMIC_CATEGORY_OFF_TOOLTIP = "Do not generate any Dynamic Categories.";
+		--TODO: L.DYNAMIC_CATEGORY_SIMPLE = "Simple";
+		--TODO: L.DYNAMIC_CATEGORY_SIMPLE_TOOLTIP = "Generate Dynamic Categories based only on the very highest Category.";
+		--TODO: L.DYNAMIC_CATEGORY_NESTED = "Nested";
+		--TODO: L.DYNAMIC_CATEGORY_NESTED_TOOLTIP = "Generate Dynamic Categories based on their exact Source. This will lead to duplicates of Things that are also Sourced in multiple places.";
+		--TODO: L.DYNAMIC_CATEGORY_TOOLTIP_NOTE = "\n\n|cffff0000Requires Reload|r";
 
 	-- Account Wide Checkboxes
 		--TODO: L.ACCOUNT_WIDE_ACHIEVEMENTS_TOOLTIP = "|cff00AB00Track Account-wide|R\n\nAchievement tracking is usually account wide, but there are a number of achievements exclusive to specific classes and races that you can't get on your main.";
@@ -758,7 +765,6 @@ for key,value in pairs({
 	-- Secret Header
 		[-806] = "금쪽같은 시간을 버려낸 허리띠",								-- Waist of Time
 	-- Chests
-		[-850] = "기계 상자",											-- Mechanized Chest
 		[-851] = "검은 제국 보관함",										-- Black Empire Cache
 	-- Heart of Azeroth
 		--TODO: [-853] = "All Roles",								-- All Roles
@@ -772,7 +778,6 @@ for key,value in pairs({
 		--TODO: [-861] = "Rank 4",									-- Rank 4
 	-- Shadowlands Header
 		--TODO: [-903] = "Zone Rewards",							-- Zone Rewards
-		--TODO: [-906] = "Tier 1: Tactical Insight",				-- Tier 1: Tactical Insight
 		[-907] = "죽은 블랑쉬",											-- Dead Blanchy
 		[-909] = "사냥: 죽음의 정령",										-- Hunt: Death Elementals
 		--TODO: [-910] = "Hunt: Alpha Devourers",					-- Hunt: Alpha Devourers
@@ -786,48 +791,21 @@ for key,value in pairs({
 		-- SL Maldraxxus/Necrolord
 			--TODO: [-921] = "Sanctum Upgrades",					-- Sanctum Upgrades (Necrolord)
 			--TODO: [-924] = "Transport Network",					-- Transport Network (Necrolord)
-			[-927] = string.format(COVENANT_SANCTUM_TIER, 3)..": 생명의 탄생",	-- Abomination Factory (Necrolord) Tier 3
-			[-928] = string.format(COVENANT_SANCTUM_TIER, 4)..": 만들어낸 친구",	-- Abomination Factory (Necrolord) Tier 4
-			[-938] = string.format(COVENANT_SANCTUM_TIER, 5)..": 우정은 영원히",	-- Abomination Factory (Necrolord) Tier 5
 		-- SL Ardenweald/Night Fae
-			--TODO: [-935] = "Sanctum Upgrades",					-- Sanctum Upgrades (Night Fae)
 			--TODO: [-936] = "Soulshape Forms",						-- Soulshape Forms (Night Fae)
-			--TODO: [-937] = "Transport Network",					-- Transport Network (Night Fae)
 			[-1002] = "충직한 영혼",								-- Dutiful Spirit
 			[-1003] = "무예의 영혼",								-- Martial Spirit
 			[-1004] = "긍지 높은 영혼",								-- Prideful Spirit
 			[-1005] = "야생의 영혼",								-- Untamed Spirit
 		-- SL Bastion/Kyrian
 			[-940] = "승천자 의회",										-- Ascended Counil
-			--TODO: [-941] = "Sanctum Upgrades",					-- Sanctum Upgrades (Kyrian)
-			[-943] = string.format(COVENANT_SANCTUM_TIER, 1)..": 첫걸음",	-- Tier 1: First Steps
-			[-944] = string.format(COVENANT_SANCTUM_TIER, 2)..": 신성한 시험",	-- Tier 2: Sacred Trials
-			[-945] = string.format(COVENANT_SANCTUM_TIER, 3)..": 계속되는 훈련",	-- Tier 3: Continued Teaching
-			[-946] = string.format(COVENANT_SANCTUM_TIER, 4)..": 지혜의 가르침",	-- Tier 4: Teachings of Wisdom
-			[-947] = string.format(COVENANT_SANCTUM_TIER, 5)..": 겸손의 시련",	-- Tier 5: Trials of Humility
-			--TODO: [-948] = "Transport Network",					-- Transport Network (Kyrian)
-			[-3348] = string.format(COVENANT_SANCTUM_TIER, 1)..": 신뢰의 발걸음",	-- Tier 1: Step of Faith
-			[-3349] = string.format(COVENANT_SANCTUM_TIER, 2)..": 힘의 도약",	-- Tier 2: Leap of Power
-			[-3350] = string.format(COVENANT_SANCTUM_TIER, 3)..": 영원의 길",	-- Tier 3: Eternal Paths
 			--TODO: [-966] = "Blueprints & Crafting",				-- Blueprints (for Path of Ascension)
 			--TODO: [-973] = "Loyalty",								-- Loyalty
 			--TODO: [-975] = "Humility",							-- Humility
 		-- SL Revendreth/Venthyr
-			--TODO: [-950] = "Transport Network",					-- Transport Network
-			[-951] = string.format(COVENANT_SANCTUM_TIER, 1)..": 거울아, 거울아",	-- Tier 1: Mirror, Mirror
-			[-952] = string.format(COVENANT_SANCTUM_TIER, 2)..": 석경",	-- Tier 2: Looking Glass
-			[-953] = string.format(COVENANT_SANCTUM_TIER, 3)..": 거울의 끝자락",	-- Tier 3: Mirror's Edge
 			--TODO: [-954] = "Inquisitors",							-- Inquisitors
 			--TODO: [-955] = "High Inquisitors",					-- High Inquisitors
 			--TODO: [-956] = "Grand Inquisitors",					-- Grand Inquisitors
-			--TODO: [-957] = "Sanctum Upgrades",					-- Sanctum Upgrades (Venthyr)
-			[-958] = string.format(COVENANT_SANCTUM_TIER, 2)..": 응당한 향연",	-- Tier 2: Deserved Feast
-			[-959] = string.format(COVENANT_SANCTUM_TIER, 3)..": 우월한 능률",	-- Tier 3: Superior Efficiency
-			[-961] = string.format(COVENANT_SANCTUM_TIER, 1)..": 새로운 궁정",	-- Tier 1: A New Court
-			[-962] = string.format(COVENANT_SANCTUM_TIER, 2)..": 자체 양성 도우미",	-- Tier 2: Homegrown Help
-			[-963] = string.format(COVENANT_SANCTUM_TIER, 3)..": 궁정의 실력가",	-- Tier 3: Court Influencer
-			[-964] = string.format(COVENANT_SANCTUM_TIER, 4)..": 안목 있는 취향",	-- Tier 4: Discerning Taste
-			[-965] = string.format(COVENANT_SANCTUM_TIER, 5)..": 전문가",	-- Tier 5: The Professionals
 			[-967] = "거울 복구 작업",									-- "Mirror Restoration",
 			--TODO: [-968] = "Set A",								-- Set A
 			--TODO: [-969] = "Set B",								-- Set B
@@ -1020,6 +998,7 @@ for key,value in pairs({
 	[177964] = "심연의 돌",	-- Fathom Stone
 	[178144] = "트롤 궤짝",	-- Troll Chest
 	[178227] = "머구트의 토템 광주리",	-- Murgut's Totem Basket
+	[178609] = "눈더미",	-- Holiday Snow
 	[179485] = "부서진 함정",	-- A Broken Trap
 	[179499] = "오우거 타닌 광주리",	-- Ogre Tannin Basket
 	[179501] = "노트 팀블잭의 은닉품",	-- Knot Thimblejack's Cache	--TODO: This was taken from classic Wowhead
@@ -1044,6 +1023,11 @@ for key,value in pairs({
 	[180690] = "큰 스카라베 상자",	-- Large Scarab Coffer
 	[180691] = "스카라베 상자",	-- Scarab Coffer
 	[180717] = "스카라베 징",	-- The Scarab Gong	--TODO: This was taken from classic Wowhead
+	[180743] = "정성스럽게 포장된 선물꾸러미",	-- Carefully Wrapped Present
+	[180746] = "누가 살짝 흔들어 본 선물",	-- Gently Shaken Gift
+	[180747] = "화려하게 포장된 선물꾸러미",	-- Gaily Wrapped Present
+	[180748] = "들썩거리는 선물상자",	-- Ticking Present
+	[180793] = "축제 선물",	-- Festive Gift
 	[180794] = "잔다이스 바로브의 일지",	-- Journal of Jandice Barov
 	[180918] = "현상 수배: 욕망의 탤리스",	-- Wanted: Thaelis the Hungerer
 	[181011] = "마법학자 더스크위더의 일지",	-- Magister Duskwither's Journal
@@ -1089,6 +1073,7 @@ for key,value in pairs({
 	[186585] = "용가죽 두루마리",	-- Dragonskin Scroll
 	--TODO: [186881] = "Dark Iron Sabotage Plans",	-- Dark Iron Sabotage Plans
 	[186887] = "커다란 호박등",	-- Large Jack-o'-Lantern
+	[187236] = "겨울맞이 축제 선물",	-- Winter Veil Gift
 	[187273] = "수상한 발굽 자국",	-- Suspicious Hoofprint
 	[187559] = "호드 화톳불",	-- Horde Bonfire
 	[187564] = "얼라이언스 화톳불",	-- Alliance Bonfire
@@ -2205,6 +2190,7 @@ for key,value in pairs({
 	[259871] = "얼라이언스 화톳불",	-- Alliance Bonfire
 	[259926] = "호드 화톳불",	-- Horde Bonfire
 	[259927] = "얼라이언스 화톳불",	-- Alliance Bonfire
+	[265526] = "보물 상자",	-- Treasure Chest
 	[265532] = "이동술 신호 장치",	-- Telemancy Beacon
 	--TODO: [266289] = "Time Lost Chest",	-- Time Lost Chest
 	[266851] = "모조 생명체의 마법봉",	-- Wand of Simulated Life
@@ -2350,6 +2336,7 @@ for key,value in pairs({
 	[282666] = "아구수의 단지",	-- Urn of Agussu
 	[284426] = "묻힌 채광 기계",	-- Buried Mining Machine
 	[284448] = "숨겨진 학자의 상자",	-- Hidden Scholar's Chest
+	[284454] = "하얀 상어의 선물",	-- Da White Shark's Bounty
 	[284455] = "추방자의 탄식",	-- The Exile's Lament
 	[286016] = "항해일지",	-- Ship's Log
 	[287081] = "고대 서판",	-- Ancient Tablet
@@ -2425,6 +2412,7 @@ for key,value in pairs({
 	[293964] = "잊혀진 밀수업자의 보관함",	-- Forgotten Smuggler's Stash
 	[293965] = "뼈새김 보관함",	-- Scrimshaw Cache
 	[293985] = "현상 수배: 전쟁 누더기",	-- Wanted: War Gore
+	[294084] = "모험가 협회 전리품 보관함",	-- Adventurer's Society Loot Stash	--TODO: This was manually translated
 	--TODO: [294096] = "Lit Orb",	-- Lit Orb
 	--TODO: [294097] = "Strange Seed",	-- Strange Seed
 	--TODO: [294098] = "Tiny Frog",	-- Tiny Frog
@@ -2457,6 +2445,20 @@ for key,value in pairs({
 	--TODO: [294703] = "Grimmy's Rusty Lockbox",	-- Grimmy's Rusty Lockbox
 	[296479] = "제독의 사물함",	-- Lord Admiral's Footlocker
 	[296536] = "피투성이 파수꾼의 전투검",	-- Bloodied Sentinel's Glaive
+	[296573] = "제이슨의 녹슨 칼날",	-- Jason's Rusty Blade
+	[296574] = "이안의 빈 병",	-- Ian's Empty Bottle
+	[296575] = "줄리의 금 간 접시",	-- Julie's Cracked Dish
+	[296579] = "브라이언의 망가진 나침반",	-- Brian's Broken Compass
+	[296580] = "오퍼의 끈으로 엮은 일지",	-- Ofer's Bound Journal
+	[296581] = "스키예의 애완석",	-- Skye's Pet Rock
+	[296582] = "줄리안의 왼쪽 장화",	-- Julien's Left Boot
+	[296583] = "나바로의 물병",	-- Navarro's Flask
+	[296584] = "자크의 수통",	-- Zach's Canteen
+	[296585] = "다마르커스의 배낭",	-- Damarcus' Backpack
+	[296586] = "레이첼의 플루트",	-- Rachel's Flute
+	[296587] = "조쉬의 송곳니 목걸이",	-- Josh's Fang Necklace
+	[296588] = "사령관 마르텐스의 초상화",	-- Portrait of Commander Martens
+	[296589] = "커트의 정교한 열쇠",	-- Kurt's Ornate Key
 	[296915] = "드러스트 석비: 마법진",	-- Drust Stele: The Circle
 	--TODO: [296916] = "Drust Stele: The Ritual",	-- Drust Stele: The Ritual
 	[296917] = "드러스트 석비: 나무",	-- Drust Stele: The Tree
@@ -2596,6 +2598,7 @@ for key,value in pairs({
 	--TODO: [334216] = "Black Empire Cache",	-- Black Empire Cache
 	[336415] = "버려진 두루마리",	-- Discarded Scroll
 	[337237] = "잃어버린 금고",	-- Lost Vault
+	[337241] = "장비 보관함",	-- Stashed Equipment
 	--TODO: [339211] = "|cFFFFFFFFStep 2:|r Empty Dish",	-- |cFFFFFFFFStep 2:|r Empty Dish
 	[339283] = "잊힌 귀족의 상자",	-- Forgotten Noble's Chest
 	[339601] = "영겁의 두루마리",	-- Scroll of Aeons
@@ -2689,6 +2692,7 @@ for key,value in pairs({
 	[353687] = "망가진 종",	-- Broken Bell
 	[353688] = "망가진 종",	-- Broken Bell
 	[353691] = "하늘맞이 종",	-- Skyward Bell
+	[353791] = "성채 금고",	-- Castle Strongbox
 	[353792] = "촌락 금고",	-- Village Strongbox
 	[353793] = "교구 상자",	-- Parish Chest
 	[353796] = "회고의 성물함",	-- Reliquary of Remembrance
@@ -2897,6 +2901,7 @@ for key,value in pairs({
 	[369438] = "균열결속 보관함",	-- Riftbound Cache
 	[369439] = "균열결속 보관함",	-- Riftbound Cache
 	[369440] = "균열결속 보관함",	-- Riftbound Cache
+	[9962198] = "추방자의 급조한 진흙 웅덩이",	-- Outcast's Makeshift Muckpool
 	--TODO: [9999890] = "Corrupted Loot",	-- Corrupted Loot
 	--TODO: [9999891] = "Main Objective Only",	-- Main Objective Only
 	--TODO: [9999892] = "Main Objective + 2 Bonus Areas",	-- Main Objective + 2 Bonus Areas

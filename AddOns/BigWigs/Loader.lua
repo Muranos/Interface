@@ -36,7 +36,7 @@ do
 	local RELEASE = "RELEASE"
 
 	local releaseType = RELEASE
-	local myGitHash = "7b6549a" -- The ZIP packager will replace this with the Git hash.
+	local myGitHash = "d009d62" -- The ZIP packager will replace this with the Git hash.
 	local releaseString = ""
 	--[=[@alpha@
 	-- The following code will only be present in alpha ZIPs.
@@ -128,6 +128,7 @@ local fakeZones = { -- Fake zones used as GUI menus
 	[-424]=true, -- Pandaria
 	[-572]=true, -- Draenor
 	[-619]=true, -- Broken Isles
+	[1716]=true, -- Broken Shore Mage Tower
 	[-947]=true, -- Azeroth
 	[-1647]=true, -- Shadowlands
 }
@@ -216,6 +217,7 @@ do
 		[-1647] = s, -- Shadowlands (Fake Menu)
 		[2296] = s, -- Castle Nathria
 		[2450] = s, -- Sanctum of Domination
+		[2481] = s, -- Sepulcher of the First Ones
 
 		--[[ LittleWigs: Classic ]]--
 		[33] = lw_c, -- Shadowfang Keep
@@ -286,6 +288,7 @@ do
 		[1175] = lw_wod, -- Bloodmaul Slag Mines
 		[1358] = lw_wod, -- Upper Blackrock Spire
 		--[[ LittleWigs: Legion ]]--
+		[1716] = lw_l, -- Broken Shore Mage Tower (Fake Menu)
 		[1544] = lw_l, -- Assault on Violet Hold
 		[1677] = lw_l, -- Cathedral of Eternal Night
 		[1571] = lw_l, -- Court of Stars

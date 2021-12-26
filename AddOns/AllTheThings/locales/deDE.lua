@@ -239,7 +239,7 @@ local L = app.L;
 	--TODO: L.QUEST_ONCE_PER_ACCOUNT_FORMAT = "Completed By: %s";
 
 -- Settings.lua
-	--TODO: L.SKIP_AUTO_REFRESH = "Do Not Auto-Refresh!";
+	--TODO: L.SKIP_AUTO_REFRESH = "Skip Settings-Toggle Data Refreshes!";
 	--TODO: L.SKIP_AUTO_REFRESH_TOOLTIP = "By default (unchecked), any Settings change which may affect visible data will cause an automatic refresh.\n\nBy enabling this option, Settings changes won't take effect until the User performs a Full Refresh by Shift-Clicking on an ATT window.";
 	--TODO: L.AFTER_REFRESH = "After Refresh";
 
@@ -343,6 +343,13 @@ local L = app.L;
 		--TODO: L.REPORT_UNSORTED_CHECKBOX = "Only 'Unsourced'";
 		--TODO: L.REPORT_UNSORTED_CHECKBOX_TOOLTIP = "Enable this option if you only want to see the QuestID if it isn't already Sourced.";
 		--TODO: L.BEHAVIOR_LABEL = "List Behavior";
+		--TODO: L.DYNAMIC_CATEGORY_LABEL = "Dynamic Categories";
+		--TODO: L.DYNAMIC_CATEGORY_OFF_TOOLTIP = "Do not generate any Dynamic Categories.";
+		--TODO: L.DYNAMIC_CATEGORY_SIMPLE = "Simple";
+		--TODO: L.DYNAMIC_CATEGORY_SIMPLE_TOOLTIP = "Generate Dynamic Categories based only on the very highest Category.";
+		--TODO: L.DYNAMIC_CATEGORY_NESTED = "Nested";
+		--TODO: L.DYNAMIC_CATEGORY_NESTED_TOOLTIP = "Generate Dynamic Categories based on their exact Source. This will lead to duplicates of Things that are also Sourced in multiple places.";
+		--TODO: L.DYNAMIC_CATEGORY_TOOLTIP_NOTE = "\n\n|cffff0000Requires Reload|r";
 
 	-- Account Wide Checkboxes
 		--TODO: L.ACCOUNT_WIDE_ACHIEVEMENTS_TOOLTIP = "|cff00AB00Track Account-wide|R\n\nAchievement tracking is usually account wide, but there are a number of achievements exclusive to specific classes and races that you can't get on your main.";
@@ -759,7 +766,6 @@ for key,value in pairs({
 	-- Secret Header
 		[-806] = "Zeitvergoldung",									-- Waist of Time
 	-- Chests
-		[-850] = "Mechanisierte Truhe",								-- Mechanized Chest
 		[-851] = "Truhe des Schwarzen Imperiums",					-- Black Empire Cache
 	-- Heart of Azeroth
 		--TODO: [-853] = "All Roles",								-- All Roles
@@ -773,7 +779,6 @@ for key,value in pairs({
 		--TODO: [-861] = "Rank 4",									-- Rank 4
 	-- Shadowlands Header
 		--TODO: [-903] = "Zone Rewards",							-- Zone Rewards
-		--TODO: [-906] = "Tier 1: Tactical Insight",				-- Tier 1: Tactical Insight
 		[-907] = "Tote Graumähne",									-- Dead Blanchy
 		[-909] = "Jagd: Todeselementare",							-- Hunt: Death Elementals
 		--TODO: [-910] = "Hunt: Alpha Devourers",					-- Hunt: Alpha Devourers
@@ -787,48 +792,21 @@ for key,value in pairs({
 		-- SL Maldraxxus/Necrolord
 			--TODO: [-921] = "Sanctum Upgrades",					-- Sanctum Upgrades (Necrolord)
 			--TODO: [-924] = "Transport Network",					-- Transport Network (Necrolord)
-			[-927] = string.format(COVENANT_SANCTUM_TIER, 3)..": Erweckt sie zum Leben",	-- Abomination Factory (Necrolord) Tier 3
-			[-928] = string.format(COVENANT_SANCTUM_TIER, 4)..": Geschmiedete Freunde",	-- Abomination Factory (Necrolord) Tier 4
-			[-938] = string.format(COVENANT_SANCTUM_TIER, 5)..": Fürchterliche Freunde für immer",	-- Abomination Factory (Necrolord) Tier 5
 		-- SL Ardenweald/Night Fae
-			--TODO: [-935] = "Sanctum Upgrades",					-- Sanctum Upgrades (Night Fae)
 			--TODO: [-936] = "Soulshape Forms",						-- Soulshape Forms (Night Fae)
-			--TODO: [-937] = "Transport Network",					-- Transport Network (Night Fae)
 			[-1002] = "Pflichtbewusster Geist",						-- Dutiful Spirit
 			[-1003] = "Kämpferischer Geist",						-- Martial Spirit
 			[-1004] = "Stolzer Geist",								-- Prideful Spirit
 			[-1005] = "Ungezähmter Geist",							-- Untamed Spirit
 		-- SL Bastion/Kyrian
 			[-940] = "Rat der Aufgestiegenen",						-- Ascended Counil
-			--TODO: [-941] = "Sanctum Upgrades",					-- Sanctum Upgrades (Kyrian)
-			[-943] = string.format(COVENANT_SANCTUM_TIER, 1)..": Erste Schritte",	-- Tier 1: First Steps
-			[-944] = string.format(COVENANT_SANCTUM_TIER, 2)..": Heilige Prüfungen",	-- Tier 2: Sacred Trials
-			[-945] = string.format(COVENANT_SANCTUM_TIER, 3)..": Fortgesetzte Ausbildung",	-- Tier 3: Continued Teaching
-			[-946] = string.format(COVENANT_SANCTUM_TIER, 4)..": Lehren der Weisheit",	-- Tier 4: Teachings of Wisdom
-			[-947] = string.format(COVENANT_SANCTUM_TIER, 5)..": Prüfungen der Demut",	-- Tier 5: Trials of Humility
-			--TODO: [-948] = "Transport Network",					-- Transport Network (Kyrian)
-			[-3348] = string.format(COVENANT_SANCTUM_TIER, 1)..": Vertrauensschritt",	-- Tier 1: Step of Faith
-			[-3349] = string.format(COVENANT_SANCTUM_TIER, 2)..": Machtsprung",	-- Tier 2: Leap of Power
-			[-3350] = string.format(COVENANT_SANCTUM_TIER, 3)..": Ewige Pfade",	-- Tier 3: Eternal Paths
 			--TODO: [-966] = "Blueprints & Crafting",				-- Blueprints (for Path of Ascension)
 			--TODO: [-973] = "Loyalty",								-- Loyalty
 			--TODO: [-975] = "Humility",							-- Humility
 		-- SL Revendreth/Venthyr
-			--TODO: [-950] = "Transport Network",					-- Transport Network
-			[-951] = string.format(COVENANT_SANCTUM_TIER, 1)..": Spieglein, Spieglein",	-- Tier 1: Mirror, Mirror
-			[-952] = string.format(COVENANT_SANCTUM_TIER, 2)..": Hinter dem Spiegel",	-- Tier 2: Looking Glass
-			[-953] = string.format(COVENANT_SANCTUM_TIER, 3)..": Weder hier noch dort",	-- Tier 3: Mirror's Edge
 			--TODO: [-954] = "Inquisitors",							-- Inquisitors
 			--TODO: [-955] = "High Inquisitors",					-- High Inquisitors
 			--TODO: [-956] = "Grand Inquisitors",					-- Grand Inquisitors
-			--TODO: [-957] = "Sanctum Upgrades",					-- Sanctum Upgrades (Venthyr)
-			[-958] = string.format(COVENANT_SANCTUM_TIER, 2)..": Verdientes Festmahl",	-- Tier 2: Deserved Feast
-			[-959] = string.format(COVENANT_SANCTUM_TIER, 3)..": Überragende Effizienz",	-- Tier 3: Superior Efficiency
-			[-961] = string.format(COVENANT_SANCTUM_TIER, 1)..": Ein neuer Hof",	-- Tier 1: A New Court
-			[-962] = string.format(COVENANT_SANCTUM_TIER, 2)..": Hausgemachte Haushaltshilfe",	-- Tier 2: Homegrown Help
-			[-963] = string.format(COVENANT_SANCTUM_TIER, 3)..": Hofbeeinflusser",	-- Tier 3: Court Influencer
-			[-964] = string.format(COVENANT_SANCTUM_TIER, 4)..": Exquisiter Geschmack",	-- Tier 4: Discerning Taste
-			[-965] = string.format(COVENANT_SANCTUM_TIER, 5)..": Die Profis",	-- Tier 5: The Professionals
 			[-967] = "Spiegelwiederherstellung",					-- "Mirror Restoration",
 			--TODO: [-968] = "Set A",								-- Set A
 			--TODO: [-969] = "Set B",								-- Set B
@@ -1021,6 +999,7 @@ for key,value in pairs({
 	[177964] = "Tiefenstein",	-- Fathom Stone
 	[178144] = "Trolltruhe",	-- Troll Chest
 	[178227] = "Murguts Totemkorb",	-- Murgut's Totem Basket
+	[178609] = "Feiertagsschnee",	-- Holiday Snow
 	[179485] = "Beschädigte Falle",	-- A Broken Trap
 	[179499] = "Gerbekorb der Oger",	-- Ogre Tannin Basket
 	[179501] = "Knot Zwingschraubs Behälter",	-- Knot Thimblejack's Cache
@@ -1045,6 +1024,11 @@ for key,value in pairs({
 	[180690] = "Großer Skarabäuskasten",	-- Large Scarab Coffer
 	[180691] = "Skarabäuskasten",	-- Scarab Coffer
 	[180717] = "Der Skarabäusgong",	-- The Scarab Gong	--TODO: This was taken from classic Wowhead
+	[180743] = "Sorgfältig verpacktes Geschenk",	-- Carefully Wrapped Present
+	[180746] = "Leicht geschütteltes Geschenk",	-- Gently Shaken Gift
+	[180747] = "Fröhlich verpacktes Geschenk",	-- Gaily Wrapped Present
+	[180748] = "Tickendes Geschenk",	-- Ticking Present
+	[180793] = "Festtagsgeschenk",	-- Festive Gift
 	[180794] = "Tagebuch von Jandice Barov",	-- Journal of Jandice Barov
 	[180918] = "GESUCHT: Thaelis der Manadurstige",	-- Wanted: Thaelis the Hungerer
 	[181011] = "Magister Nachtschimmers Tagebuch",	-- Magister Duskwither's Journal
@@ -1090,6 +1074,7 @@ for key,value in pairs({
 	[186585] = "Rolle aus Drachenhaut",	-- Dragonskin Scroll
 	--TODO: [186881] = "Dark Iron Sabotage Plans",	-- Dark Iron Sabotage Plans
 	[186887] = "Große Kürbislaterne",	-- Large Jack-o'-Lantern
+	[187236] = "Winterhauchgeschenk",	-- Winter Veil Gift
 	[187273] = "Verdächtiger Hufabdruck",	-- Suspicious Hoofprint
 	[187559] = "Freudenfeuer der Horde",	-- Horde Bonfire
 	[187564] = "Freudenfeuer der Allianz",	-- Alliance Bonfire
@@ -2206,6 +2191,7 @@ for key,value in pairs({
 	[259871] = "Freudenfeuer der Allianz",	-- Alliance Bonfire
 	[259926] = "Freudenfeuer der Horde",	-- Horde Bonfire
 	[259927] = "Freudenfeuer der Allianz",	-- Alliance Bonfire
+	[265526] = "Schatztruhe",	-- Treasure Chest
 	[265532] = "Telemantischer Signalgeber",	-- Telemancy Beacon
 	[266289] = "Zeitverlorene Kiste",	-- Time Lost Chest
 	[266851] = "Zauberstab des simulierten Lebens",	-- Wand of Simulated Life
@@ -2351,6 +2337,7 @@ for key,value in pairs({
 	[282666] = "Urne von Agussu",	-- Urn of Agussu
 	[284426] = "Vergrabene Abbaumaschine",	-- Buried Mining Machine
 	[284448] = "Versteckte Truhe eines Gelehrten",	-- Hidden Scholar's Chest
+	[284454] = "Beute der Haibraut",	-- Da White Shark's Bounty
 	[284455] = "Klage des Verbannten",	-- The Exile's Lament
 	[286016] = "Schiffslogbuch",	-- Ship's Log
 	[287081] = "Uralte Schrifttafel",	-- Ancient Tablet
@@ -2426,6 +2413,7 @@ for key,value in pairs({
 	[293964] = "Vergessener Schmugglervorrat",	-- Forgotten Smuggler's Stash
 	[293965] = "Vorrat der Knochenritzer",	-- Scrimshaw Cache
 	[293985] = "Gesucht: Schlachtmetzler",	-- Wanted: War Gore
+	[294084] = "Beutetruhe des Abenteurerclubs",	-- Adventurer's Society Loot Stash
 	[294096] = "Erleuchtete Kugel",	-- Lit Orb
 	[294097] = "Seltsamer Samen",	-- Strange Seed
 	[294098] = "Winziger Frosch",	-- Tiny Frog
@@ -2458,6 +2446,20 @@ for key,value in pairs({
 	[294703] = "Grimms rostige Schließkiste",	-- Grimmy's Rusty Lockbox
 	[296479] = "Schließkiste des Lordadmirals",	-- Lord Admiral's Footlocker
 	[296536] = "Blutige Schildwachengleve",	-- Bloodied Sentinel's Glaive
+	[296573] = "Jasons rostige Klinge",	-- Jason's Rusty Blade
+	[296574] = "Ians leere Flasche",	-- Ian's Empty Bottle
+	[296575] = "Julies gesprungene Schüssel",	-- Julie's Cracked Dish
+	[296579] = "Brians kaputter Kompass",	-- Brian's Broken Compass
+	[296580] = "Ofers gebundenes Notizbuch",	-- Ofer's Bound Journal
+	[296581] = "Skyes Lieblingsstein",	-- Skye's Pet Rock
+	[296582] = "Juliens linker Stiefel",	-- Julien's Left Boot
+	[296583] = "Navarros Fläschchen",	-- Navarro's Flask
+	[296584] = "Zachs Feldflasche",	-- Zach's Canteen
+	[296585] = "Damarcus' Rucksack",	-- Damarcus' Backpack
+	[296586] = "Rachels Flöte",	-- Rachel's Flute
+	[296587] = "Joshs Reißzahnhalskette",	-- Josh's Fang Necklace
+	[296588] = "Porträt von Kommandant Martens",	-- Portrait of Commander Martens
+	[296589] = "Kurts verschnörkelter Schlüssel",	-- Kurt's Ornate Key
 	[296915] = "Druststele: Der Kreis",	-- Drust Stele: The Circle
 	[296916] = "Druststele: Das Ritual",	-- Drust Stele: The Ritual
 	[296917] = "Druststele: Der Baum",	-- Drust Stele: The Tree
@@ -2597,6 +2599,7 @@ for key,value in pairs({
 	[334216] = "Truhe des Schwarzen Imperiums",	-- Black Empire Cache
 	[336415] = "Weggeworfene Schriftrolle",	-- Discarded Scroll
 	[337237] = "Verlorene Schatztruhe",	-- Lost Vault
+	[337241] = "Verstaute Ausrüstung",	-- Stashed Equipment
 	[339211] = "|cFFFFFFFFSchritt 2:|r Leerer Teller",	-- |cFFFFFFFFStep 2:|r Empty Dish
 	[339283] = "Truhe des vergessenen Adligen",	-- Forgotten Noble's Chest
 	[339601] = "Schriftrolle der Äonen",	-- Scroll of Aeons
@@ -2690,6 +2693,7 @@ for key,value in pairs({
 	[353687] = "Zerbrochene Glocke",	-- Broken Bell
 	[353688] = "Zerbrochene Glocke",	-- Broken Bell
 	[353691] = "Himmelsglocke",	-- Skyward Bell
+	[353791] = "Schlosschließkassette",	-- Castle Strongbox
 	[353792] = "Dorfschließkassette",	-- Village Strongbox
 	[353793] = "Gemeindetruhe",	-- Parish Chest
 	[353796] = "Reliquiar der Erinnerung",	-- Reliquary of Remembrance
@@ -2898,6 +2902,7 @@ for key,value in pairs({
 	[369438] = "Rissgebundene Truhe",	-- Riftbound Cache
 	[369439] = "Rissgebundene Truhe",	-- Riftbound Cache
 	[369440] = "Rissgebundene Truhe",	-- Riftbound Cache
+	[9962198] = "Behelfsmäßige Schlammlache des Ausgestoßenen",	-- Outcast's Makeshift Muckpool
 	--TODO: [9999890] = "Corrupted Loot",	-- Corrupted Loot
 	--TODO: [9999891] = "Main Objective Only",	-- Main Objective Only
 	--TODO: [9999892] = "Main Objective + 2 Bonus Areas",	-- Main Objective + 2 Bonus Areas

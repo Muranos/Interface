@@ -22,7 +22,7 @@
 ## Notes-ruRU: BigWigs Sanctum of Domination Modules
 ## Notes-zhCN: BigWigs 统御圣所模块。
 ## Notes-zhTW: BigWigs 統御聖所模組。
-## Version: v233
+## Version: v233.1
 
 ## LoadOnDemand: 1
 ## Dependencies: BigWigs

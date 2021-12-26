@@ -1,9 +1,12 @@
 # BigWigs
 
-## [v233](https://github.com/BigWigsMods/BigWigs/tree/v233) (2021-11-02)
-[Full Changelog](https://github.com/BigWigsMods/BigWigs/compare/v232...v233) [Previous Releases](https://github.com/BigWigsMods/BigWigs/releases)
+## [v233.1](https://github.com/BigWigsMods/BigWigs/tree/v233.1) (2021-12-12)
+[Full Changelog](https://github.com/BigWigsMods/BigWigs/compare/v233...v233.1) [Previous Releases](https://github.com/BigWigsMods/BigWigs/releases)
 
-- Bump version  
-- Bump TOC for 9.1.5  
-- SanctumOfDomination/RemnantOfNerzhul: Fix a shatterCount check in Grasp of Malice  
-- SanctumOfDomination/KelThuzad: Update Soul Fracture spellid  
+- Add Mage Tower menu zone  
+- SepulcherOfTheFirstOnes/Skolex: Begin work after testing  
+- SepulcherOfTheFirstOnes/Lihuvim: Drycode  
+- SepulcherOfTheFirstOnes/Dausegne: Begin work after testing  
+- SepulcherOfTheFirstOnes/ArtificerXymox: Drycode  
+- SepulcherOfTheFirstOnes/VigilantGuardian: Rename, Drycode  
+- SepulcherOfTheFirstOnes: Import Skeleton files (#1130)  

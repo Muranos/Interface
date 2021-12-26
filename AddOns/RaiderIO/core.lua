@@ -8412,12 +8412,15 @@ do
         end
     end
 
-    local autoLogDifficultyIDs = {
+    local alwaysLogDifficultyIDs = {
         -- scenario
         [167] = true, -- Torghast
         -- party
         [23] = true, -- Mythic
         [8] = true, -- Mythic Keystone
+    }
+
+    local canLogDifficultyIDs = {
         -- raid
         [14] = true, -- Normal
         [15] = true, -- Heroic
@@ -8431,7 +8434,7 @@ do
         if not difficultyID or not instanceMapID then
             return
         end
-        local isActive = not not (instanceMapID >= autoLogFromMapID and autoLogDifficultyIDs[difficultyID])
+        local isActive = not not (alwaysLogDifficultyIDs[difficultyID] or (instanceMapID >= autoLogFromMapID and canLogDifficultyIDs[difficultyID]))
         if isActive == lastActive then
             return
         end

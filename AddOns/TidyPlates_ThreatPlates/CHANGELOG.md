@@ -1,3 +1,3 @@
-# 10.2.13 (2021-11-01)
+# 10.2.14 (2021-12-17)
 
-* Updated TOC version for for Classic Patch 1.14.0.
+* Updated Shaman totems - added Vesper Totem from Kyrian Covenant [GH-313].

@@ -239,7 +239,7 @@ local L = app.L;
 	--TODO: L.QUEST_ONCE_PER_ACCOUNT_FORMAT = "Completed By: %s";
 
 -- Settings.lua
-	--TODO: L.SKIP_AUTO_REFRESH = "Do Not Auto-Refresh!";
+	--TODO: L.SKIP_AUTO_REFRESH = "Skip Settings-Toggle Data Refreshes!";
 	--TODO: L.SKIP_AUTO_REFRESH_TOOLTIP = "By default (unchecked), any Settings change which may affect visible data will cause an automatic refresh.\n\nBy enabling this option, Settings changes won't take effect until the User performs a Full Refresh by Shift-Clicking on an ATT window.";
 	--TODO: L.AFTER_REFRESH = "After Refresh";
 
@@ -343,6 +343,13 @@ local L = app.L;
 		--TODO: L.REPORT_UNSORTED_CHECKBOX = "Only 'Unsourced'";
 		--TODO: L.REPORT_UNSORTED_CHECKBOX_TOOLTIP = "Enable this option if you only want to see the QuestID if it isn't already Sourced.";
 		--TODO: L.BEHAVIOR_LABEL = "List Behavior";
+		--TODO: L.DYNAMIC_CATEGORY_LABEL = "Dynamic Categories";
+		--TODO: L.DYNAMIC_CATEGORY_OFF_TOOLTIP = "Do not generate any Dynamic Categories.";
+		--TODO: L.DYNAMIC_CATEGORY_SIMPLE = "Simple";
+		--TODO: L.DYNAMIC_CATEGORY_SIMPLE_TOOLTIP = "Generate Dynamic Categories based only on the very highest Category.";
+		--TODO: L.DYNAMIC_CATEGORY_NESTED = "Nested";
+		--TODO: L.DYNAMIC_CATEGORY_NESTED_TOOLTIP = "Generate Dynamic Categories based on their exact Source. This will lead to duplicates of Things that are also Sourced in multiple places.";
+		--TODO: L.DYNAMIC_CATEGORY_TOOLTIP_NOTE = "\n\n|cffff0000Requires Reload|r";
 
 	-- Account Wide Checkboxes
 		--TODO: L.ACCOUNT_WIDE_ACHIEVEMENTS_TOOLTIP = "|cff00AB00Track Account-wide|R\n\nAchievement tracking is usually account wide, but there are a number of achievements exclusive to specific classes and races that you can't get on your main.";
@@ -762,7 +769,6 @@ for key,value in pairs({
 	-- Secret Header
 		[-806] = "Cintiempo libre",									-- Waist of Time
 	-- Chests
-		[-850] = "Cofre mecanizado",								-- Mechanized Chest
 		[-851] = "Alijo del Imperio Negro",							-- Black Empire Cache
 	-- Heart of Azeroth
 		--TODO: [-853] = "All Roles",								-- All Roles
@@ -776,7 +782,6 @@ for key,value in pairs({
 		--TODO: [-861] = "Rank 4",									-- Rank 4
 	-- Shadowlands Header
 		--TODO: [-903] = "Zone Rewards",							-- Zone Rewards
-		--TODO: [-906] = "Tier 1: Tactical Insight",				-- Tier 1: Tactical Insight
 		[-907] = "Blanchy la Muerta",								-- Dead Blanchy
 		[-909] = "Caza: Elementales de muerte",						-- Hunt: Death Elementals
 		--TODO: [-910] = "Hunt: Alpha Devourers",					-- Hunt: Alpha Devourers
@@ -790,48 +795,21 @@ for key,value in pairs({
 		-- SL Maldraxxus/Necrolord
 			--TODO: [-921] = "Sanctum Upgrades",					-- Sanctum Upgrades (Necrolord)
 			--TODO: [-924] = "Transport Network",					-- Transport Network (Necrolord)
-			[-927] = string.format(COVENANT_SANCTUM_TIER, 3)..": Darles vida",	-- Abomination Factory (Necrolord) Tier 3
-			[-928] = string.format(COVENANT_SANCTUM_TIER, 4)..": Amigos forjados",	-- Abomination Factory (Necrolord) Tier 4
-			[-938] = string.format(COVENANT_SANCTUM_TIER, 5)..": Malignos para siempre",	-- Abomination Factory (Necrolord) Tier 5
 		-- SL Ardenweald/Night Fae
-			--TODO: [-935] = "Sanctum Upgrades",					-- Sanctum Upgrades (Night Fae)
 			--TODO: [-936] = "Soulshape Forms",						-- Soulshape Forms (Night Fae)
-			--TODO: [-937] = "Transport Network",					-- Transport Network (Night Fae)
 			[-1002] = "Espíritu obediente",							-- Dutiful Spirit
 			[-1003] = "Espíritu marcial",							-- Martial Spirit
 			[-1004] = "Espíritu orgulloso",							-- Prideful Spirit
 			[-1005] = "Espíritu indómito",							-- Untamed Spirit
 		-- SL Bastion/Kyrian
 			[-940] = "Consejo de los Ascendidos",					-- Ascended Counil
-			--TODO: [-941] = "Sanctum Upgrades",					-- Sanctum Upgrades (Kyrian)
-			[-943] = string.format(COVENANT_SANCTUM_TIER, 1)..": Primeros pasos",	-- Tier 1: First Steps
-			[-944] = string.format(COVENANT_SANCTUM_TIER, 2)..": Pruebas sagradas",	-- Tier 2: Sacred Trials
-			[-945] = string.format(COVENANT_SANCTUM_TIER, 3)..": Entrenamiento continuado",	-- Tier 3: Continued Teaching
-			[-946] = string.format(COVENANT_SANCTUM_TIER, 4)..": Enseñanzas de sabiduría",	-- Tier 4: Teachings of Wisdom
-			[-947] = string.format(COVENANT_SANCTUM_TIER, 5)..": Pruebas de humildad",	-- Tier 5: Trials of Humility
-			--TODO: [-948] = "Transport Network",					-- Transport Network (Kyrian)
-			[-3348] = string.format(COVENANT_SANCTUM_TIER, 1)..": Salto de fe",	-- Tier 1: Step of Faith
-			[-3349] = string.format(COVENANT_SANCTUM_TIER, 2)..": Escalada de poder",	-- Tier 2: Leap of Power
-			[-3350] = string.format(COVENANT_SANCTUM_TIER, 3)..": Caminos eternos",	-- Tier 3: Eternal Paths
 			--TODO: [-966] = "Blueprints & Crafting",				-- Blueprints (for Path of Ascension)
 			--TODO: [-973] = "Loyalty",								-- Loyalty
 			--TODO: [-975] = "Humility",							-- Humility
 		-- SL Revendreth/Venthyr
-			--TODO: [-950] = "Transport Network",					-- Transport Network
-			[-951] = string.format(COVENANT_SANCTUM_TIER, 1)..": Espejito, espejito",	-- Tier 1: Mirror, Mirror
-			[-952] = string.format(COVENANT_SANCTUM_TIER, 2)..": Espejo",	-- Tier 2: Looking Glass
-			[-953] = string.format(COVENANT_SANCTUM_TIER, 3)..": El filo del espejo",	-- Tier 3: Mirror's Edge
 			--TODO: [-954] = "Inquisitors",							-- Inquisitors
 			--TODO: [-955] = "High Inquisitors",					-- High Inquisitors
 			--TODO: [-956] = "Grand Inquisitors",					-- Grand Inquisitors
-			--TODO: [-957] = "Sanctum Upgrades",					-- Sanctum Upgrades (Venthyr)
-			[-958] = string.format(COVENANT_SANCTUM_TIER, 2)..": Festín merecido",	-- Tier 2: Deserved Feast
-			[-959] = string.format(COVENANT_SANCTUM_TIER, 3)..": Eficacia superior",	-- Tier 3: Superior Efficiency
-			[-961] = string.format(COVENANT_SANCTUM_TIER, 1)..": Una corte nueva",	-- Tier 1: A New Court
-			[-962] = string.format(COVENANT_SANCTUM_TIER, 2)..": Ayuda de cosecha propia",	-- Tier 2: Homegrown Help
-			[-963] = string.format(COVENANT_SANCTUM_TIER, 3)..": Influencia en la corte",	-- Tier 3: Court Influencer
-			[-964] = string.format(COVENANT_SANCTUM_TIER, 4)..": Paladar exquisito",	-- Tier 4: Discerning Taste
-			[-965] = string.format(COVENANT_SANCTUM_TIER, 5)..": Los profesionales",	-- Tier 5: The Professionals
 			[-967] = "Restauración del espejo",						-- "Mirror Restoration",
 			--TODO: [-968] = "Set A",								-- Set A
 			--TODO: [-969] = "Set B",								-- Set B
@@ -1024,6 +1002,7 @@ for key,value in pairs({
 	[177964] = "Piedra de las profundidades",	-- Fathom Stone
 	[178144] = "Cofre trol",	-- Troll Chest
 	[178227] = "Cesta de tótems de Murgut",	-- Murgut's Totem Basket
+	[178609] = "Nieve de Vacaciones",	-- Holiday Snow
 	[179485] = "Trampa rota",	-- A Broken Trap
 	[179499] = "Cesta de tanino de ogro",	-- Ogre Tannin Basket
 	[179501] = "Alijo de Knot Thimblejack",	-- Knot Thimblejack's Cache
@@ -1048,6 +1027,11 @@ for key,value in pairs({
 	[180690] = "Arca del escarabajo grande",	-- Large Scarab Coffer
 	[180691] = "Arca del escarabajo",	-- Scarab Coffer
 	--TODO: [180717] = "The Scarab Gong",	-- The Scarab Gong
+	[180743] = "Presente envuelto con cuidado",	-- Carefully Wrapped Present
+	[180746] = "Obsequio ligeramente agitado",	-- Gently Shaken Gift
+	[180747] = "Presente con envoltorio alegre",	-- Gaily Wrapped Present
+	[180748] = "Presente que hace tic-tac",	-- Ticking Present
+	[180793] = "Obsequio festivo",	-- Festive Gift
 	[180794] = "Diario de Jandice Barov",	-- Journal of Jandice Barov
 	[180918] = "Se busca: Thaelis el Hambriento",	-- Wanted: Thaelis the Hungerer
 	[181011] = "Diario del magister Ocaso Marchito",	-- Magister Duskwither's Journal
@@ -1093,6 +1077,7 @@ for key,value in pairs({
 	[186585] = "Pergamino de piel de dragón",	-- Dragonskin Scroll
 	--TODO: [186881] = "Dark Iron Sabotage Plans",	-- Dark Iron Sabotage Plans
 	[186887] = "Calabaza iluminada",	-- Large Jack-o'-Lantern
+	[187236] = "Obsequio del Festival de Invierno",	-- Winter Veil Gift
 	[187273] = "Huella de casco sospechosa",	-- Suspicious Hoofprint
 	[187559] = "Fogata de la Horda",	-- Horde Bonfire
 	[187564] = "Fogata de la Alianza",	-- Alliance Bonfire
@@ -2209,6 +2194,7 @@ for key,value in pairs({
 	[259871] = "Fogata de la Alianza",	-- Alliance Bonfire
 	[259926] = "Fogata de la Horda",	-- Horde Bonfire
 	[259927] = "Fogata de la Alianza",	-- Alliance Bonfire
+	[265526] = "Arqueta",	-- Treasure Chest
 	[265532] = "Baliza de telemancia",	-- Telemancy Beacon
 	[266289] = "Cofre perdido en el tiempo",	-- Time Lost Chest
 	[266851] = "Varita de vida simulada",	-- Wand of Simulated Life
@@ -2354,6 +2340,7 @@ for key,value in pairs({
 	[282666] = "Urna de Agussu",	-- Urn of Agussu
 	[284426] = "Máquina minera enterrada",	-- Buried Mining Machine
 	[284448] = "Cofre de erudito oculto",	-- Hidden Scholar's Chest
+	[284454] = "Recompensa del Tiburón Blanco",	-- Da White Shark's Bounty
 	[284455] = "Lamento del Exiliado",	-- The Exile's Lament
 	[286016] = "Cuaderno de bitácora",	-- Ship's Log
 	[287081] = "Tablilla antigua",	-- Ancient Tablet
@@ -2429,6 +2416,7 @@ for key,value in pairs({
 	[293964] = "Alijo de contrabandista olvidado",	-- Forgotten Smuggler's Stash
 	[293965] = "Alijo de los Tallamarfil",	-- Scrimshaw Cache
 	[293985] = "Se busca: Guerrasangre",	-- Wanted: War Gore
+	[294084] = "Alijo de botín de la Sociedad de Aventureros",	-- Adventurer's Society Loot Stash
 	[294096] = "Orbe encendido",	-- Lit Orb
 	[294097] = "Semilla extraña",	-- Strange Seed
 	[294098] = "Rana pequeña",	-- Tiny Frog
@@ -2461,6 +2449,20 @@ for key,value in pairs({
 	[294703] = "Arcón oxidado de Huesardo",	-- Grimmy's Rusty Lockbox
 	[296479] = "Baúl del lord almirante",	-- Lord Admiral's Footlocker
 	[296536] = "Guja de centinela ensangrentada",	-- Bloodied Sentinel's Glaive
+	[296573] = "Hoja oxidada de Jason",	-- Jason's Rusty Blade
+	[296574] = "Botella vacía de Ian",	-- Ian's Empty Bottle
+	[296575] = "Plato roto de Julie",	-- Julie's Cracked Dish
+	[296579] = "Brújula rota de Brian",	-- Brian's Broken Compass
+	[296580] = "Diario encuadernado de Ofer",	-- Ofer's Bound Journal
+	[296581] = "Piedra mascota de Skye",	-- Skye's Pet Rock
+	[296582] = "Pie izquierdo de Julien",	-- Julien's Left Boot
+	[296583] = "Frasco de Navarro",	-- Navarro's Flask
+	[296584] = "Cantimplora de Zach",	-- Zach's Canteen
+	[296585] = "Mochila de Damarcus",	-- Damarcus' Backpack
+	[296586] = "Flauta de Rachel",	-- Rachel's Flute
+	[296587] = "Collar de colmillos de Josh",	-- Josh's Fang Necklace
+	[296588] = "Retrato del comandante Martens",	-- Portrait of Commander Martens
+	[296589] = "Llave ornamentada de Kurt",	-- Kurt's Ornate Key
 	[296915] = "Estela Drust: El círculo",	-- Drust Stele: The Circle
 	[296916] = "Estela Drust: El ritual",	-- Drust Stele: The Ritual
 	[296917] = "Estela Drust: El árbol",	-- Drust Stele: The Tree
@@ -2600,6 +2602,7 @@ for key,value in pairs({
 	[334216] = "Alijo del Imperio Negro",	-- Black Empire Cache
 	[336415] = "Pergamino desechado",	-- Discarded Scroll
 	[337237] = "Cámara perdida",	-- Lost Vault
+	[337241] = "Equipamiento oculto",	-- Stashed Equipment
 	[339211] = "|cFFFFFFFFStep 2:|r Plato vacío",	-- |cFFFFFFFFStep 2:|r Empty Dish
 	[339283] = "Cofre de noble olvidado",	-- Forgotten Noble's Chest
 	[339601] = "Pergamino de los Eones",	-- Scroll of Aeons
@@ -2693,6 +2696,7 @@ for key,value in pairs({
 	[353687] = "Campana rota",	-- Broken Bell
 	[353688] = "Campana rota",	-- Broken Bell
 	[353691] = "Campana celeste",	-- Skyward Bell
+	[353791] = "Caja fuerte del castillo",	-- Castle Strongbox
 	[353792] = "Caja fuerte de la aldea",	-- Village Strongbox
 	[353793] = "Cofre de la parroquia",	-- Parish Chest
 	[353796] = "Relicario de recuerdos",	-- Reliquary of Remembrance
@@ -2901,6 +2905,7 @@ for key,value in pairs({
 	[369438] = "Alijo vinculafalla",	-- Riftbound Cache
 	[369439] = "Alijo vinculafalla",	-- Riftbound Cache
 	[369440] = "Alijo vinculafalla",	-- Riftbound Cache
+	[9962198] = "Charco mugroso improvisado de desterrado",	-- Outcast's Makeshift Muckpool
 	--TODO: [9999890] = "Corrupted Loot",	-- Corrupted Loot
 	--TODO: [9999891] = "Main Objective Only",	-- Main Objective Only
 	--TODO: [9999892] = "Main Objective + 2 Bonus Areas",	-- Main Objective + 2 Bonus Areas

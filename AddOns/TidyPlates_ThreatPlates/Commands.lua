@@ -6,7 +6,7 @@ local TP = Addon.ThreatPlates
 ---------------------------------------------------------------------------------------------------
 local L = TP.L
 
-local DEBUG = TP.Meta("version") == "10.2.13"
+local DEBUG = TP.Meta("version") == "10.2.14"
 
 local function toggleDPS()
 	TidyPlatesThreat:SetRole(false)

@@ -241,7 +241,7 @@ local L = app.L;
 	--TODO: L.QUEST_ONCE_PER_ACCOUNT_FORMAT = "Completed By: %s";
 
 -- Settings.lua
-	L.SKIP_AUTO_REFRESH = "不自动刷新!";
+	L.SKIP_AUTO_REFRESH = "不自动刷新!";	-- TODO: Skip Settings-Toggle Data Refreshes!
 	L.SKIP_AUTO_REFRESH_TOOLTIP = "默认情况下(未勾选), 任何可能影响可见数据的设置变化都会导致自动刷新.\n\n通过启用该选项设置的变化将不会生效, 直到玩家shift单击ATT窗口执行全部刷新.";
 	L.AFTER_REFRESH = "刷新后";
 
@@ -345,6 +345,13 @@ local L = app.L;
 		L.REPORT_UNSORTED_CHECKBOX = "仅'无来源'";
 		L.REPORT_UNSORTED_CHECKBOX_TOOLTIP = "如果只想查看任务ID且他还没有来源, 请启用此选项.";
 		--TODO: L.BEHAVIOR_LABEL = "List Behavior";
+		--TODO: L.DYNAMIC_CATEGORY_LABEL = "Dynamic Categories";
+		--TODO: L.DYNAMIC_CATEGORY_OFF_TOOLTIP = "Do not generate any Dynamic Categories.";
+		--TODO: L.DYNAMIC_CATEGORY_SIMPLE = "Simple";
+		--TODO: L.DYNAMIC_CATEGORY_SIMPLE_TOOLTIP = "Generate Dynamic Categories based only on the very highest Category.";
+		--TODO: L.DYNAMIC_CATEGORY_NESTED = "Nested";
+		--TODO: L.DYNAMIC_CATEGORY_NESTED_TOOLTIP = "Generate Dynamic Categories based on their exact Source. This will lead to duplicates of Things that are also Sourced in multiple places.";
+		--TODO: L.DYNAMIC_CATEGORY_TOOLTIP_NOTE = "\n\n|cffff0000Requires Reload|r";
 
 	-- Account Wide Checkboxes
 		--TODO: translate "Track Account-wide" part
@@ -810,7 +817,6 @@ for key,value in pairs({
 	-- Secret Header
 		[-806] = "钟示贤德腰带",												-- Waist of Time
 	-- Chests
-		[-850] = "机械化的宝箱",										-- Mechanized Chest
 		[-851] = "Black Empire Cache",								-- Black Empire Cache
 	-- Heart of Azeroth
 		[-853] = "全部角色",											-- All Roles
@@ -824,7 +830,6 @@ for key,value in pairs({
 		--TODO: [-861] = "Rank 4",									-- Rank 4
 	-- Shadowlands Header
 		[-903] = "区域奖励",											-- Zone Rewards
-		[-906] = "等级 1: 战术洞察",									-- Tier 1: Tactical Insight
 		[-907] = "死掉的布兰契",										-- Dead Blanchy
 		[-909] = "狩猎: 死亡元素",										-- Hunt: Death Elementals
 		[-910] = "狩猎: 噬魂者",											-- Hunt: Alpha Devourers
@@ -838,48 +843,21 @@ for key,value in pairs({
 		-- SL Maldraxxus/Necrolord
 			[-921] = "圣所升级",										-- Sanctum Upgrades (Necrolord)
 			[-924] = "传送网络",										-- Transport Network (Necrolord)
-			[-927] = string.format(COVENANT_SANCTUM_TIER, 3)..": 给予生命",	-- Abomination Factory (Necrolord) Tier 3
-			[-928] = string.format(COVENANT_SANCTUM_TIER, 4)..": 铸就友谊",	-- Abomination Factory (Necrolord) Tier 4
-			[-938] = string.format(COVENANT_SANCTUM_TIER, 5)..": 永远的好魔友",	-- Abomination Factory (Necrolord) Tier 5
 		-- SL Ardenweald/Night Fae
-			[-935] = "圣所升级",										-- Sanctum Upgrades (Night Fae)
 			[-936] = "灵魂变形形态",										-- Soulshape Forms (Night Fae)
-			[-937] = "传送网络",									-- Transport Network (Night Fae)
 			[-1002] = "尽职精魂",									-- Dutiful Spirit
 			[-1003] = "尚武精魂",									-- Martial Spirit
 			[-1004] = "骄傲精魂",									-- Prideful Spirit
 			[-1005] = "狂野精魂",									-- Untamed Spirit
 		-- SL Bastion/Kyrian
 			[-940] = "晋升者议会",									-- Ascended Counil
-			[-941] = "圣所升级",										-- Sanctum Upgrades (Kyrian)
-			[-943] = string.format(COVENANT_SANCTUM_TIER, 1)..": 牛刀小试",	-- Tier 1: First Steps
-			[-944] = string.format(COVENANT_SANCTUM_TIER, 2)..": 神圣试炼",	-- Tier 2: Sacred Trials
-			[-945] = string.format(COVENANT_SANCTUM_TIER, 3)..": 持续训练",	-- Tier 3: Continued Teaching
-			[-946] = string.format(COVENANT_SANCTUM_TIER, 4)..": 智慧教导",	-- Tier 4: Teachings of Wisdom
-			[-947] = string.format(COVENANT_SANCTUM_TIER, 5)..": 谦逊试炼",	-- Tier 5: Trials of Humility
-			[-948] = "传送网络",										-- Transport Network (Kyrian)
-			[-3348] = string.format(COVENANT_SANCTUM_TIER, 1)..": 信仰之步",	-- Tier 1: Step of Faith
-			[-3349] = string.format(COVENANT_SANCTUM_TIER, 2)..": 力量之跃",	-- Tier 2: Leap of Power
-			[-3350] = string.format(COVENANT_SANCTUM_TIER, 3)..": 永恒之路",	-- Tier 3: Eternal Paths
 			--TODO: [-966] = "Blueprints & Crafting",				-- Blueprints (for Path of Ascension)
 			--TODO: [-973] = "Loyalty",								-- Loyalty
 			--TODO: [-975] = "Humility",							-- Humility
 		-- SL Revendreth/Venthyr
-			[-950] = "传送网络",										-- Transport Network
-			[-951] = string.format(COVENANT_SANCTUM_TIER, 1)..": 魔镜",	-- Tier 1: Mirror, Mirror
-			[-952] = string.format(COVENANT_SANCTUM_TIER, 2)..": 通透镜面",	-- Tier 2: Looking Glass
-			[-953] = string.format(COVENANT_SANCTUM_TIER, 3)..": 镜之边缘",	-- Tier 3: Mirror's Edge
 			--TODO: [-954] = "Inquisitors",							-- Inquisitors
 			--TODO: [-955] = "High Inquisitors",					-- High Inquisitors
 			--TODO: [-956] = "Grand Inquisitors",					-- Grand Inquisitors
-			--TODO: [-957] = "Sanctum Upgrades",					-- Sanctum Upgrades (Venthyr)
-			[-958] = string.format(COVENANT_SANCTUM_TIER, 2)..": 犒劳盛宴",	-- Tier 2: Deserved Feast
-			[-959] = string.format(COVENANT_SANCTUM_TIER, 3)..": 超强效率",	-- Tier 3: Superior Efficiency
-			[-961] = string.format(COVENANT_SANCTUM_TIER, 1)..": 全新王庭",	-- Tier 1: A New Court
-			[-962] = string.format(COVENANT_SANCTUM_TIER, 2)..": 家用帮手",	-- Tier 2: Homegrown Help
-			[-963] = string.format(COVENANT_SANCTUM_TIER, 3)..": 王庭明星",	-- Tier 3: Court Influencer
-			[-964] = string.format(COVENANT_SANCTUM_TIER, 4)..": 敏锐的味觉",	-- Tier 4: Discerning Taste
-			[-965] = string.format(COVENANT_SANCTUM_TIER, 5)..": 专业人士",	-- Tier 5: The Professionals
 			[-967] = "破镜重圆",										-- "Mirror Restoration",
 			--TODO: [-968] = "Set A",								-- Set A
 			--TODO: [-969] = "Set B",								-- Set B
@@ -1072,6 +1050,7 @@ for key, value in pairs({
 	[177964] = "深渊之石",	-- Fathom Stone
 	[178144] = "巨魔的箱子",	-- Troll Chest
 	[178227] = "穆戈特的图腾篮",	-- Murgut's Totem Basket
+	[178609] = "节日大雪",	-- Holiday Snow
 	[179485] = "损坏的陷阱",	-- A Broken Trap
 	[179499] = "食人魔鞣酸篮",	-- Ogre Tannin Basket
 	[179501] = "诺特·希姆加克的储物箱",	-- Knot Thimblejack's Cache	--TODO: This was taken from classic Wowhead
@@ -1096,6 +1075,11 @@ for key, value in pairs({
 	[180690] = "大型圣甲虫箱",	-- Large Scarab Coffer
 	[180691] = "圣甲虫箱",	-- Scarab Coffer
 	[180717] = "甲虫之锣",	-- The Scarab Gong	--TODO: This was taken from classic Wowhead
+	[180743] = "节日礼物",	-- Carefully Wrapped Present
+	[180746] = "轻轻摇晃过的礼品",	-- Gently Shaken Gift
+	[180747] = "节日礼物",	-- Gaily Wrapped Present
+	[180748] = "条纹礼物盒",	-- Ticking Present
+	[180793] = "节日礼物",	-- Festive Gift
 	[180794] = "詹迪斯·巴罗夫的日记",	-- Journal of Jandice Barov	--TODO: This was taken from classic Wowhead
 	[180918] = "通缉：饥饿者泰里斯",	-- Wanted: Thaelis the Hungerer
 	[181011] = "魔导师达斯维瑟的日记",	-- Magister Duskwither's Journal	--TODO: This was manually translated
@@ -1141,6 +1125,7 @@ for key, value in pairs({
 	--TODO: [186585] = "Dragonskin Scroll",	-- Dragonskin Scroll
 	--TODO: [186881] = "Dark Iron Sabotage Plans",	-- Dark Iron Sabotage Plans
 	[186887] = "大南瓜灯",	-- Large Jack-o'-Lantern
+	[187236] = "冬幕节礼物",	-- Winter Veil Gift
 	[187273] = "可疑的蹄印",	-- Suspicious Hoofprint
 	[187559] = "部落篝火",	-- Horde Bonfire
 	[187564] = "联盟篝火",	-- Alliance Bonfire
@@ -2257,6 +2242,7 @@ for key, value in pairs({
 	[259871] = "联盟篝火",	-- Alliance Bonfire
 	[259926] = "部落篝火",	-- Horde Bonfire
 	[259927] = "联盟篝火",	-- Alliance Bonfire
+	[265526] = "宝箱",	-- Treasure Chest
 	[265532] = "传送道标",	-- Telemancy Beacon
 	--TODO: [266289] = "Time Lost Chest",	-- Time Lost Chest
 	[266851] = "模拟生命魔杖",	-- Wand of Simulated Life
@@ -2402,6 +2388,7 @@ for key, value in pairs({
 	--TODO: [282666] = "Urn of Agussu",	-- Urn of Agussu
 	[284426] = "埋藏的采矿机",	-- Buried Mining Machine
 	[284448] = "隐蔽的学者宝箱",	-- Hidden Scholar's Chest
+	[284454] = "大白鲨的财宝",	-- Da White Shark's Bounty
 	--TODO: [284455] = "The Exile's Lament",	-- The Exile's Lament
 	[286016] = "船只日志",	-- Ship's Log
 	[287081] = "上古石板",	-- Ancient Tablet
@@ -2477,6 +2464,7 @@ for key, value in pairs({
 	[293964] = "被遗忘的走私者藏品",	-- Forgotten Smuggler's Stash
 	[293965] = "雕骨宝箱",	-- Scrimshaw Cache
 	[293985] = "通缉：战争之刺",	-- Wanted: War Gore
+	[294084] = "冒险者联盟战利品箱",	-- Adventurer's Society Loot Stash	--TODO: This was manually translated
 	[294096] = "点亮的宝珠",	-- Lit Orb
 	[294097] = "奇怪的种子",	-- Strange Seed
 	[294098] = "小青蛙",	-- Tiny Frog
@@ -2509,6 +2497,20 @@ for key, value in pairs({
 	--TODO: [294703] = "Grimmy's Rusty Lockbox",	-- Grimmy's Rusty Lockbox
 	[296479] = "海军统帅的提箱",	-- Lord Admiral's Footlocker
 	[296536] = "沾血的哨兵战刃",	-- Bloodied Sentinel's Glaive
+	[296573] = "杰森的锈刃",	-- Jason's Rusty Blade
+	[296574] = "伊安的空瓶",	-- Ian's Empty Bottle
+	[296575] = "茱莉的裂口盘子",	-- Julie's Cracked Dish
+	[296579] = "布莱恩的破损罗盘",	-- Brian's Broken Compass
+	[296580] = "奥夫的一捆日志",	-- Ofer's Bound Journal
+	[296581] = "斯凯的宠物玩具石",	-- Skye's Pet Rock
+	[296582] = "朱利安的左靴",	-- Julien's Left Boot
+	[296583] = "纳瓦罗的合剂",	-- Navarro's Flask
+	[296584] = "扎克的水壶",	-- Zach's Canteen
+	[296585] = "达马库斯的背包",	-- Damarcus' Backpack
+	[296586] = "雷切尔的笛子",	-- Rachel's Flute
+	[296587] = "乔什的毒牙项链",	-- Josh's Fang Necklace
+	[296588] = "指挥官马登斯的肖像",	-- Portrait of Commander Martens
+	[296589] = "库尔特的华丽钥匙",	-- Kurt's Ornate Key
 	[296915] = "德鲁斯特石碑：法阵",	-- Drust Stele: The Circle
 	[296916] = "德鲁斯特石碑：仪式",	-- Drust Stele: The Ritual
 	[296917] = "德鲁斯特石碑：巨树",	-- Drust Stele: The Tree
@@ -2648,6 +2650,7 @@ for key, value in pairs({
 	--TODO: [334216] = "Black Empire Cache",	-- Black Empire Cache
 	[336415] = "丢弃的卷轴",	-- Discarded Scroll
 	[337237] = "失落宝物",	-- Lost Vault
+	[337241] = "贮藏的装备",	-- Stashed Equipment
 	--TODO: [339211] = "|cFFFFFFFFStep 2:|r Empty Dish",	-- |cFFFFFFFFStep 2:|r Empty Dish
 	[339283] = "被遗忘的贵族宝箱",	-- Forgotten Noble's Chest
 	[339601] = "万世卷轴",	-- Scroll of Aeons
@@ -2741,6 +2744,7 @@ for key, value in pairs({
 	[353687] = "破损之钟",	-- Broken Bell
 	[353688] = "破损之钟",	-- Broken Bell
 	[353691] = "天空之钟",	-- Skyward Bell
+	[353791] = "城堡保险箱",	-- Castle Strongbox
 	[353792] = "村庄保险箱",	-- Village Strongbox
 	[353793] = "教区宝箱",	-- Parish Chest
 	[353796] = "追忆圣匣",	-- Reliquary of Remembrance
@@ -2949,6 +2953,7 @@ for key, value in pairs({
 	[369438] = "隙缚宝箱",	-- Riftbound Cache
 	[369439] = "隙缚宝箱",	-- Riftbound Cache
 	[369440] = "隙缚宝箱",	-- Riftbound Cache
+	[9962198] = "流亡者的简易泥池",	-- Outcast's Makeshift Muckpool
 	--TODO: [9999890] = "Corrupted Loot",	-- Corrupted Loot
 	--TODO: [9999891] = "Main Objective Only",	-- Main Objective Only
 	--TODO: [9999892] = "Main Objective + 2 Bonus Areas",	-- Main Objective + 2 Bonus Areas

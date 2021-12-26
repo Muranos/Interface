@@ -239,7 +239,7 @@ local L = app.L;
 	L.QUEST_ONCE_PER_ACCOUNT_FORMAT = "Выполнено На: %s";
 
 -- Settings.lua
-	L.SKIP_AUTO_REFRESH = "Не авто обновлять!";
+	L.SKIP_AUTO_REFRESH = "Не авто обновлять при изменении настроек!";	-- Skip Settings-Toggle Data Refreshes!
 	L.SKIP_AUTO_REFRESH_TOOLTIP = "По умолчанию (выключено) любое изменение Настроек, которое меняет отображаемую информацию, будет авто обновлять коллекцию.\n\nПосле включения этой опции, изменения Настроек не будут менять отображение, пока Вы не произведёте Полное Обновление коллекции, сделав Shift+Клик на окне ATT.";
 	L.AFTER_REFRESH = "После Обновления";
 
@@ -343,6 +343,13 @@ local L = app.L;
 		L.REPORT_UNSORTED_CHECKBOX = "Только 'Без Источника'";
 		L.REPORT_UNSORTED_CHECKBOX_TOOLTIP = "Включите данную опцию, если Вы хотите видеть QuestID задания, только если у него обозначен Источник.";
 		L.BEHAVIOR_LABEL = "Настройки Списков";
+		L.DYNAMIC_CATEGORY_LABEL = "Динамические Категории";
+		L.DYNAMIC_CATEGORY_OFF_TOOLTIP = "Не генерировать Динамические Категории.";
+		L.DYNAMIC_CATEGORY_SIMPLE = "Простые";
+		L.DYNAMIC_CATEGORY_SIMPLE_TOOLTIP = "Генерировать Динамические Категории только на основе самой общей Категории.";
+		L.DYNAMIC_CATEGORY_NESTED = "Вложенные";
+		L.DYNAMIC_CATEGORY_NESTED_TOOLTIP = "Генерировать Динамические Категории на основе точного Источника. Это приводит к повторам Штучек, которые имеют несколько Источников.";
+		L.DYNAMIC_CATEGORY_TOOLTIP_NOTE = "\n\n|cffff0000Требует Перезагрузки интерфейса|r";
 
 	-- Account Wide Checkboxes
 		L.ACCOUNT_WIDE_ACHIEVEMENTS_TOOLTIP = "|cff00AB00Отслеживать на весь аккаунт|R\n\nДостижения обычно отслеживаются на всю учётную запись, но есть некоторые эксклюзивные для определённых классов или рас достижения, которые Вы не сможете получить на основном персонаже.";
@@ -741,7 +748,6 @@ for key,value in pairs({
 	-- Secret Header
 		[-806] = "Часовой пояс",									-- Waist of Time
 	-- Chests
-		[-850] = "Механизированный сундук",							-- Mechanized Chest
 		[-851] = "Тайник Темной Империи",							-- Black Empire Cache
 	-- Heart of Azeroth
 		[-853] = "Все роли",										-- All Roles
@@ -755,7 +761,6 @@ for key,value in pairs({
 		[-861] = "Ранг 4",											-- Rank 4
 	-- Shadowlands Header
 		[-903] = "Добыча локации",									-- Zone Rewards
-		[-906] = "1-й уровень: Тактическое мышление",				-- Tier 1: Tactical Insight
 		[-907] = "Мертвая Савраска",								-- Dead Blanchy
 		[-909] = "Охота: элементали смерти",						-- Hunt: Death Elementals
 		[-910] = "Охота: пожиратели душ",							-- Hunt: Alpha Devourers
@@ -769,48 +774,21 @@ for key,value in pairs({
 		-- SL Maldraxxus/Necrolord
 			[-921] = "Улучшения для Обители",						-- Sanctum Upgrades (Necrolord)
 			[-924] = "Транспортная Сеть",							-- Transport Network (Necrolord)
-			[-927] = string.format(COVENANT_SANCTUM_TIER, 3)..": Встань и живи",	-- Abomination Factory (Necrolord) Tier 3
-			[-928] = string.format(COVENANT_SANCTUM_TIER, 4)..": Кованые друзья",	-- Abomination Factory (Necrolord) Tier 4
-			[-938] = string.format(COVENANT_SANCTUM_TIER, 5)..": Лучшие друзья навсегда",	-- Abomination Factory (Necrolord) Tier 5
 		-- SL Ardenweald/Night Fae
-			[-935] = "Улучшения для обители",						-- Sanctum Upgrades (Night Fae)
 			[-936] = "Формы души",									-- Soulshape Forms (Night Fae)
-			[-937] = "Транспортная сеть",							-- Transport Network (Night Fae)
 			[-1002] = "Дух служения",								-- Dutiful Spirit
 			[-1003] = "Воинственный дух",							-- Martial Spirit
 			[-1004] = "Дух гордыни",								-- Prideful Spirit
 			[-1005] = "Неукрощенный дух",							-- Untamed Spirit
 		-- SL Bastion/Kyrian
 			[-940] = "Совет перерожденных",							-- Ascended Counil
-			[-941] = "Улучшения для обители",						-- Sanctum Upgrades (Kyrian)
-			[-943] = string.format(COVENANT_SANCTUM_TIER, 1)..": Первые шаги",	-- Tier 1: First Steps
-			[-944] = string.format(COVENANT_SANCTUM_TIER, 2)..": Священные испытания",	-- Tier 2: Sacred Trials
-			[-945] = string.format(COVENANT_SANCTUM_TIER, 3)..": Дальнейшие тренировки",	-- Tier 3: Continued Teaching
-			[-946] = string.format(COVENANT_SANCTUM_TIER, 4)..": Учение Мудрости",	-- Tier 4: Teachings of Wisdom
-			[-947] = string.format(COVENANT_SANCTUM_TIER, 5)..": Испытания Смирения",	-- Tier 5: Trials of Humility
-			[-948] = "Транспортная сеть",							-- Transport Network (Kyrian)
-			[-3348] = string.format(COVENANT_SANCTUM_TIER, 1)..": Шаг веры",	-- Tier 1: Step of Faith
-			[-3349] = string.format(COVENANT_SANCTUM_TIER, 2)..": Прыжок силы",	-- Tier 2: Leap of Power
-			[-3350] = string.format(COVENANT_SANCTUM_TIER, 3)..": Вечные пути",	-- Tier 3: Eternal Paths
 			[-966] = "Чертежи и Создание",							-- "Blueprints & Crafting"
 			[-973] = "Верность",									-- Loyalty
 			[-975] = "Смирение",									-- Humility
 		-- SL Revendreth/Venthyr
-			[-950] = "Транспортная сеть",							-- Transport Network
-			[-951] = string.format(COVENANT_SANCTUM_TIER, 1)..": Зеркало, зеркало",	-- Tier 1: Mirror, Mirror
-			[-952] = string.format(COVENANT_SANCTUM_TIER, 2)..": Через стекло",	-- Tier 2: Looking Glass
-			[-953] = string.format(COVENANT_SANCTUM_TIER, 3)..": Зазеркалье",	-- Tier 3: Mirror's Edge
 			[-954] = "Инквизиторы",									-- Inquisitors
 			[-955] = "Старшие Инквизиторы",							-- High Inquisitors
 			[-956] = "Великие Инквизиторы",							-- Grand Inquisitors
-			[-957] = "Улучшения для обители",						-- Sanctum Upgrades (Venthyr)
-			[-958] = string.format(COVENANT_SANCTUM_TIER, 2)..": Заслуженное пиршество",	-- Tier 2: Deserved Feast
-			[-959] = string.format(COVENANT_SANCTUM_TIER, 3)..": Высокая эффективность",	-- Tier 3: Superior Efficiency
-			[-961] = string.format(COVENANT_SANCTUM_TIER, 1)..": Новый Двор",	-- Tier 1: A New Court
-			[-962] = string.format(COVENANT_SANCTUM_TIER, 2)..": Доморощенная помощь",	-- Tier 2: Homegrown Help
-			[-963] = string.format(COVENANT_SANCTUM_TIER, 3)..": Влияние при Дворе",	-- Tier 3: Court Influencer
-			[-964] = string.format(COVENANT_SANCTUM_TIER, 4)..": Тонкий вкус",	-- Tier 4: Discerning Taste
-			[-965] = string.format(COVENANT_SANCTUM_TIER, 5)..": Профессионалы",	-- Tier 5: The Professionals
 			[-967] = "Восстановление зеркала",						-- "Mirror Restoration",
 			[-968] = "Набор A",										-- Set A
 			[-969] = "Набор B",										-- Set B
@@ -1006,6 +984,7 @@ for key,value in pairs({
 	[177964] = "Глубинный Камень",	-- Fathom Stone
 	[178144] = "Тролльский сундук",	-- Troll Chest
 	[178227] = "Корзина тотема Мургута",	-- Murgut's Totem Basket
+	[178609] = "Праздничный снег",	-- Holiday Snow
 	[179485] = "Сломанная ловушка",	-- A Broken Trap
 	[179499] = "Огрский дубильный чан",	-- Ogre Tannin Basket
 	[179501] = "Тайник Уззла Наперстяка",	-- Knot Thimblejack's Cache
@@ -1030,6 +1009,11 @@ for key,value in pairs({
 	[180690] = "Большой сундук Скарабея",	-- Large Scarab Coffer
 	[180691] = "Сундук Скарабея",	-- Scarab Coffer
 	[180717] = "Гонг Скарабея",	-- The Scarab Gong
+	[180743] = "Тщательно упакованный подарок",	-- Carefully Wrapped Present
+	[180746] = "Слегка помятый подарок",	-- Gently Shaken Gift
+	[180747] = "Подарок в яркой упаковке",	-- Gaily Wrapped Present
+	[180748] = "Тикающий подарок",	-- Ticking Present
+	[180793] = "Подарок в разноцветной упаковке",	-- Festive Gift
 	[180794] = "Дневник Джандис Баровой",	-- Journal of Jandice Barov
 	[180918] = "Разыскивается: Таэлис Ненасытный",	-- Wanted: Thaelis the Hungerer
 	[181011] = "Журнал магистра Блеклые Сумерки",	-- Magister Duskwither's Journal
@@ -1075,6 +1059,7 @@ for key,value in pairs({
 	[186585] = "Свиток из кожи дракона",	-- Dragonskin Scroll
 	--TODO: [186881] = "Dark Iron Sabotage Plans",	-- Dark Iron Sabotage Plans
 	[186887] = "Большой светильник из тыквы",	-- Large Jack-o'-Lantern
+	[187236] = "Подарок к Зимнему Покрову",	-- Winter Veil Gift
 	[187273] = "Подозрительный след копыта",	-- Suspicious Hoofprint
 	[187559] = "Большой костер Орды",	-- Horde Bonfire
 	[187564] = "Большой костер Альянса",	-- Alliance Bonfire
@@ -2191,6 +2176,7 @@ for key,value in pairs({
 	[259871] = "Большой костер Альянса",	-- Alliance Bonfire
 	[259926] = "Большой костер Орды",	-- Horde Bonfire
 	[259927] = "Большой костер Альянса",	-- Alliance Bonfire
+	[265526] = "Сундук с сокровищами",	-- Treasure Chest
 	[265532] = "Телемантический маяк",	-- Telemancy Beacon
 	[266289] = "Затерянный во времени сундук",	-- Time Lost Chest
 	[266851] = "Жезл искусственной жизни",	-- Wand of Simulated Life
@@ -2336,6 +2322,7 @@ for key,value in pairs({
 	[282666] = "Урна Агассу",	-- Urn of Agussu
 	[284426] = "Закопанная буровая машина",	-- Buried Mining Machine
 	[284448] = "Спрятанный сундук ученого",	-- Hidden Scholar's Chest
+	[284454] = "Сокровище Белой Акулы",	-- Da White Shark's Bounty
 	[284455] = "Плач изгоя",	-- The Exile's Lament
 	[286016] = "Бортовой журнал",	-- Ship's Log
 	[287081] = "Древняя табличка",	-- Ancient Tablet
@@ -2411,6 +2398,7 @@ for key,value in pairs({
 	[293964] = "Позабытый тайник контрабандиста",	-- Forgotten Smuggler's Stash
 	[293965] = "Тайник банды Резчиков",	-- Scrimshaw Cache
 	[293985] = "Разыскивается: Кровавчик",	-- Wanted: War Gore
+	[294084] = "Сундук с добычей Лиги искателей приключений",	-- Adventurer's Society Loot Stash
 	[294096] = "Светящаяся сфера",	-- Lit Orb
 	[294097] = "Странное семечко",	-- Strange Seed
 	[294098] = "Лягушка-малютка",	-- Tiny Frog
@@ -2443,6 +2431,20 @@ for key,value in pairs({
 	[294703] = "Доходягин ржавый сундук",	-- Grimmy's Rusty Lockbox
 	[296479] = "Ящик лорд-адмирала",	-- Lord Admiral's Footlocker
 	[296536] = "Обагренная кровью глефа часового",	-- Bloodied Sentinel's Glaive
+	[296573] = "Ржавая сабля Джейсона",	-- Jason's Rusty Blade
+	[296574] = "Пустая бутыль Иэна",	-- Ian's Empty Bottle
+	[296575] = "Разбитое блюдо Джули",	-- Julie's Cracked Dish
+	[296579] = "Сломанный компас Брайана",	-- Brian's Broken Compass
+	[296580] = "Переплетенный дневник Офера",	-- Ofer's Bound Journal
+	[296581] = "Ручной булыжник Скай",	-- Skye's Pet Rock
+	[296582] = "Левый сапог Жюльена",	-- Julien's Left Boot
+	[296583] = "Фляга Наварро",	-- Navarro's Flask
+	[296584] = "Фляжка Зака",	-- Zach's Canteen
+	[296585] = "Рюкзак Дамаркуса",	-- Damarcus' Backpack
+	[296586] = "Флейта Рейчел",	-- Rachel's Flute
+	[296587] = "Ожерелье Джоша из клыков",	-- Josh's Fang Necklace
+	[296588] = "Портрет командира Мартенса",	-- Portrait of Commander Martens
+	[296589] = "Резной ключ Курта",	-- Kurt's Ornate Key
 	[296915] = "Друстская стела: \"Круг\"",	-- Drust Stele: The Circle
 	[296916] = "Друстская стела: \"Ритуал\"",	-- Drust Stele: The Ritual
 	[296917] = "Друстская стела: \"Древо\"",	-- Drust Stele: The Tree
@@ -2582,6 +2584,7 @@ for key,value in pairs({
 	[334216] = "Тайник Темной Империи",	-- Black Empire Cache
 	[336415] = "Выброшенный свиток",	-- Discarded Scroll
 	[337237] = "Утерянное хранилище",	-- Lost Vault
+	[337241] = "Сложенное снаряжение",	-- Stashed Equipment
 	[339211] = "|cFFFFFFFFШаг 2:|r Пустая миска",	-- |cFFFFFFFFStep 2:|r Empty Dish
 	[339283] = "Позабытый сундук аристократа",	-- Forgotten Noble's Chest
 	[339601] = "Свиток веков",	-- Scroll of Aeons
@@ -2675,6 +2678,7 @@ for key,value in pairs({
 	[353687] = "Сломанный колокол",	-- Broken Bell
 	[353688] = "Сломанный колокол",	-- Broken Bell
 	[353691] = "Небесный колокол",	-- Skyward Bell
+	[353791] = "Сундучок Замкового Предела",	-- Castle Strongbox
 	[353792] = "Сундучок Тихого Предела",	-- Village Strongbox
 	[353793] = "Сундучок молельщиков",	-- Parish Chest
 	[353796] = "Реликварий воспоминаний",	-- Reliquary of Remembrance
@@ -2883,6 +2887,7 @@ for key,value in pairs({
 	[369438] = "Тайник Разлома",	-- Riftbound Cache
 	[369439] = "Тайник Разлома",	-- Riftbound Cache
 	[369440] = "Тайник Разлома",	-- Riftbound Cache
+	[9962198] = "Самодельная лужа жижи изгоя",	-- Outcast's Makeshift Muckpool
 	[9999890] = "Оскверненная добыча",	-- Corrupted Loot
 	[9999891] = "Только Основная Задача",	-- Main Objective Only
 	[9999892] = "Основная Задача + 2 Дополнительных Зоны",	-- Main Objective + 2 Bonus Areas

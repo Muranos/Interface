@@ -22,7 +22,7 @@
 ## Notes-ptBR: BigWigs Configuration Options
 ## Notes-esES: Opciones de configuración de BigWigs.
 ## Notes-esMX: Opciones de configuración de BigWigs.
-## Version: v233
+## Version: v233.1
 
 ## LoadOnDemand: 1
 ## Dependencies: BigWigs, BigWigs_Core, BigWigs_Plugins

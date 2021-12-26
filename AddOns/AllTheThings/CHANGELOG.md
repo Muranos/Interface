@@ -1,40 +1,25 @@
 # AllTheThings
 
-## [SL-2.6.1](https://github.com/DFortun81/AllTheThings/tree/SL-2.6.1) (2021-11-29)
-[Full Changelog](https://github.com/DFortun81/AllTheThings/compare/SL-2.6.0...SL-2.6.1) [Previous Releases](https://github.com/DFortun81/AllTheThings/releases)
+## [SL-2.6.5](https://github.com/DFortun81/AllTheThings/tree/SL-2.6.5) (2021-12-20)
+[Full Changelog](https://github.com/DFortun81/AllTheThings/compare/SL-2.6.4...SL-2.6.5) [Previous Releases](https://github.com/DFortun81/AllTheThings/releases)
 
 
 ### Highlights of this update
 
-#### Dynamic groups
+#### Winter Veil (fixes) 🎄
 
-- Converted some 'Type' categories (Illusions, Mounts, Toys, Titles) in the Main list into dynamically-populated search results of the Main list itself. Please @Runawaynow in Discord with any feedback on this modification as it may need adjustments.
-- Dynamic categories (and Pet Journal) are ignored when showing Source tooltips (since they are not actual Sources for Things) and likewise they no longer add to the progress/total of the Main list since they already exist elsewhere in the list.
+This is mainly a hotfix release to repair "You're a Mean One..." quest and "Stolen Present" rewards for Horde characters.
 
+- Fixed some Winter Veil quests that were broken for Horde (and maybe some for Alliance) in the last update, including "You're a Mean One...", "New Year Celebrations!" and "Winter's Presents".
+- Adjusted description for Winter Veil tailoring patterns.
+- Removed wrong yearly mark from many Winter Veil quests.
 
-#### Ad-Hoc Window Updates
-
-- Removed Ad-Hoc updates from being enabled by default. People who don't like the lag will have to turn it on themselves since it causes `/att random` to not work until the Main list is opened.
-- Modified `/att random` to work with Ad-Hoc Updates better, and print more info in chat if the Main list has not yet been updated.
-
+Merry Christmas, everyone! 🎅
 
 ### Notable changes:
 
-- Not loaded NPC names will now dispay as 'Retrieving Data' instead of 'nil'.
-- Reverted some map tech logic since it often caused Things nested in a single category (i.e. Holiday) to get split into multiple headers in the Zone based on the Type (i.e. Quests > Holiday, Vendor > Holiday, Holiday > Secrets, etc.).
-- Achievements/Criteria are properly placed under creature groups as necessary as well.
-- Items that are 'saved' (i.e. usually because of a questID they trigger) will still show their cost content in minilists.
-- Profiles should work better for those of you who switch between different WoW client locales (this fixes multiple 'Default' profiles).
-- Fixed world bosses (and many others) showing their respective Encounter being contained within themselves instead of themselves being the Encounter. (Makes sense right?)
-- Synced more Classic dungeons and fixed some that were synced in previous update.
-- Moved Heroic Scholomance into the Classic Dungeons and Raids section with its Normal Mode version.
-- Tracked and fixed a bug with Scholomance items (that actually fixed nearly 3000 items elsewhere in the addon).
-- Added Shadowlands Explorer achievement.
-- Added Turkey Soul and marked two Pilgrim's Bounty quests as not repeatable.
-- Moved Frog Soul since it can be fished anywhere in Shadowlands apparently.
-- Moved Pepe appearance unlocks into 'Secrets' for now since it disappeared when the Toys category became dynamic.
-- Selfie camera is back and cleaned up a little bit (also in 'Secrets').
-- Cleaned up Pepe appearance unlocks so they show accurately regardless of the user's tracking of Achievements & Quests.
-- Fixed Heroic Tusks of Mannoroth.
-- Cleaned up lots of duplicated Draenor BoE Greens. They show up from the respective treasures when you see the Zone minilists, but otherwise are not listed multiple times.
+- Fixed more missing Horde/Alliance quests (same as with "You're a Mean One...", this only affects quests that are identical for both factions but have different `questID`s).
+- BFA Arathi/Darkshore Rares for Horde sould be marked as complete more reliably now.
+- Fixed Brawler's Claws showing as available from the heirloom category.
+- "Incense of Infinity" will now show what conduits you are missing.
 - Other fixes.
