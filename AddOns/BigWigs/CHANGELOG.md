@@ -1,12 +1,13 @@
 # BigWigs
 
-## [v233.1](https://github.com/BigWigsMods/BigWigs/tree/v233.1) (2021-12-12)
-[Full Changelog](https://github.com/BigWigsMods/BigWigs/compare/v233...v233.1) [Previous Releases](https://github.com/BigWigsMods/BigWigs/releases)
+## [v246](https://github.com/BigWigsMods/BigWigs/tree/v246) (2022-08-27)
+[Full Changelog](https://github.com/BigWigsMods/BigWigs/compare/v245.2...v246) [Previous Releases](https://github.com/BigWigsMods/BigWigs/releases)
 
-- Add Mage Tower menu zone  
-- SepulcherOfTheFirstOnes/Skolex: Begin work after testing  
-- SepulcherOfTheFirstOnes/Lihuvim: Drycode  
-- SepulcherOfTheFirstOnes/Dausegne: Begin work after testing  
-- SepulcherOfTheFirstOnes/ArtificerXymox: Drycode  
-- SepulcherOfTheFirstOnes/VigilantGuardian: Rename, Drycode  
-- SepulcherOfTheFirstOnes: Import Skeleton files (#1130)  
+- bump version  
+- Update NewStackMessage usage  
+- Core/BossPrototype: NewStackMessage now requires `noEmphUntil`  
+- CastleNathria/Affixes: Mythic Sludgefist and Denathrius fixes  
+- CastleNathria/Affixes: Update for round 2  
+- Affixes: Only start bars if the buff is active  
+- CastleNathria/Denathrius: Fix Wracking Pain applied sound (#1261)  
+- Core/BossPrototype: add time arg to UNIT\_DIED, fix destRaidFlags (#1260)  

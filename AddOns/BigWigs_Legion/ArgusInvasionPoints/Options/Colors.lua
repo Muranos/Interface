@@ -16,7 +16,7 @@ BigWigs:AddColors("Mistress Alluradel", {
 BigWigs:AddColors("Inquisitor Meto", {
 	[247492] = {"blue","yellow"},
 	[247495] = {"blue","yellow"},
-	[247585] = "green",
+	[247585] = {"green","orange"},
 	[247632] = "blue",
 })
 

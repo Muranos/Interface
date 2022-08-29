@@ -6,7 +6,7 @@ local P = E[modname]
 P.options = {
 	disabled = function(info) return info[2] and not E.GetModuleEnabled(modname) end,
 	name = FRIENDLY,
-	order = 200,
+	order = 20,
 	type = "group",
 	get = function(info) return E.DB.profile.Party[info[#info]] end,
 	set = function(info, value) E.DB.profile.Party[info[#info]] = value end,
@@ -67,7 +67,7 @@ for key, name in pairs(E.L_ZONE) do
 			set = function(info, value)
 				E.DB.profile.Party[info[2] == "none" and "noneZoneSetting" or "scenarioZoneSetting"] = value
 
-				P:Refresh(true) -- don't cross check zone. We just changed it
+				P:Refresh(true)
 			end,
 		}
 	end
@@ -140,10 +140,14 @@ function P:ConfigBars(key, arg)
 		elseif arg == "offsetX" or arg == "offsetY" then
 			self:SetOffset(f)
 		elseif arg == "showAnchor" or arg == "locked" or arg == "detached" then
+			if arg == "detached" then
+				self:SetIconLayout(f)
+				self:ConfigIconSettings(f, "borderPixels")
+			end
 			self:SetAnchor(f)
 		elseif arg == "reset" then
 			E.LoadPosition(f)
-		else -- columns/growUpward/displayInactive/paddingXY
+		else
 			self:SetIconLayout(f, arg == "priority")
 		end
 	end
@@ -168,7 +172,7 @@ function P:ConfigIconSettings(f, arg, key)
 			else
 				self:SetBorder(icon)
 			end
-		elseif arg == "borderColor" then -- border enabled
+		elseif arg == "borderColor" then
 			local r, g, b = E.db.icons.borderColor.r, E.db.icons.borderColor.g, E.db.icons.borderColor.b
 			if key then
 				local statusBar = icon.statusBar

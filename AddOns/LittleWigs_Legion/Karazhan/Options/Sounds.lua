@@ -14,6 +14,7 @@ BigWigs:AddSounds("Opera Hall: Wikket", {
 })
 
 BigWigs:AddSounds("Opera Hall: Westfall Story", {
+	[227453] = "alert",
 	[227568] = "alarm",
 	[227777] = "warning",
 	[227783] = "info",
@@ -31,8 +32,8 @@ BigWigs:AddSounds("Opera Hall: Beautiful Beast", {
 })
 
 BigWigs:AddSounds("Attumen the Huntsman", {
+	[227363] = "alarm",
 	[227365] = "alert",
-	[227404] = "warning",
 	[227493] = "alarm",
 	[228852] = "info",
 	[228895] = "long",
@@ -53,21 +54,22 @@ BigWigs:AddSounds("Moroes", {
 BigWigs:AddSounds("The Curator", {
 	[227254] = {"info","long"},
 	[227267] = "info",
-	[227279] = {"alarm","alert"},
+	[227279] = {"alert","underyou"},
 })
 
 BigWigs:AddSounds("Shade of Medivh", {
 	[227592] = {"alarm","warning"},
 	[227615] = "alert",
+	[227628] = "alert",
 	[227779] = {"long","warning"},
 	[228269] = {"long","warning"},
-	[228334] = "long",
-	["stages"] = "long",
+	[228334] = {"info","long"},
 })
 
 BigWigs:AddSounds("Mana Devourer", {
 	[227297] = "long",
-	[227523] = {"alarm","info"},
+	[227457] = "alarm",
+	[227523] = {"info","underyou"},
 	[227618] = "warning",
 })
 
@@ -76,9 +78,10 @@ BigWigs:AddSounds("Viz'aduum the Watcher", {
 	[229151] = "alarm",
 	[229159] = "warning",
 	[229248] = "alarm",
-	[229905] = "alert",
-	[230084] = "alarm",
-	["stages"] = "info",
+	[229905] = "underyou",
+	[230066] = "alarm",
+	[230084] = {"info","long"},
+	["stages"] = "long",
 })
 
 BigWigs:AddSounds("Nightbane", {

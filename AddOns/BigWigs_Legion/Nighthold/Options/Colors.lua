@@ -52,6 +52,7 @@ BigWigs:AddColors("Spellblade Aluriel", {
 	[213148] = {"blue","orange"},
 	[213275] = "red",
 	[213278] = "blue",
+	[213390] = "red",
 	[213504] = "blue",
 	[213520] = {"blue","red"},
 	[213564] = "red",
@@ -86,6 +87,7 @@ BigWigs:AddColors("Krosus", {
 	[205420] = "yellow",
 	[205862] = "red",
 	[206677] = {"blue","orange"},
+	[208203] = "red",
 	["smashingBridge"] = "red",
 })
 

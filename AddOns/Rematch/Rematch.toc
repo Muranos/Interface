@@ -1,8 +1,11 @@
-## Interface: 90105
+## Interface: 90207
 ## Title: Rematch
 ## Notes: A pet journal alternative for managing pets and teams.
 ## Author: Gello
-## Version: 4.11.18
+## Version: 4.12.1
+## X-WoWI-ID: 22190
+## X-Wago-ID: e56nOpK9
+## X-Curse-Project-ID: 66047
 ## SavedVariables: RematchSaved, RematchSettings
 
 Localization\Rematch deDE.lua
@@ -86,6 +89,7 @@ Widgets\BottomPanel.xml
 Widgets\BottomPanel.lua
 Widgets\TeamTabs.xml
 Widgets\TeamTabs.lua
+Widgets\TeamTabIcons.lua
 Widgets\LoadedTeamPanel.xml
 Widgets\LoadedTeamPanel.lua
 

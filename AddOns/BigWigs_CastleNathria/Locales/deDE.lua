@@ -12,7 +12,6 @@ end
 
 L = BigWigs:NewBossLocale("Sun King's Salvation", "deDE")
 if L then
-	L.shield_removed = "%s entfernt nach %.1fs" -- "Shield removed after 1.1s" s = seconds
 	L.shield_remaining = "%s verbleibend: %s (%.1f%%)" -- "Shield remaining: 2.1K (5.3%)"
 end
 
@@ -165,4 +164,15 @@ if L then
 
 	--[[ Sludgefist -> Stone Legion Generals ]]--
 	L.goliath = "Goliath der Steinlegion"
+end
+
+L = BigWigs:NewBossLocale("Castle Nathria Affixes", "deDE")
+if L then
+	L.custom_on_bar_icon = "Leistensymbol"
+	L.custom_on_bar_icon_desc = "Zeigt das Schicksalhafte Schlachtzugssymbol in den Leisten."
+
+	L.chaotic_essence = "Essenz"
+	L.creation_spark = "Funken"
+	L.protoform_barrier = "Barriere"
+	L.reconfiguration_emitter = "Zauber-Add"
 end

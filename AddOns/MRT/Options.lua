@@ -391,6 +391,20 @@ function MRT.Options:Open(PANEL)
 	end
 end
 
+function MRT.Options:OpenByModuleName(moduleName)
+	for i=1,#Options.Frames do
+		if Options.Frames[i].moduleName == moduleName then
+			Options:Show()
+
+			Options:SetPage(Options.Frames[i])
+
+			Options.modulesList.selected = i
+			Options.modulesList:Update()
+			return Options.Frames[i]
+		end
+	end
+end
+
 MRT.F.menuTable = {
 { text = L.minimapmenu, isTitle = true, notCheckable = true, notClickable = true },
 { text = L.minimapmenuset, func = MRT.Options.Open, notCheckable = true, keepShownOnClick = true, },
@@ -845,6 +859,14 @@ OptionsFrame.dateChecks:SetScript("OnShow",function(self)
 		OptionsFrame.image:SetTexture("Interface\\AddOns\\"..GlobalAddonName.."\\media\\OptionLogost")
 
 		OptionsFrame:AddDeathStar(nil,2)
+
+		return
+	end
+
+	if (today.month == 4 and today.day == 28) then
+		local s = 0.39
+		OptionsFrame_title:Size(512*0.7,128*0.7*s):TexCoord(0,1,0,s):Point("LEFT",OptionsFrame.image,"RIGHT",15,-5+128*s*0.4*0.5):Color(0, 87/255, 183/255,1)
+		local OptionsFrame_title2 = ELib:Texture(OptionsFrame,"Interface\\AddOns\\"..GlobalAddonName.."\\media\\logoname2"):Point("TOP",OptionsFrame_title,"BOTTOM"):Size(512*0.7,128*0.7*(1-s)):TexCoord(0,1,s,1):Color(255/255, 221/255, 0,1)
 
 		return
 	end

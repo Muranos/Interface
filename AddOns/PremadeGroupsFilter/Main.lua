@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Premade Groups Filter
 -------------------------------------------------------------------------------
--- Copyright (C) 2020 Elotheon-Arthas-EU
+-- Copyright (C) 2022 Elotheon-Arthas-EU
 --
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -28,6 +28,18 @@ PGF.currentSearchExpression = ""
 PGF.previousSearchLeaders = {}
 PGF.currentSearchLeaders = {}
 PGF.declinedGroups = {}
+PGF.searchIdEnvironments = {}
+
+function PGF.ResetSearchEntries()
+    -- make sure to wait at least some time between two resets
+    if time() - PGF.lastSearchEntryReset > C.SEARCH_ENTRY_RESET_WAIT then
+        PGF.previousSearchLeaders = PGF.Table_Copy_Shallow(PGF.currentSearchLeaders)
+        PGF.currentSearchLeaders = {}
+        PGF.previousSearchExpression = PGF.currentSearchExpression
+        PGF.lastSearchEntryReset = time()
+        PGF.searchIdEnvironments = {}
+    end
+end
 
 function PGF.GetExpressionFromMinMaxModel(model, key)
     local exp = ""
@@ -111,14 +123,38 @@ function PGF.GetExpressionFromModel()
     return exp
 end
 
-function PGF.ResetSearchEntries()
-    -- make sure to wait at least some time between two resets
-    if time() - PGF.lastSearchEntryReset > C.SEARCH_ENTRY_RESET_WAIT then
-        PGF.previousSearchLeaders = PGF.Table_Copy_Shallow(PGF.currentSearchLeaders)
-        PGF.currentSearchLeaders = {}
-        PGF.previousSearchExpression = PGF.currentSearchExpression
-        PGF.lastSearchEntryReset = time()
+function PGF.GetSortTableFromModel()
+    local model = PGF.GetModel()
+    if not model or not model.sorting then return 0, {} end
+    -- example string:  "friends asc, age desc , foo asc, bar   desc , x"
+    -- resulting table: { ["friends"] = "asc", ["age"] = "desc", ["foo"] = "asc", ["bar"] = "desc" }
+    local c = 0
+    local t = {}
+    for k, v in string.gmatch(model.sorting, "(%w+)%s+(%w+),?") do
+        c = c + 1
+        t[k] = v
     end
+    return c, t
+end
+
+function PGF.SortByExpression(searchResultID1, searchResultID2)
+    local sortTableSize, sortTable = PGF.GetSortTableFromModel()
+    local env1 = PGF.searchIdEnvironments[searchResultID1]
+    local env2 = PGF.searchIdEnvironments[searchResultID2]
+    if sortTableSize == 0 or not env1 or not env2 then
+        return PGF.SortByFriendsAndAge(searchResultID1, searchResultID2)
+    end
+    for k, v in pairs(sortTable) do
+        if env1[k] ~= env2[k] then -- works with unknown 'k' as 'nil ~= nil' is false (or 'nil == nil' is true)
+            if v == "desc" then
+                return env1[k] > env2[k]
+            else -- works with unknown 'v', in this case sort ascending by default
+                return env1[k] < env2[k]
+            end
+        end
+    end
+    -- no sorting defined or all properties are the same, fall back to default sorting
+    return PGF.SortByFriendsAndAge(searchResultID1, searchResultID2)
 end
 
 local roleRemainingKeyLookup = {
@@ -285,12 +321,16 @@ function PGF.DoFilterSearchResults(results)
     --print("filtering, size is "..#results)
 
     PGF.ResetSearchEntries()
-    local exp = PGF.GetExpressionFromModel()
-    PGF.currentSearchExpression = exp
     local model = PGF.GetModel()
     if not model or not model.enabled then return false end
     if not results or #results == 0 then return false end
-    if exp == "true" then return false end -- skip trivial expression
+
+    local sortTableSize, _ = PGF.GetSortTableFromModel()
+    local exp = PGF.GetExpressionFromModel()
+    PGF.currentSearchExpression = exp
+    if exp == "true" and sortTableSize == 0 then return false end -- skip trivial expression if no sorting
+
+    local playerInfo = PGF.GetPlayerInfo()
 
     -- loop backwards through the results list so we can remove elements from the table
     for idx = #results, 1, -1 do
@@ -301,20 +341,19 @@ function PGF.DoFilterSearchResults(results)
         local memberCounts = C_LFGList.GetSearchResultMemberCounts(resultID)
         local numGroupDefeated, numPlayerDefeated, maxBosses,
               matching, groupAhead, groupBehind = PGF.GetLockoutInfo(searchResultInfo.activityID, resultID)
-        local avName, avShortName, avCategoryID, avGroupID, avILevel, avFilters,
-              avMinLevel, avMaxPlayers, avDisplayType, avOrderIndex,
-              avUseHonorLevel, avShowQuickJoin = C_LFGList.GetActivityInfo(searchResultInfo.activityID)
-        local difficulty = PGF.GetDifficulty(searchResultInfo.activityID, avName, avShortName)
+        local activityInfo = C_LFGList.GetActivityInfoTable(searchResultInfo.activityID)
+
+        local difficulty = PGF.GetDifficulty(searchResultInfo.activityID, activityInfo.fullName, activityInfo.shortName)
 
         local env = {}
         env.activity = searchResultInfo.activityID
-        env.activityname = avName:lower()
+        env.activityname = activityInfo.fullName:lower()
         env.leader = searchResultInfo.leaderName and searchResultInfo.leaderName:lower() or ""
         env.age = math.floor(searchResultInfo.age / 60) -- age in minutes
+        env.agesecs = searchResultInfo.age -- age in seconds
         env.voice = searchResultInfo.voiceChat and searchResultInfo.voiceChat ~= ""
         env.voicechat = searchResultInfo.voiceChat
         env.ilvl = searchResultInfo.requiredItemLevel or 0
-        env.myilvl = select(2, GetAverageItemLevel())
         env.hlvl = searchResultInfo.requiredHonorLevel or 0
         env.friends = searchResultInfo.numBNetFriends + searchResultInfo.numCharFriends + searchResultInfo.numGuildMates
         env.members = searchResultInfo.numMembers
@@ -336,11 +375,11 @@ function PGF.DoFilterSearchResults(results)
         env.bossesmatching = matching
         env.bossesahead = groupAhead
         env.bossesbehind = groupBehind
-        env.maxplayers = avMaxPlayers
-        env.suggestedilvl = avILevel
-        env.minlvl = avMinLevel
-        env.categoryid = avCategoryID
-        env.groupid = avGroupID
+        env.maxplayers = activityInfo.maxNumPlayers
+        env.suggestedilvl = activityInfo.ilvlSuggestion
+        env.minlvl = activityInfo.minLevel
+        env.categoryid = activityInfo.categoryID
+        env.groupid = activityInfo.groupFinderActivityGroupID
         env.autoinv = searchResultInfo.autoAccept
         env.questid = searchResultInfo.questID
         env.declined = PGF.IsDeclinedGroup(searchResultInfo)
@@ -361,17 +400,33 @@ function PGF.DoFilterSearchResults(results)
             env.mpmapmaxkey = searchResultInfo.leaderDungeonScoreInfo.bestRunLevel
             env.mpmapintime = searchResultInfo.leaderDungeonScoreInfo.finishedSuccess
         end
+        env.pvpactivityname = ""
+        env.pvprating = 0
+        env.pvptierx = 0
+        env.pvptier = 0
+        env.pvptiername = ""
         if searchResultInfo.leaderPvpRatingInfo then
             env.pvpactivityname = searchResultInfo.leaderPvpRatingInfo.activityName
             env.pvprating       = searchResultInfo.leaderPvpRatingInfo.rating
             env.pvptierx        = searchResultInfo.leaderPvpRatingInfo.tier
             env.pvptier         = C.TIER_MAP[searchResultInfo.leaderPvpRatingInfo.tier]
             env.pvptiername     = PVPUtil.GetTierName(searchResultInfo.leaderPvpRatingInfo.tier)
-            --env.pvptiername     = _G["PVP_RANK_"..searchResultInfo.leaderPvpRatingInfo.tier.."_NAME"]
         end
+        env.horde = searchResultInfo.leaderFactionGroup == 0
+        env.alliance = searchResultInfo.leaderFactionGroup == 1
+        env.crossfaction = searchResultInfo.crossFactionListing or false
 
         PGF.PutSearchResultMemberInfos(resultID, searchResultInfo, env)
         PGF.PutEncounterNames(resultID, env)
+
+        env.myilvl = playerInfo.avgItemLevelEquipped
+        env.myilvlpvp = playerInfo.avgItemLevelPvp
+        env.myaffixrating = playerInfo.affixRating[searchResultInfo.activityID] or 0
+        env.mydungeonrating = playerInfo.dungeonRating[searchResultInfo.activityID] or 0
+        env.myavgaffixrating = playerInfo.avgAffixRating
+        env.mymedianaffixrating = playerInfo.medianAffixRating
+        env.myavgdungeonrating = playerInfo.avgDungeonRating
+        env.mymediandungeonrating = playerInfo.medianDungeonRating
 
         local aID = searchResultInfo.activityID
         env.arena2v2 = aID == 6 or aID == 491 or aID == 731 or aID == 732
@@ -408,9 +463,10 @@ function PGF.DoFilterSearchResults(results)
 
         -- Shadowlands raids
         --             normal        heroic        mythic
-        env.cn       = aID == 720 or aID == 722 or aID == 721  -- Castle Nathria
-        env.sod      = aID == 743 or aID == 744 or aID == 745  -- Sanctum of Domination
-        local slraid = env.cn or env.sod -- all Shadowlands raids
+        env.cn       = aID == 720  or aID == 722  or aID == 721  -- Castle Nathria
+        env.sod      = aID == 743  or aID == 744  or aID == 745  -- Sanctum of Domination
+        env.sfo      = aID == 1020 or aID == 1021 or aID == 1022 -- Sepulcher of the First Ones
+        local slraid = env.cn or env.sod or env.sfo -- all Shadowlands raids
 
         -- Legion dungeons
         --                    normal        heroic        mythic        mythic+
@@ -439,12 +495,9 @@ function PGF.DoFilterSearchResults(results)
         env.wm           = aID == 528 or aID == 531 or aID == 529 or aID == 530 or aID == 536  -- Waycrest Manor
         env.sob          = aID == 532 or aID == 535 or aID == 533 or aID == 534                -- Siege of Boralus
                                                     or aID == 658 or aID == 659
-        env.siege        = env.sob
         env.opmj         =               aID == 682               or aID == 679  -- Operation: Mechagon - Junkyard
         env.opmw         =               aID == 684               or aID == 683  -- Operation: Mechagon - Workshop
         env.opm          = env.opmj or env.opmw     or aID == 669                -- Operation: Mechagon
-        env.yard         = env.opmj
-        env.work         = env.opmw
         local bfadungeon = env.ad or env.tosl or env.tur or env.tml or env.kr or env.fh or env.sots or env.td or env.wm or env.sob or env.opm -- all BfA dungeons
 
         -- Shadowlands dungeons
@@ -457,11 +510,19 @@ function PGF.DoFilterSearchResults(results)
         env.soa         = aID == 708 or aID == 711 or aID == 710 or aID == 709  -- Spires of Ascension
         env.nw          = aID == 712 or aID == 715 or aID == 714 or aID == 713  -- The Necrotic Wake
         env.top         = aID == 716 or aID == 719 or aID == 718 or aID == 717  -- Theater of Pain
-        env.taz         = aID == 746                                            -- Tazavesh, the Veiled Market
-        env.taza        = env.taz
-        env.ttvm        = env.taz
-        env.mists       = env.mots
+        env.tazs        =               aID == 1018              or aID == 1016 -- Tazavesh: Streets of Wonder
+        env.tazg        =               aID == 1019              or aID == 1017 -- Tazavesh: So'leah's Gambit
+        env.taz         = env.tazs or env.tazg     or aID == 746                -- Tazavesh, the Veiled Market
         local sldungeon = env.pf or env.dos or env.hoa or env.mots or env.sd or env.soa or env.nw or env.top or env.taz -- all SL dungeons
+
+        -- Shadowland Season 4 dungeons
+        env.gd    = aID == 183  -- Grimrail Depot
+        env.id    = aID == 180  -- Iron Docks
+        env.lkara = aID == 471  -- Lower Karazahn
+        env.ukara = aID == 473  -- Upper Karazhan
+        env.sls4  = env.gd or env.id or env.lkara or env.ukara or env.opmj or env.opmw or env.tazs or env.tazg -- all SL Season 4 dungeons
+
+        -- find more IDs: /run for i=750,2000 do local info = C_LFGList.GetActivityInfoTable(i); if info then print(i, info.fullName) end end
 
         -- Addon filters
         --
@@ -469,8 +530,8 @@ function PGF.DoFilterSearchResults(results)
         env.legion = legiondungeon or legionraid
         env.bfa    = bfadungeon or bfaraid
         env.sl     = sldungeon or slraid
-        
 
+        PGF.PutRaiderIOAliases(env)
         if PGF.PutRaiderIOMetrics then
             PGF.PutRaiderIOMetrics(env, searchResultInfo.leaderName)
         end
@@ -478,6 +539,7 @@ function PGF.DoFilterSearchResults(results)
             PGF.PutPremadeRegionInfo(env, searchResultInfo.leaderName)
         end
 
+        PGF.searchIdEnvironments[resultID] = env
         if PGF.DoesPassThroughFilter(env, exp) then
             -- leaderName is usually still nil at this point if the group is new, but we can live with that
             if searchResultInfo.leaderName then PGF.currentSearchLeaders[searchResultInfo.leaderName] = true end
@@ -486,9 +548,24 @@ function PGF.DoFilterSearchResults(results)
         end
     end
     -- sort by age
-    table.sort(results, PGF.SortByFriendsAndAge)
+    table.sort(results, PGF.SortByExpression)
     LFGListFrame.SearchPanel.totalResults = #results
     return true
+end
+
+function PGF.PutRaiderIOAliases(env)
+    env.lowr = env.lkara
+    env.uppr = env.ukara
+
+    -- Battle for Azeroth
+    env.siege = env.sob  -- Siege of Boralus
+    env.yard  = env.opmj -- Operation: Mechagon - Junkyard
+    env.work  = env.opmw -- Operation: Mechagon - Workshop
+
+    -- Shadowlands
+    env.mists = env.mots -- Mists of Tirna Scithe
+    env.strt  = env.tazs -- Tazavesh: Streets of Wonder
+    env.gmbt  = env.tazg -- Tazavesh: So'leah's Gambit
 end
 
 function PGF.GetDeclinedGroupsKey(searchResultInfo)
@@ -548,10 +625,10 @@ end
 function PGF.OnLFGListSearchEntryOnEnter(self)
     local resultID = self.resultID
     local searchResultInfo = C_LFGList.GetSearchResultInfo(resultID)
-    local _, _, _, _, _, _, _, _, displayType = C_LFGList.GetActivityInfo(searchResultInfo.activityID)
+    local activityInfo = C_LFGList.GetActivityInfoTable(searchResultInfo.activityID)
 
     -- do not show members where Blizzard already does that
-    if displayType == LE_LFG_LIST_DISPLAY_TYPE_CLASS_ENUMERATE then return end
+    if activityInfo.displayType == LE_LFG_LIST_DISPLAY_TYPE_CLASS_ENUMERATE then return end
     if searchResultInfo.isDelisted or not GameTooltip:IsShown() then return end
     GameTooltip:AddLine(" ")
     GameTooltip:AddLine(CLASS_ROLES)

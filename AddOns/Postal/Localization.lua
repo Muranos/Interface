@@ -522,18 +522,18 @@ L["Enable for bag four"] = "Activer pour le sac quatre"
 L["Enable for bag one"] = "Activer pour le premier sac"
 L["Enable for bag three"] = "Activer pour le sac trois"
 L["Enable for bag two"] = "Activer pour le sac deux"
-L["Enchanting"] = "Enchanteur"
+L["Enchanting"] = "Enchantement"
 L["Exclude randoms you interacted with"] = "Exclure les inconnus avec qui vous avez interagi"
 L["Explosives"] = "Explosifs"
 L["Express"] = "Express"
-L["Forward"] = "En avant"
+L["Forward"] = "Transférer"
 L["Friends"] = "Amis"
 L["Guild"] = "Guilde"
 L["Help"] = "Aide"
 L["Herb"] = "Herbe"
 L["In Progress"] = "En cours"
-L["Inscription"] = "Inscription"
-L["Jewelcrafting"] = "Joaillier"
+L["Inscription"] = "Calligraphie"
+L["Jewelcrafting"] = "Joaillerie"
 L["Keep free space"] = "Garder de l'espace libre"
 L["Leather"] = "Cuir"
 L["Metal & Stone"] = "Métal & Pierre"
@@ -555,7 +555,7 @@ L["Open all Outbid on mail"] = "Ouvrir tous les courriers des enchères surench�
 L["Open mail from the Postmaster"] = "Ouvrir tous les courriers du maître de poste"
 L["OpenAll"] = "Tout Ouvrir"
 L["Opening Speed"] = "Vitesse d'ouverture"
-L["Optional Reagents"] = "Réactifs en option"
+L["Optional Reagents"] = "Composants optionnels"
 L["Other"] = "Autre"
 L["Other options"] = "Autres options"
 L["Part %d"] = "Partie %d"
@@ -566,7 +566,7 @@ L["Processing Message"] = "En cours"
 L["Profile"] = "Profil"
 L["QuickAttach"] = "Attachementrapide"
 L["Rake"] = "Râteau"
-L["Reagent"] = "Réactif"
+L["Reagent"] = "Composants"
 L["Recently Mailed"] = "Récents"
 L["Refreshing mailbox..."] = "Rafraichir la boîte aux lettres..."
 L["Remove Contact"] = "Supprimer un contact"
@@ -581,12 +581,12 @@ L["Thaumaturge Vashreen"] = "Thaumaturge Vashreen"
 L["The Postmaster"] = "Le maître de poste"
 L["There are %i more messages not currently shown."] = "%i messages supplémentaires ne sont pas affichés."
 L["There are %i more messages not currently shown. More should become available in %i seconds."] = "%i messages supplémentaires ne sont pas affichés. D'autres devraient devenir disponible d'ici %i secondes."
-L["Trade Goods"] = "Marchandises commerciales"
+L["Trade Goods"] = "Fournitures générales"
 L["TradeBlock"] = "Bloqueur d'échanges"
 L["Use Mr.Plow after opening"] = "Utilisez Mr.Plow après l'ouverture"
 L["Use Postal's auto-complete"] = "Utiliser la saisie intuitive de Postal"
 L["Verbose mode"] = "Mode Bavard"
-L["Wire"] = "Câbler"
+L["Wire"] = "Lier"
 
     return
 end
@@ -742,12 +742,12 @@ end
 
 L = AL3:NewLocale("Postal", "ruRU")
 if L then
-L["|cffeda55fAlt-Click|r to send this item to %s."] = "|cffeda55fAlt+щелчок|r чтобы выслать предмет в адрес %s."
-L["|cffeda55fControl-Click|r to attach similar items."] = "|cffeda55fControl+щелчок|r чтобы прикрепить аналогичные предметы."
-L["|cffeda55fCtrl-Click|r to return it to sender."] = "|cffeda55fCtrl+щелчок|r чтобы вернуть отправителю."
-L["|cffeda55fShift-Click|r to take the contents."] = "|cffeda55fShift+щелчок|r чтобы взять содержимое."
+L["|cffeda55fAlt-Click|r to send this item to %s."] = "|cffeda55fAlt+щелчок|r, чтобы выслать предмет в адрес %s."
+L["|cffeda55fControl-Click|r to attach similar items."] = "|cffeda55fControl+щелчок|r, чтобы прикрепить аналогичные предметы."
+L["|cffeda55fCtrl-Click|r to return it to sender."] = "|cffeda55fCtrl+щелчок|r, чтобы вернуть отправителю."
+L["|cffeda55fShift-Click|r to take the contents."] = "|cffeda55fShift+щелчок|r, чтобы взять содержимое."
 L[ [=[|cFFFFCC00*|r A default recipient name can be specified by right clicking on a button.
-|cFFFFCC00*|r Which bags are used by this feature can be set in the main menu.]=] ] = "|cFFFFCC00*|r Имя получателя по умолчанию можно указать, щелкнув правой кнопкой мыши по кнопке. |cFFFFCC00*|r Какие сумки используются этой функцией можно установить в главном меню."
+|cFFFFCC00*|r Which bags are used by this feature can be set in the main menu.]=] ] = "|cFFFFCC00*|r Имя получателя по умолчанию можно указать, щелкнув правой кнопкой мыши по кнопке. |cFFFFCC00*|r Какие сумки используются этой функцией, можно установить в главном меню."
 L[ [=[|cFFFFCC00*|r Feature is not supported for mail sent with money attached or sent COD.
 |cFFFFCC00*|r Feature is not supported for mail sent with stackable items attached.
 |cFFFFCC00*|r Forward button will be disabled in these cases.]=] ] = [=[|cFFFFCC00*|r Функция не поддерживается для писем, отправленных с вложенными деньгами или наложенным платежом. 
@@ -768,7 +768,7 @@ L[ [=[|cFFFFCC00*|r Shift-Click to take item/money from mail.
 |cFFFFCC00*|r Ctrl-Click to return mail.
 |cFFFFCC00*|r Alt-Click to move an item from your inventory to the current outgoing mail (same as right click in default UI).]=] ] = [=[|cFFFFCC00*|r Shift+щелчок снимает с почты предметы/деньги.
 |cFFFFCC00*|r Ctrl+щелчок возвращает почту.
-|cFFFFCC00*|r Alt+щелчок помещает предмет из вашего инвентаря в исходящую почту (как щелчок правой кнопкой в стандартном UI).
+|cFFFFCC00*|r Alt+щелчок помещает предмет из Вашего инвентаря в исходящую почту (как щелчок правой кнопкой в стандартном UI).
 |cFFFFCC00*|r Колесо мыши прокручивает список входящей почты.]=]
 L[ [=[|cFFFFCC00*|r Simple filters are available for various mail types.
 |cFFFFCC00*|r Shift-Click the Open All button to override the filters and take ALL mail.
@@ -780,8 +780,8 @@ L[ [=[|cFFFFCC00*|r Simple filters are available for various mail types.
 |cFFFFCC00*|r "Открыть все" будет пропускать письма с выкупом и письма от Blizzard.
 |cFFFFCC00*|r Отключите детальный режим для прекращения спама в чат при открытии писем.]=]
 L[ [=[|cFFFFCC00*|r This module will list your contacts, friends, guild mates, alts and track the last 10 people you mailed.
-|cFFFFCC00*|r It will also autocomplete all names in your BlackBook.]=] ] = [=[|cFFFFCC00*|r Этот модуль будет выводить список ваших контактов, друзей, согильдийцев, альтов и отслеживать последних 10 людей, которым вы отправили почту.
-|cFFFFCC00*|r Будут также автозаполнены все имена в вашем черном списке.]=]
+|cFFFFCC00*|r It will also autocomplete all names in your BlackBook.]=] ] = [=[|cFFFFCC00*|r Этот модуль будет выводить список ваших контактов, друзей, согильдийцев, альтов и отслеживать последних 10 людей, которым Вы отправили почту.
+|cFFFFCC00*|r Будут также автозаполнены все имена в Вашем черном списке.]=]
 L["A button that collects all attachments and coins from mail."] = "Кнопка, которая собирает все монеты и вложения с почты."
 L["Add check boxes to the inbox for multiple mail operations."] = "Добавляет окно для пометки во входящей почте, для многочисленных операций."
 L["Add Contact"] = "Добавить контакт"
@@ -811,7 +811,7 @@ L["Copy this mail"] = "Скопировать письмо"
 L["Default recipient:"] = "Получатель по умолчанию:"
 L["Delete"] = "Удалить"
 L["Devices"] = "Устройства"
-L["Disable Blizzard's auto-completion popup menu"] = "Выключить всплывающее меню авто-заполнения Blizzard"
+L["Disable Blizzard's auto-completion popup menu"] = "Выключить всплывающее меню автозаполнения Blizzard"
 L["DoNotWant"] = "НеХоЧу!"
 L["Elemental"] = "Стихии"
 L["Enable Alt-Click to send mail"] = "Включить посылку почты по Alt+щелчок"
@@ -821,7 +821,7 @@ L["Enable for bag one"] = "Включить для первой сумки"
 L["Enable for bag three"] = "Включить для третьей сумки"
 L["Enable for bag two"] = "Включить для второй сумки"
 L["Enchanting"] = "Наложение чар"
-L["Exclude randoms you interacted with"] = "Исключать ПУГов, с которыми вы встречались."
+L["Exclude randoms you interacted with"] = "Исключать ПУГов, с которыми Вы встречались."
 L["Explosives"] = "Взрывчатка"
 L["Express"] = "Доставка"
 L["Forward"] = "Переслать"
@@ -836,12 +836,12 @@ L["Keep free space"] = "Оставлять свободное место"
 L["Leather"] = "Кожа"
 L["Metal & Stone"] = "Металл и камни"
 L["Mouse click short cuts for mail."] = "Щелчки мыши при открытой почте применяются как ссылки"
-L["Name auto-completion options"] = "Настройки авто-заполнения имён"
+L["Name auto-completion options"] = "Настройки автозаполнения имён"
 L["New Profile"] = "Новый профиль"
 L["New Profile Name:"] = "Имя нового профиля:"
 L["Non-AH related mail"] = "Почта не с аукциона"
 L["Not all messages are shown, refreshing mailbox soon to continue Open All..."] = "Не все письма показаны, почтовый ящик вскоре будет обновлен. Для продолжения нажмите \"Открыть всё\"."
-L["Not taking more items as there are now only %d regular bagslots free."] = "Не брать больше вещей если в сумках осталось только %d свободных мест."
+L["Not taking more items as there are now only %d regular bagslots free."] = "Не брать больше вещей, если в сумках осталось только %d свободных мест."
 L["Open"] = "Открыть"
 L["Open All"] = "Открыть всё"
 L["Open all Auction cancelled mail"] = "Открывать все письма с прерванных аукционов"
@@ -858,7 +858,7 @@ L["Other"] = "Другое"
 L["Other options"] = "Прочие опции"
 L["Part %d"] = "Часть %d"
 L["Parts"] = "Детали"
-L["Please post bugs or suggestions at the CurseForge forums thread at |cFF00FFFFhttp://www.curseforge.com/wow/addons/postal/issues|r. When posting bugs, indicate your locale and Postal's version number v%s."] = "Пожалуйста, сообщите об ошибках или предложениях на форуме CurseForge |cFF00FFFFhttp://www.curseforge.com/wow/addons/postal/issues|r. При отправке ошибки, сообщите язык вашего клиента и номер версии Postal v%s."
+L["Please post bugs or suggestions at the CurseForge forums thread at |cFF00FFFFhttp://www.curseforge.com/wow/addons/postal/issues|r. When posting bugs, indicate your locale and Postal's version number v%s."] = "Пожалуйста, сообщите об ошибках или предложениях на форуме CurseForge |cFF00FFFFhttp://www.curseforge.com/wow/addons/postal/issues|r. При отправке ошибки сообщите язык Вашего клиента и номер версии Postal v%s."
 L["Prints the amount of money collected during a mail session."] = "Сообщить сумму денег, собранных за сеанс работы с почтой"
 L["Processing Message"] = "Обработка сообщения"
 L["Profile"] = "Профиль"
@@ -882,7 +882,7 @@ L["There are %i more messages not currently shown. More should become available 
 L["Trade Goods"] = "Хозяйственные товары"
 L["TradeBlock"] = "Блокировать торговлю"
 L["Use Mr.Plow after opening"] = "Использовать Mr.Plow после открытия"
-L["Use Postal's auto-complete"] = "Авто-завершение использования Postal."
+L["Use Postal's auto-complete"] = "Автозавершение использования Postal."
 L["Verbose mode"] = "Детальный режим"
 L["Wire"] = "Оценка"
 

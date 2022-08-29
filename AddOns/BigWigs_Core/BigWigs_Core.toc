@@ -1,4 +1,4 @@
-## Interface: 90105
+## Interface: 90207
 
 ## Title: BigWigs [|cffeda55fCore|r]
 ## Title-zhCN: BigWigs [|cffeda55f核心|r]
@@ -22,7 +22,7 @@
 ## Notes-ptBR: Core do BigWigs
 ## Notes-esES: Núcleo de BigWigs.
 ## Notes-esMX: Núcleo de BigWigs.
-## Version: v233.1
+## Version: v246
 
 ## LoadOnDemand: 1
 ## Dependencies: BigWigs

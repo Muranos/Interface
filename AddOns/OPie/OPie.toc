@@ -1,7 +1,10 @@
-## Interface: 90005
+## Interface: 90207
 ## Title: OPie
-## Version: Xe 6
+## Version: Xe 8
+## Author: foxlit
 ## Notes: Group abilities into rings that appear when you hold down a binding.
+## X-Website: https://www.townlong-yak.com/addons/opie
+## License: All rights reserved. Do not redistribute, in whole or in part, without explicit prior permission from the author.
 ## Notes-deDE: Fähigkeiten in Ringen gruppieren, die erscheinen, wenn eine Tastenbelegung ausgelöst wird.
 ## Notes-esES: Agrupar habilitades en anillos que se aparecen al presionar teclados.
 ## Notes-esMX: Agrupar habilitades en anillos que se aparecen al presionar teclados.
@@ -10,9 +13,7 @@
 ## Notes-zhCN: 当你按下快捷键时显示一个环形的技能分组.
 ## Notes-zhTW: 按下快捷鍵時將技能群組顯示在環中。
 ## Notes-ptBR: Agrupar habilidades em anéis que aparecem quando você ativa uma ligação.
-## Author: foxlit
 ## SavedVariables: OneRing_Config, OPie_SavedData
-## X-Website: https://www.townlong-yak.com/addons/opie
 ## X-M6-AB: OneRingLib.ext.ActionBook
 Libs\Evie.lua
 Libs\Niji.lua

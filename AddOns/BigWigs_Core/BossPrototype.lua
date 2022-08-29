@@ -26,7 +26,8 @@ do
 end
 
 local L = BigWigsAPI:GetLocale("BigWigs: Common")
-local UnitAffectingCombat, UnitIsPlayer, UnitPosition, UnitIsConnected = UnitAffectingCombat, UnitIsPlayer, UnitPosition, UnitIsConnected
+local LibSpec = LibStub("LibSpecialization")
+local UnitAffectingCombat, UnitIsPlayer, UnitPosition, UnitIsConnected, UnitClass = UnitAffectingCombat, UnitIsPlayer, UnitPosition, UnitIsConnected, UnitClass
 local C_EncounterJournal_GetSectionInfo, GetSpellInfo, GetSpellTexture, GetTime, IsSpellKnown = C_EncounterJournal.GetSectionInfo, GetSpellInfo, GetSpellTexture, GetTime, IsSpellKnown
 local EJ_GetEncounterInfo, UnitGroupRolesAssigned = EJ_GetEncounterInfo, UnitGroupRolesAssigned
 local SendChatMessage, GetInstanceInfo, Timer, SetRaidTarget = BigWigsLoader.SendChatMessage, BigWigsLoader.GetInstanceInfo, BigWigsLoader.CTimerAfter, BigWigsLoader.SetRaidTarget
@@ -44,8 +45,8 @@ local enabledModules, bossTargetScans, unitTargetScans = {}, {}, {}
 local allowedEvents = {}
 local difficulty = 0
 local UpdateDispelStatus, UpdateInterruptStatus = nil, nil
-local myGUID, myRole, myDamagerRole = nil, nil, nil
-local myGroupGUIDs = {}
+local myGUID, myRole, myRolePosition = nil, nil, nil
+local myGroupGUIDs, myGroupRolePositions = {}, {}
 local solo = false
 local classColorMessages = true
 local debugFunc = nil
@@ -60,21 +61,8 @@ local updateData = function(module)
 		classColorMessages = true
 	end
 
-	local tree = GetSpecialization()
-	if tree then
-		myRole = GetSpecializationRole(tree)
-		myDamagerRole = nil
-		if myRole == "DAMAGER" then
-			myDamagerRole = "MELEE"
-			local _, class = UnitClass("player")
-			if
-				class == "MAGE" or class == "WARLOCK" or (class == "HUNTER" and tree ~= 3) or (class == "DRUID" and tree == 1) or
-				(class == "PRIEST" and tree == 3) or (class == "SHAMAN" and tree == 1)
-			then
-				myDamagerRole = "RANGED"
-			end
-		end
-	end
+	local _, role, position = LibSpec:MySpecialization()
+	myRole, myRolePosition = role, position
 
 	local _, _, diff = GetInstanceInfo()
 	difficulty = diff
@@ -516,7 +504,7 @@ do
 						local m = eventMap[self][event]
 						if m and m[mobId] then
 							local func = m[mobId]
-							args.mobId, args.destGUID, args.destName, args.destFlags, args.destRaidFlags = mobId, destGUID, destName, destFlags, args.destRaidFlags
+							args.mobId, args.destGUID, args.destName, args.destFlags, args.destRaidFlags, args.time = mobId, destGUID, destName, destFlags, destRaidFlags, time
 							if type(func) == "function" then
 								func(args)
 							else
@@ -666,19 +654,28 @@ do
 	local noID = "Module '%s' tried to register/unregister a widget event without specifying a widget id."
 	local noFunc = "Module '%s' tried to register a widget event with the function '%s' which doesn't exist in the module."
 
-	local GetIconAndTextWidgetVisualizationInfo = C_UIWidgetManager.GetIconAndTextWidgetVisualizationInfo
 	function boss:UPDATE_UI_WIDGET(_, tbl)
 		local id = tbl.widgetID
 		local func = widgetEventMap[self][id]
 		if func then
-			local dataTbl = GetIconAndTextWidgetVisualizationInfo(id)
-			self[func](self, id, dataTbl.text)
+			local typeInfo = UIWidgetManager:GetWidgetTypeInfo(tbl.widgetType)
+			local info = typeInfo and typeInfo.visInfoDataFunction(id)
+			if info then
+				local value = info.text -- Remain compatible with older modules
+				if (not value or value == "") and info.barValue then
+					-- Type 2 (StatusBar) seems to be the most common modern widget we use and
+					-- info.overrideBarText is used for the actual bar text, so pass the bar
+					-- value to the callback for convenience.
+					value = info.barValue
+				end
+				self[func](self, id, value, info)
+			end
 		end
 	end
 
 	--- Register a callback for a widget event for the specified widget id.
 	-- @number id the id of the widget to listen to
-	-- @param func callback function, passed (widgetId, widgetText)
+	-- @param func callback function, passed (widgetId, widgetValue, widgetInfoTable)
 	function boss:RegisterWidgetEvent(id, func)
 		if type(id) ~= "number" then core:Print(format(noID, self.moduleName)) return end
 		if type(func) ~= "string" or not self[func] then core:Print(format(noFunc, self.moduleName, tostring(func))) return end
@@ -1156,6 +1153,18 @@ function boss:MythicPlus()
 	return difficulty == 8
 end
 
+--- Check if on a retail server.
+-- @return boolean
+function boss:Retail()
+	return WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
+end
+
+--- Check if on a classic server.
+-- @return number 2 = classic era, 5 = classic, nil if retail
+function boss:Classic()
+	return WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE and WOW_PROJECT_ID
+end
+
 --- Get the mob/npc id from a GUID.
 -- @string guid GUID of a mob/npc
 -- @return mob/npc id
@@ -1324,20 +1333,15 @@ do
 	local GetOptions = C_GossipInfo.GetOptions
 	local SelectOption = C_GossipInfo.SelectOption
 	--- Request the gossip options of the selected NPC
-	-- @return a separate string for every selectable text option
+	-- @return table A table result of all text strings in the form of { result1, result2, result3 }
 	function boss:GetGossipOptions()
-		local gossipTbl = GetOptions()
-		if gossipTbl[2] then
-			local tbl = {}
-			for i = 1, #gossipTbl do
-				local text = gossipTbl[i].name
-				if text then
-					tbl[#tbl+1] = text
-				end
+		local gossipOptions = GetOptions()
+		if gossipOptions[1] then
+			local gossipTbl = {}
+			for i = 1, #gossipOptions do
+				gossipTbl[#gossipTbl+1] = gossipOptions[i].name or ""
 			end
-			return tbl[1], tbl[2], tbl[3], tbl[4], tbl[5] -- This is fine
-		elseif gossipTbl[1] then
-			return gossipTbl[1].name
+			return gossipTbl
 		end
 	end
 
@@ -1393,16 +1397,39 @@ end
 -- Role checking
 -- @section role
 
---- Check if your talent tree role is TANK or MELEE.
--- @return boolean
-function boss:Melee()
-	return myRole == "TANK" or myDamagerRole == "MELEE"
+do
+	local function update(_, _, position, player)
+		myGroupRolePositions[player] = position
+	end
+	LibSpec:Register(BigWigsLoader, update)
 end
 
---- Check if your talent tree role is HEALER or RANGED.
+--- Ask LibSpecialization to update the role positions of everyone in your group.
+-- @string[opt="channel"] channel the specific addon comm channel to use, empty for automatic (recommended).
+function boss:UpdateRolePositions(channel)
+	LibSpec:RequestSpecialization(channel)
+end
+
+--- Check if your talent tree role is MELEE.
+-- @string[opt="playerName"] playerName check if another player is MELEE.
 -- @return boolean
-function boss:Ranged()
-	return myRole == "HEALER" or myDamagerRole == "RANGED"
+function boss:Melee(playerName)
+	if playerName then
+		return myGroupRolePositions[playerName] == "MELEE"
+	else
+		return myRolePosition == "MELEE"
+	end
+end
+
+--- Check if your talent tree role is RANGED.
+-- @string[opt="playerName"] playerName check if another player is RANGED.
+-- @return boolean
+function boss:Ranged(playerName)
+	if playerName then
+		return myGroupRolePositions[playerName] == "RANGED"
+	else
+		return myRolePosition == "RANGED"
+	end
 end
 
 --- Check if your talent tree role is TANK.
@@ -1453,7 +1480,9 @@ function boss:Damager(unit)
 	if unit then
 		return UnitGroupRolesAssigned(unit) == "DAMAGER"
 	else
-		return myDamagerRole
+		if myRole == "DAMAGER" then
+			return myRolePosition
+		end
 	end
 end
 
@@ -1470,8 +1499,8 @@ do
 			-- Mass Dispel (Priest), Dispel Magic (Priest), Purge (Shaman), Spellsteal (Mage), Consume Magic (Demon Hunter), Devour Magic (Warlock Felhunter), Tranquilizing Shot (Hunter)
 			offDispel.magic = true
 		end
-		if IsSpellKnown(2908) or IsSpellKnown(19801) then
-			-- Soothe (Druid), Tranquilizing Shot (Hunter)
+		if IsSpellKnown(2908) or IsSpellKnown(19801) or IsSpellKnown(5938) then
+			-- Soothe (Druid), Tranquilizing Shot (Hunter), Shiv (Rogue)
 			offDispel.enrage = true
 		end
 		if IsSpellKnown(527) or IsSpellKnown(77130) or IsSpellKnown(115450) or IsSpellKnown(4987) or IsSpellKnown(88423) then -- XXX Add DPS priest mass dispel?
@@ -1490,9 +1519,13 @@ do
 			-- Nature's Cure (Heal Druid), Remove Corruption (DPS Druid), Purify Spirit (Heal Shaman), Cleanse Spirit (DPS Shaman), Remove Curse (Mage)
 			defDispel.curse = true
 		end
+		if IsSpellKnown(1044) or IsSpellKnown(116841) then
+			-- Blessing of Freedom (Paladin), Tiger's Lust (Monk)
+			defDispel.movement = true
+		end
 	end
 	--- Check if you can dispel.
-	-- @string dispelType dispel type (magic, disease, poison, curse)
+	-- @string dispelType dispel type (magic, disease, poison, curse, movement)
 	-- @bool[opt] isOffensive true if dispelling a buff from an enemy (magic), nil if dispelling a friendly
 	-- @param[opt] key module option key to check
 	-- @return boolean
@@ -1838,19 +1871,8 @@ end
 -- @param[opt] text the message text (if nil, key is used)
 -- @param[opt] icon the message icon (spell id or texture name)
 function boss:MessageOld(key, color, sound, text, icon)
-	if checkFlag(self, key, C.MESSAGE) then
-		local textType = type(text)
-
-		local isEmphasized = band(self.db.profile[key], C.EMPHASIZE) == C.EMPHASIZE
-		self:SendMessage("BigWigs_Message", self, key, textType == "string" and text or spells[text or key], color, icon ~= false and icons[icon or textType == "number" and text or key], isEmphasized)
-		if sound then
-			if hasVoice and checkFlag(self, key, C.VOICE) then
-				self:SendMessage("BigWigs_Voice", self, key, sound)
-			else
-				self:SendMessage("BigWigs_Sound", self, key, sound)
-			end
-		end
-	end
+	self:Message(key, color, text, icon)
+	self:PlaySound(key, sound)
 end
 
 function boss:Message(key, color, text, icon)
@@ -1944,23 +1966,8 @@ do
 	-- @param[opt] text the message text (if nil, key is used)
 	-- @param[opt] icon the message icon (spell id or texture name)
 	function boss:StackMessage(key, player, stack, color, sound, text, icon)
-		if checkFlag(self, key, C.MESSAGE) then
-			local textType = type(text)
-			if player == pName then
-				local isEmphasized = band(self.db.profile[key], C.EMPHASIZE) == C.EMPHASIZE or band(self.db.profile[key], C.ME_ONLY_EMPHASIZE) == C.ME_ONLY_EMPHASIZE
-				self:SendMessage("BigWigs_Message", self, key, format(L.stackyou, stack or 1, textType == "string" and text or spells[text or key]), "blue", icon ~= false and icons[icon or textType == "number" and text or key], isEmphasized)
-			elseif not checkFlag(self, key, C.ME_ONLY) then
-				local isEmphasized = band(self.db.profile[key], C.EMPHASIZE) == C.EMPHASIZE
-				self:SendMessage("BigWigs_Message", self, key, format(L.stack, stack or 1, textType == "string" and text or spells[text or key], self:ColorName(player)), color, icon ~= false and icons[icon or textType == "number" and text or key], isEmphasized)
-			end
-			if sound then
-				if hasVoice and checkFlag(self, key, C.VOICE) then
-					self:SendMessage("BigWigs_Voice", self, key, sound)
-				else
-					self:SendMessage("BigWigs_Sound", self, key, sound)
-				end
-			end
-		end
+		self:NewStackMessage(key, color, player, stack, 0, text, icon)
+		self:PlaySound(key, sound)
 	end
 
 	--- Display a buff/debuff stack warning message.
@@ -1968,19 +1975,18 @@ do
 	-- @string color the message color category
 	-- @string player the player to display
 	-- @number stack the stack count
-	-- @number[opt] noEmphUntil prevent the emphasize function taking effect until this amount of stacks has been reached
+	-- @number noEmphUntil prevent the emphasize function taking effect until this amount of stacks has been reached
 	-- @param[opt] text the message text (if nil, key is used)
 	-- @param[opt] icon the message icon (spell id or texture name)
 	function boss:NewStackMessage(key, color, player, stack, noEmphUntil, text, icon)
 		if checkFlag(self, key, C.MESSAGE) then
 			local textType = type(text)
-			local emphLimit = noEmphUntil or 0
 			local amount = stack or 1
 			if player == pName then
-				local isEmphasized = (band(self.db.profile[key], C.EMPHASIZE) == C.EMPHASIZE or band(self.db.profile[key], C.ME_ONLY_EMPHASIZE) == C.ME_ONLY_EMPHASIZE) and amount >= emphLimit
+				local isEmphasized = (band(self.db.profile[key], C.EMPHASIZE) == C.EMPHASIZE or band(self.db.profile[key], C.ME_ONLY_EMPHASIZE) == C.ME_ONLY_EMPHASIZE) and amount >= noEmphUntil
 				self:SendMessage("BigWigs_Message", self, key, format(L.stackyou, amount, textType == "string" and text or spells[text or key]), "blue", icon ~= false and icons[icon or textType == "number" and text or key], isEmphasized)
 			elseif not checkFlag(self, key, C.ME_ONLY) then
-				local isEmphasized = band(self.db.profile[key], C.EMPHASIZE) == C.EMPHASIZE and amount >= emphLimit
+				local isEmphasized = band(self.db.profile[key], C.EMPHASIZE) == C.EMPHASIZE and amount >= noEmphUntil
 				self:SendMessage("BigWigs_Message", self, key, format(L.stack, amount, textType == "string" and text or spells[text or key], self:ColorName(player)), color, icon ~= false and icons[icon or textType == "number" and text or key], isEmphasized)
 			end
 		end
@@ -1995,72 +2001,12 @@ do
 	-- @param[opt] icon the message icon (spell id or texture name)
 	-- @bool[opt] alwaysPlaySound if true, play the sound even if player is not you
 	function boss:TargetMessageOld(key, player, color, sound, text, icon, alwaysPlaySound)
-		local textType = type(text)
-		local msg = textType == "string" and text or spells[text or key]
-		local texture = icon ~= false and icons[icon or textType == "number" and text or key]
-
+		self:PlaySound(key, sound, nil, not alwaysPlaySound and player)
 		if type(player) == "table" then
-			local list = table.concat(player, ", ")
-			local meOnly = checkFlag(self, key, C.ME_ONLY)
-			local onMe = find(list, pName, nil, true)
-			if not onMe then
-				if not checkFlag(self, key, C.MESSAGE) or meOnly then twipe(player) return end
-				if not alwaysPlaySound then sound = nil end
-			else
-				if not checkFlag(self, key, C.MESSAGE) and not meOnly then twipe(player) return end
-			end
-			if meOnly or (onMe and #player == 1) then
-				local isEmphasized = band(self.db.profile[key], C.EMPHASIZE) == C.EMPHASIZE or band(self.db.profile[key], C.ME_ONLY_EMPHASIZE) == C.ME_ONLY_EMPHASIZE
-				self:SendMessage("BigWigs_Message", self, key, format(L.you, msg), "blue", texture, isEmphasized)
-			else
-				local isEmphasized = band(self.db.profile[key], C.EMPHASIZE) == C.EMPHASIZE
-				self:SendMessage("BigWigs_Message", self, key, format(L.other, msg, list), color, texture, isEmphasized)
-			end
-			if sound then
-				if hasVoice and checkFlag(self, key, C.VOICE) then
-					self:SendMessage("BigWigs_Voice", self, key, sound)
-				else
-					self:SendMessage("BigWigs_Sound", self, key, sound)
-				end
-			end
+			self:NewTargetsMessage(key, color, player, #player, text, icon)
 			twipe(player)
 		else
-			if not player then
-				if checkFlag(self, key, C.MESSAGE) then
-					local isEmphasized = band(self.db.profile[key], C.EMPHASIZE) == C.EMPHASIZE
-					self:SendMessage("BigWigs_Message", self, key, format(L.other, msg, "???"), color, texture, isEmphasized)
-					if alwaysPlaySound then
-						self:SendMessage("BigWigs_Sound", self, key, sound)
-					end
-				end
-				return
-			end
-			if player == pName then
-				if checkFlag(self, key, C.MESSAGE) or checkFlag(self, key, C.ME_ONLY) then
-					local isEmphasized = band(self.db.profile[key], C.EMPHASIZE) == C.EMPHASIZE or band(self.db.profile[key], C.ME_ONLY_EMPHASIZE) == C.ME_ONLY_EMPHASIZE
-					self:SendMessage("BigWigs_Message", self, key, format(L.you, msg), "blue", texture, isEmphasized)
-					if sound then
-						if hasVoice and checkFlag(self, key, C.VOICE) then
-							self:SendMessage("BigWigs_Voice", self, key, sound, true)
-						else
-							self:SendMessage("BigWigs_Sound", self, key, sound)
-						end
-					end
-				end
-			else
-				if checkFlag(self, key, C.MESSAGE) and not checkFlag(self, key, C.ME_ONLY) then
-					local isEmphasized = band(self.db.profile[key], C.EMPHASIZE) == C.EMPHASIZE
-					-- Change color and remove sound (if not alwaysPlaySound) when warning about effects on other players
-					self:SendMessage("BigWigs_Message", self, key, format(L.other, msg, self:ColorName(player)), color, texture, isEmphasized)
-					if sound then
-						if alwaysPlaySound and hasVoice and checkFlag(self, key, C.VOICE) then
-							self:SendMessage("BigWigs_Voice", self, key, sound)
-						elseif alwaysPlaySound then
-							self:SendMessage("BigWigs_Sound", self, key, sound)
-						end
-					end
-				end
-			end
+			self:TargetMessage(key, color, player, text, icon)
 		end
 	end
 

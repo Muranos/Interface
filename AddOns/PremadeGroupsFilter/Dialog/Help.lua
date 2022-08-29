@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Premade Groups Filter
 -------------------------------------------------------------------------------
--- Copyright (C) 2020 Elotheon-Arthas-EU
+-- Copyright (C) 2022 Elotheon-Arthas-EU
 --
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -41,6 +41,7 @@ function PGF.Dialog_InfoButton_OnEnter(self, motion)
     AddDoubleWhiteUsingKey("ilvl")
     AddDoubleWhiteUsingKey("myilvl")
     AddDoubleWhiteUsingKey("hlvl")
+    AddDoubleWhiteUsingKey("pvprating")
     AddDoubleWhiteUsingKey("mprating")
     AddDoubleWhiteUsingKey("defeated")
     AddDoubleWhiteUsingKey("members")
@@ -57,13 +58,10 @@ function PGF.Dialog_InfoButton_OnEnter(self, motion)
     AddDoubleWhiteUsingKey("warmode")
     PGF.GameTooltip_AddWhite("boss/bossesmatching/... — " .. L["dialog.tooltip.seewebsite"])
     PGF.GameTooltip_AddDoubleWhite("priests/warriors/...", L["dialog.tooltip.classes"])
-    PGF.GameTooltip_AddDoubleWhite("normal/heroic", L["dialog.tooltip.difficulty"])
-    PGF.GameTooltip_AddWhite("mythic/mythicplus")
-    PGF.GameTooltip_AddDoubleWhite("ny/cn/...", L["dialog.tooltip.raids"])
-    PGF.GameTooltip_AddDoubleWhite("pf/dos/hoa/mots", L["dialog.tooltip.dungeons"])
+    PGF.GameTooltip_AddDoubleWhite("sfo/sod/cn/...", L["dialog.tooltip.raids"])
+    PGF.GameTooltip_AddDoubleWhite("taz/pf/dos/hoa/mots", L["dialog.tooltip.dungeons"])
     PGF.GameTooltip_AddWhite("sd/soa/nw/top")
-    PGF.GameTooltip_AddDoubleWhite("cos/votw/nl", L["dialog.tooltip.timewalking"])
-    PGF.GameTooltip_AddWhite("dht/eoa/brh")
+    PGF.GameTooltip_AddDoubleWhite("cos/votw/nl/dht/eoa/brh", L["dialog.tooltip.timewalking"])
     PGF.GameTooltip_AddDoubleWhite("arena2v2/arena3v3", L["dialog.tooltip.arena"])
     GameTooltip:AddLine(" ")
     GameTooltip:AddDoubleLine(L["dialog.tooltip.op.logic"], L["dialog.tooltip.example"])

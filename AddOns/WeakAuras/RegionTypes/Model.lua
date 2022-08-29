@@ -1,4 +1,4 @@
-if not WeakAuras.IsCorrectVersion() then return end
+if not WeakAuras.IsLibsOK() then return end
 local AddonName, Private = ...
 
 local SharedMedia = LibStub("LibSharedMedia-3.0");
@@ -40,7 +40,7 @@ local default = {
   borderOffset = 5,
   borderInset = 11,
   borderSize = 16,
-  borderBackdrop = "Blizzard Tooltip",
+  borderBackdrop = "Blizzard Tooltip"
 };
 
 local screenWidth, screenHeight = math.ceil(GetScreenWidth() / 20) * 20, math.ceil(GetScreenHeight() / 20) * 20;
@@ -79,14 +79,14 @@ local regionFunctions = {
 -- Called when first creating a new region/display
 local function create(parent)
   -- Main region
-  local region = CreateFrame("FRAME", nil, UIParent);
+  local region = CreateFrame("Frame", nil, UIParent);
   region.regionType = "model"
   region:SetMovable(true);
   region:SetResizable(true);
   region:SetMinResize(1, 1);
 
   -- Border region
-  local border = CreateFrame("frame", nil, region, BackdropTemplateMixin and "BackdropTemplate");
+  local border = CreateFrame("Frame", nil, region, "BackdropTemplate");
   region.border = border;
 
   WeakAuras.regionPrototype.create(region);
@@ -94,6 +94,8 @@ local function create(parent)
   for k, v in pairs (regionFunctions) do
     region[k] = v
   end
+
+  region.AnchorSubRegion = WeakAuras.regionPrototype.AnchorSubRegion
 
   -- Return complete region
   return region;
@@ -319,8 +321,11 @@ do
     end
     Private.StopProfileSystem("model");
   end
- end
+end
 
+local function validate(data)
+  Private.EnforceSubregionExists(data, "subbackground")
+end
 
 -- Register new region type with WeakAuras
-WeakAuras.RegisterRegionType("model", create, modify, default, GetProperties);
+WeakAuras.RegisterRegionType("model", create, modify, default, GetProperties, validate);

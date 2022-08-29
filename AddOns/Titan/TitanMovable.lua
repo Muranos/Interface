@@ -926,11 +926,15 @@ function Titan_Hook_Frames() -- UIParent_ManageFramePositions hook
 	Code from ActionBarController.lua ActionBarController_UpdateAll modified for Titan
 	This hook relies on _UpdateAll calling UIParent_ManageFramePositions near the end of its processing
 	--]]
-	-- If we have a skinned vehicle bar or skinned override bar, display the OverrideActionBar
+	-- If we have a skinned vehicle bar
+	--	or skinned override bar then likely the OverrideActionBar is active
+	-- If user does not want bottom bar adjust do not hide the bottom bar for vehicles.
+	-- When a user is using an action bar replacement (Bartender or ElvUI), hiding the bottom bar may not make sense.
 	if ((HasVehicleActionBar() and UnitVehicleSkin("player") and UnitVehicleSkin("player") ~= "")
-	or (HasOverrideActionBar() and GetOverrideBarSkin() and GetOverrideBarSkin() ~= 0)) then
+	or (HasOverrideActionBar() and GetOverrideBarSkin() and GetOverrideBarSkin() ~= 0)) 
+	or (TitanPanelGetVar("AuxScreenAdjust") == 1)
+	then -- Override bar in place; hide Titan bottom bar(s)
 		reason = reason.."skinned override bar"
-		-- Override bar in place; hide Titan bottom bar(s)
 		TitanPanelBarButton_HideBottomBars()
 		
 		-- Blizzard could have updated player frame or other

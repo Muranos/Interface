@@ -454,6 +454,7 @@ local spellRanks = {
 	{5484,  17928   },
 	{6229,  11739,  11740,  28610   },
 	{6353,  17924,  27211,  30545   },
+	{20707, 20762,  20763,  20764,  20765,  27239},
 
 	{19244, 19647   },
 	{19505, 19731,  19734,  19736,  27276,  27277   },
@@ -591,8 +592,6 @@ for k in pairs(E.spell_merged) do
 	E.spell_highlighted[k] = true
 end
 
-E.merged_buff_fix = BLANK
-
 E.spell_updateOnCast = {
 	[19244]  = { 24 },
 	[4511]   = { 10 },
@@ -718,6 +717,7 @@ E.cd_reduce_interrupts = BLANK
 E.runeforge_bonusToDescID = BLANK
 E.runeforge_specID = BLANK
 E.runeforge_descToPowerID = BLANK
+E.runeforge_unity = BLANK
 E.covenant_IDToSpellID = BLANK
 E.covenant_abilities = BLANK
 E.spell_benevolentFaeMajorCD = BLANK
@@ -842,8 +842,6 @@ E.item_setBonus = {
 	[28331] = { 44292,  4   },
 	[28332] = { 44292,  4   },
 	[28333] = { 44292,  4   },
-
-
 
 
 

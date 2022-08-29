@@ -1,25 +1,20 @@
 # AllTheThings
 
-## [SL-2.6.5](https://github.com/DFortun81/AllTheThings/tree/SL-2.6.5) (2021-12-20)
-[Full Changelog](https://github.com/DFortun81/AllTheThings/compare/SL-2.6.4...SL-2.6.5) [Previous Releases](https://github.com/DFortun81/AllTheThings/releases)
+## [SL-2.9.3](https://github.com/DFortun81/AllTheThings/tree/SL-2.9.3) (2022-08-22)
+[Full Changelog](https://github.com/DFortun81/AllTheThings/compare/SL-2.9.2...SL-2.9.3) [Previous Releases](https://github.com/DFortun81/AllTheThings/releases)
 
 
-### Highlights of this update
+### Achievement criteria fix
 
-#### Winter Veil (fixes) 🎄
+Last release incorrectly had achievement criterias marked as completed even when it wasn't the case. Hope you enjoyed your recent progress jump, but now it's gone!
 
-This is mainly a hotfix release to repair "You're a Mean One..." quest and "Stolen Present" rewards for Horde characters.
-
-- Fixed some Winter Veil quests that were broken for Horde (and maybe some for Alliance) in the last update, including "You're a Mean One...", "New Year Celebrations!" and "Winter's Presents".
-- Adjusted description for Winter Veil tailoring patterns.
-- Removed wrong yearly mark from many Winter Veil quests.
-
-Merry Christmas, everyone! 🎅
 
 ### Notable changes:
 
-- Fixed more missing Horde/Alliance quests (same as with "You're a Mean One...", this only affects quests that are identical for both factions but have different `questID`s).
-- BFA Arathi/Darkshore Rares for Horde sould be marked as complete more reliably now.
-- Fixed Brawler's Claws showing as available from the heirloom category.
-- "Incense of Infinity" will now show what conduits you are missing.
+- Added an automated message for tooltips which have Source information (a collectible Appearance) but fail to return a list of Sources for the Appearance, which notifies about potentially needing to Force-Refresh to be collected (typically happens for Fishing Poles, Mining Picks, etc.).
+- Added a bit of logic to make sure that unlearned Recipes are not cached for the current character when opening their profession list. Maybe this fixes the Shadowlands Ranks of armor? Not 100% sure.
+- Worked around some WoW restrictions that could apparently disconnect you from the game when we were requesting lots of quest data too quickly.
+- Updated various WotLK dungeons: Halls of Stone.
+- Some Season 4 content adjustments.
+- Fixed all Burning Crusade dungeons tracking of saved instances (green checkmark in your lists) for German locale.
 - Other fixes.

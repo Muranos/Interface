@@ -1,10 +1,10 @@
-tag ee4775b6f85bf747071b1df5d7a1b4e98c3d9709 v9.1.5.431
+tag 761ee7aad020e1b118e735c402e23d4c5d499d8c v9.2.5.438
 Author:	Tercio Jose <terciob19@hotmail.com>
-Date:	Thu Dec 23 13:40:55 2021 -0300
+Date:	Wed Jun 8 14:35:29 2022 -0300
 
-commit ceab396283e0e292c8337baac21d9b884f5c4323
+commit 6dc47a3aedaec812492ba5a7f9dfb3298964640c
 Author: Tercio Jose <terciob19@hotmail.com>
-Date:   Thu Dec 23 13:40:37 2021 -0300
+Date:   Wed Jun 8 14:35:14 2022 -0300
 
-    Bug fixes, framework update and added more faction reputations
+    Update on LibOpenRaid
 

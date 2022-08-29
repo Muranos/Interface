@@ -21,10 +21,9 @@ TITAN_PANEL_VARS.debug.events = false
 local _G = getfenv(0);
 local L = LibStub("AceLocale-3.0"):GetLocale(TITAN_ID, true)
 local media = LibStub("LibSharedMedia-3.0")
-local DDM = LibStub:GetLibrary("LibUIDropDownMenu-4.0")
 
 -- The LibUIDropDownMenu lib is used over the Blizzard frame
-local drop_down_1 = "L_DropDownList1" 
+local drop_down_1 = "DropDownList1" -- Boo!! Per hard-coded Blizz UIDropDownMenu.lua
 --
 -- The routines labeled API are useable by addon developers
 --
@@ -322,7 +321,7 @@ NAME: TitanUtils_Min
 DESC: Return the min of a or b
 VAR: a - a value
 VAR: b - a value
-OUT: 
+OUT:
 - value of min (a, b)
 --]]
 function TitanUtils_Min(a, b)
@@ -350,14 +349,14 @@ end
 NAME: TitanUtils_Round
 DESC: Return the nearest integer
 VAR: v - a value
-OUT: 
+OUT:
 - value of nearest integer
 --]]
 function TitanUtils_Round(v)
 	local f = math.floor(v)
-	if v == f then 
+	if v == f then
 		return f
-	else 
+	else
 		return math.floor(v + 0.5)
 	end
 end
@@ -636,6 +635,19 @@ function TitanUtils_GetColoredText(text, color) -- Used by plugins
 end
 
 --[[ API
+NAME: TitanUtils_GetHexText
+DESC: Make the given text a custom color.
+VAR: text - text to color
+VAR: hex - color as a 6 char hex code
+OUT: string - Custom color string with proper start and end font encoding
+--]]
+function TitanUtils_GetHexText(text, hex) -- Used by plugins
+	if (text and hex) then
+		return "|cff"..tostring(hex)..text.._G["FONT_COLOR_CODE_CLOSE"];
+	end
+end
+
+--[[ API
 NAME: TitanUtils_GetThresholdColor
 DESC: Flexable routine that returns the threshold color for a given value using a table as input.
 VAR: ThresholdTable - table holding the list of colors and values
@@ -689,12 +701,73 @@ function TitanUtils_ToString(text)
 	return TitanUtils_Ternary(text, text, "");
 end
 
---------------------------------------------------------------
---
--- Right click menu routines for plugins
--- The expected global function name in the plugin is:
--- "TitanPanelRightClickMenu_Prepare"..<registry.id>.."Menu"
---
+-------------------------------------------------
+--[[
+Right click menu routines for plugins
+The expected global function name in the plugin is:
+"TitanPanelRightClickMenu_Prepare"..<registry.id>.."Menu"
+
+This section abstracts the menu routines built into WoW.
+Over time Titan used the menu routines written by Blizzard and a lib under Ace3. Currently back to the Blizzard routines.
+Whenever there is a change to the menu routines, the abstractions allows us to update Utils rather than updating Titan using search & replace.
+--]]
+
+--[[ API
+NAME: TitanPanelRightClickMenu_GetDropdownLevel
+DESC: Menu - Get the current level in the menus.
+VAR: None
+OUT:  int - dropdown menu level
+--]]
+function TitanPanelRightClickMenu_GetDropdownLevel()
+	return UIDROPDOWNMENU_MENU_LEVEL
+end
+
+--[[ API
+NAME: TitanPanelRightClickMenu_GetDropdMenuValue
+DESC: Menu - Get the current value in the selected menu.
+VAR: None
+OUT:  int - dropdown menu value
+--]]
+function TitanPanelRightClickMenu_GetDropdMenuValue()
+	return UIDROPDOWNMENU_MENU_VALUE
+end
+
+--[[ API
+NAME: TitanPanelRightClickMenu_AddButton
+DESC: Menu - add given info (button) at the given level in the form of a button.
+VAR: info - text / button / command to show
+VAR: level - level to put text
+OUT:  None
+--]]
+function TitanPanelRightClickMenu_AddButton(info, level)
+    if (info) then
+        UIDropDownMenu_AddButton(info, level);
+    end
+end
+
+--[[ API
+NAME: TitanPanelRightClickMenu_AddToggleRightSide
+DESC: Menu - add a toggle Right Side (localized) command at the given level in the form of a button. Titan will properly control the "DisplayOnRightSide"
+VAR: id - id of the plugin
+VAR: level - level to put the line
+OUT:  None
+--]]
+function TitanPanelRightClickMenu_AddToggleRightSide(id, level)
+    -- copy of TitanPanelRightClickMenu_AddToggleVar adding a remove button
+    local info = {};
+    info.text = L["TITAN_CLOCK_MENU_DISPLAY_ON_RIGHT_SIDE"];
+    info.value = {id, "DisplayOnRightSide"};
+    info.func = function()
+        local bar = TitanUtils_GetWhichBar(id)
+        TitanPanelRightClickMenu_ToggleVar({id, "DisplayOnRightSide"})
+        TitanPanel_RemoveButton(id);
+        TitanUtils_AddButtonOnBar(bar, id)
+    end
+    info.checked = TitanGetVar(id, "DisplayOnRightSide");
+    info.keepShownOnClick = 1;
+    UIDropDownMenu_AddButton(info, level);
+end
+
 --[[ API
 NAME: TitanPanelRightClickMenu_AddTitle
 DESC: Menu - add a title at the given level in the form of a button.
@@ -709,7 +782,7 @@ function TitanPanelRightClickMenu_AddTitle(title, level)
 		info.notCheckable = true;
 		info.notClickable = true;
 		info.isTitle = 1;
-		DDM:UIDropDownMenu_AddButton(info, level);
+		UIDropDownMenu_AddButton(info, level);
 	end
 end
 
@@ -734,7 +807,17 @@ function TitanPanelRightClickMenu_AddCommand(text, value, functionName, level)
 			callback(value)
 		end
 	end
-	DDM:UIDropDownMenu_AddButton(info, level);
+	UIDropDownMenu_AddButton(info, level);
+end
+
+--[[ API
+NAME: TitanPanelRightClickMenu_AddSeparator
+DESC: Menu - add a line at the given level in the form of an inactive button.
+VAR: level - level to put the line
+OUT: None
+--]]
+function TitanPanelRightClickMenu_AddSeparator(level)
+	UIDropDownMenu_AddSeparator(level)
 end
 
 --[[ API
@@ -744,11 +827,7 @@ VAR: level - level to put the line
 OUT: None
 --]]
 function TitanPanelRightClickMenu_AddSpacer(level)
-	local info = {};
-	info.notCheckable = true;
-	info.notClickable = true;
-	info.disabled = 1;
-	DDM:UIDropDownMenu_AddButton(info, level);
+	UIDropDownMenu_AddSpace(level)
 end
 
 --[[ API
@@ -780,7 +859,7 @@ function TitanPanelRightClickMenu_AddToggleVar(text, id, var, toggleTable, level
 	end
 	info.checked = TitanGetVar(id, var);
 	info.keepShownOnClick = 1;
-	DDM:UIDropDownMenu_AddButton(info, level);
+	UIDropDownMenu_AddButton(info, level);
 end
 
 --[[ API
@@ -834,7 +913,7 @@ function TitanPanelRightClickMenu_AddHide(id, level)
 	info.func = function()
 		TitanPanelRightClickMenu_Hide(id)
 	end
-	DDM:UIDropDownMenu_AddButton(info, level);
+	UIDropDownMenu_AddButton(info, level);
 end
 
 --[[ API
@@ -893,6 +972,34 @@ OUT:  None
 function TitanPanelRightClickMenu_ToggleColoredText(value)
 	TitanToggleVar(value, "ShowColoredText");
 	TitanPanelButton_UpdateButton(value, 1);
+end
+
+--[[ API
+NAME: TitanPanelRightClickMenu_SetCustomBackdrop
+DESC: This will set the backdrop of the given button. This is used for custom created controls such as Clock offset or Volume sliders to give a consistent look.
+VAR: frame - the control frame of the plugin
+OUT:  None
+--]]
+function TitanPanelRightClickMenu_SetCustomBackdrop(frame)
+	frame:SetBackdrop({
+		bgFile="Interface\\Tooltips\\UI-Tooltip-Background",
+		edgeFile="Interface\\Tooltips\\UI-Tooltip-Border",
+		tile = true,
+		tileEdge = true,
+		insets = { left = 1, right = 1, top = 1, bottom = 1 },
+		tileSize = 8,
+		edgeSize = 8,
+	})
+
+	frame:SetBackdropBorderColor(
+		TOOLTIP_DEFAULT_COLOR.r,
+		TOOLTIP_DEFAULT_COLOR.g,
+		TOOLTIP_DEFAULT_COLOR.b);
+	frame:SetBackdropColor(
+		TOOLTIP_DEFAULT_BACKGROUND_COLOR.r,
+		TOOLTIP_DEFAULT_BACKGROUND_COLOR.g,
+		TOOLTIP_DEFAULT_BACKGROUND_COLOR.b
+		, 1);
 end
 
 --------------------------------------------------------------
@@ -1024,7 +1131,7 @@ function TitanUtils_GetFirstButtonOnBar(bar, side)
 	for i, id in pairs(TitanPanelSettings.Buttons) do
 		if TitanUtils_GetWhichBar(id) == bar
 		and i > index
-		and TitanPanel_GetPluginSide(id) == side 
+		and TitanPanel_GetPluginSide(id) == side
 		and TitanUtils_IsPluginRegistered(id) then
 			return i;
 		end
@@ -1034,7 +1141,7 @@ end
 --[[ Titan
 NAME: TitanUtils_ShiftButtonOnBarLeft
 DESC: Find the button that is on the bar and is on the side and left of the given button
-VAR: 
+VAR:
 - name - id of the plugin
 OUT:  None
 --]]
@@ -1063,7 +1170,7 @@ end
 --[[ Titan
 NAME: TitanUtils_ShiftButtonOnBarRight
 DESC: Find the button that is on the bar and is on the side and right of the given button
-VAR: 
+VAR:
 - name - id of the plugin
 OUT:  None
 --]]
@@ -1173,7 +1280,7 @@ end
 --[[ Titan
 NAME: TitanUtils_PluginToRegister
 DESC: Place the plugin to be registered later by Titan
-VAR: 
+VAR:
 - self - frame of the plugin (must be a Titan template)
 - isChildButton - true if the frame is a child of a Titan frame
 OUT:  None
@@ -1210,18 +1317,18 @@ function TitanUtils_PluginToRegister(self, isChildButton)
 		plugin_type = "",
 		notes = notes,
 	}
-	
+
 	--[[ For updated menu lib (Dec 2018)
 	Old way was to use the XML file to declare the frame, now it needs to be in Lua
 	<Frame name="$parentRightClickMenu" inherits="L_UIDropDownMenuTemplate" id="1" hidden="true"></Frame>
 	--]]
-	local f = DDM:Create_UIDropDownMenu(self:GetName().."RightClickMenu", self)
+	local f = CreateFrame("Frame", self:GetName().."RightClickMenu", self or nil, "UIDropDownMenuTemplate")
 end
 
 --[[ Titan
 NAME: TitanUtils_PluginFail
 DESC: Place the plugin to be registered later by Titan
-VAR: 
+VAR:
 - plugin - frame of the plugin (must be a Titan template)
 OUT:  None
 NOTE:
@@ -1246,12 +1353,22 @@ function TitanUtils_PluginFail(plugin)
 		}
 end
 
+local function NoColor(name)
+	local no_color = name
+	
+	-- Remove any color formatting from the name in the list
+	no_color = string.gsub(no_color, "|c........", "")
+	no_color = string.gsub(no_color, "|r", "")
+	
+	return no_color
+end
+
 --[[ local
 NAME: TitanUtils_RegisterPluginProtected
 DESC: This routine is intended to be called in a protected manner (pcall) by Titan when it attempts to register a plugin.
-VAR: 
+VAR:
 - plugin - frame of the plugin (must be a Titan template)
-OUT: 
+OUT:
 - table
 	.issue	: Show the user what prevented the plugin from registering
 	.result	: Used so we know which plugins were processed
@@ -1297,11 +1414,28 @@ local function TitanUtils_RegisterPluginProtected(plugin)
 				else
 					-- A sanity check just in case it was already in the list
 					if (not TitanUtils_TableContainsValue(TitanPluginsIndex, id)) then
+						-- Herein lies any special per plugin variables Titan wishes to control
+						-- These will be overwritten from saved vars, if any
+						--
+						-- Sanity check
+						if self.registry.savedVariables then
+							-- Custom labels
+							self.registry.savedVariables.CustomLabelTextShow = false
+							self.registry.savedVariables.CustomLabelText = ""
+						end
+
 						-- Assign and Sort the list of plugins
 						TitanPlugins[id] = self.registry;
+						-- Set the name used for menus
+						if TitanPlugins[id].menuText == nil then
+							TitanPlugins[id].menuText = TitanPlugins[id].id;
+						end
+						TitanPlugins[id].menuText = NoColor(TitanPlugins[id].menuText)
+						
 						table.insert(TitanPluginsIndex, self.registry.id);
 						table.sort(TitanPluginsIndex,
 							function(a, b)
+--[[
 								-- if the .menuText is missing then use .id
 								if TitanPlugins[a].menuText == nil then
 									TitanPlugins[a].menuText = TitanPlugins[a].id;
@@ -1309,6 +1443,7 @@ local function TitanUtils_RegisterPluginProtected(plugin)
 								if TitanPlugins[b].menuText == nil then
 									TitanPlugins[b].menuText = TitanPlugins[b].id;
 								end
+--]]
 								return string.lower(TitanPlugins[a].menuText)
 									< string.lower(TitanPlugins[b].menuText);
 							end
@@ -1370,7 +1505,7 @@ end
 --[[ Titan
 NAME: TitanUtils_RegisterPlugin
 DESC: Attempt to register a plugin that has requested to be registered
-VAR: 
+VAR:
 - plugin - frame of the plugin (must be a Titan template)
 OUT:  None
 NOTE:
@@ -1462,7 +1597,7 @@ end
 --[[ API
 NAME: TitanUtils_IsPluginRegistered
 DESC: See if the given plugin was registered successfully.
-VAR: 
+VAR:
 - id - id of the plugin
 OUT:  None
 - true (successful) or false
@@ -1494,7 +1629,7 @@ end
 NAME: TitanRightClick_UIScale
 DESC: Scale the right click menu to the user requested value.
 VAR:  None
-OUT: 
+OUT:
 - float - x scaled
 - float - y scaled
 - float - scale used
@@ -1530,7 +1665,7 @@ end
 --[[ local
 NAME: TitanRightClickMenu_OnLoad
 DESC: Prepare the plugin right click menu using the function given by the plugin.
-VAR: 
+VAR:
 - plugin - frame of the plugin (must be a Titan template)
 OUT:  None
 NOTE:
@@ -1542,7 +1677,7 @@ local function TitanRightClickMenu_OnLoad(self)
 	if id then
 		local prepareFunction = _G["TitanPanelRightClickMenu_Prepare"..id.."Menu"]
 		if prepareFunction and type(prepareFunction) == "function" then
-			DDM:UIDropDownMenu_Initialize(self, prepareFunction, "MENU");
+			UIDropDownMenu_Initialize(self, prepareFunction, "MENU");
 		end
 	else
 		-- TitanDebug("Could not display tooltip. "
@@ -1555,7 +1690,7 @@ end
 --[[ local
 NAME: TitanDisplayRightClickMenu_OnLoad
 DESC: Prepare the Titan bar right click menu using the given function.
-VAR: 
+VAR:
 - self - frame of the Titan bar
 - func - function to create the menu
 OUT:  None
@@ -1574,14 +1709,14 @@ local function TitanDisplayRightClickMenu_OnLoad(self, func)
 		-- not good practice but there seems to be no other way to get
 		-- the actual bar (frame parent) to the dropdown implementation
 		TitanPanel_DropMenu = self
-		DDM:UIDropDownMenu_Initialize(self, prepareFunction, "MENU");
+		UIDropDownMenu_Initialize(self, prepareFunction, "MENU");
 	end
 end
 
 --[[ local
 NAME: TitanPanelRightClickMenu_Toggle
 DESC: Call the routine to build the plugin menu then place it properly.
-VAR: 
+VAR:
 - self - frame of the plugin (must be a Titan template)
 - isChildButton - function to create the menu
 OUT:  None
@@ -1624,13 +1759,13 @@ function TitanPanelRightClickMenu_Toggle(self, isChildButton)
 
 	x, y, scale = TitanRightClick_UIScale()
 
-	DDM:ToggleDropDownMenu(1, nil, menu, frame, TitanUtils_Max(x - 40, 0), 0, nil, self);
+	ToggleDropDownMenu(1, nil, menu, frame, TitanUtils_Max(x - 40, 0), 0, nil, self);
 end
 
 --[[ Titan
 NAME: TitanPanelDisplayRightClickMenu_Toggle
 DESC: Call the routine to build the Titan bar menu then place it properly.
-VAR: 
+VAR:
 - self - frame of the Titan bar
 - isChildButton - function to create the menu
 OUT:  None
@@ -1656,7 +1791,7 @@ function TitanPanelDisplayRightClickMenu_Toggle(self, isChildButton)
 	local menu
 
 	-- Per updated menu lib LibUIDropDownMenu Dec 2018
-	-- This could have been done in some initialize code but here it can react 
+	-- This could have been done in some initialize code but here it can react
 	-- better to future Titan frame code changes
 	local desired_frame = frame.."RightClickMenu"
 	if _G[desired_frame] then
@@ -1664,10 +1799,10 @@ function TitanPanelDisplayRightClickMenu_Toggle(self, isChildButton)
 	else
 		-- need to create the frame
 		-- The _G is needed but it is explicit & shows what needs to done
-		_G[desired_frame] = DDM:Create_UIDropDownMenu(desired_frame, self)
+		_G[desired_frame] = CreateFrame("Frame", desired_frame, self or nil, "UIDropDownMenuTemplate")
 	end
 	menu = _G[desired_frame];
-	
+
 	-- Initialize the DropDown Menu if not already initialized
 	TitanDisplayRightClickMenu_OnLoad(menu, "TitanPanelRightClickMenu_PrepareBarMenu")
 
@@ -1681,14 +1816,14 @@ function TitanPanelDisplayRightClickMenu_Toggle(self, isChildButton)
 
 	x, y, scale = TitanRightClick_UIScale()
 
-	DDM:ToggleDropDownMenu(1, nil, menu, frame, TitanUtils_Max(x - 40, 0), 0, nil, self)
+	ToggleDropDownMenu(1, nil, menu, frame, TitanUtils_Max(x - 40, 0), 0, nil, self)
 end
 
 --[[ Titan
 NAME: TitanPanelRightClickMenu_IsVisible
 DESC: Determine if a right click menu is shown. There can only be one.
 VAR:  None
-OUT: 
+OUT:
 - true (IsVisible) or false
 --]]
 function TitanPanelRightClickMenu_IsVisible()
@@ -1719,9 +1854,9 @@ end
 --[[ Titan
 NAME: TitanUtils_ParseName
 DESC: Parse the player name and return the parts.
-VAR: 
+VAR:
 - name - the name to break up
-OUT: 
+OUT:
 - string player name only
 - string realm name only
 --]]
@@ -1742,10 +1877,10 @@ end
 --[[ Titan
 NAME: TitanUtils_CreateName
 DESC: Given the player name and server and return the Titan name.
-VAR: 
+VAR:
 - player - 1st part
 - realm - 2nd part. Could be realm or 'custom'
-OUT: 
+OUT:
 - string - Titan name
 --]]
 function TitanUtils_CreateName(player, realm)
@@ -1759,7 +1894,7 @@ end
 NAME: TitanUtils_GetPlayer
 DESC: Create the player name (toon being played) and return the parts.
 VAR:  None
-OUT: 
+OUT:
 - string Titan player name or nil
 - string player name only
 - string realm name only
@@ -1771,8 +1906,6 @@ function TitanUtils_GetPlayer()
 
 	if (playerName == nil
 	or serverName == nil
---	Removed the following because people are using "Unknown" as a character name.
---	or playerName == UNKNOWNOBJECT
 	or playerName == UKNOWNBEING) then
 		-- Do nothing if player name is not available
 	else
@@ -1786,7 +1919,7 @@ end
 NAME: TitanUtils_GetGlobalProfile
 DESC: Return the global profile setting and the global profile name, if any.
 VAR:  None
-OUT: 
+OUT:
 - bool Global profile value
 - string Global profile name or default
 - string player name only or blank
@@ -1816,7 +1949,7 @@ end
 --[[ Titan
 NAME: TitanUtils_SetGlobalProfile
 DESC: Return the global profile setting and the global profile name, if any.
-VAR: 
+VAR:
 - bool Global profile value
 - string Global profile name or default
 OUT:  None
@@ -1846,7 +1979,7 @@ end
 NAME: TitanPanel_GetVersion
 DESC: Get the Titan version into a string.
 VAR:  None
-OUT: 
+OUT:
 - string containing the version
 --]]
 function TitanPanel_GetVersion()
@@ -1855,10 +1988,10 @@ end
 --[[ Titan
 NAME: TitanPrint
 DESC: Output a message to the user in a consistent format.
-VAR: 
+VAR:
 - message - string to output
 - msg_type - "info" | "warning" | "error" | "plain"
-OUT: 
+OUT:
 - string - message to chat window
 --]]
 function TitanPrint(message, msg_type)

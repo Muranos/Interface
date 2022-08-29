@@ -10,13 +10,62 @@ _G["AllTheThings"] = app;
 app.asset = function(path)
 	return "Interface\\Addons\\AllTheThings\\assets\\" .. path;
 end
+-- Consolidated debug-only print with preceding precise timestamp
+app.PrintDebug = function(...)
+	app.DEBUG_PRINT_LAST = GetTimePreciseSec();
+	if app.DEBUG_PRINT then print(GetTimePreciseSec(),...) end
+end
+-- Consolidated debug-only print with precise frame duration since last successful print
+app.PrintDebugPrior = function(...)
+	if app.DEBUG_PRINT then
+		if app.DEBUG_PRINT_LAST then
+			local frames = math.ceil((GetTimePreciseSec() - app.DEBUG_PRINT_LAST) / 0.000166666) / 100;
+			print("@60",frames,...)
+		else
+			print(0,...)
+		end
+		app.DEBUG_PRINT_LAST = GetTimePreciseSec();
+	end
+end
+--[[ Performance Tracking section ]
+(function()
+	app.__perf = {};
+	app.PrintPerf = function()
+		local h = app.__perf;
+		if h then
+			local blob, line = {}, {};
+			for type,typeData in pairs(h) do
+				for k,v in pairs(typeData) do
+					if not k:find("_Time") then
+						line[1] = type;
+						line[2] = k;
+						line[3] = v;
+						line[4] = typeData[k.."_Time"];
+						tinsert(blob, table.concat(line, ","))
+					end
+				end
+			end
+			local csv = table.concat(blob, "\n");
+			app:ShowPopupDialogWithMultiLineEditBox(csv);
+		end
+	end
+	app.ClearPerf = function()
+		local h = app.__perf;
+		if h then
+			for _,typeData in pairs(h) do
+				wipe(typeData);
+			end
+		end
+		app.print("Cleared Performance Stats");
+	end
+end)(); --]]
 -- app.DEBUG_PRINT = true;
 
 -- Create an Event Processor.
 local events = {};
 local _ = CreateFrame("FRAME", nil, UIParent, BackdropTemplateMixin and "BackdropTemplate");
 _:SetScript("OnEvent", function(self, e, ...)
--- if app.DEBUG_PRINT then print(GetTimePreciseSec(),e, ...) end
+-- app.PrintDebug(e,...);
 (rawget(events, e) or print)(...); end);
 _:SetPoint("BOTTOMLEFT", UIParent, "TOPLEFT", 0, 0);
 _:SetSize(1, 1);
@@ -40,11 +89,11 @@ app.SetScript = function(self, ...)
 		_:SetScript(scriptName, nil);
 	end
 end
+-- Setup the callback tables since they are heavily used
+app.__callbacks = {};
+app.__combatcallbacks = {};
 -- Triggers a timer callback method to run on the next game frame with the provided params; the method can only be set to run once per frame
 local function Callback(method, ...)
-	if not app.__callbacks then
-		app.__callbacks = {};
-	end
 	if not app.__callbacks[method] then
 		app.__callbacks[method] = ... and {...} or true;
 		-- print("Callback:",method, ...)

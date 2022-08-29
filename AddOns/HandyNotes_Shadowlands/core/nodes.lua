@@ -81,12 +81,12 @@ Return the glow POI for this node. If the node is hovered or focused, a green
 glow is applyed to help highlight the node.
 --]]
 
-function Node:GetGlow(mapID, minimap)
-    if self.glow and (self._focus or self._hover) then
+function Node:GetGlow(mapID, minimap, focused)
+    if self.glow then
         local _, scale, alpha = self:GetDisplayInfo(mapID, minimap)
         self.glow.alpha = alpha
         self.glow.scale = scale
-        if self._focus then
+        if focused then
             self.glow.r, self.glow.g, self.glow.b = 0, 1, 0
         else
             self.glow.r, self.glow.g, self.glow.b = 1, 1, 0
@@ -293,7 +293,9 @@ function Node:Render(tooltip, focusable)
     -- additional text for the node to describe how to interact with the
     -- object or summon the rare
     if self.note and ns:GetOpt('show_notes') then
-        if self.requires or self.sublabel then tooltip:AddLine(' ') end
+        if self.requires or self.sublabel then
+            GameTooltip_AddBlankLineToTooltip(tooltip)
+        end
         tooltip:AddLine(ns.RenderLinks(self.note), 1, 1, 1, true)
     end
 
@@ -307,15 +309,33 @@ function Node:Render(tooltip, focusable)
             local isAchieve = IsInstance(reward, ns.reward.Achievement)
             local isSpacer = IsInstance(reward, ns.reward.Spacer)
             if isAchieve and firstAchieve then
-                tooltip:AddLine(' ')
+                GameTooltip_AddBlankLineToTooltip(tooltip)
                 firstAchieve = false
             elseif not (isAchieve or isSpacer) and firstOther then
-                tooltip:AddLine(' ')
+                GameTooltip_AddBlankLineToTooltip(tooltip)
                 firstOther = false
             end
 
             reward:Render(tooltip)
         end
+    end
+
+    if self.spellID then
+        local spell = Spell:CreateFromSpellID(self.spellID)
+        self.cancelSpellDataCallback = spell:ContinueWithCancelOnSpellLoad(
+            function()
+                GameTooltip_AddBlankLineToTooltip(tooltip)
+                EmbeddedItemTooltip_SetSpellWithTextureByID(tooltip.ItemTooltip,
+                    self.spellID, spell:GetSpellTexture())
+                self.cancelSpellDataCallback = nil
+            end);
+    end
+end
+
+function Node:Unrender(tooltip)
+    if self.cancelSpellDataCallback then
+        self.cancelSpellDataCallback()
+        self.cancelSpellDataCallback = nil
     end
 end
 
@@ -366,6 +386,40 @@ function Intro.getters:label()
     end
     return UNKNOWN
 end
+
+-------------------------------------------------------------------------------
+------------------------------------ ITEM -------------------------------------
+-------------------------------------------------------------------------------
+
+local Item = Class('Item', Node, {icon = 454046})
+
+function Item:Initialize(attrs)
+    Node.Initialize(self, attrs)
+    if not self.id then error('id required for Item nodes') end
+
+    if not self.icon then
+        self.icon = 454046 -- temp loading icon
+        local item = _G.Item:CreateFromItemID(self.id)
+        if not item:IsItemEmpty() then
+            item:ContinueOnItemLoad(function()
+                self.icon = item:GetItemIcon()
+            end)
+        end
+    end
+end
+
+function Item:IsCompleted()
+    if ns.PlayerHasItem(self.id) then return true end
+    return Node.IsCompleted(self)
+end
+
+function Item:Render(tooltip, focusable)
+    Node.Render(self, tooltip, focusable)
+    GameTooltip_AddBlankLineToTooltip(tooltip)
+    EmbeddedItemTooltip_SetItemByID(tooltip.ItemTooltip, self.id)
+end
+
+function Item.getters:label() return ('{item:%d}'):format(self.id) end
 
 -------------------------------------------------------------------------------
 ------------------------------------- NPC -------------------------------------
@@ -422,19 +476,6 @@ function Rare:IsEnabled()
     return NPC.IsEnabled(self)
 end
 
-function Rare:GetGlow(mapID, minimap)
-    local glow = NPC.GetGlow(self, mapID, minimap)
-    if glow then return glow end
-
-    if _G['HandyNotes_ZarPluginsDevelopment'] and not self.quest then
-        local _, scale, alpha = self:GetDisplayInfo(mapID, minimap)
-        self.glow.alpha = alpha
-        self.glow.scale = scale
-        self.glow.r, self.glow.g, self.glow.b = 1, 0, 0
-        return self.glow
-    end
-end
-
 -------------------------------------------------------------------------------
 ---------------------------------- TREASURE -----------------------------------
 -------------------------------------------------------------------------------
@@ -455,25 +496,13 @@ function Treasure.getters:label()
     return UNKNOWN
 end
 
-function Treasure:GetGlow(mapID, minimap)
-    local glow = Node.GetGlow(self, mapID, minimap)
-    if glow then return glow end
-
-    if _G['HandyNotes_ZarPluginsDevelopment'] and not self.quest then
-        local _, scale, alpha = self:GetDisplayInfo(mapID, minimap)
-        self.glow.alpha = alpha
-        self.glow.scale = scale
-        self.glow.r, self.glow.g, self.glow.b = 1, 0, 0
-        return self.glow
-    end
-end
-
 -------------------------------------------------------------------------------
 
 ns.node = {
     Node = Node,
     Collectible = Collectible,
     Intro = Intro,
+    Item = Item,
     NPC = NPC,
     PetBattle = PetBattle,
     Quest = Quest,

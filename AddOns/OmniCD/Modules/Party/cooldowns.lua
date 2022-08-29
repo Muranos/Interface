@@ -25,7 +25,7 @@ function OmniCD_CooldownOnHide(self)
 		return
 	end
 
-	-- End ResetAllIcons
+
 
 	local maxcharges = icon.maxcharges
 	local charges = active.charges
@@ -79,7 +79,7 @@ function P:ResetCooldown(icon)
 		return
 	end
 
-	if spellID == 45438 and E.db.icons.showForbearanceCounter then -- Hypothermia by Cold Snap
+	if spellID == 45438 and E.db.icons.showForbearanceCounter then
 		local timeLeft = self:GetDebuffDuration(info.unit, 41425)
 		if timeLeft then
 			self:StartCooldown(icon, timeLeft, nil, true)
@@ -94,9 +94,9 @@ function P:ResetCooldown(icon)
 		charges = charges + 1
 		icon.Count:SetText(charges)
 		icon.cooldown:SetDrawSwipe(false)
-		icon.cooldown:SetHideCountdownNumbers(true) -- [11]*
+		icon.cooldown:SetHideCountdownNumbers(true)
 		active.charges = charges
-		if charges == 1 and statusBar and not E.db.extraBars[statusBar.key].hideBar then -- switch to recharge color
+		if charges == 1 and statusBar and not E.db.extraBars[statusBar.key].hideBar then
 			local castingBar = statusBar.CastingBar
 			local startColor, startBGColor, startTextColor = P.CastingBarFrame_GetEffectiveStartColor(castingBar, true);
 			castingBar:SetStatusBarColor(startColor:GetRGBA())
@@ -111,11 +111,13 @@ function P:ResetCooldown(icon)
 	end
 end
 
+
+
 local minDuration = E.TocVersion > 90100 and 120 or 180
 function P:ResetAllIcons(reason)
 	for _, info in pairs(self.groupInfo) do
-		for spellID, icon in pairs(info.spellIcons) do -- iterate all, incl extraBars
-			if reason ~= "encounterEnd" or (not E.spell_noReset[spellID] and icon.duration >= minDuration) then -- Patch 9.1.5 cd 180>120s
+		for spellID, icon in pairs(info.spellIcons) do
+			if reason ~= "encounterEnd" or (not E.spell_noReset[spellID] and icon.duration >= minDuration) then
 				local statusBar = icon.statusBar
 				if icon.active then
 					local maxcharges = icon.maxcharges
@@ -123,8 +125,8 @@ function P:ResetAllIcons(reason)
 						icon.Count:SetText(maxcharges)
 					end
 
-					info.active[spellID] = nil -- before Clear to stop mid OmniCD_CooldownOnHide
-					icon.active = nil -- before RemoveHighlight to end mid func
+					info.active[spellID] = nil
+					icon.active = nil
 					if not info.isDeadOrOffline then
 						icon.icon:SetDesaturated(false)
 					end
@@ -141,10 +143,6 @@ function P:ResetAllIcons(reason)
 				end
 
 				if info.preActiveIcons[spellID] then
-					if spellID == 323436 and info.bar.timer_inCombatTicker then
-						info.bar.timer_inCombatTicker:Cancel()
-					end
-
 					info.preActiveIcons[spellID] = nil
 					if statusBar then
 						self:SetExStatusBarColor(icon, statusBar.key)
@@ -161,6 +159,16 @@ function P:ResetAllIcons(reason)
 					icon.Count:SetText("")
 				end
 			end
+		end
+
+		local f = info.bar
+		if f.timer_inCombatTicker then
+			f.timer_inCombatTicker:Cancel()
+			f.timer_inCombatTicker = nil
+		end
+		if f.timer_ashenHallowTicker then
+			f.timer_ashenHallowTicker:Cancel()
+			f.timer_ashenHallowTicker = nil
 		end
 
 		if not self.displayInactive then
@@ -185,7 +193,7 @@ function P:SetCooldownElements(icon, charges, highlight)
 end
 
 local function SetActiveIcon(icon, startTime, duration, charges, modRate)
-	if E.OmniCC then -- [11] haxx for OmniCC
+	if E.OmniCC then
 		if not P:HighlightIcon(icon) then
 			P:SetCooldownElements(icon, charges)
 		end
@@ -194,7 +202,7 @@ local function SetActiveIcon(icon, startTime, duration, charges, modRate)
 	icon.cooldown:SetCooldown(startTime, duration, modRate)
 end
 
-function P:UpdateCooldown(icon, reducedTime, updateUnitBarCharges, mult)
+function P:UpdateCooldown(icon, reducedTime, updateUnitBarCharges, auraMult)
 	local info = self.groupInfo[icon.guid]
 	if not info then
 		return
@@ -208,19 +216,26 @@ function P:UpdateCooldown(icon, reducedTime, updateUnitBarCharges, mult)
 
 	local startTime = active.startTime
 	local duration = active.duration
+
+
 	local modRate = info.modRate or 1
 	if BOOKTYPE_CATEGORY[icon.category] then
-		local majorCD = spell_symbolOfHopeMajorCD[spellID]
-		if majorCD and (majorCD == true or majorCD == info.spec) and info.auras.symbol then
-			modRate = modRate * info.auras.symbol
+		if spellID == 329042 then
+			if info.auras[spellID] then
+				modRate = modRate * 5
+			end
+		else
+			local majorCD = spell_symbolOfHopeMajorCD[spellID]
+			if majorCD and (majorCD == true or majorCD == info.spec) and info.auras.symbol then
+				modRate = modRate * info.auras.symbol
+			end
+			majorCD = spell_benevolentFaeMajorCD[spellID]
+			if majorCD and (majorCD == true or majorCD == info.spec) and info.auras.benevolent then
+				modRate = modRate * info.auras.benevolent
+			end
 		end
-		majorCD = spell_benevolentFaeMajorCD[spellID]
-		if majorCD and (majorCD == true or majorCD == info.spec) and info.auras.benevolent then
-			modRate = modRate * info.auras.benevolent
-		end
-		if spellID == 300728 and info.auras.intimidation then
-			modRate = modRate * info.auras.intimidation
-		end
+	elseif spellID == 300728 and info.auras.intimidation then
+		modRate = 1/3
 	end
 
 	local statusBar = icon.statusBar
@@ -233,23 +248,24 @@ function P:UpdateCooldown(icon, reducedTime, updateUnitBarCharges, mult)
 			icon:SetAlpha(E.db.icons.activeAlpha)
 		end
 
-		icon.cooldown:SetCooldown(startTime, duration, modRate) -- startTime/duration has modrate multipliers already applied
+		icon.cooldown:SetCooldown(startTime, duration, modRate)
 		icon.active = true
 
 		return
 	end
 
-	if modRate then
-		-- 8.3 Ineffible Truth was broken since the reduce time wasn't adjusted for increased modRate, so Judgments 10s cdr on HoJ was 20s with 100% IT
-		-- 9.X Blessing of Autumn, Symbol of Hope adjusts cdr for increased modrate
-		reducedTime = reducedTime * modRate
-	end
 
-	if mult then
+
+
+	reducedTime = reducedTime * modRate
+
+
+
+	if auraMult then
 		local now = GetTime()
-		startTime = now - (now - startTime) * mult
-		duration = duration * mult
-		reducedTime = reducedTime * mult -- doesn't exist yet
+		startTime = now - (now - startTime) * auraMult
+		duration = duration * auraMult
+		reducedTime = reducedTime * auraMult
 	end
 
 	startTime = startTime - reducedTime
@@ -264,6 +280,7 @@ function P:UpdateCooldown(icon, reducedTime, updateUnitBarCharges, mult)
 	icon.cooldown:SetCooldown(startTime, duration, modRate)
 	active.startTime = startTime
 	active.duration = duration
+	active.totRate = modRate ~= 1 and modRate
 
 	if statusBar then
 		self.OmniCDCastingBarFrame_OnEvent(statusBar.CastingBar, E.db.extraBars[statusBar.key].reverseFill and "UNIT_SPELLCAST_CHANNEL_UPDATE" or "UNIT_SPELLCAST_CAST_UPDATE")
@@ -284,24 +301,32 @@ function P:StartCooldown(icon, cd, recharge, noGlow)
 	local charges = active.charges or icon.maxcharges
 	local now = GetTime()
 
+
 	local modRate = info.modRate or 1
-	if BOOKTYPE_CATEGORY[icon.category] or icon.category == "COVENANT" then
-		local majorCD = spell_symbolOfHopeMajorCD[spellID]
-		if majorCD and (majorCD == true or majorCD == info.spec) and info.auras.symbol then
-			modRate = modRate * info.auras.symbol
-		end
-		majorCD = spell_benevolentFaeMajorCD[spellID]
-		if majorCD and (majorCD == true or majorCD == info.spec) and info.auras.benevolent then
-			modRate = modRate * info.auras.benevolent
-		end
-		if spellID == 300728 and info.auras.intimidation then
-			modRate = modRate * info.auras.intimidation
+	if BOOKTYPE_CATEGORY[icon.category] then
+
+		if spellID == 329042 then
+			if info.auras[spellID] then
+				modRate = modRate * 5
+			end
+		else
+			local majorCD = spell_symbolOfHopeMajorCD[spellID]
+			if majorCD and (majorCD == true or majorCD == info.spec) and info.auras.symbol then
+				modRate = modRate * info.auras.symbol
+			end
+			majorCD = spell_benevolentFaeMajorCD[spellID]
+			if majorCD and (majorCD == true or majorCD == info.spec) and info.auras.benevolent then
+				modRate = modRate * info.auras.benevolent
+			end
 		end
 
-		cd = cd * modRate -- adjust cd only as it doesn't affect startTime, since startTime is 'now' and elapsed time is 0
+	elseif spellID == 300728 and info.auras.intimidation then
+		modRate = 1/3
 	end
+	cd = cd * modRate
 
-	local auraMult = spell_cdmod_aura_temp[spellID] -- moved from CLEU, since we need to apply to recharge as well
+
+	local auraMult = spell_cdmod_aura_temp[spellID]
 	if auraMult and info.auras[auraMult[3]] then
 		cd = cd * auraMult[2]
 	end
@@ -337,6 +362,8 @@ function P:StartCooldown(icon, cd, recharge, noGlow)
 
 	active.startTime = now
 	active.duration = cd
+	active.totRate = modRate ~= 1 and modRate
+
 	if selfLimitedMinMaxReducer[spellID] then
 		active.numHits = 0
 	end
@@ -346,7 +373,7 @@ function P:StartCooldown(icon, cd, recharge, noGlow)
 	local bar = icon:GetParent():GetParent()
 	local key = bar.key
 	if type(key) == "number" then
-		icon:SetAlpha(E.db.icons.activeAlpha) -- TODO: Set alpha inside highlighting (check if timer skins behave)
+		icon:SetAlpha(E.db.icons.activeAlpha)
 		if not self.displayInactive then
 			self:SetIconLayout(bar)
 		end
@@ -372,11 +399,11 @@ function P:StartCooldown(icon, cd, recharge, noGlow)
 			self:SetGlow(icon)
 		end
 
-		if not E.OmniCC then -- [11]
+		if not E.OmniCC then
 			self:SetCooldownElements(icon, charges)
 		end
 
-		if not info.isDeadOrOffline then -- for preactives starting CD by CLEU when unit dies
+		if not info.isDeadOrOffline then
 			icon.icon:SetDesaturated(E.db.icons.desaturateActive and (not charges or charges == 0))
 		end
 	end

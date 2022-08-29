@@ -1,9 +1,9 @@
 ﻿-- Pawn by Vger-Azjol-Nerub
 -- www.vgermods.com
--- © 2006-2021 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
+-- © 2006-2022 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
 -- See Readme.htm for more information.
 
--- 
+--
 -- UI strings
 ------------------------------------------------------------
 
@@ -67,9 +67,8 @@ local PawnStatsUnfiltered =
 	{ITEM_MOD_BLOCK_VALUE_SHORT, "BlockValue", L.BlockValueInfo, PawnStatNormal, nil, { PawnStatClassic = true, PawnStatBurningCrusade = true }},
 	{ITEM_MOD_RESILIENCE_RATING_SHORT, "ResilienceRating", L.ResilienceInfo, PawnStatNormal, nil, { PawnStatBurningCrusade = true }},
 
-	{L.Sockets, nil, nil, nil, nil, { PawnStatBurningCrusade = true, PawnStatModern = true }},
+	{L.Sockets, nil, nil, nil, nil, { PawnStatBurningCrusade = true }},
 	{EMPTY_SOCKET_META, "MetaSocketEffect", L.MetaSocketEffectInfo, PawnStatNormal, nil, { PawnStatBurningCrusade = true }},
-	{EMPTY_SOCKET_DOMINATION, "DominationSocket", L.DominationSocketInfo, PawnStatNormal, nil, { PawnStatModern = true }},
 
 	{L.MinorStats},
 	{STAT_MOVEMENT_SPEED, "MovementSpeed", L.MovementSpeedInfo, PawnStatNormal, nil, { PawnStatModern = true }},

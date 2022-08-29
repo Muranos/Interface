@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Premade Groups Filter
 -------------------------------------------------------------------------------
--- Copyright (C) 2020 Elotheon-Arthas-EU
+-- Copyright (C) 2022 Elotheon-Arthas-EU
 --
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@ C.MYTHICPLUS = 4
 C.ARENA2V2   = 5
 C.ARENA3V3   = 6
 
--- corresponds to the third parameter of C_LFGList.GetActivityInfo()
+-- corresponds to the third parameter of C_LFGList.GetActivityInfoTable().categoryID
 C.TYPE_QUESTING = 1
 C.TYPE_DUNGEON  = 2
 C.TYPE_RAID     = 3
@@ -118,6 +118,7 @@ C.SETTINGS_DEFAULT = {
 C.MODEL_DEFAULT = {
     enabled = true,
     expression = "",
+    sorting = "",
     difficulty = {
         act = false,
         val = 3,
@@ -172,15 +173,26 @@ function PGF.OnAddonLoaded(name)
                 PGF.Table_UpdateWithDefaults(v, PGF.C.MODEL_DEFAULT)
             end
         end
+
+        -- request various player information from the server
+        RequestRaidInfo()
+        C_MythicPlus.RequestCurrentAffixes()
+        C_MythicPlus.RequestMapInfo()
     end
+end
+
+function PGF.OnPlayerLogin()
+    PGF.FixGetPlaystyleStringIfPlayerAuthenticated()
 end
 
 function PGF.OnEvent(self, event, ...)
     if event == "ADDON_LOADED" then PGF.OnAddonLoaded(...) end
+    if event == "PLAYER_LOGIN" then PGF.OnPlayerLogin() end
     if event == "LFG_LIST_APPLICATION_STATUS_UPDATED" then PGF.OnLFGListApplicationStatusUpdated(...) end
 end
 
 local frame = CreateFrame("Frame", "PremadeGroupsFilterEventFrame")
 frame:RegisterEvent("ADDON_LOADED")
+frame:RegisterEvent("PLAYER_LOGIN")
 frame:RegisterEvent("LFG_LIST_APPLICATION_STATUS_UPDATED")
 frame:SetScript("OnEvent", PGF.OnEvent)

@@ -8,8 +8,8 @@ BigWigs:AddSounds("Kryxis the Voracious", {
 
 BigWigs:AddSounds("Executor Tarvold", {
 	[322554] = "alert",
-	[322573] = "info",
-	[323551] = "alert",
+	[322574] = "info",
+	[323551] = {"alert","underyou"},
 	[328494] = "info",
 })
 
@@ -24,16 +24,16 @@ BigWigs:AddSounds("General Kaal", {
 	[322903] = "warning",
 	[323821] = "alert",
 	[323845] = "alert",
-	[324086] = "info",
 })
 
 BigWigs:AddSounds("Sanguine Depths Trash", {
 	[320991] = "alarm",
+	[321105] = "alert",
 	[321178] = "alarm",
 	[322429] = "alert",
 	[322433] = {"alert","warning"},
 	[324086] = "info",
-	[324103] = "warning",
+	[324089] = "info",
 	[326827] = {"info","warning"},
 	[326836] = {"alert","warning"},
 	[328170] = "alarm",
@@ -44,5 +44,5 @@ BigWigs:AddSounds("Sanguine Depths Trash", {
 	[334918] = "alert",
 	[335305] = "alert",
 	[335308] = "alarm",
-	[341321] = "info",
+	[341331] = "info",
 })

@@ -78,7 +78,6 @@ local phoenixCount = 0
 
 local L = mod:GetLocale()
 if L then
-	L.shield_removed = "%s removed after %.1fs" -- "Shield removed after 1.1s" s = seconds
 	L.shield_remaining = "%s remaining: %s (%.1f%%)" -- "Shield remaining: 2.1K (5.3%)"
 end
 
@@ -357,7 +356,7 @@ end
 function mod:BurningRemnantsApplied(args)
 	local amount = args.amount or 1
 	if self:Me(args.destGUID) and not self:Tank() then
-		self:NewStackMessage(args.spellId, "blue", args.destName, amount)
+		self:NewStackMessage(args.spellId, "blue", args.destName, amount, amount)
 		self:PlaySound(args.spellId, "alarm")
 	elseif self:Tank() and self:Tank(args.destName) then
 		self:NewStackMessage(args.spellId, "purple", args.destName, amount, 3)
@@ -384,7 +383,7 @@ function mod:EmberBlastApplied(args)
 			self:YellCountdown(325877, 3, nil, 2)
 		end
 	else
-		self:PlaySound(325877, "alert")
+		self:PlaySound(325877, "alert", nil, args.destName)
 	end
 	self:TargetMessage(325877, "orange", args.destName, CL.count:format(self:SpellName(325877), emberBlastCount-1))
 end
@@ -501,7 +500,7 @@ end
 -- Infusing Essences
 function mod:InfusersBoonApplied(args)
 	local amount = args.amount or 1
-	self:NewStackMessage(args.spellId, "green", args.destName, amount)
+	self:NewStackMessage(args.spellId, "green", args.destName, amount, amount)
 	self:StopBar(CL.count:format(args.spellName, amount-1), args.destName)
 	self:TargetBar(args.spellId, 14, args.destName, CL.count:format(args.spellName, amount))
 	if self:Me(args.destGUID) then
@@ -608,7 +607,7 @@ do
 	function mod:CloakOfFlamesRemoved(args)
 		local amount = args.amount or 0
 		if pyroclasmInterrupted or amount == 0 then -- Shield Broken
-			self:Message(args.spellId, "green", L.shield_removed:format(CL.shield, args.time - prevTime))
+			self:Message(args.spellId, "green", CL.removed_after:format(CL.shield, args.time - prevTime))
 			self:StopBar(CL.cast:format(CL.count:format(CL.shield, cloakOfFlamesCount-1)))
 		else
 			local percentRemaining = amount / prevAmount * 100

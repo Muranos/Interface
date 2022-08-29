@@ -61,7 +61,9 @@ local tooltip, indicatortip = nil, nil
 
 function SI:QuestInfo(questid)
   if not questid or questid == 0 then return nil end
+  SI.ScanTooltip:SetOwner(UIParent, 'ANCHOR_NONE')
   SI.ScanTooltip:SetHyperlink("\124cffffff00\124Hquest:"..questid..":90\124h[]\124h\124r")
+  SI.ScanTooltip:Show()
   local l = _G[SI.ScanTooltip:GetName().."TextLeft1"]
   l = l and l:GetText()
   if not l or #l == 0 then return nil end -- cache miss
@@ -143,6 +145,7 @@ SI.defaultDB = {
   -- Artifact: string REMOVED
   -- Cloak: string REMOVED
   -- Covenant: number
+  -- MythicPlusScore: number
   -- Paragon: table
   -- oRace: string
   -- isResting: boolean
@@ -182,6 +185,14 @@ SI.defaultDB = {
   -- item: linkstring or nil
 
   -- MythicKey
+  -- name: string
+  -- ResetTime: expiry
+  -- mapID: int
+  -- level: int
+  -- color: string
+  -- link: string
+
+  -- TimewornMythicKey
   -- name: string
   -- ResetTime: expiry
   -- mapID: int
@@ -301,7 +312,7 @@ SI.defaultDB = {
     R4Color = { 1, 0, 0 }, -- red
     R4ClassColor = true,
     R5Indicator = "BLANK",
-    R5Text = "KILLED/TOTAL",
+    R5Text = "KILLED/TOTALL",
     R5Color = { 0, 0, 1 }, -- blue
     R5ClassColor = true,
     R6Indicator = "BLANK",
@@ -357,11 +368,13 @@ SI.defaultDB = {
     Currency1602 = true, -- Conquest
     Currency1792 = true, -- Honor
     Currency1822 = true, -- Renown
-    Currency1828 = true, -- Soul Ash
+    Currency1979 = true, -- Cyphers of the First Ones
+    Currency2009 = true, -- Cosmic Flux
     CurrencyMax = false,
     CurrencyEarned = true,
     CurrencySortName = false,
     MythicKey = true,
+    TimewornMythicKey = true,
     MythicKeyBest = true,
     Emissary6 = false, -- LEG Emissary
     Emissary7 = false, -- BfA Emissary
@@ -378,8 +391,11 @@ SI.defaultDB = {
     Progress3 = false, -- Horrific Vision
     Progress4 = false, -- N'Zoth Assaults
     Progress5 = false, -- Lesser Visions of N'Zoth
-    Progress6 = true, -- Torghast Weekly
-    Progress7 = true, -- Covenant Assaults
+    Progress6 = false, -- Torghast Weekly
+    Progress7 = false, -- Covenant Assaults
+    Progress8 = false, -- The World Awaits
+    Progress9 = false, -- Emissary of War
+    Progress10 = true, -- Patterns Within Patterns
     Warfront1 = false, -- Arathi Highlands
     Warfront2 = false, -- Darkshores
     KeystoneReportTarget = "EXPORT",
@@ -800,8 +816,10 @@ function SI:instanceException(LFDID)
     local total = 0
     for idx, id in ipairs(exc) do
       if type(id) == "number" then
+        SI.ScanTooltip:SetOwner(UIParent, 'ANCHOR_NONE')
         SI.ScanTooltip:SetHyperlink(("unit:Creature-0-0-0-0-%d:0000000000"):format(id))
-        local line = SI.ScanTooltip:IsShown() and _G[SI.ScanTooltip:GetName().."TextLeft1"]
+        SI.ScanTooltip:Show()
+        local line = _G[SI.ScanTooltip:GetName().."TextLeft1"]
         line = line and line:GetText()
         if line and #line > 0 then
           exc[idx] = line
@@ -953,6 +971,8 @@ local function DifficultyString(instance, diff, toon, expired, killoverride, tot
       setting = "R"..(diff-2)
     elseif diff >= 14 and diff <= 16 then -- WoD raids
       setting = "R"..(diff-8)
+    elseif diff == 17 then -- Looking For Raid
+      setting = "R5"
     else -- don't know
       setting = "D1"
     end
@@ -1053,7 +1073,6 @@ function SI:UpdateInstanceData()
   local renames = 0
   local merges = 0
   local conflicts = 0
-  local purges = 0
   for instname, inst in pairs(SI.db.Instances) do
     local truename
     if inst.WorldBoss then
@@ -1096,21 +1115,6 @@ function SI:UpdateInstanceData()
         renames = renames + 1
       end
     end
-
-	-- Eliminate duplicate LFR entries from the database (only affects those that were saved previously), to account for Blizzard's lockout changes in 7.3 (see https://github.com/SavedInstances/SavedInstances/issues/89)
-	for key, info in pairs(inst) do -- Check for potential LFR lockout entries
-
-	if key:find(" - ") then -- is a character key
-			for difficulty, entry in pairs(info) do -- Check difficulty for LFR
-				if difficulty == 7 or difficulty == 17 then -- Difficulties 7 and 17 are for (legacy) LFR modes -> Kill them... with fire!
-					SI:Debug("Purge LFR lockout entry for " .. truename .. ":" .. instname .. ":" .. key)
-					purges = purges + 1
-					SI.db.Instances[instname][key][difficulty] = nil
-				end
-			end
-		  end
-	end
-
   end
   -- SI.lfdid_to_name = lfdid_to_name
   -- SI.wbid_to_name = wbid_to_name
@@ -1118,7 +1122,8 @@ function SI:UpdateInstanceData()
   SI.config:BuildOptions() -- refresh config table
 
   starttime = debugprofilestop()-starttime
-  SI:Debug("UpdateInstanceData(): completed in %.3f ms : %d added, %d renames, %d merges, %d conflicts, %d purges.", starttime, added, renames, merges, conflicts, purges)
+  SI:Debug("UpdateInstanceData(): completed in %.3f ms : %d added, %d renames, %d merges, %d conflicts.",
+    starttime, added, renames, merges, conflicts)
   if SI.RefreshPending then
     SI.RefreshPending = nil
     SI:Refresh()
@@ -1152,6 +1157,10 @@ function SI:UpdateInstance(id)
     local _
     _, typeID, subtypeID, _, _, recLevel, _, _, expansionLevel, _,
       _,  difficulty, maxPlayers, _, isHoliday, _, _, _, name = GetLFGDungeonInfo(2004)
+  elseif id == 842 then -- Downfall (#308) different name for origin and solo LFG in deDE
+    if SI.locale == 'deDE' then
+      name = "Niedergang"
+    end
   end
   if subtypeID == LFG_SUBTYPEID_SCENARIO and typeID ~= TYPEID_RANDOM_DUNGEON then -- ignore non-random scenarios
     return nil, nil, true
@@ -1232,7 +1241,9 @@ function SI:updateSpellTip(spellID)
     end
   end
   if slot then
+    SI.ScanTooltip:SetOwner(UIParent, 'ANCHOR_NONE')
     SI.ScanTooltip:SetUnitDebuff('player', slot)
+    SI.ScanTooltip:Show()
     for i = 1, SI.ScanTooltip:NumLines() - 1 do
       local textLeft = _G[SI.ScanTooltip:GetName() .. 'TextLeft' .. i]
       SI.db.spelltip[spellID][i] = textLeft:GetText()
@@ -1428,6 +1439,11 @@ function SI:UpdateToonData()
     end
   end
   for toon, ti in pairs(SI.db.Toons) do
+    if ti.TimewornMythicKey and (ti.TimewornMythicKey.ResetTime or 0) < time() then
+      ti.TimewornMythicKey = {}
+    end
+  end
+  for toon, ti in pairs(SI.db.Toons) do
     if ti.MythicKeyBest and (ti.MythicKeyBest.ResetTime or 0) < time() then
       ti.MythicKeyBest.rewardWaiting = ti.MythicKeyBest.lastCompletedIndex and ti.MythicKeyBest.lastCompletedIndex > 0
       ti.MythicKeyBest[1] = nil
@@ -1471,6 +1487,7 @@ function SI:UpdateToonData()
     end
     t.Warmode = C_PvP.IsWarModeDesired()
     t.Covenant = C_Covenants.GetActiveCovenantID()
+    t.MythicPlusScore = C_ChallengeMode.GetOverallDungeonScore()
   end
 
   t.LastSeen = time()
@@ -1609,6 +1626,9 @@ hoverTooltip.ShowToonTooltip = function (cell, arg, ...)
     if name then
       indicatortip:AddLine(L["Covenant"], name)
     end
+  end
+  if t.MythicPlusScore and t.MythicPlusScore > 0 then
+    indicatortip:AddLine(DUNGEON_SCORE, t.MythicPlusScore)
   end
   if t.Arena2v2rating and t.Arena2v2rating > 0 then
     indicatortip:AddLine(ARENA_2V2 .. ARENA_RATING, t.Arena2v2rating)
@@ -1905,9 +1925,11 @@ hoverTooltip.ShowMythicPlusTooltip = function (cell, arg, ...)
   indicatortip:AddHeader(ClassColorise(t.Class, toon), text)
   if t.MythicKeyBest.runHistory and #t.MythicKeyBest.runHistory > 0 then
     local maxThreshold = t.MythicKeyBest.threshold and t.MythicKeyBest.threshold[#t.MythicKeyBest.threshold]
-    local displayNumber = min(#t.MythicKeyBest.runHistory, maxThreshold or 10)
+    local displayNumber = min(#t.MythicKeyBest.runHistory, maxThreshold or 8)
     indicatortip:AddLine()
     indicatortip:SetCell(2, 1, format(WEEKLY_REWARDS_MYTHIC_TOP_RUNS, displayNumber), "LEFT", 2)
+    indicatortip:AddLine()
+    indicatortip:SetCell(3, 1, format(TOTAL_STACKS, #t.MythicKeyBest.runHistory), "LEFT", 2)
     for i = 1, displayNumber do
       local runInfo = t.MythicKeyBest.runHistory[i]
       if runInfo.level and runInfo.name and runInfo.rewardLevel then
@@ -2004,7 +2026,7 @@ hoverTooltip.ShowAccountSummary = function (cell, arg, ...)
   for _,ri in pairs(r) do table.insert(rmoney,ri) end
   table.sort(rmoney,function(a,b) return a.money > b.money end)
   for _,ri in ipairs(rmoney) do
-    if ri.money > 10000*10000 and ri.cnt > 1 then -- show multi-toon servers with over 10k wealth
+    if ri.money > 10000*10000 then -- show servers with over 10k wealth
       indicatortip:AddLine(ri.realm.." "..MONEY,SI:formatNumber(ri.money,true))
     end
   end
@@ -2113,7 +2135,8 @@ hoverTooltip.ShowIndicatorTooltip = function (cell, arg, ...)
   local thisinstance = SI.db.Instances[instance]
   local worldboss = thisinstance and thisinstance.WorldBoss
   local info = thisinstance[toon][diff]
-  local id = info.ID
+  if not info then return end
+  local id = info.ID or 0
   local nameline = indicatortip:AddHeader()
   indicatortip:SetCell(nameline, 1, DifficultyString(instance, diff, toon), indicatortip:GetHeaderFont(), "LEFT", 1)
   indicatortip:SetCell(nameline, 2, GOLDFONT .. instance .. FONTEND, indicatortip:GetHeaderFont(), "RIGHT", 2)
@@ -2124,20 +2147,20 @@ hoverTooltip.ShowIndicatorTooltip = function (cell, arg, ...)
   local EMPH = " !!! "
   if info.Extended then
     indicatortip:SetCell(indicatortip:AddLine(),1,WHITEFONT .. EMPH .. L["Extended Lockout - Not yet saved"] .. EMPH .. FONTEND,"CENTER",3)
-  elseif info.Locked == false and info.ID > 0 then
+  elseif info.Locked == false and id > 0 then
     indicatortip:SetCell(indicatortip:AddLine(),1,WHITEFONT .. EMPH .. L["Expired Lockout - Can be extended"] .. EMPH .. FONTEND,"CENTER",3)
   end
   if info.Expires > 0 then
     indicatortip:AddLine(YELLOWFONT .. L["Time Left"] .. ":" .. FONTEND, nil, SecondsToTime(thisinstance[toon][diff].Expires - time()))
   end
-  if (info.ID or 0) > 0 and (
+  if id > 0 and (
     (thisinstance.Raid and (diff == 5 or diff == 6 or diff == 16)) -- raid: 10 heroic, 25 heroic or mythic
     or
     (diff == 23) -- mythic 5-man
     ) then
     local n = indicatortip:AddLine()
     indicatortip:SetCell(n, 1, YELLOWFONT .. ID .. ":" .. FONTEND, "LEFT", 1)
-    indicatortip:SetCell(n, 2, info.ID, "RIGHT", 2)
+    indicatortip:SetCell(n, 2, id, "RIGHT", 2)
   end
   if info.Link then
     local link = info.Link
@@ -2168,7 +2191,9 @@ hoverTooltip.ShowIndicatorTooltip = function (cell, arg, ...)
           .. diff .. ":" .. bits .. "\124h[Battle of Dazar'alor]\124h\124r"
       end
     end
+    SI.ScanTooltip:SetOwner(UIParent, 'ANCHOR_NONE')
     SI.ScanTooltip:SetHyperlink(link)
+    SI.ScanTooltip:Show()
     local name = SI.ScanTooltip:GetName()
     local gotbossinfo
     for i=2,SI.ScanTooltip:NumLines() do
@@ -2203,7 +2228,7 @@ hoverTooltip.ShowIndicatorTooltip = function (cell, arg, ...)
       end
     end
   end
-  if info.ID < 0 then
+  if id < 0 then
     local killed, total, base, remap = SI:instanceBosses(instance,toon,diff)
     for i=base,base+total-1 do
       local bossid = i
@@ -2281,6 +2306,19 @@ hoverTooltip.ShowCurrencyTooltip = function (cell, arg, ...)
       spacer = true
     end
     indicatortip:AddLine(format(CURRENCY_TOTAL_CAP, "", CurrencyColor(ci.amount or 0, ci.totalMax), SI:formatNumber(ci.totalMax)))
+  end
+  if ci.covenant then
+    if not spacer then
+      indicatortip:AddLine(" ")
+      spacer = true
+    end
+    for covenantID = 1, 4 do
+      if ci.covenant[covenantID] then
+        local data = C_Covenants.GetCovenantData(covenantID)
+        local name = data and data.name or UNKNOWN
+        indicatortip:AddLine(name .. ": " .. CurrencyColor(ci.covenant[covenantID] or 0, ci.totalMax))
+      end
+    end
   end
   if SI.specialCurrency[idx] and SI.specialCurrency[idx].relatedItem then
     if not spacer then
@@ -2479,7 +2517,7 @@ end
 function SI:OnInitialize()
   local versionString = GetAddOnMetadata("SavedInstances", "version")
   --[==[@debug@
-  if versionString == "9.1.5" then
+  if versionString == "9.2.4" then
     versionString = "Dev"
   end
   --@end-debug@]==]
@@ -2586,6 +2624,7 @@ function SI:OnEnable()
   self:RegisterEvent("PLAYER_UPDATE_RESTING", "UpdateToonData")
   self:RegisterEvent("PVP_RATED_STATS_UPDATE", "UpdateToonData")
   self:RegisterEvent("COVENANT_CHOSEN", "UpdateToonData")
+  self:RegisterEvent("MYTHIC_PLUS_NEW_WEEKLY_RECORD", "UpdateToonData")
   self:RegisterEvent("ZONE_CHANGED_NEW_AREA", RequestRatedInfo)
   self:RegisterEvent("PLAYER_ENTERING_WORLD", function()
     RequestRatedInfo()
@@ -2831,7 +2870,7 @@ function SI:histZoneKey()
   if insttype == nil or insttype == "none" or insttype == "arena" or insttype == "pvp" then -- pvp doesnt count
     return nil
   end
-  if (IsInLFGDungeon() or IsInScenarioGroup()) and diff ~= 19 then -- LFG instances don't count, but Holiday Event counts
+  if (IsInLFGDungeon() or IsInScenarioGroup()) and diff ~= 19 and diff ~= 17 then -- LFG instances don't count, but Holiday Events and LFR both count
     return nil
   end
   if C_Garrison.IsOnGarrisonMap() then -- Garrisons don't count
@@ -3068,24 +3107,22 @@ function SI:Refresh(recoverdaily)
     for i = 1, numsaved do
       local name, id, expires, diff, locked, extended, mostsig, raid, players, diffname = GetSavedInstanceInfo(i)
       local truename, instance = SI:LookupInstance(nil, name, raid)
-      if diff ~= 7 and diff ~= 17 then -- Skip (legacy) LFR entries for this character to prevent writing them to the saved variables (from which they'd be purged after the next reload anyway)
-        if expires and expires > 0 then
-          expires = expires + time()
-        else
-          expires = 0
-        end
-        instance.Raid = instance.Raid or raid
-        instance[SI.thisToon] = instance[SI.thisToon] or temp[truename] or { }
-        local info = instance[SI.thisToon][diff] or {}
-        wipe(info)
-        info.ID = id
-        info.Expires = expires
-        info.Link = GetSavedInstanceChatLink(i)
-        info.Locked = locked
-        info.Extended = extended
-        instance[SI.thisToon][diff] = info
+      if expires and expires > 0 then
+        expires = expires + time()
+      else
+        expires = 0
       end
-	end
+      instance.Raid = instance.Raid or raid
+      instance[SI.thisToon] = instance[SI.thisToon] or temp[truename] or { }
+      local info = instance[SI.thisToon][diff] or {}
+      wipe(info)
+      info.ID = id
+      info.Expires = expires
+      info.Link = GetSavedInstanceChatLink(i)
+      info.Locked = locked
+      info.Extended = extended
+      instance[SI.thisToon][diff] = info
+    end
   end
 
   local weeklyreset = SI:GetNextWeeklyResetTime()
@@ -3386,8 +3423,8 @@ local function OpenLFS(self, instanceid, button)
   end
 end
 
-local function ReportKeys(self, _, button)
-  SI:GetModule("MythicPlus"):Keys()
+local function ReportKeys(self, index, button)
+  SI:GetModule("MythicPlus"):Keys(index)
 end
 
 local function OpenCurrency(self, _, button)
@@ -3930,7 +3967,7 @@ function SI:ShowTooltip(anchorframe)
       show = tooltip:AddLine(YELLOWFONT .. L["Mythic Keystone"] .. FONTEND)
       tooltip:SetCellScript(show, 1, "OnEnter", hoverTooltip.ShowKeyReportTarget)
       tooltip:SetCellScript(show, 1, "OnLeave", CloseTooltips)
-      tooltip:SetCellScript(show, 1, "OnMouseDown", ReportKeys)
+      tooltip:SetCellScript(show, 1, "OnMouseDown", ReportKeys, 'MythicKey')
     end
     for toon, t in cpairs(SI.db.Toons, true) do
       if t.MythicKey and t.MythicKey.link then
@@ -3947,6 +3984,38 @@ function SI:ShowTooltip(anchorframe)
     end
   end
 
+  if SI.db.Tooltip.TimewornMythicKey or showall then
+    local show = false
+    for toon, t in cpairs(SI.db.Toons, true) do
+      if t.TimewornMythicKey and t.TimewornMythicKey.link then
+        show = true
+        addColumns(columns, toon, tooltip)
+      end
+    end
+    if show then
+      if SI.db.Tooltip.CategorySpaces and not (SI.db.Tooltip.MythicKey or showall) then
+        addsep()
+      end
+      show = tooltip:AddLine(YELLOWFONT .. L["Timeworn Mythic Keystone"] .. FONTEND)
+      tooltip:SetCellScript(show, 1, "OnEnter", hoverTooltip.ShowKeyReportTarget)
+      tooltip:SetCellScript(show, 1, "OnLeave", CloseTooltips)
+      tooltip:SetCellScript(show, 1, "OnMouseDown", ReportKeys, 'TimewornMythicKey')
+    end
+    for toon, t in cpairs(SI.db.Toons, true) do
+      if t.TimewornMythicKey and t.TimewornMythicKey.link then
+        local col = columns[toon..1]
+        local name
+        if SI.db.Tooltip.AbbreviateKeystone then
+          name = SI.KeystoneAbbrev[t.TimewornMythicKey.mapID] or t.TimewornMythicKey.name
+        else
+          name = t.TimewornMythicKey.name
+        end
+        tooltip:SetCell(show, col, "|c" .. t.TimewornMythicKey.color .. name .. " (" .. t.TimewornMythicKey.level .. ")" .. FONTEND, "CENTER", maxcol)
+        tooltip:SetCellScript(show, col, "OnMouseDown", ChatLink, t.TimewornMythicKey.link)
+      end
+    end
+  end
+
   if SI.db.Tooltip.MythicKeyBest or showall then
     local show = false
     for toon, t in cpairs(SI.db.Toons, true) do
@@ -3958,7 +4027,7 @@ function SI:ShowTooltip(anchorframe)
       end
     end
     if show then
-      if SI.db.Tooltip.CategorySpaces and not (SI.db.Tooltip.MythicKey or showall) then
+      if SI.db.Tooltip.CategorySpaces and not (SI.db.Tooltip.MythicKey or SI.db.Tooltip.TimewornMythicKey or showall) then
         addsep()
       end
       show = tooltip:AddLine(YELLOWFONT .. L["Mythic Key Best"] .. FONTEND)

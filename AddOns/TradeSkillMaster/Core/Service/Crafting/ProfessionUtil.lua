@@ -111,13 +111,13 @@ function ProfessionUtil.OnInitialize()
 	end
 end
 
-function ProfessionUtil.GetCurrentProfessionName()
+function ProfessionUtil.GetCurrentProfessionInfo()
 	if TSM.IsWowClassic() then
 		local name = TSM.Crafting.ProfessionState.IsClassicCrafting() and GetCraftSkillLine(1) or GetTradeSkillLine()
 		return name
 	else
-		local _, name, _, _, _, _, parentName = C_TradeSkillUI.GetTradeSkillLine()
-		return parentName or name
+		local skillId, name, _, _, _, _, parentName = C_TradeSkillUI.GetTradeSkillLine()
+		return parentName or name, skillId
 	end
 end
 
@@ -242,7 +242,7 @@ end
 
 function ProfessionUtil.IsEnchant(craftString)
 	local spellId = CraftString.GetSpellId(craftString)
-	local name = ProfessionUtil.GetCurrentProfessionName()
+	local name = ProfessionUtil.GetCurrentProfessionInfo()
 	if name ~= GetSpellInfo(7411) or TSM.IsWowClassic() then
 		return false
 	end

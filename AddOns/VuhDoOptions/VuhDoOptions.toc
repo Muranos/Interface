@@ -1,8 +1,8 @@
-## Interface: 90105
+## Interface: 90207
 
 ## Title: VuhDo ['vu:du:] - Options
 ## Author: Iza@Gilneas, humfras, Ivaria@Hyjal
-## Version: 3.130
+## Version: 3.137
 ## Notes: VuhDo Options
 
 ## X-Curse-Project-ID: 7950

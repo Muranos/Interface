@@ -1,5 +1,5 @@
-## v4.11.17 Changes
+## v4.11.36 Changes
 
-* [Classic] Fixed TSM macro not updating properly
+* [Retail] Added additional workaround to fix Blizzard not providing any seller data in many cases
 
 [Known Issues](https://support.tradeskillmaster.com/en_US/known_issues)

@@ -194,13 +194,14 @@ function private.OnHideIconClick(self, data, iconIndex, mouseButton)
 end
 
 function private.GetDestroyInfo(itemString)
-	local quality = ItemInfo.GetQuality(itemString)
-	local ilvl = ItemInfo.GetItemLevel(ItemString.GetBase(itemString))
 	local classId = ItemInfo.GetClassId(itemString)
+	local quality = ItemInfo.GetQuality(itemString)
+	local itemLevel = not TSM.IsWowClassic() and ItemInfo.GetItemLevel(itemString) or ItemInfo.GetItemLevel(ItemString.GetBase(itemString))
+	local expansion = not TSM.IsWowClassic() and ItemInfo.GetExpansion(itemString) or nil
 	local info = TempTable.Acquire()
 	local targetItems = TempTable.Acquire()
 	for targetItemString in DisenchantInfo.TargetItemIterator() do
-		local amountOfMats, matRate, minAmount, maxAmount = DisenchantInfo.GetTargetItemSourceInfo(targetItemString, classId, quality, ilvl)
+		local amountOfMats, matRate, minAmount, maxAmount = DisenchantInfo.GetTargetItemSourceInfo(targetItemString, classId, quality, itemLevel, expansion)
 		if amountOfMats then
 			local name = ItemInfo.GetName(targetItemString)
 			local color = ItemInfo.GetQualityColor(targetItemString)

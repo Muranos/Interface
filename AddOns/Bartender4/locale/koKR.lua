@@ -36,6 +36,7 @@ L["Bartender4 was written by Nevcairiel of EU-Antonidas. He will accept cookies 
 L["Blizzard Art"] = "블리자드 아트"
 L["Blizzard Art Bar"] = "블리자드 아트 바"
 L["Blizzard interface"] = "블리자드 인터페이스"
+L["Both"] = "둘다"
 L["Button %s"] = "버튼 %s"
 L["Button Grid"] = "버튼 격자"
 L["Button Lock"] = "버튼 잠금"

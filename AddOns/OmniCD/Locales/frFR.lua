@@ -16,7 +16,7 @@ L["|cffff2020Important!|r Covenant and Soulbind Conduit data can only be acquire
 L["> 1 minute"] = "> 1 minute"
 L["2nd Row Icons (Double Row Layout)"] = "Icônes de la 2ème ligne (affichage sur deux lignes)"
 L["2px Border"] = "Bordure 2px"
-L["A new update is available. (|cff99cdff%s)"] = "Une nouvelle mise à jour est disponible. (|cff99cdff%s)"
+L["A new update is available. |cff99cdff(%s)"] = "Une nouvelle mise à jour est disponible. |cff99cdff(%s)"
 --[[Translation missing --]]
 L["Active"] = "Active"
 L["Active Icon Opacity"] = "Opacité de l'icône active"
@@ -24,6 +24,8 @@ L["Active Icon Settings"] = "Paramètres de l'icône active"
 L["Add spell to Spell Alerts"] = "Ajouter un sort aux alertes de sort"
 L["Add Spells"] = "Ajouter des sorts"
 L["Add to Alerts"] = "Ajouter aux alertes"
+--[[Translation missing --]]
+L["Addons with raid frame scaling will also cause the icons to scale."] = "Addons with raid frame scaling will also cause the icons to scale."
 L["Alerts"] = "Alertes"
 L["All user set values will be lost. Do you want to proceed?"] = "Toutes les valeurs définies par l'utilisateur seront perdues. Souhaitez-vous continuer ?"
 L["Always attach to Blizzard frames. By default, bars attach to whichever frame is visible, and if both are visible UF addon take precedence over Blizzard"] = "Toujours attacher aux cadres Blizzard. Par défaut, les barres s'attachent à n'importe quel cadre visible, et si les deux sont visibles, l'addon UF a priorité sur Blizzard"
@@ -73,6 +75,8 @@ L["CD-Group %d"] = "CD-Group %d"
 L["CD-Group Padding"] = "CD-Group Padding"
 L["CENTER"] = "CENTRER"
 L["Center Horizontally"] = "Centrer horizontalement"
+--[[Translation missing --]]
+L["CENTER will keep the rows centered and grow icons bidirectionally."] = "CENTER will keep the rows centered and grow icons bidirectionally."
 L["Changelog"] = "Changelog"
 --[[Translation missing --]]
 L["Changing party display options in your UF addon while OmniCD is active will break the anchors. Type (/oc rl) to fix the anchors"] = "Changing party display options in your UF addon while OmniCD is active will break the anchors. Type (/oc rl) to fix the anchors"
@@ -192,6 +196,8 @@ L["Extra Bars"] = "Extra Bars"
 --[[Translation missing --]]
 L["Fade In Time"] = "Fade In Time"
 --[[Translation missing --]]
+L["Fade out icons when the raid frame fades out for out of range units."] = "Fade out icons when the raid frame fades out for out of range units."
+--[[Translation missing --]]
 L["Fade Out Time"] = "Fade Out Time"
 L["Feedback"] = "Retour"
 L["Font"] = "Police"
@@ -285,7 +291,7 @@ L["MM:SS Color"] = "MM:SS Color"
 --[[Translation missing --]]
 L["MM:SS Threshold"] = "MM:SS Threshold"
 --[[Translation missing --]]
-L["Mouseovering the icon will show the interrupted spell information regardless of \'Show Tooltip\' option."] = "Mouseovering the icon will show the interrupted spell information regardless of \'Show Tooltip\' option."
+L["Mouseovering the icon will show the interrupted spell information regardless of 'Show Tooltip' option."] = "Mouseovering the icon will show the interrupted spell information regardless of 'Show Tooltip' option."
 L["Move your group's Interrupt spells to the Interrupt Bar."] = "Déplacer les sorts d'interruption de son groupe vers la barre d'interruption."
 --[[Translation missing --]]
 L["Move your group's Raid Cooldowns to the Raid Bar."] = "Move your group's Raid Cooldowns to the Raid Bar."
@@ -301,6 +307,8 @@ L["New Column per Group"] = "Nouvelle colonne par groupe"
 L["None of the CD counter skins support modrate. Timers will fluctuate erratically whenever CD recovery rate is modulated."] = "None of the CD counter skins support modrate. Timers will fluctuate erratically whenever CD recovery rate is modulated."
 --[[Translation missing --]]
 L["Not an OmniCD profile!"] = "Not an OmniCD profile!"
+--[[Translation missing --]]
+L["Not Supported:"] = "Not Supported:"
 L["Notes"] = "Notes"
 L["Notify Updates"] = "Etre informé des mises à jour"
 --[[Translation missing --]]
@@ -319,6 +327,8 @@ L["Pixel Perfect"] = "Pixel Perfect"
 L["Pixel Perfect ON."] = "Pixel Perfect ON."
 --[[Translation missing --]]
 L["Player Frame in Party"] = "Player Frame in Party"
+--[[Translation missing --]]
+L["Plugins"] = "Plugins"
 L["Position"] = "Position"
 --[[Translation missing --]]
 L["Press Accept to save profile %s. Addon will switch to the imported profile."] = "Press Accept to save profile %s. Addon will switch to the imported profile."
@@ -445,6 +455,8 @@ L["Show player spells in the Extra Bars regardless of 'Show Player' setting."] =
 L["Show player's spell bar"] = "Afficher la barre de sorts du joueur"
 --[[Translation missing --]]
 L["Show pvp trinket only while in Battlegrounds"] = "Show pvp trinket only while in Battlegrounds"
+--[[Translation missing --]]
+L["Show Range"] = "Show Range"
 L["Show Spell ID in Tooltips"] = "Afficher l'ID des sorts dans les info-bulles"
 L["Show spell information when you mouseover an icon"] = "Afficher les informations sur le sort lorsque vous passez la souris sur une icône"
 --[[Translation missing --]]

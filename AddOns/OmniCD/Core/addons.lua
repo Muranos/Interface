@@ -7,23 +7,29 @@ function E:Counters()
 end
 
 local unitFrameData = {
-	--  [1] = AddOn name
-	--  [2] = Party frame name ex) GroupNum%dUnitNum(-%d)
-	--  [3] = Party frame unit key
-	--  [4] = Delay
-	--  [5] = Max frame index
-	--  [6] = Min frame index
 
-	{   [1] = "VuhDo", -- toplevel
-		[2] = "Vd%dH", -- panel# not group
+
+
+
+
+
+
+	{   [1] = "VuhDo",
+		[2] = "Vd%dH",
 		[3] = "raidid",
 		[4] = 1,
 		[5] = 40,
 	},
-	{   [1] = "Grid2", -- 3
+	{   [1] = "Grid2",
 		[2] = "Grid2LayoutHeader%dUnitButton",
 		[3] = "unit",
 		[4] = 1,
+	},
+	{   [1] = "Grid2-Role",
+		[2] = "Grid2LayoutHeader1UnitButton",
+		[3] = "unit",
+		[4] = 1,
+		[5] = 40,
 	},
 	{   [1] = "Aptechka",
 		[2] = "NugRaid%dUnitButton",
@@ -35,7 +41,7 @@ local unitFrameData = {
 		[3] = "unit",
 		[4] = 1,
 		[5] = 5,
-		[6] = 0, -- Group0 for party
+		[6] = 0,
 	},
 	{   [1] = "Lime",
 		[2] = "LimeGroup%dUnitButton",
@@ -44,11 +50,11 @@ local unitFrameData = {
 		[5] = 5,
 		[6] = 0,
 	},
-	{   [1] = "Plexus", -- 7
+	{   [1] = "Plexus",
 		[2] = "PlexusLayoutHeader%dUnitButton",
 		[3] = "unit",
 		[4] = 1,
-		[5] = 40, -- certain layout uses Header1 only
+		[5] = 40,
 	},
 	{   [1] = "HealBot",
 		[2] = "HealBot_Action_HealUnit",
@@ -77,7 +83,7 @@ local unitFrameData = {
 		[2] = "ElvUF_RaidGroup%dUnitButton",
 		[3] = "unit",
 		[4] = 1,
-		[5] = 40, -- 'Raid Wide Sorting' uses RaidGroup1 only
+		[5] = 40,
 	},
 	{   [1] = "ElvUI-Raid40",
 		[2] = "ElvUF_Raid40Group%dUnitButton",
@@ -107,7 +113,7 @@ local unitFrameData = {
 		[4] = 1,
 		[5] = 40,
 	},
-	{   [1] = "ShadowUF-Raid1", -- 'Separate raid frames' option
+	{   [1] = "ShadowUF-Raid1",
 		[2] = "SUFHeaderraid%dUnitButton",
 		[3] = "unit",
 		[4] = 1,
@@ -121,12 +127,13 @@ local unitFrameData = {
 		[2] = "XPerl_Raid_Grp%dUnitButton",
 		[3] = "partyid",
 		[4] = 1,
-		[5] = 40
+		[5] = 40,
 	},
-	{   [1] = "PitBull4", -- no default raid frames
+	{   [1] = "PitBull4",
 		[2] = "PitBull4_Groups_PartyUnitButton",
 		[3] = "unit",
 		[4] = 1,
+		[5] = 40,
 	},
 	{   [1] = "NDui",
 		[2] = "oUF_PartyUnitButton",
@@ -149,7 +156,7 @@ local unitFrameData = {
 		[4] = 1,
 	},
 	{
-		[1] = "RUF", -- uses Blizzard raid frames
+		[1] = "RUF",
 		[2] = "oUF_RUF_PartyUnitButton",
 		[3] = "unit",
 		[4] = 1,
@@ -217,6 +224,13 @@ local unitFrameData = {
 		[4] = 1,
 		[5] = 40
 	},
+	{
+		[1] = "AshToAsh",
+		[2] = "AshToAshUnit%dUnit",
+		[3] = "unit",
+		[4] = 1,
+		[5] = 40
+	}
 }
 
 function E:SetActiveUnitFrameData()
@@ -246,7 +260,7 @@ function E:UnitFrames()
 	for i = 1, #unitFrameData do
 		local unitFrame = unitFrameData[i]
 		local name = unitFrame[1]
-		local addonName = name:gsub("-.+", "")
+		local addonName = name:match("[^%-]+")
 		if _G[addonName] or IsAddOnLoaded(addonName) then
 			self.customUF.enabled = self.customUF.enabled or {}
 			self.customUF.enabled[name] = {

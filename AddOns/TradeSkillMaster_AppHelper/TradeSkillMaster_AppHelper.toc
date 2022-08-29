@@ -1,8 +1,8 @@
-## Interface: 90105
+## Interface: 90205
 ## Title: |cff00ff00TradeSkillMaster_AppHelper|r
 ## Notes: Acts as a connection between the TSM addon and app.
 ## Author: TSM Team
-## Version: v4.0.18
+## Version: v4.0.21
 ## SavedVariables: TradeSkillMaster_AppHelperDB
 ## Dependency: TradeSkillMaster
 

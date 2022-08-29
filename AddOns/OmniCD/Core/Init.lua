@@ -18,11 +18,13 @@ function AddOn:SetPixelMult()
 	local uiUnitFactor = 768 / screenheight
 	local uiScale = UIParent:GetScale()
 	self.PixelMult = uiUnitFactor / uiScale
+	self.uiUnitFactor = uiUnitFactor
 end
 
 NS[1].Libs = {}
 NS[1].Libs.ACD = LibStub("AceConfigDialog-3.0-OmniCD")
 NS[1].Libs.ACR = LibStub("AceConfigRegistry-3.0")
+NS[1].Libs.CBH = LibStub("CallbackHandler-1.0"):New(NS[1])
 
 NS[1]:SetPixelMult()
 NS[1].userGUID = UnitGUID("player")

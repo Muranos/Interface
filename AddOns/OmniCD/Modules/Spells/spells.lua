@@ -63,7 +63,7 @@ E.spell_db = {
 	["DEMONHUNTER"] = {
 		{ spellID = 306830, duration = 60,  type = "covenant",  spec = 321076   },
 		{ spellID = 329554, duration = 120, type = "covenant",  spec = 321078   },
-		{ spellID = 317009, duration = 60,  type = "covenant",  spec = 321079   },
+		{ spellID = 317009, duration = 45,  type = "covenant",  spec = 321079   },
 		{ spellID = 323639, duration = 90,  type = "covenant",  spec = 321077   },
 		{ spellID = 183752, duration = 15,  type = "interrupt"  },
 		{ spellID = 278326, duration = 10,  type = "dispel"     },
@@ -91,7 +91,7 @@ E.spell_db = {
 		{ spellID = 342817, duration = 20,  type = "offensive", spec = true     },
 		{ spellID = 258920, duration = {[581]=15, default=30},  type = "offensive"  },
 
-		{ spellID = 200166, duration = 240, type = "offensive", spec = {577}    },
+		{ spellID = 191427, duration = 240, type = "offensive", spec = {577}    },
 		{ spellID = 187827, duration = 180, type = "defensive", spec = {581}    },
 		{ spellID = 206491, duration = 120, type = "offensive", spec = true     },
 		{ spellID = 204596, duration = 30,  type = "offensive", spec = {581}    },
@@ -120,9 +120,9 @@ E.spell_db = {
 
 
 
+
+
 		{ spellID = 323546, duration = 180, type = "covenant",  spec = 321079   },
-
-
 
 
 
@@ -165,7 +165,6 @@ E.spell_db = {
 
 
 
-
 		{ spellID = 102560, duration = 180, type = "offensive", spec = true,    parent = 194223 },
 		{ spellID = 102558, duration = 180, type = "offensive", spec = true,    parent = 50334  },
 		{ spellID = 102543, duration = 180, type = "offensive", spec = true,    parent = 106951 },
@@ -174,7 +173,7 @@ E.spell_db = {
 		{ spellID = 274281, duration = 20,  type = "offensive", spec = true,    charges = 3 },
 		{ spellID = 203651, duration = 60,  type = "offensive", spec = true     },
 
-		{ spellID = 18562,  duration = 15,  type = "offensive", spec = {105}    },
+		{ spellID = 18562,  duration = 15,  type = "offensive", spec = {105,197492} },
 		{ spellID = 5217,   duration = 30,  type = "offensive", spec = {103}    },
 		{ spellID = 202425, duration = 45,  type = "offensive", spec = true     },
 		{ spellID = 77761,  duration = {[104]=60,default=120},  type = "raidMovement"  },
@@ -204,8 +203,6 @@ E.spell_db = {
 
 		{ spellID = 212638, duration = 25,  type = "disarm",    spec = true     },
 		{ spellID = 162488, duration = 30,  type = "disarm",    spec = true     },
-
-		{ spellID = 355589, duration = 60,  type = "disarm",    spec = 186414   },
 		{ spellID = 186265, duration = 180, type = "immunity"   },
 		{ spellID = 53480,  duration = 60,  type = "externalDefensive", spec = true },
 		{ spellID = 109304, duration = 120, type = "defensive"  },
@@ -359,7 +356,7 @@ E.spell_db = {
 		{ spellID = 322109, duration = 180, type = "offensive"  },
 		{ spellID = 152175, duration = 24,  type = "offensive", spec = true     },
 		{ spellID = 354540, duration = 90,  type = "counterCC", spec = true     },
-		{ spellID = 209584, duration = 45,  type = "counterCC", spec = true     },
+		{ spellID = 209584, duration = 30,  type = "counterCC", spec = true     },
 		{ spellID = 115008, duration = 20,  type = "other",     spec = true,    charges = 2,    parent = 109132 },
 		{ spellID = 101545, duration = 20,  type = "other",     spec = {269}    },
 		{ spellID = 109132, duration = 20,  type = "other",     charges = 2,    talent = 115008 },
@@ -370,7 +367,6 @@ E.spell_db = {
 	["PALADIN"] = {
 		{ spellID = 316958, duration = 240, type = "covenant",  spec = 321079   },
 		{ spellID = 328278, duration = 45,  type = "covenant",  spec = 321077   },
-
 
 
 
@@ -436,8 +432,8 @@ E.spell_db = {
 		{ spellID = 8122,   duration = 60,  type = "cc",        talent = 205369 },
 		{ spellID = 205369, duration = 30,  type = "cc",        spec = true,    parent = 8122   },
 		{ spellID = 204263, duration = 45,  type = "disarm",    spec = true     },
-		{ spellID = 213602, duration = 45,  type = "immunity",  spec = true,    parent = 586    },
-		{ spellID = 197268, duration = 60,  type = "immunity",  spec = true     },
+		{ spellID = 213602, duration = 60,  type = "immunity",  spec = true,    parent = 586    },
+		{ spellID = 197268, duration = 90,  type = "immunity",  spec = true     },
 		{ spellID = 47788,  duration = 180, type = "externalDefensive", spec = {257}    },
 		{ spellID = 33206,  duration = 180, type = "externalDefensive", spec = {256}    },
 		{ spellID = 19236,  duration = 90,  type = "defensive"  },
@@ -476,13 +472,13 @@ E.spell_db = {
 		{ spellID = 34433,  duration = 180, type = "offensive", spec = {256,258},   talent = {123040, 200174}   },
 		{ spellID = 123040, duration = 60,  type = "offensive", spec = true,    parent = 34433  },
 		{ spellID = 200174, duration = 60,  type = "offensive", spec = true,    parent = 34433  },
-		{ spellID = 213610, duration = 30,  type = "counterCC", spec = true     },
+		{ spellID = 213610, duration = 45,  type = "counterCC", spec = true     },
 
 
 		{ spellID = 121536, duration = 20,  type = "other",     spec = true,    charges = 3 },
 		{ spellID = 586,    duration = 30,  type = "other",     talent = 213602 },
 		{ spellID = 73325,  duration = 90,  type = "other"      },
-		{ spellID = 64901,  duration = 300, type = "other",     spec = {257}    },
+		{ spellID = 64901,  duration = 180, type = "other",     spec = {257}    },
 		{ spellID = 316262, duration = 90,  type = "other",     spec = true     },
 	},
 	["ROGUE"] = {
@@ -603,7 +599,7 @@ E.spell_db = {
 		{ spellID = 325640, duration = 60,  type = "covenant",  spec = 321077,  },
 
 		{ spellID = 119898, duration = 24,  type = "interrupt"  },
-		{ spellID = 212619, duration = 24,  type = "interrupt", spec = true     },
+		{ spellID = 212619, duration = 30,  type = "interrupt", spec = true     },
 
 		{ spellID = 111898, duration = 120, type = "cc",        spec = true     },
 		{ spellID = 5484,   duration = 40,  type = "cc",        spec = true     },
@@ -614,7 +610,7 @@ E.spell_db = {
 		{ spellID = 48020,  duration = 30,  type = "defensive"  },
 		{ spellID = 113942, duration = 90,  type = "defensive"  },
 		{ spellID = 104773, duration = 180, type = "defensive"  },
-		{ spellID = 328774, duration = 45,  type = "offensive", spec = true     },
+		{ spellID = 328774, duration = 30,  type = "offensive", spec = true     },
 		{ spellID = 199954, duration = 45,  type = "offensive", spec = true     },
 		{ spellID = 234877, duration = 30,  type = "offensive", spec = true     },
 		{ spellID = 267211, duration = 30,  type = "offensive", spec = true     },
@@ -633,7 +629,7 @@ E.spell_db = {
 		{ spellID = 353601, duration = 45,  type = "offensive", spec = true     },
 		{ spellID = 108503, duration = 30,  type = "offensive", spec = true     },
 		{ spellID = 48181,  duration = 15,  type = "offensive", spec = true     },
-		{ spellID = 267217, duration = 180, type = "offensive", spec = true     },
+		{ spellID = 267217, duration = 150, type = "offensive", spec = true     },
 		{ spellID = 264130, duration = 30,  type = "offensive", spec = true     },
 		{ spellID = 205179, duration = 45,  type = "offensive", spec = true     },
 		{ spellID = 344566, duration = 30,  type = "offensive", spec = true     },
@@ -656,8 +652,8 @@ E.spell_db = {
 	},
 	["WARRIOR"] = {
 		{ spellID = 325886, duration = 90,  type = "covenant",  spec = 321077   },
-		{ spellID = 317483, duration = 6,   type = "covenant",  spec = 321079,  parent = 5308   },
-		{ spellID = 324143, duration = 180, type = "covenant",  spec = 321078   },
+		{ spellID = 317483, duration = {[72]=6,default=1},  type = "covenant",  spec = 321079,  parent = 5308   },
+		{ spellID = 324143, duration = 120, type = "covenant",  spec = 321078   },
 		{ spellID = 307865, duration = 60,  type = "covenant",  spec = 321076   },
 		{ spellID = 6552,   duration = 15,  type = "interrupt"  },
 		{ spellID = 5246,   duration = 90,  type = "cc"         },
@@ -671,7 +667,7 @@ E.spell_db = {
 		{ spellID = 236273, duration = 60,  type = "defensive", spec = true     },
 		{ spellID = 184364, duration = 120, type = "defensive", spec = {72}     },
 		{ spellID = 190456, duration = {[73]=1,default=12}, type = "defensive"  },
-		{ spellID = 202168, duration = 30,  type = "defensive", spec = true,    parent = 34428  },
+		{ spellID = 202168, duration = 25,  type = "defensive", spec = true,    parent = 34428  },
 		{ spellID = 12975,  duration = 180, type = "defensive", spec = {73}     },
 		{ spellID = 2565,   duration = 15,  type = "defensive", charges = 2     },
 		{ spellID = 871,    duration = 240, type = "defensive", spec = {73}     },
@@ -715,6 +711,12 @@ E.spell_db = {
 
 		{ spellID = 345228, duration = 60,  type = "trinket",   item = 175921,  item2 = 175884  },
 		{ spellID = 356567, duration = 180, type = "trinket",   item = 186980,  },
+
+		{ spellID = 363117, duration = 180, type = "pvptrinket",item = 188524,  buff = 362699   },
+		{ spellID = 363121, duration = 0,   type = "pvptrinket",item = 188691   },
+		{ spellID = 363481, duration = 120, type = "trinket",   item = 188766   },
+		{ spellID = 363522, duration = 120, type = "trinket",   item = 188775   },
+		{ spellID = 363532, duration = 180, type = "trinket",   item = 188778,  icon = 3950358  },
 	},
 	["RACIAL"] = {
 		{ spellID = 59752,  duration = 180, type = "racial",    race =  1   },
@@ -743,6 +745,9 @@ E.spell_db = {
 		{ spellID = 312916, duration = 150, type = "racial",    race = 37   },
 	},
 	["TRINKET"] = {
+
+		{ spellID = 313113, duration = 80,  type = "trinket",   item = 173946   },
+
 		{ spellID = 344384, duration = 120, type = "trinket",   item = 184017   },
 		{ spellID = 342423, duration = 300, type = "trinket",   item = 178862   },
 		{ spellID = 329840, duration = 120, type = "trinket",   item = 179331   },
@@ -770,6 +775,7 @@ E.spell_db = {
 		{ spellID = 329831, duration = 90,  type = "trinket",   item = 179342   },
 		{ spellID = 343399, duration = 75,  type = "trinket",   item = 178825   },
 		{ spellID = 344231, duration = 60,  type = "trinket",   item = 184031   },
+
 		{ spellID = 331523, duration = 120, type = "trinket",   item = 179356   },
 		{ spellID = 345549, duration = 30,  type = "trinket",   item = 178783   },
 		{ spellID = 345019, duration = 90,  type = "trinket",   item = 184016   },
@@ -782,7 +788,6 @@ E.spell_db = {
 		{ spellID = 336182, duration = 120, type = "trinket",   item = 181357,  item2 = 175732  },
 		{ spellID = 344916, duration = 120, type = "trinket",   item = 184020   },
 		{ spellID = 336588, duration = 120, type = "trinket",   item = 181457,  item2 = 183850  },
-
 		{ spellID = 345695, duration = 90,  type = "trinket",   item = 178810   },
 
 		{ spellID = 351867, duration = 150, type = "trinket",   item = 185902   },
@@ -794,6 +799,20 @@ E.spell_db = {
 		{ spellID = 355333, duration = 90,  type = "trinket",   item = 186432   },
 		{ spellID = 355303, duration = 60,  type = "trinket",   item = 186437   },
 		{ spellID = 356212, duration = 600, type = "trinket",   item = 186421   },
+		{ spellID = 355589, duration = 60,  type = "trinket",   item = 186414   },
+
+		{ spellID = 367241, duration = 300, type = "trinket",   item = 188271   },
+		{ spellID = 367805, duration = 180, type = "trinket",   item = 188265   },
+		{ spellID = 367802, duration = 60,  type = "trinket",   item = 188266   },
+		{ spellID = 367236, duration = 90,  type = "trinket",   item = 188272   },
+		{ spellID = 368203, duration = 90,  type = "trinket",   item = 188268   },
+		{ spellID = 367808, duration = 180, type = "trinket",   item = 188264   },
+		{ spellID = 368894, duration = 90,  type = "trinket",   item = 188263   },
+		{ spellID = 364152, duration = 180, type = "trinket",   item = 188262   },
+		{ spellID = 367885, duration = 180, type = "trinket",   item = 188261   },
+		{ spellID = 367924, duration = 120, type = "trinket",   item = 188254   },
+		{ spellID = 367931, duration = 180, type = "trinket",   item = 188252   },
+		{ spellID = 367930, duration = 30,  type = "trinket",   item = 188253   },
 	},
 	["COVENANT"] = {
 		{ spellID = 300728, duration = 60,  type = "covenant",  spec = 321079   },
@@ -803,10 +822,13 @@ E.spell_db = {
 		{ spellID = 324739, duration = 300, type = "covenant",  spec = 321076   },
 		{ spellID = 319217, duration = 600, type = "covenant",  spec = 319217,  buff = 320224   },
 	},
+
+
+
+
 }
 
 local iconFix = {
-	[200166] = 191427,
 	[193876] = 2825,
 
 }
@@ -817,7 +839,7 @@ local buffFix = {
 	[49028]  = 81256,
 	[198589] = 212800,
 	[196718] = 209426,
-	[200166] = 162264,
+	[191427] = 162264,
 
 	[33891]  = 117679,
 	[116011] = 116014,
@@ -857,7 +879,7 @@ for k, v in pairs(E.spell_db) do
 			if k == "TRINKET" then
 				t.icon = GetItemIcon(itemID)
 			else
-				t.icon = select(2, GetSpellTexture(iconFix[id] or id))
+				t.icon = t.icon or select(2, GetSpellTexture(iconFix[id] or id))
 			end
 			t.name = GetSpellInfo(id) or ""
 			t.class = k

@@ -12,7 +12,6 @@ end
 
 L = BigWigs:NewBossLocale("Sun King's Salvation", "ruRU")
 if L then
-	L.shield_removed = "%s убран спустя %.1fс" -- "Shield removed after 1.1s" s = seconds
 	L.shield_remaining = "%s : осталось %s (%.1f%%)" -- "Shield remaining: 2.1K (5.3%)"
 end
 
@@ -166,3 +165,15 @@ if L then
 	--[[ Sludgefist -> Stone Legion Generals ]]--
 	L.goliath = "Голиаф из Каменного легиона"
 end
+
+L = BigWigs:NewBossLocale("Castle Nathria Affixes", "ruRU")
+if L then
+	L.custom_on_bar_icon = "Иконка полосок"
+	L.custom_on_bar_icon_desc = "Показывать иконку Судьбоносного Рейда на полосках, связанных с афиксом."
+
+	L.chaotic_essence = "Эссенция"
+	L.creation_spark = "Искры"
+	L.protoform_barrier = "Преграда"
+	L.reconfiguration_emitter = "Кик аффикс"
+end
+

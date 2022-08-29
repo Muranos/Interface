@@ -344,7 +344,7 @@ _G.PitBull4 = PitBull4
 local DEBUG = PitBull4.DEBUG
 local expect = PitBull4.expect
 
-PitBull4.version = "v4.2.6"
+PitBull4.version = "v4.2.17"
 if PitBull4.version:match("@") then
 	PitBull4.version = "Development"
 end
@@ -1248,6 +1248,10 @@ function PitBull4:OnInitialize()
 	self.DEFAULT_COLORS = CopyTable(DATABASE_DEFAULTS.profile.colors.power)
 	DATABASE_DEFAULTS = nil
 
+	-- ModuleHandling\Module.lua
+	self:InitializeModuleDefaults()
+	self:RegisterEvent("ADDON_LOADED", "HandleModuleLoad")
+
 	local LibDataBrokerLauncher = LibStub("LibDataBroker-1.1"):NewDataObject("PitBull4", {
 		type = "launcher",
 		icon = [[Interface\AddOns\PitBull4\pitbull]],
@@ -1275,8 +1279,6 @@ function PitBull4:OnInitialize()
 	if LibDBIcon then
 		LibDBIcon:Register("PitBull4", LibDataBrokerLauncher, self.db.profile.minimap_icon)
 	end
-
-	self:RegisterEvent("ADDON_LOADED") -- ModuleHandling\Module.lua
 
 	self:RegisterEvent("PLAYER_ROLES_ASSIGNED", "OnTanksUpdated")
 	if _G.oRA3 then

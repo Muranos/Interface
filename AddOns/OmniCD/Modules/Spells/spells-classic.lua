@@ -71,8 +71,6 @@ E.spell_db = {
 
 
 
-
-
 	},
 	["MAGE"] = {
 		{ spellID = 2139,   duration = 24,  type = "interrupt"  },
@@ -215,6 +213,7 @@ E.spell_db = {
 
 		{ spellID = 17735,  duration = 120, type = "other"      },
 
+		{ spellID = 20707,  duration = 1800, type = "other"     },
 	},
 	["WARRIOR"] = {
 		{ spellID = 6552,   duration = 10,  type = "interrupt"  },
@@ -320,7 +319,7 @@ for k, v in pairs(E.spell_db) do
 			if k == "TRINKET" or k == "PVPTRINKET" then
 				t.icon = GetItemIcon(itemID)
 			else
-				t.icon = select(2, GetSpellTexture(id))
+				t.icon = t.icon or select(2, GetSpellTexture(id))
 			end
 			t.name = GetSpellInfo(id) or ""
 			t.class = k

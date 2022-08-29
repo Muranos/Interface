@@ -23,6 +23,7 @@ BigWigs:AddColors("Guarm-TrialOfValor", {
 	[227514] = "yellow",
 	[227816] = "red",
 	[227883] = "orange",
+	[228187] = "yellow",
 	[228228] = {"blue","orange"},
 	[228248] = {"blue","orange"},
 	[228253] = {"blue","orange"},

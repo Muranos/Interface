@@ -70,6 +70,7 @@ SI.WorldBosses = {
   [2432] = { quest=61815, expansion=8, level=60 }, -- Oranomonos the Everbranching
   [2433] = { quest=61814, expansion=8, level=60 }, -- Nurgash Muckformed
   [2456] = { quest=64531, expansion=8, level=60 }, -- Mor'geth, Tormentor of the Damned
+  [2468] = { quest=65143, expansion=8, level=60 }, -- Antros
 
   -- bosses with no EJ entry (eid is a placeholder)
   [9001] = { quest=38276, name=GARRISON_LOCATION_TOOLTIP.." "..BOSS, expansion=5, level=40 },
@@ -82,4 +83,11 @@ SI.WorldBosses = {
   -- The Maw
   [9006] = { quest=63414, name=L["Wrath of the Jailer"],    expansion=8, level=60 }, -- Wrath of the Jailer
   [9007] = { quest=63854, name=L["Tormentors of Torghast"], expansion=8, level=60 }, -- Tormentors of Torghast
+  -- Fated (Shadowlands Season 4)
+  [9008] = { quest=66614, name=EJ_GetEncounterInfo(2430), expansion=8, level=60 }, -- Valinor, the Light of Eons
+  [9009] = { quest=66617, name=EJ_GetEncounterInfo(2431), expansion=8, level=60 }, -- Mortanis
+  [9010] = { quest=66616, name=EJ_GetEncounterInfo(2432), expansion=8, level=60 }, -- Oranomonos the Everbranching
+  [9011] = { quest=66615, name=EJ_GetEncounterInfo(2433), expansion=8, level=60 }, -- Nurgash Muckformed
+  [9012] = { quest=66618, name=EJ_GetEncounterInfo(2456), expansion=8, level=60 }, -- Mor'geth, Tormentor of the Damned
+  [9013] = { quest=66619, name=EJ_GetEncounterInfo(2468), expansion=8, level=60 }, -- Antros
 }

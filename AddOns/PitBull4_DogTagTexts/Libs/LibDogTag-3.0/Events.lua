@@ -1,5 +1,5 @@
 local MAJOR_VERSION = "LibDogTag-3.0"
-local MINOR_VERSION = 90000 + ((tonumber(("20210321162804"):match("%d+")) or 33333333333333))
+local MINOR_VERSION = ((tonumber(("20210628175745"):match("%d+")) or 33333333333333))
 
 if MINOR_VERSION > _G.DogTag_MINOR_VERSION then
 	_G.DogTag_MINOR_VERSION = MINOR_VERSION
@@ -68,11 +68,15 @@ if DogTag.oldLib then
 	frame:SetScript("OnUpdate", nil)
 	frame:Show()
 	frame:UnregisterAllEvents()
+	if DogTag.oldLib.UnregisterCustomClassColors then
+		DogTag.oldLib:UnregisterCustomClassColors()
+	end
 else
 	frame = CreateFrame("Frame")
 end
 DogTag.frame = frame
 frame:RegisterEvent("ADDON_LOADED")
+frame:RegisterEvent("PLAYER_LOGIN")
 
 -- Keep track of which events we've attempted to register
 -- so we aren't constantly trying to re-register them.

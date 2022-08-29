@@ -15,7 +15,6 @@ local updateTable = {TITAN_BAG_ID, TITAN_PANEL_UPDATE_BUTTON};
 -- ******************************** Variables *******************************
 local L = LibStub("AceLocale-3.0"):GetLocale("Titan", true)
 local AceTimer = LibStub("AceTimer-3.0")
-local DDM = LibStub:GetLibrary("LibUIDropDownMenu-4.0")
 local BagTimer
 
 local bag_info = {
@@ -31,6 +30,8 @@ local bag_info = {
 }
 -- "Khorium Toolbox" removed???
  -- names are for debug only
+ -- Can use wowdb.com to look at bags by profession
+ 
 local bags = {
 	[333]    = {style = "", name = ""},
 	[21858]  = {style = "ENCHANTING", name = "Spellfire Bag"},
@@ -71,9 +72,9 @@ local bags = {
 	[67396]  = {style = "MINING", name = "\"Carriage - Christina\" Precious Metal Bag"},
 	[70136]  = {style = "INSCRIPTION", name = "Royal Scribe's Satchel"}, -- *
 	[70137]  = {style = "MINING", name = "Triple-Reinforced Mining Bag"},-- *
-	[92746]  = {style = "COOKING", name = "Portable Refrigerator"}, -- repeat, which one is real?
+	[92746]  = {style = "COOKING", name = "Portable Refrigerator [28]"}, -- repeat, which one is real?
 	[92747]  = {style = "COOKING", name = "Advanced Refrigeration Unit"},
-	[92748]  = {style = "COOKING", name = "Portable Refrigerator"}, -- repeat, which one is real?
+	[92748]  = {style = "COOKING", name = "Portable Refrigerator [32]"},
 	[70138]  = {style = "JEWELCRAFTING", name = "Luxurious Silk Gem Bag"}, -- *
 	[95536]  = {style = "LEATHERWORKING", name = "Magnificent Hide Pack"}, -- *
 	[116259] = {style = "LEATHERWORKING", name = "Burnished Leather Bag"},
@@ -83,11 +84,11 @@ local bags = {
 	[130943] = {style = "COOKING", name = "Reusable Tote Bag"}, -- *
 	[162588] = {style = "INSCRIPTION", name = "Weathered Scrollcase"},
 --[[
+ZZbags = bags
 print("--")
 print(ZZbags[21858].style)
 --]]
 }
-ZZbags = bags
 
 -- ******************************** Functions *******************************
 
@@ -111,7 +112,7 @@ function TitanPanelBagButton_OnLoad(self)
 			ShowLabelText = true,
 			ShowRegularText = false,
 			ShowColoredText = true,
-			DisplayOnRightSide = false
+			DisplayOnRightSide = true,
 		},
 		savedVariables = {
 			ShowUsedSlots = 1,
@@ -120,6 +121,7 @@ function TitanPanelBagButton_OnLoad(self)
 			ShowIcon = 1,
 			ShowLabelText = 1,
 			ShowColoredText = 1,
+			DisplayOnRightSide = false,
 		}
 	};
 
@@ -161,7 +163,7 @@ end
 
 -- **************************************************************************
 -- NAME : isBag(id)
--- DESC : Determine if this is a bag. Then check for a profession bag using its id 
+-- DESC : Determine if this is a bag. Then check for a profession bag using its id
 -- against the table of known ids.
 -- If it is a profession bag then grab its 'color' in case the user requested it.
 -- VARS : name = text (localized) of the bag to check
@@ -180,11 +182,11 @@ print("isBag:"
 	local is_bag = false
 	local bag_type = "none"
 	local color = {r=0,g=0,b=0} -- black (should never be used...)
-	
+
 	if bag_name == nil then
 		-- no bag found, return defaults
 	else
-		local itemID, itemType, itemSubType, itemEquipLoc, icon, itemClassID, itemSubClassID = GetItemInfoInstant(bag_name) 
+		local itemID, itemType, itemSubType, itemEquipLoc, icon, itemClassID, itemSubClassID = GetItemInfoInstant(bag_name)
 --[[
 print("isBag:"
 .." ID:'"..tostring(itemID).."'"
@@ -200,7 +202,7 @@ print("isBag:"
 		-- so create a default so routine is successful
 		itemID = itemID or 0
 		is_bag = true -- assume non nil is a valid bag name
-		
+
 		if bags[itemID] then
 			bag_type = bags[itemID].style
 			color = bag_info[bag_type].color
@@ -209,7 +211,7 @@ print("isBag:"
 			bag_type = "normal"
 		end
 	end
-	
+
 --[[
 TitanDebug("isBag: "..tostring(itemID)
 .." '"..tostring(bag_name).."'"
@@ -336,7 +338,7 @@ function TitanPanelBagButton_GetTooltipText()
 			totalSlots = GetContainerNumSlots(bag) or 0;
 			availableSlots = GetContainerNumFreeSlots(bag) or 0;
 			usedSlots = totalSlots - availableSlots;
-			local itemlink  = bag > 0 and GetInventoryItemLink("player", ContainerIDToInventoryID(bag)) 
+			local itemlink  = bag > 0 and GetInventoryItemLink("player", ContainerIDToInventoryID(bag))
 				or TitanUtils_GetHighlightText(L["TITAN_BAG_BACKPACK"]).. FONT_COLOR_CODE_CLOSE;
 
 			if itemlink then
@@ -382,30 +384,30 @@ end
 function TitanPanelRightClickMenu_PrepareBagMenu()
 	local info
 	-- level 2
-	if _G["L_UIDROPDOWNMENU_MENU_LEVEL"] == 2 then
-		if _G["L_UIDROPDOWNMENU_MENU_VALUE"] == "Options" then
-			TitanPanelRightClickMenu_AddTitle(L["TITAN_PANEL_OPTIONS"], _G["L_UIDROPDOWNMENU_MENU_LEVEL"])
+	if TitanPanelRightClickMenu_GetDropdownLevel() == 2 then
+		if TitanPanelRightClickMenu_GetDropdMenuValue() == "Options" then
+			TitanPanelRightClickMenu_AddTitle(L["TITAN_PANEL_OPTIONS"], TitanPanelRightClickMenu_GetDropdownLevel())
 			info = {};
 			info.text = L["TITAN_BAG_MENU_SHOW_USED_SLOTS"];
 			info.func = TitanPanelBagButton_ShowUsedSlots;
 			info.checked = TitanGetVar(TITAN_BAG_ID, "ShowUsedSlots");
-			DDM:UIDropDownMenu_AddButton(info, _G["L_UIDROPDOWNMENU_MENU_LEVEL"]);
+			TitanPanelRightClickMenu_AddButton(info, TitanPanelRightClickMenu_GetDropdownLevel());
 
 			info = {};
 			info.text = L["TITAN_BAG_MENU_SHOW_AVAILABLE_SLOTS"];
 			info.func = TitanPanelBagButton_ShowAvailableSlots;
 			info.checked = TitanUtils_Toggle(TitanGetVar(TITAN_BAG_ID, "ShowUsedSlots"));
-			DDM:UIDropDownMenu_AddButton(info, _G["L_UIDROPDOWNMENU_MENU_LEVEL"]);
+			TitanPanelRightClickMenu_AddButton(info, TitanPanelRightClickMenu_GetDropdownLevel());
 
 			info = {};
 			info.text = L["TITAN_BAG_MENU_SHOW_DETAILED"];
 			info.func = TitanPanelBagButton_ShowDetailedInfo;
 			info.checked = TitanGetVar(TITAN_BAG_ID, "ShowDetailedInfo");
-			DDM:UIDropDownMenu_AddButton(info, _G["L_UIDROPDOWNMENU_MENU_LEVEL"]);
+			TitanPanelRightClickMenu_AddButton(info, TitanPanelRightClickMenu_GetDropdownLevel());
 		end
 		return
 	end
-	
+
 	-- level 1
 	TitanPanelRightClickMenu_AddTitle(TitanPlugins[TITAN_BAG_ID].menuText);
 
@@ -414,19 +416,20 @@ function TitanPanelRightClickMenu_PrepareBagMenu()
 	info.text = L["TITAN_PANEL_OPTIONS"];
 	info.value = "Options"
 	info.hasArrow = 1;
-	DDM:UIDropDownMenu_AddButton(info);
+	TitanPanelRightClickMenu_AddButton(info, TitanPanelRightClickMenu_GetDropdownLevel());
 
 	TitanPanelRightClickMenu_AddSpacer();
 	info = {};
 	info.text = L["TITAN_BAG_MENU_IGNORE_PROF_BAGS_SLOTS"];
 	info.func = TitanPanelBagButton_ToggleIgnoreProfBagSlots;
 	info.checked = TitanUtils_Toggle(TitanGetVar(TITAN_BAG_ID, "CountProfBagSlots"));
-	DDM:UIDropDownMenu_AddButton(info, _G["L_UIDROPDOWNMENU_MENU_LEVEL"]);
+	TitanPanelRightClickMenu_AddButton(info, TitanPanelRightClickMenu_GetDropdownLevel());
 
 	TitanPanelRightClickMenu_AddSpacer();
 	TitanPanelRightClickMenu_AddToggleIcon(TITAN_BAG_ID);
 	TitanPanelRightClickMenu_AddToggleLabelText(TITAN_BAG_ID);
 	TitanPanelRightClickMenu_AddToggleColoredText(TITAN_BAG_ID);
+	TitanPanelRightClickMenu_AddToggleRightSide(TITAN_BAG_ID);
 	TitanPanelRightClickMenu_AddSpacer();
 	TitanPanelRightClickMenu_AddCommand(L["TITAN_PANEL_MENU_HIDE"], TITAN_BAG_ID, TITAN_PANEL_MENU_FUNC_HIDE);
 end

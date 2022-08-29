@@ -35,7 +35,7 @@ Each template contains:
 			</OnEnter>
 			<OnLeave>
 				TitanPanelButton_OnLeave(self);
-			</OnLeave>					
+			</OnLeave>
 If these events are overridden then the default routine needs to be included!
 :DESC
 --]]
@@ -70,11 +70,11 @@ NOTE:
 --]]
 local function TitanTooltip_AddTooltipText(text)
 	if ( text ) then
-		-- Append a "\n" to the end 
+		-- Append a "\n" to the end
 		if ( string.sub(text, -1, -1) ~= "\n" ) then
 			text = text.."\n";
 		end
-		
+
 		-- See if the string is intended for a double column
 		for text1, text2 in string.gmatch(text, "([^\t\n]*)\t?([^\t\n]*)\n") do
 			if ( text2 ~= "" ) then
@@ -86,25 +86,10 @@ local function TitanTooltip_AddTooltipText(text)
 			else
 				-- Assume a blank line
 				GameTooltip:AddLine("\n");
-			end			
+			end
 		end
 	end
 end
-
-local back_drop_info =
-	{
-		bgFile="Interface\\Tooltips\\UI-Tooltip-Background",
-		edgeFile="Interface\\Tooltips\\UI-Tooltip-Border",
-		tile = true,
-		insets = {
-			left = 6,
-			right = 6,
-			top = 3,
-			bottom = 3,
-		},
-		tileSize = 8,
-		edgeSize = 8,
-	}
 
 --[[ local
 NAME: TitanTooltip_SetOwnerPosition
@@ -122,32 +107,13 @@ local function TitanTooltip_SetOwnerPosition(parent, anchorPoint, relativeToFram
 	if not frame then
 		frame = _G["GameTooltip"]
 	end
-	-- Changes for 9.1.5. The background template was removed from the GameTooltip
-	local tip_name = frame:GetName()
-	
-	local tip_back_name = tip_name.."Backdrop"
-	local tip_back_frame = _G[tip_back_name] or CreateFrame("Frame", tip_back_name, frame, BackdropTemplateMixin and "BackdropTemplate" or nil)
-	tip_back_frame:SetFrameLevel(frame:GetFrameLevel() - 1) -- By creating this after the parent, need to set it behind the parent
+	-- Changes for 9.1.5 Removed the background template from the GameTooltip
+	-- Making changes to it difficult and possibly changing the tooltip globally.
 
-	tip_back_frame:SetAllPoints()
-	tip_back_frame:SetBackdrop(back_drop_info)
-	-- set alpha (transparency) for the Game Tooltip
-	local tool_trans = TitanPanelGetVar("TooltipTrans")
-	tip_back_frame:SetBackdropBorderColor(TOOLTIP_DEFAULT_COLOR.r, TOOLTIP_DEFAULT_COLOR.g, TOOLTIP_DEFAULT_COLOR.b, tool_trans)
-	tip_back_frame:SetBackdropColor(TOOLTIP_DEFAULT_BACKGROUND_COLOR.r, TOOLTIP_DEFAULT_BACKGROUND_COLOR.g, TOOLTIP_DEFAULT_BACKGROUND_COLOR.b, tool_trans)
-	frame.MenuBackdrop = tip_back_frame
-	
 	frame:SetOwner(parent, "ANCHOR_NONE");
-	frame:SetPoint(anchorPoint, relativeToFrame, relativePoint, 
+	frame:SetPoint(anchorPoint, relativeToFrame, relativePoint,
 		xOffset, yOffset);
---[[
-	-- set alpha (transparency) for the Game Tooltip
-	local red, green, blue = tip_back_frame:GetBackdropColor();
-	local red2, green2, blue2 = tip_back_frame:GetBackdropBorderColor();
-	local tool_trans = TitanPanelGetVar("TooltipTrans")
-	tip_back_frame:SetBackdropColor(red,green,blue,tool_trans);
-	tip_back_frame:SetBackdropBorderColor(red2,green2,blue2,tool_trans);
---]]
+
 	-- set font size for the Game Tooltip
 	if not TitanPanelGetVar("DisableTooltipFont") then
 		if TitanTooltipScaleSet < 1 then
@@ -178,8 +144,8 @@ local function TitanTooltip_SetGameTooltip(self)
 --]]
 --		self.tooltipCustomFunction();
 	elseif ( self.tooltipTitle ) then
-		GameTooltip:SetText(self.tooltipTitle, 
-			HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);	
+		GameTooltip:SetText(self.tooltipTitle,
+			HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
 		if ( self.tooltipText ) then
 			TitanTooltip_AddTooltipText(self.tooltipText);
 		end
@@ -198,14 +164,14 @@ OUT:  None
 --]]
 local function TitanTooltip_SetPanelTooltip(self, id, frame)
 	-- sanity checks
-	if not TitanPanelGetVar("ToolTipsShown") 
+	if not TitanPanelGetVar("ToolTipsShown")
 	or (TitanPanelGetVar("HideTipsInCombat") and InCombatLockdown()) then return end
 
 	if not self.tooltipCustomFunction and not self.tooltipTitle then return end
 
 	-- Set GameTooltip
 	local button = TitanUtils_GetButton(id);
-	local scale = TitanPanelGetVar("Scale");	
+	local scale = TitanPanelGetVar("Scale");
 	local offscreenX, offscreenY;
 	local i = TitanPanel_GetButtonNumber(id);
 	local bar = TITAN_PANEL_DISPLAY_PREFIX..TitanUtils_GetWhichBar(id)
@@ -220,20 +186,20 @@ local function TitanTooltip_SetPanelTooltip(self, id, frame)
 		rel_pt = "TOP"
 	end
 
-	TitanTooltip_SetOwnerPosition(button, pt.."LEFT", 
+	TitanTooltip_SetOwnerPosition(button, pt.."LEFT",
 		button:GetName(), rel_pt.."LEFT", -10, 0, frame) --4 * scale);
 	TitanTooltip_SetGameTooltip(self);
 
 	-- Adjust GameTooltip position if it's off the screen
 	offscreenX, offscreenY = TitanUtils_GetOffscreen(GameTooltip);
 	if ( offscreenX == -1 ) then
-		TitanTooltip_SetOwnerPosition(button, pt.."LEFT", bar, 
+		TitanTooltip_SetOwnerPosition(button, pt.."LEFT", bar,
 			rel_pt.."LEFT", 0, 0, frame)
-		TitanTooltip_SetGameTooltip(self);	
+		TitanTooltip_SetGameTooltip(self);
 	elseif ( offscreenX == 1 ) then
-		TitanTooltip_SetOwnerPosition(button, pt.."RIGHT", bar, 
+		TitanTooltip_SetOwnerPosition(button, pt.."RIGHT", bar,
 			rel_pt.."RIGHT", 0, 0, frame)
-		TitanTooltip_SetGameTooltip(self);	
+		TitanTooltip_SetGameTooltip(self);
 	end
 end
 
@@ -247,23 +213,44 @@ local function TitanPanelButton_SetTooltip(self, id)
 	-- ensure that the 'self' passed is a valid frame reference
 	if not self:GetName() then return end
 
+	local call_success = nil
+	local tmp_txt = ""
+	local use_mod = TitanAllGetVar("UseTooltipModifer")
+	local use_alt = TitanAllGetVar("TooltipModiferAlt")
+	local use_ctrl = TitanAllGetVar("TooltipModiferCtrl")
+	local use_shift = TitanAllGetVar("TooltipModiferShift")
+	local ok = false
+	
+	if use_mod then
+		if (use_alt and IsAltKeyDown())
+		or (use_ctrl and IsControlKeyDown())
+		or (use_shift and IsShiftKeyDown())
+		then
+			ok = true
+		end
+	else
+		ok = true
+	end
+
 	self.tooltipCustomFunction = nil;
-	if (id and TitanUtils_IsPluginRegistered(id)) then
-		local plugin = TitanUtils_GetPlugin(id);		
+	if ok and (id and TitanUtils_IsPluginRegistered(id)) then
+		local plugin = TitanUtils_GetPlugin(id);
 		if ( plugin.tooltipCustomFunction ) then
 			self.tooltipCustomFunction = plugin.tooltipCustomFunction;
 			TitanTooltip_SetPanelTooltip(self, id);
 		elseif ( plugin.tooltipTitle ) then
-			self.tooltipTitle = plugin.tooltipTitle;			
 			local tooltipTextFunc = _G[plugin.tooltipTextFunction];
 			if ( tooltipTextFunc ) then
-				local tmp_txt = ""
-				local call_success, -- for pcall
-					tmp_txt = pcall (tooltipTextFunc);
-				self.tooltipText = tmp_txt
---				self.tooltipText = tooltipTextFunc();
+
+				if ok then  -- display the tooltip
+					self.tooltipTitle = plugin.tooltipTitle;
+					call_success, -- for pcall
+						tmp_txt = pcall (tooltipTextFunc);
+					self.tooltipText = tmp_txt
+	--				self.tooltipText = tooltipTextFunc();
+					TitanTooltip_SetPanelTooltip(self, id);
+				end
 			end
-			TitanTooltip_SetPanelTooltip(self, id);
 		end
 	end
 end
@@ -331,9 +318,9 @@ NOTE:
 --]]
 local function TitanPanelButton_OnDragStart(self, ChildButton)
 	if TitanPanelGetVar("LockButtons") or InCombatLockdown() then return end
-	
+
 	local frname = self;
-	if ChildButton then	  
+	if ChildButton then
 		frname = self:GetParent();
 	end
 
@@ -341,22 +328,22 @@ local function TitanPanelButton_OnDragStart(self, ChildButton)
 	local i,j;
 	for i, j in pairs(TitanPanelSettings.Buttons) do
 		local pluginid = _G["TitanPanel"..TitanPanelSettings.Buttons[i].."Button"];
-		if pluginid then 
-			pluginid:ClearAllPoints() 
+		if pluginid then
+			pluginid:ClearAllPoints()
 		end
 	end
 
 	-- Start the drag; close any tooltips and open control frames
 	frname:StartMoving();
-	frname.isMoving = true;		
+	frname.isMoving = true;
 	TitanUtils_CloseAllControlFrames();
 	TitanPanelRightClickMenu_Close();
 	if AceLibrary then
-		if AceLibrary:HasInstance("Dewdrop-2.0") then 
-			AceLibrary("Dewdrop-2.0"):Close() 
+		if AceLibrary:HasInstance("Dewdrop-2.0") then
+			AceLibrary("Dewdrop-2.0"):Close()
 		end
-		if AceLibrary:HasInstance("Tablet-2.0") then 
-			AceLibrary("Tablet-2.0"):Close() 
+		if AceLibrary:HasInstance("Tablet-2.0") then
+			AceLibrary("Tablet-2.0"):Close()
 		end
 	end
 	GameTooltip:Hide();
@@ -375,11 +362,11 @@ local function TitanPanelButton_OnDragStart(self, ChildButton)
 		end
 	end
 	-- /LibQTip-1.0 support code
-	
+
 	-- Hold the plugin id so we can do checks on the drop
 	TITAN_PANEL_MOVE_ADDON = TitanUtils_GetButtonID(self:GetName());
 	if ChildButton then
-		TITAN_PANEL_MOVE_ADDON = 
+		TITAN_PANEL_MOVE_ADDON =
 			TitanUtils_GetButtonID(self:GetParent():GetName());
 	end
 	-- Tell Titan that a drag & drop is in process
@@ -402,35 +389,35 @@ NOTE:
 :NOTE
 --]]
 local function TitanPanelButton_OnDragStop(self, ChildButton)
-	if TitanPanelGetVar("LockButtons") then 
+	if TitanPanelGetVar("LockButtons") then
 		return
 	end
 	local ok_to_move = true
 	local nonmovableFrom = false;
 	local nonmovableTo = false;
 	local frname = self;
-	if ChildButton then	  
+	if ChildButton then
 		frname = self:GetParent();
 	end
 	if TITAN_PANEL_MOVING == 1 then
 		frname:StopMovingOrSizing();
 		frname.isMoving = false;
 		TITAN_PANEL_MOVING = 0;
-		
+
 		-- See if the plugin is supposed to stay on the bar it is on
 		if TitanGetVar(TITAN_PANEL_MOVE_ADDON, "ForceBar") then
 			ok_to_move = false
 		end
-		
+
 		-- eventually there could be several reasons to not allow
 		-- the plugin to move
 		if ok_to_move then
 			local i,j;
 			for i, j in pairs(TitanPanelSettings.Buttons) do
-				local pluginid = 
+				local pluginid =
 					_G["TitanPanel"..TitanPanelSettings.Buttons[i].."Button"];
 				if (pluginid and MouseIsOver(pluginid)) and frname ~= pluginid then
-					TITAN_PANEL_DROPOFF_ADDON = TitanPanelSettings.Buttons[i];	  		
+					TITAN_PANEL_DROPOFF_ADDON = TitanPanelSettings.Buttons[i];
 				end
 			end
 
@@ -440,7 +427,7 @@ local function TitanPanelButton_OnDragStop(self, ChildButton)
 			if nonmovableTo ~= nonmovableFrom then
 				TITAN_PANEL_DROPOFF_ADDON = nil;
 			end
-			
+
 			if TITAN_PANEL_DROPOFF_ADDON == nil then
 				-- See if the plugin was dropped on a bar rather than
 				-- another plugin.
@@ -475,7 +462,7 @@ local function TitanPanelButton_OnDragStop(self, ChildButton)
 					TitanPanelSettings.Location[dropoff] = dropoffbar;
 					TitanPanelSettings.Buttons[pickup] = TITAN_PANEL_DROPOFF_ADDON;
 					TitanPanelSettings.Location[pickup] = pickupbar;
-				end	
+				end
 			end
 		end
 
@@ -497,8 +484,8 @@ VAR: text - the label for value
 VAR: value - the value
 OUT: string - encoded color string of text and value
 --]]
-function TitanOptionSlider_TooltipText(text, value) 
-	return text .. GREEN_FONT_COLOR_CODE .. value .. FONT_COLOR_CODE_CLOSE;
+function TitanOptionSlider_TooltipText(text, value)
+	return text .. " " .. GREEN_FONT_COLOR_CODE .. value .. FONT_COLOR_CODE_CLOSE;
 end
 
 --[[ API
@@ -547,18 +534,19 @@ function TitanPanelPluginHandle_OnUpdate(table, oldarg) -- Used by plugins
 
 	-- id is required
 	if id then
-		if updateType == TITAN_PANEL_UPDATE_BUTTON 
+		if updateType == TITAN_PANEL_UPDATE_BUTTON
 		or updateType == TITAN_PANEL_UPDATE_ALL then
 			TitanPanelButton_UpdateButton(id)
 		end
 
-		if (updateType == TITAN_PANEL_UPDATE_TOOLTIP 
-		or updateType == TITAN_PANEL_UPDATE_ALL) 
-		and MouseIsOver(_G["TitanPanel"..id.."Button"]) then			
+		if (updateType == TITAN_PANEL_UPDATE_TOOLTIP
+		or updateType == TITAN_PANEL_UPDATE_ALL)
+		and MouseIsOver(_G["TitanPanel"..id.."Button"]) then
 			if TitanPanelRightClickMenu_IsVisible() or TITAN_PANEL_MOVING == 1 then
-				return 
+				return
 			end
-			TitanPanelButton_SetTooltip(_G["TitanPanel"..id.."Button"], id)   			
+
+			TitanPanelButton_SetTooltip(_G["TitanPanel"..id.."Button"], id)
 		end
 	end
 end
@@ -578,12 +566,12 @@ function TitanPanelDetectPluginMethod(id, isChildButton)
 	end
 	-- Ensure the frame is valid
 	if not TitanPluginframe and TitanPluginframe:GetName() then return end -- sanity check...
-	
+
 	-- Set the OnDragStart script
 	TitanPluginframe:SetScript("OnDragStart", function(self)
-		if not IsShiftKeyDown() 
-		and not IsControlKeyDown() 
-		and not IsAltKeyDown() then			
+		if not IsShiftKeyDown()
+		and not IsControlKeyDown()
+		and not IsAltKeyDown() then
 			if isChildButton then
 				TitanPanelButton_OnDragStart(self, true);
 			else
@@ -591,15 +579,32 @@ function TitanPanelDetectPluginMethod(id, isChildButton)
 			end
 		end
 	end)
-	
+
 	-- Set the OnDragStop script
-	TitanPluginframe:SetScript("OnDragStop", function(self)		
+	TitanPluginframe:SetScript("OnDragStop", function(self)
 		if isChildButton then
 			TitanPanelButton_OnDragStop(self, true)
-		else    	 		    	 		
+		else
 			TitanPanelButton_OnDragStop(self);
-		end		
+		end
 	end)
+--[[
+	-- Set the key down script - for modifiers
+	TitanPluginframe:SetScript("OnKeyDown", function(self)
+		if IsModifierKeyDown() then
+			TitanPanelButton_SetTooltip(self, id)
+		end
+	end)
+
+	-- Set the key up script - for modifiers
+	TitanPluginframe:SetScript("OnKeyUp", function(self)
+		if IsModifierKeyDown() then
+			-- ? do nothing
+		else
+			GameTooltip:Hide()
+		end
+	end)
+--]]
 end
 
 --[[ API
@@ -614,9 +619,9 @@ function TitanPanelButton_OnShow(self) -- Used by plugins
 		id = TitanUtils_GetButtonID(self:GetName());
 	end
 	-- ensure that id is a valid Titan plugin
-	if (id) then		
+	if (id) then
 		TitanPanelButton_UpdateButton(id, 1);
-	end 
+	end
 end
 
 --[[ API
@@ -633,15 +638,15 @@ function TitanPanelButton_OnClick(self, button, isChildButton) -- Used by plugin
 	local id
 	-- ensure that the 'self' passed is a valid frame reference
 	if self and self:GetName() then
-		id = TitanUtils_Ternary(isChildButton, 
-			TitanUtils_GetParentButtonID(self:GetName()), 
+		id = TitanUtils_Ternary(isChildButton,
+			TitanUtils_GetParentButtonID(self:GetName()),
 			TitanUtils_GetButtonID(self:GetName()));
 	end
-	
+
 	if id then
 		local controlFrame = TitanUtils_GetControlFrame(id);
 		local rightClickMenu = _G["TitanPanelRightClickMenu"];
-	
+
 		if (button == "LeftButton") then
 			local isControlFrameShown;
 			if (not controlFrame) then
@@ -651,48 +656,48 @@ function TitanPanelButton_OnClick(self, button, isChildButton) -- Used by plugin
 			else
 				isControlFrameShown = true;
 			end
-			
-			TitanUtils_CloseAllControlFrames();	
-			TitanPanelRightClickMenu_Close();	
-		
+
+			TitanUtils_CloseAllControlFrames();
+			TitanPanelRightClickMenu_Close();
+
 			local position = TitanUtils_GetWhichBar(id)
 			local scale = TitanPanelGetVar("Scale");
 			if (isControlFrameShown) then
 				local buttonCenter = (self:GetLeft() + self:GetRight()) / 2 * scale;
 				local controlFrameRight = buttonCenter + controlFrame:GetWidth() / 2;
 				local y_off = TITAN_PANEL_BAR_HEIGHT * scale
-				if ( position == TITAN_PANEL_PLACE_TOP ) then 
+				if ( position == TITAN_PANEL_PLACE_TOP ) then
 					controlFrame:ClearAllPoints();
-					controlFrame:SetPoint("TOP", "UIParent", "TOPLEFT", buttonCenter, -y_off);	
-					
-					-- Adjust control frame position if it's off the screen
-					local offscreenX, offscreenY = TitanUtils_GetOffscreen(controlFrame);
-					if ( offscreenX == -1 ) then
-						controlFrame:ClearAllPoints();
-						controlFrame:SetPoint("TOPLEFT", "UIParent", "TOPLEFT", 0, -y_off);	
-					elseif ( offscreenX == 1 ) then
-						controlFrame:ClearAllPoints();
-						controlFrame:SetPoint("TOPRIGHT", "UIParent", "TOPRIGHT", 0, -y_off);	
-					end							
-				else
-					controlFrame:ClearAllPoints();
-					controlFrame:SetPoint("BOTTOM", "UIParent", "BOTTOMLEFT", buttonCenter, y_off); 
+					controlFrame:SetPoint("TOP", "UIParent", "TOPLEFT", buttonCenter, -y_off);
 
 					-- Adjust control frame position if it's off the screen
 					local offscreenX, offscreenY = TitanUtils_GetOffscreen(controlFrame);
 					if ( offscreenX == -1 ) then
 						controlFrame:ClearAllPoints();
-						controlFrame:SetPoint("BOTTOMLEFT", "UIParent", "BOTTOMLEFT", 0, y_off);	
+						controlFrame:SetPoint("TOPLEFT", "UIParent", "TOPLEFT", 0, -y_off);
 					elseif ( offscreenX == 1 ) then
 						controlFrame:ClearAllPoints();
-						controlFrame:SetPoint("BOTTOMRIGHT", "UIParent", "BOTTOMRIGHT", 0, y_off);	
-					end							
+						controlFrame:SetPoint("TOPRIGHT", "UIParent", "TOPRIGHT", 0, -y_off);
+					end
+				else
+					controlFrame:ClearAllPoints();
+					controlFrame:SetPoint("BOTTOM", "UIParent", "BOTTOMLEFT", buttonCenter, y_off);
+
+					-- Adjust control frame position if it's off the screen
+					local offscreenX, offscreenY = TitanUtils_GetOffscreen(controlFrame);
+					if ( offscreenX == -1 ) then
+						controlFrame:ClearAllPoints();
+						controlFrame:SetPoint("BOTTOMLEFT", "UIParent", "BOTTOMLEFT", 0, y_off);
+					elseif ( offscreenX == 1 ) then
+						controlFrame:ClearAllPoints();
+						controlFrame:SetPoint("BOTTOMRIGHT", "UIParent", "BOTTOMRIGHT", 0, y_off);
+					end
 				end
-				
+
 				controlFrame:Show();
-			end	
+			end
 		elseif (button == "RightButton") then
-			TitanUtils_CloseAllControlFrames();	
+			TitanUtils_CloseAllControlFrames();
 			-- Show RightClickMenu anyway
 			TitanPanelRightClickMenu_Close();
 			TitanPanelRightClickMenu_Toggle(self, isChildButton);
@@ -717,25 +722,25 @@ function TitanPanelButton_OnEnter(self, isChildButton) -- Used by plugins
 	local id = nil;
 	-- ensure that the 'self' passed is a valid frame reference
 	if self and self:GetName() then
-		id = TitanUtils_Ternary(isChildButton, 
-			TitanUtils_GetParentButtonID(self:GetName()), 
+		id = TitanUtils_Ternary(isChildButton,
+			TitanUtils_GetParentButtonID(self:GetName()),
 			TitanUtils_GetButtonID(self:GetName()));
 	end
-	
+
 	if (id) then
 		local controlFrame = TitanUtils_GetControlFrame(id);
 		if (controlFrame and controlFrame:IsVisible()) then
 			return;
 		elseif (TitanPanelRightClickMenu_IsVisible()) then
 			return;
-		else			
+		else
 			if TITAN_PANEL_MOVING == 0 then
 				TitanPanelButton_SetTooltip(self, id);
 			end
 			if self.isMoving then
-				GameTooltip:Hide();				
+				GameTooltip:Hide();
 			end
-		end	
+		end
 	end
 end
 
@@ -752,20 +757,20 @@ function TitanPanelButton_OnLeave(self, isChildButton)
 	local id = nil;
 	-- ensure that the 'self' passed is a valid frame reference
 	if self and self:GetName() then
-		id = TitanUtils_Ternary(isChildButton, 
-			TitanUtils_GetParentButtonID(self:GetName()), 
+		id = TitanUtils_Ternary(isChildButton,
+			TitanUtils_GetParentButtonID(self:GetName()),
 			TitanUtils_GetButtonID(self:GetName()));
 	end
-	
+
 	if (id) then
-		GameTooltip:Hide();		
+		GameTooltip:Hide();
 	end
 
 	if not TitanPanelGetVar("DisableTooltipFont") then
 		-- reset original Tooltip Scale
 		GameTooltip:SetScale(TitanTooltipOrigScale);
 		TitanTooltipScaleSet = 0;
-	end		 
+	end
 end
 
 -- local routines for Update Button
@@ -812,7 +817,15 @@ local function TitanPanelButton_SetButtonText(id)
 	local values = 0
 	if label1 or value1 then
 		values = 1
-		if not show_label then label1 = "" end
+		if show_label then 
+			if TitanGetVar(id, "CustomLabelTextShow") then
+				-- override the label per the user
+				label1 = TitanGetVar(id, "CustomLabelText")
+			else
+			end
+		else
+			label1 = "" 
+		end
 		if label2 or value2 then
 			values = 2
 			if not show_label then label2 = "" end
@@ -841,16 +854,16 @@ DESC: Set the text width of the given Titan plugin that is text only.
 VAR: id - string name of the plugin
 VAR: setButtonWidth - new width
 NOTE:
-- Titan uses a tolerance setting to prevent endless updating of the text width. 
+- Titan uses a tolerance setting to prevent endless updating of the text width.
 :NOTE
 --]]
-local function TitanPanelButton_SetTextButtonWidth(id, setButtonWidth) 
+local function TitanPanelButton_SetTextButtonWidth(id, setButtonWidth)
 	if (id) then
 		local button = TitanUtils_GetButton(id);
 		local text = _G[button:GetName()..TITAN_PANEL_TEXT];
-		if ( setButtonWidth 
-		or button:GetWidth() == 0 
-		or button:GetWidth() - text:GetWidth() > TITAN_PANEL_BUTTON_WIDTH_CHANGE_TOLERANCE 
+		if ( setButtonWidth
+		or button:GetWidth() == 0
+		or button:GetWidth() - text:GetWidth() > TITAN_PANEL_BUTTON_WIDTH_CHANGE_TOLERANCE
 		or button:GetWidth() - text:GetWidth() < -TITAN_PANEL_BUTTON_WIDTH_CHANGE_TOLERANCE ) then
 			button:SetWidth(text:GetWidth());
 			TitanPanelButton_Justify();
@@ -866,12 +879,12 @@ NOTE:
 - The plugin is expected to tell Titan what the icon width is in <self>.registry.iconButtonWidth.
 :NOTE
 --]]
-local function TitanPanelButton_SetIconButtonWidth(id) 
+local function TitanPanelButton_SetIconButtonWidth(id)
 	if (id) then
 		local button = TitanUtils_GetButton(id);
 		if ( TitanUtils_GetPlugin(id).iconButtonWidth ) then
 			button:SetWidth(TitanUtils_GetPlugin(id).iconButtonWidth);
-		end		
+		end
 	end
 end
 
@@ -884,7 +897,7 @@ NOTE:
 - The plugin is expected to tell Titan what the icon width is in <self>.registry.iconButtonWidth.
 :NOTE
 --]]
-local function TitanPanelButton_SetComboButtonWidth(id, setButtonWidth) 
+local function TitanPanelButton_SetComboButtonWidth(id, setButtonWidth)
 	if (id) then
 		local button = TitanUtils_GetButton(id)
 		if not button then return end -- sanity check
@@ -892,7 +905,7 @@ local function TitanPanelButton_SetComboButtonWidth(id, setButtonWidth)
 		local text = _G[button:GetName()..TITAN_PANEL_TEXT];
 		local icon = _G[button:GetName().."Icon"];
 		local iconWidth, iconButtonWidth, newButtonWidth;
-		
+
 		-- Get icon button width
 		iconButtonWidth = 0;
 		if ( TitanUtils_GetPlugin(id).iconButtonWidth ) then
@@ -905,24 +918,24 @@ local function TitanPanelButton_SetComboButtonWidth(id, setButtonWidth)
 			icon:Show();
 			text:ClearAllPoints();
 			text:SetPoint("LEFT", icon:GetName(), "RIGHT", 2, 1);
-			
+
 			newButtonWidth = text:GetWidth() + iconButtonWidth;
 		else
 			icon:Hide();
 			text:ClearAllPoints();
 			text:SetPoint("LEFT", button:GetName(), "LEFT", 0, 1);
-			
+
 			newButtonWidth = text:GetWidth();
 		end
-		
-		if ( setButtonWidth 
-		or button:GetWidth() == 0 
-		or button:GetWidth() - newButtonWidth > TITAN_PANEL_BUTTON_WIDTH_CHANGE_TOLERANCE 
-		or button:GetWidth() - newButtonWidth < -TITAN_PANEL_BUTTON_WIDTH_CHANGE_TOLERANCE ) 
+
+		if ( setButtonWidth
+		or button:GetWidth() == 0
+		or button:GetWidth() - newButtonWidth > TITAN_PANEL_BUTTON_WIDTH_CHANGE_TOLERANCE
+		or button:GetWidth() - newButtonWidth < -TITAN_PANEL_BUTTON_WIDTH_CHANGE_TOLERANCE )
 		then
 			button:SetWidth(newButtonWidth);
 			TitanPanelButton_Justify();
-		end			
+		end
 	end
 end
 
@@ -937,19 +950,19 @@ function TitanPanelButton_UpdateButton(id, setButtonWidth)  -- Used by plugins
 	local plugin = TitanUtils_GetPlugin(id)
 	-- safeguard to avoid errors
 	if not TitanUtils_IsPluginRegistered(id) then return end
-	
+
 	if ( TitanPanelButton_IsText(id) ) then
 		-- Update textButton
 		TitanPanelButton_SetButtonText(id);
-		TitanPanelButton_SetTextButtonWidth(id, setButtonWidth);	
-		
+		TitanPanelButton_SetTextButtonWidth(id, setButtonWidth);
+
 	elseif ( TitanPanelButton_IsIcon(id) ) then
 		-- Update iconButton
 		TitanPanelButton_SetButtonIcon(id, (plugin.iconCoords or nil),
 			(plugin.iconR or nil),(plugin.iconG or nil),(plugin.iconB or nil)
 			);
-		TitanPanelButton_SetIconButtonWidth(id);	
-		
+		TitanPanelButton_SetIconButtonWidth(id);
+
 	elseif ( TitanPanelButton_IsCombo(id) ) then
 		-- Update comboButton
 		TitanPanelButton_SetButtonText(id);
@@ -969,6 +982,7 @@ function TitanPanelButton_UpdateTooltip(self) -- Used by plugins
 	if not self then return end
 	if (GameTooltip:IsOwned(self)) then
 		local id = TitanUtils_GetButtonID(self:GetName());
+
 		TitanPanelButton_SetTooltip(self, id);
 	end
 end
@@ -982,24 +996,24 @@ VAR: iconR - if given, this is the Red (RBG) setting of the icon
 VAR: iconG - if given, this is the Green (RBG) setting of the icon
 VAR: iconB - if given, this is the Blue (RBG) setting of the icon
 --]]
-function TitanPanelButton_SetButtonIcon(id, iconCoords, iconR, iconG, iconB) 	
+function TitanPanelButton_SetButtonIcon(id, iconCoords, iconR, iconG, iconB)
 	if (id and TitanUtils_IsPluginRegistered(id)) then
 		local button = TitanUtils_GetButton(id);
 		local icon = _G[button:GetName().."Icon"];
 		local iconTexture = TitanUtils_GetPlugin(id).icon;
 		local iconWidth = TitanUtils_GetPlugin(id).iconWidth;
-		
+
 		if (iconTexture) and icon then
 			icon:SetTexture(iconTexture);
 		end
 		if (iconWidth) and icon then
 			icon:SetWidth(iconWidth);
 		end
-		
+
 		-- support for iconCoords, iconR, iconG, iconB attributes
 		if iconCoords and icon then
 			icon:SetTexCoord(unpack(iconCoords))
-		end		
+		end
 		if iconR and iconG and iconB and icon then
 			icon:SetVertexColor(iconR, iconG, iconB)
 		end
@@ -1020,7 +1034,7 @@ function TitanPanelButton_GetType(id)
 	if (not id) then
 		return;
 	end
-	
+
 	local button = TitanUtils_GetButton(id);
 	local type;
 	if button then
@@ -1039,7 +1053,7 @@ function TitanPanelButton_GetType(id)
 	else
 		type = TITAN_PANEL_BUTTON_TYPE_COMBO;
 	end
-	
+
 	return type;
 end
 

@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Premade Groups Filter
 -------------------------------------------------------------------------------
--- Copyright (C) 2020 Elotheon-Arthas-EU
+-- Copyright (C) 2022 Elotheon-Arthas-EU
 --
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@ L["button.ok"] = "OK"
 L["error.syntax"] = "|cffff0000Erreur de syntaxe dans le filtre d'expression|r\n\nCela indique que vous avez fait une erreur dans l'expression avancée, ex: il manque une paranthèse ou vous avez écrit 'tanks=1' au lieu de 'tanks==1'.\n\nMessage d'erreur détaillé:\n|cffaaaaaa%s|r"
 L["error.semantic"] = "|cffff0000Erreur sémantique dans le filtre d'expression|r\n\nCela indique que votre syntaxe est bonne mais que vous avez mal écrit le nom d'une variable, ex: tansk au lieu de tanks.\n\nMessage d'erreur détaillé:\n|cffaaaaaa%s|r"
 L["error.semantic.protected"] = "|cffff0000Erreur sémantique dans le filtre d'expression|r\n\nLes mots-clés 'name', 'comment' et 'findnumber' ne sont plus supportés. Veux-tu les supprimer de ton expression de filtre étendu ou appuies sur le bouton de réinitialisation.\n\nA partir du Battle for Azeroth Prepatch, ces valeurs sont maintenant protégées par Blizzard et ne peuvent plus être lues par aucun addon.\n\nUtilise la barre de recherche par défaut au-dessus de la liste des groupes pour filtrer les noms de groupes.\n\nMessage d'erreur détaillé:\n|cffaaaaaa%s|r"
+L["message.noplaystylefix"] = "Premade Groups Filter: L'erreur 'L'action de l'interface a échoué à cause d'un AddOn' n'est pas corrigée, car il semble que tu n'aies pas de compte entièrement sécurisé et que tu ne puisses sinon pas créer de groupes organisés. Voir Addon-FAQ pour plus d'informations et comment corriger ce problème."
 
 L["dialog.reset"] = "Réinitialiser"
 L["dialog.refresh"] = "Rechercher"
@@ -48,6 +49,7 @@ L["dialog.dps"]        = "DPS ............................."
 L["dialog.ilvl"]       = "Niveau Objet ...................."
 L["dialog.noilvl"] = "ou niveau d'objet non spécifié"
 L["dialog.defeated"] = "Boss vaincus (raids)"
+L["dialog.sorting"] = "Tri"
 L["dialog.usepgf.tooltip"] = "Activer ou désactiver Premade Groups Filter"
 L["dialog.tooltip.title"] = "Filtres d'Expressions Avancées"
 L["dialog.tooltip.variable"] = "Variable"
@@ -60,7 +62,8 @@ L["dialog.tooltip.example"] = "Example"
 L["dialog.tooltip.ilvl"] = "niveau d'objet requis"
 L["dialog.tooltip.myilvl"] = "mon niveau d'objet"
 L["dialog.tooltip.hlvl"] = "niveau d'honneur requis"
-L["dialog.tooltip.mprating"] = "Mythic+ Rating"
+L["dialog.tooltip.pvprating"] = "Classement PvP du chef de groupe"
+L["dialog.tooltip.mprating"] = "Classement Mythic+ du chef de groupe"
 L["dialog.tooltip.defeated"] = "nombre de boss de raids vaincu"
 L["dialog.tooltip.members"] = "nombre de membres"
 L["dialog.tooltip.tanks"] = "nombres de tanks"

@@ -21,7 +21,7 @@ local strfind = string.find
 -- Generate our version variables
 --
 
-local BIGWIGS_VERSION = 233
+local BIGWIGS_VERSION = 246
 local BIGWIGS_RELEASE_STRING, BIGWIGS_VERSION_STRING = "", ""
 local versionQueryString, versionResponseString = "Q^%d^%s^%d^%s", "V^%d^%s^%d^%s"
 local customGuildName = false
@@ -36,7 +36,7 @@ do
 	local RELEASE = "RELEASE"
 
 	local releaseType = RELEASE
-	local myGitHash = "d009d62" -- The ZIP packager will replace this with the Git hash.
+	local myGitHash = "4cdcb12" -- The ZIP packager will replace this with the Git hash.
 	local releaseString = ""
 	--[=[@alpha@
 	-- The following code will only be present in alpha ZIPs.
@@ -971,10 +971,10 @@ do
 	local L = GetLocale()
 	local locales = {
 		--ruRU = "Russian (ruRU)",
-		itIT = "Italian (itIT)",
+		--itIT = "Italian (itIT)",
 		--koKR = "Korean (koKR)",
 		esES = "Spanish (esES)",
-		--esMX = "Spanish (esMX)",
+		esMX = "Spanish (esMX)",
 		--deDE = "German (deDE)",
 		--ptBR = "Portuguese (ptBR)",
 		--frFR = "French (frFR)",
@@ -1078,9 +1078,9 @@ end
 --
 
 do
-	local DBMdotRevision = "20211102000000" -- The changing version of the local client, changes with every new zip using the project-date-integer packager replacement.
-	local DBMdotDisplayVersion = "9.1.20" -- "N.N.N" for a release and "N.N.N alpha" for the alpha duration.
-	local DBMdotReleaseRevision = "20211102000000" -- Hardcoded time, manually changed every release, they use it to track the highest release version, a new DBM release is the only time it will change.
+	local DBMdotRevision = "20220823223311" -- The changing version of the local client, changes with every new zip using the project-date-integer packager replacement.
+	local DBMdotDisplayVersion = "9.2.31" -- "N.N.N" for a release and "N.N.N alpha" for the alpha duration.
+	local DBMdotReleaseRevision = "20220823000000" -- Hardcoded time, manually changed every release, they use it to track the highest release version, a new DBM release is the only time it will change.
 
 	local timer, prevUpgradedUser = nil, nil
 	local function sendMsg()

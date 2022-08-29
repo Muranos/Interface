@@ -12,7 +12,6 @@ end
 
 L = BigWigs:NewBossLocale("Sun King's Salvation", "ptBR")
 if L then
-	L.shield_removed = "%s removido depois de %.1fs" -- "Shield removed after 1.1s" s = seconds
 	L.shield_remaining = "%s restante: %s (%.1f%%)" -- "Shield remaining: 2.1K (5.3%)"
 end
 
@@ -165,4 +164,15 @@ if L then
 
 	--[[ Sludgefist -> Stone Legion Generals ]]--
 	L.goliath = "Golias da Legião de Pedra"
+end
+
+L = BigWigs:NewBossLocale("Castle Nathria Affixes", "ptBR")
+if L then
+	--L.custom_on_bar_icon = "Bar Icon"
+	--L.custom_on_bar_icon_desc = "Show the Fated Raid icon on bars."
+
+	--L.chaotic_essence = "Essence"
+	L.creation_spark = "Centelhas"
+	L.protoform_barrier = "Barreira"
+	--L.reconfiguration_emitter = "Interrupt Add"
 end

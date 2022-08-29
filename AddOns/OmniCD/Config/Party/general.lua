@@ -3,7 +3,7 @@ local E, L, C = select(2, ...):unpack()
 local P = E["Party"]
 
 local general = {
-	name = GENERAL,
+	name = "|TInterface\\OptionsFrame\\UI-OptionsFrame-NewFeatureIcon:0:0:0:-1|t " .. GENERAL,
 	order = 10,
 	type = "group",
 	get = function(info) return E.DB.profile.Party[info[2]].general[info[#info]] end,
@@ -44,7 +44,7 @@ local general = {
 					E.DB.profile.Party[key].general.zoneSelected = src
 				end
 
-				P:Refresh(true) -- don't cross check zone. We just changed it
+				P:Refresh(true)
 			end,
 			confirm = E.ConfirmAction,
 		},
@@ -72,12 +72,12 @@ local general = {
 			order = 11,
 			type = "toggle",
 		},
-		showPlayerEx = {
-			name = L["Show Player in Extra Bars"],
-			desc = L["Show player spells in the Extra Bars regardless of 'Show Player' setting."],
-			order = 12,
-			type = "toggle",
-		},
+
+
+
+
+
+
 		showTooltip = {
 			name = L["Show Tooltip"],
 			desc = L["Show spell information when you mouseover an icon"] .. ". " .. L["Disable to make the icons click through"],
@@ -85,6 +85,15 @@ local general = {
 			type = "toggle",
 			get = P.getIcons,
 			set = P.setIcons,
+		},
+		showRange = {
+			name = "|TInterface\\OptionsFrame\\UI-OptionsFrame-NewFeatureIcon:0:0:0:-1|t " .. L["Show Range"],
+			desc = format("%s\n\n|cffff2020%s\n\n%sVuhdo, HealBot, GW2_UI, AltzUI.|r",
+				L["Fade out icons when the raid frame fades out for out of range units."],
+				L["Addons with raid frame scaling will also cause the icons to scale."],
+				L["Not Supported:"]),
+			order = 14,
+			type = "toggle",
 		},
 	}
 }

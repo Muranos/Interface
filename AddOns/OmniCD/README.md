@@ -9,9 +9,9 @@ OmniCD is a new lightweight party cooldown tracker. Type `/oc` or `/omnicd` to o
 * Detect all in-game dynamic cooldown reduction and adjust timers on the fly. [**Watch it in action**](https://imgur.com/QUOk9dy)
 * Cooldown reduction by Runeforge Lengendaries, Covenants, and Soulbind Conduits added for 9.0.†
 * Sync Mode: If your teammate has OmniCD installed, character data are updated instantly and improves CD reduction accuracy.
-* Supported UI: VuhDo, Grid2, Aptechka, InvenRaidFrame3, Lime, Plexus, HealBot, Cell, ElvUI, Tukui, ShadowUF, ZPerl, PB4, NDui, KkthnxUI, RUF, ShestakUI, GW2_UI, AltzUI.
+* Supported UI: VuhDo, Grid2, Aptechka, InvenRaidFrame3, Lime, Plexus, HealBot, Cell, ElvUI, Tukui, ShadowUF, ZPerl, PB4, NDui, KkthnxUI, RUF, ShestakUI, GW2_UI, AltzUI, AshToAsh.
 
-† Covenant and Soulbind Conduits data can only be acquired through Sync. (Every other spell and it's CD reduction will work as a standalone)<br/>
+† CD reduction by Soulbind Conduits, Bwonsamdi's Pact legendary, and RNG modifiers (% chance to X, etc) require Sync Mode. Every other spell and it's CD reduction will work as a standalone.<br/>
 
 ## Feedback
 * Issues or requests: https://www.curseforge.com/wow/addons/omnicd/issues

@@ -1,6 +1,6 @@
 ﻿-- Pawn by Vger-Azjol-Nerub
 -- www.vgermods.com
--- © 2006-2021 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
+-- © 2006-2022 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
 -- See Readme.htm for more information.
 
 -- 
@@ -413,6 +413,7 @@ Per maggiori informazioni su come personalizzare Pawn, per favore leggere il fil
 		["SpellDamage3"] = "^UNUSED$",
 		["SpellDamage4"] = "^UNUSED$",
 		["SpellDamage5"] = "^UNUSED$",
+		["SpellDamage6"] = "^UNUSED$",
 		["SpellDamageAndHealing"] = "^UNUSED$",
 		["SpellDamageAndHealing2"] = "^UNUSED$",
 		["SpellDamageAndHealingEnchant"] = "^UNUSED$",

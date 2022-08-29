@@ -98,6 +98,9 @@ function Tooltip.Show(parent, data, noWrapping, xOffset)
 		GameTooltip:SetHyperlink(ItemInfo.GetLink(data))
 		showCompare = true
 	elseif type(data) == "string" and (strfind(data, "^\124c.+\124Hbattlepet:") or ItemString.IsPet(data)) then
+		if TSM.IsWowClassic() then
+			return
+		end
 		if strmatch(data, "p:") then
 			data = ItemInfo.GetLink(data)
 		end

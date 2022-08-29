@@ -29,7 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ]]
 local MAJOR_VERSION = "LibActionButton-1.0"
-local MINOR_VERSION = 82
+local MINOR_VERSION = 83
 
 if not LibStub then error(MAJOR_VERSION .. " requires LibStub.") end
 local lib, oldversion = LibStub:NewLibrary(MAJOR_VERSION, MINOR_VERSION)
@@ -701,6 +701,7 @@ function InitializeEventHandler()
 	lib.eventFrame:SetScript("OnUpdate", OnUpdate)
 end
 
+local _lastFormUpdate = GetTime()
 function OnEvent(frame, event, arg1, ...)
 	if (event == "UNIT_INVENTORY_CHANGED" and arg1 == "player") or event == "LEARNED_SPELL_IN_TAB" then
 		local tooltipOwner = GameTooltip_GetOwnerForbidden()
@@ -714,8 +715,24 @@ function OnEvent(frame, event, arg1, ...)
 				Update(button)
 			end
 		end
-	elseif event == "PLAYER_ENTERING_WORLD" or event == "UPDATE_SHAPESHIFT_FORM" or event == "UPDATE_VEHICLE_ACTIONBAR" then
+	elseif event == "PLAYER_ENTERING_WORLD" or event == "UPDATE_VEHICLE_ACTIONBAR" then
 		ForAllButtons(Update)
+	elseif event == "UPDATE_SHAPESHIFT_FORM" then
+		-- XXX: throttle these updates since Blizzard broke the event and its now extremely spammy in some clients
+		local _time = GetTime()
+		if (_time - _lastFormUpdate) < 1 then
+			return
+		end
+		_lastFormUpdate = _time
+
+		-- the attack icon can change when shapeshift form changes, so need to do a quick update here
+		-- for performance reasons don't run full updates here, though
+		for button in next, ActiveButtons do
+			local texture = button:GetTexture()
+			if texture then
+				button.icon:SetTexture(texture)
+			end
+		end
 	elseif event == "ACTIONBAR_PAGE_CHANGED" or event == "UPDATE_BONUS_ACTIONBAR" then
 		-- TODO: Are these even needed?
 	elseif event == "ACTIONBAR_SHOWGRID" then

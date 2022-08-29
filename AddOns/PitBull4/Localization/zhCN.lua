@@ -926,6 +926,7 @@ L["Show an icon on the unit frame when the unit is the group leader."] = "显示
 L["Show background on the cast bar when nothing is being cast."] = "在无施法状态时，在施法条处显示背景。"
 L["Show combo points on the unit frame if you are a Rogue or Druid in Cat form."] = "如果你是潜行者或猎豹形态德鲁伊则在单位框架上显示连击点。"
 L["Show Death Knight rune icons."] = "显示死亡骑士符文图标。"
+L["Show honor level icon"] = "显示荣誉等级图标"
 L["Show icon"] = "显示图标"
 L["Show in all shapeshift forms."] = "显示所有变形形态。"
 L["Show information like damage taken, healing taken, resists, etc. on the unit frame."] = "在单位框架上显示诸如受到伤害、受到治疗、抵抗等等战斗信息。"

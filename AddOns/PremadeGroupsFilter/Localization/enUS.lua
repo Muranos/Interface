@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Premade Groups Filter
 -------------------------------------------------------------------------------
--- Copyright (C) 2020 Elotheon-Arthas-EU
+-- Copyright (C) 2022 Elotheon-Arthas-EU
 --
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@ L["button.ok"] = "OK"
 L["error.syntax"] = "|cffff0000Syntax error in filter expression|r\n\nThis means your filter expression is not built in the right way, e.g. there is a paranthesis missing or you wrote 'tanks=1' instead of 'tanks==1'.\n\nDetailed error message:\n|cffaaaaaa%s|r"
 L["error.semantic"] = "|cffff0000Semantic error in filter expression|r\n\nThis means your filter expression has correct syntax, but you most likely mispelled the name of a variable, e.g. tansk instead of tanks.\n\nDetailed error message:\n|cffaaaaaa%s|r"
 L["error.semantic.protected"] = "|cffff0000Semantic error in filter expression|r\n\nThe keywords 'name', 'comment' and 'findnumber' are no longer supported. Please remove them from your advanced filter expression or press the reset button.\n\nStarting with the Battle for Azeroth Prepatch, those value are protected by Blizzard and can no longer be evaluated by any addon.\n\nUse the default search bar above the group listing to filter for groups names.\n\nDetailed error message:\n|cffaaaaaa%s|r"
+L["message.noplaystylefix"] = "Premade Groups Filter: Will not apply fix for 'Interface action failed because of an AddOn' errors because you don't seem to have a fully secured account and otherwise can't create premade groups. See addon FAQ for more information and how to fix this issue."
 
 L["dialog.reset"] = "Reset"
 L["dialog.refresh"] = "Search"
@@ -46,6 +47,7 @@ L["dialog.dps"]        = "DPS ............................."
 L["dialog.ilvl"]       = "Item Level ......................"
 L["dialog.noilvl"] = "or Item Level not specified"
 L["dialog.defeated"] = "Bosses defeated (raids only)"
+L["dialog.sorting"] = "Sorting"
 L["dialog.usepgf.tooltip"] = "Enable or disable Premade Groups Filter"
 L["dialog.tooltip.title"] = "Advanced Filter Expressions"
 L["dialog.tooltip.variable"] = "Variable"
@@ -58,7 +60,8 @@ L["dialog.tooltip.example"] = "Example"
 L["dialog.tooltip.ilvl"] = "required item level"
 L["dialog.tooltip.myilvl"] = "my item level"
 L["dialog.tooltip.hlvl"] = "required honor level"
-L["dialog.tooltip.mprating"] = "mythic+ rating"
+L["dialog.tooltip.pvprating"] = "PvP rating of group leader"
+L["dialog.tooltip.mprating"] = "mythic+ rating of group leader"
 L["dialog.tooltip.defeated"] = "number of defeated raid bosses"
 L["dialog.tooltip.members"] = "number of members"
 L["dialog.tooltip.tanks"] = "number of tanks"

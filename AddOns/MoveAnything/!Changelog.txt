@@ -1,8 +1,11 @@
-**18.0.6**
-Update for 9.0.5.
+**18.0.8**
+Update for 9.2.0.
 
 **18.0.7**
 Update for 9.1.0.
+
+**18.0.6**
+Update for 9.0.5.
 
 **18.0.5**
 Various buff/debuff fixes.

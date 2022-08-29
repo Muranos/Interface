@@ -1,9 +1,9 @@
 ﻿-- Pawn by Vger-Azjol-Nerub
 -- www.vgermods.com
--- © 2006-2021 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
+-- © 2006-2022 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
 -- See Readme.htm for more information.
 
--- 
+--
 -- Chinese (Simplified) resources
 ------------------------------------------------------------
 
@@ -412,6 +412,7 @@ PawnLocal =
 		["SpellDamage3"] = "^装备： ?提高法术所造成的治疗效果，最多#点。$",
 		["SpellDamage4"] = "^装备： ?使治疗法术和效果所回复的生命值提高#点。$",
 		["SpellDamage5"] = "^%+# 法术伤害和治疗$",
+		["SpellDamage6"] = "^装备： ?使法术和魔法效果的治疗和伤害提高最多#点。$",
 		["SpellDamageAndHealing"] = "^装备： 使法术治疗提高最多#点，法术伤害提高最多#点。$",
 		["SpellDamageAndHealing2"] = "^UNUSED$",
 		["SpellDamageAndHealingEnchant"] = "^UNUSED$",

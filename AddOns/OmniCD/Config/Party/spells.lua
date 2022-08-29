@@ -3,7 +3,7 @@ local E, L, C = select(2, ...):unpack()
 local P = E["Party"]
 local SPELLS = type(SPELLS) == "string" and SPELLS or L["Spells"]
 
--- Use module.db for plugins
+
 
 P.getSpell = function(info)
 	local tab = info[3] == "spells" and "spells" or "raidCDS"
@@ -12,11 +12,13 @@ end
 
 P.setSpell = function(info, state)
 	local tab = info[3] == "spells" and "spells" or "raidCDS"
+	local sId = info[#info]
 	local db = E.DB.profile.Party[info[2]]
-	db[tab][info[#info]] = state
+	db[tab][sId] = state
 
 	if db == E.db then
 		P:UpdateEnabledSpells()
+
 		P:Refresh()
 	end
 end
@@ -24,14 +26,14 @@ end
 P.ClearAllDefault = function(info)
 	local key = info[2]
 	local isSpellsOption = info[3] == "spells"
-	local tab = isSpellsOption and info[3] or info[4] -- spells, raidCDS
+	local tab = isSpellsOption and info[3] or info[4]
 	local db = E.DB.profile.Party[key]
 	local db_defaults = isSpellsOption and E.spellDefaults or E.raidDefaults
 
 	if info[#info] == "default" then
 		P:ResetOptions(key, tab)
 	else
-		wipe(db[tab]) -- same tree level in db
+		wipe(db[tab])
 
 		for i = 1, #db_defaults do
 			local id = db_defaults[i]
@@ -88,8 +90,9 @@ local spells = {
 	set = function(info, state) E[info[1]].setSpell(info, state) end,
 	args = {
 		raidDesc = {
-			hidden = isntRaidCDOption,
-			name = L["Assign Raid Cooldowns."],
+
+
+			name = function(info) return isntRaidCDOption(info) and "|cffff2020Ctrl click to edit spell.\n\n" or L["Assign Raid Cooldowns."] end,
 			order = 0,
 			type = "description",
 		},
@@ -108,22 +111,20 @@ local spells = {
 			func = runClearAllDefault,
 			confirm = E.ConfirmAction,
 		},
-		-- TODO: reminder
-		--[[
-		searchBox = {
-			hidden = isntSpellsOption,
-			disabled = true,
-			name = "",
-			desc = "Enter spell name.",
-			order = 3,
-			type = "input",
-			dialogControl = "SearchBox-OmniCD",
-			get = function() return "    NYI" end,
-			set = function()
-				E.Libs.ACD:SelectGroup(E.AddOn, "Party", "arena", "spells", "DRUID", "cc")
-			end,
-		},
-		]]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 		showForbearanceCounter = {
 			hidden = E.isClassic or isntSpellsOption,
 			name = L["Show Forbearance CD"],
@@ -155,10 +156,7 @@ local spells = {
 	}
 }
 
-local borderlessCoords = {0.07, 0.93, 0.07, 0.93}
-E.borderlessCoords = borderlessCoords
 
--- Fix ACCESS_VIOLATION error
 local numOthers = #E.OTHER_SORT_ORDER
 for i = 1, numOthers do
 	local class = E.OTHER_SORT_ORDER[i]
@@ -166,7 +164,7 @@ for i = 1, numOthers do
 	local name = E.L_CATAGORY_OTHER[class]
 	spells.args[class] = {
 		icon = icon,
-		iconCoords = borderlessCoords,
+		iconCoords = E.borderlessCoords,
 		name = name,
 		order = i,
 		type = "group",
@@ -176,21 +174,21 @@ end
 
 spells.args.othersHeader = {
 	disabled = true,
-	name = "```", -- myAce: make the group a line break
+	name = "```",
 	order = 10,
 	type = "group",
 	args = {}
 }
 
 for i = 1, MAX_CLASSES do
-	local class = CLASS_SORT_ORDER[i] -- back to individual class icons for tree grp
---  local iconCoords = CLASS_ICON_TCOORDS[class]
+	local class = CLASS_SORT_ORDER[i]
+
 	local name = LOCALIZED_CLASS_NAMES_MALE[class]
 	spells.args[class] = {
---      icon = E.ICO.CLASS,
+
 		icon = E.ICO.CLASS .. class,
---      iconCoords = iconCoords,
-		iconCoords = borderlessCoords,
+
+		iconCoords = E.borderlessCoords,
 		name = name,
 		type = "group",
 		args = {}
@@ -217,7 +215,7 @@ end
 function P:UpdateSpellsOption(id, oldClass, oldType, class, stype, force)
 	local sId = tostring(id)
 
-	if oldClass or force then -- oldClass(delete, class/type change), force(add new custom)
+	if oldClass or force then
 		if oldClass then
 			spells.args[oldClass].args[oldType].args[sId] = nil
 			if next(spells.args[oldClass].args[oldType].args) == nil then
@@ -225,7 +223,7 @@ function P:UpdateSpellsOption(id, oldClass, oldType, class, stype, force)
 			end
 		end
 
-		if not class then -- deleted custom only (default needs to be reverted)
+		if not class then
 			self:Refresh()
 			return
 		end
@@ -262,11 +260,12 @@ function P:UpdateSpellsOption(id, oldClass, oldType, class, stype, force)
 					t[sId] = {
 						hidden = isRaidOptDisabledID,
 						image =  icon,
-						imageCoords = borderlessCoords,
+						imageCoords = E.borderlessCoords,
 						name = name,
 						desc = link,
 						order = order,
 						type = "toggle",
+						arg = spellID,
 					}
 				end
 
@@ -313,27 +312,28 @@ function P:AddSpellPickerSpells()
 
 				local spellID, icon, name = v.spellID, v.icon, v.name
 				local sId = tostring(spellID)
-				local link = E.isClassic and GetSpellDescription(spellID) or GetSpellLink(spellID) -- TODO: check if classic can use hyperlinks
+				local link = E.isClassic and GetSpellDescription(spellID) or GetSpellLink(spellID)
 
 				t[vtype].args[sId] = {
 					hidden = isRaidOptDisabledID,
 					image = icon,
-					imageCoords = borderlessCoords, -- values doesn't matter, just needs to be added to crop
+					imageCoords = E.borderlessCoords,
 					name = name,
 					desc = link,
 					order = order,
 					type = "toggle",
+					arg = spellID,
 				}
 
-				if class == "TRINKET" and v.item then
-					local item = Item:CreateFromItemID(v.item)
-					if item then -- deprecate itemID check
-						item:ContinueOnItemLoad(function()
-							local itemName = item:GetItemName()
-							t[vtype].args[sId].name = itemName
-						end)
-					end
-				end
+
+
+
+
+
+
+
+
+
 				if E.isClassic then
 					local spell = Spell:CreateFromSpellID(spellID)
 					spell:ContinueOnSpellLoad(function()
@@ -349,7 +349,7 @@ function P:AddSpellPickerSpells()
 end
 
 function P:AddSpellPicker()
-	SortSpellList() -- we don't have item names at this point, so it's sorted by spell name :(
+	SortSpellList()
 	self:AddSpellPickerSpells()
 
 	for key in pairs(E.CFG_ZONE) do
@@ -369,4 +369,4 @@ end
 
 E:RegisterModuleOptions("Party", P.options, "Party")
 
-E.spellsOptionTbl = spells --> plugin
+E.spellsOptionTbl = spells

@@ -30,13 +30,13 @@ E.SlashHandler = function(msg)
 		E.Write("reload or rl: " ..  L["Reload addon."])
 		E.Write("reset or rt: " .. L["Reset all cooldown timers."])
 	elseif (command == "rl" or command == "reload") then
-		E:Refresh(true)
+		E:Refresh()
 	elseif (command == "rt" or command == "reset") then
 		if (value == "") then
 			P:ResetAllIcons()
 			E.Write("Timers reset.")
 		elseif (value == "db" or value == "database") then
---          E.DB:ResetDB("Default")
+
 			OmniCDDB = {}
 			C_UI.Reload()
 		elseif (value == "pf" or value == "profile") then
@@ -52,7 +52,7 @@ E.SlashHandler = function(msg)
 		end
 	elseif (command == "t" or command == "test") then
 		if E.GetModuleEnabled("Party") then
-			local key = not P.test and (P.zone or select(2, IsInInstance()))
+			local key = not P.test and P.zone
 			P:Test(key)
 		else
 			E.Write("Module not enabled!")
@@ -63,14 +63,6 @@ E.SlashHandler = function(msg)
 		local state = E.DB.profile.Party[key].position.detached and VIDEO_OPTIONS_ENABLED or VIDEO_OPTIONS_DISABLED
 		E.Write(key, L["Manual Mode"], state)
 		P:Refresh()
-		E:ACR_NotifyChange()
-	elseif (command == "sync") then -- toggles sync for CDR by power spent only
-		E.noPowerSync = not E.noPowerSync
-		local state = E.noPowerSync and VIDEO_OPTIONS_DISABLED or VIDEO_OPTIONS_ENABLED
-		E.Write("Sync power spent: ", state)
-		if E.Comms.enabled then
-			E.Comms:RegisterEventUnitPower()
-		end
 		E:ACR_NotifyChange()
 	elseif (command == "s" or command == "spell" or E.CFG_ZONE[command]) then
 		local zone = E.CFG_ZONE[command] and command or "arena"
@@ -87,9 +79,9 @@ E.SlashHandler = function(msg)
 				end
 			end
 			E.Write("/oc <zone> <spell type>")
-			E.Write("Pepend 'r' to zone to set Raid CD")
+			E.Write("Prepend 'r' to zone to set Raid CD")
 			E.Write(L["Spell Types"] .. ": ", spelltypeStr)
-			E.Write("Pepend \'-\' to remove spell type, e.g., /oc arena -cc")
+			E.Write("Prepend \'-\' to remove spell type, e.g., /oc arena -cc")
 			E.Write("Select all, Clear all, Reset to default: all, clear, default")
 
 			return
@@ -166,9 +158,8 @@ E.OpenOptionPanel = function()
 	E.Libs.ACD:SetDefaultSize("OmniCD", 965, 650)
 	E.Libs.ACD:Open("OmniCD")
 
-	for modName in pairs(E.moduleOptions) do
-		E.Libs.ACD:SelectGroup(E.AddOn, modName)
-	end
+
+	E.Libs.ACD:SelectGroup(E.AddOn, "Party")
 	E.Libs.ACD:SelectGroup(E.AddOn, "Home")
 end
 

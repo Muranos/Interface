@@ -9,6 +9,7 @@ mod:RegisterEnableMob(
 	166302, -- Corpse Harvester
 	163121, -- Stitched Vanguard
 	165137, -- Zolramus Gatekeeper
+	163618, -- Zolramus Necromancer
 	163126, -- Brittlebone Mage
 	165919, -- Skeletal Marauder
 	165222, -- Zolramus Bonemender
@@ -16,10 +17,10 @@ mod:RegisterEnableMob(
 	165197, -- Skeletal Monstrosity
 	173016, -- Corpse Collector
 	172981, -- Kyrian Stitchwerk
-	163620, -- Rotspew
-	163621, -- Goregrind
 	165872, -- Flesh Crafter
-	167731 -- Separation Assistant
+	167731, -- Separation Assistant
+	163621, -- Goregrind
+	163620 -- Rotspew
 )
 
 --------------------------------------------------------------------------------
@@ -28,9 +29,11 @@ mod:RegisterEnableMob(
 
 local L = mod:GetLocale()
 if L then
+	L.amarth_warmup_trigger = "You will be brought to justice!"
 	L.corpse_harvester = "Corpse Harvester"
 	L.stitched_vanguard = "Stitched Vanguard"
 	L.zolramus_gatekeeper = "Zolramus Gatekeeper"
+	L.zolramus_necromancer = "Zolramus Necromancer"
 	L.brittlebone_mage = "Brittlebone Mage"
 	L.skeletal_marauder = "Skeletal Marauder"
 	L.zolramus_bonemender = "Zolramus Bonemender"
@@ -40,6 +43,8 @@ if L then
 	L.kyrian_stitchwerk = "Kyrian Stitchwerk"
 	L.flesh_crafter = "Flesh Crafter"
 	L.separation_assistant = "Separation Assistant"
+	L.goregrind = "Goregrind"
+	L.rotspew = "Rotspew"
 end
 
 --------------------------------------------------------------------------------
@@ -55,12 +60,16 @@ function mod:GetOptions()
 		-- Zolramus Gatekeeper
 		323347, -- Clinging Darkness
 		{322756, "NAMEPLATEBAR"}, -- Wrath of Zolramus
+		-- Zolramus Necromancer
+		321780, -- Animate Dead
 		-- Brittlebone Mage
 		328667, -- Frostbolt Volley
 		-- Skeletal Marauder
-		324293, -- Guttural Scream
+		324293, -- Rasping Scream
+		343470, -- Boneshatter Shield
 		-- Zolramus Bonemender
 		335143, -- Bonemend
+		320822, -- Final Bargain
 		-- Nar'zudah
 		335141, -- Dark Shroud
 		{327396, "SAY", "SAY_COUNTDOWN"}, -- Grim Fate
@@ -78,10 +87,15 @@ function mod:GetOptions()
 		{323496, "SAY"}, -- Throw Cleaver
 		-- Separation Assistant
 		338606, -- Morbid Fixation
+		-- Goregrind
+		333477, -- Gut Slice
+		-- Rotspew
+		{333479, "SAY"}, -- Spew Disease
 	}, {
 		[334748] = L.corpse_harvester,
 		[323190] = L.stitched_vanguard,
 		[323347] = L.zolramus_gatekeeper,
+		[321780] = L.zolramus_necromancer,
 		[328667] = L.brittlebone_mage,
 		[324293] = L.skeletal_marauder,
 		[335143] = L.zolramus_bonemender,
@@ -91,17 +105,24 @@ function mod:GetOptions()
 		[338456] = L.kyrian_stitchwerk,
 		[327130] = L.flesh_crafter,
 		[338606] = L.separation_assistant,
+		[333477] = L.goregrind,
+		[333479] = L.rotspew,
 	}
 end
 
 function mod:OnBossEnable()
+	self:RegisterEvent("CHAT_MSG_MONSTER_SAY")
+
 	self:Log("SPELL_CAST_START", "DrainFluids", 334748)
 	self:Log("SPELL_CAST_START", "MeatShield", 323190)
 	self:Log("SPELL_AURA_APPLIED", "ClingingDarkness", 323347)
 	self:Log("SPELL_CAST_START", "WrathOfZolramus", 322756)
+	self:Log("SPELL_AURA_APPLIED", "AnimateDead", 321780)
 	self:Log("SPELL_CAST_START", "FrostboltVolley", 328667)
-	self:Log("SPELL_CAST_START", "GutturalScream", 324293)
+	self:Log("SPELL_CAST_START", "RaspingScream", 324293)
+	self:Log("SPELL_AURA_APPLIED", "BoneshatterShieldApplied", 343470)
 	self:Log("SPELL_CAST_START", "Bonemend", 335143)
+	self:Log("SPELL_CAST_START", "FinalBargain", 320822)
 	self:Log("SPELL_CAST_START", "DarkShroud", 335141)
 	self:Log("SPELL_CAST_SUCCESS", "DarkShroudSuccess", 335141)
 	self:Log("SPELL_AURA_REMOVED", "DarkShroudRemoved", 335141)
@@ -117,6 +138,8 @@ function mod:OnBossEnable()
 	self:Log("SPELL_CAST_START", "MorbidFixation", 338606)
 	self:Log("SPELL_AURA_APPLIED", "MorbidFixationApplied", 338606)
 	self:Log("SPELL_AURA_REMOVED", "MorbidFixationRemoved", 338606)
+	self:Log("SPELL_CAST_START", "GutSlice", 333477)
+	self:Log("SPELL_CAST_START", "SpewDisease", 333479)
 
 	self:Death("SkeletalMonstrosityDeath", 165197)
 	self:Death("NarzudahDeath", 165824)
@@ -126,10 +149,27 @@ end
 -- Event Handlers
 --
 
+-- Warmup
+function mod:CHAT_MSG_MONSTER_SAY(event, msg)
+	if msg == L.amarth_warmup_trigger then
+		self:UnregisterEvent(event)
+
+		-- Amarth Warmup
+		local amarthModule = BigWigs:GetBossModule("Amarth, The Reanimator", true)
+		if amarthModule then
+			amarthModule:Enable()
+			amarthModule:Warmup()
+		end
+	end
+end
+
 -- Corpse Harvester
 do
 	local prev = 0
 	function mod:DrainFluids(args)
+		if self:Friendly(args.sourceFlags) then -- these NPCs can be mind-controlled by Priests
+			return
+		end
 		local t = args.time
 		if t-prev > 0.5 then
 			prev = t
@@ -143,6 +183,9 @@ end
 do
 	local prev = 0
 	function mod:MeatShield(args)
+		if self:Friendly(args.sourceFlags) then -- these NPCs can be mind-controlled by DKs
+			return
+		end
 		local t = args.time
 		if t-prev > 1 then
 			prev = t
@@ -166,23 +209,49 @@ function mod:WrathOfZolramus(args)
 	self:NameplateCDBar(args.spellId, 15.8, args.sourceGUID)
 end
 
+-- Zolramus Necromancer
+function mod:AnimateDead(args)
+	-- these NPCs can be mind-controlled by Priests but cannot cast Animate Dead while MC'd
+	self:Message(args.spellId, "red", CL.casting:format(args.spellName))
+	self:PlaySound(args.spellId, "alert")
+end
+
 -- Brittlebone Mage
 function mod:FrostboltVolley(args)
 	if self:MobId(args.sourceGUID) == 163126 then -- Brittlebone Mage, Amarth has adds that cast this spell
+		if self:Friendly(args.sourceFlags) then -- these NPCs can be mind-controlled by DKs
+			return
+		end
 		self:Message(args.spellId, "orange", CL.casting:format(args.spellName))
 		self:PlaySound(args.spellId, "alert")
 	end
 end
 
 -- Skeletal Marauder
-function mod:GutturalScream(args)
+function mod:RaspingScream(args)
 	self:Message(args.spellId, "orange", CL.casting:format(args.spellName))
+	self:PlaySound(args.spellId, "alert")
+end
+
+function mod:BoneshatterShieldApplied(args)
+	self:Message(args.spellId, "yellow", CL.on:format(args.spellName, args.destName))
 	self:PlaySound(args.spellId, "alert")
 end
 
 -- Zolramus Bonemender
 function mod:Bonemend(args)
+	if self:Friendly(args.sourceFlags) then -- these NPCs can be mind-controlled by Priests
+		return
+	end
 	self:Message(args.spellId, "orange", CL.casting:format(args.spellName))
+	self:PlaySound(args.spellId, "alert")
+end
+
+function mod:FinalBargain(args)
+	if self:Friendly(args.sourceFlags) then -- these NPCs can be mind-controlled by Priests
+		return
+	end
+	self:Message(args.spellId, "yellow", CL.casting:format(args.spellName))
 	self:PlaySound(args.spellId, "alert")
 end
 
@@ -249,6 +318,9 @@ end
 
 -- Corpse Collector
 function mod:Goresplatter(args)
+	if self:Friendly(args.sourceFlags) then -- these NPCs can be mind-controlled by Priests
+		return
+	end
 	self:Message(args.spellId, "orange", CL.casting:format(args.spellName))
 	self:PlaySound(args.spellId, "alert")
 end
@@ -270,6 +342,9 @@ end
 
 -- Flesh Crafter
 function mod:RepairFlesh(args)
+	if self:Friendly(args.sourceFlags) then -- these NPCs can be mind-controlled by Priests
+		return
+	end
 	self:Message(args.spellId, "orange", CL.casting:format(args.spellName))
 	self:PlaySound(args.spellId, "alert")
 end
@@ -298,6 +373,27 @@ do
 
 	function mod:MorbidFixation(args)
 		self:GetUnitTarget(printTarget, 0.4, args.sourceGUID)
+	end
+end
+
+-- Goregrind
+function mod:GutSlice(args)
+	self:Message(args.spellId, "red", CL.casting:format(args.spellName))
+	self:PlaySound(args.spellId, "alarm")
+end
+
+-- Rotspew
+do
+	local function printTarget(self, name, guid)
+		self:TargetMessage(333479, "yellow", name)
+		self:PlaySound(333479, "alert", nil, name)
+		if self:Me(guid) then
+			self:Say(333479)
+		end
+	end
+
+	function mod:SpewDisease(args)
+		self:GetUnitTarget(printTarget, 0.2, args.sourceGUID)
 	end
 end
 

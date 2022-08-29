@@ -1,10 +1,7 @@
 
-## v9.1.1
+## v9.2.2
 ### Bug Fixes
-* Fixed #1909 - IconConfig.lua:127: attempt to index field "CurrentTabGroup" (a nil value)
-* Fixed #1913 (LibDogTag-Stats-3.0/1) - Error with code "[SpellCrit]"
-* Fixed #1914 - Meta icons that switch between shown/hidden OmniCC timer text without changing the duration of their timer now properly hide/show the timer text.
+* Fix #1931 - Group controller Buff/Debuff icons not checking any specific aura were not responding to UNIT_AURA events.
+  
 
-
-
-[View Full Changelog](https://github.com/ascott18/TellMeWhen/blob/31a2f1e9270c801c921ac855bece65e3fbb4c672/CHANGELOG.md)
+[View Full Changelog](https://github.com/ascott18/TellMeWhen/blob/e226f0c7351749ca11175d1ab1f3b9028e44d676/CHANGELOG.md)

@@ -1,4 +1,9 @@
 
+--do not load if this is a classic version of the game
+if (DetailsFramework.IsTBCWow() or DetailsFramework.IsWotLKWow()) then
+	return
+end
+
 local UnitAura = UnitAura
 local UnitBuff = UnitBuff
 local GetSpellInfo = GetSpellInfo
@@ -382,8 +387,8 @@ end
 
 			local openRaidLib = LibStub:GetLibrary("LibOpenRaid-1.0")
 			--get the information of all players
-			local playersInfoData = openRaidLib.playerInfoManager.GetAllPlayersInfo()
-			local playersGearData = openRaidLib.gearManager.GetAllPlayersGear()
+			local playersInfoData = openRaidLib.GetAllUnitsInfo()
+			local playersGearData = openRaidLib.GetAllUnitsGear()
 		
 			for i = 1, total_lines do
 				local index = i + offset

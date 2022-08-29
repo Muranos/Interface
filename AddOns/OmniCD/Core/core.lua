@@ -75,7 +75,7 @@ end
 
 E.LoadPosition = function(f, key)
 	key = key or f.key
-	local db = f.db or E.db -- new namespace or internal
+	local db = f.db or E.db
 	db.manualPos[key] = db.manualPos[key] or {}
 	db = db.manualPos[key]
 	local x = db.x
@@ -93,16 +93,25 @@ E.LoadPosition = function(f, key)
 	end
 end
 
-function OmniCD_AnchorOnMouseDown(self)
+function OmniCD_AnchorOnMouseDown(self, button)
 	local bar = self:GetParent()
-	bar:StartMoving()
+	bar = bar == UIParent and self or bar
+	if button == "LeftButton" and not bar.isMoving then
+		bar:StartMoving()
+		bar.isMoving = true
+
+	end
 end
 
-function OmniCD_AnchorOnMouseUp(self)
+function OmniCD_AnchorOnMouseUp(self, button)
 	local bar = self:GetParent()
-	bar:StopMovingOrSizing()
-	SavePosition(bar)
---  E:ACR_NotifyChange() -- if we're adding X/Y coordinates in option
+	bar = bar == UIParent and self or bar
+	if button == "LeftButton" and bar.isMoving then
+		bar:StopMovingOrSizing()
+		bar.isMoving = false
+		SavePosition(bar)
+	end
+
 end
 
 E.SetWidth = function(anchor, padding)
@@ -161,6 +170,19 @@ E.FormatConcat = function(tbl, template, template2)
 	end
 
 	return table.concat(t)
+end
+
+E.MergeConcat = function(...)
+	local t = {}
+	for i = 1, select("#", ...) do
+		local src = select(i, ...)
+		if src then
+			for k, v in ipairs(src) do
+				t[#t+1] = v
+			end
+		end
+	end
+	return table.concat(t, ",")
 end
 
 E.pairs = function(t, ...)
@@ -283,4 +305,15 @@ E.SortHashToArray = function(src, db)
 	t = nil
 
 	return sorted
+end
+
+E.GetClassHexColor = function(class)
+	local hex = select(4, GetClassColor(class))
+	return "|c" .. hex
+end
+
+E.borderlessCoords = {0.07, 0.93, 0.07, 0.93}
+
+E.RGBToHex = function(r, g, b)
+	return format("|cff%02x%02x%02x", r*255, g*255, b*255)
 end

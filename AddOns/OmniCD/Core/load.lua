@@ -26,7 +26,7 @@ end
 function E:UpdateFontObjects()
 	local optionFont = self.profile.General.fonts.option
 
-	-- Update tooltip font
+
 	for i = 1, select("#", ACD_Tooltip:GetRegions()) do
 		local region = select(i, ACD_Tooltip:GetRegions())
 		if region and region:GetObjectType() == "FontString" then
@@ -34,7 +34,7 @@ function E:UpdateFontObjects()
 		end
 	end
 
-	-- Update our fontobjects
+
 	self.SetFont(self.GameFontNormal, optionFont)
 	self.SetFont(self.GameFontHighlight, optionFont)
 	self.SetFont(self.GameFontDisabled, optionFont)
@@ -48,7 +48,7 @@ function E:UpdateFontObjects()
 end
 
 function E:OnInitialize()
-	-- Make changes to profile import on db updates
+
 
 	if not OmniCDDB or not OmniCDDB.version or OmniCDDB.version < 2.5 then
 		OmniCDDB = { version = DB_VERSION }
@@ -82,10 +82,6 @@ function E:OnInitialize()
 	self.profile = self.DB.profile
 	self.db = self.DB.profile.Party.arena
 
-	E.BackdropTemplate(ACD_Tooltip)
-	ACD_Tooltip:SetBackdropColor(0, 0, 0)
-	ACD_Tooltip:SetBackdropBorderColor(0.3, 0.3, 0.3)
-
 	self:CreateFontObjects()
 	self:UpdateSpellList(true)
 	self:SetupOptions()
@@ -93,10 +89,11 @@ function E:OnInitialize()
 end
 
 function E:OnEnable()
---  [AC] C_ChatInfo.RegisterAddonMessagePrefix("OmniCD")
-	self.Comms:RegisterComm("OmniCD", "CHAT_MSG_ADDON")
 
-	for i = 1, 13 do -- dummy lines to set font (2 doublelines exists as default)
+	E.AddonMsgPrefix = E.isPreBCC and "OmniCD" or "OmniCD2"
+	self.Comms:RegisterComm(E.AddonMsgPrefix, "CHAT_MSG_ADDON")
+
+	for i = 1, 13 do
 		if i > 3 then
 			ACD_Tooltip:AddLine(".")
 		else
@@ -105,6 +102,11 @@ function E:OnEnable()
 	end
 
 	self:LoadAddOns()
+
+	E.BackdropTemplate(ACD_Tooltip)
+	ACD_Tooltip:SetBackdropColor(0, 0, 0)
+	ACD_Tooltip:SetBackdropBorderColor(0.3, 0.3, 0.3)
+
 	self:Refresh()
 
 	if self.DB.profile.loginMsg then
@@ -152,6 +154,7 @@ do
 	local groupSize = 0
 	local version = E.Version:gsub("[^%d]", "")
 	version = tonumber(version)
+	E.versionNum = version
 	local enabled
 	local timer
 
@@ -184,7 +187,7 @@ do
 			if ver and ver > version then
 				local diff = ver - version
 				local text = diff > 10 and L["Major update"] or (diff > 1 and L["Minor update"]) or L["Hotfix"]
-				text = format("|cfff16436 " .. L["A new update is available. (|cff99cdff%s)"], text)
+				text = format("|cfff16436 " .. L["A new update is available. |cff99cdff(%s)"], text)
 				if E.DB.profile.notifyNew then
 					E.Write(text)
 				end
@@ -210,11 +213,15 @@ do
 	end
 
 	function E:EnableVersionCheck()
+		local ver = self.DB.global.oodVer
+
 		if today <= (self.DB.global.oodChk or 0) then
+			if ver and ver <= version then
+				self.DB.global.oodMsg = nil
+			end
 			return
 		end
 
-		local ver = self.DB.global.oodVer
 		if ver then
 			if ver > version then
 				if self.DB.profile.notifyNew then
@@ -244,8 +251,9 @@ do
 		if event == "PET_BATTLE_OPENING_START" then
 			for k in pairs(E.moduleOptions) do
 				local module = E[k]
-				if module.test then
-					module:Test()
+				local test = module.Test
+				if test and module.test then
+					test()
 				end
 
 				local func = module.HideAllBars

@@ -82,7 +82,9 @@ BigWigs:AddColors("Shar'thos", {
 })
 
 BigWigs:AddColors("Si'vash", {
+	[233968] = "orange",
 	[233996] = "orange",
+	[241433] = "yellow",
 })
 
 BigWigs:AddColors("The Soultakers", {

@@ -417,11 +417,11 @@ function private.IsDestroyable(itemString)
 	if ItemInfo.IsDisenchantable(itemString) and quality <= private.settings.deMaxQuality then
 		local hasSourceItem = true
 		if TSM.IsWowBCClassic() then
-			local ilvl = ItemInfo.GetItemLevel(ItemString.GetBase(itemString))
 			local classId = ItemInfo.GetClassId(itemString)
+			local itemLevel = ItemInfo.GetItemLevel(ItemString.GetBase(itemString))
 			hasSourceItem = false
 			for targetItemString in DisenchantInfo.TargetItemIterator() do
-				local _, _, _, _, skillRequired = DisenchantInfo.GetTargetItemSourceInfo(targetItemString, classId, quality, ilvl)
+				local _, _, _, _, skillRequired = DisenchantInfo.GetTargetItemSourceInfo(targetItemString, classId, quality, itemLevel)
 				if private.disenchantSkillLevel and skillRequired and private.disenchantSkillLevel >= skillRequired then
 					hasSourceItem = true
 				end

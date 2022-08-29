@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Premade Groups Filter
 -------------------------------------------------------------------------------
--- Copyright (C) 2020 Elotheon-Arthas-EU
+-- Copyright (C) 2022 Elotheon-Arthas-EU
 --
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@ L["button.ok"] = "OK"
 L["error.syntax"] = "|cffff0000필터 표현에 구문 오류|r\n\n이것은 당신의 필터 표현이 올바르게 만들어 지지 않은 걸 의미합니다, 예. 괄호를 빠뜨리거나 'tanks==1' 대신 'tanks=1'이라고 쓴 경우입니다.\n\n자세한 오류 메시지:\n|cffaaaaaa%s|r"
 L["error.semantic"] = "|cffff0000필터 표현에 의미 오류|r\n\n이것은 당신의 필터 표현이 구문은 맞지만, 변수 이름의 철자가 틀린 것 같습니다, 예. tanks 대신 tansk라고 쓴 경우입니다.\n\n자세한 오류 메시지:\n|cffaaaaaa%s|r"
 L["error.semantic.protected"] = "|cffff0000필터 표현에 의미 오류|r\n\n'name', 'comment' 및 'findnumber' 키워드는 더 이상 지원되지 않습니다. 고급 필터 표현식에서 필터를 제거하거나 재설정 버튼을 누르십시오.\n\nBattle for Azeroth Prepatch 로 시작한이 값은 이제 블리자드에 의해 보호되며 더 이상 애드온에서 읽을 수 없습니다.\n\n그룹 목록 위에있는 기본 검색 창을 사용하여 그룹 이름을 필터링하십시오.\n\n자세한 오류 메시지:\n|cffaaaaaa%s|r"
+L["message.noplaystylefix"] = "Premade Groups Filter: Will not apply fix for 'Interface action failed because of an AddOn' errors because you don't seem to have a fully secured account and otherwise can't create premade groups. See addon FAQ for more information and how to fix this issue."
 
 L["dialog.reset"] = "초기화"
 L["dialog.refresh"] = "검색"
@@ -48,6 +49,7 @@ L["dialog.dps"]        = "공격 전담 ......................."
 L["dialog.ilvl"]       = "아이템 레벨 ....................."
 L["dialog.noilvl"] = "또는 아이템 레벨 미지정"
 L["dialog.defeated"] = "우두머리 처치 (공격대만)"
+L["dialog.sorting"] = "정렬"
 L["dialog.usepgf.tooltip"] = "Premade Groups Filter 활성화 또는 비활성화"
 L["dialog.tooltip.title"] = "고급 필터 표현"
 L["dialog.tooltip.variable"] = "변수"
@@ -60,7 +62,8 @@ L["dialog.tooltip.example"] = "예제"
 L["dialog.tooltip.ilvl"] = "최소 아이템 레벨"
 L["dialog.tooltip.myilvl"] = "내 아이템 레벨"
 L["dialog.tooltip.hlvl"] = "최소 명예 레벨"
-L["dialog.tooltip.mprating"] = "Mythic+ Rating"
+L["dialog.tooltip.pvprating"] = "그룹 리더의 PvP 등급"
+L["dialog.tooltip.mprating"] = "그룹 리더의 신화 플러스 등급"
 L["dialog.tooltip.defeated"] = "처치한 공격대 우두머리의 숫자"
 L["dialog.tooltip.members"] = "구성원의 숫자"
 L["dialog.tooltip.tanks"] = "방어 전담의 숫자"

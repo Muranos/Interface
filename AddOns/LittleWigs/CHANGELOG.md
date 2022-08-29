@@ -1,16 +1,11 @@
 # LittleWigs
 
-## [v9.1.6](https://github.com/BigWigsMods/LittleWigs/tree/v9.1.6) (2021-12-19)
-[Full Changelog](https://github.com/BigWigsMods/LittleWigs/compare/v9.1.5...v9.1.6) [Previous Releases](https://github.com/BigWigsMods/LittleWigs/releases)
+## [v9.2.15](https://github.com/BigWigsMods/LittleWigs/tree/v9.2.15) (2022-08-27)
+[Full Changelog](https://github.com/BigWigsMods/LittleWigs/compare/v9.2.14...v9.2.15) [Previous Releases](https://github.com/BigWigsMods/LittleWigs/releases)
 
-- Legion/ArtifactScenarios/Agatha: Better active time for second and third trigger  
-- Legion/ArtifactScenarios/LordErdrisThorn: Fix UnitBuff error  
-    Fixes #625  
-- Legion/ArtifactScenarios/Agatha: Use locales for the warmup  
-    The module doesn't enable until mouseover, so we can't assume  
-    the active time.  
-    Fixes #621  
-- Legion/ArtifactScenarios/Agatha: Fix Translocate warning  
-    Fixes #622  
-- Legion/ArtifactScenarios/Agatha: Fix warm up timer (#621)  
-- Update zhCN (#620)  
+- Legion/Karazhan/OperaWestfall: Dashing Flame Gale, timer updates, wipe detection (#733)  
+- BfA/HorrificVisionOfOrgrimmar/Trash: Fix Aqiri Mind Toxin sound (#732)  
+- Legion/Karazhan/Vizaduum: Shadow Phlegm, Chaotic Shadows, timer updates (#729)  
+- Legion/Karazhan/ShadeOfMedivh: Piercing Missiles alert, timer updates (#728)  
+- WoD/GrimrailDepot/NitroggThundertower: Remove unused locale string (#731)  
+- Shadowlands/TazaveshTheVeiledMarket/Soleah: Collapsing Energy emphasis not until 2+ stacks (#730)  

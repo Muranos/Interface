@@ -1,7 +1,7 @@
-## Interface: 90100
+## Interface: 90207
 
 ## Title: Threat Plates
-## Version: 10.2.14
+## Version: 10.4.2
 ## Notes: Threat-reactive nameplates.
 ## Notes-deDE: Bedrohungsreaktive Namensplaketten.
 ## Notes-esES: Placas Identificativas de Amenaza
@@ -15,6 +15,7 @@
 ## X-Website: https://wow.curseforge.com/projects/tidy-plates-threat-plates
 ## X-Curse-Project-ID: 21217
 ## X-WoWI-ID: 15749
+## X-Wago-ID: RqGZkkNd
 
 ## X-License: GNU General Public License
 ## X-Credits: danltiger (for Tidy Plates), Tosaido (for quest handling code from QuestMobs)
@@ -23,6 +24,7 @@ Libs\Libs.xml
 Locales\Locales.xml
 
 Init.lua
+Localization.lua
 CVarsManager.lua
 Media.lua
 Constants.lua

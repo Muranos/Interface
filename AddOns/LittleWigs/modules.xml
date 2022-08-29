@@ -2,5 +2,6 @@
 ..\FrameXML\UI.xsd">
 
 <Include file="Shadowlands\modules.xml"/>
+<Include file="Dragonflight\modules.xml"/>
 
 </Ui>

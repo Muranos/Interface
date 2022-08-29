@@ -1,4 +1,4 @@
-## Interface: 90105
+## Interface: 90207
 
 ## Title: BigWigs [|cffeda55fCastle Nathria|r]
 ## Title-deDE: BigWigs [|cffeda55fCastle Nathria|r]
@@ -22,7 +22,7 @@
 ## Notes-itIT: BigWigs Castle Nathria Modules
 ## Notes-ptBR: BigWigs Castle Nathria Modules
 ## Notes-koKR: BigWigs Castle Nathria Modules
-## Version: v233.1
+## Version: v246
 
 ## LoadOnDemand: 1
 ## Dependencies: BigWigs
