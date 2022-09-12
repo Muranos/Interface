@@ -61,13 +61,9 @@ E.spell_cdmod_talents = {
 		{ 20174,    60  },
 		{ 20175,    120 },
 	},
-	[1044]  = {
-		{ 20174,    2   },
-		{ 20175,    4   },
-	},
 	[642]   = {
 		{ 31848,    30  },
-		{ 31848,    60  },
+		{ 31849,    60  },
 	},
 	[853]   = {
 		{ 20487,    5   },
@@ -75,8 +71,8 @@ E.spell_cdmod_talents = {
 		{ 20489,    15  },
 	},
 	[20271] = {
-		{ 25956,    2   },
-		{ 25957,    4   },
+		{ 25956,    1   },
+		{ 25957,    2   },
 	},
 	[633]   = {
 		{ 20234,    600 },
@@ -335,24 +331,24 @@ itemBonusMult = nil
 
 
 
-
 E.spell_linked = {
-	[1499]  = { nil,    1499,   13813,  13795,  13809,  34600   },
-	[13813] = { nil,    1499,   13813,  13795,  13809,  34600   },
-	[13795] = { nil,    1499,   13813,  13795,  13809,  34600   },
-	[13809] = { nil,    1499,   13813,  13795,  13809,  34600   },
-	[34600] = { nil,    1499,   13813,  13795,  13809,  34600   },
-	[543]   = { nil,    543,    6143    },
-	[6143]  = { nil,    543,    6143    },
-	[498]   = { nil,    498,    642     },
-	[642]   = { nil,    498,    642     },
-	[2878]  = { nil,    2878,   10326   },
-	[10326] = { nil,    2878,   10326   },
-	[8042]  = { nil,    8042,   8050,   8056    },
-	[8050]  = { nil,    8042,   8050,   8056    },
-	[8056]  = { nil,    8042,   8050,   8056    },
-	[2894]  = { 120,    2894,   2062    },
-	[2062]  = { 120,    2894,   2062    },
+	[1499]  = { 1499,   13813,  13795,  13809,  34600   },
+	[13813] = { 1499,   13813,  13795,  13809,  34600   },
+	[13795] = { 1499,   13813,  13795,  13809,  34600   },
+	[13809] = { 1499,   13813,  13795,  13809,  34600   },
+	[34600] = { 1499,   13813,  13795,  13809,  34600   },
+	[543]   = { 543,    6143    },
+	[6143]  = { 543,    6143    },
+	[498]   = { 498,    642     },
+	[642]   = { 498,    642     },
+	[2878]  = { 2878,   10326   },
+	[10326] = { 2878,   10326   },
+	[8042]  = { 8042,   8050,   8056    },
+	[8050]  = { 8042,   8050,   8056    },
+	[8056]  = { 8042,   8050,   8056    },
+	[871]   = { 871,    1719,   20230   },
+	[1719]  = { 871,    1719,   20230   },
+	[20230] = { 871,    1719,   20230   },
 }
 
 E.spell_merged = {
@@ -552,6 +548,7 @@ local talentRanks = {
 for i = 1, #spellRanks do
 	local t = spellRanks[i]
 	local rank1 = t[1]
+	rank1 = E.spell_merged[rank1] or rank1
 	for j = 2, #t do
 		local rankN = t[j]
 		E.spell_merged[rankN] = rank1
@@ -562,6 +559,7 @@ end
 for i = 1, #talentRanks do
 	local t = talentRanks[i]
 	local rank1 = t[1]
+	rank1 = E.spell_merged[rank1] or rank1
 	local name = GetSpellInfo(rank1)
 	if name then
 		for j = 1, #t do
@@ -588,15 +586,12 @@ for i = 1, #talentRanks do
 end
 
 
-for k in pairs(E.spell_merged) do
-	E.spell_highlighted[k] = true
+for k, v in pairs(E.spell_merged) do
+	E.spell_highlighted[k] = E.spell_highlighted[v]
 end
 
 E.spell_updateOnCast = {
-	[19244]  = { 24 },
-	[4511]   = { 10 },
-	[7814]   = { 30 },
-	[17735]  = { 120 },
+
 }
 
 for k, v in pairs(E.spell_updateOnCast) do
@@ -606,26 +601,10 @@ for k, v in pairs(E.spell_updateOnCast) do
 	end
 end
 
-E.spell_preactive = {
-	[17116]  = true,
-	[5215]   = true,
-	[6783]   = true,
-	[9913]   = true,
-	[5384]   = true,
-	[34477]  = true,
-	[12043]  = true,
-	[14177]  = true,
-	[1784]   = true,
-	[1785]   = true,
-	[1786]   = true,
-	[1787]   = true,
-	[20216]  = true,
-	[16188]  = true,
-	[18288]  = true,
-	[20580]  = true,
+E.spell_shared_cds = {
+	[2894]   = { 2062, 120  },
+	[2062]   = { 2894, 120  },
 }
-
-E.spell_sharedCDwTrinkets = BLANK
 
 E.spell_noReset = {
 	[20608] = true,
@@ -659,7 +638,7 @@ E.cd_reset_cast = {
 E.cd_reduce_cast = BLANK
 E.cd_reduce_powerSpenders = BLANK
 
-for id in E.pairs(E.spell_linked, E.spell_merged, E.spell_sharedCDwTrinkets, E.cd_reset_cast, E.cd_reduce_cast, E.cd_reduce_powerSpenders) do
+for id in E.pairs(E.spell_linked, E.spell_merged, E.spell_shared_cds, E.cd_reset_cast, E.cd_reduce_cast, E.cd_reduce_powerSpenders) do
 	E.spell_modifiers[id] = true
 end
 
@@ -668,28 +647,53 @@ end
 
 E.spell_cdmod_powerSpent = BLANK
 
+E.spell_preactive = {
+	[17116] = true,
+	[5215]  = true,
+	[6783]  = true,
+	[9913]  = true,
+	[5384]  = true,
+	[34477] = true,
+	[12043] = true,
+	[14177] = true,
+	[1784]  = true,
+	[1785]  = true,
+	[1786]  = true,
+	[1787]  = true,
+	[20216] = true,
+	[16188] = true,
+	[11129] = true,
+	[14751] = true,
+	[16166] = true,
+	[18288] = true,
+	[20580] = true,
+}
+
 
 
 
 E.aura_free_spender = BLANK
 
 E.cd_start_aura_removed = {
-	[17116]  = 17116,
-	[5215]   = 5215,
-	[6783]   = 5215,
-	[9913]   = 5215,
-	[34477]  = 34477,
-	[12043]  = 12043,
-	[14177]  = 14177,
-	[1784]   = 1784,
-	[1785]   = 1784,
-	[1786]   = 1784,
-	[1787]   = 1784,
-	[20216]  = 20216,
-	[16188]  = 16188,
-	[18288]  = 18288,
+	[17116] = 17116,
+	[5215]  = 5215,
+	[6783]  = 5215,
+	[9913]  = 5215,
+	[34477] = 34477,
+	[12043] = 12043,
+	[14177] = 14177,
+	[1784]  = 1784,
+	[1785]  = 1784,
+	[1786]  = 1784,
+	[1787]  = 1784,
+	[20216] = 20216,
+	[16188] = 16188,
+	[28682] = 11129,
+	[14751] = 14751,
+	[16166] = 16166,
+	[18288] = 18288,
 
-	[20580]  = 20580,
+	[20580] = 20580,
 }
 
 E.processSpell_aura_applied = BLANK
@@ -697,14 +701,14 @@ E.cd_start_dispels = BLANK
 
 E.cd_disable_aura_applied = {
 	[25771] = {
-		[1022]  = 1,
-		[5599]  = 1,
-		[10278] = 1,
-		[498]   = true,
-		[5573]  = true,
-		[642]   = true,
-		[1020]  = true,
-		[31884] = true,
+		[1022]  = 0,
+		[5599]  = 0,
+		[10278] = 0,
+		[498]   = 60,
+		[5573]  = 60,
+		[642]   = 60,
+		[1020]  = 60,
+		[31884] = 60,
 	},
 
 }

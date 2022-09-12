@@ -951,8 +951,12 @@ for key,value in pairs({
 	[1738] = "비밀결사대 문서",	-- Syndicate Documents	--TODO: This was taken from classic Wowhead
 	[1739] = "비밀결사대 문서",	-- Syndicate Documents	--TODO: This was taken from classic Wowhead
 	[1740] = "비밀결사대 문서",	-- Syndicate Documents
+	[1761] = "힐스브래드 선언문",	-- Hillsbrad Proclamation	--TODO: This was taken from classic Wowhead
 	[1763] = "현상수배!",	-- WANTED	--TODO: This was taken from classic Wowhead
 	[1765] = "낡은 나무 궤짝",	-- Worn Wooden Chest
+	[1768] = "아젤의 불꽃",	-- Flame of Azel	--TODO: This was taken from classic Wowhead
+	[1769] = "베라즈의 불꽃",	-- Flame of Veraz	--TODO: This was taken from classic Wowhead
+	[1770] = "우젤의 불꽃",	-- Flame of Uzel	--TODO: This was taken from classic Wowhead
 	[2008] = "위험!",	-- Dangerous!	--TODO: This was taken from classic Wowhead
 	[2059] = "드워프 시체",	-- A Dwarven Corpse
 	[2076] = "끓고 있는 가마솥",	-- Bubbling Cauldron
@@ -1294,6 +1298,7 @@ for key,value in pairs({
 	[195517] = "엘룬의 시녀",	-- Elune's Handmaiden
 	[195600] = "연기나는 돌",	-- Smouldering Stone
 	[195642] = "나가 마법석",	-- Naga Power Stone
+	--TODO: [195665] = "Argent Crusade Tribute Chest",	-- Argent Crusade Tribute Chest
 	[195676] = "비밀 실험실 내선 통화기",	-- Secret Lab Squakbox
 	[196393] = "부서진 유물",	-- Broken Relic
 	[196832] = "위쪽 수정점 구슬",	-- Upper Scrying Stone

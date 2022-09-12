@@ -93,7 +93,6 @@ Weitere Informationen zur Anpassung von Pawn findet ihr in der Hilfedatei (Readm
 		["CritInfo"] = "Kritische Treffer.  Chance, dass Angriffe und Heilungen stärkere Wirkung haben.",
 		["DefenseInfo"] = "Verteidigungsfähigkeit. Verringert die Wahrscheinlichkeit, dass du von Boss-Angriffen getroffen wirst.",
 		["DodgeInfo"] = "Ausweichen. Erhöht die Wahrscheinlichkeit, dass du Angriffen vollständig ausweichst.",
-		["DominationSocketInfo"] = "Der Wert eines Sockels für einen durchschnittlichen Dominationssplitter.",
 		["DpsInfo"] = "Waffenschaden pro Sekunde.  (Wenn du den DPS-Wert für verschiedene Waffentypen unterschiedlich bewerten möchtest, scrolle runter zum Bereich \"Spezielle Waffenwertungen\"",
 		["ExpertiseInfo"] = "Geschick. Macht die Chancen deines Feindes, auszuweichen und zu parieren,  zunichte.",
 		["FeralApInfo"] = "Wilde Angriffskraft. Erhöht den Schaden von Druidenangriffen in wilder Form. Beinhaltet keine Angriffskraft, die durch Stärke und Beweglichkeit gewonnen wird.",
@@ -149,6 +148,7 @@ Weitere Informationen zur Anpassung von Pawn findet ihr in der Hilfedatei (Readm
 		["SpellDamageInfo"] = "Zauberschaden. Erhöht den durch deine Angriffszauber verursachten Schaden.",
 		["SpellHitInfo"] = "Zaubertreffer. Erhöht die Wahrscheinlichkeit, dass deine Schadenszauber das Ziel treffen, insbesondere Bosse.",
 		["SpellPenetrationInfo"] = "Zauberdurchdringung. Macht die Widerstände eines Feindes gegen deine Zauber zunichte.",
+		["SpellPowerInfo"] = "Zaubermacht. Erhöht sowohl Schaden als auch Heilung durch Zauber.",
 		["SpiritInfo"] = "Willenskraft. Beeinflusst die Manaregeneration außerhalb des Kampfes.",
 		["StaminaInfo"] = "Ausdauer. Erhöht die Gesundheit.",
 		["StrengthInfo"] = "Stärke. Verstärkt Eure Angriffe und Fähigkeiten.",
@@ -257,6 +257,8 @@ Weitere Informationen zur Anpassung von Pawn findet ihr in der Hilfedatei (Readm
 		["Armor"] = "^%+?# Rüstung$",
 		["Armor2"] = "^UNUSED$",
 		["ArmorPenetration"] = "^Anlegen: Eure Angriffe ignorieren # Rüstung Eures Gegners%.$",
+		["ArmorPenetrationRating"] = "^Anlegen: Erhöht die Rüstungsdurchschlagwertung um #%.$",
+		["ArmorPenetrationShort"] = "^%+?# Rüstungsdurchschlagwertung$",
 		["Avoidance"] = "^%+# Vermeidung$",
 		["Axe"] = "^Axt$",
 		["BagSlots"] = "^%d+ Platz .+$",
@@ -307,8 +309,10 @@ Weitere Informationen zur Anpassung von Pawn findet ihr in der Hilfedatei (Readm
 		["EnchantmentTitaniumWeaponChain"] = "^Titanwaffenkette$",
 		["Equip"] = "Anlegen:",
 		["ExpertiseRating"] = "^Anlegen: Erhöht Eure Waffenkundewertung um #%.$",
+		["ExpertiseRatingShort"] = "^%+?# Waffenkundewertung$",
 		["FeralAp"] = "^Anlegen: %+# Angriffskraft in Katzengestalt, Bärengestalt oder Terrorbärengestalt%.$",
 		["FeralApMoonkin"] = "^Anlegen: Erhöht die Angriffskraft in Katzengestalt, Bärengestalt, Terrorbärengestalt oder Mondkingestalt um #%.$",
+		["FeralApWrath"] = "^Erhöht die Angriffskraft in Katzengestalt, Bärengestalt, Terrorbärengestalt oder Mondkingestalt um #%.$",
 		["FireResist"] = "^%+?# Feuerwiderstand$",
 		["FireSpellDamage"] = "^%+# Feuerzauberschaden$",
 		["FireSpellDamage2"] = "^Anlegen: Erhöht durch Feuerzauber und Feuereffekte zugefügten Schaden um bis zu #%.$",
@@ -382,6 +386,7 @@ Weitere Informationen zur Anpassung von Pawn findet ihr in der Hilfedatei (Readm
 		["PvPPower"] = "^%+?# P[vV]P[- ]Macht$",
 		["RaidFinder"] = "^Schlachtzugsbrowser$",
 		["Rap"] = "^Anlegen: %+# Distanzangriffskraft%.$",
+		["Rap2"] = "^Anlegen: Erhöht die Distanzangriffskraft um #%.$",
 		["Requires2"] = "^Benötigt",
 		["Resilience"] = "^%+?# P[vV]P[- ]Abhärtung$",
 		["Resilience2"] = "^UNUSED$",
@@ -425,6 +430,8 @@ Weitere Informationen zur Anpassung von Pawn findet ihr in der Hilfedatei (Readm
 		["SpellPenetrationClassic"] = "^Anlegen: Reduziert die Magiewiderstände der Ziele Eurer Zauber um #%.$",
 		["SpellPenetrationShort"] = "^%+?# Zauberdurchschlagskraft$",
 		["SpellPower"] = "^%+?# Zaubermacht$",
+		["SpellPower2"] = "^Anlegen: Erhöht die Zaubermacht um #%.$",
+		["SpellPower3"] = "^UNUSED$",
 		["Spirit"] = "^%+?# Willenskraft$",
 		["Staff"] = "^Stab$",
 		["Stamina"] = "^%+?# Ausdauer$",
@@ -645,6 +652,7 @@ Feuer:  156.7|r]=],
 		["ScaleRename"] = "Umbenennen",
 		["ScaleRenameTooltip"] = "Bewertungsprofil umbenennen.",
 		["ScaleSelectorHeader"] = "Wähle ein Profil:",
+		["ScaleSelectorNoneWarning"] = "Wählen Sie mindestens eine aus.",
 		["ScaleSelectorShowingSuggestionsFor"] = "Zeige Vorschläge für",
 		["ScaleSelectorShowScale"] = "Zeigt dieses Bewertungsprofil im Gegenstand-Tooltip an.",
 		["ScaleSelectorShowScaleTooltip"] = [=[Aktiviere diese Option, um dieses Bewertungsprofil in den Gegenstand-Tooltips anzuzeigen und lass sie von Pawn verwenden, um Verbesserungen vorzuschlagen. Du kannst mehr als ein Bewertungsprofil für jeden Charakter aktivieren. 
@@ -681,7 +689,7 @@ Weitere Informationen zu dieser Einstellung findest du in der Readme-Datei.]=],
 
 -- Special case: weapon speed and Mail use different words on Classic.
 -- So, patch things up here.
-if VgerCore.IsClassic or VgerCore.IsBurningCrusade then
+if VgerCore.IsClassic or VgerCore.IsBurningCrusade or VgerCore.IsWrath then
 	PawnLocal.Mail = "Schwere Rüstung"
 	PawnLocal.MailInfo = "Punkte, die zugewiesen werden sollen, wenn der Gegenstand Schwere Rüstung ist."
 	PawnLocal.TooltipParsing.Mail = "^Schwere Rüstung$"

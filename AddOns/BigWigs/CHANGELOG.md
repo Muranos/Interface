@@ -1,13 +1,10 @@
 # BigWigs
 
-## [v246](https://github.com/BigWigsMods/BigWigs/tree/v246) (2022-08-27)
-[Full Changelog](https://github.com/BigWigsMods/BigWigs/compare/v245.2...v246) [Previous Releases](https://github.com/BigWigsMods/BigWigs/releases)
+## [v247](https://github.com/BigWigsMods/BigWigs/tree/v247) (2022-09-10)
+[Full Changelog](https://github.com/BigWigsMods/BigWigs/compare/v246.4...v247) [Previous Releases](https://github.com/BigWigsMods/BigWigs/releases)
 
+- Plugins/Bars: Support creating bars that are not at max duration (#1239)  
 - bump version  
-- Update NewStackMessage usage  
-- Core/BossPrototype: NewStackMessage now requires `noEmphUntil`  
-- CastleNathria/Affixes: Mythic Sludgefist and Denathrius fixes  
-- CastleNathria/Affixes: Update for round 2  
-- Affixes: Only start bars if the buff is active  
-- CastleNathria/Denathrius: Fix Wracking Pain applied sound (#1261)  
-- Core/BossPrototype: add time arg to UNIT\_DIED, fix destRaidFlags (#1260)  
+- Sepulcher/Affixes: Weekly update  
+- Unify line endings (#1263)  
+- SanctumOfDomination/FatescribeRohKalo: Add a Twist Fate timer for Mythic  

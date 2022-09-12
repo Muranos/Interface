@@ -225,11 +225,14 @@ function private.GetDestroyInfo(itemString)
 			tinsert(targetItems, targetItemString)
 		end
 	end
-	for targetItemString, rate in Conversions.TargetItemsByMethodIterator(itemString, Conversions.METHOD.MILL) do
+	for targetItemString, amountOfMats, matRate, minAmount, maxAmount in Conversions.TargetItemsByMethodIterator(itemString, Conversions.METHOD.MILL) do
 		local name = ItemInfo.GetName(targetItemString)
 		local color = ItemInfo.GetQualityColor(targetItemString)
 		if name and color then
-			tinsert(info, color..ItemInfo.GetName(targetItemString).." x"..rate.."|r")
+			matRate = matRate and matRate * 100
+			matRate = matRate and matRate.."% " or ""
+			local range = (minAmount and maxAmount) and Theme.GetFeedbackColor("YELLOW"):ColorText(minAmount ~= maxAmount and (" ["..minAmount.."-"..maxAmount.."]") or (" ["..minAmount.."]")) or ""
+			tinsert(info, color..matRate..name.." x"..amountOfMats.."|r"..range)
 			tinsert(targetItems, targetItemString)
 		end
 	end

@@ -1,6 +1,6 @@
 ﻿## Interface: 90207
 ## Title: Pawn
-## Version: 2.5.38 (WoW 9.2.7)
+## Version: 2.6.6
 ## Notes: Pawn helps you compare items and find upgrades.
 ## OptionalDependencies: AtlasLoot, EQCompare, EquipCompare, LinkWrangler, MobInfo2, MultiTips, Outfitter, ArkInventoryRules
 ## SavedVariables: PawnCommon
@@ -26,6 +26,7 @@ TooltipParsing.lua
 Gems.lua
 GemsClassic.lua
 GemsBurningCrusade.lua
+GemsWrath.lua
 ScaleTemplates.lua
 Pawn.lua
 PawnUI.lua

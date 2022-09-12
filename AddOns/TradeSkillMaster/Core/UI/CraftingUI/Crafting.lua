@@ -1070,7 +1070,7 @@ function private.FSMCreate()
 		wipe(private.professions)
 		wipe(private.professionsKeys)
 		if currentProfession and not isCurrentProfessionPlayer then
-			assert(not TSM.IsWowClassic())
+			assert(not TSM.IsWowVanillaClassic())
 			local playerName = nil
 			local linked, linkedName = TSM.Crafting.ProfessionUtil.IsLinkedProfession()
 			if linked then
@@ -1234,9 +1234,10 @@ function private.FSMCreate()
 		local resultName, resultItemString, resultTexture = TSM.Crafting.ProfessionUtil.GetResultInfo(context.selectedCraftString)
 		-- engineer tinkers can't be crafted, multi-crafted or queued
 		local currentProfession = TSM.Crafting.ProfessionState.GetCurrentProfession()
+		local isEnchant, vellumable = TSM.Crafting.ProfessionUtil.IsEnchant(context.selectedCraftString)
 		if not resultItemString then
 			buttonFrame:GetElement("craftBtn")
-				:SetText(currentProfession == GetSpellInfo(7411) and L["Enchant"] or L["Tinker"])
+				:SetText(currentProfession == GetSpellInfo(7411) and L["Enchant"] or (currentProfession == GetSpellInfo(4036) and L["Tinker"] or L["Craft"]))
 			buttonFrame:GetElement("queueBtn")
 				:SetDisabled(true)
 			buttonFrame:GetElement("craftInput")
@@ -1248,8 +1249,13 @@ function private.FSMCreate()
 				:SetText(L["Craft"])
 			buttonFrame:GetElement("queueBtn")
 				:SetDisabled(false)
-			buttonFrame:GetElement("craftInput")
-				:Show()
+			if isEnchant then
+				buttonFrame:GetElement("craftInput")
+					:Hide()
+			else
+				buttonFrame:GetElement("craftInput")
+					:Show()
+			end
 		end
 		if TSM.Crafting.HasOptionalMats(context.selectedCraftString) then
 			detailsFrame:GetElement("left.optional")
@@ -1319,12 +1325,12 @@ function private.FSMCreate()
 			canCraft = true
 		end
 		errorText:SetText(errStr and "("..errStr..")" or "")
-		local isEnchant = TSM.Crafting.ProfessionUtil.IsEnchant(context.selectedCraftString)
 		buttonFrame:GetElement("craftBtn")
+			:SetText(isEnchant and L["Enchant"] or L["Craft"])
 			:SetDisabled(not canCraft or context.recipeString)
 			:SetPressed(context.recipeString and context.craftingType == "craft")
 		buttonFrame:GetElement("craftAllBtn")
-			:SetText(isEnchant and L["Enchant Vellum"] or L["Craft All"])
+			:SetText((isEnchant and vellumable) and L["Enchant Vellum"] or L["Craft All"])
 			:SetDisabled(not resultItemString or not canCraft or context.recipeString)
 			:SetPressed(context.recipeString and context.craftingType == "all")
 		detailsFrame:GetElement("content.matList")
@@ -1395,18 +1401,26 @@ function private.FSMCreate()
 			end
 			errorText:SetText(errStr and "("..errStr..")" or "")
 				:Draw()
-			local isEnchant = TSM.Crafting.ProfessionUtil.IsEnchant(context.selectedCraftString)
+			local isEnchant, vellumable = TSM.Crafting.ProfessionUtil.IsEnchant(context.selectedCraftString)
 			local _, resultItemString = TSM.Crafting.ProfessionUtil.GetResultInfo(context.selectedCraftString)
 			detailsFrame:GetElement("__parent.__parent.buttons.craftBtn")
+				:SetText(isEnchant and L["Enchant"] or L["Craft"])
 				:SetPressed(context.recipeString and context.craftingType == "craft")
 				:SetDisabled(not canCraft or context.recipeString)
 				:Draw()
 			detailsFrame:GetElement("__parent.__parent.buttons.craftAllBtn")
-				:SetText(isEnchant and L["Enchant Vellum"] or L["Craft All"])
+				:SetText((isEnchant and vellumable) and L["Enchant Vellum"] or L["Craft All"])
 				:SetPressed(context.recipeString and context.craftingType == "all")
 				:SetDisabled(not resultItemString or not canCraft or context.recipeString)
 				:Draw()
 			local craftString = context.recipeString and CraftString.FromRecipeString(context.recipeString)
+			if isEnchant then
+				detailsFrame:GetElement("__parent.__parent.buttons.craftInput")
+					:Hide()
+			else
+				detailsFrame:GetElement("__parent.__parent.buttons.craftInput")
+					:Show()
+			end
 			if craftString and context.craftingQuantity and craftString == context.selectedCraftString then
 				detailsFrame:GetElement("__parent.__parent.buttons.craftInput")
 					:SetValue(context.craftingQuantity)

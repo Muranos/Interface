@@ -28,6 +28,7 @@ local PawnUIShortcutItems = {}
 local PawnUIGemQualityLevel
 
 local PawnUITotalScaleLines = 0
+local PawnUIIsShowingNoneWarning = false
 local PawnUITotalComparisonLines = 0
 local PawnUITotalGemLines = 0
 
@@ -41,6 +42,7 @@ local _
 -- "Constants"
 ------------------------------------------------------------
 
+local PawnUIScaleSelectorNoneWarningHeight = 80 -- the "no scales selected" warning is this tall
 local PawnUIScaleLineHeight = 16 -- each scale line is 16 pixels tall
 local PawnUIScaleSelectorPaddingBottom = 5 -- add 5 pixels of padding to the bottom of the scrolling area
 
@@ -216,8 +218,22 @@ function PawnUIFrame_ScaleSelector_Refresh()
 	PawnUITotalScaleLines = 0
 
 	-- Get a sorted list of scale data and display it all.
+	local ScaleList = PawnGetAllScalesEx()
+	PawnUIIsShowingNoneWarning = true
+	for _, ScaleData in pairs(ScaleList) do
+		if ScaleData.IsVisible then
+			PawnUIIsShowingNoneWarning = false
+			break
+		end
+	end
+	if PawnUIIsShowingNoneWarning then
+		PawnUIFrame_ScaleSelector_NoneWarning:Show()
+	else
+		PawnUIFrame_ScaleSelector_NoneWarning:Hide()
+	end
+
 	local NewSelectedScale, FirstScale, ScaleData, LastHeader, _
-	for _, ScaleData in pairs(PawnGetAllScalesEx()) do
+	for _, ScaleData in pairs(ScaleList) do
 		local ScaleName = ScaleData.Name
 		if ScaleName == PawnUICurrentScale then NewSelectedScale = ScaleName end
 		if not FirstScale then FirstScale = ScaleName end
@@ -230,7 +246,7 @@ function PawnUIFrame_ScaleSelector_Refresh()
 		PawnUIFrame_ScaleSelector_AddScaleLine(ScaleName, ScaleData.LocalizedName, ScaleData.IsVisible)
 	end
 
-	PawnUIScaleSelectorScrollContent:SetHeight(PawnUIScaleLineHeight * PawnUITotalScaleLines + PawnUIScaleSelectorPaddingBottom)
+	PawnUIScaleSelectorScrollContent:SetHeight(PawnUIScaleLineHeight + PawnUIScaleLineHeight * PawnUITotalScaleLines + PawnUIScaleSelectorPaddingBottom)
 
 	-- If the scale that they previously selected isn't in the list, or they didn't have a previously-selected
 	-- scale, just select the first visible one, or the first one if there's no visible scale.
@@ -273,7 +289,7 @@ function PawnUIFrame_ScaleSelector_AddLineCore(Text)
 	PawnUITotalScaleLines = PawnUITotalScaleLines + 1
 	local LineName = "PawnUIScaleLine" .. PawnUITotalScaleLines
 	local Line = CreateFrame("Button", LineName, PawnUIScaleSelectorScrollContent, "PawnUIFrame_ScaleSelector_ItemTemplate")
-	Line:SetPoint("TOPLEFT", PawnUIScaleSelectorScrollContent, "TOPLEFT", 0, -PawnUIScaleLineHeight * (PawnUITotalScaleLines - 1))
+	Line:SetPoint("TOPLEFT", PawnUIScaleSelectorScrollContent, "TOPLEFT", 0, -PawnUIScaleLineHeight * (PawnUITotalScaleLines - 1) - (PawnUIIsShowingNoneWarning and PawnUIScaleSelectorNoneWarningHeight or 0))
 	Line:SetText(Text)
 	return Line, LineName
 end
@@ -1422,7 +1438,7 @@ function PawnUI_CompareItems(IsAutomatedRefresh)
 
 	-- Hack for WoW Classic: after a moment, refresh the whole thing, because we might have gotten
 	-- incomplete data from the tooltip the first time.
-	if not IsAutomatedRefresh and (VgerCore.IsClassic or VgerCore.IsBurningCrusade) then
+	if not IsAutomatedRefresh and (VgerCore.IsClassic or VgerCore.IsBurningCrusade or VgerCore.IsWrath) then
 		local AutomatedRefresh = function()
 			if PawnUIComparisonItems[1] then PawnUIComparisonItems[1] = PawnGetItemData(PawnUIComparisonItems[1].Link) end
 			if PawnUIComparisonItems[2] then PawnUIComparisonItems[2] = PawnGetItemData(PawnUIComparisonItems[2].Link) end
@@ -1705,8 +1721,8 @@ function PawnUI_ShowBestGems()
 
 	local GemQualityLevel = PawnGetGemQualityForItem(PawnGemQualityLevels, PawnUIGemQualityLevel)
 
-	if not VgerCore.IsClassic and not VgerCore.IsShadowlands then
-		-- Burning Crusade Classic: Divide by color
+	if not VgerCore.IsClassic and not VgerCore.IsMainline then
+		-- Burning Crusade Classic and Wrath Classic: Divide by color
 		if #(PawnScaleBestGems[PawnUICurrentScale].RedSocket[GemQualityLevel]) > 0 then
 			PawnUI_AddGemHeaderLine(format(PawnLocal.UI.GemsColorHeader, RED_GEM))
 			for _, GemData in pairs(PawnScaleBestGems[PawnUICurrentScale].RedSocket[GemQualityLevel]) do
@@ -1888,7 +1904,7 @@ function PawnUIOptionsTabPage_OnShow()
 	PawnUIFrame_UpgradeTrackingList_UpdateSelection()
 
 	-- Advisor options
-	if not VgerCore.IsShadowlands then
+	if not VgerCore.IsMainline then
 		-- The bag upgrade advisor isn't supported on Classic.
 		PawnUIFrame_ShowBagUpgradeAdvisorCheck:Hide()
 	else
@@ -2031,7 +2047,7 @@ function PawnUIAboutTabPage_OnShow()
 	if Version then
 		PawnUIFrame_AboutVersionLabel:SetText(format(PawnUIFrame_AboutVersionLabel_Text, Version))
 	end
-	if not VgerCore.IsShadowlands then
+	if not VgerCore.IsMainline then
 		-- WoW Classic doesn't use the Mr. Robot scales, so hide that logo and information.
 		PawnUIFrame_MrRobotLogo:Hide()
 		PawnUIFrame_MrRobotLabel:SetPoint("TOPLEFT", 25, -210)

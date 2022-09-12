@@ -96,7 +96,7 @@ E.spell_db = {
 	},
 	["PALADIN"] = {
 		{ spellID = 853,    duration = 60,  type = "cc"         },
-		{ spellID = 20066,  duration = 30,  type = "cc",        spec = true },
+		{ spellID = 20066,  duration = 60,  type = "cc",        spec = true },
 		{ spellID = 10326,  duration = 30,  type = "cc"         },
 		{ spellID = 2878,   duration = 30,  type = "cc"         },
 		{ spellID = 498,    duration = 300, type = "immunity"   },
@@ -188,6 +188,9 @@ E.spell_db = {
 		{ spellID = 5730,   duration = 30,  type = "other"      },
 	},
 	["WARLOCK"] = {
+
+		{ spellID = 19244,  duration = 24,  type = "interrupt"  },
+		{ spellID = 19505,  duration = 8,   type = "dispel"     },
 		{ spellID = 6789,   duration = 120, type = "cc"         },
 		{ spellID = 5484,   duration = 40,  type = "cc",        },
 		{ spellID = 30283,  duration = 20,  type = "cc",        spec = true },
@@ -202,18 +205,15 @@ E.spell_db = {
 		{ spellID = 18540,  duration = 3600,    type = "other"  },
 		{ spellID = 29893,  duration = 300, type = "other"      },
 		{ spellID = 29858,  duration = 300, type = "other"      },
-
-		{ spellID = 19244,  duration = 24,  type = "interrupt"  },
-		{ spellID = 19505,  duration = 8,   type = "dispel"     },
-
-		{ spellID = 7814,   duration = 12,  type = "other"      },
+		{ spellID = 20707,  duration = 1800,    type = "other", buff = 0    },
 
 
-		{ spellID = 4511,   duration = 10,  type = "other"      },
 
-		{ spellID = 17735,  duration = 120, type = "other"      },
 
-		{ spellID = 20707,  duration = 1800, type = "other"     },
+
+
+
+
 	},
 	["WARRIOR"] = {
 		{ spellID = 6552,   duration = 10,  type = "interrupt"  },

@@ -932,13 +932,16 @@ function Titan_Hook_Frames() -- UIParent_ManageFramePositions hook
 	-- When a user is using an action bar replacement (Bartender or ElvUI), hiding the bottom bar may not make sense.
 	if ((HasVehicleActionBar() and UnitVehicleSkin("player") and UnitVehicleSkin("player") ~= "")
 	or (HasOverrideActionBar() and GetOverrideBarSkin() and GetOverrideBarSkin() ~= 0)) 
-	or (TitanPanelGetVar("AuxScreenAdjust") == 1)
 	then -- Override bar in place; hide Titan bottom bar(s)
-		reason = reason.."skinned override bar"
-		TitanPanelBarButton_HideBottomBars()
-		
-		-- Blizzard could have updated player frame or other
-		TitanMovableFrame_MoveFrames(TITAN_PANEL_PLACE_TOP, false)
+		if (TitanPanelGetVar("AuxScreenAdjust") == 1) then
+			-- do nothing, the user has turned off adjust
+		else
+			reason = reason.."skinned override bar"
+			TitanPanelBarButton_HideBottomBars()
+			
+			-- Blizzard could have updated player frame or other
+			TitanMovableFrame_MoveFrames(TITAN_PANEL_PLACE_TOP, false)
+		end
 		
 	-- If we have a non-skinned override bar of some sort, use the MainMenuBarArtFrame
 	elseif ( HasBonusActionBar() or HasOverrideActionBar() or HasVehicleActionBar() or HasTempShapeshiftActionBar() or C_PetBattles.IsInBattle() ) then

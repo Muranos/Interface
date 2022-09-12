@@ -13,8 +13,8 @@
 -- Returns the template from PawnScaleTemplates for a given class ID and spec ID.
 function PawnFindScaleTemplate(ClassID, SpecID)
 	local _, Template
-	
-	if VgerCore.IsClassic or VgerCore.IsBurningCrusade then
+
+	if VgerCore.IsClassic or VgerCore.IsBurningCrusade or VgerCore.IsWrath then
 		for _, Template in pairs(PawnScaleTemplatesClassic) do
 			if Template.ClassID == ClassID then return Template end
 		end
@@ -34,8 +34,8 @@ function PawnGetStatValuesForTemplate(Template, NoStats)
 	if NoStats then
 		ScaleValues = {}
 	else
-		if VgerCore.IsClassic or VgerCore.IsBurningCrusade then
-			ScaleValues = 
+		if VgerCore.IsClassic or VgerCore.IsBurningCrusade or VgerCore.IsWrath then
+			ScaleValues =
 			{
 				["Stamina"] = 0.01,
 				["Armor"] = 0.1,
@@ -63,7 +63,7 @@ function PawnGetStatValuesForTemplate(Template, NoStats)
 				["Ap"] = 0.5,
 				["Rap"] = 0.4,
 				["FeralAp"] = 0.5,
-	
+
 				["SpellDamage"] = 0.855,
 				["Healing"] = 0.455,
 
@@ -73,7 +73,7 @@ function PawnGetStatValuesForTemplate(Template, NoStats)
 				["BlockRating"] = 1,
 				["BlockValue"] = 0.65,
 				["ResilienceRating"] = 1,
-	
+
 				["MetaSocketEffect"] = 36,
 
 				["Mp5"] = 2.5,
@@ -143,16 +143,26 @@ function PawnGetStatValuesForTemplate(Template, NoStats)
 			if Template.ClassID ~= 11 then
 				ScaleValues.FeralAp = nil
 			end
+
+			-- Wrath merged some stats together.
+			if VgerCore.IsWrath then
+				ScaleValues.SpellCritRating = nil
+				ScaleValues.SpellHitRating = nil
+				ScaleValues.SpellHasteRating = nil
+				ScaleValues.SpellPower = ScaleValues.SpellDamage
+				ScaleValues.SpellDamage = nil
+				ScaleValues.Healing = nil
+			end
 		else
-			ScaleValues = 
+			ScaleValues =
 			{
 				["Stamina"] = 0.01,
-	
+
 				["CritRating"] = 0.5,
 				["HasteRating"] = 0.5,
 				["MasteryRating"] = 0.5,
 				["Versatility"] = 0.5,
-	
+
 				["MovementSpeed"] = 0.01,
 				["Avoidance"] = 0.01,
 				["Leech"] = 0.01,
@@ -175,7 +185,7 @@ function PawnGetStatValuesForTemplate(Template, NoStats)
 		for _, StatName in pairs(Template.UnusableStats) do
 			ScaleValues[StatName] = PawnIgnoreStatValue
 
-			if (VgerCore.IsClassic or VgerCore.IsBurningCrusade) and StatName == "IsShield" then
+			if (VgerCore.IsClassic or VgerCore.IsBurningCrusade or VgerCore.IsWrath) and StatName == "IsShield" then
 				ScaleValues.BlockRating = nil
 				ScaleValues.BlockValue = nil
 			end
@@ -500,6 +510,11 @@ PawnScaleTemplates =
 
 PawnScaleTemplatesClassic =
 {
+
+{
+	["ClassID"] = 6, -- Death Knight
+	["PrimaryStats"] = { "Strength", "Agility", "Stamina" }
+},
 
 {
 	["ClassID"] = 11, -- Druid

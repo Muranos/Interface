@@ -955,8 +955,12 @@ for key,value in pairs({
 	[1738] = "Documentos de Hermandad",	-- Syndicate Documents	--TODO: This was taken from classic Wowhead
 	[1739] = "Documentos del Sindicato",	-- Syndicate Documents	--TODO: This was taken from classic Wowhead
 	[1740] = "Documentos de la Hermandad",	-- Syndicate Documents
+	[1761] = "Proclamación de Trabalomas",	-- Hillsbrad Proclamation
 	[1763] = "SE BUSCA",	-- WANTED
 	[1765] = "Cofre de madera gastado",	-- Worn Wooden Chest
+	[1768] = "Llama de Azel",	-- Flame of Azel
+	[1769] = "Llama de Veraz",	-- Flame of Veraz
+	[1770] = "Llama de Uzel",	-- Flame of Uzel
 	[2008] = "¡Peligro!",	-- Dangerous!
 	[2059] = "Un cadáver de enano",	-- A Dwarven Corpse
 	[2076] = "Caldera burbujeante",	-- Bubbling Cauldron
@@ -1298,6 +1302,7 @@ for key,value in pairs({
 	[195517] = "Fámulas de Elune",	-- Elune's Handmaiden
 	[195600] = "Piedra ardiente",	-- Smouldering Stone
 	[195642] = "Piedra de energía naga",	-- Naga Power Stone
+	--TODO: [195665] = "Argent Crusade Tribute Chest",	-- Argent Crusade Tribute Chest
 	[195676] = "Graznófono del Laboratorio Secreto",	-- Secret Lab Squakbox
 	[196393] = "Reliquia rota",	-- Broken Relic
 	[196832] = "Piedra de visión alta",	-- Upper Scrying Stone

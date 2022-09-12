@@ -1,5 +1,5 @@
-## v4.11.36 Changes
+## v4.11.47 Changes
 
-* [Retail] Added additional workaround to fix Blizzard not providing any seller data in many cases
+* [Retail] Fixed error when opening JC
 
 [Known Issues](https://support.tradeskillmaster.com/en_US/known_issues)

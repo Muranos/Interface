@@ -154,6 +154,7 @@ Pawn 사용자 설정의 더 자세한 정보는, 애드온에 포함된 help �
 		["SpellHitInfo"] = "Spell Hit.  Increases the chance that your damaging spells hit the target, especially bosses.",
 		--[[Translation missing --]]
 		["SpellPenetrationInfo"] = "Spell Penetration. Negates an enemy's resistances to your spells.",
+		["SpellPowerInfo"] = "",
 		["SpiritInfo"] = "Spirit.  Affects your out-of-combat mana regeneration.",
 		["StaminaInfo"] = "체력. 생명력을 증가시킵니다.",
 		["StrengthInfo"] = "힘. 몇몇 직업의 전투력을 증가시킵니다.",
@@ -262,6 +263,8 @@ Pawn 사용자 설정의 더 자세한 정보는, 애드온에 포함된 help �
 		["Armor"] = "^방어도 %+?#$",
 		["Armor2"] = "^UNUSED$",
 		["ArmorPenetration"] = "^착용 효과: 공격 시 적의 방어도를 #만큼 무시합니다%.$",
+		["ArmorPenetrationRating"] = "^착용 효과: 방어구 관통력이 #만큼 증가합니다%.$",
+		["ArmorPenetrationShort"] = "^방어구 관통력 %+#$",
 		["Avoidance"] = "^광역회피 %+#$",
 		["Axe"] = "^도끼$",
 		["BagSlots"] = "^%d+칸.+$",
@@ -280,7 +283,7 @@ Pawn 사용자 설정의 더 자세한 정보는, 애드온에 포함된 help �
 		["Crit2"] = "^UNUSED$",
 		["CritPercent"] = "^착용 효과: 치명타를 적중시킬 확률이 #%%만큼 증가합니다%.$",
 		["CritRating"] = "^착용 효과: 치명타 적중도가 #만큼 증가합니다%.$",
-		["CritRating2"] = "^UNUSED$",
+		["CritRating2"] = "^착용 효과: 치명타 및 주문 극대화 적중도가 #만큼 증가합니다%.$",
 		["CritRating3"] = "^착용 효과: 치명타 및 극대화 적중도가 #만큼 증가합니다%.$",
 		["CritRatingShort"] = "^치명타 적중도 %+#$",
 		["Crossbow"] = "^석궁$",
@@ -312,8 +315,10 @@ Pawn 사용자 설정의 더 자세한 정보는, 애드온에 포함된 help �
 		["EnchantmentTitaniumWeaponChain"] = "^티타늄 무기 사슬$",
 		["Equip"] = "착용 효과:",
 		["ExpertiseRating"] = "^착용 효과: 숙련도가 #만큼 증가합니다%.$",
+		["ExpertiseRatingShort"] = "^숙련 %+#$",
 		["FeralAp"] = "^착용 효과: 표범, 광포한 곰, 곰 변신 상태일 때 전투력이 #만큼 증가합니다%.$",
 		["FeralApMoonkin"] = "^착용 효과: 표범, 광포한 곰, 곰, 달빛야수 변신 상태일 때 전투력이 #만큼 증가합니다%.$",
+		["FeralApWrath"] = "^표범, 광포한 곰, 곰, 달빛야수 변신 상태일 때 전투력이 #만큼 증가합니다%.$",
 		["FireResist"] = "^화염 저항력 %+#$",
 		["FireSpellDamage"] = "^화염 주문 공격력 %+#$",
 		["FireSpellDamage2"] = "^착용 효과: 화염 계열의 주문과 효과의 공격력이 최대 #만큼 증가합니다%.$",
@@ -388,6 +393,7 @@ Pawn 사용자 설정의 더 자세한 정보는, 애드온에 포함된 help �
 		["PvPPower"] = "^PvP 위력 %+?#$",
 		["RaidFinder"] = "^공격대 찾기$",
 		["Rap"] = "^착용 효과: 원거리 전투력 %+#$",
+		["Rap2"] = "^착용 효과: 원거리 전투력이 #만큼 증가합니다%.$",
 		["Requires2"] = "^최소 요구 레벨",
 		["Resilience"] = "^PvP 탄력 %+?#$",
 		["Resilience2"] = "^UNUSED$",
@@ -431,6 +437,8 @@ Pawn 사용자 설정의 더 자세한 정보는, 애드온에 포함된 help �
 		["SpellPenetrationClassic"] = "^착용 효과: 자신의 주문에 대한 대상의 마법 저항력을 #만큼 감소시킵니다%.$",
 		["SpellPenetrationShort"] = "^주문 관통력 %+#$",
 		["SpellPower"] = "^주문력 %+?#$",
+		["SpellPower2"] = "^착용 효과: 주문력이 #만큼 증가합니다%.$",
+		["SpellPower3"] = "^UNUSED$",
 		["Spirit"] = "^정신력 %+?#$",
 		["Staff"] = "^지팡이$",
 		["Stamina"] = "^체력 %+?#$",
@@ -662,6 +670,7 @@ Pawn이 상점에 판매했거나, 파괴했거나, 다른 방법으로 더이�
 		["ScaleRename"] = "이름 변경",
 		["ScaleRenameTooltip"] = "이 능력치 비율의 이름을 변경합니다.",
 		["ScaleSelectorHeader"] = "능력치 비율 선택:",
+		["ScaleSelectorNoneWarning"] = "하나 이상 선택.",
 		["ScaleSelectorShowingSuggestionsFor"] = "다음에 대한 정보 표시: ",
 		["ScaleSelectorShowScale"] = "툴팁에 능력치 비율 표시",
 		["ScaleSelectorShowScaleTooltip"] = [=[이 옵션을 선택하면 이 캐릭터의 아이템 툴팁에 이 능력치 비율의 값을 표시합니다. 각 능력치 비율 별로 한 캐릭터, 여러 캐릭터, 또는 아무 캐릭터에도 표시하지 않게 설정할 수 있습니다.
@@ -698,7 +707,7 @@ Pawn이 상점에 판매했거나, 파괴했거나, 다른 방법으로 더이�
 
 -- Special case: wands actually use different text on live versus classic.
 -- So, patch things up here.
-if VgerCore.IsClassic or VgerCore.IsBurningCrusade then
+if VgerCore.IsClassic or VgerCore.IsBurningCrusade or VgerCore.IsWrath then
 
 	local TooltipParsing_Classic =
 	{

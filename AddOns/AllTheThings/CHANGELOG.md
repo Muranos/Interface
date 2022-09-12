@@ -1,20 +1,29 @@
 # AllTheThings
 
-## [SL-2.9.3](https://github.com/DFortun81/AllTheThings/tree/SL-2.9.3) (2022-08-22)
-[Full Changelog](https://github.com/DFortun81/AllTheThings/compare/SL-2.9.2...SL-2.9.3) [Previous Releases](https://github.com/DFortun81/AllTheThings/releases)
+## [SL-2.9.5](https://github.com/DFortun81/AllTheThings/tree/SL-2.9.5) (2022-09-04)
+[Full Changelog](https://github.com/DFortun81/AllTheThings/compare/SL-2.9.4...SL-2.9.5) [Previous Releases](https://github.com/DFortun81/AllTheThings/releases)
 
 
-### Achievement criteria fix
+### Functional changes
 
-Last release incorrectly had achievement criterias marked as completed even when it wasn't the case. Hope you enjoyed your recent progress jump, but now it's gone!
+- We weill grey out Things your current character cannot acquire i.e. when using Account mode.
+- Don't show an NPC's face for Difficulty headers.
+- Displayed text for a Difficulty header will now include the relative Instance name in situations where the Difficulty header becomes 'removed' from its Instance (i.e. popout of difficulty, showing difficulty in tooltip, etc.).
 
 
-### Notable changes:
+### Logic fixes
 
-- Added an automated message for tooltips which have Source information (a collectible Appearance) but fail to return a list of Sources for the Appearance, which notifies about potentially needing to Force-Refresh to be collected (typically happens for Fishing Poles, Mining Picks, etc.).
-- Added a bit of logic to make sure that unlearned Recipes are not cached for the current character when opening their profession list. Maybe this fixes the Shadowlands Ranks of armor? Not 100% sure.
-- Worked around some WoW restrictions that could apparently disconnect you from the game when we were requesting lots of quest data too quickly.
-- Updated various WotLK dungeons: Halls of Stone.
-- Some Season 4 content adjustments.
-- Fixed all Burning Crusade dungeons tracking of saved instances (green checkmark in your lists) for German locale.
+- Fixed Achievement popouts not showing their required Criteria Sources.
+- Fixed non-Instance-related Difficulty headers showing '[Unknown]'.
+- Fixed an issue where tooltips for 'saved' content could ignore rendering any fillable content.
+- Fixed a Lua bug when having no guild and attempting to see a Guild group tooltip.
+
+
+### Data fixes
+
+- Huge Legion quests update by @Darkal31: he literally went through every quest in Legion!
+- Revised LFR Queue NPCs for MoP, WoD, Legion and BfA.
+- Lots of WotLK data revisions due to Classic pre-patch: updated dungeons, raids, achievements and other types of content.
+- Lots of achievements cleanups: Legion Class Halls, Island Expeditions, Fishing.
+- Cleaned up First Aid related data.
 - Other fixes.

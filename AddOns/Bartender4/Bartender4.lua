@@ -9,10 +9,11 @@ _G.Bartender4 = Bartender4
 local L = LibStub("AceLocale-3.0"):GetLocale("Bartender4")
 
 local WoWClassic = (WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE)
+local WoWWrath = (WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC)
 
 local LDB = LibStub("LibDataBroker-1.1", true)
 local LDBIcon = LibStub("LibDBIcon-1.0", true)
-local LibDualSpec = (not WoWClassic) and LibStub("LibDualSpec-1.0", true)
+local LibDualSpec = (not WoWClassic or WoWWrath) and LibStub("LibDualSpec-1.0", true)
 
 local _G = _G
 local type, pairs, hooksecurefunc = type, pairs, hooksecurefunc
@@ -189,7 +190,7 @@ function Bartender4:HideBlizzard()
 
 	hideActionBarFrame(StanceBarFrame, true, true)
 	hideActionBarFrame(PossessBarFrame, false, true)
-	hideActionBarFrame(MultiCastActionBarFrame, true, true)
+	hideActionBarFrame(MultiCastActionBarFrame, false, false, true)
 	hideActionBarFrame(PetActionBarFrame, true, true)
 	ShowPetActionBar = function() end
 

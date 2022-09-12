@@ -8,8 +8,7 @@
 
 
 if VgerCore.IsClassic then
-
-PawnGemQualityLevels = {}
-PawnMinimumItemLevelToConsiderGems = 10000
-
+	PawnGemQualityLevels = {}
+	PawnMetaGemQualityLevels = {}
+	PawnMinimumItemLevelToConsiderGems = 10000
 end

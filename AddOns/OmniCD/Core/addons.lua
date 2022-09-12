@@ -230,7 +230,13 @@ local unitFrameData = {
 		[3] = "unit",
 		[4] = 1,
 		[5] = 40
-	}
+	},
+	{
+		[1] = "oUF_Ruri",
+		[2] = "oUF_Raid%dUnitButton",
+		[3] = "unit",
+		[4] = 1,
+	},
 }
 
 function E:SetActiveUnitFrameData()

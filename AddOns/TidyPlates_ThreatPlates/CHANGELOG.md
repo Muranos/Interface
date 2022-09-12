@@ -1,7 +1,3 @@
-# 10.4.2 (2022-08-19)
+# 10.5.2 (2022-09-09)
 
-* Threat values will no longer be hidden for custom style nameplates.
-* Fixed a Lua error with aura trigger for custom styles that could occur when the nameplate style was reset after a triggering aura expired.
-* Fixed some bugs with logging messages and verbose mode.
-* Updated TOC version for Patch 9.2.7.
-* Updated localizations.
+* Off-tank detection in Wrath Classic now uses the MAINTANK role flag in raids instead of the role from LFG (consistent with Classic and TBC Classic).

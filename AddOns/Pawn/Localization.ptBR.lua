@@ -154,6 +154,7 @@ Para mais informações sobre personalizar o Pawn, favor veja o arquivo de ajuda
 		["SpellHitInfo"] = "Spell Hit.  Increases the chance that your damaging spells hit the target, especially bosses.",
 		--[[Translation missing --]]
 		["SpellPenetrationInfo"] = "Spell Penetration. Negates an enemy's resistances to your spells.",
+		["SpellPowerInfo"] = "",
 		["SpiritInfo"] = "Spirit.  Affects your out-of-combat mana regeneration.",
 		["StaminaInfo"] = "Vigor. Aumenta sua vida.",
 		["StrengthInfo"] = "Força. Aumenta o poder das habilidades de algumas classes.",
@@ -262,6 +263,8 @@ Para mais informações sobre personalizar o Pawn, favor veja o arquivo de ajuda
 		["Armor"] = "^%+?# Armadura$",
 		["Armor2"] = "^%+?# de Armadura$",
 		["ArmorPenetration"] = "^Equipado: Seus ataques ignoram # da Armadura do adversário%.$",
+		["ArmorPenetrationRating"] = "^Equipado: Aumenta em # a taxa de penetração em armadura%.$",
+		["ArmorPenetrationShort"] = "^%+?# Taxa de Penetração em Armadura$",
 		["Avoidance"] = "^%+# Evasiva$",
 		["Axe"] = "^Machado$",
 		["BagSlots"] = "^%d+ Compartimento .+$",
@@ -312,8 +315,10 @@ Para mais informações sobre personalizar o Pawn, favor veja o arquivo de ajuda
 		["EnchantmentTitaniumWeaponChain"] = "^Corrente de Arma de Titânico$",
 		["Equip"] = "Equipado:",
 		["ExpertiseRating"] = "^Equipado: Aumenta em # a taxa de aptidão%.$",
+		["ExpertiseRatingShort"] = "^%+?# Taxa de Aptidão$",
 		["FeralAp"] = "^Equipado: %+# de Poder de Ataque sob forma de Felino, Urso e Urso Hediondo%.$",
 		["FeralApMoonkin"] = "^Equipado: Aumenta em # o poder de ataque quando em forma de Felino, Urso, Urso Hediondo e Luniscante%.$",
+		["FeralApWrath"] = "^Aumenta em # o poder de ataque quando em forma de Felino, Urso, Urso Hediondo e Luniscante%.$",
 		["FireResist"] = "^%+?# de resistência a Fogo$",
 		["FireSpellDamage"] = "^%+# Dano Mágico de Fogo$",
 		["FireSpellDamage2"] = "^Equipado: Aumenta em até # o dano causado por feitiços e efeitos de Fogo%.$",
@@ -387,6 +392,7 @@ Para mais informações sobre personalizar o Pawn, favor veja o arquivo de ajuda
 		["PvPPower"] = "^%+?# d?e? ?Poder JxJ$",
 		["RaidFinder"] = "^Localizador de Raides$",
 		["Rap"] = "^Equipado: %+# de Poder de Ataque de Longo Alcance%.$",
+		["Rap2"] = "^Equipado: Aumenta o poder de ataque de longo alcance em #%.$",
 		["Requires2"] = "^UNUSED$",
 		["Resilience"] = "^%+?# Resiliência JxJ$",
 		["Resilience2"] = "^%+?# de Resiliência JxJ$",
@@ -430,6 +436,8 @@ Para mais informações sobre personalizar o Pawn, favor veja o arquivo de ajuda
 		["SpellPenetrationClassic"] = "^Equipado: Reduz em # as resistências mágicas dos alvos dos seus feitiços%.$",
 		["SpellPenetrationShort"] = "^%+?# Penetração de Feitiço$",
 		["SpellPower"] = "^%+?# d?e? ?Poder [mM]ágico$",
+		["SpellPower2"] = "^Equipado: Aumenta em # o poder mágico.$",
+		["SpellPower3"] = "^UNUSED$",
 		["Spirit"] = "^%+?# d?e? ?Espírito$",
 		["Staff"] = "^Cajado$",
 		["Stamina"] = "^%+?# d?e? ?Vigor$",
@@ -662,6 +670,7 @@ Este comando não pode ser desfeito!]=],
 		["ScaleRename"] = "Renomear",
 		["ScaleRenameTooltip"] = "Renomeia esta escala.",
 		["ScaleSelectorHeader"] = "Selecione uma escala:",
+		["ScaleSelectorNoneWarning"] = "Selecione pelo menos um.",
 		["ScaleSelectorShowingSuggestionsFor"] = "Mostrando sugestões para",
 		["ScaleSelectorShowScale"] = "Mostrar esta escala nas dicas de ferramentas",
 		["ScaleSelectorShowScaleTooltip"] = [=[Ative essa opção para mostrar essa escala nas dicas de ferramentas de itens e fazer com que o Pawn use-a para sugerir melhorias. Você pode ter mais de uma escala ativa em cada personagem.
@@ -764,7 +773,7 @@ PawnLocal.Specs =
 
 -- Special case: wands actually use different text on live versus classic.
 -- So, patch things up here.
-if VgerCore.IsClassic or VgerCore.IsBurningCrusade then
+if VgerCore.IsClassic or VgerCore.IsBurningCrusade or VgerCore.IsWrath then
 
 	local TooltipParsing_Classic =
 	{

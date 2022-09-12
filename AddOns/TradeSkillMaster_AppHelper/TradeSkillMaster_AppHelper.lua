@@ -24,7 +24,7 @@ end
 function TSMAPI.AppHelper:IsCurrentRealm(realm)
 	realm = gsub(realm, "\226", "'")
 	local currentRealmName = gsub(GetRealmName(), "\226", "'")
-	if WOW_PROJECT_ID == WOW_PROJECT_CLASSIC or WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC then
+	if WOW_PROJECT_ID == WOW_PROJECT_CLASSIC or WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC or WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC then
 		currentRealmName = currentRealmName.."-"..UnitFactionGroup("player")
 	end
 	return strlower(realm) == strlower(currentRealmName)
