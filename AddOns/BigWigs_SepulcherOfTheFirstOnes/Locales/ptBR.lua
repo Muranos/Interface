@@ -89,6 +89,7 @@ if L then
 	L.ephemeral_fissure = "Fenda"
 
 	L.bomb_dropped = "Bomba Derrubada"
+	--L.volatile_charges_new = "New Bombs!"
 
 	L.custom_on_stop_timers = "Sempre mostrar barras de habilidade"
 	L.custom_on_stop_timers_desc = "Skolex pode atrasar suas habilidades. Se esta opção for ativada, as barras para essas habilidades permanecem."

@@ -15,12 +15,12 @@ local tostring = tostring
 local string_format = string.format
 
 -- WoW APIs
-local UnitIsUnit, UnitDetailedThreatSituation, UnitName, UnitExists = UnitIsUnit, UnitDetailedThreatSituation, UnitName, UnitExists
+local UnitIsUnit, UnitName, UnitExists = UnitIsUnit, UnitName, UnitExists
 local GetRaidTargetIndex = GetRaidTargetIndex
 local IsInGroup, IsInRaid, GetNumGroupMembers, GetNumSubgroupMembers = IsInGroup, IsInRaid, GetNumGroupMembers, GetNumSubgroupMembers
 
 -- ThreatPlates APIs
-local GetThreatSituation = Addon.GetThreatSituation
+local GetThreatSituation, UnitDetailedThreatSituationWrapper = Addon.GetThreatSituation, Addon.UnitDetailedThreatSituationWrapper
 local Font = Addon.Font
 local TransliterateCyrillicLetters = Addon.TransliterateCyrillicLetters
 
@@ -149,12 +149,12 @@ end
 ---------------------------------------------------------------------------------------------------
 
 local function GetUnitThreatValue(unitid, mob_unitid)
-  local is_tanking, status, scaled_percentage, _, threat_value = UnitDetailedThreatSituation(unitid, mob_unitid)
+  local is_tanking, status, scaled_percentage, _, threat_value =  UnitDetailedThreatSituationWrapper(unitid, mob_unitid)
   return is_tanking, status, threat_value
 end
 
 local function GetUnitThreatPercentage(unitid, mob_unitid)
-  local is_tanking, status, scaled_percentage, _, threat_value = UnitDetailedThreatSituation(unitid, mob_unitid)
+  local is_tanking, status, scaled_percentage, _, threat_value =  UnitDetailedThreatSituationWrapper(unitid, mob_unitid)
   return is_tanking, status, scaled_percentage
 end
 
@@ -197,7 +197,7 @@ local function GetTopThreatUnitBesidesPlayer(unitid, threat_value_func)
 end
 
 local function GetTankThreatPercentage(unitid, db_threat_value)
-  local is_tanking, status, scaled_percentage, _, _ = UnitDetailedThreatSituation("player", unitid)
+  local is_tanking, status, scaled_percentage, _, _ =  UnitDetailedThreatSituationWrapper("player", unitid)
   if status == nil then return end
 
   local threat_value_text = ""
@@ -226,7 +226,7 @@ local function GetTankThreatPercentage(unitid, db_threat_value)
 end
 
 local function GetTankThreatValue(unitid, db_threat_value)
-  local is_tanking, status, scaled_percentage, _, threat_value = UnitDetailedThreatSituation("player", unitid)
+  local is_tanking, status, scaled_percentage, _, threat_value =  UnitDetailedThreatSituationWrapper("player", unitid)
   if status == nil then return end
 
   local threat_value_text = ""
@@ -309,13 +309,13 @@ end
 
 local THREAT_DETAILS_FUNTIONS = {
   SCALED_PERCENTAGE = function(unitid)
-    local _, status, scaled_percentage, _, _ = UnitDetailedThreatSituation("player", unitid)
+    local _, status, scaled_percentage, _, _ =  UnitDetailedThreatSituationWrapper("player", unitid)
     if status then 
       return status, string_format("%.0f%%", scaled_percentage)
     end
   end,
   RAW_PERCENTAGE = function(unitid)
-    local _, status, _, raw_percentage, _ = UnitDetailedThreatSituation("player", unitid)
+    local _, status, _, raw_percentage, _ =  UnitDetailedThreatSituationWrapper("player", unitid)
     if status then 
       return status, string_format("%.0f%%", raw_percentage)
     end
@@ -355,7 +355,8 @@ function Widget:UpdateThreatValue(widget_frame, unit)
   local db_threat_value = Settings.ThreatPercentage
 
   -- If threat_situation is nil, there is nothing to do
-  local threat_situation = GetThreatSituation(unit, unit.style, db.toggle.OffTank)
+  local style = (Addon:PlayerRoleIsTank() and "tank") or "dps"
+  local threat_situation = GetThreatSituation(unit, style, db.toggle.OffTank)
 
   -- Threat value has to be updated after every UNIT_THREAT_LIST_UPDATE event, not only when threat_situation changes
   if db_threat_value.ShowAlways or (db_threat_value.ShowInGroups and PlayerIsInGroup) or (db_threat_value.ShowWithPet and UnitExists("pet")) then
@@ -377,8 +378,6 @@ function Widget:UpdateThreatValue(widget_frame, unit)
     widget_frame.ThreatSituation = threat_situation
 
     -- As the widget is enabled, textures or percentages must be enabled.
-    local style = (Addon:PlayerRoleIsTank() and "tank") or "dps"
-    
     if widget_frame.LeftTexture:IsShown() then
       local unique_setting = unit.CustomPlateSettings
       if not unique_setting or unique_setting.UseThreatColor then        

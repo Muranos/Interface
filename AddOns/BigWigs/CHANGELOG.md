@@ -1,10 +1,6 @@
 # BigWigs
 
-## [v247](https://github.com/BigWigsMods/BigWigs/tree/v247) (2022-09-10)
-[Full Changelog](https://github.com/BigWigsMods/BigWigs/compare/v246.4...v247) [Previous Releases](https://github.com/BigWigsMods/BigWigs/releases)
+## [v251.2](https://github.com/BigWigsMods/BigWigs/tree/v251.2) (2022-10-29)
+[Full Changelog](https://github.com/BigWigsMods/BigWigs/compare/v251.1...v251.2) [Previous Releases](https://github.com/BigWigsMods/BigWigs/releases)
 
-- Plugins/Bars: Support creating bars that are not at max duration (#1239)  
-- bump version  
-- Sepulcher/Affixes: Weekly update  
-- Unify line endings (#1263)  
-- SanctumOfDomination/FatescribeRohKalo: Add a Twist Fate timer for Mythic  
+- SanctumOfDomination/KelThuzad: Remove GetPlayerAuraBySpellID usage  

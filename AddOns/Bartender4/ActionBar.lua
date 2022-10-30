@@ -8,6 +8,7 @@ local ActionBar = setmetatable({}, {__index = StateBar})
 Bartender4.ActionBar = ActionBar
 
 local LAB10 = LibStub("LibActionButton-1.0")
+local WoW10 = select(4, GetBuildInfo()) >= 100000
 
 local tonumber, format, min = tonumber, format, min
 
@@ -27,8 +28,21 @@ do
 	end
 end
 
+local function WoW10Migration(config)
+	-- migrate scale/padding to WoW 10.0 layout, as the action buttons increased in size
+	if config and not config.WoW10Layout and config.position.x then
+		config.position.scale = config.position.scale * 0.8
+		config.padding = config.padding / 0.8
+		config.WoW10Layout = true
+	end
+end
+
 -- Apply the specified config to the bar and refresh all settings
 function ActionBar:ApplyConfig(config)
+	if WoW10 then
+		WoW10Migration(config or self.config)
+	end
+
 	StateBar.ApplyConfig(self, config)
 
 	if not self.config.position.x then initialPosition(self) end
@@ -36,6 +50,15 @@ function ActionBar:ApplyConfig(config)
 	self:SetupSmartTarget()
 	self:UpdateButtons()
 	self:UpdateButtonConfig()
+end
+
+function ActionBar:SavePosition()
+	StateBar.SavePosition(self)
+
+	-- when we change a manual layout change, flag it for WoW10
+	if WoW10 then
+		self.config.WoW10Layout = true
+	end
 end
 
 function ActionBar:OnEvent(event, ...)
@@ -66,14 +89,17 @@ function ActionBar:UpdateButtonConfig()
 	self.buttonConfig.hideElements.macro = self.config.hidemacrotext and true or false
 	self.buttonConfig.hideElements.hotkey = self.config.hidehotkey and true or false
 	self.buttonConfig.hideElements.equipped = self.config.hideequipped and true or false
+	self.buttonConfig.hideElements.border = (self.config.hideborder or self.config.skin.Zoom) and true or false
 
 	self.buttonConfig.showGrid = self.config.showgrid
 	self.buttonConfig.clickOnDown = Bartender4.db.profile.onkeydown
 	self.buttonConfig.flyoutDirection = self.config.flyoutDirection
 
-	if tonumber(self.id) == 1 then
+	self.buttonConfig.keyBoundClickButton = "Keybind"
+
+	if self.bindingmapping then
 		for i, button in self:GetAll() do
-			self.buttonConfig.keyBoundTarget = format("ACTIONBUTTON%d", i)
+			self.buttonConfig.keyBoundTarget = self.bindingmapping:format(i)
 			button:UpdateConfig(self.buttonConfig)
 		end
 	else
@@ -85,6 +111,7 @@ function ActionBar:UpdateButtonConfig()
 	self:UpdateSelfCast()
 	-- button lock
 	self:ForAll("SetAttribute", "buttonlock", Bartender4.db.profile.buttonlock)
+	self:ForAll("SetAttribute", "unlockedpreventdrag", true)
 	-- update state
 	self:ForAll("UpdateState")
 end
@@ -184,7 +211,7 @@ local customExitButton = {
 	func = function(button)
 		VehicleExit()
 	end,
-	texture = "Interface\\Icons\\Spell_Shadow_SacrificialShield",
+	texture = "Interface\\AddOns\\Bartender4\\Artwork\\LeaveVehicle.tga", --"Interface\\Icons\\Spell_Shadow_SacrificialShield",
 	tooltip = LEAVE_VEHICLE,
 }
 
@@ -217,7 +244,7 @@ function ActionBar:UpdateButtons(numbuttons, offset)
 			buttons[i] = LAB10:CreateButton(absid, format("BT4Button%d", absid), self, nil)
 		end
 		local offsetid = (i + offset - 1) % 12 + 1
-		for k = 1,14 do
+		for k = 1,18 do
 			buttons[i]:SetState(k, "action", (k - 1) * 12 + offsetid)
 		end
 		buttons[i]:SetState(0, "action", (self.id - 1) * 12 + offsetid)
@@ -229,8 +256,14 @@ function ActionBar:UpdateButtons(numbuttons, offset)
 		self:SetupSmartButton(buttons[i])
 
 		if i == 12 then
-			buttons[i]:SetState(11, "custom", customExitButton)
-			buttons[i]:SetState(12, "custom", customExitButton)
+			if WoW10 then
+				buttons[i]:SetState(16, "custom", customExitButton)
+				buttons[i]:SetState(17, "custom", customExitButton)
+				buttons[i]:SetState(18, "custom", customExitButton)
+			else
+				buttons[i]:SetState(11, "custom", customExitButton)
+				buttons[i]:SetState(12, "custom", customExitButton)
+			end
 		end
 	end
 

@@ -16,11 +16,6 @@ if L then
 	L.waves[9] = "3x Detonador Grom'kar, 1x Artilheiro Grom'kar"
 end
 
-L = BigWigs:NewBossLocale("Skylord Tovra", "ptBR")
-if L then
-	L.rakun = "Rakun"
-end
-
 L = BigWigs:NewBossLocale("Grimrail Depot Trash", "ptBR")
 if L then
 	L.grimrail_technician = "Técnico do Carrilcruel"
@@ -28,6 +23,7 @@ if L then
 	L.gromkar_gunner = "Artilheira Grom'kar"
 	L.gromkar_cinderseer = "Mirabrasa Grom'kar"
 	L.gromkar_boomer = "Detonador Grom'kar"
+	L.gromkar_hulk = "Grandalhão de Grom'kar"
 	L.gromkar_far_seer = "Clarividente Grom'kar"
 	L.gromkar_captain = "Capitã Grom'kar"
 	L.grimrail_scout = "Batedora do Carrilcruel"

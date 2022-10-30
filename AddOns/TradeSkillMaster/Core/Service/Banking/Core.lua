@@ -6,11 +6,11 @@
 
 local _, TSM = ...
 local Banking = TSM:NewPackage("Banking")
-local Event = TSM.Include("Util.Event")
 local TempTable = TSM.Include("Util.TempTable")
 local String = TSM.Include("Util.String")
 local Log = TSM.Include("Util.Log")
 local ItemString = TSM.Include("Util.ItemString")
+local DefaultUI = TSM.Include("Service.DefaultUI")
 local Threading = TSM.Include("Service.Threading")
 local ItemInfo = TSM.Include("Service.ItemInfo")
 local private = {
@@ -33,11 +33,9 @@ local MOVE_WAIT_TIMEOUT = 2
 function Banking.OnInitialize()
 	private.moveThread = Threading.New("BANKING_MOVE", private.MoveThread)
 
-	Event.Register("BANKFRAME_OPENED", private.BankOpened)
-	Event.Register("BANKFRAME_CLOSED", private.BankClosed)
+	DefaultUI.RegisterBankVisibleCallback(private.BankVisibilityChanged)
 	if not TSM.IsWowVanillaClassic() then
-		Event.Register("GUILDBANKFRAME_OPENED", private.GuildBankOpened)
-		Event.Register("GUILDBANKFRAME_CLOSED", private.GuildBankClosed)
+		DefaultUI.RegisterGuildBankVisibleCallback(private.GuildBankVisibilityChanged)
 	end
 end
 
@@ -232,45 +230,39 @@ end
 -- Private Helper Functions
 -- ============================================================================
 
-function private.BankOpened()
-	if private.openFrame == "BANK" then
-		return
+function private.BankVisibilityChanged(visible)
+	if visible then
+		if private.openFrame == "BANK" then
+			return
+		end
+		assert(not private.openFrame)
+		private.openFrame = "BANK"
+	else
+		if not private.openFrame then
+			return
+		end
+		private.openFrame = nil
+		private.StopMove()
 	end
-	assert(not private.openFrame)
-	private.openFrame = "BANK"
 	for _, callback in ipairs(private.frameCallbacks) do
 		callback(private.openFrame)
 	end
 end
 
-function private.GuildBankOpened()
-	if private.openFrame == "GUILD_BANK" then
-		return
+function private.GuildBankVisibilityChanged(visible)
+	if visible then
+		if private.openFrame == "GUILD_BANK" then
+			return
+		end
+		assert(not private.openFrame)
+		private.openFrame = "GUILD_BANK"
+	else
+		if not private.openFrame then
+			return
+		end
+		private.openFrame = nil
+		private.StopMove()
 	end
-	assert(not private.openFrame)
-	private.openFrame = "GUILD_BANK"
-	for _, callback in ipairs(private.frameCallbacks) do
-		callback(private.openFrame)
-	end
-end
-
-function private.BankClosed()
-	if not private.openFrame then
-		return
-	end
-	private.openFrame = nil
-	private.StopMove()
-	for _, callback in ipairs(private.frameCallbacks) do
-		callback(private.openFrame)
-	end
-end
-
-function private.GuildBankClosed()
-	if not private.openFrame then
-		return
-	end
-	private.openFrame = nil
-	private.StopMove()
 	for _, callback in ipairs(private.frameCallbacks) do
 		callback(private.openFrame)
 	end

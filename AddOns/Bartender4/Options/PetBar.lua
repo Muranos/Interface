@@ -20,16 +20,17 @@ function PetBarMod:SetupOptions()
 			type = "toggle",
 			order = 1,
 			name = L["Enabled"],
-			desc = L["Enable the PetBar"],
+			desc = L["Enable the Pet Bar"],
 			get = function() return self.db.profile.enabled end,
 			set = "ToggleModule",
 			handler = self,
+			width = "full",
 		}
 
 		local cat_general = {
 			enabled = enabled,
 			grid = {
-				order = 83,
+				order = 79,
 				type = "toggle",
 				name = L["Button Grid"],
 				desc = L["Toggle the button grid."],
@@ -55,10 +56,10 @@ function PetBarMod:SetupOptions()
 			order = 30,
 			type = "group",
 			name = L["Pet Bar"],
-			desc = L["Configure the Pet Bar"],
+			desc = L["Manage the abilities of your trusted companion"],
 			childGroups = "tab",
 		}
-		Bartender4:RegisterBarOptions("PetBar", self.options)
+		Bartender4:RegisterActionBarOptions("PetBar", self.options)
 	end
 	self.options.args = self:IsEnabled() and self.optionobject.table or self.disabledoptions
 end

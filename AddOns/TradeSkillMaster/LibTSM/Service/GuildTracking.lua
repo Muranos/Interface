@@ -13,12 +13,12 @@ local TempTable = TSM.Include("Util.TempTable")
 local SlotId = TSM.Include("Util.SlotId")
 local Log = TSM.Include("Util.Log")
 local ItemString = TSM.Include("Util.ItemString")
+local DefaultUI = TSM.Include("Service.DefaultUI")
 local Settings = TSM.Include("Service.Settings")
 local private = {
 	settings = nil,
 	slotDB = nil,
 	quantityDB = nil,
-	isOpen = nil,
 	pendingPetSlotIds = {},
 }
 local PLAYER_NAME = UnitName("player")
@@ -53,8 +53,7 @@ GuildTracking:OnSettingsLoad(function()
 		:AddNumberField("quantity")
 		:Commit()
 	if not TSM.IsWowVanillaClassic() then
-		Event.Register("GUILDBANKFRAME_OPENED", private.GuildBankFrameOpenedHandler)
-		Event.Register("GUILDBANKFRAME_CLOSED", private.GuildBankFrameClosedHandler)
+		DefaultUI.RegisterGuildBankVisibleCallback(private.GuildBankFrameVisible, true)
 		Event.Register("GUILDBANKBAGSLOTS_CHANGED", private.GuildBankBagSlotsChangedHandler)
 		Delay.AfterFrame(1, private.GetGuildName)
 		Event.Register("PLAYER_GUILD_UPDATE", private.GetGuildName)
@@ -150,17 +149,12 @@ function private.RebuildQuantityDB()
 	private.quantityDB:BulkInsertEnd()
 end
 
-function private.GuildBankFrameOpenedHandler()
+function private.GuildBankFrameVisible()
 	local initialTab = GetCurrentGuildBankTab()
 	for i = 1, GetNumGuildBankTabs() do
 		QueryGuildBankTab(i)
 	end
 	QueryGuildBankTab(initialTab)
-	private.isOpen = true
-end
-
-function private.GuildBankFrameClosedHandler()
-	private.isOpen = nil
 end
 
 function private.GuildBankBagSlotsChangedHandler()
@@ -168,7 +162,7 @@ function private.GuildBankBagSlotsChangedHandler()
 end
 
 function private.GuildBankChangedDelayed()
-	if not private.isOpen then
+	if not DefaultUI.IsGuildBankVisible() then
 		return
 	end
 	if not PLAYER_GUILD then

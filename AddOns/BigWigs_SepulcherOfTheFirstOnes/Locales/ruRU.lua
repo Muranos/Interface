@@ -88,6 +88,7 @@ if L then
 	L.ephemeral_fissure = "Разлом"
 
 	L.bomb_dropped = "Бомба брошена"
+	--L.volatile_charges_new = "New Bombs!"
 
 	L.custom_on_stop_timers = "Всегда показывать полосы заклинаний"
 	L.custom_on_stop_timers_desc = "Галондрий может откладывать свои способности. Когда эта опция включена, полосы этих способностей будут оставаться на экране."

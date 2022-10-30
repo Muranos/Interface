@@ -14,6 +14,7 @@ local Money = TSM.Include("Util.Money")
 local ScriptWrapper = TSM.Include("Util.ScriptWrapper")
 local Settings = TSM.Include("Service.Settings")
 local ItemLinked = TSM.Include("Service.ItemLinked")
+local DefaultUI = TSM.Include("Service.DefaultUI")
 local UIElements = TSM.Include("UI.UIElements")
 local private = {
 	settings = nil,
@@ -38,8 +39,17 @@ function AuctionUI.OnInitialize()
 		:AddKey("global", "auctionUIContext", "showDefault")
 		:AddKey("global", "auctionUIContext", "frame")
 	UIParent:UnregisterEvent("AUCTION_HOUSE_SHOW")
-	Event.Register("AUCTION_HOUSE_SHOW", private.AuctionFrameInit)
-	Event.Register("AUCTION_HOUSE_CLOSED", private.HideAuctionFrame)
+	if TSM.IsWowClassic() then
+		Event.Register("AUCTION_HOUSE_SHOW", private.AuctionFrameInit)
+	else
+		hooksecurefunc(PlayerInteractionFrameManager, "ShowFrame", function(_, interaction)
+			if interaction ~= Enum.PlayerInteractionType.Auctioneer or GameLimitedMode_IsActive() then
+				return
+			end
+			private.AuctionFrameInit()
+		end)
+	end
+	DefaultUI.RegisterAuctionHouseVisibleCallback(private.HideAuctionFrame, false)
 	if TSM.IsWowClassic() then
 		Delay.AfterTime(1, function() LoadAddOn("Blizzard_AuctionUI") end)
 	else
@@ -168,6 +178,10 @@ end
 -- Main Frame
 -- ============================================================================
 
+local function NoOp()
+	-- do nothing - what did you expect?
+end
+
 function private.AuctionFrameInit()
 	local tabTemplateName = nil
 	if TSM.IsWowClassic() then
@@ -189,7 +203,6 @@ function private.AuctionFrameInit()
 			tab:SetPoint("LEFT", _G["AuctionFrameTab"..tabId - 1], "RIGHT", -8, 0)
 		else
 			tab:SetPoint("LEFT", AuctionHouseFrame.Tabs[tabId - 1], "RIGHT", -15, 0)
-			tinsert(AuctionHouseFrame.Tabs, tab)
 		end
 		tab:Show()
 		PanelTemplates_SetNumTabs(private.defaultFrame, tabId)
@@ -205,8 +218,16 @@ function private.AuctionFrameInit()
 		end
 	end
 	if private.settings.showDefault then
-		UIParent_OnEvent(UIParent, "AUCTION_HOUSE_SHOW")
+		if TSM.IsWowClassic() then
+			UIParent_OnEvent(UIParent, "AUCTION_HOUSE_SHOW")
+		end
 	else
+		if not TSM.IsWowClassic() then
+			local origCloseAuctionHouse = C_AuctionHouse.CloseAuctionHouse
+			C_AuctionHouse.CloseAuctionHouse = NoOp
+			HideUIPanel(private.defaultFrame)
+			C_AuctionHouse.CloseAuctionHouse = origCloseAuctionHouse
+		end
 		PlaySound(SOUNDKIT.AUCTION_WINDOW_OPEN)
 		private.ShowAuctionFrame()
 	end
@@ -284,10 +305,6 @@ function private.SwitchBtnOnClick(button)
 	private.HideAuctionFrame()
 	UIParent_OnEvent(UIParent, "AUCTION_HOUSE_SHOW")
 	private.isSwitching = false
-end
-
-local function NoOp()
-	-- do nothing - what did you expect?
 end
 
 function private.TSMTabOnClick()

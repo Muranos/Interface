@@ -6,6 +6,8 @@
 local _, Bartender4 = ...
 local Bar = Bartender4.Bar.prototype
 
+local WoW10 = select(4, GetBuildInfo()) >= 100000
+
 local setmetatable, tostring, pairs = setmetatable, tostring, pairs
 
 local ButtonBar = setmetatable({}, {__index = Bar})
@@ -17,6 +19,7 @@ local defaults = Bartender4:Merge({
 	hidemacrotext = false,
 	hidehotkey = false,
 	hideequipped = false,
+	hideborder = false,
 	skin = {
 		Zoom = false,
 	},
@@ -32,7 +35,7 @@ function Bartender4.ButtonBar:Create(id, config, name, noSkinning)
 	local bar = setmetatable(Bartender4.Bar:Create(id, config, name), ButtonBar_MT)
 
 	if Masque and not noSkinning then
-		bar.MasqueGroup = Masque:Group("Bartender4", tostring(id))
+		bar.MasqueGroup = Masque:Group("Bartender4", name, tostring(id))
 	end
 
 	return bar
@@ -83,6 +86,7 @@ end
 
 function ButtonBar:SetZoom(zoom)
 	self.config.skin.Zoom = zoom
+	self:UpdateButtonConfig()
 	self:UpdateButtonLayout()
 end
 
@@ -119,6 +123,17 @@ function ButtonBar:GetHideEquipped()
 	return self.config.hideequipped
 end
 
+function ButtonBar:SetHideBorder(state)
+	if state ~= nil then
+		self.config.hideborder = state
+	end
+	self:UpdateButtonConfig()
+end
+
+function ButtonBar:GetHideBorder()
+	return self.config.hideborder
+end
+
 function ButtonBar:SetHGrowth(value)
 	self.config.position.growHorizontal = value
 	self:AnchorOverlay()
@@ -151,8 +166,8 @@ end
 local math_floor = math.floor
 local math_ceil = math.ceil
 -- align the buttons and correct the size of the bar overlay frame
-ButtonBar.button_width = 36
-ButtonBar.button_height = 36
+ButtonBar.button_width = WoW10 and 45 or 36
+ButtonBar.button_height = WoW10 and 45 or 36
 function ButtonBar:UpdateButtonLayout()
 	local buttons = self.buttons
 	local pad = self:GetPadding()
@@ -174,7 +189,7 @@ function ButtonBar:UpdateButtonLayout()
 	local hpad = pad + (self.hpad_offset or 0)
 	local vpad = pad + (self.vpad_offset or 0)
 
-	self:SetSize((self.button_width + hpad) * ButtonPerRow - pad + 10, (self.button_height + vpad) * Rows - pad + 10)
+	self:SetSize((self.button_width + hpad) * ButtonPerRow - hpad + 8, (self.button_height + vpad) * Rows - vpad + 8)
 
 	local h1, h2, v1, v2
 	local xOff, yOff
@@ -201,6 +216,17 @@ function ButtonBar:UpdateButtonLayout()
 		vpad = -vpad
 	end
 
+	local valign = "TOP"
+	-- variable in-row button alignment
+	if self.config.verticalAlignment then
+		if self.config.verticalAlignment == "CENTER" then
+			valign = ""
+		elseif self.config.verticalAlignment == "BOTTOM" then
+			valign = "BOTTOM"
+		end
+		-- otherwise, top
+	end
+
 	-- anchor button 1
 	local anchor = self:GetAnchor()
 	buttons[1]:ClearSetPoint(anchor, self, anchor, xOff - (self.hpad_offset or 0), yOff - (self.vpad_offset or 0))
@@ -212,7 +238,7 @@ function ButtonBar:UpdateButtonLayout()
 			buttons[i]:ClearSetPoint(v1 .. h1, buttons[i-ButtonPerRow], v2 .. h1, 0, -vpad)
 		-- align to the previous button
 		else
-			buttons[i]:ClearSetPoint("TOP" .. h1, buttons[i-1], "TOP" .. h2, hpad, 0)
+			buttons[i]:ClearSetPoint(valign .. h1, buttons[i-1], valign .. h2, hpad, 0)
 		end
 	end
 

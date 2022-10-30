@@ -36,7 +36,8 @@ end
 --
 
 function mod:UNIT_HEALTH(event, unit)
-	local hp = UnitHealth(unit) / UnitHealthMax(unit) * 100
+	if self:MobId(self:UnitGUID(unit)) ~= 26632 then return end
+	local hp = self:GetHealth(unit)
 	if hp < 60 then
 		self:UnregisterUnitEvent(event, unit)
 		self:MessageOld("stages", "cyan", nil, CL.soon:format(CL.phase:format(2)), false)
@@ -56,7 +57,7 @@ do
 	local prev = 0
 	function mod:RainOfFire(args)
 		if self:Me(args.destGUID) then
-			local t = GetTime()
+			local t = args.time
 			if t - prev > 1.5 then
 				prev = t
 				self:MessageOld(59971, "blue", "alert", CL.you:format(args.spellName))

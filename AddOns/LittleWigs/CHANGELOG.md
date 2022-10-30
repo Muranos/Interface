@@ -1,10 +1,9 @@
 # LittleWigs
 
-## [v9.2.18](https://github.com/BigWigsMods/LittleWigs/tree/v9.2.18) (2022-09-10)
-[Full Changelog](https://github.com/BigWigsMods/LittleWigs/compare/v9.2.17...v9.2.18) [Previous Releases](https://github.com/BigWigsMods/LittleWigs/releases)
+## [v10.0.1](https://github.com/BigWigsMods/LittleWigs/tree/v10.0.1) (2022-10-29)
+[Full Changelog](https://github.com/BigWigsMods/LittleWigs/compare/v10.0.0...v10.0.1) [Previous Releases](https://github.com/BigWigsMods/LittleWigs/releases)
 
-- BfA/Mechagon/MachinistsGarden: Fix Activate Plant icon, respawn (#745)  
-- BfA/Mechagon/KUJ0: Fix Air Drop icon, respawn (#744)  
-- Shadowlands/TazaveshTheVeiledMarket/MailroomMayhem: timers and alerts for Delivery Portal, Unstable Goods, Instability (#691)  
-- Update deDE (#743)  
-- Unify line endings (#742)  
+- Dragonflight/TheNokhudOffensive/BalakarKhan: Siphon Power cast time  
+- Dragonflight/AlgetharAcademy/OvergrownAncient: Abundance cast time  
+- Update deDE.lua (#810)  
+- Shadowlands/TazaveshTheVeiledMarket/Trash: Auto gossip with portal NPCs, updates to trading game gossip (#809)  

@@ -46,8 +46,6 @@ local OFFTANK_PETS = {
   ["61056"] = true,  -- Primal Earth Elemental
 }
 
--- Black Ox Statue of monks is: Creature with id 61146
--- Treants of druids is: Creature with id 103822
 function Addon.IsOffTankCreature(unitid)
   local guid = _G.UnitGUID(unitid)
 
@@ -66,7 +64,7 @@ function Addon.IsOffTankCreature(unitid)
 end
 
 function Addon:OnThreatTable(unit)
-  --  local _, threatStatus = UnitDetailedThreatSituation("player", unit.unitid)
+  --  local _, threatStatus = Addon.UnitDetailedThreatSituationWrapper("player", unit.unitid)
   --  return threatStatus ~= nil
 
   -- nil means player is not on unit's threat table - more acurate, but slower reaction time than the above solution

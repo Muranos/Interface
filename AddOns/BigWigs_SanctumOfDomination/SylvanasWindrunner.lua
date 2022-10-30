@@ -279,13 +279,10 @@ function mod:OnBossEnable()
 	self:Log("SPELL_INTERRUPT", "RuinInterrupted", "*")
 	self:Log("SPELL_CAST_START", "HauntingWaveStart", 352271)
 	self:Log("SPELL_CAST_SUCCESS", "HauntingWave", 352271)
-	--self:Log("SPELL_CAST_START", "LashingStrike", 351179)
 	self:Log("SPELL_AURA_APPLIED", "LashingWoundApplied", 351180)
 	self:Log("SPELL_AURA_APPLIED_DOSE", "LashingWoundApplied", 351180)
-	--self:Log("SPELL_CAST_SUCCESS", "CrushingDread", 351117)
 	self:Log("SPELL_AURA_APPLIED", "CrushingDreadApplied", 351117)
 	self:Log("SPELL_CAST_START", "SummonDecrepitOrbs", 351353)
-	--self:Log("SPELL_CAST_SUCCESS", "CurseOfLethargy", 351939)
 	self:Log("SPELL_AURA_APPLIED", "CurseOfLethargyApplied", 351939)
 	self:Log("SPELL_AURA_APPLIED", "FuryApplied", 351672)
 	self:Log("SPELL_AURA_APPLIED_DOSE", "FuryApplied", 351672)
@@ -404,7 +401,6 @@ end
 
 do
 	local playerList = {}
-	local prev = 0
 	function mod:ExpulsionStart(args)
 		playerList = {}
 		local unit = self:GetUnitIdByGUID(args.sourceGUID)
@@ -681,14 +677,12 @@ do
 	end
 
 	local wailingArrowPlayerCount = 0
-	local myArrow = 0
 	local prev = 0
 	function mod:WailingArrowApplied(args)
 		local t = args.time
 		if t-prev > 15 then -- New set
 			prev = t
 			wailingArrowPlayerCount = 0
-			myArrow = 0
 			wailingArrowCastCount = 1
 			playerList = {}
 		end
@@ -701,7 +695,6 @@ do
 		end
 		self:CustomIcon(wailingArrowMarker, args.destName, wailingArrowPlayerCount)
 		if self:Me(args.destGUID) then
-			myArrow = wailingArrowPlayerCount
 			self:PersonalMessage(347609, nil, CL.count:format(L.arrow, wailingArrowPlayerCount))
 			self:PlaySound(347609, "alarm")
 			self:Say(347609, CL.count_rticon:format(L.arrow, wailingArrowPlayerCount, wailingArrowPlayerCount))
@@ -974,12 +967,8 @@ function mod:HauntingWave(args)
 end
 
 function mod:CommanderDeath(args)
-	if args.mobId == 177889 then -- Mawforged Souljudge
-		--self:StopBar(351180) -- Lashing Wound
-		--self:StopBar(351117) -- Crushing Dread
-	elseif args.mobId == 177891 then -- Mawforged Summoner
+	if args.mobId == 177891 then -- Mawforged Summoner
 		self:StopBar(L.orbs) -- Summon Decrepit Orbs / Dark Communion
-		--self:StopBar(351939) -- Curse of Lethargy
 	elseif args.mobId == 177893 then -- Mawforged Colossus
 		self:StopBar(351591) -- Filth
 		self:StopBar(351562) -- Expulsion
@@ -993,9 +982,7 @@ function mod:CommanderDeath(args)
 	-- with a 5s cast, so reset the bar to 6s and cancel timers.
 	-- What is the window Sylv will still cast things?
 
-	if self:Mythic() then
-		-- Bridges now?
-	else
+	if not self:Mythic() then
 		if bridgeCount == 4 then
 			self:CDBar("stages", 6, 351837) -- Channel Ice
 		elseif bridgeCount == 5 then
@@ -1009,19 +996,6 @@ function mod:CommanderDeath(args)
 	end
 end
 
--- function mod:LashingStrike(args)
--- 	if self:Mythic() then
--- 		local unit = self:GetUnitIdByGUID(args.sourceGUID)
--- 		if unit then
--- 			if IsItemInRange(116139, unit) then -- 50yd
--- 				self:Bar(351180, 7.5) -- Lashing Wound
--- 			end
--- 		end
--- 	else
--- 		self:Bar(351180, 7.5) -- Lashing Wound
--- 	end
--- end
-
 function mod:LashingWoundApplied(args)
 	local amount = args.amount or 1
 	self:StackMessage(args.spellId, "purple", args.destName, amount, 2)
@@ -1029,10 +1003,6 @@ function mod:LashingWoundApplied(args)
 		self:PlaySound(args.spellId, "alarm")
 	end
 end
-
--- function mod:CrushingDread(args)
--- 	self:Bar(args.spellId, 11)
--- end
 
 function mod:CrushingDreadApplied(args)
 	if self:Me(args.destGUID) then
@@ -1057,10 +1027,6 @@ function mod:SummonDecrepitOrbs(args)
 		self:Bar(args.spellId, 16, L.orbs)
 	end
 end
-
--- function mod:CurseOfLethargy(args)
--- 	self:Bar(args.spellId, 7.5)
--- end
 
 function mod:CurseOfLethargyApplied(args)
 	if self:Me(args.destGUID) then
@@ -1121,7 +1087,7 @@ function mod:BlasphemySuccess()
 			self:CDBar(347670, 45.1, CL.count:format(self:SpellName(347670), shadowDaggerCount)) -- Shadow Dagger 49.6~52
 		else
 			--self:Bar(358588, 23, L.count_x:format("Far Soaks", 1, mercilessCount))
-		 	self:Bar(358434, 65.5, CL.count:format(self:SpellName(358434), shadowDaggerCount)) -- Death Knives
+			self:Bar(358434, 65.5, CL.count:format(self:SpellName(358434), shadowDaggerCount)) -- Death Knives
 		end
 		if not self:Easy() then
 			self:Bar(354068, stageThreeTimers[354068][bansheesFuryCount], CL.count:format(self:SpellName(354068), bansheesFuryCount)) -- Banshee's Fury

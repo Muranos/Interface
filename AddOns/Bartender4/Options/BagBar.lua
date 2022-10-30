@@ -6,6 +6,7 @@ local _, Bartender4 = ...
 local L = LibStub("AceLocale-3.0"):GetLocale("Bartender4")
 
 local WoWClassic = (WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE)
+local WoW10 = select(4, GetBuildInfo()) >= 100000
 
 local BagBarMod = Bartender4:GetModule("BagBar")
 
@@ -24,8 +25,20 @@ function BagBarMod:SetupOptions()
 			get = function() return self.db.profile.enabled end,
 			set = "ToggleModule",
 			handler = self,
+			width = "full",
 		}
 		self.optionobject:AddElement("general", "enabled", enabled)
+
+		local verticalAlignment = {
+			type = "select",
+			order = 79,
+			name = L["Vertical Button Alignment"],
+			desc = L["Vertical button alignment for this bar."],
+			get = function() return self.db.profile.verticalAlignment end,
+			set = function(info, state) self.db.profile.verticalAlignment = state; self.bar:UpdateButtonLayout() end,
+			values = { TOP = L["TOP"], CENTER = L["CENTER"], BOTTOM = L["BOTTOM"] },
+		}
+		self.optionobject:AddElement("general", "verticalAlignment", verticalAlignment)
 
 		local onebag = {
 			type = "toggle",
@@ -36,6 +49,19 @@ function BagBarMod:SetupOptions()
 			set = function(info, state) self.db.profile.onebag = state; self.bar:FeedButtons(); self.bar:UpdateButtonLayout() end,
 		}
 		self.optionobject:AddElement("general", "onebag", onebag)
+
+		if WoW10 then
+			local onebagreagents = {
+				type = "toggle",
+				order = 80,
+				name = L["One Bag, Show Reagents"],
+				desc = L["Show the Reagent Bag in One Bag mode"],
+				get = function() return self.db.profile.onebagreagents end,
+				width = 1.25,
+				set = function(info, state) self.db.profile.onebagreagents = state; self.bar:FeedButtons(); self.bar:UpdateButtonLayout() end,
+			}
+			self.optionobject:AddElement("general", "onebagreagents", onebagreagents)
+		end
 
 		if WoWClassic then
 			local keyring = {
@@ -64,7 +90,7 @@ function BagBarMod:SetupOptions()
 			order = 30,
 			type = "group",
 			name = L["Bag Bar"],
-			desc = L["Configure the Bag Bar"],
+			desc = L["Manages the Backpack and all the extra bags"],
 			childGroups = "tab",
 		}
 		Bartender4:RegisterBarOptions("BagBar", self.options)

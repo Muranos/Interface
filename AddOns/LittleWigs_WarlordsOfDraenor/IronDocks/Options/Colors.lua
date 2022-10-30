@@ -5,6 +5,7 @@ BigWigs:AddColors("Fleshrender Nok'gar", {
 	[164734] = "yellow",
 	[164835] = "yellow",
 	[164837] = {"blue","red"},
+	[166923] = "yellow",
 	["stages"] = {"cyan","yellow"},
 })
 
@@ -44,7 +45,6 @@ BigWigs:AddColors("Iron Docks Trash", {
 	[172982] = "red",
 	[173105] = {"blue","yellow"},
 	[173135] = "yellow",
-	[173148] = "blue",
 	[173324] = "blue",
 	[173384] = "red",
 	[173480] = {"blue","orange"},

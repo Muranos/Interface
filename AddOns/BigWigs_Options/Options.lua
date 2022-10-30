@@ -1,3 +1,4 @@
+local isDragonflight = select(4, GetBuildInfo()) >= 100002 -- XXX remove on 10.0 prepatch
 
 local BigWigs = BigWigs
 local options = {}
@@ -25,6 +26,7 @@ local soundModule
 local configFrame, isPluginOpen
 
 local showToggleOptions, getAdvancedToggleOption = nil, nil
+local toggleOptionsStatusTable = {}
 
 local getOptions
 local acOptions = {
@@ -580,7 +582,7 @@ function getAdvancedToggleOption(scrollFrame, dropdown, module, bossOption)
 	back:SetText(L.back)
 	back:SetFullWidth(true)
 	back:SetCallback("OnClick", function()
-		showToggleOptions(dropdown, nil, dropdown:GetUserData("bossIndex"))
+		showToggleOptions(dropdown, nil, dropdown:GetUserData("bossIndex"), true)
 	end)
 
 	local check = AceGUI:Create("CheckBox")
@@ -677,6 +679,10 @@ end
 
 local function buttonClicked(widget)
 	clearPendingUpdates()
+	-- save scroll bar position
+	toggleOptionsStatusTable.restore_scrollvalue = toggleOptionsStatusTable.scrollvalue
+	toggleOptionsStatusTable.restore_offset = toggleOptionsStatusTable.offset
+
 	local scrollFrame = widget:GetUserData("scrollFrame")
 	local dropdown = widget:GetUserData("dropdown")
 	local module = widget:GetUserData("module")
@@ -1094,20 +1100,28 @@ local function populateToggleOptions(widget, module)
 		end
 		scrollFrame:AddChildren(getDefaultToggleOption(scrollFrame, widget, module, option))
 	end
+
 	local list = AceGUI:Create("Button")
 	list:SetFullWidth(true)
 	list:SetText(L.listAbilities)
 	list:SetUserData("module", module)
 	list:SetCallback("OnClick", listAbilitiesInChat)
 	scrollFrame:AddChild(list)
-	scrollFrame:SetScroll(0)
+
 	scrollFrame:ResumeLayout()
 	scrollFrame:PerformLayout()
 end
 
-function showToggleOptions(widget, event, group)
+function showToggleOptions(widget, event, group, noScrollReset)
 	local module = BigWigs:GetBossModule(group)
 	widget:SetUserData("bossIndex", group)
+	-- reset scroll bar if not hitting the back button
+	if not noScrollReset then
+		toggleOptionsStatusTable.restore_offset = nil
+		toggleOptionsStatusTable.restore_scrollvalue = nil
+	end
+	toggleOptionsStatusTable.offset = toggleOptionsStatusTable.restore_offset
+	toggleOptionsStatusTable.scrollvalue = toggleOptionsStatusTable.restore_scrollvalue
 	populateToggleOptions(widget, module)
 end
 
@@ -1145,6 +1159,7 @@ local function onZoneShow(treeWidget, id)
 	scroll:SetLayout("Flow")
 	scroll:SetFullWidth(true)
 	scroll:SetFullHeight(true)
+	scroll:SetStatusTable(toggleOptionsStatusTable)
 	innerContainer:SetUserData("parent", scroll)
 	innerContainer:AddChild(scroll)
 
@@ -1177,8 +1192,11 @@ do
 		"WarlordsOfDraenor",
 		"Legion",
 		"BattleForAzeroth",
-		"Shadowlands"
+		"Shadowlands",
 	}
+	if isDragonflight then
+		expansionHeader[#expansionHeader + 1] = "Dragonflight"
+	end
 
 	local statusTable = {}
 	local playerName = nil
@@ -1214,17 +1232,18 @@ do
 	local function onTreeGroupSelected(widget, event, value)
 		widget:ReleaseChildren()
 		local zoneId = value:match("\001(-?%d+)$")
+		local defaultEnabled = value == "BigWigs_Shadowlands" or (isDragonflight and value == "BigWigs_Dragonflight")
 		if zoneId then
 			onZoneShow(widget, tonumber(zoneId))
-		elseif value:match("^BigWigs_") and value ~= "BigWigs_Shadowlands" and GetAddOnEnableState(playerName, value) == 0 then
+		elseif value:match("^BigWigs_") and not defaultEnabled and GetAddOnEnableState(playerName, value) == 0 then
 				local missing = AceGUI:Create("Label")
-				missing:SetText(L.missingAddOn:format(value))
+				missing:SetText(L.missingPlugin:format(value))
 				missing:SetFontObject(GameFontHighlight)
 				missing:SetFullWidth(true)
 				widget:AddChild(missing)
 		elseif value:match("^LittleWigs_") and GetAddOnEnableState(playerName, "LittleWigs") == 0 then
 				local missing = AceGUI:Create("Label")
-				missing:SetText(L.missingAddOn:format("LittleWigs"))
+				missing:SetText(L.missingPlugin:format("LittleWigs"))
 				missing:SetFontObject(GameFontHighlight)
 				missing:SetFullWidth(true)
 				widget:AddChild(missing)
@@ -1255,20 +1274,21 @@ do
 			local addonNameToHeader = {}
 			local defaultHeader
 			if value == "bigwigs" then
-				defaultHeader = "BigWigs_Shadowlands"
-				for i = 1, 9 do
+				defaultHeader = isDragonflight and "BigWigs_Dragonflight" or "BigWigs_Shadowlands"
+				for i = 1, #expansionHeader do
 					local value = "BigWigs_" .. expansionHeader[i]
+					local defaultEnabled = value == "BigWigs_Shadowlands" or (isDragonflight and value == "BigWigs_Dragonflight")
 					treeTbl[i] = {
 						text = EJ_GetTierInfo(i),
 						value = value,
-						enabled = (value == defaultHeader or GetAddOnEnableState(playerName, value) > 0),
+						enabled = (defaultEnabled or GetAddOnEnableState(playerName, value) > 0),
 					}
 					addonNameToHeader[value] = i
 				end
 			elseif value == "littlewigs" then
-				defaultHeader = "LittleWigs_Shadowlands"
+				defaultHeader = isDragonflight and "LittleWigs_Dragonflight" or "LittleWigs_Shadowlands"
 				local enabled = GetAddOnEnableState(playerName, "LittleWigs") > 0
-				for i = 1, 9 do
+				for i = 1, #expansionHeader do
 					local value = "LittleWigs_" .. expansionHeader[i]
 					treeTbl[i] = {
 						text = EJ_GetTierInfo(i),
@@ -1292,6 +1312,12 @@ do
 						end
 					else
 						zone = GetRealZoneText(k)
+						if zone == "" then
+							-- if GetRealZoneText returns an empty string it's probably due to installing the wrong version of BigWigs or otherwise
+							-- having a module enabled for a zone that doesn't exist.
+							-- use the zone key as the menu name in that case instead of the empty string.
+							zone = tostring(k)
+						end
 					end
 					if zone then
 						if zoneToId[zone] then

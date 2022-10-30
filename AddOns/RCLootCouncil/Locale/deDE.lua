@@ -364,6 +364,10 @@ L["opt_rejectTrade_Name"] = "Behalten erlauben"
 --[[ L["opt_skipSessionFrame_desc"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["opt_skipSessionFrame_name"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["opt_useSlashRC_desc"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["opt_useSlashRC_name"] = ""--]] 
 L["options_autoAwardBoE_desc"] = "Aktiviere diese Option, um alle epischen BoE-Gegenständie (Beim Anlegen gebunden) aus dem ausgewählten Grund automatisch an eine bestimmte Person zu vergeben."
 L["options_autoAwardBoE_name"] = "BoE's automatisch vergeben"
 L["options_ml_outOfRaid_desc"] = "Wenn diese Option aktiviert ist, wird in einer Gruppe von 8 oder mehr Mitgliedern von jedem, der sich nicht in einer Instanz befindet, wenn eine Sitzung gestartet wird, automatisch die Antwort \"Nicht im Raid\" senden."

@@ -1,10 +1,10 @@
-lightweight tag b747ea1222ee0403c5b4e5528ffe32791dfadcda 9.2.5-01
+lightweight tag 91b2a62921905030c29a38c9caaa4ac33934ec70 v10.0.0-1
 Author:	Dave Hendler <sollaires@gmail.com>
-Date:	Mon Jun 6 10:28:06 2022 -0700
+Date:	Fri Oct 28 09:19:26 2022 -0700
 
-commit b747ea1222ee0403c5b4e5528ffe32791dfadcda
+commit 91b2a62921905030c29a38c9caaa4ac33934ec70
 Author: Dave Hendler <sollaires@gmail.com>
-Date:   Mon Jun 6 10:28:06 2022 -0700
+Date:   Fri Oct 28 09:19:26 2022 -0700
 
-    Use newer BigWigs packager
+    Set TOC version to match prepatch, not beta
 

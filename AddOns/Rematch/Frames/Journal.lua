@@ -41,7 +41,8 @@ rematch:InitModule(function()
 	end
 	journal:RegisterForDrag("LeftButton")
 	hooksecurefunc("SetItemRef",journal.SetItemRef)
-	SetPortraitToTexture(journal.portrait, "Interface\\Icons\\PetJournalPortrait")
+	-- PortraitContainer is used in 10.0
+	SetPortraitToTexture(journal.PortraitContainer and journal.PortraitContainer.portrait or journal.portrait, "Interface\\Icons\\PetJournalPortrait")
 end)
 
 -- called in ADDON_LOADED of Blizzard_Collctions (or during startup if already loaded)
@@ -58,7 +59,7 @@ function journal:SetupJournal()
 	-- a second (or 0 seconds--one frame) and try later
 	if settings.DebugDelayMacs then
 		if not hasJournalRunBefore then
-			C_Timer.After(settings.DebugDelayMacsOneFrame and 0 or 1, journal.ConfigureJournal)
+			rematch:StartTimer("ConfigureJournal",settings.DebugDelayMacsOneFrame and 0 or 1, journal.ConfigureJournal)
 			hasJournalRunBefore = true
 			return false
 		else
@@ -72,7 +73,7 @@ function journal:SetupJournal()
 	end
 	PetJournal:HookScript("OnHide",journal.DefaultJournalOnHide)
 	journal.CloseButton:SetScript("OnClick",function() HideUIPanel(CollectionsJournal) end)
-	C_Timer.After(0.1,journal.OtherAddonJournalStuff)
+	rematch:StartTimer("OtherAddonJournalStuff",0.1,journal.OtherAddonJournalStuff)
 	hooksecurefunc("PetJournal_ShowPetCardBySpeciesID",function(speciesID) rematch:SearchForSpecies(speciesID) end)
 	hooksecurefunc("PetJournal_SelectPet",journal.PetJournal_SelectPet)
 	return true

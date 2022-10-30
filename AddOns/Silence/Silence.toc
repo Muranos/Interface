@@ -1,8 +1,8 @@
-## Interface: 90105
+## Interface: 100000
 ## Title: |cffEEE4AESilence|r
 ## Author: Yuyuli
-## Version: 1.0.10
-## Notes: |cff58C6FASilence these pesky Talking Heads if you heard them previously or block them completely.|r|n|n|cffFFC700Slash command: /silence|r
+## Version: 1.1.0
+## Notes: |cff58C6FASilence Talking Heads if they were previously or silence them permanently.|r|n|n|cffFFC700Slash command: /silence|r
 ## SavedVariables: SilenceDB
 
 Silence.lua

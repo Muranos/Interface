@@ -491,7 +491,7 @@ do
 		proxAnchor:SetFixedFrameLevel(true)
 		proxAnchor:SetWidth(db.width)
 		proxAnchor:SetHeight(db.height)
-		proxAnchor:SetMinResize(100, 30)
+		proxAnchor:SetResizeBounds(80, 8)
 		proxAnchor:SetClampedToScreen(true)
 		proxAnchor:EnableMouse(true)
 
@@ -810,7 +810,7 @@ do
 				type = "execute",
 				name = L.resetAll,
 				desc = L.resetProximityDesc,
-				func = function() 
+				func = function()
 					plugin.db:ResetProfile()
 				end,
 				order = 9,

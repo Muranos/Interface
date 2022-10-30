@@ -1,3 +1,3 @@
-# 10.5.2 (2022-09-09)
+# 11.0.3 (2022-10-27)
 
-* Off-tank detection in Wrath Classic now uses the MAINTANK role flag in raids instead of the role from LFG (consistent with Classic and TBC Classic).
+* Fixed a bug that occured when the target highlight color alpha was set below 0,7 as the Dragonflight API is more strict with valid transparency values [Issue #573].

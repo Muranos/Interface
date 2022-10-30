@@ -1,5 +1,6 @@
-## v4.11.47 Changes
+## v4.11.63 Changes
 
-* [Retail] Fixed error when opening JC
+* [Retail] Fixed various issues with default / TSM frames not closing properly
+* [Retail] Fixed issue with crafting multiple of an item
 
 [Known Issues](https://support.tradeskillmaster.com/en_US/known_issues)

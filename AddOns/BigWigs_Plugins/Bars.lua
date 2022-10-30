@@ -1554,7 +1554,7 @@ do
 		display:SetMovable(true)
 		display:SetResizable(true)
 		display:RegisterForDrag("LeftButton")
-		display:SetMinResize(80, 8)
+		display:SetResizeBounds(80, 8)
 		display:SetFrameStrata("HIGH")
 		display:SetFixedFrameStrata(true)
 		display:SetFrameLevel(title == "BigWigsAnchor" and 10 or 15)

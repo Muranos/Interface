@@ -5,6 +5,7 @@ BigWigs:AddSounds("Fleshrender Nok'gar", {
 	[164734] = "alarm",
 	[164835] = {"alert","warning"},
 	[164837] = "alert",
+	[166923] = "alert",
 	["stages"] = {"info","long"},
 })
 
@@ -44,7 +45,6 @@ BigWigs:AddSounds("Iron Docks Trash", {
 	[172982] = "alarm",
 	[173105] = {"alarm","underyou"},
 	[173135] = "alert",
-	[173148] = "underyou",
 	[173324] = "underyou",
 	[173384] = "alarm",
 	[173480] = {"alert","underyou"},

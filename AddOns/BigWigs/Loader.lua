@@ -1,6 +1,7 @@
 
-if WOW_PROJECT_ID == WOW_PROJECT_CLASSIC then
+if WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE then
 	local L = BigWigsAPI:GetLocale("BigWigs")
+	RaidNotice_AddMessage(RaidWarningFrame, L.classicWarning1, {r=1,g=1,b=1}, 999999)
 	print(L.classicWarning1)
 	print(L.classicWarning2)
 	BasicMessageDialog.Text:SetText(L.classicWarning1)
@@ -21,7 +22,7 @@ local strfind = string.find
 -- Generate our version variables
 --
 
-local BIGWIGS_VERSION = 247
+local BIGWIGS_VERSION = 251
 local BIGWIGS_RELEASE_STRING, BIGWIGS_VERSION_STRING = "", ""
 local versionQueryString, versionResponseString = "Q^%d^%s^%d^%s", "V^%d^%s^%d^%s"
 local customGuildName = false
@@ -36,7 +37,7 @@ do
 	local RELEASE = "RELEASE"
 
 	local releaseType = RELEASE
-	local myGitHash = "e32cc04" -- The ZIP packager will replace this with the Git hash.
+	local myGitHash = "6252532" -- The ZIP packager will replace this with the Git hash.
 	local releaseString = ""
 	--[=[@alpha@
 	-- The following code will only be present in alpha ZIPs.
@@ -131,6 +132,7 @@ local fakeZones = { -- Fake zones used as GUI menus
 	[1716]=true, -- Broken Shore Mage Tower
 	[-947]=true, -- Azeroth
 	[-1647]=true, -- Shadowlands
+	[-1978]=true, -- Dragon Isles
 }
 
 do
@@ -143,6 +145,7 @@ do
 	local l = "BigWigs_Legion"
 	local bfa = "BigWigs_BattleForAzeroth"
 	local s = "BigWigs_Shadowlands"
+	local df = "BigWigs_Dragonflight"
 	local lw_c = "LittleWigs_Classic"
 	local lw_bc = "LittleWigs_BurningCrusade"
 	local lw_wotlk = "LittleWigs_WrathOfTheLichKing"
@@ -152,6 +155,7 @@ do
 	local lw_l = "LittleWigs_Legion"
 	local lw_bfa = "LittleWigs_BattleForAzeroth"
 	local lw_s = "LittleWigs_Shadowlands"
+	local lw_df = "LittleWigs_Dragonflight"
 
 	public.zoneTbl = {
 		--[[ BigWigs: Classic ]]--
@@ -218,6 +222,9 @@ do
 		[2296] = s, -- Castle Nathria
 		[2450] = s, -- Sanctum of Domination
 		[2481] = s, -- Sepulcher of the First Ones
+		--[[ BigWigs: Dragonflight ]]--
+		[-1978] = df, -- Dragon Isles (Fake Menu)
+		[2522] = df, -- Vault of the Incarnate
 
 		--[[ LittleWigs: Classic ]]--
 		[33] = lw_c, -- Shadowfang Keep
@@ -326,6 +333,15 @@ do
 		[2291] = lw_s, -- De Other Side
 		[2293] = lw_s, -- Theater of Pain
 		[2441] = lw_s, -- Tazavesh, the Veiled Market
+		--[[ LittleWigs: Dragonflight ]]--
+		[2451] = lw_df, -- Uldaman: Legacy of Tyr
+		[2515] = lw_df, -- The Azure Vault
+		[2516] = lw_df, -- The Nokhud Offensive
+		[2519] = lw_df, -- Neltharus
+		[2520] = lw_df, -- Brackenhide Hollow
+		[2521] = lw_df, -- Ruby Life Pools
+		[2526] = lw_df, -- Taz'algeth Academy
+		[2527] = lw_df, -- Halls of Infusion
 	}
 
 	public.zoneTblWorld = {
@@ -335,6 +351,7 @@ do
 		[-630] = -619, [-634] = -619, [-641] = -619, [-650] = -619, [-680] = -619, -- Broken Isles
 		[-942] = -947, -- Azeroth/BfA
 		[-1536] = -1647, [-1565] = -1647, [-1525] = -1647, [-1533] = -1647, -- Shadowlands
+		[-2022] = -1978, [-2023] = -1978, [-2024] = -1978, [-2025] = -1978, -- Dragon Isles
 	}
 end
 
@@ -784,8 +801,6 @@ function mod:ADDON_LOADED(addon)
 				end
 			end
 		end
-		BigWigs3DB.wipe80 = nil -- XXX temp boss DB wipe for 8.0.1 // removed in 9.0.2
-		BigWigs3DB.discord = nil -- XXX 9.0.2
 	end
 	self:BigWigs_CoreOptionToggled(nil, "fakeDBMVersion", self.isFakingDBM)
 
@@ -800,7 +815,6 @@ function mod:ADDON_LOADED(addon)
 
 	--bwFrame:UnregisterEvent("ADDON_LOADED")
 	--self.ADDON_LOADED = nil
-	bwFrame.UnregisterEvent(UIParent, "TALKINGHEAD_REQUESTED") -- Prevent the event order re-shuffling mid-instance
 end
 
 function mod:GLOBAL_MOUSE_DOWN(button)
@@ -963,8 +977,8 @@ do
 		end
 
 		if old[name] then
-			delayedMessages[#delayedMessages+1] = L.removeAddon:format(name, old[name])
-			Popup(L.removeAddon:format(name, old[name]))
+			delayedMessages[#delayedMessages+1] = L.removeAddOn:format(name, old[name])
+			Popup(L.removeAddOn:format(name, old[name]))
 		end
 	end
 
@@ -1078,9 +1092,9 @@ end
 --
 
 do
-	local DBMdotRevision = "20220907235432" -- The changing version of the local client, changes with every new zip using the project-date-integer packager replacement.
-	local DBMdotDisplayVersion = "9.2.33" -- "N.N.N" for a release and "N.N.N alpha" for the alpha duration.
-	local DBMdotReleaseRevision = "20220907000000" -- Hardcoded time, manually changed every release, they use it to track the highest release version, a new DBM release is the only time it will change.
+	local DBMdotRevision = "20221025145241" -- The changing version of the local client, changes with every new zip using the project-date-integer packager replacement.
+	local DBMdotDisplayVersion = "10.0.0" -- "N.N.N" for a release and "N.N.N alpha" for the alpha duration.
+	local DBMdotReleaseRevision = "20221025000000" -- Hardcoded time, manually changed every release, they use it to track the highest release version, a new DBM release is the only time it will change.
 
 	local timer, prevUpgradedUser = nil, nil
 	local function sendMsg()
@@ -1422,11 +1436,11 @@ do
 		-- Lacking zone modules
 		if (BigWigs and BigWigs.db.profile.showZoneMessages == false) or self.isShowingZoneMessages == false then return end
 		local zoneAddon = public.zoneTbl[id]
-		if zoneAddon and zoneAddon ~= "BigWigs_Shadowlands" then
+		if zoneAddon and zoneAddon ~= "BigWigs_Shadowlands" and zoneAddon ~= "BigWigs_Dragonflight" then -- XXX remove BigWigs_Shadowlands from this check when the module is split out
 			if strfind(zoneAddon, "LittleWigs_", nil, true) then zoneAddon = "LittleWigs" end -- Collapse into one addon
 			if id > 0 and not fakeZones[id] and not warnedThisZone[id] and not IsAddOnEnabled(zoneAddon) then
 				warnedThisZone[id] = true
-				local msg = L.missingAddOn:format(zoneAddon)
+				local msg = L.missingPlugin:format(zoneAddon)
 				sysprint(msg)
 				RaidNotice_AddMessage(RaidWarningFrame, msg, {r=1,g=1,b=1}, 15)
 			end

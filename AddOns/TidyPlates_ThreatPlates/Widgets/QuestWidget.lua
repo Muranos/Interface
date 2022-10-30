@@ -16,7 +16,7 @@ local string, tonumber, next, pairs, ipairs = string, tonumber, next, pairs, ipa
 -- WoW APIs
 local WorldFrame = WorldFrame
 local InCombatLockdown, IsInInstance = InCombatLockdown, IsInInstance
-local UnitName, UnitIsUnit, UnitDetailedThreatSituation = UnitName, UnitIsUnit, UnitDetailedThreatSituation
+local UnitName, UnitIsUnit = UnitName, UnitIsUnit
 local UnitExists = UnitExists
 local IsInRaid, IsInGroup, GetNumGroupMembers, GetNumSubgroupMembers = IsInRaid, IsInGroup, GetNumGroupMembers, GetNumSubgroupMembers
 local wipe = wipe
@@ -29,6 +29,7 @@ local GetNamePlateForUnit = C_NamePlate.GetNamePlateForUnit
 
 -- ThreatPlates APIs
 local PlayerName = Addon.PlayerName
+local UnitDetailedThreatSituationWrapper = Addon.UnitDetailedThreatSituationWrapper
 
 local _G =_G
 -- Global vars/functions that we don't upvalue since they might get hooked, or upgraded
@@ -37,7 +38,6 @@ local _G =_G
 
 local InCombat = false
 local TooltipFrame = CreateFrame("GameTooltip", "ThreatPlates_Tooltip", nil, "GameTooltipTemplate")
-local PlayerName = UnitName("player")
 local ICON_COLORS = {}
 local Font
 
@@ -124,7 +124,7 @@ function IsQuestUnit(unit)
     local text = line:GetText()
     local text_r, text_g, text_b = line:GetTextColor()
 
-    if text_r > 0.99 and text_g > 0.82 and text_b == 0 then
+    if text_r > 0.99 and text_g > 0.8 and text_b == 0 then
       -- A line with this color is either the quest title or a player name (if on a group quest, but always after the quest title)
       if text == PlayerName then
         quest_progress_player = true
@@ -200,7 +200,7 @@ local function ShowQuestUnit(unit)
     if db.HideInCombat then
       return false
     elseif db.HideInCombatAttacked then
-      local _, threatStatus = UnitDetailedThreatSituation("player", unit.unitid)
+      local _, threatStatus = UnitDetailedThreatSituationWrapper("player", unit.unitid)
       return (threatStatus == nil)
     end
   end

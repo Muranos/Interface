@@ -1,4 +1,5 @@
 if not WeakAuras.IsLibsOK() then return end
+--- @type string, Private
 local AddonName, Private = ...
 
 local WeakAuras = WeakAuras
@@ -762,7 +763,7 @@ local growers = {
     local growFunc = WeakAuras.LoadFunction("return " .. growStr) or noop
     return function(newPositions, activeRegions)
       Private.ActivateAuraEnvironment(data.id)
-      local ok = xpcall(growFunc, Private.GetErrorHandlerId(data.id, L["Custom Sort"]), newPositions, activeRegions)
+      local ok = xpcall(growFunc, Private.GetErrorHandlerId(data.id, L["Custom Grow"]), newPositions, activeRegions)
       Private.ActivateAuraEnvironment()
       if not ok then
         wipe(newPositions)
@@ -830,11 +831,15 @@ local function modify(parent, region, data)
   end
 
   function region:Resume()
-    -- Allows group to reindex and reposition.
+    -- Allows group to re-index and reposition.
     -- TriggersSortUpdatedChildren and PositionChildren to happen
     if self.suspended > 0 then
       self.suspended = self.suspended - 1
     end
+    region:RunDelayedActions()
+  end
+
+  function region:RunDelayedActions()
     if not self:IsSuspended() then
       if self.needToReload then
         self:ReloadControlledChildren()
@@ -920,8 +925,8 @@ local function modify(parent, region, data)
             self.updatedChildren[regionData] = true
           end
         end
-        if childData and WeakAuras.clones[childID] then
-          for cloneID, cloneRegion in pairs(WeakAuras.clones[childID]) do
+        if childData and Private.clones[childID] then
+          for cloneID, cloneRegion in pairs(Private.clones[childID]) do
             local regionData = createRegionData(childData, cloneRegion, childID, cloneID, dataIndex)
             if cloneRegion.toShow then
               tinsert(self.sortedChildren, regionData)
@@ -1254,7 +1259,7 @@ local function modify(parent, region, data)
         self:Hide()
       end
       if WeakAuras.IsOptionsOpen() then
-        WeakAuras.OptionsFrame().moversizer:ReAnchor()
+        Private.OptionsFrame().moversizer:ReAnchor()
       end
       Private.StopProfileSystem("dynamicgroup")
       Private.StopProfileAura(data.id)

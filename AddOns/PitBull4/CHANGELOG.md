@@ -1,6 +1,7 @@
 # PitBull Unit Frames 4.0 [WRONG VERSION]
 
-## [v4.2.17](https://github.com/nebularg/PitBull4/tree/v4.2.17) (2022-06-07)
-[Full Changelog](https://github.com/nebularg/PitBull4/compare/v4.2.16...v4.2.17) [Previous Releases](https://github.com/nebularg/PitBull4/releases)
+## [v4.2.21](https://github.com/nebularg/PitBull4/tree/v4.2.21) (2022-10-26)
+[Full Changelog](https://github.com/nebularg/PitBull4/compare/v4.2.20...v4.2.21) [Previous Releases](https://github.com/nebularg/PitBull4/releases)
 
-- Update TOC for 9.2.5  
+- ReputationBar: Fix Friendship rep  
+- SoulShards: Update  

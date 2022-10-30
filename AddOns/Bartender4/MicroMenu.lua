@@ -8,11 +8,13 @@ local L = LibStub("AceLocale-3.0"):GetLocale("Bartender4")
 local MicroMenuMod = Bartender4:NewModule("MicroMenu", "AceHook-3.0", "AceEvent-3.0")
 
 -- fetch upvalues
+local Bar = Bartender4.Bar.prototype
 local ButtonBar = Bartender4.ButtonBar.prototype
 
 local pairs, setmetatable, table_insert = pairs, setmetatable, table.insert
 
 local WoWClassic = (WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE)
+local WoW10 = select(4, GetBuildInfo()) >= 100000
 
 -- GLOBALS: CharacterMicroButton, SpellbookMicroButton, TalentMicroButton, AchievementMicroButton, QuestLogMicroButton, GuildMicroButton
 -- GLOBALS: LFDMicroButton, CollectionsMicroButton, EJMicroButton, MainMenuMicroButton
@@ -42,9 +44,9 @@ local defaults = { profile = Bartender4:Merge({
 	visibility = {
 		possess = false,
 	},
-	padding = -3,
+	padding = WoW10 and 1 or -3,
 	position = {
-		scale = 0.8,
+		scale = WoW10 and 1.0 or 0.8,
 	},
 }, Bartender4.ButtonBar.defaults) }
 
@@ -149,12 +151,16 @@ end
 
 
 if WoWClassic then
-MicroMenuBar.button_width = 29
-MicroMenuBar.button_height = 58
-MicroMenuBar.vpad_offset = -20
+	MicroMenuBar.button_width = 29
+	MicroMenuBar.button_height = 58
+	MicroMenuBar.vpad_offset = -20
+elseif WoW10 then
+	MicroMenuBar.button_width = 19
+	MicroMenuBar.button_height = 26
+	MicroMenuBar.vpad_offset = 0
 else
-MicroMenuBar.button_width = 28
-MicroMenuBar.button_height = 36
+	MicroMenuBar.button_width = 28
+	MicroMenuBar.button_height = 36
 end
 function MicroMenuBar:ApplyConfig(config)
 	ButtonBar.ApplyConfig(self, config)
@@ -179,5 +185,64 @@ if HelpMicroButton and StoreMicroButton then
 			HelpMicroButton:Hide()
 			HelpMicroButton:ClearAllPoints()
 		end
+	end
+end
+
+if WoW10 and QueueStatusButton then
+	local QueueStatusMod = Bartender4:NewModule("QueueStatusButtonBar", "AceHook-3.0")
+
+	-- create prototype information
+	local QueueStatusBar = setmetatable({}, {__index = Bar})
+
+	local queuedefaults = { profile = Bartender4:Merge({
+		enabled = true,
+		visibility = {
+			possess = false,
+		},
+		position = {
+			x = -315,
+			y = 150,
+			point = "BOTTOMRIGHT",
+		},
+	}, Bartender4.Bar.defaults) }
+
+	function QueueStatusMod:OnInitialize()
+		self.db = Bartender4.db:RegisterNamespace("QueueStatus", queuedefaults)
+		self:SetEnabledState(self.db.profile.enabled)
+	end
+
+	function QueueStatusMod:OnEnable()
+		if not self.bar then
+			self.bar = setmetatable(Bartender4.Bar:Create("QueueStatus", self.db.profile, L["Queue Status"], 1), {__index = QueueStatusBar})
+			self.bar:SetSize(45, 45)
+			self.bar.content = QueueStatusButton
+			self.bar.content:SetParent(self.bar)
+		end
+		self.bar:Enable()
+		self:ToggleOptions()
+		self:ApplyConfig()
+	end
+
+	function QueueStatusMod:ApplyConfig()
+		self.bar:ApplyConfig(self.db.profile)
+	end
+
+	function QueueStatusMod:UpdateLayout()
+		self.bar:PerformLayout()
+	end
+
+	function QueueStatusBar:ApplyConfig(config)
+		Bar.ApplyConfig(self, config)
+
+		self:PerformLayout()
+	end
+
+	QueueStatusBar.width = 45
+	QueueStatusBar.height = 45
+
+	function QueueStatusBar:PerformLayout()
+		local bar = self.content
+		bar:ClearAllPoints()
+		bar:SetPoint("TOPLEFT", self, "TOPLEFT", 0, 0)
 	end
 end

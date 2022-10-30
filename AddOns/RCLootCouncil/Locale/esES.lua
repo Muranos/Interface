@@ -352,6 +352,10 @@ L["opt_rejectTrade_Name"] = "Permitir quedarse los objetos"
 --[[ L["opt_skipSessionFrame_desc"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["opt_skipSessionFrame_name"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["opt_useSlashRC_desc"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["opt_useSlashRC_name"] = ""--]] 
 L["options_autoAwardBoE_desc"] = "Habilitar para asignar automáticamente todo los objetos tipo BoE (ligado al equipar) a la persona especificada por la razón seleccionada."
 L["options_autoAwardBoE_name"] = "Auto asignar BoE's"
 L["options_ml_outOfRaid_desc"] = "Si se habilita, mientras se esté en un grupo de 8 o más personas, a todo aquel que no esté en una instancia al inicio de la sesión se le enviará automáticamente una notificación de 'Fuera de Raid'."

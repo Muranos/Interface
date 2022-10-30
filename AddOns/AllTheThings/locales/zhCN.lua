@@ -49,16 +49,16 @@ local L = app.L;
 	L.OPPOSITE_FACTION_EQ = "与对立阵营对应：";
 	L.SELFIE_DESC = "使用您的自拍 ";
 	L.SELFIE_DESC_2 = " 和 |cffff8000";
-	L.CLASSIC_TIER_DESC = "海加尔山之战的四年后，联盟和部落之间的关系又一次紧张了起来。为了能在贫瘠之地杜隆塔尔立足，萨尔邀请亡灵被遗忘者加入到兽人、牛头人和巨魔中，以扩大他的部落。与此同时，在另一边矮人、侏儒和古暗夜精灵则发誓它们将效忠人类暴风城王国所领导的新的联盟。当暴风城的国王瓦里安·乌瑞恩神秘消失之后，领主伯瓦尔·弗塔根担任摄政王，但是伯瓦尔的所做的一切被伪装成人类贵妇的黑龙奥尼克希亚通过意识控制所破坏。当英雄们正在研究对抗奥克尼希亚的手法时，古代的敌人出现在大陆上，并威胁着部落和联盟的生存。";
-	L.TBC_TIER_DESC = "燃烧的远征是第一个资料片。它的主要内容包括将等级上限提高到70，将血精灵和德莱尼作为可玩的种族引入，以及外域世界的加入，以及许多新区域、地下城、物品、任务和怪物。";
-	L.WOTLK_TIER_DESC = "巫妖王之怒是第二个资料片。大部分资料片内容都发生在诺森德，并以巫妖王的计划为中心。内容亮点包括将等级上限从70增加到80，引入英雄职业死亡骑士，以及新的 PvP/世界 PvP 内容。";
-	L.CATA_TIER_DESC = "大地的裂变是第三个资料片。随着死亡之翼的回归，重做艾泽拉斯大陆的卡利姆多和东部王国，他从位于元素位面深处的巢穴中破土而出，将艾泽拉斯撕成碎片。大灾难让玩家们回到艾泽拉斯的两大洲进行大部分的活动，开辟新的区域，如海加尔山、瓦斯琪尔、深岩之洲、奥丹姆和暮光高地。它包括两个新的可玩的种族，狼人和地精。资料片将等级上限提高到85，增加了在卡利姆多和东部王国飞行的能力，引入考古学和重做，并重做世界本身。";
-	L.MOP_TIER_DESC = "潘达利亚之谜是第四个资料片。在潘达利亚意外重新发现之后，资料片主要重新集中在联盟和部落之间的战争。冒险者重新发现了古老的熊猫人，他们的智慧将有助于引导他们走向新的命运; 熊猫人帝国的古代敌人螳螂妖; 和他们传说中的压迫者神秘的魔古族。领土随着时间的推移而变化，瓦里安乌瑞恩和加尔鲁什地狱咆哮之间的冲突逐渐升级。内战席卷了部落，联盟和部落中反对地狱咆哮的暴力起义联合起来直接把战争带到地狱咆哮和被煞魔侵蚀的奥格瑞玛的盟友。";
-	L.WOD_TIER_DESC = "德拉诺之王是第五个资料片。在德拉诺的原始丛林和战争创伤的平原上，艾泽拉斯的英雄们将参与一场神话般的冲突，包括神秘的德莱尼冠军和强大的兽人部落，以及在原始力量的顶峰与格罗玛什地狱咆哮、黑手和耐奥祖等。玩家需要在这片不受欢迎的土地上搜索盟友，以帮助建立一个绝望的防御，对抗旧部落强大的统治，或者观看他们自己世界上血腥的、饱受战争蹂躏的历史重演。";
-	L.LEGION_TIER_DESC = "军团再临是第六个资料片。古尔丹被驱逐到艾泽拉斯，重新开放萨格拉斯之墓和阿古斯之门，开始第三次入侵燃烧军团。在破碎海岸被击败后，艾泽拉斯的卫士们寻找创造之柱，这是艾泽拉斯关闭萨墓中心巨大的恶魔之门的唯一希望。然而，破碎群岛也有自己的危险要克服，从萨维斯到神王斯科瓦德，到夜之子，再到潮汐之力艾萨拉。卡德加将达拉然迁移到这片土地的海岸，这座城市是英雄的中心枢纽。阿彻鲁斯的死亡骑士也将他们漂浮的墓地带到了群岛。艾泽拉斯的英雄们在战斗中寻找传说中的神器，但也发现了伊利达雷的意外盟友。联盟和部落之间正在发生的冲突导致了阶级秩序的形成，特殊的指挥官搁置阵营纷争来领导他们的队伍参加对抗军团的斗争。";
-	L.BFA_TIER_DESC = "决战艾泽拉斯是第七个资料片。艾泽拉斯为结束军团十字军的天启付出了惨重的代价，但即使世界上的创伤得到了修复，联盟和部落之间破碎的信任也可能是最难弥补的。在艾泽拉斯战役中，燃烧军团的垮台引发了一系列灾难性事件，重新引发了魔兽世界中心的冲突。随着一个新的战争时代的开始，艾泽拉斯的英雄们必须开始征募新的盟友，争夺世界上最强大的资源，并在多条战线上战斗，以确定部落或联盟是否会带领艾泽拉斯进入不确定的未来。";
-	L.SL_TIER_DESC = "暗影国度是第八个资料片。你所知道的世界之外还有什么? 暗影国度。每一个世俗的人(无论是邪恶的还是邪恶的)都曾居住过的地方。";
-	L.DF_TIER_DESC = "巨龙时代是第九个资料片。艾泽拉斯的巨龙军团已经回归，他们响应了召唤，前去保护自己世代相传的家园：巨龙群岛。巨龙群岛涌动着元素魔法和艾泽拉斯的生命能量，如今它已从睡梦中苏醒，原始的奇观和尘封已久的秘密正等待你去揭露。";
+	L.TIER_DATA[1].lore = "海加尔山之战的四年后，联盟和部落之间的关系又一次紧张了起来。为了能在贫瘠之地杜隆塔尔立足，萨尔邀请亡灵被遗忘者加入到兽人、牛头人和巨魔中，以扩大他的部落。与此同时，在另一边矮人、侏儒和古暗夜精灵则发誓它们将效忠人类暴风城王国所领导的新的联盟。当暴风城的国王瓦里安·乌瑞恩神秘消失之后，领主伯瓦尔·弗塔根担任摄政王，但是伯瓦尔的所做的一切被伪装成人类贵妇的黑龙奥尼克希亚通过意识控制所破坏。当英雄们正在研究对抗奥克尼希亚的手法时，古代的敌人出现在大陆上，并威胁着部落和联盟的生存。";
+	L.TIER_DATA[2].lore = "燃烧的远征是第一个资料片。它的主要内容包括将等级上限提高到70，将血精灵和德莱尼作为可玩的种族引入，以及外域世界的加入，以及许多新区域、地下城、物品、任务和怪物。";
+	L.TIER_DATA[3].lore = "巫妖王之怒是第二个资料片。大部分资料片内容都发生在诺森德，并以巫妖王的计划为中心。内容亮点包括将等级上限从70增加到80，引入英雄职业死亡骑士，以及新的 PvP/世界 PvP 内容。";
+	L.TIER_DATA[4].lore = "大地的裂变是第三个资料片。随着死亡之翼的回归，重做艾泽拉斯大陆的卡利姆多和东部王国，他从位于元素位面深处的巢穴中破土而出，将艾泽拉斯撕成碎片。大灾难让玩家们回到艾泽拉斯的两大洲进行大部分的活动，开辟新的区域，如海加尔山、瓦斯琪尔、深岩之洲、奥丹姆和暮光高地。它包括两个新的可玩的种族，狼人和地精。资料片将等级上限提高到85，增加了在卡利姆多和东部王国飞行的能力，引入考古学和重做，并重做世界本身。";
+	L.TIER_DATA[5].lore = "潘达利亚之谜是第四个资料片。在潘达利亚意外重新发现之后，资料片主要重新集中在联盟和部落之间的战争。冒险者重新发现了古老的熊猫人，他们的智慧将有助于引导他们走向新的命运; 熊猫人帝国的古代敌人螳螂妖; 和他们传说中的压迫者神秘的魔古族。领土随着时间的推移而变化，瓦里安乌瑞恩和加尔鲁什地狱咆哮之间的冲突逐渐升级。内战席卷了部落，联盟和部落中反对地狱咆哮的暴力起义联合起来直接把战争带到地狱咆哮和被煞魔侵蚀的奥格瑞玛的盟友。";
+	L.TIER_DATA[6].lore = "德拉诺之王是第五个资料片。在德拉诺的原始丛林和战争创伤的平原上，艾泽拉斯的英雄们将参与一场神话般的冲突，包括神秘的德莱尼冠军和强大的兽人部落，以及在原始力量的顶峰与格罗玛什地狱咆哮、黑手和耐奥祖等。玩家需要在这片不受欢迎的土地上搜索盟友，以帮助建立一个绝望的防御，对抗旧部落强大的统治，或者观看他们自己世界上血腥的、饱受战争蹂躏的历史重演。";
+	L.TIER_DATA[7].lore = "军团再临是第六个资料片。古尔丹被驱逐到艾泽拉斯，重新开放萨格拉斯之墓和阿古斯之门，开始第三次入侵燃烧军团。在破碎海岸被击败后，艾泽拉斯的卫士们寻找创造之柱，这是艾泽拉斯关闭萨墓中心巨大的恶魔之门的唯一希望。然而，破碎群岛也有自己的危险要克服，从萨维斯到神王斯科瓦德，到夜之子，再到潮汐之力艾萨拉。卡德加将达拉然迁移到这片土地的海岸，这座城市是英雄的中心枢纽。阿彻鲁斯的死亡骑士也将他们漂浮的墓地带到了群岛。艾泽拉斯的英雄们在战斗中寻找传说中的神器，但也发现了伊利达雷的意外盟友。联盟和部落之间正在发生的冲突导致了阶级秩序的形成，特殊的指挥官搁置阵营纷争来领导他们的队伍参加对抗军团的斗争。";
+	L.TIER_DATA[8].lore = "决战艾泽拉斯是第七个资料片。艾泽拉斯为结束军团十字军的天启付出了惨重的代价，但即使世界上的创伤得到了修复，联盟和部落之间破碎的信任也可能是最难弥补的。在艾泽拉斯战役中，燃烧军团的垮台引发了一系列灾难性事件，重新引发了魔兽世界中心的冲突。随着一个新的战争时代的开始，艾泽拉斯的英雄们必须开始征募新的盟友，争夺世界上最强大的资源，并在多条战线上战斗，以确定部落或联盟是否会带领艾泽拉斯进入不确定的未来。";
+	L.TIER_DATA[9].lore = "暗影国度是第八个资料片。你所知道的世界之外还有什么? 暗影国度。每一个世俗的人(无论是邪恶的还是邪恶的)都曾居住过的地方。";
+	L.TIER_DATA[10].lore = "巨龙时代是第九个资料片。艾泽拉斯的巨龙军团已经回归，他们响应了召唤，前去保护自己世代相传的家园：巨龙群岛。巨龙群岛涌动着元素魔法和艾泽拉斯的生命能量，如今它已从睡梦中苏醒，原始的奇观和尘封已久的秘密正等待你去揭露。";
 	L.TITLES_DESC = "头衔会在你的战网中被追踪，但是，你的角色必须符合某些头衔的条件才能在该角色上使用。";
 	L.SHARED_APPEARANCES_LABEL = "共享外观";
 	L.SHARED_APPEARANCES_LABEL_DESC = "此列表中的物品是以下物品的共享外观。在唯一外观模式下，此列表可帮助了解特定物品被标记为已收藏的原因。";
@@ -704,8 +704,6 @@ for key,value in pairs({
 		[-88] = "修道院",												-- Cathedral
 	-- Garrisons
 		[-99] = "建筑",												-- Buildings
-	-- Class Trial
-		[-148] = string.format(SPELLBOOK_AVAILABLE_AT, 50).." ".."（试玩）",	-- Level 50 (Trial)
 	-- Garrison
 		[-152] = "要塞战役",											-- Garrison Campaign
 	-- Class Trial
@@ -777,7 +775,9 @@ for key,value in pairs({
 		[-577] = "魔兽电影",											-- Warcraft Movie
 		[-579] = "穿过黑暗之门",											-- Dark Portal Pass
 		[-580] = "暗影国度季节性促销",										-- Shadowlands Seasonal Promotions
-		[-581] = "极限冲层：第二季",										-- The Great Push: Season 2
+		[-581] = "燃烧的远征经典怀旧服典藏包",				-- TBC Classic Deluxe Edition
+		[-582] = "巫妖王之怒经典怀旧服诺森德英雄礼包",			-- WotLK Classic Northrend Heroic Upgrade ("Cheap")
+		[-583] = "巫妖王之怒经典怀旧服诺森德史诗礼包",			-- WotLK Classic Northrend Epic Upgrade
 	-- PvP Header
 		-- PvP Set Names
 			[-659] = "候选者套装",									-- Aspirant PvP Gear (WoD, BfA)
@@ -857,6 +857,18 @@ for key,value in pairs({
 		[-1009] = "史诗备选",											-- Mythic Alternative
 		[-1010] = "角斗士备选",											-- Gladiator Alternative
 		[-1011] = "精锐备选",											-- Elite Alternative
+	-- Temp
+		--TODO: [-1098] = "Side Quests",							-- Side Quests
+	-- Dragonflight
+		--TODO: [-1100] = "Dragon Customization",					-- Dragon Customization
+		--TODO: [-1101] = "Primal Storms",							-- Primal Storms
+		[-1110] = "龙鳞探险队",											-- Dragonscale Expedition
+		--TODO: [-1111] = "Climbing",								-- Climbing
+		[-1120] = "马鲁克半人马",											-- Maruuk Centaur
+		[-1121] = "艾拉格氏族",											-- Clan Aylaag
+		--TODO: [-1122] = "Grand Hunts",							-- Grand Hunts
+		[-1130] = "伊斯卡拉海象人",										-- Iskaara Tuskarr
+		[-1140] = "瓦德拉肯联军",											-- Valdrakken Accord
 	-- Warrior order hall lore items
 		[-2200] = "伟大的奥丁与炎魔之王",
 		[-2201] = "流浪者与蛇",
@@ -910,6 +922,12 @@ for key,value in pairs({
 				[-1433962] = "残破的镜子 D-3",							-- Broken Mirror
 })
 do a[key] = value; end
+if GetLocale() == "zhTW" then
+	a[-1110] = "龍鱗遠征隊";												-- Dragonscale Expedition
+	a[-1120] = "莫魯克半人馬";											-- Maruuk Centaur
+	a[-1130] = "伊斯凱拉巨牙海民";										-- Iskaara Tuskarr
+	a[-1140] = "沃卓肯協調者";											-- Valdrakken Accord
+end
 
 local a = L.HEADER_DESCRIPTIONS;
 for key,value in pairs({
@@ -1110,7 +1128,7 @@ for key, value in pairs({
 	[180503] = "盖满沙子的烹饪书",	-- Sandy Cookbook
 	[180570] = "小桶",	-- Keg
 	[180633] = "水晶之泪",	-- Crystalline Tear
-	--TODO: [180642] = "Inconspicuous Crate",	-- Inconspicuous Crate
+	[180642] = "不起眼的箱子",	-- Inconspicuous Crate	--TODO: This was taken from wotlk Wowhead
 	--TODO: [180652] = "Freshly Dug Dirt",	-- Freshly Dug Dirt
 	[180690] = "大型圣甲虫箱",	-- Large Scarab Coffer
 	[180691] = "圣甲虫箱",	-- Scarab Coffer
@@ -1122,19 +1140,19 @@ for key, value in pairs({
 	[180793] = "节日礼物",	-- Festive Gift
 	[180794] = "詹迪斯·巴罗夫的日记",	-- Journal of Jandice Barov	--TODO: This was taken from classic Wowhead
 	[180918] = "通缉：饥饿者泰里斯",	-- Wanted: Thaelis the Hungerer
-	[181011] = "魔导师达斯维瑟的日记",	-- Magister Duskwither's Journal	--TODO: This was taken from tbc Wowhead
-	[181073] = "薰炉",	-- Fragrant Cauldron	--TODO: This was taken from tbc Wowhead
+	[181011] = "魔导师达斯维瑟的日记",	-- Magister Duskwither's Journal	--TODO: This was taken from wotlk Wowhead
+	[181073] = "薰炉",	-- Fragrant Cauldron	--TODO: This was taken from wotlk Wowhead
 	[181074] = "竞技场的泥土",	-- Arena Spoils	--TODO: This was taken from classic Wowhead
 	--TODO: [181083] = "Sothos and Jarien's Heirlooms",	-- Sothos and Jarien's Heirlooms
 	[181147] = "通缉布告",	-- Wanted Poster
 	[181150] = "布满灰尘的日记",	-- Dusty Journal
 	[181153] = "通缉布告：邪恶的克尔加什",	-- Wanted Poster: Kel'gash the Wicked
 	[181638] = "通缉布告",	-- Wanted Poster
-	--TODO: [181643] = "Featherbeard's Remains",	-- Featherbeard's Remains
+	[181643] = "羽须的遗骸",	-- Featherbeard's Remains	--TODO: This was taken from wotlk Wowhead
 	[181649] = "羽须的日记",	-- Featherbeard's Journal
-	[181672] = "稻草人",	-- Wickerman Effigy	--TODO: This was taken from tbc Wowhead
-	[181698] = "虚空石",	-- Voidstone	--TODO: This was taken from tbc Wowhead
-	[181748] = "血水晶",	-- Blood Crystal	--TODO: This was taken from tbc Wowhead
+	[181672] = "稻草人",	-- Wickerman Effigy	--TODO: This was taken from wotlk Wowhead
+	[181698] = "虚空石",	-- Voidstone	--TODO: This was taken from wotlk Wowhead
+	[181748] = "血水晶",	-- Blood Crystal	--TODO: This was taken from wotlk Wowhead
 	--TODO: [181756] = "Battered Ancient Book",	-- Battered Ancient Book
 	[181889] = "通缉布告",	-- Wanted Poster
 	[182011] = "铁锭箱",	-- Crate of Ingots
@@ -1150,7 +1168,7 @@ for key, value in pairs({
 	[182947] = "鲜血法典",	-- The Codex of Blood
 	[182952] = "蒸汽泵废料",	-- Steam Pump Flotsam
 	[183284] = "通缉布告",	-- Wanted Poster
-	[183770] = "布纳尔控制台",	-- B'naar Control Console	--TODO: This was taken from tbc Wowhead
+	[183770] = "布纳尔控制台",	-- B'naar Control Console	--TODO: This was taken from wotlk Wowhead
 	[183811] = "通缉布告",	-- Wanted Poster
 	[184300] = "Necromantic Focus",	-- Necromantic Focus
 	[184465] = "军团宝箱",	-- Cache of the Legion
@@ -1160,7 +1178,7 @@ for key, value in pairs({
 	[184945] = "通缉布告",	-- Wanted Poster
 	[184946] = "通缉布告",	-- Wanted Poster
 	[185035] = "通缉布告",	-- Wanted Poster
-	[185126] = "水晶监牢",	-- Crystal Prison	--TODO: This was taken from tbc Wowhead
+	[185126] = "水晶监牢",	-- Crystal Prison	--TODO: This was taken from wotlk Wowhead
 	[185165] = "军团联络器",	-- Legion Communicator
 	[185166] = "通缉布告",	-- Wanted Poster
 	[185168] = "强化魔铁箱",	-- Reinforced Fel Iron Chest
@@ -1262,8 +1280,14 @@ for key, value in pairs({
 	[191766] = "达库鲁的命令",	-- Orders From Drakuru
 	[192049] = "利齿青鱼群",	-- Fangtooth Herring School
 	[192060] = "弗约恩之砧",	-- Fjorn's Anvil	--TODO: This was manually translated
+	[192071] = "弗约恩之砧",	-- Fjorn's Anvil
 	[192072] = "鱼叉箱",	-- Harpoon Crate
+	[192078] = "霍迪尔的号角",	-- Hodir's Horn
+	[192079] = "霍迪尔之矛",	-- Hodir's Spear
+	[192080] = "霍迪尔之盔",	-- Hodir's Helm
+	[192524] = "贪婪的安格里姆",	-- Arngrim the Insatiable
 	[192833] = "布雷登布莱德的物品",	-- Bridenbrad's Possessions
+	[193051] = "天灾蛛魔之卵",	-- Nerubian Scourge Egg
 	[193195] = "脉动的水晶",	-- Pulsing Crystal
 	[193400] = "萨隆邪铁炸弹堆",	-- Saronite Bomb Stack
 	[194032] = "联盟篝火",	-- Alliance Bonfire
@@ -1290,6 +1314,7 @@ for key, value in pairs({
 	[194389] = "被盗的探险者协会文件",	-- Stolen Explorers' League Document
 	[194390] = "被盗的探险者协会文件",	-- Stolen Explorers' League Document
 	[194391] = "被盗的探险者协会文件",	-- Stolen Explorers' League Document
+	[194555] = "档案馆控制台",	-- Archivum Console
 	[194714] = "恶心的工作台",	-- Disgusting Workbench
 	[195134] = "大炸弹",	-- The Bomb	--TODO: This was manually translated
 	[195431] = "总部无线电",	-- Headquarters Radio
@@ -2216,6 +2241,7 @@ for key, value in pairs({
 	--TODO: [252282] = "Sparkling Set of Keys",	-- Sparkling Set of Keys
 	[252284] = "一堆黏性炸弹",	-- Pile of Sticky Bombs
 	[252289] = "消失粉",	-- Vanishing Powder
+	[252395] = "死亡战马马桩",	-- Deathcharger Hitching Post
 	[252412] = "|cFFFFFFFF第2步:|r 泥土堆",	-- |cFFFFFFFFStep 2:|r Mound of Dirt
 	[252432] = "发光的远古魔力晶簇",	-- Shimmering Ancient Mana Cluster
 	[252434] = "|cFFFFFFFF第12步:|r 饥渴宝珠",	-- |cFFFFFFFFStep 12:|r Hungering Orb X
@@ -2624,6 +2650,7 @@ for key, value in pairs({
 	[303016] = "|cFFFFFFFF第14步:|r 普通的卵石 XIII",	-- |cFFFFFFFFStep 14:|r Ordinary Pebble XIII
 	[303017] = "|cFFFFFFFF第13步:|r 普通的卵石 XII",	-- |cFFFFFFFFStep 13:|r Ordinary Pebble XII
 	[303018] = "|cFFFFFFFF第12步:|r 普通的卵石 XI",	-- |cFFFFFFFFStep 12:|r Ordinary Pebble XI
+	[303039] = "奇怪的谷物袋",	-- Curious Grain Sack
 	[307265] = "通缉布告",	-- Wanted Poster
 	[307277] = "旧酒壶",	-- Old Jug	--TODO: This was manually translated
 	[307307] = "破损的桶",	-- Broken Barrel
@@ -2830,6 +2857,7 @@ for key, value in pairs({
 	[353686] = "月光之荚",	-- Lunarlight Pod
 	[353687] = "破损之钟",	-- Broken Bell
 	[353688] = "破损之钟",	-- Broken Bell
+	[353689] = "破损之钟",	-- Broken Bell
 	[353691] = "天空之钟",	-- Skyward Bell
 	[353791] = "城堡保险箱",	-- Castle Strongbox
 	[353792] = "村庄保险箱",	-- Village Strongbox
@@ -3185,6 +3213,35 @@ for key, value in pairs({
 	[375987] = "流亡者菲历姆，第七章",	-- Firim in Exile, Part 7
 	--TODO: [375988] = "Firim in Exile, Epilogue",	-- Firim in Exile, Epilogue
 	[376041] = "氤氲密文宝箱",	-- Shrouded Cypher Cache
+	--TODO: [376124] = "Bag of Enchanted Wind",	-- Bag of Enchanted Wind
+	--TODO: [376175] = "Fullsails Supply Chest",	-- Fullsails Supply Chest
+	--TODO: [376213] = "Mysterious Wand",	-- Mysterious Wand
+	--TODO: [376386] = "Disturbed Dirt",	-- Disturbed Dirt
+	--TODO: [376451] = "Bronze Stopwatch",	-- Bronze Stopwatch
+	--TODO: [376587] = "Expedition Scout's Pack",	-- Expedition Scout's Pack
+	--TODO: [376757] = "WANTED: Frigellus",	-- WANTED: Frigellus
+	--TODO: [377114] = "Coil of Heavy Rope",	-- Coil of Heavy Rope
+	--TODO: [377317] = "Treasure Hoard",	-- Treasure Hoard
+	--TODO: [377499] = "On the Origin of Draconic Species",	-- On the Origin of Draconic Species
+	--TODO: [379290] = "Ornamented Statue",	-- Ornamented Statue
+	--TODO: [379321] = "Mysterious Paw Print",	-- Mysterious Paw Print
+	--TODO: [380547] = "Decay-Infused Tanning Oil",	-- Decay-Infused Tanning Oil
+	--TODO: [380902] = "Fields of Ferocity",	-- Fields of Ferocity
+	--TODO: [381045] = "Replica Dragon Goblet",	-- Replica Dragon Goblet
+	--TODO: [381296] = "Horrible Mess",	-- Horrible Mess
+	--TODO: [381297] = "Misplaced Luggage",	-- Misplaced Luggage
+	--TODO: [381650] = "Archivist's Request",	-- Archivist's Request
+	--TODO: [381653] = "Fang Flap Fire Signups",	-- Fang Flap Fire Signups
+	--TODO: [381667] = "Archivist's Request",	-- Archivist's Request
+	--TODO: [381668] = "Archivist's Request",	-- Archivist's Request
+	--TODO: [381669] = "Archivist's Request",	-- Archivist's Request
+	--TODO: [381670] = "Archivist's Request",	-- Archivist's Request
+	--TODO: [381671] = "Archivists' Request",	-- Archivists' Request
+	--TODO: [381672] = "Archivist's Request",	-- Archivist's Request
+	--TODO: [381687] = "Discarded Note",	-- Discarded Note
+	--TODO: [381701] = "WANTED: Mara'nar the Thunderous",	-- WANTED: Mara'nar the Thunderous
+	--TODO: [382029] = "Disturbed Dirt",	-- Disturbed Dirt
+	--TODO: [382166] = "The Ruby Fest!",	-- The Ruby Fest!
 	[9962198] = "流亡者的简易泥池",	-- Outcast's Makeshift Muckpool
 	--TODO: [9999890] = "Corrupted Loot",	-- Corrupted Loot
 	--TODO: [9999891] = "Main Objective Only",	-- Main Objective Only

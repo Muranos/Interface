@@ -67,6 +67,7 @@ end
 function mod:OnEngage()
 	crystalHandlersSpawned = 1
 	crystalHandlersLeft = 4
+	self:SetStage(1)
 	self:MessageOld("stages", "cyan", nil, CL.stage:format(1), false)
 	self:CDBar("adds", 15.5, CL.count:format(self:SpellName(-6378), crystalHandlersSpawned), "spell_shadow_raisedead")
 end
@@ -80,7 +81,7 @@ do
 	local prev = 0
 	function mod:GroundDamage(args)
 		if self:Me(args.destGUID) then
-			local t = GetTime()
+			local t = args.time
 			if t - prev > 1.5 then
 				prev = t
 				self:MessageOld(args.spellId == 59854 and 49034 or args.spellId, "blue", "alert", CL.you:format(args.spellName))
@@ -110,7 +111,9 @@ end
 
 -- Stage 2
 function mod:UNIT_TARGETABLE_CHANGED(_, unit)
+	if self:MobId(self:UnitGUID(unit)) ~= 26631 or self:GetStage() == 2 then return end
 	if UnitCanAttack("player", unit) then
+		self:SetStage(2)
 		self:MessageOld("stages", "cyan", nil, CL.stage:format(2), false)
 		self:CDBar(50089, 6) -- Wrath of Misery
 		if not self:Normal() then

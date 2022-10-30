@@ -89,6 +89,7 @@ if L then
 	L.ephemeral_fissure = "Fissure"
 
 	L.bomb_dropped = "Bombe posée"
+	--L.volatile_charges_new = "New Bombs!"
 
 	L.custom_on_stop_timers = "Toujours afficher les compétences du boss"
 	L.custom_on_stop_timers_desc = "Il se peut que les timers soient décalés selon le déroulement du combnat. Quand cette option est activée, les compétences utilisées par le boss resteront affichées."

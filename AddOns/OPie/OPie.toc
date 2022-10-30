@@ -1,6 +1,6 @@
 ## Interface: 90207
 ## Title: OPie
-## Version: Xe 8
+## Version: Xe 9
 ## Author: foxlit
 ## Notes: Group abilities into rings that appear when you hold down a binding.
 ## X-Website: https://www.townlong-yak.com/addons/opie

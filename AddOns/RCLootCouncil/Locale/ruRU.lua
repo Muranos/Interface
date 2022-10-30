@@ -451,6 +451,10 @@ L["opt_rejectTrade_Name"] = "Разрешить оставить"
 --[[ L["opt_skipSessionFrame_desc"] = ""--]] 
 L["opt_skipSessionFrame_name"] = "Пропустить окно сессии"
 --[[Translation missing --]]
+--[[ L["opt_useSlashRC_desc"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["opt_useSlashRC_name"] = ""--]] 
+--[[Translation missing --]]
 --[[ L["options_autoAwardBoE_desc"] = ""--]] 
 L["options_autoAwardBoE_name"] = "Автонаграждение БоЕ"
 --[[Translation missing --]]

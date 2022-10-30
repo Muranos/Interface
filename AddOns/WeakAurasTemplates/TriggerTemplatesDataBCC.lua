@@ -1,3 +1,4 @@
+local AddonName, TemplatePrivate = ...
 local WeakAuras = WeakAuras
 if not WeakAuras.IsBCC() then return end
 local L = WeakAuras.L
@@ -657,7 +658,7 @@ templates.class.WARLOCK = {
         { spell = 17862, type = "debuff", unit = "target"}, -- Curse of Shadow
         { spell = 18223, type = "debuff", unit = "target", talent = 15}, -- Curse of Exhaustion
         { spell = 18265, type = "debuff", unit = "target", talent = 14}, -- Siphon Life
-        { spell = 30108, type = "debuff", unit = "target", talent = 21}, -- Unstable Afflication
+        { spell = 30108, type = "debuff", unit = "target", talent = 21}, -- Unstable Affliction
       },
       icon = 136139
     },
@@ -689,7 +690,7 @@ templates.class.WARLOCK = {
         { spell = 18288, type = "ability", buff = true, talent = 9}, -- Amplify Curse
         { spell = 18708, type = "ability", talent = 28}, -- Fel Domination
         { spell = 18877, type = "ability", requiresTarget = true, debuff = true, talent = 88}, -- Shadowburn
-        { spell = 30108, ability = "ability", debuff = true, requiresTarget = true, talent = 21}, -- Unstable Afflication
+        { spell = 30108, ability = "ability", debuff = true, requiresTarget = true, talent = 21}, -- Unstable Affliction
         { spell = 30283, type = "ability", debuff = true, talent = 101}, -- Fel Domination
       },
       icon = 135808
@@ -1149,18 +1150,4 @@ itemInfoReceived:SetScript("OnEvent", function()
 end);
 
 
--- Enrich Display templates with default values
-for regionType, regionData in pairs(WeakAuras.regionOptions) do
-  if (regionData.templates) then
-    for _, item in ipairs(regionData.templates) do
-      for k, v in pairs(WeakAuras.regionTypes[regionType].default) do
-        if (item.data[k] == nil) then
-          item.data[k] = v;
-        end
-      end
-    end
-  end
-end
-
-
-WeakAuras.triggerTemplates = templates;
+TemplatePrivate.triggerTemplates = templates
