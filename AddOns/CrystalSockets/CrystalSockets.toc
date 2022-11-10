@@ -16,7 +16,7 @@
 
 # Credit to Simulationcraft creators for the copy frame.
 
-## Interface: 90005
+## Interface: 100000
 ## Title: Crystal Sockets
 ## Author: Nivix
 ## Version: 1.8

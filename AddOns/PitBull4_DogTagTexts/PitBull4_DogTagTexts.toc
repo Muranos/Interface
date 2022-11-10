@@ -25,7 +25,7 @@
 ## LoadOnDemand: 1
 ## Dependencies: PitBull4
 ## OptionalDeps: LibDogTag-3.0, LibDogTag-Unit-3.0
-## Version: v4.2.21
+## Version: v4.2.22
 ## X-PitBull4-DefaultState: disabled
 
 load.xml

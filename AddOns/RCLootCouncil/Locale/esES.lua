@@ -130,6 +130,8 @@ L["channel_desc"] = "El canal para enviar el mensaje."
 L["Chat print"] = "Imprimir chat"
 L["chat tVersion string"] = "|cFF87CEFARCLootCouncil |cFFFFFFFFversion |cFFFFA500 %s - %s"
 L["chat version String"] = "|cFF87CEFARCLootCouncil |cFFFFFFFFversion |cFFFFA500 %s"
+--[[Translation missing --]]
+--[[ L["chat_cmd_add_found_items"] = ""--]] 
 L["chat_cmd_add_invalid_owner"] = "El personaje %s no era válido o bien no era candidato."
 L["chat_commands_add"] = "Añade un objeto al cuadro de sesion"
 L["chat_commands_award"] = "Empieza una sesion con los objetos conseguidos en tu inventario."

@@ -326,7 +326,19 @@ function Bartender4:Lock()
 	end
 end
 
-function Bartender4:Merge(target, source)
+Bartender4.Util = {}
+function Bartender4.Util:PurgeKey(t, k)
+	t[k] = nil
+	local c = 42
+	repeat
+		if t[c] == nil then
+			t[c] = nil
+		end
+		c = c + 1
+	until issecurevariable(t, k)
+end
+
+function Bartender4.Util:Merge(target, source)
 	if type(target) ~= "table" then target = {} end
 	for k,v in pairs(source) do
 		if type(v) == "table" then

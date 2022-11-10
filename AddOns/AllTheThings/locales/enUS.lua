@@ -499,6 +499,7 @@ app.L = {
 	["TOOLTIP_MOD_SHIFT"] = SHIFT_KEY_TEXT;
 	["TOOLTIP_MOD_CTRL"] = CTRL_KEY_TEXT;
 	["TOOLTIP_MOD_ALT"] = ALT_KEY_TEXT;
+	["TOOLTIP_MOD_CMD"] = CMD_KEY_TEXT;
 	["TOOLTIP_SHOW_LABEL"] = "Shown Information";
 	["SHOW_COLLECTION_PROGRESS_CHECKBOX"] = "Collection Progress";
 	["SHOW_COLLECTION_PROGRESS_CHECKBOX_TOOLTIP"] = "Enable this option if you want to see your progress towards collecting a Thing or completing a group of Things at the Top Right of its tooltip.\n\nWe recommend that you keep this setting turned on.";
@@ -685,10 +686,12 @@ app.L = {
 	["SECRETS_HEADER"] = "Secrets";
 	["LIMITED_QUANTITY"] = "This has a limited quantity and may not always be present on the vendor.";
 	["SOURCE_ID_MISSING"] = "Please report this Item and where it was acquired to the ATT Discord in #retail-errors!";
+	["ADDED_WITH_PATCH_FORMAT"] = "This gets added in patch %s";
 	["REMOVED_WITH_PATCH_FORMAT"] = "This gets removed in patch %s";
 
 	-- Filter Text
 	["ACHIEVEMENT_ID"] = "Achievement ID";
+	["ACHIEVEMENT_CATEGORY_ID"] = "Achievement Category ID";
 	["ARTIFACT_ID"] = "Artifact ID";
 	["AZERITE_ESSENCE_ID"] = "Azerite Essence ID";
 	["CREATURE_ID"] = "Creature ID";
@@ -698,6 +701,7 @@ app.L = {
 	["EXPANSION_ID"] = "Expansion ID";
 	["FILTER_ID"] = "Filter ID";
 	["FOLLOWER_ID"] = "Follower ID";
+	["HEADER_ID"] = "Header ID";
 	["ILLUSION_ID"] = "Illusion ID";
 	["INSTANCE_ID"] = "Instance ID";
 	["ITEM_ID"] = "Item ID";
@@ -1017,6 +1021,7 @@ app.L = {
 		[-60] = "Interface\\Icons\\inv_thanksgiving_turkey",								-- Pilgrim's Bounty
 		[-61] = "Interface\\Icons\\achievement_worldevent_merrymaker",						-- The Feast of Winter Veil
 		[-62] = "Interface\\Icons\\inv_misc_fish_06",										-- Stranglethorn Fishing Extravaganza
+		[-63] = "Interface\\Icons\\inv_fishingpole_03",										-- Kalu'ak Fishing Derby
 	-- Maraudon
 		[-69] = "Interface\\Icons\\spell_arcane_portalironforge",							-- Maraudon Purple
 		[-70] = "Interface\\Icons\\INV_Jewelcrafting_ArgusGemUncut_Orange_MiscIcons",		-- Orange
@@ -1206,8 +1211,9 @@ app.L = {
 	-- Blizzard Events and Anniversaries
 		[-519] = app.asset("Category_Event"),												-- World Events
 		[-520] = "Interface\\Icons\\inv_misc_missilesmallcluster_green",					-- Expansion Pre-Launch
-		[-522] = "Interface\\Icons\\expansionicon_wrathofthelichking",						-- Wotlk: Zombie Infestation
+		[-522] = "Interface\\Icons\\inv_misc_tournaments_banner_troll",						-- Zalazane's Fall
 		[-523] = app.asset("Expansion_CATA"),												-- Elemental Unrest
+		[-524] = "Interface\\Icons\\inv_misc_tournaments_symbol_gnome",						-- Operation: Gnomeregan
 		[-525] = "Interface\\Icons\\Achievement_Boss_Blackhand",							-- WoD: Iron Horde Incursion
 		[-526] = "Interface\\Icons\\inv_legionadventure",									-- Legion: Legion Invasion
 		[-527] = "Interface\\Icons\\Spell_Shaman_StormEarthFire",							-- BFA: War of the Thorns
@@ -1404,19 +1410,22 @@ app.L = {
 		[-1010] = "Interface\\Worldmap\\GlowSkull_64Purple",
 		[-1011] = "Interface\\Worldmap\\GlowSkull_64Red",
 	-- Temp
-		[-1098] = 236785,																			-- Side Quests
 		[-1099] = "Interface\\Icons\\inv_legioncampaign04",											-- Campaign
 	-- Dragonflight
 		[-1100] = "Interface\\Icons\\ability_dragonriding_glyph01",									-- Dragon Customization
 		[-1101] = "Interface\\Icons\\inv_10_dungeonjewelry_primalist_trinket_1ragingelement_air",	-- Primal Storms
 		[-1110] = "Interface\\Icons\\ui_majorfaction_expedition",									-- Dragonscale Expedition
 		[-1111] = "Interface\\Icons\\inv_cape_special_climbingpack_b_01",							-- Climbing
+		[-1112] = "Interface\\Icons\\inv_misc_-selfiecamera_01",									-- Cataloging
 		[-1120] = "Interface\\Icons\\ui_majorfaction_centaur",										-- Maruuk Centaur
 		[-1121] = "Interface\\Icons\\ability_racial_returntocamp",									-- Clan Aylaag
 		[-1122] = "Interface\\Icons\\inv_scroll_11",												-- Grand Hunts
 		[-1130] = "Interface\\Icons\\ui_majorfaction_tuskarr",										-- Iskaara Tuskarr
 		[-1131] = "Interface\\Icons\\inv_polearm_2h_kultirasharpoon_a_01",							-- Iskaara Fishing
+		[-1132] = "Interface\\Icons\\inv_tradeskill_cooking_stonesouppot01",						-- Iskaara Cooking
 		[-1140] = "Interface\\Icons\\ui_majorfaction_valdrakken",									-- Valdrakken Accord
+		[-1141] = "Interface\\Icons\\inv_artifact_dragonscales",									-- Siege on Dragonbane Keep
+		[-1142] = "Interface\\Icons\\inv_checkered_flag",											-- Aerial Challenges
 	-- Warrior order hall lore items
 		[-2200] = "Interface\\Icons\\inv_scroll_11",										-- Warrior order hall lore item
 		[-2201] = "Interface\\Icons\\inv_scroll_11",										-- Warrior order hall lore item
@@ -1564,6 +1573,7 @@ app.L = {
 		[-60] = select(1,GetCategoryInfo(14981)),								-- Pilgrim's Bounty
 		[-61] = GetSpellInfo(21953),											-- The Feast of Winter Veil
 		[-62] = "Stranglethorn Fishing Extravaganza",							-- Stranglethorn Fishing Extravaganza
+		[-63] = "Kalu'ak Fishing Derby",
 
 		[-69] = GetSpellInfo(21127),											-- Maraudon Portal
 		[-70] = DUNGEON_FLOOR_DESOLACE22.." - "..GetSpellInfo(251097),			-- Foulspore Cavern [Orange]
@@ -1756,8 +1766,9 @@ app.L = {
 	-- Blizzard Events and Anniversaries
 		[-519] = "World Events",												-- World Events
 		[-520] = "Expansion Pre-Launch",										-- Expansion Pre-Launch
-		[-522] = EXPANSION_NAME2..": Zombie Infestation",						-- Wrath of the Lich King: Zombie Infestation
+		[-522] = "Zalazane's Fall",												-- Zalazane's Fall
 		[-523] = "Elemental Unrest",											-- Elemental Unrest
+		[-524] = "Operation: Gnomeregan",										-- Operation: Gnomeregan
 		[-525] = EXPANSION_NAME5..": Iron Horde Incursion",						-- Warlords of Draenor: Iron Horde Incursion
 		[-526] = EXPANSION_NAME6..": Legion Invasion",							-- Legion: Legion Invasion
 		[-527] = EXPANSION_NAME7..": War of the Thorns",						-- Battle for Azeroth: War of the Thorns
@@ -1973,19 +1984,22 @@ app.L = {
 		[-1010] = "Gladiator Alternative",											-- Gladiator Alternative
 		[-1011] = "Elite Alternative",												-- Elite Alternative
 	-- Temp
-		[-1098] = "Side Quests",													-- Side Quests
 		[-1099] = TRACKER_HEADER_CAMPAIGN_QUESTS,									-- Campaign
 	-- Dragonflight
 		[-1100] = "Dragon Customization",											-- Dragon Customization
 		[-1101] = "Primal Storms",													-- Primal Storms
 		[-1110] = "Dragonscale Expedition",											-- Dragonscale Expedition
 		[-1111] = "Climbing",														-- Climbing
+		[-1112] = "Cataloging",														-- Cataloging
  		[-1120] = "Maruuk Centaur",													-- Maruuk Centaur
 		[-1121] = "Clan Aylaag",													-- Clan Aylaag
 		[-1122] = "Grand Hunts",													-- Grand Hunts
 		[-1130] = "Iskaara Tuskarr",												-- Iskaara Tuskarr
 		[-1131] = "Iskaara Fishing",												-- Iskaara Fishing
+		[-1132] = "Iskaara Cooking",												-- Iskaara Cooking
 		[-1140] = "Valdrakken Accord",												-- Valdrakken Accord
+		[-1141] = "Siege On Dragonbane Keep",										-- Siege on Dragonbane Keep
+		[-1142] = "Aerial Challenges",												-- Aerial Challenges
 	-- Warrior order hall lore items
 		[-2200] = "Great Odyn and the Firelord",
 		[-2201] = "The Wanderer and the Serpent",
@@ -2190,6 +2204,7 @@ app.L = {
 		[1015] = {4, "|CFF00FFDEThis requires the Stranglethorn Fishing Extravaganza to be active.|r", "Stranglethorn Fishing Extravaganza"},
 		[1016] = {4, "|CFF00FFDEThis requires the Timewalking Event to be active.|r", "Timewalking"},
 		[1017] = {4, "|CFF00FFDEThis requires the WoW's Anniversary Event to be active.|r", "WoW's Anniversary"},
+		[1018] = {4, "|CFF00FFDEThis requires the Kalu'ak Fishing Derby to be active.|r", "Kalu'ak Fishing Derby"},
 	};
 
 	["CUSTOM_COLLECTS_REASONS"] = {

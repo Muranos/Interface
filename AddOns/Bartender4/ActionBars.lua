@@ -12,16 +12,52 @@ local WoWClassic = (WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE)
 local WoWWrath = (WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC)
 local WoW10 = select(4, GetBuildInfo()) >= 100000
 
+local LSM = LibStub("LibSharedMedia-3.0")
+
 -- GLOBALS: UnitClass, InCombatLockdown, GetBindingKey, ClearOverrideBindings, SetOverrideBindingClick
 
 local abdefaults = {
-	['**'] = Bartender4:Merge({
+	['**'] = Bartender4.Util:Merge({
 		enabled = true,
 		buttons = 12,
 		buttonOffset = 0,
 		hidemacrotext = false,
 		showgrid = false,
 		flyoutDirection = "UP",
+		elements = {
+			['**'] = {
+				font = "Arial Narrow",
+				fontSize = 13,
+				fontFlags = "OUTLINE",
+				fontColor = {1, 1, 1},
+				textAnchor = "CENTER",
+				textOffsetX = 0,
+				textOffsetY = 0,
+				textJustifyH = "CENTER",
+			},
+			hotkey = {
+				fontSize = WoW10 and 16 or 13,
+				fontColor = {0.9, 0.9, 0.9},
+				textAnchor = "TOPRIGHT",
+				textOffsetX = -2,
+				textOffsetY = -4,
+				textJustifyH = "RIGHT",
+			},
+			count = {
+				fontSize = WoW10 and 19 or 16,
+				textAnchor = "BOTTOMRIGHT",
+				textOffsetX = -2,
+				textOffsetY = 4,
+				textJustifyH = "RIGHT",
+			},
+			macro = {
+				font = "Friz Quadrata TT",
+				fontSize = WoW10 and 11 or 10,
+				textAnchor = "BOTTOM",
+				textOffsetX = 0,
+				textOffsetY = 2,
+			},
+		},
 	}, Bartender4.StateBar.defaults),
 	[1] = {
 		states = {
@@ -33,6 +69,7 @@ local abdefaults = {
 				ROGUE = WoWWrath and { stealth = 7, shadowdance = 8 } or { stealth = 7 },
 				WARRIOR = WoWClassic and { battle = 7, def = 8, berserker = 9 } or nil,
 				PRIEST = WoWClassic and { shadowform = 7 } or nil,
+				EVOKER = { soar = 7 },
 			},
 		},
 		visibility = {
@@ -114,6 +151,16 @@ function BT4ActionBars:OnEnable()
 
 	self:RegisterEvent("UPDATE_BINDINGS", "ReassignBindings")
 	self:ReassignBindings()
+
+	LSM.RegisterCallback(self, "LibSharedMedia_Registered", function(mtype, key)
+		if mtype == "font" then
+			for k, bar in pairs(self.actionbars) do
+				if bar.config.elements.hotkey.font == key or bar.config.elements.count.font == key or bar.config.elements.macro.font == key then
+					bar:UpdateButtonConfig()
+				end
+			end
+		end
+	end)
 end
 
 function BT4ActionBars:SetupOptions()

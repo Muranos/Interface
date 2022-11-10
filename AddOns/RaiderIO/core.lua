@@ -171,8 +171,7 @@ do
         r, g, b = r or 1, g or 1, b or 0
         DEFAULT_CHAT_FRAME:AddMessage(tostring(text), r, g, b, ...)
     end
-
-    ns.EXPANSION = max(LE_EXPANSION_BATTLE_FOR_AZEROTH, GetExpansionLevel() - 1)
+    ns.EXPANSION = max(GetServerExpansionLevel(), GetMinimumExpansionLevel(), GetExpansionLevel()) - 1
     ns.MAX_LEVEL = GetMaxLevelForExpansionLevel(ns.EXPANSION)
     ns.REGION_TO_LTD = {"us", "kr", "eu", "tw", "cn"}
     ns.FACTION_TO_ID = {Alliance = 1, Horde = 2, Neutral = 3}
@@ -196,6 +195,7 @@ do
     -- threshold for comparing current character's previous season score to current score
     -- meaning: once current score exceeds this fraction of previous season, then show current season
     local PREVIOUS_SEASON_NUM_DUNGEONS = 10
+    local DUNGEONS = ns.DUNGEONS or ns.dungeons -- DEPRECATED: ns.dungeons
     ns.PREVIOUS_SEASON_SCORE_RELEVANCE_THRESHOLD = min((#DUNGEONS / PREVIOUS_SEASON_NUM_DUNGEONS) * 0.9, 0.9)
     ns.PREVIOUS_SEASON_MAIN_SCORE_RELEVANCE_THRESHOLD = min((#DUNGEONS / PREVIOUS_SEASON_NUM_DUNGEONS) * 0.9, 0.9)
 
@@ -1259,6 +1259,80 @@ do
         return true
     end
 
+    ---@param frame Region
+    ---@param parent Region
+    local function IsParentedBy(frame, parent)
+        if type(frame) ~= "table" or type(parent) ~= "table" or type(frame.GetParent) ~= "function" or type(parent.GetParent) ~= "function" then
+            return
+        end
+        local current = frame ---@type Region?
+        while current do
+            ---@diagnostic disable-next-line: need-check-nil
+            current = current:GetParent() ---@type Region?
+            if not current then
+                return false
+            elseif current == parent then
+                return true
+            end
+        end
+    end
+
+    ---@param frame Region @Any interface widget object that supports the methods GetScript.
+    ---@param onEnter fun() @Any function originating from the OnEnter handler.
+    ---@return boolean|nil @If the provided object is not a region or has no function we return `nil`, otherwise `true` that it is safe to call, and `false` that it is unsafe to call its function.
+    local function IsOnEnterSafe(frame, onEnter)
+        if type(frame) ~= "table" or type(frame.GetScript) ~= "function" or type(onEnter) ~= "function" then
+            return
+        end
+        -- profile.lua
+        if frame == _G[addonName .. "_ProfileTooltipAnchor"] then return end
+        -- guildweekly.lua
+        if frame == _G[addonName .. "_GuildWeeklyFrame"] then return true end
+        -- whotooltip.lua
+        if IsParentedBy(frame, WhoFrame.ScrollBox) then return true end
+        -- guildtooltip.lua
+        if IsParentedBy(frame, GuildRosterContainer) then return true end
+        -- communitytooltip.lua
+        if CommunitiesFrame and ClubFinderGuildFinderFrame and ClubFinderCommunityAndGuildFinderFrame then
+            if IsParentedBy(frame, CommunitiesFrame.MemberList.ScrollBox) then return true end
+            if IsParentedBy(frame, ClubFinderGuildFinderFrame.CommunityCards.ScrollBox) then return true end
+            if IsParentedBy(frame, ClubFinderGuildFinderFrame.PendingCommunityCards.ScrollBox) then return true end
+            if IsParentedBy(frame, ClubFinderCommunityAndGuildFinderFrame.CommunityCards.ScrollBox) then return true end
+            if IsParentedBy(frame, ClubFinderCommunityAndGuildFinderFrame.PendingCommunityCards.ScrollBox) then return true end
+        end
+        -- anything else is assumed unsafe (we want to minimize the taint risks)
+        return false
+    end
+
+    ---@alias ExecuteWidgetOnEnterSafelyStatus
+    ---| 0 #Region is invalid or doesn't have a script handler.
+    ---| 1 #Script handler ignored due to safety concerns.
+    ---| 2 #Script handler executed successfully.
+    ---| 3 #Script handler executed but silently errored.
+
+    ---@param object Region @Any interface widget object that supports the methods GetScript.
+    ---@param before? fun() @Optional function to run right before the OnEnter script executes.
+    ---@return ExecuteWidgetOnEnterSafelyStatus @Returns a status enum to indicate the outcome of the call.
+    function util:ExecuteWidgetOnEnterSafely(object, before)
+        if type(object) ~= "table" or type(object.GetScript) ~= "function" then
+            return 0
+        end
+        local func = object:GetScript("OnEnter")
+        if type(func) ~= "function" then
+            return 0
+        end
+        if not IsOnEnterSafe(object, func) then
+            return 1
+        end
+        if type(before) == "function" then
+            before()
+        end
+        if not pcall(func, object) then
+            return 3
+        end
+        return 2
+    end
+
     ---@param object Region @Any interface widget object that supports the methods GetOwner.
     ---@param owner Region @Any interface widget object.
     ---@param anchor string @`ANCHOR_TOPLEFT`, `ANCHOR_NONE`, `ANCHOR_CURSOR`, etc.
@@ -1880,6 +1954,38 @@ do
         return format("https://raider.io/characters/%s/%s/%s/%s?utm_source=addon", ns.PLAYER_REGION, realmSlug, name, urlSuffix), name, realm, realmSlug
     end
 
+    ---@class InternalStaticPopupDialog
+    ---@field public id string
+    ---@field public text string|fun(): string
+    ---@field public button1? string
+    ---@field public button2? string
+    ---@field public EditBoxOnEscapePressed? fun(self: InternalStaticPopupDialog)
+    ---@field public editBoxWidth? number
+    ---@field public hasEditBox? boolean
+    ---@field public hasWideEditBox? boolean
+    ---@field public hideOnEscape? boolean
+    ---@field public OnAccept? fun(self: InternalStaticPopupDialog)
+    ---@field public OnCancel? fun(self: InternalStaticPopupDialog)
+    ---@field public OnShow? fun(self: InternalStaticPopupDialog)
+    ---@field public OnHide? fun(self: InternalStaticPopupDialog)
+    ---@field public preferredIndex? number
+    ---@field public timeout? number
+    ---@field public whileDead? boolean
+
+    ---@param popup InternalStaticPopupDialog
+    ---@param ... any
+    function util:ShowStaticPopupDialog(popup, ...)
+        local id = popup.id
+        if not StaticPopupDialogs[id] then
+            if type(popup.text) == "function" then
+                popup.text = popup.text()
+            end
+            StaticPopupDialogs[id] = popup
+        end
+        return StaticPopup_Show(id, ...)
+    end
+
+    ---@type InternalStaticPopupDialog
     local COPY_PROFILE_URL_POPUP = {
         id = "RAIDERIO_COPY_URL",
         text = "%s",
@@ -1910,15 +2016,13 @@ do
         OnCancel = nil
     }
 
-    StaticPopupDialogs[COPY_PROFILE_URL_POPUP.id] = COPY_PROFILE_URL_POPUP
-
     function util:ShowCopyRaiderIOProfilePopup(...)
         local url, name, realm = util:GetRaiderIOProfileUrl(...)
         if IsModifiedClick("CHATLINK") then
             local editBox = ChatFrame_OpenChat(url, DEFAULT_CHAT_FRAME)
             editBox:HighlightText()
         else
-            StaticPopup_Show(COPY_PROFILE_URL_POPUP.id, format("%s (%s)", name, realm), url)
+            util:ShowStaticPopupDialog(COPY_PROFILE_URL_POPUP, format("%s (%s)", name, realm), url)
         end
     end
 
@@ -1929,7 +2033,7 @@ do
             local editBox = ChatFrame_OpenChat(url, DEFAULT_CHAT_FRAME)
             editBox:HighlightText()
         else
-            StaticPopup_Show(COPY_PROFILE_URL_POPUP.id, format("%s (%s)", name, realm), url)
+            util:ShowStaticPopupDialog(COPY_PROFILE_URL_POPUP, format("%s (%s)", name, realm), url)
         end
     end
 
@@ -2043,8 +2147,8 @@ do
         return o
     end
 
-    local exportButton
-    local exportPopup = {
+    ---@type InternalStaticPopupDialog
+    local EXPORT_GROUP_JSON_POPUP = {
         id = "RAIDERIO_EXPORTJSON_DIALOG",
         text = L.EXPORTJSON_COPY_TEXT,
         button2 = CLOSE,
@@ -2061,6 +2165,8 @@ do
         OnCancel = nil,
         EditBoxOnEscapePressed = function(self) self:GetParent():Hide() end
     }
+
+    local exportButton
 
     local RoleNameToBit = {
         TANK = 4,
@@ -2187,7 +2293,7 @@ do
             json:CloseCopyDialog()
             return false
         end
-        local frameName, frame = StaticPopup_Visible(exportPopup.id)
+        local frameName, frame = StaticPopup_Visible(EXPORT_GROUP_JSON_POPUP.id)
         if not frame then
             return false
         end
@@ -2230,13 +2336,6 @@ do
         return button
     end
 
-    local function PreparePopup(popup)
-        if type(popup.text) == "function" then
-            popup.text = popup.text()
-        end
-        return popup
-    end
-
     function json:CanLoad()
         return not exportButton and _G.LFGListFrame
     end
@@ -2244,7 +2343,6 @@ do
     function json:OnLoad()
         self:Enable()
         exportButton = CreateExportButton()
-        StaticPopupDialogs[exportPopup.id] = PreparePopup(exportPopup)
         callback:RegisterEvent(UpdateCopyDialog, "GROUP_ROSTER_UPDATE", "LFG_LIST_ACTIVE_ENTRY_UPDATE", "LFG_LIST_APPLICANT_LIST_UPDATED", "LFG_LIST_APPLICANT_UPDATED", "PLAYER_ENTERING_WORLD", "PLAYER_ROLES_ASSIGNED", "PLAYER_SPECIALIZATION_CHANGED")
     end
 
@@ -2256,7 +2354,7 @@ do
         if not self:IsEnabled() then
             return
         end
-        if not StaticPopup_Visible(exportPopup.id) then
+        if not StaticPopup_Visible(EXPORT_GROUP_JSON_POPUP.id) then
             json:OpenCopyDialog()
         else
             json:CloseCopyDialog()
@@ -2267,23 +2365,23 @@ do
         if not self:IsEnabled() then
             return
         end
-        local _, frame = StaticPopup_Visible(exportPopup.id)
+        local _, frame = StaticPopup_Visible(EXPORT_GROUP_JSON_POPUP.id)
         if frame then
             UpdateCopyDialog()
             return
         end
-        frame = StaticPopup_Show(exportPopup.id)
+        frame = util:ShowStaticPopupDialog(EXPORT_GROUP_JSON_POPUP)
     end
 
     function json:CloseCopyDialog()
         if not self:IsEnabled() then
             return
         end
-        local _, frame = StaticPopup_Visible(exportPopup.id)
+        local _, frame = StaticPopup_Visible(EXPORT_GROUP_JSON_POPUP.id)
         if not frame then
             return
         end
-        StaticPopup_Hide(exportPopup.id)
+        StaticPopup_Hide(EXPORT_GROUP_JSON_POPUP.id)
     end
 
 end
@@ -4075,11 +4173,14 @@ do
     callback:RegisterEvent(OnAddOnLoaded, "ADDON_LOADED")
 
     local function OnExpansionChanged()
-        ns.EXPANSION = max(LE_EXPANSION_BATTLE_FOR_AZEROTH, GetExpansionLevel() - 1)
+        ns.EXPANSION = max(GetServerExpansionLevel(), GetMinimumExpansionLevel(), GetExpansionLevel()) - 1
         ns.MAX_LEVEL = GetMaxLevelForExpansionLevel(ns.EXPANSION)
     end
 
     callback:RegisterEvent(OnExpansionChanged, "UPDATE_EXPANSION_LEVEL")
+
+    -- HOTFIX: at the time of writing there was no event associated with GetServerExpansionLevel() so this delays the update at login to happen when data is loaded after a cold-boot
+    C_Timer.After(1, OnExpansionChanged)
 
 end
 
@@ -4956,25 +5057,6 @@ do
         return false
     end
 
-    ---@param frame Frame @The frame to inspect. Its safe if there are no protected APIs called when the handler is executed.
-    ---@param onEnter function @Optional function, the OnEnter handler that we can also compare against for matches.
-    local function IsSafeFrame(frame, onEnter)
-        local parent = frame:GetParent()
-        -- the tooltip anchor frame doesn't have a OnEnter we can use to re-render the tooltip
-        if frame == _G.RaiderIO_ProfileTooltipAnchor then
-            return false
-        end
-        -- LFGListSearchEntry_OnEnter > LFGListUtil_SetSearchEntryTooltip > C_LFGList.GetPlaystyleString
-        if onEnter == _G.LFGListSearchEntry_OnEnter or (frame.resultID and parent == _G.LFGListSearchPanelScrollFrameScrollChild) then
-            return false
-        end
-        -- QuickJoinButtonMixin.OnEnter > .entry.ApplyToTooltip(GameTooltip) > LFGListUtil_SetSearchEntryTooltip > C_LFGList.GetPlaystyleString
-        if onEnter == _G.QuickJoinButtonMixin.OnEnter or (frame.entry and parent == _G.QuickJoinScrollFrameScrollChild) then
-            return false
-        end
-        return true
-    end
-
     ---@param tooltip GameTooltip
     ---@param state TooltipState
     local function UpdateTooltip(tooltip, state)
@@ -4997,14 +5079,11 @@ do
         local a1, a2, a3 = tooltip:GetAnchorType()
         -- if the owner exists, and has a OnEnter function we simply call that again to force the tooltip to reload and our original hook will update the tooltip with the desired behavior
         if o1 then
-            local oe = o1:GetScript("OnEnter")
-            if oe then
-                if IsSafeFrame(o1, oe) then
-                    tooltip:Hide()
-                    pcall(oe, o1)
-                    return
-                end
+            local status = util:ExecuteWidgetOnEnterSafely(o1, function() tooltip:Hide() end)
+            if status == 1 then
                 return false
+            elseif status == 2 or status == 3 then
+                return
             end
         end
         -- if the owner is the UIParent we must beware as it might be the fading out unit tooltips that linger, we do not wish to update these as we do not have a valid unit anymore for reference so we just don't do anything instead
@@ -5357,14 +5436,14 @@ do
             return
         end
         GameTooltip:Hide()
-        util:ExecuteWidgetHandler(GetMouseFocus(), "OnEnter")
+        util:ExecuteWidgetOnEnterSafely(GetMouseFocus())
     end
 
     function tooltip:OnLoad()
         self:Enable()
         local hookMap = { OnEnter = OnEnter, OnLeave = OnLeave }
-        ScrollBoxUtil:OnViewFramesChanged(WhoListScrollFrame or WhoFrame.ScrollBox, function(buttons) HookUtil:MapOn(buttons, hookMap) end)
-        ScrollBoxUtil:OnViewScrollChanged(WhoListScrollFrame or WhoFrame.ScrollBox, OnScroll)
+        ScrollBoxUtil:OnViewFramesChanged(WhoFrame.ScrollBox, function(buttons) HookUtil:MapOn(buttons, hookMap) end)
+        ScrollBoxUtil:OnViewScrollChanged(WhoFrame.ScrollBox, OnScroll)
     end
 
 end
@@ -6355,7 +6434,7 @@ do
 
     local function OnScroll()
         GameTooltip:Hide()
-        util:ExecuteWidgetHandler(GetMouseFocus(), "OnEnter")
+        util:ExecuteWidgetOnEnterSafely(GetMouseFocus())
     end
 
     function OnEnter(self)
@@ -6389,7 +6468,7 @@ do
     end
 
     function tooltip:CanLoad()
-        return profile:IsEnabled() and _G.LFGListFrame and _G.LFGListFrame.SearchPanel and _G.LFGListFrame.ApplicationViewer
+        return profile:IsEnabled() and LFGListFrame and LFGListFrame.SearchPanel and LFGListFrame.ApplicationViewer
     end
 
     function tooltip:OnLoad()
@@ -6397,11 +6476,11 @@ do
         -- the player looking at groups
         hooksecurefunc("LFGListUtil_SetSearchEntryTooltip", SetSearchEntry)
         local hookMap = { OnEnter = OnEnter, OnLeave = OnLeave }
-        ScrollBoxUtil:OnViewFramesChanged(_G.LFGListFrame.SearchPanel.ScrollBox, function(buttons) HookUtil:MapOn(buttons, hookMap) end)
-        ScrollBoxUtil:OnViewScrollChanged(_G.LFGListFrame.SearchPanel.ScrollBox, OnScroll)
+        ScrollBoxUtil:OnViewFramesChanged(LFGListFrame.SearchPanel.ScrollBox, function(buttons) HookUtil:MapOn(buttons, hookMap) end)
+        ScrollBoxUtil:OnViewScrollChanged(LFGListFrame.SearchPanel.ScrollBox, OnScroll)
         -- the player hosting a group looking at applicants
-        ScrollBoxUtil:OnViewFramesChanged(_G.LFGListFrame.ApplicationViewer.ScrollBox, function(buttons) HookUtil:MapOn(buttons, hookMap) end)
-        ScrollBoxUtil:OnViewScrollChanged(_G.LFGListFrame.ApplicationViewer.ScrollBox, OnScroll)
+        ScrollBoxUtil:OnViewFramesChanged(LFGListFrame.ApplicationViewer.ScrollBox, function(buttons) HookUtil:MapOn(buttons, hookMap) end)
+        ScrollBoxUtil:OnViewScrollChanged(LFGListFrame.ApplicationViewer.ScrollBox, OnScroll)
         -- remove the shroud and allow hovering over people even when not the group leader
         do
             local f = _G.LFGListFrame.ApplicationViewer.UnempoweredCover
@@ -6452,18 +6531,18 @@ do
             return
         end
         GameTooltip:Hide()
-        util:ExecuteWidgetHandler(GetMouseFocus(), "OnEnter")
+        util:ExecuteWidgetOnEnterSafely(GetMouseFocus())
     end
 
     function tooltip:CanLoad()
-        return _G.GuildFrame
+        return GuildRosterContainer
     end
 
     function tooltip:OnLoad()
         self:Enable()
         local hookMap = { OnEnter = OnEnter, OnLeave = OnLeave }
-        ScrollBoxUtil:OnViewFramesChanged(_G.GuildRosterContainer, function(buttons) HookUtil:MapOn(buttons, hookMap) end)
-        ScrollBoxUtil:OnViewScrollChanged(_G.GuildRosterContainer, OnScroll)
+        ScrollBoxUtil:OnViewFramesChanged(GuildRosterContainer, function(buttons) HookUtil:MapOn(buttons, hookMap) end)
+        ScrollBoxUtil:OnViewScrollChanged(GuildRosterContainer, OnScroll)
     end
 
 end
@@ -6569,29 +6648,29 @@ do
             return
         end
         GameTooltip:Hide()
-        util:ExecuteWidgetHandler(GetMouseFocus(), "OnEnter")
+        util:ExecuteWidgetOnEnterSafely(GetMouseFocus())
     end
 
     function tooltip:CanLoad()
-        return _G.CommunitiesFrame and _G.ClubFinderGuildFinderFrame and _G.ClubFinderCommunityAndGuildFinderFrame
+        return CommunitiesFrame and ClubFinderGuildFinderFrame and ClubFinderCommunityAndGuildFinderFrame
     end
 
     function tooltip:OnLoad()
         self:Enable()
-        ScrollBoxUtil:OnViewFramesChanged(_G.CommunitiesFrame.MemberList.ListScrollFrame or _G.CommunitiesFrame.MemberList.ScrollBox, SmartHookButtons) -- TODO: DF
-        ScrollBoxUtil:OnViewScrollChanged(_G.CommunitiesFrame.MemberList.ListScrollFrame or _G.CommunitiesFrame.MemberList.ScrollBox, OnScroll) -- TODO: DF
-        ScrollBoxUtil:OnViewFramesChanged(_G.ClubFinderGuildFinderFrame.CommunityCards.ListScrollFrame or _G.ClubFinderGuildFinderFrame.CommunityCards.ScrollBox, SmartHookButtons) -- TODO: DF
-        ScrollBoxUtil:OnViewScrollChanged(_G.ClubFinderGuildFinderFrame.CommunityCards.ListScrollFrame or _G.ClubFinderGuildFinderFrame.CommunityCards.ScrollBox, OnScroll) -- TODO: DF
-        ScrollBoxUtil:OnViewFramesChanged(_G.ClubFinderGuildFinderFrame.PendingCommunityCards.ListScrollFrame or _G.ClubFinderGuildFinderFrame.PendingCommunityCards.ScrollBox, SmartHookButtons) -- TODO: DF
-        ScrollBoxUtil:OnViewScrollChanged(_G.ClubFinderGuildFinderFrame.PendingCommunityCards.ListScrollFrame or _G.ClubFinderGuildFinderFrame.PendingCommunityCards.ScrollBox, OnScroll) -- TODO: DF
-        ScrollBoxUtil:OnViewFramesChanged(_G.ClubFinderCommunityAndGuildFinderFrame.CommunityCards.ListScrollFrame or _G.ClubFinderCommunityAndGuildFinderFrame.CommunityCards.ScrollBox, SmartHookButtons) -- TODO: DF
-        ScrollBoxUtil:OnViewScrollChanged(_G.ClubFinderCommunityAndGuildFinderFrame.CommunityCards.ListScrollFrame or _G.ClubFinderCommunityAndGuildFinderFrame.CommunityCards.ScrollBox, OnScroll) -- TODO: DF
-        ScrollBoxUtil:OnViewFramesChanged(_G.ClubFinderCommunityAndGuildFinderFrame.PendingCommunityCards.ListScrollFrame or _G.ClubFinderCommunityAndGuildFinderFrame.PendingCommunityCards.ScrollBox, SmartHookButtons) -- TODO: DF
-        ScrollBoxUtil:OnViewScrollChanged(_G.ClubFinderCommunityAndGuildFinderFrame.PendingCommunityCards.ListScrollFrame or _G.ClubFinderCommunityAndGuildFinderFrame.PendingCommunityCards.ScrollBox, OnScroll) -- TODO: DF
-        hooksecurefunc(_G.ClubFinderGuildFinderFrame.GuildCards, "RefreshLayout", OnRefreshApplyHooks)
-        hooksecurefunc(_G.ClubFinderGuildFinderFrame.PendingGuildCards, "RefreshLayout", OnRefreshApplyHooks)
-        hooksecurefunc(_G.ClubFinderCommunityAndGuildFinderFrame.GuildCards, "RefreshLayout", OnRefreshApplyHooks)
-        hooksecurefunc(_G.ClubFinderCommunityAndGuildFinderFrame.PendingGuildCards, "RefreshLayout", OnRefreshApplyHooks)
+        ScrollBoxUtil:OnViewFramesChanged(CommunitiesFrame.MemberList.ScrollBox, SmartHookButtons) -- TODO: DF
+        ScrollBoxUtil:OnViewScrollChanged(CommunitiesFrame.MemberList.ScrollBox, OnScroll) -- TODO: DF
+        ScrollBoxUtil:OnViewFramesChanged(ClubFinderGuildFinderFrame.CommunityCards.ScrollBox, SmartHookButtons) -- TODO: DF
+        ScrollBoxUtil:OnViewScrollChanged(ClubFinderGuildFinderFrame.CommunityCards.ScrollBox, OnScroll) -- TODO: DF
+        ScrollBoxUtil:OnViewFramesChanged(ClubFinderGuildFinderFrame.PendingCommunityCards.ScrollBox, SmartHookButtons) -- TODO: DF
+        ScrollBoxUtil:OnViewScrollChanged(ClubFinderGuildFinderFrame.PendingCommunityCards.ScrollBox, OnScroll) -- TODO: DF
+        ScrollBoxUtil:OnViewFramesChanged(ClubFinderCommunityAndGuildFinderFrame.CommunityCards.ScrollBox, SmartHookButtons) -- TODO: DF
+        ScrollBoxUtil:OnViewScrollChanged(ClubFinderCommunityAndGuildFinderFrame.CommunityCards.ScrollBox, OnScroll) -- TODO: DF
+        ScrollBoxUtil:OnViewFramesChanged(ClubFinderCommunityAndGuildFinderFrame.PendingCommunityCards.ScrollBox, SmartHookButtons) -- TODO: DF
+        ScrollBoxUtil:OnViewScrollChanged(ClubFinderCommunityAndGuildFinderFrame.PendingCommunityCards.ScrollBox, OnScroll) -- TODO: DF
+        hooksecurefunc(ClubFinderGuildFinderFrame.GuildCards, "RefreshLayout", OnRefreshApplyHooks)
+        hooksecurefunc(ClubFinderGuildFinderFrame.PendingGuildCards, "RefreshLayout", OnRefreshApplyHooks)
+        hooksecurefunc(ClubFinderCommunityAndGuildFinderFrame.GuildCards, "RefreshLayout", OnRefreshApplyHooks)
+        hooksecurefunc(ClubFinderCommunityAndGuildFinderFrame.PendingGuildCards, "RefreshLayout", OnRefreshApplyHooks)
     end
 
 end
@@ -6932,7 +7011,7 @@ do
         if self:IsMouseOver() then
             local focus = GetMouseFocus()
             if focus and focus ~= GameTooltip:GetOwner() then
-                util:ExecuteWidgetHandler(focus, "OnEnter")
+                util:ExecuteWidgetOnEnterSafely(focus)
             end
         end
 
@@ -6973,7 +7052,7 @@ do
 
     local function CreateGuildWeeklyFrame()
         ---@type GuildWeeklyFrame
-        local frame = CreateFrame("Frame", "RaiderIO_GuildWeeklyFrame", ChallengesFrame, BackdropTemplateMixin and "BackdropTemplate")
+        local frame = CreateFrame("Frame", addonName .. "_GuildWeeklyFrame", ChallengesFrame, BackdropTemplateMixin and "BackdropTemplate")
         frame.maxVisible = 5
         -- inherit from the mixin
         for k, v in pairs(GuildWeeklyFrameMixin) do
@@ -7044,7 +7123,7 @@ do
             frame:SetFrameStrata("MEDIUM")
             frame:SetSize(115, 115)
             if frame.SetBackdrop then
-                frame:SetBackdrop(BACKDROP_TUTORIAL_16_16 or BACKDROP_TOOLTIP_16_16_5555 or GAME_TOOLTIP_BACKDROP_STYLE_DEFAULT)
+                frame:SetBackdrop(BACKDROP_TUTORIAL_16_16)
                 frame:SetBackdropBorderColor(1, 1, 1, 1)
                 frame:SetBackdropColor(0, 0, 0, 0.6)
             end
@@ -7343,7 +7422,7 @@ do
             Frame:SetSize(310, config:Get("debugMode") and 115 or 100)
             Frame:SetPoint("CENTER")
             if Frame.SetBackdrop then
-                Frame:SetBackdrop(BACKDROP_TUTORIAL_16_16 or BACKDROP_TOOLTIP_16_16_5555 or GAME_TOOLTIP_BACKDROP_STYLE_DEFAULT)
+                Frame:SetBackdrop(BACKDROP_TUTORIAL_16_16)
                 Frame:SetBackdropBorderColor(TOOLTIP_DEFAULT_COLOR:GetRGB())
                 Frame:SetBackdropColor(TOOLTIP_DEFAULT_BACKGROUND_COLOR:GetRGB())
                 Frame:SetBackdropColor(0, 0, 0, 1) -- TODO: ?
@@ -8811,7 +8890,7 @@ do
 end
 
 -- settings.lua
--- dependencies: module, callback, json, config, profile, search
+-- dependencies: module, callback, json, config, util, profile, search
 do
 
     ---@class SettingsModule : Module
@@ -8819,12 +8898,13 @@ do
     local callback = ns:GetModule("Callback") ---@type CallbackModule
     local json = ns:GetModule("JSON") ---@type JSONModule
     local config = ns:GetModule("Config") ---@type ConfigModule
+    local util = ns:GetModule("Util") ---@type UtilModule
     local profile = ns:GetModule("Profile") ---@type ProfileModule
     local search = ns:GetModule("Search") ---@type SearchModule
     local rwf = ns:GetModule("RaceWorldFirst") ---@type RaceWorldFirstModule
 
-    local settingsFrame
-    local reloadPopup = {
+    ---@type InternalStaticPopupDialog
+    local RELOAD_POPUP = {
         id = "RAIDERIO_RELOADUI_CONFIRM",
         text = L.CHANGES_REQUIRES_UI_RELOAD,
         button1 = L.RELOAD_NOW,
@@ -8839,7 +8919,9 @@ do
         OnAccept = ReloadUI,
         OnCancel = nil
     }
-    local debugPopup = {
+
+    ---@type InternalStaticPopupDialog
+    local DEBUG_POPUP = {
         id = "RAIDERIO_DEBUG_CONFIRM",
         text = function() return config:Get("debugMode") and L.DISABLE_DEBUG_MODE_RELOAD or L.ENABLE_DEBUG_MODE_RELOAD end,
         button1 = L.CONFIRM,
@@ -8857,7 +8939,9 @@ do
         end,
         OnCancel = nil
     }
-    local rtwfPopup = {
+
+    ---@type InternalStaticPopupDialog
+    local RTWF_POPUP = {
         id = "RAIDERIO_RWF_CONFIRM",
         text = function() return config:Get("rwfMode") and L.DISABLE_RWF_MODE_RELOAD or L.ENABLE_RWF_MODE_RELOAD end,
         button1 = L.CONFIRM,
@@ -8875,6 +8959,8 @@ do
         end,
         OnCancel = nil
     }
+
+    local settingsFrame
 
     ---@class RaiderIOSettingsModuleColumn
     ---@field public icon number|string
@@ -9021,7 +9107,7 @@ do
                 end
             end
             if reload then
-                StaticPopup_Show(reloadPopup.id)
+                util:ShowStaticPopupDialog(RELOAD_POPUP)
             end
             callback:SendEvent("RAIDERIO_SETTINGS_SAVED")
         end
@@ -9290,15 +9376,12 @@ do
             return frame
         end
 
-        local _InterfaceOptionsFrame = InterfaceOptionsFrame or SettingsPanel -- TODO: DF support
-        local _InterfaceOptionsFrame_Show = InterfaceOptionsFrame_Show or function() SettingsPanel:Open() end -- TODO: DF support
-
         -- customize the look and feel
         do
             local function ConfigFrame_OnShow(self)
                 if not InCombatLockdown() then
-                    if _InterfaceOptionsFrame:IsShown() then
-                        _InterfaceOptionsFrame_Show()
+                    if SettingsPanel:IsShown() then
+                        SettingsPanel:Open()
                     end
                     HideUIPanel(GameMenuFrame)
                 end
@@ -9509,11 +9592,11 @@ do
             end
         end
 
-        local panel = CreateFrame("Frame", nil, InterfaceOptionsFramePanelContainer)
+        local panel = CreateFrame("Frame", addonName .. "_SettingsPanel")
         panel.name = addonName
         panel:Hide()
 
-        local button = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
+        local button = CreateFrame("Button", "$parentButton", panel, "UIPanelButtonTemplate")
         button:SetText(L.OPEN_CONFIG)
         button:SetWidth(button:GetTextWidth() + 18)
         button:SetPoint("TOPLEFT", 16, -16)
@@ -9539,7 +9622,7 @@ do
                 end
 
                 if text:find("^%s*[Dd][Ee][Bb][Uu][Gg]") then
-                    StaticPopup_Show(debugPopup.id)
+                    util:ShowStaticPopupDialog(DEBUG_POPUP)
                     return
                 end
 
@@ -9547,7 +9630,7 @@ do
                     if rwf:IsLoaded() and config:Get("rwfMode") then
                         rwf:ToggleFrame()
                     else
-                        StaticPopup_Show(rtwfPopup.id)
+                        util:ShowStaticPopupDialog(RTWF_POPUP)
                     end
                     return
                 end
@@ -9579,19 +9662,9 @@ do
         SlashCmdList[addonName] = handler
     end
 
-    local function PreparePopup(popup)
-        if type(popup.text) == "function" then
-            popup.text = popup.text()
-        end
-        return popup
-    end
-
     local function OnConfigReady()
         settings:Enable()
         settingsFrame = CreateOptions()
-        StaticPopupDialogs[reloadPopup.id] = PreparePopup(reloadPopup)
-        StaticPopupDialogs[debugPopup.id] = PreparePopup(debugPopup)
-        StaticPopupDialogs[rtwfPopup.id] = PreparePopup(rtwfPopup)
     end
 
     function settings:OnLoad()
@@ -9926,24 +9999,24 @@ do
 
     ---@type TestData[]
     local collection = {
-        { region = "eu", realm = "TarrenMill", name = "Vladinator", success = true },
-        { region = "eu", realm = "tArReNmIlL", name = "vLaDiNaToR", success = true },
-        CheckBothTestsAboveForSameProfiles,
-        { region = "eu", realm = "Ysondre", name = "Isak", success = true },
-        { region = "eu", realm = "ySoNdRe", name = "iSaK", success = true },
-        CheckBothTestsAboveForSameProfiles,
-        { region = "us", realm = "tichondrius", name = "proview", success = true },
-        { region = "us", realm = "TiChOnDrIuS", name = "pRoViEw", success = true },
-        CheckBothTestsAboveForSameProfiles,
-        { region = "eu", realm = "СвежевательДуш", name = "Хитей", success = true },
-        { region = "eu", realm = "СВЕЖЕВАТЕЛЬДУШ", name = "ХИТЕЙ", success = true },
-        CheckBothTestsAboveForSameProfiles,
-        { region = "eu", realm = "Kazzak", name = "Donskís", success = true },
-        { region = "eu", realm = "KAZZAK", name = "DONSKÍS", success = true },
-        CheckBothTestsAboveForSameProfiles,
-        { region = "kr", realm = "윈드러너", name = "갊깖읾옮짊맒", success = true },
-        { region = "kr", realm = "윈드러너", name = "갊깖읾옮짊맒", success = true },
-        CheckBothTestsAboveForSameProfiles,
+        -- { region = "eu", realm = "TarrenMill", name = "Vladinator", success = true },
+        -- { region = "eu", realm = "tArReNmIlL", name = "vLaDiNaToR", success = true },
+        -- CheckBothTestsAboveForSameProfiles,
+        -- { region = "eu", realm = "Ysondre", name = "Isak", success = true },
+        -- { region = "eu", realm = "ySoNdRe", name = "iSaK", success = true },
+        -- CheckBothTestsAboveForSameProfiles,
+        -- { region = "us", realm = "tichondrius", name = "proview", success = true },
+        -- { region = "us", realm = "TiChOnDrIuS", name = "pRoViEw", success = true },
+        -- CheckBothTestsAboveForSameProfiles,
+        -- { region = "eu", realm = "СвежевательДуш", name = "Хитей", success = true },
+        -- { region = "eu", realm = "СВЕЖЕВАТЕЛЬДУШ", name = "ХИТЕЙ", success = true },
+        -- CheckBothTestsAboveForSameProfiles,
+        -- { region = "eu", realm = "Kazzak", name = "Donskís", success = true },
+        -- { region = "eu", realm = "KAZZAK", name = "DONSKÍS", success = true },
+        -- CheckBothTestsAboveForSameProfiles,
+        -- { region = "kr", realm = "윈드러너", name = "갊깖읾옮짊맒", success = true },
+        -- { region = "kr", realm = "윈드러너", name = "갊깖읾옮짊맒", success = true },
+        -- CheckBothTestsAboveForSameProfiles,
     }
 
     local providers = provider:GetProviders()

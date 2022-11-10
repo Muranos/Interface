@@ -15,6 +15,16 @@ local function hideActionBarFrame(frame, clearEvents, reanchor, noAnchorChanges)
 			frame:UnregisterAllEvents()
 		end
 
+		-- remove some EditMode hooks
+		if frame.systemInfo then
+			frame.Show = nil
+			frame.Hide = nil
+			frame.SetShown = nil
+			frame.IsShown = nil
+
+			Bartender4.Util:PurgeKey(frame, "isShownExternal")
+		end
+
 		frame:Hide()
 		frame:SetParent(Bartender4.UIHider)
 
@@ -41,13 +51,14 @@ function Bartender4:HideBlizzard()
 	UIHider:Hide()
 	self.UIHider = UIHider
 
-	hideActionBarFrame(MultiBarBottomLeft, true)
-	hideActionBarFrame(MultiBarBottomRight, true)
-	hideActionBarFrame(MultiBarLeft, true)
-	hideActionBarFrame(MultiBarRight, true)
-	hideActionBarFrame(MultiBar5, true)
-	hideActionBarFrame(MultiBar6, true)
-	hideActionBarFrame(MultiBar7, true)
+	hideActionBarFrame(MainMenuBar, false, false, true)
+	hideActionBarFrame(MultiBarBottomLeft, true, false, true)
+	hideActionBarFrame(MultiBarBottomRight, true, false, true)
+	hideActionBarFrame(MultiBarLeft, true, false, true)
+	hideActionBarFrame(MultiBarRight, true, false, true)
+	hideActionBarFrame(MultiBar5, true, false, true)
+	hideActionBarFrame(MultiBar6, true, false, true)
+	hideActionBarFrame(MultiBar7, true, false, true)
 
 	-- Hide MultiBar Buttons, but keep the bars alive
 	for i=1,12 do
@@ -84,17 +95,18 @@ function Bartender4:HideBlizzard()
 		_G["MultiBar7Button" .. i]:SetAttribute("statehidden", true)
 	end
 
-	--MainMenuBar:UnregisterAllEvents()
-	MainMenuBar:SetParent(UIHider)
-	MainMenuBar:Hide()
-	--MainMenuBar:EnableMouse(false)
-
 	hideActionBarFrame(MicroButtonAndBagsBar, false, false, true)
-	hideActionBarFrame(StanceBar, true)
-	hideActionBarFrame(PossessActionBar, true)
+	hideActionBarFrame(StanceBar, true, false, true)
+	hideActionBarFrame(PossessActionBar, true, false, true)
 	hideActionBarFrame(MultiCastActionBarFrame, false, false, true)
-	hideActionBarFrame(PetActionBar, true)
+	hideActionBarFrame(PetActionBar, true, false, true)
 	hideActionBarFrame(StatusTrackingBarManager, false)
+
+	-- these events drive visibility, we want the MainMenuBar to remain invisible
+	MainMenuBar:UnregisterEvent("PLAYER_REGEN_ENABLED")
+	MainMenuBar:UnregisterEvent("PLAYER_REGEN_DISABLED")
+	MainMenuBar:UnregisterEvent("ACTIONBAR_SHOWGRID")
+	MainMenuBar:UnregisterEvent("ACTIONBAR_HIDEGRID")
 
 	if IsAddOnLoaded("Blizzard_NewPlayerExperience") then
 		self:NPE_LoadUI()

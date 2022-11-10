@@ -139,6 +139,8 @@ L["channel_desc"] = "發送信息的頻道"
 L["chat tVersion string"] = "|cFF87CEFARCLootCouncil |cFFFFFFFF版本 |cFFFFA500 %s - %s"
 L["chat version String"] = "|cFF87CEFARCLootCouncil |cFFFFFFFF版本 |cFFFFA500 %s"
 --[[Translation missing --]]
+--[[ L["chat_cmd_add_found_items"] = ""--]] 
+--[[Translation missing --]]
 --[[ L["chat_cmd_add_invalid_owner"] = ""--]] 
 L["chat_commands_add"] = "將一個物品加入分配"
 L["chat_commands_award"] = "開始分配你之前稍后分配的物品。"

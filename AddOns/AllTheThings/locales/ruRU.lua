@@ -735,8 +735,8 @@ for key,value in pairs({
 	-- Blizzard Events and Anniversaries
 		[-519] = "Игровые события",									-- World Events
 		[-520] = "Препатч",											-- Expansion Pre-Launch
-		[-522] = "Wrath of the Lich King: Нашествие зомби",			-- Wrath of the Lich King: Zombie Infestation
-		[-523] = "Cataclysm: Бейство элементалей",					-- Cataclysm: Elemental Unrest
+		[-522] = "Падение Залазана",								-- Zalazane's Fall
+		[-523] = "Бейство элементалей",								-- Elemental Unrest
 		[-525] = "Warlords of Draenor: Вторжение Железной Орды",	-- Warlords of Draenor: Iron Horde Incursion
 		[-526] = "Legion: Вторжение Легиона",						-- Legion: Legion Invasion
 		[-527] = "Battle for Azeroth: Война Шипов",					-- Battle for Azeroth: War of the Thorns
@@ -995,6 +995,7 @@ for key,value in pairs({
 	[19023] = "|cFFFFFFFFШаг 7:|r Страница 2351",	-- |cFFFFFFFFStep 7:|r Page 2351
 	[19024] = "Потаенное святилище",	-- Hidden Shrine
 	[19030] = "Куча грязи",	-- Mound of Dirt
+	[19877] = "Сундучок Велинды",	-- Velinde's Locker
 	[20805] = "Неохраняемые чертежи Риззла",	-- Rizzle's Unguarded Plans
 	[20985] = "Рыхлая земля",	-- Loose Dirt
 	[20992] = "Черный щит",	-- Black Shield
@@ -1091,6 +1092,7 @@ for key,value in pairs({
 	[179499] = "Огрский дубильный чан",	-- Ogre Tannin Basket
 	[179501] = "Тайник Уззла Наперстяка",	-- Knot Thimblejack's Cache
 	[179564] = "Приношения Гордока",	-- Gordok Tribute Chest
+	[179565] = "Пыльный реликварий",	-- Dusty Reliquary
 	[179697] = "Сундук с сокровищами арены",	-- Arena Treasure Chest
 	[179827] = "Розыск/Пропал без вести/Найден",	-- Wanted/Missing/Lost & Found
 	[179832] = "Вышитая подушка Крепких Тисков",	-- Pillaclencher's Ornate Pillow
@@ -3221,6 +3223,7 @@ for key,value in pairs({
 	--TODO: [381701] = "WANTED: Mara'nar the Thunderous",	-- WANTED: Mara'nar the Thunderous
 	--TODO: [382029] = "Disturbed Dirt",	-- Disturbed Dirt
 	--TODO: [382166] = "The Ruby Fest!",	-- The Ruby Fest!
+	--TODO: [500000] = "Inspiration Catalyst Console",	-- Inspiration Catalyst Console
 	[9962198] = "Самодельная лужа жижи изгоя",	-- Outcast's Makeshift Muckpool
 	[9999890] = "Оскверненная добыча",	-- Corrupted Loot
 	[9999891] = "Только Основная Задача",	-- Main Objective Only
@@ -3296,6 +3299,7 @@ do a[key] = value; end
 -- didn't use the same localization for the instance. Sorry.
 local a = L.SAVED_TO_DJ_INSTANCES;
 for key,value in pairs({
+	["Огненные Недра"] = "Огненные недра";	-- Molten Core
 })
 do a[key] = value; end
 

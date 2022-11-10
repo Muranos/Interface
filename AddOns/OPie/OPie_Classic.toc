@@ -1,6 +1,6 @@
 ## Interface: 11403
 ## Title: OPie
-## Version: Xe 9
+## Version: Yuzu 1
 ## Author: foxlit
 ## Notes: Group abilities into rings that appear when you hold down a binding.
 ## X-Website: https://www.townlong-yak.com/addons/opie
@@ -14,23 +14,25 @@
 ## Notes-zhTW: 按下快捷鍵時將技能群組顯示在環中。
 ## Notes-ptBR: Agrupar habilidades em anéis que aparecem quando você ativa uma ligação.
 ## SavedVariables: OneRing_Config, OPie_SavedData
-## X-M6-AB: OneRingLib.ext.ActionBook
+## X-M6-AB: OPie.ActionBook
 Libs\Evie.lua
 Libs\Niji.lua
 Libs\Mirage.lua
 Libs\TaintLess.xml
+Libs\Ten.lua
+Libs\TenSettings.lua
 Libs\ActionBook\ActionBook.xml
 Libs\ActionBook\ActionBookUI.xml
 Locale.lua
-OneRingLib.lua
+OPieCore.lua
 OPieUI.lua
-OPieConfig.lua
+OPieOptions.lua
 OPieBindings.lua
+CustomRings.lua
+CustomRingsConfig.lua
 Meta\StanceBar.lua
-Meta\RingKeeper.lua
-Meta\RingKeeperConfig.lua
 Meta\SpecSet.lua
 Meta\DataBroker.lua
 Meta\PSConfig.lua
 Rings\Common.lua
-Rings\RKRings.lua
+Rings\Default.lua

@@ -119,7 +119,7 @@ end
 local defaultSavedVars = {
   global = {
     toolbarExpanded = true,
-    currentSeason = 9,
+    currentSeason = 8,
     scale = 1,
     nonFullscreenScale = 1.3,
     enemyForcesFormat = 2,
@@ -183,9 +183,7 @@ do
       if not db.minimap.hide then
         minimapIcon:Show("MythicDungeonTools")
       end
-      local version = GetAddOnMetadata(AddonName, "Version")
-      local isAlpha = string.find(version, "Alpha")
-      if db.newDataCollectionActive or isAlpha then
+      if db.newDataCollectionActive or MDT:IsOnBetaServer() then
         MDT.DataCollection:Init()
         MDT.DataCollection:InitHealthTrack()
       end
@@ -259,18 +257,18 @@ end
 --https://www.wowhead.com/affixes
 --lvl 4 affix, lvl 7 affix, tyrannical/fortified, seasonal affix
 local affixWeeks = {
-  [1] = { 122, 14, 9, 131 },
-  [2] = { 8, 12, 10, 131 },
-  [3] = { 7, 13, 9, 131 },
-  [4] = { 11, 124, 10, 131 },
-  [5] = { 6, 3, 9, 131 },
-  [6] = { 122, 12, 10, 131 },
-  [7] = { 123, 4, 9, 131 },
-  [8] = { 7, 14, 10, 131 },
-  [9] = { 8, 124, 9, 131 },
-  [10] = { 6, 13, 10, 131 },
-  [11] = { 11, 3, 9, 131 },
-  [12] = { 123, 4, 10, 131 },
+  [1] = { 122, 14, 9, 132 },
+  [2] = { 8, 12, 10, 132 },
+  [3] = { 7, 13, 9, 132 },
+  [4] = { 11, 124, 10, 132 },
+  [5] = { 6, 3, 9, 132 },
+  [6] = { 122, 12, 10, 132 },
+  [7] = { 123, 4, 9, 132 },
+  [8] = { 7, 14, 10, 132 },
+  [9] = { 8, 124, 9, 132 },
+  [10] = { 6, 13, 10, 132 },
+  [11] = { 11, 3, 9, 132 },
+  [12] = { 123, 4, 10, 132 },
 }
 
 function MDT:UpdateAffixWeeks()
@@ -355,6 +353,11 @@ MDT.dungeonList = {
   [28] = "-",
   [39] = "-",
 }
+
+function MDT:IsOnBetaServer()
+  local realm = GetRealmName()
+  return realm == "Valdrakken"
+end
 
 function MDT:GetNumDungeons() return #MDT.dungeonList - 1 end
 
@@ -1655,6 +1658,17 @@ function MDT:ExportCurrentZoomPanSettings()
   MDT.main_frame.ExportFrameEditbox:SetLabel("Current pan/zoom settings");
 end
 
+function MDT:SetViewPortPosition(zoomScale, horizontalPan, verticalPan)
+  local scaledSizeX = MDTMapPanelFrame:GetWidth() * zoomScale
+  local scaledSizeY = MDTMapPanelFrame:GetHeight() * zoomScale
+  MDTScrollFrame.maxX = (scaledSizeX - MDTMapPanelFrame:GetWidth()) / zoomScale
+  MDTScrollFrame.maxY = (scaledSizeY - MDTMapPanelFrame:GetHeight()) / zoomScale
+  MDTScrollFrame.zoomedIn = abs(zoomScale - 1) > 0.02
+  MDTMapPanelFrame:SetScale(zoomScale)
+  MDTScrollFrame:SetHorizontalScroll(horizontalPan * MDT:GetScale())
+  MDTScrollFrame:SetVerticalScroll(verticalPan * MDT:GetScale())
+end
+
 function MDT:ZoomMapToDefault()
   local currentMap = db.presets[db.currentDungeonIdx]
   local currentSublevel = currentMap[db.currentPreset[db.currentDungeonIdx]].value.currentSublevel
@@ -1977,6 +1991,10 @@ function MDT:IsCurrentPresetTyrannical()
   return not MDT:IsCurrentPresetFortified()
 end
 
+function MDT:IsCurrentPresetThundering()
+  return affixWeeks[self:GetCurrentPreset().week][4] == 132
+end
+
 function MDT:MouseDownHook()
 
 end
@@ -2259,19 +2277,36 @@ end
 function MDT:CalculateEnemyHealth(boss, baseHealth, level, ignoreFortified)
   local fortified = MDT:IsCurrentPresetFortified()
   local tyrannical = MDT:IsCurrentPresetTyrannical()
+  local thundering = MDT:IsCurrentPresetThundering()
   local mult = 1
   if boss == false and fortified == true and (not ignoreFortified) then mult = 1.2 end
   if boss == true and tyrannical == true then mult = 1.3 end
-  mult = round((1.08 ^ math.max(level - 2, 0)) * mult, 2)
+  if thundering == true then mult = mult * 1.05 end
+
+  -- https://www.wowhead.com/news/impact-of-new-mythic-scaling-in-dragonflight-10-scaling-starting-at-keystone-11-329269
+  -- the part of lvl 10 and below -  8% gain per level
+  local levelsTenBelow = math.min(level, 10)
+  mult = round((1.08 ^ math.max(levelsTenBelow - 2, 0)) * mult, 2)
+  -- the part of lvl 11 and above -  10% gain per level
+  local levelsElevenAbove = math.max(level - 10, 0)
+  mult = round((1.1 ^ levelsElevenAbove) * mult, 2)
+
   return round(mult * baseHealth, 0)
 end
 
-function MDT:ReverseCalcEnemyHealth(health, level, boss, fortified)
+function MDT:ReverseCalcEnemyHealth(health, level, boss, fortified, tyrannical, thundering)
   local mult = 1
-  local tyrannical = not fortified
   if boss == false and fortified == true then mult = 1.2 end
   if boss == true and tyrannical == true then mult = 1.3 end
-  mult = round((1.08 ^ math.max(level - 2, 0)) * mult, 2)
+  if thundering then mult = mult * 1.05 end
+
+  -- the part of lvl 10 and below -  8% gain per level
+  local levelsTenBelow = math.min(level, 10)
+  mult = round((1.08 ^ math.max(levelsTenBelow - 2, 0)) * mult, 2)
+  -- the part of lvl 11 and above -  10% gain per level
+  local levelsElevenAbove = math.max(level - 10, 0)
+  mult = round((1.1 ^ levelsElevenAbove) * mult, 2)
+
   local baseHealth = round(health / mult, 0)
   return baseHealth
 end
@@ -4416,6 +4451,7 @@ function MDT:PrintCurrentAffixes()
     [128] = L["Tormented"],
     [130] = L["Encrypted"],
     [131] = L["Shrouded"],
+    [132] = L["Thundering"],
   }
   local affixIds = C_MythicPlus.GetCurrentAffixes()
   for idx, data in ipairs(affixIds) do

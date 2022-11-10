@@ -22,7 +22,7 @@
 ## Notes-ruRU: BigWigs Vault of the Incarnates Modules
 ## Notes-zhCN: BigWigs 化身巨龙牢窟模块
 ## Notes-zhTW: BigWigs Vault of the Incarnates Modules
-## Version: v251.2
+## Version: v252
 
 ## LoadOnDemand: 1
 ## Dependencies: BigWigs

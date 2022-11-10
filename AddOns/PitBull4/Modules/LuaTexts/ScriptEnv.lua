@@ -357,7 +357,7 @@ local FRIENDLY_REACTION = 5
 local function HostileColor(unit)
 	local r, g, b
 	if not unit then
-		r, g, b = 0.8, 0.8, 0.8 --UNKNOWN
+		r, g, b = unpack(PitBull4.ReactionColors.unknown)
 	else
 		if UnitIsPlayer(unit) or UnitPlayerControlled(unit) then
 			if UnitCanAttack(unit, "player") then
@@ -380,7 +380,7 @@ local function HostileColor(unit)
 				r, g, b = unpack(PitBull4.ReactionColors.civilian)
 			end
 		elseif UnitIsTapDenied(unit) or UnitIsDead(unit) then
-			r, g, b = 0.5, 0.5, 0.5 -- TODO: We really need this to be globally configurable.
+			r, g, b = unpack(PitBull4.ReactionColors.tapped)
 		else
 			local reaction = UnitReaction(unit, "player")
 			if reaction then
@@ -392,7 +392,7 @@ local function HostileColor(unit)
 					r, g, b = unpack(PitBull4.ReactionColors[HOSTILE_REACTION])
 				end
 			else
-				r, g, b = 0.8, 0.8, 0.8 --UNKNOWN
+				r, g, b = unpack(PitBull4.ReactionColors.unknown)
 			end
 		end
 	end
@@ -402,10 +402,7 @@ ScriptEnv.HostileColor = HostileColor
 
 local function ClassColor(unit)
 	local _, class = UnitClass(unit)
-	local color = PitBull4.ClassColors[class]
-	if not color then
-		return 204, 204, 204 -- UNKNOWN (0.8, 0.8, 0.8)
-	end
+	local color = PitBull4.ClassColors[class] or PitBull4.ClassColors.UNKNOWN
 	return color[1] * 255, color[2] * 255, color[3] * 255
 end
 ScriptEnv.ClassColor = ClassColor
@@ -495,6 +492,7 @@ local ShortClass_abbrev = {
 	SHAMAN = L["Shaman_short"],
 	WARLOCK = L["Warlock_short"],
 	WARRIOR = L["Warrior_short"],
+	EVOKER = L["Evoker_short"],
 }
 
 local function ShortClass(arg)
@@ -555,6 +553,9 @@ local ShortRace_abbrev = {
 	Nightborne = L["Nightborne_short"],
 	VoidElf = L["Void Elf_short"],
 	ZandalariTroll = L["Zandalari Troll_short"],
+	Vulpera = L["Vulpera_short"],
+	Mechagnome = L["Mechagnome_short"],
+	Dracthyr = L["Dracthyr_short"],
 }
 
 local function ShortRace(arg)
@@ -711,7 +712,7 @@ local function Round(number, digits)
 end
 ScriptEnv.Round = Round
 
-local Short, VeryShort
+local Short, Shorter, VeryShort
 local locale = GetLocale()
 if locale == "zhCN" or locale == "zhTW" or locale == "koKR" then
 	local FIRST_NUMBER_CAP_NO_SPACE = FIRST_NUMBER_CAP_NO_SPACE
@@ -759,6 +760,32 @@ if locale == "zhCN" or locale == "zhTW" or locale == "koKR" then
 			return fmt, a, b
 		end
 		return value
+	end
+
+	function Shorter(value, format)
+		if type(value) == "number" then
+			local v = math.abs(value)
+			if v < 10000 and v >= 1000 then
+				local fmt = "%.1f" .. FIRST_NUMBER_CAP_NO_SPACE
+				if format then
+					return fmt:format(value)
+				end
+				return fmt, value
+			end
+		else
+			local a, b = value:match("^(%d+)/(%d+)")
+			if a then
+				local fmt_a, fmt_b
+				fmt_b, b = Shorter(tonumber(b))
+				fmt_a, a = Shorter(tonumber(a))
+				local fmt = ("%s/%s"):format(fmt_a, fmt_b)
+				if format then
+					return fmt:format(a, b)
+				end
+				return fmt, a, b
+			end
+		end
+		return Short(value, format)
 	end
 
 	function VeryShort(value, format)
@@ -843,6 +870,32 @@ else
 		return value
 	end
 
+	function Shorter(value, format)
+		if type(value) == "number" then
+			local v = math.abs(value)
+			if v < 10000 and v >= 1000 then
+				local fmt = "%.1fk"
+				if format then
+					return fmt:format(value)
+				end
+				return fmt, value
+			end
+		else
+			local a, b = value:match("^(%d+)/(%d+)")
+			if a then
+				local fmt_a, fmt_b
+				fmt_b, b = Shorter(tonumber(b))
+				fmt_a, a = Shorter(tonumber(a))
+				local fmt = ("%s/%s"):format(fmt_a, fmt_b)
+				if format then
+					return fmt:format(a, b)
+				end
+				return fmt, a, b
+			end
+		end
+		return Short(value, format)
+	end
+
 	function VeryShort(value, format)
 		if type(value) == "number" then
 			local v = abs(value)
@@ -879,6 +932,7 @@ else
 	end
 end
 ScriptEnv.Short = Short
+ScriptEnv.Shorter = Shorter
 ScriptEnv.VeryShort = VeryShort
 
 local function IsMouseOver()
@@ -938,6 +992,50 @@ local function RestXP(unit)
 	return 0
 end
 ScriptEnv.RestXP = RestXP
+
+-- Pre-Dragonflight API wrapper for old texts
+local function GetFriendshipReputation(id)
+	local info = C_GossipInfo.GetFriendshipReputation(id)
+	if info.friendshipFactionID > 0 then
+		return info.friendshipFactionID, info.standing, info.maxRep, info.name, info.text, info.texture, info.reaction, info.reactionThreshold, info.nextThreshold
+	end
+end
+ScriptEnv.GetFriendshipReputation = GetFriendshipReputation
+
+local function WatchedFactionInfo()
+	local name, reaction, min, max, value, faction_id = GetWatchedFactionInfo()
+	if not name then
+		return nil
+	end
+
+	local rep_info = C_GossipInfo.GetFriendshipReputation(faction_id)
+	local friendship_id = rep_info.friendshipFactionID
+
+	if C_Reputation.IsFactionParagon(faction_id) then
+		local paragon_value, threshold, _, has_reward = C_Reputation.GetFactionParagonInfo(faction_id)
+		min, max = 0, threshold
+		value = paragon_value % threshold
+		if has_reward then
+			value = value + threshold
+		end
+	elseif C_Reputation.IsMajorFaction(faction_id) then
+		local faction_info = C_MajorFactions.GetMajorFactionData(faction_id)
+		min, max = 0, faction_info.renownLevelThreshold
+	elseif friendship_id > 0 then
+		if rep_info.nextThreshold then
+			min, max, value = rep_info.reactionThreshold, rep_info.nextThreshold, rep_info.standing
+		else -- max, show full amount?
+			min, max, value = 0, rep_info.standing, rep_info.standing
+		end
+	end
+
+	-- Normalize values
+	max = max - min
+	value = value - min
+	min = 0
+	return name, reaction, min, max, value, faction_id
+end
+ScriptEnv.WatchedFactionInfo = WatchedFactionInfo
 
 local function ArtifactPower()
 	local azeriteItemLocation = C_AzeriteItem.FindActiveAzeriteItem()

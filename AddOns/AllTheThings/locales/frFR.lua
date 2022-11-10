@@ -745,8 +745,8 @@ for key,value in pairs({
 	-- Blizzard Events and Anniversaries
 		[-519] = "Événements mondiaux",								-- World Events
 		--TODO: [-520] = "Expansion Pre-Launch",					-- Expansion Pre-Launch
-		--TODO: [-522] = EXPANSION_NAME2..": Zombie Infestation",	-- Wrath of the Lich King: Zombie Infestation
-		--TODO: [-523] = EXPANSION_NAME3..": Elemental Unrest",		-- Cataclysm: Elemental Unrest
+		--TODO: [-522] = "Zalazane's Fall",												-- Zalazane's Fall
+		--TODO: [-523] = "Elemental Unrest",						-- Elemental Unrest
 		--TODO: [-525] = EXPANSION_NAME5..": Iron Horde Incursion",	-- Warlords of Draenor: Iron Horde Incursion
 		--TODO: [-526] = EXPANSION_NAME6..": Legion Invasion",		-- Legion: Legion Invasion
 		--TODO: [-527] = EXPANSION_NAME7..": War of the Thorns",	-- Battle for Azeroth: War of the Thorns
@@ -1004,6 +1004,7 @@ for key,value in pairs({
 	[19023] = "|cFFFFFFFFÉtape 7:|r Page 2351",	-- |cFFFFFFFFStep 7:|r Page 2351
 	[19024] = "Autel caché",	-- Hidden Shrine
 	[19030] = "Monticule de poussière",	-- Mound of Dirt
+	[19877] = "Placard de Velinde",	-- Velinde's Locker
 	[20805] = "Plans de Séhouf",	-- Rizzle's Unguarded Plans
 	[20985] = "Poussière flottante",	-- Loose Dirt
 	[20992] = "Bouclier noir",	-- Black Shield
@@ -1100,6 +1101,7 @@ for key,value in pairs({
 	[179499] = "Panier de tanin ogre",	-- Ogre Tannin Basket
 	[179501] = "Réserve de Noué Dédodevie",	-- Knot Thimblejack's Cache
 	[179564] = "Tribut des Gordok",	-- Gordok Tribute Chest
+	[179565] = "Reliquaire poussiéreux",	-- Dusty Reliquary
 	[179697] = "Coffre au trésor de l'arène",	-- Arena Treasure Chest
 	[179827] = "Avis de recherche / Disparu / Trouvé & Perdu",	-- Wanted/Missing/Lost & Found
 	[179832] = "Oreiller brodé de Pincetaie",	-- Pillaclencher's Ornate Pillow
@@ -3230,6 +3232,7 @@ for key,value in pairs({
 	--TODO: [381701] = "WANTED: Mara'nar the Thunderous",	-- WANTED: Mara'nar the Thunderous
 	--TODO: [382029] = "Disturbed Dirt",	-- Disturbed Dirt
 	--TODO: [382166] = "The Ruby Fest!",	-- The Ruby Fest!
+	--TODO: [500000] = "Inspiration Catalyst Console",	-- Inspiration Catalyst Console
 	[9962198] = "Tourbière de fortune de paria",	-- Outcast's Makeshift Muckpool
 	--TODO: [9999890] = "Corrupted Loot",	-- Corrupted Loot
 	[9999891] = "Objectic principal uniquement",	-- Main Objective Only

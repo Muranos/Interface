@@ -1,8 +1,6 @@
 # BigWigs [Legion]
 
-## [v10.0.0](https://github.com/BigWigsMods/BigWigs_Legion/tree/v10.0.0) (2022-10-26)
-[Full Changelog](https://github.com/BigWigsMods/BigWigs_Legion/compare/v9.2.3...v10.0.0) [Previous Releases](https://github.com/BigWigsMods/BigWigs_Legion/releases)
+## [v10.0.1](https://github.com/BigWigsMods/BigWigs_Legion/tree/v10.0.1) (2022-10-30)
+[Full Changelog](https://github.com/BigWigsMods/BigWigs_Legion/compare/v10.0.0...v10.0.1) [Previous Releases](https://github.com/BigWigsMods/BigWigs_Legion/releases)
 
-- Rename toc  
-- bump toc  
-- Add attributes file  
+- TombOfSargeras/Kiljaeden: Minimap API renames for Dragonflight (#13)  

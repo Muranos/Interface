@@ -208,6 +208,8 @@ L["Auto pass BoE"] = "Passar Automaticamente Itens Vinculados ao Equipar"
 --[[Translation missing --]]
 --[[ L["chat version String"] = ""--]] 
 --[[Translation missing --]]
+--[[ L["chat_cmd_add_found_items"] = ""--]] 
+--[[Translation missing --]]
 --[[ L["chat_cmd_add_invalid_owner"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["chat_commands_add"] = ""--]] 

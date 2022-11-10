@@ -185,12 +185,17 @@ local DATABASE_DEFAULTS = {
 			},
 		},
 		colors = {
-			class = {}, -- filled in by RAID_CLASS_COLORS
+			class = { -- filled in by RAID_CLASS_COLORS
+				UNKNOWN = { 204/255, 204/255, 204/255 },
+			},
 			power = { -- filled in by PowerBarColor
 				["PB4_ALTERNATE"] = { 0.7, 0.7, 0.6 }, -- Fallback alternate power color
 			},
 			reaction = { -- filled in by FACTION_BAR_COLORS
-				civilian = { 48/255, 113/255, 191/255 }
+				unknown = { 204/255, 204/255, 204/255 },
+				civilian = { 48/255, 113/255, 191/255 },
+				paragon = { 66/255, 107/255, 1 },
+				tapped = { 127/255, 127/255, 127/255 },
 			},
 		},
 		class_order = {},
@@ -317,15 +322,12 @@ do
 		LOCALIZED_NAMES[info.classFile] = info.className
 	end
 
-	local i = 1
-	local info = C_CreatureInfo.GetRaceInfo(i)
-	repeat
-		if not LOCALIZED_NAMES[info.clientFileString] then
+	for i = 1, 77 do
+		local info = C_CreatureInfo.GetRaceInfo(i)
+		if info and not LOCALIZED_NAMES[info.clientFileString] then
 			LOCALIZED_NAMES[info.clientFileString] = info.raceName
 		end
-		i = i + 1
-		info = C_CreatureInfo.GetRaceInfo(i)
-	until not info
+	end
 
 	setmetatable(LOCALIZED_NAMES, { __index = function(self, key)
 		self[key] = key
@@ -344,7 +346,7 @@ _G.PitBull4 = PitBull4
 local DEBUG = PitBull4.DEBUG
 local expect = PitBull4.expect
 
-PitBull4.version = "v4.2.21"
+PitBull4.version = "v4.2.22"
 if PitBull4.version:match("@") then
 	PitBull4.version = "Development"
 end
@@ -1388,6 +1390,7 @@ function PitBull4:LoadModules()
 		PitBull4_LeaderIcon = true,
 		PitBull4_LuaTexts = true,
 		PitBull4_MasterLooterIcon = true,
+		PitBull4_PhaseFader = true,
 		PitBull4_PhaseIcon = true,
 		PitBull4_Portrait = true,
 		PitBull4_PowerBar = true,

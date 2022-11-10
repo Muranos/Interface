@@ -21,8 +21,7 @@ L["Add Note"] = "Notiz hinzufügen"
 L["Add ranks"] = "Ränge hinzufügen"
 L["Add rolls"] = "Würfe hinzufügen"
 L["Add Rolls"] = "Würfe hinzufügen"
---[[Translation missing --]]
---[[ L["add_candidate"] = ""--]] 
+L["add_candidate"] = "Kandidat hinzufügen"
 L["add_ranks_desc"] = "Wähle einen Mindestrang aus, der am Beuterat teilnehmen darf:"
 L["add_ranks_desc2"] = [=[
 
@@ -136,6 +135,8 @@ L["channel_desc"] = "Der Kanal, in den die Nachricht gesendet wird."
 L["Chat print"] = "Chatausgabe"
 L["chat tVersion string"] = "|cFF87CEFARCLootCouncil |cFFFFFFFFVersion |cFFFFA500 %s - %s"
 L["chat version String"] = "|cFF87CEFARCLootCouncil |cFFFFFFFFVersion |cFFFFA500 %s"
+--[[Translation missing --]]
+--[[ L["chat_cmd_add_found_items"] = ""--]] 
 L["chat_cmd_add_invalid_owner"] = "Der Spieler %s war entweder ungültig oder kein Kandidat."
 L["chat_commands_add"] = "Gegenstand zur Sitzung hinzufügen"
 L["chat_commands_award"] = [=[Sitzung mit geplünderten Gegenständen aus dem Inventar starten
@@ -276,10 +277,8 @@ L["Minimize in combat"] = "Im Kampf minimieren"
 L["Minor Upgrade"] = "Geringes Upgrade"
 L["Missing votes from:"] = "Fehlende Stimmen von:"
 L["ML sees voting"] = "Plündermeister sieht die Abstimmung"
---[[Translation missing --]]
---[[ L["ML_ADD_INVALID_ITEM"] = ""--]] 
---[[Translation missing --]]
---[[ L["ML_ADD_ITEM_MAX_ATTEMPTS"] = ""--]] 
+L["ML_ADD_INVALID_ITEM"] = "Ungültiger Gegenstandslink oder Gegenstands-ID: %s"
+L["ML_ADD_ITEM_MAX_ATTEMPTS"] = "Die Gegenstandsinfo für %s konnte nicht geladen werden – wahrscheinlich kein echter Gegenstand."
 L["ml_sees_voting_desc"] = "Erlaubt es dem Plündermeister zu sehen, wer für wen abstimmt."
 L["module_tVersion_outdated_msg"] = "Testversion des neuesten Moduls %s ist: %s"
 L["module_version_outdated_msg"] = "Die Version des Moduls %s ist veraltet. Neueste Version ist %s. "
@@ -327,18 +326,13 @@ L["Open the Loot History"] = "Beuteverlauf öffnen"
 L["open_the_loot_history_desc"] = "Klicken, um den Beuteverlauf zu öffnen."
 L["Opens the synchronizer"] = "Öffnet den Synchronisierer"
 L["opt_addButton_desc"] = "Füge eine neue Schaltflächengruppe für den ausgewählten Slot hinzu."
---[[Translation missing --]]
---[[ L["opt_autoAddBoEs_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["opt_autoAddBoEs_name"] = ""--]] 
---[[Translation missing --]]
---[[ L["opt_autoAddItems_desc"] = ""--]] 
+L["opt_autoAddBoEs_desc"] = "Automatisch alle BoE (Beim Anlegen gebundenen) Gegenstände zu dieser Sitzung hinzufügen"
+L["opt_autoAddBoEs_name"] = "BoEs automatisch hinzufügen"
+L["opt_autoAddItems_desc"] = "Automatisch alle wählbaren Gegenstände einer Sitzung hinzufügen."
 L["opt_autoAddItems_name"] = "Gegenstände automatisch hinzugefügen"
---[[Translation missing --]]
---[[ L["opt_autoAddPets_desc"] = ""--]] 
+L["opt_autoAddPets_desc"] = "Automatisch alle Haustiere einer Sitzung hinzufügen."
 L["opt_autoAddPets_name"] = "Begleiter hinzufügen"
---[[Translation missing --]]
---[[ L["opt_autoAwardPrioList_desc"] = ""--]] 
+L["opt_autoAwardPrioList_desc"] = "Gegenstände werden an den dieser Prioritätsliste nach ersten Kandidaten aus deiner Gruppe  vergeben."
 L["opt_autoTrade_desc"] = "Anhaken, um vergebene Gegenstände dem Handelsfenster automatisch hinzuzufügen, wenn man mit dem Gewinner handelt. Wenn deaktiviert, wird ein Pop-up eingeblendet bevor die Gegenstände hinzugefügt werden. "
 L["opt_award_later_desc"] = "Anhaken, um die \"Später vergeben\"-Funktion im Sitzungsfenster automatisch zu aktivieren."
 L["opt_buttonsGroup_desc"] = "Optionsgruppe für %s Schaltflächen und Antworten. Für eine detaillierte Erklärung siehe oben. "
@@ -360,14 +354,10 @@ L["opt_printCompletedTrade_Desc"] = "Anhaken, damit jedes Mal eine Nachricht ver
 L["opt_printCompletedTrade_Name"] = "Handelsnachrichten"
 L["opt_rejectTrade_Desc"] = "Aktiviere diese Option, damit die Kandidaten auswählen können, ob sie den Gegenstand dem Rat \"geben\" möchten oder nicht. Wenn diese Option nicht aktiviert ist, werden alle handelbaren PL-Gegenstände automatisch hinzugefügt."
 L["opt_rejectTrade_Name"] = "Behalten erlauben"
---[[Translation missing --]]
---[[ L["opt_skipSessionFrame_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["opt_skipSessionFrame_name"] = ""--]] 
---[[Translation missing --]]
---[[ L["opt_useSlashRC_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["opt_useSlashRC_name"] = ""--]] 
+L["opt_skipSessionFrame_desc"] = "Überspringt das Sitzungsfenster. BEACHTE: Dies führt dazu, dass das Addon eine Sitzung mit allen wählbaren Gegenständen startet, ohne dass du die Möglichkeit hast die Liste zu bearbeiten!"
+L["opt_skipSessionFrame_name"] = "Sitzungsfenster überspringen"
+L["opt_useSlashRC_desc"] = "Deaktiviere diese Option, wenn du '/rc' für den Bereitschaftscheck wiederherstellen möchtest. RCLootCouncil-Kommandos sind immer noch mit '/rclc' verfügbar. Ein '/reload' wird benötigt damit diese Option in Kraft tritt."
+L["opt_useSlashRC_name"] = "Benutze /rc"
 L["options_autoAwardBoE_desc"] = "Aktiviere diese Option, um alle epischen BoE-Gegenständie (Beim Anlegen gebunden) aus dem ausgewählten Grund automatisch an eine bestimmte Person zu vergeben."
 L["options_autoAwardBoE_name"] = "BoE's automatisch vergeben"
 L["options_ml_outOfRaid_desc"] = "Wenn diese Option aktiviert ist, wird in einer Gruppe von 8 oder mehr Mitgliedern von jedem, der sich nicht in einer Instanz befindet, wenn eine Sitzung gestartet wird, automatisch die Antwort \"Nicht im Raid\" senden."

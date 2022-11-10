@@ -128,6 +128,8 @@ L["channel_desc"] = "Le canal dans lequel sera envoyé le message."
 L["Chat print"] = "Publier le tchat"
 L["chat tVersion string"] = "|cFF87CEFARCLootCouncil |cFFFFFFFFversion |cFFFFA500 %s - %s"
 L["chat version String"] = "|cFF87CEFARCLootCouncil |cFFFFFFFFversion |cFFFFA500 %s"
+--[[Translation missing --]]
+--[[ L["chat_cmd_add_found_items"] = ""--]] 
 L["chat_cmd_add_invalid_owner"] = "Le joueur %s n'est pas un candidat ou est invalide."
 L["chat_commands_add"] = "Ajouter un objet à la fenêtre de session"
 L["chat_commands_award"] = "Commencer une session avec les objets de votre inventaire précédemment ramassés"
