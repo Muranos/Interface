@@ -1,10 +1,10 @@
 ## Interface: 100000
-## Title: Titan Panel [|cffeda55fLootType|r] |cff00aa006.00.06.100000|r
+## Title: Titan Panel [|cffeda55fLootType|r] |cff00aa006.00.07.100000|r
 ## Notes: Adds group loot and instance difficulty information to Titan Panel
 ## Author: Titan Panel Development Team (http://www.titanpanel.org)
 ## SavedVariables: 
 ## OptionalDeps: 
 ## Dependencies: Titan
-## Version: 6.00.06.100000
+## Version: 6.00.07.100000
 ## X-Child-Of: Titan
 TitanLootType.lua

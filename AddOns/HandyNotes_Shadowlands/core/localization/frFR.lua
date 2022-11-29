@@ -43,6 +43,7 @@ L['trinket'] = 'Bijou'
 L['activation_unknown'] = 'Activation inconnue'
 L['requirement_not_found'] = 'Emplacement requis inconnu'
 L['multiple_spawns'] = 'Peut apparaître à plusieurs endroits.'
+L['shared_drops'] = 'Drop partagé'
 
 L['Requires'] = 'Requiert'
 L['ranked_research'] = '%s (Rang %d/%d)'
@@ -59,6 +60,7 @@ L['daily'] = 'Quotidiennement'
 L['weekly'] = 'Hebdomadaire'
 L['normal'] = 'Normal'
 L['hard'] = 'Difficile'
+L['heirloom'] = 'Héritage'
 L['mount'] = 'Monture'
 L['pet'] = 'Animal de Compagnie'
 L['spell'] = 'Sort'
@@ -74,9 +76,9 @@ L['unlearnable'] = 'Non Apprenable'
 L['defeated'] = 'Vaincu'
 L['undefeated'] = 'Invaincu'
 
-L['follower_type_follower'] = nil
-L['follower_type_champion'] = nil
-L['follower_type_companion'] = nil
+L['follower_type_follower'] = 'Sujet'
+L['follower_type_champion'] = 'Champion'
+L['follower_type_companion'] = 'Compagnon'
 
 -------------------------------------------------------------------------------
 --------------------------------- CONTEXT MENU --------------------------------
@@ -180,6 +182,6 @@ L['options_dev_settings'] = 'Développement'
 L['options_toggle_show_debug_map'] = 'Debug ID Carte' -- Need review
 L['options_toggle_show_debug_map_desc'] = 'Afficher les informations de déboguage pour les cartes'
 L['options_toggle_show_debug_quest'] = 'Debug ID Quête'
-L['options_toggle_show_debug_quest_desc'] = 'Afficher les informations de déboguage pour les quêtes'
+L['options_toggle_show_debug_quest_desc'] = 'Afficher les informations de déboguage pour les quêtes (rechargement nécessaire)'
 L['options_toggle_force_nodes'] = 'Forcer les Nœuds'
 L['options_toggle_force_nodes_desc'] = 'Forcer l\'affichage de tous les nœuds'

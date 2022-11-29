@@ -34,14 +34,6 @@ local prefixToSkip =
     ["Eternal"] = true,
 };
 
-function enchants:initTooltipScanner()
-    CreateFrame("GameTooltip", "CSTooltipScanner");
-    CSTooltipScanner:SetOwner(WorldFrame, "ANCHOR_NONE");
-    CSTooltipScanner:AddFontStrings(
-        CSTooltipScanner:CreateFontString("$parentTextLeft1", nil, "GameTooltipText"),
-        CSTooltipScanner:CreateFontString("$parentTextRight1", nil, "GameTooltipText") );
-end
-
 local function formatLine(line)
     local subStr = { strsplit(" ", line) };
     local enchantStr = ""
@@ -59,14 +51,16 @@ local function formatLine(line)
 end
 
 function enchants:getEnchantLine(slotID)
-    CSTooltipScanner:ClearLines();
-    CSTooltipScanner:SetInventoryItem("player", slotID);
-    local enchantStr = "";
-    for idx = 1, CSTooltipScanner:NumLines() do
-        local text = _G[strconcat("CSTooltipScannerTextLeft",idx)]:GetText();
-        local line = strmatch(text, enchants.tooltipFilter);
-        if line then
-            return line;
+    local ttData = C_TooltipInfo.GetInventoryItem("player", slotID);
+    if not ttData then
+        return "";
+    end
+    TooltipUtil.SurfaceArgs(ttData);
+    for _, line in ipairs(ttData.lines) do
+        TooltipUtil.SurfaceArgs(line);
+        local enchant = strmatch(line.leftText, enchants.tooltipFilter);
+        if enchant then
+            return enchant;
         end
     end
     return "";
@@ -79,5 +73,4 @@ end
 
 function enchants:init()
     enchants.tooltipFilter = ENCHANTED_TOOLTIP_LINE:gsub('%%s', '(.+)');
-    enchants.initTooltipScanner();
 end

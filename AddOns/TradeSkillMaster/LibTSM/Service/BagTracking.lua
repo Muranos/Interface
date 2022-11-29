@@ -6,6 +6,7 @@
 
 local _, TSM = ...
 local BagTracking = TSM.Init("Service.BagTracking")
+local Container = TSM.Include("Util.Container")
 local Database = TSM.Include("Util.Database")
 local Delay = TSM.Include("Util.Delay")
 local Event = TSM.Include("Util.Event")
@@ -15,6 +16,7 @@ local TempTable = TSM.Include("Util.TempTable")
 local ItemString = TSM.Include("Util.ItemString")
 local DefaultUI = TSM.Include("Service.DefaultUI")
 local ItemInfo = TSM.Include("Service.ItemInfo")
+local TooltipScanning = TSM.Include("Service.TooltipScanning")
 local InventoryInfo = TSM.Include("Service.InventoryInfo")
 local Settings = TSM.Include("Service.Settings")
 local private = {
@@ -37,10 +39,9 @@ local private = {
 	isFirstBankOpen = true,
 	callbackQuery = nil, -- luacheck: ignore 1004 - just stored for GC reasons
 	callbacks = {},
+	itemLocation = ItemLocation:CreateEmpty(),
 }
 local BANK_BAG_SLOTS = {}
-local NUM_REAL_BAG_SLOTS = TSM.IsWowClassic() and NUM_BAG_SLOTS or NUM_BAG_SLOTS + NUM_REAGENTBAG_SLOTS
-local REAGENT_BAG_INDEX = not TSM.IsWowClassic() and (NUM_BAG_SLOTS + NUM_BANKBAGSLOTS + NUM_REAGENTBAG_SLOTS) or nil
 
 
 
@@ -50,7 +51,8 @@ local REAGENT_BAG_INDEX = not TSM.IsWowClassic() and (NUM_BAG_SLOTS + NUM_BANKBA
 
 do
 	BANK_BAG_SLOTS[BANK_CONTAINER] = true
-	for i = NUM_REAL_BAG_SLOTS + 1, NUM_REAL_BAG_SLOTS + NUM_BANKBAGSLOTS do
+	local firstBankBag, lastBankBag = Container.GetBankBagIndexes()
+	for i = firstBankBag, lastBankBag do
 		BANK_BAG_SLOTS[i] = true
 	end
 	if not TSM.IsWowClassic() then
@@ -189,7 +191,7 @@ end
 function BagTracking.FilterQueryBags(query)
 	return query
 		:GreaterThanOrEqual("slotId", SlotId.Join(0, 1))
-		:LessThanOrEqual("slotId", SlotId.Join(NUM_REAL_BAG_SLOTS + 1, 0))
+		:LessThanOrEqual("slotId", SlotId.Join(Container.GetNumBags() + 1, 0))
 end
 
 function BagTracking.CreateQueryBags()
@@ -200,7 +202,7 @@ function BagTracking.CreateQueryBagsAuctionable()
 	return BagTracking.CreateQueryBags()
 		:Equal("isBoP", false)
 		:Equal("isBoA", false)
-		:Custom(private.NoUsedChargesQueryFilter)
+		:Custom(private.IsAuctionableQueryFilter)
 end
 
 function BagTracking.CreateQueryBagsItem(itemString)
@@ -219,7 +221,7 @@ function BagTracking.CreateQueryBagsItemAuctionable(itemString)
 	return BagTracking.CreateQueryBagsItem(itemString)
 		:Equal("isBoP", false)
 		:Equal("isBoA", false)
-		:Custom(private.NoUsedChargesQueryFilter)
+		:Custom(private.IsAuctionableQueryFilter)
 end
 
 function BagTracking.GetNumMailable(itemString)
@@ -320,11 +322,12 @@ function private.BankVisible()
 		private.quantityDB:SetQueryUpdatesPaused(false)
 	end
 	private.BagUpdateHandler(nil, BANK_CONTAINER)
-	for bag = NUM_REAL_BAG_SLOTS + 1, NUM_REAL_BAG_SLOTS + NUM_BANKBAGSLOTS do
+	local firstBankBag, lastBankBag = Container.GetBankBagIndexes()
+	for bag = firstBankBag, lastBankBag do
 		private.BagUpdateHandler(nil, bag)
 	end
 	if not TSM.IsWowClassic() and IsReagentBankUnlocked() then
-		for slot = 1, GetContainerNumSlots(REAGENTBANK_CONTAINER) do
+		for slot = 1, Container.GetNumSlots(REAGENTBANK_CONTAINER) do
 			private.ReagentBankSlotChangedHandler(nil, slot)
 		end
 	end
@@ -338,12 +341,11 @@ function private.BagUpdateHandler(_, bag)
 		return
 	end
 	private.bagUpdates.pending[bag] = true
-	if bag >= BACKPACK_CONTAINER and bag <= NUM_REAL_BAG_SLOTS then
+	local firstBankBag, lastBankBag = Container.GetBankBagIndexes()
+	if bag >= BACKPACK_CONTAINER and bag <= Container.GetNumBags() then
 		tinsert(private.bagUpdates.bagList, bag)
-	elseif bag == BANK_CONTAINER or (bag > NUM_REAL_BAG_SLOTS and bag <= NUM_REAL_BAG_SLOTS + NUM_BANKBAGSLOTS) then
+	elseif bag == BANK_CONTAINER or (bag >= firstBankBag and bag <= lastBankBag) then
 		tinsert(private.bagUpdates.bankList, bag)
-	elseif bag == REAGENT_BAG_INDEX then
-		-- TODO
 	elseif bag ~= KEYRING_CONTAINER then
 		error("Unexpected bag: "..tostring(bag))
 	end
@@ -455,7 +457,7 @@ end
 -- ============================================================================
 
 function private.ScanBagOrBank(bag)
-	local numSlots = GetContainerNumSlots(bag)
+	local numSlots = Container.GetNumSlots(bag)
 	private.RemoveExtraSlots(bag, numSlots)
 	local result = true
 	for slot = 1, numSlots do
@@ -480,8 +482,14 @@ end
 -- Private Helper Functions
 -- ============================================================================
 
-function private.NoUsedChargesQueryFilter(row)
-	return not InventoryInfo.HasUsedCharges(row:GetFields("bag", "slot"))
+function private.IsAuctionableQueryFilter(row)
+	if TSM.IsWowClassic() then
+		return not TooltipScanning.HasUsedCharges(row:GetFields("bag", "slot"))
+	else
+		private.itemLocation:Clear()
+		private.itemLocation:SetBagAndSlot(row:GetFields("bag", "slot"))
+		return C_AuctionHouse.IsSellItemValid(private.itemLocation, false)
+	end
 end
 
 function private.RemoveExtraSlots(bag, numSlots)
@@ -498,7 +506,7 @@ function private.RemoveExtraSlots(bag, numSlots)
 end
 
 function private.ScanBagSlot(bag, slot)
-	local texture, quantity, _, _, _, _, link, _, _, itemId = GetContainerItemInfo(bag, slot)
+	local texture, quantity, _, _, _, _, link, _, _, itemId = Container.GetItemInfo(bag, slot)
 	if quantity and not itemId then
 		-- we are pending item info for this slot so try again later to scan it
 		return false
@@ -571,18 +579,16 @@ end
 function private.ChangeBagItemTotal(bag, levelItemString, changeQuantity)
 	local totalsTable = nil
 	local field = nil
-	if bag >= BACKPACK_CONTAINER and bag <= NUM_REAL_BAG_SLOTS then
+	local firstBankBag, lastBankBag = Container.GetBankBagIndexes()
+	if bag >= BACKPACK_CONTAINER and bag <= Container.GetNumBags() then
 		totalsTable = private.settings.bagQuantity
 		field = "bagQuantity"
-	elseif bag == BANK_CONTAINER or (bag > NUM_REAL_BAG_SLOTS and bag <= NUM_REAL_BAG_SLOTS + NUM_BANKBAGSLOTS) then
+	elseif bag == BANK_CONTAINER or (bag >= firstBankBag and bag <= lastBankBag) then
 		totalsTable = private.settings.bankQuantity
 		field = "bankQuantity"
 	elseif bag == REAGENTBANK_CONTAINER then
 		totalsTable = private.settings.reagentBankQuantity
 		field = "reagentBankQuantity"
-	elseif bag == REAGENT_BAG_INDEX then
-		-- TODO
-		return
 	else
 		error("Unexpected bag: "..tostring(bag))
 	end

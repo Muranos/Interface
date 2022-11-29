@@ -57,23 +57,23 @@ end
 
 local function parseSpellsString(setting, doLower, keepDurations)
 
-	local buffNames = TMW:SplitNames(setting) -- Get a table of everything
+	local spells = TMW:SplitNames(setting) -- Get a table of everything
 	
 	if doLower then
-		buffNames = TMW:LowerNames(buffNames)
+		spells = TMW:LowerNames(spells)
 	end
 
 	--INSERT EQUIVALENCIES
 	--start at the end of the table, that way we dont have to worry
-	--about increasing the key of buffNames to work with every time we insert something
-	local k = #buffNames
+	--about increasing the key of spells to work with every time we insert something
+	local k = #spells
 	while k > 0 do
-		local eqtt = TMW:EquivToTable(buffNames[k]) -- Get the table form of the equivalency string
+		local eqtt = TMW:EquivToTable(spells[k]) -- Get the table form of the equivalency string
 		if eqtt then
 			local n = k	--point to start inserting the values at
-			tremove(buffNames, k)	--take the actual equavalancey itself out, because it isnt an actual spell name or anything
+			tremove(spells, k)	--take the actual equavalancey itself out, because it isnt an actual spell name or anything
 			for z, x in ipairs(eqtt) do
-				tinsert(buffNames, n, x)	--put the names into the main table
+				tinsert(spells, n, x)	--put the names into the main table
 				n = n + 1	--increment the point of insertion
 			end
 		else
@@ -82,28 +82,28 @@ local function parseSpellsString(setting, doLower, keepDurations)
 	end
 
 	-- REMOVE DUPLICATES
-	TMW.tRemoveDuplicates(buffNames)
+	TMW.tRemoveDuplicates(spells)
 
 
 	-- Remove entries that the user has chosed to omit by using a "-" prefix.
-	local k = #buffNames
+	local k = #spells
 	while k > 0 do
-		local v = buffNames[k]
+		local v = spells[k]
 		if (type(v) == "string" and v:match("^%-")) or (type(v) == "number" and v < 0) then
 
-			tremove(buffNames, k)
+			tremove(spells, k)
 
 			local thingToRemove = tostring(v):match("^%-%s*(.*)"):lower()
 			local spellToRemove, durationToRemove = splitSpellAndDuration(thingToRemove)
 
 			local i = 1
 			local removed
-			while buffNames[i] do
-				local name = tostring(buffNames[i]):lower()
+			while spells[i] do
+				local name = tostring(spells[i]):lower()
 				local spell, duration = splitSpellAndDuration(name)
 				
 				if spellToRemove == spell and durationToRemove == duration then
-					tremove(buffNames, i)
+					tremove(spells, i)
 					removed = true
 				else
 					i = i + 1
@@ -111,7 +111,7 @@ local function parseSpellsString(setting, doLower, keepDurations)
 			end
 
 			if not removed then
-				TMW:Printf(L["SPELL_EQUIV_REMOVE_FAILED"], thingToRemove, tconcat(buffNames, "; "))
+				TMW:Printf(L["SPELL_EQUIV_REMOVE_FAILED"], thingToRemove, tconcat(spells, "; "))
 			end
 		else
 			-- The entry was valid, so move backwards towards the beginning.
@@ -120,12 +120,12 @@ local function parseSpellsString(setting, doLower, keepDurations)
 	end
 
 	-- Remove invalid SpellIDs
-	for k = #buffNames, 1, -1 do
-		local v = buffNames[k]
+	for k = #spells, 1, -1 do
+		local v = spells[k]
 		local spell, duration = splitSpellAndDuration(v)
 		if (tonumber(spell) or 0) >= 2^31 or duration >= 2^31 then
 			-- Invalid spellID or duration. Remove it to prevent integer overflow errors.
-			tremove(buffNames, k)
+			tremove(spells, k)
 			TMW:Warn(L["ERROR_INVALID_SPELLID2"]:format(v))
 		end
 	end
@@ -134,27 +134,73 @@ local function parseSpellsString(setting, doLower, keepDurations)
 	-- REMOVE SPELL DURATIONS (FOR UNIT COOLDOWNS/ICDs)
 	-- THIS MUST HAPPEN LAST or else the duration array and spell array can get mismatched.
 	if not keepDurations then
-		for k, buffName in pairs(buffNames) do
+		for k, buffName in pairs(spells) do
 			local spell, duration = splitSpellAndDuration(buffName)
-			buffNames[k] = tonumber(spell) or spell
+			spells[k] = tonumber(spell) or spell
 		end
 	end
 
-	return buffNames
+	return spells
 end
 parseSpellsString = TMW:MakeNArgFunctionCached(3, parseSpellsString)
 
+-- IDs of spells that can't be tracked properly because of blizzard bugs.
+local fixSpellMap = { 
+	[382614] = function()
+		-- Evoker https://github.com/ascott18/TellMeWhen/issues/2017
+		-- 375783: Font of Magic (talent)
+		-- 382614: Dream Breath (Preservation talent, with Font of Magic LEARNED)
+		-- 355936: Dream Breath (Preservation talent, with Font of Magic UNLEARNED)
+		if not IsPlayerSpell(382614) and not IsPlayerSpell(375783) then
+			return 355936
+		end
+	end,
+	[382731] = function()
+		-- Evoker https://github.com/ascott18/TellMeWhen/issues/2017
+		-- 375783: Font of Magic (talent)
+		-- 382731: Spiritbloom (Preservation talent, with Font of Magic LEARNED)
+		-- 367226: Spiritbloom (Preservation talent, with Font of Magic UNLEARNED)
+		if not IsPlayerSpell(382731) and not IsPlayerSpell(375783) then
+			return 367226
+		end
+	end,
+	[382411] = function()
+		-- Evoker https://github.com/ascott18/TellMeWhen/issues/2017
+		-- 375783: Font of Magic (talent)
+		-- 382411: Eternity Surge (Devastation baseline, with Font of Magic LEARNED)
+		-- 359073: Eternity Surge (Devastation baseline, with Font of Magic UNLEARNED)
+		if not IsPlayerSpell(382411) and not IsPlayerSpell(375783) then
+			return 359073
+		end
+	end,
+}
 
-local function getSpellNames(setting, doLower, firstOnly, toname, hash, allowRenaming)
-	local buffNames = parseSpellsString(setting, doLower, false)
+local function getSpellNames(setting, doLower, firstOnly, toName, hash, allowRenaming)
+	local spells = parseSpellsString(setting, doLower, false)
 
-	-- buffNames MUST BE COPIED because the return from parseSpellsString is cached.
-	buffNames = CopyTable(buffNames)
+	-- spells MUST BE COPIED because the return from parseSpellsString is cached.
+	spells = CopyTable(spells)
+
+	if allowRenaming then
+		-- Attempt to fix blizzard bugs like https://github.com/Stanzilla/WoWUIBugs/issues/354
+		for k, v in ipairs(spells) do
+			-- Doesn't matter if the input is a name or an ID.
+			-- We need to map it to an ID to fix blizzard bugs
+			local name, _, _, _, _, _, spellID = GetSpellInfo(v or "")
+			if spellID and fixSpellMap[spellID] then
+				local newSpell = fixSpellMap[spellID]()
+				if newSpell then
+					print("fixing bugged spell", v, spellID, "=>", newSpell)
+					spells[k] = newSpell
+				end
+			end
+		end
+	end
 
 	if hash then
 		local hash = {}
-		for k, v in ipairs(buffNames) do
-			if toname and (allowRenaming or tonumber(v)) then
+		for k, v in ipairs(spells) do
+			if toName and (allowRenaming or tonumber(v)) then
 				v = GetSpellInfo(v or "") or v -- Turn the value into a name if needed
 			end
 
@@ -167,10 +213,10 @@ local function getSpellNames(setting, doLower, firstOnly, toname, hash, allowRen
 		return hash
 	end
 
-	if toname then
+	if toName then
 		if firstOnly then
 			-- Turn the first value into a name and return it
-			local ret = buffNames[1] or ""
+			local ret = spells[1] or ""
 			if (allowRenaming or tonumber(ret)) then
 				ret = GetSpellInfo(ret) or ret 
 			end
@@ -182,26 +228,26 @@ local function getSpellNames(setting, doLower, firstOnly, toname, hash, allowRen
 			return ret
 		else
 			-- Convert everything to a name
-			for k, v in ipairs(buffNames) do
+			for k, v in ipairs(spells) do
 				if (allowRenaming or tonumber(v)) then
-					buffNames[k] = GetSpellInfo(v or "") or v 
+					spells[k] = GetSpellInfo(v or "") or v 
 				end
 			end
 
 			if doLower
-				then TMW:LowerNames(buffNames)
+				then TMW:LowerNames(spells)
 			end
 
-			return buffNames
+			return spells
 		end
 	end
 
 	if firstOnly then
-		local ret = buffNames[1] or ""
+		local ret = spells[1] or ""
 		return ret
 	end
 
-	return buffNames
+	return spells
 end
 
 local function getSpellDurations(setting)
@@ -232,7 +278,7 @@ end
 ---------------------------------
 
 local tableArgs = {
-	--						lower,	first,	toname,	hash
+	--						lower,	first,	toName,	hash
 	First				= { 1,		1,		nil,	nil	},
 	FirstString			= { 1,		1,		1,		nil },
 	Array				= { 1,		nil,	nil,	nil },
@@ -240,7 +286,7 @@ local tableArgs = {
 	Hash				= { 1,		nil,	nil, 	1	},
 	StringHash			= { 1,		nil,	1,		1	},
 
-	--						lower,	first,	toname,	hash
+	--						lower,	first,	toName,	hash
 	FirstNoLower		= { nil,	1,		nil,	nil },
 	FirstStringNoLower	= { nil,	1,		1,		nil	},
 	ArrayNoLower		= { nil,	nil,	nil,	nil	},
@@ -334,7 +380,7 @@ end)
 
 -- @arg spellString [string] A semicolon-delimited list of spells that
 -- will be parsed and made available in various forms by the {{{TMW.C.SpellSet}}}.
--- @arg allowRenaiming [boolean] True if the SpellSet should attempt to rename spells
+-- @arg allowRenaming [boolean] True if the SpellSet should attempt to rename spells
 -- that were inputted by name but have different names because of the player's currently learned spells.
 -- @return [TMW.C.SpellSet] An instance of {{{TMW.C.SpellSet}}} for the requested spells.
 function TMW:GetSpells(spellString, allowRenaming)
@@ -498,102 +544,298 @@ TMW:MakeSingleArgFunctionCached(TMW, "EquivToTable")
 ---------------------------------
 -- Constant spell data
 ---------------------------------
-
-local genericTotemSlots = {
-	{
-		hasVariableNames = true,
-		name = L["GENERICTOTEM"]:format(1),
-		texture = "Interface\\ICONS\\ability_shaman_tranquilmindtotem"
-	},
-	{
-		hasVariableNames = true,
-		name = L["GENERICTOTEM"]:format(2),
-		texture = "Interface\\ICONS\\ability_shaman_tranquilmindtotem"
-	},
-	{
-		hasVariableNames = true,
-		name = L["GENERICTOTEM"]:format(3),
-		texture = "Interface\\ICONS\\ability_shaman_tranquilmindtotem"
-	},
-	{
-		hasVariableNames = true,
-		name = L["GENERICTOTEM"]:format(4),
-		texture = "Interface\\ICONS\\ability_shaman_tranquilmindtotem"
-	},
-	{
-		hasVariableNames = true,
-		name = L["GENERICTOTEM"]:format(5),
-		texture = "Interface\\ICONS\\ability_shaman_tranquilmindtotem"
-	},
-}
-
-if pclass == "DRUID" then
-	TMW.COMMON.CurrentClassTotems = {
-		name = GetSpellInfo(145205),
-		desc = L["ICONMENU_TOTEM_GENERIC_DESC"]:format(GetSpellInfo(145205)),
-		{
-			hasVariableNames = false,
-			name = GetSpellInfo(145205),
-			texture = GetSpellTexture(145205)
-		}
-	}
-elseif pclass == "MAGE" then
-	TMW.COMMON.CurrentClassTotems = {
-		name = GetSpellInfo(116011),
-		desc = L["ICONMENU_TOTEM_GENERIC_DESC"]:format(GetSpellInfo(116011)),
-		{
-			hasVariableNames = false,
-			name = GetSpellInfo(116011),
-			texture = GetSpellTexture(116011)
-		}
-	}
-
-elseif pclass == "PALADIN" then
-	local name = GetSpellInfo(26573) .. " & " .. GetSpellInfo(114158)
-	TMW.COMMON.CurrentClassTotems = {
-		name = name,
-		desc = L["ICONMENU_TOTEM_GENERIC_DESC"]:format(name),
-		{
-			hasVariableNames = false,
-			name = GetSpellInfo(26573), --consecration
-			texture = GetSpellTexture(26573)
-		},
-        {
-            hasVariableNames = false,
-            name = GetSpellInfo(114158), --light's hammer
-            texture = GetSpellTexture(114158)
-        }
-	}
-elseif pclass == "DEATHKNIGHT" then
-	local npcName = function(npcID)
-		local cachedName = TMW:TryGetNPCName(npcID)
-		return function()
-			if cachedName then return cachedName end
-			cachedName = TMW:TryGetNPCName(npcID)
-			return cachedName
-		end
-	end
-	local name = GetSpellInfo(49206) .. " & " .. GetSpellInfo(288853)
-	TMW.COMMON.CurrentClassTotems = {
-		name = name,
-		desc = function() return L["ICONMENU_TOTEM_GENERIC_DESC"]:format(name) end,
-		texture = GetSpellTexture(49206),
-		[1] = { -- Raise Abomination (pvp talent)
-			hasVariableNames = false,
-			name = npcName(149555),
-			texture = GetSpellTexture(288853),
-		},
-		[3] = { -- Ebon Gargoyle
-			hasVariableNames = false,
-			name = npcName(27829),
-			texture = GetSpellTexture(49206),
-		}
-	}
-else
-	-- This includes shamans now in Legion - the elements of totems is no longer a notion.
+if TMW.isWrath then
 	TMW.COMMON.CurrentClassTotems = {
 		name = L["ICONMENU_TOTEM"],
 		desc = L["ICONMENU_TOTEM_DESC"],
+		{
+			hasVariableNames = true,
+			name = L["FIRE"],
+			texture = GetSpellTexture(8227), -- flametongue
+		},
+		{
+			hasVariableNames = true,
+			name = L["EARTH"],
+			texture = GetSpellTexture(8072), -- stoneskin
+		},
+		{
+			hasVariableNames = true,
+			name = L["WATER"],
+			texture = GetSpellTexture(5675), -- mana spring
+		},
+		{
+			hasVariableNames = true,
+			name = L["AIR"],
+			texture = GetSpellTexture(8512), -- windfury
+		},
 	}
-	TMW:CopyTableInPlaceUsingDestinationMeta(genericTotemSlots, TMW.COMMON.CurrentClassTotems, true)
+
+	TMW.COMMON.TotemBaseNames = {}
+	TMW.COMMON.TotemRanks = {}
+	local numerals = {
+		[1]="I",
+		[2]="II",
+		[3]="III",
+		[4]="IV",
+		[5]="V",
+		[6]="VI",
+		[7]="VII",
+		[8]="VIII",
+		[9]="IX",
+		[10]="X",
+		[11]="XI",
+		[12]="XII",
+		[13]="XIII",
+		[14]="XIV",
+		[15]="XV",
+	}
+	local function Totem(spellID, rank)
+		local data = {
+			spellID = spellID,
+			rankNumber = rank,
+			rankRoman = numerals[rank]
+		}
+		
+		data.spellName = GetSpellInfo(spellID)
+		if not data.spellName then
+			TMW:Debug("Bad totem ID: " .. spellID)
+			return
+		end
+		data.spellNameLower = strlower(data.spellName)
+		data.totemName = data.spellName
+		if rank > 1 then
+			data.totemName = data.totemName .. " " .. numerals[rank]
+		end
+		data.totemNameLower = strlower(data.totemName)
+
+		TMW.COMMON.TotemRanks[spellID] = data
+		TMW.COMMON.TotemRanks[data.totemNameLower] = data
+
+		if not TMW.COMMON.TotemBaseNames[data.spellNameLower] then
+			TMW.COMMON.TotemBaseNames[data.spellNameLower] = data
+			TMW.COMMON.TotemBaseNames[spellID] = data
+		end
+	end
+
+	Totem(8170, 1)  -- Cleansing Totem
+
+	Totem(2062, 1)  -- Earth Elemental Totem
+
+	Totem(2484, 1)  -- Earthbind Totem
+
+	Totem(2894, 1)  -- Fire Elemental Totem
+
+	Totem(8184, 1)  -- Fire Resistance Totem
+	Totem(10537, 2) -- Fire Resistance Totem
+	Totem(10538, 3) -- Fire Resistance Totem
+	Totem(25563, 4) -- Fire Resistance Totem
+	Totem(58737, 5) -- Fire Resistance Totem
+	Totem(58739, 6) -- Fire Resistance Totem
+
+	Totem(8227, 1)  -- Flametongue Totem
+	Totem(8249, 2)  -- Flametongue Totem
+	Totem(10526, 3) -- Flametongue Totem
+	Totem(16387, 4) -- Flametongue Totem
+	Totem(25557, 5) -- Flametongue Totem
+	Totem(58649, 6) -- Flametongue Totem
+	Totem(58652, 7) -- Flametongue Totem
+	Totem(58656, 8) -- Flametongue Totem
+
+	Totem(8181, 1)  -- Frost Resistance Totem
+	Totem(10478, 2) -- Frost Resistance Totem
+	Totem(10479, 3) -- Frost Resistance Totem
+	Totem(25560, 4) -- Frost Resistance Totem
+	Totem(58741, 5) -- Frost Resistance Totem
+	Totem(58745, 6) -- Frost Resistance Totem
+
+	Totem(8177, 1)  -- Grounding Totem
+
+	Totem(5394, 1)  -- Healing Stream Totem
+	Totem(6375, 2)  -- Healing Stream Totem
+	Totem(6377, 3)  -- Healing Stream Totem
+	Totem(10462, 4) -- Healing Stream Totem
+	Totem(10463, 5) -- Healing Stream Totem
+	Totem(25567, 6) -- Healing Stream Totem
+	Totem(58755, 7) -- Healing Stream Totem
+	Totem(58756, 8) -- Healing Stream Totem
+	Totem(58757, 9) -- Healing Stream Totem
+
+	Totem(8190, 1)  -- Magma Totem
+	Totem(10585, 2) -- Magma Totem
+	Totem(10586, 3) -- Magma Totem
+	Totem(10587, 4) -- Magma Totem
+	Totem(25552, 5) -- Magma Totem
+	Totem(58731, 6) -- Magma Totem
+	Totem(58734, 7) -- Magma Totem
+
+	Totem(5675, 1)  -- Mana Spring Totem
+	Totem(10495, 2) -- Mana Spring Totem
+	Totem(10496, 3) -- Mana Spring Totem
+	Totem(10497, 4) -- Mana Spring Totem
+	Totem(25570, 5) -- Mana Spring Totem
+	Totem(58771, 6) -- Mana Spring Totem
+	Totem(58773, 7) -- Mana Spring Totem
+	Totem(58774, 8) -- Mana Spring Totem
+
+	Totem(16190, 1) -- Mana Tide Totem
+
+	Totem(10595, 1) -- Nature Resistance Totem
+	Totem(10600, 2) -- Nature Resistance Totem
+	Totem(10601, 3) -- Nature Resistance Totem
+	Totem(25574, 4) -- Nature Resistance Totem
+	Totem(58746, 5) -- Nature Resistance Totem
+	Totem(58749, 6) -- Nature Resistance Totem
+
+	Totem(3599, 1)  -- Searing Totem
+	Totem(6363, 2)  -- Searing Totem
+	Totem(6364, 3)  -- Searing Totem
+	Totem(6365, 4)  -- Searing Totem
+	Totem(10437, 5) -- Searing Totem
+	Totem(10438, 6) -- Searing Totem
+	Totem(25533, 7) -- Searing Totem
+	Totem(58699, 8) -- Searing Totem
+	Totem(58703, 9) -- Searing Totem
+	Totem(58704, 10) -- Searing Totem
+
+	Totem(6495, 1)  -- Sentry Totem
+
+	Totem(5730, 1)  -- Stoneclaw Totem
+	Totem(6390, 2)  -- Stoneclaw Totem
+	Totem(6391, 3)  -- Stoneclaw Totem
+	Totem(6392, 4)  -- Stoneclaw Totem
+	Totem(10427, 5) -- Stoneclaw Totem
+	Totem(10428, 6) -- Stoneclaw Totem
+	Totem(25525, 7) -- Stoneclaw Totem
+	Totem(58580, 8) -- Stoneclaw Totem
+	Totem(58581, 9) -- Stoneclaw Totem
+	Totem(58582, 10) -- Stoneclaw Totem
+
+	Totem(8071, 1)  -- Stoneskin Totem
+	Totem(8154, 2)  -- Stoneskin Totem
+	Totem(8155, 3)  -- Stoneskin Totem
+	Totem(10406, 4) -- Stoneskin Totem
+	Totem(10407, 5) -- Stoneskin Totem
+	Totem(10408, 6) -- Stoneskin Totem
+	Totem(25508, 7) -- Stoneskin Totem
+	Totem(25509, 8) -- Stoneskin Totem
+	Totem(58751, 9) -- Stoneskin Totem
+	Totem(58753, 10) -- Stoneskin Totem
+
+	Totem(8075, 1)  -- Strength of Earth Totem
+	Totem(8160, 2)  -- Strength of Earth Totem
+	Totem(8161, 3)  -- Strength of Earth Totem
+	Totem(10442, 4) -- Strength of Earth Totem
+	Totem(25361, 5) -- Strength of Earth Totem
+	Totem(25528, 6) -- Strength of Earth Totem
+	Totem(57622, 7) -- Strength of Earth Totem
+	Totem(58643, 8) -- Strength of Earth Totem
+
+	Totem(30706, 7) -- Totem of Wrath
+
+	Totem(8143, 1)  -- Tremor Totem
+
+	Totem(8512, 1)  -- Windfury Totem
+
+	Totem(3738, 1)  -- Wrath of Air Totem
+else
+
+	local genericTotemSlots = {
+		{
+			hasVariableNames = true,
+			name = L["GENERICTOTEM"]:format(1),
+			texture = "Interface\\ICONS\\ability_shaman_tranquilmindtotem"
+		},
+		{
+			hasVariableNames = true,
+			name = L["GENERICTOTEM"]:format(2),
+			texture = "Interface\\ICONS\\ability_shaman_tranquilmindtotem"
+		},
+		{
+			hasVariableNames = true,
+			name = L["GENERICTOTEM"]:format(3),
+			texture = "Interface\\ICONS\\ability_shaman_tranquilmindtotem"
+		},
+		{
+			hasVariableNames = true,
+			name = L["GENERICTOTEM"]:format(4),
+			texture = "Interface\\ICONS\\ability_shaman_tranquilmindtotem"
+		},
+		{
+			hasVariableNames = true,
+			name = L["GENERICTOTEM"]:format(5),
+			texture = "Interface\\ICONS\\ability_shaman_tranquilmindtotem"
+		},
+	}
+
+	if pclass == "DRUID" then
+		TMW.COMMON.CurrentClassTotems = {
+			name = GetSpellInfo(145205),
+			desc = L["ICONMENU_TOTEM_GENERIC_DESC"]:format(GetSpellInfo(145205)),
+			{
+				hasVariableNames = false,
+				name = GetSpellInfo(145205),
+				texture = GetSpellTexture(145205)
+			}
+		}
+	elseif pclass == "MAGE" then
+		TMW.COMMON.CurrentClassTotems = {
+			name = GetSpellInfo(116011),
+			desc = L["ICONMENU_TOTEM_GENERIC_DESC"]:format(GetSpellInfo(116011)),
+			{
+				hasVariableNames = false,
+				name = GetSpellInfo(116011),
+				texture = GetSpellTexture(116011)
+			}
+		}
+
+	elseif pclass == "PALADIN" then
+		local name = GetSpellInfo(26573) .. " & " .. GetSpellInfo(114158)
+		TMW.COMMON.CurrentClassTotems = {
+			name = name,
+			desc = L["ICONMENU_TOTEM_GENERIC_DESC"]:format(name),
+			{
+				hasVariableNames = false,
+				name = GetSpellInfo(26573), --consecration
+				texture = GetSpellTexture(26573)
+			},
+			{
+				hasVariableNames = false,
+				name = GetSpellInfo(114158), --light's hammer
+				texture = GetSpellTexture(114158)
+			}
+		}
+	elseif pclass == "DEATHKNIGHT" then
+		local npcName = function(npcID)
+			local cachedName = TMW:TryGetNPCName(npcID)
+			return function()
+				if cachedName then return cachedName end
+				cachedName = TMW:TryGetNPCName(npcID)
+				return cachedName
+			end
+		end
+		local name = GetSpellInfo(49206) .. " & " .. GetSpellInfo(288853)
+		TMW.COMMON.CurrentClassTotems = {
+			name = name,
+			desc = function() return L["ICONMENU_TOTEM_GENERIC_DESC"]:format(name) end,
+			texture = GetSpellTexture(49206),
+			[1] = { -- Raise Abomination (pvp talent)
+				hasVariableNames = false,
+				name = npcName(149555),
+				texture = GetSpellTexture(288853),
+			},
+			[3] = { -- Ebon Gargoyle
+				hasVariableNames = false,
+				name = npcName(27829),
+				texture = GetSpellTexture(49206),
+			}
+		}
+	else
+		-- This includes shamans now in Legion - the elements of totems is no longer a notion.
+		TMW.COMMON.CurrentClassTotems = {
+			name = L["ICONMENU_TOTEM"],
+			desc = L["ICONMENU_TOTEM_DESC"],
+		}
+		TMW:CopyTableInPlaceUsingDestinationMeta(genericTotemSlots, TMW.COMMON.CurrentClassTotems, true)
+	end
+
 end

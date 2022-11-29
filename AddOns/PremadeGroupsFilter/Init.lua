@@ -103,6 +103,7 @@ C.DPS_CLASS_TYPE = {
     ["DEATHKNIGHT"] = { range = false, melee = true,  armor = "plate"   },
     ["DEMONHUNTER"] = { range = false, melee = true,  armor = "leather" },
     ["DRUID"]       = { range = true,  melee = true,  armor = "leather" },
+    ["EVOKER"]      = { range = true,  melee = false, armor = "mail"    },
     ["HUNTER"]      = { range = true,  melee = true,  armor = "mail"    },
     ["PALADIN"]     = { range = false, melee = true,  armor = "plate"   },
     ["PRIEST"]      = { range = true,  melee = false, armor = "cloth"   },
@@ -123,6 +124,10 @@ C.SETTINGS_DEFAULT = {
     classCircle = true,
     classBar = false,
     leaderCrown = false,
+    oneClickSignUp = true,
+    persistSignUpNote = true,
+    signupOnEnter = false,
+    skipSignUpDialog = false,
 }
 
 C.STATE_DEFAULT = {
@@ -244,6 +249,7 @@ end
 
 function PGF.OnPlayerLogin()
     PGF.FixGetPlaystyleStringIfPlayerAuthenticated()
+    PGF.PersistSignUpNote()
 end
 
 function PGF.OnEvent(self, event, ...)

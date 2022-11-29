@@ -109,7 +109,7 @@ local iconTitanDefault = "Interface\\PVPFrame\\\PVP-ArenaPoints-Icon";
 
 -- Events we want for LDBToTitan
 LDBToTitan:RegisterEvent("PLAYER_LOGIN")
-LDBToTitan:RegisterEvent("PLAYER_ENTERING_WORLD")
+--LDBToTitan:RegisterEvent("PLAYER_ENTERING_WORLD")
 
 local function If_Show_Tooltip()
 				local use_mod = TitanAllGetVar("UseTooltipModifer")
@@ -459,10 +459,15 @@ function TitanLDBShowText(name)
 		end
 
 		-- Check for display text
-		val1 = (ldb.text or "")
+		-- Check for display text
 		-- .text is required to show
 		-- .value is the text of the value - 100.0 in 100.0 FPS
 		-- .suffix is the text after the value - FPS in 100.0 FPS
+		if TitanGetVar(name, "ShowRegularText") then
+			val1 = (ldb.text or "")
+		else
+			val1 = ""
+		end
 	else
 		-- return values will be empty strings
 	end
@@ -700,12 +705,14 @@ function LDBToTitan:TitanLDBCreateObject(_, name, obj)
 		controlVariables = {
 			ShowIcon = true,
 			ShowLabelText = true,
+			ShowRegularText = false,
 			ShowColoredText = false,
 			DisplayOnRightSide = true
 		},
 		savedVariables = {
 			ShowIcon = true,
 			ShowLabelText = true,
+			ShowRegularText = true,
 			ShowColoredText = false,
 			DisplayOnRightSide = false
 		},
@@ -759,13 +766,17 @@ function LDBToTitan:TitanLDBCreateObject(_, name, obj)
 		-- one interpretation of the LDB spec is launchers 
 		-- should always have an icon.
 		registry["controlVariables"].ShowIcon = true;
+		registry["controlVariables"].ShowRegularText = false; -- no text
 		-- defaults
+		registry["savedVariables"].ShowRegularText = false;
 		registry["savedVariables"].DisplayOnRightSide = true; -- start on right side
 	end
  
 	if obj.type == DATA_SOURCE then
 		-- controls
+		registry["controlVariables"].ShowRegularText = true;
 		-- defaults
+		registry["savedVariables"].ShowRegularText = true;
 	end
  
 	--
@@ -882,9 +893,11 @@ LDBToTitan:SetScript("OnEvent", function(self, event, ...)
 			--TitanDebug("Registered "..name..".");
 		end
 	end
-	
+
+--[[
 	if (event == "PLAYER_ENTERING_WORLD") then
 		self:UnregisterEvent("PLAYER_ENTERING_WORLD")
 	end
+--]]
 end
 )

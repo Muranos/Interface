@@ -1,6 +1,8 @@
 local AB, _, T = assert(OPie.ActionBook:compatible(2,14), "Requires a compatible version of ActionBook"), ...
 local MODERN = select(4,GetBuildInfo()) >= 8e4
 local CF_WRATH = not MODERN and select(4,GetBuildInfo()) >= 3e4
+local MODERN_CONTAINERS = MODERN or C_Container and C_Container.GetContainerNumSlots
+local MODERN_TRACKING = MODERN or C_Minimap and C_Minimap.GetNumTrackingTypes
 local ORI, EV, L, PC = OPie.UI, T.Evie, T.L, T.OPieCore
 
 if MODERN or CF_WRATH then -- OPieTracker
@@ -19,13 +21,13 @@ if MODERN or CF_WRATH then -- OPieTracker
 	end
 	
 	local function GetTrackingInfo(...)
-		return (MODERN and C_Minimap or _G).GetTrackingInfo(...)
+		return (MODERN_TRACKING and C_Minimap or _G).GetTrackingInfo(...)
 	end
 	local function SetTracking(...)
-		return (MODERN and C_Minimap or _G).SetTracking(...)
+		return (MODERN_TRACKING and C_Minimap or _G).SetTracking(...)
 	end
 	local function GetNumTrackingTypes(...)
-		return (MODERN and C_Minimap or _G).GetNumTrackingTypes(...)
+		return (MODERN_TRACKING and C_Minimap or _G).GetNumTrackingTypes(...)
 	end
 	
 	local collectionData = {}
@@ -64,6 +66,13 @@ if MODERN or CF_WRATH then -- OPieTracker
 end
 do -- OPieAutoQuest
 	local exclude, questItems, IsQuestItem = PC:RegisterPVar("AutoQuestExclude", {}), {}
+	local function GetContainerItemQuestInfo(bag, slot)
+		if MODERN_CONTAINERS then
+			local iqi = C_Container.GetContainerItemQuestInfo(bag, slot)
+			return iqi.isQuestItem, iqi.questID, iqi.isActive
+		end
+		return _G.GetContainerItemQuestInfo(bag, slot)
+	end
 	if MODERN then
 		questItems[30148] = "72986 72985"
 		local include = {
@@ -175,10 +184,12 @@ do -- OPieAutoQuest
 	local function syncRing(_, _, upId)
 		if upId ~= colId then return end
 		changed, current = false, (ctok + 1) % 2
-
+		
+		local ns = MODERN_CONTAINERS and C_Container.GetContainerNumSlots or GetContainerNumSlots
+		local giid = MODERN_CONTAINERS and C_Container.GetContainerItemID or GetContainerItemID
 		for bag=0,4 do
-			for slot=1,GetContainerNumSlots(bag) do
-				local iid = GetContainerItemID(bag, slot)
+			for slot=1, ns(bag) do
+				local iid = giid(bag, slot)
 				local isQuest, startsQuestMark = IsQuestItem(iid, bag, slot)
 				if isQuest then
 					local tok = "OPieBundleQuest" .. iid

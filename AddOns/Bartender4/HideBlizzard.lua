@@ -9,40 +9,34 @@ if select(4, GetBuildInfo()) < 100000 then
 	return
 end
 
-local function hideActionBarFrame(frame, clearEvents, reanchor, noAnchorChanges)
+local function hideActionBarFrame(frame, clearEvents)
 	if frame then
 		if clearEvents then
 			frame:UnregisterAllEvents()
 		end
 
 		-- remove some EditMode hooks
-		if frame.systemInfo then
-			frame.Show = nil
-			frame.Hide = nil
-			frame.SetShown = nil
-			frame.IsShown = nil
-
+		if frame.system then
+			-- purge the show state to avoid any taint concerns
 			Bartender4.Util:PurgeKey(frame, "isShownExternal")
 		end
 
-		frame:Hide()
-		frame:SetParent(Bartender4.UIHider)
-
-		-- setup faux anchors so the frame position data returns valid
-		if reanchor and not noAnchorChanges then
-			local left, right, top, bottom = frame:GetLeft(), frame:GetRight(), frame:GetTop(), frame:GetBottom()
-			frame:ClearAllPoints()
-			if left and right and top and bottom then
-				frame:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", left, top)
-				frame:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMLEFT", right, bottom)
-			else
-				frame:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", 10, 10)
-				frame:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMLEFT", 20, 20)
-			end
-		elseif not noAnchorChanges then
-			frame:ClearAllPoints()
+		-- EditMode overrides the Hide function, avoid calling it as it can taint
+		if frame.HideBase then
+			frame:HideBase()
+		else
+			frame:Hide()
 		end
+		frame:SetParent(Bartender4.UIHider)
 	end
+end
+
+local function hideActionButton(button)
+	if not button then return end
+
+	button:Hide()
+	button:UnregisterAllEvents()
+	button:SetAttribute("statehidden", true)
 end
 
 function Bartender4:HideBlizzard()
@@ -51,55 +45,32 @@ function Bartender4:HideBlizzard()
 	UIHider:Hide()
 	self.UIHider = UIHider
 
-	hideActionBarFrame(MainMenuBar, false, false, true)
-	hideActionBarFrame(MultiBarBottomLeft, true, false, true)
-	hideActionBarFrame(MultiBarBottomRight, true, false, true)
-	hideActionBarFrame(MultiBarLeft, true, false, true)
-	hideActionBarFrame(MultiBarRight, true, false, true)
-	hideActionBarFrame(MultiBar5, true, false, true)
-	hideActionBarFrame(MultiBar6, true, false, true)
-	hideActionBarFrame(MultiBar7, true, false, true)
+	hideActionBarFrame(MainMenuBar, false)
+	hideActionBarFrame(MultiBarBottomLeft, true)
+	hideActionBarFrame(MultiBarBottomRight, true)
+	hideActionBarFrame(MultiBarLeft, true)
+	hideActionBarFrame(MultiBarRight, true)
+	hideActionBarFrame(MultiBar5, true)
+	hideActionBarFrame(MultiBar6, true)
+	hideActionBarFrame(MultiBar7, true)
 
 	-- Hide MultiBar Buttons, but keep the bars alive
 	for i=1,12 do
-		_G["ActionButton" .. i]:Hide()
-		_G["ActionButton" .. i]:UnregisterAllEvents()
-		_G["ActionButton" .. i]:SetAttribute("statehidden", true)
-
-		_G["MultiBarBottomLeftButton" .. i]:Hide()
-		_G["MultiBarBottomLeftButton" .. i]:UnregisterAllEvents()
-		_G["MultiBarBottomLeftButton" .. i]:SetAttribute("statehidden", true)
-
-		_G["MultiBarBottomRightButton" .. i]:Hide()
-		_G["MultiBarBottomRightButton" .. i]:UnregisterAllEvents()
-		_G["MultiBarBottomRightButton" .. i]:SetAttribute("statehidden", true)
-
-		_G["MultiBarRightButton" .. i]:Hide()
-		_G["MultiBarRightButton" .. i]:UnregisterAllEvents()
-		_G["MultiBarRightButton" .. i]:SetAttribute("statehidden", true)
-
-		_G["MultiBarLeftButton" .. i]:Hide()
-		_G["MultiBarLeftButton" .. i]:UnregisterAllEvents()
-		_G["MultiBarLeftButton" .. i]:SetAttribute("statehidden", true)
-
-		_G["MultiBar5Button" .. i]:Hide()
-		_G["MultiBar5Button" .. i]:UnregisterAllEvents()
-		_G["MultiBar5Button" .. i]:SetAttribute("statehidden", true)
-
-		_G["MultiBar6Button" .. i]:Hide()
-		_G["MultiBar6Button" .. i]:UnregisterAllEvents()
-		_G["MultiBar6Button" .. i]:SetAttribute("statehidden", true)
-
-		_G["MultiBar7Button" .. i]:Hide()
-		_G["MultiBar7Button" .. i]:UnregisterAllEvents()
-		_G["MultiBar7Button" .. i]:SetAttribute("statehidden", true)
+		hideActionButton(_G["ActionButton" .. i])
+		hideActionButton(_G["MultiBarBottomLeftButton" .. i])
+		hideActionButton(_G["MultiBarBottomRightButton" .. i])
+		hideActionButton(_G["MultiBarRightButton" .. i])
+		hideActionButton(_G["MultiBarLeftButton" .. i])
+		hideActionButton(_G["MultiBar5Button" .. i])
+		hideActionButton(_G["MultiBar6Button" .. i])
+		hideActionButton(_G["MultiBar7Button" .. i])
 	end
 
-	hideActionBarFrame(MicroButtonAndBagsBar, false, false, true)
-	hideActionBarFrame(StanceBar, true, false, true)
-	hideActionBarFrame(PossessActionBar, true, false, true)
-	hideActionBarFrame(MultiCastActionBarFrame, false, false, true)
-	hideActionBarFrame(PetActionBar, true, false, true)
+	hideActionBarFrame(MicroButtonAndBagsBar, false)
+	hideActionBarFrame(StanceBar, true)
+	hideActionBarFrame(PossessActionBar, true)
+	hideActionBarFrame(MultiCastActionBarFrame, false)
+	hideActionBarFrame(PetActionBar, true)
 	hideActionBarFrame(StatusTrackingBarManager, false)
 
 	-- these events drive visibility, we want the MainMenuBar to remain invisible

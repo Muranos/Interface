@@ -1,4 +1,4 @@
-## Interface: 100000
+## Interface: 100002
 ## Title: Simple Item Level
 ## Author: Kemayo
 ## Notes: Show item levels in useful places
@@ -16,3 +16,4 @@ embeds.xml
 #@end-no-lib-strip@
 
 addon.lua
+config.lua

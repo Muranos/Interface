@@ -246,8 +246,8 @@ TMW:NewClass("Config_GroupListButton", "Config_CheckButton"){
 		else
 			if group.Domain == "profile" then
 				-- Indicator for talent tree (specialization) configuration.
-				for i = 1, GetNumSpecializations() do
-					local specID = GetSpecializationInfo(i)
+				for i = 1, TMW.GetNumSpecializations() do
+					local specID = TMW.GetSpecializationInfo(i)
 					if not gs.EnabledSpecs[specID] then
 						isSpecLimited = true
 						break
@@ -258,10 +258,10 @@ TMW:NewClass("Config_GroupListButton", "Config_CheckButton"){
 					-- Iterate backwards so they appear in the correct order
 					-- (since they are positioned from right to left, not left to right)
 					local foundOne
-					for i = GetNumSpecializations(), 1, -1 do
-						local specID = GetSpecializationInfo(i)
+					for i = TMW.GetNumSpecializations(), 1, -1 do
+						local specID = TMW.GetSpecializationInfo(i)
 						if gs.EnabledSpecs[specID] then
-							local _, name, _, texture = GetSpecializationInfo(i)
+							local _, name, _, texture = TMW.GetSpecializationInfo(i)
 
 							local tex = self:GetTexture(textureIndex)
 							textureIndex = textureIndex + 1
@@ -429,7 +429,7 @@ function TMW:Group_Delete(group)
 	tremove(TMW.db[domain].Groups, groupID)
 	TMW.db[domain].NumGroups = TMW.db[domain].NumGroups - 1
 
-	TMW:Update()
+	TMW:UpdateNormally()
 
 	-- Do this again so the group list will update to reflect the missing group.
 	IE:LoadGroup(1, false)
@@ -459,7 +459,7 @@ function TMW:Group_Add(domain, view)
 		end
 	end
 
-	TMW:Update()
+	TMW:UpdateNormally()
 
 	local group = TMW[domain][groupID]
 
@@ -498,7 +498,7 @@ function TMW:Group_Insert(group, targetDomain, targetID)
 	TMW.db[oldDomain].NumGroups = TMW.db[oldDomain].NumGroups - 1
 	TMW.db[targetDomain].NumGroups = TMW.db[targetDomain].NumGroups + 1
 
-	TMW:Update()
+	TMW:UpdateNormally()
 
 	IE:LoadGroup(1, groupGUID and TMW:GetDataOwner(groupGUID))
 	IE:LoadIcon(1, iconGUID and TMW:GetDataOwner(iconGUID))

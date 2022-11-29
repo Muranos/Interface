@@ -97,7 +97,7 @@ end)
 
 
 -- The unit spellcast events that the icon will register.
--- We keep them in a table because there's a fuckload of them.
+-- We keep them in a table because there's a lot of them.
 local events = {
 	UNIT_SPELLCAST_START = true,
 	UNIT_SPELLCAST_STOP = true,
@@ -108,10 +108,16 @@ local events = {
 	UNIT_SPELLCAST_INTERRUPTED = true,
 	UNIT_SPELLCAST_CHANNEL_START = true,
 	UNIT_SPELLCAST_CHANNEL_UPDATE = true,
-	UNIT_SPELLCAST_CHANNEL_STOP = true,
-	UNIT_SPELLCAST_INTERRUPTIBLE = true,
-	UNIT_SPELLCAST_NOT_INTERRUPTIBLE = true,
+	UNIT_SPELLCAST_CHANNEL_STOP = true
 }
+if TMW.isRetail then
+	-- not available in wrath
+	events.UNIT_SPELLCAST_EMPOWER_START = true
+	events.UNIT_SPELLCAST_EMPOWER_UPDATE = true
+	events.UNIT_SPELLCAST_EMPOWER_STOP = true
+	events.UNIT_SPELLCAST_INTERRUPTIBLE = true
+	events.UNIT_SPELLCAST_NOT_INTERRUPTIBLE = true
+end
 
 
 local function Cast_OnEvent(icon, event, arg1)
@@ -119,7 +125,7 @@ local function Cast_OnEvent(icon, event, arg1)
 		-- A UNIT_SPELLCAST_ event
 		-- If the icon is checking the unit, schedule an update for the icon.
 		icon.NextUpdateTime = 0
-	elseif event == "TMW_UNITSET_UPDATED" and arg1 == icon.UnitSet then
+	elseif event == icon.UnitSet.event then
 		-- A unit was just added or removed from icon.Units, so schedule an update.
 		icon.NextUpdateTime = 0
 	end
@@ -228,14 +234,14 @@ function Type:Setup(icon)
 	-- Setup events and update functions.
 	if icon.UnitSet.allUnitsChangeOnEvent then
 		icon:SetUpdateMethod("manual")
+		icon:SetScript("OnEvent", Cast_OnEvent)
 	
 		-- Register the UNIT_SPELLCAST_ events
 		for event in pairs(events) do
 			icon:RegisterEvent(event)
 		end
 	
-		TMW:RegisterCallback("TMW_UNITSET_UPDATED", Cast_OnEvent, icon)
-		icon:SetScript("OnEvent", Cast_OnEvent)
+		icon:RegisterEvent(icon.UnitSet.event)
 	end
 
 	icon:SetUpdateFunction(Cast_OnUpdate)

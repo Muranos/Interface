@@ -68,19 +68,28 @@ BigWigs:AddSounds("Dathea, Ascended", {
 })
 
 BigWigs:AddSounds("Kurog Grimtotem", {
+	[371981] = "alarm",
 	[372158] = "warning",
 	[372458] = {"alert","warning"},
-	[373329] = "info",
+	[373329] = "alert",
 	[373487] = "warning",
-	[374023] = "warning",
+	[373678] = "info",
+	[374023] = {"info","warning"},
 	[374321] = "info",
 	[374427] = "warning",
 	[374430] = "alarm",
+	[374623] = {"alarm","alert"},
 	[374624] = "warning",
-	[374779] = "long",
-	[390920] = "warning",
-	[391056] = {"alarm","alert"},
+	[374691] = "warning",
+	[374861] = "long",
+	[382563] = "info",
+	[390920] = {"info","warning"},
+	[391019] = "alert",
+	[391056] = {"alarm","info"},
 	[391696] = "warning",
+	[395893] = "alert",
+	[396241] = "warning",
+	["stages"] = "long",
 })
 
 BigWigs:AddSounds("Broodkeeper Diurna", {

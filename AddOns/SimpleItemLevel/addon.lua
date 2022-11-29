@@ -21,6 +21,43 @@ end
 
 local LAI = LibStub("LibAppropriateItems-1.0")
 
+ns.Fonts = {
+    HighlightSmall = GameFontHighlightSmall,
+    Normal = GameFontNormalOutline,
+    Large = GameFontNormalLargeOutline,
+    Huge = GameFontNormalHugeOutline,
+    NumberNormal = NumberFontNormal,
+    NumberNormalSmall = NumberFontNormalSmall,
+}
+ns.PositionOffsets = {
+    TOPLEFT = {2, -2},
+    TOPRIGHT = {-2, -2},
+    BOTTOMLEFT = {2, 2},
+    BOTTOMRIGHT = {-2, 2},
+    BOTTOM = {0, 2},
+    TOP = {0, -2},
+    LEFT = {2, 0},
+    RIGHT = {-2, 0},
+    CENTER = {0, 0},
+}
+
+ns.defaults = {
+    character = true,
+    inspect = true,
+    bags = true,
+    loot = true,
+    upgrades = true,
+    color = true,
+    tooltip = isClassic,
+    -- Shadowlands has Uncommon, BCC/Classic has Good
+    quality = Enum.ItemQuality.Good or Enum.ItemQuality.Uncommon,
+    equipmentonly = true,
+    -- appearance config
+    font = "NumberNormal",
+    position = "TOPRIGHT",
+    positionup = "TOPLEFT",
+}
+
 function ns:ADDON_LOADED(event, addon)
     if hooks[addon] then
         hooks[addon]()
@@ -28,45 +65,48 @@ function ns:ADDON_LOADED(event, addon)
     end
     if addon == myname then
         _G[myname.."DB"] = setmetatable(_G[myname.."DB"] or {}, {
-            __index = {
-                character = true,
-                inspect = true,
-                bags = true,
-                upgrades = true,
-                color = true,
-                tooltip = isClassic,
-                -- Shadowlands has Uncommon, BCC/Classic has Good
-                quality = Enum.ItemQuality.Good or Enum.ItemQuality.Uncommon
-            },
+            __index = ns.defaults,
         })
         db = _G[myname.."DB"]
+        ns.db = db
     end
 end
 ns:RegisterEvent("ADDON_LOADED")
 
+ns.frames = {} -- TODO: should I make this a FramePool now?
 local function PrepareItemButton(button)
-    if button.simpleilvl then
-        button.simpleilvloverlay:SetFrameLevel(button:GetFrameLevel() + 1)
-        return
+    if not button.simpleilvl then
+        local overlayFrame = CreateFrame("FRAME", nil, button)
+        overlayFrame:SetAllPoints()
+        overlayFrame:SetFrameLevel(button:GetFrameLevel() + 1)
+        button.simpleilvloverlay = overlayFrame
+
+        button.simpleilvl = overlayFrame:CreateFontString('$parentItemLevel', 'OVERLAY')
+        button.simpleilvl:Hide()
+
+        button.simpleilvlup = overlayFrame:CreateTexture(nil, "OVERLAY")
+        button.simpleilvlup:SetSize(8, 8)
+        -- MiniMap-PositionArrowUp?
+        button.simpleilvlup:SetAtlas("poi-door-arrow-up")
+        button.simpleilvlup:Hide()
+
+        ns.frames[button] = overlayFrame
     end
+    button.simpleilvloverlay:SetFrameLevel(button:GetFrameLevel() + 1)
 
-    local overlayFrame = CreateFrame("FRAME", nil, button)
-    overlayFrame:SetAllPoints()
-    overlayFrame:SetFrameLevel(button:GetFrameLevel() + 1)
-    button.simpleilvloverlay = overlayFrame
-
-    button.simpleilvl = overlayFrame:CreateFontString('$parentItemLevel', 'OVERLAY')
-    button.simpleilvl:SetPoint('TOPRIGHT', -2, -2)
-    button.simpleilvl:SetFontObject(NumberFontNormal)
-    button.simpleilvl:SetJustifyH('RIGHT')
-    button.simpleilvl:Hide()
-
-    button.simpleilvlup = overlayFrame:CreateTexture(nil, "OVERLAY")
-    button.simpleilvlup:SetSize(8, 8)
-    button.simpleilvlup:SetPoint('TOPLEFT', 2, -2)
-    -- MiniMap-PositionArrowUp?
-    button.simpleilvlup:SetAtlas("poi-door-arrow-up")
-    button.simpleilvlup:Hide()
+    -- Apply appearance config:
+    button.simpleilvl:ClearAllPoints()
+    button.simpleilvl:SetPoint(db.position, unpack(ns.PositionOffsets[db.position]))
+    button.simpleilvl:SetFontObject(ns.Fonts[db.font] or NumberFontNormal)
+    -- button.simpleilvl:SetJustifyH('RIGHT')
+    button.simpleilvlup:ClearAllPoints()
+    button.simpleilvlup:SetPoint(db.positionup, unpack(ns.PositionOffsets[db.positionup]))
+end
+ns.PrepareItemButton = PrepareItemButton
+function ns.RefreshOverlayFrames()
+    for button in pairs(ns.frames) do
+        PrepareItemButton(button)
+    end
 end
 local function AddLevelToButton(button, itemLevel, itemQuality)
     if not itemLevel then
@@ -93,46 +133,45 @@ local function AddUpgradeToButton(button, item, equipLoc, minLevel)
         end
     end)
 end
+local function ShouldShowOnItem(item)
+    local quality = item:GetItemQuality()
+    if quality < db.quality then
+        return false
+    end
+    if not db.equipmentonly then
+        return true
+    end
+    local _, _, _, equipLoc, _, itemClass, itemSubClass = GetItemInfoInstant(item:GetItemID())
+    return (
+        itemClass == Enum.ItemClass.Weapon or
+        itemClass == Enum.ItemClass.Armor or
+        (itemClass == Enum.ItemClass.Gem and itemSubClass == Enum.ItemGemSubclass.Artifactrelic)
+    )
+end
 local function UpdateButtonFromItem(button, item)
     if item:IsItemEmpty() then
         return
     end
     item:ContinueOnItemLoad(function()
+        if not ShouldShowOnItem(item) then return end
         local itemID = item:GetItemID()
         local link = item:GetItemLink()
         local quality = item:GetItemQuality()
-        local minLevel = link and select(5, GetItemInfo(link or itemID))
         local _, _, _, equipLoc, _, itemClass, itemSubClass = GetItemInfoInstant(itemID)
-        if
-            quality >= db.quality and (
-                itemClass == LE_ITEM_CLASS_WEAPON or
-                itemClass == LE_ITEM_CLASS_ARMOR or
-                (itemClass == LE_ITEM_CLASS_GEM and itemSubClass == LE_ITEM_GEM_ARTIFACTRELIC)
-            )
-        then
-            AddLevelToButton(button, item:GetCurrentItemLevel(), quality)
-            AddUpgradeToButton(button, item, equipLoc, minLevel)
-        end
+        local minLevel = link and select(5, GetItemInfo(link or itemID))
+        AddLevelToButton(button, item:GetCurrentItemLevel(), quality)
+        AddUpgradeToButton(button, item, equipLoc, minLevel)
     end)
 end
+ns.UpdateButtonFromItem = UpdateButtonFromItem
 local function CleanButton(button)
     if button.simpleilvl then button.simpleilvl:Hide() end
     if button.simpleilvlup then button.simpleilvlup:Hide() end
 end
+ns.CleanButton = CleanButton
 
 -- Character frame:
 
-local function GetItemQualityAndLevel(unit, slotID)
-    -- link is more reliably fetched than ID, for whatever reason
-    local itemLink = GetInventoryItemLink(unit, slotID)
-
-    if itemLink ~= nil then
-        local quality = GetInventoryItemQuality(unit, slotID)
-        local level = GetDetailedItemLevelInfo(itemLink)
-
-        return quality, level
-    end
-end
 local function UpdateItemSlotButton(button, unit)
     CleanButton(button)
     local key = unit == "player" and "character" or "inspect"
@@ -142,20 +181,22 @@ local function UpdateItemSlotButton(button, unit)
     local slotID = button:GetID()
 
     if (slotID >= INVSLOT_FIRST_EQUIPPED and slotID <= INVSLOT_LAST_EQUIPPED) then
+        local item
         if unit == "player" then
-            local item = Item:CreateFromEquipmentSlot(slotID)
-            if item:IsItemEmpty() then
-                return
-            end
-            return item:ContinueOnItemLoad(function()
-                AddLevelToButton(button, item:GetCurrentItemLevel(), item:GetItemQuality())
-            end)
+            item = Item:CreateFromEquipmentSlot(slotID)
         else
-            local itemQuality, itemLevel = GetItemQualityAndLevel(unit, slotID)
-            if itemLevel then
-                return AddLevelToButton(button, itemLevel, itemQuality)
+            local itemID = GetInventoryItemID(unit, slotID)
+            local itemLink = GetInventoryItemLink(unit, slotID)
+            if itemLink or itemID then
+                item = itemLink and Item:CreateFromItemLink(itemLink) or Item:CreateFromItemID(itemID)
             end
         end
+        if not item or item:IsItemEmpty() then
+            return
+        end
+        return item:ContinueOnItemLoad(function()
+            AddLevelToButton(button, item:GetCurrentItemLevel(), item:GetItemQuality())
+        end)
     end
     return CleanButton(button)
 end
@@ -163,11 +204,39 @@ hooksecurefunc("PaperDollItemSlotButton_Update", function(button)
     UpdateItemSlotButton(button, "player")
 end)
 
+-- Equipment flyout in character frame
+
+if _G.EquipmentFlyout_DisplayButton then
+    hooksecurefunc("EquipmentFlyout_DisplayButton", function(button, paperDollItemSlot)
+        -- print("EquipmentFlyout_DisplayButton", button, paperDollItemSlot)
+        CleanButton(button)
+        if not db.character then return end
+        local location = button.location
+        if not location then return end
+        if location >= EQUIPMENTFLYOUT_FIRST_SPECIAL_LOCATION then return end
+        local player, bank, bags, voidStorage, slot, bag, tab, voidSlot = EquipmentManager_UnpackLocation(location)
+        local item
+        if bags then
+            item = Item:CreateFromBagAndSlot(bag, slot)
+        elseif not voidStorage then -- player or bank
+            item = Item:CreateFromEquipmentSlot(slot)
+        else
+            local itemID = EquipmentManager_GetItemInfoByLocation(location)
+            if itemID then
+                item = Item:CreateFromItemID(itemID)
+            end
+        end
+        if item then
+            UpdateButtonFromItem(button, item)
+        end
+    end)
+end
+
 -- Inspect frame:
 
 ns:RegisterAddonHook("Blizzard_InspectUI", function()
     hooksecurefunc("InspectPaperDollItemSlotButton_Update", function(button)
-        UpdateItemSlotButton(button, "target")
+        UpdateItemSlotButton(button, InspectFrame.unit or "target")
     end)
 end)
 
@@ -210,6 +279,41 @@ hooksecurefunc("BankFrameItemButton_Update", function(button)
     end
 end)
 
+-- Loot
+
+if _G.LootFrame_UpdateButton then
+    -- Classic
+    hooksecurefunc("LootFrame_UpdateButton", function(index)
+        local button = _G["LootButton"..index]
+        if not button then return end
+        CleanButton(button)
+        if not db.loot then return end
+        -- ns.Debug("LootFrame_UpdateButton", button:IsEnabled(), button.slot, button.slot and GetLootSlotLink(button.slot))
+        if button:IsEnabled() and button.slot then
+            local link = GetLootSlotLink(button.slot)
+            if link then
+                UpdateButtonFromItem(button, Item:CreateFromItemLink(link))
+            end
+        end
+    end)
+else
+    -- Dragonflight
+    local function handleSlot(frame)
+        if not frame.Item then return end
+        CleanButton(frame.Item)
+        if not db.loot then return end
+        local data = frame:GetElementData()
+        if not (data and data.slotIndex) then return end
+        local link = GetLootSlotLink(data.slotIndex)
+        if link then
+            UpdateButtonFromItem(frame.Item, Item:CreateFromItemLink(link))
+        end
+    end
+    LootFrame.ScrollBox:RegisterCallback("OnUpdate", function(...)
+        LootFrame.ScrollBox:ForEachFrame(handleSlot)
+    end)
+end
+
 -- Tooltip
 
 local OnTooltipSetItem = function(self)
@@ -222,11 +326,15 @@ local OnTooltipSetItem = function(self)
         self:AddLine(ITEM_LEVEL:format(item:GetCurrentItemLevel()))
     end)
 end
-GameTooltip:HookScript("OnTooltipSetItem", OnTooltipSetItem)
-ItemRefTooltip:HookScript("OnTooltipSetItem", OnTooltipSetItem)
--- This is mostly world quest rewards:
-if GameTooltip.ItemTooltip then
-    GameTooltip.ItemTooltip.Tooltip:HookScript("OnTooltipSetItem", OnTooltipSetItem)
+if _G.TooltipDataProcessor then
+    TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, OnTooltipSetItem)
+else
+    GameTooltip:HookScript("OnTooltipSetItem", OnTooltipSetItem)
+    ItemRefTooltip:HookScript("OnTooltipSetItem", OnTooltipSetItem)
+    -- This is mostly world quest rewards:
+    if GameTooltip.ItemTooltip then
+        GameTooltip.ItemTooltip.Tooltip:HookScript("OnTooltipSetItem", OnTooltipSetItem)
+    end
 end
 
 -- Void Storage
@@ -296,6 +404,14 @@ ns:RegisterAddonHook("Combuctor", function()
     end)
 end)
 
+--LiteBag:
+ns:RegisterAddonHook("LiteBag", function()
+    _G.LiteBag_RegisterHook('LiteBagItemButton_Update', function(frame)
+        local bag = frame:GetParent():GetID()
+        UpdateContainerButton(frame, bag)
+    end)
+end)
+
 -- Quick config:
 
 _G["SLASH_".. myname:upper().."1"] = "/simpleilvl"
@@ -328,12 +444,14 @@ SlashCmdList[myname:upper()] = function(msg)
         ns.Print('bags -', BAGSLOTTEXT, "-", db.bags and YES or NO)
         ns.Print('character -', ORDER_HALL_EQUIPMENT_SLOTS, "-", db.character and YES or NO)
         ns.Print('inspect -', INSPECT, "-", db.inspect and YES or NO)
+        ns.Print('loot -', LOOT, "-", db.loot and YES or NO)
         ns.Print('upgrades - Upgrade arrows in bags', "-", db.upgrades and YES or NO)
         ns.Print('color - Color item level by item quality', "-", db.color and YES or NO)
         if isClassic then
             ns.Print('tooltip - Add the item level to tooltips', "-", db.tooltip and YES or NO)
         end
         ns.Print('quality - Minimum item quality to show for', "-", _G["ITEM_QUALITY" .. db.quality .. "_DESC"])
+        ns.Print('equipmentonly - Only show on equippable items', "-", db.equipmentonly and YES or NO)
         ns.Print("To toggle: /simpleilvl [type]")
         ns.Print("To set a quality: /simpleilvl quality [quality]")
     end

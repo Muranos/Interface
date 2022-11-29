@@ -37,6 +37,7 @@ local defaults = {
 		selfcastrightclick = false,
 		snapping = true,
 		blizzardVehicle = false,
+		flyoutBackground = true,
 		minimapIcon = {},
 		mouseovermod = "NONE"
 	}
@@ -90,6 +91,14 @@ function Bartender4:OnInitialize()
 	for k=1,10 do
 		_G[("BINDING_NAME_CLICK BT4PetButton%d:LeftButton"):format(k)] = ("%s %s"):format(L["Pet Bar"], L["Button %s"]:format(k))
 		_G[("BINDING_NAME_CLICK BT4StanceButton%d:LeftButton"):format(k)] = ("%s %s"):format(L["Stance Bar"], L["Button %s"]:format(k))
+	end
+
+	if EditModeManagerFrame then
+		EventRegistry:RegisterCallback("EditMode.Enter", function() self:Unlock(true) end)
+		EventRegistry:RegisterCallback("EditMode.Exit", function() self:Lock() end)
+
+		self:SecureHook(EditModeManagerFrame.EnableSnapCheckButton, "OnCheckButtonClick", "UpdateSnapFromEditMode")
+		self:SecureHook(EditModeManagerFrame.EnableSnapCheckButton, "SetControlChecked", "UpdateSnapFromEditMode")
 	end
 end
 
@@ -310,11 +319,15 @@ function Bartender4:HideUnlockDialog()
 	end
 end
 
-function Bartender4:Unlock()
+function Bartender4:Unlock(fromEditMode)
 	if self.Locked then
 		self.Locked = false
 		Bartender4.Bar:ForAll("Unlock")
-		self:ShowUnlockDialog()
+		if not fromEditMode then
+			self:ShowUnlockDialog()
+		else
+			self:UpdateSnapFromEditMode()
+		end
 	end
 end
 
@@ -323,6 +336,12 @@ function Bartender4:Lock()
 		self.Locked = true
 		Bartender4.Bar:ForAll("Lock")
 		self:HideUnlockDialog()
+	end
+end
+
+function Bartender4:UpdateSnapFromEditMode()
+	if EditModeManagerFrame then
+		setSnap(EditModeManagerFrame.EnableSnapCheckButton:IsControlChecked())
 	end
 end
 

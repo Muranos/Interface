@@ -1,11 +1,13 @@
-if not IsTestBuild() then return end
 --------------------------------------------------------------------------------
 -- Module Declaration
 --
 
 local mod, CL = BigWigs:NewBoss("Crawth", 2526, 2495)
 if not mod then return end
-mod:RegisterEnableMob(191736) -- Crawth
+mod:RegisterEnableMob(
+	191631, -- Ball
+	191736  -- Crawth
+) 
 mod:SetEncounterID(2564)
 mod:SetRespawnTime(30)
 
@@ -13,8 +15,10 @@ mod:SetRespawnTime(30)
 -- Locals
 --
 
+local playBallCount = 0
 local searingBlazeGoals = 0
 local rushingWindsGoals = 0
+local sonicVulnerabilityStacks = 0
 
 --------------------------------------------------------------------------------
 -- Initialization
@@ -44,7 +48,7 @@ function mod:OnBossEnable()
 	self:RegisterWidgetEvent(4183, "GoalOfTheSearingBlaze")
 	self:Log("SPELL_AURA_APPLIED", "FirestormApplied", 376781)
 	self:RegisterWidgetEvent(4184, "GoalOfTheRushingWinds")
-	-- TODO Gale Force applied? 376760? doesn't spawn as of build 46157
+	self:Log("SPELL_AURA_APPLIED", "GaleForceApplied", 376760)
 
 	-- Crawth
 	self:Log("SPELL_CAST_START", "OverpoweringGust", 377034)
@@ -53,12 +57,13 @@ function mod:OnBossEnable()
 end
 
 function mod:OnEngage()
+	playBallCount = 0
 	searingBlazeGoals = 0
 	rushingWindsGoals = 0
+	sonicVulnerabilityStacks = 0
 	self:CDBar(376997, 3.7) -- Savage Peck
 	self:Bar(377004, 10.9) -- Deafening Screech
 	self:Bar(377034, 15.8) -- Overpowering Gust
-	self:CDBar(377182, 14.0) -- Play Ball
 end
 
 --------------------------------------------------------------------------------
@@ -69,9 +74,11 @@ end
 
 function mod:CHAT_MSG_RAID_BOSS_EMOTE(_, msg)
 	if msg:find("377182", nil, true) then -- Play Ball
-		self:Message(377182, "cyan")
+		-- cast at 75% and 45% health
+		local percent = playBallCount == 0 and 75 or 45
+		playBallCount = playBallCount + 1
+		self:Message(377182, "cyan", CL.percent:format(percent, self:SpellName(377182)))
 		self:PlaySound(377182, "long")
-		self:CDBar(377182, 18.2)
 	end
 end
 
@@ -80,6 +87,7 @@ function mod:GoalOfTheSearingBlaze(_, _, info)
 	local shownState = info.shownState
 	local barValue = info.barValue
 	if shownState == 1 and barValue == 3 then
+		sonicVulnerabilityStacks = 0
 		searingBlazeGoals = barValue
 		self:Message(376448, "red") -- Firestorm
 		self:PlaySound(376448, "long")
@@ -103,6 +111,7 @@ function mod:GoalOfTheRushingWinds(_, _, info)
 	local shownState = info.shownState
 	local barValue = info.barValue
 	if shownState == 1 and barValue == 3 then
+		sonicVulnerabilityStacks = 0
 		rushingWindsGoals = barValue
 		self:Message(376467, "red") -- Gale Force
 		self:PlaySound(376467, "long")
@@ -115,6 +124,14 @@ function mod:GoalOfTheRushingWinds(_, _, info)
 	end
 end
 
+function mod:GaleForceApplied(args)
+	if self:Me(args.destGUID) then
+		self:Bar(376467, 20, CL.you:format(args.spellName), args.spellId)
+		self:Message(376467, "green", CL.you:format(args.spellName), args.spellId)
+		self:PlaySound(376467, "info")
+	end
+end
+
 -- Crawth
 
 function mod:OverpoweringGust(args)
@@ -124,7 +141,13 @@ function mod:OverpoweringGust(args)
 end
 
 function mod:DeafeningScreech(args)
-	self:Message(args.spellId, "yellow", CL.casting:format(args.spellName))
+	if self:Mythic() then
+		-- in Mythic difficulty each subsequent cast does more damage, reset whenever Firestorm or Gale Force are activated
+		sonicVulnerabilityStacks = sonicVulnerabilityStacks + 1
+		self:Message(args.spellId, "yellow", CL.count:format(CL.casting:format(args.spellName), sonicVulnerabilityStacks))
+	else
+		self:Message(args.spellId, "yellow", CL.casting:format(args.spellName))
+	end
 	self:PlaySound(args.spellId, "warning")
 	self:CDBar(args.spellId, 22.7)
 end

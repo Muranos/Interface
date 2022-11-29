@@ -1,4 +1,4 @@
-## Interface: 100000
+## Interface: 100002
 
 ## Title: BigWigs [|cffeda55fCastle Nathria|r]
 ## Title-deDE: BigWigs [|cffeda55fCastle Nathria|r]
@@ -22,7 +22,7 @@
 ## Notes-itIT: BigWigs Castle Nathria Modules
 ## Notes-ptBR: BigWigs Castle Nathria Modules
 ## Notes-koKR: BigWigs Castle Nathria Modules
-## Version: v252
+## Version: v253
 
 ## LoadOnDemand: 1
 ## Dependencies: BigWigs

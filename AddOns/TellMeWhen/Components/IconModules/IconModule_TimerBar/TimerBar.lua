@@ -100,6 +100,7 @@ function TimerBar:OnEnable()
 	self:SetCooldown(attributes.start, attributes.start, attributes.chargeStart, attributes.chargeDur)
 end
 function TimerBar:OnDisable()
+	self.__oldPercent = -1
 	self.bar:Hide()
 	self:UpdateTable_Unregister()
 end
@@ -186,7 +187,7 @@ function TimerBar:UpdateValue(force)
 			-- the point where halfColor will be used.
 			-- If we don't multiply by 2, we would check if (percent > 0.5), but then
 			-- we would have to multiply that percentage by 2 later anyway in order to use the
-			-- full range of colors available (we would only get half the range of colors otherwise, which looks like shit)
+			-- full range of colors available (we would only get half the range of colors otherwise, which looks bad)
 			local doublePercent = percent * 2
 
 			if doublePercent > 1 then

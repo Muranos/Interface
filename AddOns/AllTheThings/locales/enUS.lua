@@ -10,7 +10,7 @@
 --				This script is called directly after the Core.lua file. 	  --
 --------------------------------------------------------------------------------
 
--- Globals that Blizzard broke/removed in 10.0
+-- These globals somehow are not available in game despite being in GlobalStrings.lua from wow.tools
 CHARACTER_TYPE_FRAME_TRIAL_BOOST_CHARACTER = "Class Trial";
 CHARACTER_UPGRADE_CHARACTER_LIST_LABEL = "Character Boost";
 
@@ -126,7 +126,7 @@ app.L = {
 	["OPEN_AUTOMATICALLY"] = "Open Automatically";
 	["OPEN_AUTOMATICALLY_DESC"] = "If you aren't a Blizzard Developer, it might be a good idea to uncheck this. This was done to force Blizzard to fix and/or acknowledge these bugs.";
 	["TWO_CLOAKS"] = "|cffFF0000These two cloaks have very limited confirmed drops if any and are presumed broken!|r";
-	["OGOM_THE_MANGLER_DESC"] = "|cffFF0000Ogom the Mangler seems just to spawn when you are doing the Daily 'Assualt on the Iron Siegeworks'. This Quest wasn't active since the start of Legion and the buyable Quest 'Missive: Assault on the Iron Siegeworks' does not work either.|r";
+	["OGOM_THE_MANGLER_DESC"] = "|cffFF0000Ogom the Mangler seems just to spawn when you are doing the Daily 'Assault on the Iron Siegeworks'. This Quest wasn't active since the start of Legion and the buyable Quest 'Missive: Assault on the Iron Siegeworks' does not work either.|r";
 	["HOLYDAY_DESC"] = "A specific holiday may need to be active for you to complete the referenced Things within this section.";
 	["DIFF_COMPLETED_1"] = "You have collected everything from this difficulty. Switch to ";
 	["DIFF_COMPLETED_2"] = " instead.";
@@ -525,7 +525,7 @@ app.L = {
 	["INCLUDE_ORIGINAL_CHECKBOX_TOOLTIP"] = "Enable this option if you actually liked seeing the original source info within the Shared Appearances list in the tooltip.";
 	["ONLY_RELEVANT_CHECKBOX"] = "Only Relevant";
 	["ONLY_RELEVANT_CHECKBOX_TOOLTIP"] = "Enable this option if you only want to see shared appearances that your character can unlock.\n\nNOTE: We recommend you keep this off as knowing the unlock requirements for an item can be helpful in identifying why an item is Not Collected.";
-	["PROFESSION_CHECKBOX"] = "Professions";
+	["PROFESSION_CHECKBOX"] = TRADE_SKILLS;	-- Professions
 	["PROFESSION_CHECKBOX_TOOLTIP"] = "Enable this option if you want to see the profession requirements in the tooltip.";
 	["LEVELREQ_CHECKBOX"] = "Levels";
 	["LEVELREQ_CHECKBOX_TOOLTIP"] = "Enable this option if you want to see the level requirements in the tooltip.";
@@ -629,7 +629,7 @@ app.L = {
 	["ADD_LINKED_CHARACTER_ACCOUNT"] = "Add Linked Character / Account";
 	["ADD_LINKED_CHARACTER_ACCOUNT_TOOLTIP"] = "Click here to link a character or account to your account.";
 	["ADD_LINKED_POPUP"] = "Please type the name of the character or BNET account to link to.";
-	["CHARACTERS"] = "Characters";
+	["CHARACTERS"] = REALM_CHARACTERS;	-- Characters
 	["SYNC_CHARACTERS_TOOLTIP"] = "This shows all of the characters on your account.";
 	["NO_CHARACTERS_FOUND"] = "No characters found.";
 	["LINKED_ACCOUNTS"] = "Linked Accounts";
@@ -652,7 +652,7 @@ app.L = {
 	["TOGGLE_COMPLETIONIST_MODE"] = "Toggle Completionist Mode";
 	["TOGGLE_DEBUG_MODE"] = "Toggle Debug Mode";
 	["TOGGLE_FACTION_MODE"] = "Toggle Faction Mode";
-	["PREFERENCES"] = "Preferences";
+	["PREFERENCES"] = PREFERENCES;	-- Preferences
 	["TOGGLE_COMPLETEDTHINGS"] = "Toggle Completed Things (Both)";
 	["TOGGLE_COMPLETEDGROUPS"] = "Toggle Completed Groups";
 	["TOGGLE_COLLECTEDTHINGS"] = "Toggle Collected Things";
@@ -1087,7 +1087,7 @@ app.L = {
 		[-157] = "Interface\\Icons\\achievement_zone_hinterlands_01",						-- The Hinterlands Activated
 		[-158] = "Interface\\Icons\\achievement_zone_feralas",								-- Feralas Activated
 	-- Class Trial
-		[-160] = 236568,																	-- Level 60 Class Trial
+		[-160] = 236567,																	-- Level 60 Class Trial
 	-- Junkboxes
 		[-165] = "Interface\\Icons\\inv_box_01",											-- Junkboxes
 	-- Emissary
@@ -1394,6 +1394,7 @@ app.L = {
 		[-987] = 2178509,																	-- The Upper Reaches
 		-- 9.2
 		[-988] = select(10, GetAchievementInfo(15402)),										-- Cypher of the First Ones
+		[-999] = "Interface\\Icons\\inv_misc_questionmark",									-- Sourceless
 		--
 	-- Sets
 		[-1000] = "Interface\\Icons\\achievement_transmog_collections",						-- Sets
@@ -1412,8 +1413,9 @@ app.L = {
 	-- Temp
 		[-1099] = "Interface\\Icons\\inv_legioncampaign04",											-- Campaign
 	-- Dragonflight
-		[-1100] = "Interface\\Icons\\ability_dragonriding_glyph01",									-- Dragon Customization
+		[-1100] = "Interface\\Icons\\ability_dragonriding_glyph01",									-- Drakewatcher Manuscripts
 		[-1101] = "Interface\\Icons\\inv_10_dungeonjewelry_primalist_trinket_1ragingelement_air",	-- Primal Storms
+		[-1102] = "Interface\\Icons\\ability_evoker_dragonrage2",									-- Wrathion & Sabellian
 		[-1110] = "Interface\\Icons\\ui_majorfaction_expedition",									-- Dragonscale Expedition
 		[-1111] = "Interface\\Icons\\inv_cape_special_climbingpack_b_01",							-- Climbing
 		[-1112] = "Interface\\Icons\\inv_misc_-selfiecamera_01",									-- Cataloging
@@ -1896,7 +1898,7 @@ app.L = {
 		[-854] = "DPS",															-- DPS
 		[-855] = "Healers",														-- Healers
 		[-856] = "Tanks",														-- Tanks
-		[-857] = "Mythic+",														-- Mythic+
+		[-857] = PLAYER_DIFFICULTY_MYTHIC_PLUS,									-- Mythic+
 		[-858] = string.format(AZERITE_ESSENCE_RANK, 1),						-- Rank 1
 		[-859] = string.format(AZERITE_ESSENCE_RANK, 2),						-- Rank 2
 		[-860] = string.format(AZERITE_ESSENCE_RANK, 3),						-- Rank 3
@@ -1956,7 +1958,7 @@ app.L = {
 		[-955] = "High Inquisitors",											-- High Inquisitors
 		[-956] = "Grand Inquisitors",											-- Grand Inquisitors
 		[-960] = COVENANT_SANCTUM_FEATURE_VENTHYR,								-- The Ember Court
-		[-967] = "Mirror Restoration",											-- "Mirror Restoration",
+		[-967] = "Mirror Restoration",											-- Mirror Restoration
 		[-968] = "Set A",														-- Set A
 		[-969] = "Set B",														-- Set B
 		[-970] = "Set C",														-- Set C
@@ -1970,6 +1972,7 @@ app.L = {
 		[-987] = select(2, GetAchievementInfo(14493)),							-- The Upper Reaches
 		-- 9.2
 		[-988] = select(2, GetAchievementInfo(15402)),							-- Cypher of the First Ones
+	[-999] = MINIMAP_TRACKING_HIDDEN_QUESTS,								-- Hidden Quests, note that it's different from HIDDEN_QUEST_TRIGGERS
 	-- Sets
 		[-1000] = WARDROBE_SETS, 												-- Sets
 		--[-1002] = "Dutiful Spirit",												-- Dutiful Spirit
@@ -1986,8 +1989,9 @@ app.L = {
 	-- Temp
 		[-1099] = TRACKER_HEADER_CAMPAIGN_QUESTS,									-- Campaign
 	-- Dragonflight
-		[-1100] = "Dragon Customization",											-- Dragon Customization
+		[-1100] = "Drakewatcher Manuscripts",										-- Drakewatcher Manuscripts
 		[-1101] = "Primal Storms",													-- Primal Storms
+		[-1102] = "Wrathion & Sabellian",											-- Wrathion & Sabellian
 		[-1110] = "Dragonscale Expedition",											-- Dragonscale Expedition
 		[-1111] = "Climbing",														-- Climbing
 		[-1112] = "Cataloging",														-- Cataloging
@@ -2021,12 +2025,12 @@ app.L = {
 		[-4191] = ITEM_TOURNAMENT_GEAR,											-- Tournament Gear
 	-- Tier/Dungeon/Event/Holiday Sets
 		-- Artifact Strings
-		[-5200] = "Base Appearance",
-		[-5201] = "Class Hall Campaign",
-		[-5202] = "Balance of Power",
-		[-5203] = "Prestige Rewards",
-		[-5204] = "Challenge Appearance",
-		[-5205] = "Hidden Appearance",
+		[-5200] = "Base Appearance",											-- Base Appearance
+		[-5201] = "Class Hall Campaign",										-- Class Hall Campaign
+		[-5202] = "Balance of Power",											-- Balance of Power
+		[-5203] = "Prestige Rewards",											-- Prestige Rewards
+		[-5204] = "Challenge Appearance",										-- Challenge Appearance
+		[-5205] = "Hidden Appearance",											-- Hidden Appearance
 		-- Class Sets
 		[-5350] = CHARACTER_TYPE_FRAME_TRIAL_BOOST_CHARACTER.." Item Sets",		-- Class Trial Item Sets
 		-- Note!! We are localizing them here so when we filter the achievement we don't filter the entire section which is bad!

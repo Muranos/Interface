@@ -424,8 +424,6 @@ local function CLEU_OnEvent(icon, _, t, event, h,
 			end
 		end
 
-		TMW:Assert(tex or spellID)
-
 		-- Set the info that was obtained from the event:
 		local unit, GUID
 		if destUnit then
@@ -561,7 +559,7 @@ function Type:Setup(icon)
 
 	icon:SetInfo("texture", Type:GetConfigIconTexture(icon))
 
-	-- Tell the user if they have an icon that is going to respond to every fucking thing that happens.
+	-- Tell the user if they have an icon that is going to respond to every single thing that happens.
 	if icon.AllowAnyEvents and not icon.SourceUnits and not icon.DestUnits and icon.Name == "" and not icon.SourceFlags and not icon.DestFlags then
 		if TMW.Locked and icon.Enabled then
 			TMW:Warn(L["CLEU_NOFILTERS"]:format(icon:GetIconName(true)))

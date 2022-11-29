@@ -66,6 +66,31 @@ local PGFSettingsTable = {
         title = L["settings.leaderCrown.title"],
         tooltip = L["settings.leaderCrown.tooltip"],
     },
+    {
+        key = "oneClickSignUp",
+        type = "checkbox",
+        title = L["settings.oneClickSignUp.title"],
+        tooltip = L["settings.oneClickSignUp.tooltip"],
+    },
+    {
+        key = "persistSignUpNote",
+        type = "checkbox",
+        title = L["settings.persistSignUpNote.title"],
+        tooltip = L["settings.persistSignUpNote.tooltip"],
+        callback = function(value) PGF.PersistSignUpNote() end,
+    },
+    {
+        key = "signupOnEnter",
+        type = "checkbox",
+        title = L["settings.signupOnEnter.title"],
+        tooltip = L["settings.signupOnEnter.tooltip"],
+    },
+    {
+        key = "skipSignUpDialog",
+        type = "checkbox",
+        title = L["settings.skipSignUpDialog.title"],
+        tooltip = L["settings.skipSignUpDialog.tooltip"],
+    },
 }
 
 function PGFSettings:OnLoad()
@@ -91,6 +116,9 @@ function PGFSettings.CreateListItem(factory, elementData)
             item.CheckBox:SetChecked(PremadeGroupsFilterSettings[elementData.key] or false)
             item.CheckBox:SetScript("OnClick", function(button, buttonName, down)
                 PremadeGroupsFilterSettings[elementData.key] = button:GetChecked()
+                if elementData.callback then
+                    elementData.callback(button:GetChecked())
+                end
             end)
         end)
     end

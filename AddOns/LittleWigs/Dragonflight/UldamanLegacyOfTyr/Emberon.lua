@@ -1,4 +1,3 @@
-if not IsTestBuild() then return end
 --------------------------------------------------------------------------------
 -- Module Declaration
 --
@@ -9,12 +8,6 @@ mod:RegisterEnableMob(184422) -- Emberon
 mod:SetEncounterID(2558)
 mod:SetRespawnTime(30)
 mod:SetStage(1)
-
---------------------------------------------------------------------------------
--- Locals
---
-
-local purgingFlameCount = 0
 
 --------------------------------------------------------------------------------
 -- Initialization
@@ -38,10 +31,11 @@ function mod:OnBossEnable()
 end
 
 function mod:OnEngage()
-	purgingFlameCount = 0
 	self:SetStage(1)
 	self:CDBar(369061, 4.6) -- Searing Clap
 	self:CDBar(369110, 13.1) -- Unstable Embers
+	-- 35s energy gain + ~5s delay
+	self:CDBar(368990, 40.2) -- Purging Flames
 end
 
 --------------------------------------------------------------------------------
@@ -49,11 +43,8 @@ end
 --
 
 function mod:PurgingFlames(args)
-	-- cast at 70% and then 30% health
-	local percent = purgingFlameCount == 0 and 70 or 30
-	purgingFlameCount = purgingFlameCount + 1
 	self:SetStage(2)
-	self:Message(args.spellId, "cyan", CL.percent:format(percent, args.spellName))
+	self:Message(args.spellId, "cyan")
 	self:PlaySound(args.spellId, "long")
 	self:StopBar(369110) -- Unstable Embers
 	self:StopBar(369061) -- Searing Clap
@@ -70,9 +61,11 @@ do
 		local addsNeeded = self:Normal() and 3 or 4
 		addsKilled = addsKilled + 1
 		if addsKilled == addsNeeded then
+			self:SetStage(1)
 			self:Message(368990, "cyan", CL.over:format(self:SpellName(368990))) -- Purging Flames Over
 			self:PlaySound(368990, "long")
-			self:SetStage(1)
+			-- 35s energy gain + ~5s delay
+			self:CDBar(368990, 40.2) -- Purging Flames
 		else
 			self:Message(args.spellId, "green", CL.add_killed:format(addsKilled, addsNeeded))
 			self:PlaySound(args.spellId, "info")

@@ -8,12 +8,10 @@ function Silence:UnregisterTalkingHead()
 end
 
 function Silence:OnEvent(e, ...)
-  if e == 'ADDON_LOADED' then
-    if ... == addonName then
-      SilenceDB = SilenceDB or { options = {}, played = {} }
-      SilenceDB.options.silenceEnabled = SilenceDB.options.silenceEnabled and true or false
-      self:UnregisterTalkingHead()
-    end
+  if e == 'ADDON_LOADED' and addonName == ... then
+    SilenceDB = SilenceDB or { options = {}, played = {} }
+    SilenceDB.options.silenceEnabled = SilenceDB.options.silenceEnabled and true or false
+    self:UnregisterTalkingHead()
   elseif e == 'TALKINGHEAD_REQUESTED' then
     if SilenceDB.options.silenceEnabled and not SilenceDB.options.silenceForever then
       local vo = select(3, C_TalkingHead.GetCurrentLineInfo())
@@ -68,6 +66,7 @@ function SlashCmdList.SILENCE(msg)
     SilenceDB.options.silenceForever = not SilenceDB.options.silenceForever
   elseif cmd == 'clear' then
     SilenceDB.played = {}
+    print('|cffEEE4AESilence:|r |cff37DB33Database cleared.')
   end
 end
 

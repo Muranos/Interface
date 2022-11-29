@@ -1,4 +1,3 @@
-if not IsTestBuild() then return end
 --------------------------------------------------------------------------------
 -- Module Declaration
 --
@@ -25,7 +24,7 @@ function mod:GetOptions()
 		-- Quaking Totem
 		369660, -- Tremor
 	}, {
-		[369605] = self.moduleName,
+		[369605] = self.displayName,
 		[369675] = -24988, -- Stonevault Geomancer
 		[369660] = 369700, -- Quaking Totem
 	}
@@ -33,7 +32,7 @@ end
 
 function mod:OnBossEnable()
 	-- Bromach
-	self:Log("SPELL_CAST_START", "CallOfTheDeep", 369605)
+	self:Log("SPELL_CAST_SUCCESS", "CallOfTheDeep", 369605)
 	self:Log("SPELL_CAST_START", "QuakingTotem", 382303)
 	self:Log("SPELL_CAST_START", "Bloodlust", 369754)
 	self:Log("SPELL_CAST_SUCCESS", "BloodlustSuccess", 369754)
@@ -47,10 +46,10 @@ function mod:OnBossEnable()
 end
 
 function mod:OnEngage()
-	self:Bar(369605, 5.9) -- Call of the Deep
-	self:Bar(369700, 20.8) -- Quaking Totem
+	self:CDBar(369605, 5.9) -- Call of the Deep
+	self:Bar(369700, 20.6) -- Quaking Totem
 	self:Bar(369703, 12.3) -- Thundering Slam
-	-- TODO bloodlust timer? 28.1?
+	self:Bar(369754, 27.9) -- Bloodlust
 end
 
 --------------------------------------------------------------------------------
@@ -62,19 +61,19 @@ end
 function mod:CallOfTheDeep(args)
 	self:Message(args.spellId, "yellow")
 	self:PlaySound(args.spellId, "long")
-	-- TODO unknown CD
+	self:CDBar(args.spellId, 27.9)
 end
 
 function mod:QuakingTotem(args)
 	self:Message(369700, "yellow")
 	self:PlaySound(369700, "alert")
-	-- TODO unknown CD
+	self:Bar(369700, 40)
 end
 
 function mod:Bloodlust(args)
 	self:Message(args.spellId, "red")
 	self:PlaySound(args.spellId, "alert")
-	-- TODO unknown CD
+	self:CDBar(args.spellId, 30.3)
 end
 
 function mod:BloodlustSuccess(args)
@@ -84,7 +83,7 @@ end
 function mod:ThunderingSlam(args)
 	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alarm")
-	-- TODO unknown CD
+	self:CDBar(args.spellId, 11.6)
 end
 
 -- Stonevault Geomancer
@@ -97,7 +96,7 @@ end
 -- Quaking Totem
 
 function mod:Tremor(args)
-	self:Message(args.spellId, "green")
+	self:Message(args.spellId, "green", CL.onboss:format(args.spellName))
 	self:PlaySound(args.spellId, "info")
-	self:Bar(args.spellId, 10)
+	self:Bar(args.spellId, 10, CL.onboss:format(args.spellName))
 end

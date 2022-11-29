@@ -16,10 +16,10 @@
 
 # Credit to Simulationcraft creators for the copy frame.
 
-## Interface: 100000
+## Interface: 100002
 ## Title: Crystal Sockets
 ## Author: Nivix
-## Version: 1.8
+## Version: 1.9
 ## Notes: Showing sockets and enchantments on equiped gear.
 ## SavedVariables: 
 

@@ -30,12 +30,16 @@ end)
 
 -- returns true (and the precise level) of a petID if it can level
 function rematch:PetCanLevel(petID)
-	if rematch:GetIDType(petID)=="pet" then
-		local _,_,level,xp,maxXp,_,_,_,_,_,_,_,_,_,canBattle = C_PetJournal.GetPetInfoByPetID(petID)
-		if level and level<25 and canBattle then
-			return true,level+(xp/maxXp)
-		end
+	local petInfo = rematch.petInfo:Fetch(petID)
+	if petInfo.canLevel then
+		return true,petInfo.level+(petInfo.xp/petInfo.maxXp)
 	end
+	-- if rematch:GetIDType(petID)=="pet" then
+	-- 	local _,_,level,xp,maxXp,_,_,_,_,_,_,_,_,_,canBattle = C_PetJournal.GetPetInfoByPetID(petID)
+	-- 	if level and level<25 and canBattle then
+	-- 		return true,level+(xp/maxXp)
+	-- 	end
+	-- end
 end
 
 function rematch:IsPetLeveling(petID)
@@ -78,6 +82,10 @@ end
 -- NOTE: all places that used to call ProcessQueue directly should now call UpdateQueue!!
 local firstProcessQueueTimeout = 5 -- when this has a value, then the queue is still waiting for first run
 function rematch:ProcessQueue()
+
+	if not rematch.inWorld then
+		return -- not logged in or in a loading screen, don't do anything
+	end
 
 	-- if pets not loaded, come back in half a second to try again
 	local numPets,owned = C_PetJournal.GetNumPets()

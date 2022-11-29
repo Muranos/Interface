@@ -1,8 +1,10 @@
 
 BigWigs:AddSounds("Wise Mari", {
-	[-6327] = "alarm",
-	[106653] = "alert",
-	[115167] = "alert",
+	[-6327] = {"alarm","info"},
+	[106653] = "underyou",
+	[115167] = "underyou",
+	[397785] = "warning",
+	[397797] = {"alarm","alert","underyou"},
 	["stages"] = "info",
 })
 
@@ -22,4 +24,18 @@ BigWigs:AddSounds("Liu Flameheart", {
 BigWigs:AddSounds("Sha of Doubt", {
 	[106113] = "alarm",
 	[117665] = {"info","long"},
+})
+
+BigWigs:AddSounds("Temple of the Jade Serpent Trash", {
+	[395859] = "warning",
+	[395872] = {"alert","warning"},
+	[396001] = "alarm",
+	[396018] = {"alert","warning"},
+	[396020] = "alert",
+	[396073] = "warning",
+	[397881] = "alarm",
+	[397889] = "alert",
+	[397899] = "alarm",
+	[397914] = "alert",
+	[398300] = "alarm",
 })

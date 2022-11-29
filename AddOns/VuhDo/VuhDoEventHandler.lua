@@ -594,13 +594,17 @@ function VUHDO_OnEvent(_, anEvent, anArg1, anArg2, anArg3, anArg4, anArg5, anArg
 			VUHDO_updateBouquetsForEvent(anArg1, 30); -- VUHDO_UPDATE_ALT_POWER
 		end
 
-	elseif "LEARNED_SPELL_IN_TAB" == anEvent then
-		-- FIXME: this event does not fire when spell is learned via talent change
+	elseif "LEARNED_SPELL_IN_TAB" == anEvent or "TRAIT_CONFIG_UPDATED" == anEvent then
 		if VUHDO_VARIABLES_LOADED then
 			VUHDO_initFromSpellbook();
 			VUHDO_registerAllBouquets(false);
 			VUHDO_initBuffs();
 			VUHDO_initDebuffs();
+
+			if not InCombatLockdown() then
+				VUHDO_initKeyboardMacros();
+				VUHDO_timeReloadUI(1);
+			end
 		end
 
 	elseif "VARIABLES_LOADED" == anEvent then
@@ -1517,7 +1521,7 @@ local VUHDO_ALL_EVENTS = {
 	"UNIT_ENTERED_VEHICLE", "UNIT_EXITED_VEHICLE", "UNIT_EXITING_VEHICLE",
 	"CHAT_MSG_ADDON",
 	"RAID_TARGET_UPDATE",
-	"LEARNED_SPELL_IN_TAB",
+	"LEARNED_SPELL_IN_TAB", "TRAIT_CONFIG_UPDATED",
 	"PLAYER_FLAGS_CHANGED",
 	"PLAYER_LOGOUT",
 	"UNIT_DISPLAYPOWER", "UNIT_MAXPOWER", "UNIT_POWER_UPDATE", "RUNE_POWER_UPDATE", 

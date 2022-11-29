@@ -1616,7 +1616,7 @@ local function TitanUpdateConfigAddons()
 					end,
 				}
 			end
---[[			
+
 			--ShowRegularText (LDB data sources only atm)
 			if plug_in.controlVariables and plug_in.controlVariables.ShowRegularText then
 				args[plug_in.id].args.regular_text =
@@ -1631,7 +1631,7 @@ local function TitanUpdateConfigAddons()
 						end,
 				}
 			end
---]]			
+
 			--ShowColoredText
 			if plug_in.controlVariables and plug_in.controlVariables.ShowColoredText then
 				args[plug_in.id].args.color_text = {
