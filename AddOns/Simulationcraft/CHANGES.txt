@@ -1,22 +1,10 @@
-lightweight tag c4950c48b3547988e74497bea48fa9f290c3a29c v10.0.2-03
+lightweight tag 13d071deeabb5f9a0b05b5cce15879b682a4ae53 10.1.0-01
 Author:	Dave Hendler <sollaires@gmail.com>
-Date:	Sun Nov 27 15:20:20 2022 -0800
+Date:	Tue Apr 25 11:18:59 2023 -0700
 
-commit c4950c48b3547988e74497bea48fa9f290c3a29c
+commit 13d071deeabb5f9a0b05b5cce15879b682a4ae53
 Author: Dave Hendler <sollaires@gmail.com>
-Date:   Sun Nov 27 15:20:20 2022 -0800
+Date:   Tue Apr 25 11:18:59 2023 -0700
 
-    Bump version
-
-commit 8d6b98ebfb1c786d0e11615784823255f0c3d3e3
-Author: Dave Hendler <sollaires@gmail.com>
-Date:   Sun Nov 27 15:20:08 2022 -0800
-
-    Fix frame moving
-
-commit feb05dd0d74ac3fbc87ac2b308c35d60bdb6ca88
-Author: Dave Hendler <sollaires@gmail.com>
-Date:   Sat Nov 26 22:13:54 2022 -0800
-
-    Fix a bunch of luacheck warnings
+    Add crafting quality, bump to 10.1 release
 

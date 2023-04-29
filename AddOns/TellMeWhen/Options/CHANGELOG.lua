@@ -3,6 +3,33 @@ if not TMW then return end
 TMW.CHANGELOG_LASTVER="7.4.0"
 
 TMW.CHANGELOG = [==[
+## v10.0.9
+* The "Buff - Number Of" and "Debuff - Number Of" conditions now support tracking multiple units (e.g. `group 1-40`). (#1989)
+* Fix #2066 - Enrage effects were not being stored properly when fetching auras for noncached units.
+* Fix #2059 - Condition update were not happening at the proper time for spell cooldown conditions.
+* Fix #2038 - Fix more scenarios in which talent loadout name is not available immediately after talent events fire.
+* Fix #2075 - Spell cast percent completion was not filtering by name.
+* Fix #2072 - Swing timer monitors were not initializing dual-wield state until an equipment change was observed.
+* Fix #2071 - Tooltip Number conditions not working on retail. Also switched these conditions to use modern APIs, resulting in substantially better performance.
+* Workaround #1978, #2055  - Add hardcoded workarounds for a few reported covenant abilities that can't be tracked properly by name (Soul Rot, Adaptive Swarm).
+* Workaround #2065 - Blizzard's cooldown bling effect ignores opacity, so suppress it for hidden icons.
+
+## v10.0.8
+* #2054 - Workaround Blizzard issue breaking tracking Execute cooldown by name.
+* Workaround rare aura tracking error in arenas (Auras.lua:302: attempt to index local "instance" (a nil value)).
+* Try to fix issues with `focus` unit handling when focused arena teammates join a match after you.
+* Wrath: #2046 - Blizzard moved GetItemCooldown for no good reason.
+* Wrath: Fix Talents.lua:399: attempt to index global 'C_ClassTalents' (a nil value) and other similar errors.
+
+## v10.0.7
+* #2053 - Fix an issue that broke tracking of Void Eruption and other similar spells in 10.0.6.
+
+## v10.0.6
+* Loss of Control icons now show the locked out spell school in the `[LocType]` tag.
+* Fix icon GUIDs not getting persisted when inserted into DogTag strings.
+* Fix an issue where Missing Buffs/Debuffs icon type sometimes functioned as if the 'Only cast by me' setting was enabled, even when it wasn't.
+* Fix #2048 - names in spell equivalency lists were not being lowercased, resulting in spells listed by name not working in buff/debuff icons.
+
 ## v10.0.5
 * Implement new WoW 10.0 Aura handling capabilities, resulting in an overwhelming performance improvement for the buff/debuff handling parts of TMW.
 * #2025 - Add events to Combat Event icons for empowered spell casts.

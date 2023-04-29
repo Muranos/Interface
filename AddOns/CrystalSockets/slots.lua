@@ -81,6 +81,10 @@ end
 
 
 function slots:update(slotID)
+    if not slots.info[slotID] then
+        return;
+    end
+    
     Crystal.enchants:updateEnchant(slotID);
     if not C_Item.DoesItemExist(slots.info[slotID].location) then
         Crystal.sockets:setIcon(slotID, nil, nil);

@@ -8,16 +8,18 @@
 -- The element used to show the queue in the Crafting UI. It is a subclass of the @{ScrollingTable} class.
 -- @classmod CraftingQueueList
 
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
 local L = TSM.Include("Locale").GetTable()
 local CraftString = TSM.Include("Util.CraftString")
 local TempTable = TSM.Include("Util.TempTable")
 local Money = TSM.Include("Util.Money")
 local RecipeString = TSM.Include("Util.RecipeString")
 local Theme = TSM.Include("Util.Theme")
+local TextureAtlas = TSM.Include("Util.TextureAtlas")
 local ScriptWrapper = TSM.Include("Util.ScriptWrapper")
-local ItemInfo = TSM.Include("Service.ItemInfo")
-local Inventory = TSM.Include("Service.Inventory")
+local Profession = TSM.Include("Service.Profession")
+local BagTracking = TSM.Include("Service.BagTracking")
+local UIUtils = TSM.Include("UI.UIUtils")
 local CraftingQueueList = TSM.Include("LibTSMClass").DefineClass("CraftingQueueList", TSM.UI.ScrollingTable)
 local UIElements = TSM.Include("UI.UIElements")
 UIElements.Register(CraftingQueueList)
@@ -41,10 +43,12 @@ function CraftingQueueList.__init(self)
 	self._query = nil
 	self._numCraftableCache = {}
 	self._onRowMouseDownHandler = nil
+	self._dialogRecipeString = nil
+	self._dialogInputValue = nil
 end
 
 function CraftingQueueList.Acquire(self)
-	self._headerHidden = true
+	self._headerMode = "NONE"
 	self.__super:Acquire()
 	self:SetSelectionDisabled(true)
 	self:GetScrollingTableInfo()
@@ -74,6 +78,8 @@ end
 
 function CraftingQueueList.Release(self)
 	self._onRowMouseDownHandler = nil
+	self._dialogRecipeString = nil
+	self._dialogInputValue = nil
 	wipe(self._numCraftableCache)
 	wipe(self._collapsed)
 	if self._query then
@@ -91,7 +97,7 @@ function CraftingQueueList.Release(self)
 end
 
 --- Gets the data of the first row.
--- @tparam CraftingMatList self The crafting queue list object
+-- @tparam CraftingQueueList self The crafting queue list object
 -- @treturn CraftingQueueList The crafting queue list object
 function CraftingQueueList.GetFirstData(self)
 	for _, data in ipairs(self._data) do
@@ -158,7 +164,8 @@ function CraftingQueueList._UpdateData(self)
 	wipe(self._numCraftableCache)
 	wipe(private.sortProfitCache)
 	for _, row in self._query:Iterator() do
-		local rawCategory = strjoin(CATEGORY_SEP, row:GetFields("profession", "players"))
+		local players = strjoin(",", row:GetField("players"))
+		local rawCategory = strjoin(CATEGORY_SEP, row:GetField("profession"), players)
 		local category = strlower(rawCategory)
 		if not categories[category] then
 			tinsert(categories, category)
@@ -252,27 +259,27 @@ end
 function private.GetItemText(self, data)
 	if type(data) == "string" then
 		local profession, players = strsplit(CATEGORY_SEP, data)
-		local name = TSM.Crafting.ProfessionUtil.GetCurrentProfessionInfo()
+		local name = Profession.GetSkillLine()
 		local isValid = private.PlayersContains(players, UnitName("player")) and strlower(profession) == strlower(name or "")
-		local text = Theme.GetColor("INDICATOR"):ColorText(profession.." ("..players..")")
+		local text = Theme.GetColor("INDICATOR"):ColorText(profession).." ("..players..")"
 		if isValid then
 			return text
 		else
-			return text.."  "..TSM.UI.TexturePacks.GetTextureLink("iconPack.12x12/Attention")
+			return text.."  "..TextureAtlas.GetTextureLink("iconPack.12x12/Attention")
 		end
 	else
 		local recipeString = data:GetField("recipeString")
 		local craftString = CraftString.FromRecipeString(recipeString)
 		local itemString = TSM.Crafting.GetItemString(craftString)
 		local spellId = CraftString.GetSpellId(craftString)
-		return itemString and TSM.UI.GetColoredItemName(itemString) or GetSpellInfo(spellId) or "?"
+		return itemString and UIUtils.GetDisplayItemName(itemString) or GetSpellInfo(spellId) or "?"
 	end
 end
 
 function private.GetItemTooltip(self, data)
 	if type(data) == "string" then
 		local profession, players = strsplit(CATEGORY_SEP, data)
-		local name = TSM.Crafting.ProfessionUtil.GetCurrentProfessionInfo()
+		local name = Profession.GetSkillLine()
 		if not private.PlayersContains(players, UnitName("player")) then
 			return L["You are not on one of the listed characters."]
 		elseif strlower(profession) ~= strlower(name or "") then
@@ -286,35 +293,30 @@ function private.GetItemTooltip(self, data)
 	local numQueued = data:GetField("num")
 	local itemString = TSM.Crafting.GetItemString(craftString)
 	local spellId = CraftString.GetSpellId(craftString)
-	local name = itemString and TSM.UI.GetColoredItemName(itemString) or GetSpellInfo(spellId) or "?"
+	local name = itemString and UIUtils.GetDisplayItemName(itemString) or GetSpellInfo(spellId) or "?"
 	local tooltipLines = TempTable.Acquire()
 	tinsert(tooltipLines, name.." (x"..numQueued..")")
 	local numResult = TSM.Crafting.GetNumResult(craftString)
 	local profit = TSM.Crafting.Cost.GetProfitByRecipeString(recipeString)
-	local profitStr = profit and Money.ToString(profit * numResult, Theme.GetFeedbackColor(profit >= 0 and "GREEN" or "RED"):GetTextColorPrefix()) or "---"
-	local totalProfitStr = profit and Money.ToString(profit * numResult * numQueued, Theme.GetFeedbackColor(profit >= 0 and "GREEN" or "RED"):GetTextColorPrefix()) or "---"
+	local profitStr = profit and Money.ToString(profit * numResult, Theme.GetColor(profit >= 0 and "FEEDBACK_GREEN" or "FEEDBACK_RED"):GetTextColorPrefix(), "OPT_RETAIL_ROUND") or "---"
+	local totalProfitStr = profit and Money.ToString(profit * numResult * numQueued, Theme.GetColor(profit >= 0 and "FEEDBACK_GREEN" or "FEEDBACK_RED"):GetTextColorPrefix(), "OPT_RETAIL_ROUND") or "---"
 	tinsert(tooltipLines, L["Profit (Total)"]..": "..profitStr.." ("..totalProfitStr..")")
 	for _, matItemString, quantity in TSM.Crafting.MatIterator(craftString) do
-		local numHave = Inventory.GetBagQuantity(matItemString)
-		if not TSM.IsWowClassic() then
-			numHave = numHave + Inventory.GetReagentBankQuantity(matItemString) + Inventory.GetBankQuantity(matItemString)
-		end
+		local numHave = BagTracking.GetCraftingMatQuantity(matItemString)
 		local numNeed = quantity * numQueued
-		local color = Theme.GetFeedbackColor(numHave >= numNeed and "GREEN" or "RED")
-		tinsert(tooltipLines, color:ColorText(numHave.."/"..numNeed).." - "..(ItemInfo.GetName(matItemString) or "?"))
+		local color = Theme.GetColor(numHave >= numNeed and "FEEDBACK_GREEN" or "FEEDBACK_RED")
+		tinsert(tooltipLines, color:ColorText(numHave.."/"..numNeed).." - "..(UIUtils.GetDisplayItemName(matItemString) or "?"))
 	end
 	for _, _, itemId in RecipeString.OptionalMatIterator(recipeString) do
 		local matItemString = "i:"..itemId
-		local numHave = Inventory.GetBagQuantity(matItemString)
-		if not TSM.IsWowClassic() then
-			numHave = numHave + Inventory.GetReagentBankQuantity(matItemString) + Inventory.GetBankQuantity(matItemString)
-		end
-		local numNeed = 1 * numQueued
-		local color = Theme.GetFeedbackColor(numHave >= numNeed and "GREEN" or "RED")
-		tinsert(tooltipLines, color:ColorText(numHave.."/"..numNeed).." - "..(ItemInfo.GetName(matItemString) or "?"))
+		local numHave = BagTracking.GetCraftingMatQuantity(matItemString)
+		local numNeed = TSM.Crafting.GetOptionalMatQuantity(craftString, itemId)* numQueued
+		local color = Theme.GetColor(numHave >= numNeed and "FEEDBACK_GREEN" or "FEEDBACK_RED")
+		tinsert(tooltipLines, color:ColorText(numHave.."/"..numNeed).." - "..(UIUtils.GetDisplayItemName(matItemString) or "?"))
 	end
-	if TSM.Crafting.ProfessionUtil.GetRemainingCooldown(craftString) then
-		tinsert(tooltipLines, Theme.GetFeedbackColor("RED"):ColorText(L["On Cooldown"]))
+	local cooldown = Profession.GetRemainingCooldown(craftString)
+	if cooldown then
+		tinsert(tooltipLines, Theme.GetColor("FEEDBACK_RED"):ColorText(format(L["On Cooldown for %s"], SecondsToTime(cooldown))))
 	end
 	return strjoin("\n", TempTable.UnpackAndRelease(tooltipLines)), true, true
 end
@@ -351,6 +353,9 @@ function private.OnEditIconClick(self, data, iconIndex)
 	end
 	local name = private.GetItemText(self, data)
 	local texture, tooltip = private.GetItemIcon(self, data)
+	local recipeString, num = currentRow:GetData():GetFields("recipeString", "num")
+	self._dialogRecipeString = recipeString
+	self._dialogInputValue = num
 	local dialogFrame = UIElements.New("Frame", "qty")
 		:SetLayout("HORIZONTAL")
 		:AddAnchor("LEFT", currentRow._frame, Theme.GetColSpacing() / 2, 0)
@@ -375,11 +380,11 @@ function private.OnEditIconClick(self, data, iconIndex)
 			:SetWidth(75)
 			:SetBackgroundColor("ACTIVE_BG")
 			:SetJustifyH("CENTER")
-			:SetContext(currentRow:GetData():GetField("recipeString"))
 			:SetSubAddEnabled(true)
 			:SetValidateFunc("NUMBER", "1:9999")
-			:SetValue(currentRow:GetData():GetField("num"))
+			:SetValue(num)
 			:SetScript("OnFocusLost", private.QtyInputOnFocusLost)
+			:SetScript("OnValueChanged", private.DialogInputOnValueChanged)
 		)
 	local baseFrame = self:GetBaseElement()
 	baseFrame:ShowDialogFrame(dialogFrame)
@@ -387,9 +392,16 @@ function private.OnEditIconClick(self, data, iconIndex)
 end
 
 function private.DialogOnHide(frame)
-	local input = frame:GetElement("input")
-	TSM.Crafting.Queue.SetNum(input:GetContext(), tonumber(input:GetValue()))
-	frame:GetContext():Draw()
+	local self = frame:GetContext()
+	TSM.Crafting.Queue.SetNum(self._dialogRecipeString, self._dialogInputValue)
+	self._dialogRecipeString = nil
+	self._dialogInputValue = nil
+	self:Draw()
+end
+
+function private.DialogInputOnValueChanged(input)
+	local self = input:GetParentElement():GetContext()
+	self._dialogInputValue = tonumber(input:GetValue())
 end
 
 function private.QtyInputOnFocusLost(input)
@@ -404,8 +416,8 @@ function private.GetQty(self, data)
 	local numCraftable = min(self._numCraftableCache[data], numQueued)
 	local recipeString = data:GetField("recipeString")
 	local craftString = CraftString.FromRecipeString(recipeString)
-	local onCooldown = TSM.Crafting.ProfessionUtil.GetRemainingCooldown(craftString)
-	local color = Theme.GetFeedbackColor(((numCraftable == 0 or onCooldown) and "RED") or (numCraftable < numQueued and "YELLOW") or "GREEN")
+	local onCooldown = Profession.GetRemainingCooldown(craftString)
+	local color = Theme.GetColor(((numCraftable == 0 or onCooldown) and "FEEDBACK_RED") or (numCraftable < numQueued and "FEEDBACK_YELLOW") or "FEEDBACK_GREEN")
 	return color:ColorText(format("%s / %s", numCraftable, numQueued))
 end
 
@@ -419,7 +431,7 @@ function private.CategorySortComparator(a, b)
 	local aProfession, aPlayers = strsplit(CATEGORY_SEP, a)
 	local bProfession, bPlayers = strsplit(CATEGORY_SEP, b)
 	if aProfession ~= bProfession then
-		local currentProfession = TSM.Crafting.ProfessionUtil.GetCurrentProfessionInfo()
+		local currentProfession = Profession.GetSkillLine()
 		currentProfession = strlower(currentProfession or "")
 		if aProfession == currentProfession then
 			return true
@@ -448,19 +460,23 @@ function private.DataSortComparator(a, b)
 		return private.categoryOrder[strlower(a)] < private.categoryOrder[strlower(b)]
 	elseif type(a) == "string" then
 		aCategory = strlower(a)
-		bCategory = strlower(strjoin(CATEGORY_SEP, b:GetFields("profession", "players")))
+		local bPlayers = strjoin(",", b:GetField("players"))
+		bCategory = strlower(strjoin(CATEGORY_SEP, b:GetField("profession"), bPlayers))
 		if aCategory == bCategory then
 			return true
 		end
 	elseif type(b) == "string" then
-		aCategory = strlower(strjoin(CATEGORY_SEP, a:GetFields("profession", "players")))
+		local aPlayers = strjoin(",", a:GetField("players"))
+		aCategory = strlower(strjoin(CATEGORY_SEP, a:GetField("profession"), aPlayers))
 		bCategory = strlower(b)
 		if aCategory == bCategory then
 			return false
 		end
 	else
-		aCategory = strlower(strjoin(CATEGORY_SEP, a:GetFields("profession", "players")))
-		bCategory = strlower(strjoin(CATEGORY_SEP, b:GetFields("profession", "players")))
+		local aPlayers = strjoin(",", a:GetField("players"))
+		aCategory = strlower(strjoin(CATEGORY_SEP, a:GetField("profession"), aPlayers))
+		local bPlayers = strjoin(",", b:GetField("players"))
+		bCategory = strlower(strjoin(CATEGORY_SEP, b:GetField("profession"), bPlayers))
 	end
 	if aCategory ~= bCategory then
 		return private.categoryOrder[aCategory] < private.categoryOrder[bCategory]

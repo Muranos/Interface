@@ -211,6 +211,37 @@ function GottaGoFast.UnitID(guid)
   return nil;
 end
 
+function GottaGoFast.HandleSpy(mobID)
+  if (GottaGoFast.GetSpyHelper(nil)) then
+    if (GossipTitleButton1:IsVisible()) then
+      local gossipInfoTable = C_GossipInfo.GetOptions();
+      if gossipInfoTable[1] and gossipInfoTable[1].gossipOptionID then
+        C_GossipInfo.SelectOption(gossipInfoTable[1].gossipOptionID);
+      end
+    elseif (#C_GossipInfo.GetOptions() > 0) then
+      local text = C_GossipInfo.GetText()
+      local short = "";
+      if (courtText[text] ~= nil) then
+        short = " [" .. courtText[text] .. "]";
+      end
+      SendChatMessage("GGF" .. short .. ": " .. text, "PARTY");
+    end
+  end
+end
+
+function GottaGoFast.HandleGossip()
+  local mobID = GottaGoFast.UnitID(UnitGUID("target"));
+  if (GottaGoFast.GetAutoDialog(nil) and GossipTitleButton1:IsVisible() and autoExceptionList[mobID] == nil) then
+    local gossipInfoTable = C_GossipInfo.GetOptions();
+    if gossipInfoTable[1] and gossipInfoTable[1].gossipOptionID then
+      C_GossipInfo.SelectOption(gossipInfoTable[1].gossipOptionID);
+    end
+  end
+  if (GottaGoFast.CurrentCM["ZoneID"] == 1571 and mobID == 107486) then
+    GottaGoFast.HandleSpy(mobID);
+  end
+end
+
 -- Checks Nil And Gathers Data
 -- Mob Percentage Is Expected 10x Too High
 -- I.E 7% = 7 instead of .7

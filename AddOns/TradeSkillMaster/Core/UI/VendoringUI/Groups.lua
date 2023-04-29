@@ -4,13 +4,14 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
 local Groups = TSM.UI.VendoringUI:NewPackage("Groups")
 local L = TSM.Include("Locale").GetTable()
 local TempTable = TSM.Include("Util.TempTable")
 local FSM = TSM.Include("Util.FSM")
 local Settings = TSM.Include("Service.Settings")
 local UIElements = TSM.Include("UI.UIElements")
+local UIUtils = TSM.Include("UI.UIUtils")
 local private = {
 	settings = nil,
 	groupSearch = "",
@@ -37,7 +38,7 @@ end
 -- ============================================================================
 
 function private.GetFrame()
-	TSM.UI.AnalyticsRecordPathChange("vendoring", "groups")
+	UIUtils.AnalyticsRecordPathChange("vendoring", "groups")
 	return UIElements.New("Frame", "buy")
 		:SetLayout("VERTICAL")
 		:AddChild(UIElements.New("Frame", "container")
@@ -76,20 +77,14 @@ function private.GetFrame()
 				)
 			)
 		)
-		:AddChild(UIElements.New("Texture", "line")
-			:SetHeight(2)
-			:SetTexture("ACTIVE_BG")
-		)
+		:AddChild(UIElements.New("HorizontalLine", "line"))
 		:AddChild(UIElements.New("ApplicationGroupTree", "groupTree")
 			:SetSettingsContext(private.settings, "groupTree")
 			:SetQuery(TSM.Groups.CreateQuery(), "Vendoring")
 			:SetSearchString(private.groupSearch)
 			:SetScript("OnGroupSelectionChanged", private.GroupTreeOnGroupSelectionChanged)
 		)
-		:AddChild(UIElements.New("Texture", "line")
-			:SetHeight(2)
-			:SetTexture("ACTIVE_BG")
-		)
+		:AddChild(UIElements.New("HorizontalLine", "line2"))
 		:AddChild(UIElements.New("Frame", "footer")
 			:SetLayout("HORIZONTAL")
 			:SetHeight(40)
@@ -100,7 +95,7 @@ function private.GetFrame()
 				:SetWidth(166)
 				:SetMargin(0, 8, 0, 0)
 				:SetPadding(4)
-				:AddChild(UIElements.New("PlayerGoldText", "text"))
+				:AddChild(TSM.UI.Views.PlayerGoldText.New("text"))
 			)
 			:AddChild(UIElements.New("ActionButton", "buyBtn")
 				:SetMargin(0, 8, 0, 0)

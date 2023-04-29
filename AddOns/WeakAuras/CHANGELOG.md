@@ -1,52 +1,28 @@
-# [5.2.1](https://github.com/WeakAuras/WeakAuras2/tree/5.2.1) (2022-11-26)
+# [5.4.4](https://github.com/WeakAuras/WeakAuras2/tree/5.4.4) (2023-03-29)
 
-[Full Changelog](https://github.com/WeakAuras/WeakAuras2/compare/5.2.0...5.2.1)
+[Full Changelog](https://github.com/WeakAuras/WeakAuras2/compare/5.4.3...5.4.4)
 
 ## Highlights
 
- - Dynamic Groups: Introduce options for aura order for centered
-- Bug fixes 
+ - Bug fixes 
 
 ## Commits
 
-InfusOnWoW (20):
+InfusOnWoW (5):
 
-- Fix lua error if there's no tooltip
-- Fix background framelevel setting for AuraBar
-- Cooldown Tracking: Don't react within 2s of PLAYER_ENTERING_WORLD
-- Add an additional sanity check to custom duration return values
-- Improve error message if color animations return odd values
-- Fix Exact Spell ID for Charges Changed
-- Bump version
-- Correct LibUiDropDownMenu name in OptionalDeps
-- Use LibUIDropDownMenu for UIDropDownMenus
-- Add Evoker to CalculateGCDDuration
-- Disable snapping to pixel grids for Ticks too
-- Texture/Progress Texture: Improve atlas compatibility
-- Use C_TooltipInfo instead of a hidden tooltip on DF
-- Icon: Add some helpful text to Icon that hints at other addons
-- Dynamic Groups: Introduce options for aura order for centered
-- Make lua checkers a bit happier
-- AuraBar: Ensure that Scale does always call Reorient
-- Bug report template: Ask for verifyable steps in the Reproduction Steps
-- Don't try to reanachor frames that are dragged into a dynamic group
-- Forward arguments of PLAYER_ENTERING_WORLD to WA_DELAYERD_PEW
+- Bufftrigger2: Explicitly scan boss units on INSTANCE_ENCOUNTER_ENGAGE_UNIT
+- Fix state.spec for various triggers
+- BuffTrigger2: Check that matchDataByTrigger contains what we expect
+- Fix updating edge case
+- Templates: Fix Rupture
 
-Lars Kunert (1):
+mrbuds (7):
 
-- Update "Talent Known" trigger on spec changes
-
-Stanzilla (4):
-
-- Lua LSP: Add more globals to the list
-- Lua LSP: Disable the checks that currently cause the LSP to crash
-- Add a Lua LSP config file and update some types
-- Ignore WeakAurasModelPaths and Type* files for Code Spell Checker
-
-mrbuds (4):
-
-- Cast trigger: fix empowered cache for target on target change
-- Talent load condition: fix talents for overriden spells
-- Update talents
-- Aura trigger: fix tooltip filters
+- Spell Cast Succeeded trigger: fix "Delay" option, fixes #4382
+- update talents for 10.0.7
+- Dbm & BW triggers: make count field use cron-like pattern fixes #4368
+- Aura trigger: fix tooltip on mouseover, fixes #4372
+- Dbm & BW triggers: fix count parsing from message
+- Aura trigger: Fix Lua error in WeakAuras.GetAuraInstanceTooltipInfo for 10.1.0
+- re-add WeakAuras.IsClassic as an alias to WeakAuras.IsClassicEra
 

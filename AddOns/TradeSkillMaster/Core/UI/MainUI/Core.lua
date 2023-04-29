@@ -4,10 +4,11 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
 local MainUI = TSM:NewPackage("MainUI")
 local Settings = TSM.Include("Service.Settings")
 local UIElements = TSM.Include("UI.UIElements")
+local UIUtils = TSM.Include("UI.UIUtils")
 local private = {
 	settings = nil,
 	topLevelPages = {},
@@ -56,7 +57,7 @@ end
 -- ============================================================================
 
 function private.CreateMainFrame()
-	TSM.UI.AnalyticsRecordPathChange("main")
+	UIUtils.AnalyticsRecordPathChange("main")
 	-- Always show the Dashboard first
 	private.settings.frame.page = 1
 	local frame = UIElements.New("LargeApplicationFrame", "base")
@@ -87,5 +88,5 @@ function private.BaseFrameOnHide(frame)
 	assert(frame == private.frame)
 	frame:Release()
 	private.frame = nil
-	TSM.UI.AnalyticsRecordClose("main")
+	UIUtils.AnalyticsRecordClose("main")
 end

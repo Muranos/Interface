@@ -75,9 +75,17 @@ rematch:InitModule(function()
 	end
 
 	-- remove the PetTrackerLetterBreeds option if PetTracker isn't the breed source
-	if rematch:GetBreedSource()~="PetTracker" then
+	if not IsAddOnLoaded("PetTracker") then
 		for i=#panel.opts,1,-1 do
 			if panel.opts[i][2]=="PetTrackerLetterBreeds" then
+				tremove(panel.opts,i)
+			end
+		end
+	end
+	-- remove the PreferPetTrackerBreeds option if both PetTracker and BattlePetBreedID aren't loaded
+	if not IsAddOnLoaded("PetTracker") or not IsAddOnLoaded("BattlePetBreedID") then
+		for i=#panel.opts,1,-1 do
+			if panel.opts[i][2]=="PreferPetTrackerBreeds" then
 				tremove(panel.opts,i)
 			end
 		end
@@ -231,7 +239,7 @@ function panel:ListButtonOnEnter()
 			rematch.ShowTooltip(self,title,body,"RIGHT",self,"LEFT")
 		else -- otherwise smart anchor (can't always do left; window may be flush against left edge)
 			rematch.ShowTooltip(self,title,body)
-		end	
+		end
 	end
 end
 
@@ -535,6 +543,14 @@ panel.funcs.HideNoteButtons = function()
 	rematch.Battle:ShowNoteButtons()
 end
 
+panel.funcs.PreferPetTrackerBreeds = function()
+	rematch:ResetBreedSource()
+	rematch:UpdateUI()
+end
+
+panel.funcs.ShowNumericBreeds = rematch.UpdateUI
+
+
 -- collapses or expands an option header
 function panel:HeaderOnClick()
 	local headerIndex = self.headerIndex
@@ -710,3 +726,4 @@ end
 function panel.NotesFont.DropDown:IsHighlighted()
 	return self.font==settings.NotesFont
 end
+

@@ -6,7 +6,7 @@ local function cc(m, f, ...)
 	return f
 end
 local function assert(condition, text, level)
-	return (not condition) and error(text, level or 2) or condition
+	return condition or error(text, level or 2)
 end
 
 local gfxBase = ([[Interface\AddOns\%s\gfx\]]):format((...))
@@ -228,9 +228,9 @@ local function SetDefaultAnchor(tt, owner)
 		GameTooltip_SetDefaultAnchor(tt, owner)
 	end
 end
-local function updateCentralElements(self, si)
-	local osi, tok, usable, state, icon, caption, _, _, _, tipFunc, tipArg, _, stext = self.oldSlice, PC:GetOpenRingSliceAction(si)
-		
+local function updateCentralElements(self, si, _, tok, usable, state, icon, caption, _, _, _, tipFunc, tipArg, _, stext)
+	local osi = self.oldSlice
+
 	if tok then
 		local r,g,b = getSliceColor(tok, tokenIcon[tok] or icon or "Interface/Icons/INV_Misc_QuestionMark")
 		centerPointer:SetVertexColor(r,g,b, 0.9)
@@ -324,13 +324,16 @@ local function updateSlice(self, originAngle, selected, tok, usable, state, icon
 	self:SetActive(active)
 	self:SetHighlighted(selected and not faded)
 end
+local function callElementUpdate(self, f, si, ni, a1, a2)
+	return true, f(self, a1, a2, PC:GetOpenRingSliceAction(si, ni))
+end
 
 local lastConAngle = nil
 local function OnUpdate_Main(self, elapsed)
 	local count, offset = self.count, self.offset
 	local imode, qaid, angle, isActiveRadius, stl = PC:GetCurrentInputs()
 
-	if qaid then
+	if qaid and count > 0 then
 		angle = (90 - offset - (qaid-1)*360/count) % 360
 	elseif imode == "stick" then
 		angle = stl < 0.25 and lastConAngle or angle
@@ -353,7 +356,7 @@ local function OnUpdate_Main(self, elapsed)
 
 	local si = qaid or (count <= 0 and 0) or isActiveRadius and
 		(floor(((90-angle - offset) * count/360 + 0.5) % count) + 1) or 0
-	updateCentralElements(self, si)
+	securecall(callElementUpdate, self, updateCentralElements, si, nil, si)
 
 	if count == 0 then
 		return
@@ -365,7 +368,8 @@ local function OnUpdate_Main(self, elapsed)
 	else
 		self.omState, self.schedMultiUpdate = cmState, -0.05
 		for i=1,count do
-			updateSlice(Slices[i], 90 - (i-1)*360/count - offset, si == i, PC:GetOpenRingSliceAction(i))
+			local originAngle = 90 - (i-1)*360/count - offset
+			securecall(callElementUpdate, Slices[i], updateSlice, i, nil, originAngle, si == i)
 		end
 		if configCache.GhostMIRings then
 			local _, _, _, nestedCount, atype = PC:GetOpenRingSlice(si or 0)
@@ -376,7 +380,7 @@ local function OnUpdate_Main(self, elapsed)
 				local originAngle = 90 - 360/count*(si-1) - offset
 				local group = GhostIndication:ActivateGroup(si, nestedCount + jump1, originAngle, self.radius*(configCache.MIScale and 1.10 or 1), 1.10)
 				for i=2-jump1, nestedCount do
-					updateSlice(group[i+jump1], 90, false, PC:GetOpenRingSliceAction(si, i))
+					securecall(callElementUpdate, group[i+jump1], updateSlice, si, i, 90, false)
 				end
 			end
 		end

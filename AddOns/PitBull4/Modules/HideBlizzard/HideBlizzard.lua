@@ -17,7 +17,6 @@ PitBull4_HideBlizzard:SetDefaults({}, {
 	focus = true,
 	castbar = true,
 	aura = false,
-	runebar = true,
 	altpower = false,
 	boss = false,
 })
@@ -215,40 +214,16 @@ function showers:focus()
 end
 
 function hiders:castbar()
-	PlayerCastingBarFrame:SetUnit(nil, nil, nil)
-	PlayerCastingBarFrame.ignoreFramePositionManager = true
-	PetCastingBarFrame:SetUnit(nil, nil, nil)
+	hook_frames(PlayerCastingBarFrame, PetCastingBarFrame)
+	-- PlayerCastingBarFrame:SetUnit(nil, nil, nil)
+	-- PetCastingBarFrame:SetUnit(nil, nil, nil)
 end
 
 function showers:castbar()
-	PlayerCastingBarFrame:SetUnit("player", true, false)
-	PlayerCastingBarFrame.ignoreFramePositionManager = PlayerCastingBarFrame.attachedToPlayerFrame
-	PetCastingBarFrame:SetUnit("pet", false, false)
+	unhook_frames(PlayerCastingBarFrame, PetCastingBarFrame)
+	-- PlayerCastingBarFrame:SetUnit("player", true, false)
+	-- PetCastingBarFrame:SetUnit("pet", false, false)
 end
-
--- function hiders:runebar()
--- 	hook_frames(TotemFrame, RuneFrame, PriestBarFrame)
--- 	if PlayerFrame.classPowerBar then
--- 		hook_frames(PlayerFrame.classPowerBar)
--- 	end
--- end
---
--- function showers:runebar()
--- 	unhook_frames(TotemFrame, RuneFrame, PriestBarFrame)
--- 	TotemFrame_Update()
---
--- 	if PlayerFrame.classPowerBar then
--- 		unhook_frame(PlayerFrame.classPowerBar)
--- 		PlayerFrame.classPowerBar:Setup()
--- 	end
--- 	local _, class = UnitClass("player")
--- 	if class == "DEATHKNIGHT" then
--- 		RuneFrame:Show()
--- 		RuneFrame:GetScript("OnEvent")(RuneFrame, "PLAYER_ENTERING_WORLD")
--- 	elseif class == "PRIEST" then
--- 		PriestBarFrame_CheckAndShow()
--- 	end
--- end
 
 function hiders:aura()
 	hook_frames(BuffFrame, DebuffFrame)
@@ -272,7 +247,6 @@ function showers:aura()
 end
 
 function hiders:altpower()
-	-- XXX should probably look at removing it from the "Encounter Frame" container
 	hook_frames(PlayerPowerBarAlt)
 end
 
@@ -285,22 +259,24 @@ function showers:altpower()
 end
 
 function hiders:boss()
-	for i=1, MAX_BOSS_FRAMES do
-		local frame = _G["Boss"..i.."TargetFrame"]
+	for _, frame in ipairs(BossTargetFrameContainer.BossTargetFrames) do
 		hook_frames(frame)
 	end
 end
 
 function showers:boss()
-	for i=1, MAX_BOSS_FRAMES do
-		local frame = _G["Boss"..i.."TargetFrame"]
+	for i, frame in ipairs(BossTargetFrameContainer.BossTargetFrames) do
 		unhook_frames_without_init(frame)
+		frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+		frame:RegisterEvent("UNIT_HEALTH")
+		frame:RegisterEvent("UNIT_LEVEL")
+		frame:RegisterEvent("UNIT_FACTION")
+		frame:RegisterEvent("GROUP_ROSTER_UPDATE")
+		frame:RegisterEvent("RAID_TARGET_UPDATE")
+		frame:RegisterEvent("UNIT_TARGETABLE_CHANGED")
 		if i == 1 then
-			BossTargetFrame_OnLoad(frame, "boss1", "INSTANCE_ENCOUNTER_ENGAGE_UNIT")
-		else
-			BossTargetFrame_OnLoad(frame, "boss"..i)
+			frame:RegisterEvent("INSTANCE_ENCOUNTER_ENGAGE_UNIT")
 		end
-		Target_Spellbar_OnEvent(frame.spellbar, "INSTANCE_ENCOUNTER_ENGAGE_UNIT")
 	end
 end
 
@@ -336,14 +312,6 @@ PitBull4_HideBlizzard:SetGlobalOptionsFunction(function(self)
 		get = get,
 		set = set,
 		hidden = hidden,
-	-- }, 'runebar', {
-	-- 	type = 'toggle',
-	-- 	name = L["Class power bar"],
-	-- 	desc = L["Hides the class resource bar attached to your player frame."],
-	-- 	get = get,
-	-- 	set = set,
-	-- 	hidden = hidden,
-	-- 	disabled = function() return self.db.profile.global.player end,
 	}, 'party', {
 		type = 'toggle',
 		name = L["Party"],

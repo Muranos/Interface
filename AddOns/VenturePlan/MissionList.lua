@@ -208,8 +208,6 @@ local function UpdateMissions()
 					sg = haveRookies and 4 or j == 1 and -1 or sg
 				elseif iid and C_Item.IsAnimaItemByID(iid) and sg < 3 then
 					sg = 3
-				elseif i.currencyID == 0 and i.quantity and sg < 2 then
-					sg = 2
 				elseif iid and U.FOLLOWER_XP_ITEMS[iid] and sg < 1 then
 					sg = 1
 				elseif sg < 0 then

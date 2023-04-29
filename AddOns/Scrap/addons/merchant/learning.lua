@@ -1,5 +1,5 @@
 --[[
-Copyright 2008-2022 João Cardoso
+Copyright 2008-2023 João Cardoso
 Scrap is distributed under the terms of the GNU General Public License (Version 3).
 As a special exception, the copyright holders of this addon do not give permission to
 redistribute and/or modify it.
@@ -17,12 +17,13 @@ This file is part of Scrap.
 
 local Learn = Scrap:NewModule('Learning') -- dumb ml algortihm using exponential mean average
 local L = LibStub('AceLocale-3.0'):GetLocale('Scrap')
+local C = LibStub('C_Everywhere').Container
 
 
 --[[ Events ]] --
 
 function Learn:OnEnable()
-  hooksecurefunc(UseContainerItem and _G or C_Container, 'UseContainerItem', function(...)
+  C.hooksecurefunc('UseContainerItem', function(...)
     if self:IsActive() then
       self:OnItemSold(...)
     end
@@ -38,15 +39,15 @@ function Learn:OnEnable()
 end
 
 function Learn:OnItemSold(...)
-	local id = Scrap.C.GetContainerItemID(...)
+	local id = C.GetContainerItemID(...)
 	if id and Scrap.junk[id] == nil and not Scrap:IsFiltered(id, ...) then
-  	local rate = self:GetDecay(id, Scrap:GetContainerItemInfo(...).stackCount)
+  	local rate = self:GetDecay(id, C.GetContainerItemInfo(...).stackCount)
     local old = Scrap.charsets.auto[id] or 0
     local new = old + (1 - old) * rate
 
   	Scrap.charsets.auto[id] = new
     if old <= .5 and new > .5 then
-      Scrap:Print(L.Added, Scrap.C.GetContainerItemLink(...), 'LOOT')
+      Scrap:Print(L.Added, C.GetContainerItemLink(...), 'LOOT')
       Scrap:SendSignal('LIST_CHANGED', id)
     end
   end

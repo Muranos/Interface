@@ -4,8 +4,8 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
-local _, TSM = ...
-local Comm = TSM.Init("Service.SyncClasses.Comm")
+local TSM = select(2, ...) ---@type TSM
+local Comm = TSM.Init("Service.SyncClasses.Comm") ---@class Service.SyncClasses.Comm
 local Delay = TSM.Include("Util.Delay")
 local Table = TSM.Include("Util.Table")
 local TempTable = TSM.Include("Util.TempTable")
@@ -16,8 +16,9 @@ local private = {
 	handler = {},
 	queuedPacket = {},
 	queuedSourceCharacter = {},
+	queueTimer = nil,
 }
--- load libraries
+-- Load libraries
 LibStub("AceComm-3.0"):Embed(Comm)
 local LibSerialize = LibStub("LibSerialize")
 local LibDeflate = LibStub("LibDeflate")
@@ -29,6 +30,7 @@ local LibDeflate = LibStub("LibDeflate")
 -- ============================================================================
 
 Comm:OnModuleLoad(function()
+	private.queueTimer = Delay.CreateTimer("SYNC_COMM_QUEUE", private.ProcessReceiveQueue)
 	Comm:RegisterComm("TSMSyncData", private.OnCommReceived)
 end)
 
@@ -51,6 +53,7 @@ function Comm.SendData(dataType, targetCharacter, data)
 	packet.sa = Settings.GetCurrentSyncAccountKey()
 	packet.v = Constants.VERSION
 	packet.d = data
+	packet.l = GetLocale()
 	local serialized = LibSerialize:Serialize(packet)
 	TempTable.Release(packet)
 	local compressed = LibDeflate:EncodeForWoWAddonChannel(LibDeflate:CompressDeflate(serialized))
@@ -73,7 +76,7 @@ function private.OnCommReceived(_, packet, _, sourceCharacter)
 	-- delay the processing to make sure it happens within a debuggable context (this function is called via pcall)
 	tinsert(private.queuedPacket, packet)
 	tinsert(private.queuedSourceCharacter, sourceCharacter)
-	Delay.AfterFrame("commReceiveQueue", 0, private.ProcessReceiveQueue)
+	private.queueTimer:RunForFrames(0)
 end
 
 function private.ProcessReceiveQueue()
@@ -113,7 +116,8 @@ function private.ProcessReceivedPacket(msg, sourceCharacter)
 	local sourceAccount = packet.sa
 	local version = packet.v
 	local data = packet.d
-	if type(dataType) ~= "string" or #dataType > 1 or not sourceAccount or version ~= Constants.VERSION then
+	local locale = packet.l
+	if type(dataType) ~= "string" or #dataType > 1 or not sourceAccount or version ~= Constants.VERSION or locale ~= GetLocale() then
 		Log.Info("Invalid message received")
 		return
 	elseif sourceAccount == Settings.GetCurrentSyncAccountKey() then

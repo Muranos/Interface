@@ -1,6 +1,6 @@
 ﻿-- Pawn by Vger-Azjol-Nerub
 -- www.vgermods.com
--- © 2006-2022 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
+-- © 2006-2023 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
 -- See Readme.htm for more information.
 
 --
@@ -264,7 +264,7 @@ Pawn 사용자 설정의 더 자세한 정보는, 애드온에 포함된 help �
 		["Armor2"] = "^UNUSED$",
 		["ArmorPenetration"] = "^착용 효과: 공격 시 적의 방어도를 #만큼 무시합니다%.$",
 		["ArmorPenetrationRating"] = "^착용 효과: 방어구 관통력이 #만큼 증가합니다%.$",
-		["ArmorPenetrationRating2"] = "^UNUSED$",
+		["ArmorPenetrationRating2"] = "^착용 효과: 방어구 관통이 #만큼 증가합니다%.$",
 		["ArmorPenetrationShort"] = "^방어구 관통력 %+#$",
 		["Avoidance"] = "^광역회피 %+#$",
 		["Axe"] = "^도끼$",

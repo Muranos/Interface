@@ -4,13 +4,15 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
+local Environment = TSM.Include("Environment")
 local Wrapper = TSM.Init("Service.ItemTooltipClasses.Wrapper")
 local ExtraTip = TSM.Include("Service.ItemTooltipClasses.ExtraTip")
 local Builder = TSM.Include("Service.ItemTooltipClasses.Builder")
 local ItemInfo = TSM.Include("Service.ItemInfo")
 local Settings = TSM.Include("Service.Settings")
 local ItemString = TSM.Include("Util.ItemString")
+local Theme = TSM.Include("Util.Theme")
 local private = {
 	builder = nil,
 	settings = nil,
@@ -37,7 +39,7 @@ Wrapper:OnSettingsLoad(function()
 		:AddKey("global", "tooltipOptions", "tooltipShowModifier")
 	private.RegisterTooltip(GameTooltip)
 	private.RegisterTooltip(ItemRefTooltip)
-	if not TSM.IsWowClassic() then
+	if Environment.HasFeature(Environment.FEATURES.BATTLE_PETS) then
 		private.RegisterTooltip(BattlePetTooltip)
 		private.RegisterTooltip(FloatingBattlePetTooltip)
 	end
@@ -91,39 +93,33 @@ function private.RegisterTooltip(tooltip)
 		end
 		tooltip:HookScript("OnHide", private.OnTooltipCleared)
 	else
-		local scriptHooks = {
-			OnTooltipSetItem = private.OnTooltipSetItem,
-			OnTooltipCleared = private.OnTooltipCleared
-		}
-		for script, prehook in pairs(scriptHooks) do
-			if not TSM.IsWowClassic() and script == "OnTooltipSetItem" then
-				TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, private.OnTooltipSetItem)
-			else
-				tooltip:HookScript(script, prehook)
-			end
-		end
-
-		for method, prehook in pairs(private.tooltipMethodPrehooks) do
-			local posthook = private.tooltipMethodPosthooks[method]
-			local orig = tooltip[method]
-			tooltip[method] = function(...)
-				prehook(...)
-				local a, b, c, d, e, f, g, h, i, j, k = orig(...)
-				posthook(...)
-				return a, b, c, d, e, f, g, h, i, j, k
+		tooltip:HookScript("OnTooltipCleared", private.OnTooltipCleared)
+		if Environment.HasFeature(Environment.FEATURES.C_TOOLTIP_INFO) then
+			TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, private.OnTooltipSetItem)
+		else
+			tooltip:HookScript("OnTooltipSetItem", private.OnTooltipSetItem)
+			for method, prehook in pairs(private.tooltipMethodPrehooks) do
+				local posthook = private.tooltipMethodPosthooks[method]
+				local orig = tooltip[method]
+				tooltip[method] = function(...)
+					prehook(...)
+					local a, b, c, d, e, f, g, h, i, j, k = orig(...)
+					posthook(...)
+					return a, b, c, d, e, f, g, h, i, j, k
+				end
 			end
 		end
 	end
 end
 
 function private.IsBattlePetTooltip(tooltip)
-	if TSM.IsWowClassic() then
+	if not Environment.HasFeature(Environment.FEATURES.BATTLE_PETS) then
 		return false
 	end
 	return tooltip == BattlePetTooltip or tooltip == FloatingBattlePetTooltip
 end
 
-function private.OnTooltipSetItem(tooltip)
+function private.OnTooltipSetItem(tooltip, data)
 	local reg = private.tooltipRegistry[tooltip]
 	if not reg then
 		return
@@ -131,12 +127,16 @@ function private.OnTooltipSetItem(tooltip)
 	if reg.hasItem then
 		return
 	end
+	local itemLocation = Environment.HasFeature(Environment.FEATURES.C_TOOLTIP_INFO) and data.guid and C_Item.GetItemLocation(data.guid)
+	if itemLocation and itemLocation:IsBagAndSlot() then
+		reg.quantity = C_Container.GetContainerItemInfo(itemLocation.bagID, itemLocation.slotIndex).stackCount
+	end
 
 	tooltip:Show()
 	local testName, item = tooltip:GetItem()
-	if not TSM.IsWowClassic() and reg.item then
-		-- GetItem() seems to be broken for recipes on retail, so just trust our own item if we have it
-		item = reg.item
+	if Environment.HasFeature(Environment.FEATURES.C_TOOLTIP_INFO) and item and data.id and data.id ~= ItemString.ToId(item) then
+		-- GetItem() seems to be broken for recipes on retail, so just look it up by ID
+		item = ItemString.Get(data.id)
 	elseif not item then
 		item = reg.item
 	elseif testName == "" then
@@ -226,7 +226,7 @@ function private.SetTooltipItem(tooltip, link)
 	local targetTip = useExtraTip and reg.extraTip or tooltip
 	targetTip:AddLine(" ")
 	for _, left, right, lineColor in private.builder:_LineIterator() do
-		local r, g, b = lineColor:GetFractionalRGBA()
+		local r, g, b = Theme.GetColor(lineColor):GetFractionalRGBA()
 		if right then
 			targetTip:AddDoubleLine(left, right, r, g, b, r, g, b)
 		else
@@ -282,22 +282,17 @@ do
 			PreHookHelper(self, quantityFunc, 3, ...)
 		end,
 		SetRecipeReagentItem = function(self, ...)
-			if TSM.IsWowClassic() then
-				local reg = PreHookHelper(self, C_TradeSkillUI.GetRecipeReagentInfo, 3, ...)
-				reg.item = C_TradeSkillUI.GetRecipeReagentItemLink(...)
-			else
-				local spellId, dataSlotIndex = ...
-				local info = C_TradeSkillUI.GetRecipeSchematic(spellId, false)
-				local quantity = 1
-				for _, reagentInfo in ipairs(info.reagentSlotSchematics) do
-					if reagentInfo.dataSlotIndex == dataSlotIndex then
-						quantity = reagentInfo.quantityRequired
-						break
-					end
+			local spellId, dataSlotIndex = ...
+			local info = C_TradeSkillUI.GetRecipeSchematic(spellId, false)
+			local quantity = 1
+			for _, reagentInfo in ipairs(info.reagentSlotSchematics) do
+				if reagentInfo.dataSlotIndex == dataSlotIndex then
+					quantity = reagentInfo.quantityRequired
+					break
 				end
-				local reg = PreHookHelper(self, quantity)
-				reg.item = C_TradeSkillUI.GetRecipeFixedReagentItemLink(spellId, dataSlotIndex)
 			end
+			local reg = PreHookHelper(self, quantity)
+			reg.item = C_TradeSkillUI.GetRecipeFixedReagentItemLink(spellId, dataSlotIndex)
 		end,
 		SetRecipeResultItem = function(self, ...)
 			private.OnTooltipCleared(self)
@@ -317,10 +312,10 @@ do
 			reg.quantity = lNum == hNum and lNum or 1
 		end,
 		SetBagItem = function(self, ...)
-			if TSM.IsWowClassic() then
-				PreHookHelper(self, GetContainerItemInfo, 2, ...)
-			else
+			if Environment.HasFeature(Environment.FEATURES.C_CONTAINER) then
 				PreHookHelper(self, C_Container.GetContainerItemInfo, "stackCount", ...)
+			else
+				PreHookHelper(self, GetContainerItemInfo, 2, ...)
 			end
 		end,
 		SetGuildBankItem = function(self, ...)
@@ -337,11 +332,11 @@ do
 		end,
 		SetMerchantCostItem = function(self, ...) PreHookHelper(self, GetMerchantItemCostItem, 2, ...) end,
 		SetBuybackItem = function(self, ...) PreHookHelper(self, GetBuybackItemInfo, 4, ...) end,
-		SetAuctionItem = function(self, ...)
+		SetAuctionItem = not Environment.IsRetail() and function(self, ...)
 			local reg = PreHookHelper(self, GetAuctionItemInfo, 3, ...)
 			reg.item = GetAuctionItemLink(...)
-		end,
-		SetAuctionSellItem = function(self, ...) PreHookHelper(self, GetAuctionSellItemInfo, 3, ...) end,
+		end or nil,
+		SetAuctionSellItem = not Environment.IsRetail() and function(self, ...) PreHookHelper(self, GetAuctionSellItemInfo, 3, ...) end or nil,
 		SetInboxItem = function(self, index) PreHookHelper(self, GetInboxItem, 4, index, 1) end,
 		SetSendMailItem = function(self, ...) PreHookHelper(self, GetSendMailItem, 4, ...) end,
 		SetLootItem = function(self, ...) PreHookHelper(self, GetLootSlotInfo, 3, ...) end,
@@ -355,10 +350,6 @@ do
 			reg.item = link
 		end,
 	}
-	if not TSM.IsWowClassic() then
-		private.tooltipMethodPrehooks["SetAuctionItem"] = nil
-		private.tooltipMethodPrehooks["SetAuctionSellItem"] = nil
-	end
 
 	-- populate all the posthooks
 	local function TooltipMethodPostHook(self)

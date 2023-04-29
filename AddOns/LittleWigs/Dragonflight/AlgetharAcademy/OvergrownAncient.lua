@@ -13,6 +13,7 @@ mod:SetRespawnTime(30)
 --
 
 local germinateCount = 0
+local burstForthCount = 0
 local barkbreakerCount = 0
 
 --------------------------------------------------------------------------------
@@ -21,6 +22,8 @@ local barkbreakerCount = 0
 
 function mod:GetOptions()
 	return {
+		-- General
+		"warmup",
 		-- Overgrown Ancient
 		388796, -- Germinate
 		388923, -- Burst Forth
@@ -32,6 +35,7 @@ function mod:GetOptions()
 		396640, -- Healing Touch
 		396721, -- Abundance
 	}, {
+		["warmup"] = CL.general,
 		[388796] = self.displayName,
 		[389033] = -25730, -- Hungry Lasher
 		[396640] = -25688, -- Ancient Branch
@@ -55,16 +59,23 @@ end
 
 function mod:OnEngage()
 	germinateCount = 0
+	burstForthCount = 0
 	barkbreakerCount = 0
-	self:CDBar(388544, 4.6) -- Barkbreaker
-	self:Bar(388796, 13.3) -- Germinate
-	self:Bar(388623, 30.3) -- Branch Out
-	self:Bar(388923, 47.4) -- Burst Forth
+	self:Bar(388544, 9.7) -- Barkbreaker
+	self:Bar(388796, 18.2) -- Germinate
+	self:Bar(388623, 30.4) -- Branch Out
+	self:Bar(388923, 56.4, CL.count:format(self:SpellName(388923), 1)) -- Burst Forth (1)
 end
 
 --------------------------------------------------------------------------------
 -- Event Handlers
 --
+
+-- General
+
+function mod:Warmup() -- called from trash module
+	self:Bar("warmup", 16.8, CL.active, "achievement_dungeon_dragonacademy")
+end
 
 -- Overgrown Ancient
 
@@ -72,29 +83,32 @@ function mod:Germinate(args)
 	germinateCount = germinateCount + 1
 	self:Message(args.spellId, "yellow")
 	self:PlaySound(args.spellId, "long")
-	-- 13.3, 29.1, 20.6, 29.1, 20.6 pattern
-	self:Bar(args.spellId, germinateCount % 2 == 0 and 20.6 or 29.1)
+	-- 18.3, 34.0, 25.5, 34.0, 25.5 pattern
+	self:Bar(args.spellId, germinateCount % 2 == 0 and 25.5 or 34)
 end
 
 function mod:BurstForth(args)
-	self:Message(args.spellId, "orange")
+	burstForthCount = burstForthCount + 1
+	local burstForthMessage = CL.count:format(args.spellName, burstForthCount)
+	self:StopBar(burstForthMessage)
+	self:Message(args.spellId, "orange", burstForthMessage)
 	self:PlaySound(args.spellId, "long")
-	-- cast at 100 energy, 2s cast + 45s energy gain + delay
-	self:Bar(args.spellId, 49.8)
+	-- cast at 100 energy, 2s cast + 54s energy gain + delay
+	self:Bar(args.spellId, 59.5, CL.count:format(args.spellName, burstForthCount + 1))
 end
 
 function mod:BranchOut(args)
 	self:Message(args.spellId, "red")
 	self:PlaySound(args.spellId, "alarm")
-	self:Bar(args.spellId, 49.8)
+	self:Bar(args.spellId, 59.5)
 end
 
 function mod:Barkbreaker(args)
 	barkbreakerCount = barkbreakerCount + 1
 	self:Message(args.spellId, "purple")
 	self:PlaySound(args.spellId, "alert")
-	-- 4.6, 29.2, 19.5, 29.2, 20.6 pattern
-	self:CDBar(args.spellId, barkbreakerCount % 2 == 0 and 19.5 or 29.2)
+	-- 10.7, 29.1, 30.4, 29.1, 30.4, 29.1
+	self:Bar(args.spellId, barkbreakerCount % 2 == 0 and 30.4 or 29.1)
 end
 
 -- Hungry Lasher
@@ -122,7 +136,9 @@ function mod:HealingTouch(args)
 end
 
 function mod:AncientBranchDeath(args)
-	self:Message(396721, "green") -- Abundance
-	self:PlaySound(396721, "info")
-	self:Bar(396721, 3.5)
+	if self:Mythic() then
+		self:Message(396721, "green") -- Abundance
+		self:PlaySound(396721, "info")
+		self:Bar(396721, 3.5)
+	end
 end

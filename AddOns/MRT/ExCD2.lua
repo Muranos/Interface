@@ -3870,7 +3870,7 @@ do
 							local talent_rank = _db.talent_classic_rank[fullName][talentSpellID] or #timeReduce
 							timeReduce = timeReduce[talent_rank] or timeReduce[1]
 						elseif type(timeReduce) == 'table' and #timeReduce <= 5 then
-							if timeReduce[2] > 1000 then
+							if type(timeReduce[2]) == "number" and timeReduce[2] > 1000 then
 								if IsAuraActive(fullName,timeReduce[2]) then
 									timeReduce = timeReduce[1]
 								else
@@ -5330,6 +5330,7 @@ do
 		]],subevents={RANGE_MISSED=true,SPELL_PERIODIC_MISSED=true,SWING_MISSED=[[
 			local meleeStr = GetSpellInfo(6603)
 			return function (timestamp,event,hideCaster,sourceGUID,sourceName,sourceFlags,sourceFlags2,destGUID,destName,destFlags,destFlags2,missType,isOffHand,amountMissed,critical)
+				if not eventsView.SPELL_MISSED then return end	--temp fix
 				return eventsView.SPELL_MISSED(timestamp,event,hideCaster,sourceGUID,sourceName,sourceFlags,sourceFlags2,destGUID,destName,destFlags,destFlags2,6603,meleeStr,1,missType,isOffHand,amountMissed,critical)
 			end
 		]]}},
@@ -5792,7 +5793,7 @@ function module.options:Load()
 		if self:IsMouseOver() and not ExRT.lib.ScrollDropDown.DropDownList[1]:IsShown() then
 			alpha = 0.8
 		end
-		if ExRT.is10 then
+		if ExRT.is10 or ExRT.isLK1 then
 			self.backClassColor:SetGradient("HORIZONTAL",CreateColor(self.backClassColorR, self.backClassColorG, self.backClassColorB, alpha), CreateColor(self.backClassColorR, self.backClassColorG, self.backClassColorB, 0))
 		else
 			self.backClassColor:SetGradientAlpha("HORIZONTAL", self.backClassColorR, self.backClassColorG, self.backClassColorB, alpha, self.backClassColorR, self.backClassColorG, self.backClassColorB, 0)
@@ -6235,7 +6236,7 @@ function module.options:Load()
 		line.colBack:SetPoint("RIGHT",line.col)
 
 		line.colExpand = ELib:Button(line,L.cd2BySpec):Size(120,8):Point("LEFT",line.col,0,0):Point("BOTTOM",line,0,0):OnClick(SpellsListLineColExpand)
-		if ExRT.is10 then
+		if ExRT.is10 or ExRT.isLK1 then
 			line.colExpand.Texture:SetGradient("VERTICAL",CreateColor(0.05,0.26,0.09,1), CreateColor(0.20,0.41,0.25,1))
 		else
 			line.colExpand.Texture:SetGradientAlpha("VERTICAL",0.05,0.26,0.09,1, 0.20,0.41,0.25,1)
@@ -10337,7 +10338,6 @@ function module:ColApplyStyle(columnFrame,currColOpt,generalOpt,defOpt,mainWidth
 	elseif not LCG then
 		glowStart, glowStop = IconGlowNoLibStart, IconGlowNoLibStop
 	end
-	if ExRT.is10 then glowStart,glowStop=nil end	--!!!!!!!!! ALERT THIS IS TEMP
 	columnFrame.glowStart = glowStart or ExRT.NULLfunc
 	columnFrame.glowStop = glowStop or ExRT.NULLfunc
 

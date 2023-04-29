@@ -4,8 +4,9 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
 local Dashboard = TSM.MainUI:NewPackage("Dashboard")
+local Environment = TSM.Include("Environment")
 local L = TSM.Include("Locale").GetTable()
 local TempTable = TSM.Include("Util.TempTable")
 local Money = TSM.Include("Util.Money")
@@ -14,6 +15,7 @@ local Theme = TSM.Include("Util.Theme")
 local Analytics = TSM.Include("Util.Analytics")
 local Settings = TSM.Include("Service.Settings")
 local UIElements = TSM.Include("UI.UIElements")
+local UIUtils = TSM.Include("UI.UIUtils")
 local private = {
 	settings = nil,
 	characterGuilds = {},
@@ -21,7 +23,8 @@ local private = {
 	selectedTimeRange = nil,
 }
 local SECONDS_PER_DAY = 60 * 60 * 24
-local MIN_GRAPH_STEP_SIZE = TSM.IsWowClassic() and COPPER_PER_GOLD or (COPPER_PER_GOLD * 1000)
+local MIN_GRAPH_STEP_SIZE = Environment.IsRetail() and (COPPER_PER_GOLD * 1000) or COPPER_PER_GOLD
+local ROUNDING_VALUE = Environment.IsRetail() and COPPER_PER_GOLD or 1
 local TIME_RANGE_LOOKUP = {
 	["1d"] = SECONDS_PER_DAY,
 	["1w"] = SECONDS_PER_DAY * 7,
@@ -54,7 +57,7 @@ end
 -- ============================================================================
 
 function private.GetDashboardFrame()
-	TSM.UI.AnalyticsRecordPathChange("main", "dashboard")
+	UIUtils.AnalyticsRecordPathChange("main", "dashboard")
 
 	private.selectedTimeRange = private.settings.dashboardTimeRange
 	wipe(private.characterGuilds)
@@ -248,10 +251,7 @@ function private.GetDashboardFrame()
 						)
 					)
 				)
-				:AddChild(UIElements.New("Texture", "line1")
-					:SetWidth(1)
-					:SetTexture("ACTIVE_BG")
-				)
+				:AddChild(UIElements.New("VerticalLine", "line1"))
 				:AddChild(UIElements.New("Frame", "daily")
 					:SetLayout("VERTICAL")
 					:SetPadding(8, 8, 2, 2)
@@ -289,10 +289,7 @@ function private.GetDashboardFrame()
 						)
 					)
 				)
-				:AddChild(UIElements.New("Texture", "line2")
-					:SetWidth(1)
-					:SetTexture("ACTIVE_BG")
-				)
+				:AddChild(UIElements.New("VerticalLine", "line2"))
 				:AddChild(UIElements.New("Frame", "top")
 					:SetLayout("VERTICAL")
 					:SetPadding(8, 8, 2, 2)
@@ -389,10 +386,9 @@ function private.GetDashboardFrame()
 						:SetJustifyH("RIGHT")
 					)
 				)
-				:AddChild(UIElements.New("Texture", "line1")
+				:AddChild(UIElements.New("HorizontalLine", "line1")
 					:SetHeight(1)
 					:SetMargin(-8, -8, 4, 4)
-					:SetTexture("ACTIVE_BG")
 				)
 				:AddChild(UIElements.New("Text", "expensesLabel")
 					:SetHeight(20)
@@ -447,10 +443,9 @@ function private.GetDashboardFrame()
 						:SetJustifyH("RIGHT")
 					)
 				)
-				:AddChild(UIElements.New("Texture", "line2")
+				:AddChild(UIElements.New("HorizontalLine", "line2")
 					:SetHeight(1)
 					:SetMargin(-8, -8, 4, 4)
-					:SetTexture("ACTIVE_BG")
 				)
 				:AddChild(UIElements.New("Text", "profitLabel")
 					:SetHeight(20)
@@ -511,7 +506,7 @@ function private.GetDashboardFrame()
 	frame:GetElement("content.goldHeader.hoverTime"):Hide()
 
 	local newsContent = frame:GetElement("news.content")
-	local newsEntries = TSM.GetAppNews()
+	local newsEntries = TSM.AppHelper.GetNews()
 	if newsEntries then
 		for i, info in ipairs(newsEntries) do
 			newsContent:AddChild(UIElements.New("Frame", "news"..i)
@@ -636,10 +631,10 @@ function private.GraphFormatY(value, suggestedStep, isTooltip)
 	if isTooltip then
 		return Money.ToString(value, nil, "OPT_TRIM")
 	end
-	if TSM.IsWowClassic() and value < COPPER_PER_GOLD * 1000 then
+	if not Environment.IsRetail() and value < COPPER_PER_GOLD * 1000 then
 		-- "###g"
 		return floor(value / COPPER_PER_GOLD)..Money.GetGoldText()
-	elseif TSM.IsWowClassic() and value < COPPER_PER_GOLD * 1000 * 10 then
+	elseif not Environment.IsRetail() and value < COPPER_PER_GOLD * 1000 * 10 then
 		-- "#.##Kg"
 		return format("%.2f", value / (COPPER_PER_GOLD * 1000)).."k"..Money.GetGoldText()
 	elseif value < COPPER_PER_GOLD * 1000 * 1000 then
@@ -904,32 +899,32 @@ function private.PopulateDetails(contentFrame)
 		:SetText(buyTotalQuantity and Math.Round(buyTotalQuantity / numDays) or "-")
 
 	contentFrame:GetElement("summary.top.sale.value")
-		:SetText(Money.ToString(Math.Round(saleTopValue, TSM.IsWowClassic() and 1 or COPPER_PER_GOLD), nil, "OPT_TRIM") or "-")
+		:SetText(Money.ToString(Math.Round(saleTopValue, ROUNDING_VALUE), nil, "OPT_TRIM") or "-")
 	contentFrame:GetElement("summary.top.expense.value")
-		:SetText(Money.ToString(Math.Round(buyTopValue, TSM.IsWowClassic() and 1 or COPPER_PER_GOLD), nil, "OPT_TRIM") or "-")
+		:SetText(Money.ToString(Math.Round(buyTopValue, ROUNDING_VALUE), nil, "OPT_TRIM") or "-")
 
 	contentFrame:GetElement("details.salesTotal.amount")
-		:SetText(Money.ToString(saleTotal))
+		:SetText(Money.ToString(saleTotal, nil, "OPT_RETAIL_ROUND"))
 	contentFrame:GetElement("details.salesAvg.amount")
-		:SetText(Money.ToString(salePerDay))
+		:SetText(Money.ToString(salePerDay, nil, "OPT_RETAIL_ROUND"))
 	contentFrame:GetElement("details.salesTop.item")
-		:SetText(TSM.UI.GetColoredItemName(saleTopItem) or "-")
+		:SetText(UIUtils.GetDisplayItemName(saleTopItem) or "-")
 		:SetTooltip(saleTopItem)
 
 	contentFrame:GetElement("details.expensesTotal.amount")
-		:SetText(Money.ToString(buyTotal))
+		:SetText(Money.ToString(buyTotal, nil, "OPT_RETAIL_ROUND"))
 	contentFrame:GetElement("details.expensesAvg.amount")
-		:SetText(Money.ToString(buyPerDay))
+		:SetText(Money.ToString(buyPerDay, nil, "OPT_RETAIL_ROUND"))
 	contentFrame:GetElement("details.expensesTop.item")
-		:SetText(TSM.UI.GetColoredItemName(buyTopItem) or "-")
+		:SetText(UIUtils.GetDisplayItemName(buyTopItem) or "-")
 		:SetTooltip(buyTopItem)
 
 	contentFrame:GetElement("details.profitTotal.amount")
-		:SetText(Money.ToString(profitTotal, profitTotal < 0 and Theme.GetFeedbackColor("RED"):GetTextColorPrefix() or nil))
+		:SetText(Money.ToString(profitTotal, profitTotal < 0 and Theme.GetColor("FEEDBACK_RED"):GetTextColorPrefix() or nil, nil, "OPT_RETAIL_ROUND"))
 	contentFrame:GetElement("details.profitAvg.amount")
-		:SetText(Money.ToString(profitPerDay, profitPerDay < 0 and Theme.GetFeedbackColor("RED"):GetTextColorPrefix() or nil))
+		:SetText(Money.ToString(profitPerDay, profitPerDay < 0 and Theme.GetColor("FEEDBACK_RED"):GetTextColorPrefix() or nil, nil, "OPT_RETAIL_ROUND"))
 	contentFrame:GetElement("details.profitTop.item")
-		:SetText(TSM.UI.GetColoredItemName(profitTopItem) or "-")
+		:SetText(UIUtils.GetDisplayItemName(profitTopItem) or "-")
 		:SetTooltip(profitTopItem)
 
 	contentFrame:Draw()

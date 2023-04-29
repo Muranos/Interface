@@ -1,14 +1,8 @@
----------------------------------------------------------------------------------
-
--- Customized for OmniCD by permission of the copyright owner.
-
----------------------------------------------------------------------------------
-
 --[[-----------------------------------------------------------------------------
 Slider Widget
 Graphical Slider, like, for Range values.
 -------------------------------------------------------------------------------]]
-local Type, Version = "Slider-OmniCD", 23
+local Type, Version = "Slider", 23
 local AceGUI = LibStub and LibStub("AceGUI-3.0", true)
 if not AceGUI or (AceGUI:GetWidgetVersion(Type) or 0) >= Version then return end
 
@@ -19,10 +13,6 @@ local tonumber, pairs = tonumber, pairs
 -- WoW APIs
 local PlaySound = PlaySound
 local CreateFrame, UIParent = CreateFrame, UIParent
-
--- Global vars/functions that we don't upvalue since they might get hooked, or upgraded
--- List them here for Mikk's FindGlobals script
--- GLOBALS: GameFontHighlightSmall
 
 --[[-----------------------------------------------------------------------------
 Support functions
@@ -37,13 +27,13 @@ local function UpdateText(self)
 end
 
 local function UpdateLabels(self)
-	local min, max = (self.min or 0), (self.max or 100)
+	local min_value, max_value = (self.min or 0), (self.max or 100)
 	if self.ispercent then
-		self.lowtext:SetFormattedText("%s%%", (min * 100))
-		self.hightext:SetFormattedText("%s%%", (max * 100))
+		self.lowtext:SetFormattedText("%s%%", (min_value * 100))
+		self.hightext:SetFormattedText("%s%%", (max_value * 100))
 	else
-		self.lowtext:SetText(min)
-		self.hightext:SetText(max)
+		self.lowtext:SetText(min_value)
+		self.hightext:SetText(max_value)
 	end
 end
 
@@ -52,16 +42,10 @@ Scripts
 -------------------------------------------------------------------------------]]
 local function Control_OnEnter(frame)
 	frame.obj:Fire("OnEnter")
-	-- s b
-	frame.handleRight:Show()
-	frame.Thumb:SetColorTexture(1, 1, 1)
 end
 
 local function Control_OnLeave(frame)
 	frame.obj:Fire("OnLeave")
-	-- s b
-	frame.handleRight:Hide()
-	frame.Thumb:SetColorTexture(0.8, 0.624, 0)
 end
 
 local function Frame_OnMouseDown(frame)
@@ -126,17 +110,11 @@ local function EditBox_OnEnterPressed(frame)
 end
 
 local function EditBox_OnEnter(frame)
-	--[[ s r
 	frame:SetBackdropBorderColor(0.5, 0.5, 0.5, 1)
-	]]
-	frame:SetBackdropBorderColor(0.5, 0.5, 0.5)
 end
 
 local function EditBox_OnLeave(frame)
-	--[[ s r
 	frame:SetBackdropBorderColor(0.3, 0.3, 0.3, 0.8)
-	]]
-	frame:SetBackdropBorderColor(0.2, 0.2, 0.25)
 end
 
 --[[-----------------------------------------------------------------------------
@@ -166,9 +144,6 @@ local methods = {
 			self.editbox:SetTextColor(.5, .5, .5)
 			self.editbox:EnableMouse(false)
 			self.editbox:ClearFocus()
-			-- s b
-			self.slider.Thumb:SetColorTexture(.5, .5, .5)
-			self.slider.handleLeft:SetColorTexture(.5, .5, .5)
 		else
 			self.slider:EnableMouse(true)
 			self.label:SetTextColor(1, .82, 0)
@@ -177,9 +152,6 @@ local methods = {
 			--self.valuetext:SetTextColor(1, 1, 1)
 			self.editbox:SetTextColor(1, 1, 1)
 			self.editbox:EnableMouse(true)
-			-- s b
-			self.slider.Thumb:SetColorTexture(0.8, 0.624, 0)
-			self.slider.handleLeft:SetColorTexture(0.8, 0.624, 0)
 		end
 	end,
 
@@ -199,13 +171,13 @@ local methods = {
 		self.label:SetText(text)
 	end,
 
-	["SetSliderValues"] = function(self, min, max, step)
+	["SetSliderValues"] = function(self, min_value, max_value, step)
 		local frame = self.slider
 		frame.setup = true
-		self.min = min
-		self.max = max
+		self.min = min_value
+		self.max = max_value
 		self.step = step
-		frame:SetMinMaxValues(min or 0,max or 100)
+		frame:SetMinMaxValues(min_value or 0,max_value or 100)
 		UpdateLabels(self)
 		frame:SetValueStep(step or 1)
 		if self.value then
@@ -224,7 +196,6 @@ local methods = {
 --[[-----------------------------------------------------------------------------
 Constructor
 -------------------------------------------------------------------------------]]
---[[ s -r
 local SliderBackdrop  = {
 	bgFile = "Interface\\Buttons\\UI-SliderBar-Background",
 	edgeFile = "Interface\\Buttons\\UI-SliderBar-Border",
@@ -237,7 +208,6 @@ local ManualBackdrop = {
 	edgeFile = "Interface\\ChatFrame\\ChatFrameBackground",
 	tile = true, edgeSize = 1, tileSize = 5,
 }
-]]
 
 local function Constructor()
 	local frame = CreateFrame("Frame", nil, UIParent)
@@ -245,56 +215,19 @@ local function Constructor()
 	frame:EnableMouse(true)
 	frame:SetScript("OnMouseDown", Frame_OnMouseDown)
 
-	local label = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal-OmniCD")
+	local label = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	label:SetPoint("TOPLEFT")
 	label:SetPoint("TOPRIGHT")
 	label:SetJustifyH("CENTER")
 	label:SetHeight(15)
 
-	--[[ s r
-	local slider = CreateFrame("Slider", nil, frame, BackdropTemplateMixin and "BackdropTemplate" or nil)
+	local slider = CreateFrame("Slider", nil, frame, "BackdropTemplate")
 	slider:SetOrientation("HORIZONTAL")
 	slider:SetHeight(15)
 	slider:SetHitRectInsets(0, 0, -10, 0)
 	slider:SetBackdrop(SliderBackdrop)
-	]]
-	local slider = CreateFrame("Slider", nil, frame)
-	slider:SetOrientation("HORIZONTAL")
-	slider:SetHeight(10)
-	slider:SetHitRectInsets(0, 0, -10, 0)
-	slider.bg = slider:CreateTexture(nil, "BACKGROUND")
-	OmniCD[1].DisablePixelSnap(slider.bg)
-	slider.bg:SetColorTexture(0.2, 0.2, 0.25)
-	slider.bg:SetHeight(2 * OmniCD[1].PixelMult)
-	slider.bg:SetPoint("LEFT")
-	slider.bg:SetPoint("RIGHT")
-	-- e
-
-	--[[ s r
 	slider:SetThumbTexture("Interface\\Buttons\\UI-SliderBar-Button-Horizontal")
 	slider:SetPoint("TOP", label, "BOTTOM")
-	]]
-	slider.Thumb = slider:CreateTexture(nil, "Artwork")
-	slider.Thumb:SetSize(4, 8)
-	slider.Thumb:SetColorTexture(0.8, 0.624, 0)
-	slider:SetThumbTexture(slider.Thumb)
-	slider:SetPoint("TOP", label, "BOTTOM")
-	-- e
-	-- s b
-	slider.handleLeft = slider:CreateTexture(nil, "Artwork")
-	OmniCD[1].DisablePixelSnap(slider.handleLeft)
-	slider.handleLeft:SetColorTexture(0.8, 0.624, 0)
-	slider.handleLeft:SetPoint("TOPLEFT", slider.bg)
-	slider.handleLeft:SetPoint("BOTTOMLEFT", slider.bg)
-	slider.handleLeft:SetPoint("RIGHT", slider.Thumb, "LEFT")
-	slider.handleRight = slider:CreateTexture(nil, "Artwork")
-	OmniCD[1].DisablePixelSnap(slider.handleRight)
-	slider.handleRight:SetColorTexture(0.5, 0.5, 0.5)
-	slider.handleRight:SetPoint("TOPRIGHT", slider.bg)
-	slider.handleRight:SetPoint("BOTTOMRIGHT", slider.bg)
-	slider.handleRight:SetPoint("LEFT", slider.Thumb, "RIGHT")
-	slider.handleRight:Hide()
-	-- e
 	slider:SetPoint("LEFT", 3, 0)
 	slider:SetPoint("RIGHT", -3, 0)
 	slider:SetValue(0)
@@ -304,39 +237,23 @@ local function Constructor()
 	slider:SetScript("OnMouseUp", Slider_OnMouseUp)
 	slider:SetScript("OnMouseWheel", Slider_OnMouseWheel)
 
-	--[[ s r
 	local lowtext = slider:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
 	lowtext:SetPoint("TOPLEFT", slider, "BOTTOMLEFT", 2, 3)
 
 	local hightext = slider:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
 	hightext:SetPoint("TOPRIGHT", slider, "BOTTOMRIGHT", -2, 3)
-	]]
-	local lowtext = slider:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall-OmniCD")
-	lowtext:SetPoint("TOPLEFT", slider, "BOTTOMLEFT", 2, -1)
 
-	local hightext = slider:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall-OmniCD")
-	hightext:SetPoint("TOPRIGHT", slider, "BOTTOMRIGHT", -2, -1)
-	-- e
-
-	local editbox = CreateFrame("EditBox", nil, frame, BackdropTemplateMixin and "BackdropTemplate" or nil)
+	local editbox = CreateFrame("EditBox", nil, frame, "BackdropTemplate")
 	editbox:SetAutoFocus(false)
-	editbox:SetFontObject("GameFontHighlightSmall-OmniCD")
+	editbox:SetFontObject(GameFontHighlightSmall)
 	editbox:SetPoint("TOP", slider, "BOTTOM")
 	editbox:SetHeight(14)
 	editbox:SetWidth(70)
 	editbox:SetJustifyH("CENTER")
 	editbox:EnableMouse(true)
-	--[[ s r
 	editbox:SetBackdrop(ManualBackdrop)
-	]]
-	OmniCD[1].BackdropTemplate(editbox)
-	-- e
 	editbox:SetBackdropColor(0, 0, 0, 0.5)
-	--[[ s r
 	editbox:SetBackdropBorderColor(0.3, 0.3, 0.30, 0.80)
-	]]
-	editbox:SetBackdropBorderColor(0.2, 0.2, 0.25)
-	-- e
 	editbox:SetScript("OnEnter", EditBox_OnEnter)
 	editbox:SetScript("OnLeave", EditBox_OnLeave)
 	editbox:SetScript("OnEnterPressed", EditBox_OnEnterPressed)

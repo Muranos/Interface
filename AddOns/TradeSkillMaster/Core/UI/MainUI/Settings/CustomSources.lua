@@ -4,14 +4,18 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
 local CustomSources = TSM.MainUI.Settings:NewPackage("CustomSources")
 local L = TSM.Include("Locale").GetTable()
 local TempTable = TSM.Include("Util.TempTable")
 local Theme = TSM.Include("Util.Theme")
 local CustomPrice = TSM.Include("Service.CustomPrice")
 local UIElements = TSM.Include("UI.UIElements")
-local private = {}
+local UIUtils = TSM.Include("UI.UIUtils")
+local private = {
+	editOldName = nil,
+	editNewName = nil,
+}
 
 
 
@@ -30,7 +34,7 @@ end
 -- ============================================================================
 
 function private.GetCustomSourcesSettingsFrame()
-	TSM.UI.AnalyticsRecordPathChange("main", "settings", "custom_sources")
+	UIUtils.AnalyticsRecordPathChange("main", "settings", "custom_sources")
 	return UIElements.New("ScrollFrame", "content")
 		:SetPadding(8, 8, 8, 0)
 		:AddChild(TSM.MainUI.Settings.CreateExpandableSection("Custom Price", "general", L["Custom Sources"], format(L["Custom sources allow you to create more advanced prices for use throughout the addon. You'll be able to use these new variables in the same way you can use the built-in price sources such as %s and %s."], Theme.GetColor("INDICATOR"):ColorText("vendorsell"), Theme.GetColor("INDICATOR"):ColorText("vendorbuy")), 60)
@@ -48,9 +52,8 @@ function private.GetCustomSourcesSettingsFrame()
 					:SetText(L["String"])
 				)
 			)
-			:AddChild(UIElements.New("Texture", "line1")
+			:AddChild(UIElements.New("HorizontalLine", "line1")
 				:SetHeight(1)
-				:SetTexture("ACTIVE_BG")
 			)
 			:AddChildrenWithFunction(private.AddCustomPriceRows)
 			:AddChild(UIElements.New("ActionButton", "addNewBtn")
@@ -135,79 +138,37 @@ function private.CustomPriceRowOnLeave(frame)
 	frame:Draw()
 end
 
-function private.EditCustomPriceOnClick(button)
-	private.ShowEditDialog(button)
-end
-
-function private.ShowEditDialog(editBtn)
-	local dialogFrame = UIElements.New("Frame", "frame")
-		:SetLayout("VERTICAL")
-		:SetSize(478, 314)
-		:SetPadding(12)
-		:AddAnchor("CENTER")
-		:SetMouseEnabled(true)
-		:SetBackgroundColor("FRAME_BG", true)
-		:SetContext(editBtn)
-		:AddChild(UIElements.New("Frame", "header")
-			:SetLayout("HORIZONTAL")
-			:SetHeight(24)
-			:SetMargin(0, 0, -4, 14)
-			:AddChild(UIElements.New("Spacer", "spacer")
-				:SetWidth(20)
+function private.EditCustomPriceOnClick(editBtn)
+	assert(not private.editOldName)
+	private.editOldName = editBtn:GetElement("__parent.nameText"):GetText()
+	local value = editBtn:GetElement("__parent.valueText"):GetText()
+	editBtn:GetBaseElement():ShowDialogFrame(TSM.UI.Views.CustomStringDialog.New(value, L["Custom Source"], private.ValueValidateFunc, nil, private.EditDialogOnHide, editBtn)
+		:AddChildBeforeById("input", UIElements.New("Frame", "nameLine")
+			:SetLayout("VERTICAL")
+			:SetMargin(0, 0, 0, 8)
+			:SetContext(editBtn)
+			:AddChild(UIElements.New("Text", "name")
+				:SetHeight(20)
+				:SetFont("BODY_BODY2_MEDIUM")
+				:SetJustifyH("LEFT")
+				:SetText(L["Name"])
 			)
-			:AddChild(UIElements.New("Text", "title")
-				:SetJustifyH("CENTER")
-				:SetFont("BODY_BODY1_BOLD")
-				:SetText(L["Edit Custom Source"])
+			:AddChild(UIElements.New("Input", "nameInput")
+				:SetHeight(24)
+				:SetBackgroundColor("PRIMARY_BG_ALT")
+				:SetValue(private.editOldName)
+				:SetValidateFunc(private.NameValidateFunc)
+				:SetScript("OnValueChanged", private.EditDialogNameOnValueChanged)
 			)
-			:AddChild(UIElements.New("Button", "closeBtn")
-				:SetMargin(0, -4, 0, 0)
-				:SetBackgroundAndSize("iconPack.24x24/Close/Default")
-				:SetScript("OnClick", private.EditPriceCloseBtnOnClick)
+			:AddChild(UIElements.New("Text", "string")
+				:SetHeight(20)
+				:SetMargin(0, 0, 6, 0)
+				:SetFont("BODY_BODY2_MEDIUM")
+				:SetJustifyH("LEFT")
+				:SetText(L["String"])
 			)
 		)
-		:AddChild(UIElements.New("Text", "name")
-			:SetHeight(20)
-			:SetFont("BODY_BODY2_MEDIUM")
-			:SetJustifyH("LEFT")
-			:SetText(L["Name"])
-		)
-		:AddChild(UIElements.New("Input", "nameInput")
-			:SetHeight(24)
-			:SetBackgroundColor("PRIMARY_BG_ALT")
-			:SetValue(editBtn:GetElement("__parent.nameText"):GetText())
-			:SetTabPaths("__parent.valueInput", "__parent.valueInput")
-			:SetValidateFunc(private.NameValidateFunc)
-			:SetScript("OnValidationChanged", private.ConfirmOnValidationChanged)
-		)
-		:AddChild(UIElements.New("Text", "string")
-			:SetHeight(20)
-			:SetMargin(0, 0, 6, 0)
-			:SetFont("BODY_BODY2_MEDIUM")
-			:SetJustifyH("LEFT")
-			:SetText(L["String"])
-		)
-		:AddChild(UIElements.New("MultiLineInput", "valueInput")
-			:SetBackgroundColor("PRIMARY_BG_ALT")
-			:SetValue(editBtn:GetElement("__parent.valueText"):GetText())
-			:SetTabPaths("__parent.nameInput", "__parent.nameInput")
-			:SetValidateFunc(private.ValueValidateFunc)
-			:SetScript("OnValidationChanged", private.ConfirmOnValidationChanged)
-		)
-		:AddChild(UIElements.New("ActionButton", "confirm")
-			:SetHeight(24)
-			:SetMargin(0, 0, 12, 0)
-			:SetFont("BODY_BODY2_MEDIUM")
-			:SetText(L["Confirm"])
-			:SetContext(editBtn:GetElement("__parent.__parent"))
-			:SetScript("OnClick", private.ConfirmOnClick)
-		)
-	editBtn:GetBaseElement():ShowDialogFrame(dialogFrame)
-	return dialogFrame
-end
-
-function private.EditPriceCloseBtnOnClick(button)
-	button:GetBaseElement():HideDialog()
+	)
 end
 
 function private.NameValidateFunc(input, value)
@@ -221,14 +182,7 @@ function private.NameValidateFunc(input, value)
 	return true
 end
 
-function private.ConfirmOnValidationChanged(input)
-	input:GetElement("__parent.confirm")
-		:SetDisabled(not input:IsValid())
-		:Draw()
-end
-
 function private.ValueValidateFunc(input, value)
-	value = strlower(strtrim(value))
 	local isValid, errMsg = CustomPrice.Validate(value)
 	if not isValid and value ~= "" then
 		return false, errMsg
@@ -236,27 +190,32 @@ function private.ValueValidateFunc(input, value)
 	return true
 end
 
-function private.ConfirmOnClick(button)
+function private.EditDialogNameOnValueChanged(input)
+	private.editNewName = input:GetValue()
+end
+
+function private.EditDialogOnHide(value, button)
 	local baseElement = button:GetBaseElement()
-	local oldName = button:GetParentElement():GetContext():GetParentElement():GetContext()
-	local newName = button:GetElement("__parent.nameInput"):GetValue()
+	local oldName = private.editOldName
+	local newName = private.editNewName or private.editOldName
+	private.editOldName = nil
+	private.editNewName = nil
 	if oldName ~= newName then
 		CustomPrice.RenameCustomPriceSource(oldName, newName)
-		CustomPrice.SetCustomPriceSource(newName, button:GetElement("__parent.valueInput"):GetValue())
-		local generalContainer = button:GetParentElement():GetContext():GetParentElement():GetParentElement()
-		local rowFrame = button:GetParentElement():GetContext():GetParentElement()
+		CustomPrice.SetCustomPriceSource(newName, value)
+		local generalContainer = button:GetParentElement():GetParentElement()
+		local rowFrame = button:GetParentElement()
 		generalContainer:AddChildBeforeById("addNewBtn", private.CreateCustomPriceRow(newName))
 		generalContainer:RemoveChild(rowFrame)
-		rowFrame:Release()
 		generalContainer:GetElement("__parent.__parent")
 			:Draw()
 	else
-		CustomPrice.SetCustomPriceSource(newName, button:GetElement("__parent.valueInput"):GetValue())
-		button:GetParentElement():GetContext():GetElement("__parent.nameText")
+		CustomPrice.SetCustomPriceSource(newName, value)
+		button:GetElement("__parent.nameText")
 			:SetText(newName)
 			:Draw()
-		button:GetParentElement():GetContext():GetElement("__parent.valueText")
-			:SetText(button:GetElement("__parent.valueInput"):GetValue())
+		button:GetElement("__parent.valueText")
+			:SetText(value)
 			:Draw()
 	end
 	baseElement:HideDialog()
@@ -267,7 +226,6 @@ function private.DeleteCustomPriceOnClick(button)
 	local rowFrame = button:GetParentElement()
 	local parentFrame = rowFrame:GetParentElement()
 	parentFrame:RemoveChild(rowFrame)
-	rowFrame:Release()
 	parentFrame:GetElement("__parent.__parent")
 		:Draw()
 end
@@ -292,6 +250,5 @@ function private.AddNewButtonOnClick(button)
 		:AddChildBeforeById("addNewBtn", private.CreateCustomPriceRow(newName))
 	button:GetElement("__parent.__parent.__parent")
 		:Draw()
-	local dialogFrame = private.ShowEditDialog(button:GetElement("__parent.row_"..newName..".editBtn"))
-	dialogFrame:GetElement("valueInput"):SetFocused(true)
+	private.EditCustomPriceOnClick(button:GetElement("__parent.row_"..newName..".editBtn"))
 end

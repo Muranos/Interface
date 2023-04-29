@@ -4,12 +4,8 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
---- ProfessionScrollingTable UI Element Class.
--- This is used to display the crafts within the currently-selected profession in the CraftingUI. It is a subclass of
--- the @{ScrollingTable} class.
--- @classmod ProfessionScrollingTable
-
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
+local Environment = TSM.Include("Environment")
 local L = TSM.Include("Locale").GetTable()
 local CraftString = TSM.Include("Util.CraftString")
 local TempTable = TSM.Include("Util.TempTable")
@@ -19,7 +15,7 @@ local Log = TSM.Include("Util.Log")
 local ScriptWrapper = TSM.Include("Util.ScriptWrapper")
 local Event = TSM.Include("Util.Event")
 local ItemInfo = TSM.Include("Service.ItemInfo")
-local Tooltip = TSM.Include("UI.Tooltip")
+local Profession = TSM.Include("Service.Profession")
 local ProfessionScrollingTable = TSM.Include("LibTSMClass").DefineClass("ProfessionScrollingTable", TSM.UI.ScrollingTable)
 local UIElements = TSM.Include("UI.UIElements")
 UIElements.Register(ProfessionScrollingTable)
@@ -53,15 +49,17 @@ function ProfessionScrollingTable.__init(self)
 	self._query = nil
 	self._isCraftString = {}
 	self._favoritesContextTable = nil
-	if TSM.IsWowClassic() then
-		TSM.Crafting.ProfessionState.RegisterUpdateCallback(function()
+	if not Environment.IsRetail() then
+		Profession.RegisterStateCallback(function()
 			wipe(private.categoryInfoCache.numIndents)
 		end)
 	end
+	self._lineTop:Hide()
 end
 
 function ProfessionScrollingTable.Acquire(self)
 	self.__super:Acquire()
+	self._headerMode = "COMPACT"
 	self:GetScrollingTableInfo()
 		:SetMenuInfo(private.MenuIterator, private.MenuClickHandler)
 		:NewColumn("name")
@@ -80,16 +78,6 @@ function ProfessionScrollingTable.Acquire(self)
 			:SetJustifyH("CENTER")
 			:SetTextFunction(private.GetQtyCellText)
 			:Commit()
-	if not TSM.IsWowClassic() then
-		self:GetScrollingTableInfo()
-			:NewColumn("rank")
-				:SetTitle(RANK)
-				:SetFont("BODY_BODY3_MEDIUM")
-				:SetJustifyH("CENTER")
-				:SetTextFunction(private.GetRankCellText)
-				:Commit()
-	end
-	self:GetScrollingTableInfo()
 		:NewColumn("craftingCost")
 			:SetTitle(L["Crafting Cost"])
 			:SetFont("TABLE_TABLE1")
@@ -117,7 +105,7 @@ function ProfessionScrollingTable.Acquire(self)
 		:NewColumn("saleRate")
 			:SetTitleIcon("iconPack.14x14/SaleRate")
 			:SetFont("TABLE_TABLE1")
-			:SetJustifyH("RIGHT")
+			:SetJustifyH("CENTER")
 			:SetTextFunction(private.GetSaleRateCellText)
 			:Commit()
 		:Commit()
@@ -198,7 +186,7 @@ function ProfessionScrollingTable.IsCraftStringVisible(self, craftString)
 		-- this craft string isn't included in the query
 		return false
 	end
-	local categoryId = TSM.Crafting.ProfessionScanner.GetCategoryIdByCraftString(craftString)
+	local categoryId = Profession.GetCategoryIdByCraftString(craftString)
 	return not self:_IsCategoryHidden(categoryId) and not self._contextTable.collapsed[categoryId]
 end
 
@@ -207,6 +195,7 @@ function ProfessionScrollingTable.Draw(self)
 		self:_IgnoreLastDataUpdate()
 	end
 	self.__super:Draw()
+	self._header:SetBackgroundColor(Theme.GetColor("PRIMARY_BG_ALT"))
 end
 
 
@@ -227,12 +216,6 @@ function ProfessionScrollingTable._GetTableRow(self, isHeader)
 	if not isHeader then
 		ScriptWrapper.Set(row._frame, "OnClick", private.RowOnClick, row)
 		ScriptWrapper.Set(row._frame, "OnDoubleClick", private.RowOnClick, row)
-		local rankBtn = row:_GetButton()
-		rankBtn:SetAllPoints(row._texts.rank)
-		ScriptWrapper.SetPropagate(rankBtn, "OnClick")
-		ScriptWrapper.Set(rankBtn, "OnEnter", private.RankOnEnter, row)
-		ScriptWrapper.Set(rankBtn, "OnLeave", private.RankOnLeave, row)
-		row._buttons.rank = rankBtn
 	end
 	return row
 end
@@ -243,9 +226,15 @@ function ProfessionScrollingTable._UpdateData(self)
 	-- populate the data
 	wipe(self._data)
 	wipe(self._isCraftString)
+	local insertedSpellId = TempTable.Acquire()
 	for _, craftString in self._query:Iterator() do
 		local spellId = CraftString.GetSpellId(craftString)
-		if self._favoritesContextTable[spellId] then
+		local isInserted, lowerLevelIndex = self:_IsCraftStringInserted(craftString, insertedSpellId)
+		if self._favoritesContextTable[spellId] and (not isInserted or lowerLevelIndex) then
+			if lowerLevelIndex then
+				tremove(self._data, lowerLevelIndex)
+				insertedSpellId[spellId] = nil
+			end
 			local categoryId = -1
 			if categoryId ~= currentCategoryPath[#currentCategoryPath] then
 				-- this is a new category
@@ -264,12 +253,18 @@ function ProfessionScrollingTable._UpdateData(self)
 			if not self._contextTable.collapsed[categoryId] and not self:_IsCategoryHidden(categoryId) then
 				tinsert(self._data, craftString)
 				self._isCraftString[craftString] = true
+				insertedSpellId[spellId] = #self._data
 			end
 		end
 	end
 	for _, craftString, categoryId in self._query:Iterator() do
 		local spellId = CraftString.GetSpellId(craftString)
-		if not self._favoritesContextTable[spellId] then
+		local isInserted, lowerLevelIndex = self:_IsCraftStringInserted(craftString, insertedSpellId)
+		if not self._favoritesContextTable[spellId] and (not isInserted or lowerLevelIndex) then
+			if lowerLevelIndex then
+				tremove(self._data, lowerLevelIndex)
+				insertedSpellId[spellId] = nil
+			end
 			if categoryId ~= currentCategoryPath[#currentCategoryPath] then
 				-- this is a new category
 				local newCategoryPath = TempTable.Acquire()
@@ -294,9 +289,11 @@ function ProfessionScrollingTable._UpdateData(self)
 			if not self._contextTable.collapsed[categoryId] and not self:_IsCategoryHidden(categoryId) then
 				tinsert(self._data, craftString)
 				self._isCraftString[craftString] = true
+				insertedSpellId[spellId] = #self._data
 			end
 		end
 	end
+	TempTable.Release(insertedSpellId)
 	TempTable.Release(currentCategoryPath)
 	if not foundSelection then
 		-- try to select the first visible craft string
@@ -308,6 +305,21 @@ function ProfessionScrollingTable._UpdateData(self)
 		end
 		self:SetSelection(newSelection, true)
 	end
+end
+
+function ProfessionScrollingTable._IsCraftStringInserted(self, craftString, insertedSpellId)
+	local spellId = CraftString.GetSpellId(craftString)
+	local prevIndex = insertedSpellId[spellId]
+	local prevCraftString = prevIndex and self._data[prevIndex]
+	if not prevCraftString then
+		return false
+	end
+	local level = CraftString.GetLevel(craftString)
+	if not level then
+		return true
+	end
+	local isHigherLevel = level > (CraftString.GetLevel(prevCraftString) or -1)
+	return true, isHigherLevel and prevIndex or nil
 end
 
 function ProfessionScrollingTable._IsCategoryHidden(self, categoryId)
@@ -325,13 +337,6 @@ function ProfessionScrollingTable._IsCategoryHidden(self, categoryId)
 end
 
 function ProfessionScrollingTable._SetRowData(self, row, data)
-	local rank = self._isCraftString[data] and CraftString.GetRank(data) or -1
-	local level = self._isCraftString[data] and CraftString.GetLevel(data) or -1
-	if rank == -1 and level == -1 then
-		row._buttons.rank:Hide()
-	else
-		row._buttons.rank:Show()
-	end
 	self.__super:_SetRowData(row, data)
 end
 
@@ -348,7 +353,7 @@ end
 function private.PopulateCategoryInfoCache(categoryId)
 	-- numIndents always gets set, so use that to know whether or not this category is already cached
 	if not private.categoryInfoCache.numIndents[categoryId] then
-		local name, numIndents, parentCategoryId, currentSkillLevel, maxSkillLevel = TSM.Crafting.ProfessionUtil.GetCategoryInfo(categoryId)
+		local name, numIndents, parentCategoryId, currentSkillLevel, maxSkillLevel = Profession.CategoryInfo(categoryId)
 		private.categoryInfoCache.name[categoryId] = name
 		private.categoryInfoCache.numIndents[categoryId] = numIndents
 		private.categoryInfoCache.parent[categoryId] = parentCategoryId
@@ -401,9 +406,9 @@ function private.MenuClickHandler(self, index1, index2)
 		self:GetBaseElement():HideDialog()
 		local numCreated, numAdded = 0, 0
 		for _, spellId in self._query:Iterator() do
-			local itemString = TSM.Crafting.GetItemString(spellId)
+			local itemString = Profession.GetItemStringByCraftString(spellId)
 			if itemString then
-				local groupPath = private.GetCategoryGroupPath(TSM.Crafting.ProfessionScanner.GetCategoryIdByCraftString(spellId))
+				local groupPath = private.GetCategoryGroupPath(Profession.GetCategoryIdByCraftString(spellId))
 				if not TSM.Groups.Exists(groupPath) then
 					TSM.Groups.Create(groupPath)
 					numCreated = numCreated + 1
@@ -426,21 +431,21 @@ function private.GetCategoryGroupPath(categoryId)
 		tinsert(parts, 1, private.categoryInfoCache.name[categoryId])
 		categoryId = private.categoryInfoCache.parent[categoryId]
 	end
-	local name = TSM.Crafting.ProfessionUtil.GetCurrentProfessionInfo()
+	local name = Profession.GetSkillLine()
 	tinsert(parts, 1, name)
 	return TSM.Groups.Path.Join(TempTable.UnpackAndRelease(parts))
 end
 
 function private.GetNameCellText(self, data)
 	if self._isCraftString[data] then
-		local name = TSM.Crafting.ProfessionScanner.GetNameByCraftString(data)
+		local name = Profession.GetNameByCraftString(data)
 		local color = nil
-		if TSM.Crafting.ProfessionUtil.IsGuildProfession() then
+		if Profession.IsGuild() then
 			color = Theme.GetProfessionDifficultyColor("easy")
-		elseif TSM.Crafting.ProfessionUtil.IsNPCProfession() then
+		elseif Profession.IsNPC() then
 			color = Theme.GetProfessionDifficultyColor("nodifficulty")
 		else
-			local difficulty = TSM.Crafting.ProfessionScanner.GetDifficultyByCraftString(data)
+			local difficulty = Profession.GetDifficultyByCraftString(data)
 			color = Theme.GetProfessionDifficultyColor(difficulty)
 		end
 		return color:ColorText(name)
@@ -509,38 +514,20 @@ function private.GetQtyCellText(self, data)
 		return ""
 	end
 	local num, numAll = TSM.Crafting.ProfessionUtil.GetNumCraftable(data)
+	-- TODO: Support optional materials here
 	if num == numAll then
 		if num > 0 then
-			return Theme.GetFeedbackColor("GREEN"):ColorText(num)
+			return Theme.GetColor("FEEDBACK_GREEN"):ColorText(num)
 		end
 		return tostring(num)
 	else
 		if num > 0 then
-			return Theme.GetFeedbackColor("GREEN"):ColorText(num.."-"..numAll)
+			return Theme.GetColor("FEEDBACK_GREEN"):ColorText(num.."-"..numAll)
 		elseif numAll > 0 then
-			return Theme.GetFeedbackColor("YELLOW"):ColorText(num.."-"..numAll)
+			return Theme.GetColor("FEEDBACK_YELLOW"):ColorText(num.."-"..numAll)
 		else
 			return num.."-"..numAll
 		end
-	end
-end
-
-function private.GetRankCellText(self, data)
-	local rank = self._isCraftString[data] and CraftString.GetRank(data) or -1
-	local level = self._isCraftString[data] and CraftString.GetLevel(data) or -1
-	if rank == -1 and level == -1 then
-		return ""
-	end
-	if rank > 0 then
-		local filled = TSM.UI.TexturePacks.GetTextureLink("iconPack.14x14/Star/Filled")
-		local unfilled = TSM.UI.TexturePacks.GetTextureLink("iconPack.14x14/Star/Unfilled")
-		assert(rank >= 1 and rank <= 3)
-		return strrep(filled, rank)..strrep(unfilled, 3 - rank)
-	end
-	if level > 0 then
-		local currExp = TSM.Crafting.ProfessionScanner.GetCurrentExpByCraftString(data)
-		local nextExp = TSM.Crafting.ProfessionScanner.GetNextExpByCraftString(data)
-		return currExp >= 0 and format("%s / %s", currExp, nextExp) or L["Max"]
 	end
 end
 
@@ -549,7 +536,7 @@ function private.GetCraftingCostCellText(self, data)
 		return ""
 	end
 	local craftingCost = private.GetCostsByCraftString(data)
-	return craftingCost and Money.ToString(craftingCost) or ""
+	return craftingCost and Money.ToString(craftingCost, nil, "OPT_RETAIL_ROUND") or ""
 end
 
 function private.GetItemValueCellIndex(self, data)
@@ -557,7 +544,7 @@ function private.GetItemValueCellIndex(self, data)
 		return ""
 	end
 	local _, craftedItemValue = private.GetCostsByCraftString(data)
-	return craftedItemValue and Money.ToString(craftedItemValue) or ""
+	return craftedItemValue and Money.ToString(craftedItemValue, nil, "OPT_RETAIL_ROUND") or ""
 end
 
 function private.GetProfitCellText(self, data, currentTitleIndex)
@@ -565,8 +552,8 @@ function private.GetProfitCellText(self, data, currentTitleIndex)
 		return ""
 	end
 	local _, _, profit = private.GetCostsByCraftString(data)
-	local color = profit and Theme.GetFeedbackColor(profit >= 0 and "GREEN" or "RED")
-	return profit and Money.ToString(profit, color:GetTextColorPrefix()) or ""
+	local color = profit and Theme.GetColor(profit >= 0 and "FEEDBACK_GREEN" or "FEEDBACK_RED")
+	return profit and Money.ToString(profit, color:GetTextColorPrefix(), "OPT_RETAIL_ROUND") or ""
 end
 
 function private.GetProfitPctCellText(self, data, currentTitleIndex)
@@ -574,12 +561,13 @@ function private.GetProfitPctCellText(self, data, currentTitleIndex)
 		return ""
 	end
 	local craftingCost, _, profit = private.GetCostsByCraftString(data)
-	local color = profit and Theme.GetFeedbackColor(profit >= 0 and "GREEN" or "RED")
+	local color = profit and Theme.GetColor(profit >= 0 and "FEEDBACK_GREEN" or "FEEDBACK_RED")
 	return profit and color:ColorText(floor(profit * 100 / craftingCost).."%") or ""
 end
 
 function private.GetSaleRateCellText(self, data)
-	return self._isCraftString[data] and TSM.Crafting.Cost.GetSaleRateByCraftString(data) or ""
+	local saleRate = self._isCraftString[data] and TSM.Crafting.Cost.GetSaleRateByCraftString(data)
+	return saleRate and format("%0.3f", saleRate) or ""
 end
 
 function private.GetCostsByCraftString(craftString)
@@ -614,8 +602,8 @@ function private.RowOnClick(row, mouseButton)
 			scrollingTable:SetSelection(data)
 		else
 			scrollingTable:_ToggleCollapsed(data)
+			scrollingTable:UpdateData(true)
 		end
-		scrollingTable:UpdateData(true)
 
 		if scrollingTable._isCraftString[data] then
 			row:SetHighlightState("selectedHover")
@@ -628,53 +616,12 @@ function private.RowOnClick(row, mouseButton)
 	end
 end
 
-function private.RankOnEnter(row)
-	local data = row:GetData()
-	local rank = CraftString.GetRank(data)
-	if rank and rank > 0 then
-		assert(not Tooltip.IsVisible())
-		local spellId = CraftString.GetSpellId(data)
-		GameTooltip:SetOwner(row._buttons.rank, "ANCHOR_PRESERVE")
-		GameTooltip:ClearAllPoints()
-		GameTooltip:SetPoint("LEFT", row._buttons.rank, "RIGHT")
-		GameTooltip:SetRecipeRankInfo(spellId, rank)
-		GameTooltip:Show()
-	end
-	local level = CraftString.GetLevel(data)
-	if level and level > 0 then
-		assert(not Tooltip.IsVisible())
-		local currExp = TSM.Crafting.ProfessionScanner.GetCurrentExpByCraftString(data)
-		local nextExp = TSM.Crafting.ProfessionScanner.GetNextExpByCraftString(data)
-		GameTooltip:SetOwner(row._buttons.rank, "ANCHOR_PRESERVE")
-		GameTooltip:ClearAllPoints()
-		GameTooltip:SetPoint("LEFT", row._buttons.rank, "RIGHT")
-		if currExp == -1 then
-			GameTooltip_SetTitle(GameTooltip, TRADESKILL_RECIPE_LEVEL_TOOLTIP_HIGHEST_RANK, NORMAL_FONT_COLOR)
-			GameTooltip_AddColoredLine(GameTooltip, TRADESKILL_RECIPE_LEVEL_TOOLTIP_HIGHEST_RANK_EXPLANATION, GREEN_FONT_COLOR)
-		else
-			local stepExp = TSM.Crafting.ProfessionScanner.GetStepExpByCraftString(data)
-			local experiencePercent = math.floor((currExp / nextExp) * 100)
-			GameTooltip_SetTitle(GameTooltip, TRADESKILL_RECIPE_LEVEL_TOOLTIP_RANK_FORMAT:format(level), NORMAL_FONT_COLOR)
-			GameTooltip_AddHighlightLine(GameTooltip, TRADESKILL_RECIPE_LEVEL_TOOLTIP_EXPERIENCE_FORMAT:format(currExp, nextExp, experiencePercent))
-			GameTooltip_AddColoredLine(GameTooltip, TRADESKILL_RECIPE_LEVEL_TOOLTIP_LEVELING_FORMAT:format(level + 1), GREEN_FONT_COLOR)
-			GameTooltip:AddLine(format(L["Experience earned: %d"], stepExp))
-		end
-		GameTooltip:Show()
-	end
-	row._frame:GetScript("OnEnter")(row._frame)
-end
-
-function private.RankOnLeave(row)
-	Tooltip.Hide()
-	row._frame:GetScript("OnLeave")(row._frame)
-end
-
 function private.IsPlayerProfession()
-	return not (TSM.Crafting.ProfessionUtil.IsNPCProfession() or TSM.Crafting.ProfessionUtil.IsLinkedProfession() or TSM.Crafting.ProfessionUtil.IsGuildProfession())
+	return not (Profession.IsNPC() or Profession.IsLinked() or Profession.IsGuild())
 end
 
 function private.OnChatMsgSkill(_, msg)
-	local name = TSM.Crafting.ProfessionUtil.GetCurrentProfessionInfo()
+	local name = Profession.GetSkillLine()
 	if not strmatch(msg, name) then
 		return
 	end

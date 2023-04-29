@@ -121,17 +121,15 @@ local icons = setmetatable({}, {__index =
 			if key > 8 then
 				value = GetSpellTexture(key)
 				if not value then
-					core:Print(format("An invalid spell id (%d) is being used in a boss module.", key))
+					core:Error(format("The spell id %q has no icon texture but is being used as an icon in a boss module.", key))
 				end
 			elseif key > 0 then
 				-- Texture id list for raid icons 1-8 is 137001-137008. Base texture path is Interface\\TARGETINGFRAME\\UI-RaidTargetingIcon_%d
 				value = key + 137000
 			else
 				local tbl = C_EncounterJournal_GetSectionInfo(-key)
-				if not tbl then
-					core:Print(format("An invalid journal id (%d) is being used in a boss module.", key))
-				else
-					value = tbl.abilityIcon or false
+				if not tbl or not tbl.abilityIcon then
+					core:Error(format("The journal id %q has no icon texture but is being used as an icon in a boss module.", key))
 				end
 			end
 		else
@@ -404,7 +402,6 @@ function boss:Disable(isWipe)
 		self.sayCountdowns = nil
 		self.scheduledMessages = nil
 		self.targetEventFunc = nil
-		self.missing = nil
 		self.isWiping = nil
 		self.isEngaged = nil
 		self.bossTargetChecks = nil
@@ -413,6 +410,32 @@ function boss:Disable(isWipe)
 
 		if not isWiping then
 			self:SendMessage("BigWigs_OnBossDisable", self)
+		end
+
+		if self.missing then
+			local newBar = "New timer for %q at stage %d with placement %d and value %.2f on %d running ".. BigWigsLoader:GetVersionString() ..", tell the authors."
+			local newBarError = "New timer for %q at stage %d with placement %d and value %.2f."
+			local difficultyToText = {[14] = "N", [15] = "H", [16] = "M", [17] = "LFR"}
+			local errorHeader = format("BigWigs is missing timers on %q running %s, tell the devs!", difficultyToText[self:Difficulty()] or self:Difficulty(), BigWigsLoader:GetVersionString())
+			local errorStrings = {errorHeader}
+			for key, stageTbl in next, self.missing do
+				for stage = 0, 5, 0.5 do
+					if stageTbl[stage] then
+						local count = #stageTbl[stage]
+						for timeEntry = 2, count do
+							local t = stageTbl[stage][timeEntry] - stageTbl[stage][timeEntry-1]
+							local text = format(newBar, key, stage, timeEntry-1, t, self:Difficulty())
+							core:Print(text)
+							errorStrings[#errorStrings+1] = format(newBarError, key, stage, timeEntry-1, t)
+						end
+					end
+				end
+			end
+			if #errorStrings > 1 then
+				local timersText = table.concat(errorStrings, "\n")
+				core:Error(timersText, true)
+			end
+			self.missing = nil
 		end
 	end
 end
@@ -1335,7 +1358,7 @@ do
 				if name == spell then
 					if not blacklist[spellId] then
 						blacklist[spellId] = true
-						BigWigs:Error(format("Found spell '%s' using id %d on %d, tell the authors!", name, spellId, self:Difficulty()))
+						core:Error(format("Found spell '%s' using id %d on %d, tell the authors!", name, spellId, self:Difficulty()))
 					end
 					t1, t2, t3, t4, t5 = name, stack, duration, expirationTime, value
 				end
@@ -1381,7 +1404,7 @@ do
 				if name == spell then
 					if not blacklist[spellId] then
 						blacklist[spellId] = true
-						BigWigs:Error(format("Found spell '%s' using id %d on %d, tell the authors!", name, spellId, self:Difficulty()))
+						core:Error(format("Found spell '%s' using id %d on %d, tell the authors!", name, spellId, self:Difficulty()))
 					end
 					t1, t2, t3, t4, t5 = name, stack, duration, expirationTime, value
 				end
@@ -2269,9 +2292,16 @@ do
 						local name = playerTable[i]
 						local hasMarker = playerTable[name]
 						if hasMarker then
-							tbl[#tbl+1] = markerIcons[hasMarker] .. self:ColorName(name)
+							local markerFromTable = markerIcons[hasMarker]
+							if markerFromTable then
+								tbl[#tbl+1] = markerFromTable .. self:ColorName(name)
+							else
+								tbl[#tbl+1] = self:ColorName(name)
+								core:Error(format("Option %q is trying to set invalid marker %q on a player table.", key, tostring(hasMarker)))
+							end
+
 						else
-							tbl[#tbl+1] = self:ColorName(playerTable[i])
+							tbl[#tbl+1] = self:ColorName(name)
 						end
 					end
 					local list = tconcat(tbl, comma, 1, #tbl)
@@ -2370,7 +2400,6 @@ do
 	local badNameplateBarStart = "Attempted to start nameplate bar %q without a valid unitGUID."
 	local badNameplateBarStop = "Attempted to stop nameplate bar %q without a valid unitGUID."
 	local badNameplateBarTimeLeft = "Attempted to get time left of nameplate bar %q without a valid unitGUID."
-	local newBar = "New timer for %q at stage %d with placement %d and value %.2f on %d running ".. BigWigsLoader:GetVersionString() ..", tell the authors."
 
 	--- Display a bar.
 	-- @param key the option key
@@ -2381,14 +2410,16 @@ do
 		local lengthType = type(length)
 		if not length then
 			if not self.missing then self.missing = {} end
+			local stage = self:GetStage() or 0
 			if not self.missing[key] then
 				local t = GetTime()
-				self.missing[key] = {t}
+				self.missing[key] = {[stage] = {t}}
+			elseif not self.missing[key][stage] then
+				local t = GetTime()
+				self.missing[key][stage] = {t}
 			else
-				local t, c = GetTime(), #self.missing[key]
-				local new = t - self.missing[key][c]
-				core:Print(format(newBar, key, self.stage or 0, c, new, self:Difficulty()))
-				self.missing[key][c+1] = t
+				local t, c = GetTime(), #self.missing[key][stage]
+				self.missing[key][stage][c+1] = t
 			end
 			return
 		elseif lengthType ~= "number" and lengthType ~= "table" then
@@ -2396,8 +2427,6 @@ do
 			return
 		elseif length == 0 then
 			return
-		elseif self.missing and self.missing[key] then
-			self.missing[key] = nil
 		end
 		local time, maxTime
 		if lengthType == "table" then
@@ -2426,14 +2455,16 @@ do
 		local lengthType = type(length)
 		if not length then
 			if not self.missing then self.missing = {} end
+			local stage = self:GetStage() or 0
 			if not self.missing[key] then
 				local t = GetTime()
-				self.missing[key] = {t}
+				self.missing[key] = {[stage] = {t}}
+			elseif not self.missing[key][stage] then
+				local t = GetTime()
+				self.missing[key][stage] = {t}
 			else
-				local t, c = GetTime(), #self.missing[key]
-				local new = t - self.missing[key][c]
-				core:Print(format(newBar, key, self.stage or 0, c, new, self:Difficulty()))
-				self.missing[key][c+1] = t
+				local t, c = GetTime(), #self.missing[key][stage]
+				self.missing[key][stage][c+1] = t
 			end
 			return
 		elseif lengthType ~= "number" and lengthType ~= "table" then
@@ -2441,8 +2472,6 @@ do
 			return
 		elseif length == 0 then
 			return
-		elseif self.missing and self.missing[key] then
-			self.missing[key] = nil
 		end
 		local time, maxTime
 		if lengthType == "table" then

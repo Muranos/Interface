@@ -1,4 +1,3 @@
-
 -- GLOBALS: BigWigs, table
 
 --------------------------------------------------------------------------------
@@ -9,11 +8,14 @@ local mod, CL = BigWigs:NewBoss("Court of Stars Trash", 1571)
 if not mod then return end
 mod.displayName = CL.trash
 mod:RegisterEnableMob(
+	104251, -- Duskwatch Sentry
+	107073, -- Duskwatch Reinforcement
 	104246, -- Duskwatch Guard
 	111563, -- Duskwatch Guard
 	104270, -- Guardian Construct
 	104278, -- Felbound Enforcer
 	104277, -- Legion Hound
+	104300, -- Shadow Mistress
 	107435, -- Gerenth the Vile & Suspicious Noble
 	104273, -- Jazshariu
 	104275, -- Imacu'tya
@@ -39,13 +41,18 @@ mod:RegisterEnableMob(
 	106108, -- Starlight Rose Brew: +HP & Mana reg
 	105340, -- Umbral Bloom: +10% Haste
 	106110, -- Waterlogged Scroll: +30% Movement speed
-	108154 -- Arcane Keys
+	106018, -- Bazaar Goods
+	106112, -- Wounded Nightborne Civilian
+	106113, -- Lifesized Nightborne Statue
+	105215, -- Discarded Junk
+	108154  -- Arcane Keys
 )
 
 --------------------------------------------------------------------------------
 -- Locals
 --
 
+local knownClues, clueCount = {}, 0
 local englishSpyFound = "I found the spy!"
 local englishClueNames = {
 	"Cape",
@@ -63,7 +70,6 @@ local englishClueNames = {
 	"No Potions",
 	"Book",
 }
-local localized_clues = {}
 
 --------------------------------------------------------------------------------
 -- Localization
@@ -71,6 +77,8 @@ local localized_clues = {}
 
 local L = mod:GetLocale()
 if L then
+	L.duskwatch_sentry = "Duskwatch Sentry"
+	L.duskwatch_reinforcement = "Duskwatch Reinforcement"
 	L.Guard = "Duskwatch Guard"
 	L.Construct = "Guardian Construct"
 	L.Enforcer = "Felbound Enforcer"
@@ -78,7 +86,7 @@ if L then
 	L.Mistress = "Shadow Mistress"
 	L.Gerenth = "Gerenth the Vile"
 	L.Jazshariu = "Jazshariu"
-	L.Imacutya = "Imacutya"
+	L.Imacutya = "Imacu'tya"
 	L.Baalgar = "Baalgar the Watchful"
 	L.Inquisitor = "Watchful Inquisitor"
 	L.BlazingImp = "Blazing Imp"
@@ -124,96 +132,6 @@ if L then
 	L.spyFoundPattern = "Now now, let's not be hasty" -- Now now, let's not be hasty [player]. Why don't you follow me so we can talk about this in a more private setting...
 
 	L.hints = englishClueNames
-
-	-- Cape
-	L.clue_1_1 = "I heard the spy enjoys wearing capes."
-	L.clue_1_2 = "Someone mentioned the spy came in earlier wearing a cape."
-
-	-- No Cape
-	L.clue_2_1 = "I heard that the spy left their cape in the palace before coming here."
-	L.clue_2_2 = "I heard the spy dislikes capes and refuses to wear one."
-
-	-- Pouch
-	L.clue_3_1 = "A friend said the spy loves gold and a belt pouch filled with it."
-	L.clue_3_2 = "I heard the spy's belt pouch is filled with gold to show off extravagance."
-	L.clue_3_3 = "I heard the spy carries a magical pouch around at all times."
-	L.clue_3_4 = "I heard the spy's belt pouch is lined with fancy threading."
-	L.clue_3_5 = "" -- for ruRU
-	L.clue_3_6 = "" -- for ruRU
-
-	-- Potions
-	L.clue_4_1 = "I heard the spy brought along some potions... just in case."
-	L.clue_4_2 = "I'm pretty sure the spy has potions at the belt."
-	L.clue_4_3 = "I heard the spy brought along potions, I wonder why?"
-	L.clue_4_4 = "I didn't tell you this... but the spy is masquerading as an alchemist and carrying potions at the belt."
-	L.clue_4_5 = "" -- for ruRU
-	L.clue_4_6 = "" -- for ruRU
-
-	-- Long Sleeves
-	L.clue_5_1 = "I just barely caught a glimpse of the spy's long sleeves earlier in the evening."
-	L.clue_5_2 = "I heard the spy's outfit has long sleeves tonight."
-	L.clue_5_3 = "Someone said the spy is covering up their arms with long sleeves tonight."
-	L.clue_5_4 = "A friend of mine mentioned the spy has long sleeves on."
-	L.clue_5_5 = "" -- for ruRU
-
-	-- Short Sleeves
-	L.clue_6_1 = "I heard the spy enjoys the cool air and is not wearing long sleeves tonight."
-	L.clue_6_2 = "A friend of mine said she saw the outfit the spy was wearing. It did not have long sleeves."
-	L.clue_6_3 = "Someone told me the spy hates wearing long sleeves."
-	L.clue_6_4 = "I heard the spy wears short sleeves to keep their arms unencumbered."
-	L.clue_6_5 = "" -- for ruRU
-
-	-- Gloves
-	L.clue_7_1 = "I heard the spy always dons gloves."
-	L.clue_7_2 = "There's a rumor that the spy always wears gloves."
-	L.clue_7_3 = "Someone said the spy wears gloves to cover obvious scars."
-	L.clue_7_4 = "I heard the spy carefully hides their hands."
-	L.clue_7_5 = "" -- for ruRU
-	L.clue_7_6 = "" -- for ruRU
-
-	-- No Gloves
-	L.clue_8_1 = "There's a rumor that the spy never has gloves on."
-	L.clue_8_2 = "I heard the spy dislikes wearing gloves."
-	L.clue_8_3 = "I heard the spy avoids having gloves on, in case some quick actions are needed."
-	L.clue_8_4 = "You know... I found an extra pair of gloves in the back room. The spy is likely to be bare handed somewhere around here."
-	L.clue_8_5 = "" -- for ruRU
-	L.clue_8_6 = "" -- for ruRU
-	L.clue_8_7 = "" -- for ruRU
-
-	-- Male
-	L.clue_9_1 = "A guest said she saw him entering the manor alongside the Grand Magistrix."
-	L.clue_9_2 = "I heard somewhere that the spy isn't female."
-	L.clue_9_3 = "I heard the spy is here and he's very good looking."
-	L.clue_9_4 = "One of the musicians said he would not stop asking questions about the district."
-	L.clue_9_5 = "" -- for ruRU
-	L.clue_9_6 = "" -- for ruRU
-
-	-- Female
-	L.clue_10_1 = "A guest saw both her and Elisande arrive together earlier."
-	L.clue_10_2 = "I hear some woman has been constantly asking about the district..."
-	L.clue_10_3 = "Someone's been saying that our new guest isn't male."
-	L.clue_10_4 = "They say that the spy is here and she's quite the sight to behold."
-	L.clue_10_5 = "" -- for ruRU
-
-	-- Light Vest
-	L.clue_11_1 = "The spy definitely prefers the style of light colored vests."
-	L.clue_11_2 = "I heard that the spy is wearing a lighter vest to tonight's party."
-	L.clue_11_3 = "People are saying the spy is not wearing a darker vest tonight."
-
-	-- Dark Vest
-	L.clue_12_1 = "I heard the spy's vest is a dark, rich shade this very night."
-	L.clue_12_2 = "The spy enjoys darker colored vests... like the night."
-	L.clue_12_3 = "Rumor has it the spy is avoiding light colored clothing to try and blend in more."
-	L.clue_12_4 = "The spy definitely prefers darker clothing."
-
-	-- No Potions
-	L.clue_13_1 = "I heard the spy is not carrying any potions around."
-	L.clue_13_2 = "A musician told me she saw the spy throw away their last potion and no longer has any left."
-
-	-- Book
-	L.clue_14_1 = "I heard the spy always has a book of written secrets at the belt."
-	L.clue_14_2 = "Rumor has is the spy loves to read and always carries around at least one book."
-	L.clue_14_3 = "" -- for ruRU
 end
 
 --------------------------------------------------------------------------------
@@ -225,6 +143,8 @@ function mod:GetOptions()
 		"announce_buff_items",
 		"custom_on_use_buff_items",
 		{"spy_helper", "INFOBOX"},
+		210261, -- Sound Alarm (Duskwatch Sentry)
+		212773, -- Subdue (Duskwatch Reinforcement)
 		209027, -- Quelling Strike (Duskwatch Guard)
 		209033, -- Fortification (Duskwatch Guard)
 		225100, -- Charging Station (Guardian Construct)
@@ -234,12 +154,16 @@ function mod:GetOptions()
 		211464, -- Fel Detonation (Felbound Enforcer)
 		211391, -- Felblaze Puddle (Legion Hound)
 		211470, -- Bewitch (Shadow Mistress)
+		{211473, "TANK_HEALER"}, -- Shadow Slash (Shadow Mistress)
 		214692, -- Shadow Bolt Volley (Gerenth the Vile)
 		214688, -- Carrion Swarm (Gerenth the Vile)
 		214690, -- Cripple (Gerenth the Vile)
 		207979, -- Shockwave (Jazshariu)
+		397897, -- Crushing Leap (Jazshariu)
 		209378, -- Whirling Blades (Imacu'tya)
+		397892, -- Scream of Pain (Imacu'tya)
 		207980, -- Disintegration Beam (Baalgar the Watchful)
+		{397907, "SAY", "SAY_COUNTDOWN"}, -- Impending Doom (Baalgar the Watchful)
 		211299, -- Searing Glare (Watchful Inquisitor)
 		212784, -- Eye Storm (Watchful Inquisitor)
 		211401, -- Drifting Embers (Blazing Imp)
@@ -256,6 +180,8 @@ function mod:GetOptions()
 		214697, -- Picking Up (Arcane Keys)
 	}, {
 		["announce_buff_items"] = "general",
+		[210261] = L.duskwatch_sentry,
+		[212773] = L.duskwatch_reinforcement,
 		[209027] = L.Guard,
 		[225100] = L.Construct,
 		[211464] = L.Enforcer,
@@ -278,39 +204,59 @@ function mod:GetOptions()
 	}
 end
 
-function mod:OnRegister()
-	-- populate our clue lookup table
-	for i = 1, 14 do
-		local j = 1
-		local clue = L[("clue_%d_%d"):format(i, j)]
-		while clue and clue ~= "" do
-			localized_clues[clue] = i
-			j = j + 1
-			clue = L[("clue_%d_%d"):format(i, j)]
-		end
-	end
-end
-
 function mod:OnBossEnable()
-	self:RegisterMessage("BigWigs_OnBossEngage", "Disable")
-	-- Charging Station, Shadow Bolt Volley, Carrion Swarm, Shockwave, Whirling Blades, Drain Magic, Wild Detonation, Nightfall Orb, Seal Magic, Fortification, Uncontrolled Blast, Wild Magic, Mighty Stomp, Shadowflame Breath, Bewitch
-	self:Log("SPELL_CAST_START", "AlertCasts", 225100, 214692, 214688, 207979, 209378, 209485, 209477, 209410, 209404, 209033, 216110, 216096, 216000, 216006, 211470)
-	-- Quelling Strike, Fel Detonation, Searing Glare, Eye Storm, Drifting Embers, Charged Blast, Suppress, Charged Smash, Drifting Embers
-	self:Log("SPELL_CAST_START", "AlarmCasts", 209027, 211464, 211299, 212784, 211401, 212031, 209413, 209495, 224377)
+	-- Duskwatch Sentry
+	self:Log("SPELL_CAST_START", "SoundAlarm", 210261)
+
+	-- Duskwatch Reinforcement
+	self:Log("SPELL_CAST_START", "Subdue", 212773)
+	self:Log("SPELL_AURA_APPLIED", "SubdueApplied", 212773)
+
+	-- Duskwatch Guard
+	self:Log("SPELL_CAST_START", "QuellingStrike", 209027)
+	self:Log("SPELL_CAST_START", "Fortification", 209033)
+	self:Log("SPELL_AURA_APPLIED", "FortificationApplied", 209033)
+
+	-- Mana Wyrm
+	self:Log("SPELL_CAST_START", "WildDetonation", 209477)
+
+	-- Charging Station, Shadow Bolt Volley, Carrion Swarm, Drain Magic, Nightfall Orb, Seal Magic, Uncontrolled Blast, Wild Magic, Mighty Stomp, Shadowflame Breath, Bewitch
+	self:Log("SPELL_CAST_START", "AlertCasts", 225100, 214692, 214688, 209485, 209410, 209404, 216110, 216096, 216000, 216006, 211470)
+	-- Fel Detonation, Searing Glare, Eye Storm, Drifting Embers, Charged Blast, Suppress, Charged Smash, Drifting Embers
+	self:Log("SPELL_CAST_START", "AlarmCasts", 211464, 211299, 212784, 211401, 212031, 209413, 209495, 224377)
 	-- Felblaze Puddle, Disrupting Energy
 	self:Log("SPELL_AURA_APPLIED", "PeriodicDamage", 211391, 209512)
 	self:Log("SPELL_PERIODIC_DAMAGE", "PeriodicDamage", 211391, 209512)
 	self:Log("SPELL_PERIODIC_MISSED", "PeriodicDamage", 211391, 209512)
 	-- Dispellable stuff
-	self:Log("SPELL_AURA_APPLIED", "Fortification", 209033)
 	self:Log("SPELL_AURA_APPLIED", "SealMagic", 209404)
 	self:Log("SPELL_AURA_APPLIED", "Suppress", 209413)
 	self:Log("SPELL_AURA_APPLIED", "SingleTargetDebuffs", 214690, 211470) -- Cripple, Bewitch
 	self:Log("SPELL_AURA_REMOVED", "SingleTargetDebuffsRemoved", 209413, 214690, 211470) -- Suppress, Cripple, Bewitch
-	-- Disintegration Beam
-	self:Log("SPELL_AURA_APPLIED", "DisintegrationBeam", 207980)
 	-- Eye Storm
 	self:Log("SPELL_CAST_SUCCESS", "EyeStorm", 212784)
+
+	-- Shadow Mistress
+	self:Log("SPELL_CAST_START", "ShadowSlash", 211473)
+
+	-- Imacu'tya
+	self:Log("SPELL_CAST_START", "WhirlingBlades", 209378)
+	self:Log("SPELL_CAST_START", "ScreamOfPain", 397892)
+	self:Death("ImacutyaDeath", 104275)
+
+	-- Baalgar the Watchful
+	self:Log("SPELL_CAST_START", "DisintegrationBeam", 207980)
+	self:Log("SPELL_AURA_APPLIED", "DisintegrationBeamApplied", 207980)
+	self:Log("SPELL_CAST_SUCCESS", "ImpendingDoom", 397907)
+	self:Log("SPELL_AURA_APPLIED", "ImpendingDoomApplied", 397907)
+	self:Log("SPELL_AURA_REMOVED", "ImpendingDoomRemoved", 397907)
+	self:Death("BaalgarDeath", 104274)
+
+	-- Jazshariu
+	self:Log("SPELL_CAST_START", "Shockwave", 207979)
+	self:Log("SPELL_CAST_SUCCESS", "CrushingLeap", 397897)
+	self:Death("JazshariuDeath", 104273)
+
 	-- Picking Up
 	self:Log("SPELL_CAST_START", "PickingUp", 214697)
 	self:Log("SPELL_CAST_SUCCESS", "PickingUpSuccess", 214697)
@@ -320,7 +266,8 @@ function mod:OnBossEnable()
 	self:RegisterMessage("BigWigs_BossComm")
 	self:RegisterMessage("DBM_AddonMessage") -- Catch DBM clues
 
-	-- Purely because DBM, and maybe others, call CloseGossip. That is just sooooo useful.
+	-- ensure LittleWigs handles this event first - this prevents other addons from advancing
+	-- the gossip or closing the frame before we have a chance to read the gossip ID
 	local frames = {GetFramesRegisteredForEvent("GOSSIP_SHOW")}
 	for i = 1, #frames do
 		frames[i]:UnregisterEvent("GOSSIP_SHOW")
@@ -331,36 +278,56 @@ function mod:OnBossEnable()
 	end
 end
 
+function mod:OnBossDisable()
+	clueCount = 0
+	knownClues = {}
+end
+
 --------------------------------------------------------------------------------
 -- Event Handlers
 --
 
 do
-	local autoTalk = {
-		[107486] = true, -- Chatty Rumormonger
-		[106468] = true, -- Ly'leth Lunastre
-		[105729] = true, -- Signal Lantern: Boat at the start
+	local clueIds = {
+		[45674] = 1,  -- Cape
+		[45675] = 2,  -- No Cape
+		[45660] = 3,  -- Pouch
+		[45666] = 4,  -- Potions
+		[45676] = 5,  -- Long Sleeves
+		[45677] = 6,  -- Short Sleeves
+		[45673] = 7,  -- Gloves
+		[45672] = 8,  -- No Gloves
+		[45657] = 9,  -- Male
+		[45658] = 10, -- Female
+		[45636] = 11, -- Light Vest
+		[45635] = 12, -- Dark Vest
+		[45667] = 13, -- No Potions
+		[45659] = 14, -- Book
 	}
 
 	local buffItems = {
 		[105157] = { -- Arcane Power Conduit: Disables Constructs
 			["name"] = 210466,
 			["professions"] = {
-				[136243] = 100, -- Engineering
+				--[136243] = 100, -- Engineering
+				[4620673] = 1, -- Engineering
 			},
 			["races"] = {
 				["Gnome"] = true,
 				["Goblin"] = true,
 			},
+			--["gossipIds"] = {45332}, -- Engineering
 		},
 		[105117] = { -- Flask of the Solemn Night: Poisons first boss
 			["name"] = 207815,
 			["professions"] = {
-				[136240] = 100, -- Alchemy
+				--[136240] = 100, -- Alchemy
+				[4620669] = 1, -- Alchemy
 			},
 			["classes"] = {
 				["ROGUE"] = true,
 			},
+			--["gossipIds"] = {45329, 45331}, -- Alchemy, Rogue
 		},
 		[105160] = { -- Fel Orb: 10% Crit
 			["name"] = 208275,
@@ -370,6 +337,7 @@ do
 				["PRIEST"] = true,
 				["PALADIN"] = true,
 			},
+			--["gossipIds"] = {45327}, -- Priest
 		},
 		[105831] = { -- Infernal Tome: -10% Dmg taken
 			["name"] = "InfernalTome",
@@ -378,6 +346,7 @@ do
 				["PRIEST"] = true,
 				["PALADIN"] = true,
 			},
+			--["gossipIds"] = {45200}, -- Priest
 		},
 		[106024] = { -- Magical Lantern: +10% Dmg dealt
 			["name"] = "MagicalLantern",
@@ -385,7 +354,8 @@ do
 				["MAGE"] = true,
 			},
 			["professions"] = {
-				[136244] = 100, -- Enchanting
+				--[136244] = 100, -- Enchanting
+				[4620672] = 1, -- Enchanting
 			},
 			["races"] = {
 				["BloodElf"] = true,
@@ -395,12 +365,15 @@ do
 		[105249] = { -- Nightshade Refreshments: +25% HP
 			["name"] = "NightshadeRefreshments",
 			["professions"] = {
-				[133971] = 800, -- Cooking
-				[136246] = 100, -- Herbalism
+				--[133971] = 800, -- Cooking
+				[4620671] = 1, -- Cooking
+				--[136246] = 100, -- Herbalism
+				[4620675] = 1, -- Herbalism
 			},
 			["races"] = {
 				["Pandaren"] = true,
 			},
+			--["gossipIds"] = {45168}, -- Cooking
 		},
 		[106108] = { -- Starlight Rose Brew: +HP & Mana reg
 			["name"] = "StarlightRoseBrew",
@@ -408,6 +381,7 @@ do
 				["DEATHKNIGHT"] = true,
 				["MONK"] = true,
 			},
+			--["gossipIds"] = {45217}, -- Monk
 		},
 		[105340] = { -- Umbral Bloom: +10% Haste
 			["name"] = "UmbralBloom",
@@ -415,8 +389,11 @@ do
 				["DRUID"] = true,
 			},
 			["professions"] = {
-				[136246] = 100, -- Herbalism
-			}
+				--[136246] = 100, -- Herbalism
+				[4620675] = 1, -- Herbalism
+				[4620671] = 1, -- Cooking
+			},
+			--["gossipIds"] = {45278}, -- Cooking
 		},
 		[106110] = { -- Waterlogged Scroll: +30% Movement speed
 			["name"] = "WaterloggedScroll",
@@ -424,9 +401,12 @@ do
 				["SHAMAN"] = true,
 			},
 			["professions"] = {
-				[134366] = 100, -- Skinning
-				[237171] = 100, -- Inscription
-			}
+				--[134366] = 100, -- Skinning
+				[4620680] = 1, -- Skinning
+				--[237171] = 100, -- Inscription
+				[4620676] = 1, -- Inscription
+			},
+			--["gossipIds"] = {45152}, -- Skinning
 		},
 	}
 
@@ -448,14 +428,18 @@ do
 				["WARRIOR"] = true,
 			},
 			["professions"] = {
-				[136247] = 100, -- Leatherworking
+				--[136247] = 100, -- Leatherworking
+				[4620678] = 1, -- Leatherworking
 			},
+			--["gossipIds"] = {45474}, -- Rogue
 		},
 		[106113] = { -- Lifesized Nightborne Statue
 			["name"] = "LifesizedNightborneStatue",
 			["professions"] = {
-				[134708] = 100, -- Mining
-				[134071] = 100, -- Jewelcrafting
+				--[134708] = 100, -- Mining
+				[4620679] = 1, -- Mining
+				--[134071] = 100, -- Jewelcrafting
+				[4620677] = 1, -- Jewelcrafting
 			},
 		},
 		[105215] = { -- Discarded Junk
@@ -464,7 +448,8 @@ do
 				["HUNTER"] = true,
 			},
 			["professions"] = {
-				[136241] = 100, -- Blacksmithing
+				--[136241] = 100, -- Blacksmithing
+				[4620670] = 1, -- Blacksmithing
 			},
 		},
 		[106112] = { -- Wounded Nightborne Civilian
@@ -473,8 +458,10 @@ do
 				["Healer"] = true,
 			},
 			["professions"] = {
-				[136249] = 100, -- Tailoring
+				--[136249] = 100, -- Tailoring
+				[4620681] = 1, -- Tailoring
 			},
+			--["gossipIds"] = {45155}, -- Healer
 		},
 	}
 
@@ -500,31 +487,6 @@ do
 		return ("|T%d:0|t"):format(id)
 	end
 
-	local dbmClues = {
-		["cape"] = 1,
-		["no cape"] = 2,
-		["pouch"] = 3,
-		["potions"] = 4,
-		["long sleeves"] = 5,
-		["short sleeves"] = 6,
-		["gloves"] = 7,
-		["no gloves"] = 8,
-		["male"] = 9,
-		["female"] = 10,
-		["light vest"] = 11,
-		["dark vest"] = 12,
-		["no potion"] = 13,
-		["book"] = 14,
-	}
-
-	local knownClues, clueCount, timer = {}, 0, nil
-
-	function mod:OnBossDisable()
-		clueCount = 0
-		timer = nil
-		knownClues = {}
-	end
-
 	local function sendChatMessage(msg, english)
 		if IsInGroup() then
 			BigWigsLoader.SendChatMessage(english and ("[LittleWigs] %s / %s"):format(msg, english) or ("[LittleWigs] %s"):format(msg), IsInGroup(2) and "INSTANCE_CHAT" or "PARTY")
@@ -544,57 +506,46 @@ do
 	end
 
 	function mod:DBM_AddonMessage(_, _, prefix, _, _, event, clue)
-		if prefix == "M" and event == "CoS" and dbmClues[clue] then
-			self:BigWigs_BossComm(nil, "clue", dbmClues[clue])
+		if prefix == "M" and event == "CoS" and tonumber(clue) then
+			self:BigWigs_BossComm(nil, "clue", clue)
 		end
 	end
 
-	local function printNew(locale, clue)
-		timer = nil
-		knownClues[clue] = true -- Throttle to only show once per new message
-		if clue == C_GossipInfo.GetText() then -- Extra safety
-			RaidNotice_AddMessage(RaidWarningFrame, "LittleWigs: Unknown clue detected, see chat for info.", {r=1,g=1,b=1})
-			BigWigs:Print("LittleWigs has found an unknown clue, please report it on Discord or GitHub so we can add it and shorten the message.")
-			BigWigs:Error(("|cffffff00TELL THE AUTHORS:|r New clue '%s' with '%s'"):format(clue, locale))
-		end
-	end
-
-	local prev = 0
 	function mod:GOSSIP_SHOW()
-		if timer then
-			self:CancelTimer(timer)
-			timer = nil
-		end
-
 		local mobId = self:MobId(self:UnitGUID("npc"))
-		local spyEventHelper = self:GetOption("spy_helper") > 0
-		if autoTalk[mobId] or buffItems[mobId] then
-			if not self:GetGossipOptions() and mobId == 107486 then -- Chatty Rumormonger
-				local clue = C_GossipInfo.GetText()
-				local num = localized_clues[clue]
-				if num then
-					prev = GetTime()
-					if spyEventHelper and not knownClues[num] then
-						local text = L.hints[num]
-						sendChatMessage(text, englishClueNames[num] ~= text and englishClueNames[num])
-					end
-					mod:Sync("clue", num)
-				else
-					-- GetTime: Sometimes it's 1st screen (chat) > 2nd screen (clue) > 1st screen (chat, no gossip selection) and would trigger this
-					if spyEventHelper and not knownClues[clue] and (GetTime()-prev) > 2 then
-						timer = self:ScheduleTimer(printNew, 2, GetLocale(), clue)
+		if self:GetOption("custom_on_use_buff_items") and buffItems[mobId] then
+			self:SelectGossipOption(1)
+			return
+		end
+		local spyHelperEnabled = self:GetOption("spy_helper") > 0
+		for gossipId, clueId in pairs(clueIds) do
+			if self:GetGossipID(gossipId) then
+				if spyHelperEnabled then
+					self:SelectGossipID(gossipId)
+					if not knownClues[clueId] then
+						local text = L.hints[clueId]
+						sendChatMessage(text, englishClueNames[clueId] ~= text and englishClueNames[clueId])
 					end
 				end
+				mod:Sync("clue", clueId)
+				return
 			end
-			if (spyEventHelper and autoTalk[mobId]) or (self:GetOption("custom_on_use_buff_items") and buffItems[mobId]) then
-				self:SelectGossipOption(1)
+		end
+		if spyHelperEnabled then
+			if self:GetGossipID(45624) then
+				-- Use the Signal Lantern to start the boat RP
+				self:SelectGossipID(45624)
+			elseif self:GetGossipID(45656) then
+				-- Get the costume from Ly'leth
+				self:SelectGossipID(45656)
 			end
 		end
 	end
 
 	function mod:CHAT_MSG_MONSTER_SAY(_, msg, _, _, _, target)
 		if msg:find(L.spyFoundPattern) and self:GetOption("spy_helper") > 0 then
-			self:MessageOld("spy_helper", "green", "info", L.spyFound:format(self:ColorName(target)), false)
+			self:Message("spy_helper", "green", L.spyFound:format(self:ColorName(target)), false)
+			self:PlaySound("spy_helper", "info")
 			self:CloseInfo("spy_helper")
 			if target == self:UnitName("player") then
 				sendChatMessage(L.spyFoundChat, englishSpyFound ~= L.spyFoundChat and englishSpyFound)
@@ -759,32 +710,95 @@ local function throttleMessages(key)
 	end
 end
 
+-- Duskwatch Sentry
+
+function mod:SoundAlarm(args)
+	self:Message(args.spellId, "red", CL.casting:format(args.spellName))
+	self:PlaySound(args.spellId, "warning")
+end
+
+-- Duskwatch Reinforcement
+
+function mod:Subdue(args)
+	self:Message(args.spellId, "red", CL.casting:format(args.spellName))
+	self:PlaySound(args.spellId, "warning")
+end
+
+function mod:SubdueApplied(args)
+	if self:Dispeller("magic") or self:Me(args.destGUID) then
+		self:TargetMessage(args.spellId, "orange", args.destName)
+		self:PlaySound(args.spellId, "alarm")
+	end
+end
+
+-- Duskwatch Guard
+
+do
+	local prev = 0
+	function mod:QuellingStrike(args)
+		local t = args.time
+		if t - prev > 1 then
+			prev = t
+			self:Message(args.spellId, "purple")
+			self:PlaySound(args.spellId, "alarm")
+		end
+	end
+end
+
+function mod:Fortification(args)
+	if throttleMessages(args.spellId) then return end
+	self:Message(args.spellId, "yellow", CL.casting:format(args.spellName))
+	self:PlaySound(args.spellId, "alert")
+end
+
+function mod:FortificationApplied(args)
+	if self:Dispeller("magic", true) and not self:Player(args.destFlags) then -- Mages can spellsteal it
+		self:Message(args.spellId, "orange", CL.on:format(args.spellName, args.destName))
+		if not throttleMessages(args.spellId) then
+			self:PlaySound(args.spellId, "info")
+		end
+	end
+end
+
+-- Mana Wyrm
+
+do
+	local prev = 0
+	function mod:WildDetonation(args)
+		local t = args.time
+		if t - prev > 1 then
+			prev = t
+			self:Message(args.spellId, "orange")
+			self:PlaySound(args.spellId, "alarm")
+		end
+	end
+end
+
+-- Generic Casts
+
 function mod:AlertCasts(args)
 	if throttleMessages(args.spellId) then return end
-	self:MessageOld(args.spellId, "yellow", "alert", CL.casting:format(args.spellName))
+	self:Message(args.spellId, "yellow", CL.casting:format(args.spellName))
+	self:PlaySound(args.spellId, "alert")
 end
 
 function mod:AlarmCasts(args)
 	if throttleMessages(args.spellId) then return end
-	self:MessageOld(args.spellId, "red", "alarm", CL.casting:format(args.spellName))
+	self:Message(args.spellId, "red", CL.casting:format(args.spellName))
+	self:PlaySound(args.spellId, "alarm")
 end
 
 do
 	local prev = 0
 	function mod:PeriodicDamage(args)
 		if self:Me(args.destGUID) then
-			local t = GetTime()
-			if t-prev > 1.5 then
+			local t = args.time
+			if t - prev > 1.5 then
 				prev = t
-				self:MessageOld(args.spellId, "blue", "warning", CL.underyou:format(args.spellName))
+				self:PersonalMessage(args.spellId, "underyou")
+				self:PlaySound(args.spellId, "underyou")
 			end
 		end
-	end
-end
-
-function mod:Fortification(args)
-	if self:Dispeller("magic", true) and not UnitIsPlayer(args.destName) then -- mages can spellsteal it
-		self:TargetMessageOld(args.spellId, args.destName, "orange", not throttleMessages(args.spellId) and "alert", nil, nil, true)
 	end
 end
 
@@ -814,23 +828,109 @@ do
 	end
 end
 
-function mod:DisintegrationBeam(args)
-	self:MessageOld(args.spellId, "yellow", "long")
-	self:CastBar(args.spellId, 5)
-end
+-- Watchful Inquisitor
 
 function mod:EyeStorm(args)
-	self:MessageOld(args.spellId, "yellow", "long")
-	self:CastBar(args.spellId, 8)
+	self:Message(args.spellId, "yellow")
+	self:PlaySound(args.spellId, "long")
+end
+
+-- Shadow Mistress
+
+function mod:ShadowSlash(args)
+	self:Message(args.spellId, "purple")
+	self:PlaySound(args.spellId, "alarm")
+end
+
+-- Imacu'tya
+
+function mod:WhirlingBlades(args)
+	self:Message(args.spellId, "orange")
+	self:PlaySound(args.spellId, "alarm")
+	self:CDBar(args.spellId, 18.2)
+end
+
+function mod:ScreamOfPain(args)
+	self:Message(args.spellId, "red", CL.casting:format(args.spellName))
+	self:PlaySound(args.spellId, "alarm")
+	self:CDBar(args.spellId, 14.6)
+end
+
+function mod:ImacutyaDeath(args)
+	self:StopBar(209378) -- Whirling Blades
+	self:StopBar(397892) -- Scream of Pain
+end
+
+-- Baalgar the Watchful
+
+function mod:DisintegrationBeam(args)
+	self:Message(args.spellId, "red", CL.casting:format(args.spellName))
+	self:PlaySound(args.spellId, "alert")
+	self:CDBar(args.spellId, 6.1)
+end
+
+function mod:DisintegrationBeamApplied(args)
+	self:TargetMessage(args.spellId, "red", args.destName)
+	self:PlaySound(args.spellId, "long", nil, args.destName)
+end
+
+do
+	local playerList = {}
+
+	function mod:ImpendingDoom(args)
+		playerList = {}
+		self:Bar(args.spellId, 14.6)
+	end
+
+	function mod:ImpendingDoomApplied(args)
+		playerList[#playerList + 1] = args.destName
+		self:TargetsMessage(args.spellId, "orange", playerList, 2)
+		self:PlaySound(args.spellId, "alarm", nil, playerList)
+		if self:Me(args.destGUID) then
+			self:Say(args.spellId)
+			self:SayCountdown(args.spellId, 6)
+		end
+	end
+
+	function mod:ImpendingDoomRemoved(args)
+		if self:Me(args.destGUID) then
+			self:CancelSayCountdown(args.spellId)
+		end
+	end
+end
+
+function mod:BaalgarDeath(args)
+	self:StopBar(207980) -- Disintegration Beam
+	self:StopBar(397907) -- Impending Doom
+end
+
+-- Jazshariu
+
+function mod:Shockwave(args)
+	self:Message(args.spellId, "orange")
+	self:PlaySound(args.spellId, "alarm")
+	self:Bar(args.spellId, 8.5)
+end
+
+function mod:CrushingLeap(args)
+	self:Message(args.spellId, "red")
+	self:PlaySound(args.spellId, "alert")
+	self:Bar(args.spellId, 17)
+end
+
+function mod:JazshariuDeath(args)
+	self:StopBar(207979) -- Shockwave
+	self:StopBar(397897) -- Crushing Leap
 end
 
 do
 	local prev = 0
 	function mod:PickingUp(args)
-		local t = GetTime()
-		if t-prev > 10 then
+		local t = args.time
+		if t - prev > 10 then
 			prev = t
-			self:TargetMessageOld(args.spellId, args.sourceName, "cyan", "info")
+			self:TargetMessage(args.spellId, "cyan", args.sourceName)
+			self:PlaySound(args.spellId, "info", nil, args.sourceName)
 		end
 	end
 end
@@ -838,10 +938,11 @@ end
 do
 	local prev = 0
 	function mod:PickingUpSuccess(args)
-		local t = GetTime()
-		if t-prev > 10 then
+		local t = args.time
+		if t - prev > 10 then
 			prev = t
-			self:TargetMessageOld(args.spellId, args.sourceName, "green", "long", args.destName)
+			self:TargetMessage(args.spellId, "green", args.sourceName, args.destName)
+			self:PlaySound(args.spellId, "long", nil, args.sourceName)
 		end
 	end
 end

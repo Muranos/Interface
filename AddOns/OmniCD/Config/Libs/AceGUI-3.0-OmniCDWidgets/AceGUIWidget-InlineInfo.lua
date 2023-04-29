@@ -73,10 +73,10 @@ local function Constructor()
 	field:SetJustifyH("LEFT")
 
 	local widget = {
-		field       = field,
-		label       = label,
-		frame       = frame,
-		type        = Type
+		field	    = field,
+		label	    = label,
+		frame	    = frame,
+		type	    = Type
 	}
 	for method, func in pairs(methods) do
 		widget[method] = func

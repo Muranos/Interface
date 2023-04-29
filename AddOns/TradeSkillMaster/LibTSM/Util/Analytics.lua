@@ -4,8 +4,9 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
-local _, TSM = ...
-local Analytics = TSM.Init("Util.Analytics")
+local TSM = select(2, ...) ---@type TSM
+local Analytics = TSM.Init("Util.Analytics") ---@class Util.Analytics
+local Environment = TSM.Include("Environment")
 local Debug = TSM.Include("Util.Debug")
 local Log = TSM.Include("Util.Log")
 local private = {
@@ -26,10 +27,15 @@ local HIT_TYPE_IS_VALID = {
 -- Module Functions
 -- ============================================================================
 
+---Inserts a new analytics action event.
+---@param name string The name of the action
+---@param ... any Additional parameters for the action
 function Analytics.Action(name, ...)
 	private.InsertHit("AC", name, ...)
 end
 
+---Saves analytics into the TSM_AppHelper saved variables.
+---@param appDB table The TSM_AppHelper SV database
 function Analytics.Save(appDB)
 	appDB.analytics = appDB.analytics or {updateTime=0, data={}}
 	if private.lastEventTime then
@@ -77,7 +83,7 @@ function private.InsertHit(hitType, ...)
 	end
 	Log.Info("%s %s", hitType, strjoin(" ", tostringall(...)))
 	hitType = private.AddQuotes(hitType)
-	local version = private.AddQuotes(TSM.GetVersion() or "???")
+	local version = private.AddQuotes(Environment.GetVersion())
 	local timeMs = Debug.GetTimeMilliseconds()
 	local jsonStr = strjoin(",", hitType, version, timeMs, private.session, private.sequenceNumber, unpack(private.argsTemp))
 	tinsert(private.events, "["..jsonStr.."]")

@@ -4,11 +4,12 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
 local Settings = TSM.MainUI:NewPackage("Settings")
 local L = TSM.Include("Locale").GetTable()
 local Wow = TSM.Include("Util.Wow")
 local UIElements = TSM.Include("UI.UIElements")
+local UIUtils = TSM.Include("UI.UIUtils")
 local private = {
 	settingPages = {
 		top = {},
@@ -69,7 +70,7 @@ function Settings.CreateHeading(id, text)
 		:SetText(text)
 end
 
-function Settings.CreateInputWithReset(id, label, context, validate)
+function Settings.CreateInputWithReset(id, label, context, validate, forceDisable)
 	local scope, namespace, key = strsplit(".", context)
 	local validateFunc, validateContext = nil, nil
 	if type(validate) == "table" then
@@ -88,7 +89,7 @@ function Settings.CreateInputWithReset(id, label, context, validate)
 			:SetHeight(18)
 			:SetMargin(0, 0, 0, 4)
 			:SetFont("BODY_BODY2_MEDIUM")
-			:SetTextColor("TEXT_ALT")
+			:SetTextColor(forceDisable and "TEXT_DISABLED" or "TEXT_ALT")
 			:SetText(label)
 		)
 		:AddChild(UIElements.New("Frame", "content")
@@ -99,12 +100,13 @@ function Settings.CreateInputWithReset(id, label, context, validate)
 				:SetBackgroundColor("ACTIVE_BG")
 				:SetValidateFunc(validateFunc, validateContext)
 				:SetSettingInfo(TSM.db[scope][namespace], key)
+				:SetDisabled(forceDisable)
 				:SetScript("OnValueChanged", private.InputOnValueChanged)
 			)
 			:AddChild(UIElements.New("ActionButton", "resetButton")
 				:SetWidth(108)
 				:SetText(L["Reset"])
-				:SetDisabled(TSM.db[scope][namespace][key] == TSM.db:GetDefault(scope, namespace, key))
+				:SetDisabled(forceDisable or TSM.db[scope][namespace][key] == TSM.db:GetDefault(scope, namespace, key))
 				:SetScript("OnClick", private.ResetBtnOnClick)
 				:SetContext(context)
 			)
@@ -190,7 +192,7 @@ end
 -- ============================================================================
 
 function private.GetSettingsFrame()
-	TSM.UI.AnalyticsRecordPathChange("main", "settings")
+	UIUtils.AnalyticsRecordPathChange("main", "settings")
 	local defaultPage = private.settingPages.top[1]
 
 	local frame = UIElements.New("Frame", "settings")
@@ -206,7 +208,7 @@ function private.GetSettingsFrame()
 			:AddChild(UIElements.New("Texture", "vline")
 				:SetHeight(1)
 				:SetMargin(0, 0, 8, 8)
-				:SetTexture("ACTIVE_BG_ALT")
+				:SetColor("ACTIVE_BG_ALT")
 			)
 			:AddChild(UIElements.New("Frame", "middle")
 				:SetLayout("VERTICAL")
@@ -215,10 +217,7 @@ function private.GetSettingsFrame()
 				-- make all the navigation align to the top
 			)
 		)
-		:AddChild(UIElements.New("Texture", "divider")
-			:SetWidth(2)
-			:SetTexture("ACTIVE_BG")
-		)
+		:AddChild(UIElements.New("VerticalLine", "divider"))
 		:AddChild(UIElements.New("Frame", "contentFrame")
 			:SetLayout("VERTICAL")
 			:SetBackgroundColor("PRIMARY_BG")

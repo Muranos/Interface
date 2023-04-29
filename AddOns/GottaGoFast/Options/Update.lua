@@ -30,6 +30,9 @@ function ggf.Changelog()
 end
 
 local changes = {};
+table.insert(changes, "# v5.0.0");
+table.insert(changes, "- Addon: Update to Dragonflight");
+table.insert(changes, "");
 table.insert(changes, "# v4.0.0");
 table.insert(changes, "- Mythic+: Add Mob Count");
 table.insert(changes, "- Mythic+: Update MDT Compatibility");

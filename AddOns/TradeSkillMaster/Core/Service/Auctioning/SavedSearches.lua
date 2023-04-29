@@ -4,7 +4,7 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
 local SavedSearches = TSM.Auctioning:NewPackage("SavedSearches")
 local L = TSM.Include("Locale").GetTable()
 local Log = TSM.Include("Util.Log")
@@ -13,6 +13,7 @@ local Database = TSM.Include("Util.Database")
 local TempTable = TSM.Include("Util.TempTable")
 local Theme = TSM.Include("Util.Theme")
 local Settings = TSM.Include("Service.Settings")
+local UIUtils = TSM.Include("UI.UIUtils")
 local private = {
 	settings = nil,
 	db = nil,
@@ -167,15 +168,14 @@ end
 function private.GetSearchName(filter, searchType)
 	local filters = TempTable.Acquire()
 	local searchTypeStr, numFiltersStr = nil, nil
-	if filter == "" or string.sub(filter, 1, 1) == FILTER_SEP then
+	if filter == "" or strsub(filter, 1, 1) == FILTER_SEP then
 		tinsert(filters, L["Base Group"])
 	end
 	if searchType == "postGroups" or searchType == "cancelGroups" then
 		for groupPath in gmatch(filter, "[^"..FILTER_SEP.."]+") do
 			local groupName = TSM.Groups.Path.GetName(groupPath)
 			local level = select('#', strsplit(TSM.CONST.GROUP_SEP, groupPath))
-			local color = Theme.GetGroupColor(level)
-			tinsert(filters, color:ColorText(groupName))
+			tinsert(filters, Theme.GetGroupColor(level):ColorText(groupName))
 		end
 		searchTypeStr = searchType == "postGroups" and L["Post Scan"] or L["Cancel Scan"]
 		numFiltersStr = #filters == 1 and L["1 Group"] or format(L["%d Groups"], #filters)
@@ -183,7 +183,7 @@ function private.GetSearchName(filter, searchType)
 		local numItems = 0
 		for itemString in gmatch(filter, "[^"..FILTER_SEP.."]+") do
 			numItems = numItems + 1
-			local coloredName = TSM.UI.GetColoredItemName(itemString)
+			local coloredName = UIUtils.GetDisplayItemName(itemString)
 			if coloredName then
 				tinsert(filters, coloredName)
 			end

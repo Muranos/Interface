@@ -16,12 +16,13 @@
 --[[-----------------------------------------------------------------------------
 EditBox Widget
 -------------------------------------------------------------------------------]]
-local Type, Version = "Link-OmniCD", 1
+local Type, Version = "Link-OmniCD", 2
 local AceGUI = LibStub and LibStub("AceGUI-3.0", true)
 if not AceGUI or (AceGUI:GetWidgetVersion(Type) or 0) >= Version then return end
+local OmniCDC = LibStub("OmniCDC", true)
 
 -- Lua APIs
-local tostring, pairs = tostring, pairs
+local pairs = pairs
 
 -- WoW APIs
 local CreateFrame, UIParent = CreateFrame, UIParent
@@ -167,15 +168,15 @@ local function Constructor()
 	editbox:SetMaxLetters(256)
 	editbox:SetPoint("TOPLEFT", label, "TOPRIGHT", 10, 0)
 	editbox:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -10, 0)
-	OmniCD[1].BackdropTemplate(editbox)
+	OmniCDC.SetBackdrop(editbox, "ACD")
 	editbox:SetBackdropColor(1, 1, 1, 0.05)
 	editbox:SetBackdropBorderColor(0, 0, 0)
 
 	local widget = {
-		editbox     = editbox,
-		label       = label,
-		frame       = frame,
-		type        = Type
+		editbox	    = editbox,
+		label	    = label,
+		frame	    = frame,
+		type	    = Type
 	}
 	for method, func in pairs(methods) do
 		widget[method] = func

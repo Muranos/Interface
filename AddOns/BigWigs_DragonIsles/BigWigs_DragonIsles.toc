@@ -1,4 +1,4 @@
-## Interface: 100002
+## Interface: 100007
 
 ## Title: BigWigs [|cffeda55fDragon Isles|r]
 ## Title-deDE: BigWigs [|cffeda55fDracheninseln|r]
@@ -15,19 +15,21 @@
 ## Notes-deDE: BigWigs Dragon Isles Modules
 ## Notes-esES: BigWigs Dragon Isles Modules
 ## Notes-esMX: BigWigs Dragon Isles Modules
-## Notes-frFR: BigWigs Dragon Isles Modules
-## Notes-itIT: BigWigs Dragon Isles Modules
+## Notes-frFR: Modules BigWigs des Îles aux Dragons
+## Notes-itIT: Moduli BigWigs per le Isole dei Draghi
 ## Notes-koKR: BigWigs Dragon Isles Modules
 ## Notes-ptBR: BigWigs Dragon Isles Modules
 ## Notes-ruRU: BigWigs Dragon Isles Modules
 ## Notes-zhCN: BigWigs 巨龙群岛模块
 ## Notes-zhTW: BigWigs Dragon Isles Modules
+## IconTexture: Interface\AddOns\BigWigs\Media\Icons\core-enabled
+## Version: v270
 
 ## LoadOnDemand: 1
 ## Dependencies: BigWigs
 
 ## X-Category: Raid
 ## X-BigWigs-ExtraMenu: -1978
-## X-BigWigs-LoadOn-WorldBoss: -2023, 193534, -2022, 193535, -2024, 193532, -2025, 193533
+## X-BigWigs-LoadOn-WorldBoss: -2023, 193534, -2022, 193535, -2024, 193532, -2085, 193533
 
 modules.xml

@@ -4,7 +4,7 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
 local Inventory = TSM.MainUI.Ledger:NewPackage("Inventory")
 local L = TSM.Include("Locale").GetTable()
 local TempTable = TSM.Include("Util.TempTable")
@@ -15,13 +15,12 @@ local Database = TSM.Include("Util.Database")
 local ItemInfo = TSM.Include("Service.ItemInfo")
 local CustomPrice = TSM.Include("Service.CustomPrice")
 local BagTracking = TSM.Include("Service.BagTracking")
-local GuildTracking = TSM.Include("Service.GuildTracking")
 local AuctionTracking = TSM.Include("Service.AuctionTracking")
 local MailTracking = TSM.Include("Service.MailTracking")
 local AltTracking = TSM.Include("Service.AltTracking")
-local InventoryService = TSM.Include("Service.Inventory")
 local Settings = TSM.Include("Service.Settings")
 local UIElements = TSM.Include("UI.UIElements")
+local UIUtils = TSM.Include("UI.UIUtils")
 local private = {
 	settings = nil,
 	db = nil,
@@ -46,16 +45,18 @@ end
 function Inventory.OnEnable()
 	private.db = Database.NewSchema("LEDGER_INVENTORY")
 		:AddUniqueStringField("levelItemString")
+		:AddNumberField("bagQuantity")
+		:AddNumberField("bankQuantity")
+		:AddNumberField("reagentBankQuantity")
+		:AddNumberField("auctionQuantity")
+		:AddNumberField("mailQuantity")
+		:AddNumberField("altQuantity")
+		:AddNumberField("guildQuantity")
+		:AddNumberField("totalBankQuantity")
+		:AddNumberField("totalQuantity")
 		:Commit()
 	private.query = private.db:NewQuery()
-		:VirtualField("bagQuantity", "number", BagTracking.GetBagsQuantityByLevelItemString, "levelItemString")
-		:VirtualField("guildQuantity", "number", private.GuildQuantityVirtualField, "levelItemString")
-		:VirtualField("auctionQuantity", "number", AuctionTracking.GetQuantityByLevelItemString, "levelItemString")
-		:VirtualField("mailQuantity", "number", MailTracking.GetQuantityByLevelItemString, "levelItemString")
-		:VirtualField("altQuantity", "number", AltTracking.GetQuantityByLevelItemString, "levelItemString")
-		:VirtualField("totalQuantity", "number", private.TotalQuantityVirtualField)
 		:VirtualField("totalValue", "number", private.TotalValueVirtualField)
-		:VirtualField("totalBankQuantity", "number", private.GetTotalBankQuantity)
 		:VirtualField("name", "string", ItemInfo.GetName, "levelItemString", "")
 		:VirtualField("groupPath", "string", TSM.Groups.GetPathByItem, "levelItemString")
 		:OrderBy("name", true)
@@ -69,29 +70,58 @@ end
 -- ============================================================================
 
 function private.DrawInventoryPage()
-	TSM.UI.AnalyticsRecordPathChange("main", "ledger", "inventory")
+	UIUtils.AnalyticsRecordPathChange("main", "ledger", "inventory")
 	local items = TempTable.Acquire()
-	for _, levelItemString in BagTracking.ItemIterator() do
+	local bagQuantityLookup = TempTable.Acquire()
+	local bankQuantityLookup = TempTable.Acquire()
+	local reagentBankQuantityLookup = TempTable.Acquire()
+	local auctionQuantityLookup = TempTable.Acquire()
+	local mailQuantityLookup = TempTable.Acquire()
+	local altQuantityLookup = TempTable.Acquire()
+	local guildQuantityLookup = TempTable.Acquire()
+	for _, levelItemString, bagQuantity, bankQuantity, reagentBankQuantity in BagTracking.QuantityIterator() do
 		items[levelItemString] = true
+		bagQuantityLookup[levelItemString] = bagQuantity
+		bankQuantityLookup[levelItemString] = bankQuantity
+		reagentBankQuantityLookup[levelItemString] = reagentBankQuantity
 	end
-	for _, levelItemString in GuildTracking.ItemIterator() do
+	for _, levelItemString, auctionQuantity in AuctionTracking.QuantityIterator() do
 		items[levelItemString] = true
+		auctionQuantityLookup[levelItemString] = auctionQuantity
 	end
-	for _, levelItemString in AuctionTracking.ItemIterator() do
+	for _, levelItemString, mailQuantity in MailTracking.QuantityIterator() do
 		items[levelItemString] = true
+		mailQuantityLookup[levelItemString] = mailQuantity
 	end
-	for _, levelItemString in MailTracking.ItemIterator() do
+	for _, levelItemString, altQuantity in AltTracking.QuantityIterator() do
 		items[levelItemString] = true
+		altQuantityLookup[levelItemString] = altQuantity
 	end
-	for _, levelItemString in AltTracking.ItemIterator() do
+	AltTracking.GetGuildItems(guildQuantityLookup)
+	for levelItemString in pairs(guildQuantityLookup) do
 		items[levelItemString] = true
 	end
 	private.db:TruncateAndBulkInsertStart()
 	for levelItemString in pairs(items) do
-		private.db:BulkInsertNewRow(levelItemString)
+		local bagQuantity = bagQuantityLookup[levelItemString] or 0
+		local bankQuantity = bankQuantityLookup[levelItemString] or 0
+		local reagentBankQuantity = reagentBankQuantityLookup[levelItemString] or 0
+		local auctionQuantity = auctionQuantityLookup[levelItemString] or 0
+		local mailQuantity = mailQuantityLookup[levelItemString] or 0
+		local altQuantity = altQuantityLookup[levelItemString] or 0
+		local guildQuantity = guildQuantityLookup[levelItemString] or 0
+		local totalBankQuantity = bankQuantity + reagentBankQuantity
+		local totalQuantity = bagQuantity + totalBankQuantity + guildQuantity + auctionQuantity + mailQuantity + altQuantity
+		private.db:BulkInsertNewRow(levelItemString, bagQuantity, bankQuantity, reagentBankQuantity, auctionQuantity, mailQuantity, altQuantity, guildQuantity, totalBankQuantity, totalQuantity)
 	end
 	private.db:BulkInsertEnd()
 	TempTable.Release(items)
+	TempTable.Release(bagQuantityLookup)
+	TempTable.Release(bankQuantityLookup)
+	TempTable.Release(reagentBankQuantityLookup)
+	TempTable.Release(auctionQuantityLookup)
+	TempTable.Release(mailQuantityLookup)
+	TempTable.Release(altQuantityLookup)
 	private.UpdateQuery()
 
 	return UIElements.New("Frame", "content")
@@ -146,7 +176,7 @@ function private.DrawInventoryPage()
 				:AddChild(UIElements.New("Text", "value")
 					:SetWidth("AUTO")
 					:SetFont("TABLE_TABLE1")
-					:SetText(Money.ToString(private.GetTotalValue()))
+					:SetText(Money.ToString(private.GetTotalValue(), nil, "OPT_RETAIL_ROUND"))
 				)
 			)
 		)
@@ -159,7 +189,7 @@ function private.DrawInventoryPage()
 						:SetTitle(L["Item"])
 						:SetFont("ITEM_BODY3")
 						:SetJustifyH("LEFT")
-						:SetTextInfo("levelItemString", TSM.UI.GetColoredItemName)
+						:SetTextInfo("levelItemString", UIUtils.GetDisplayItemName)
 						:SetTooltipInfo("levelItemString")
 						:SetSortInfo("name")
 						:DisableHiding()
@@ -238,7 +268,7 @@ function private.FilterChangedCommon(element)
 	element:GetElement("__parent.__parent.accountingScrollingTableFrame.scrollingTable")
 		:SetQuery(private.query, true)
 	element:GetElement("__parent.__parent.row2.value.value")
-		:SetText(Money.ToString(private.GetTotalValue()))
+		:SetText(Money.ToString(private.GetTotalValue(), nil, "OPT_RETAIL_ROUND"))
 		:Draw()
 end
 
@@ -262,7 +292,7 @@ end
 -- ============================================================================
 
 function private.TableGetTotalValueText(totalValue)
-	return Math.IsNan(totalValue) and "" or Money.ToString(totalValue)
+	return Math.IsNan(totalValue) and "" or Money.ToString(totalValue, nil, "OPT_RETAIL_ROUND")
 end
 
 
@@ -271,20 +301,6 @@ end
 -- Private Helper Functions
 -- ============================================================================
 
-function private.GuildQuantityVirtualField(levelItemString)
-	local totalNum = 0
-	for guildName in pairs(TSM.db.factionrealm.internalData.guildVaults) do
-		local guildQuantity = InventoryService.GetGuildQuantity(levelItemString, guildName)
-		totalNum = totalNum + guildQuantity
-	end
-	return totalNum
-end
-
-function private.TotalQuantityVirtualField(row)
-	local bagQuantity, totalBankQuantity, guildQuantity, auctionQuantity, mailQuantity, altQuantity = row:GetFields("bagQuantity", "totalBankQuantity", "guildQuantity", "auctionQuantity", "mailQuantity", "altQuantity")
-	return bagQuantity + totalBankQuantity + guildQuantity + auctionQuantity + mailQuantity + altQuantity
-end
-
 function private.TotalValueVirtualField(row)
 	local levelItemString, totalQuantity = row:GetFields("levelItemString", "totalQuantity")
 	local price = CustomPrice.GetValue(private.valuePriceSource, levelItemString)
@@ -292,13 +308,6 @@ function private.TotalValueVirtualField(row)
 		return Math.GetNan()
 	end
 	return price * totalQuantity
-end
-
-function private.GetTotalBankQuantity(row)
-	local levelItemString = row:GetField("levelItemString")
-	local bankQuantity = BagTracking.GetBankQuantityByLevelItemString(levelItemString)
-	local reagentBankQuantity = BagTracking.GetReagentBankQuantityByLevelItemString(levelItemString)
-	return bankQuantity + reagentBankQuantity
 end
 
 function private.GetTotalValue()

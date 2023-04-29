@@ -4,14 +4,16 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
 local Gathering = TSM.UI.CraftingUI:NewPackage("Gathering")
+local Environment = TSM.Include("Environment")
 local L = TSM.Include("Locale").GetTable()
 local TempTable = TSM.Include("Util.TempTable")
 local Table = TSM.Include("Util.Table")
 local ItemInfo = TSM.Include("Service.ItemInfo")
 local Settings = TSM.Include("Service.Settings")
 local UIElements = TSM.Include("UI.UIElements")
+local UIUtils = TSM.Include("UI.UIUtils")
 local private = {
 	settings = nil,
 	frame = nil,
@@ -41,13 +43,13 @@ local SOURCE_TEXT_LIST = {
 	L["AH (Disenchanting)"],
 	L["AH (Crafting)"],
 }
-if TSM.IsWowVanillaClassic() then
+if not Environment.HasFeature(Environment.FEATURES.GUILD_BANK) then
 	Table.RemoveByValue(SOURCE_LIST, "guildBank")
 	Table.RemoveByValue(SOURCE_LIST, "altGuildBank")
 	Table.RemoveByValue(SOURCE_TEXT_LIST, L["Guild Bank"])
 	Table.RemoveByValue(SOURCE_TEXT_LIST, L["Alt Guild Bank"])
 end
-if not TSM.IsWowClassic() then
+if Environment.IsRetail() then
 	Table.RemoveByValue(SOURCE_LIST, "bank")
 	Table.RemoveByValue(SOURCE_TEXT_LIST, L["Bank"])
 end
@@ -76,7 +78,7 @@ end
 -- ============================================================================
 
 function private.GetGatheringFrame()
-	TSM.UI.AnalyticsRecordPathChange("crafting", "gathering")
+	UIUtils.AnalyticsRecordPathChange("crafting", "gathering")
 	assert(not private.query)
 	private.query = TSM.Crafting.Gathering.CreateQuery()
 		:SetUpdateCallback(private.UpdateButtonState)
@@ -154,7 +156,7 @@ function private.GetGatheringFrame()
 						:SetFont("ITEM_BODY3")
 						:SetJustifyH("LEFT")
 						:SetIconSize(12)
-						:SetTextInfo("itemString", TSM.UI.GetColoredItemName)
+						:SetTextInfo("itemString", UIUtils.GetDisplayItemName)
 						:SetIconInfo("itemString", ItemInfo.GetTexture)
 						:SetTooltipInfo("itemString")
 						:SetSortInfo("name")
@@ -183,16 +185,13 @@ function private.GetGatheringFrame()
 						:Commit()
 					:Commit()
 				:SetQuery(TSM.Crafting.Gathering.CreateQuery()
-					:InnerJoin(ItemInfo.GetDBForJoin(), "itemString")
+					:VirtualField("name", "string", ItemInfo.GetName, "itemString", "?")
 					:OrderBy("name", true)
 				)
 				:SetSelectionDisabled(true)
 				:SetAutoReleaseQuery(true)
 			)
-			:AddChild(UIElements.New("Texture", "headerTopLine")
-				:SetHeight(2)
-				:SetTexture("ACTIVE_BG")
-			)
+			:AddChild(UIElements.New("HorizontalLine", "headerTopLine"))
 			:AddChild(UIElements.New("ActionButton", "openTaskListBtn")
 				:SetHeight(26)
 				:SetMargin(8)
@@ -236,12 +235,12 @@ function private.CreateSourceRows(frame)
 end
 
 function private.UpdateSourceRows(setupFrame)
-	if TSM.IsWowVanillaClassic() then
+	if not Environment.HasFeature(Environment.FEATURES.GUILD_BANK) then
 		Table.RemoveByValue(private.settings.sources, "guildBank")
 		Table.RemoveByValue(private.settings.sources, "altGuildBank")
 	end
-	if not TSM.IsWowClassic() then
-		Table.RemoveByValue(TSM.db.profile.gatheringOptions.sources, "bank")
+	if Environment.IsRetail() then
+		Table.RemoveByValue(private.settings.sources, "bank")
 	end
 	local texts = TempTable.Acquire()
 	local sources = TempTable.Acquire()

@@ -9,20 +9,20 @@
 -- filtering. It is a subclass of the @{Element} class.
 -- @classmod GroupSelector
 
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
 local L = TSM.Include("Locale").GetTable()
 local Table = TSM.Include("Util.Table")
 local Analytics = TSM.Include("Util.Analytics")
 local Theme = TSM.Include("Util.Theme")
-local NineSlice = TSM.Include("Util.NineSlice")
+local TextureAtlas = TSM.Include("Util.TextureAtlas")
+local Rectangle = TSM.Include("UI.Rectangle")
 local ScriptWrapper = TSM.Include("Util.ScriptWrapper")
 local UIElements = TSM.Include("UI.UIElements")
-local GroupSelector = TSM.Include("LibTSMClass").DefineClass("GroupSelector", TSM.UI.Element)
-UIElements.Register(GroupSelector)
-TSM.UI.GroupSelector = GroupSelector
+local GroupSelector = UIElements.Define("GroupSelector", "Element")
 local private = {}
 local TEXT_MARGIN = 8
-local ICON_MARGIN = 8
+local ICON_MARGIN = 4
+local CORNER_RADIUS = 4
 local DEFAULT_CONTEXT = { selected = {}, collapsed = {} }
 
 
@@ -37,8 +37,9 @@ function GroupSelector.__init(self)
 	self.__super:__init(frame)
 
 	frame.text = UIElements.CreateFontString(self, frame)
+	frame.text:SetFont(Theme.GetFont("BODY_BODY2"):GetWowFont())
 	frame.text:SetPoint("TOPLEFT", TEXT_MARGIN, 0)
-	frame.text:SetPoint("BOTTOMRIGHT", -ICON_MARGIN - TSM.UI.TexturePacks.GetWidth("iconPack.18x18/Add/Default") - TEXT_MARGIN, 0)
+	frame.text:SetPoint("BOTTOMRIGHT", -ICON_MARGIN - TextureAtlas.GetWidth("iconPack.18x18/Add/Default") - TEXT_MARGIN, 0)
 	frame.text:SetJustifyH("LEFT")
 	frame.text:SetJustifyV("MIDDLE")
 
@@ -49,7 +50,8 @@ function GroupSelector.__init(self)
 	frame.iconBtn:SetAllPoints(frame.icon)
 	ScriptWrapper.Set(frame.iconBtn, "OnClick", private.OnIconClick, self)
 
-	self._nineSlice = NineSlice.New(frame)
+	self._backgroundTexture = Rectangle.New(frame)
+	self._backgroundTexture:SetCornerRadius(CORNER_RADIUS)
 
 	self._groupTreeContext = CopyTable(DEFAULT_CONTEXT)
 	self._hintText = ""
@@ -72,32 +74,31 @@ function GroupSelector.Release(self)
 	self.__super:Release()
 end
 
---- Sets the hint text.
--- @tparam GroupSelector self The group selector object
--- @tparam string text The hint text
--- @treturn GroupSelector The group selector object
+---Sets the hint text.
+---@param self GroupSelector The group selector object
+---@param text string The hint text
+---@return self GroupSelector @The group selector object
 function GroupSelector.SetHintText(self, text)
 	assert(type(text) == "string")
 	self._hintText = text
 	return self
 end
 
---- Sets the selected text.
--- @tparam GroupSelector self The group selector object
--- @tparam string text The selected text (with a %d formatter for the number of groups)
--- @treturn GroupSelector The group selector object
+---Sets the selected text.
+---@param self GroupSelector The group selector object
+---@param text string The selected text (with a %d formatter for the number of groups)
+---@return self GroupSelector @The group selector object
 function GroupSelector.SetSelectedText(self, text)
 	assert(type(text) == "string" and strmatch(text, "%%d"))
 	self._selectedText = text
 	return self
 end
 
---- Registers a script handler.
--- @tparam GroupSelector self The group selector object
--- @tparam string script The script to register for (supported scripts: `OnSelectionChanged`)
--- @tparam function handler The script handler which will be called with the group selector object followed by any
--- arguments to the script
--- @treturn GroupSelector The group selector object
+---Registers a script handler.
+---@param self GroupSelector The group selector object
+---@param script string The script to register for (supported scripts: `OnSelectionChanged`)
+---@param handler function The script handler which will be called with the group selector object followed by any arguments to the script
+---@return self GroupSelector @The group selector object
 function GroupSelector.SetScript(self, script, handler)
 	if script == "OnSelectionChanged" then
 		self._onSelectionChanged = handler
@@ -107,43 +108,43 @@ function GroupSelector.SetScript(self, script, handler)
 	return self
 end
 
---- Sets a function to generate a custom query to use for the group tree
--- @tparam GroupSelector self The group selector object
--- @tparam function func A function to call to create the custom query (gets auto-released by the GroupTree)
--- @treturn GroupSelector The group selector object
+---Sets a function to generate a custom query to use for the group tree.
+---@param self GroupSelector The group selector object
+---@param func function A function to call to create the custom query (gets auto-released by the GroupTree)
+---@return self GroupSelector The group selector object
 function GroupSelector.SetCustomQueryFunc(self, func)
 	self._customQueryFunc = func
 	return self
 end
 
---- Adds the "Create New Group" option to the group tree
--- @tparam GroupSelector self The group selector object
--- @treturn GroupSelector The group selector object
+---Adds the "Create New Group" option to the group tree.
+---@param self GroupSelector The group selector object
+---@return self GroupSelector The group selector object
 function GroupSelector.AddCreateNew(self)
 	self._showCreateNew = true
 	return self
 end
 
---- Sets the selection to only handle single selection.
--- @tparam GroupSelector self The group selector object
--- @tparam boolean enabled The state of the single selection
--- @treturn GroupSelector The group selector object
+---Sets the selection to only handle single selection.
+---@param self GroupSelector The group selector object
+---@param enabled boolean The state of the single selection
+---@return self GroupSelector The group selector object
 function GroupSelector.SetSingleSelection(self, enabled)
 	self._singleSelection = enabled
 	return self
 end
 
---- Returns the single selected group path.
--- @tparam GroupSelector self The group selector object
+---Returns the single selected group path.
+---@param self GroupSelector @The group selector object
 function GroupSelector.GetSelection(self)
 	assert(self._singleSelection)
 	return next(self._groupTreeContext.selected)
 end
 
---- Sets the single selected group path.
--- @tparam GroupSelector self The group selector object
--- @tparam string|table selection The selected group(s) or nil if nothing should be selected
--- @treturn GroupSelector The group selector object
+---Sets the single selected group path.
+---@param self GroupSelector The group selector object
+---@param selection string|table The selected group(s) or nil if nothing should be selected
+---@return self GroupSelector @The group selector object
 function GroupSelector.SetSelection(self, selection)
 	wipe(self._groupTreeContext.selected)
 	if not selection then
@@ -159,17 +160,17 @@ function GroupSelector.SetSelection(self, selection)
 	return self
 end
 
---- Returns an iterator for all selected groups.
--- @tparam GroupSelector self The group selector object
--- @return An iterator which iterates over the selected groups and has the following values: `groupPath`
+---Returns an iterator for all selected groups.
+---@param self GroupSelector The group selector object
+---@return iter Iterator @An iterator which iterates over the selected groups and has the following values: `groupPath`
 function GroupSelector.SelectedGroupIterator(self)
 	return pairs(self._groupTreeContext.selected)
 end
 
---- Clears all selected groups.
--- @tparam GroupSelector self The group selector object
--- @tparam boolean silent Don't call the selection changed callback
--- @treturn GroupSelector The group selector object
+---Clears all selected groups.
+---@param self GroupSelector The group selector object
+---@param silent boolean Don't call the selection changed callback
+---@return self GroupSelector @The group selector object
 function GroupSelector.ClearSelectedGroups(self, silent)
 	wipe(self._groupTreeContext.selected)
 	if not silent and self._onSelectionChanged then
@@ -182,14 +183,12 @@ function GroupSelector.Draw(self)
 	self.__super:Draw()
 	local frame = self:_GetBaseFrame()
 
-	frame.text:SetFont(Theme.GetFont("BODY_BODY2"):GetWowFont())
 	local numGroups = Table.Count(self._groupTreeContext.selected)
 	frame.text:SetText(numGroups == 0 and self._hintText or (self._singleSelection and TSM.Groups.Path.Format(next(self._groupTreeContext.selected)) or format(self._selectedText, numGroups)))
 
-	TSM.UI.TexturePacks.SetTextureAndSize(frame.icon, numGroups == 0 and "iconPack.18x18/Add/Default" or "iconPack.18x18/Close/Default")
+	TextureAtlas.SetTextureAndSize(frame.icon, numGroups == 0 and "iconPack.18x18/Add/Default" or "iconPack.18x18/Close/Default")
 
-	self._nineSlice:SetStyle("rounded")
-	self._nineSlice:SetVertexColor(Theme.GetColor("ACTIVE_BG"):GetFractionalRGBA())
+	self._backgroundTexture:SetColor(Theme.GetColor("ACTIVE_BG"))
 end
 
 
@@ -231,7 +230,7 @@ function private.OnClick(self)
 			:SetMargin(0, 0, 0, 8)
 			:AddChild(UIElements.New("Text", "title")
 				:SetMargin(32, 8, 0, 0)
-				:SetFont("BODY_BODY2_MEDIUM")
+				:SetFont("BODY_BODY1_BOLD")
 				:SetJustifyH("CENTER")
 				:SetText(L["Select Group"])
 			)
@@ -309,12 +308,7 @@ function private.OnIconClick(self)
 end
 
 function private.DialogCloseBtnOnClick(button)
-	local self = button:GetElement("__parent.__parent.groupBtn"):GetContext()
 	button:GetBaseElement():HideDialog()
-	self:Draw()
-	if self._onSelectionChanged then
-		self:_onSelectionChanged()
-	end
 end
 
 function private.DialogFilterOnValueChanged(input)

@@ -8,7 +8,7 @@
 -- A popup frame which shows when clicking on a "more" button.
 -- @classmod PopupFrame
 
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
 local NineSlice = TSM.Include("Util.NineSlice")
 local Theme = TSM.Include("Util.Theme")
 local PopupFrame = TSM.Include("LibTSMClass").DefineClass("PopupFrame", TSM.UI.Frame)
@@ -31,5 +31,5 @@ function PopupFrame.Draw(self)
 	self.__super:Draw()
 	self._nineSlice:SetStyle("popup")
 	-- TOOD: fix the texture color properly
-	self._nineSlice:SetPartVertexColor("center", Theme.GetColor("PRIMARY_BG_ALT", "duskwood"):GetFractionalRGBA())
+	self._nineSlice:SetPartVertexColor("center", Theme.GetColor("PRIMARY_BG_ALT:duskwood"):GetFractionalRGBA())
 end

@@ -1,3 +1,103 @@
+Version 3.148  
+  
+  
+Known issues:  
+-- Shadowlands stat squish cleanup still a work in progress  
+--   AOE Advice spell equations need complete overhaul  
+--   Some text providers need changes to better display small numbers  
+-- Debuff tooltips are currently bugged when using ElvUI  
+--   Deselect 'VuhDo Options > Panels > Tooltips > Tooltips > Debuffs'  
+-- Blizzard continues to have a bug that breaks proper spell targeting.  
+--   Under 'Game Menu > Options > Gameplay > Combat' deselect 'Auto Self Cast'  
+--   and set 'Self Cast Key' to 'None'  
+  
+  
+Bugfixes:  
+-- Disease only shows as dispelable when Priest 'Improved Purify' talented  
+  
+  
+Improvements:  
+-- Bump TOC interface for 10.0.7  
+  
+  
+--------------------------------------------------------------  
+Version 3.147  
+  
+  
+Known issues:  
+-- Shadowlands stat squish cleanup still a work in progress  
+--   AOE Advice spell equations need complete overhaul  
+--   Some text providers need changes to better display small numbers  
+-- Debuff tooltips are currently bugged when using ElvUI  
+--   Deselect 'VuhDo Options > Panels > Tooltips > Tooltips > Debuffs'  
+-- Blizzard continues to have a bug that breaks proper spell targeting.  
+--   Under 'Game Menu > Options > Gameplay > Combat' deselect 'Auto Self Cast'  
+--   and set 'Self Cast Key' to 'None'  
+  
+  
+Bugfixes:  
+-- Priest 'Holy Word: Salvation' is now recognized when talented  
+  
+  
+Improvements:  
+-- Bump TOC interface for 10.0.5  
+  
+  
+--------------------------------------------------------------  
+Version 3.146  
+  
+  
+Known issues:  
+-- Shadowlands stat squish cleanup still a work in progress  
+--   AOE Advice spell equations need complete overhaul  
+--   Some text providers need changes to better display small numbers  
+-- Debuff tooltips are currently bugged when using ElvUI  
+--   Deselect 'VuhDo Options > Panels > Tooltips > Tooltips > Debuffs'  
+-- Blizzard continues to have a bug that breaks proper spell targeting.  
+--   Under 'Game Menu > Options > Gameplay > Combat' deselect 'Auto Self Cast'  
+--   and set 'Self Cast Key' to 'None'  
+  
+  
+Bugfixes:  
+-- Fixed latency when changing the player focus unit  
+-- Fixed bouquet validator icon opacity  
+-- Fixed bouquet validator display when bouquet has zero validators  
+-- Fixed bouquet validator invalid colors with safe fallback  
+  
+  
+Improvements:  
+-- Added default custom debuffs for Vault of Incarnates raid encounters  
+  
+  
+--------------------------------------------------------------  
+Version 3.145  
+  
+  
+Known issues:  
+-- Shadowlands stat squish cleanup still a work in progress  
+--   AOE Advice spell equations need complete overhaul  
+--   Some text providers need changes to better display small numbers  
+-- Debuff tooltips are currently bugged when using ElvUI  
+--   Deselect 'VuhDo Options > Panels > Tooltips > Tooltips > Debuffs'  
+-- Blizzard continues to have a bug that breaks proper spell targeting.  
+--   Under 'Game Menu > Options > Gameplay > Combat' deselect 'Auto Self Cast'  
+--   and set 'Self Cast Key' to 'None'  
+  
+  
+Bugfixes:  
+-- Fixed tracking of ambiguously named HoTs by spell ID  
+-- Fixed resurrection smart cast for Evoker 'Return' and 'Mass Return'  
+-- Fixed Evoker debuff abilities ('Naturalize' and 'Expunge')  
+-- Fixed 'Flag: Debuff, configured' validator when no debuffs present  
+-- Fixed safe color application for statusbar type bouquet validators  
+  
+  
+Improvements:  
+-- Added default HoTs for Preservation Evoker  
+-- Added Rogue non-lethal 'Atrophic Poison' to Buff Watch  
+  
+  
+--------------------------------------------------------------  
 Version 3.144  
   
   

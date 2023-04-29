@@ -4,10 +4,11 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
 local Warehousing = TSM.MainUI.Operations:NewPackage("Warehousing")
 local L = TSM.Include("Locale").GetTable()
 local UIElements = TSM.Include("UI.UIElements")
+local UIUtils = TSM.Include("UI.UIUtils")
 local private = { currentOperationName = nil }
 
 
@@ -27,7 +28,7 @@ end
 -- ============================================================================
 
 function private.GetWarehousingOperationSettings(operationName)
-	TSM.UI.AnalyticsRecordPathChange("main", "operations", "warehousing")
+	UIUtils.AnalyticsRecordPathChange("main", "operations", "warehousing")
 	private.currentOperationName = operationName
 	return UIElements.New("ScrollFrame", "settings")
 		:SetPadding(8, 8, 8, 0)
@@ -54,7 +55,7 @@ function private.CreateEnabledSettingLine(key, enableText, text, minValue, maxVa
 				:SetLayout("VERTICAL")
 				:SetHeight(48)
 				:SetMargin(0, 0, 0, 12)
-				:AddChild(UIElements.New("ToggleOnOff", "toggle")
+				:AddChild(UIElements.New("ToggleYesNo", "toggle")
 					:SetHeight(18)
 					:SetValue(operation[key] ~= 0)
 					:SetDisabled(hasRelationship)

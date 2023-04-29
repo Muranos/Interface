@@ -4,8 +4,9 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
 local Buy = TSM.UI.VendoringUI:NewPackage("Buy")
+local Environment = TSM.Include("Environment")
 local L = TSM.Include("Locale").GetTable()
 local Money = TSM.Include("Util.Money")
 local String = TSM.Include("Util.String")
@@ -16,6 +17,7 @@ local ItemString = TSM.Include("Util.ItemString")
 local ItemInfo = TSM.Include("Service.ItemInfo")
 local Settings = TSM.Include("Service.Settings")
 local UIElements = TSM.Include("UI.UIElements")
+local UIUtils = TSM.Include("UI.UIUtils")
 local private = {
 	settings = nil,
 	query = nil,
@@ -51,18 +53,18 @@ end
 -- ============================================================================
 
 function private.GetFrame()
-	TSM.UI.AnalyticsRecordPathChange("vendoring", "buy")
+	UIUtils.AnalyticsRecordPathChange("vendoring", "buy")
 	private.filterText = ""
 	if not private.query then
 		private.query = TSM.Vendoring.Buy.CreateMerchantQuery()
-			:InnerJoin(ItemInfo.GetDBForJoin(), "itemString")
+			:VirtualField("name", "string", ItemInfo.GetName, "itemString", "?")
 	end
 	private.query:ResetFilters()
 	private.query:NotEqual("numAvailable", 0)
 	private.query:ResetOrderBy()
 	private.query:OrderBy("name", true)
 
-	local altCost = not TSM.IsWowClassic() and GetMerchantCurrencies()
+	local altCost = Environment.IsRetail() and GetMerchantCurrencies()
 	local frame = UIElements.New("Frame", "buy")
 		:SetLayout("VERTICAL")
 		:AddChild(UIElements.New("Frame", "filters")
@@ -134,10 +136,7 @@ function private.GetFrame()
 			:SetQuery(private.query)
 			:SetScript("OnRowClick", private.RowOnClick)
 		)
-		:AddChild(UIElements.New("Texture", "line")
-			:SetHeight(2)
-			:SetTexture("ACTIVE_BG")
-		)
+		:AddChild(UIElements.New("HorizontalLine", "line"))
 		:AddChild(UIElements.New("Frame", "footer")
 			:SetLayout("HORIZONTAL")
 			:SetHeight(40)
@@ -148,12 +147,11 @@ function private.GetFrame()
 				:SetWidth(166)
 				:SetMargin(0, 8, 0, 0)
 				:SetPadding(4)
-				:AddChild(UIElements.New("PlayerGoldText", "text"))
+				:AddChild(TSM.UI.Views.PlayerGoldText.New("text"))
 			)
-			:AddChild(UIElements.New("Texture", "line")
-				:SetSize(2, 22)
+			:AddChild(UIElements.New("VerticalLine", "line")
+				:SetHeight(22)
 				:SetMargin(0, 8, 0, 0)
-				:SetTexture("ACTIVE_BG")
 			)
 			:AddChild(UIElements.New("Button", "altCost")
 				:SetWidth("AUTO")
@@ -181,11 +179,11 @@ end
 
 function private.GetItemText(row)
 	local itemString, numAvailable = row:GetFields("itemString", "numAvailable")
-	local itemName = TSM.UI.GetColoredItemName(itemString) or "?"
+	local itemName = UIUtils.GetDisplayItemName(itemString) or "?"
 	if numAvailable == -1 then
 		return itemName
 	elseif numAvailable > 0 then
-		return itemName..Theme.GetFeedbackColor("RED"):ColorText(" ("..numAvailable..")")
+		return itemName..Theme.GetColor("FEEDBACK_RED"):ColorText(" ("..numAvailable..")")
 	else
 		error("Invalid numAvailable: "..numAvailable)
 	end
@@ -193,16 +191,16 @@ end
 
 function private.GetCostText(row)
 	local index, costItemsText, price, stackSize = row:GetFields("index", "costItemsText", "price", "stackSize")
-	local color = TSM.Vendoring.Buy.GetMaxCanAfford(index) < stackSize and Theme.GetFeedbackColor("RED"):GetTextColorPrefix()
+	local color = TSM.Vendoring.Buy.GetMaxCanAfford(index) < stackSize and Theme.GetColor("FEEDBACK_RED"):GetTextColorPrefix()
 	if costItemsText == "" then
 		-- just a price
-		return Money.ToString(price, color)
+		return Money.ToString(price, color, "OPT_RETAIL_ROUND")
 	elseif price == 0 then
 		-- just an extended cost string
 		return costItemsText
 	else
 		-- both
-		return Money.ToString(price, color).." "..costItemsText
+		return Money.ToString(price, color, "OPT_RETAIL_ROUND").." "..costItemsText
 	end
 end
 
@@ -224,22 +222,22 @@ function private.GetRepairTooltip()
 				amount = min(amount, guildBankMoney)
 			end
 			tinsert(tooltipLines, GUILDBANK_REPAIR)
-			tinsert(tooltipLines, Money.ToString(amount))
+			tinsert(tooltipLines, Money.ToString(amount, nil, "OPT_RETAIL_ROUND"))
 			if repairAllCost > amount then
 				local personalAmount = repairAllCost - amount
 				local personalMoney = GetMoney()
 				if personalMoney >= personalAmount then
 					tinsert(tooltipLines, GUILDBANK_REPAIR_PERSONAL)
-					tinsert(tooltipLines, Money.ToString(personalAmount))
+					tinsert(tooltipLines, Money.ToString(personalAmount, nil, "OPT_RETAIL_ROUND"))
 				else
-					tinsert(tooltipLines, Theme.GetFeedbackColor("RED"):ColorText(GUILDBANK_REPAIR_INSUFFICIENT_FUNDS))
+					tinsert(tooltipLines, Theme.GetColor("FEEDBACK_RED"):ColorText(GUILDBANK_REPAIR_INSUFFICIENT_FUNDS))
 				end
 			end
 		else
-			tinsert(tooltipLines, Money.ToString(repairAllCost))
+			tinsert(tooltipLines, Money.ToString(repairAllCost, nil, "OPT_RETAIL_ROUND"))
 			local personalMoney = GetMoney()
 			if repairAllCost > personalMoney then
-				tinsert(tooltipLines, Theme.GetFeedbackColor("RED"):ColorText(GUILDBANK_REPAIR_INSUFFICIENT_FUNDS))
+				tinsert(tooltipLines, Theme.GetColor("FEEDBACK_RED"):ColorText(GUILDBANK_REPAIR_INSUFFICIENT_FUNDS))
 			end
 			tinsert(tooltipLines, L["Hold ALT to repair from the guild bank."])
 		end
@@ -311,7 +309,7 @@ function private.RowOnClick(scrollingTable, row, mouseButton)
 				:AddChild(UIElements.New("Text", "name")
 					:SetHeight(36)
 					:SetFont("ITEM_BODY1")
-					:SetText(TSM.UI.GetColoredItemName(itemString))
+					:SetText(UIUtils.GetDisplayItemName(itemString))
 				)
 			)
 			:AddChild(UIElements.New("Frame", "qty")
@@ -427,17 +425,17 @@ end
 
 function private.GetAltCostText(row, quantity)
 	local index, costItemsText, price, stackSize = row:GetFields("index", "costItemsText", "price", "stackSize")
-	local color = TSM.Vendoring.Buy.GetMaxCanAfford(index) < quantity and Theme.GetFeedbackColor("RED"):GetTextColorPrefix()
+	local color = TSM.Vendoring.Buy.GetMaxCanAfford(index) < quantity and Theme.GetColor("FEEDBACK_RED"):GetTextColorPrefix()
 	price = price * quantity / stackSize
 	if costItemsText == "" then
 		-- just a price
-		return Money.ToString(price, color)
+		return Money.ToString(price, color, "OPT_RETAIL_ROUND")
 	elseif price == 0 then
 		-- just an extended cost string
 		return private.GetItemAltCostText(row, quantity)
 	else
 		-- both
-		return Money.ToString(price, color).." "..private.GetItemAltCostText(row, quantity)
+		return Money.ToString(price, color, "OPT_RETAIL_ROUND").." "..private.GetItemAltCostText(row, quantity)
 	end
 end
 
@@ -464,13 +462,13 @@ function private.GetItemAltCostText(row, quantity)
 			local texture = nil
 			if costItemString then
 				texture = ItemInfo.GetTexture(costItemString)
-			elseif not TSM.IsWowVanillaClassic() and strmatch(costItemLink, "currency:") then
+			elseif not Environment.IsVanillaClassic() and strmatch(costItemLink, "currency:") then
 				texture = C_CurrencyInfo.GetCurrencyInfoFromLink(costItemLink).iconFileID
 			else
 				error(format("Unknown item cost (%d, %d, %s)", index, costNum, tostring(costItemLink)))
 			end
 			if TSM.Vendoring.Buy.GetMaxCanAfford(index) < quantity then
-				costNum = Theme.GetFeedbackColor("RED"):ColorText(costNum)
+				costNum = Theme.GetColor("FEEDBACK_RED"):ColorText(costNum)
 			end
 			tinsert(costItems, costNum.." |T"..(texture or "")..":12|t")
 		end
@@ -488,7 +486,7 @@ end
 
 function private.GetCurrencyText()
 	local name, amount, texturePath = "", nil, nil
-	if not TSM.IsWowClassic() then
+	if Environment.IsRetail() then
 		local firstCurrency = GetMerchantCurrencies()
 		if firstCurrency then
 			local info = C_CurrencyInfo.GetCurrencyInfo(firstCurrency)

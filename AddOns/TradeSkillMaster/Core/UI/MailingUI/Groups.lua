@@ -4,13 +4,15 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
 local Groups = TSM.UI.MailingUI:NewPackage("Groups")
 local L = TSM.Include("Locale").GetTable()
 local FSM = TSM.Include("Util.FSM")
 local Log = TSM.Include("Util.Log")
+local TempTable = TSM.Include("Util.TempTable")
 local Settings = TSM.Include("Service.Settings")
 local UIElements = TSM.Include("UI.UIElements")
+local UIUtils = TSM.Include("UI.UIUtils")
 local private = {
 	settings = nil,
 	filterText = "",
@@ -39,7 +41,7 @@ end
 -- ============================================================================
 
 function private.GetGroupsFrame()
-	TSM.UI.AnalyticsRecordPathChange("mailing", "groups")
+	UIUtils.AnalyticsRecordPathChange("mailing", "groups")
 	return UIElements.New("Frame", "groups")
 		:SetLayout("VERTICAL")
 		:AddChild(UIElements.New("Frame", "container")
@@ -72,10 +74,7 @@ function private.GetGroupsFrame()
 				)
 			)
 		)
-		:AddChild(UIElements.New("Texture", "line")
-			:SetHeight(2)
-			:SetTexture("ACTIVE_BG")
-		)
+		:AddChild(UIElements.New("HorizontalLine", "line"))
 		:AddChild(UIElements.New("ApplicationGroupTree", "groupTree")
 			:SetMargin(0, 0, 0, 1)
 			:SetSettingsContext(private.settings, "groupTree")
@@ -96,7 +95,7 @@ function private.GetGroupsFrame()
 			:AddChild(UIElements.New("Texture", "vline")
 				:SetWidth(1)
 				:SetMargin(8, 8, 2, 2)
-				:SetTexture("ACTIVE_BG_ALT")
+				:SetColor("ACTIVE_BG_ALT")
 			)
 			:AddChild(UIElements.New("Text", "itemsText")
 				:SetWidth("AUTO")
@@ -106,10 +105,7 @@ function private.GetGroupsFrame()
 				:SetText(L["Total Items"]..": ".."0")
 			)
 		)
-		:AddChild(UIElements.New("Texture", "line")
-			:SetHeight(2)
-			:SetTexture("ACTIVE_BG")
-		)
+		:AddChild(UIElements.New("HorizontalLine", "line"))
 		:AddChild(UIElements.New("Frame", "bottom")
 			:SetLayout("VERTICAL")
 			:SetHeight(40)
@@ -240,7 +236,7 @@ function private.FSMCreate()
 		:AddState(FSM.NewState("ST_SENDING_START")
 			:SetOnEnter(function(context, sendRepeat, isDryRun)
 				context.sending = true
-				local groups = {}
+				local groups = TempTable.Acquire()
 				for _, groupPath in context.frame:GetElement("groupTree"):SelectedGroupsIterator() do
 					tinsert(groups, groupPath)
 				end
@@ -248,6 +244,7 @@ function private.FSMCreate()
 					Log.PrintUser(L["Performing a dry-run of your Mailing operations for the selected groups."])
 				end
 				TSM.Mailing.Groups.StartSending(private.FSMGroupsCallback, groups, sendRepeat, isDryRun)
+				TempTable.Release(groups)
 				UpdateButton(context)
 			end)
 			:SetOnExit(function(context)

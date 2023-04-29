@@ -163,6 +163,12 @@ local UnitSet = TMW:NewClass("UnitSet"){
 
 			elseif unit == "focus" then -- the unit exactly
 				self.updateEvents.PLAYER_FOCUS_CHANGED = true
+
+				-- These events are for when a focused arena teammate joins the game after you.
+				-- The game doesn't fire PLAYER_FOCUS_CHANGED when UnitExists("focus") changes from false to true.
+				self.updateEvents.GROUP_FORMED = true
+				self.updateEvents.UNIT_PHASE = true
+
 				UNITS.unitsWithExistsEvent[unit] = true
 			elseif unit:find("^focus") then -- the unit as a base, with something else tacked onto it.
 				self.updateEvents.PLAYER_FOCUS_CHANGED = true
@@ -244,7 +250,9 @@ local UnitSet = TMW:NewClass("UnitSet"){
 				self.allUnitsChangeOnEvent = false
 
 			elseif unit:find("^mouseover") then
-				-- There is a unit when you gain a mouseover, but there isn't one when you lose it, so we can't have events for this one.
+				-- There is an event when you gain a mouseover, but there isn't one when you lose it, so we can't have events for this one.
+				-- Additionally, most other UNIT_ events don't properly fire for mouseover, so saying that mouseover has events would 
+				-- cause other functions to assume they can update on unit, even when they can't.
 				self.allUnitsChangeOnEvent = false
 				
 			else

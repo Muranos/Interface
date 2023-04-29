@@ -31,7 +31,11 @@ function GottaGoFast:OnEnable()
     self:RegisterComm("GottaGoFast", "ChatComm");
     self:RegisterComm("GottaGoFastCM", "CMChatComm");
     self:RegisterComm("GottaGoFastTW", "TWChatComm");
-    self:SecureHookScript(GameTooltip, "OnTooltipSetUnit", "GameTooltip_OnTooltipSetUnit")
+    TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, function(GameTooltip, data)
+      if (GottaGoFast) then
+        GottaGoFast:GameTooltip_OnTooltipSetUnit();
+      end
+    end)
 
     -- Setup AddOn
     GottaGoFast.InitState();
@@ -115,6 +119,7 @@ function GottaGoFast:GameTooltip_OnTooltipSetUnit()
     GottaGoFast.AddMobPointsToTooltip();
   end
 end
+local GameTooltip_OnTooltipSetUnit = GottaGoFast:GameTooltip_OnTooltipSetUnit();
 
 function GottaGoFast:ChatCommand(input)
   if (string.lower(input) == "debugmode") then

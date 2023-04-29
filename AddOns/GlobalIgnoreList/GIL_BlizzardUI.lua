@@ -2,15 +2,7 @@
 -- BLIZZARD UI HOOKS --
 -----------------------
 
-indentUI	= 0
-
-local _, L      = ...
-local daysUI	= {}
-local expUI		= {}
-local reasonUI	= {}
-local headerUI	= {}
-
-local BlizzardIgnoreListUpdate	= nil
+local _, L = ...
 
 -----------------------------
 -- UNIT AND CHAT MENU HOOK --
@@ -105,200 +97,156 @@ local function GilUnitMenu (dropdownMenu, which, unit, name, userData, ...)
 	end
 end
 
-hooksecurefunc("UnitPopup_ShowMenu", GilUnitMenu)
+--------------------
+-- LFG TOOL HACKS --
+--------------------
 
------------------------
--- IGNORE LIST HACKS --
------------------------
+local LFGMenu	= nil
+local LFGLeader	= ""
 
-BlizzardIgnoreListUpdate = IgnoreList_Update
+function GIL_GetPlaystyleString (playstyle, activityInfo)
 
-local function IgnoreButtonEnter(self, ...)
-
-	GameTooltip:Hide()
-	GameTooltip:ClearLines()
-	
-	local playerIndex = hasGlobalIgnored(addServer(self.name:GetText()))
-	
-	if playerIndex == 0 then
-		return
-	end
-	
-	local playerNotes = GlobalIgnoreDB.notes[playerIndex]
-	local daysInList  = daysFromToday(GlobalIgnoreDB.dateList[playerIndex])
-	local daysExpire  = GlobalIgnoreDB.expList[playerIndex]
+	if activityInfo and playstyle ~= (0 or nil) and C_LFGList.GetLfgCategoryInfo(activityInfo.categoryID).showPlaystyleDropdown then
+		local typeStr
 		
-	GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-	GameTooltip:AddLine("|cff69CCF0" .. self.name:GetText())
-	GameTooltip:AddLine(" ")
-	GameTooltip:AddLine("  "..L["OVER_1"].." |cffc0c0c0" .. getServer(self.name:GetText()))
-	GameTooltip:AddLine("  "..L["OVER_2"].." |cffc0c0c0" .. (GlobalIgnoreDB.factionList[playerIndex] or "Unknown"))
-	GameTooltip:AddLine("  "..L["OVER_3"].." |cffc0c0c0" .. daysInList .. " " .. dayString(daysInList))
-	
-	if GlobalIgnoreDB.expList[playerIndex] == 0 then
-		GameTooltip:AddLine("  "..L["OVER_4"].." |cffc0c0c0"..L["EXP_NVR"])
+		if activityInfo.isMythicPlusActivity then
+			typeStr = "GROUP_FINDER_PVE_PLAYSTYLE"
+		elseif activityInfo.isRatedPvpActivity then
+			typeStr = "GROUP_FINDER_PVP_PLAYSTYLE"
+		elseif activityInfo.isCurrentRaidActivity then
+			typeStr = "GROUP_FINDER_PVE_RAID_PLAYSTYLE"
+		elseif activityInfo.isMythicActivity then
+			typeStr = "GROUP_FINDER_PVE_MYTHICZERO_PLAYSTYLE"
+		end
+    
+		return typeStr and _G[typeStr .. tostring(playstyle)] or nil
 	else
-		GameTooltip:AddLine("  "..L["OVER_4"].." |cffc0c0c0"..format(L["OVER_5"], daysExpire , daysExpire - daysInList))
-	end
-	
-	GameTooltip:AddLine(" ")
-	
-	if playerNotes ~= nil and playerNotes ~= "" then
-		GameTooltip:AddLine("|cff69CCF0"..playerNotes)
-	end
-	
-	GameTooltip:Show()
-end
-
-local function IgnoreButtonLeave(self, ...)
-	GameTooltip:Hide()
-end
-
-local function IgnoreButtonDoubleClick(self, ...)
-	nameUI = addServer(C_FriendList.GetIgnoreName(GetSelectedIgnore()))
-	
-	if (nameUI ~= nil) then
-		StaticPopup_Show("GIL_REASON", nameUI)
+		return nil
 	end
 end
 
-local function IgnoreButtonClick(self, button, down)
+--C_LFGList.GetPlaystyleString = function (playstyle, activityInfo)
+--	return GIL_GetPlaystyleString (playstyle, activityInfo)
+--end
 
-	if button ~= "RightButton" or down == true then
+--LFGListEntryCreation_SetTitleFromActivityInfo = function(_) end
+
+function GIL_LFG_Refresh()
+	if LFGListFrame.SearchPanel ~= nil and LFGListFrame.SearchPanel:IsShown() then
+		LFGListSearchPanel_UpdateResults(LFGListFrame.SearchPanel)
+	end
+end
+
+function GIL_LFG_Update (self)
+
+	if not C_LFGList.HasSearchResultInfo(self.resultID) then return end
+	
+	local info = C_LFGList.GetSearchResultInfo(self.resultID);
+	
+	if (info ~= nil and hasGlobalIgnored(Proper(addServer(info.leaderName))) > 0) then
+		self.Name:SetTextColor(RED_FONT_COLOR.r, RED_FONT_COLOR.g, RED_FONT_COLOR.b);
+	end	
+end
+
+function GIL_LFG_Tooltip (self)
+
+	if not C_LFGList.HasSearchResultInfo(self.resultID) then return end
+	
+	local info = C_LFGList.GetSearchResultInfo(self.resultID);
+	
+	if (info ~= nil and info.leaderName ~= nil) then
+		local idx = hasGlobalIgnored(Proper(addServer(info.leaderName)))
+		
+		if (idx > 0) then
+			GameTooltip:AddLine(" ")
+			GameTooltip:AddLine("|c00ff0000" .. L["RCM_8"])
+		
+			local notes = (GlobalIgnoreDB.notes[idx] or "")
+				
+			if (notes ~= "") then
+				GameTooltip:AddLine(" ")
+				GameTooltip:AddLine("|cffffffff" .. L["RCM_9"])
+				GameTooltip:AddLine("|cff69CCF0"..notes)
+			end
+		
+			GameTooltip:Show()
+		end
+	end
+end
+
+local function GIL_EasyMenu (menu, frame, anchor, x, y, display)
+    if frame ~= LFGListFrameDropDown then return end
+	
+	local info = C_LFGList.GetSearchResultInfo(anchor.resultID)
+
+	if (info ~= nil and info.leaderName ~= nil) then
+		LFGLeader = info.leaderName
+	else
+		LFGLeader = ""
 		return
 	end
 	
-	nameUI = addServer(C_FriendList.GetIgnoreName(GetSelectedIgnore()))
-		
-	local IgnoreRightClickMenu = {
-
-		{ text = C_FriendList.GetIgnoreName(GetSelectedIgnore()), isTitle = true, notCheckable = true },
-		{ text = L["RCM_1"], notCheckable = true, func = function() IgnoreButtonDoubleClick() end },
-		{ text = "", disabled = true, notCheckable = true },
-		{ text = L["RCM_2"], notCheckable = true, func = function() if (nameUI ~= nil) then StaticPopup_Show("GIL_EXPIRE", nameUI) end end },
-		{ text = L["RCM_3"], notCheckable = true, func = function() GlobalIgnoreDB.expList[hasGlobalIgnored(nameUI)] = 0 IgnoreList_Update() end },
-		{ text = "", disabled = true, notCheckable = true },
-		{ text = L["RCM_4"], notCheckable = true, func = function() C_FriendList.DelIgnoreByIndex(GetSelectedIgnore(), true) end },
-		{ text = "", notCheckable = true, disabled = true },
-		{ text = L["RCM_5"], notCheckable = true }
-	}	
+	local idx = hasGlobalIgnored(Proper(addServer(LFGLeader)))
+	local ignoreText = L["RCM_6"]
+	local leaderText = format(L["RCM_7"], LFGLeader)
 	
-	local menuFrame = CreateFrame("Frame", "gil_IgnoreRightClick", UIParent, "UIDropDownMenuTemplate")
+	if (idx > 0) then
+		ignoreText = L["RCM_4"]
+	end
+	
+	if LFGMenu == nil then
+		LFGMenu = CreateFrame("Frame", "GIL_LFGMenu", UIParent, "BackdropTemplate")
+		
+		LFGMenu:SetBackdrop ({
+			bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+			edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+			edgeSize = 16,
+			insets = { left = 4, right = 4, top = 4, bottom = 4 },
+		})
+		
+		LFGMenu:SetBackdropColor(0, 0, .1, .65)
+		LFGMenu:SetFrameStrata("DIALOG")
+		LFGMenu:EnableMouse(true)
+		
+		local t = LFGMenu:CreateFontString("GIL_LFGLeader", "ARTWORK", "GameFontHighlight")
+		t:SetPoint("TOPLEFT", 14, -14)
+		t:SetTextColor(YELLOW_FONT_COLOR:GetRGB())
+		
+		local b = CreateFrame("Button", "GIL_LFGButton", LFGMenu, "UIPanelButtonTemplate")
+		b:SetPoint("TOPLEFT", t, 0, -20)
+		b:SetScript("OnHide",
+			function()
+				if MouseIsOver(GIL_LFGButton) then
+					C_FriendList.AddOrDelIgnore(LFGLeader)
+					GIL_LFG_Refresh()
+				end
+			end)
+	end
+	
+	GIL_LFGLeader:SetText(addServer(leaderText))
+	GIL_LFGButton:SetText(ignoreText)
+	
+	local width = max(DropDownList1:GetWidth(), GIL_LFGLeader:GetStringWidth() + 40)
 
-	EasyMenu(IgnoreRightClickMenu, menuFrame, "cursor", 0 , 0, "MENU")
+	LFGMenu:SetSize(width, 70)
+	LFGMenu:SetPoint("TOPLEFT", DropDownList1, "BOTTOMLEFT")
+	
+	GIL_LFGButton:SetSize(max(22, width - 26), 22)
+	
+	DropDownList1:HookScript("OnHide", function() LFGMenu:Hide() end)
+
+	LFGMenu:Show()
 end
 
-IgnoreList_Update = function(...)
+function GIL_HookFunctions()
 
-	BlizzardIgnoreListUpdate(...)
-
-	if GIL_Loaded ~= true then
-		return
+	if GlobalIgnoreDB.useLFGHacks == true then
+		hooksecurefunc("LFGListSearchEntry_Update", GIL_LFG_Update)
+		hooksecurefunc("LFGListSearchEntry_OnEnter", GIL_LFG_Tooltip)
+		hooksecurefunc("EasyMenu", GIL_EasyMenu)
 	end
 	
-	GILUpdateUI()
-	
-	local buttonWidth = 0
-	
-	if indentUI == 0 then
-		indentUI = 130
-		
-		for count = 1, IGNORES_TO_DISPLAY, 1 do
-			local button = _G["FriendsFrameIgnoreButton"..count]
-		
-			if button then
-				indentUI = max(indentUI, (button.name:GetStringWidth() + 16))
-			end
-		end
-	end
-
-	for count = 1, IGNORES_TO_DISPLAY, 1 do
-		button = _G["FriendsFrameIgnoreButton"..count]
-		
-		if button then
-
-			if buttonWidth == 0 then
-				buttonWidth = button:GetWidth()
-			end
-			
-			if daysUI[count] == nil then		
-				daysUI[count] = button:CreateFontString("FontString", "OVERLAY", "GameFontWhiteSmall")
-		
-				daysUI[count]:SetPoint("TOP", button)
-				daysUI[count]:SetPoint("BOTTOMLEFT", button)
-				daysUI[count]:SetJustifyH("RIGHT")
-					
-				button:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-				
-				button:HookScript("OnEnter", IgnoreButtonEnter)
-				button:HookScript("OnLeave", IgnoreButtonLeave)
-				button:HookScript("OnClick", IgnoreButtonClick)
-				button:HookScript("OnDoubleClick", IgnoreButtonDoubleClick)
-			end
-			
-			if expUI[count] == nil then		
-				expUI[count] = button:CreateFontString("FontString", "OVERLAY", "GameFontWhiteSmall")
-					
-				expUI[count]:SetPoint("TOP", button)
-				expUI[count]:SetPoint("BOTTOMLEFT", button)
-				expUI[count]:SetJustifyH("RIGHT")
-			end
-			
-			if reasonUI[count] == nil then
-				reasonUI[count] = button:CreateFontString("FontString", "OVERLAY", "GameFontWhiteSmall")
-		
-				reasonUI[count]:SetPoint("TOP", button)
-				reasonUI[count]:SetPoint("BOTTOMRIGHT", button)
-				reasonUI[count]:SetJustifyH("LEFT")
-			end				
-
-			daysUI[count]:SetWidth(indentUI + 50)
-			expUI[count]:SetWidth(indentUI + 90)
-			reasonUI[count]:SetWidth(buttonWidth - indentUI - 100)
-			
-			if count == 1 and FauxScrollFrame_GetOffset(FriendsFrameIgnoreScrollFrame) == 0 then
-			
-				if headerUI[1] == nil then
-					headerUI[1] = button:CreateFontString("FontString", "OVERLAY", "GameFontWhiteSmall")
-					
-					headerUI[1]:SetPoint("TOP", button)
-					headerUI[1]:SetPoint("TOPLEFT", 64, -3)
-					headerUI[1]:SetJustifyH("RIGHT")	
-				end
-				
-				local ignoreNum = C_FriendList.GetNumIgnores()
-				
-				headerUI[1]:SetText("By Account ("..ignoreNum..")")
-								
-				daysUI[1]:SetText("Days")
-				expUI[1]:SetText("Expire")
-				reasonUI[1]:SetText("Note")
-			
-			else
-			
-				if count == 1 then
-					headerUI[1]:SetText("")
-				end
-								
-				playerIndex = hasGlobalIgnored(addServer(button.name:GetText()))
-				
-				if playerIndex > 0 then			
-					daysUI[count]:SetText(daysFromToday(GlobalIgnoreDB.dateList[playerIndex]) .. "d")
-				
-					local playerExp = (GlobalIgnoreDB.expList[playerIndex] or 0)
-					local daysExp   = playerExp - daysFromToday(GlobalIgnoreDB.dateList[playerIndex])
-				
-					if playerExp == 0 then
-						expUI[count]:SetText("|cff808080"..L["EXP_NVR"])
-					elseif daysExp <= 0 then
-						expUI[count]:SetText("|cffff6666"..L["EXP_TDY"])
-					else
-						expUI[count]:SetText(daysExp.."d")
-					end
-					
-					reasonUI[count]:SetText("|cff69CCF0"..GlobalIgnoreDB.notes[playerIndex])
-				end
-			end				
-		end
+	if GlobalIgnoreDB.useUnitHacks == true then
+		hooksecurefunc("UnitPopup_ShowMenu", GilUnitMenu)
 	end
 end

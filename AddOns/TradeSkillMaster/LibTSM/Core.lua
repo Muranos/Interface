@@ -6,9 +6,8 @@
 
 -- This is loaded before anything else and simply sets up the addon table
 
-local ADDON_NAME, TSM = ...
-local VERSION_RAW = GetAddOnMetadata("TradeSkillMaster", "Version")
-local IS_DEV_VERSION = strmatch(VERSION_RAW, "^@tsm%-project%-version@$") and true or false
+local ADDON_NAME = select(1, ...)
+local TSM = select(2, ...) ---@class TSM
 local private = {
 	context = {},
 	initOrder = {},
@@ -64,15 +63,18 @@ local MODULE_MT = {
 -- Addon Object Functions
 -- ============================================================================
 
+---Creates a new TSM module.
+---@param path string The name of the module
+---@return table
 function TSM.Init(path)
 	assert(type(path) == "string")
 	if private.context[path] then
 		error("Module already exists for path: "..tostring(path))
 	end
-	local module = setmetatable({}, MODULE_MT)
+	local moduleObj = setmetatable({}, MODULE_MT)
 	private.context[path] = {
 		path = path,
-		module = module,
+		module = moduleObj,
 		moduleLoadFunc = nil,
 		moduleLoadTime = nil,
 		settingsLoadFunc = nil,
@@ -83,11 +85,15 @@ function TSM.Init(path)
 		moduleUnloadTime = nil,
 	}
 	-- store a reference to the context by both the module object and the path
-	private.context[module] = private.context[path]
+	private.context[moduleObj] = private.context[path]
 	tinsert(private.initOrder, path)
-	return module
+	return moduleObj
 end
 
+---Returns an existing TSM module.
+---@generic T
+---@param path `T`
+---@return T
 function TSM.Include(path)
 	local context = private.context[path]
 	if not context then
@@ -97,34 +103,13 @@ function TSM.Include(path)
 	return context.module
 end
 
-function TSM.IsDevVersion()
-	return IS_DEV_VERSION
-end
-
-function TSM.IsTestEnvironment()
-	return VERSION_RAW == "v4.99.99"
-end
-
-function TSM.GetVersion()
-	return IS_DEV_VERSION and "Dev" or VERSION_RAW
-end
-
+---Returns an iterator over all available modules.
+---@return fun(): number, string, number, number, number, number # An iterator with fields: `index, loadTime, settingsLoadTime, gameDataLoadTime, moduleUnloadTime`
 function TSM.ModuleInfoIterator()
 	return private.ModuleInfoIterator, nil, 0
 end
 
-function TSM.IsWowClassic()
-	return WOW_PROJECT_ID == WOW_PROJECT_CLASSIC or WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC or WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC
-end
-
-function TSM.IsWowVanillaClassic()
-	return WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
-end
-
-function TSM.IsWowWrathClassic()
-	return WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC or WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC
-end
-
+---Unloads all modules to simulate a logout.
 function TSM.DebugLogout()
 	private.UnloadAll()
 end
@@ -156,9 +141,9 @@ function private.ProcessModuleLoad(path)
 	tinsert(private.loadOrder, path)
 	context.moduleLoadTime = 0
 	if context.moduleLoadFunc then
-		local st = debugprofilestop()
+		local st = GetTimePreciseSec()
 		context.moduleLoadFunc()
-		context.moduleLoadTime = debugprofilestop() - st
+		context.moduleLoadTime = GetTimePreciseSec() - st
 	end
 end
 
@@ -171,9 +156,9 @@ function private.ProcessSettingsLoad(path)
 	end
 	context.settingsLoadTime = 0
 	if context.settingsLoadFunc then
-		local st = debugprofilestop()
+		local st = GetTimePreciseSec()
 		context.settingsLoadFunc()
-		context.settingsLoadTime = debugprofilestop() - st
+		context.settingsLoadTime = GetTimePreciseSec() - st
 	end
 end
 
@@ -186,9 +171,9 @@ function private.ProcessGameDataLoad(path)
 	end
 	context.gameDataLoadTime = 0
 	if context.gameDataLoadFunc then
-		local st = debugprofilestop()
+		local st = GetTimePreciseSec()
 		context.gameDataLoadFunc()
-		context.gameDataLoadTime = debugprofilestop() - st
+		context.gameDataLoadTime = GetTimePreciseSec() - st
 	end
 end
 
@@ -201,9 +186,9 @@ function private.ProcessModuleUnload(path)
 	end
 	context.moduleUnloadTime = 0
 	if context.moduleUnloadFunc then
-		local st = debugprofilestop()
+		local st = GetTimePreciseSec()
 		context.moduleUnloadFunc()
-		context.moduleUnloadTime = debugprofilestop() - st
+		context.moduleUnloadTime = GetTimePreciseSec() - st
 	end
 end
 
@@ -251,10 +236,18 @@ end
 -- Initialization Code
 -- ============================================================================
 
-do
+-- Only do initialization if we're loaded in a WoW environment
+if ADDON_NAME then
+	-- Create frame to listen for lifecycle events
 	private.frame = CreateFrame("Frame")
 	private.frame:RegisterEvent("ADDON_LOADED")
 	private.frame:RegisterEvent("PLAYER_LOGIN")
 	private.frame:RegisterEvent("PLAYER_LOGOUT")
 	private.frame:SetScript("OnEvent", private.OnEvent)
+	-- Manually register LibTSMClass
+	local libTSMClassModule = TSM.Init("LibTSMClass")
+	local libTable = LibStub("LibTSMClass")
+	for k, v in pairs(libTable) do
+		libTSMClassModule[k] = v
+	end
 end

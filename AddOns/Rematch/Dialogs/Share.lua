@@ -150,7 +150,7 @@ end
 --[[ Import Dialog ]]
 
 function rematch:ShowImportDialog()
-	local breedPadding = rematch:GetBreedSource() and 30 or 0	
+	local breedPadding = rematch:GetBreedSource() and 30 or 0
 	local dialog = rematch:ShowDialog("ImportDialog",340,306+breedPadding,L["Import Team"],nil,SAVE,share.AcceptImport,CANCEL,share.ImportDialogOnHide,L["Load"],share.ImportLoadTeamOnly)
 	share:SetPoint("TOP",0,-36)
 	share:Show()
@@ -220,7 +220,7 @@ end
 function share:ImportEditBoxOnTextChanged()
 	local text = (self:GetText() or ""):trim()
 	local numTeams,numConflicts = rematch:TestTextForStringTeams(text)
-	local breedPadding = rematch:GetBreedSource() and 30 or 0	
+	local breedPadding = rematch:GetBreedSource() and 30 or 0
 
 	local dialog = rematch.Dialog
 	dialog.Accept:SetEnabled(numTeams and numTeams>0)
@@ -630,7 +630,7 @@ end
 function rematch:ShowImportPBTDialog()
 	local dialog = rematch:ShowDialog("ImportPBT",300,130,L["Import From Pet Battle Teams"],L["Import these teams?"],L["Import"],share.ImportPBTAccept,CANCEL)
 	local PBTSaved = PetBattleTeamsDB.namespaces.TeamManager.global.teams
-	dialog:ShowText(format("%s%d\124r teams in are in Pet Battle Teams.",rematch.hexWhite,#PBTSaved),270,32,"TOP",0,-32)
+	dialog:ShowText(format("%s%d\124r teams in are in Pet Battle Teams",rematch.hexWhite,#PBTSaved),270,32,"TOP",0,-32)
 	dialog.Text:SetJustifyH("CENTER")
 	local numConflicts = 0
 	for i=1,#PBTSaved do
@@ -686,6 +686,39 @@ function share:ImportPBTAccept()
 		if not settings.ConflictOverwrite then
 			rematch:MakeSidelineUnique() -- if "Create new copies", make name unique if needed
 		end
+		rematch:SetSidelineContext("receivedTeam",true)
+		rematch:PushSideline() -- and save the team
+	end
+end
+
+-- when Niggles-PetTeams is enabled, Team menu has "Import From Niggles: Pet Teams" which calls this
+function rematch:ShowImportNigglesDialog()
+	local dialog = rematch:ShowDialog("ImportNiggles",300,172,L["Import From Niggles: Pet Teams"],L["Import these teams?"],L["Import"],share.ImportNigglesAccept,CANCEL)
+	local saved = NglPtDB.petTeams
+	dialog:ShowText(format("%s%d\124r teams are in Niggles: Pet Teams",rematch.hexWhite,#saved),270,24,"TOP",0,-32)
+	dialog.SmallText:SetSize(270,50)
+	dialog.SmallText:SetPoint("TOP",dialog.Text,"BOTTOM",0,-1)
+	dialog.SmallText:SetText(L["Note: Teams will be saved in the current team tab, and will not overwrite existing teams. Any name conflicts will add a number to the end of the imported team."])
+	dialog.SmallText:Show()
+	dialog.Text:SetJustifyH("CENTER")
+end
+
+-- import button from ImportNiggles dialog
+function share:ImportNigglesAccept()
+	local tab = RematchSettings.SelectedTab>1 and RematchSettings.SelectedTab or nil
+	for _,source in ipairs(NglPtDB.petTeams) do
+		local team,key = rematch:SetSideline(source.name,{tab=tab})
+		for i=1,3 do -- add the three pets
+			local petID = source.pets[i].guid
+			team[i] = {petID}
+			for j=1,3 do -- and the three abilites of each pet
+				team[i][j+1] = source.pets[i].abilityId[j]
+			end
+		end
+		if source.strategy and source.strategy:len()>0 then
+			team.notes = source.strategy -- add notes
+		end
+		rematch:MakeSidelineUnique() -- make name unique if needed
 		rematch:SetSidelineContext("receivedTeam",true)
 		rematch:PushSideline() -- and save the team
 	end

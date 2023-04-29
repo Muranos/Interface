@@ -8,8 +8,8 @@ local TidyPlatesCore = CreateFrame("Frame", nil, WorldFrame)
 
 -- Local References
 local _
-local max, gsub, tonumber = math.max, string.gsub, tonumber
-local select, pairs, tostring = select, pairs, tostring 			    -- Local function copy
+local gsub = string.gsub
+local select, pairs = select, pairs 			    -- Local function copy
 
 -- WoW APIs
 local wipe, strsplit = wipe, strsplit
@@ -25,8 +25,8 @@ local GetRaidTargetIndex = GetRaidTargetIndex
 local GetTime = GetTime
 local UnitChannelInfo  = UnitChannelInfo
 local UnitPlayerControlled = UnitPlayerControlled
-local GetCVarBool, CombatLogGetCurrentEventInfo = C_CVar.GetCVarBool, CombatLogGetCurrentEventInfo
-local GetPlayerInfoByGUID, RAID_CLASS_COLORS = GetPlayerInfoByGUID, RAID_CLASS_COLORS
+local CombatLogGetCurrentEventInfo = CombatLogGetCurrentEventInfo
+local GetPlayerInfoByGUID = GetPlayerInfoByGUID
 local UnitNameplateShowsWidgetsOnly = UnitNameplateShowsWidgetsOnly
 
 -- ThreatPlates APIs
@@ -112,6 +112,18 @@ else
 end
 
 -- Constants
+
+local IGNORED_UNITIDS = {
+  target = true,
+  player = true,
+  focus =  true,
+  anyenemy = true,
+  anyfriend = true,
+  softenemy = true,
+  softfriend = true,
+  -- any/softinteract does not seem to be necessary here
+}
+
 -- Raid Icon Reference
 local RaidIconCoordinate = {
   ["STAR"] = { x = 0, y =0 },
@@ -178,7 +190,7 @@ local UpdateIndicator_CustomScale, UpdateIndicator_CustomScaleText, UpdateIndica
 local UpdateIndicator_Level, UpdateIndicator_RaidIcon
 local UpdateIndicator_EliteIcon, UpdateIndicator_Name
 local UpdateIndicator_HealthBar
-local OnUpdateCasting, OnStartCasting, OnStopCasting, OnUpdateCastMidway
+local OnStartCasting, OnStopCasting, OnUpdateCastMidway
 
 -- Event Functions
 local OnNewNameplate, OnShowNameplate, OnUpdateNameplate, OnResetNameplate
@@ -205,6 +217,39 @@ local function UpdateUnitCache() for key, value in pairs(unit) do unitcache[key]
 ---------------------------------------------------------------------------------------------------------------------
 -- Nameplate Detection & Update Loop
 ---------------------------------------------------------------------------------------------------------------------
+
+local function SetNameplateVisibility(plate, unitid)
+  -- ! Interactive objects do also have nameplates. We should not mess with the visibility the of these objects.
+  if not UnitExists(unitid) then return end
+
+  local unit_reaction = UnitReaction(unitid, "player") or 0
+  if unit_reaction > 4 then
+    if SettingsShowFriendlyBlizzardNameplates then
+      plate.UnitFrame:Show()
+      plate.TPFrame:Hide()
+      plate.TPFrame.Active = false
+    else
+      plate.UnitFrame:Hide()
+      plate.TPFrame:Show()
+      plate.TPFrame.Active = true
+    end
+  elseif SettingsShowEnemyBlizzardNameplates then
+    plate.UnitFrame:Show()
+    plate.TPFrame:Hide()
+    plate.TPFrame.Active = false
+  else
+    plate.UnitFrame:Hide()
+    plate.TPFrame:Show()
+    plate.TPFrame.Active = true
+  end
+  
+  -- local show_tp_plate = (unit_reaction and not SettingsShowFriendlyBlizzardNameplates) or not SettingsShowEnemyBlizzardNameplates
+  -- plate.TPFrame.Active = show_tp_plate
+  -- plate.TPFrame:SetShown(show_tp_plate)
+  -- plate.UnitFrame:SetShown(not show_tp_plate)
+end
+
+Addon.SetNameplateVisibility = SetNameplateVisibility
 
 do
   -- OnUpdate; This function is run frequently, on every clock cycle
@@ -413,34 +458,7 @@ do
 	---------------------------------------------------------------------------------------------------------------------
 	-- Create / Hide / Show Event Handlers
 	---------------------------------------------------------------------------------------------------------------------
-
-  function Addon:UpdateNameplateStyle(plate, unitid)
-    if unit.reaction == "FRIENDLY" then
-      if SettingsShowFriendlyBlizzardNameplates then
-        plate.UnitFrame:Show()
-        plate.TPFrame:Hide()
-        plate.TPFrame.Active = false
-      else
-        plate.UnitFrame:Hide()
-        plate.TPFrame:Show()
-        plate.TPFrame.Active = true
-      end
-    elseif SettingsShowEnemyBlizzardNameplates then
-      plate.UnitFrame:Show()
-      plate.TPFrame:Hide()
-      plate.TPFrame.Active = false
-    else
-      plate.UnitFrame:Hide()
-      plate.TPFrame:Show()
-      plate.TPFrame.Active = true
-    end
-
-    --local show_plate = (UnitReaction(unitid, "player") > 4 and SettingsShowFriendlyBlizzardNameplates) or SettingsShowEnemyBlizzardNameplates
-    --plate.UnitFrame:SetShown(show_plate)
-    --plate.TPFrame:SetShown(not show_plate)
-    --plate.TPFrame.Active = not show_plate
-  end
-
+ 
 	-- OnShowNameplate
 	function OnShowNameplate(plate, unitid)
     UpdateReferences(plate)
@@ -468,9 +486,9 @@ do
 
 		Addon.UpdateExtensions(extended, unit.unitid, stylename)
 
-    Addon:UpdateNameplateStyle(plate, unitid)
+    SetNameplateVisibility(plate, unitid)
 
-    UNIT_TARGET("UNIT_TARGET", unitid) -- requires tp_frame.Active, which is set in UpdateNameplateStyle
+    UNIT_TARGET("UNIT_TARGET", unitid) -- requires tp_frame.Active, which is set in SetNameplateVisibility
 
     -- Call this after the plate is shown as OnStartCasting checks if the plate is shown; if not, the castbar is hidden and
     -- nothing is updated
@@ -862,10 +880,10 @@ do
       castbar:Hide()
       return
     end
-
-    local name, text, texture, startTime, endTime, isTradeSkill, notInterruptible, spellID
+    
+    local name, text, texture, startTime, endTime, isTradeSkill, notInterruptible, spellID, numStages
     if channeled then
-      name, text, texture, startTime, endTime, isTradeSkill, notInterruptible, spellID = UnitChannelInfo(unitid)
+      name, text, texture, startTime, endTime, isTradeSkill, notInterruptible, spellID, _, numStages = UnitChannelInfo(unitid)
 		else
       name, text, texture, startTime, endTime, isTradeSkill, _, notInterruptible, spellID = UnitCastingInfo(unitid)
     end
@@ -875,10 +893,10 @@ do
       return
     end
 
-    local plate_style = Addon.ActiveCastTriggers and Addon.UnitStyle_CastDependent(unit, spellID, name)
+    Addon.UnitStyle_CastTrigger_CheckIfActive(unit, spellID, name)
 
     -- Abort here as casts can now switch nameplate styles (e.g,. from headline to healthbar view
-    if not (style.castbar.show or plate_style) then
+    if not style.castbar.show and not unit.CustomStyleCast then
       castbar:Hide()
       return
     end
@@ -888,14 +906,15 @@ do
     unit.spellIsShielded = notInterruptible
 		unit.spellInterruptible = not notInterruptible
 
-    --if plate_style and plate_style ~= extended.stylename then
-    if plate_style ~= extended.stylename then
+    -- Set the style if a cast trigger for a custom nameplate was found or the cast trigger
+    -- is no longer there
+    if Addon.UnitStyle_CastTrigger_UpdateStyle(unit) then 
       ProcessUnitChanges()
     else
       UpdateIndicator_CustomScaleText()
       UpdatePlate_Transparency(extended, unit)
     end
-
+    
     -- Custom nameplates might trigger cause of a cast, but still stay in a style that does not
     -- show the castbar
     if not style.castbar.show then
@@ -914,15 +933,17 @@ do
     else
       castbar.CastTarget:SetText(nil)
     end
-
-    castbar.IsCasting = not channeled
-    castbar.IsChanneling = channeled
+    
+    -- Although Evoker's empowered casts are considered channeled, time (and therefore growth direction)
+    -- is calculated like for normal casts. Therefore: castbar.IsCasting = true
+    castbar.IsCasting = not channeled or (numStages and numStages > 0)
+    castbar.IsChanneling = not castbar.IsCasting
 
     -- Sometimes startTime/endTime are nil (even in Retail). Not sure if name is always nil is this case as well, just to be sure here
     -- I think this should not be necessary, name should be nil in this case, but not sure.
     endTime = endTime or 0
     startTime = startTime or 0
-    if channeled then
+    if castbar.IsChanneling then
       castbar.Value = (endTime / 1000) - GetTime()
     else
       castbar.Value = GetTime() - (startTime / 1000)
@@ -945,8 +966,7 @@ do
     castbar.IsChanneling = false
     unit.isCasting = false
 
-    if unit.CustomStyleCast then
-      unit.CustomStyleCast = false
+    if Addon.UnitStyle_CastTrigger_Reset(unit) then
       ProcessUnitChanges()
     else
       UpdateIndicator_CustomScale(extended, unit)
@@ -1032,12 +1052,7 @@ local function FrameOnShow(UnitFrame)
   end
 
   -- Hide ThreatPlates nameplates if Blizzard nameplates should be shown for friendly units
-  local unit_reaction = UnitReaction(unitid, "player") or 0
-  if unit_reaction > 4 then
-    UnitFrame:SetShown(SettingsShowFriendlyBlizzardNameplates)
-  else
-    UnitFrame:SetShown(SettingsShowEnemyBlizzardNameplates)
-  end
+  SetNameplateVisibility(UnitFrame:GetParent(), unitid)
 end
 
 -- Frame: self = plate
@@ -1126,6 +1141,16 @@ function CoreEvents:NAME_PLATE_UNIT_ADDED(unitid)
 
   OnShowNameplate(GetNamePlateForUnit(unitid), unitid)
 end
+		
+-- function CoreEvents:FORBIDDEN_NAME_PLATE_UNIT_ADDED(unitBarId)
+--   print("FORBIDDEN_NAME_PLATE_UNIT_ADDED:", unitBarId)
+--   local unitID = unitBarId
+
+--   local plateFrame = C_NamePlate.GetNamePlateForUnit (unitID, true)
+--   if (plateFrame) then -- and plateFrame.template == "ForbiddenNamePlateUnitFrameTemplate"
+--     print("  => Found plateFrame")
+--   end
+-- end
 
 function CoreEvents:NAME_PLATE_UNIT_REMOVED(unitid)
   local plate = GetNamePlateForUnit(unitid)
@@ -1157,7 +1182,7 @@ end
 
 function CoreEvents:UNIT_NAME_UPDATE(unitid)
   -- Skip special unitids (they are updated via their nameplate unitid) and personal nameplate
-  if unitid == "target" or UnitIsUnit("player", unitid) then return end
+  if IGNORED_UNITIDS[unitid] or UnitIsUnit("player", unitid) then return end
 
   local plate = GetNamePlateForUnit(unitid) -- can plate ever be nil here?
 
@@ -1221,7 +1246,7 @@ end
 
 UNIT_TARGET = function(event, unitid)
   -- Skip special unit ids (which are updated with their nameplate unit id anyway) and personal nameplate
-  if SettingsTargetUnitHide or unitid == "target" or UnitIsUnit("player", unitid) then return end
+  if SettingsTargetUnitHide or IGNORED_UNITIDS[unitid] or UnitIsUnit("player", unitid) then return end
 
   local plate = GetNamePlateForUnit(unitid)
   if plate and plate.TPFrame.Active then
@@ -1269,7 +1294,7 @@ end
 
 local function UNIT_HEALTH(event, unitid)
   -- Skip special unitids (they are updated via their nameplate unitid) and personal nameplate
-  if unitid == "target" or UnitIsUnit("player", unitid) then return end
+  if IGNORED_UNITIDS[unitid] or UnitIsUnit("player", unitid) then return end
 
   local plate = GetNamePlateForUnit(unitid)
   local tp_frame = plate and plate.TPFrame -- or nil, false if plate == nil
@@ -1296,7 +1321,7 @@ end
 
 function CoreEvents:UNIT_MAXHEALTH(unitid)
   -- Skip special unitids (they are updated via their nameplate unitid) and personal nameplate
-  if unitid == "target" or UnitIsUnit("player", unitid) then return end
+  if IGNORED_UNITIDS[unitid] or UnitIsUnit("player", unitid) then return end
 
   local plate = GetNamePlateForUnit(unitid)
   if plate and plate.TPFrame.Active then
@@ -1307,7 +1332,7 @@ end
 
 function CoreEvents:UNIT_THREAT_LIST_UPDATE(unitid)
   -- Skip special unitids (they are updated via their nameplate unitid) and personal nameplate
-  if unitid == "target" or UnitIsUnit("player", unitid) then return end
+  if IGNORED_UNITIDS[unitid] or UnitIsUnit("player", unitid) then return end
 
   local plate = PlatesByUnit[unitid]
   if plate then
@@ -1345,7 +1370,7 @@ end
 
 local function UNIT_SPELLCAST_START(event, unitid, ...)
   -- Skip special unitids (they are updated via their nameplate unitid) and personal nameplate
-  if unitid == "target" or UnitIsUnit("player", unitid) or not ShowCastBars then return end
+  if IGNORED_UNITIDS[unitid] or UnitIsUnit("player", unitid) or not ShowCastBars then return end
 
   local plate = GetNamePlateForUnit(unitid)
   if plate and plate.TPFrame.Active then
@@ -1356,7 +1381,7 @@ end
 -- Update spell currently being cast
 local function UnitSpellcastMidway(event, unitid, ...)
   -- Skip special unitids (they are updated via their nameplate unitid) and personal nameplate
-  if unitid == "target" or UnitIsUnit("player", unitid) or not ShowCastBars then return end
+  if IGNORED_UNITIDS[unitid] or UnitIsUnit("player", unitid) or not ShowCastBars then return end
 
   local plate = GetNamePlateForUnit(unitid)
   if plate then
@@ -1367,7 +1392,7 @@ end
 
 local function UNIT_SPELLCAST_STOP(event, unitid, ...)
   -- Skip special unitids (they are updated via their nameplate unitid) and personal nameplate
-  if unitid == "target" or UnitIsUnit("player", unitid) or not ShowCastBars then return end
+  if IGNORED_UNITIDS[unitid] or UnitIsUnit("player", unitid) or not ShowCastBars then return end
 
   -- plate can be nil, e.g., if unitid = player, combat ends and the player resource bar is already hidden
   -- when the cast stops (because it's not shown out of combat)
@@ -1379,7 +1404,7 @@ end
 
 local function UNIT_SPELLCAST_CHANNEL_START(event, unitid, ...)
   -- Skip special unitids (they are updated via their nameplate unitid) and personal nameplate
-  if unitid == "target" or UnitIsUnit("player", unitid) or not ShowCastBars then return end
+  if IGNORED_UNITIDS[unitid] or UnitIsUnit("player", unitid) or not ShowCastBars then return end
 
   local plate = GetNamePlateForUnit(unitid)
   if plate and plate.TPFrame.Active then
@@ -1390,7 +1415,7 @@ end
 
 local function UNIT_SPELLCAST_CHANNEL_STOP(event, unitid, ...)
   -- Skip special unitids (they are updated via their nameplate unitid) and personal nameplate
-  if unitid == "target" or UnitIsUnit("player", unitid) or not ShowCastBars then return end
+  if IGNORED_UNITIDS[unitid] or UnitIsUnit("player", unitid) or not ShowCastBars then return end
 
   local plate = GetNamePlateForUnit(unitid)
   if plate and plate.TPFrame.Active then
@@ -1398,9 +1423,10 @@ local function UNIT_SPELLCAST_CHANNEL_STOP(event, unitid, ...)
   end
 end
 
+
 function Addon.UNIT_SPELLCAST_INTERRUPTED(event, unitid, castGUID, spellID, sourceName, interrupterGUID)
   -- Skip special unitids (they are updated via their nameplate unitid) and personal nameplate
-  if unitid == "target" or UnitIsUnit("player", unitid) or not ShowCastBars then return end
+  if IGNORED_UNITIDS[unitid] or UnitIsUnit("player", unitid) or not ShowCastBars then return end
 
   local plate = GetNamePlateForUnit(unitid)
 
@@ -1532,7 +1558,7 @@ function CoreEvents:UNIT_FACTION(unitid)
       UpdateReferences(plate)
       Addon:UpdateUnitCondition(unit, unitid)
       -- If Blizzard-style nameplates are used, we also need to check if TP plates are disabled/enabled now
-      Addon:UpdateNameplateStyle(plate, unitid)
+      SetNameplateVisibility(plate, unitid)
       ProcessUnitChanges()
     end
   end
@@ -1572,12 +1598,13 @@ if Addon.IS_CLASSIC then
 else
   -- The following events should not have worked before adjusting UnitSpellcastMidway
   CoreEvents.UNIT_SPELLCAST_START = UNIT_SPELLCAST_START
-  CoreEvents.UNIT_SPELLCAST_STOP = UNIT_SPELLCAST_STOP
-  CoreEvents.UNIT_SPELLCAST_CHANNEL_START = UNIT_SPELLCAST_CHANNEL_START
-  CoreEvents.UNIT_SPELLCAST_CHANNEL_STOP = UNIT_SPELLCAST_CHANNEL_STOP
-
   CoreEvents.UNIT_SPELLCAST_DELAYED = UnitSpellcastMidway
+  CoreEvents.UNIT_SPELLCAST_STOP = UNIT_SPELLCAST_STOP
+
+  CoreEvents.UNIT_SPELLCAST_CHANNEL_START = UNIT_SPELLCAST_CHANNEL_START
   CoreEvents.UNIT_SPELLCAST_CHANNEL_UPDATE = UnitSpellcastMidway
+  CoreEvents.UNIT_SPELLCAST_CHANNEL_STOP = UNIT_SPELLCAST_CHANNEL_STOP
+  
   -- UNIT_SPELLCAST_SUCCEEDED
   -- UNIT_SPELLCAST_FAILED
   -- UNIT_SPELLCAST_FAILED_QUIET
@@ -1590,8 +1617,16 @@ else
     CoreEvents.UNIT_SPELLCAST_INTERRUPTIBLE = UnitSpellcastMidway
     CoreEvents.UNIT_SPELLCAST_NOT_INTERRUPTIBLE = UnitSpellcastMidway
 
+    CoreEvents.UNIT_SPELLCAST_EMPOWER_START = UNIT_SPELLCAST_CHANNEL_START
+    CoreEvents.UNIT_SPELLCAST_EMPOWER_UPDATE = UnitSpellcastMidway
+    CoreEvents.UNIT_SPELLCAST_EMPOWER_STOP = UNIT_SPELLCAST_CHANNEL_STOP
+  
     CoreEvents.UNIT_ABSORB_AMOUNT_CHANGED = UNIT_ABSORB_AMOUNT_CHANGED
     CoreEvents.UNIT_HEAL_ABSORB_AMOUNT_CHANGED = UNIT_HEAL_ABSORB_AMOUNT_CHANGED
+
+    -- CoreEvents.PLAYER_SOFT_FRIEND_CHANGED = PLAYER_SOFT_FRIEND_CHANGED
+    -- CoreEvents.PLAYER_SOFT_ENEMY_CHANGED = PLAYER_SOFT_ENEMY_CHANGED
+    -- CoreEvents.PLAYER_SOFT_INTERACT_CHANGED = PLAYER_SOFT_INTERACT_CHANGED
 
     -- UNIT_HEALTH_FREQUENT no longer supported in Retail since 9.0.1
     CoreEvents.UNIT_HEALTH = UNIT_HEALTH
@@ -1954,7 +1989,7 @@ function Addon:ForceUpdate()
     -- If Blizzard default plates are enabled (which means that these nameplates are not active), we need
     -- to check if they are enabled, so that Active is set correctly and plates are updated shown correctly.
     if not plate.TPFrame.Active then
-      Addon:UpdateNameplateStyle(plate, unitid)
+      SetNameplateVisibility(plate, unitid)
     end
 
     if plate.TPFrame.Active then

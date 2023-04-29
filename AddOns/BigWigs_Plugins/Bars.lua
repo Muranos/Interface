@@ -1125,7 +1125,7 @@ do
 						name = L.emphasizeAt,
 						order = 6,
 						min = 6,
-						max = 30,
+						max = 60, softMax = 30, -- Don't encourage bars longer than 30s in the GUI
 						step = 1,
 					},
 					fontSizeEmph = {
@@ -2430,7 +2430,10 @@ do
 			times[input] = t
 			BigWigs:Print(L.sendCustomBar:format(barText))
 			plugin:Sync("CBar", input)
-			SendAddonMessage("D4", ("U\t%d\t%s"):format(seconds, barText), IsInGroup(2) and "INSTANCE_CHAT" or "RAID") -- DBM message
+			local name = plugin:UnitName("player")
+			local realm = GetRealmName()
+			local normalizedPlayerRealm = realm:gsub("[%s-]+", "") -- Has to mimic DBM code
+			SendAddonMessage("D5", ("%s-%s\t1\tU\t%d\t%s"):format(name, normalizedPlayerRealm, seconds, barText), IsInGroup(2) and "INSTANCE_CHAT" or "RAID") -- DBM message
 		end
 	end
 	SLASH_BIGWIGSRAIDBAR1 = "/raidbar"
@@ -2463,7 +2466,10 @@ SlashCmdList.BIGWIGSBREAK = function(input)
 		plugin:Sync("Break", seconds)
 
 		if IsInGroup() then
-			SendAddonMessage("D4", ("BT\t%d"):format(seconds), IsInGroup(2) and "INSTANCE_CHAT" or "RAID") -- DBM message
+			local name = plugin:UnitName("player")
+			local realm = GetRealmName()
+			local normalizedPlayerRealm = realm:gsub("[%s-]+", "") -- Has to mimic DBM code
+			SendAddonMessage("D5", ("%s-%s\t1\tBT\t%d"):format(name, normalizedPlayerRealm, seconds), IsInGroup(2) and "INSTANCE_CHAT" or "RAID") -- DBM message
 		end
 	else
 		BigWigs:Print(L.requiresLeadOrAssist)

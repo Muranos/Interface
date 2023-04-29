@@ -1,4 +1,3 @@
-
 --------------------------------------------------------------------------------
 -- Module Declaration
 --
@@ -6,14 +5,8 @@
 local mod, CL = BigWigs:NewBoss("Ner'zhul", 1176, 1160)
 if not mod then return end
 mod:RegisterEnableMob(76407)
-mod.engageId = 1682
-mod.respawnTime = 33
-
---------------------------------------------------------------------------------
--- Locals
---
-
-local omenCounter = 1
+mod:SetEncounterID(1682)
+mod:SetRespawnTime(33)
 
 --------------------------------------------------------------------------------
 -- Initialization
@@ -23,20 +16,21 @@ function mod:GetOptions()
 	return {
 		154442, -- Malevolence
 		154350, -- Omen of Death
-		-9680, -- Ritual of Bones
+		154469, -- Ritual of Bones
 	}
 end
 
 function mod:OnBossEnable()
 	self:Log("SPELL_CAST_START", "Malevolence", 154442)
 	self:Log("SPELL_SUMMON", "OmenOfDeath", 154350)
-	self:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "RitualOfBones", "boss1")
+	self:Log("SPELL_CAST_SUCCESS", "RitualOfBones", 154671)
+	self:Log("SPELL_AURA_APPLIED", "RitualOfBonesApplied", 154469)
 end
 
 function mod:OnEngage()
-	self:CDBar(-9680, 20.6) -- Ritual of Bones
-	self:CDBar(154350, 11) -- Omen of Death
-	omenCounter = 1
+	self:CDBar(154442, 5.7) -- Malevolence
+	self:CDBar(154350, 6.1) -- Omen of Death
+	self:CDBar(154469, 20.6) -- Ritual of Bones
 end
 
 --------------------------------------------------------------------------------
@@ -44,23 +38,31 @@ end
 --
 
 function mod:Malevolence(args)
-	self:MessageOld(args.spellId, "yellow", self:Tank() and "alarm")
-	self:CDBar(args.spellId, 9) -- 8.4-10.8, remove?
+	self:Message(args.spellId, "yellow")
+	self:PlaySound(args.spellId, "alarm")
+	self:CDBar(args.spellId, 8.5)
 end
 
-do
-	-- BETA: 36.8, 13.7, 35.8, 17.2, 37, 14.8, 35.8
-	function mod:OmenOfDeath(args)
-		self:MessageOld(args.spellId, "red", "alert")
-		self:CDBar(args.spellId, omenCounter % 2 == 0 and 14 or 35.8)
-		omenCounter = omenCounter + 1
+function mod:OmenOfDeath(args)
+	self:Message(args.spellId, "red")
+	self:PlaySound(args.spellId, "alert")
+	self:CDBar(args.spellId, 10.9)
+end
+
+function mod:RitualOfBones(args)
+	self:Message(154469, "orange")
+	self:PlaySound(154469, "warning")
+	self:CDBar(154469, 50.5)
+	-- Ritual of Bones puts Omen of Death on a longer cooldown
+	self:CDBar(154350, 25.4) -- Omen of Death
+end
+
+function mod:RitualOfBonesApplied(args)
+	if self:Me(args.destGUID) then
+		self:PersonalMessage(args.spellId)
+		self:PlaySound(args.spellId, "underyou")
+	elseif self:Healer() then
+		self:TargetMessage(args.spellId, "red", args.destName)
+		self:PlaySound(args.spellId, "alert", nil, args.destName)
 	end
 end
-
-function mod:RitualOfBones(_, _, _, spellId)
-	if spellId == 154671 then -- Ritual of Bones
-		self:MessageOld(-9680, "orange", "warning")
-		self:CDBar(-9680, 50.5) -- 50.5-53.0
-	end
-end
-

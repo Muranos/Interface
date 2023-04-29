@@ -79,7 +79,7 @@ panel.opts = {
 	{ "check", "DontMinTabToggle", L["Or With Panel Tabs"], L["Don't let the Pets, Teams, Queue or Options tabs minimize the standalone window."], "LockDrawer" },
 	{ "check", "LowerStrata", L["Lower Window Behind UI"], L["Push the standalone window back behind other parts of the UI so other parts of the UI can appear ontop."], nil, true, true },
 	{ "check", "PanelTabsToRight", L["Move Panel Tabs To Right"], L["Align the Pets, Teams, Queue and Options tabs to the right side of the standalone window."], nil, true, true },
-	{ "header", L["Appearance Options"], 3 },
+	{ "header", L["Appearance Options"]..newIcon, 3 },
 	{ "check", "SlimListButtons", L["Compact List Format"], L["Use an alternate style of lists for Pets, Teams, Queue and Targets to display more on the screen at once."], nil, true },
 	{ "check", "SlimListSmallText", L["Use Smaller Text Too"], L["Also use smaller text in the Compact List Format so more text displays on each button."], "SlimListButtons", true },
 	{ "check", "ColorPetNames", L["Color Pet Names By Rarity"], L["Make the names of pets you own the same color as its rarity. Blue for rare, green for uncommon, etc."], nil, true },
@@ -87,7 +87,9 @@ panel.opts = {
 	{ "check", "HideLevelBubbles", L["Hide Level At Max Level"], L["If a pet is level 25, don't show its level on the pet icon."], nil, true },
 	{ "check", "ShowAbilityNumbers", L["Show Ability Numbers"], L["In the ability flyout, show the numbers 1 and 2 to help with the common notation such as \"Pet Name 122\" to know which abilities to use."], nil, true },
 	{ "check", "ShowAbilityNumbersLoaded", L["On Loaded Abilities Too"], L["In addition to the flyouts, show the numbers 1 and 2 on loaded abilities."], "ShowAbilityNumbers", true },
-	{ "check", "PetTrackerLetterBreeds", L["Show Breeds As Text Not Icons"], L["Rather than use icons for PetTracker's breeds, display breeds in the more standard letter format such as B/B, H/P, etc.\n\n\124cffffffffNote:\124r This option only supports the later versions of PetTracker. Older PetTracker versions are not supported."], nil, true },
+	{ "check", "ShowNumericBreeds", L["Show Numeric Breeds"]..newIcon, L["Instead of text like H/H or P/B, show the numeric breed ID like 6 or 10."], nil, true },
+	{ "check", "PetTrackerLetterBreeds", L["Show Breeds As Text Not Icons"], L["Rather than use icons for PetTracker's breeds, display breeds in the more standard letter format such as B/B, H/P, etc.\n\nNote: Show Numeric Breeds takes precedence over this setting. (If both options are enabled, breeds will show as numbers.)"], nil, true },
+	{ "check", "PreferPetTrackerBreeds", L["Use Pet Tracker Breeds"]..newIcon, L["When both Battle Pet BreedID and PetTracker are enabled, use breeds from PetTracker."], nil, true },
 	{ "header", L["List Behavior Options"], 14 },
 	{ "check", "SlowMousewheelScroll", L["Slow Mousewheel Scroll"], L["In the Pets, Teams, Queue, Target and Options lists, mousewheel over the list will scroll one line at a time instead of a whole page at a time.\n\nYou can still scroll by pages by clicking above or below the scroll thumb."] },
 	{ "check", "RememberExpandedLists", L["Remember Expanded Lists"], L["In lists that can expand and collapse, such as Options or Targets, remember what was expanded when logging out or reloading; rather than starting with collapsed lists on login."] },
@@ -178,5 +180,6 @@ panel.opts = {
 for _,info in ipairs(panel.opts) do
 	if info[3] and type(info[3])=="string" and info[3]:match("NewFeatureIcon") then
 		tinsert(panel.opts,{ "text", format(L["The%s icon marks new options."],newIcon) })
+		break
 	end
 end

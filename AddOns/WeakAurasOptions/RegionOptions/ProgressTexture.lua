@@ -2,7 +2,7 @@ if not WeakAuras.IsLibsOK() then return end
 local AddonName, OptionsPrivate = ...
 
 local L = WeakAuras.L;
-local GetAtlasInfo = WeakAuras.IsClassic() and GetAtlasInfo or C_Texture.GetAtlasInfo
+local GetAtlasInfo = WeakAuras.IsClassicEra() and GetAtlasInfo or C_Texture.GetAtlasInfo
 
 local function createOptions(id, data)
   local options = {
@@ -27,7 +27,7 @@ local function createOptions(id, data)
           auraRotation = "auraRotation",
           mirror = "mirror",
           blendMode = "blendMode"
-        }, OptionsPrivate.Private.texture_types);
+        }, OptionsPrivate.Private.texture_types, nil, true)
       end,
       imageWidth = 24,
       imageHeight = 24,
@@ -55,7 +55,7 @@ local function createOptions(id, data)
           auraRotation = "auraRotation",
           mirror = "mirror",
           blendMode = "blendMode"
-        }, OptionsPrivate.Private.texture_types);
+        }, OptionsPrivate.Private.texture_types, nil, true)
       end,
       disabled = function() return data.sameTexture; end,
       imageWidth = 24,
@@ -860,7 +860,7 @@ local templates = {
   },
 }
 
-if WeakAuras.IsClassic() then
+if WeakAuras.IsClassicEra() then
   table.remove(templates, 2)
 end
 

@@ -1,6 +1,6 @@
 ﻿-- Pawn by Vger-Azjol-Nerub
 -- www.vgermods.com
--- © 2006-2022 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
+-- © 2006-2023 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
 -- See Readme.htm for more information.
 
 --
@@ -263,7 +263,7 @@ Pour plus d'information sur la Personnalisation de Pawn, regarder le fichier d'a
 		["Armor2"] = "^UNUSED$",
 		["ArmorPenetration"] = "^Équipé : Vos attaques ignorent # points de l'armure de votre adversaire%.$",
 		["ArmorPenetrationRating"] = "^Équipé : Augmente de # le score de pénétration d'armure%.$",
-		["ArmorPenetrationRating2"] = "^UNUSED$",
+		["ArmorPenetrationRating2"] = "^Équipé : Augmente de # la pénétration d'armure%.$",
 		["ArmorPenetrationShort"] = "^%+?# au score de pénétration d'armure$",
 		["Avoidance"] = "^%+# Évitement$",
 		["Axe"] = "^Hache$",
@@ -698,7 +698,7 @@ if VgerCore.IsClassic then
 	PawnLocal.ThousandsSeparator = "NBSP"
 	PawnLocal.DecimalSeparator = "."
 elseif VgerCore.IsWrath then
-	PawnLocal.ThousandsSeparator = "NBSP"
+	PawnLocal.ThousandsSeparator = ""
 	PawnLocal.DecimalSeparator = ","
 end
 

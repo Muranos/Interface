@@ -1,6 +1,6 @@
 if not WeakAuras.IsLibsOK() then return end
 
-if GetLocale() ~= "zhCN" then
+if (GAME_LOCALE or GetLocale()) ~= "zhCN" then
   return
 end
 
@@ -58,6 +58,8 @@ local L = WeakAuras.L
 	L["%s total auras"] = "共%s个光环"
 	L["%s Trigger Function"] = "%s 触发器函数"
 	L["%s Untrigger Function"] = "%s 取消触发函数"
+	L["%s X offset by %d"] = "%s X 轴偏移 %d"
+	L["%s Y offset by %d"] = "%s Y 轴偏移 %d"
 	L["%s Zoom: %d%%"] = "%s 缩放：%d%%"
 	L["%s, Border"] = "%s，边框"
 	L["%s, Offset: %0.2f;%0.2f"] = "%s，偏移：%0.2f; %0.2f"
@@ -73,14 +75,15 @@ local L = WeakAuras.L
 	L["|cFFFF0000default|r texture"] = "|cFFFF0000默认|r材质"
 	L["|cFFFF0000desaturated|r "] = "|cFFFF0000褪色|r"
 	L["|cFFFF0000Note:|r The unit '%s' is not a trackable unit."] = "|cFFFF0000注意：|r '%s' 不是一个可以追踪的单位。"
+	L["|cFFFF0000Note:|r The unit '%s' requires soft target cvars to be enabled."] = "|cFFFF0000注意：|r单位'%s'需要启用软目标CVar。"
 	L["|cFFffcc00Anchors:|r Anchored |cFFFF0000%s|r to frame's |cFFFF0000%s|r"] = "|cFFffcc00锚点：|r将|cFFFF0000%s|r对齐至框架的|cFFFF0000%s|r"
 	L["|cFFffcc00Anchors:|r Anchored |cFFFF0000%s|r to frame's |cFFFF0000%s|r with offset |cFFFF0000%s/%s|r"] = "|cFFffcc00锚点：|r将|cFFFF0000%s|r对齐至框架的|cFFFF0000%s|r，偏移|cFFFF0000%s/%s|r"
 	L["|cFFffcc00Anchors:|r Anchored to frame's |cFFFF0000%s|r"] = "|cFFffcc00锚点：|r对齐至框架的|cFFFF0000%s|r"
 	L["|cFFffcc00Anchors:|r Anchored to frame's |cFFFF0000%s|r with offset |cFFFF0000%s/%s|r"] = "|cFFffcc00锚点：|r对齐至框架的|cFFFF0000%s|r，偏移|cFFFF0000%s/%s|r"
 	L["|cFFffcc00Extra Options:|r"] = "|cFFffcc00额外选项：|r"
 	L["|cFFffcc00Extra:|r %s and %s %s"] = "|cFFffcc00额外：|r%s 并且 %s %s"
-	L["|cFFffcc00Font Flags:|r |cFFFF0000%s|r and shadow |c%sColor|r with offset |cFFFF0000%s/%s|r%s%s"] = "|cFFffcc00文字样式：|r|cFFFF0000%s|r，阴影|c%s颜色|r、偏移量|cFFFF0000%s/%s|r%s%s"
-	L["|cFFffcc00Font Flags:|r |cFFFF0000%s|r and shadow |c%sColor|r with offset |cFFFF0000%s/%s|r%s%s%s"] = "|cFFffcc00文字样式：|r|cFFFF0000%s|r，阴影|c%s颜色|r、偏移量|cFFFF0000%s/%s|r%s%s%s"
+	L["|cFFffcc00Font Flags:|r |cFFFF0000%s|r and shadow |c%sColor|r with offset |cFFFF0000%s/%s|r%s%s"] = "|cFFffcc00字体样式：|r|cFFFF0000%s|r，阴影|c%s颜色|r、偏移量|cFFFF0000%s/%s|r%s%s"
+	L["|cFFffcc00Font Flags:|r |cFFFF0000%s|r and shadow |c%sColor|r with offset |cFFFF0000%s/%s|r%s%s%s"] = "|cFFffcc00字体样式：|r|cFFFF0000%s|r，阴影|c%s颜色|r、偏移量|cFFFF0000%s/%s|r%s%s%s"
 	L["|cffffcc00Format Options|r"] = "|cffffcc00格式选项|r"
 	L[ [=[• |cff00ff00Player|r, |cff00ff00Target|r, |cff00ff00Focus|r, and |cff00ff00Pet|r correspond directly to those individual unitIDs.
 • |cff00ff00Specific Unit|r lets you provide a specific valid unitID to watch.
@@ -132,6 +135,7 @@ Enable this setting if you want this timer to be hidden, or when using a WeakAur
 	L["Align"] = "对齐"
 	L["Alignment"] = "对齐"
 	L["All of"] = "全部"
+	L["Allow Full Rotation"] = "允许完全旋转"
 	L["Alpha"] = "透明度"
 	L["Anchor"] = "锚点"
 	L["Anchor Point"] = "锚点指向"
@@ -168,8 +172,7 @@ Enable this setting if you want this timer to be hidden, or when using a WeakAur
 Off Screen]=] ] = "光环在屏幕外"
 	L["Aura Name"] = "光环名称"
 	L["Aura Name Pattern"] = "光环名称规则匹配"
-	--[[Translation missing --]]
-	L["Aura Order"] = "Aura Order"
+	L["Aura Order"] = "光环顺序"
 	L["Aura received from: %s"] = "从%s处接收光环"
 	L["Aura Type"] = "光环类型"
 	L["Aura: '%s'"] = "光环：'%s'"
@@ -188,8 +191,8 @@ Off Screen]=] ] = "光环在屏幕外"
 	L["Background Offset"] = "背景偏移"
 	L["Background Texture"] = "背景材质"
 	L["Bar Alpha"] = "进度条透明度"
-	L["Bar Color"] = "进度条颜色"
 	L["Bar Color Settings"] = "进度条颜色设置"
+	L["Bar Color/Gradient Start"] = "进度条颜色/渐变开始颜色"
 	L["Bar Texture"] = "进度条材质"
 	L["Big Icon"] = "大图标"
 	L["Blend Mode"] = "混合模式"
@@ -241,6 +244,7 @@ Off Screen]=] ] = "光环在屏幕外"
 	L["Column Height"] = "行高度"
 	L["Column Space"] = "行空间"
 	L["Columns"] = "列"
+	L["COMBAT_LOG_EVENT_UNFILTERED with no filter can trigger frame drops in raid environment."] = "无过滤的 COMBAT_LOG_EVENT_UNFILTERED 触发器会在团队副本中导致掉帧。"
 	L["Combinations"] = "组合"
 	L["Combine Matches Per Unit"] = "组合每个单位的匹配"
 	L["Common Text"] = "一般文本"
@@ -254,8 +258,7 @@ Off Screen]=] ] = "光环在屏幕外"
 	L["Control-click to select multiple displays"] = "按住 Control 并点击来选择多个光环"
 	L["Controls the positioning and configuration of multiple displays at the same time"] = "同时控制多个图示的位置和设定"
 	L["Convert to..."] = "转换为..."
-	--[[Translation missing --]]
-	L["Cooldown Numbers might be added by WoW. You can configure these in the game settings."] = "Cooldown Numbers might be added by WoW. You can configure these in the game settings."
+	L["Cooldown Numbers might be added by WoW. You can configure these in the game settings."] = "冷却文本可能会被WoW添加。你可以在游戏设置中调整。"
 	L["Cooldown Reduction changes the duration of seconds instead of showing the real time seconds."] = "冷却速度提高将改变每秒的持续时间，而并非显示真实的冷却时间。"
 	L["Copy"] = "拷贝"
 	L["Copy settings..."] = "拷贝设置"
@@ -302,6 +305,7 @@ UNIT_POWER, UNIT_AURA PLAYER_TARGET_CHANGED]=]
 	L["Debug Log:"] = "调试日志："
 	L["Default"] = "默认"
 	L["Default Color"] = "默认颜色"
+	L["Delay"] = "延迟"
 	L["Delete"] = "删除"
 	L["Delete all"] = "删除所有"
 	L["Delete children and group"] = "删除子项目和组"
@@ -352,13 +356,14 @@ UNIT_POWER, UNIT_AURA PLAYER_TARGET_CHANGED]=]
 	L["Enable \"swipe\" part of the overlay"] = "启用覆盖层的\"刷\""
 	L["Enable Debug Log"] = "启用调试日志"
 	L["Enable Debug Logging"] = "启用调试日志"
+	L["Enable Gradient"] = "启用渐变"
 	L["Enable Swipe"] = "启用冷却刷"
 	L["Enable the \"Swipe\" radial overlay"] = "启用冷却刷覆盖层"
 	L["Enabled"] = "启用"
 	L["End Angle"] = "结束角度"
 	L["End of %s"] = "%s 的结尾"
 	L["Enemy nameplate(s) found"] = "已找到的敌方姓名版"
-	L["Enter a Spell ID"] = "输入一个法术 ID"
+	L["Enter a Spell ID. You can use the addon idTip to determine spell ids."] = "输入一个法术 ID。你可以使用idTip插件来查看法术 ID。"
 	L["Enter an Aura Name, partial Aura Name, or Spell ID. A Spell ID will match any spells with the same name."] = "输入全部或部分光环名称，或者法术 ID。如果输入法术 ID，则会匹配所有具有相同名称的法术。"
 	L["Enter Author Mode"] = "进入作者模式"
 	L["Enter in a value for the tick's placement."] = "输入进度指示放置位置的值"
@@ -370,6 +375,7 @@ UNIT_POWER, UNIT_AURA PLAYER_TARGET_CHANGED]=]
 	L["Event Type"] = "事件类型"
 	L["Event(s)"] = "事件（复数）"
 	L["Everything"] = "全部"
+	L["Exact Item Match"] = "严格物品匹配"
 	L["Exact Spell ID(s)"] = "精确法术 ID"
 	L["Exact Spell Match"] = "严格法术匹配"
 	L["Expand"] = "展开"
@@ -441,6 +447,8 @@ Can use \ to escape -.]=] ] = [=[过滤格式：'名称'，'名称-服务器'，
 	L["Glow External Element"] = "发光外部元素"
 	L["Glow Frame Type"] = "发光框体类型"
 	L["Glow Type"] = "发光类型"
+	L["Gradient End"] = "渐变结束颜色"
+	L["Gradient Orientation"] = "渐变方向"
 	L["Green Rune"] = "绿色符文"
 	L["Grid direction"] = "盒方向"
 	L["Group"] = "组"
@@ -532,6 +540,7 @@ Can use \ to escape -.]=] ] = [=[过滤格式：'名称'，'名称-服务器'，
 	L["Indent Size"] = "缩进"
 	L["Information"] = "信息"
 	L["Inner"] = "内部"
+	L["Invalid Item ID"] = "无效的物品 ID"
 	L["Invalid Item Name/ID/Link"] = "无效的物品名称/ID/链接"
 	L["Invalid Spell ID"] = "无效的法术 ID"
 	L["Invalid Spell Name/ID/Link"] = "无效的法术名称/ID/链接"
@@ -552,8 +561,6 @@ Can use \ to escape -.]=] ] = [=[过滤格式：'名称'，'名称-服务器'，
 	L["Left"] = "左"
 	L["Left 2 HUD position"] = "左侧第二 HUD 位置"
 	L["Left HUD position"] = "左侧 HUD 位置"
-	--[[Translation missing --]]
-	L["Legacy Zoom Out"] = "Legacy Zoom Out"
 	L["Length"] = "长度"
 	L["Length of |cFFFF0000%s|r"] = "长度|cFFFF0000%s|r"
 	L["Limit"] = "限制"
@@ -571,6 +578,7 @@ Can use \ to escape -.]=] ] = [=[过滤格式：'名称'，'名称-服务器'，
 	L["Matches the height setting of a horizontal bar or width for a vertical bar."] = "符合水平进度条的高度设置，或者垂直进度条的宽度设置。"
 	L["Max"] = "最大"
 	L["Max Length"] = "最大长度"
+	L["Media Type"] = "媒体类型"
 	L["Medium Icon"] = "中等图标"
 	L["Message"] = "信息"
 	L["Message Prefix"] = "信息前缀"
@@ -618,6 +626,25 @@ Can use \ to escape -.]=] ] = [=[过滤格式：'名称'，'名称-服务器'，
 	L["Note: Automated Messages to SAY and YELL are blocked outside of Instances."] = "注意：无法在副本外自动发送“说”与“大喊”信息。"
 	L["Npc ID"] = "NPC ID"
 	L["Number of Entries"] = "条目数"
+	L[ [=[Occurence of the event, reset when aura is unloaded
+Can be a range of values
+Can have multiple values separated by a comma or a space
+
+Examples:
+2nd 5th and 6th events: 2, 5, 6
+2nd to 6th: 2-6
+every 2 events: /2
+every 3 events starting from 2nd: 2/3
+every 3 events starting from 2nd and ending at 11th: 2-11/3]=] ] = [=[事件发生的次数，光环不再加载时重置
+可以为值的范围
+可以有多个条目，由英文逗号或空格分隔
+
+例如：
+第二、第五和第六次事件：2, 5, 6
+第二到第六次事件：2-6
+每两次事件：/2
+从第二次开始每三次事件：2/3
+从第二到第十一次事件开始每三次事件：2-11/3]=]
 	L["Offer a guided way to create auras for your character"] = "提供为角色创建光环的指导"
 	L["Offset by |cFFFF0000%s|r/|cFFFF0000%s|r"] = "偏移|cFFFF0000%s|r/|cFFFF0000%s|r"
 	L["Offset by 1px"] = "偏移1px"
@@ -626,8 +653,8 @@ Can use \ to escape -.]=] ] = [=[过滤格式：'名称'，'名称-服务器'，
 	L["On Init"] = "初始化时"
 	L["On Show"] = "图示显示时"
 	L["Only Match auras cast by a player (not an npc)"] = "只匹配由玩家（而不是NPC）施放的光环"
-	L["Only match auras cast by people other than the player or his pet"] = "只匹配由不是玩家和玩家宠物施放的光环"
-	L["Only match auras cast by the player or his pet"] = "只匹配由玩家和玩家宠物施放的光环"
+	L["Only match auras cast by people other than the player or their pet"] = "只匹配由不是玩家自身或宠物施放的光环"
+	L["Only match auras cast by the player or their pet"] = "只匹配由玩家自身或宠物施放的光环"
 	L["Operator"] = "运算符"
 	L["Option %i"] = "选项 %i"
 	L["Option key"] = "选项键值"
@@ -703,13 +730,12 @@ Can use \ to escape -.]=] ] = [=[过滤格式：'名称'，'名称-服务器'，
 	L["Rotate In"] = "旋转进入"
 	L["Rotate Out"] = "旋转退出"
 	L["Rotate Text"] = "旋转文字"
-	--[[Translation missing --]]
-	L["Rotating a texture around arbitary angles used to require a zoom out. This is no longer required, this option only exist for compatibility with previous behaviour."] = "Rotating a texture around arbitary angles used to require a zoom out. This is no longer required, this option only exist for compatibility with previous behaviour."
 	L["Rotation"] = "旋转"
 	L["Rotation Mode"] = "旋转模式"
 	L["Row Space"] = "列空间"
 	L["Row Width"] = "列宽度"
 	L["Rows"] = "行"
+	L["Run on..."] = "运行于..."
 	L["Same"] = "相同"
 	L["Same texture as Foreground"] = "与前景材质相同"
 	L["Saved Data"] = "已储存数据"
@@ -809,14 +835,13 @@ Can use \ to escape -.]=] ] = [=[过滤格式：'名称'，'名称-服务器'，
 	L["Text Settings"] = "文本设置"
 	L["Texture"] = "材质"
 	L["Texture Info"] = "材质信息"
-	--[[Translation missing --]]
-	L["Texture Rotation"] = "Texture Rotation"
+	L["Texture Rotation"] = "材质旋转"
 	L["Texture Settings"] = "材质设置"
 	L["Texture Wrap"] = "材质折叠"
-	--[[Translation missing --]]
-	L["The addon ElvUI is enabled. It might add cooldown numbers to the swipe. You can configure these in the ElvUI settings"] = "The addon ElvUI is enabled. It might add cooldown numbers to the swipe. You can configure these in the ElvUI settings"
-	--[[Translation missing --]]
-	L["The addon OmniCC is enabled. It might add cooldown numbers to the swipe. You can configure these in the OmniCC settings"] = "The addon OmniCC is enabled. It might add cooldown numbers to the swipe. You can configure these in the OmniCC settings"
+	L["Texture X Offset"] = "材质 X 轴偏移"
+	L["Texture Y Offset"] = "材质 Y 轴偏移"
+	L["The addon ElvUI is enabled. It might add cooldown numbers to the swipe. You can configure these in the ElvUI settings"] = "插件ElvUI已启用。它可能会向冷却刷添加冷却文本。你可以在ElvUI设置中调整。"
+	L["The addon OmniCC is enabled. It might add cooldown numbers to the swipe. You can configure these in the OmniCC settings"] = "插件OmniCC已启用。它可能会向冷却刷添加冷却文本。你可以在OmniCC设置中调整。"
 	L["The duration of the animation in seconds."] = "动画持续秒数"
 	L["The duration of the animation in seconds. The finish animation does not start playing until after the display would normally be hidden."] = "动画时长秒时。直到显示内容可以被正常隐藏之后，结束动画才会播放。"
 	L["The type of trigger"] = "触发器类型"
@@ -889,8 +914,7 @@ It might not work correctly with your version!]=] ] = "此光环由更新版本�
 	L["Use Texture"] = "使用材质"
 	L["Used in Auras:"] = "在下列光环中被使用："
 	L["Used in auras:"] = "在下列光环中被使用："
-	--[[Translation missing --]]
-	L["Uses Texture Coordinates to rotate the texture."] = "Uses Texture Coordinates to rotate the texture."
+	L["Uses Texture Coordinates to rotate the texture."] = "使用材质坐标以旋转材质"
 	L["Uses UnitIsVisible() to check if in range. This is polled every second."] = "使用UnitIsVisible()检查是否在范围内，每秒检查一次。"
 	L["Value %i"] = "值 %i"
 	L["Values are in normalized rgba format."] = "数值为标准化的 RGBA 格式"
@@ -922,6 +946,10 @@ It might not work correctly with your version!]=] ] = "此光环由更新版本�
 	L["You already have this group/aura. Importing will create a duplicate."] = "此组/光环已经存在，继续导入将会创建副本。"
 	L["You are about to delete %d aura(s). |cFFFF0000This cannot be undone!|r Would you like to continue?"] = "正在删除 %d 个光环，|cFFFF0000此操作无法被撤销！|r真的要删除吗?"
 	L["You are about to delete a trigger. |cFFFF0000This cannot be undone!|r Would you like to continue?"] = "你正在删除一个触发器。|cFFFF0000这个操作无法撤销！|r你要继续吗？"
+	L[ [=[You can add a comma-separated list of state values here that (when changed) WeakAuras should also run the Grow Code on.
+
+WeakAuras will always run custom grow code if you include 'changed' in this list, or when a region is added, removed, or re-ordered.]=] ] = "你可以添加一个由英文逗号分隔的状态键列表，当它对应的值被改变时，WeakAuras将运行自定义发光代码。WeakAuras总是在状态被标记为已改变，或者一个框体被添加、删除、重新排序时运行自定义发光代码。"
+	L["You can add a comma-separated list of state values here that (when changed) WeakAuras should also run the sort code on.WeakAuras will always run custom sort code if you include 'changed' in this list, or when a region is added, removed."] = "你可以添加一个由英文逗号分隔的状态键列表，当它对应的值被改变时，WeakAuras将运行自定义排序代码。WeakAuras总是在状态被标记为已改变，或者一个框体被添加、删除时运行自定义排序代码。"
 	L["Your Saved Snippets"] = "已保存片段"
 	L["Z Offset"] = "Z 偏移"
 	L["Z Rotation"] = "Z轴旋转"

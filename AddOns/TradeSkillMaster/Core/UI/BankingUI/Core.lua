@@ -4,14 +4,16 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
 local BankingUI = TSM.UI:NewPackage("BankingUI")
+local Environment = TSM.Include("Environment")
 local L = TSM.Include("Locale").GetTable()
 local FSM = TSM.Include("Util.FSM")
 local TempTable = TSM.Include("Util.TempTable")
 local Log = TSM.Include("Util.Log")
 local Settings = TSM.Include("Service.Settings")
 local UIElements = TSM.Include("UI.UIElements")
+local UIUtils = TSM.Include("UI.UIUtils")
 local private = {
 	settings = nil,
 	fsm = nil,
@@ -62,7 +64,7 @@ end
 -- ============================================================================
 
 function private.CreateMainFrame()
-	TSM.UI.AnalyticsRecordPathChange("banking")
+	UIUtils.AnalyticsRecordPathChange("banking")
 	local frame = UIElements.New("ApplicationFrame", "base")
 		:SetParent(UIParent)
 		:SetSettingsContext(private.settings, "frame")
@@ -110,10 +112,7 @@ function private.CreateMainFrame()
 				:SetQuery(TSM.Groups.CreateQuery(), private.settings.tab)
 				:SetSearchString(private.groupSearch)
 			)
-			:AddChild(UIElements.New("Texture", "line")
-				:SetHeight(2)
-				:SetTexture("ACTIVE_BG")
-			)
+			:AddChild(UIElements.New("HorizontalLine", "line"))
 			:AddChild(UIElements.New("Frame", "footer")
 				:SetLayout("VERTICAL")
 				:SetHeight(170)
@@ -161,7 +160,7 @@ function private.GetSettingsContextKey()
 end
 
 function private.UpdateCurrentModule(frame)
-	if not TSM.IsWowClassic() then
+	if Environment.HasFeature(Environment.FEATURES.REAGENT_BANK) then
 		ReagentBankFrame_OnShow(ReagentBankFrame)
 	end
 	-- update nav buttons
@@ -214,7 +213,7 @@ function private.UpdateCurrentModule(frame)
 			:SetHeight(24)
 			:SetMargin(0, 0, 8, 0)
 			:SetFont("BODY_BODY2_MEDIUM")
-			:SetDisabled(TSM.IsWowClassic())
+			:SetDisabled(not Environment.HasFeature(Environment.FEATURES.REAGENT_BANK))
 			:SetText(L["Deposit reagents"])
 			:SetScript("OnClick", private.WarehousingDepositReagentsBtnOnClick)
 		)
@@ -327,7 +326,7 @@ end
 -- ============================================================================
 
 function private.BaseFrameOnHide()
-	TSM.UI.AnalyticsRecordClose("banking")
+	UIUtils.AnalyticsRecordClose("banking")
 end
 
 function private.CloseBtnOnClick(button)
@@ -425,7 +424,7 @@ function private.FSMCreate()
 			footerButtonsFrame:GetElement("restockBagsBtn")
 				:SetDisabled(context.progress)
 			footerButtonsFrame:GetElement("depositReagentsBtn")
-				:SetDisabled(context.progress or TSM.IsWowClassic())
+				:SetDisabled(context.progress or not Environment.HasFeature(Environment.FEATURES.REAGENT_BANK))
 			footerButtonsFrame:GetElement("row4.emptyBagsBtn")
 				:SetDisabled(context.progress)
 			footerButtonsFrame:GetElement("row4.restoreBagsBtn")

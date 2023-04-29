@@ -4,7 +4,7 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
 local Transactions = TSM.MainUI.Ledger.Common:NewPackage("Transactions")
 local L = TSM.Include("Locale").GetTable()
 local Money = TSM.Include("Util.Money")
@@ -14,6 +14,7 @@ local Theme = TSM.Include("Util.Theme")
 local ItemInfo = TSM.Include("Service.ItemInfo")
 local Settings = TSM.Include("Service.Settings")
 local UIElements = TSM.Include("UI.UIElements")
+local UIUtils = TSM.Include("UI.UIUtils")
 local SECONDS_PER_DAY = 24 * 60 * 60
 local private = {
 	settings = nil,
@@ -34,7 +35,7 @@ do
 	for _, key in ipairs(TYPE_KEYS) do
 		private.typeFilter[key] = true
 	end
-	for i = 1, 4 do
+	for i = 0, 5 do
 		tinsert(private.rarityList, _G[format("ITEM_QUALITY%d_DESC", i)])
 		private.rarityFilter[i] = true
 	end
@@ -62,13 +63,13 @@ end
 -- ============================================================================
 
 function private.DrawPurchasesPage()
-	TSM.UI.AnalyticsRecordPathChange("main", "ledger", "expenses", "purchases")
+	UIUtils.AnalyticsRecordPathChange("main", "ledger", "expenses", "purchases")
 	private.type = "buy"
 	return private.DrawTransactionPage()
 end
 
 function private.DrawSalesPage()
-	TSM.UI.AnalyticsRecordPathChange("main", "ledger", "revenue", "sales")
+	UIUtils.AnalyticsRecordPathChange("main", "ledger", "revenue", "sales")
 	private.type = "sale"
 	return private.DrawTransactionPage()
 end
@@ -87,7 +88,8 @@ function private.DrawTransactionPage()
 	end
 
 	private.query:Reset()
-		:InnerJoin(ItemInfo.GetDBForJoin(), "itemString")
+		:VirtualField("name", "string", ItemInfo.GetName, "itemString", "?")
+		:VirtualField("quality", "number", ItemInfo.GetQuality, "itemString", 0)
 		:LeftJoin(TSM.Groups.GetItemDBForJoin(), "itemString")
 		:VirtualField("total", "number", private.GetTotal)
 		:VirtualField("auctions", "number", private.GetAuctions)
@@ -156,7 +158,7 @@ function private.DrawTransactionPage()
 					:SetTitle(L["Item"])
 					:SetFont("ITEM_BODY3")
 					:SetJustifyH("LEFT")
-					:SetTextInfo("itemString", TSM.UI.GetColoredItemName)
+					:SetTextInfo("itemString", UIUtils.GetDisplayItemName)
 					:SetTooltipInfo("itemString")
 					:SetSortInfo("name")
 					:DisableHiding()
@@ -214,10 +216,7 @@ function private.DrawTransactionPage()
 			:SetQuery(private.query)
 			:SetScript("OnRowClick", private.TableSelectionChanged)
 		)
-		:AddChild(UIElements.New("Texture", "line")
-			:SetHeight(2)
-			:SetTexture("ACTIVE_BG")
-		)
+		:AddChild(UIElements.New("HorizontalLine", "line"))
 		:AddChild(UIElements.New("Frame", "footer")
 			:SetLayout("HORIZONTAL")
 			:SetHeight(40)
@@ -228,15 +227,13 @@ function private.DrawTransactionPage()
 				:SetFont("BODY_BODY2_MEDIUM")
 				:SetText(format(private.type == "sale" and L["%s Items Sold"] or L["%s Items Bought"], Theme.GetColor("INDICATOR"):ColorText(FormatLargeNumber(numItems))))
 			)
-			:AddChild(UIElements.New("Texture", "line")
+			:AddChild(UIElements.New("VerticalLine", "line")
 				:SetMargin(4, 8, 0, 0)
-				:SetWidth(2)
-				:SetTexture("ACTIVE_BG")
 			)
 			:AddChild(UIElements.New("Text", "profit")
 				:SetWidth("AUTO")
 				:SetFont("BODY_BODY2_MEDIUM")
-				:SetText(format(L["%s Total"], Money.ToString(total)))
+				:SetText(format(L["%s Total"], Money.ToString(total, nil, "OPT_RETAIL_ROUND")))
 			)
 			:AddChild(UIElements.New("Spacer", "spacer"))
 		)
@@ -249,7 +246,7 @@ end
 -- ============================================================================
 
 function private.TableGetPriceText(price)
-	return Money.ToString(price)
+	return Money.ToString(price, nil, "OPT_RETAIL_ROUND")
 end
 
 function private.TableGetTimeframeText(record)
@@ -270,7 +267,7 @@ function private.DropdownCommonOnSelectionChanged(dropdown)
 		:UpdateData(true)
 	local footer = dropdown:GetElement("__parent.__parent.footer")
 	footer:GetElement("num"):SetText(format(private.type == "sale" and L["%s Items Sold"] or L["%s Items Bought"], Theme.GetColor("INDICATOR"):ColorText(FormatLargeNumber(numItems))))
-	footer:GetElement("profit"):SetText(format(L["%s Total"], Money.ToString(total)))
+	footer:GetElement("profit"):SetText(format(L["%s Total"], Money.ToString(total, nil, "OPT_RETAIL_ROUND")))
 	footer:Draw()
 end
 

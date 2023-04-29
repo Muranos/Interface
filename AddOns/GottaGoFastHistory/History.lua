@@ -24,12 +24,11 @@ function GottaGoFastHistory:StoreRun(cCM)
 
       -- Get Date Info
       local hours, mins = GetGameTime();
-      local dateInfo = C_Calendar.GetDate();
-
+      local year, month, day, weekday, hours, mins = C_DateAndTime.GetCurrentCalendarTime();
       local deaths = cCM["Deaths"];
       local startTime = cCM["StartTime"];
       local endTime = GetTime();
-      local timeStamp = GottaGoFastHistory.Models.TimeStamp.New(dateInfo.month, dateInfo.monthDay, dateInfo.year, hours, mins);
+      local timeStamp = GottaGoFastHistory.Models.TimeStamp.New(month, day, year, hours, mins);
       local level = cCM["Level"];
       local objectiveTimes = cCM["ObjectiveTimes"];
       local affixes = cCM["Affixes"];

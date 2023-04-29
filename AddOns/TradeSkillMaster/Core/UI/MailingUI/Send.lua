@@ -4,7 +4,7 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
 local Send = TSM.UI.MailingUI:NewPackage("Send")
 local L = TSM.Include("Locale").GetTable()
 local Delay = TSM.Include("Util.Delay")
@@ -21,6 +21,7 @@ local BagTracking = TSM.Include("Service.BagTracking")
 local PlayerInfo = TSM.Include("Service.PlayerInfo")
 local DefaultUI = TSM.Include("Service.DefaultUI")
 local UIElements = TSM.Include("UI.UIElements")
+local UIUtils = TSM.Include("UI.UIUtils")
 local private = {
 	fsm = nil,
 	frame = nil,
@@ -32,6 +33,7 @@ local private = {
 	money = 0,
 	isMoney = true,
 	isCOD = false,
+	mailShowingTimer = nil,
 }
 local PLAYER_NAME = UnitName("player")
 local PLAYER_NAME_REALM = gsub(PLAYER_NAME.."-"..GetRealmName(), "%s+", "")
@@ -44,6 +46,7 @@ local MAX_COD_AMOUNT = 10000 * COPPER_PER_GOLD
 -- ============================================================================
 
 function Send.OnInitialize()
+	private.mailShowingTimer = Delay.CreateTimer("MAILING_SEND_MAIL_SHOWING", function() SetSendMailShowing(true) end)
 	private.FSMCreate()
 	TSM.UI.MailingUI.RegisterTopLevelPage(L["Send"], private.GetSendFrame)
 
@@ -65,7 +68,7 @@ end
 -- ============================================================================
 
 function private.GetSendFrame()
-	TSM.UI.AnalyticsRecordPathChange("mailing", "send")
+	UIUtils.AnalyticsRecordPathChange("mailing", "send")
 	local frame = UIElements.New("Frame", "send")
 		:SetLayout("VERTICAL")
 		:AddChild(UIElements.New("Frame", "container")
@@ -143,7 +146,7 @@ function private.GetSendFrame()
 							:SetFont("ITEM_BODY3")
 							:SetJustifyH("LEFT")
 							:SetIconSize(12)
-							:SetTextInfo("itemString", TSM.UI.GetColoredItemName)
+							:SetTextInfo("itemString", UIUtils.GetDisplayItemName)
 							:SetIconInfo("itemString", ItemInfo.GetTexture)
 							:SetTooltipInfo("itemString")
 							:SetTooltipLinkingDisabled(true)
@@ -162,10 +165,7 @@ function private.GetSendFrame()
 					:SetScript("OnRowClick", private.QueryOnRowClick)
 					:SetScript("OnDataUpdated", private.SendOnDataUpdated)
 				)
-				:AddChild(UIElements.New("Texture", "line")
-					:SetHeight(2)
-					:SetTexture("ACTIVE_BG")
-				)
+				:AddChild(UIElements.New("HorizontalLine", "line"))
 				:AddChild(UIElements.New("Frame", "footer")
 					:SetLayout("HORIZONTAL")
 					:SetHeight(26)
@@ -180,7 +180,7 @@ function private.GetSendFrame()
 					:AddChild(UIElements.New("Texture", "vline")
 						:SetWidth(1)
 						:SetMargin(8, 8, 3, 3)
-						:SetTexture("ACTIVE_BG_ALT")
+						:SetColor("ACTIVE_BG_ALT")
 						:Hide()
 					)
 					:AddChild(UIElements.New("Text", "postage")
@@ -191,10 +191,7 @@ function private.GetSendFrame()
 					)
 				)
 			)
-			:AddChild(UIElements.New("Texture", "line")
-				:SetHeight(2)
-				:SetTexture("ACTIVE_BG")
-			)
+			:AddChild(UIElements.New("HorizontalLine", "line"))
 			:AddChild(UIElements.New("Frame", "check")
 				:SetLayout("HORIZONTAL")
 				:SetHeight(20)
@@ -203,7 +200,6 @@ function private.GetSendFrame()
 					:SetWidth("AUTO")
 					:SetMargin(0, 0, 1, 0)
 					:SetFont("BODY_BODY2")
-					:SetCheckboxPosition("LEFT")
 					:SetChecked(private.isMoney)
 					:SetText(L["Send Money"])
 					:SetScript("OnValueChanged", private.SendOnValueChanged)
@@ -217,7 +213,6 @@ function private.GetSendFrame()
 				:AddChild(UIElements.New("Checkbox", "cod")
 					:SetSize("AUTO", 20)
 					:SetFont("BODY_BODY2")
-					:SetCheckboxPosition("LEFT")
 					:SetChecked(private.isCOD)
 					:SetText(L["Make Cash On Delivery?"])
 					:SetDisabled(true)
@@ -241,10 +236,7 @@ function private.GetSendFrame()
 				)
 			)
 		)
-		:AddChild(UIElements.New("Texture", "line")
-			:SetHeight(2)
-			:SetTexture("ACTIVE_BG")
-		)
+		:AddChild(UIElements.New("HorizontalLine", "line"))
 		:AddChild(UIElements.New("Frame", "footer")
 			:SetLayout("HORIZONTAL")
 			:SetHeight(40)
@@ -692,7 +684,7 @@ function private.FSMCreate()
 		if size > 0 then
 			postage:SetText(L["Total Postage"]..": "..Money.ToString(30 * size))
 				:Draw()
-			items:SetText(format(L["%s Items Selected"], Theme.GetFeedbackColor("GREEN"):ColorText(size.."/"..ATTACHMENTS_MAX_SEND)))
+			items:SetText(format(L["%s Items Selected"], Theme.GetColor("FEEDBACK_GREEN"):ColorText(size.."/"..ATTACHMENTS_MAX_SEND)))
 				:Show()
 				:Draw()
 			line:Show()
@@ -767,10 +759,6 @@ function private.FSMCreate()
 		UpdateFrame(context)
 	end
 
-	local function SendMailShowing()
-		SetSendMailShowing(true)
-	end
-
 	private.fsm = FSM.New("MAILING_SEND")
 		:AddState(FSM.NewState("ST_HIDDEN")
 			:SetOnEnter(function(context)
@@ -787,7 +775,7 @@ function private.FSMCreate()
 				if not context.frame then
 					context.frame = frame
 					UpdateFrame(context)
-					Delay.AfterFrame("setMailShowing", 2, SendMailShowing)
+					private.mailShowingTimer:RunForFrames(2)
 				end
 				UpdateButton(context)
 			end)

@@ -1,4 +1,3 @@
-
 --------------------------------------------------------------------------------
 -- Module Declaration
 --
@@ -8,6 +7,7 @@ if not mod then return end
 mod:RegisterEnableMob(190496) -- Terros
 mod:SetEncounterID(2639)
 mod:SetRespawnTime(30)
+mod:SetStage(1)
 
 --------------------------------------------------------------------------------
 -- Locals
@@ -32,6 +32,10 @@ if L then
 	L.shattering_impact = "Slam"
 	L.concussive_slam = "Tank Line"
 	L.infused_fallout = "Dust"
+
+	L.custom_on_repeating_fallout = "Repeating Infused Fallout"
+	L.custom_on_repeating_fallout_icon = 391592
+	L.custom_on_repeating_fallout_desc = "Repeating Infused Fallout say messages with icon {rt7} to find a partner."
 end
 
 --------------------------------------------------------------------------------
@@ -52,15 +56,17 @@ function mod:GetOptions()
 		388393, -- Tectonic Barrage
 		-- Mythic
 		391592, -- Infused Fallout
+		"custom_on_repeating_fallout",
 	},{
 		[391306] = CL.mythic,
 	},{
 		[380487] = L.rock_blast, -- Rock Blast (Soak)
 		[377166] = L.resonating_annihilation, -- Resonating Annihilation (Annihilation)
 		[381315] = L.awakened_earth, -- Awakened Earth (Pillar)
-		[376279] = L.shattering_impact, -- Shattering Impact (Slam)
+		[383073] = L.shattering_impact, -- Shattering Impact (Slam)
 		[376279] = L.concussive_slam, -- Concussive Slam (Tank Line)
 		[391592] = L.infused_fallout, -- Reactive Dust (Dust)
+		["custom_on_repeating_fallout"] = L.infused_fallout, -- Repeating Infused Fallout (Dust)
 	}
 end
 
@@ -87,6 +93,7 @@ function mod:OnBossEnable()
 	-- Mythic
 	self:Log("SPELL_CAST_START", "InfusedFallout", 396351)
 	self:Log("SPELL_AURA_APPLIED", "InfusedFalloutApplied", 391592)
+	self:Log("SPELL_AURA_REMOVED", "InfusedFalloutRemoved", 391592)
 end
 
 function mod:OnEngage()
@@ -97,12 +104,12 @@ function mod:OnEngage()
 	frenziedfDevastationCount = 1
 	infusedFalloutCount = 1
 
-	self:Bar(380487, 6, CL.count:format(L.rock_blast, rockBlastCount)) -- Rock Blast
-	self:Bar(376279, 14, CL.count:format(L.concussive_slam, concussiveSlamCount)) -- Concussive Slam
-	self:Bar(383073, 27, CL.count:format(L.shattering_impact, shatteringImpactCount)) -- Shattering Impact
-	self:Bar(377166, 90, CL.count:format(L.resonating_annihilation, resonatingAnnihilationCount)) -- Resonating Annihilation
+	self:Bar(380487, self:Mythic() and 3 or 6, CL.count:format(L.rock_blast, rockBlastCount)) -- Rock Blast
+	self:Bar(376279, self:Mythic() and 11 or 16, CL.count:format(L.concussive_slam, concussiveSlamCount)) -- Concussive Slam
+	self:Bar(383073, self:Mythic() and 23 or 27, CL.count:format(L.shattering_impact, shatteringImpactCount)) -- Shattering Impact
+	self:Bar(377166, self:Mythic() and 88 or 90, CL.count:format(L.resonating_annihilation, resonatingAnnihilationCount)) -- Resonating Annihilation
 	if self:Mythic() then
-		self:Bar(391592, 28, CL.count:format(L.infused_fallout, infusedFalloutCount)) -- Infused Fallout
+		self:Bar(391592, 28.7, CL.count:format(L.infused_fallout, infusedFalloutCount)) -- Infused Fallout
 	end
 end
 
@@ -115,8 +122,14 @@ do
 	function mod:RockBlast(args)
 		self:StopBar(CL.count:format(L.rock_blast, rockBlastCount))
 		rockBlastCount = rockBlastCount + 1
-		if shatteringImpactCount < 9 then -- Soft Enrage after
-			self:Bar(args.spellId, rockBlastCount % 2 == 0 and 42.0 or 54.5, CL.count:format(L.rock_blast, rockBlastCount))
+		if shatteringImpactCount < 9 then -- Soft Enrage after 8
+			local cd = 0
+			if self:Mythic() then
+				cd = rockBlastCount % 2 == 0 and 43.0 or 53.5
+			else
+				cd = rockBlastCount % 2 == 0 and 42.0 or 54.5
+			end
+			self:Bar(380487, cd, CL.count:format(L.rock_blast, rockBlastCount))
 		end
 		count = 1
 	end
@@ -139,7 +152,7 @@ do
 			self:PersonalMessage(381315, nil , L.awakened_earth)
 			self:PlaySound(381315, "warning")
 			self:Say(381315, CL.count_rticon:format(L.awakened_earth, count, count))
-			self:SayCountdown(381315, 6, count)
+			self:SayCountdown(381315, 6)
 		end
 		self:CustomIcon(awakenedEarthMarker, args.destName, count)
 		count = count + 1
@@ -157,7 +170,6 @@ function mod:ResonatingAnnihilation(args)
 	self:StopBar(CL.count:format(L.resonating_annihilation, resonatingAnnihilationCount))
 	self:Message(args.spellId, "red", CL.count:format(L.resonating_annihilation, resonatingAnnihilationCount))
 	self:PlaySound(args.spellId, "long")
-	-- self:CastBar(args.spellId, 6.5)
 	resonatingAnnihilationCount = resonatingAnnihilationCount + 1
 	if resonatingAnnihilationCount < 5 then -- Only 4
 		self:Bar(args.spellId, 96.5, CL.count:format(L.resonating_annihilation, resonatingAnnihilationCount))
@@ -169,7 +181,7 @@ function mod:ShatteringImpact(args)
 	self:Message(args.spellId, "yellow", CL.count:format(L.shattering_impact, shatteringImpactCount))
 	self:PlaySound(args.spellId, "alarm")
 	shatteringImpactCount = shatteringImpactCount + 1
-	if shatteringImpactCount < 9 then -- Soft Enrage after
+	if shatteringImpactCount < 9 then -- Soft Enrage after 8
 		self:Bar(args.spellId, shatteringImpactCount % 2 == 0 and 42.0 or 54.5, CL.count:format(L.shattering_impact, shatteringImpactCount))
 	end
 end
@@ -179,8 +191,13 @@ function mod:ConcussiveSlam(args)
 	self:Message(args.spellId, "purple", CL.count:format(L.concussive_slam, concussiveSlamCount))
 	self:PlaySound(args.spellId, "alert")
 	concussiveSlamCount = concussiveSlamCount + 1
-	if concussiveSlamCount < 17 then -- Soft Enrage after
-		local cd = concussiveSlamCount % 4 == 1 and 34.5 or concussiveSlamCount % 4 == 3 and 22 or 20
+	if concussiveSlamCount < 17 then -- Soft Enrage after 16
+		local cd = 0
+		if self:Mythic() then
+			cd = concussiveSlamCount % 2 == 0 and 23 or concussiveSlamCount % 4 == 1 and 31.5 or 19.0
+		else
+			cd = concussiveSlamCount % 4 == 1 and 36.5 or concussiveSlamCount % 4 == 3 and 24 or 18
+		end
 		self:Bar(args.spellId, cd, CL.count:format(L.concussive_slam, concussiveSlamCount))
 	end
 end
@@ -230,20 +247,49 @@ do
 end
 
 -- Mythic
-function mod:InfusedFallout(args)
-	self:StopBar(CL.count:format(L.infused_fallout, infusedFalloutCount))
-	self:Message(391592, "yellow", CL.count:format(L.infused_fallout, infusedFalloutCount))
-	self:PlaySound(391592, "alert")
-	infusedFalloutCount = infusedFalloutCount + 1
-	if infusedFalloutCount < 12 then -- Soft Enrage after
-		local cd = infusedFalloutCount % 3 == 1 and 29 or infusedFalloutCount % 3 == 2 and 42 or 25
-		self:Bar(391592, cd, CL.count:format(L.infused_fallout, infusedFalloutCount))
+do
+	local isOnMe = false
+	local sayTimer = nil
+	function mod:InfusedFallout(args)
+		self:StopBar(CL.count:format(L.infused_fallout, infusedFalloutCount))
+		self:Message(391592, "yellow", CL.count:format(L.infused_fallout, infusedFalloutCount))
+		self:PlaySound(391592, "alert")
+		infusedFalloutCount = infusedFalloutCount + 1
+		if infusedFalloutCount < 12 then -- Soft Enrage after 11
+			local cd = infusedFalloutCount % 3 == 1 and 29 or infusedFalloutCount % 3 == 2 and 42 or 25
+			self:Bar(391592, cd, CL.count:format(L.infused_fallout, infusedFalloutCount))
+		end
 	end
-end
 
-function mod:InfusedFalloutApplied(args)
-	if self:Me(args.destGUID) then
-		self:PersonalMessage(args.spellId, nil, L.infused_fallout)
-		self:PlaySound(args.spellId, "warning")
+	local function warnOnMe(self)
+		if isOnMe then
+			-- wasn't instantly cleared, show warnings for applied/removed
+			self:PersonalMessage(391592, nil, L.infused_fallout)
+			self:PlaySound(391592, "warning") -- debuffmove
+			if self:GetOption("custom_on_repeating_fallout") then
+				sayTimer = self:ScheduleRepeatingTimer("Say", 1.5, false, "{rt7}", true)
+			end
+		end
+	end
+
+	function mod:InfusedFalloutApplied(args)
+		if self:Me(args.destGUID) then
+			isOnMe = true
+			self:ScheduleTimer(warnOnMe, 1, self)
+		end
+	end
+
+	function mod:InfusedFalloutRemoved(args)
+		if self:Me(args.destGUID) then
+			if isOnMe then
+				self:Message(391592, "green", CL.removed:format(L.infused_fallout))
+				self:PlaySound(391592, "info")
+				isOnMe = false
+			end
+			if sayTimer then
+				self:CancelTimer(sayTimer)
+				sayTimer = nil
+			end
+		end
 	end
 end

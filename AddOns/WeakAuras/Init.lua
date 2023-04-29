@@ -35,7 +35,8 @@ Private.frames = {}
 --- @field CanHaveTooltip fun(data: auraData): boolean
 --- @field ContainsCustomPlaceHolder fun(input: string): boolean
 --- @field ContainsAnyPlaceHolders fun(input: string): boolean
---- @field ContainsPlaceHolders fun(input: string, placeholders: string): boolean
+--- @field ContainsPlaceHolders fun(input: string, placeholders: string, checkDoublePercent?: boolean): boolean
+--- @field CreateSubscribableObject fun(): SubscribableObject
 --- @field clones table<auraId, table<string, table>>
 --- @field customActionsFunctions table<auraId, table<string, function?>>
 --- @field DebugLog debugLog
@@ -50,6 +51,7 @@ Private.frames = {}
 --- @field glow_types table<string, string>
 --- @field inverse_point_types table<string, string>
 --- @field IsCLEUSubevent fun(subevent: string): boolean
+--- @field IsDragonriding fun(): boolean
 --- @field item_slot_types string[]
 --- @field LibSpecWrapper LibSpecWrapper
 --- @field linked table<auraId, number>
@@ -296,8 +298,8 @@ WeakAuras.halfWidth = WeakAuras.normalWidth / 2
 WeakAuras.doubleWidth = WeakAuras.normalWidth * 2
 
 local versionStringFromToc = GetAddOnMetadata("WeakAuras", "Version")
-local versionString = "5.2.1"
-local buildTime = "20221127174915"
+local versionString = "5.4.4"
+local buildTime = "20230329172446"
 
 local flavorFromToc = GetAddOnMetadata("WeakAuras", "X-Flavor")
 local flavorFromTocToNumber = {
@@ -309,7 +311,7 @@ local flavorFromTocToNumber = {
 local flavor = flavorFromTocToNumber[flavorFromToc]
 
 --[==[@debug@
-if versionStringFromToc == "5.2.1" then
+if versionStringFromToc == "5.4.4" then
   versionStringFromToc = "Dev"
   buildTime = "Dev"
 end
@@ -320,13 +322,11 @@ WeakAuras.buildTime = buildTime
 WeakAuras.newFeatureString = "|TInterface\\OptionsFrame\\UI-OptionsFrame-NewFeatureIcon:0|t"
 WeakAuras.BuildInfo = select(4, GetBuildInfo())
 
-function WeakAuras.IsClassic()
+function WeakAuras.IsClassicEra()
   return flavor == 1
 end
-
-function WeakAuras.IsBCC()
-  return flavor == 2
-end
+-- save compatibility with old auras
+WeakAuras.IsClassic = WeakAuras.IsClassicEra
 
 function WeakAuras.IsWrathClassic()
   return flavor == 3
@@ -336,20 +336,8 @@ function WeakAuras.IsRetail()
   return flavor == 10
 end
 
-function WeakAuras.IsClassicOrBCC()
-  return WeakAuras.IsClassic() or WeakAuras.IsBCC()
-end
-
-function WeakAuras.IsClassicOrBCCOrWrath()
-  return WeakAuras.IsClassic() or WeakAuras.IsBCC() or WeakAuras.IsWrathClassic()
-end
-
-function WeakAuras.IsBCCOrWrath()
-  return WeakAuras.IsBCC() or WeakAuras.IsWrathClassic()
-end
-
-function WeakAuras.IsBCCOrWrathOrRetail()
-  return WeakAuras.IsBCC() or WeakAuras.IsWrathClassic() or WeakAuras.IsRetail()
+function WeakAuras.IsClassicEraOrWrath()
+  return WeakAuras.IsClassicEra() or WeakAuras.IsWrathClassic()
 end
 
 function WeakAuras.IsWrathOrRetail()
@@ -391,7 +379,7 @@ do
     "LibSerialize",
     "LibUIDropDownMenu-4.0"
   }
-  if WeakAuras.IsClassic() then
+  if WeakAuras.IsClassicEra() then
     tinsert(LibStubLibs, "LibClassicSpellActionCount-1.0")
     tinsert(LibStubLibs, "LibClassicCasterino")
     tinsert(LibStubLibs, "LibClassicDurations")

@@ -1,6 +1,6 @@
 if not WeakAuras.IsLibsOK() then return end
 
-if GetLocale() ~= "esMX" then
+if (GAME_LOCALE or GetLocale()) ~= "esMX" then
   return
 end
 
@@ -91,6 +91,10 @@ local L = WeakAuras.L
 	L["%s Trigger Function"] = "%s Trigger Function"
 	--[[Translation missing --]]
 	L["%s Untrigger Function"] = "%s Untrigger Function"
+	--[[Translation missing --]]
+	L["%s X offset by %d"] = "%s X offset by %d"
+	--[[Translation missing --]]
+	L["%s Y offset by %d"] = "%s Y offset by %d"
 	L["%s Zoom: %d%%"] = "%s Zoom: %d%%"
 	L["%s, Border"] = "%s, Borde"
 	L["%s, Offset: %0.2f;%0.2f"] = "%s, Desplazamiento: %0.2f;%0.2f"
@@ -111,6 +115,8 @@ local L = WeakAuras.L
 	L["|cFFFF0000desaturated|r "] = "|cFFFF0000desaturated|r "
 	--[[Translation missing --]]
 	L["|cFFFF0000Note:|r The unit '%s' is not a trackable unit."] = "|cFFFF0000Note:|r The unit '%s' is not a trackable unit."
+	--[[Translation missing --]]
+	L["|cFFFF0000Note:|r The unit '%s' requires soft target cvars to be enabled."] = "|cFFFF0000Note:|r The unit '%s' requires soft target cvars to be enabled."
 	--[[Translation missing --]]
 	L["|cFFffcc00Anchors:|r Anchored |cFFFF0000%s|r to frame's |cFFFF0000%s|r"] = "|cFFffcc00Anchors:|r Anchored |cFFFF0000%s|r to frame's |cFFFF0000%s|r"
 	--[[Translation missing --]]
@@ -190,6 +196,8 @@ Enable this setting if you want this timer to be hidden, or when using a WeakAur
 	L["Align"] = "Alinear"
 	L["Alignment"] = "Alineación"
 	L["All of"] = "Todos de"
+	--[[Translation missing --]]
+	L["Allow Full Rotation"] = "Allow Full Rotation"
 	L["Alpha"] = "Transparencia"
 	L["Anchor"] = "Anchor"
 	L["Anchor Point"] = "Punto de anclaje"
@@ -268,8 +276,9 @@ Off Screen]=]
 	L["Background Offset"] = "Desplazamiento del fondo"
 	L["Background Texture"] = "Textura de fondo"
 	L["Bar Alpha"] = "Transparencia de la barra"
-	L["Bar Color"] = "Color de la barra"
 	L["Bar Color Settings"] = "Propiedades del color de la barra"
+	--[[Translation missing --]]
+	L["Bar Color/Gradient Start"] = "Bar Color/Gradient Start"
 	L["Bar Texture"] = "Textura de la barra"
 	L["Big Icon"] = "Icono grande"
 	L["Blend Mode"] = "Modo de mezcla"
@@ -342,6 +351,8 @@ Off Screen]=]
 	--[[Translation missing --]]
 	L["Column Space"] = "Column Space"
 	L["Columns"] = "Columnas"
+	--[[Translation missing --]]
+	L["COMBAT_LOG_EVENT_UNFILTERED with no filter can trigger frame drops in raid environment."] = "COMBAT_LOG_EVENT_UNFILTERED with no filter can trigger frame drops in raid environment."
 	--[[Translation missing --]]
 	L["Combinations"] = "Combinations"
 	--[[Translation missing --]]
@@ -433,6 +444,8 @@ UNIT_POWER, UNIT_AURA PLAYER_TARGET_CHANGED]=]
 	L["Default"] = "Estándar"
 	--[[Translation missing --]]
 	L["Default Color"] = "Default Color"
+	--[[Translation missing --]]
+	L["Delay"] = "Delay"
 	L["Delete"] = "Eliminar"
 	L["Delete all"] = "Eliminar todo"
 	L["Delete children and group"] = "Eliminar dependientes y grupo"
@@ -499,6 +512,8 @@ UNIT_POWER, UNIT_AURA PLAYER_TARGET_CHANGED]=]
 	--[[Translation missing --]]
 	L["Enable Debug Logging"] = "Enable Debug Logging"
 	--[[Translation missing --]]
+	L["Enable Gradient"] = "Enable Gradient"
+	--[[Translation missing --]]
 	L["Enable Swipe"] = "Enable Swipe"
 	--[[Translation missing --]]
 	L["Enable the \"Swipe\" radial overlay"] = "Enable the \"Swipe\" radial overlay"
@@ -509,7 +524,7 @@ UNIT_POWER, UNIT_AURA PLAYER_TARGET_CHANGED]=]
 	--[[Translation missing --]]
 	L["Enemy nameplate(s) found"] = "Enemy nameplate(s) found"
 	--[[Translation missing --]]
-	L["Enter a Spell ID"] = "Enter a Spell ID"
+	L["Enter a Spell ID. You can use the addon idTip to determine spell ids."] = "Enter a Spell ID. You can use the addon idTip to determine spell ids."
 	--[[Translation missing --]]
 	L["Enter an Aura Name, partial Aura Name, or Spell ID. A Spell ID will match any spells with the same name."] = "Enter an Aura Name, partial Aura Name, or Spell ID. A Spell ID will match any spells with the same name."
 	--[[Translation missing --]]
@@ -530,6 +545,8 @@ UNIT_POWER, UNIT_AURA PLAYER_TARGET_CHANGED]=]
 	L["Event(s)"] = "Evento(s)"
 	--[[Translation missing --]]
 	L["Everything"] = "Everything"
+	--[[Translation missing --]]
+	L["Exact Item Match"] = "Exact Item Match"
 	--[[Translation missing --]]
 	L["Exact Spell ID(s)"] = "Exact Spell ID(s)"
 	--[[Translation missing --]]
@@ -650,6 +667,10 @@ Can use \ to escape -.]=]
 	L["Glow Frame Type"] = "Glow Frame Type"
 	--[[Translation missing --]]
 	L["Glow Type"] = "Glow Type"
+	--[[Translation missing --]]
+	L["Gradient End"] = "Gradient End"
+	--[[Translation missing --]]
+	L["Gradient Orientation"] = "Gradient Orientation"
 	L["Green Rune"] = "Runa verde"
 	--[[Translation missing --]]
 	L["Grid direction"] = "Grid direction"
@@ -798,6 +819,8 @@ Con |cFF00CC00>= 0|r se activará siempre.]=]
 	--[[Translation missing --]]
 	L["Inner"] = "Inner"
 	--[[Translation missing --]]
+	L["Invalid Item ID"] = "Invalid Item ID"
+	--[[Translation missing --]]
 	L["Invalid Item Name/ID/Link"] = "Invalid Item Name/ID/Link"
 	--[[Translation missing --]]
 	L["Invalid Spell ID"] = "Invalid Spell ID"
@@ -833,8 +856,6 @@ Con |cFF00CC00>= 0|r se activará siempre.]=]
 	L["Left 2 HUD position"] = "Posición izquierda 2 de visualización frontal (HUD)"
 	L["Left HUD position"] = "Posición izquierda de visualización frontal (HUD)"
 	--[[Translation missing --]]
-	L["Legacy Zoom Out"] = "Legacy Zoom Out"
-	--[[Translation missing --]]
 	L["Length"] = "Length"
 	--[[Translation missing --]]
 	L["Length of |cFFFF0000%s|r"] = "Length of |cFFFF0000%s|r"
@@ -864,6 +885,8 @@ Con |cFF00CC00>= 0|r se activará siempre.]=]
 	L["Max"] = "Max"
 	--[[Translation missing --]]
 	L["Max Length"] = "Max Length"
+	--[[Translation missing --]]
+	L["Media Type"] = "Media Type"
 	L["Medium Icon"] = "Icono mediano"
 	L["Message"] = "Mensaje"
 	L["Message Prefix"] = "Prefijo del mensaje"
@@ -935,6 +958,26 @@ Sólo un valor coincidente puede ser escogido.]=]
 	--[[Translation missing --]]
 	L["Number of Entries"] = "Number of Entries"
 	--[[Translation missing --]]
+	L[ [=[Occurence of the event, reset when aura is unloaded
+Can be a range of values
+Can have multiple values separated by a comma or a space
+
+Examples:
+2nd 5th and 6th events: 2, 5, 6
+2nd to 6th: 2-6
+every 2 events: /2
+every 3 events starting from 2nd: 2/3
+every 3 events starting from 2nd and ending at 11th: 2-11/3]=] ] = [=[Occurence of the event, reset when aura is unloaded
+Can be a range of values
+Can have multiple values separated by a comma or a space
+
+Examples:
+2nd 5th and 6th events: 2, 5, 6
+2nd to 6th: 2-6
+every 2 events: /2
+every 3 events starting from 2nd: 2/3
+every 3 events starting from 2nd and ending at 11th: 2-11/3]=]
+	--[[Translation missing --]]
 	L["Offer a guided way to create auras for your character"] = "Offer a guided way to create auras for your character"
 	--[[Translation missing --]]
 	L["Offset by |cFFFF0000%s|r/|cFFFF0000%s|r"] = "Offset by |cFFFF0000%s|r/|cFFFF0000%s|r"
@@ -947,9 +990,9 @@ Sólo un valor coincidente puede ser escogido.]=]
 	--[[Translation missing --]]
 	L["Only Match auras cast by a player (not an npc)"] = "Only Match auras cast by a player (not an npc)"
 	--[[Translation missing --]]
-	L["Only match auras cast by people other than the player or his pet"] = "Only match auras cast by people other than the player or his pet"
+	L["Only match auras cast by people other than the player or their pet"] = "Only match auras cast by people other than the player or their pet"
 	--[[Translation missing --]]
-	L["Only match auras cast by the player or his pet"] = "Only match auras cast by the player or his pet"
+	L["Only match auras cast by the player or their pet"] = "Only match auras cast by the player or their pet"
 	L["Operator"] = "Operador"
 	--[[Translation missing --]]
 	L["Option %i"] = "Option %i"
@@ -1072,8 +1115,6 @@ Sólo un valor coincidente puede ser escogido.]=]
 	L["Rotate In"] = "Rotar hacia adentro"
 	L["Rotate Out"] = "Rotar hacia afuera"
 	L["Rotate Text"] = "Rotar texto"
-	--[[Translation missing --]]
-	L["Rotating a texture around arbitary angles used to require a zoom out. This is no longer required, this option only exist for compatibility with previous behaviour."] = "Rotating a texture around arbitary angles used to require a zoom out. This is no longer required, this option only exist for compatibility with previous behaviour."
 	L["Rotation"] = "Rotación"
 	L["Rotation Mode"] = "Modo de rotación"
 	--[[Translation missing --]]
@@ -1082,6 +1123,8 @@ Sólo un valor coincidente puede ser escogido.]=]
 	L["Row Width"] = "Row Width"
 	--[[Translation missing --]]
 	L["Rows"] = "Rows"
+	--[[Translation missing --]]
+	L["Run on..."] = "Run on..."
 	L["Same"] = "Igual"
 	--[[Translation missing --]]
 	L["Same texture as Foreground"] = "Same texture as Foreground"
@@ -1242,6 +1285,10 @@ Sólo un valor coincidente puede ser escogido.]=]
 	L["Texture Settings"] = "Texture Settings"
 	--[[Translation missing --]]
 	L["Texture Wrap"] = "Texture Wrap"
+	--[[Translation missing --]]
+	L["Texture X Offset"] = "Texture X Offset"
+	--[[Translation missing --]]
+	L["Texture Y Offset"] = "Texture Y Offset"
 	--[[Translation missing --]]
 	L["The addon ElvUI is enabled. It might add cooldown numbers to the swipe. You can configure these in the ElvUI settings"] = "The addon ElvUI is enabled. It might add cooldown numbers to the swipe. You can configure these in the ElvUI settings"
 	--[[Translation missing --]]
@@ -1410,6 +1457,14 @@ It might not work correctly with your version!]=]
 	L["You are about to delete %d aura(s). |cFFFF0000This cannot be undone!|r Would you like to continue?"] = "You are about to delete %d aura(s). |cFFFF0000This cannot be undone!|r Would you like to continue?"
 	--[[Translation missing --]]
 	L["You are about to delete a trigger. |cFFFF0000This cannot be undone!|r Would you like to continue?"] = "You are about to delete a trigger. |cFFFF0000This cannot be undone!|r Would you like to continue?"
+	--[[Translation missing --]]
+	L[ [=[You can add a comma-separated list of state values here that (when changed) WeakAuras should also run the Grow Code on.
+
+WeakAuras will always run custom grow code if you include 'changed' in this list, or when a region is added, removed, or re-ordered.]=] ] = [=[You can add a comma-separated list of state values here that (when changed) WeakAuras should also run the Grow Code on.
+
+WeakAuras will always run custom grow code if you include 'changed' in this list, or when a region is added, removed, or re-ordered.]=]
+	--[[Translation missing --]]
+	L["You can add a comma-separated list of state values here that (when changed) WeakAuras should also run the sort code on.WeakAuras will always run custom sort code if you include 'changed' in this list, or when a region is added, removed."] = "You can add a comma-separated list of state values here that (when changed) WeakAuras should also run the sort code on.WeakAuras will always run custom sort code if you include 'changed' in this list, or when a region is added, removed."
 	--[[Translation missing --]]
 	L["Your Saved Snippets"] = "Your Saved Snippets"
 	L["Z Offset"] = "Posición de Z"

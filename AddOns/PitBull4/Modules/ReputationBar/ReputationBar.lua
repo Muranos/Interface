@@ -20,17 +20,11 @@ PitBull4_ReputationBar:SetDefaults({
 	position = 3,
 })
 
-function PitBull4_ReputationBar:OnInitialize()
-	hooksecurefunc(StatusTrackingBarManager, "UpdateBarsShown", function()
-		-- PitBull4.db check because this can fire before AceDB defaults are applied? (and IsEnabled isn't good enough?)
-		-- WA-1377 / WA-1384
-		if PitBull4_ReputationBar:IsEnabled() and PitBull4.db then
-			PitBull4_ReputationBar:UpdateForUnitID("player")
-		end
-	end)
+function PitBull4_ReputationBar:OnEnable()
+	self:RegisterEvent("PLAYER_ENTERING_WORLD")
 end
 
-function PitBull4_ReputationBar:OnEnable()
+function PitBull4_ReputationBar:PLAYER_ENTERING_WORLD()
 	self:UpdateForUnitID("player")
 end
 
@@ -112,3 +106,14 @@ function PitBull4_ReputationBar:GetExampleColor(frame)
 	local color = PitBull4.ReactionColors[5]
 	return color[1], color[2], color[3]
 end
+
+hooksecurefunc(StatusTrackingBarManager, "UpdateBarsShown", function()
+	if PitBull4_ReputationBar:IsEnabled() and IsPlayerInWorld() then
+		for frame in PitBull4:IterateFramesForUnitID("player") do
+			local layout_db = PitBull4_ReputationBar:GetLayoutDB(frame)
+			if layout_db then -- make sure we're initialized
+				PitBull4_ReputationBar:Update(frame)
+			end
+		end
+	end
+end)

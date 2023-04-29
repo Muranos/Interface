@@ -13,8 +13,8 @@ local default = {
   blendMode = "BLEND",
   textureWrapMode = "CLAMPTOBLACKADDITIVE",
   rotation = 0,
-  legacyZoomOut = false,
   mirror = false,
+  rotate = false,
   selfPoint = "CENTER",
   anchorPoint = "CENTER",
   anchorFrameType = "SCREEN",
@@ -60,6 +60,15 @@ local properties = {
     display = L["Mirror"],
     setter = "SetMirror",
     type = "bool"
+  },
+  rotation = {
+    display = L["Rotation"],
+    setter = "SetRotation",
+    type = "number",
+    min = 0,
+    max = 360,
+    bigStep = 1,
+    default = 0
   }
 }
 
@@ -87,6 +96,16 @@ local function create(parent)
   return region;
 end
 
+local SQRT2 = sqrt(2)
+local function GetRotatedPoints(degrees, scaleForFullRotate)
+  local angle = rad(135 - degrees);
+  local factor = scaleForFullRotate and 1 or SQRT2
+  local vx = math.cos(angle) / factor
+  local vy = math.sin(angle) / factor
+
+  return 0.5+vx,0.5-vy , 0.5-vy,0.5-vx , 0.5+vy,0.5+vx , 0.5-vx,0.5+vy
+end
+
 local function modify(parent, region, data)
   WeakAuras.regionPrototype.modify(parent, region, data);
   WeakAuras.SetTextureOrAtlas(region.texture, data.texture, data.textureWrapMode, data.textureWrapMode);
@@ -98,44 +117,33 @@ local function modify(parent, region, data)
   region.scalex = 1;
   region.scaley = 1;
   region.texture:SetBlendMode(data.blendMode);
-  region.texture:SetRotation((data.rotation / 180) * math.pi)
 
   region.mirror = data.mirror
-
-  local function GetLegacyFullRotateTexCoord()
-    local angle = rad(135)
-    local vx = math.cos(angle)
-    local vy = math.sin(angle)
-
-    return 0.5+vx,0.5-vy , 0.5-vy,0.5-vx , 0.5+vy,0.5+vx , 0.5-vx,0.5+vy
-  end
 
   local function DoTexCoord()
     local mirror_h, mirror_v = region.mirror_h, region.mirror_v;
     if(region.mirror) then
       mirror_h = not mirror_h;
     end
-    local ulx,uly , llx,lly , urx,ury , lrx,lry = 0,0, 0,1, 1,0, 1,1
-    if data.legacyZoomOut then
-      ulx,uly , llx,lly , urx,ury , lrx,lry = GetLegacyFullRotateTexCoord()
-    end
+    local ulx,uly , llx,lly , urx,ury , lrx,lry
+      = GetRotatedPoints(region.effectiveRotation, data.rotate and not region.texture.IsAtlas)
     if(mirror_h) then
       if(mirror_v) then
-        region.texture:SetTexCoord(lrx,lry, urx,ury, llx,lly, ulx,uly)
+        region.texture:SetTexCoord(lrx,lry , urx,ury , llx,lly , ulx,uly);
       else
-        region.texture:SetTexCoord(urx,ury, lrx,lry, ulx,uly, llx,lly)
+        region.texture:SetTexCoord(urx,ury , lrx,lry , ulx,uly , llx,lly);
       end
     else
       if(mirror_v) then
-        region.texture:SetTexCoord(llx,lly, ulx,uly, lrx,lry, urx,ury)
+        region.texture:SetTexCoord(llx,lly , ulx,uly , lrx,lry , urx,ury);
       else
-        region.texture:SetTexCoord(ulx,uly, llx,lly, urx,ury, lrx,lry)
+        region.texture:SetTexCoord(ulx,uly , llx,lly , urx,ury , lrx,lry);
       end
     end
   end
 
   region.rotation = data.rotation
-  DoTexCoord();
+  region.effectiveRotation = region.rotation
 
   function region:Scale(scalex, scaley)
     region.scalex = scalex;
@@ -175,7 +183,11 @@ local function modify(parent, region, data)
 
   function region:Update()
     if region.state.texture then
+      local oldIsAtlas = region.texture.IsAtlas
       WeakAuras.SetTextureOrAtlas(region.texture, region.state.texture, data.textureWrapMode, data.textureWrapMode)
+      if region.texture.IsAtlas ~= oldIsAtlas then
+        DoTexCoord()
+      end
     end
   end
 
@@ -212,16 +224,28 @@ local function modify(parent, region, data)
     region.texture:SetDesaturated(b);
   end
 
-  function region:Rotate(degrees)
-    region.rotation = degrees
-    region.texture:SetRotation((degrees / 180) * math.pi)
+  --- @type fun(degrees: number?)
+  function region:SetAnimRotation(degrees)
+    region.animRotation = degrees
+    region:UpdateEffectiveRotation()
   end
 
-  region:Rotate(data.rotation)
+  --- @type fun(degrees: number)
+  function region:SetRotation(degrees)
+    region.rotation = degrees
+    region:UpdateEffectiveRotation()
+  end
 
-  function region:GetRotation()
+  function region:UpdateEffectiveRotation()
+    region.effectiveRotation = region.animRotation or region.rotation
+    DoTexCoord()
+  end
+
+  --- @type fun(): number
+  function region:GetBaseRotation()
     return region.rotation
   end
+  region:SetRotation(data.rotation)
 
   WeakAuras.regionPrototype.modifyFinish(parent, region, data);
 end

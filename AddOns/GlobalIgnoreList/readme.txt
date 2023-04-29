@@ -202,6 +202,94 @@ The following commands are accessible by typing /gignore or /gi in the chat box:
 
 => VERSION HISTORY
 
+=> 10.0.7.2
+
+Attempted (?) to fix a bug with M+ input when creating a group without SMS/Authenticator without breaking any other hacks.
+
+=> 10.0.7.1
+
+Fixed bug in Chat filter editor list where it would sometimes not display the filters correctly when selecting/scrolling the list
+
+Added new default filter to filter out Power Leveling sellers
+
+Fixed a bug when ignoring NPCs using the Unit Menu
+
+The Options tab now is a scrolling window so that more options can be added!
+
+Added a new section called User Interface options which now allows UI hacks to be enabled or disabled for those that experience issues with them.
+
+There is now an option to disable the ignore list synchronization warning message when it fails during login
+
+=> 10.0.7
+
+Updated for new patch
+
+Disabled all UI hacks temporarily because a few people are reporting problems that I cannot reproduce.  I am planning to add them back in the next update probably with an option to disable them in the settings for those who may have issues.
+
+=> 10.0.5.5
+
+Fixed issues with LFG tool, requiring completely reworked right click ignore menu and other changes
+
+=> 10.0.5.4
+
+GIL is now integrated into the LFG tool GUI for Raids and M+
+
+LFG groups whose leader is on your ignore list will be listed with a red font color.  Thanks to wildmandnd for the suggestion and a first crack at how to do it!
+
+GIL will now show that the LFG tool leader is ignored in the tooltip when you mouse over the listing
+
+GIL will now show the ignored player's note in the LFG tool's tooltip when you mouse over a listing
+
+When right clicking a listing in the LFG tool, you will now see the Leader's name and the option to ignore or remove them
+
+=> 10.0.5.3
+
+Added a "Blocked" column to the chat filter editor which shows the number of times the filter has blocked something without editing the filter.  Thanks to xruptor for inspiring me to add this in finally.
+
+Blocked count and overall blocked count now update in real-time when the chat filter tab is open.  You can watch the filter blocked count climb on a busy server if you get sick of watching paint dry!
+
+Added a new default filter for "Tradeskill sellers" to filter out tradeskill spam.  This is off by default.
+
+Removed the default gold seller filters as they no longer seem to be relevant.
+
+Added some more text into the localization
+
+When sync default chat filters is enabled, filters will now be added, removed and updated as the default changes automatically.  If you disable a default filter with syncing on, it will not be reenabled but they will still update.
+
+=> 10.0.5.2
+
+Added new [journal] tag to filter all boss links for Dungeon/Raid journal
+
+Added new [guild] tag to filter all guild links
+
+Added new [trade] tag to filter all tradeskill links
+
+Added new [mount] tag to filter all mount links
+
+All new tags (journal, guild, trade, and mount) are included in the [link] filter which makes things like the Anal spam filter better (or any filter that uses link tag)
+
+Added new default Mythic+ Seller filter which is disabled by default
+
+Added new IDs to the default filters, so that defaults can be added, removed, and updated in the future based on community feedback.
+
+Reverted the UI strata back to "DIALOG" from "MEDIUM".  Added extra checking in filtering to handle invalid link formats, and other minor changes.
+
+GIL now detects the current WOW version (which is why the classic version isn't updated alongside this release).  I will be experimenting with one single GIL version that works with everything in the future.
+
+=> 10.0.5.1
+
+Now filters "Unknown friend response" error message during login
+
+Additional checks for invalid character names
+
+Updated to use proper C_PartyInfo references used by latest API
+
+=> 10.0.2.1
+
+Updated for Dragonflight
+Fixed UI crashes
+Changed strata of UI from DIALOG to MEDIUM to provide better layering with other UI elements
+
 => 9.0.5.2
 
 Fixed the prune function which could cause the game to freeze for a period of time if there were ignored NPCs or guilds on the global ignore list

@@ -28,7 +28,8 @@ VUHDO_INIT_DEBUFF_ABILITIES = {
 		[VUHDO_DEBUFF_TYPE_MAGIC] = { VUHDO_SPELL_ID.PALA_CLEANSE },
 	},
 	["PRIEST"] = {
-		[VUHDO_DEBUFF_TYPE_DISEASE] = { VUHDO_SPELL_ID.PURIFY_DISEASE, VUHDO_SPELL_ID.PURIFY },
+		-- Priest talent 'Improved Pufiy' (390632) is now needed to dispel 'Disease'
+		[VUHDO_DEBUFF_TYPE_DISEASE] = { VUHDO_SPELL_ID.PURIFY_DISEASE, 390632 },
 		[VUHDO_DEBUFF_TYPE_MAGIC] = { VUHDO_SPELL_ID.PURIFY },
 	},
 	["SHAMAN"] = {
@@ -48,10 +49,10 @@ VUHDO_INIT_DEBUFF_ABILITIES = {
 	},
 	["DEMONHUNTER"] = { },
 	["EVOKER"] = {
-		[VUHDO_DEBUFF_TYPE_POISON] = { VUHDO_SPELL_ID.EXPUNGE, VUHDO_SPELL_ID.CAUTERIZING_FLAME, VUHDO_SPELL_ID.NATURALIZE },
-		[VUHDO_DEBUFF_TYPE_DISEASE] = { VUHDO_SPELL_ID.CAUTERIZING_FLAME },
-		[VUHDO_DEBUFF_TYPE_CURSE] = { VUHDO_SPELL_ID.CAUTERIZING_FLAME },
-		[VUHDO_DEBUFF_TYPE_MAGIC] = { VUHDO_SPELL_ID.NATURALIZE },
+		-- Evoker 'Expunge' morphs into 'Naturalize' for Preservation spec
+		-- Mapping needed for VUHDO_isSpellKnown() by name so use spell ID to force check by IsSpellKnown()
+		[VUHDO_DEBUFF_TYPE_POISON] = { 360823, VUHDO_SPELL_ID.EXPUNGE },
+		[VUHDO_DEBUFF_TYPE_MAGIC] = { 360823 },
 	},
 };
 
@@ -60,6 +61,8 @@ VUHDO_INIT_DEBUFF_ABILITIES = {
 VUHDO_SPEC_TO_DEBUFF_ABIL = { 
 	[115450] = GetSpellInfo(115450), -- MW Monk "Detox"
 	[218164] = GetSpellInfo(218164), -- WW/BM Monk "Detox"
+	[360823] = GetSpellInfo(360823), -- Preservation Evoker "Naturalize" (morphed "Expunge")
+	[390632] = GetSpellInfo(527), -- Priest 'Improved Purify' must be mapped to 'Purify'
 };
 
 

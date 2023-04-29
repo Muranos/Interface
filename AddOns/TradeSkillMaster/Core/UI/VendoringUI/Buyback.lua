@@ -4,13 +4,14 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
 local Buyback = TSM.UI.VendoringUI:NewPackage("Buyback")
 local L = TSM.Include("Locale").GetTable()
 local Money = TSM.Include("Util.Money")
 local ItemInfo = TSM.Include("Service.ItemInfo")
 local Settings = TSM.Include("Service.Settings")
 local UIElements = TSM.Include("UI.UIElements")
+local UIUtils = TSM.Include("UI.UIUtils")
 local private = {
 	settings = nil,
 	query = nil,
@@ -35,7 +36,7 @@ end
 -- ============================================================================
 
 function private.GetFrame()
-	TSM.UI.AnalyticsRecordPathChange("vendoring", "buyback")
+	UIUtils.AnalyticsRecordPathChange("vendoring", "buyback")
 	private.query = private.query or TSM.Vendoring.Buyback.CreateQuery()
 	private.query:ResetOrderBy()
 	private.query:OrderBy("name", true)
@@ -69,7 +70,7 @@ function private.GetFrame()
 					:SetTitle(L["Cost"])
 					:SetFont("TABLE_TABLE1")
 					:SetJustifyH("RIGHT")
-					:SetTextInfo("price", Money.ToString)
+					:SetTextInfo("price", private.GetCostPriceText)
 					:SetSortInfo("price")
 					:Commit()
 				:SetCursor("BUY_CURSOR")
@@ -77,10 +78,7 @@ function private.GetFrame()
 			:SetQuery(private.query)
 			:SetScript("OnRowClick", private.RowOnClick)
 		)
-		:AddChild(UIElements.New("Texture", "line")
-			:SetHeight(2)
-			:SetTexture("ACTIVE_BG")
-		)
+		:AddChild(UIElements.New("HorizontalLine", "line"))
 		:AddChild(UIElements.New("Frame", "footer")
 			:SetLayout("HORIZONTAL")
 			:SetHeight(40)
@@ -91,7 +89,7 @@ function private.GetFrame()
 				:SetWidth(166)
 				:SetMargin(0, 8, 0, 0)
 				:SetPadding(4)
-				:AddChild(UIElements.New("PlayerGoldText", "text"))
+				:AddChild(TSM.UI.Views.PlayerGoldText.New("text"))
 			)
 			:AddChild(UIElements.New("ActionButton", "buybackAllBtn")
 				:SetText(L["Buyback All"])
@@ -101,7 +99,11 @@ function private.GetFrame()
 end
 
 function private.GetItemText(itemString)
-	return TSM.UI.GetColoredItemName(itemString) or "?"
+	return UIUtils.GetDisplayItemName(itemString) or "?"
+end
+
+function private.GetCostPriceText(value)
+	return Money.ToString(value, nil, "OPT_RETAIL_ROUND")
 end
 
 

@@ -8,15 +8,15 @@
 -- A group tree is an abstract element which displays TSM groups. It is a subclass of the @{ScrollingTable} class.
 -- @classmod GroupTree
 
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
 local L = TSM.Include("Locale").GetTable()
 local TempTable = TSM.Include("Util.TempTable")
 local String = TSM.Include("Util.String")
 local ScriptWrapper = TSM.Include("Util.ScriptWrapper")
 local Theme = TSM.Include("Util.Theme")
+local TextureAtlas = TSM.Include("Util.TextureAtlas")
 local UIElements = TSM.Include("UI.UIElements")
-local GroupTree = TSM.Include("LibTSMClass").DefineClass("GroupTree", TSM.UI.ScrollingTable, "ABSTRACT")
-UIElements.Register(GroupTree)
+local GroupTree = UIElements.Define("GroupTree", "ScrollingTable", "ABSTRACT")
 TSM.UI.GroupTree = GroupTree
 local private = {}
 local EXPANDER_SPACING = 2
@@ -41,7 +41,7 @@ function GroupTree.__init(self)
 end
 
 function GroupTree.Acquire(self)
-	self._headerHidden = true
+	self._headerMode = "NONE"
 	self.__super:Acquire()
 	self:GetScrollingTableInfo()
 		:NewColumn("group")
@@ -312,10 +312,10 @@ function private.GetExpanderState(self, data)
 	local indentWidth = nil
 	local searchIsActive = self._searchStr ~= ""
 	if data == TSM.CONST.ROOT_GROUP_PATH then
-		indentWidth = -TSM.UI.TexturePacks.GetWidth("iconPack.14x14/Caret/Right") + EXPANDER_SPACING
+		indentWidth = -TextureAtlas.GetWidth("iconPack.14x14/Caret/Right") + EXPANDER_SPACING
 	else
 		local level = select('#', strsplit(TSM.CONST.GROUP_SEP, data))
-		indentWidth = (searchIsActive and 0 or (level - 1)) * (TSM.UI.TexturePacks.GetWidth("iconPack.14x14/Caret/Right") + EXPANDER_SPACING)
+		indentWidth = (searchIsActive and 0 or (level - 1)) * (TextureAtlas.GetWidth("iconPack.14x14/Caret/Right") + EXPANDER_SPACING)
 	end
 	return not searchIsActive and data ~= TSM.CONST.ROOT_GROUP_PATH and self._hasChildrenLookup[data], not self._contextTable.collapsed[data], nil, indentWidth, EXPANDER_SPACING, true
 end

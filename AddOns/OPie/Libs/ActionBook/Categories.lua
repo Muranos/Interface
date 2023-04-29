@@ -158,6 +158,13 @@ if MODERN then -- Battle pets
 	local running, sourceFilters, typeFilters, flagFilters, search = false, {}, {}, {[LE_PET_JOURNAL_FILTER_COLLECTED]=1, [LE_PET_JOURNAL_FILTER_NOT_COLLECTED]=1}, ""
 	hooksecurefunc(C_PetJournal, "SetSearchFilter", function(filter) search = filter end)
 	hooksecurefunc(C_PetJournal, "ClearSearchFilter", function() if not running then search = "" end end)
+	local function FilterPetInfo(...)
+		local petID, spID = ...
+		if spID and not select(15, ...) then -- can't battle
+			return petID, spID
+		end
+		return petID
+	end
 	AB:AugmentCategory(L"Battle pets", function(_, add)
 		assert(not running, "Battle pets enumerator is not reentrant")
 		running = true
@@ -184,7 +191,7 @@ if MODERN then -- Battle pets
 		
 		add("battlepet", "fave")
 		for i=1,C_PetJournal.GetNumPets() do
-			add("battlepet", (C_PetJournal.GetPetInfoByIndex(i)))
+			add("battlepet", FilterPetInfo(C_PetJournal.GetPetInfoByIndex(i)))
 		end
 		
 		for k, v in pairs(flagFilters) do
@@ -238,7 +245,7 @@ elseif CF_WRATH then
 	end)
 end
 AB:AugmentCategory(L"Macros", function(_, add)
-	add("macrotext", "")
+	add("imptext", "")
 	local n, ni = {}, 1
 	for name in RW:GetNamedMacros() do
 		n[ni], ni = name, ni + 1
@@ -309,7 +316,7 @@ do -- misc
 	if MODERN then
 		AB:AddActionToCategory(L"Miscellaneous", "extrabutton", 1)
 	end
-	AB:AddActionToCategory(L"Miscellaneous", "macrotext", "")
+	AB:AddActionToCategory(L"Miscellaneous", "imptext", "")
 end
 do -- aliases
 	AB:AddCategoryAlias("Miscellaneous", L"Miscellaneous")

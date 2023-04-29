@@ -9,6 +9,8 @@ local HandyNotes = LibStub('AceAddon-3.0'):GetAddon('HandyNotes', true)
 local L = LibStub('AceLocale-3.0'):GetLocale(ADDON_NAME)
 if not HandyNotes then return end
 
+local LibDD = LibStub:GetLibrary('LibUIDropDownMenu-4.0')
+
 ns.addon = Addon
 ns.locale = L
 ns.maps = {}
@@ -19,7 +21,7 @@ _G[ADDON_NAME] = Addon
 ----------------------------------- HELPERS -----------------------------------
 -------------------------------------------------------------------------------
 
-local DropdownMenu = CreateFrame('Frame', ADDON_NAME .. 'DropdownMenu')
+local DropdownMenu = LibDD:Create_UIDropDownMenu(ADDON_NAME .. 'DropdownMenu')
 DropdownMenu.displayMode = 'MENU'
 local function InitializeDropdownMenu(level, mapID, coord)
     if not level then return end
@@ -27,15 +29,15 @@ local function InitializeDropdownMenu(level, mapID, coord)
     local spacer = {text = '', disabled = 1, notClickable = 1, notCheckable = 1}
 
     if (level == 1) then
-        UIDropDownMenu_AddButton({
+        LibDD:UIDropDownMenu_AddButton({
             text = ns.plugin_name,
             isTitle = 1,
             notCheckable = 1
         }, level)
 
-        UIDropDownMenu_AddButton(spacer, level)
+        LibDD:UIDropDownMenu_AddButton(spacer, level)
 
-        UIDropDownMenu_AddButton({
+        LibDD:UIDropDownMenu_AddButton({
             text = L['context_menu_set_waypoint'],
             notCheckable = 1,
             disabled = not C_Map.CanSetUserWaypointOnMap(mapID),
@@ -48,23 +50,46 @@ local function InitializeDropdownMenu(level, mapID, coord)
         }, level)
 
         if select(2, IsAddOnLoaded('TomTom')) then
-            UIDropDownMenu_AddButton({
+            -- Add spacer before TomTom section
+            LibDD:UIDropDownMenu_AddButton(spacer, level)
+            -- Add waypoint to TomoTom for single node
+            LibDD:UIDropDownMenu_AddButton({
                 text = L['context_menu_add_tomtom'],
                 notCheckable = 1,
                 func = function(button)
-                    local x, y = HandyNotes:getXY(coord)
-                    TomTom:AddWaypoint(mapID, x, y, {
-                        title = ns.RenderLinks(node.label, true),
-                        from = ns.plugin_name,
-                        persistent = nil,
-                        minimap = true,
-                        world = true
-                    })
+                    ns.tomtom.AddSingleWaypoint(node, mapID, coord)
+                    TomTom:SetClosestWaypoint(false)
                 end
             }, level)
+            -- Add waypoints to TomTom for entire group
+            for i, group in pairs(node.group) do
+                if group ~= ns.groups.MISC then
+                    LibDD:UIDropDownMenu_AddButton({
+                        text = L['context_menu_add_group_tomtom'],
+                        notCheckable = 1,
+                        func = function(button)
+                            ns.tomtom.AddGroupWaypoints(node, mapID, coord)
+                            TomTom:SetClosestWaypoint(false)
+                        end
+                    }, level)
+                end
+            end
+            -- Add waypoints to TomTom for node fgroup (focus group)
+            if node.fgroup then
+                LibDD:UIDropDownMenu_AddButton({
+                    text = L['context_menu_add_focus_group_tomtom'],
+                    notCheckable = 1,
+                    func = function(button)
+                        ns.tomtom.AddFocusGroupWaypoints(node, mapID)
+                        TomTom:SetClosestWaypoint(false)
+                    end
+                }, level)
+            end
+            -- Add spacer after TomTom section
+            LibDD:UIDropDownMenu_AddButton(spacer, level)
         end
 
-        UIDropDownMenu_AddButton({
+        LibDD:UIDropDownMenu_AddButton({
             text = L['context_menu_hide_node'],
             notCheckable = 1,
             func = function(button)
@@ -73,7 +98,7 @@ local function InitializeDropdownMenu(level, mapID, coord)
             end
         }, level)
 
-        UIDropDownMenu_AddButton({
+        LibDD:UIDropDownMenu_AddButton({
             text = L['context_menu_restore_hidden_nodes'],
             notCheckable = 1,
             func = function()
@@ -82,12 +107,12 @@ local function InitializeDropdownMenu(level, mapID, coord)
             end
         }, level)
 
-        UIDropDownMenu_AddButton(spacer, level)
+        LibDD:UIDropDownMenu_AddButton(spacer, level)
 
-        UIDropDownMenu_AddButton({
+        LibDD:UIDropDownMenu_AddButton({
             text = CLOSE,
             notCheckable = 1,
-            func = function() CloseDropDownMenus() end
+            func = function() LibDD:CloseDropDownMenus() end
         }, level)
     end
 end
@@ -137,11 +162,13 @@ function Addon:OnClick(button, down, mapID, coord)
         DropdownMenu.initialize = function(_, level)
             InitializeDropdownMenu(level, mapID, coord)
         end
-        ToggleDropDownMenu(1, nil, DropdownMenu, self, 0, 0)
+        LibDD:ToggleDropDownMenu(1, nil, DropdownMenu, self, 0, 0)
     elseif button == 'LeftButton' and down then
         if map:CanFocus(node) then
             map:SetFocus(node, coord, not map:IsFocused(coord))
             Addon:RefreshImmediate()
+        elseif node.OnClick then
+            node.OnClick()
         end
     end
 end

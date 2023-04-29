@@ -2,6 +2,19 @@
 -- GLOBAL FUNCTIONS --
 ----------------------
 
+function GILDUMP (o)
+   if type(o) == 'table' then
+      local s = '{ '
+      for k,v in pairs(o) do
+         if type(k) ~= 'number' then k = '"'..k..'"' end
+         s = s .. '['..k..'] = ' .. GILDUMP(v) .. ','
+      end
+      return s .. '} '
+   else
+      return tostring(o)
+   end
+end
+
 function trim (str)
 
 	local n = str:find"%S"
@@ -94,7 +107,8 @@ end
 function Proper (name, okSpaces)
 
 	if name == nil then return nil end
-
+	if name == "" then return nil end
+	
 	local len    = strlen(name)
 	local count  = 1
 	local res    = ""
@@ -355,7 +369,45 @@ end
 -- GLOBAL VARIABLES --
 ----------------------
 
-_, L		= ...
-serverName	= Proper(GetRealmName())
-playerName	= addServer(GetUnitName("player"), true)
+_, L				= ...
+serverName			= Proper(GetRealmName())
+playerName			= addServer(GetUnitName("player"), true)
+wowIsERA			= false
+wowIsTBC			= false
+wowIsWrath			= false
+wowIsRetail			= false
+wowLongName			= "Unknown"
+wowName				= wowLongName
 
+-- Color yellow: ffff0000
+-- Color white: ffffff00
+-- Color red: 00ff0000
+-- Color Horde red: ffe60000
+-- Color Cyan: ff69CCF0
+
+-- Set wow version information
+
+local toc, toc, toc, toc = GetBuildInfo()
+
+if (toc >= 10000 and toc < 20000) then
+	wowIsERA	= true
+	wowLongName	= "Classic Era"
+	wowName		= "Era"
+elseif (toc >= 20000 and toc < 30000) then
+	wowIsTBC	= true
+	wowLongName	= "The Burning Crusade"
+	wowName		= "TBC"
+elseif (toc >= 30000 and toc < 40000) then
+	wowIsWrath	= true
+	wowLongName	= "Wrath of the Lich King"
+	wowName		= "WOTLK"
+else
+	wowIsRetail = true
+end
+
+if (toc >= 100000 and toc < 109999) then
+	wowLongName = "Dragonflight"
+	wowName		= "DF"
+end
+
+wowIsClassic = (wowIsERA == true or wowIsTBC == true or wowIsWrath == true)

@@ -4,11 +4,8 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
--- This is the main TSM file that holds the majority of the APIs that modules will use.
-
-local _, TSM = ...
-TSMAPI = {} -- FIXME: this is still needed for AppHelper
-local ClassicRealms = TSM.Include("Data.ClassicRealms")
+local TSM = select(2, ...) ---@type TSM
+local Environment = TSM.Include("Environment")
 local Log = TSM.Include("Util.Log")
 local Analytics = TSM.Include("Util.Analytics")
 local Math = TSM.Include("Util.Math")
@@ -26,18 +23,17 @@ local ItemInfo = TSM.Include("Service.ItemInfo")
 local CustomPrice = TSM.Include("Service.CustomPrice")
 local BlackMarket = TSM.Include("Service.BlackMarket")
 local Inventory = TSM.Include("Service.Inventory")
-local LibRealmInfo = LibStub("LibRealmInfo")
 local LibDBIcon = LibStub("LibDBIcon-1.0")
 local L = TSM.Include("Locale").GetTable()
 local private = {
 	settings = nil,
-	appInfo = nil,
+	itemInfoPublisher = nil,  --luacheck: ignore 1004 - just stored for GC reasons
+	oribosExchangeTemp = {},
 }
-local APP_INFO_REQUIRED_KEYS = { "version", "lastSync", "message", "news" }
-local LOGOUT_TIME_WARNING_THRESHOLD_MS = 20
+local LOGOUT_TIME_WARNING_THRESHOLD = 0.02
 do
 	-- show a message if we were updated
-	if GetAddOnMetadata("TradeSkillMaster", "Version") ~= "v4.11.71" then
+	if GetAddOnMetadata("TradeSkillMaster", "Version") ~= "v4.12.34" then
 		Wow.ShowBasicMessage("TSM was just updated and may not work properly until you restart WoW.")
 	end
 end
@@ -74,13 +70,15 @@ function TSM.OnInitialize()
 	private.settings.classKey = select(2, UnitClass("player"))
 
 	-- core price sources
-	ItemInfo.RegisterInfoChangeCallback(function(itemString)
-		CustomPrice.OnSourceChange("VendorBuy", itemString)
-		CustomPrice.OnSourceChange("VendorSell", itemString)
-		CustomPrice.OnSourceChange("ItemQuality", itemString)
-		CustomPrice.OnSourceChange("ItemLevel", itemString)
-		CustomPrice.OnSourceChange("RequiredLevel", itemString)
-	end)
+	private.itemInfoPublisher = ItemInfo.GetPublisher()
+		:CallFunction(function(itemString)
+			CustomPrice.OnSourceChange("VendorBuy", itemString)
+			CustomPrice.OnSourceChange("VendorSell", itemString)
+			CustomPrice.OnSourceChange("ItemQuality", itemString)
+			CustomPrice.OnSourceChange("ItemLevel", itemString)
+			CustomPrice.OnSourceChange("RequiredLevel", itemString)
+		end)
+		:Stored()
 	CustomPrice.RegisterSource("TSM", "VendorBuy", L["Buy from Vendor"], ItemInfo.GetVendorBuy)
 	CustomPrice.RegisterSource("TSM", "VendorSell", L["Sell to Vendor"], ItemInfo.GetVendorSell)
 	local function GetDestroyValue(itemString)
@@ -139,25 +137,14 @@ function TSM.OnInitialize()
 		CustomPrice.RegisterSource("External", "AtrValue", L["Auctionator - Auction Value"], Atr_GetAuctionBuyout, true)
 	end
 
-	-- TheUndermineJournal and BootyBayGazette price sources
-	if Wow.IsAddonEnabled("TheUndermineJournal") and TUJMarketInfo then
-		local function GetTUJPrice(itemLink, arg)
-			local data = TUJMarketInfo(itemLink)
+	-- OribosExchange price sources
+	if Wow.IsAddonEnabled("OribosExchange") and OEMarketInfo then
+		local function GetOEPrice(itemLink, arg)
+			local data = OEMarketInfo(itemLink, private.oribosExchangeTemp)
 			return data and data[arg] or nil
 		end
-		CustomPrice.RegisterSource("External", "TUJRecent", L["TUJ 3-Day Price"], GetTUJPrice, true, "recent")
-		CustomPrice.RegisterSource("External", "TUJMarket", L["TUJ 14-Day Price"], GetTUJPrice, true, "market")
-		CustomPrice.RegisterSource("External", "TUJGlobalMean", L["TUJ Global Mean"], GetTUJPrice, true, "globalMean")
-		CustomPrice.RegisterSource("External", "TUJGlobalMedian", L["TUJ Global Median"], GetTUJPrice, true, "globalMedian")
-	elseif Wow.IsAddonEnabled("BootyBayGazette") and TUJMarketInfo then
-		local function GetBBGPrice(itemLink, arg)
-			local data = TUJMarketInfo(itemLink)
-			return data and data[arg] or nil
-		end
-		CustomPrice.RegisterSource("External", "BBGRecent", L["BBG 3-Day Price"], GetBBGPrice, true, "recent")
-		CustomPrice.RegisterSource("External", "BBGMarket", L["BBG 14-Day Price"], GetBBGPrice, true, "market")
-		CustomPrice.RegisterSource("External", "BBGGlobalMean", L["BBG Global Mean"], GetBBGPrice, true, "globalMean")
-		CustomPrice.RegisterSource("External", "BBGGlobalMedian", L["BBG Global Median"], GetBBGPrice, true, "globalMedian")
+		CustomPrice.RegisterSource("External", "OERealm", L["Oribos Exchange Realm Price"], GetOEPrice, true, "market")
+		CustomPrice.RegisterSource("External", "OERegion", L["Oribos Exchange Region Price"], GetOEPrice, true, "region")
 	end
 
 	-- AHDB price sources
@@ -186,12 +173,13 @@ function TSM.OnInitialize()
 	CustomPrice.RegisterSource("Accounting", "SaleRate", L["Sale Rate"], TSM.Accounting.GetSaleRate)
 	CustomPrice.RegisterSource("AuctionDB", "DBMarket", L["AuctionDB - Market Value"], TSM.AuctionDB.GetRealmItemData, false, "marketValue")
 	CustomPrice.RegisterSource("AuctionDB", "DBMinBuyout", L["AuctionDB - Minimum Buyout"], TSM.AuctionDB.GetRealmItemData, false, "minBuyout")
-	CustomPrice.RegisterSource("AuctionDB", "DBHistorical", L["AuctionDB - Historical Price (via TSM App)"], TSM.AuctionDB.GetRealmItemData, false, "historical")
-	CustomPrice.RegisterSource("AuctionDB", "DBRegionMarketAvg", L["AuctionDB - Region Market Value Average (via TSM App)"], TSM.AuctionDB.GetRegionItemData, false, "regionMarketValue")
-	CustomPrice.RegisterSource("AuctionDB", "DBRegionHistorical", L["AuctionDB - Region Historical Price (via TSM App)"], TSM.AuctionDB.GetRegionItemData, false, "regionHistorical")
-	CustomPrice.RegisterSource("AuctionDB", "DBRegionSaleAvg", L["AuctionDB - Region Sale Average (via TSM App)"], TSM.AuctionDB.GetRegionItemData, false, "regionSale")
-	CustomPrice.RegisterSource("AuctionDB", "DBRegionSaleRate", L["AuctionDB - Region Sale Rate (via TSM App)"], TSM.AuctionDB.GetRegionSaleInfo, false, "regionSalePercent")
-	CustomPrice.RegisterSource("AuctionDB", "DBRegionSoldPerDay", L["AuctionDB - Region Sold Per Day (via TSM App)"], TSM.AuctionDB.GetRegionSaleInfo, false, "regionSoldPerDay")
+	CustomPrice.RegisterSource("AuctionDB", "DBRecent", L["AuctionDB - Recent Value"], TSM.AuctionDB.GetRealmItemData, false, "marketValueRecent")
+	CustomPrice.RegisterSource("AuctionDB", "DBHistorical", L["AuctionDB - Historical Price"], TSM.AuctionDB.GetRealmItemData, false, "historical")
+	CustomPrice.RegisterSource("AuctionDB", "DBRegionMarketAvg", L["AuctionDB - Region Market Value Average"], TSM.AuctionDB.GetRegionItemData, false, "regionMarketValue")
+	CustomPrice.RegisterSource("AuctionDB", "DBRegionHistorical", L["AuctionDB - Region Historical Price"], TSM.AuctionDB.GetRegionItemData, false, "regionHistorical")
+	CustomPrice.RegisterSource("AuctionDB", "DBRegionSaleAvg", L["AuctionDB - Region Sale Average"], TSM.AuctionDB.GetRegionItemData, false, "regionSale")
+	CustomPrice.RegisterSource("AuctionDB", "DBRegionSaleRate", L["AuctionDB - Region Sale Rate"], TSM.AuctionDB.GetRegionItemData, false, "regionSalePercent")
+	CustomPrice.RegisterSource("AuctionDB", "DBRegionSoldPerDay", L["AuctionDB - Region Sold Per Day"], TSM.AuctionDB.GetRegionItemData, false, "regionSoldPerDay")
 	CustomPrice.RegisterSource("Crafting", "Crafting", L["Crafting Cost"], TSM.Crafting.Cost.GetLowestCostByItem, nil, nil, true)
 	CustomPrice.RegisterSource("Crafting", "MatPrice", L["Crafting Material Cost"], TSM.Crafting.Cost.GetMatCost, nil, nil, true)
 
@@ -229,7 +217,7 @@ function TSM.OnInitialize()
 		OnTooltipShow = function(tooltip)
 			local cs = Theme.GetColor("INDICATOR_ALT"):GetTextColorPrefix()
 			local ce = "|r"
-			tooltip:AddLine("TradeSkillMaster " .. TSM.GetVersion())
+			tooltip:AddLine("TradeSkillMaster "..Environment.GetVersion())
 			tooltip:AddLine(format(L["%sLeft-Click%s to open the main window"], cs, ce))
 			tooltip:AddLine(format(L["%sDrag%s to move this button"], cs, ce))
 		end,
@@ -237,7 +225,7 @@ function TSM.OnInitialize()
 	LibDBIcon:Register("TradeSkillMaster", dataObj, private.settings.minimapIcon)
 
 	-- cache battle pet names
-	if not TSM.IsWowClassic() then
+	if Environment.HasFeature(Environment.FEATURES.BATTLE_PETS) then
 		for i = 1, C_PetJournal.GetNumPets() do
 			C_PetJournal.GetPetInfoByIndex(i)
 		end
@@ -276,9 +264,8 @@ function TSM.OnEnable()
 		return
 	end
 
-	assert(TSMAPI.AppHelper)
-	local appInfo = TSMAPI.AppHelper:FetchData("APP_INFO")
-	if not appInfo then
+	local lastSync = TSM.AppHelper.GetLastSync()
+	if not lastSync then
 		-- The app hasn't run yet or isn't pointing at the right WoW directory
 		StaticPopupDialogs["TSM_APP_DATA_ERROR"] = {
 			text = L["TSM is missing important information from the TSM Desktop Application. Please ensure the TSM Desktop Application is running and is properly configured."],
@@ -290,25 +277,19 @@ function TSM.OnEnable()
 		return
 	end
 
-	-- load the app info
-	assert(#appInfo == 1 and #appInfo[1] == 2 and appInfo[1][1] == "Global")
-	private.appInfo = assert(loadstring(appInfo[1][2]))()
-	for _, key in ipairs(APP_INFO_REQUIRED_KEYS) do
-		assert(private.appInfo[key])
-	end
-
-	if private.appInfo.message and private.appInfo.message.id > private.settings.appMessageId then
+	local msg, msgId = TSM.AppHelper.GetMessage()
+	if msg and msgId > private.settings.appMessageId then
 		-- show the message from the app
-		private.settings.appMessageId = private.appInfo.message.id
+		private.settings.appMessageId = msgId
 		StaticPopupDialogs["TSM_APP_MESSAGE"] = {
-			text = private.appInfo.message.msg,
+			text = msg,
 			button1 = OKAY,
 			timeout = 0,
 		}
 		Wow.ShowStaticPopupDialog("TSM_APP_MESSAGE")
 	end
 
-	if time() - private.appInfo.lastSync > 60 * 60 then
+	if time() - lastSync > 60 * 60 then
 		-- the app hasn't been running for over an hour
 		StaticPopupDialogs["TSM_APP_DATA_ERROR"] = {
 			text = L["TSM is missing important information from the TSM Desktop Application. Please ensure the TSM Desktop Application is running and is properly configured."],
@@ -318,29 +299,16 @@ function TSM.OnEnable()
 		}
 		Wow.ShowStaticPopupDialog("TSM_APP_DATA_ERROR")
 	end
-
-	if private.appInfo.news then
-		-- clean up the news content strings
-		for _, info in ipairs(private.appInfo.news) do
-			-- for some reason the data is missing a few newlines before bold headings, so add one
-			info.content = gsub(info.content, "(<strong>)", "\n\n%1")
-			info.content = gsub(info.content, "<br%s+/>", "\n")
-			info.content = gsub(info.content, "<strong>(.-)</strong>", "%1")
-			info.content = gsub(info.content, "<a href='.-'>(.-)</a>", "%1")
-			info.content = gsub(info.content, "&#8211;", "-")
-			info.content = gsub(info.content, "&#8216;", "'")
-		end
-	end
 end
 
 function TSM.OnDisable()
 	local originalProfile = TSM.db:GetCurrentProfile()
 	-- erroring here would cause the profile to be reset, so use pcall
-	local startTime = debugprofilestop()
+	local startTime = GetTimePreciseSec()
 	local success, errMsg = pcall(private.SaveAppData)
-	local timeTaken = debugprofilestop() - startTime
-	if timeTaken > LOGOUT_TIME_WARNING_THRESHOLD_MS then
-		Log.Warn("private.SaveAppData took %0.2fms", timeTaken)
+	local timeTaken = GetTimePreciseSec() - startTime
+	if timeTaken > LOGOUT_TIME_WARNING_THRESHOLD then
+		Log.Warn("private.SaveAppData took %0.5fs", timeTaken)
 	end
 	if not success then
 		Log.Err("private.SaveAppData hit an error: %s", tostring(errMsg))
@@ -419,6 +387,8 @@ function private.DebugSlashCommandHandler(arg)
 		end
 	elseif arg == "db" then
 		TSM.UI.DBViewer.Toggle()
+	elseif arg == "sb" or arg == "story" or arg == "storyboard" then
+		TSM.UI.StoryBoard.Toggle()
 	elseif arg == "logout" then
 		TSM.AddonTestLogout()
 	elseif arg == "clearitemdb" then
@@ -436,7 +406,7 @@ end
 
 function private.PrintVersions()
 	Log.PrintUser(L["TSM Version Info:"])
-	Log.PrintUserRaw("TradeSkillMaster "..Log.ColorUserAccentText(TSM.GetVersion()))
+	Log.PrintUserRaw("TradeSkillMaster "..Log.ColorUserAccentText(Environment.GetVersion()))
 	local appHelperVersion = GetAddOnMetadata("TradeSkillMaster_AppHelper", "Version")
 	if appHelperVersion then
 		-- use strmatch so that our sed command doesn't replace this string
@@ -448,7 +418,7 @@ function private.PrintVersions()
 end
 
 function private.SaveAppData()
-	if not TSMAPI.AppHelper then
+	if not Wow.IsAddonInstalled("TradeSkillMaster_AppHelper") or not Wow.IsAddonEnabled("TradeSkillMaster_AppHelper") then
 		return
 	end
 
@@ -456,7 +426,7 @@ function private.SaveAppData()
 	local appDB = TradeSkillMaster_AppHelperDB
 
 	-- store region
-	local region = TSM.GetRegion()
+	local region = TSM.AppHelper.GetRegion()
 	appDB.region = region
 
 	-- save errors
@@ -505,49 +475,4 @@ function private.SaveAppData()
 
 	-- save analytics
 	Analytics.Save(appDB)
-end
-
-
-
--- ============================================================================
--- General Module Functions
--- ============================================================================
-
-function TSM.GetAppNews()
-	return private.appInfo and private.appInfo.news
-end
-
-function TSM.GetAppUpdateTime()
-	return private.appInfo and private.appInfo.lastSync or 0
-end
-
-function TSM.GetRegion()
-	local cVar = GetCVar("Portal")
-	local region = nil
-	if TSM.IsWowVanillaClassic() then
-		local currentRealmName = gsub(GetRealmName(), "\226", "'")
-		region = ClassicRealms.GetRegion(currentRealmName) or (cVar ~= "public-test" and cVar) or "PTR"
-		region = region.."-Classic"
-	elseif TSM.IsWowWrathClassic() then
-		local currentRealmName = gsub(GetRealmName(), "\226", "'")
-		region = ClassicRealms.GetRegion(currentRealmName) or (cVar ~= "public-test" and cVar) or "PTR"
-		region = region.."-BCC"
-	else
-		region = LibRealmInfo:GetCurrentRegion() or (cVar ~= "public-test" and cVar) or "PTR"
-	end
-	return region
-end
-
-function TSM.GetTSMProfileIterator()
-	local originalProfile = TSM.db:GetCurrentProfile()
-	local profiles = TSM.db:GetProfiles()
-
-	return function()
-		local profile = tremove(profiles)
-		if profile then
-			TSM.db:SetProfile(profile)
-			return profile
-		end
-		TSM.db:SetProfile(originalProfile)
-	end
 end

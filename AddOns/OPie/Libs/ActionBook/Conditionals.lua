@@ -1,8 +1,8 @@
-local _, T = ...
+local COMPAT, _, T = select(4, GetBuildInfo()), ...
 if T.SkipLocalActionBook then return end
 
-local MODERN = select(4,GetBuildInfo()) >= 10e4
-local CF_WRATH = not MODERN and select(4,GetBuildInfo()) >= 3e4
+local MODERN, CF_WRATH = COMPAT >= 10e4, COMPAT < 10e4 and COMPAT >= 3e4
+local MODERN_CONTAINERS = MODERN or C_Container and C_Container.GetContainerNumSlots
 local EV = T.Evie
 local AB = assert(T.ActionBook:compatible(2, 31), "Incompatible ActionBook")
 local KR = assert(T.ActionBook:compatible("Kindred", 1,17), "Incompatible ActionBook/Kindred")
@@ -151,14 +151,12 @@ do -- instance:arena/bg/ratedbg/lfr/raid/scenario + outland/northrend/...
 		[2222]="world/shadowlands",
 		[2453]="world/torghast", -- lobby
 		[2162]="torghast", -- towers
+		[2444]="world/dragon isles/df",
+		[2516]="party/dragon isles/nokhud",
 		
 		garrison="world/draenor/garrison",
-		[1158]="garrison",
-		[1331]="garrison",
-		[1159]="garrison",
-		[1152]="garrison",
-		[1330]="garrison",
-		[1153]="garrison",
+		[1158]="garrison", [1331]="garrison", [1159]="garrison",
+		[1152]="garrison", [1330]="garrison", [1153]="garrison",
 		
 		[1893]="island", -- The Dread Chain
 		[1814]="island", -- Havenswood (?)
@@ -171,9 +169,18 @@ do -- instance:arena/bg/ratedbg/lfr/raid/scenario + outland/northrend/...
 		[1882]="island", -- Verdant Wilds
 		[1883]="island", -- Whispering Reef
 	}
-	function EV.PLAYER_ENTERING_WORLD()
+	local mapZoneCheck, zoneChecked = {
+		[2512]="world/gta", [2085e6+2512]="world/dragon isles/df/gta"
+	}, true
+	local function syncInstance(e)
 		local _, itype, did, _, _, _, _, imid = GetInstanceInfo()
-		if imid and mapTypes[imid] then
+		if mapZoneCheck[imid] then
+			if e == "PLAYER_ENTERING_WORLD" and zoneChecked then
+				zoneChecked, EV.ZONE_CHANGED_NEW_AREA = false, syncInstance
+			end
+			local bm = C_Map.GetBestMapForUnit("player")
+			itype = mapZoneCheck[bm and bm*1e6 + imid or nil] or mapZoneCheck[imid] or mapTypes[imid]
+		elseif mapTypes[imid] then
 			itype = mapTypes[imid]
 		elseif itype == "pvp" and MODERN and C_PvP.IsRatedBattleground() then
 			itype = "ratedbg"
@@ -185,7 +192,12 @@ do -- instance:arena/bg/ratedbg/lfr/raid/scenario + outland/northrend/...
 			end
 		end
 		KR:SetStateConditionalValue("in", mapTypes[itype] or itype)
+		if e == "ZONE_CHANGED_NEW_AREA" then
+			zoneChecked = true
+			return "remove"
+		end
 	end
+	EV.PLAYER_ENTERING_WORLD = syncInstance
 	KR:SetAliasConditional("instance", "in")
 	KR:SetStateConditionalValue("in", "daze")
 end
@@ -229,13 +241,15 @@ end
 do -- horde/alliance
 	local function syncFactionGroup(e, u)
 		if e ~= "UNIT_FACTION" or u == "player" then
-			local fg = UnitFactionGroup("player", true)
+			local fg = UnitFactionGroup("player")
 			KR:SetStateConditionalValue("horde", fg == "Horde" and "*" or "")
 			KR:SetStateConditionalValue("alliance", fg == "Alliance" and "*" or "")
+			KR:SetStateConditionalValue("merc", MODERN and UnitIsMercenary("player") and "*" or "")
 		end
 	end
 	syncFactionGroup()
 	EV.PLAYER_ENTERING_WORLD, EV.UNIT_FACTION = syncFactionGroup, syncFactionGroup
+	KR:SetAliasConditional("mercenary", "merc")
 end
 do -- moving
 	KR:SetNonSecureConditional("moving", function()
@@ -279,7 +293,7 @@ do -- ready:spell name/spell id/item name/item id
 				local _, iid = GetItemInfo(rc)
 				iid = tonumber((iid or rc):match("item:(%d+)"))
 				if iid then
-					cdS, cdL, _cdA = GetItemCooldown(iid)
+					cdS, cdL, _cdA = (MODERN_CONTAINERS and C_Container.GetItemCooldown or GetItemCooldown)(iid)
 				end
 			end
 			if cdL == 0 or (cdS and cdL and (cdS + cdL) <= gcE) then
@@ -372,11 +386,12 @@ do -- combo:count
 end
 do -- race:token
 	local map, _, raceToken = {
-		Scourge="Scourage/Undead/Forsaken",
+		Scourge="Scourge/Undead/Forsaken",
 		LightforgedDraenei="LightforgedDraenei/Lightforged",
 		HighmountainTauren="HighmountainTauren/Highmountain",
 		MagharOrc="MagharOrc/Maghar",
 		ZandalariTroll="ZandalariTroll/Zandalari",
+		DarkIronDwarf="DarkIronDwarf/DarkIron",
 	}, UnitRace("player")
 	KR:SetStateConditionalValue("race", map[raceToken] or raceToken)
 end

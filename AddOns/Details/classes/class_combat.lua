@@ -5,6 +5,28 @@
 	local addonName, Details222 = ...
 
 --[[global]] DETAILS_TOTALS_ONLYGROUP = true
+--[[global]] DETAILS_SEGMENTID_OVERALL = -1
+--[[global]] DETAILS_SEGMENTID_CURRENT = 0
+
+--enum segments type
+--[[global]] DETAILS_SEGMENTTYPE_GENERIC = 0
+
+--[[global]] DETAILS_SEGMENTTYPE_OVERALL = 1
+
+--[[global]] DETAILS_SEGMENTTYPE_DUNGEON_TRASH = 5
+--[[global]] DETAILS_SEGMENTTYPE_DUNGEON_BOSS = 6
+
+--[[global]] DETAILS_SEGMENTTYPE_RAID_TRASH = 7
+--[[global]] DETAILS_SEGMENTTYPE_RAID_BOSS = 8
+
+--[[global]] DETAILS_SEGMENTTYPE_MYTHICDUNGEON_GENERIC = 10
+--[[global]] DETAILS_SEGMENTTYPE_MYTHICDUNGEON_TRASH = 11
+--[[global]] DETAILS_SEGMENTTYPE_MYTHICDUNGEON_OVERALL = 12
+--[[global]] DETAILS_SEGMENTTYPE_MYTHICDUNGEON_TRASHOVERALL = 13
+--[[global]] DETAILS_SEGMENTTYPE_MYTHICDUNGEON_BOSS = 14
+
+--[[global]] DETAILS_SEGMENTTYPE_PVP_ARENA = 20
+--[[global]] DETAILS_SEGMENTTYPE_PVP_BATTLEGROUND = 21
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --local pointers
@@ -110,10 +132,13 @@
 		return self.is_mythic_dungeon_trash
 	end
 
+	---return if the combat is a mythic dungeon segment and the run id
+	---@return boolean
+	---@return number
 	function combate:IsMythicDungeon()
-		local is_segment = self.is_mythic_dungeon_segment
-		local run_id = self.is_mythic_dungeon_run_id
-		return is_segment, run_id
+		local bIsMythicPlusSegment = self.is_mythic_dungeon_segment
+		local runId = self.is_mythic_dungeon_run_id
+		return bIsMythicPlusSegment, runId
 	end
 
 	function combate:IsMythicDungeonOverall()
@@ -179,29 +204,6 @@
 		end
 		return Loc ["STRING_UNKNOW"]
 	end
-
-	--[[global]] DETAILS_SEGMENTID_OVERALL = -1
-	--[[global]] DETAILS_SEGMENTID_CURRENT = 0
-
-	--enum segments type
-	--[[global]] DETAILS_SEGMENTTYPE_GENERIC = 0
-
-	--[[global]] DETAILS_SEGMENTTYPE_OVERALL = 1
-
-	--[[global]] DETAILS_SEGMENTTYPE_DUNGEON_TRASH = 5
-	--[[global]] DETAILS_SEGMENTTYPE_DUNGEON_BOSS = 6
-
-	--[[global]] DETAILS_SEGMENTTYPE_RAID_TRASH = 7
-	--[[global]] DETAILS_SEGMENTTYPE_RAID_BOSS = 8
-
-	--[[global]] DETAILS_SEGMENTTYPE_MYTHICDUNGEON_GENERIC = 10
-	--[[global]] DETAILS_SEGMENTTYPE_MYTHICDUNGEON_TRASH = 11
-	--[[global]] DETAILS_SEGMENTTYPE_MYTHICDUNGEON_OVERALL = 12
-	--[[global]] DETAILS_SEGMENTTYPE_MYTHICDUNGEON_TRASHOVERALL = 13
-	--[[global]] DETAILS_SEGMENTTYPE_MYTHICDUNGEON_BOSS = 14
-
-	--[[global]] DETAILS_SEGMENTTYPE_PVP_ARENA = 20
-	--[[global]] DETAILS_SEGMENTTYPE_PVP_BATTLEGROUND = 21
 
 	function combate:GetCombatType()
 		--mythic dungeon
@@ -288,6 +290,8 @@
 		return m, s
 	end
 
+	---return the amount of time the combat has elapsed
+	---@return number
 	function combate:GetCombatTime()
 		if (self.end_time) then
 			return _math_max (self.end_time - self.start_time, 0.1)
@@ -301,21 +305,42 @@
 	function combate:GetStartTime()
 		return self.start_time
 	end
-	function combate:SetStartTime (t)
-		self.start_time = t
+	function combate:SetStartTime(thisTime)
+		self.start_time = thisTime
 	end
 
 	function combate:GetEndTime()
 		return self.end_time
 	end
-	function combate:SetEndTime (t)
-		self.end_time = t
+	function combate:SetEndTime(thisTime)
+		self.end_time = thisTime
+	end
+
+	---copy deaths from combat2 into combat1
+	---if bMythicPlus is true it'll check if the death has mythic plus death time and use it instead of the normal death time
+	---@param combat1 combat 
+	---@param combat2 combat
+	---@param bMythicPlus boolean
+	function combate.CopyDeathsFrom(combat1, combat2, bMythicPlus)
+		local deathsTable = combat1:GetDeaths()
+		local deathsToCopy = combat2:GetDeaths()
+
+		for i = 1, #deathsToCopy do
+			local thisDeath = DetailsFramework.table.copy({}, deathsToCopy[i])
+
+			if (bMythicPlus and thisDeath.mythic_plus) then
+				thisDeath[6] = thisDeath.mythic_plus_dead_at_string
+				thisDeath.dead_at = thisDeath.mythic_plus_dead_at
+			end
+
+			deathsTable[#deathsTable+1] = thisDeath
+		end
 	end
 
 	--return the total of a specific attribute
 	local power_table = {0, 1, 3, 6, 0, "alternatepower"}
 
-	function combate:GetTotal (attribute, subAttribute, onlyGroup)
+	function combate:GetTotal(attribute, subAttribute, onlyGroup)
 		if (attribute == 1 or attribute == 2) then
 			if (onlyGroup) then
 				return self.totals_grupo [attribute]

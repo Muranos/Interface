@@ -439,6 +439,7 @@ local function CreatePluginFrames (data)
 		--deprecated
 	end
 	
+	--[=[
 	EncounterDetailsFrame:HookScript ("OnShow", function()
 		C_Timer.After (0.1, function()
 			if (not EncounterDetails.LastOpenedTime or EncounterDetails.LastOpenedTime + 2 < GetTime()) then
@@ -448,7 +449,8 @@ local function CreatePluginFrames (data)
 			end
 		end)
 	end)
-	
+	--]=]
+
 	--> user clicked on button, need open or close window
 	function EncounterDetails:OpenWindow()
 		
@@ -563,9 +565,6 @@ local function CreatePluginFrames (data)
 			local textPoint = {"left", "left", 4, 0}
 			
 			local SharedMedia = LibStub:GetLibrary("LibSharedMedia-3.0")
-			
-			--CoolTip:SetBannerImage (1, [[]], 200, 22, avatarPoint, avatarTexCoord, nil) --> overlay [2] avatar path
-			--CoolTip:SetBannerText (1, Loc ["STRING_PLUGIN_NAME"], textPoint, {1, 1, 1}, 14, SharedMedia:Fetch ("font", _detalhes.tooltip.fontface)) --> text [1] nickname
 		
 		--apply the backdrop settings to the menu
 		Details:FormatCooltipBackdrop()
@@ -1784,7 +1783,7 @@ function EncounterDetails:OpenAndRefresh (_, segment)
 				barra:HookScript ("OnMouseDown", EncounterDetails.BossInfoRowClick)
 				
 				local add_damage_done = _CreateFrame ("Button", nil, barra, "BackdropTemplate")
-				barra.report_text = "Details! Tamage Taken of "
+				barra.report_text = "Details! Damage Taken of "
 				add_damage_done.report_text = "Details! Damage Done of "
 				add_damage_done.barra = barra
 				add_damage_done:SetWidth (EncounterDetails.CooltipLineHeight)
@@ -2239,7 +2238,7 @@ local installPluginFunc = function()
 
 		--embed the plugin into the plugin window
 		if (DetailsPluginContainerWindow) then
-			DetailsPluginContainerWindow.EmbedPlugin(EncounterDetails, EncounterDetails.Frame)
+			DetailsPluginContainerWindow.EmbedPlugin(EncounterDetails, EncounterDetails.Frame, false, EncounterDetails.OpenAndRefresh)
 		end
 	end
 end

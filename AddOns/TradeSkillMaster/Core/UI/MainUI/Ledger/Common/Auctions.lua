@@ -4,7 +4,7 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
 local Auctions = TSM.MainUI.Ledger.Common:NewPackage("Auctions")
 local L = TSM.Include("Locale").GetTable()
 local Table = TSM.Include("Util.Table")
@@ -13,6 +13,7 @@ local Theme = TSM.Include("Util.Theme")
 local ItemInfo = TSM.Include("Service.ItemInfo")
 local Settings = TSM.Include("Service.Settings")
 local UIElements = TSM.Include("UI.UIElements")
+local UIUtils = TSM.Include("UI.UIUtils")
 local SECONDS_PER_DAY = 24 * 60 * 60
 local private = {
 	settings = nil,
@@ -27,7 +28,7 @@ local private = {
 	type = nil
 }
 do
-	for i = 1, 4 do
+	for i = 0, 5 do
 		tinsert(private.rarityList, _G[format("ITEM_QUALITY%d_DESC", i)])
 		private.rarityFilter[i] = true
 	end
@@ -55,13 +56,13 @@ end
 -- ============================================================================
 
 function private.DrawExpiredPage()
-	TSM.UI.AnalyticsRecordPathChange("main", "ledger", "failed_auctions", "expired")
+	UIUtils.AnalyticsRecordPathChange("main", "ledger", "failed_auctions", "expired")
 	private.type = "expire"
 	return private.DrawAuctionsPage()
 end
 
 function private.DrawCancelledPage()
-	TSM.UI.AnalyticsRecordPathChange("main", "ledger", "failed_auctions", "cancelled")
+	UIUtils.AnalyticsRecordPathChange("main", "ledger", "failed_auctions", "cancelled")
 	private.type = "cancel"
 	return private.DrawAuctionsPage()
 end
@@ -80,7 +81,8 @@ function private.DrawAuctionsPage()
 	end
 
 	private.query:Reset()
-		:InnerJoin(ItemInfo.GetDBForJoin(), "itemString")
+		:VirtualField("name", "string", ItemInfo.GetName, "itemString", "?")
+		:VirtualField("quality", "number", ItemInfo.GetQuality, "itemString", 0)
 		:LeftJoin(TSM.Groups.GetItemDBForJoin(), "itemString")
 		:OrderBy("time", false)
 	private.UpdateQuery()
@@ -138,7 +140,7 @@ function private.DrawAuctionsPage()
 					:SetTitle(L["Item"])
 					:SetFont("ITEM_BODY3")
 					:SetJustifyH("LEFT")
-					:SetTextInfo("itemString", TSM.UI.GetColoredItemName)
+					:SetTextInfo("itemString", UIUtils.GetDisplayItemName)
 					:SetTooltipInfo("itemString")
 					:SetSortInfo("name")
 					:DisableHiding()
@@ -175,10 +177,7 @@ function private.DrawAuctionsPage()
 			:SetQuery(private.query)
 			:SetScript("OnRowClick", private.TableSelectionChanged)
 		)
-		:AddChild(UIElements.New("Texture", "line")
-			:SetHeight(2)
-			:SetTexture("ACTIVE_BG")
-		)
+		:AddChild(UIElements.New("HorizontalLine", "line"))
 		:AddChild(UIElements.New("Frame", "footer")
 			:SetLayout("HORIZONTAL")
 			:SetHeight(40)

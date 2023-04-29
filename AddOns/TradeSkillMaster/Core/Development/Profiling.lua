@@ -4,12 +4,12 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
 if not TSMDEV then
 	return
 end
-TSMDEV.Profiling = {}
-local Profiling = TSMDEV.Profiling
+local Profiling = {}
+TSMDEV.Profiling = Profiling
 local Math = TSM.Include("Util.Math")
 local private = {
 	startTime = nil,
@@ -30,15 +30,16 @@ local NODE_PATH_SEP = "`"
 -- Module Functions
 -- ============================================================================
 
---- Starts profiling.
+---Starts profiling
 function Profiling.Start()
 	assert(not private.startTime, "Profiling already started")
-	private.startTime = debugprofilestop()
+	private.startTime = GetTimePreciseSec()
 end
 
---- Starts profiling of a node.
--- Profiling must have been started for this to have any effect.
--- @tparam string node The name of the profiling node
+---Starts profiling of a node.
+---
+---Profiling must have been started for this to have any effect.
+---@param node string The name of the profiling node
 function Profiling.StartNode(node)
 	if not private.startTime then
 		-- profiling is not running
@@ -61,19 +62,20 @@ function Profiling.StartNode(node)
 	elseif private.nodeParent[node] ~= parentNode then
 		error("Node changed parents", 2)
 	end
-	private.nodeStart[node] = debugprofilestop()
+	private.nodeStart[node] = GetTimePreciseSec()
 end
 
---- Ends profiling of a node.
--- Profiling of this node must have been started for this to have any effect.
--- @tparam string node The name of the profiling node
--- @param[opt] arg An extra argument which is printed if this invocation represents the max duration for the node
+---Ends profiling of a node.
+---
+---Profiling of this node must have been started for this to have any effect.
+---@param node string The name of the profiling node
+---@param arg? any Any extra argument which is printed if this invocation represents the max duration for the node
 function Profiling.EndNode(node, arg)
 	if not private.startTime then
 		-- profiling is not running
 		return
 	end
-	local endTime = debugprofilestop()
+	local endTime = GetTimePreciseSec()
 	local nodeStackLen = #private.nodeStack
 	if node ~= private.nodeStack[nodeStackLen] then
 		error("Node isn't at the top of the stack", 2)
@@ -93,16 +95,16 @@ function Profiling.EndNode(node, arg)
 	end
 end
 
---- Ends profiling and prints the results to chat.
--- @tparam[opt=0] number minTotalTime The minimum total time to print the profiling info
+---Ends profiling and prints the results to chat.
+---@param minTotalTime? number The minimum total time to print the profiling info
 function Profiling.End(minTotalTime)
 	if not private.startTime then
 		-- profiling is not running
 		return
 	end
-	local totalTime = debugprofilestop() - private.startTime
+	local totalTime = GetTimePreciseSec() - private.startTime
 	if totalTime > (minTotalTime or 0) then
-		print(format("Total: %.03f", Math.Round(totalTime, 0.001)))
+		print(format("Total: %.06f", Math.Round(totalTime, 0.000001)))
 		for _, node in ipairs(private.nodes) do
 			local parentNode = private.nodeParent[node]
 			local parentTotalTime = nil
@@ -111,7 +113,7 @@ function Profiling.End(minTotalTime)
 			else
 				parentTotalTime = totalTime
 			end
-			local nodeTotalTime = Math.Round(private.nodeTotal[node], 0.001)
+			local nodeTotalTime = Math.Round(private.nodeTotal[node], 0.000001)
 			local pctTime = Math.Round(nodeTotalTime * 100 / parentTotalTime)
 			local nodeRuns = private.nodeRuns[node]
 			local nodeMaxContext = private.nodeMaxContext[node]
@@ -119,9 +121,9 @@ function Profiling.End(minTotalTime)
 			local name = strmatch(node, NODE_PATH_SEP.."?([^"..NODE_PATH_SEP.."]+)$")
 			if nodeMaxContext ~= nil then
 				local nodeMaxTime = private.nodeMaxTime[node]
-				print(format("%s%s | %d%% | %.03f | %d | %.03f | %s", strrep("  ", level), name, pctTime, nodeTotalTime, nodeRuns, nodeMaxTime, tostring(nodeMaxContext)))
+				print(format("%s%s | %d%% | %.06f | %d | %.06f | %s", strrep("  ", level), name, pctTime, nodeTotalTime, nodeRuns, nodeMaxTime, tostring(nodeMaxContext)))
 			else
-				print(format("%s%s | %d%% | %.03f | %d", strrep("  ", level), name, pctTime, nodeTotalTime, nodeRuns))
+				print(format("%s%s | %d%% | %.06f | %d", strrep("  ", level), name, pctTime, nodeTotalTime, nodeRuns))
 			end
 		end
 	end
@@ -134,17 +136,17 @@ function Profiling.End(minTotalTime)
 	wipe(private.nodeMaxTime)
 end
 
---- Checks whether or not we're currently profiling.
--- @treturn boolean Whether or not we're currently profiling.
+---Checks whether or not we're currently profiling.
+---@return boolean
 function Profiling.IsActive()
 	return private.startTime and true or false
 end
 
---- Gets the total memory used by TSM.
--- @treturn number The amount of memory being used in bytes
+---Gets the total memory used by TSM in bytes.
+---@return number
 function Profiling.GetMemoryUsage()
 	collectgarbage()
-	UpdateAddOnMemoryUsage("TradeSkillMaster")
+	UpdateAddOnMemoryUsage()
 	return GetAddOnMemoryUsage("TradeSkillMaster") * 1024
 end
 

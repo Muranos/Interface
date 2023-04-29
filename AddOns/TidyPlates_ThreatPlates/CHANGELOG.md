@@ -1,9 +1,6 @@
-# 11.1.2 (2022-11-26)
+# 11.1.18 (2023-04-16)
 
-* Added Hex, Earthbind Totem, and Earthgrab Totem (Shaman) to Auras widget as CC aura for Wrath Classic.
-* Fixed a Lua error that could occur when numeric aura sorting (e.g., by duration or time left) was enabled [Comment #6629, #Issue 591].
-* Fixed a bug with tooltip scanning (e.g., for Quest widget) which resulted in the same line showing multiple times in the tooltip [GH-368].
-* Fixed a bug with Combo Points widget where Evoker essence was not being updated properly when not target was selected.
-* Updated tooltip code to new API introduced with Patch 10.0.2.
-* Removed Threat Plates welcome message at login [Comment #6655].
-* Upgrade integrated libraries (LibSharedMedia v10.0.1, Ace3 vr1297-alpha, LibCustomGlow v1.0.3-5-ge685cd9-alpha).
+* Fixed a Lua error that occurred when the mouseover highlight was updated on a nameplate without a valid unit [GH-443].
+* Fixed a bug where one space was replaced with two spaces in names when transliteration of cyrillic letters was enabled [GH-444].
+* Fixed a bug with HealerTracker where all Shaman specializations where shown as healer [Comment #6951].
+* Improved showing/hiding interaction between Threat Plates and WoW default nameplates [this might fix GH-402].

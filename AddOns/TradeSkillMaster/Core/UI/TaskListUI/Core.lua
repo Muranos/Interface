@@ -4,7 +4,7 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
 local TaskListUI = TSM.UI:NewPackage("TaskListUI")
 local L = TSM.Include("Locale").GetTable()
 local Event = TSM.Include("Util.Event")
@@ -12,6 +12,7 @@ local TempTable = TSM.Include("Util.TempTable")
 local Log = TSM.Include("Util.Log")
 local Settings = TSM.Include("Service.Settings")
 local UIElements = TSM.Include("UI.UIElements")
+local UIUtils = TSM.Include("UI.UIUtils")
 local private = {
 	settings = nil,
 	frame = nil,
@@ -104,7 +105,7 @@ function private.OnRegenDisabled()
 end
 
 function private.CreateMainFrame()
-	TSM.UI.AnalyticsRecordPathChange("task_list")
+	UIUtils.AnalyticsRecordPathChange("task_list")
 	local frame = UIElements.New("OverlayApplicationFrame", "base")
 		:SetParent(UIParent)
 		:SetWidth(307)
@@ -114,9 +115,8 @@ function private.CreateMainFrame()
 		:SetScript("OnHide", private.BaseFrameOnHide)
 		:SetContentFrame(UIElements.New("Frame", "content")
 			:SetLayout("VERTICAL")
-			:AddChild(UIElements.New("Texture", "hline")
-				:SetHeight(2)
-				:SetTexture("ACTIVE_BG_ALT")
+			:AddChild(UIElements.New("HorizontalLine", "hline")
+				:SetColor("ACTIVE_BG_ALT")
 			)
 			:AddChildrenWithFunction(private.CreateTaskListElements)
 		)
@@ -279,7 +279,7 @@ function private.BaseFrameOnHide(frame)
 	assert(frame == private.frame)
 	frame:Release()
 	private.frame = nil
-	TSM.UI.AnalyticsRecordClose("task_list")
+	UIUtils.AnalyticsRecordClose("task_list")
 end
 
 function private.CloseBtnOnClick(button)
@@ -348,9 +348,8 @@ function private.OnTaskListUpdate()
 		private.frame:SetTitle(L["TSM TASK LIST"].." ("..numTasks..")")
 		local contentFrame = private.frame:GetElement("content")
 		contentFrame:ReleaseAllChildren()
-		contentFrame:AddChild(UIElements.New("Texture", "hline")
-			:SetHeight(2)
-			:SetTexture("ACTIVE_BG_ALT")
+		contentFrame:AddChild(UIElements.New("HorizontalLine", "hline")
+			:SetColor("ACTIVE_BG_ALT")
 		)
 		contentFrame:AddChildrenWithFunction(private.CreateTaskListElements)
 		contentFrame:GetParentElement():Draw()

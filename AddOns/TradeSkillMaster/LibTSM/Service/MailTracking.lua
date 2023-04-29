@@ -4,8 +4,9 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
-local _, TSM = ...
-local MailTracking = TSM.Init("Service.MailTracking")
+local TSM = select(2, ...) ---@type TSM
+local MailTracking = TSM.Init("Service.MailTracking") ---@class Service.MailTracking
+local Environment = TSM.Include("Environment")
 local Database = TSM.Include("Util.Database")
 local Delay = TSM.Include("Util.Delay")
 local Event = TSM.Include("Util.Event")
@@ -22,9 +23,11 @@ local private = {
 	mailDB = nil,
 	itemDB = nil,
 	quantityDB = nil,
+	baseItemQuantityQuery = nil,
 	callbacks = {},
 	expiresCallbacks = {},
 	cancelAuctionQuery = nil,
+	scanTimer = nil,
 }
 local PLAYER_NAME = UnitName("player")
 
@@ -39,6 +42,7 @@ MailTracking:OnSettingsLoad(function()
 		:AddKey("factionrealm", "internalData", "pendingMail")
 		:AddKey("factionrealm", "internalData", "expiringMail")
 		:AddKey("sync", "internalData", "mailQuantity")
+	private.scanTimer = Delay.CreateTimer("MAIL_TRACKING_SCAN", private.MailInboxUpdateDelayed)
 
 	-- update the structure of TSM.db.factionrealm.internalData.pendingMail
 	local toUpdate = TempTable.Acquire()
@@ -87,13 +91,30 @@ MailTracking:OnSettingsLoad(function()
 		:Commit()
 	private.quantityDB = Database.NewSchema("MAIL_TRACKING_QUANTITY")
 		:AddUniqueStringField("levelItemString")
-		:AddNumberField("quantity")
+		:AddNumberField("mailQuantity")
+		:AddSmartMapField("baseItemString", ItemString.GetBaseMap(), "levelItemString")
+		:AddIndex("baseItemString")
 		:Commit()
+	private.baseItemQuantityQuery = private.quantityDB:NewQuery()
+		:Select("mailQuantity")
+		:Equal("baseItemString", Database.BoundQueryParam())
 
 	private.settings.pendingMail[PLAYER_NAME] = private.settings.pendingMail[PLAYER_NAME] or {}
 	Event.Register("MAIL_INBOX_UPDATE", private.MailInboxUpdateHandler)
 
-	if TSM.IsWowClassic() then
+	if Environment.HasFeature(Environment.FEATURES.C_AUCTION_HOUSE) then
+		private.cancelAuctionQuery = AuctionTracking.CreateQuery()
+			:Equal("auctionId", Database.BoundQueryParam())
+			:Select("levelItemString", "stackSize")
+
+		-- handle auction canceling
+		hooksecurefunc(C_AuctionHouse, "CancelAuction", function(auctionId)
+			private.cancelAuctionQuery:BindParams(auctionId)
+			for _, levelItemString, stackSize in private.cancelAuctionQuery:Iterator() do
+				private.ChangePendingMailQuantity(levelItemString, stackSize)
+			end
+		end)
+	else
 		-- handle auction buying
 		hooksecurefunc("PlaceAuctionBid", function(listType, index, bidPlaced)
 			local itemString = ItemString.Get(GetAuctionItemLink(listType, index))
@@ -113,18 +134,6 @@ MailTracking:OnSettingsLoad(function()
 				return
 			end
 			private.ChangePendingMailQuantity(ItemString.ToLevel(itemString), stackSize)
-		end)
-	else
-		private.cancelAuctionQuery = AuctionTracking.CreateQuery()
-			:Equal("auctionId", Database.BoundQueryParam())
-			:Select("levelItemString", "stackSize")
-
-		-- handle auction canceling
-		hooksecurefunc(C_AuctionHouse, "CancelAuction", function(auctionId)
-			private.cancelAuctionQuery:BindParams(auctionId)
-			for _, levelItemString, stackSize in private.cancelAuctionQuery:Iterator() do
-				private.ChangePendingMailQuantity(levelItemString, stackSize)
-			end
 		end)
 	end
 
@@ -190,9 +199,9 @@ function MailTracking.RegisterExpiresCallback(callback)
 	tinsert(private.expiresCallbacks, callback)
 end
 
-function MailTracking.ItemIterator()
+function MailTracking.QuantityIterator()
 	return private.quantityDB:NewQuery()
-		:Select("levelItemString")
+		:Select("levelItemString", "mailQuantity")
 		:IteratorAndRelease()
 end
 
@@ -212,13 +221,20 @@ function MailTracking.GetMailType(index)
 	return private.GetMailType(index)
 end
 
-function MailTracking.GetQuantityByLevelItemString(levelItemString)
-	return private.quantityDB:GetUniqueRowField("levelItemString", levelItemString, "quantity") or 0
+function MailTracking.GetQuantity(itemString)
+	if not ItemString.IsLevel(itemString) and itemString == ItemString.GetBaseFast(itemString) then
+		return private.baseItemQuantityQuery
+			:BindParams(itemString)
+			:Sum("mailQuantity")
+	else
+		local levelItemString = ItemString.ToLevel(itemString)
+		return private.quantityDB:GetUniqueRowField("levelItemString", levelItemString, "mailQuantity") or 0
+	end
 end
 
 function MailTracking.RecordAuctionBuyout(levelItemString, stackSize)
-	if TSM.IsWowClassic() then
-		-- on classic, we'll handle auction buys via a direct hook
+	if not Environment.HasFeature(Environment.FEATURES.C_AUCTION_HOUSE) then
+		-- We'll handle auction buys via a direct hook
 		return
 	end
 	private.ChangePendingMailQuantity(levelItemString, stackSize)
@@ -234,8 +250,7 @@ function private.MailInboxUpdateHandler()
 	if not DefaultUI.IsMailVisible() then
 		return
 	end
-
-	Delay.AfterFrame("mailInboxScan", 1, private.MailInboxUpdateDelayed)
+	private.scanTimer:RunForFrames(1)
 end
 
 function private.MailInboxUpdateDelayed()
@@ -309,18 +324,18 @@ function private.ChangePendingMailQuantity(levelItemString, quantity)
 		-- create a new row
 		private.quantityDB:NewRow()
 			:SetField("levelItemString", levelItemString)
-			:SetField("quantity", quantity)
+			:SetField("mailQuantity", quantity)
 			:Create()
 	else
 		local row = private.quantityDB:GetUniqueRow("levelItemString", levelItemString)
-		local newValue = row:GetField("quantity") + quantity
+		local newValue = row:GetField("mailQuantity") + quantity
 		assert(newValue >= 0)
 		if newValue == 0 then
 			-- remove this row
 			private.quantityDB:DeleteRow(row)
 		else
 			-- update this row
-			row:SetField("quantity", newValue)
+			row:SetField("mailQuantity", newValue)
 				:Update()
 		end
 		row:Release()
@@ -371,11 +386,11 @@ function private.GetMailType(index, firstItemString)
 	elseif numItems and numItems > 0 and info == "buyer" then
 		return "BUY"
 	elseif not info then
-		if strfind(subject, string.gsub("^"..AUCTION_REMOVED_MAIL_SUBJECT, "%%s", "")) then
+		if strfind(subject, gsub("^"..AUCTION_REMOVED_MAIL_SUBJECT, "%%s", "")) then
 			return "CANCEL"
 		end
 
-		if strfind(subject, string.gsub("^"..AUCTION_EXPIRED_MAIL_SUBJECT, "%%s", "")) then
+		if strfind(subject, gsub("^"..AUCTION_EXPIRED_MAIL_SUBJECT, "%%s", "")) then
 			return "EXPIRE"
 		end
 	end

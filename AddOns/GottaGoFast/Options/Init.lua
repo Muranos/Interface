@@ -35,7 +35,7 @@ function GottaGoFast.InitOptions()
       DeathInObjectives = false,
       MobPoints = false,
       IndividualMobValue = true,
-      UseMdt = false,
+      UseMdt = true,
       ObjectiveCompleteInObjectives = true,
       TimerTooltip = true,
       History = {},

@@ -9,11 +9,9 @@
 -- It is a subclass of the @{ApplicationFrame} class.
 -- @classmod LargeApplicationFrame
 
-local _, TSM = ...
-local LargeApplicationFrame = TSM.Include("LibTSMClass").DefineClass("LargeApplicationFrame", TSM.UI.ApplicationFrame)
+local TSM = select(2, ...) ---@type TSM
 local UIElements = TSM.Include("UI.UIElements")
-UIElements.Register(LargeApplicationFrame)
-TSM.UI.LargeApplicationFrame = LargeApplicationFrame
+local LargeApplicationFrame = UIElements.Define("LargeApplicationFrame", "ApplicationFrame")
 local private = {}
 local NAV_BAR_SPACING = 16
 local NAV_BAR_HEIGHT = 24

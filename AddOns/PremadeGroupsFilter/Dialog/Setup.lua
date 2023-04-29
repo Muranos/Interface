@@ -45,7 +45,7 @@ end
 function PGF.Dialog_OnShow(dialog)
     RequestRaidInfo() -- need the dungeon/raid lockout information later for filtering
     local model = PGF.GetModel()
-    PGF.UsePFGButton:SetChecked(model.enabled)
+    PGF.UsePGFButton:SetChecked(model.enabled)
     PGF.previousSearchExpression = model.expression
     PGF.Dialog_LoadMinMaxFromModel(dialog, model, "MPRating")
     PGF.Dialog_LoadMinMaxFromModel(dialog, model, "PVPRating")
@@ -59,6 +59,9 @@ function PGF.Dialog_OnShow(dialog)
     dialog.Difficulty.Act:SetChecked(model.difficulty.act)
     dialog.Difficulty.DropDown.Text:SetText(DIFFICULTY_TEXT[model.difficulty.val])
     PGF.Dialog_AdjustToMode(model.expert)
+    if not PremadeGroupsFilterSettings.dialogMovable then
+        PGF.Dialog_ResetPosition()
+    end
 end
 
 function PGF.Dialog_OnMouseDown(self, button)
@@ -197,7 +200,7 @@ function PGF.Dialog_SetUpMinMaxField(self, key)
 end
 
 function PGF.Dialog_SetUpUsePGFCheckbox()
-    local button = CreateFrame("CheckButton", "UsePFGButton", LFGListFrame.SearchPanel, "UICheckButtonTemplate")
+    local button = CreateFrame("CheckButton", "UsePGFButton", LFGListFrame.SearchPanel, "UICheckButtonTemplate")
     button:SetSize(26, 26)
     button:SetHitRectInsets(-2, -30, -2, -2)
     button.text:SetText(L["addon.name.short"])
@@ -213,10 +216,21 @@ function PGF.Dialog_SetUpUsePGFCheckbox()
     end)
     button:SetScript("OnEnter", function (self)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        GameTooltip:SetText(L["dialog.usepgf.tooltip"])
+        GameTooltip:SetText(L["addon.name.long"], 1, 1, 1)
+        GameTooltip:AddLine(L["dialog.usepgf.tooltip"], nil, nil, nil, true)
+        GameTooltip:AddLine(" ")
+        GameTooltip:AddLine(L["dialog.usepgf.usage"], nil, nil, nil, true)
+        if PGF.numResultsBeforeFilter > 0 then
+            local removed = PGF.numResultsBeforeFilter - PGF.numResultsAfterFilter
+            GameTooltip:AddLine(" ")
+            GameTooltip:AddLine(string.format(L["dialog.usepgf.results.server"], PGF.numResultsBeforeFilter))
+            GameTooltip:AddLine(string.format(L["dialog.usepgf.results.removed"], removed))
+            GameTooltip:AddLine(string.format(L["dialog.usepgf.results.displayed"], PGF.numResultsAfterFilter))
+        end
+        GameTooltip:Show()
     end)
     button:SetScript("OnLeave", function () GameTooltip:Hide() end)
-    PGF.UsePFGButton = button
+    PGF.UsePGFButton = button
 end
 
 function PGF.Dialog_OnLoad()

@@ -1,13 +1,13 @@
 # BigWigs
 
-## [v253](https://github.com/BigWigsMods/BigWigs/tree/v253) (2022-11-15)
-[Full Changelog](https://github.com/BigWigsMods/BigWigs/compare/v252...v253) [Previous Releases](https://github.com/BigWigsMods/BigWigs/releases)
+## [v270](https://github.com/BigWigsMods/BigWigs/tree/v270) (2023-03-29)
+[Full Changelog](https://github.com/BigWigsMods/BigWigs/compare/v269.1...v270) [Previous Releases](https://github.com/BigWigsMods/BigWigs/releases)
 
 - bump version  
-- bump toc  
-- Plugins/BossBlock: Algeth'ar Academy talking heads (#1290)  
-- Remove Dragonflight load guards  
-- Core/BossPrototype: Fixing some more reloading UI mid combat issues, closes #1289  
-- VaultOfTheIncarnates/KurogGrimtotem: Cleanups  
-- VaultOfTheIncarnates/KurogGrimtotem: Remove unused locale  
-- VaultOfTheIncarnates/KurogGrimtotem: Module updates  
+- April fools code  
+- Loader: Fix GetAddOnMetadata usage on PTR  
+- Add IconTexture support for the toc files  
+- Update ruRU (#1362)  
+- Aberrus/Neltharion: Heroic updates  
+- Aberrus/Magmorax: Updates  
+- Aberrus/Magmorax: Heroic updates  

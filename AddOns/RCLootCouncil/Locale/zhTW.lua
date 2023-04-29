@@ -14,7 +14,7 @@ L["Abort"] = "中止"
 L["Accept Whispers"] = "接受密語"
 L["accept_whispers_desc"] = "允許玩家密語他們當前的物品給你，以添加到分配界面。"
 --[[Translation missing --]]
---[[ L["Accepted imports: 'Player Export' and 'CSV'"] = ""--]] 
+L["Accepted imports: 'Player Export' and 'CSV'"] = "Accepted imports: 'Player Export' and 'CSV'"
 L["Active"] = "啓用"
 L["active_desc"] = "取消勾選以禁用RCLootCouncil。當你在團隊中但沒參與副本活動時這很有用。備注：此選項在每次登出時重置。"
 L["Add Item"] = "添加物品"
@@ -23,7 +23,7 @@ L["Add ranks"] = "增加階級"
 L["Add rolls"] = "添加擲骰"
 L["Add Rolls"] = "添加擲骰"
 --[[Translation missing --]]
---[[ L["add_candidate"] = ""--]] 
+L["add_candidate"] = "Add Candidate"
 L["add_ranks_desc"] = "擇參與戰利品分配議會的最低會階"
 L["add_ranks_desc2"] = [=[
 在上方選擇一個會階，添加該會階以及高於此會階的所有公會成員為議會成員。
@@ -39,7 +39,7 @@ L["All items usable by the candidate"] = "所有此人可用的物品"
 L["All unawarded items"] = "所有未分配物品"
 L["Alternatively, flag the loot as award later."] = "另外，標記該物品為稍后分配。"
 --[[Translation missing --]]
---[[ L["Always show owner"] = ""--]] 
+L["Always show owner"] = "Always show owner"
 L["Always use RCLootCouncil with Personal Loot"] = "個人拾取時總是使用RCLootCouncil"
 L["always_show_tooltip_howto"] = "雙擊切換是否總顯示tooltip"
 L["Announce Awards"] = "通知分配"
@@ -47,7 +47,7 @@ L["Announce Considerations"] = "通知考慮的物品"
 L["announce_&i_desc"] = "|cfffcd400 &i|r: 物品連結"
 L["announce_&l_desc"] = "|cfffcd400 &l|r: 物品等級"
 --[[Translation missing --]]
---[[ L["announce_&m_desc"] = ""--]] 
+L["announce_&m_desc"] = "|cfffcd400 &m|r: candidates note."
 L["announce_&n_desc"] = "|cfffcd400 &n|r: 擲骰結果，如果有的話。"
 L["announce_&o_desc"] = "|cfffcd400 &o|r: 裝備擁有人， 如果適用。"
 L["announce_&p_desc"] = "|cfffcd400 &p|r: 獲得物品的玩家名稱"
@@ -84,7 +84,7 @@ L["Auto Pass"] = "自動放棄"
 L["Auto pass BoE"] = "自動放棄裝綁"
 L["Auto Pass Trinkets"] = "自動放棄飾品"
 --[[Translation missing --]]
---[[ L["Auto Trade"] = ""--]] 
+L["Auto Trade"] = "Auto Trade"
 L["auto_award_desc"] = "啓用自動分配"
 L["auto_award_to_desc"] = "自動獲得物品的玩家"
 L["auto_close_desc"] = "分裝者結束分裝程序後自動關閉投票視窗"
@@ -93,6 +93,8 @@ L["auto_open_desc"] = "自動開啟分配界面。不勾也可輸入/rc open 手
 L["auto_pass_boe_desc"] = "自動放棄裝備綁定物品"
 L["auto_pass_desc"] = "自動放棄你不能用的物品"
 L["auto_pass_trinket_desc"] = "選中以自動放棄地下城手冊中不屬於你的職業的飾品"
+--[[Translation missing --]]
+L["autoGroupLoot_warning"] = "Note: Group Leader's settings will cause RCLootCouncil to automatically control group loot."
 L["autoloot_others_item_combat"] = "%s 拾取了%s。此物品將會在戰斗結束后加入分配。"
 L["Autopass"] = "自動放棄"
 L["Autopassed on 'item'"] = "自動放棄%s"
@@ -111,7 +113,7 @@ L["Awarded"] = "已分配"
 L["Awarded item cannot be awarded later."] = "已分配物品無法被稍后分配。"
 L["Awards"] = "分配"
 --[[Translation missing --]]
---[[ L["Azerite Armor"] = ""--]] 
+L["Azerite Armor"] = "Azerite Armor"
 L["Background"] = "背景"
 L["Background Color"] = "背景顏色"
 L["Banking"] = "收藏"
@@ -135,13 +137,13 @@ L["Changing loot threshold to enable Auto Awarding"] = "更改拾取品質以啟
 L["Changing LootMethod to Master Looting"] = "分配方式更改爲隊長分配"
 L["channel_desc"] = "發送信息的頻道"
 --[[Translation missing --]]
---[[ L["Chat print"] = ""--]] 
+L["Chat print"] = "Chat print"
 L["chat tVersion string"] = "|cFF87CEFARCLootCouncil |cFFFFFFFF版本 |cFFFFA500 %s - %s"
 L["chat version String"] = "|cFF87CEFARCLootCouncil |cFFFFFFFF版本 |cFFFFA500 %s"
 --[[Translation missing --]]
---[[ L["chat_cmd_add_found_items"] = ""--]] 
+L["chat_cmd_add_found_items"] = "Found %d items with trade timers in your bags."
 --[[Translation missing --]]
---[[ L["chat_cmd_add_invalid_owner"] = ""--]] 
+L["chat_cmd_add_invalid_owner"] = "The player %s was either invalid or not a candidate."
 L["chat_commands_add"] = "將一個物品加入分配"
 L["chat_commands_award"] = "開始分配你之前稍后分配的物品。"
 L["chat_commands_config"] = "打開設置界面"
@@ -172,7 +174,7 @@ L["confirm_usage_text"] = [=[|cFF87CEFA RCLootCouncil |r
 是否在此隊伍使用RCLootCouncil?]=]
 L["Conqueror Token"] = "征服者代幣"
 --[[Translation missing --]]
---[[ L["Corruption if awarded:"] = ""--]] 
+L["Corruption if awarded:"] = "Corruption if awarded:"
 L["Could not Auto Award i because the Loot Threshold is too high!"] = "無法自動分配%s 因為拾取門欄過高"
 L["Could not find 'player' in the group."] = "隊伍中無法找到%s"
 L["Couldn't find any councilmembers in the group"] = "無法在隊伍內找到投票成員"
@@ -194,7 +196,7 @@ L["Diff"] = "差異"
 L["Discord friendly output."] = "Discord格式輸出"
 L["disenchant_desc"] = "當你經由分解按鈕贏得物品時使用這個理由"
 --[[Translation missing --]]
---[[ L["Do you want to keep %s for yourself or trade?"] = ""--]] 
+L["Do you want to keep %s for yourself or trade?"] = "Do you want to keep %s for yourself or trade?"
 L["Done syncing"] = "同步結束"
 L["Double click to delete this entry."] = "點擊兩下刪除此條目"
 L["Dropped by:"] = "掉落來源:"
@@ -207,19 +209,19 @@ L["Enter your note:"] = "輸入你的筆記："
 L["EQdkp-Plus XML output, tailored for Enjin import."] = "EQdkp-Plus XML輸出，適用於Enjin輸入。"
 L["error_test_as_non_leader"] = "你無法在隊伍中以非隊長的身分啟動測試"
 --[[Translation missing --]]
---[[ L["Everybody is up to date."] = ""--]] 
+L["Everybody is up to date."] = "Everybody is up to date."
 L["Everyone have voted"] = "所有投票成員都已投票"
 L["Export"] = "輸出"
 --[[Translation missing --]]
---[[ L["Fake Loot"] = ""--]] 
+L["Fake Loot"] = "Fake Loot"
 L["Following items were registered in the award later list:"] = "以下物品已被稍后分配列表登記："
 L["Following winners was registered:"] = "下個贏家已登記："
 --[[Translation missing --]]
---[[ L["Found the following outdated versions"] = ""--]] 
+L["Found the following outdated versions"] = "Found the following outdated versions"
 L["Frame options"] = "框架選項"
 L["Free"] = "自由拾取"
 --[[Translation missing --]]
---[[ L["Full Bags"] = ""--]] 
+L["Full Bags"] = "Full Bags"
 L["g1"] = "1"
 L["g2"] = "2"
 L["Gave the item to you for distribution."] = "將物品給你分配。"
@@ -239,14 +241,14 @@ L["ignore_input_usage"] = "只接受物品ID(數字)"
 L["ignore_list_desc"] = "物品已被RCLootCouncil忽略，點擊物品來移除。"
 L["ignore_options_desc"] = "控制RCLootCouncil忽略的物品。 如果添加的物品未找到，請切到其他介面, 然後返回，這樣你就可以看到了。"
 --[[Translation missing --]]
---[[ L["Import aborted"] = ""--]] 
+L["Import aborted"] = "Import aborted"
 L["import_desc"] = "將數據粘貼於此。隻顯示前2500個字符以避免游戲卡頓。"
 --[[Translation missing --]]
---[[ L["import_malformed"] = ""--]] 
+L["import_malformed"] = "The import was malformed (not a string)"
 --[[Translation missing --]]
---[[ L["import_malformed_header"] = ""--]] 
+L["import_malformed_header"] = "Malformed header"
 --[[Translation missing --]]
---[[ L["import_not_supported"] = ""--]] 
+L["import_not_supported"] = "The import type is either very malformed or not supported."
 L["Invalid selection"] = "無效選擇"
 L["Item"] = "物品"
 L["'Item' is added to the award later list."] = "%s被加入到了稍后分配列表了。"
@@ -258,7 +260,7 @@ L["item_in_bags_low_trade_time_remaining_reminder"] = "你的背包中的以下�
 L["Items stored in the loot master's bag for award later cannot be awarded later."] = "存放在戰利品分配者背包內的物品無法被稍后分配。"
 L["Items under consideration:"] = "待決定的物品："
 --[[Translation missing --]]
---[[ L["Keep"] = ""--]] 
+L["Keep"] = "Keep"
 L["Latest item(s) won"] = "上一次取得物品:"
 L["Length"] = "長度"
 L["Log"] = "日誌"
@@ -266,19 +268,19 @@ L["log_desc"] = "啓用拾取歷史記錄"
 L["Loot announced, waiting for answer"] = "拾取已發送，正在等待回應"
 L["Loot History"] = "拾取歷史"
 --[[Translation missing --]]
---[[ L["Loot Status"] = ""--]] 
+L["Loot Status"] = "Loot Status"
 L["Loot won:"] = "獲得裝備:"
 L["loot_history_desc"] = [=[RCLootCouncil 將自動記錄分配相關訊息
 原始數據儲存於".../SavedVariables/RCLootCouncil.lua" 
 
 注意: 非分裝者只能記錄來自分裝者發送的數據]=]
 --[[Translation missing --]]
---[[ L["Looted"] = ""--]] 
+L["Looted"] = "Looted"
 L["Looted by:"] = "拾取人: "
 --[[Translation missing --]]
---[[ L["lootFrame_error_note_required"] = ""--]] 
+L["lootFrame_error_note_required"] = "You must add a note before submitting your repsonse - %s"
 --[[Translation missing --]]
---[[ L["lootHistory_moreInfo_winnersOfItem"] = ""--]] 
+L["lootHistory_moreInfo_winnersOfItem"] = "Winners of %s:"
 L["Looting options"] = "拾取選項"
 L["Lower Quality Limit"] = "最低品質"
 L["lower_quality_limit_desc"] = "選擇自動分配時物品的最低品質"
@@ -292,12 +294,12 @@ L["message_desc"] = "訊息已發送至所選頻道"
 L["Minimize in combat"] = "戰鬥中最小化"
 L["Minor Upgrade"] = "小提升"
 --[[Translation missing --]]
---[[ L["Missing votes from:"] = ""--]] 
+L["Missing votes from:"] = "Missing votes from:"
 L["ML sees voting"] = "分裝者可見投票"
 --[[Translation missing --]]
---[[ L["ML_ADD_INVALID_ITEM"] = ""--]] 
+L["ML_ADD_INVALID_ITEM"] = "Invalid itemLink or itemID: %s"
 --[[Translation missing --]]
---[[ L["ML_ADD_ITEM_MAX_ATTEMPTS"] = ""--]] 
+L["ML_ADD_ITEM_MAX_ATTEMPTS"] = "Couldn't fetch item info for %s - probably not a real item."
 L["ml_sees_voting_desc"] = "允許分裝者查看投票詳情"
 L["module_tVersion_outdated_msg"] = "最新模塊 %s 的測試版本為: %s"
 L["module_version_outdated_msg"] = "模塊 %s 版本 %s 已過期。新版本為 %s。"
@@ -345,74 +347,93 @@ L["open_the_loot_history_desc"] = "打開拾取歷史"
 L["Opens the synchronizer"] = "開啟同步"
 L["opt_addButton_desc"] = "對選擇部位增加新的按鈕群組"
 --[[Translation missing --]]
---[[ L["opt_autoAddBoEs_desc"] = ""--]] 
+L["opt_autoAddBoEs_desc"] = "Automatically add all BoE (Bind on Equip) items to a session."
 --[[Translation missing --]]
---[[ L["opt_autoAddBoEs_name"] = ""--]] 
+L["opt_autoAddBoEs_name"] = "Auto Add BoEs"
 --[[Translation missing --]]
---[[ L["opt_autoAddItems_desc"] = ""--]] 
+L["opt_autoAddItems_desc"] = "Automatically add all eligible items to a session."
 --[[Translation missing --]]
---[[ L["opt_autoAddItems_name"] = ""--]] 
+L["opt_autoAddItems_name"] = "Auto Add Items"
 --[[Translation missing --]]
---[[ L["opt_autoAddPets_desc"] = ""--]] 
+L["opt_autoAddPets_desc"] = "Automatically add all Companion Pets to a session."
 --[[Translation missing --]]
---[[ L["opt_autoAddPets_name"] = ""--]] 
+L["opt_autoAddPets_name"] = "Add Pets"
 --[[Translation missing --]]
---[[ L["opt_autoAwardPrioList_desc"] = ""--]] 
+L["opt_autoAwardPrioList_desc"] = "Items are awarded to the first candidate found in your group according to this priority list."
 --[[Translation missing --]]
---[[ L["opt_autoTrade_desc"] = ""--]] 
+L["opt_autoGroupLoot_desc"] = "When enabled, RCLootCouncil will automatically click the pass and greed buttons so that all items lands in your inventory."
 --[[Translation missing --]]
---[[ L["opt_award_later_desc"] = ""--]] 
+L["opt_autoGroupLoot_name"] = "Auto Group Loot"
 --[[Translation missing --]]
---[[ L["opt_buttonsGroup_desc"] = ""--]] 
+L["opt_autoGroupLootGuildGroupOnly_desc"] = "When enabled, RCLootCouncil will only do group loot auto pass when you're in a guild group."
 --[[Translation missing --]]
---[[ L["opt_chatFrameName_desc"] = ""--]] 
+L["opt_autoGroupLootGuildGroupOnly_name"] = "Guild Groups Only"
 --[[Translation missing --]]
---[[ L["opt_chatFrameName_name"] = ""--]] 
+L["opt_autoTrade_desc"] = "Check to automatically add awarded items to the trade window when trading with the winner. If disabled, you'll see a popup before items are added."
+--[[Translation missing --]]
+L["opt_award_later_desc"] = "Check to automatically check the 'Award Later' option in the Session Frame."
+--[[Translation missing --]]
+L["opt_buttonsGroup_desc"] = [=[Options group for %s buttons and responses.
+See above for a detailed explanation.]=]
+--[[Translation missing --]]
+L["opt_chatFrameName_desc"] = "Select which chat frame you want RCLootCouncil to output information to."
+--[[Translation missing --]]
+L["opt_chatFrameName_name"] = "Chat Frame"
+--[[Translation missing --]]
+L["opt_closeWithEscape_desc"] = "When enabled, all non-critical RCLootCouncil frames can be closed by pressing 'Escape'. (Requires reload to take effect on already created frames)"
+--[[Translation missing --]]
+L["opt_closeWithEscape_name"] = "Escape Close"
 L["opt_deleteDate_confirm"] = "你確定你要將比選項舊的紀錄刪除嗎? 刪除後無法復原。"
 L["opt_deleteDate_desc"] = "刪除所有比選項中的天數舊的紀錄。"
 L["opt_deleteName_confirm"] = "你確定你要刪除所有 %s 的紀錄嗎? 刪除後無法復原。"
 --[[Translation missing --]]
---[[ L["opt_deleteName_desc"] = ""--]] 
+L["opt_deleteName_desc"] = "Delete all entries from the selected candidate."
 --[[Translation missing --]]
---[[ L["opt_deletePatch_confirm"] = ""--]] 
+L["opt_deletePatch_confirm"] = [=[Are you sure you want to delete everything older than the selected patch?
+ This cannot be undone.]=]
 --[[Translation missing --]]
---[[ L["opt_deletePatch_desc"] = ""--]] 
+L["opt_deletePatch_desc"] = "Delete all entries added before the selected patch."
 --[[Translation missing --]]
---[[ L["opt_deleteRaid_confirm"] = ""--]] 
+L["opt_deleteRaid_confirm"] = [=[Are you sure you want to delete all entries from the selected instance?
+This cannot be undone.]=]
 --[[Translation missing --]]
---[[ L["opt_deleteRaid_desc"] = ""--]] 
+L["opt_deleteRaid_desc"] = "Delete all entries from a specific instance."
 --[[Translation missing --]]
---[[ L["opt_moreButtons_desc"] = ""--]] 
+L["opt_moreButtons_desc"] = "Add a new set of buttons for a specific gear slot. The most specific type is used, i.e. adding buttons for 'Head' and 'Azerite Armor' will make head type armor use the head buttons instead of azerite armor."
 --[[Translation missing --]]
---[[ L["opt_printCompletedTrade_Desc"] = ""--]] 
+L["opt_printCompletedTrade_Desc"] = "Check to enable a message every time a candidate trades an awarded item to the winner."
 --[[Translation missing --]]
---[[ L["opt_printCompletedTrade_Name"] = ""--]] 
+L["opt_printCompletedTrade_Name"] = "Trade Messages"
 --[[Translation missing --]]
---[[ L["opt_rejectTrade_Desc"] = ""--]] 
+L["opt_rejectTrade_Desc"] = "Check to enable candidates to choose whether they want to 'give' the item to the council or not. If unchecked, all tradeable PL items are added automatically."
 L["opt_rejectTrade_Name"] = "允許保留裝備"
 --[[Translation missing --]]
---[[ L["opt_skipSessionFrame_desc"] = ""--]] 
+L["opt_skipSessionFrame_desc"] = "Skips the Session Frame. NOTE: This causes the addon to start a session with all eligble items without you having a chance to edit the list!"
 --[[Translation missing --]]
---[[ L["opt_skipSessionFrame_name"] = ""--]] 
+L["opt_skipSessionFrame_name"] = "Skip Session Frame"
 --[[Translation missing --]]
---[[ L["opt_useSlashRC_desc"] = ""--]] 
+L["opt_usage_AskGroupLoot"] = "Ask me every time Group Loot is enabled"
 --[[Translation missing --]]
---[[ L["opt_useSlashRC_name"] = ""--]] 
+L["opt_usage_GroupLoot"] = "Always use RCLootCouncil with Group Loot"
 --[[Translation missing --]]
---[[ L["options_autoAwardBoE_desc"] = ""--]] 
+L["opt_useSlashRC_desc"] = "Disable this if you want to restore '/rc' to ready check. RCLootCouncil commands are still available with '/rclc'. A '/reload' is required for this to take effect."
 --[[Translation missing --]]
---[[ L["options_autoAwardBoE_name"] = ""--]] 
+L["opt_useSlashRC_name"] = "Use /rc"
 --[[Translation missing --]]
---[[ L["options_ml_outOfRaid_desc"] = ""--]] 
+L["options_autoAwardBoE_desc"] = "Enable to automatically award all epic BoE (Bind on Equip) items to a specific person for the selected reason."
 --[[Translation missing --]]
---[[ L["options_ml_outOfRaid_name"] = ""--]] 
+L["options_autoAwardBoE_name"] = "Auto Award BoE's"
 --[[Translation missing --]]
---[[ L["options_requireNotes_desc"] = ""--]] 
+L["options_ml_outOfRaid_desc"] = "When enabled, while in a group of 8 or more members, anyone that isn't in an instance when a session starts will automatically send an 'Out of Raid' response."
 --[[Translation missing --]]
---[[ L["Original Owner"] = ""--]] 
+L["options_ml_outOfRaid_name"] = "Out of Raid Support"
+--[[Translation missing --]]
+L["options_requireNotes_desc"] = "If enabled, candidates cannot submit their response without having entered a note."
+--[[Translation missing --]]
+L["Original Owner"] = "Original Owner"
 L["Out of instance"] = "不在副本內"
 --[[Translation missing --]]
---[[ L["Patch"] = ""--]] 
+L["Patch"] = "Patch"
 L["Personal Loot - Non tradeable"] = "個人拾取 - 無法交易"
 L["Personal Loot - Rejected Trade"] = "個人拾取 - 拒絕交易"
 L["'player' can't receive 'type'"] = "%s無法獲得%s - 版本不同?"
@@ -447,7 +468,7 @@ L["Remove from consideration"] = "從待決定中移除"
 L["remove_all_desc"] = "移除所有可拾取成員"
 L["Requested rolls for 'item' from 'target'"] = "已要求 %2$s 對 %1$s 擲點"
 --[[Translation missing --]]
---[[ L["Require Notes"] = ""--]] 
+L["Require Notes"] = "Require Notes"
 L["Reset Skin"] = "重置外觀"
 L["Reset skins"] = "重置外觀"
 L["reset_announce_to_default_desc"] = "重置所有通知選項"
@@ -472,10 +493,10 @@ L["Self Vote"] = "自我投票"
 L["self_vote_desc"] = "允許投票者投給他自己"
 L["Send History"] = "發送歷史"
 --[[Translation missing --]]
---[[ L["Send to Guild"] = ""--]] 
+L["Send to Guild"] = "Send to Guild"
 L["send_history_desc"] = "發送數據給隊伍中所有成員。只有你是分裝者RCLootCouncil 才會發送數據"
 --[[Translation missing --]]
---[[ L["send_to_guild_desc"] = ""--]] 
+L["send_to_guild_desc"] = "Send history to guild members instead of your group. Useful if you're running multiple raid groups and want a combined history for your guild. The downside is non-guild members in your group won't register your history entries."
 L["Sending 'type' to 'player'..."] = "寄送%s給%s..."
 L["Sent whisper help to 'player'"] = "發送密語幫助給%s"
 L["session_error"] = "出現了一些錯誤 - 請重新分配"
@@ -499,7 +520,7 @@ L["Sort Items"] = "物品排序"
 L["sort_items_desc"] = "將物品按照類型與裝等排序。"
 L["Standard .csv output."] = "標準.csv輸出格式"
 --[[Translation missing --]]
---[[ L["Standard JSON output."] = ""--]] 
+L["Standard JSON output."] = "JSON array containing one JSON object per history entry."
 L["Status texts"] = "狀態文字"
 L["Store in bag and award later"] = "存入背包以稍后分配"
 L["Succesfully deleted %d entries"] = "成功刪除 %d 紀錄"
@@ -565,7 +586,7 @@ L["Unguilded"] = "無公會"
 L["Unknown date"] = "日期不明"
 L["Unknown/Chest"] = "未知"
 --[[Translation missing --]]
---[[ L["Unlooted"] = ""--]] 
+L["Unlooted"] = "Unlooted"
 L["Unvote"] = "未投票"
 L["Upper Quality Limit"] = "最高品質"
 L["upper_quality_limit_desc"] = "選擇自動分配時物品的最高品質"

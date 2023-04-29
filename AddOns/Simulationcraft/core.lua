@@ -50,14 +50,12 @@ local ITEM_MOD_TYPE_CRAFT_STATS_2 = 30
 
 local WeeklyRewards         = _G.C_WeeklyRewards
 
--- Shadowlands
-local Covenants             = _G.C_Covenants
-local Soulbinds             = _G.C_Soulbinds
-local CovenantSanctumUI     = _G.C_CovenantSanctumUI
-
 -- New talents for Dragonflight
 local ClassTalents          = _G.C_ClassTalents
 local Traits                = _G.C_Traits
+
+-- GetAddOnMetadata was global until 10.1. It's now in C_AddOns. This line will use C_AddOns if available and work in either WoW build
+local GetAddOnMetadata = C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetadata
 
 -- Talent string export
 local bitWidthHeaderVersion         = 8
@@ -297,7 +295,7 @@ end
 
 local function GetActiveEntryIndex(treeNode)
   for i, entryID in ipairs(treeNode.entryIDs) do
-    if(entryID == treeNode.activeEntry.entryID) then
+    if(treeNode.activeEntry and entryID == treeNode.activeEntry.entryID) then
       return i;
     end
   end
@@ -325,10 +323,11 @@ local function WriteLoadoutContent(exportStream, configID, treeID)
       if(isChoiceNode) then
         local entryIndex = GetActiveEntryIndex(treeNode);
         if(entryIndex <= 0 or entryIndex > 4) then
-          error(
-            "Error exporting tree node " .. treeNode.ID
-            .. ". The active choice node entry index (" .. entryIndex .. ") is out of bounds. "
-          );
+          local configInfo = Traits.GetConfigInfo(configID)
+          local errorMsg = "Talent loadout '" .. configInfo.name .. "' is corrupt/incomplete. It needs to be"
+            .. " recreated or deleted for /simc to function properly"
+          print(errorMsg);
+          error(errorMsg);
         end
 
         -- store entry index as zero-index
@@ -442,15 +441,14 @@ local function GetItemStringFromItemLink(slotNum, itemLink, debugOutput)
   -- Gems
   for gemOffset = OFFSET_GEM_ID_1, OFFSET_GEM_ID_4 do
     local gemIndex = (gemOffset - OFFSET_GEM_BASE) + 1
+    gems[gemIndex] = 0
+    gemBonuses[gemIndex] = 0
     if itemSplit[gemOffset] > 0 then
       local gemId = GetGemItemID(itemLink, gemIndex)
       if gemId > 0 then
         gems[gemIndex] = gemId
         gemBonuses[gemIndex] = GetGemBonuses(itemLink, gemIndex)
       end
-    else
-      gems[gemIndex] = 0
-      gemBonuses[gemIndex] = 0
     end
   end
 
@@ -504,6 +502,11 @@ local function GetItemStringFromItemLink(slotNum, itemLink, debugOutput)
 
   if #craftedStats > 0 then
     simcItemOptions[#simcItemOptions + 1] = 'crafted_stats=' .. table.concat(craftedStats, '/')
+  end
+
+  local craftingQuality = C_TradeSkillUI.GetItemCraftedQualityByItemInfo(itemLink);
+  if craftingQuality then
+    simcItemOptions[#simcItemOptions + 1] = 'crafting_quality=' .. craftingQuality
   end
 
   local itemStr = ''
@@ -632,61 +635,39 @@ function Simulationcraft:GetZandalariLoa()
   return zandalariLoa
 end
 
-
--- Shadowlands helpers: covenants, soulbinds, conduits
-function Simulationcraft:CovenantsAvailable()
-  if Covenants then
-    return true
-  else
-    return false
-  end
-end
-
-function Simulationcraft:GetActiveCovenantID()
-  return Covenants.GetActiveCovenantID()
-end
-function Simulationcraft:GetActiveCovenantData()
-  local activeCovenantID = Simulationcraft.GetActiveCovenantID()
-  if activeCovenantID > 0 then
-    return Covenants.GetCovenantData(Simulationcraft.GetActiveCovenantID())
-  end
-  return nil
-end
-function Simulationcraft:GetCovenantString()
-  local covenantData = Simulationcraft.GetActiveCovenantData()
-  if covenantData then
-    return 'covenant=' .. Simulationcraft.covenants[covenantData.ID]
-  end
-  return nil
-end
-
-local function SortByRow(a, b)
-  return a.row < b.row
-end
-
-function Simulationcraft:GetSoulbindString(id)
-  local soulbindStrings = {}
-  local soulbindData = Soulbinds.GetSoulbindData(id)
-  -- sort nodes by row order
-  local nodes = soulbindData.tree.nodes
-  table.sort(nodes, SortByRow)
-  for _, node in pairs(nodes) do
-    if node.state == Enum.SoulbindNodeState.Selected then
-      if node.spellID ~= 0 then
-        soulbindStrings[#soulbindStrings + 1] = node.spellID
-      elseif node.conduitID ~= 0 then
-        local enhancedStr
-        if node.socketEnhanced then
-          enhancedStr = "1"
-        else
-          enhancedStr = "0"
-        end
-        soulbindStrings[#soulbindStrings + 1] = node.conduitID .. ":" .. node.conduitRank .. ":" .. enhancedStr
+function Simulationcraft:GetSlotHighWatermarks()
+  if C_ItemUpgrade and C_ItemUpgrade.GetHighWatermarkForSlot then
+    local slots = {}
+    -- These are not normal equipment slots, they are Enum.ItemRedundancySlot
+    for slot = 0, 16 do
+      local characterHighWatermark, accountHighWatermark = C_ItemUpgrade.GetHighWatermarkForSlot(slot)
+      if characterHighWatermark or accountHighWatermark then
+        slots[#slots + 1] = table.concat({  slot, characterHighWatermark, accountHighWatermark }, ':')
       end
     end
+    return table.concat(slots, '/')
   end
-  return "soulbind="
-    .. Tokenize(soulbindData.name) .. ':' .. soulbindData.ID .. ',' .. table.concat(soulbindStrings, '/')
+end
+
+function Simulationcraft:GetUpgradeCurrencies()
+  local upgradeCurrencies = {}
+  -- Collect actual currencies
+  for currencyId, currencyName in pairs(Simulationcraft.upgradeCurrencies) do
+    local currencyInfo = C_CurrencyInfo.GetCurrencyInfo(currencyId)
+    if currencyInfo and currencyInfo.quantity > 0 then
+      upgradeCurrencies[#upgradeCurrencies + 1] = table.concat({ "c", currencyId, currencyInfo.quantity }, ':')
+    end
+  end
+
+  -- Collect items that get used as currencies
+  for itemId, itemName in pairs(Simulationcraft.upgradeItems) do
+    local count = GetItemCount(itemId, true, true, true)
+    if count > 0 then
+      upgradeCurrencies[#upgradeCurrencies + 1] = table.concat({ "i", itemId, count }, ':')
+    end
+  end
+
+  return table.concat(upgradeCurrencies, '/')
 end
 
 function Simulationcraft:GetMainFrame(text)
@@ -951,56 +932,6 @@ function Simulationcraft:PrintSimcProfile(debugOutput, noBags, showMerchant, lin
 
   simulationcraftProfile = simulationcraftProfile .. '\n'
 
-  -- SHADOWLANDS SYSTEMS
-  -- gate covenant/soulbind code behind this check so addon will work in 8.3
-  if Simulationcraft:CovenantsAvailable() then
-    local covenantString = Simulationcraft:GetCovenantString()
-    if covenantString then
-      simulationcraftProfile = simulationcraftProfile .. covenantString .. '\n'
-
-      -- iterate over soulbinds, inactive soulbinds are commented out
-      local activeSoulbindID = Soulbinds:GetActiveSoulbindID()
-      if activeSoulbindID > 0 then
-        local covenantsData = Simulationcraft:GetActiveCovenantData().soulbindIDs
-        for _, soulbindID in pairs(covenantsData) do
-          local soulbindData = Soulbinds.GetSoulbindData(soulbindID)
-          if soulbindData.unlocked then
-            local soulbindString = Simulationcraft:GetSoulbindString(soulbindID)
-            if soulbindID == activeSoulbindID then
-              simulationcraftProfile = simulationcraftProfile .. soulbindString .. '\n'
-            else
-              simulationcraftProfile = simulationcraftProfile .. '# ' .. soulbindString .. '\n'
-            end
-          end
-        end
-      end
-
-      -- Export conduit collection
-      -- TODO: Figure out if addon needs to care about spec fields or if
-      -- there's any other deduping to do
-      local conduitsAvailable = {}
-      for _, conduitType in pairs(Enum.SoulbindConduitType) do
-        local conduits = Soulbinds.GetConduitCollection(conduitType)
-        for _, conduit in pairs(conduits) do
-          conduitsAvailable[#conduitsAvailable + 1] = conduit.conduitID .. ':' .. conduit.conduitRank
-        end
-      end
-
-      local conduitsAvailableStr = table.concat(conduitsAvailable, '/')
-      simulationcraftProfile = simulationcraftProfile .. '# conduits_available=' .. conduitsAvailableStr .. '\n'
-
-      -- Export renown level as a comment, useful to determine how much of a soulbind tree is currently usable
-      if CovenantSanctumUI then
-        local renown = CovenantSanctumUI.GetRenownLevel()
-        if renown > 0 then
-          simulationcraftProfile = simulationcraftProfile .. 'renown=' .. renown .. '\n'
-        end
-      end
-
-      simulationcraftProfile = simulationcraftProfile .. '\n'
-    end
-  end
-
   -- Method that gets gear information
   local items = Simulationcraft:GetItemStrings(debugOutput)
 
@@ -1102,6 +1033,19 @@ function Simulationcraft:PrintSimcProfile(debugOutput, noBags, showMerchant, lin
         break
       end
     end
+  end
+
+  simulationcraftProfile = simulationcraftProfile .. '\n'
+  simulationcraftProfile = simulationcraftProfile .. '### Additional Character Info\n'
+
+  local upgradeCurrenciesStr = Simulationcraft:GetUpgradeCurrencies()
+  simulationcraftProfile = simulationcraftProfile .. '#\n'
+  simulationcraftProfile = simulationcraftProfile .. '# upgrade_currencies=' .. upgradeCurrenciesStr .. '\n'
+
+  local highWatermarksStr = Simulationcraft:GetSlotHighWatermarks()
+  if highWatermarksStr then
+    simulationcraftProfile = simulationcraftProfile .. '#\n'
+    simulationcraftProfile = simulationcraftProfile .. '# slot_high_watermarks=' .. highWatermarksStr .. '\n'
   end
 
   -- sanity checks - if there's anything that makes the output completely invalid, punt!

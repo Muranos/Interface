@@ -19,6 +19,15 @@ local CONST_BTALENT_VERSION_COVENANTS = 9
 
 local CONST_SPELLBOOK_CLASSSPELLS_TABID = 2
 local CONST_SPELLBOOK_GENERAL_TABID = 1
+local CONST_ISITEM_BY_TYPEID = {
+    [10] = true, --healing items
+    [11] = true, --attack items
+    [12] = true, --utility items
+}
+
+local GetItemInfo = GetItemInfo
+local GetItemStats = GetItemStats
+local GetInventoryItemLink = GetInventoryItemLink
 
 local isTimewalkWoW = function()
     local _, _, _, buildInfo = GetBuildInfo()
@@ -83,6 +92,20 @@ end
 function openRaidLib.GetBorrowedTalentVersion()
     if (IsShadowlands()) then
         return CONST_BTALENT_VERSION_COVENANTS
+    end
+end
+
+local getDragonflightTalentsExportedString = function()
+    local exportStream = ExportUtil.MakeExportDataStream()
+	local configId = C_ClassTalents.GetActiveConfigID()
+    if (configId) then
+        local configInfo = C_Traits.GetConfigInfo(configId)
+	    local currentSpecID = PlayerUtil.GetCurrentSpecID()
+        local treeInfo = C_Traits.GetTreeInfo(configId, configInfo.treeIDs[1])
+        local treeHash = C_Traits.GetTreeHash(treeInfo.ID)
+        local serializationVersion = C_Traits.GetLoadoutSerializationVersion()
+
+        
     end
 end
 
@@ -278,20 +301,29 @@ end
 --return an integer between zero and one hundret indicating the player gear durability
 function openRaidLib.GearManager.GetPlayerGearDurability()
     local durabilityTotalPercent, totalItems = 0, 0
+    --hold the lowest item durability of all the player gear
+    --this prevent the case where the player has an average of 80% durability but an item with 15% durability
+    local lowestGearDurability = 100
+
     for i = INVSLOT_FIRST_EQUIPPED, INVSLOT_LAST_EQUIPPED do
         local durability, maxDurability = GetInventoryItemDurability(i)
         if (durability and maxDurability) then
             local itemDurability = durability / maxDurability * 100
+
+            if (itemDurability < lowestGearDurability) then
+                lowestGearDurability = itemDurability
+            end
+
             durabilityTotalPercent = durabilityTotalPercent + itemDurability
             totalItems = totalItems + 1
         end
     end
 
     if (totalItems == 0) then
-        return 100
+        return 100, lowestGearDurability
     end
 
-    return floor(durabilityTotalPercent / totalItems)
+    return floor(durabilityTotalPercent / totalItems), lowestGearDurability
 end
 
 function openRaidLib.GearManager.GetPlayerWeaponEnchant()
@@ -303,7 +335,7 @@ function openRaidLib.GearManager.GetPlayerWeaponEnchant()
     elseif(LIB_OPEN_RAID_WEAPON_ENCHANT_IDS[offHandEnchantId]) then
         weaponEnchant = 1
     end
-    return weaponEnchant
+    return weaponEnchant, mainHandEnchantId or 0, offHandEnchantId or 0
 end
 
 function openRaidLib.GearManager.GetPlayerGemsAndEnchantInfo()
@@ -311,6 +343,8 @@ function openRaidLib.GearManager.GetPlayerGemsAndEnchantInfo()
     local slotsWithoutGems = {}
     --hold equipmentSlotId of equipments without an enchant
     local slotsWithoutEnchant = {}
+
+    local gearWithEnchantIds = {}
 
     for equipmentSlotId = 1, 17 do
         local itemLink = GetInventoryItemLink("player", equipmentSlotId)
@@ -322,34 +356,20 @@ function openRaidLib.GearManager.GetPlayerGemsAndEnchantInfo()
             --enchant
                 --check if the slot can receive enchat and if the equipment has an enchant
                 local enchantAttribute = LIB_OPEN_RAID_ENCHANT_SLOTS[equipmentSlotId]
-                if (enchantAttribute) then --this slot can receive an enchat
+                local nEnchantId = 0
 
-                    --check if this slot is relevant for the class, some slots can have enchants only for Agility which won't matter for Priests as an example
-                    --if the value is an integer it points to an attribute (int, dex, str), otherwise it's true (boolean)
-                    local slotIsRelevant = true
-                    if (type(enchantAttribute) == "number") then
-                        if (specMainAttribute ~= enchantAttribute) then
-                            slotIsRelevant = false
-                        end
+                if (enchantAttribute) then --this slot can receive an enchant
+                    if (enchantId and enchantId ~= "") then
+                        local number = tonumber(enchantId)
+                        nEnchantId = number
+                        gearWithEnchantIds[#gearWithEnchantIds+1] = nEnchantId
+                    else
+                        gearWithEnchantIds[#gearWithEnchantIds+1] = 0
                     end
 
-                    if (slotIsRelevant) then
-                        --does the slot has any enchant?
-                        if (not enchantId or enchantId == "0" or enchantId == "") then
-                            slotsWithoutEnchant[#slotsWithoutEnchant+1] = equipmentSlotId
-                        else
-                            --convert to integer
-                            local enchantIdInt = tonumber(enchantId)
-                            if (enchantIdInt) then
-                                --does the enchant is relevent for the character?
-                                if (not LIB_OPEN_RAID_ENCHANT_IDS[enchantIdInt]) then
-                                    slotsWithoutEnchant[#slotsWithoutEnchant+1] = equipmentSlotId
-                                end
-                            else
-                                --the enchat has an invalid id
-                                slotsWithoutEnchant[#slotsWithoutEnchant+1] = equipmentSlotId
-                            end
-                        end
+                    --6400 and above is dragonflight enchantId number space
+                    if (nEnchantId < 6300 and not LIB_OPEN_RAID_DEATHKNIGHT_RUNEFORGING_ENCHANT_IDS[nEnchantId]) then
+                        slotsWithoutEnchant[#slotsWithoutEnchant+1] = equipmentSlotId
                     end
                 end
 
@@ -367,7 +387,7 @@ function openRaidLib.GearManager.GetPlayerGemsAndEnchantInfo()
                             slotsWithoutGems[#slotsWithoutGems+1] = equipmentSlotId
 
                         --check if the gem is not a valid gem (deprecated gem)
-                        elseif (not LIB_OPEN_RAID_GEM_IDS[gemId]) then
+                        elseif (gemId < 180000) then
                             slotsWithoutGems[#slotsWithoutGems+1] = equipmentSlotId
                         end
                     end
@@ -376,6 +396,60 @@ function openRaidLib.GearManager.GetPlayerGemsAndEnchantInfo()
     end
 
     return slotsWithoutGems, slotsWithoutEnchant
+end
+
+function openRaidLib.GearManager.BuildPlayerEquipmentList()
+    local equipmentList = {}
+    local debug
+    for equipmentSlotId = 1, 17 do
+        local itemLink = GetInventoryItemLink("player", equipmentSlotId)
+        if (itemLink) then
+            local itemStatsTable = {}
+            local itemID, enchantID, gemID1, gemID2, gemID3, gemID4, suffixID, uniqueID, linkLevel, specializationID, modifiersMask, itemContext = select(2, strsplit(":", itemLink))
+            itemID = tonumber(itemID)
+
+            local effectiveILvl, isPreview, baseILvl = GetDetailedItemLevelInfo(itemLink)
+            if (not effectiveILvl) then
+                openRaidLib.mainControl.scheduleUpdatePlayerData()
+                effectiveILvl = 0
+                openRaidLib.__errors[#openRaidLib.__errors+1] = "Fail to get Item Level: " .. (itemID or "invalid itemID") .. " " .. (itemLink and itemLink:gsub("|H", "") or "invalid itemLink")
+            end
+
+            GetItemStats(itemLink, itemStatsTable)
+            local gemSlotsAvailable = itemStatsTable and itemStatsTable.EMPTY_SOCKET_PRISMATIC or 0
+
+            local noPrefixItemLink = itemLink : gsub("^|c%x%x%x%x%x%x%x%x|Hitem", "")
+            local linkTable = {strsplit(":", noPrefixItemLink)}
+            local numModifiers = linkTable[14]
+            numModifiers = numModifiers and tonumber(numModifiers) or 0
+
+            for i = #linkTable, 14 + numModifiers + 1, -1 do
+                tremove(linkTable, i)
+            end
+
+            local newItemLink = table.concat(linkTable, ":")
+            newItemLink = newItemLink
+            equipmentList[#equipmentList+1] = {equipmentSlotId, gemSlotsAvailable, effectiveILvl, newItemLink}
+
+            if (equipmentSlotId == 2) then
+                debug = {itemLink:gsub("|H", ""), newItemLink}
+            end
+        end
+    end
+
+    --[[ debug
+    local str = ""
+    for i = 1, #equipmentList do
+        local t = equipmentList[i]
+        local s = t[1] .. "," .. t[2] .. "," .. t[3] .. "," .. t[4]
+        str = str .. s
+    end
+
+    table.insert(debug, str)
+    dumpt(debug)
+    --]]
+
+    return equipmentList
 end
 
 local playerHasPetOfNpcId = function(npcId)
@@ -519,8 +593,10 @@ local updateCooldownAvailableList = function()
 
     --build a list of all spells assigned as cooldowns for the player class
     for spellID, spellData in pairs(LIB_OPEN_RAID_COOLDOWNS_INFO) do
-        if (spellData.class == playerClass or spellData.raceid == playerRaceId) then --need to implement here to get the racial as racial cooldowns does not carry a class
-            if (spellBookSpellList[spellID]) then
+        --type 10 is an item cooldown and does not have a class or raceid
+        if (spellData.class == playerClass or spellData.raceid == playerRaceId or CONST_ISITEM_BY_TYPEID[spellData.type]) then --need to implement here to get the racial as racial cooldowns does not carry a class
+            --type 10 is an item cooldown and does not have a spellbook entry
+            if (spellBookSpellList[spellID] or CONST_ISITEM_BY_TYPEID[spellData.type]) then
                 LIB_OPEN_RAID_PLAYERCOOLDOWNS[spellID] = spellData
             end
         end
@@ -584,7 +660,7 @@ function openRaidLib.CooldownManager.GetPlayerCooldownList()
         end
     end
 
-    return {}
+    return {}, {}
 end
 
 --aura frame handles only UNIT_AURA events to grab the duration of the buff placed by the aura
@@ -633,17 +709,24 @@ local getAuraDuration = function(spellId)
     end
 end
 
+---get the duration of a buff placed by a spell
+---@param spellId number
+---@return number duration
 function openRaidLib.CooldownManager.GetSpellBuffDuration(spellId)
     return getAuraDuration(spellId)
 end
 
---check if a player cooldown is ready or if is in cooldown
---@spellId: the spellId to check for cooldown
---return timeLeft, charges, startTimeOffset, duration, buffDuration
+---check if a player cooldown is ready or if is in cooldown
+---@spellId: the spellId to check for cooldown
+---@return number timeLeft
+---@return number charges
+---@return number startTimeOffset
+---@return number duration
+---@return number buffDuration
 function openRaidLib.CooldownManager.GetPlayerCooldownStatus(spellId)
     --check if is a charge spell
-    local cooldownInfo = LIB_OPEN_RAID_COOLDOWNS_INFO[spellId]
-    if (cooldownInfo) then
+    local spellData = LIB_OPEN_RAID_COOLDOWNS_INFO[spellId]
+    if (spellData) then
         local buffDuration = getAuraDuration(spellId)
         local chargesAvailable, chargesTotal, start, duration = GetSpellCharges(spellId)
         if chargesAvailable then
@@ -653,7 +736,7 @@ function openRaidLib.CooldownManager.GetPlayerCooldownStatus(spellId)
                 --return the time to the next charge
                 local timeLeft = start + duration - GetTime()
                 local startTimeOffset = start - GetTime()
-                return ceil(timeLeft), chargesAvailable, startTimeOffset, duration, buffDuration --time left, charges, startTime, duration, buffDuration
+                return ceil(timeLeft), chargesAvailable, startTimeOffset, duration, buffDuration
             end
         else
             local start, duration = GetSpellCooldown(spellId)
@@ -688,7 +771,7 @@ do
         end
     end
 
-	function openRaidLib.AuraTracker.ScanPlayerAuras(unitId)
+	function openRaidLib.AuraTracker.ScanUnitAuras(unitId)
 		local batchCount = nil
 		local usePackedAura = true
         openRaidLib.AuraTracker.CurrentUnitId = unitId
@@ -715,7 +798,7 @@ do
         auraFrameEvent:RegisterUnitEvent("UNIT_AURA", unitId)
 
         auraFrameEvent:SetScript("OnEvent", function()
-            openRaidLib.AuraTracker.ScanPlayerAuras(unitId)
+            openRaidLib.AuraTracker.ScanUnitAuras(unitId)
         end)
     end
 

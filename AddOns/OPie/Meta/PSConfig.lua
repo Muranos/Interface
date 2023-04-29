@@ -9,7 +9,7 @@ local S = {
 	{"set-gamepad-thaw-hold", "PSThawHold", min=0, max=1},
 }
 local function printOptionHint(ii)
-	local s =  "|cffffff00/opie " .. ii[1] .. " "
+	local s = "|cffffff00/opie " .. ii[1] .. " "
 	local cv, oa, om = PC:GetOption(ii[2]), ii[3], ii[4]
 	for i=1, oa and #oa or 0 do
 		s = s .. (i == 1 and "|cffb0b0b0{|r" or "|cffb0b0b0|||r") .. (cv == om[oa[i]] and "|cf00dd00d" or "|cf0f0f0f0") .. oa[i] .. "|r"

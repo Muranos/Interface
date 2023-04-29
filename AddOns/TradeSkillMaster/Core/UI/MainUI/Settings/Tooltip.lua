@@ -4,7 +4,7 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
 local Tooltip = TSM.MainUI.Settings:NewPackage("Tooltip")
 local L = TSM.Include("Locale").GetTable()
 local Money = TSM.Include("Util.Money")
@@ -12,6 +12,7 @@ local Table = TSM.Include("Util.Table")
 local TempTable = TSM.Include("Util.TempTable")
 local CustomPrice = TSM.Include("Service.CustomPrice")
 local UIElements = TSM.Include("UI.UIElements")
+local UIUtils = TSM.Include("UI.UIUtils")
 local private = {
 	operationModules = {},
 	operationModuleNames = {},
@@ -48,11 +49,10 @@ local GROUPS_OPS_SETTINGS_INFO = {
 	{ label = L["Warehousing operation"], settingTbl = "operationTooltips", settingKey = "Warehousing" },
 }
 local VALUES_SETTINGS_INFO = {
-	{ label = L["Disenchant value"], settingKey = "deTooltip" },
-	{ label = L["Mill value"], settingKey = "millTooltip" },
-	{ label = L["Prospect value"], settingKey = "prospectTooltip" },
-	{ label = L["Transform value"], settingKey = "transformTooltip" },
-	{ label = L["Detailed destroy information"], settingKey = "detailedDestroyTooltip" },
+	{ label = L["Full destroy tooltip"], settingKey = "destroyTooltipFormat", setValue = "full", clearValue = "none" },
+	{ label = L["Simple destroy tooltip"], settingKey = "destroyTooltipFormat", setValue = "simple", clearValue = "none" },
+	{ label = L["Full convert tooltip"], settingKey = "convertTooltipFormat", setValue = "full", clearValue = "none" },
+	{ label = L["Simple convert tooltip"], settingKey = "convertTooltipFormat", setValue = "simple", clearValue = "none" },
 	{ label = L["Vendor buy price"], settingKey = "vendorBuyTooltip" },
 	{ label = L["Vendor sell price"], settingKey = "vendorSellTooltip" },
 }
@@ -69,9 +69,12 @@ local ACCOUNTING_SETTINGS_INFO = {
 }
 local AUCTIONDB_SETTINGS_INFO = {
 	{ label = L["Min buyout"], settingModule = "AuctionDB", settingKey = "minBuyout" },
-	{ label = L["Market value"], settingModule = "AuctionDB", settingKey = "marketValue" },
+	{ label = L["Recent value"], settingModule = "AuctionDB", settingKey = "marketValueRecent" },
+	{ label = L["Market value"], settingModule = "AuctionDB", settingKey = "marketValue", setValue = "noTrend", clearValue = "none" },
+	{ label = L["Market value and trend"], settingModule = "AuctionDB", settingKey = "marketValue", setValue = "withTrend", clearValue = "none" },
 	{ label = L["Historical price"], settingModule = "AuctionDB", settingKey = "historical" },
-	{ label = L["Region market value"], settingModule = "AuctionDB", settingKey = "regionMarketValue" },
+	{ label = L["Region market value"], settingModule = "AuctionDB", settingKey = "regionMarketValue", setValue = "noTrend", clearValue = "none" },
+	{ label = L["Region market value and trend"], settingModule = "AuctionDB", settingKey = "regionMarketValue", setValue = "withTrend", clearValue = "none" },
 	{ label = L["Region historical price"], settingModule = "AuctionDB", settingKey = "regionHistorical" },
 	{ label = L["Region sale avg"], settingModule = "AuctionDB", settingKey = "regionSale" },
 	{ label = L["Region sale rate"], settingModule = "AuctionDB", settingKey = "regionSalePercent" },
@@ -110,7 +113,7 @@ end
 -- ============================================================================
 
 function private.GetTooltipSettingsFrame()
-	TSM.UI.AnalyticsRecordPathChange("main", "settings", "tooltips", "main")
+	UIUtils.AnalyticsRecordPathChange("main", "settings", "tooltips", "main")
 	wipe(private.operationModules)
 	wipe(private.operationModuleNames)
 	for _, moduleName in TSM.Operations.ModuleIterator() do
@@ -120,7 +123,7 @@ function private.GetTooltipSettingsFrame()
 	wipe(private.destroySources)
 	wipe(private.destroySourceKeys)
 	local foundCurrentSetting = false
-	for key, _, label in CustomPrice.Iterator() do
+	for _, key, _, label in CustomPrice.Iterator() do
 		key = strlower(key)
 		if not INVALID_DESTROY_PRICE_SOURCES[key] then
 			tinsert(private.destroySources, label)
@@ -143,7 +146,7 @@ function private.GetTooltipSettingsFrame()
 				:SetFont("BODY_BODY2_MEDIUM")
 				:SetText(L["Enable TSM tooltips"])
 			)
-			:AddChild(UIElements.New("ToggleOnOff", "enableToggle")
+			:AddChild(UIElements.New("ToggleYesNo", "enableToggle")
 				:SetHeight(24)
 				:SetMargin(0, 0, 0, 12)
 				:SetSettingInfo(TSM.db.global.tooltipOptions, "enabled")
@@ -265,7 +268,6 @@ function private.AddTooltipSettings(frame)
 			:SetHeight(20)
 			:SetMargin(0, 0, 0, 12)
 			:SetFont("BODY_BODY2")
-			:SetCheckboxPosition("LEFT")
 			:SetText(format(L["Custom source (%s)"], name))
 			:SetSettingInfo(TSM.db.global.tooltipOptions.customPriceTooltips, name)
 			:SetScript("OnValueChanged", private.CustomPriceSourceOnValueChanged)
@@ -322,7 +324,6 @@ function private.AddSettingsFromInfoTable(frame, infoTbl)
 			:SetHeight(20)
 			:SetMargin(0, 0, 0, 12)
 			:SetFont("BODY_BODY2")
-			:SetCheckboxPosition("LEFT")
 			:SetContext(info)
 			:SetText(info.label)
 			:SetChecked(settingTbl[info.settingKey] == (info.setValue or true))

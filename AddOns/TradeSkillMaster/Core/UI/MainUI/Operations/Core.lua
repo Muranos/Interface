@@ -4,15 +4,19 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
 local Operations = TSM.MainUI:NewPackage("Operations")
+local Environment = TSM.Include("Environment")
 local L = TSM.Include("Locale").GetTable()
 local Log = TSM.Include("Util.Log")
 local Theme = TSM.Include("Util.Theme")
+local TextureAtlas = TSM.Include("Util.TextureAtlas")
 local Money = TSM.Include("Util.Money")
 local TempTable = TSM.Include("Util.TempTable")
 local Settings = TSM.Include("Service.Settings")
+local CustomPrice = TSM.Include("Service.CustomPrice")
 local UIElements = TSM.Include("UI.UIElements")
+local UIUtils = TSM.Include("UI.UIUtils")
 local private = {
 	settings = nil,
 	moduleNames = {},
@@ -23,6 +27,7 @@ local private = {
 	playerList = {},
 	linkMenuEntries = {},
 }
+local DEFAULT_PRICE_INPUT_VALIDATE_CONTEXT = {}
 
 
 
@@ -140,34 +145,52 @@ function Operations.CreateSettingLine(id, labelText, disabled)
 		)
 end
 
-function Operations.CreateLinkedPriceInput(settingKey, label, height, validate, defaultValue)
-	local isDisabled = TSM.Operations.HasRelationship(private.currentModule, private.currentOperationName, settingKey)
+function Operations.CreateLinkedPriceInput(settingKey, label, validateContext, defaultValue, isDisabled)
+	-- Make sure the context is the right shape
+	validateContext = validateContext or DEFAULT_PRICE_INPUT_VALIDATE_CONTEXT
+	for key in pairs(validateContext) do
+		assert(key == "isNumber" or key == "isUndercut" or key == "badSources" or key == "minValue" or key == "maxValue")
+	end
+	assert(not validateContext.isNumber or not validateContext.isUndercut)
+	if validateContext.minValue or validateContext.maxValue then
+		assert(validateContext.isNumber)
+		assert(validateContext.minValue < validateContext.maxValue)
+		assert(not validateContext.isUndercut and not validateContext.badSources)
+	end
+	assert(not validateContext.isNumber or not validateContext.badSources)
+
+	-- Get information on the opeartion
+	isDisabled = isDisabled or TSM.Operations.HasRelationship(private.currentModule, private.currentOperationName, settingKey)
 	local operation = TSM.Operations.GetSettings(private.currentModule, private.currentOperationName)
 	local value = operation[settingKey]
 	if defaultValue ~= nil and (not value or value == "") then
 		isDisabled = true
 		value = defaultValue
 	end
-	local validateFunc, validateContext = nil, nil
-	if type(validate) == "table" then
-		validateFunc = "CUSTOM_PRICE"
-		validateContext = validate
-	elseif type(validate) == "function" then
-		validateFunc = validate
-	elseif validate == nil then
-		validateFunc = "CUSTOM_PRICE"
-	else
-		error("Invalid validate: "..tostring(validate))
-	end
+
 	return Operations.CreateLinkedSettingLine(settingKey, label)
 		:SetLayout("VERTICAL")
-		:SetHeight(height)
-		:AddChild(UIElements.New("MultiLineInput", "input")
-			:SetHeight(height - 24)
-			:SetDisabled(isDisabled)
-			:SetValidateFunc(validateFunc, validateContext)
-			:SetSettingInfo(operation, settingKey)
-			:SetValue(Money.ToString(value) or value)
+		:SetHeight(48)
+		:AddChild(UIElements.New("Frame", "content")
+			:SetLayout("HORIZONTAL")
+			:SetContext(label)
+			:AddChild(UIElements.New("Input", "input")
+				:SetHeight(24)
+				:SetBackgroundColor("PRIMARY_BG")
+				:SetDisabled(isDisabled)
+				:SetContext(settingKey)
+				:SetValidateFunc(validateContext.isUndercut and private.UndercutValidateFunction or private.DefaultValidateFunction, validateContext.badSources)
+				:SetSettingInfo(operation, settingKey)
+				:SetValue(validateContext.isNumber and value or (Money.ToString(value) or value))
+				:SetTooltip(not isDisabled and validateContext.minValue and format(L["Supported value range: %d - %d"], validateContext.minValue, validateContext.maxValue) or nil)
+			)
+			:AddChild(UIElements.New("Button", "popout")
+				:SetMargin(4, 4, 0, 0)
+				:SetBackgroundAndSize("iconPack.12x12/Popout", isDisabled and "TEXT_DISABLED" or "TEXT")
+				:SetDisabled(isDisabled)
+				:SetContext(validateContext)
+				:SetScript("OnClick", private.CustomStringPopoutOnClick)
+			)
 		)
 end
 
@@ -178,7 +201,7 @@ end
 -- ============================================================================
 
 function private.GetOperationsFrame()
-	TSM.UI.AnalyticsRecordPathChange("main", "operations")
+	UIUtils.AnalyticsRecordPathChange("main", "operations")
 	local frame = UIElements.New("DividedContainer", "operations")
 		:SetSettingsContext(private.settings, "operationsDividedContainer")
 		:SetMinWidth(250, 250)
@@ -221,7 +244,7 @@ function private.GetOperationsContent(_, path)
 				:SetPadding(8)
 				:AddChild(UIElements.New("Texture", "icon")
 					:SetMargin(0, 8, 0, 0)
-					:SetTextureAndSize(TSM.UI.TexturePacks.GetColoredKey("iconPack.18x18/Operation", "TEXT"))
+					:SetTextureAndSize(TextureAtlas.GetColoredKey("iconPack.18x18/Operation", "TEXT"))
 				)
 				:AddChild(UIElements.New("Text", "text")
 					:SetFont("BODY_BODY1_BOLD")
@@ -267,17 +290,15 @@ function private.GetOperationsContent(_, path)
 				:SetPadding(8)
 				:AddChild(UIElements.New("Texture", "icon")
 					:SetMargin(0, 8, 0, 0)
-					:SetTextureAndSize(TSM.UI.TexturePacks.GetColoredKey("iconPack.18x18/Operation", "TEXT"))
+					:SetTextureAndSize(TextureAtlas.GetColoredKey("iconPack.18x18/Operation", "TEXT"))
 				)
 				:AddChild(UIElements.New("EditableText", "text")
-					:SetWidth("AUTO")
 					:AllowItemInsert(true)
 					:SetFont("BODY_BODY1_BOLD")
 					:SetText(L["No Operation Selected"])
 					:SetScript("OnValueChanged", private.OperationNameChanged)
 					:SetScript("OnEditingChanged", private.NameOnEditingChanged)
 				)
-				:AddChild(UIElements.New("Spacer"))
 				:AddChild(UIElements.New("Button", "renameBtn")
 					:SetWidth("AUTO")
 					:SetMargin(12, 12, 0, 0)
@@ -380,9 +401,8 @@ function private.GetSummaryContent()
 					)
 				)
 			)
-			:AddChild(UIElements.New("Texture", "line1")
+			:AddChild(UIElements.New("VerticalLine", "line1")
 				:SetWidth(1)
-				:SetTexture("ACTIVE_BG")
 			)
 			:AddChild(UIElements.New("Frame", "items")
 				:SetLayout("VERTICAL")
@@ -458,10 +478,7 @@ function private.GetSummaryContent()
 			:SetAutoReleaseQuery(true)
 			:SetScript("OnSelectionChanged", private.OperationListOnSelectionChanged)
 		)
-		:AddChild(UIElements.New("Texture", "line")
-			:SetHeight(2)
-			:SetTexture("ACTIVE_BG")
-		)
+		:AddChild(UIElements.New("HorizontalLine", "line"))
 		:AddChild(UIElements.New("Frame", "footer")
 			:SetLayout("HORIZONTAL")
 			:SetHeight(40)
@@ -481,10 +498,9 @@ function private.GetSummaryContent()
 				:SetText(L["Select All"])
 				:SetScript("OnClick", private.SelectAllOnClick)
 			)
-			:AddChild(UIElements.New("Texture", "line")
-				:SetSize(2, 20)
+			:AddChild(UIElements.New("VerticalLine", "line")
+				:SetHeight(2, 20)
 				:SetMargin(0, 8, 0, 0)
-				:SetTexture("ACTIVE_BG")
 			)
 			:AddChild(UIElements.New("Button", "clearAll")
 				:SetSize("AUTO", 20)
@@ -512,7 +528,7 @@ function private.CreateGroupOperationLine(groupPath)
 		:AddChild(UIElements.New("Text", "text")
 			:SetWidth("AUTO")
 			:SetFont("BODY_BODY2")
-			:SetTextColor(Theme.GetGroupColor(level))
+			:SetTextColor(Theme.GetGroupColorKey(level))
 			:SetText(groupName)
 		)
 		:AddChild(UIElements.New("Button", "viewBtn")
@@ -533,13 +549,13 @@ function private.CreateLinkButton(disabled, settingKey)
 	local relationshipSet = TSM.Operations.HasRelationship(private.currentModule, private.currentOperationName, settingKey)
 	local linkTexture = nil
 	if disabled and relationshipSet then
-		linkTexture = TSM.UI.TexturePacks.GetColoredKey("iconPack.14x14/Link", "INDICATOR_DISABLED")
+		linkTexture = TextureAtlas.GetColoredKey("iconPack.14x14/Link", "INDICATOR_DISABLED")
 	elseif disabled then
-		linkTexture = TSM.UI.TexturePacks.GetColoredKey("iconPack.14x14/Link", "TEXT_DISABLED")
+		linkTexture = TextureAtlas.GetColoredKey("iconPack.14x14/Link", "TEXT_DISABLED")
 	elseif relationshipSet then
-		linkTexture = TSM.UI.TexturePacks.GetColoredKey("iconPack.14x14/Link", "INDICATOR")
+		linkTexture = TextureAtlas.GetColoredKey("iconPack.14x14/Link", "INDICATOR")
 	else
-		linkTexture = TSM.UI.TexturePacks.GetColoredKey("iconPack.14x14/Link", "TEXT")
+		linkTexture = TextureAtlas.GetColoredKey("iconPack.14x14/Link", "TEXT")
 	end
 	return UIElements.New("Button", "linkBtn")
 		:SetMargin(4, 4, 0, 0)
@@ -600,14 +616,14 @@ function private.OperationTreeOnOperationSelected(self, moduleName, operationNam
 		for _ in TSM.Operations.OperationIterator(moduleName) do
 			numOperations = numOperations + 1
 		end
-		TSM.UI.AnalyticsRecordPathChange("main", "operations", "summary")
+		UIUtils.AnalyticsRecordPathChange("main", "operations", "summary")
 		viewContainer:SetPath("summary")
 		viewContainer:GetElement("settings.title.text"):SetText(format(L["%s %s Operations"], Theme.GetColor("INDICATOR"):ColorText(numOperations), moduleName))
 		local contentFrame = viewContainer:GetElement("settings.content")
 		contentFrame:ReleaseAllChildren()
 		contentFrame:AddChild(private.GetSummaryContent())
 	else
-		TSM.UI.AnalyticsRecordPathChange("main", "operations", "none")
+		UIUtils.AnalyticsRecordPathChange("main", "operations", "none")
 		viewContainer:SetPath("none")
 		viewContainer:GetElement("settings.title.text"):SetText(L["No Operation Selected"])
 	end
@@ -715,7 +731,6 @@ function private.RemoveOperationGroupOnClick(self)
 	local removeElement = self:GetParentElement()
 	local removeElementParent = removeElement:GetParentElement()
 	removeElementParent:RemoveChild(removeElement)
-	removeElement:Release()
 	removeElementParent:GetParentElement():GetParentElement():GetParentElement():Draw()
 end
 
@@ -741,9 +756,8 @@ function private.LinkBtnOnClick(button)
 				:SetText(L["Link to Another Operation"])
 			)
 		)
-		:AddChild(UIElements.New("Texture", "line")
-			:SetHeight(2)
-			:SetTexture("TEXT")
+		:AddChild(UIElements.New("HorizontalLine", "line")
+			:SetColor("TEXT")
 		)
 		:AddChild(UIElements.New("SelectionList", "list")
 			:SetContext(settingKey)
@@ -867,4 +881,41 @@ function private.GetNumItemsTooltip(numItems)
 		return nil
 	end
 	return L["This operation is applied to the base group which includes every item not in another group."]
+end
+
+function private.CustomStringPopoutOnClick(button)
+	local validateContext = button:GetContext()
+	local input = button:GetElement("__parent.input")
+	local title = button:GetParentElement():GetContext()
+	local validateFunc = validateContext.isUndercut and private.UndercutValidateFunction or private.DefaultValidateFunction
+	button:GetBaseElement():ShowDialogFrame(TSM.UI.Views.CustomStringDialog.New(input:GetValue(), title, validateFunc, validateContext.badSources, validateContext.isNumber and private.CustomStringNumberDialogCallback or private.CustomStringDialogCallback, button))
+end
+
+function private.CustomStringDialogCallback(newValue, button)
+	button:GetElement("__parent.input"):SetValue(Money.ToString(newValue) or newValue)
+		:Draw()
+end
+
+function private.CustomStringNumberDialogCallback(newValue, button)
+	button:GetElement("__parent.input"):SetValue(newValue)
+		:Draw()
+end
+
+function private.DefaultValidateFunction(_, value, badSources)
+	local isValid, err = CustomPrice.Validate(value, badSources)
+	if not isValid then
+		return false, err
+	end
+	return true
+end
+
+function private.UndercutValidateFunction(_, value, badSources)
+	if Environment.IsRetail() then
+		if Money.FromString(Money.ToString(value) or value) == 0 then
+			return true
+		elseif (Money.FromString(Money.ToString(value) or value) or math.huge) < COPPER_PER_SILVER then
+			return false, L["Invalid undercut. To post below the cheapest auction without a significant undercut, set your undercut to 0c."]
+		end
+	end
+	return private.DefaultValidateFunction(nil, value, badSources)
 end

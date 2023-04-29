@@ -1,6 +1,6 @@
 ﻿-- Pawn by Vger-Azjol-Nerub
 -- www.vgermods.com
--- © 2006-2022 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
+-- © 2006-2023 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
 -- See Readme.htm for more information.
 
 --
@@ -265,7 +265,7 @@ PawnLocal =
 		["Armor2"] = "^裝備: %+#點護甲值。$",
 		["ArmorPenetration"] = "^裝備: 你的攻擊無視目標#點護甲值。$",
 		["ArmorPenetrationRating"] = "^裝備: 提高#點護甲穿透等級。$",
-		["ArmorPenetrationRating2"] = "^UNUSED$",
+		["ArmorPenetrationRating2"] = "^裝備: 提高#點護甲穿透。$",
 		["ArmorPenetrationShort"] = "^%+?#護甲穿透等級$",
 		["Avoidance"] = "^%+#迴避$",
 		["Axe"] = "^斧$",

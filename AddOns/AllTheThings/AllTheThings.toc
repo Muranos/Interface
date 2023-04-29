@@ -1,5 +1,5 @@
 ## Author: Crieve-Sargeras
-## Interface: 100002
+## Interface: 100007
 ## X-Curse-Project-ID: 267285
 ## X-Wago-ID: yQKyY5K7
 ## Title: AllTheThings |TInterface\Addons\AllTheThings\assets\logo_32x32:0|t
@@ -7,25 +7,26 @@
 ## SavedVariables: ATTCharacterData, ATTAccountWideData, AllTheThingsSettings, AllTheThingsAD, AllTheThingsProfiles, AllTheThingsAuctionData, AllTheThingsDebugData, AllTheThingsArtifactsItems, AllTheThingsHarvestItems
 ## SavedVariablesPerCharacter: AllTheThingsSettingsPerCharacter
 ## Notes: Addon for Tracking Collections & Account Completion
-## Version: DF-3.0.8
+## Version: DF-3.3.6
 lib\LibStub\LibStub.lua
 lib\CallbackHandler-1.0\CallbackHandler-1.0.lua
 lib\LibDataBroker-1.1\LibDataBroker-1.1.lua
 src\base.lua
 db\Presets.lua
 db\CategoryDB.lua
-db\FlightPathDB.lua
 db\ObjectDB.lua
 db\RaceDB.lua
-locales\enUS.lua
-locales\esES.lua
-locales\deDE.lua
-locales\frFR.lua
-locales\itIT.lua
-locales\koKR.lua
-locales\ptBR.lua
-locales\ruRU.lua
-locales\zhCN.lua
+db\ReagentsDB.lua
+locales\en.lua
+locales\en_auto.lua
+locales\es.lua
+locales\de.lua
+locales\fr.lua
+locales\it.lua
+locales\ko.lua
+locales\pt.lua
+locales\ru.lua
+locales\cn.lua
 Settings.lua
 AllTheThings.lua
 db\Categories.lua

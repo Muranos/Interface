@@ -22,19 +22,29 @@ function mod:GetOptions()
 	return {
 		373046, -- Awaken Whelps
 		{372682, "DISPEL"}, -- Primal Chill
-		373680, -- Frost Overload
 		{372851, "SAY", "SAY_COUNTDOWN"}, -- Chillstorm
 		396044, -- Hailbombs
+		372988, -- Ice Bulwark
+		373680, -- Frost Overload
+	}, {
+		[372988] = CL.mythic,
+	}, {
+		[372851] = CL.knockback,
 	}
 end
 
 function mod:OnBossEnable()
 	self:Log("SPELL_CAST_START", "AwakenWhelps", 373046)
 	self:Log("SPELL_AURA_APPLIED_DOSE", "PrimalChillApplied", 372682)
+	self:Log("SPELL_AURA_APPLIED", "Chillstorm", 385518)
+	self:Log("SPELL_AURA_REMOVED", "ChillstormRemoved", 385518)
+	self:Log("SPELL_CAST_SUCCESS", "Hailbombs", 396044)
+
+	-- Mythic
+	self:Log("SPELL_AURA_APPLIED", "IceBulwarkApplied", 372988)
+	self:Log("SPELL_AURA_REMOVED", "IceBulwarkRemoved", 372988)
 	self:Log("SPELL_AURA_APPLIED", "FrostOverload", 373680)
 	self:Log("SPELL_AURA_REMOVED", "FrostOverloadOver", 373680)
-	self:Log("SPELL_AURA_APPLIED", "Chillstorm", 385518)
-	self:Log("SPELL_CAST_SUCCESS", "Hailbombs", 396044)
 end
 
 function mod:OnEngage()
@@ -54,6 +64,8 @@ function mod:AwakenWhelps(args)
 	self:PlaySound(args.spellId, "long")
 	if self:Mythic() then
 		self:CDBar(373680, 8.5) -- Frost Overload
+		self:StopBar(396044) -- Hailbombs
+		self:StopBar(372851) -- Chillstorm
 	end
 end
 
@@ -83,22 +95,6 @@ do
 	end
 end
 
-do
-	local frostOverloadStart = 0
-
-	function mod:FrostOverload(args)
-		frostOverloadStart = args.time
-		self:Message(args.spellId, "red")
-		self:PlaySound(args.spellId, "long")
-	end
-
-	function mod:FrostOverloadOver(args)
-		local frostOverloadDuration = args.time - frostOverloadStart
-		self:Message(args.spellId, "green", CL.removed_after:format(args.spellName, frostOverloadDuration))
-		self:PlaySound(args.spellId, "info")
-	end
-end
-
 function mod:Chillstorm(args)
 	self:TargetMessage(372851, "yellow", args.destName)
 	if self:Me(args.destGUID) then
@@ -108,11 +104,46 @@ function mod:Chillstorm(args)
 	else
 		self:PlaySound(372851, "alert", nil, args.destName)
 	end
-	self:CDBar(372851, 22.6)
+	self:CDBar(372851, 23.1)
+end
+
+function mod:ChillstormRemoved(args)
+	if self:Me(args.destGUID) then
+		self:CancelSayCountdown(372851)
+	end
+	self:Bar(372851, 6, CL.knockback)
 end
 
 function mod:Hailbombs(args)
 	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alarm")
-	self:CDBar(args.spellId, 23)
+	self:CDBar(args.spellId, 23.1)
+end
+
+-- Mythic
+
+do
+	local iceBulwarkStart = 0
+
+	function mod:IceBulwarkApplied(args)
+		iceBulwarkStart = args.time
+	end
+
+	function mod:IceBulwarkRemoved(args)
+		local iceBulwarkDuration = args.time - iceBulwarkStart
+		self:Message(args.spellId, "green", CL.removed_after:format(args.spellName, iceBulwarkDuration))
+		self:PlaySound(args.spellId, "info")
+	end
+end
+
+function mod:FrostOverload(args)
+	self:Message(args.spellId, "red")
+	self:PlaySound(args.spellId, "long")
+end
+
+function mod:FrostOverloadOver(args)
+	self:Message(args.spellId, "green", CL.over:format(args.spellName))
+	self:PlaySound(args.spellId, "info")
+	self:CDBar(396044, 6) -- Hailbombs
+	self:CDBar(372851, 12.1) -- Chillstorm
 end

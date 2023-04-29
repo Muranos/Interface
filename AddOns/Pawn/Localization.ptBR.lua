@@ -1,6 +1,6 @@
 ﻿-- Pawn by Vger-Azjol-Nerub
 -- www.vgermods.com
--- © 2006-2022 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
+-- © 2006-2023 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
 -- See Readme.htm for more information.
 
 --
@@ -264,7 +264,7 @@ Para mais informações sobre personalizar o Pawn, favor veja o arquivo de ajuda
 		["Armor2"] = "^%+?# de Armadura$",
 		["ArmorPenetration"] = "^Equipado: Seus ataques ignoram # da Armadura do adversário%.$",
 		["ArmorPenetrationRating"] = "^Equipado: Aumenta em # a taxa de penetração em armadura%.$",
-		["ArmorPenetrationRating2"] = "^UNUSED$",
+		["ArmorPenetrationRating2"] = "^Equipado: Aumenta em # a penetração em armaduras%.$",
 		["ArmorPenetrationShort"] = "^%+?# Taxa de Penetração em Armadura$",
 		["Avoidance"] = "^%+# Evasiva$",
 		["Axe"] = "^Machado$",

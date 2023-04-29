@@ -9,16 +9,21 @@ BigWigs:AddSounds("Wise Mari", {
 })
 
 BigWigs:AddSounds("Lorewalker Stonestep", {
-	[-5549] = {"alert","info","warning"},
+	[-5549] = {"alert","info","long","warning"},
+	[396150] = {"alarm","alert","info"},
+	[396152] = "info",
 	["stages"] = "info",
 })
 
 BigWigs:AddSounds("Liu Flameheart", {
-	[106823] = "alarm",
-	[106841] = "alarm",
-	[107110] = "alert",
-	[118540] = "alert",
-	["stages"] = "info",
+	[106823] = "alert",
+	[106841] = "alert",
+	[106856] = "alarm",
+	[106864] = "alarm",
+	[107110] = {"alarm","underyou"},
+	[118540] = "underyou",
+	[396907] = "alarm",
+	["stages"] = {"info","long"},
 })
 
 BigWigs:AddSounds("Sha of Doubt", {
@@ -27,15 +32,20 @@ BigWigs:AddSounds("Sha of Doubt", {
 })
 
 BigWigs:AddSounds("Temple of the Jade Serpent Trash", {
+	[110125] = "alert",
+	[114646] = "alert",
 	[395859] = "warning",
 	[395872] = {"alert","warning"},
 	[396001] = "alarm",
 	[396018] = {"alert","warning"},
 	[396020] = "alert",
 	[396073] = "warning",
+	[397878] = "long",
 	[397881] = "alarm",
 	[397889] = "alert",
 	[397899] = "alarm",
+	[397911] = {"alert","warning"},
 	[397914] = "alert",
+	[397931] = "alert",
 	[398300] = "alarm",
 })

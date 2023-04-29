@@ -1,3 +1,30 @@
+04/22/2023 version 4.14.16
+- Added Forbidden Reach targets. Note: There are separate Legendary, Epic and Rare versions of Vortex, Wildfire, Tremblor and Flow because some people use different strategies for each rarity and a future update will allow all rarities to be in one team.
+- Added option "Show Numeric Breeds" under Appearance Options for those that prefer the numeric breed.
+- If both Battle Pet BreedID and PetTracker are enabled, added option "Use PetTracker Breeds" under Appearance Options to use the breeds from PetTracker instead of Battle Pet BreedID.
+
+03/22/2023 version 4.14.15
+- Added 8 new targets to Dragon Isles added in 10.0.7
+- Added option to import teams from Niggles Pet Teams if both Rematch and Niggles Pet Teams are enabled (from the Teams button at the top of the Teams tab)
+
+03/21/2023 version 4.14.14
+- toc update for 10.0.7 patch
+
+01/25/2022 version 4.14.13
+- toc update for 10.0.5 patch
+
+12/09/2022 version 4.14.12
+- Added about 5k new icon choices for team tabs, including Dragonflight icons.
+- Fix for lua error on mouseover of enemy pets in battle with 'Use Pet Cards In Battle' and PetTracker enabled but PetTracker Battle disabled.
+
+12/02/2022 version 4.14.11
+- Queue validation is now solely based on level and no longer whether the pet can battle.
+- Fix for Summon button when 'No Summon on Double Click' enabled.
+- Fix for Warlords of Draenor expansion artwork showing Dragonflight expansion artwork on pet cards.
+
+11/28/2022 version 4.14.10
+- Fix for the pet cards of uncollected pets showing 'This creature cannot battle' instead of their abilities.
+
 11/27/2022 version 4.14.9
 - More definite fix for queue being emptied while zoning:
 - Whether a pet can battle is now cached for all speciesIDs and remains true if it was ever true.
@@ -17,7 +44,7 @@
 
 11/20/2022 version 4.14.6
 - Pets are no longer automatically removed from the leveling queue when they are found missing or invalid - this includes when they are caged or released.
-- When a leveling queue pet is missing or invalid (likely due to being caged or released), a "Missing or Invalid Pet" will be in the queue in its place. 
+- When a leveling queue pet is missing or invalid (likely due to being caged or released), a "Missing or Invalid Pet" will be in the queue in its place.
 - If the Missing or Invalid pet was due to being caged, released or a server-side petID reassignment, re-acquiring and adding the pet to the queue will leave the old Missing or Invalid Pet in the queue. (Rematch can't know it was the old one.)
 - If the Missing or Invalid pet was due to pets becoming invalid for other reasons (pets being late to load on login), the pets should return to where they were when the pets are valid again.
 - Right-click of a Missing or Invalid Pet in the queue will give an option to remove all of these missing pets from the queue if you choose.
@@ -314,7 +341,7 @@ Special note: If you manually update to this version while logged into the game,
 - The elements in the lists now use a custom button (CompositeButton) that uses textures instead of other buttons for mouse events to reduce the number and layering of buttons and textures. (For instance, the number of team panel objects were reduced by 63% between 4.8.10 and 4.9.0.)
 - The pet card will remain up when the mouse is over a pet's notes button or the icon of the pet itself (in the lists).
 - The small pullout panel at the top of the Teams tab--to show the currently loaded team--has been removed. All views of the addon already show the loaded team that can be interacted with right-click.
-- The small pullout panel at the top of the Queue tab--to show the current leveling pet--has been removed. 
+- The small pullout panel at the top of the Queue tab--to show the current leveling pet--has been removed.
 - Highlights of the pet currently showing the pet card is temporarily removed. (It will be back in a future update.)
 - Right-clicking a pet in the team list will no longer have "Put Leveling Pet Here". Defining a leveling slot is now done only by right-clicking one of the slotted pets.
 - The tiny floating numbers to toast win record changes has been removed.
@@ -786,7 +813,7 @@ Changes for Legion(beta):
 03/06/2016 version 4.2.0
 - Many internal changes to better organize and optimize behind-the-scenes stuff. In general:
   - The way pets are cataloged and managed has been reworked to be "on demand". It will not spend time or memory caring about what pets you own until you summon the Rematch window or it otherwise needs to know what pets you own.
-  - The pet filtering process has been reworked to be more efficient. Instead of checking each filter for every pet, it will only check active filters. Reusable tables are more intelligently reused. And key parts are better optimized for speed. 
+  - The pet filtering process has been reworked to be more efficient. Instead of checking each filter for every pet, it will only check active filters. Reusable tables are more intelligently reused. And key parts are better optimized for speed.
   - The system to handle petIDs changing (whether due to a wholesale server petID reassignment or to a caged and relearned pet) has been reworked for reliability and to reduce the time spent monitoring changes in your pets.
   - The process of updating the internal data and updating the UI to reflect that data was made more internally consistent across the addon.
 - When loading a target from the target panel before reaching that target, auto load will not reload the team, removing any changes you made while on the way to that target.

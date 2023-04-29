@@ -1,10 +1,4 @@
----------------------------------------------------------------------------------
-
--- Customized for OmniCD by permission of the copyright owner.
-
----------------------------------------------------------------------------------
-
---[[ $Id: AceGUIWidget-DropDown-Items.lua 1202 2019-05-15 23:11:22Z nevcairiel $ ]]--
+--[[ $Id: AceGUIWidget-DropDown-Items.lua 1272 2022-08-29 15:56:35Z nevcairiel $ ]]--
 
 local AceGUI = LibStub("AceGUI-3.0")
 
@@ -47,7 +41,7 @@ local ItemBase = {
 	-- NOTE: The ItemBase version is added to each item's version number
 	--       to ensure proper updates on ItemBase changes.
 	--       Use at least 1000er steps.
-	version = 1000,
+	version = 2000,
 	counter = 0,
 }
 
@@ -176,10 +170,6 @@ function ItemBase.Create(type)
 
 	local highlight = frame:CreateTexture(nil, "OVERLAY")
 	highlight:SetTexture(136810) -- Interface\\QuestFrame\\UI-QuestTitleHighlight
-	-- s b
-	highlight:SetTexCoord(0.5, 1, 0, 1)
-	--highlight:SetVertexColor(0.5, 0, 0)
-	-- e
 	highlight:SetBlendMode("ADD")
 	highlight:SetHeight(14)
 	highlight:ClearAllPoints()
@@ -188,7 +178,7 @@ function ItemBase.Create(type)
 	highlight:Hide()
 	self.highlight = highlight
 
-	local check = frame:CreateTexture("OVERLAY")
+	local check = frame:CreateTexture(nil, "OVERLAY")
 	check:SetWidth(16)
 	check:SetHeight(16)
 	check:SetPoint("LEFT",frame,"LEFT",3,-1)
@@ -196,7 +186,7 @@ function ItemBase.Create(type)
 	check:Hide()
 	self.check = check
 
-	local sub = frame:CreateTexture("OVERLAY")
+	local sub = frame:CreateTexture(nil, "OVERLAY")
 	sub:SetWidth(16)
 	sub:SetHeight(16)
 	sub:SetPoint("RIGHT",frame,"RIGHT",-3,-1)
@@ -304,7 +294,7 @@ end
 -- Item: Execute
 -- A simple button
 do
-	local widgetType = "Dropdown-Item-Execute-OmniCD"
+	local widgetType = "Dropdown-Item-Execute"
 	local widgetVersion = 1
 
 	local function Frame_OnClick(this, button)
@@ -319,8 +309,6 @@ do
 	local function Constructor()
 		local self = ItemBase.Create(widgetType)
 
-		self.text:SetFontObject("GameFontNormalSmall-OmniCD") -- s a can't change color here > done in dropdown.lua
-
 		self.frame:SetScript("OnClick", Frame_OnClick)
 
 		AceGUI:RegisterAsWidget(self)
@@ -333,9 +321,8 @@ end
 -- Item: Toggle
 -- Some sort of checkbox for dropdown menus.
 -- Does not close the pullout on click.
-
 do
-	local widgetType = "Dropdown-Item-Toggle-OmniCD"
+	local widgetType = "Dropdown-Item-Toggle"
 	local widgetVersion = 4
 
 	local function UpdateToggle(self)
@@ -377,8 +364,6 @@ do
 
 	local function Constructor()
 		local self = ItemBase.Create(widgetType)
-
-		self.text:SetFontObject("GameFontNormalSmall-OmniCD") -- s a
 
 		self.frame:SetScript("OnClick", Frame_OnClick)
 

@@ -9,6 +9,12 @@ mod:SetEncounterID(2565)
 mod:SetRespawnTime(30)
 
 --------------------------------------------------------------------------------
+-- Locals
+--
+
+local powerVacuumCount = 0
+
+--------------------------------------------------------------------------------
 -- Initialization
 --
 
@@ -23,18 +29,21 @@ function mod:GetOptions()
 end
 
 function mod:OnBossEnable()
+	self:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", nil, "boss1")
 	self:Log("SPELL_AURA_APPLIED", "OverwhelmingPowerApplied", 389011)
 	self:Log("SPELL_AURA_APPLIED_DOSE", "OverwhelmingPowerApplied", 389011)
 	self:Log("SPELL_AURA_APPLIED", "WildEnergyDamage", 389007)
 	self:Log("SPELL_PERIODIC_DAMAGE", "WildEnergyDamage", 389007)
 	self:Log("SPELL_CAST_START", "AstralBreath", 374361)
-	self:Log("SPELL_CAST_START", "PowerVacuum", 388822)
+	self:Log("SPELL_CAST_SUCCESS", "EnergyBomb", 374343)
 	self:Log("SPELL_AURA_APPLIED", "EnergyBombApplied", 374350)
+	self:Log("SPELL_AURA_REMOVED", "EnergyBombRemoved", 374350)
 end
 
 function mod:OnEngage()
-	self:CDBar(374352, 14.9) -- Energy Bomb
-	self:CDBar(388822, 24.2) -- Power Vacuum
+	powerVacuumCount = 0
+	self:CDBar(374352, 15.9) -- Energy Bomb
+	self:CDBar(388822, 22.8) -- Power Vacuum
 	self:CDBar(374361, 28.8) -- Astral Breath
 end
 
@@ -44,8 +53,8 @@ end
 
 function mod:OverwhelmingPowerApplied(args)
 	if self:Me(args.destGUID) then
-		-- aura removed at 4 stacks, spawning an Arcane Rift
-		self:StackMessage(args.spellId, "blue", args.destName, args.amount, 3)
+		-- aura removed at 3 stacks, spawning an Arcane Rift
+		self:StackMessage(args.spellId, "blue", args.destName, args.amount, 2)
 		self:PlaySound(args.spellId, "alert")
 	end
 end
@@ -67,21 +76,35 @@ end
 function mod:AstralBreath(args)
 	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alarm")
-	self:CDBar(args.spellId, 32.8)
+	self:CDBar(args.spellId, 29.1)
 end
 
-function mod:PowerVacuum(args)
-	self:Message(args.spellId, "red")
-	self:PlaySound(args.spellId, "alarm")
-	self:CDBar(args.spellId, 23.1)
+function mod:UNIT_SPELLCAST_SUCCEEDED(_, _, _, spellId)
+	if spellId == 388820 then -- Power Vacuum
+		powerVacuumCount = powerVacuumCount + 1
+		self:Message(388822, "red")
+		self:PlaySound(388822, "alarm")
+		self:Bar(388822, powerVacuumCount == 1 and 21.9 or 29.1)
+	end
+end
+
+function mod:EnergyBomb(args)
+	self:TargetMessage(374352, "yellow", args.destName)
+	self:PlaySound(374352, "alert", nil, args.destName)
+	self:CDBar(374352, 14.5)
+	if self:Me(args.destGUID) then
+		self:Say(374352)
+	end
 end
 
 function mod:EnergyBombApplied(args)
-	self:TargetMessage(374352, "yellow", args.destName)
-	self:PlaySound(374352, "alert", nil, args.destName)
-	self:CDBar(374352, 13.8)
 	if self:Me(args.destGUID) then
-		self:Say(374352)
 		self:SayCountdown(374352, 6)
+	end
+end
+
+function mod:EnergyBombRemoved(args)
+	if self:Me(args.destGUID) then
+		self:CancelSayCountdown(374352)
 	end
 end

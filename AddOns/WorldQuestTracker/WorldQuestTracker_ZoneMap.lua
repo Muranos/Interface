@@ -1,4 +1,5 @@
 
+local addonId, wqtInternal = ...
 
 --world quest tracker object
 local WorldQuestTracker = WorldQuestTrackerAddon
@@ -14,10 +15,7 @@ if (not DF) then
 end
 
 --localization
-local L = LibStub ("AceLocale-3.0"):GetLocale ("WorldQuestTrackerAddon", true)
-if (not L) then
-	return
-end
+local L = DF.Language.GetLanguageTable(addonId)
 
 local _
 local GetQuestsForPlayerByMapID = C_TaskQuest.GetQuestsForPlayerByMapID
@@ -110,12 +108,10 @@ function WorldQuestTracker.CreateZoneWidget (index, name, parent, pinTemplate) -
 	button.worldQuest = true
 	button.ClearWidget = clear_widget
 
-	button.RareOverlay = CreateFrame ("button", button:GetName() .. "RareOverlay", button, "BackdropTemplate")
-	button.RareOverlay:SetAllPoints()
-	button.RareOverlay:SetScript("OnEnter", WorldQuestTracker.RareWidgetOnEnter)
-	button.RareOverlay:SetScript("OnLeave", WorldQuestTracker.RareWidgetOnLeave)
-	button.RareOverlay:SetScript("OnClick", WorldQuestTracker.RareWidgetOnClick)
-	button.RareOverlay:RegisterForClicks("LeftButtonDown", "RightButtonDown")
+	button.RareOverlay = CreateFrame ("button", button:GetName() .. "RareOverlay", button, "BackdropTemplate")  --deprecated
+	button.RareOverlay:EnableMouse(false) --disable the button
+	--button.RareOverlay:SetAllPoints()
+	--button.RareOverlay:RegisterForClicks("LeftButtonDown", "RightButtonDown")
 	button.RareOverlay:Hide()
 
 	button.Texture = supportFrame:CreateTexture(button:GetName() .. "Texture", "BACKGROUND")
@@ -542,26 +538,23 @@ local dazaralor_quests = {
 
 --atualiza as quest do mapa da zona ~updatezone ~zoneupdate
 function WorldQuestTracker.UpdateZoneWidgets (forceUpdate)
-
 	--get the map shown in the map frame
 	local mapID = WorldQuestTracker.GetCurrentMapAreaID()
-
-	WorldQuestTracker.UpdateRareIcons (mapID)
 
 	if (WorldQuestTracker.IsWorldQuestHub (mapID)) then
 		return WorldQuestTracker.HideZoneWidgets()
 
 	elseif (not WorldQuestTracker.ZoneHaveWorldQuest (mapID)) then
-		--print (2)
 		return WorldQuestTracker.HideZoneWidgets()
 	end
 
 	WorldQuestTracker.RefreshStatusBarVisibility()
 
-	WorldQuestTracker.lastZoneWidgetsUpdate = GetTime() --why there's two timers?
+	local timeNow = GetTime()
+	WorldQuestTracker.lastZoneWidgetsUpdate = timeNow --why there's two timers?
 
 	--stop the update if it already updated on this tick
-	if (WorldQuestTracker.LastZoneUpdate and WorldQuestTracker.LastZoneUpdate == GetTime()) then
+	if (WorldQuestTracker.LastZoneUpdate and WorldQuestTracker.LastZoneUpdate == timeNow) then
 		--print (4)
 		return
 	end
@@ -575,7 +568,7 @@ function WorldQuestTracker.UpdateZoneWidgets (forceUpdate)
 
 	local index = 1
 
-	--parar a anima��o de loading
+	--stop the animation if it's playing
 	if (WorldQuestTracker.IsPlayingLoadAnimation()) then
 		WorldQuestTracker.StopLoadingAnimation()
 	end
@@ -590,7 +583,7 @@ function WorldQuestTracker.UpdateZoneWidgets (forceUpdate)
 	local scale = WorldQuestTracker.db.profile.zone_map_config.scale
 
 	local questFailed = false
-	local showBlizzardWidgets = WorldQuestTracker.Temp_HideZoneWidgets > GetTime()
+	local showBlizzardWidgets = WorldQuestTracker.Temp_HideZoneWidgets > timeNow
 	if (not showBlizzardWidgets) then
 		--if not suppresss regular widgets, see if not showing from the profile
 		showBlizzardWidgets = not WorldQuestTracker.db.profile.zone_map_config.show_widgets
@@ -1657,7 +1650,7 @@ if (bountyBoard) then
 
 		local tabs = self.bountyTabPool
 
-		for bountyIndex, bounty in ipairs(self.bounties) do
+		for bountyIndex, bounty in ipairs(self.bounties or {}) do
 			local bountyButton
 			for button, _ in pairs (tabs.activeObjects) do
 				if (button.bountyIndex == bountyIndex) then

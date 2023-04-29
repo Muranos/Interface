@@ -18,6 +18,7 @@ TITAN_PANEL_VARS.debug = {}
 TITAN_PANEL_VARS.debug.movable = false
 TITAN_PANEL_VARS.debug.events = false
 TITAN_PANEL_VARS.debug.ldb_setup = false
+TITAN_PANEL_VARS.debug.tool_tips = false
 
 local _G = getfenv(0);
 local L = LibStub("AceLocale-3.0"):GetLocale(TITAN_ID, true)
@@ -1039,7 +1040,7 @@ function TitanPanelRightClickMenu_AddControlVars(id, hide_text)
 	TitanPanelRightClickMenu_AddToggleRightSide(id, level)
 
 	TitanPanelRightClickMenu_AddSpacer();
-	TitanPanelRightClickMenu_AddCommand(L["TITAN_PANEL_MENU_HIDE"], TITAN_VOLUME_ID, TITAN_PANEL_MENU_FUNC_HIDE);
+	TitanPanelRightClickMenu_AddCommand(L["TITAN_PANEL_MENU_HIDE"], id, TITAN_PANEL_MENU_FUNC_HIDE);
 end
 
 
@@ -1404,6 +1405,23 @@ local function NoColor(name)
 	return no_color
 end
 
+local function AddCustomPluginVars(reg)
+	-- These are added to EACH plugin for various Titan controlled features
+	
+	--==================
+	-- Custom labels
+	reg.savedVariables.CustomLabelTextShow = false
+	reg.savedVariables.CustomLabelText = ""
+	reg.savedVariables.CustomLabel2TextShow = false
+	reg.savedVariables.CustomLabel2Text = ""
+	reg.savedVariables.CustomLabel3TextShow = false
+	reg.savedVariables.CustomLabel3Text = ""
+	reg.savedVariables.CustomLabel4TextShow = false
+	reg.savedVariables.CustomLabel4Text = ""
+	-- Number of labels seen - make config less confusing
+	reg.savedVariables.NumLabelsSeen = 1 -- assume at least one label
+end
+
 --[[ local
 NAME: TitanUtils_RegisterPluginProtected
 DESC: This routine is intended to be called in a protected manner (pcall) by Titan when it attempts to register a plugin.
@@ -1448,7 +1466,7 @@ local function TitanUtils_RegisterPluginProtected(plugin)
 				id = self.registry.id
 				if TitanUtils_IsPluginRegistered(id) then
 					-- We have already registered this plugin!
-					issue =  "Plugin already loaded. "
+					issue =  "Plugin '"..tostring(id).."' already loaded. "
 					.."Please see if another plugin (Titan or LDB) is also loading "
 					.."with the same name.\n"
 					.."<Titan>.registry.id or <LDB>.label"
@@ -1463,6 +1481,12 @@ local function TitanUtils_RegisterPluginProtected(plugin)
 							-- Custom labels
 							self.registry.savedVariables.CustomLabelTextShow = false
 							self.registry.savedVariables.CustomLabelText = ""
+							self.registry.savedVariables.CustomLabel2TextShow = false
+							self.registry.savedVariables.CustomLabel2Text = ""
+							self.registry.savedVariables.CustomLabel3TextShow = false
+							self.registry.savedVariables.CustomLabel3Text = ""
+							self.registry.savedVariables.CustomLabel4TextShow = false
+							self.registry.savedVariables.CustomLabel4Text = ""
 						end
 
 						-- Assign and Sort the list of plugins
@@ -1476,15 +1500,6 @@ local function TitanUtils_RegisterPluginProtected(plugin)
 						table.insert(TitanPluginsIndex, self.registry.id);
 						table.sort(TitanPluginsIndex,
 							function(a, b)
---[[
-								-- if the .menuText is missing then use .id
-								if TitanPlugins[a].menuText == nil then
-									TitanPlugins[a].menuText = TitanPlugins[a].id;
-								end
-								if TitanPlugins[b].menuText == nil then
-									TitanPlugins[b].menuText = TitanPlugins[b].id;
-								end
---]]
 								return string.lower(TitanPlugins[a].menuText)
 									< string.lower(TitanPlugins[b].menuText);
 							end
@@ -1721,10 +1736,12 @@ local function TitanRightClickMenu_OnLoad(self)
 			UIDropDownMenu_Initialize(self, prepareFunction, "MENU");
 		end
 	else
-		-- TitanDebug("Could not display tooltip. "
-		-- .."Could not determine Titan ID for "
-		-- .."'"..(self:GetName() or "?").."'. "
-		-- ,"error")
+		if TITAN_PANEL_VARS.debug.tool_tips then
+			TitanDebug("Could not display tooltip. "
+			.."Could not determine Titan ID for "
+			.."'"..(self:GetName() or "?").."'. "
+			,"error")
+		end
 	end
 end
 
@@ -2086,7 +2103,8 @@ function TitanDebug(debug_message, debug_type)
 		TitanUtils_GetGoldText(L["TITAN_DEBUG"].." ")
 		..time_stamp
 		..dtype
-		..TitanUtils_GetGreenText(debug_message)
+--		..TitanUtils_GetBlueText(debug_message)
+		..TitanUtils_GetHexText(debug_message, "1DA6C5")
 
 	if not TitanAllGetVar("Silenced") then
 		_G["DEFAULT_CHAT_FRAME"]:AddMessage(msg)
@@ -2182,6 +2200,23 @@ function TitanArgConvert (event, a1, a2, a3, a4, a4, a5, a6)
 		.."6: "..(a6 or "?").."("..t6..") "
 	)
 end
+
+function TitanDumpTable(tb, level)
+  level = level or 1
+  local spaces = string.rep(' ', level*2)
+  for k,v in pairs(tb) do
+    if type(v) ~= "table" then
+      print("["..level.."]v'"..spaces.."["..tostring(k).."]='"..tostring(v).."'")
+    else
+      print("["..level.."]t'"..spaces.."["..tostring(k).."]")
+     level = level + 1
+	 if level <= 8 then
+     TitanDumpTable(v, level)
+	 end
+    end
+  end  
+end
+
 
 --------------------------------------------------------------
 --

@@ -1,10 +1,10 @@
-## Interface: 30400
+## Interface: 30401
 ## Title: Details! Damage Meter
 ## Notes: Essential tool to impress that chick in your raid.
 ## SavedVariables: _detalhes_global, __details_backup
 ## SavedVariablesPerCharacter: _detalhes_database
 ## OptionalDeps: Ace3, LibSharedMedia-3.0, LibWindow-1.1, LibDBIcon-1.0, NickTag-1.0, LibDataBroker-1.1, LibItemUpgradeInfo-1.0, LibGroupInSpecT-1.1, LibCompress, LibGraph-2.0
-## Version: #Details.DF.Wrath.10301.147
+## Version: #Details.DF.Wrath.10.0.7.10737.148
 #@no-lib-strip@
 Libs\libs.xml
 #@end-no-lib-strip@
@@ -21,9 +21,12 @@ locales\Details-ruRU.lua
 locales\Details-zhCN.lua
 locales\Details-zhTW.lua
 
+Definitions.lua
+
 boot.lua
 indent.lua
 core\util.lua
+functions\mixin.lua
 API.lua
 
 functions\private.lua
@@ -58,6 +61,7 @@ functions\deathmenu.lua
 functions\macros.lua
 functions\testbars.lua
 functions\warcraftlogs.lua
+functions\textures.lua
 
 core\timemachine.lua
 
@@ -73,6 +77,9 @@ frames\window_api.lua
 frames\window_cdtracker.lua
 frames\window_playerbreakdown.lua
 frames\window_playerbreakdown_list.lua
+frames\window_playerbreakdown_compare.lua
+frames\window_playerbreakdown_avoidance.lua
+frames\window_playerbreakdown_auras.lua
 frames\window_report.lua
 frames\window_main.lua
 frames\window_custom.lua

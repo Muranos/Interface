@@ -84,6 +84,7 @@ L["auto_open_desc"] = "Compruebe en abre automaticamente el marco de la votacion
 L["auto_pass_boe_desc"] = "Desmarcar No Permite autorepartir los articulos que se ligan al equipar"
 L["auto_pass_desc"] = "Marque para activar autopasar de articulos que su clase no puede usar."
 L["auto_pass_trinket_desc"] = "Comprobar para pasar automáticamente de abalorios que no estén en la lista de la Guía de Aventuras para tu clase"
+L["autoGroupLoot_warning"] = "La configuración de Líder de Grupo causará que RCLootCouncil controle automáticamente el botín de grupo"
 L["autoloot_others_item_combat"] = "%s ha conseguido %s. Este objetos sera añadido al cuadro de sesion una vez el combate termine."
 L["Autopass"] = "Pasar Automaticamente"
 L["Autopassed on 'item'"] = "Auto pasar de %s"
@@ -130,8 +131,7 @@ L["channel_desc"] = "El canal para enviar el mensaje."
 L["Chat print"] = "Imprimir chat"
 L["chat tVersion string"] = "|cFF87CEFARCLootCouncil |cFFFFFFFFversion |cFFFFA500 %s - %s"
 L["chat version String"] = "|cFF87CEFARCLootCouncil |cFFFFFFFFversion |cFFFFA500 %s"
---[[Translation missing --]]
---[[ L["chat_cmd_add_found_items"] = ""--]] 
+L["chat_cmd_add_found_items"] = "Se han encontrado %d objetos con temporizadores de comercio en tus bolsas"
 L["chat_cmd_add_invalid_owner"] = "El personaje %s no era válido o bien no era candidato."
 L["chat_commands_add"] = "Añade un objeto al cuadro de sesion"
 L["chat_commands_award"] = "Empieza una sesion con los objetos conseguidos en tu inventario."
@@ -269,10 +269,8 @@ L["Minimize in combat"] = "Minimizar en combate"
 L["Minor Upgrade"] = "Mejora Menor"
 L["Missing votes from:"] = "Faltan votos de:"
 L["ML sees voting"] = "MS ve la votacion"
---[[Translation missing --]]
---[[ L["ML_ADD_INVALID_ITEM"] = ""--]] 
---[[Translation missing --]]
---[[ L["ML_ADD_ITEM_MAX_ATTEMPTS"] = ""--]] 
+L["ML_ADD_INVALID_ITEM"] = "Identificador de ítem o enlace de ítem no válido: %s"
+L["ML_ADD_ITEM_MAX_ATTEMPTS"] = "No se pudo encontrar la información del ítem %s - probablemente no sea un ítem real."
 L["ml_sees_voting_desc"] = "Permitir al Maestro Despojador ver quien vota por quien."
 L["module_tVersion_outdated_msg"] = "La versión de prueba del módulo %s es: %s"
 L["module_version_outdated_msg"] = "El módulo % versión %s está desactualizado. La versión más nueva el %s."
@@ -321,22 +319,26 @@ L["Opens the synchronizer"] = "Abrir el sincronizador"
 L["opt_addButton_desc"] = "Añade un nuevo grupo de botones para la casilla seleccionada."
 L["opt_autoAddBoEs_desc"] = "Añadir automáticamente todos los BoE (Ligados al equipar) a la sesión."
 L["opt_autoAddBoEs_name"] = "Añadir automáticamente BoEs"
+L["opt_autoAddItems_desc"] = "Añade automáticamente todos los objetos seleccionables a una sesión."
+L["opt_autoAddItems_name"] = "Añadir automáticamente objetos"
+L["opt_autoAddPets_desc"] = "Añade automáticamente todas las Mascotas de Compañía a una sesión"
+L["opt_autoAddPets_name"] = "Añadir Mascotas"
+L["opt_autoAwardPrioList_desc"] = "Los objetos se asignan al primer candidato encontrado en tu grupo según esta lista de prioridad."
+L["opt_autoGroupLoot_desc"] = "Si se habilita, RCLootCouncil pulsará automáticamente los botones de pasar y codicia de manera que los objetos acaben en tu inventario."
+L["opt_autoGroupLoot_name"] = "Botín de Grupo Automático"
 --[[Translation missing --]]
---[[ L["opt_autoAddItems_desc"] = ""--]] 
+L["opt_autoGroupLootGuildGroupOnly_desc"] = "When enabled, RCLootCouncil will only do group loot auto pass when you're in a guild group."
 --[[Translation missing --]]
---[[ L["opt_autoAddItems_name"] = ""--]] 
---[[Translation missing --]]
---[[ L["opt_autoAddPets_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["opt_autoAddPets_name"] = ""--]] 
---[[Translation missing --]]
---[[ L["opt_autoAwardPrioList_desc"] = ""--]] 
+L["opt_autoGroupLootGuildGroupOnly_name"] = "Guild Groups Only"
 L["opt_autoTrade_desc"] = "Seleccionar para añadir automáticamente los objetos a la ventana de comercio cuando se comercie con un ganador. Si se deshabilita, se pedirá confirmación antes de añadir los objetos."
 L["opt_award_later_desc"] = "Activar para comprobar automáticamente la opción 'Recompensar más tarde' en la ventana de sesión."
 L["opt_buttonsGroup_desc"] = "Grupo de opciones para los botones de %s y las respuestas. Ver más arriba para una explicación detallada."
 L["opt_chatFrameName_desc"] = "Selecciona en qué ventana de chat quieres que RCLootCouncil muestre la información de salida."
+L["opt_chatFrameName_name"] = "Ventana de Chat"
 --[[Translation missing --]]
---[[ L["opt_chatFrameName_name"] = ""--]] 
+L["opt_closeWithEscape_desc"] = "When enabled, all non-critical RCLootCouncil frames can be closed by pressing 'Escape'. (Requires reload to take effect on already created frames)"
+--[[Translation missing --]]
+L["opt_closeWithEscape_name"] = "Escape Close"
 L["opt_deleteDate_confirm"] = "¿Estás seguro de que quieres borrar todo lo anterior a la selección? Esta acción no se puede deshacer."
 L["opt_deleteDate_desc"] = "Borrar todo lo anterior al número de días seleccionados."
 L["opt_deleteName_confirm"] = "¿Seguro que borrar todas las entradas de %s? Esta acción no se puede deshacer."
@@ -350,14 +352,12 @@ L["opt_printCompletedTrade_Desc"] = "Activar para habilitar un mensaje cada vez 
 L["opt_printCompletedTrade_Name"] = "Mensajes de objetos comerciados"
 L["opt_rejectTrade_Desc"] = "Activar para permitir a los candidatos elegir si desean 'dar' lo que les toque al consejo o no. Si se deshabilita, todos los objetos que sean comerciables por Loot Personal se añadirán automáticamente."
 L["opt_rejectTrade_Name"] = "Permitir quedarse los objetos"
---[[Translation missing --]]
---[[ L["opt_skipSessionFrame_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["opt_skipSessionFrame_name"] = ""--]] 
---[[Translation missing --]]
---[[ L["opt_useSlashRC_desc"] = ""--]] 
---[[Translation missing --]]
---[[ L["opt_useSlashRC_name"] = ""--]] 
+L["opt_skipSessionFrame_desc"] = "Se salta el cuadro de sesión. NOTA: Esto causa que el addon comience una sesión nueva con todos los objetos elegibles sin dejar posibilidad de editar la lista!"
+L["opt_skipSessionFrame_name"] = "Saltar el Cuadro de Sesión"
+L["opt_usage_AskGroupLoot"] = "Pregúntame cada vez que se habilite el Botín de Grupo"
+L["opt_usage_GroupLoot"] = "Utilizar RCLootCouncil siempre que haya Botín de Grupo "
+L["opt_useSlashRC_desc"] = "Deshabilita esto si quieres restaurar '/rc' para hacer una comprobación de listos. Los comandos de RCLootcouncil seguirán accesibles a través de '/rclc'. Hay que hacer '/reload' para que esto tenga efecto."
+L["opt_useSlashRC_name"] = "Usar /rc"
 L["options_autoAwardBoE_desc"] = "Habilitar para asignar automáticamente todo los objetos tipo BoE (ligado al equipar) a la persona especificada por la razón seleccionada."
 L["options_autoAwardBoE_name"] = "Auto asignar BoE's"
 L["options_ml_outOfRaid_desc"] = "Si se habilita, mientras se esté en un grupo de 8 o más personas, a todo aquel que no esté en una instancia al inicio de la sesión se le enviará automáticamente una notificación de 'Fuera de Raid'."

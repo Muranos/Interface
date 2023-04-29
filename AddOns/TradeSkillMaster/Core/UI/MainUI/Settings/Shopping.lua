@@ -4,11 +4,12 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
 local Shopping = TSM.MainUI.Settings:NewPackage("Shopping")
 local L = TSM.Include("Locale").GetTable()
 local Sound = TSM.Include("Util.Sound")
 local UIElements = TSM.Include("UI.UIElements")
+local UIUtils = TSM.Include("UI.UIUtils")
 local private = {
 	sounds = {},
 	soundkeys = {},
@@ -23,7 +24,7 @@ local MAX_ITEM_LEVEL = 500
 
 function Shopping.OnInitialize()
 	TSM.MainUI.Settings.RegisterSettingPage(L["Browse / Sniper"], "middle", private.GetShoppingSettingsFrame)
-	for key, name in pairs(Sound.GetSounds()) do
+	for key, name in Sound.Iterator() do
 		tinsert(private.sounds, name)
 		tinsert(private.soundkeys, key)
 	end
@@ -36,7 +37,7 @@ end
 -- ============================================================================
 
 function private.GetShoppingSettingsFrame()
-	TSM.UI.AnalyticsRecordPathChange("main", "settings", "shopping")
+	UIUtils.AnalyticsRecordPathChange("main", "settings", "shopping")
 	return UIElements.New("ScrollFrame", "shoppingSettings")
 		:SetPadding(8, 8, 8, 0)
 		:AddChild(TSM.MainUI.Settings.CreateExpandableSection("Shopping", "general", L["General Options"], L["Some general Browse/Sniper options are below."])
@@ -55,20 +56,21 @@ function private.GetShoppingSettingsFrame()
 			:AddChild(TSM.MainUI.Settings.CreateInputWithReset("marketValueSourceField", L["Market value price source"], "global.shoppingOptions.pctSource")
 				:SetMargin(0, 0, 0, 12)
 			)
-			:AddChild(TSM.MainUI.Settings.CreateInputWithReset("buyoutConfirmationAlert", L["Buyout confirmation alert"], "global.shoppingOptions.buyoutAlertSource")
-				:SetMargin(0, 0, 0, 12)
-			)
 			:AddChild(UIElements.New("Frame", "showConfirmFrame")
 				:SetLayout("HORIZONTAL")
 				:SetHeight(20)
-				:AddChild(UIElements.New("Checkbox", "showConfirm")
+				:SetMargin(0, 0, 0, 12)
+				:AddChild(UIElements.New("Checkbox", "checkbox")
 					:SetWidth("AUTO")
 					:SetFont("BODY_BODY2_MEDIUM")
-					:SetCheckboxPosition("LEFT")
-					:SetSettingInfo(TSM.db.global.shoppingOptions, "buyoutConfirm")
 					:SetText(L["Show confirmation alert if buyout is above the alert price"])
+					:SetSettingInfo(TSM.db.global.shoppingOptions, "buyoutConfirm")
+					:SetScript("OnValueChanged", private.ConfirmAlertOnValueChanged)
 				)
 				:AddChild(UIElements.New("Spacer", "spacer"))
+			)
+			:AddChild(TSM.MainUI.Settings.CreateInputWithReset("buyoutConfirmationAlert", L["Buyout confirmation alert"], "global.shoppingOptions.buyoutAlertSource", nil, not TSM.db.global.shoppingOptions.buyoutConfirm)
+				:SetMargin(0, 0, 0, 12)
 			)
 		)
 		:AddChild(TSM.MainUI.Settings.CreateExpandableSection("Shopping", "disenchant", L["Disenchant Search Options"], L["Some options for the Disenchant Search are below."])
@@ -162,6 +164,19 @@ end
 -- ============================================================================
 -- Local Script Handlers
 -- ============================================================================
+
+function private.ConfirmAlertOnValueChanged(checkbox, value)
+	local alertFrame = checkbox:GetElement("__parent.__parent.buyoutConfirmationAlert")
+	alertFrame:GetElement("label")
+		:SetTextColor(not value and "TEXT_DISABLED" or "TEXT_ALT")
+		:Draw()
+	alertFrame:GetElement("content.input")
+		:SetDisabled(not value)
+		:Draw()
+	alertFrame:GetElement("content.resetButton")
+		:SetDisabled(not value)
+		:Draw()
+end
 
 function private.SoundOnSelectionChanged(self)
 	Sound.PlaySound(self:GetSelectedItemKey())

@@ -1,11 +1,14 @@
 
-## v10.0.5
-* Implement new WoW 10.0 Aura handling capabilities, resulting in an overwhelming performance improvement for the buff/debuff handling parts of TMW.
-* #2025 - Add events to Combat Event icons for empowered spell casts.
-* Fix #2026 - [string "Condition_ITEMSPELL"]:3: attempt to index field '?' (a nil value)
-* Fix #2027 - Shapeshift, Zone/Subzone, Loadout, Name, NpcID, and Creature Type conditions broken.
-* Fix #2029 - Unit Exists condition against "player" is always `true`, even if False is checked.
-* Fix #2030 - Unit Conditions were being ignored
+## v10.0.9
+* The "Buff - Number Of" and "Debuff - Number Of" conditions now support tracking multiple units (e.g. `group 1-40`). (#1989)
+* Fix #2066 - Enrage effects were not being stored properly when fetching auras for noncached units.
+* Fix #2059 - Condition update were not happening at the proper time for spell cooldown conditions.
+* Fix #2038 - Fix more scenarios in which talent loadout name is not available immediately after talent events fire.
+* Fix #2075 - Spell cast percent completion was not filtering by name.
+* Fix #2072 - Swing timer monitors were not initializing dual-wield state until an equipment change was observed.
+* Fix #2071 - Tooltip Number conditions not working on retail. Also switched these conditions to use modern APIs, resulting in substantially better performance.
+* Workaround #1978, #2055  - Add hardcoded workarounds for a few reported covenant abilities that can't be tracked properly by name (Soul Rot, Adaptive Swarm).
+* Workaround #2065 - Blizzard's cooldown bling effect ignores opacity, so suppress it for hidden icons.
 
 
-[View Full Changelog](https://github.com/ascott18/TellMeWhen/blob/7cd9f624f1de7c6afc1cba827f3edac061689521/CHANGELOG.md)
+[View Full Changelog](https://github.com/ascott18/TellMeWhen/blob/ce566e49c59e0373879075b0d0270bf0d471b1c3/CHANGELOG.md)

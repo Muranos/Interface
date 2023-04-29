@@ -1,10 +1,10 @@
-## Interface: 100000
-## Title: Titan Panel [|cffeda55fLocation|r] |cff00aa006.00.07.100000|r
+## Interface: 100007
+## Title: Titan Panel [|cffeda55fLocation|r] |cff00aa006.00.14.100007|r
 ## Notes: Adds coordinates and location information to Titan Panel
 ## Author: Titan Panel Development Team (http://www.titanpanel.org)
 ## SavedVariables: 
 ## OptionalDeps: 
 ## Dependencies: Titan
-## Version: 6.00.07.100000
+## Version: 6.00.14.100007
 ## X-Child-Of: Titan
 TitanLocation.lua

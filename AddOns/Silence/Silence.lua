@@ -49,7 +49,6 @@ function SlashCmdList.SILENCE(msg)
     else
       print('|cffEEE4AESilence:|r |cff37DB33Silence enabled.')
     end
-    print(not SilenceDB.options.silenceEnabled)
     SilenceDB.options.silenceEnabled = not SilenceDB.options.silenceEnabled
   elseif cmd == 'forever' then
     if SilenceDB.options.silenceForever then

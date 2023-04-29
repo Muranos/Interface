@@ -132,7 +132,8 @@ local function getFontString()
     fs:SetJustifyH("CENTER")
     fs:SetJustifyV("MIDDLE")
     fs:SetTextColor(1, 1, 1, 1)
-    fs:SetFontObject("GameFontNormalMed3Outline")
+    local font = MDT:IsWrath() and "GameFontNormalMed3" or "GameFontNormalMed3Outline"
+    fs:SetFontObject(font)
     fsFrame.fs = fs
     return fsFrame
   else
@@ -264,18 +265,23 @@ local function getPullVertices(p, blips)
 end
 
 function MDT:DrawAllHulls(pulls)
-  MDT:ReleaseHullTextures()
-  MDT:ReleaseHullFontStrings()
-  local preset = MDT:GetCurrentPreset()
-  local blips = MDT:GetDungeonEnemyBlips()
-  local vertices
-  pulls = pulls or preset.value.pulls
-  for pullIdx, p in pairs(pulls) do
-    local r, g, b = MDT:DungeonEnemies_GetPullColor(pullIdx, pulls)
-    vertices = getPullVertices(p, blips)
-    MDT:DrawHull(vertices, { r = r, g = g, b = b, a = 1 }, pullIdx)
-    MDT:DrawHullFontString(vertices, pullIdx)
+  local func = function()
+    MDT:ReleaseHullTextures()
+    MDT:ReleaseHullFontStrings()
+    local preset = MDT:GetCurrentPreset()
+    local blips = MDT:GetDungeonEnemyBlips()
+    local vertices
+    pulls = pulls or preset.value.pulls
+    for pullIdx, p in pairs(pulls) do
+      local r, g, b = MDT:DungeonEnemies_GetPullColor(pullIdx, pulls)
+      vertices = getPullVertices(p, blips)
+      MDT:DrawHull(vertices, { r = r, g = g, b = b, a = 1 }, pullIdx)
+      MDT:DrawHullFontString(vertices, pullIdx)
+      coroutine.yield()
+    end
   end
+  local co = coroutine.create(func)
+  MDT.coHandler:AddAction("DrawAllHulls",co)
 end
 
 function MDT:FindClosestPull(x, y)

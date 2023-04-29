@@ -6,7 +6,7 @@ local WeakAuras = WeakAuras
 local L = WeakAuras.L
 
 local LCD
-if WeakAuras.IsClassic() then
+if WeakAuras.IsClassicEra() then
   LCD = LibStub("LibClassicDurations")
   LCD:RegisterFrame("WeakAuras")
 end
@@ -29,7 +29,7 @@ local WA_GetUnitAura = function(unit, spell, filter)
   end
 end
 
-if WeakAuras.IsClassic() then
+if WeakAuras.IsClassicEra() then
   local WA_GetUnitAuraBase = WA_GetUnitAura
   WA_GetUnitAura = function(unit, spell, filter)
     local name, icon, count, debuffType, duration, expirationTime, source, isStealable, nameplateShowPersonal, spellId,
@@ -469,9 +469,12 @@ local FakeWeakAurasMixin = {
     -- Note these shouldn't exist in the WeakAuras namespace, but moving them takes a bit of effort,
     -- so for now just block them and clean them up later
     genericTriggerTypes = true,
-    newFeatureString = true,
     spellCache = true,
     StopMotion = true,
+    -- We block the loaded table, even though it doesn't exist anymore,
+    -- because some versions of ZT Tracker overwrote region:Collpase() and
+    -- checked for WeakAuras.loaded in there
+    loaded = true
   },
   override = {
     me = GetUnitName("player", true),

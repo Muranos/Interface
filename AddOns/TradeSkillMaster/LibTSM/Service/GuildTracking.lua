@@ -4,8 +4,9 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
-local _, TSM = ...
-local GuildTracking = TSM.Init("Service.GuildTracking")
+local TSM = select(2, ...) ---@type TSM
+local GuildTracking = TSM.Init("Service.GuildTracking") ---@class Service.GuildTracking
+local Environment = TSM.Include("Environment")
 local Database = TSM.Include("Util.Database")
 local Delay = TSM.Include("Util.Delay")
 local Event = TSM.Include("Util.Event")
@@ -20,7 +21,11 @@ local private = {
 	settings = nil,
 	slotDB = nil,
 	quantityDB = nil,
+	baseItemQuantityQuery = nil,
 	pendingPetSlotIds = {},
+	scanTimer = nil,
+	petScanTimer = nil,
+	guildNameTitle = nil,
 }
 local PLAYER_NAME = UnitName("player")
 local PLAYER_GUILD = nil
@@ -51,12 +56,20 @@ GuildTracking:OnSettingsLoad(function()
 		:Commit()
 	private.quantityDB = Database.NewSchema("GUILD_TRACKING_QUANTITY")
 		:AddUniqueStringField("levelItemString")
-		:AddNumberField("quantity")
+		:AddNumberField("guildQuantity")
+		:AddSmartMapField("baseItemString", ItemString.GetBaseMap(), "levelItemString")
+		:AddIndex("baseItemString")
 		:Commit()
-	if not TSM.IsWowVanillaClassic() then
+	private.baseItemQuantityQuery = private.quantityDB:NewQuery()
+		:Select("guildQuantity")
+		:Equal("baseItemString", Database.BoundQueryParam())
+	private.scanTimer = Delay.CreateTimer("GUILD_TRACKING_SCAN", private.GuildBankChangedDelayed)
+	private.petScanTimer = Delay.CreateTimer("GUILD_TRACKING_PET_SCAN", private.ScanPetsDeferred)
+	if Environment.HasFeature(Environment.FEATURES.GUILD_BANK) then
 		DefaultUI.RegisterGuildBankVisibleCallback(private.GuildBankFrameVisible, true)
 		Event.Register("GUILDBANKBAGSLOTS_CHANGED", private.GuildBankBagSlotsChangedHandler)
-		Delay.AfterFrame(1, private.GetGuildName)
+		private.guildNameTitle = Delay.CreateTimer("GUILD_TRACKING_GUILD_NAME", private.GetGuildName)
+		private.guildNameTitle:RunForFrames(1)
 		Event.Register("PLAYER_GUILD_UPDATE", private.GetGuildName)
 	end
 end)
@@ -66,12 +79,6 @@ end)
 -- ============================================================================
 -- Module Functions
 -- ============================================================================
-
-function GuildTracking.ItemIterator()
-	return private.quantityDB:NewQuery()
-		:Select("levelItemString")
-		:IteratorAndRelease()
-end
 
 function GuildTracking.CreateQuery()
 	return private.slotDB:NewQuery()
@@ -89,6 +96,17 @@ function GuildTracking.CreateQueryItem(itemString)
 	return query
 end
 
+function GuildTracking.GetQuantity(itemString)
+	if itemString == ItemString.GetBaseFast(itemString) then
+		return private.baseItemQuantityQuery
+			:BindParams(itemString)
+			:Sum("guildQuantity")
+	else
+		local levelItemString = ItemString.ToLevel(itemString)
+		return private.quantityDB:GetUniqueRowField("levelItemString", levelItemString, "guildQuantity") or 0
+	end
+end
+
 
 
 -- ============================================================================
@@ -103,7 +121,7 @@ function private.GetGuildName()
 	PLAYER_GUILD = GetGuildInfo("player")
 	if not PLAYER_GUILD then
 		-- try again next frame
-		Delay.AfterFrame(1, private.GetGuildName)
+		private.guildNameTitle:RunForFrames(1)
 		return
 	end
 
@@ -159,7 +177,7 @@ function private.GuildBankFrameVisible()
 end
 
 function private.GuildBankBagSlotsChangedHandler()
-	Delay.AfterFrame("guildBankScan", 2, private.GuildBankChangedDelayed)
+	private.scanTimer:RunForFrames(2)
 end
 
 function private.GuildBankChangedDelayed()
@@ -168,7 +186,7 @@ function private.GuildBankChangedDelayed()
 	end
 	if not PLAYER_GUILD then
 		-- we don't have the guild name yet, so try again after a short delay
-		Delay.AfterFrame("guildBankScan", 2, private.GuildBankChangedDelayed)
+		private.scanTimer:RunForFrames(2)
 		return
 	end
 	private.ScanGuildBank()
@@ -214,11 +232,11 @@ function private.ScanGuildBank()
 	private.RebuildQuantityDB()
 	private.slotDB:BulkInsertEnd()
 	if didFail then
-		Delay.AfterFrame("guildBankScan", 2, private.GuildBankChangedDelayed)
+		private.scanTimer:RunForFrames(2)
 	elseif next(private.pendingPetSlotIds) then
-		Delay.AfterFrame("guildBankPetScan", 2, private.ScanPetsDeferred)
+		private.petScanTimer:RunForFrames(2)
 	else
-		Delay.Cancel("guildBankPetScan")
+		private.petScanTimer:Cancel()
 	end
 end
 
@@ -255,6 +273,6 @@ function private.ScanPetsDeferred()
 
 	if next(private.pendingPetSlotIds) then
 		-- there are more to scan
-		Delay.AfterFrame("guildBankPetScan", 2, private.ScanPetsDeferred)
+		private.petScanTimer:RunForFrames(2)
 	end
 end

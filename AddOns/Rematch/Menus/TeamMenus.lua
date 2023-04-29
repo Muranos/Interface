@@ -95,6 +95,7 @@ rematch:InitModule(function()
 		{ text=L["Backup All Teams"], func=rematch.ShowBackupDialog, tooltipBody=L["This will export all teams across all tabs into text that you can paste elsewhere, such as an email to yourself or a text file someplace safe. You can later restore these teams with the Import Teams option."] },
 		{ text=L["Import Teams"], func=rematch.ShowImportDialog, tooltipBody=L["Import a single team or many teams that were exported from Rematch."] },
 		{ text=L["Import From Pet Battle Teams"], hidden=function() return not IsAddOnLoaded("PetBattleTeams") end, tooltipBody=L["Copy your existing teams from Pet Battle Teams to Rematch."], func=rematch.ShowImportPBTDialog },
+		{ text=L["Import From Niggles: Pet Teams"], hidden=function() return not IsAddOnLoaded("Niggles-PetTeams") end, tooltipBody=L["Copy your existing teams from Niggles: Pet Teams to Rematch."], func=rematch.ShowImportNigglesDialog },
 	},rematch.UpdateAutoLoadState)
 
 end)

@@ -1,6 +1,6 @@
 if not WeakAuras.IsLibsOK() then return end
 
-if GetLocale() ~= "zhTW" then
+if (GAME_LOCALE or GetLocale()) ~= "zhTW" then
   return
 end
 
@@ -18,16 +18,16 @@ local L = WeakAuras.L
 	L["%s - %i. Trigger"] = "%s - %i. 觸發器"
 	L["%s - Alpha Animation"] = "%s - 半透明動畫"
 	L["%s - Color Animation"] = "%s - 彩色動畫"
-	L["%s - Condition Custom Chat %s"] = "%s - 條件自定義聊天 %s"
-	L["%s - Condition Custom Check %s"] = "%s - 條件自定義檢查 %s"
-	L["%s - Condition Custom Code %s"] = "%s - 條件自定義代碼 %s"
-	L["%s - Custom Anchor"] = "%s - 自定義定位"
-	L["%s - Custom Grow"] = "%s - 自定義增長"
-	L["%s - Custom Sort"] = "%s - 自定義排序"
-	L["%s - Custom Text"] = "%s - 自定義文字"
-	L["%s - Finish"] = "%s - 終止"
-	L["%s - Finish Action"] = "%s - 終止動作"
-	L["%s - Finish Custom Text"] = "%s - 終止自定義文字"
+	L["%s - Condition Custom Chat %s"] = "%s - 條件自訂聊天 %s"
+	L["%s - Condition Custom Check %s"] = "%s - 條件自訂檢查 %s"
+	L["%s - Condition Custom Code %s"] = "%s - 條件自訂程式碼 %s"
+	L["%s - Custom Anchor"] = "%s - 自訂對齊位置"
+	L["%s - Custom Grow"] = "%s - 自訂增長"
+	L["%s - Custom Sort"] = "%s - 自訂排序"
+	L["%s - Custom Text"] = "%s - 自訂文字"
+	L["%s - Finish"] = "%s - 結束"
+	L["%s - Finish Action"] = "%s - 結束動作"
+	L["%s - Finish Custom Text"] = "%s - 結束自訂文字"
 	L["%s - Init Action"] = "%s - 初始動作"
 	L["%s - Main"] = "%s - 主要"
 	L["%s - Option #%i has the key %s. Please choose a different option key."] = "%s - 選項 #%i 已經有 key %s。請選擇另一個不同的選項 key。"
@@ -35,7 +35,7 @@ local L = WeakAuras.L
 	L["%s - Scale Animation"] = "%s - 縮放動畫"
 	L["%s - Start"] = "%s - 開始"
 	L["%s - Start Action"] = "%s - 開始動作"
-	L["%s - Start Custom Text"] = "%s - 開始自定義文字"
+	L["%s - Start Custom Text"] = "%s - 開始自訂文字"
 	L["%s - Translate Animation"] = "%s - 轉換動畫"
 	L["%s - Trigger Logic"] = "%s - 觸發器邏輯"
 	L["%s %s, Lines: %d, Frequency: %0.2f, Length: %d, Thickness: %d"] = "%s %s, 直線: %d, 頻率: %0.2f, 長度: %d, 粗細: %d"
@@ -43,7 +43,7 @@ local L = WeakAuras.L
 	L["%s %u. Overlay Function"] = "%s %u. 疊加功能"
 	L["%s Alpha: %d%%"] = "%s透明度: %d%%"
 	L["%s Color"] = "%s 顏色"
-	L["%s Custom Variables"] = "%s 自定義變量"
+	L["%s Custom Variables"] = "%s 自訂變數"
 	L["%s Default Alpha, Zoom, Icon Inset, Aspect Ratio"] = "%s預設透明度, 檢視大小, 圖示內縮, 保持比例"
 	L["%s Duration Function"] = "%s 持續時間功能"
 	L["%s Icon Function"] = "%s 圖示功能"
@@ -58,6 +58,8 @@ local L = WeakAuras.L
 	L["%s total auras"] = "總共 %s 個提醒效果"
 	L["%s Trigger Function"] = "%s 觸發器功能"
 	L["%s Untrigger Function"] = "%s 取消觸發功能"
+	L["%s X offset by %d"] = "%s 水平偏移 %d"
+	L["%s Y offset by %d"] = "%s 垂直偏移 %d"
 	L["%s Zoom: %d%%"] = "%s檢視大小: %d%%"
 	L["%s, Border"] = "%s, 邊框"
 	L["%s, Offset: %0.2f;%0.2f"] = "%s, 位置偏移: %0.2f;%0.2f"
@@ -73,6 +75,7 @@ local L = WeakAuras.L
 	L["|cFFFF0000default|r texture"] = "|cFFFF0000預設|r材質"
 	L["|cFFFF0000desaturated|r "] = "|cFFFF0000去色|r "
 	L["|cFFFF0000Note:|r The unit '%s' is not a trackable unit."] = "|cFFFF0000注意:|r 單位 '%s' 不是可以監控的單位。"
+	L["|cFFFF0000Note:|r The unit '%s' requires soft target cvars to be enabled."] = "|cFFFF0000注意:|r 單位 '%s' 需要啟用軟目標 CVar 遊戲參數。"
 	L["|cFFffcc00Anchors:|r Anchored |cFFFF0000%s|r to frame's |cFFFF0000%s|r"] = "|cFFffcc00對齊:|r |cFFFF0000%s|r對齊到框架的|cFFFF0000%s|r"
 	L["|cFFffcc00Anchors:|r Anchored |cFFFF0000%s|r to frame's |cFFFF0000%s|r with offset |cFFFF0000%s/%s|r"] = "|cFFffcc00對齊:|r |cFFFF0000%s|r對齊到框架的|cFFFF0000%s|r，偏移|cFFFF0000%s/%s|r"
 	L["|cFFffcc00Anchors:|r Anchored to frame's |cFFFF0000%s|r"] = "|cFFffcc00對齊:|r 對齊到框架的|cFFFF0000%s|r"
@@ -98,7 +101,7 @@ local L = WeakAuras.L
 	L["A 64x64 pixels icon"] = "64x64 大小的圖示"
 	L["A group that dynamically controls the positioning of its children"] = "可動態控制子項目位置的群組"
 	L[ [=[A timer will automatically be displayed according to default Interface Settings (overridden by some addons).
-Enable this setting if you want this timer to be hidden, or when using a WeakAuras text to display the timer]=] ] = "計時器將根據預設界面設置自動顯示（被某些插件覆蓋）。如果您希望隱藏此計時器，或使用WeakAuras文字顯示計時器，請啟用此設置"
+Enable this setting if you want this timer to be hidden, or when using a WeakAuras text to display the timer]=] ] = "時間數字會自動依照遊戲內建的選項 (或被其他插件取代) 來決定是否顯示。如果你想要隱藏這個時間數字，或是使用 WeakAuras  的文字來顯示時間，請啟用此設定。"
 	L["A Unit ID (e.g., party1)."] = "單位 ID (例如 party1)。"
 	L["Actions"] = "動作"
 	L["Active Aura Filters and Info"] = "啟用光環過濾以及訊息"
@@ -124,6 +127,7 @@ Enable this setting if you want this timer to be hidden, or when using a WeakAur
 	L["Align"] = "對齊"
 	L["Alignment"] = "對齊方式"
 	L["All of"] = "全部的"
+	L["Allow Full Rotation"] = "允許完全旋轉"
 	L["Alpha"] = "透明度"
 	L["Anchor"] = "對齊"
 	L["Anchor Point"] = "對齊點"
@@ -181,12 +185,12 @@ Off Screen]=] ] = [=[提醒效果
 	L["Background Offset"] = "背景位置"
 	L["Background Texture"] = "背景材質"
 	L["Bar Alpha"] = "進度條透明度"
-	L["Bar Color"] = "進度條顏色"
 	L["Bar Color Settings"] = "進度條顏色設定"
+	L["Bar Color/Gradient Start"] = "進度條顏色/漸層開始"
 	L["Bar Texture"] = "進度條材質"
 	L["Big Icon"] = "大圖示"
 	L["Blend Mode"] = "混合模式"
-	L["Blizzard Cooldown Reduction"] = "暴雪冷卻減少"
+	L["Blizzard Cooldown Reduction"] = "遊戲內建減少冷卻時間"
 	L["Blue Rune"] = "藍色符文"
 	L["Blue Sparkle Orb"] = "藍色光球"
 	L["Border"] = "邊框"
@@ -234,6 +238,7 @@ Off Screen]=] ] = [=[提醒效果
 	L["Column Height"] = "行高度"
 	L["Column Space"] = "行間距"
 	L["Columns"] = "行"
+	L["COMBAT_LOG_EVENT_UNFILTERED with no filter can trigger frame drops in raid environment."] = "沒有過濾程式的 COMBAT_LOG_EVENT_UNFILTERED 在團隊環境會造成掉偵。"
 	L["Combinations"] = "組合"
 	L["Combine Matches Per Unit"] = "合併每個單位符合的"
 	L["Common Text"] = "普通文字"
@@ -248,7 +253,7 @@ Off Screen]=] ] = [=[提醒效果
 	L["Controls the positioning and configuration of multiple displays at the same time"] = "同時控制多個提醒效果的位置和設定"
 	L["Convert to..."] = "轉換成..."
 	L["Cooldown Numbers might be added by WoW. You can configure these in the game settings."] = "WoW 可能會添加冷卻時間數字。您可以在遊戲設置中設定這些。"
-	L["Cooldown Reduction changes the duration of seconds instead of showing the real time seconds."] = "冷卻減少會更改秒數的持續時間，而不是顯示實時秒數。"
+	L["Cooldown Reduction changes the duration of seconds instead of showing the real time seconds."] = "減少冷卻時間會更改秒數的持續時間，而不是顯示實際秒數。"
 	L["Copy"] = "複製"
 	L["Copy settings..."] = "複製設定..."
 	L["Copy to all auras"] = "複製到全部的提醒效果"
@@ -262,10 +267,10 @@ Off Screen]=] ] = [=[提醒效果
 	L["Crop X"] = "裁剪X"
 	L["Crop Y"] = "裁剪Y"
 	L["Custom"] = "自訂"
-	L["Custom Anchor"] = "自訂對齊"
+	L["Custom Anchor"] = "自訂對齊位置"
 	L["Custom Check"] = "自訂檢查"
 	L["Custom Code"] = "自訂程式碼"
-	L["Custom Code Viewer"] = "自定義程式碼瀏覽器"
+	L["Custom Code Viewer"] = "自訂程式碼檢視器"
 	L["Custom Color"] = "自訂顏色"
 	L["Custom Configuration"] = "自訂設定選項"
 	L["Custom Frames"] = "自訂框架"
@@ -294,6 +299,7 @@ UNIT_POWER, UNIT_AURA PLAYER_TARGET_CHANGED]=]
 	L["Debug Log:"] = "偵錯紀錄："
 	L["Default"] = "預設"
 	L["Default Color"] = "減益顏色"
+	L["Delay"] = "延遲"
 	L["Delete"] = "刪除"
 	L["Delete all"] = "全部刪除"
 	L["Delete children and group"] = "刪除子項目和群組"
@@ -340,17 +346,18 @@ UNIT_POWER, UNIT_AURA PLAYER_TARGET_CHANGED]=]
 	L["eliding"] = "符合寬度"
 	L["Else If"] = "(Else If) 否則，當"
 	L["Else If Trigger %s"] = "否則，當觸發 %s"
-	L["Enable \"Edge\" part of the overlay"] = "啟用疊層的\"邊緣\"部分"
-	L["Enable \"swipe\" part of the overlay"] = "啟用疊層的\"揮打\"部分"
+	L["Enable \"Edge\" part of the overlay"] = "啟用疊層的 \"邊緣\" 部分"
+	L["Enable \"swipe\" part of the overlay"] = "啟用疊層的 \"轉圈\" 部分"
 	L["Enable Debug Log"] = "啟用偵錯紀錄"
 	L["Enable Debug Logging"] = "啟用偵錯紀錄中"
-	L["Enable Swipe"] = "啟用揮打"
-	L["Enable the \"Swipe\" radial overlay"] = "啟用\"揮打\"徑向疊層"
+	L["Enable Gradient"] = "啟用漸層"
+	L["Enable Swipe"] = "啟用倒數轉圈"
+	L["Enable the \"Swipe\" radial overlay"] = "啟用 \"轉圈\" 疊層"
 	L["Enabled"] = "啟用"
 	L["End Angle"] = "結束角度"
 	L["End of %s"] = "%s 的結尾"
 	L["Enemy nameplate(s) found"] = "找到敵對名條"
-	L["Enter a Spell ID"] = "輸入法術 ID"
+	L["Enter a Spell ID. You can use the addon idTip to determine spell ids."] = "輸入一個法術ID。您可以使用插件 idTip 來確定法術ID。"
 	L["Enter an Aura Name, partial Aura Name, or Spell ID. A Spell ID will match any spells with the same name."] = "輸入光環名稱、光環部分名稱，或是法術 ID。法術 ID 會找出名稱相同的任何法術。"
 	L["Enter Author Mode"] = "進入作者模式"
 	L["Enter in a value for the tick's placement."] = "輸入每次進度指示位置的數值。"
@@ -362,6 +369,7 @@ UNIT_POWER, UNIT_AURA PLAYER_TARGET_CHANGED]=]
 	L["Event Type"] = "事件類型"
 	L["Event(s)"] = "事件"
 	L["Everything"] = "全部"
+	L["Exact Item Match"] = "完全符合物品"
 	L["Exact Spell ID(s)"] = "正確的法術 ID"
 	L["Exact Spell Match"] = "完全符合法術"
 	L["Expand"] = "展開"
@@ -430,6 +438,8 @@ Can use \ to escape -.]=] ] = "過濾器格式：'名字'，'名字-伺服器'�
 	L["Glow External Element"] = "發光外部元素"
 	L["Glow Frame Type"] = "發光框架類型"
 	L["Glow Type"] = "發光類型"
+	L["Gradient End"] = "漸層結束"
+	L["Gradient Orientation"] = "漸層方向"
 	L["Green Rune"] = "綠色符文"
 	L["Grid direction"] = "網格方向"
 	L["Group"] = "群組"
@@ -438,7 +448,10 @@ Can use \ to escape -.]=] ] = "過濾器格式：'名字'，'名字-伺服器'�
 
 - Nameplates: attach to nameplates per unit.
 - Unit Frames: attach to unit frame buttons per unit.
-- Custom Frames: choose which frame each region should be anchored to.]=] ] = "按框架對每個光環進行分組和定位。 - 名條：附在每個單位的名條上。 - 單元框架：每個單元附加到單元框架按鈕。 - 自定義框架：選擇每個區域應定位到哪個框架。"
+- Custom Frames: choose which frame each region should be anchored to.]=] ] = [=[依據框架對每個提醒效果進行分組和定位。
+- 名條: 對齊每個單位的名條上。
+- 單位框架: 對齊到每個單位的單位框架按鈕。
+- 自訂框架：選擇每個區域應該對齊到哪個框架。]=]
 	L["Group aura count description"] = [=[要觸發這個提醒效果，必須有 %s 個成員受到一個或多個指定光環的影響。
 如果輸入的數字是整數 (例如 5)，受到影響的團隊成員數量會和輸入的數字做比較。
 如果輸入的數字是小數 (例如 0.5)、分數 (例如 1/2) 或百分比 (例如 50%%)，那麼 %s 的部分必須受到影響。
@@ -469,7 +482,7 @@ Can use \ to escape -.]=] ] = "過濾器格式：'名字'，'名字-伺服器'�
 	L["Hide Glows applied by this aura"] = "隱藏這個提醒效果所套用的發光效果"
 	L["Hide on"] = "隱藏"
 	L["Hide this group's children"] = "隱藏這個群組的子項目"
-	L["Hide Timer Text"] = "隱藏計時器文字"
+	L["Hide Timer Text"] = "隱藏時間數字"
 	L["Horizontal Align"] = "水平對齊"
 	L["Horizontal Bar"] = "水平進度條"
 	L["Hostility"] = "敵對"
@@ -518,6 +531,7 @@ Can use \ to escape -.]=] ] = "過濾器格式：'名字'，'名字-伺服器'�
 	L["Indent Size"] = "內縮大小"
 	L["Information"] = "資訊"
 	L["Inner"] = "內部"
+	L["Invalid Item ID"] = "無效的物品 ID"
 	L["Invalid Item Name/ID/Link"] = "無效的物品名稱/ID/連結"
 	L["Invalid Spell ID"] = "無效的法術 ID"
 	L["Invalid Spell Name/ID/Link"] = "無效的法術名稱/ID/連結"
@@ -538,7 +552,6 @@ Can use \ to escape -.]=] ] = "過濾器格式：'名字'，'名字-伺服器'�
 	L["Left"] = "左"
 	L["Left 2 HUD position"] = "左2 HUD 位置"
 	L["Left HUD position"] = "左方 HUD 位置"
-	L["Legacy Zoom Out"] = "傳統縮小"
 	L["Length"] = "長度"
 	L["Length of |cFFFF0000%s|r"] = "|cFFFF0000%s|r的長度"
 	L["Limit"] = "限制"
@@ -556,6 +569,7 @@ Can use \ to escape -.]=] ] = "過濾器格式：'名字'，'名字-伺服器'�
 	L["Matches the height setting of a horizontal bar or width for a vertical bar."] = "符合水平進度條的高度設定，或垂直進度條的寬度。"
 	L["Max"] = "最大"
 	L["Max Length"] = "最大長度"
+	L["Media Type"] = "媒體類型"
 	L["Medium Icon"] = "中圖示"
 	L["Message"] = "訊息"
 	L["Message Prefix"] = "訊息字首"
@@ -603,16 +617,35 @@ Can use \ to escape -.]=] ] = "過濾器格式：'名字'，'名字-伺服器'�
 	L["Note: Automated Messages to SAY and YELL are blocked outside of Instances."] = "注意: 副本外面無法在 '說' 和 '大喊' 頻道自動發送訊息，會被阻擋。"
 	L["Npc ID"] = "NPC ID"
 	L["Number of Entries"] = "項目數量"
+	L[ [=[Occurence of the event, reset when aura is unloaded
+Can be a range of values
+Can have multiple values separated by a comma or a space
+
+Examples:
+2nd 5th and 6th events: 2, 5, 6
+2nd to 6th: 2-6
+every 2 events: /2
+every 3 events starting from 2nd: 2/3
+every 3 events starting from 2nd and ending at 11th: 2-11/3]=] ] = [=[發生的事件，卸載提醒效果時會重置
+可以是範圍的值
+可以有多個值，使用逗號或空白分隔。
+
+範例:
+第2、第5、第6 個事件: 2, 5, 6
+第2到第6個: 2-6
+每2個事件: /2
+從第2個事件開始每3個事件: 2/3
+第2個到第11個事件中每3個事件: 2-11/3]=]
 	L["Offer a guided way to create auras for your character"] = "用步驟導引的方式替角色建立提醒效果"
-	L["Offset by |cFFFF0000%s|r/|cFFFF0000%s|r"] = "偏移|cFFFF0000%s|r/|cFFFF0000%s|r"
+	L["Offset by |cFFFF0000%s|r/|cFFFF0000%s|r"] = "偏移 |cFFFF0000%s|r/|cFFFF0000%s|r"
 	L["Offset by 1px"] = "偏移 1px"
 	L["Okay"] = "確認"
 	L["On Hide"] = "消失時"
 	L["On Init"] = "初始化時"
 	L["On Show"] = "出現時"
 	L["Only Match auras cast by a player (not an npc)"] = "只符合玩家 (非 NPC) 施放的光環"
-	L["Only match auras cast by people other than the player or his pet"] = "只符合其他玩家施放的光環"
-	L["Only match auras cast by the player or his pet"] = "只符合玩家自己或寵物施放的光環"
+	L["Only match auras cast by people other than the player or their pet"] = "只符合玩家或他們的寵物以外的人施放的光環"
+	L["Only match auras cast by the player or their pet"] = "只符合玩家或他們的寵物施放的光環"
 	L["Operator"] = "運算符"
 	L["Option %i"] = "選項 %i"
 	L["Option key"] = "選項 key"
@@ -688,12 +721,12 @@ Can use \ to escape -.]=] ] = "過濾器格式：'名字'，'名字-伺服器'�
 	L["Rotate In"] = "旋轉進入"
 	L["Rotate Out"] = "旋轉退出"
 	L["Rotate Text"] = "旋轉文字"
-	L["Rotating a texture around arbitary angles used to require a zoom out. This is no longer required, this option only exist for compatibility with previous behaviour."] = "圍繞材質任意角度旋轉過去需要縮小。這不再是必需的，此選項的存在只是為了與以前的行為相容。"
 	L["Rotation"] = "旋轉"
 	L["Rotation Mode"] = "旋轉模式"
 	L["Row Space"] = "列間距"
 	L["Row Width"] = "列寬度"
 	L["Rows"] = "列"
+	L["Run on..."] = "執行於..."
 	L["Same"] = "相同"
 	L["Same texture as Foreground"] = "與前景相同的材質"
 	L["Saved Data"] = "已儲存的資料"
@@ -714,7 +747,7 @@ Can use \ to escape -.]=] ] = "過濾器格式：'名字'，'名字-伺服器'�
 	L["Shadow Y Offset"] = "陰影垂直偏移"
 	L["Shift-click to create chat link"] = "Shift-左鍵點擊建立 |cFF8800FF[聊天連結]"
 	L["Show \"Edge\""] = "顯示\"邊緣\""
-	L["Show \"Swipe\""] = "顯示\"揮打\""
+	L["Show \"Swipe\""] = "顯示 \"轉圈\""
 	L["Show and Clone Settings"] = "顯示和複製設定"
 	L["Show Border"] = "顯示邊框"
 	L["Show Debug Logs"] = "顯示偵錯紀錄"
@@ -772,7 +805,7 @@ Can use \ to escape -.]=] ] = "過濾器格式：'名字'，'名字-伺服器'�
 	L["Spell Selection Filters"] = "法術選擇過濾器"
 	L["Stack Count"] = "堆疊層數"
 	L["Stack Info"] = "堆疊層數資訊"
-	L["Stagger"] = "交錯"
+	L["Stagger"] = "醉仙緩勁"
 	L["Star"] = "星星"
 	L["Start"] = "開始"
 	L["Start Angle"] = "開始時的角度"
@@ -784,7 +817,7 @@ Can use \ to escape -.]=] ] = "過濾器格式：'名字'，'名字-伺服器'�
 	L["Stop Sound"] = "停止音效"
 	L["Sub Elements"] = "子元素"
 	L["Sub Option %i"] = "子選項 %i"
-	L["Swipe Overlay Settings"] = "揮動疊層設定"
+	L["Swipe Overlay Settings"] = "倒數轉圈效果設定"
 	L["Templates could not be loaded, the addon is %s"] = "範本無法載入，此插件為 %s"
 	L["Temporary Group"] = "暫時性的群組"
 	L["Text"] = "文字"
@@ -796,8 +829,10 @@ Can use \ to escape -.]=] ] = "過濾器格式：'名字'，'名字-伺服器'�
 	L["Texture Rotation"] = "材質旋轉"
 	L["Texture Settings"] = "材質設定"
 	L["Texture Wrap"] = "材質包覆"
-	L["The addon ElvUI is enabled. It might add cooldown numbers to the swipe. You can configure these in the ElvUI settings"] = "插件 ElvUI 已啟用。它可能會為滑動增加冷卻時間。您可以在 ElvUI 設定中設置這些"
-	L["The addon OmniCC is enabled. It might add cooldown numbers to the swipe. You can configure these in the OmniCC settings"] = "插件 OmniCC 已啟用。它可能會為滑動增加冷卻時間。您可以在 OmniCC 設定中設置這些"
+	L["Texture X Offset"] = "材質水平偏移"
+	L["Texture Y Offset"] = "材質垂直偏移"
+	L["The addon ElvUI is enabled. It might add cooldown numbers to the swipe. You can configure these in the ElvUI settings"] = "ElvUI 插件已啟用，它可能會在倒數轉圈動畫上面加入冷卻時間數字，這些可以在 ElvUI 的設定中調整。"
+	L["The addon OmniCC is enabled. It might add cooldown numbers to the swipe. You can configure these in the OmniCC settings"] = "冷卻時間插件 OmniCC 已啟用，它可能會在倒數轉圈動畫上面加入冷卻時間數字，這些可以在 OmniCC 的設定中調整。"
 	L["The duration of the animation in seconds."] = "動畫的持續時間(秒)。"
 	L["The duration of the animation in seconds. The finish animation does not start playing until after the display would normally be hidden."] = "動畫的持續時間 (秒)。直到提醒效果正常隱藏後，才會播放結束時的動畫。"
 	L["The type of trigger"] = "觸發類型"
@@ -814,7 +849,7 @@ It might not work correctly!]=] ] = "這個提醒效果是由不同版本 (%s) �
 It might not work correctly with your version!]=] ] = "這個提醒效果是用較新版本的 WeakAuras 建立的，可能不適用於您的版本!"
 	L["This display is currently loaded"] = "這個提醒效果已經載入"
 	L["This display is not currently loaded"] = "這個提醒效果尚未載入"
-	L["This enables the collection of debug logs. Custom code can add debug information to the log through the function DebugPrint."] = "這啟用了偵錯日誌的收集。自定義代碼可以通過函數DebugPrint將偵錯訊息添加到日誌中。"
+	L["This enables the collection of debug logs. Custom code can add debug information to the log through the function DebugPrint."] = "這會啟用蒐集除錯記錄，自訂程式碼可以透過 DebugPrint 函數將除錯資訊加入到記錄中。"
 	L["This is a modified version of your aura, |cff9900FF%s.|r"] = "這是你的提醒效果的修改版本，|cff9900FF%s。|r"
 	L["This is a modified version of your group: |cff9900FF%s|r"] = "這是您群組的修改版本：|cff9900FF%s|r"
 	L["This region of type \"%s\" is not supported."] = "不支援的地區類型 \"%s\"。"
@@ -880,7 +915,7 @@ It might not work correctly with your version!]=] ] = "這個提醒效果是用�
 	L["Vertical Align"] = "垂直對齊"
 	L["Vertical Bar"] = "垂直進度條"
 	L["View"] = "檢視"
-	L["View custom code"] = "瀏覽自定義程式碼"
+	L["View custom code"] = "檢視自訂程式碼"
 	L["Voice"] = "語音"
 	L["WeakAuras %s on WoW %s"] = "WeakAuras %s 在 WoW %s"
 	L["What do you want to do?"] = "你想要做什麼？"
@@ -902,6 +937,10 @@ It might not work correctly with your version!]=] ] = "這個提醒效果是用�
 	L["You already have this group/aura. Importing will create a duplicate."] = "你已經有了這個群組/提醒效果。匯入後將會建立另一個複製版本。"
 	L["You are about to delete %d aura(s). |cFFFF0000This cannot be undone!|r Would you like to continue?"] = "你正準備要刪除 %d 個提醒效果，刪除後將|cFFFF0000無法還原!|r 請問是否要繼續?"
 	L["You are about to delete a trigger. |cFFFF0000This cannot be undone!|r Would you like to continue?"] = "你正要刪除觸發。 |cFFFF0000刪除後將無法還原!|r 是否確定要繼續?"
+	L[ [=[You can add a comma-separated list of state values here that (when changed) WeakAuras should also run the Grow Code on.
+
+WeakAuras will always run custom grow code if you include 'changed' in this list, or when a region is added, removed, or re-ordered.]=] ] = "你可以在此處加入以逗號分隔的狀態值清單，(更改後) WeakAuras 也會執行 '增長程式碼'。如果你更改了這個清單，或是加入、刪除或重新排序時，WeakAuras 永遠都會執行自訂增長程式碼。"
+	L["You can add a comma-separated list of state values here that (when changed) WeakAuras should also run the sort code on.WeakAuras will always run custom sort code if you include 'changed' in this list, or when a region is added, removed."] = "你可以在此處加入以逗號分隔的狀態值清單，(更改後) WeakAuras 也會執行 '排序程式碼'。如果你更改了這個清單，或是加入、刪除或重新排序時，WeakAuras 永遠都會執行自訂排序程式碼。"
 	L["Your Saved Snippets"] = "已儲存的程式碼片段"
 	L["Z Offset"] = "Z軸位置"
 	L["Z Rotation"] = "Z軸旋轉"

@@ -16,6 +16,9 @@ local default = {
   orientation = "HORIZONTAL",
   inverse = false,
   barColor = {1.0, 0.0, 0.0, 1.0},
+  barColor2 = {1.0, 1.0, 0.0, 1.0},
+  enableGradient = false,
+  gradientOrientation = "HORIZONTAL",
   backgroundColor = {0.0, 0.0, 0.0, 0.5},
   spark = false,
   sparkWidth = 10,
@@ -49,6 +52,22 @@ local properties = {
     display = L["Bar Color"],
     setter = "Color",
     type = "color",
+  },
+  barColor2 = {
+    display = L["Gradient Color"],
+    setter = "SetBarColor2",
+    type = "color",
+  },
+  gradientOrientation = {
+    display = L["Gradient Orientation"],
+    setter = "SetGradientOrientation",
+    type = "list",
+    values = Private.gradient_orientations
+  },
+  enableGradient = {
+    display = L["Gradient Enabled"],
+    setter = "SetGradientEnabled",
+    type = "bool",
   },
   icon_visible = {
     display = {L["Icon"], L["Visibility"]},
@@ -244,17 +263,15 @@ local barPrototype = {
     self.directionInverse = (self.orientation == "HORIZONTAL_INVERSE") or (self.orientation == "VERTICAL")
 
     local TLx,  TLy,  BLx,  BLy,  TRx,  TRy,  BRx,  BRy = self.GetTexCoord(0, 1);
-    self.bg:SetTexCoord(TLx , TLy , BLx , BLy , TRx , TRy , BRx , BRy );
+    self.bg:SetTexCoord(TLx, TLy, BLx, BLy, TRx, TRy, BRx, BRy)
+    self.fg:SetTexCoord(TLx, TLy, BLx, BLy, TRx, TRy, BRx, BRy)
 
     -- Set alignment
-    self.fg:ClearAllPoints();
-    self.fg:SetPoint(self.align1);
-    self.fg:SetPoint(self.align2);
-    self.fgFrame:ClearAllPoints()
-    self.fgFrame:SetPoint(self.align1);
-    self.fgFrame:SetPoint(self.align2);
+    self.fgMask:ClearAllPoints()
+    self.fgMask:SetPoint(self.align1, self, self.align1)
+    self.fgMask:SetPoint(self.align2, self, self.align2)
 
-    self.spark:SetPoint("CENTER", self.fg, self.alignSpark, self.spark.sparkOffsetX or 0, self.spark.sparkOffsetY or 0);
+    self.spark:SetPoint("CENTER", self.fgMask, self.alignSpark, self.spark.sparkOffsetX or 0, self.spark.sparkOffsetY or 0);
 
     local sparkMirror = self.spark.sparkMirror;
     local sparkRotationMode = self.spark.sparkRotationMode;
@@ -280,17 +297,23 @@ local barPrototype = {
     -- Create statusbar illusion
     if (self.horizontal) then
       local xProgress = self:GetRealSize() * progress;
-      self.fg:SetWidth(xProgress > 0.0001 and xProgress or 0.0001);
-      self.fgFrame:SetWidth(xProgress > 0.0001 and xProgress or 0.0001);
+      local show = xProgress > 0.0001
+      self.fgMask:SetWidth(show and (xProgress + 0.1) or 0.1);
+      if show then
+        self.fg:Show()
+      else
+        self.fg:Hide()
+      end
     else
       local yProgress = select(2, self:GetRealSize()) * progress;
-      self.fg:SetHeight(yProgress > 0.0001 and yProgress or 0.0001);
-      self.fgFrame:SetHeight(yProgress > 0.0001 and yProgress or 0.0001);
+      local show = yProgress > 0.0001
+      self.fgMask:SetHeight(show and (yProgress + 0.1) or 0.1);
+      if show then
+        self.fg:Show()
+      else
+        self.fg:Hide()
+      end
     end
-
-    -- Stretch texture
-    local TLx_, TLy_, BLx_, BLy_, TRx_, TRy_, BRx_, BRy_ = self.GetTexCoord(0, progress);
-    self.fg:SetTexCoord(TLx_, TLy_, BLx_, BLy_, TRx_, TRy_, BRx_, BRy_);
 
     local sparkHidden = self.spark.sparkHidden;
     local sparkVisible = sparkHidden == "NEVER"
@@ -310,7 +333,6 @@ local barPrototype = {
       for index, additionalBar in ipairs(self.additionalBars) do
         if (not self.extraTextures[index]) then
           local extraTexture = self:CreateTexture(nil, "ARTWORK");
-          extraTexture:SetSnapToPixelGrid(false)
           extraTexture:SetTexelSnappingBias(0)
           extraTexture:SetDrawLayer("ARTWORK", min(index, 7));
           self.extraTextures[index] = extraTexture;
@@ -543,17 +565,18 @@ local barPrototype = {
     self.fg:SetVertexColor(r, g, b, a);
   end,
 
-  ["GetForegroundColor"] = function(self)
-    return self.fg:GetVertexColor();
+  ["SetForegroundGradient"] = function(self, orientation, r1, g1, b1, a1, r2, g2, b2, a2)
+    if self.fg.SetGradientAlpha then
+      self.fg:SetGradientAlpha(orientation, r1, g1, b1, a1, r2, g2, b2, a2)
+    else
+      self.fg:SetGradient(orientation, CreateColor(r1, g1, b1, a1),
+                                       CreateColor(r2, g2, b2, a2))
+    end
   end,
 
   -- Set background color
   ["SetBackgroundColor"] = function(self, r, g, b, a)
     self.bg:SetVertexColor(r, g, b, a);
-  end,
-
-  ["GetBackgroundColor"] = function(self)
-    return self.bg:GetVertexColor();
   end,
 
   -- Convenience methods
@@ -567,10 +590,6 @@ local barPrototype = {
 
   ["SetVertexColor"] = function(self, r, g, b, a)
     self:SetForegroundColor(r, g, b, a);
-  end,
-
-  ["GetVertexColor"] = function(self)
-    return self.fg:GetVertexColor();
   end,
 
   ["GetRealSize"] = function(self)
@@ -739,7 +758,7 @@ local funcs = {
       elseif selfPoint == "icon" then
         anchor = self.icon
       elseif selfPoint == "fg" then
-        anchor = self.bar.fgFrame
+        anchor = self.bar.fgMask
       elseif selfPoint == "bg" then
         anchor = self.bar.bg
       end
@@ -990,6 +1009,53 @@ local funcs = {
     end
 
     self.subRegionEvents:Notify("OrientationChanged")
+  end,
+  UpdateForegroundColor = function(self)
+    if self.enableGradient then
+      self.bar:SetForegroundGradient(self.gradientOrientation,
+                                     self.color_anim_r or self.color_r,
+                                     self.color_anim_g or self.color_g,
+                                     self.color_anim_b or self.color_b,
+                                     self.color_anim_a or self.color_a,
+                                     self.barColor2[1],
+                                     self.barColor2[2],
+                                     self.barColor2[3],
+                                     self.barColor2[4])
+    else
+      self.bar:SetForegroundColor(self.color_anim_r or self.color_r,
+                                  self.color_anim_g or self.color_g,
+                                  self.color_anim_b or self.color_b,
+                                  self.color_anim_a or self.color_a);
+    end
+  end,
+  SetBarColor2 = function(self, r, g, b, a)
+    self.barColor2 = { r, g, b, a}
+    self:UpdateForegroundColor()
+  end,
+  SetGradientOrientation = function(self, orientation)
+    self.gradientOrientation = orientation
+    self:UpdateForegroundColor()
+  end,
+  SetGradientEnabled = function(self, enable)
+    self.enableGradient = enable
+    self:UpdateForegroundColor()
+  end,
+  Color = function(self, r, g, b, a)
+    self.color_r = r;
+    self.color_g = g;
+    self.color_b = b;
+    self.color_a = a;
+    self:UpdateForegroundColor()
+  end,
+  ColorAnim = function(self, r, g, b, a)
+    self.color_anim_r = r;
+    self.color_anim_g = g;
+    self.color_anim_b = b;
+    self.color_anim_a = a;
+    self:UpdateForegroundColor()
+  end,
+  GetColor = function(self)
+    return self.color_r, self.color_g, self.color_b, self.color_a
   end
 }
 
@@ -1006,17 +1072,27 @@ local function create(parent)
     region:SetMinResize(1, 1)
   end
 
-  -- Create statusbar (inherit prototype)
   local bar = CreateFrame("Frame", nil, region);
   Mixin(bar, SmoothStatusBarMixin);
-  local fg = bar:CreateTexture(nil, "ARTWORK");
-  fg:SetSnapToPixelGrid(false)
-  fg:SetTexelSnappingBias(0)
+
+  -- Now create a bunch of textures
   local bg = region:CreateTexture(nil, "ARTWORK");
-  bg:SetSnapToPixelGrid(false)
   bg:SetTexelSnappingBias(0)
+  bg:SetSnapToPixelGrid(false)
   bg:SetAllPoints(bar);
-  local fgFrame = CreateFrame("Frame", nil, bar)
+
+  local fg = bar:CreateTexture(nil, "ARTWORK");
+  fg:SetTexelSnappingBias(0)
+  fg:SetSnapToPixelGrid(false)
+  fg:SetAllPoints(bar)
+
+  local fgMask = bar:CreateMaskTexture()
+  fgMask:SetTexture("Interface\\AddOns\\WeakAuras\\Media\\Textures\\Square_FullWhite",
+                    "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE", "NEAREST")
+  fgMask:SetTexelSnappingBias(0)
+  fgMask:SetSnapToPixelGrid(false)
+  fg:AddMaskTexture(fgMask)
+
   local spark = bar:CreateTexture(nil, "ARTWORK");
   spark:SetSnapToPixelGrid(false)
   spark:SetTexelSnappingBias(0)
@@ -1024,7 +1100,7 @@ local function create(parent)
   bg:SetDrawLayer("ARTWORK", -1);
   spark:SetDrawLayer("ARTWORK", 7);
   bar.fg = fg;
-  bar.fgFrame = fgFrame
+  bar.fgMask = fgMask
   bar.bg = bg;
   bar.spark = spark;
   for key, value in pairs(barPrototype) do
@@ -1099,6 +1175,10 @@ local function modify(parent, region, data)
   region.orientation = data.orientation
   region.effectiveOrientation = nil
 
+  -- region.barColor is special because of animations
+  region.barColor2 = CopyTable(data.barColor2)
+  region.enableGradient = data.enableGradient
+  region.gradientOrientation = data.gradientOrientation
   region.overlayclip = data.overlayclip;
   region.iconVisible = data.icon
   region.icon_side = data.icon_side
@@ -1135,30 +1215,7 @@ local function modify(parent, region, data)
   bar.spark.sparkRotation = data.sparkRotation;
   bar.spark.sparkMirror = data.sparkMirror;
 
-  -- Color update function
-  region.Color = region.Color or function(self, r, g, b, a)
-    self.color_r = r;
-    self.color_g = g;
-    self.color_b = b;
-    self.color_a = a;
-    self.bar:SetForegroundColor(self.color_anim_r or r, self.color_anim_g or g, self.color_anim_b or b, self.color_anim_a or a);
-  end
-
-  region.ColorAnim = function(self, r, g, b, a)
-    self.color_anim_r = r;
-    self.color_anim_g = g;
-    self.color_anim_b = b;
-    self.color_anim_a = a;
-    self.bar:SetForegroundColor(r or self.color_r, g or self.color_g, b or self.color_b, a or self.color_a);
-  end
-
-  region.GetColor = region.GetColor or function(self)
-    return self.color_r, self.color_g, self.color_b, self.color_a
-  end
   region:Color(data.barColor[1], data.barColor[2], data.barColor[3], data.barColor[4]);
-
-  -- Rotate text
-  local textDegrees = data.rotateText == "LEFT" and 90 or data.rotateText == "RIGHT" and -90 or 0;
 
   -- Update icon visibility
   if region.iconVisible then
@@ -1251,6 +1308,7 @@ local function modify(parent, region, data)
     return region.currentMin or 0, region.currentMax or 0
   end
 
+  region.TimerTick = nil
   function region:Update()
     local state = region.state
     region:UpdateMinMax()
@@ -1262,7 +1320,7 @@ local function modify(parent, region, data)
         end
         if region.TimerTick then
           region.TimerTick = nil
-          region:UpdateRegionHasTimerTick()
+          region.subRegionEvents:RemoveSubscriber("TimerTick", self)
         end
         expirationTime = GetTime() + (state.remaining or 0)
       else
@@ -1271,7 +1329,7 @@ local function modify(parent, region, data)
         end
         if not region.TimerTick then
           region.TimerTick = TimerTick
-          region:UpdateRegionHasTimerTick()
+          region.subRegionEvents:AddSubscriber("TimerTick", self, true)
         end
         expirationTime = state.expirationTime and state.expirationTime > 0 and state.expirationTime or math.huge;
       end
@@ -1288,7 +1346,7 @@ local function modify(parent, region, data)
       region:SetValue(value - region.currentMin, region.currentMax - region.currentMin);
       if region.TimerTick then
         region.TimerTick = nil
-        region:UpdateRegionHasTimerTick()
+        region.subRegionEvents:RemoveSubscriber("TimerTick", region)
       end
     else
       if region.paused then
@@ -1297,7 +1355,7 @@ local function modify(parent, region, data)
       region:SetTime(0, math.huge)
       if region.TimerTick then
         region.TimerTick = nil
-        region:UpdateRegionHasTimerTick()
+        region.subRegionEvents:RemoveSubscriber("TimerTick", region)
       end
     end
 

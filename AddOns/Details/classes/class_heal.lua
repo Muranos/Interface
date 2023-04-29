@@ -28,6 +28,8 @@ local IsInGroup = IsInGroup
 local _string_replace = _detalhes.string.replace --details api
 local gump = 			_detalhes.gump
 
+local detailsFramework = DetailsFramework
+
 local alvo_da_habilidade = 	_detalhes.alvo_da_habilidade
 local container_habilidades = 	_detalhes.container_habilidades
 local container_combatentes =	_detalhes.container_combatentes
@@ -65,12 +67,10 @@ local info = _detalhes.playerDetailWindow
 local keyName
 
 function atributo_heal:NovaTabela (serial, nome, link)
-
 	local alphabetical = _detalhes:GetOrderNumber(nome)
 
 	--constructor
-	local _new_healActor = {
-
+	local thisActor = {
 		tipo = class_type, --atributo 2 = cura
 
 		total = alphabetical,
@@ -108,9 +108,10 @@ function atributo_heal:NovaTabela (serial, nome, link)
 		targets_absorbs = {}
 	}
 
-	setmetatable(_new_healActor, atributo_heal)
+	detailsFramework:Mixin(thisActor, Details222.Mixins.ActorMixin)
+	setmetatable(thisActor, atributo_heal)
 
-	return _new_healActor
+	return thisActor
 end
 
 
@@ -448,7 +449,7 @@ function atributo_heal:RefreshWindow (instancia, tabela_do_combate, forcar, expo
 
 			Details.FadeHandler.Fader(row1, "out")
 
-			if (following and myPos and myPos > instancia.rows_fit_in_window and instancia.barraS[2] < myPos) then
+			if (following and myPos and myPos+1 > instancia.rows_fit_in_window and instancia.barraS[2] < myPos+1) then
 				for i = instancia.barraS[1], iter_last-1, 1 do --vai atualizar s� o range que esta sendo mostrado
 					if (conteudo[i]) then
 						conteudo[i]:RefreshLine(instancia, barras_container, whichRowLine, i, total, sub_atributo, forcar, keyName, combat_time, percentage_type, use_animations, bars_show_data, bars_brackets, bars_separator)
@@ -518,7 +519,7 @@ function atributo_heal:RefreshWindow (instancia, tabela_do_combate, forcar, expo
 
 			Details.FadeHandler.Fader(row1, "out")
 
-			if (following and myPos and myPos > instancia.rows_fit_in_window and instancia.barraS[2] < myPos) then
+			if (following and myPos and myPos+1 > instancia.rows_fit_in_window and instancia.barraS[2] < myPos+1) then
 				conteudo[myPos]:RefreshLine(instancia, barras_container, whichRowLine, myPos, total, sub_atributo, forcar, keyName, combat_time, percentage_type, use_animations, bars_show_data, bars_brackets, bars_separator)
 				whichRowLine = whichRowLine+1
 				for i = iter_last-1, instancia.barraS[1], -1 do --vai atualizar s� o range que esta sendo mostrado
@@ -960,37 +961,32 @@ function atributo_heal:RefreshBarra(thisLine, instancia, from_resize)
 end
 
 function _detalhes:CloseShields(combat)
-	local escudos = _detalhes.escudos
+	if (not _detalhes.parser_options.shield_overheal) then
+		return
+	end
+
+	local shieldCache = _detalhes.ShieldCache
 	local container = combat[2]
 	local timeNow = time()
 	local parser = _detalhes.parser
-	local GetSpellInfo = GetSpellInfo --n�o colocar no cache de spells
+	local getSpellInfo = GetSpellInfo --does not add the spell into the spell info cache
 
-	for alvo_name, spellid_table in pairs(escudos) do
-
-		local tgt = container:PegarCombatente (_, alvo_name)
+	for targetName, spellid_table in pairs(shieldCache) do
+		local tgt = container:PegarCombatente (_, targetName)
 		if (tgt) then
-
 			for spellid, owner_table in pairs(spellid_table) do
-
-				local spellname = GetSpellInfo(spellid)
+				local spellname = getSpellInfo(spellid)
 				for owner, amount in pairs(owner_table) do
-
 					if (amount > 0) then
 						local obj = container:PegarCombatente (_, owner)
 						if (obj) then
-							parser:heal ("SPELL_AURA_REMOVED", timeNow, obj.serial, owner, obj.flag_original, tgt.serial, alvo_name, tgt.flag_original, nil, spellid, spellname, nil, 0, _math_ceil (amount), 0, 0, nil, true)
+							parser:heal("SPELL_AURA_REMOVED", timeNow, obj.serial, owner, obj.flag_original, tgt.serial, targetName, tgt.flag_original, nil, spellid, spellname, nil, 0, _math_ceil (amount), 0, 0, nil, true)
 						end
 					end
-
 				end
 			end
-
 		end
-
 	end
-
-	--escudo [alvo_name] [spellid] [who_name]
 end
 
 --------------------------------------------- // TOOLTIPS // ---------------------------------------------
@@ -2134,10 +2130,6 @@ end
 
 function atributo_heal:MontaDetalhesHealingTaken (nome, barra)
 
-	for _, barra in ipairs(info.barras3) do
-		barra:Hide()
-	end
-
 	local barras = info.barras3
 	local instancia = info.instancia
 
@@ -2164,14 +2156,18 @@ function atributo_heal:MontaDetalhesHealingTaken (nome, barra)
 
 	local max_ = minhas_magias[1] and minhas_magias[1][2] or 0 --dano que a primeiro magia vez
 
+	local lastIndex = 1
 	local barra
 	for index, tabela in ipairs(minhas_magias) do
+		lastIndex = index
 		barra = barras [index]
 
 		if (not barra) then --se a barra n�o existir, criar ela ent�o
 			barra = gump:CriaNovaBarraInfo3 (instancia, index)
 			barra.textura:SetStatusBarColor(1, 1, 1, 1) --isso aqui � a parte da sele��o e descele��o
 		end
+
+		barra.show = tabela[1]
 
 		if (index == 1) then
 			barra.textura:SetValue(100)
@@ -2190,6 +2186,11 @@ function atributo_heal:MontaDetalhesHealingTaken (nome, barra)
 			break
 		end
 	end
+
+	for i = lastIndex+1, #barras do
+		barras[i]:Hide()
+	end
+
 end
 
 local absorbed_table = {c = {1, 1, 1, 0.4}, p = 0}
@@ -2377,34 +2378,34 @@ function atributo_heal:MontaDetalhesHealingDone (spellid, barra)
 			t3[8] = _detalhes:comma_value (esta_magia.anti_heal) .. " / " .. _cstr ("%.1f", porcentagem_anti_heal) .. "%"
 
 		--empowered
-		elseif (esta_magia.e_total) then
+		elseif (esta_magia.e_total and esta_magia.e_heal) then
 			local empowerLevelSum = esta_magia.e_total --total sum of empower levels
 			local empowerAmount = esta_magia.e_amt --amount of casts with empower
 			local empowerAmountPerLevel = esta_magia.e_lvl --{[1] = 4; [2] = 9; [3] = 15}
-			local empowerDamagePerLevel = esta_magia.e_heal --{[1] = 54548745, [2] = 74548745}
+			local empowerHealPerLevel = esta_magia.e_heal --{[1] = 54548745, [2] = 74548745}
 
 			data[3] = t3
 
-			local level1AverageDamage = "0"
-			local level2AverageDamage = "0"
-			local level3AverageDamage = "0"
-			local level4AverageDamage = "0"
-			local level5AverageDamage = "0"
+			local level1AverageHeal = "0"
+			local level2AverageHeal = "0"
+			local level3AverageHeal = "0"
+			local level4AverageHeal = "0"
+			local level5AverageHeal = "0"
 
-			if (empowerDamagePerLevel[1]) then
-				level1AverageDamage = Details:ToK(empowerDamagePerLevel[1] / empowerAmountPerLevel[1])
+			if (empowerHealPerLevel[1]) then
+				level1AverageHeal = Details:ToK(empowerHealPerLevel[1] / empowerAmountPerLevel[1])
 			end
-			if (empowerDamagePerLevel[2]) then
-				level2AverageDamage = Details:ToK(empowerDamagePerLevel[2] / empowerAmountPerLevel[2])
+			if (empowerHealPerLevel[2]) then
+				level2AverageHeal = Details:ToK(empowerHealPerLevel[2] / empowerAmountPerLevel[2])
 			end
-			if (empowerDamagePerLevel[3]) then
-				level3AverageDamage = Details:ToK(empowerDamagePerLevel[3] / empowerAmountPerLevel[3])
+			if (empowerHealPerLevel[3]) then
+				level3AverageHeal = Details:ToK(empowerHealPerLevel[3] / empowerAmountPerLevel[3])
 			end
-			if (empowerDamagePerLevel[4]) then
-				level4AverageDamage = Details:ToK(empowerDamagePerLevel[4] / empowerAmountPerLevel[4])
+			if (empowerHealPerLevel[4]) then
+				level4AverageHeal = Details:ToK(empowerHealPerLevel[4] / empowerAmountPerLevel[4])
 			end
-			if (empowerDamagePerLevel[5]) then
-				level5AverageDamage = Details:ToK(empowerDamagePerLevel[5] / empowerAmountPerLevel[5])
+			if (empowerHealPerLevel[5]) then
+				level5AverageHeal = Details:ToK(empowerHealPerLevel[5] / empowerAmountPerLevel[5])
 			end
 
 			t3[1] = 0
@@ -2416,24 +2417,24 @@ function atributo_heal:MontaDetalhesHealingDone (spellid, barra)
 			t3[10] = ""
 			t3[11] = ""
 
-			if (level1AverageDamage ~= "0") then
-				t3[4] = "Level 1 Average: " .. level1AverageDamage .. " (" .. (empowerAmountPerLevel[1] or 0) .. ")"
+			if (level1AverageHeal ~= "0") then
+				t3[4] = "Level 1 Average: " .. level1AverageHeal .. " (" .. (empowerAmountPerLevel[1] or 0) .. ")"
 			end
 
-			if (level2AverageDamage ~= "0") then
-				t3[6] = "Level 2 Average: " .. level2AverageDamage .. " (" .. (empowerAmountPerLevel[2] or 0) .. ")"
+			if (level2AverageHeal ~= "0") then
+				t3[6] = "Level 2 Average: " .. level2AverageHeal .. " (" .. (empowerAmountPerLevel[2] or 0) .. ")"
 			end
 
-			if (level3AverageDamage ~= "0") then
-				t3[11] = "Level 3 Average: " .. level3AverageDamage .. " (" .. (empowerAmountPerLevel[3] or 0) .. ")"
+			if (level3AverageHeal ~= "0") then
+				t3[11] = "Level 3 Average: " .. level3AverageHeal .. " (" .. (empowerAmountPerLevel[3] or 0) .. ")"
 			end
 
-			if (level4AverageDamage ~= "0") then
-				t3[10] = "Level 4 Average: " .. level4AverageDamage .. " (" .. (empowerAmountPerLevel[4] or 0) .. ")"
+			if (level4AverageHeal ~= "0") then
+				t3[10] = "Level 4 Average: " .. level4AverageHeal .. " (" .. (empowerAmountPerLevel[4] or 0) .. ")"
 			end
 
-			if (level5AverageDamage ~= "0") then
-				t3[5] = "Level 5 Average: " .. level5AverageDamage .. " (" .. (empowerAmountPerLevel[5] or 0) .. ")"
+			if (level5AverageHeal ~= "0") then
+				t3[5] = "Level 5 Average: " .. level5AverageHeal .. " (" .. (empowerAmountPerLevel[5] or 0) .. ")"
 			end
 		end
 
@@ -2744,6 +2745,13 @@ end
 								end
 
 							end
+						elseif(key == "e_heal" or key == "e_lvl") then
+							if (not habilidade_shadow[key]) then
+								habilidade_shadow[key] = {}
+							end
+							for empowermentLevel, empowermentValue in pairs(habilidade[key]) do 
+								habilidade_shadow[key][empowermentLevel] = empowermentValue
+							end
 						end
 					end
 
@@ -2751,10 +2759,6 @@ end
 
 			return shadow
 		end
-
-function atributo_heal:ColetarLixo (lastevent)
-	return _detalhes:ColetarLixo (class_type, lastevent)
-end
 
 atributo_heal.__add = function(tabela1, tabela2)
 
@@ -2851,6 +2855,13 @@ atributo_heal.__add = function(tabela1, tabela2)
 						else
 							habilidade_tabela1 [key] = habilidade_tabela1 [key] + value
 						end
+					end
+				elseif(key == "e_heal" or key == "e_lvl") then
+					if (not habilidade_tabela1[key]) then
+						habilidade_tabela1[key] = {}
+					end
+					for empowermentLevel, empowermentValue in pairs(habilidade[key]) do 
+						habilidade_tabela1[key][empowermentLevel] = habilidade_tabela1[key][empowermentValue] or 0 + empowermentValue
 					end
 				end
 			end
@@ -2969,11 +2980,12 @@ atributo_heal.__sub = function(tabela1, tabela2)
 	return tabela1
 end
 
-function _detalhes.refresh:r_atributo_heal (este_jogador, shadow)
-	setmetatable(este_jogador, atributo_heal)
-	este_jogador.__index = atributo_heal
+function _detalhes.refresh:r_atributo_heal(thisActor, shadow)
+	setmetatable(thisActor, atributo_heal)
+	thisActor.__index = atributo_heal
+	detailsFramework:Mixin(thisActor, Details222.Mixins.ActorMixin)
 
-	_detalhes.refresh:r_container_habilidades (este_jogador.spells, shadow and shadow.spells)
+	_detalhes.refresh:r_container_habilidades(thisActor.spells, shadow and shadow.spells)
 end
 
 function _detalhes.clear:c_atributo_heal (este_jogador)

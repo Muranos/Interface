@@ -1,6 +1,6 @@
 # Socket Helper
 
-## [v2.1.4](https://github.com/WatchThemFall/SocketHelper/tree/v2.1.4) (2022-11-15)
-[Full Changelog](https://github.com/WatchThemFall/SocketHelper/compare/v2.1.3...v2.1.4) [Previous Releases](https://github.com/WatchThemFall/SocketHelper/releases)
+## [v2.1.9](https://github.com/WatchThemFall/SocketHelper/tree/v2.1.9) (2023-03-23)
+[Full Changelog](https://github.com/WatchThemFall/SocketHelper/compare/v2.1.8...v2.1.9) [Previous Releases](https://github.com/WatchThemFall/SocketHelper/releases)
 
-- 10.0.2 Update  
+- Better Primordial Gem Support  

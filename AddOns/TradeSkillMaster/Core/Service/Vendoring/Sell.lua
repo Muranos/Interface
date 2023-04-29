@@ -4,7 +4,7 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
 local Sell = TSM.Vendoring:NewPackage("Sell")
 local Database = TSM.Include("Util.Database")
 local TempTable = TSM.Include("Util.TempTable")
@@ -102,7 +102,7 @@ end
 function Sell.CreateIgnoreQuery()
 	return private.ignoreDB:NewQuery()
 		:Equal("ignorePermanent", true)
-		:InnerJoin(ItemInfo.GetDBForJoin(), "itemString")
+		:VirtualField("name", "string", ItemInfo.GetName, "itemString", "?")
 		:OrderBy("name", true)
 end
 
@@ -110,8 +110,10 @@ function Sell.CreateBagsQuery()
 	local query = BagTracking.CreateQueryBags()
 		:Distinct("itemString")
 		:LeftJoin(private.ignoreDB, "itemString")
-		:InnerJoin(ItemInfo.GetDBForJoin(), "itemString")
 		:LeftJoin(private.potentialValueDB, "itemString")
+		:VirtualField("name", "string", ItemInfo.GetName, "itemString", "?")
+		:VirtualField("vendorSell", "number", ItemInfo.GetVendorSell, "itemString", 0)
+		:VirtualField("quality", "number", ItemInfo.GetQuality, "itemString", -1)
 		:Equal("isBoP", false)
 		:Equal("isBoA", false)
 	Sell.ResetBagsQuery(query)

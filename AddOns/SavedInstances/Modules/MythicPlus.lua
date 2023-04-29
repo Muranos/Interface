@@ -1,4 +1,4 @@
-local SI, L = unpack(select(2, ...))
+local SI, L = unpack((select(2, ...)))
 local Module = SI:NewModule('MythicPlus', 'AceEvent-3.0', 'AceBucket-3.0')
 
 -- Lua functions
@@ -131,11 +131,9 @@ function Module:RefreshMythicKeyInfo()
   for bagID = 0, 4 do
     for invID = 1, C_Container_GetContainerNumSlots(bagID) do
       local itemID = C_Container_GetContainerItemID(bagID, invID)
-      if itemID and itemID == 180653 then -- Shadowlands, drop on DF Season 1
+      if itemID and (itemID == 180653 or itemID == 186159) then -- Dragonflight or Beta
         self:ProcessKey(C_Container_GetContainerItemLink(bagID, invID), t.MythicKey)
-      elseif itemID and itemID == 186159 then -- Dragonflight
-        self:ProcessKey(C_Container_GetContainerItemLink(bagID, invID), t.MythicKey)
-      elseif itemID and itemID == 187786 then
+      elseif itemID and itemID == 187786 then -- Timewalking
         self:ProcessKey(C_Container_GetContainerItemLink(bagID, invID), t.TimewornMythicKey)
       end
     end

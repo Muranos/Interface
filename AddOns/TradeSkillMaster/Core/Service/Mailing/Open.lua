@@ -4,8 +4,9 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
 local Open = TSM.Mailing:NewPackage("Open")
+local Environment = TSM.Include("Environment")
 local L = TSM.Include("Locale").GetTable()
 local Delay = TSM.Include("Util.Delay")
 local String = TSM.Include("Util.String")
@@ -17,14 +18,17 @@ local DefaultUI = TSM.Include("Service.DefaultUI")
 local Threading = TSM.Include("Service.Threading")
 local ItemInfo = TSM.Include("Service.ItemInfo")
 local MailTracking = TSM.Include("Service.MailTracking")
+local Settings = TSM.Include("Service.Settings")
 local private = {
+	settings = nil,
 	thread = nil,
 	isOpening = false,
 	lastCheck = nil,
 	moneyCollected = 0,
+	checkInboxTimer = nil,
 }
-local INBOX_SIZE = TSM.IsWowClassic() and 50 or 100
-local MAIL_REFRESH_TIME = TSM.IsWowClassic() and 60 or 15
+local INBOX_SIZE = Environment.IsRetail() and 100 or 50
+local MAIL_REFRESH_TIME = Environment.IsRetail() and 15 or 60
 
 
 
@@ -33,7 +37,11 @@ local MAIL_REFRESH_TIME = TSM.IsWowClassic() and 60 or 15
 -- ============================================================================
 
 function Open.OnInitialize()
+	private.settings = Settings.NewView()
+		:AddKey("global", "mailingOptions", "inboxMessages")
+		:AddKey("global", "mailingOptions", "keepMailSpace")
 	private.thread = Threading.New("MAIL_OPENING", private.OpenMailThread)
+	private.checkInboxTimer = Delay.CreateTimer("MAILING_OPEN_CHECK_INBOX", private.CheckInbox)
 	DefaultUI.RegisterMailVisibleCallback(private.FrameVisibleCallback)
 end
 
@@ -117,7 +125,7 @@ function private.OpenMails(mails, keepMoney, filterType)
 
 		local mailType = MailTracking.GetMailType(index)
 		local matchesFilter = (not filterType and mailType) or (filterType and filterType == mailType)
-		local hasBagSpace = not MailTracking.GetInboxItemLink(index) or CalculateTotalNumberOfFreeBagSlots() > TSM.db.global.mailingOptions.keepMailSpace
+		local hasBagSpace = not MailTracking.GetInboxItemLink(index) or CalculateTotalNumberOfFreeBagSlots() > private.settings.keepMailSpace
 		if matchesFilter and hasBagSpace then
 			local _, _, _, _, money = GetInboxHeaderInfo(index)
 			if not keepMoney or (keepMoney and money <= 0) then
@@ -126,10 +134,8 @@ function private.OpenMails(mails, keepMoney, filterType)
 				AutoLootMailItem(index)
 				private.moneyCollected = private.moneyCollected + money
 
-				if Threading.WaitForEvent("CLOSE_INBOX_ITEM", "MAIL_FAILED") ~= "MAIL_FAILED" then
-					if TSM.db.global.mailingOptions.inboxMessages then
-						private.PrintOpenMailMessage(index)
-					end
+				if Threading.WaitForEvent("CLOSE_INBOX_ITEM", "MAIL_FAILED") ~= "MAIL_FAILED" and private.settings.inboxMessages then
+					private.PrintOpenMailMessage(index)
 				end
 			end
 		end
@@ -146,7 +152,7 @@ function private.FrameVisibleCallback(visible)
 	if visible then
 		private.ScheduleCheck()
 	else
-		Delay.Cancel("mailInboxCheck")
+		private.checkInboxTimer:Cancel()
 	end
 end
 
@@ -163,7 +169,7 @@ function private.CheckInbox()
 end
 
 function private.PrintMoneyCollected()
-	if TSM.db.global.mailingOptions.inboxMessages and private.moneyCollected > 0 then
+	if private.settings.inboxMessages and private.moneyCollected > 0 then
 		Log.PrintfUser(L["Total Gold Collected: %s"], Money.ToString(private.moneyCollected))
 	end
 	private.moneyCollected = 0
@@ -179,9 +185,9 @@ function private.PrintOpenMailMessage(index)
 		playerName = playerName or (invoiceType == "buyer" and AUCTION_HOUSE_MAIL_MULTIPLE_SELLERS or AUCTION_HOUSE_MAIL_MULTIPLE_BUYERS)
 		if invoiceType == "buyer" then
 			local itemLink = MailTracking.GetInboxItemLink(index) or "["..itemName.."]"
-			Log.PrintfUser(L["Bought %sx%d for %s from %s"], itemLink, quantity, Money.ToString(bid, Theme.GetFeedbackColor("RED"):GetTextColorPrefix()), playerName)
+			Log.PrintfUser(L["Bought %sx%d for %s from %s"], itemLink, quantity, Money.ToString(bid, Theme.GetColor("FEEDBACK_RED"):GetTextColorPrefix()), playerName)
 		elseif invoiceType == "seller" then
-			Log.PrintfUser(L["Sold [%s]x%d for %s to %s"], itemName, quantity, Money.ToString(bid - ahcut, Theme.GetFeedbackColor("GREEN"):GetTextColorPrefix()), playerName)
+			Log.PrintfUser(L["Sold [%s]x%d for %s to %s"], itemName, quantity, Money.ToString(bid - ahcut, Theme.GetColor("FEEDBACK_GREEN"):GetTextColorPrefix()), playerName)
 		end
 	elseif hasItem then
 		local itemLink
@@ -206,14 +212,14 @@ function private.PrintOpenMailMessage(index)
 		elseif hasItem == 1 and quantity > 0 and (subject == format(AUCTION_REMOVED_MAIL_SUBJECT.."x%d", itemName, quantity) or subject == format(AUCTION_REMOVED_MAIL_SUBJECT, itemName)) then
 			Log.PrintfUser(L["Cancelled auction of %sx%d"], itemLink, quantity)
 		elseif cod > 0 then
-			Log.PrintfUser(L["%s sent you a COD of %s for %s"], sender, Money.ToString(cod, Theme.GetFeedbackColor("RED"):GetTextColorPrefix()), itemDesc)
+			Log.PrintfUser(L["%s sent you a COD of %s for %s"], sender, Money.ToString(cod, Theme.GetColor("FEEDBACK_RED"):GetTextColorPrefix()), itemDesc)
 		elseif money > 0 then
-			Log.PrintfUser(L["%s sent you %s and %s"], sender, itemDesc, Money.ToString(money, Theme.GetFeedbackColor("GREEN"):GetTextColorPrefix()))
+			Log.PrintfUser(L["%s sent you %s and %s"], sender, itemDesc, Money.ToString(money, Theme.GetColor("FEEDBACK_GREEN"):GetTextColorPrefix()))
 		else
 			Log.PrintfUser(L["%s sent you %s"], sender, itemDesc)
 		end
 	elseif money > 0 then
-		Log.PrintfUser(L["%s sent you %s"], sender, Money.ToString(money, Theme.GetFeedbackColor("GREEN"):GetTextColorPrefix()))
+		Log.PrintfUser(L["%s sent you %s"], sender, Money.ToString(money, Theme.GetColor("FEEDBACK_GREEN"):GetTextColorPrefix()))
 	elseif subject then
 		Log.PrintfUser(L["%s sent you a message: %s"], sender, subject)
 	end
@@ -227,9 +233,9 @@ end
 function private.ScheduleCheck()
 	if not private.lastCheck or time() - private.lastCheck > (MAIL_REFRESH_TIME - 1) then
 		private.lastCheck = time()
-		Delay.AfterTime("mailInboxCheck", MAIL_REFRESH_TIME, private.CheckInbox)
+		private.checkInboxTimer:RunForTime(MAIL_REFRESH_TIME)
 	else
 		local nextUpdate = MAIL_REFRESH_TIME - (time() - private.lastCheck)
-		Delay.AfterTime("mailInboxCheck", nextUpdate, private.CheckInbox)
+		private.checkInboxTimer:RunForTime(nextUpdate)
 	end
 end

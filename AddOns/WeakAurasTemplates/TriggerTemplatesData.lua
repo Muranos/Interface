@@ -123,14 +123,16 @@ templates.class.EVOKER = {
         { spell = 351338, type = "ability", requiresTarget = true, talent = 351338 }, -- Quell
         { spell = 355913, type = "ability" }, -- Emerald Blossom
         { spell = 356995, type = "ability", overlayGlow = true, requiresTarget = true }, -- Disintegrate
-        { spell = 357208, type = "ability", overlayGlow = true }, -- Fire Breath
+        { spell = 357208, type = "ability", overlayGlow = true, talent = {-375783}, exactSpellId = true, titleSuffix = L["Max 3"] }, -- Fire Breath
+        { spell = 382266, type = "ability", overlayGlow = true, talent = {375783}, exactSpellId = true, titleSuffix = L["Max 4"] }, -- Fire Breath
         { spell = 357210, type = "ability", buff = true }, -- Deep Breath
         { spell = 357211, type = "ability", charges = true, overlayGlow = true, requiresTarget = true, talent = 357211 }, -- Pyre
         { spell = 357214, type = "ability" }, -- Wing Buffet
         { spell = 358267, type = "ability", charges = true, buff = true, overlayGlow = true }, -- Hover
         { spell = 358385, type = "ability", talent = 358385 }, -- Landslide
         { spell = 358733, type = "ability", buff = true }, -- Glide
-        { spell = 359073, type = "ability", overlayGlow = true, requiresTarget = true, talent = 359073 }, -- Eternity Surge
+        { spell = 359073, type = "ability", overlayGlow = true, requiresTarget = true, talent = {359073, -375783}, exactSpellId = true, titleSuffix = L["Max 3"] }, -- Eternity Surge
+        { spell = 382411, type = "ability", overlayGlow = true, requiresTarget = true, talent = {359073, 375783}, exactSpellId = true, titleSuffix = L["Max 4"] }, -- Eternity Surge
         { spell = 360806, type = "ability", requiresTarget = true, talent = 360806 }, -- Sleep Walk
         { spell = 360995, type = "ability", requiresTarget = true, talent = 360995 }, -- Verdant Embrace
         { spell = 361469, type = "ability", requiresTarget = true }, -- Living Flame
@@ -246,10 +248,12 @@ templates.class.EVOKER = {
       args = {
         { spell = 351338, type = "ability", requiresTarget = true, talent = 351338 }, -- Quell
         { spell = 355913, type = "ability", overlayGlow = true }, -- Emerald Blossom
-        { spell = 355936, type = "ability", overlayGlow = true, talent = 355936 }, -- Dream Breath
+        { spell = 355936, type = "ability", overlayGlow = true, talent = {355936, -375783}, exactSpellId = true, titleSuffix = L["Max 3"] }, -- Dream Breath
+        { spell = 382614, type = "ability", overlayGlow = true, talent = {355936, 375783}, exactSpellId = true, titleSuffix = L["Max 4"] }, -- Dream Breath
         { spell = 356995, type = "ability", overlayGlow = true, requiresTarget = true }, -- Disintegrate
         { spell = 357170, type = "ability", buff = true, debuff = true, talent = 357170 }, -- Time Dilation
-        { spell = 357208, type = "ability", overlayGlow = true }, -- Fire Breath
+        { spell = 357208, type = "ability", overlayGlow = true, talent = {-375783}, exactSpellId = true, titleSuffix = L["Max 3"] }, -- Fire Breath
+        { spell = 382266, type = "ability", overlayGlow = true, talent = {375783}, exactSpellId = true, titleSuffix = L["Max 4"] }, -- Fire Breath
         { spell = 357210, type = "ability", buff = true }, -- Deep Breath
         { spell = 357214, type = "ability" }, -- Wing Buffet
         { spell = 358267, type = "ability", charges = true, buff = true, overlayGlow = true }, -- Hover
@@ -266,7 +270,6 @@ templates.class.EVOKER = {
         { spell = 364342, type = "ability" }, -- Blessing of the Bronze
         { spell = 364343, type = "ability", buff = true, debuff = true, overlayGlow = true, talent = 364343 }, -- Echo
         { spell = 366155, type = "ability", charges = true, buff = true, talent = 366155 }, -- Reversion
-        { spell = 367226, type = "ability", overlayGlow = true, talent = 367226 }, -- Spiritbloom
         { spell = 368970, type = "ability" }, -- Tail Swipe
         { spell = 369536, type = "ability", buff = true, usable = true }, -- Soar
         { spell = 370537, type = "ability", buff = true, usable = true, talent = 370537 }, -- Stasis
@@ -280,9 +283,8 @@ templates.class.EVOKER = {
         { spell = 374968, type = "ability", talent = 374968 }, -- Time Spiral
         { spell = 376743, type = "ability", charges = true }, -- Surge Forward
         { spell = 376744, type = "ability" }, -- Skyward Ascent
-        { spell = 382266, type = "ability", overlayGlow = true }, -- Fire Breath
-        { spell = 382614, type = "ability", overlayGlow = true, talent = 355936 }, -- Dream Breath
-        { spell = 382731, type = "ability", overlayGlow = true, talent = 367226 }, -- Spiritbloom
+        { spell = 367226, type = "ability", overlayGlow = true, talent = {367226, -375783 }, exactSpellId = true, titleSuffix = L["Max 3"] }, -- Spiritbloom
+        { spell = 382731, type = "ability", overlayGlow = true, talent = {367226, 375783 }, exactSpellId = true, titleSuffix = L["Max 4"] }, -- Spiritbloom
         { spell = 390386, type = "ability", buff = true }, -- Fury of the Aspects
       },
       icon = 4622474
@@ -1509,6 +1511,7 @@ templates.class.ROGUE = {
         { spell = 703, type = "debuff", unit = "target" }, -- Garrote
         { spell = 1776, type = "debuff", unit = "target", talent = 1776 }, -- Gouge
         { spell = 1833, type = "debuff", unit = "target" }, -- Cheap Shot
+        { spell = 1943, type = "debuff", unit = "target" }, -- Rupture
         { spell = 121411, type = "debuff", unit = "target", talent = 121411 }, -- Crimson Tempest
         { spell = 137619, type = "debuff", unit = "target", talent = 137619 }, -- Marked for Death
         { spell = 212183, type = "debuff", unit = "target" }, -- Smoke Bomb
@@ -1531,7 +1534,6 @@ templates.class.ROGUE = {
         { spell = 1784, type = "ability", buff = true }, -- Stealth
         { spell = 1833, type = "ability", requiresTarget = true, usable = true }, -- Cheap Shot
         { spell = 1856, type = "ability", usable = true }, -- Vanish
-        { spell = 1943, type = "ability", overlayGlow = true, requiresTarget = true, usable = true }, -- Rupture
         { spell = 1966, type = "ability", buff = true, usable = true, talent = 1966 }, -- Feint
         { spell = 2094, type = "ability", requiresTarget = true, usable = true, talent = 2094 }, -- Blind
         { spell = 2983, type = "ability", buff = true, usable = true }, -- Sprint
@@ -3424,6 +3426,7 @@ templates.class.MONK = {
         { spell = 196608, type = "buff", unit = "player", talent = 196607 }, -- Eye of the Tiger
         { spell = 215479, type = "buff", unit = "player", talent = 322120 }, -- Shuffle
         { spell = 228563, type = "buff", unit = "player", talent = 196736 }, -- Blackout Combo
+        { spell = 325092, type = "buff", unit = "player", talent = 322510 }, -- Purified Chi
         { spell = 322507, type = "buff", unit = "player", talent = 322507 }, -- Celestial Brew
         { spell = 325153, type = "buff", unit = "player", talent = 325153 }, -- Exploding Keg
         { spell = 325190, type = "buff", unit = "player", talent = 325177 }, -- Celestial Flames
@@ -3912,7 +3915,7 @@ templates.class.DRUID = {
         { spell = 274283, type = "ability", charges = true }, -- Full Moon
         { spell = 319454, type = "ability", buff = true, talent = 319454 }, -- Heart of the Wild
         { spell = 390414, type = "ability", talent = 394013 }, -- Incarnation: Chosen of Elune
-        { spell = 391528, type = "ability", buff = true, talent = 391528 }, -- Convoke the Spirits
+        { spell = 391528, type = "ability", buff = true, talent = 391528, exactSpellId = true }, -- Convoke the Spirits
       },
       icon = 132134
     },
@@ -3958,7 +3961,7 @@ templates.class.DRUID = {
         { spell = 69369, type = "buff", unit = "player", talent = 16974 }, -- Predatory Swiftness
         { spell = 77761, type = "buff", unit = "player", talent = 106898 }, -- Stampeding Roar
         { spell = 102401, type = "buff", unit = "player", talent = 102401 }, -- Wild Charge
-        { spell = 102543, type = "buff", unit = "player", talent = 102543 }, -- Incarnation: Avatar of Ashamane
+        { spell = 102543, type = "buff", unit = "player", talent = 102543, exactSpellId = true }, -- Incarnation: Avatar of Ashamane
         { spell = 106951, type = "buff", unit = "player", talent = 106951 }, -- Berserk
         { spell = 124974, type = "buff", unit = "player", talent = 124974 }, -- Nature's Vigil
         { spell = 135700, type = "buff", unit = "player" }, -- Clearcasting
@@ -3975,6 +3978,7 @@ templates.class.DRUID = {
         { spell = 391722, type = "buff", unit = "player", talent = 202031 }, -- Sabertooth
         { spell = 391873, type = "buff", unit = "player", talent = 391872 }, -- Tiger's Tenacity
         { spell = 391876, type = "buff", unit = "player", talent = 391875 }, -- Frantic Momentum
+        { spell = 391882, type = "buff", unit = "player", talent = 391881 }, -- Apex Predator's Craving
         { spell = 391955, type = "buff", unit = "player", talent = 391947 }, -- Protective Growth
         { spell = 391974, type = "buff", unit = "player", talent = 384667 }, -- Sudden Ambush
         { spell = 393897, type = "buff", unit = "player", talent = 377801 }, -- Tireless Pursuit
@@ -4060,7 +4064,7 @@ templates.class.DRUID = {
         { spell = 274837, type = "ability", requiresTarget = true, usable = true, talent = 274837 }, -- Feral Frenzy
         { spell = 319454, type = "ability", buff = true, talent = 319454 }, -- Heart of the Wild
         { spell = 325727, type = "ability", requiresTarget = true, talent = 325727 }, -- Adaptive Swarm
-        { spell = 391528, type = "ability", buff = true, talent = 391528 }, -- Convoke the Spirits
+        { spell = 391528, type = "ability", buff = true, talent = 391528, exactSpellId = true }, -- Convoke the Spirits
       },
       icon = 236149
     },
@@ -4198,7 +4202,7 @@ templates.class.DRUID = {
         { spell = 231064, type = "ability", requiresTarget = true, talent = 231064 }, -- Mangle
         { spell = 252216, type = "ability", buff = true, talent = 252216 }, -- Tiger Dash
         { spell = 319454, type = "ability", buff = true, talent = 319454 }, -- Heart of the Wild
-        { spell = 391528, type = "ability", buff = true, talent = 391528 }, -- Convoke the Spirits
+        { spell = 391528, type = "ability", buff = true, talent = 391528, exactSpellId = true }, -- Convoke the Spirits
       },
       icon = 236169
     },
@@ -4348,7 +4352,7 @@ templates.class.DRUID = {
         { spell = 231064, type = "ability", requiresTarget = true, talent = 231064 }, -- Mangle
         { spell = 252216, type = "ability", buff = true, talent = 252216 }, -- Tiger Dash
         { spell = 319454, type = "ability", buff = true, talent = 319454 }, -- Heart of the Wild
-        { spell = 391528, type = "ability", buff = true, talent = 391528 }, -- Convoke the Spirits
+        { spell = 391528, type = "ability", buff = true, talent = 391528, exactSpellId = true }, -- Convoke the Spirits
         { spell = 391888, type = "ability", requiresTarget = true, talent = 391888 }, -- Adaptive Swarm
         { spell = 392160, type = "ability", talent = 392160 }, -- Invigorate
       },
@@ -5286,19 +5290,19 @@ local function handleItem(item)
     end
   end
   if (item.talent) then
-    item.load = item.load or {};
+    item.load = item.load or {}
+    item.load.use_talent = false
+    item.load.talent = { multi = {} }
     if type(item.talent) == "table" then
-      item.load.talent = { multi = {} };
       for _,v in pairs(item.talent) do
-        item.load.talent.multi[v] = true;
+        if v > 0 then
+          item.load.talent.multi[v] = true
+        else
+          item.load.talent.multi[-v] = false
+        end
       end
-      item.load.use_talent = false;
     else
-      item.load.talent = {
-        single = item.talent,
-        multi = {};
-      };
-      item.load.use_talent = true;
+      item.load.talent.multi[item.talent] = true
     end
   end
   if (item.pvptalent) then

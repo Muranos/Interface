@@ -6,7 +6,7 @@
 
 local numClasses = 13 -- Hardcode for classic support
 local ZERO = ("0"):rep(numClasses)
---[===[@debug@
+--[==[@debug@
 --[[
 This function is used for developer.
 Export the loot specs of all trinkets in the encounter journal.
@@ -199,7 +199,7 @@ function RCLootCouncil:ExportTrinketDataSingleInstance(instanceID, diffID, timeL
       self:Print("--------------------")
    end
 end
---@end-debug@]===]
+--@end-debug@]==]
 
 -- Trinket categories description according to specs that can loot the trinket.
 -- These categories should cover all trinkets in the Encounter Journal. Add more if any trinket is missing category.

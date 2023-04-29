@@ -4,8 +4,9 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
 local Auctioning = TSM.UI.AuctionUI:NewPackage("Auctioning")
+local Environment = TSM.Include("Environment")
 local L = TSM.Include("Locale").GetTable()
 local FSM = TSM.Include("Util.FSM")
 local Container = TSM.Include("Util.Container")
@@ -14,6 +15,7 @@ local Sound = TSM.Include("Util.Sound")
 local Money = TSM.Include("Util.Money")
 local Log = TSM.Include("Util.Log")
 local Theme = TSM.Include("Util.Theme")
+local TextureAtlas = TSM.Include("Util.TextureAtlas")
 local ItemString = TSM.Include("Util.ItemString")
 local Threading = TSM.Include("Service.Threading")
 local ItemInfo = TSM.Include("Service.ItemInfo")
@@ -24,6 +26,7 @@ local AuctionScan = TSM.Include("Service.AuctionScan")
 local Settings = TSM.Include("Service.Settings")
 local DefaultUI = TSM.Include("Service.DefaultUI")
 local UIElements = TSM.Include("UI.UIElements")
+local UIUtils = TSM.Include("UI.UIUtils")
 local private = {
 	settings = nil,
 	contentPath = "selection",
@@ -69,7 +72,7 @@ end
 -- ============================================================================
 
 function private.GetAuctioningFrame()
-	TSM.UI.AnalyticsRecordPathChange("auction", "auctioning")
+	UIUtils.AnalyticsRecordPathChange("auction", "auctioning")
 	if not private.hasLastScan then
 		private.contentPath = "selection"
 	end
@@ -92,7 +95,7 @@ function private.GetAuctioningContentFrame(_, path)
 end
 
 function private.GetAuctioningSelectionFrame()
-	TSM.UI.AnalyticsRecordPathChange("auction", "auctioning", "selection")
+	UIUtils.AnalyticsRecordPathChange("auction", "auctioning", "selection")
 	local frame = UIElements.New("DividedContainer", "selection")
 		:SetSettingsContext(private.settings, "auctioningSelectionDividedContainer")
 		:SetMinWidth(220, 250)
@@ -128,10 +131,7 @@ function private.GetAuctioningSelectionFrame()
 					:SetTooltip(L["Select / Deselect All Groups"])
 				)
 			)
-			:AddChild(UIElements.New("Texture", "line")
-				:SetHeight(2)
-				:SetTexture("ACTIVE_BG")
-			)
+			:AddChild(UIElements.New("HorizontalLine", "line"))
 			:AddChild(UIElements.New("ApplicationGroupTree", "groupTree")
 				:SetSettingsContext(private.settings, "auctioningGroupTree")
 				:SetQuery(TSM.Groups.CreateQuery(), "Auctioning")
@@ -142,10 +142,7 @@ function private.GetAuctioningSelectionFrame()
 				:SetLayout("VERTICAL")
 				:SetHeight(74)
 				:SetBackgroundColor("PRIMARY_BG_ALT")
-				:AddChild(UIElements.New("Texture", "line")
-					:SetHeight(2)
-					:SetTexture("ACTIVE_BG")
-				)
+				:AddChild(UIElements.New("HorizontalLine", "line"))
 				:AddChild(UIElements.New("ActionButton", "postScanBtn")
 					:SetHeight(24)
 					:SetMargin(8)
@@ -197,7 +194,7 @@ function private.GetAuctioningSelectionFrame()
 							:SetFont("ITEM_BODY3")
 							:SetJustifyH("LEFT")
 							:SetIconSize(12)
-							:SetTextInfo("autoBaseItemString", TSM.UI.GetColoredItemName)
+							:SetTextInfo("autoBaseItemString", UIUtils.GetDisplayItemName)
 							:SetIconInfo("itemTexture")
 							:SetTooltipInfo("autoBaseItemString")
 							:SetSortInfo("name")
@@ -216,10 +213,7 @@ function private.GetAuctioningSelectionFrame()
 					:SetSelectionValidator(private.BagScrollingTableIsSelectionEnabled)
 					:SetScript("OnSelectionChanged", private.BagOnSelectionChanged)
 				)
-				:AddChild(UIElements.New("Texture", "line")
-					:SetHeight(2)
-					:SetTexture("ACTIVE_BG")
-				)
+				:AddChild(UIElements.New("HorizontalLine", "line"))
 				:AddChild(UIElements.New("Frame", "button")
 					:SetLayout("HORIZONTAL")
 					:SetHeight(40)
@@ -239,10 +233,9 @@ function private.GetAuctioningSelectionFrame()
 						:SetText(L["Select All"])
 						:SetScript("OnClick", private.SelectAllOnClick)
 					)
-					:AddChild(UIElements.New("Texture", "line")
-						:SetSize(2, 20)
+					:AddChild(UIElements.New("VerticalLine", "line")
+						:SetHeight(20)
 						:SetMargin(0, 8, 0, 0)
-						:SetTexture("ACTIVE_BG")
 					)
 					:AddChild(UIElements.New("Button", "clearAll")
 						:SetSize("AUTO", 20)
@@ -283,7 +276,7 @@ function private.GetScansElement(_, button)
 end
 
 function private.GetAuctioningScanFrame()
-	TSM.UI.AnalyticsRecordPathChange("auction", "auctioning", "scan")
+	UIUtils.AnalyticsRecordPathChange("auction", "auctioning", "scan")
 	return UIElements.New("Frame", "scan")
 		:SetLayout("VERTICAL")
 		:SetBackgroundColor("PRIMARY_BG")
@@ -430,7 +423,7 @@ function private.GetAuctioningScanFrame()
 								:AddChild(UIElements.New("Text", "desc")
 									:SetWidth("AUTO")
 									:SetFont("BODY_BODY3_MEDIUM")
-									:SetText((TSM.IsWowClassic() and L["Stack / Quantity"] or L["Quantity"])..":")
+									:SetText((Environment.HasFeature(Environment.FEATURES.AH_STACKS) and L["Stack / Quantity"] or L["Quantity"])..":")
 								)
 								:AddChild(UIElements.New("Text", "text")
 									:SetMargin(4, 0, 0, 0)
@@ -455,15 +448,13 @@ function private.GetAuctioningScanFrame()
 				)
 			)
 		)
-		:AddChild(UIElements.New("SimpleTabGroup", "tabs")
+		:AddChild(UIElements.New("TabGroup", "tabs")
+			:SetTheme("SIMPLE")
 			:SetNavCallback(private.ScanNavCallback)
 			:AddPath(L["Auctioning Log"], true)
 			:AddPath(L["All Auctions"])
 		)
-		:AddChild(UIElements.New("Texture", "line")
-			:SetHeight(2)
-			:SetTexture("ACTIVE_BG")
-		)
+		:AddChild(UIElements.New("HorizontalLine", "line"))
 		:AddChild(UIElements.New("Frame", "bottom")
 			:SetLayout("HORIZONTAL")
 			:SetHeight(40)
@@ -472,7 +463,7 @@ function private.GetAuctioningScanFrame()
 			:AddChild(UIElements.New("ActionButton", "pauseResumeBtn")
 				:SetSize(24, 24)
 				:SetMargin(0, 8, 0, 0)
-				:SetIcon("iconPack.18x18/PlayPause")
+				:SetText(TextureAtlas.GetTextureLink("iconPack.18x18/PlayPause"))
 				:SetScript("OnClick", private.PauseResumeBtnOnClick)
 			)
 			:AddChild(UIElements.New("ProgressBar", "progressBar")
@@ -504,7 +495,7 @@ end
 
 function private.ScanNavCallback(_, path)
 	if path == L["Auctioning Log"] then
-		TSM.UI.AnalyticsRecordPathChange("auction", "auctioning", "scan", "log")
+		UIUtils.AnalyticsRecordPathChange("auction", "auctioning", "scan", "log")
 		private.logQuery = private.logQuery or TSM.Auctioning.Log.CreateQuery()
 		return UIElements.New("Frame", "logFrame")
 			:SetLayout("VERTICAL")
@@ -524,7 +515,7 @@ function private.ScanNavCallback(_, path)
 						:SetFont("ITEM_BODY3")
 						:SetJustifyH("LEFT")
 						:SetIconSize(12)
-						:SetTextInfo("itemString", TSM.UI.GetColoredItemName)
+						:SetTextInfo("itemString", UIUtils.GetDisplayItemName)
 						:SetIconInfo("itemString", ItemInfo.GetTexture)
 						:SetTooltipInfo("itemString")
 						:SetSortInfo("name")
@@ -562,7 +553,7 @@ function private.ScanNavCallback(_, path)
 				:SetSelectionDisabled(true)
 			)
 	elseif path == L["All Auctions"] then
-		TSM.UI.AnalyticsRecordPathChange("auction", "auctioning", "scan", "auctions")
+		UIUtils.AnalyticsRecordPathChange("auction", "auctioning", "scan", "auctions")
 		return UIElements.New("Frame", "auctionsFrame")
 			:SetLayout("VERTICAL")
 			:AddChild(UIElements.New("AuctionScrollingTable", "auctions")
@@ -806,7 +797,7 @@ function private.ExitScanFrameOnLeave(frame)
 end
 
 function private.ExitScanButtonOnClick()
-	if TSM.IsWowClassic() then
+	if not Environment.HasFeature(Environment.FEATURES.C_AUCTION_HOUSE) then
 		ClearCursor()
 		ClickAuctionSellItemButton(AuctionsItemButton, "LeftButton")
 		ClearCursor()
@@ -862,7 +853,10 @@ function private.FSMCreate()
 		local stackSize = currentRow:GetField("stackSize")
 		local depositCost = 0
 		if postBag and postSlot then
-			if TSM.IsWowClassic() then
+			if Environment.HasFeature(Environment.FEATURES.C_AUCTION_HOUSE) then
+				local isCommodity = ItemInfo.IsCommodity(itemString)
+				depositCost = max(floor(0.15 * (ItemInfo.GetVendorSell(itemString) or 0) * (isCommodity and stackSize or 1) * (postTime == 3 and 4 or postTime)), 100) * (isCommodity and 1 or stackSize)
+			else
 				ClearCursor()
 				Container.PickupItem(postBag, postSlot)
 				ClickAuctionSellItemButton(AuctionsItemButton, "LeftButton")
@@ -873,9 +867,6 @@ function private.FSMCreate()
 				ClearCursor()
 				ClickAuctionSellItemButton(AuctionsItemButton, "LeftButton")
 				ClearCursor()
-			else
-				local isCommodity = ItemInfo.IsCommodity(itemString)
-				depositCost = max(floor(0.15 * (ItemInfo.GetVendorSell(itemString) or 0) * (isCommodity and stackSize or 1) * (postTime == 3 and 4 or postTime)), 100) * (isCommodity and 1 or stackSize)
 			end
 		end
 
@@ -927,7 +918,7 @@ function private.FSMCreate()
 				:SetTooltip(itemString)
 				:Draw()
 			itemContent:GetElement("text")
-				:SetText(TSM.UI.GetColoredItemName(itemString))
+				:SetText(UIUtils.GetDisplayItemName(itemString))
 				:SetTooltip(itemString)
 				:Draw()
 			header:GetElement("content.item.operation.text")
@@ -940,15 +931,13 @@ function private.FSMCreate()
 				:SetText(Money.ToString(currentRow:GetField(ItemInfo.IsCommodity(itemString) and "itemBuyout" or "buyout"), nil, "OPT_83_NO_COPPER"))
 				:Draw()
 			detailsHeader2:GetElement("quantity.text")
-				:SetText(TSM.IsWowClassic() and format(L["%d of %d"], rowStacksRemaining, currentRow:GetField("stackSize")) or currentRow:GetField("stackSize"))
+				:SetText(Environment.HasFeature(Environment.FEATURES.AH_STACKS) and format(L["%d of %d"], rowStacksRemaining, currentRow:GetField("stackSize")) or currentRow:GetField("stackSize"))
 				:Draw()
 			local duration = nil
 			if context.scanType == "POST" then
 				duration = TSM.CONST.AUCTION_DURATIONS[currentRow:GetField("postTime")]
 			elseif context.scanType == "CANCEL" then
-				if TSM.IsWowClassic() then
-					duration = _G["AUCTION_TIME_LEFT"..currentRow:GetField("duration")]
-				else
+				if Environment.HasFeature(Environment.FEATURES.C_AUCTION_HOUSE) then
 					duration = currentRow:GetField("duration") - time()
 					if duration < SECONDS_PER_MIN then
 						duration = duration.."s"
@@ -959,6 +948,8 @@ function private.FSMCreate()
 					else
 						duration = floor(duration / SECONDS_PER_DAY).."d"
 					end
+				else
+					duration = _G["AUCTION_TIME_LEFT"..currentRow:GetField("duration")]
 				end
 			else
 				error("Invalid scanType: "..tostring(context.scanType))
@@ -1130,7 +1121,7 @@ function private.FSMCreate()
 				:AddChild(UIElements.New("Text", "name")
 					:SetHeight(36)
 					:SetFont("ITEM_BODY1")
-					:SetText(TSM.UI.GetColoredItemName(itemString))
+					:SetText(UIUtils.GetDisplayItemName(itemString))
 				)
 			)
 			-- TODO: implement editing stack sizes
@@ -1195,15 +1186,15 @@ function private.FSMCreate()
 					:SetFont("BODY_BODY2_MEDIUM")
 					:SetJustifyH("RIGHT")
 					:SetText(L["Per Item"])
-					:SetScript("OnClick", TSM.IsWowClassic() and private.PerItemOnClick)
+					:SetScript("OnClick", Environment.HasFeature(Environment.FEATURES.AH_STACKS) and private.PerItemOnClick)
 				)
-				:AddChildIf(TSM.IsWowClassic(), UIElements.New("Button", "stack")
+				:AddChildIf(Environment.HasFeature(Environment.FEATURES.AH_STACKS), UIElements.New("Button", "stack")
 					:SetWidth("AUTO")
 					:SetTextColor("TEXT")
 					:SetFont("BODY_BODY2_MEDIUM")
 					:SetJustifyH("RIGHT")
 					:SetText(L["Per Stack"])
-					:SetScript("OnClick", TSM.IsWowClassic() and private.PerStackOnClick)
+					:SetScript("OnClick", Environment.HasFeature(Environment.FEATURES.AH_STACKS) and private.PerStackOnClick)
 				)
 			)
 			:AddChild(UIElements.New("Frame", "bid")
@@ -1274,7 +1265,7 @@ function private.FSMCreate()
 		if buyout > 0 then
 			bid = min(bid, buyout)
 		end
-		if not TSM.IsWowClassic() and isCommodity and bid ~= buyout then
+		if Environment.IsRetail() and isCommodity and bid ~= buyout then
 			Log.PrintUser(L["Did not change prices due to an invalid bid or buyout value."])
 		else
 			local duration = Table.KeyByValue(TSM.CONST.AUCTION_DURATIONS, button:GetElement("__parent.duration.toggle"):GetValue())
@@ -1348,7 +1339,7 @@ function private.FSMCreate()
 					error("Invalid scan type: "..tostring(context.scanType))
 				end
 				context.auctionScan = AuctionScan.GetManager()
-					:SetResolveSellers(true)
+					:SetResolveSellers(not Environment.IsRetail())
 					:SetScript("OnProgressUpdate", private.FSMAuctionScanOnProgressUpdate)
 				private.auctionScan = context.auctionScan
 				fsmPrivate.UpdateScanFrame(context)
@@ -1577,7 +1568,7 @@ function private.BagScrollingTableIsSelectionEnabled(_, record)
 end
 
 function private.BagGetOperationText(firstOperation)
-	return firstOperation or Theme.GetFeedbackColor("RED"):ColorText(L["Skipped: No assigned operation"])
+	return firstOperation or Theme.GetColor("FEEDBACK_RED"):ColorText(L["Skipped: No assigned operation"])
 end
 
 function private.LogGetBuyoutText(buyout)
@@ -1587,7 +1578,7 @@ end
 function private.LogGetIndexIcon(row)
 	if row:GetField("state") == "PENDING" then
 		-- color the circle icon to match the color of the text
-		return TSM.UI.TexturePacks.GetColoredKey("iconPack.12x12/Circle", TSM.Auctioning.Log.GetColorFromReasonKey(row:GetField("reasonKey")))
+		return TextureAtlas.GetColoredKey("iconPack.12x12/Circle", TSM.Auctioning.Log.GetColorFromReasonKey(row:GetField("reasonKey")))
 	else
 		return "iconPack.12x12/Checkmark/Default"
 	end
@@ -1677,7 +1668,7 @@ function private.BidBuyoutInputOnValueChanged(input)
 	local buyoutInput = frame:GetElement("buyout.input")
 	local bid = TSM.UI.AuctionUI.ParseBid(bidInput:GetValue())
 	local buyout = TSM.UI.AuctionUI.ParseBuyout(buyoutInput:GetValue(), isCommodity)
-	if input == buyoutInput and not TSM.IsWowClassic() and isCommodity then
+	if input == buyoutInput and Environment.IsRetail() and isCommodity then
 		-- update the bid to match
 		bidInput:SetValue(Money.ToString(buyout, nil, "OPT_83_NO_COPPER", "OPT_DISABLE"))
 			:Draw()

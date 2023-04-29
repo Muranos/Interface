@@ -109,7 +109,7 @@ local function create(parent)
     return frame;
 end
 
-local GetAtlasInfo = WeakAuras.IsClassic() and GetAtlasInfo or C_Texture.GetAtlasInfo
+local GetAtlasInfo = WeakAuras.IsClassicEra() and GetAtlasInfo or C_Texture.GetAtlasInfo
 local function SetTextureViaAtlas(self, texture)
   if type(texture) == "string" and GetAtlasInfo(texture) then
     self:SetAtlas(texture);
@@ -452,6 +452,9 @@ local function modify(parent, region, data)
     end;
 
     region.FrameTick = onUpdate;
+    if region.FrameTick then
+      region.subRegionEvents:AddSubscriber("FrameTick", region, true)
+    end
 
     function region:Update()
       if region.state.paused then

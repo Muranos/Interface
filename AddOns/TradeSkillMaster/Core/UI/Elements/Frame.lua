@@ -4,16 +4,13 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
---- Frame UI Element Class.
--- A frame is a container which supports automated layout of its children. It also supports being the base element of a UI and anchoring/parenting directly to a WoW frame. It is a subclass of the @{Container} class.
--- @classmod Frame
-
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
 local TempTable = TSM.Include("Util.TempTable")
 local Table = TSM.Include("Util.Table")
 local Color = TSM.Include("Util.Color")
 local Theme = TSM.Include("Util.Theme")
-local NineSlice = TSM.Include("Util.NineSlice")
+local Rectangle = TSM.Include("UI.Rectangle")
+local UIElements = TSM.Include("UI.UIElements")
 local VALID_LAYOUTS = {
 	NONE = true,
 	HORIZONTAL = true,
@@ -32,10 +29,9 @@ local LAYOUT_CONTEXT = {
 		sides = { primary = { "LEFT", "RIGHT" }, secondary = { "TOP", "BOTTOM" } },
 	},
 }
-local Frame = TSM.Include("LibTSMClass").DefineClass("Frame", TSM.UI.Container)
-local UIElements = TSM.Include("UI.UIElements")
-UIElements.Register(Frame)
+local Frame = UIElements.Define("Frame", "Container") ---@class Frame: Container
 TSM.UI.Frame = Frame
+local ROUNDED_CORNER_RADIUS = 4
 
 
 
@@ -48,11 +44,11 @@ function Frame.__init(self)
 
 	self.__super:__init(frame)
 
-	self._borderNineSlice = NineSlice.New(frame)
-	self._borderNineSlice:Hide()
+	self._borderRectangle = Rectangle.New(frame)
+	self._borderRectangle:Hide()
 
-	self._backgroundNineSlice = NineSlice.New(frame, 1)
-	self._backgroundNineSlice:Hide()
+	self._backgroundRectangle = Rectangle.New(frame, 1)
+	self._backgroundRectangle:Hide()
 
 	self._layout = "NONE"
 	self._backgroundColor = nil
@@ -73,8 +69,8 @@ function Frame.Release(self)
 	self._expandWidth = false
 	self._strata = nil
 	self._scale = 1
-	self._borderNineSlice:Hide()
-	self._backgroundNineSlice:Hide()
+	self._borderRectangle:Hide()
+	self._backgroundRectangle:Hide()
 	local frame = self:_GetBaseFrame()
 	frame:RegisterForDrag()
 	frame:EnableMouse(false)
@@ -90,7 +86,7 @@ end
 -- @tparam[opt=false] boolean roundedCorners Whether or not the corners should be rounded
 -- @treturn Frame The frame object
 function Frame.SetBackgroundColor(self, color, roundedCorners)
-	assert(color == nil or Color.IsInstance(color) or Theme.GetColor(color))
+	assert(color == nil or Color.IsInstance(color) or Theme.IsValidColor(color))
 	self._backgroundColor = color
 	self._roundedCorners = roundedCorners
 	return self
@@ -102,7 +98,7 @@ end
 -- @tparam[opt=1] ?number borderSize The border size
 -- @treturn Frame The frame object
 function Frame.SetBorderColor(self, color, borderSize)
-	assert(color == nil or Color.IsInstance(color) or Theme.GetColor(color))
+	assert(color == nil or Color.IsInstance(color) or Theme.IsValidColor(color))
 	self._borderColor = color
 	self._borderSize = borderSize or 1
 	return self
@@ -237,20 +233,23 @@ function Frame.Draw(self)
 	local frame = self:_GetBaseFrame()
 
 	if self._backgroundColor then
-		self._backgroundNineSlice:SetStyle(self._roundedCorners and "rounded" or "solid", self._borderColor and self._borderSize or nil)
+		self._backgroundRectangle:Show()
+		self._backgroundRectangle:SetCornerRadius(self._roundedCorners and ROUNDED_CORNER_RADIUS or 0)
+		self._backgroundRectangle:SetInset(self._borderColor and self._borderSize or 0)
 		local color = Color.IsInstance(self._backgroundColor) and self._backgroundColor or Theme.GetColor(self._backgroundColor)
-		self._backgroundNineSlice:SetVertexColor(color:GetFractionalRGBA())
+		self._backgroundRectangle:SetColor(color)
 	else
 		assert(not self._borderColor)
-		self._backgroundNineSlice:Hide()
+		self._backgroundRectangle:Hide()
 	end
 	if self._borderColor then
 		assert(self._backgroundColor)
-		self._borderNineSlice:SetStyle(self._roundedCorners and "rounded" or "solid")
+		self._borderRectangle:Show()
+		self._borderRectangle:SetCornerRadius(self._roundedCorners and ROUNDED_CORNER_RADIUS or 0)
 		local color = Color.IsInstance(self._borderColor) and self._borderColor or Theme.GetColor(self._borderColor)
-		self._borderNineSlice:SetVertexColor(color:GetFractionalRGBA())
+		self._borderRectangle:SetColor(color)
 	else
-		self._borderNineSlice:Hide()
+		self._borderRectangle:Hide()
 	end
 
 	frame:SetScale(self._scale)
@@ -385,7 +384,7 @@ function Frame._GetMinimumDimension(self, dimension)
 	local context = LAYOUT_CONTEXT[layout]
 	if styleResult then
 		return styleResult, false
-	elseif self:GetNumLayoutChildren() == 0 or layout == "NONE" then
+	elseif self:_GetNumLayoutChildren() == 0 or layout == "NONE" then
 		return 0, true
 	elseif layout == "FLOW" then
 		-- calculate our minimum width which is the largest of the widths of the children

@@ -1,5 +1,5 @@
 --[[
-Copyright 2008-2022 João Cardoso
+Copyright 2008-2023 João Cardoso
 Scrap is distributed under the terms of the GNU General Public License (Version 3).
 As a special exception, the copyright holders of this addon do not give permission to
 redistribute and/or modify it.
@@ -17,6 +17,7 @@ This file is part of Scrap.
 
 local Button = Scrap:NewModule('Merchant', CreateFrame('Button', nil, MerchantBuyBackItem), 'MutexDelay-1.0')
 local L = LibStub('AceLocale-3.0'):GetLocale('Scrap')
+local C = LibStub('C_Everywhere').Container
 
 
 --[[ Events ]]--
@@ -68,8 +69,8 @@ function Button:OnMerchant()
 		Scrap.Tutorials:Start()
 	end
 
-	self:RegisterEvent('BAG_UPDATE_DELAYED', 'OnBagUpdate')
 	self:RegisterSignal('LIST_CHANGED', 'UpdateState')
+	self:RegisterEvent('BAG_UPDATE', 'OnBagUpdate')
 	self:UpdatePosition()
 	self:UpdateState()
 end
@@ -78,13 +79,13 @@ function Button:OnBagUpdate()
 	if self.saleTotal then
 		self:Delay(0.5, 'Sell')
 	else
-		self:UpdateState()
+		self:Delay(0, 'UpdateState')
 	end
 end
 
 function Button:OnClose()
-	self:UnregisterEvent('BAG_UPDATE_DELAYED')
 	self:UnregisterSignal('LIST_CHANGED')
+	self:UnregisterEvent('BAG_UPDATE')
 end
 
 
@@ -192,12 +193,12 @@ function Button:Sell()
 
 	local count = 0
 	for bag, slot, id in Scrap:IterateJunk() do
-		if not Scrap:GetContainerItemInfo(bag, slot).isLocked then
+		if not C.GetContainerItemInfo(bag, slot).isLocked then
 			local value = select(11, GetItemInfo(id)) or 0
 			if value > 0 then
-				Scrap.C.UseContainerItem(bag, slot)
+				C.UseContainerItem(bag, slot)
 			elseif Scrap.sets.destroy then
-				Scrap.C.PickupContainerItem(bag, slot)
+				C.PickupContainerItem(bag, slot)
 				DeleteCursorItem()
 			end
 
@@ -224,7 +225,7 @@ function Button:GetReport()
 	local total = 0
 
 	for bag, slot, id in Scrap:IterateJunk() do
-		local info = Scrap:GetContainerItemInfo(bag, slot)
+		local info = C.GetContainerItemInfo(bag, slot)
 		if not info.isLocked then
 			qualities[info.quality] = (qualities[info.quality] or 0) + info.stackCount
 			total = total + info.stackCount * (select(11, GetItemInfo(id)) or 0)

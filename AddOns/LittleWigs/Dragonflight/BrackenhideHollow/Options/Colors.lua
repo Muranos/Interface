@@ -1,20 +1,23 @@
 
 BigWigs:AddColors("Hackclaw's War-Band", {
-	[377827] = {"blue","red"},
+	[377827] = {"blue","orange"},
 	[377950] = "yellow",
-	[377965] = "orange",
-	[378029] = "orange",
+	[377965] = "red",
+	[378029] = "red",
+	[378208] = {"blue","red"},
 	[381444] = {"blue","red"},
-	[381470] = "red",
+	[381470] = "yellow",
 	[381694] = {"blue","green","red"},
 })
 
 BigWigs:AddColors("Treemouth", {
-	[376811] = "red",
+	[376811] = {"blue","yellow"},
 	[376934] = "red",
-	[377559] = "orange",
-	[377859] = "yellow",
+	[377559] = "purple",
+	[377859] = "orange",
 	[378022] = {"blue","green","red"},
+	[383875] = "blue",
+	[390968] = "red",
 })
 
 BigWigs:AddColors("Gutshot", {
@@ -28,11 +31,33 @@ BigWigs:AddColors("Gutshot", {
 BigWigs:AddColors("Decatriarch Wratheye", {
 	[373917] = "purple",
 	[373944] = "yellow",
-	[373960] = "orange",
-	[376170] = "red",
+	[373960] = {"green","red"},
+	[376170] = "orange",
 })
 
 BigWigs:AddColors("Brackenhide Hollow Trash", {
+	[367484] = "blue",
 	[367500] = "red",
-	[388060] = "yellow",
+	[367503] = {"blue","orange"},
+	[368081] = {"blue","yellow"},
+	[368287] = "orange",
+	[372711] = "red",
+	[373897] = "yellow",
+	[373929] = "purple",
+	[373943] = "orange",
+	[374057] = "yellow",
+	[374544] = {"blue","red"},
+	[374569] = "orange",
+	[382435] = "yellow",
+	[382555] = {"blue","orange"},
+	[382712] = "red",
+	[383087] = {"blue","orange","yellow"},
+	[383399] = {"blue","yellow"},
+	[384974] = {"blue","red"},
+	[385029] = "yellow",
+	[385058] = {"blue","yellow"},
+	[385827] = "yellow",
+	[385832] = {"blue","red"},
+	[388046] = "orange",
+	[388060] = "red",
 })

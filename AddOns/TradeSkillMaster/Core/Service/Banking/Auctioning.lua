@@ -4,11 +4,15 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
 local Auctioning = TSM.Banking:NewPackage("Auctioning")
+local Environment = TSM.Include("Environment")
 local TempTable = TSM.Include("Util.TempTable")
 local BagTracking = TSM.Include("Service.BagTracking")
-local Inventory = TSM.Include("Service.Inventory")
+local AltTracking = TSM.Include("Service.AltTracking")
+local AuctionTracking = TSM.Include("Service.AuctionTracking")
+local MailTracking = TSM.Include("Service.MailTracking")
+local Settings = TSM.Include("Service.Settings")
 local private = {}
 
 
@@ -64,7 +68,11 @@ function private.GetNumToMoveToBags(itemString, numHave, includeAH)
 		:Equal("autoBaseItemString", itemString)
 		:SumAndRelease("quantity")
 	if includeAH then
-		numInBags = numInBags + select(3, Inventory.GetPlayerTotals(itemString)) + Inventory.GetMailQuantity(itemString)
+		numInBags = numInBags + AuctionTracking.GetQuantity(itemString) + MailTracking.GetQuantity(itemString)
+		-- include alt auctions
+		for _, factionrealm, character in Settings.ConnectedFactionrealmAltCharacterIterator() do
+			numInBags = numInBags + AltTracking.GetAuctionQuantity(itemString, character, factionrealm)
+		end
 	end
 
 	for _, _, operationSettings in TSM.Operations.GroupOperationIterator("Auctioning", TSM.Groups.GetPathByItem(itemString)) do
@@ -78,7 +86,7 @@ function private.GetNumToMoveToBags(itemString, numHave, includeAH)
 		end
 
 		local postCap = TSM.Auctioning.Util.GetPrice("postCap", operationSettings, itemString)
-		local stackSize = (TSM.IsWowClassic() and TSM.Auctioning.Util.GetPrice("stackSize", operationSettings, itemString)) or (not TSM.IsWowClassic() and 1)
+		local stackSize = private.GetOperationStackSize(operationSettings, itemString)
 		if not operationHasExpired and postCap and stackSize then
 			local numNeeded = stackSize * postCap
 			if numInBags > numNeeded then
@@ -114,10 +122,18 @@ function private.MaxExpiresGetNumToMoveToBank(itemString, numHave)
 			end
 		end
 		local postCap = TSM.Auctioning.Util.GetPrice("postCap", operationSettings, itemString)
-		local stackSize = (TSM.IsWowClassic() and TSM.Auctioning.Util.GetPrice("stackSize", operationSettings, itemString)) or (not TSM.IsWowClassic() and 1)
+		local stackSize = private.GetOperationStackSize(operationSettings, itemString)
 		if not operationHasExpired and postCap and stackSize then
 			numToKeepInBags = numToKeepInBags + stackSize * postCap
 		end
 	end
 	return max(numHave - numToKeepInBags, 0)
+end
+
+function private.GetOperationStackSize(operationSettings, itemString)
+	if Environment.HasFeature(Environment.FEATURES.AH_STACKS) then
+		return TSM.Auctioning.Util.GetPrice("stackSize", operationSettings, itemString)
+	else
+		return 1
+	end
 end

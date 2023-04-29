@@ -1,7 +1,7 @@
-## v4.11.71 Changes
+## v4.12.34 Changes
 
-* [Retail] Fixed error when running Vendor/Disenchant search
-* [Retail] Fixed error when loading very old TSM settings
-* [Retail] Fixed issue with WoW showing error text when opening the AH
+* [Retail] Updated for 10.0.7
+* [Retail] Fixes for Shadowlands legendary crafting recipes
+* [Retail] Updated transform data
 
 [Known Issues](https://support.tradeskillmaster.com/en_US/known_issues)

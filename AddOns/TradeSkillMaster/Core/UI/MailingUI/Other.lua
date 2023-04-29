@@ -4,7 +4,7 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
 local Groups = TSM.UI.MailingUI:NewPackage("Other")
 local L = TSM.Include("Locale").GetTable()
 local FSM = TSM.Include("Util.FSM")
@@ -15,13 +15,14 @@ local ItemInfo = TSM.Include("Service.ItemInfo")
 local BagTracking = TSM.Include("Service.BagTracking")
 local PlayerInfo = TSM.Include("Service.PlayerInfo")
 local UIElements = TSM.Include("UI.UIElements")
+local UIUtils = TSM.Include("UI.UIUtils")
 local private = {
 	frame = nil,
 	fsm = nil,
 }
 
 local PLAYER_NAME = UnitName("player")
-local PLAYER_NAME_REALM = string.gsub(PLAYER_NAME.."-"..GetRealmName(), "%s+", "")
+local PLAYER_NAME_REALM = gsub(PLAYER_NAME.."-"..GetRealmName(), "%s+", "")
 
 
 
@@ -41,7 +42,7 @@ end
 -- ============================================================================
 
 function private.GetOtherFrame()
-	TSM.UI.AnalyticsRecordPathChange("mailing", "other")
+	UIUtils.AnalyticsRecordPathChange("mailing", "other")
 	local frame = UIElements.New("Frame", "other")
 		:SetLayout("VERTICAL")
 		:SetPadding(10)

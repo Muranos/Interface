@@ -4,11 +4,9 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
---- Item Info Functions
--- @module ItemInfo
-
-local _, TSM = ...
-local ItemInfo = TSM.Init("Service.ItemInfo")
+local TSM = select(2, ...) ---@type TSM
+local ItemInfo = TSM.Init("Service.ItemInfo") ---@class Service.ItemInfo
+local Environment = TSM.Include("Environment")
 local L = TSM.Include("Locale").GetTable()
 local ItemClass = TSM.Include("Data.ItemClass")
 local VendorSell = TSM.Include("Data.VendorSell")
@@ -22,6 +20,7 @@ local Math = TSM.Include("Util.Math")
 local String = TSM.Include("Util.String")
 local Log = TSM.Include("Util.Log")
 local Table = TSM.Include("Util.Table")
+local Reactive = TSM.Include("Util.Reactive")
 local DefaultUI = TSM.Include("Service.DefaultUI")
 local Settings = TSM.Include("Service.Settings")
 local private = {
@@ -33,9 +32,14 @@ local private = {
 	availableItems = {},
 	rebuildStage = nil,
 	settings = nil,
-	infoChangeCallbacks = {},
 	hasChanged = false,
 	lastDebugLog = 0,
+	stream = nil,
+	processInfoTimer = nil,
+	processAvailableTimer = nil,
+	merchantTimer = nil,
+	deferredSetSingleField = {},
+	deferredSetSingleFieldTimer = nil,
 }
 local ITEM_MAX_ID = 999999
 local SEP_CHAR = "\002"
@@ -44,7 +48,8 @@ local MAX_REQUESTED_ITEM_INFO = 50
 local MAX_REQUESTS_PER_ITEM = 5
 local UNKNOWN_ITEM_NAME = L["Unknown Item"]
 local PLACEHOLDER_ITEM_NAME = L["Example Item"]
-local DB_VERSION = 8
+local UNKNOWN_ITEM_TEXTURE = 136254
+local DB_VERSION = 13
 local ENCODING_NUM_BITS = 6
 local ENCODING_NUM_VALUES = 2 ^ ENCODING_NUM_BITS
 local ENCODING_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
@@ -52,10 +57,17 @@ assert(#ENCODING_ALPHABET == ENCODING_NUM_VALUES)
 local ENCODING_TABLE = {}
 local ENCODING_TABLE_2 = {}
 local DECODING_TABLE = {}
-for i = 0, #ENCODING_ALPHABET - 1 do
+local DECODING_TABLE_1 = {}
+local DECODED_NIL_VALUE = ENCODING_NUM_VALUES - 1
+for i = 0, ENCODING_NUM_VALUES - 1 do
 	local encodedValue = strbyte(ENCODING_ALPHABET, i + 1, i + 1)
 	ENCODING_TABLE[i] = encodedValue
 	DECODING_TABLE[encodedValue] = i
+	if i == DECODED_NIL_VALUE then
+		DECODING_TABLE_1[encodedValue] = -1
+	else
+		DECODING_TABLE_1[encodedValue] = i
+	end
 end
 for i = 0, ENCODING_NUM_VALUES ^ 2 - 1 do
 	local value = i
@@ -66,9 +78,8 @@ for i = 0, ENCODING_NUM_VALUES ^ 2 - 1 do
 	ENCODING_TABLE_2[i] = { ENCODING_TABLE[charValue0], ENCODING_TABLE[charValue1] }
 	assert(value == 0)
 end
-local ENCODED_NIL_CHAR = ENCODING_TABLE[#ENCODING_ALPHABET - 1]
-local DECODED_NIL_VALUE = ENCODING_NUM_VALUES - 1
-local RECORD_DATA_LENGTH_CHARS = 23
+local ENCODED_NIL_CHAR = ENCODING_TABLE[DECODED_NIL_VALUE]
+local RECORD_DATA_LENGTH_CHARS = 24
 local FIELD_INFO = {
 	itemLevel = { numBits = 12 },
 	minLevel = { numBits = 12 },
@@ -82,6 +93,7 @@ local FIELD_INFO = {
 	isBOP = { numBits = 6 },
 	isCraftingReagent = { numBits = 6 },
 	expansionId = { numBits = 6 },
+	craftedQuality = { numBits = 6 },
 }
 do
 	local totalLengthChars = 0
@@ -148,6 +160,11 @@ local REBUILD_STAGE = {
 
 ItemInfo:OnModuleLoad(function()
 	private.rebuildStage = REBUILD_STAGE.IDLE
+	private.stream = Reactive.CreateStream()
+	private.processAvailableTimer = Delay.CreateTimer("ITEM_INFO_PROCESS_AVAILABLE", private.ProcessAvailableItems)
+	private.processInfoTimer = Delay.CreateTimer("ITEM_INFO_PROCESS_INFO", private.ProcessItemInfo)
+	private.merchantTimer = Delay.CreateTimer("ITEM_INFO_SCAN_MERCHANT", private.ScanMerchant)
+	private.deferredSetSingleFieldTimer = Delay.CreateTimer("ITEM_INFO_DEFERRED_SET_SINGLE_FIELD", private.HandleDeferredSetSingleField)
 end)
 
 ItemInfo:OnSettingsLoad(function()
@@ -159,7 +176,7 @@ ItemInfo:OnSettingsLoad(function()
 			return
 		end
 		private.availableItems[itemId] = true
-		Delay.AfterFrame("ITEM_INFO_DELAY", 0, private.ProcessAvailableItems)
+		private.processAvailableTimer:RunForTime(0)
 	end)
 
 	-- load the item info database
@@ -222,6 +239,7 @@ ItemInfo:OnSettingsLoad(function()
 		:AddNumberField("isBOP")
 		:AddNumberField("isCraftingReagent")
 		:AddNumberField("expansionId")
+		:AddNumberField("craftedQuality")
 		:AddTrigramIndex("name")
 		:Commit()
 	private.db:BulkInsertStart()
@@ -231,8 +249,8 @@ ItemInfo:OnSettingsLoad(function()
 		if ItemString.Get(itemString) == itemString then
 			-- load all the fields from the string
 			local dataOffset = (i - 1) * RECORD_DATA_LENGTH_CHARS + 1
-			local b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17, b18, b19, b20, b21, b22, bExtra = strbyte(TSMItemInfoDB.data, dataOffset, dataOffset + RECORD_DATA_LENGTH_CHARS - 1)
-			assert(b21 and not bExtra)
+			local b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17, b18, b19, b20, b21, b22, b23, bExtra = strbyte(TSMItemInfoDB.data, dataOffset, dataOffset + RECORD_DATA_LENGTH_CHARS - 1)
+			assert(b23 and not bExtra)
 
 			-- load the fields
 			local itemLevel = (b0 == ENCODED_NIL_CHAR and b1 == ENCODED_NIL_CHAR) and -1 or (DECODING_TABLE[b0] + DECODING_TABLE[b1] * 2 ^ ENCODING_NUM_BITS)
@@ -244,54 +262,36 @@ ItemInfo:OnSettingsLoad(function()
 				vendorSell = DECODING_TABLE[b4] + DECODING_TABLE[b5] * 2 ^ ENCODING_NUM_BITS + DECODING_TABLE[b6] * 2 ^ (ENCODING_NUM_BITS * 2) + DECODING_TABLE[b7] * 2 ^ (ENCODING_NUM_BITS * 3) + DECODING_TABLE[b8] * 2 ^ (ENCODING_NUM_BITS * 4)
 			end
 			local maxStack = (b9 == ENCODED_NIL_CHAR and b10 == ENCODED_NIL_CHAR) and -1 or (DECODING_TABLE[b9] + DECODING_TABLE[b10] * 2 ^ ENCODING_NUM_BITS)
-			local invSlotId = DECODING_TABLE[b11]
-			if invSlotId == DECODED_NIL_VALUE then
-				invSlotId = -1
-			end
+			local invSlotId = DECODING_TABLE_1[b11]
 			local texture = nil
 			if b12 == ENCODED_NIL_CHAR and b13 == ENCODED_NIL_CHAR and b14 == ENCODED_NIL_CHAR and b15 == ENCODED_NIL_CHAR and b16 == ENCODED_NIL_CHAR then
 				texture = -1
 			else
 				texture = DECODING_TABLE[b12] + DECODING_TABLE[b13] * 2 ^ ENCODING_NUM_BITS + DECODING_TABLE[b14] * 2 ^ (ENCODING_NUM_BITS * 2) + DECODING_TABLE[b15] * 2 ^ (ENCODING_NUM_BITS * 3) + DECODING_TABLE[b16] * 2 ^ (ENCODING_NUM_BITS * 4)
 			end
-			local classId = DECODING_TABLE[b17]
-			if classId == DECODED_NIL_VALUE then
-				classId = -1
-			end
-			local subClassId = DECODING_TABLE[b18]
-			if subClassId == DECODED_NIL_VALUE then
-				subClassId = -1
-			end
-			local quality = DECODING_TABLE[b19]
-			if quality == DECODED_NIL_VALUE then
-				quality = -1
-			end
-			local isBOP = DECODING_TABLE[b20]
-			if isBOP == DECODED_NIL_VALUE then
-				isBOP = -1
-			end
-			local isCraftingReagent = DECODING_TABLE[b21]
-			if isCraftingReagent == DECODED_NIL_VALUE then
-				isCraftingReagent = -1
-			end
-			local expansionId = DECODING_TABLE[b22]
-			if expansionId == DECODED_NIL_VALUE then
-				expansionId = -1
-			end
+			local classId = DECODING_TABLE_1[b17]
+			local subClassId = DECODING_TABLE_1[b18]
+			local quality = DECODING_TABLE_1[b19]
+			local isBOP = DECODING_TABLE_1[b20]
+			local isCraftingReagent = DECODING_TABLE_1[b21]
+			local expansionId = DECODING_TABLE_1[b22]
+			local craftedQuality = DECODING_TABLE_1[b23]
 
 			-- store in the DB
 			local name = names[i]
-			private.db:BulkInsertNewRowFast14(itemString, name, itemLevel, minLevel, maxStack, vendorSell, invSlotId, texture, classId, subClassId, quality, isBOP, isCraftingReagent, expansionId)
+			private.db:BulkInsertNewRowFast15(itemString, name, itemLevel, minLevel, maxStack, vendorSell, invSlotId, texture, classId, subClassId, quality, isBOP, isCraftingReagent, expansionId, craftedQuality)
 		end
 	end
 	private.db:BulkInsertEnd()
-	private.DoInfoChangedCallbacks()
+	private.stream:Send(nil)
 
 	-- process pending item info every 0.05 seconds
-	Delay.AfterTime("PROCESS_ITEM_INFO", 0, private.ProcessItemInfo, ITEM_INFO_INTERVAL)
+	private.processInfoTimer:RunForTime(0)
 	-- scan the merchant when the goods are shown
 	DefaultUI.RegisterMerchantVisibleCallback(private.ScanMerchant, true)
-	Event.Register("MERCHANT_UPDATE", private.UpdateMerchant)
+	Event.Register("MERCHANT_UPDATE", function()
+		private.merchantTimer:RunForTime(0.1)
+	end)
 end)
 
 ItemInfo:OnModuleUnload(function()
@@ -307,10 +307,10 @@ ItemInfo:OnModuleUnload(function()
 	local numFields = private.db:GetNumStoredFields()
 	for i = 1, private.db:GetNumRows() do
 		local startOffset = (i - 1) * numFields + 1
-		local itemString, name, itemLevel, minLevel, maxStack, vendorSell, invSlotId, texture, classId, subClassId, quality, isBOP, isCraftingReagent, expansionId = unpack(rawData, startOffset, startOffset + numFields - 1)
+		local itemString, name, itemLevel, minLevel, maxStack, vendorSell, invSlotId, texture, classId, subClassId, quality, isBOP, isCraftingReagent, expansionId, craftedQuality = unpack(rawData, startOffset, startOffset + numFields - 1)
 		local b0, b1, b2, b3, b4, b5, b6, b7, b8, b9 = ENCODED_NIL_CHAR, ENCODED_NIL_CHAR, ENCODED_NIL_CHAR, ENCODED_NIL_CHAR, ENCODED_NIL_CHAR, ENCODED_NIL_CHAR, ENCODED_NIL_CHAR, ENCODED_NIL_CHAR, ENCODED_NIL_CHAR, ENCODED_NIL_CHAR
 		local b10, b11, b12, b13, b14, b15, b16, b17, b18, b19 = ENCODED_NIL_CHAR, ENCODED_NIL_CHAR, ENCODED_NIL_CHAR, ENCODED_NIL_CHAR, ENCODED_NIL_CHAR, ENCODED_NIL_CHAR, ENCODED_NIL_CHAR, ENCODED_NIL_CHAR, ENCODED_NIL_CHAR, ENCODED_NIL_CHAR
-		local b20, b21, b22 = ENCODED_NIL_CHAR, ENCODED_NIL_CHAR, ENCODED_NIL_CHAR
+		local b20, b21, b22, b23 = ENCODED_NIL_CHAR, ENCODED_NIL_CHAR, ENCODED_NIL_CHAR, ENCODED_NIL_CHAR
 		if itemLevel ~= -1 then
 			local chars = ENCODING_TABLE_2[itemLevel]
 			b0 = chars[1]
@@ -387,10 +387,13 @@ ItemInfo:OnModuleUnload(function()
 		if expansionId ~= -1 then
 			b22 = ENCODING_TABLE[expansionId]
 		end
+		if craftedQuality ~= -1 then
+			b23 = ENCODING_TABLE[craftedQuality]
+		end
 
 		names[i] = name
 		itemStrings[i] = itemString
-		dataParts[i] = strchar(b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17, b18, b19, b20, b21, b22)
+		dataParts[i] = strchar(b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17, b18, b19, b20, b21, b22, b23)
 
 		if #dataParts[i] ~= RECORD_DATA_LENGTH_CHARS then
 			names[i] = nil
@@ -448,33 +451,36 @@ function ItemInfo.ClearDB()
 	ReloadUI()
 end
 
---- Register a callback which is called when item info changes.
--- @tparam function callback The function to be called
-function ItemInfo.RegisterInfoChangeCallback(callback)
-	tinsert(private.infoChangeCallbacks, callback)
+---Gets a publisher for item info changes.
+---@return ReactivePublisher
+function ItemInfo.GetPublisher()
+	return private.stream:Publisher()
 end
 
---- Sets whether or not query updates are paused on the item info DB
--- @tparam boolean paused Whether or not query updates are paused
+---Sets whether or not query updates are paused on the item info DB
+---@param paused boolean Whether or not query updates are paused
 function ItemInfo.SetQueryUpdatesPaused(paused)
 	private.db:SetQueryUpdatesPaused(paused)
 end
 
---- Store the name of an item.
+---Store the name of an item.
 -- This function is used to opportunistically populate the item cache with item names.
--- @tparam string itemString The itemString
--- @tparam string name The item name
+---@param itemString string The itemString
+---@param name string The item name
 function ItemInfo.StoreItemName(itemString, name)
 	assert(not ItemString.ParseLevel(itemString))
-	private.SetSingleField(itemString, "name", name)
+	private.DeferSetSingleField(itemString, "name", name)
 end
 
---- Store information about an item from its link.
--- This function is used to opportunistically populate the item cache with item info.
--- @tparam string itemLink The item link
+---Store information about an item from its link.
+---This function is used to opportunistically populate the item cache with item info.
+---@param itemLink string The item link
 function ItemInfo.StoreItemInfoByLink(itemLink)
 	-- see if we can extract the quality and name from the link
 	local colorHex, name = strmatch(itemLink, "^(\124cff[0-9a-z]+)\124[Hh].+\124h%[(.+)%]\124h\124r$")
+	if name then
+		name = gsub(name, " \124A:.+\124a", "")
+	end
 	if name == "" or name == UNKNOWN_ITEM_NAME or name == PLACEHOLDER_ITEM_NAME then
 		name = nil
 	end
@@ -485,18 +491,18 @@ function ItemInfo.StoreItemInfoByLink(itemLink)
 	end
 	assert(not ItemString.ParseLevel(itemString))
 	if name then
-		private.SetSingleField(itemString, "name", name)
+		private.DeferSetSingleField(itemString, "name", name)
 	end
 	if quality then
-		private.SetSingleField(itemString, "quality", quality)
+		private.DeferSetSingleField(itemString, "quality", quality)
 	end
 end
 
---- Get the itemString from an item name.
--- This API will return the base itemString when there are multiple variants with the same name and will return nil if
--- there are multiple distinct items with the same name.
--- @tparam string name The item name
--- @treturn ?string The itemString
+---Get the itemString from an item name.
+---This API will return the base itemString when there are multiple variants with the same name and will return nil if
+---there are multiple distinct items with the same name.
+---@param name string The item name
+---@return string?
 function ItemInfo.ItemNameToItemString(name)
 	local result = nil
 	local query = private.db:NewQuery()
@@ -518,13 +524,9 @@ function ItemInfo.ItemNameToItemString(name)
 	return result
 end
 
-function ItemInfo.GetDBForJoin()
-	return private.db
-end
-
---- Get the name.
--- @tparam string item The item
--- @treturn ?string The name
+---Get the name.
+---@param item string The item
+---@return string?
 function ItemInfo.GetName(item)
 	local itemString = ItemString.Get(item)
 	if not itemString then
@@ -546,19 +548,22 @@ function ItemInfo.GetName(item)
 	if not name then
 		-- if we got passed an item link, we can maybe extract the name from it
 		name = strmatch(item, "^\124cff[0-9a-z]+\124[Hh].+\124h%[(.+)%]\124h\124r$")
+		if name then
+			name = gsub(name, " \124A:.+\124a", "")
+		end
 		if name == "" or name == UNKNOWN_ITEM_NAME or name == PLACEHOLDER_ITEM_NAME then
 			name = nil
 		end
 		if name then
-			private.SetSingleField(itemString, "name", name)
+			private.DeferSetSingleField(itemString, "name", name)
 		end
 	end
 	return name
 end
 
---- Get the link.
--- @tparam string item The item
--- @treturn string The link or an "Unknown Item" link
+---Get the link (or an "Unknown Item" link).
+---@param item string The item
+---@return string?
 function ItemInfo.GetLink(item)
 	local itemString = ItemString.Get(item)
 	if not itemString then
@@ -566,29 +571,23 @@ function ItemInfo.GetLink(item)
 	end
 	local link = nil
 	local itemStringType, speciesId, level, quality, health, power, speed, petId = strsplit(":", itemString)
+	local name = ItemInfo.GetName(item) or UNKNOWN_ITEM_NAME
+	local wowItemString = nil
 	if itemStringType == "p" then
-		local name = ItemInfo.GetName(item) or UNKNOWN_ITEM_NAME
-		local fullItemString = strjoin(":", speciesId, level or "", quality or "", health or "", power or "", speed or "", petId or "")
 		quality = tonumber(quality) or 0
-		local qualityColor = ITEM_QUALITY_COLORS[quality] and ITEM_QUALITY_COLORS[quality].hex or "|cffff0000"
-		link = qualityColor.."|Hbattlepet:"..fullItemString.."|h["..name.."]|h|r"
-	elseif ItemString.ParseLevel(itemString) then
-		local name = ItemInfo.GetName(item) or UNKNOWN_ITEM_NAME
-		quality = ItemInfo.GetQuality(item)
-		local qualityColor = ITEM_QUALITY_COLORS[quality] and ITEM_QUALITY_COLORS[quality].hex or "|cffff0000"
-		return qualityColor.."|H"..ItemString.ToWow(itemString).."|h["..name.."]|h|r"
+		wowItemString = strjoin(":", "battlepet", speciesId, level or "", quality or "", health or "", power or "", speed or "", petId or "")
 	else
-		local name = ItemInfo.GetName(item) or UNKNOWN_ITEM_NAME
 		quality = ItemInfo.GetQuality(item)
-		local qualityColor = ITEM_QUALITY_COLORS[quality] and ITEM_QUALITY_COLORS[quality].hex or "|cffff0000"
-		link = qualityColor.."|H"..ItemString.ToWow(itemString).."|h["..name.."]|h|r"
+		wowItemString = ItemString.ToWow(itemString)
 	end
+	local qualityColor = ITEM_QUALITY_COLORS[quality] and ITEM_QUALITY_COLORS[quality].hex or "|cffff0000"
+	link = qualityColor.."|H"..wowItemString.."|h["..name.."]|h|r"
 	return link
 end
 
---- Get the expansion id.
--- @tparam string item The item
--- @treturn ?number The expansion id
+---Get the expansion id.
+---@param item string The item
+---@return number?
 function ItemInfo.GetExpansion(item)
 	local itemString = ItemString.Get(item)
 	if not itemString then
@@ -600,9 +599,28 @@ function ItemInfo.GetExpansion(item)
 	return expansionId
 end
 
---- Get the quality.
--- @tparam string item The item
--- @treturn ?number The quality
+---Gets the crafted quality.
+---@param item string The item
+---@return number?
+function ItemInfo.GetCraftedQuality(item)
+	if not Environment.HasFeature(Environment.FEATURES.CRAFTING_QUALITY) then
+		return nil
+	end
+	local itemString = ItemString.Get(item)
+	if not itemString then
+		return nil
+	elseif itemString == ItemString.GetUnknown() or itemString == ItemString.GetPlaceholder() then
+		return nil
+	elseif ItemString.ParseLevel(itemString) then
+		itemString = ItemString.GetBaseFast(itemString)
+	end
+	local craftedQuality = private.GetFieldValueHelper(itemString, "craftedQuality", false, false, 0)
+	return (craftedQuality or 0) > 0 and craftedQuality or nil
+end
+
+---Get the quality.
+---@param item string The item
+---@return number?
 function ItemInfo.GetQuality(item)
 	local itemString = ItemString.Get(item)
 	if not itemString then
@@ -630,16 +648,16 @@ function ItemInfo.GetQuality(item)
 		end
 	end
 	if quality then
-		private.SetSingleField(itemString, "quality", quality)
+		private.DeferSetSingleField(itemString, "quality", quality)
 	else
 		ItemInfo.FetchInfo(itemString)
 	end
 	return quality
 end
 
---- Get the quality color.
--- @tparam string item The item
--- @treturn ?string The quality color string
+---Get the quality color.
+---@param item string The item
+---@return string?
 function ItemInfo.GetQualityColor(item)
 	local itemString = ItemString.Get(item)
 	if itemString == ItemString.GetUnknown() then
@@ -648,12 +666,12 @@ function ItemInfo.GetQualityColor(item)
 		return "|cffffffff"
 	end
 	local quality = ItemInfo.GetQuality(itemString)
-	return ITEM_QUALITY_COLORS[quality] and ITEM_QUALITY_COLORS[quality].hex
+	return quality and ITEM_QUALITY_COLORS[quality] and ITEM_QUALITY_COLORS[quality].hex or nil
 end
 
---- Get the item level.
--- @tparam string item The item
--- @treturn ?number The item level
+---Get the item level.
+---@param item string The item
+---@return number?
 function ItemInfo.GetItemLevel(item)
 	local itemString = ItemString.Get(item)
 	if not itemString then
@@ -686,7 +704,7 @@ function ItemInfo.GetItemLevel(item)
 		if not itemLevel then
 			-- just get the level from the item string
 			itemLevel = randOrLevel or 0
-			private.SetSingleField(itemString, "itemLevel", itemLevel)
+			private.DeferSetSingleField(itemString, "itemLevel", itemLevel)
 		end
 	elseif itemType == "i" then
 		if randOrLevel and not bonusOrQuality then
@@ -694,7 +712,7 @@ function ItemInfo.GetItemLevel(item)
 			itemLevel = ItemInfo.GetItemLevel(ItemString.GetBaseFast(itemString))
 		end
 		if itemLevel then
-			private.SetSingleField(itemString, "itemLevel", itemLevel)
+			private.DeferSetSingleField(itemString, "itemLevel", itemLevel)
 		end
 		ItemInfo.FetchInfo(itemString)
 	else
@@ -703,9 +721,9 @@ function ItemInfo.GetItemLevel(item)
 	return itemLevel
 end
 
---- Get the min level.
--- @tparam string item The item
--- @treturn ?number The min level
+---Get the min level.
+---@param item string The item
+---@return number?
 function ItemInfo.GetMinLevel(item)
 	local itemString = ItemString.Get(item)
 	if not itemString then
@@ -725,16 +743,16 @@ function ItemInfo.GetMinLevel(item)
 			-- the bonusId does not affect the minLevel of this item
 			minLevel = ItemInfo.GetMinLevel(baseItemString)
 			if minLevel then
-				private.SetSingleField(itemString, "minLevel", minLevel)
+				private.DeferSetSingleField(itemString, "minLevel", minLevel)
 			end
 		end
 	end
 	return minLevel
 end
 
---- Get the max stack size.
--- @tparam string item The item
--- @treturn ?number The max stack size
+---Get the max stack size.
+---@param item string The item
+---@return number?
 function ItemInfo.GetMaxStack(item)
 	local itemString = ItemString.Get(item)
 	if not itemString then
@@ -769,15 +787,15 @@ function ItemInfo.GetMaxStack(item)
 			end
 		end
 		if maxStack then
-			private.SetSingleField(itemString, "maxStack", maxStack)
+			private.DeferSetSingleField(itemString, "maxStack", maxStack)
 		end
 	end
 	return maxStack
 end
 
---- Get the inventory slot id.
--- @tparam string item The item
--- @treturn ?number The inventory slot id
+---Get the inventory slot id.
+---@param item string The item
+---@return number?
 function ItemInfo.GetInvSlotId(item)
 	local itemString = ItemString.Get(item)
 	if not itemString then
@@ -789,13 +807,15 @@ function ItemInfo.GetInvSlotId(item)
 	return invSlotId
 end
 
---- Get the texture.
--- @tparam string item The item
--- @treturn ?number The texture
+---Get the texture.
+---@param item string The item
+---@return number?
 function ItemInfo.GetTexture(item)
 	local itemString = ItemString.Get(item)
 	if not itemString then
 		return nil
+	elseif itemString == ItemString.GetUnknown() then
+		return UNKNOWN_ITEM_TEXTURE
 	elseif ItemString.ParseLevel(itemString) then
 		itemString = ItemString.GetBaseFast(itemString)
 	end
@@ -807,9 +827,9 @@ function ItemInfo.GetTexture(item)
 	return private.GetField(itemString, "texture")
 end
 
---- Get the vendor sell price.
--- @tparam string item The item
--- @treturn ?number The vendor sell price
+---Get the vendor sell price.
+---@param item string The item
+---@return number?
 function ItemInfo.GetVendorSell(item)
 	local itemString = ItemString.Get(item)
 	if not itemString then
@@ -825,9 +845,9 @@ function ItemInfo.GetVendorSell(item)
 	return (vendorSell or 0) > 0 and vendorSell or nil
 end
 
---- Get the class id.
--- @tparam string item The item
--- @treturn ?number The class id
+---Get the class id.
+---@param item string The item
+---@return number?
 function ItemInfo.GetClassId(item)
 	local itemString = ItemString.Get(item)
 	if not itemString then
@@ -843,9 +863,9 @@ function ItemInfo.GetClassId(item)
 	return private.GetField(itemString, "classId")
 end
 
---- Get the sub-class id.
--- @tparam string item The item
--- @treturn ?number The sub-class id
+---Get the sub-class id.
+---@param item string The item
+---@return number?
 function ItemInfo.GetSubClassId(item)
 	local itemString = ItemString.Get(item)
 	if not itemString then
@@ -862,9 +882,9 @@ function ItemInfo.GetSubClassId(item)
 end
 
 
---- Get whether or not the item is bind on pickup.
--- @tparam string item The item
--- @treturn boolean Whether or not the item is bind on pickup
+---Get whether or not the item is bind on pickup.
+---@param item string The item
+---@return boolean?
 function ItemInfo.IsSoulbound(item)
 	local itemString = ItemString.Get(item)
 	if not itemString then
@@ -879,9 +899,9 @@ function ItemInfo.IsSoulbound(item)
 	return isBOP
 end
 
---- Get whether or not the item is a crafting reagent.
--- @tparam string item The item
--- @treturn boolean Whether or not the item is a crafting reagent
+---Get whether or not the item is a crafting reagent.
+---@param item string The item
+---@return boolean?
 function ItemInfo.IsCraftingReagent(item)
 	local itemString = ItemString.Get(item)
 	if not itemString then
@@ -896,9 +916,9 @@ function ItemInfo.IsCraftingReagent(item)
 	return isCraftingReagent
 end
 
---- Get the vendor buy price.
--- @tparam string item The item
--- @treturn ?number The vendor buy price
+---Get the vendor buy price.
+---@param item string The item
+---@return number?
 function ItemInfo.GetVendorBuy(item)
 	local itemString = ItemString.Get(item)
 	if not itemString or ItemString.ParseLevel(itemString) then
@@ -907,9 +927,9 @@ function ItemInfo.GetVendorBuy(item)
 	return private.settings.vendorItems[itemString]
 end
 
---- Get whether or not the item is disenchantable.
--- @tparam string item The item
--- @treturn ?boolean Whether or not the item is disenchantable (nil means we don't know)
+---Get whether or not the item is disenchantable.
+---@param item string The item
+---@return boolean?
 function ItemInfo.IsDisenchantable(item)
 	local itemString = ItemString.Get(item)
 	if not itemString then
@@ -929,11 +949,11 @@ function ItemInfo.IsDisenchantable(item)
 	return quality >= (Enum.ItemQuality.Good or Enum.ItemQuality.Uncommon) and quality < Enum.ItemQuality.Legendary and (classId == Enum.ItemClass.Armor or classId == Enum.ItemClass.Weapon)
 end
 
---- Get whether or not the item is a commodity in WoW 8.3 (and above).
--- @tparam string item The item
--- @treturn ?number The inventory slot id
+---Get whether or not the item is a commodity in WoW 8.3 (and above).
+---@param item string The item
+---@return number?
 function ItemInfo.IsCommodity(item)
-	if TSM.IsWowClassic() then
+	if not Environment.HasFeature(Environment.FEATURES.COMMODITY_ITEMS) then
 		return false
 	end
 	local stackSize = ItemInfo.GetMaxStack(item)
@@ -943,9 +963,9 @@ function ItemInfo.IsCommodity(item)
 	return stackSize > 1
 end
 
---- Get whether or not the item can have variations.
--- @tparam string item The item
--- @treturn ?boolean Whether or not the item can have variations
+---Get whether or not the item can have variations.
+---@param item string The item
+---@return boolean?
 function ItemInfo.CanHaveVariations(item)
 	local classId = ItemInfo.GetClassId(item)
 	if not classId then
@@ -964,9 +984,9 @@ function ItemInfo.CanHaveVariations(item)
 	end
 end
 
---- Fetch info for the item.
--- This function can be called ahead of time for items which we know we need to have info cached for.
--- @tparam ?string item The item
+---Fetch info for the item.
+---This function can be called ahead of time for items which we know we need to have info cached for.
+---@param item? string The item
 function ItemInfo.FetchInfo(item)
 	if item == ItemString.GetUnknown() or item == ItemString.GetPlaceholder() or ItemString.ParseLevel(item) then
 		return
@@ -986,18 +1006,18 @@ function ItemInfo.FetchInfo(item)
 	end
 	private.priorityPendingItems[itemString] = true
 
-	Delay.AfterTime("PROCESS_ITEM_INFO", 0, private.ProcessItemInfo, ITEM_INFO_INTERVAL)
+	private.processInfoTimer:RunForTime(0)
 end
 
---- Generalize an item link.
--- @tparam string itemLink The item link
--- @treturn ?string The generalized link
+---Generalize an item link.
+---@param itemLink string The item link
+---@return string?
 function ItemInfo.GeneralizeLink(itemLink)
 	local itemString = ItemString.Get(itemLink)
 	if not itemString then return end
 	if ItemString.IsItem(itemString) and not strmatch(itemString, "i:[0-9]+:[0-9%-]*:[0-9]*") then
 		-- swap out the itemString part of the link
-		local leader, quality, _, name, trailer, trailer2, extra = ("\124"):split(itemLink)
+		local leader, quality, _, name, trailer, trailer2, extra = strsplit("\124", itemLink)
 		if trailer2 and not extra then
 			return strjoin("\124", leader, quality, "H"..ItemString.ToWow(itemString), name, trailer, trailer2)
 		end
@@ -1005,13 +1025,16 @@ function ItemInfo.GeneralizeLink(itemLink)
 	return ItemInfo.GetLink(itemString)
 end
 
---- Match an item filter to the item info database.
--- @tparam ItemFilter itemFilter The itemFilter object to match
--- @tparam table result The table to populate with results
-function ItemInfo.MatchItemFilter(itemFilter, result)
-	local query = private.db:NewQuery()
-		:Select("itemString")
-		:OrderBy("name", true)
+---Creates a query which matches the specified item filter.
+---@param itemFilter ItemFilter The item filter
+---@param query? DatabaseQuery Optionally, an existing query to reset and reuse
+---@return DatabaseQuery
+function ItemInfo.MatchItemFilterQuery(itemFilter, query)
+	if query then
+		query:Reset()
+	else
+		query = private.db:NewQuery()
+	end
 
 	local str = itemFilter:GetStr()
 	if str then
@@ -1058,8 +1081,7 @@ function ItemInfo.MatchItemFilter(itemFilter, result)
 		query:Equal("invSlotId", invSlotId)
 	end
 
-	query:AsTable(result)
-	query:Release()
+	return query
 end
 
 
@@ -1075,20 +1097,20 @@ function private.GetFieldValueHelper(itemString, field, baseIsSame, storeBaseVal
 	end
 	ItemInfo.FetchInfo(itemString)
 	if ItemString.IsPet(itemString) then
-		-- we can fetch info instantly for pets so try again
+		-- We can fetch info instantly for pets so try again
 		value = private.GetField(itemString, field)
 		if value == nil and petDefaultValue ~= nil then
 			value = petDefaultValue
-			private.SetSingleField(itemString, field, value)
+			private.DeferSetSingleField(itemString, field, value)
 		end
 	end
 	if value == nil and baseIsSame then
-		-- the value is the same for the base item
+		-- The value is the same for the base item
 		local baseItemString = ItemString.GetBase(itemString)
 		if baseItemString ~= itemString then
 			value = private.GetFieldValueHelper(baseItemString, field)
 			if value ~= nil and storeBaseValue then
-				private.SetSingleField(itemString, field, value)
+				private.DeferSetSingleField(itemString, field, value)
 			end
 		end
 	end
@@ -1104,7 +1126,7 @@ function private.ProcessPendingItemInfo(itemString)
 		if private.numRequests[itemString] ~= math.huge then
 			private.numRequests[itemString] = math.huge
 			local itemId = ItemString.IsItem(itemString) and ItemString.ToId(itemString) or nil
-			if not TSM.IsWowClassic() then
+			if Environment.IsRetail() then
 				Log.Err("Giving up on item info for %s", itemString)
 			end
 			if itemId and itemString == ItemString.GetBaseFast(itemString) then
@@ -1129,10 +1151,11 @@ function private.ProcessPendingItemInfo(itemString)
 end
 
 function private.ProcessItemInfo()
+	private.processInfoTimer:RunForTime(ITEM_INFO_INTERVAL)
 	if InCombatLockdown() then
 		return
 	end
-	local startTime = debugprofilestop()
+	local startTime = GetTimePreciseSec()
 	private.db:SetQueryUpdatesPaused(true)
 
 	-- create rows for items which don't exist at all in the DB in bulk
@@ -1180,7 +1203,7 @@ function private.ProcessItemInfo()
 				break
 			end
 		end
-		if (debugprofilestop() - startTime) / 1000 > ITEM_INFO_INTERVAL / 5 and numRequested >= maxRequests / 2 then
+		if (GetTimePreciseSec() - startTime) > ITEM_INFO_INTERVAL / 5 and numRequested >= maxRequests / 2 then
 			-- bail early since we've already used a good number of CPU cycles this frame
 			shouldStop = true
 			break
@@ -1195,7 +1218,7 @@ function private.ProcessItemInfo()
 					break
 				end
 			end
-			if (debugprofilestop() - startTime) / 1000 > ITEM_INFO_INTERVAL / 5 and numRequested >= maxRequests / 2 then
+			if (GetTimePreciseSec() - startTime) > ITEM_INFO_INTERVAL / 5 and numRequested >= maxRequests / 2 then
 				-- bail early since we've already used a good number of CPU cycles this frame
 				shouldStop = true
 				break
@@ -1212,14 +1235,15 @@ function private.ProcessItemInfo()
 	if private.rebuildStage == REBUILD_STAGE.IDLE and numRequested >= maxRequests / 2 and Table.Count(private.pendingItems) >= REBUILD_MSG_THRESHOLD then
 		private.rebuildStage = REBUILD_STAGE.TRIGGERED
 		-- delay this message to make it more likely to be seen and make sure we're actually rebuilding
-		Delay.AfterTime(3, private.ShowRebuildMessage)
+		local timer = Delay.CreateTimer("ITEM_INFO_REBUILD_MESSAGE", private.ShowRebuildMessage)
+		timer:RunForTime(1)
 	end
 	if not next(private.pendingItems) then
 		if private.rebuildStage == REBUILD_STAGE.NOTIFIED then
 			Log.PrintUser(L["Done rebuilding item cache."])
 			private.rebuildStage = REBUILD_STAGE.IDLE
 		end
-		Delay.Cancel("PROCESS_ITEM_INFO")
+		private.processInfoTimer:Cancel()
 	end
 
 	private.db:SetQueryUpdatesPaused(false)
@@ -1250,15 +1274,11 @@ function private.ScanMerchant()
 				end
 				if newValue ~= currentValue then
 					private.settings.vendorItems[itemString] = newValue
-					private.DoInfoChangedCallbacks(itemString)
+					private.stream:Send(itemString)
 				end
 			end
 		end
 	end
-end
-
-function private.UpdateMerchant()
-	Delay.AfterTime(0.1, private.ScanMerchant)
 end
 
 function private.CheckFieldValue(key, value)
@@ -1281,7 +1301,7 @@ function private.CreateDBRowIfNotExists(itemString, isBulkInsert)
 		return
 	end
 	if isBulkInsert then
-		private.db:BulkInsertNewRow(itemString, "", -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1)
+		private.db:BulkInsertNewRow(itemString, "", -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1)
 	else
 		private.db:NewRow()
 			:SetField("itemString", itemString)
@@ -1298,26 +1318,33 @@ function private.CreateDBRowIfNotExists(itemString, isBulkInsert)
 			:SetField("subClassId", -1)
 			:SetField("invSlotId", -1)
 			:SetField("expansionId", -1)
+			:SetField("craftedQuality", -1)
 			:Create()
 	end
 	private.hasChanged = true
 end
 
-function private.SetSingleField(itemString, key, value)
+function private.DeferSetSingleField(itemString, key, value)
 	if type(value) == "boolean" then
 		value = value and 1 or 0
 	end
 	if key ~= "name" then
 		private.CheckFieldValue(key, value)
 	end
-	if private.db:GetUniqueRowField("itemString", itemString, key) == value then
-		-- no change
-		return
+	Table.InsertMultiple(private.deferredSetSingleField, itemString, key, value)
+	private.deferredSetSingleFieldTimer:RunForFrames(0)
+end
+
+function private.HandleDeferredSetSingleField()
+	for _, itemString, key, value in Table.StrideIterator(private.deferredSetSingleField, 3) do
+		-- Make sure it actually changed
+		if private.db:GetUniqueRowField("itemString", itemString, key) ~= value then
+			private.CreateDBRowIfNotExists(itemString)
+			private.db:SetUniqueRowField("itemString", itemString, key, value)
+			private.hasChanged = true
+			private.stream:Send(itemString)
+		end
 	end
-	private.CreateDBRowIfNotExists(itemString)
-	private.db:SetUniqueRowField("itemString", itemString, key, value)
-	private.hasChanged = true
-	private.DoInfoChangedCallbacks(itemString)
 end
 
 function private.SetItemInfoInstantFields(itemString, texture, classId, subClassId, invSlotId)
@@ -1331,7 +1358,7 @@ function private.SetItemInfoInstantFields(itemString, texture, classId, subClass
 	private.db:SetUniqueRowField("itemString", itemString, "subClassId", subClassId)
 	private.db:SetUniqueRowField("itemString", itemString, "invSlotId", invSlotId)
 	private.hasChanged = true
-	private.DoInfoChangedCallbacks(itemString)
+	private.stream:Send(itemString)
 end
 
 function private.StoreGetItemInfoInstant(itemString)
@@ -1353,7 +1380,7 @@ function private.StoreGetItemInfoInstant(itemString)
 		-- some items (such as i:37445) give a classId of -1 for some reason in which case we can look up the classId
 		if classId < 0 then
 			classId = ItemClass.GetClassIdFromClassString(classStr)
-			if not classId and TSM.IsWowClassic() then
+			if not classId and not Environment.IsRetail() then
 				-- this can happen for items which don't yet exist in classic (i.e. WoW Tokens)
 				return
 			end
@@ -1367,7 +1394,7 @@ function private.StoreGetItemInfoInstant(itemString)
 			private.SetItemInfoInstantFields(baseItemString, texture, classId, subClassId, invSlotId)
 		end
 	elseif itemStringType == "p" then
-		if TSM.IsWowClassic() then
+		if not Environment.HasFeature(Environment.FEATURES.BATTLE_PETS) then
 			return
 		end
 		local name, texture, petTypeId = C_PetJournal.GetPetInfoBySpeciesID(id)
@@ -1386,22 +1413,23 @@ function private.StoreGetItemInfoInstant(itemString)
 		local isBOP = 0
 		local isCraftingReagent = 0
 		local expansionId = -1
+		local craftedQuality = -1
 		private.SetItemInfoInstantFields(itemString, texture, classId, subClassId, invSlotId)
-		private.SetGetItemInfoFields(itemString, name, minLevel, itemLevel, maxStack, vendorSell, quality, isBOP, isCraftingReagent, expansionId)
+		private.SetGetItemInfoFields(itemString, name, minLevel, itemLevel, maxStack, vendorSell, quality, isBOP, isCraftingReagent, expansionId, craftedQuality)
 		local baseItemString = ItemString.GetBase(itemString)
 		if baseItemString ~= itemString then
 			minLevel = 0
 			itemLevel = 0
 			quality = 0
 			private.SetItemInfoInstantFields(baseItemString, texture, classId, subClassId, invSlotId)
-			private.SetGetItemInfoFields(baseItemString, name, minLevel, itemLevel, maxStack, vendorSell, quality, isBOP, isCraftingReagent, expansionId)
+			private.SetGetItemInfoFields(baseItemString, name, minLevel, itemLevel, maxStack, vendorSell, quality, isBOP, isCraftingReagent, expansionId, craftedQuality)
 		end
 	else
 		assert("Invalid itemString: "..itemString)
 	end
 end
 
-function private.SetGetItemInfoFields(itemString, name, minLevel, itemLevel, maxStack, vendorSell, quality, isBOP, isCraftingReagent, expansionId)
+function private.SetGetItemInfoFields(itemString, name, minLevel, itemLevel, maxStack, vendorSell, quality, isBOP, isCraftingReagent, expansionId, craftedQuality)
 	private.CheckFieldValue("minLevel", minLevel)
 	private.CheckFieldValue("itemLevel", itemLevel)
 	private.CheckFieldValue("maxStack", maxStack)
@@ -1410,6 +1438,7 @@ function private.SetGetItemInfoFields(itemString, name, minLevel, itemLevel, max
 	private.CheckFieldValue("isBOP", isBOP)
 	private.CheckFieldValue("isCraftingReagent", isCraftingReagent)
 	private.CheckFieldValue("expansionId", expansionId)
+	private.CheckFieldValue("craftedQuality", craftedQuality)
 	private.CreateDBRowIfNotExists(itemString)
 	private.db:SetUniqueRowField("itemString", itemString, "name", name)
 	private.db:SetUniqueRowField("itemString", itemString, "minLevel", minLevel)
@@ -1420,8 +1449,9 @@ function private.SetGetItemInfoFields(itemString, name, minLevel, itemLevel, max
 	private.db:SetUniqueRowField("itemString", itemString, "isBOP", isBOP)
 	private.db:SetUniqueRowField("itemString", itemString, "isCraftingReagent", isCraftingReagent)
 	private.db:SetUniqueRowField("itemString", itemString, "expansionId", expansionId)
+	private.db:SetUniqueRowField("itemString", itemString, "craftedQuality", craftedQuality)
 	private.hasChanged = true
-	private.DoInfoChangedCallbacks(itemString)
+	private.stream:Send(itemString)
 end
 
 function private.StoreGetItemInfo(itemString)
@@ -1431,9 +1461,14 @@ function private.StoreGetItemInfo(itemString)
 	local baseItemString = ItemString.GetBase(itemString)
 	local baseWowItemString = ItemString.ToWow(baseItemString)
 
-	local name, _, quality, itemLevel, minLevel, _, _, maxStack, _, _, vendorSell, _, _, bindType, expansionId, _, isCraftingReagent = GetItemInfo(baseWowItemString)
-	if TSM.IsWowClassic() then
+	local name, link, quality, itemLevel, minLevel, _, _, maxStack, _, _, vendorSell, _, _, bindType, expansionId, _, isCraftingReagent = GetItemInfo(baseWowItemString)
+	local craftedQuality = nil
+	if not Environment.HasFeature(Environment.FEATURES.CRAFTING_QUALITY) then
 		expansionId = -1
+		craftedQuality = -1
+	elseif link then
+		craftedQuality = strmatch(link, "\124A:Professions%-ChatIcon%-Quality%-Tier([0-9]+)")
+		craftedQuality = tonumber(craftedQuality) or -1
 	end
 	local isBOP = (bindType == LE_ITEM_BIND_ON_ACQUIRE or bindType == LE_ITEM_BIND_QUEST) and 1 or 0
 	isCraftingReagent = isCraftingReagent and 1 or 0
@@ -1443,11 +1478,11 @@ function private.StoreGetItemInfo(itemString)
 	minLevel = minLevel and max(minLevel, 0) or nil
 
 	-- store info for the base item
-	if name and quality then
-		private.SetGetItemInfoFields(baseItemString, name, minLevel, itemLevel, maxStack, vendorSell, quality, isBOP, isCraftingReagent, expansionId)
+	if name and quality and craftedQuality then
+		private.SetGetItemInfoFields(baseItemString, name, minLevel, itemLevel, maxStack, vendorSell, quality, isBOP, isCraftingReagent, expansionId, craftedQuality)
 	end
 	local gotInfo = true
-	if not name or name == "" or not quality or quality < 0 or not itemLevel or itemLevel < 0 then
+	if not name or name == "" or not quality or quality < 0 or not itemLevel or itemLevel < 0 or not craftedQuality then
 		gotInfo = false
 	end
 
@@ -1464,39 +1499,21 @@ function private.StoreGetItemInfo(itemString)
 		minLevel = minLevel and max(minLevel, 0) or nil
 		itemLevel = GetDetailedItemLevelInfo(wowItemString)
 		if name or quality or itemLevel or maxStack then
-			if name then
-				private.CheckFieldValue("minLevel", minLevel)
-			else
+			if not name then
 				name = ""
 				minLevel = -1
 			end
-			if quality then
-				private.CheckFieldValue("quality", quality)
-			else
-				quality = -1
-			end
-			if itemLevel then
-				private.CheckFieldValue("itemLevel", itemLevel)
-			else
-				itemLevel = -1
-			end
-			if expansionId then
-				private.CheckFieldValue("expansionId", expansionId)
-			else
-				expansionId = -1
-			end
-			if maxStack then
-				private.CheckFieldValue("maxStack", maxStack)
-				private.CheckFieldValue("vendorSell", vendorSell)
-				private.CheckFieldValue("isBOP", isBOP)
-				private.CheckFieldValue("isCraftingReagent", isCraftingReagent)
-			else
+			quality = quality or -1
+			itemLevel = itemLevel or -1
+			expansionId = expansionId or -1
+			if not maxStack then
 				maxStack = -1
 				vendorSell = -1
 				isBOP = -1
 				isCraftingReagent = -1
 			end
-			private.SetGetItemInfoFields(itemString, name, minLevel, itemLevel, maxStack, vendorSell, quality, isBOP, isCraftingReagent, expansionId)
+			craftedQuality = -1
+			private.SetGetItemInfoFields(itemString, name, minLevel, itemLevel, maxStack, vendorSell, quality, isBOP, isCraftingReagent, expansionId, craftedQuality)
 		end
 		if not name or name == "" or not quality or quality < 0 or not itemLevel or itemLevel < 0 then
 			gotInfo = false
@@ -1533,12 +1550,6 @@ function private.ProcessAvailableItems()
 	TempTable.Release(processedItems)
 
 	private.db:SetQueryUpdatesPaused(false)
-end
-
-function private.DoInfoChangedCallbacks(itemString)
-	for _, callback in ipairs(private.infoChangeCallbacks) do
-		callback(itemString)
-	end
 end
 
 function private.NameSortHelper(a, b)

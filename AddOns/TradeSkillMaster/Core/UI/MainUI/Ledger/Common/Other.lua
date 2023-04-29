@@ -4,13 +4,14 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
 local Other = TSM.MainUI.Ledger.Common:NewPackage("Other")
 local L = TSM.Include("Locale").GetTable()
 local Table = TSM.Include("Util.Table")
 local Money = TSM.Include("Util.Money")
 local Settings = TSM.Include("Service.Settings")
 local UIElements = TSM.Include("UI.UIElements")
+local UIUtils = TSM.Include("UI.UIUtils")
 local SECONDS_PER_DAY = 24 * 60 * 60
 local private = {
 	settings = nil,
@@ -64,12 +65,12 @@ end
 -- ============================================================================
 
 function private.DrawOtherExpensesPage()
-	TSM.UI.AnalyticsRecordPathChange("main", "ledger", "expenses", "other")
+	UIUtils.AnalyticsRecordPathChange("main", "ledger", "expenses", "other")
 	return private.DrawOtherPage("expense")
 end
 
 function private.DrawOtherRevenuePage()
-	TSM.UI.AnalyticsRecordPathChange("main", "ledger", "revenue", "other")
+	UIUtils.AnalyticsRecordPathChange("main", "ledger", "revenue", "other")
 	return private.DrawOtherPage("income")
 end
 
@@ -146,7 +147,7 @@ function private.DrawOtherPage(recordType)
 					:SetTitle(L["Amount"])
 					:SetFont("ITEM_BODY3")
 					:SetJustifyH("RIGHT")
-					:SetTextInfo("amount", Money.ToString)
+					:SetTextInfo("amount", private.TableGetAmountText)
 					:SetSortInfo("amount")
 					:Commit()
 				:NewColumn("time")
@@ -172,8 +173,12 @@ function private.TableGetTypeText(typeValue)
 	return TYPE_STR_LOOKUP[typeValue]
 end
 
-function private.TableGetTimeText(timevalue)
-	return SecondsToTime(time() - timevalue)
+function private.TableGetAmountText(amount)
+	return Money.ToString(amount, nil, "OPT_RETAIL_ROUND")
+end
+
+function private.TableGetTimeText(timeValue)
+	return SecondsToTime(time() - timeValue)
 end
 
 

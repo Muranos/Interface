@@ -1,21 +1,29 @@
 local L = BigWigs:NewBossLocale("Neltharions Lair Trash", "frFR")
 if not L then return end
 if L then
-	L.breaker = "Briseur pierre-puissance"
-	--L.hulk = "Vileshard Hulk"
-	--L.gnasher = "Rockback Gnasher"
-	--L.trapper = "Rockbound Trapper"
+	--L.rokmora_first_warmup_trigger = "Navarrogg?! Betrayer! You would lead these intruders against us?!"
+	--L.rokmora_second_warmup_trigger = "Either way, I will enjoy every moment of it. Rokmora, crush them!"
+
+	L.tarspitter_lurker = "Rôdeur crache-goudron"
+	L.rockback_gnasher = "Mâcheur pierre-peau"
+	L.vileshard_hulk = "Mastodonte vil-éclat"
+	L.vileshard_chunk = "Bris vil-éclat"
+	L.understone_drummer = "Batteur pierre-basse"
+	L.mightstone_breaker = "Briseur pierre-puissance"
+	L.blightshard_shaper = "Sculpteur éclat-chancreux"
+	L.stoneclaw_grubmaster = "Maître des larves pierre-griffe"
+	L.tarspitter_grub = "Larve crache-goudron"
+	L.rotdrool_grabber = "Saisisseur bave-pourrie"
+	L.rockbound_trapper = "Trappeur pierre-lié"
+	L.emberhusk_dominator = "Dominateur braise-chitine"
 end
 
 L = BigWigs:NewBossLocale("Rokmora", "frFR")
 if L then
 	--L.warmup_text = "Rokmora Active"
-	--L.warmup_trigger = "Navarrogg?! Betrayer! You would lead these intruders against us?!"
-	--L.warmup_trigger_2 = "Either way, I will enjoy every moment of it. Rokmora, crush them!"
 end
 
 L = BigWigs:NewBossLocale("Ularogg Cragshaper", "frFR")
 if L then
 	--L.totems = "Totems"
-	--L.bellow = "{193375} (Totems)" -- Bellow of the Deeps (Totems)
 end

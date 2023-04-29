@@ -140,12 +140,19 @@ end
 
 -- returns name of an npcID from a lookup table, or a tooltip scan if it's not in the table yet
 function rematch:GetNameFromNpcID(npcID)
+	local name
 	if type(npcID)~="number" then
 		return L["No Target"]
 	elseif rematch.targetNames[npcID] then
-		return rematch.targetNames[npcID]
+		name = rematch.targetNames[npcID]
+	else
+		name = rematch:GetNameFromNpcTooltip(npcID)
 	end
-	return rematch:GetNameFromNpcTooltip(npcID)
+	if rematch.targetSubNames[npcID] then
+		return format("%s (%s)",name,rematch.targetSubNames[npcID])
+	else
+		return name
+	end
 end
 
 -- returns the name (if possible) from the given npcID by creating a fake tooltip of the npcID
@@ -211,7 +218,7 @@ function rematch:CacheNpcIDs()
 	end
 end
 
--- this returns the passed speciesIDs (or links) as a string of type icons 
+-- this returns the passed speciesIDs (or links) as a string of type icons
 function rematch:NotablePetsAsText(...)
 	local pets = ""
 	for i=1,select("#",...) do

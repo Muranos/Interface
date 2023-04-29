@@ -1,7 +1,7 @@
 --[[-----------------------------------------------------------------------------
 Spin Box Widget
 -------------------------------------------------------------------------------]]
-local Type, Version = "WeakAurasSpinBox", 1
+local Type, Version = "WeakAurasSpinBox", 3
 local AceGUI = LibStub and LibStub("AceGUI-3.0", true)
 if not AceGUI or (AceGUI:GetWidgetVersion(Type) or 0) >= Version then
   return
@@ -15,10 +15,10 @@ local tonumber, pairs = tonumber, pairs
 local PlaySound = PlaySound
 local CreateFrame, UIParent = CreateFrame, UIParent
 
-local progressLeftOffset = WeakAuras.IsClassicOrBCCOrWrath() and -2 or -3
-local progressExtraWidth = WeakAuras.IsClassicOrBCCOrWrath() and -2 or 0
-local progressTopOffset = WeakAuras.IsClassicOrBCCOrWrath() and -3 or -2
-local progressBottomOffset = WeakAuras.IsClassicOrBCCOrWrath() and 3 or 2
+local progressLeftOffset = WeakAuras.IsClassicEraOrWrath() and -2 or -3
+local progressExtraWidth = WeakAuras.IsClassicEraOrWrath() and -2 or 0
+local progressTopOffset = WeakAuras.IsClassicEraOrWrath() and -3 or -2
+local progressBottomOffset = WeakAuras.IsClassicEraOrWrath() and 3 or 2
 
 --[[-----------------------------------------------------------------------------
 Support functions
@@ -112,6 +112,7 @@ local function EditBox_OnEnterPressed(frame)
     PlaySound(856) -- SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON
     self:SetValue(value)
   end
+  frame:ClearFocus()
 end
 
 local function EditBox_OnEnter(frame)
@@ -207,14 +208,11 @@ local methods = {
   end,
 
   ["SetValue"] = function(self, value)
-    local changed = value ~= self.value
     self.value = value
     UpdateText(self)
     UpdateButtons(self)
     UpdateProgressBar(self)
-    if changed then
-      self:Fire("OnValueChanged", value)
-    end
+    self:Fire("OnValueChanged", value)
   end,
 
   ["GetValue"] = function(self)

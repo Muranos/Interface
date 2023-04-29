@@ -8,12 +8,10 @@
 -- A dropdown element allows the user to select from a dialog list. It is a subclass of the @{BaseDropdown} class.
 -- @classmod SelectionDropdown
 
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
 local Table = TSM.Include("Util.Table")
-local SelectionDropdown = TSM.Include("LibTSMClass").DefineClass("SelectionDropdown", TSM.UI.BaseDropdown)
 local UIElements = TSM.Include("UI.UIElements")
-UIElements.Register(SelectionDropdown)
-TSM.UI.SelectionDropdown = SelectionDropdown
+local SelectionDropdown = UIElements.Define("SelectionDropdown", "BaseDropdown")
 
 
 
@@ -107,7 +105,7 @@ end
 function SelectionDropdown._AddDialogChildren(self, frame)
 	frame:AddChild(UIElements.New("DropdownList", "list")
 		:SetMultiselect(false)
-		:SetItems(self._items, self._selectedItem)
+		:SetItems(self._items)
 	)
 end
 

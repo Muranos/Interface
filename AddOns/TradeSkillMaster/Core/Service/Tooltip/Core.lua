@@ -4,7 +4,7 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
 local Tooltip = TSM:NewPackage("Tooltip")
 local ItemString = TSM.Include("Util.ItemString")
 local ObjectPool = TSM.Include("Util.ObjectPool")
@@ -34,11 +34,8 @@ function Tooltip.OnInitialize()
 		:AddKey("global", "tooltipOptions", "vendorBuyTooltip")
 		:AddKey("global", "tooltipOptions", "vendorSellTooltip")
 		:AddKey("global", "tooltipOptions", "groupNameTooltip")
-		:AddKey("global", "tooltipOptions", "detailedDestroyTooltip")
-		:AddKey("global", "tooltipOptions", "millTooltip")
-		:AddKey("global", "tooltipOptions", "prospectTooltip")
-		:AddKey("global", "tooltipOptions", "deTooltip")
-		:AddKey("global", "tooltipOptions", "transformTooltip")
+		:AddKey("global", "tooltipOptions", "destroyTooltipFormat")
+		:AddKey("global", "tooltipOptions", "convertTooltipFormat")
 		:AddKey("global", "tooltipOptions", "operationTooltips")
 		:AddKey("global", "tooltipOptions", "inventoryTooltipFormat")
 	ItemTooltip.SetWrapperPopulateFunction(private.PopulateTooltip)

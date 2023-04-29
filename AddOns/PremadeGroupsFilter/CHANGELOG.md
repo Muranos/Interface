@@ -1,9 +1,8 @@
 # Premade Groups Filter
 
-## [3.3.4](https://github.com/0xbs/premade-groups-filter/tree/3.3.4) (2022-11-24)
-[Full Changelog](https://github.com/0xbs/premade-groups-filter/compare/3.3.3...3.3.4) [Previous Releases](https://github.com/0xbs/premade-groups-filter/releases)
+## [3.7.4](https://github.com/0xbs/premade-groups-filter/tree/3.7.4) (2023-03-23)
+[Full Changelog](https://github.com/0xbs/premade-groups-filter/compare/3.7.3...3.7.4) [Previous Releases](https://github.com/0xbs/premade-groups-filter/releases)
 
-- Set version to 3.3.4  
-- Update README.md  
-- Typo in English localization (#125)  
-- Update zhTW (#124)  
+- Bumped TOC  
+- Update ruRU.lua (#161)  
+    Minor fixes.  

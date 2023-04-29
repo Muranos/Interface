@@ -628,9 +628,7 @@
 				--	Details:EqualizeActorsSchedule (Details.host_of)
 				end
 
-				--verifica memoria
 				Details:FlagActorsOnCommonFight() --fight_component
-				--Details:CheckMemoryAfterCombat() -- 7.2.5 is doing some weird errors even out of combat
 			else
 
 				--this segment is a boss fight
@@ -1606,21 +1604,21 @@
 			GameCooltip:SetOption("SparkTexture", [[Interface\Buttons\WHITE8X8]])
 			GameCooltip:SetOption("SparkWidth", 1)
 			GameCooltip:SetOption("SparkHeight", 20)
-			GameCooltip:SetOption("SparkColor", "gray")
+			GameCooltip:SetOption("SparkColor", Details.tooltip.divisor_color)
 			GameCooltip:SetOption("SparkAlpha", 0.15)
 			GameCooltip:SetOption("SparkPositionXOffset", 5)
 			--GameCooltip:SetOption("SparkAlpha", 0.3)
 			--GameCooltip:SetOption("SparkPositionXOffset", -2)
-			
 
 			value = value or 100
 
 			if (not side) then
-				local r, g, b, a = unpack(Details.tooltip.background)
-				GameCooltip:AddStatusBar (value, 1, r, g, b, a, useSpark, {value = 100, color = {.21, .21, .21, 0.8}, texture = [[Interface\AddOns\Details\images\bar_serenity]]})
+				local r, g, b, a = unpack(Details.tooltip.bar_color)
+				local rBG, gBG, bBG, aBG = unpack(Details.tooltip.background)
+				GameCooltip:AddStatusBar (value, 1, r, g, b, a, useSpark, {value = 100, color = {rBG, gBG, bBG, aBG}, texture = [[Interface\AddOns\Details\images\bar_serenity]]})
 
 			else
-				GameCooltip:AddStatusBar (value, 2, unpack(Details.tooltip.background))
+				GameCooltip:AddStatusBar (value, 2, unpack(Details.tooltip.bar_color))
 			end
 		end
 
@@ -1631,12 +1629,14 @@
 
 -- /run local a,b=Details.tooltip.header_statusbar,0.3;a[1]=b;a[2]=b;a[3]=b;a[4]=0.8;
 
-		function Details:AddTooltipSpellHeaderText (headerText, headerColor, amount, iconTexture, L, R, T, B, separator)
-
+		function Details:AddTooltipSpellHeaderText (headerText, headerColor, amount, iconTexture, L, R, T, B, separator, iconSize)
 			if (separator and separator == true) then
 				GameCooltip:AddLine ("", "", nil, nil, 1, 1, 1, 1, 8)
-
 				return
+			end
+
+			if (type(iconSize) ~= "number") then
+				iconSize = 14
 			end
 
 			if (Details.tooltip.show_amount) then
@@ -1646,7 +1646,7 @@
 			end
 
 			if (iconTexture) then
-				GameCooltip:AddIcon (iconTexture, 1, 1, 14, 14, L or 0, R or 1, T or 0, B or 1)
+				GameCooltip:AddIcon (iconTexture, 1, 1, iconSize, iconSize, L or 0, R or 1, T or 0, B or 1)
 			end
 		end
 
@@ -1658,7 +1658,7 @@
 			GameCooltip:Reset()
 			GameCooltip:SetType ("tooltip")
 
-			GameCooltip:SetOption("StatusBarTexture", [[Interface\AddOns\Details\images\bar_background_dark]])
+			GameCooltip:SetOption("StatusBarTexture", [[Interface\AddOns\Details\images\bar_background_dark_withline]])
 
 			GameCooltip:SetOption("TextSize", Details.tooltip.fontsize)
 			GameCooltip:SetOption("TextFont",  Details.tooltip.fontface)
@@ -1727,16 +1727,10 @@
 					local avatar = NickTag:GetNicknameTable (objeto.serial, true)
 					if (avatar and not Details.ignore_nicktag) then
 						if (avatar [2] and avatar [4] and avatar [1]) then
-							GameCooltip:SetBannerImage (1, avatar [2], 80, 40, avatarPoint, avatarTexCoord, nil) --overlay [2] avatar path
-							GameCooltip:SetBannerImage (2, avatar [4], 200, 55, backgroundPoint, avatar [5], avatar [6]) --background
-							GameCooltip:SetBannerText (1, (not Details.ignore_nicktag and avatar [1]) or objeto.nome, textPoint, avatarTextColor, 14, SharedMedia:Fetch ("font", Details.tooltip.fontface)) --text [1] nickname
+							GameCooltip:SetBannerImage (1, 1, avatar [2], 80, 40, avatarPoint, avatarTexCoord, nil) --overlay [2] avatar path
+							GameCooltip:SetBannerImage (1, 2, avatar [4], 200, 55, backgroundPoint, avatar [5], avatar [6]) --background
+							GameCooltip:SetBannerText (1, 1, (not Details.ignore_nicktag and avatar [1]) or objeto.nome, textPoint, avatarTextColor, 14, SharedMedia:Fetch ("font", Details.tooltip.fontface)) --text [1] nickname
 						end
-					else
-						--if (Details.remove_realm_from_name and objeto.displayName:find("%*")) then
-						--	GameCooltip:SetBannerImage (1, [[Interface\AddOns\Details\images\background]], 20, 30, avatarPoint, avatarTexCoord, {0, 0, 0, 0}) --overlay [2] avatar path
-						--	GameCooltip:SetBannerImage (2, [[Interface\PetBattles\Weather-BurntEarth]], 160, 30, {{"bottomleft", "topleft", 0, -5}, {"bottomright", "topright", 0, -5}}, {0.12, 0.88, 1, 0}, {0, 0, 0, 0.1}) --overlay [2] avatar path {0, 0, 0, 0}
-						--	GameCooltip:SetBannerText (1, objeto.nome, {"left", "left", 11, -8}, {1, 1, 1, 0.7}, 10, SharedMedia:Fetch ("font", Details.tooltip.fontface)) --text [1] nickname
-						--end
 					end
 				end
 
@@ -1789,82 +1783,96 @@
 		end
 
 	--call update functions
-		function Details:RefreshAllMainWindows (forcar)
-
-			local combatTable = self.showing
+		function Details:RefreshAllMainWindows(bForceRefresh)
+			local combatObject = self.showing
 
 			--the the segment does not have a valid combat, freeze the window
-			if (not combatTable) then
+			if (not combatObject) then
 				if (not self.freezed) then
 					return self:Freeze()
 				end
 				return
 			end
 
-			local need_refresh = combatTable[self.atributo].need_refresh
-			if (not need_refresh and not forcar) then
-				return --n�o precisa de refresh
-			--else
-				--combatTable[self.atributo].need_refresh = false
+			local needRefresh = combatObject[self.atributo].need_refresh
+			if (not needRefresh and not bForceRefresh) then
+				return
 			end
+
+			--measure the cpu time spent on this function
+			--local startTime = debugprofilestop()
 
 			if (self.atributo == 1) then --damage
-				return atributo_damage:RefreshWindow(self, combatTable, forcar, nil, need_refresh)
+				--[[return]] atributo_damage:RefreshWindow(self, combatObject, bForceRefresh, nil, needRefresh)
 
 			elseif (self.atributo == 2) then --heal
-				return atributo_heal:RefreshWindow(self, combatTable, forcar, nil, need_refresh)
+				--[[return]] atributo_heal:RefreshWindow(self, combatObject, bForceRefresh, nil, needRefresh)
 
 			elseif (self.atributo == 3) then --energy
-				return atributo_energy:RefreshWindow(self, combatTable, forcar, nil, need_refresh)
+				--[[return]] atributo_energy:RefreshWindow(self, combatObject, bForceRefresh, nil, needRefresh)
 
 			elseif (self.atributo == 4) then --outros
-				return atributo_misc:RefreshWindow(self, combatTable, forcar, nil, need_refresh)
+				--[[return]] atributo_misc:RefreshWindow(self, combatObject, bForceRefresh, nil, needRefresh)
 
 			elseif (self.atributo == 5) then --ocustom
-				return atributo_custom:RefreshWindow(self, combatTable, forcar, nil, need_refresh)
+				--[[return]] atributo_custom:RefreshWindow(self, combatObject, bForceRefresh, nil, needRefresh)
 			end
 
+			--[[if (Details222.Perf.WindowUpdateC) then
+				local elapsedTime = debugprofilestop() - startTime
+				if (Details222.Perf.WindowUpdate) then
+					Details222.Perf.WindowUpdate = Details222.Perf.WindowUpdate + elapsedTime
+				end
+			end--]]
+		end
+
+		--["1"] = "WindowUpdate",
+		--["2"] = 308.6662000129,
+		function Details:DumpPerf()
+			local t = {}
+			for name, value in pairs(Details222.Perf) do
+				t[#t+1] = {name, value}
+			end
+			dumpt(t)
 		end
 
 		function Details:ForceRefresh()
 			self:RefreshMainWindow(true)
 		end
 
-		function Details:RefreshMainWindow(instance, forceRefresh)
+		function Details:RefreshMainWindow(instance, bForceRefresh)
 			if (not instance or type(instance) == "boolean") then
-				forceRefresh = instance
+				bForceRefresh = instance
 				instance = self
 			end
 
-			if (not forceRefresh) then
+			if (not bForceRefresh) then
 				Details.LastUpdateTick = Details._tempo
 			end
 
 			if (instance == -1) then
 				--update
-				for index, instance in ipairs(Details.tabela_instancias) do
-					if (instance.ativa) then
-						if (instance.modo == modo_GROUP or instance.modo == modo_ALL) then
-							instance:RefreshAllMainWindows(forceRefresh)
-							--print("all instances got updates")
+				for index, thisInstance in ipairs(Details.tabela_instancias) do
+					if (thisInstance.ativa) then
+						if (thisInstance.modo == modo_GROUP or thisInstance.modo == modo_ALL) then
+							thisInstance:RefreshAllMainWindows(bForceRefresh)
 						end
 					end
 				end
 
 				--flag windows as no need update next tick
-				for index, instance in ipairs(Details.tabela_instancias) do
-					if (instance.ativa and instance.showing) then
-						if (instance.modo == modo_GROUP or instance.modo == modo_ALL) then
-							if (instance.atributo <= 4) then
-								instance.showing [instance.atributo].need_refresh = false
+				for index, thisInstance in ipairs(Details.tabela_instancias) do
+					if (thisInstance.ativa and thisInstance.showing) then
+						if (thisInstance.modo == modo_GROUP or thisInstance.modo == modo_ALL) then
+							if (thisInstance.atributo <= 4) then
+								thisInstance.showing[thisInstance.atributo].need_refresh = false
 							end
 						end
 					end
 				end
 
-				if (not forceRefresh) then --update player details window if opened
+				if (not bForceRefresh) then --update player details window if opened
 					if (info.ativo) then
-						--print("info.jogador:MontaInfo()")
 						return info.jogador:MontaInfo()
 					end
 				end
@@ -1880,7 +1888,7 @@
 
 			if (instance.modo == modo_ALL or instance.modo == modo_GROUP) then
 				--print("updating all instances...")
-				return instance:RefreshAllMainWindows (forceRefresh)
+				return instance:RefreshAllMainWindows(bForceRefresh)
 			end
 		end
 

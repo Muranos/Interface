@@ -1,7 +1,7 @@
-## Interface: 100002
+## Interface: 100007
 ## Title: WeakAuras
 ## Author: The WeakAuras Team
-## Version: 5.2.1
+## Version: 5.4.4
 ## X-Flavor: Mainline
 ## Notes: A powerful, comprehensive utility for displaying graphics and information based on buffs, debuffs, and other triggers.
 ## Notes-esES: Potente y completa aplicación que te permitirá mostrar por pantalla múltiples diseños, basados en beneficios, perjuicios y otros activadores.
@@ -17,7 +17,7 @@
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
 ## SavedVariables: WeakAurasSaved
-## OptionalDeps: Ace3, LibCompress, LibSharedMedia-3.0, AceGUI-3.0-SharedMediaWidgets, Masque, GTFO, LibButtonGlow-1.0, LibSpellRange-1.0, LibRangeCheck-2.0, LibDBIcon-1.0, LibClassicDurations, LibClassicCasterino, LibGetFrame-1.0, LibSpecialization, !LibUIDropDownMenu
+## OptionalDeps: Ace3, LibCompress, LibSharedMedia-3.0, AceGUI-3.0-SharedMediaWidgets, Masque, GTFO, LibButtonGlow-1.0, LibSpellRange-1.0, LibRangeCheck-2.0, LibDBIcon-1.0, LibClassicDurations, LibClassicCasterino, LibGetFrame-1.0, LibSpecialization, !LibUIDropDownMenu, !!AddonLocale
 
 # External code + initialization
 embeds.xml
@@ -41,6 +41,7 @@ Transmission.lua
 Modernize.lua
 Animations.lua
 Conditions.lua
+AnchorToWeakAuras.lua
 
 # Trigger systems
 LibSpecializationWrapper.lua
@@ -52,6 +53,8 @@ AuraWarnings.lua
 AuraEnvironment.lua
 AuraEnvironmentWrappedSystems.lua
 DebugLog.lua
+Dragonriding.lua
+SubscribableObject.lua
 
 # Region support
 RegionTypes\RegionPrototype.lua

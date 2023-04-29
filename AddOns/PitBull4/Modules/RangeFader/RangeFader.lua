@@ -10,7 +10,7 @@ PitBull4_RangeFader:SetDescription(L["Make the unit frame fade if out of range."
 PitBull4_RangeFader:SetDefaults({
 	enabled = false,
 	out_of_range_opacity = 0.6,
-	check_method = 'class',
+	check_method = "class",
 })
 
 function PitBull4_RangeFader:OnEnable()
@@ -24,136 +24,140 @@ local check_method_to_dist_index = {
 	follow = 4,
 }
 
-local friendly_is_in_range, pet_is_in_range, enemy_is_in_range, enemy_is_in_long_range
+local friendly_spells = {}
+local pet_spells = {}
+local enemy_spells = {}
+local long_enemy_spells = {}
+local res_spells = {}
+
 do
-	local friendly_spells = {}
-	local pet_spells = {}
-	local enemy_spells = {}
-	local long_enemy_spells = {}
-	local res_spells = {}
-
-	local _,class = UnitClass("player")
-
+	local class = UnitClassBase("player")
 	if class == "DEATHKNIGHT" then
-		enemy_spells[#enemy_spells+1] = GetSpellInfo(45524) -- Chains of Ice
-		long_enemy_spells[#long_enemy_spells+1] = GetSpellInfo(47541) -- Death Coil
+		enemy_spells[#enemy_spells+1] = GetSpellInfo(47541) -- Death Coil (30)
 		res_spells[#res_spells+1] = GetSpellInfo(61999) -- Raise Ally
 	elseif class == "DEMONHUNTER" then
-		enemy_spells[#enemy_spells+1] = GetSpellInfo(185245) -- Torment
+		enemy_spells[#enemy_spells+1] = GetSpellInfo(344862) -- Chaos Strike (Melee)
+		long_enemy_spells[#long_enemy_spells+1] = GetSpellInfo(185245) -- Torment (30)
 	elseif class == "DRUID" then
-		long_enemy_spells[#long_enemy_spells+1] = GetSpellInfo(5176) -- Wrath
+		enemy_spells[#enemy_spells+1] = GetSpellInfo(5176) -- Wrath (40)
 		friendly_spells[#friendly_spells+1] = GetSpellInfo(8936) -- Regrowth
 		res_spells[#res_spells+1] = GetSpellInfo(50769) -- Revive
+	elseif class == "EVOKER" then
+		enemy_spells[#enemy_spells+1] = GetSpellInfo(361469) -- Living Flame (25)
+		friendly_spells[#friendly_spells+1] = GetSpellInfo(355913) -- Emerald Blossom (25)
+		res_spells[#res_spells+1] = GetSpellInfo(361227) -- Return
 	elseif class == "HUNTER" then
-		enemy_spells[#enemy_spells+1] = GetSpellInfo(185358) -- Arcane Shot
+		enemy_spells[#enemy_spells+1] = GetSpellInfo(185358) -- Arcane Shot (40)
 		pet_spells[#pet_spells+1] = GetSpellInfo(136) -- Mend Pet
 	elseif class == "MAGE" then
-		enemy_spells[#enemy_spells+1] = GetSpellInfo(118) -- Polymorph
-		long_enemy_spells[#long_enemy_spells+1] = GetSpellInfo(116) -- Frostbolt
+		-- enemy_spells[#enemy_spells+1] = GetSpellInfo(118) -- Polymorph (35)
+		enemy_spells[#enemy_spells+1] = GetSpellInfo(116) -- Frostbolt (40)
 		friendly_spells[#friendly_spells+1] = GetSpellInfo(130) -- Slow Fall
 	elseif class == "MONK" then
-		enemy_spells[#enemy_spells+1] = GetSpellInfo(115546) -- Provoke
-		long_enemy_spells[#long_enemy_spells+1] = GetSpellInfo(117952) -- Crackling Jade Lightning
+		enemy_spells[#enemy_spells+1] = GetSpellInfo(115546) -- Provoke (30)
+		long_enemy_spells[#long_enemy_spells+1] = GetSpellInfo(117952) -- Crackling Jade Lightning (40)
 		friendly_spells[#friendly_spells+1] = GetSpellInfo(116670) -- Vivify
 		res_spells[#res_spells+1] = GetSpellInfo(115178) -- Resuscitate
 	elseif class == "PALADIN" then
-		enemy_spells[#enemy_spells+1] = GetSpellInfo(62124) -- Hand of Reckoning
+		enemy_spells[#enemy_spells+1] = GetSpellInfo(62124) -- Hand of Reckoning (30)
 		friendly_spells[#friendly_spells+1] = GetSpellInfo(1044) -- Hand of Freedom
 		res_spells[#res_spells+1] = GetSpellInfo(7328) -- Redemption
 	elseif class == "PRIEST" then
-		enemy_spells[#enemy_spells+1] = GetSpellInfo(528) -- Dispel Magic
-		long_enemy_spells[#long_enemy_spells+1] = GetSpellInfo(585) -- Smite
+		-- enemy_spells[#enemy_spells+1] = GetSpellInfo(528) -- Dispel Magic (30)
+		enemy_spells[#enemy_spells+1] = GetSpellInfo(585) -- Smite (40)
 		friendly_spells[#friendly_spells+1] = GetSpellInfo(2061) -- Flash Heal
 		res_spells[#res_spells+1] = GetSpellInfo(2006) -- Resurrection
 	elseif class == "ROGUE" then
-		enemy_spells[#enemy_spells+1] = GetSpellInfo(36554) -- Shadowstep
-		enemy_spells[#enemy_spells+1] = GetSpellInfo(185763) -- Pistol Shot
+		enemy_spells[#enemy_spells+1] = GetSpellInfo(185763) -- Pistol Shot (20 - Outlaw)
+		enemy_spells[#enemy_spells+1] = GetSpellInfo(36554) -- Shadowstep (25)
+		enemy_spells[#enemy_spells+1] = GetSpellInfo(1752) -- Sinister Strike (Melee)
 		friendly_spells[#friendly_spells+1] = GetSpellInfo(57934) -- Tricks of the Trade
 	elseif class == "SHAMAN" then
-		enemy_spells[#enemy_spells+1] = GetSpellInfo(57994) -- Wind Shear
-		long_enemy_spells[#long_enemy_spells+1] = GetSpellInfo(403) -- Lightning Bolt
+		-- enemy_spells[#enemy_spells+1] = GetSpellInfo(57994) -- Wind Shear (30)
+		enemy_spells[#enemy_spells+1] = GetSpellInfo(188196) -- Lightning Bolt (40)
 		friendly_spells[#friendly_spells+1] = GetSpellInfo(8004) -- Healing Surge
 		res_spells[#res_spells+1] = GetSpellInfo(2008) -- Ancestral Spirit
 	elseif class == "WARLOCK" then
-		enemy_spells[#enemy_spells+1] = GetSpellInfo(5782) -- Fear
-		long_enemy_spells[#long_enemy_spells+1] = GetSpellInfo(686) -- Shadow Bolt
+		-- enemy_spells[#enemy_spells+1] = GetSpellInfo(5782) -- Fear (35)
+		enemy_spells[#enemy_spells+1] = GetSpellInfo(686) -- Shadow Bolt (40)
 		pet_spells[#pet_spells+1] = GetSpellInfo(755) -- Health Funnel
 		friendly_spells[#friendly_spells+1] = GetSpellInfo(5697) -- Unending Breath
 		res_spells[#res_spells+1] = GetSpellInfo(20707) -- Soulstone
 	elseif class == "WARRIOR" then
-		enemy_spells[#enemy_spells+1] = GetSpellInfo(100) -- Charge
-		long_enemy_spells[#long_enemy_spells+1] = GetSpellInfo(355) -- Taunt
+		enemy_spells[#enemy_spells+1] = GetSpellInfo(100) -- Charge (8-25)
+		enemy_spells[#enemy_spells+1] = GetSpellInfo(1464) -- Slam (Melee)
+		long_enemy_spells[#long_enemy_spells+1] = GetSpellInfo(355) -- Taunt (30)
 		friendly_spells[#friendly_spells+1] = GetSpellInfo(3411) -- Intervene
 	end
+end
 
-	function friendly_is_in_range(unit)
-		if CheckInteractDistance(unit, 1) then
+local function friendly_is_in_range(unit)
+	if CheckInteractDistance(unit, 1) then
+		return true
+	end
+
+	if UnitIsDeadOrGhost(unit) then
+		for _, name in ipairs(res_spells) do
+			if IsSpellInRange(name, unit) == 1 then
+				return true
+			end
+		end
+
+		-- Only check range for resurrection spells if the
+		-- unit is dead.
+		return false
+	end
+
+	for _, name in ipairs(friendly_spells) do
+		if IsSpellInRange(name, unit) == 1 then
 			return true
 		end
-
-		if UnitIsDeadOrGhost(unit) then
-			for _, name in ipairs(res_spells) do
-				if IsSpellInRange(name, unit) == 1 then
-					return true
-				end
-			end
-
-			-- Only check range for resurrection spells if the
-			-- unit is dead.
-			return false
-		end
-
-		for _, name in ipairs(friendly_spells) do
-			if IsSpellInRange(name, unit) == 1 then
-				return true
-			end
-		end
-
-		return false
 	end
 
-	function pet_is_in_range(unit)
-		if CheckInteractDistance(unit, 2) then
+	return false
+end
+
+local function pet_is_in_range(unit)
+	if CheckInteractDistance(unit, 2) then
+		return true
+	end
+
+	for _, name in ipairs(friendly_spells) do
+		if IsSpellInRange(name, unit) == 1 then
 			return true
 		end
-
-		for _, name in ipairs(friendly_spells) do
-			if IsSpellInRange(name, unit) == 1 then
-				return true
-			end
-		end
-		for _, name in ipairs(pet_spells) do
-			if IsSpellInRange(name, unit) == 1 then
-				return true
-			end
-		end
-
-		return false
 	end
-
-	function enemy_is_in_range(unit)
-		if CheckInteractDistance(unit, 2) then
+	for _, name in ipairs(pet_spells) do
+		if IsSpellInRange(name, unit) == 1 then
 			return true
 		end
-
-		for _, name in ipairs(enemy_spells) do
-			if IsSpellInRange(name, unit) == 1 then
-				return true
-			end
-		end
-
-		return false
 	end
 
-	function enemy_is_in_long_range(unit)
-		for _, name in ipairs(long_enemy_spells) do
-			if IsSpellInRange(name, unit) == 1 then
-				return true
-			end
-		end
+	return false
+end
 
-		return false
+local function enemy_is_in_range(unit)
+	if CheckInteractDistance(unit, 2) then
+		return true
 	end
+
+	for _, name in ipairs(enemy_spells) do
+		if IsSpellInRange(name, unit) == 1 then
+			return true
+		end
+	end
+
+	return false
+end
+
+local function enemy_is_in_long_range(unit)
+	for _, name in ipairs(long_enemy_spells) do
+		if IsSpellInRange(name, unit) == 1 then
+			return true
+		end
+	end
+
+	return false
 end
 
 function PitBull4_RangeFader:GetOpacity(frame)
@@ -221,6 +225,24 @@ function PitBull4_RangeFader:GetOpacity(frame)
 end
 
 PitBull4_RangeFader:SetLayoutOptionsFunction(function(self)
+	local range_pattern = _G.SPELL_RANGE:gsub("%%s", ".-")
+	local function get_spell_range(spell_id)
+		local data = C_TooltipInfo.GetSpellByID(spell_id, true)
+		if not data then return end
+
+		for _, line in next, data.lines do
+			TooltipUtil.SurfaceArgs(line)
+			if line.type == 0 then
+				if line.leftText and line.leftText:find(range_pattern) then
+					return line.leftText
+				elseif line.rightText and line.rightText:find(range_pattern) then
+					return line.rightText
+				end
+			end
+		end
+		return _G.SPELL_RANGE:format("??")
+	end
+
 	return 'out_of_range', {
 		type = 'range',
 		name = L["Out-of-range opacity"],
@@ -271,6 +293,46 @@ PitBull4_RangeFader:SetLayoutOptionsFunction(function(self)
 			PitBull4:RecheckAllOpacities()
 		end,
 		width = 'double',
+	}, 'class_spell_info', {
+		type = "description",
+		name = function(info)
+			local desc = ""
+			-- spells are the name, so they should only return info if known (hopefully similar to IsSpellInRange >.>)
+			for _, spell in ipairs(enemy_spells) do
+				local _, _, icon, _, _, _, spell_id = GetSpellInfo(spell)
+				if spell_id then
+					desc = desc .. ("%s: |T%s:16|t|cff71d5ff[%s]|h|r (%s)\n"):format(L["Hostile"], icon, spell, get_spell_range(spell_id))
+					break
+				end
+			end
+			for _, spell in ipairs(long_enemy_spells) do
+				local _, _, icon, _, _, _, spell_id = GetSpellInfo(spell)
+				if spell_id then
+					desc = desc .. ("%s: |T%s:16|t|cff71d5ff[%s]|h|r (%s)\n"):format(L["Hostile, Long-range"], icon, spell, get_spell_range(spell_id))
+					break
+				end
+			end
+			for _, spell in ipairs(friendly_spells) do
+				local _, _, icon, _, _, _, spell_id = GetSpellInfo(spell)
+				if spell_id then
+					desc = desc .. ("%s: |T%s:16|t|cff71d5ff[%s]|h|r (%s)\n"):format(L["Friendly"], icon, spell, get_spell_range(spell_id))
+					break
+				end
+			end
+			for _, spell in ipairs(pet_spells) do
+				local _, _, icon, _, _, _, spell_id = GetSpellInfo(spell)
+				if spell_id then
+					desc = desc .. ("%s: |T%s:16|t|cff71d5ff[%s]|h|r (%s)\n"):format(L["Pet"], icon, spell, get_spell_range(spell_id))
+					break
+				end
+			end
+			return desc
+		end,
+		width = "full",
+		hidden = function(info)
+			local db = PitBull4.Options.GetLayoutDB(self)
+			return not db.enabled or db.check_method ~= "class"
+		end,
 	}, 'custom_spell', {
 		type = 'input',
 		name = L["Custom spell"],

@@ -15,7 +15,6 @@ DSH.AUTHOR = GetAddOnMetadata(addonName, "Author")
 local GetItemGem = GetItemGem
 local GetSocketItemInfo = GetSocketItemInfo
 local GetInventoryItemLink = GetInventoryItemLink
-
 local GetItemInfoInstant = GetItemInfoInstant
 --local GetContainerItemLink = C_Container.GetContainerItemLink
 --local PickupContainerItem = C_Container.PickupContainerItem
@@ -27,12 +26,15 @@ local PickupContainerItem = PickupContainerItem or C_Container.PickupContainerIt
 local GetContainerNumSlots = GetContainerNumSlots or C_Container.GetContainerNumSlots
 local GetContainerItemID = GetContainerItemID or C_Container.GetContainerItemID
 
+local UNIQUE_EQUIP_PATTERN = _G.ITEM_LIMIT_CATEGORY_MULTIPLE:gsub("%(%%d%)", "%%(%%d%%)"):gsub("%-", "%%-"):gsub('%%s', '(.+)')
+
 local NUM_BAG_SLOTS = NUM_BAG_SLOTS
 
 local pairs, next, select, type, unpack = pairs, next, select, type, unpack
 local format, tostring, tonumber = string.format, tostring, tonumber
 
 local SLOT_GEM_WRAP = 3
+local SOCKET_GEM_WRAP = 9
 local BUTTON_SIZE = 35.3
 local BUTTON_PAD = 2
 local SLOT_BUTTON_SIZE = 20
@@ -46,10 +48,38 @@ local EF = CreateFrame('Frame') -- event handler frame
 EF:RegisterEvent('ADDON_LOADED')
 EF:SetScript('OnEvent', function(self, event, ...) self[event](self, ...) end)
 DSH.EF = EF
+local updateThrottle = CreateFrame("Frame")
 
 local function DSHPrint(text)
 	print("|cFFFC0316DSH: |r" .. text)
 end
+
+local PRIMORDIAL_GEMS = {[204012] = true,
+                        [204010] = true,
+                        [204027] = true,
+                        [204001] = true,
+                        [204005] = true,
+                        [204013] = true,
+                        [204002] = true,
+                        [204011] = true,
+                        [204009] = true,
+                        [204019] = true,
+                        [204018] = true,
+                        [204006] = true,
+                        [204021] = true,
+                        [204025] = true,
+                        [204022] = true,
+                        [204008] = true,
+                        [204029] = true,
+                        [204003] = true,
+                        [204004] = true,
+                        [204007] = true,
+                        [204014] = true,
+                        [204000] = true,
+                        [204015] = true,
+                        [204020] = true,
+                        [204030] = true,
+}
 
 function EF:ADDON_LOADED(addon)
 	if addon == addonName then
@@ -77,6 +107,8 @@ function EF:ADDON_LOADED(addon)
 		
 		DSH.gemButtons = {}
 		DSH.slotButtons = {}
+        DSH.uniqueInfo = {}
+        DSH.UniqueEquipped = {}
 	end
 end
 
@@ -127,12 +159,15 @@ local function updateGemButtonAnchors(isSlotButton)
 	--todo - Make this only check the buttons that could be wrapped
 	local rows = 1
 	local col = 1
+    local wrap = isSlotButton and SLOT_GEM_WRAP or SOCKET_GEM_WRAP
+
+    --dbpr("Wrap", wrap)
 	for i = 2, #DSH.gemButtons do
 		if DSH.gemButtons[i]:IsShown() then
-			if i <= SLOT_GEM_WRAP then col = i end
-			if isSlotButton and ((i-1) % SLOT_GEM_WRAP == 0) then
+			if i <= wrap then col = i end
+			if ((i-1) % wrap == 0) then
 				rows = rows + 1
-				DSH.gemButtons[i]:SetPoint("TOPLEFT", DSH.gemButtons[i-(SLOT_GEM_WRAP)], "BOTTOMLEFT", 0, -1*BUTTON_PAD)
+				DSH.gemButtons[i]:SetPoint("TOPLEFT", DSH.gemButtons[i-(wrap)], "BOTTOMLEFT", 0, -1*BUTTON_PAD)
 			else
 				DSH.gemButtons[i]:ClearAllPoints()
 				DSH.gemButtons[i]:SetPoint("LEFT", DSH.gemButtons[i-1], "RIGHT", BUTTON_PAD, 0)
@@ -153,29 +188,84 @@ local function createGemButtonContainer()
 	frame:SetBackdrop({bgFile = "Interface\\Tooltips\\UI-Tooltip-Background", tile = true, tileSize = 16, edgeFile = [[Interface\ButtoPLTrader:NS\WHITE8X8]], edgeSize = 1 * EF:GetEdgeScale()})
 	frame:SetBackdropColor(0, 0, 0, .75)
 	frame:SetBackdropBorderColor(0, 0, 0, .9)
+
+    hooksecurefunc(frame, "Show", function() EF:RegisterEvent("BAG_UPDATE_DELAYED") end)
+    hooksecurefunc(frame, "Hide", function() EF:UnregisterEvent("BAG_UPDATE_DELAYED") end)
+
+    --frame:SetScript("OnShow", function() dbpr("SHOW") end)
+    --frame:SetScript("OnHide", function() dbpr("HIDE") end)
 	return frame
 end
 
-function DSH:UpdateGemButtons(isDomination, isSlotButton, isRemove)
+local function isPrimordialGem(gemID)
+    if PRIMORDIAL_GEMS[gemID] then return true end
+end
+
+local function socketingItemIsMultiSocket()
+    if ItemSocketingSocket2 and ItemSocketingSocket2:IsShown() then return true end
+end
+
+
+local function shouldShowGem(isSlotButton, gemID, gemInfo, socketType)
+
+    local isPrimordialSocket = (socketType and socketType == "Primordial") or (isSlotButton and DSH.SBC.curSlotBtn.isPrimordial)
+
+    if isPrimordialSocket then
+        if not isPrimordialGem(gemID) then
+            return
+        end
+    else --regular socket
+        if isPrimordialGem(gemID) then
+            return
+        end
+    end
+
+    --show the gem if its attached to the socket frame and the gem isn't the same as what's already socketed
+    --always show the gem if there are multiple sockets (fix later to check all sockets)
+    if (not isSlotButton and ((GetExistingSocketLink(1) ~= gemInfo.itemLink) or socketingItemIsMultiSocket())) then
+        return true
+    end
+
+    --show if its a slot button and the gem isn't the same as the gem that's already there
+    if isSlotButton and DSH.SBC.curSlotBtn.gemID ~= gemID then
+        return true
+    end
+
+    return
+
+end
+
+
+local function getGemToggleState(isSlotButton, gemLink, gemID)
+    local isUnique, uniqueType = DSH:IsGemUnique(gemLink, gemID)
+
+    if isSlotButton and isUnique and DSH.UniqueEquipped[uniqueType] and (DSH.SBC.curSlotBtn and (uniqueType ~= DSH.SBC.curSlotBtn.uniqueType)) then return end
+    return true
+end
+
+
+function DSH:UpdateGemButtons(isSlotButton)
 	if not (ItemSocketingFrame and ItemSocketingFrame:IsShown())
 	and not (isSlotButton and CharacterFrame and CharacterFrame:IsShown()) then
 		return
 	end
 	
 	local buttonCount = 1
-	DSH.GBC.isDomination = isDomination
+    local socketType = GetSocketTypes(1)
+	--DSH.GBC.isDomination = isDomination
 	DSH.GBC.isSlotContainer = isSlotButton
-	
 
     for gemID, gemInfo in pairs(DSH.gemsInBags) do
-        if (isSlotButton or buttonCount < 10) then-- and not shardIDs[gemInfo.itemID] then --todo dont overflow the max of 9, add more rows later?
-            -- dbpr(gemID, gemInfo.itemLink, type(DSH.SBC.curSlotBtn.gemID), DSH.SBC.curSlotBtn.gemLink)
-            if (not isSlotButton and (GetExistingSocketLink(1) ~= gemInfo.itemLink)) 
-                or (isSlotButton and DSH.SBC.curSlotBtn.gemID ~= gemID) then
-                    DSH:UpdateGemButton(buttonCount, gemInfo.itemLink, gemInfo.itemID, gemInfo.quality, isDomination)
-                    DSH:ToggleButton(DSH.gemButtons[buttonCount], true)
-                    buttonCount = buttonCount + 1
-            end
+        if shouldShowGem(isSlotButton, gemID, gemInfo, socketType) then
+
+            DSH:UpdateGemButton(buttonCount, gemInfo.itemLink, gemInfo.itemID, gemInfo.quality)
+
+            --need to wait for gem to load before checking if its unique
+            local item = Item:CreateFromItemID(gemInfo.itemID)
+            local button = DSH.gemButtons[buttonCount]
+            item:ContinueOnItemLoad(function() DSH:ToggleButton(button, getGemToggleState(isSlotButton, item:GetItemLink(), gemID)) end)
+
+            buttonCount = buttonCount + 1
         end
     end
 		
@@ -187,17 +277,16 @@ function DSH:UpdateGemButtons(isDomination, isSlotButton, isRemove)
 			DSH.GBC:Show()
 			DSH.GBC:SetParent(DSH.SBC.curSlotBtn)
 			DSH.GBC:ClearAllPoints()
-			local col, rows = updateGemButtonAnchors(true)
+			local col, rows = updateGemButtonAnchors(isSlotButton)
 			DSH.GBC:SetSize((col) * (BUTTON_SIZE+BUTTON_PAD) + BUTTON_PAD, rows * (BUTTON_SIZE+BUTTON_PAD) + BUTTON_PAD)
 			DSH.GBC:SetPoint("TOP", DSH.SBC.curSlotBtn, "BOTTOM", 0, -2)
 		end
 	else
 		DSH.GBC:Show()
 		DSH.GBC:SetParent(ItemSocketingFrame)
-		-- DSH:UpdateCurSlotGlow()
 		DSH.GBC:ClearAllPoints()
-		updateGemButtonAnchors(false)
-		DSH.GBC:SetSize(ItemSocketingFrame and ItemSocketingFrame:GetWidth() or (9*(BUTTON_SIZE+BUTTON_PAD)), BUTTON_SIZE+(BUTTON_PAD*2))
+		local col, rows = updateGemButtonAnchors(isSlotButton)
+		DSH.GBC:SetSize(ItemSocketingFrame and ItemSocketingFrame:GetWidth() or (9*(BUTTON_SIZE+BUTTON_PAD)), rows * (BUTTON_SIZE+BUTTON_PAD) + BUTTON_PAD)
 		DSH.GBC:SetPoint("TOPLEFT", ItemSocketingFrame, "BOTTOMLEFT", 0, -2)
 	end
 end
@@ -226,7 +315,7 @@ local function getSlotLocalizedName(slot)
 end
 
 function EF:MODIFIER_STATE_CHANGED(key, down)
-	if not DSH.GBC.curGemBtn or not DSH.GBC.isSlotContainer or DSH.GBC.isDomination or (DSH.SBC.curSlotBtn and not DSH.SBC.curSlotBtn.gemID) then
+	if not DSH.GBC.curGemBtn or not DSH.GBC.isSlotContainer or DSH.SBC.curSlotBtn.unique or (DSH.SBC.curSlotBtn and not DSH.SBC.curSlotBtn.gemID) then
 		DSH:ToggleInfoTooltip(false, "")
 		return
 	end
@@ -310,41 +399,79 @@ local function replaceAllSlotGemMatches(gemID, isRetry)
 	CloseSocketInfo()
 end
 
-function DSH:GemButtonPress(frame)
+local function confirmReplace(ID, newGem, oldGem, quality, slot, socketNum)
+
+    StaticPopupDialogs["REPLACE_UNIQUE_GEM"] = {
+        text = string.format(REPLACE_ENCHANT, oldGem, newGem),
+        button1 = ACCEPT,--"Yes",
+        button2 = CANCEL,--"No",
+        OnAccept = function()
+            DSH:GemButtonPress(ID, newGem, quality, slot, socketNum, true)
+        end,
+        timeout = 0,
+        whileDead = true,
+        hideOnEscape = true,
+        preferredIndex = 3, 
+    }
+
+    StaticPopup_Show("REPLACE_UNIQUE_GEM");
+
+end
+
+function DSH:GemButtonPress(ID, itemName, quality, slot, socketNum, force)
 	--SBC = slot button container, is pressed from slot
-	if DSH.GBC.isSlotContainer then
-		if not DSH.GBC.isDomination and IsShiftKeyDown() then
-			replaceAllSlotGemMatches(frame.ID)
-			return
-		end
-		SocketInventoryItem(DSH.SBC.curSlotBtn.slot)
+
+    dbpr(ID, itemName, quality, slot, socketNum, force)
+
+	if DSH.GBC.isSlotContainer or force then
+
+        --if (((quality and DSH.SBC.curSlotBtn.quality) and (quality < DSH.SBC.curSlotBtn.quality)) or DSH.SBC.curSlotBtn.unique) and not force then
+        if DSH.SBC.curSlotBtn.unique and not force then
+
+            local oldGem = DSH.SBC.curSlotBtn.gemLink
+            confirmReplace(ID, select(2, GetItemInfo(ID)), oldGem, quality, DSH.SBC.curSlotBtn.slot, DSH.SBC.curSlotBtn.socketNum)
+
+            return
+        else
+
+            if IsShiftKeyDown() then
+                replaceAllSlotGemMatches(ID)
+                return
+            end
+            SocketInventoryItem(slot or DSH.SBC.curSlotBtn.slot)
+        end
 	end
-	--Just in case something goes wrong and there is already a shard in there GTFO
-	if GetExistingSocketLink(1) and ((DSH.GBC.isSlotContainer and DSH.SBC.curSlotBtn.isDomination) or GetSocketTypes(1) == "Domination") then
-		DSHPrint(L["ERROR_TEXT"])
-		return
-	end
-	
+
+    --dbpr("WOULD EXECUTE PUT", itemName, "into slot", slot, "socket num", socketNum)
+
+    --if true then return end
+
 	local shardInfo = GetNewSocketInfo(1)
 
 	--GetNewSocketInfo for some reason returns a string of variables?? Maybe I'm dumb
 	--I don't remember why I did this
-	if not shardInfo or (shardInfo and not string.match(shardInfo, frame.itemName)) then
-		--DSH:UseContainerItemByID(frame.ID, DSH.SBC.curSlotBtn.socketNum)
+	if not shardInfo or (shardInfo and not string.match(shardInfo, itemName)) then
 		
 		if DSH.GBC.isSlotContainer then
-            DSH:UseContainerItemByID(frame.ID, DSH.SBC.curSlotBtn.socketNum)
+            DSH:UseContainerItemByID(ID, socketNum or DSH.SBC.curSlotBtn.socketNum)
 			AcceptSockets()
 			CloseSocketInfo()
 		else
             --If there are two gem sockets pickup the gem instead of putting it in
             if ItemSocketingSocket2 and ItemSocketingSocket2:IsVisible() then
                 --dbpr("TWO GEMS")
-                DSH:UseContainerItemByID(frame.ID, nil)
+                DSH:UseContainerItemByID(ID, nil)
             else
-                DSH:UseContainerItemByID(frame.ID, 1)
+                DSH:UseContainerItemByID(ID, 1)
                 if DSH.db.profile.socketwindow.autoaccept then
-                    AcceptSockets()
+                    local existingGemLink = GetExistingSocketLink(1)
+                    local isUnique, uniqueType = DSH:IsGemUnique(existingGemLink, select(1, existingGemLink))
+
+                    if isUnique then
+                        DSHPrint(L["UNIQUE_WARNING"])
+                    else
+                        AcceptSockets()
+                    end
                 end
             end
 		end
@@ -384,8 +511,8 @@ local function createGemButton(i)
 			EF:MODIFIER_STATE_CHANGED("LSHIFT", IsShiftKeyDown() and 1 or 0)
 			
 		end)
-		frame:SetScript("OnLeave", function() DSH:UpdateCurSlotGlow({DSH.SBC.curSlotBtn}); DSH:ToggleInfoTooltip(false, ""); DSH:ToggleItemTooltip(false); EF:UnregisterEvent("MODIFIER_STATE_CHANGED"); DSH.GBC.curGemBtn = nil; end)
-		frame:SetScript("OnClick", function() DSH:GemButtonPress(frame) end)
+		frame:SetScript("OnLeave", function() DSH:UpdateCurSlotGlow({DSH.SBC and DSH.SBC.curSlotBtn}); DSH:ToggleInfoTooltip(false, ""); DSH:ToggleItemTooltip(false); EF:UnregisterEvent("MODIFIER_STATE_CHANGED"); DSH.GBC.curGemBtn = nil; end)
+		frame:SetScript("OnClick", function() DSH:GemButtonPress(frame.ID, frame.itemName, frame.quality) end)
 	end
 	
 	--Todo Fix this font stuff, it's wrong
@@ -422,6 +549,7 @@ local function updateGemButtonQualityTexture(gemButton, quality)
 
     if not quality or quality == ""  then
         gemButton.qualityTex:Hide()
+        gemButton.quality = nil
         return
     end
 
@@ -430,6 +558,7 @@ local function updateGemButtonQualityTexture(gemButton, quality)
     local left = QUALITY_COORDS[quality].x;
     local top = QUALITY_COORDS[quality].y;
     --gemButton.qualityTex:SetPoint("TOPLEFT", -3, 3);
+    gemButton.quality = quality
     gemButton.qualityTex:SetTexCoord(left/128, (left+28)/128, top/128, (top+28)/128);
 end
 
@@ -454,6 +583,7 @@ function DSH:UpdateGemButton(i, itemLink, itemID, quality, isDomination)
 	
 	gemButton.itemLink = itemLink
 	gemButton.ID = itemID
+    gemButton.quality = quality
 	--gemButton.itemName = select(1, GetItemInfo(itemID)) --this doesn't return the name somtimes?
 	if itemLink then
 		gemButton.itemName = string.match(itemLink, "%[(.*)%]")
@@ -497,6 +627,7 @@ end
 
 function DSH:UpdateGemsInBags()
 	if not DSH.checkForGems then return end
+
 	DSH.checkForGems = false --only checks for new gems if your bags have changed
 	DSH.gemsInBags = {}
 
@@ -506,9 +637,9 @@ function DSH:UpdateGemsInBags()
 			if itemLink then
 				local itemID, type, subtype, _, icon, itemTypeID, itemSubTypeID = GetItemInfoInstant(itemLink)
 
-                if type == "Item Enhancement" then dbpr(type, itemTypeID, subtype, itemSubTypeID) end
+                --if type == "Item Enhancement" then dbpr(itemLink, type, itemTypeID, subtype, itemSubTypeID) end
                 if itemTypeID == 3 then --3 = gem
-
+                    --dbpr(itemLink, itemTypeID, subtype, itemSubTypeID)
                     addGemToTable(itemID, itemLink, itemID, getGemQuality(itemLink))
 				end
 			end
@@ -522,7 +653,8 @@ local function curSlotItemStillHasGem()
 	return gemLink
 end
 
-function DSH:InitGemButtons(isDomination, isSlotButton)
+function DSH:InitGemButtons(isSlotButton)
+
 	DSH.GBC = DSH.GBC or createGemButtonContainer()
 	
 	hideGemButtons()
@@ -544,7 +676,7 @@ function DSH:InitGemButtons(isDomination, isSlotButton)
 	
 	if not DSH.gemsInBags and not isRemove then return end
 	
-	DSH:UpdateGemButtons(isDomination, isSlotButton, isRemove)
+	DSH:UpdateGemButtons(isSlotButton, isRemove)
 	--DSH:UpdateSetContainer()
 end
 
@@ -554,7 +686,7 @@ function DSH:ToggleItemTooltip(show, frame)
 		if frame.itemLink then
 			GameTooltip:SetOwner(frame, "ANCHOR_NONE")
 			GameTooltip:SetPoint("BOTTOMLEFT", frame, "TOPRIGHT", 0, 0)
-			GameTooltip:SetHyperlink(frame.itemLink)
+			GameTooltip:SetHyperlink(frame.gemLink and frame.gemLink or frame.itemLink)
 			GameTooltip:Show()
 		end
 	else
@@ -608,7 +740,7 @@ local function slotButtonEnter(frame)
 	
 	DSH.SBC.curSlotBtn = frame
 	-- DSH.SBC.bg:SetPoint("CENTER", frame, "CENTER")
-	DSH:InitGemButtons(frame.isDomination, true)
+	DSH:InitGemButtons(true)
 end
 
 local function createSlotButton(i)
@@ -650,30 +782,57 @@ local function createSlotButton(i)
 	end)
 	frame:SetScript("OnClick", function()
 		SocketInventoryItem(frame.slot)
+        DSH:UpdateCurSlotGlow()
 	end)
 
 end
 
-function DSH:UpdateCurSlotGlow(btnTable, force)
-	--hide the old glow, just brute forcing this because many problems with unextended + always show empty 
-	for i = 1, MAX_SLOT do
-		ActionButton_HideOverlayGlow(_G["Character"..slotNames[i].."Slot"])
+--function DSH:UpdateCurSlotGlow(btnTable, force)
+--	--hide the old glow, just brute forcing this because many problems with unextended + always show empty 
+--	for i = 1, MAX_SLOT do
+--		ActionButton_HideOverlayGlow(_G["Character"..slotNames[i].."Slot"])
+--		if DSH.slotButtons[i] then
+--			AutoCastShine_AutoCastStop(DSH.slotButtons[i])
+--		end
+--	end
+	
+--	if not btnTable then return end
+	
+--    if (not DSH.GBC or DSH.GBC.isSlotContainer or force) then
+--        for k, btn in pairs(btnTable) do
+--            if btn and btn.slot then
+--                --dbpr("Glow", "Character"..slotNames[btn.slot].."Slot")
+--                ActionButton_ShowOverlayGlow(_G["Character"..slotNames[btn.slot].."Slot"])
+--                -- LG.PixelGlow_Start(btn)
+--                AutoCastShine_AutoCastStart(btn)
+--            end
+--        end
+--    end
+--end
 
-		if DSH.slotButtons[i] then
-			AutoCastShine_AutoCastStop(DSH.slotButtons[i])
-		end
-	end
+function DSH:UpdateCurSlotGlow(btnTable, force)
+
+    for _, btn in pairs(DSH.slotButtons) do
+        AutoCastShine_AutoCastStop(btn)
+    end
 	
-	if not btnTable then return end
-	
-	if (not DSH.GBC or DSH.GBC.isSlotContainer or force) then
-		for k, btn in pairs(btnTable) do
-			if btn and btn.slot then
-				ActionButton_ShowOverlayGlow(_G["Character"..slotNames[btn.slot].."Slot"])
-				-- LG.PixelGlow_Start(btn)
-				AutoCastShine_AutoCastStart(btn)
-			end
-		end
+    local glowSlots = {}
+	if btnTable then
+        if (not DSH.GBC or DSH.GBC.isSlotContainer or force) then
+            for k, btn in pairs(btnTable) do
+                if btn and btn.slot then
+                    ActionButton_ShowOverlayGlow(_G["Character"..slotNames[btn.slot].."Slot"])
+                    AutoCastShine_AutoCastStart(btn)
+                    glowSlots[btn.slot] = true
+                end
+            end
+        end
+    end
+
+    for i = 1, MAX_SLOT do
+        if not glowSlots[i] then
+            ActionButton_HideOverlayGlow(_G["Character"..slotNames[i].."Slot"])
+        end
 	end
 end
 
@@ -685,18 +844,65 @@ local function createSlotLocations()
 	return slotLocations
 end
 
+--function DSH:IsGemUnique(gemLink, gemID)
+
+--    --do this so you don't have to scan the tooltip every time
+--    --probably a better way to do this idk
+--    if DSH.uniqueInfo[gemID] then
+--        return DSH.uniqueInfo[gemID] == "Unique" and true or false
+--    end
+
+--    dbpr("SCAN TOOLTIP")
+
+--    DSH.scantip = DSH.scantip or CreateFrame("GameTooltip", "DSHScanningTooltip", nil, "GameTooltipTemplate")
+--    DSH.scantip:SetOwner(UIParent, "ANCHOR_NONE")
+--    DSH.scantip:SetHyperlink(gemLink)
+--    local text = tostring(_G["DSHScanningTooltipTextLeft3"]:GetText())
+--    local isUnique = text:match(UNIQUE_EQUIP_PATTERN)
+
+--    --can't do true and false because checking if the key exists wouldn't work?
+--    DSH.uniqueInfo[gemID] = isUnique and 'Unique' or 'Not Unique'
+--    return isUnique and true or false
+--end
+
+function DSH:IsGemUnique(gemLink, gemID)
+
+    if not gemLink and gemID then return end
+
+    if DSH.uniqueInfo[gemID] ~= nil then
+        return DSH.uniqueInfo[gemID].isUnique, DSH.uniqueInfo[gemID].uniqueType
+    end
+
+    DSH.scantip = DSH.scantip or CreateFrame("GameTooltip", "DSHScanningTooltip", nil, "GameTooltipTemplate")
+    DSH.scantip:SetOwner(UIParent, "ANCHOR_NONE")
+    DSH.scantip:SetHyperlink(gemLink)
+    local text = tostring(_G["DSHScanningTooltipTextLeft3"]:GetText())
+
+    local uniqueType = text:match(UNIQUE_EQUIP_PATTERN)
+
+    dbpr(gemLink, "is uniqueType", uniqueType, "text:", text)
+
+    DSH.uniqueInfo[gemID] = {isUnique = uniqueType and true or false, uniqueType = uniqueType}
+    return DSH.uniqueInfo[gemID].isUnique, uniqueType
+end
+
+
 local function updateGemmedSlotButton(i, gemLink, itemLink, gemID)
 	-- dbpr(i)
 	if itemLink == DSH.slotButtons[i].itemLink then --make sure the item is the same
 		DSH.slotButtons[i].gemLink = gemLink
 		DSH.slotButtons[i].gemID = gemID
-		DSH.slotButtons[i].itemLink = DSH.slotButtons[i].isDomination and gemLink or itemLink
+        DSH.slotButtons[i].unique, DSH.slotButtons[i].uniqueType = DSH:IsGemUnique(gemLink, gemID)
+        DSH.slotButtons[i].itemLink = DSH.slotButtons[i].isDomination and gemLink or itemLink
 		DSH.slotButtons[i].tex:SetTexture(select(5, GetItemInfoInstant(gemLink)))
 		DSH.slotButtons[i].tex:SetAllPoints()
 
-        --dbpr("GEMLINK", gemLink)
+        if DSH.slotButtons[i].unique then
+            DSH.UniqueEquipped[DSH.uniqueInfo[gemID].uniqueType] = true
+        end
+
         local gemQuality = getGemQuality(gemLink)
-        --dbpr("GEMQUALITY", gemQuality)
+        DSH.slotButtons[i].gemQuality = gemQuality
         updateGemButtonQualityTexture(DSH.slotButtons[i], gemQuality)
 
         --DSH.slotButtons[i].tex:SetPoint("LEFT", DSH.slotButtons[i], "RIGHT")
@@ -714,14 +920,17 @@ end
 
 local function updateEmptySlotButton(s, i, slotType, showLink, socketNum)
 	if not DSH.slotButtons[i] then createSlotButton(i) end
-	local isDomination = ((slotType == "domination") and true)
+	local isPrimordial = ((slotType == EMPTY_SOCKET_PRIMORDIAL) and true)
+    --todo -- change this so all this info is held in a single table
 	DSH.slotButtons[i].slot = s
-	DSH.slotButtons[i].isDomination = isDomination
+	DSH.slotButtons[i].isPrimordial = isPrimordial
 	DSH.slotButtons[i].gemLink = nil
 	DSH.slotButtons[i].gemID = nil
+    DSH.slotButtons[i].unique = nil
+    DSH.slotButtons[i].uniqueType = nil
 	DSH.slotButtons[i].itemLink = showLink
     DSH.slotButtons[i].socketNum = socketNum
-	DSH.slotButtons[i].tex:SetTexture(isDomination and 4095404 or 458977)
+	DSH.slotButtons[i].tex:SetTexture(isPrimordial and 4095404 or 458977)
 	DSH.slotButtons[i].tex:SetAllPoints()
     updateGemButtonQualityTexture(DSH.slotButtons[i], nil)
 
@@ -744,6 +953,8 @@ local function removeGemsFromItemLink(itemLink)
     return item .. ":" .. itemID .. ":" .. enchantID .. ":::::" .. extra, {tonumber(gem1), tonumber(gem2), tonumber(gem3), tonumber(gem4)}
 end
 
+local GEM_SLOT_STRINGS = {[EMPTY_SOCKET_PRISMATIC] = true, [EMPTY_SOCKET_PRIMORDIAL] = true}
+
 
 local function getGemSlotInfo(itemLink)
     --DSH.scantip = DSH.scantip or CreateFrame("GameTooltip", "MyScanningTooltip", nil, "GameTooltipTemplate")
@@ -752,17 +963,11 @@ local function getGemSlotInfo(itemLink)
     DSH:GetGemID(itemLink, 1)
 
     --in Dragonflight GetItemStats doesn't return gem slots added from JC items, so need to scan tooltip now
-    --local stats = GetItemStats(itemLink);
+
     local gemSlotInfo = {}
     local slotCount = 0
 
     local removedGemsLink, removedGems = removeGemsFromItemLink(itemLink)
-    --dbpr(itemLink, removedGemsLink)
-    --local removedGems = itemLink:gsub("(item:%d+:%d+:%d+:%d+:%d+:%d+:[-]?%d+:[-]?%d+):(%d+)|", "%1:".."55".."|")
-
-
-    --dbpr(itemLink, removedGems)
-
 
     DSH.scantip = DSH.scantip or CreateFrame("GameTooltip", "DSHScanningTooltip", nil, "GameTooltipTemplate")
     DSH.scantip:SetOwner(UIParent, "ANCHOR_NONE")
@@ -770,14 +975,11 @@ local function getGemSlotInfo(itemLink)
     for i=2, DSH.scantip:NumLines() do   -- can skip first line since it's just the item name.. or not. up to you
         local text = _G["DSHScanningTooltipTextLeft"..i]:GetText()
         -- do stuff with text
-        if text == EMPTY_SOCKET_PRISMATIC then
+        --if text == EMPTY_SOCKET_PRISMATIC then
+        if GEM_SLOT_STRINGS[text] then
             slotCount = slotCount + 1
-            --dbpr("INSERTING PRISMATIC")
-            --table.insert(gemSlotInfo, {"prismatic", DSH:GetGemID(itemLink, slotCount)})
-            --dbpr(removedGems)
-            --for k, v in pairs(removedGems) do print(k, v) end
-            --dbpr("removed gems", removedGems[slotCount])
-            table.insert(gemSlotInfo, {"prismatic", removedGems[slotCount]})
+
+            table.insert(gemSlotInfo, {text, removedGems[slotCount]})
 
         end
     end
@@ -791,6 +993,13 @@ local function getSlotGemInfo(s, gemID, itemLink)
 		item:ContinueOnItemLoad(function() updateGemmedSlotButton(s, item:GetItemLink(), itemLink, gemID) end)
 	end
 end
+
+local function shouldShowSlot(slotType, gemID)
+    if not slotType then return end
+    if slotType == EMPTY_SOCKET_PRIMORDIAL and gemID then return end
+    if DSH.db.char.quickslots.extended or (not gemID and not DSH.db.char.quickslots.extended and DSH.db.profile.quickslots.alwaysempty) then return true end
+end
+
 
 local function itemLoaded(itemsFound, itemLink, s)
 	DSH.totalLoaded = DSH.totalLoaded + 1
@@ -814,13 +1023,20 @@ local function itemLoaded(itemsFound, itemLink, s)
             local slotType, gemID = unpack(slotInfo)
             --dbpr(socketNum, slotType, gemID)
 
-            if slotType then
-                if DSH.db.char.quickslots.extended or (not gemID and not DSH.db.char.quickslots.extended and DSH.db.profile.quickslots.alwaysempty) then
-                    if not quickSlotInfo[slotType] then quickSlotInfo[slotType] = {} end
-                    if not quickSlotInfo[slotType][s] then quickSlotInfo[slotType][s] = {} end
-                    quickSlotInfo[slotType][s][socketNum] = {slotType = slotType, gemID = gemID, itemLink = itemLink}	
-                end
+            if shouldShowSlot(slotType, gemID) then
+                if not quickSlotInfo[slotType] then quickSlotInfo[slotType] = {} end
+                if not quickSlotInfo[slotType][s] then quickSlotInfo[slotType][s] = {} end
+                quickSlotInfo[slotType][s][socketNum] = {slotType = slotType, gemID = gemID, itemLink = itemLink}	
             end
+
+            --if slotType then
+            --    dbpr(slotType)
+            --    if DSH.db.char.quickslots.extended or (not gemID and not DSH.db.char.quickslots.extended and DSH.db.profile.quickslots.alwaysempty) then
+            --        if not quickSlotInfo[slotType] then quickSlotInfo[slotType] = {} end
+            --        if not quickSlotInfo[slotType][s] then quickSlotInfo[slotType][s] = {} end
+            --        quickSlotInfo[slotType][s][socketNum] = {slotType = slotType, gemID = gemID, itemLink = itemLink}	
+            --    end
+            --end
         end
 	end
 	
@@ -884,6 +1100,9 @@ function DSH:UpdateSlotButtons()
 	end
 	
 	dbpr("Updating Slot Buttons")
+
+    DSH.UniqueEquipped = {}
+
 	--Queue up all items to be loaded if they aren't
 	for i, s in pairs(slotsFound) do
 		local item = Item:CreateFromItemLocation(DSH.slotLocations[s])
@@ -953,8 +1172,6 @@ function EF:SOCKET_INFO_CLOSE()
 end
 
 
-
-
 function DSH:PairsByKeys(t)
     local a = {}
     for n in pairs(t) do table.insert(a, n) end
@@ -975,7 +1192,7 @@ local function socketInfoDelayedUpdate()
 
 	if ItemSocketingFrame:IsShown() then
 		EF:RegisterEvent('SOCKET_INFO_CLOSE')
-        DSH:InitGemButtons(false)
+        DSH:InitGemButtons()
 		--end
 	end
 end
@@ -984,7 +1201,6 @@ end
 --Need inventory changed to properly update when only changing gems
 --Need equip change to properly update when changing equipment with gems
 local invChanged, equipChanged
-local updateThrottle = CreateFrame("Frame")
 updateThrottle:SetScript("OnUpdate", function()
 	if equipChanged then
 		equipChanged = false
@@ -1013,7 +1229,7 @@ updateThrottle:SetScript("OnUpdate", function()
 		end
 
 		if DSH.GBC and DSH.GBC:IsVisible() then
-			DSH:InitGemButtons(DSH.GBC.isDomination, DSH.GBC.isSlotContainer)
+			DSH:InitGemButtons(DSH.GBC.isSlotContainer)
 		end
 	end
 end)
@@ -1022,6 +1238,10 @@ function EF:UNIT_INVENTORY_CHANGED(unit)
 	if unit == 'player' then
 		invChanged = true
 	end
+end
+
+function EF:BAG_UPDATE_DELAYED(unit)
+	invChanged = true
 end
 
 function EF:PLAYER_EQUIPMENT_CHANGED(slot)

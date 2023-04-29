@@ -83,6 +83,8 @@ L["auto_open_desc"] = "Cochez cette case pour que la fenêtre de vote s'ouvre au
 L["auto_pass_boe_desc"] = "Décocher pour ne jamais passer automatiquement sur des objets liés quand équipés."
 L["auto_pass_desc"] = "Cocher pour passer automatiquement sur les objets inutilisables par votre classe."
 L["auto_pass_trinket_desc"] = "Cochez pour passer automatiquement les bijoux qui ne sont pas listés dans le journal de donjon pour votre classe."
+--[[Translation missing --]]
+L["autoGroupLoot_warning"] = "Note: Group Leader's settings will cause RCLootCouncil to automatically control group loot."
 L["autoloot_others_item_combat"] = "%s a ramassé %s. Cet objet sera ajouté à la fenêtre de session lorsque le combat sera terminé."
 L["Autopass"] = "Passer automatiquement"
 L["Autopassed on 'item'"] = "Vous avez automatiquement passé sur %s"
@@ -129,7 +131,7 @@ L["Chat print"] = "Publier le tchat"
 L["chat tVersion string"] = "|cFF87CEFARCLootCouncil |cFFFFFFFFversion |cFFFFA500 %s - %s"
 L["chat version String"] = "|cFF87CEFARCLootCouncil |cFFFFFFFFversion |cFFFFA500 %s"
 --[[Translation missing --]]
---[[ L["chat_cmd_add_found_items"] = ""--]] 
+L["chat_cmd_add_found_items"] = "Found %d items with trade timers in your bags."
 L["chat_cmd_add_invalid_owner"] = "Le joueur %s n'est pas un candidat ou est invalide."
 L["chat_commands_add"] = "Ajouter un objet à la fenêtre de session"
 L["chat_commands_award"] = "Commencer une session avec les objets de votre inventaire précédemment ramassés"
@@ -178,7 +180,7 @@ L["delete_skin_desc"] = "Supprimer l'apparence sélectionnée dans la liste."
 L["Deselect responses to filter them"] = "Désélectionner les réponses avant de pouvoir les filtrer"
 L["Diff"] = true
 --[[Translation missing --]]
---[[ L["Discord friendly output."] = ""--]] 
+L["Discord friendly output."] = "Discord friendly output."
 L["disenchant_desc"] = "Sélectionner cette option pour que ce motif soit choisi lorsque vous attribuez un objet par le biais du bouton 'Désenchanter'"
 L["Do you want to keep %s for yourself or trade?"] = "Voulez-vous garder %s pour vous ou l'échanger ?"
 L["Done syncing"] = "Synchronisation terminée"
@@ -321,11 +323,22 @@ L["opt_autoAddItems_name"] = "Ajouter automatiquement les objets"
 L["opt_autoAddPets_desc"] = "Ajouter automatiquement toutes les mascottes à la session."
 L["opt_autoAddPets_name"] = "Ajouter les mascottes"
 L["opt_autoAwardPrioList_desc"] = "Les objets sont assignés au premier candidat trouvé dans votre groupe en fonction de cette liste de priorité."
+--[[Translation missing --]]
+L["opt_autoGroupLoot_desc"] = "When enabled, RCLootCouncil will automatically click the pass and greed buttons so that all items lands in your inventory."
+--[[Translation missing --]]
+L["opt_autoGroupLoot_name"] = "Auto Group Loot"
+--[[Translation missing --]]
+L["opt_autoGroupLootGuildGroupOnly_desc"] = "When enabled, RCLootCouncil will only do group loot auto pass when you're in a guild group."
+L["opt_autoGroupLootGuildGroupOnly_name"] = "Groupe de Guilde uniquement; Si activé RCLootCouncil ne passera automatiquement que si vous êtes en groupe de guilde"
 L["opt_autoTrade_desc"] = "Cochez pour automatiquement ajouter les objets assignés à la fenêtre d'échange lorsque vous échanger avec le gagnant. Si décoché, vous verrez une popup avant que les objets ne soient ajoutés."
 L["opt_award_later_desc"] = "Cocher pour automatiquement cocher l'option \"Assigner plus tard\" dans la fenêtre de session."
 L["opt_buttonsGroup_desc"] = "Groupe d'options pour les boutons %s et les réponses. Voir plus haut pour une explication détaillée."
 L["opt_chatFrameName_desc"] = "Sélectionnez dans quelle fenêtre de discussion RCLootCouncil doit afficher les informations."
 L["opt_chatFrameName_name"] = "Fenêtre de discussion"
+--[[Translation missing --]]
+L["opt_closeWithEscape_desc"] = "When enabled, all non-critical RCLootCouncil frames can be closed by pressing 'Escape'. (Requires reload to take effect on already created frames)"
+--[[Translation missing --]]
+L["opt_closeWithEscape_name"] = "Escape Close"
 L["opt_deleteDate_confirm"] = "Êtes-vous sûr de vouloir supprimer tout ce qui est plus ancien que la sélection ? Annulation impossible."
 L["opt_deleteDate_desc"] = "Supprimer tout ce qui est plus ancien que le nombre de jours sélectionnés."
 L["opt_deleteName_confirm"] = "Êtes-vous sûr de vouloir supprimer toutes les entrées venant de %s ? Annulation impossible."
@@ -342,9 +355,13 @@ L["opt_rejectTrade_Name"] = "Autoriser à garder"
 L["opt_skipSessionFrame_desc"] = "Passe la fenêtre de session: NOTE : ceci force l'addon à démarrer une session avec tous les objets éligibles sans que vous n'ayez une chance d'éditer la liste !"
 L["opt_skipSessionFrame_name"] = "Passer la fenêtre de session"
 --[[Translation missing --]]
---[[ L["opt_useSlashRC_desc"] = ""--]] 
+L["opt_usage_AskGroupLoot"] = "Ask me every time Group Loot is enabled"
 --[[Translation missing --]]
---[[ L["opt_useSlashRC_name"] = ""--]] 
+L["opt_usage_GroupLoot"] = "Always use RCLootCouncil with Group Loot"
+--[[Translation missing --]]
+L["opt_useSlashRC_desc"] = "Disable this if you want to restore '/rc' to ready check. RCLootCouncil commands are still available with '/rclc'. A '/reload' is required for this to take effect."
+--[[Translation missing --]]
+L["opt_useSlashRC_name"] = "Use /rc"
 L["options_autoAwardBoE_desc"] = "Activer pour automatiquement assigner tous les objets épiques LQE (Lié quand équipé) à une personne spécifique, avec la raison sélectionnée."
 L["options_autoAwardBoE_name"] = "Assigner automatiquement les LQE"
 L["options_ml_outOfRaid_desc"] = "Quand activé et dans un groupe de 8 (ou plus) membres, toute personne qui n'est pas dans une instance quand la session commence enverra automatiquement une réponse 'Hors du raid'"

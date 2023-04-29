@@ -4,16 +4,17 @@ if GetLocale()=="????" then
 
 -- Main.lua
 	L["Rematch"] = nil
-	L["Toggle Window"] = nil
+	L["Show/Hide Rematch"] = nil
 	L["Auto Load"] = nil
-	L["Team Notes"] = nil
-	L["Pets Tab"] = nil
-	L["Teams Tab"] = nil
-	L["Queue Tab"] = nil
+	L["Rematch Team Notes"] = nil
+	L["Rematch Pets Tab"] = nil
+	L["Rematch Teams Tab"] = nil
+	L["Rematch Queue Tab"] = nil
 	L["Toggle Rematch"] = nil
 	L["Load this team?"] = nil
 	L["They do not appear to be online."] = nil
 	L["has also been added to your leveling queue!"] = nil
+	L["%s has also been added to your leveling queue!"] = nil
 	L["The team named '%s' can't be found."] = nil
 	L["Rematch Debug Info"] = nil
 
@@ -37,23 +38,34 @@ if GetLocale()=="????" then
 	L["Summons a random pet from your favorites."] = nil
 	L["Random Favorite"] = nil
 	L["Random From All"] = nil
+	L["Import Teams"] = nil
+	L["Import a single team or many teams that were exported from Rematch."] = nil
 	L["All pets are at full health."] = nil
 	L["This treat's buff is already active."] = nil
 	L["%s\n\nPets At Max Level: %s%d\124r\nPets Not Collected: %s%d\124r\n\n%s Click to display more about your collection."] = nil
 
 -- Widgets\MinimapButton.lua
+	L["Toggle Window"] = nil
 	L["Load Favorite Team"] = nil
 	L["Favorite Teams"] = nil
 
 -- Widgets\PanelTabs.lua
 
+-- Widgets\TextureHighlight.lua
+
 -- Process\ODTables.lua
 
 -- Process\PetInfo.lua
+	L["Journal Is Locked"] = nil
+	L["Wrong Faction"] = nil
+	L["Wrong Covenant"] = nil
 	L["Ignored Pet"] = nil
 	L["Random %s"] = nil
 	L["Random Pet"] = nil
 	L["Unknown"] = nil
+	L["Can't Summon"] = nil
+
+-- Process\TeamInfo.lua
 
 -- Process\PetTag.lua
 
@@ -61,7 +73,6 @@ if GetLocale()=="????" then
 	L["You can't load a team during combat."] = nil
 	L["You can't load a team during a pet battle."] = nil
 	L["You can't load a team in a matched pet battle."] = nil
-	L["Loading..."] = nil
 	L["Pets are missing from this team!"] = nil
 	L["Substitutes were found. Please review the loaded team and click Save if you'd like to keep the chosen pets."] = nil
 	L["Don't Warn About Missing Pets"] = nil
@@ -147,7 +158,6 @@ if GetLocale()=="????" then
 	L["Export Team"] = nil
 	L["Export this team as a string you can copy elsewhere, such as forums or emails.\n\nOther Rematch users can paste this team into their Rematch via Import Team."] = nil
 	L["Import Team"] = nil
-	L["Import a single team or many teams that were exported from Rematch."] = nil
 	L["Send Team"] = nil
 	L["Sharing is disabled in options."] = nil
 	L["Send this team to another online user of Rematch."] = nil
@@ -168,10 +178,10 @@ if GetLocale()=="????" then
 	L["Export all teams listed below to a string you can copy elsewhere, such as forums or emails.\n\nOther Rematch users can then paste these teams into their Rematch via Import Teams.\n\nYou can export a single team by right-clicking one and choosing its Share menu."] = nil
 	L["Backup All Teams"] = nil
 	L["This will export all teams across all tabs into text that you can paste elsewhere, such as an email to yourself or a text file someplace safe. You can later restore these teams with the Import Teams option."] = nil
-	L["Import Teams"] = nil
-	L["Import a single team or many teams that was exported from Rematch."] = nil
 	L["Import From Pet Battle Teams"] = nil
 	L["Copy your existing teams from Pet Battle Teams to Rematch."] = nil
+	L["Import From Niggles: Pet Teams"] = nil
+	L["Copy your existing teams from Niggles: Pet Teams to Rematch."] = nil
 
 -- Menus\PetMenus.lua
 	L["Unnamed Pets"] = nil
@@ -256,32 +266,15 @@ if GetLocale()=="????" then
 	L["Delete Script"] = nil
 	L["Are you sure you want to delete the script named %s%s\124r?"] = nil
 
--- Menus\Npcs.lua
-	L["Imported Team"] = nil
-	L["Eastern Kingdom"] = nil
-	L["Kalimdor"] = nil
-	L["Outland"] = nil
-	L["Northrend"] = nil
-	L["Cataclysm"] = nil
-	L["Pandaria"] = nil
-	L["Beasts of Fable"] = nil
-	L["Celestial Tournament"] = nil
-	L["Draenor"] = nil
-	L["Garrison"] = nil
+-- Menus\TargetData.lua
 	L["Menagerie"] = nil
-	L["Tanaan Jungle"] = nil
-	L["Val'sharah"] = nil
-	L["Suramar"] = nil
-	L["Stormheim"] = nil
-	L["Highmountain"] = nil
-	L["Dalaran"] = nil
-	L["Azsuna"] = nil
-	L["Broken Isle"] = nil
-	L["Wailing Caverns"] = nil
-	L["Deadmines"] = nil
-	L["No Target"] = nil
+	L["Beasts of Fable"] = nil
+
+-- Menus\TargetMenus.lua
+	L["Imported Team"] = nil
 	L["Noteworthy Targets"] = nil
-	L["These are noteworthy targets such as tamers and legendary pets.\n\nChoose one to view the pets you would battle.\n\nTargets with a \124TInterface\\RaidFrame\\ReadyCheck-Ready:14\124t already have a team saved."] = nil
+	L["These are noteworthy targets such as tamers and legendary pets.\n\nChoose one to view the pets you would battle.\n\nTargets with a \124TInterface\\RaidFrame\\ReadyCheck-Ready:14\124t have a team saved."] = nil
+	L["No Target"] = nil
 
 -- Dialogs\Dialog.lua
 	L["Tab:"] = nil
@@ -296,14 +289,18 @@ if GetLocale()=="????" then
 	L["Hold [Alt] to view more about this pet."] = nil
 	L["XP: %d/%d (%d%%)"] = nil
 	L["Possible Breeds"] = nil
+	L["\124cffff0000Revoked"] = nil
+	L["Revoked"] = nil
+	L["This pet has been revoked, which means Blizzard withdrew your ability to use this pet.\n\nThis commonly happens when a pet no longer meets a condition for ownership, such as the Core Hound Pup requiring an authenticator attached to the account."] = nil
+	L["This pet can't be summoned."] = nil
 	L["Slotted"] = nil
 	L["This pet is loaded in one of the three battle pet slots."] = nil
 	L["Favorite"] = nil
 	L["This pet is marked as a Favorite from its right-click menu."] = nil
-	L["This pet is in Rematch's leveling queue."] = nil
 	L["Determines how stats are distributed.  All breed data is pulled from your installed %s%s\124r addon."] = nil
 	L["Species ID"] = nil
 	L["All versions of this pet share this unique \"species\" number."] = nil
+	L["This pet is in Rematch's leveling queue."] = nil
 	L["%d Teams"] = nil
 	L["Teams"] = nil
 	L["%s Click to search for all teams that include this pet."] = nil
@@ -318,8 +315,10 @@ if GetLocale()=="????" then
 
 -- Cards\AbilityCard.lua
 	L["Vs"] = nil
+	L["%s\n\n\124TInterface\\WorldMap\\Gear_64Grey:16:16:0:0:64:64:8:56:6:57\124t %sAbility ID: %d"] = nil
 
 -- Cards\Notes.lua
+	L["Team Notes"] = nil
 	L["Pet Notes"] = nil
 	L["Delete Notes"] = nil
 	L["Are you sure you want to delete the notes for %s\124r?"] = nil
@@ -332,9 +331,6 @@ if GetLocale()=="????" then
 	L["Draws:"] = nil
 	L["Totals Across All Teams"] = nil
 	L["%s%s\124r Battles"] = nil
-	L["+1 Win"] = nil
-	L["+1 Loss"] = nil
-	L["+1 Draw"] = nil
 	L["Reset Win Record"] = nil
 	L["Are you sure you want to remove all wins, losses and draws from the team \"%s\"?"] = nil
 	L["Reset All Win Records"] = nil
@@ -347,8 +343,10 @@ if GetLocale()=="????" then
 	L["%s%d teams and %d battles were converted."] = nil
 
 -- Panels\PetPanel.lua
+	L["Search Pets"] = nil
 	L["Strong vs"] = nil
 	L["Tough vs"] = nil
+	L["Quality"] = nil
 	L["Pets: %s%d"] = nil
 	L["Filters: %s%s"] = nil
 
@@ -360,7 +358,7 @@ if GetLocale()=="????" then
 	L["Save the currently loaded pets to this target."] = nil
 
 -- Panels\TeamPanel.lua
-	L["Loaded Team"] = nil
+	L["Search Teams"] = nil
 
 -- Panels\QueuePanel.lua
 	L["Ascending Level"] = nil
@@ -368,7 +366,6 @@ if GetLocale()=="????" then
 	L["Median Level"] = nil
 	L["Type"] = nil
 	L["Queue"] = nil
-	L["Current Leveling Pet"] = nil
 	L["This is the leveling queue. Drag pets you want to level here.\n\nRight click any of the three battle pet slots and choose 'Put Leveling Pet Here' to mark it as a leveling slot you want controlled by the queue.\n\nWhile a leveling slot is active, the queue will fill the slot with the top-most pet in the queue. When this pet reaches level 25 (gratz!) it will leave the queue and the next pet in the queue will take its place.\n\nTeams saved with a leveling slot will reserve that slot for future leveling pets."] = nil
 	L["Sort by:"] = nil
 	L["Sort all pets in the queue from level 1 to level 24."] = nil
@@ -406,12 +403,41 @@ if GetLocale()=="????" then
 	L["This target has a saved team"] = nil
 
 -- Panels\OptionPanel.lua
+	L["Search Options"] = nil
+	L["Anchor"] = nil
+	L["Notes Font Size \124TInterface\\OptionsFrame\\UI-OptionsFrame-NewFeatureIcon:12:12\124t"] = nil
+	L["Small"] = nil
+	L["Normal"] = nil
+	L["Large"] = nil
+	L["Notes Font Size"] = nil
+	L["This determines the size of text within pet and team notes."] = nil
+	L["Click here to choose a different scale for the standalone window."] = nil
+	L["%s\n\n%sWARNING!\124r There may be an issue with pet toasts in ElvUI not positioning properly. While using ElvUI it's recommended pet toasts remain hidden unless you've moved alerts in ElvUI."] = nil
+	L["ElvUISkin version %s"] = nil
+	L["Current Scale: %d%%"] = nil
+	L["Bottom Right"] = nil
+	L["Top Right"] = nil
+	L["Bottom Left"] = nil
+	L["Top Left"] = nil
+	L["Anchor: %s"] = nil
+	L["When the standlone window is minimized, send it to the %s corner."] = nil
+	L["Reload the UI now?"] = nil
+	L["You've chosen to change the setting for %s.\n\nThis change doesn't take effect until a reload or logout."] = nil
+	L["Custom Scale"] = nil
+	L["Keep this scale?"] = nil
+	L["This scale determines the relative size of the standalone window, where 100% is the standard size."] = nil
+
+-- Panels\OptionList.lua
 	L["All Options"] = nil
 	L["Targeting Options"] = nil
 	L["When a team auto loads, show the Rematch window if any pets in the team are injured."] = nil
 	L["Auto load upon targeting only, not mouseover.\n\n\124cffff4040WARNING!\124r This is not recommended! It can be too late to load pets if you target with right click!"] = nil
 	L["Always Show When Targeting"] = nil
 	L["Regardless whether a target's team is already loaded, show the Rematch window when you target something with a saved team."] = nil
+	L["Load Teams From Target Button"] = nil
+	L["When a target is chosen after clicking the Target button above the loaded pets, automatically load any saved team associated with the target."] = nil
+	L["Use Old Target Button Menu"] = nil
+	L["When clicking the Target button above the loaded pets, use the old context menu rather than the scrollable list of targets to select from."] = nil
 	L["Preferred Window Mode"] = nil
 	L["Minimized Standalone"] = nil
 	L["When automatically showing the Rematch window, show the minimized standalone window."] = nil
@@ -421,7 +447,7 @@ if GetLocale()=="????" then
 	L["When automatically showing the Rematch window, show the pet journal."] = nil
 	L["Standalone Window Options"] = nil
 	L["Use Custom Scale"] = nil
-	L["Change the relative size of the standalone window to anywhere between 50% and 200% of its standard size."] = nil
+	L["Change the relative size of the standalone window to anywhere between 50% and 200% of its standard size.\n\n\124cffffffffNote:\124r This setting (like the other Standalone Window Options) \124cffffffffdoes not\124r affect the pet journal window."] = nil
 	L["Single Panel Mode"] = nil
 	L["Collapse the maximized standalone window to one panel instead of two side by side.\n\nUsers of earlier versions of Rematch may find this mode more familiar."] = nil
 	L["Combine Pets And Queue"] = nil
@@ -440,11 +466,9 @@ if GetLocale()=="????" then
 	L["Push the standalone window back behind other parts of the UI so other parts of the UI can appear ontop."] = nil
 	L["Move Panel Tabs To Right"] = nil
 	L["Align the Pets, Teams, Queue and Options tabs to the right side of the standalone window."] = nil
-	L["Minimal Minimized Window"] = nil
-	L["Remove the titlebar and tabs when the standalone window is minimized."] = nil
 	L["Appearance Options"] = nil
 	L["Compact List Format"] = nil
-	L["Use an alternate style of lists for Pets, Teams and Queue to display more on the screen at once.\n\n\124cffff4040This option requires a Reload."] = nil
+	L["Use an alternate style of lists for Pets, Teams, Queue and Targets to display more on the screen at once."] = nil
 	L["Use Smaller Text Too"] = nil
 	L["Also use smaller text in the Compact List Format so more text displays on each button."] = nil
 	L["Color Pet Names By Rarity"] = nil
@@ -457,6 +481,15 @@ if GetLocale()=="????" then
 	L["In the ability flyout, show the numbers 1 and 2 to help with the common notation such as \"Pet Name 122\" to know which abilities to use."] = nil
 	L["On Loaded Abilities Too"] = nil
 	L["In addition to the flyouts, show the numbers 1 and 2 on loaded abilities."] = nil
+	L["Show Breeds As Text Not Icons"] = nil
+	L["Rather than use icons for PetTracker's breeds, display breeds in the more standard letter format such as B/B, H/P, etc.\n\n\124cffffffffNote:\124r This option only supports the later versions of PetTracker. Older PetTracker versions are not supported."] = nil
+	L["List Behavior Options"] = nil
+	L["Slow Mousewheel Scroll"] = nil
+	L["In the Pets, Teams, Queue, Target and Options lists, mousewheel over the list will scroll one line at a time instead of a whole page at a time.\n\nYou can still scroll by pages by clicking above or below the scroll thumb."] = nil
+	L["Remember Expanded Lists"] = nil
+	L["In lists that can expand and collapse, such as Options or Targets, remember what was expanded when logging out or reloading; rather than starting with collapsed lists on login."] = nil
+	L["Collapse Lists With ESC Key"] = nil
+	L["When a list that can expand or collapse is on screen, such as Options or Targets, make the ESCape key collapse the list if any part is expanded."] = nil
 	L["Toolbar Options"] = nil
 	L["Move Toolbar To Bottom"] = nil
 	L["Move the toolbar buttons (Revive Battle Pets, Battle Pet Bandages, Safari Hat, etc) to the bottom of the standalone window.\n\nAlso convert the red panel buttons (Save, Save As, Find Battle) to toolbar buttons."] = nil
@@ -466,6 +499,8 @@ if GetLocale()=="????" then
 	L["When a toolbar button is used with a right click, dismiss the Rematch window after performing its action."] = nil
 	L["Safari Hat Reminder"] = nil
 	L["Draw attention to the safari hat button while a pet below max level is loaded.\n\nAlso show the Rematch window when a low level pet loads and the safari hat is not equipped."] = nil
+	L["Show Import Button"] = nil
+	L["Add a button to the toolar to import a single team or many teams exported from Rematch."] = nil
 	L["Pet Card & Notes Options"] = nil
 	L["Allow Pet Cards To Be Pinned"] = nil
 	L["When dragging a pet card to another part of the screen, pin the card so all future pet cards display in the same spot, until the pet card is moved again or the unpin button is clicked."] = nil
@@ -477,8 +512,6 @@ if GetLocale()=="????" then
 	L["Use the pet card on the unit frames during a pet battle instead of the default tooltip."] = nil
 	L["Use Pet Cards For Links"] = nil
 	L["Use the pet card when viewing a link of a pet someone else sent you instead of the default link."] = nil
-	L["Show Team Cards"] = nil
-	L["Show a card with team details when you mouseover a team.\n\n%sIMPORTANT:\124r While this option is enabled, clicking a team will lock the team card instead of loading it. %sDouble-Click\124r to load a team with this option enabled, just as you would Double-Click a pet to summon it."] = nil
 	L["Keep Notes On Screen"] = nil
 	L["Don't hide notes when the ESCape key is pressed or other times it would hide, such as changing tabs or closing Rematch."] = nil
 	L["Show Notes Upon Targeting"] = nil
@@ -489,17 +522,36 @@ if GetLocale()=="????" then
 	L["Only display notes automatically the first time entering battle, until another team is loaded."] = nil
 	L["Alternate Lore Font"] = nil
 	L["Use a more normal-looking font for lore text on the back of the pet card."] = nil
-	L["Show Species ID On Pet Cards"] = nil
-	L["Display the numerical species ID of a pet as a stat on their pet card."] = nil
+	L["Show Species ID & Ability ID"] = nil
+	L["Display the numerical species ID of a pet as a stat on their pet card and the numerical ability ID on ability tooltips."] = nil
+	L["Hide Notes Buttons In Battle UI"] = nil
+	L["Hide the notes buttons on the upper corners of the pets in the battle UI when the pet they're attached to has notes."] = nil
 	L["Team Options"] = nil
 	L["Load Healthiest Pets"] = nil
 	L["When a team loads, if any pet is injured or dead and there's another version with more health \124cffffffffand identical stats\124r, load the healthier version.\n\nPets in the leveling queue are exempt from this option.\n\n\124cffffffffNote:\124r This is only when a team loads. It will not automatically swap in healthier pets when you leave battle."] = nil
+	L["Allow Any Version"] = nil
+	L["Instead of choosing only the healthiest pet with identical stats, choose the healthiest version of the pet regardless of stats."] = nil
+	L["After Pet Battles Too"] = nil
+	L["Also load healthiest pets after leaving a pet battle or using a Revive or Bandage within Rematch.\n\n\124cffffffffNote:\124r Use of Revive or Bandages outside Rematch will not be noticed.\n\nThis is an experimental option. If you experience problems and want to report them, \124cffffffffPLEASE\124cffffffff mention that this option is enabled!\124r"] = nil
+	L["Show Icon For Pets In Teams"] = nil
+	L["When a pet belongs to a team, show an icon beside their name in the pet list and queue."] = nil
 	L["Hide Targets Below Teams"] = nil
 	L["Hide the target name that appears beneath a team that is not named the same as its target."] = nil
 	L["Always Show Team Tabs"] = nil
 	L["Show team tabs along the right side of the window even if you're not on the team panel."] = nil
 	L["Move Team Tabs To Left"] = nil
 	L["Move the team tabs along the right side of the standalone window to the left side."] = nil
+	L["Import Team Tabs Too"] = nil
+	L["When importing teams created from a 'Backup All Teams' export, teams will import into tabs they were in when backed up.\n\nIf new tabs need to be created, they will have the default icon and options. \n\nAlso, the max number of team tabs is 32. Teams in any tabs that exceed this limit will go to the originally chosen tab.\n\n\124cffffffffNote:\124r This is an \124cffffffffexperimental\124r feature. Your teams won't get deleted from this, but in the event they disappear into random tabs, backup your WTF folder to do a complete restore."] = nil
+	L["Share In Legacy Format"] = nil
+	L["When exporting teams or sending to another Rematch user, use the old format.\n\nUse this option when sharing teams with someone on an older Rematch that's unable to import or receive newer teams."] = nil
+	L["Prioritize Breed On Import"] = nil
+	L["When importing or receiving teams, fill the team with the best matched breed as the first priority instead of the highest level."] = nil
+	L["Randomize Abilities Too"] = nil
+	L["For random pets, randomize the pets' abilities also."] = nil
+	L["Allow Random Pets From Teams"] = nil
+	L["The default behavior for a random pet slot is to not choose a random pet saved in another team, unless all three pet slots are random.\n\nEnable this option to always allow pets from other teams to be included in the random pool."] = nil
+	L["Team Win Record Options"] = nil
 	L["Auto Track Win Record"] = nil
 	L["At the end of each battle, automatically record whether the loaded team won or lost.\n\nForfeits always count as a loss.\n\nYou can still manually update a team's win record at any time."] = nil
 	L["For PVP Battles Only"] = nil
@@ -508,12 +560,6 @@ if GetLocale()=="????" then
 	L["Instead of displaying the win percentage of a team on the win record button, display the total number of wins.\n\nTeam tabs that are sorted by win record will sort by total wins also."] = nil
 	L["Hide Win Record Buttons"] = nil
 	L["Hide the win record button displayed to the right of each team.\n\nYou can still manually edit a team's win record from its right-click menu and automatic tracking will continue if enabled."] = nil
-	L["Share In Legacy Format"] = nil
-	L["When exporting teams or sending to another Rematch user, use the old format.\n\nUse this option when sharing teams with someone on an older Rematch that's unable to import or receive newer teams."] = nil
-	L["Prioritize Breed On Import"] = nil
-	L["When importing or receiving teams, fill the team with the best matched breed as the first priority instead of the highest level."] = nil
-	L["Randomize Abilities Too"] = nil
-	L["For random pets, randomize the pets' abilities also."] = nil
 	L["Leveling Queue Options"] = nil
 	L["Prefer Living Pets"] = nil
 	L["When loading pets from the queue, skip dead pets and load living ones first."] = nil
@@ -529,7 +575,11 @@ if GetLocale()=="????" then
 	L["Only automatically level pets which don't have a version already at 25 or in the queue."] = nil
 	L["Only Rare Pets"] = nil
 	L["Only automatically level rare quality pets."] = nil
+	L["Random Pet When Queue Empty"] = nil
+	L["When the queue is empty, load a random high-level pet in any leveling slots."] = nil
 	L["Pet Filter Options"] = nil
+	L["Use Level In Strong Vs Filter"] = nil
+	L["When doing a Strong Vs filter, take the level of the pet into account. If a pet is not high enough level to use a Strong Vs ability, do not list the pet.\n\n\124cffffffffNote:\124r A Strong Vs filter is sometimes useful for identifying pets you want to level or capture. This option will hide those pets while the Strong Vs filter is active."] = nil
 	L["Reset Filters On Login"] = nil
 	L["When logging in, start with all pets listed and no filters active."] = nil
 	L["Reset Sort With Filters"] = nil
@@ -542,14 +592,22 @@ if GetLocale()=="????" then
 	L["When searching for something by name in the search box, do not sort the results by relevance.\n\nWhen sorted by relevance, pets with the search term in their name are listed first, followed by terms in notes, then abilities and then source text last."] = nil
 	L["Hide Non-Battle Pets"] = nil
 	L["Only list pets that can battle. Do not list pets like balloons, squires and other companion pets that cannot battle."] = nil
+	L["Allow Hidden Pets"] = nil
+	L["Allow the ability to hide specific pet species in the pet list with a 'Hide Pet' in the list's right-click menu.\n\nYou can view pets you've hidden from the Other -> Hidden Pets filter."] = nil
 	L["Confirmation Options"] = nil
 	L["Don't display a popup when a team loads and a pet within the team can't be found."] = nil
 	L["Don't ask for confirmation when hiding a pet.\n\nYou can view hidden pets in the 'Other' pet filter."] = nil
 	L["Don't Remind About Backups"] = nil
 	L["Don't show a popup offering to backup teams every once in a while. Generally, the popup appears sometime after the number of teams increases by 50."] = nil
+	L["Don't Ask When Caging Pets"] = nil
+	L["Don't ask for confirmation when putting a pet in a cage."] = nil
+	L["Don't Confirm To Fill Queue"] = nil
+	L["Don't ask for confirmation when using the 'Fill Queue' or 'Fill Queue More' menu items in the Queue menu."] = nil
 	L["Miscellaneous Options"] = nil
 	L["Show After Pet Battle"] = nil
 	L["Show the Rematch window after leaving a pet battle."] = nil
+	L["But Not After PVP Battle"] = nil
+	L["Since pets don't remain injured in PVP battles, don't show the window when leaving a PVP battle."] = nil
 	L["Disable Sharing"] = nil
 	L["Disable the Send button and also block any incoming pets sent by others. Import and Export still work."] = nil
 	L["Use Minimap Button"] = nil
@@ -564,24 +622,26 @@ if GetLocale()=="????" then
 	L["Hide the informational \"Help\" items found in many menus and on the pet card."] = nil
 	L["Use Default Pet Journal"] = nil
 	L["Turn off Rematch integration with the default pet journal.\n\nYou can still use Rematch in its standalone window, accessed via key binding, /rematch command or from the Minimap button if enabled in options."] = nil
+	L["Debugging Options"] = nil
+	L["Debug: Journal FrameLevel"] = nil
+	L["Check this to less aggressively try to take over the default pet journal. Specifically, it will give up sooner if it can't raise frame level above all other addons' frames in the journal."] = nil
+	L["Debug: No Cache"] = nil
+	L["Check this to disable the automatic caching of NPC names when the addon launches.\n\n\124cffffffffNote:\124r If a target's name appears as something like 'NPC 1234' while this option is enabled, it's probably because of this option. It should correct itself on its own over time."] = nil
+	L["Debug: No Sanctuary"] = nil
+	L["Check this to disable the 'Sanctuary' system that acts as a safety net for server petID reassignments.\n\n\124cffffffffNote:\124r While this option is enabled, any pets in teams will become greyed out if their petID changes. When the team loads, an arbitrary one of the same species will be loaded in its place.\n\n\124cffff4040WARNING!\124r While this option is enabled, make frequent backups of your teams with the 'Backup All Teams' options in the Teams button at the top of the Teams Tab."] = nil
+	L["Debug: Delay Journal"] = nil
+	L["Delay Rematch taking over the journal on the first launch by a full second."] = nil
+	L["Delay Just One Frame"] = nil
+	L["Change the delay from half a second to one frame, or nearly instant."] = nil
+	L["Debug: No Models"] = nil
+	L["Prevent the creation or rendering of any models within Rematch. This includes the target panel, loadout slots and pet card.\n\n\124cffff4040This option requires a Reload."] = nil
 	L["Rematch version %s"] = nil
-	L["The%s icon indicates new options."] = nil
-	L["Anchor"] = nil
-	L["%s\n\n%sWARNING!\124r There may be an issue with pet toasts in ElvUI not positioning properly. While using ElvUI it's recommended pet toasts remain hidden unless you've moved alerts in ElvUI."] = nil
-	L["Bottom Right"] = nil
-	L["Top Right"] = nil
-	L["Bottom Left"] = nil
-	L["Top Left"] = nil
-	L["Anchor: %s"] = nil
-	L["When the standlone window is minimized, send it to the %s corner."] = nil
-	L["Current Scale: %d%%"] = nil
-	L["Click here to choose a different scale for the standalone window."] = nil
-	L["\n\n%sThis will close the journal and open the standalone window."] = nil
-	L["Reload the UI now?"] = nil
-	L["You've chosen to change the setting for Compact List Format.\n\nThis change doesn't take effect until a reload or logout."] = nil
-	L["Custom Scale"] = nil
-	L["Keep this scale?"] = nil
-	L["This scale determines the relative size of the standalone window, where 100% is the standard size."] = nil
+	L["The%s icon marks new options."] = nil
+
+-- Panels\TargetPanel.lua
+	L["Search Targets"] = nil
+	L["All Targets"] = nil
+	L["Targets with a \124TInterface\\AddOns\\Rematch\\Textures\\hasteam:18\124t have a saved team."] = nil
 
 -- Widgets\BottomPanel.lua
 	L["You can also double-click a pet to summon or dismiss it."] = nil
@@ -602,15 +662,24 @@ if GetLocale()=="????" then
 	L["Export Tab"] = nil
 	L["Export all teams in this tab to a string you can copy elsewhere, such as forums or emails.\n\nOther Rematch users can then paste these teams into their Rematch via Import Teams.\n\nYou can export a single team by right-clicking one and choosing its Share menu."] = nil
 	L["Delete Tab"] = nil
-	L["Delete this tab and move all of its teams to the default tab."] = nil
+	L["Delete this tab and either move all of its teams to the default tab or delete the teams too."] = nil
+	L["Delete Teams"] = nil
+	L["Permanently delete all teams in this tab."] = nil
+	L["Previous Tabs"] = nil
+	L["Next Tabs"] = nil
 	L["Create New Tab"] = nil
 	L["Teams: %d"] = nil
 	L["New Tab"] = nil
 	L["Choose a name and icon"] = nil
+	L["Search Icons"] = nil
+	L["Delete Teams?"] = nil
+	L["Delete ALL teams in the first tab?"] = nil
+	L["%sWARNING!\124r This will %sPERMANENTLY DELETE\124r all teams in this tab!"] = nil
 	L["Delete this tab?"] = nil
 	L["Deleting this tab will move its teams to the %s tab."] = nil
 	L["Delete teams within the tab too"] = nil
-	L["%sWARNING!\124r This will %sPERMANENTLY DELETE\124r all teams in this tab!"] = nil
+
+-- Widgets\TeamTabIcons.lua
 
 -- Widgets\LoadedTeamPanel.lua
 	L["Reload Team"] = nil
@@ -696,6 +765,7 @@ if GetLocale()=="????" then
 	L["Import these teams?"] = nil
 	L["Import"] = nil
 	L["%s%d\124r Rematch teams have the same name."] = nil
+	L["Note: Teams will be saved in the current team tab, and will not overwrite existing teams. Any name conflicts will add a number to the end of the imported team."] = nil
 	L["Please Wait..."] = nil
 	L["Note: These are just your teams and their notes and preferences. Tab information, sort orders, win records and other settings are not included.\n\nFor the most complete backup of all your addon data, please backup your Word of Warcraft\\WTF folder."] = nil
 	L["Press Ctrl+C to copy these teams to the clipboard. Then paste them into an email to yourself or a text file someplace safe.\n\nIf you ever need to restore your teams, paste them back in with Import Teams."] = nil
@@ -715,7 +785,7 @@ if GetLocale()=="????" then
 	L["\124TInterface\\RaidFrame\\ReadyCheck-NotReady:16\124t Error %s"] = nil
 	L["\124TInterface\\RaidFrame\\ReadyCheck-Ready:16\124t Script ran without errors!"] = nil
 	L["\124cffffd200-\124r Scripts are a way to create custom pet filters.\n\n\124cffffd200-\124r Scripts are Lua code and require some knowledge of the language and API to create your own filters.\n\n\124cffffd200-\124r Scripts run for each pet and should return true if the pet is to be listed.\n\n\124cffffd200-\124r Some variables are filled in as the script runs for each pet. See Pet Variables.\n\n\124cffffd200-\124r Scripts run in a restricted environment with no access outside its environment. See Exposed API.\n\n\124cffffd200-\124r All variables/tables created exist only in this environment and disappear when the filter finishes.\n\n\124cffffd200-\124r If the first line of the script is a --comment, it will be used as a tooltip in the Script menu."] = nil
-	L["These variables are defined as the script runs for each pet:\n\n\124cffffd200owned\124r \124cffaaaaaa(boolean)\124r\nWhether the pet is owned by the player.\n\n\124cffffd200petID\124r \124cffaaaaaa(string)\124r\nUnique ID of the owned pet, such as \"BattlePet-0-000004A98F18\".\n\n\124cffffd200speciesID\124r \124cffaaaaaa(number)\124r\nShared ID of the pet's family. Black Tabby Cats are species 42.\n\n\124cffffd200customName\124r \124cffaaaaaa(string)\124r\nName given to the pet by the player.\n\n\124cffffd200level\124r \124cffaaaaaa(number)\124r\nLevel of the pet, or nil for uncollected pets.\n\n\124cffffd200xp\124r \124cffaaaaaa(number)\124r\nAmount of xp the pet has in its current level.\n\n\124cffffd200maxXp\124r \124cffaaaaaa(number)\124r\nTotal amount of xp required to reach the pet's next level.\n\n\124cffffd200displayID\124r \124cffaaaaaa(number)\124r\nA numeric representation of a pet's model skin.\n\n\124cffffd200isFavorite\124r \124cffaaaaaa(boolean)\124r\nWhether the pet is favorited by the player.\n\n\124cffffd200name\124r \124cffaaaaaa(string)\124r\nTrue name of the pet species.\n\n\124cffffd200icon\124r \124cffaaaaaa(string)\124r\nTexture path of the pet's icon.\n\n\124cffffd200petType\124r \124cffaaaaaa(number)\124r\nValue between 1 and 10 for its type. 1=Humanoid, 2=Dragonkin, etc.\n\n\124cffffd200creatureID\124r \124cffaaaaaa(number)\124r\nThe npcID of the pet when it's summoned.\n\n\124cffffd200sourceText\124r \124cffaaaaaa(string)\124r\nFormatted text describing where the pet is from.\n\n\124cffffd200description\124r \124cffaaaaaa(string)\124r\nLore text of the species.\n\n\124cffffd200isWild\124r \124cffaaaaaa(boolean)\124r\nWhether the pet was a captured wild pet.\n\n\124cffffd200canBattle\124r \124cffaaaaaa(boolean)\124r\nWhether the pet can battle.\n\n\124cffffd200tradable\124r \124cffaaaaaa(boolean)\124r\nWhether the pet can be caged.\n\n\124cffffd200unique\124r \124cffaaaaaa(boolean)\124r\nWhether no more than one of the pet can be known at a time.\n\n\124cffffd200abilityList\124r \124cffaaaaaa(table)\124r\nArray of abilityIDs used by the species.\n\n\124cffffd200levelList\124r \124cffaaaaaa(table)\124r\nArray of levels the abilityIDs are learned.\n\nFurther information about pets can be retrieved with the \124cffffd200petInfo\124r system. See Process\\PetInfo.lua for more information."] = nil
+	L["These variables are defined as the script runs for each pet:\n\n\124cffffd200owned\124r \124cffaaaaaa(boolean)\124r\nWhether the pet is owned by the player.\n\n\124cffffd200petID\124r \124cffaaaaaa(string)\124r\nUnique ID of the owned pet, such as \"BattlePet-0-000004A98F18\".\n\n\124cffffd200speciesID\124r \124cffaaaaaa(number)\124r\nShared ID of the pet's family. Black Tabby Cats are species 42.\n\n\124cffffd200customName\124r \124cffaaaaaa(string)\124r\nName given to the pet by the player.\n\n\124cffffd200level\124r \124cffaaaaaa(number)\124r\nLevel of the pet, or nil for uncollected pets.\n\n\124cffffd200xp\124r \124cffaaaaaa(number)\124r\nAmount of xp the pet has in its current level.\n\n\124cffffd200maxXp\124r \124cffaaaaaa(number)\124r\nTotal amount of xp required to reach the pet's next level.\n\n\124cffffd200displayID\124r \124cffaaaaaa(number)\124r\nA numeric representation of a pet's model skin.\n\n\124cffffd200isFavorite\124r \124cffaaaaaa(boolean)\124r\nWhether the pet is favorited by the player.\n\n\124cffffd200name\124r \124cffaaaaaa(string)\124r\nThe displayed name of the pet, either by rename or its species name.  Use petInfo.speciesName to get the pet's original name.\n\n\124cffffd200icon\124r \124cffaaaaaa(string)\124r\nTexture path of the pet's icon.\n\n\124cffffd200petType\124r \124cffaaaaaa(number)\124r\nValue between 1 and 10 for its type. 1=Humanoid, 2=Dragonkin, etc.\n\n\124cffffd200creatureID\124r \124cffaaaaaa(number)\124r\nThe npcID of the pet when it's summoned.\n\n\124cffffd200sourceText\124r \124cffaaaaaa(string)\124r\nFormatted text describing where the pet is from.\n\n\124cffffd200description\124r \124cffaaaaaa(string)\124r\nLore text of the species.\n\n\124cffffd200isWild\124r \124cffaaaaaa(boolean)\124r\nWhether the pet was a captured wild pet.\n\n\124cffffd200canBattle\124r \124cffaaaaaa(boolean)\124r\nWhether the pet can battle.\n\n\124cffffd200tradable\124r \124cffaaaaaa(boolean)\124r\nWhether the pet can be caged.\n\n\124cffffd200unique\124r \124cffaaaaaa(boolean)\124r\nWhether no more than one of the pet can be known at a time.\n\n\124cffffd200abilityList\124r \124cffaaaaaa(table)\124r\nArray of abilityIDs used by the species.\n\n\124cffffd200levelList\124r \124cffaaaaaa(table)\124r\nArray of levels the abilityIDs are learned.\n\nFurther information about pets can be retrieved with the \124cffffd200petInfo\124r system. See Process\\PetInfo.lua for more information."] = nil
 	L["The script environment is restricted with access to only common Lua and the following:\n\n\124cffffd200C_PetJournal \124cffaaaaaa(table)\124r\nThe default API for journal functions.\n\n\124cffffd200C_PetBattles \124cffaaaaaa(table)\124r\nThe default API for the battle UI.\n\n\124cffffd200GetBreed \124cffaaaaaa(function)\nArgument:\124r petID\n\124cffaaaaaaReturns:\124r The numeric breed (3-12) of a petID if one of the supported breed addons is enabled.\n\n\124cffffd200GetSource \124cffaaaaaa(function)\nArgument:\124r speciesID\n\124cffaaaaaaReturns:\124r The numeric source (1-10) of a speciesID. 1=Drop, 2=Quest, etc.\n\n\124cffffd200IsPetLeveling \124cffaaaaaa(function)\nArgument:\124r petID\n\124cffaaaaaaReturns:\124r Whether the given petID is in the leveling queue.\n\nA few iterator functions are also provided if you need to compare a pet against others. These are used in a for loop such as:\n\n\124cffcccccc    for speciesID in \124cffffd200AllSpeciesIDs()\124cffcccccc do\n      -- do something with speciesID\n    end\124r\n\n\124cffffd200AllSpeciesIDs \124cffaaaaaa(iterator function)\nReturns:\124r The next speciesID of all existing unique pets.\n\n\124cffffd200AllPetIDs \124cffaaaaaa(iterator function)\nReturns:\124r The next petID of all owned pets.\n\n\124cffffd200AllPets \124cffaaaaaa(iterator function)\nReturns:\124r The next petID or speciesID of all pets in the master list. Owned pets return a petID string, uncollected pets return a speciesID number.\n\n\124cffffd200AllAbilities \124cffaaaaaa(iterator function)\nArgument:\124r speciesID\n\124cffaaaaaaReturns:\124r The next abilityID and level of the ability for a speciesID.\n\124cffffd200Note:\124r abilityList and levelList are already defined for each pet as your script runs. Use this iterator if you need to gather abilities of other pets for comparison. See the Unique Abilities script for an example.\n\n\124cffffd200If you would like anything else exposed please post a comment on wowinterface, curse or warcraftpet's Rematch 4.0 thread."] = nil
 
 -- Dialogs\Collection.lua
@@ -725,17 +795,17 @@ if GetLocale()=="????" then
 	L["Percent Collected"] = nil
 	L["Max Level Pets"] = nil
 	L["Rare Quality Pets"] = nil
-	L["Unique Pets In The Game"] = nil
+	L["Unique Pets In the Journal"] = nil
 	L["Collection Statistics"] = nil
-	L["There are %s%d\124r unique pets in the game."] = nil
+	L["There are %s%d\124r unique pets in the journal"] = nil
 	L["Pets Collected"] = nil
 	L["Pets At Max Level"] = nil
 	L["Total"] = nil
 	L["Unique"] = nil
 	L["Duplicate Collected Pets"] = nil
 	L["Average Battle Pet Level"] = nil
-	L["You have %s%.1f%%\124r of all unique pets."] = nil
-	L["All unique pets in the game."] = nil
+	L["You have %s%.1f%%\124r of those unique pets"] = nil
+	L["All unique pets in the journal. This is all obtainable unique pets."] = nil
 	L["All pets you've collected, including duplicates."] = nil
 	L["The unique pets you've collected, not including duplicates."] = nil
 	L["The unique pets you're missing."] = nil
@@ -760,7 +830,5 @@ if GetLocale()=="????" then
 
 -- Process\Battle.lua
 	L["Show Pet Card"] = nil
-
--- Process\Breeds.lua
 
 end

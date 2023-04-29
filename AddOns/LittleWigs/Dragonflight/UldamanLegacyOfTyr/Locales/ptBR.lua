@@ -1,9 +1,18 @@
 local L = BigWigs:NewBossLocale("Uldaman: Legacy of Tyr Trash", "ptBR")
 if not L then return end
 if L then
-	--L.hulking_berserker = "Hulking Berserker"
-	--L.vicious_basilisk = "Vicious Basilisk"
-	--L.earthen_warder = "Earthen Warder"
-	--L.cavern_seeker = "Cavern Seeker"
-	--L.runic_protector = "Runic Protector"
+	L.hulking_berserker = "Berserker Agigantado"
+	L.vicious_basilisk = "Basilisco Cruel"
+	L.earthen_warder = "Guardador Terrano"
+	L.earthen_weaver = "Tecelão Terrano"
+	L.cavern_seeker = "Perscrutador das Cavernas"
+	L.runic_protector = "Protetor Rúnico"
+	L.ebonstone_golem = "Golem de Ebanolita"
+	L.earthen_guardian = "Guardião Terrano"
+	L.infinite_agent = "Agente Infinito"
+end
+
+L = BigWigs:NewBossLocale("Sentinel Talondras", "ptBR")
+if L then
+	L.boss = "CHEFE"
 end

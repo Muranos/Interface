@@ -116,7 +116,7 @@ function RCLootCouncil:ExportTokenDataSingle(id)
         return C_Timer.After(0, function() self:ExportTokenDataSingle(id) end)
     end
 end
---@end-debug@
+--@end-debug@]==]
 
 -- Equip locations
 _G.RCTokenTable = {

@@ -1,7 +1,7 @@
-## Interface: 100002
+## Interface: 100007
 ## Title: |cffEEE4AESilence|r
 ## Author: Yuyuli
-## Version: 1.1.1
+## Version: 1.1.2
 ## Notes: |cff58C6FASilence Talking Heads if they were previously or silence them permanently.|r|n|n|cffFFC700Slash command: /silence|r
 ## SavedVariables: SilenceDB
 

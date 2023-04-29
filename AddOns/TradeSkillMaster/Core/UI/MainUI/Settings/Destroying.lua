@@ -4,10 +4,11 @@
 --    All Rights Reserved - Detailed license information included with addon.     --
 -- ------------------------------------------------------------------------------ --
 
-local _, TSM = ...
+local TSM = select(2, ...) ---@type TSM
 local Destroying = TSM.MainUI.Settings:NewPackage("Destroying")
 local L = TSM.Include("Locale").GetTable()
 local UIElements = TSM.Include("UI.UIElements")
+local UIUtils = TSM.Include("UI.UIUtils")
 local private = {}
 local ITEM_QUALITY_DESCS = { ITEM_QUALITY2_DESC, ITEM_QUALITY3_DESC, ITEM_QUALITY4_DESC }
 local ITEM_QUALITY_KEYS = { 2, 3, 4 }
@@ -29,7 +30,7 @@ end
 -- ============================================================================
 
 function private.GetDestroyingSettingsFrame()
-	TSM.UI.AnalyticsRecordPathChange("main", "settings", "destroying")
+	UIUtils.AnalyticsRecordPathChange("main", "settings", "destroying")
 	return UIElements.New("ScrollFrame", "destroyingSettings")
 		:SetPadding(8, 8, 8, 0)
 		:AddChild(TSM.MainUI.Settings.CreateExpandableSection("Destroying", "general", L["General Options"], "")
@@ -93,7 +94,7 @@ function private.GetDestroyingSettingsFrame()
 						:SetFont("ITEM_BODY3")
 						:SetJustifyH("LEFT")
 						:SetIconSize(12)
-						:SetTextInfo("itemString", TSM.UI.GetColoredItemName)
+						:SetTextInfo("itemString", UIUtils.GetDisplayItemName)
 						:SetIconInfo("texture")
 						:SetTooltipInfo("itemString")
 						:SetSortInfo("name")
