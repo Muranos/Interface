@@ -1,3 +1,25 @@
+07/11/1023 version 4.15.2
+- Fix for Stargazer Zenoth's quest name
+- toc update for 10.1.5 patch
+
+06/08/2023 version 4.15.1
+- Fix for icons of unowned pets showing default icons
+
+06/08/2023 version 4.15.0
+- Added support for reverting back from upcoming Rematch 5 beta to Rematch 4. Note: Going from Rematch 5 back to Rematch 4 will return the addon to its pre-upgrade state. Changes made to teams, tabs/groups, queue, settings, etc. while using Rematch 5 will not carry back to Rematch 4.
+- Added support for importing teams exported from Rematch 5 beta. Note: While Rematch 5 can store multiple targets in a team and multiple teams can share the same target, this is not possible in Rematch 4 (this verison). When importing teams from Rematch 5 into Rematch 4: If a team contains multiple targets, this version (Rematch 4) will only recognize the first target. If an existing team already has a target and you choose to make a copy on import into Rematch 4, the new team won't save with the target.
+- Spanish (esES) localization added courtesy of Romanv_
+- Fixed handling of invalid speciesIDs in imports
+
+05/14/2023 version 4.14.18
+- Removed support for LibPetBreedInfo (last update was 2017) which seems to be causing issues when present
+- GetAddOnMetadata calls updated
+
+05/02/2023 version 4.14.17
+- Added Zaralek Cavern targets
+- Added compartment launcher support
+- Updated toc for icon and 10.1.0 patch
+
 04/22/2023 version 4.14.16
 - Added Forbidden Reach targets. Note: There are separate Legendary, Epic and Rare versions of Vortex, Wildfire, Tremblor and Flow because some people use different strategies for each rarity and a future update will allow all rarities to be in one team.
 - Added option "Show Numeric Breeds" under Appearance Options for those that prefer the numeric breed.

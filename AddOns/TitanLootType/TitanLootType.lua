@@ -33,6 +33,10 @@ local current_spec = ""
 -- **************************************************************************
 --]]
 function TitanPanelLootTypeButton_OnLoad(self)
+	local notes = ""
+		.."Adds group loot information to Titan Panel.\n"
+		.."- Option to add instance difficulty information.\n"
+		.."- Option to add current spec and loot spec.\n"
 	self.registry = {
 		id = TITAN_LOOTTYPE_ID,
 		category = "Built-ins",
@@ -43,6 +47,7 @@ function TitanPanelLootTypeButton_OnLoad(self)
 		tooltipTextFunction = "TitanPanelLootTypeButton_GetTooltipText",
 		icon = "Interface\\AddOns\\TitanLootType\\TitanLootType",
 		iconWidth = 16,
+		notes = notes,
 		controlVariables = {
 			ShowIcon = true,
 			ShowLabelText = true,

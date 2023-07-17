@@ -1,14 +1,20 @@
 local L = BigWigs:NewBossLocale("Neltharus Trash", "frFR")
 if not L then return end
 if L then
+	--L.custom_on_autotalk = "Autotalk"
+	--L.custom_on_autotalk_desc = "Instantly selects the gossip options to get profession buffs."
+
+	L.burning_chain = "Chaîne ardente"
 	L.qalashi_warden = "Gardien qalashi"
 	L.qalashi_hunter = "Chasseur qalashi"
 	L.overseer_lahar = "Surveillant Lahar"
 	L.qalashi_trainee = "Recrue qalashi"
 	L.qalashi_bonetender = "Désosseur qalashi"
 	L.qalashi_irontorch = "Flambe-fer qalashi"
+	L.qalashi_bonesplitter = "Craque-les-os qalashi"
 	L.qalashi_lavabearer = "Porte-lave qalashi"
 	L.irontorch_commander = "Commandant des flambe-fer"
+	L.qalashi_blacksmith = "Forgeron qalashi"
 	L.forgewrought_monstrosity = "Monstruosité forgée"
 	L.qalashi_plunderer = "Pilleur qalashi"
 	L.qalashi_thaumaturge = "Thaumaturge qalashi"

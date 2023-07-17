@@ -34,7 +34,7 @@ local saboteurMarker = mod:AddMarkerOption(true, "npc", 8, -25612, 8) -- Nokhud 
 function mod:GetOptions()
 	return {
 		-- Granyth
-		388283, -- Eruption
+		{388283, "CASTBAR"}, -- Eruption
 		388817, -- Shards of Stone
 		385916, -- Tectonic Stomp
 		386320, -- Summon Saboteur
@@ -61,7 +61,7 @@ function mod:OnBossEnable()
 	self:Log("SPELL_CAST_START", "Reload", 386921)
 	self:Log("SPELL_CAST_SUCCESS", "ReloadSuccess", 386921)
 	self:Log("SPELL_AURA_APPLIED", "Lanced", 387155)
-	
+
 	-- Nokhud Saboteur (Mythic-only)
 	self:Log("SPELL_CAST_START", "Dismantle", 386490)
 	self:Log("SPELL_AURA_APPLIED", "DismantleApplied", 386490)
@@ -97,6 +97,8 @@ function mod:ShardsOfStone(args)
 	self:PlaySound(args.spellId, "alert")
 	if shardsOfStoneRemaining > 0 then
 		self:CDBar(args.spellId, 13.3)
+	else
+		self:StopBar(args.spellId)
 	end
 end
 

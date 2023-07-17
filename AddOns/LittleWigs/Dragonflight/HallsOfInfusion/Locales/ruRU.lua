@@ -2,7 +2,7 @@ local L = BigWigs:NewBossLocale("Halls of Infusion Trash", "ruRU")
 if not L then return end
 if L then
 	L.custom_on_autotalk = "Авторазговор"
-	--L.custom_on_autotalk_desc = "Instantly selects the gossip options to get profession buffs."
+	L.custom_on_autotalk_desc = "Автоматически выбирать диалоги для баффов профессии."
 
 	L.primalist_ravager = "Опустошитель воинов стихий"
 	L.primalist_geomancer = "Воин стихий – геомант"
@@ -10,6 +10,7 @@ if L then
 	L.refti_defender = "Рефти-защитник"
 	L.dazzling_dragonfly = "Ослепительная стрекоза"
 	L.curious_swoglet = "Любопытный детеныш рогоплава"
+	L.primalist_shocktrooper = "Воин стихий – штурмовик"
 	L.flamecaller_aymi = "Призывательница пламени Аюми"
 	L.squallbringer_cyraz = "Вестник бури Сайраз"
 	L.primalist_earthshaker = "Воин стихий – землетряс"

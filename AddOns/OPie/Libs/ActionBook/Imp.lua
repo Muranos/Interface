@@ -1,17 +1,16 @@
-local _, T = ...
+local MAJ, REV, COMPAT, _, T = 1, 3, select(4,GetBuildInfo()), ...
 if T.SkipLocalActionBook then return end
 
-local IM, MAJ, REV, COMPAT = {}, 1, 1, select(4,GetBuildInfo())
+local EV, AB, RW = T.Evie, T.ActionBook:compatible(2,34), T.ActionBook:compatible("Rewire", 1,27)
+assert(EV and AB and RW and 1, "Incompatible library bundle")
 local MODERN, CF_WRATH, CI_ERA = COMPAT >= 10e4, COMPAT < 10e4 and COMPAT >= 3e4, COMPAT < 2e4
-local EV, AB, RW = T.Evie,T.ActionBook:compatible(2, 34), T.ActionBook:compatible("Rewire", 1,10)
-assert(EV and AB and RW, "Incompatible library bundle")
-local L, CreateEdge = AB:locale(), T.CreateEdge
+local IM, L, CreateEdge = {}, T.ActionBook.L, T.CreateEdge
 
 local function assert(condition, text, level, ...)
-	return condition or error(tostring(text):format(...), 1 + (level or 1))
+	return condition or error(tostring(text):format(...), 1 + (level or 1))((0)[0])
 end
 
-local commandType, addCommandType = {["#show"]=0, ["#showtooltip"]=0} do
+local commandType, addCommandType = {["#show"]=0, ["#showtooltip"]=0, ["#imp"]=-1} do
 	function addCommandType(slashToken, ct)
 		local idx, s = 1
 		while 1 do
@@ -27,7 +26,7 @@ end
 
 local toMacroText, quantizeMacro, formatMacro, formatToken, setMountPreference do
 	local genParser do
-		local doRewrite, replaceFunc
+		local doRewrite, replaceFunc, critFail, critLine
 		local function replaceAlternatives(ctype, args)
 			local ret, alt2, rfCtx
 			for alt, cpos in (args .. ","):gmatch("(.-),()") do
@@ -46,11 +45,25 @@ local toMacroText, quantizeMacro, formatMacro, formatToken, setMountPreference d
 		local function hasTautCondition(cond)
 			return (cond:match("%[%s*%]") or cond:match("%[%s*@[^,]*%]")) and true
 		end
+		local function procImpOptions(args)
+			if not doRewrite then
+				return
+			end
+			if args:match("^%s*critical%s*$") then
+				critLine = true
+			end
+			return ""
+		end
 		local function procLine(commandPrefix, nlc, command, args)
-			if nlc ~= "" and nlc ~= "\n" then return end
+			if critFail or (nlc ~= "" and nlc ~= "\n") then return end
 			local ctype = commandType[command:lower()]
-			if not ctype then return end
-			local pos, len1, ret = 1, #args+1
+			if ctype == -1 then
+				return procImpOptions(args)
+			elseif not ctype then
+				return
+			end
+			local isCritical, pos, len1, ret = critLine and ctype > 0, 1, #args+1
+			critLine = critLine and not isCritical
 			repeat
 				local cstart, cend, vend = pos
 				repeat
@@ -89,26 +102,28 @@ local toMacroText, quantizeMacro, formatMacro, formatToken, setMountPreference d
 					end
 				end
 			until pos > len1
+			critFail = critFail or isCritical and (ret or "") == ""
 			return ret or ""
 		end
 		function genParser(pReplaceFunc)
 			return function(aDoRewrite, text)
-				doRewrite, replaceFunc = aDoRewrite, pReplaceFunc
-				return (text:gsub("((.?)([#/]%S+) ?)([^\n]*)", procLine))
+				doRewrite, replaceFunc, critFail, critLine = aDoRewrite, pReplaceFunc
+				text = text:gsub("((.?)([#/]%S+) ?)([^\n]*)", procLine)
+				return critFail and "" or text
 			end
 		end
 	end
 	local function replaceSpellID(ctype, sidlist, prefix, tk)
-		local sr, ar
+		local noEscapes, sr, ar = ctype == 2
 		for id, sn in sidlist:gmatch("%d+") do
 			id = id + 0
 			sn, sr = GetSpellInfo(id), GetSpellSubtext(id)
 			ar = GetSpellSubtext(sn)
-			local isCastable, castFlag = RW:IsSpellCastable(id)
+			local isCastable, castFlag = RW:IsSpellCastable(id, noEscapes)
 			if not MODERN and not isCastable and tk ~= "spellr" then
 				local id2 = select(7,GetSpellInfo(sn))
 				if id2 then
-					id, isCastable, castFlag = id2, RW:IsSpellCastable(id2)
+					id, isCastable, castFlag = id2, RW:IsSpellCastable(id2, noEscapes)
 				end
 			end
 			if isCastable then
@@ -131,21 +146,22 @@ local toMacroText, quantizeMacro, formatMacro, formatToken, setMountPreference d
 			local sn, sr = GetSpellInfo(sid or 0), GetSpellSubtext(sid or 0)
 			return GetSpellInfo(sn, sr) ~= nil and sid or (RW:GetCastEscapeAction(sn) and sid)
 		end
-		local function findMount(prefSID, mtype)
-			local myFactionId, nc, cs = UnitFactionGroup("player") == "Horde" and 0 or 1, 0
-			local idm = C_MountJournal.GetMountIDs()
+		local function findMount(prefSID, mtype, ctype)
+			local wantDragonriding, escapeContext = mtype == 402, ctype == 2 and 0 or 1
+			local idm, myFactionId, nc, cs = C_MountJournal.GetMountIDs(), UnitFactionGroup("player") == "Horde" and 0 or 1, 0
 			local gmi, gmiex = C_MountJournal.GetMountInfoByID, C_MountJournal.GetMountInfoExtraByID
 			for i=1, #idm do
 				i = idm[i]
-				local _1, sid, _3, active, _5, _6, _7, factionLocked, factionId, hide, have = gmi(i)
+				local _1, sid, _3, active, _5, _6, _7, factionLocked, factionId, hide, have, _12, isDragonriding = gmi(i)
 				if have and not hide
 				   and (not factionLocked or factionId == myFactionId)
-				   and RW:IsSpellCastable(sid)
+				   and RW:IsSpellCastable(sid, escapeContext)
 				   then
 					local _, _, _, _, t = gmiex(i)
-					if sid == prefSID or (active and t == mtype and prefSID == nil) then
+					local isTypeMatch = t == mtype or (wantDragonriding and isDragonriding)
+					if sid == prefSID or (active and isTypeMatch and prefSID == nil) then
 						return sid
-					elseif t == mtype and not skip[sid] then
+					elseif isTypeMatch and not skip[sid] then
 						nc = nc + 1
 						if math.random(1,nc) == 1 then
 							cs = sid
@@ -158,13 +174,13 @@ local toMacroText, quantizeMacro, formatMacro, formatToken, setMountPreference d
 		function replaceMountTag(ctype, tag, prefix)
 			if not MODERN then
 			elseif tag == "ground" then
-				gmSid = gmSid and IsKnownSpell(gmSid) or findMount(gmPref or gmSid, 230)
+				gmSid = gmSid and IsKnownSpell(gmSid) or findMount(gmPref or gmSid, 230, ctype)
 				return replaceSpellID(ctype, tostring(gmSid), prefix)
 			elseif tag == "air" then
-				fmSid = fmSid and IsKnownSpell(fmSid) or findMount(fmPref or fmSid, 248)
+				fmSid = fmSid and IsKnownSpell(fmSid) or findMount(fmPref or fmSid, 248, ctype)
 				return replaceSpellID(ctype, tostring(fmSid), prefix)
 			elseif tag == "dragon" then
-				drSid = drSid and IsKnownSpell(drSid) or findMount(drPref or drSid, 402)
+				drSid = drSid and IsKnownSpell(drSid) or findMount(drPref or drSid, 402, ctype)
 				return replaceSpellID(ctype, tostring(drSid), prefix)
 			end
 			return nil
@@ -197,11 +213,13 @@ local toMacroText, quantizeMacro, formatMacro, formatToken, setMountPreference d
 			if type(ctx) == "number" and ctx > 0 then
 				return nil, ctx-1
 			end
-			local cc, pre, name, tws = 0, value:match("^(%s*!?)(.-)(%s*)$")
+			local noEscapes, cc, pre, name, tws = ctype == 2, 0, value:match("^(%s*!?)(.-)(%s*)$")
 			repeat
 				local lowname = name:lower()
 				local sid, peek, cnpos = spells[lowname]
-				if sid then
+				if sid and noEscapes and RW:IsCastEscape(lowname, true) then
+					-- Don't tokenize escapes in contexts they wont't work in
+				elseif sid then
 					if not MODERN then
 						local rname = name:gsub("%s*%([^)]+%)$", "")
 						local sid2 = rname ~= name and spells[rname:lower()]
@@ -212,7 +230,7 @@ local toMacroText, quantizeMacro, formatMacro, formatToken, setMountPreference d
 					return (pre .. "{{spell:" .. sid .. "}}" .. tws), cc
 				elseif specialTokens[lowname] then
 					return pre .. specialTokens[lowname] .. tws, cc
-				elseif name:match("{{.*}}") then
+				elseif name:match("^{{.*}}$") then
 					return pre .. name .. tws, cc
 				end
 				if ctype >= 2 and args then
@@ -738,7 +756,7 @@ function IM:AddTokenizableCommand(slashKey, behavesLikeCommand)
 	assert(type(slashKey) == 'string' and type(behavesLikeCommand) == 'string',
 	       'Syntax: IM:AddTokenizableCommand("slashKey"[, "behavesLikeCommand"])', 2)
 	assert(type(_G['SLASH_' .. slashKey .. '1']) == 'string', 'Invalid slash command key %q', 2, slashKey)
-	assert(commandType[behavesLikeCommand], 'Unrecognized behaves-like command %q', 2, behavesLikeCommand)
+	assert((commandType[behavesLikeCommand] or -1) >= 0, 'Unrecognized behaves-like command %q', 2, behavesLikeCommand)
 	addCommandType(slashKey, commandType[behavesLikeCommand])
 	AB:NotifyObservers("imptext")
 end
@@ -751,7 +769,7 @@ function IM:SetMountPreference(groundSpellID, flyingSpellID, dragonSpellID)
 	return setMountPreference(groundSpellID, flyingSpellID, dragonSpellID)
 end
 
-AB:_RegisterModule("Imp", {
+AB:RegisterModule("Imp", {
 	compatible=function(_, maj, rev)
 		if maj == MAJ and (rev == nil or rev <= REV) then
 			return IM

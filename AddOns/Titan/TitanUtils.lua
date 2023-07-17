@@ -2,23 +2,6 @@
 NAME: TitanUtils.lua
 DESC: This file contains various utility routines used by Titan and routines available to plugin developers.
 --]]
-TITAN_ID = "Titan"
-TITAN_DEBUG_ARRAY_MAX = 100
-TITAN_PANEL_NONMOVABLE_PLUGINS = {};
-TITAN_PANEL_MENU_FUNC_HIDE = "TitanPanelRightClickMenu_Hide";
-TitanPlugins = {};  -- Used by plugins
-TitanPluginsIndex = {};
-TITAN_NOT_REGISTERED = _G["RED_FONT_COLOR_CODE"].."Not_Registered_Yet".._G["FONT_COLOR_CODE_CLOSE"]
-TITAN_REGISTERED = _G["GREEN_FONT_COLOR_CODE"].."Registered".._G["FONT_COLOR_CODE_CLOSE"]
-TITAN_REGISTER_FAILED = _G["RED_FONT_COLOR_CODE"].."Failed_to_Register".._G["FONT_COLOR_CODE_CLOSE"]
-
--- For debug across Titan Panel
-TITAN_PANEL_VARS = {}
-TITAN_PANEL_VARS.debug = {}
-TITAN_PANEL_VARS.debug.movable = false
-TITAN_PANEL_VARS.debug.events = false
-TITAN_PANEL_VARS.debug.ldb_setup = false
-TITAN_PANEL_VARS.debug.tool_tips = false
 
 local _G = getfenv(0);
 local L = LibStub("AceLocale-3.0"):GetLocale(TITAN_ID, true)
@@ -47,56 +30,24 @@ function TitanUtils_GetBarAnchors() -- Used by addons
 	return TitanPanelTopAnchor, TitanPanelBottomAnchor
 end
 
---[[ API
-NAME: TitanUtils_GetMinimapAdjust
-DESC: Return the current setting of the Titan MinimapAdjust option.
-VAR: None
-OUT: The value of the MinimapAdjust option
-NOTE:
--  As of DragonFlight Titan Loc no longer adjusts or manipulates the minimap.
---]]
-function TitanUtils_GetMinimapAdjust() -- Used by addons
---	return not TitanPanelGetVar("MinimapAdjust")
-	return false
-end
-
---[[ API
-NAME: TitanUtils_SetMinimapAdjust
-DESC: Set the current setting of the Titan MinimapAdjust option.
-VAR:  bool - true (off) or false (on)
-OUT:  None
-NOTE:
--  As of DragonFlight Titan Loc no longer adjusts or manipulates the minimap.
---]]
-function TitanUtils_SetMinimapAdjust(bool) -- Used by addons
-	-- This routine allows an addon to turn on or off
-	-- the Titan minimap adjust.
---	TitanPanelSetVar("MinimapAdjust", not bool)
-end
-
---[[ API
-NAME: TitanUtils_AddonAdjust
-DESC: Tell Titan to adjust (or not) a frame.
-VAR: frame - is the name (string) of the frame
-VAR: bool  - true if the addon will adjust the frame or false if Titan will adjust
-OUT:  None
-Note:
--- As of DragonFlight, this is no longer needed. The Titan user can user place - or not - a couple frames not user placeable,
-
-- Titan will NOT store the adjust value across a log out / exit.
-- This is a generic way for an addon to tell Titan to not adjust a frame. The addon will take responsibility for adjusting that frame. This is useful for UI style addons so the user can run Titan and a modifed UI.
-- The list of frames Titan adjusts is specified in TitanMovableData within TitanMovable.lua.
-- If the frame name is not in TitanMovableData then Titan does not adjust that frame.
-:NOTE
---]]
-function TitanUtils_AddonAdjust(frame, bool) -- Used by addons
---	TitanMovable_AddonAdjust(frame, bool)
-end
-
 --------------------------------------------------------------
 --
 -- Plugin button search & manipulation routines
 --
+--[[ API
+NAME: TitanUtils_GetButton
+DESC: Create thebutton name from plugin id.
+VAR: id - is the id of the plugin
+OUT: string - The button / frame name
+--]]
+function TitanUtils_ButtonName(id)
+	if (id) then
+		return Titan_Panel.plugin.PRE..id..Titan_Panel.plugin.POST
+	else
+		return nil
+	end
+end
+
 --[[ API
 NAME: TitanUtils_GetButton
 DESC: Return the actual button frame and the plugin id.
@@ -106,7 +57,7 @@ OUT: string - The id of the plugin
 --]]
 function TitanUtils_GetButton(id) -- Used by plugins
 	if (id) then
-		return _G["TitanPanel"..id.."Button"], id;
+		return _G[Titan_Panel.plugin.PRE..id..Titan_Panel.plugin.POST], id;
 	else
 		return nil, nil;
 	end
@@ -145,7 +96,7 @@ OUT: string - plugin id or nil
 --]]
 function TitanUtils_GetButtonID(name)
 	if name then
-		local s, e, id = string.find(name, "TitanPanel(.*)Button");
+		local s, e, id = string.find(name, Titan_Panel.plugin.PRE.."(.*)"..Titan_Panel.plugin.POST);
 		return id;
 	else
 		return nil;
@@ -179,10 +130,7 @@ function TitanUtils_GetButtonIDFromMenu(self)
 	local ret = nil
 	if self and self:GetParent() then
 		local name = self:GetParent():GetName()
-		local s, e, id = string.find(name, TITAN_PANEL_DISPLAY_PREFIX);
-		local temp = ""
-
-		if not s == nil then
+		if name == "UIParent" then
 			-- The click was on the Titan bar itself
 			ret = "Bar";
 		elseif self:GetParent():GetParent():GetName() then
@@ -232,14 +180,24 @@ end
 NAME: TitanUtils_GetWhichBar
 DESC: Return the bar the plugin is shown on.
 VAR: id - is the id of the plugin
-OUT: string - bar name or nil
+OUT: string - internal bar name or nil
+OUT: string - locale bar name or nil
 --]]
 function TitanUtils_GetWhichBar(id)
 	local i = TitanPanel_GetButtonNumber(id);
 	if TitanPanelSettings.Location[i] == nil then
-		return
+		return nil, nil
 	else
-		return TitanPanelSettings.Location[i];
+		local internal = TitanPanelSettings.Location[i]
+		local locale = ""
+		for _,v in pairs (TitanBarData) do
+			if v.name == internal then
+				locale = v.locale_name
+			else
+				-- not the Bar wanted
+			end
+		end
+		return internal, locale
 	end
 end
 
@@ -250,12 +208,21 @@ VAR:  None
 OUT: string - bar name or nil
 --]]
 function TitanUtils_PickBar()
-	-- Pick the 'first' bar shown.
+	-- Pick the 'first' bar shown per the Titan defined order.
 	-- This is used for defaulting where plugins are put
 	-- if using the Titan options screen.
-	for idx,v in pairs (TitanBarOrder) do
-		if TitanPanelGetVar(v.."_Show") then
-			return v
+	local bar_list = {}
+	for _,v in pairs (TitanBarData) do
+		bar_list[v.order] = v
+	end
+	table.sort(bar_list, function(a, b)
+		return a.order < b.order
+	end)
+
+	for idx = 1, #bar_list do
+		local bar_name = bar_list[idx].name
+		if TitanBarDataVars[bar_list[idx].frame_name].show then --if TitanPanelGetVar(bar_name.."_Show") then
+			return bar_name
 		end
 	end
 	-- fail safe - return something
@@ -1131,22 +1098,17 @@ VAR: id - id of the plugin to add
 OUT:  None.
 --]]
 function TitanUtils_AddButtonOnBar(bar, id)
+	local frame_str  = TitanVariables_GetFrameName(bar)
 	-- Add the button to the requested bar, if shown
 	if (not bar)
 	or (not id)
 	or (not TitanPanelSettings)
-	or (not TitanPanelGetVar(bar.."_Show"))
+	or (not TitanBarDataVars[frame_str].show) 
 	then
 		return;
 	end
 
 	local i = TitanPanel_GetButtonNumber(id)
---[[
-TitanDebug("AddB: "..(id or "?").." "..(bar or "?").." "
-..(TitanPanelSettings and "T" or "F").." "..(TitanPanelGetVar(bar.."_Show") and "T" or "F").." "
-..(i or "?").." "
-)
---]]
 	-- The _GetButtonNumber returns +1 if not found so it is 'safe' to
 	-- update / add to the Location
 	TitanPanelSettings.Buttons[i] = (id or "?")
@@ -1240,8 +1202,16 @@ end
 
 --------------------------------------------------------------
 --
--- Frame check & manipulation routines
+-- Control Frame check & manipulation routines
 --
+--[[ Titan Plugins
+NAME: TitanUtils_CheckFrameCounting
+DESC: Check the frame - expected to be a control / menu frame. Close if timer has expired. Used in plugin OnUpdate
+VAR:
+- frame - control / menu frame
+- elapsed - portion of second since last OnUpdate
+OUT:  None
+--]]
 function TitanUtils_CheckFrameCounting(frame, elapsed)
 	if (frame:IsVisible()) then
 		if (not frame.frameTimer or not frame.isCounting) then
@@ -1256,15 +1226,36 @@ function TitanUtils_CheckFrameCounting(frame, elapsed)
 	end
 end
 
+--[[ Titan Plugins
+NAME: TitanUtils_StartFrameCounting
+DESC: Set the max time the control frame could be open once cursor has left frame. Used in plugin OnLeave
+VAR:
+- frame - control / menu frame
+- frameShowTime - max time
+OUT:  None
+--]]
 function TitanUtils_StartFrameCounting(frame, frameShowTime)
 	frame.frameTimer = frameShowTime;
 	frame.isCounting = 1;
 end
 
+--[[ Titan Plugins
+NAME: TitanUtils_StopFrameCounting
+DESC: Remove timer flag once cursor has entered frame. Used in plugin OnEnter
+VAR:
+- frame - control / menu frame
+OUT:  None
+--]]
 function TitanUtils_StopFrameCounting(frame)
 	frame.isCounting = nil;
 end
 
+--[[ Titan Plugins AND Titan
+NAME: TitanUtils_CloseAllControlFrames
+DESC: Remove all timer flags on plugin control frames. Used for plugin Shift+Left and within Titan
+VAR:  None
+OUT:  None
+--]]
 function TitanUtils_CloseAllControlFrames()
 	for index, value in pairs(TitanPlugins) do
 		local frame = _G["TitanPanel"..index.."ControlFrame"];
@@ -1274,16 +1265,13 @@ function TitanUtils_CloseAllControlFrames()
 	end
 end
 
-function TitanUtils_IsAnyControlFrameVisible() -- need?
-	for index, value in TitanPlugins do
-		local frame = _G["TitanPanel"..index.."ControlFrame"];
-		if (frame:IsVisible()) then
-			return true;
-		end
-	end
-	return false;
-end
-
+--[[ Titan Plugins AND Titan
+NAME: TitanUtils_GetOffscreen
+DESC: Check where the control frame should be on screen; return x and y
+VAR:  None
+OUT: float - x where frame should be
+OUT: float - y where frame should be
+--]]
 function TitanUtils_GetOffscreen(frame)
 	local offscreenX, offscreenY;
 	local ui_scale = UIParent:GetEffectiveScale()
@@ -1320,6 +1308,32 @@ end
 -- Plugin registration routines
 --
 --[[ Titan
+NAME: TitanUtils_GetAddOnMetadata
+DESC: Attempt to get meta data from the addon
+VAR:
+- name - string of addon name
+- field - string of addon field to get
+OUT:  None
+NOTE:
+- As of May 2023 (10.1) the routine moved and no longer dies silently so it is wrapped here...
+--]]
+function TitanUtils_GetAddOnMetadata(name, field)
+	local call_success, ret_val
+
+	-- Just in case, catch any errors
+	call_success, -- needed for pcall
+	ret_val =  -- actual return values
+		pcall (C_AddOns.GetAddOnMetadata, name, field)
+	if call_success then
+		-- all is good 
+		return ret_val
+	else
+		-- Some error.. for our use return nil
+		return nil
+	end
+end
+
+--[[ Titan
 NAME: TitanUtils_PluginToRegister
 DESC: Place the plugin to be registered later by Titan
 VAR:
@@ -1340,9 +1354,11 @@ function TitanUtils_PluginToRegister(self, isChildButton)
 	TitanPluginToBeRegisteredNum = TitanPluginToBeRegisteredNum + 1
 	local cat = ""
 	local notes = ""
+	local name = ""
 	if self and self.registry then
 		cat = (self.registry.category or "")
 		notes = (self.registry.notes or "")
+		name = (self.registry.id or "")
 	end
 	-- Some of the fields in this record are displayed in the "Attempts"
 	-- so they are defaulted here.
@@ -1362,9 +1378,20 @@ function TitanUtils_PluginToRegister(self, isChildButton)
 
 	--[[ For updated menu lib (Dec 2018)
 	Old way was to use the XML file to declare the frame, now it needs to be in Lua
-	<Frame name="$parentRightClickMenu" inherits="L_UIDropDownMenuTemplate" id="1" hidden="true"></Frame>
 	--]]
-	local f = CreateFrame("Frame", self:GetName().."RightClickMenu", self or nil, "UIDropDownMenuTemplate")
+	local f = CreateFrame("Frame", 
+		self:GetName()..TITAN_PANEL_CLICK_MENU_SUFFIX, 
+		self or nil, 
+		"UIDropDownMenuTemplate")
+
+	-- Debug
+	if Titan_Panel.debug.plugin_register then
+		TitanDebug("Queue Plugin"
+--			.." '"..tostring(self:GetName()).."'"
+			.." '"..tostring(TitanUtils_GetButtonID(self:GetName())).."'"
+			.." "..tostring(TITAN_NOT_REGISTERED)..""
+			)
+	end
 end
 
 --[[ Titan
@@ -1389,10 +1416,17 @@ function TitanUtils_PluginFail(plugin)
 		isChild = (plugin.isChild and true or false),
 		name = (plugin.name or "?"),
 		issue = (plugin.issue or "?"),
-		status = TITAN_REGISTER_FAILED,
+		status = (plugin.status or "?"),
 		category = (plugin.category or ""),
 		plugin_type = (plugin.plugin_type or ""),
 		}
+
+	local message = ""
+		.." '"..tostring(TitanPluginToBeRegistered[TitanPluginToBeRegisteredNum].status).."'"
+		.." '"..tostring(TitanPluginToBeRegistered[TitanPluginToBeRegisteredNum].name).."'"
+		.." '"..tostring(TitanPluginToBeRegistered[TitanPluginToBeRegisteredNum].category).."'"
+		.." '"..tostring(TitanPluginToBeRegistered[TitanPluginToBeRegisteredNum].issue).."'"
+	TitanPrint(message, "error")
 end
 
 local function NoColor(name)
@@ -1447,6 +1481,7 @@ local function TitanUtils_RegisterPluginProtected(plugin)
 	local cat = ""
 	local ptype = ""
 	local notes = ""
+	local str = ""
 
 	local self = plugin.self
 	local isChildButton = (plugin.isChild and true or false)
@@ -1472,7 +1507,10 @@ local function TitanUtils_RegisterPluginProtected(plugin)
 					.."<Titan>.registry.id or <LDB>.label"
 				else
 					-- A sanity check just in case it was already in the list
-					if (not TitanUtils_TableContainsValue(TitanPluginsIndex, id)) then
+					if TitanUtils_TableContainsValue(TitanPluginsIndex, id) then
+						str = "In List ??"
+					else
+						str = "Save .registry"
 						-- Herein lies any special per plugin variables Titan wishes to control
 						-- These will be overwritten from saved vars, if any
 						--
@@ -1530,6 +1568,7 @@ local function TitanUtils_RegisterPluginProtected(plugin)
 					end
 				end
 				notes = (self.registry.notes or "")
+
 			else
 				-- There could be a couple reasons the .registry was not found
 				result = TITAN_REGISTER_FAILED
@@ -1547,6 +1586,16 @@ local function TitanUtils_RegisterPluginProtected(plugin)
 		issue = "Can not determine plugin button name"
 	end
 
+	-- Debug
+	if Titan_Panel.debug.plugin_register then
+		TitanDebug("Plugin RegProt"
+--			.." '"..tostring(self:GetName()).."'"
+			.." '"..tostring(id).."'"
+			.." '"..tostring(result).."'"
+			.." '"..tostring(str).."'"
+			.." '"..tostring(TitanPlugins[id].id).."'"
+			)
+	end
 	-- create and return the results
 	local ret_val = {}
 	ret_val.issue = (issue or "")
@@ -1580,7 +1629,7 @@ function TitanUtils_RegisterPlugin(plugin)
 				pcall (TitanUtils_RegisterPluginProtected, plugin)
 			-- pcall does not allow errors to propagate out. Any error
 			-- is returned as text with the success / fail.
-			-- Think of it as sort of a try - catch block
+			-- Think of it as a try - catch block
 			if call_success then
 				-- all is good so write the return values to the plugin
 				plugin.status = ret_val.result
@@ -1607,13 +1656,27 @@ function TitanUtils_RegisterPlugin(plugin)
 		-- If there was an error tell the user.
 		if not plugin.issue == ""
 		or plugin.status ~= TITAN_REGISTERED then
-			TitanDebug(TitanUtils_GetRedText("Error Registering Plugin")
+			TitanPrint(TitanUtils_GetRedText("Error Registering Plugin")
 				..TitanUtils_GetGreenText(
 					": "
 					.."name: '"..(plugin.name or "?_").."' "
 					.."issue: '"..(plugin.issue or "?_").."' "
 					.."button: '"..plugin.button.."' "
 					)
+				)
+		end
+
+		-- Debug
+		if Titan_Panel.debug.plugin_register then
+			local status = plugin.status
+			if plugin.status == TITAN_REGISTER_FAILED then
+				status = TitanUtils_GetRedText(status)
+			else
+				status = TitanUtils_GetGreenText(status)
+			end
+			TitanDebug("Registering Plugin"
+				.." "..tostring(plugin.name)..""
+				.." "..tostring(status)..""
 				)
 		end
 	end
@@ -1682,51 +1745,16 @@ function TitanUtils_CloseRightClickMenu()
 end
 
 --[[ local
-NAME: TitanRightClick_UIScale
-DESC: Scale the right click menu to the user requested value.
-VAR:  None
-OUT:
-- float - x scaled
-- float - y scaled
-- float - scale used
-
---]]
-local function TitanRightClick_UIScale()
-	-- take UI Scale into consideration
-	local listFrame = _G[drop_down_1];
-	local listframeScale = listFrame:GetScale();
-
-	local uiScale;
-	local uiParentScale = UIParent:GetScale();
-
-	local x, y = GetCursorPosition(UIParent)
-
-	if ( GetCVar("useUIScale") == "1" ) then
-		uiScale = tonumber(GetCVar("uiscale"));
-		if ( uiParentScale < uiScale ) then
-			uiScale = uiParentScale;
-		end
-	else
-		uiScale = uiParentScale;
-	end
-
-	x = x/uiScale;
-	y = y/uiScale;
-
-	listFrame:SetScale(uiScale);
-
-	return x, y, uiScale
-end
-
---[[ local
 NAME: TitanRightClickMenu_OnLoad
-DESC: Prepare the plugin right click menu using the function given by the plugin.
+DESC: Prepare the plugin right click menu using the function given by the plugin =or Titan bar.
 VAR:
 - plugin - frame of the plugin (must be a Titan template)
 OUT:  None
 NOTE:
-- The function name is assumed to be "TitanPanelRightClickMenu_Prepare"..plugin_id.."Menu".
-- This routine is for Titan plugins. There is a similar routine for the Titan bar.
+- The function to be called is assumed to be "TitanPanelRightClickMenu_Prepare"..plugin_id.."Menu".
+- This routine handles Titan plugins and the Titan bars.
+- TitanUtils_GetButtonIDFromMenu returns a generic "Bar" when the user clicks on a Titan bar. 
+  This works because every Titan bar uses the same menu; allows one routine to be reused.
 --]]
 local function TitanRightClickMenu_OnLoad(self)
 	local id = TitanUtils_GetButtonIDFromMenu(self);
@@ -1736,42 +1764,19 @@ local function TitanRightClickMenu_OnLoad(self)
 			UIDropDownMenu_Initialize(self, prepareFunction, "MENU");
 		end
 	else
-		if TITAN_PANEL_VARS.debug.tool_tips then
+		if Titan_Panel.debug.tool_tips then
 			TitanDebug("Could not display tooltip. "
 			.."Could not determine Titan ID for "
 			.."'"..(self:GetName() or "?").."'. "
 			,"error")
 		end
 	end
+	
+	-- Under the cover the menu is built as DropDownList1
+	return DropDownList1, DropDownList1:GetHeight(), DropDownList1:GetWidth()
 end
 
---[[ local
-NAME: TitanDisplayRightClickMenu_OnLoad
-DESC: Prepare the Titan bar right click menu using the given function.
-VAR:
-- self - frame of the Titan bar
-- func - function to create the menu
-OUT:  None
-NOTE:
-- This routine is for Titan bar. There is a similar routine for the Titan plugins.
---]]
-local function TitanDisplayRightClickMenu_OnLoad(self, func)
-	local prepareFunction = _G[func];
-	if prepareFunction and type(prepareFunction) == "function" then
-		-- Nasty "hack", load Blizzard_Calendar if not loaded,
-		-- for it to secure init 24 dropdown menu buttons,
-		-- to avoid action blocked by tainting
-		if not IsAddOnLoaded("Blizzard_Calendar") then
-			LoadAddOn("Blizzard_Calendar")
-		end
-		-- not good practice but there seems to be no other way to get
-		-- the actual bar (frame parent) to the dropdown implementation
-		TitanPanel_DropMenu = self
-		UIDropDownMenu_Initialize(self, prepareFunction, "MENU");
-	end
-end
-
---[[ local
+--[[ Titan
 NAME: TitanPanelRightClickMenu_Toggle
 DESC: Call the routine to build the plugin menu then place it properly.
 VAR:
@@ -1781,100 +1786,83 @@ OUT:  None
 NOTE:
 - This routine is for Titan plugins. There is a similar routine for the Titan bar.
 --]]
-function TitanPanelRightClickMenu_Toggle(self, isChildButton)
-	local x, y, scale
-	-- Get top / bottom
-	local name = self:GetName() -- assuming this is a plugin
-	local parent = self:GetParent():GetName()
-	local menu = _G[self:GetName().."RightClickMenu"]
-	local vert
-	local position
-	local id
-	local frame = ""
-
-	TitanRightClickMenu_OnLoad(menu)
-
-	-- if this is a child button then use the parent to get the plugin info
-	-- otherwise use self as passed in
-	if isChildButton then
-		id = TitanUtils_GetButtonID(parent)
-	else
-		id = TitanUtils_GetButtonID(name)
-	end
-	local i = TitanPanel_GetButtonNumber(id)
-	frame = TITAN_PANEL_DISPLAY_PREFIX..TitanPanelSettings.Location[i]
-	-- .Location would tell us the bar but we still need vert (top / bottom)
-	vert = TitanBarData[frame].vert
-	position = (vert == TITAN_TOP and TITAN_PANEL_PLACE_TOP or TITAN_PANEL_PLACE_BOTTOM)
-
-	if position == TITAN_PANEL_PLACE_TOP then
-		menu.point = "TOPLEFT";
-		menu.relativePoint = "BOTTOMLEFT";
-	else
-		menu.point = "BOTTOMLEFT";
-		menu.relativePoint = "TOPLEFT";
-	end
-
-	x, y, scale = TitanRightClick_UIScale()
-
-	ToggleDropDownMenu(1, nil, menu, frame, TitanUtils_Max(x - 40, 0), 0, nil, self);
-end
-
---[[ Titan
-NAME: TitanPanelDisplayRightClickMenu_Toggle
-DESC: Call the routine to build the Titan bar menu then place it properly.
-VAR:
-- self - frame of the Titan bar
-- isChildButton - function to create the menu
-OUT:  None
-NOTE:
-- This routine is for Titan bar. There is a similar routine for the Titan plugins.
-- This is close to TitanPanelRightClickMenu_Toggle but geared to the Titan display bars. This routine allows the Titan display bars to be independent  rather than rely on bars being a 'sort of' plugin.
-- This relies on name="$parentRightClickMenu" being part of the display bar template.
+function TitanPanelRightClickMenu_Toggle(self)
+	-- Mar 2023 : Rewritten to place menu relative to the passed in frame (button)
+	-- There are two places for the menu creation routine
+	-- 1) Titan bar - creates same menu
+	-- 2) Plugin creation via the .registry
+	local frame = self:GetName() 
+	local menu = _G[self:GetName()..TITAN_PANEL_CLICK_MENU_SUFFIX]
+--[[
+print("_ toggle R menu"
+.." "..tostring(frame)..""
+)
 --]]
-function TitanPanelDisplayRightClickMenu_Toggle(self, isChildButton)
-	if not self:GetName() then
-		return
-	end
+	-- Create menu based on the frame's routine for right click menu
+	local drop_menu, menu_height, menu_width = TitanRightClickMenu_OnLoad(menu)
 
-	local frame = (isChildButton and self:GetParent():GetName() or self:GetName())
-	if not frame then
-		-- Only Titan display bars should be processed here!!!
-		return
-	end
-
-	local vert = TitanBarData[frame].vert
-	local position = (vert == TITAN_TOP and TITAN_PANEL_PLACE_TOP or TITAN_PANEL_PLACE_BOTTOM)
-	local x, y, scale
-	local menu
-
-	-- Per updated menu lib LibUIDropDownMenu Dec 2018
-	-- This could have been done in some initialize code but here it can react
-	-- better to future Titan frame code changes
-	local desired_frame = frame.."RightClickMenu"
-	if _G[desired_frame] then
-		-- all is good - frame exists
+	-- Adjust the Y offset as needed
+	local rel_y = _G[frame]:GetTop() - menu_height
+	if rel_y > 0 then 
+		menu.point = "TOP";
+		menu.relativePoint = "BOTTOM";
 	else
-		-- need to create the frame
-		-- The _G is needed but it is explicit & shows what needs to done
-		_G[desired_frame] = CreateFrame("Frame", desired_frame, self or nil, "UIDropDownMenuTemplate")
+		-- too close to bottom of screen
+		menu.point = "BOTTOM";
+		menu.relativePoint = "TOP";
 	end
-	menu = _G[desired_frame];
 
-	-- Initialize the DropDown Menu if not already initialized
-	TitanDisplayRightClickMenu_OnLoad(menu, "TitanPanelRightClickMenu_PrepareBarMenu")
-
-	if position == TITAN_PANEL_PLACE_TOP then
-		menu.point = "TOPLEFT";
-		menu.relativePoint = "BOTTOMLEFT";
+	-- Adjust the X offset as needed
+	local x_offset = 0
+	local left = 0
+	if TitanBarData[frame] then
+		-- on a Titan bar so use cursor for the 'left'
+		left = GetCursorPosition() -- get x; ignore y
+		left = left / UIParent:GetEffectiveScale()
+		-- correct for beginning of Titan bar
+		left = left - _G[frame]:GetLeft()
 	else
-		menu.point = "BOTTOMLEFT";
-		menu.relativePoint = "TOPLEFT";
+		-- a plugin
+		left = _G[frame]:GetLeft()
 	end
+	local rel_x = left + menu_width
+	if ( rel_x < GetScreenWidth() ) then
+		-- menu will fit
+		menu.point = menu.point.."LEFT";
+		menu.relativePoint = menu.relativePoint.."LEFT";
 
-	x, y, scale = TitanRightClick_UIScale()
-
-	ToggleDropDownMenu(1, nil, menu, frame, TitanUtils_Max(x - 40, 0), 0, nil, self)
+		if TitanBarData[frame] then
+			x_offset = left
+		else
+			-- a plugin
+			x_offset = 0
+		end
+	else
+		-- Menu would go off right side of the screen 
+		menu.point = menu.point.."RIGHT";
+		menu.relativePoint = menu.relativePoint.."RIGHT";
+		
+		if TitanBarData[frame] then
+			-- correct is on Titan bar (bottom, far right)
+			-- flip calc since we flipped the anchor to right
+			x_offset = GetScreenWidth() - left
+		else
+			-- a plugin
+			x_offset = 0
+		end
+	end
+--[[
+print("RCM"
+.." "..tostring(frame)..""
+.." "..tostring(format("%0.1f", menu_height))..""
+.." "..tostring(format("%0.1f", menu_width))..""
+.." "..tostring(format("%0.1f", _G[frame]:GetLeft()))..""
+.." "..tostring(menu.point)..""
+.." "..tostring(menu.relativePoint)..""
+.." "..tostring(format("%0.1f", left))..""
+)
+--]]
+	ToggleDropDownMenu(1, nil, menu, frame, x_offset, 0, nil, self);
 end
 
 --[[ Titan
@@ -2024,6 +2012,47 @@ function TitanUtils_SetGlobalProfile(glob, toon)
 	TitanAllSetVar("GlobalProfileName", toon or TITAN_PROFILE_NONE)
 end
 
+--[[ Titan
+NAME: TitanUtils_ScreenSize
+DESC: Return the screen size after scaling
+VAR:
+- output - boolean if true dump a lot of UI size info to chat
+OUT:
+- number - scaled X / width
+- number - scaled Y / height
+--]]
+function TitanUtils_ScreenSize(output)
+	local screen = {}
+	screen.x = UIParent:GetRight() 
+	screen.y = UIParent:GetTop() 
+	screen.scaled_x = UIParent:GetRight() * UIParent:GetEffectiveScale()
+	screen.scaled_y = UIParent:GetTop() * UIParent:GetEffectiveScale()
+	
+	if output then
+		local x = UIParent:GetRight()
+		local y = UIParent:GetTop()
+		local s = UIParent:GetEffectiveScale()
+		local px, py = GetPhysicalScreenSize()
+		print("_ScreenSize"
+		.."\n"
+		.." UI - x:"..tostring(format("%0.1f", x))..""
+		.." X y:"..tostring(format("%0.1f", y))..""
+		.."\n"
+		.." UI scaled - x:"..tostring(format("%0.1f", screen_x * UIParent:GetEffectiveScale()))..""
+		.." X y:"..tostring(format("%0.1f", screen_y * UIParent:GetEffectiveScale()))..""
+		.."\n"
+		.." Scale: UI"..tostring(format("%0.6f", s))..""
+		.." Titan "..tostring(format("%0.1f", TitanPanelGetVar("Scale")))..""
+		.."\n"
+		.." screen - x:"..tostring(format("%0.1f", px))..""
+		.." X y:"..tostring(format("%0.1f", py))..""
+		)
+	end
+	
+	return screen
+end
+
+
 --------------------------------------------------------------
 -- Various debug routines
 --[[
@@ -2041,7 +2070,7 @@ OUT:
 - string containing the version
 --]]
 function TitanPanel_GetVersion()
-	return tostring(GetAddOnMetadata(TITAN_ID, "Version")) or L["TITAN_NA"];
+	return tostring(TitanUtils_GetAddOnMetadata(TITAN_ID, "Version")) or L["TITAN_NA"];
 end
 --[[ Titan
 NAME: TitanPrint
@@ -2054,10 +2083,10 @@ OUT:
 --]]
 function TitanPrint(message, msg_type)
 	local dtype = ""
-	local pre = TitanUtils_GetGoldText(L["TITAN_PRINT"]..": ".._G["FONT_COLOR_CODE_CLOSE"])
+	local pre = TitanUtils_GetGoldText(L["TITAN_PRINT"]..": ")
 	local msg = ""
 	if msg_type == "error" then
-		dtype = TitanUtils_GetRedText("Error: ").._G["FONT_COLOR_CODE_CLOSE"]
+		dtype = TitanUtils_GetRedText("Error: ")
 	elseif msg_type == "warning" then
 		dtype = "|cFFFFFF00".."Warning: ".._G["FONT_COLOR_CODE_CLOSE"]
 	elseif msg_type == "plain" then
@@ -2170,11 +2199,7 @@ end
 
 function TitanDumpTimers()
 	local str = "Titan-timers: "
-		.."'"..(TitanAllGetVar("TimerPEW") or "?").."' "
-		.."'"..(TitanAllGetVar("TimerDualSpec") or "?").."' "
 		.."'"..(TitanAllGetVar("TimerLDB") or "?").."' "
---		.."'"..(TitanAllGetVar("TimerAdjust") or "?").."' "
---		.."'"..(TitanAllGetVar("TimerVehicle") or "?").."' "
 	TitanPrint(str, "plain")
 end
 
@@ -2223,6 +2248,61 @@ end
 -- Deprecated routines
 -- These routines will be commented out for a couple releases then deleted.
 --
---[[
-
+--[===[
+--[[ API
+NAME: TitanUtils_GetMinimapAdjust
+DESC: Return the current setting of the Titan MinimapAdjust option.
+VAR: None
+OUT: The value of the MinimapAdjust option
+NOTE:
+-  As of DragonFlight Titan Loc no longer adjusts or manipulates the minimap.
 --]]
+function TitanUtils_GetMinimapAdjust() -- Used by addons
+--	return not TitanPanelGetVar("MinimapAdjust")
+	return false
+end
+
+--[[ API
+NAME: TitanUtils_SetMinimapAdjust
+DESC: Set the current setting of the Titan MinimapAdjust option.
+VAR:  bool - true (off) or false (on)
+OUT:  None
+NOTE:
+-  As of DragonFlight Titan Loc no longer adjusts or manipulates the minimap.
+--]]
+function TitanUtils_SetMinimapAdjust(bool) -- Used by addons
+	-- This routine allows an addon to turn on or off
+	-- the Titan minimap adjust.
+--	TitanPanelSetVar("MinimapAdjust", not bool)
+end
+
+--[[ API
+NAME: TitanUtils_AddonAdjust
+DESC: Tell Titan to adjust (or not) a frame.
+VAR: frame - is the name (string) of the frame
+VAR: bool  - true if the addon will adjust the frame or false if Titan will adjust
+OUT:  None
+Note:
+-- As of DragonFlight, this is no longer needed. The Titan user can user place - or not - a couple frames not user placeable,
+
+- Titan will NOT store the adjust value across a log out / exit.
+- This is a generic way for an addon to tell Titan to not adjust a frame. The addon will take responsibility for adjusting that frame. This is useful for UI style addons so the user can run Titan and a modifed UI.
+- The list of frames Titan adjusts is specified in TitanMovableData within TitanMovable.lua.
+- If the frame name is not in TitanMovableData then Titan does not adjust that frame.
+:NOTE
+--]]
+function TitanUtils_AddonAdjust(frame, bool) -- Used by addons
+--	TitanMovable_AddonAdjust(frame, bool)
+end
+
+function TitanUtils_IsAnyControlFrameVisible() -- need?
+	for index, value in TitanPlugins do
+		local frame = _G["TitanPanel"..index.."ControlFrame"];
+		if (frame:IsVisible()) then
+			return true;
+		end
+	end
+	return false;
+end
+
+--]===]

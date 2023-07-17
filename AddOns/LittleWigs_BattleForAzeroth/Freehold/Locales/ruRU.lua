@@ -45,4 +45,7 @@ if L then
 	L.lightning_caught = "Молния поймана спустя %.1f секунд!"
 	L.ludwig = "Людвиг фон Тортоллен"
 	L.trothak = "Тротак"
+
+	L.left = "%s (Левая)"
+	L.right = "%s (Правая)"
 end

@@ -80,6 +80,7 @@ function WarpDeplete:CompleteChallengeMode()
   self:UpdateTimerDisplay()
   self:UpdateObjectivesDisplay()
   self:UpdateForcesDisplay()
+  self:UpdateTimings()
 end
 
 function WarpDeplete:GetTimerInfo()
@@ -132,11 +133,11 @@ function WarpDeplete:GetKeyInfo()
   local level, affixes = C_ChallengeMode.GetActiveKeystoneInfo()
 
   local affixNames = {}
-  local affixTexures = {}
+  local affixIds = {}
   for i, affixID in ipairs(affixes) do
-    local name, description, filedataid = C_ChallengeMode.GetAffixInfo(affixID)
+    local name = C_ChallengeMode.GetAffixInfo(affixID)
     affixNames[i] = name
-    affixTexures[i] = filedataid
+    affixIds[i] = affixID
   end
 
   if level <= 0 or #affixNames <= 0 then
@@ -144,7 +145,7 @@ function WarpDeplete:GetKeyInfo()
     return false
   end
 
-  self:SetKeyDetails(level or 0, affixNames, affixTexures)
+  self:SetKeyDetails(level or 0, affixNames, affixIds)
   return true
 end
 
@@ -235,7 +236,10 @@ function WarpDeplete:UpdateObjectives()
     end
   end
 
-  if changed then self:SetObjectives(objectives) end
+  if changed then
+    self:SetObjectives(objectives)
+    self:UpdateTimings()
+  end
 end
 
 function WarpDeplete:ResetCurrentPull()
@@ -279,7 +283,9 @@ function WarpDeplete.TooltipOnEnter()
   local self = WarpDeplete
   if not self.db.profile.showDeathsTooltip then return end
 
-  GameTooltip:SetOwner(self.frames.deathsTooltip, "ANCHOR_BOTTOM")
+  GameTooltip:SetOwner(self.frames.deathsTooltip, "ANCHOR_BOTTOMLEFT",
+    self.frames.deathsTooltip.offsetWidth)
+
   GameTooltip:ClearLines()
 
   local count = #self.timerState.deathDetails
@@ -289,13 +295,13 @@ function WarpDeplete.TooltipOnEnter()
     return
   end
 
+  GameTooltip:AddLine(L["Player Deaths"], 1, 1, 1)
   if self.db.profile.deathLogStyle == "time" then
     local showFrom = 0
     if count > 20 then
       showFrom = count - 20
     end
 
-    GameTooltip:AddLine(L["Player Deaths"], 1, 1, 1)
     for i, d in ipairs(self.timerState.deathDetails) do
       if i >= showFrom then
         local color = select(4, GetClassColor(d.class))

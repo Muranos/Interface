@@ -5,14 +5,14 @@ local MDT = MDT
 
 -- CHANGE HERE TO DEFINE WHICH DUNGEONS TO TRACK FOR DATA COLLECTION
 local dungeonsToTrack = {
-  [1] = 42,
-  [2] = 43,
-  [3] = 44,
-  [4] = 45,
-  [5] = 6,
-  [6] = 3,
-  [7] = 46,
-  [8] = 47,
+  [1] = 49,
+  [2] = 48,
+  [3] = 51,
+  [4] = 50,
+  [5] = 8,
+  [6] = 16,
+  [7] = 22,
+  [8] = 77,
 }
 
 MDT.DataCollection = {}
@@ -40,6 +40,7 @@ function DC:Init()
 end
 
 function DC:AddCollectedDataToEnemyTable(dungeonIndex, ignoreSpells, ignoreCC)
+  db = MDT:GetDB()
   if not dungeonIndex then dungeonIndex = db.currentDungeonIdx end
   --add spells/characteristics from db to dungeonEnemies
   local spellsAdded = 0
@@ -58,7 +59,6 @@ function DC:AddCollectedDataToEnemyTable(dungeonIndex, ignoreSpells, ignoreCC)
             enemy.spells[spellId] = enemy.spells[spellId] or {}
           end
         end
-
       end
     end
   end
@@ -79,8 +79,8 @@ function DC:AddCollectedDataToEnemyTable(dungeonIndex, ignoreSpells, ignoreCC)
     end
   end
 
-  if not ignoreSpells then print("Added " .. spellsAdded .. " new spells") end
-  if not ignoreCC then print("Added " .. ccAdded .. " new CC characteristics") end
+  if not ignoreSpells then print("Added "..spellsAdded.." new spells") end
+  if not ignoreCC then print("Added "..ccAdded.." new CC characteristics") end
 end
 
 local trackedEvents = {
@@ -93,15 +93,15 @@ local trackedEvents = {
 }
 local characteristicsSpells = {
   ["Slow"] = {
-    [3409] = true; --Crippling Poison
-    [45524] = true; --Chains of Ice
-  };
+    [3409] = true,  --Crippling Poison
+    [45524] = true, --Chains of Ice
+  },
   ["Stun"] = {
-    [1833] = true, --Cheap Shot
-    [408] = true, --Kidney Shot
+    [1833] = true,   --Cheap Shot
+    [408] = true,    --Kidney Shot
     [179057] = true, --Chaos Nova
     [119381] = true, --Leg Sweep
-    [30283] = true, --Shadowfury
+    [30283] = true,  --Shadowfury
     [108194] = true, --Asphyxiate
   },
   ["Sap"] = {
@@ -111,14 +111,14 @@ local characteristicsSpells = {
     [217832] = true,
   },
   ["Incapacitate"] = {
-    [1776] = true, --Gouge
+    [1776] = true,   --Gouge
     [115078] = true, --Paralysis
   },
   ["Repentance"] = {
     [20066] = true,
   },
   ["Disorient"] = {
-    [2094] = true, --Blind
+    [2094] = true,  --Blind
     [31661] = true, --Dragon's breath
   },
   ["Banish"] = {
@@ -126,13 +126,13 @@ local characteristicsSpells = {
   },
   ["Fear"] = {
     [118699] = true, --Fear
-    [8122] = true, --Psychich Scream
-    [5246] = true, --Intimidating Shout
+    [8122] = true,   --Psychich Scream
+    [5246] = true,   --Intimidating Shout
     [207685] = true, --Sigil of Misery
   },
   ["Root"] = {
-    [122] = true, --Frost Nova
-    [339] = true, --Entangling Roots
+    [122] = true,    --Frost Nova
+    [339] = true,    --Entangling Roots
     [102359] = true, --Mass Root
     [117526] = true, --Binding Shot
   },
@@ -171,12 +171,12 @@ local characteristicsSpells = {
   ["Grip"] = {},
   ["Knock"] = {},
   ["Silence"] = {
-    [15487] = true, --Silence
+    [15487] = true,  --Silence
     [204490] = true, --Sigil of Silence
   },
   ["Taunt"] = {
-    [56222] = true, --Dark Command
-    [355] = true, --Taunt
+    [56222] = true,  --Dark Command
+    [355] = true,    --Taunt
     [185245] = true, --Torment
     [116189] = true, --Provoke
   },
@@ -247,13 +247,9 @@ function DC.COMBAT_LOG_EVENT_UNFILTERED(self, ...)
           end
           break
         end
-
       end
-
     end
   end
-
-
 end
 
 ---Request users in party/raid to distribute their collected data
@@ -412,10 +408,10 @@ function DC:InitHealthTrack()
           end
           enemy.health = baseHealth
         else
-          print("MDT HPTRACK: Missing: " .. enemy.name .. " id: " .. enemy.id)
+          print("MDT HPTRACK: Missing: "..enemy.name.." id: "..enemy.id)
         end
       end
-      print("MDT HPTRACK: Processed " .. numEnemyHealthChanged .. " enemies")
+      print("MDT HPTRACK: Processed "..numEnemyHealthChanged.." enemies")
     end
   end
 end

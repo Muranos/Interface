@@ -29,6 +29,9 @@ local realmName = GetRealmName();
 -- **************************************************************************
 --]]
 function TitanPanelClockButton_OnLoad(self)
+	local notes = ""
+		.."Adds a clock to Titan Panel.\n"
+		.."- Select server time / local time / both server and local time.\n"
 	self.registry = {
 		id = TITAN_CLOCK_ID,
 		category = "Built-ins",
@@ -37,6 +40,7 @@ function TitanPanelClockButton_OnLoad(self)
 		buttonTextFunction = "TitanPanelClockButton_GetButtonText",
 		tooltipTitle = L["TITAN_CLOCK_TOOLTIP"],
 		tooltipTextFunction = "TitanPanelClockButton_GetTooltipText",
+		notes = notes,
 		controlVariables = {
 			ShowIcon = false,
 			ShowLabelText = true,

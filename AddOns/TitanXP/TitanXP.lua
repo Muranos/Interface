@@ -44,6 +44,9 @@ end
 -- **************************************************************************
 --]]
 function TitanPanelXPButton_OnLoad(self)
+	local notes = ""
+		.."Adds information to Titan Panel about XP earned and time to level.\n"
+--		.."- xxx.\n"
 	self.registry = {
 		id = TITAN_XP_ID,
 		category = "Built-ins",
@@ -53,6 +56,7 @@ function TitanPanelXPButton_OnLoad(self)
 		tooltipTitle = L["TITAN_XP_TOOLTIP"],
 		tooltipTextFunction = "TitanPanelXPButton_GetTooltipText",
 		iconWidth = 16,
+		notes = notes,
 		controlVariables = {
 			ShowIcon = true,
 			ShowLabelText = true,

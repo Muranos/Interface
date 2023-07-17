@@ -54,6 +54,9 @@ end
 -- DESC : Registers the plugin upon it loading
 -- **************************************************************************
 function TitanPanelPerformanceButton_OnLoad(self)
+	local notes = ""
+		.."Adds FPS and Garbage collection information to Titan Panel.\n"
+--		.."- xxx.\n"
 	self.registry = {
 		id = TITAN_PERFORMANCE_ID,
 		category = "Built-ins",
@@ -63,6 +66,7 @@ function TitanPanelPerformanceButton_OnLoad(self)
 		tooltipCustomFunction = TitanPanelPerformanceButton_SetTooltip;
 		icon = "Interface\\AddOns\\TitanPerformance\\TitanPerformance",
 		iconWidth = 16,
+		notes = notes,
 		controlVariables = {
 			ShowIcon = true,
 			ShowLabelText = true,

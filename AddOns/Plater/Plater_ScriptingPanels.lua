@@ -408,7 +408,7 @@ end
 			--call the external function to import this script with ignoreRevision, overrideExisting and showDebug
 			local importSuccess, newObject = Plater.ImportScriptString (text, true, true, true, keepExisting)
 			if (importSuccess) then
-				PlaterOptionsPanelContainer:SelectIndex (Plater, PLATER_OPTIONS_HOOKING_TAB)
+				PlaterOptionsPanelContainer:SelectTabByIndex (PLATER_OPTIONS_HOOKING_TAB)
 				local mainFrame = PlaterOptionsPanelContainer
 				local hookFrame = mainFrame.AllFrames [PLATER_OPTIONS_HOOKING_TAB]
 				hookFrame.EditScript (newObject)
@@ -417,7 +417,7 @@ end
 		elseif (scriptType == "script") then
 			local importSuccess, newObject = Plater.ImportScriptString (text, true, true, true, keepExisting)
 			if (importSuccess) then
-				PlaterOptionsPanelContainer:SelectIndex (Plater, PLATER_OPTIONS_SCRIPTING_TAB)
+				PlaterOptionsPanelContainer:SelectTabByIndex (PLATER_OPTIONS_SCRIPTING_TAB)
 				local mainFrame = PlaterOptionsPanelContainer
 				local scriptingFrame = mainFrame.AllFrames [PLATER_OPTIONS_SCRIPTING_TAB]
 				scriptingFrame.EditScript (newObject)
@@ -689,7 +689,8 @@ end
 						local profilesFrame = mainFrame.AllFrames [PLATER_OPTIONS_PROFILES_TAB]
 						
 						if profileExists then
-							DF:ShowPromptPanel (format (L["OPTIONS_PROFILE_IMPORT_OVERWRITE"], profileName), function() profilesFrame.DoProfileImport(profileName, profile, true, isWagoUpdate) end, function() end, true, 500)
+							local LOC = DF.Language.GetLanguageTable(addonName)
+							DF:ShowPromptPanel(string.format(LOC["OPTIONS_PROFILE_IMPORT_OVERWRITE"], profileName), function() profilesFrame.DoProfileImport(profileName, profile, true, isWagoUpdate) end, function() end, true, 500)
 						else
 							profilesFrame.DoProfileImport(profileName, profile, false, false)
 						end
@@ -919,12 +920,12 @@ end
 		elseif (option == "wago_slugs") then
 			import_from_wago(scriptId)
 			update_wago_slug_data()
-			mainFrame.wagoSlugFrame.ScriptSelectionScrollBox:Refresh()
+			mainFrame.ScriptSelectionScrollBox:Refresh()
 			
 		elseif (option == "wago_stash") then
 			import_from_wago(scriptId, true)
 			update_wago_stash_data()
-			mainFrame.wagoStashFrame.ScriptSelectionScrollBox:Refresh()
+			mainFrame.ScriptSelectionScrollBox:Refresh()
 			
 		end
 		

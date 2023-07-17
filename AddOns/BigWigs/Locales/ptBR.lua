@@ -40,10 +40,8 @@ L.dbmUsers = "Usuários do DBM:"
 L.noBossMod = "Sem mod de chefes:"
 L.offline = "Desconectado"
 
-L.missingPlugin = "Por favor, note que esta zona requer o |cFF436EEE%s|r plugin para os contadores serem exibidos."
---L.missingAddOn = "The |cFF436EEE%s|r addon is missing!"
+L.missingAddOn = "O addon |cFF436EEE%s|r está faltando!"
 L.disabledAddOn = "Você desabilitou o addOn |cFF436EEE%s|r, contadores não serão exibidos."
-
 L.removeAddOn = "Por favor remova '|cFF436EEE%s|r' porque este foi substituído por '|cFF436EEE%s|r'."
 L.alternativeName = "%s (|cFF436EEE%s|r)"
 
@@ -57,6 +55,7 @@ L.spell_under_you = "BigWigs: Feitiço debaixo de você"
 
 -- Options.lua
 L.options = "Opções"
+--L.optionsKey = "Key: %s" -- The key that messages/bars/options use
 L.raidBosses = "Chefes de Raid"
 L.dungeonBosses = "Chefes de Masmorras"
 L.introduction = "Bem-vindo ao BigWigs, onde os encontros com chefes vagam. Por favor, aperte seu cinto, prepare um lanchinho e desfrute do passeio. Não iremos acabar com todos os problemas, mas vamos ajudar a se preparar para todos esses novos encontros de chefe como um jantar chique para todo o seu grupo de raide."
@@ -71,6 +70,8 @@ L.flashScreen = "Piscar a tela"
 L.flashScreenDesc = "Certas habilidades são importantes o suficiente para precisar de atenção total. Quando essas habilidades afetam você, BigWigs pode piscar a tela."
 L.minimapIcon = "Ícone do Mini mapa"
 L.minimapToggle = "Altera mostrar/ocultar o ícone do mini mapa."
+L.compartmentMenu = "Sem icone de compartimento"
+L.compartmentMenu_desc = "Desativar esta opção fará com que BigWigs apareça no menu do compartimento de Addons. Recomendamos deixar esta opção habilitada."
 L.configure = "Configurar"
 L.test = "Teste"
 L.resetPositions = "Resetar posições"
@@ -126,6 +127,8 @@ L.VOICE = "Voz"
 L.VOICE_desc = "Se você tiver um plugin de voz instalado, esta opção lhe permitirá reproduzir um arquivo de som que fala este aviso em voz alta para você."
 L.COUNTDOWN = "Contagem Regressiva"
 L.COUNTDOWN_desc = "Se ativado, uma contagem regressiva sonora e visual será adicionado para os últimos 5 segundos. Imagine alguém contando regressivamente \"5... 4... 3... 2... 1...\" com um número grande no meio da tela."
+L.CASTBAR_COUNTDOWN = "Contagem regressiva (Apenas barras de lançamento)"
+L.CASTBAR_COUNTDOWN_desc = "Se ativado, uma contagem regressiva vocal e visual será adicionada nos últimos 5 segundos das barras de lançamento."
 L.INFOBOX = L.infobox
 L.INFOBOX_desc = L.infobox_desc
 L.SOUND = "Som"
@@ -138,6 +141,8 @@ L.ME_ONLY_EMPHASIZE = "Enfatizar (somente a mim)"
 L.ME_ONLY_EMPHASIZE_desc = "Habilitar isso irá enfatizar qualquer mensagem associada a essa habilidade SOMENTE se for conjurada em você, fazenda elas mais largas e mais visíveis."
 L.NAMEPLATEBAR = "Barras de identificação"
 L.NAMEPLATEBAR_desc = "Barras são normalmente anexadas a barras de identificação quando mais de um mob conjura o mesmo feitiço. Se essa habilidade for acompanhada por uma barra de identificação que você quer esconder, desabilite essa opção."
+L.PRIVATE = "Aura Privada"
+L.PRIVATE_desc = "Auras privadas não podem ser rastreadas normalmente, mas o som \"em você\" (Aviso) pode ser definido na guia Som."
 
 L.advanced = "Opções Avançadas"
 L.back = "<< Voltar"

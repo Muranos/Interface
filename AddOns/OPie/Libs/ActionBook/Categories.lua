@@ -1,15 +1,16 @@
 local _, T = ...
 if T.SkipLocalActionBook then return end
 local MODERN = select(4,GetBuildInfo()) >= 8e4
-local MODERN_CONTAINERS = MODERN or C_Container and C_Container.GetContainerNumSlots
+local MODERN_CONTAINERS = MODERN or C_Container and C_Container.GetContainerNumSlots and true
 local CF_WRATH = not MODERN and select(4,GetBuildInfo()) >= 3e4
-local AB = assert(T.ActionBook:compatible(2, 21), "A compatible version of ActionBook is required")
-local RW = assert(T.ActionBook:compatible("Rewire", 1, 10), "A compatible version of Rewire is required")
-local L = AB:locale()
+local AB = T.ActionBook:compatible(2,21)
+local RW = T.ActionBook:compatible("Rewire", 1,27)
+assert(AB and RW and 1, "Incompatible library bundle")
+local L = T.ActionBook.L
 local mark = {}
 
 local function icmp(a,b)
-	return strcmputf8i(a,b) < 1
+	return strcmputf8i(a,b) < 0
 end
 
 do -- spellbook
@@ -224,14 +225,11 @@ if MODERN then -- Mounts
 		for i=1, #idm do
 			local mid = idm[i]
 			local name, sid, _3, _4, _5, _6, _7, factionLocked, factionId, hide, have = C_MountJournal.GetMountInfoByID(mid)
-			if have and not hide
-			   and (not factionLocked or factionId == myFactionId)
-			   and RW:IsSpellCastable(sid)
-			   then
+			if have and not hide and (not factionLocked or factionId == myFactionId) and RW:IsSpellCastable(sid, 2) then
 				i2[#i2+1], i2n[mid] = mid, name
 			end
 		end
-		table.sort(i2, function(a,b) return i2n[a] < i2n[b] end)
+		table.sort(i2, function(a,b) return icmp(i2n[a], i2n[b]) end)
 		for i=1,#i2 do
 			add("mount", i2[i])
 		end

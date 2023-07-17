@@ -147,6 +147,10 @@ L["Auto Pass"] = "Auto Pass"
 --[[Translation missing --]]
 L["Auto pass BoE"] = "Auto pass BoE"
 --[[Translation missing --]]
+L["Auto Pass Transmog"] = "Auto Pass Transmog"
+--[[Translation missing --]]
+L["Auto Pass Transmog Source"] = "Auto Pass Transmog Source"
+--[[Translation missing --]]
 L["Auto Pass Trinkets"] = "Auto Pass Trinkets"
 --[[Translation missing --]]
 L["Auto Trade"] = "Auto Trade"
@@ -164,6 +168,10 @@ L["auto_open_desc"] = "Check to Auto Open the voting frame when available. The v
 L["auto_pass_boe_desc"] = "Uncheck to never autopass Bind on Equip items."
 --[[Translation missing --]]
 L["auto_pass_desc"] = "Check to enable autopassing of items your class cannot use."
+--[[Translation missing --]]
+L["auto_pass_transmog_desc"] = "Check to enable autopassing of items your class can only use for transmog."
+--[[Translation missing --]]
+L["auto_pass_transmog_source_desc"] = "Check to enable autopassing of items your class can only use for transmog and the appearance is already known from another item."
 --[[Translation missing --]]
 L["auto_pass_trinket_desc"] = "Check to autopass trinkets that's not listed in the Dungeon Journal for your class."
 --[[Translation missing --]]

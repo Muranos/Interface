@@ -70,7 +70,7 @@ rematch:InitModule(function()
 		end
 		-- and add skin version to options
 		if IsAddOnLoaded("RematchElvUISkin") then
-			tinsert(panel.opts,#panel.opts,{"text",format(L["ElvUISkin version %s"],GetAddOnMetadata("RematchElvUISkin","Version"))})
+			tinsert(panel.opts,#panel.opts,{"text",format(L["ElvUISkin version %s"],C_AddOns.GetAddOnMetadata("RematchElvUISkin","Version"))})
 		end
 	end
 

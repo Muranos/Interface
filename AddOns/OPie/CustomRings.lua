@@ -1,13 +1,16 @@
-local api, private,  _, T = {}, {}, ...
-local ORI, AB, RW, IM = OPie.UI, T.ActionBook:compatible(2,19), T.ActionBook:compatible("Rewire", 1,10), T.ActionBook:compatible("Imp", 1, 0)
-assert(ORI and AB and RW and IM, "Missing required libraries")
+local MAJ, REV, _, T = 3, 57, ...
+local EV, ORI, PC = T.Evie, OPie.UI, T.OPieCore
+local AB, RW, IM = T.ActionBook:compatible(2,37), T.ActionBook:compatible("Rewire", 1,10), T.ActionBook:compatible("Imp", 1, 0)
+assert(ORI and AB and RW and IM and EV and PC and 1, "Missing required libraries")
 
-local RK_RingDesc, RK_CollectionIDs, RK_FluxRings, MAJ, REV, EV, PC, SV = {}, {}, {}, 3, 56, T.Evie, T.OPieCore
+local api, private, NS = {}, {}, {}
+local RK_RingDesc, RK_CollectionIDs, RK_FluxRings, SV = {}, {}, {}
 local loadLock, queue, RK_DeletedRings, RK_FlagStore, sharedCollection = 0, {}, {}, {}, {}
 local CLASS, FULLNAME, FACTION
+local rotationPresentationModes = {cycle=20, shuffle=36, random=52, reset=68, jump=84}
 
 local function assert(condition, text, level, ...)
-	return condition or error(tostring(text):format(...), 1 + (level or 1))
+	return condition or error(tostring(text):format(...), 1 + (level or 1))((0)[0])
 end
 local function RK_IsRelevantRingDescription(desc)
 	if desc then
@@ -254,18 +257,19 @@ local function RK_SyncRing(name, force, tok)
 		wipe(sharedCollection)
 		changed, cid = true, AB:CreateActionSlot(nil, nil, "collection", sharedCollection)
 		RK_CollectionIDs[name], RK_CollectionIDs[cid] = cid, name
-		OPie:SetRing(name, cid, desc)
+		PC:SetRing(name, cid, desc)
 	end
 
 	local onOpenSlice, onOpenAction, onOpenToken = desc.onOpen
 	for i=1, #desc do
 		local e = desc[i]
-		local ident, action = e[1]
+		local ident, action, pmode = e[1]
 		if type(ident) == "string" then
 			action = AB:GetActionSlot(e)
 		end
-		changed = changed or (action ~= e._action) or (e.fastClick ~= e._fastClick) or (e.rotationMode ~= e._rotationMode) or (action and (e.show ~= e._show) or (e.embed ~= e._embed))
-		e._action, e._fastClick, e._rotationMode = action, e.fastClick, e.rotationMode
+		pmode = action and ((rotationPresentationModes[e.rotationMode] or 4) + (e.fastClick and 0 or 2)) or nil
+		changed = changed or (action ~= e._action) or (pmode ~= e._pmode) or (action and (e.show ~= e._show) or (e.embed ~= e._embed))
+		e._action, e._pmode = action, pmode
 		if i == onOpenSlice then
 			onOpenAction, onOpenToken = e._action, e.sliceToken
 		end
@@ -281,6 +285,7 @@ local function RK_SyncRing(name, force, tok)
 			collection[e.sliceToken], collection[cn], cn = e._action, e.sliceToken, cn + 1
 			collection['__visibility-' .. e.sliceToken], e._show = e.show or nil, e.show
 			collection['__embed-' .. e.sliceToken], e._embed = e.embed, e.embed
+			collection['__pmode-' .. e.sliceToken] = e._pmode
 			ORI:SetDisplayOptions(e.sliceToken, e.icon, nil, e._r, e._g, e._b)
 		end
 	end
@@ -288,7 +293,7 @@ local function RK_SyncRing(name, force, tok)
 	collection['__openAction'], desc._onOpen = onOpenAction, onOpenAction
 	collection['__openToken'], desc._onOpenToken = onOpenToken, onOpenToken
 	AB:UpdateActionSlot(cid, collection)
-	OPie:SetRing(name, cid, desc)
+	PC:SetRing(name, cid, desc)
 end
 local function dropUnderscoreKeys(t)
 	for k in pairs(t) do
@@ -297,8 +302,8 @@ local function dropUnderscoreKeys(t)
 		end
 	end
 end
-local function RK_SanitizeDescription(props)
-	local uprefix, marks = type(props._u) == "string" and props._u, {}
+local function RK_SanitizeDescription(name, props, isLaxInput)
+	local uprefix, colID, marks = type(props._u) == "string" and props._u, RK_CollectionIDs[name], {}
 	for i=#props,1,-1 do
 		local v = props[i]
 		repeat
@@ -321,7 +326,16 @@ local function RK_SanitizeDescription(props)
 			end
 			v.show = v.show ~= "" and v.show or nil
 			local sliceToken = v.sliceToken or (uprefix and type(v._u) == "string" and (uprefix .. v._u))
-			sliceToken = marks[sliceToken] == nil and sliceToken or AB:CreateToken()
+			local tokenOK = marks[sliceToken] == nil and sliceToken and AB:ReserveToken(sliceToken, NS, name, colID)
+			if not tokenOK then
+				if not isLaxInput then
+					-- Persistent, globally-unique slice tokens are required for rings created/persisted by external code
+					local msg = string.format("desc[%d].sliceToken value is missing, invalid, or not [globally] unique (%s)", i, type(sliceToken))
+					-- DEPRECATED[2306/Y11]: deterministic error() after 2023-08-29
+					PC:FutureDeprecationError(msg, 5, 1688169600,1689379200, 1692057600,1693267200)
+				end
+				sliceToken = AB:CreateToken()
+			end
 			v.sliceToken, marks[sliceToken] = sliceToken, 1
 		until 0
 	end
@@ -353,7 +367,7 @@ local function unlockSync()
 end
 local function abPreOpen(_, _, id)
 	local k = RK_CollectionIDs[id]
-	if k then
+	if RK_RingDesc[k] then
 		RK_SyncRing(k)
 	end
 end
@@ -384,7 +398,7 @@ local function svInitializer(event, _name, sv)
 		for k, v in pairs(queue) do
 			if v.hotkey then v.hotkey = v.hotkey:gsub("[^-; ]+", mousemap) end
 			if deleted[k] == nil and SV[k] == nil then
-				securecall(RK_SetRingDesc, k, v)
+				securecall(RK_SetRingDesc, k, v, true)
 				SV[k] = nil
 			elseif deleted[k] then
 				RK_DeletedRings[k] = true
@@ -396,7 +410,7 @@ local function svInitializer(event, _name, sv)
 					v.quarantineOnOpen, v.onOpen = v.onOpen, nil
 				end
 			end
-			securecall(RK_SetRingDesc, k, v)
+			securecall(RK_SetRingDesc, k, v, true)
 		end
 
 	elseif event == "POST-LOGIN" and loadLock == 1 then
@@ -414,19 +428,16 @@ local function ringIterator(isDeleted, k)
 		return nk, v.name or nk, RK_CollectionIDs[nk] ~= nil, #v, v.internal, v.limit
 	end
 end
-function RK_SetRingDesc(name, desc)
+function RK_SetRingDesc(name, desc, isLaxInput)
 	assert(type(name) == "string" and (type(desc) == "table" or desc == false))
 	if loadLock == 0 then
-		queue[name] = desc
-	elseif desc == false then
-		if RK_RingDesc[name] then
-			OPie:SetRing(name, nil)
-			if RK_CollectionIDs[name] then RK_CollectionIDs[RK_CollectionIDs[name]] = nil end
-			RK_DeletedRings[name], RK_RingDesc[name], RK_CollectionIDs[name], SV[name] = queue[name] and true or nil
-		end
-	else
-		RK_RingDesc[name], RK_DeletedRings[name] = RK_SanitizeDescription(copy(desc)), nil
+		queue[name] = desc and RK_SanitizeDescription(name, copy(desc), isLaxInput)
+	elseif desc then
+		RK_RingDesc[name], RK_DeletedRings[name] = RK_SanitizeDescription(name, copy(desc), isLaxInput), nil
 		RK_SyncRing(name, true)
+	elseif RK_RingDesc[name] then
+		PC:SetRing(name, nil)
+		RK_DeletedRings[name], RK_RingDesc[name], SV[name] = queue[name] and true or nil
 	end
 end
 
@@ -438,11 +449,11 @@ function api:GenFreeRingName(base, reserved)
 	assert(type(base) == "string" and (reserved == nil or type(reserved) == "table"), 'Syntax: name = RK:GenFreeRingName("base"[, reservedNamesTable])', 2)
 	base = base:gsub("[^%a%d]", ""):sub(-10)
 	if base:match("^OPie") or not base:match("^%a") then base = "x" .. base end
-	local suffix, c = "", 1
-	while RK_RingDesc[base .. suffix] or queue[base .. suffix] or SV[base .. suffix] or (reserved and reserved[base .. suffix] ~= nil) or OPie:IsKnownRingName(base .. suffix) do
-		suffix, c = math.random(2^c), c < 30 and (c + 1) or c
+	local cname, c = base, 1
+	while RK_RingDesc[cname] or queue[cname] or SV[cname] or (reserved and reserved[cname] ~= nil) or PC:IsKnownRingName(cname) do
+		cname, c = base .. math.random(2^c), c < 30 and (c + 1) or c
 	end
-	return base .. suffix
+	return cname
 end
 function api:AddDefaultRing(name, desc)
 	assert(type(name) == "string" and type(desc) == "table", 'Syntax: RK:AddDefaultRing("name", descTable)', 2)
@@ -485,7 +496,7 @@ function private:GetRingInfo(name)
 end
 function private:SetRing(name, desc)
 	assert(type(name) == "string" and (type(desc) == "table" or desc == false), "Syntax: RK:SetRing(name, descTable or false)", 2)
-	RK_SetRingDesc(name, desc)
+	RK_SetRingDesc(name, desc, true)
 end
 function private:GetRingSnapshot(name, bundleNested)
 	assert(type(name) == "string", 'Syntax: snapshot = RK:GetRingSnapshot("name"[, bundleNested])', 2)
@@ -509,7 +520,7 @@ function private:GetRingSnapshot(name, bundleNested)
 					q[#q+1], m[sn] = sn, copy(RK_RingDesc[sn])
 				end
 			end
-			v.caption = nil -- DEPRECATED [2101/3.105/X4]
+			v.caption = nil -- DEPRECATED [2101/X4]
 			v.sliceToken = nil
 		end
 	until not q[1]
@@ -529,7 +540,7 @@ function private:GetSnapshotRing(snap)
 			local v, st, sa = ri[i]
 			if not v then return end
 			st, sa = v[1], v[2]
-			v.caption = nil -- DEPRECATED [2101/3.105/X4]
+			v.caption = nil -- DEPRECATED [2101/X4]
 			if st == nil and type(v.id) == "string" then
 				v.id = IM:DecodeCommands(v.id)
 			elseif st == "ring" and bs and sa then
@@ -575,5 +586,11 @@ function private:GetDeletedRings()
 	return ringIterator, true, nil
 end
 
-SV, T.RingKeeper, OPie.CustomRings, private.pub = PC:RegisterPVar("RingKeeper", SV, svInitializer), private, api, api
+for k,v in pairs(api) do
+	if private[k] == nil then
+		private[k] = v
+	end
+end
+
+SV, T.RingKeeper, OPie.CustomRings = PC:RegisterPVar("RingKeeper", SV, svInitializer), private, api
 AB:AddObserver("internal.collection.preopen", abPreOpen)

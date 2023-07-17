@@ -1,14 +1,16 @@
 --------------------------------------------------------------------------------
 --                        A L L   T H E   T H I N G S                         --
 --------------------------------------------------------------------------------
---            Copyright 2017-2021 Dylan Fortune (Crieve-Sargeras)             --
+--            Copyright 2017-2023 Dylan Fortune (Crieve-Sargeras)             --
 --------------------------------------------------------------------------------
 -- This is a hidden frame that intercepts all of the event notifications that we have registered for.
 local name, app = ...;
+local assetRootPath = "Interface\\Addons\\" .. name .. "\\assets\\";
+-- app.DEBUG_PRINT = true;
 function app:GetName() return name; end
 _G["AllTheThings"] = app;
 app.asset = function(path)
-	return "Interface\\Addons\\AllTheThings\\assets\\" .. path;
+	return assetRootPath .. path;
 end
 -- Consolidated debug-only print with preceding precise timestamp
 app.PrintDebug = function(...)
@@ -19,54 +21,56 @@ end
 app.PrintDebugPrior = function(...)
 	if app.DEBUG_PRINT then
 		if app.DEBUG_PRINT_LAST then
-			local frames = math.ceil(1 / (GetTimePreciseSec() - app.DEBUG_PRINT_LAST));
-			print("Stutter @",frames,...)
+			local diff = GetTimePreciseSec() - app.DEBUG_PRINT_LAST
+			local frames = math.ceil(1 / diff);
+			print(GetTimePreciseSec(),"<>",diff,"Stutter @",frames,...)
 		else
-			print(0,...)
+			print(GetTimePreciseSec(),0,...)
 		end
 		app.DEBUG_PRINT_LAST = GetTimePreciseSec();
 	end
 end
---[[ Performance Tracking section ]
-(function()
-	app.__perf = {};
-	app.PrintPerf = function()
-		local h = app.__perf;
-		if h then
-			local blob, line = {}, {};
-			for type,typeData in pairs(h) do
-				for k,v in pairs(typeData) do
-					if not k:find("_Time") then
-						line[1] = type;
-						line[2] = k;
-						line[3] = v;
-						line[4] = typeData[k.."_Time"];
-						tinsert(blob, table.concat(line, ","))
-					end
+--[[ Performance Tracking ]
+do
+local pairs, tinsert, table_concat
+	= pairs, tinsert, table.concat;
+app.__perf = {};
+app.PrintPerf = function()
+	local h = app.__perf;
+	if h then
+		local blob, line = {}, {};
+		for type,typeData in pairs(h) do
+			for k,v in pairs(typeData) do
+				if not k:find("_Time") then
+					line[1] = type;
+					line[2] = k;
+					line[3] = v;
+					line[4] = typeData[k.."_Time"];
+					tinsert(blob, table_concat(line, ","))
 				end
 			end
-			local csv = table.concat(blob, "\n");
-			app:ShowPopupDialogWithMultiLineEditBox(csv);
+		end
+		local csv = table_concat(blob, "\n");
+		app:ShowPopupDialogWithMultiLineEditBox(csv);
+	end
+end
+app.ClearPerf = function()
+	local h = app.__perf;
+	if h then
+		for _,typeData in pairs(h) do
+			wipe(typeData);
 		end
 	end
-	app.ClearPerf = function()
-		local h = app.__perf;
-		if h then
-			for _,typeData in pairs(h) do
-				wipe(typeData);
-			end
-		end
-		app.print("Cleared Performance Stats");
-	end
-end)(); --]]
--- app.DEBUG_PRINT = true;
+	app.print("Cleared Performance Stats");
+end
+end	-- Performance Tracking --]]
 
 -- Create an Event Processor.
 local events = {};
 local _ = CreateFrame("FRAME", nil, UIParent, BackdropTemplateMixin and "BackdropTemplate");
 _:SetScript("OnEvent", function(self, e, ...)
 -- app.PrintDebug(e,...);
-(rawget(events, e) or print)(...);
+(events[e] or print)(...);
 -- app.PrintDebugPrior(e);
 end);
 _:SetPoint("BOTTOMLEFT", UIParent, "TOPLEFT", 0, 0);
@@ -74,7 +78,6 @@ _:SetSize(1, 1);
 _:Show();
 app._ = _;
 app.events = events;
-app.refreshDataForce = true;
 app.RegisterEvent = function(self, ...)
 	_:RegisterEvent(...);
 end
@@ -91,31 +94,6 @@ app.SetScript = function(self, ...)
 		_:SetScript(scriptName, nil);
 	end
 end
--- Setup the callback tables since they are heavily used
-app.__callbacks = {};
-app.__combatcallbacks = {};
--- Triggers a timer callback method to run on the next game frame with the provided params; the method can only be set to run once per frame
-local function Callback(method, ...)
-	if not app.__callbacks[method] then
-		app.__callbacks[method] = ... and {...} or true;
-		-- print("Callback:",method, ...)
-		local newCallback = function()
-			local args = app.__callbacks[method];
-			app.__callbacks[method] = nil;
-			-- callback with args/void
-			if args ~= true then
-				-- print("Callback/args Running",method, unpack(args))
-				method(unpack(args));
-			else
-				-- print("Callback/void Running",method)
-				method();
-			end
-			-- print("Callback Done",method)
-		end;
-		C_Timer.After(0, newCallback);
-	end
-end
-app.Callback = Callback;
 
 (function()
 local SetATTTooltip = function(self, text)
@@ -301,3 +279,10 @@ end
 function app:ShowPopupDialogToReport(reportReason, text)
 	app:ShowPopupDialogWithMultiLineEditBox(text, nil, (reportReason or "Missing Data").."\n"..app.L["PLEASE_REPORT_MESSAGE"]..app.L["REPORT_TIP"]);
 end
+
+
+-- Define Modules
+app.Modules = {};
+
+-- Global Variables
+AllTheThingsSavedVariables = {};

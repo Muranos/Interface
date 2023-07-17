@@ -27,26 +27,10 @@ local configFrame, isPluginOpen
 local showToggleOptions, getAdvancedToggleOption = nil, nil
 local toggleOptionsStatusTable = {}
 
-local textName = "BigWigs"
-local textIntro = L.introduction
-local textSlashVersion = L.slashDescVersion
-local textSlashConfig = L.slashDescConfig
-local textGHDesc = L.gitHubDesc
-do
-	local dateTable = date("*t")
-	if dateTable.day and dateTable.month and dateTable.day == 1 and dateTable.month == 4 then
-		textName = "DBM"
-		textIntro = textIntro:gsub("BigWigs", "DBM")
-		textSlashVersion = textSlashVersion:gsub("BigWigs", "DBM")
-		textSlashConfig = textSlashConfig:gsub("BigWigs", "DBM")
-		textGHDesc = textGHDesc:gsub("BigWigs", "DBM")
-	end
-end
-
 local getOptions
 local acOptions = {
 	type = "group",
-	name = textName,
+	name = "BigWigs",
 	get = function(info)
 		return BigWigs.db.profile[info[#info]]
 	end,
@@ -59,11 +43,11 @@ local acOptions = {
 		general = {
 			order = 20,
 			type = "group",
-			name = textName,
+			name = "BigWigs",
 			args = {
 				introduction = {
 					type = "description",
-					name = textIntro,
+					name = L.introduction,
 					order = 12,
 					fontSize = "medium",
 					width = "full",
@@ -120,12 +104,26 @@ local acOptions = {
 							ldbi:Hide("BigWigs")
 						end
 					end,
-					width = "full",
+					width = 1.5,
+				},
+				compartment = {
+					type = "toggle",
+					name = L.compartmentMenu,
+					desc = L.compartmentMenu_desc,
+					order = 14,
+					get = function() return not ldbi:IsButtonInCompartment("BigWigs") end,
+					set = function(_, v)
+						if v then
+							ldbi:RemoveButtonFromCompartment("BigWigs")
+						else
+							ldbi:AddButtonToCompartment("BigWigs", "Interface\\AddOns\\BigWigs\\Media\\Icons\\core-enabled")
+						end
+					end,
 				},
 				separator2 = {
 					type = "description",
 					name = " ",
-					order = 14,
+					order = 15,
 					width = "full",
 				},
 				flash = {
@@ -204,21 +202,21 @@ local acOptions = {
 				},
 				slashDescVersion = {
 					type = "description",
-					name = "  ".. textSlashVersion,
+					name = "  ".. L.slashDescVersion,
 					fontSize = "medium",
 					order = 49,
 					width = "full",
 				},
 				slashDescConfig = {
 					type = "description",
-					name = "  ".. textSlashConfig,
+					name = "  ".. L.slashDescConfig,
 					fontSize = "medium",
 					order = 50,
 					width = "full",
 				},
 				gitHubDesc = {
 					type = "description",
-					name = "\n".. textGHDesc .."\n",
+					name = "\n".. L.gitHubDesc .."\n",
 					fontSize = "medium",
 					order = 51,
 					width = "full",
@@ -350,7 +348,7 @@ local function getSlaveOption(self)
 	local flag = self:GetUserData("flag")
 	local current = module.db.profile[key]
 	if type(current) ~= "number" or type(flag) ~= "number" then
-		error(notNumberError:format(tostringall(key, module.moduleName, current, flag)))
+		error(notNumberError:format(tostring(key), tostring(module.moduleName), tostring(current), tostring(flag)))
 	end
 	return bit.band(current, flag) == flag
 end
@@ -414,17 +412,10 @@ local function slaveOptionMouseLeave()
 	bwTooltip:Hide()
 end
 
-local function getSlaveToggle(label, desc, key, module, flag, master, icon, ...)
+local function getSlaveToggle(label, desc, key, module, flag, master, width, icon, ...)
 	local toggle = AceGUI:Create("CheckBox")
 	toggle:SetLabel(label)
-	-- Flags to have at half width
-	if flag == C.PULSE then
-		toggle:SetRelativeWidth(0.5)
-	elseif flag == C.ME_ONLY or flag == C.ME_ONLY_EMPHASIZE or flag == C.CASTBAR then
-		toggle:SetRelativeWidth(0.4)
-	else
-		toggle:SetRelativeWidth(0.3)
-	end
+	toggle:SetRelativeWidth(width)
 	toggle:SetHeight(30)
 
 	if icon then
@@ -463,6 +454,7 @@ local icons = {
 	ALTPOWER = "Interface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\AltPower",
 	INFOBOX = "Interface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\Info",
 	COUNTDOWN = "Interface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\Countdown",
+	CASTBAR_COUNTDOWN = "Interface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\Countdown",
 	SAY = "Interface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\Say",
 	SAY_COUNTDOWN = "Interface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\SayCountdown",
 	VOICE = "Interface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\Voice",
@@ -474,6 +466,7 @@ local icons = {
 	EMPHASIZE = "Interface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\EmphasizeMessage",
 	ME_ONLY_EMPHASIZE = "Interface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\EmphasizeMessageMeOnly",
 	DISPEL = "Interface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\Dispel",
+	PRIVATE = "Interface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\Private",
 }
 
 local function hasOptionFlag(dbKey, module, key)
@@ -491,41 +484,47 @@ end
 
 local function advancedToggles(dbKey, module, check)
 	local dbv = module.toggleDisabled and module.toggleDisabled[dbKey] or module.toggleDefaults[dbKey]
-	local advancedOptions = {}
+	local advOpts = {}
 
 	if bit.band(dbv, C.MESSAGE) == C.MESSAGE then
-		-- Emphasize & Countdown widgets
-		advancedOptions[1] = getSlaveToggle(L.EMPHASIZE, L.EMPHASIZE_desc, dbKey, module, C.EMPHASIZE, check, icons.EMPHASIZE)
-		advancedOptions[2] = getSlaveToggle(L.ME_ONLY_EMPHASIZE, L.ME_ONLY_EMPHASIZE_desc, dbKey, module, C.ME_ONLY_EMPHASIZE, check, icons.ME_ONLY_EMPHASIZE)
-		advancedOptions[3] = getSlaveToggle(L.COUNTDOWN, L.COUNTDOWN_desc, dbKey, module, C.COUNTDOWN, check, icons.COUNTDOWN)
+		-- Emphasize
+		advOpts[#advOpts+1] = getSlaveToggle(L.EMPHASIZE, L.EMPHASIZE_desc, dbKey, module, C.EMPHASIZE, check, 0.3, icons.EMPHASIZE)
+		advOpts[#advOpts+1] = getSlaveToggle(L.ME_ONLY_EMPHASIZE, L.ME_ONLY_EMPHASIZE_desc, dbKey, module, C.ME_ONLY_EMPHASIZE, check, 0.5, icons.ME_ONLY_EMPHASIZE)
+		--
+
+		-- Bar & Countdown
+		advOpts[#advOpts+1] = getSlaveToggle(L.BAR, L.BAR_desc, dbKey, module, C.BAR, check, 0.3, icons.BAR)
+		advOpts[#advOpts+1] = getSlaveToggle(L.COUNTDOWN, L.COUNTDOWN_desc, dbKey, module, C.COUNTDOWN, check, 0.5, icons.COUNTDOWN)
+		--
+
+		-- Cast Bars & Cast Countdowns
+		if bit.band(dbv, C.CASTBAR) == C.CASTBAR and hasOptionFlag(dbKey, module, "CASTBAR") then
+			advOpts[#advOpts+1] = getSlaveToggle(L.CASTBAR, L.CASTBAR_desc, dbKey, module, C.CASTBAR, check, 0.3, icons.CASTBAR)
+			advOpts[#advOpts+1] = getSlaveToggle(L.CASTBAR_COUNTDOWN, L.CASTBAR_COUNTDOWN_desc, dbKey, module, C.CASTBAR_COUNTDOWN, check, 0.5, icons.CASTBAR_COUNTDOWN)
+		end
 		--
 
 		-- Messages & Sound
-		advancedOptions[4] = getSlaveToggle(L.MESSAGE, L.MESSAGE_desc, dbKey, module, C.MESSAGE, check, icons.MESSAGE)
-		advancedOptions[5] = getSlaveToggle(L.ME_ONLY, L.ME_ONLY_desc, dbKey, module, C.ME_ONLY, check, icons.ME_ONLY)
-		advancedOptions[6] = getSlaveToggle(L.SOUND, L.SOUND_desc, dbKey, module, C.SOUND, check, icons.SOUND)
-		--
-
-		-- Bars
-		advancedOptions[7] = getSlaveToggle(L.BAR, L.BAR_desc, dbKey, module, C.BAR, check, icons.BAR)
-		advancedOptions[8] = getSlaveToggle(L.CASTBAR, L.CASTBAR_desc, dbKey, module, C.CASTBAR, check, icons.CASTBAR)
+		advOpts[#advOpts+1] = getSlaveToggle(L.MESSAGE, L.MESSAGE_desc, dbKey, module, C.MESSAGE, check, 0.3, icons.MESSAGE)
+		advOpts[#advOpts+1] = getSlaveToggle(L.ME_ONLY, L.ME_ONLY_desc, dbKey, module, C.ME_ONLY, check, 0.4, icons.ME_ONLY)
+		advOpts[#advOpts+1] = getSlaveToggle(L.SOUND, L.SOUND_desc, dbKey, module, C.SOUND, check, 0.3, icons.SOUND)
 		--
 	end
 
 	if bit.band(dbv, C.NAMEPLATEBAR) == C.NAMEPLATEBAR and hasOptionFlag(dbKey, module, "NAMEPLATEBAR") then
-		advancedOptions[#advancedOptions + 1] = getSlaveToggle(L.NAMEPLATEBAR, L.NAMEPLATEBAR_desc, dbKey, module, C.NAMEPLATEBAR, check, icons.NAMEPLATEBAR)
+		advOpts[#advOpts+1] = getSlaveToggle(L.NAMEPLATEBAR, L.NAMEPLATEBAR_desc, dbKey, module, C.NAMEPLATEBAR, check, 0.3, icons.NAMEPLATEBAR)
 	end
 
 	-- Flash & Pulse
 	if bit.band(dbv, C.FLASH) == C.FLASH and hasOptionFlag(dbKey, module, "FLASH") then
-		advancedOptions[#advancedOptions + 1] = getSlaveToggle(L.FLASH, L.FLASH_desc, dbKey, module, C.FLASH, check, icons.FLASH)
-		advancedOptions[#advancedOptions + 1] = getSlaveToggle(L.PULSE, L.PULSE_desc, dbKey, module, C.PULSE, check, icons.PULSE)
+		advOpts[#advOpts+1] = getSlaveToggle(L.FLASH, L.FLASH_desc, dbKey, module, C.FLASH, check, 0.3, icons.FLASH)
+		advOpts[#advOpts+1] = getSlaveToggle(L.PULSE, L.PULSE_desc, dbKey, module, C.PULSE, check, 0.5, icons.PULSE)
 	end
 	--
 
 	if bit.band(dbv, C.MESSAGE) == C.MESSAGE then
 		if API:HasVoicePack() then
-			advancedOptions[#advancedOptions + 1] = getSlaveToggle(L.VOICE, L.VOICE_desc, dbKey, module, C.VOICE, check, icons.VOICE)
+			advOpts[#advOpts+1] = getSlaveToggle(L.VOICE, L.VOICE_desc, dbKey, module, C.VOICE, check, 0.3, icons.VOICE)
 		end
 	end
 
@@ -536,15 +535,15 @@ local function advancedToggles(dbKey, module, check)
 			-- All on by default, check if we should add a GUI widget
 			if key == "ICON" or key == "SAY" or key == "SAY_COUNTDOWN" or key == "PROXIMITY" or key == "ALTPOWER" or key == "INFOBOX" then
 				if hasOptionFlag(dbKey, module, key) then
-					advancedOptions[#advancedOptions + 1] = getSlaveToggle(name, desc, dbKey, module, flag, check, icons[key])
+					advOpts[#advOpts+1] = getSlaveToggle(name, desc, dbKey, module, flag, check, 0.3, icons[key])
 				end
 			elseif key ~= "MESSAGE" and key ~= "BAR" and key ~= "FLASH" and key ~= "VOICE" then
-				advancedOptions[#advancedOptions + 1] = getSlaveToggle(name, desc, dbKey, module, flag, check)
+				advOpts[#advOpts+1] = getSlaveToggle(name, desc, dbKey, module, flag, check, 0.3)
 			end
 		end
 	end
 
-	return unpack(advancedOptions)
+	return unpack(advOpts)
 end
 
 local function advancedTabSelect(widget, callback, tab)
@@ -593,12 +592,15 @@ local advancedTabs = {
 
 function getAdvancedToggleOption(scrollFrame, dropdown, module, bossOption)
 	local dbKey, name, desc, icon, alternativeName = BigWigs:GetBossOptionDetails(module, bossOption)
+	local widgets = {}
+
 	local back = AceGUI:Create("Button")
 	back:SetText(L.back)
 	back:SetFullWidth(true)
 	back:SetCallback("OnClick", function()
 		showToggleOptions(dropdown, nil, dropdown:GetUserData("bossIndex"), true)
 	end)
+	widgets[#widgets + 1] = back
 
 	local check = AceGUI:Create("CheckBox")
 	check:SetLabel(alternativeName and L.alternativeName:format(name, alternativeName) or name)
@@ -616,27 +618,58 @@ function getAdvancedToggleOption(scrollFrame, dropdown, module, bossOption)
 	if icon then
 		check:SetImage(icon, 0.07, 0.93, 0.07, 0.93)
 	end
+	widgets[#widgets + 1] = check
 
 	-- Create role-specific secondary checkbox
-	local roleRestrictionCheckbox = nil
 	for i, key in next, BigWigs:GetRoleOptions() do
 		local flag = C[key]
 		local dbv = module.toggleDisabled and module.toggleDisabled[dbKey] or module.toggleDefaults[dbKey]
 		if bit.band(dbv, flag) == flag then
 			local roleName, roleDesc = BigWigs:GetOptionDetails(key)
+			local roleRestrictionCheckbox
 			if key == "TANK" then
-				roleRestrictionCheckbox = getSlaveToggle(roleName, roleDesc, dbKey, module, flag, check, icons.TANK)
+				roleRestrictionCheckbox = getSlaveToggle(roleName, roleDesc, dbKey, module, flag, check, 0.3, icons.TANK)
 			elseif key == "HEALER" then
-				roleRestrictionCheckbox = getSlaveToggle(roleName, roleDesc, dbKey, module, flag, check, icons.HEALER)
+				roleRestrictionCheckbox = getSlaveToggle(roleName, roleDesc, dbKey, module, flag, check, 0.3, icons.HEALER)
 			elseif key == "DISPEL" then
-				roleRestrictionCheckbox = getSlaveToggle(roleName, roleDesc, dbKey, module, flag, check, icons.DISPEL)
+				roleRestrictionCheckbox = getSlaveToggle(roleName, roleDesc, dbKey, module, flag, check, 0.3, icons.DISPEL)
 			else
-				roleRestrictionCheckbox = getSlaveToggle(roleName, roleDesc, dbKey, module, flag, check) -- No icon
+				roleRestrictionCheckbox = getSlaveToggle(roleName, roleDesc, dbKey, module, flag, check, 0.3) -- No icon
 			end
 			roleRestrictionCheckbox:SetDescription(roleDesc)
 			roleRestrictionCheckbox:SetFullWidth(true)
 			roleRestrictionCheckbox:SetUserData("desc", nil) -- Remove tooltip set by getSlaveToggle() function
+			widgets[#widgets + 1] = roleRestrictionCheckbox
 		end
+	end
+
+	-- Add a small text label to the top right displaying what key is tied to this ability
+	local optionKeyLabel = AceGUI:Create("Label")
+	if type(dbKey) == "number" then
+		optionKeyLabel.label:SetFormattedText(L.optionsKey, dbKey)
+	else
+		optionKeyLabel.label:SetFormattedText(L.optionsKey, "\""..dbKey.."\"")
+	end
+	optionKeyLabel:SetColor(0.65, 0.65, 0.65)
+	optionKeyLabel:SetWidth(optionKeyLabel.label:GetStringWidth())
+	optionKeyLabel:SetHeight(30)
+	optionKeyLabel.frame:SetParent(check.frame)
+	optionKeyLabel.frame:Show()
+	optionKeyLabel:SetPoint("RIGHT", check.frame, "TOPRIGHT", -5, -13)
+	-- Manually release in a callback, since optionKeyLabel isn't added to the widgets table as a child
+	check:SetUserData("optionKeyLabel", optionKeyLabel)
+	check:SetCallback("OnRelease", function(widget)
+		widget:GetUserData("optionKeyLabel"):Release()
+	end)
+
+	if hasOptionFlag(dbKey, module, "PRIVATE") then
+		local privateAuraText = AceGUI:Create("Label")
+		privateAuraText:SetText(L.PRIVATE_desc)
+		privateAuraText:SetColor(1, 0.75, 0.79)
+		privateAuraText:SetImage(icons.PRIVATE)
+		privateAuraText:SetFullWidth(true)
+		privateAuraText:SetHeight(30)
+		widgets[#widgets + 1] = privateAuraText
 	end
 
 	local tabs = AceGUI:Create("TabGroup")
@@ -650,12 +683,9 @@ function getAdvancedToggleOption(scrollFrame, dropdown, module, bossOption)
 	tabs:SetUserData("master", check)
 	tabs:SetUserData("scrollFrame", scrollFrame)
 	tabs:SelectTab("options")
+	widgets[#widgets + 1] = tabs
 
-	if roleRestrictionCheckbox then
-		return back, check, roleRestrictionCheckbox, tabs
-	else
-		return back, check, tabs
-	end
+	return unpack(widgets)
 end
 
 local spellUpdater = CreateFrame("Frame")
@@ -804,8 +834,8 @@ local function getDefaultToggleOption(scrollFrame, dropdown, module, bossOption)
 	local flagIcons = {}
 	local showFlags = {
 		"TANK_HEALER", "TANK", "HEALER", "DISPEL",
-		"EMPHASIZE", "ME_ONLY", "ME_ONLY_EMPHASIZE", "COUNTDOWN", "FLASH", "ICON", "SAY", "SAY_COUNTDOWN",
-		"PROXIMITY", "INFOBOX", "ALTPOWER", "NAMEPLATEBAR",
+		"EMPHASIZE", "ME_ONLY", "ME_ONLY_EMPHASIZE", "COUNTDOWN", "CASTBAR_COUNTDOWN", "FLASH", "ICON", "SAY", "SAY_COUNTDOWN",
+		"PROXIMITY", "INFOBOX", "ALTPOWER", "NAMEPLATEBAR", "PRIVATE",
 	}
 	for i = 1, #showFlags do
 		local key = showFlags[i]
@@ -875,7 +905,7 @@ local function getDefaultToggleOption(scrollFrame, dropdown, module, bossOption)
 	return check, button
 end
 
-local listAbilitiesInChat = nil
+local listAbilitiesInChat
 do
 	local SendChatMessage = loader.SendChatMessage
 	local function output(channel, ...)
@@ -940,8 +970,6 @@ do
 						if desc > 0 then
 							local spellName = GetSpellInfo(desc)
 							link = ("\124cff71d5ff\124Hspell:%d:0\124h[%s]\124h\124r"):format(desc, spellName)
-						else
-							-- EJ?
 						end
 					end
 				end
@@ -976,8 +1004,9 @@ local function populateToggleOptions(widget, module)
 	local id = module.instanceId
 
 	local sDB = BigWigsStatsDB
-	if module.journalId and id and id > 0 and BigWigs:GetPlugin("Statistics").db.profile.enabled and sDB and sDB[id] and sDB[id][module.journalId] then
-		sDB = sDB[id][module.journalId]
+	local journalId = module:GetJournalID()
+	if journalId and id and id > 0 and BigWigs:GetPlugin("Statistics").db.profile.enabled and sDB and sDB[id] and sDB[id][journalId] then
+		sDB = sDB[id][journalId]
 
 		if next(sDB) then -- Create statistics table
 			local statGroup = AceGUI:Create("InlineGroup")
@@ -1188,7 +1217,7 @@ local function onZoneShow(treeWidget, id)
 	for i = 1, #zoneSort do
 		local name = zoneSort[i]
 		local m = BigWigs:GetBossModule(name)
-		if m:IsEnabled() and m.journalId then
+		if m:IsEnabled() and m:GetJournalID() then
 			index = i
 			break
 		end
@@ -1245,21 +1274,62 @@ do
 	local function onTreeGroupSelected(widget, event, value)
 		widget:ReleaseChildren()
 		local zoneId = value:match("\001(-?%d+)$")
-		local defaultEnabled = value == "BigWigs_Dragonflight"
+		local bigwigsContent = value:match("(BigWigs_%a+)$")
 		if zoneId then
 			onZoneShow(widget, tonumber(zoneId))
-		elseif value:match("^BigWigs_") and not defaultEnabled and GetAddOnEnableState(playerName, value) == 0 then
+		elseif bigwigsContent and value ~= loader.currentExpansion.name then -- Any BigWigs content, but skip when clicking the current expansion header
+			local addonState = loader:GetAddOnState(bigwigsContent)
+			local string = addonState == "MISSING" and L.missingAddOn or addonState == "DISABLED" and L.disabledAddOn
+			if string then
+				local container = AceGUI:Create("SimpleGroup")
+				container:SetFullWidth(true)
+				widget:AddChild(container)
+
 				local missing = AceGUI:Create("Label")
-				missing:SetText(L.missingPlugin:format(value))
+				missing:SetText(string:format(bigwigsContent))
 				missing:SetFontObject(GameFontHighlight)
 				missing:SetFullWidth(true)
-				widget:AddChild(missing)
-		elseif value:match("^LittleWigs_") and GetAddOnEnableState(playerName, "LittleWigs") == 0 then
+				container:AddChild(missing)
+
+				if addonState == "DISABLED" then
+					local reload = AceGUI:Create("Button")
+					reload:SetText(BigWigsAPI:GetLocale("BigWigs: Plugins").enable)
+					reload:SetAutoWidth(true)
+					reload:SetUserData("addonName", bigwigsContent)
+					reload:SetCallback("OnClick", function(reloadWidget)
+						loader.EnableAddOn(reloadWidget:GetUserData("addonName"))
+						C_UI.Reload()
+					end)
+					container:AddChild(reload)
+				end
+			end
+		elseif value:match("^LittleWigs_") then -- All LittleWigs content addons, all come from 1 zip
+			if value == loader.currentExpansion.littlewigsName then value = "LittleWigs" end
+			local addonState = loader:GetAddOnState(value)
+			local string = addonState == "MISSING" and L.missingAddOn or addonState == "DISABLED" and L.disabledAddOn
+			if not loader.usingLittleWigsRepo and string then
+				local container = AceGUI:Create("SimpleGroup")
+				container:SetFullWidth(true)
+				widget:AddChild(container)
+
 				local missing = AceGUI:Create("Label")
-				missing:SetText(L.missingPlugin:format("LittleWigs"))
+				missing:SetText(string:format(value))
 				missing:SetFontObject(GameFontHighlight)
 				missing:SetFullWidth(true)
-				widget:AddChild(missing)
+				container:AddChild(missing)
+
+				if addonState == "DISABLED" then
+					local reload = AceGUI:Create("Button")
+					reload:SetText(BigWigsAPI:GetLocale("BigWigs: Plugins").enable)
+					reload:SetAutoWidth(true)
+					reload:SetUserData("addonName", value)
+					reload:SetCallback("OnClick", function(reloadWidget)
+						loader.EnableAddOn(reloadWidget:GetUserData("addonName"))
+						C_UI.Reload()
+					end)
+					container:AddChild(reload)
+				end
+			end
 		else
 			statusTable.groups[value] = true
 			widget:RefreshTree()
@@ -1287,26 +1357,24 @@ do
 			local addonNameToHeader = {}
 			local defaultHeader
 			if value == "bigwigs" then
-				defaultHeader = "BigWigs_Dragonflight"
+				defaultHeader = loader.currentExpansion.name
 				for i = 1, #expansionHeader do
 					local value = "BigWigs_" .. expansionHeader[i]
-					local defaultEnabled = value == "BigWigs_Dragonflight"
 					treeTbl[i] = {
 						text = EJ_GetTierInfo(i),
 						value = value,
-						enabled = (defaultEnabled or GetAddOnEnableState(playerName, value) > 0),
+						enabled = true,
 					}
 					addonNameToHeader[value] = i
 				end
 			elseif value == "littlewigs" then
-				defaultHeader = "LittleWigs_Dragonflight"
-				local enabled = GetAddOnEnableState(playerName, "LittleWigs") > 0
+				defaultHeader = loader.currentExpansion.littlewigsName
 				for i = 1, #expansionHeader do
 					local value = "LittleWigs_" .. expansionHeader[i]
 					treeTbl[i] = {
 						text = EJ_GetTierInfo(i),
 						value = value,
-						enabled = enabled,
+						enabled = true,
 					}
 					addonNameToHeader[value] = i
 				end
@@ -1315,43 +1383,58 @@ do
 			do
 				local zoneToId, alphabeticalZoneList = {}, {}
 				for k in next, loader:GetZoneMenus() do
-					local zone
+					local zoneName
 					if k < 0 then
 						local tbl = GetMapInfo(-k)
 						if tbl then
-							zone = tbl.name
+							zoneName = tbl.name
 						else
-							zone = tostring(k)
+							zoneName = tostring(k)
 						end
 					else
-						zone = GetRealZoneText(k)
-						if zone == "" then
+						zoneName = GetRealZoneText(k)
+						if zoneName == "" then
 							-- if GetRealZoneText returns an empty string it's probably due to installing the wrong version of BigWigs or otherwise
 							-- having a module enabled for a zone that doesn't exist.
 							-- use the zone key as the menu name in that case instead of the empty string.
-							zone = tostring(k)
+							zoneName = tostring(k)
 						end
 					end
-					if zone then
-						if zoneToId[zone] then
-							zone = zone .. "1" -- When instances exist more than once (Karazhan)
+					if zoneName then
+						if zoneToId[zoneName] then
+							zoneName = zoneName .. "1" -- When instances exist more than once (Karazhan)
 						end
-						zoneToId[zone] = k
-						alphabeticalZoneList[#alphabeticalZoneList+1] = zone
+						zoneToId[zoneName] = k
+						alphabeticalZoneList[#alphabeticalZoneList+1] = zoneName
+					end
+				end
+
+				for k, v in next, loader.currentExpansion.zones do -- Parse current content zones
+					local zoneName = GetRealZoneText(k)
+					if not zoneToId[zoneName] and not loader.usingBigWigsRepo then -- If we have no registered menus for current content, and not using the Git repo
+						alphabeticalZoneList[#alphabeticalZoneList+1] = zoneName -- We want to create sub menus in the GUI for disabled/missing BigWigs current content addons
+						zoneToId[zoneName] = {k, v}
 					end
 				end
 
 				sort(alphabeticalZoneList) -- Make alphabetical
 				for i = 1, #alphabeticalZoneList do
 					local zoneName = alphabeticalZoneList[i]
-					local id = zoneToId[zoneName]
+					local entry = zoneToId[zoneName]
+					local name, id
+					if type(entry) == "table" then
+						id = entry[1]
+						name = entry[2]
+					else
+						id = entry
+					end
 
 					local parent = loader.zoneTbl[id] and addonNameToHeader[loader.zoneTbl[id]] -- Get expansion number for this zone
 					local treeParent = treeTbl[parent] -- Grab appropriate expansion name
 					if treeParent and treeParent.enabled then -- third-party plugins can add empty zones if you don't have the expansion addon enabled
 						if not treeParent.children then treeParent.children = {} end -- Create sub menu table
 						tinsert(treeParent.children, { -- Add new instance/zone sub menu
-							value = id,
+							value = name or id,
 							text = zoneName,
 						})
 					end
@@ -1394,7 +1477,7 @@ do
 
 		local bw = AceGUI:Create("Frame")
 		configFrame = bw
-		bw:SetTitle(textName)
+		bw:SetTitle("BigWigs")
 		bw:SetStatusText(" "..loader:GetReleaseString())
 		bw:SetWidth(858)
 		bw:SetHeight(660)

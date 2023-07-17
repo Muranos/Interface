@@ -47,6 +47,14 @@ function E:UpdateSpell(id, isInit, oldClass, oldType)
 				tremove(self.spell_db[class], i)
 
 			else
+				if self.spellNameToID then
+					local name = GetSpellInfo(id)
+					if name and not self.spellNameToID[name] then
+						self.spellNameToID[name] = id
+					else
+						return
+					end
+				end
 				force = true
 			end
 			self.spell_db[vclass][#self.spell_db[vclass] + 1] = v

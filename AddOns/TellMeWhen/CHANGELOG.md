@@ -1,3 +1,13 @@
+## v10.1.5
+* Support for WoW 10.1.5
+
+## v10.1.1
+* Fix #2081 - Cooldown of Eternity Surge not trackable when Font of Magic learned.
+* Fix #2082 - Increase Insanity condition max to 150.
+
+## v10.1.0
+* Fixes for WoW 10.1.
+
 ## v10.0.9
 * The "Buff - Number Of" and "Debuff - Number Of" conditions now support tracking multiple units (e.g. `group 1-40`). (#1989)
 * Fix #2066 - Enrage effects were not being stored properly when fetching auras for noncached units.

@@ -58,6 +58,8 @@ addon.defaults = {
 		autoPassTrinket = true,
 		silentAutoPass = false, -- Show autopass message
 		autoPassBoE = true,
+		autoPassTransmog = true,
+		autoPassTransmogSource = true,
 		printResponse = false, -- Print response in chat
 		autoGroupLootGuildGroupOnly = true,
 		-- General - Frame
@@ -102,7 +104,6 @@ addon.defaults = {
 		hideVotes = false, -- Hide the # votes until one have voted
 		observe = false, -- observe mode on/off
 		autoAddRolls = false,
-		requireNotes = false,
 		-- ML - Awards - Auto Award
 		autoAward = false,
 		autoAwardLowerThreshold = 2,
@@ -139,14 +140,15 @@ addon.defaults = {
 		maxButtons = 10,
 		buttons = {
 			default = {
-				{ text = _G.NEED, whisperKey = L["whisperKey_need"], }, -- 1
-				{ text = _G.GREED, whisperKey = L["whisperKey_greed"], }, -- 2
-				{ text = L["Minor Upgrade"], whisperKey = L["whisperKey_minor"], }, -- 3
+				{ text = _G.NEED, whisperKey = L["whisperKey_need"], requireNotes = false}, -- 1
+				{ text = _G.GREED,           whisperKey = L["whisperKey_greed"], requireNotes = false, }, -- 2
+				{ text = L["Minor Upgrade"], whisperKey = L["whisperKey_minor"], requireNotes = false, }, -- 3
 				numButtons = 3,
 			},
 			["*"] = {
 				["*"] = {
 					text = L["Button"],
+					requireNotes = false,
 				},
 				numButtons = 3,
 			},

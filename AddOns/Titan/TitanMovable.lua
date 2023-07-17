@@ -1,21 +1,12 @@
 --[[ File
 NAME: TitanMovable.lua
-DESC: Contains the routines to adjust the Blizzard frames to make room for the Titan bars the user has selected.
+DESC: DragonFlight introduced an Edit Mode for the user to move various frames where they want them.
+Titan no longer needs to do this work for most frames.
 
-DragonFlight introduced an Edit Mode for the user to move various frames where they want them.
-However two UI elements were not included: 
-- XP / Status bar (with the reputation bar above)
-- menu & bag buttons
-
-This greatly chanegd the work Titan needed to do.
-Now Titan only needs to allow the user to manually adjust the two UI elements themselves.
-
+There are a small number of frames that WoW does not have in Edit mode. These will be added to the table over time as users request.
+The scheme has changed to be more like 'move any/thing' which hooks the SetPoint of the frame.
+Titan still only allows vertical adjust - not move anywhere.
 :DESC
-
-NOTE: 
-- All secure hooks were removed from Movable.
-- All timers were removed from Movable.
-:NOTE
 
 --]]
 -- Globals
@@ -23,28 +14,7 @@ NOTE:
 -- Locals
 local _G = getfenv(0);
 local InCombatLockdown = _G.InCombatLockdown;
-local hooks_done = false;
 
-local move_count = 0
-
-local function Titan_AdjustFrame(frame_str, flag, offset)	
-	local frame = _G[frame_str]
-	local point, relativeTo, relativePoint, xOfs, yOfs = frame:GetPoint()
-	if point and relativeTo and relativePoint and xOfs then
-		-- Check if user has requested... We can get here via player entering world
-		if TitanPanelGetVar(flag) then
-			frame:ClearAllPoints()
-			frame:SetPoint(point, relativeTo:GetName(), relativePoint, xOfs, TitanPanelGetVar(offset))
-			op = "move - y "..tostring(y)
-		else
-			-- User has not reqeuested Titan do anything.
-			op = "skip - User has not asked Titan to move XP / Status bar"
-		end
-	else
-		op = "skip - :GetPoint invalid"
-		-- do not proceed
-	end
-end
 
 --[[ API
 NAME: TitanMovable_GetPanelYOffset
@@ -64,17 +34,22 @@ function TitanMovable_GetPanelYOffset(framePosition) -- used by other addons
 	local barnum_top = 0
 	local barnum_bot = 0
 	-- If user has the top set then determine the top offset
-	if TitanPanelGetVar("Bar_Show") then
+	if TitanBarDataVars[TITAN_PANEL_DISPLAY_PREFIX.."Bar"].show then
+--	if TitanPanelGetVar("Bar_Show") then
 		barnum_top = 1
 	end
-	if TitanPanelGetVar("Bar2_Show") then
+	if TitanBarDataVars[TITAN_PANEL_DISPLAY_PREFIX.."Bar2"].show then
+--	if TitanPanelGetVar("Bar2_Show") then
 		barnum_top = 2
 	end
 	-- If user has the bottom set then determine the bottom offset
-	if TitanPanelGetVar("AuxBar_Show") then
+	if TitanBarDataVars[TITAN_PANEL_DISPLAY_PREFIX.."AuxBar"].show then
+--	if TitanPanelGetVar("AuxBar_Show") then
 		barnum_bot = 1
 	end
-	if TitanPanelGetVar("AuxBar2_Show") then
+	
+	if TitanBarDataVars[TITAN_PANEL_DISPLAY_PREFIX.."AuxBar2"].show then
+--	if TitanPanelGetVar("AuxBar2_Show") then
 		barnum_bot = 2
 	end
 
@@ -93,72 +68,142 @@ function TitanMovable_GetPanelYOffset(framePosition) -- used by other addons
 	return 0
 end
 
--- =============
 --[[ Titan
-NAME: TitanPanel_AdjustFrames
-DESC: Adjust the frames for the Titan visible bars.
-This is a shell for the actual Movable routine used by other Titan routines and secure hooks
-VAR:  force - Force an adjust such as when the user changes bars shown
-VAR:  reason - Debug to determine where and why an adjust is requested
+NAME: TitanPanel_AdjustFrameInit
+DESC: Do all the setup needed when a user logs in / reload UI / enter or leave an instance or when user updates adjust flag.
+VAR:  frame_str : string of the frame name
 OUT:  None
 NOTE:
+- This is called once the profile (and settings) are known.
+- Keeping this simple for now until omplexity needs to be added.
+- hooksecurefunc from https://urbad.net/blue/us/34224257-Guide_to_Secure_Execution_and_Tainting
+Hooking and the hooksecurefunc function
+
+The taint model is the reason that 'hooking' as it is commonly done today can easily break lots of UI functionality, trying to hook a function that is used by secure code causes a tainted function to be called in the middle of an otherwise secure execution path, this then taints the execution path so that nothing following the hook can use secure functions - don't be too dismayed however, we've been given a tool to get around this.
+
+The new hooksecurefunc API function allows AddOn code to 'post hook' a secure global function, that is run another function after the original one has been run. So for example you could track calls to CastSpellByName using hooksecurefunc("CastSpellByName", mySpellCastTracker). The API replaces the original global function with its own secure hook function that calls the original function, saves its return values away, and then calls your hook function with the same arguments as the original function (any return values from your hook function are thrown away) and then it returns the return values from the original.
+
+The 'special' feature of this secure hook is that when your hook function is executed, it executes with the taint that was present at the time the hook was created, and when your hook function is done that taint is discarded and the original secure (or possibly tainted - you cannot use hooksecurefunc to REMOVE taint, just avoid it) execution mode is restored.
+
+- hooksecurefunc from https://wowpedia.fandom.com/wiki/API_hooksecurefunc. 
+- The hook will stay until a reload or logout. This means the TitanAdj MUST remain or the normal SetPoint will be broken.
+- Setting the hook is cumalitive so add ony once; controlled by titan_adj_hook on the frame.
 :NOTE
 --]]
-function TitanPanel_AdjustFrames(force, reason)
-	if TITAN_PANEL_VARS.debug.movable then
-		TitanDebug ("_AdjustFrames :"
-			.." f: "..tostring(force)
-			.." r: '"..tostring(reason).."'"
-			)
-	end
-
--- DF Titan no longer react to hooks to move frames
-	-- Adjust frame positions top and bottom based on user choices
-			Titan_AdjustFrame("MicroButtonAndBagsBar", "MenuAndBagVerticalAdjOn", "MenuAndBagVerticalAdj")
-			Titan_AdjustFrame("StatusTrackingBarManager", "XPBarVerticalAdjOn", "XPBarVerticalAdj")
-
+function TitanPanel_AdjustFrameInit(frame_str) -- 
+	local op = ""
+	local frame = _G[frame_str]
+	if frame then -- sanity check
+		function frame:TitanAdj()
+			if frame.titan_adj  -- only if Titan user has requested
+			and not InCombatLockdown() then
+				local point, relativeTo, relativePoint, xOfs, yOfs = frame:GetPoint()
+				if point and relativeTo and relativePoint and xOfs then
+					frame:ClearAllPoints()
+					frame:SetPoint(point, relativeTo:GetName(), relativePoint, xOfs, TitanAdjustSettings[frame_str].offset)
+					frame.titan_offset = TitanAdjustSettings[frame_str].offset
 --[[
-	if hooks_done then
-		if reason == "Init: PEW (Player Entering World)"
-		or reason == "MenuAndBagVerticalAdj" then 
-			Titan_AdjustFrame("MicroButtonAndBagsBar", "MenuAndBagVerticalAdjOn", "MenuAndBagVerticalAdj")
-		end
-		if reason == "Init: PEW (Player Entering World)"
-		or reason == "XPBarVerticalAdj" then 
-			Titan_AdjustFrame("StatusTrackingBarManager", "XPBarVerticalAdjOn", "XPBarVerticalAdj")
-		end
-	end
+print("TitanAdj ~~"
+.." x"..tostring(xOfs)..""
+.." y"..tostring(yOfs)..""
+.." => "..tostring(TitanAdjustSettings[frame_str].offset)..""
+)
 --]]
+				end
+			end
+		end
+		
+		if frame.titan_adj_hook == true then
+			-- already hooked, do not want to add more...
+		else
+			-- Add the hook for when WoW code updates this frame
+			hooksecurefunc(frame, "SetPoint", function(frame, ...)
+				if frame.titan_adjusting then
+					-- prevent a stack overflow
+				else
+					frame.titan_adjusting = true
+					frame:SetMovable(true)
+					frame:SetUserPlaced(true)
+					frame:TitanAdj() -- routine attached to the frame
+					frame.titan_adjusting = false
+				end
+			end)
+			
+			frame.titan_adj_hook = true
+			op = "set secure hook"
+		end
+			
+		TitanPanel_AdjustFrame(frame_str, "Init adjust")
+	else
+		op = "skip - frame invalid"
+		-- do not proceed
+	end
 end
 
 --[[ Titan
-NAME: TitanMovable_SecureFrames
-DESC: Once Titan is initialized get info we need to help adjust frames properly.
-VAR:  None
+NAME: TitanPanel_AdjustFrame
+DESC: Adjust frame as requested.
+VAR:  frame_str : string of the frame name
+VAR:  reason : string for debug
 OUT:  None
+NOTE:
+- This is called when usesrs has changed the adjust flag and on Titan init.
+:NOTE
 --]]
-function TitanMovable_SecureFrames()
+function TitanPanel_AdjustFrame(frame_str, reason) -- 
+	local trace = false
+	local op = "no action"
+	local frame = _G[frame_str]
 
-	-- Save the original Y offest for the few frames the user may want to adjust via Titan
-	local point, relativeTo, relativePoint, xOfs, yOfs, frame
+	if trace then
+		print("_AdjustFrame"
+			.." "..tostring(frame_str)..""
+			.." '"..tostring(reason).."'"
+			.." "..tostring(TitanAdjustSettings[frame_str].adjust)..""
+			.." "..tostring(TitanAdjustSettings[frame_str].offset)..""
+		)
+	end
 
----[=[	
-	frame = _G["MicroButtonAndBagsBar"]
-	point, relativeTo, relativePoint, xOfs, yOfs = frame:GetPoint()
-	frame.original_y = yOfs
---]=]
+	if frame then
+		-- Check if user has requested... 
+		if TitanAdjustSettings[frame_str].adjust then
+			if frame.titan_adj == true then
+				-- Already set
+			else
+				-- Flipping from false, trigger a move
+				frame.titan_adj = true
+				frame:TitanAdj()
+				op = "adjust - titan_adj to true"
+			end
+			
+			if frame.titan_offset == TitanAdjustSettings[frame_str].offset then
+				-- No need to update
+			else
+				frame:TitanAdj()
+				op = "adjust - titan_offset changed"
+			end
+		else
+			-- User has requested Titan to NOT adjust this frame.
+			frame.titan_adj = false
+			if frame.titan_adj_hook == true then
+				-- hooked this session so adjust
+				frame:TitanAdj()
+				op = "adjust - titan_adj to false"
+			else
+				-- not hooked this session so ignore
+			end
+		end
+	else
+		op = "skip - : frame invalid"
+		-- do not proceed
+	end
 
----[=[
-	frame = _G["StatusTrackingBarManager"]
-	point, relativeTo, relativePoint, xOfs, yOfs = frame:GetPoint()
-	frame.original_y = yOfs
---]=]
-
-	hooks_done = true
-
-	-- On start, adjust according to the user settings
-	TitanPanel_AdjustFrames(true, "Init: PEW (Player Entering World)")
-	
+	if trace then
+		print("_AdjustFrame"
+			.." "..tostring(frame_str)..""
+			.." '"..tostring(op).."'"
+		)
+	end
 end
 
 --[[

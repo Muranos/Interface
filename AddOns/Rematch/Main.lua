@@ -216,6 +216,9 @@ function rematch:Start()
 	-- watch for player forfeiting a match (playerForfeit is nil'ed during PET_BATTLE_OPENING_START)
 	hooksecurefunc(C_PetBattles,"ForfeitGame",function() rematch.playerForfeit=true end)
 	rematch.inWorld = true
+
+	-- for compartment use
+	RematchToggleWindow = RematchFrame.Toggle
 end
 
 function rematch:InitSavedVars()
@@ -223,6 +226,18 @@ function rematch:InitSavedVars()
 	RematchSettings = RematchSettings or {}
 	settings = RematchSettings
 	saved = RematchSaved
+
+	-- in Rematch 5.0, Rematch 4's teams and settings are copied to Rematch4Saved/Rematch4Settings
+	-- if the following code runs, it means we reverted back from 5 to 4; restore previously saved settings
+	if type(Rematch4Saved)=="table" then
+		RematchSaved = CopyTable(Rematch4Saved)
+		Rematch4Saved = nil
+	end
+	if type(Rematch4Settings)=="table" then
+		RematchSettings = CopyTable(Rematch4Settings)
+		Rematch4Settings = nil
+	end
+
 	-- create settings sub-tables and default values if they don't exist
 	for k,v in pairs({"TeamGroups","Filters","FavoriteFilters","Sort","Sanctuary","LevelingQueue","PetNotes","ScriptFilters","SpecialSlots","QueueSanctuary"}) do
 		if type(settings[v])~="table" then
@@ -232,15 +247,15 @@ function rematch:InitSavedVars()
 				settings[v] = {Order=1,FavoritesFirst=true}
 			elseif v=="SpecialSlots" then
 				settings[v] = {}
-            if settings.LevelingSlots then -- if old LevelingSlots system is used
-               -- convert old leveling slots to new special slot system
-               for i=1,3 do
-                  rematch:SetSpecialSlot(i,settings.LevelingSlots and "leveling" or nil)
-               end
-               settings.LevelingSlots = nil
-            else -- otherwise setup new slot handling
-               rematch:AssignSpecialSlots()
-            end
+				if settings.LevelingSlots then -- if old LevelingSlots system is used
+					-- convert old leveling slots to new special slot system
+					for i=1,3 do
+						rematch:SetSpecialSlot(i,settings.LevelingSlots and "leveling" or nil)
+					end
+					settings.LevelingSlots = nil
+				else -- otherwise setup new slot handling
+					rematch:AssignSpecialSlots()
+				end
 			else
 				settings[v] = {}
 			end
@@ -827,7 +842,7 @@ function rematch:ShowDebugDialog()
 		end
 	end
 	-- gather each line into data table
-	add("__ Rematch version %s __",GetAddOnMetadata("Rematch","Version"))
+	add("__ Rematch version %s __",C_AddOns.GetAddOnMetadata("Rematch","Version"))
 	add("%s last used",settings.JournalUsed and "Journal" or "Standalone")
 	add("Panel Tab=%s",settings.JournalUsed and settings.JournalPanel or settings.ActivePanel)
 	add("Error Reporting=%s",IsAddOnLoaded("BugSack") and "BugSack" or GetCVarBool("scriptErrors") and "scriptErrors" or "None")
@@ -961,7 +976,7 @@ end
 
 --[[ RematchFootnoteButtonTemplate: for the little round buttons on list buttons (notes, leveling, etc) ]]
 
-local footnoteCoords = { 
+local footnoteCoords = {
 	notes={0,0.125,0,0.25}, leveling={0.125,0.25,0,0.25}, preferences={0.25,0.375,0,0.25},
 	ascending={0.375,0.5,0,0.25}, median={0,0.125,0.25,0.5}, descending={0.125,0.375,0.25,0.5},
    random={0.375,0.5,0.25,0.5}, ignored={0,0.125,0.5,0.75},

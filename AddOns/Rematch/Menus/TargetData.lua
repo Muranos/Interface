@@ -124,7 +124,7 @@ rematch.targetData = {
     -- mapID 2025: Thaldraszus
     {9,2025,197336,71166,4,25,3396}, -- Enyobon
     {9,2025,197350,71180,4,25,393,459,646}, -- Setimothes
-    {9,2025,202458,74794,4,25,3474,3473,3472}, -- Stargazer Zenoth
+    {9,2025,202458,74792,4,25,3474,3473,3472}, -- Stargazer Zenoth
     {9,2025,202452,74794,4,25,3466}, -- Malfunctioning Matrix
     -- mapID 2151: Forbidden Reach
     {9,2151,200677,73146,4,25,3444}, -- Storm-Touched Swoglet
@@ -143,6 +143,11 @@ rematch.targetData = {
     {9,2151,200696,73149,4,25,3432}, -- Flow (Legendary)
     {9,2151,200694,73149,4,25,3436}, -- Flow (Epic)
     {9,2151,200697,73149,4,25,3440}, -- Flow (Rare)
+    -- mapID 2133: Zaralek Caverns
+    {9,2133,204926,75834,4,25,3570,3569,3568}, -- Delver Mardei
+    {9,2133,201004,75680,4,25,3560,3559,3558}, -- Explorer Bezzert
+    {9,2133,204792,75750,4,25,3565,3566,3567}, -- Shinmura
+    {9,2133,204934,75835,4,25,3572,3571,3573}, -- Trainer Orlogg
 
     -- expansionID 8: Shadowlands
 

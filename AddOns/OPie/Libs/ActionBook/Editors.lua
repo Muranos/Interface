@@ -1,16 +1,18 @@
 local _, T = ...
 
-local AB = assert(T.ActionBook:compatible(2, 23), "A compatible version of ActionBook is required.")
-local L = AB:locale()
+local AB = T.ActionBook:compatible(2, 36)
+assert(AB and 1, "Incompatible library bundle")
+local L = T.ActionBook.L
 local MODERN = select(4,GetBuildInfo()) >= 8e4
 
 local RegisterSimpleOptionsPanel do
+	local optionsForHandle, curHandle, curHandleID = {}
 	local f, fButtons = CreateFrame("Frame"), {}
 	f:Hide()
 	local function callSave()
 		local p = f:GetParent()
 		if p and type(p.OnActionChanged) == "function" then
-			p:OnActionChanged(f)
+			p:OnActionChanged(curHandle)
 		elseif p and type(p.SaveAction) == "function" then -- DEPRECATED [2303]
 			p:SaveAction()
 		end
@@ -32,9 +34,8 @@ local RegisterSimpleOptionsPanel do
 		fButtons[i] = e
 	end
 
-	local optionsForHandle, curHandle, curHandleID = {}
 	local function IsOwned(self, host)
-		return curHandle == optionsForHandle[self] and f:GetParent() == host
+		return curHandle == self and f:GetParent() == host
 	end
 	local function Release(self, host)
 		if IsOwned(self, host) then
@@ -47,14 +48,14 @@ local RegisterSimpleOptionsPanel do
 	local function SetAction(self, host, actionTable)
 		local opts, op = optionsForHandle[self], f:GetParent()
 		assert(actionTable[1] == opts[0], "Invalid editor")
-		if op and op ~= host and type(op.OnEditorRelease) == "function" then
-			securecall(op.OnEditorRelease, op, self)
+		if curHandle and op and (op ~= host or self ~= curHandle) and type(op.OnEditorRelease) == "function" then
+			securecall(op.OnEditorRelease, op, curHandle)
 		end
 		f:SetParent(nil)
 		f:ClearAllPoints()
 		f:SetAllPoints(host)
 		f:SetParent(host)
-		curHandle, curHandleID = opts, actionTable[2]
+		curHandle, curHandleID = self, actionTable[2]
 		local ofsX = host.optionsColumnOffset
 		ofsX = type(ofsX) == "number" and ofsX or 2
 		local getState = opts.getOptionState
@@ -120,8 +121,4 @@ else
 end
 
 
---[[ These functions are not covered by the usual API warranty; do not rely on
-     them to exist or behave the way they do now in the future.
-     Writing directly to this table is also terrible.
---]]
-T.ActionBook._CreateSimpleEditorPanel = RegisterSimpleOptionsPanel
+AB.HUM.CreateSimpleEditorPanel = RegisterSimpleOptionsPanel

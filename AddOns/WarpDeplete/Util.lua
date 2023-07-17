@@ -16,16 +16,31 @@ function Util.formatForcesText(
   local percentText = ("%.2f"):format(currentPercent)
   local countText = ("%d"):format(currentCount)
   local totalCountText = ("%d"):format(totalCount)
+  local remainingCountText = ("%d"):format(totalCount-currentCount)
+  local remainingPercentText = ("%.2f"):format(100-currentPercent)
   local result = forcesFormat ~= ":custom:" and forcesFormat or customForcesFormat
 
   result = gsub(result, ":percent:", percentText .. "%%")
   result = gsub(result, ":count:", countText)
   result = gsub(result, ":totalcount:", totalCountText)
+  result = gsub(result, ":remainingcount:", remainingCountText)
+  result = gsub(result, ":remainingpercent:", remainingPercentText .. "%%")
 
   if pullCount > 0 then
     local pullPercent = (pullCount / totalCount) * 100
     local pullPercentText = ("%.2f"):format(pullPercent)
     local pullCountText = ("%d"):format(pullCount)
+
+    local remainingCountAfterPull = totalCount-currentCount-pullCount
+    if remainingCountAfterPull < 0 then remainingCountAfterPull = 0 end
+    local remainingCountAfterPullText = ("%d"):format(remainingCountAfterPull)
+
+    local remainingPercentAfterlPull = 100-currentPercent-pullPercent
+    if remainingPercentAfterlPull < 0 then remainingPercentAfterlPull = 0 end
+    local remainingPercentAfterlPullText = ("%.2f"):format(remainingPercentAfterlPull)
+
+    result = gsub(result, ":remainingcountafterpull:", remainingCountAfterPullText)
+    result = gsub(result, ":remainingpercentafterpull:", remainingPercentAfterlPullText .. "%%")
 
     local pullText = currentPullFormat ~= ":custom:" and currentPullFormat or customCurrentPullFormat
     pullText = gsub(pullText, ":percent:", pullPercentText .. "%%")
@@ -34,8 +49,12 @@ function Util.formatForcesText(
     if pullText and #pullText > 0 then
       result = pullText .. "  " .. result
     end
+  else
+    result = gsub(result, ":remainingcountafterpull:", remainingCountText)
+    result = gsub(result, ":remainingpercentafterpull:", remainingPercentText .. "%%")
   end
 
+  
   if completedTime and result then
     local completedText = ("[%s] "):format(Util.formatTime(completedTime))
     result = "|c" .. completedColor .. completedText .. result .. "|r"
@@ -71,10 +90,31 @@ function Util.formatDeathText(deaths)
   return deathText .. timeAddedText
 end
 
-function Util.formatTime(time)
-  local timeMin = math.floor(time / 60)
-  local timeSec = math.floor(time - (timeMin * 60))
-  return ("%d:%02d"):format(timeMin, timeSec)
+function Util.formatTime(time, sign)
+  sign = sign or false
+  local absTime = math.abs(time)
+  local timeMin = math.floor(absTime / 60)
+  local timeSec = math.floor(absTime - (timeMin * 60))
+  local formatted = ("%d:%02d"):format(timeMin, timeSec)
+
+  if sign then
+    if time < 0 then 
+      return "-" .. formatted
+    elseif time == 0 then
+      return "±" .. formatted
+    else
+      return "+" .. formatted
+    end
+  end
+
+  return formatted
+end
+
+function Util.formatTimeMilliseconds(time)
+  local timeMin = math.floor(time / 60000)
+  local timeSec = math.floor(time / 1000 - (timeMin * 60))
+  local timeMilliseconds = math.floor(time - (timeMin * 60000) - (timeSec * 1000))
+  return ("%d:%02d.%03d"):format(timeMin, timeSec, timeMilliseconds)
 end
 
 local formatTime_OnUpdate_state = {}
@@ -91,7 +131,7 @@ function Util.formatDeathTimeMinutes(time)
 end
 
 function Util.hexToRGB(hex)
-	if string.len(hex) == 8 then
+  if string.len(hex) == 8 then
     return tonumber("0x" .. hex:sub(3, 4)) / 255,
       tonumber("0x" .. hex:sub(5, 6)) / 255,
       tonumber("0x" .. hex:sub(7, 8)) / 255,
@@ -104,10 +144,10 @@ function Util.hexToRGB(hex)
 end
 
 function Util.rgbToHex(r, g, b, a)
-	r = math.ceil(255 * r)
-	g = math.ceil(255 * g)
-	b = math.ceil(255 * b)
-	if not a then
+  r = math.ceil(255 * r)
+  g = math.ceil(255 * g)
+  b = math.ceil(255 * b)
+  if not a then
     return string.format("FF%02x%02x%02x", r, g, b)
   end
 

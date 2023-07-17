@@ -1,4 +1,4 @@
-## Interface: 100007
+## Interface: 100105
 
 ## Title: BigWigs [|cffeda55fLegion|r]
 ## Title-zhCN: BigWigs [|cffeda55f军团再临|r]
@@ -25,7 +25,8 @@
 
 ## LoadOnDemand: 1
 ## Dependencies: BigWigs
-## Version: v10.0.3
+## Version: v10.1.1
+## IconTexture: Interface\AddOns\BigWigs\Media\Icons\core-enabled
 
 ## X-Category: Raid
 ## X-License: All Rights Reserved: You are free to fork and modify on GitHub, please ask us about anything else.

@@ -1,6 +1,17 @@
 local GlobalAddonName, ExRT = ...
 
 ExRT.Options.Changelog = [=[
+v.4760
+* 10.1.5 Update
+* Minor updates
+* Marks: added support for multiple names
+
+v.4760-LK
+* toc update
+
+v.4740
+* 10.1 Update
+
 v.4720
 * Added temporary fix for sending long notes (beware: sending takes some time)
 * Loot History: added support for group loot

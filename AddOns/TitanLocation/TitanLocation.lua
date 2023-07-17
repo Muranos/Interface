@@ -28,6 +28,9 @@ local LocationTimer = nil;
 -- **************************************************************************
 --]]
 function TitanPanelLocationButton_OnLoad(self)
+	local notes = ""
+		.."Adds coordinates and location information to Titan Panel.\n"
+--		.."- xxx.\n"
 	self.registry = {
 		id = TITAN_LOCATION_ID,
 		category = "Built-ins",
@@ -38,6 +41,7 @@ function TitanPanelLocationButton_OnLoad(self)
 		tooltipTextFunction = "TitanPanelLocationButton_GetTooltipText",
 		icon = "Interface\\AddOns\\TitanLocation\\TitanLocation",
 		iconWidth = 16,
+		notes = notes,
 		controlVariables = {
 			ShowIcon = true,
 			ShowLabelText = true,

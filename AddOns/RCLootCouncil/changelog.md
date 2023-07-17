@@ -1,3 +1,72 @@
+# 3.9.0
+
+## Changes
+
+Updated for patch 10.1.5
+
+### Roll column
+
+Switched to a new system that's much lighter on comms for propergating the automatic random rolls. This should fix the issues some people have with the last few sessions not receiving random rolls.
+
+This change is not backwards compatible, once the ML upgrades, everyone will have to in order to see the random rolls.
+
+## Bugfixes
+
+- *Fixed issues with detecting remaining trade time on clients with russian locale.*
+- *Fixed issue preventing the list of council members that has/still has to vote from showing.*
+
+
+# 3.8.2
+
+## Changes
+
+### Group Loot
+
+Now rolls transmog when that's the only option for the group leader.
+
+### Transmog autopass
+
+Added a new option that allows you to not auto pass on items that's transmogable for you - just uncheck "Auto Pass Transmog".
+The accompanying option "Auto Pass Transmog Source" further refines it by allowing auto passes if you've already collected the transmog.
+
+Credits to [Urtgard](https://github.com/Urtgard) for creating this.
+
+### Void-Touched Curio
+
+Context tokens are now counted as being part of the armor token group.
+
+
+# 3.8.1
+
+## Changes
+
+Uncommon quality (greens) items are now ignored.
+
+# 3.8.0
+
+## Changes
+
+Updated for patch 10.1.0.
+
+Added token and trinket data from Aberrus the Shadowed Crucible
+
+### Require note per response
+
+It's now possible to require notes per specific response - check `Buttons and Response` options and check `Require Notes` for each response you want raiders to submit a note with.  
+Old require notes option has been removed as part of this change.
+
+Note: This will not work for people with older versions.
+
+### Void-Touched Curio
+
+Removed from blacklist.
+
+## Bugfixes
+
+- *Fixed occasional inability to trade multiple identical items.*
+- *`/rc fulltest` should once again pull items from the latest raid.*
+
+
 # 3.7.1
 
 Updated for patch 10.0.7.

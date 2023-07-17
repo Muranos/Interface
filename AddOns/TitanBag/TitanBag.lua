@@ -235,6 +235,9 @@ end
 -- **************************************************************************
 --]]
 function TitanPanelBagButton_OnLoad(self)
+	local notes = ""
+		.."Adds bag and free slot information to Titan Panel.\n"
+--		.."- xxx.\n"
 	self.registry = {
 		id = TITAN_BAG_ID,
 		category = "Built-ins",
@@ -245,6 +248,7 @@ function TitanPanelBagButton_OnLoad(self)
 		tooltipTextFunction = "TitanPanelBagButton_GetTooltipText",
 		icon = "Interface\\AddOns\\TitanBag\\TitanBag",
 		iconWidth = 16,
+		notes = notes,
 		controlVariables = {
 			ShowIcon = true,
 			ShowLabelText = true,

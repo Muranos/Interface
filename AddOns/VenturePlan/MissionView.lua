@@ -1,5 +1,6 @@
 local _, T = ...
 local EV, L, U, S = T.Evie, T.L, T.Util, T.Shadows
+local GameTooltip = T.NotGameTooltip or GameTooltip
 
 local Animations = {}
 local FollowerList, MissionRewards, BoardEX, CAGHost

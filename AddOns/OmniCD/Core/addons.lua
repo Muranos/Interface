@@ -17,7 +17,7 @@ local unitFrameData = {
 	},
 	{
 		[1] = "Grid2",
-		[2] = "Grid2LayoutHeader%dUnitButton",
+		[2] = "Grid2LayoutHeader%dUnitButton", -- not group#
 		[3] = "unit",
 		[4] = 1,
 		[5] = 5,
@@ -66,7 +66,7 @@ local unitFrameData = {
 	},
 	{
 		[1] = "HealBot",
-		[2] = "HealBot_Action_HealUnit",
+		[2] = "HealBot_HealUnit",
 		[3] = "unit",
 		[4] = 2,
 		[5] = 50,
@@ -274,7 +274,7 @@ local customUF = { optionTable = { auto = L["Auto"], blizz = "Blizzard" }, enabl
 
 function E:SetActiveUnitFrameData()
 	if customUF.enabledList then
-		-- auto no longer looks for prio, instead it iterates all frames til it finds a visible match. prio is only used to set active now
+		-- auto no longer looks for prio, instead it iterates all frames til it finds a 'visible' match. prio is only used to set active now
 		local addon = self.db.position.uf == "auto" and customUF.prio or self.db.position.uf
 		local data = customUF.enabledList[addon]
 		if data then
@@ -305,8 +305,8 @@ function E:UnitFrames()
 			t.index = index
 			t.minGroup = minGroup
 			local f = {}
-			local insertFrame = function(name)
-				for j = 1, index do
+			local insertFrame = function(name, overrideIndex)
+				for j = 1, overrideIndex or index do
 					local frameName = name .. j
 					tinsert(f, frameName)
 				end
@@ -315,7 +315,7 @@ function E:UnitFrames()
 				for j = 1, 3 do
 					for k = 1, 8 do
 						local formatted = format(frame, j, k)
-						insertFrame(formatted)
+						insertFrame(formatted, k == 1 and 40) -- 'Raid Wide Sorting' fix
 					end
 				end
 			elseif strfind(frame, "%%d") then
@@ -348,7 +348,7 @@ function E:UnitFrames()
 
 		self:SetActiveUnitFrameData()
 
-		--[[ informative, but still a nag
+		--[[ remove nag
 		if not self.global.disableElvMsg then
 			self.Libs.OmniCDC.StaticPopup_Show("OMNICD_CUSTOM_UF_MSG")
 		end
@@ -359,11 +359,10 @@ end
 function E:Counters()
 	if IsAddOnLoaded("OmniCC") then
 		self.OmniCC = OmniCC
-	-- WA no longer shows double text with Blizzard and Elv
---	elseif not GetCVarBool("countdownForCooldowns") then
---		local ElvUI1 = ElvUI and ElvUI[1]
---		self.ElvUI1 = ElvUI1 and type(ElvUI1.CooldownEnabled) == "function" and ElvUI1:CooldownEnabled()
---		and type(ElvUI1.RegisterCooldown) == "function" and type(ElvUI1.ToggleCooldown) == "function" and ElvUI1
+	elseif not GetCVarBool("countdownForCooldowns") and E.profile.General.cooldownText.useElvUICooldownTimer then -- WA no longer shows double text but whatever
+		local ElvUI1 = ElvUI and ElvUI[1]
+		self.ElvUI1 = ElvUI1 and type(ElvUI1.CooldownEnabled) == "function" and ElvUI1:CooldownEnabled()
+			and type(ElvUI1.RegisterCooldown) == "function" and ElvUI1
 	end
 end
 

@@ -1,6 +1,4 @@
-# 11.1.18 (2023-04-16)
+# 11.1.25 (2023-07-15)
 
-* Fixed a Lua error that occurred when the mouseover highlight was updated on a nameplate without a valid unit [GH-443].
-* Fixed a bug where one space was replaced with two spaces in names when transliteration of cyrillic letters was enabled [GH-444].
-* Fixed a bug with HealerTracker where all Shaman specializations where shown as healer [Comment #6951].
-* Improved showing/hiding interaction between Threat Plates and WoW default nameplates [this might fix GH-402].
+* Fixed a Lua error that occurred when the font of the Blizzard nameplate's name was changed, but no flags (like Outline) were used [GH-464].
+* Updated TOC version for Wrath Classic Patch 3.4.2.

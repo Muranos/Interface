@@ -44,3 +44,6 @@ function SlashCmdList.VENTUREPLAN(msg)
 	end
 	print("|cff20a0ffVenture Plan |r|cffffffff" .. GetAddOnMetadata("VenturePlan", "Version"))
 end
+
+-- Disable an outdated and incompatible extension
+pcall(DisableAddOn, "VenturePlanSoDMissions", true)

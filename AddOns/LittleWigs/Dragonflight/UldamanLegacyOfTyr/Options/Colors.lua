@@ -10,7 +10,7 @@ BigWigs:AddColors("The Lost Dwarves", {
 })
 
 BigWigs:AddColors("Bromach", {
-	[369605] = "yellow",
+	[369605] = "cyan",
 	[369660] = "green",
 	[369675] = "red",
 	[369700] = "yellow",
@@ -42,16 +42,23 @@ BigWigs:AddColors("Chrono-Lord Deios", {
 })
 
 BigWigs:AddColors("Uldaman: Legacy of Tyr Trash", {
+	[369328] = "red",
+	[369335] = "purple",
 	[369337] = "blue",
 	[369365] = {"blue","orange","red"},
 	[369366] = {"blue","orange"},
 	[369400] = {"red","yellow"},
+	[369409] = "purple",
 	[369411] = "red",
 	[369465] = "orange",
+	[369675] = "red",
 	[369811] = "orange",
 	[369823] = {"red","yellow"},
 	[377500] = {"red","yellow"},
-	[381593] = "yellow",
+	[377724] = "green",
+	[377732] = "purple",
+	[377738] = {"blue","yellow"},
+	[381593] = "red",
 	[382578] = "orange",
 	[386104] = "green",
 })

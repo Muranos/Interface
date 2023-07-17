@@ -22,6 +22,14 @@ L["TITAN_NONE"] = "None";
 L["TITAN_USE_COMMA"] = "Use comma";
 L["TITAN_USE_PERIOD"] = "Use period";
 
+L["TITAN_KEY_CTRL"] = "CTRL";
+L["TITAN_KEY_CTRL_DESC"] = "CTRL key";
+L["TITAN_KEY_SHIFT"] = "SHIFT";
+L["TITAN_KEY_SHIFT_DESC"] = "SHIFT key";
+L["TITAN_KEY_ALT"] = "ALT";
+L["TITAN_KEY_ALT_DESC"] = "ALT key";
+
+
 L["TITAN_PANEL_ERROR_PROF_DELCURRENT"] = "You may not delete your current profile.";
 local TITAN_PANEL_WARNING = GREEN_FONT_COLOR_CODE.."Warning : "..FONT_COLOR_CODE_CLOSE
 local TITAN_PANEL_RELOAD_TEXT = "If you wish to continue with this operation, push 'Accept' (your UI will reload), otherwise push 'Cancel' or the 'Escape' key."
@@ -104,6 +112,11 @@ L["TITAN_PANEL_MENU_SHOW_LABEL_TEXT"] = "Show Label Text";
 L["TITAN_PANEL_MENU_AUTOHIDE"] = "Auto-Hide";
 L["TITAN_PANEL_MENU_CENTER_TEXT"] = "Center Text";
 L["TITAN_PANEL_MENU_DISPLAY_BAR"] = "Show Bar";
+L["TITAN_PANEL_MENU_ADV_LABEL"] =(SHOW or "Show").." "..(CUSTOM or "Custom").." Labels"
+L["TITAN_PANEL_MENU_ADV_LABEL_SHOW"] =(SHOW or "Show")
+L["TITAN_PANEL_MENU_ADV_CUSTOM"] =(CUSTOM or "Custom")
+L["TITAN_PANEL_MENU_ADV_CUSTOM_DESC"] = "Custom label text to show.";
+
 L["TITAN_PANEL_MENU_DISABLE_PUSH"] = "Disable Screen Adjust";
 L["TITAN_PANEL_MENU_DISABLE_MINIMAP_PUSH"] = "Disable Minimap Adjust";
 L["TITAN_PANEL_MENU_DISABLE_LOGS"] = "Automatic Log Adjust";
@@ -134,6 +147,7 @@ L["TITAN_PANEL_MENU_OPTIONS_SHORT"] = "Tooltips and Frames";
 L["TITAN_PANEL_MENU_TOP_BARS"] = "Top Bars"
 L["TITAN_PANEL_MENU_BOTTOM_BARS"] = "Bottom Bars"
 L["TITAN_PANEL_MENU_OPTIONS_BARS"] = "Bars"
+L["TITAN_PANEL_MENU_OPTIONS_BARS_ALL"] = "Bars - "..(ALL or "All")
 L["TITAN_PANEL_MENU_OPTIONS_MAIN_BARS"] = TITAN_PANEL.." Top Bars";
 L["TITAN_PANEL_MENU_OPTIONS_AUX_BARS"] = TITAN_PANEL.." Bottom Bars";
 L["TITAN_PANEL_MENU_OPTIONS_TOOLTIPS"] = "Tooltips";
@@ -231,14 +245,31 @@ L["TITAN_PANEL_MENU_FONT_SIZE"] = "Font Size";
 L["TITAN_PANEL_MENU_FONT_SIZE_DESC"] = "Sets the size for the "..TITAN_PANEL.." font.";
 L["TITAN_PANEL_MENU_FRAME_STRATA"] = ""..TITAN_PANEL.." Frame Strata";
 L["TITAN_PANEL_MENU_FRAME_STRATA_DESC"] = "Adjusts the frame strata for the "..TITAN_PANEL.." Bar(s).";
--- /end localization strings for AceConfigDialog-3.0
+
+L["TITAN_PANEL_MENU_CHANGE_HISTORY"] = "Recent".." "..(CHANGE or "Change").." "..(HISTORY or "History")
+
+L["TITAN_PANEL_MENU_COMMAND"] = (COMMAND or "Command")
+L["TITAN_PANEL_MENU_SLASH_COMMAND"] = ("/").." "..(COMMAND or "Command")
+L["TITAN_PANEL_MENU_HIDE_IN_COMBAT"] = (HIDE or "Hide").." In Combat"
+L["TITAN_PANEL_MENU_HIDE_IN_COMBAT_DESC"] = (HIDE or "Hide").."All Bars While In Combat"
+L["TITAN_PANEL_MENU_RESET_POSITION"] = (RESET_POSITION or "Reset Position Only")
+L["TITAN_PANEL_MENU_TOOLTIP_MOD"] = "Use Modifier to Show Tooltip"
+L["TITAN_PANEL_MENU_GLOBAL_SKIN_TITLE"] = "Global Skin"
+L["TITAN_PANEL_MENU_GLOBAL_SKIN"] = "Use Global Skin"
+L["TITAN_PANEL_MENU_GLOBAL_SKIN_TIP"] = "Use Global Skin for All Bars"
 
 L["TITAN_PANEL_MENU_ADV"] = "Advanced";
-L["TITAN_PANEL_MENU_ADV_DESC"] = "Change Timers only if you experience issues with frames not adjusting.".."\n";
-L["TITAN_PANEL_MENU_ADV_PEW"] = "Entering World";
-L["TITAN_PANEL_MENU_ADV_PEW_DESC"] = "Change value (usually increase) if frames do not adjust when entering / leaving world or an instance.";
-L["TITAN_PANEL_MENU_ADV_VEHICLE"] = "Vehicle";
-L["TITAN_PANEL_MENU_ADV_VEHICLE_DESC"] = "Change value (usually increase) if frames do not adjust when entering / leaving vehicle.";
+L["TITAN_PANEL_MENU_ADV_DESC"] = "Output Titan Info At Startup.".."\n";
+L["TITAN_PANEL_MENU_ADV_NAME"] = "Name and Version";
+L["TITAN_PANEL_MENU_ADV_NAME_DESC"] = "Show Titan name and version on entering world.";
+L["TITAN_PANEL_MENU_ADV_PLUGINS"] = "Plugin Registration process";
+L["TITAN_PANEL_MENU_ADV_PLUGINS_DESC"] = "Shows start and end of Registration process and number of registered plugins.";
+
+L["TITAN_PANEL_MENU_ADV_NOTES"] = "Notes";
+L["TITAN_PANEL_MENU_ADV_NOTES_PLUGIN"] = "Plugin Notes";
+
+L["TITAN_PANEL_MENU_HELP"] = TITAN_PANEL.." "..(HELP_LABEL or "Help")
+-- /end localization strings for AceConfigDialog-3.0
 
 L["TITAN_AUTOHIDE_TOOLTIP"] = "Toggles "..TITAN_PANEL.." auto-hide on/off feature";
 

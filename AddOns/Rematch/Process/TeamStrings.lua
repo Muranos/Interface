@@ -5,7 +5,9 @@
       <speciesID>:<abilityID>:<abilityID>:<abilityID>:<speciesID>:<abilityID>:
       <abilityID>:<abilityID>:
 
-   New string format: <name>:<npcID>:<petTag>:<petTag>:<petTag>:
+   Rematch 4 string format: <name>:<npcID>:<petTag>:<petTag>:<petTag>:
+
+   Rematch 5 string format: <name>:<npcID>,<npcID>[,etc]:<petTag>:<petTag>:<petTag>:
 
    Preferences format: P:<minHP>:<allowMM>:<expectedDD>:<maxHP>:<minXP>:<maxXP>:
    (in old format, empty fields have a 0; in new format, fields can be empty: "P:::5:")
@@ -24,7 +26,7 @@ local rematch = Rematch
 -- import patterns
 local patterns = {
 	legacyTeam = "^([^\n]-):(%d+):(%d+):(%d+):(%d+):(%d+):(%d+):(%d+):(%d+):(%d+):(%d+):(%d+):(%d+):(%d+):(.*)",
-   team = "^([^\n]-):(%w*):(%w+):(%w+):(%w+):(.*)",
+   team = "^([^\n]-):([%w,]*):(%w+):(%w+):(%w+):(.*)",
    prefs = "P:(%d*):(%d*):(%d*):(%d*):([%d%.]*):([%d%.]*):(.*)",
 	notes = "N:(.+)",
 }
@@ -137,6 +139,9 @@ function rematch:AttemptStringToSideline(...)
    if name and npcID then -- there was a pattern match, attempt to parse new teamstring
       -- sideline a blank team, keyed to npcID if one exists, by name otherwise
       local team,key
+      if npcID and npcID:match(",") then
+         npcID = npcID:match("^(%w+),")
+      end
       if npcID=="" or npcID=="0" then -- this is a team without an npcID
          team,key = rematch:SetSideline(name,{})
       else
@@ -231,6 +236,10 @@ function rematch:TestTextForStringTeams(text,gather,tabMap)
       line = line:trim()
       -- watch for tabs
       local tabName = line:match("^__ (.+) __$")
+      -- if there's more than one colon in the tab name, then it's likely an export from Rematch 5; only grab name before first :
+      if tabName and tabName:match(":.*:") then
+         tabName = tabName:match("^([^:]+)")
+      end
       if tabName and tabMap and not tabMap[tabName] then
          tabMap[tabName] = {}
          currentTabName = tabName
@@ -274,6 +283,10 @@ function rematch:GetTeamStringNameAndNpcID(line)
       end
    else -- legacy didn't match, check for new team pattern
       name,npcID = line:match(patterns.team)
+      -- for Rematch 5 with potentially multiple npcIDs separated by commas, take only first one
+      if npcID and npcID:match(",") then
+         npcID = npcID:match("^(%w+),")
+      end
       if npcID then
          npcID = tonumber(npcID,32)
       end

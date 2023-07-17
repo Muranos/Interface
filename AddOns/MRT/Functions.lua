@@ -1778,6 +1778,7 @@ ExRT.GDB.ClassSpecializationIcons = {
 	[581] = "Interface\\Icons\\ability_demonhunter_spectank",
 	[1467] = "Interface\\Icons\\classicon_evoker_devastation",
 	[1468] = "Interface\\Icons\\classicon_evoker_preservation",
+	[1473] = "Interface\\Icons\\classicon_evoker_augmentation",
 }
 
 ExRT.GDB.ClassList = {
@@ -1809,7 +1810,7 @@ ExRT.GDB.ClassSpecializationList = {
 	["MONK"] = {268, 269, 270},
 	["DRUID"] = {102, 103, 104, 105},
 	["DEMONHUNTER"] = {577, 581},
-	["EVOKER"] = {1467,1468},
+	["EVOKER"] = {1467, 1468, 1473},
 }
 
 ExRT.GDB.ClassArmorType = {
@@ -1867,6 +1868,7 @@ ExRT.GDB.ClassSpecializationRole = {
 	[581] = 'TANK',
 	[1467] = 'RANGE',
 	[1468] = 'HEAL',
+	[1473] = 'RANGE',
 }
 
 ExRT.GDB.ClassID = {
@@ -1941,7 +1943,7 @@ if ExRT.isClassic then
 		[581] = {name="Vengeance",class=12,role="TANK",desc="Embraces the demon within to incinerate enemies and protect their allies.|n|nPreferred Weapons: Warglaives, Swords, Axes, Fist Weapons",icon=1247265},
 		[1467] = {name="Devastation",class=13,role="DAMAGER",desc="Releases innate power as chaotic Red flames or focused Blue magic to bathe the battlefield in destruction. Preferred Weapon: Staff, Sword, Dagger, Mace",icon=4511811},
 		[1468] = {name="Preservation",class=13,role="HEALER",desc="Calls upon the Emerald Dream to rejuvenate life, and the Bronze sands of time to prevent harm. Preferred Weapon: Staff, Sword, Dagger, Mace",icon=4511812},
-
+		[1473] = {name="Augmentation",class=13,role="DAMAGER",desc="Imbues allies with the might of the Black dragons, and bends time & fate in their favor with Bronze magic. Preferred Weapon: Staff, Sword, Dagger, Mace",icon=5198700},
 	}
 
 	ExRT.Classic.GetSpecializationInfoByID = function(id) 
@@ -2135,6 +2137,7 @@ ExRT.GDB.EncountersList = {
 	{2047,2512,2540,2553,2544,2539,2542,2529,2546,2543,2549,2537},	--sfo
 
 	{2119,2587,2639,2590,2592,2635,2605,2614,2607},	--voti
+	{2166,2688,2682,2687,2693,2680,2689,2683,2684,2685},	--a
 }
 
 

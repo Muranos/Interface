@@ -8,7 +8,7 @@ rematch:InitModule(function()
 	settings = RematchSettings
 	panel.SaveAsButton:SetText(L["Save As..."])
 	local text = panel.UseDefault.text
-	text:SetText(L["Rematch"]) -- format("%s %sv%s",L["Rematch"],rematch.hexGrey,GetAddOnMetadata("Rematch","Version")))
+	text:SetText(L["Rematch"]) -- format("%s %sv%s",L["Rematch"],rematch.hexGrey,C_AddOns.GetAddOnMetadata("Rematch","Version")))
 	text:SetFontObject("GameFontNormal")
 	panel.SummonButton.tooltipBody = format("%s\n\n%s",BATTLE_PETS_SUMMON_TOOLTIP,L["You can also double-click a pet to summon or dismiss it."])
 	panel.FindBattleButton.tooltipTitle = FIND_BATTLE

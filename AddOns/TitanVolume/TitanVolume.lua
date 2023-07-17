@@ -15,6 +15,9 @@ local _G = getfenv(0);
 local L = LibStub("AceLocale-3.0"):GetLocale("Titan", true)
 
 function TitanPanelVolumeButton_OnLoad(self)
+	local notes = ""
+		.."Adds a volume control icon on your Titan Bar.\n"
+--		.."- xxx.\n"
 	self.registry = {
 		id = TITAN_VOLUME_ID,
 		category = "Built-ins",
@@ -24,6 +27,7 @@ function TitanPanelVolumeButton_OnLoad(self)
 		tooltipTextFunction = "TitanPanelVolumeButton_GetTooltipText",
 		iconWidth = 32,
 		iconButtonWidth = 18,
+		notes = notes,
 		controlVariables = {
 			ShowIcon = false,
 			ShowLabelText = false,

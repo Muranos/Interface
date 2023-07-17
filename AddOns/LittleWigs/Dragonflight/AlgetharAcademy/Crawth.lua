@@ -7,7 +7,7 @@ if not mod then return end
 mod:RegisterEnableMob(
 	191631, -- Ball
 	191736  -- Crawth
-) 
+)
 mod:SetEncounterID(2564)
 mod:SetRespawnTime(30)
 
@@ -77,7 +77,7 @@ end
 
 function mod:Warmup() -- called from trash module
 	-- this can take slightly longer depending on where Crawth is in her patrol
-	self:CDBar("warmup", 10.7, CL.active, "achievement_dungeon_dragonacademy")
+	self:Bar("warmup", 10.7, CL.active, "achievement_dungeon_dragonacademy")
 end
 
 -- Lish Llrath

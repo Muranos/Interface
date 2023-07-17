@@ -25,7 +25,7 @@ function MDT:HideMinimapButton()
   db.minimap.hide = true
   minimapIcon:Hide("MythicDungeonTools")
   -- update the checkbox in settings
-  MDT.main_frame.minimapCheckbox:SetValue(false)
+  if MDT.main_frame and MDT.main_frame.minimapCheckbox then MDT.main_frame.minimapCheckbox:SetValue(false) end
   print(L["MDT: Use /mdt minimap to show the minimap icon again"])
 end
 
@@ -33,13 +33,13 @@ function MDT:ShowMinimapButton()
   db.minimap.hide = false
   minimapIcon:Show("MythicDungeonTools")
   -- update the checkbox in settings
-  MDT.main_frame.minimapCheckbox:SetValue(true)
+  if MDT.main_frame and MDT.main_frame.minimapCheckbox then MDT.main_frame.minimapCheckbox:SetValue(true) end
 end
 
 local LDB = LibStub("LibDataBroker-1.1"):NewDataObject("MythicDungeonTools", {
   type = "data source",
   text = "Mythic Dungeon Tools",
-  icon = "Interface\\AddOns\\" .. AddonName .. "\\Textures\\NnoggieMinimap",
+  icon = "Interface\\AddOns\\"..AddonName.."\\Textures\\NnoggieMinimap",
   OnClick = function(button, buttonPressed)
     if buttonPressed == "RightButton" then
       if db.minimap.lock then
@@ -50,17 +50,22 @@ local LDB = LibStub("LibDataBroker-1.1"):NewDataObject("MythicDungeonTools", {
     elseif (buttonPressed == 'MiddleButton') then
       MDT:HideMinimapButton()
     else
-      MDT:Async(function() MDT:ShowInterfaceInternal() end,"showInterface")
+      MDT:Async(function() MDT:ShowInterfaceInternal() end, "showInterface")
     end
   end,
   OnTooltipShow = function(tooltip)
     if not tooltip or not tooltip.AddLine then return end
-    tooltip:AddLine(mythicColor .. "Mythic Dungeon Tools|r")
+    tooltip:AddLine(mythicColor.."Mythic Dungeon Tools|r")
     tooltip:AddLine(L["Click to toggle AddOn Window"])
     tooltip:AddLine(L["Right-click to lock Minimap Button"])
     tooltip:AddLine(L["Middle-click to disable Minimap Button"])
   end,
 })
+
+-- Global for Addon Compartment
+MDT_OnAddonCompartmentClick = function()
+  MDT:Async(function() MDT:ShowInterfaceInternal() end, "showInterface")
+end
 
 SLASH_MYTHICDUNGEONTOOLS1 = "/mplus"
 SLASH_MYTHICDUNGEONTOOLS2 = "/mdt"
@@ -87,7 +92,7 @@ function SlashCmdList.MYTHICDUNGEONTOOLS(cmd, editbox)
       MDT:OpenConfirmationFrame(450, 150, L["hardResetPromptTitle"], L["Delete"], prompt, MDT.HardReset)
     end
     local co = coroutine.create(func)
-    MDT.coHandler:AddAction("hardReset",co)
+    MDT.coHandler:AddAction("hardReset", co)
   elseif rqst == "minimap" then
     if db.minimap.hide then
       MDT:ShowMinimapButton()
@@ -95,7 +100,7 @@ function SlashCmdList.MYTHICDUNGEONTOOLS(cmd, editbox)
       MDT:HideMinimapButton()
     end
   else
-    MDT:Async(function() MDT:ShowInterfaceInternal() end,"showInterface")
+    MDT:Async(function() MDT:ShowInterfaceInternal() end, "showInterface")
   end
 end
 
@@ -122,12 +127,12 @@ end
 local defaultSavedVars = {
   global = {
     toolbarExpanded = true,
-    currentSeason = 8,
+    currentSeason = 10,
     scale = 1,
     nonFullscreenScale = 1.3,
     enemyForcesFormat = 2,
     enemyStyle = 1,
-    currentDungeonIdx = 42,
+    currentDungeonIdx = 49,
     currentDifficulty = 10,
     xoffset = -80,
     yoffset = -100,
@@ -152,7 +157,7 @@ local defaultSavedVars = {
       customPaletteValues = {},
       numberCustomColors = 12,
     },
-    selectedDungeonList = 5,
+    selectedDungeonList = 6,
     knownAffixWeeks = {},
   },
 }
@@ -192,20 +197,6 @@ do
       end
       --fix db corruption
       do
-        -- this was responsible for overwriting the default preset on load
-        -- was this needed for anything?
-
-        -- for _, presets in pairs(db.presets) do
-        --   for presetIdx, preset in pairs(presets) do
-        --     if presetIdx == 1 then
-        --       if preset.text ~= "Default" then
-        --         preset.text = "Default"
-        --         preset.value = {}
-        --       end
-        --     end
-        --   end
-        -- end
-
         for k, v in pairs(db.currentPreset) do
           if v <= 0 then db.currentPreset[k] = 1 end
         end
@@ -218,7 +209,7 @@ do
   end
 
   local last = 0
-  function MDT.GROUP_ROSTER_UPDATE(self, addon)
+  function MDT.GROUP_ROSTER_UPDATE()
     --check not more than once per second (blizzard event spam)
     local now = GetTime()
     if last < now - 1 then
@@ -243,14 +234,14 @@ do
     end
   end
 
-  function MDT.PLAYER_ENTERING_WORLD(self, addon)
+  function MDT.PLAYER_ENTERING_WORLD()
     --initialize Blizzard_ChallengesUI
     C_Timer.After(1, function()
       LoadAddOn("Blizzard_ChallengesUI")
       C_MythicPlus.RequestCurrentAffixes()
       C_MythicPlus.RequestMapInfo()
       C_MythicPlus.RequestRewards()
-      if db.loadOnStartUp then MDT:Async(function() MDT:ShowInterfaceInternal(true) end,"showInterface") end
+      if db.loadOnStartUp then MDT:Async(function() MDT:ShowInterfaceInternal(true) end, "showInterface") end
     end)
     eventFrame:UnregisterEvent("PLAYER_ENTERING_WORLD")
   end
@@ -260,16 +251,16 @@ end
 --https://www.wowhead.com/affixes
 --lvl 4 affix, lvl 7 affix, tyrannical/fortified, seasonal affix
 local affixWeeks = {
-  [1] = { 6, 14, 10, 132 },
-  [2] = { 11, 12, 9, 132 },
-  [3] = { 8, 3, 10, 132 },
-  [4] = { 6, 124, 9, 132 },
-  [5] = { 123, 12, 10, 132 },
-  [6] = { 8, 13, 9, 132 },
-  [7] = { 7, 124, 10, 132 },
-  [8] = { 123, 14, 9, 132 },
-  [9] = { 11, 13, 10, 132 },
-  [10] = { 7, 3, 9, 132 },
+  [1] = { 124, 6, 9 },
+  [2] = { 134, 7, 10 },
+  [3] = { 136, 123, 9 },
+  [4] = { 135, 6, 10 },
+  [5] = { 3, 8, 9 },
+  [6] = { 124, 11, 10 },
+  [7] = { 135, 7, 9 },
+  [8] = { 136, 8, 10 },
+  [9] = { 134, 11, 9 },
+  [10] = { 3, 123, 10 },
 }
 
 function MDT:UpdateAffixWeeks()
@@ -299,7 +290,7 @@ function MDT:UpdateAffixWeeks()
   end
 
   local season_start = {
-                         -- Edit this at the start of the season - IMPORTANT: This is North America launch in PST time
+    -- Edit this at the start of the season - IMPORTANT: This is North America launch in PST time
     ["year"] = 2022,
     ["month"] = 8,
     ["day"] = 2,
@@ -309,17 +300,17 @@ function MDT:UpdateAffixWeeks()
   -- Find current week index
   local hour = 3600
   local one_week = 604800
-  local offset = time() - time(date("!*t")) + 7 * hour                                                         -- offset between na and utc
-  local utc_na_season_start = time(season_start) + offset                                                      -- na regional season start time in utc time
+  local offset = time() - time(date("!*t")) + 7 * hour           -- offset between na and utc
+  local utc_na_season_start = time(season_start) + offset        -- na regional season start time in utc time
   local utc_region_week_start = GetServerTime() - (one_week - C_DateAndTime.GetSecondsUntilWeeklyReset()) +
-  20                                                                                                           -- players regional weekly start time in utc
-  if utc_na_season_start > utc_region_week_start then return end                                               -- if the season has not started yet return
+      20                                                         -- players regional weekly start time in utc
+  if utc_na_season_start > utc_region_week_start then return end -- if the season has not started yet return
   -- 20 second buffer because GetSecondsUntilWeeklyReset is not precise
   local region_offset = (utc_region_week_start - utc_na_season_start) %
-  one_week                                                                                                     -- difference between na reset time and players regional reset time
-  local elapsed_season = utc_region_week_start - (utc_na_season_start + region_offset)                         -- total time since season start
+      one_week                                                                         -- difference between na reset time and players regional reset time
+  local elapsed_season = utc_region_week_start - (utc_na_season_start + region_offset) -- total time since season start
   local current_week_idx = math.floor(elapsed_season / one_week) % #affixWeeks +
-  1                                                                                                            -- weekly affix rotation index of current week for player
+      1                                                                                -- weekly affix rotation index of current week for player
 
   db.knownAffixWeeks[current_week_idx] = {}
   for k, idx in pairs({ 2, 3, 1, 4 }) do
@@ -361,7 +352,14 @@ MDT.dungeonList = {
 
 function MDT:IsOnBetaServer()
   local realm = GetRealmName()
-  return realm == "Valdrakken"
+  local realms = {
+    ["Anasterian"] = true,
+    ["Benedictus"] = true,
+    ["Broxigar"] = true,
+    ["Lycanthoth"] = true,
+    ["Nobundo"] = true,
+  }
+  return realms[realm]
 end
 
 function MDT:GetNumDungeons() return #MDT.dungeonList - 1 end
@@ -382,7 +380,7 @@ function MDT:GetDB()
 end
 
 function MDT:ShowInterface(force)
-  MDT:Async(function() MDT:ShowInterfaceInternal(force) end,"showInterface")
+  MDT:Async(function() MDT:ShowInterfaceInternal(force) end, "showInterface")
 end
 
 function MDT:ShowInterfaceInternal(force)
@@ -390,6 +388,7 @@ function MDT:ShowInterfaceInternal(force)
     self.ShowConflictFrame()
     return
   end
+  MDT:DisplayErrors()
   if not framesInitialized then initFrames() end
   if not framesInitialized then return end
   if self.main_frame:IsShown() and not force then
@@ -411,8 +410,12 @@ function MDT:ShowInterfaceInternal(force)
 end
 
 function MDT:HideInterface()
-  self.main_frame:Hide()
-  self.main_frame.HelpButton:Hide()
+  if self.main_frame then
+    self.main_frame:Hide()
+    if self.main_frame.HelpButton then
+      self.main_frame.HelpButton:Hide()
+    end
+  end
 end
 
 function MDT:ToggleDataCollection()
@@ -516,7 +519,7 @@ end
 
 function MDT:SkinMenuButtons()
   --attempt to skin close button for ElvUI
-  if IsAddOnLoaded("ElvUI") then
+  if IsAddOnLoaded("ElvUI") and ElvUI then
     local E, L, V, P, G = unpack(ElvUI)
     local S
     if E then S = E:GetModule("Skins") end
@@ -570,11 +573,11 @@ function MDT:SetScale(scale)
   f.scrollFrame:SetSize(newSizex, newSizey)
   f.mapPanelFrame:SetSize(newSizex, newSizey)
   for i = 1, 12 do
-    f["mapPanelTile" .. i]:SetSize((newSizex / 4 + 5 * scale), (newSizex / 4 + 5 * scale))
+    f["mapPanelTile"..i]:SetSize((newSizex / 4 + 5 * scale), (newSizex / 4 + 5 * scale))
   end
   for i = 1, 10 do
     for j = 1, 15 do
-      f["largeMapPanelTile" .. i .. j]:SetSize(newSizex / 15, newSizex / 15)
+      f["largeMapPanelTile"..i..j]:SetSize(newSizex / 15, newSizex / 15)
     end
   end
   f.scrollFrame:SetVerticalScroll(oldScrollValues.oldScrollV * (newSizey / oldScrollValues.oldSizeY))
@@ -604,7 +607,7 @@ function MDT:SkinProgressBar(progressBar)
   if not bar then return end
   bar.Icon:Hide()
   bar.IconBG:Hide()
-  if IsAddOnLoaded("ElvUI") then
+  if IsAddOnLoaded("ElvUI") and ElvUI then
     local E, L, V, P, G = unpack(ElvUI)
     if bar.BarFrame then bar.BarFrame:Hide() end
     if bar.BarFrame2 then bar.BarFrame2:Hide() end
@@ -687,7 +690,7 @@ function MDT:MakeTopBottomTextures(frame)
     frame.topPanelString:Show()
     frame.topPanelString:SetFont(frame.topPanelString:GetFont(), 20)
     frame.topPanelLogo = frame.topPanel:CreateTexture(nil, "ARTWORK", nil, 7)
-    frame.topPanelLogo:SetTexture("Interface\\AddOns\\" .. AddonName .. "\\Textures\\Nnoggie")
+    frame.topPanelLogo:SetTexture("Interface\\AddOns\\"..AddonName.."\\Textures\\Nnoggie")
     frame.topPanelLogo:SetWidth(24)
     frame.topPanelLogo:SetHeight(24)
     frame.topPanelLogo:SetPoint("RIGHT", frame.topPanelString, "LEFT", -5, 0)
@@ -745,7 +748,7 @@ function MDT:MakeTopBottomTextures(frame)
   frame.bottomLeftPanelString:SetJustifyV("CENTER")
   frame.bottomLeftPanelString:SetPoint("LEFT", frame.bottomPanel, "LEFT", 0, 0)
   frame.bottomLeftPanelString:SetTextColor(1, 1, 1, 1)
-  frame.bottomLeftPanelString:SetText(" v" .. GetAddOnMetadata(AddonName, "Version"))
+  frame.bottomLeftPanelString:SetText(" v"..GetAddOnMetadata(AddonName, "Version"))
   frame.bottomLeftPanelString:Show()
 
   frame.bottomPanel:EnableMouse(true)
@@ -767,6 +770,66 @@ function MDT:MakeTopBottomTextures(frame)
       db.xoffset, db.yoffset = x, y
     end
   end)
+end
+
+function MDT:MakeCopyHelper(frame)
+  MDT.copyHelper = CreateFrame("Frame", "MDTCopyHelper", frame)
+  MDT.copyHelper:SetFrameStrata("TOOLTIP")
+  MDT.copyHelper:SetFrameLevel(200)
+  MDT.copyHelper:SetHeight(100)
+  MDT.copyHelper:SetWidth(300)
+  MDT.copyHelper.tex = MDT.copyHelper:CreateTexture(nil, "BACKGROUND", nil, 0)
+  MDT.copyHelper.tex:SetAllPoints()
+  MDT.copyHelper.tex:SetColorTexture(unpack(MDT.BackdropColor))
+  MDT.copyHelper.text = MDT.copyHelper:CreateFontString("MDT name")
+  MDT.copyHelper.text:SetFontObject("GameFontNormalMed3")
+  MDT.copyHelper.text:SetJustifyH("CENTER")
+  MDT.copyHelper.text:SetJustifyV("CENTER")
+  MDT.copyHelper.text:SetText(L["errorLabel3"])
+  MDT.copyHelper.text:ClearAllPoints()
+  MDT.copyHelper.text:SetPoint("CENTER", MDT.copyHelper, "CENTER")
+  MDT.copyHelper.text:Show()
+  MDT.copyHelper.text:SetFont(MDT.copyHelper.text:GetFont(), 20)
+  MDT.copyHelper.text:SetTextColor(1, 1, 0)
+  function MDT.copyHelper:SmartFadeOut(seconds)
+    seconds = seconds or 0.3
+    MDT.copyHelper.isFading = true
+    MDT.copyHelper:SetAlpha(1)
+    MDT.copyHelper:Show()
+    UIFrameFadeOut(MDT.copyHelper, seconds, 1, 0)
+    MDT.copyHelper.text:SetText(L["copiedToClipboard"])
+    MDT.copyHelper.text:SetTextColor(1, 1, 1)
+    MDT.copyHelper:SetScript("OnUpdate", nil)
+    C_Timer.After(seconds, function()
+      MDT.copyHelper.text:SetText(L["errorLabel3"])
+      MDT.copyHelper.text:SetTextColor(1, 1, 0)
+      MDT.copyHelper:Hide()
+      MDT.copyHelper.isFading = false
+    end)
+  end
+
+  function MDT.copyHelper:SmartShow(anchorFrame, x, y)
+    MDT.copyHelper:ClearAllPoints()
+    MDT.copyHelper:SetPoint("CENTER", anchorFrame, "CENTER", x, y)
+    MDT.copyHelper:SetAlpha(1)
+    MDT.copyHelper:Show()
+    MDT.copyHelper:SetScript("OnUpdate", function()
+      if IsControlKeyDown() then
+        MDT.lastCtrlDown = GetTime()
+      end
+    end)
+  end
+
+  function MDT.copyHelper:SmartHide()
+    if not MDT.copyHelper.isFading then MDT.copyHelper:Hide() end
+  end
+
+  --ctrl+c works when ctrl was released up to 0.5s before the c key
+  function MDT.copyHelper:WasControlKeyDown()
+    if IsControlKeyDown() then return true end
+    if not MDT.lastCtrlDown then return false end
+    return (GetTime() - MDT.lastCtrlDown) < 0.5
+  end
 end
 
 function MDT:MakeSidePanel(frame)
@@ -943,7 +1006,6 @@ function MDT:MakeSidePanel(frame)
     if db.colorPaletteInfo.forceColorBlindMode then MDT:ColorAllPulls(_, _, _, true) end
     local preset = MDT:GetCurrentPreset()
     MDT:SetUniqueID(preset)
-    preset.mdiEnabled = db.MDI.enabled
     preset.difficulty = db.currentDifficulty
     preset.addonVersion = db.version
     local export = MDT:TableToString(preset, true, 5)
@@ -954,7 +1016,8 @@ function MDT:MakeSidePanel(frame)
     MDT.main_frame.ExportFrameEditbox:SetText(export)
     MDT.main_frame.ExportFrameEditbox:HighlightText(0, string.len(export))
     MDT.main_frame.ExportFrameEditbox:SetFocus()
-    MDT.main_frame.ExportFrameEditbox:SetLabel(preset.text .. " " .. string.len(export))
+    MDT.main_frame.ExportFrameEditbox:SetLabel(preset.text.." "..string.len(export))
+    MDT.copyHelper:SmartShow(MDT.main_frame, 0, 50)
     if db.colorPaletteInfo.forceColorBlindMode then MDT:ColorAllPulls() end
   end)
   frame.sidePanelExportButton.frame:SetScript("OnEnter", function()
@@ -1107,25 +1170,6 @@ function MDT:MakeSidePanel(frame)
     MDT.main_frame.LiveSessionButton.text:SetTextColor(0.5, 0.5, 0.5)
   end
 
-  --MDI
-  frame.MDIButton = AceGUI:Create("Button")
-  frame.MDIButton:SetText("MDI")
-  frame.MDIButton:SetWidth(buttonWidth)
-  frame.MDIButton.frame:SetNormalFontObject(fontInstance)
-  frame.MDIButton.frame:SetHighlightFontObject(fontInstance)
-  frame.MDIButton.frame:SetDisabledFontObject(fontInstance)
-  frame.MDIButton:SetCallback("OnClick", function(widget, callbackName, value)
-    MDT:ToggleMDIMode()
-  end)
-  frame.MDIButton.frame:SetScript("OnEnter", function()
-    GameTooltip:SetOwner(frame.MDIButton.frame, "ANCHOR_BOTTOMLEFT", frame.MDIButton.frame:GetWidth() * (-2),
-      frame.MDIButton.frame:GetHeight())
-    GameTooltip:AddLine(L["Open MDI override options"], 1, 1, 1)
-    GameTooltip:Show()
-  end)
-  frame.MDIButton.frame:SetScript("OnLeave", function()
-  end)
-
   --Settings cogwheel
   frame.settingsCogwheel = AceGUI:Create("Icon")
   local settinggsCogwheel = frame.settingsCogwheel
@@ -1168,14 +1212,14 @@ function MDT:MakeSidePanel(frame)
       filedataid = filedataid or 134400 --questionmark
       if longText then
         ret = ret or ""
-        ret = ret .. sep .. name
+        ret = ret..sep..name
         sep = ", "
       else
-        ret = ret or week .. (week > 9 and ". " or ".   ")
+        ret = ret or week..(week > 9 and ". " or ".   ")
         if week == MDT:GetCurrentAffixWeek() then
           ret = WrapTextInColorCode(ret, "FF00FF00")
         end
-        ret = ret .. CreateTextureMarkup(filedataid, 64, 64, 20, 20, 0.1, 0.9, 0.1, 0.9, 0, 0) .. "  "
+        ret = ret..CreateTextureMarkup(filedataid, 64, 64, 20, 20, 0.1, 0.9, 0.1, 0.9, 0, 0).."  "
       end
     end
     return ret
@@ -1389,150 +1433,6 @@ function MDT:MakeSidePanel(frame)
   MDT:SkinProgressBar(frame.sidePanel.ProgressBar)
 end
 
----ToggleMDIMode
----Enables display to override beguiling+freehold week
-function MDT:ToggleMDIMode()
-  db.MDI.enabled = not db.MDI.enabled
-  self:DisplayMDISelector()
-  if self.liveSessionActive then self:LiveSession_SendMDI("toggle", db.MDI.enabled and "1" or "0") end
-end
-
-function MDT:DisplayMDISelector()
-  local show = db.MDI.enabled
-  db = MDT:GetDB()
-  if not MDT.MDISelector then
-    MDT.MDISelector = AceGUI:Create("SimpleGroup")
-    MDT.MDISelector.frame:SetFrameStrata("HIGH")
-    MDT.MDISelector.frame:SetFrameLevel(50)
-    if not MDT.MDISelector.frame.SetBackdrop then
-      Mixin(MDT.MDISelector.frame, BackdropTemplateMixin)
-    end
-    MDT.MDISelector.frame:SetBackdropColor(unpack(MDT.BackdropColor))
-    --fix show hide
-    local frame = MDT.main_frame
-    local originalShow, originalHide = frame.Show, frame.Hide
-    local widget = MDT.MDISelector.frame
-    ---@diagnostic disable-next-line: duplicate-set-field
-    function frame:Hide(...)
-      widget:Hide()
-      ---@diagnostic disable-next-line: redundant-parameter
-      return originalHide(self, ...)
-    end
-
-    ---@diagnostic disable-next-line: duplicate-set-field
-    function frame:Show(...)
-      if db.MDI.enabled then widget:Show() end
-      ---@diagnostic disable-next-line: redundant-parameter
-      return originalShow(self, ...)
-    end
-
-    MDT.MDISelector:SetLayout("Flow")
-    MDT.MDISelector.frame.bg = MDT.MDISelector.frame:CreateTexture(nil, "BACKGROUND", nil, 0)
-    MDT.MDISelector.frame.bg:SetAllPoints(MDT.MDISelector.frame)
-    MDT.MDISelector.frame.bg:SetColorTexture(unpack(MDT.BackdropColor))
-    MDT.MDISelector:SetWidth(145)
-    MDT.MDISelector:SetHeight(90)
-    MDT.MDISelector.frame:ClearAllPoints()
-    MDT.MDISelector.frame:SetPoint("BOTTOMRIGHT", MDT.main_frame, "BOTTOMRIGHT", 0, 0)
-
-    local label = AceGUI:Create("Label")
-    label:SetText(L["MDI Mode"])
-    MDT.MDISelector:AddChild(label)
-
-    --beguiling
-    MDT.MDISelector.BeguilingDropDown = AceGUI:Create("Dropdown")
-    MDT.MDISelector.BeguilingDropDown:SetLabel(L["Seasonal Affix:"])
-    local beguilingList = {
-      [1] = L["Beguiling 1 Void"],
-      [2] = L["Beguiling 2 Tides"],
-      [3] = L["Beguiling 3 Ench."],
-      [13] = L["Reaping"],
-      [14] = L["Awakened A"],
-      [15] = L["Awakened B"]
-    }
-    MDT.MDISelector.BeguilingDropDown:SetList(beguilingList)
-    MDT.MDISelector.BeguilingDropDown:SetCallback("OnValueChanged", function(widget, callbackName, key)
-      local preset = self:GetCurrentPreset()
-      preset.mdi.beguiling = key
-      db.currentSeason = self:GetEffectivePresetSeason(preset)
-      self:UpdateMap()
-      if self.liveSessionActive and preset.uid == self.livePresetUID then
-        self:LiveSession_SendMDI("beguiling", key)
-      end
-    end)
-    MDT.MDISelector:AddChild(MDT.MDISelector.BeguilingDropDown)
-
-    --freehold
-    MDT.MDISelector.FreeholdDropDown = AceGUI:Create("Dropdown")
-    MDT.MDISelector.FreeholdDropDown:SetLabel(L["Freehold:"])
-    local freeholdList = { string.format("1. %s", L["Cutwater"]), string.format("2. %s", L["Blacktooth"]),
-      string.format("3. %s", L["Bilge Rats"]) }
-    MDT.MDISelector.FreeholdDropDown:SetList(freeholdList)
-    MDT.MDISelector.FreeholdDropDown:SetCallback("OnValueChanged", function(widget, callbackName, key)
-      local preset = MDT:GetCurrentPreset()
-      preset.mdi.freehold = key
-      if preset.mdi.freeholdJoined then
-        MDT:DungeonEnemies_UpdateFreeholdCrew(preset.mdi.freehold)
-      end
-      MDT:DungeonEnemies_UpdateBlacktoothEvent()
-      MDT:UpdateProgressbar()
-      MDT:ReloadPullButtons()
-      if self.liveSessionActive and self:GetCurrentPreset().uid == self.livePresetUID then
-        self:LiveSession_SendMDI("freehold", key)
-      end
-    end)
-    MDT.MDISelector:AddChild(MDT.MDISelector.FreeholdDropDown)
-
-    MDT.MDISelector.FreeholdCheck = AceGUI:Create("CheckBox")
-    MDT.MDISelector.FreeholdCheck:SetLabel(L["Join Crew"])
-    MDT.MDISelector.FreeholdCheck:SetCallback("OnValueChanged", function(widget, callbackName, value)
-      local preset = MDT:GetCurrentPreset()
-      preset.mdi.freeholdJoined = value
-      MDT:DungeonEnemies_UpdateFreeholdCrew()
-      MDT:ReloadPullButtons()
-      MDT:UpdateProgressbar()
-      if self.liveSessionActive and self:GetCurrentPreset().uid == self.livePresetUID then
-        self:LiveSession_SendMDI("join", value and "1" or "0")
-      end
-    end)
-    MDT.MDISelector:AddChild(MDT.MDISelector.FreeholdCheck)
-  end
-  if show then
-    local preset = MDT:GetCurrentPreset()
-    preset.mdi = preset.mdi or {}
-    --beguiling
-    preset.mdi.beguiling = preset.mdi.beguiling or 1
-    MDT.MDISelector.BeguilingDropDown:SetValue(preset.mdi.beguiling)
-    db.currentSeason = MDT:GetEffectivePresetSeason(preset)
-    MDT:DungeonEnemies_UpdateSeasonalAffix()
-    MDT:DungeonEnemies_UpdateBoralusFaction(MDT:GetCurrentPreset().faction)
-    --freehold
-    preset.mdi.freehold = preset.mdi.freehold or 1
-    MDT.MDISelector.FreeholdDropDown:SetValue(preset.mdi.freehold)
-    preset.mdi.freeholdJoined = preset.mdi.freeholdJoined or false
-    MDT.MDISelector.FreeholdCheck:SetValue(preset.mdi.freeholdJoined)
-    MDT:DungeonEnemies_UpdateFreeholdCrew()
-    MDT:DungeonEnemies_UpdateBlacktoothEvent()
-    MDT:UpdateProgressbar()
-    MDT:ReloadPullButtons()
-    MDT.MDISelector.frame:Show()
-    MDT:ToggleFreeholdSelector(false)
-  else
-    db.currentSeason = defaultSavedVars.global.currentSeason
-    MDT:DungeonEnemies_UpdateSeasonalAffix()
-    MDT:DungeonEnemies_UpdateBoralusFaction(MDT:GetCurrentPreset().faction)
-    MDT:UpdateFreeholdSelector(MDT:GetCurrentPreset().week)
-    MDT:DungeonEnemies_UpdateBlacktoothEvent()
-    MDT:UpdateProgressbar()
-    MDT:ReloadPullButtons()
-    MDT.MDISelector.frame:Hide()
-    MDT:ToggleFreeholdSelector(db.currentDungeonIdx == 16)
-  end
-  MDT:POI_UpdateAll()
-  MDT:KillAllAnimatedLines()
-  MDT:DrawAllAnimatedLines()
-end
-
 function MDT:UpdatePresetDropDown()
   local dropdown = MDT.main_frame.sidePanel.WidgetGroup.PresetDropDown
   local presetList = {}
@@ -1563,11 +1463,11 @@ function MDT:FormatEnemyForces(forces, forcesmax, progressbar)
         or MDT.dungeonTotalCount[db.currentDungeonIdx].normal
   end
   if db.enemyForcesFormat == 1 then
-    if progressbar then return forces .. "/" .. forcesmax end
+    if progressbar then return forces.."/"..forcesmax end
     return forces
   elseif db.enemyForcesFormat == 2 then
-    if progressbar then return string.format((forces .. "/" .. forcesmax .. " (%.2f%%)"), (forces / forcesmax) * 100) end
-    return string.format(forces .. " (%.2f%%)", (forces / forcesmax) * 100)
+    if progressbar then return string.format((forces.."/"..forcesmax.." (%.2f%%)"), (forces / forcesmax) * 100) end
+    return string.format(forces.." (%.2f%%)", (forces / forcesmax) * 100)
   end
 end
 
@@ -1663,12 +1563,11 @@ function MDT:ExportCurrentZoomPanSettings()
   local panH = MDTScrollFrame:GetHorizontalScroll() / MDT:GetScale()
   local panV = MDTScrollFrame:GetVerticalScroll() / MDT:GetScale()
 
-  local output = "        [" ..
-      db.presets[db.currentDungeonIdx][db.currentPreset[db.currentDungeonIdx]].value.currentSublevel .. "] = {\n"
-  output = output .. "            zoomScale = " .. zoom .. ";\n"
-  output = output .. "            horizontalPan = " .. panH .. ";\n"
-  output = output .. "            verticalPan = " .. panV .. ";\n"
-  output = output .. "        };\n"
+  local output = "        ["..db.presets[db.currentDungeonIdx][db.currentPreset[db.currentDungeonIdx]].value.currentSublevel.."] = {\n"
+  output = output.."            zoomScale = "..zoom..";\n"
+  output = output.."            horizontalPan = "..panH..";\n"
+  output = output.."            verticalPan = "..panV..";\n"
+  output = output.."        };\n"
 
   MDT:HideAllDialogs()
   MDT.main_frame.ExportFrame:Show()
@@ -1698,9 +1597,7 @@ function MDT:ZoomMapToDefault()
   local scrollFrame = MDTScrollFrame
 
   local currentMapInfo = MDT.mapInfo[db.currentDungeonIdx]
-  if (
-      currentMapInfo and currentMapInfo.viewportPositionOverrides and
-      currentMapInfo.viewportPositionOverrides[currentSublevel]) then
+  if (currentMapInfo and currentMapInfo.viewportPositionOverrides and currentMapInfo.viewportPositionOverrides[currentSublevel]) then
     local data = currentMapInfo.viewportPositionOverrides[currentSublevel];
 
     local scaledSizeX = mainFrame:GetWidth() * data.zoomScale
@@ -1799,7 +1696,7 @@ function MDT:UpdatePullTooltip(tooltip)
       local shroudedIcon = frame.sidePanel.newPullButtons[tooltip.currentPull].shroudedIcon
       local shroudedCounter = frame.sidePanel.newPullButtons[tooltip.currentPull].shroudedCounter
       if MouseIsOver(shroudedIcon) and shroudedIcon:IsShown() then
-        tooltip.topString:SetText("\n\n\n\n" .. L["Bounty stacks \nafter this pull"] .. ": " .. shroudedCounter:GetText())
+        tooltip.topString:SetText("\n\n\n\n"..L["Bounty stacks \nafter this pull"]..": "..shroudedCounter:GetText())
         local shroudedDisplayId = 101016
         if (not tooltip.modelNpcId or (tooltip.modelNpcId ~= shroudedDisplayId)) then
           tooltip.Model:SetDisplayInfo(shroudedDisplayId)
@@ -1819,17 +1716,15 @@ function MDT:UpdatePullTooltip(tooltip)
             end
             --topString
             local newLine = "\n"
-            local text = newLine .. newLine .. newLine .. L[v.enemyData.name] .. " x" .. v.enemyData.quantity .. newLine
-            text = text .. string.format(L["Level %d %s"], v.enemyData.level, L[v.enemyData.creatureType]) .. newLine
+            local text = newLine..newLine..newLine..L[v.enemyData.name].." x"..v.enemyData.quantity..newLine
+            text = text..string.format(L["Level %d %s"], v.enemyData.level, L[v.enemyData.creatureType])..newLine
             local boss = v.enemyData.isBoss or false
-            local health = MDT:CalculateEnemyHealth(boss, v.enemyData.baseHealth, db.currentDifficulty,
-              v.enemyData.ignoreFortified)
-            text = text .. string.format(L["%s HP"], MDT:FormatEnemyHealth(health)) .. newLine
+            local health = MDT:CalculateEnemyHealth(boss, v.enemyData.baseHealth, db.currentDifficulty, v.enemyData.ignoreFortified)
+            text = text..string.format(L["%s HP"], MDT:FormatEnemyHealth(health))..newLine
 
-            local totalForcesMax = MDT:IsCurrentPresetTeeming() and MDT.dungeonTotalCount[db.currentDungeonIdx].teeming
-                or MDT.dungeonTotalCount[db.currentDungeonIdx].normal
+            local totalForcesMax = MDT:IsCurrentPresetTeeming() and MDT.dungeonTotalCount[db.currentDungeonIdx].teeming or MDT.dungeonTotalCount[db.currentDungeonIdx].normal
             local count = MDT:IsCurrentPresetTeeming() and v.enemyData.teemingCount or v.enemyData.count
-            text = text .. L["Forces"] .. ": " .. MDT:FormatEnemyForces(count, totalForcesMax, false)
+            text = text..L["Forces"]..": "..MDT:FormatEnemyForces(count, totalForcesMax, false)
 
             tooltip.topString:SetText(text)
             showData = true
@@ -1858,8 +1753,8 @@ function MDT:UpdatePullTooltip(tooltip)
       local totalForcesMax = MDT:IsCurrentPresetTeeming() and MDT.dungeonTotalCount[db.currentDungeonIdx].teeming or
           MDT.dungeonTotalCount[db.currentDungeonIdx].normal
 
-      local text = L["Forces"] .. ": " .. MDT:FormatEnemyForces(pullForces, totalForcesMax, false)
-      text = text .. "\n" .. L["Total"] .. ": " .. MDT:FormatEnemyForces(totalForces, totalForcesMax, true)
+      local text = L["Forces"]..": "..MDT:FormatEnemyForces(pullForces, totalForcesMax, false)
+      text = text.."\n"..L["Total"]..": "..MDT:FormatEnemyForces(totalForces, totalForcesMax, true)
       -- local pullHealth = MDT:SumCurrentPullHealth(tooltip.currentPull)
       -- text = text .. "\n" .. L["Efficiency Score"] .. ": " .. MDT:GetEfficiencyScoreString(pullForces, pullHealth)
 
@@ -1922,13 +1817,14 @@ function MDT:SumCurrentPullHealth(currentPull)
   return totalHealth
 end
 
-local emissaryIds = { [155432] = true,[155433] = true,[155434] = true }
+local emissaryIds = { [155432] = true, [155433] = true, [155434] = true }
 
 ---Checks if the specified clone is part of the current map configuration
 function MDT:IsCloneIncluded(enemyIdx, cloneIdx)
   local preset = MDT:GetCurrentPreset()
   local enemy = MDT.dungeonEnemies[db.currentDungeonIdx][enemyIdx]
-  local clone = enemy["clones"][cloneIdx]
+  local clone = enemy and enemy["clones"][cloneIdx]
+  if not clone then return false end
 
   local week = self:GetEffectivePresetWeek()
 
@@ -2110,23 +2006,12 @@ end
 function MDT:GetEffectivePresetWeek(preset)
   preset = preset or self:GetCurrentPreset()
   local week
-  if db.MDI.enabled then
-    week = preset.mdi.beguiling or 1
-    if week == 14 then week = 1 end
-    if week == 15 then week = 3 end
-  else
-    week = preset.week
-  end
+  week = preset.week
   return week
 end
 
 function MDT:GetEffectivePresetSeason(preset)
   local season = db.currentSeason
-  if db.MDI.enabled then
-    local mdiWeek = preset.mdi.beguiling
-    season = (mdiWeek == 1 or mdiWeek == 2 or mdiWeek == 3) and 3 or mdiWeek == 13 and 2 or
-        (mdiWeek == 14 or mdiWeek == 15) and 4 or 4
-  end
   return season
 end
 
@@ -2240,10 +2125,10 @@ function MDT:MakeMapTexture(frame)
 
     --create the 12 tiles and set the scrollchild
     for i = 1, 12 do
-      frame["mapPanelTile" .. i] = frame.mapPanelFrame:CreateTexture("MDTmapPanelTile" .. i, "BACKGROUND", nil, 0)
-      frame["mapPanelTile" .. i]:SetDrawLayer(canvasDrawLayer, 0)
+      frame["mapPanelTile"..i] = frame.mapPanelFrame:CreateTexture("MDTmapPanelTile"..i, "BACKGROUND", nil, 0)
+      frame["mapPanelTile"..i]:SetDrawLayer(canvasDrawLayer, 0)
       --frame["mapPanelTile"..i]:SetAlpha(0.3)
-      frame["mapPanelTile" .. i]:SetSize(frame:GetWidth() / 4 + (5 * db.scale), frame:GetWidth() / 4 + (5 * db.scale))
+      frame["mapPanelTile"..i]:SetSize(frame:GetWidth() / 4 + (5 * db.scale), frame:GetWidth() / 4 + (5 * db.scale))
     end
     frame.mapPanelTile1:SetPoint("TOPLEFT", frame.mapPanelFrame, "TOPLEFT", 0, 0)
     frame.mapPanelTile2:SetPoint("TOPLEFT", frame.mapPanelTile1, "TOPRIGHT")
@@ -2261,9 +2146,8 @@ function MDT:MakeMapTexture(frame)
     --create the 150 large map tiles
     for i = 1, 10 do
       for j = 1, 15 do
-        frame["largeMapPanelTile" .. i .. j] = frame.mapPanelFrame:CreateTexture("MDTLargeMapPanelTile" .. i .. j,
-          "BACKGROUND")
-        local tile = frame["largeMapPanelTile" .. i .. j]
+        frame["largeMapPanelTile"..i..j] = frame.mapPanelFrame:CreateTexture("MDTLargeMapPanelTile"..i..j, "BACKGROUND")
+        local tile = frame["largeMapPanelTile"..i..j]
         tile:SetDrawLayer(canvasDrawLayer, 5)
         tile:SetSize(frame:GetWidth() / 15, frame:GetWidth() / 15)
         if i == 1 and j == 1 then
@@ -2271,10 +2155,10 @@ function MDT:MakeMapTexture(frame)
           tile:SetPoint("TOPLEFT", frame.mapPanelFrame, "TOPLEFT", 0, 0)
         elseif j == 1 then
           --to tile above
-          tile:SetPoint("TOPLEFT", frame["largeMapPanelTile" .. (i - 1) .. j], "BOTTOMLEFT", 0, 0)
+          tile:SetPoint("TOPLEFT", frame["largeMapPanelTile"..(i - 1)..j], "BOTTOMLEFT", 0, 0)
         else
           --to tile to the left
-          tile:SetPoint("TOPLEFT", frame["largeMapPanelTile" .. i .. (j - 1)], "TOPRIGHT", 0, 0)
+          tile:SetPoint("TOPLEFT", frame["largeMapPanelTile"..i..(j - 1)], "TOPRIGHT", 0, 0)
         end
         tile:SetColorTexture(i / 10, j / 10, 0, 1)
         tile:Hide()
@@ -2392,17 +2276,23 @@ end
 function MDT:OpenNewPresetDialog()
   MDT:HideAllDialogs()
   local presetList = {}
+  local highestIndex = 1
   local countPresets = 0
   for k, v in pairs(db.presets[db.currentDungeonIdx]) do
     if v.text ~= L["<New Preset>"] then
       table.insert(presetList, k, v.text)
+      local indexNumber = tonumber(v.text:match("^"..L["defaultPresetName"].."%s*(%d+)$"))
+      if indexNumber and indexNumber > highestIndex then
+        highestIndex = indexNumber
+      end
       countPresets = countPresets + 1
     end
   end
+  local newIndex = math.max(highestIndex, countPresets - 1)
   table.insert(presetList, 1, L["Empty"])
   MDT.main_frame.PresetCreationDropDown:SetList(presetList)
   MDT.main_frame.PresetCreationDropDown:SetValue(1)
-  MDT.main_frame.PresetCreationEditbox:SetText(L["defaultPresetName"] .. " " .. countPresets + 1)
+  MDT.main_frame.PresetCreationEditbox:SetText(L["defaultPresetName"].." "..newIndex + 1)
   MDT.main_frame.presetCreationFrame:ClearAllPoints()
   MDT.main_frame.presetCreationFrame:SetPoint("CENTER", MDT.main_frame, "CENTER", 0, 50)
   MDT.main_frame.presetCreationFrame:SetStatusText("")
@@ -2454,26 +2344,62 @@ function MDT:EnsureDBTables()
     db.selectedDungeonList = defaultSavedVars.global.selectedDungeonList
   end
   local preset = MDT:GetCurrentPreset()
+  if preset.value == 0 then --<New Preset> as selected preset
+    db.presets[db.currentDungeonIdx] = {
+      [1] = { text = L["Default"], value = {}, objects = {},
+        colorPaletteInfo = { autoColoring = true, colorPaletteIdx = 4 } },
+      [2] = { text = L["<New Preset>"], value = 0 },
+    }
+    db.currentPreset[db.currentDungeonIdx] = 1
+    preset = MDT:GetCurrentPreset()
+  end
+  if preset.objects then
+    local isValid = true
+    for _, obj in pairs(preset.objects) do
+      if type(obj) ~= "table" then
+        isValid = false
+      end
+    end
+    if not isValid then
+      preset.objects = nil
+    end
+  end
   if preset.week and (preset.week < 1 or preset.week > 10) then preset.week = nil end
   preset.week = preset.week or MDT:GetCurrentAffixWeek()
   db.currentPreset[db.currentDungeonIdx] = db.currentPreset[db.currentDungeonIdx] or 1
-  db.presets[db.currentDungeonIdx][db.currentPreset[db.currentDungeonIdx]].value.currentDungeonIdx = db
-  .currentDungeonIdx
+  db.presets[db.currentDungeonIdx][db.currentPreset[db.currentDungeonIdx]].value.currentDungeonIdx = db.currentDungeonIdx
   db.presets[db.currentDungeonIdx][db.currentPreset[db.currentDungeonIdx]].value.currentSublevel = db.presets[
-      db.currentDungeonIdx][db.currentPreset[db.currentDungeonIdx]].value.currentSublevel or 1
+  db.currentDungeonIdx][db.currentPreset[db.currentDungeonIdx]].value.currentSublevel or 1
   db.presets[db.currentDungeonIdx][db.currentPreset[db.currentDungeonIdx]].value.currentPull = db.presets[
-      db.currentDungeonIdx][db.currentPreset[db.currentDungeonIdx]].value.currentPull or 1
-  db.presets[db.currentDungeonIdx][db.currentPreset[db.currentDungeonIdx]].value.pulls = db.presets[db.currentDungeonIdx
-      ][db.currentPreset[db.currentDungeonIdx]].value.pulls or {}
+  db.currentDungeonIdx][db.currentPreset[db.currentDungeonIdx]].value.currentPull or 1
+  db.presets[db.currentDungeonIdx][db.currentPreset[db.currentDungeonIdx]].value.pulls = db.presets[db.currentDungeonIdx][db.currentPreset[db.currentDungeonIdx]].value.pulls or {}
   -- make sure, that at least 1 pull exists
   if #db.presets[db.currentDungeonIdx][db.currentPreset[db.currentDungeonIdx]].value.pulls == 0 then
     db.presets[db.currentDungeonIdx][db.currentPreset[db.currentDungeonIdx]].value.pulls[1] = {}
   end
 
-  --detect gaps in pull list and delete invalid pulls
-  for k, v in pairs(preset.value.pulls) do
-    if k == 0 or k > #preset.value.pulls then
-      preset.value.pulls[k] = nil
+  --ensure the pulls table is not fully corrupted
+  if not preset.value.pulls or (type(preset.value.pulls) ~= "table") then
+    preset.value.pulls = {}
+  else
+    for pullIdx, pull in pairs(preset.value.pulls) do
+      --detect gaps in pull list and delete invalid pulls
+      if pullIdx == 0 or pullIdx > #preset.value.pulls then
+        preset.value.pulls[pullIdx] = nil
+      end
+      --fix wrong indexes of clones within pulls
+      for enemyIdx, clones in pairs(pull) do
+        local assignmentIdx = 1
+        if type(clones) == "table" then
+          for actualIndex, cloneIdx in pairs(clones) do
+            if actualIndex ~= assignmentIdx then
+              clones[assignmentIdx] = cloneIdx
+              clones[actualIndex] = nil
+            end
+            assignmentIdx = assignmentIdx + 1
+          end
+        end
+      end
     end
   end
 
@@ -2519,24 +2445,6 @@ function MDT:EnsureDBTables()
     preset.faction       = preset.faction or (englishFaction and englishFaction == "Alliance") and 2 or 1
   end
 
-  if db.currentDungeonIdx == 16 and (not preset.freeholdCrewSelected) then
-    local week = preset.week
-    week = week % 3
-    if week == 0 then week = 3 end
-    preset.freeholdCrew = week
-    preset.freeholdCrewSelected = true
-  end
-
-  --MDI mode isn't needed in SL, disable it for anyone it's still on
-  --db.MDI = db.MDI or {}
-  --preset.mdi = preset.mdi or {}
-  --preset.mdiEnabled = preset.mdiEnabled or db.MDI.enabled
-  db.MDI = {}
-  preset.mdi = {}
-  preset.mdiEnabled = false
-  preset.mdi.freehold = preset.mdi.freehold or 1
-  preset.mdi.freeholdJoined = preset.mdi.freeholdJoined or false
-  preset.mdi.beguiling = preset.mdi.beguiling or 1
   preset.difficulty = preset.difficulty or db.currentDifficulty
 
   --make sure sublevel actually exists for the dungeon
@@ -2570,19 +2478,19 @@ function MDT:UpdateMap(ignoreSetSelection, ignoreReloadPullButtons, ignoreUpdate
   end
   if not framesInitialized then coroutine.yield() end
   local fileName = MDT.dungeonMaps[db.currentDungeonIdx][preset.value.currentSublevel]
-  local path = "Interface\\WorldMap\\" .. mapName .. "\\"
+  local path = "Interface\\WorldMap\\"..mapName.."\\"
   local tileFormat = MDT:GetTileFormat(db.currentDungeonIdx, preset.value.currentSublevel)
   if not framesInitialized then coroutine.yield() end
   for i = 1, 12 do
     if tileFormat == 4 then
-      local texName = path .. fileName .. i
-      if frame["mapPanelTile" .. i] then
-        frame["mapPanelTile" .. i]:SetTexture(texName)
-        frame["mapPanelTile" .. i]:Show()
+      local texName = path..fileName..i
+      if frame["mapPanelTile"..i] then
+        frame["mapPanelTile"..i]:SetTexture(texName)
+        frame["mapPanelTile"..i]:Show()
       end
     else
-      if frame["mapPanelTile" .. i] then
-        frame["mapPanelTile" .. i]:Hide()
+      if frame["mapPanelTile"..i] then
+        frame["mapPanelTile"..i]:Hide()
       end
     end
   end
@@ -2590,11 +2498,11 @@ function MDT:UpdateMap(ignoreSetSelection, ignoreReloadPullButtons, ignoreUpdate
   for i = 1, 10 do
     for j = 1, 15 do
       if tileFormat == 15 then
-        local texName = path .. fileName .. ((i - 1) * 15 + j)
-        frame["largeMapPanelTile" .. i .. j]:SetTexture(texName)
-        frame["largeMapPanelTile" .. i .. j]:Show()
+        local texName = path..fileName..((i - 1) * 15 + j)
+        frame["largeMapPanelTile"..i..j]:SetTexture(texName)
+        frame["largeMapPanelTile"..i..j]:Show()
       else
-        frame["largeMapPanelTile" .. i .. j]:Hide()
+        frame["largeMapPanelTile"..i..j]:Hide()
       end
     end
   end
@@ -2607,7 +2515,7 @@ function MDT:UpdateMap(ignoreSetSelection, ignoreReloadPullButtons, ignoreUpdate
   if not framesInitialized then coroutine.yield() end
   MDT:DungeonEnemies_UpdateInspiring()
   if not framesInitialized then coroutine.yield() end
-
+  MDT:POI_UpdateAll()
   if not ignoreReloadPullButtons then
     MDT:ReloadPullButtons()
   end
@@ -2643,11 +2551,8 @@ function MDT:UpdateMap(ignoreSetSelection, ignoreReloadPullButtons, ignoreUpdate
   if not framesInitialized then coroutine.yield() end
   --frame.sidePanel.affixDropdown:SetAffixWeek(MDT:GetCurrentPreset().week,ignoreReloadPullButtons,ignoreUpdateProgressBar)
   frame.sidePanel.affixDropdown:SetValue(MDT:GetCurrentPreset().week)
-  MDT:ToggleFreeholdSelector(db.currentDungeonIdx == 16)
   if not framesInitialized then coroutine.yield() end
   MDT:ToggleBoralusSelector(db.currentDungeonIdx == 19)
-  if not framesInitialized then coroutine.yield() end
-  MDT:DisplayMDISelector()
   if not framesInitialized then coroutine.yield() end
   MDT:DrawAllPresetObjects()
   if not framesInitialized then coroutine.yield() end
@@ -2669,6 +2574,7 @@ function MDT:UpdateToDungeon(dungeonIdx, ignoreUpdateMap, init)
   MDT:ZoomMapToDefault()
   --Colors the first pull in "Default" presets
   if db.currentPreset[db.currentDungeonIdx] == 1 then MDT:ColorPull() end
+  MDT:UpdateProgressbar()
 end
 
 function MDT:DeletePreset(index)
@@ -2745,6 +2651,16 @@ MDT.zoneIdToDungeonIdx = {
   [608] = 40,  --grimrail depot
   [609] = 40,  --grimrail depot
   [595] = 41,  --iron docks
+  [2082] = 49, --halls of infusion
+  [2083] = 49, --halls of infusion
+  [2096] = 48, --brackenhide hollow
+  [2106] = 48, --brackenhide hollow
+  [2071] = 51, --uldaman
+  [2072] = 51, --uldaman
+  [2080] = 50, --neltharus
+  [2081] = 50, --neltharus
+  [731] = 8,   --neltharion's lair
+  [325] = 77,  --vortex pinnacle
   --https://wowpedia.fandom.com/wiki/UiMapID
 }
 local lastUpdatedDungeonIdx
@@ -2806,8 +2722,7 @@ function MDT:CreateNewPreset(name)
     if v.text == name then duplicate = true end
   end
   if duplicate == false then
-    db.presets[db.currentDungeonIdx][countPresets + 1] = db.presets[db.currentDungeonIdx]
-    [countPresets]                                                                                      --put <New Preset> at the end of the list
+    db.presets[db.currentDungeonIdx][countPresets + 1] = db.presets[db.currentDungeonIdx][countPresets] --put <New Preset> at the end of the list
 
     local startingPointPresetIdx = MDT.main_frame.PresetCreationDropDown:GetValue() - 1
     if startingPointPresetIdx > 0 then
@@ -2864,7 +2779,7 @@ function MDT:MakeChatPresetImportFrame(frame)
       MDT.main_frame.sidePanelDeleteButton.text:SetTextColor(1, 0.8196, 0)
     end
   end)
-  chatImport.defaultText = L["Import Preset"] .. ":\n"
+  chatImport.defaultText = L["Import Preset"]..":\n"
   chatImport.importLabel = AceGUI:Create("Label")
   chatImport.importLabel:SetText(chatImport.defaultText)
   chatImport.importLabel:SetWidth(250)
@@ -2897,7 +2812,7 @@ function MDT:OpenChatImportPresetDialog(sender, preset, live)
   local dungeon = MDT:GetDungeonName(preset.value.currentDungeonIdx)
   local name = preset.text
   chatImport:Show()
-  chatImport.importLabel:SetText(chatImport.defaultText .. sender .. ": " .. dungeon .. " - " .. name)
+  chatImport.importLabel:SetText(chatImport.defaultText..sender..": "..dungeon.." - "..name)
   chatImport:SetTitle(L["Import Preset"])
   chatImport.importButton:SetText(L["Import"])
   chatImport.live = nil
@@ -2931,7 +2846,7 @@ function MDT:MakePresetImportFrame(frame)
 
   local importString = ""
   frame.presetImportBox = AceGUI:Create("EditBox")
-  frame.presetImportBox:SetLabel(L["Import Preset"] .. ":")
+  frame.presetImportBox:SetLabel(L["Import Preset"]..":")
   frame.presetImportBox:SetWidth(255)
   frame.presetImportBox:SetCallback("OnTextChanged", function(widget, event, text) importString = text end)
   frame.presetImportBox:DisableButton(true)
@@ -2954,6 +2869,20 @@ function MDT:MakePresetImportFrame(frame)
   end)
   frame.presetImportFrame:AddChild(importButton)
   frame.presetImportFrame:AddChild(frame.presetImportLabel)
+  if db.devMode then
+    local inspectButton = AceGUI:Create("Button")
+    inspectButton:SetText("Inspect")
+    inspectButton:SetWidth(100)
+    inspectButton:SetCallback("OnClick", function()
+      local newPreset = MDT:StringToTable(importString, true)
+      if not ViragDevTool_AddData then
+        print("MDT: Install Virag Dev Tool to inspect route")
+      else
+        ViragDevTool_AddData(newPreset)
+      end
+    end)
+    frame.presetImportFrame:AddChild(inspectButton)
+  end
   frame.presetImportFrame:Hide()
 end
 
@@ -2975,7 +2904,7 @@ function MDT:MakePresetCreationFrame(frame)
 
 
   frame.PresetCreationEditbox = AceGUI:Create("EditBox")
-  frame.PresetCreationEditbox:SetLabel(L["Preset Name"] .. ":")
+  frame.PresetCreationEditbox:SetLabel(L["Preset Name"]..":")
   frame.PresetCreationEditbox:SetWidth(255)
   frame.PresetCreationEditbox:SetCallback("OnEnterPressed", function(widget, event, text)
     --check if name is valid, block button if so, unblock if valid
@@ -3033,7 +2962,6 @@ end
 function MDT:ImportPreset(preset, fromLiveSession)
   --change dungeon to dungeon of the new preset
   self:UpdateToDungeon(preset.value.currentDungeonIdx, true)
-  local mdiEnabled = preset.mdiEnabled
   --search for uid
   local updateIndex
   local duplicatePreset
@@ -3050,7 +2978,6 @@ function MDT:ImportPreset(preset, fromLiveSession)
       self.main_frame.ConfirmationFrame:SetCallback("OnClose", function()
       end)
     end
-    db.MDI.enabled = mdiEnabled
     db.presets[db.currentDungeonIdx][updateIndex] = preset
     db.currentPreset[db.currentDungeonIdx] = updateIndex
     self.liveUpdateFrameOpen = nil
@@ -3069,12 +2996,11 @@ function MDT:ImportPreset(preset, fromLiveSession)
       self.main_frame.ConfirmationFrame:SetCallback("OnClose", function()
       end)
     end
-    db.MDI.enabled = mdiEnabled
     local name = preset.text
     local num = 2
     for k, v in pairs(db.presets[db.currentDungeonIdx]) do
       if name == v.text then
-        name = preset.text .. " " .. num
+        name = preset.text.." "..num
         num = num + 1
       end
     end
@@ -3088,8 +3014,7 @@ function MDT:ImportPreset(preset, fromLiveSession)
     for k, v in pairs(db.presets[db.currentDungeonIdx]) do
       countPresets = countPresets + 1
     end
-    db.presets[db.currentDungeonIdx][countPresets + 1] = db.presets[db.currentDungeonIdx]
-    [countPresets]                                                                                      --put <New Preset> at the end of the list
+    db.presets[db.currentDungeonIdx][countPresets + 1] = db.presets[db.currentDungeonIdx][countPresets] --put <New Preset> at the end of the list
     db.presets[db.currentDungeonIdx][countPresets] = preset
     db.currentPreset[db.currentDungeonIdx] = countPresets
     self.liveUpdateFrameOpen = nil
@@ -3133,18 +3058,18 @@ end
 ---Stores r g b values for coloring pulls with MDT:ColorPull()
 local colorPaletteValues = {
   [1] = { --Rainbow values
-    [1] = { [1] = 0.2446,[2] = 1,[3] = 0.2446 },
-    [2] = { [1] = 0.2446,[2] = 1,[3] = 0.6223 },
-    [3] = { [1] = 0.2446,[2] = 1,[3] = 1 },
-    [4] = { [1] = 0.2446,[2] = 0.6223,[3] = 1 },
-    [5] = { [1] = 0.2446,[2] = 0.2446,[3] = 1 },
-    [6] = { [1] = 0.6223,[2] = 0.6223,[3] = 1 },
-    [7] = { [1] = 1,[2] = 0.2446,[3] = 1 },
-    [8] = { [1] = 1,[2] = 0.2446,[3] = 0.6223 },
-    [9] = { [1] = 1,[2] = 0.2446,[3] = 0.2446 },
-    [10] = { [1] = 1,[2] = 0.60971,[3] = 0.2446 },
-    [11] = { [1] = 1,[2] = 0.98741,[3] = 0.2446 },
-    [12] = { [1] = 0.63489,[2] = 1,[3] = 0.2446 },
+    [1] = { [1] = 0.2446, [2] = 1, [3] = 0.2446 },
+    [2] = { [1] = 0.2446, [2] = 1, [3] = 0.6223 },
+    [3] = { [1] = 0.2446, [2] = 1, [3] = 1 },
+    [4] = { [1] = 0.2446, [2] = 0.6223, [3] = 1 },
+    [5] = { [1] = 0.2446, [2] = 0.2446, [3] = 1 },
+    [6] = { [1] = 0.6223, [2] = 0.6223, [3] = 1 },
+    [7] = { [1] = 1, [2] = 0.2446, [3] = 1 },
+    [8] = { [1] = 1, [2] = 0.2446, [3] = 0.6223 },
+    [9] = { [1] = 1, [2] = 0.2446, [3] = 0.2446 },
+    [10] = { [1] = 1, [2] = 0.60971, [3] = 0.2446 },
+    [11] = { [1] = 1, [2] = 0.98741, [3] = 0.2446 },
+    [12] = { [1] = 0.63489, [2] = 1, [3] = 0.2446 },
     --[13] = {[1]=1, [2]=0.2446, [3]=0.54676},
     --[14] = {[1]=1, [2]=0.2446, [3]=0.32014},
     --[15] = {[1]=1, [2]=0.38309, [3]=0.2446},
@@ -3155,33 +3080,33 @@ local colorPaletteValues = {
     --[20] = {[1]=0.48381, [2]=1, [3]=0.2446},
   },
   [2] = { --Black and Yellow values
-    [1] = { [1] = 0.4,[2] = 0.4,[3] = 0.4 },
-    [2] = { [1] = 1,[2] = 1,[3] = 0.0 },
+    [1] = { [1] = 0.4, [2] = 0.4, [3] = 0.4 },
+    [2] = { [1] = 1, [2] = 1, [3] = 0.0 },
   },
   [3] = { --Red, Green and Blue values
-    [1] = { [1] = 0.85882,[2] = 0.058824,[3] = 0.15294 },
-    [2] = { [1] = 0.49804,[2] = 1.0,[3] = 0.0 },
-    [3] = { [1] = 0.0,[2] = 0.50196,[3] = 1.0 },
+    [1] = { [1] = 0.85882, [2] = 0.058824, [3] = 0.15294 },
+    [2] = { [1] = 0.49804, [2] = 1.0, [3] = 0.0 },
+    [3] = { [1] = 0.0, [2] = 0.50196, [3] = 1.0 },
   },
   [4] = { --High Contrast values
-    [1] = { [1] = 1,[2] = 0.2446,[3] = 1 },
-    [2] = { [1] = 0.2446,[2] = 1,[3] = 0.6223 },
-    [3] = { [1] = 1,[2] = 0.2446,[3] = 0.2446 },
-    [4] = { [1] = 0.2446,[2] = 0.6223,[3] = 1 },
-    [5] = { [1] = 1,[2] = 0.98741,[3] = 0.2446 },
-    [6] = { [1] = 0.2446,[2] = 1,[3] = 0.2446 },
-    [7] = { [1] = 1,[2] = 0.2446,[3] = 0.6223 },
-    [8] = { [1] = 0.2446,[2] = 1,[3] = 1 },
-    [9] = { [1] = 1,[2] = 0.60971,[3] = 0.2446 },
-    [10] = { [1] = 0.2446,[2] = 0.2446,[3] = 1 },
-    [11] = { [1] = 0.63489,[2] = 1,[3] = 0.2446 },
+    [1] = { [1] = 1, [2] = 0.2446, [3] = 1 },
+    [2] = { [1] = 0.2446, [2] = 1, [3] = 0.6223 },
+    [3] = { [1] = 1, [2] = 0.2446, [3] = 0.2446 },
+    [4] = { [1] = 0.2446, [2] = 0.6223, [3] = 1 },
+    [5] = { [1] = 1, [2] = 0.98741, [3] = 0.2446 },
+    [6] = { [1] = 0.2446, [2] = 1, [3] = 0.2446 },
+    [7] = { [1] = 1, [2] = 0.2446, [3] = 0.6223 },
+    [8] = { [1] = 0.2446, [2] = 1, [3] = 1 },
+    [9] = { [1] = 1, [2] = 0.60971, [3] = 0.2446 },
+    [10] = { [1] = 0.2446, [2] = 0.2446, [3] = 1 },
+    [11] = { [1] = 0.63489, [2] = 1, [3] = 0.2446 },
   },
   [5] = { --Color Blind Friendly values (Based on IBM's color library "Color blind safe"
-    [1] = { [1] = 0.39215686274509803,[2] = 0.5607843137254902,[3] = 1.0 },
+    [1] = { [1] = 0.39215686274509803, [2] = 0.5607843137254902, [3] = 1.0 },
     --[2] = {[1]=0.47058823529411764, [2]=0.3686274509803922, [3]=0.9411764705882353},
-    [2] = { [1] = 0.8627450980392157,[2] = 0.14901960784313725,[3] = 0.4980392156862745 },
-    [3] = { [1] = 0.996078431372549,[2] = 0.3803921568627451,[3] = 0.0 },
-    [4] = { [1] = 1.0,[2] = 0.6901960784313725,[3] = 0.0 },
+    [2] = { [1] = 0.8627450980392157, [2] = 0.14901960784313725, [3] = 0.4980392156862745 },
+    [3] = { [1] = 0.996078431372549, [2] = 0.3803921568627451, [3] = 0.0 },
+    [4] = { [1] = 1.0, [2] = 0.6901960784313725, [3] = 0.0 },
   },
 }
 
@@ -3236,11 +3161,8 @@ function MDT:ColorPull(colorValues, pullIdx, preset, bypass, exportColorBlind) -
         numberColors = #colorValues
       else
         --Regular coloring
-        colorValues = colorValues or colorPaletteValues[colorValues] or
-            colorPaletteInfo.colorPaletteIdx == 6 and colorPaletteInfo.customPaletteValues or
-            colorPaletteValues[colorPaletteInfo.colorPaletteIdx]
-        numberColors = colorPaletteInfo.colorPaletteIdx == 6 and colorPaletteInfo.numberCustomColors or
-        #colorValues                                                                                                 -- tables must start from 1 and have no blank rows
+        colorValues = colorValues or colorPaletteValues[colorValues] or colorPaletteInfo.colorPaletteIdx == 6 and colorPaletteInfo.customPaletteValues or colorPaletteValues[colorPaletteInfo.colorPaletteIdx]
+        numberColors = colorPaletteInfo.colorPaletteIdx == 6 and colorPaletteInfo.numberCustomColors or #colorValues -- tables must start from 1 and have no blank rows
       end
       local colorIdx = (pullIdx - 1) % numberColors + 1
       r, g, b = colorValues[colorIdx][1], colorValues[colorIdx][2], colorValues[colorIdx][3]
@@ -3310,7 +3232,7 @@ function MDT:MakeCustomColorFrame(frame)
       ColorPicker[i]:SetColor(db.colorPaletteInfo.customPaletteValues[i][1],
         db.colorPaletteInfo.customPaletteValues[i][2], db.colorPaletteInfo.customPaletteValues[i][3])
     end
-    ColorPicker[i]:SetLabel(" " .. i)
+    ColorPicker[i]:SetLabel(" "..i)
     ColorPicker[i]:SetRelativeWidth(0.25)
     ColorPicker[i]:SetHeight(15)
     ColorPicker[i]:SetCallback("OnValueConfirmed", function(widget, event, r, g, b)
@@ -3583,7 +3505,7 @@ function MDT:SetMapSublevel(pull)
   return shouldResetZoom
 end
 
-function MDT:SetSelectionToPull(pull,ignoreHulls)
+function MDT:SetSelectionToPull(pull, ignoreHulls)
   --if pull is not specified set pull to last pull in preset (for adding new pulls)
   if not pull then
     local count = 0
@@ -3642,18 +3564,15 @@ function MDT:UpdatePullButtonNPCData(idx)
                 enemyTable[enemyTableIdx].quantity = enemyTable[enemyTableIdx].quantity or 0
                 enemyTable[enemyTableIdx].npcId = npcId
                 enemyTable[enemyTableIdx].count = MDT.dungeonEnemies[db.currentDungeonIdx][enemyIdx]["count"]
-                enemyTable[enemyTableIdx].teemingCount = MDT.dungeonEnemies[db.currentDungeonIdx][enemyIdx][
-                "teemingCount"]
+                enemyTable[enemyTableIdx].teemingCount = MDT.dungeonEnemies[db.currentDungeonIdx][enemyIdx]["teemingCount"]
                 enemyTable[enemyTableIdx].displayId = MDT.dungeonEnemies[db.currentDungeonIdx][enemyIdx]["displayId"]
                 enemyTable[enemyTableIdx].quantity = enemyTable[enemyTableIdx].quantity + 1
                 enemyTable[enemyTableIdx].name = name
                 enemyTable[enemyTableIdx].level = level
                 enemyTable[enemyTableIdx].creatureType = creatureType
                 enemyTable[enemyTableIdx].baseHealth = baseHealth
-                enemyTable[enemyTableIdx].ignoreFortified = MDT.dungeonEnemies[db.currentDungeonIdx][enemyIdx][
-                "ignoreFortified"]
-                enemyTable[enemyTableIdx].isBoss = MDT.dungeonEnemies[db.currentDungeonIdx][enemyIdx][
-                "isBoss"]
+                enemyTable[enemyTableIdx].ignoreFortified = MDT.dungeonEnemies[db.currentDungeonIdx][enemyIdx]["ignoreFortified"]
+                enemyTable[enemyTableIdx].isBoss = MDT.dungeonEnemies[db.currentDungeonIdx][enemyIdx]["isBoss"]
               end
             end
           end
@@ -3663,8 +3582,6 @@ function MDT:UpdatePullButtonNPCData(idx)
   end
   frame.newPullButtons[idx]:SetNPCData(enemyTable)
 
-  if db.MDI.enabled and preset.mdi.beguiling == 13 then
-  end
   --display reaping icon
   local pullForces = MDT:CountForces(idx, false)
   local totalForcesMax = MDT:IsCurrentPresetTeeming() and MDT.dungeonTotalCount[db.currentDungeonIdx].teeming or
@@ -3677,12 +3594,7 @@ function MDT:UpdatePullButtonNPCData(idx)
     oldPullForces = MDT:CountForces(idx - 1, false)
   end
   local oldPercent = oldPullForces / totalForcesMax
-  if (math.floor(currentPercent / 0.2) > math.floor(oldPercent / 0.2)) and oldPercent < 1 and db.MDI.enabled and
-      preset.mdi.beguiling == 13 then
-    frame.newPullButtons[idx]:ShowReapingIcon(true, currentPercent, oldPercent)
-  else
-    frame.newPullButtons[idx]:ShowReapingIcon(false, currentPercent, oldPercent)
-  end
+  frame.newPullButtons[idx]:ShowReapingIcon(false, currentPercent, oldPercent)
   --prideful icon
   if (math.floor(currentPercent / 0.2) > math.floor(oldPercent / 0.2)) and oldPercent < 1 and db.currentSeason == 5 then
     frame.newPullButtons[idx]:ShowPridefulIcon(true, currentPercent, oldPercent)
@@ -3802,7 +3714,9 @@ function MDT:PickPullButton(idx, keepPicked)
     MDT:ClearPullButtonPicks()
   end
   local frame = MDT.main_frame.sidePanel
-  frame.newPullButtons[idx]:Pick()
+  if frame.newPullButtons[idx] then
+    frame.newPullButtons[idx]:Pick()
+  end
 end
 
 ---Creates a new pull in the current preset and calls ReloadPullButtons to reflect the change in the scrollframe
@@ -3932,7 +3846,7 @@ function MDT:MakeRenameFrame(frame)
 
   local renameText
   frame.RenameFrame.Editbox = AceGUI:Create("EditBox")
-  frame.RenameFrame.Editbox:SetLabel(L["Preset Name"] .. ":")
+  frame.RenameFrame.Editbox:SetLabel(L["Preset Name"]..":")
   frame.RenameFrame.Editbox:SetWidth(200)
   frame.RenameFrame.Editbox:SetCallback("OnTextChanged", function(widget, event, text)
     --check if name is valid, block button if so, unblock if valid
@@ -3977,16 +3891,45 @@ function MDT:MakeExportFrame(frame)
   frame.ExportFrame:SetCallback("OnClose", function(widget)
 
   end)
-
   frame.ExportFrameEditbox = AceGUI:Create("MultiLineEditBox")
   frame.ExportFrameEditbox:SetWidth(600)
   frame.ExportFrameEditbox:DisableButton(true)
   frame.ExportFrameEditbox:SetNumLines(20)
-  frame.ExportFrameEditbox:SetCallback("OnEnterPressed", function(widget, event, text)
 
+  function frame.ExportFrameEditbox:SelectAll()
+    local text = frame.ExportFrameEditbox:GetText()
+    frame.ExportFrameEditbox:HighlightText(0, string.len(text))
+    frame.ExportFrameEditbox:SetFocus()
+  end
+
+  local selectAllButton
+  frame.ExportFrameEditbox.editBox:HookScript('OnEditFocusLost', function()
+    MDT.copyHelper:Hide()
+  end);
+
+  frame.ExportFrameEditbox.editBox:SetScript('OnKeyUp', function(_, key)
+    if (MDT.copyHelper:WasControlKeyDown() and key == 'A') then
+      return
+    end
+    if (MDT.copyHelper:WasControlKeyDown() and key == 'C') then
+      frame.ExportFrameEditbox:ClearFocus();
+      frame.ExportFrame:Hide()
+      MDT.copyHelper:SmartFadeOut()
+      return
+    end
+  end);
+
+  frame.ExportFrameSelectAllButton = AceGUI:Create("Button")
+  selectAllButton = frame.ExportFrameSelectAllButton
+  selectAllButton:SetText(L["Select all"])
+  selectAllButton:SetHeight(40)
+  selectAllButton:SetCallback("OnClick", function(widget, callbackName, value)
+    frame.ExportFrameEditbox:SelectAll()
+    MDT.copyHelper:SmartShow(frame, 0, 50)
   end)
+
   frame.ExportFrame:AddChild(frame.ExportFrameEditbox)
-  --frame.presetCreationFrame:SetStatusText("AceGUI-3.0 Example Container Frame")
+  frame.ExportFrame:AddChild(selectAllButton)
   frame.ExportFrame:Hide()
 end
 
@@ -4051,8 +3994,10 @@ function MDT:MakeClearConfirmationFrame(frame)
   frame.ClearConfirmationFrame.OkayButton:SetWidth(100)
   frame.ClearConfirmationFrame.OkayButton:SetCallback("OnClick", function()
     self:ClearPreset(self:GetCurrentPreset())
-    if self.liveSessionActive and self:GetCurrentPreset().uid == self.livePresetUID then MDT:LiveSession_SendCommand(
-      "clear") end
+    if self.liveSessionActive and self:GetCurrentPreset().uid == self.livePresetUID then
+      MDT:LiveSession_SendCommand(
+        "clear")
+    end
     frame.ClearConfirmationFrame:Hide()
   end)
   frame.ClearConfirmationFrame.CancelButton = AceGUI:Create("Button")
@@ -4142,19 +4087,19 @@ function MDT:CreateTutorialButton(parent)
   local helpPlate = {
     FramePos = { x = 0, y = 0 },
     FrameSize = { width = sizex, height = sizey },
-    [1] = { ButtonPos = { x = 205, y = 0 }, HighLightBox = { x = 0, y = 0, width = 200, height = 56 },
+    [1] = { ButtonPos = { x = 160, y = 0 }, HighLightBox = { x = 0, y = 0, width = 170, height = 40 },
       ToolTipDir = "RIGHT", ToolTipText = L["helpPlateDungeonSelect"] },
     [2] = { ButtonPos = { x = 205, y = -210 * scale },
-      HighLightBox = { x = 0, y = -58, width = (sizex - 6) * scale, height = (sizey * scale) - 58 }, ToolTipDir = "RIGHT",
+      HighLightBox = { x = 0, y = -58, width = (sizex - 6) * scale * 0.84, height = (sizey * scale * 0.82) - 58 }, ToolTipDir = "RIGHT",
       ToolTipText = string.format(L["helpPlateNPC"], "\n", "\n") },
-    [3] = { ButtonPos = { x = 900 * scale, y = 0 * scale },
-      HighLightBox = { x = 838 * scale, y = 30, width = 251, height = 115 }, ToolTipDir = "LEFT",
+    [3] = { ButtonPos = { x = 800 * scale, y = 0 * scale },
+      HighLightBox = { x = 703 * scale, y = 30, width = 210, height = 105 }, ToolTipDir = "LEFT",
       ToolTipText = L["helpPlatePresets"] },
-    [4] = { ButtonPos = { x = 900 * scale, y = -87 * scale },
-      HighLightBox = { x = 838 * scale, y = 30 - 115, width = 251, height = 102 }, ToolTipDir = "LEFT",
+    [4] = { ButtonPos = { x = 800 * scale, y = -87 * scale },
+      HighLightBox = { x = 703 * scale, y = 30 - 105, width = 210, height = 95 }, ToolTipDir = "LEFT",
       ToolTipText = L["helpPlateDungeon"] },
-    [5] = { ButtonPos = { x = 900 * scale, y = -(115 + 102 * scale) },
-      HighLightBox = { x = 838 * scale, y = (30 - (115 + 102)), width = 251, height = (sidePanelHeight) + 43 },
+    [5] = { ButtonPos = { x = 800 * scale, y = -(115 + 102 * scale) },
+      HighLightBox = { x = 703 * scale, y = (30 - (105 + 102)), width = 210, height = (sidePanelHeight - 30) },
       ToolTipDir = "LEFT", ToolTipText = string.format(L["helpPlatePulls"], "\n") },
   }
   if not parent.HelpButton then
@@ -4203,7 +4148,7 @@ end
 function MDT:HexToRGB(rgb)
   if string.len(rgb) == 6 then
     local r, g, b
-    r, g, b = tonumber('0x' .. strsub(rgb, 0, 2)), tonumber('0x' .. strsub(rgb, 3, 4)), tonumber('0x' ..
+    r, g, b = tonumber('0x'..strsub(rgb, 0, 2)), tonumber('0x'..strsub(rgb, 3, 4)), tonumber('0x'..
       strsub(rgb, 5, 6))
     if not r then r = 0 else r = r / 255 end
     if not g then g = 0 else g = g / 255 end
@@ -4537,7 +4482,7 @@ function MDT:ResetMainFramePos(soft)
     f:SetPoint(db.anchorTo, UIParent, db.anchorFrom, db.xoffset, db.yoffset)
   end
   local co = coroutine.create(func)
-  MDT.coHandler:AddAction("resetMainFramePos",co)
+  MDT.coHandler:AddAction("resetMainFramePos", co)
 end
 
 function MDT:DropIndicator()
@@ -4673,33 +4618,33 @@ end
 
 -- credit to WeakAuras
 function MDT:CreateCoroutineHandler()
-    local coHandler = {}
-    coHandler.frame = CreateFrame("Frame")
-    coHandler.update = {}
-    coHandler.size = 0
+  local coHandler = {}
+  coHandler.frame = CreateFrame("Frame")
+  coHandler.update = {}
+  coHandler.size = 0
 
-    function coHandler.AddAction(self, name, func)
-        if not name then
-            name = string.format("NIL", coHandler.size+1);
-        end
-        if not coHandler.update[name] then
-            coHandler.update[name] = func;
-            coHandler.size = coHandler.size + 1
-            coHandler.frame:Show();
-        end
+  function coHandler.AddAction(self, name, func)
+    if not name then
+      name = string.format("NIL", coHandler.size + 1);
     end
-
-    function coHandler.RemoveAction(self, name)
-        if coHandler.update[name] then
-            coHandler.update[name] = nil;
-            coHandler.size = coHandler.size - 1
-            if coHandler.size == 0 then
-                coHandler.frame:Hide();
-            end
-        end
+    if not coHandler.update[name] then
+      coHandler.update[name] = func;
+      coHandler.size = coHandler.size + 1
+      coHandler.frame:Show();
     end
+  end
 
-    -- Setup frame
+  function coHandler.RemoveAction(self, name)
+    if coHandler.update[name] then
+      coHandler.update[name] = nil;
+      coHandler.size = coHandler.size - 1
+      if coHandler.size == 0 then
+        coHandler.frame:Hide();
+      end
+    end
+  end
+
+  -- Setup frame
   coHandler.frame:Hide();
   coHandler.frame:SetScript("OnUpdate", function(self, elapsed)
     -- Start timing
@@ -4707,7 +4652,7 @@ function MDT:CreateCoroutineHandler()
     local hasData = true;
 
     -- Resume
-    while (debugprofilestop() - start < max(1,((InCombatLockdown() and IsInInstance()) and 8 or 40) - (elapsed * 1000)) and hasData) do
+    while (debugprofilestop() - start < max(1, ((InCombatLockdown() and IsInInstance()) and 8 or 40) - (elapsed * 1000)) and hasData) do
       -- Stop loop without data
       hasData = false;
 
@@ -4720,7 +4665,7 @@ function MDT:CreateCoroutineHandler()
         if coroutine.status(func) ~= "dead" then
           local ok, msg = coroutine.resume(func)
           if not ok then
-            geterrorhandler()(msg .. '\n' .. debugstack(func))
+            MDT:OnError(msg, debugstack(func), name)
           end
         else
           coHandler:RemoveAction(name);
@@ -4731,9 +4676,9 @@ function MDT:CreateCoroutineHandler()
   MDT.coHandler = coHandler
 end
 
-function MDT:Async(func,name)
+function MDT:Async(func, name)
   local co = coroutine.create(func)
-  MDT.coHandler:AddAction(name,co)
+  MDT.coHandler:AddAction(name, co)
 end
 
 MDT:CreateCoroutineHandler()
@@ -4744,14 +4689,16 @@ function initFrames()
       module:OnInitialize()
     end
   end
+  MDT:RegisterErrorHandledFunctions()
 
-  local initSpinner = CreateFrame("Button", "MDTInitSpinner", UIParent,"LoadingSpinnerTemplate")
-  initSpinner.BackgroundFrame.Background:SetVertexColor(0,1,0,1)
-  initSpinner.AnimFrame.Circle:SetVertexColor(0,1,0,1)
-  initSpinner:SetPoint("CENTER", UIParent, "CENTER",0,150)
+  local initSpinner = CreateFrame("Button", "MDTInitSpinner", UIParent, "LoadingSpinnerTemplate")
+  initSpinner.BackgroundFrame.Background:SetVertexColor(0, 1, 0, 1)
+  initSpinner.AnimFrame.Circle:SetVertexColor(0, 1, 0, 1)
+  initSpinner:SetPoint("CENTER", UIParent, "CENTER", 0, 150)
   initSpinner:SetSize(60, 60)
   initSpinner:Show()
   initSpinner.Anim:Play()
+  MDT.initSpinner = initSpinner
 
   local main_frame = CreateFrame("frame", "MDTFrame", UIParent)
   main_frame:Hide()
@@ -4800,6 +4747,7 @@ function initFrames()
   MDT:CheckCurrentZone(true)
   MDT:EnsureDBTables()
   MDT:MakeTopBottomTextures(main_frame)
+  MDT:MakeCopyHelper(main_frame)
   coroutine.yield()
   MDT:MakeMapTexture(main_frame)
   coroutine.yield()
@@ -4839,13 +4787,11 @@ function initFrames()
     MDT:CreateDevPanel(MDT.main_frame)
   end
 
-  if not db.MDI.enabled then
-    db.currentSeason = defaultSavedVars.global.currentSeason
-  end
+  db.currentSeason = defaultSavedVars.global.currentSeason
 
   --ElvUI skinning
   local skinTooltip = function(tooltip)
-    if IsAddOnLoaded("ElvUI") and ElvUI[1].Tooltip then
+    if IsAddOnLoaded("ElvUI") and ElvUI and ElvUI[1].Tooltip then
       if not tooltip.SetBackdrop then
         Mixin(tooltip, BackdropTemplateMixin)
       end
@@ -4986,14 +4932,13 @@ function initFrames()
   MDT:UpdateToDungeon(db.currentDungeonIdx)
   coroutine.yield()
 
-  --Maximize if needed
-  if db.maximized then MDT:Maximize() end
-
   if MDT:IsFrameOffScreen() then
     MDT:ResetMainFramePos()
   end
 
   framesInitialized = true
+  --Maximize if needed
+  if db.maximized then MDT:Maximize() end
   initSpinner:Hide()
   initSpinner.Anim:Stop()
 end

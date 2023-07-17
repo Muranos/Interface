@@ -1,6 +1,6 @@
 # World Quest Tracker
 
-## [v10.0.7.465](https://github.com/Tercioo/World-Quest-Tracker/tree/v10.0.7.465) (2023-04-06)
-[Full Changelog](https://github.com/Tercioo/World-Quest-Tracker/compare/v10.0.5.464...v10.0.7.465) 
+## [v10.1.5.471](https://github.com/Tercioo/World-Quest-Tracker/tree/v10.1.5.471) (2023-07-16)
+[Full Changelog](https://github.com/Tercioo/World-Quest-Tracker/compare/v10.1.0.470...v10.1.5.471) 
 
-- ToC Update  
+- Framework, Toc Updates, Added /wqt options command  

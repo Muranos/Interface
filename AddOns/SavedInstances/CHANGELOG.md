@@ -1,14 +1,11 @@
 # SavedInstances
 
-## [10.0.12](https://github.com/SavedInstances/SavedInstances/tree/10.0.12) (2023-04-14)
-[Full Changelog](https://github.com/SavedInstances/SavedInstances/compare/10.0.11...10.0.12) [Previous Releases](https://github.com/SavedInstances/SavedInstances/releases)
+## [10.1.5](https://github.com/SavedInstances/SavedInstances/tree/10.1.5) (2023-07-15)
+[Full Changelog](https://github.com/SavedInstances/SavedInstances/compare/10.1.4...10.1.5) [Previous Releases](https://github.com/SavedInstances/SavedInstances/releases)
 
-- feat: track Aiding the Accord: Zskera Vault  
-    fixes #718  
-- fix: Catalyst Charges' weekly max and earned this week means nothing but mark character saved  
-    fixes #714  
-- feat: track Shadehounds by id that tracks mount droping  
-    closes #715  
-- feat: track more Storm Sigils loots  
-    closes #713  
-- fix: fix Stanzilla/WoWUIBugs#404  
+- feat: add Time Rift Weekly Gear Token  
+- feat: add Paracausal Flakes  
+- feat: mark When Time Needs Mending account weekly  
+- fix: fix bonus roll tooltip error  
+- feat: add Aiding the Accord: Time Rift  
+- fix: replace READY\_CHECK\_READY\_TEXTURE and READY\_CHECK\_WAITING\_TEXTURE to build-in string since it changed to atlas in Patch 10.1.5  

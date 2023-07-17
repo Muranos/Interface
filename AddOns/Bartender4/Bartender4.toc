@@ -1,9 +1,10 @@
-## Interface: 100007
+## Interface: 100100
 
 ## Title: Bartender4
 ## Notes: Simple and Advanced combined - Bartender4 ActionBar AddOn
+## IconTexture: Interface\Icons\INV_Drink_05
 
-## Version: 4.14.8
+## Version: 4.14.10
 
 ## Author: Nevcairiel
 ## X-Email: h.leppkes at gmail dot com

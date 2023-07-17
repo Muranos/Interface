@@ -82,6 +82,7 @@ local _specialQuests = {
   [71033] = { name=L["Trial of Flood"] }, -- Trial of Flood
   [71995] = { name=L["Trial of Elements"] }, -- Trial of Elements
   [73162] = { name=L["Storm's Fury"] }, -- Storm's Fury
+  [77836] = { name=L["Time Rift"] }, -- Time Rift Weekly Gear Token
   -- Draconic Treatise
   [74105] = { lid=194699 }, -- Draconic Treatise on Inscription
   [74106] = { lid=194708 }, -- Draconic Treatise on Mining
@@ -355,6 +356,10 @@ local QuestExceptions = {
   [72374] = "Weekly", -- Aiding the Accord: Dragonbane Keep
   [72375] = "Weekly", -- Aiding the Accord: The Isles Call
   [75259] = "Weekly", -- Aiding the Accord: Zskera Vault
+  [75859] = "Weekly", -- Aiding the Accord: Sniffenseeking
+  [75860] = "Weekly", -- Aiding the Accord: Researchers Under Fire
+  [75861] = "Weekly", -- Aiding the Accord: Suffusion Camp
+  [77254] = "Weekly", -- Aiding the Accord: Time Rift
   -- Fishing Weeklies
   [70199] = "Weekly", -- Catch and Release: Scalebelly Mackerel
   [70200] = "Weekly", -- Catch and Release: Thousandbite Piranha
@@ -449,6 +454,20 @@ local QuestExceptions = {
   [72686] = "Weekly", -- Storm Surge
   -- Revival Catalyst
   [72528] = "AccountWeekly", -- Revival Catalyst
+  -- Zaralek Cavern Professions
+  [75286] = "Weekly", -- Blacksmith's Back
+  [75288] = "Weekly", -- Enchanted Tales with Topuiz
+  [75289] = "Weekly", -- Ink Master
+  [75301] = "Weekly", -- Mistie's Mix Magic
+  [75304] = "Weekly", -- I Need... a Tailor
+  [75307] = "Weekly", -- Road to Season City
+  [75308] = "Weekly", -- Scrybbil Engineering
+  [75309] = "Weekly", -- If a Gem Isn't Pretty
+  [75351] = "Weekly", -- Keep a Leather Eye Open
+  -- Other Weeklies
+  [75665] = "Weekly", -- A Worthy Ally: Loamm Niffen
+  [76122] = "Weekly", -- Fighting is Its Own Reward
+  [77236] = "AccountWeekly", -- When Time Needs Mending
 
   -- General
   -- Darkmoon Faire
@@ -473,9 +492,9 @@ local QuestExceptions = {
 
   -- Weekend Event
   [72728] = "Weekly", -- The World Awaits - World Quests
-  -- [62632] = "Weekly", -- A Burning Path Through Time - TBC Timewalking
-  -- [62633] = "Weekly", -- A Frozen Path Through Time - WLK Timewalking
-  -- [62634] = "Weekly", -- A Shattered Path Through Time - CTM Timewalking
+  [72727] = "Weekly", -- A Burning Path Through Time - TBC Timewalking
+  [72726] = "Weekly", -- A Frozen Path Through Time - WLK Timewalking
+  [72810] = "Weekly", -- A Shattered Path Through Time - CTM Timewalking
   [72725] = "Weekly", -- A Shrouded Path Through Time - MOP Timewalking
   [72724] = "Weekly", -- A Savage Path Through Time - WOD Timewalking
   [72719] = "Weekly", -- A Fel Path Through Time - LEG Timewalking

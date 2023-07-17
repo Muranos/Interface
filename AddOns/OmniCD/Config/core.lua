@@ -27,7 +27,7 @@ do
 		end
 	end
 	fieldText.supportedUis = table.concat(t, ", ")
-	fieldText.translations = format("%s (%s), %s (%s)", RURU, "Void_OW - \"The OG\"", ZHTW, "RainbowUI")
+	fieldText.translations = format("%s (%s), %s (%s) %s (%s)", RURU, "Void_OW-\"The OG\"", ZHTW, "RainbowUI", DEDE, "drumz84")
 end
 
 local getFieldText = function(info)
@@ -54,6 +54,8 @@ local function GetOptions()
 			type = "group",
 			args = {
 				Home = {
+
+
 
 					name = format("|T%s:18|t %s", E.Libs.OmniCDC.texture.logo, E.AddOn),
 					order = 0,
@@ -278,6 +280,29 @@ local function GetOptions()
 									type = "input",
 									dialogControl = "Link-OmniCD",
 									get = function() return "https://www.curseforge.com/wow/addons/omnicd-battleres" end,
+								},
+							}
+						} or nil,
+						otherAddOns = E.isDF and {
+							name = ADDONS,
+							order = 60,
+							type = "group",
+							args = {
+								omniauras = {
+									name = "OmniAuras",
+									desc = "Track important buffs and debuffs on any Blizzard frame",
+									order = 1,
+									type = "input",
+									dialogControl = "Link-OmniCD",
+									get = function() return "https://www.curseforge.com/wow/addons/omniauras" end,
+								},
+								omnisort = {
+									name = "OmniSort",
+									desc = "Party group sorter with auto-adjusting keybinds and macros",
+									order = 2,
+									type = "input",
+									dialogControl = "Link-OmniCD",
+									get = function() return "https://www.curseforge.com/wow/addons/omnisort" end,
 								},
 							}
 						} or nil,

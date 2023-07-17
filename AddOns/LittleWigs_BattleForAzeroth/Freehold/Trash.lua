@@ -73,13 +73,13 @@ function mod:GetOptions()
 		257426, -- Brutal Backhand
 		-- Irontide Bonesaw
 		257397, -- Healing Balm
-		258323, -- Infected Wound
+		{258323, "DISPEL"}, -- Infected Wound
 		-- Irontide Crackshot
 		258672, -- Azerite Grenade
 		-- Irontide Corsair
 		257436, -- Poisoning Strike
 		-- Cutwater Duelist
-		{274400, "SAY"}, -- Duelist Dash
+		274400, -- Duelist Dash
 		--Irontide Oarsman
 		258777, -- Sea Spout
 		-- Cutwater Knife Juggler
@@ -91,26 +91,26 @@ function mod:GetOptions()
 		-- Blacktooth Knuckleduster
 		257732, -- Shattering Bellow
 		-- Bilge Rat Swabby
-		274507, -- Slippery Suds
+		{274507, "DISPEL"}, -- Slippery Suds
 		-- Vermin Trapper
 		274383, -- Rat Traps
 		-- Bilge Rat Buccaneer
 		257756, -- Goin' Bananas
 		-- Bilge Rat Padfoot
-		257775, -- Plague Step
+		{257775, "DISPEL"}, -- Plague Step
 		-- Soggy Shiprat
 		274555, -- Scabrous Bite
 		-- Irontide Crusher
-		{258181, "NAMEPLATEBAR"}, -- Boulder Throw
+		258181, -- Boulder Throw
 		258199, -- Ground Shatter
 		-- Irontide Buccaneer
 		257870, -- Blade Barrage
 		-- Irontide Ravager
-		257899, -- Painful Motivation
+		{257899, "DISPEL"}, -- Painful Motivation
 		-- Irontide Officer
-		257908, -- Oiled Blade
+		{257908, "DISPEL"}, -- Oiled Blade
 		-- Irontide Stormcaller
-		257736, -- Thundering Squal
+		257736, -- Thundering Squall
 	}, {
 		[257272] = L.sharkbait,
 		[257426] = L.irontide_enforcer,
@@ -156,9 +156,8 @@ function mod:OnBossEnable()
 	self:Log("SPELL_AURA_APPLIED", "PoisoningStrikeApplied", 257437)
 	self:Log("SPELL_AURA_APPLIED_DOSE", "PoisoningStrikeApplied", 257437)
 	-- Cutwater Duelist
-	self:Log("SPELL_CAST_START", "DuelistDash", 274400)
+	self:RegisterEvent("UNIT_SPELLCAST_START") -- for Duelist Dash
 	-- Irontide Oarsman
-	self:Log("SPELL_CAST_START", "SeaSpout", 258777)
 	self:Log("SPELL_CAST_SUCCESS", "SeaSpoutSuccess", 258777)
 	-- Cutwater Knife Juggler
 	self:Log("SPELL_CAST_START", "RicochetingThrow", 272402)
@@ -172,7 +171,7 @@ function mod:OnBossEnable()
 	self:Log("SPELL_CAST_START", "SlipperySuds", 274507)
 	self:Log("SPELL_AURA_APPLIED", "SlipperySudsApplied", 274507)
 	-- Vermin Trapper
-	self:Log("SPELL_CAST_START", "RatTraps", 274383)
+	self:Log("SPELL_CAST_SUCCESS", "RatTraps", 274383)
 	-- Bilge Rat Buccaneer
 	self:Log("SPELL_CAST_START", "GoinBananas", 257756)
 	-- Bilge Rat Padfoot
@@ -189,6 +188,7 @@ function mod:OnBossEnable()
 	self:Log("SPELL_CAST_START", "PainfulMotivation", 257899)
 	self:Log("SPELL_AURA_APPLIED", "PainfulMotivationApplied", 257899)
 	-- Irontide Officer
+	self:Log("SPELL_CAST_START", "OiledBlade", 257908)
 	self:Log("SPELL_AURA_APPLIED", "OiledBladeApplied", 257908)
 	-- Irontide Stormcaller
 	self:Log("SPELL_CAST_START", "ThunderingSquall", 257736)
@@ -201,6 +201,8 @@ end
 -- Sharkbait
 
 function mod:VileBombardment(args)
+	self:Message(args.spellId, "yellow")
+	self:PlaySound(args.spellId, "alert")
 	self:Bar(args.spellId, 16.0)
 end
 
@@ -221,15 +223,20 @@ end
 -- Irontide Enforcer
 
 function mod:BrutalBackhand(args)
-	self:Message(args.spellId, "purple")
+	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alarm")
+	--self:NameplateCDBar(args.spellId, 18.2, args.sourceGUID)
 end
 
 -- Irontide Bonesaw
 
 function mod:HealingBalm(args)
-	self:Message(args.spellId, "yellow")
+	if self:Friendly(args.sourceFlags) then -- these NPCs can be mind-controlled by Priests
+		return
+	end
+	self:Message(args.spellId, "yellow", CL.casting:format(args.spellName))
 	self:PlaySound(args.spellId, "warning")
+	--self:NameplateCDBar(args.spellId, 25.5, args.sourceGUID)
 end
 
 function mod:HealingBalmApplied(args)
@@ -241,18 +248,21 @@ function mod:HealingBalmApplied(args)
 end
 
 function mod:InfectedWoundApplied(args)
-	-- TODO or poison dispel?
-	if self:Me(args.destGUID) then
-		self:PersonalMessage(args.spellId)
-		self:PlaySound(args.spellId, "alert")
+	if self:Me(args.destGUID) or self:Dispeller("poison", nil, args.spellId) then
+		self:TargetMessage(args.spellId, "yellow", args.destName)
+		self:PlaySound(args.spellId, "alert", nil, args.destName)
 	end
 end
 
 -- Irontide Crackshot
 
 function mod:AzeriteGrenade(args)
+	if self:Friendly(args.sourceFlags) then -- these NPCs can be mind-controlled by Priests
+		return
+	end
 	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alarm")
+	--self:NameplateCDBar(args.spellId, 23.0, args.sourceGUID)
 end
 
 -- Irontide Corsair
@@ -268,30 +278,24 @@ end
 -- Cutwater Duelist
 
 do
-	local function printTarget(self, name, guid)
-		if self:Me(guid) then
-			self:Say(274400)
+	local prev = nil
+	function mod:UNIT_SPELLCAST_START(_, unit, castGUID, spellId)
+		-- this is needed because Duelist Dash does not log SPELL_CAST_START
+		if spellId == 274400 and castGUID ~= prev then -- Duelist Dash
+			prev = castGUID
+			self:Message(274400, "red")
+			self:PlaySound(274400, "alarm")
+			--self:NameplateCDBar(274400, 17.0, self:UnitGUID(unit))
 		end
-		self:TargetMessage(274400, "red", name)
-		self:PlaySound(274400, "alarm", nil, name)
-	end
-
-	function mod:DuelistDash(args)
-		-- TODO this is broken on PTR, SPELL_CAST_START never fires
-		self:GetUnitTarget(printTarget, 0.1, args.sourceGUID)
 	end
 end
 
 -- Irontide Oarsman
 
-function mod:SeaSpout(args)
-	self:Message(args.spellId, "yellow", CL.casting:format(args.spellName))
-	self:PlaySound(args.spellId, "alert")
-end
-
 function mod:SeaSpoutSuccess(args)
 	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alarm")
+	--self:NameplateCDBar(args.spellId, 17.0, args.sourceGUID)
 end
 
 -- Cutwater Knife Juggler
@@ -314,7 +318,11 @@ do
 	end
 
 	function mod:RicochetingThrow(args)
+		if self:Friendly(args.sourceFlags) then -- these NPCs can be mind-controlled by Priests
+			return
+		end
 		self:GetUnitTarget(printTarget, 0.1, args.sourceGUID)
+		--self:NameplateCDBar(args.spellId, 8.5, args.sourceGUID)
 	end
 end
 
@@ -323,16 +331,21 @@ end
 do
 	local prev = 0
 	function mod:FrostBlast(args)
+		if self:Friendly(args.sourceFlags) then -- these NPCs can be mind-controlled by Priests
+			return
+		end
 		local t = args.time
 		if t - prev > 2 then
 			prev = t
-			self:Message(args.spellId, "purple", CL.casting:format(args.spellName))
+			self:Message(args.spellId, "red", CL.casting:format(args.spellName))
 			self:PlaySound(args.spellId, "alarm")
 		end
+		--self:NameplateCDBar(args.spellId, 27.9, args.sourceGUID)
 	end
 end
 
 -- Blacktooth Scrapper
+
 do
 	local prev = 0
 	function mod:BlindRageApplied(args)
@@ -344,27 +357,42 @@ do
 				self:PlaySound(args.spellId, "alarm")
 			end
 		end
+		--self:NameplateCDBar(args.spellId, 30.3, args.sourceGUID)
 	end
 end
 
 -- Blacktooth Knuckleduster
 
 function mod:ShatteringBellow(args)
-	self:Message(args.spellId, "red", CL.casting:format(args.spellName))
-	self:PlaySound(args.spellId, "warning")
+	self:Message(args.spellId, "red")
+	self:PlaySound(args.spellId, "alarm")
+	--self:NameplateCDBar(args.spellId, 27.9, args.sourceGUID)
 end
 
 -- Bilge Rat Swabby
 
-function mod:SlipperySuds(args)
-	self:Message(args.spellId, "red")
-	self:PlaySound(args.spellId, "long")
+do
+	local prev = 0
+	function mod:SlipperySuds(args)
+		local t = args.time
+		if t - prev > 2 then
+			prev = t
+			self:Message(args.spellId, "yellow")
+			self:PlaySound(args.spellId, "alert")
+		end
+		--self:NameplateCDBar(args.spellId, 20.7, args.sourceGUID)
+	end
 end
 
-function mod:SlipperySudsApplied(args)
-	if self:Me(args.destGUID) then
-		self:PersonalMessage(args.spellId)
-		self:PlaySound(args.spellId, "alarm")
+do
+	local prev = 0
+	function mod:SlipperySudsApplied(args)
+		local t = args.time
+		if self:Me(args.destGUID) and t - prev > 2 then
+			prev = t
+			self:PersonalMessage(args.spellId)
+			self:PlaySound(args.spellId, "alarm")
+		end
 	end
 end
 
@@ -373,22 +401,29 @@ end
 function mod:RatTraps(args)
 	self:Message(args.spellId, "yellow")
 	self:PlaySound(args.spellId, "alarm")
+	--self:NameplateCDBar(args.spellId, 20.6, args.sourceGUID)
 end
 
 -- Bilge Rat Buccaneer
 
 function mod:GoinBananas(args)
+	if self:Friendly(args.sourceFlags) then -- these NPCs can be mind-controlled by Priests
+		return
+	end
 	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alarm")
+	--self:NameplateCDBar(args.spellId, 17.0, args.sourceGUID)
 end
 
 -- Bilge Rat Padfoot
 
 function mod:PlagueStepApplied(args)
-	if self:Me(args.destGUID) then
-		self:PersonalMessage(args.spellId)
-		self:PlaySound(args.spellId, "alert")
+	if self:Me(args.destGUID) or self:Dispeller("disease", nil, args.spellId) then
+		self:TargetMessage(args.spellId, "yellow", args.destName)
+		self:PlaySound(args.spellId, "alert", nil, args.destName)
 	end
+	-- TODO if nameplate CD bars are uncommented, this should move to SUCCESS
+	--self:NameplateCDBar(args.spellId, 20.6, args.sourceGUID)
 end
 
 -- Soggy Shiprat
@@ -412,12 +447,13 @@ end
 function mod:BoulderThrow(args)
 	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alarm")
-	self:NameplateCDBar(args.spellId, 14, args.sourceGUID)
+	--self:NameplateCDBar(args.spellId, 19.4, args.sourceGUID)
 end
 
 function mod:GroundShatter(args)
 	self:Message(args.spellId, "yellow")
-	self:PlaySound(args.spellId, "alert")
+	self:PlaySound(args.spellId, "alarm")
+	--self:NameplateCDBar(args.spellId, 19.4, args.sourceGUID)
 end
 
 -- Irontide Buccaneer
@@ -425,12 +461,16 @@ end
 do
 	local prev = 0
 	function mod:BladeBarrage(args)
+		if self:Friendly(args.sourceFlags) then -- these NPCs can be mind-controlled by Priests
+			return
+		end
 		local t = args.time
 		if t - prev > 1.5 then
 			prev = t
 			self:Message(args.spellId, "orange")
 			self:PlaySound(args.spellId, "alarm")
 		end
+		--self:NameplateCDBar(args.spellId, 18.2, args.sourceGUID)
 	end
 end
 
@@ -439,25 +479,37 @@ end
 function mod:PainfulMotivation(args)
 	self:Message(args.spellId, "yellow", CL.casting:format(args.spellName))
 	self:PlaySound(args.spellId, "alert")
+	--self:NameplateCDBar(args.spellId, 18.2, args.sourceGUID)
 end
 
 do
 	local prev = 0
 	function mod:PainfulMotivationApplied(args)
-		local t = args.time
-		if t - prev > 2 then
-			prev = t
-			self:Message(args.spellId, "red", CL.other:format(args.spellName, args.destName))
-			self:PlaySound(args.spellId, "warning")
+		if self:Dispeller("enrage", nil, args.spellId) then
+			local t = args.time
+			if t - prev > 2 then
+				prev = t
+				self:Message(args.spellId, "red", CL.other:format(args.spellName, args.destName))
+				self:PlaySound(args.spellId, "info")
+			end
 		end
 	end
 end
 
 -- Irontide Officer
 
+function mod:OiledBlade(args)
+	if self:Tank() then
+		-- alerting on cast start because this can be spell reflected
+		self:Message(args.spellId, "purple")
+		self:PlaySound(args.spellId, "alert")
+	end
+	--self:NameplateCDBar(args.spellId, 13.3, args.sourceGUID)
+end
+
 function mod:OiledBladeApplied(args)
-	if self:Me(args.destGUID) or self:Dispeller("magic") then
-		self:TargetMessage(args.spellId, "blue", args.destName)
+	if self:Dispeller("magic", nil, args.spellId) then
+		self:TargetMessage(args.spellId, "purple", args.destName)
 		self:PlaySound(args.spellId, "warning", nil, args.destName)
 	end
 end
@@ -470,8 +522,9 @@ do
 		local t = args.time
 		if t - prev > 1.5 then
 			prev = t
-			self:Message(args.spellId, "orange")
-			self:PlaySound(args.spellId, "long")
+			self:Message(args.spellId, "orange", CL.casting:format(args.spellName))
+			self:PlaySound(args.spellId, "warning")
 		end
+		--self:NameplateCDBar(args.spellId, 21.8, args.sourceGUID)
 	end
 end

@@ -1,12 +1,14 @@
-## Interface: 100007
+## Interface: 100105
 ## Title: Rematch
 ## Notes: A pet journal alternative for managing pets and teams.
 ## Author: Gello
-## Version: 4.14.16
+## Version: 4.15.2
 ## X-WoWI-ID: 22190
 ## X-Wago-ID: e56nOpK9
 ## X-Curse-Project-ID: 66047
-## SavedVariables: RematchSaved, RematchSettings
+## SavedVariables: RematchSaved, RematchSettings, Rematch4Saved, Rematch4Settings
+## AddonCompartmentFunc: RematchToggleWindow
+## IconTexture: Interface\AddOns\Rematch\Textures\icon
 
 Localization\Rematch deDE.lua
 Localization\Rematch zhTW.lua

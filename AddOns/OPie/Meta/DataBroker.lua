@@ -1,6 +1,6 @@
 local _, T = ...
 
-local AB = assert(T.ActionBook:compatible(2, 21), "A compatible version of ActionBook is required")
+local AB = assert(T.ActionBook:compatible(2, 36), "A compatible version of ActionBook is required")
 local EV, L = T.Evie, T.L
 
 local LDB
@@ -64,4 +64,4 @@ do -- category
 		end
 	end
 end
-T.ActionBook._CreateSimpleEditorPanel("opie.databroker.launcher", {"clickUsingRightButton", clickUsingRightButton=L"Simulate a right-click"})
+AB.CreateSimpleEditorPanel("opie.databroker.launcher", {"clickUsingRightButton", clickUsingRightButton=L"Simulate a right-click"})

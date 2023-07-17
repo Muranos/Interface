@@ -23,7 +23,7 @@ function mod:GetOptions()
 	return {
 		385551, -- Gulp
 		385187, -- Overpowering Croak
-		385531, -- Belly Slam
+		{385531, "SAY"}, -- Belly Slam
 		385442, -- Toxic Effluvia
 		{374389, "DISPEL"}, -- Gulp Swog Toxin
 		385743, -- Hangry
@@ -43,10 +43,10 @@ end
 function mod:OnEngage()
 	gulpCount = 0
 	toxicEffluviaCount = 0
-	self:Bar(385187, 8.5) -- Overpowering Croak
-	self:Bar(385551, 18.3) -- Gulp
-	self:Bar(385442, 30.4) -- Toxic Effluvia
-	self:Bar(385531, 38.9) -- Belly Slam
+	self:Bar(385187, 8.4) -- Overpowering Croak
+	self:Bar(385551, 18.1) -- Gulp
+	self:Bar(385442, 30.3) -- Toxic Effluvia
+	self:Bar(385531, 38.8) -- Belly Slam
 end
 
 --------------------------------------------------------------------------------
@@ -60,20 +60,30 @@ function mod:Gulp(args)
 	if gulpCount == 1 then
 		self:Bar(args.spellId, 47.3)
 	else
-		self:Bar(args.spellId, 38.9)
+		self:Bar(args.spellId, 38.8)
 	end
 end
 
 function mod:OverpoweringCroak(args)
 	self:Message(385187, "yellow")
 	self:PlaySound(385187, "long")
-	self:Bar(385187, 38.9)
+	self:Bar(385187, 38.8)
 end
 
-function mod:BellySlam(args)
-	self:Message(args.spellId, "red")
-	self:PlaySound(args.spellId, "alarm")
-	self:Bar(args.spellId, 38.9)
+
+do
+	local function printTarget(self, player, guid)
+		self:TargetMessage(385531, "red", player)
+		self:PlaySound(385531, "alarm", nil, player)
+		if self:Me(guid) then
+			self:Say(385531)
+		end
+	end
+
+	function mod:BellySlam(args)
+		self:GetBossTarget(printTarget, 0.2, args.sourceGUID)
+		self:Bar(args.spellId, 38.8)
+	end
 end
 
 function mod:ToxicEffluvia(args)
@@ -83,7 +93,7 @@ function mod:ToxicEffluvia(args)
 	if toxicEffluviaCount == 1 then
 		self:Bar(args.spellId, 26.7)
 	else
-		self:Bar(args.spellId, 38.9)
+		self:Bar(args.spellId, 38.8)
 	end
 end
 

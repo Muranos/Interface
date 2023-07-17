@@ -85,33 +85,19 @@ L["OPTIONS_CLICK_SPACE_HEIGHT"] = "接受鼠标点击以选择目标的区域的
 L["OPTIONS_CLICK_SPACE_WIDTH"] = "接受鼠标点击来选择目标的区域的宽度"
 L["OPTIONS_COLOR"] = "颜色"
 L["OPTIONS_COLOR_BACKGROUND"] = "施法条背景色"
---[[Translation missing --]]
-L["OPTIONS_CVAR_ENABLE_PERSONAL_BAR"] = "Personal Health and Mana Bars|cFFFF7700*|r"
---[[Translation missing --]]
-L["OPTIONS_CVAR_ENABLE_PERSONAL_BAR_DESC"] = [=[Shows a mini health and mana bars under your character.
-
-|cFFFF7700[*]|r |cFFa0a0a0CVar, saved within Plater profile and restored when loading the profile.|r]=]
---[[Translation missing --]]
-L["OPTIONS_CVAR_NAMEPLATES_ALWAYSSHOW"] = "Always Show Nameplates|cFFFF7700*|r"
---[[Translation missing --]]
-L["OPTIONS_CVAR_NAMEPLATES_ALWAYSSHOW_DESC"] = [=[Show nameplates for all units near you. If disabled only show relevant units when you are in combat.
-
-|cFFFF7700[*]|r |cFFa0a0a0CVar, saved within Plater profile and restored when loading the profile.|r]=]
+L["OPTIONS_CVAR_ENABLE_PERSONAL_BAR"] = "个人生命条和法力条|cFFFF7700*|r"
+L["OPTIONS_CVAR_ENABLE_PERSONAL_BAR_DESC"] = [=[在你的角色下显示一个迷你生命和法力条.
+|cFFFF7700[*]|r |cFFa0a0a0CVar, 保存在Plater配置文件中并在加载配置文件时恢复.|r]=]
+L["OPTIONS_CVAR_NAMEPLATES_ALWAYSSHOW"] = "始终显示姓名版|cFFFF7700*|r"
+L["OPTIONS_CVAR_NAMEPLATES_ALWAYSSHOW_DESC"] = [=[始终显示附近所有单位的姓名版. 如果禁用则仅在战斗中才显示姓名版.
+|cFFFF7700[*]|r |cFFa0a0a0CVar, 保存在Plater配置文件中并在加载配置文件时恢复.|r]=]
 L["OPTIONS_ENABLED"] = "启用"
 L["OPTIONS_ERROR_CVARMODIFY"] = "cvars参数无法在战斗中修改。"
 L["OPTIONS_ERROR_EXPORTSTRINGERROR"] = "导出失败"
---[[Translation missing --]]
-L["OPTIONS_EXECUTERANGE"] = "Execute Range"
---[[Translation missing --]]
-L["OPTIONS_EXECUTERANGE_DESC"] = [=[Show an indicator when the target unit is in 'execute' range.
-
-If the detection does not work after a patch, communicate at Discord.]=]
---[[Translation missing --]]
-L["OPTIONS_EXECUTERANGE_HIGH_HEALTH"] = "Execute Range (high heal)"
---[[Translation missing --]]
-L["OPTIONS_EXECUTERANGE_HIGH_HEALTH_DESC"] = [=[Show the execute indicator for the high portion of the health.
-
-If the detection does not work after a patch, communicate at Discord.]=]
+L["OPTIONS_EXECUTERANGE"] = "斩杀范围"
+L["OPTIONS_EXECUTERANGE_DESC"] = "当单位处于斩杀区间的时候显示一个指示器."
+L["OPTIONS_EXECUTERANGE_HIGH_HEALTH"] = "斩杀范围(高生命值)"
+L["OPTIONS_EXECUTERANGE_HIGH_HEALTH_DESC"] = "当单位处于斩杀区间的时候显示一个指示器."
 L["OPTIONS_FONT"] = "字体"
 L["OPTIONS_FORMAT_NUMBER"] = "数字格式"
 L["OPTIONS_FRIENDLY"] = "友方"
@@ -129,67 +115,36 @@ L["OPTIONS_HEALTHBAR_SIZE_GLOBAL_DESC"] = "改变战斗中和非战斗的玩家�
 L["OPTIONS_HEALTHBAR_WIDTH"] = "血条宽度"
 L["OPTIONS_HEIGHT"] = "高度"
 L["OPTIONS_HOSTILE"] = "敌对"
---[[Translation missing --]]
-L["OPTIONS_ICON_ELITE"] = "Elite Icon"
---[[Translation missing --]]
-L["OPTIONS_ICON_ENEMYCLASS"] = "Enemy Class Icon"
---[[Translation missing --]]
-L["OPTIONS_ICON_ENEMYFACTION"] = "Enemy Faction Icon"
---[[Translation missing --]]
-L["OPTIONS_ICON_ENEMYSPEC"] = "Enemy Spec Icon"
---[[Translation missing --]]
-L["OPTIONS_ICON_FRIENDLY_SPEC"] = "Friendly Spec Icon"
---[[Translation missing --]]
-L["OPTIONS_ICON_FRIENDLYCLASS"] = "Friendly Class"
---[[Translation missing --]]
-L["OPTIONS_ICON_FRIENDLYFACTION"] = "Friendly Faction Icon"
---[[Translation missing --]]
-L["OPTIONS_ICON_PET"] = "Pet Icon"
---[[Translation missing --]]
-L["OPTIONS_ICON_QUEST"] = "Quest Icon"
---[[Translation missing --]]
-L["OPTIONS_ICON_RARE"] = "Rare Icon"
---[[Translation missing --]]
-L["OPTIONS_ICON_SHOW"] = "Show Icon"
---[[Translation missing --]]
-L["OPTIONS_ICON_SIDE"] = "Show Side"
---[[Translation missing --]]
-L["OPTIONS_ICON_SIZE"] = "Show Size"
---[[Translation missing --]]
-L["OPTIONS_ICON_WORLDBOSS"] = "World Boss Icon"
---[[Translation missing --]]
-L["OPTIONS_ICONROWSPACING"] = "Icon Row Spacing"
---[[Translation missing --]]
-L["OPTIONS_ICONSPACING"] = "Icon Spacing"
---[[Translation missing --]]
-L["OPTIONS_INDICATORS"] = "Indicators"
---[[Translation missing --]]
-L["OPTIONS_INTERRUPT_FILLBAR"] = "Fill Cast Bar On Interrupt"
---[[Translation missing --]]
-L["OPTIONS_INTERRUPT_SHOW_ANIM"] = "Play Interrupt Animation"
---[[Translation missing --]]
-L["OPTIONS_INTERRUPT_SHOW_AUTHOR"] = "Show Interrupt Author"
---[[Translation missing --]]
-L["OPTIONS_MINOR_SCALE_DESC"] = "Slightly adjust the size of nameplates when showing a minor unit (these units has a smaller nameplate by default)."
---[[Translation missing --]]
-L["OPTIONS_MINOR_SCALE_HEIGHT"] = "Minor Unit Height Scale"
---[[Translation missing --]]
-L["OPTIONS_MINOR_SCALE_WIDTH"] = "Minor Unit Width Scale"
---[[Translation missing --]]
-L["OPTIONS_MOVE_HORIZONTAL"] = "Move horizontally."
---[[Translation missing --]]
-L["OPTIONS_MOVE_VERTICAL"] = "Move vertically."
---[[Translation missing --]]
-L["OPTIONS_NAMEPLATE_HIDE_FRIENDLY_HEALTH"] = "Hide Blizzard Health Bars|cFFFF7700*|r"
---[[Translation missing --]]
-L["OPTIONS_NAMEPLATE_HIDE_FRIENDLY_HEALTH_DESC"] = [=[While in dungeons or raids, if friendly nameplates are enabled it'll show only the player name.
-If any Plater module is disabled, this will affect these nameplates as well.
-
-|cFFFF7700[*]|r |cFFa0a0a0CVar, saved within Plater profile and restored when loading the profile.|r
-
-|cFFFF2200[*]|r |cFFa0a0a0A /reload may be required to take effect.|r]=]
---[[Translation missing --]]
-L["OPTIONS_NAMEPLATE_OFFSET"] = "Slightly adjust the entire nameplate."
+L["OPTIONS_ICON_ELITE"] = "精英图标"
+L["OPTIONS_ICON_ENEMYCLASS"] = "敌对职业图标"
+L["OPTIONS_ICON_ENEMYFACTION"] = "敌对阵营图标"
+L["OPTIONS_ICON_ENEMYSPEC"] = "敌方专精图标"
+L["OPTIONS_ICON_FRIENDLY_SPEC"] = "友方专精图标"
+L["OPTIONS_ICON_FRIENDLYCLASS"] = "友方职业"
+L["OPTIONS_ICON_FRIENDLYFACTION"] = "友方阵营图标"
+L["OPTIONS_ICON_PET"] = "宠物图标"
+L["OPTIONS_ICON_QUEST"] = "任务图标"
+L["OPTIONS_ICON_RARE"] = "稀有图标"
+L["OPTIONS_ICON_SHOW"] = "显示图标"
+L["OPTIONS_ICON_SIDE"] = "图标侧"
+L["OPTIONS_ICON_SIZE"] = "图标大小"
+L["OPTIONS_ICON_WORLDBOSS"] = "世界Boss图标"
+L["OPTIONS_ICONROWSPACING"] = "图标行间距"
+L["OPTIONS_ICONSPACING"] = "图标间距"
+L["OPTIONS_INDICATORS"] = "指示器"
+L["OPTIONS_INTERRUPT_FILLBAR"] = "打断时填充施法条"
+L["OPTIONS_INTERRUPT_SHOW_ANIM"] = "播放打断动画"
+L["OPTIONS_INTERRUPT_SHOW_AUTHOR"] = "显示打断者名字"
+L["OPTIONS_MINOR_SCALE_DESC"] = "显示次要单位时略微调整血条的大小(默认情况下这些单位的血条较小)."
+L["OPTIONS_MINOR_SCALE_HEIGHT"] = "次要单位高度比例"
+L["OPTIONS_MINOR_SCALE_WIDTH"] = "次要单位宽度比例"
+L["OPTIONS_MOVE_HORIZONTAL"] = "略微水平移动"
+L["OPTIONS_MOVE_VERTICAL"] = "略微垂直移动"
+L["OPTIONS_NAMEPLATE_HIDE_FRIENDLY_HEALTH"] = "隐藏友方生命条|cFFFF7700*|r"
+L["OPTIONS_NAMEPLATE_HIDE_FRIENDLY_HEALTH_DESC"] = [=[在地下城和团本中如果启用了友方姓名版, 它将只显示玩家的名字.\n如果任何Plater模块被禁用这也将影响这些姓名版.
+|cFFFF7700[*]|r |cFFa0a0a0CVar, 保存在Plater配置文件中并在加载配置文件时恢复.|r
+|cFFa0a0a0A /reload后生效.|r]=]
+L["OPTIONS_NAMEPLATE_OFFSET"] = "稍微调整整个姓名版"
 --[[Translation missing --]]
 L["OPTIONS_NAMEPLATE_SHOW_ENEMY"] = "Show Enemy Nameplates|cFFFF7700*|r"
 --[[Translation missing --]]
@@ -213,8 +168,7 @@ L["OPTIONS_NAMEPLATES_OVERLAP_DESC"] = [=[The space between each nameplate verti
 
 |cFFFFFF00Important |r: if you find issues with this setting, use:
 |cFFFFFFFF/run SetCVar ('nameplateOverlapV', '1.6')|r]=]
---[[Translation missing --]]
-L["OPTIONS_NAMEPLATES_STACKING"] = "Stacking Nameplates|cFFFF7700*|r"
+L["OPTIONS_NAMEPLATES_STACKING"] = "叠堆姓名版|cFFFF7700*|r"
 --[[Translation missing --]]
 L["OPTIONS_NAMEPLATES_STACKING_DESC"] = [=[If enabled, nameplates won't overlap with each other.
 
@@ -228,6 +182,10 @@ L["OPTIONS_NOCOMBATALPHA_ENABLED"] = "使用非战斗透明度"
 L["OPTIONS_NOCOMBATALPHA_ENABLED_DESC"] = [=[当你在战斗中但单位没有时改变姓名版的透明度.
 
 |cFFFFFF00 重要 |r: 如果单位不在战斗中, 它将覆盖范围检查的透明度.]=]
+L["OPTIONS_NOESSENTIAL_DESC"] = "在更新 Plater 时,新版本通常也会从脚本选项页更新脚本. \\n这可能会覆盖配置文件创建者所做的更改. 下面的选项可防止 Plater 修改插件收到更新时的脚本。\\n\\n注意：Plater的主要补丁和错误修复仍可能会更新脚本"
+L["OPTIONS_NOESSENTIAL_NAME"] = "在 Plater 版本升级期间禁用非必要的脚本更新."
+L["OPTIONS_NOESSENTIAL_SKIP_ALERT"] = "跳过非必要的补丁:"
+L["OPTIONS_NOESSENTIAL_TITLE"] = "跳过非必要的脚本Script补丁"
 L["OPTIONS_OKAY"] = "确定"
 L["OPTIONS_OUTLINE"] = "轮廓"
 --[[Translation missing --]]

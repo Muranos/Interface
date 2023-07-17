@@ -40,10 +40,8 @@ L.dbmUsers = "Jugadores con DBM:"
 L.noBossMod = "Sin boss mod:"
 L.offline = "Desconectado"
 
-L.missingPlugin = "Tenga en cuenta que esta zona requiere el plugin |cFF436EEE%s|r para que los contadores sean mostrados."
 --L.missingAddOn = "The |cFF436EEE%s|r addon is missing!"
 L.disabledAddOn = "Tienes el addon |cFF436EEE%s|r deshabilitado, los contadores no se mostraran."
-
 L.removeAddOn = "Por favor elimina '|cFF436EEE%s|r' ya que está siendo reemplazado por '|cFF436EEE%s|r'."
 L.alternativeName = "%s (|cFF436EEE%s|r)"
 
@@ -57,6 +55,7 @@ L.spell_under_you = "BigWigs: Hechizo debajo de tí"
 
 -- Options.lua
 L.options = "Opciones"
+--L.optionsKey = "Key: %s" -- The key that messages/bars/options use
 L.raidBosses = "Jefes de Raid"
 L.dungeonBosses = "Jefes de Mazmorras"
 L.introduction = "Bienvenido a BigWigs. Abróchese el cinturón y a comer cacahuetes mientras disfrutas del paseo. De manera no intrusiva te ayudará a preparar ese nuevo encuentro de banda como una cena de 7 platos para tu grupo de banda."
@@ -71,6 +70,8 @@ L.flashScreen = "Flash de pantalla"
 L.flashScreenDesc = "Ciertas habilidades son suficientemente importantes para necesitar de tu total atención. Cuando estas habilidades te afecten BigWigs puede hacer parpadear la pantalla."
 L.minimapIcon = "Icono del minimapa"
 L.minimapToggle = "Cambia entre mostrar/ocultar el icono en el minimapa."
+--L.compartmentMenu = "No compartment icon"
+--L.compartmentMenu_desc = "Turning this option off will make BigWigs show up in the addon compartment menu. We recommend leaving this option enabled."
 L.configure = "Configurar"
 L.test = "Probar"
 L.resetPositions = "Reiniciar posiciones"
@@ -126,6 +127,8 @@ L.VOICE = "Voz"
 L.VOICE_desc = "Si tienes un plugin de voz instalado, esta opción le permitirá reproducir un archivo de sonido que hable en este aviso para ti."
 L.COUNTDOWN = "Cuenta atrás"
 L.COUNTDOWN_desc = "Si está activo, una cuenta atrás vocal y visual será agregada para los últimos 5 segundos. Imagina a alguien contando hacia atrás \"5... 4... 3... 2... 1...\" con un número grande en el medio de la pantalla."
+--L.CASTBAR_COUNTDOWN = "Countdown (cast bars only)"
+--L.CASTBAR_COUNTDOWN_desc = "If enabled, a vocal and visual countdown will be added for the last 5 seconds of the cast bars."
 L.INFOBOX = L.infobox
 L.INFOBOX_desc = L.infobox_desc
 L.SOUND = "Sonido"
@@ -138,6 +141,8 @@ L.ME_ONLY_EMPHASIZE = "Enfatizar (sólo en mi)"
 L.ME_ONLY_EMPHASIZE_desc = "Habilitar esto enfatizará cualquier mensaje asociado con esta habilidad SOLO si se lanza sobre ti, mostrandolo más grande y visible."
 L.NAMEPLATEBAR = "Barras en placas de nombre"
 L.NAMEPLATEBAR_desc = "Las barras algunas veces están pegadas a las placas de nombre cuando más de un npc castea el mismo hechizo. Si esta habilidad está acompañada por una barra de placa de nombre que quieres ocultar, deshabilita esta opción."
+--L.PRIVATE = "Private Aura"
+--L.PRIVATE_desc = "Private auras can't be tracked normally, but the \"on you\" sound (Warning) can be set in the Sound tab."
 
 L.advanced = "Opciones avanzadas"
 L.back = "<< Volver"

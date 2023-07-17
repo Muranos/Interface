@@ -45,7 +45,7 @@ rematch:InitModule(function()
 		{ text=UNWRAP, func=card.UnwrapFromMenu },
 		{ text=CANCEL },
    })
-   
+
    -- UnwrapPet will only attempt to unwrap wrapped pets
    if not settings.DebugNoModels then
 
@@ -143,7 +143,7 @@ function rematch:ShowPetCard(parent,petID,force)
 
    -- whether this card is a leveling, ignored or random card
    local isSpecial = rematch:GetSpecialPetIDType(petID)
-		
+
 	if (not petInfo.speciesID or not petInfo.petType) and not isSpecial then
 		return
 	end
@@ -326,7 +326,7 @@ function rematch:ShowPetCard(parent,petID,force)
 	end
 
 	if petInfo.breedName then
-		card:AddStat(petInfo.breedName,"Interface\\AchievementFrame\\UI-Achievement-Progressive-Shield",0.09375,0.578125,0.140625,0.625,L["Breed"],format(L["Determines how stats are distributed.  All breed data is pulled from your installed %s%s\124r addon."],rematch.hexWhite,GetAddOnMetadata(rematch:GetBreedSource(),"Title") or rematch:GetBreedSource()))
+		card:AddStat(petInfo.breedName,"Interface\\AchievementFrame\\UI-Achievement-Progressive-Shield",0.09375,0.578125,0.140625,0.625,L["Breed"],format(L["Determines how stats are distributed.  All breed data is pulled from your installed %s%s\124r addon."],rematch.hexWhite,C_AddOns.GetAddOnMetadata(rematch:GetBreedSource(),"Title") or rematch:GetBreedSource()))
 	end
 
 	if settings.ShowSpeciesID and petInfo.speciesID then
@@ -361,7 +361,7 @@ function rematch:ShowPetCard(parent,petID,force)
 		abilities[i].Hint:Hide()
 		card:DesaturateAbility(abilities[i],false)
 	end
-	
+
 	if petInfo.canBattle then
 		for i=1,6 do
 			if petInfo.abilityList[i] then
@@ -710,7 +710,7 @@ function card:PossibleBreedsOnEnter()
 	local btable = middle.BreedTable
 	middle.PossibleBreedsHighlight:Show()
 	btable:SetFrameLevel(self:GetFrameLevel()+5)
-	btable.Footnote:SetText(format(L["All breed data pulled from %s%s\124r."],rematch.hexWhite,GetAddOnMetadata(rematch:GetBreedSource(),"Title") or rematch:GetBreedSource()))
+	btable.Footnote:SetText(format(L["All breed data pulled from %s%s\124r."],rematch.hexWhite,C_AddOns.GetAddOnMetadata(rematch:GetBreedSource(),"Title") or rematch:GetBreedSource()))
 	btable.Title:SetText(rematch:GetBreedSource()=="PetTracker_Breeds" and L["Possible Breeds"] or L["Stats At Level 25 \124cff0070ddRare"])
 
 	btable.Rows = btable.Rows or {}
@@ -775,16 +775,6 @@ function card:FillBreedTable(speciesID,breeds)
 			local power = ceil((data.BasePetStats[speciesID][2] + data.BreedStats[breed][2]) * 25 * ((data.RealRarityValues[4] - 0.5) * 2 + 1) - 0.5)
 			local speed = ceil((data.BasePetStats[speciesID][3] + data.BreedStats[breed][3]) * 25 * ((data.RealRarityValues[4] - 0.5) * 2 + 1) - 0.5)
 			tinsert(breeds,{breedText,health,power,speed})
-		end
-	elseif breedSource=="LibPetBreedInfo-1.0" then
-		local petInfo = rematch.petInfo:Fetch(card.petID)
-		local lib = LibStub("LibPetBreedInfo-1.0")
-		--local data = lib:GetAvailableBreeds(speciesID)
-		local data = petInfo.possibleBreedIDs
-		if data then
-			for _,breed in pairs(data) do
-				tinsert(breeds,{rematch:GetBreedNameByID(breed),lib:GetPetPredictedStats(speciesID,breed,4,25)})
-			end
 		end
 	elseif breedSource=="PetTracker_Breeds" or breedSource=="PetTracker" then
 		local breedsTable = breedSource=="PetTracker_Breeds" and PetTracker.Breeds or PetTracker.SpecieBreeds

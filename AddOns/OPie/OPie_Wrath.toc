@@ -1,6 +1,6 @@
 ## Interface: 30401
 ## Title: OPie
-## Version: Yuzu 8a
+## Version: Yuzu 9+2.22
 ## Author: foxlit
 ## Notes: Group abilities into rings that appear when you hold down a binding.
 ## X-Website: https://www.townlong-yak.com/addons/opie
@@ -24,6 +24,7 @@ Libs\TaintLess.xml
 Libs\ActionBook\ActionBook.xml
 Libs\ActionBook\ActionBookUI.xml
 Libs\TenSettings.lua
+Libs\TenTip.lua
 Locale.lua
 OPieCore.lua
 OPieUI.lua

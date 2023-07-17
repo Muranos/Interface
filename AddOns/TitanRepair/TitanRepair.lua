@@ -389,17 +389,28 @@ local function GetTextGSC(money)
 	local GSC_NONE = "|cffa0a0a0" .. NONE .. "|r";
 	local g, s, c, neg = GetGSC(money);
 	local gsc = "";
-	if (g > 0) then
-		gsc = format(GSC_START, GSC_GOLD, g);
-		gsc = gsc .. format(GSC_PART, GSC_SILVER, s);
-		gsc = gsc .. format(GSC_PART, GSC_COPPER, c);
-	elseif (s > 0) then
-		gsc = format(GSC_START, GSC_SILVER, s);
-		gsc = gsc .. format(GSC_PART, GSC_COPPER, c);
-	elseif (c > 0) then
-		gsc = gsc .. format(GSC_START, GSC_COPPER, c);
+	
+	if TitanGetVar(TITAN_REPAIR_ID, "ShowCostGoldOnly") then
+		if (g > 0) then
+			gsc = format(GSC_START, GSC_GOLD, g);
+		elseif (s > 0) or (c > 0) then
+			gsc = format(GSC_START, GSC_GOLD, 0);
+		else
+			gsc = GSC_NONE;
+		end
 	else
-		gsc = GSC_NONE;
+		if (g > 0) then
+			gsc = format(GSC_START, GSC_GOLD, g);
+			gsc = gsc .. format(GSC_PART, GSC_SILVER, s);
+			gsc = gsc .. format(GSC_PART, GSC_COPPER, c);
+		elseif (s > 0) then
+			gsc = format(GSC_START, GSC_SILVER, s);
+			gsc = gsc .. format(GSC_PART, GSC_COPPER, c);
+		elseif (c > 0) then
+			gsc = gsc .. format(GSC_START, GSC_COPPER, c);
+		else
+			gsc = GSC_NONE;
+		end
 	end
 	if (neg) then gsc = "(" .. gsc .. ")"; end
 	return gsc;
@@ -561,12 +572,12 @@ end
 -- **************************************************************************
 --]]
 function TitanPanelRepairButton_OnLoad(self)
-	local notes = "Rewritten Nov 2022 - Notable changes:\n"
-		.."- Uses less events; faster.\n"
-		.."- OnShow / OnHide now start / stop processing. Hopefully stopping 'protected' errors for those not running Repair.\n"
-		.."- Gated to once per sec except at Merchant and OnShow.\n"
-		.."- Left - Click added to force a scan - just in case.\n"
-		.."- Removed 'most damaged' item to save a few cycles.\n"
+	local notes = ""
+		.."Provides a configurable durability display. Adds the ability to auto repair items and inventory at vendors.\n"
+		.."- Shift + Left - Click forces a scan.\n"
+		.."- Left - Click now sells ALL gray items - use with CAUTION!\n"
+		.."- Option to auto sell ALL gray items - use with CAUTION!\n"
+		.."May 2023 : New option to display cost in gold only.\n"
 	self.registry = {
 		id = TITAN_REPAIR_ID,
 		category = "Built-ins",
@@ -607,6 +618,7 @@ function TitanPanelRepairButton_OnLoad(self)
 			DisplayOnRightSide = false,
 			ShowGray = false,
 			SellAllGray = false,
+			ShowCostGoldOnly = false,
 		}
 	};
 end
@@ -1047,6 +1059,15 @@ function TitanPanelRightClickMenu_PrepareRepairMenu()
 				TitanPanelButton_UpdateButton(TITAN_REPAIR_ID);
 				end
 			info.checked = TitanGetVar(TITAN_REPAIR_ID,"ShowRepairCost");
+			TitanPanelRightClickMenu_AddButton(info, TitanPanelRightClickMenu_GetDropdownLevel());
+
+			info = {};
+			info.text = L["REPAIR_LOCALE"]["ShowRepairCost"].." Gold Only"  
+			info.func = function() 
+				TitanToggleVar(TITAN_REPAIR_ID, "ShowCostGoldOnly")
+				TitanPanelButton_UpdateButton(TITAN_REPAIR_ID);
+				end
+			info.checked = TitanGetVar(TITAN_REPAIR_ID, "ShowCostGoldOnly");
 			TitanPanelRightClickMenu_AddButton(info, TitanPanelRightClickMenu_GetDropdownLevel());
 
 			info = {};

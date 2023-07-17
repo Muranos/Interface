@@ -1,5 +1,6 @@
 local Factory, AN, T = {}, ...
 local C, EV, L, U, S = C_Garrison, T.Evie, T.L, T.Util, {}
+local GameTooltip = T.NotGameTooltip or GameTooltip
 local PROGRESS_MIN_STEP = 0.2
 local CovenKit = "NightFae"
 local UIBUTTON_HEIGHT = ({zhCN=24, zhTW=24, koKR=24})[GetLocale()] or 22

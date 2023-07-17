@@ -1,4 +1,4 @@
-local _detalhes = 		_G._detalhes
+local _detalhes = 		_G.Details
 local Loc = LibStub("AceLocale-3.0"):GetLocale ( "Details" )
 local SharedMedia = LibStub:GetLibrary("LibSharedMedia-3.0")
 
@@ -28,7 +28,7 @@ function _detalhes:OpenWelcomeWindow()
 		window:SetScript("OnMouseDown", function() window:StartMoving() end)
 		window:SetScript("OnMouseUp", function() window:StopMovingOrSizing() end)
 		window:SetScript("OnHide", function()
-			_detalhes.tabela_historico:resetar()
+			_detalhes.tabela_historico:ResetAllCombatData()
 
 			if (DetailsFramework.IsClassicWow()) then
 				local new_instance = Details:GetWindow (1)
@@ -321,7 +321,7 @@ local window_openned_at = time()
 				local instance1 = Details:GetInstance(1)
 				local instance2 = Details:GetInstance(2)
 
-				_detalhes.tabela_historico:resetar()
+				_detalhes.tabela_historico:ResetAllCombatData()
 
 				if (fixedParameter == 1) then --latin
 					if (instance1 and instance1:IsEnabled()) then
@@ -1043,7 +1043,7 @@ local window_openned_at = time()
 		local update_frame_alert = CreateFrame("frame", nil, window)
 		update_frame_alert:SetScript("OnShow", function()
 
-			_detalhes.tabela_historico:resetar()
+			_detalhes.tabela_historico:ResetAllCombatData()
 			created_test_bars = 0
 
 			_detalhes.zone_type = "pvp"
@@ -1232,12 +1232,12 @@ local window_openned_at = time()
 		bookmark_frame:SetPoint("bottomright", instance1.baseframe, "bottomright")
 		bookmark_frame:SetBackdrop({bgFile = [[Interface\AddOns\Details\images\background]], tile = true, tileSize = 64})
 		bookmark_frame:SetBackdropColor(0, 0, 0, 0.8)
+		
+		--local desc_anchor_topleft = _detalhes.gump:NewImage(bookmark_frame, [[Interface\AddOns\Details\images\options_window]], 75, 106, "artwork", {0.19921875, 0.2724609375, 0.6796875, 0.783203125}, "descAnchorBottomLeftImage", "$parentDescAnchorBottomLeftImage") --204 696 279 802
+		--desc_anchor_topleft:SetPoint("topleft", bookmark_frame, "topleft", -5, 5)
 
-		local desc_anchor_topleft = _detalhes.gump:NewImage(bookmark_frame, [[Interface\AddOns\Details\images\options_window]], 75, 106, "artwork", {0.19921875, 0.2724609375, 0.6796875, 0.783203125}, "descAnchorBottomLeftImage", "$parentDescAnchorBottomLeftImage") --204 696 279 802
-		desc_anchor_topleft:SetPoint("topleft", bookmark_frame, "topleft", -5, 5)
-
-		local desc_anchor_bottomleft = _detalhes.gump:NewImage(bookmark_frame, [[Interface\AddOns\Details\images\options_window]], 75, 106, "artwork", {0.2724609375, 0.19921875, 0.783203125, 0.6796875}, "descAnchorTopLeftImage", "$parentDescAnchorTopLeftImage") --204 696 279 802
-		desc_anchor_bottomleft:SetPoint("bottomright", bookmark_frame, "bottomright", 5, -5)
+		--local desc_anchor_bottomleft = _detalhes.gump:NewImage(bookmark_frame, [[Interface\AddOns\Details\images\options_window]], 75, 106, "artwork", {0.2724609375, 0.19921875, 0.783203125, 0.6796875}, "descAnchorTopLeftImage", "$parentDescAnchorTopLeftImage") --204 696 279 802
+		--desc_anchor_bottomleft:SetPoint("bottomright", bookmark_frame, "bottomright", 5, -5)
 
 		local bmf_string = bookmark_frame:CreateFontString("overlay", nil, "GameFontNormal")
 		bmf_string:SetPoint("center", bookmark_frame, "center")
@@ -1297,7 +1297,7 @@ local window_openned_at = time()
 
 		local group_frame_alert = CreateFrame("frame", nil, window)
 		group_frame_alert:SetScript("OnShow", function()
-			_detalhes.tabela_historico:resetar()
+			_detalhes.tabela_historico:ResetAllCombatData()
 			created_test_bars = 0
 		end)
 
@@ -1342,7 +1342,7 @@ local window_openned_at = time()
 		local tooltip_frame = CreateFrame("frame", nil, window)
 		tooltip_frame:SetScript("OnShow", function(self)
 
-			_detalhes.tabela_historico:resetar()
+			_detalhes.tabela_historico:ResetAllCombatData()
 			created_test_bars = 0
 
 			local current_combat = _detalhes:GetCombat("current")

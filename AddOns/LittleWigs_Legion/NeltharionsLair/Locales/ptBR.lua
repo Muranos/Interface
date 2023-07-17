@@ -4,6 +4,7 @@ if L then
 	L.rokmora_first_warmup_trigger = "Navarrogg?! Traidor! Você liderou esses intrusos contra nós?!"
 	L.rokmora_second_warmup_trigger = "De qualquer forma, vou curtir cada momento. Rokmora, esmague-os!"
 
+	L.vileshard_crawler = "Rastejante Estilhavil"
 	L.tarspitter_lurker = "Tocaieiro Cospiche"
 	L.rockback_gnasher = "Triscadente Costapétrea"
 	L.vileshard_hulk = "Gigante Estilhavil"
@@ -14,6 +15,7 @@ if L then
 	L.stoneclaw_grubmaster = "Mestre dos Vermes Garrapétrea"
 	L.tarspitter_grub = "Verme Cospiche"
 	L.rotdrool_grabber = "Agarrador Babapodre"
+	L.understone_demolisher = "Demolidor Subpetra"
 	L.rockbound_trapper = "Coureador Rochatado"
 	L.emberhusk_dominator = "Dominador Cascabrasa"
 end

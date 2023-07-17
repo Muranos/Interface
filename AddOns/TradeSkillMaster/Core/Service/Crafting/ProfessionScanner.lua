@@ -26,7 +26,7 @@ function ProfessionScanner.OnInitialize()
 	private.settings = Settings.NewView()
 		:AddKey("sync", "internalData", "playerProfessions")
 		:AddKey("factionrealm", "internalData", "mats")
-	Profession.SetScanHookFuncs(private.ScanHook, function(craftStrings) TSM.Crafting.RemovePlayerSpells(Wow.GetCharacterName(), craftStrings) end)
+	Profession.SetScanHookFuncs(private.ScanHook, private.HandleInactiveRecipes)
 end
 
 
@@ -68,26 +68,29 @@ function private.ScanRecipe(professionName, craftString, categorySkillLevelLooku
 
 	local numResultItems = Profession.GetNumResultItems(craftString)
 	local hasCD = Profession.HasCooldown(craftString)
-	local recipeDifficulty, baseRecipeQuality = Profession.GetRecipeQualityInfo(craftString)
+	local recipeDifficulty, baseRecipeQuality, _, inspirationAmount, inspirationChance = Profession.GetRecipeQualityInfo(craftString)
 
-	TSM.Crafting.CreateOrUpdate(craftString, itemString, professionName, craftName, numResult, UnitName("player"), hasCD, recipeDifficulty, baseRecipeQuality, numResultItems)
+	TSM.Crafting.CreateOrUpdate(craftString, itemString, professionName, craftName, numResult, Wow.GetCharacterName(), hasCD, recipeDifficulty, baseRecipeQuality, numResultItems, inspirationAmount, inspirationChance)
 
 	assert(not next(private.matQuantitiesTemp))
 	for _, matString, quantity in Profession.MatIterator(craftString) do
 		local matType = MatString.GetType(matString)
 		if matType == MatString.TYPE.NORMAL then
 			private.settings.mats[matString] = private.settings.mats[matString] or {}
-			private.matQuantitiesTemp[matString] = quantity
 		else
 			for matItemString in MatString.ItemIterator(matString) do
 				private.settings.mats[matItemString] = private.settings.mats[matItemString] or {}
 			end
-			private.matQuantitiesTemp[matString] = quantity
 		end
+		private.matQuantitiesTemp[matString] = quantity
 	end
 	if next(private.matQuantitiesTemp) then
 		TSM.Crafting.SetMats(craftString, private.matQuantitiesTemp)
 	end
 	wipe(private.matQuantitiesTemp)
 	return true
+end
+
+function private.HandleInactiveRecipes(craftStrings)
+	TSM.Crafting.RemovePlayerSpells(Wow.GetCharacterName(), craftStrings)
 end

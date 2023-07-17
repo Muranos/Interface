@@ -40,10 +40,8 @@ L.dbmUsers = "DBM 사용자:"
 L.noBossMod = "우두머리 모듈 없음:"
 L.offline = "접속 종료"
 
-L.missingPlugin = "이 지역에서 타이머를 표시하려면 |cFF436EEE%s|r 플러그인이 필요합니다."
---L.missingAddOn = "The |cFF436EEE%s|r addon is missing!"
+L.missingAddOn = "|cFF436EEE%s|r 애드온이 없습니다!"
 L.disabledAddOn = "|cFF436EEE%s|r 애드온이 비활성화 중이므로 타이머를 표시할 수 없습니다."
-
 L.removeAddOn = "'|cFF436EEE%s|r'|1이;가; '|cFF436EEE%s|r'|1으로;로; 대체되었으므로 제거해주세요."
 L.alternativeName = "%s (|cFF436EEE%s|r)"
 
@@ -57,6 +55,7 @@ L.spell_under_you = "BigWigs: 발밑에 바닥"
 
 -- Options.lua
 L.options = "옵션"
+--L.optionsKey = "Key: %s" -- The key that messages/bars/options use
 L.raidBosses = "공격대 우두머리"
 L.dungeonBosses = "던전 우두머리"
 L.introduction = "우두머리 전투가 배회하는 BigWigs에 오신 걸 환영합니다. 안전 벨트를 착용하고, 땅콩을 먹으며 탑승을 즐기세요. 당신의 아이들을 먹진 않지만, 당신의 공격대를 위한 7-코스 저녁 식사로 새로운 우두머리 전투를 준비하는 데 도움을 줄겁니다."
@@ -71,6 +70,8 @@ L.flashScreen = "화면 깜빡임"
 L.flashScreenDesc = "특정 능력은 당신의 모든 주의를 기울일 정도로 중요합니다. 이 능력들이 당신에게 영향을 줄 때 BigWigs가 화면을 깜빡일 수 있습니다."
 L.minimapIcon = "미니맵 아이콘"
 L.minimapToggle = "미니맵 아이콘의 표시/숨기기를 전환합니다."
+L.compartmentMenu = "미니맵 옆에 아이콘 표시"
+L.compartmentMenu_desc = "이 옵션을 끄면 미니맵에 빅윅 아이콘이 애드온 묶음에 표시됩니다. 이 옵션을 켜두는 것을 권장합니다."
 L.configure = "구성"
 L.test = "테스트"
 L.resetPositions = "위치 초기화"
@@ -126,6 +127,8 @@ L.VOICE = "음성"
 L.VOICE_desc = "음성 플러그인을 설치하고, 이 옵션을 활성화하면 이 경고를 소리내어 말해주는 소리 파일을 재생합니다."
 L.COUNTDOWN = "초읽기"
 L.COUNTDOWN_desc = "활성화하면, 마지막 5초에 음성과 시각적 초읽기가 추가됩니다. 화면 가운데에 \"5... 4... 3... 2... 1...\"의 큰 숫자와 함께 초읽기를 해줍니다."
+L.CASTBAR_COUNTDOWN = "초읽기(시전바만)"
+L.CASTBAR_COUNTDOWN_desc = "활성화하면 시전바의 마지막 5초동안 음성 및 시각적 효과가 추가됩니다."
 L.INFOBOX = L.infobox
 L.INFOBOX_desc = L.infobox_desc
 L.SOUND = "소리"
@@ -138,6 +141,8 @@ L.ME_ONLY_EMPHASIZE = "강조(나에게 걸렸을 때만)"
 L.ME_ONLY_EMPHASIZE_desc = "이 옵션을 활성화하면 이 능력이 자신에게 영향을 끼칠때 메세지를 더 크고 는에 띄게 표시합니다."
 L.NAMEPLATEBAR = "이름표 바"
 L.NAMEPLATEBAR_desc = "몹 한마리 이상이 같은 주문을 시전할때 이름표랑 시전바가 붙어있는 경우가 많습니다. 이 능력이 이름표 때문에 보이지 않는다면, 이 옵션을 비활성화 하십시오."
+L.PRIVATE = "개인 오라"
+L.PRIVATE_desc = "일반적으로 개인 오라는 추적되지 않지만, \"나에게\"소리(경고)는 소리 탭에서 설정할수 있습니다."
 
 L.advanced = "고급 옵션"
 L.back = "<< 뒤로"

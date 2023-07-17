@@ -74,6 +74,10 @@ L["Auto extracted from whisper"] = "Auto extraer desde un susurro"
 L["Auto Open"] = "Abrir automaticamente"
 L["Auto Pass"] = "Auto pasar"
 L["Auto pass BoE"] = "Auto entregar BoE"
+--[[Translation missing --]]
+L["Auto Pass Transmog"] = "Auto Pass Transmog"
+--[[Translation missing --]]
+L["Auto Pass Transmog Source"] = "Auto Pass Transmog Source"
 L["Auto Pass Trinkets"] = "Auto pasar abalorios."
 L["Auto Trade"] = "Auto comerciar"
 L["auto_award_desc"] = "Activa Recompensa Automatica."
@@ -83,6 +87,10 @@ L["auto_enable_desc"] = "Compruebe siempre dejar RCLootCouncil marcado botin. De
 L["auto_open_desc"] = "Compruebe en abre automaticamente el marco de la votacion cuando este disponible. El marco de la votacion de lo contrario se puede abrir con /rc open. Nota: Esto requiere el permiso del maestro despojador."
 L["auto_pass_boe_desc"] = "Desmarcar No Permite autorepartir los articulos que se ligan al equipar"
 L["auto_pass_desc"] = "Marque para activar autopasar de articulos que su clase no puede usar."
+--[[Translation missing --]]
+L["auto_pass_transmog_desc"] = "Check to enable autopassing of items your class can only use for transmog."
+--[[Translation missing --]]
+L["auto_pass_transmog_source_desc"] = "Check to enable autopassing of items your class can only use for transmog and the appearance is already known from another item."
 L["auto_pass_trinket_desc"] = "Comprobar para pasar automáticamente de abalorios que no estén en la lista de la Guía de Aventuras para tu clase"
 L["autoGroupLoot_warning"] = "La configuración de Líder de Grupo causará que RCLootCouncil controle automáticamente el botín de grupo"
 L["autoloot_others_item_combat"] = "%s ha conseguido %s. Este objetos sera añadido al cuadro de sesion una vez el combate termine."

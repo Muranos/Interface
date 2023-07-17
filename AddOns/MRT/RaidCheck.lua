@@ -311,7 +311,7 @@ if ExRT.isLK then
 		{"ap","AP",132333,{[6673]=1,[5242]=2,[6192]=3,[11549]=4,[11550]=5,[11551]=6,[25289]=7,[2048]=8,[47436]=9}},	--Battle Shout
 		{"spirit","Spirit",135946,{[27681]=4,[32999]=5,[48074]=6,[14752]=1,[14818]=2,[14819]=3,[27841]=4,[25312]=5,[48073]=6}},	--Prayer of Spirit
 		{"armor","Armor",135926,{[588]=1,[7128]=2,[602]=3,[1006]=4,[10951]=5,[10952]=6,[25431]=7,[48040]=8,[48168]=9}},	--Inner Fire
-		{"shadow","Shadow",136121,{[48170]=5,[25433]=4,[10958]=3,[976]=1,[10957]=2,[27683]=3,[39374]=4,}},	--Shadow Protection
+		{"shadow","Shadow",136121,{[48170]=5,[25433]=4,[10958]=3,[976]=1,[10957]=2,[27683]=3,[39374]=4,[48169]=5}},	--Shadow Protection
 		{"stamina","Stamina",135987,{[1243]=1,[21562]=5,[21564]=6,[25392]=7,[48162]=8,[1244]=2,[1245]=3,[2791]=4,[10937]=5,[10938]=6,[25389]=7,[48161]=8}},	--Power Word: Fortitude
 	}
 elseif ExRT.isBC then
@@ -339,7 +339,7 @@ if ExRT.isLK then
 	module.db.classicBuffs[#module.db.classicBuffs+1] = {"bom","BoM",135908,{[19740]=1,[19834]=2,[19835]=3,[19836]=4,[19837]=5,[19838]=6,[25291]=7,[27140]=8,[48931]=9,[48932]=10,[25782]=6,[25916]=7,[27141]=8,[48933]=9,[48934]=10}}	--Blessing of Might
 	module.db.classicBuffs[#module.db.classicBuffs+1] = {"bow","BoW",135970,{[19742]=1,[19850]=2,[19852]=3,[19853]=4,[19854]=5,[25290]=6,[27142]=7,[48935]=8,[48936]=9,[25894]=5,[25918]=6,[27143]=7,[48937]=8,[48938]=9}}	--Blessing of Wisdom
 	module.db.classicBuffs[#module.db.classicBuffs+1] = {"bok","BoK",135993,{[20217]=1,[25898]=1,[69378]=1}}	--Blessing of Kings
-	module.db.classicBuffs[#module.db.classicBuffs+1] = {"bos","BoS",135911,{[25899]=1,}}	--Greater Blessing of Sanctuary
+	module.db.classicBuffs[#module.db.classicBuffs+1] = {"bos","BoS",135911,{[25899]=1,[20911]=1}}	--Greater Blessing of Sanctuary
 elseif ExRT.isBC then
 	module.db.classicBuffs[#module.db.classicBuffs+1] = {"bom","BoM",135908,{[19740]=1,[19834]=2,[19835]=3,[19836]=4,[19837]=5,[19838]=6,[25291]=7,[27140]=8,[25782]=6,[25916]=7,[27141]=8}}	--Blessing of Might
 	module.db.classicBuffs[#module.db.classicBuffs+1] = {"bow","BoW",135970,{[19742]=1,[19850]=2,[19852]=3,[19853]=4,[19854]=5,[25290]=6,[27142]=7,[25894]=5,[25918]=6,[27143]=7,}}	--Blessing of Wisdom
@@ -1568,11 +1568,6 @@ do
 		for _,itemSlotID in pairs(OilSlots) do
 			local tooltipData = C_TooltipInfo.GetInventoryItem("player", itemSlotID)
 			if tooltipData then
-				TooltipUtil.SurfaceArgs(tooltipData)
-				for _, line in ipairs(tooltipData.lines) do
-				    TooltipUtil.SurfaceArgs(line)
-				end
-
 				for j=2, #tooltipData.lines do
 					local tooltipLine = tooltipData.lines[j]
 					local text = tooltipLine.leftText
@@ -2411,10 +2406,13 @@ function module.frame:UpdateRoster()
 		end
 	end
 	for i=count+1,#self.lines do 
-		self.lines[i].unit = nil
-		self.lines[i]:Hide()
+		local line = self.lines[i]
+		line.unit = nil
+		line:Hide()
 
-		self.lines[i].mini:Hide()
+		if line.mini then
+			line.mini:Hide()
+		end
 	end
 	self:UpdateLinesSize(count <= 20)
 	self.SizeMaximized = 55 + (count <= 20 and 20 or 14) * count

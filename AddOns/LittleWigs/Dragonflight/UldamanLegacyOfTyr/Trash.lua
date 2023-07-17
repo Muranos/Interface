@@ -8,11 +8,14 @@ mod.displayName = CL.trash
 mod:RegisterEnableMob(
 	184134, -- Scavenging Leaper
 	184020, -- Hulking Berserker
+	184022, -- Stonevault Geomancer
 	184023, -- Vicious Basilisk
-	184132, -- Earthen Warder
+	184319, -- Refti Custodian
+	184130, -- Earthen Custodian
 	186420, -- Earthen Weaver
-	184301, -- Cavern Seeker
+	184132, -- Earthen Warder
 	184107, -- Runic Protector
+	184301, -- Cavern Seeker
 	184300, -- Ebonstone Golem
 	184131, -- Earthen Guardian
 	184335, -- Infinite Agent
@@ -26,11 +29,14 @@ mod:RegisterEnableMob(
 local L = mod:GetLocale()
 if L then
 	L.hulking_berserker = "Hulking Berserker"
+	L.stonevault_geomancer = "Stonevault Geomancer"
 	L.vicious_basilisk = "Vicious Basilisk"
-	L.earthen_warder = "Earthen Warder"
+	L.refti_custodian = "Refti Custodian"
+	L.earthen_custodian = "Earthen Custodian"
 	L.earthen_weaver = "Earthen Weaver"
-	L.cavern_seeker = "Cavern Seeker"
+	L.earthen_warder = "Earthen Warder"
 	L.runic_protector = "Runic Protector"
+	L.cavern_seeker = "Cavern Seeker"
 	L.ebonstone_golem = "Ebonstone Golem"
 	L.earthen_guardian = "Earthen Guardian"
 	L.infinite_agent = "Infinite Agent"
@@ -47,18 +53,28 @@ function mod:GetOptions()
 		375500, -- Time Lock
 		-- Hulking Berserker
 		369811, -- Brutal Slam
+		-- Stonevault Geomancer
+		369675, -- Chain Lightning
 		-- Vicious Basilisk
 		{369823, "DISPEL"}, -- Spiked Carapace
+		-- Refti Custodian
+		{377732, "TANK"}, -- Jagged Bite
+		377738, -- Ancient Power
+		377724, -- Systemic Vulnerability
+		-- Earthen Custodian
+		369409, -- Cleave
+		-- Earthen Weaver
+		369465, -- Hail of Stone
 		-- Earthen Warder
 		{369400, "DISPEL"}, -- Earthen Ward
 		{369365, "DISPEL"}, -- Curse of Stone
 		{369366, "DISPEL", "SAY"}, -- Trapped in Stone
-		-- Earthen Weaver
-		369465, -- Hail of Stone
+		-- Runic Protector
+		369335, -- Fissuring Slam
+		369337, -- Difficult Terrain
+		369328, -- Earthquake
 		-- Cavern Seeker
 		369411, -- Sonic Burst
-		-- Runic Protector
-		369337, -- Difficult Terrain
 		-- Ebonstone Golem
 		381593, -- Thunderous Clap
 		-- Earthen Guardian
@@ -68,11 +84,14 @@ function mod:GetOptions()
 	}, {
 		[386104] = CL.general,
 		[369811] = L.hulking_berserker,
+		[369675] = L.stonevault_geomancer,
 		[369823] = L.vicious_basilisk,
-		[369400] = L.earthen_warder,
+		[377732] = L.refti_custodian,
+		[369409] = L.earthen_custodian,
 		[369465] = L.earthen_weaver,
+		[369400] = L.earthen_warder,
+		[369335] = L.runic_protector,
 		[369411] = L.cavern_seeker,
-		[369337] = L.runic_protector,
 		[381593] = L.ebonstone_golem,
 		[382578] = L.earthen_guardian,
 		[377500] = L.infinite_agent,
@@ -81,6 +100,7 @@ end
 
 function mod:OnBossEnable()
 	-- General
+	self:RegisterMessage("BigWigs_OnBossWin")
 	self:Log("SPELL_AURA_APPLIED", "LostTomeOfTyr", 386104)
 	self:Log("SPELL_AURA_APPLIED", "TimeLock", 375500)
 	self:Log("SPELL_CAST_SUCCESS", "TemporalTheft", 382264)
@@ -88,9 +108,23 @@ function mod:OnBossEnable()
 	-- Hulking Berserker
 	self:Log("SPELL_CAST_START", "BrutalSlam", 369811)
 
+	-- Stonevault Geomancer
+	self:Log("SPELL_CAST_START", "ChainLightning", 369675)
+
 	-- Vicious Basilisk
 	self:Log("SPELL_CAST_START", "SpikedCarapace", 369823)
 	self:Log("SPELL_AURA_APPLIED", "SpikedCarapaceApplied", 369823)
+
+	-- Refti Custodian
+	self:Log("SPELL_CAST_START", "JaggedBite", 377732)
+	self:Log("SPELL_AURA_APPLIED_DOSE", "AncientPowerApplied", 377738)
+	self:Log("SPELL_AURA_APPLIED", "SystemicVulnerabilityApplied", 377724)
+
+	-- Earthen Custodian
+	self:Log("SPELL_CAST_START", "Cleave", 369409)
+
+	-- Earthen Weaver
+	self:Log("SPELL_CAST_START", "HailOfStone", 369465)
 
 	-- Earthen Warder
 	self:Log("SPELL_CAST_START", "EarthenWard", 369400)
@@ -99,16 +133,15 @@ function mod:OnBossEnable()
 	self:Log("SPELL_AURA_APPLIED", "CurseOfStoneApplied", 369365)
 	self:Log("SPELL_AURA_APPLIED", "TrappedInStoneApplied", 369366)
 
-	-- Earthen Weaver
-	self:Log("SPELL_CAST_SUCCESS", "HailOfStone", 369465) -- doesn't go on CD until the channel starts
+	-- Runic Protector
+	self:Log("SPELL_CAST_START", "FissuringSlam", 369335)
+	self:Log("SPELL_AURA_APPLIED", "DifficultTerrainApplied", 369337)
+	self:Log("SPELL_CAST_SUCCESS", "Earthquake", 369328)
 
 	-- Cavern Seeker
 	self:Log("SPELL_CAST_START", "SonicBurst", 369411)
 
-	-- Runic Protector
-	self:Log("SPELL_AURA_APPLIED", "DifficultTerrainApplied", 369337)
-
-	-- Runic Protector
+	-- Ebonstone Golem
 	self:Log("SPELL_CAST_START", "ThunderousClap", 381593)
 
 	-- Earthen Guardian
@@ -124,6 +157,14 @@ end
 --
 
 -- General
+
+function mod:BigWigs_OnBossWin(event, module)
+	if module:GetJournalID() == 2479 then -- Chrono-Lord Deios
+		-- disable the trash module when defeating the last boss, this avoids some
+		-- spam from LostTomeofTyr when someone leaves the group.
+		self:Disable()
+	end
+end
 
 do
 	local prev = 0
@@ -141,7 +182,10 @@ do
 		-- very long throttle
 		if t - prev > 25 then
 			prev = t
-			self:Bar(args.spellId, 22.1)
+			if not self:MythicPlus() then
+				-- the RP starts automatically in Mythic+ and Time Lock ends when the RP ends
+				self:Bar(args.spellId, 22.1)
+			end
 		end
 	end
 end
@@ -166,6 +210,24 @@ do
 			self:Message(args.spellId, "orange")
 			self:PlaySound(args.spellId, "alarm")
 		end
+		--self:NameplateCDBar(args.spellId, 20.6, args.sourceGUID)
+	end
+end
+
+-- Stonevault Geomancer
+
+do
+	local prev = 0
+	function mod:ChainLightning(args)
+		if self:MobId(args.sourceGUID) == 184022 then -- Stonevault Geomancer (trash version)
+			local t = args.time
+			if t - prev > 1 then
+				prev = t
+				self:Message(args.spellId, "red", CL.casting:format(args.spellName))
+				self:PlaySound(args.spellId, "alert")
+			end
+			--self:NameplateCDBar(args.spellId, 25.0, args.sourceGUID)
+		end
 	end
 end
 
@@ -175,11 +237,12 @@ do
 	local prev = 0
 	function mod:SpikedCarapace(args)
 		local t = args.time
-		if t - prev > 1 then
+		if t - prev > 1.5 then
 			prev = t
 			self:Message(args.spellId, "yellow", CL.casting:format(args.spellName))
 			self:PlaySound(args.spellId, "alert")
 		end
+		--self:NameplateCDBar(args.spellId, 18.2, args.sourceGUID)
 	end
 end
 
@@ -188,7 +251,7 @@ do
 	function mod:SpikedCarapaceApplied(args)
 		if self:Dispeller("magic", true, args.spellId) and not self:Player(args.destFlags) then
 			local t = args.time
-			if t - prev > 1 then
+			if t - prev > 2 then
 				prev = t
 				self:Message(args.spellId, "red", CL.buff_other:format(args.destName, args.spellName))
 				self:PlaySound(args.spellId, "warning")
@@ -197,11 +260,85 @@ do
 	end
 end
 
+-- Refti Custodian
+
+do
+	local prev = 0
+	function mod:JaggedBite(args)
+		local t = args.time
+		if t - prev > 1.5 then
+			prev = t
+			self:Message(args.spellId, "purple")
+			self:PlaySound(args.spellId, "alarm")
+		end
+		--self:NameplateCDBar(args.spellId, 13.2, args.sourceGUID)
+	end
+end
+
+do
+	local prev = 0
+	function mod:AncientPowerApplied(args)
+		local t = args.time
+		-- throttle because there can be more than one and they start in sync
+		if args.amount >= 3 and args.amount % 2 == 1 and t - prev > 1.5 then -- 3, 5, 7, ...
+			prev = t
+			self:StackMessage(args.spellId, "yellow", args.destName, args.amount, 6)
+			self:PlaySound(args.spellId, "alert")
+		end
+	end
+end
+
+do
+	local prev = 0
+	function mod:SystemicVulnerabilityApplied(args)
+		local t = args.time
+		if t - prev > 1.5 then
+			prev = t
+			self:Message(args.spellId, "green")
+			self:PlaySound(args.spellId, "info")
+		end
+	end
+end
+
+-- Earthen Custodian
+
+do
+	local prev = 0
+	function mod:Cleave(args)
+		-- trivial damage for tanks, deadly for others
+		if not self:Tank() then
+			local t = args.time
+			if t - prev > 1 then
+				prev = t
+				self:Message(args.spellId, "purple")
+				self:PlaySound(args.spellId, "alarm")
+			end
+			--self:NameplateCDBar(args.spellId, 15.0, args.sourceGUID)
+		end
+	end
+end
+
+-- Earthen Weaver
+
+do
+	local prev = 0
+	function mod:HailOfStone(args)
+		local t = args.time
+		if t - prev > 1 then
+			prev = t
+			self:Message(args.spellId, "orange")
+			self:PlaySound(args.spellId, "alarm")
+		end
+		--self:NameplateCDBar(args.spellId, 21.7, args.sourceGUID)
+	end
+end
+
 -- Earthen Warder
 
 function mod:EarthenWard(args)
 	self:Message(args.spellId, "yellow", CL.casting:format(args.spellName))
 	self:PlaySound(args.spellId, "alert")
+	--self:NameplateCDBar(args.spellId, 32.6, args.sourceGUID)
 end
 
 function mod:EarthenWardApplied(args)
@@ -211,9 +348,17 @@ function mod:EarthenWardApplied(args)
 	end
 end
 
-function mod:CurseOfStone(args)
-	self:Message(args.spellId, "red", CL.casting:format(args.spellName))
-	self:PlaySound(args.spellId, "alert")
+do
+	local prev = 0
+	function mod:CurseOfStone(args)
+		local t = args.time
+		if t - prev > 1 then
+			prev = t
+			self:Message(args.spellId, "red", CL.casting:format(args.spellName))
+			self:PlaySound(args.spellId, "alert")
+		end
+		--self:NameplateCDBar(args.spellId, 46.0, args.sourceGUID)
+	end
 end
 
 function mod:CurseOfStoneApplied(args)
@@ -231,18 +376,25 @@ function mod:TrappedInStoneApplied(args)
 	end
 end
 
--- Earthen Weaver
+-- Runic Protector
 
-do
-	local prev = 0
-	function mod:HailOfStone(args)
-		local t = args.time
-		if t - prev > 1 then
-			prev = t
-			self:Message(args.spellId, "orange")
-			self:PlaySound(args.spellId, "alarm")
-		end
+function mod:FissuringSlam(args)
+	self:Message(args.spellId, "purple")
+	self:PlaySound(args.spellId, "alarm")
+	--self:NameplateCDBar(args.spellId, 9.7, args.sourceGUID)
+end
+
+function mod:DifficultTerrainApplied(args)
+	if self:Me(args.destGUID) then
+		self:PersonalMessage(args.spellId, "underyou")
+		self:PlaySound(args.spellId, "underyou")
 	end
+end
+
+function mod:Earthquake(args)
+	self:Message(args.spellId, "red")
+	self:PlaySound(args.spellId, "long")
+	--self:NameplateCDBar(args.spellId, 25.5, args.sourceGUID)
 end
 
 -- Cavern Seeker
@@ -251,20 +403,11 @@ do
 	local prev = 0
 	function mod:SonicBurst(args)
 		local t = args.time
-		if t - prev > 1.5 then
+		if t - prev > 1 then
 			prev = t
 			self:Message(args.spellId, "red", CL.casting:format(args.spellName))
 			self:PlaySound(args.spellId, "alarm")
 		end
-	end
-end
-
--- Runic Protector
-
-function mod:DifficultTerrainApplied(args)
-	if self:Me(args.destGUID) then
-		self:PersonalMessage(args.spellId, "underyou")
-		self:PlaySound(args.spellId, "underyou")
 	end
 end
 
@@ -276,9 +419,10 @@ do
 		local t = args.time
 		if t - prev > 1 then
 			prev = t
-			self:Message(args.spellId, "yellow")
-			self:PlaySound(args.spellId, "alert")
+			self:Message(args.spellId, "red")
+			self:PlaySound(args.spellId, "alarm")
 		end
+		--self:NameplateCDBar(args.spellId, 19.0, args.sourceGUID)
 	end
 end
 
@@ -287,6 +431,7 @@ end
 function mod:BlessingOfTyr(args)
 	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alarm")
+	--self:NameplateCDBar(args.spellId, 48.6, args.sourceGUID)
 end
 
 -- Infinite Agent
@@ -300,6 +445,7 @@ do
 			self:Message(args.spellId, "yellow", CL.casting:format(args.spellName))
 			self:PlaySound(args.spellId, "alert")
 		end
+		--self:NameplateCDBar(args.spellId, 22.6, args.sourceGUID)
 	end
 end
 

@@ -1,11 +1,9 @@
-## Interface: 100007
-## Title: Titan Panel [|cffeda55f_Core_|r] |cff00aa006.00.14.100007|r
+## Interface: 100100
+## Title: Titan Panel [|cffeda55f_Core_|r] |cff00aa007.01.00.100100|r
 ## Author: Titan Panel Development Team
-## Version: 6.00.14.100007
+## Version: 7.01.00.100100
 ## SavedVariables: TitanAll, TitanSettings, TitanSkins, ServerTimeOffsets, ServerHourFormat
-## OptionalDeps: Ace3, AceGUI-3.0-SharedMediaWidgets, LibSharedMedia-3.0, LibQTip-1.0, !LibUIDropDownMenu
-## Notes: Adds a display bar on the top and/or bottom of the screen. Allows users to show and control information/launcher plugins.
-## X-Embeds: Ace3, AceGUI-3.0-SharedMediaWidgets, LibSharedMedia-3.0, LibQTip-1.0, !LibUIDropDownMenu
+## Notes: Adds display bars on the top and/or bottom of the screen; also adds user placable bars. Allows users to show and control information/launcher plugins.
 ## X-Credits: TitanMod, Dark Imakuni, Adsertor, Titan Dev Team
 ## X-Category: Interface Enhancements
 ## X-Website: http://www.titanpanel.org
@@ -14,9 +12,19 @@
 ## X-License: All rights reserved (See license.txt)
 ## X-WoWI-ID: 8092
 
-embeds.xml
+libs\Ace\LibStub\LibStub.lua
+libs\Ace\CallbackHandler-1.0\CallbackHandler-1.0.xml
+libs\Ace\AceAddon-3.0\AceAddon-3.0.xml
+libs\Ace\AceHook-3.0\AceHook-3.0.xml
+libs\Ace\AceTimer-3.0\AceTimer-3.0.xml
+libs\Ace\AceGUI-3.0\AceGUI-3.0.xml
+libs\Ace\AceConfig-3.0\AceConfig-3.0.xml
+libs\Ace\AceLocale-3.0\AceLocale-3.0.xml
+libs\Ace\LibSharedMedia-3.0\lib.xml
+libs\Ace\AceGUI-3.0-SharedMediaWidgets\widget.xml
+libs\Ace\LibQTip-1.0\lib.xml
 
-LibDataBroker-1.1.lua
+libs\LibDataBroker-1.1.lua
 
 locale\Localization.lua
 locale\Localization.BR.lua
@@ -24,18 +32,20 @@ locale\Localization.CN.lua
 locale\Localization.DE.lua
 locale\Localization.ES.lua
 locale\Localization.FR.lua
-locale\Localization.IT.lua
+locale\Localization.IT.lua 
 locale\Localization.KR.lua
 locale\Localization.MX.lua
 locale\Localization.RU.lua
 locale\Localization.TW.lua
 
+TitanGlobal.lua
 TitanUtils.lua
 TitanVariables.lua
-TitanPanelTemplate.xml
+TitanTemplate.xml
+TitanTemplate.lua
 TitanMovable.lua
 TitanConfig.lua
 TitanAutoHide.lua
-TitanPanel.xml
-TitanPanel.lua
-LDBToTitan.lua
+Titan.xml
+Titan.lua
+TitanLDB.lua

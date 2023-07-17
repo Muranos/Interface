@@ -5,7 +5,13 @@ do
 
     --add to curseforge
 
+
     --on curseforge
+    L["OPTIONS_NOESSENTIAL_TITLE"] = "Skip Non Essential Script Patches"
+    L["OPTIONS_NOESSENTIAL_NAME"] = "Disable non-essential script updates during Plater version upgrades."
+    L["OPTIONS_NOESSENTIAL_DESC"] = "On updating Plater, it is common for the new version to also update scripts from the scripts tab.\nThis may sometimes overwrite changes made by the creator of the profile. The option below prevents Plater from modifying scripts when the addon receives an update.\n\nNote: During major patches and bug fixes, Plater may still update scripts."
+    L["OPTIONS_NOESSENTIAL_SKIP_ALERT"] = "Skipped non-essential patch:"
+
     L["OPTIONS_COLOR_BACKGROUND"] = "Background Color"
 
     L["OPTIONS_CASTBAR_SPARK_HIDE_INTERRUPT"] = "Hide Spark On Interrupt"
@@ -542,6 +548,13 @@ L["OPTIONS_NOCOMBATALPHA_ENABLED"] = "Use No Combat Alpha"
 L["OPTIONS_NOCOMBATALPHA_ENABLED_DESC"] = [=[Changes the nameplate alpha when you are in combat and the unit isn't.
 
 |cFFFFFF00 Important |r:If the unit isn't in combat, it overrides the alpha from the range check.]=]
+L["OPTIONS_NOESSENTIAL_DESC"] = [=[On updating Plater, it is common for the new version to also update scripts from the scripts tab.
+This may sometimes overwrite changes made by the creator of the profile. The option below prevents Plater from modifying scripts when the addon receives an update.
+
+Note: During major patches and bug fixes, Plater may still update scripts.]=]
+L["OPTIONS_NOESSENTIAL_NAME"] = "Disable non-essential script updates during Plater version upgrades."
+L["OPTIONS_NOESSENTIAL_SKIP_ALERT"] = "Skipped non-essential patch:"
+L["OPTIONS_NOESSENTIAL_TITLE"] = "Skip Non Essential Script Patches"
 L["OPTIONS_OKAY"] = "Okay"
 L["OPTIONS_OUTLINE"] = "Outline"
 L["OPTIONS_PERSONAL_HEALTHBAR_HEIGHT"] = "Height of the health bar."

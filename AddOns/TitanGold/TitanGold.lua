@@ -174,6 +174,10 @@ end
 -- **************************************************************************
 --]]
 function TitanPanelGoldButton_OnLoad(self)
+	local notes = ""
+		.."Keeps track of all gold held by a player's toons.\n"
+		.."- Can show by server / merged servers / all servers.\n"
+		.."- Can show by faction.\n"
 	self.registry = {
 		id = TITAN_GOLD_ID,
 		category = "Built-ins",
@@ -184,6 +188,7 @@ function TitanPanelGoldButton_OnLoad(self)
 		buttonTextFunction = "TitanPanelGoldButton_FindGold",
 		icon = "Interface\\AddOns\\TitanGold\\Artwork\\TitanGold",
 		iconWidth = 16,
+		notes = notes,
 		controlVariables = {
 			ShowIcon = true,
 			ShowLabelText = true,

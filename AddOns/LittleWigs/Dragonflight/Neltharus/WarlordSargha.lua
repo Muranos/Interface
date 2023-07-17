@@ -12,7 +12,7 @@ mod:SetRespawnTime(30)
 -- Locals
 --
 
-local magmaShieldCount = 0
+local magmaShieldCount = 1
 local burningEmberRemaining = 1
 local theDragonsKilnRemaining = 2
 local moltenGoldRemaining = 1
@@ -66,28 +66,26 @@ function mod:OnBossEnable()
 
 	-- Raging Ember
 	self:Log("SPELL_AURA_APPLIED", "BurningPursuit", 377522)
-	
+
 	-- Magical Implements
 	-- 376762 Wand of Negation
 	-- 384595 Anti-Magic Bomb
 	-- 392164 Azure Stone of Might
 	-- 392170 Rose of the Vale
-	-- 392258 Seismic Boots
-	self:Log("SPELL_AURA_APPLIED", "MagicalImplementsPickedUp", 376762, 384595, 392164, 392170, 392258)
+	self:Log("SPELL_AURA_APPLIED", "MagicalImplementsPickedUp", 376762, 384595, 392164, 392170)
 	self:Log("SPELL_AURA_APPLIED", "CurseOfTheDragonHoardApplied", 391762)
-	self:Log("SPELL_AURA_APPLIED_DOSE", "CurseOfTheDragonHoardApplied", 391762)
 end
 
 function mod:OnEngage()
-	magmaShieldCount = 0
+	magmaShieldCount = 1
 	burningEmberRemaining = 1
 	theDragonsKilnRemaining = 2
 	moltenGoldRemaining = 1
-	self:Bar(377204, 7.1) -- The Dragon's Kiln
-	self:Bar(377018, 14.2) -- Molten Gold
-	self:Bar(377477, 21.5) -- Burning Ember
+	self:CDBar(377204, 7.1) -- The Dragon's Kiln
+	self:CDBar(377018, 14.2) -- Molten Gold
+	self:CDBar(377477, 21.5) -- Burning Ember
 	-- cast at 100 energy: 30s energy gain + 2.5s cast + ~4s delay
-	self:Bar(376780, 37.7, CL.count:format(self:SpellName(376780), 1)) -- Magma Shield (1)
+	self:CDBar(376780, 37.7, CL.count:format(self:SpellName(376780), magmaShieldCount)) -- Magma Shield
 end
 
 --------------------------------------------------------------------------------
@@ -95,7 +93,6 @@ end
 --
 
 function mod:MagmaShield(args)
-	magmaShieldCount = magmaShieldCount + 1
 	self:StopBar(377477) -- Burning Ember
 	self:StopBar(377204) -- The Dragon's Kiln
 	self:StopBar(377018) -- Molten Gold
@@ -115,34 +112,52 @@ do
 		local duration = args.time - magmaShieldStart
 		self:Message(args.spellId, "green", CL.removed_after:format(args.spellName, duration))
 		self:PlaySound(args.spellId, "info")
-
-		-- cast at 100 energy: 30s energy gain + 2.5s cast time + ~.1s delay
-		self:Bar(args.spellId, 32.6, CL.count:format(args.spellName, magmaShieldCount + 1))
+		magmaShieldCount = magmaShieldCount + 1
 
 		-- timers are based off the shield being removed
 		if args.amount == 0 then
 			burningEmberRemaining = 1
 			theDragonsKilnRemaining = 1
-			moltenGoldRemaining = 1
+			moltenGoldRemaining = 2
 			-- boss is stunned for 10s
 			self:Bar(377014, 10, CL.onboss:format(self:SpellName(377014))) -- Backdraft
-			self:Bar(377018, 10.0) -- Molten Gold
-			self:Bar(377477, 15.3) -- Burning Ember
-			self:Bar(377204, 20.0) -- The Dragon's Kiln
+			-- cast at 100 energy: 10s stun + 30s energy gain + ~.1s delay + 2.5s cast time
+			self:Bar(args.spellId, 42.6, CL.count:format(args.spellName, magmaShieldCount))
+			if magmaShieldCount == 2 then
+				self:CDBar(377018, 15.5) -- Molten Gold
+				self:CDBar(377477, 24.8) -- Burning Ember
+				self:CDBar(377204, 28.4) -- The Dragon's Kiln
+			else
+				self:CDBar(377018, 11.0) -- Molten Gold
+				self:CDBar(377477, 14.8) -- Burning Ember
+				self:CDBar(377204, 19.3) -- The Dragon's Kiln
+			end
 		else
 			-- or shield just expires and boss is not stunned
 			burningEmberRemaining = 1
 			theDragonsKilnRemaining = 2
 			moltenGoldRemaining = 2
-			self:CDBar(377477, 13.3) -- Burning Ember
+			self:CDBar(377018, 2.4) -- Molten Gold
+			self:CDBar(377477, 2.4) -- Burning Ember
+			self:CDBar(377204, 2.4) -- The Dragon's Kiln
+			-- cast at 100 energy: 30s energy gain + ~.1s delay + 2.5s cast time
+			self:Bar(args.spellId, 32.6, CL.count:format(args.spellName, magmaShieldCount))
 		end
 	end
 end
 
 function mod:BurningEmber(args)
+	self:StopBar(377477)
 	burningEmberRemaining = burningEmberRemaining - 1
 	self:Message(377477, "yellow")
 	self:PlaySound(377477, "alert")
+	-- soonest ability can be is 4.86
+	if theDragonsKilnRemaining > 0 and self:BarTimeLeft(377204) < 4.86 then -- The Dragon's Kiln
+		self:CDBar(377204, {4.86, 19.3})
+	end
+	if moltenGoldRemaining > 0 and self:BarTimeLeft(377018) < 4.86 then -- Molten Gold
+		self:CDBar(377018, {4.86, 11.0})
+	end
 end
 
 function mod:TheDragonsKiln(args)
@@ -150,14 +165,16 @@ function mod:TheDragonsKiln(args)
 	self:Message(args.spellId, "red")
 	self:PlaySound(args.spellId, "alarm")
 	if theDragonsKilnRemaining > 0 then
-		self:CDBar(args.spellId, magmaShieldCount == 0 and 21.5 or 25.5)
+		self:CDBar(args.spellId, 21.9)
+	else
+		self:StopBar(args.spellId)
 	end
-	-- soonest ability can be is 6.1
-	if moltenGoldRemaining > 0 and self:BarTimeLeft(377018) < 6.1 then -- Molten Gold
-		self:CDBar(377018, {6.1, 26.7})
+	-- soonest ability can be is 6.06
+	if moltenGoldRemaining > 0 and self:BarTimeLeft(377018) < 6.06 then -- Molten Gold
+		self:CDBar(377018, {6.06, 11.0})
 	end
-	if burningEmberRemaining > 0 and self:BarTimeLeft(377477) < 6.1 then -- Burning Ember
-		self:CDBar(377477, {6.1, 13.3})
+	if burningEmberRemaining > 0 and self:BarTimeLeft(377477) < 6.06 then -- Burning Ember
+		self:CDBar(377477, {6.06, 15.9})
 	end
 end
 
@@ -174,13 +191,15 @@ do
 		self:GetBossTarget(printTarget, 0.4, args.sourceGUID)
 		if moltenGoldRemaining > 0 then
 			self:CDBar(377018, 26.7)
+		else
+			self:StopBar(377018)
 		end
 		-- soonest ability can be is 4.7
 		if theDragonsKilnRemaining > 0 and self:BarTimeLeft(377204) < 4.7 then -- The Dragon's Kiln
-			self:CDBar(377204, {4.7, 25.5})
+			self:CDBar(377204, {4.7, 19.3})
 		end
 		if burningEmberRemaining > 0 and self:BarTimeLeft(377477) < 4.7 then -- Burning Ember
-			self:CDBar(377477, {4.7, 13.3})
+			self:CDBar(377477, {4.7, 15.9})
 		end
 	end
 end
@@ -204,9 +223,8 @@ function mod:MagicalImplementsPickedUp(args)
 end
 
 function mod:CurseOfTheDragonHoardApplied(args)
-	local stacks = args.amount or 1
-	if stacks % 2 == 1 and (self:Me(args.destGUID) or self:Dispeller("curse", false, args.spellId)) then
-		self:StackMessage(args.spellId, "orange", args.destName, stacks, 3)
+	if self:Me(args.destGUID) or self:Dispeller("curse", nil, args.spellId) then
+		self:TargetMessage(args.spellId, "orange", args.destName)
 		self:PlaySound(args.spellId, "alert", nil, args.destName)
 	end
 end

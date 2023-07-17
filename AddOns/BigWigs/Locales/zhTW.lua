@@ -40,10 +40,8 @@ L.dbmUsers = "使用 DBM："
 L.noBossMod = "沒有首領模組："
 L.offline = "離線"
 
-L.missingPlugin = "請注意這個區域需要此 |cFF436EEE%s|r 計時器掛件才能顯示。"
---L.missingAddOn = "The |cFF436EEE%s|r addon is missing!"
-L.disabledAddOn = "你的 |cFF436EEE%s|r 插件已禁用，計時器將不被顯示。"
-
+L.missingAddOn = "缺少插件 |cFF436EEE%s|r！"
+L.disabledAddOn = "模組 |cFF436EEE%s|r 已被禁用，無法顯示計時器。"
 L.removeAddOn = "請移除「|cFF436EEE%s|r」，其已被「|cFF436EEE%s|r」所替代。"
 L.alternativeName = "%s（|cFF436EEE%s|r）"
 
@@ -57,6 +55,7 @@ L.spell_under_you = "BigWigs: 法術在你腳下"
 
 -- Options.lua
 L.options = "選項"
+L.optionsKey = "ID:%s" -- The key that messages/bars/options use
 L.raidBosses = "團隊首領"
 L.dungeonBosses = "地城首領"
 L.introduction = "歡迎使用 BigWigs 戲弄各個首領。請繫好安全帶，吃吃花生並享受這次旅行。它不會吃了你的孩子，但會協助你的團隊與新的首領進行戰鬥，如同享受饕餮大餐一樣。"
@@ -71,6 +70,8 @@ L.flashScreen = "螢幕閃爍"
 L.flashScreenDesc = "某些技能極其重要到需要充分被重視。當這些能力對你造成影響時 BigWigs 可以使螢幕閃爍。"
 L.minimapIcon = "小地圖圖示"
 L.minimapToggle = "打開或關閉小地圖圖示。"
+L.compartmentMenu = "隱藏暴雪插件收納按鈕"
+L.compartmentMenu_desc = "關閉此選項將會啟用暴雪的小地圖插件收納功能。我們推薦你啟用這個選項，隱藏暴雪插件收納按鈕。"
 L.configure = "配置"
 L.test = "測試"
 L.resetPositions = "重置位置"
@@ -126,6 +127,8 @@ L.VOICE = "語音"
 L.VOICE_desc = "如果安裝了語音插件，此選項可以開啟並播放警報音效文件。"
 L.COUNTDOWN = "倒數"
 L.COUNTDOWN_desc = "啟用後，倒數最後五秒會顯示聲音及文字。想像有人在你的畫面中央以巨大的數字倒數「5... 4... 3... 2... 1...」。"
+L.CASTBAR_COUNTDOWN = "施法倒數計時"
+L.CASTBAR_COUNTDOWN_desc = "啟用後，為施法條的最後五秒顯示巨大的文字與語音倒數。"
 L.INFOBOX = L.infobox
 L.INFOBOX_desc = L.infobox_desc
 L.SOUND = "音效"
@@ -138,6 +141,8 @@ L.ME_ONLY_EMPHASIZE = "強調（只有我）"
 L.ME_ONLY_EMPHASIZE_desc = "啟用後會強調所有只施放在你的技能相關的訊息，使它們更大和更容易看到。"
 L.NAMEPLATEBAR = "名條計時條"
 L.NAMEPLATEBAR_desc = "當多個敵方單位施放相同的法術時，在名條上方顯示各自的計時條。如果不想要名條上依附的計時條，請停用此項。"
+L.PRIVATE = "私有光環"
+L.PRIVATE_desc = "私有光環無法用一般方式追蹤，但可以在音效分頁指定「只對自身」的音效。"
 
 L.advanced = "進階選項"
 L.back = "<< 返回"

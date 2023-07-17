@@ -1,4 +1,4 @@
-## Interface: 100007
+## Interface: 100105
 
 ## Title: BigWigs [|cffeda55fVault of the Incarnates|r]
 ## Title-deDE: BigWigs [|cffeda55fGewölbe der Inkarnationen|r]
@@ -23,7 +23,7 @@
 ## Notes-zhCN: BigWigs 化身巨龙牢窟模块
 ## Notes-zhTW: BigWigs 洪荒化身牢獄模組
 ## IconTexture: Interface\AddOns\BigWigs\Media\Icons\core-enabled
-## Version: v270
+## Version: v286.3
 
 ## LoadOnDemand: 1
 ## Dependencies: BigWigs

@@ -25,6 +25,9 @@ local StaticPopup_Show = StaticPopup_Show
 local Enum_WeeklyRewardChestThresholdType_MythicPlus = Enum.WeeklyRewardChestThresholdType.MythicPlus
 
 local KeystoneAbbrev = {
+  -- Cataclysm
+  [438] = L["VP"], -- The Vortex Pinnacle
+
   -- Mists of Pandaria
   [2]   = L["TJS"],  -- Temple of the Jade Serpent
 
@@ -79,6 +82,10 @@ local KeystoneAbbrev = {
   [400] = L["TNO"],   -- The Nokhud Offensive
   [401] = L["TAV"],   -- The Azure Vault
   [402] = L["AA"],    -- Algeth'ar Academy
+  [403] = L["ULD"],   -- Uldaman: Legacy of Tyr
+  [404] = L["NELT"],  -- Neltharus
+  [405] = L["BH"],    -- Brackenhide Hollow
+  [406] = L["HOI"],   -- Halls of Infusion
 }
 SI.KeystoneAbbrev = KeystoneAbbrev
 

@@ -84,6 +84,10 @@ L["Auto extracted from whisper"] = "自动从密语中提取"
 L["Auto Open"] = "自动打开"
 L["Auto Pass"] = "自动放弃"
 L["Auto pass BoE"] = "自动放弃装绑"
+--[[Translation missing --]]
+L["Auto Pass Transmog"] = "Auto Pass Transmog"
+--[[Translation missing --]]
+L["Auto Pass Transmog Source"] = "Auto Pass Transmog Source"
 L["Auto Pass Trinkets"] = "自动放弃饰品"
 --[[Translation missing --]]
 L["Auto Trade"] = "Auto Trade"
@@ -94,6 +98,10 @@ L["auto_enable_desc"] = "总是让RCLootCouncil管理物品分配。非勾选状
 L["auto_open_desc"] = "勾选以自动打开投票界面。非勾选状态下，也可通过输入 /rc open 手动开启。注意：需要战利品分配者的许可。"
 L["auto_pass_boe_desc"] = "取消勾选以禁用自动放弃装绑。"
 L["auto_pass_desc"] = "勾选以自动放弃当前职业无法使用的物品。"
+--[[Translation missing --]]
+L["auto_pass_transmog_desc"] = "Check to enable autopassing of items your class can only use for transmog."
+--[[Translation missing --]]
+L["auto_pass_transmog_source_desc"] = "Check to enable autopassing of items your class can only use for transmog and the appearance is already known from another item."
 L["auto_pass_trinket_desc"] = "选中以自动放弃地下城手册中不属于你的职业的饰品"
 --[[Translation missing --]]
 L["autoGroupLoot_warning"] = "Note: Group Leader's settings will cause RCLootCouncil to automatically control group loot."

@@ -63,7 +63,7 @@ local cap = bindZone
 local ringBindings = {map={}, name=L"Ring Bindings", caption=L"Ring"}
 function ringBindings:refresh()
 	local pos, map = 1, self.map
-	for key in OPie:IterateRings(IsAltKeyDown()) do
+	for key in PC:IterateRings(IsAltKeyDown()) do
 		map[pos], pos = key, pos + 1
 	end
 	for i=#map,pos,-1 do
@@ -72,7 +72,7 @@ function ringBindings:refresh()
 	self.count = #map
 end
 function ringBindings:get(id)
-	local name, key = OPie:GetRingInfo(self.map[id])
+	local name, key = PC:GetRingInfo(self.map[id])
 	local bind, cBind, isOverride, isActiveInt, isActiveExt = PC:GetRingBinding(key)
 	local showWarning, prefix, tipTitle, tipText = false
 	local cebind = cBind or (bind and KR:EvaluateCmdOptions(bind))
@@ -108,7 +108,7 @@ function ringBindings:set(id, key)
 	PC:SetRingBinding(id, key)
 end
 function ringBindings:arrow(id)
-	local name, key, macro = OPie:GetRingInfo(self.map[id])
+	local name, key, macro = PC:GetRingInfo(self.map[id])
 	T.TenSettings:ShowPromptOverlay(frame, name or key, (L"The following macro command opens this ring:"):format("|cffFFD029" .. (name or key) .. "|r"), false, false, nil, 0.90, nil, macro)
 end
 function ringBindings:default()
@@ -127,7 +127,7 @@ function subBindings.allowWheel(btn)
 	return btn:GetID() <= 2 and not subBindings.scope
 end
 function subBindings:refresh(scope)
-	self.scope, self.nameSuffix = scope, scope and (" (|cffacd7e6" ..  (OPie:GetRingInfo(scope or 1) or "") .. "|r)") or (" (" .. L"Defaults" .. ")")
+	self.scope, self.nameSuffix = scope, scope and (" (|cffacd7e6" ..  (PC:GetRingInfo(scope or 1) or "") .. "|r)") or (" (" .. L"Defaults" .. ")")
 	local t, ni = self.t, 1
 	for s in PC:GetOption("SliceBindingString", scope):gmatch("%S+") do
 		t[ni], ni = s, ni + 1
@@ -174,7 +174,7 @@ function subBindings:set(id, bind)
 	end
 	t[id] = bind
 	for j=#t,1,-1 do if t[j] == "false" then t[j] = nil else break end end
-	self.count = #t+2
+	self.count = #t + firstListSize + 1
 	local _, _, _, global, default = PC:GetOption("SliceBindingString", self.scope)
 	local v = table.concat(t, " ")
 	if self.scope == nil and v == default then v = nil
@@ -194,7 +194,7 @@ function subBindings:scopes(level, checked)
 	wipe(list) -- Reusing the table to maintain the scroll position key
 	list[0], list[1], list[false] = checked, false, L"Defaults for all rings"
 	local ct = T.OPC_RingScopePrefixes
-	for key, name, scope in OPie:IterateRings(true) do
+	for key, name, scope in PC:IterateRings(true) do
 		local color = ct and ct[scope] or "|cffacd7e6"
 		list[#list+1], list[key] = key, (L"Ring: %s"):format(color .. (name or key) .. "|r")
 	end

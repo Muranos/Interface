@@ -12,16 +12,20 @@
 
 
 # Also dont forget to bump both of these - X-Interface is used to get the interface version in-game to check that the user is using a current client.
-## Interface: 30401
+## Interface: 30402
 # DONT FORGET TO TOC BUMP TELLMEWHEN_OPTIONS TOO!!
-## X-Interface: 30401
+## X-Interface: 30402
 ## Title: TellMeWhen
 ## X-Curse-Project-ID: 8025
 ## X-WoWI-ID: 10855
 ## X-Wago-ID: ZQ6aZqKW
 
-## Version: 10.0.9
+## Version: 10.1.5
 ## Author: Cybeloras of Aerie Peak
+## IconTexture: Interface\Addons\TellMeWhen\Textures\LDB Icon
+## AddonCompartmentFunc: TellMeWhen_OnAddonCompartmentClick
+## AddonCompartmentFuncOnEnter: TellMeWhen_AddonCompartmentFuncOnEnter
+## AddonCompartmentFuncOnLeave: TellMeWhen_AddonCompartmentFuncOnLeave
 
 ## Notes: Provides visual, auditory, and textual notifications about cooldowns, buffs, and pretty much every other element of combat.
 ## Notes-zhCN: 为冷却、增益\减益及其他各个方面提供视觉、听觉以及文字上的通知。

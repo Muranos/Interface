@@ -79,9 +79,9 @@ local function createNewButtonSet(path, name, order)
 		}
 		path[name].args["picker"..i] = {
 			order = i * 5 + 2,
-			name = L["Response color"],
+			name = _G.COLOR,
 			desc = L["response_color_desc"],
-			width = 0.8,
+			width = 0.4,
 			type = "color",
 			get = function() return unpack(addon.db.profile.responses[name][i].color or {1,1,1,1})	end,
 			set = function(info,r,g,b,a) addon:ConfigTableChanged("responses"); addon.db.profile.responses[name][i].color = {roundColors(r,g,b,a)} end,
@@ -96,9 +96,22 @@ local function createNewButtonSet(path, name, order)
 			set = function(info, value) addon:ConfigTableChanged("responses"); addon.db.profile.responses[name][i].text = tostring(value) end,
 			hidden = function() return addon.db.profile.buttons[name].numButtons < i end,
 		}
+		path[name].args["requireNotes"..i] = {
+			order = i * 5 + 4,
+			name = L["Require Notes"],
+			desc = L["options_requireNotes_desc"],
+			type = "toggle",
+			width = 0.8,
+			get = function() return addon.db.profile.buttons[name][i].requireNotes end,
+			set = function(info, value)
+				addon:ConfigTableChanged("responses");
+				addon.db.profile.buttons[name][i].requireNotes = value
+			end,
+			hidden = function() return addon.db.profile.buttons[name].numButtons < i end,
+		}
 		-- Move Up/Down buttons
 		path[name].args["move_up"..i] = {
-			order = i * 5 + 4,
+			order = i * 5 + 5,
 			name = "",
 			type = "execute",
 			width = 0.1,
@@ -124,7 +137,7 @@ local function createNewButtonSet(path, name, order)
 			end,
 		}
 		path[name].args["move_down"..i] = {
-			order = i * 5 + 4.1,
+			order = i * 5 + 5.1,
 			name = "", --L["Move Down"],
 			type = "execute",
 			width = 0.1,
@@ -368,14 +381,27 @@ function addon:OptionsTable()
 										desc = L["auto_pass_boe_desc"],
 										type = "toggle",
 									},
-									printResponse = {
+									autoPassTransmog = {
 										order = 5,
+										name = L["Auto Pass Transmog"],
+										desc = L["auto_pass_transmog_desc"],
+										type = "toggle",
+									},
+									autoPassTransmogSource = {
+										order = 6,
+										name = L["Auto Pass Transmog Source"],
+										desc = L["auto_pass_transmog_source_desc"],
+										type = "toggle",
+										disabled = function() return self.db.profile.autoPassTransmog end
+									},
+									printResponse = {
+										order = 7,
 										name = L["Print Responses"],
 										desc = L["print_response_desc"],
 										type = "toggle",
 									},
 									autoGroupLootGuildGroupOnly = {
-										order = 6,
+										order = 8,
 										name = L.opt_autoGroupLootGuildGroupOnly_name,
 										desc = L.opt_autoGroupLootGuildGroupOnly_desc,
 									    type = "toggle"
@@ -1071,13 +1097,7 @@ function addon:OptionsTable()
 										name = L["Add Rolls"],
 										desc = L["add_rolls_desc"],
 										type = "toggle",
-									},
-									requireNotes = {
-										order = 9,
-										name = L["Require Notes"],
-										desc = L["options_requireNotes_desc"],
-										type = "toggle",
-									},
+									}
 								},
 							},
 							ignoreOptions = {
@@ -1812,9 +1832,9 @@ function addon:OptionsTable()
 		options.args.mlSettings.args.buttonsTab.args.buttonOptions.args["button"..i] = button;
 		picker = {
 			order = i * 5 + 2,
-			name = L["Response color"],
+			name = _G.COLOR,
 			desc = L["response_color_desc"],
-			width = 0.8,
+			width = 0.4,
 			type = "color",
 			get = function() return unpack(self.db.profile.responses.default[i].color)	end,
 			set = function(info,r,g,b,a) addon:ConfigTableChanged("responses"); self.db.profile.responses.default[i].color = {roundColors(r,g,b,a)} end,
@@ -1831,8 +1851,20 @@ function addon:OptionsTable()
 			hidden = function() return self.db.profile.buttons.default.numButtons < i end,
 		}
 		options.args.mlSettings.args.buttonsTab.args.buttonOptions.args["text"..i] = text;
-		options.args.mlSettings.args.buttonsTab.args.buttonOptions.args["move_up"..i] = {
+		options.args.mlSettings.args.buttonsTab.args.buttonOptions.args["requireNotes"..i] = {
 			order = i * 5 + 4,
+			name = L["Require Notes"],
+			desc = L["options_requireNotes_desc"],
+			type = "toggle",
+			width = 0.8,
+			get = function() return self.db.profile.buttons.default[i].requireNotes end,
+			set = function(info, value)
+				addon:ConfigTableChanged("responses");
+				self.db.profile.buttons.default[i].requireNotes = value
+			end,
+		}
+		options.args.mlSettings.args.buttonsTab.args.buttonOptions.args["move_up"..i] = {
+			order = i * 5 + 5,
 			name = "",
 			type = "execute",
 			width = 0.1,
@@ -1857,7 +1889,7 @@ function addon:OptionsTable()
 			end,
 		}
 		options.args.mlSettings.args.buttonsTab.args.buttonOptions.args["move_down"..i] = {
-			order = i * 5 + 4.1,
+			order = i * 5 + 5.1,
 			name = "",
 			type = "execute",
 			width = 0.1,

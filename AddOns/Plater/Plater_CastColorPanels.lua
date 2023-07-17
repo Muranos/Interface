@@ -110,7 +110,7 @@ end
 function Plater.GetSpellCustomColor(spellId) --exposed
     local customColorTable = Plater.db.profile.cast_colors[spellId]
     if (customColorTable) then
-        return customColorTable[2]
+        return customColorTable[2] and (customColorTable[2] ~= "white") and customColorTable[2] or nil
     end
 end
 
@@ -1084,7 +1084,9 @@ function Plater.CreateCastColorOptionsFrame(castColorFrame)
         }
 
         local startX, startY, heightSize = 10, -10, optionsFrame:GetHeight()
-        DF:BuildMenu(optionsFrame, optionsTable, startX, startY, heightSize, true, options_text_template, options_dropdown_template, options_switch_template, true, options_slider_template, options_button_template, onChangeOption)
+        _G.C_Timer.After(0.5, function() --~delay
+            DF:BuildMenu(optionsFrame, optionsTable, startX, startY, heightSize, true, options_text_template, options_dropdown_template, options_switch_template, true, options_slider_template, options_button_template, onChangeOption)
+        end)
 
     -->  ~preview window (not in use as the script choise frame is over this one)
         local previewWindow = CreateFrame("frame", optionsFrame:GetName() .. "previewWindown", optionsFrame, "BackdropTemplate")
@@ -1532,19 +1534,7 @@ function Plater.CreateCastColorOptionsFrame(castColorFrame)
         -- add SPELLS as well, if not yet added.
         for spellId, spellTable in pairs(DB_CAPTURED_SPELLS) do
             local spellName, _, spellIcon, castTime = GetSpellInfo(spellId)
-            local isChanneled = false
-            if castTime == 0 then
-                -- is this a channeled spell? castTime will be 0, because reasons...
-                local tooltipFrame = PlaterSpellFinderTooltip or CreateFrame ("GameTooltip", "PlaterSpellFinderTooltip", nil, "GameTooltipTemplate")		
-                tooltipFrame:SetOwner (WorldFrame, "ANCHOR_NONE")
-                tooltipFrame:SetHyperlink ("spell:" .. spellId)
-                local line1 = _G ["PlaterSpellFinderTooltipTextLeft2"]
-                local text1 = line1 and line1:GetText()
-                local line2 = _G ["PlaterSpellFinderTooltipTextLeft3"]
-                local text2 = line2 and line2:GetText()
-                isChanneled = text1 == SPELL_CAST_CHANNELED or text2 == SPELL_CAST_CHANNELED
-            end
-            if (spellName and not addedSpells[spellId] and (castTime > 0 or isChanneled) and spellTable.event == "SPELL_CAST_SUCCESS") then -- and spellTable.event ~= "SPELL_AURA_APPLIED" ?
+            if (spellName and not addedSpells[spellId] and (castTime > 0 or spellTable.isChanneled) and spellTable.event == "SPELL_CAST_SUCCESS") then -- and spellTable.event ~= "SPELL_AURA_APPLIED" ?
                 --build the castInfo table for this spell
                 local npcId = spellTable.npcID
                 local isEnabled = DB_CAST_COLORS[spellId] and DB_CAST_COLORS[spellId][CONST_INDEX_ENABLED] or false
@@ -1687,7 +1677,7 @@ function Plater.CreateCastColorOptionsFrame(castColorFrame)
                         --check integrity
                         if (type(colorTable) == "table") then
 
-                            local spellId, color, npcId, sourceName, npcLocation, encounterName, customSpellName = unpack(colorTable)
+                            local spellId, color, npcId, sourceName, npcLocation, encounterName, customSpellName, audioCue = unpack(colorTable)
 
                             --check integrity
                             spellId = tonumber(spellId)
@@ -1697,6 +1687,7 @@ function Plater.CreateCastColorOptionsFrame(castColorFrame)
                             npcLocation = tostring(npcLocation or "")
                             encounterName = tostring(encounterName or "")
                             customSpellName = tostring(customSpellName or "")
+                            audioCue = tostring(audioCue) -- may be nil
 
                             if (spellId and (color or customSpellName)) then
                                 --add into the cast_colors data
@@ -1704,6 +1695,8 @@ function Plater.CreateCastColorOptionsFrame(castColorFrame)
                                 DB_CAST_COLORS[spellId][CONST_INDEX_COLOR] = color
                                 DB_CAST_COLORS[spellId][CONST_INDEX_ENABLED] = true
                                 DB_CAST_COLORS[spellId][CONST_INDEX_NAME] = customSpellName
+                                
+                                DB_CAST_AUDIOCUES[spellId] = audioCue
 
                                 --add into the discoreved spell cache
                                 if (not DB_CAPTURED_SPELLS[spellId]) then
@@ -1793,6 +1786,7 @@ function Plater.CreateCastColorOptionsFrame(castColorFrame)
                     local npcLocation = searchResult[CONST_CASTINFO_NPCLOCATION]
                     local encounterName = searchResult[CONST_CASTINFO_ENCOUNTERNAME]
                     local customSpellName = searchResult[CONST_CASTINFO_CUSTOMSPELLNAME] or ""
+                    local audioCue = DB_CAST_AUDIOCUES[spellId]
 
                     local castColor = dbColors[spellId]
 
@@ -1800,7 +1794,7 @@ function Plater.CreateCastColorOptionsFrame(castColorFrame)
                         local isEnabled = castColor[CONST_INDEX_ENABLED]
                         local color = castColor[CONST_INDEX_COLOR]
                         if (isEnabled) then
-                            tinsert (exportedTable, {spellId, color, npcId, sourceName, npcLocation, encounterName, customSpellName})
+                            tinsert (exportedTable, {spellId, color, npcId, sourceName, npcLocation, encounterName, customSpellName, audioCue})
                         end
                     end
                 end
@@ -1810,6 +1804,7 @@ function Plater.CreateCastColorOptionsFrame(castColorFrame)
                     local color = castColor[CONST_INDEX_COLOR]
                     local npcId, sourceName, npcLocation, encounterName
                     local customSpellName = castColor[CONST_INDEX_NAME] or ""
+                    local audioCue = DB_CAST_AUDIOCUES[spellId]
 
                     --this db gives source, npcID, event, encounterName
                     local capturedSpell = DB_CAPTURED_SPELLS[spellId] or DB_CAPTURED_CASTS[spellId]
@@ -1830,7 +1825,7 @@ function Plater.CreateCastColorOptionsFrame(castColorFrame)
                     encounterName = capturedSpell and capturedSpell.encounterName or ""
 
                     if (isEnabled) then
-                        tinsert (exportedTable, {spellId, color, npcId, sourceName, npcLocation, encounterName, customSpellName})
+                        tinsert (exportedTable, {spellId, color, npcId, sourceName, npcLocation, encounterName, customSpellName, audioCue})
                     end
                 end
             end

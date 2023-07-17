@@ -1,11 +1,7 @@
 --- core.lua Contains core elements of the addon
 -- @author Potdisc
---[[ TODOs/Notes
-	Things marked with "todo"
-		- IDEA Change popups so they only hide on award/probably add the error message to it.
-		- Trade status in TradeUI
--------------------------------- ]] --[[CHANGELOG
-	-- SEE CHANGELOG.TXT]] --[[AceEvent-3.0 Messages:
+
+--[[AceEvent-3.0 Messages:
 	core:
 		RCCouncilChanged		-	fires when the council changes.
 		RCConfigTableChanged	-	fires when the user changes a settings. args: [val]; a few settings supplies their name.
@@ -24,7 +20,8 @@
 	lootHistory:
 		RCHistory_ResponseEdit - fires when the user edits the response of a history entry. args: data (see LootHistory:BuildData())
 		RCHistory_NameEdit	-	fires when the user edits the receiver of a history entry. args: data.
-]] --[[ Notable Comm messages: (See Classes/Services/Comms.lua for subscribing to comms)
+]] 
+--[[ Notable Comm messages: (See Classes/Services/Comms.lua for subscribing to comms)
 	Comms:
 	P: Permanent, T: Temporary
 		MAIN:
@@ -47,7 +44,8 @@
 			Rgear				P - Anyone requests our currently equipped gear.
 			bonus_roll 			P - Sent whenever we do a bonus roll.
 			getCov 				P - Anyone request or covenant ID.
-]] -- GLOBALS: GetLootMethod, GetAddOnMetadata, UnitClass
+]]
+-- GLOBALS: GetLootMethod, GetAddOnMetadata, UnitClass
 local addonname, addontable = ...
 --- @class RCLootCouncil : AceAddon-3.0, AceConsole-3.0, AceEvent-3.0, AceHook-3.0, AceTimer-3.0, AceBucket-3.0
 _G.RCLootCouncil = LibStub("AceAddon-3.0"):NewAddon(addontable, addonname, "AceConsole-3.0", "AceEvent-3.0",
@@ -144,7 +142,6 @@ function RCLootCouncil:OnInitialize()
 	self.isInGuildGroup = false -- Is the group leader a member of our guild?
 
 	self.lootStatus = {}
-	self.EJLastestInstanceID = RCLootCouncil:GetEJLatestInstanceID()
 
 	---@type table<string,boolean>
 	self.candidatesInGroup = {}
@@ -192,6 +189,7 @@ function RCLootCouncil:OnInitialize()
 	-- List of itemIds that should not be blacklisted
 	self.blackListOverride = {
 		-- [itemId] = true
+		[206046] = true, -- Void-Touched Curio
 	}
 
 	self.testMode = false;
@@ -266,6 +264,7 @@ function RCLootCouncil:OnEnable()
 	self.playerName = self.player:GetName() -- TODO Remove
 	self.Log(self.playerName, self.version, self.tVersion)
 
+	self.EJLatestInstanceID = self:GetEJLatestInstanceID()
 	self:DoChatHook()
 
 	-- register the optionstable
@@ -441,7 +440,7 @@ function RCLootCouncil:ChatCommand(msg)
 		self.playerClass = string.upper(args[1])
 		self:Test(1, false, true)
 	elseif input == "exporttokendata" then
-		self:ExportTokenData()
+		self:ExportTokenData(tonumber(args[1]))
 		-- @end-debug@
 	elseif input == "whisper" or input == string.lower(_G.WHISPER) then
 		self:Print(L["whisper_help"])
@@ -763,7 +762,7 @@ function RCLootCouncil:Test(num, fullTest, trinketTest)
 		local cached = true
 		local difficulties = {14, 15, 16} -- Normal, Heroic, Mythic
 
-		EJ_SelectInstance(self.EJLastestInstanceID)
+		EJ_SelectInstance(self.EJLatestInstanceID)
 		EJ_ResetLootFilter()
 		for _, difficulty in pairs(difficulties) do
 			EJ_SetDifficulty(difficulty)
@@ -868,7 +867,7 @@ end
 function RCLootCouncil:GetPlayersGear(link, equipLoc, gearsTable)
 	self.Log("GetPlayersGear", link, equipLoc)
 	local GetInventoryItemLink = GetInventoryItemLink
-	if gearsTable then -- lazy code
+	if gearsTable and #gearsTable > 0 then -- lazy code
 		GetInventoryItemLink = function(_, slotNum) return gearsTable[slotNum] end
 	end
 
@@ -1211,6 +1210,29 @@ function RCLootCouncil:GetItemClassesAllowedFlag(item)
 	return 0xffffffff -- The item works for all classes
 end
 
+
+--- Extracts all lines from item's tooltip.
+--- @param item ItemID|ItemLink|ItemString Item to extract tooltip for.
+--- @return string[] #All lines in the tooltip.
+function RCLootCouncil:GetTooltipLines(item)
+	if not item then return {} end
+	if type(item) == "number" then
+		item = "item:" .. item
+	end
+	tooltipForParsing:SetOwner(UIParent, "ANCHOR_NONE") -- This lines clear the current content of tooltip and set its position off-screen
+	tooltipForParsing:SetHyperlink(item)             -- Set the tooltip content and show it, should hide the tooltip before function ends
+	local ret = {}
+	for i = 1, tooltipForParsing:NumLines() or 0 do
+		local line = getglobal(tooltipForParsing:GetName() .. "TextLeft" .. i)
+		if line and line.GetText then
+			local text = line:GetText() or ""
+			ret[i] = text
+		end
+	end
+	tooltipForParsing:Hide()
+	return ret
+end
+
 local classNamesFromFlagCache = {}
 
 --- Gets class names from classes flag.
@@ -1279,7 +1301,9 @@ function RCLootCouncil:GetContainerItemTradeTimeRemaining(container, slot)
 	tooltipForParsing:SetBagItem(container, slot) -- Set the tooltip content and show it, should hide the tooltip before function ends
 	if not tooltipForParsing:NumLines() or tooltipForParsing:NumLines() == 0 then return 0 end
 
-	local bindTradeTimeRemainingPattern = escapePatternSymbols(BIND_TRADE_TIME_REMAINING):gsub("%%%%s", "%(%.%+%)") -- PT locale contains "-", must escape that.
+	local bindTradeTimeRemainingPattern = escapePatternSymbols(BIND_TRADE_TIME_REMAINING) -- Escape special characters in translations
+		:gsub("1%%%$", "") -- Remove weird insertion in RU '%1$s'
+		:gsub("%%%%s", "%(%.%+%)") -- Create capture group for the time string
 	local bounded = false
 
 	for i = 1, tooltipForParsing:NumLines() or 0 do
@@ -1292,7 +1316,7 @@ function RCLootCouncil:GetContainerItemTradeTimeRemaining(container, slot)
 			if timeText then -- Within 2h trade window, parse the time text
 				tooltipForParsing:Hide()
 
-				for hour = 1, 0, -1 do -- time>=60s, format: "1 hour", "1 hour 59 min", "59 min", "1 min"
+				for hour = 4, 0, -1 do -- time>=60s, format: "1 hour", "1 hour 59 min", "59 min", "1 min"
 					local hourText = ""
 					if hour > 0 then hourText = self:CompleteFormatSimpleStringWithPluralRule(INT_SPELL_DURATION_HOURS, hour) end
 					for min = 59, 0, -1 do
@@ -1328,10 +1352,10 @@ end
 function RCLootCouncil:GetAllItemsInBagsWithTradeTimer()
 	local items = {}
 	for container=0, _G.NUM_BAG_SLOTS do
-         for slot=1, C_Container.GetContainerNumSlots(container) or 0 do
+         for slot=1, self.C_Container.GetContainerNumSlots(container) or 0 do
 			local time =self:GetContainerItemTradeTimeRemaining(container, slot)
 			if  time > 0 and time < math.huge then
-				tinsert(items, C_Container.GetContainerItemLink(container, slot))
+				tinsert(items, self.C_Container.GetContainerItemLink(container, slot))
 
 			end
 		 end
@@ -1436,6 +1460,12 @@ function RCLootCouncil:GroupIterator()
 		i = i + 1
 		if i <= n then return groupMembers[i] end
 	end
+end
+
+--- Returns the number of group members, the player included (i.e. min 1).
+function RCLootCouncil:GetNumGroupMembers()
+	local num = GetNumGroupMembers()
+	return num > 0 and num or 1
 end
 
 function RCLootCouncil:GetNumberOfDaysFromNow(oldDate) return self.Utils:GetNumberOfDaysFromNow(oldDate) end
@@ -1575,7 +1605,7 @@ function RCLootCouncil:OnEvent(event, ...)
 			local link = self.lootSlotInfo[slot].link
 			local quality = self.lootSlotInfo[slot].quality
 			self.Log:d("OnLootSlotCleared()", slot, link, quality)
-			if quality and quality >= GetLootThreshold() and IsInInstance() then -- Only send when in instance
+			if quality and quality >= self.Utils:GetLootThreshold() and IsInInstance() then -- Only send when in instance
 				-- Note that we don't check if this is master looted or not. We only know this is looted by ourselves.
 				self:ScheduleTimer("UpdateAndSendRecentTradableItem", 2, self.lootSlotInfo[slot]) -- Delay a bit, need some time to between item removed from loot slot and moved to the bag.
 			end
@@ -1783,6 +1813,7 @@ function RCLootCouncil:GetML()
 		end
 		if rank == 2 then -- Group leader. Btw, name2 can be nil when rank is 2.
 			name = self:UnitName(name2)
+			break
 		end
 	end
 	if name then return UnitIsGroupLeader("player"), Player:Get(name) end
@@ -2309,7 +2340,9 @@ function RCLootCouncil:GetItemTypeText(link, subType, equipLoc, typeID, subTypeI
 			return tokenText
 		end
 	elseif equipLoc ~= "" and getglobal(equipLoc) then
-		if equipLoc == "INVTYPE_TRINKET" then
+		if classesFlag and classesFlag ~= 0xffffffff then
+			return getglobal(equipLoc) .. ", " .. self:GetClassNamesFromFlag(classesFlag)
+		elseif equipLoc == "INVTYPE_TRINKET" then
 			local lootSpec = _G.RCTrinketSpecs[id]
 			local category = lootSpec and _G.RCTrinketCategories[lootSpec]
 			if category then
@@ -2731,18 +2764,18 @@ function RCLootCouncil:OnStartHandleLoot(sender)
 end
 
 function RCLootCouncil:GetEJLatestInstanceID()
-	local serverExpansionLevel = GetServerExpansionLevel()
-	EJ_SelectTier(serverExpansionLevel + 1)
+	EJ_SelectTier(EJ_GetNumTiers() - 1) -- Last tier is Mythic+
 	local index = 1
-	local instanceId, name = EJ_GetInstanceByIndex(index, true)
+	local instanceId = EJ_GetInstanceByIndex(index, true)
 
 	while index do
 		local id = EJ_GetInstanceByIndex(index + 1, true)
 		if id then
 			instanceId = id
 			index = index + 1
+		else
+			index = nil
 		end
-		index = nil
 	end
 
 	if not instanceId then instanceId = 1190 end -- default to Castle Nathria if no ID is found

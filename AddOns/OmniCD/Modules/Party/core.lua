@@ -18,6 +18,8 @@ function P:Enable()
 	self:RegisterEvent('PLAYER_ENTERING_WORLD')
 	self:RegisterEvent('GROUP_ROSTER_UPDATE')
 	self:RegisterEvent('GROUP_JOINED')
+	self:RegisterEvent('PLAYER_REGEN_ENABLED')
+	self:RegisterEvent('PLAYER_REGEN_DISABLED')
 	self:SetScript("OnEvent", function(self, event, ...)
 		self[event](self, ...)
 	end)
@@ -25,6 +27,9 @@ function P:Enable()
 	self.enabled = true
 
 	self.zone = select(2, IsInInstance())
+	if InCombatLockdown() then
+		self:PLAYER_REGEN_DISABLED()
+	end
 	CM:InspectUser()
 
 	self:SetHooks()
@@ -219,12 +224,12 @@ P.GetBuffDuration = E.isClassic and function(P, unit, spellID)
 		end
 	end
 
-end or function(P, unit, spellID)
+end or function(P, unit, spellID, includeNoDuration)
 	for i = 1, 40 do
 		local _,_,_,_, duration, expTime,_,_,_, id = UnitBuff(unit, i)
 		if not id then return end
 		if id == spellID then
-			return duration > 0 and expTime - GetTime()
+			return duration > 0 and expTime - GetTime() or includeNoDuration
 		end
 	end
 end

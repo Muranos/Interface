@@ -73,6 +73,10 @@ L["Auto extracted from whisper"] = "Extraire automatiquement des chuchotements"
 L["Auto Open"] = "Ouverture automatique"
 L["Auto Pass"] = "Passer automatiquement"
 L["Auto pass BoE"] = "Passer automatiquement sur les objets LqE"
+--[[Translation missing --]]
+L["Auto Pass Transmog"] = "Auto Pass Transmog"
+--[[Translation missing --]]
+L["Auto Pass Transmog Source"] = "Auto Pass Transmog Source"
 L["Auto Pass Trinkets"] = "Passer automatiquement les bijoux"
 L["Auto Trade"] = "Echange automatique"
 L["auto_award_desc"] = "Active l'attribution automatique."
@@ -82,6 +86,10 @@ L["auto_enable_desc"] = "Cochez cette case pour que le butin soit toujours gér�
 L["auto_open_desc"] = "Cochez cette case pour que la fenêtre de vote s'ouvre automatiquement lorsque nécessaire. La fenêtre de vote peut indifféremment être ouverte en tapant /rc open. Remarque : cette option nécessite la permission du maître du butin."
 L["auto_pass_boe_desc"] = "Décocher pour ne jamais passer automatiquement sur des objets liés quand équipés."
 L["auto_pass_desc"] = "Cocher pour passer automatiquement sur les objets inutilisables par votre classe."
+--[[Translation missing --]]
+L["auto_pass_transmog_desc"] = "Check to enable autopassing of items your class can only use for transmog."
+--[[Translation missing --]]
+L["auto_pass_transmog_source_desc"] = "Check to enable autopassing of items your class can only use for transmog and the appearance is already known from another item."
 L["auto_pass_trinket_desc"] = "Cochez pour passer automatiquement les bijoux qui ne sont pas listés dans le journal de donjon pour votre classe."
 --[[Translation missing --]]
 L["autoGroupLoot_warning"] = "Note: Group Leader's settings will cause RCLootCouncil to automatically control group loot."

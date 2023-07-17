@@ -1,13 +1,8 @@
 # BigWigs
 
-## [v270](https://github.com/BigWigsMods/BigWigs/tree/v270) (2023-03-29)
-[Full Changelog](https://github.com/BigWigsMods/BigWigs/compare/v269.1...v270) [Previous Releases](https://github.com/BigWigsMods/BigWigs/releases)
+## [v286.3](https://github.com/BigWigsMods/BigWigs/tree/v286.3) (2023-07-15)
+[Full Changelog](https://github.com/BigWigsMods/BigWigs/compare/v286.2...v286.3) [Previous Releases](https://github.com/BigWigsMods/BigWigs/releases)
 
-- bump version  
-- April fools code  
-- Loader: Fix GetAddOnMetadata usage on PTR  
-- Add IconTexture support for the toc files  
-- Update ruRU (#1362)  
-- Aberrus/Neltharion: Heroic updates  
-- Aberrus/Magmorax: Updates  
-- Aberrus/Magmorax: Heroic updates  
+- Core/BossPrototype: Fix journal-sourced ability icons (#1419)  
+    Regression from 3804b400c8b7ccafea511536206b54f0d6eb0353  
+- Core/BossPrototype: Make sure to check the SOUND flag when registering private aura sounds  

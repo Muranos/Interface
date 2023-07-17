@@ -16,7 +16,7 @@ function P:ResetCooldown(icon)
 	end
 
 
-	if spellID == 45438 and E.db.icons.showForbearanceCounter then
+	if (spellID == 45438 or spellID == 414658) and E.db.icons.showForbearanceCounter then
 		local timeLeft = self:GetDebuffDuration(info.unit, 41425)
 		if timeLeft then
 			self:StartCooldown(icon, timeLeft, nil, true)
@@ -107,8 +107,9 @@ function P:SetCooldownElements(icon, charges)
 	icon.cooldown:SetHideCountdownNumbers(noCount)
 	if E.OmniCC then
 		E.OmniCC.Cooldown.SetNoCooldownCount(icon.cooldown, noCount)
-
-
+	elseif icon.cooldown.timer then
+		icon.cooldown.timer:SetShown(not noCount)
+		icon.cooldown.timer.forceDisabled = noCount
 	end
 end
 
@@ -167,6 +168,8 @@ function P:StartCooldown(icon, cd, isRecharge, noGlow)
 			currCharges = currCharges - 1
 			icon.cooldown:SetCooldown(now, cd, modRate)
 		elseif currCharges == 0 then
+
+
 			icon.cooldown:SetCooldown(now, cd, modRate)
 		else
 			currCharges = currCharges - 1

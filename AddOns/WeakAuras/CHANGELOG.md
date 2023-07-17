@@ -1,28 +1,35 @@
-# [5.4.4](https://github.com/WeakAuras/WeakAuras2/tree/5.4.4) (2023-03-29)
+# [5.6.0](https://github.com/WeakAuras/WeakAuras2/tree/5.6.0) (2023-07-10)
 
-[Full Changelog](https://github.com/WeakAuras/WeakAuras2/compare/5.4.3...5.4.4)
+[Full Changelog](https://github.com/WeakAuras/WeakAuras2/compare/5.5.7...5.6.0)
 
 ## Highlights
 
- - Bug fixes 
+ - Support new specialization and patch features
+- Fixes for DBM/BW triggers
+- Condition titles are now dynamic and pretty 
 
 ## Commits
 
-InfusOnWoW (5):
+InfusOnWoW (4):
 
-- Bufftrigger2: Explicitly scan boss units on INSTANCE_ENCOUNTER_ENGAGE_UNIT
-- Fix state.spec for various triggers
-- BuffTrigger2: Check that matchDataByTrigger contains what we expect
-- Fix updating edge case
-- Templates: Fix Rupture
+- BT2: Fix GROUP_ROSTER_UPDATE handling
+- Fix Item Set equipped trigger
+- Fix delayed anchoring of dynamic groups
+- Change SpinBox to emit MouseUp/OnValueChanged
 
-mrbuds (7):
+Stanzilla (1):
 
-- Spell Cast Succeeded trigger: fix "Delay" option, fixes #4382
-- update talents for 10.0.7
-- Dbm & BW triggers: make count field use cron-like pattern fixes #4368
-- Aura trigger: fix tooltip on mouseover, fixes #4372
-- Dbm & BW triggers: fix count parsing from message
-- Aura trigger: Fix Lua error in WeakAuras.GetAuraInstanceTooltipInfo for 10.1.0
-- re-add WeakAuras.IsClassic as an alias to WeakAuras.IsClassicEra
+- Update TOC for retail patch 10.1.5
+
+mrbuds (9):
+
+- Add new type of glow called "Proc Glow"
+- DBM Triggers: use count from callback instead of parsing text
+- Action - Chat message: fix sending to a unit on an other server #4517
+- Fix error with bogus update data #4518
+- add Augmentation spec templates
+- Fix error in DBM Timer trigger when extending timer
+- Change WeakAurasOptions background to match PANEL_BACKGROUND_COLOR
+- Pretty condition titles
+- Give triggers titles slightly more descriptive names
 

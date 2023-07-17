@@ -98,12 +98,10 @@ end
 
 function mod:ENCOUNTER_START(_, id)
 	for _, module in next, bosses do
-		if module.engageId == id then
-			if not module.enabled then
-				module:Enable()
-				if UnitGUID("boss1") then -- Only if _START fired after IEEU
-					module:Engage()
-				end
+		if module:GetEncounterID() == id and not module:IsEnabled() then
+			module:Enable()
+			if UnitGUID("boss1") then -- Only if _START fired after IEEU
+				module:Engage()
 			end
 		end
 	end
@@ -115,7 +113,7 @@ end
 
 local enablezones, enablemobs = {}, {}
 local function enableBossModule(module, sync)
-	if not module.enabled then
+	if not module:IsEnabled() then
 		module:Enable()
 		if sync and not module.worldBoss then
 			module:Sync("Enable", module.moduleName)
@@ -125,7 +123,7 @@ end
 
 local function shouldReallyEnable(unit, moduleName, mobId, sync)
 	local module = bosses[moduleName]
-	if not module or module.enabled then return end
+	if not module or module:IsEnabled() then return end
 	if (not module.VerifyEnable or module:VerifyEnable(unit, mobId, GetBestMapForUnit("player"))) then
 		enableBossModule(module, sync)
 	end
@@ -158,7 +156,7 @@ local function targetCheck(unit, sync)
 end
 
 local function updateMouseover() targetCheck("mouseover", true) end
-local function unitTargetChanged(event, target)
+local function unitTargetChanged(_, target)
 	targetCheck(target .. "target")
 end
 
@@ -204,7 +202,7 @@ do
 	local colors = {"green", "red", "orange", "yellow", "cyan", "blue", "blue", "purple"}
 	local sounds = {"Long", "Warning", "Alert", "Alarm", "Info", "onyou", "underyou", false}
 
-	local function barStopped(event, bar)
+	local function barStopped(_, bar)
 		local a = bar:Get("bigwigs:anchor")
 		local key = bar:GetLabel()
 		if a and messages[key] then
@@ -255,7 +253,7 @@ do
 					if (t - lastNamePlateBar) > 25 then
 						lastNamePlateBar = t
 						core:Print(L.testNameplate)
-						core:SendMessage("BigWigs_StartNameplateBar", core, msg, msg, 25, icon, false, guid)
+						core:SendMessage("BigWigs_StartNameplateTimer", core, msg, msg, 25, icon, false, guid)
 					end
 					return
 				end
@@ -271,7 +269,7 @@ end
 local function bossComm(_, msg, extra, sender)
 	if msg == "Enable" and extra then
 		local m = bosses[extra]
-		if m and not m.enabled and sender ~= pName then
+		if m and not m:IsEnabled() and sender ~= pName then
 			enableBossModule(m)
 		end
 	end
@@ -420,7 +418,7 @@ function core:Error(msg, noPrint)
 	if not noPrint then
 		core:Print(msg)
 	end
-	geterrorhandler()(msg)
+	geterrorhandler()("BigWigs: ".. msg)
 end
 
 -------------------------------------------------------------------------------
@@ -428,11 +426,11 @@ end
 --
 
 do
-	local L = GetLocale()
-	if L == "enGB" then L = "enUS" end
+	local currentLocale = GetLocale()
+	if currentLocale == "enGB" then currentLocale = "enUS" end
 	function core:NewBossLocale(moduleName, locale)
 		local module = bosses[moduleName]
-		if module and L == locale then
+		if module and currentLocale == locale then
 			return module:GetLocale()
 		end
 	end
@@ -447,7 +445,7 @@ do
 	local errorAlreadyRegistered = "%q already exists as a module in BigWigs, but something is trying to register it again."
 	local errorJournalIdInvalid = "%q is using the invalid journal id of %q."
 	local bossMeta = { __index = bossPrototype, __metatable = false }
-	function core:NewBoss(moduleName, zoneId, journalId, instanceId)
+	function core:NewBoss(moduleName, zoneId, journalId)
 		if bosses[moduleName] then
 			core:Print(errorAlreadyRegistered:format(moduleName))
 		else

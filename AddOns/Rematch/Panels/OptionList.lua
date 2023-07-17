@@ -173,7 +173,7 @@ panel.opts = {
 	{ "check", "DebugDelayMacs", L["Debug: Delay Journal"], L["Delay Rematch taking over the journal on the first launch by a full second."] },
 	{ "check", "DebugDelayMacsOneFrame", L["Delay Just One Frame"], L["Change the delay from half a second to one frame, or nearly instant."], "DebugDelayMacs" },
 	{ "check", "DebugNoModels", L["Debug: No Models"], L["Prevent the creation or rendering of any models within Rematch. This includes the target panel, loadout slots and pet card.\n\n\124cffff4040This option requires a Reload."], nil, true },
-	{ "text", format(L["Rematch version %s"],GetAddOnMetadata("Rematch","Version")) },
+	{ "text", format(L["Rematch version %s"],C_AddOns.GetAddOnMetadata("Rematch","Version")) },
 }
 
 -- if newIcon is used on any option, add legend to bottom of options

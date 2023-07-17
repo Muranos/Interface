@@ -575,6 +575,7 @@ function ItemInfo.GetLink(item)
 	local wowItemString = nil
 	if itemStringType == "p" then
 		quality = tonumber(quality) or 0
+		level = level and strmatch(level, "^i(%d+)$") or level
 		wowItemString = strjoin(":", "battlepet", speciesId, level or "", quality or "", health or "", power or "", speed or "", petId or "")
 	else
 		quality = ItemInfo.GetQuality(item)
@@ -703,7 +704,7 @@ function ItemInfo.GetItemLevel(item)
 		itemLevel = private.GetField(itemString, "itemLevel")
 		if not itemLevel then
 			-- just get the level from the item string
-			itemLevel = randOrLevel or 0
+			itemLevel = randOrLevel or ItemString.GetItemLevel(itemString) or 0
 			private.DeferSetSingleField(itemString, "itemLevel", itemLevel)
 		end
 	elseif itemType == "i" then
@@ -728,7 +729,7 @@ function ItemInfo.GetMinLevel(item)
 	local itemString = ItemString.Get(item)
 	if not itemString then
 		return nil
-	elseif ItemString.ParseLevel(itemString) then
+	elseif ItemString.IsItem(itemString) and ItemString.ParseLevel(itemString) then
 		-- Create a fake itemString with the same itemLevel and look up that.
 		itemString = ItemString.Get(ItemString.ToWow(itemString))
 		assert(itemString)
@@ -736,15 +737,20 @@ function ItemInfo.GetMinLevel(item)
 	-- if there is a random enchant, but no bonusIds, so the itemLevel is the same as the base item
 	local baseIsSame = strmatch(itemString, "^i:[0-9]+:[%-0-9]+$") and true or false
 	local minLevel = private.GetFieldValueHelper(itemString, "minLevel", baseIsSame, true, 0)
-	if not minLevel and ItemString.IsItem(itemString) then
-		local baseItemString = ItemString.GetBase(itemString)
-		local canHaveVariations = ItemInfo.CanHaveVariations(itemString)
-		if itemString ~= baseItemString and canHaveVariations == false then
-			-- the bonusId does not affect the minLevel of this item
-			minLevel = ItemInfo.GetMinLevel(baseItemString)
-			if minLevel then
-				private.DeferSetSingleField(itemString, "minLevel", minLevel)
+	if not minLevel then
+		if ItemString.IsItem(itemString) then
+			local baseItemString = ItemString.GetBase(itemString)
+			local canHaveVariations = ItemInfo.CanHaveVariations(itemString)
+			if itemString ~= baseItemString and canHaveVariations == false then
+				-- the bonusId does not affect the minLevel of this item
+				minLevel = ItemInfo.GetMinLevel(baseItemString)
+				if minLevel then
+					private.DeferSetSingleField(itemString, "minLevel", minLevel)
+				end
 			end
+		else
+			-- For pets, the min level and item level are the same
+			return ItemInfo.GetItemLevel(item)
 		end
 	end
 	return minLevel
@@ -834,6 +840,9 @@ function ItemInfo.GetVendorSell(item)
 	local itemString = ItemString.Get(item)
 	if not itemString then
 		return nil
+	elseif ItemString.IsPet(itemString) then
+		-- Can't vendor pets
+		return 0
 	elseif ItemString.ParseLevel(itemString) then
 		-- The vendorSell price does seem to scale linearly with item level, but at a different
 		-- rate for different items, so there's no easy way to figure this out directly. Instead,
@@ -946,7 +955,7 @@ function ItemInfo.IsDisenchantable(item)
 	if not quality or not classId then
 		return nil
 	end
-	return quality >= (Enum.ItemQuality.Good or Enum.ItemQuality.Uncommon) and quality < Enum.ItemQuality.Legendary and (classId == Enum.ItemClass.Armor or classId == Enum.ItemClass.Weapon)
+	return quality >= (Enum.ItemQuality.Good or Enum.ItemQuality.Uncommon) and quality < Enum.ItemQuality.Legendary and (classId == Enum.ItemClass.Armor or classId == Enum.ItemClass.Weapon or classId == Enum.ItemClass.Profession)
 end
 
 ---Get whether or not the item is a commodity in WoW 8.3 (and above).
@@ -1368,7 +1377,11 @@ function private.StoreGetItemInfoInstant(itemString)
 		-- we already have info cached for this item
 		return
 	end
-	extra1 = tonumber(extra1)
+	if itemStringType == "p" then
+		extra1 = tonumber(strmatch(extra1, "i(%d+)") or extra1)
+	else
+		extra1 = tonumber(extra1)
+	end
 	extra2 = tonumber(extra2)
 
 	if itemStringType == "i" then
@@ -1398,7 +1411,7 @@ function private.StoreGetItemInfoInstant(itemString)
 			return
 		end
 		local name, texture, petTypeId = C_PetJournal.GetPetInfoBySpeciesID(id)
-		if not texture then
+		if not texture or not petTypeId then
 			return
 		end
 		-- we can now store all the info for this pet

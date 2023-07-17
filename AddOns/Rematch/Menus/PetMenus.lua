@@ -408,7 +408,7 @@ rematch:InitModule(function()
 		{ text=rmf.GetBreedName, check=true, group="Breed", var=11, size=12, value=rmf.GetValue, func=rmf.ToggleValue },
 		{ text=rmf.GetBreedName, check=true, group="Breed", var=12, size=12, value=rmf.GetValue, func=rmf.ToggleValue },
 		{ text=NEW, check=true, group="Breed", var=0, size=12, value=rmf.GetValue, func=rmf.ToggleValue },
-		{ text=L["Help"], stay=true, hidden=rmf.HideMenuHelp, icon="Interface\\Common\\help-i", iconCoords={0.15,0.85,0.15,0.85}, tooltipTitle=L["Breed"], tooltipBody=function() return format(L["All breed data is pulled from your installed %s%s\124r addon.\n\nThe breed \"New\" categorizes pets with no breed data. Keep your breed addon up to date to see if they have new data."],rematch.hexWhite,GetAddOnMetadata(rematch:GetBreedSource(),"Title") or rematch:GetBreedSource()) end },
+		{ text=L["Help"], stay=true, hidden=rmf.HideMenuHelp, icon="Interface\\Common\\help-i", iconCoords={0.15,0.85,0.15,0.85}, tooltipTitle=L["Breed"], tooltipBody=function() return format(L["All breed data is pulled from your installed %s%s\124r addon.\n\nThe breed \"New\" categorizes pets with no breed data. Keep your breed addon up to date to see if they have new data."],rematch.hexWhite,C_AddOns.GetAddOnMetadata(rematch:GetBreedSource(),"Title") or rematch:GetBreedSource()) end },
 		{ text=RESET, group="Breed", stay=true, func=rmf.ResetTypeGroup },
 	},rematch.UpdateRoster)
 
@@ -486,7 +486,7 @@ function rmf:IsSpecialNotRandom(slot)
    return not (petID and rematch:GetSpecialPetIDType(petID)=="random")
 end
 
--- func for the Put Leveling/Ignored Pet here 
+-- func for the Put Leveling/Ignored Pet here
 function rmf:SetSpecialSlot(slot)
    if rematch:GetSpecialSlot(slot) then -- if slot already special, make it not special
       rematch:SetSpecialSlot(slot,nil)

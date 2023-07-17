@@ -3,197 +3,424 @@ NAME: TitanVariables.lua
 DESC: This file contains the routines to initialize, get, and set the basic data structures used by Titan. 
 It also sets the global variables and constants used by Titan.
 
+TitanBarData ^^: Titan static bar reference and placement info
+TitanAll is used for settings used for Titan itself such as use global profile, tootip modifier, etc.
 TitanSettings, TitanSkins, ServerTimeOffsets, ServerHourFormat are the structures saved to disk (listed in toc).
-TitanSettings: is the table that holds the Titan variables by character and the plugins used by that character.
-TitanSkins: is the table that holds the list of Titan and custom skins available to the user. It is assumed that the skins are in the proper folder on the hard drive. Blizzard does not allow addons to access the disk.
+TitanSettings : is the table that holds the Titan variables by character and the plugins used by that character.
+TitanSkins : holds the list of Titan and custom skins available to the user. 
+   It is assumed that the skins are in the proper folder on the hard drive. Blizzard does not allow addons to access the disk.
 ServerTimeOffsets and ServerHourFormat: are the tables that hold the user selected hour offset and display format per realm (server).
+
+
+TitanSettings has major sections with associated shortcuts in the code
+TitanPlayerSettings =		TitanSettings.Players[toon]
+TitanPluginSettings =		TitanSettings.Players[toon].Plugins		: Successful registered plugins with all flags
+TitanPanelSettings =		TitanSettings.Players[toon].Panel		: **
+TitanPanelRegister =		TitanSettings.Players[toon].Register	: .registry of all plugins (Titan and LDB) to be registered with Titan
+TitanBarDataVars ^^=		TitanSettings.Players[toon].BarVars		: Titan user selected placement info
+TitanAdjustSettings =			TitanSettings.Players[toon].Adjust		: List of frames Titan can adjust, vertically only
+
+** : 
+- Has Plugin placement data under Location and Buttons
+- Bar settings Show / Hide, transparency, skins, etc
+- Per character Titan settings plugin spacing, global skin, etc
+
+^^ : 
+- The index is the string name of the Titan Bar to coordinate staic and user selected bar data
 :DESC
 --]]
+
 local L = LibStub("AceLocale-3.0"):GetLocale(TITAN_ID, true)
 local _G = getfenv(0);
 local media = LibStub("LibSharedMedia-3.0")
 
--- Global variables 
-Titan__InitializedPEW = nil
-Titan__Initialized_Settings = nil
-
-TITAN_AT = "@"
-
-TitanAll = nil;
-TitanSettings = nil;
-TitanPlayerSettings = nil
-TitanPluginSettings = nil;  -- Used by plugins
-TitanPanelSettings = nil;
-
-TITAN_PANEL_UPDATE_BUTTON = 1;
-TITAN_PANEL_UPDATE_TOOLTIP = 2;
-TITAN_PANEL_UPDATE_ALL = 3;
-TitanTooltipOrigScale = 1;
-TitanTooltipScaleSet = 0;
-
--- Set Titan Version var for backwards compatibility
-TITAN_VERSION = GetAddOnMetadata(TITAN_ID, "Version") or L["TITAN_NA"]
-
--- Various constants
-TITAN_PANEL_PLACE_TOP = 1;
-TITAN_PANEL_PLACE_BOTTOM = 2;
-TITAN_PANEL_PLACE_BOTH = 3;
-TITAN_PANEL_MOVING = 0;
-
-TITAN_WOW_SCREEN_TOP = 768
-TITAN_WOW_SCREEN_BOT = 0
-
-TITAN_TOP = "Top"
-TITAN_BOTTOM = "Bottom"
-TITAN_RIGHT = "Right"
-TITAN_LEFT = "Left"
-TITAN_PANEL_BUTTONS_ALIGN_LEFT = 1;
-TITAN_PANEL_BUTTONS_ALIGN_CENTER = 2;
-
-TITAN_PANEL_CONTROL = "TitanPanelBarButton"
--- New bar vars
-TITAN_PANEL_BAR_HEIGHT = 24
-TITAN_PANEL_BAR_TEXTURE_HEIGHT = 30
-TITAN_PANEL_AUTOHIDE_PREFIX = "TitanPanelAutoHide_"
-TITAN_PANEL_AUTOHIDE_SUFFIX = "Button"
-TITAN_PANEL_HIDE_PREFIX = "Titan_Bar__Hider_"
-TITAN_PANEL_DISPLAY_PREFIX = "Titan_Bar__Display_"
-TITAN_PANEL_DISPLAY_MENU = "Menu_"
---TITAN_PANEL_DISPLAY_ID = "Id_"
-TITAN_PANEL_BACKGROUND_PREFIX = "TitanPanelBackground_"
-TITAN_PANEL_TEXT = "Text"
-TITAN_PANEL_BUTTON_TEXT = "Button"..TITAN_PANEL_TEXT
-TITAN_PANEL_CONSTANTS = {
-	FONT_SIZE = 10,
-	FONT_NAME = "Friz Quadrata TT"
-}
 if (GetLocale() == "ruRU") then
 	-- Special fix for Russian - "Friz Quadrata TT" does not seem to work
 	TITAN_PANEL_CONSTANTS.FONT_NAME = "Arial Narrow"
 end
 local TPC = TITAN_PANEL_CONSTANTS -- shortcut
 
-TITAN_CUSTOM_PROFILE_POSTFIX = "TitanCustomProfile"
-TITAN_PROFILE_NONE = "<>"
-TITAN_PROFILE_RESET = "<RESET>"
-TITAN_PROFILE_USE = "<USE>"
-TITAN_PROFILE_INIT = "<INIT>"
-
-AUTOHIDE_PREFIX = "TitanPanelAutoHide_"
-AUTOHIDE_SUFFIX = "Button"
-
-TITAN_PANEL_BUTTONS_PLUGIN_CATEGORY = 
-	{"Built-ins","General","Combat","Information","Interface","Profession"}
-
 --[[ Titan
 NAME: Titan bar overview
 DESC:
--- 3 buttons are used to create a Titan bar: 
--- the 'display' button, 
--- the 'hider', 
--- and the 'auto hide' plugin.
--- The display is where the plugins are displayed.
--- The hider is used if auto hide is requested. This button will cause the display to show when the mouse is enters.
--- The auto hide is the plugin that shows the auto hide 'pin'.
+-- 3 button frames are used to create a Titan bar: 
+-- the 'display' button frame - the bar itself, 
+-- the 'hider' which is a blank 1/2 height bar to capture the cursor moving to the bar, 
+-- and the 'auto hide' plugin displaying the 'push pin' button.
 :DESC
 --]]
---[[ Titan
-NAME: TitanBarOrder table
-DESC:
-The values must match the 'name' in the TitanBarData table!!!
-The values specify the order the options should be ordered in the options pulldown.
-:DESC
---]]
-TitanBarOrder = {"Bar", "Bar2", "AuxBar2", "AuxBar"}
+
 --[[ Titan
 NAME: TitanBarData table. 
 DESC:
-The index must match the 'button' names in the TitanPanel.xml!!!
 The table holds:
- the name of each Titan bar (in the index)
- the short name of the bar 
- whether the bar is on top or bottom
- the order they should be in top to bottom
- show / hide give the values for the cooresponding SetPoint
+- the name of each Titan bar (as the index)
+- the short name of the bar 
+- whether the bar is relative - top or bottom or short (user placed)
+- the order they should be considered
+- SetPoint values for show / hide
+- short bar specific values 
  
 The short name is used to build names of the various saved variables, frames,
  and buttons used by Titan.
 :DESC
 -]]
+local SHORT_WIDTH = 200
+local y_top = GetScreenHeight()  -- * UIParent:GetEffectiveScale()
+local x_max = GetScreenWidth()
+local x_mid = (GetScreenWidth() / 2) - (SHORT_WIDTH / 2)
+
+local function Calc_Y(n)
+	return (GetScreenHeight() - (TITAN_PANEL_BAR_HEIGHT * n))
+end
+local function Calc_X()
+	return (GetScreenWidth() / 2) - (SHORT_WIDTH / 2)
+end
+
+--[[
+--]]
 TitanBarData = {
 	[TITAN_PANEL_DISPLAY_PREFIX.."Bar"] = {
+		frame_name = TITAN_PANEL_DISPLAY_PREFIX.."Bar",
 		locale_name = L["TITAN_PANEL_MENU_TOP"],
 		name = "Bar", vert = TITAN_TOP, order = 1,
+		tex_name = TITAN_PANEL_BACKGROUND_PREFIX.."Bar",
 		hider = TITAN_PANEL_HIDE_PREFIX.."Bar",
-		auto_hide_plugin = AUTOHIDE_PREFIX.."Bar"..AUTOHIDE_SUFFIX,
+		hide_y = (TITAN_PANEL_BAR_HEIGHT * 3),
 		plugin_y_offset = 1,
-		show = {
-		top = {pt="TOPLEFT", rel_fr="UIParent", rel_pt="TOPLEFT", x=0, y=0},
-		bot = {pt="BOTTOMRIGHT", rel_fr="UIParent", rel_pt="TOPRIGHT", x=0, y=-TITAN_PANEL_BAR_HEIGHT} },
-		hide = {
-		top = {pt="TOPLEFT", rel_fr="UIParent", rel_pt="TOPLEFT", x=0, y=TITAN_PANEL_BAR_HEIGHT*2},
-		bot = {pt="BOTTOMRIGHT", rel_fr="UIParent", rel_pt="TOPRIGHT", x=0, y=TITAN_PANEL_BAR_HEIGHT*2} } 
+		plugin_x_offset = 5,
+		show = {pt="TOPLEFT", rel_fr="UIParent", rel_pt="TOPLEFT",},
+		bott = {pt="BOTTOMRIGHT", rel_fr="UIParent", rel_pt="TOPRIGHT",},
+		user_move = false,
 	},
 	[TITAN_PANEL_DISPLAY_PREFIX.."Bar2"] = {
+		frame_name = TITAN_PANEL_DISPLAY_PREFIX.."Bar2",
 		locale_name = L["TITAN_PANEL_MENU_TOP2"],
 		name = "Bar2", vert = TITAN_TOP, order = 2,
+		tex_name = TITAN_PANEL_BACKGROUND_PREFIX.."Bar2",
 		hider = TITAN_PANEL_HIDE_PREFIX.."Bar2",
-		auto_hide_plugin = AUTOHIDE_PREFIX.."Bar2"..AUTOHIDE_SUFFIX,
+		hide_y = (TITAN_PANEL_BAR_HEIGHT * 10),
 		plugin_y_offset = 1,
-		show = {
-		top = {pt="TOPLEFT", rel_fr="UIParent", rel_pt="TOPLEFT", x=0, y=-TITAN_PANEL_BAR_HEIGHT},
-		bot = {pt="BOTTOMRIGHT", rel_fr="UIParent", rel_pt="TOPRIGHT", x=0, y=-TITAN_PANEL_BAR_HEIGHT*2} },
-		hide = {
-		top = {pt="TOPLEFT", rel_fr="UIParent", rel_pt="TOPLEFT", x=0, y=TITAN_PANEL_BAR_HEIGHT*2},
-		bot = {pt="BOTTOMRIGHT", rel_fr="UIParent", rel_pt="TOPRIGHT", x=0, y=TITAN_PANEL_BAR_HEIGHT*2} } 
+		plugin_x_offset = 5,
+		show = {pt="TOPLEFT", rel_fr="UIParent", rel_pt="TOPLEFT",},
+		bott = {pt="BOTTOMRIGHT", rel_fr="UIParent", rel_pt="TOPRIGHT",},
+		user_move = false,
 	},
-	-- no idea why -1 is needed for the bottom... seems anchoring to bottom is off a pixel
 	[TITAN_PANEL_DISPLAY_PREFIX.."AuxBar2"] = {
+		frame_name = TITAN_PANEL_DISPLAY_PREFIX.."AuxBar2",
 		locale_name = L["TITAN_PANEL_MENU_BOTTOM2"],
 		name = "AuxBar2",  vert = TITAN_BOTTOM, order = 3,
+		tex_name = TITAN_PANEL_BACKGROUND_PREFIX.."AuxBar2",
 		hider = TITAN_PANEL_HIDE_PREFIX.."AuxBar2",
-		auto_hide_plugin = AUTOHIDE_PREFIX.."AuxBar2"..AUTOHIDE_SUFFIX,
+		hide_y = -(TITAN_PANEL_BAR_HEIGHT * 2),
 		plugin_y_offset = 1,
-		show = {
-		top = {pt="TOPRIGHT", rel_fr="UIParent", rel_pt="BOTTOMRIGHT", x=0, y=TITAN_PANEL_BAR_HEIGHT*2-1},
-		bot = {pt="BOTTOMLEFT", rel_fr="UIParent", rel_pt="BOTTOMLEFT", x=0, y=TITAN_PANEL_BAR_HEIGHT-1} },
-		hide = {
-		top = {pt="TOPRIGHT", rel_fr="UIParent", rel_pt="BOTTOMRIGHT", x=0, y=-TITAN_PANEL_BAR_HEIGHT*2},
-		bot = {pt="BOTTOMLEFT", rel_fr="UIParent", rel_pt="BOTTOMLEFT", x=0, y=-TITAN_PANEL_BAR_HEIGHT*2} } 
+		plugin_x_offset = 5,
+		show = {pt="TOPLEFT", rel_fr="UIParent", rel_pt="BOTTOMLEFT",},
+		bott = {pt="BOTTOMRIGHT", rel_fr="UIParent", rel_pt="BOTTOMRIGHT",},
+		user_move = false,
 	},
 	[TITAN_PANEL_DISPLAY_PREFIX.."AuxBar"] = {
+		frame_name = TITAN_PANEL_DISPLAY_PREFIX.."AuxBar",
 		locale_name = L["TITAN_PANEL_MENU_BOTTOM"],
 		name = "AuxBar",  vert = TITAN_BOTTOM, order = 4,
+		tex_name = TITAN_PANEL_BACKGROUND_PREFIX.."AuxBar",
 		hider = TITAN_PANEL_HIDE_PREFIX.."AuxBar",
-		auto_hide_plugin = AUTOHIDE_PREFIX.."AuxBar"..AUTOHIDE_SUFFIX,
+		hide_y = -(TITAN_PANEL_BAR_HEIGHT * 3),
 		plugin_y_offset = 1,
-		show = {
-		top = {pt="TOPRIGHT", rel_fr="UIParent", rel_pt="BOTTOMRIGHT", x=0, y=TITAN_PANEL_BAR_HEIGHT-1},
-		bot = {pt="BOTTOMLEFT", rel_fr="UIParent", rel_pt="BOTTOMLEFT", x=0, y=0-1} },
-		hide = {
-		top = {pt="TOPRIGHT", rel_fr="UIParent", rel_pt="BOTTOMRIGHT", x=0, y=-TITAN_PANEL_BAR_HEIGHT*2},
-		bot = {pt="BOTTOMLEFT", rel_fr="UIParent", rel_pt="BOTTOMLEFT", x=0, y=-TITAN_PANEL_BAR_HEIGHT*2} } 
+		plugin_x_offset = 5,
+		position = {eff_x = 0, eff_y = 0, eff_width = 0},
+		show = {pt="TOPLEFT", rel_fr="UIParent", rel_pt="BOTTOMLEFT",},
+		bott = {pt="BOTTOMRIGHT", rel_fr="UIParent", rel_pt="BOTTOMRIGHT",},
+		user_move = false,
 	},
-	}
+	[TITAN_PANEL_DISPLAY_PREFIX.."Short01"] = {
+		frame_name = TITAN_PANEL_DISPLAY_PREFIX.."Short01",
+		locale_name = SHORT.." 01",
+		name = "Short01",  vert = TITAN_SHORT, order = 5,
+		tex_name = TITAN_PANEL_BACKGROUND_PREFIX.."Short01",
+		hider = nil,
+		hide_y = -(TITAN_PANEL_BAR_HEIGHT * 4),
+		plugin_y_offset = 1,
+		plugin_x_offset = 10,
+		show = {pt="BOTTOMLEFT", rel_fr="UIParent", rel_pt="BOTTOMLEFT",},
+		user_move = true,
+	},
+	[TITAN_PANEL_DISPLAY_PREFIX.."Short02"] = {
+		frame_name = TITAN_PANEL_DISPLAY_PREFIX.."Short02",
+		locale_name = SHORT.." 02",
+		name = "Short02",  vert = TITAN_SHORT, order = 6,
+		tex_name = TITAN_PANEL_BACKGROUND_PREFIX.."Short02",
+		hider = nil,
+		hide_y = -(TITAN_PANEL_BAR_HEIGHT * 4),
+		plugin_y_offset = 1,
+		plugin_x_offset = 10,
+		show = {pt="BOTTOMLEFT", rel_fr="UIParent", rel_pt="BOTTOMLEFT",},
+		user_move = true,
+	},
+	[TITAN_PANEL_DISPLAY_PREFIX.."Short03"] = {
+		frame_name = TITAN_PANEL_DISPLAY_PREFIX.."Short03",
+		locale_name = SHORT.." 03",
+		name = "Short03",  vert = TITAN_SHORT, order = 7,
+		tex_name = TITAN_PANEL_BACKGROUND_PREFIX.."Short03",
+		hider = nil,
+		hide_y = -(TITAN_PANEL_BAR_HEIGHT * 4),
+		plugin_y_offset = 1,
+		plugin_x_offset = 10,
+		show = {pt="BOTTOMLEFT", rel_fr="UIParent", rel_pt="BOTTOMLEFT",},
+		user_move = true,
+	},
+	[TITAN_PANEL_DISPLAY_PREFIX.."Short04"] = {
+		frame_name = TITAN_PANEL_DISPLAY_PREFIX.."Short04",
+		locale_name = SHORT.." 04",
+		name = "Short04",  vert = TITAN_SHORT, order = 8,
+		tex_name = TITAN_PANEL_BACKGROUND_PREFIX.."Short04",
+		hider = nil,
+		hide_y = -(TITAN_PANEL_BAR_HEIGHT * 4),
+		plugin_y_offset = 1,
+		plugin_x_offset = 10,
+		show = {pt="BOTTOMLEFT", rel_fr="UIParent", rel_pt="BOTTOMLEFT",},
+		user_move = true,
+	},
+	[TITAN_PANEL_DISPLAY_PREFIX.."Short05"] = {
+		frame_name = TITAN_PANEL_DISPLAY_PREFIX.."Short05",
+		locale_name = SHORT.." 05",
+		name = "Short05",  vert = TITAN_SHORT, order = 9,
+		tex_name = TITAN_PANEL_BACKGROUND_PREFIX.."Short05",
+		hider = nil,
+		hide_y = -(TITAN_PANEL_BAR_HEIGHT * 4),
+		plugin_y_offset = 1,
+		plugin_x_offset = 10,
+		show = {pt="BOTTOMLEFT", rel_fr="UIParent", rel_pt="BOTTOMLEFT",},
+		user_move = true,
+	},
+	[TITAN_PANEL_DISPLAY_PREFIX.."Short06"] = {
+		frame_name = TITAN_PANEL_DISPLAY_PREFIX.."Short06",
+		locale_name = SHORT.." 06",
+		name = "Short06",  vert = TITAN_SHORT, order = 10,
+		tex_name = TITAN_PANEL_BACKGROUND_PREFIX.."Short06",
+		hider = nil,
+		hide_y = -(TITAN_PANEL_BAR_HEIGHT * 4),
+		plugin_y_offset = 1,
+		plugin_x_offset = 10,
+		show = {pt="BOTTOMLEFT", rel_fr="UIParent", rel_pt="BOTTOMLEFT",},
+		user_move = true,
+	},
+	[TITAN_PANEL_DISPLAY_PREFIX.."Short07"] = {
+		frame_name = TITAN_PANEL_DISPLAY_PREFIX.."Short07",
+		locale_name = SHORT.." 07",
+		name = "Short07",  vert = TITAN_SHORT, order = 11,
+		tex_name = TITAN_PANEL_BACKGROUND_PREFIX.."Short07",
+		hider = nil,
+		hide_y = -(TITAN_PANEL_BAR_HEIGHT * 4),
+		plugin_y_offset = 1,
+		plugin_x_offset = 10,
+		show = {pt="BOTTOMLEFT", rel_fr="UIParent", rel_pt="BOTTOMLEFT",},
+		user_move = true,
+	},
+	[TITAN_PANEL_DISPLAY_PREFIX.."Short08"] = {
+		frame_name = TITAN_PANEL_DISPLAY_PREFIX.."Short08",
+		locale_name = SHORT.." 08",
+		name = "Short08",  vert = TITAN_SHORT, order = 12,
+		tex_name = TITAN_PANEL_BACKGROUND_PREFIX.."Short08",
+		hider = nil,
+		hide_y = -(TITAN_PANEL_BAR_HEIGHT * 4),
+		plugin_y_offset = 1,
+		plugin_x_offset = 10,
+		show = {pt="BOTTOMLEFT", rel_fr="UIParent", rel_pt="BOTTOMLEFT",},
+		user_move = true,
+	},
+	[TITAN_PANEL_DISPLAY_PREFIX.."Short09"] = {
+		frame_name = TITAN_PANEL_DISPLAY_PREFIX.."Short09",
+		locale_name = SHORT.." 09",
+		name = "Short09",  vert = TITAN_SHORT, order = 13,
+		tex_name = TITAN_PANEL_BACKGROUND_PREFIX.."Short09",
+		hider = nil,
+		hide_y = -(TITAN_PANEL_BAR_HEIGHT * 4),
+		plugin_y_offset = 1,
+		plugin_x_offset = 10,
+		show = {pt="BOTTOMLEFT", rel_fr="UIParent", rel_pt="BOTTOMLEFT",},
+		user_move = true,
+	},
+	[TITAN_PANEL_DISPLAY_PREFIX.."Short10"] = {
+		frame_name = TITAN_PANEL_DISPLAY_PREFIX.."Short10",
+		locale_name = SHORT.." 10",
+		name = "Short10",  vert = TITAN_SHORT, order = 14,
+		tex_name = TITAN_PANEL_BACKGROUND_PREFIX.."Short10",
+		hider = nil,
+		hide_y = -(TITAN_PANEL_BAR_HEIGHT * 4),
+		plugin_y_offset = 1,
+		plugin_x_offset = 10,
+		show = {pt="BOTTOMLEFT", rel_fr="UIParent", rel_pt="BOTTOMLEFT",},
+		user_move = true,
+	},
+}
+
+--[[ Titan
+NAME: TitanBarPositions table. 
+DESC:
+The table holds:
+- the name of each Titan bar (as the index)
+- the X and Y position of the bar 
+- the width of the bar
+ 
+The index must be matched to the TitanBarData table!
+This table wil be saved under "Players" to rember the placement of Short bars.
+
+The cooresponding Defaults table holds the starting values.
+The original Titan (full width) bars values are used for default X and Y
+:DESC
+-]]
+TitanBarDataVars = {}
+TitanBarVarsDefaults = {
+	["Global"] = -- holds 'global' user settings; NOT for use in the frame loop!
+		{
+		skin = {path = "Interface\\AddOns\\Titan\\Artwork\\", alpha = 0.7},
+		color = {r = 1.0, g = .5, b = 1.0, alpha = 1.0},
+		texure = Titan_Panel.NONE, -- Titan_Panel.NONE or Titan_Panel.SKIN or Titan_Panel.COLOR
+		hide_in_combat = false,
+		},
+	[TITAN_PANEL_DISPLAY_PREFIX.."Bar"] = {off_x=0, off_y=0, off_w = x_max, 
+		skin = {path = "Interface\\AddOns\\Titan\\Artwork\\", alpha = 0.7},
+		color = {r = 1.0, g = .5, b = 1.0, alpha = 1.0},
+		texure = Titan_Panel.SKIN, -- or Titan_Panel.COLOR
+		show = true,
+		auto_hide = false,
+		align = TITAN_PANEL_BUTTONS_ALIGN_LEFT,   -- TITAN_PANEL_BUTTONS_ALIGN_CENTER
+		hide_in_combat = false,
+		},
+	[TITAN_PANEL_DISPLAY_PREFIX.."Bar2"] = {off_x=0, off_y=-(TITAN_PANEL_BAR_HEIGHT), off_w = x_max, 
+		skin = {path = "Interface\\AddOns\\Titan\\Artwork\\", alpha = 0.7},
+		color = {r = 1.0, g = .5, b = 1.0, alpha = 1.0},
+		texure = Titan_Panel.SKIN,
+		show = false,
+		auto_hide = false,
+		align = TITAN_PANEL_BUTTONS_ALIGN_LEFT,   -- TITAN_PANEL_BUTTONS_ALIGN_CENTER
+		hide_in_combat = false,
+		},
+	[TITAN_PANEL_DISPLAY_PREFIX.."AuxBar2"] = {off_x=0, off_y=(TITAN_PANEL_BAR_HEIGHT * 2), off_w = x_max,  
+		skin = {path = "Interface\\AddOns\\Titan\\Artwork\\", alpha = 0.7},
+		color = {r = 1.0, g = .5, b = 1.0, alpha = 1.0},
+		texure = Titan_Panel.SKIN,
+		show = false,
+		auto_hide = false,
+		align = TITAN_PANEL_BUTTONS_ALIGN_LEFT,   -- TITAN_PANEL_BUTTONS_ALIGN_CENTER
+		hide_in_combat = false,
+		},
+	[TITAN_PANEL_DISPLAY_PREFIX.."AuxBar"] = {off_x=0, off_y=(TITAN_PANEL_BAR_HEIGHT), off_w = x_max,  
+		skin = {path = "Interface\\AddOns\\Titan\\Artwork\\", alpha = 0.7},
+		color = {r = 1.0, g = .5, b = 1.0, alpha = 1.0},
+		texure = Titan_Panel.SKIN,
+		show = false,
+		auto_hide = false,
+		align = TITAN_PANEL_BUTTONS_ALIGN_LEFT,   -- TITAN_PANEL_BUTTONS_ALIGN_CENTER
+		hide_in_combat = false,
+		},
+	[TITAN_PANEL_DISPLAY_PREFIX.."Short01"] = {off_x=x_mid, off_y=Calc_Y(3), off_w = SHORT_WIDTH,  
+		skin = {path = "Interface\\AddOns\\Titan\\Artwork\\", alpha = 0.7},
+		color = {r = 1.0, g = .5, b = 1.0, alpha = 1.0},
+		texure = Titan_Panel.SKIN,
+		show = false,
+		auto_hide = false,
+		align = TITAN_PANEL_BUTTONS_ALIGN_LEFT,   -- TITAN_PANEL_BUTTONS_ALIGN_CENTER
+		hide_in_combat = false,
+		},
+	[TITAN_PANEL_DISPLAY_PREFIX.."Short02"] = {off_x=x_mid, off_y=Calc_Y(4), off_w = SHORT_WIDTH,  
+		skin = {path = "Interface\\AddOns\\Titan\\Artwork\\", alpha = 0.7},
+		color = {r = 1.0, g = .5, b = 1.0, alpha = 1.0},
+		texure = Titan_Panel.SKIN,
+		show = false,
+		auto_hide = false,
+		align = TITAN_PANEL_BUTTONS_ALIGN_LEFT,   -- TITAN_PANEL_BUTTONS_ALIGN_CENTER
+		hide_in_combat = false,
+		},
+	[TITAN_PANEL_DISPLAY_PREFIX.."Short03"] = {off_x=x_mid, off_y=Calc_Y(5), off_w = SHORT_WIDTH,  
+		skin = {path = "Interface\\AddOns\\Titan\\Artwork\\", alpha = 0.7},
+		color = {r = 1.0, g = .5, b = 1.0, alpha = 1.0},
+		texure = Titan_Panel.SKIN,
+		show = false,
+		auto_hide = false,
+		align = TITAN_PANEL_BUTTONS_ALIGN_LEFT,   -- TITAN_PANEL_BUTTONS_ALIGN_CENTER
+		hide_in_combat = false,
+		},
+	[TITAN_PANEL_DISPLAY_PREFIX.."Short04"] = {off_x=x_mid, off_y=Calc_Y(6), off_w = SHORT_WIDTH,  
+		skin = {path = "Interface\\AddOns\\Titan\\Artwork\\", alpha = 0.7},
+		color = {r = 1.0, g = .5, b = 1.0, alpha = 1.0},
+		texure = Titan_Panel.SKIN,
+		show = false,
+		auto_hide = false,
+		align = TITAN_PANEL_BUTTONS_ALIGN_LEFT,   -- TITAN_PANEL_BUTTONS_ALIGN_CENTER
+		hide_in_combat = false,
+		},
+	[TITAN_PANEL_DISPLAY_PREFIX.."Short05"] = {off_x=x_mid, off_y=Calc_Y(7), off_w = SHORT_WIDTH,  
+		skin = {path = "Interface\\AddOns\\Titan\\Artwork\\", alpha = 0.7},
+		color = {r = 1.0, g = .5, b = 1.0, alpha = 1.0},
+		texure = Titan_Panel.SKIN,
+		show = false,
+		auto_hide = false,
+		align = TITAN_PANEL_BUTTONS_ALIGN_LEFT,   -- TITAN_PANEL_BUTTONS_ALIGN_CENTER
+		hide_in_combat = false,
+		},
+	[TITAN_PANEL_DISPLAY_PREFIX.."Short06"] = {off_x=x_mid, off_y=Calc_Y(8), off_w = SHORT_WIDTH,  
+		skin = {path = "Interface\\AddOns\\Titan\\Artwork\\", alpha = 0.7},
+		color = {r = 1.0, g = .5, b = 1.0, alpha = 1.0},
+		texure = Titan_Panel.SKIN,
+		show = false,
+		auto_hide = false,
+		align = TITAN_PANEL_BUTTONS_ALIGN_LEFT,   -- TITAN_PANEL_BUTTONS_ALIGN_CENTER
+		hide_in_combat = false,
+		},
+	[TITAN_PANEL_DISPLAY_PREFIX.."Short07"] = {off_x=x_mid, off_y=Calc_Y(9), off_w = SHORT_WIDTH,  
+		skin = {path = "Interface\\AddOns\\Titan\\Artwork\\", alpha = 0.7},
+		color = {r = 1.0, g = .5, b = 1.0, alpha = 1.0},
+		texure = Titan_Panel.SKIN,
+		show = false,
+		auto_hide = false,
+		align = TITAN_PANEL_BUTTONS_ALIGN_LEFT,   -- TITAN_PANEL_BUTTONS_ALIGN_CENTER
+		hide_in_combat = false,
+		},
+	[TITAN_PANEL_DISPLAY_PREFIX.."Short08"] = {off_x=x_mid, off_y=Calc_Y(10), off_w = SHORT_WIDTH,  
+		skin = {path = "Interface\\AddOns\\Titan\\Artwork\\", alpha = 0.7},
+		color = {r = 1.0, g = .5, b = 1.0, alpha = 1.0},
+		texure = Titan_Panel.SKIN,
+		show = false,
+		auto_hide = false,
+		align = TITAN_PANEL_BUTTONS_ALIGN_LEFT,   -- TITAN_PANEL_BUTTONS_ALIGN_CENTER
+		hide_in_combat = false,
+		},
+	[TITAN_PANEL_DISPLAY_PREFIX.."Short09"] = {off_x=x_mid, off_y=Calc_Y(11), off_w = SHORT_WIDTH,  
+		skin = {path = "Interface\\AddOns\\Titan\\Artwork\\", alpha = 0.7},
+		color = {r = 1.0, g = .5, b = 1.0, alpha = 1.0},
+		texure = Titan_Panel.SKIN,
+		show = false,
+		auto_hide = false,
+		align = TITAN_PANEL_BUTTONS_ALIGN_LEFT,   -- TITAN_PANEL_BUTTONS_ALIGN_CENTER
+		hide_in_combat = false,
+		},
+	[TITAN_PANEL_DISPLAY_PREFIX.."Short10"] = {off_x=x_mid, off_y=Calc_Y(12), off_w = SHORT_WIDTH,  
+		skin = {path = "Interface\\AddOns\\Titan\\Artwork\\", alpha = 0.7},
+		color = {r = 1.0, g = .5, b = 1.0, alpha = 1.0},
+		texure = Titan_Panel.SKIN,
+		show = false,
+		auto_hide = false,
+		align = TITAN_PANEL_BUTTONS_ALIGN_LEFT,   -- TITAN_PANEL_BUTTONS_ALIGN_CENTER
+		hide_in_combat = false,
+		},
+}
+
+local TitanAdjDefaults = {
+		adjust = false,
+		offset = 0,
+}
+Titan_Panel.AdjList = { -- TODO : localize
+	["UIWidgetTopCenterContainerFrame"] = {
+		frame_name = "UIWidgetTopCenterContainerFrame",
+		purpose = "Status for BG / Dungeon",
+	}, 
+}
+TitanAdjustSettings = {} -- holds frames that Titan allows user to adjust
 
 -- Timers used within Titan
 TitanTimers = {}
---[[ Titan
-NAME: AutoHideData table. 
-DESC:
-The index must match the hider 'button' names in the TitanPanel.xml!!!
-The table holds:
- the name of each hider bar (in the index)
- the short name of the hider bar 
- whether the hider bar is on top or bottom
-:DESC
---]]
-AutoHideData = { -- This has to follow the convention for plugins...
-	[AUTOHIDE_PREFIX.."Bar"..AUTOHIDE_SUFFIX] = {name = "Bar", vert = TITAN_TOP},
-	[AUTOHIDE_PREFIX.."Bar2"..AUTOHIDE_SUFFIX] = {name = "Bar2", vert = TITAN_TOP},
-	[AUTOHIDE_PREFIX.."AuxBar2"..AUTOHIDE_SUFFIX] = {name = "AuxBar2", vert = TITAN_BOTTOM},
-	[AUTOHIDE_PREFIX.."AuxBar"..AUTOHIDE_SUFFIX] = {name = "AuxBar", vert = TITAN_BOTTOM},
-	}
 
 --[[ Titan
 TitanPluginToBeRegistered table holds each plugin that is requesting to be a plugin.
@@ -204,9 +431,6 @@ TitanPluginToBeRegistered = {}
 TitanPluginToBeRegisteredNum = 0
 
 TitanPluginRegisteredNum = 0
-
---TitanPluginAttempted = {}
---TitanPluginAttemptedNum = 0
 
 --[[ Titan
 TitanPluginExtras table holds the plugin data for plugins that are in saved variables but not loaded on the current character.
@@ -258,6 +482,8 @@ TITAN_PANEL_SAVED_VARIABLES = {
 	VersionShown = 1,
 	ToolTipsShown = 1,
 	HideTipsInCombat = false,
+	HideBarsInCombat = false,
+	HideBarsInPVP = false,
 	-- for the independent bars
 	Bar_Show = true,
 	Bar_Hide = false,
@@ -275,11 +501,6 @@ TITAN_PANEL_SAVED_VARIABLES = {
 	AuxBar2_Hide = false,
 	AuxBar2_Transparency = 0.7,
 	AuxBar2_Align = TITAN_PANEL_BUTTONS_ALIGN_LEFT,
-	MainMenuBarXAdj = 0,
-	MenuAndBagVerticalAdjOn = false,
-	MenuAndBagVerticalAdj = 24,
-	XPBarVerticalAdjOn = false,
-	XPBarVerticalAdj = 24,
 };
 
 --[[ Titan
@@ -287,11 +508,7 @@ TITAN_ALL_SAVED_VARIABLES table holds the Titan Panel Global SavedVars.
 --]]
 TITAN_ALL_SAVED_VARIABLES = {
 	-- for timers in seconds
-	TimerPEW = 4,
-	TimerDualSpec = 2,
 	TimerLDB = 2,
-	TimerAdjust = 1,
-	TimerVehicle = 1,
 	-- Global profile
 	GlobalProfileUse = false,
 	GlobalProfileName = TITAN_PROFILE_NONE,
@@ -370,6 +587,12 @@ local function TitanVariables_SyncRegisterSavedVariables(registeredVariables, sa
 	if (registeredVariables and savedVariables) then
 		-- Init registeredVariables
 		for index, value in pairs(registeredVariables) do
+--[[
+print("_sync"
+.." "..tostring(index)..""
+.." : "..tostring(value)..""
+)
+--]]
 			if (not TitanUtils_TableContainsIndex(savedVariables, index)) then
 				savedVariables[index] = value;
 			end
@@ -399,6 +622,11 @@ local function Plugin_settings(reset)
 	local plugin_list = {}
 	if reset then -- use the default install list
 		plugin_list = Default_Plugins
+--[[
+print("plugins init"
+.." "..tostring(reset)..""
+)
+--]]
 	else -- use the current profile
 		plugin_list = TitanPanelSettings.Buttons
 	end
@@ -408,10 +636,10 @@ local function Plugin_settings(reset)
 		local id = default_plugin.id
 		local loc = default_plugin.loc
 		local plugin = TitanUtils_GetPlugin(id)
---TitanDebug("Plugin: "..(id or "?").." "..(plugin and "T" or "F"))
+--TitanDebug("Plugin: "..tostring(id).." "..(plugin and "T" or "F"))
 		-- See if plugin is registered
 		if (plugin) then
---TitanDebug("__Plugin: "..(id or "?").." "..(loc or "?"))
+--TitanDebug("__Plugin: "..tostring(id).." "..tostring(loc))
 			-- Synchronize registered and saved variables
 			TitanVariables_SyncRegisterSavedVariables(
 				plugin.savedVariables, TitanPluginSettings[id])
@@ -504,17 +732,6 @@ local function TitanVariables_SyncSkins()
 end
 
 --[[ local
-NAME: Sync_panel_settings
-DESC: Routine to sync TitanPanelSettings - defaults to saved vars.
-VAR: Setting - table to use as the default
-OUT: None
---]]
-local function Sync_panel_settings(settings) 
-	-- Synchronize registered and saved variables
-	TitanVariables_SyncRegisterSavedVariables(settings, TitanPanelSettings)
-end
-
---[[ local
 NAME: Set_Timers
 DESC: Routine to reset / sync Titan settings.
 VAR:  None
@@ -523,25 +740,41 @@ OUT:  None
 local function Set_Timers(reset) 
 	-- Titan is loaded so set the timers we want to use
 	TitanTimers = {
---		["EnterWorld"] = {obj = "PEW", callback = Titan_Hook_PEW, delay = 4,},
---		["DualSpec"] = {obj = "SpecSwitch", callback = Titan_Hook_SpecSwitch, delay = 2,},
 		["LDBRefresh"] = {obj = "LDB", callback = TitanLDBRefreshButton, delay = 2,},
---		["Adjust"] = {obj = "MoveAdj", callback = Titan_Hook_MoveAdj, delay = 1,},
---		["Vehicle"] = {obj = "Vehicle", callback = Titan_Hook_Vehicle, delay = 1,},
 	}
 	
 	if reset then
---		TitanAllSetVar("TimerPEW", TitanTimers["EnterWorld"].delay)
---		TitanAllSetVar("TimerDualSpec", TitanTimers["DualSpec"].delay)
 		TitanAllSetVar("TimerLDB", TitanTimers["LDBRefresh"].delay)
---		TitanAllSetVar("TimerAdjust", TitanTimers["Adjust"].delay)
---		TitanAllSetVar("TimerVehicle", TitanTimers["Vehicle"].delay)
 	else
---		TitanTimers["EnterWorld"].delay = TitanAllGetVar("TimerPEW")
---		TitanTimers["DualSpec"].delay = TitanAllGetVar("TimerDualSpec")
 		TitanTimers["LDBRefresh"].delay = TitanAllGetVar("TimerLDB")
---		TitanTimers["Adjust"].delay = TitanAllGetVar("TimerAdjust")
---		TitanTimers["Vehicle"].delay = TitanAllGetVar("TimerVehicle")
+	end
+end
+
+--[[ Titan
+NAME: TitanVariables_SyncSinglePluginSettings
+DESC: Routine to sync one plugin - current loaded (lua file) to its plugin saved vars (last save to disk).
+VAR:  id : plugin name
+OUT:  None
+--]]
+function TitanVariables_SyncSinglePluginSettings(id) 
+	-- Init this plugin
+	local plugin = TitanPlugins[id]
+	if (plugin and plugin.savedVariables) then
+		-- Init savedVariables table
+		if TitanPluginSettings then
+			-- exists
+		else
+			TitanPluginSettings = {};
+		end					
+		if TitanPluginSettings[id] then
+			-- exists
+		else
+			TitanPluginSettings[id] = {};
+		end					
+		
+		-- Synchronize registered and saved variables
+		TitanVariables_SyncRegisterSavedVariables(
+			plugin.savedVariables, TitanPluginSettings[id]);
 	end
 end
 
@@ -552,22 +785,37 @@ VAR:  None
 OUT:  None
 --]]
 function TitanVariables_SyncPluginSettings() -- one plugin uses this
-	-- Init each and every plugin
+	-- Init / sync every plugin
 	for id, plugin in pairs(TitanPlugins) do
 		if (plugin and plugin.savedVariables) then
-			-- Init savedVariables table
-			if (not TitanPluginSettings[id]) then
-				TitanPluginSettings[id] = {};
-			end					
-			
-			-- Synchronize registered and saved variables
-			TitanVariables_SyncRegisterSavedVariables(
-				plugin.savedVariables, TitanPluginSettings[id]);
+			TitanVariables_SyncSinglePluginSettings(id) -- sync this plugin
 		else
 			-- Remove plugin savedVariables table if there's one
 			if (TitanPluginSettings[id]) then
 				TitanPluginSettings[id] = nil;
 			end								
+		end
+	end
+end
+
+local function Titan_SyncAdjList()
+	-- Using Titan list, walk saved vars to add adjustable frames
+	for frame, v in pairs(Titan_Panel.AdjList) do
+		if TitanAdjustSettings[frame] then 
+			-- No action needed
+			-- If default adds more elements (more data), they will need to be coded here.
+		else
+			TitanAdjustSettings[frame] = TitanAdjDefaults -- Init the saved vars
+		end
+	end
+	
+	-- Using saved vars, walk Titan list to remove frames no longer adjustable
+	for frame, v in pairs(TitanAdjustSettings) do
+		if Titan_Panel.AdjList[frame] then 
+			-- No action needed
+			-- frame is adjustable
+		else
+			TitanAdjustSettings[frame] = nil -- Remove, no longer adjustable
 		end
 	end
 end
@@ -582,30 +830,169 @@ NOTE:
 :NOTE
 --]]
 function TitanVariables_InitTitanSettings()
+	local trace = false
+	local new_toon = false
+	local player = TitanUtils_GetPlayer()
 	if (TitanSettings) then
 		-- all is good
 	else
 		TitanSettings = {}
+		if trace then
+			TitanDebug("TitanSettings {}")
+		end
 	end
+
 	-- check for player list per issue #745
 	if TitanSettings.Players then
 		-- all is good
 	else
-		-- Create the table so profile(s) can be added
-		TitanSettings.Players = {}
+		TitanSettings.Players = {} -- empty saved vars. New install or wipe
+		if trace then
+			TitanDebug("TitanSettings.Players {}")
+		end
 	end
---[[
-TitanDumpPlayerList()
---]]
---	Sync_panel_settings(TITAN_PANEL_SAVED_VARIABLES)
-	
+
 	if (TitanAll) then
+		-- All good
 	else
-		TitanAll = {};
+		TitanAll = {}
 	end
 	TitanVariables_SyncRegisterSavedVariables(TITAN_ALL_SAVED_VARIABLES, TitanAll)
-	
+
+	-- Current Titan list known - all toons player has profiles for
+	-- Sort in alphabetical order.
+	-- Used for menus.
+	Titan_Panel.players = {}
+	for idx, v in pairs (TitanSettings.Players) do
+		table.insert(Titan_Panel.players, idx)
+	end
+	table.sort(Titan_Panel.players, function(a, b)
+		return a < b
+	end)
+--[===[
+for idx = 1, #Titan_Panel.players do
+	print("["..idx.."] : '"..Titan_Panel.players[idx].."'")
+end
+--]===]
+
 	TitanSettings.Version = TITAN_VERSION;
+end
+
+--[[ Titan
+NAME: TitanVariables_SetBarPos
+DESC: Update local and saved vars to new bar position per user
+VAR:  self - frame to save position
+OUT:  None
+NOTE:
+- Called when Titan is loaded (ADDON_LOADED event)
+- Called when user moves or changes width of bar
+- :GetPoint(1) results in incorrect values based on point used
+:NOTE
+--]]
+function TitanVariables_SetBarPos(self, reset, x_off, y_off, w_off)
+	-- Collect bar x & y and save so bar stays put.
+	local bar_frame = self:GetName()
+
+	local force_reset = reset or false
+
+	if TitanBarDataVars[bar_frame] then
+		if reset then
+			-- Initial defaults calc to screen size and scaling at that time - it could have changed!
+			TitanBarDataVars[bar_frame].off_x = Calc_X()
+			TitanBarDataVars[bar_frame].off_y = Calc_Y(TitanBarData[bar_frame].order-2)
+			TitanBarDataVars[bar_frame].off_w = SHORT_WIDTH
+		else
+			-- local to show bars as needed
+			TitanBarDataVars[bar_frame].off_x = x_off
+			TitanBarDataVars[bar_frame].off_y = y_off
+			TitanBarDataVars[bar_frame].off_w = w_off
+		end
+	end
+--[[
+print("_SetBarPos"
+.." "..tostring(self:GetName())..""
+.." "..tostring(reset)..""
+.." x: "..tostring(format("%0.1f", (TitanBarDataVars[bar_frame].off_x or -1.0)))..""
+.." y: "..tostring(format("%0.1f", (TitanBarDataVars[bar_frame].off_y or -1.0)))..""
+.." w: "..tostring(format("%0.1f", (TitanBarDataVars[bar_frame].off_w or -1.0)))..""
+)
+--]]
+end
+
+--[[ Titan
+NAME: TitanVariables_GetBarPos
+DESC: Retrieve saved vars of bar position
+VAR:  frame_str - frame name to retrieve positions from
+OUT:  X, Y, Width
+--]]
+function TitanVariables_GetBarPos(frame_str)
+	local tscale = TitanPanelGetVar("Scale")
+--[[
+print("_GetBarPos"
+.." '"..tostring(format("%0.1f", TitanBarData[frame_str].name).."'"
+.." '"..tostring(format("%0.1f", TitanBarDataVars[frame_str].off_x)).."'"
+.." '"..tostring(format("%0.1f", TitanBarDataVars[frame_str].off_y)).."'"
+.." '"..tostring(format("%0.1f", TitanBarDataVars[frame_str].off_w)).."'"
+)
+--]]
+	return 
+		TitanBarDataVars[frame_str].off_x, --/ tscale, -- / tscale, 
+		TitanBarDataVars[frame_str].off_y, --/ tscale, -- / tscale, 
+		TitanBarDataVars[frame_str].off_w -- / tscale
+end
+
+--[[ Titan
+NAME: TitanVariables_GetFrameName
+DESC: Build the frame name from the bar name
+VAR:  bar_str - frame name to retrieve positions from
+OUT:  frame string
+--]]
+function TitanVariables_GetFrameName(bar_str)
+	return TITAN_PANEL_DISPLAY_PREFIX..bar_str
+end
+
+-- lua-users.org/wiki/CopyTable
+local function deepcopy(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in next, orig, nil do
+            copy[deepcopy(orig_key)] = deepcopy(orig_value)
+        end
+        setmetatable(copy, deepcopy(getmetatable(orig)))
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
+
+local function Set_bar_vars(to_profile)
+	if TitanSettings.Players[to_profile].BarVars then
+		-- All good
+	else
+		-- Set to defaults
+		TitanSettings.Players[to_profile].BarVars = TitanBarVarsDefaults
+		local BV = TitanSettings.Players[to_profile].BarVars
+		
+		-- Cannot assume profile is current / cannot use Get Var routines.
+		local panel = TitanSettings.Players[to_profile].Panel
+
+		-- Bring original Titan bar optionss to the current user settings.
+		-- If this is a new toon or new saved vars then it will just get defaults.
+		for idx, v in pairs (TitanBarData) do
+			if v.user_move == false then
+				-- Set original Bar options from the 'old' saved vars location
+				BV[idx].show = panel[v.name.."_Show"]
+				BV[idx].auto_hide = panel[v.name.."_Hide"]
+				BV[idx].align = panel[v.name.."_Align"]
+				-- only skins before 7.x
+				BV[idx].texure = Titan_Panel.SKIN
+				BV[idx].skin.alpha = panel[v.name.."_Transparency"]
+				BV[idx].skin.path = panel["TexturePath"]
+			end
+		end
+	end
 end
 
 --[[ local
@@ -629,38 +1016,68 @@ NOTE:
 :NOTE
 --]]
 local function Init_player_settings(from_profile, to_profile, action)
+	local trace = false
+	
 	local old_player = {}
 	local old_panel = {}
 	local old_plugins = {}
 	local reset = (action == TITAN_PROFILE_RESET)
---[[
-TitanDebug("_UseSettings "
-.."from: "..(from_profile or "?").." "
-.."to_profile: "..(to_profile or "?").." "
-.."action: "..action.." "
-)
---]]
+	
+	if trace then
+		print("Init_player_settings"
+		.." from: "..tostring(from_profile)..""
+		.." to: "..tostring(to_profile)..""
+		.." action: "..tostring(action)..""
+		)
+	end
 
 	CleanupProfile () -- hide currently shown plugins
-	-- Ensure the requested profile is at least an empty stub
-	if (not TitanSettings.Players[to_profile]) or reset then
+
+	if TitanSettings.Players[to_profile] then
+		-- all is good
+	else
+		-- Create the bare player tables so profile(s) can be added
+		if trace then
+			TitanDebug("TitanSettings.Players[] {}")
+		end
 		TitanSettings.Players[to_profile] = {}
 		TitanSettings.Players[to_profile].Plugins = {}
-		TitanSettings.Players[to_profile].Panel = {}
+		TitanSettings.Players[to_profile].Panel = TITAN_PANEL_SAVED_VARIABLES
 		TitanSettings.Players[to_profile].Panel.Buttons = {}
 		TitanSettings.Players[to_profile].Panel.Location = {}
 		TitanPlayerSettings = {}
 		TitanPlayerSettings["Plugins"] = {}
 		TitanPlayerSettings["Panel"] = {}
 		TitanPlayerSettings["Register"] = {}
-	end	
+		TitanPlayerSettings["BarVars"] = TitanBarVarsDefaults -- New Mar 2023
+		TitanPlayerSettings["Adjust"] = {} -- New May 2023
+		
+		new_toon = true
+	end
 	-- Set global variables
 	TitanPlayerSettings = TitanSettings.Players[to_profile];
 	TitanPluginSettings = TitanPlayerSettings["Plugins"];
 	TitanPanelSettings = TitanPlayerSettings["Panel"];
+	TitanVariables_SyncRegisterSavedVariables(TITAN_PANEL_SAVED_VARIABLES, TitanPanelSettings)
+
+	-- ====== New May 2023 : Back to adjusting a couple frames per user settings
+	-- Could be new toon / ...
+	if TitanPlayerSettings["Adjust"] then 
+		-- No action needed
+	else
+		TitanPlayerSettings["Adjust"] = {}
+	end
+	TitanAdjustSettings = TitanPlayerSettings["Adjust"]
+	Titan_SyncAdjList()
+	-- The player settings are known, init the adjustable frames
+	for idx, v in pairs (Titan_Panel.AdjList) do
+		TitanPanel_AdjustFrameInit(idx)
+	end
+	-- ======
 	
-	Sync_panel_settings(TITAN_PANEL_SAVED_VARIABLES);
-	
+	-- ====== New Mar 2023 : TitanSettings.Players[player].BarData to hold Short bar data
+	Set_bar_vars(to_profile)
+	-- ======
 	if action == TITAN_PROFILE_RESET then
 		-- default is global profile OFF
 		TitanAll = {}
@@ -668,29 +1085,48 @@ TitanDebug("_UseSettings "
 	elseif action == TITAN_PROFILE_INIT then
 		--	
 	elseif action == TITAN_PROFILE_USE then
-		-- The requested profile at least exists so we can copy to it
 		-- Copy from the from_profile to profile - not anything in saved vars
+
 		if from_profile and TitanSettings.Players[from_profile] then
 			old_player = TitanSettings.Players[from_profile]
-		else
-		end
-		if old_player and old_player["Panel"] then
-			old_panel = old_player["Panel"]
-		end
-		if old_player and old_player["Plugins"] then
-			old_plugins = old_player["Plugins"]
-		end
-		-- Copy the panel settings
-		for index, id in pairs(old_panel) do
-			TitanPanelSetVar(index, old_panel[index]);		
-		end
-		-- Copy the plugin settings
-		for plugin, i in pairs(old_plugins) do
-			for var, id in pairs(old_plugins[plugin]) do		
-				TitanSetVar(plugin, var, old_plugins[plugin][var])
+			-- The requested from profile at least exists so we can copy from it
+			if old_player["Panel"] then
+				old_panel = old_player["Panel"]
+			end
+			if old_player["Plugins"] then
+				old_plugins = old_player["Plugins"]
+			end
+
+			-- Ensure the old profile Bar data is whole...
+			Set_bar_vars(from_profile)
+			TitanSettings.Players[to_profile]["BarVars"] = deepcopy(old_player["BarVars"])
+
+			if trace then
+				-- Apply the new bar positions
+				for idx, v in pairs (TitanBarData) do
+					print("BarVars "
+					.." "..tostring(v.name)..""
+					.." "..tostring(TitanSettings.Players[from_profile]["BarVars"][idx].show)..""
+					.." "..tostring(TitanSettings.Players[to_profile]["BarVars"][idx].show)..""
+					)
+				end
+			end
+
+			-- Copy the panel settings
+			for index, id in pairs(old_panel) do
+				TitanPanelSetVar(index, old_panel[index]);		
+			end
+
+			-- Copy the plugin settings
+			for plugin, i in pairs(old_plugins) do
+				for var, id in pairs(old_plugins[plugin]) do		
+					TitanSetVar(plugin, var, old_plugins[plugin][var])
+				end
 			end
 		end
 	end
+
+	TitanBarDataVars = TitanPlayerSettings["BarVars"] -- works here, after setting BarVars
 
 	if (TitanPlayerSettings) then
 		-- Synchronize plugin settings with plugins that were registered
@@ -932,8 +1368,7 @@ function TitanVariables_SetPanelStrata(value)
 	local idx, v
 	-- Set all the Titan bars
 	for idx,v in pairs (TitanBarData) do
-		local bar_name = TITAN_PANEL_DISPLAY_PREFIX..TitanBarData[idx].name
-		_G[bar_name]:SetFrameStrata(bars)
+		_G[idx]:SetFrameStrata(bars)
 	end
 	-- Set all the registered plugins
 	for idx, v in pairs(TitanPluginsIndex) do
@@ -954,33 +1389,12 @@ NOTE:
 --]]
 function TitanVariables_UseSettings(profile, action)
 --[[
-TitanDebug("_UseSettings "
+print("_UseSettings "
 .."profile: "..(profile or "?").." "
 .."action: "..action.." "
 )
 --]]
-	-- sanity checks to ensure the base tables are set
-	if (TitanSettings) then
-		-- all is good
-	else
-		TitanSettings = {}
-	end
-	-- check for player list per issue #745
-	if TitanSettings.Players then
-		-- all is good
-	else
-		-- Create the table so profile(s) can be added
-		TitanSettings.Players = {}
-	end
-	if (TitanAll) then
-		-- all is good
-	else
-		TitanAll = {};
-	end
-	TitanVariables_SyncRegisterSavedVariables(TITAN_ALL_SAVED_VARIABLES, TitanAll)
-	
-	TitanSettings.Version = TITAN_VERSION;
-	
+
 	local from_profile = nil
 	if action == TITAN_PROFILE_USE then
 		-- Grab the old profile currently in use

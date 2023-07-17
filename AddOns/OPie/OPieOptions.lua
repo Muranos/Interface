@@ -1,6 +1,7 @@
 local config, COMPAT, _, T = {}, select(4,GetBuildInfo()), ...
 local MODERN, CF_WRATH = COMPAT >= 10e4, COMPAT < 10e4 and COMPAT >= 3e4
 local L, EV, frame = T.L, T.Evie, nil
+local GameTooltip = T.NotGameTooltip or GameTooltip
 T.config = config
 
 do -- /opie
@@ -588,7 +589,7 @@ function config.undo:saveSpecProfiles()
 end
 function config.undo:saveActiveProfile()
 	self:saveSpecProfiles()
-	local name = OPie:GetCurrentProfile()
+	local name = PC:GetCurrentProfile()
 	if not self:search("OPieProfile#" .. name) then
 		self:push("OPieProfile#" .. name, CallSwitchProfile, name, (PC:ExportProfile(name)))
 	end
@@ -620,7 +621,7 @@ local OPC_OptionSets = {
 		{"bool", "ShowKeys", caption=L"Per-slice bindings", depOn="SliceBinding", depValue=true, otherwise=false},
 		{"bool", "ShowCooldowns", caption=L"Show cooldown numbers", depIndicatorFeature="CooldownNumbers"},
 		{"bool", "ShowRecharge", caption=L"Show recharge numbers", depIndicatorFeature="CooldownNumbers"},
-		{"bool", "ShowShortLabels", caption=L"Show slice labels"},
+		{"bool", "ShowShortLabels", caption=L"Show slice labels", depIndicatorFeature="ShortLabels"},
 		{"bool", "UseGameTooltip", caption=L"Show tooltips"},
 		{"bool", "HideStanceBar", caption=L"Hide stance bar", global=true},
 	}, { L"Animation",
@@ -632,7 +633,7 @@ local OPC_OptionSets = {
 }
 
 frame = config.createPanel("OPie", nil, {forceRootVersion=true})
-	frame.version:SetFormattedText("%s", OPie:GetVersion() or "")
+	frame.version:SetFormattedText("%s", PC:GetVersion() or "")
 	frame.desc:SetText(L"Customize OPie's appearance and behavior. Right clicking a checkbox restores it to its default state."
 		.. (MODERN and "\n" .. L"Profiles activate automatically when you switch character specializations." or ""))
 local OPC_Profile = CreateFrame("Frame", "OPC_Profile", frame, "UIDropDownMenuTemplate")
@@ -822,7 +823,7 @@ end
 function OPC_OptionDomain:initialize()
 	local list = {false, [false]=L"Defaults for all rings"}
 	local ct = T.OPC_RingScopePrefixes
-	for key, name, scope in OPie:IterateRings(IsAltKeyDown()) do
+	for key, name, scope in PC:IterateRings(IsAltKeyDown()) do
 		local color = ct and ct[scope] or "|cffacd7e6"
 		list[#list+1], list[key] = key, (L"Ring: %s"):format(color .. (name or key) .. "|r")
 	end
@@ -831,7 +832,7 @@ end
 function OPC_OptionDomain:text()
 	local label = L"Defaults for all rings"
 	if OR_CurrentOptionsDomain then
-		local name, key = OPie:GetRingInfo(OR_CurrentOptionsDomain)
+		local name, key = PC:GetRingInfo(OR_CurrentOptionsDomain)
 		label = (L"Ring: %s"):format("|cffaaffff" .. (name or key) .."|r")
 	end
 	UIDropDownMenu_SetText(self, label)
@@ -875,7 +876,7 @@ do -- OPC_Profile:initialize
 	end
 	local function OPC_Profile_delete()
 		config.undo:saveActiveProfile()
-		PC:DeleteProfile(OPie:GetCurrentProfile())
+		PC:DeleteProfile(PC:GetCurrentProfile())
 	end
 	local function OPC_Profile_assignAllSpecs(_, curProfile)
 		config.undo:saveSpecProfiles()
@@ -883,7 +884,7 @@ do -- OPC_Profile:initialize
 	end
 	function OPC_Profile:initialize()
 		local hasPartialSpecProfiles, ns, p1, p2, p3, p4, plist = false, prependCount(PC:GetSpecProfiles())
-		curProfile, plist, ns = OPie:GetCurrentProfile(), PC:GetAllProfiles(), ns > 1 and ns or 0
+		curProfile, plist, ns = PC:GetCurrentProfile(), PC:GetAllProfiles(), ns > 1 and ns or 0
 		for k=1, #plist do
 			local ident = plist[k]
 			local name, suf, ni = OPC_Profile_FormatName(ident), "", 0
@@ -916,7 +917,7 @@ do -- OPC_Profile:initialize
 	end
 end
 function OPC_Profile:text()
-	UIDropDownMenu_SetText(self, L"Profile" .. ": " .. OPC_Profile_FormatName(OPie:GetCurrentProfile()))
+	UIDropDownMenu_SetText(self, L"Profile" .. ": " .. OPC_Profile_FormatName(PC:GetCurrentProfile()))
 end
 function OPC_AppearanceFactory:formatText(key, outOfDate, name)
 	name = name or T.OPieUI:GetIndicatorConstructorName(key)

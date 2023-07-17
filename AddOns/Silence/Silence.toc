@@ -1,8 +1,10 @@
-## Interface: 100007
+## Interface: 100105
 ## Title: |cffEEE4AESilence|r
 ## Author: Yuyuli
-## Version: 1.1.2
+## Version: 1.1.4
 ## Notes: |cff58C6FASilence Talking Heads if they were previously or silence them permanently.|r|n|n|cffFFC700Slash command: /silence|r
+# IconTexture: 135975
+## IconAtlas: voicechat-icon-speaker-mute
 ## SavedVariables: SilenceDB
 
 Silence.lua

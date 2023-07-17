@@ -1,23 +1,37 @@
 ## Author: Crieve-Sargeras
-## Interface: 100007
+## Interface: 100105
 ## X-Curse-Project-ID: 267285
 ## X-Wago-ID: yQKyY5K7
-## Title: AllTheThings |TInterface\Addons\AllTheThings\assets\logo_32x32:0|t
+## Title: AllTheThings
+## IconTexture: Interface/Addons/AllTheThings/assets/logo_32x32
 ## Name: AllTheThings
-## SavedVariables: ATTCharacterData, ATTAccountWideData, AllTheThingsSettings, AllTheThingsAD, AllTheThingsProfiles, AllTheThingsAuctionData, AllTheThingsDebugData, AllTheThingsArtifactsItems, AllTheThingsHarvestItems
+## SavedVariables: ATTCharacterData, ATTAccountWideData, AllTheThingsSavedVariables, AllTheThingsSettings, AllTheThingsAD, AllTheThingsProfiles, AllTheThingsAuctionData, AllTheThingsDebugData, AllTheThingsArtifactsItems, AllTheThingsHarvestItems
 ## SavedVariablesPerCharacter: AllTheThingsSettingsPerCharacter
 ## Notes: Addon for Tracking Collections & Account Completion
-## Version: DF-3.3.6
+## Version: DF-3.5.1
 lib\LibStub\LibStub.lua
 lib\CallbackHandler-1.0\CallbackHandler-1.0.lua
 lib\LibDataBroker-1.1\LibDataBroker-1.1.lua
 src\base.lua
+lib\Callback.lua
+lib\Colors.lua
+lib\Runner.lua
+lib\Audio.lua
+lib\Refresh.lua
+lib\Sort.lua
+lib\Table.lua
+locales\en.lua
+src\Modules\RetrievingData.lua
+src\Modules\FactionData.lua
+src\Modules\Color.lua
+src\Modules\Costs.lua
+src\Modules\Events.lua
+src\Modules\Tooltip.lua
 db\Presets.lua
 db\CategoryDB.lua
 db\ObjectDB.lua
 db\RaceDB.lua
 db\ReagentsDB.lua
-locales\en.lua
 locales\en_auto.lua
 locales\es.lua
 locales\de.lua
@@ -27,6 +41,7 @@ locales\ko.lua
 locales\pt.lua
 locales\ru.lua
 locales\cn.lua
+db\Custom Headers.lua
 Settings.lua
 AllTheThings.lua
 db\Categories.lua

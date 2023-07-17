@@ -1,122 +1,6 @@
 local Util = WarpDeplete.Util
 local L = WarpDeplete.L
 
-local defaults = {
-  global = {
-    DEBUG = false,
-    mdtAlertShown = false,
-  },
-
-  profile = {
-    frameAnchor = "RIGHT",
-    frameX = -20,
-    frameY = 0,
-
-    -- Alignment
-    alignTexts = "right",
-    alignBarTexts = "right",
-    alignBossClear = "start",
-
-    -- Element display options
-    forcesFormat = ":percent:",
-    customForcesFormat = ":percent:",
-    currentPullFormat = "(+:percent:)",
-    customCurrentPullFormat = "(+:percent:)",
-
-    showTooltipCount = true,
-    tooltipCountFormat = "+:count: / :percent:",
-    customTooltipCountFormat = "+:count: / :percent:",
-
-    showDeathsTooltip = true,
-    deathLogStyle = "time",
-
-    -- Font families
-    deathsFont = "Expressway",
-    timerFont = "Expressway",
-    keyFont = "Expressway",
-    keyDetailsFont = "Expressway",
-    bar1Font = "Expressway",
-    bar2Font = "Expressway",
-    bar3Font = "Expressway",
-    forcesFont = "Expressway",
-    objectivesFont = "Expressway",
-
-    -- Font flags
-    deathsFontFlags = "OUTLINE",
-    timerFontFlags = "OUTLINE",
-    keyFontFlags = "OUTLINE",
-    keyDetailsFontFlags = "OUTLINE",
-    bar1FontFlags = "OUTLINE",
-    bar2FontFlags = "OUTLINE",
-    bar3FontFlags = "OUTLINE",
-    forcesFontFlags = "OUTLINE",
-    objectivesFontFlags = "OUTLINE",
-
-    -- Font colors
-    deathsColor = "FFFFFFFF",
-    timerRunningColor = "FFFFFFFF",
-    timerExpiredColor = "FFFF2A2E",
-    timerSuccessColor = "FFFFD338",
-    keyColor = "FFB1B1B1",
-    keyDetailsColor = "FFB1B1B1",
-    forcesColor = "FFFFFFFF",
-    completedForcesColor = "FF00FF24",
-    objectivesColor = "FFFFFFFF",
-    completedObjectivesColor = "FF00FF24",
-
-    -- Bar textures
-    bar1Texture = "ElvUI Blank",
-    bar2Texture = "ElvUI Blank",
-    bar3Texture = "ElvUI Blank",
-    forcesTexture = "ElvUI Blank",
-    forcesOverlayTexture = "ElvUI Blank",
-
-    -- Bar colors
-    bar1TextureColor = "FF979797",
-    bar2TextureColor = "FF979797",
-    bar3TextureColor = "FF979797",
-    forcesTextureColor = "FFBB9E22",
-    forcesOverlayTextureColor = "FFFF5515",
-
-    -- Font sizes for text parts
-    deathsFontSize = 16,
-    timerFontSize = 34,
-    keyFontSize = 20,
-    keyDetailsFontSize = 16,
-    objectivesFontSize = 18,
-
-    -- Bar font size
-    bar1FontSize = 16,
-    bar2FontSize = 16,
-    bar3FontSize = 16,
-    forcesFontSize = 16,
-
-    -- Offset between bars
-    timerBarOffsetX = 5,
-    timerBarOffsetY = 8.55,
-
-    -- Bar text offset
-    barFontOffsetX = 3,
-    barFontOffsetY = 3,
-
-    -- Bar dimensions
-    barWidth = 360,
-    barHeight = 10,
-    barPadding = 0,
-
-    -- Frame and bar frame padding
-    framePadding = 20,
-    barFramePaddingTop = 12,
-    barFramePaddingBottom = 16,
-
-    -- The vertical offset between elements
-    verticalOffset = 2,
-
-    -- Utility options
-    insertKeystoneAutomatically = true
-  }
-}
-
 local function font(name, profileVar, updateFn, extraOptions)
   local result = {
     type = "select",
@@ -323,56 +207,7 @@ function WarpDeplete:InitOptions()
       general = group(L["General"], false, {
         lineBreak(),
         toggle(L["Insert keystone automatically"], "insertKeystoneAutomatically", "UpdateLayout"),
-        lineBreak(),
-
-        group(L["Alignment"], true, {
-          {
-            type = "select",
-            name = L["Text Alignment"],
-            desc = L["Choose the alignment for all texts in the timer window"],
-            sorting = { "right", "left" },
-            values = {
-              ["left"] = L["Left"],
-              ["right"] = L["Right"],
-            },
-            get = function(info) return WarpDeplete.db.profile.alignTexts end,
-            set = function(info, value)
-              WarpDeplete.db.profile.alignTexts = value
-              WarpDeplete:UpdateLayout()
-            end
-          },
-          {
-            type = "select",
-            name = L["Bar Text Alignment"],
-            desc = L["Choose the alignment for the captions on the timer and forces bars"],
-            sorting = { "right", "left" },
-            values = {
-              ["left"] = L["Left"],
-              ["right"] = L["Right"],
-            },
-            get = function(info) return WarpDeplete.db.profile.alignBarTexts end,
-            set = function(info, value)
-              WarpDeplete.db.profile.alignBarTexts = value
-              WarpDeplete:UpdateLayout()
-            end
-          },
-          {
-            type = "select",
-            name = L["Boss Clear Time Position"],
-            desc = L["Choose where the clear times for bosses will be displayed"],
-            sorting = { "start", "end" },
-            values = {
-              ["start"] = L["Start"],
-              ["end"] = L["End"],
-            },
-            get = function(info) return WarpDeplete.db.profile.alignBossClear end,
-            set = function(info, value)
-              WarpDeplete.db.profile.alignBossClear = value
-              WarpDeplete:UpdateObjectivesDisplay()
-            end
-          },
-        }),
-
+        toggle(L["Show millisecond precision after dungeon completion"], "showMillisecondsWhenDungeonCompleted", "UpdateLayout"),
         lineBreak(),
 
         group(L["Forces Display"], true, {
@@ -406,7 +241,11 @@ function WarpDeplete:InitOptions()
             desc = L["Use the following tags to set your custom format"] .. ":"
               .. "\n- :percent: " .. L["Shows the current forces percentage (e.g. 82.52%)"]
               .. "\n- :count: " .. L["Shows the current forces count (e.g. 198)"]
-              .. "\n- :totalcount: " .. L["Shows the total forces count (e.g. 240)"],
+              .. "\n- :totalcount: " .. L["Shows the total forces count (e.g. 240)"]
+              .. "\n- :remainingcount: " .. L["Shows the remaining amount of forces needed to complete"]
+              .. "\n- :remainingcountafterpull: " .. L["Shows the remaining amount of forces needed to complete after current pull"]
+              .. "\n- :remainingpercent: " .. L["Shows the remaining percentage of forces to achieve 100%"]
+              .. "\n- :remainingpercentafterpull: " .. L["Shows the remaining percentage of forces to achieve 100% after current pull"],
             multiline = false,
             width = 2,
             hidden = function() return WarpDeplete.db.profile.forcesFormat ~= ":custom:" end,
@@ -508,6 +347,62 @@ function WarpDeplete:InitOptions()
           },
         }),
 
+        group(L["Forces Glow"], true, {
+          {
+            type = "toggle",
+            name = L["Show Forces Glow"],
+            desc = L["Show a glow around the forces action bar if the current pull will bring it to 100%"],
+            get = function(info) return WarpDeplete.db.profile.showForcesGlow end,
+            set = function(info, value)
+              WarpDeplete.db.profile.showForcesGlow = value
+              WarpDeplete:UpdateDemoModeForces()
+              WarpDeplete:UpdateLayout()
+            end
+          },
+
+          {
+            type = "toggle",
+            name = L["Show in Demo Mode"],
+            desc = L["Show the forces glow in demo mode"],
+            hidden = function() return not WarpDeplete.db.profile.showForcesGlow end,
+            get = function(info) return WarpDeplete.db.profile.demoForcesGlow end,
+            set = function(info, value)
+              WarpDeplete.db.profile.demoForcesGlow = value
+              WarpDeplete:UpdateDemoModeForces()
+              WarpDeplete:UpdateLayout()
+            end
+          },
+
+          lineBreak(function() return not WarpDeplete.db.profile.showForcesGlow end, 3),
+
+          color(L["Color"], "forcesGlowColor", "UpdateGlowAppearance", {
+            hidden = function() return not WarpDeplete.db.profile.showForcesGlow end,
+            width = 1 / 2,
+          }),
+
+          lineBreak(function() return not WarpDeplete.db.profile.showForcesGlow end, 3),
+
+          range(L["Line Count"], "forcesGlowLineCount", "UpdateGlowAppearance", {
+            hidden = function() return not WarpDeplete.db.profile.showForcesGlow end,
+            min = 1, max = 30, step = 1, width = 5 / 6,
+          }),
+
+          range(L["Line Length"], "forcesGlowLength", "UpdateGlowAppearance", {
+            hidden = function() return not WarpDeplete.db.profile.showForcesGlow end,
+            min = 1, max = 10, step = 1, width = 5 / 6,
+          }),
+
+          range(L["Line Thickness"], "forcesGlowThickness", "UpdateGlowAppearance", {
+            hidden = function() return not WarpDeplete.db.profile.showForcesGlow end,
+            min = 1, max = 5, step = 0.1, width = 5 / 6,
+          }),
+
+          range(L["Frequency"], "forcesGlowFrequency", "UpdateGlowAppearance", {
+            hidden = function() return not WarpDeplete.db.profile.showForcesGlow end,
+            min = 0.05, max = 0.5, step = 0.01, width = 5 / 6,
+          }),
+        }),
+
         group(L["Death log tooltip"], true, {
           {
             type = "toggle",
@@ -534,10 +429,89 @@ function WarpDeplete:InitOptions()
             set = function(info, value) WarpDeplete.db.profile.deathLogStyle = value end,
             width = 3 / 2
           }
+        }),
+
+        group(L["Timings"], true, {
+          {
+            type = "toggle",
+            name = L["Enable timings"],
+            desc = L["Enable recording of timestamps at which bosses have been killed"],
+            get = function(info) return WarpDeplete.db.profile.timingsEnabled end,
+            set = function(info, value)
+               WarpDeplete.db.profile.timingsEnabled = value
+               self:UpdateLayout()
+            end,
+            width = 1
+          },
+          {
+            type = "toggle",
+            name = L["Only record completed runs"],
+            desc = L["When active, timestamps are only recorded once the key has been finished"],
+            get = function(info) return WarpDeplete.db.profile.timingsOnlyCompleted end,
+            set = function(info, value) WarpDeplete.db.profile.timingsOnlyCompleted = value end,
+            width = 2
+          }
         })
       }, { order = 3 }),
 
-      texts = group(L["Texts"], false, {
+      texts = group(L["Display"], false, {
+        group(L["General"], true, {
+          {
+            type = "select",
+            name = L["Text Alignment"],
+            desc = L["Choose the alignment for all texts in the timer window"],
+            sorting = { "right", "left" },
+            values = {
+              ["left"] = L["Left"],
+              ["right"] = L["Right"],
+            },
+            get = function(info) return WarpDeplete.db.profile.alignTexts end,
+            set = function(info, value)
+              WarpDeplete.db.profile.alignTexts = value
+              WarpDeplete:UpdateLayout()
+            end
+          },
+          {
+            type = "select",
+            name = L["Bar Text Alignment"],
+            desc = L["Choose the alignment for the captions on the timer and forces bars"],
+            sorting = { "right", "left" },
+            values = {
+              ["left"] = L["Left"],
+              ["right"] = L["Right"],
+            },
+            get = function(info) return WarpDeplete.db.profile.alignBarTexts end,
+            set = function(info, value)
+              WarpDeplete.db.profile.alignBarTexts = value
+              WarpDeplete:UpdateLayout()
+            end
+          },
+          {
+            type = "select",
+            name = L["Boss Clear Time Position"],
+            desc = L["Choose where the clear times for bosses will be displayed"],
+            sorting = { "start", "end" },
+            values = {
+              ["start"] = L["Start"],
+              ["end"] = L["End"],
+            },
+            get = function(info) return WarpDeplete.db.profile.alignBossClear end,
+            set = function(info, value)
+              WarpDeplete.db.profile.alignBossClear = value
+              WarpDeplete:UpdateObjectivesDisplay()
+            end
+          },
+
+          lineBreak(),
+
+          range(L["Element Padding"], "verticalOffset", "UpdateLayout",
+            { min = 0, max = 100, step = 0.01 }),
+          range(L["Boss Name Padding"], "objectivesOffset", "UpdateLayout",
+            { min = 0, max = 100, step = 0.01 }),
+          range(L["Bar Padding"], "barPadding", "UpdateLayout",
+            { min = 0, max = 100, step = 0.01 }),
+        }),
+
         group(L["Timer Colors"], true, {
           color(L["Timer color"], "timerRunningColor", "UpdateLayout"),
           color(L["Timer success color"], "timerSuccessColor", "UpdateLayout"),
@@ -571,60 +545,46 @@ function WarpDeplete:InitOptions()
           color(L["Key details color"], "keyDetailsColor", "UpdateLayout"),
         }),
 
-        group(L["Forces"], true, {
-          font(L["Forces font"], "forcesFont", "UpdateLayout"),
-          range(L["Forces font size"], "forcesFontSize", "UpdateLayout"),
-          fontFlags(L["Forces font flags"], "forcesFontFlags", "UpdateLayout"),
-          color(L["Forces color"], "forcesColor", "UpdateLayout"),
-          color(L["Completed forces color"], "completedForcesColor", "UpdateLayout"),
+        group(L["Bars"], true, {
+          range(L["Bar width"], "barWidth", "UpdateLayout",
+            { width = "full", min = 10, max = 600 }),
+          range(L["Bar height"], "barHeight", "UpdateLayout",
+            { width = "full", min = 4, max = 50 })
         }),
 
         group(L["+1 Timer"], true, {
           font(L["+1 Timer font"], "bar1Font", "UpdateLayout"),
           range(L["+1 Timer font size"], "bar1FontSize", "UpdateLayout"),
           fontFlags(L["+1 Timer font flags"], "bar1FontFlags", "UpdateLayout"),
+
+          barTexture(L["+1 Timer bar texture"], "bar1Texture", "UpdateLayout", { width = "double" }),
+          color(L["+1 Timer bar color"], "bar1TextureColor", "UpdateLayout"),
         }),
 
         group(L["+2 Timer"], true, {
           font(L["+2 Timer font"], "bar2Font", "UpdateLayout"),
           range(L["+2 Timer font size"], "bar2FontSize", "UpdateLayout"),
           fontFlags(L["+2 Timer font flags"], "bar2FontFlags", "UpdateLayout"),
+
+          barTexture(L["+2 Timer bar texture"], "bar2Texture", "UpdateLayout", { width = "double" }),
+          color(L["+2 Timer bar color"], "bar2TextureColor", "UpdateLayout") ,
         }),
 
         group(L["+3 Timer"], true, {
           font(L["+3 Timer font"], "bar3Font", "UpdateLayout"),
           range(L["+3 Timer font size"], "bar3FontSize", "UpdateLayout"),
           fontFlags(L["+3 Timer font flags"], "bar3FontFlags", "UpdateLayout"),
-        }),
-
-        group(L["Objectives"], true, {
-          font(L["Objectives font"], "objectivesFont", "UpdateLayout"),
-          range(L["Objectives font size"], "objectivesFontSize", "UpdateLayout"),
-          fontFlags(L["Objectives font flags"], "objectivesFontFlags", "UpdateLayout"),
-          color(L["Objectives color"], "objectivesColor", "UpdateLayout"),
-          color(L["Completed objective color"], "completedObjectivesColor", "UpdateLayout"),
-        }),
-      }, { order = 4 }),
-
-      bars = group(L["Bars"], false, {
-        group(L["Size"], true, {
-          range(L["Bar width"], "barWidth", "UpdateLayout", { width = "full", min = 10, max = 600 }),
-          range(L["Bar height"], "barHeight", "UpdateLayout", { width = "full", min = 4, max = 20 })
-        }),
-
-        group(L["Textures and Colors"], true, {
-          barTexture(L["+1 Timer bar texture"], "bar1Texture", "UpdateLayout", { width = "double" }),
-          color(L["+1 Timer bar color"], "bar1TextureColor", "UpdateLayout"),
-
-          lineBreak(),
-
-          barTexture(L["+2 Timer bar texture"], "bar2Texture", "UpdateLayout", { width = "double" }),
-          color(L["+2 Timer bar color"], "bar2TextureColor", "UpdateLayout") ,
-
-          lineBreak(),
 
           barTexture(L["+3 Timer bar texture"], "bar3Texture", "UpdateLayout", { width = "double" }),
           color(L["+3 Timer bar color"], "bar3TextureColor", "UpdateLayout"),
+        }),
+
+        group(L["Forces"], true, {
+          font(L["Forces font"], "forcesFont", "UpdateLayout"),
+          range(L["Forces font size"], "forcesFontSize", "UpdateLayout"),
+          fontFlags(L["Forces font flags"], "forcesFontFlags", "UpdateLayout"),
+          color(L["Forces color"], "forcesColor", "UpdateLayout"),
+          color(L["Completed forces color"], "completedForcesColor", "UpdateLayout"),
 
           lineBreak(),
 
@@ -635,8 +595,44 @@ function WarpDeplete:InitOptions()
 
           barTexture(L["Current pull bar texture"], "forcesOverlayTexture", "UpdateLayout", { width = "double" }),
           color(L["Current pull bar color"], "forcesOverlayTextureColor", "UpdateLayout"),
-        })
-      }, { order = 5 }),
+        }),
+
+        group(L["Objectives"], true, {
+          font(L["Objectives font"], "objectivesFont", "UpdateLayout", { width = 3 / 2 }),
+          fontFlags(L["Objectives font flags"], "objectivesFontFlags", "UpdateLayout", { width = 3 / 2 }),
+          range(L["Objectives font size"], "objectivesFontSize", "UpdateLayout", { width = 3 / 2 }),
+          {
+            type = "select",
+            name = L["Objectives time difference"],
+            desc = L["How to display timing differences in the objective display"],
+            sorting = {
+              "hidden",
+              "bestDiff",
+              "lastDiff"
+            },
+            values = {
+              ["hidden"] = L["Hidden"],
+              ["bestDiff"] = L["Difference to best kill time"],
+              ["lastDiff"] = L["Difference to last kill time"]
+            },
+            hidden = function() return not WarpDeplete.db.profile.timingsEnabled end,
+            get = function(info) return WarpDeplete.db.profile.timingsDisplayStyle end,
+            set = function(info, value)
+              WarpDeplete.db.profile.timingsDisplayStyle = value
+              self:UpdateLayout()
+            end,
+            width = 3 / 2
+          },
+          color(L["Objectives color"], "objectivesColor", "UpdateLayout"),
+          color(L["Completed objective color"], "completedObjectivesColor", "UpdateLayout"),
+          color(L["New best objective clear time"], "timingsImprovedTimeColor", "UpdateLayout", {
+            desc = L["The color to use when you've set a new best objective clear time"]
+          }),
+          color(L["Slower objective clear time"], "timingsWorseTimeColor", "UpdateLayout", {
+            desc = L["The color to use for objective clear times slower than your best time"]
+          }),
+        }),
+      }, { order = 4 }),
     }
   }
 
@@ -692,7 +688,6 @@ function WarpDeplete:InitOptions()
     }
   })
 
-  self.db = LibStub("AceDB-3.0"):New("WarpDepleteDB", defaults, true)
   options.args.profile = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db)
 
   if self.db.global.DEBUG then options.args.debug = debugOptions end
@@ -758,6 +753,11 @@ function WarpDeplete:HandleChatCommand(input)
 
   if cmd == "debug" then
     self.db.global.DEBUG = not self.db.global.DEBUG
+    if self.db.global.DEBUG then
+      self:Print("|cFF479AEDDEBUG|r Debug mode enabled")
+    else
+      self:Print("|cFF479AEDDEBUG|r Debug mode disabled")
+    end
     return
   end
 

@@ -3,6 +3,7 @@ local PC, RK, ORI, config = T.OPieCore, T.RingKeeper, OPie.UI, T.config
 local L, MODERN = T.L, select(4,GetBuildInfo()) >= 8e4
 local AB = assert(T.ActionBook:compatible(2,23), "A compatible version of ActionBook is required")
 local EV, CreateEdge = T.Evie, T.CreateEdge
+local GameTooltip = T.NotGameTooltip or GameTooltip
 
 local FULLNAME, SHORTNAME do
 	function EV.PLAYER_LOGIN()
@@ -775,7 +776,7 @@ sliceDetail = CreateFrame("Frame", nil, ringContainer) do
 			end
 		end
 		frame:SetScript("OnShow", function(self)
-			self:SetFrameLevel(sliceDetail.icon:GetFrameLevel()+200)
+			self:SetFrameLevel(math.min(9990, sliceDetail.icon:GetFrameLevel()+200))
 			icontex = GetMacroIcons()
 			FixLooseIcons(GetLooseMacroIcons, icontex)
 			GetMacroItemIcons(icontex)
@@ -1346,7 +1347,7 @@ end
 function api.createRing(name, data, bundle, importNested)
 	local name = name:match("^%s*(.-)%s*$")
 	if name == "" then return false end
-	local iname = RK.pub:GenFreeRingName(name)
+	local iname = RK:GenFreeRingName(name)
 	local mapRings, reservedINames, usedNames, nr = {}, importNested and {[iname]=1}, {[name]=true}, 2
 	if bundle then
 		for k,v in pairs(bundle) do
@@ -1354,7 +1355,7 @@ function api.createRing(name, data, bundle, importNested)
 				mapRings[k] = iname
 			elseif type(v) == "table" and importNested then
 				setImportedRingProps(genBundledRingName(name, data.name, v.name, usedNames, nr), v)
-				local n = RK.pub:GenFreeRingName(v.name, reservedINames)
+				local n = RK:GenFreeRingName(v.name, reservedINames)
 				mapRings[k], reservedINames[n], nr = n, nr, nr + 1
 			end
 		end
@@ -1511,7 +1512,7 @@ function ringDetail.scope:text()
 end
 function api.getRingProperty(key)
 	if key == "hotkey" then
-		if OPie:GetRingInfo(currentRingName) then
+		if PC:GetRingInfo(currentRingName) then
 			local skey, _, over = PC:GetRingBinding(currentRingName)
 			if over then return skey end
 		end
@@ -1533,7 +1534,7 @@ function api.setRingProperty(name, value)
 		currentRing.quarantineBind = nil
 		ringDetail.bindingQuarantine:Hide()
 		ringDetail.binding:SetBindingText(value)
-		if OPie:GetRingInfo(currentRingName) then
+		if PC:GetRingInfo(currentRingName) then
 			config.undo:saveActiveProfile()
 			PC:SetRingBinding(currentRingName, value)
 		end
@@ -1737,7 +1738,7 @@ function api.addSlice(pos, ...)
 		wasRepick = true
 	else
 		pos = math.max(1, math.min(#currentRing+1, pos and (pos + sliceBaseIndex) or (#currentRing+1)))
-		table.insert(currentRing, pos, {...})
+		table.insert(currentRing, pos, {sliceToken=AB:CreateToken(), ...})
 		if pos < sliceBaseIndex then sliceBaseIndex = pos end
 	end
 	api.saveRing(currentRingName, currentRing)

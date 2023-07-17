@@ -527,11 +527,21 @@ function module.options:Load()
 	self:CreateTilte()
 
 	module.db.otherIconsAdditionalList = MRT.isClassic and {} or {
-		31821,62618,97462,98008,115310,64843,740,265202,108280,31884,196718,15286,64901,47536,246287,109964,33891,16191,0,
-		47788,33206,6940,102342,114030,1022,116849,633,204018,207399,0,
+		31821,62618,97462,98008,115310,64843,740,265202,108280,31884,196718,15286,64901,47536,246287,109964,33891,16191,108281,114049,51052,359816,363534,322118,325197,124974,197721,0,
+		47788,33206,6940,102342,114030,1022,116849,633,204018,207399,370960,357170,370537,0,
 		2825,32182,80353,0,
 		106898,192077,46968,119381,179057,192058,30283,0,
-		29166,32375,114018,108199,49576,0,
+		29166,32375,114018,108199,49576,116844,0,
+		0,
+		407069,408367,402461,406530,404744,407517,403326,400430,401319,408147,410511,407196,404789,0,
+		413342,409320,409328,402617,404896,408717,407640,406780,409299,409385,405704,406783,405914,403101,408193,405641,405016,405645,403699,403459,405437,408714,401809,403203,404732,408095,405083,0,
+		410635,407302,408476,406305,406358,405042,405391,407617,406227,404713,405375,405492,404472,0,
+		404445,408204,407547,406160,405827,405316,406161,406851,405821,403543,407597,401419,410690,410070,400777,407641,405828,406165,410075,406333,0,
+		404616,406585,397386,404687,410740,398938,400450,409696,406976,401381,409359,409271,410351,401258,410535,397383,407017,401866,401108,401401,408620,0,
+		409462,405956,404955,405462,405886,404942,404007,403978,406202,409942,405592,0,
+		402989,413351,403740,403103,401348,409093,412078,407879,408358,411182,403671,408839,0,
+		402120,409313,407221,409058,407919,401022,404068,407917,403908,409598,407856,407039,402831,409876,407036,403057,403049,402902,401825,410972,410953,0,
+		401215,402050,401500,404288,402052,403517,411030,402746,411236,403771,411238,411302,411224,404027,404705,404154,404769,401383,401525,404754,405022,401951,406428,403625,404456,401718,401905,401810,413070,406989,407576,403497,404269,404300,401340,401642,403319,401325,404218,0,
 		0,
 		370615,370649,370597,393780,396094,396023,394917,396031,373088,394904,396022,390715,0,
 		382458,386400,381315,376279,383073,394347,377166,378861,380487,388393,391322,381576,396351,0,
@@ -541,18 +551,6 @@ function module.options:Load()
 		374881,372456,376063,377780,375828,395894,393296,374916,374554,374917,396243,374918,374620,391268,374022,374621,374779,373678,391019,393429,372514,390548,382563,375792,374623,374705,374217,374485,375824,374321,372517,391055,375825,393309,371971,390920,374861,0,
 		376266,375871,390573,376073,388644,375485,375842,396265,388918,388716,375879,390561,375630,375653,375829,378782,375457,378787,390710,375575,375809,376257,392193,375870,375475,375716,396649,0,
 		388635,388643,377322,386410,377662,395929,381615,381251,382530,392086,394583,377594,377658,391281,385182,388631,385574,387261,390763,394584,391989,388431,389214,385068,385541,394582,385560,391285,388115,376126,377467,377612,0,
-		0,
-		367555,367571,360403,360202,360528,361001,366822,367342,359608,366692,367561,364962,360414,360176,364904,363447,364447,360412,0,
-		359770,359778,364522,359981,364778,359913,360098,359976,367486,360448,359829,360193,359904,360411,366070,0,
-		364040,362849,364373,365752,365801,365745,362885,363413,365577,362801,363485,363114,362841,362837,362721,365681,0,
-		360959,365373,363607,361643,361722,361966,365418,361651,361513,361967,361214,362432,0,
-		361278,361689,361783,361784,366062,365272,361608,361568,364865,361305,360259,365041,362352,361788,361066,362383,366234,360687,361067,366159,361579,360295,365306,361741,0,
-		368740,368024,364312,364073,362659,368738,365307,366001,368750,360159,363088,368027,368751,363681,0,
-		368671,359720,365975,368820,365294,368961,362025,369210,367079,359236,362056,368529,362129,361597,359235,360115,368958,360114,368957,368965,361676,361324,0,
-		366849,368913,362771,365008,363024,365293,365120,368428,365216,361815,363028,367769,365958,365030,367771,363031,362543,362055,368986,362702,365805,367932,364247,364020,362405,365445,365816,363020,365177,364031,362862,362391,361989,0,
-		359960,360418,361945,360148,361923,360319,360420,360304,360374,360229,360241,361913,362158,360145,359963,362585,363184,360428,361934,362152,360300,363191,360006,360417,364985,0,
-		364114,363533,363115,366379,363109,366992,362172,362273,364381,364386,361553,362088,364432,366606,362081,364569,368080,362384,362206,362275,361462,361548,361463,362184,362390,0,
-		366408,360565,366377,360282,363952,360425,365371,365151,365419,366381,362617,362192,366776,366777,362194,362415,365219,366401,365174,365033,365810,366782,359868,365385,366665,362058,360373,366030,365153,363886,362075,362189,366285,363893,367053,362631,0,
 	}
 	if MRT.isBC then
 		module.db.otherIconsAdditionalList = {
@@ -701,6 +699,13 @@ function module.options:Load()
 		[2050] = 2546,
 		[2052] = {2543,2549},
 		[2051] = 2537,
+
+		--a
+		[2166] = {2688,2693,2680,2689,2683},
+		[2167] = 2687,
+		[2168] = 2682,
+		[2169] = 2684,
+		[2170] = 2685,
 	}
 
 
@@ -1424,8 +1429,10 @@ function module.options:Load()
 		self:SetScript("OnClick", AddTextToEditBox)
 		return self
 	end
+	self.OtherIconsFrame.CreateOtherIcon = CreateOtherIcon
 
-	do
+	self.OtherIconsFrame.OnShow = function(self)
+		self.OnShow = nil
 		local GetSpellInfo = GetSpellInfo
 		local line = 1
 		local inLine = 0
@@ -1471,7 +1478,7 @@ function module.options:Load()
 				end
 			end
 		end
-		self.OtherIconsFrame.ScrollFrame:SetNewHeight( max(self.OtherIconsFrame:GetHeight()-40 , line * 20 + 4) )
+		module.options.OtherIconsFrame.ScrollFrame:SetNewHeight( max(module.options.OtherIconsFrame:GetHeight()-40 , line * 20 + 4) )
 	end
 
 	self:SetScript("OnHide",function (self)
@@ -1754,8 +1761,8 @@ function module.options:Load()
 		module.frame:SetPoint("CENTER",UIParent, "CENTER", 0, 0)
 	end) 
 
-	ELib:DecorationLine(self.tab.tabs[2]):Point("LEFT",0,0):Point("RIGHT",0,0):Size(0,1):Point("TOP",self.ButtonToCenter,"BOTTOM",0,-5):Shown(not MRT.isClassic)
-	ELib:Text(self.tab.tabs[2],L.NoteTimers,14):Point("TOP",self.ButtonToCenter,"BOTTOM",0,-9):Point("LEFT",20,0):Color():Shown(not MRT.isClassic)
+	ELib:DecorationLine(self.tab.tabs[2]):Point("LEFT",0,0):Point("RIGHT",0,0):Size(0,1):Point("TOP",self.ButtonToCenter,"BOTTOM",0,-5)
+	ELib:Text(self.tab.tabs[2],L.NoteTimers,14):Point("TOP",self.ButtonToCenter,"BOTTOM",0,-9):Point("LEFT",20,0):Color()
 
 	self.chkTimersHidePassed = ELib:Check(self.tab.tabs[2],L.NoteTimersHidePassed,VMRT.Note.TimerPassedHide):Point("TOPLEFT",self.ButtonToCenter,"BOTTOMLEFT",0,-25):OnClick(function(self) 
 		if self:GetChecked() then
@@ -1763,7 +1770,7 @@ function module.options:Load()
 		else
 			VMRT.Note.TimerPassedHide = nil
 		end
-	end):Shown(not MRT.isClassic)
+	end)
 
 	self.chkTimersGlow = ELib:Check(self.tab.tabs[2],L.NoteTimersGlow,VMRT.Note.TimerGlow):Point("TOPLEFT",self.chkTimersHidePassed,"BOTTOMLEFT",0,-5):OnClick(function(self) 
 		if self:GetChecked() then
@@ -1771,7 +1778,7 @@ function module.options:Load()
 		else
 			VMRT.Note.TimerGlow = nil
 		end
-	end):Shown(not MRT.isClassic)
+	end)
 
 	self.chkTimersOnlyMy = ELib:Check(self.tab.tabs[2],L.NoteTimersOnlyMy,VMRT.Note.TimerOnlyMy):Point("TOPLEFT",self.chkTimersGlow,"BOTTOMLEFT",0,-5):OnClick(function(self) 
 		if self:GetChecked() then
@@ -1780,7 +1787,7 @@ function module.options:Load()
 			VMRT.Note.TimerOnlyMy = nil
 		end
 		module.frame:UpdateText()
-	end):Shown(not MRT.isClassic)
+	end)
 
 	local testGlowDelay
 	local function TestGlow()
@@ -1801,7 +1808,7 @@ function module.options:Load()
 		VMRT.Note.TimerGlowType = 1
 
 		TestGlow()
-	end):Shown(not MRT.isClassic)
+	end)
 	self.frameTypeGlow1.f = CreateFrame("Frame",nil,self.frameTypeGlow1)
 	self.frameTypeGlow1.f:SetPoint("LEFT",self.frameTypeGlow1,"RIGHT",5,0)
 	self.frameTypeGlow1.f:SetSize(40,15)
@@ -1813,7 +1820,7 @@ function module.options:Load()
 		VMRT.Note.TimerGlowType = 2
 
 		TestGlow()
-	end):Shown(not MRT.isClassic)
+	end)
 	self.frameTypeGlow2.f = CreateFrame("Frame",nil,self.frameTypeGlow2)
 	self.frameTypeGlow2.f:SetPoint("LEFT",self.frameTypeGlow2,"RIGHT",5,0)
 	self.frameTypeGlow2.f:SetSize(40,15)
@@ -1825,7 +1832,7 @@ function module.options:Load()
 		VMRT.Note.TimerGlowType = 3
 
 		TestGlow()
-	end):Shown(not MRT.isClassic)
+	end)
 	self.frameTypeGlow3.f = CreateFrame("Frame",nil,self.frameTypeGlow3)
 	self.frameTypeGlow3.f:SetPoint("LEFT",self.frameTypeGlow3,"RIGHT",5,0)
 	self.frameTypeGlow3.f:SetSize(40,15)
@@ -1865,14 +1872,14 @@ function module.options:Load()
 		"|n|cffffff00{!g|r|cff00ff0034|r|cffffff00}|r...|cffffff00{/g}|r - "..L.NoteHelp10b..
 		(MRT.isClassic and "|n|cffffff00{race:|r|cff00ff00troll,orc|r|cffffff00}|r...|cffffff00{/race}|r - "..L.NoteHelp11 or "")..
 		(MRT.isClassic and "|n|cffffff00{!race:|r|cff00ff00dwarf|r|cffffff00}|r...|cffffff00{/race}|r - "..L.NoteHelp11b or "")..
-		(not MRT.isClassic and "|n|cffffff00{time:|r|cff00ff002:45|r|cffffff00}|r - "..L.NoteHelp7 or "")..
+		("|n|cffffff00{time:|r|cff00ff002:45|r|cffffff00}|r - "..L.NoteHelp7 or "")..
 		(not MRT.isClassic and "|n|cffffff00{p|r|cff00ff002|r|cffffff00}|r...|cffffff00{/p}|r - "..L.NoteHelp9 or "")
 	):Point("TOPLEFT",10,-20):Point("TOPRIGHT",-10,-20):Color()
 
 	self.advancedHelp = ELib:Button(self.tab.tabs[3],L.NoteHelpAdvanced):Size(400,20):Point("TOP",self.textHelp,"BOTTOM",0,-20):OnClick(function() 
 		--module.options.textHelpAdv:SetShown(not module.options.textHelpAdv:IsShown())
 		module.options.advancedScroll:SetShown(not module.options.advancedScroll:IsShown())
-	end):Shown(not MRT.isClassic)
+	end)
 
 	self.advancedScroll = ELib:ScrollFrame(self.tab.tabs[3]):Size(850,100):Point("TOP",self.advancedHelp,"BOTTOM",0,-20):Point("BOTTOM",self.tab.tabs[3],"BOTTOM",0,0):Height(400):Shown(false)
 	self.advancedScroll.C:SetWidth(850 - 16)
@@ -1961,18 +1968,80 @@ function module.frame:UpdateFont()
 	local size = VMRT and VMRT.Note and VMRT.Note.FontSize or 12
 	local outline = VMRT and VMRT.Note and VMRT.Note.Outline and "OUTLINE" or ""
 	local isValidFont = self.text:SetFont(font,size,outline)
+	local c = 2
+	while self["text"..c] do
+		self["text"..c]:SetFont(font,size,outline)
+		c = c + 1
+	end
+
 	if not isValidFont then 
 		self.text:SetFont(GameFontNormal:GetFont(),size,outline)
+
+		local c = 2
+		while self["text"..c] do
+			self["text"..c]:SetFont(GameFontNormal:GetFont(),size,outline)
+			c = c + 1
+		end
 	end
 end
 
+MRT.F:RegisterCallback("CallbackRegistered", function(_,eventName)
+	if eventName == "Note_UpdateText" then
+		module.frame:UpdateText()
+	end
+end)
+MRT.F:RegisterCallback("CallbackUnregistered", function(_,eventName,_,callbacks)
+	if callbacks ~= 0 then
+		return
+	elseif eventName == "Note_UpdateText" then
+		module.frame:UpdateText()
+	end
+end)
+
 function module.frame:UpdateText(onlyTimerUpdate)
 	module.db.glowStatus = nil
+
+	local text
 	if VMRT.Note.ShowOnlyPersonal then
-		self.text:SetText(txtWithIcons("", onlyTimerUpdate))
+		text = txtWithIcons("", onlyTimerUpdate)
 	else
-		self.text:SetText(txtWithIcons(VMRT.Note.Text1 or "", onlyTimerUpdate)) 
+		text = txtWithIcons(VMRT.Note.Text1 or "", onlyTimerUpdate)
 	end
+
+	local c = 2
+	while self["text"..c] do
+		self["text"..c]:SetText(" ")
+		c = c + 1
+	end
+	
+	if #text > 8192 then
+		local lennow = 0
+		local texts = {""}
+		local c = 1
+		for w in string.gmatch(text,"[^\n]+\n*") do
+			lennow = lennow + #w
+			if lennow > 8192 then
+				c = c + 1
+				texts[c] = ""
+				lennow = #w
+			end
+			texts[c] = texts[c] .. w
+		end
+
+		self.text:SetText(texts[1])
+
+		local anyNew = false
+		for i=2,c do
+			anyNew = module.frame.text:Add(i) or anyNew
+			module.frame["text"..i]:SetText(texts[i])
+		end
+		if anyNew then
+			module.frame:UpdateFont()
+		end
+	else
+		self.text:SetText(text)
+	end	
+
 	if module.db.glowStatus and not self.GlowShowed then
 		module.frame:ShowGlow()
 		self.GlowShowed = true
@@ -1980,6 +2049,8 @@ function module.frame:UpdateText(onlyTimerUpdate)
 		module.frame:HideGlow()
 		self.GlowShowed = false
 	end
+
+	MRT.F:FireCallback("Note_UpdateText",self)
 end
 
 local glowColor = {0,1,0,1}
@@ -2037,7 +2108,8 @@ end)
 module.frame.text = module.frame:CreateFontString(nil,"ARTWORK")
 module.frame.text:SetFont(MRT.F.defFont, 12, "")
 module.frame.text:SetPoint("TOPLEFT",5,-5)
-module.frame.text:SetPoint("BOTTOMRIGHT",-5,5)
+--module.frame.text:SetPoint("BOTTOMRIGHT",-5,5)
+module.frame.text:SetPoint("TOPRIGHT",-5,-5)
 module.frame.text:SetJustifyH("LEFT")
 module.frame.text:SetJustifyV("TOP")
 module.frame.text:SetText(" ")
@@ -2046,13 +2118,33 @@ function module.frame.text:FixLag()
 	self:SetParent(module.frame.sf.C)
 	self:ClearAllPoints()
 	self:SetPoint("TOPLEFT",5,-5)
-	self:SetPoint("BOTTOMRIGHT",-5,5)
+	--self:SetPoint("BOTTOMRIGHT",-5,5)
+	self:SetPoint("TOPRIGHT",-5,-5)
 end
 
 module.frame.sf:Show()
 module.frame.text:FixLag()
 
 module.frame.text:SetNonSpaceWrap(true)
+
+function module.frame.text:Add(c)
+	if module.frame["text"..c] then
+		return
+	end
+	local text = module.frame:CreateFontString(nil,"ARTWORK")
+	module.frame["text"..c] = text
+	text:SetParent(module.frame.sf.C)
+	text:SetFont(MRT.F.defFont, 12, "")
+	local prev = c == 2 and module.frame.text or module.frame["text"..(c-1)]
+	text:SetPoint("TOPLEFT",prev,"BOTTOMLEFT",0,0)
+	text:SetPoint("TOPRIGHT",prev,"BOTTOMRIGHT",0,0)
+	text:SetJustifyH("LEFT")
+	text:SetJustifyV("TOP")
+	text:SetText(" ")
+	text:SetNonSpaceWrap(true)
+
+	return true
+end
 
 module.frame.buttonResize = CreateFrame("Frame",nil,module.frame)
 module.frame.buttonResize:SetSize(15,15)
@@ -2071,6 +2163,8 @@ end)
 
 function module.frame:Save(blackNoteID)
 	VMRT.Note.Text1 = (blackNoteID and VMRT.Note.Black[blackNoteID] or VMRT.Note.Text1 or "")
+
+	MRT.F:FireCallback("Note_SendText",VMRT.Note.Text1)
 
 	if not blackNoteID and module.options.NoteEditBox and VMRT.Note.OptionsFormatting then
 	--	VMRT.Note.Text1 = VMRT.Note.Text1:gsub("|([Ttcr])","||%1")
@@ -2152,6 +2246,7 @@ function module:addonMessage(sender, prefix, ...)
 		end
 		module.db.msgindex = msgnowindex
 		VMRT.Note.Text1 = module.db.lasttext
+		MRT.F:FireCallback("Note_ReceivedText",VMRT.Note.Text1)
 		module.frame:UpdateText()
 		if module.options.NoteEditBox then
 			if module.options.IsMainNoteNow then

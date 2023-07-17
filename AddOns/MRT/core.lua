@@ -1,8 +1,8 @@
---	13.01.2023
+--	09.07.2023
 
 local GlobalAddonName, MRT = ...
 
-MRT.V = 4720
+MRT.V = 4760
 MRT.T = "R"
 
 MRT.Slash = {}			--> функции вызова из коммандной строки
@@ -20,6 +20,9 @@ MRT.A = {}			--> ссылки на все модули
 
 MRT.msg_prefix = {
 	["EXRTADD"] = true,
+	MRTADDA = true,	MRTADDB = true,	MRTADDC = true,
+	MRTADDD = true,	MRTADDE = true,	MRTADDF = true,
+	MRTADDG = true,	MRTADDH = true,	MRTADDI = true,
 }
 
 MRT.L = {}			--> локализация
@@ -99,9 +102,17 @@ do
 		this.Load = nil
 		MRT.F.dprint(this.moduleName.."'s options loaded")
 		this.isLoaded = true
+
+		MRT.F:FireCallback("OPTIONS_LOADED", this, this.moduleName)
 	end
 	local function mod_Options_CreateTitle(self)
 		self.title = MRT.lib:Text(self,self.name,20):Point(15,6):Top()
+	end
+	local function mod_Options_OpenPage(self)
+		MRT.Options:Open(self)
+	end
+	local function mod_Options_ForceLoad(self)
+		mod_LoadOptions(self)
 	end
 	function MRT:New(moduleName,localizatedName,disableOptions)
 		if MRT.A[moduleName] then
@@ -119,6 +130,8 @@ do
 			self.options:SetScript("OnShow",mod_LoadOptions)
 			
 			self.options.CreateTilte = mod_Options_CreateTitle
+			self.options.OpenPage = mod_Options_OpenPage
+			self.options.ForceLoad = mod_Options_ForceLoad
 			
 			MRT.ModulesOptions[#MRT.ModulesOptions + 1] = self.options
 		end
@@ -457,17 +470,23 @@ function MRT.F:RegisterCallback(eventName, func)
 		callbacks[eventName] = {}
 	end
 	tinsert(callbacks[eventName], func)
+
+	MRT.F:FireCallback("CallbackRegistered", eventName, func)
 end
 function MRT.F:UnregisterCallback(eventName, func)
 	if not callbacks[eventName] then
 		return
 	end
-	for i=1,#callbacks[eventName] do
+	local count = 0
+	for i=#callbacks[eventName],1,-1 do
 		if callbacks[eventName][i] == func then
 			tremove(callbacks[eventName], i)
-			break
+		else
+			count = count + 1
 		end
 	end
+
+	MRT.F:FireCallback("CallbackUnregistered", eventName, func, count)
 end
 
 local function CallbackErrorHandler(err)
@@ -534,12 +553,7 @@ local reloadTimer = 0.1
 MRT.frame = CreateFrame("Frame")
 
 local function loader(self,func)
-	local isSuccessful, errorMsg = pcall(func,self)
-	if not isSuccessful then
-		C_Timer.After(0.01,function()
-			error(errorMsg)	--Any other way to throw error for user, but continue loader?
-		end)
-	end
+	xpcall(func,geterrorhandler(),self)
 end
 
 local migrateReplace
@@ -738,34 +752,37 @@ do
 end
 
 --temp fix
+local prefix_sorted = {"EXRTADD","MRTADDA","MRTADDB","MRTADDC","MRTADDD","MRTADDE","MRTADDF","MRTADDG","MRTADDH","MRTADDI"}
+
 local sendPending = {}
-local sendPrev = 0
+local sendPrev = {0}
 local sendTmr
 local _SendAddonMessage = SendAddonMessage
 local SEND_LIMIT = 10
-local sendLimit = SEND_LIMIT
+local sendLimit = {SEND_LIMIT}
 local function send(self)
 	if self then
 		sendTmr = nil
 	end
 	local t = debugprofilestop()
-	sendLimit = sendLimit + floor((t - sendPrev)/1000)
-	if sendLimit > SEND_LIMIT then
-		sendLimit = SEND_LIMIT
-	end
-	if sendLimit <= 0 then
-		if not sendTmr then
-			sendTmr = C_Timer.NewTimer(0.5, send)
+	for p=1,#prefix_sorted do
+		sendLimit[p] = (sendLimit[p] or SEND_LIMIT) + floor((t - (sendPrev[p] or 0))/1000)
+		if sendLimit[p] > SEND_LIMIT then
+			sendLimit[p] = SEND_LIMIT
 		end
-		return
-	end
-	for i=1,#sendPending do
-		if sendLimit > 0 then
-			sendLimit = sendLimit - 1
-			_SendAddonMessage(unpack(sendPending[1]))
-			tremove(sendPending, 1)
-			sendPrev = debugprofilestop()
-		else
+		if sendLimit[p] > 0 then
+			for i=1,#sendPending do
+				if sendLimit[p] > 0 then
+					sendLimit[p] = sendLimit[p] - 1
+					sendPending[1][1] = prefix_sorted[p] --override prefix
+					_SendAddonMessage(unpack(sendPending[1]))
+					tremove(sendPending, 1)
+					sendPrev[p] = debugprofilestop()
+				else
+					break
+				end
+			end
+		elseif p == #prefix_sorted then
 			if not sendTmr then
 				sendTmr = C_Timer.NewTimer(0.5, send)
 			end

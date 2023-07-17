@@ -21,7 +21,7 @@ plugin.defaultDB = {
 -- Locals
 --
 
-local SendChatMessage, GetTime = BigWigsLoader.SendChatMessage, GetTime
+local Ambiguate, SendChatMessage, GetTime = BigWigsLoader.Ambiguate, BigWigsLoader.SendChatMessage, GetTime
 local L = BigWigsAPI:GetLocale("BigWigs: Plugins")
 plugin.displayName = L.autoReply
 local curDiff = 0
@@ -161,7 +161,7 @@ end
 --
 
 function plugin:BigWigs_OnBossEngage(event, module, difficulty)
-	if not self.db.profile.disabled and module and module.journalId and not module.worldBoss then
+	if not self.db.profile.disabled and module and module:GetJournalID() and not module.worldBoss then
 		curDiff = difficulty
 		curModule = module
 		throttle, throttleBN, friendlies = {}, {}, {}

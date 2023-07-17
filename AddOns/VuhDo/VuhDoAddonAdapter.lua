@@ -88,7 +88,11 @@ function VUHDO_initFuBar()
 			icon = VUHDO_STANDARD_ICON,
 			OnClick = function(aClickedFrame, aButton)
 				if aButton == "RightButton" then
-					ToggleDropDownMenu(1, nil, VuhDoMinimapDropDown, aClickedFrame:GetName(), 0, -5);
+					if AddonCompartmentFrame and aClickedFrame:GetParent() == DropDownList1 then
+						ToggleDropDownMenu(1, nil, VuhDoMinimapDropDown, "cursor", 0, 0);
+					else
+						ToggleDropDownMenu(1, nil, VuhDoMinimapDropDown, aClickedFrame:GetName(), 0, -5);
+					end
 				else
 					VUHDO_slashCmd("opt");
 				end
@@ -227,6 +231,7 @@ end
 function VUHDO_initMinimap()
 
 	VUHDO_initShowMinimap();
+	VUHDO_initShowAddOnCompartment();
 
 end
 
@@ -240,6 +245,21 @@ function VUHDO_initShowMinimap()
 			VUHDO_LibDBIcon:Show("VuhDo");
 		else
 			VUHDO_LibDBIcon:Hide("VuhDo");
+		end
+	end
+
+end
+
+
+
+--
+function VUHDO_initShowAddOnCompartment()
+
+	if VUHDO_LibDataBroker and VUHDO_LibDBIcon then
+		if not VUHDO_MM_SETTINGS["addon_compartment_hide"] then
+			VUHDO_LibDBIcon:AddButtonToCompartment("VuhDo");
+		else
+			VUHDO_LibDBIcon:RemoveButtonFromCompartment("VuhDo");
 		end
 	end
 

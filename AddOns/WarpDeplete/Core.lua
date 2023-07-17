@@ -1,3 +1,4 @@
+---@class WarpDeplete: AceAddon,AceComm-3.0,AceConsole-3.0,AceEvent-3.0,AceTimer-3.0
 WarpDeplete = LibStub("AceAddon-3.0"):NewAddon(
   "WarpDeplete",
   "AceComm-3.0",
@@ -30,7 +31,7 @@ WarpDeplete.defaultForcesState = {
 
   pullPercent = 0,
   currentPercent = 0,
-
+  glowActive = false,
   currentPull = {},
 
   completed = false,
@@ -59,7 +60,7 @@ WarpDeplete.defaultObjectivesState = {}
 WarpDeplete.defaultKeyDetailsState = {
   level = 0,
   affixes = {},
-  textures = {}
+  affixIds = {}
 }
 
 -- Check if Kaliel's Tracker is loaded, since it creates a
@@ -84,6 +85,7 @@ function WarpDeplete:OnEnable()
   self.objectivesState = Util.copy(self.defaultObjectivesState)
   self.keyDetailsState = Util.copy(self.defaultKeyDetailsState)
 
+  self:InitDb()
   self:InitOptions()
   self:InitChatCommands()
   self:InitDisplay()
@@ -96,6 +98,10 @@ function WarpDeplete:OnEnable()
     self.db.global.mdtAlertShown = true
     self:ShowMDTAlert()
   end
+
+  if self.db.global.DEBUG then
+    self:EnableDemoMode()
+  end
 end
 
 function WarpDeplete:ShowMDTAlert()
@@ -107,6 +113,18 @@ function WarpDeplete:ShowMDTAlert()
 end
 
 function WarpDeplete:OnDisable()
+end
+
+function WarpDeplete:UpdateDemoModeForces()
+  if not self.challengeState.demoModeActive then return end
+
+  if self.db.profile.showForcesGlow and self.db.profile.demoForcesGlow then
+    self:SetForcesCurrent(92)
+    self:SetForcesPull(8)
+  else
+    self:SetForcesCurrent(34)
+    self:SetForcesPull(7)
+  end
 end
 
 function WarpDeplete:EnableDemoMode()
@@ -124,19 +142,19 @@ function WarpDeplete:EnableDemoMode()
   for i = 1, 5 do
     objectives[i] = { name = L["Test Boss Name"] .. " " .. i }
 
-    if i < 3 then
+    if i < 4 then
       objectives[i].time = 520 * i
     end
   end
 
   self:SetObjectives(objectives)
-  self:SetKeyDetails(30, {L["Tyrannical"], L["Bolstering"], L["Spiteful"], L["Thundering"]}, {236401, 1035055, 451169, 1385910})
+  self:SetKeyDetails(30, {L["Tyrannical"], L["Bolstering"], L["Spiteful"], L["Thundering"]}, {9, 7, 123, 132})
 
   self:SetTimerLimit(35 * 60)
   self:SetTimerRemaining(20 * 60)
-  self:SetForcesCurrent(34)
-  self:SetForcesPull(7)
   self:SetDeaths(3)
+
+  self:UpdateDemoModeForces()
 
   local classTable = {
     "SHAMAN",
@@ -173,15 +191,18 @@ function WarpDeplete:DisableDemoMode()
   self:ResetState()
 end
 
-function WarpDeplete:Show()
-  self.isShown = true
-  self.frames.root:Show()
-  self:UpdateLayout()
-
-  ObjectiveTrackerFrame:Hide()
-  if KT ~= nil then
-    KT.frame:Hide()
+function WarpDeplete:ShowBlizzardObjectiveTracker()
+  -- As SylingTracker replaces the blizzard objective tracker in hiding
+  -- it, we prevent WarpDeplete to reshown the tracker.
+  if IsAddOnLoaded("SylingTracker") then 
+    return 
   end
+
+  ObjectiveTrackerFrame:Show()
+end
+
+function WarpDeplete:HideBlizzardObjectiveTracker()
+  ObjectiveTrackerFrame:Hide()
 
   -- Sometimes, the objective tracker isn't hidden
   -- correctly. This can happen when WarpDeplete is
@@ -200,15 +221,35 @@ function WarpDeplete:Show()
   end)
 end
 
+function WarpDeplete:ShowExternals()
+  if KT ~= nil then
+    KT.frame:Show()
+  end
+end
+
+function WarpDeplete:HideExternals()
+  if KT ~= nil then
+    KT.frame:Hide()
+  end
+end
+
+function WarpDeplete:Show()
+  self.isShown = true
+  self.frames.root:Show()
+  self:UpdateLayout()
+
+  self:HideBlizzardObjectiveTracker()
+  self:HideExternals()
+end
+
 function WarpDeplete:Hide()
   self.isShown = false
   self.frames.root:Hide()
 
-  if KT ~= nil then
-    KT.frame:Show()
-  end
-  ObjectiveTrackerFrame:Show()
+  self:ShowBlizzardObjectiveTracker()
+  self:ShowExternals()
 end
+
 
 function WarpDeplete:ResetState()
   self:PrintDebug("Resetting state")
