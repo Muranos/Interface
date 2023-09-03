@@ -1,35 +1,24 @@
-# [5.6.0](https://github.com/WeakAuras/WeakAuras2/tree/5.6.0) (2023-07-10)
+# [5.7.0](https://github.com/WeakAuras/WeakAuras2/tree/5.7.0) (2023-08-08)
 
-[Full Changelog](https://github.com/WeakAuras/WeakAuras2/compare/5.5.7...5.6.0)
+[Full Changelog](https://github.com/WeakAuras/WeakAuras2/compare/5.6.0...5.7.0)
 
 ## Highlights
 
- - Support new specialization and patch features
-- Fixes for DBM/BW triggers
-- Condition titles are now dynamic and pretty 
+ - New unified Boss Mod trigger that works with both DBM and BigWigs
+- Bug fixes and performance improvements :KEKW: 
 
 ## Commits
 
-InfusOnWoW (4):
+InfusOnWoW (5):
 
-- BT2: Fix GROUP_ROSTER_UPDATE handling
-- Fix Item Set equipped trigger
-- Fix delayed anchoring of dynamic groups
-- Change SpinBox to emit MouseUp/OnValueChanged
+- Trigger Player/Conditions Instance Size: Fix events
+- BT2: On GROUP_ROSTER_UPDATE do a full check
+- Block more chat frames/chat actions
+- Updated Holy Paladin Premade auras
+- BT2: Handle UNIT_TARGETABLE_CHANGED
 
-Stanzilla (1):
+mrbuds (2):
 
-- Update TOC for retail patch 10.1.5
-
-mrbuds (9):
-
-- Add new type of glow called "Proc Glow"
-- DBM Triggers: use count from callback instead of parsing text
-- Action - Chat message: fix sending to a unit on an other server #4517
-- Fix error with bogus update data #4518
-- add Augmentation spec templates
-- Fix error in DBM Timer trigger when extending timer
-- Change WeakAurasOptions background to match PANEL_BACKGROUND_COLOR
-- Pretty condition titles
-- Give triggers titles slightly more descriptive names
+- New "Boss Mod" triggers working with both DBM & BigWigs (#4537)
+- Proc Glow: add more options in actions & external glow conditions, and fixes #4532
 

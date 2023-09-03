@@ -20,7 +20,7 @@ local IsRetrieving = app.Modules.RetrievingData.IsRetrieving;
 local ALLIANCE_ONLY = app.Modules.FactionData.FACTION_RACES[1];
 local HORDE_ONLY = app.Modules.FactionData.FACTION_RACES[2];
 local containsAny = app.containsAny;
-local CS = CreateFrame("ColorSelect", nil, app._);
+local CS = CreateFrame("ColorSelect", nil, app.frame);
 CS:Hide();
 
 -- Module locals
@@ -44,6 +44,7 @@ local RGBToHex = function(r, g, b)
 end
 -- Attempts to determine the colorized text for a given Group
 app.TryColorizeName = function(group, name)
+	name = name or group.name;
 	if IsRetrieving(name) then return name; end
 	-- raid headers
 	if group.isRaid then

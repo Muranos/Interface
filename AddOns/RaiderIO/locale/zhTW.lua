@@ -1,8 +1,10 @@
--- Generated from CurseForge on Mon Jul 17 09:18:21 UTC 2023
-local ns = select(2, ...) ---@type ns @The addon namespace.
+-- Generated from CurseForge on Sun Sep  3 08:20:38 UTC 2023
+local ns = select(2, ...) ---@class ns @The addon namespace.
 
 if ns:IsSameLocale("zhTW") then
+
 	local L = ns.L or ns:NewLocale()
+	ns.L = L
 
 	L.LOCALE_NAME = "zhTW"
 
@@ -98,6 +100,8 @@ L["ENABLE_NO_SCORE_COLORS"] = "停用分數著色"
 L["ENABLE_NO_SCORE_COLORS_DESC"] = "停用分數的著色，所有分數將顯示為白色。"
 L["ENABLE_RAIDERIO_CLIENT_ENHANCEMENTS"] = "允許RaiderIO客戶端增強功能"
 L["ENABLE_RAIDERIO_CLIENT_ENHANCEMENTS_DESC"] = "啟用此功能後，你可以從RaiderIO客戶端下載並查看你要求角色的傳奇+詳細記錄數據。"
+L["ENABLE_REPLAY"] = "顯示傳奇+ 重播系統"
+L["ENABLE_REPLAY_DESC"] = "啟用此功能將使您能夠與記錄的傳奇+運行競賽"
 L["ENABLE_RWF_MODE_BUTTON"] = "啟用"
 L["ENABLE_RWF_MODE_BUTTON_TOOLTIP"] = "單擊來啟用競賽世界第一模式。這將導致您的界面重新載入。"
 L["ENABLE_RWF_MODE_RELOAD"] = "您已啟用競賽世界第一模式。這旨在用於傳奇世界第一競賽，並且只能與 Raider.IO 客戶端一起用於此目的以進行數據上傳。單擊確認將重新載入您的界面。"
@@ -250,10 +254,30 @@ L["RELOAD_LATER"] = "等會才重載"
 L["RELOAD_NOW"] = "現在就重載"
 L["RELOAD_RWF_MODE_BUTTON"] = "儲存"
 L["RELOAD_RWF_MODE_BUTTON_TOOLTIP"] = "單擊以將日誌保存到儲存檔。這將導致您的界面重新載入。"
+L["REPLAY_AUTO_SELECTION"] = "首選重播類型"
+L["REPLAY_AUTO_SELECTION_DESC"] = "選擇您希望自動選擇的重播類型。"
+L["REPLAY_AUTO_SELECTION_GUILD_BEST"] = "公會最佳"
+L["REPLAY_AUTO_SELECTION_MOST_RECENT"] = "最近的"
+L["REPLAY_AUTO_SELECTION_PERSONAL_BEST"] = "個人最佳"
+L["REPLAY_AUTO_SELECTION_STARRED"] = "已加星標"
+L["REPLAY_AUTO_SELECTION_TEAM_BEST"] = "團隊最佳"
+L["REPLAY_MENU_COPY_URL"] = "複製重播網址"
+L["REPLAY_MENU_DOCK"] = "停靠"
+L["REPLAY_MENU_LOCK"] = "鎖定"
+L["REPLAY_MENU_POSITION"] = "位置"
+L["REPLAY_MENU_REPLAY"] = "重播"
+L["REPLAY_MENU_STYLE"] = "樣式"
+L["REPLAY_MENU_TIMING"] = "校時"
+L["REPLAY_MENU_UNDOCK"] = "解除停靠"
+L["REPLAY_MENU_UNLOCK"] = "解除鎖定"
+L["REPLAY_REPLAY_CHANGING"] = "更改重播將重置現實數據。"
 L["REPLAY_SETTINGS_TOOLTIP"] = "設定"
 L["REPLAY_STYLE_TITLE_MDI"] = "MDI"
 L["REPLAY_STYLE_TITLE_MODERN"] = "現在"
 L["REPLAY_STYLE_TITLE_MODERN_COMPACT"] = "現在 (精簡)"
+L["REPLAY_SUMMARY_LOGGED"] = "|cffFFFFFF%s|r 已記錄您完成此 |cffFFFFFF+%s|r 在 |cffFFFFFF%s|r。"
+L["REPLAY_TIMING_TITLE_BOSS"] = "首領計時"
+L["REPLAY_TIMING_TITLE_DUNGEON"] = "地下城計時"
 L["RWF_MINIBUTTON_TOOLTIP"] = "每當有未決戰利品時左鍵點擊。這將導致您的界面重新載入。右鍵點擊以打開競賽世界第一框架。"
 L["RWF_SUBTITLE_LOGGING_FILTERED_LOOT"] = "（記錄相關項目）"
 L["RWF_SUBTITLE_LOGGING_LOOT"] = "（記錄戰利品）"
@@ -329,5 +353,4 @@ L["WARNING_RWF_MODE_ENABLE"] = "|cffFFFFFF%s|r 競賽世界第一模式為啟用
 L["WIPE_RWF_MODE_BUTTON"] = "清除"
 L["WIPE_RWF_MODE_BUTTON_TOOLTIP"] = "單擊以從儲存檔中清除日誌。這將導致您的界面重新載入。"
 
-	ns.L = L
 end

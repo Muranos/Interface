@@ -1,8 +1,10 @@
--- Generated from CurseForge on Mon Jul 17 09:18:12 UTC 2023
-local ns = select(2, ...) ---@type ns @The addon namespace.
+-- Generated from CurseForge on Sun Sep  3 08:20:29 UTC 2023
+local ns = select(2, ...) ---@class ns @The addon namespace.
 
 if ns:IsSameLocale("deDE") then
+
 	local L = ns.L or ns:NewLocale()
+	ns.L = L
 
 	L.LOCALE_NAME = "deDE"
 
@@ -94,6 +96,8 @@ L["ENABLE_NO_SCORE_COLORS"] = "Deaktiviert alle Mythisch+ Wertungsfarben"
 L["ENABLE_NO_SCORE_COLORS_DESC"] = "Deaktiviert die Färbung von Wertungen. Alle Wertungen werden weiß angezeigt."
 L["ENABLE_RAIDERIO_CLIENT_ENHANCEMENTS"] = "Erlaube Raider.IO Client Verbesserungen"
 L["ENABLE_RAIDERIO_CLIENT_ENHANCEMENTS_DESC"] = "Wenn du dies aktivierst, werden detaillierte Raider.IO-Profildaten angezeigt, die vom Raider.IO-Client für deine beanspruchten Charaktere heruntergeladen wurden."
+L["ENABLE_REPLAY"] = "Zeigt Mythic+ Wiederholungssystem an"
+L["ENABLE_REPLAY_DESC"] = "Wenn du dies aktivierst, kannst du Wettrennen starten gegen aufgezeichnete Mythic+ Läufe."
 L["ENABLE_RWF_MODE_BUTTON"] = "Aktivieren"
 L["ENABLE_RWF_MODE_BUTTON_TOOLTIP"] = "Klicke hier, um den Wettrennen Welt 1.-Modus zu aktivieren. Dadurch wird deine Benutzeroberfläche neu geladen."
 L["ENABLE_RWF_MODE_RELOAD"] = "Du aktivierst den Wettrennen Welt 1.-Modus. Dies ist für den Einsatz mit dem Mythisch Wettrennen Welt 1. bestimmt und sollte nur für diesen Zweck nur zusammen mit dem RAIDER.IO-Client für das Hochladen von Daten verwendet werden. Durch Klicken auf Bestätigung wird deine Benutzeroberfläche neu geladen."
@@ -246,10 +250,30 @@ L["RELOAD_LATER"] = "Ich werde später neu laden"
 L["RELOAD_NOW"] = "Jetzt neu laden"
 L["RELOAD_RWF_MODE_BUTTON"] = "Speichern"
 L["RELOAD_RWF_MODE_BUTTON_TOOLTIP"] = "Klicke hier, um das Protokoll in die Speicherdatei zu speichern. Dadurch wird deine Benutzeroberfläche neu geladen."
+L["REPLAY_AUTO_SELECTION"] = "Bevorzugte Wiederholungsart"
+L["REPLAY_AUTO_SELECTION_DESC"] = "Wähle die Art der Wiederholung, die du automatisch ausgewählt haben möchtest."
+L["REPLAY_AUTO_SELECTION_GUILD_BEST"] = "Bestes Gilde"
+L["REPLAY_AUTO_SELECTION_MOST_RECENT"] = "Neuste"
+L["REPLAY_AUTO_SELECTION_PERSONAL_BEST"] = "Bestes Persönlich"
+L["REPLAY_AUTO_SELECTION_STARRED"] = "Mit Sternzeichen"
+L["REPLAY_AUTO_SELECTION_TEAM_BEST"] = "Bestes Team"
+L["REPLAY_MENU_COPY_URL"] = "Wiederholungs-URL kopieren"
+L["REPLAY_MENU_DOCK"] = "Andocken"
+L["REPLAY_MENU_LOCK"] = "Sperren"
+L["REPLAY_MENU_POSITION"] = "Position"
+L["REPLAY_MENU_REPLAY"] = "Wiederholung"
+L["REPLAY_MENU_STYLE"] = "Stil"
+L["REPLAY_MENU_TIMING"] = "Zeitpunkt"
+L["REPLAY_MENU_UNDOCK"] = "Abdocken"
+L["REPLAY_MENU_UNLOCK"] = "Entsperren"
+L["REPLAY_REPLAY_CHANGING"] = "Durch das Ändern deiner Wiederholung werden die Live-Daten zurückgesetzt."
 L["REPLAY_SETTINGS_TOOLTIP"] = "Einstellungen"
 L["REPLAY_STYLE_TITLE_MDI"] = "MDI"
 L["REPLAY_STYLE_TITLE_MODERN"] = "Modern"
 L["REPLAY_STYLE_TITLE_MODERN_COMPACT"] = "Modern (Kompakt)"
+L["REPLAY_SUMMARY_LOGGED"] = "|cffFFFFFF%s|r protokollierte deine Fertigstellung davon |cffFFFFFF+%s|r in |cffFFFFFF%s|r."
+L["REPLAY_TIMING_TITLE_BOSS"] = "Bosszeit"
+L["REPLAY_TIMING_TITLE_DUNGEON"] = "Durchlaufszeit"
 L["RWF_MINIBUTTON_TOOLTIP"] = "Klicke mit der linken Maustaste, wann immer es anstehende Beute gibt. Dadurch wird deine Benutzeroberfläche neu geladen. Klicke mit der rechten Maustaste, um das Wettrennen Welt 1.-Fenster zu öffnen."
 L["RWF_SUBTITLE_LOGGING_FILTERED_LOOT"] = "(Protokollierung relevanter Gegenstände)"
 L["RWF_SUBTITLE_LOGGING_LOOT"] = "(Protokollierung Beute)"
@@ -325,5 +349,4 @@ L["WARNING_RWF_MODE_ENABLE"] = "|cffFFFFFF%s|r Wettrennen Welt 1.-Modus ist akti
 L["WIPE_RWF_MODE_BUTTON"] = "Löschen"
 L["WIPE_RWF_MODE_BUTTON_TOOLTIP"] = "Klicke hier, um das Protokoll aus der Speicherdatei zu löschen. Dadurch wird deine Benutzeroberfläche neu geladen."
 
-	ns.L = L
 end

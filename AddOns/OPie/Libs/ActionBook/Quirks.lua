@@ -1,7 +1,7 @@
 local COMPAT, _, T = select(4,GetBuildInfo()), ...
 if T.SkipLocalActionBook then return end
 
-local EV, AB, RW = T.Evie, T.ActionBook:compatible(2,36), T.ActionBook:compatible("Rewire", 1,27)
+local EV, AB, RW = T.Evie, T.ActionBook:compatible(2,38), T.ActionBook:compatible("Rewire", 1,27)
 assert(EV and AB and RW and 1, "Incompatible library bundle")
 local MODERN = COMPAT >= 10e4
 
@@ -152,4 +152,29 @@ if MODERN then -- failing profession rank disambiguation
 		return e ~= "CHAT_MSG_SKILL" and "remove"
 	end
 	EV.PLAYER_LOGIN, EV.CHAT_MSG_SKILL = syncProf, syncProf
+end
+
+if MODERN then -- missing usability conditions for certain toys
+	local watchedQuests = {}
+	function EV:QUEST_TURNED_IN(qid)
+		local tid = watchedQuests[qid]
+		if tid and PlayerHasToy(tid) then
+			watchedQuests[qid] = nil
+			AB:NotifyObservers("toy")
+		end
+	end
+	local function collectedAndQuestCompleted(id, q1, q2)
+		watchedQuests[q1], watchedQuests[q2 or q1] = id, id
+		return id, function(_id)
+			if PlayerHasToy(id) then
+				local qf = C_QuestLog.IsQuestFlaggedCompleted
+				if qf(q1) or q2 and qf(q2) then
+					AB:SetPlayerHasToyOverride(id, nil)
+					return true
+				end
+			end
+		end
+	end
+	AB:SetPlayerHasToyOverride(collectedAndQuestCompleted(110560, 34378, 34586)) -- Garrison Hearthstone
+	AB:SetPlayerHasToyOverride(collectedAndQuestCompleted(140192, 44184, 44663)) -- Legion Dalaran Hearthstone
 end

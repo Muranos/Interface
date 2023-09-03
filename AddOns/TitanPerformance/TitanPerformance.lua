@@ -20,8 +20,9 @@ local TITAN_FPS_THRESHOLD_TABLE = {
 	Values = { 20, 30 },
 	Colors = { RED_FONT_COLOR, NORMAL_FONT_COLOR, GREEN_FONT_COLOR },
 }
+-- #1369 - PERFORMANCEBAR_LOW_LATENCY, PERFORMANCEBAR_MEDIUM_LATENCY no longer defined by WoW
 local TITAN_LATENCY_THRESHOLD_TABLE = {
-	Values = { PERFORMANCEBAR_LOW_LATENCY, PERFORMANCEBAR_MEDIUM_LATENCY },
+	Values = { 300, 600 }, 
 	Colors = { GREEN_FONT_COLOR, NORMAL_FONT_COLOR, RED_FONT_COLOR },
 }
 local TITAN_MEMORY_RATE_THRESHOLD_TABLE = {
@@ -55,7 +56,7 @@ end
 -- **************************************************************************
 function TitanPanelPerformanceButton_OnLoad(self)
 	local notes = ""
-		.."Adds FPS and Garbage collection information to Titan Panel.\n"
+		.."Adds FPS (Frames Per Second) and Garbage collection information to Titan Panel.\n"
 --		.."- xxx.\n"
 	self.registry = {
 		id = TITAN_PERFORMANCE_ID,

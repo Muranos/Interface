@@ -19,8 +19,6 @@ L.already_registered = "|cffff0000警告：|r |cff00ff00%s|r（|cffffff00%s|r）
 L.testNameplate = "已检测到目标，在目标姓名板上创建一个测试姓名板条。 |cFF33FF99此功能很少用到，当与多个首领/增援战斗时通常一个计时条并且需要保持追踪冷却施放相同的法术。|r"
 
 -- Loader / Options.lua
-L.classicWarning1 = "|cFF33FF99BigWigs|r：你在经典怀旧服务器上正在使用错误版本的 BigWigs。"
-L.classicWarning2 = "|cFF33FF99BigWigs|r：请安装经典怀旧版本 BigWigs。"
 L.officialRelease = "你所使用的 BigWigs %s 为官方正式版（%s）"
 L.alphaRelease = "你所使用的 BigWigs %s 为“α测试版”（%s）"
 L.sourceCheckout = "你所使用的 BigWigs %s 为从源直接检出的。"
@@ -44,6 +42,19 @@ L.missingAddOn = "你缺少 |cFF436EEE%s|r 插件!"
 L.disabledAddOn = "你的 |cFF436EEE%s|r 插件已禁用，计时器将不被显示。"
 L.removeAddOn = "请移除“|cFF436EEE%s|r”，其已被“|cFF436EEE%s|r”所替代。"
 L.alternativeName = "%s（|cFF436EEE%s|r）"
+
+L.expansionNames = {
+	"经典旧世", -- Classic
+	"燃烧的远征", -- The Burning Crusade
+	"巫妖王之怒", -- Wrath of the Lich King
+	"大地的裂变", -- Cataclysm
+	"熊猫人之谜", -- Mists of Pandaria
+	"德拉诺之王", -- Warlords of Draenor
+	"军团再临", -- Legion
+	"争霸艾泽拉斯", -- Battle for Azeroth
+	"暗影国度", -- Shadowlands
+	"巨龙时代", -- Dragonflight
+}
 
 -- Media.lua (These are the names of the sounds in the dropdown list in the "sounds" section)
 L.Beware = "当心（奥尔加隆）"
@@ -154,7 +165,7 @@ L.dispeller = "|cFFFF0000只警报驱散和打断。|r"
 
 -- Statistics
 L.statistics = "统计"
-L.lfr = "随机团队"
+L.LFR = "随机团队"
 L.normal = "普通"
 L.heroic = "英雄"
 L.mythic = "史诗"

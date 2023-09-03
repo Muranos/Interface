@@ -20,8 +20,8 @@ if COMPAT >= 10e4 then
 		end
 	end
 	function T.TenSABT(self)
-		self[self:GetScript("PreClick") and "HookScript" or "SetScript"](self, "PreClick", PreClick)
-		self[self:GetScript("PostClick") and "HookScript" or "SetScript"](self, "PostClick", PostClick)
+		self:HookScript("PreClick", PreClick)
+		self:HookScript("PostClick", PostClick)
 		return self
 	end
 else
@@ -41,11 +41,11 @@ do -- T.CreateEdge
 		{"BOTTOMLEFT", 0, 0, "TOPRIGHT", "BOTTOMLEFT", 1, 1},
 		{"BOTTOMRIGHT", 0, 0, "TOPLEFT", "BOTTOMRIGHT", -1, 1}
 	}
-	function T.CreateEdge(f, info, bgColor, edgeColor)
+	function T.CreateEdge(f, info, bgColor, edgeColor, sublevel)
 		local insets = info.insets
 		local es = info.edgeFile and (info.edgeSize or 39) or 0
 		if info.bgFile then
-			local bg = f:CreateTexture(nil, "BACKGROUND", nil, -7)
+			local bg = f:CreateTexture(nil, "BACKGROUND", nil, sublevel or -7)
 			local tileBackground = not not info.tile
 			bg:SetTexture(info.bgFile, tileBackground, tileBackground)
 			bg:SetPoint("TOPLEFT", (insets and insets.left or 0), -(insets and insets.top or 0))
@@ -57,7 +57,7 @@ do -- T.CreateEdge
 			local n = edgeColor or 0xffffff
 			local r,g,b,a = (n - n % 2^16) / 2^16 % 256 / 255, (n - n % 2^8) / 2^8 % 256 / 255, n % 256 / 255, n >= 2^24 and (n - n % 2^24) / 2^24 % 256 / 255 or 1
 			for i=1,#edgeSlices do
-				local t, s = f:CreateTexture(nil, "BORDER", nil, -7), edgeSlices[i]
+				local t, s = f:CreateTexture(nil, "BORDER", nil, sublevel or -7), edgeSlices[i]
 				t:SetTexture(info.edgeFile)
 				t:SetPoint(s[1], s[2]*es, s[3]*es)
 				t:SetPoint(s[4], f, s[5], s[6]*es, s[7]*es)

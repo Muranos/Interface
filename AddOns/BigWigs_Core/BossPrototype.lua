@@ -33,6 +33,7 @@ local EJ_GetEncounterInfo, UnitGroupRolesAssigned = EJ_GetEncounterInfo, UnitGro
 local SendChatMessage, GetInstanceInfo, Timer, SetRaidTarget = BigWigsLoader.SendChatMessage, BigWigsLoader.GetInstanceInfo, BigWigsLoader.CTimerAfter, BigWigsLoader.SetRaidTarget
 local UnitName, UnitGUID, UnitHealth, UnitHealthMax = BigWigsLoader.UnitName, BigWigsLoader.UnitGUID, BigWigsLoader.UnitHealth, BigWigsLoader.UnitHealthMax
 local UnitDetailedThreatSituation = BigWigsLoader.UnitDetailedThreatSituation
+local isClassic, isRetail = BigWigsLoader.isClassic, BigWigsLoader.isRetail
 local format, find, gsub, band, tremove, twipe = string.format, string.find, string.gsub, bit.band, table.remove, table.wipe
 local select, type, next, tonumber = select, type, next, tonumber
 local C = core.C
@@ -1282,13 +1283,14 @@ end
 --- Check if on a retail server.
 -- @return boolean
 function boss:Retail()
-	return WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
+	return isRetail
 end
 
 --- Check if on a classic server.
 -- @return number 2 = classic era, 5 = classic, nil if retail
 function boss:Classic()
 	return WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE and WOW_PROJECT_ID
+	--return isClassic
 end
 
 --- Get the mob/npc id from a GUID.
@@ -2782,6 +2784,7 @@ function boss:Say(key, msg, directPrint)
 	else
 		SendChatMessage(format(L.on, msg and (type(msg) == "number" and spells[msg] or msg) or spells[key], pName), "SAY")
 	end
+	self:Debug(":Say", key, msg, directPrint)
 end
 
 --- Send a message in YELL. Generally used for abilities where you need to group up.
@@ -2795,6 +2798,7 @@ function boss:Yell(key, msg, directPrint)
 	else
 		SendChatMessage(format(L.on, msg and (type(msg) == "number" and spells[msg] or msg) or spells[key], pName), "YELL")
 	end
+	self:Debug(":Yell", key, msg, directPrint)
 end
 
 --- Cancel a countdown using say messages.

@@ -1,21 +1,12 @@
-local L = BigWigs:NewBossLocale("Kazzara, the Hellforged", "ptBR")
+local L = BigWigs:NewBossLocale("The Amalgamation Chamber", "ptBR")
 if not L then return end
-if L then
-	L.dread_rift = "Fenda" -- Singular Dread Rift
-end
-
-L = BigWigs:NewBossLocale("The Amalgamation Chamber", "ptBR")
 if L then
 	L.custom_on_fade_out_bars = "Esconder barras da primeira fase"
 	L.custom_on_fade_out_bars_desc = "Desaparece com as barras que pertencem ao boss que está fora de alcance na primeira fase."
 
 	L.coalescing_void = "Fuja"
-	L.shadow_convergence = "Orbes"
 	L.molten_eruption = "Soaks"
 	L.swirling_flame = "Tornados"
-	L.gloom_conflagration = "Meteoro + Fuja"
-	L.blistering_twilight = "Bombas + Tornados"
-	L.convergent_eruption = "Soaks + Orbes"
 	L.shadowflame_burst = "Cone Frontal"
 
 	L.shadow_and_flame = "Debuffs Míticos"
@@ -30,7 +21,6 @@ if L then
 	L.custom_on_unstable_essence_high_desc = "Diga mensagens com a quantidade de acúmulos do seu debuff de Essência Instável quando eles estiverem altos o suficiente."
 	L.volatile_spew = "Esquivar"
 	L.volatile_eruption = "Erupção"
-	L.temporal_anomaly = "Orbe de Cura"
 	L.temporal_anomaly_knocked = "Orbe de Cura Empurrado"
 end
 
@@ -41,10 +31,7 @@ if L then
 	L.zaqali_aide_north_emote_trigger = "muralha do norte" -- Commanders ascend the northern battlement!
 	L.zaqali_aide_south_emote_trigger = "muralha do sul" -- Commanders ascend the southern battlement!
 
-	L.north = "Norte"
-	L.south = "Sul"
 	L.both = "Ambos"
-
 	L.zaqali_aide_message = "%s Escalando %s" -- Big Adds Climbing North
 	L.add_bartext = "%s: %s (%d)"
 	L.boss_returns = "Boss Aterrissa: Norte"
@@ -61,7 +48,7 @@ if L then
 	L.energy_gained = "Energia Obtida: %d"
 
 	-- Mythic
-	L.unleash_shadowflame = "Orbes Míticos"
+	--L.shadowflame_energy = "Heal Absorb"
 end
 
 L = BigWigs:NewBossLocale("The Vigilant Steward, Zskarn", "ptBR")
@@ -87,7 +74,6 @@ if L then
 	L.rushing_darkness = "Linhas de Empurrão"
 
 	L.umbral_annihilation = "Aniquilação"
-	L.sunder_reality = "Portais"
 	L.ebon_destruction = "Big Bang"
 
 	--L.wall_breaker = "Wall Breaker (Mythic)"
@@ -117,4 +103,5 @@ if L then
 	L.fluid = "Fluido de Animação" -- NPC 203939
 	L.slime = "Visgo Borbulhante" -- NPC 205651
 	L.goo = "Gosma Rastejante" -- NPC 205820
+	L.whisper = "Sussurro das Trevas" -- NPC 203806
 end

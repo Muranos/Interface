@@ -80,6 +80,18 @@ L["Action Button Glow"] = "Botón de acción resplandeciente"
 L["Action Usable"] = "Acción Utilizable"
 L["Actions"] = "Acciones"
 L["Active"] = "Activo"
+--[[Translation missing --]]
+L[ [=[Active boss mod addon: |cFFffcc00BigWigs|r
+
+Note: This trigger will use BigWigs or DBM, in that order if both are installed.]=] ] = [=[Active boss mod addon: |cFFffcc00BigWigs|r
+
+Note: This trigger will use BigWigs or DBM, in that order if both are installed.]=]
+--[[Translation missing --]]
+L[ [=[Active boss mod addon: |cFFffcc00DBM|r
+
+Note: This trigger will use BigWigs or DBM, in that order if both are installed.]=] ] = [=[Active boss mod addon: |cFFffcc00DBM|r
+
+Note: This trigger will use BigWigs or DBM, in that order if both are installed.]=]
 L["Add"] = "Añadir"
 L["Add Missing Auras"] = "Añadir auras perdidas"
 L["Additional Trigger Replacements"] = "Sustitución de activadores adicionales"
@@ -214,6 +226,14 @@ L["Blood-Queen Lana'thel"] = "Reina de Sangre Lana'thel"
 L["Border"] = "Borde"
 L["Boss"] = "Jefe"
 L["Boss Emote"] = "Jefe - Emoción"
+--[[Translation missing --]]
+L["Boss Mod Announce"] = "Boss Mod Announce"
+--[[Translation missing --]]
+L["Boss Mod Stage"] = "Boss Mod Stage"
+--[[Translation missing --]]
+L["Boss Mod Stage (Event)"] = "Boss Mod Stage (Event)"
+--[[Translation missing --]]
+L["Boss Mod Timer"] = "Boss Mod Timer"
 L["Boss Whisper"] = "Susurro de jefe"
 L["Bottom"] = "Abajo"
 L["Bottom Left"] = "Abajo Izquierda"
@@ -973,6 +993,12 @@ L["Neutral"] = "Neutral"
 L["Never"] = "Nunca"
 L["Next Combat"] = "Siguiente combate"
 L["Next Encounter"] = "Siguiente encuentro"
+--[[Translation missing --]]
+L[ [=[No active boss mod addon detected.
+
+Note: This trigger will use BigWigs or DBM, in that order if both are installed.]=] ] = [=[No active boss mod addon detected.
+
+Note: This trigger will use BigWigs or DBM, in that order if both are installed.]=]
 --[[Translation missing --]]
 L["No Extend"] = "No Extend"
 L["No Instance"] = "Fuera de Instancia"

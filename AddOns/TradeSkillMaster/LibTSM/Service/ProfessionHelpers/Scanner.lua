@@ -101,6 +101,7 @@ Scanner:OnModuleLoad(function()
 		:AddNumberField("level")
 		:AddNumberField("currentExp")
 		:AddNumberField("nextExp")
+		:AddNumberField("recipeType")
 		:Commit()
 	private.matDB = Database.NewSchema("CRAFTING_RECIPE_MATS")
 		:AddStringField("craftString")
@@ -156,7 +157,8 @@ end
 
 function Scanner.GetItemStringByCraftString(craftString)
 	assert(private.dbPopulated)
-	return private.db:GetUniqueRowField("craftString", craftString, "itemString")
+	local itemString = private.db:GetUniqueRowField("craftString", craftString, "itemString")
+	return itemString ~= "" and itemString or nil
 end
 
 function Scanner.GetIndexByCraftString(craftString)
@@ -187,6 +189,11 @@ end
 function Scanner.GetNextExpByCraftString(craftString)
 	assert(private.dbPopulated)
 	return private.db:GetUniqueRowField("craftString", craftString, "nextExp")
+end
+
+function Scanner.GetRecipeTypeByCraftString(craftString)
+	assert(private.dbPopulated)
+	return private.db:GetUniqueRowField("craftString", craftString, "recipeType")
 end
 
 function Scanner.GetDifficultyByCraftString(craftString)
@@ -271,13 +278,15 @@ function Scanner.GetRecipeQualityInfo(craftString)
 			if INSPIRATION_DESC_PATTERN then
 				inspirationChance, inspirationAmount = strmatch(statInfo.ratingDescription, INSPIRATION_DESC_PATTERN)
 			end
-			if not inspirationChance then
+			if not inspirationChance or inspirationChance == 0 then
 				-- Try another way to parse the chance / amount
 				inspirationChance = strmatch(statInfo.ratingDescription, "([0-9%.]+)%%")
-				inspirationAmount = strmatch(statInfo.ratingDescription, "([0-9]+)[^%%%.,]")
+				inspirationAmount = strmatch(statInfo.ratingDescription, "([0-9]+)[^%%%.,]") or strmatch(statInfo.ratingDescription, "([0-9]+)%.$")
 			end
 			inspirationChance = tonumber(inspirationChance) / 100
 			inspirationAmount = tonumber(inspirationAmount)
+			assert(inspirationChance and inspirationAmount)
+			break
 		end
 	end
 	local hasQualityMats = false
@@ -361,7 +370,9 @@ function Scanner.GetResultItem(craftString)
 			itemLink = itemString and ItemInfo.GetLink(itemString) or itemLink
 			return itemLink, indirectSpellId
 		else
-			return itemLink
+			local indirectSpellId = strmatch(itemLink, "enchant:(%d+)")
+			indirectSpellId = indirectSpellId and tonumber(indirectSpellId)
+			return itemLink, indirectSpellId
 		end
 	end
 end
@@ -534,6 +545,10 @@ function Scanner.GetMatInfo(craftString, index)
 	end
 end
 
+function Scanner.GetClassicSpellId(spellId)
+	return private.classicSpellIdLookup[spellId]
+end
+
 
 
 -- ============================================================================
@@ -662,13 +677,14 @@ function private.ScanProfession()
 			if info and info.index == index and info.learned and not hasHigherRank then
 				local unlockedLevel = info.unlockedRecipeLevel
 				local numSkillUps = info.relativeDifficulty == Enum.TradeskillRelativeDifficulty.Optimal and info.numSkillUps or 1
+				local recipeInfo = C_TradeSkillUI.GetRecipeSchematic(spellId, false)
 				if unlockedLevel then
 					for level = 1, MAX_CRAFT_LEVEL do
 						local craftString = CraftString.Get(spellId, rank, level)
 						-- Remove any old version of the spell without a level
 						inactiveCraftStrings[CraftString.Get(spellId)] = true
 						if level <= unlockedLevel then
-							local recipeScanResult, matScanResult = private.BulkInsertRecipe(craftString, index, info.name, info.categoryID, info.relativeDifficulty, rank, numSkillUps, level, info.currentRecipeExperience or -1, info.nextLevelRecipeExperience or -1)
+							local recipeScanResult, matScanResult = private.BulkInsertRecipe(craftString, index, info.name, info.categoryID, info.relativeDifficulty, rank, numSkillUps, level, info.currentRecipeExperience or -1, info.nextLevelRecipeExperience or -1, recipeInfo.recipeType or -1)
 							haveInvalidRecipes = haveInvalidRecipes or not recipeScanResult
 							haveInvalidMats = haveInvalidMats or not matScanResult
 						else
@@ -705,7 +721,7 @@ function private.ScanProfession()
 					end
 					if not info.supportsQualities or info.isSalvageRecipe then
 						assert(numResultItems == 1)
-						local recipeScanResult, matScanResult = private.BulkInsertRecipe(craftString, index, info.name, info.categoryID, info.relativeDifficulty, rank, numSkillUps, 1, info.currentRecipeExperience or -1, info.nextLevelRecipeExperience or -1)
+						local recipeScanResult, matScanResult = private.BulkInsertRecipe(craftString, index, info.name, info.categoryID, info.relativeDifficulty, rank, numSkillUps, 1, info.currentRecipeExperience or -1, info.nextLevelRecipeExperience or -1, recipeInfo.recipeType or -1)
 						haveInvalidRecipes = haveInvalidRecipes or not recipeScanResult
 						haveInvalidMats = haveInvalidMats or not matScanResult
 					elseif numResultItems == 1 then
@@ -719,7 +735,7 @@ function private.ScanProfession()
 							for i = 1, numResultItems do
 								local qualityCraftString = CraftString.Get(spellId, rank, nil, i)
 								if Quality.GetNeededSkill(i, recipeDifficulty, baseRecipeQuality, numResultItems, hasQualityMats, inspirationAmount) then
-									local recipeScanResult, matScanResult = private.BulkInsertRecipe(qualityCraftString, index, info.name, info.categoryID, info.relativeDifficulty, rank, numSkillUps, 1, info.currentRecipeExperience or -1, info.nextLevelRecipeExperience or -1)
+									local recipeScanResult, matScanResult = private.BulkInsertRecipe(qualityCraftString, index, info.name, info.categoryID, info.relativeDifficulty, rank, numSkillUps, 1, info.currentRecipeExperience or -1, info.nextLevelRecipeExperience or -1, recipeInfo.recipeType or -1)
 									haveInvalidRecipes = haveInvalidRecipes or not recipeScanResult
 									haveInvalidMats = haveInvalidMats or not matScanResult
 								else
@@ -762,7 +778,7 @@ function private.ScanProfession()
 				lastHeaderIndex = i
 			elseif name then
 				local craftString = CraftString.Get(private.classicSpellIdLookup[-i])
-				local recipeScanResult, matScanResult = private.BulkInsertRecipe(craftString, i, name, lastHeaderIndex, skillType, -1, 1, 1, -1, -1)
+				local recipeScanResult, matScanResult = private.BulkInsertRecipe(craftString, i, name, lastHeaderIndex, skillType, -1, 1, 1, -1, -1, -1)
 				haveInvalidRecipes = haveInvalidRecipes or not recipeScanResult
 				haveInvalidMats = haveInvalidMats or not matScanResult
 			end
@@ -785,7 +801,6 @@ function private.ScanProfession()
 	private.db:NewQuery()
 		:Select("craftString")
 		:NotEqual("itemString", "")
-		:NotEqual("craftString", "")
 		:AsTable(craftStrings)
 		:Release()
 	local categorySkillLevelLookup = TempTable.Acquire()
@@ -809,12 +824,12 @@ function private.ScanProfession()
 	wipe(private.recipeInfoCache)
 end
 
-function private.BulkInsertRecipe(craftString, index, name, categoryId, relativeDifficulty, rank, numSkillUps, level, currentRecipeExperience, nextLevelRecipeExperience)
+function private.BulkInsertRecipe(craftString, index, name, categoryId, relativeDifficulty, rank, numSkillUps, level, currentRecipeExperience, nextLevelRecipeExperience, recipeType)
 	local itemString, craftName = private.GetItemStringAndCraftName(craftString)
 	if not itemString or not craftName then
 		return false, false
 	end
-	private.db:BulkInsertNewRow(craftString, itemString, index, name, craftName, categoryId, relativeDifficulty, rank, numSkillUps, level, currentRecipeExperience, nextLevelRecipeExperience)
+	private.db:BulkInsertNewRow(craftString, itemString, index, name, craftName, categoryId, relativeDifficulty, rank, numSkillUps, level, currentRecipeExperience, nextLevelRecipeExperience, recipeType)
 	if Environment.HasFeature(Environment.FEATURES.C_TRADE_SKILL_UI) then
 		local spellId = CraftString.GetSpellId(craftString)
 		private.recipeInfoCache[craftString] = private.recipeInfoCache[spellId]

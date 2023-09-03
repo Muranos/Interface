@@ -12,7 +12,9 @@ mod:RegisterEnableMob(
 	201736, -- Sundered Arcanist
 	205656, -- Sundered Chemist
 	203939, -- Animation Fluid
-	205651 -- Bubbling Slime
+	205651, -- Bubbling Slime
+	203809, -- Entropic Hatred
+	203806 -- Whisper in the Dark
 )
 
 --------------------------------------------------------------------------------
@@ -35,6 +37,9 @@ if L then
 	L.fluid = "Animation Fluid"
 	L.slime = "Bubbling Slime"
 	L.goo = "Crawling Goo"
+
+	--[[ Echo of Neltharion -> Sarkareth ]]--
+	L.whisper = "Whisper in the Dark"
 end
 
 --------------------------------------------------------------------------------
@@ -61,6 +66,10 @@ function mod:GetOptions()
 		411892, -- Viscous Bile
 		{411808, "SAY", "SAY_COUNTDOWN"}, -- Slime Ejection
 		412498, -- Stagnating Pool
+
+		--[[ Echo of Neltharion -> Sarkareth ]]--
+		{409576, "SAY", "SAY_COUNTDOWN"}, -- Dark Bindings
+		409612, -- Umbral Torrent
 	},{
 		[408975] = L.edgelord,
 		[418113] = L.naturalist,
@@ -70,13 +79,15 @@ function mod:GetOptions()
 		[411892] = L.fluid,
 		[411808] = L.slime,
 		[412498] = L.goo,
+		[409576] = L.whisper,
 	},{
 		[408811] = L.banner, -- Form Ranks (Banner)
+		[409612] = CL.orbs, -- Umbral Torrent (Orbs)
 	}
 end
 
 function mod:OnRegister()
-	-- Delayed for custom locale
+	-- Delayed for custom banner locale
 	bannerMarker = self:AddMarkerOption(true, "npc", 8, "banner", 8, 7) -- Banner (short for Sundered Flame Banner)
 end
 
@@ -107,6 +118,11 @@ function mod:OnBossEnable()
 	self:Log("SPELL_AURA_REMOVED", "SlimeEjectionRemoved", 411808)
 	self:Death("BubblingSlimeKilled", 205651) -- Bubbling Slime
 	self:Log("SPELL_AURA_APPLIED", "StagnatingPoolDamage", 412498)
+
+	--[[ Echo of Neltharion -> Sarkareth ]]--
+	self:Log("SPELL_AURA_APPLIED", "DarkBindingsApplied", 413785, 409576) -- Source: Entropic Hatred (203809), Whisper in the Dark (203806)
+	self:Log("SPELL_AURA_REMOVED", "DarkBindingsRemoved", 413785, 409576)
+	self:Log("SPELL_CAST_START", "UmbralTorrent", 409612)
 end
 
 --------------------------------------------------------------------------------
@@ -126,7 +142,6 @@ do
 end
 
 --[[ Kazzara -> Amalgamation Chamber ]]--
-
 function mod:DreamBurstApplied(args)
 	self:TargetMessage(args.spellId, "yellow", args.destName)
 	if self:Me(args.destGUID) then
@@ -153,7 +168,7 @@ function mod:HealingBloom(args)
 end
 
 do
-	local bannerCollector, icon, prev = {}, 8, 0
+	local bannerCollector, icon, prevWarn, prevMarkClear = {}, 8, 0, 0
 	function mod:BannerMarking(_, unit, guid)
 		if bannerCollector[guid] then
 			self:CustomIcon(bannerMarker, unit, bannerCollector[guid]) -- icon order from SPELL_SUMMON
@@ -165,15 +180,18 @@ do
 	end
 
 	function mod:FormRanks(args)
-		self:Message(args.spellId, "orange", CL.spawned:format(L.banner))
-		self:PlaySound(args.spellId, "warning")
+		if args.time-prevWarn > 1 then -- Don't spam warn for multiple casts
+			prevWarn = args.time
+			self:Message(args.spellId, "orange", CL.spawned:format(L.banner))
+			self:PlaySound(args.spellId, "warning")
+		end
 		if self:GetOption(bannerMarker) then
-			if args.time-prev > 5 then
-				prev = args.time
+			if args.time-prevMarkClear > 5 then
+				prevMarkClear = args.time
 				icon = 8
 				bannerCollector = {}
 			end
-			if not bannerCollector[args.destGUID] then
+			if not bannerCollector[args.destGUID] and icon > 6 then -- Limit to skull & cross
 				bannerCollector[args.destGUID] = icon
 				icon = icon - 1
 				self:RegisterTargetEvents("BannerMarking")
@@ -254,4 +272,25 @@ do
 			self:PlaySound(args.spellId, "underyou")
 		end
 	end
+end
+
+--[[ Echo of Neltharion -> Sarkareth ]]--
+function mod:DarkBindingsApplied(args)
+	if self:Me(args.destGUID) then
+		self:PersonalMessage(409576)
+		self:PlaySound(409576, "warning")
+		self:Say(409576)
+		self:SayCountdown(409576, 5)
+	end
+end
+
+function mod:DarkBindingsRemoved(args)
+	if self:Me(args.destGUID) then
+		self:CancelSayCountdown(409576)
+	end
+end
+
+function mod:UmbralTorrent(args)
+	self:Message(args.spellId, "red", CL.incoming:format(CL.orbs))
+	self:PlaySound(args.spellId, "long")
 end

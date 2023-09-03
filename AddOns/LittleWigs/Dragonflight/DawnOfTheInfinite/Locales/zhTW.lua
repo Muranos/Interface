@@ -21,10 +21,15 @@ if L then
 	--L.timeline_marauder = "Timeline Marauder"
 	--L.infinite_saboteur = "Infinite Saboteur"
 	--L.infinite_riftmage = "Infinite Riftmage"
+	--L.timelost_waveshaper = "Time-Lost Waveshaper"
 	--L.chronaxie = "Chronaxie"
 	--L.horde_destroyer = "Horde Destroyer"
 	--L.alliance_destroyer = "Alliance Destroyer"
 	--L.horde_farseer = "Horde Farseer"
-	--L.horde_raider = "Horde Raider"
+	--L.paladin_of_the_silver_hand = "Paladin of the Silver Hand"
+	--L.horde_raider_alliance_knight = "Horde Raider / Alliance Knight"
 	--L.infinite_timebender = "Infinite Timebender"
+
+	L.custom_on_rift_autotalk = "自動對話"
+	--L.custom_on_rift_autotalk_desc = "Instantly start channeling to open the Temporal Rift."
 end

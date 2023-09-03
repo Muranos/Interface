@@ -14,6 +14,7 @@ C.TOOLTIP = { ACTIVATION_METHOD_HOVER = "ACTIVATION_METHOD_HOVER", ACTIVATION_ME
 C.DEFEAT_DETECTION = { MODE_OR = 1, MODE_AND = 2 }
 
 -- Embedded mapIDs: It's best to avoid hardcoding these in case of yet another re-mapping on Blizzard's end...
+-- See https://wowpedia.fandom.com/wiki/UiMapID (list may not always be up-to-date)
 C.UIMAPIDS = {
 	-- Dummy Zone (For items that can be obtained anywhere.)
 	NONE = 0,
@@ -107,6 +108,17 @@ C.UIMAPIDS = {
 	TAZAVESH_THE_VEILED_MARKET = 1989,
 	SANCTUM_OF_DOMINATION = 1998,
 	ZERETH_MORTIS = 1970,
+	SEPULCHER_OF_THE_FIRST_ONES = 2047,
+	-- Dragonflight Zones
+	THE_WAKING_SHORES = 2022,
+	OHN_AHRAN_PLAINS = 2023,
+	THE_AZURE_SPAN = 2024,
+	THALDRASZUS = 2025,
+	THE_PRIMALIST_FUTURE = 2085,
+	THE_FORBIDDEN_REACH = 2151,
+	ZARALEK_CAVERN = 2133,
+	THE_THROUGHWAY = 2165,
+	CROSSROADS_OF_FATE = 2194, -- Dawn of the Infinite (subzone)
 }
 
 -- Types of items
@@ -137,6 +149,7 @@ C.ITEM_CATEGORIES = {
 	LEGION = "LEGION",
 	BFA = "BFA",
 	SHADOWLANDS = "SHADOWLANDS",
+	DRAGONFLIGHT = "DRAGONFLIGHT",
 	HOLIDAY = "HOLIDAY",
 }
 
@@ -212,6 +225,14 @@ C.ARCHAEOLOGY_RACES = {
 	FOSSIL = 18,
 	DRAENEI = 19,
 	DWARF = 20,
+}
+
+C.FACTION_IDS = {
+	-- Dragonflight
+	MARUUK_CENTAUR = 2503,
+	DRAGONSCALE_EXPEDITION = 2507,
+	VALDRAKKEN_ACCORD = 2510,
+	ISKAARA_TUSKARR = 2511,
 }
 
 -- This doesn't really belong here and needs streamlining anyway, but for now this is the best place.

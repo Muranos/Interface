@@ -140,7 +140,7 @@ function private.IsPlayerHelper(target, includeAlts, includeOtherFaction, includ
 	end
 	if includeAlts then
 		local result = false
-		for _, factionrealm, character, isConnected in Settings.ConnectedFactionrealmAltCharacterIterator() do
+		for _, factionrealm, character, _, isConnected in Settings.ConnectedFactionrealmAltCharacterIterator() do
 			if isConnected or private.settings.regionWide then
 				local factionKey, realm = strmatch(factionrealm, "(.+) %- (.+)")
 				factionKey = strlower(factionKey)

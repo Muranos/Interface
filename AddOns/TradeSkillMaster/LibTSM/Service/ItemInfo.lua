@@ -49,7 +49,7 @@ local MAX_REQUESTS_PER_ITEM = 5
 local UNKNOWN_ITEM_NAME = L["Unknown Item"]
 local PLACEHOLDER_ITEM_NAME = L["Example Item"]
 local UNKNOWN_ITEM_TEXTURE = 136254
-local DB_VERSION = 13
+local DB_VERSION = 14
 local ENCODING_NUM_BITS = 6
 local ENCODING_NUM_VALUES = 2 ^ ENCODING_NUM_BITS
 local ENCODING_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
@@ -144,6 +144,10 @@ local NON_DISENCHANTABLE_ITEMS = {
 	["i:186056"] = true,
 	["i:186058"] = true,
 	["i:186163"] = true,
+}
+-- Some items that can't be sold to a vendor even though GetItemInfo() reports a vendorSell price
+local NON_VENDORABLE_ITEMS = {
+	["i:194829"] = true, -- Fated Fortune Card
 }
 local REBUILD_MSG_THRESHOLD = 5000
 local REBUILD_STAGE = {
@@ -842,7 +846,7 @@ function ItemInfo.GetVendorSell(item)
 		return nil
 	elseif ItemString.IsPet(itemString) then
 		-- Can't vendor pets
-		return 0
+		return nil
 	elseif ItemString.ParseLevel(itemString) then
 		-- The vendorSell price does seem to scale linearly with item level, but at a different
 		-- rate for different items, so there's no easy way to figure this out directly. Instead,
@@ -1475,6 +1479,9 @@ function private.StoreGetItemInfo(itemString)
 	local baseWowItemString = ItemString.ToWow(baseItemString)
 
 	local name, link, quality, itemLevel, minLevel, _, _, maxStack, _, _, vendorSell, _, _, bindType, expansionId, _, isCraftingReagent = GetItemInfo(baseWowItemString)
+	if NON_VENDORABLE_ITEMS[baseItemString] then
+		vendorSell = 0
+	end
 	local craftedQuality = nil
 	if not Environment.HasFeature(Environment.FEATURES.CRAFTING_QUALITY) then
 		expansionId = -1

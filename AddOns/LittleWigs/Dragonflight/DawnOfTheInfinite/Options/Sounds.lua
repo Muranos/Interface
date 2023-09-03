@@ -2,7 +2,7 @@
 BigWigs:AddSounds("Chronikar", {
 	[401421] = "alarm",
 	[413013] = {"alarm","info"},
-	[413105] = {"alert","long"},
+	[413142] = {"alert","warning"},
 })
 
 BigWigs:AddSounds("Manifested Timeways", {
@@ -53,7 +53,7 @@ BigWigs:AddSounds("Morchie", {
 
 BigWigs:AddSounds("Time-Lost Battlefield", {
 	[408227] = "alarm",
-	[410234] = "alarm",
+	[410235] = "alarm",
 	[410254] = "alert",
 	[410496] = "alert",
 	[418046] = "info",
@@ -78,18 +78,20 @@ BigWigs:AddSounds("Dawn of the Infinite Trash", {
 	[407205] = "alarm",
 	[407535] = "info",
 	[407891] = "alert",
+	[407906] = "underyou",
+	[411300] = "alert",
 	[411994] = "alert",
 	[412012] = "alert",
 	[412063] = "alarm",
 	[412129] = "alarm",
 	[412136] = "alarm",
 	[412215] = "alert",
-	[412378] = "alert",
+	[412378] = "warning",
 	[412806] = "alarm",
 	[412922] = "alert",
 	[413024] = "info",
 	[413529] = "alarm",
-	[413544] = {"alert","warning"},
+	[413544] = "alert",
 	[413607] = "alert",
 	[413621] = "alarm",
 	[413622] = "long",
@@ -97,8 +99,11 @@ BigWigs:AddSounds("Dawn of the Infinite Trash", {
 	[415769] = "alert",
 	[415770] = "alert",
 	[415773] = "alarm",
+	[417002] = "underyou",
+	[417011] = "alert",
 	[417481] = "alert",
 	[418200] = "alert",
+	[418684] = "info",
 	[419351] = "alarm",
 	[419511] = "alert",
 	[419516] = {"alarm","alert"},

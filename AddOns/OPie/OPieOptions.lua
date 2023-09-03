@@ -1,6 +1,6 @@
 local config, COMPAT, _, T = {}, select(4,GetBuildInfo()), ...
 local MODERN, CF_WRATH = COMPAT >= 10e4, COMPAT < 10e4 and COMPAT >= 3e4
-local L, EV, frame = T.L, T.Evie, nil
+local L, EV, TS, XU, frame = T.L, T.Evie, T.TenSettings, T.exUI, nil
 local GameTooltip = T.NotGameTooltip or GameTooltip
 T.config = config
 
@@ -14,7 +14,7 @@ do -- /opie
 	end
 	addSuffix(function()
 		print("|cff0080ffOPie|r |cffffffff" .. GetAddOnMetadata("OPie", "Version") .. "|r")
-	end, "version")
+	end, "version", "v")
 	T.AddSlashSuffix = addSuffix
 
 	SLASH_OPIE1, SLASH_OPIE2 = "/opie", "/op"
@@ -28,12 +28,20 @@ do -- /opie
 	end
 end
 
+if TS and TS.Localize then
+	TS:Localize({
+		REVERT=L"Revert...",
+		REVERT_OPTION_LABEL=L"%d |4minute:minutes; ago (%s)",
+		RESET_QUESTION=L"Do you want to reset all %s settings to their defaults, or only the settings in the %s category?",
+		REVERT_CANCEL_HINT=L"You can cancel or revert to previous settings later.",
+		DEFAULTS_ALL=L("All Settings", ALL_SETTINGS),
+		DEFAULTS_VISIBLE=L("These Settings", CURRENT_SETTINGS),
+	})
+end
+
 local KR, PC = T.ActionBook:compatible("Kindred",1,0), T.OPieCore
 local CreateEdge = T.CreateEdge
 
-function config.createPanel(...)
-	return T.TenSettings:CreateOptionsPanel(...)
-end
 do -- config.ui
 	config.ui = {}
 	do -- multilineInput
@@ -71,9 +79,6 @@ do -- config.ui
 			return input, scroller
 		end
 	end
-	function config.ui.lineInput(parent, common, width)
-		return T.TenSettings:CreateLineInputBox(parent, common, width)
-	end
 	function config.ui.HideTooltip(self)
 		if GameTooltip:IsOwned(self) then
 			GameTooltip:Hide()
@@ -87,228 +92,11 @@ do -- config.ui
 		GameTooltip:AddLine(text or "", nil, nil, nil, true)
 		GameTooltip:Show()
 	end
-	do -- scrollingDropdown
-		local sdAPI, scrollingDropdown = {}, CreateFrame("Frame", nil, UIParent) do
-			local MIN_SCROLL_ENTRIES, MAX_VISIBLE_ENTRIES = 20, 16
-			local WHEEL_STEP, WHEEL_DURATION = 8, 0.25
-			local BUTTON_STEP, BUTTON_DURATION = 15, 0.15
-			local SNAP_DURATION = 0.10
-			local MAX_TARGET_DISTANCE, MIN_ANIM_FPS = 48, 45
-			local clipRoot = CreateFrame("Frame", nil, scrollingDropdown)
-			local relFrame = CreateFrame("Frame", nil, clipRoot)
-			local slider = CreateFrame("Slider", nil, scrollingDropdown, "UIPanelScrollBarTemplate")
-			local buttons = {}
-			local SetDataSource, ReleaseDataSource, Entry_OnClick do
-				local positionArchive = setmetatable({}, {__mode="k"})
-				local dataList, entryFormat, entrySelect, fullSync
-				local aTarget, aOrigin, aLength, aLeft
-				function Entry_OnClick(self)
-					local entrySelect, arg1 = entrySelect, dataList[self:GetID()]
-					PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
-					CloseDropDownMenus()
-					entrySelect(nil, arg1)
-				end
-				local function VLD_OnUpdate(self, elapsed)
-					aLeft = aLeft - elapsed
-					local isDone, position = aLeft <= 0, aTarget
-					if isDone then
-						positionArchive[dataList] = aTarget
-						aTarget, aOrigin, aLength, aLeft = nil
-						self:SetScript("OnUpdate", nil)
-					else
-						local p = 1-aLeft/aLength
-						p = p*p*(3-2*p)
-						position = aOrigin*(1-p) + aTarget*p
-					end
-					local oy, baseOffset = (position % 1)*16, math.floor(position)
-					relFrame:SetPoint("TOPLEFT", 0, oy)
-					relFrame:SetPoint("TOPRIGHT", 0, oy)
-					for i=1,#buttons do
-						local w, eid = buttons[i], i+baseOffset
-						local ek = dataList[eid]
-						w:SetShown(ek ~= nil)
-						if ek ~= nil then
-							if fullSync or w:GetID() ~= eid then
-								local text, selected = entryFormat(ek, dataList)
-								w:SetText(text)
-								w:SetChecked(selected)
-								w:SetID(eid)
-								w:GetFontString():GetLeft() -- TODO: (8.1.5) Without this, it sometimes gets lost.
-							end
-							w:SetEnabled(isDone)
-						end
-					end
-					slider:SetValue(position)
-					fullSync = false
-				end
-				local function ProcessScrollDelta(delta, time)
-					local cur, vmin, vmax = slider:GetValue(), slider:GetMinMaxValues()
-					local goal, time = cur+delta, GetFramerate() >= MIN_ANIM_FPS and time or 0
-					if aTarget and aOrigin and (aOrigin < aTarget) == (cur < goal) then
-						goal = delta < 0 and math.max(aTarget+delta, cur-MAX_TARGET_DISTANCE) or math.min(aTarget+delta, cur+MAX_TARGET_DISTANCE)
-					end
-					goal = math.min(vmax, math.max(vmin, math.floor(goal)))
-					if aTarget == goal or (not aTarget and cur == goal) then
-						return
-					end
-					aLength, aLeft = time, time
-					aOrigin, aTarget = cur, goal
-					scrollingDropdown:SetScript("OnUpdate", VLD_OnUpdate)
-					VLD_OnUpdate(scrollingDropdown, 0)
-				end
-				scrollingDropdown:SetScript("OnMouseWheel", function(_, delta)
-					return ProcessScrollDelta(-delta*WHEEL_STEP, WHEEL_DURATION)
-				end)
-				local function SB_OnClick(self)
-					return ProcessScrollDelta(self == slider.ScrollUpButton and -BUTTON_STEP or BUTTON_STEP, BUTTON_DURATION)
-				end
-				slider.ScrollUpButton:SetScript("OnClick", SB_OnClick)
-				slider.ScrollDownButton:SetScript("OnClick", SB_OnClick)
-				slider.ScrollUpButton:SetMotionScriptsWhileDisabled(true)
-				slider.ScrollDownButton:SetMotionScriptsWhileDisabled(true)
-				slider:HookScript("OnMouseUp", function(self)
-					local cv = self:GetValue()
-					if cv % 1 ~= 0 then
-						aLeft = GetFramerate() < MIN_ANIM_FPS and 0 or SNAP_DURATION
-						aLength, aOrigin, aTarget = aLeft, self:GetValue(), math.floor(cv+0.5)
-						scrollingDropdown:SetScript("OnUpdate", VLD_OnUpdate)
-					end
-				end)
-				slider:SetScript("OnValueChanged", function(_, value, userDrag)
-					if userDrag then
-						aLeft, aTarget = 0, value
-						VLD_OnUpdate(scrollingDropdown, 0)
-					end
-					local vmin, vmax = slider:GetMinMaxValues()
-					slider.ScrollUpButton:SetEnabled(value ~= vmin)
-					slider.ScrollDownButton:SetEnabled(value ~= vmax)
-				end)
-				function SetDataSource(list, format, func, skipFirst)
-					dataList, entryFormat, entrySelect, fullSync = list, format, func, true
-					local maxV, arch = #dataList-MAX_VISIBLE_ENTRIES, positionArchive[list]
-					slider:SetMinMaxValues(skipFirst, maxV)
-					aTarget, aLeft = skipFirst, 0
-					if arch and skipFirst <= arch and arch <= maxV then
-						aTarget = arch
-					end
-					VLD_OnUpdate(scrollingDropdown, 0)
-				end
-				function ReleaseDataSource()
-					dataList, entryFormat, entrySelect = nil
-				end
-				DropDownList1:HookScript("OnHide", function()
-					for k in pairs(positionArchive) do
-						positionArchive[k] = nil
-					end
-				end)
-			end
-			local function bindToCounter(frame)
-				if MODERN then return end
-				if frame ~= scrollingDropdown then
-					frame.parent = scrollingDropdown
-				end
-				frame:SetScript("OnEnter", UIDropDownMenu_StopCounting)
-				frame:SetScript("OnLeave", UIDropDownMenu_StartCounting)
-			end
-
-			clipRoot:SetAllPoints()
-			clipRoot:SetClipsChildren(true)
-			local bb = scrollingDropdown:CreateTexture(nil, "BACKGROUND")
-			bb:SetColorTexture(0.3, 0.3, 0.3)
-			bb:SetPoint("BOTTOMLEFT", -4, -2)
-			bb:SetPoint("BOTTOMRIGHT", 0, -2)
-			slider:SetPoint("TOPRIGHT", -1, -12)
-			slider:SetPoint("BOTTOMRIGHT", -1, 15)
-			bindToCounter(slider)
-			bindToCounter(slider.ScrollUpButton)
-			bindToCounter(slider.ScrollDownButton)
-			bindToCounter(clipRoot)
-			bindToCounter(scrollingDropdown)
-			scrollingDropdown:SetHitRectInsets(-4, -24, -8, -8)
-			local bg = slider:CreateTexture(nil, "BACKGROUND")
-			bg:SetWidth(1)
-			bg:SetColorTexture(0.25, 0.25, 0.25)
-			bg:SetPoint("TOPLEFT", -2, 17)
-			bg:SetPoint("BOTTOMLEFT", -2, -16)
-			relFrame:SetPoint("TOPLEFT")
-			relFrame:SetPoint("TOPRIGHT")
-			relFrame:SetHeight(1)
-			for i=1,MAX_VISIBLE_ENTRIES+1 do
-				local b = CreateFrame("CheckButton", nil, clipRoot, nil, i)
-				b:SetSize(100, 16)
-				b:SetHighlightTexture([[Interface\QuestFrame\UI-QuestTitleHighlight]])
-				b:GetHighlightTexture():SetBlendMode("ADD")
-				b:GetHighlightTexture():SetAllPoints()
-				b:SetCheckedTexture([[Interface\Common\UI-DropDownRadioChecks]])
-				b:GetCheckedTexture():SetTexCoord(0, 0.5, 0.5, 1)
-				b:GetCheckedTexture():ClearAllPoints()
-				b:GetCheckedTexture():SetSize(16,16)
-				b:GetCheckedTexture():SetPoint("LEFT", 3, 0)
-				b:SetNormalTexture([[Interface\Common\UI-DropDownRadioChecks]])
-				b:GetNormalTexture():SetTexCoord(0.5, 1, 0.5, 1)
-				b:GetNormalTexture():ClearAllPoints()
-				b:GetNormalTexture():SetSize(16,16)
-				b:GetNormalTexture():SetPoint("LEFT", 3, 0)
-				b:SetNormalFontObject(GameFontHighlightSmallLeft)
-				b:SetDisabledFontObject(GameFontHighlightSmallLeft)
-				b:SetText("The Fifth Suprise")
-				b:GetFontString():ClearAllPoints()
-				b:GetFontString():SetPoint("LEFT", 22, 0)
-				b:SetPoint("TOPLEFT", relFrame, 0, 16-16*i)
-				b:SetPoint("TOPRIGHT", relFrame, -16, 16-16*i)
-				bindToCounter(b)
-				b:SetScript("OnClick", Entry_OnClick)
-				buttons[i] = b
-			end
-			scrollingDropdown:SetScript("OnHide", function(self)
-				self:Hide()
-				ReleaseDataSource()
-			end)
-			function sdAPI:Display(level, dataList, entryFormatter, entrySelect, skipFirst, willContinue)
-				skipFirst = type(skipFirst) == "number" and skipFirst or 0
-				local count = #dataList-skipFirst
-				if count < MIN_SCROLL_ENTRIES then
-					local info = {func=entrySelect, minWidth=level == 1 and UIDROPDOWNMENU_OPEN_MENU:GetWidth()-40 or nil}
-					for i=skipFirst+1,#dataList do
-						local k = dataList[i]
-						info.arg1, info.text, info.checked = k, entryFormatter(k, dataList)
-						UIDropDownMenu_AddButton(info, level)
-					end
-					return
-				end
-				local baseName = "DropDownList" .. level
-				local host = _G[baseName]
-				local n1 = (host.numButtons+1)
-				local nX = MAX_VISIBLE_ENTRIES+n1-1
-				local minWidth = math.max(120, level == 1 and UIDROPDOWNMENU_OPEN_MENU:GetWidth()-40 or 0)
-				for i=skipFirst+1,#dataList do
-					local text = entryFormatter(dataList[i], dataList)
-					buttons[1]:SetText(text)
-					minWidth = math.max(minWidth, 60 + buttons[1]:GetFontString():GetStringWidth())
-				end
-				local info = {notClickable=true, notCheckable=true, minWidth=minWidth}
-				for i=n1,nX do
-					UIDropDownMenu_AddButton(info, level)
-				end
-				local b1, bX, boY = _G[baseName .. "Button" .. n1], _G[baseName .. "Button" .. nX], willContinue and 0 or -4
-				scrollingDropdown.parent = host
-				scrollingDropdown:SetParent(host)
-				scrollingDropdown:SetPoint("TOPLEFT", b1)
-				scrollingDropdown:SetPoint("BOTTOMRIGHT", bX, "BOTTOMRIGHT", 0, boY)
-				SetDataSource(dataList, entryFormatter, entrySelect, skipFirst)
-				scrollingDropdown:Show()
-				scrollingDropdown:SetFrameLevel(b1:GetFrameLevel()+2)
-				slider:SetFrameLevel(scrollingDropdown:GetFrameLevel()+3)
-				bb:SetHeight(PixelUtil.GetPixelToUIUnitFactor()/scrollingDropdown:GetEffectiveScale()*1.001)
-				bb:SetShown(not not willContinue)
-			end
-		end
-		config.ui.scrollingDropdown = sdAPI
-	end
 end
 do -- config.bind
-	local unbindMap, activeCaptureButton = {}
+	local activeCaptureButton
 	local alternateFrame = CreateFrame("Frame", nil, UIParent) do
+		alternateFrame:Hide()
 		CreateEdge(alternateFrame, { bgFile="Interface/ChatFrame/ChatFrameBackground", edgeFile="Interface/DialogFrame/UI-DialogBox-Border", tile=true, tileSize=32, edgeSize=32, insets={left=11, right=11, top=11, bottom=10}}, 0xd8000000)
 		alternateFrame:SetSize(380, 115)
 		alternateFrame:EnableMouse(1)
@@ -360,22 +148,22 @@ do -- config.bind
 		end)
 	end
 	local function MapMouseButton(button)
-		if button == "MiddleButton" then return "BUTTON3" end
-		if type(button) == "string" and (tonumber(button:match("^Button(%d+)"))) or 1 > 3 then
+		if button == "MiddleButton" then
+			return "BUTTON3"
+		elseif type(button) == "string" and (tonumber(button:match("^Button(%d+)")) or 1) > 3 then
 			return button:upper()
 		end
 	end
 	local function Deactivate(self)
 		self:UnlockHighlight()
 		self:EnableKeyboard(false)
+		self:EnableMouseWheel(false)
+		self:EnableGamePadButton(false)
 		self:SetScript("OnKeyDown", nil)
 		self:SetScript("OnGamePadButtonDown", nil)
 		self:SetScript("OnHide", nil)
 		captureFrame:Hide()
 		activeCaptureButton = activeCaptureButton ~= self and activeCaptureButton or nil
-		if unbindMap[self:GetParent()] then
-			unbindMap[self:GetParent()]:Disable()
-		end
 		return self
 	end
 	local unbindableKeys = {
@@ -406,24 +194,33 @@ do -- config.bind
 				SetBind(self, mappedButton)
 			end
 			if deactivated == self then return end
-		end
-		if IsAltKeyDown() and activeCaptureButton == nil and self:GetParent().OnBindingAltClick then
+		elseif parent and parent.OnBindingAltClick and IsAltKeyDown() then
+			config.ui.HideTooltip(self)
 			return parent.OnBindingAltClick(self, button)
+		elseif parent and parent.OnBindingShiftClick and IsShiftKeyDown() then
+			config.ui.HideTooltip(self)
+			return parent.OnBindingShiftClick(self, button)
+		elseif button == "RightButton" then
+			PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON)
+			if parent and type(parent.SetBinding) == "function" then
+				SetBind(self, false)
+			end
+			return
 		end
 		activeCaptureButton = self
 		self:LockHighlight()
 		self:EnableKeyboard(true)
+		self:EnableGamePadButton(true)
+		self:EnableMouseWheel(true)
 		self:SetScript("OnKeyDown", SetBind)
 		self:SetScript("OnGamePadButtonDown", SetBind)
 		self:SetScript("OnHide", Deactivate)
+		config.ui.HideTooltip(self)
 		if parent then
 			captureFrame:SetParent(parent.bindingContainerFrame or parent)
 			captureFrame:SetAllPoints()
 			captureFrame:Show()
 			captureFrame:SetFrameLevel(self:GetFrameLevel()-1)
-		end
-		if unbindMap[self:GetParent()] then
-			unbindMap[self:GetParent()]:Enable()
 		end
 	end
 	local function OnWheel(self, delta)
@@ -432,31 +229,45 @@ do -- config.bind
 			SetBind(self, delta > 0 and "MOUSEWHEELUP" or "MOUSEWHEELDOWN")
 		end
 	end
-	local function UnbindClick(self)
-		if activeCaptureButton and unbindMap[activeCaptureButton:GetParent()] == self then
-			local p, button = activeCaptureButton:GetParent(), activeCaptureButton
-			if p and type(p.SetBinding) == "function" then
-				p.SetBinding(activeCaptureButton, false)
-			end
-			PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON)
-			Deactivate(button)
-		end
-	end
 	local function IsCapturingBinding(self)
 		return activeCaptureButton == self
+	end
+	local function Binding_OnEnter(self)
+		local hc, header = HIGHLIGHT_FONT_COLOR, self.bindingName
+		if not header or IsCapturingBinding(self) or alternateFrame:IsVisible() then
+			return
+		end
+		local parent = self:GetParent()
+		GameTooltip:SetOwner(self, self.tooltipOwnerPoint or "ANCHOR_BOTTOMRIGHT")
+		GameTooltip:AddLine(header)
+		if parent.OnBindingAltClick then
+			GameTooltip:AddLine(L"Alt click to set conditional binding", hc.r, hc.g, hc.b)
+		end
+		if parent.OnBindingShiftClick then
+			GameTooltip:AddLine(L"Shift click to view ring macro command", hc.r, hc.g, hc.b)
+		end
+		if self.hasSetBinding then
+			GameTooltip:AddLine(L"Right click to unbind", hc.r, hc.g, hc.b)
+		end
+		local title, text = self.tooltipTitle, self.tooltipText
+		if title and text then
+			GameTooltip:AddLine(" ")
+			GameTooltip:AddLine(title)
+			GameTooltip:AddLine(text, hc.r, hc.g, hc.b, true)
+		end
+		GameTooltip:Show()
 	end
 	local specialSymbolMap = {OPEN="[", CLOSE="]", SEMICOLON=";"}
 	local function bindNameLookup(key)
 		return GetBindingText(specialSymbolMap[key] or key)
 	end
-	local function bindFormat(bind)
-		return bind and bind ~= "" and GetBindingText((bind:gsub("[^%-]+$", bindNameLookup))) or L"Not bound"
-	end
-	local function SetBindingText(self, bind, pre, post)
+	local function SetBindingText(self, bind, pre, post, hasBinding)
 		if type(bind) == "string" and bind:match("%[.*%]") then
-			return SetBindingText(self, KR:EvaluateCmdOptions(bind), pre, post or " |cff20ff20[+]|r")
+			return SetBindingText(self, KR:EvaluateCmdOptions(bind), pre, post or " |cff20ff20[+]|r", true)
 		end
-		return self:SetText((pre or "") .. bindFormat(bind) .. (post or ""))
+		local bindText = bind and bind ~= "" and GetBindingText((bind:gsub("[^%-]+$", bindNameLookup)))
+		self.hasSetBinding, self.bindCoreText = not not (hasBinding or bindText), bindText
+		return self:SetText((pre or "") .. (bindText or L"Not bound") .. (post or ""))
 	end
 	local function ToggleAlternateEditor(self, bind)
 		if alternateFrame:IsShown() and alternateFrame.owner == self then
@@ -468,69 +279,52 @@ do -- config.bind
 			alternateFrame:SetParent(self)
 			alternateFrame:SetFrameLevel(self:GetFrameLevel()+10)
 			alternateFrame:ClearAllPoints()
-			alternateFrame:SetPoint("TOP", self, "BOTTOM", 0, 4)
-			if alternateFrame:GetLeft() < self:GetParent():GetLeft() then
-				alternateFrame:SetPoint("TOPLEFT", self, "BOTTOMLEFT", -8, 4)
-			elseif alternateFrame:GetRight() > self:GetParent():GetRight() then
-				alternateFrame:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 8, 4)
+			local yOfs, clipParent = 4, self:GetParent()
+			clipParent = clipParent.clipContainer or clipParent.bindingContainerFrame or clipParent
+			alternateFrame:SetPoint("TOP", self, "BOTTOM", 0, yOfs)
+			if alternateFrame:GetBottom() < clipParent:GetBottom() then
+				yOfs = -yOfs
+				alternateFrame:ClearAllPoints()
+				alternateFrame:SetPoint("BOTTOM", self, "TOP", 0, yOfs)
+			end
+			local point, relpoint, xOfs
+			if alternateFrame:GetLeft() < clipParent:GetLeft() then
+				point, relpoint, xOfs = "TOPLEFT", "BOTTOMLEFT", -8
+			elseif alternateFrame:GetRight() > clipParent:GetRight() then
+				point, relpoint, xOfs = "TOPRIGHT", "BOTTOMRIGHT", 8
+			end
+			if point then
+				if yOfs < 0 then
+					point, relpoint = relpoint, point
+				end
+				alternateFrame:ClearAllPoints()
+				alternateFrame:SetPoint(point, self, relpoint, xOfs, yOfs)
 			end
 			alternateFrame:Show()
 			alternateFrame.input:SetFocus()
 		end
 	end
-	function config.createBindingButton(parent)
+	function config.createBindingButton(parent, w)
 		local btn = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
-		btn:SetSize(120, 22)
+		btn:SetSize(w or 120, 22)
 		btn:RegisterForClicks("AnyUp")
 		btn:SetScript("OnClick", OnClick)
 		btn:SetScript("OnMouseWheel", OnWheel)
-		btn:EnableMouseWheel(true)
+		btn:EnableMouseWheel(false)
 		btn:SetText(" ")
-		btn:GetFontString():SetMaxLines(1)
+		btn:SetNormalFontObject(GameFontNormalSmall)
+		btn:SetHighlightFontObject(GameFontHighlightSmall)
+		btn:SetScript("OnEnter", Binding_OnEnter)
+		btn:SetScript("OnLeave", config.ui.HideTooltip)
+		local fs = btn:GetFontString()
+		fs:SetMaxLines(1)
+		fs:ClearAllPoints()
+		fs:SetPoint("LEFT", 5, 0)
+		fs:SetPoint("RIGHT", 5, 0)
+		fs:SetJustifyH("CENTER")
 		btn.IsCapturingBinding, btn.SetBindingText, btn.ToggleAlternateEditor =
 			IsCapturingBinding, SetBindingText, ToggleAlternateEditor
-		return btn, unbindMap[parent]
-	end
-	function config.createUnbindButton(parent)
-		local btn = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
-		btn:Disable()
-		btn:SetSize(140, 22)
-		unbindMap[parent] = btn
-		btn:SetScript("OnClick", UnbindClick)
 		return btn
-	end
-end
-do -- config.undo
-	local undoStack, undo = {}, {}
-	config.undo = undo
-	function undo:unwind()
-		local entry
-		for i=#undoStack,1,-1 do
-			entry, undoStack[i] = undoStack[i]
-			securecall(entry.func, unpack(entry, 1, entry.n))
-		end
-	end
-	function undo:clear()
-		undoStack = {}
-	end
-	function undo:search(key)
-		for i=#undoStack,1,-1 do
-			if undoStack[i].key == key then
-				return true
-			end
-		end
-	end
-	local function undoEntry(key, func, ...)
-		return {key=key, func=func, n=select("#", ...), ...}
-	end
-	function undo:push(...)
-		undoStack[#undoStack + 1] = undoEntry(...)
-	end
-	function undo:sink(...)
-		for i=#undoStack, 1, -1 do
-			undoStack[i+1] = undoStack[i]
-		end
-		undoStack[1] = undoEntry(...)
 	end
 end
 do -- config.pulseDropdown
@@ -572,14 +366,24 @@ do -- config.pulseDropdown
 		pulse()
 	end
 end
+config.undo = TS:CreateUndoHandle()
 
-local function CallSwitchProfile(...)
+local function CallSwitchProfile(msg, ...)
+	if msg == "archive-unwind" then
+		config.undo:saveActiveProfile()
+	end
 	return PC:SwitchProfile(...)
 end
-local function CallSetSpecProfiles(...)
+local function CallSetSpecProfiles(msg, ...)
+	if msg == "archive-unwind" then
+		config.undo:saveSpecProfiles()
+	end
 	return PC:SetSpecProfiles(...)
 end
-local function CallDeleteProfile(...)
+local function CallDeleteProfile(msg, ...)
+	if msg == "archive-unwind" then
+		config.undo:saveSpecProfiles()
+	end
 	return PC:DeleteProfile(...)
 end
 function config.undo:saveSpecProfiles()
@@ -597,7 +401,7 @@ end
 
 function config.checkSVState(frame)
 	if not PC:GetSVState() then
-		T.TenSettings:ShowAlertOverlay(frame, L"Changes will not be saved", L"World of Warcraft could not load OPie's saved variables due to a lack of memory. Try disabling other addons.\n\nAny changes you make now will not be saved.", L"Understood; edit anyway")
+		TS:ShowAlertOverlay(frame, L"Changes will not be saved", L"World of Warcraft could not load OPie's saved variables due to a lack of memory. Try disabling other addons.\n\nAny changes you make now will not be saved.", L"Understood; edit anyway")
 	end
 end
 
@@ -625,14 +429,14 @@ local OPC_OptionSets = {
 		{"bool", "UseGameTooltip", caption=L"Show tooltips"},
 		{"bool", "HideStanceBar", caption=L"Hide stance bar", global=true},
 	}, { L"Animation",
-		{"bool", "MIScale", caption=L"Enlarge selected slice"},
-		{"bool", "MISpinOnHide", caption=L"Outward spiral on hide"},
+		{"bool", "XTAnimation", caption=L"Animate transitions"},
+		{"bool", "MISpinOnHide", caption=L"Outward spiral on hide", depOn="XTAnimation", depValue=true, otherwise=false},
 		{"bool", "XTPointerSnap", caption=L"Snap pointer to mouse cursor"},
-		{"range", "XTZoomTime", 0, 1, 0.1, caption=L"Zoom-in/out time", valueFormat=L"%.1f sec"},
+		{"bool", "MIScale", caption=L"Enlarge selected slice"},
 	}
 }
 
-frame = config.createPanel("OPie", nil, {forceRootVersion=true})
+frame = TS:CreateOptionsPanel("OPie", nil, {forceRootVersion=true})
 	frame.version:SetFormattedText("%s", PC:GetVersion() or "")
 	frame.desc:SetText(L"Customize OPie's appearance and behavior. Right clicking a checkbox restores it to its default state."
 		.. (MODERN and "\n" .. L"Profiles activate automatically when you switch character specializations." or ""))
@@ -680,7 +484,7 @@ do -- Widget construction
 		self:SetPoint("TOPRIGHT", r, "TOPRIGHT", 0, y)
 	end
 	function build.bool(v, ofsY, halfpoint, rowHeight, rframe)
-		local b = T.TenSettings:CreateOptionsCheckButton(nil, frame)
+		local b = TS:CreateOptionsCheckButton(nil, frame)
 		b:RegisterForClicks("LeftButtonUp", "RightButtonUp")
 		b:SetMotionScriptsWhileDisabled(true)
 		b.id, b.text, b.desc = v[2], b.Text, v
@@ -693,7 +497,7 @@ do -- Widget construction
 		if halfpoint then
 			ofsY = ofsY - rowHeight
 		end
-		local s, leftMargin, centerLine = T.TenSettings:CreateOptionsSlider(frame, nil, 212)
+		local s, leftMargin, centerLine = TS:CreateOptionsSlider(frame, nil, 212)
 		s:SetPoint("TOPLEFT", rframe, "TOPLEFT", 319-leftMargin, ofsY-5)
 		s.text:SetPoint("LEFT", rframe, "TOPLEFT", 44, ofsY-5-centerLine)
 		s.text:Show()
@@ -827,7 +631,7 @@ function OPC_OptionDomain:initialize()
 		local color = ct and ct[scope] or "|cffacd7e6"
 		list[#list+1], list[key] = key, (L"Ring: %s"):format(color .. (name or key) .. "|r")
 	end
-	config.ui.scrollingDropdown:Display(1, list, OPC_OptionDomain_Format, OPC_OptionDomain_click)
+	XU:Create("ScrollableDropDownList", 1, list, OPC_OptionDomain_Format, OPC_OptionDomain_click)
 end
 function OPC_OptionDomain:text()
 	local label = L"Defaults for all rings"
@@ -872,7 +676,7 @@ do -- OPC_Profile:initialize
 		return true
 	end
 	local function OPC_Profile_new(_, _, frame)
-		T.TenSettings:ShowPromptOverlay(frame, L"Create a New Profile", L"New profile name:", L"Profiles save options and ring bindings.", L"Create Profile", OPC_Profile_new_callback)
+		TS:ShowPromptOverlay(frame, L"Create a New Profile", L"New profile name:", L"Profiles save options and ring bindings.", L"Create Profile", OPC_Profile_new_callback)
 	end
 	local function OPC_Profile_delete()
 		config.undo:saveActiveProfile()
@@ -903,7 +707,7 @@ do -- OPC_Profile:initialize
 			end
 			plist[ident] = name
 		end
-		config.ui.scrollingDropdown:Display(1, plist, OPC_Profile_format, OPC_Profile_switch, nil, true)
+		XU:Create("ScrollableDropDownList", 1, plist, OPC_Profile_format, OPC_Profile_switch, true)
 		local info = {arg2=self:GetParent(), text="", disabled=true, notCheckable=true, justifyH="CENTER"}
 		UIDropDownMenu_AddButton(info)
 		info.text, info.disabled, info.func, info.arg1 = L"Assign to all specializations", not hasPartialSpecProfiles, OPC_Profile_assignAllSpecs, curProfile
@@ -938,8 +742,17 @@ function OPC_AppearanceFactory:text()
 	local key, own = PC:GetOption("IndicatorFactory", OR_CurrentOptionsDomain)
 	UIDropDownMenu_SetText(self, OR_CurrentOptionsDomain and own == nil and L"Use global setting" or self:formatText(key, false))
 end
+local function OPC_AppearanceFactory_set(_, key)
+	PC:SetOption("IndicatorFactory", key, OR_CurrentOptionsDomain)
+	OPC_AppearanceFactory:text()
+	for _,set in ipairs(OPC_OptionSets) do for j=2,#set do local v = set[j]
+		if v.depIndicatorFeature then
+			OPC_UpdateControlReqs(v)
+		end
+	end end
+end
 function OPC_AppearanceFactory:initialize()
-	local info = {func=self.set, minWidth=UIDROPDOWNMENU_OPEN_MENU:GetWidth()-40, tooltipOnButton=true}
+	local info = {func=OPC_AppearanceFactory_set, minWidth=UIDROPDOWNMENU_OPEN_MENU:GetWidth()-40, tooltipOnButton=true}
 	local current, own = PC:GetOption("IndicatorFactory", OR_CurrentOptionsDomain)
 	for k, name, outOfDate in T.OPieUI:EnumerateRegisteredIndicatorConstructors() do
 		name = self:formatText(k, outOfDate, name)
@@ -960,17 +773,11 @@ function OPC_AppearanceFactory:initialize()
 		UIDropDownMenu_AddButton(info)
 	end
 end
-function OPC_AppearanceFactory:set(key)
-	PC:SetOption("IndicatorFactory", key, OR_CurrentOptionsDomain)
-	OPC_AppearanceFactory:text()
-	for _,set in ipairs(OPC_OptionSets) do for j=2,#set do local v = set[j]
-		if v.depIndicatorFeature then
-			OPC_UpdateControlReqs(v)
-		end
-	end end
-end
 function frame.refresh()
 	OPC_BlockInput = true
+	if OR_CurrentOptionsDomain and not PC:GetRingInfo(OR_CurrentOptionsDomain) then
+		OR_CurrentOptionsDomain = nil
+	end
 	for _, v in pairs(OPC_OptionSets) do
 		v.label:SetText(v[1])
 	end
@@ -1006,18 +813,14 @@ function frame.refresh()
 	OPC_BlockInput = false
 	config.checkSVState(frame)
 end
-function frame.cancel()
-	config.undo:unwind()
+local function resetView()
 	OR_CurrentOptionsDomain = nil
 end
+frame.cancel, frame.okay = resetView, resetView
 function frame.default()
 	config.undo:saveActiveProfile()
 	PC:ResetOptions(true)
 	frame.refresh()
-end
-function frame.okay()
-	config.undo:clear()
-	OR_CurrentOptionsDomain = nil
 end
 frame:SetScript("OnShow", frame.refresh)
 frame:SetScript("OnHide", function()
@@ -1037,4 +840,7 @@ function T.ShowOPieOptionsPanel(ringKey)
 	OPC_OptionDomain_click(nil, ringKey)
 	frame.resetOnHide = true
 	config.pulseDropdown(OPC_OptionDomain)
+end
+function OPie_OpenSettings()
+	frame:OpenPanel()
 end

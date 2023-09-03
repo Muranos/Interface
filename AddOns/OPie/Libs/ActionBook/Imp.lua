@@ -503,7 +503,8 @@ do -- Editor UI
 			scroller.ScrollBar:Hide() -- BUG[10.0.7]: Thumb sometimes waits until next frame to move
 			scroller.ScrollBar:Show()
 		end
-		local function onClick(self)
+		local function onSFClick(self)
+			self.input:SetCursorPosition(#self.input:GetText())
 			self.input:SetFocus()
 		end
 		local function onSCSizeChange(self)
@@ -532,7 +533,7 @@ do -- Editor UI
 			input:SetScript("OnSizeChanged", onSCSizeChange)
 			scroller:SetScript("OnScrollRangeChanged", onSCSizeChange)
 			scroller:SetScript("OnSizeChanged", onSFSizeChange)
-			scroller:SetScript("OnMouseDown", onClick)
+			scroller:SetScript("OnMouseDown", onSFClick)
 			scroller:EnableMouse(1)
 			scroller:SetScrollChild(input)
 			input.scroll, scroller.input = scroller, input

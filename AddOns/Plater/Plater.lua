@@ -2159,6 +2159,7 @@ Plater.AnchorNamesByPhraseId = {
 		["nameplateGlobalScale"] = true,
 		["nameplateLargerScale"] = true,
 		["nameplateLargeTopInset"] = true,
+		["nameplateLargeBottomInset"] = true,
 		["nameplateMaxDistance"] = true,
 		["nameplatePlayerMaxDistance"] = true,
 		["nameplateMinScale"] = true,
@@ -2167,6 +2168,7 @@ Plater.AnchorNamesByPhraseId = {
 		["nameplateOccludedAlphaMult"] = true,
 		["nameplateOtherAtBase"] = true,
 		["nameplateOtherTopInset"] = true,
+		["nameplateOtherBottomInset"] = true,
 		["nameplateOverlapV"] = true,
 		["nameplateOverlapH"] = true,
 		["nameplatePersonalHideDelaySeconds"] = true,
@@ -5099,7 +5101,7 @@ function Plater.OnInit() --private --~oninit ~init
 				end
 				
 				--> set scale based on Plater user settings
-				resourceFrame:SetScale (Plater.db.profile.resources.scale * (isStaggerBar and 2 or 1))
+				resourceFrame:SetScale (Plater.db.profile.resources.scale)
 				resourceFrame:SetAlpha (Plater.db.profile.resources.alpha)
 				
 				--check if resources are placed on the current target
@@ -5151,7 +5153,7 @@ function Plater.OnInit() --private --~oninit ~init
 				end
 				
 				--> set scale based on Plater user settings
-				alternatePowerFrame:SetScale (Plater.db.profile.resources.scale * 2)
+				alternatePowerFrame:SetScale (Plater.db.profile.resources.scale * (resourceFrame and 2 or 2)) --augvoker and stagger bars, separate handling. same size for now
 				alternatePowerFrame:SetAlpha (Plater.db.profile.resources.alpha)
 				
 				--check if resources are placed on the current target
@@ -10868,8 +10870,23 @@ end
 	end
 
 	--create a glow around an icon
-	function Plater.CreateIconGlow (frame, color, color2)
+	function Plater.CreateIconGlow (frame, color, color2, useShowAnimation)
 		local f = Plater:CreateGlowOverlay (frame, color, color2 or color)
+		if not useShowAnimation and IS_WOW_PROJECT_MAINLINE then
+			f:SetScript("OnShow", nil) --reset
+			
+			local onShow = function(self)
+				if (self.ProcStartAnim) then
+					self.ProcStartAnim:Stop()
+					self.ProcStartFlipbook:Hide()
+					if (not self.ProcLoop:IsPlaying()) then
+						self.ProcLoop:Play()
+					end
+				end
+			end
+			
+			f:SetScript("OnShow", onShow)
+		end
 		return f
 	end
 

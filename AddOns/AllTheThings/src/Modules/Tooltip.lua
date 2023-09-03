@@ -6,13 +6,78 @@ local _, app = ...;
 -- Encapsulates the functionality for interacting with and hooking into game Tooltips
 
 -- Global locals
-local rawget, ipairs, pairs, TooltipUtil, Enum_TooltipDataType, InCombatLockdown, pcall, strsplit, tostring, tonumber
-	= rawget, ipairs, pairs, TooltipUtil, Enum.TooltipDataType, InCombatLockdown, pcall, strsplit, tostring, tonumber;
+local rawget, ipairs, pairs, TooltipUtil, Enum_TooltipDataType, InCombatLockdown, pcall, strsplit, tostring, tonumber, tinsert, C_Map_GetPlayerMapPosition, math_sqrt
+	= rawget, ipairs, pairs, TooltipUtil, Enum.TooltipDataType, InCombatLockdown, pcall, strsplit, tostring, tonumber, tinsert, C_Map.GetPlayerMapPosition, math.sqrt;
 
 -- App locals
+local SearchForField = app.SearchForField;
 
 -- Module locals (can be set via OnReady if they do not change during Session but are not yet defined)
-local SearchForField, GetCachedSearchResults, SearchForLink, L
+local GetCachedSearchResults, SearchForLink, L, GetCurrentMapID
+
+-- Helper Functions (TODO: Define these somewhere and cache locally)
+local function distance( x1, y1, x2, y2 )
+	return math_sqrt( (x2-x1)^2 + (y2-y1)^2 )
+end
+
+-- Build the Object Name Cache
+local objectNamesToIDs = {};
+local function OnLoad_CacheObjectNames()
+	for objectID,name in pairs(app.ObjectNames) do
+		local o = objectNamesToIDs[name];
+		if not o then
+			o = { objectID };
+			objectNamesToIDs[name] = o;
+		else
+			tinsert(o, objectID);
+		end
+	end
+end
+
+-- Uses a provided 'name' and scans the ObjectDB to find potentially matching ObjectID's,
+-- then correlate those search results by closest distance to the player's current position
+local function GetBestObjectIDForName(name)
+	local o = objectNamesToIDs[name];
+	if o then
+		if #o > 1 then
+			local closestObjectID;
+			local mapID = GetCurrentMapID();
+			local pos = C_Map_GetPlayerMapPosition(mapID, "player");
+			if pos then
+				local px, py = pos:GetXY();
+				px, py = px * 100, py * 100;
+				local closestDistance, dist, searchCoord = 99999, o[1];
+				for i,objectID in ipairs(o) do
+					local searchResults = SearchForField("objectID", objectID);
+					if searchResults and #searchResults > 0 then
+						for j,searchResult in ipairs(searchResults) do
+							searchCoord = searchResult.coord;
+							if searchCoord and searchCoord[3] == mapID then
+								dist = distance(px, py, searchCoord[1], searchCoord[2]);
+								if dist and dist < closestDistance then
+									closestDistance = dist;
+									closestObjectID = objectID;
+								end
+							elseif searchResult.coords then
+								for k,coord in ipairs(searchResult.coords) do
+									if coord[3] == mapID then
+										dist = distance(px, py, coord[1], coord[2]);
+										if dist and dist < closestDistance then
+											closestDistance = dist;
+											closestObjectID = objectID;
+										end
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+			return closestObjectID;
+		end
+		return o[1];
+	end
+end
 
 -- many of these don't include an ID in-game so they don't attach results. maybe someday they will...
 local TooltipTypes = {
@@ -26,7 +91,6 @@ local TooltipTypes = {
 	[Enum_TooltipDataType.BattlePet] = "speciesID",
 	[Enum_TooltipDataType.CompanionPet] = "speciesID",
 	[Enum_TooltipDataType.Currency] = "currencyID",
-	[Enum_TooltipDataType.Object] = "objectID",
 	[Enum_TooltipDataType.InstanceLock] = "instanceID",
 };
 -- We need to whitelist the actual in-game tooltips that ATT is allowed to hook
@@ -331,6 +395,28 @@ local function AttachTooltip(self, ttdata)
 				knownSearchField = "spellID";
 				ttId = select(2, C_MountJournal.GetMountInfoByID(ttId));
 			end
+			if ttType == Enum_TooltipDataType.Object then
+				local objName = ttdata and ttdata.lines[1];
+				objName = objName and objName.leftText;
+				local objectID = GetBestObjectIDForName(objName);
+				if objectID then
+					knownSearchField = "objectID";
+					ttId = objectID;
+				end
+			end
+			if ttType == 21 then	-- Minimap mouseover
+				local content = ttdata.lines;
+				if content and #content > 0 then
+					local text = content[1].leftText;
+					local arr = { strsplit("|", text) };
+					if #arr == 3 then text = strsub(arr[3], 2); end
+					local objectID = GetBestObjectIDForName(text);
+					if objectID then
+						knownSearchField = "objectID";
+						ttId = objectID;
+					end
+				end
+			end
 		end
 		if knownSearchField and ttId then
 			-- app.PrintDebug("TT Search",knownSearchField,id)
@@ -538,10 +624,14 @@ end
 local api = {};
 app.Modules.Tooltip = api;
 api.AttachTooltipSearchResults = AttachTooltipSearchResults;
-api.OnReady = function()
-	SearchForField = app.SearchForField;
+api.GetBestObjectIDForName = GetBestObjectIDForName;
+api.OnLoad = function()
 	GetCachedSearchResults = app.GetCachedSearchResults;
 	SearchForLink = app.SearchForLink;
 	L = app.L;
+	GetCurrentMapID = app.GetCurrentMapID;
+	OnLoad_CacheObjectNames();
+end
+api.OnReady = function()
 	OnReadyHooks();
 end

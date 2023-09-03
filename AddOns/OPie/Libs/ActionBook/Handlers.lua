@@ -34,8 +34,11 @@ local function NewWidgetName(prefix)
 end
 
 if MODERN then -- mount: mount ID
+	local function callSummonMount(mountID)
+		C_MountJournal.SummonByID(mountID)
+	end
 	local function summonAction(mountID)
-		return "func", C_MountJournal.SummonByID, mountID
+		return "func", callSummonMount, mountID
 	end
 	if CLASS == "DRUID" then
 		local clickPrefix do
@@ -583,8 +586,8 @@ if MODERN then -- battlepet: pet ID, species ID
 		local cooldown, duration, enabled = C_PetJournal.GetPetCooldownByGUID(pid)
 		local cdLeft = (cooldown or 0) > 0 and (enabled ~= 0) and (cooldown + duration - GetTime())
 		local active = C_PetJournal.GetSummonedPetGUID()
-		local state = (active and active:upper()) == pid and 1 or 0
-		return sid and not cdLeft and not C_PetJournal.PetIsRevoked(pid), state, tex, cn or n or "", 0, cdLeft or 0, duration or 0, SetBattlePetByID, pid
+		local state = active and strcmputf8i(active, pid) == 0 and 1 or 0
+		return sid and not cdLeft and C_PetJournal.PetIsSummonable(pid), state, tex, cn or n or "", 0, cdLeft or 0, duration or 0, SetBattlePetByID, pid
 	end
 	do -- random favorite pet
 		local rname, _, ricon = GetSpellInfo(243819)
@@ -625,7 +628,7 @@ if MODERN then -- battlepet: pet ID, species ID
 		if not rpid then return end
 		local pk = rpid:upper()
 		if not petAction[pk] then
-			petAction[pk] = AB:CreateActionSlot(battlepetHint, rpid, "func", C_PetJournal.SummonPetByGUID, rpid)
+			petAction[pk] = AB:CreateActionSlot(battlepetHint, rpid, "attribute", "type","macro", "macrotext",EMOTE143_CMD1 .. "\n" .. SLASH_SUMMON_BATTLE_PET1 .. " " .. rpid)
 		end
 		return petAction[pk]
 	end
@@ -646,7 +649,7 @@ if MODERN then -- battlepet: pet ID, species ID
 		end
 	end)
 end
-if MODERN then -- equipmentset: equipment sets by name
+if COMPAT > 3e4 then -- equipmentset: equipment sets by name
 	local setMap = {}
 	local function resolveIcon(fid)
 		return type(fid) == "number" and fid or ("Interface/Icons/" .. (fid or "INV_Misc_QuestionMark"))
@@ -661,11 +664,19 @@ if MODERN then -- equipmentset: equipment sets by name
 	function EV.EQUIPMENT_SETS_CHANGED()
 		AB:NotifyObservers("equipmentset")
 	end
+	local function equipSetActionSpec(name)
+		return "attribute", "type","equipmentset", "equipmentset",name
+	end
+	local function equipSetActionSpec_SLASH(name)
+		-- [3.4.2] /equipset exists but SABT action type does not
+		return "attribute", "type","macro", "macrotext",SLASH_EQUIP_SET1 .. " " .. name
+	end
+	equipSetActionSpec, equipSetActionSpec_SLASH = MODERN and equipSetActionSpec or equipSetActionSpec_SLASH, nil
 	local function createEquipSet(name)
 		local sid = type(name) == "string" and C_EquipmentSet.GetEquipmentSetID(name)
 		if not sid then return end
-		if not setMap[name] then
-			setMap[name] = AB:CreateActionSlot(equipmentsetHint, name, "attribute", "type","equipmentset", "equipmentset",name)
+		if not setMap[name] and (MODERN or name:match("^[^%[;%]]*$")) then
+			setMap[name] = AB:CreateActionSlot(equipmentsetHint, name, equipSetActionSpec(name))
 		end
 		return setMap[name]
 	end
@@ -686,9 +697,8 @@ do -- raidmark
 	local function CanChangeRaidTargets(unit)
 		return not not ((not IsInRaid() or UnitIsGroupLeader("player") or UnitIsGroupAssistant("player")) and not (unit and UnitIsPlayer(unit) and UnitIsEnemy("player", unit)))
 	end
-	local function click(id)
-		if GetRaidTargetIndex("target") == id then id = 0 end
-		SetRaidTarget("target", id)
+	local function setRaidTarget(id)
+		SetRaidTarget("target", GetRaidTargetIndex("target") == id and 0 or id)
 	end
 	local function raidmarkHint(i, _, target)
 		local target = target or "target"
@@ -717,7 +727,7 @@ do -- raidmark
 		end
 	end)
 	for i=1,8 do
-		map[i] = AB:CreateActionSlot(raidmarkHint, i, "func", click, i)
+		map[i] = AB:CreateActionSlot(raidmarkHint, i, "func", setRaidTarget, i)
 	end
 	local function createRaidMark(id)
 		return map[id]
@@ -915,7 +925,7 @@ do -- petspell: spell ID
 end
 if MODERN then -- toy: item ID, forceShow
 	local map, lastUsability, uq, whinedAboutGIIR = {}, {}, {}
-	local IGNORE_TOY_USABILITY = {
+	local OVERRIDE_TOY_ACQUIRED, IGNORE_TOY_USABILITY = {}, {
 		[129149]=1, [129279]=1, [129367]=1, [130157]="[in:broken isles]", [130158]=1, [130170]=1,
 		[130191]=1, [130199]=1, [130232]=1, [131812]=1, [131814]=1, [140325]=1, [147708]=1,
 		[165021]=1,
@@ -926,11 +936,18 @@ if MODERN then -- toy: item ID, forceShow
 		[85500]="[fish5]",
 		[182773]="[coven:necro][acoven80:necro]", [184353]="[coven:kyrian][acoven80:kyrian]", [180290]="[coven:fae][acoven80:fae]", [183716]="[coven:venthyr][acoven80:venthyr]", [190237] = 1,
 	}
+	local function playerHasToy(id)
+		local f = OVERRIDE_TOY_ACQUIRED[id]
+		if f then
+			return f == true or f(id)
+		end
+		return f == nil and PlayerHasToy(id)
+	end
 	function toyHint(iid)
 		local _, name, icon = C_ToyBox.GetToyInfo(iid)
 		local cdStart, cdLength = (MODERN_CONTAINERS and C_Container.GetItemCooldown or GetItemCooldown)(iid)
 		local ignUse, usable = IGNORE_TOY_USABILITY[iid]
-		if not PlayerHasToy(iid) then
+		if not playerHasToy(iid) then
 			usable = false
 		elseif ignUse == nil then
 			usable = C_ToyBox.IsToyUsable(iid) ~= false
@@ -960,7 +977,7 @@ if MODERN then -- toy: item ID, forceShow
 	end
 	local function createToy(id, forceShow)
 		local mid, ignUse = map[id], IGNORE_TOY_USABILITY[id]
-		if not (mid or ignUse or type(id) == "number") or not (forceShow or PlayerHasToy(id)) then
+		if not (mid or ignUse or type(id) == "number") or not (forceShow or playerHasToy(id)) then
 			return
 		end
 		local isUsable = ignUse or C_ToyBox.IsToyUsable(id)
@@ -993,6 +1010,13 @@ if MODERN then -- toy: item ID, forceShow
 			end
 		end
 	end)
+	function AB.HUM:SetPlayerHasToyOverride(id, filter)
+		local tf = type(filter)
+		if not (type(id) == "number" and tf == "nil" or tf == "boolean" or tf == "function") then
+			return error('SetPlayerHasToyOverride: invalid arguments', 2)
+		end
+		OVERRIDE_TOY_ACQUIRED[id] = filter
+	end
 end
 do -- disenchant: iid
 	local map, DISENCHANT_SID = {}, 13262

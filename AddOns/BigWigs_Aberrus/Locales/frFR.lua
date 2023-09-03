@@ -1,21 +1,12 @@
-local L = BigWigs:NewBossLocale("Kazzara, the Hellforged", "frFR")
+local L = BigWigs:NewBossLocale("The Amalgamation Chamber", "frFR")
 if not L then return end
-if L then
-	L.dread_rift = "Faille" -- Singular Dread Rift
-end
-
-L = BigWigs:NewBossLocale("The Amalgamation Chamber", "frFR")
 if L then
 	L.custom_on_fade_out_bars = "Fondu enchainé des barres de la phase 1"
 	L.custom_on_fade_out_bars_desc = "Fondu enchainé des barres du boss qui est hors de portée durant la phase 1"
 
 	L.coalescing_void = "Fuyez"
-	L.shadow_convergence = "Orbes"
 	L.molten_eruption = "Soaks"
 	L.swirling_flame = "Tornades"
-	L.gloom_conflagration = "Météore + Fuyez"
-	L.blistering_twilight = "Bombes + Tornades"
-	L.convergent_eruption = "Soaks + Orbes"
 	L.shadowflame_burst = "Cône Frontal"
 
 	L.shadow_and_flame = "Affaiblissements Mythiques"
@@ -30,7 +21,6 @@ if L then
 	L.custom_on_unstable_essence_high_desc = "Messages Dire avec le nombre de piles de votre Essence Instable quand il est suffisamment élevé."
 	L.volatile_spew = "Evitez"
 	L.volatile_eruption = "Eruption"
-	L.temporal_anomaly = "Orbe de Soin"
 	L.temporal_anomaly_knocked = "Orbe de Soin repoussé"
 end
 
@@ -41,10 +31,7 @@ if L then
 	L.zaqali_aide_north_emote_trigger = "rempart nord" -- Les commandants montent sur le rempart nord!
 	L.zaqali_aide_south_emote_trigger = "rempart sud" -- Les commandants montent sur le rempart sud!
 
-	L.north = "Nord"
-	L.south = "Sud"
 	L.both = "Les deux"
-
 	L.zaqali_aide_message = "%s Grimpe %s" -- Big Adds Climbing North
 	L.add_bartext = "%s: %s (%d)"
 	L.boss_returns = "Atterissage Boss: Nord"
@@ -61,7 +48,7 @@ if L then
 	L.energy_gained = "Energie Gagnée: %d"
 
 	-- Mythic
-	L.unleash_shadowflame = "Orbes Mythiques"
+	--L.shadowflame_energy = "Heal Absorb"
 end
 
 L = BigWigs:NewBossLocale("The Vigilant Steward, Zskarn", "frFR")
@@ -87,7 +74,6 @@ if L then
 	L.rushing_darkness = "Lignes d'impact"
 
 	L.umbral_annihilation = "Annéantissement"
-	L.sunder_reality = "Portails"
 	L.ebon_destruction = "Destruction d'ébène"
 
 	--L.wall_breaker = "Wall Breaker (Mythic)"
@@ -117,4 +103,5 @@ if L then
 	L.fluid = "Fluide d'animation" -- NPC 203939
 	L.slime = "Gelée bouillonnante" -- NPC 205651
 	L.goo = "Mucus rampant" -- NPC 205820
+	L.whisper = "Murmure dans les ténèbres" -- NPC 203806
 end

@@ -364,12 +364,6 @@ end
 
 local CreateIndicator do
 	local apimeta = {__index=indicatorAPI}
-	local function Indicator_ApplyParentAlpha(self)
-		local p = self:GetParent()
-		if p then
-			self:SetAlpha(p:GetEffectiveAlpha())
-		end
-	end
 	function CreateIndicator(name, parent, size, nested)
 		local cf = CreateFrame("Frame", name, parent)
 			cf:SetSize(size, size)
@@ -377,14 +371,12 @@ local CreateIndicator do
 			bf:SetAllPoints()
 			bf:SetFlattensRenderLayers(true)
 			bf[bf.SetIsFrameBuffer and "SetIsFrameBuffer" or "SetFrameBuffer"](bf, true)
-			bf:SetScript("OnUpdate", Indicator_ApplyParentAlpha)
-			bf:SetScript("OnShow", Indicator_ApplyParentAlpha)
 		local ef = CreateFrame("Frame", nil, bf)
 			ef:SetAllPoints()
 		local uf = CreateFrame("Frame", nil, cf)
 			uf:SetAllPoints()
 			uf:SetFrameLevel(bf:GetFrameLevel()+5)
-		local r, w = setmetatable({[0]=cf, cd=CreateCooldown(ef, size, uf)}, apimeta)
+		local r, w = setmetatable({[0]=cf, cd=CreateCooldown(ef, size, uf), bf=bf}, apimeta)
 		w = ef:CreateTexture(nil, "OVERLAY")
 			w:SetAllPoints()
 			w:SetTexture(gx.BorderLow)
@@ -448,4 +440,5 @@ T.Mirage = {
 
 	supportsCooldownNumbers=true,
 	supportsShortLabels=true,
+	onParentAlphaChanged=function(self, pea) self.bf:SetAlpha(pea) end,
 }

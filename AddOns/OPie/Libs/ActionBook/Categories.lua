@@ -1,8 +1,8 @@
-local _, T = ...
+local COMPAT, _, T = select(4,GetBuildInfo()), ...
 if T.SkipLocalActionBook then return end
-local MODERN = select(4,GetBuildInfo()) >= 8e4
+local MODERN = COMPAT >= 8e4
 local MODERN_CONTAINERS = MODERN or C_Container and C_Container.GetContainerNumSlots and true
-local CF_WRATH = not MODERN and select(4,GetBuildInfo()) >= 3e4
+local CF_WRATH = not MODERN and COMPAT >= 3e4
 local AB = T.ActionBook:compatible(2,21)
 local RW = T.ActionBook:compatible("Rewire", 1,27)
 assert(AB and RW and 1, "Incompatible library bundle")
@@ -253,7 +253,7 @@ AB:AugmentCategory(L"Macros", function(_, add)
 		add("macro", n[i])
 	end
 end)
-if MODERN then -- equipmentset
+if COMPAT >= 3e4 then -- equipmentset
 	AB:AugmentCategory(L"Equipment sets", function(_, add)
 		for _,id in pairs(C_EquipmentSet.GetEquipmentSetIDs()) do
 			add("equipmentset", (C_EquipmentSet.GetEquipmentSetInfo(id)))

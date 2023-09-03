@@ -10,15 +10,25 @@ local rawget, ipairs, pairs
 	= rawget, ipairs, pairs;
 
 -- App locals
+local SearchForField, SearchForFieldContainer
+	= app.SearchForField, app.SearchForFieldContainer;
 
 -- Module locals
-local RecursiveGroupRequirementsFilter, SearchForField, GroupFilter, SearchForFieldContainer, DGU, UpdateRunner;
+local RecursiveGroupRequirementsFilter, GroupFilter, DGU, UpdateRunner, CheckCanBeCollected;
 -- Ideally never used, but weird situations are possible to cause logic to execute prior to ATT even loading
 local function EmptyFunction() end
+local function CanBeCollected(ref)
+	return not ref.questID or not ref.saved;
+end
 
 -- Function which returns if a Thing has a cost based on a given 'ref' Thing, which has been previously determined as a
 -- possible collectible without regard to filtering
 local function SubCheckCollectible(ref)
+	-- Collectibles that have a Cost but are already 'saved' should not indicate they are needed as a Cost
+	if CheckCanBeCollected and not CheckCanBeCollected(ref) then
+		-- app.PrintDebug("Saved Thing not collectible as cost",ref.hash)
+		return;
+	end
 	-- app.PrintDebug("SubCheckCollectible",ref.hash)
 	-- Used as a cost for something which is collectible itself and not collected
 	if ref.collectible and not ref.collected then
@@ -72,6 +82,7 @@ local function CacheFilters()
 	-- Cache repeat-used functions/values
 	RecursiveGroupRequirementsFilter = app.RecursiveGroupRequirementsFilter;
 	GroupFilter = app.GroupFilter;
+	CheckCanBeCollected = not app.MODE_DEBUG_OR_ACCOUNT and CanBeCollected or nil;
 end
 local function UpdateCostsByItemID(itemID, refresh, refs)
 	local costs = SearchForField("itemID", itemID);
@@ -138,7 +149,7 @@ local function UpdateCosts()
 		-- app.PrintDebug("Check Cost Item",itemID)
 		UpdateCostsByItemID(itemID, refresh, refs);
 	end
-	-- app.PrintDebug("UpdateCosts:Items")
+	-- app.PrintDebugPrior("UpdateCosts:Items")
 
 	-- Get all currencyIDAsCost entries
 	for currencyID,refs in pairs(SearchForFieldContainer("currencyIDAsCost")) do
@@ -221,9 +232,7 @@ end
 -- Access via AllTheThings.Modules.Costs
 local api = {};
 app.Modules.Costs = api;
-api.OnReady = function()
-	SearchForField = app.SearchForField;
-	SearchForFieldContainer = app.SearchForFieldContainer;
+api.OnLoad = function()
 	DGU = app.DirectGroupUpdate;
 	UpdateRunner = app.UpdateRunner;
 end

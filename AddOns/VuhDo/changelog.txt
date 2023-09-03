@@ -1,3 +1,33 @@
+Version 3.152  
+  
+  
+Known issues:  
+-- Shadowlands stat squish cleanup still a work in progress  
+--   AOE Advice spell equations need complete overhaul  
+--   Some text providers need changes to better display small numbers  
+-- Debuff tooltips are currently bugged when using ElvUI  
+--   Deselect 'VuhDo Options > Panels > Tooltips > Tooltips > Debuffs'  
+-- Blizzard continues to have a bug that breaks proper spell targeting.  
+--   Under 'Game Menu > Options > Gameplay > Combat' deselect 'Auto Self Cast'  
+--   and set 'Self Cast Key' to 'None'  
+  
+  
+Bugfixes:  
+-- Fixed smart cast of resurrection for Augmentation Evoker  
+-- Fixed duplicate scroll bar on combobox dropdowns  
+-- Safer handling when closing VuhDo Options during combat lockdown  
+  
+  
+Improvements:  
+-- Added Paladin shield for talent 'Overflowing Light'  
+-- Added bouquet validator to track only a single Spell Trace  
+-- Added incoming spell traces to track incoming spell casts  
+--   Tracking of incoming spell casts is by spell ID only  
+--   Works only for explicit caster targets (e.g. no mouseovers)  
+  
+  
+--------------------------------------------------------------  
+
 Version 3.151  
   
   

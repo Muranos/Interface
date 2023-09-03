@@ -175,7 +175,7 @@ function GIL_LFG_Tooltip (self)
 end
 
 local function GIL_EasyMenu (menu, frame, anchor, x, y, display)
-    if frame ~= LFGListFrameDropDown then return end
+	if (frame ~= LFGListFrameDropDown or (anchor.resultID == nil)) then return end
 	
 	local info = C_LFGList.GetSearchResultInfo(anchor.resultID)
 

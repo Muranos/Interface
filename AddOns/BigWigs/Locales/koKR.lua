@@ -19,8 +19,6 @@ L.already_registered = "|cffff0000경고:|r |cff00ff00%s|r (|cffffff00%s|r)|1은
 L.testNameplate = "대상이 감지되면, 대상의 이름표 위에 임의로 이름표를 하나 만듭니다. |cFF33FF99이 기능은 거의 쓰이지 않고, 바 하나일 때가 많고, 주로 같은 스킬을 시전하는 여러마리의 넴드나 쫄들과 상대할때 그 쿨다운을 체크하기 위해 씁니다.|r"
 
 -- Loader / Options.lua
-L.classicWarning1 = "|cFF33FF99BigWigs|r: 클래식 서버에서 잘못된 버젼의 BigWigs를 쓰고 있습니다."
-L.classicWarning2 = "|cFF33FF99BigWigs|r: BigWigs 클래식 버젼을 설치하십시오."
 L.officialRelease = "당신은 BigWigs %s (%s)의 공식 배포 버전을 실행 중입니다"
 L.alphaRelease = "당신은 BigWigs %s (%s)의 알파 버전을 실행 중입니다"
 L.sourceCheckout = "당신은 저장소로부터 직접 가져온 BigWigs %s의 소스를 실행 중입니다."
@@ -44,6 +42,19 @@ L.missingAddOn = "|cFF436EEE%s|r 애드온이 없습니다!"
 L.disabledAddOn = "|cFF436EEE%s|r 애드온이 비활성화 중이므로 타이머를 표시할 수 없습니다."
 L.removeAddOn = "'|cFF436EEE%s|r'|1이;가; '|cFF436EEE%s|r'|1으로;로; 대체되었으므로 제거해주세요."
 L.alternativeName = "%s (|cFF436EEE%s|r)"
+
+L.expansionNames = {
+	"오리지널", -- Classic
+	"불타는 성전", -- The Burning Crusade
+	"리치 왕의 분노", -- Wrath of the Lich King
+	"대격변", -- Cataclysm
+	"판다리아의 안개", -- Mists of Pandaria
+	"드레노어의 전쟁군주", -- Warlords of Draenor
+	"군단", -- Legion
+	"격전의 아제로스", -- Battle for Azeroth
+	"어둠땅", -- Shadowlands
+	"용군단", -- Dragonflight
+}
 
 -- Media.lua (These are the names of the sounds in the dropdown list in the "sounds" section)
 L.Beware = "조심해라 (알갈론)"
@@ -154,7 +165,7 @@ L.dispeller = "|cFFFF0000무효화 시전자만 경보합니다.|r "
 
 -- Statistics
 L.statistics = "통계"
-L.lfr = "공찾"
+L.LFR = "공찾"
 L.normal = "일반"
 L.heroic = "영웅"
 L.mythic = "신화"

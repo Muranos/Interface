@@ -263,7 +263,7 @@ end
 function Crafting.CreateMatItemQuery()
 	return private.matItemDB:NewQuery()
 		:VirtualField("name", "string", ItemInfo.GetName, "itemString", "?")
-		:VirtualField("matCost", "number", TSM.Crafting.Cost.GetMatCost, "itemString", Math.GetNan())
+		:VirtualField("matCost", "number", private.GetMatCost, "itemString")
 		:VirtualField("totalQuantity", "number", private.GetTotalQuantity, "itemString")
 end
 
@@ -342,12 +342,11 @@ function Crafting.OptionalMatIterator(craftString)
 end
 
 function Crafting.GetOptionalMatQuantity(craftString, matItemId)
-	local query = private.matDB:NewQuery()
+	return private.matDB:NewQuery()
 		:Select("quantity")
 		:Equal("craftString", craftString)
-		:Matches("itemString", "^[qofr]:")
-		:Contains("itemString", tostring(matItemId))
-	return query:GetFirstResultAndRelease()
+		:Matches("itemString", "^[qofr]:.*"..matItemId)
+		:GetFirstResultAndRelease()
 end
 
 function Crafting.GetMatsAsTable(craftString, tbl)
@@ -674,9 +673,8 @@ function Crafting.IsQualityCraft(craftString)
 end
 
 function Crafting.GetQualityInfo(craftString, playerFilter)
-	assert(Environment.HasFeature(Environment.FEATURES.CRAFTING_QUALITY))
 	local craftInfo = private.settings.crafts[craftString]
-	if not craftInfo then
+	if not craftInfo or not Environment.HasFeature(Environment.FEATURES.CRAFTING_QUALITY) then
 		return nil, nil, nil, nil, nil
 	end
 	local baseRecipeDifficulty, baseRecipeQuality, maxRecipeQuality, inspirationAmount, inspirationChance = nil, nil, nil, nil
@@ -882,6 +880,10 @@ end
 
 function private.GetTotalQuantity(itemString)
 	return CustomPrice.GetSourcePrice(itemString, "NumInventory") or 0
+end
+
+function private.GetMatCost(itemString)
+	return CustomPrice.GetSourcePrice(itemString, "MatPrice") or Math.GetNan()
 end
 
 function private.MatItemDBUpdateOrInsert(itemString, profession)

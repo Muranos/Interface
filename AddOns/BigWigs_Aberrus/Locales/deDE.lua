@@ -1,21 +1,12 @@
-local L = BigWigs:NewBossLocale("Kazzara, the Hellforged", "deDE")
+local L = BigWigs:NewBossLocale("The Amalgamation Chamber", "deDE")
 if not L then return end
-if L then
-	L.dread_rift = "Riss" -- Singular Dread Rift
-end
-
-L = BigWigs:NewBossLocale("The Amalgamation Chamber", "deDE")
 if L then
 	L.custom_on_fade_out_bars = "Phase 1 Leisten abblenden"
 	L.custom_on_fade_out_bars_desc = "Leisten, welche zum außer Reichweite befindlichen Boss in Phase 1 gehören abblenden."
 
 	L.coalescing_void = "Weglaufen"
-	L.shadow_convergence = "Kugeln"
 	L.molten_eruption = "Soaks"
 	L.swirling_flame = "Tornados"
-	L.gloom_conflagration = "Meteor + Weglaufen"
-	L.blistering_twilight = "Bomben + Tornados"
-	L.convergent_eruption = "Soaks + Kugeln"
 	L.shadowflame_burst = "Frontaler Kegel"
 
 	L.shadow_and_flame = "Mythische Debuffs"
@@ -30,7 +21,6 @@ if L then
 	L.custom_on_unstable_essence_high_desc = "Chatnachrichten mit der Anzahl von Stapeln Deiner Instabilen Essenz wenn diese hoch genug ist."
 	L.volatile_spew = "Ausweichen"
 	L.volatile_eruption = "Eruption"
-	L.temporal_anomaly = "Heilkugel"
 	L.temporal_anomaly_knocked = "Heilkugel weggestoßen"
 end
 
@@ -41,10 +31,7 @@ if L then
 	L.zaqali_aide_north_emote_trigger = "nördliche Festungsmauer" -- Kommandanten erklimmen die nördliche Festungsmauer!
 	L.zaqali_aide_south_emote_trigger = "südliche Festungsmauer" -- Kommandanten erklimmen die südliche Festungsmauer!
 
-	L.north = "Norden"
-	L.south = "Süden"
 	L.both = "Beide"
-
 	L.zaqali_aide_message = "%s klettern %s" -- Big Adds Climbing North
 	L.add_bartext = "%s: %s (%d)"
 	L.boss_returns = "Boss landet: Norden"
@@ -61,7 +48,7 @@ if L then
 	L.energy_gained = "Energie erreicht: %d"
 
 	-- Mythic
-	L.unleash_shadowflame = "Mythische Kugeln"
+	L.shadowflame_energy = "Heilung Absorption"
 end
 
 L = BigWigs:NewBossLocale("The Vigilant Steward, Zskarn", "deDE")
@@ -87,7 +74,6 @@ if L then
 	L.rushing_darkness = "Rückstoß Linien"
 
 	L.umbral_annihilation = "Auslöschung"
-	L.sunder_reality = "Portale"
 	L.ebon_destruction = "Großer Knall"
 
 	L.wall_breaker = "Wandbrecher (Mythisch)"
@@ -117,4 +103,5 @@ if L then
 	L.fluid = "Animationsflüssigkeit" -- NPC 203939
 	L.slime = "Blubbernder Schleim" -- NPC 205651
 	L.goo = "Kriechender Glibber" -- NPC 205820
+	L.whisper = "Flüstern in der Dunkelheit" -- NPC 203806
 end

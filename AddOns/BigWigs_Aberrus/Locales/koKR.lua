@@ -1,21 +1,12 @@
-local L = BigWigs:NewBossLocale("Kazzara, the Hellforged", "koKR")
+local L = BigWigs:NewBossLocale("The Amalgamation Chamber", "koKR")
 if not L then return end
-if L then
-	L.dread_rift = "균열" -- Singular Dread Rift
-end
-
-L = BigWigs:NewBossLocale("The Amalgamation Chamber", "koKR")
 if L then
 	L.custom_on_fade_out_bars = "1페이즈 바 임시 비활성화"
 	L.custom_on_fade_out_bars_desc = "1페이즈에서 거리에서 먼 보스들의 바를 임시로 비활성화."
 
 	L.coalescing_void = "보스에서 이격"
-	L.shadow_convergence = "구슬"
 	L.molten_eruption = "바닥 밟기"
 	L.swirling_flame = "회오리"
-	L.gloom_conflagration = "유성 이후 이격"
-	L.blistering_twilight = "바닥깔고 회오리 피하기"
-	L.convergent_eruption = "바닥 밟고 보주 피하기"
 	L.shadowflame_burst = "탱 머리 조심"
 
 	L.shadow_and_flame = "신화 디버프"
@@ -29,8 +20,6 @@ if L then
 	L.custom_on_unstable_essence_high = "불안정한 정수 고중첩 알리기"
 	L.custom_on_unstable_essence_high_desc = "불안정한 정수 고중첩일때 일반창으로 중첩 알림."
 	L.volatile_spew = "바닥 피하기"
-	L.volatile_eruption = "분출"
-	L.temporal_anomaly = "구슬"
 	L.temporal_anomaly_knocked = "구슬 쳐냄"
 end
 
@@ -41,10 +30,7 @@ if L then
 	L.zaqali_aide_north_emote_trigger = "북쪽 성루" -- 지휘관이 북쪽 성루를 타고 오릅니다!
 	L.zaqali_aide_south_emote_trigger = "남쪽 성루" -- 지휘관이 남쪽 성루를 타고 오릅니다!!
 
-	L.north = "북쪽"
-	L.south = "남쪽"
 	L.both = "양쪽"
-
 	L.zaqali_aide_message = "%s 가 %s 으로 오르는중" -- Big Adds Climbing North
 	L.add_bartext = "%s: %s (%d)"
 	L.boss_returns = "넴드 착지: 북쪽"
@@ -61,7 +47,7 @@ if L then
 	L.energy_gained = "기력 회복: %d"
 
 	-- Mythic
-	L.unleash_shadowflame = "신화 보주"
+	--L.shadowflame_energy = "Heal Absorb"
 end
 
 L = BigWigs:NewBossLocale("The Vigilant Steward, Zskarn", "koKR")
@@ -87,7 +73,6 @@ if L then
 	L.rushing_darkness = "넉백 징표"
 
 	L.umbral_annihilation = "암영 말살"
-	L.sunder_reality = "차원문"
 	L.ebon_destruction = "즉사 광역기"
 
 	--L.wall_breaker = "Wall Breaker (Mythic)"
@@ -117,4 +102,5 @@ if L then
 	L.fluid = "살아 움직이는 액체" -- NPC 203939
 	--L.slime = "Bubbling Slime" -- NPC 205651
 	--L.goo = "Crawling Goo" -- NPC 205820
+	L.whisper = "어둠 속의 속삭임" -- NPC 203806
 end

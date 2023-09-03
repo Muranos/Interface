@@ -14,6 +14,32 @@ local ipairs, pairs, tostring, type, string_lower, table_sort, pcall
 -- Module locals
 
 -- Sorting Logic
+local calculateAccessibility = function(source)
+	local score = 0;
+	if source.nmr then
+		score = score + 10;
+	end
+	if source.nmc then
+		score = score + 10;
+	end
+	if source.e then
+		score = score + 1;
+	end
+	if source.u then
+		score = score + 1;
+		if source.u < 3 then
+			score = score + 100;
+		elseif source.u < 4 then
+			score = score + 10;
+		else
+			score = score + 1;
+		end
+	end
+	return score;
+end
+local sortByAccessibility = function(a, b)
+	return calculateAccessibility(a) <= calculateAccessibility(b);
+end
 local defaultComparison = function(a,b)
 	-- If either object doesn't exist
 	if a then
@@ -47,9 +73,9 @@ local defaultComparison = function(a,b)
 	elseif bcomp then
 		return false;
 	end
-	-- Headers
-	acomp = a.headerID;
-	bcomp = b.headerID;
+	-- Headers/Filters
+	acomp = a.headerID or a.filterID;
+	bcomp = b.headerID or b.filterID;
 	if acomp then
 		if not bcomp then return true; end
 	elseif bcomp then
@@ -178,6 +204,7 @@ local defaultEventStartComparison = function(a,b)
 	return acomp < bcomp;
 end
 app.SortDefaults = {
+	Accessibility = sortByAccessibility,
 	Global = defaultComparison,
 	Text = defaultTextComparison,
 	Name = defaultNameComparison,

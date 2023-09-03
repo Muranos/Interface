@@ -69,6 +69,16 @@ L["Action Button Glow"] = "Action Button Glow"
 L["Action Usable"] = "Action Usable"
 L["Actions"] = "Actions"
 L["Active"] = "Active"
+L[ [=[Active boss mod addon: |cFFffcc00BigWigs|r
+
+Note: This trigger will use BigWigs or DBM, in that order if both are installed.]=] ] = [=[Active boss mod addon: |cFFffcc00BigWigs|r
+
+Note: This trigger will use BigWigs or DBM, in that order if both are installed.]=]
+L[ [=[Active boss mod addon: |cFFffcc00DBM|r
+
+Note: This trigger will use BigWigs or DBM, in that order if both are installed.]=] ] = [=[Active boss mod addon: |cFFffcc00DBM|r
+
+Note: This trigger will use BigWigs or DBM, in that order if both are installed.]=]
 L["Add"] = "Add"
 L["Add Missing Auras"] = "Add Missing Auras"
 L["Additional Trigger Replacements"] = "Additional Trigger Replacements"
@@ -199,6 +209,10 @@ L["Blood-Queen Lana'thel"] = "Blood-Queen Lana'thel"
 L["Border"] = "Border"
 L["Boss"] = "Boss"
 L["Boss Emote"] = "Boss Emote"
+L["Boss Mod Announce"] = "Boss Mod Announce"
+L["Boss Mod Stage"] = "Boss Mod Stage"
+L["Boss Mod Stage (Event)"] = "Boss Mod Stage (Event)"
+L["Boss Mod Timer"] = "Boss Mod Timer"
 L["Boss Whisper"] = "Boss Whisper"
 L["Bottom"] = "Bottom"
 L["Bottom Left"] = "Bottom Left"
@@ -802,6 +816,11 @@ L["Neutral"] = "Neutral"
 L["Never"] = "Never"
 L["Next Combat"] = "Next Combat"
 L["Next Encounter"] = "Next Encounter"
+L[ [=[No active boss mod addon detected.
+
+Note: This trigger will use BigWigs or DBM, in that order if both are installed.]=] ] = [=[No active boss mod addon detected.
+
+Note: This trigger will use BigWigs or DBM, in that order if both are installed.]=]
 L["No Extend"] = "No Extend"
 L["No Instance"] = "No Instance"
 L["No Profiling information saved."] = "No Profiling information saved."

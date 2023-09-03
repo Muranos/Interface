@@ -1,22 +1,10 @@
-lightweight tag c9c4bb2bd6d88fe50c30a3070e9e84a3af3d282b 10.1.5-02
+lightweight tag 185bd019754a74b23eca2d9ab4734810404d5d98 10.1.7-01
 Author:	Dave Hendler <sollaires@gmail.com>
-Date:	Tue Jul 11 14:14:48 2023 -0700
+Date:	Thu Aug 31 12:39:26 2023 -0700
 
-commit c9c4bb2bd6d88fe50c30a3070e9e84a3af3d282b
+commit 185bd019754a74b23eca2d9ab4734810404d5d98
 Author: Dave Hendler <sollaires@gmail.com>
-Date:   Tue Jul 11 14:14:48 2023 -0700
+Date:   Thu Aug 31 12:39:26 2023 -0700
 
-    Bump version again
-
-commit d19a3851f80fd45004e69b6a5135efcf488ec996
-Author: Dave Hendler <sollaires@gmail.com>
-Date:   Tue Jul 11 14:14:33 2023 -0700
-
-    Bump a change to see if CurseForge finds it?
-
-commit d6833ae1d7da67cdde4cad1607b3a006e0fc82fc
-Author: Dave Hendler <sollaires@gmail.com>
-Date:   Tue Jul 11 12:13:47 2023 -0700
-
-    Bump TOC version for 10.1.5
+    Bump TOC for 10.1.7
 

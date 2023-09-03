@@ -19,8 +19,6 @@ L.already_registered = "|cffff0000警告：|r |cff00ff00%s|r（|cffffff00%s|r）
 L.testNameplate = "檢測到目標，在目標名條上創建一個測試計時條。 |cFF33FF99這個功能相當少用，並且通常一次只會有一條；通常用於分別監視多個目標的同個技能冷卻。|r"
 
 -- Loader / Options.lua
-L.classicWarning1 = "|cFF33FF99BigWigs|r：你在經典版魔獸世界使用了正式版的 BigWigs，這是錯誤的版本。"
-L.classicWarning2 = "|cFF33FF99BigWigs|r：請安裝經典版的 BigWigs。"
 L.officialRelease = "你所使用的 BigWigs %s 為官方正式版（%s）"
 L.alphaRelease = "你所使用的 BigWigs %s 為「α測試版（%s）」"
 L.sourceCheckout = "你所使用的 BigWigs（%s）是直接從原始碼倉庫下載的版本。"
@@ -44,6 +42,19 @@ L.missingAddOn = "缺少插件 |cFF436EEE%s|r！"
 L.disabledAddOn = "模組 |cFF436EEE%s|r 已被禁用，無法顯示計時器。"
 L.removeAddOn = "請移除「|cFF436EEE%s|r」，其已被「|cFF436EEE%s|r」所替代。"
 L.alternativeName = "%s（|cFF436EEE%s|r）"
+
+L.expansionNames = {
+	"艾澤拉斯", -- Classic
+	"燃燒的遠征", -- The Burning Crusade
+	"巫妖王之怒", -- Wrath of the Lich King
+	"浩劫與重生", -- Cataclysm
+	"潘達利亞之謎", -- Mists of Pandaria
+	"德拉諾之霸", -- Warlords of Draenor
+	"軍臨天下", -- Legion
+	"決戰艾澤拉斯", -- Battle for Azeroth
+	"暗影之境", -- Shadowlands
+	"巨龍崛起", -- Dragonflight
+}
 
 -- Media.lua (These are the names of the sounds in the dropdown list in the "sounds" section)
 L.Beware = "當心（艾爾加隆）"
@@ -154,7 +165,7 @@ L.dispeller = "|cFFFF0000只警報驅散和打斷。|r"
 
 -- Statistics
 L.statistics = "統計"
-L.lfr = "隨機團隊"
+L.LFR = "隨機團隊"
 L.normal = "普通模式"
 L.heroic = "英雄模式"
 L.mythic = "傳奇"

@@ -16,15 +16,6 @@ local titanicEmpowermentActive = false
 local lastTitanicEmpowermentCooldown = 30.4
 
 --------------------------------------------------------------------------------
--- Localization
---
-
-local L = mod:GetLocale()
-if L then
-	L.boss = "BOSS"
-end
-
---------------------------------------------------------------------------------
 -- Initialization
 --
 
@@ -34,7 +25,7 @@ function mod:GetOptions()
 		372719, -- Titanic Empowerment
 		372623, -- Resonating Orb
 		372701, -- Crushing Stomp
-		372718, -- Earthen Shards
+		{372718, "ME_ONLY_EMPHASIZE"}, -- Earthen Shards
 	}
 end
 
@@ -103,7 +94,7 @@ function mod:UNIT_POWER_UPDATE(_, unit)
 end
 
 function mod:InexorableRemovedDose(args)
-	self:Message(args.spellId, "yellow", CL.stack:format(1, args.spellName, L.boss))
+	self:Message(args.spellId, "yellow", CL.stack:format(1, args.spellName, CL.boss))
 	self:PlaySound(args.spellId, "info")
 end
 
@@ -143,7 +134,7 @@ function mod:InexorableApplied(args)
 				self:CDBar(372719, 30.6) -- Titanic Empowerment
 			end
 		end
-		self:Message(args.spellId, "red", CL.stack:format(2, args.spellName, L.boss))
+		self:Message(args.spellId, "red", CL.stack:format(2, args.spellName, CL.boss))
 		self:PlaySound(args.spellId, "long")
 	end
 end

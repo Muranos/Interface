@@ -22,6 +22,7 @@ L.count_rticon = "%s（%d{rt%d}）"
 L.rticon = "%s（{rt%d}）"
 L.near = "%s在你附近"
 L.on_group = "團隊：%s" -- spell on group
+--L.boss = "BOSS"
 
 L.phase = "階段%d"
 L.stage = "階段%d"
@@ -96,6 +97,23 @@ L.amount_two = "%.1f萬" -- Millions 1,000,000
 L.amount_three = "%d千" -- Thousands 1,000
 L.seconds = "%.1f秒" -- 1.1 seconds
 
+-- Directions
+L.top = "上"
+L.up = "向上"
+L.middle = "中"
+L.down = "向下"
+L.bottom = "下"
+L.left = "左"
+L.right = "右"
+L.north = "北方"
+L.north_east = "東北"
+L.east = "東方"
+L.south_east = "東南"
+L.south = "南方"
+L.south_west = "西南"
+L.west = "西方"
+L.north_west = "西北"
+
 -- Common ability name replacements
 L.tank_combo = "坦克連擊" -- Used for tank swap mechanics where the boss casts a sequence of tank buster attacks
 L.laser = "雷射" -- Used for abilities that act like a laser. Usually from the boss to a player, or, from the boss to a specific area
@@ -119,3 +137,11 @@ L.leap = "跳躍" -- When a boss leaps through the air from one location to anot
 L.full_energy = "滿能量" -- When a boss reaches full/maximum energy, usually the boss will cast something big and powerful when this happens
 L.pool = "水池" -- A pool or puddle on the ground, usually something bad that you should avoid standing in
 L.pools = "水池" -- Plural of L.pool
+L.totem = "圖騰" -- A totem, usually summoned by a boss, the same thing that shamans summon
+L.totems = "圖騰" -- Plural of L.totem
+L.portal = "傳送" -- A portal somewhere, usually leading to a different location
+L.portals = "傳送" -- Plural of L.portal
+L.rift = "裂隙" -- Can be used in a similar way as a portal e.g. "Time Rift" but can also be used as a debuff/pool underneath you that you need to run through to remove/despawn it e.g. "Dread Rift"
+L.rifts = "裂隙" -- Plural of L.rift
+L.orb = "寶珠" -- A ball/sphere object usually moving and you need to avoid it
+L.orbs = "寶珠" -- Plural for L.orb

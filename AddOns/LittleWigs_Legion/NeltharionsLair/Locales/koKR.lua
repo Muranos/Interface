@@ -20,12 +20,7 @@ if L then
 	L.emberhusk_dominator = "잿불껍질 통솔자"
 end
 
-L = BigWigs:NewBossLocale("Rokmora", "koKR")
-if L then
-	L.warmup_text = "로크모라 활성화"
-end
-
 L = BigWigs:NewBossLocale("Ularogg Cragshaper", "koKR")
 if L then
-	L.totems = "토템"
+	--L.hands = "Hands" -- Short for "Stone Hands"
 end

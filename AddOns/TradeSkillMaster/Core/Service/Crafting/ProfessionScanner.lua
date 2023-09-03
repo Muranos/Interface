@@ -61,7 +61,7 @@ end
 function private.ScanRecipe(professionName, craftString, categorySkillLevelLookup)
 	local itemString = Profession.GetItemStringByCraftString(craftString)
 	local craftName = Profession.GetCraftNameByCraftString(craftString)
-	assert(itemString ~= "" and craftName ~= "")
+	assert(itemString and craftName ~= "")
 
 	local lNum, hNum = Profession.GetCraftedQuantityRange(craftString)
 	local numResult = floor(((lNum or 1) + (hNum or 1)) / 2)

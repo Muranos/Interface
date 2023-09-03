@@ -196,6 +196,14 @@ if (GARRISON_LANDING_COVIEW_PATCH_VERSION or 0) < 3 then
 	end)
 end
 
+local function RemoveBuildingsFromMissionList(items)
+	for i=#items,1,-1 do
+		if items[i].isBuilding then
+			table.remove(items, i)
+		end
+	end
+end
+
 function E:ADDON_LOADED(addon)
 	if addon == addonName then
 		cdata = gett(_G, "MasterPlanAG", GetRealmName(), UnitName("player"))
@@ -208,6 +216,7 @@ function E:ADDON_LOADED(addon)
 end
 function E:ADDON_LOADED(addon)
 	if addon == "Blizzard_GarrisonUI" then
+		hooksecurefunc("GarrisonLandingPageReportMission_FilterOutCombatAllyMissions", RemoveBuildingsFromMissionList)
 		LoadMPOnShow(GarrisonMissionFrame)
 		LoadMPOnShow(GarrisonShipyardFrame)
 		LoadMPOnShow(GarrisonRecruiterFrame)

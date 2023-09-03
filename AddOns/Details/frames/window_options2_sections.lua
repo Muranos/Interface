@@ -200,11 +200,12 @@ do
                 Details:RefreshMainWindow(-1, true)
                 afterUpdate()
             end
+
             local timetypeOptions = {
                 --localize-me
                 {value = 1, label = "Activity Time", onclick = onSelectTimeType, icon = "Interface\\Icons\\Achievement_Quests_Completed_Daily_08", iconcolor = {1, .9, .9}, texcoord = {0.078125, 0.921875, 0.078125, 0.921875}},
                 {value = 2, label = "Effective Time", onclick = onSelectTimeType, icon = "Interface\\Icons\\Achievement_Quests_Completed_08"},
-                {value = 3, label = "Real Time", onclick = onSelectTimeType, icon = "Interface\\Icons\\Ability_Evoker_TipTheScales"},
+                --{value = 3, label = "Real Time", onclick = onSelectTimeType, icon = "Interface\\Icons\\Ability_Evoker_TipTheScales"},
             }
             local buildTimeTypeMenu = function()
                 return timetypeOptions
@@ -302,6 +303,39 @@ do
                 end,
                 name = Loc ["STRING_OPTIONS_TIMEMEASURE"],
                 desc = Loc ["STRING_OPTIONS_TIMEMEASURE_DESC"],
+            },
+
+            {--use real time
+                type = "toggle",
+                get = function() return Details.use_realtimedps end,
+                set = function(self, fixedparam, value)
+                    Details.use_realtimedps = value
+                end,
+                name = "Show 'Real Time' DPS",
+                desc = "If Enabled and while in combat, show the damage done of the latest 5 seconds divided by 5.",
+                boxfirst = true,
+            },
+
+            {--real time dps order bars
+                type = "toggle",
+                get = function() return Details.realtimedps_order_bars end,
+                set = function(self, fixedparam, value)
+                    Details.realtimedps_order_bars = value
+                end,
+                name = "Order Bars By Real Time DPS",
+                desc = "If Enabled, players dealing more real time DPS are place above other players in the window.",
+                boxfirst = true,
+            },
+
+            {--always use real time in arenas
+                type = "toggle",
+                get = function() return Details.realtimedps_always_arena end,
+                set = function(self, fixedparam, value)
+                    Details.realtimedps_always_arena = value
+                end,
+                name = "Always Use Real Time in Arenas",
+                desc = "If Enabled, real time DPS is always used in arenas, even if the option above is disabled.",
+                boxfirst = true,
             },
 
             {type = "blank"},
@@ -656,7 +690,7 @@ do
 
         sectionFrame.sectionOptions = sectionOptions
         sectionOptions.always_boxfirst = true
-        DF:BuildMenu(sectionFrame, sectionOptions, startX, startY-20, heightSize+20, false, options_text_template, options_dropdown_template, options_switch_template, true, options_slider_template, options_button_template)
+        DF:BuildMenu(sectionFrame, sectionOptions, startX, startY-20, heightSize+40, false, options_text_template, options_dropdown_template, options_switch_template, true, options_slider_template, options_button_template)
     end
 
     tinsert(Details.optionsSection, buildSection) --optionsSection is declared on boot.lua
@@ -2419,7 +2453,7 @@ do
 
             {--title bar icons position X
                 type = "range",
-                get = function() return currentInstance.menu_anchor[1] end,
+                get = function() return currentInstance.toolbar_side == 1 and currentInstance.menu_anchor[1] or currentInstance.menu_anchor_down[1] end,
                 set = function(self, fixedparam, value)
                     editInstanceSetting(currentInstance, "MenuAnchor", value)
                     afterUpdate()
@@ -2433,7 +2467,7 @@ do
 
             {--title bar icons position Y
                 type = "range",
-                get = function() return currentInstance.menu_anchor[2] end,
+                get = function() return currentInstance.toolbar_side == 1 and currentInstance.menu_anchor[2] or currentInstance.menu_anchor_down[2] end,
                 set = function(self, fixedparam, value)
                     editInstanceSetting(currentInstance, "MenuAnchor", nil, value)
                     afterUpdate()

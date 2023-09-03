@@ -91,9 +91,9 @@ function mod:GetOptions()
 		-- Blacktooth Knuckleduster
 		257732, -- Shattering Bellow
 		-- Bilge Rat Swabby
-		{274507, "DISPEL"}, -- Slippery Suds
+		274507, -- Slippery Suds
 		-- Vermin Trapper
-		274383, -- Rat Traps
+		{274383, "DISPEL"}, -- Rat Traps
 		-- Bilge Rat Buccaneer
 		257756, -- Goin' Bananas
 		-- Bilge Rat Padfoot
@@ -150,6 +150,7 @@ function mod:OnBossEnable()
 	self:Log("SPELL_CAST_START", "HealingBalm", 257397)
 	self:Log("SPELL_AURA_APPLIED", "HealingBalmApplied", 257397)
 	self:Log("SPELL_AURA_APPLIED", "InfectedWoundApplied", 258323)
+	self:Log("SPELL_AURA_APPLIED_DOSE", "InfectedWoundApplied", 258323)
 	-- Irontide Crackshot
 	self:Log("SPELL_CAST_START", "AzeriteGrenade", 258672)
 	-- Irontide Corsair
@@ -172,6 +173,7 @@ function mod:OnBossEnable()
 	self:Log("SPELL_AURA_APPLIED", "SlipperySudsApplied", 274507)
 	-- Vermin Trapper
 	self:Log("SPELL_CAST_SUCCESS", "RatTraps", 274383)
+	self:Log("SPELL_AURA_APPLIED", "RatTrapsApplied", 274389)
 	-- Bilge Rat Buccaneer
 	self:Log("SPELL_CAST_START", "GoinBananas", 257756)
 	-- Bilge Rat Padfoot
@@ -247,10 +249,17 @@ function mod:HealingBalmApplied(args)
 	end
 end
 
-function mod:InfectedWoundApplied(args)
-	if self:Me(args.destGUID) or self:Dispeller("poison", nil, args.spellId) then
-		self:TargetMessage(args.spellId, "yellow", args.destName)
-		self:PlaySound(args.spellId, "alert", nil, args.destName)
+do
+	local prev = 0
+	function mod:InfectedWoundApplied(args)
+		if self:Me(args.destGUID) or self:Dispeller("disease", nil, args.spellId) then
+			local t = args.time
+			if t - prev > 1.5 then
+				prev = t
+				self:StackMessage(args.spellId, "yellow", args.destName, args.amount, 1)
+				self:PlaySound(args.spellId, "alert", nil, args.destName)
+			end
+		end
 	end
 end
 
@@ -268,10 +277,9 @@ end
 -- Irontide Corsair
 
 function mod:PoisoningStrikeApplied(args)
-	-- TODO or poison dispel?
 	if self:Me(args.destGUID) then
 		self:StackMessage(257436, "blue", args.destName, args.amount, 1)
-		self:PlaySound(257436, "alert")
+		self:PlaySound(257436, "alert", nil, args.destName)
 	end
 end
 
@@ -309,7 +317,7 @@ do
 				prev = t
 				self:Say(272402)
 				self:TargetMessage(272402, "blue", name)
-				self:PlaySound(272402, "alert")
+				self:PlaySound(272402, "alert", nil, name)
 			end
 		else
 			self:TargetMessage(272402, "orange", name)
@@ -338,7 +346,7 @@ do
 		if t - prev > 2 then
 			prev = t
 			self:Message(args.spellId, "red", CL.casting:format(args.spellName))
-			self:PlaySound(args.spellId, "alarm")
+			self:PlaySound(args.spellId, "warning")
 		end
 		--self:NameplateCDBar(args.spellId, 27.9, args.sourceGUID)
 	end
@@ -354,7 +362,7 @@ do
 			if t - prev > 2 then
 				prev = t
 				self:PersonalMessage(args.spellId, nil, CL.fixate)
-				self:PlaySound(args.spellId, "alarm")
+				self:PlaySound(args.spellId, "warning")
 			end
 		end
 		--self:NameplateCDBar(args.spellId, 30.3, args.sourceGUID)
@@ -404,6 +412,13 @@ function mod:RatTraps(args)
 	--self:NameplateCDBar(args.spellId, 20.6, args.sourceGUID)
 end
 
+function mod:RatTrapsApplied(args)
+	if self:Me(args.destGUID) or self:Dispeller("movement", nil, 274383) then
+		self:TargetMessage(274383, "yellow", args.destName)
+		self:PlaySound(274383, "info", nil, args.destName)
+	end
+end
+
 -- Bilge Rat Buccaneer
 
 function mod:GoinBananas(args)
@@ -422,7 +437,7 @@ function mod:PlagueStepApplied(args)
 		self:TargetMessage(args.spellId, "yellow", args.destName)
 		self:PlaySound(args.spellId, "alert", nil, args.destName)
 	end
-	-- TODO if nameplate CD bars are uncommented, this should move to SUCCESS
+	-- if nameplate CD bars are uncommented, this should move to SUCCESS
 	--self:NameplateCDBar(args.spellId, 20.6, args.sourceGUID)
 end
 
@@ -435,8 +450,13 @@ do
 			local t = args.time
 			if t - prev > 2 then
 				prev = t
-				self:StackMessage(args.spellId, "blue", args.destName, args.amount, 3)
-				self:PlaySound(args.spellId, "alert")
+				local amount = args.amount or 1
+				self:StackMessage(args.spellId, "blue", args.destName, amount, 3)
+				if amount >= 5 then
+					self:PlaySound(args.spellId, "warning", nil, args.destName)
+				else
+					self:PlaySound(args.spellId, "alert", nil, args.destName)
+				end
 			end
 		end
 	end
@@ -476,10 +496,17 @@ end
 
 -- Irontide Ravager
 
-function mod:PainfulMotivation(args)
-	self:Message(args.spellId, "yellow", CL.casting:format(args.spellName))
-	self:PlaySound(args.spellId, "alert")
-	--self:NameplateCDBar(args.spellId, 18.2, args.sourceGUID)
+do
+	local prev = 0
+	function mod:PainfulMotivation(args)
+		local t = args.time
+		if t - prev > 2 then
+			prev = t
+			self:Message(args.spellId, "yellow", CL.casting:format(args.spellName))
+			self:PlaySound(args.spellId, "alert")
+		end
+		--self:NameplateCDBar(args.spellId, 18.2, args.sourceGUID)
+	end
 end
 
 do

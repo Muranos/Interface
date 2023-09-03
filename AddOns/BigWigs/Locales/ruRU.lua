@@ -19,8 +19,6 @@ L.already_registered = "|cffff0000ВНИМАНИЕ:|r |cff00ff00%s|r (|cffffff00
 L.testNameplate = "Цель обнаружена, создаю тестовую полосу неймплейта на неймплейте цели. |cFF33FF99Это редко используемая вещь, всего одна полоса, необходимая для отслеживания перезарядки при сражении с несколькими боссами / аддами, использующих одно и то же заклинание.|r"
 
 -- Loader / Options.lua
-L.classicWarning1 = "|cFF33FF99BigWigs|r: Вы используете неправильную версию BigWIgs на классическом сервере."
-L.classicWarning2 = "|cFF33FF99BigWigs|r: Пожалуйста установите классическую версию BigWigs."
 L.officialRelease = "Вы используете официальную версию BigWigs %s (%s)"
 L.alphaRelease = "Вы используете АЛЬФА-ВЕРСИЮ BigWigs %s (%s)"
 L.sourceCheckout = "Вы используете отладочный BigWigs %s прямо из репозитория."
@@ -44,6 +42,19 @@ L.missingAddOn = "Отсутствует модификация |cFF436EEE%s|r."
 L.disabledAddOn = "У вас выключена модификация |cFF436EEE%s|r, таймеры не будут показываться."
 L.removeAddOn = "Пожалуйста, удалите '|cFF436EEE%s|r', ему на смену пришло '|cFF436EEE%s|r'."
 L.alternativeName = "%s (|cFF436EEE%s|r)"
+
+--L.expansionNames = {
+--	"Classic", -- Classic
+--	"The Burning Crusade", -- The Burning Crusade
+--	"Wrath of the Lich King", -- Wrath of the Lich King
+--	"Cataclysm", -- Cataclysm
+--	"Mists of Pandaria", -- Mists of Pandaria
+--	"Warlords of Draenor", -- Warlords of Draenor
+--	"Legion", -- Legion
+--	"Battle for Azeroth", -- Battle for Azeroth
+--	"Темные Земли", -- Shadowlands
+--	"Dragonflight", -- Dragonflight
+--}
 
 -- Media.lua (These are the names of the sounds in the dropdown list in the "sounds" section)
 L.Beware = "Берегитесь (Алгалон)"
@@ -154,7 +165,7 @@ L.dispeller = "|cFFFF0000Только для рассеивателей.|r "
 
 -- Statistics
 L.statistics = "Статистика"
-L.lfr = "LFR"
+L.LFR = "LFR"
 L.normal = "Обычный"
 L.heroic = "Героический"
 L.mythic = "Эпохальный"

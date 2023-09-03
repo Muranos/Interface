@@ -201,7 +201,7 @@ local function onClickItem(cell, item)
 							coord.m,
 							coord.x / 100.0,
 							coord.y / 100.0,
-							{ title = "Rarity" .. ": " .. item.name .. extraName }
+							{ title = item.name .. extraName, from = "Rarity" }
 						)
 						added = added + 1
 					end
@@ -1156,7 +1156,7 @@ local function addGroup(group, requiresGroup)
 											)
 										end
 										Rarity:Print(text)
-										if tostring(SHOW_COMBAT_TEXT) ~= "0" then
+										if CVarCallbackRegistry:GetCVarValueBool("enableFloatingCombatText") then
 											if type(CombatText_AddMessage) == "nil" then
 												UIParentLoadAddOn("Blizzard_CombatText")
 											end

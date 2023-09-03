@@ -84,6 +84,18 @@ L["Action Button Glow"] = "Свечение кнопки действия"
 L["Action Usable"] = "Действие возможно"
 L["Actions"] = "Действия"
 L["Active"] = "Активный"
+--[[Translation missing --]]
+L[ [=[Active boss mod addon: |cFFffcc00BigWigs|r
+
+Note: This trigger will use BigWigs or DBM, in that order if both are installed.]=] ] = [=[Active boss mod addon: |cFFffcc00BigWigs|r
+
+Note: This trigger will use BigWigs or DBM, in that order if both are installed.]=]
+--[[Translation missing --]]
+L[ [=[Active boss mod addon: |cFFffcc00DBM|r
+
+Note: This trigger will use BigWigs or DBM, in that order if both are installed.]=] ] = [=[Active boss mod addon: |cFFffcc00DBM|r
+
+Note: This trigger will use BigWigs or DBM, in that order if both are installed.]=]
 L["Add"] = "Прислужник (Add)"
 L["Add Missing Auras"] = "Добавить отсутствующие индикации"
 L["Additional Trigger Replacements"] = [=[Дополнительные шаблоны замены текста от триггера
@@ -219,6 +231,14 @@ L["Blood-Queen Lana'thel"] = "Кровавая королева Лана'тел�
 L["Border"] = "Граница"
 L["Boss"] = "Босс"
 L["Boss Emote"] = "Эмоция рейд-босса"
+--[[Translation missing --]]
+L["Boss Mod Announce"] = "Boss Mod Announce"
+--[[Translation missing --]]
+L["Boss Mod Stage"] = "Boss Mod Stage"
+--[[Translation missing --]]
+L["Boss Mod Stage (Event)"] = "Boss Mod Stage (Event)"
+--[[Translation missing --]]
+L["Boss Mod Timer"] = "Boss Mod Timer"
 L["Boss Whisper"] = "Шепот рейд-босса"
 L["Bottom"] = "Снизу"
 L["Bottom Left"] = "Снизу слева"
@@ -855,6 +875,12 @@ L["Neutral"] = "Нейтральный"
 L["Never"] = "Никогда"
 L["Next Combat"] = "Режим боя"
 L["Next Encounter"] = "Сражение с боссом"
+--[[Translation missing --]]
+L[ [=[No active boss mod addon detected.
+
+Note: This trigger will use BigWigs or DBM, in that order if both are installed.]=] ] = [=[No active boss mod addon detected.
+
+Note: This trigger will use BigWigs or DBM, in that order if both are installed.]=]
 L["No Extend"] = "Без расширения"
 L["No Instance"] = "Не в подземелье (instance)"
 L["No Profiling information saved."] = "Нет данных профилирования."

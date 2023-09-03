@@ -47,17 +47,20 @@ local GetStatistic = _G.GetStatistic
 local GetLootSourceInfo = _G.GetLootSourceInfo
 local C_Timer = _G.C_Timer
 local IsSpellKnown = _G.IsSpellKnown
+local GetCurrentRenownLevel = C_MajorFactions.GetCurrentRenownLevel
 
 -- Addon APIs
 local DebugCache = Rarity.Utils.DebugCache
 
 function EventHandlers:Register()
 	self = Rarity
+	local WOW_INTERFACE_VER = select(4, GetBuildInfo())
 
 	self:UnregisterAllEvents()
 	self:RegisterBucketEvent("BAG_UPDATE", 0.5, "OnBagUpdate")
-	self:RegisterEvent("LOOT_READY", "OnEvent")
+	self:RegisterEvent("LOOT_READY", "OnLootReady")
 	self:RegisterEvent("CURRENCY_DISPLAY_UPDATE", "OnCurrencyUpdate")
+	self:RegisterEvent("RESEARCH_ARTIFACT_COMPLETE", "OnResearchArtifactComplete")
 	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED", "OnCombat") -- Used to detect boss kills that we didn't solo
 	self:RegisterEvent("BANKFRAME_OPENED", "OnEvent")
 	self:RegisterEvent("BANKFRAME_CLOSED", "OnEvent")
@@ -71,7 +74,6 @@ function EventHandlers:Register()
 	self:RegisterEvent("UNIT_SPELLCAST_FAILED", "OnSpellcastFailed") -- Fishing detection
 	self:RegisterEvent("UNIT_SPELLCAST_INTERRUPTED", "OnSpellcastFailed") -- Fishing detection
 	self:RegisterEvent("LOOT_CLOSED", "OnLootFrameClosed") -- Fishing detection
-	self:RegisterEvent("RESEARCH_ARTIFACT_HISTORY_READY", "ScanAllArch")
 	self:RegisterEvent("PLAYER_LOGOUT", "OnEvent")
 	self:RegisterEvent("AUCTION_HOUSE_CLOSED", "OnEvent")
 	self:RegisterEvent("AUCTION_HOUSE_SHOW", "OnEvent")
@@ -94,6 +96,12 @@ function EventHandlers:Register()
 	self:RegisterBucketEvent("CALENDAR_UPDATE_EVENT_LIST", 1, "OnEvent")
 	self:RegisterBucketEvent("TOYS_UPDATED", 1, "OnEvent")
 	self:RegisterBucketEvent("COMPANION_UPDATE", 1, "OnEvent")
+
+	if WOW_INTERFACE_VER >= 100000 then
+		-- minimum for PLAYER_INTERACTION_MANAGER_FRAME_SHOW/HIDE events
+		self:RegisterEvent("PLAYER_INTERACTION_MANAGER_FRAME_SHOW", "OnEvent")
+		self:RegisterEvent("PLAYER_INTERACTION_MANAGER_FRAME_HIDE", "OnEvent")
+	end
 end
 
 -- TODO: Move elsewhere/refactor
@@ -232,9 +240,6 @@ end
 
 function R:OnCurrencyUpdate(event)
 	self:Debug("Currency updated (" .. event .. ")")
-
-	-- Check if any archaeology projects were solved
-	self:ScanArchFragments(event)
 
 	-- Check if any coins were used
 	for k, v in pairs(self.coins) do
@@ -411,7 +416,9 @@ function R:OnCombat()
 					-- Increment attempts counter(s). One NPC might drop multiple things we want, so scan for them all.
 					if Rarity.npcs_to_items[npcid] and type(Rarity.npcs_to_items[npcid]) == "table" then
 						for k, v in pairs(Rarity.npcs_to_items[npcid]) do
-							if v.enabled ~= false and v.method == CONSTANTS.DETECTION_METHODS.BOSS then
+							local isBossDrop = (v.method == CONSTANTS.DETECTION_METHODS.BOSS)
+							local hasKillStatistics = type(v.statisticId) ~= "nil"
+							if v.enabled ~= false and isBossDrop and not hasKillStatistics then
 								if self:IsAttemptAllowed(v) then
 									Rarity.guids[dstGuid] = true
 									if v.attempts == nil then
@@ -430,9 +437,9 @@ function R:OnCombat()
 	end
 end
 
--- Handle quest turnins: Only used to detect world quests used for outdoor world bosses. It's not ideal, but probably more reliable than the loot lockout quest (which may or may not already be completed when the UNIT_DIED event is fired)
-local worldBossQuests = {
+local worldEventQuests = {
 	[52196] = "Slightly Damp Pile of Fur", -- Dunegorger Kraulok
+	[70867] = "Everlasting Horn of Lavaswimming", -- Scalebane Keep (scenario completion)
 }
 
 function R:OnQuestTurnedIn(event, questID, experience, money)
@@ -440,7 +447,7 @@ function R:OnQuestTurnedIn(event, questID, experience, money)
 		"OnQuestTurnedIn triggered with ID = " .. questID .. ", experience = " .. experience .. ", money = " .. money
 	)
 
-	local relevantItem = worldBossQuests[questID]
+	local relevantItem = worldEventQuests[questID]
 	if not relevantItem then
 		return
 	end
@@ -533,10 +540,6 @@ local islandExpeditionCollectibles = {
 	"Enchanted Soup Stone",
 	"Magic Monkey Banana",
 	"Bad Mojo Banana",
-	---- Not yet implemented?
-	-- "Regenerating Banana Bunch", -- NYI as of 18/01/19
-	-- "Yaungol Oil Stove", -- NYI as of 18/01/19
-	-- "Jinyu Light Globe", -- NYI as of 18/01/19
 
 	-- Mounts
 	---- 8.0
@@ -584,9 +587,6 @@ function R:OnIslandCompleted(event, mapID, winner)
 	end
 end
 
--------------------------------------------------------------------------------------
--- Criteria in a dungeon completed, currently used for Reins of the Infinite Timereaver detection as a special case
--------------------------------------------------------------------------------------
 local timewalkingCriteriaLUT = {
 	[24801] = "Ozumat", -- Legacy (seems to no longer work? Perhaps the criterion ID was changed...)
 	[34414] = "Ozumat", -- Timewalking difficulty only? (need to test)
@@ -595,12 +595,40 @@ local timewalkingCriteriaLUT = {
 	[34410] = "Taran Zhu", -- [123095] = "Taran Zhu", -- Object: Taran Zhu's Personal Stash
 }
 
+local timeRiftCriteriaLUT = {
+	[60685] = "Gill'dan (Azmerloth)",
+	[60688] = "Freya (Ulderoth)",
+	[60689] = "The Lich King (Azmourne)",
+	[60690] = "Illidan Stormrage (Azewrath)",
+	[60691] = "Fury of N'zoth (Azq'roth)",
+	[60692] = "Varian Wrynn (The Warlands)",
+	[60693] = "Overlord Mechagon (A.Z.E.R.O.T.H.)",
+}
+
+local timeRiftMounts = {
+	"Felstorm Dragon",
+	"Gold-Toed Albatross",
+	"Perfected Juggernaut",
+	"Reins of the Scourgebound Vanquisher",
+	"Sulfur Hound's Leash",
+}
+
+local timeRiftPets = {
+	"Briarhorn Hatchling",
+	"Doomrubble",
+	"Gill'dan",
+	"Jeepers",
+	"Killbot 9000",
+	"N'Ruby",
+	"Obsidian Warwhelp",
+}
+
 function R:OnCriteriaComplete(event, id)
-	local encounterName = timewalkingCriteriaLUT[id]
+	local timewalkingEncounterName = timewalkingCriteriaLUT[id]
+	local timeRiftEncounterName = timeRiftCriteriaLUT[id]
 	R:Debug("Detected achievement criteria completion: " .. tostring(id))
-	if encounterName then -- Is an encounter that can't otherwise be detected
-		-- (due to the mount dropping from an object, and not a lootable NPC)
-		R:Debug("Completed criteria for relevant encounter: " .. tostring(encounterName))
+	if timewalkingEncounterName then
+		R:Debug("Completed criteria for Timewalking encounter: " .. tostring(timewalkingEncounterName))
 		local v = self.db.profile.groups.mounts["Reins of the Infinite Timereaver"]
 		if v and type(v) == "table" and v.enabled ~= false and R:IsAttemptAllowed(v) then
 			if v.attempts == nil then
@@ -610,6 +638,29 @@ function R:OnCriteriaComplete(event, id)
 			end
 			R:OutputAttempts(v)
 		end
+	end
+
+	if timeRiftEncounterName then
+		R:Debug("Completed criteria for Time Rift encounter: " .. timeRiftEncounterName)
+		self:OnTimeRiftCompleted()
+	end
+end
+
+function R:OnTimeRiftCompleted()
+	if self.Caching:IsAlliance() then
+		local itemName = "Reins of the Ravenous Black Gryphon"
+		addAttemptForItem(itemName, "mounts")
+	else
+		local itemName = "Horn of the White War Wolf"
+		addAttemptForItem(itemName, "mounts")
+	end
+
+	for _, itemName in ipairs(timeRiftMounts) do
+		addAttemptForItem(itemName, "mounts")
+	end
+
+	for _, itemName in ipairs(timeRiftPets) do
+		addAttemptForItem(itemName, "pets")
 	end
 end
 
@@ -671,8 +722,15 @@ function R:OnChatCommand(input)
 		DebugCache:PrintMessages(numMessages)
 	elseif strlower(input) == "validate" then -- Verify the ItemDB
 		self.Validation:ValidateItemDB()
+	elseif strlower(input) == "mapinfo" then
+		local mapID = C_Map.GetBestMapForUnit("player")
+		local mapInfo = C_Map.GetMapInfo(mapID)
+		local mapName = mapInfo and mapInfo.name or "Unknown"
+		self:Print("Current map: " .. mapID .. " ~ " .. mapName)
 	elseif strlower(input) == "purge" then -- TODO: This should be done automatically, no?
 		self.Database:PurgeObsoleteEntries()
+	elseif strlower(input) == "progress" then
+		self.GUI:ToggleProgressBar()
 	elseif strlower(input) == "test" then
 		self.Testing:RunIntegrationTests()
 	elseif strlower(input) == "profiling" then
@@ -762,15 +820,6 @@ function R:OnSpellcastSent(event, unit, target, castGUID, spellID)
 	Rarity.foundTarget = false
 	-- ga = "No" -- WTF is this?
 
-	Rarity:Debug(
-		"Detected UNIT_SPELLCAST_SENT for unit = player, spellID = "
-			.. tostring(spellID)
-			.. ", castGUID = "
-			.. tostring(castGUID)
-			.. ", target = "
-			.. tostring(target)
-	) -- TODO: Remove?
-
 	if Rarity.relevantSpells[spellID] then -- An entry exists for this spell in the LUT -> It's one that needs to be tracked
 		Rarity:Debug(
 			"Detected relevant spell: " .. tostring(spellID) .. " ~ " .. tostring(Rarity.relevantSpells[spellID])
@@ -809,7 +858,6 @@ function R:OnLootFrameClosed(event)
 	Rarity.previousSpell, Rarity.currentSpell = nil, nil
 	Rarity.foundTarget = false
 	self:ScheduleTimer(function()
-		R:Debug("Setting lastNode to nil")
 		Rarity.lastNode = nil
 	end, 1)
 end
@@ -915,15 +963,21 @@ function R:ProcessContainerItems()
 										and vv.items ~= nil
 										and type(vv.items) == "table"
 									then
-										for kkk, vvv in pairs(vv.items) do
-											if vvv == k then
-												local i = vv
-												if i.attempts == nil then
-													i.attempts = 1
-												else
-													i.attempts = i.attempts + 1
+										local isHordePlayer = R.Caching:IsHorde()
+										local canPlayerObtainFactionSpecificItem = not (
+												vv.requiresHorde and not isHordePlayer
+											) or (vv.requiresAlliance and isHordePlayer)
+										if canPlayerObtainFactionSpecificItem then
+											for kkk, vvv in pairs(vv.items) do
+												if vvv == k then
+													local i = vv
+													if i.attempts == nil then
+														i.attempts = 1
+													else
+														i.attempts = i.attempts + 1
+													end
+													self:OutputAttempts(i)
 												end
-												self:OutputAttempts(i)
 											end
 										end
 									end
@@ -939,9 +993,7 @@ function R:ProcessContainerItems()
 end
 
 function R:ProcessInventoryItems()
-	for itemID, currentInventoryAmount in pairs(Rarity.bagitems) do
-		self:Debug(format("Processing inventory item %s (currentInventoryAmount: %d)", itemID, currentInventoryAmount))
-		-- It's still really bad, but a major rework is probably too risky
+	for itemID, _ in pairs(Rarity.bagitems) do
 		self:ProcessCollectionItem(itemID)
 		self:ProcessOtherItem(itemID)
 	end
@@ -1074,8 +1126,6 @@ end
 
 -- It's an abomination, but without tests I'm not refactoring this any further
 function R:OnBagUpdate()
-	self:Debug("BAG_UPDATE")
-
 	-- Save a copy of your bags before this event
 	R:BackUpInventoryItemAmounts()
 
@@ -1103,24 +1153,124 @@ function R:OnBagUpdate()
 	R:ProcessInventoryItems()
 end
 
---[[
-      OBTAIN DETECTION ---------------------------------------------------------------------------------------------------------
-      -- Some easy, some fairly arcane methods to detect when we've obtained something we're looking for
-  ]]
+function R:OnResearchArtifactComplete(event, _)
+	self:ScanArchFragments(event)
+end
+
+-- 10.x added events PLAYER_INTERACTION_MANAGER_FRAME_HIDE and PLAYER_INTERACTION_MANAGER_FRAME_SHOW
+-- which currently fire either in addition to, or instead of, older events like MAIL_SHOW or MAIL_CLOSED.
+-- This maps new events onto old ones, so there's just one (old-style) event to check against.
+-- (Note many PlayerInteractionTypes are defined but not all are necessarily used; we add the ones most
+-- likely to be relevant here, whether currently being triggered or not.)
+
+local EventRemapping = {
+	["PLAYER_INTERACTION_MANAGER_FRAME_HIDE"] = {
+		[Enum and Enum.PlayerInteractionType and Enum.PlayerInteractionType.Banker or ""] = "BANKFRAME_CLOSED",
+		[Enum and Enum.PlayerInteractionType and Enum.PlayerInteractionType.GuildBanker or ""] = "GUILDBANKFRAME_CLOSED",
+		[Enum and Enum.PlayerInteractionType and Enum.PlayerInteractionType.Auctioneer or ""] = "AUCTION_HOUSE_CLOSED",
+		[Enum and Enum.PlayerInteractionType and Enum.PlayerInteractionType.TradePartner or ""] = "TRADE_CLOSED",
+		[Enum and Enum.PlayerInteractionType and Enum.PlayerInteractionType.MailInfo or ""] = "MAIL_CLOSED",
+	},
+	["PLAYER_INTERACTION_MANAGER_FRAME_SHOW"] = {
+		[Enum and Enum.PlayerInteractionType and Enum.PlayerInteractionType.Banker or ""] = "BANKFRAME_OPENED",
+		[Enum and Enum.PlayerInteractionType and Enum.PlayerInteractionType.GuildBanker or ""] = "GUILDBANKFRAME_OPENED",
+		[Enum and Enum.PlayerInteractionType and Enum.PlayerInteractionType.Auctioneer or ""] = "AUCTION_HOUSE_SHOW",
+		[Enum and Enum.PlayerInteractionType and Enum.PlayerInteractionType.TradePartner or ""] = "TRADE_SHOW",
+		[Enum and Enum.PlayerInteractionType and Enum.PlayerInteractionType.MailInfo or ""] = "MAIL_SHOW",
+	},
+}
+
 function R:OnEvent(event, ...)
-	-------------------------------------------------------------------------------------
-	-- You opened a loot window on a corpse or fishing node
-	-------------------------------------------------------------------------------------
-	if event == "LOOT_READY" then
-		-- Detect bank, guild bank, auction house, tradeskill, trade, and mail. This turns off item use detection.
+	-- do EventRemapping if appropriate
+	local param1 = select(1, ...)
+	if EventRemapping[event] and EventRemapping[event][param1] then
+		event = EventRemapping[event][param1]
+	end
+
+	if event == "BANKFRAME_OPENED" then
+		Rarity.isBankOpen = true
+	elseif event == "GUILDBANKFRAME_OPENED" then
+		Rarity.isGuildBankOpen = true
+	elseif event == "AUCTION_HOUSE_SHOW" then
+		Rarity.isAuctionHouseOpen = true
+	elseif event == "TRADE_SHOW" then
+		Rarity.isTradeWindowOpen = true
+	elseif event == "TRADE_SKILL_SHOW" then
+		Rarity.isTradeskillOpen = true
+	elseif event == "MAIL_SHOW" then
+		Rarity.isMailboxOpen = true
+	elseif event == "BANKFRAME_CLOSED" then
+		Rarity.isBankOpen = false
+	elseif event == "GUILDBANKFRAME_CLOSED" then
+		Rarity.isGuildBankOpen = false
+	elseif event == "AUCTION_HOUSE_CLOSED" then
+		Rarity.isAuctionHouseOpen = false
+	elseif event == "TRADE_CLOSED" then
+		Rarity.isTradeWindowOpen = false
+	elseif event == "TRADE_SKILL_CLOSE" then
+		Rarity.isTradeskillOpen = false
+	elseif event == "MAIL_CLOSED" then
+		Rarity.isMailboxOpen = false
+	elseif event == "UPDATE_INSTANCE_INFO" then
+		-- Instance lock info updated
+		self:ScanInstanceLocks(event)
+	elseif event == "LFG_UPDATE_RANDOM_INFO" then
+		self:ScanInstanceLocks(event)
+	elseif event == "CALENDAR_UPDATE_EVENT_LIST" then
+		-- Calendar updated
+		self:ScanCalendar(event)
+	elseif event == "TOYS_UPDATED" then
+		-- Toy box updated
+		Rarity.Collections:ScanExistingItems(event)
+	elseif event == "COMPANION_UPDATE" then
+		-- Pets updated
+		Rarity.Collections:ScanExistingItems(event)
+	elseif event == "PLAYER_LOGOUT" then
+		-- Logging out; end any open session
+		if Rarity.Session:IsActive() then
+			Rarity.Session:End()
+		end
+	end
+end
+
+-------------------------------------------------------------------------------------
+-- You opened a loot window on a corpse or fishing node
+-------------------------------------------------------------------------------------
+function R:OnLootReady(event, ...)
+	do
 		self:Debug("LOOT_READY with target: " .. (UnitGUID("target") or "NO TARGET"))
 
-		-- In 8.0.1, two LOOT_READY events fire when the loot window opens. We'll just ignore subsequent events for a short time to prevent double counting
-		if Rarity.Session:IsLocked() then -- One attempt is already being counted and we don't want another one for this loot event -> Ignore this call
-			Rarity:Debug("Session is locked; ignoring this LOOT_READY event")
+		-- Two LOOT_READY events may trigger when the loot window opens, in which case this prevents double counting
+		if self.Session:IsLocked() then
+			self:Debug("Session is locked; ignoring this LOOT_READY event")
 			return
-		else
-			Rarity.Session:Lock(1)
+		end
+
+		self.Session:Lock()
+
+		if Rarity.isBankOpen then
+			Rarity:Debug("Ignoring this LOOT_READY event (bank is open)")
+			return
+		end
+
+		if Rarity.isGuildBankOpen then
+			Rarity:Debug("Ignoring this LOOT_READY event (guild bank is open)")
+			return
+		end
+
+		if Rarity.isMailboxOpen then
+			Rarity:Debug("Ignoring this LOOT_READY event (mailbox is open)")
+			return
+		end
+
+		if Rarity.isAuctionHouseOpen then
+			Rarity:Debug("Ignoring this LOOT_READY event (auction house is open)")
+			return
+		end
+
+		if Rarity.isTradeWindowOpen then
+			Rarity:Debug("Ignoring this LOOT_READY event (trade window is open)")
+			return
 		end
 
 		local zone = GetRealZoneText()
@@ -1610,6 +1760,90 @@ function R:OnEvent(event, ...)
 			end
 		end
 
+		-- Handle opening Expedition Scout's Pack (Verdant Skitterfly mount in Dragonflight)
+		if
+			Rarity.isFishing
+			and Rarity.isOpening
+			and Rarity.lastNode
+			and (Rarity.lastNode == L["Expedition Scout's Pack"])
+		then
+			local names = { "Verdant Skitterfly" }
+			Rarity:Debug("Detected Opening on " .. L["Expedition Scout's Pack"] .. " (method = SPECIAL)")
+			-- This mount has a prerequisite to drop. Renown 25 with Dragonscale Expedition
+			if GetCurrentRenownLevel(CONSTANTS.FACTION_IDS.DRAGONSCALE_EXPEDITION) >= 25 then
+				for _, name in pairs(names) do
+					local v = self.db.profile.groups.mounts[name]
+					if v and type(v) == "table" and v.enabled ~= false then
+						if v.attempts == nil then
+							v.attempts = 1
+						else
+							v.attempts = v.attempts + 1
+						end
+						self:OutputAttempts(v)
+					end
+				end
+			end
+		end
+
+		-- Handle opening Opera Chest (Holoviewers)
+		if Rarity.isFishing and Rarity.isOpening and Rarity.lastNode and (Rarity.lastNode == L["Opera Chest"]) then
+			local names = { "Holoviewer: The Timeless One", "Holoviewer: The Lady of Dreams" }
+			Rarity:Debug("Detected Opening on " .. L["Opera Chest"] .. " (method = SPECIAL)")
+			for _, name in pairs(names) do
+				local v = self.db.profile.groups.items[name]
+				if v and type(v) == "table" and v.enabled ~= false then
+					if v.attempts == nil then
+						v.attempts = 1
+					else
+						v.attempts = v.attempts + 1
+					end
+					self:OutputAttempts(v)
+				end
+			end
+		end
+
+		-- Handle opening various chests in Zskera Vaults
+		local vaultPets = {
+			"Bunbo",
+			"Berylmane",
+			"Brightfeather",
+		}
+		local vaultToys = {
+			"Obsidian Battle Horn",
+		}
+		local vaultChests = {
+			[L["Chain-Bound Strongbox"]] = true,
+			[L["Crystal Basket"]] = true,
+			[L["Hardened Chest"]] = true,
+			[L["Mindless Slime"]] = true,
+			[L["Searing Chest"]] = true,
+			[L["Hardened Strongbox"]] = true,
+			[L["Cart of Crushed Stone"]] = true,
+			[L["Hardshell Chest"]] = true,
+			[L["Titan Coffer"]] = true,
+			[L["Void-Bound Strongbox"]] = true,
+			[L["Inert Goo"]] = true,
+			[L["Mysterious Chest"]] = true,
+			[L["Supply Trunk"]] = true,
+			[L["Shattered Crystals"]] = true,
+			[L["Chest of Ice"]] = true,
+			[L["Forgotten Lockbox"]] = true,
+			[L["Slimy Goo"]] = true,
+			[L["Wind-Bound Strongbox"]] = true,
+			[L["Spun Webs"]] = true,
+			[L["Obsidian Grand Cache"]] = true,
+			[L["Frozen Coffer"]] = true,
+		}
+		if Rarity.isFishing and Rarity.isOpening and Rarity.lastNode and vaultChests[Rarity.lastNode] then
+			Rarity:Debug("Detected Opening on " .. Rarity.lastNode .. " (method = SPECIAL)")
+			for _, itemName in ipairs(vaultToys) do
+				addAttemptForItem(itemName, "items")
+			end
+			for _, itemName in ipairs(vaultPets) do
+				addAttemptForItem(itemName, "pets")
+			end
+		end
+
 		-- HANDLE FISHING
 		if Rarity.isFishing and Rarity.isOpening == false then
 			if Rarity.isPool then
@@ -1831,49 +2065,6 @@ function R:OnEvent(event, ...)
 					end
 				end
 			end
-		end
-	elseif event == "BANKFRAME_OPENED" then
-		Rarity.isBankOpen = true
-	elseif event == "GUILDBANKFRAME_OPENED" then
-		Rarity.isGuildBankOpen = true
-	elseif event == "AUCTION_HOUSE_SHOW" then
-		Rarity.isAuctionHouseOpen = true
-	elseif event == "TRADE_SHOW" then
-		Rarity.isTradeWindowOpen = true
-	elseif event == "TRADE_SKILL_SHOW" then
-		Rarity.isTradeskillOpen = true
-	elseif event == "MAIL_SHOW" then
-		Rarity.isMailboxOpen = true
-	elseif event == "BANKFRAME_CLOSED" then
-		Rarity.isBankOpen = false
-	elseif event == "GUILDBANKFRAME_CLOSED" then
-		Rarity.isGuildBankOpen = false
-	elseif event == "AUCTION_HOUSE_CLOSED" then
-		Rarity.isAuctionHouseOpen = false
-	elseif event == "TRADE_CLOSED" then
-		Rarity.isTradeWindowOpen = false
-	elseif event == "TRADE_SKILL_CLOSE" then
-		Rarity.isTradeskillOpen = false
-	elseif event == "MAIL_CLOSED" then
-		-- Instance lock info updated
-		Rarity.isMailboxOpen = false
-	elseif event == "UPDATE_INSTANCE_INFO" then
-		self:ScanInstanceLocks(event)
-	elseif event == "LFG_UPDATE_RANDOM_INFO" then
-		-- Calendar updated
-		self:ScanInstanceLocks(event)
-	elseif event == "CALENDAR_UPDATE_EVENT_LIST" then
-		-- Toy box updated
-		self:ScanCalendar(event)
-	elseif event == "TOYS_UPDATED" then
-		-- Pets updated
-		Rarity.Collections:ScanExistingItems(event)
-	elseif event == "COMPANION_UPDATE" then
-		-- Logging out; end any open session
-		Rarity.Collections:ScanExistingItems(event)
-	elseif event == "PLAYER_LOGOUT" then
-		if Rarity.Session:IsActive() then
-			Rarity.Session:End()
 		end
 	end
 end

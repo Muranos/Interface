@@ -21,6 +21,7 @@ local tacticalDestructionCount = 1
 local shrapnelBombCount = 1
 local unstableEmbersCount = 1
 local blastWaveCount = 1
+local mySearingClawsStacks = 0
 local totalBombs = mod:Easy() and 2 or 3
 
 --------------------------------------------------------------------------------
@@ -84,6 +85,7 @@ function mod:OnBossEnable()
 	self:Log("SPELL_CAST_START", "BlastWave", 403978)
 	self:Log("SPELL_AURA_APPLIED", "SearingClawsApplied", 404942)
 	self:Log("SPELL_AURA_APPLIED_DOSE", "SearingClawsApplied", 404942)
+	self:Log("SPELL_AURA_REMOVED", "SearingClawsRemoved", 404942)
 end
 
 function mod:OnEngage()
@@ -94,6 +96,7 @@ function mod:OnEngage()
 	shrapnelBombCount = 1
 	unstableEmbersCount = 1
 	blastWaveCount = 1
+	mySearingClawsStacks = 0
 	totalBombs = self:Easy() and 2 or 3
 
 	if not self:Easy() then
@@ -124,7 +127,7 @@ function mod:DragonfireTraps(args)
 	self:Message(args.spellId, "yellow", msg)
 	self:PlaySound(args.spellId, "alert")
 	dragonfireTrapsCount = dragonfireTrapsCount + 1
-	self:CDBar(args.spellId, self:Easy() and 35.2 or 30.5, CL.count:format(CL.traps, dragonfireTrapsCount))
+	self:CDBar(args.spellId, self:Mythic() and 34 or self:Easy() and 35.2 or 30.5, CL.count:format(CL.traps, dragonfireTrapsCount))
 end
 
 function mod:AnimateGolems(args)
@@ -182,13 +185,14 @@ do
 		bombsSoaked = 0
 		mod:Bar(406725, 30, CL.count_amount:format(L.bombs_soaked, bombsSoaked, totalBombs), "inv_misc_bomb_01")
 	end
+
 	function mod:ShrapnelBomb(args)
 		local msg = CL.count:format(CL.bombs, shrapnelBombCount)
 		self:StopBar(msg)
 		self:Message(args.spellId, "yellow", msg)
 		self:PlaySound(args.spellId, "alert")
 		shrapnelBombCount = shrapnelBombCount + 1
-		self:CDBar(args.spellId, 30.3, CL.count:format(CL.bombs, shrapnelBombCount))
+		self:CDBar(args.spellId, self:Mythic() and 45 or 30.3, CL.count:format(CL.bombs, shrapnelBombCount))
 
 		 -- Starting/Stopping Bomb timers after 2s due to flight time
 		 self:ScheduleTimer(startBombTimers, 2)
@@ -248,10 +252,19 @@ end
 
 function mod:SearingClawsApplied(args)
 	local amount = args.amount or 1
-	if amount % 2 == 0 or amount > 10 then
-		self:StackMessage(args.spellId, "purple", args.destName, args.amount, 10)
+	if self:Me(args.destGUID) then
+		mySearingClawsStacks = amount
 	end
-	if amount > 10 and self:Tank() and not self:Tanking("boss1") then
-		self:PlaySound(args.spellId, "warning")
+	if amount % 2 == 0 or (amount > 8 and mySearingClawsStacks == 0) then -- 2,4,6 then 8+ (only warn for every application if you have no stacks)
+		self:StackMessage(args.spellId, "purple", args.destName, amount, 8)
+		if mySearingClawsStacks == 0 and amount >= 8 and self:Tank() then -- No stacks on me, 8+ stacks on other tank
+			self:PlaySound(args.spellId, "warning") -- Maybe swap?
+		end
+	end
+end
+
+function mod:SearingClawsRemoved(args)
+	if self:Me(args.destGUID) then
+		mySearingClawsStacks = 0
 	end
 end

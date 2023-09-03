@@ -1,18 +1,6 @@
 --[[
 Copyright 2008-2023 João Cardoso
-Scrap is distributed under the terms of the GNU General Public License (Version 3).
-As a special exception, the copyright holders of this addon do not give permission to
-redistribute and/or modify it.
-
-This addon is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with the addon. If not, see <http://www.gnu.org/licenses/gpl-3.0.txt>.
-
-This file is part of Scrap.
+All Rights Reserved
 --]]
 
 local Visualizer = Scrap:NewModule('Visualizer', ScrapVisualizer, 'MutexDelay-1.0')
@@ -26,7 +14,7 @@ function Visualizer:OnEnable()
 	title:SetText('Scrap')
 
 	local portrait = self.portrait or self.PortraitContainer.portrait
-	portrait:SetTexture('Interface/Addons/Scrap/Art/Enabled-Icon')
+	portrait:SetTexture('Interface/Addons/Scrap/Art/scrap-enabled')
 
 	local backdrop = portrait:GetParent():CreateTexture(nil, 'BORDER')
 	backdrop:SetColorTexture(0, 0, 0)

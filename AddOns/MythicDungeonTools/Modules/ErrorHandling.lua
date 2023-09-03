@@ -10,6 +10,7 @@ local DESTINATIONS = {
   { name = "GitHub",  url = "https://github.com/Nnoggie/MythicDungeonTools/issues" },
   { name = "Discord", url = "https://discord.gg/tdxMPb3" },
 }
+local hasShown = false
 
 function MDT:DisplayErrors(force)
   if not force and hasShown then return end
@@ -117,12 +118,23 @@ function MDT:DisplayErrors(force)
       startCopyAction(errorFrame.errorBox, errorBoxCopyButton, errorBoxText)
     end)
 
+    errorFrame.hardResetButton = AceGUI:Create("Button")
+    local hardResetButton = errorFrame.hardResetButton
+    hardResetButton:SetText(L["hardResetButton"])
+    hardResetButton:SetHeight(40)
+    hardResetButton:SetCallback("OnClick", function(widget, callbackName, value)
+      MDT:Async(function()
+        MDT:OpenConfirmationFrame(450, 150, L["hardResetPromptTitle"], L["Delete"], L["hardResetPrompt"], MDT.HardReset)
+      end, "hardReset")
+    end)
+
     errorFrame:AddChild(errorFrame.errorBox)
     errorFrame:AddChild(errorFrame.errorBoxCopyButton)
+    errorFrame:AddChild(errorFrame.hardResetButton)
 
     --error button
     local errorButton = AceGUI:Create("Icon")
-    errorButton:SetImage("Interface\\AddOns\\MythicDungeonTools\\Textures\\icons", 0.75, 1, 0.25, 0.5)
+    errorButton:SetImage("Interface\\AddOns\\MythicDungeonTools\\Textures\\icons", 0.76, 1, 0.25, 0.5)
     errorButton:SetCallback("OnClick", function(widget, callbackName)
       MDT:DisplayErrors("true")
     end)
@@ -144,7 +156,7 @@ function MDT:DisplayErrors(force)
     errorButtonGroup.frame:SetBackdropColor(0, 0, 0, 0)
     errorButtonGroup:SetWidth(40)
     errorButtonGroup:SetHeight(40)
-    errorButtonGroup:SetPoint("LEFT", MDTVersion, "RIGHT", -5, -1)
+    errorButtonGroup:SetPoint("LEFT", MDT.main_frame.bottomLeftPanelString, "RIGHT", -5, -1)
     errorButtonGroup:SetLayout("Flow")
     errorButtonGroup.frame:SetFrameStrata("High")
     errorButtonGroup.frame:SetFrameLevel(7)
@@ -154,7 +166,7 @@ function MDT:DisplayErrors(force)
   end
 
   for _, error in ipairs(caughtErrors) do
-    errorBoxText = errorBoxText..error.message.."\n"
+    errorBoxText = errorBoxText..error.count.."x: "..error.message.."\n"
   end
   --add diagnostics
   local presetExport = MDT:TableToString(MDT:GetCurrentPreset(), true, 5)
@@ -173,8 +185,13 @@ function MDT:DisplayErrors(force)
     [72] = "PTR"
   }
   local region = regions[regionId]
-  errorBoxText = errorBoxText.."\n"..dateString.."\nMDT: "..addonVersion.."\nClient: "..gameVersion.." "..locale.."\nCharacter: "..name.."-"..realm.." ("..region..")".."\n\nRoute:\n"..presetExport
-  errorBoxText = errorBoxText.."\n\nStacktraces\n\n"
+  local combatState = InCombatLockdown() and "In combat" or "Out of combat"
+  local mapID = C_Map.GetBestMapForUnit("player");
+  local zoneInfo = format("Zone: %s (%d)", C_Map.GetMapInfo(C_Map.GetMapInfo(mapID).parentMapID).name, mapID)
+  errorBoxText = errorBoxText.."\n"..dateString.."\nMDT: "..addonVersion.."\nClient: "..gameVersion.." "..locale.."\nCharacter: "..name.."-"..realm.." ("..region..")"
+  errorBoxText = errorBoxText.."\n"..combatState.."\n"..zoneInfo.."\n"
+  errorBoxText = errorBoxText.."\nRoute:\n"..presetExport
+  errorBoxText = errorBoxText.."\nStacktraces\n\n"
   for _, error in ipairs(caughtErrors) do
     errorBoxText = errorBoxText..error.stackTrace.."\n"
   end
@@ -193,12 +210,13 @@ local function onError(msg, stackTrace, name)
   -- return early on duplicate errors
   for _, error in pairs(caughtErrors) do
     if error.message == e then
+      error.count = error.count + 1
       addTrace = false
       return false
     end
   end
   local stackTraceValue = stackTrace and name..":\n"..stackTrace
-  tinsert(caughtErrors, { message = e, stackTrace = stackTraceValue })
+  tinsert(caughtErrors, { message = e, stackTrace = stackTraceValue, count = 1 })
   addTrace = true
   if MDT.errorTimer then MDT.errorTimer:Cancel() end
   MDT.errorTimer = C_Timer.NewTimer(0.5, function()
@@ -216,10 +234,17 @@ function MDT:OnError(msg, stackTrace, name)
   onError(msg, stackTrace, name)
 end
 
+function MDT:GetErrors()
+  return caughtErrors
+end
+
 function MDT:RegisterErrorHandledFunctions()
   --register all functions except the ones that have to run as coroutines
   local blacklisted = {
     ["DungeonEnemies_UpdateSelected"] = true,
+    ["DungeonEnemies_UpdateEnemiesAsync"] = true,
+    ["ReloadPullButtons"] = true,
+    ["DrawAllPresetObjects"] = true,
     ["AddPull"] = true,
     ["ClearPull"] = true,
     ["ShowInterfaceInternal"] = true,

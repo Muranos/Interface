@@ -1,8 +1,8 @@
 ## Author: Allara
-## Interface: 100002
-## X-Min-Interface: 100002
+## Interface: 100105
+## X-Min-Interface: 100105
 ## Title: Rarity
-## Version: 1.0 (r718-release-4)
+## Version: 1.0 (r722-release)
 ## X-Curse-Project-ID: 30801
 
 ## Notes: Tracks rare drops, including companions and mounts
@@ -65,6 +65,7 @@ DB\Mounts\WarlordsOfDraenor.lua
 DB\Mounts\Legion.lua
 DB\Mounts\BattleForAzeroth.lua
 DB\Mounts\Shadowlands.lua
+DB\Mounts\Dragonflight.lua
 
 ## Pets
 DB\Pets\HolidayEvents.lua
@@ -77,6 +78,7 @@ DB\Pets\WarlordsOfDraenor.lua
 DB\Pets\Legion.lua
 DB\Pets\BattleForAzeroth.lua
 DB\Pets\Shadowlands.lua
+DB\Pets\Dragonflight.lua
 
 ## Toys (and other items, for now...)
 DB\Toys\HolidayEvents.lua
@@ -89,6 +91,7 @@ DB\Toys\WarlordsOfDraenor.lua
 DB\Toys\Legion.lua
 DB\Toys\BattleForAzeroth.lua
 DB\Toys\Shadowlands.lua
+DB\Toys\Dragonflight.lua
 
 # Utility/Helpers
 Utils\DebugCache.lua
@@ -119,7 +122,6 @@ Core\GUI.lua
 Core\Profiling.lua
 Core\Serialization.lua
 Core\Session.lua
-Core\Settings.lua
 Core\Statistics.lua
 Core\Tracking.lua
 Core\Validation.lua

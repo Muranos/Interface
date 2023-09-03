@@ -72,7 +72,7 @@ function private.GetNumToMoveToBags(itemString, numHave, includeAH)
 		numInBags = numInBags + AuctionTracking.GetQuantity(itemString) + MailTracking.GetQuantity(itemString)
 		-- include alt auctions on connected realms
 		local isCommodity = ItemInfo.IsCommodity(itemString)
-		for _, factionrealm, character, isConnected in Settings.ConnectedFactionrealmAltCharacterIterator() do
+		for _, factionrealm, character, _, isConnected in Settings.ConnectedFactionrealmAltCharacterIterator() do
 			if isCommodity or isConnected then
 				numInBags = numInBags + AltTracking.GetAuctionQuantity(itemString, character, factionrealm)
 			end

@@ -2,7 +2,7 @@
 BigWigs:AddColors("Chronikar", {
 	[401421] = "orange",
 	[413013] = {"green","purple"},
-	[413105] = {"blue","yellow"},
+	[413142] = {"blue","yellow"},
 })
 
 BigWigs:AddColors("Manifested Timeways", {
@@ -53,7 +53,7 @@ BigWigs:AddColors("Morchie", {
 
 BigWigs:AddColors("Time-Lost Battlefield", {
 	[408227] = "orange",
-	[410234] = "red",
+	[410235] = {"blue","red"},
 	[410254] = "purple",
 	[410496] = "yellow",
 	[418046] = "cyan",
@@ -78,6 +78,8 @@ BigWigs:AddColors("Dawn of the Infinite Trash", {
 	[407205] = "orange",
 	[407535] = "cyan",
 	[407891] = "yellow",
+	[407906] = "blue",
+	[411300] = "yellow",
 	[411994] = "red",
 	[412012] = "yellow",
 	[412063] = "orange",
@@ -89,7 +91,7 @@ BigWigs:AddColors("Dawn of the Infinite Trash", {
 	[412922] = "yellow",
 	[413024] = "yellow",
 	[413529] = "orange",
-	[413544] = {"blue","purple"},
+	[413544] = {"blue","purple","yellow"},
 	[413607] = "red",
 	[413621] = "orange",
 	[413622] = "yellow",
@@ -97,9 +99,12 @@ BigWigs:AddColors("Dawn of the Infinite Trash", {
 	[415769] = {"blue","yellow"},
 	[415770] = "red",
 	[415773] = "orange",
+	[417002] = "blue",
+	[417011] = "yellow",
 	[417481] = "red",
 	[418200] = "red",
-	[419351] = "orange",
+	[418684] = "cyan",
+	[419351] = "purple",
 	[419511] = "red",
 	[419516] = {"blue","orange","yellow"},
 })

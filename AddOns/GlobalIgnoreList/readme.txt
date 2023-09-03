@@ -202,6 +202,12 @@ The following commands are accessible by typing /gignore or /gi in the chat box:
 
 => VERSION HISTORY
 
+=> 10.1.5
+
+Updated for latest WoW release
+
+Added anchor nil check recommended by Hollo6 for LFG list frame error
+
 => 10.0.7.2
 
 Attempted (?) to fix a bug with M+ input when creating a group without SMS/Authenticator without breaking any other hacks.

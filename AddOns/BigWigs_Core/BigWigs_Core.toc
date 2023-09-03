@@ -22,8 +22,8 @@
 ## Notes-ptBR: Core do BigWigs
 ## Notes-esES: Núcleo de BigWigs.
 ## Notes-esMX: Núcleo de BigWigs.
-## IconTexture: Interface\AddOns\BigWigs\Media\Icons\core-enabled
-## Version: v286.3
+## IconTexture: Interface\AddOns\BigWigs\Media\Icons\minimap_raid.tga
+## Version: v290.3
 
 ## LoadOnDemand: 1
 ## Dependencies: BigWigs

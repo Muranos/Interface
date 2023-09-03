@@ -1,18 +1,6 @@
 --[[
 Copyright 2008-2023 João Cardoso
-Scrap is distributed under the terms of the GNU General Public License (Version 3).
-As a special exception, the copyright holders of this addon do not give permission to
-redistribute and/or modify it.
-
-This addon is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with the addon. If not, see <http://www.gnu.org/licenses/gpl-3.0.txt>.
-
-This file is part of Scrap.
+All Rights Reserved
 --]]
 
 local Scrap = LibStub('WildAddon-1.0'):NewAddon(...)
@@ -37,7 +25,7 @@ BINDING_NAME_SCRAP_TOGGLE = L.ToggleMousehover
 BINDING_NAME_SCRAP_DESTROY_ONE = L.DestroyCheapest
 BINDING_NAME_SCRAP_DESTROY_ALL = L.DestroyJunk
 BINDING_NAME_SCRAP_SELL = L.SellJunk
-BINDING_HEADER_SCRAP = 'Scrap'
+SCRAP = 'Scrap'
 
 
 --[[ Startup ]]--
@@ -153,7 +141,7 @@ function Scrap:IsFiltered(id, ...)
 	local _, link, quality, level,_,_,_,_, slot, _, value, class, subclass = GetItemInfo(id)
 	local level = location and C_Item.GetCurrentItemLevel(location) or level or 0
 
-	if not value or value == 0 then
+	if not value or value == 0 or (IsCosmeticItem and IsCosmeticItem(id)) then
 		return
 
 	elseif class == ARMOR or class == WEAPON then

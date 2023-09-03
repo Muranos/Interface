@@ -1,7 +1,7 @@
 --@curseforge-project-slug: libsink-2-0@
 --[[
 Name: Sink-2.0
-Revision: $Rev: 155 $
+Revision: $Rev: 163 $
 Author(s): Funkydude
 Description: Library that handles chat output.
 Dependencies: LibStub, SharedMedia-3.0 (optional)
@@ -19,7 +19,7 @@ If you derive from the library or change it in any way, you are required to cont
 -- Sink-2.0
 
 local SINK20 = "LibSink-2.0"
-local SINK20_MINOR = 100001
+local SINK20_MINOR = 100002
 
 local sink = LibStub:NewLibrary(SINK20, SINK20_MINOR)
 if not sink then return end
@@ -46,7 +46,7 @@ local IsInRaid, IsInGroup, SendChatMessage = IsInRaid, IsInGroup, SendChatMessag
 -- Make sure FCT is loaded
 EnableAddOn("Blizzard_CombatText")
 local loadFCT = nil
-if WOW_PROJECT_ID == WOW_PROJECT_MAINLINE then -- Retail
+if WOW_PROJECT_ID == WOW_PROJECT_MAINLINE or C_GameRules then -- Retail, Classic patch 1.14.4+
 	if not IsAddOnLoaded("Blizzard_CombatText") then
 		loadFCT = function()
 			loadFCT = nil

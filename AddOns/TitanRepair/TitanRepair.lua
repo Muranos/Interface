@@ -423,6 +423,12 @@ end
 -- **************************************************************************
 --]]
 local function TitanRepair_RepairItems()
+--[=[
+Jul 2023 / 10.1.5 
+- Button name change MerchantRepairAllIcon > MerchantRepairAllButton
+- Button name change MerchantGuildBankRepairButtonIcon > MerchantGuildBankRepairButton
+Realized the Disable also changes the button so the DeSat is redundent
+--]=]
 	debug_msg("_RepairItems")
 	-- New RepairAll function
 	local cost = GetRepairAllCost();
@@ -448,10 +454,10 @@ local function TitanRepair_RepairItems()
 						.." "..FROM.." "..GUILD..".")
 				end
 				-- disable repair all icon in merchant
-				SetDesaturation(MerchantRepairAllIcon, 1);
+--				SetDesaturation(MerchantRepairAllButton, 1); 
 				MerchantRepairAllButton:Disable();
 				-- disable guild bank repair all icon in merchant
-				SetDesaturation(MerchantGuildBankRepairButtonIcon, 1);
+--				SetDesaturation(MerchantGuildBankRepairButton, 1); 
 				MerchantGuildBankRepairButton:Disable();
 				-- report repair cost to chat (optional)
 			else
@@ -474,10 +480,10 @@ local function TitanRepair_RepairItems()
 					.." "..FROM.." "..YOU..".")
 			end
 			-- disable repair all icon in merchant
-			SetDesaturation(MerchantRepairAllIcon, 1);
+--			SetDesaturation(MerchantRepairAllButton, 1);
 			MerchantRepairAllButton:Disable();
 			-- disable guild bank repair all icon in merchant
-			SetDesaturation(MerchantGuildBankRepairButtonIcon, 1);
+--			SetDesaturation(MerchantGuildBankRepairButton, 1);
 			MerchantGuildBankRepairButton:Disable();
 		else
 			DEFAULT_CHAT_FRAME:AddMessage(_G["GREEN_FONT_COLOR_CODE"]..L["TITAN_REPAIR"]..": ".."|r"..L["TITAN_REPAIR_CANNOT_AFFORD"])

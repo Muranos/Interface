@@ -22,6 +22,7 @@ L.count_rticon = "%s (%d{rt%d})"
 L.rticon = "%s ({rt%d})"
 L.near = "%s in DEINER Nähe"
 L.on_group = "%s auf GRUPPE"
+--L.boss = "BOSS"
 
 L.phase = "Phase %d"
 L.stage = "Phase %d"
@@ -96,6 +97,23 @@ L.amount_two = "%dM" -- Millions 1,000,000
 L.amount_three = "%dK" -- Thousands 1,000
 L.seconds = "%.1fs" -- 1.1 seconds
 
+-- Directions
+L.top = "Oben"
+L.up = "Hoch"
+L.middle = "Mitte"
+L.down = "Runter"
+L.bottom = "Unten"
+L.left = "Links"
+L.right = "Rechts"
+L.north = "Norden"
+L.north_east = "Nordosten"
+L.east = "Osten"
+L.south_east = "Südosten"
+L.south = "Süden"
+L.south_west = "Südwesten"
+L.west = "Westen"
+L.north_west = "Nordwesten"
+
 -- Common ability name replacements
 L.tank_combo = "Tank Kombi" -- Used for tank swap mechanics where the boss casts a sequence of tank buster attacks
 L.laser = "Laser" -- Used for abilities that act like a laser. Usually from the boss to a player, or, from the boss to a specific area
@@ -119,3 +137,11 @@ L.leap = "Sprung" -- When a boss leaps through the air from one location to anot
 L.full_energy = "Volle Energie" -- When a boss reaches full/maximum energy, usually the boss will cast something big and powerful when this happens
 L.pool = "Pfütze" -- A pool or puddle on the ground, usually something bad that you should avoid standing in
 L.pools = "Pfützen" -- Plural of L.pool
+L.totem = "Totem" -- A totem, usually summoned by a boss, the same thing that shamans summon
+L.totems = "Totems" -- Plural of L.totem
+L.portal = "Portal" -- A portal somewhere, usually leading to a different location
+L.portals = "Portale" -- Plural of L.portal
+L.rift = "Riss" -- Can be used in a similar way as a portal e.g. "Time Rift" but can also be used as a debuff/pool underneath you that you need to run through to remove/despawn it e.g. "Dread Rift"
+L.rifts = "Risse" -- Plural of L.rift
+L.orb = "Kugel" -- A ball/sphere object usually moving and you need to avoid it
+L.orbs = "Kugeln" -- Plural for L.orb

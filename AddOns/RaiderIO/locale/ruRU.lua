@@ -1,8 +1,10 @@
--- Generated from CurseForge on Mon Jul 17 09:18:19 UTC 2023
-local ns = select(2, ...) ---@type ns @The addon namespace.
+-- Generated from CurseForge on Sun Sep  3 08:20:36 UTC 2023
+local ns = select(2, ...) ---@class ns @The addon namespace.
 
 if ns:IsSameLocale("ruRU") then
+
 	local L = ns.L or ns:NewLocale()
+	ns.L = L
 
 	L.LOCALE_NAME = "ruRU"
 
@@ -93,6 +95,8 @@ L["ENABLE_NO_SCORE_COLORS"] = "Отключить все цвета очков M
 L["ENABLE_NO_SCORE_COLORS_DESC"] = "Отключает раскраску очков. Все очки будут отображены белым цветом."
 L["ENABLE_RAIDERIO_CLIENT_ENHANCEMENTS"] = "Расширенная информация из клиента RaiderIO"
 L["ENABLE_RAIDERIO_CLIENT_ENHANCEMENTS_DESC"] = "Включение этого параметра позволит Вам просматривать подробные данные профиля Raider.IO, загруженные из клиента Raider.IO для Ваших заявленных персонажей."
+L["ENABLE_REPLAY"] = "Показать систему повторов M+"
+L["ENABLE_REPLAY_DESC"] = "Включение этой опции позволит Вам соревноваться с заранее записанными забегами M+."
 L["ENABLE_RWF_MODE_BUTTON"] = "Включить"
 L["ENABLE_RWF_MODE_BUTTON_TOOLTIP"] = "Нажмите, чтобы включить режим Race World First. Это приведет к перезагрузке Вашего интерфейса."
 L["ENABLE_RWF_MODE_RELOAD"] = "Вы включаете режим Race World First. Это предназначено для использования с гонкой Mythic World First и должно использоваться только для этих целей вместе с клиентом Raider.IO для загрузки данных. Нажатие кнопки Подтвердить перезагрузит Ваш интерфейс."
@@ -245,10 +249,34 @@ L["RELOAD_LATER"] = "Перезагрузить позже"
 L["RELOAD_NOW"] = "Перезагрузить сейчас"
 L["RELOAD_RWF_MODE_BUTTON"] = "Сохранить"
 L["RELOAD_RWF_MODE_BUTTON_TOOLTIP"] = "Нажмите, чтобы сохранить журнал в файл хранилища. Это приведет к перезагрузке вашего интерфейса."
+L["REPLAY_AUTO_SELECTION"] = "Предпочтительный тип повтора"
+L["REPLAY_AUTO_SELECTION_DESC"] = "Выберите тип повтора, который Вы хотите выбрать автоматически."
+L["REPLAY_AUTO_SELECTION_GUILD_BEST"] = "Рекорд гильдии"
+L["REPLAY_AUTO_SELECTION_MOST_RECENT"] = "Недавнее"
+L["REPLAY_AUTO_SELECTION_PERSONAL_BEST"] = "Личный рекорд"
+L["REPLAY_AUTO_SELECTION_STARRED"] = "В главной роли"
+L["REPLAY_AUTO_SELECTION_TEAM_BEST"] = "Рекорд команды"
+L["REPLAY_MENU_COPY_URL"] = "Скопировать URL повтора"
+--[[Translation missing --]]
+--[[ L["REPLAY_MENU_DOCK"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["REPLAY_MENU_LOCK"] = ""--]] 
+L["REPLAY_MENU_POSITION"] = "Позиция"
+L["REPLAY_MENU_REPLAY"] = "Повтор"
+L["REPLAY_MENU_STYLE"] = "Стиль"
+L["REPLAY_MENU_TIMING"] = "Синхронизация"
+--[[Translation missing --]]
+--[[ L["REPLAY_MENU_UNDOCK"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["REPLAY_MENU_UNLOCK"] = ""--]] 
+L["REPLAY_REPLAY_CHANGING"] = "Изменение повтора приведет к сбросу данных в реальном времени."
 L["REPLAY_SETTINGS_TOOLTIP"] = "Настройки"
 L["REPLAY_STYLE_TITLE_MDI"] = "MDI"
 L["REPLAY_STYLE_TITLE_MODERN"] = "Современный"
 L["REPLAY_STYLE_TITLE_MODERN_COMPACT"] = "Современный (компактный)"
+L["REPLAY_SUMMARY_LOGGED"] = "|cffFFFFFF%s|r записал Ваше завершение этого |cffFFFFFF+%s|r в |cffFFFFFF%s|r."
+L["REPLAY_TIMING_TITLE_BOSS"] = "Время босса"
+L["REPLAY_TIMING_TITLE_DUNGEON"] = "Время подземелья"
 L["RWF_MINIBUTTON_TOOLTIP"] = "Щелкните ЛКМ каждый раз, когда есть ожидающая добыча. Это приведет к перезагрузке Вашего интерфейса. Щелкните ПКМ, чтобы открыть фрейм Race World First."
 L["RWF_SUBTITLE_LOGGING_FILTERED_LOOT"] = "(регистрация соответствующих элементов)"
 L["RWF_SUBTITLE_LOGGING_LOOT"] = "(регистрация добычи)"
@@ -324,5 +352,4 @@ L["WARNING_RWF_MODE_ENABLE"] = "|cffFFFFFF%s|r Включен режим Race Wo
 L["WIPE_RWF_MODE_BUTTON"] = "Вайп"
 L["WIPE_RWF_MODE_BUTTON_TOOLTIP"] = "Нажмите, чтобы стереть журнал из файла хранилища. Это приведет к перезагрузке Вашего интерфейса."
 
-	ns.L = L
 end

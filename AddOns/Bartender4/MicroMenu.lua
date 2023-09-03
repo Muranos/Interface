@@ -199,13 +199,10 @@ if WoWClassic then
 	MicroMenuBar.button_width = 29
 	MicroMenuBar.button_height = 58
 	MicroMenuBar.vpad_offset = -20
-elseif WoW10 then
-	MicroMenuBar.button_width = 19
-	MicroMenuBar.button_height = 26
-	MicroMenuBar.vpad_offset = 0
 else
-	MicroMenuBar.button_width = 28
-	MicroMenuBar.button_height = 36
+	MicroMenuBar.button_width = 32
+	MicroMenuBar.button_height = 40
+	MicroMenuBar.vpad_offset = 0
 end
 function MicroMenuBar:ApplyConfig(config)
 	ButtonBar.ApplyConfig(self, config)
@@ -263,6 +260,7 @@ if WoW10 and QueueStatusButton then
 			self.bar.content = QueueStatusButton
 			self.bar.content:SetParent(self.bar)
 		end
+		self:SecureHook(QueueStatusButton, "UpdatePosition", "UpdateLayout")
 		self.bar:Enable()
 		self:ToggleOptions()
 		self:ApplyConfig()

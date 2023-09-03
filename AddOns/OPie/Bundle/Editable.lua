@@ -256,8 +256,8 @@ R:AddDefaultRing("SpecMenu", {
 	{"specset", 3, _u="3"},
 	{"specset", 4, _u="4"},
 	{id="/cast {{spell:50977}}; {{spell:193753}}; {{spell:126892}}; {{spell:193759}}; {{spell:556}}", _u="c"},
-	{"item", 110560, _u="g"},
-	{"item", 140192, _u="d"},
+	{"toy", 110560, _u="g"},
+	{"toy", 140192, _u="d"},
 	{"ring", "CommonHearth", rotationMode="shuffle", _u="t"},
 	{"item", 141605, _u="w", show="[in:broken isles/bfa]"}, -- flight master's whistle
 	name=L"Specializations and Travel", hotkey="ALT-H", _u="OPCTA"

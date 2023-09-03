@@ -445,7 +445,6 @@ end
 		return newContainer
 	end
 
-
 	--try to get the actor class from name
 	local getActorClass = function(actorObject, actorName, actorFlags, actorSerial)
 		--get spec
@@ -507,10 +506,11 @@ end
 	--check if the nickname fit some minimal rules to be presented to other players
 	local checkValidNickname = function(nickname, playerName)
 		if (nickname and type(nickname) == "string") then
-			if (nickname == "") then
+			nickname = nickname:trim()
+			if (nickname == "" or nickname:len() < 2) then
 				return playerName
-
-			elseif (nickname:find(" ")) then
+			end
+			if (nickname:len() > 20) then
 				return playerName
 			end
 		else
@@ -706,8 +706,8 @@ end
 	---@param actorFlags number
 	---@param bShouldCreateActor boolean
 	---@return table|nil, table|nil, string|nil
-	function actorContainer:GetOrCreateActor(actorSerial, actorName, actorFlags, bShouldCreateActor)
-		return self:PegarCombatente(actorSerial, actorName, actorFlags, bShouldCreateActor)
+	function actorContainer:PegarCombatente(actorSerial, actorName, actorFlags, bShouldCreateActor)
+		return self:GetOrCreateActor(actorSerial, actorName, actorFlags, bShouldCreateActor)
 	end
 
 	---@param actorSerial string
@@ -715,14 +715,14 @@ end
 	---@param actorFlags number
 	---@param bShouldCreateActor boolean
 	---@return table|nil, table|nil, string|nil
-	function actorContainer:PegarCombatente(actorSerial, actorName, actorFlags, bShouldCreateActor)
+	function actorContainer:GetOrCreateActor(actorSerial, actorName, actorFlags, bShouldCreateActor)
 		--need to check if the actor is a pet
 		local petOwnerObject
 		actorSerial = actorSerial or "ns"
 
 		if (container_pets[actorSerial]) then --this is a registered pet
 			local petName, ownerName, ownerGUID, ownerFlag = Details.tabela_pets:PegaDono(actorSerial, actorName, actorFlags)
-			if (petName and ownerName) then
+			if (petName and ownerName and ownerGUID ~= actorSerial) then
 				actorName = petName
 				petOwnerObject = self:PegarCombatente(ownerGUID, ownerName, ownerFlag, true)
 			end
@@ -880,9 +880,7 @@ end
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --core
-
-	--_detalhes:AddToNpcIdCache (novo_objeto)
-	function Details:AddToNpcIdCache (actor)
+	function Details:AddToNpcIdCache(actor) --not called anywhere
 		if (flag and serial) then
 			if (bitBand (flag, REACTION_HOSTILE) ~= 0 and bitBand (flag, OBJECT_TYPE_NPC) ~= 0 and bitBand (flag, OBJECT_TYPE_PETGUARDIAN) == 0) then
 				local npc_id = Details:GetNpcIdFromGuid (serial)

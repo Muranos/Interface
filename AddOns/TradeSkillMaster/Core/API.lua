@@ -435,7 +435,7 @@ function TSM_API.GetPlayerTotals(itemString)
 	numPlayer = numPlayer + BagTracking.GetReagentBankQuantity(itemString)
 	numPlayer = numPlayer + MailTracking.GetQuantity(itemString)
 	numAuctions = numAuctions + AuctionTracking.GetQuantity(itemString)
-	for _, factionrealm, character, isConnected in Settings.ConnectedFactionrealmAltCharacterIterator() do
+	for _, factionrealm, character, _, isConnected in Settings.ConnectedFactionrealmAltCharacterIterator() do
 		if isConnected or TSM.db.global.coreOptions.regionWide then
 			numAlts = numAlts + AltTracking.GetBagQuantity(itemString, character, factionrealm)
 			numAlts = numAlts + AltTracking.GetBankQuantity(itemString, character, factionrealm)

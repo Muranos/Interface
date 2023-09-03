@@ -22,6 +22,7 @@ L.count_rticon = "%s (%d{rt%d})"
 L.rticon = "%s ({rt%d})"
 L.near = "%s perto de VOCÊ"
 L.on_group = "%s no GRUPO" -- spell on group
+--L.boss = "BOSS"
 
 L.phase = "Fase %d"
 L.stage = "Estágio %d"
@@ -96,6 +97,23 @@ L.amount_two = "%dM" -- Millions 1,000,000
 L.amount_three = "%dK" -- Thousands 1,000
 L.seconds = "%.1fs" -- 1.1 seconds
 
+-- Directions
+--L.top = "Top"
+--L.up = "Up"
+--L.middle = "Middle"
+--L.down = "Down"
+--L.bottom = "Bottom"
+--L.left = "Left"
+--L.right = "Right"
+L.north = "Norte"
+--L.north_east = "North-East"
+--L.east = "East"
+--L.south_east = "South-East"
+L.south = "Sul"
+--L.south_west = "South-West"
+--L.west = "West"
+--L.north_west = "North-West"
+
 -- Common ability name replacements
 L.tank_combo = "Combo de Tanque" -- Used for tank swap mechanics where the boss casts a sequence of tank buster attacks
 L.laser = "Laser" -- Used for abilities that act like a laser. Usually from the boss to a player, or, from the boss to a specific area
@@ -119,3 +137,11 @@ L.leap = "Salto" -- When a boss leaps through the air from one location to anoth
 L.full_energy = "Energia Cheia" -- When a boss reaches full/maximum energy, usually the boss will cast something big and powerful when this happens
 L.pool = "Poça" -- A pool or puddle on the ground, usually something bad that you should avoid standing in
 L.pools = "Poças" -- Plural of L.pool
+--L.totem = "Totem" -- A totem, usually summoned by a boss, the same thing that shamans summon
+--L.totems = "Totems" -- Plural of L.totem
+--L.portal = "Portal" -- A portal somewhere, usually leading to a different location
+L.portals = "Portais" -- Plural of L.portal
+L.rift = "Fenda" -- Can be used in a similar way as a portal e.g. "Time Rift" but can also be used as a debuff/pool underneath you that you need to run through to remove/despawn it e.g. "Dread Rift"
+L.rifts = "Fendas" -- Plural of L.rift
+L.orb = "Orbe" -- A ball/sphere object usually moving and you need to avoid it
+L.orbs = "Orbes" -- Plural for L.orb

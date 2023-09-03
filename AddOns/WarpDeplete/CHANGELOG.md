@@ -1,17 +1,11 @@
 # WarpDeplete
 
-## [v2.6.0](https://github.com/happenslol/WarpDeplete/tree/v2.6.0) (2023-07-15)
-[Full Changelog](https://github.com/happenslol/WarpDeplete/compare/v2.5.1...v2.6.0) [Previous Releases](https://github.com/happenslol/WarpDeplete/releases)
+## [v2.6.2](https://github.com/happenslol/WarpDeplete/tree/v2.6.2) (2023-07-18)
+[Full Changelog](https://github.com/happenslol/WarpDeplete/compare/v2.6.1...v2.6.2) [Previous Releases](https://github.com/happenslol/WarpDeplete/releases)
 
-- Add ptBR locale (#52)  
-    Co-authored-by: Fellipe Medeiros <fellipe.medeiros1@gmail.com>  
-- feat: Record objective completion timings and show differences (#46)  
-    * add gitignore  
-    * Outsource AceDB initialization into own file  
-    This is a preparation step for recording best-kill-times  
-    of bosses. Since we need the database for that kind of  
-    data too, it no longer just belongs to the options "namespace".  
-    To keep things clean we move it into its own file.  
-    * Record objective completion timings and allow to display differences  
-    * Apply requested changes  
-- Add koKR locale (#49)  
+- Merge branch 'main' of github.com:happenslol/WarpDeplete  
+- Temporarily disable completion timings display  
+- Add default for :percentafterpull: placeholder (#54)  
+    If :percentafterpull: ist not calculated due to pull not having count,  
+    we replace it with the current force percentage as a default value.  
+- Add :pulledpercent: replacement and allow showing percent above 100% (#53)  

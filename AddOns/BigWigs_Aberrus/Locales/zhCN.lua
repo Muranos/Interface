@@ -1,21 +1,12 @@
-local L = BigWigs:NewBossLocale("Kazzara, the Hellforged", "zhCN")
+local L = BigWigs:NewBossLocale("The Amalgamation Chamber", "zhCN")
 if not L then return end
-if L then
-	L.dread_rift = "裂隙" -- Singular Dread Rift
-end
-
-L = BigWigs:NewBossLocale("The Amalgamation Chamber", "zhCN")
 if L then
 	L.custom_on_fade_out_bars = "淡出第一阶段计时器"
 	L.custom_on_fade_out_bars_desc = "第一阶段时，淡出首领计时器。"
 
 	L.coalescing_void = "远离"
-	L.shadow_convergence = "宝珠"
 	L.molten_eruption = "接圈"
 	L.swirling_flame = "旋风"
-	L.gloom_conflagration = "陨石 + 远离"
-	L.blistering_twilight = "炸弹 + 旋风"
-	L.convergent_eruption = "接圈 + 宝珠"
 	L.shadowflame_burst = "冲击波"
 
 	L.shadow_and_flame = "暗焰易伤"
@@ -30,7 +21,6 @@ if L then
 	L.custom_on_unstable_essence_high_desc = "当你身上的不稳定的精华层数过高时，持续喊话通报你的层数。"
 	L.volatile_spew = "躲球"
 	L.volatile_eruption = "剧烈爆发"
-	L.temporal_anomaly = "治疗宝珠"
 	L.temporal_anomaly_knocked = "治疗宝珠被踢走了"
 end
 
@@ -41,10 +31,7 @@ if L then
 	L.zaqali_aide_north_emote_trigger = "北部城垒" -- 指挥官爬上了北部城垒！
 	L.zaqali_aide_south_emote_trigger = "南部城垒" -- 指挥官爬上了南部城垒！
 
-	L.north = "北部"
-	L.south = "南部"
 	L.both = "双方"
-
 	L.zaqali_aide_message = "%2$s：%1$s正在攀爬" -- Big Adds Climbing North
 	L.add_bartext = "%s：%s（%d）"
 	L.boss_returns = "首领落地: 北部"
@@ -61,7 +48,6 @@ if L then
 	L.energy_gained = "获得能量: %d"
 
 	-- Mythic
-	L.unleash_shadowflame = "暗焰宝珠"
 	L.shadowflame_energy = "吸收治疗"
 end
 
@@ -88,7 +74,6 @@ if L then
 	L.rushing_darkness = "击退破墙"
 
 	L.umbral_annihilation = "歼灭"
-	L.sunder_reality = "传送门"
 	L.ebon_destruction = "大爆炸"
 
 	L.wall_breaker = "破墙者（史诗）"
@@ -119,4 +104,5 @@ if L then
 	L.fluid = "活化液体" -- NPC 203939
 	L.slime = "冒泡的软泥" -- NPC 205651
 	L.goo = "匍匐粘液" -- NPC 205820
+	L.whisper = "黑暗低语" -- NPC 203806
 end
