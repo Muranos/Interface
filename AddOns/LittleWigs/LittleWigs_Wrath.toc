@@ -1,4 +1,4 @@
-## Interface: 30402
+## Interface: 30403
 
 ## Title: LittleWigs
 ## Notes: Boss warnings for 5-man dungeons & scenarios.
@@ -23,5 +23,5 @@
 
 ## Dependencies: BigWigs
 ## LoadOnDemand: 1
-## Version: v10.1.35
+## Version: v10.2.45
 

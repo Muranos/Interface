@@ -164,6 +164,10 @@ do
 		self:RegisterChatCommand("rarity", "OnChatCommand")
 		self:RegisterChatCommand("rare", "OnChatCommand")
 
+		-- Register keybind(s): These must match the info from Bindings.xml (and use localized descriptions)
+		_G.BINDING_HEADER_Rarity = "Rarity"
+		_G.BINDING_NAME_RARITY_DEBUGWINDOWTOGGLE = L["Toggle Debug Window"]
+
 		Rarity.GUI:RegisterDataBroker()
 
 		-- Expose private objects
@@ -664,12 +668,15 @@ function R:IsAttemptAllowed(item)
 	end
 
 	-- Check disabled classes
-	local playerClass = Rarity.Caching:GetPlayerClass() -- Why is this cached in the first place?
-	if not playerClass then
-		Rarity.Caching:SetPlayerClass(select(2, UnitClass("player")))
-	end
-	if item.disableForClass and type(item.disableForClass) == "table" and item.disableForClass[playerClass] == true then
+	local playerClass = select(2, UnitClass("player"))
+	if item.disableForClass and item.disableForClass[playerClass] then
 		Rarity:Debug(format("Attempts for item %s are disallowed (disabled for class %s)", item.name, playerClass))
+		return false
+	end
+
+	local dungeonID = select(10, GetInstanceInfo())
+	if dungeonID and item.requiredDungeons and not item.requiredDungeons[dungeonID] then
+		Rarity:Debug(format("Attempts for item %s are disallowed (not a required dungeon: %d)", item.name, dungeonID))
 		return false
 	end
 
@@ -786,8 +793,10 @@ function R:CheckNpcInterest(guid, zone, subzone, zone_t, subzone_t, curSpell, re
 		return
 	end
 
-	-- We're interested in this loot, process further
-	Rarity.guids[guid] = true
+	if not requiresPickpocket then
+		-- Pick Pocket triggers the same loot events, but it shouldn't prevent kills from counting afterwards
+		Rarity.guids[guid] = true
+	end
 
 	-- Increment attempt counter(s). One NPC might drop multiple things we want, so scan for them all.
 	if Rarity.npcs_to_items[npcid] and type(Rarity.npcs_to_items[npcid]) == "table" then

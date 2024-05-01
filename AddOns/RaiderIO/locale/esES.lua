@@ -1,4 +1,4 @@
--- Generated from CurseForge on Sun Sep  3 08:20:30 UTC 2023
+-- Generated from CurseForge on Wed May  1 08:11:03 UTC 2024
 local ns = select(2, ...) ---@class ns @The addon namespace.
 
 if ns:IsSameLocale("esES") then
@@ -27,6 +27,16 @@ L["AUTO_COMBATLOG_DESC"] = "Activa o desactiva el registro de combate automátic
 L["BEST_FOR_DUNGEON"] = "Mejor en esta mazmorra"
 L["BEST_RUN"] = "Mejor mazmorra"
 L["BEST_SCORE"] = "Mejor puntuacion M + (% s)"
+--[[Translation missing --]]
+--[[ L["BINDING_CATEGORY_RAIDERIO"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["BINDING_HEADER_RAIDERIO_REPLAYUI"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["BINDING_NAME_RAIDERIO_REPLAYUI_TIMING_BOSS"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["BINDING_NAME_RAIDERIO_REPLAYUI_TIMING_DUNGEON"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["BINDING_NAME_RAIDERIO_REPLAYUI_TOGGLE"] = ""--]] 
 L["CANCEL"] = "Cancelar"
 L["CHANGES_REQUIRES_UI_RELOAD"] = "Los cambios se han guardado, pero debes recargar la interfaz para que surtan efecto. ¿Quieres recargar ahora?"
 L["CHARACTER_LF_GUILD_MPLUS"] = "Buscando Guild Mythic+"
@@ -66,12 +76,22 @@ L["DPS"] = "DPS"
 --[[Translation missing --]]
 --[[ L["DUNGEON_SHORT_NAME_AA"] = ""--]] 
 --[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_AD"] = ""--]] 
+--[[Translation missing --]]
 --[[ L["DUNGEON_SHORT_NAME_AV"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["DUNGEON_SHORT_NAME_BH"] = ""--]] 
 --[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_BRH"] = ""--]] 
+--[[Translation missing --]]
 --[[ L["DUNGEON_SHORT_NAME_COS"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_DHT"] = ""--]] 
 L["DUNGEON_SHORT_NAME_DOS"] = "El Otro Lado - DOS"
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_EB"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_FALL"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["DUNGEON_SHORT_NAME_FH"] = ""--]] 
 L["DUNGEON_SHORT_NAME_GD"] = "Terminal Malavía - GD"
@@ -93,6 +113,8 @@ L["DUNGEON_SHORT_NAME_MISTS"] = "Nieblas de Tirna Scithe - MISTS"
 L["DUNGEON_SHORT_NAME_NW"] = "Estela Necrótica - NW"
 L["DUNGEON_SHORT_NAME_PF"] = "Bajapeste - PF"
 --[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_RISE"] = ""--]] 
+--[[Translation missing --]]
 --[[ L["DUNGEON_SHORT_NAME_RLP"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["DUNGEON_SHORT_NAME_SBG"] = ""--]] 
@@ -103,6 +125,8 @@ L["DUNGEON_SHORT_NAME_STRT"] = "Tazavesh: Calles - STRT"
 --[[ L["DUNGEON_SHORT_NAME_TJS"] = ""--]] 
 L["DUNGEON_SHORT_NAME_TOP"] = "Teatro del Dolor - TOP"
 --[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_TOTT"] = ""--]] 
+--[[Translation missing --]]
 --[[ L["DUNGEON_SHORT_NAME_ULD"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["DUNGEON_SHORT_NAME_UNDR"] = ""--]] 
@@ -111,6 +135,8 @@ L["DUNGEON_SHORT_NAME_UPPR"] = "Karazhan: Superior - UPPR"
 --[[ L["DUNGEON_SHORT_NAME_VOTW"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["DUNGEON_SHORT_NAME_VP"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["DUNGEON_SHORT_NAME_WM"] = ""--]] 
 L["DUNGEON_SHORT_NAME_WORK"] = "Mechagon: Taller - WORK"
 L["DUNGEON_SHORT_NAME_YARD"] = "Mechagon: Desguace - YARD"
 L["ENABLE_AUTO_FRAME_POSITION"] = "Posicionar automáticamente el marco de perfil de RaiderIO"
@@ -132,6 +158,8 @@ L["ENABLE_RWF_MODE_BUTTON_TOOLTIP"] = "Haz clic para habilitar el modo Race Worl
 --[[ L["ENABLE_RWF_MODE_RELOAD"] = ""--]] 
 L["ENABLE_SIMPLE_SCORE_COLORS"] = "Usar colores de puntuación simples"
 L["ENABLE_SIMPLE_SCORE_COLORS_DESC"] = "Muestra las puntuaciones usando solo los colores estándar de calidad de objeto. Facilita la distinción de puntuaciones para personas con defectos de visión cromática."
+--[[Translation missing --]]
+--[[ L["ENTER_REALM_AND_CHARACTER"] = ""--]] 
 L["EXPORTJSON_COPY_TEXT"] = "Copia este texto y pégalo en |cff00C8FFhttps://raider.io|r para ver información de todos los jugadores."
 L["GENERAL_TOOLTIP_OPTIONS"] = "Opciones generales del tooltip"
 L["GUILD_BEST_SEASON"] = "Hermandad: mejor de la temporada"
@@ -150,10 +178,22 @@ L["HIDE_OWN_PROFILE"] = "Ocultar ventana emergente de perfil personal de RaiderI
 L["HIDE_OWN_PROFILE_DESC"] = "Oculta la ventana emergente de tu perfil personal de RaiderIO. No afecta a las ventanas emergentes de otros jugadores."
 L["INVERSE_PROFILE_MODIFIER"] = "Invertir modificador de marco de perfil"
 L["INVERSE_PROFILE_MODIFIER_DESC"] = "Invierte el comportamiento del modificador del marco de perfil (mayús/ctrl/alt) para que muestre por defecto el perfil del líder del grupo."
+--[[Translation missing --]]
+--[[ L["LOCALE_NAME"] = ""--]] 
 L["LOCKING_PROFILE_FRAME"] = "RaiderIO: bloqueando el marco de perfil de M+."
 L["MAINS_BEST_SCORE_BEST_SEASON"] = "Mejor puntuación en M+ con el main (%s)"
 L["MAINS_RAID_PROGRESS"] = "Progreso de personaje principal"
 L["MAINS_SCORE"] = "Puntuación de personaje principal"
+--[[Translation missing --]]
+--[[ L["MINIMAP_SHORTCUT_ENABLE"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["MINIMAP_SHORTCUT_ENABLE_DESC"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["MINIMAP_SHORTCUT_HEADER"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["MINIMAP_SHORTCUT_HELP"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["MINIMAP_SHORTCUT_LOCK"] = ""--]] 
 L["MODULE_AMERICAS"] = "América"
 L["MODULE_EUROPE"] = "Europa"
 L["MODULE_KOREA"] = "Corea"
@@ -181,6 +221,66 @@ L["PROVIDER_NOT_LOADED"] = "|cffFF0000Advertencia:|r |cffFFFFFF%s|r no puede enc
 --[[Translation missing --]]
 --[[ L["PVP_DATA_HEADER"] = ""--]] 
 --[[Translation missing --]]
+--[[ L["RAID_AATDH"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_AATSC"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_AVOTI"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_AATDH_1"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_AATDH_2"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_AATDH_3"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_AATDH_4"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_AATDH_5"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_AATDH_6"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_AATDH_7"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_AATDH_8"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_AATDH_9"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_AATSC_1"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_AATSC_2"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_AATSC_3"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_AATSC_4"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_AATSC_5"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_AATSC_6"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_AATSC_7"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_AATSC_8"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_AATSC_9"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_ATDH_1"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_ATDH_2"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_ATDH_3"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_ATDH_4"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_ATDH_5"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_ATDH_6"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_ATDH_7"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_ATDH_8"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_ATDH_9"] = ""--]] 
+--[[Translation missing --]]
 --[[ L["RAID_BOSS_ATSC_1"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["RAID_BOSS_ATSC_2"] = ""--]] 
@@ -198,6 +298,22 @@ L["PROVIDER_NOT_LOADED"] = "|cffFF0000Advertencia:|r |cffFFFFFF%s|r no puede enc
 --[[ L["RAID_BOSS_ATSC_8"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["RAID_BOSS_ATSC_9"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_AVOTI_1"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_AVOTI_2"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_AVOTI_3"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_AVOTI_4"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_AVOTI_5"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_AVOTI_6"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_AVOTI_7"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_AVOTI_8"] = ""--]] 
 L["RAID_BOSS_CN_1"] = "Alachilla"
 L["RAID_BOSS_CN_10"] = "Sire Denathrius"
 L["RAID_BOSS_CN_2"] = "Altimor el Cazador"
@@ -316,7 +432,19 @@ L["RELOAD_NOW"] = "Reiniciarla ahora"
 --[[Translation missing --]]
 --[[ L["REPLAY_AUTO_SELECTION_TEAM_BEST"] = ""--]] 
 --[[Translation missing --]]
+--[[ L["REPLAY_BACKGROUND_COLOR"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["REPLAY_BACKGROUND_COLOR_DESC"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["REPLAY_DISABLE_CONFIRM"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["REPLAY_FRAME_ALPHA"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["REPLAY_FRAME_ALPHA_DESC"] = ""--]] 
+--[[Translation missing --]]
 --[[ L["REPLAY_MENU_COPY_URL"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["REPLAY_MENU_DISABLE"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["REPLAY_MENU_DOCK"] = ""--]] 
 --[[Translation missing --]]
@@ -344,11 +472,19 @@ L["RELOAD_NOW"] = "Reiniciarla ahora"
 --[[Translation missing --]]
 --[[ L["REPLAY_STYLE_TITLE_MODERN_COMPACT"] = ""--]] 
 --[[Translation missing --]]
+--[[ L["REPLAY_STYLE_TITLE_MODERN_SPLITS"] = ""--]] 
+--[[Translation missing --]]
 --[[ L["REPLAY_SUMMARY_LOGGED"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["REPLAY_TIMING_TITLE_BOSS"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["REPLAY_TIMING_TITLE_DUNGEON"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RESET_BUTTON"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RESET_CONFIRM_BUTTON"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RESET_CONFIRM_TEXT"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["RWF_MINIBUTTON_TOOLTIP"] = ""--]] 
 --[[Translation missing --]]

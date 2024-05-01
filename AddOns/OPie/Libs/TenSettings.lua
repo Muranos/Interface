@@ -1,6 +1,6 @@
 local M, I, COMPAT, _, T = {}, {}, select(4, GetBuildInfo()), ...
-local MODERN_CONFIG = COMPAT > 11403
-local CreateEdge, noop = T.CreateEdge, function() end
+local EV, XU, noop = T.Evie, T.exUI, function() end
+local MODERN = COMPAT > 10e4
 T.TenSettings = M
 
 do -- EscapeCallback
@@ -37,8 +37,7 @@ do -- EscapeCallback
 		f1:SetScript("OnKeyDown", noop)
 	end
 end
-
-if MODERN_CONFIG then
+do -- TenSettingsFrame
 	local WINDOW_PADDING_H, WINDOW_PADDING_TOP, WINDOW_ACTIONS_HEIGHT, WINDOW_PADDING_BOTTOM = 10, 30, 30, 15
 	local IW_PADDING_TOP, IW_PADDING_RIGHT, IW_PADDING_BOTTOM, IW_PADDING_LEFT = 24, 4, 5, 8
 	local CONTAINER_TABS_YOFFSET, CONTAINER_CONTENT_TOP_YOFFSET, CONTAINER_TITLE_YOFFSET = 11, -26, -4
@@ -554,84 +553,6 @@ if MODERN_CONFIG then
 		TenSettingsFrame.Revert.optionText = t.REVERT_OPTION_LABEL
 		ConfusableResetDialog.Hint:SetText(t.REVERT_CANCEL_HINT or "")
 	end
-else -- not MODERN_CONFIG
-	local function openInterfaceOptionsFrameCategory(panel)
-		InterfaceOptionsFrame_OpenToCategory(panel)
-		if not panel:IsVisible() then
-			-- Fails on first run as adding a category doesn't trigger a list update, but OTC does.
-			InterfaceOptionsFrame_OpenToCategory(panel)
-		end
-	
-		-- If the panel is offscreen in the AddOns list, both OTC calls above will fail;
-		-- in any case, we want all the children/sibling categories to be visible.
-		local cat, parent = INTERFACEOPTIONS_ADDONCATEGORIES, panel.parent or panel.name
-		local numVisiblePredecessors, parentPanel, lastRelatedPanel = 0
-		for i=1,#cat do
-			local e = cat[i]
-			if e.name == parent then
-				parentPanel, lastRelatedPanel = e, numVisiblePredecessors+1
-			elseif parentPanel then
-				if e.parent ~= parent then
-					break
-				end
-				lastRelatedPanel = lastRelatedPanel + 1
-			elseif not e.hidden then
-				numVisiblePredecessors = numVisiblePredecessors + 1
-			end
-		end
-		if lastRelatedPanel then
-			local buttons, ofsY = InterfaceOptionsFrameAddOns.buttons
-			if lastRelatedPanel - InterfaceOptionsFrameAddOnsList.offset > #buttons then
-				ofsY = (lastRelatedPanel - #buttons)*buttons[1]:GetHeight()
-				-- If the parent is collapsed, we might only be able to get it to show here
-				local _, maxY = InterfaceOptionsFrameAddOnsListScrollBar:GetMinMaxValues()
-				InterfaceOptionsFrameAddOnsListScrollBar:SetValue(math.min(ofsY, maxY))
-			end
-			-- If the parent is collapsed, expand it
-			for i=1,parentPanel and parentPanel.collapsed and #buttons or 0 do
-				if buttons[i].element == parentPanel then
-					InterfaceOptionsListButton_ToggleSubCategories(buttons[i])
-					break
-				end
-			end
-			if ofsY then
-				-- Set the proper scroll value, and force selection highlight to be updated
-				InterfaceOptionsFrameAddOnsListScrollBar:SetValue(ofsY)
-				InterfaceOptionsFrame_OpenToCategory(panel)
-			end
-		end
-	
-		if not panel:IsVisible() then
-			-- I give up.
-			InterfaceOptionsList_DisplayPanel(panel)
-		end
-	end
-	local wrapOkayCancel do
-		local function genHook(notification, ot)
-			return ot, function(...)
-				I.HandlePanelNotification(notification)
-				local oh = ot[...]
-				if oh then
-					return oh(...)
-				end
-			end
-		end
-		local oOkay, okayHook = genHook("okay", {})
-		local oCancel, cancelHook = genHook("cancel", {})
-		function wrapOkayCancel(panel)
-			oOkay[panel], oCancel[panel] = panel.okay, panel.cancel
-			return okayHook, cancelHook
-		end
-	end
-	function I.AddOptionsCategory(panel)
-		InterfaceOptions_AddCategory(panel)
-		panel.OpenPanel = openInterfaceOptionsFrameCategory
-		panel.okay, panel.cancel = wrapOkayCancel(panel)
-	end
-	function I.GetOverlayDefaults(f)
-		return nil, f.OverlayFaderMargin
-	end
-	M.Localize = noop
 end
 
 do -- M:CreateUndoHandle()
@@ -711,7 +632,7 @@ do -- M:CreateUndoHandle()
 	function undo:NotifyStateChanged()
 		if not pendingNotify and I.OnUndoStateChange then
 			pendingNotify = true
-			C_Timer.After(0, notifyStateChanged)
+			EV.After(0, notifyStateChanged)
 		end
 	end
 	function uhandle:search(key)
@@ -736,54 +657,20 @@ do -- M:CreateUndoHandle()
 	end
 end
 function I.HandlePanelNotification(notification)
-	if notification == "okay" and MODERN_CONFIG then
+	if notification == "okay" then
 		I.undo:ArchiveStack()
-	elseif notification == "okay" then
-		I.undo:ClearStack()
 	elseif notification == "cancel" then
 		I.undo:UnwindStack()
 	end
 end
 
-function M:CreateLineInputBox(parent, common, width)
-	local input = CreateFrame("EditBox", nil, parent)
-	input:SetAutoFocus(nil) input:SetSize(width or 150, 20)
-	input:SetFontObject(ChatFontNormal)
-	input:SetScript("OnEscapePressed", input.ClearFocus)
-	local l, m, r = input:CreateTexture(nil, "BACKGROUND"), input:CreateTexture(nil, "BACKGROUND"), input:CreateTexture(nil, "BACKGROUND")
-	l:SetSize(common and 8 or 32, common and 20 or 32)
-	l:SetPoint("LEFT", common and -5 or -10, 0)
-	l:SetTexture(common and "Interface\\Common\\Common-Input-Border" or "Interface\\ChatFrame\\UI-ChatInputBorder-Left2")
-	r:SetSize(common and 8 or 32, common and 20 or 32)
-	r:SetPoint("RIGHT", common and 0 or 10, 0)
-	r:SetTexture(common and "Interface\\Common\\Common-Input-Border" or "Interface\\ChatFrame\\UI-ChatInputBorder-Right2")
-	m:SetHeight(common and 20 or 32)
-	m:SetPoint("LEFT", l, "RIGHT")
-	m:SetPoint("RIGHT", r, "LEFT")
-	m:SetTexture(common and "Interface\\Common\\Common-Input-Border" or "Interface\\ChatFrame\\UI-ChatInputBorder-Mid2")
-	if common then
-		l:SetTexCoord(0,1/16, 0,5/8)
-		r:SetTexCoord(15/16,1, 0,5/8)
-		m:SetTexCoord(1/16,15/16, 0,5/8)
-	else
-		m:SetHorizTile(true)
-	end
-	return input
-end
 function M:CreateOptionsSlider(parent, name, width)
-	local s, t = CreateFrame("Slider", name, parent, MODERN_CONFIG and "MinimalSliderTemplate" or "OptionsSliderTemplate")
+	local s, t = CreateFrame("Slider", name, parent, "MinimalSliderTemplate")
 	s:SetWidth(width)
-	if MODERN_CONFIG then
-		t = s:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-		t, s.text = s:CreateFontString(nil, "OVERLAY"), t
-		t, s.lo = s:CreateFontString(nil, "OVERLAY"), t
-		s.hi = t
-	else
-		s.text, s.hi, s.lo = s.Text, s.High, s.Low
-		s.hi:ClearAllPoints()
-		s.lo:ClearAllPoints()
-		s.text:ClearAllPoints()
-	end
+	t = s:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	t, s.text = s:CreateFontString(nil, "OVERLAY"), t
+	t, s.lo = s:CreateFontString(nil, "OVERLAY"), t
+	s.hi = t
 	s.lo:SetFontObject(GameFontHighlightSmall)
 	s.hi:SetFontObject(GameFontHighlightSmall)
 	s.lo:SetTextColor(0.8, 0.8, 0.8)
@@ -793,7 +680,7 @@ function M:CreateOptionsSlider(parent, name, width)
 	s.lo:SetText(LOW)
 	s.hi:SetText(HIGH)
 	s:SetScript("OnValueChanged", nil)
-	return s, MODERN_CONFIG and 4 or 0, s:GetHeight()/2
+	return s, 4, s:GetHeight()/2
 end
 
 do -- M:ShowFrameOverlay(self, overlayFrame)
@@ -809,9 +696,9 @@ do -- M:ShowFrameOverlay(self, overlayFrame)
 		corner:SetTexture("Interface\\DialogFrame\\UI-DialogBox-Corner")
 		corner:SetSize(30,30) corner:SetPoint("TOPRIGHT", -5, -6)
 		local close = CreateFrame("Button", nil, container, "UIPanelCloseButton")
-		close:SetPoint("TOPRIGHT", MODERN_CONFIG and -5 or 0, MODERN_CONFIG and -5 or -1)
+		close:SetPoint("TOPRIGHT", MODERN and -5 or 0, MODERN and -5 or 0)
 		close:SetScript("OnClick", function() container:Hide() end)
-		CreateEdge(container, {edgeFile="Interface\\DialogFrame\\UI-DialogBox-Border", edgeSize=32, bgFile="Interface\\FrameGeneral\\UI-Background-Rock", tile=true, tileSize=256, insets={left=10,right=10,top=10,bottom=10}}, 0x4c667f, -5)
+		XU:Create("Backdrop", container, {edgeFile="Interface\\DialogFrame\\UI-DialogBox-Border", edgeSize=32, bgFile="Interface\\FrameGeneral\\UI-Background-Rock", tile=true, tileSize=256, insets={left=10,right=10,top=10,bottom=10}, bgColor=0x4c667f, subLevel=-5})
 		watcher:SetScript("OnHide", function()
 			if occupant then
 				container:Hide()
@@ -856,7 +743,9 @@ do -- M:ShowPromptOverlay(...)
 		promptFrame:SetSize(400, 130)
 		promptInfo.title = promptFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 		promptInfo.prompt = promptFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-		promptInfo.editBox = M:CreateLineInputBox(promptFrame, false, 300)
+		promptInfo.editBox = XU:Create("LineInput", nil, promptFrame)
+		promptInfo.editBox:SetStyle("chat")
+		promptInfo.editBox:SetWidth(300)
 		promptInfo.accept = CreateFrame("Button", nil, promptFrame, "UIPanelButtonTemplate")
 		promptInfo.cancel = CreateFrame("Button", nil, promptFrame, "UIPanelButtonTemplate")
 		promptInfo.detail = promptFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
@@ -944,12 +833,10 @@ do -- M:CreateOptionsCheckButton(name, parent)
 		b:SetHitRectInsets(0, -self:GetStringWidth()-5, 4, 4)
 	end
 	function M:CreateOptionsCheckButton(name, parent)
-		local b = CreateFrame("CheckButton", name, parent, MODERN_CONFIG and "UICheckButtonTemplate" or "InterfaceOptionsCheckButtonTemplate")
-		if MODERN_CONFIG then
-			b:SetSize(24, 24)
-			b.Text:SetPoint("LEFT", b, "RIGHT", 2, 1)
-			b.Text:SetFontObject(GameFontHighlightLeft)
-		end
+		local b = CreateFrame("CheckButton", name, parent, "UICheckButtonTemplate")
+		b:SetSize(24, 24)
+		b.Text:SetPoint("LEFT", b, "RIGHT", 2, 1)
+		b.Text:SetFontObject(GameFontHighlightLeft)
 		hooksecurefunc(b.Text, "SetText", updateCheckButtonHitRect)
 		return b
 	end

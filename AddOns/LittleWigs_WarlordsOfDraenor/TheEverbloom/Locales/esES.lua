@@ -1,14 +1,23 @@
-local L = BigWigs:NewBossLocale("Ancient Protectors", "esES") or BigWigs:NewBossLocale("Ancient Protectors", "esMX")
+local L = BigWigs:NewBossLocale("Witherbark", "esES") or BigWigs:NewBossLocale("Witherbark", "esMX")
 if not L then return end
 if L then
-	--L[83892] = "|cFF00CCFFGola|r"
-	--L[83893] = "|cFF00CC00Telu|r"
-
-	--L.custom_on_automark = "Auto-Mark Bosses"
-	--L.custom_on_automark_desc = "Automatically mark Gola with a {rt8} and Telu with a {rt7}, requires promoted or leader."
+	--L.energyStatus = "A Globule reached Witherbark: %d%% energy"
 end
 
-L = BigWigs:NewBossLocale("Witherbark", "esES") or BigWigs:NewBossLocale("Witherbark", "esMX")
+L = BigWigs:NewBossLocale("The Everbloom Trash", "esES") or BigWigs:NewBossLocale("The Everbloom Trash", "esMX")
 if L then
-	--L.energyStatus = "A Globule reached Witherbark: %d%% energy"
+	L.dreadpetal = "Horripétalo"
+	L.everbloom_naturalist = "Naturalista del Vergel Eterno"
+	L.everbloom_cultivator = "Cultivador del Vergel Eterno"
+	L.rockspine_stinger = "Aguijón Rocaspina"
+	L.everbloom_mender = "Ensalmador del Vergel Eterno"
+	L.gnarlroot = "Tuercerraíces"
+	L.melded_berserker = "Rabioso fusionado"
+	L.twisted_abomination = "Abominación retorcida"
+	L.infested_icecaller = "Llamahielos infestada"
+	L.putrid_pyromancer = "Piromántico pútrido"
+	L.addled_arcanomancer = "Arcanomántico desconcertado"
+
+	--L.gate_open_desc = "Show a bar indicating when Undermage Kesalon will open the gate to Yalnu."
+	--L.yalnu_warmup_trigger = "The portal is lost! We must stop this beast before it can escape!"
 end

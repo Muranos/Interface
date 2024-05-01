@@ -1,25 +1,23 @@
-do
-local appName, app = ...;
+
+local _, app = ...;
 
 -- Global locals
-local ipairs, tinsert, pairs, rawset, type, wipe, setmetatable
-	= ipairs, tinsert, pairs, rawset, type, wipe, setmetatable;
-local C_Map_GetAreaInfo = C_Map.GetAreaInfo;
+local ipairs, tinsert, pairs, rawset, type, wipe, setmetatable, rawget, math_floor
+	= ipairs, tinsert, pairs, rawset, type, wipe, setmetatable, rawget, math.floor
+local C_Map_GetAreaInfo, C_Map_GetMapInfo = C_Map.GetAreaInfo, C_Map.GetMapInfo;
 
 -- App locals
 local contains, classIndex, raceIndex, factionID =
 	app.contains, app.ClassIndex, app.RaceIndex, app.FactionID;
 
 -- Module locals
-local AllCaches = {};
+local AllCaches, AllGamePatches, postscripts, runners, QuestTriggers = {}, {}, {}, {}, {};
 local containerMeta = {
 	__index = function(t, id)
 		if id then
 			local container = {};
-			rawset(t, id, container);
+			t[id] = container;
 			return container;
-		else
-			error("Attempting to get a nil id to a cache!");
 		end
 	end,
 };
@@ -27,19 +25,15 @@ local fieldMeta = {
 	__index = function(t, field)
 		if field then
 			local container = setmetatable({}, containerMeta);
-			rawset(t, field, container);
+			t[field] = container;
 			return container;
-		else
-			error("Attempting to get a nil field on cache " .. t.name);
 		end
 	end,
 	__newindex = function(t, field, value)
 		if field then
 			local container = setmetatable(value, containerMeta);
-			rawset(t, field, value);
+			rawset(t, field, container);
 			return container;
-		else
-			error("Attempting to assign a nil field on cache " .. t.name);
 		end
 	end,
 };
@@ -47,7 +41,10 @@ local currentCache, CacheFields;
 
 -- Cache a given group into the current cache for the provided field and value
 local function CacheField(group, field, value)
-	tinsert(currentCache[field][value], group);
+	-- comment this in for testing if some caching issue happens
+	-- if not (field and value) then print("Attempting to cache invalid data", field, value, group.text); end
+	local c = currentCache[field][value]
+	c[#c + 1] = group
 end
 
 -- Returns: An object which can be used for holding cached data by various keys allowing for quick updates of data states.
@@ -55,7 +52,8 @@ local CreateDataCache = function(name, skipMapCaching)
 	local cache = { name = name };
 	AllCaches[name] = cache;
 	cache.CacheField = function(group, field, value)
-		tinsert(cache[field][value], group);
+		local c = cache[field][value]
+		c[#c + 1] = group
 	end
 	cache.CacheFields = function(groups)
 		local oldCache = currentCache;
@@ -64,53 +62,52 @@ local CreateDataCache = function(name, skipMapCaching)
 		currentCache = oldCache;
 	end
 	setmetatable(cache, fieldMeta);
-	cache["npcID"] = cache.creatureID;	-- identical cache as creatureID (probably deprecate npcID use eventually)
-	--cache["requireSkill"] = cache.professionID;	-- identical cache as professionID (in Retail)
+	cache.npcID = cache.creatureID;	-- identical cache as creatureID (probably deprecate npcID use eventually)
+	-- cache.mountID = cache.spellID;	-- identical cache as spellID
+	cache.recipeID = cache.spellID;	-- identical cache as spellID
+	--cache.requireSkill = cache.professionID;	-- identical cache as professionID (in Retail)
 	return cache;
 end
 currentCache = CreateDataCache("default");
 
-local currentMapCounters = setmetatable({}, {
-	__index = function(t, id) return 0; end,
-});
+local currentMapGroup, allowMapCaching = setmetatable({}, { __index = function() return end }), true
 local cacheAchievementID = function(group, value)
-	-- achievements used on maps should not cache the location for the achievement
-	if group.mapID then
-		--print("Map has an achievementID linked. This is a deprecated style.", group.hash);
-		return;
-	end
 	CacheField(group, "achievementID", value);
 end
 local cacheCreatureID = function(group, creatureID)
 	if creatureID > 0 then
 		CacheField(group, "creatureID", creatureID);
 	end
-end;
+end
 local cacheFactionID = function(group, id)
 	CacheField(group, "factionID", id);
 end
 local cacheHeaderID = function(group, headerID)
 	CacheField(group, "headerID", headerID);
 end
+local function allowCacheMapID(group, mapID)
+	-- already are within a caching group for this mapID or not allowing map caching, don't cache
+	if currentMapGroup[mapID] or not allowMapCaching then return end
+	-- this group should not be map-cached into its coord map
+	-- if the group has no sub-groups, then we allow caching for this new mapID, but don't capture it as a mapgroup
+	if not rawget(group, "g") then return true end
+	-- otherwise capture this group as the containing cache group of this mapID
+	-- app.PrintDebug(">>>map:",mapID,group.key,group[group.key])
+	currentMapGroup[mapID] = group
+	return true
+end
 local cacheMapID = function(group, mapID)
-	local count = currentMapCounters[mapID];
-	if count == 0 then
-		currentMapCounters[mapID] = 1;
-		if currentMapCounters[-1] == 0 then
-			CacheField(group, "mapID", mapID);
-		end
-	else
-		currentMapCounters[mapID] = count + 1;
-	end
-	return true;
-end;
+	if not allowCacheMapID(group, mapID) then return end
+	CacheField(group, "mapID", mapID);
+	return true
+end
 local cacheObjectID = function(group, objectID)
 	CacheField(group, "objectID", objectID);
 end;
 local cacheQuestID = function(group, questID)
 	CacheField(group, "questID", questID);
 end
-if app.Version == "[Git]" then
+if app.Debugging and app.Version == "[Git]" then
 	local L = app.L;
 	local referenceCounter = {};
 	app.ReferenceCounter = referenceCounter;
@@ -142,16 +139,12 @@ if app.Version == "[Git]" then
 		end);
 		for _,data in ipairs(CUSTOM_HEADERS) do
 			local id = data[1];
-			print("Custom Header " .. id .. " has " .. data[2] .. " references" .. (data[3] or "."));
 			local header = {};
 			if L.HEADER_NAMES[id] then header.name = L.HEADER_NAMES[id]; end
 			if L.HEADER_ICONS[id] then header.icon = L.HEADER_ICONS[id]; end
 			if L.HEADER_DESCRIPTIONS[id] then header.description = L.HEADER_DESCRIPTIONS[id]; end
-			if data[3] then
-				data[3] = header;
-			else
-				tinsert(data, header);
-			end
+			print("Header " .. id .. " has " .. data[2] .. " references" .. (data[3] or "."), header.name);
+			tinsert(data, header);
 		end
 		app.SetDataMember("CUSTOM_HEADERS", CUSTOM_HEADERS);
 	end
@@ -163,9 +156,9 @@ if app.Version == "[Git]" then
 		end
 	end
 	cacheHeaderID = function(group, headerID)
-		if not group.type and not L["HEADER_NAMES"][headerID] then
+		if not group.type and not L.HEADER_NAMES[headerID] then
 			print("Header Missing Name ", headerID);
-			L["HEADER_NAMES"][headerID] = "Header #" .. headerID;
+			L.HEADER_NAMES[headerID] = "Header #" .. headerID;
 		end
 		referenceCounter[headerID] = (referenceCounter[headerID] or 0) + 1;
 		CacheField(group, "headerID", headerID);
@@ -185,9 +178,11 @@ local providerTypeConverters = {
 	["o"] = cacheObjectID,
 	["c"] = function(group, providerID)
 		CacheField(group, "currencyIDAsCost", providerID);
+		CacheField(group, "currencyID", providerID);
 	end,
 	["i"] = function(group, providerID)
 		CacheField(group, "itemIDAsCost", providerID);
+		CacheField(group, "itemID", providerID);
 	end,
 	["g"] = function(group, providerID)
 		-- Do nothing, nothing to cache.
@@ -197,13 +192,11 @@ local cacheProviderOrCost = function(group, provider)
 	providerTypeConverters[provider[1]](group, provider[2]);
 end
 
-local nextCustomMapID = -2;
-local uncacheMap = function(group, mapID, field)
-	if mapID then
-		local count = currentMapCounters[mapID];
-		if count > 0 then
-			currentMapCounters[mapID] = count - 1;
-		end
+local uncacheMap = function(group, mapID)
+	-- remove this group's mapID if it is the current map group for this mapID
+	if currentMapGroup[mapID] == group then
+		-- app.PrintDebug("<<<map:",mapID,group.key,group[group.key])
+		currentMapGroup[mapID] = nil
 	end
 end;
 local mapKeyUncachers = {
@@ -214,18 +207,201 @@ local mapKeyUncachers = {
 		end
 	end,
 	["coord"] = function(group, coord)
-		if not (group.instanceID or group.mapID or group.objectiveID) then	-- Retail doesn't have this line, investigate why or if they should
+		uncacheMap(group, coord[3]);
+	end,
+	["coords"] = function(group, coords)
+		for i,coord in ipairs(coords) do
 			uncacheMap(group, coord[3]);
 		end
 	end,
-	["coords"] = function(group, coords)
-		if not (group.instanceID or group.mapID or group.objectiveID) then	-- Retail doesn't have this line, investigate why or if they should
-			for i,coord in ipairs(coords) do
-				uncacheMap(group, coord[3]);
+};
+
+-- Map Remapping
+-- This feature takes the original mapID and allows modifications on it to
+-- change the displayed name and the content of the mini list.
+local MapRemapping = {};
+app.MapRemapping = MapRemapping;
+local nextCustomMapID = -2;
+local function assignZoneAreaIDs(originalMapID, mapID, ids)
+	if originalMapID then
+		local remap = MapRemapping[originalMapID];
+		if not remap then
+			remap = {};
+			MapRemapping[originalMapID] = remap;
+		end
+		local areaIDs = remap.areaIDs;
+		if not areaIDs then
+			areaIDs = {};
+			remap.areaIDs = areaIDs;
+		end
+		for j,areaID in ipairs(ids) do
+			areaIDs[areaID] = mapID;
+		end
+	end
+end
+local function zoneArtIDRunner(group, value)
+	-- If this group uses a normal map, we want to rip out the cache for it.
+	-- Doing it after the cache is finished allows us to still prevent the coordinates
+	-- on relative objects and npcs from getting cached to the parent mapID.
+	local originalMaps = group.maps;
+	local originalMapID = group.mapID or (originalMaps and originalMaps[1]);
+	if originalMapID then
+		-- Generate a new unique mapID (negative)
+		local mapID = nextCustomMapID;
+		nextCustomMapID = nextCustomMapID - 1;
+		if originalMaps then
+			if group.mapID then
+				tinsert(originalMaps, mapID);
+			else
+				group.mapID = nil;
+			end
+		else
+			group.maps = {mapID};
+		end
+
+		-- Manually assign the name of this map since it is not a real mapID.
+		CacheField(group, "mapID", mapID);
+		app.L.MAP_ID_TO_ZONE_TEXT[mapID] = group.text;
+
+		-- Remap the original mapID to the new mapID when it encounters any of these artIDs.
+		local remap = MapRemapping[originalMapID];
+		if not remap then
+			remap = {};
+			MapRemapping[originalMapID] = remap;
+		end
+		local artIDs = remap.artIDs;
+		if not artIDs then
+			artIDs = {};
+			remap.artIDs = artIDs;
+		end
+		for j,artID in ipairs(value) do
+			artIDs[artID] = mapID;
+		end
+
+		-- Uncache the original mapID
+		local mapIDCache = currentCache.mapID;
+		mapIDCache = mapIDCache[originalMapID];
+		for i,o in ipairs(mapIDCache) do
+			if o == group then
+				table.remove(mapIDCache, i);
+				break;
 			end
 		end
-	end,
-};
+
+		--local info = C_Map_GetMapInfo(originalMapID);
+		--print("MapRemapping (artIDs): ", originalMapID, info and info.name, mapID, group.text);
+	--else
+		--print("Invalid MapRemapping (artIDs):", group.hash);
+	end
+end
+local function zoneTextAreasRunner(group, value)
+	local mapID = group.mapID;
+	if not mapID then
+		-- Generate a new unique mapID (negative)
+		mapID = nextCustomMapID;
+		nextCustomMapID = nextCustomMapID - 1;
+		if group.maps then
+			tinsert(group.maps, mapID)
+		else
+			group.maps = {mapID};
+		end
+
+		-- Manually assign the name of this map since it is not a real mapID.
+		CacheField(group, "mapID", mapID);
+	end
+
+	-- Use the localizer to force the minilist to display this as if it was a map file.
+	local name = C_Map_GetAreaInfo(value[1]);
+	if name then app.L.MAP_ID_TO_ZONE_TEXT[mapID] = name; end
+
+	-- Remap the original mapID to the new mapID when it encounters any of these artIDs.
+	local mapIDs, parentMapID, info = {}, nil, nil;
+	if group.coords then
+		parentMapID = group.coords[1][3];
+		if parentMapID then
+			mapIDs[parentMapID] = 1;
+			info = C_Map_GetMapInfo(parentMapID);
+			if info and info.parentMapID then
+				mapIDs[info.parentMapID] = 1;
+			end
+		end
+	else
+		parentMapID = app.GetRelativeValue(group.parent, "mapID");
+		if parentMapID then
+			mapIDs[parentMapID] = 1;
+			info = C_Map_GetMapInfo(parentMapID);
+			if info and info.parentMapID then
+				mapIDs[info.parentMapID] = 1;
+			end
+		end
+	end
+	if group.maps then
+		for i,parentMapID in ipairs(group.maps) do
+			mapIDs[parentMapID] = 1;
+			info = C_Map_GetMapInfo(parentMapID);
+			if info and info.parentMapID then
+				mapIDs[info.parentMapID] = 1;
+			end
+		end
+	end
+	for parentMapID,_ in pairs(mapIDs) do
+		assignZoneAreaIDs(parentMapID, mapID, value);
+	end
+end
+local function zoneTextContinentRunner(group, value)
+	local mapID = group.mapID;
+	if mapID then
+		local remap = MapRemapping[mapID];
+		if not remap then
+			remap = {};
+			MapRemapping[mapID] = remap;
+		end
+		remap.isContinent = true;
+
+		--local info = C_Map_GetMapInfo(mapID);
+		--print("MapRemapping (continent): ", mapID, info and info.name);
+	end
+end
+local function zoneTextNamesRunner(group, value)
+	--if true then return; end
+	-- Remap the original mapID to the new mapID when it encounters any of these artIDs.
+	local originalMapID = (group.coords and group.coords[1][3]) or app.GetRelativeValue(group.parent, "mapID");
+	if originalMapID then
+		local mapID = group.mapID;
+		if not mapID then
+			-- Generate a new unique mapID (negative)
+			mapID = nextCustomMapID;
+			nextCustomMapID = nextCustomMapID - 1;
+			if group.maps then
+				tinsert(group.maps, mapID)
+			else
+				group.maps = {mapID};
+			end
+
+			-- Manually assign the name of this map since it is not a real mapID.
+			CacheField(group, "mapID", mapID);
+		end
+
+		local remap = MapRemapping[originalMapID];
+		if not remap then
+			remap = {};
+			MapRemapping[originalMapID] = remap;
+		end
+		local names = remap.names;
+		if not names then
+			names = {};
+			remap.names = names;
+		end
+		for j,name in ipairs(value) do
+			names[name] = mapID;
+		end
+
+		--local info = C_Map_GetMapInfo(originalMapID);
+		--print("MapRemapping (name): ", originalMapID, info and info.name, mapID);
+	--else
+		--print("Invalid MapRemapping (name):", group.hash);
+	end
+end
 local fieldConverters = {
 	-- Simple Converters
 	["achievementID"] = cacheAchievementID,
@@ -247,6 +423,9 @@ local fieldConverters = {
 	["encounterID"] = function(group, value)
 		CacheField(group, "encounterID", value);
 	end,
+	["expansionID"] = function(group, value)
+		CacheField(group, "expansionID", value);
+	end,
 	["explorationID"] = function(group, value)
 		CacheField(group, "explorationID", value);
 	end,
@@ -257,7 +436,13 @@ local fieldConverters = {
 	["followerID"] = function(group, value)
 		CacheField(group, "followerID", value);
 	end,
+	["garrisonBuildingID"] = function(group, value)
+		CacheField(group, "garrisonBuildingID", value);
+	end,
 	["headerID"] = cacheHeaderID,
+	["heirloomUnlockID"] = function(group, value)
+		CacheField(group, "heirloomUnlockID", value);
+	end,
 	["illusionID"] = function(group, value)
 		CacheField(group, "illusionID", value);
 	end,
@@ -265,24 +450,32 @@ local fieldConverters = {
 		CacheField(group, "instanceID", value);
 	end,
 	["itemID"] = function(group, value)
-		local modItemID = group.modItemID or value;
-		if modItemID ~= value then
-			CacheField(group, "itemID", modItemID);
-		end
 		CacheField(group, "itemID", value);
 	end,
 	["otherItemID"] = function(group, value)
 		CacheField(group, "itemID", value);
 	end,
+	["drakewatcherManuscriptID"] = function(group, value)
+		CacheField(group, "itemID", value);
+	end,
+	["heirloomID"] = function(group, value)
+		CacheField(group, "itemID", value);
+	end,
 	["mapID"] = cacheMapID,
+	["mountID"] = function(group, value)
+		CacheField(group, "spellID", value);
+	end,
 	["npcID"] = cacheCreatureID,
 	["objectID"] = cacheObjectID,
 	["professionID"] = function(group, value)
 		CacheField(group, "professionID", value);
 	end,
 	["questID"] = cacheQuestID,
-	["questIDA"] = cacheQuestID,	-- These are referenced in Retail, not sure if used.
-	["questIDH"] = cacheQuestID,	-- These are referenced in Retail, not sure if used.
+	["questIDA"] = cacheQuestID,
+	["questIDH"] = cacheQuestID,
+	["recipeID"] = function(group, value)
+		CacheField(group, "spellID", value);
+	end,
 	["requireSkill"] = function(group, value)
 		CacheField(group, "requireSkill", value);	-- NOTE: professionID in Retail, investigate why
 	end,
@@ -292,17 +485,14 @@ local fieldConverters = {
 	["rwp"] = function(group, value)
 		CacheField(group, "rwp", value);
 	end,
-	["s"] = function(group, value)
-		CacheField(group, "s", value);
+	["sourceID"] = function(group, value)
+		CacheField(group, "sourceID", value);
 	end,
 	["speciesID"] = function(group, value)
 		CacheField(group, "speciesID", value);
 	end,
 	["spellID"] = function(group, value)
 		CacheField(group, "spellID", value);
-	end,
-	["tierID"] = function(group, value)
-		CacheField(group, "tierID", value);
 	end,
 	["titleID"] = function(group, value)
 		CacheField(group, "titleID", value);
@@ -328,11 +518,6 @@ local fieldConverters = {
 			cacheCreatureID(group, value[i]);
 		end
 	end,
-	["titleIDs"] = function(group, value)
-		for i=1,#value,1 do
-			CacheField(group, "titleID", value[i]);
-		end
-	end,
 	["maps"] = function(group, value)
 		for i=1,#value,1 do
 			cacheMapID(group, value[i]);
@@ -343,7 +528,7 @@ local fieldConverters = {
 		-- Retail used this commented out section instead, see which one is better
 		-- don't cache mapID from coord for anything which is itself an actual instance or a map
 		-- if currentInstance ~= group and not rawget(group, "mapID") and not rawget(group, "difficultyID") then
-		if not (group.instanceID or group.mapID or group.objectiveID) then
+		if not (group.instanceID or group.mapID or group.objectiveID or group.difficultyID or (group.headerID and group.parent and group.parent.instanceID)) then
 			return cacheMapID(group, coord[3]);
 		end
 	end,
@@ -351,7 +536,7 @@ local fieldConverters = {
 		-- Retail used this commented out section instead, see which one is better
 		-- don't cache mapID from coord for anything which is itself an actual instance or a map
 		-- if currentInstance ~= group and not rawget(group, "mapID") and not rawget(group, "difficultyID") then
-		if not (group.instanceID or group.mapID or group.objectiveID) then
+		if not (group.instanceID or group.mapID or group.objectiveID or group.difficultyID or (group.headerID and group.parent and group.parent.instanceID)) then
 			for i,coord in ipairs(coords) do
 				cacheMapID(group, coord[3]);
 			end
@@ -404,58 +589,42 @@ local fieldConverters = {
 	end,
 
 	-- Localization Helpers
-	["sins"] = function(group, value)
-		local mapID = group.mapID;
-		if not mapID then
-			-- Generate a unique NEGATIVE mapID and cache the object to it.
-			mapID = nextCustomMapID;
-			nextCustomMapID = nextCustomMapID - 1;
-			group.mapID = mapID;
-			CacheField(group, "mapID", mapID);
-		end
-		for i=1,#value,1 do
-			-- Then uses the ALT_ZONE_TEXT_TO_MAP_ID localizer to force the minilist to display this as if it was a map file.
-			local name = value[i];
-			if name then app.L.ALT_ZONE_TEXT_TO_MAP_ID[name] = mapID; end
-		end
+	["zone-artIDs"] = function(group, value)
+		tinsert(runners, function()
+			zoneArtIDRunner(group, value);
+		end);
 	end,
 	["zone-text-areaID"] = function(group, value)
-		local mapID = group.mapID;
-		if not mapID then
-			-- Generate a unique NEGATIVE mapID and cache the object to it.
-			mapID = nextCustomMapID;
-			nextCustomMapID = nextCustomMapID - 1;
-			group.mapID = mapID;
-			CacheField(group, "mapID", mapID);
-		end
-
-		-- Then uses the ZONE_TEXT_TO_MAP_ID localizer to force the minilist to display this as if it was a map file.
-		local name = C_Map_GetAreaInfo(value);
-		if name then app.L.ZONE_TEXT_TO_MAP_ID[name] = mapID; end
+		tinsert(runners, function()
+			zoneTextAreasRunner(group, { value });
+		end);
 	end,
 	["zone-text-areas"] = function(group, value)
-		local mapID = group.mapID;
-		if not mapID then
-			-- Generate a unique NEGATIVE mapID and cache the object to it.
-			mapID = nextCustomMapID;
-			nextCustomMapID = nextCustomMapID - 1;
-			group.mapID = mapID;
-			CacheField(group, "mapID", mapID);
-		end
-		-- Then uses the ZONE_TEXT_TO_MAP_ID localizer to force the minilist to display this as if it was a map file.
-		local name = C_Map_GetAreaInfo(value[1]);
-		if name then app.L.ZONE_TEXT_TO_MAP_ID[name] = mapID; end
-		for i=2,#value,1 do
-			name = C_Map_GetAreaInfo(value[i]);
-			if name then app.L.ALT_ZONE_TEXT_TO_MAP_ID[name] = mapID; end
-		end
+		tinsert(runners, function()
+			zoneTextAreasRunner(group, value);
+		end);
+	end,
+	["zone-text-continent"] = function(group, value)
+		tinsert(runners, function()
+			zoneTextContinentRunner(group, value);
+		end);
+	end,
+	["zone-text-names"] = function(group, value)
+		tinsert(runners, function()
+			zoneTextNamesRunner(group, value);
+		end);
+	end,
+
+	-- Patch Helpers
+	["awp"] = function(group, value)
+		if value then AllGamePatches[value] = true; end
 	end,
 };
 
 local _converter;
 local function _CacheFields(group)
 	local n = 0;
-	local clone, mapKeys, key, value, hasG = {};
+	local clone, mapKeys, key, value, hasG = {}, nil, nil, nil, nil;
 	for key,value in pairs(group) do
 		if key == "g" then
 			hasG = true;
@@ -476,7 +645,7 @@ local function _CacheFields(group)
 		end
 	end
 	if hasG then
-		for i,subgroup in ipairs(group.g) do
+		for _,subgroup in ipairs(group.g) do
 			_CacheFields(subgroup);
 		end
 	end
@@ -486,11 +655,113 @@ local function _CacheFields(group)
 		end
 	end
 end
+
+---- Retail Differences ----
+if app.IsRetail then
+	-- 'altQuests' in Retail pretending to be the same quest as a different quest actually causes problems for searches
+	-- and it makes more sense to not pretend they're the same than to hamper existing logic with more conditionals to
+	-- make sure we actually get the data that we search for
+	fieldConverters.altQuests = nil;
+	-- 'awp' isn't needed for caching into 'AllGamePatches' currently... I don't really see a future where we 'pre-add' future Retail content in public releases
+	fieldConverters.awp = nil;
+	-- Base Class provides auto-fields for these and they do no actual caching
+	fieldConverters.c = nil
+	fieldConverters.r = nil
+	fieldConverters.races = nil
+
+	-- Retail doesn't need to double cache the object attached to currencies/items because it uses the cost
+	-- caches for the same information
+	providerTypeConverters.c = function(group, providerID)
+		CacheField(group, "currencyIDAsCost", providerID);
+	end
+	providerTypeConverters.i = function(group, providerID)
+		CacheField(group, "itemIDAsCost", providerID);
+	end
+
+	-- use single iteration of each group by way of not performing any group field additions while the cache process is running
+	_CacheFields = function(group)
+		local mapKeys
+		local hasG = rawget(group, "g")
+		for key,value in pairs(group) do
+			_converter = fieldConverters[key];
+			if _converter then
+				if _converter(group, value) then
+					if mapKeys then mapKeys[key] = value
+					else mapKeys = { [key] = value }; end
+				end
+			end
+		end
+		if hasG then
+			for _,subgroup in ipairs(hasG) do
+				_CacheFields(subgroup);
+			end
+		end
+		if mapKeys then
+			for key,value in pairs(mapKeys) do
+				mapKeyUncachers[key](group, value);
+			end
+		end
+	end
+
+	-- Retail has this required modItemID field that complicates everything, so put that here instead.
+	local cacheGroupForModItemID = {}
+	fieldConverters.itemID = function(group, value)
+		CacheField(group, "itemID", value);
+		cacheGroupForModItemID[#cacheGroupForModItemID + 1] = group
+	end
+	fieldConverters.drakewatcherManuscriptID = fieldConverters.itemID;
+	fieldConverters.heirloomID = fieldConverters.itemID;
+	tinsert(postscripts, function()
+		if #cacheGroupForModItemID == 0 then return end
+		local modItemID
+		-- app.PrintDebug("caching for modItemID",#cacheGroupForModItemID)
+		for _,group in ipairs(cacheGroupForModItemID) do
+			modItemID = group.modItemID
+			if modItemID then
+				CacheField(group, "modItemID", modItemID)
+				if modItemID ~= group.itemID then
+					CacheField(group, "itemID", modItemID)
+				end
+			end
+		end
+		wipe(cacheGroupForModItemID)
+		-- app.PrintDebug("caching for modItemID done")
+	end)
+
+	-- Retail doesn't have objectives so don't bother checking for it
+	fieldConverters.coord = function(group, coord)
+		-- don't cache mapID from coord for anything which is itself an actual instance or a map
+		if rawget(group, "instanceID") or rawget(group, "mapID") or rawget(group, "difficultyID") or (group.headerID and group.parent and group.parent.instanceID) then return end
+		return cacheMapID(group, coord[3]);
+	end
+	fieldConverters.coords = function(group, coords)
+		-- don't cache mapID from coord for anything which is itself an actual instance or a map
+		if rawget(group, "instanceID") or rawget(group, "mapID") or rawget(group, "difficultyID") or (group.headerID and group.parent and group.parent.instanceID) then return end
+		local any
+		for i,coord in ipairs(coords) do
+			any = cacheMapID(group, coord[3]) or any
+		end
+		return any;
+	end
+
+	fieldConverters.conduitID = function(group, id)
+		CacheField(group, "conduitID", id);
+	end
+	fieldConverters.up = function(group, up)
+		CacheField(group, "up", up);
+	end
+end
+
 CacheFields = function(group, skipMapCaching)
-	wipe(currentMapCounters);
-	currentMapCounters[-1] = skipMapCaching and 1 or 0;
+	allowMapCaching = not skipMapCaching
 	_CacheFields(group);
-	wipe(currentMapCounters);
+	for i,runner in ipairs(runners) do
+		runner();
+	end
+	for i,postscript in ipairs(postscripts) do
+		postscript();
+	end
+	wipe(runners);
 	return group;
 end
 
@@ -504,8 +775,31 @@ if app.__perf then
 	app.__perf.CaptureTable(fieldConverters, "CacheFields");
 end
 
--- Returns: A table containing all subgroups which contain a given value of field relative to the group or nil.
+-- Cache-Based Searching
+local function GetRawField(field, id)
+	-- Returns: A table containing all groups which contain the provided id for a given field.
+	-- NOTE: Can be nil for simplicity in use
+	local container = rawget(currentCache, field)
+	if not container then return end
+	return rawget(container, id);
+end
+local function GetRawFieldContainer(field)
+	-- Returns: The actual table containing all groups which contain a given field
+	-- NOTE: Can be nil for simplicity in use
+	return rawget(currentCache, field);
+end
+local function SearchForField(field, id)
+	-- Returns: A table containing all groups which contain the provided id for a given field.
+	return currentCache[field][id];
+end
+local function SearchForFieldContainer(field)
+	-- Returns: A table containing all groups which contain a given field.
+	return currentCache[field];
+end
+
+-- Recursive Searching
 local function SearchForFieldRecursively(group, field, value)
+	-- Returns: A table containing all subgroups which contain a given value of field relative to the group or nil.
 	if group.g then
 		-- Go through the sub groups and determine if any of them have a response.
 		local first = nil;
@@ -537,19 +831,8 @@ local function SearchForFieldRecursively(group, field, value)
 		return { group };
 	end
 end
-
--- Returns: A table containing all groups which contain a given field.
-local function SearchForFieldContainer(field)
-	return currentCache[field];
-end
-
--- Returns: A table containing all groups which contain the provided id for a given field.
-local function SearchForField(field, id)
-	return SearchForFieldContainer(field)[id], field, id;
-end
-
--- Search a group for all items relative to the given group. (excluding the group passed in)
 local function SearchForRelativeItems(group, listing)
+	-- Search a group for all items relative to the given group. (excluding the group passed in)
 	if group and group.g then
 		for i,subgroup in ipairs(group.g) do
 			SearchForRelativeItems(subgroup, listing);
@@ -560,15 +843,188 @@ local function SearchForRelativeItems(group, listing)
 	end
 end
 
--- Returns: The first found cached group for a given SourceID
--- NOTE: Do not use this function when the results are being passed into an Update afterward
--- or if ATT data has not been loaded yet
-local function SearchForSourceIDQuickly(sourceID)
-	if sourceID then return SearchForField("s", sourceID)[1]; end
+local function GetFilteredResults(results)
+	local result
+	local filterMatch = {}
+	local Filter = app.RecursiveCharacterRequirementsFilter
+	for i=1,#results do
+		result = results[i]
+		if Filter(result) then
+			filterMatch[#filterMatch + 1] = result
+			-- app.PrintDebug("SFO:Char",app:SearchLink(result))
+		end
+	end
+	-- no filtered results for specific character, try filter by only faction
+	if #filterMatch == 0 then
+		Filter = app.RecursiveFilter
+		for i=1,#results do
+			result = results[i]
+			if Filter(result, "Race_CurrentFaction") then
+				filterMatch[#filterMatch + 1] = result
+				-- app.PrintDebug("SFO:Faction",app:SearchLink(result))
+			end
+		end
+	end
+	-- app.PrintDebug("SFO-F","?>",#filterMatch,#results)
+	return (#filterMatch > 0 and filterMatch) or results
 end
 
--- Search a group for a objects whose hash matches a hash found in hashes and append it to table t.
+-- Search for a thing that matches some requirements
+local function SearchForObject(field, id, require, allowMultiple)
+	-- This method performs the SearchForField logic, but then may verifies that ONLY a specific matching, filtered-priority object is returned
+	-- require - Determine the required level of matching found objects:
+	-- * "key" - only accept objects whose key is also the field with value
+	-- * "field" - only accept objects which contain the exact field with value
+	-- * none - accept any object which is cached against the specific field value
+	-- allowMultiple - Whether to return multiple matching objects as an array (within the 'require' restriction)
+	local fcache, count
+	-- Direct search by modItemID means not to allow an itemID fallback in the search
+	-- however, base itemIDs are not cached by modItemID, so a modItemID search on a base itemID
+	-- should instead be considered as an itemID search
+	if field == "modItemID" then
+		local idBase = math_floor(id)
+		if idBase == id then
+			id = idBase
+			field = "itemID"
+		end
+	-- Items are cached by base ItemID and ModItemID, so when searching by ItemID, use ModItemID for
+	-- match requirement accuracy if possible, with fallback to base itemID
+	elseif field == "itemID" then
+		-- try searching by modItemID cache, any results are the EXACT id searched for
+		fcache = GetRawField("modItemID", id)
+		if fcache and #fcache > 0 then
+			-- use modItemID as the field for 'require' since it returned results
+			field = "modItemID"
+			require = "field"
+		else
+			local idBase = math_floor(id)
+			-- if we're NOT searching for a plain itemID and found no results, we can revert to the plain itemID
+			if idBase ~= id and (not fcache or #fcache == 0) then
+				id = idBase
+				fcache = nil
+			end
+		end
+	end
+	fcache = fcache or GetRawField(field, id)
+	count = fcache and #fcache or 0;
+	if count == 0 then
+		-- app.PrintDebug("SFO",field,id,require,"0~")
+		return allowMultiple and app.EmptyTable or nil
+	end
+	local fcacheObj;
+	require = (require == "key" and 2) or (require == "field" and 1) or 0;
+	-- quick escape for single cache results! hooray!
+	if count == 1 then
+		fcacheObj = fcache[1];
+		if (require == 0) or
+			(require == 1 and fcacheObj[field] == id) or
+			(require == 2 and fcacheObj.key == field and fcacheObj[field] == id)
+		then
+			-- app.PrintDebug("SFO",field,id,require,"1=",fcacheObj.hash)
+			return allowMultiple and {fcacheObj} or fcacheObj
+		end
+		-- one result, but doesn't meet the 'require'
+		-- app.PrintDebug("SFO",field,id,require,"1~",fcacheObj.hash)
+		return allowMultiple and app.EmptyTable or nil
+	end
+
+	local keyMatch, fieldMatch, match = {},{},{}
+
+	-- split logic based on require to reduce conditionals within loop
+	if require == 2 then
+		-- Key require
+		for i=1,count,1 do
+			fcacheObj = fcache[i];
+			-- field matching id
+			if fcacheObj[field] == id then
+				if fcacheObj.key == field then
+					-- with keyed-field matching key
+					keyMatch[#keyMatch + 1] = fcacheObj
+				end
+			end
+		end
+	elseif require == 1 then
+		-- Field require
+		for i=1,count,1 do
+			fcacheObj = fcache[i];
+			-- field matching id
+			if fcacheObj[field] == id then
+				if fcacheObj.key == field then
+					-- with keyed-field matching key
+					keyMatch[#keyMatch + 1] = fcacheObj
+				else
+					-- with field matching id
+					fieldMatch[#fieldMatch + 1] = fcacheObj
+				end
+			end
+		end
+	else
+		-- No require
+		for i=1,count,1 do
+			fcacheObj = fcache[i];
+			-- field matching id
+			if fcacheObj[field] == id then
+				if fcacheObj.key == field then
+					-- with keyed-field matching key
+					keyMatch[#keyMatch + 1] = fcacheObj
+				else
+					-- with field matching id
+					fieldMatch[#fieldMatch + 1] = fcacheObj
+				end
+			else
+				-- basic group related to search
+				match[#match + 1] = fcacheObj
+			end
+		end
+	end
+	-- app.PrintDebug("SFO",field,id,require,"?>",#keyMatch,#fieldMatch,#match)
+	local results = (#keyMatch > 0 and keyMatch) or (#fieldMatch > 0 and fieldMatch) or (#match > 0 and match) or app.EmptyTable
+	-- if only 1 or no result, no point to try filtering
+	if #results <= 1 then return allowMultiple and results or results[1] end
+	results = GetFilteredResults(results)
+	return allowMultiple and results or results[1]
+end
+
+-- All Cache Searching
+local function SearchForFieldInAllCaches(field, id)
+	-- Returns: A table containing all groups which contain the provided id for a given field from all established data caches.
+	local ArrayAppend = app.ArrayAppend;
+	local groups = {};
+	for _,cache in pairs(AllCaches) do
+		ArrayAppend(groups, cache[field][id]);
+	end
+	return groups;
+end
+local function SearchForManyInAllCaches(field, ids)
+	-- Returns: A table containing all groups which contain the provided each of the provided ids for a given field from all established data caches.
+	local ArrayAppend = app.ArrayAppend;
+	local groups = {};
+	local fieldCache;
+	for _,cache in pairs(AllCaches) do
+		fieldCache = cache[field];
+		for _,id in ipairs(ids) do
+			ArrayAppend(groups, fieldCache[id]);
+		end
+	end
+	return groups;
+end
+
+-- Hash-Based Searching
+local function SearchForSourcePath(g, hashes, level, count)
+	if g then
+		local hash = hashes[level];
+		if hash then
+			for i,o in ipairs(g) do
+				if (o.hash or o.name or o.text) == hash then
+					if level == count then return o; end
+					return SearchForSourcePath(o.g, hashes, level + 1, count);
+				end
+			end
+		end
+	end
+end
 local function SearchForSpecificGroups(t, group, hashes)
+	-- Search a group for objects whose hash matches a hash found in hashes and append it to table t.
 	if group then
 		if hashes[group.hash] then
 			tinsert(t, group);
@@ -582,8 +1038,147 @@ local function SearchForSpecificGroups(t, group, hashes)
 	end
 end
 
--- Verify no infinite parent recursion exists for a given group
+-- Source Path Generation
+--[[
+-- CRIEVE NOTE: Doesn't text do TryColorizeName by default? (in retail at least)
+local function GenerateColorizedSourcePath(group)
+	local line = {}
+	local cap = 100
+	while group do
+		cap = cap - 1
+		line[cap] = TryColorizeName(group, group.text or RETRIEVING_DATA)
+		group = group.sourceParent or group.parent
+	end
+	return app.TableConcat(line, nil, nil, " > ", cap, 99)
+end]]--
+--[[
+-- CRIEVE NOTE: This was from classic. Probably don't need this, really.
+-- CRIEVE NOTE 2: This might have inspired an idea where we replace abbreviations with something like this on the object itself. Seeing "H Deadmines" instead of the achievement was kinda weird when using abbrevs.
+local achievementTooltipText = {
+	[17213] = "DPA",	-- Defense Protocol Alpha: Utgarde Keep
+	[17283] = "DPA",	-- Defense Protocol Alpha: The Nexus
+	[17285] = "DPA",	-- Defense Protocol Alpha: Azjol-Nerub
+	[17291] = "DPA",	-- Defense Protocol Alpha: Ahn'kahet: The Old Kingdom
+	[17292] = "DPA",	-- Defense Protocol Alpha: Drak'Tharon Keep
+	[17293] = "DPA",	-- Defense Protocol Alpha: The Violet Hold
+	[17295] = "DPA",	-- Defense Protocol Alpha: Gundrak
+	[17297] = "DPA",	-- Defense Protocol Alpha: Halls of Stone
+	[17299] = "DPA",	-- Defense Protocol Alpha: Halls of Lightning
+	[17300] = "DPA",	-- Defense Protocol Alpha: The Oculus
+	[17301] = "DPA",	-- Defense Protocol Alpha: Utgarde Pinnacle
+	[17302] = "DPA",	-- Defense Protocol Alpha: The Culling of Stratholme
+
+	[18590] = "DPB",	-- Defense Protocol Beta: Utgarde Keep
+	[18591] = "DPB",	-- Defense Protocol Beta: The Nexus
+	[18592] = "DPB",	-- Defense Protocol Beta: Azjol-Nerub
+	[18593] = "DPB",	-- Defense Protocol Beta: Ahn'kahet: The Old Kingdom
+	[18594] = "DPB",	-- Defense Protocol Beta: Drak'Tharon Keep
+	[18595] = "DPB",	-- Defense Protocol Beta: The Violet Hold
+	[18596] = "DPB",	-- Defense Protocol Beta: Gundrak
+	[18597] = "DPB",	-- Defense Protocol Beta: Halls of Stone
+	[18598] = "DPB",	-- Defense Protocol Beta: Halls of Lightning
+	[18599] = "DPB",	-- Defense Protocol Beta: The Oculus
+	[18600] = "DPB",	-- Defense Protocol Beta: Utgarde Pinnacle
+	[18601] = "DPB",	-- Defense Protocol Beta: The Culling of Stratholme
+	[18677] = "DPB",	-- Defense Protocol Beta: Trial of the Champion (A)
+	[18678] = "DPB",	-- Defense Protocol Beta: Trial of the Champion (H)
+
+	[19427] = "DPG",	-- Defense Protocol Gamma: Utgarde Keep
+	[19428] = "DPG",	-- Defense Protocol Gamma: The Nexus
+	[19429] = "DPG",	-- Defense Protocol Gamma: Azjol-Nerub
+	[19430] = "DPG",	-- Defense Protocol Gamma: Ahn'kahet: The Old Kingdom
+	[19431] = "DPG",	-- Defense Protocol Gamma: Drak'Tharon Keep
+	[19432] = "DPG",	-- Defense Protocol Gamma: The Violet Hold
+	[19433] = "DPG",	-- Defense Protocol Gamma: Gundrak
+	[19434] = "DPG",	-- Defense Protocol Gamma: Halls of Stone
+	[19435] = "DPG",	-- Defense Protocol Gamma: Halls of Lightning
+	[19436] = "DPG",	-- Defense Protocol Gamma: The Oculus
+	[19437] = "DPG",	-- Defense Protocol Gamma: Utgarde Pinnacle
+	[19438] = "DPG",	-- Defense Protocol Gamma: The Culling of Stratholme
+	[19426] = "DPG",	-- Defense Protocol Gamma: Trial of the Champion (A)
+	[19425] = "DPG",	-- Defense Protocol Gamma: Trial of the Champion (H)
+};
+local function GenerateSourcePath(group, l, skip)
+	if group then
+		local parent = group.sourceParent or group.parent;
+		if parent then
+			if not group.itemID and not skip and (parent.key == "filterID" or parent.key == "spellID" or ((parent.headerID or (parent.spellID and (group.categoryID or group.expansionID)))
+				and ((parent.headerID == app.HeaderConstants.VENDORS or parent.headerID == app.HeaderConstants.QUESTS or parent.headerID == app.HeaderConstants.WORLD_BOSSES) or (parent.parent and parent.parent.parent)))) then
+				return GenerateSourcePath(parent.parent, 5, skip) .. DESCRIPTION_SEPARATOR .. (group.text or RETRIEVING_DATA) .. " (" .. (parent.text or RETRIEVING_DATA) .. ")";
+			end
+			if group.headerID then
+				if group.headerID == app.HeaderConstants.ZONE_DROPS then
+					if group.crs and #group.crs == 1 then
+						local cr = group.crs[1];
+						return GenerateSourcePath(parent, l + 1, skip) .. DESCRIPTION_SEPARATOR .. (app.NPCNameFromID[cr] or RETRIEVING_DATA) .. " (Drop)";
+					end
+					return GenerateSourcePath(parent, l + 1, skip) .. DESCRIPTION_SEPARATOR .. (group.text or RETRIEVING_DATA);
+				end
+				if parent.difficultyID then
+					return GenerateSourcePath(parent, l + 1, skip);
+				end
+				if parent.parent then
+					return GenerateSourcePath(parent, l + 1, skip) .. DESCRIPTION_SEPARATOR .. (group.text or RETRIEVING_DATA);
+				end
+			end
+			if group.key == "criteriaID" and group.achievementID then
+				local tooltipText = achievementTooltipText[group.achievementID];
+				if tooltipText then
+					return GenerateSourcePath(parent, 5, group.itemID or skip) .. " (" .. tooltipText .. ")";
+				else
+					return GenerateSourcePath(parent, 5, group.itemID or skip);
+				end
+			end
+			if parent.key == "categoryID" or parent.key == "expansionID" or group.key == "filterID" or group.key == "spellID" or group.key == "encounterID" or (parent.key == "mapID" and group.key == "npcID") then
+				return GenerateSourcePath(parent, 5, skip) .. DESCRIPTION_SEPARATOR .. (group.text or RETRIEVING_DATA);
+			end
+			if l < 1 then
+				return GenerateSourcePath(parent, l + 1, group.itemID or skip);
+			else
+				return GenerateSourcePath(parent, l + 1, group.itemID or skip) .. " > " .. (group.text or RETRIEVING_DATA);
+			end
+		end
+	end
+	return group.text or RETRIEVING_DATA;
+end
+]]--
+local function GenerateSourceHash(group)
+	local parent = group.parent;
+	if parent then
+		return GenerateSourceHash(parent) .. ">" .. (group.hash or group.name or group.text);
+	else
+		return group.hash or group.name or group.text;
+	end
+end
+local function GenerateSourcePath(group, l)
+	local parent = group.sourceParent or group.parent;
+	if parent then
+		if l < 1 then
+			return GenerateSourcePath(parent, l + 1);
+		else
+			return GenerateSourcePath(parent, l + 1) .. " > " .. (group.sourceText or group.text or RETRIEVING_DATA);
+		end
+	end
+	return group.text or RETRIEVING_DATA;
+end
+local function GenerateSourcePathForTSM(group, l)
+	local parent = group.sourceParent or group.parent;
+	if parent then
+		if l < 1 or not group.text then
+			return GenerateSourcePathForTSM(parent, l + 1);
+		else
+			return GenerateSourcePathForTSM(parent, l + 1) .. "`" .. group.text;
+		end
+	end
+	return app.L.TITLE;
+end
+local function GenerateSourcePathForTooltip(group)
+	return GenerateSourcePath(group, 1);
+end
+
+-- Cache Verification
 local function VerifyRecursion(group, checked)
+	-- Verify no infinite parent recursion exists for a given group
 	if type(group) ~= "table" then return; end
 	if not checked then
 		checked = { };
@@ -607,9 +1202,8 @@ local function VerifyRecursion(group, checked)
 	end
 	return true;
 end
-
--- Verify that the current cache does not have any recursive issues.
 local function VerifyCache()
+	-- Verify that the current cache does not have any recursive issues.
 	print("VerifyCache Starting...");
 	for i,keyCache in pairs(currentCache) do
 		print("Cache", i);
@@ -627,16 +1221,25 @@ local function VerifyCache()
 end
 
 -- External API Functions
-app.AllCaches = AllCaches;	-- Needed for now, due to the UpdateRawID function not being able to be moved into this file yet. TODO: Move it and then remove this.
-app.CacheField = CacheField;	-- This doesn't seem to have any external uses, apparently was used by Flight Paths at some point.
+app.AllGamePatches = AllGamePatches;
 app.CacheFields = CacheFields;
 app.CreateDataCache = CreateDataCache;
+app.GetRawFieldContainer = GetRawFieldContainer;
+app.GetRawField = GetRawField;
+app.GenerateSourceHash = GenerateSourceHash;
+app.GenerateSourcePath = GenerateSourcePath;
+app.GenerateSourcePathForTSM = GenerateSourcePathForTSM;
+app.GenerateSourcePathForTooltip = GenerateSourcePathForTooltip;
 app.SearchForFieldRecursively = SearchForFieldRecursively;
 app.SearchForFieldContainer = SearchForFieldContainer;
 app.SearchForField = SearchForField;
+app.SearchForFieldInAllCaches = SearchForFieldInAllCaches;
+app.SearchForManyInAllCaches = SearchForManyInAllCaches;
+app.SearchForObject = SearchForObject;
 app.SearchForRelativeItems = SearchForRelativeItems;
-app.SearchForSourceIDQuickly = SearchForSourceIDQuickly;
+app.SearchForSourcePath = SearchForSourcePath;
 app.SearchForSpecificGroups = SearchForSpecificGroups;
 app.VerifyCache = VerifyCache;
 app.VerifyRecursion = VerifyRecursion;
-end
+-- this table is deleted once used
+app.__CacheQuestTriggers = QuestTriggers;

@@ -262,6 +262,8 @@ L["S_OPTIONS_ACCESSIBILITY_SHOWBOUNTYRING"] = "金錢獎勵顯示圓環"
 L["S_OPTIONS_ANIMATIONS"] = "顯示動畫效果"
 --[[Translation missing --]]
 L["S_OPTIONS_GF_DONT_SHOW_IFGROUP"] = "Don't Show if Already in Group"
+--[[Translation missing --]]
+L["S_OPTIONS_GF_SHOWOPTIONS_BUTTON"] = "Show Options Button"
 L["S_OPTIONS_MAPFRAME_ALIGN"] = "地圖視窗對齊中間"
 L["S_OPTIONS_MAPFRAME_ERROR_SCALING_DISABLED"] = "尚未變更任何數值，必須先 '啟用縮放視窗大小'。"
 L["S_OPTIONS_MAPFRAME_SCALE"] = "地圖視窗縮放大小"
@@ -277,7 +279,15 @@ L["S_OPTIONS_QUEST_EMISSARY"] = "Emissary Quest Info"
 L["S_OPTIONS_QUESTBLACKLIST"] = "任務忽略清單"
 L["S_OPTIONS_RESET"] = "重置"
 --[[Translation missing --]]
+L["S_OPTIONS_SHOW_FILTER_BUTTON"] = "Show Filter Button"
+--[[Translation missing --]]
 L["S_OPTIONS_SHOW_MINIMIZE_BUTTON"] = "Show Minimize Button"
+--[[Translation missing --]]
+L["S_OPTIONS_SHOW_SORT_BUTTON"] = "Show Sort Button"
+--[[Translation missing --]]
+L["S_OPTIONS_SHOW_TIMELEFT_BUTTON"] = "Show Time Left Button"
+--[[Translation missing --]]
+L["S_OPTIONS_SHOW_WORLDSHORTCUT_BUTTON"] = "Show World Shortcuts"
 L["S_OPTIONS_SHOWFACTIONS"] = "顯示陣營"
 --[[Translation missing --]]
 L["S_OPTIONS_TALKINGHEADS"] = "Supress Talking Heads"
@@ -294,10 +304,20 @@ L["S_OPTIONS_WORLD_ICONSPERROW"] = "Quest Amount Per Row"
 L["S_OPTIONS_WORLD_ORGANIZE_BYMAP"] = "依據地圖分類"
 L["S_OPTIONS_WORLD_ORGANIZE_BYTYPE"] = "依據任務類型分類"
 --[[Translation missing --]]
+L["S_OPTIONS_WORLD_SUMMARY_ALPHA"] = "Summary Alpha"
+--[[Translation missing --]]
 L["S_OPTIONS_WORLDMAP_ANCHOR_TO"] = "Attach To"
 --[[Translation missing --]]
 L["S_OPTIONS_WORLDMAP_ORGANIZEBY"] = "Organize Quests By"
+--[[Translation missing --]]
+L["S_OPTIONS_WORLDMAP_WIDGET_ALPHA"] = "Pin Alpha"
 L["S_OPTIONS_ZONE_SHOWONLYTRACKED"] = "只有已追蹤的"
+--[[Translation missing --]]
+L["S_OPTTIONS_DRAGONRACE_MINIMAP"] = "Show Track Minimap"
+--[[Translation missing --]]
+L["S_OPTTIONS_DRAGONRACE_TRACKCOLOR"] = "Track Color"
+--[[Translation missing --]]
+L["S_OPTTIONS_TAB_DRAGONRACE_SETTINGS"] = "Dragon Race"
 --[[Translation missing --]]
 L["S_OPTTIONS_TAB_GENERAL_SETTINGS"] = "General Settings"
 --[[Translation missing --]]
@@ -344,6 +364,8 @@ L["S_RAREFINDER_TOOLTIP_SPOTTEDBY"] = "發現於"
 L["S_RAREFINDER_TOOLTIP_TIMEAGO"] = "分鐘前"
 --[[Translation missing --]]
 L["S_SCALE"] = "Scale"
+--[[Translation missing --]]
+L["S_SLASH_OPENMAP_FIRST"] = "World Quest Tracker did not loaded yet, open the map to load."
 L["S_SUMMARYPANEL_EXPIRED"] = "已過期"
 L["S_SUMMARYPANEL_LAST15DAYS"] = "最近15天"
 L["S_SUMMARYPANEL_LIFETIMESTATISTICS_ACCOUNT"] = "帳號上線統計"
@@ -353,6 +375,8 @@ L["S_SUMMARYPANEL_OTHERCHARACTERS"] = "其他角色"
 L["S_TEXT_SIZE"] = "Text Size"
 --[[Translation missing --]]
 L["S_TORGAST"] = "Torgasth"
+--[[Translation missing --]]
+L["S_TRACKEROPTIONS_BACKGROUNDALPHA"] = "Background Alpha"
 L["S_TUTORIAL_AMOUNT"] = "表示可獲得的數量"
 L["S_TUTORIAL_CLICKTOTRACK"] = "點一下追蹤任務。"
 L["S_TUTORIAL_PARTY"] = "組隊時，藍色星星表示所有隊伍成員都有這些任務!"
@@ -367,6 +391,8 @@ L["S_TUTORIAL_WORLDBUTTONS"] = [=[點一下這裡在三種列表類型中循環�
 點一下|cFFFFAA11切換顯示任務|r來隱藏任務位置。]=]
 L["S_TUTORIAL_WORLDMAPBUTTON"] = "按下這個按鈕會顯示整個破碎群島的地圖。"
 L["S_UNKNOWNQUEST"] = "未知的任務"
+--[[Translation missing --]]
+L["S_VISIBILITY"] = "Visibility"
 L["S_WHATSNEW"] = "更新資訊"
 L["S_WORLDBUTTONS_SHOW_TYPE"] = "依據類型排列"
 L["S_WORLDBUTTONS_SHOW_ZONE"] = "依據區域排列"

@@ -1,10 +1,10 @@
-## Interface: 11403
+## Interface: 11500
 ## Title: Simple Item Level
 ## Author: Kemayo
 ## Notes: Show item levels in useful places
 ## OptionalDeps: LibAppropriateItems-1.0
 ## SavedVariables: SimpleItemLevelDB
-## Version: v30
+## Version: v33.5
 
 ## X-Website: https://www.wowace.com/projects/simple-item-level
 ## X-License: BSD

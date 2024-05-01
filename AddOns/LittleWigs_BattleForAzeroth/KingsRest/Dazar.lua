@@ -1,4 +1,3 @@
-
 --------------------------------------------------------------------------------
 -- Module Declaration
 --
@@ -6,7 +5,7 @@
 local mod, CL = BigWigs:NewBoss("Dazar, The First King", 1762, 2172)
 if not mod then return end
 mod:RegisterEnableMob(136160, 136984, 136976) -- Dazar, Reban, T'zala
-mod.engageId = 2143
+mod:SetEncounterID(2143)
 
 --------------------------------------------------------------------------------
 -- Locals
@@ -32,7 +31,7 @@ function mod:GetOptions()
 	return {
 		"stages",
 		{268586, "TANK_HEALER"}, -- Blade Combo
-		{268932, "SAY", "ICON", "PROXIMITY"}, -- Quaking Leap
+		{268932, "SAY", "ICON"}, -- Quaking Leap
 		268403, -- Gale Slash
 		269231, -- Hunting Leap
 		269369, -- Deathly Roar
@@ -140,21 +139,17 @@ do
 		self:PlaySound(268932, "long", nil, player)
 		self:PrimaryIcon(268932, player)
 		if self:Me(guid) then
-			self:Say(268932)
-			self:OpenProximity(268932, 20) -- 20 is a guesstimate
-		else
-			self:OpenProximity(268932, 20, player)
+			self:Say(268932, nil, nil, "Quaking Leap")
 		end
 	end
 
 	function mod:QuakingLeap(args)
-		self:GetBossTarget(printTarget, 0.4, args.sourceGUID)
+		self:GetUnitTarget(printTarget, 0.4, args.sourceGUID)
 		self:CDBar(args.spellId, 20)
 	end
 
 	function mod:QuakingLeapLanding()
 		self:PrimaryIcon(268932)
-		self:CloseProximity(268932)
 	end
 end
 

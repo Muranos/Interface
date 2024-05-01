@@ -164,6 +164,8 @@ L.blockGuildChallenge = "Bloquer les popups de défi de guilde"
 L.blockGuildChallengeDesc = "Les popups de défi de guilde s'affichent de temps en temps, principalement quand un groupe de votre guilde termine un donjon héroïque ou un donjon en mode défi.\n\nCes popups pouvant cacher des éléments critiques de votre interface pendant les rencontres de boss, nous vous recommandons de les bloquer."
 L.blockSpellErrors = "Bloquer les messages de sorts échoués"
 L.blockSpellErrorsDesc = "Les messages tels que \"Le sort n'est pas encore utilisable\" qui s'affichent en haut de l'écran seront bloqués."
+L.blockZoneChanges = "Bloquer les messages de changement de zone"
+L.blockZoneChangesDesc = "Les messages qui s'affichent au milieu-centre de votre écran quand vous changez de zone tels que '|cFF33FF99Stormwind|r' ou '|cFF33FF99Orgrimmar|r' seront bloqués."
 L.audio = "Audio"
 L.music = "Musique"
 L.ambience = "Ambiance"
@@ -187,10 +189,17 @@ L.blockTalkingHeadRaids = "Raids"
 L.blockTalkingHeadTimewalking = "Marcheurs du temps (donjons & raids)"
 L.blockTalkingHeadScenarios = "Scénarios"
 
--- L.userNotifySfx = "Sound Effects were disabled by BossBlock, forcing it back on."
--- L.userNotifyMusic = "Music was disabled by BossBlock, forcing it back on."
--- L.userNotifyAmbience = "Ambience was disabled by BossBlock, forcing it back on."
--- L.userNotifyErrorSpeech = "Error speech was disabled by BossBlock, forcing it back on."
+L.redirectPopups = "Redirige les popups vers les messages BigWigs"
+L.redirectPopupsDesc = "Les popups qui s'affichent au milieu de votre écran telle que la bannière de '|cFF33FF99emplacement de la grande chambre-forte débloqué|r' ou les popups que vous voyez en entrant dans un donjon Mythique+ seront bloqués et seront convertis en messages BigWigs. Ces popups sont parfois larges, restent affichés longtemps et vous empêchent de cliquer à travers."
+L.redirectPopupsColor = "Couleur du message redirigé"
+L.blockDungeonPopups = "Bloque les popups de donjons"
+L.blockDungeonPopupsDesc = "Les popups qui s'affichent lorsque vous entrez dans un donjon contiennent parfois beaucoup de texte. Activer cette option désactivera complètement ces messages au lieu de les convertir en message BigWigs."
+L.itemLevel = "Niveau d'objet %d"
+
+L.userNotifySfx = "Les effets sonores étaient désactivés par BossBlock, la réactivation a été forcée."
+L.userNotifyMusic = "La musique était désactivée par BossBlock, la réactivation a été forcée."
+L.userNotifyAmbience = "Les sons d'ambiance étaient désactivés par BossBlock, la réactivation a été forcée."
+L.userNotifyErrorSpeech = "Les messsages d'erreur vocaux étaient désactivés par BossBlock, la réactivation a été forcée."
 
 L.subzone_grand_bazaar = "Le Grand bazar" -- Battle of Dazar'alor raid (Battle for Azeroth)
 L.subzone_port_of_zandalar = "Port de Zandalar" -- Battle of Dazar'alor raid (Battle for Azeroth)
@@ -204,7 +213,6 @@ L.colors = "Couleurs"
 
 L.text = "Texte"
 L.textShadow = "Ombre du texte"
-L.flash = "Flash"
 L.normal = "Normal"
 L.emphasized = "En évidence"
 

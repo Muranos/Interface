@@ -103,7 +103,7 @@ local presets = {
       local text
       for index = 1, #store do
         if store[index] then
-          text = (index > 1 and (text .. " / ") or "") .. (entry.difficultyNames[store[index]] or GetDifficultyInfo(store[index]))
+          text = (index > 1 and (text .. "||") or "") .. (entry.difficultyNames[store[index]] or GetDifficultyInfo(store[index]))
         end
       end
       if store.rewardWaiting then
@@ -364,6 +364,11 @@ local presets = {
       local majorFactionIDs = C_MajorFactions.GetMajorFactionIDs(LE_EXPANSION_DRAGONFLIGHT)
       for _, factionID in ipairs(majorFactionIDs) do
         local data = C_MajorFactions.GetMajorFactionData(factionID)
+        local currentRepValue, threshold = C_Reputation.GetFactionParagonInfo(factionID)
+        if currentRepValue and threshold then
+          data.renownReputationEarned = currentRepValue % threshold
+          data.renownLevelThreshold = threshold
+        end
         store[factionID] = data and {data.renownLevel, data.renownReputationEarned, data.renownLevelThreshold}
       end
     end,
@@ -376,7 +381,7 @@ local presets = {
         if not text then
           text = store[factionID] and store[factionID][1] or '0'
         else
-          text = text .. ' / ' .. (store[factionID] and store[factionID][1] or '0')
+          text = text .. "||" .. (store[factionID] and store[factionID][1] or '0')
         end
       end
 
@@ -385,7 +390,7 @@ local presets = {
           if not text then
             text = store[factionID] and store[factionID][1] or '0'
           else
-            text = text .. ' / ' .. (store[factionID] and store[factionID][1] or '0')
+            text = text .. "||" .. (store[factionID] and store[factionID][1] or '0')
           end
         end
       end
@@ -427,6 +432,7 @@ local presets = {
     end,
     -- addition info
     factionIDs = {
+      2574, -- Dream Wardens
       2564, -- Loamm Niffen
       2507, -- Dragonscale Expedition
       2503, -- Maruuk Centaur
@@ -451,6 +457,14 @@ local presets = {
       75860, -- Aiding the Accord: Researchers Under Fire
       75861, -- Aiding the Accord: Suffusion Camp
       77254, -- Aiding the Accord: Time Rift
+      77976, -- Aiding the Accord: Dreamsurge
+      78446, -- Aiding the Accord: Superbloom
+      78447, -- Aiding the Accord: Emerald Bounty
+      78861, -- Aiding the Accord
+      80385, -- Last Hurrah: Dragon Isles
+      80386, -- Last Hurrah: Zaralek Caverns and Time Rifts
+      80388, -- Last Hurrah: Emerald Dream
+      80389, -- Last Hurrah
     },
     reset = 'weekly',
     persists = true,
@@ -612,6 +626,9 @@ local presets = {
       72647, -- Ohn'ahran Plains
       72648, -- The Azure Span
       72649, -- Thaldraszus
+      74871, -- The Forbidden Reach
+      75305, -- Zaralek Cavern
+      78097, -- Emerald Dream
     },
     reset = 'weekly',
     persists = false,
@@ -687,6 +704,87 @@ local presets = {
     persists = false,
     fullObjective = false,
   },
+  -- Time Rift
+  ['df-time-rift'] = {
+    type = 'single',
+    expansion = 9,
+    index = 16,
+    name = L["Time Rift"],
+    questID = 77836,
+    reset = 'weekly',
+    persists = false,
+    fullObjective = false,
+  },
+  -- Dreamsurge
+  ['df-dreamsurge'] = {
+    type = 'single',
+    expansion = 9,
+    index = 17,
+    name = L["Shaping the Dreamsurge"],
+    questID = 77251,
+    reset = 'weekly',
+    persists = false,
+    fullObjective = false,
+  },
+  -- A Worthy Ally: Dream Wardens
+  ['df-a-worthy-ally-dream-wardens'] = {
+    type = 'single',
+    expansion = 9,
+    index = 18,
+    name = L["A Worthy Ally: Dream Wardens"],
+    questID = 78444,
+    reset = 'weekly',
+    persists = true,
+    fullObjective = false,
+  },
+  -- The Superbloom
+  ['df-the-superbloom'] = {
+    type = 'single',
+    expansion = 9,
+    index = 19,
+    name = L["The Superbloom"],
+    questID = 78319,
+    reset = 'weekly',
+    persists = true,
+    fullObjective = false,
+  },
+  -- Blooming Dreamseeds
+  ['df-blooming-dreamseeds'] = {
+    type = 'single',
+    expansion = 9,
+    index = 20,
+    name = L["Blooming Dreamseeds"],
+    questID = 78821,
+    reset = 'weekly',
+    persists = true,
+    fullObjective = false,
+  },
+  -- Shipment of Goods
+  ['df-shipment-of-goods'] = {
+    type = 'list',
+    expansion = 9,
+    index = 21,
+    name = L["Shipment of Goods"],
+    questID = {
+      78427, -- Great Crates!
+      78428, -- Crate of the Art
+    },
+    reset = 'weekly',
+    persists = false,
+    progress = true,
+    onlyOnOrCompleted = false,
+  },
+  -- The Big Dig: Traitor's Rest
+  ['df-the-big-dig-traitors-rest'] = {
+    type = 'single',
+    expansion = 9,
+    index = 22,
+    name = L["The Big Dig: Traitor's Rest"],
+    questID = 79226,
+    reset = 'weekly',
+    persists = true,
+    fullObjective = false,
+  },
 }
 
 ---update the progress of quest to the store
@@ -707,17 +805,14 @@ local function UpdateQuestStore(store, questID)
     return false
   else
     local showText
-    local allFinished = true
     local leaderboardCount = C_QuestLog.GetNumQuestObjectives(questID)
     for i = 1, leaderboardCount do
-      local text, objectiveType, finished, numFulfilled, numRequired = GetQuestObjectiveInfo(questID, i, false)
+      local text, objectiveType, _, numFulfilled, numRequired = GetQuestObjectiveInfo(questID, i, false)
       ---@cast text string
       ---@cast objectiveType "item"|"object"|"monster"|"reputation"|"log"|"event"|"player"|"progressbar"
-      ---@cast finished boolean
+      ---@cast _ boolean
       ---@cast numFulfilled number
       ---@cast numRequired number
-
-      allFinished = allFinished and finished
 
       local objectiveText
       if objectiveType == 'progressbar' then
@@ -741,7 +836,7 @@ local function UpdateQuestStore(store, questID)
 
     store.show = true
     store.isComplete = false
-    store.isFinish = allFinished
+    store.isFinish = C_QuestLog.IsComplete(questID)
     store.leaderboardCount = leaderboardCount
     store.text = showText
 
@@ -1553,7 +1648,7 @@ function Module:IsEntryContainsQuest(entry, questID)
   if entry.type == 'single' then
     ---@cast entry SingleQuestEntry
     return entry.questID == questID
-  elseif entry.type == 'list' or entry.type == 'list' then
+  elseif entry.type == 'any' or entry.type == 'list' then
     ---@cast entry AnyQuestEntry|QuestListEntry
     return tContains(entry.questID, questID)
   elseif entry.type == 'custom' and entry.relatedQuest then

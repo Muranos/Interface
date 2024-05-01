@@ -10,9 +10,13 @@ function WorldQuestTrackerAddon.OpenOptionsPanel()
         return
     end
 
+    local unpack = unpack
+
     local languageInfo = {
 		language_addonId = addonId,
 	}
+
+    local L = DF.Language.GetLanguageTable(addonId)
 
     --create the options frame
     local optionsFrame = DF:CreateSimplePanel(UIParent, 800, 600, "World Quest Tracker Options", "WorldQuestTrackerOptionsPanel", {RoundedCorners = true})
@@ -77,6 +81,7 @@ function WorldQuestTrackerAddon.OpenOptionsPanel()
 		{name = "WorldMapConfig",	    	text = "S_OPTTIONS_TAB_WORLDMAP_SETTINGS"},
 		{name = "ZoneMapConfig",			text = "S_OPTTIONS_TAB_ZONEMAP_SETTINGS"},
 		{name = "GroupFinderConfig",		text = "S_OPTTIONS_TAB_GROUPFINDER_SETTINGS"},
+		{name = "DragonRacingConfig",		text = "S_OPTTIONS_TAB_DRAGONRACE_SETTINGS"},
 		--{name = "RaresConfig",				text = "S_OPTTIONS_TAB_RARES_SETTINGS"},
 		--{name = "IgnoredQuestsPanel",		text = "S_OPTTIONS_TAB_IGNOREDQUESTS_SETTINGS"},
 	},
@@ -160,6 +165,7 @@ function WorldQuestTrackerAddon.OpenOptionsPanel()
     local worldMapSettingsFrame = tabContainer.AllFrames[3]
     local zoneMapSettingsFrame = tabContainer.AllFrames[4]
     local groupFinderSettingsFrame = tabContainer.AllFrames[5]
+    local dragonRaceSettingsFrame = tabContainer.AllFrames[6]
     --local raresSettingsFrame = tabContainer.AllFrames[6]
     --local ignoredQuestsSettingsFrame = tabContainer.AllFrames[7]
 
@@ -181,6 +187,308 @@ function WorldQuestTrackerAddon.OpenOptionsPanel()
     local languageSelectorDropdown = DF.Language.CreateLanguageSelector(addonId, generalSettingsFrame, onLanguageChangedCallback, WQTrackerLanguage.language)
     languageSelectorDropdown:SetPoint("topright", -21, -108)
 
+    --buttons moved from the statusbar
+			---------------------------------------------------------
+			--statistics button
+			local statisticsButton = CreateFrame("button", "WorldQuestTrackerStatisticsButton", generalSettingsFrame, "BackdropTemplate")
+			statisticsButton:SetPoint("bottomleft", generalSettingsFrame, "bottomleft", 5, 26)
+			WorldQuestTracker.SetupStatusbarButton(statisticsButton, "Statistics")
+			if (GameCooltip.InjectQuickTooltip) then
+				GameCooltip:InjectQuickTooltip(statisticsButton, "Click to show reward statistics from world quests, timeline and quests available on your other characters.")
+			end
+
+            DF:ApplyStandardBackdrop(statisticsButton)
+            statisticsButton:SetSize(120, 20)
+
+			statisticsButton:HookScript("OnEnter", WorldQuestTracker.OnEnterStatusbarButton)
+			statisticsButton:HookScript("OnLeave", WorldQuestTracker.OnLeaveStatusbarButton)
+			statisticsButton:SetScript("OnClick", function()
+				WorldQuestTrackerSummaryPanel:Show()
+                WorldQuestTrackerSummaryUpPanel:Show()
+                WorldQuestTrackerSummaryDownPanel:Show()
+				WorldQuestTracker.UpdateSummaryFrame()
+				WorldQuestTrackerSummaryUpPanel.CharsQuestsScroll:Refresh()
+            end)
+
+			---------------------------------------------------------
+			--sort options
+			local sortButton = CreateFrame("button", "WorldQuestTrackerSortButton", generalSettingsFrame, "BackdropTemplate")
+			WorldQuestTracker.SetupStatusbarButton(sortButton, L["S_MAPBAR_SORTORDER"])
+			sortButton:SetPoint("left", statisticsButton, "right", 5, 0)
+            DF:ApplyStandardBackdrop(sortButton)
+            sortButton:SetSize(120, 20)
+
+			-- ~sort
+			local change_sort_mode = function(a, b, questType, _, _, mouseButton)
+				local currentIndex = WorldQuestTracker.db.profile.sort_order [questType]
+				if (currentIndex < WQT_QUESTTYPE_MAX) then
+					for type, order in pairs(WorldQuestTracker.db.profile.sort_order) do
+						if (WorldQuestTracker.db.profile.sort_order [type] == currentIndex+1) then
+							WorldQuestTracker.db.profile.sort_order [type] = currentIndex
+							break
+						end
+					end
+
+					WorldQuestTracker.db.profile.sort_order [questType] = WorldQuestTracker.db.profile.sort_order [questType] + 1
+				end
+
+				GameCooltip:ExecFunc(sortButton)
+
+				--atualiza as quests
+				if (WorldQuestTracker.IsWorldQuestHub(WorldQuestTracker.GetCurrentMapAreaID())) then
+					WorldQuestTracker.UpdateWorldQuestsOnWorldMap(true)
+				end
+			end
+
+			local overlayColor = {.5, .5, .5, 1}
+			local BuildSortMenu = function()
+				local t = {}
+				for type, order in pairs(WorldQuestTracker.db.profile.sort_order) do
+					table.insert(t, {type, order})
+				end
+				table.sort(t, function(a, b) return a[2] > b[2] end)
+
+				GameCooltip:Preset(2)
+				GameCooltip:SetOption("TextSize", 10)
+				GameCooltip:SetOption("FixedWidth", 180)
+
+				--warning: this looks like is running in protective mode without any error message
+
+				for i = 1, #t do
+					local questInfoTable = t[i]
+					local questType = questInfoTable[1]
+					local info = WorldQuestTracker.MapData.QuestTypeIcons[questType]
+					local bIsEnabled = WorldQuestTracker.db.profile.filters[WorldQuestTracker.QuestTypeToFilter[questType]]
+
+					if (bIsEnabled) then
+						GameCooltip:AddLine(info.name)
+						GameCooltip:AddIcon(info.icon, 1, 1, 16, 16, unpack(info.coords))
+						GameCooltip:AddIcon([[Interface\BUTTONS\UI-MicroStream-Yellow]], 1, 2, 16, 16, 0, 1, 1, 0, overlayColor, nil, true)
+					else
+						GameCooltip:AddLine(info.name, _, _, "silver")
+						local l, r, t, b = unpack(info.coords)
+						GameCooltip:AddIcon(info.icon, 1, 1, 16, 16, l, r, t, b, _, _, true)
+					end
+
+					GameCooltip:AddMenu(1, change_sort_mode, questType)
+				end
+			end
+
+			sortButton.CoolTip = {
+				Type = "menu",
+				BuildFunc = BuildSortMenu, --> called when user mouse over the frame
+				OnEnterFunc = function(self)
+					sortButton.button_mouse_over = true
+					WorldQuestTracker.OnEnterStatusbarButton(self)
+				end,
+				OnLeaveFunc = function(self)
+					sortButton.button_mouse_over = false
+					WorldQuestTracker.OnLeaveStatusbarButton(self)
+				end,
+				FixedValue = "none",
+				ShowSpeed = 0.05,
+				Options = function()
+
+					if (WorldQuestTracker.db.profile.bar_anchor == "top") then
+						GameCooltip:SetOption("MyAnchor", "top")
+						GameCooltip:SetOption("RelativeAnchor", "bottom")
+						GameCooltip:SetOption("WidthAnchorMod", 0)
+						GameCooltip:SetOption("HeightAnchorMod", -10)
+					else
+						GameCooltip:SetOption("MyAnchor", "bottom")
+						GameCooltip:SetOption("RelativeAnchor", "top")
+						GameCooltip:SetOption("WidthAnchorMod", 0)
+						GameCooltip:SetOption("HeightAnchorMod", -5)
+					end
+
+				end
+			}
+
+			GameCooltip:CoolTipInject(sortButton)
+
+            ---------------------------------------------------------
+			-- ~filter
+			local filterButton = CreateFrame("button", "WorldQuestTrackerFilterButton", generalSettingsFrame, "BackdropTemplate")
+			filterButton:SetPoint("left", sortButton, "right", 5, 0)
+			WorldQuestTracker.SetupStatusbarButton(filterButton, L["S_MAPBAR_FILTER"])
+            DF:ApplyStandardBackdrop(filterButton)
+            filterButton:SetSize(120, 20)
+
+			local filter_quest_type = function(_, _, questType, _, _, mouseButton)
+				WorldQuestTracker.db.profile.filters[questType] = not WorldQuestTracker.db.profile.filters[questType]
+
+				GameCooltip:ExecFunc(filterButton)
+
+				--atualiza as quests
+				if (WorldQuestTrackerAddon.GetCurrentZoneType() == "world") then
+					WorldQuestTracker.UpdateWorldQuestsOnWorldMap(true)
+				elseif (WorldQuestTrackerAddon.GetCurrentZoneType() == "zone") then
+					WorldQuestTracker.UpdateZoneWidgets()
+				end
+			end
+
+			local toggle_faction_objectives = function()
+				WorldQuestTracker.db.profile.filter_always_show_faction_objectives = not WorldQuestTracker.db.profile.filter_always_show_faction_objectives
+				GameCooltip:ExecFunc(filterButton)
+
+				--atualiza as quests
+				if (WorldQuestTrackerAddon.GetCurrentZoneType() == "world") then
+					WorldQuestTracker.UpdateWorldQuestsOnWorldMap(true)
+				elseif (WorldQuestTrackerAddon.GetCurrentZoneType() == "zone") then
+					WorldQuestTracker.UpdateZoneWidgets()
+				end
+			end
+
+			local toggle_brokenshore_bypass = function()
+				WorldQuestTracker.db.profile.filter_force_show_brokenshore = not WorldQuestTracker.db.profile.filter_force_show_brokenshore
+				GameCooltip:ExecFunc(filterButton)
+				--atualiza as quests
+				if (WorldQuestTrackerAddon.GetCurrentZoneType() == "world") then
+					WorldQuestTracker.UpdateWorldQuestsOnWorldMap(true)
+				elseif (WorldQuestTrackerAddon.GetCurrentZoneType() == "zone") then
+					WorldQuestTracker.UpdateZoneWidgets()
+				end
+			end
+
+			local toggle_filters_all_on = function()
+				for filterType, canShow in pairs(WorldQuestTracker.db.profile.filters) do
+					local questType = filterType
+					WorldQuestTracker.db.profile.filters [questType] = true
+				end
+
+				GameCooltip:ExecFunc(filterButton)
+
+				--update quest on current map shown
+				if (WorldQuestTrackerAddon.GetCurrentZoneType() == "world") then
+					WorldQuestTracker.UpdateWorldQuestsOnWorldMap(true)
+
+				elseif (WorldQuestTrackerAddon.GetCurrentZoneType() == "zone") then
+					WorldQuestTracker.UpdateZoneWidgets()
+				end
+			end
+
+			local toggle_filters_all_off = function()
+				for filterType, canShow in pairs(WorldQuestTracker.db.profile.filters) do
+					local questType = filterType
+					WorldQuestTracker.db.profile.filters[questType] = false
+				end
+
+				GameCooltip:ExecFunc(filterButton)
+
+				--update quest on current map shown
+				if (WorldQuestTrackerAddon.GetCurrentZoneType() == "world") then
+					WorldQuestTracker.UpdateWorldQuestsOnWorldMap(true)
+
+				elseif (WorldQuestTrackerAddon.GetCurrentZoneType() == "zone") then
+					WorldQuestTracker.UpdateZoneWidgets()
+				end
+			end
+
+			local BuildFilterMenu = function()
+				GameCooltip:Preset(2)
+				GameCooltip:SetOption("TextSize", 10)
+				GameCooltip:SetOption("FixedWidth", 180)
+				GameCooltip:SetOption("FixedWidthSub", 200)
+				GameCooltip:SetOption("SubMenuIsTooltip", true)
+				GameCooltip:SetOption("IgnoreArrows", true)
+
+				local t = {}
+				for filterType, canShow in pairs(WorldQuestTracker.db.profile.filters) do
+					local sortIndex = WorldQuestTracker.db.profile.sort_order[WorldQuestTracker.FilterToQuestType[filterType]]
+					table.insert(t, {filterType, sortIndex})
+				end
+
+				table.sort(t, function(a, b) return a[2] > b[2] end)
+
+				for i, filter in ipairs(t) do
+					local filterType = filter [1]
+					local info = WorldQuestTracker.MapData.QuestTypeIcons[WorldQuestTracker.FilterToQuestType[filterType]]
+					local isEnabled = WorldQuestTracker.db.profile.filters[filterType]
+					if (isEnabled) then
+						GameCooltip:AddLine(info.name)
+						GameCooltip:AddIcon(info.icon, 1, 1, 16, 16, unpack(info.coords))
+						GameCooltip:AddIcon([[Interface\BUTTONS\UI-CheckBox-Check]], 1, 2, 16, 16, 0, 1, 0, 1, overlayColor, nil, true)
+					else
+						GameCooltip:AddLine(info.name, _, _, "silver")
+						local l, r, t, b = unpack(info.coords)
+						GameCooltip:AddIcon(info.icon, 1, 1, 16, 16, l, r, t, b, _, _, true)
+					end
+					GameCooltip:AddMenu(1, filter_quest_type, filterType)
+				end
+
+				GameCooltip:AddLine("$div")
+
+				GameCooltip:AddLine("Select All")
+				GameCooltip:AddMenu(1, toggle_filters_all_on)
+
+				GameCooltip:AddLine("Select None")
+				GameCooltip:AddMenu(1, toggle_filters_all_off)
+
+				GameCooltip:AddLine("$div")
+
+				local l, r, t, b = unpack(WorldQuestTracker.MapData.GeneralIcons.CRITERIA.coords)
+
+				if (WorldQuestTracker.db.profile.filter_always_show_faction_objectives) then
+					GameCooltip:AddLine(L["S_MAPBAR_FILTERMENU_FACTIONOBJECTIVES"])
+					GameCooltip:AddLine(L["S_MAPBAR_FILTERMENU_FACTIONOBJECTIVES_DESC"], "", 2)
+					GameCooltip:AddIcon(WorldQuestTracker.MapData.GeneralIcons.CRITERIA.icon, 1, 1, 23*.54, 37*.40, l, r, t, b)
+					GameCooltip:AddIcon([[Interface\BUTTONS\UI-CheckBox-Check]], 1, 2, 16, 16, 0, 1, 0, 1, overlayColor, nil, true)
+				else
+					GameCooltip:AddLine(L["S_MAPBAR_FILTERMENU_FACTIONOBJECTIVES"], "", 1, "silver")
+					GameCooltip:AddLine(L["S_MAPBAR_FILTERMENU_FACTIONOBJECTIVES_DESC"], "", 2)
+					GameCooltip:AddIcon(WorldQuestTracker.MapData.GeneralIcons.CRITERIA.icon, 1, 1, 23*.54, 37*.40, l, r, t, b, nil, nil, true)
+				end
+				GameCooltip:AddMenu(1, toggle_faction_objectives)
+
+				GameCooltip:AddLine("$div")
+
+				--[= --this is deprecated at the moment, but might be needed again in the future
+				if (WorldQuestTracker.db.profile.filter_force_show_brokenshore) then
+					GameCooltip:AddLine("Ignore New Zones", "", 1, "orange")
+					GameCooltip:AddLine("World quets on new zones will always be shown.\n\nCurrent new zones:\n-Najatar\n-Machagon.", "", 2)
+					GameCooltip:AddIcon([[Interface\ICONS\70_inscription_vantus_rune_tomb]], 1, 1, 23*.54, 37*.40, 0, 1, 0, 1)
+					GameCooltip:AddIcon([[Interface\BUTTONS\UI-CheckBox-Check]], 1, 2, 16, 16, 0, 1, 0, 1, overlayColor, nil, true)
+				else
+					GameCooltip:AddLine("Ignore New Zones", "", 1, "silver")
+					GameCooltip:AddLine("World quets on new zones will always be shown.\n\nCurrent new zones:\n-Najatar\n-Machagon", "", 2)
+					--GameCooltip:AddIcon([[Interface\ICONS\70_inscription_vantus_rune_tomb]], 1, 1, 23*.54, 37*.40, l, r, t, b, nil, nil, true)
+				end
+				GameCooltip:AddMenu(1, toggle_brokenshore_bypass)
+				--]=]
+			end
+
+			filterButton.CoolTip = {
+				Type = "menu",
+				BuildFunc = BuildFilterMenu, --> called when user mouse over the frame
+				OnEnterFunc = function(self)
+					filterButton.button_mouse_over = true
+					WorldQuestTracker.OnEnterStatusbarButton(self)
+				end,
+				OnLeaveFunc = function(self)
+					filterButton.button_mouse_over = false
+					WorldQuestTracker.OnLeaveStatusbarButton(self)
+				end,
+				FixedValue = "none",
+				ShowSpeed = 0.05,
+				Options = function()
+
+					if (WorldQuestTracker.db.profile.bar_anchor == "top") then
+						GameCooltip:SetOption("MyAnchor", "top")
+						GameCooltip:SetOption("RelativeAnchor", "bottom")
+						GameCooltip:SetOption("WidthAnchorMod", 0)
+						GameCooltip:SetOption("HeightAnchorMod", -10)
+					else
+						GameCooltip:SetOption("MyAnchor", "bottom")
+						GameCooltip:SetOption("RelativeAnchor", "top")
+						GameCooltip:SetOption("WidthAnchorMod", 0)
+						GameCooltip:SetOption("HeightAnchorMod", -5)
+					end
+
+				end,
+			}
+
+			GameCooltip:CoolTipInject(filterButton)
+
     local xStart = 5
     local yStart = -100
     local tabFrameHeight = generalSettingsFrame:GetHeight()
@@ -200,18 +508,6 @@ function WorldQuestTrackerAddon.OpenOptionsPanel()
                 end,
                 name = "S_OPTIONS_MAPFRAME_ALIGN",
                 desc = "S_OPTIONS_MAPFRAME_ALIGN",
-            },
-            {
-                type = "toggle",
-                get = function()
-                    return DB.profile.show_faction_frame
-                end,
-                set = function(self, fixedparam, value)
-                    WorldQuestTracker.SetSetting("show_faction_frame", not WorldQuestTracker.db.profile.show_faction_frame)
-
-                end,
-                name = "S_OPTIONS_SHOWFACTIONS",
-                desc = "S_OPTIONS_SHOWFACTIONS",
             },
             {
                 type = "toggle",
@@ -396,6 +692,119 @@ function WorldQuestTrackerAddon.OpenOptionsPanel()
             },
 
             {type = "blank"},
+            {type = "breakline"},
+
+            {
+                type = "label",
+                get = function() return "S_VISIBILITY" end,
+                text_template = DF:GetTemplate("font", "ORANGE_FONT_TEMPLATE")
+            },
+
+            {
+                type = "toggle",
+                get = function()
+                    return DB.profile.show_faction_frame
+                end,
+                set = function(self, fixedparam, value)
+                    WorldQuestTracker.SetSetting("show_faction_frame", not WorldQuestTracker.db.profile.show_faction_frame)
+
+                end,
+                name = "S_OPTIONS_SHOWFACTIONS",
+                desc = "|TInterface\\AddOns\\WorldQuestTracker\\media\\options_visibility_context:" .. 33 .. ":" .. 208 .. ":0:0:256:256:" .. (0) .. ":" .. (208) .. ":" .. (36+30) .. ":" .. (36+30+33) .. "|t\n\n" .. "S_OPTIONS_SHOWFACTIONS",
+            },
+            {
+                type = "toggle",
+                get = function()
+                    return DB.profile.show_world_shortcuts
+                end,
+                set = function(self, fixedparam, value)
+                    WorldQuestTracker.db.profile.show_world_shortcuts = not WorldQuestTracker.db.profile.show_world_shortcuts
+                    WorldQuestTracker.SetShownWorldShortcuts()
+                end,
+                name = "S_OPTIONS_SHOW_WORLDSHORTCUT_BUTTON",
+                desc = "|TInterface\\AddOns\\WorldQuestTracker\\media\\options_visibility_context:" .. 36 .. ":" .. 80 .. ":0:0:256:256:" .. (0) .. ":" .. (80) .. ":" .. (0) .. ":" .. (36) .. "|t",
+            },
+            {
+                type = "toggle",
+                get = function()
+                    return WorldQuestTracker.db.profile.show_timeleft_button
+                end,
+                set = function(self, fixedparam, value)
+                    WorldQuestTracker.db.profile.show_timeleft_button = not WorldQuestTracker.db.profile.show_timeleft_button
+                    WorldQuestTracker.RefreshStatusBarButtons()
+                end,
+                name = "S_OPTIONS_SHOW_TIMELEFT_BUTTON",
+                desc = "|TInterface\\AddOns\\WorldQuestTracker\\media\\options_visibility_context:" .. 30 .. ":" .. 210 .. ":0:0:256:256:" .. (0) .. ":" .. (210) .. ":" .. (37) .. ":" .. (37+30) .. "|t",
+            },
+
+            {
+                type = "toggle",
+                get = function()
+                    return WorldQuestTracker.db.profile.show_sort_button
+                end,
+                set = function(self, fixedparam, value)
+                    WorldQuestTracker.db.profile.show_sort_button = not WorldQuestTracker.db.profile.show_sort_button
+                    WorldQuestTracker.RefreshStatusBarButtons()
+                end,
+                name = "S_OPTIONS_SHOW_SORT_BUTTON",
+                desc = "|TInterface\\AddOns\\WorldQuestTracker\\media\\options_visibility_context:" .. 30 .. ":" .. 210 .. ":0:0:256:256:" .. (0) .. ":" .. (210) .. ":" .. (37) .. ":" .. (37+30) .. "|t",
+            },
+
+            {
+                type = "toggle",
+                get = function()
+                    return WorldQuestTracker.db.profile.show_filter_button
+                end,
+                set = function(self, fixedparam, value)
+                    WorldQuestTracker.db.profile.show_filter_button = not WorldQuestTracker.db.profile.show_filter_button
+                    WorldQuestTracker.RefreshStatusBarButtons()
+                end,
+                name = "S_OPTIONS_SHOW_FILTER_BUTTON",
+                desc = "|TInterface\\AddOns\\WorldQuestTracker\\media\\options_visibility_context:" .. 30 .. ":" .. 210 .. ":0:0:256:256:" .. (0) .. ":" .. (210) .. ":" .. (37) .. ":" .. (37+30) .. "|t",
+            },
+
+            {type = "blank"},
+
+            {
+                type = "range",
+                get = function() return WorldQuestTracker.db.profile.world_summary_alpha end,
+                set = function(self, fixedparam, value)
+                    WorldQuestTracker.db.profile.world_summary_alpha = value
+                    WorldQuestTracker.UpdateZoneSummaryFrame()
+                    WorldQuestTracker.RefreshZoneSummaryAlpha()
+                end,
+                min = 0.5,
+                max = 1,
+                step = 0.01,
+                usedecimals = true,
+                thumbscale = 1.8,
+                name = "S_OPTIONS_WORLD_SUMMARY_ALPHA",
+                desc = "S_OPTIONS_WORLD_SUMMARY_ALPHA",
+            },
+
+            {
+                type = "range",
+                get = function() return WorldQuestTracker.db.profile.worldmap_widget_alpha end,
+                set = function(self, fixedparam, value)
+                    WorldQuestTracker.db.profile.worldmap_widget_alpha = value
+                    local bForceUpdate = true
+                    if (WorldQuestTrackerAddon.GetCurrentZoneType() == "world") then
+                        WorldQuestTracker.UpdateWorldQuestsOnWorldMap(bForceUpdate)
+                    else
+                        WorldQuestTracker.UpdateZoneWidgets(bForceUpdate)
+                    end
+                end,
+                min = 0.5,
+                max = 1,
+                step = 0.01,
+                usedecimals = true,
+                thumbscale = 1.8,
+                name = "S_OPTIONS_WORLDMAP_WIDGET_ALPHA",
+                desc = "S_OPTIONS_WORLDMAP_WIDGET_ALPHA",
+            },
+
+            --
+
 			--map_frame_scale_enabled = false,
 			--map_frame_scale_mod = 1,
 
@@ -499,6 +908,21 @@ function WorldQuestTrackerAddon.OpenOptionsPanel()
                 thumbscale = 1.8,
                 name = "S_MAPBAR_OPTIONSMENU_ARROWSPEED",
                 desc = "S_MAPBAR_OPTIONSMENU_ARROWSPEED",
+            },
+            {
+                type = "range",
+                get = function() return WorldQuestTracker.db.profile.tracker_background_alpha end,
+                set = function(self, fixedparam, value)
+                    WorldQuestTracker.db.profile.tracker_background_alpha = value
+                    WorldQuestTracker.RefreshTrackerWidgets()
+                end,
+                min = 0,
+                max = 0.85,
+                step = 0.1,
+                usedecimals = true,
+                thumbscale = 1.8,
+                name = "S_TRACKEROPTIONS_BACKGROUNDALPHA",
+                desc = "S_TRACKEROPTIONS_BACKGROUNDALPHA",
             },
 
             {type = "blank"},
@@ -926,9 +1350,82 @@ function WorldQuestTrackerAddon.OpenOptionsPanel()
                 name = "S_GROUPFINDER_SECONDS",
                 desc = "S_GROUPFINDER_SECONDS",
             },
+
+            {type = "breakline"},
+
+            {
+                type = "toggle",
+                get = function()
+                    return WorldQuestTracker.db.profile.groupfinder.kfilter.show_button
+                end,
+                set = function(self, fixedparam, value)
+                    WorldQuestTracker.db.profile.groupfinder.kfilter.show_button = value
+                end,
+                name = "S_OPTIONS_GF_SHOWOPTIONS_BUTTON",
+                desc = "S_OPTIONS_GF_SHOWOPTIONS_BUTTON",
+            },
         }
 
         DF:BuildMenu(groupFinderSettingsFrame, optionsTable, xStart, yStart, tabFrameHeight, false, options_text_template, options_dropdown_template, options_switch_template, true, options_slider_template, options_button_template, globalCallback)
+    end
+
+    do
+        local optionsTable = {
+            {
+                type = "toggle",
+                get = function()
+                    return WorldQuestTracker.db.profile.dragon_racing.minimap_enabled
+                end,
+                set = function(self, fixedparam, value)
+                    WorldQuestTracker.db.profile.dragon_racing.minimap_enabled = value
+                    if (not value) then
+                        if (WorldQuestTrackerDragonRacingFrame and WorldQuestTrackerDragonRacingFrame:IsShown()) then
+                            WorldQuestTrackerDragonRacingFrame:Hide()
+                        end
+                    end
+                end,
+                name = "S_OPTTIONS_DRAGONRACE_MINIMAP",
+                desc = "S_OPTTIONS_DRAGONRACE_MINIMAP",
+            },
+            {
+                type = "range",
+                get = function() return WorldQuestTracker.db.profile.dragon_racing.minimap_scale end,
+                set = function(self, fixedparam, value)
+                    WorldQuestTracker.db.profile.dragon_racing.minimap_scale = value
+                    if (WorldQuestTrackerDragonRacingFrame) then
+                        WorldQuestTrackerDragonRacingFrame:SetScale(value)
+                    end
+                end,
+                min = 0.65,
+                max = 2,
+                step = 0.1,
+                thumbscale = 1.8,
+                usedecimals = true,
+                name = "S_SCALE",
+                desc = "S_SCALE",
+            },
+
+            {
+                type = "color",
+                get = function()
+                    local r, g, b = unpack(WorldQuestTracker.db.profile.dragon_racing.minimap_track_color)
+                    return r, g, b
+                end,
+                set = function(widget, r, g, b)
+                    local colorTable = WorldQuestTracker.db.profile.dragon_racing.minimap_track_color
+                    colorTable[1], colorTable[2], colorTable[3] = r, g, b
+                    if (WorldQuestTrackerDragonRacingFrameMinimapTexture) then
+                        WorldQuestTrackerDragonRacingFrameMinimapTexture:SetVertexColor(r, g, b)
+                    end
+                end,
+                name = "S_OPTTIONS_DRAGONRACE_TRACKCOLOR",
+                desc = "S_OPTTIONS_DRAGONRACE_TRACKCOLOR",
+            },
+        }
+
+        optionsTable.always_boxfirst = true
+        optionsTable.language_addonId = addonId
+        DF:BuildMenu(dragonRaceSettingsFrame, optionsTable, xStart, yStart, tabFrameHeight, false, options_text_template, options_dropdown_template, options_switch_template, true, options_slider_template, options_button_template, globalCallback)
     end
 
     do --Rare Finder Settings

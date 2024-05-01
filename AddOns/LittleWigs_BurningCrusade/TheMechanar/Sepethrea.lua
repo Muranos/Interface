@@ -111,7 +111,7 @@ do
 			local t = args.time
 			if t - prev > 1.5 then
 				prev = t
-				self:MessageOld(args.spellId == 35283 and -5488 or args.spellId, "blue", "alert", CL.underyou:format(args.spellName))
+				self:MessageOld(args.spellId == 35283 and -5488 or args.spellId, "blue", "alert", CL.underyou:format(args.spellName)) -- SetOption:-5488,35312:::
 			end
 		end
 	end
@@ -129,7 +129,7 @@ do
 	local function fixateAnnounce(self, target, guid)
 		if self:Me(guid) and not isOnMe then
 			isOnMe = true
-			self:Say("fixate", L.fixate)
+			self:Say("fixate", L.fixate, nil, "Fixate")
 		end
 
 		if #fixatedTargets > 0 and fixatedTargets[#fixatedTargets] == self:ColorName(target) then return end -- don't announce the same player twice

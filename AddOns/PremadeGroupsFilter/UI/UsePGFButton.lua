@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Premade Groups Filter
 -------------------------------------------------------------------------------
--- Copyright (C) 2022 Elotheon-Arthas-EU
+-- Copyright (C) 2024 Bernhard Saumweber
 --
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -28,9 +28,9 @@ function UsePGFButton:OnLoad()
     PGF.Logger:Debug("UsePGFButton:OnLoad")
     self:SetSize(26, 26)
     self:SetHitRectInsets(-2, -30, -2, -2)
-    self.text:SetText(L["addon.name.short"])
-    self.text:SetFontObject("GameFontHighlight")
-    self.text:SetWidth(30)
+    self.Text:SetText(L["addon.name.short"])
+    self.Text:SetFontObject("GameFontHighlight")
+    self.Text:SetWidth(30)
     self:SetPoint("LEFT", LFGListFrame.SearchPanel.RefreshButton, "LEFT", -62, 0)
     self:SetPoint("TOP", LFGListFrame.SearchPanel.RefreshButton, "TOP", 0, -3)
     self:SetScript("OnClick", function (self, button, down)

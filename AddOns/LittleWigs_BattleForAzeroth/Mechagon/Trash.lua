@@ -280,6 +280,7 @@ function mod:OnBossEnable()
 	-- Workshop Defender
 	self:Log("SPELL_AURA_APPLIED", "ChainbladeApplied", 293670)
 	self:Log("SPELL_AURA_APPLIED_DOSE", "ChainbladeApplied", 293670)
+	self:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED") -- for Shield Generator
 	-- Junkyard D.0.G.
 	self:Log("SPELL_AURA_APPLIED", "FlamingRefuseApplied", 294180)
 end
@@ -413,7 +414,7 @@ do
 		self:TargetMessage(300188, "red", name)
 		self:PlaySound(300188, "alarm", nil, name)
 		if self:Me(guid) then
-			self:Say(300188)
+			self:Say(300188, nil, nil, "Scrap Cannon")
 			self:Flash(300188)
 		end
 	end
@@ -535,7 +536,7 @@ do
 			self:TargetMessage(args.spellId, "yellow", args.destName)
 			self:PlaySound(args.spellId, "info", nil, args.destName)
 			if isOnMe then
-				self:Say(args.spellId)
+				self:Say(args.spellId, nil, nil, "Shrink")
 				self:Flash(args.spellId)
 				timer = self:ScheduleRepeatingTimer("Say", 1.5, args.spellId)
 			end
@@ -643,8 +644,8 @@ end
 -- Anti-Personnel Squirrel
 
 function mod:AntiPersonnelSquirrel(args)
-	local unit = self:GetUnitIdByGUID(args.sourceGUID)
-	if not unit or IsItemInRange(33278, unit) then -- Burning Torch, 11yd
+	local unit = self:UnitTokenFromGUID(args.sourceGUID)
+	if not unit or self:UnitWithinRange(unit, 10) then
 		-- Display mesage without "near YOU" if the unit is not found
 		self:Message(args.spellId, "yellow", unit and CL.near:format(args.spellName))
 		self:PlaySound(args.spellId, "alarm")

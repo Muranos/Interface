@@ -25,6 +25,7 @@ local L = mod:GetLocale()
 if L then
 	L.custom_on_autotalk = "Autotalk"
 	L.custom_on_autotalk_desc = "Instantly select Erozion's, Thrall's and Taretha's gossip options."
+	L.custom_on_autotalk_icon = "ui_chat"
 
 	L.incendiary_bombs = "Incendiary Bombs"
 	L.incendiary_bombs_desc = "Display a message when an Incendiary Bomb is planted."
@@ -59,7 +60,7 @@ function mod:GOSSIP_SHOW()
 		-- If the player is in a group, do not free Thrall automatically,
 		-- because they may deny others a chance to turn in the quest.
 		local mobId = self:MobId(self:UnitGUID("npc"))
-		if mobId == 17876 and GetNumGroupMembers() > 0 then
+		if mobId == 17876 and not self:Solo() then
 			if self:Classic() then
 				return
 			else

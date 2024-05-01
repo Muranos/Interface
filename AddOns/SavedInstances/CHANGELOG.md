@@ -1,11 +1,12 @@
 # SavedInstances
 
-## [10.1.5](https://github.com/SavedInstances/SavedInstances/tree/10.1.5) (2023-07-15)
-[Full Changelog](https://github.com/SavedInstances/SavedInstances/compare/10.1.4...10.1.5) [Previous Releases](https://github.com/SavedInstances/SavedInstances/releases)
+## [10.2.7](https://github.com/SavedInstances/SavedInstances/tree/10.2.7) (2024-04-26)
+[Full Changelog](https://github.com/SavedInstances/SavedInstances/compare/10.2.6...10.2.7) [Previous Releases](https://github.com/SavedInstances/SavedInstances/releases)
 
-- feat: add Time Rift Weekly Gear Token  
-- feat: add Paracausal Flakes  
-- feat: mark When Time Needs Mending account weekly  
-- fix: fix bonus roll tooltip error  
-- feat: add Aiding the Accord: Time Rift  
-- fix: replace READY\_CHECK\_READY\_TEXTURE and READY\_CHECK\_WAITING\_TEXTURE to build-in string since it changed to atlas in Patch 10.1.5  
+- fix(Currency): spark starts in catch-up mode  
+- feat(Progress): add Aiding the Accord in S4 as Last Hurrah  
+- feat(Currency): Dragonflight Season 4 Renascent, Crest, Spark, Dinar and defaults  
+- feat(MythicPlus): add Dragonflight Season 4 item levels  
+- fix: fix currency with totalEarned coloring  
+    amount should be colored by totalEarned / totalMax, when totalEarned and totalMax is available  
+    fixes #831  

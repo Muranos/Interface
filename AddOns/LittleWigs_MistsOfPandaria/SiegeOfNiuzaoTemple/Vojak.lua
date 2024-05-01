@@ -23,6 +23,7 @@ local L = mod:GetLocale()
 if L then
 	L.custom_on_autotalk = "Autotalk"
 	L.custom_on_autotalk_desc = "Instantly selects the gossip option to start the fight."
+	L.custom_on_autotalk_icon = "ui_chat"
 end
 
 --------------------------------------------------------------------------------
@@ -80,14 +81,14 @@ do
 		if not self:Tanking("boss1", player) then
 			self:TargetMessageOld(120789, player, "yellow", "alarm")
 			if self:Me(guid) then
-				self:Say(120789)
+				self:Say(120789, nil, nil, "Dashing Strike")
 			end
 		else -- either incorrect (cast time depends on distance between the boss and the target) or only one player is alive
 			self:MessageOld(120789, "yellow")
 		end
 	end
 	function mod:DashingStrike(args)
-		self:GetBossTarget(printTarget, 0.4, args.sourceGUID)
+		self:GetUnitTarget(printTarget, 0.4, args.sourceGUID)
 		self:CDBar(args.spellId, 14.6)
 	end
 end

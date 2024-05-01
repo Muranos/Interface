@@ -453,6 +453,10 @@ L["opt_autoGroupLootGuildGroupOnly_desc"] = "When enabled, RCLootCouncil will on
 --[[Translation missing --]]
 L["opt_autoGroupLootGuildGroupOnly_name"] = "Guild Groups Only"
 --[[Translation missing --]]
+L["opt_autoPassWeapons_desc"] = "Check to enable auto passing of weapons your class can't equip."
+--[[Translation missing --]]
+L["opt_autoPassWeapons_name"] = "Auto Pass Weapons"
+--[[Translation missing --]]
 L["opt_autoTrade_desc"] = "Check to automatically add awarded items to the trade window when trading with the winner. If disabled, you'll see a popup before items are added."
 --[[Translation missing --]]
 L["opt_award_later_desc"] = "Check to automatically check the 'Award Later' option in the Session Frame."

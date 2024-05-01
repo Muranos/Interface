@@ -28,6 +28,7 @@ local L = mod:GetLocale()
 if L then
 	L.custom_on_autotalk = "Autotalk"
 	L.custom_on_autotalk_desc = "Instantly selects the gossip option to start the fight."
+	L.custom_on_autotalk_icon = "ui_chat"
 
 	-- Gather 'round and place yer bets! We got a new set of vict-- uh... competitors! Take it away, Gurgthok and Wodin!
 	L.lightning_warmup = "new set of vict--"
@@ -187,7 +188,7 @@ do
 				self:PlaySound(256358, "alarm", "watchstep", args.destName)
 			end
 			if self:Me(args.destGUID) then
-				self:Say(256358)
+				self:Say(256358, nil, nil, "Shark Toss")
 			end
 		else -- 256477, Shark ability, used for timers
 			if self:MobId(args.sourceGUID) == 129448 then -- Hammer Shark (Left)

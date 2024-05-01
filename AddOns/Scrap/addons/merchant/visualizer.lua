@@ -1,5 +1,5 @@
 --[[
-Copyright 2008-2023 João Cardoso
+Copyright 2008-2024 João Cardoso
 All Rights Reserved
 --]]
 
@@ -14,14 +14,14 @@ function Visualizer:OnEnable()
 	title:SetText('Scrap')
 
 	local portrait = self.portrait or self.PortraitContainer.portrait
-	portrait:SetTexture('Interface/Addons/Scrap/Art/scrap-enabled')
+	portrait:SetTexture('Interface/Addons/Scrap/Art/Scrap-Big')
 
 	local backdrop = portrait:GetParent():CreateTexture(nil, 'BORDER')
 	backdrop:SetColorTexture(0, 0, 0)
 	backdrop:SetAllPoints(portrait)
 
 	local mask = portrait:GetParent():CreateMaskTexture()
-	mask:SetTexture('Interface/CHARACTERFRAME/TempPortraitAlphaMask')
+	mask:SetTexture('Interface/CharacterFrame/TempPortraitAlphaMask')
 	mask:SetAllPoints(backdrop)
 	backdrop:AddMaskTexture(mask)
 	portrait:AddMaskTexture(mask)
@@ -33,12 +33,14 @@ function Visualizer:OnEnable()
 	self.numTabs, self.list, self.item = 2, {}, {}
 	self.Tab1:SetText('|TInterface/Addons/Scrap/Art/Thumbsup:14:14:-2:2:16:16:0:16:0:16:73:255:73|t ' .. L.NotJunk)
 	self.Tab2:SetText('|TInterface/Addons/Scrap/Art/Thumbsdown:14:14:-2:-2:16:16:0:16:0:16:255:73:73|t ' .. L.Junk)
+	self.ForgetButton:SetText(L.Forget)
+	self.ForgetButton:SetWidth(self.ForgetButton:GetTextWidth() + 20)
 	self.Spinner.Anim:Play()
 	self.ParentTab = tab
 
 	self:SetScript('OnShow', self.OnShow)
 	self:SetScript('OnHide', self.OnHide)
-	self:UpdateButton()
+	self:UpdateButtons()
 	self:SetTab(1)
 end
 
@@ -46,6 +48,10 @@ function Visualizer:OnShow()
 	CloseDropDownMenus()
 	self:RegisterSignal('LIST_CHANGED', 'UpdateList')
 	self:Delay(0, 'QueryItems')
+
+	if UndoFrame then
+		UndoFrame.Arrow:Hide()
+	end
 end
 
 function Visualizer:OnHide()
@@ -78,11 +84,18 @@ end
 function Visualizer:SetItem(id)
 	self.item = {id = id, type = self.selectedTab}
 	self.Scroll:update()
-	self:UpdateButton()
+	self:UpdateButtons()
 end
 
 function Visualizer:ToggleItem()
 	Scrap:ToggleJunk(self.item.id)
+	self.item = {}
+end
+
+function Visualizer:ForgetItem()
+	Scrap.junk[self.item.id] = nil
+	Scrap:Print(format(L.Forgotten, select(2, GetItemInfo(self.item.id))), 'LOOT')
+	Scrap:SendSignal('LIST_CHANGED', self.item.id)
 	self.item = {}
 end
 
@@ -117,7 +130,7 @@ function Visualizer:UpdateList()
 		end)
 
 		self.Scroll:update()
-		self:UpdateButton()
+		self:UpdateButtons()
 	end
 end
 
@@ -138,20 +151,15 @@ function Visualizer.Scroll:update()
 		if id then
 			local name, link, quality = GetItemInfo(id)
 			button.item, button.link = id, link
+			button:SetHighlightLocked(id == self.item.id)
 			button.Text:SetTextColor(ITEM_QUALITY_COLORS[quality].color:GetRGB())
 			button.Icon:SetTexture(GetItemIcon(id))
 			button.Text:SetText(name)
 			button:SetWidth(width)
 			button:Show()
 
-			if id == self.item.id then
-				button:LockHighlight()
-			else
-				button:UnlockHighlight()
-			end
-
 			if focus == button then
-				button:GetScript('OnEnter')(button)
+				ExecuteFrameScript(button, 'OnEnter')
 			end
 
 			if mod(index, 2) == 0 then
@@ -168,8 +176,9 @@ function Visualizer.Scroll:update()
 	self.Scroll:SetWidth(width + 5)
 end
 
-function Visualizer:UpdateButton()
-	self.Button:SetEnabled(self.selectedTab == self.item.type)
-	self.Button:SetText(self.selectedTab == 1 and L.Add or L.Remove)
-	self.Button:SetWidth(self.Button:GetTextWidth() + 20)
+function Visualizer:UpdateButtons()
+	self.ForgetButton:SetEnabled(self.selectedTab == self.item.type)
+	self.ToggleButton:SetEnabled(self.selectedTab == self.item.type)
+	self.ToggleButton:SetText(self.selectedTab == 1 and L.Add or L.Remove)
+	self.ToggleButton:SetWidth(self.ToggleButton:GetTextWidth() + 20)
 end

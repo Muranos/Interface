@@ -100,12 +100,12 @@ do
 		self:TargetMessage(87622, "orange", player)
 		self:PlaySound(87622, "alarm", nil, player)
 		if self:Me(guid) then
-			self:Say(87622)
+			self:Say(87622, nil, nil, "Chain Lightning")
 		end
 	end
 
 	function mod:ChainLightning(args)
-		self:GetBossTarget(printTarget, 0.2, args.sourceGUID)
+		self:GetUnitTarget(printTarget, 0.2, args.sourceGUID)
 		if not self:Mythic() then
 			-- this is interruptible in non-Mythic so need to restart bar here
 			self:CDBar(args.spellId, 18.2)

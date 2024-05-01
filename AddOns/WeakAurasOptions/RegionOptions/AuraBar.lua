@@ -1,5 +1,8 @@
 if not WeakAuras.IsLibsOK() then return end
-local AddonName, OptionsPrivate = ...
+---@type string
+local AddonName = ...
+---@class OptionsPrivate
+local OptionsPrivate = select(2, ...)
 
 local SharedMedia = LibStub("LibSharedMedia-3.0");
 local L = WeakAuras.L;
@@ -183,7 +186,7 @@ local function createOptions(id, data)
     displayIcon = {
       type = "input",
       width = WeakAuras.normalWidth - 0.15,
-      name = L["Fallback"],
+      name = L["Manual"],
       disabled = function() return not data.icon end,
       order = 40.5,
       get = function()
@@ -268,7 +271,12 @@ local function createOptions(id, data)
       width = 0.15,
       order = 44.1,
       func = function()
-        OptionsPrivate.OpenTexturePicker(data, {}, {
+        local path = {}
+        local paths = {}
+        for child in OptionsPrivate.Private.TraverseLeafsOrAura(data) do
+          paths[child.id] = path
+        end
+        OptionsPrivate.OpenTexturePicker(data, paths, {
           texture = "sparkTexture",
           color = "sparkColor",
           rotation = "sparkRotation",
@@ -411,8 +419,6 @@ local function createOptions(id, data)
     },
   };
 
-  options = WeakAuras.regionPrototype.AddAdjustedDurationOptions(options, data, 36.5);
-
   local overlayInfo = OptionsPrivate.Private.GetOverlayInfo(data);
   if (overlayInfo and next(overlayInfo)) then
     options["overlayheader"] = {
@@ -476,6 +482,7 @@ local function createOptions(id, data)
 
   return {
     aurabar = options,
+    progressOptions = OptionsPrivate.commonOptions.ProgressOptions(data),
     position = OptionsPrivate.commonOptions.PositionOptions(id, data),
   };
 end
@@ -634,9 +641,9 @@ local function modifyThumbnail(parent, borderframe, data, fullModify, width, hei
       end
 
       if iconPath and iconPath ~= "" then
-        WeakAuras.SetTextureOrAtlas(self.icon, iconPath)
+        OptionsPrivate.Private.SetTextureOrAtlas(self.icon, iconPath)
       else
-        WeakAuras.SetTextureOrAtlas(self.icon, "Interface\\Icons\\INV_Misc_QuestionMark")
+        OptionsPrivate.Private.SetTextureOrAtlas(self.icon, "Interface\\Icons\\INV_Misc_QuestionMark")
       end
     end
 
@@ -825,4 +832,7 @@ local function GetAnchors(data)
 end
 
 -- Register new region type options with WeakAuras
-WeakAuras.RegisterRegionOptions("aurabar", createOptions, createIcon, L["Progress Bar"], createThumbnail, modifyThumbnail, L["Shows a progress bar with name, timer, and icon"], templates, GetAnchors);
+OptionsPrivate.registerRegions = OptionsPrivate.registerRegions or {}
+table.insert(OptionsPrivate.registerRegions, function()
+  OptionsPrivate.Private.RegisterRegionOptions("aurabar", createOptions, createIcon, L["Progress Bar"], createThumbnail, modifyThumbnail, L["Shows a progress bar with name, timer, and icon"], templates, GetAnchors);
+end)

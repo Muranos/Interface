@@ -1,3 +1,4 @@
+
 --lua locals
 local _cstr = string.format
 local _math_floor = math.floor
@@ -7,6 +8,7 @@ local pairs = pairs
 local min = math.min
 local unpack = unpack
 local type = type
+
 --api locals
 local _GetSpellInfo = Details.getspellinfo
 local GameTooltip = GameTooltip
@@ -173,7 +175,7 @@ local statusBarBackgroundTable_ForDeathTooltip = {
 --expose in case someone want to customize the death tooltip background
 Details.StatusBarBackgroundTable_ForDeathTooltip = statusBarBackgroundTable_ForDeathTooltip
 
-function Details.ShowDeathTooltip(instance, lineFrame, combatObject, deathTable)
+function Details.ShowDeathTooltip(instance, lineFrame, combatObject, deathTable) --~death
 	local events = deathTable[1]
 	local timeOfDeath = deathTable[2]
 	local maxHP = max(deathTable[5], 0.001)
@@ -260,7 +262,7 @@ function Details.ShowDeathTooltip(instance, lineFrame, combatObject, deathTable)
 								gameCooltip:AddStatusBar(healthPercent, 1, barTypeColors.heal, showSpark, statusBarBackgroundTable_ForDeathTooltip)
 							end
 						else
-							gameCooltip:AddLine("" .. format("%.1f", eventTime - timeOfDeath) .. "s " .. spellName .. " (|c" .. healingSourceColor .. source .. "|r)", "|c" .. healingAmountColor .. "+" .. Details:ToK(amount) .. " (" .. healthPercent .. "%)", 1, "white", "white")
+							gameCooltip:AddLine("" .. format("%.1f", eventTime - timeOfDeath) .. "s " .. spellName .. " (|c" .. healingSourceColor .. source .. "|r)", (event[11] and ("x" .. event[11] .. " ") or "") .. "|c" .. healingAmountColor .. "+" .. Details:ToK(amount) .. " (" .. healthPercent .. "%)", 1, "white", "white")
 							gameCooltip:AddIcon(spellIcon, nil, nil, lineHeight, lineHeight, .1, .9, .1, .9)
 							gameCooltip:AddStatusBar(healthPercent, 1, barTypeColors.heal, showSpark, statusBarBackgroundTable_ForDeathTooltip)
 						end
@@ -572,55 +574,85 @@ function atributo_misc:ReportSingleDebuffUptimeLine (misc_actor, instance)
 	return _detalhes:Reportar (report_table, {_no_current = true, _no_inverse = true, _custom = true})
 end
 
+---index[1] is the death log
+---index[2] is the death time
+---index[3] is the name of the player
+---index[4] is the class of the player
+---index[5] is the max health
+---index[6] is the time of the fight as string
+---@field death boolean
+---@field last_cooldown table
+---@field dead_at number --combat time when the player died
+---@field spec number
+
 ---update a row in an instance (window) showing death logs
----@param morte table
+---@param deathTable table
 ---@param whichRowLine number
 ---@param rankPosition number
----@param instance table
-function atributo_misc:UpdateDeathRow(morte, whichRowLine, rankPosition, instance) --todo: change this function name
-	morte["dead"] = true
-	local thisRow = instance.barras[whichRowLine]
+---@param instanceObject table
+function atributo_misc:UpdateDeathRow(deathTable, whichRowLine, rankPosition, instanceObject) --todo: change this function name
+	local playerName, playerClass, deathTime, deathCombatTime, deathTimeString, playerMaxHealth, deathEvents, lastCooldown, spec = Details:UnpackDeathTable(deathTable)
+
+	deathTable["dead"] = true
+	local thisRow = instanceObject.barras[whichRowLine]
 
 	if (not thisRow) then
 		print("DEBUG: problema com <instancia.esta_barra> "..whichRowLine.." "..rankPosition)
 		return
 	end
 
-	thisRow.minha_tabela = morte
+	thisRow.minha_tabela = deathTable
 
-	morte.nome = morte[3] --void an issue while resizing the window
-	morte.minha_barra = whichRowLine
+	deathTable.nome = playerName
+	deathTable.minha_barra = whichRowLine
 	thisRow.colocacao = rankPosition
 
-	if (not getmetatable(morte)) then
-		setmetatable(morte, {__call = RefreshBarraMorte})
-		morte._custom = true
+	if (not getmetatable(deathTable)) then
+		setmetatable(deathTable, {__call = RefreshBarraMorte})
+		deathTable._custom = true
 	end
 
-	thisRow.lineText1:SetText(rankPosition .. ". " .. morte[3]:gsub(("%-.*"), ""))
+	local bUseCustomLeftText = instanceObject.row_info.textL_enable_custom_text
+
+	local actorObject = instanceObject:GetCombat():GetContainer(DETAILS_ATTRIBUTE_MISC):GetActor(playerName)
+	if (actorObject) then
+		actorObject:SetBarLeftText(thisRow, instanceObject, false, false, false, bUseCustomLeftText)
+	else
+		Details:SetBarLeftText(thisRow, instanceObject, false, false, false, bUseCustomLeftText)
+	end
+
+	if (instanceObject.row_info.textL_class_colors) then
+		local textColor_Red, textColor_Green, textColor_Blue = actorObject:GetTextColor(instanceObject, "left")
+		thisRow.lineText1:SetTextColor(textColor_Red, textColor_Green, textColor_Blue) --the r, g, b color passed are the color used on the bar, so if the bar is not using class color, the text is painted with the fixed color for the bar
+	end
+
+	if (instanceObject.row_info.textR_class_colors) then
+		local textColor_Red, textColor_Green, textColor_Blue = actorObject:GetTextColor(instanceObject, "right")
+		thisRow.lineText4:SetTextColor(textColor_Red, textColor_Green, textColor_Blue) --the r, g, b color passed are the color used on the bar, so if the bar is not using class color, the text is painted with the fixed color for the bar
+	end
+
 	thisRow.lineText2:SetText("")
 	thisRow.lineText3:SetText("")
-	thisRow.lineText4:SetText(morte[6])
+	thisRow.lineText4:SetText(deathTimeString)
+
+	local r, g, b, a = actorObject:GetBarColor()
+	actorObject:SetBarColors(thisRow, instanceObject, r, g, b, a)
 
 	thisRow:SetValue(100)
 	if (thisRow.hidden or thisRow.fading_in or thisRow.faded) then
 		Details.FadeHandler.Fader(thisRow, "out")
 	end
 
-	--seta a cor da barra e a cor do texto caso eles esteja mostrando com a cor da classe
-	local r, g, b, a = unpack(_detalhes.class_colors[morte[4]])
-	_detalhes:SetBarColors(thisRow, instance, r, g, b, a)
-
-	if (instance.row_info.use_spec_icons) then
-		local nome = morte[3]
-		local spec = instance.showing (1, nome) and instance.showing (1, nome).spec or (instance.showing (2, nome) and instance.showing (2, nome).spec)
+	if (instanceObject.row_info.use_spec_icons) then
+		local nome = deathTable[3]
+		local spec = instanceObject.showing (1, nome) and instanceObject.showing (1, nome).spec or (instanceObject.showing (2, nome) and instanceObject.showing (2, nome).spec)
 		if (spec and spec ~= 0) then
-			thisRow.icone_classe:SetTexture(instance.row_info.spec_file)
+			thisRow.icone_classe:SetTexture(instanceObject.row_info.spec_file)
 			thisRow.icone_classe:SetTexCoord(unpack(_detalhes.class_specs_coords[spec]))
 		else
-			if (CLASS_ICON_TCOORDS [morte[4]]) then
-				thisRow.icone_classe:SetTexture(instance.row_info.icon_file)
-				thisRow.icone_classe:SetTexCoord(unpack(CLASS_ICON_TCOORDS [morte[4]]))
+			if (CLASS_ICON_TCOORDS [deathTable[4]]) then
+				thisRow.icone_classe:SetTexture(instanceObject.row_info.icon_file)
+				thisRow.icone_classe:SetTexCoord(unpack(CLASS_ICON_TCOORDS [deathTable[4]]))
 			else
 				local texture, l, r, t, b = Details:GetUnknownClassIcon()
 				thisRow.icone_classe:SetTexture(texture)
@@ -628,9 +660,9 @@ function atributo_misc:UpdateDeathRow(morte, whichRowLine, rankPosition, instanc
 			end
 		end
 	else
-		if (CLASS_ICON_TCOORDS [morte[4]]) then
-			thisRow.icone_classe:SetTexture(instance.row_info.icon_file)
-			thisRow.icone_classe:SetTexCoord(unpack(CLASS_ICON_TCOORDS [morte[4]]))
+		if (CLASS_ICON_TCOORDS [deathTable[4]]) then
+			thisRow.icone_classe:SetTexture(instanceObject.row_info.icon_file)
+			thisRow.icone_classe:SetTexCoord(unpack(CLASS_ICON_TCOORDS [deathTable[4]]))
 		else
 			local texture, l, r, t, b = Details:GetUnknownClassIcon()
 			thisRow.icone_classe:SetTexture(texture)
@@ -640,8 +672,8 @@ function atributo_misc:UpdateDeathRow(morte, whichRowLine, rankPosition, instanc
 
 	thisRow.icone_classe:SetVertexColor(1, 1, 1)
 
-	if (thisRow.mouse_over and not instance.baseframe.isMoving) then --precisa atualizar o tooltip
-		gump:UpdateTooltip (whichRowLine, thisRow, instance)
+	if (thisRow.mouse_over and not instanceObject.baseframe.isMoving) then --precisa atualizar o tooltip
+		gump:UpdateTooltip (whichRowLine, thisRow, instanceObject)
 	end
 
 	thisRow.lineText1:SetSize(thisRow:GetWidth() - thisRow.lineText4:GetStringWidth() - 20, 15)
@@ -927,6 +959,7 @@ function atributo_misc:RefreshLine(instancia, barras_container, whichRowLine, lu
 	end
 
 	--local porcentagem = meu_total / total * 100
+	local porcentagem = ""
 	if (not percentage_type or percentage_type == 1) then
 		porcentagem = _cstr ("%.1f", meu_total / total * 100)
 	elseif (percentage_type == 2) then
@@ -1173,7 +1206,9 @@ function atributo_misc:ToolTipDispell(instancia, numero, barra)
 		if (spellTable.dispell) then
 			spellsUsedToDispel[#spellsUsedToDispel+1] = {spellId, math.floor(spellTable.dispell)}
 		else
-			Details:Msg("D! table.dispell is invalid. spellId:", spellId)
+			--happens when druid uses shapeshift to break root
+			--Details:Msg("D! table.dispell is invalid. spellId:", spellId)
+			spellsUsedToDispel[#spellsUsedToDispel+1] = {spellId, math.floor(-1)}
 		end
 	end
 	table.sort (spellsUsedToDispel, _detalhes.Sort2)
@@ -1190,7 +1225,13 @@ function atributo_misc:ToolTipDispell(instancia, numero, barra)
 			local spellId = spellInfo[1]
 			local amountDispels = spellInfo[2]
 			local spellName, _, spellicon = _GetSpellInfo(spellId)
-			GameCooltip:AddLine(spellName, amountDispels .. " (" .. string.format("%.1f", amountDispels / totalDispels * 100) .. "%)")
+			local amountOfDispelsStr = "" .. amountDispels
+
+			if (amountDispels == -1) then
+				amountOfDispelsStr = _G["UNKNOWN"]
+			end
+
+			GameCooltip:AddLine(spellName, amountOfDispelsStr .. " (" .. string.format("%.1f", amountDispels / totalDispels * 100) .. "%)")
 			GameCooltip:AddIcon(spellicon, nil, nil, icon_size.W, icon_size.H, icon_border.L, icon_border.R, icon_border.T, icon_border.B)
 			_detalhes:AddTooltipBackgroundStatusbar()
 		end
@@ -1332,115 +1373,93 @@ function _detalhes:CloseEnemyDebuffsUptime()
 	return
 end
 
-function _detalhes:CatchRaidDebuffUptime (in_or_out) -- "DEBUFF_UPTIME_IN"
+function _detalhes:CatchRaidDebuffUptime(sOperationType) -- "DEBUFF_UPTIME_IN"
+	if (sOperationType == "DEBUFF_UPTIME_OUT") then
+		local combatObject = Details:GetCurrentCombat()
+		local utilityContainer = combatObject:GetContainer(DETAILS_ATTRIBUTE_MISC)
 
-	if (in_or_out == "DEBUFF_UPTIME_OUT") then
-		local combat = _detalhes.tabela_vigente
-		local misc_container = combat [4]._ActorTable --error attempt to index a new value
-
-		for _, actor in ipairs(misc_container) do
-			if (actor.debuff_uptime) then
-				for spellid, spell in pairs(actor.debuff_uptime_spells._ActorTable) do
-					if (spell.actived and spell.actived_at) then
-						spell.uptime = spell.uptime + _detalhes._tempo - spell.actived_at
-						actor.debuff_uptime = actor.debuff_uptime + _detalhes._tempo - spell.actived_at
-						spell.actived = false
-						spell.actived_at = nil
+		for _, actorObject in utilityContainer:ListActors() do
+			if (actorObject.debuff_uptime) then
+				for spellId, spellTable in pairs(actorObject.debuff_uptime_spells._ActorTable) do
+					if (spellTable.actived and spellTable.actived_at) then
+						spellTable.uptime = spellTable.uptime + _detalhes._tempo - spellTable.actived_at
+						actorObject.debuff_uptime = actorObject.debuff_uptime + _detalhes._tempo - spellTable.actived_at
+						spellTable.actived = false
+						spellTable.actived_at = nil
 					end
 				end
 			end
 		end
-
 		return
-	end
 
-	local cacheGetTime = GetTime()
+	elseif (sOperationType == "DEBUFF_UPTIME_IN") then
+		local cacheGetTime = GetTime()
 
-	if (IsInRaid()) then
+		if (IsInRaid()) then
 
-		local checked = {}
+			local checked = {}
 
-		for raidIndex = 1, GetNumGroupMembers() do
+			for raidIndex = 1, GetNumGroupMembers() do
 
-			local target = "raid"..raidIndex.."target"
-			local his_target = UnitGUID(target)
+				local target = "raid"..raidIndex.."target"
+				local his_target = UnitGUID(target)
 
-			if (his_target and not checked [his_target]) then
-				local rect = UnitReaction (target, "player")
-				if (rect and rect <= 4) then
+				if (his_target and not checked [his_target]) then
+					local rect = UnitReaction (target, "player")
+					if (rect and rect <= 4) then
+
+						checked [his_target] = true
+
+						for debuffIndex = 1, 41 do
+							local name, _, _, _, _, _, _, unitCaster, _, _, spellid = UnitDebuff (target, debuffIndex)
+							if (name and unitCaster) then
+								local playerGUID = UnitGUID(unitCaster)
+								if (playerGUID) then
+
+									local playerName, realmName = _UnitName (unitCaster)
+									if (realmName and realmName ~= "") then
+										playerName = playerName .. "-" .. realmName
+									end
+
+									_detalhes.parser:add_debuff_uptime (nil, cacheGetTime, playerGUID, playerName, 0x00000417, his_target, _UnitName (target), 0x842, nil, spellid, name, sOperationType)
+								end
+							end
+						end
+					end
+				end
+			end
+
+		elseif (IsInGroup()) then
+
+			local checked = {}
+
+			for raidIndex = 1, GetNumGroupMembers()-1 do
+				local his_target = UnitGUID("party"..raidIndex.."target")
+				local rect = UnitReaction ("party"..raidIndex.."target", "player")
+				if (his_target and not checked [his_target] and rect and rect <= 4) then
 
 					checked [his_target] = true
 
-					for debuffIndex = 1, 41 do
-						local name, _, _, _, _, _, _, unitCaster, _, _, spellid = UnitDebuff (target, debuffIndex)
+					for debuffIndex = 1, 40 do
+						local name, _, _, _, _, _, _, unitCaster, _, _, spellid  = UnitDebuff ("party"..raidIndex.."target", debuffIndex)
 						if (name and unitCaster) then
+							local playerName, realmName = _UnitName (unitCaster)
 							local playerGUID = UnitGUID(unitCaster)
 							if (playerGUID) then
-
-								local playerName, realmName = _UnitName (unitCaster)
 								if (realmName and realmName ~= "") then
 									playerName = playerName .. "-" .. realmName
 								end
 
-								_detalhes.parser:add_debuff_uptime (nil, cacheGetTime, playerGUID, playerName, 0x00000417, his_target, _UnitName (target), 0x842, nil, spellid, name, in_or_out)
+								_detalhes.parser:add_debuff_uptime (nil, GetTime(), playerGUID, playerName, 0x00000417, his_target, _UnitName ("party"..raidIndex.."target"), 0x842, nil, spellid, name, sOperationType)
 							end
 						end
 					end
 				end
 			end
-		end
 
-	elseif (IsInGroup()) then
-
-		local checked = {}
-
-		for raidIndex = 1, GetNumGroupMembers()-1 do
-			local his_target = UnitGUID("party"..raidIndex.."target")
-			local rect = UnitReaction ("party"..raidIndex.."target", "player")
+			local his_target = UnitGUID("playertarget")
+			local rect = UnitReaction ("playertarget", "player")
 			if (his_target and not checked [his_target] and rect and rect <= 4) then
-
-				checked [his_target] = true
-
-				for debuffIndex = 1, 40 do
-					local name, _, _, _, _, _, _, unitCaster, _, _, spellid  = UnitDebuff ("party"..raidIndex.."target", debuffIndex)
-					if (name and unitCaster) then
-						local playerName, realmName = _UnitName (unitCaster)
-						local playerGUID = UnitGUID(unitCaster)
-						if (playerGUID) then
-							if (realmName and realmName ~= "") then
-								playerName = playerName .. "-" .. realmName
-							end
-
-							_detalhes.parser:add_debuff_uptime (nil, GetTime(), playerGUID, playerName, 0x00000417, his_target, _UnitName ("party"..raidIndex.."target"), 0x842, nil, spellid, name, in_or_out)
-						end
-					end
-				end
-			end
-		end
-
-		local his_target = UnitGUID("playertarget")
-		local rect = UnitReaction ("playertarget", "player")
-		if (his_target and not checked [his_target] and rect and rect <= 4) then
-			for debuffIndex = 1, 40 do
-				local name, _, _, _, _, _, _, unitCaster, _, _, spellid  = UnitDebuff ("playertarget", debuffIndex)
-				if (name and unitCaster) then
-					local playerName, realmName = _UnitName (unitCaster)
-					local playerGUID = UnitGUID(unitCaster)
-					if (playerGUID) then
-						if (realmName and realmName ~= "") then
-							playerName = playerName .. "-" .. realmName
-						end
-						_detalhes.parser:add_debuff_uptime (nil, GetTime(), playerGUID, playerName, 0x00000417, his_target, _UnitName ("playertarget"), 0x842, nil, spellid, name, in_or_out)
-					end
-				end
-			end
-		end
-
-	else
-		local his_target = UnitGUID("playertarget")
-		if (his_target) then
-			local reaction = UnitReaction ("playertarget", "player")
-			if (reaction and reaction <= 4) then
 				for debuffIndex = 1, 40 do
 					local name, _, _, _, _, _, _, unitCaster, _, _, spellid  = UnitDebuff ("playertarget", debuffIndex)
 					if (name and unitCaster) then
@@ -1450,7 +1469,28 @@ function _detalhes:CatchRaidDebuffUptime (in_or_out) -- "DEBUFF_UPTIME_IN"
 							if (realmName and realmName ~= "") then
 								playerName = playerName .. "-" .. realmName
 							end
-							_detalhes.parser:add_debuff_uptime (nil, GetTime(), playerGUID, playerName, 0x00000417, his_target, _UnitName ("playertarget"), 0x842, nil, spellid, name, in_or_out)
+							_detalhes.parser:add_debuff_uptime (nil, GetTime(), playerGUID, playerName, 0x00000417, his_target, _UnitName ("playertarget"), 0x842, nil, spellid, name, sOperationType)
+						end
+					end
+				end
+			end
+
+		else
+			local his_target = UnitGUID("playertarget")
+			if (his_target) then
+				local reaction = UnitReaction ("playertarget", "player")
+				if (reaction and reaction <= 4) then
+					for debuffIndex = 1, 40 do
+						local name, _, _, _, _, _, _, unitCaster, _, _, spellid  = UnitDebuff ("playertarget", debuffIndex)
+						if (name and unitCaster) then
+							local playerName, realmName = _UnitName (unitCaster)
+							local playerGUID = UnitGUID(unitCaster)
+							if (playerGUID) then
+								if (realmName and realmName ~= "") then
+									playerName = playerName .. "-" .. realmName
+								end
+								_detalhes.parser:add_debuff_uptime (nil, GetTime(), playerGUID, playerName, 0x00000417, his_target, _UnitName ("playertarget"), 0x842, nil, spellid, name, sOperationType)
+							end
 						end
 					end
 				end
@@ -1460,45 +1500,41 @@ function _detalhes:CatchRaidDebuffUptime (in_or_out) -- "DEBUFF_UPTIME_IN"
 end
 
 --this shouldn't be hardcoded
-local runes_id = {
+local runeIds = {
 	[175457] = true, -- focus
 	[175456] = true, --hyper
 	[175439] = true, --stout
 }
 
 --called from control on leave / enter combat
-function _detalhes:CatchRaidBuffUptime (in_or_out)
-
+function _detalhes:CatchRaidBuffUptime(sOperationType)
 	if (IsInRaid()) then
-
-		local pot_usage = {}
-		local focus_augmentation = {}
-
+		local potUsage = {}
+		local focusAugmentation = {}
 		--raid groups
 		local cacheGetTime = GetTime()
 
 		for raidIndex = 1, GetNumGroupMembers() do
-			local RaidIndex = "raid" .. raidIndex
-			local playerGUID = UnitGUID(RaidIndex)
+			local unitId = "raid" .. raidIndex
+			local playerGUID = UnitGUID(unitId)
 
 			if (playerGUID) then
-
-				local playerName, realmName = _UnitName (RaidIndex)
+				local playerName, realmName = _UnitName(unitId)
 				if (realmName and realmName ~= "") then
 					playerName = playerName .. "-" .. realmName
 				end
 
 				for buffIndex = 1, 41 do
-					local name, _, _, _, _, _, unitCaster, _, _, spellid  = _UnitAura (RaidIndex, buffIndex, nil, "HELPFUL")
-					if (name and unitCaster and UnitExists(unitCaster) and UnitExists(RaidIndex) and UnitIsUnit(unitCaster, RaidIndex)) then
-						_detalhes.parser:add_buff_uptime (nil, cacheGetTime, playerGUID, playerName, 0x00000514, playerGUID, playerName, 0x00000514, 0x0, spellid, name, in_or_out)
+					local name, _, _, _, _, _, unitCaster, _, _, spellId  = _UnitAura(unitId, buffIndex, nil, "HELPFUL")
+					if (name and unitCaster and UnitExists(unitCaster) and UnitExists(unitId) and UnitIsUnit(unitCaster, unitId)) then
+						_detalhes.parser:add_buff_uptime(nil, cacheGetTime, playerGUID, playerName, 0x00000514, playerGUID, playerName, 0x00000514, 0x0, spellId, name, sOperationType)
 
-						if (in_or_out == "BUFF_UPTIME_IN") then
-							if (_detalhes.PotionList [spellid]) then
-								pot_usage [playerName] = spellid
+						if (sOperationType == "BUFF_UPTIME_IN") then
+							if (_detalhes.PotionList[spellId]) then
+								potUsage[playerName] = spellId
 
-							elseif (runes_id [spellid]) then
-								focus_augmentation [playerName] = true
+							elseif(runeIds[spellId]) then
+								focusAugmentation[playerName] = true
 							end
 						end
 					end
@@ -1506,128 +1542,162 @@ function _detalhes:CatchRaidBuffUptime (in_or_out)
 			end
 		end
 
-		if (in_or_out == "BUFF_UPTIME_IN") then
+		if (sOperationType == "BUFF_UPTIME_IN") then
 			local string_output = "pre-potion: " --localize-me
 
-			for playername, potspellid in pairs(pot_usage) do
+			for playername, potspellid in pairs(potUsage) do
 				local name, _, icon = _GetSpellInfo(potspellid)
-				local _, class = UnitClass(playername)
+				local unitClass = Details:GetUnitClass(playername)
 				local class_color = ""
-				if (class and RAID_CLASS_COLORS [class]) then
-					class_color = RAID_CLASS_COLORS [class].colorStr
+				if (unitClass and RAID_CLASS_COLORS[unitClass]) then
+					class_color = RAID_CLASS_COLORS[unitClass].colorStr
 				end
 				string_output = string_output .. "|c" .. class_color .. playername .. "|r |T" .. icon .. ":14:14:0:0:64:64:0:64:0:64|t "
 			end
 
 			_detalhes.pre_pot_used = string_output
 
-			_detalhes:SendEvent("COMBAT_PREPOTION_UPDATED", nil, pot_usage, focus_augmentation)
+			_detalhes:SendEvent("COMBAT_PREPOTION_UPDATED", nil, potUsage, focusAugmentation)
 		end
 
 	elseif (IsInGroup()) then
-
-		local pot_usage = {}
-		local focus_augmentation = {}
+		local potUsage = {}
+		local focusAugmentation = {}
 
 		--party members
 		for groupIndex = 1, GetNumGroupMembers() - 1 do
+			local unitId = "party" .. groupIndex
 			for buffIndex = 1, 41 do
-				local name, _, _, _, _, _, unitCaster, _, _, spellid  = _UnitAura ("party"..groupIndex, buffIndex, nil, "HELPFUL")
-				if (name and unitCaster and UnitExists(unitCaster) and UnitExists("party" .. groupIndex) and UnitIsUnit(unitCaster, "party" .. groupIndex)) then
+				if (UnitExists(unitId)) then
+					local auraName, _, _, _, _, _, unitCaster, _, _, spellId  = UnitBuff(unitId, buffIndex)
+					if (auraName) then
+						if (UnitExists(unitCaster)) then
+							local bBuffIsPlacedOnTarget = Details.CreditBuffToTarget[spellId]
+							local bUnitIsTheCaster = UnitIsUnit(unitCaster, unitId)
+							if (bUnitIsTheCaster or bBuffIsPlacedOnTarget) then
+								if (bBuffIsPlacedOnTarget and not bUnitIsTheCaster) then
+									--could be prescince, ebom might or power infusion; casted on a target instead of the caster
+									local sourceSerial = UnitGUID(unitCaster)
+									local sourceName = Details:GetFullName(unitCaster)
+									local sourceFlags = 0x514
+									local targetSerial = UnitGUID(unitId)
+									local targetName = Details:GetFullName(unitId)
+									local targetFlags = 0x514
+									local targetFlags2 = 0x0
+									local spellName = auraName
+									Details.parser:buff("SPELL_AURA_APPLIED", time(), sourceSerial, sourceName, sourceFlags, targetSerial, targetName, targetFlags, targetFlags2, spellId, spellName, 0x4, "BUFF", 0)
 
-					local playerName, realmName = _UnitName ("party"..groupIndex)
-					local playerGUID = UnitGUID("party"..groupIndex)
+								elseif (bUnitIsTheCaster) then
+									local playerGUID = UnitGUID(unitId)
+									if (playerGUID) then
+										local playerName = Details:GetFullName(unitId)
+										if (sOperationType == "BUFF_UPTIME_IN") then
+											if (_detalhes.PotionList[spellId]) then
+												potUsage[playerName] = spellId
+											elseif (runeIds[spellId]) then
+												focusAugmentation [playerName] = true
+											end
+										end
 
-					if (playerGUID) then
-						if (realmName and realmName ~= "") then
-							playerName = playerName .. "-" .. realmName
-						end
-
-						if (in_or_out == "BUFF_UPTIME_IN") then
-							if (_detalhes.PotionList [spellid]) then
-								pot_usage [playerName] = spellid
-
-							elseif (runes_id [spellid]) then
-								focus_augmentation [playerName] = true
+										_detalhes.parser:add_buff_uptime(nil, GetTime(), playerGUID, playerName, 0x00000417, playerGUID, playerName, 0x00000417, 0x0, spellId, auraName, sOperationType)
+									end
+								end
 							end
 						end
-
-						_detalhes.parser:add_buff_uptime (nil, GetTime(), playerGUID, playerName, 0x00000417, playerGUID, playerName, 0x00000417, 0x0, spellid, name, in_or_out)
 					end
 				end
 			end
 		end
 
-		--player it self
+		--player it self (while in a party that isn't a raid group)
+		local unitId = "player"
 		for buffIndex = 1, 41 do
-			local name, _, _, _, _, _, unitCaster, _, _, spellid  = _UnitAura ("player", buffIndex, nil, "HELPFUL")
-			if (name and unitCaster and UnitExists(unitCaster) and UnitIsUnit(unitCaster, "player")) then
-				local playerName = _UnitName ("player")
-				local playerGUID = UnitGUID("player")
-				if (playerGUID) then
-					if (in_or_out == "BUFF_UPTIME_IN") then
-						if (_detalhes.PotionList [spellid]) then
-							pot_usage [playerName] = spellid
-						elseif (runes_id [spellid]) then
-							focus_augmentation [playerName] = true
+			local auraName, _, _, _, _, _, unitCaster, _, _, spellId  = UnitBuff(unitId, buffIndex)
+			if (auraName) then
+				if (UnitExists(unitCaster)) then -- and unitCaster and UnitExists(unitCaster) and UnitIsUnit(unitCaster, unitId)
+					local bBuffIsPlacedOnTarget = Details.CreditBuffToTarget[spellId]
+					if (UnitIsUnit(unitCaster, unitId) or bBuffIsPlacedOnTarget) then
+						if (bBuffIsPlacedOnTarget and not UnitIsUnit(unitCaster, unitId)) then
+							--could be prescince, ebom might or power infusion; casted on a target instead of the caster
+							local sourceSerial = UnitGUID(unitCaster)
+							local sourceName = Details:GetFullName(unitCaster)
+							local sourceFlags = 0x514
+							local targetSerial = UnitGUID(unitId)
+							local targetName = Details:GetFullName(unitId)
+							local targetFlags = 0x514
+							local targetFlags2 = 0x0
+							local spellName = auraName
+							Details.parser:buff("SPELL_AURA_APPLIED", time(), sourceSerial, sourceName, sourceFlags, targetSerial, targetName, targetFlags, targetFlags2, spellId, spellName, 0x4, "BUFF", 0)
+						else
+							local playerName = Details:GetFullName(unitId)
+							local playerGUID = UnitGUID(unitId)
+							if (playerGUID) then
+								if (sOperationType == "BUFF_UPTIME_IN") then
+									if (_detalhes.PotionList[spellId]) then
+										potUsage [playerName] = spellId
+									elseif (runeIds[spellId]) then
+										focusAugmentation[playerName] = true
+									end
+								end
+
+								_detalhes.parser:add_buff_uptime(nil, GetTime(), playerGUID, playerName, 0x00000417, playerGUID, playerName, 0x00000417, 0x0, spellId, auraName, sOperationType)
+							end
 						end
 					end
-
-					_detalhes.parser:add_buff_uptime (nil, GetTime(), playerGUID, playerName, 0x00000417, playerGUID, playerName, 0x00000417, 0x0, spellid, name, in_or_out)
 				end
 			end
 		end
 
-		if (in_or_out == "BUFF_UPTIME_IN") then
+		if (sOperationType == "BUFF_UPTIME_IN") then
 			local string_output = "pre-potion: "
 
-			for playername, potspellid in pairs(pot_usage) do
-				local name, _, icon = _GetSpellInfo(potspellid)
-				local _, class = UnitClass(playername)
+			for playername, potspellid in pairs(potUsage) do
+				local auraName, _, icon = _GetSpellInfo(potspellid)
+				local unitClass = Details:GetUnitClass(playername)
 				local class_color = ""
-				if (class and RAID_CLASS_COLORS [class]) then
-					class_color = RAID_CLASS_COLORS [class].colorStr
+				if (unitClass and RAID_CLASS_COLORS[unitClass]) then
+					class_color = RAID_CLASS_COLORS[unitClass].colorStr
 				end
 				string_output = string_output .. "|c" .. class_color .. playername .. "|r |T" .. icon .. ":14:14:0:0:64:64:0:64:0:64|t "
 			end
 
 			_detalhes.pre_pot_used = string_output
-			_detalhes:SendEvent("COMBAT_PREPOTION_UPDATED", nil, pot_usage, focus_augmentation)
+			_detalhes:SendEvent("COMBAT_PREPOTION_UPDATED", nil, potUsage, focusAugmentation)
 		end
 
-	else
-
+	else --end of IsInGroup
+		--player alone
 		local pot_usage = {}
 		local focus_augmentation = {}
 
 		for buffIndex = 1, 41 do
-			local name, _, _, _, _, _, unitCaster, _, _, spellid  = _UnitAura ("player", buffIndex, nil, "HELPFUL")
-			if (name and unitCaster and UnitExists(unitCaster) and UnitIsUnit(unitCaster, "player")) then
-				local playerName = _UnitName ("player")
+			local auraName, _, _, _, _, _, unitCaster, _, _, spellid  = _UnitAura ("player", buffIndex, nil, "HELPFUL")
+			if (auraName and unitCaster and UnitExists(unitCaster) and UnitIsUnit(unitCaster, "player")) then
+				local playerName = Details.playername
 				local playerGUID = UnitGUID("player")
 
 				if (playerGUID) then
-					if (in_or_out == "BUFF_UPTIME_IN") then
+					if (sOperationType == "BUFF_UPTIME_IN") then
 						if (_detalhes.PotionList [spellid]) then
 							pot_usage [playerName] = spellid
-						elseif (runes_id [spellid]) then
+						elseif (runeIds [spellid]) then
 							focus_augmentation [playerName] = true
 						end
 					end
-					_detalhes.parser:add_buff_uptime (nil, GetTime(), playerGUID, playerName, 0x00000417, playerGUID, playerName, 0x00000417, 0x0, spellid, name, in_or_out)
+					_detalhes.parser:add_buff_uptime (nil, GetTime(), playerGUID, playerName, 0x00000417, playerGUID, playerName, 0x00000417, 0x0, spellid, auraName, sOperationType)
 				end
 			end
 		end
 
 		--[
-		if (in_or_out == "BUFF_UPTIME_IN") then
+		if (sOperationType == "BUFF_UPTIME_IN") then
 			local string_output = "pre-potion: "
 			for playername, potspellid in pairs(pot_usage) do
-				local name, _, icon = _GetSpellInfo(potspellid)
-				local _, class = UnitClass(playername)
+				local auraName, _, icon = _GetSpellInfo(potspellid)
+				local unitClass = Details:GetUnitClass(playername)
 				local class_color = ""
-				if (class and RAID_CLASS_COLORS [class]) then
-					class_color = RAID_CLASS_COLORS [class].colorStr
+				if (unitClass and RAID_CLASS_COLORS[unitClass]) then
+					class_color = RAID_CLASS_COLORS[unitClass].colorStr
 				end
 				string_output = string_output .. "|c" .. class_color .. playername .. "|r |T" .. icon .. ":14:14:0:0:64:64:0:64:0:64|t "
 			end
@@ -1639,6 +1709,10 @@ function _detalhes:CatchRaidBuffUptime (in_or_out)
 		--]]
 		-- _detalhes:Msg(string_output)
 
+	end
+
+	if (sOperationType == "BUFF_UPTIME_OUT") then
+		
 	end
 end
 
@@ -1704,56 +1778,90 @@ function atributo_misc:ToolTipDebuffUptime (instancia, numero, barra)
 end
 
 function atributo_misc:ToolTipBuffUptime(instance, barFrame)
+	---@cast instance instance
+
 	local owner = self.owner
 	if (owner and owner.classe) then
-		r, g, b = unpack(_detalhes.class_colors[owner.classe])
+		r, g, b = unpack(Details.class_colors[owner.classe])
 	else
-		r, g, b = unpack(_detalhes.class_colors[self.classe])
+		r, g, b = unpack(Details.class_colors[self.classe])
 	end
 
-	local actorTotal = self["buff_uptime"]
-	local actorTable = self.buff_uptime_spells._ActorTable
+	local combatTime = instance:GetCombat():GetCombatTime()
+	local buffUptimeSpells = self:GetSpellContainer("buff")
+	local buffUptimeTable = {}
 
-	local buffsUsed = {}
-	local combatTime = instance.showing:GetCombatTime()
-
-	for spellId, actor in pairs(actorTable) do
-		buffsUsed[#buffsUsed+1] = {spellId, actor.uptime or 0}
-	end
-	table.sort(buffsUsed, _detalhes.Sort2)
-
-	_detalhes:AddTooltipSpellHeaderText(Loc ["STRING_SPELLS"], headerColor, #buffsUsed, _detalhes.tooltip_spell_icon.file, unpack(_detalhes.tooltip_spell_icon.coords))
-	_detalhes:AddTooltipHeaderStatusbar(r, g, b, barAlha)
-
-	local iconSizeInfo = _detalhes.tooltip.icon_size
-	local iconBorderInfo = _detalhes.tooltip.icon_border_texcoord
-
-	if (#buffsUsed > 0) then
-		for i = 1, min(30, #buffsUsed) do
-			local spellTable = buffsUsed[i]
-			local percent = spellTable[2] / combatTime * 100
-
-			if (spellTable[2] > 0 and percent < 99.5) then
-				local spellName, _, spellIcon = _GetSpellInfo(spellTable[1])
-
-				local minutes, seconds = floor(spellTable[2] / 60), floor(spellTable[2] % 60)
-				if (spellTable[2] >= combatTime) then
-					--GameCooltip:AddLine(nome_magia, minutos .. "m " .. segundos .. "s" .. " (" .. _cstr ("%.1f", esta_habilidade[2] / _combat_time * 100) .. "%)", nil, "gray", "gray")
-					--GameCooltip:AddStatusBar (100, nil, 1, 0, 1, .3, false)
-
-				elseif (minutes > 0) then
-					GameCooltip:AddLine(spellName, minutes .. "m " .. seconds .. "s" .. " (" .. _cstr("%.1f", percent) .. "%)")
-					_detalhes:AddTooltipBackgroundStatusbar(false, percent)
-
-				else
-					GameCooltip:AddLine(spellName, seconds .. "s" .. " (" .. _cstr("%.1f", percent) .. "%)")
-					_detalhes:AddTooltipBackgroundStatusbar(false, percent)
+	if (buffUptimeSpells) then
+		for spellId, spellTable in buffUptimeSpells:ListSpells() do
+			if (not Details.BuffUptimeSpellsToIgnore[spellId]) then
+				local uptime = spellTable.uptime or 0
+				if (uptime > 0) then
+					buffUptimeTable[#buffUptimeTable+1] = {spellId, uptime}
 				end
-
-				GameCooltip:AddIcon(spellIcon, nil, nil, iconSizeInfo.W, iconSizeInfo.H, iconBorderInfo.L, iconBorderInfo.R, iconBorderInfo.T, iconBorderInfo.B)
 			end
 		end
+
+		--check if this player has a augmentation buff container		
+		local augmentedBuffContainer = self.received_buffs_spells
+		if (augmentedBuffContainer) then
+			for sourceNameSpellId, spellTable in augmentedBuffContainer:ListSpells() do
+				local sourceName, spellId = strsplit("@", sourceNameSpellId)
+				spellId = tonumber(spellId)
+				local spellName, _, spellIcon = Details.GetSpellInfo(spellId)
+
+				if (spellName) then
+					sourceName = detailsFramework:RemoveRealmName(sourceName)
+					local uptime = spellTable.uptime or 0
+					buffUptimeTable[#buffUptimeTable+1] = {spellId, uptime, sourceName}
+				end
+			end
+		end
+
+		table.sort(buffUptimeTable, Details.Sort2)
+
+		Details:AddTooltipSpellHeaderText(Loc ["STRING_SPELLS"], headerColor, #buffUptimeTable, Details.tooltip_spell_icon.file, unpack(Details.tooltip_spell_icon.coords))
+		Details:AddTooltipHeaderStatusbar(r, g, b, barAlha)
+
+		local iconSizeInfo = Details.tooltip.icon_size
+		local iconBorderInfo = Details.tooltip.icon_border_texcoord
+
+		if (#buffUptimeTable > 0) then
+			for i = 1, min(30, #buffUptimeTable) do
+				local uptimeTable = buffUptimeTable[i]
+
+				local spellId = uptimeTable[1]
+				local uptime = uptimeTable[2]
+				local sourceName = uptimeTable[3]
+
+				local uptimePercent = uptime / combatTime * 100
+
+				if (uptime > 0 and uptimePercent < 99.5) then
+					local spellName, _, spellIcon = _GetSpellInfo(spellId)
+
+					if (sourceName) then
+						spellName = spellName .. " [" .. sourceName .. "]"
+					end
+
+					if (uptime <= combatTime) then
+						local minutes, seconds = math.floor(uptime / 60), math.floor(uptime % 60)
+						if (minutes > 0) then
+							GameCooltip:AddLine(spellName, minutes .. "m " .. seconds .. "s" .. " (" .. format("%.1f", uptimePercent) .. "%)")
+							Details:AddTooltipBackgroundStatusbar(false, uptimePercent, true, sourceName and "green")
+						else
+							GameCooltip:AddLine(spellName, seconds .. "s" .. " (" .. format("%.1f", uptimePercent) .. "%)")
+							Details:AddTooltipBackgroundStatusbar(false, uptimePercent, true, sourceName and "green")
+						end
+
+						GameCooltip:AddIcon(spellIcon, nil, nil, iconSizeInfo.W, iconSizeInfo.H, iconBorderInfo.L, iconBorderInfo.R, iconBorderInfo.T, iconBorderInfo.B)
+					end
+				end
+			end
+		else
+			GameCooltip:AddLine(Loc ["STRING_NO_SPELL"])
+		end
 	else
+		Details:AddTooltipSpellHeaderText(Loc ["STRING_SPELLS"], headerColor, #buffUptimeTable, Details.tooltip_spell_icon.file, unpack(Details.tooltip_spell_icon.coords))
+		Details:AddTooltipHeaderStatusbar(r, g, b, barAlha)
 		GameCooltip:AddLine(Loc ["STRING_NO_SPELL"])
 	end
 
@@ -2529,6 +2637,17 @@ function atributo_misc:r_connect_shadow(actor, no_refresh, combat_object)
 		DetailsFramework.table.addunique(shadow.pets, petName)
 	end
 
+	if (actor.cleu_prescience_time) then
+		local shadowPrescienceStackData = shadow.cleu_prescience_time
+		if (not shadowPrescienceStackData) then
+			shadow.cleu_prescience_time = detailsFramework.table.copy({}, actor.cleu_prescience_time)
+		else
+			for amountOfPrescienceApplied, time in pairs(actor.cleu_prescience_time.stackTime) do
+				shadow.cleu_prescience_time.stackTime[amountOfPrescienceApplied] = shadow.cleu_prescience_time.stackTime[amountOfPrescienceApplied] + time
+			end
+		end
+	end
+
 	if (actor.cc_done) then
 		if (not shadow.cc_done_targets) then
 			shadow.cc_done = _detalhes:GetOrderNumber()
@@ -2882,6 +3001,17 @@ function _detalhes.clear:c_atributo_misc (este_jogador)
 end
 
 atributo_misc.__add = function(tabela1, tabela2)
+	if (tabela2.cleu_prescience_time) then --timeline
+		local shadowPrescienceStackData = tabela1.cleu_prescience_time
+		if (not shadowPrescienceStackData) then
+			tabela1.cleu_prescience_time = detailsFramework.table.copy({}, tabela2.cleu_prescience_time)
+		else
+			for amountOfPrescienceApplied, time in pairs(tabela2.cleu_prescience_time.stackTime) do
+				tabela1.cleu_prescience_time.stackTime[amountOfPrescienceApplied] = tabela1.cleu_prescience_time.stackTime[amountOfPrescienceApplied] + time
+			end
+		end
+	end
+
 	if (tabela2.cc_done) then
 		tabela1.cc_done = tabela1.cc_done + tabela2.cc_done
 
@@ -3157,6 +3287,15 @@ local subtractKeyValues = function(habilidade, habilidade_tabela1)
 end
 
 atributo_misc.__sub = function(tabela1, tabela2)
+	if (tabela2.cleu_prescience_time) then --timeline
+		local shadowPrescienceStackData = tabela1.cleu_prescience_time
+		if (shadowPrescienceStackData) then
+			for amountOfPrescienceApplied, time in pairs(tabela2.cleu_prescience_time.stackTime) do
+				tabela1.cleu_prescience_time.stackTime[amountOfPrescienceApplied] = tabela1.cleu_prescience_time.stackTime[amountOfPrescienceApplied] - time
+			end
+		end
+	end
+
 	if (tabela2.cc_done) then
 		tabela1.cc_done = tabela1.cc_done - tabela2.cc_done
 

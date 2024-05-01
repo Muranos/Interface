@@ -113,7 +113,7 @@ end
 do
 	local function printTarget(self, player, guid)
 		if self:Me(guid) then
-			self:Say(387151)
+			self:Say(387151, nil, nil, "Icy Devastator")
 			self:PlaySound(387151, "alarm")
 		else
 			self:PlaySound(387151, "alert", nil, player)
@@ -122,7 +122,7 @@ do
 	end
 
 	function mod:IcyDevastator(args)
-		self:GetBossTarget(printTarget, 0.2, args.sourceGUID)
+		self:GetUnitTarget(printTarget, 0.2, args.sourceGUID)
 		-- two possibilities:
 		-- 1. AZ cycle is 64.4s and ID is [(AZ 8)(FB) 15.2, (FB) (FB) 33.9]
 		-- 2. AZ cycle is 60.8s and ID is [(AZ 8)(FB) 15.2, (FB) 23.1 (FB)]

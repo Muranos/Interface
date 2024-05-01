@@ -30,11 +30,17 @@ local sManaBarHeight;
 local sSideBarLeftWidth;
 local sSideBarRightWidth;
 local sRaidIconSetup;
+local sPrivateAuraSetup;
+local sPrivateAuraHeight;
+local sPrivateAuraStep;
+local sPrivateAuraXOffset;
+local sPrivateAuraYOffset;
 local sOverhealTextSetup;
 local sIsManaBouquet;
 local sPanelSetup;
 local sShadowAlpha;
 local sOutlineText;
+local sSwiftmendIndicatorSetup;
 
 local VUHDO_getFont;
 local VUHDO_getHealthBar;
@@ -94,6 +100,27 @@ function VUHDO_initLocalVars(aPanelNum)
 	if (sManaBarHeight == 0) then
 		sManaBarHeight = 0.001;
 	end
+
+	sSwiftmendIndicatorSetup = VUHDO_INDICATOR_CONFIG["CUSTOM"]["SWIFTMEND_INDICATOR"];
+
+	if sSwiftmendIndicatorSetup["anchor"] == nil then
+		sSwiftmendIndicatorSetup["anchor"] = "TOPLEFT";
+	end
+
+	if sSwiftmendIndicatorSetup["xAdjust"] == nil or sSwiftmendIndicatorSetup["yAdjust"] == nil then
+		sSwiftmendIndicatorSetup["xAdjust"] = 5.5;
+		sSwiftmendIndicatorSetup["yAdjust"] = -14;
+	end
+
+	sPrivateAuraSetup = sPanelSetup["PRIVATE_AURA"];
+	sPrivateAuraHeight = sBarScaling["barHeight"];
+
+	local tSign = ("TOPLEFT" == sPrivateAuraSetup["point"] or "LEFT" == sPrivateAuraSetup["point"] or "BOTTOMLEFT" == sPrivateAuraSetup["point"]) and 1 or -1;
+	sPrivateAuraStep = tSign * sPrivateAuraHeight;
+
+	sPrivateAuraXOffset = sPrivateAuraSetup["xAdjust"] * sBarScaling["barWidth"] * 0.01;
+	sPrivateAuraYOffset = -sPrivateAuraSetup["yAdjust"] * sPrivateAuraHeight * 0.01;
+	
 end
 local VUHDO_initLocalVars = VUHDO_initLocalVars;
 
@@ -550,6 +577,44 @@ end
 
 
 --
+local tPrivateAura;
+local tX;
+local function VUHDO_initPrivateAura(aHealthBar, aButton, anAuraIndex)
+
+	tPrivateAura = VUHDO_getBarPrivateAura(aButton, anAuraIndex);
+
+	if not tPrivateAura then
+		return;
+	end
+
+	tPrivateAura:Hide();
+	tPrivateAura:ClearAllPoints();
+	tPrivateAura:SetFrameStrata(aHealthBar:GetFrameStrata());
+	tPrivateAura:SetFrameLevel(aHealthBar:GetFrameLevel() + 2);
+
+	tX = sPrivateAuraXOffset + (sPrivateAuraStep * (anAuraIndex - 1));
+	tPrivateAura:SetPoint(sPrivateAuraSetup["point"], aHealthBar:GetName(), sPrivateAuraSetup["point"], tX, sPrivateAuraYOffset);
+
+	tPrivateAura:SetWidth(sPrivateAuraHeight);
+	tPrivateAura:SetHeight(sPrivateAuraHeight);
+	tPrivateAura:SetScale(sPrivateAuraSetup["scale"] * 0.7);
+
+end
+
+
+
+--
+local function VUHDO_initPrivateAuras(aHealthBar, aButton)
+
+	for tAuraIndex = 1, VUHDO_MAX_PRIVATE_AURAS do
+		VUHDO_initPrivateAura(aHealthBar, aButton, tAuraIndex);
+	end
+
+end
+
+
+
+--
 local tX, tY;
 local function VUHDO_initRaidIcon(aHealthBar, anIcon, aWidth)
 	tX = sRaidIconSetup["xAdjust"] * aWidth * 0.01;
@@ -571,10 +636,15 @@ local function VUHDO_initSwiftmendIndicator()
 	tIcon:ClearAllPoints();
 	tIcon:Hide();
 
-	if VUHDO_INDICATOR_CONFIG["BOUQUETS"]["SWIFTMEND_INDICATOR"] == "" then return; end
+	if VUHDO_INDICATOR_CONFIG["BOUQUETS"]["SWIFTMEND_INDICATOR"] == "" then
+		return;
+	end
 
-	tIcon:SetPoint("CENTER",  sHealthBar:GetName(), "TOPLEFT",  sBarScaling["barWidth"] / 5.5, -sBarScaling["barHeight"]  / 14);
-	tHeight = sBarScaling["barHeight"] * 0.5 * VUHDO_INDICATOR_CONFIG["CUSTOM"]["SWIFTMEND_INDICATOR"]["SCALE"];
+	local tX = sSwiftmendIndicatorSetup["xAdjust"] * sBarScaling["barWidth"] * 0.01;
+	local tY = -sSwiftmendIndicatorSetup["yAdjust"] * sBarScaling["barHeight"] * 0.01;
+	tIcon:SetPoint(sSwiftmendIndicatorSetup["anchor"], sHealthBar:GetName(), sSwiftmendIndicatorSetup["anchor"], tX, tY);
+
+	tHeight = sBarScaling["barHeight"] * 0.5 * sSwiftmendIndicatorSetup["SCALE"];
 	tIcon:SetWidth(tHeight);
 	tIcon:SetHeight(tHeight);
 end
@@ -852,6 +922,7 @@ function VUHDO_initHealButton(aButton, aPanelNum)
 	VUHDO_initHotBars();
 	VUHDO_initAllHotIcons();
 	VUHDO_initCustomDebuffs();
+	VUHDO_initPrivateAuras(sHealthBar, sButton);
 	VUHDO_initRaidIcon(sHealthBar, VUHDO_getBarRoleIcon(sButton, 50), sBarScaling["barWidth"]);
 	VUHDO_initSwiftmendIndicator();
 	VUHDO_initFlashBar();

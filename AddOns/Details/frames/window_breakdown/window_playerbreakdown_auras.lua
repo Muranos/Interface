@@ -1,12 +1,16 @@
 
+---@type details
 local Details = Details
-local GameTooltip = GameTooltip
+---@type detailsframework
 local detailsFramework = DetailsFramework
+
+local GameTooltip = GameTooltip
 local unpack = unpack
 local CreateFrame = CreateFrame
-local GetSpellInfo = GetSpellInfo
 
-local buffs_to_ignore = {
+local _
+
+Details.BuffUptimeSpellsToIgnore = {
     [186401] = true, --Sign of the Skirmisher
     [366646] = true, --Familiar Skies
     [403265] = true, --Bronze Attunement
@@ -39,10 +43,12 @@ local createAuraTabOnBreakdownWindow = function(tab, frame)
     }
 
     local onEnterLine = function(self)
-        GameTooltip:SetOwner(self, "ANCHOR_TOPRIGHT")
-        Details:GameTooltipSetSpellByID(self.spellID)
-        GameTooltip:Show()
-        self:SetBackdropColor(1, 1, 1, .2)
+        if (self.spellID) then
+            GameTooltip:SetOwner(self, "ANCHOR_TOPRIGHT")
+            Details:GameTooltipSetSpellByID(self.spellID)
+            GameTooltip:Show()
+            self:SetBackdropColor(1, 1, 1, .2)
+        end
     end
 
     local onLeaveLine = function(self)
@@ -68,7 +74,9 @@ local createAuraTabOnBreakdownWindow = function(tab, frame)
 
         local iconTexture = line:CreateTexture("$parentIcon", "overlay")
         iconTexture:SetSize(scroll_line_height -2 , scroll_line_height - 2)
-        iconTexture:SetAlpha(0.834)
+        iconTexture:SetAlpha(0.924)
+        detailsFramework:SetMask(iconTexture, Details:GetTextureAtlas("iconmask"))
+
         local nameLabel = line:CreateFontString("$parentName", "overlay", "GameFontNormal")
         local uptimeLabel = line:CreateFontString("$parentUptime", "overlay", "GameFontNormal")
         local uptimePercentLabel = line:CreateFontString("$parentPercent", "overlay", "GameFontNormal")
@@ -226,26 +234,26 @@ end
 
 local aurasTabFillCallback = function(tab, player, combat)
     ---@type actor
-    local miscActor = combat:GetActor(DETAILS_ATTRIBUTE_MISC, player:Name())
+    local utilityActor = combat:GetActor(DETAILS_ATTRIBUTE_MISC, player:Name())
     ---@type number
     local combatTime = combat:GetCombatTime()
 
-    if (miscActor) then
+    if (utilityActor) then
         do --buffs
             local newAuraTable = {}
-            local spellContainer = miscActor:GetSpellContainer("buff")
+            local spellContainer = utilityActor:GetSpellContainer("buff")
             if (spellContainer) then
                 for spellId, spellTable in spellContainer:ListSpells() do
                     local spellName, _, spellIcon = Details.GetSpellInfo(spellId)
                     local uptime = spellTable.uptime or 0
-                    if (not buffs_to_ignore[spellId]) then
+                    if (not Details.BuffUptimeSpellsToIgnore[spellId]) then
                         table.insert(newAuraTable, {spellIcon, spellName, uptime, spellTable.appliedamt, spellTable.refreshamt, uptime / combatTime * 100, spellID = spellId})
                     end
                 end
             end
 
             --check if this player has a augmentation buff container
-            local augmentedBuffContainer = miscActor.received_buffs_spells
+            local augmentedBuffContainer = utilityActor.received_buffs_spells
             if (augmentedBuffContainer) then
                 for sourceNameSpellId, spellTable in augmentedBuffContainer:ListSpells() do
                     local sourceName, spellId = strsplit("@", sourceNameSpellId)
@@ -267,7 +275,7 @@ local aurasTabFillCallback = function(tab, player, combat)
 
         do --debuffs
             local newAuraTable = {}
-            local spellContainer = miscActor:GetSpellContainer("debuff")
+            local spellContainer = utilityActor:GetSpellContainer("debuff")
             if (spellContainer) then
                 for spellId, spellTable in spellContainer:ListSpells() do
                     local spellName, _, spellIcon = Details.GetSpellInfo(spellId)

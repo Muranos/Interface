@@ -14,9 +14,9 @@ mod:SetRespawnTime(25)
 
 function mod:GetOptions()
 	return {
-		"stages",
 		-- Stage 1: Mounted Assault
 		255952, -- Charrrrrge
+		256056, -- Spawn Parrot
 		-- Stage 2: Death Rains from Above
 		256005, -- Vile Bombardment
 		256016, -- Vile Coating
@@ -31,7 +31,7 @@ end
 
 function mod:OnBossEnable()
 	-- Stages
-	self:Log("SPELL_AURA_APPLIED", "EncounterEvent", 181089) -- Spawn Parrot
+	self:Log("SPELL_CAST_SUCCESS", "SpawnParrot", 256056)
 
 	-- Stage 1: Mounted Assault
 	self:Log("SPELL_CAST_START", "Charrrrrge", 255952)
@@ -56,14 +56,14 @@ end
 
 -- Stages
 
-function mod:EncounterEvent(args) -- Spawn Parrot
+function mod:SpawnParrot(args)
+	self:Message(args.spellId, "cyan", CL.percent:format(75, args.spellName))
+	self:PlaySound(args.spellId, "long")
 	self:StopBar(255952) -- Charrrrrge
-	self:Message("stages", "cyan", CL.percent:format(75, CL.stage:format(2)), false)
-	self:PlaySound("stages", "long", "stage2")
 	self:CDBar(256005, 2.4) -- Vile Bombardment
 	self:CDBar(256106, 5.3) -- Azerite Powder Shot
 	if not self:Normal() then
-		self:Bar(272046, 14.0) -- Dive Bomb
+		self:CDBar(272046, 14.0) -- Dive Bomb
 	end
 end
 
@@ -86,10 +86,10 @@ do
 		self:Message(args.spellId, "yellow")
 		self:PlaySound(args.spellId, "info")
 		if self:Normal() then
-			-- TODO verify post 10.1
-			self:Bar(args.spellId, 6.0)
+			-- this has a shorter CD in normal because Dive Bomb is Heroic+
+			self:CDBar(args.spellId, 10.9)
 		else
-			self:Bar(args.spellId, 17.0)
+			self:CDBar(args.spellId, 17.0)
 		end
 	end
 
@@ -108,7 +108,7 @@ end
 function mod:DiveBomb(args)
 	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alarm")
-	self:Bar(args.spellId, 17.0)
+	self:CDBar(args.spellId, 17.0)
 end
 
 function mod:RevitalizingBrew(args)

@@ -14,7 +14,16 @@ mod:SetStage(1)
 --
 
 local siphonOathstoneCount = 1
-local abilitiesUntilRecharge = 4
+local infiniteHandCastCount = 1
+
+--------------------------------------------------------------------------------
+-- Localization
+--
+
+local L = mod:GetLocale()
+if L then
+	L.warmup_icon = "achievement_dungeon_ulduarraid_titan_01"
+end
 
 --------------------------------------------------------------------------------
 -- Initialization
@@ -54,12 +63,12 @@ function mod:OnBossEnable()
 	self:Log("SPELL_AURA_REMOVED", "SiphonOathstoneRemoved", 400642)
 	self:Log("SPELL_AURA_APPLIED", "StolenTimeApplied", 406543)
 	self:Log("SPELL_AURA_APPLIED_DOSE", "StolenTimeApplied", 406543)
-	-- TODO barrier empowered?
 end
 
 function mod:OnEngage()
 	siphonOathstoneCount = 1
-	abilitiesUntilRecharge = 4
+	infiniteHandCastCount = 1
+	self:StopBar(CL.active) -- Warmup
 	self:SetStage(1)
 	self:CDBar(400681, 6.0) -- Spark of Tyr
 	self:CDBar(401248, 12.5) -- Titanic Blow
@@ -76,83 +85,74 @@ function mod:Warmup()
 	-- triggered from trash module
 	-- 15:14:41 [CLEU] SPELL_AURA_REMOVED#Creature-0-5773-2579-1018-198998-000029B459#Tyr, the Infinite Keeper#Creature-0-5773-2579-1018-198998-000029B459#Tyr, the Infinite Keeper#413595#Pondering the Oathstone#BUFF#nil
 	-- 15:15:15 [NAME_PLATE_UNIT_ADDED] Tyr, the Infinite Keeper#Creature-0-5773-2579-1018-198998-000029B459
-	self:Bar("warmup", 34, CL.active, "achievement_dungeon_dawnoftheinfinite")
+	self:Bar("warmup", 34, CL.active, L.warmup_icon)
 end
 
 -- Stage 1: Infinite Hand Technique
 
-function mod:TitanicBlow(args)
-	abilitiesUntilRecharge = abilitiesUntilRecharge - 1
-	self:Message(args.spellId, "purple")
-	self:PlaySound(args.spellId, "alarm")
-	if abilitiesUntilRecharge >= 2 then
-		-- same ability is never cast twice in a row, so only show the bar
-		-- if there are at least 2 abilities left in the phase.
-		self:CDBar(args.spellId, 16.0)
-	else
-		self:StopBar(args.spellId)
-	end
-	if abilitiesUntilRecharge >= 1 then
-		-- minimum of 8s until Infinite Annihilation or Dividing Strike
-		if self:BarTimeLeft(401482) < 8.0 then -- Infinite Annihilation
-			self:CDBar(401482, 8.0)
-		end
-		if self:BarTimeLeft(400641) < 8.0 then -- Dividing Strike
-			self:CDBar(400641, 8.0)
-		end
-	else
-		self:StopBar(401482) -- Infinite Annihiliation
-		self:StopBar(400641) -- Dividing Strike
-	end
-end
+do
+	local firstInfiniteHandCast = nil
 
-function mod:InfiniteAnnihilation(args)
-	abilitiesUntilRecharge = abilitiesUntilRecharge - 1
-	self:Message(args.spellId, "orange")
-	self:PlaySound(args.spellId, "alarm")
-	if abilitiesUntilRecharge >= 2 then
-		-- same ability is never cast twice in a row, so only show the bar
-		-- if there are at least 2 abilities left in the phase.
-		self:CDBar(args.spellId, 16.0)
-	else
+	function mod:TitanicBlow(args)
 		self:StopBar(args.spellId)
-	end
-	if abilitiesUntilRecharge >= 1 then
-		-- minimum of 8s until Titanic Blow or Dividing Strike
-		if self:BarTimeLeft(401248) < 8.0 then -- Titanic Blow
-			self:CDBar(401248, 8.0)
+		self:Message(args.spellId, "purple", CL.count_amount:format(args.spellName, infiniteHandCastCount, 4))
+		self:PlaySound(args.spellId, "alarm")
+		infiniteHandCastCount = infiniteHandCastCount + 1
+		if infiniteHandCastCount == 2 then
+			-- the first ability in the sequence will not be cast again. since Dividing Strike will never be the
+			-- second cast, we know the full sequence aleady:
+			-- Titanic Blow -> Infinite Annihilation -> Dividing Strike -> Infinite Annihilation
+			self:CDBar(401482, 8.0) -- Infinite Annihilation
+			self:CDBar(400641, 16.0) -- Dividing Strike
+		elseif infiniteHandCastCount == 3 then
+			-- the second ability in the sequence will be the fourth ability as well
+			self:CDBar(args.spellId, 16.0)
+			-- the ability which was not the first or second ability will be the third ability.
+			-- we only need to start the timer for it if the first ability was Dividing Strike.
+			if firstInfiniteHandCast == 400641 then -- Dividing Strike
+				self:CDBar(401482, 8.0) -- Infinite Annihilation
+				firstInfiniteHandCast = nil
+			end
 		end
-		if self:BarTimeLeft(400641) < 8.0 then -- Dividing Strike
-			self:CDBar(400641, 8.0)
-		end
-	else
-		self:StopBar(401248) -- Titanic Blow
-		self:StopBar(400641) -- Dividing Strike
 	end
-end
 
-function mod:DividingStrike(args)
-	abilitiesUntilRecharge = abilitiesUntilRecharge - 1
-	self:Message(args.spellId, "yellow")
-	self:PlaySound(args.spellId, "alert")
-	if abilitiesUntilRecharge >= 2 then
-		-- same ability is never cast twice in a row, so only show the bar
-		-- if there are at least 2 abilities left in the phase.
-		self:CDBar(args.spellId, 16.0)
-	else
+	function mod:InfiniteAnnihilation(args)
 		self:StopBar(args.spellId)
+		self:Message(args.spellId, "orange", CL.count_amount:format(args.spellName, infiniteHandCastCount, 4))
+		self:PlaySound(args.spellId, "alarm")
+		infiniteHandCastCount = infiniteHandCastCount + 1
+		if infiniteHandCastCount == 2 then
+			-- the first ability in the sequence will not be cast again. since Dividing Strike will never be the
+			-- second cast, we know the full sequence aleady:
+			-- Infinite Annihilation -> Titanic Blow -> Dividing Strike -> Titanic Blow
+			self:CDBar(401248, 8.0) -- Titanic Blow
+			self:CDBar(400641, 16.0) -- Dividing Strike
+		elseif infiniteHandCastCount == 3 then
+			-- the second ability in the sequence will be the fourth ability as well
+			self:CDBar(args.spellId, 16.0)
+			-- the ability which was not the first or second ability will be the third ability.
+			-- we only need to start the timer for it if the first ability was Dividing Strike.
+			if firstInfiniteHandCast == 400641 then -- Dividing Strike
+				self:CDBar(401248, 8.0) -- Titanic Blow
+				firstInfiniteHandCast = nil
+			end
+		end
 	end
-	if abilitiesUntilRecharge >= 1 then
-		-- minimum of 8s until Titanic Blow or Infinite Annihilation
-		if self:BarTimeLeft(401248) < 8.0 then -- Titanic Blow
-			self:CDBar(401248, 8.0)
+
+	function mod:DividingStrike(args)
+		self:StopBar(args.spellId)
+		self:Message(args.spellId, "yellow", CL.count_amount:format(args.spellName, infiniteHandCastCount, 4))
+		self:PlaySound(args.spellId, "alert")
+		infiniteHandCastCount = infiniteHandCastCount + 1
+		-- Dividing Strike can only be the first or third ability
+		if infiniteHandCastCount == 2 then
+			-- if Dividing Strike is the first ability there are two possible combinations:
+			-- Dividing Strike -> Titanic Blow -> Infinite Annihilation -> Titanic Blow
+			-- Dividing Strike -> Infinite Annihilation -> Titanic Blow -> Infinite Annihilation
+			firstInfiniteHandCast = args.spellId
+			self:CDBar(401248, 8.0) -- Titanic Blow
+			self:CDBar(401482, 8.0) -- Infinite Annihilation
 		end
-		if self:BarTimeLeft(401482) < 8.0 then -- Infinite Annihilation
-			self:CDBar(401482, 8.0)
-		end
-	else
-		self:StopBar(401248) -- Titanic Blow
-		self:StopBar(401482) -- Infinite Annihiliation
 	end
 end
 
@@ -175,7 +175,7 @@ do
 		self:TargetsMessage(args.spellId, "red", playerList, 2, nil, nil, 0.6)
 		self:PlaySound(args.spellId, "alert", nil, playerList)
 		if self:Me(args.destGUID) then
-			self:Say(args.spellId)
+			self:Say(args.spellId, nil, nil, "Spark of Tyr")
 		end
 	end
 end
@@ -200,7 +200,7 @@ function mod:SiphonOathstone(args)
 end
 
 function mod:SiphonOathstoneRemoved(args)
-	abilitiesUntilRecharge = 4
+	infiniteHandCastCount = 1
 	self:StopBar(CL.cast:format(args.spellName))
 	self:SetStage(1)
 	self:Message(args.spellId, "cyan", CL.over:format(args.spellName))

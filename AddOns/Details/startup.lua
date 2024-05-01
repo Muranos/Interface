@@ -68,6 +68,9 @@ function Details:StartMeUp()
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --initialize
 
+	--make an encounter journal cache
+	C_Timer.After(1, Details222.EJCache.CreateEncounterJournalDump)
+
 	--plugin container
 	Details:CreatePluginWindowContainer()
 	Details:InitializeForge() --to install into the container plugin
@@ -83,6 +86,8 @@ function Details:StartMeUp()
 	Details:InitializeRunCodeWindow()
 	Details:InitializePlaterIntegrationWindow()
 	Details:InitializeMacrosWindow()
+
+	Details222.CreateAllDisplaysFrame()
 
 	if (Details.ocd_tracker.show_options) then
 		Details:InitializeCDTrackerWindow()
@@ -276,7 +281,10 @@ function Details:StartMeUp()
 			Details.listener:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
 			Details.listener:RegisterEvent("PLAYER_TALENT_UPDATE")
 			Details.listener:RegisterEvent("CHALLENGE_MODE_START")
+			--Details.listener:RegisterEvent("CHALLENGE_MODE_END") --doesn't exists ingame (only at cleu)
 			Details.listener:RegisterEvent("CHALLENGE_MODE_COMPLETED")
+			Details.listener:RegisterEvent("WORLD_STATE_TIMER_START")
+
 		end
 
 		Details.parser_frame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
@@ -493,6 +501,9 @@ function Details:StartMeUp()
 				}
 				trinketData[spellId] = thisTrinketData
 			end
+
+		elseif (trinketTable.onUse and trinketTable.castId) then
+			Details222.OnUseItem.Trinkets[trinketTable.castId] = spellId
 		end
 	end
 
@@ -539,6 +550,13 @@ function Details:StartMeUp()
 	Details.standard_skin = false
 	--enforce to show 6 abilities on the tooltip
 	--_detalhes.tooltip.tooltip_max_abilities = 6 freeeeeedooommmmm
+	--no no, enforece 8, 8 is much better, 8 is more lines, we like 8
+	Details.tooltip.tooltip_max_abilities = 8
+
+	local tooltipBarColor = Details.tooltip.bar_color
+	tooltipBarColor[1] = 0.149
+	tooltipBarColor[2] = 0.149
+	tooltipBarColor[3] = 0.149
 
 	Details.InstallRaidInfo()
 
@@ -613,13 +631,12 @@ function Details:StartMeUp()
 
 	--to ignore this, use /run _G["UpdateAddOnMemoryUsage"] = Details.UpdateAddOnMemoryUsage_Original or add to any script that run on login
 	--also the slash command "/details stopperfcheck" stop it as well
+	Details.check_stuttering = false
 	if (Details.check_stuttering) then
 		_G["UpdateAddOnMemoryUsage"] = Details.UpdateAddOnMemoryUsage_Custom
 	end
 
 	Details.InitializeSpellBreakdownTab()
-
-	pcall(Details222.EJCache.MakeCache)
 
 	pcall(Details222.ClassCache.MakeCache)
 

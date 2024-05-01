@@ -5,9 +5,6 @@ if L then
 	L.custom_on_fade_out_bars_desc = "Fondu enchainé des barres du boss qui est hors de portée durant la phase 1"
 
 	L.coalescing_void = "Fuyez"
-	L.molten_eruption = "Soaks"
-	L.swirling_flame = "Tornades"
-	L.shadowflame_burst = "Cône Frontal"
 
 	L.shadow_and_flame = "Affaiblissements Mythiques"
 end
@@ -15,7 +12,6 @@ end
 L = BigWigs:NewBossLocale("The Forgotten Experiments", "frFR")
 if L then
 	L.rending_charge_single = "Première Charge"
-	L.massive_slam = "Cône Frontal"
 	L.unstable_essence_new = "Nouvelle Bombe"
 	L.custom_on_unstable_essence_high = "Message Dire quand Essence Instable est élevé"
 	L.custom_on_unstable_essence_high_desc = "Messages Dire avec le nombre de piles de votre Essence Instable quand il est suffisamment élevé."
@@ -43,12 +39,8 @@ end
 L = BigWigs:NewBossLocale("Rashok, the Elder", "frFR")
 if L then
 	L.doom_flames = "Petits Soaks"
-	L.shadowlave_blast = "Cône Frontal"
 	L.charged_smash = "Gros Soak"
 	L.energy_gained = "Energie Gagnée: %d"
-
-	-- Mythic
-	--L.shadowflame_energy = "Heal Absorb"
 end
 
 L = BigWigs:NewBossLocale("The Vigilant Steward, Zskarn", "frFR")
@@ -88,7 +80,6 @@ if L then
 	L.emptiness_between_stars = "Vide interstellaire"
 	L.void_slash = "Frontal sur le Tank"
 
-	--L.boss_immune = "Boss Immune"
 	--L.ebon_might = "Adds Immune"
 end
 

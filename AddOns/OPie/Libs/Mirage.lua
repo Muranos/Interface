@@ -26,32 +26,6 @@ end
 local function shortBindName(bind)
 	return GetBindingText(bind, 1)
 end
-local CreateQuadTexture do
-	local function qf(f)
-		return function (self, ...)
-			for i=1,4 do
-				local v = self[i]
-				v[f](v, ...)
-			end
-		end
-	end
-	local quadPoints, quadTemplate = {"BOTTOMRIGHT", "BOTTOMLEFT", "TOPLEFT", "TOPRIGHT"}, {__index={SetVertexColor=qf("SetVertexColor"), SetAlpha=qf("SetAlpha"), SetShown=qf("SetShown")}}
-	function CreateQuadTexture(layer, size, file, parent, qparent)
-		local group, size = setmetatable({}, quadTemplate), size/2
-		for i=1,4 do
-			local tex, d, l = (parent or qparent[i]):CreateTexture(nil, layer), i > 2, 2 > i or i > 3
-			tex:SetSize(size,size)
-			tex:SetTexture(file)
-			tex:SetTexCoord(l and 0 or 1, l and 1 or 0, d and 1 or 0, d and 0 or 1)
-			tex:SetTexelSnappingBias(0)
-			tex:SetSnapToPixelGrid(false)
-			tex:SetPoint(quadPoints[i], parent or qparent[i], parent and "CENTER" or quadPoints[i])
-			group[i] = tex
-		end
-		return group
-	end
-	T.CreateQuadTexture = CreateQuadTexture
-end
 local qualAtlas = {} do
 	for i=1,5 do
 		qualAtlas[i] = "Professions-Icon-Quality-Tier" .. i .. "-Small"
@@ -68,6 +42,13 @@ local function cooldownFormat(cd)
 	elseif cd >= 9.95 then n = ceil(n) end
 	return f, n, unit
 end
+local function adjustIconAspect(self, aspect)
+	if self.iconAspect ~= aspect then
+		self.iconAspect = aspect
+		local w, h = self.iconbg:GetSize()
+		self.icon:SetSize(aspect < 1 and h*aspect or w, aspect > 1 and w/aspect or h)
+	end
+end
 
 local indicatorAPI = {}
 do -- inherit SetPoint, SetScale, GetScale, SetShown, SetParent
@@ -79,10 +60,15 @@ do -- inherit SetPoint, SetScale, GetScale, SetShown, SetParent
 		end
 	end
 end
-function indicatorAPI:SetIcon(texture)
+function indicatorAPI:SetIcon(texture, aspect)
 	self.icon:SetTexture(texture)
 	local ofs = 2.5/64
 	self.icon:SetTexCoord(ofs, 1-ofs, ofs, 1-ofs)
+	return adjustIconAspect(self, aspect)
+end
+function indicatorAPI:SetIconAtlas(atlas, aspect)
+	self.icon:SetAtlas(atlas)
+	return adjustIconAspect(self, aspect)
 end
 function indicatorAPI:SetIconTexCoord(a,b,c,d, e,f,g,h)
 	if a and b and c and d then
@@ -128,18 +114,18 @@ function indicatorAPI:SetDominantColor(r,g,b)
 	end
 	cd[9]:SetVertexColor(r3, g3, b3)
 end
-function indicatorAPI:SetOverlayIcon(texture, w, h, ...)
-	if not texture then
-		self.overIcon:Hide()
+function indicatorAPI:SetOverlayIcon(tex, w, h, ...)
+	local oi = self.overIcon
+	if not tex then
+		return oi:Hide()
+	end
+	oi:Show()
+	oi:SetTexture(tex)
+	oi:SetSize(w, h)
+	if ... then
+		oi:SetTexCoord(...)
 	else
-		self.overIcon:Show()
-		self.overIcon:SetTexture(texture)
-		self.overIcon:SetSize(w, h)
-		if ... then
-			self.overIcon:SetTexCoord(...)
-		else
-			self.overIcon:SetTexCoord(0,1, 0,1)
-		end
+		oi:SetTexCoord(0,1, 0,1)
 	end
 end
 function indicatorAPI:SetOverlayIconVertexColor(...)
@@ -383,7 +369,7 @@ local CreateIndicator do
 		w, r.edge = ef:CreateTexture(nil, "OVERLAY", nil, 1), w
 			w:SetAllPoints()
 			w:SetTexture(gx.BorderHigh)
-		w, r.hiEdge = CreateQuadTexture("BACKGROUND", size*2, gx.OuterGlow, cf), w
+		w, r.hiEdge = T.CreateQuadTexture("BACKGROUND", size*2, gx.OuterGlow, cf), w
 			w:SetShown(false)
 		w, r.oglow = ef:CreateTexture(nil, "ARTWORK", nil, 1), w
 			w:SetAllPoints()
@@ -392,7 +378,11 @@ local CreateIndicator do
 		w, r.iglow = ef:CreateTexture(nil, "ARTWORK"), w
 			w:SetPoint("CENTER")
 			w:SetSize(60*size/64, 60*size/64)
-		w, r.icon = ef:CreateTexture(nil, "ARTWORK", nil, 2), w
+		w, r.icon = ef:CreateTexture(nil, "ARTWORK", nil, -2), w
+			w:SetPoint("CENTER")
+			w:SetSize(60*size/64, 60*size/64)
+			w:SetColorTexture(0.15, 0.15, 0.15, 0.85)
+		w, r.iconbg = ef:CreateTexture(nil, "ARTWORK", nil, 2), w
 			w:SetSize(60*size/64, 60*size/64)
 			w:SetPoint("CENTER")
 			w:SetColorTexture(0,0,0)
@@ -429,13 +419,14 @@ local CreateIndicator do
 			w:SetAllPoints()
 			r.icon:AddMaskTexture(w)
 		r.cdText = r.cd.cdText
+		r.iconAspect = 1
 		return r
 	end
 end
 
 T.Mirage = {
 	name="OPie",
-	apiLevel=2,
+	apiLevel=3,
 	CreateIndicator=CreateIndicator,
 
 	supportsCooldownNumbers=true,

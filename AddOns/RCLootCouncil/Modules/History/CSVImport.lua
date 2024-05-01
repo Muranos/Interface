@@ -23,6 +23,8 @@ end
 function His:ImportNew (import, delimiter)
    addon.Log:D("His:ImportNew", #import, delimiter)
    wipe(private.errorList)
+   -- Remove any trailing tabs or spaces
+   import = string.gsub(import, "[%s\t]+\n", "\n")
    local data = {strsplit("\n", import)}
    addon.Log:D("Data lines:", #data)
    -- Validate the input
@@ -36,7 +38,7 @@ function His:ImportNew (import, delimiter)
    for i = 2, #data do
       line, length = self:ExtractLine(data[i], delimiter)
       -- Ensure error free lines
-      if length ~= private.numFields then
+      if length < private.numFields then
          private:AddError(i, length, string.format("Row has the wrong number of fields - expected %d", private.numFields))
 
       else
@@ -232,8 +234,8 @@ function private:RebuildResponseID(data,t, line)
          return self:AddError(line, responseID, "Invalid responseID for AwardReason")
       end
    end
-
-   local type = select(4, GetItemInfoInstant(t.lootWon)) -- Assume this has been set
+   if not t.lootWon or t.lootWon == "" then return end -- Return silently - lootWon handler will have created error
+   local type = select(4, GetItemInfoInstant(t.lootWon))
    if not type then return self:AddError(line, type, "Unknown type") end
    -- Check for special buttons
    if addon.BTN_SLOTS[type] then
@@ -361,6 +363,10 @@ end
 
 function private:RebuildLootWon(data ,t, line)
    local itemID, itemString = data[6],data[7]
+	if itemID == nil and itemString == nil then
+		return self:AddError(line, nil, "Must have either 'itemID' or 'itemString'")
+	end
+
    local success
 
    local item = self:SetItemInfo(itemID, itemString, line)
@@ -421,6 +427,12 @@ local mapIDsToText = {
    [2070] = "Battle of Dazar'alor",
    [2096] = "Crucible of Storms",
    [2164] = "The Eternal Palace",
+	[2217] = "Ny'alotha",
+	[2296] = "Castle Nathria",
+	[2450] = "Sanctum of Domination",
+	[2481] = "Sepulcher of the First Ones",
+	[2522] = "Vault of the Incarnates",
+	[2569] = "Aberrus, the Shadowed Crucible",
 }
 
 local diffIDToText = {
@@ -458,34 +470,41 @@ local diffIDToText = {
    [149] = "Heroic",
 }
 
+local function instanceNameFromMapID(mapID)
+	if not (C_EncounterJournal.GetInstanceForGameMap and EJ_GetInstanceInfo) then return "" end
+	return select(1,EJ_GetInstanceInfo(C_EncounterJournal.GetInstanceForGameMap(mapID)))
+end
+
 function private:RebuildInstance(data, t, line)
-   local instance, diffID, mapID = data[11], data[13], data[14]
-   if mapID and diffID then
-      mapID = tonumber(mapID)
-      diffID = tonumber(diffID)
-      if mapIDsToText[mapID] and diffIDToText[diffID] then
-         t.instance = mapIDsToText[mapID] .."-".. diffIDToText[diffID]
-         t.mapID = mapID
-         t.difficultyID = diffID
-      end
-   elseif mapID and not diffID and not instance then
-      mapID = tonumber(mapID)
-      t.instance = mapIDsToText[mapID]
-      t.mapID = mapID
-      t.difficultyID = nil
-   elseif instance then
-      if string.find(instance, "-") then
-         mapID = mapID or tInvert(mapIDsToText)[(string.split("-",instance))]
-         diffID = diffID or tInvert(diffIDToText)[select(2,string.split("-",instance))]
-      else
-         mapID = mapID or tInvert(mapIDsToText)[instance]
-      end
-      t.instance = instance
-      t.mapID = mapID
-      t.difficultyID = diffID
-   -- else
-      -- self:AddError(line, string.format("%s|%s|%s", tostring(instance), tostring(diffID), tostring(mapID)), "Could not recreate instance info.")
-   end
+	local instance, diffID, mapID = data[11], tonumber(data[13] or 0), tonumber(data[14] or 0)
+	if mapID and mapID > 0 then
+		if diffID > 0 then
+			local instanceNameFromMapID = instanceNameFromMapID(mapID)
+			if instanceNameFromMapID == "" and mapIDsToText[mapID] and diffIDToText[diffID] then
+				t.instance = mapIDsToText[mapID] .."-".. diffIDToText[diffID]
+			else
+				t.instance = instanceNameFromMapID .. "-" .. diffIDToText[diffID]
+			end
+			t.mapID = mapID
+			t.difficultyID = diffID
+		elseif not instance then
+			t.instance = mapIDsToText[mapID] or ""
+			t.mapID = mapID
+			t.difficultyID = nil
+		end
+	elseif instance then
+		if string.find(instance, "-") then
+			mapID = mapID > 0 and mapID or tInvert(mapIDsToText)[(string.split("-",instance))]
+			diffID = diffID > 0 and diffID or tInvert(diffIDToText)[select(2,string.split("-",instance))]
+		else
+			mapID = mapID or tInvert(mapIDsToText)[instance]
+		end
+		t.instance = instance
+		t.mapID = mapID
+		t.difficultyID = diffID
+	-- else
+		-- self:AddError(line, string.format("%s|%s|%s", tostring(instance), tostring(diffID), tostring(mapID)), "Could not recreate instance info.")
+	end
 end
 
 function private:AddError (lineNum, value, desc)
@@ -499,8 +518,8 @@ function private:ValidateHeader (header, delimiter)
 end
 
 function private:ValidateLine (num, line)
-   for i, data in ipairs(line) do
-      private.validators[i](num, data)
+   for i = 1, private.numFields do
+      private.validators[i](num, line[i])
    end
 end
 
@@ -511,15 +530,17 @@ private.validators = {
 
    function (num, input) -- date
       -- can be empty
-      return #input == 0 or input:match("%d%d?/%d%d?/%d%d?") or private:AddError(num, input,"Malformed date (nothing or 'dd/mm/yy')")
+      return input == nil or #input == 0 or input:match("%d%d?/%d%d?/%d%d?") or private:AddError(num, input,"Malformed date (nothing or 'dd/mm/yy')")
    end,
    function (num, input) -- time
       -- can be empty
-      return #input == 0 or input:match("%d%d?:%d%d?:%d%d?") or private:AddError(num, input,"Malformed time (nothing or 'hh:mm:ss')")
+		return input == nil or #input == 0 or input:match("%d%d?:%d%d?:%d%d?") or
+		private:AddError(num, input, "Malformed time (nothing or 'hh:mm:ss')")
    end,
    function (num, input) -- id
       -- can be empty, a time string (seconds) or our id
-      return #input == 0 or input:match("%d+") or input:match("%d+%-%d+") or private:AddError(num, input,"Malformed id (nothing, seconds or 'seconds-id'")
+		return input == nil or #input == 0 or input:match("%d+") or input:match("%d+%-%d+") or
+		private:AddError(num, input, "Malformed id (nothing, seconds or 'seconds-id'")
    end,
 
    function (num, input) -- item
@@ -528,11 +549,13 @@ private.validators = {
    end,
    function (num, input) -- itemID
       -- not present or numbers only
-      return #input == 0 or input:match("%d+") or private:AddError(num,input, "Malformed ItemID (nothing or number)")
+		return input == nil or #input == 0 or input:match("%d+") or
+		private:AddError(num, input, "Malformed ItemID (nothing or number)")
    end,
    function (num, input) -- itemString
       -- not present or valid itemString
-      return #input == 0 or input:match("item:[%d:]+") or private:AddError(num, input,"Malformed itemString")
+		return input == nil or #input == 0 or input:match("item:[%d:]+") or
+		private:AddError(num, input, "Malformed itemString")
    end,
    function (num, input) -- response
       -- whatever
@@ -540,11 +563,13 @@ private.validators = {
    end,
    function (num, input) -- votes
       -- not present, 'nil', or number
-      return #input == 0 or input == "nil" or input:match("%d+") or private:AddError(num, input,"Malformed votes (nothing or numbers)")
+		return input == nil or #input == 0 or input == "nil" or input:match("%d+") or
+		private:AddError(num, input, "Malformed votes (nothing or numbers)")
    end,
    function (num, input) -- class
       -- nothing or valid class
-      return #input == 0 or tContains(CLASS_SORT_ORDER, input) or private:AddError(num, input,"Malformed class (must be valid, uppercase class)")
+		return input == nil or #input == 0 or tContains(CLASS_SORT_ORDER, input) or
+		private:AddError(num, input, "Malformed class (must be valid, uppercase class)")
    end,
    function (num, input) -- instance
       -- optional
@@ -556,15 +581,18 @@ private.validators = {
    end,
    function (num, input) -- difficultyID
       -- empty or number
-      return #input == 0 or input:match("[%d]+") or private:AddError(num, input, "Malformed difficultyID (must be a number or empty)")
+		return input == nil or #input == 0 or input:match("[%d]+") or
+		private:AddError(num, input, "Malformed difficultyID (must be a number or empty)")
    end,
    function (num, input) -- mapID
       -- empty or number
-      return #input == 0 or input:match("[%d]+") or private:AddError(num, input, "Malformed mapID (must be a number or empty)")
+		return input == nil or #input == 0 or input:match("[%d]+") or
+		private:AddError(num, input, "Malformed mapID (must be a number or empty)")
    end,
    function (num, input) -- groupSize
       -- empty or number
-      return #input == 0 or input:match("[%d]+") or private:AddError(num, input, "Malformed groupSize (must be a number or empty)")
+		return input == nil or #input == 0 or input:match("[%d]+") or
+		private:AddError(num, input, "Malformed groupSize (must be a number or empty)")
    end,
    function (num, input) -- gear1
       -- optional
@@ -576,11 +604,13 @@ private.validators = {
    end,
    function (num, input) -- responseID
       -- required string or number
-      return input:match("[%w%d]+") or private:AddError(num, input,"Malformed responseID (string or numbers only)")
+		return input ~= nil and input:match("[%w]+") or
+		private:AddError(num, input, "Malformed responseID (string or numbers only)")
    end,
    function (num, input) -- isAwardReason
       -- optional, but TRUE/FALSE if not empty
-      return #input == 0 or (input and (input:lower() == "true" or input:lower() == "false")) or private:AddError(num,input, "Malformed isAwardReason - ('true' or 'false' or nothing)")
+		return input == nil or #input == 0 or (input and (input:lower() == "true" or input:lower() == "false")) or
+		private:AddError(num, input, "Malformed isAwardReason - ('true' or 'false' or nothing)")
    end,
    function (num, input) -- subType
       -- optional
@@ -596,7 +626,7 @@ private.validators = {
    end,
    function (num, input) -- owner
       -- either nothing or a string
-      return #input >= 0 or private:AddError(num, input,"Malformed owner - (nothing or name)")
+		return input == nil or #input >= 0 or private:AddError(num, input, "Malformed owner - (nothing or name)")
    end,
 }
 private.numFields = #private.validators

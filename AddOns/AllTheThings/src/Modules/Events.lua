@@ -1,6 +1,4 @@
 do
--- CRIEVE NOTE: This file is currently identical in both Retail and Classic.
--- DO NOT TOUCH IT.
 local app = select(2, ...);
 local L = app.L;
 
@@ -28,6 +26,9 @@ if GetCVar("portal") == "EU" then
 	remapping[652] = 643; -- EU MoP Timewalking
 	remapping[1063] = 1056; -- EU WoD Timewalking
 	remapping[1265] = 1263;	-- EU Legion Timewalking
+	remapping[1398] = 1396;	-- EU Secrets of Azeroth
+elseif GetCVar("portal") == "KO" then
+	remapping[1399] = 1396;	-- KO Secrets of Azeroth
 end
 
 -- Event Cache
@@ -61,7 +62,7 @@ local SessionEventCache;
 local function GetEventCache()
 	-- app.PrintDebug("GetEventCache")
 	local now = C_DateAndTime_GetServerTimeLocal();
-	local cache = AllTheThingsSavedVariables.EventCache;
+	local cache = SessionEventCache or AllTheThingsSavedVariables.EventCache;
 	if cache and (cache.lease or 0) > now then
 		-- If our cache is still leased, then simply return it.
 		-- app.PrintDebug("GetEventCache.lease")
@@ -136,30 +137,38 @@ local function GetEventCache()
 end
 
 -- Event Helpers
+local CustomEventHelpers = {
+	[1271] = { 559,562,587,643,1056,1263 },	-- EVENTS.TIMEWALKING
+	[133701] = { 1395, 1400, 1407, 1429, 1430, 1431 },	-- EVENTS.DRAGONRIDING_CUP
+};
+local SortByStart = function(a, b)
+	return a.start < b.start;
+end;
 setmetatable(EventInformation, { __index = function(t, id)
 	-- app.PrintDebug("EventInformation.__index",id)
 	local info = (SessionEventCache or GetEventCache())[id];
 	if info and info.times then
 		t[id] = info;
 		return info;
-	elseif id == 1271 then	-- EVENTS.TIMEWALKING
-		local times = {};
-		for i,eventID in ipairs({ 559,562,587,643,1056,1263 }) do
-			local subinfo = EventInformation[eventID];
-			if subinfo and subinfo.times then
-				for j,schedule in ipairs(subinfo.times) do
-					schedule.subEventID = eventID;
-					tinsert(times, schedule);
+	else
+		local customEvent = CustomEventHelpers[id];
+		if customEvent then
+			local times = {};
+			for i,eventID in ipairs(customEvent) do
+				local subinfo = EventInformation[eventID];
+				if subinfo and subinfo.times then
+					for j,schedule in ipairs(subinfo.times) do
+						schedule.subEventID = eventID;
+						tinsert(times, schedule);
+					end
 				end
 			end
-		end
-		if #times > 0 then
-			app.Sort(times, function(a, b)
-				return a.start < b.start;
-			end);
-			info = { name = times[1].name, icon = times[1].icon, times = times };
-			t[id] = info;
-			return info;
+			if #times > 0 then
+				app.Sort(times, SortByStart);
+				info = { name = times[1].name, icon = times[1].icon, times = times };
+				t[id] = info;
+				return info;
+			end
 		end
 	end
 	return app.EmptyTable;
@@ -290,40 +299,20 @@ local function GetEventName(e)
 	end
 	return "Event #" .. e;
 end
-local function GetEventTooltipNoteForGroup(group)
-	return L["EVENT_TOOLTIPS"][group.e] or ("|CFF00FFDE" .. L["REQUIRES"] .. "|r`|CFF00FFDE" .. GetEventName(group.e) .. "|r");
-end
 local function GetEventTimeString(d)
 	if d then
 		if d.weekday then
-			return format("%s, %s %02d, %d at %02d:%02d",
+			return ("%s, %s %02d, %d at %02d:%02d"):format(
 				CALENDAR_WEEKDAY_NAMES[d.weekday],
 				CALENDAR_FULLDATE_MONTH_NAMES[d.month],
 				d.monthDay, d.year, d.hour, d.minute );
 		else
-			return format("%s %02d, %d at %02d:%02d",
+			return ("%s %02d, %d at %02d:%02d"):format(
 				CALENDAR_FULLDATE_MONTH_NAMES[d.month],
 				d.monthDay, d.year, d.hour, d.minute );
 		end
 	end
 	return "??";
-end
-local function GetEventTimeStrings(nextEvent)
-	if nextEvent then
-		local schedule = {};
-		if nextEvent.endTime then
-			tinsert(schedule, "Start:`" .. GetEventTimeString(nextEvent.startTime));
-			tinsert(schedule, "End:`" .. GetEventTimeString(nextEvent.endTime));
-		else
-			tinsert(schedule, "Active:`" .. GetEventTimeString(nextEvent.startTime));
-		end
-		if nextEvent.remappedID then
-			local mapID = RemappedEventToMapID[nextEvent.remappedID];
-			local info = C_Map.GetMapInfo(mapID);
-			tinsert(schedule, "Where:`" .. (info.name or ("Map ID #" .. mapID)));
-		end
-		return schedule;
-	end
 end
 
 -- Event API Implementation
@@ -337,8 +326,6 @@ events.GetEventActive = function(eventID)
 end;
 events.GetEventCache = GetEventCache;	-- This should be executed before GetDataCache, or at the start of GetDataCache.
 events.GetEventName = GetEventName;
-events.GetEventTimeStrings = GetEventTimeStrings;
-events.GetEventTooltipNoteForGroup = GetEventTooltipNoteForGroup;
 events.GetEventInformation = function(eventID)
 	return EventInformation[eventID];
 end;
@@ -363,10 +350,10 @@ end;
 local texcoordForEvents = { 0.0, 0.7109375, 0.0, 0.7109375 };
 local fields = {};
 fields.name = function(t)
-	return L["HEADER_NAMES"][t.headerID] or t.eventInfo.name;
+	return L.HEADER_NAMES[t.headerID] or t.eventInfo.name;
 end;
 fields.icon = function(t)
-	return L["HEADER_ICONS"][t.headerID] or t.eventInfo.icon;
+	return L.HEADER_ICONS[t.headerID] or t.eventInfo.icon;
 end;
 fields.texcoord = function(t)
 	if t.icon == t.eventInfo.icon then
@@ -387,4 +374,59 @@ fields.nextEvent = function(t)
 	return NextEventSchedule[t.eventID];
 end;
 events.Fields = fields;
+
+-- Information Type hook for Events
+app.AddEventHandler("OnLoad", function()
+	app.Settings.CreateInformationType("nextEvent", {
+		priority = 2.3,
+		text = L.EVENT_SCHEDULE,
+		Process = function(t, reference, tooltipInfo)
+			local nextEvent = reference.nextEvent;
+			if nextEvent then
+				if nextEvent.remappedID then
+					local mapID = RemappedEventToMapID[nextEvent.remappedID];
+					if mapID then
+						tinsert(tooltipInfo, {
+							left = L.EVENT_WHERE,
+							right = app.GetMapName(mapID),
+							color = app.Colors.TooltipDescription,
+						});
+					end
+				end
+				if nextEvent.endTime then
+					tinsert(tooltipInfo, {
+						left = L.EVENT_START,
+						right = GetEventTimeString(nextEvent.startTime),
+						color = app.Colors.TooltipDescription,
+					});
+					tinsert(tooltipInfo, {
+						left = L.EVENT_END,
+						right = GetEventTimeString(nextEvent.endTime),
+						color = app.Colors.TooltipDescription,
+					});
+				else
+					tinsert(tooltipInfo, {
+						left = L.EVENT_ACTIVE,
+						right = GetEventTimeString(nextEvent.startTime),
+						color = app.Colors.TooltipDescription,
+					});
+				end
+			end
+		end,
+	});
+	app.Settings.CreateInformationType("requireEvent", {
+		priority = 2.7,
+		text = L.REQUIRES_EVENT,
+		Process = function(t, reference, tooltipInfo)
+			local e = reference.e;
+			if e then
+				tinsert(tooltipInfo, {
+					left = t.text,
+					right = GetEventName(e),
+					color = "FF00FFDE",
+				});
+			end
+		end,
+	});
+end);
 end

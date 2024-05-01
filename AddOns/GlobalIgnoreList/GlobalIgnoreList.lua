@@ -2076,7 +2076,7 @@ function SlashCmdList.GIGNORE (msg)
 		
 	elseif args[1] == "gui" or args[1] == "ui" then	
 	
-		GUI()
+		GIL_GUI()
 		
 	elseif args[1] == "sync" then
 	

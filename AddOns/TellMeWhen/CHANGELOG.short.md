@@ -1,6 +1,7 @@
 
-## v10.1.6
-* Support for WoW Classic Era 1.14.4. The classic era codebase has been merged into the main codebase, so some features that don't support classic may be present in a non-working state.
+## v10.2.4
+* Fix: #2154 - Errors when tracking items by slot number when the slot is empty.
+* Fix: #2155 - Item cooldown API was broken by Blizzard in 10.2.6.
 
 
-[View Full Changelog](https://github.com/ascott18/TellMeWhen/blob/417ec7a24296326ce5fb3a80b69b261e4f82fe9c/CHANGELOG.md)
+[View Full Changelog](https://github.com/ascott18/TellMeWhen/blob/209b9b0214ffbf83c2bbe0a1a1e5d5d917ae21d7/CHANGELOG.md)

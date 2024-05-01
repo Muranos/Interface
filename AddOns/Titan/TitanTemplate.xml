@@ -90,6 +90,7 @@
 			<AbsDimension x="0" y="0"/>
 		</PushedTextOffset>
 	</Button>
+
 	<Slider name="TitanOptionsSliderTemplate" orientation="VERTICAL" inherits="BackdropTemplate" virtual="true" enableMouse="true" >
 		<Size>
 			<AbsDimension x="10" y="100"/>
@@ -134,7 +135,7 @@
 			</Size>
 		</ThumbTexture>
 		<Scripts>
-			<!-- DF Appears Blizz moved EnableMouseWheel from declaration to code -->
+			<!-- Draagonflight (DF) Appears Blizz moved EnableMouseWheel from declaration to code -->
 			<OnLoad>
 				TitanOptionsSliderTemplate_OnLoad(self);
 
@@ -144,6 +145,7 @@
 	</Slider>
 
 	<GameTooltip name="TitanPanelTooltip" inherits="GameTooltipTemplate" parent="UIParent" hidden="true"/>
+	
 	<Button name="TitanPanelBarButtonHiderTemplate" frameStrata="BACKGROUND" toplevel="true" movable="true" parent="UIParent" virtual="true">
 		<Scripts>
 			<OnLoad>

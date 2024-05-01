@@ -403,21 +403,21 @@ do
 			local n = db.barTextColor[i]
 			if type(n) ~= "number" or n < 0 or n > 1 then
 				db.barTextColor = plugin.defaultDB.barTextColor
-				break
+				break -- If 1 entry is bad, reset the whole table
 			end
 		end
 		for i = 1, 4 do
 			local n = db.barColor[i]
 			if type(n) ~= "number" or n < 0 or n > 1 then
 				db.barColor = plugin.defaultDB.barColor
-				break
+				break -- If 1 entry is bad, reset the whole table
 			end
 		end
 		for i = 1, 4 do
 			local n = db.backgroundColor[i]
 			if type(n) ~= "number" or n < 0 or n > 1 then
 				db.backgroundColor = plugin.defaultDB.backgroundColor
-				break
+				break -- If 1 entry is bad, reset the whole table
 			end
 		end
 

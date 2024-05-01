@@ -45,12 +45,12 @@ do
 		if self:Me(guid) then
 			self:PlaySound(320596, "warning")
 			self:Flash(320596)
-			self:Say(320596)
+			self:Say(320596, nil, nil, "Heaving Retch")
 		end
 	end
 
 	function mod:HeavingRetchStart(args)
-		self:GetBossTarget(printTarget, 0.4, args.sourceGUID)
+		self:GetUnitTarget(printTarget, 0.4, args.sourceGUID)
 		self:Bar(args.spellId, 24.5)
 	end
 end

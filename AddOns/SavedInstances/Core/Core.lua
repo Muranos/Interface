@@ -365,9 +365,19 @@ SI.defaultDB = {
     AugmentBonus = true,
     CurrencyValueColor = true,
     Currency2003 = true, -- Dragon Isles Supplies
-    Currency2123 = true, -- Bloody Tokens
     Currency2245 = true, -- Flightstones
-    Currency2533 = true, -- Renascent Shadowflame
+    Currency2123 = true, -- Bloody Tokens
+    Currency2797 = true, -- Trophy of Strife
+    Currency2650 = true, -- Emerald Dewdrop
+    Currency2651 = true, -- Seedbloom
+    Currency2777 = true, -- Dream Infusion
+    Currency2912 = true, -- Renascent Awakening
+    Currency2806 = true, -- Whelpling's Awakened Crest
+    Currency2807 = true, -- Drake's Awakened Crest
+    Currency2809 = true, -- Wyrm's Awakened Crest
+    Currency2812 = true, -- Aspect's Awakened Crest
+    Currency2800 = true, -- 10.2.6 Professions - Personal Tracker - S4 Spark Drops (Hidden)
+    Currency3010 = true, -- 10.2.6 Rewards - Personal Tracker - S4 Dinar Drops (Hidden)
     CurrencyMax = false,
     CurrencyEarned = true,
     CurrencySortName = false,
@@ -448,7 +458,7 @@ SI.defaultDB = {
 --   hooksecurefunc(SavedInstances,"SkinFrame",function(self,frame,name) frame:SetWhatever() end)
 function SI:SkinFrame(frame, name)
   -- default behavior (ticket 81)
-  if IsAddOnLoaded("ElvUI") or IsAddOnLoaded("Tukui") then
+  if C_AddOns.IsAddOnLoaded("ElvUI") or C_AddOns.IsAddOnLoaded("Tukui") then
     if frame.StripTextures then
       frame:StripTextures()
     end
@@ -491,14 +501,14 @@ local function ClassColorise(class, targetstring)
   return c .. targetstring .. FONTEND
 end
 
-local function CurrencyColor(amt, max)
+local function CurrencyColor(amt, max, alt)
   amt = amt or 0
   local samt = SI:formatNumber(amt)
   if max == nil or max == 0 then
     return samt
   end
   if SI.db.Tooltip.CurrencyValueColor then
-    local pct = amt / max
+    local pct = alt and (alt / max) or (amt / max)
     local color = GREENFONT
     if pct >= 1 then
       color = REDFONT
@@ -1917,7 +1927,7 @@ hoverTooltip.ShowMythicPlusTooltip = function (cell, arg, ...)
       local runInfo = t.MythicKeyBest.runHistory[i]
       if runInfo.level and runInfo.name and runInfo.rewardLevel then
         indicatortip:AddLine()
-        text = string.format("(%3$d) %1$d - %2$s", runInfo.level, runInfo.name, runInfo.rewardLevel)
+        text = string.format("(%3$d) %1$s - %2$s", runInfo.level, runInfo.name, runInfo.rewardLevel)
         -- these are the thresholds that will populate the great vault
         if t.MythicKeyBest.threshold and tContains(t.MythicKeyBest.threshold, i) then
           text = GREENFONT..text..FONTEND
@@ -2411,9 +2421,9 @@ function SI:toonInit()
 end
 
 function SI:OnInitialize()
-  local versionString = GetAddOnMetadata("SavedInstances", "version")
+  local versionString = C_AddOns.GetAddOnMetadata("SavedInstances", "version")
   --[==[@debug@
-  if versionString == "10.1.5" then
+  if versionString == "10.2.7" then
     versionString = "Dev"
   end
   --@end-debug@]==]
@@ -3228,8 +3238,8 @@ SI.cpairs = cpairs
 local function OpenWeeklyRewards()
   if _G.WeeklyRewardsFrame and _G.WeeklyRewardsFrame:IsVisible() then return end
 
-  if not IsAddOnLoaded('Blizzard_WeeklyRewards') then
-    LoadAddOn('Blizzard_WeeklyRewards')
+  if not C_AddOns.IsAddOnLoaded('Blizzard_WeeklyRewards') then
+    C_AddOns.LoadAddOn('Blizzard_WeeklyRewards')
   end
   _G.WeeklyRewardsFrame:Show()
 end
@@ -3839,7 +3849,7 @@ function SI:ShowTooltip(anchorframe)
       if SI.db.Tooltip.CategorySpaces and not (SI.db.Tooltip.MythicKey or SI.db.Tooltip.TimewornMythicKey or showall) then
         addsep()
       end
-      show = tooltip:AddLine(YELLOWFONT .. L["Mythic Key Best"] .. FONTEND)
+      show = tooltip:AddLine(YELLOWFONT .. L["Dungeon Runs"] .. FONTEND)
     end
     for toon, t in cpairs(SI.db.Toons, true) do
       if t.MythicKeyBest then
@@ -3847,7 +3857,7 @@ function SI:ShowTooltip(anchorframe)
         if t.MythicKeyBest.lastCompletedIndex then
           for index = 1, t.MythicKeyBest.lastCompletedIndex do
             if t.MythicKeyBest[index] then
-              keydesc = keydesc .. (index > 1 and " / " or "") .. t.MythicKeyBest[index]
+              keydesc = keydesc .. (index > 1 and "||" or "") .. t.MythicKeyBest[index]
             end
           end
         end
@@ -4213,7 +4223,7 @@ function SI:ShowTooltip(anchorframe)
               if (ci.weeklyMax or 0) > 0 then
                 str = earned.." ("..CurrencyColor(ci.earnedThisWeek,ci.weeklyMax)..weeklymax..")"
               elseif (ci.amount or 0) > 0 or (ci.totalEarned or 0) > 0 then
-                str = CurrencyColor(ci.amount,ci.totalMax)..totalmax
+                str = CurrencyColor(ci.amount, ci.totalMax, ci.totalEarned) .. totalmax
               end
               if SI.specialCurrency[idx] and SI.specialCurrency[idx].relatedItem then
                 if SI.specialCurrency[idx].relatedItem.holdingMax then

@@ -1,66 +1,66 @@
 --------------------------------------------------------------------------------
 --                        A L L   T H E   T H I N G S                         --
 --------------------------------------------------------------------------------
---            Copyright 2017-2023 Dylan Fortune (Crieve-Sargeras)             --
+--            Copyright 2017-2024 Dylan Fortune (Crieve-Sargeras)             --
 --------------------------------------------------------------------------------
+local rawget, ipairs, pairs, tinsert, setmetatable, print = rawget, ipairs, pairs, tinsert, setmetatable, print
 -- This is a hidden frame that intercepts all of the event notifications that we have registered for.
 local appName, app = ...;
-app.EmptyTable = {};
+app.EmptyFunction = function() end;
+app.EmptyTable = setmetatable({}, { __newindex = app.EmptyFunction });
+
 
 -- Generate the version identifier.
-app.Version = GetAddOnMetadata(appName, "Version");
-if string.match(app.Version, "version") then
+---@diagnostic disable-next-line: deprecated
+local v = (C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetadata)(appName, "Version");
+if v:match("version") then
 	app.Version = "[Git]";
+	app.IsGit = true;
 else
-	app.Version = "v" .. app.Version;
+	app.Version = "" .. v;
 end
+app.GameBuildVersion = select(4, GetBuildInfo());
+app.IsRetail = app.GameBuildVersion >= 100000;
+app.IsClassic = not app.IsRetail;
+app.DESCRIPTION_SEPARATOR = "`"
 
 -- ReloadUI slash command (for ease of use)
 SLASH_RELOADUI1 = "/reloadui";
 SLASH_RELOADUI2 = "/rl";
-SlashCmdList["RELOADUI"] = ReloadUI;
+SlashCmdList.RELOADUI = ReloadUI;
 
 local assetRootPath = "Interface\\Addons\\" .. appName .. "\\assets\\";
 app.asset = function(path)
 	return assetRootPath .. path;
 end
+app.AlwaysShowUpdate = function(data) data.visible = true; return true; end
+app.AlwaysShowUpdateWithoutReturn = function(data) data.visible = true; end
+app.ReturnTrue = function() return true; end
+app.ReturnFalse = function() return false; end
 
 -- External API
 -- TODO: We will use a common API eventually.
-if not _G["ATTC"] then
-	_G["ATTC"] = app;
+if not _G.ATTC then
+	_G.ATTC = app;
 end
-if not _G["AllTheThings"] then
-	_G["AllTheThings"] = app;
-end
-
--- Debugging
--- app.Debugging = true;
--- app.DebuggingEvents = true;	-- Do not force debug prints to be linked to all the Event spam
--- app.DEBUG_PRINT = true;	-- TODO: Deprecate this variable and use the other one.
-
--- Consolidated debug-only print with preceding precise timestamp
-local GetTimePreciseSec = GetTimePreciseSec;
-local DEBUG_PRINT_LAST;
-app.PrintDebug = function(...)
-	DEBUG_PRINT_LAST = GetTimePreciseSec();
-	if app.DEBUG_PRINT then print(DEBUG_PRINT_LAST,...) end
-end
--- Consolidated debug-only print with precise frame duration since last successful print
-app.PrintDebugPrior = function(...)
-	if app.DEBUG_PRINT then
-		local now = GetTimePreciseSec();
-		if DEBUG_PRINT_LAST then
-			local diff = now - DEBUG_PRINT_LAST;
-			print(now,"<>",diff,"Stutter @", math.ceil(1 / diff), ...)
-		else
-			print(now,0,...)
-		end
-		DEBUG_PRINT_LAST = GetTimePreciseSec();
-	end
+if not _G.AllTheThings then
+	_G.AllTheThings = app;
 end
 
 -- API Functions
+local function AssignChildren(parent)
+	local g = parent.g;
+	if g then
+		-- Iterate through the groups
+		local group;
+		for i=1,#g,1 do
+			-- Set the group's parent
+			group = g[i];
+			group.parent = parent;
+			AssignChildren(group);
+		end
+	end
+end
 local function AssignFieldValue(group, field, value)
 	if group then
 		group[field] = value;
@@ -98,21 +98,85 @@ local function CloneReference(group)
 	end
 	return setmetatable(clone, { __index = group });
 end
+-- Returns the best mapID for a group based on that group's coordinate and map data. If the current mapID is included in any of those fields, it will return that. This is used exclusively within tooltips and does not need to reference the source parent.
+local function GetBestMapForGroup(group, currentMapID)
+	if group then
+		local mapID = group.mapID;
+		if mapID and mapID == currentMapID then
+			return mapID;
+		end
+
+		local coords = group.coords;
+		if coords then
+			for i,coord in ipairs(coords) do
+				mapID = coord[3];
+				if mapID == currentMapID then
+					return mapID;
+				end
+			end
+		end
+		local maps = group.maps;
+		if maps then
+			for i,otherMapID in ipairs(maps) do
+				mapID = otherMapID;
+				if mapID == currentMapID then
+					return mapID;
+				end
+			end
+		end
+
+		return mapID or GetBestMapForGroup(group.parent, currentMapID);
+	end
+end
+-- Returns the first matching relative value from the "oldest" parent in the hierarchy where you need to go recursively deeper in the hierarchy to find the value from the top down. (meaning if you're 4 headerIDs deep and looking for "headerID", it'll return the root category's headerID rather than the immediate parent or grandparent's headerID)
+local function GetDeepestRelativeValue(group, field)
+	if group then
+		return GetDeepestRelativeValue(group.sourceParent or group.parent, field) or group[field];
+	end
+end
+local function GetRelativeField(group, field, value)
+	if group then
+		return group[field] == value or GetRelativeField(group.sourceParent or group.parent, field, value);
+	end
+end
+-- Returns the first encountered group's value tracing upwards in parent hierarchy which has a value for the provided field
+-- Prioritizes sourceParent before parent
 local function GetRelativeValue(group, field)
 	if group then
 		return group[field] or GetRelativeValue(group.sourceParent or group.parent, field);
 	end
 end
+-- Returns the first encountered group tracing upwards in parent hierarchy which has a value for the provided field.
+-- Specify 'followSource' to prioritize the Source Parent of a group over the direct Parent
+local function GetRelativeGroup(group, field, followSource)
+	if group then
+		return (group[field] and group) or GetRelativeGroup(followSource and group.sourceParent or group.parent, field);
+	end
+end
+app.GetRelativeGroup = GetRelativeGroup;
+-- Returns the first encountered group tracing upwards in direct parent hierarchy which has a value for the provided field
+local function GetRelativeRawWithField(group, field)
+	if group then
+		return group[field] or GetRelativeRawWithField(rawget(group, "parent"), field);
+	end
+end
+app.GetRelativeRawWithField = GetRelativeRawWithField;
+-- Returns the first encountered group tracing upwards in direct parent hierarchy which returns a value from when passed into the provided function
+local function GetRelativeByFunc(group, func)
+	if group then
+		return func(group) or GetRelativeByFunc(group.sourceParent or group.parent, func)
+	end
+end
+app.GetRelativeByFunc = GetRelativeByFunc;
+app.AssignChildren = AssignChildren;
 app.AssignFieldValue = AssignFieldValue;
 app.CloneArray = CloneArray;
 app.CloneDictionary = CloneDictionary;
 app.CloneReference = CloneReference;
+app.GetBestMapForGroup = GetBestMapForGroup;
+app.GetDeepestRelativeValue = GetDeepestRelativeValue;
+app.GetRelativeField = GetRelativeField;
 app.GetRelativeValue = GetRelativeValue;
-
--- Declare Event Handlers
-app.EventHandlers = {
-	OnRecalculate = {}
-};
 
 -- Cache information about the player.
 app.Gender = UnitSex("player");
@@ -142,54 +206,131 @@ app.ClassIndex = classID;
 app.Class = classFile;
 
 -- Determine the player's race information.
-local raceName, race, raceID = UnitRace("player");
+local _, race, raceID = UnitRace("player");
 local raceIndex = app.RaceDB[race] or raceID;
 app.RaceIndex = type(raceIndex) == "table" and raceIndex[factionGroup] or raceIndex;
 app.RaceID = raceID;
 app.Race = race;
 
--- Create an Event Processor.
-local events = {};
-local frame = CreateFrame("FRAME", nil, UIParent, BackdropTemplateMixin and "BackdropTemplate");
-frame.Suffix = "ATTFRAME";
-if app.DebuggingEvents then
-frame:SetScript("OnEvent", function(self, e, ...)
-	app.PrintDebug(e,...);
-	(events[e] or print)(...);
-	app.PrintDebugPrior(e);
-end);
-else
-frame:SetScript("OnEvent", function(self, e, ...) (events[e] or print)(...); end);
-end
-frame:SetPoint("BOTTOMLEFT", UIParent, "TOPLEFT", 0, 0);
-frame:SetSize(1, 1);
-frame:Show();
-app.frame = frame;
-app.events = events;
-app.RegisterEvent = function(self, ...)
-	frame:RegisterEvent(...);
-end
-app.UnregisterEvent = function(self, ...)
-	frame:UnregisterEvent(...);
-end
-app.SetScript = function(self, ...)
-	local scriptName, method = ...;
-	if method then
-		frame:SetScript(scriptName, function(...)
-			method(app, ...);
-		end);
-	else
-		frame:SetScript(scriptName, nil);
+-- Accessibility Sorting
+local function calculateAccessibility(source)
+	local score = source.AccessibilityScore or 0;
+	if score > 0 then return score; end
+	if GetRelativeValue(source, "nmr") then
+		score = score + 20;
 	end
+	if GetRelativeValue(source, "nmc") then
+		score = score + 10;
+	end
+	if GetRelativeValue(source, "rwp") then
+		score = score + 5;
+	end
+	if GetRelativeValue(source, "e") then
+		score = score + 1;
+	end
+	local u = GetRelativeValue(source, "u");
+	if u then
+		if u < 3 then
+			score = score + 100;
+		elseif u < 4 then
+			score = score + 10;
+		else
+			score = score + 1;
+		end
+	end
+	source.AccessibilityScore = score;
+	return score;
+end
+app.SortDefaults.Accessibility = function(a, b)
+	return calculateAccessibility(a) < calculateAccessibility(b);
+end
+
+-- Accessibility + Distance Sorting
+local function calculateAccessibilityAndDistance(source)
+	local score = source.AccessibilityScore or 0;
+	if score > 0 then return score; end
+	if GetRelativeValue(source, "nmr") then
+		score = score + 20;
+	end
+	if GetRelativeValue(source, "nmc") then
+		score = score + 10;
+	end
+	if GetRelativeValue(source, "rwp") then
+		score = score + 5;
+	end
+	if GetRelativeValue(source, "e") then
+		score = score + 1;
+	end
+	local u = GetRelativeValue(source, "u");
+	if u then
+		if u < 3 then
+			score = score + 100;
+		elseif u < 4 then
+			score = score + 10;
+		else
+			score = score + 1;
+		end
+	end
+	score = score + (source.distance or 99999);
+	source.AccessibilityScore = score;
+	return score;
+end
+app.SortDefaults.AccessibilityAndDistance = function(a, b)
+	return calculateAccessibilityAndDistance(a) < calculateAccessibilityAndDistance(b);
+end
+
+-- Whether ATT should ignore saving data experienced during the play session
+app.IgnoreDataCaching = function()
+	-- This function currently returns false on Tournament realms. Very good. >_<
+	if IsOnTournamentRealm() then
+		app.print("Data will not be saved for this Realm");
+		app.IgnoreDataCaching = app.ReturnTrue;
+		return true;
+	end
+	local realmName = GetRealmName();
+	if  realmName:find("Mythic Dungeons") or
+		realmName:find("Arena Champions") or
+		realmName:find("US") or
+		realmName:find("AU") or
+		realmName:find("EU")
+		-- confirm realm tournament names elsewhere
+		-- or realmName:find("CN")
+		-- or realmName:find("TW")
+	then
+		app.print("Data will not be saved for this Realm");
+		app.IgnoreDataCaching = app.ReturnTrue;
+		return true;
+	end
+end
+-- Returns the Global reference by name, setting it to the 'init' value if not already existing
+app.LocalizeGlobal = function(globalName, init)
+	local val = _G[globalName];
+	if init and not val then
+		val = {};
+		_G[globalName] = val;
+	end
+	-- app.PrintDebug("LocalizeGlobal",globalName,val)
+	return val;
+end
+-- Returns the Global reference by name, setting it to the 'init' value if not already existing
+-- ONLY if no value returned from app.IgnoreDataCaching(). Otherwise the captured Global reference will be
+-- forced to an alternate value to prevent being captured into the Saved Variables when unloading
+app.LocalizeGlobalIfAllowed = function(globalName, init)
+	if app.IgnoreDataCaching() then
+		globalName = globalName.."__NOSTORE";
+	end
+	return app.LocalizeGlobal(globalName, init);
 end
 
 (function()
 -- Extend the Frame Class and give them ATT-Style Coroutines and Tooltips!
 local coroutineStack = {};
+local tinsert, tremove = tinsert, tremove;
+local frame, errorID = app.frame, 0;
 local function OnCoroutineUpdate()
 	for i=#coroutineStack,1,-1 do
 		if not coroutineStack[i][3]() then
-			table.remove(coroutineStack, i);
+			tremove(coroutineStack, i);
 			if #coroutineStack < 1 then
 				frame:SetScript("OnUpdate", nil);
 				--print("Coroutines Finished.");
@@ -205,7 +346,7 @@ local function Push(self, name, method)
 	end
 	local owner = self.Suffix or (self.GetName and self:GetName()) or self.text;
 	--print(owner, "Push ->", name);
-	table.insert(coroutineStack, { owner, name, method });
+	tinsert(coroutineStack, { owner, name, method });
 end
 local function StartATTCoroutine(self, name, method)
 	if method then
@@ -224,7 +365,10 @@ local function StartATTCoroutine(self, name, method)
 					if ok then return true;	-- This means more work is required.
 					else
 						-- Show the error. Returning nothing is the same as canceling the work.
-						print(debugstack(co));
+						errorID = errorID + 1;
+						local title, popupID = "Stack Trace #" .. errorID, "error-" .. errorID;
+						app:SetupReportDialog(popupID, title, {err, "", debugstack(co)});
+						print("Error:", app:Linkify(title, app.Colors.ChatLinkError, "dialog:" .. popupID));
 						error(err,2);
 					end
 				end
@@ -237,7 +381,11 @@ local SetATTTooltip = function(self, text)
 	self:SetScript("OnEnter", function(self)
 		GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
 		GameTooltip:SetText(text, nil, nil, nil, nil, true);
-		if self.OnTooltip then self:OnTooltip(); end
+		if self.OnTooltip then
+			local tooltipInfo = {};
+			self:OnTooltip(tooltipInfo);
+			app.Modules.Tooltip.AttachTooltipInformation(GameTooltip, tooltipInfo);
+		end
 		GameTooltip:Show();
 	end);
 	self:SetScript("OnLeave", function(self)
@@ -247,30 +395,43 @@ local SetATTTooltip = function(self, text)
 	end);
 end
 
+---@class ATTFrameClass: Frame
 local frameClass = getmetatable(frame).__index;
 frameClass.SetATTTooltip = SetATTTooltip;
 frameClass.StartATTCoroutine = StartATTCoroutine;
-app.StartATTCoroutine = function(self, ...)
-	StartATTCoroutine(frame, ...);
+if app.IsRetail then
+	local StartCoroutine = app.StartCoroutine
+	app.StartATTCoroutine = function(self, ...)
+		StartCoroutine(...);
+	end
+else
+	app.StartATTCoroutine = function(self, ...)
+		StartATTCoroutine(frame, ...);
+	end
 end
 
-local button = CreateFrame("BUTTON", nil, frame);
+local button = CreateFrame("Button", nil, frame);
+---@class ATTButtonClass: Button
 local buttonClass = getmetatable(button).__index;
 buttonClass.StartATTCoroutine = StartATTCoroutine;
 buttonClass.SetATTTooltip = SetATTTooltip;
 button:Hide();
 
-local checkbutton = CreateFrame("CHECKBUTTON", nil, frame);
-getmetatable(checkbutton).__index.SetATTTooltip = SetATTTooltip;
+local checkbutton = CreateFrame("CheckButton", nil, frame);
+---@class ATTCheckButtonClass: CheckButton
+local checkButtonClass = getmetatable(checkbutton).__index;
+checkButtonClass.SetATTTooltip = SetATTTooltip;
 checkbutton:Hide();
 
-local editbox = CreateFrame("EDITBOX", nil, frame);
-getmetatable(editbox).__index.SetATTTooltip = SetATTTooltip;
+local editbox = CreateFrame("EditBox", nil, frame);
+---@class ATTEditBoxClass: EditBox
+local editBoxClass = getmetatable(editbox).__index;
+editBoxClass.SetATTTooltip = SetATTTooltip;
 editbox:Hide();
 end)();
 
 function app:ShowPopupDialog(msg, callback)
-	local popup = StaticPopupDialogs["ALL_THE_THINGS"];
+	local popup = StaticPopupDialogs.ALL_THE_THINGS;
 	if not popup then
 		popup = {
 			button1 = "Yes",
@@ -282,7 +443,7 @@ function app:ShowPopupDialog(msg, callback)
 			enterClicksFirstButton = true,
 			preferredIndex = 3,  -- avoid some UI taint, see http://www.wowace.com/announcements/how-to-avoid-some-ui-taint/
 		};
-		StaticPopupDialogs["ALL_THE_THINGS"] = popup;
+		StaticPopupDialogs.ALL_THE_THINGS = popup;
 	end
 	popup.text = msg or "Are you sure?";
 	popup.OnAccept = callback or print;
@@ -290,7 +451,7 @@ function app:ShowPopupDialog(msg, callback)
 	StaticPopup_Show ("ALL_THE_THINGS");
 end
 function app:ShowPopupDialogWithEditBox(msg, text, callback, timeout)
-	local popup = StaticPopupDialogs["ALL_THE_THINGS_EDITBOX"];
+	local popup = StaticPopupDialogs.ALL_THE_THINGS_EDITBOX;
 	if not popup then
 		popup = {
 			button1 = "Okay",
@@ -307,7 +468,7 @@ function app:ShowPopupDialogWithEditBox(msg, text, callback, timeout)
 			end,
 			preferredIndex = 3,  -- avoid some UI taint, see http://www.wowace.com/announcements/how-to-avoid-some-ui-taint/
 		};
-		StaticPopupDialogs["ALL_THE_THINGS_EDITBOX"] = popup;
+		StaticPopupDialogs.ALL_THE_THINGS_EDITBOX = popup;
 	end
 	popup.OnShow = function (self, data)
 		self.editBox:SetText(text);
@@ -323,8 +484,10 @@ function app:ShowPopupDialogWithEditBox(msg, text, callback, timeout)
 	StaticPopup_Show ("ALL_THE_THINGS_EDITBOX");
 end
 function app:ShowPopupDialogWithMultiLineEditBox(text, onclick, label)
-	if not ATTEditBox then
-		local f = CreateFrame("Frame", "ATTEditBox", UIParent, "DialogBoxFrame")
+	local f = ATTEditBox;
+	if not f then
+		---@class ATTEditBox: BackdropTemplate, Frame
+		f = CreateFrame("Frame", "ATTEditBox", UIParent, "DialogBoxFrame")
 		f:SetPoint("CENTER")
 		f:SetSize(600, 500)
 		f:SetBackdrop({
@@ -342,13 +505,16 @@ function app:ShowPopupDialogWithMultiLineEditBox(text, onclick, label)
 			end
 		end)
 		f:SetScript("OnMouseUp", f.StopMovingOrSizing)
-		
+
 		-- ScrollFrame
-		local sf = CreateFrame("ScrollFrame", "ATTEditBoxScrollFrame", ATTEditBox, "UIPanelScrollFrameTemplate")
+		---@class ATTEditBoxScrollFrame: ScrollFrame
+		local sf = CreateFrame("ScrollFrame", "ATTEditBoxScrollFrame", f, "UIPanelScrollFrameTemplate")
+		---@diagnostic disable-next-line: undefined-field
+		sf:SetPoint("BOTTOM", ATTEditBoxButton, "TOP", 0, 4)
 		sf:SetPoint("LEFT", 16, 0)
 		sf:SetPoint("RIGHT", -32, 0)
-		sf:SetPoint("BOTTOM", ATTEditBoxButton, "TOP", 0, 0)
-		
+		f.ScrollFrame = sf;
+
 		-- Label (conditionally create)
 		if label then
 			local l = f:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge");
@@ -360,38 +526,42 @@ function app:ShowPopupDialogWithMultiLineEditBox(text, onclick, label)
 		else
 			sf:SetPoint("TOP", 0, -16);
 		end
-		
+
 		-- EditBox
-		local eb = CreateFrame("EditBox", "ATTEditBoxEditBox", ATTEditBoxScrollFrame)
+		---@class ATTEditBoxEditBox: EditBox
+		local eb = CreateFrame("EditBox", "ATTEditBoxEditBox", sf)
 		eb:SetSize(sf:GetSize())
 		eb:SetMultiLine(true)
 		eb:SetAutoFocus(false) -- dont automatically focus
 		eb:SetFontObject("ChatFontNormal")
 		eb:SetScript("OnEscapePressed", function() f:Hide() end)
+		---@diagnostic disable-next-line: undefined-field
 		ATTEditBoxButton:SetScript("OnClick", function (self, button, down)
 			if self:GetParent().OnClick then
-				self:GetParent().OnClick(ATTEditBoxEditBox:GetText());
+				self:GetParent().OnClick(eb:GetText());
 			end
 			self:GetParent():Hide();
 		end);
 		sf:SetScrollChild(eb)
-		
+		f.EditBox = eb;
+
 		-- Resizable
 		f:SetResizable(true)
 		if f.SetResizeBounds then
 			f:SetResizeBounds(150, 100, 600, 600);
 		else
+			---@diagnostic disable-next-line: undefined-field
 			f:SetMinResize(150, 100);
 		end
-		
+
 		local rb = CreateFrame("Button", "ATTEditBoxResizeButton", ATTEditBox)
 		rb:SetPoint("BOTTOMRIGHT", -6, 7)
 		rb:SetSize(16, 16)
-		
+
 		rb:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
 		rb:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
 		rb:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down")
-		
+
 		rb:SetScript("OnMouseDown", function(self, button)
 			if button == "LeftButton" then
 				f:StartSizing("BOTTOMRIGHT")
@@ -405,25 +575,24 @@ function app:ShowPopupDialogWithMultiLineEditBox(text, onclick, label)
 		end)
 		f:Show()
 	end
-	ATTEditBox.OnClick = onclick;
+	f.OnClick = onclick;
 	if text then
-		ATTEditBoxEditBox:SetText(text)
-		ATTEditBoxEditBox:HighlightText();
-		ATTEditBoxEditBox:SetFocus();
+		if label then
+			local l = f.Label;
+			if l then l:SetText(label); end
+		end
+		f.EditBox:SetText(text)
+		f.EditBox:HighlightText();
+		f.EditBox:SetFocus();
 	end
-	ATTEditBox:Show()
+	f:Show()
 end
 function app:ShowPopupDialogToReport(reportReason, text)
-	app:ShowPopupDialogWithMultiLineEditBox(text, nil, (reportReason or "Missing Data").."\n"..app.L["PLEASE_REPORT_MESSAGE"]..app.L["REPORT_TIP"]);
+	app:ShowPopupDialogWithMultiLineEditBox(text, nil, (reportReason or "Missing Data").."\n"..app.L.PLEASE_REPORT_MESSAGE..app.L.REPORT_TIP);
 end
 
 -- Define Modules
-if app.__perf then
-	local perf = app.__perf
-	app.Modules = setmetatable({}, perf.MetaCapture)
-else
-	app.Modules = {};
-end
+app.Modules = {};
 
 -- Global Variables
 AllTheThingsSavedVariables = {};

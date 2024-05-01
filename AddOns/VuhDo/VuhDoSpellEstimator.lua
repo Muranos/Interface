@@ -32,6 +32,7 @@ VUHDO_SPELLS = {
 	[VUHDO_SPELL_ID.ATONEMENT] = { ["isHot"] = true },
 	[VUHDO_SPELL_ID.SPIRIT_SHELL] = { ["isHot"] = true },
 	[VUHDO_SPELL_ID.DIVINE_AEGIS] = { ["isHot"] = true },
+	[VUHDO_SPELL_ID.LUMINOUS_BARRIER] = { ["isHot"] = true },
 
 	-- Shaman
 	[VUHDO_SPELL_ID.RIPTIDE] = { ["isHot"] = true	},
@@ -74,6 +75,9 @@ VUHDO_SPELLS = {
 	[VUHDO_SPELL_ID.REVERSION] = { ["isHot"] = true },
 	[VUHDO_SPELL_ID.REWIND] = { ["isHot"] = true },
 	[VUHDO_SPELL_ID.TIME_DILATION] = { ["isHot"] = true },
+
+	-- Ward of Faceless Ire trinket
+	[VUHDO_SPELL_ID.WRITHING_WARD] = { ["isHot"] = true },
 
 };
 local VUHDO_SPELLS = VUHDO_SPELLS;

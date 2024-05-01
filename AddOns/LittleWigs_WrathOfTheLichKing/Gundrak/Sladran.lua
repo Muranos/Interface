@@ -1,12 +1,11 @@
-
 --------------------------------------------------------------------------------
--- Module declaration
+-- Module Declaration
 --
 
 local mod, CL = BigWigs:NewBoss("Slad'ran", 604, 592)
 if not mod then return end
-mod:RegisterEnableMob(29304)
-mod.engageId = 1978
+mod:RegisterEnableMob(29304) -- Slad'ran
+mod:SetEncounterID(mod:Classic() and 383 or 1978)
 
 --------------------------------------------------------------------------------
 -- Initialization
@@ -14,7 +13,7 @@ mod.engageId = 1978
 
 function mod:GetOptions()
 	return {
-		59842, -- Poison Nova
+		{59842, "CASTBAR"}, -- Poison Nova
 	}
 end
 
@@ -29,13 +28,15 @@ end
 --
 
 function mod:PoisonNova(args)
-	self:MessageOld(59842, "yellow", "info", CL.casting:format(args.spellName))
-	self:Bar(59842, 3.5)
+	self:Message(59842, "yellow", CL.casting:format(args.spellName))
+	self:PlaySound(59842, "info")
+	self:CastBar(59842, 3.5)
 end
 
 function mod:PoisonNovaApplied(args)
 	if self:Me(args.destGUID) then
-		self:TargetMessageOld(59842, args.destName, "blue", "alarm")
+		self:PersonalMessage(59842)
+		self:PlaySound(59842, "alarm", nil, args.destName)
 		self:TargetBar(59842, args.spellId == 59842 and 10 or 16, args.destName)
 	end
 end

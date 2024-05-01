@@ -1,6 +1,8 @@
 if not WeakAuras.IsLibsOK() then return end
---- @type string, Private
-local AddonName, Private = ...
+---@type string
+local AddonName = ...
+---@class Private
+local Private = select(2, ...)
 
 local L = WeakAuras.L;
 
@@ -23,7 +25,7 @@ local default = {
   frameStrata = 1
 };
 
-WeakAuras.regionPrototype.AddAlphaToDefault(default);
+Private.regionPrototype.AddAlphaToDefault(default);
 
 local screenWidth, screenHeight = math.ceil(GetScreenWidth() / 20) * 20, math.ceil(GetScreenHeight() / 20) * 20;
 
@@ -72,18 +74,14 @@ local properties = {
   }
 }
 
-WeakAuras.regionPrototype.AddProperties(properties, default);
+Private.regionPrototype.AddProperties(properties, default);
 
 local function create(parent)
   local region = CreateFrame("Frame", nil, UIParent);
   region.regionType = "texture"
   region:SetMovable(true);
   region:SetResizable(true);
-  if region.SetResizeBounds then
-    region:SetResizeBounds(1, 1)
-  else
-    region:SetMinResize(1, 1)
-  end
+  region:SetResizeBounds(1, 1)
 
   local texture = region:CreateTexture();
   texture:SetSnapToPixelGrid(false)
@@ -91,7 +89,7 @@ local function create(parent)
   region.texture = texture;
   texture:SetAllPoints(region);
 
-  WeakAuras.regionPrototype.create(region);
+  Private.regionPrototype.create(region);
 
   return region;
 end
@@ -107,8 +105,8 @@ local function GetRotatedPoints(degrees, scaleForFullRotate)
 end
 
 local function modify(parent, region, data)
-  WeakAuras.regionPrototype.modify(parent, region, data);
-  WeakAuras.SetTextureOrAtlas(region.texture, data.texture, data.textureWrapMode, data.textureWrapMode);
+  Private.regionPrototype.modify(parent, region, data);
+  Private.SetTextureOrAtlas(region.texture, data.texture, data.textureWrapMode, data.textureWrapMode);
   region.texture:SetDesaturated(data.desaturate)
   region:SetWidth(data.width);
   region:SetHeight(data.height);
@@ -184,11 +182,12 @@ local function modify(parent, region, data)
   function region:Update()
     if region.state.texture then
       local oldIsAtlas = region.texture.IsAtlas
-      WeakAuras.SetTextureOrAtlas(region.texture, region.state.texture, data.textureWrapMode, data.textureWrapMode)
+      Private.SetTextureOrAtlas(region.texture, region.state.texture, data.textureWrapMode, data.textureWrapMode)
       if region.texture.IsAtlas ~= oldIsAtlas then
         DoTexCoord()
       end
     end
+    region:UpdateProgress()
   end
 
   function region:Color(r, g, b, a)
@@ -247,11 +246,11 @@ local function modify(parent, region, data)
   end
   region:SetRotation(data.rotation)
 
-  WeakAuras.regionPrototype.modifyFinish(parent, region, data);
+  Private.regionPrototype.modifyFinish(parent, region, data);
 end
 
 local function validate(data)
   Private.EnforceSubregionExists(data, "subbackground")
 end
 
-WeakAuras.RegisterRegionType("texture", create, modify, default, properties, validate);
+Private.RegisterRegionType("texture", create, modify, default, properties, validate);

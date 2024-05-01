@@ -1,6 +1,11 @@
 local Details = Details
+local addonName, Details222 = ...
+
 local AceLocale = LibStub("AceLocale-3.0")
 local Loc = AceLocale:GetLocale( "Details" )
+
+---@type detailsframework
+local detailsFramework = DetailsFramework
 
 local gump = Details.gump
 local _
@@ -11,29 +16,10 @@ local floor = math.floor
 local gameCooltip = GameCooltip
 local CreateFrame = CreateFrame
 
---api locals
-do
-	local bookmarkFrame = CreateFrame("frame", "DetailsSwitchPanel", UIParent,"BackdropTemplate")
-	bookmarkFrame:SetPoint("center", UIParent, "center", 500, -300)
-	bookmarkFrame:SetWidth(250)
-	bookmarkFrame:SetHeight(100)
-	bookmarkFrame:SetFrameStrata("FULLSCREEN")
-	bookmarkFrame:SetFrameLevel(16)
-	bookmarkFrame.editing_window = nil
+function Details222.CreateAllDisplaysFrame()
+	local icon_size = 16
+	local text_color = {.9, .9, .9, 1}
 
-	DetailsFramework:ApplyStandardBackdrop(bookmarkFrame, true)
-	bookmarkFrame:SetBackdropBorderColor(0, 0, 0, 0)
-
-	local backgroundGradientTexture = DetailsFramework:CreateTexture(bookmarkFrame, {gradient = "vertical", fromColor = {0, 0, 0, 0.2}, toColor = {0, 0, 0, 0.4}}, 1, 1, "artwork", {0, 1, 0, 1})
-	backgroundGradientTexture:SetAllPoints()
-
-	bookmarkFrame.HoverOverBackground = {.6, .6, .6, .2}
-	bookmarkFrame.hoverOverTexture = bookmarkFrame:CreateTexture(nil, "border")
-	bookmarkFrame.hoverOverTexture:SetTexture(unpack(bookmarkFrame.HoverOverBackground))
-	bookmarkFrame.hoverOverTexture:SetSize(130, 18)
-	bookmarkFrame.hoverOverTexture:Hide()
-
-	--~all
 	local allDisplaysFrame = CreateFrame("frame", "DetailsAllAttributesFrame", UIParent,"BackdropTemplate")
 	allDisplaysFrame:SetFrameStrata("tooltip")
 	allDisplaysFrame:Hide()
@@ -41,9 +27,18 @@ do
 	allDisplaysFrame:SetClampedToScreen(true)
 	allDisplaysFrame.buttons = {}
 
-	DetailsFramework:ApplyStandardBackdrop(allDisplaysFrame)
-	allDisplaysFrame.BackgroundGradientTexture = DetailsFramework:CreateTexture(allDisplaysFrame, {gradient = "vertical", fromColor = "transparent", toColor = {0, 0, 0, 0.2}}, 1, 1, "artwork", {0, 1, 0, 1})
-	allDisplaysFrame.BackgroundGradientTexture:SetAllPoints()
+	function allDisplaysFrame:UpdateFontStrings()
+		for _, attribute in ipairs(allDisplaysFrame.buttons) do
+			for _, button in ipairs(attribute) do
+				Details222.BreakdownWindow.ApplyFontSettings(button.text)
+			end
+		end
+	end
+
+	DetailsSwitchPanel.all_switch = allDisplaysFrame
+
+	detailsFramework:AddRoundedCornersToFrame(allDisplaysFrame, Details.PlayerBreakdown.RoundedCornerPreset)
+	Details:RegisterFrameToColor(allDisplaysFrame)
 
 	allDisplaysFrame:SetScript("OnMouseDown", function(self, button)
 		if (button == "RightButton") then
@@ -78,8 +73,6 @@ do
 	allDisplaysFrame:SetScript("OnHide", function(self)
 		allDisplaysFrame:SetScript("OnUpdate", nil)
 	end)
-
-	DetailsSwitchPanel.all_switch = allDisplaysFrame
 
 	function Details:ShowAllSwitch()
 		if (allDisplaysFrame:IsShown()) then
@@ -135,9 +128,6 @@ do
 	hoverOverTexture:SetTexture(unpack(DetailsSwitchPanel.HoverOverBackground))
 	hoverOverTexture:SetSize(130, 18)
 	hoverOverTexture:Hide()
-
-	local icon_size = 16
-	local text_color = {.9, .9, .9, 1}
 
 	local on_enter_all_switch_button = function(self)
 		Details:SetFontColor(self.text, "orange")
@@ -244,7 +234,7 @@ do
 					allDisplaysFrame.check_text_size (button.text)
 					button.texture:SetTexture(Details.sub_atributos [attribute].icones [i] [1])
 					button.texture:SetTexCoord(unpack(Details.sub_atributos [attribute].icones [i] [2]))
-					tinsert(allDisplaysFrame.buttons [attribute], button)
+					table.insert(allDisplaysFrame.buttons [attribute], button)
 					y = y - 17
 				end
 
@@ -302,7 +292,7 @@ do
 			local button = allDisplaysFrame.buttons [custom_index] [button_index]
 			if (not button) then
 				button = create_all_switch_button (custom_index, i, allDisplaysFrame.x, allDisplaysFrame.y)
-				tinsert(allDisplaysFrame.buttons [custom_index], button)
+				table.insert(allDisplaysFrame.buttons [custom_index], button)
 				allDisplaysFrame.y = allDisplaysFrame.y - 17
 			end
 
@@ -342,7 +332,7 @@ do
 						local button = allDisplaysFrame.buttons [script_index] [button_index]
 						if (not button) then
 							button = create_all_switch_button(script_index, button_index, allDisplaysFrame.x, allDisplaysFrame.y)
-							tinsert(allDisplaysFrame.buttons [script_index], button)
+							table.insert(allDisplaysFrame.buttons [script_index], button)
 							allDisplaysFrame.y = allDisplaysFrame.y - 17
 						end
 
@@ -379,6 +369,32 @@ do
 		allDisplaysFrame:SetScale(Details.all_switch_config.scale)
 	end)
 
+end
+
+--api locals
+do
+	local bookmarkFrame = CreateFrame("frame", "DetailsSwitchPanel", UIParent, "BackdropTemplate")
+	bookmarkFrame:SetPoint("center", UIParent, "center", 500, -300)
+	bookmarkFrame:SetWidth(250)
+	bookmarkFrame:SetHeight(100)
+	bookmarkFrame:SetFrameStrata("FULLSCREEN")
+	bookmarkFrame:SetFrameLevel(16)
+	bookmarkFrame.editing_window = nil
+
+	DetailsFramework:ApplyStandardBackdrop(bookmarkFrame, true)
+	bookmarkFrame:SetBackdropBorderColor(0, 0, 0, 0)
+
+	local backgroundGradientTexture = DetailsFramework:CreateTexture(bookmarkFrame, {gradient = "vertical", fromColor = {0, 0, 0, 0.2}, toColor = {0, 0, 0, 0.4}}, 1, 1, "artwork", {0, 1, 0, 1})
+	backgroundGradientTexture:SetAllPoints()
+
+	bookmarkFrame.HoverOverBackground = {.6, .6, .6, .2}
+	bookmarkFrame.hoverOverTexture = bookmarkFrame:CreateTexture(nil, "border")
+	bookmarkFrame.hoverOverTexture:SetTexture(unpack(bookmarkFrame.HoverOverBackground))
+	bookmarkFrame.hoverOverTexture:SetSize(130, 18)
+	bookmarkFrame.hoverOverTexture:Hide()
+
+	local icon_size = 16
+	local text_color = {.9, .9, .9, 1}
 
 ---------------------------------------------------------------------------------------------------------------------------
 
@@ -561,7 +577,7 @@ function Details.switch:ShowMe(instancia)
 				s.HideMe = hide_label
 				s.ShowMe = show_label
 
-				tinsert(Details.switch.segments_blocks, s)
+				table.insert(Details.switch.segments_blocks, s)
 				return s
 			end
 

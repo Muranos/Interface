@@ -1555,6 +1555,6 @@ function GILUpdateUI (forced)
 	end
 end
 
-function GUI()
+function GIL_GUI()
 	CreateUIFrames()
 end

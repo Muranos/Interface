@@ -1,6 +1,8 @@
 if not WeakAuras.IsLibsOK() then return end
---- @type string, Private
-local AddonName, Private = ...
+---@type string
+local AddonName = ...
+---@class Private
+local Private = select(2, ...)
 
 local function HandleEvent(self, event, arg1)
   Private.callbacks:Fire("WA_DRAGONRIDING_UPDATE")
@@ -10,11 +12,12 @@ local function HandleEvent(self, event, arg1)
 end
 
 local frame = CreateFrame("Frame")
-frame:RegisterEvent("PLAYER_CAN_GLIDE_CHANGED")
+frame:RegisterEvent("UNIT_POWER_BAR_SHOW")
+frame:RegisterEvent("UNIT_POWER_BAR_HIDE")
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 frame:SetScript("OnEvent", HandleEvent)
 
 Private.IsDragonriding = function ()
-  return select(2, C_PlayerInfo.GetGlidingInfo())
+  return UnitPowerBarID("player") == 631
 end
 

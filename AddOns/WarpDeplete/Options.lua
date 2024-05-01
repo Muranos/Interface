@@ -242,12 +242,13 @@ function WarpDeplete:InitOptions()
             name = L["Custom forces text format"],
             desc = L["Use the following tags to set your custom format"] .. ":"
               .. "\n- :percent: " .. L["Shows the current forces percentage (e.g. 82.52%)"]
-              .. "\n- :percentafterpull: " .. L["Shows the current forces percentage including pull (e.g. 87.84%)"]
               .. "\n- :count: " .. L["Shows the current forces count (e.g. 198)"]
               .. "\n- :totalcount: " .. L["Shows the total forces count (e.g. 240)"]
               .. "\n- :remainingcount: " .. L["Shows the remaining amount of forces needed to complete"]
+              .. "\n- :countafterpull: " .. L["Shows the current forces count inluding current pull (e.g. 205)"]
               .. "\n- :remainingcountafterpull: " .. L["Shows the remaining amount of forces needed to complete after current pull"]
               .. "\n- :remainingpercent: " .. L["Shows the remaining percentage of forces to achieve 100%"]
+              .. "\n- :percentafterpull: " .. L["Shows the current forces percentage including current pull (e.g. 87.84%)"]
               .. "\n- :remainingpercentafterpull: " .. L["Shows the remaining percentage of forces to achieve 100% after current pull"],
             multiline = false,
             width = 2,
@@ -287,8 +288,15 @@ function WarpDeplete:InitOptions()
             type = "input",
             name = L["Custom current pull text format"],
             desc = L["Use the following tags to set your custom format"] .. ":"
-              .. "\n- :percent: " .. L["Shows the current forces percentage (e.g. 82.52%)"]
-              .. "\n- :count: " .. L["Shows the current forces count (e.g. 198)"],
+              .. "\n- :percent: " .. L["Shows the current pull percentage (e.g. 82.52%)"]
+              .. "\n- :count: " .. L["Shows the current pull count (e.g. 198)"]
+              .. "\n- :countafterpull: " .. L["Shows the current forces count inluding current pull (e.g. 205)"]
+              .. "\n- :remainingcountafterpull: " .. L["Shows the remaining amount of forces needed to complete after current pull"]
+              .. "\n- :percentafterpull: " .. L["Shows the current forces percentage including current pull (e.g. 87.84%)"]
+              .. "\n- :remainingpercentafterpull: " .. L["Shows the remaining percentage of forces to achieve 100% after current pull"]
+              .. "\n"
+              .. "\n" .. L["NOTE: Some of the tags available here overlap with the tags in the forces text."]
+              .. "\n" .. L["However, this field will be hidden when there is no current pull."],
             multiline = false,
             width = 2,
             hidden = function() return WarpDeplete.db.profile.currentPullFormat ~= ":custom:" end,
@@ -446,27 +454,28 @@ function WarpDeplete:InitOptions()
           }
         }),
 
-        group(L["Timings"], true, {
-          {
-            type = "toggle",
-            name = L["Enable timings"],
-            desc = L["Enable recording of timestamps at which bosses have been killed"],
-            get = function(info) return WarpDeplete.db.profile.timingsEnabled end,
-            set = function(info, value)
-               WarpDeplete.db.profile.timingsEnabled = value
-               self:UpdateLayout()
-            end,
-            width = 1
-          },
-          {
-            type = "toggle",
-            name = L["Only record completed runs"],
-            desc = L["When active, timestamps are only recorded once the key has been finished"],
-            get = function(info) return WarpDeplete.db.profile.timingsOnlyCompleted end,
-            set = function(info, value) WarpDeplete.db.profile.timingsOnlyCompleted = value end,
-            width = 2
-          }
-        })
+        -- TODO: Re-enable this when the feature has been re-implemented
+        -- group(L["Timings"], true, {
+        --   {
+        --     type = "toggle",
+        --     name = L["Enable timings"],
+        --     desc = L["Enable recording of timestamps at which bosses have been killed"],
+        --     get = function(info) return WarpDeplete.db.profile.timingsEnabled end,
+        --     set = function(info, value)
+        --        WarpDeplete.db.profile.timingsEnabled = value
+        --        self:UpdateLayout()
+        --     end,
+        --     width = 1
+        --   },
+        --   {
+        --     type = "toggle",
+        --     name = L["Only record completed runs"],
+        --     desc = L["When active, timestamps are only recorded once the key has been finished"],
+        --     get = function(info) return WarpDeplete.db.profile.timingsOnlyCompleted end,
+        --     set = function(info, value) WarpDeplete.db.profile.timingsOnlyCompleted = value end,
+        --     width = 2
+        --   }
+        -- })
       }, { order = 3 }),
 
       texts = group(L["Display"], false, {

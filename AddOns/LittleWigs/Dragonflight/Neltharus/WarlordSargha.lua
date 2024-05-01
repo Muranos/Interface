@@ -148,7 +148,7 @@ do
 	end
 end
 
-function mod:BurningEmber(args)
+function mod:BurningEmber()
 	self:StopBar(377477)
 	burningEmberRemaining = burningEmberRemaining - 1
 	self:Message(377477, "yellow")
@@ -190,7 +190,7 @@ do
 
 	function mod:MoltenGold(args)
 		moltenGoldRemaining = moltenGoldRemaining - 1
-		self:GetBossTarget(printTarget, 0.4, args.sourceGUID)
+		self:GetUnitTarget(printTarget, 0.4, args.sourceGUID)
 		if moltenGoldRemaining > 0 then
 			self:CDBar(377018, 26.7)
 		else

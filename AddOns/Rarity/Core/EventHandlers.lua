@@ -27,6 +27,7 @@ local UnitGUID = UnitGUID
 local LoadAddOn = LoadAddOn
 local GetBestMapForUnit = _G.C_Map.GetBestMapForUnit
 local GetMapInfo = _G.C_Map.GetMapInfo
+local IsQuestFlaggedCompleted = C_QuestLog.IsQuestFlaggedCompleted
 local UnitCanAttack = _G.UnitCanAttack
 local UnitIsPlayer = _G.UnitIsPlayer
 local UnitIsDead = _G.UnitIsDead
@@ -718,8 +719,7 @@ function R:OnChatCommand(input)
 			self:Print(L["Debug mode ON"])
 		end
 	elseif strlower(input) == "dump" then
-		local numMessages = 50 -- Hardcoded is meh, but it should suffice for the time being
-		DebugCache:PrintMessages(numMessages)
+		self.ScrollingDebugMessageFrame:Toggle()
 	elseif strlower(input) == "validate" then -- Verify the ItemDB
 		self.Validation:ValidateItemDB()
 	elseif strlower(input) == "mapinfo" then
@@ -757,6 +757,12 @@ end
 
 function R:OnItemFound(itemId, item)
 	if item.found and not item.repeatable then
+		return
+	end
+
+	local playerClass = select(2, UnitClass("player"))
+	if item.disableForClass and item.disableForClass[playerClass] then
+		Rarity:Debug(format("Ignoring OnItemFound trigger for item %s (disabled for class %s)", item.name, playerClass))
 		return
 	end
 
@@ -1010,28 +1016,19 @@ function R:ProcessCollectionItem(itemID)
 	end
 
 	-- Handle collection items
-	self:Debug(format("Processed item %s is something we're tracking", itemID))
-
 	if not self:IsCollectionItem(item) then
 		return
 	end
 
-	self:Debug("Processed item is a COLLECTION item we're tracking")
-
 	local inventoryItemCount = R:GetInventoryItemCount(itemID)
-	self:Debug(format("Processing collection item with inventoryItemCount %d", inventoryItemCount))
 
 	-- Our items hashtable only saves one item for this collected item, so we have to scan to find them all now.
 	-- Earlier, we pre-built a list of just the items that are COLLECTION items to save some time here.
 	for collectionItemID, collectionItem in pairs(Rarity.collection_items) do
-		self:Debug(format("Checking for new attempts at COLLECTION item %s", collectionItem.name))
-
 		-- This item is a collection of several items; add them all up and check for attempts
 		if self:HasMultipleCollectionItems(collectionItem) then
-			self:Debug(format("Processing aggregate collection item %s", collectionItem.name))
 			self:ProcessCollectionItemAggregate(collectionItem)
 		else
-			self:Debug(format("Processing single collection item %s", collectionItem.name))
 			self:ProcessCollectionItemSingle(collectionItem, itemID)
 		end
 	end
@@ -1101,13 +1098,10 @@ function R:ProcessCollectionItemAggregate(collectionItem)
 		local total = 0
 		local originalCount = (collectionItem.attempts or 0)
 		local goal = (collectionItem.chance or 100)
-		self:Debug(format("Aggregate with total %d, originalCount %d, goal %d", total, originalCount, goal))
 		for kkk, vvv in pairs(collectionItem.collectedItemId) do
 			vvv = tonumber(vvv) -- It's stored as string, but we expect numbers...
-			self:Debug(format("Adding inventoryAmount for item %d (%s)", kkk, vvv))
 			if (Rarity.bagitems[vvv] or 0) > 0 then
 				total = total + Rarity.bagitems[vvv]
-				self:Debug(format("Found %d of these in bags, new total is %d", Rarity.bagitems[vvv], total))
 			end
 		end
 		if total > originalCount then
@@ -1931,6 +1925,17 @@ function R:OnLootReady(event, ...)
 		Rarity.isFishing = false
 		Rarity.isPool = false
 
+		-- Handle Disgusting Vat Fishing
+		if -- There's no UNIT_SPELLCAST_SENT, so this will have to do
+			Rarity.lastNode == L["Disgusting Vat"]
+		then
+			Rarity:OnDisgustingVatFished()
+		end
+
+		if Rarity.isOpening and Rarity.lastNode == L["Chest of Massive Gains"] then
+			Rarity:OnChestOfMassiveGainsOpened()
+		end
+
 		-- Handle mining Elementium
 		if
 			Rarity.relevantSpells[Rarity.previousSpell] == "Mining"
@@ -1968,6 +1973,10 @@ function R:OnLootReady(event, ...)
 				v.attempts = v.attempts ~= nil and v.attempts + 1 or 1 -- Defaults to 1 if this is the first attempt
 				self:OutputAttempts(v)
 			end
+		end
+
+		if Rarity.isOpening and Rarity.lastNode == L["Dreamseed Cache"] then
+			Rarity:OnDreamseedCacheOpened()
 		end
 
 		-- Handle herb gathering on Argus (Fel Lasher)
@@ -2066,6 +2075,58 @@ function R:OnLootReady(event, ...)
 				end
 			end
 		end
+	end
+end
+
+function Rarity:OnChestOfMassiveGainsOpened()
+	Rarity:Debug("Detected Opening on Chest of Massive Gains")
+
+	local hasOpenedChestToday = IsQuestFlaggedCompleted(75325)
+	if hasOpenedChestToday then
+		Rarity:Debug("Skipping this attempt (loot lockout for Chest of Massive Gains is active)")
+		return
+	end
+
+	local wasRequiredAuraFoundOnPlayer = false
+	AuraUtil.ForEachAura("player", "HELPFUL", nil, function(_, _, _, _, _, _, _, _, _, spellID)
+		if spellID == CONSTANTS.AURAS.ROCKS_ON_THE_ROCKS then
+			wasRequiredAuraFoundOnPlayer = true
+		end
+	end)
+
+	if not wasRequiredAuraFoundOnPlayer then
+		Rarity:Debug(format("Required aura %s NOT found on player", L["Rocks on the Rocks"]))
+		return
+	end
+
+	addAttemptForItem("Brul", "pets")
+end
+
+function Rarity:OnDisgustingVatFished()
+	local hasFishedEmmahThisWeek = IsQuestFlaggedCompleted(75488)
+	if hasFishedEmmahThisWeek then
+		self:Debug("Skipping this fishing attempt (loot lockout for Emmah is active)")
+		return
+	end
+
+	self:Debug("Detected fishing on Disgusting Vat (method = SPECIAL)")
+	addAttemptForItem("Emmah", "pets")
+end
+
+local dreamseedMounts = {
+	"Reins of the Winter Night Dreamsaber",
+	"Reins of the Snowfluff Dreamtalon",
+	"Reins of the Evening Sun Dreamsaber",
+	"Reins of the Blossoming Dreamstag",
+	"Reins of the Springtide Dreamtalon",
+	"Reins of the Morning Flourish Dreamsaber",
+	"Reins of the Rekindled Dreamstag",
+}
+
+function Rarity:OnDreamseedCacheOpened()
+	Rarity:Debug("Detected Opening on Dreamseed Cache")
+	for _, mount in ipairs(dreamseedMounts) do
+		addAttemptForItem(mount, "mounts")
 	end
 end
 

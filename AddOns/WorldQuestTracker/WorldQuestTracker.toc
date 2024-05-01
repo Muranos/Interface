@@ -1,4 +1,4 @@
-## Interface: 100105
+## Interface: 100206
 
 ## Title: World Quest Tracker
 ## Notes: An addon by Terciob. Make more easy to see world quests
@@ -8,7 +8,7 @@
 ## X-Curse-Project-ID: 100610
 ## X-Wago-ID: lQNlrEKe
 
-## Version: v10.1.5.480-Retail
+## Version: v10.2.6.493-Retail
 
 
 #@no-lib-strip@
@@ -48,3 +48,5 @@ WorldQuestTracker_Taxi.lua
 WorldQuestTracker_OptionsPanel.lua
 
 WorldQuestTrackerMixin.xml
+
+racing_helper.lua

@@ -261,16 +261,43 @@ function WarpDeplete:UpdateLayout()
   keyText:ClearAllPoints()
   keyDetailsText:ClearAllPoints()
 
-  if alignRight then
-    keyDetailsText:SetPoint("TOPRIGHT", -framePadding - 3, -currentOffset)
-    keyText:SetPoint("TOPRIGHT", keyDetailsText, "LEFT", -2, (keyFontSize - keyDetailsFontSize) + 6)
+  -- Find out which one is bigger, we'll position the other one according to that
+  local keyTextHeight = keyText:GetStringHeight()
+  local keyDetailsTextHeight = keyDetailsText:GetStringHeight()
+  local keyRowHeight = math.max(keyTextHeight, keyDetailsTextHeight)
+
+  -- Basically, whenever we're right aligned we're absolutely positioning the keyDetails,
+  -- and when we're left aligned it's the key level. Then the other one is attached
+  -- to the left/right.
+  -- This makes the vertical centering a bit messy, since we need to get the offset
+  -- between the two (larger - smaller) / 2 and then shift the smaller one by that amount
+  -- compared to the larger one, which changes depending on alignment.
+  -- Note that what the element that was smaller (and thus offset) is the anchor, we need
+  -- to subtract the anchor again from the bigger element to cancel it out.
+  -- Also, all offsets are negative, as usual.
+  if keyTextHeight >= keyDetailsTextHeight then
+    local offset = (keyTextHeight - keyDetailsTextHeight) / 2
+
+    if alignRight then
+      keyDetailsText:SetPoint("TOPRIGHT", -framePadding - 3, -currentOffset - offset - 1)
+      keyText:SetPoint("TOPRIGHT", keyDetailsText, "TOPLEFT", -3, offset)
+    else
+      keyText:SetPoint("TOPLEFT", framePadding, -currentOffset)
+      keyDetailsText:SetPoint("TOPLEFT", keyText, "TOPRIGHT", 3, -offset - 1)
+    end
   else
-    keyText:SetPoint("TOPLEFT", framePadding + 3, -currentOffset)
-    keyDetailsText:SetPoint("TOPLEFT", keyText, "RIGHT", 2, (keyFontSize - keyDetailsFontSize) + 4)
+    local offset = (keyDetailsTextHeight - keyTextHeight) / 2
+
+    if alignRight then
+      keyDetailsText:SetPoint("TOPRIGHT", -framePadding - 3, -currentOffset - 1)
+      keyText:SetPoint("TOPRIGHT", keyDetailsText, "TOPLEFT", -3, -offset)
+    else
+      keyText:SetPoint("TOPLEFT", framePadding, -currentOffset - offset)
+      keyDetailsText:SetPoint("TOPLEFT", keyText, "TOPRIGHT", 3, offset - 1)
+    end
   end
 
-  local keyRowHeight = math.max(keyText:GetStringHeight(), keyDetailsText:GetStringHeight())
-  currentOffset = currentOffset + keyRowHeight + verticalOffset + barFramePaddingTop
+  currentOffset = currentOffset + keyRowHeight + verticalOffset + barFramePaddingTop + 1
 
   -- Bars frame
   self.frames.bars:SetWidth(barWidth)
@@ -445,7 +472,6 @@ function WarpDeplete:UpdateTimerDisplay()
   state.timerText = Util.formatTime_OnUpdate(self.timerState.current) ..
     " / " .. Util.formatTime_OnUpdate(self.timerState.limit)
 
-
   if self.challengeState.challengeCompleted then
     local blizzardTime = select(3, C_ChallengeMode.GetCompletionInfo())
     local blizzardTimeText = ''
@@ -506,6 +532,7 @@ function WarpDeplete:SetForcesTotal(totalCount)
 
   self.forcesState.completed = false
   self.forcesState.completedTime = 0
+
   self:UpdateForcesDisplay()
 end
 
@@ -527,7 +554,15 @@ function WarpDeplete:SetForcesCurrent(currentCount)
     self.forcesState.completedTime = self.timerState.current
   end
 
-  self.forcesState.currentCount = currentCount
+  -- The current count can only ever go up. The only place where it should
+  -- ever decrease is when it's reset in ResetState.
+  -- It seems that the API reports a current count of 0 when the dungeon is
+  -- finished, but possibly right before the challengeCompleted flag is triggered.
+  -- So, to make sure we don't reset the bar to 0 in that case, we only allow
+  -- the count to go up here.
+  if currentCount >= self.forcesState.currentCount then
+    self.forcesState.currentCount = currentCount
+  end
 
   local currentPercent = self.forcesState.totalCount > 0
     and self.forcesState.currentCount / self.forcesState.totalCount or 0
@@ -539,14 +574,28 @@ function WarpDeplete:SetForcesCurrent(currentCount)
 end
 
 function WarpDeplete:UpdateForcesDisplay()
-  -- clamp pull progress so that the bar won't exceed 100%
-  local pullPercent = self.forcesState.pullPercent
-  if self.forcesState.pullPercent + self.forcesState.currentPercent > 1 then
-    pullPercent = 1 - self.forcesState.currentPercent
+  if self.challengeState.challengeCompleted then
+    self.forcesState.currentPercent = 1.0
+
+    if self.forcesState.currentCount < self.forcesState.totalCount then
+      self.forcesState.currentCount = self.forcesState.totalCount
+    end
   end
 
-  self.forces.overlayBar:SetValue(pullPercent - 0.005)
+  if self.forcesState.currentPercent < 1.0 then
+    -- clamp pull progress so that the bar won't exceed 100%
+    local pullPercent = self.forcesState.pullPercent
+    if self.forcesState.pullPercent + self.forcesState.currentPercent > 1.0 then
+      pullPercent = 1 - self.forcesState.currentPercent
+    end
+
+    self.forces.overlayBar:SetValue(pullPercent - 0.005)
+  else
+    self.forces.overlayBar:SetValue(0)
+  end
+
   self.forces.overlayBar:SetPoint("LEFT", 1 + self.db.profile.barWidth * self.forcesState.currentPercent, 0)
+
   self.forces.bar:SetValue(self.forcesState.currentPercent)
 
   self.forces.text:SetText(
@@ -563,7 +612,7 @@ function WarpDeplete:UpdateForcesDisplay()
       self.forcesState.completed and self.forcesState.completedTime or nil
     )
   )
-  self:UpdateGlow() 
+  self:UpdateGlow()
 end
 
 function WarpDeplete:UpdateGlowAppearance()
@@ -575,13 +624,14 @@ function WarpDeplete:UpdateGlowAppearance()
   self:HideGlow()
   self:ShowGlow()
 end
-  
+
 function WarpDeplete:UpdateGlow()
   if self.forcesState.glowActive and (
     self.challengeState.challengeCompleted or
     self.forcesState.completed
   ) then
     self:HideGlow()
+    return
   end
 
   local percentBeforePull = self.forcesState.currentPercent

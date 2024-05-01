@@ -49,7 +49,7 @@ function mod:OnBossEnable()
 	self:Log("SPELL_AURA_APPLIED", "LavaGeyserDamage", 216407)
 	self:Log("SPELL_PERIODIC_DAMAGE", "LavaGeyserDamage", 216407)
 	self:Log("SPELL_AURA_APPLIED", "BurningHatred", 200154)
-	self:RegisterEvent("CHAT_MSG_RAID_BOSS_EMOTE") -- for Crystal Cracked
+	self:Log("SPELL_AURA_APPLIED", "CrystalCracked", 200672)
 	self:Log("SPELL_SUMMON", "MagmaSculptorSummon", 200637)
 end
 
@@ -152,7 +152,7 @@ function mod:BurningHatred(args)
 	if self:MobId(args.sourceGUID) == 101476 then -- Molten Charskin
 		self:TargetMessage(args.spellId, "red", args.destName, CL.fixate)
 		if self:Me(args.destGUID) then
-			self:Say(args.spellId, CL.fixate)
+			self:Say(args.spellId, CL.fixate, nil, "Fixate")
 			self:PlaySound(args.spellId, "warning", nil, args.destName)
 		else
 			self:PlaySound(args.spellId, "alert", nil, args.destName)
@@ -160,10 +160,16 @@ function mod:BurningHatred(args)
 	end
 end
 
-function mod:CHAT_MSG_RAID_BOSS_EMOTE(_, msg)
-	if msg:find("200672", nil, true) then -- Crystal Cracked
-		self:Message(200672, "green")
-		self:PlaySound(200672, "info")
+do
+	local prev = 0
+	function mod:CrystalCracked(args)
+		-- sometimes this applies twice in the same tick, throttle to prevent duplicate alerts
+		local t = args.time
+		if t - prev > 1 then
+			prev = t
+			self:Message(args.spellId, "green")
+			self:PlaySound(args.spellId, "info")
+		end
 	end
 end
 

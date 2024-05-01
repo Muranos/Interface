@@ -152,6 +152,8 @@ R.fishnodes = {
 	[L["Elysian Thade School"]] = true,
 	[L["Lost Sole School"]] = true,
 	[L["Spinefin Piranha School"]] = true,
+	-- Dragonflight pools
+	[L["Disgusting Vat"]] = true,
 }
 
 R.miningnodes = {
@@ -274,4 +276,5 @@ R.opennodes = {
 	[L["Spun Webs"]] = true,
 	[L["Obsidian Grand Cache"]] = true,
 	[L["Frozen Coffer"]] = true,
+	[L["Dreamseed Cache"]] = true,
 }

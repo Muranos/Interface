@@ -1,6 +1,5 @@
-## v4.13.13 Changes
+## v4.13.21 Changes
 
-* [All] Fixed error when using invalid source within convert()
-* [Classic] Gold graph will now round to the nearest 1g instead of 100g
+* [Wrath] Fixed issue related to the gold cap being increased
 
 [Known Issues](https://support.tradeskillmaster.com/en_US/known_issues)

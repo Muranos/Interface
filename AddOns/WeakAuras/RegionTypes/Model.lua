@@ -1,6 +1,8 @@
 if not WeakAuras.IsLibsOK() then return end
---- @type string, Private
-local AddonName, Private = ...
+---@type string
+local AddonName = ...
+---@class Private
+local Private = select(2, ...)
 
 local SharedMedia = LibStub("LibSharedMedia-3.0");
 local L = WeakAuras.L;
@@ -67,7 +69,7 @@ local properties = {
   },
 }
 
-WeakAuras.regionPrototype.AddProperties(properties, default);
+Private.regionPrototype.AddProperties(properties, default);
 
 local function GetProperties(data)
   return properties;
@@ -84,23 +86,19 @@ local function create(parent)
   region.regionType = "model"
   region:SetMovable(true);
   region:SetResizable(true);
-  if region.SetResizeBounds then
-    region:SetResizeBounds(1, 1)
-  else
-    region:SetMinResize(1, 1)
-  end
+  region:SetResizeBounds(1, 1)
 
   -- Border region
   local border = CreateFrame("Frame", nil, region, "BackdropTemplate");
   region.border = border;
 
-  WeakAuras.regionPrototype.create(region);
+  Private.regionPrototype.create(region);
 
   for k, v in pairs (regionFunctions) do
     region[k] = v
   end
 
-  region.AnchorSubRegion = WeakAuras.regionPrototype.AnchorSubRegion
+  region.AnchorSubRegion = Private.regionPrototype.AnchorSubRegion
 
   -- Return complete region
   return region;
@@ -113,7 +111,7 @@ end
 
 local function CreateModel()
   local frame = CreateFrame("PlayerModel", nil, UIParent)
-  frame.SetTransformFixed = frame.GetResizeBounds and Private.ModelSetTransformFixed or frame.SetTransform -- TODO change test to WeakAuras.IsWrathOrRetail() after 3.4.1 release
+  frame.SetTransformFixed = Private.ModelSetTransformFixed
   return frame
 end
 
@@ -146,12 +144,7 @@ local function ConfigureModel(region, model, data)
   if data.modelIsUnit then
     model:RegisterEvent("UNIT_MODEL_CHANGED");
 
-    local unit
-    if WeakAuras.IsClassicEra() then
-      unit = data.model_path
-    else
-      unit = data.model_fileId
-    end
+    local unit = data.model_fileId
 
     if (unit == "target") then
       model:RegisterEvent("PLAYER_TARGET_CHANGED");
@@ -162,7 +155,7 @@ local function ConfigureModel(region, model, data)
       Private.StartProfileSystem("model");
       if (event ~= "UNIT_MODEL_CHANGED" or UnitIsUnit(unitId, unit)) then
         WeakAuras.SetModel(model, data.model_path, data.model_fileId, data.modelIsUnit, data.modelDisplayInfo)
-        if(data.advance and model:HasAnimation(data.sequence)) then
+        if data.advance then
           model:SetAnimation(data.sequence)
         else
           model:SetAnimation(0)
@@ -181,7 +174,7 @@ local function ConfigureModel(region, model, data)
   end
 
   -- Enable model animation
-  if(data.advance and model:HasAnimation(data.sequence)) then
+  if data.advance then
     model:SetAnimation(data.sequence)
   else
     model:SetAnimation(0)
@@ -210,7 +203,7 @@ end
 
 -- Modify a given region/display
 local function modify(parent, region, data)
-  WeakAuras.regionPrototype.modify(parent, region, data);
+  Private.regionPrototype.modify(parent, region, data);
   -- Localize
   local border = region.border;
 
@@ -235,9 +228,9 @@ local function modify(parent, region, data)
       bgFile = SharedMedia:Fetch("background", data.borderBackdrop),
       insets = {
         left     = data.borderInset,
-        right     = data.borderInset,
-        top     = data.borderInset,
-        bottom     = data.borderInset,
+        right    = data.borderInset,
+        top      = data.borderInset,
+        bottom   = data.borderInset,
       },
     });
     border:SetBackdropBorderColor(data.borderColor[1], data.borderColor[2], data.borderColor[3], data.borderColor[4]);
@@ -327,7 +320,7 @@ local function modify(parent, region, data)
     end
   end
 
-  WeakAuras.regionPrototype.modifyFinish(parent, region, data);
+  Private.regionPrototype.modifyFinish(parent, region, data);
 end
 
 -- Work around for movies and world map hiding all models
@@ -355,4 +348,4 @@ local function validate(data)
 end
 
 -- Register new region type with WeakAuras
-WeakAuras.RegisterRegionType("model", create, modify, default, GetProperties, validate);
+Private.RegisterRegionType("model", create, modify, default, GetProperties, validate);

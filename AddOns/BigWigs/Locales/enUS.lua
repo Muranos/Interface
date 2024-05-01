@@ -8,11 +8,15 @@ L.altpower_desc = "Show the alternate power window, which displays the amount of
 L.infobox = "Information Box"
 L.infobox_desc = "Display a box with information related to the encounter."
 L.stages = "Stages"
-L.stages_desc = "Enable functions related to the various stages/phases of the boss like proximity, bars, etc."
+L.stages_desc = "Enable functions related to the various stages of the boss encounter such as stage change warnings, stage duration timer bars, etc."
 L.warmup = "Warmup"
 L.warmup_desc = "Time until combat with the boss starts."
 L.proximity = "Proximity display"
 L.proximity_desc = "Show the proximity window when appropriate for this encounter, listing players who are standing too close to you."
+L.adds = "Adds"
+L.adds_desc = "Enable functions related to the various adds that will spawn during the boss encounter."
+L.health = "Health"
+L.health_desc = "Enable functions for displaying various health information during the boss encounter."
 
 L.already_registered = "|cffff0000WARNING:|r |cff00ff00%s|r (|cffffff00%s|r) already exists as a module in BigWigs, but something is trying to register it again. This usually means you have two copies of this module in your addons folder due to some addon updater failure. It is recommended that you delete any BigWigs folders you have and then reinstall it from scratch."
 L.testNameplate = "Target detected, creating a test nameplate bar over target nameplate. |cFF33FF99This feature is rarely used, is usually just 1 bar, and is needed to keep track of cooldowns when fighting multiple bosses/ads that cast the same spell.|r"
@@ -53,7 +57,9 @@ L.expansionNames = {
 	"Battle for Azeroth", -- Battle for Azeroth
 	"Shadowlands", -- Shadowlands
 	"Dragonflight", -- Dragonflight
+	"The War Within", -- The War Within
 }
+L.currentSeason = "Current Season"
 
 -- Media.lua (These are the names of the sounds in the dropdown list in the "sounds" section)
 L.Beware = "Beware (Algalon)"
@@ -65,7 +71,7 @@ L.spell_under_you = "BigWigs: Spell under you"
 
 -- Options.lua
 L.options = "Options"
-L.optionsKey = "Key: %s" -- The key that messages/bars/options use
+L.optionsKey = "ID: %s" -- The ID that messages/bars/options use
 L.raidBosses = "Raid Bosses"
 L.dungeonBosses = "Dungeon Bosses"
 L.introduction = "Welcome to BigWigs, where the boss encounters roam. Please fasten your seatbelt, eat peanuts and enjoy the ride. It will not eat your children, but it will assist you in preparing that new boss encounter as a 7-course dinner for your raid group."
@@ -76,8 +82,6 @@ L.toggleAnchorsBtnHide_desc = "Hide all the moving anchors, locking everything i
 L.testBarsBtn = "Create Test Bar"
 L.testBarsBtn_desc = "Creates a bar for you to test your current display settings with."
 L.sound = "Sound"
-L.flashScreen = "Flash Screen"
-L.flashScreenDesc = "Certain abilities are important enough to need your full attention. When these abilities affect you BigWigs can flash the screen."
 L.minimapIcon = "Minimap icon"
 L.minimapToggle = "Toggle show/hide of the minimap icon."
 L.compartmentMenu = "No compartment icon"
@@ -93,6 +97,8 @@ L.dbmFaker = "Pretend I'm using DBM"
 L.dbmFakerDesc = "If a DBM user does a version check to see who's using DBM, they will see you on the list. Useful for guilds that force using DBM."
 L.zoneMessages = "Show zone messages"
 L.zoneMessagesDesc = "Disabling this will stop showing messages when you enter a zone that BigWigs has timers for, but you don't have installed. We recommend you leave this turned on as it's the only notification you will get if we suddenly create timers for a new zone that you find useful."
+L.englishSayMessages = "English-only say messages"
+L.englishSayMessagesDesc = "All the 'say' and 'yell' messages that you send in chat during a boss encounter will always be in English. Can be useful if you are with a mixed language group of players."
 
 L.slashDescTitle = "|cFFFED000Slash Commands:|r"
 L.slashDescPull = "|cFFFED000/pull:|r Sends a pull countdown to your raid."

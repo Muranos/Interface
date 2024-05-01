@@ -28,51 +28,81 @@ local options_button_template_selected = detailsFramework.table.copy({}, details
 options_button_template_selected.backdropbordercolor = {1, .8, .2}
 
 --options
-local section_menu_button_width = 120
+local section_menu_button_width = 135
 local section_menu_button_height = 20
+
+local startX = 160
 
 --build the options window
 function Details:InitializeOptionsWindow(instance)
     return Details222.OptionsPanel.InitializeOptionsWindow(instance)
 end
 
+--C_Timer.After(2, function()
+--    Details:OpenOptionsWindow(Details:GetInstance(1), false, 1)
+--end)
+
 function Details222.OptionsPanel.InitializeOptionsWindow(instance)
 	local DetailsOptionsWindow = detailsFramework:NewPanel(UIParent, _, "DetailsOptionsWindow", _, 897, 592)
     local optionsFrame = DetailsOptionsWindow.frame
+    optionsFrame:Hide()
+
+    DetailsOptionsWindow:SetBackdrop({})
+    detailsFramework:AddRoundedCornersToFrame(optionsFrame, Details.PlayerBreakdown.RoundedCornerPreset)
+    optionsFrame:SetColor(unpack(Details.frame_background_color))
 
 	optionsFrame.Frame = optionsFrame
 	optionsFrame.__name = "Options"
 	optionsFrame.real_name = "DETAILS_OPTIONS"
 	optionsFrame.__icon = [[Interface\Scenarios\ScenarioIcon-Interact]]
     _G.DetailsPluginContainerWindow.EmbedPlugin(optionsFrame, optionsFrame, true)
-
     optionsFrame.sectionFramesContainer = {}
 
-    detailsFramework:ApplyStandardBackdrop(optionsFrame)
-    local titleBar = detailsFramework:CreateTitleBar(optionsFrame, "Options Panel")
-    titleBar.Text:Hide()
+    local closeButton = detailsFramework:CreateCloseButton(optionsFrame, "$parentCloseButton")
+    closeButton:SetScript("OnClick", function()
+        DetailsPluginContainerWindow:Hide()
+    end)
+    closeButton:SetPoint("topright", optionsFrame, "topright", -5, -5)
 
-    local titleText = detailsFramework:NewLabel(titleBar, nil, "$parentTitleLabel", "title", "Details! " .. Loc ["STRING_OPTIONS_WINDOW"], "GameFontHighlightLeft", 12, {227/255, 186/255, 4/255})
-    titleText:SetPoint("center", titleBar, "center")
+    local titleText = detailsFramework:NewLabel(optionsFrame, nil, "$parentTitleLabel", "title", "Details! " .. Loc ["STRING_OPTIONS_WINDOW"], "GameFontHighlightLeft", 12, {227/255, 186/255, 4/255})
+    titleText:SetPoint("top", optionsFrame, "top", 0, -5)
 
-    optionsFrame:Hide()
-
-    local formatFooterText = function(object)
-        object.fontface = "GameFontNormal"
-        object.fontsize = 10
-        object.fontcolor = {1, 0.82, 0}
-    end
-
-    --create a floating frame to hold footer frames
-    local footerFrame = CreateFrame("frame", "$parentFooterFrame", optionsFrame, "BackdropTemplate")
-    footerFrame:SetPoint("bottomleft", optionsFrame, "bottomleft", 0, 0)
-    footerFrame:SetPoint("bottomright", optionsFrame, "bottomright", 0, 0)
-    footerFrame:SetHeight(50)
-    footerFrame:SetFrameLevel(optionsFrame:GetFrameLevel() + 10)
-    detailsFramework:ApplyStandardBackdrop(footerFrame)
-
-    local gradientBelowTheLine = DetailsFramework:CreateTexture(footerFrame, {gradient = "vertical", fromColor = {0, 0, 0, 0.25}, toColor = "transparent"}, 1, 90, "artwork", {0, 1, 0, 1}, "dogGradient")
+    --[=[
+    local gradientBelowTheLine = DetailsFramework:CreateTexture(optionsFrame, {gradient = "vertical", fromColor = {0, 0, 0, 0.25}, toColor = "transparent"}, 1, 90, "artwork", {0, 1, 0, 1}, "dogGradient")
     gradientBelowTheLine:SetPoint("bottoms")
+    gradientBelowTheLine:Hide()
+
+    local OTTFrame = CreateFrame("frame", "$parentOverTheTopFrame", optionsFrame)
+    OTTFrame:SetSize(1, 1)
+    OTTFrame:SetFrameLevel(999)
+    OTTFrame:SetPoint("topleft", optionsFrame, "topleft", 0, 0)
+    OTTFrame:Hide()
+
+    --divisor shown above the tab options area
+    local frameBackgroundTextureTopLine = OTTFrame:CreateTexture("$parentHeaderDivisorTopLine", "artwork")
+    local divisorYPosition = -60
+    frameBackgroundTextureTopLine:SetPoint("topleft", optionsFrame, "topleft", startX-9, divisorYPosition)
+    frameBackgroundTextureTopLine:SetPoint("topright", optionsFrame, "topright", -1, divisorYPosition)
+    frameBackgroundTextureTopLine:SetHeight(1)
+    frameBackgroundTextureTopLine:SetColorTexture(0.1215, 0.1176, 0.1294)
+    frameBackgroundTextureTopLine:Hide()
+
+    --divisor shown in the left side of the tab options area
+    local frameBackgroundTextureLeftLine = OTTFrame:CreateTexture("$parentHeaderDivisorLeftLine", "artwork")
+    frameBackgroundTextureLeftLine:SetPoint("topleft", frameBackgroundTextureTopLine, "topleft", 0, 0)
+    frameBackgroundTextureLeftLine:SetPoint("bottomleft", optionsFrame, "bottomleft", startX-9, 1)
+    frameBackgroundTextureLeftLine:SetHeight(1)
+    frameBackgroundTextureLeftLine:SetColorTexture(0.1215, 0.1176, 0.1294)
+    frameBackgroundTextureLeftLine:Hide()
+
+    local frameBackgroundTexture = optionsFrame:CreateTexture(nil, "artwork")
+    frameBackgroundTexture:SetPoint("topleft", optionsFrame, "topleft", startX-9, divisorYPosition-1)
+    frameBackgroundTexture:SetPoint("bottomright", optionsFrame, "bottomright", -1, 0)
+    frameBackgroundTexture:SetColorTexture (0.2317647, 0.2317647, 0.2317647)
+    frameBackgroundTexture:SetVertexColor (0.27, 0.27, 0.27)
+    frameBackgroundTexture:SetAlpha (0.3)
+    frameBackgroundTexture:Hide()
+    --]=]
 
     --select the instance to edit
     local onSelectInstance = function(_, _, instanceId)
@@ -137,9 +167,9 @@ function Details222.OptionsPanel.InitializeOptionsWindow(instance)
         return instanceList
     end
 
-    local instanceSelection = detailsFramework:NewDropDown(footerFrame, _, "$parentInstanceSelectDropdown", "instanceDropdown", 200, 18, buildInstanceMenu) --, nil, options_dropdown_template
+    local instanceSelection = detailsFramework:NewDropDown(optionsFrame, _, "$parentInstanceSelectDropdown", "instanceDropdown", 200, 18, buildInstanceMenu) --, nil, options_dropdown_template
     optionsFrame.instanceDropdown = instanceSelection
-    instanceSelection:SetPoint("bottomright", optionsFrame, "bottomright", -7, 09)
+    instanceSelection:SetPoint("topright", optionsFrame, "topright", -7, -39)
     instanceSelection:SetTemplate(options_dropdown_template)
     instanceSelection:SetHook("OnEnter", function()
         GameCooltip:Reset()
@@ -151,28 +181,34 @@ function Details222.OptionsPanel.InitializeOptionsWindow(instance)
         GameCooltip:Hide()
     end)
 
-    local instances_string = detailsFramework:NewLabel(footerFrame, nil, "$parentInstanceDropdownLabel", "instancetext", Loc ["STRING_OPTIONS_EDITINSTANCE"], "GameFontNormal", 12)
-    instances_string:SetPoint("right", instanceSelection, "left", -2, 1)
-    formatFooterText(instances_string)
+    local formatFooterText = function(object)
+        object.fontface = "GameFontNormal"
+        object.fontsize = 10
+        object.fontcolor = {1, 0.82, 0}
+    end
 
-    local bigdogImage = detailsFramework:NewImage(footerFrame, [[Interface\MainMenuBar\UI-MainMenuBar-EndCap-Human]], 180*0.9, 200*0.9, nil, {1, 0, 0, 1}, "backgroundBigDog", "$parentBackgroundBigDog")
-    bigdogImage:SetPoint("bottomright", footerFrame, "topright", 0, 0)
+    local instancesFontString = detailsFramework:NewLabel(optionsFrame, nil, "$parentInstanceDropdownLabel", "instancetext", Loc ["STRING_OPTIONS_EDITINSTANCE"], "GameFontNormal", 12)
+    instancesFontString:SetPoint("right", instanceSelection, "left", -2, 1)
+    formatFooterText(instancesFontString)
+
+    local bigdogImage = detailsFramework:NewImage(optionsFrame, [[Interface\MainMenuBar\UI-MainMenuBar-EndCap-Human]], 180*0.9, 200*0.9, nil, {1, 0, 0, 1}, "backgroundBigDog", "$parentBackgroundBigDog")
+    bigdogImage:SetPoint("bottomright", optionsFrame, "bottomright", 0, 0)
     bigdogImage:SetAlpha(.25)
 
     --editing group checkbox
     local onToggleEditingGroup = function(self, fixparam, value)
         Details.options_group_edit = value
     end
-    local editingGroupCheckBox = detailsFramework:CreateSwitch(footerFrame, onToggleEditingGroup, Details.options_group_edit, _, _, _, _, _, "$parentEditGroupCheckbox", _, _, _, _, detailsFramework:GetTemplate("switch", "OPTIONS_CHECKBOX_BRIGHT_TEMPLATE"))
+    local editingGroupCheckBox = detailsFramework:CreateSwitch(optionsFrame, onToggleEditingGroup, Details.options_group_edit, _, _, _, _, _, "$parentEditGroupCheckbox", _, _, _, _, detailsFramework:GetTemplate("switch", "OPTIONS_CHECKBOX_BRIGHT_TEMPLATE"))
     editingGroupCheckBox:SetAsCheckBox()
     editingGroupCheckBox.tooltip = Loc ["STRING_MINITUTORIAL_OPTIONS_PANEL2"]
 
-    local editingGroupLabel = detailsFramework:NewLabel(footerFrame, nil, "$parentEditingGroupLabel", "editingGroupLabel", "Editing Group:", "GameFontNormal", 12) --localize-me
-    editingGroupLabel:SetPoint("bottomleft", instances_string, "topleft", 0, 5)
+    local editingGroupLabel = detailsFramework:NewLabel(optionsFrame, nil, "$parentEditingGroupLabel", "editingGroupLabel", "Editing Group:", "GameFontNormal", 12) --localize-me
+    editingGroupLabel:SetPoint("bottomleft", instancesFontString, "topleft", 0, 5)
     editingGroupCheckBox:SetPoint("left", editingGroupLabel, "right", 2, 0)
     formatFooterText(editingGroupLabel)
 
-	--create test bars
+	--create test bars ~test
         detailsFramework:NewColor("C_OptionsButtonOrange", 0.9999, 0.8196, 0, 1)
         local create_test_bars_func = function()
             Details.CreateTestBars()
@@ -182,25 +218,22 @@ function Details222.OptionsPanel.InitializeOptionsWindow(instance)
                 Details:StopTestBarUpdate()
             end
         end
-        local fillbars = detailsFramework:NewButton(footerFrame, _, "$parentCreateExampleBarsButton", nil, 140, 20, create_test_bars_func, nil, nil, nil, Loc ["STRING_OPTIONS_TESTBARS"], 1)
-        fillbars:SetPoint("bottomleft", optionsFrame.widget, "bottomleft", 10, 10)
+
+        local fillbars = detailsFramework:NewButton(optionsFrame, _, "$parentCreateExampleBarsButton", nil, 140, 20, create_test_bars_func, nil, nil, nil, Loc ["STRING_OPTIONS_TESTBARS"], 1)
+        PixelUtil.SetPoint(fillbars, "topleft", optionsFrame.widget, "topleft", startX-8, -30)
         fillbars:SetTemplate(options_button_template)
         fillbars:SetIcon ("Interface\\AddOns\\Details\\images\\icons", nil, nil, nil, {323/512, 365/512, 42/512, 78/512}, {1, 1, 1, 0.6}, 4, 2)
 
     --change log
-        local changelog = detailsFramework:NewButton(footerFrame, _, "$parentOpenChangeLogButton", nil, 140, 20, Details.OpenNewsWindow, "change_log", nil, nil, Loc ["STRING_OPTIONS_CHANGELOG"], 1)
+        local changelog = detailsFramework:NewButton(optionsFrame, _, "$parentOpenChangeLogButton", nil, 140, 20, Details.OpenNewsWindow, "change_log", nil, nil, Loc ["STRING_OPTIONS_CHANGELOG"], 1)
         changelog:SetPoint("left", fillbars, "right", 10, 0)
         changelog:SetTemplate(options_button_template)
         changelog:SetIcon ("Interface\\AddOns\\Details\\images\\icons", nil, nil, nil, {367/512, 399/512, 43/512, 76/512}, {1, 1, 1, 0.8}, 4, 2)
 
     --search field
-        local searchBox = detailsFramework:CreateTextEntry(footerFrame, function()end, 140, 20, _, _, _, options_dropdown_template)
+        local searchBox = detailsFramework:CreateTextEntry(optionsFrame, function()end, 140, 20, _, _, _, options_dropdown_template)
         searchBox:SetPoint("left", changelog, "right", 10, 0)
         searchBox:SetAsSearchBox()
-
-        local searchLabel = detailsFramework:CreateLabel(footerFrame, "Search:") --localize-me
-        searchLabel:SetPoint("bottomleft", searchBox, "topleft", 0, 2)
-        formatFooterText(searchLabel)
 
         searchBox:SetHook("OnChar", function()
             if (searchBox.text ~= "") then
@@ -344,25 +377,6 @@ function Details222.OptionsPanel.InitializeOptionsWindow(instance)
             sectionFrame:SetSize(optionsFrame:GetSize())
             sectionFrame:EnableMouse(false)
 
-            local realBackdropAreaFrame = CreateFrame("frame", "$parentTab" .. sectionId .. "BackdropArea", optionsFrame, "BackdropTemplate")
-            realBackdropAreaFrame:SetFrameLevel(optionsFrame:GetFrameLevel()-1)
-            realBackdropAreaFrame:SetBackdrop({edgeFile = [[Interface\Buttons\WHITE8X8]], edgeSize = 1, bgFile = [[Interface\Tooltips\UI-Tooltip-Background]], tileSize = 64, tile = true})
-            realBackdropAreaFrame:SetBackdropColor(0.1215, 0.1176, 0.1294, .1)
-            realBackdropAreaFrame:SetBackdropBorderColor(0.2, 0.2, 0.2, .05)
-            realBackdropAreaFrame:SetPoint("topleft", optionsFrame, "topleft", 150, -27)
-            realBackdropAreaFrame:SetSize(775, 570)
-
-			local leftGradient = DetailsFramework:CreateTexture(sectionFrame, {gradient = "horizontal", fromColor = {0, 0, 0, 0}, toColor = {0, 0, 0, 0.3}}, 10, 1, "artwork", {0, 1, 0, 1}, "leftGradient")
-			leftGradient:SetPoint("right-left", realBackdropAreaFrame, 1)
-
-			local rightGradient = DetailsFramework:CreateTexture(sectionFrame, {gradient = "horizontal", fromColor = {0, 0, 0, 0}, toColor = {0, 0, 0, 0.25}}, 110, 1, "overlay", nil, "rightGradient")
-			rightGradient:SetPoint("rights", realBackdropAreaFrame, 0)
-            rightGradient:Hide()
-
-			local bottomGradient = DetailsFramework:CreateTexture(realBackdropAreaFrame, {gradient = "vertical", fromColor = {0, 0, 0, 1}, toColor = {0, 0, 0, 0}}, 1, 20, "artwork", {0, 1, 0, 1}, "bottomGradient")
-            bottomGradient.sublevel = 7
-			bottomGradient:SetPoint("bottoms")
-
             sectionFrame.name = sectionsName[sectionId]
             optionsFrame.sectionFramesContainer[sectionId] = sectionFrame
 
@@ -445,4 +459,10 @@ function Details:OpenOptionsWindow(instance, bNoReopen, section)
     window.instanceDropdown:Select(instance:GetId())
 
     window.updateMicroFrames()
+
+    DetailsPluginContainerWindowMenuFrame:SetColor(unpack(Details.frame_background_color))
+end
+
+function Details:OpenOptionsPanel(instance, bNoReopen, section) --alias
+    Details:OpenOptionsWindow(instance, bNoReopen, section)
 end

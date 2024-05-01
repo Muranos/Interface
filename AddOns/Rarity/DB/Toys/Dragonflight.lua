@@ -311,8 +311,16 @@ local dragonflightToys = {
 			199000, -- Chrono-Lord Deios
 		},
 		chance = 50,
+		instanceDifficulties = { [CONSTANTS.INSTANCE_DIFFICULTIES.MYTHIC_DUNGEON] = true },
+		lockoutDetails = {
+			mode = CONSTANTS.DEFEAT_DETECTION.MODE_AND,
+			{
+				encounterName = "Chrono-Lord Deios",
+				instanceDifficulties = { [CONSTANTS.INSTANCE_DIFFICULTIES.MYTHIC_DUNGEON] = true },
+			},
+		},
 		coords = {
-			{ m = CONSTANTS.UIMAPIDS.CROSSROADS_OF_FATE },
+			{ m = CONSTANTS.UIMAPIDS.CROSSROADS_OF_FATE, i = true },
 		},
 	},
 	["Fyrakk's Frenzy"] = {
@@ -428,6 +436,19 @@ local dragonflightToys = {
 		itemId = 204262,
 		chance = 5,
 		coords = { { m = CONSTANTS.UIMAPIDS.THE_FORBIDDEN_REACH, x = 28.8, y = 52.6 } },
+	},
+	["Molten Lava Ball"] = {
+		cat = CONSTANTS.ITEM_CATEGORIES.DRAGONFLIGHT,
+		type = CONSTANTS.ITEM_TYPES.ITEM,
+		isToy = true,
+		method = CONSTANTS.DETECTION_METHODS.NPC,
+		name = L["Molten Lava Ball"],
+		itemId = 205463,
+		npcs = {
+			208658, -- Moltenbinder's Disciple
+		},
+		chance = 5,
+		coords = { { m = CONSTANTS.UIMAPIDS.THE_EMERALD_DREAM, x = 45.8, y = 18.6, n = L["Moltenbinder's Disciple"] } },
 	},
 }
 

@@ -1,5 +1,5 @@
 --[[
-Copyright 2013-2023 João Cardoso
+Copyright 2013-2024 João Cardoso
 ItemSearch is distributed under the terms of the GNU General Public License (Version 3).
 As a special exception, the copyright holders of this library give you permission to embed it
 with independent modules to produce an addon, regardless of the license terms of these
@@ -15,7 +15,7 @@ GNU General Public License for more details.
 This file is part of ItemSearch.
 --]]
 
-local Lib = LibStub:NewLibrary('ItemSearch-1.3', 4)
+local Lib = LibStub:NewLibrary('ItemSearch-1.3', 5)
 if Lib then
 	Lib.Unusable, Lib.Bangs = {}, {}
 	Lib.Filters = nil
@@ -84,7 +84,7 @@ end
 
 --[[ Equipment Sets ]]--
 
-if IsAddOnLoaded('ItemRack') then
+if C.Addons.IsAddOnLoaded('ItemRack') then
 	function Lib:BelongsToSet(id, search)
 		if IsEquippableItem(id) then
 			for name, set in pairs(ItemRackUser.Sets) do

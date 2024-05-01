@@ -1,20 +1,26 @@
 
 -- Refresh Lib
--- Requires lib/Runner
+-- CRIEVE NOTE: Once condensed and the bulk of this lib move elsewhere,
+-- this lib can be moved elsewhere. (It'll literally be a definition for an event handler)
 local _, app = ...;
+local coroutine, InCombatLockdown = coroutine, InCombatLockdown;
 
--- Concepts:
--- Encapsulates the functionality required to perform refreshes of a User's current Character and Account collection
+-- Refresh collection data.
+local RefreshCollections;
 
--- Global locals
-local wipe, math_max, tonumber, InCombatLockdown, coroutine, type, select, C_TransmogCollection_GetIllusions, GetNumTitles, pcall, IsTitleKnown, ipairs, pairs =
-	  wipe, math.max, tonumber, InCombatLockdown, coroutine, type, select, C_TransmogCollection.GetIllusions, GetNumTitles, pcall, IsTitleKnown, ipairs, pairs;
-local C_MountJournal_GetMountInfoByID, C_MountJournal_GetMountIDs, PlayerHasToy, C_LegendaryCrafting_GetRuneforgePowerInfo, GetAchievementInfo, C_TransmogCollection_GetSourceInfo =
-	  C_MountJournal.GetMountInfoByID, C_MountJournal.GetMountIDs, PlayerHasToy, C_LegendaryCrafting.GetRuneforgePowerInfo, GetAchievementInfo, C_TransmogCollection.GetSourceInfo;
+-- for the first auto-refresh, don't actually print to chat since some users don't like that auto-chat on login
+local print = app.EmptyFunction;
+local __FirstRefresh = true;
+local IsRefreshing
 
--- App locals
-local StartCoroutine = app.StartCoroutine;
-app.RefreshFunctions = {};
+if app.IsRetail then
+-- CRIEVE NOTE: I really don't like the explicit listed data here
+-- I'd much rather have parser export these.
+local wipe, math_max, tonumber, type, select, pcall, ipairs, pairs =
+	  wipe, math.max, tonumber, type, select, pcall, ipairs, pairs;
+local GetAchievementInfo =
+	  GetAchievementInfo;
+local ATTAccountWideData
 
 local function CacheAccountWideCompleteViaAchievement(accountWideData)
 	-- Cache some collection states for account wide quests that aren't actually granted account wide and can be flagged using an achievementID. (Allied Races)
@@ -52,37 +58,8 @@ local function CacheAccountWideCompleteViaAchievement(accountWideData)
 		collected = select(4, GetAchievementInfo(achievementQuests[1]));
 		for _,questID in ipairs(achievementQuests[2]) do
 			if collected then
-				-- Mark the quest as completed for the Account
-				acctQuests[questID] = 1;
-				if not oneTimeQuests[questID] and IsQuestFlaggedCompleted(questID) then
-					-- this once-per-account quest only counts for a specific character
-					oneTimeQuests[questID] = app.GUID;
-				end
-			end
-			-- otherwise indicate the one-time-nature of the quest
-			if oneTimeQuests[questID] == nil then
-				oneTimeQuests[questID] = false;
-			end
-		end
-	end
-end
-
-local function CacheQuestStatesViaAppearanceUnlocks(accountWideData)
-	local collected;
-	local acctQuests, oneTimeQuests = accountWideData.Quests, accountWideData.OneTimeQuests;
-	local IsQuestFlaggedCompleted = app.IsQuestFlaggedCompleted;
-	-- Cache some collection states for account wide quests that aren't actually granted account wide and can be flagged using a known sourceID.  (Secrets)
-	for _,appearanceQuests in ipairs({
-		-- Waist of Time isn't technically once-per-account, so don't fake the cached data
-		-- { 98614, { 52829, 52830, 52831, 52898, 52899, 52900, 52901, 52902, 52903, 52904, 52905, 52906, 52907, 52908, 52909, 52910, 52911, 52912, 52913, 52914, 52915, 52916, 52917, 52918, 52919, 52920, 52921, 52922, 52822, 52823, 52824, 52826} },	-- Waist of Time
-	}) do
-		-- If you have the appearance, then mark the associated quests.
-		local sourceInfo = C_TransmogCollection_GetSourceInfo(appearanceQuests[1]);
-		collected = sourceInfo.isCollected;
-		for _,questID in ipairs(appearanceQuests[2]) do
-			if collected then
-				-- Mark the quest as completed for the Account
-				acctQuests[questID] = 1;
+				-- Mark the quest as 'completed' for the Account
+				acctQuests[questID] = 2;
 				if not oneTimeQuests[questID] and IsQuestFlaggedCompleted(questID) then
 					-- this once-per-account quest only counts for a specific character
 					oneTimeQuests[questID] = app.GUID;
@@ -176,6 +153,13 @@ local function CacheAccountWideMiscQuests(accountWideData)
 		58435,	-- Heritage of the Vulpera
 		53721,	-- Heritage of the Zandalari
 		-- etc.
+
+		-- Account Unlocks
+		70941,	-- Fishing Holes [DF Iskaaran Fishing]
+		74576,	-- Restored Hakkari Bijou [Zul'Gurub]
+		76390,	-- Inconvenience Fee [Naxxramas]
+		76307,	-- Makeshift Grappling Hook [206473]
+
 	}) do
 		-- If this Character has the Quest completed and it is not marked as completed for Account or not for specific Character
 		if not oneTimeQuests[questID] and IsQuestFlaggedCompleted(questID) then
@@ -264,101 +248,11 @@ local function FixWrongAccountWideQuests(accountWideData)
 	end
 end
 
-local function RefreshCollections()
-	-- account-data is a global
-	local ATTAccountWideData = ATTAccountWideData;
-	local currentCharacter = app.CurrentCharacter;
-	-- for the first auto-refresh, don't actually print to chat since some users don't like that auto-chat on login
-	local print = app.__FirstRefresh and app.EmptyFunction or app.print;
-	app.__FirstRefresh = nil;
-
-	print(app.L["REFRESHING_COLLECTION"]);
-	while InCombatLockdown() do coroutine.yield(); end
-
-	-- Harvest Illusion Collections
-	local collectedIllusions = ATTAccountWideData.Illusions;
-	for _,illusion in ipairs(C_TransmogCollection_GetIllusions()) do
-		if illusion.isCollected then collectedIllusions[illusion.sourceID] = 1; end
-	end
-	coroutine.yield();
-
-	-- Harvest Title Collections
-	local acctTitles, charTitles, charGuid = ATTAccountWideData.Titles, {}, app.GUID;
-	for i=1,GetNumTitles(),1 do
-		if IsTitleKnown(i) then
-			if not acctTitles[i] then print("Added Title",app:Linkify(i,app.Colors.ChatLink,"search:titleID:"..i)) end
-			charTitles[i] = 1;
-		end
-	end
-	currentCharacter.Titles = charTitles;
-	coroutine.yield();
-
-	-- Refresh Mounts / Pets
-	local acctSpells, charSpells = ATTAccountWideData.Spells, currentCharacter.Spells;
-	for _,mountID in ipairs(C_MountJournal_GetMountIDs()) do
-		local _, spellID, _, _, _, _, _, _, _, _, isCollected = C_MountJournal_GetMountInfoByID(mountID);
-		if spellID then
-			if isCollected then
-				if not acctSpells[spellID] then print("Added Mount",app:Linkify(spellID,app.Colors.ChatLink,"search:spellID:"..spellID)) end
-				charSpells[spellID] = 1;
-			else
-				charSpells[spellID] = nil;
-			end
-		end
-	end
-	coroutine.yield();
-
-	-- Refresh Factions
-	local faction;
-	wipe(currentCharacter.Factions);
-	for factionID,_ in pairs(app.SearchForFieldContainer("factionID")) do
-		faction = app.SearchForObject("factionID", factionID);
-		-- simply reference the .saved property of each known Faction to re-calculate the character value
-		if faction and faction.saved then end
-	end
-	coroutine.yield();
-
-	-- Harvest Item Collections that are used by the addon.
-	app:GetDataCache();
-	coroutine.yield();
-
-	-- Refresh Toys from Cache
-	local acctToys = ATTAccountWideData.Toys;
-	for id,_ in pairs(app.SearchForFieldContainer("toyID")) do
-		if PlayerHasToy(id) then
-			if not acctToys[id] then print("Added Toy",app:Linkify(id,app.Colors.ChatLink,"search:toyID:"..id)) end
-			acctToys[id] = 1;
-		else
-			-- remove Toys that the account doesnt actually have
-			if acctToys[id] then print("Removed Toy",app:Linkify(id,app.Colors.ChatLink,"search:toyID:"..id)) end
-			acctToys[id] = nil;
-		end
-	end
-	coroutine.yield();
-
-	-- Refresh RuneforgeLegendaries from Cache
-	local acctRFLs = ATTAccountWideData.RuneforgeLegendaries;
-	local state;
-	for id,_ in pairs(app.SearchForFieldContainer("runeforgePowerID")) do
-		state = (C_LegendaryCrafting_GetRuneforgePowerInfo(id) or app.EmptyTable).state;
-		if state == 0 then
-			if not acctRFLs[id] then print("Added Runeforge Power",app:Linkify(id,app.Colors.ChatLink,"search:runeforgePowerID:"..id)) end
-			acctRFLs[id] = 1;
-		else
-			-- remove RFLs that the account doesnt actually have
-			if acctRFLs[id] then print("Removed Runeforge Power",app:Linkify(id,app.Colors.ChatLink,"search:runeforgePowerID:"..id)) end
-			acctRFLs[id] = nil;
-		end
-	end
-	coroutine.yield();
-
-	-- Refresh Achievements
-	app.RefreshAchievementCollection();
-	coroutine.yield();
-
+local function CheckOncePerAccountQuestsForCharacter(accountWideData)
 	-- Double check if any once-per-account quests which haven't been detected as being completed are completed by this character
-	local acctQuests, oneTimeQuests = ATTAccountWideData.Quests, ATTAccountWideData.OneTimeQuests;
+	local acctQuests, oneTimeQuests = accountWideData.Quests, accountWideData.OneTimeQuests;
 	local IsQuestFlaggedCompleted = app.IsQuestFlaggedCompleted;
+	local charGuid = app.GUID;
 	for questID,questGuid in pairs(oneTimeQuests) do
 		-- If this Character has the Quest completed and it is not marked as completed for Account or not for specific Character
 		if IsQuestFlaggedCompleted(questID) then
@@ -372,33 +266,30 @@ local function RefreshCollections()
 			oneTimeQuests[questID] = charGuid;
 		end
 	end
-	coroutine.yield();
+end
 
-	CacheAccountWideCompleteViaAchievement(ATTAccountWideData);
-	coroutine.yield();
-	CacheQuestStatesViaAppearanceUnlocks(ATTAccountWideData);
-	coroutine.yield();
-	CacheAccountWideMiscQuests(ATTAccountWideData);
-	coroutine.yield();
-	CacheAccountWideSharedQuests(ATTAccountWideData);
-	coroutine.yield();
-	FixWrongAccountWideQuests(ATTAccountWideData);
-	coroutine.yield();
+app.AddEventHandler("OnRefreshCollections", CacheAccountWideCompleteViaAchievement)
+app.AddEventHandler("OnRefreshCollections", CacheAccountWideMiscQuests)
+app.AddEventHandler("OnRefreshCollections", CacheAccountWideSharedQuests)
+app.AddEventHandler("OnRefreshCollections", FixWrongAccountWideQuests)
+app.AddEventHandler("OnRefreshCollections", CheckOncePerAccountQuestsForCharacter)
 
-	-- Run any defined independent Refresh functions
-	for _,refresh in pairs(app.RefreshFunctions) do
-		refresh();
-		coroutine.yield();
+RefreshCollections = function()
+	if InCombatLockdown() then
+		print(app.L.REFRESHING_COLLECTION,"(",COMBAT,")");
+		while InCombatLockdown() do coroutine.yield(); end
+	else
+		print(app.L.REFRESHING_COLLECTION);
 	end
 
-	app:RecalculateAccountWideData();
-	coroutine.yield();
+	-- Execute the OnRefreshCollections handlers.
+	-- TODO: Take all the bulk of this function and make them use the event handler.
+	-- The function used in the Classic section is what I want to see when this is completed.
+	app.HandleEvent("OnRefreshCollections", ATTAccountWideData)
+end
 
-	-- Refresh Sources from Cache if tracking Transmog
-	if app.DoRefreshAppearanceSources or app.Settings:Get("Thing:Transmog") then
-		app.RefreshAppearanceSources();
-	end
-	coroutine.yield();
+-- [Event]Done is called automatically when processed by a Runner and it completes the set of functions
+app.AddEventHandler("OnRefreshCollectionsDone", function()
 
 	-- Need to update the Settings window as well if User does not have auto-refresh for Settings
 	if app.Settings:Get("Skip:AutoRefresh") or app.Settings.NeedsRefresh then
@@ -407,12 +298,48 @@ local function RefreshCollections()
 		app:RefreshData(false, false, true);
 	end
 
-	-- Wait for refresh to actually finish
-	while app.Processing_RefreshData do coroutine.yield(); end
-
 	-- Report success once refresh is done
-	print(app.L["DONE_REFRESHING"]);
+	print(app.L.DONE_REFRESHING);
+	if __FirstRefresh then
+		__FirstRefresh = nil;
+		print = app.print;
+	end
+	IsRefreshing = nil
+end)
+app.AddEventHandler("OnStartup", function()
+	ATTAccountWideData = app.LocalizeGlobalIfAllowed("ATTAccountWideData", true);
+end)
+
+else
+-- TODO: Once the Retail version of this function uses ALOT less things manually
+-- and has successfully converted them to using event handlers, then this is what I'm
+-- expecting the function to look like at the end. Probably also add an event handler
+-- to proc when it's "done". Like OnRefreshCollectionsComplete or something?
+RefreshCollections = function()
+	if InCombatLockdown() then
+		print(app.L.REFRESHING_COLLECTION,"(",COMBAT,")");
+		while InCombatLockdown() do coroutine.yield(); end
+	else
+		print(app.L.REFRESHING_COLLECTION);
+	end
+
+	-- Execute the OnRefreshCollections handlers.
+	app.HandleEvent("OnRefreshCollections");
+	coroutine.yield();
+
+	app:RefreshDataCompletely("RefreshCollections");
+	print(app.L.DONE_REFRESHING);
+	if __FirstRefresh then
+		__FirstRefresh = nil;
+		print = app.print;
+	end
+	IsRefreshing = nil
 end
+end
+
 app.RefreshCollections = function()
-	StartCoroutine("RefreshingCollections", RefreshCollections);
+	if IsRefreshing then return end
+	IsRefreshing = true
+	app:StartATTCoroutine("RefreshingCollections", RefreshCollections)
 end
+app.AddEventHandler("OnInit", app.RefreshCollections)

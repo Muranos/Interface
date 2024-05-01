@@ -13,10 +13,12 @@ local sCurrentFocus = nil;
 
 --
 function VUHDO_combatLogInitLocalOverrides()
+
 	VUHDO_RAID = _G["VUHDO_RAID"];
 	VUHDO_RAID_GUIDS = _G["VUHDO_RAID_GUIDS"];
 	VUHDO_INTERNAL_TOGGLES = _G["VUHDO_INTERNAL_TOGGLES"];
-	VUHDO_updateHealth = _G["VUHDO_updateHealth"];
+	VUHDO_updateHealth = _G["VUHDO_deferUpdateHealth"];
+
 end
 
 
@@ -26,19 +28,25 @@ local tInfo;
 local tNewHealth;
 local tDeadInfo = { ["dead"] = true };
 local function VUHDO_addUnitHealth(aUnit, aDelta)
+
 	tInfo = VUHDO_RAID[aUnit] or tDeadInfo;
 
 	if not tInfo["dead"] then
 		tNewHealth = tInfo["health"] + aDelta;
 
-		if tNewHealth < 0 then tNewHealth = 0;
-		elseif tNewHealth > tInfo["healthmax"]  then tNewHealth = tInfo["healthmax"]; end
+		if tNewHealth < 0 then
+			tNewHealth = 0;
+		elseif tNewHealth > tInfo["healthmax"] then
+			tNewHealth = tInfo["healthmax"];
+		end
 
 		if tInfo["health"] ~= tNewHealth then
 			tInfo["health"] = tNewHealth;
+
 			VUHDO_updateHealth(aUnit, 2); -- VUHDO_UPDATE_HEALTH
 		end
 	end
+
 end
 
 

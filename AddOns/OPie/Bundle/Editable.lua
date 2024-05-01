@@ -1,7 +1,6 @@
-local _, T = ...
+local COMPAT, _, T = select(4,GetBuildInfo()), ...
 local L, R = T.L, OPie.CustomRings
 if not (R and R.AddDefaultRing) then return end
-local COMPAT = select(4,GetBuildInfo())
 local MODERN, CF_WRATH = COMPAT >= 10e4 or nil, COMPAT < 10e4 and COMPAT >= 3e4 or nil
 
 R:AddDefaultRing("RaidSymbols", {
@@ -14,7 +13,7 @@ R:AddDefaultRing("RaidSymbols", {
 	{"raidmark", 7, _u="r"}, -- red cross
 	{"raidmark", 8, _u="w"}, -- white skull
 	{"raidmark", 0, _u="c"}, -- clear all
-	name=L"Target Markers", hotkey="ALT-R", _u="OPCRS"
+	name=L"Target Markers", hotkey="ALT-R", _u="OPCRS", v=1
 })
 do
 	local digOverload = MODERN and "/cast [in:df,nomod,near:%1$s-overload][in:df,mod,nonear:%1$s-overload] {{spell:%d}}; {{spell:%d}}"
@@ -36,23 +35,30 @@ do
 		MODERN and {id="/cast [mod] {{spell:131474}}; {{spell:271990}}; {{spell:131474}}", _u="fj"}, -- fish journal
 		MODERN and {id=194174, _u ="sj"}, -- skinning journal
 		MODERN and {id=digOverload:format("herb", 390392, 193290), _u="hj"}, -- herbalism journal
-		name=L"Trade Skills", hotkey="ALT-T", _u="OPCCT"
+		name=L"Trade Skills", hotkey="ALT-T", _u="OPCCT", v=1
 	})
 end
 R:AddDefaultRing("TrinketSlots", {
 	{id="/use 13", _u="t"},
 	{id="/use 14", _u="b"},
-	name=L"Trinkets", _u="OPCTS"
+	name=L"Trinkets", _u="OPCTS", v=1
+})
+R:AddDefaultRing("OPieAutoQuest", {
+	{"extrabutton", 1, _u="EB"},
+	{"zoneability", 0, _u="ZA"},
+	{"opie.autoquest", 1, _u="AC"},
+	name=L"Quest Items", hotkey="ALT-Q", _u="OPbQI", v=1
 })
 
 if not MODERN then return end
 
 R:AddDefaultRing("DruidShift", {
-	{id="/cancelform [noflyable,noform:moonkin]\n#imp critical\n/cast [flyable,outdoors,nocombat,noswimming,nomod][flying,flyable] {{spell:783}}; [outpost:corral,nomod,nospec:103/104] {{spell:161691}}; [swimming,nomod][flyable,nomod] {{spell:783}}; [nocombat,outdoors,nomod:alt,advflyable] {{mount:dragon}}; [nocombat,outdoors,nomod:alt] {{mount:ground}}; [outdoors] {{spell:783}}\n/stopmacro [swimming,nomod][flyable,nomod][flying][mounted]\n/changeactionbar [advflyable,nocombat,outdoors,nomod:alt] 1", fastClick=true, _u="f"}, -- Travel
+	{id="/cancelform [noflying,noform:moonkin]\n#imp critical\n/cast [flyable,outdoors,nocombat,noswimming,nomod] {{spell:783}}; [outpost:corral,nomod,nospec:103/104] {{spell:161691}}; [swimming,nomod][flyable,nomod] {{spell:783}}; [nocombat,outdoors,nomod:alt] {{mount:ground}}; [outdoors] {{spell:783}}", fastClick=true, _u="f"}, -- Travel
 	{c="c74cff", id=24858, _u="k"}, -- Moonkin
 	{c="fff04d", id=768, _u="c"}, -- Cat
 	{c="ff0000", id=5487, _u="b"}, -- Bear
-	name=L"Shapeshifts", hotkey="BUTTON4", limit="DRUID", _u="OPCDS"
+	{id="/cancelform [noform:moonkin,noflying]\n#imp critical\n/cast {{mount:dragon}}\n/changeactionbar [nocombat,outdoors] 1", show="[advflyable]", _u="m"}, -- Mount
+	name=L"Shapeshifts", hotkey="BUTTON4", limit="DRUID", _u="OPCDS", v=2
 })
 R:AddDefaultRing("DruidUtility", {
 	{id="/cast [combat][mod,nomod:alt] {{spell:20484}}; [@target,nodead,group,nomod] {{spell:212040}}; {{spell:50769}}", _u="r"}, -- rebirth/revit/revive
@@ -63,7 +69,7 @@ R:AddDefaultRing("DruidUtility", {
 	{id=29166, _u="v"}, -- innervate
 	{id=2908, _u="s"}, -- soothe
 	{id="/cast [@target,help][@player,nomod][] {{spell:1126}}", _u="w"}, -- motw
-	name=L"Utility", hotkey="[noform:bear/cat] BUTTON5; ALT-BUTTON5", limit="DRUID", _u="OPCDU"
+	name=L"Utility", hotkey="[noform:bear/cat] BUTTON5; ALT-BUTTON5", limit="DRUID", _u="OPCDU", v=1
 })
 R:AddDefaultRing("DruidFeral", {
 	{id=106951, _u="k"}, -- berserk
@@ -74,8 +80,8 @@ R:AddDefaultRing("DruidFeral", {
 	{id=61336, _u="i"}, -- survival instincts
 	{id=102401, _u="c"}, -- feral charge
 	{id="/cast {{spell:102543/102558}}", _u="n"}, -- Incarnation
-	{id="#nounshift [combat,form:cat]\n/cast [nomod,@player][mod,@none] {{spell:8936}}", show="[spec:102/104/105] hide;", _u="h"}, -- Regrowth
-	name=L"Feral", hotkey="[form:bear/cat] BUTTON5; ALT-BUTTON5", limit="DRUID", _u="OPCDF"
+	{id="/cast [nomod,@player][@none] {{spell:8936}}", show="[spec:102/104/105] hide;", _u="h"}, -- Regrowth
+	name=L"Feral", hotkey="[form:bear/cat] BUTTON5; ALT-BUTTON5", limit="DRUID", _u="OPCDF", v=2
 })
 
 do -- Hunter Pets
@@ -86,7 +92,7 @@ do -- Hunter Pets
 		{id=m:format(3,83243), show="[known:83243,havepet:3]", _u="3"},
 		{id=m:format(4,83244), show="[known:83244,havepet:4]", _u="4"},
 		{id=m:format(5,83245), show="[known:83245,havepet:5]", _u="5"},
-		name=L"Pets", limit="HUNTER", _u="OPCHP", internal=true
+		name=L"Pets", limit="HUNTER", _u="OPCHP", internal=true, v=1
 	})
 end
 R:AddDefaultRing("HunterAspects", {
@@ -96,7 +102,7 @@ R:AddDefaultRing("HunterAspects", {
 	{id=5384, _u="g"}, -- feign
 	{"ring", "HunterPets", _u="e", show="[nospec:2]"},
 	{id=147362, _u="i"}, -- counter
-	name=L"Aspects", hotkey="BUTTON4", limit="HUNTER", _u="OPCHA"
+	name=L"Aspects", hotkey="BUTTON4", limit="HUNTER", _u="OPCHA", v=1
 })
 
 R:AddDefaultRing("MageCombat", {
@@ -108,16 +114,16 @@ R:AddDefaultRing("MageCombat", {
 	{id=80353, _u="t"}, -- time warp
 	{id="/cast {{spell:11426}}; {{spell:235450}}; {{spell:235313}}", _u="i"}, -- barrier
 	{id=190319, _u="c"}, -- combustion
-	name=L"Combat", limit="MAGE", hotkey="BUTTON5", _u="OPCMC"
+	name=L"Combat", limit="MAGE", hotkey="BUTTON5", _u="OPCMC", v=1
 })
 R:AddDefaultRing("MageTools", {
-	{id="#imp critical\n/cast [advflyable] {{mount:dragon}}; [flyable] {{mount:air}}; {{mount:ground}}\n/changeactionbar [advflyable,nocombat,outdoors] 1", fastClick=true, _u="m"},
+	{id="#imp critical\n/cast [advflyable,nomod] {{mount:dragon}}; [flyable,nomod:ctrl] {{mount:air}}; {{mount:ground}}\n/changeactionbar [advflyable,nocombat,outdoors] 1", fastClick=true, _u="m"},
 	{id=42955, _u="f"}, -- food
 	{id="/cast [nomod] {{spell:110959}}; {{spell:66}}; {{spell:110959}}", _u="i"}, -- (greater) invisibility
 	{"ring", "MagePolymorph", _u="t"},
 	{id=130, _u="s"}, -- slow fall
 	{id=1459, _u="n"}, -- intellect
-	name=L"Utility", limit="MAGE", hotkey="BUTTON4", _u="OPCMT"
+	name=L"Utility", limit="MAGE", hotkey="BUTTON4", _u="OPCMT", v=1
 })
 R:AddDefaultRing("MagePolymorph", {
 	{id=118, _u="s"}, -- sheep
@@ -131,7 +137,7 @@ R:AddDefaultRing("MagePolymorph", {
 	{id=161355, _u="e"}, -- penguin
 	{id=126819, _u="o"}, -- porcupine
 	{id=161372, _u="k"}, -- peacock
-	name=L"Polymorphs", limit="MAGE", _u="OPCMP", internal=true
+	name=L"Polymorphs", limit="MAGE", _u="OPCMP", internal=true, v=1
 })
 do -- MageTravel
 	local m = "/cast [mod] {{spell:%s}}; {{spell:%s}}"
@@ -152,7 +158,7 @@ do -- MageTravel
 		{"ring", "ExtraPortals", _u="e"}, -- Extra Portals
 		{id=m:format(32267, 32272), _u="l"}, -- Silvermoon
 		{id=m:format(32266, 32271), _u="x"}, -- Exodar
-		name=L"Portals and Teleports", hotkey="ALT-G", limit="MAGE", _u="OPCMV"
+		name=L"Portals and Teleports", hotkey="ALT-G", limit="MAGE", _u="OPCMV", v=1
 	})
 	R:AddDefaultRing("ExtraPortals", {
 		{id=m:format(120146, 120145), _u="a"}, -- Ancient Dalaran
@@ -160,28 +166,28 @@ do -- MageTravel
 		{id=m:format(49361, 49358), _u="n"}, -- Stonard
 		{id=m:format("88346/88345", "88344/88342"), _u="b", c="99C5CC"}, -- Tol Barad
 		{id=m:format("176246/176244", "176248/176242"), _u="h", c="ff4000"}, -- Ashran
-		name=L"Extra Portals", limit="MAGE", _u="OPCME", internal=true
+		name=L"Extra Portals", limit="MAGE", _u="OPCME", internal=true, v=1
 	})
 end
 
 R:AddDefaultRing("PaladinTools", {
-	{id="#imp critical\n/cast [mod] {{spell:190784}}; [advflyable,nocombat] {{mount:dragon}}; [flyable,nocombat] {{mount:air}}; [outdoors,nocombat] {{mount:ground}}; {{spell:190784}}\n/changeactionbar [advflyable,nocombat,outdoors,nomod] 1", fastClick=true, _u="s"}, --steed
+	{id="#imp critical\n/cast [advflyable,outdoors,nocombat,nomod] {{mount:dragon}}; [flyable,outdoors,nocombat,nomod:ctrl] {{mount:air}}; [outdoors,nocombat,nomod:shift] {{mount:ground}}; {{spell:190784}}\n/changeactionbar [advflyable,nocombat,outdoors,nomod] 1", fastClick=true, _u="s"}, --steed
 	{id=465, _u="d"}, --devotion
 	{id=317920, _u="c"}, --concentration
 	{id=322223, _u="u"}, --crusader
 	{id=183435, _u="r"}, --retribution
 	{id=31821, _u="m"}, --mastery
 	{id="/cast [help,dead,nocombat][nocombat,mod] {{spell:7328}}; {{spell:213644}}; {{spell:7328}}", _u="l"}, -- cleanse/res
-	name=L"Utility", limit="PALADIN", hotkey="BUTTON4", _u="OPCPT"
+	name=L"Utility", limit="PALADIN", hotkey="BUTTON4", _u="OPCPT", v=2
 })
 R:AddDefaultRing("WarlockLTS", {
-	{id="/cast [advflyable,nocombat,nomod] {{mount:dragon}}; [flyable,nocombat,nomod] {{mount:air}}; [outdoors,nocombat,nomod:alt] {{mount:ground}}; {{spell:126}}", fastClick=true, _u="e"}, -- mount/eye
+	{id="/cast [advflyable,outdoors,nocombat,nomod] {{mount:dragon}}; [flyable,outdoors,nocombat,nomod:ctrl] {{mount:air}}; [outdoors,nocombat,nomod:shift] {{mount:ground}}; {{spell:126}}", fastClick=true, _u="e"}, -- mount/eye
 	{"ring", "WarlockDemons", _u="d"},
 	{id="/cast [mod] {{spell:755}}; {{spell:119898}}; {{spell:755}}", _u="a"}, -- funnel/command
 	{id="/cast [mod:alt] {{spell:20707}}; [group,nomod][nogroup,mod] {{spell:29893}}; {{spell:6201}}", _u="h"}, -- soul/health/well
 	{id=111771, _u="w"}, -- gateway
 	{id=1122, _u="i"}, -- infernal
-	name=L"Warlock General", hotkey="BUTTON4", limit="WARLOCK", _u="OPCLS"
+	name=L"Warlock General", hotkey="BUTTON4", limit="WARLOCK", _u="OPCLS", v=2
 })
 R:AddDefaultRing("WarlockCombat", {
 	{id="/cast [nomod] {{spell:48018}}; {{spell:48020}}", _u="t"}, -- demonic circle
@@ -190,7 +196,7 @@ R:AddDefaultRing("WarlockCombat", {
 	{id=111400, _u="m"}, -- burning rush
 	{id=5782, _u="f"}, -- fear
 	{id=5484, _u="h"}, -- howl
-	name=L"Warlock Combat", hotkey="BUTTON5", limit="WARLOCK", _u="OPCLO"
+	name=L"Warlock Combat", hotkey="BUTTON5", limit="WARLOCK", _u="OPCLO", v=1
 })
 R:AddDefaultRing("WarlockDemons", {
 	{id=30146, _u="f"}, -- felguard
@@ -198,7 +204,7 @@ R:AddDefaultRing("WarlockDemons", {
 	{id=688, _u="i"}, -- imp
 	{id=366222, _u="s"}, -- sayaad
 	{id=691, _u="h"}, -- felhunter
-	name=L"Demons", limit="WARLOCK", _u="OPCLD", internal=true
+	name=L"Demons", limit="WARLOCK", _u="OPCLD", internal=true, v=1
 })
 
 R:AddDefaultRing("DKCombat", {
@@ -209,7 +215,7 @@ R:AddDefaultRing("DKCombat", {
 	{c="b31500", id=55233, _u="b"}, -- blood
 	{c="aef1ff", id=51271, _u="p"}, -- pillar of frost
 	{c="d0d0d0", id=49039, _u="l"}, -- lich
-	name=L"Combat", hotkey="BUTTON5", limit="DEATHKNIGHT", _u="OPCDC"
+	name=L"Combat", hotkey="BUTTON5", limit="DEATHKNIGHT", _u="OPCDC", v=1
 })
 
 R:AddDefaultRing("WorldMarkers", {
@@ -222,7 +228,7 @@ R:AddDefaultRing("WorldMarkers", {
 	{"worldmark", 7, _u="s"},
 	{"worldmark", 8, _u="w"},
 	{"worldmark", 0, c="ccd8e5", _u="c"}, -- clear
-	name=L"World Markers", hotkey="[group] ALT-Y", _u="OPCWM"
+	name=L"World Markers", hotkey="[group] ALT-Y", _u="OPCWM", v=1
 })
 
 R:AddDefaultRing("CommonHearth", {
@@ -245,10 +251,15 @@ R:AddDefaultRing("CommonHearth", {
 	{"toy", 180290, _u="nf"},
 	{"toy", 183716, _u="ve"},
 	{"toy", 188952, _u="do"},
+	{"toy", 190196, _u="en"},
 	{"toy", 190237, _u="bt"},
 	{"toy", 193588, _u="tw"},
 	{"toy", 200630, _u="ws"},
-	name=L"Hearthstones", internal=true, _u="OPCHS"
+	{"toy", 206195, _u="pn"},
+	{"toy", 208704, _u="dd"},
+	{"toy", 209035, _u="df"},
+	{"toy", 212337, _u="sh"},
+	name=L"Hearthstones", internal=true, _u="OPCHS", v=4
 })
 R:AddDefaultRing("SpecMenu", {
 	{"specset", 1, _u="1"},
@@ -259,6 +270,6 @@ R:AddDefaultRing("SpecMenu", {
 	{"toy", 110560, _u="g"},
 	{"toy", 140192, _u="d"},
 	{"ring", "CommonHearth", rotationMode="shuffle", _u="t"},
-	{"item", 141605, _u="w", show="[in:broken isles/bfa]"}, -- flight master's whistle
-	name=L"Specializations and Travel", hotkey="ALT-H", _u="OPCTA"
+	{"item", 141605, _u="w", show="[in:broken isles/argus/bfa]"}, -- flight master's whistle
+	name=L"Specializations and Travel", hotkey="ALT-H", _u="OPCTA", v=2
 })

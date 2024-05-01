@@ -1,7 +1,7 @@
-## Interface: 100105
+## Interface: 100205
 ## Title: |cffEEE4AESilence|r
 ## Author: Yuyuli
-## Version: 1.1.4
+## Version: 1.1.6
 ## Notes: |cff58C6FASilence Talking Heads if they were previously or silence them permanently.|r|n|n|cffFFC700Slash command: /silence|r
 # IconTexture: 135975
 ## IconAtlas: voicechat-icon-speaker-mute

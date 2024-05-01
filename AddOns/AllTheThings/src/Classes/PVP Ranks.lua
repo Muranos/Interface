@@ -11,15 +11,21 @@ local GetPVPLifetimeStats =
 -- Protected Variables
 local Collectible = true;
 local ALLIANCE_FACTION_ID = Enum.FlightPathFaction.Alliance;
-local HORDE_FACTION_ID = Enum.FlightPathFaction.Horde;
 
 -- PVP Rank Class
+local function OnTooltipForPVPRankClass(t, tooltipInfo)
+	tooltipInfo[#tooltipInfo + 1] = {
+		left = "Your lifetime highest rank: ",
+		right = _G["PVP_RANK_" .. (t.lifetimeRank) .. "_" .. (app.FactionID == 2 and 1 or 0)],
+		r = 1, g = 1, b = 1,
+	};
+end
 local Create, Class = app.CreateClass("PVPRank", "pvpRankID", {
 	["name"] = function(t)
 		return _G["PVP_RANK_" .. (t.pvpRankID + 4) .. "_" .. (t.inverseR or 0)];
 	end,
 	["icon"] = function(t)
-		return format("%s%02d","Interface\\PvPRankBadges\\PvPRank", t.pvpRankID);
+		return ("%s%02d"):format("Interface\\PvPRankBadges\\PvPRank", t.pvpRankID);
 	end,
 	["title"] = function(t)
 		return RANK .. " " .. t.pvpRankID .. "`" ..  _G["PVP_RANK_" .. (t.pvpRankID + 4) .. "_" .. ((t.inverseR == 1 and 0 or 1))] .. " (" .. (t.r == ALLIANCE_FACTION_ID and FACTION_HORDE or FACTION_ALLIANCE) .. ")";
@@ -36,14 +42,18 @@ local Create, Class = app.CreateClass("PVPRank", "pvpRankID", {
 	["lifetimeRank"] = function(t)
 		return select(3, GetPVPLifetimeStats()) or 0;
 	end,
-	["collectible"] = function(t)
+	["collectible"] = app.IsClassic and function(t)
 		return Collectible;
+	end
+	-- Retail (only visible with unobtainables anyway)
+	or function(t)
+		return app.Settings.Collectibles.Titles
 	end,
 	["collected"] = function(t)
 		return t.lifetimeRank >= (t.pvpRankID + 4);
 	end,
 	["OnTooltip"] = function(t)
-		GameTooltip:AddDoubleLine("Your lifetime highest rank: ", _G["PVP_RANK_" .. (t.lifetimeRank) .. "_" .. (app.FactionID == 2 and 1 or 0)], 1, 1, 1, 1, 1, 1);
+		return OnTooltipForPVPRankClass;
 	end
 });
 

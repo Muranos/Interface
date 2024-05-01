@@ -253,7 +253,7 @@ ConditionCategory:RegisterCondition(8.5,  "LIBRANGECHECK", {
 	max = 100,
 	defaultUnit = "target",
 	formatter = TMW.C.Formatter:New(function(val)
-		local LRC = LibStub("LibRangeCheck-2.0")
+		local LRC = LibStub("LibRangeCheck-3.0")
 		if not LRC then
 			return val
 		end
@@ -262,12 +262,12 @@ ConditionCategory:RegisterCondition(8.5,  "LIBRANGECHECK", {
 			return L["CNDT_RANGE_PRECISE"]:format(val)
 		end
 
-		for range in LRC:GetHarmCheckers() do
+		for range in LRC:GetHarmCheckers(true) do
 			if range == val then
 				return L["CNDT_RANGE_PRECISE"]:format(val)
 			end
 		end
-		for range in LRC:GetFriendCheckers() do
+		for range in LRC:GetFriendCheckers(true) do
 			if range == val then
 				return L["CNDT_RANGE_PRECISE"]:format(val)
 			end
@@ -290,9 +290,9 @@ ConditionCategory:RegisterCondition(8.5,  "LIBRANGECHECK", {
 	end,
 
 	funcstr = function(c, parent)
-		Env.LibRangeCheck = LibStub("LibRangeCheck-2.0")
+		Env.LibRangeCheck = LibStub("LibRangeCheck-3.0")
 		if not Env.LibRangeCheck then
-			TMW:Error("The %s condition requires LibRangeCheck-2.0", L["CNDT_RANGE"])
+			TMW:Error("The %s condition requires LibRangeCheck-3.0", L["CNDT_RANGE"])
 			return "false"
 		end
 
@@ -304,6 +304,8 @@ ConditionCategory:RegisterCondition(8.5,  "LIBRANGECHECK", {
 			TMW:Error("Bad operator %q for range check condition of %s", c.Operator, tostring(parent))
 		end
 	end,
+
+	customDeprecated = ("NOTICE: As of Nov 16 2023, this condition is nearly useless due to Blizzard restrictions. If you want to check the range of a spell, consider using the %q condition instead. The range levels that can still be checked precisely vary depending on your class."):format(L["CONDITIONPANEL_SPELLRANGE"])
 	-- events = absolutely no events
 })
 

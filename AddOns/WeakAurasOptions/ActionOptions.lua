@@ -1,5 +1,8 @@
 if not WeakAuras.IsLibsOK() then return end
-local AddonName, OptionsPrivate = ...
+---@type string
+local AddonName = ...
+---@class OptionsPrivate
+local OptionsPrivate = select(2, ...)
 
 local L = WeakAuras.L
 
@@ -12,15 +15,8 @@ local hiddenAll = OptionsPrivate.commonOptions.CreateHiddenAll("action")
 local getAll = OptionsPrivate.commonOptions.CreateGetAll("action")
 local setAll = OptionsPrivate.commonOptions.CreateSetAll("action", getAll)
 
-local RestrictedChannelCheck
-if WeakAuras.IsClassicEra() then
-  RestrictedChannelCheck = function()
-    return false
-  end
-else
-  RestrictedChannelCheck = function(data)
-    return data.message_type == "SAY" or data.message_type == "YELL" or data.message_type == "SMARTRAID"
-  end
+local RestrictedChannelCheck = function(data)
+  return data.message_type == "SAY" or data.message_type == "YELL" or data.message_type == "SMARTRAID"
 end
 
 --- @type number? the time at which the last sound was played, so that we don't play
@@ -178,7 +174,7 @@ function OptionsPrivate.GetActionOptions(data)
         name = L["Voice"],
         order = 3.2,
         disabled = function() return not data.actions.start.do_message end,
-        hidden = function() return (WeakAuras.IsClassicEra()) or data.actions.start.message_type ~= "TTS" end,
+        hidden = function() return data.actions.start.message_type ~= "TTS" end,
         values = OptionsPrivate.Private.tts_voices,
         desc = L["Available Voices are system specific"]
       },
@@ -229,6 +225,7 @@ function OptionsPrivate.GetActionOptions(data)
         width = WeakAuras.normalWidth,
         name = L["Sound"],
         order = 8.4,
+        itemControl = "WeakAurasMediaSound",
         values = OptionsPrivate.Private.sound_types,
         sorting = OptionsPrivate.Private.SortOrderForValues(OptionsPrivate.Private.sound_types),
         disabled = function() return not data.actions.start.do_sound end,
@@ -634,7 +631,7 @@ function OptionsPrivate.GetActionOptions(data)
         name = L["Voice"],
         order = 23.2,
         disabled = function() return not data.actions.finish.do_message end,
-        hidden = function() return (WeakAuras.IsClassicEra()) or data.actions.finish.message_type ~= "TTS" end,
+        hidden = function() return data.actions.finish.message_type ~= "TTS" end,
         values = OptionsPrivate.Private.tts_voices,
         desc = L["Available Voices are system specific"]
       },
@@ -660,6 +657,7 @@ function OptionsPrivate.GetActionOptions(data)
         width = WeakAuras.normalWidth,
         name = L["Sound"],
         order = 28.1,
+        itemControl = "WeakAurasMediaSound",
         values = OptionsPrivate.Private.sound_types,
         sorting = OptionsPrivate.Private.SortOrderForValues(OptionsPrivate.Private.sound_types),
         disabled = function() return not data.actions.finish.do_sound end,

@@ -18,7 +18,7 @@ function mod:GetOptions()
 		"stages",
 		196512, -- Claw Frenzy
 		196543, -- Unnerving Howl
-		{197558, "SAY", "PROXIMITY"}, -- Ravenous Leap
+		{197558, "SAY"}, -- Ravenous Leap
 		{196838, "SAY", "ICON"}, -- Scent of Blood
 	}
 end
@@ -30,7 +30,6 @@ function mod:OnBossEnable()
 	self:Log("SPELL_CAST_START", "UnnervingHowl", 196543)
 	self:Log("SPELL_CAST_START", "RavenousLeap", 197558)
 	self:Log("SPELL_AURA_APPLIED", "RavenousLeapApplied", 197556)
-	self:Log("SPELL_AURA_REMOVED", "RavenousLeapRemoved", 197556)
 	self:Log("SPELL_CAST_START", "ScentOfBlood", 196838)
 	self:Log("SPELL_AURA_REMOVED", "ScentOfBloodRemoved", 196838)
 end
@@ -159,14 +158,7 @@ do
 		self:TargetsMessage(197558, "yellow", playerList, 4)
 		self:PlaySound(197558, "alarm", nil, playerList)
 		if self:Me(args.destGUID) then
-			self:OpenProximity(197558, 10)
-			self:Say(197558)
-		end
-	end
-
-	function mod:RavenousLeapRemoved(args)
-		if self:Me(args.destGUID) then
-			self:CloseProximity(197558)
+			self:Say(197558, nil, nil, "Ravenous Leap")
 		end
 	end
 end
@@ -176,13 +168,13 @@ do
 		self:PrimaryIcon(196838, name)
 		self:TargetMessage(196838, "orange", name)
 		if self:Me(guid) then
-			self:Say(196838)
+			self:Say(196838, nil, nil, "Scent of Blood")
 			self:PlaySound(196838, "warning")
 		end
 	end
 
 	function mod:ScentOfBlood(args)
-		self:GetBossTarget(printTarget, 0.4, args.sourceGUID)
+		self:GetUnitTarget(printTarget, 0.4, args.sourceGUID)
 		self:CDBar(args.spellId, 34.1)
 		-- soonest any ability can happen after this is 18.2s
 		self:CDBar(196512, 18.2) -- Claw Frenzy

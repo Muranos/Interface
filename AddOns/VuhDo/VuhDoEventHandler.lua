@@ -13,6 +13,27 @@ local VUHDO_RAID;
 local VUHDO_PANEL_SETUP;
 VUHDO_RELOAD_UI_IS_LNF = false;
 
+local VUHDO_DEFERRED_UPDATES = {
+	-- [VUHDO_UPDATE_<HEALTH | BOUQUETS | SHIELD_BAR | HEAL_ABSORB_BAR>] = {
+	--	[<update mode e.g. VUHDO_UPDATE_SHIELD>] = {
+	--		<unit token> = boolean,
+	--	},
+	-- },
+};
+
+local VUHDO_DEFER_HEALTH = 1;
+local VUHDO_DEFER_BOUQUETS = 2;
+local VUHDO_DEFER_SHIELD_BAR = 3;
+local VUHDO_DEFER_HEAL_ABSORB_BAR = 4;
+
+local VUHDO_DEFERRED_UPDATE_TYPES = {
+	VUHDO_DEFER_HEALTH,
+	VUHDO_DEFER_BOUQUETS,
+	VUHDO_DEFER_SHIELD_BAR,
+	VUHDO_DEFER_HEAL_ABSORB_BAR,
+};
+
+
 local VUHDO_parseAddonMessage;
 local VUHDO_spellcastFailed;
 local VUHDO_spellcastSucceeded;
@@ -21,7 +42,7 @@ local VUHDO_parseCombatLogEvent;
 local VUHDO_updateAllOutRaidTargetButtons;
 local VUHDO_updateAllRaidTargetIndices;
 local VUHDO_updateDirectionFrame;
-
+local VUHDO_checkInteractDistance;
 local VUHDO_updateHealth;
 local VUHDO_updateManaBars;
 local VUHDO_updateTargetBars;
@@ -40,7 +61,6 @@ local VUHDO_getCurrentMouseOver;
 local VUHDO_UIFrameFlash_OnUpdate = function() end;
 
 local GetTime = GetTime;
-local CheckInteractDistance = CheckInteractDistance;
 local UnitInRange = UnitInRange;
 local IsSpellInRange = IsSpellInRange;
 local UnitDetailedThreatSituation = UnitDetailedThreatSituation;
@@ -56,7 +76,10 @@ local UnitThreatSituation = UnitThreatSituation;
 local InCombatLockdown = InCombatLockdown;
 local type = type;
 
-local sRangeSpell, sIsRangeKnown, sIsHealerMode;
+local sRangeSpell;
+local sIsHelpfulRangeKnown = false;
+local sIsHarmfulRangeKnown = false;
+local sIsHealerMode;
 local sIsDirectionArrow = false;
 local VuhDoGcdStatusBar;
 local sHotToggleUpdateSecs = 1;
@@ -65,9 +88,13 @@ local sRangeRefreshSecs = 1.1;
 local sClusterRefreshSecs = 1.2;
 local sAoeRefreshSecs = 1.3;
 local sBuffsRefreshSecs;
+local sParseCombatLog;
 local VuhDoDirectionFrame;
+local sDeferredUpdateDelegates;
+
 
 local function VUHDO_eventHandlerInitLocalOverrides()
+
 	VUHDO_RAID = _G["VUHDO_RAID"];
 	VUHDO_PANEL_SETUP = _G["VUHDO_PANEL_SETUP"];
 
@@ -92,15 +119,22 @@ local function VUHDO_eventHandlerInitLocalOverrides()
 	VuhDoGcdStatusBar = _G["VuhDoGcdStatusBar"];
 	VuhDoDirectionFrame = _G["VuhDoDirectionFrame"];
 	VUHDO_updateDirectionFrame = _G["VUHDO_updateDirectionFrame"];
+	VUHDO_checkInteractDistance = _G["VUHDO_checkInteractDistance"];
 	VUHDO_getUnitZoneName = _G["VUHDO_getUnitZoneName"];
 	VUHDO_updateClusterHighlights = _G["VUHDO_updateClusterHighlights"];
 	VUHDO_updateCustomDebuffTooltip = _G["VUHDO_updateCustomDebuffTooltip"];
 	VUHDO_getCurrentMouseOver = _G["VUHDO_getCurrentMouseOver"];
 	VUHDO_UIFrameFlash_OnUpdate = _G["VUHDO_UIFrameFlash_OnUpdate"];
 
-	sRangeSpell = VUHDO_CONFIG["RANGE_SPELL"] or "*foo*";
+	-- FIXME: why can't model sanity be run prior to burst cache initialization?
+	if type(VUHDO_CONFIG["RANGE_SPELL"]) == "table" and type(VUHDO_CONFIG["RANGE_PESSIMISTIC"]) == "table" then
+		sRangeSpell = VUHDO_CONFIG["RANGE_SPELL"];
+		sIsHelpfulRangeKnown = not VUHDO_CONFIG["RANGE_PESSIMISTIC"]["HELPFUL"] and GetSpellInfo(sRangeSpell["HELPFUL"]) ~= nil;
+		sIsHarmfulRangeKnown = not VUHDO_CONFIG["RANGE_PESSIMISTIC"]["HARMFUL"] and GetSpellInfo(sRangeSpell["HARMFUL"]) ~= nil;
+	end
+
 	sIsHealerMode = not VUHDO_CONFIG["THREAT"]["IS_TANK_MODE"];
-	sIsRangeKnown = not VUHDO_CONFIG["RANGE_PESSIMISTIC"] and GetSpellInfo(sRangeSpell) ~= nil;
+
 	sIsDirectionArrow = VUHDO_isShowDirectionArrow();
 
 	sHotToggleUpdateSecs = VUHDO_CONFIG["UPDATE_HOTS_MS"] * 0.00033;
@@ -108,7 +142,17 @@ local function VUHDO_eventHandlerInitLocalOverrides()
 	sRangeRefreshSecs = VUHDO_CONFIG["RANGE_CHECK_DELAY"] * 0.001;
 	sClusterRefreshSecs = VUHDO_CONFIG["CLUSTER"]["REFRESH"] * 0.001;
 	sAoeRefreshSecs = VUHDO_CONFIG["AOE_ADVISOR"]["refresh"] * 0.001;
-	sBuffsRefreshSecs = VUHDO_BUFF_SETTINGS["CONFIG"]["REFRESH_SECS"]
+	sBuffsRefreshSecs = VUHDO_BUFF_SETTINGS["CONFIG"]["REFRESH_SECS"];
+
+	sParseCombatLog = VUHDO_CONFIG["PARSE_COMBAT_LOG"];
+
+	sDeferredUpdateDelegates = {
+		[VUHDO_DEFER_HEALTH] = _G["VUHDO_updateHealth"],
+		[VUHDO_DEFER_BOUQUETS] = _G["VUHDO_updateBouquetsForEvent"],
+		[VUHDO_DEFER_SHIELD_BAR] = _G["VUHDO_updateShieldBar"],
+		[VUHDO_DEFER_HEAL_ABSORB_BAR] = _G["VUHDO_updateHealAbsorbBar"],
+	};
+
 end
 
 ----------------------------------------------------
@@ -412,10 +456,12 @@ function VUHDO_OnEvent(_, anEvent, anArg1, anArg2, anArg3, anArg4, anArg5, anArg
 			-- As of 8.x COMBAT_LOG_EVENT_UNFILTERED is now just an event with no arguments
 			anArg1, anArg2, anArg3, anArg4, anArg5, anArg6, anArg7, anArg8, anArg9, anArg10, anArg11, anArg12, anArg13, anArg14, anArg15, anArg16, anArg17 = CombatLogGetCurrentEventInfo();
 
-			-- SWING_DAMAGE - the amount of damage is the 12th arg
-			-- ENVIRONMENTAL_DAMAGE - the amount of damage is the 13th arg
-			-- for all other events with the _DAMAGE suffix the amount of damage is the 15th arg
-			VUHDO_parseCombatLogEvent(anArg2, anArg8, anArg12, anArg13, anArg15);
+			if sParseCombatLog then
+				-- SWING_DAMAGE - the amount of damage is the 12th arg
+				-- ENVIRONMENTAL_DAMAGE - the amount of damage is the 13th arg
+				-- for all other events with the _DAMAGE suffix the amount of damage is the 15th arg
+				VUHDO_parseCombatLogEvent(anArg2, anArg8, anArg12, anArg13, anArg15);
+			end
 
 			if VUHDO_INTERNAL_TOGGLES[36] then -- VUHDO_UPDATE_SHIELD
 				-- for SPELL events with _AURA suffixes the amount healed is the 16th arg
@@ -787,7 +833,7 @@ end
 --
 local function VUHDO_printAbout()
 
-	VUHDO_Msg("VuhDo |cffffe566['vu:du:]|r v" .. VUHDO_VERSION .. " (use /vd). Currently maintained by Ivaria@US-Hyjal in honor of Marshy and our two daughters.");
+	VUHDO_Msg("VuhDo |cffffe566['vu:du:]|r v" .. VUHDO_VERSION .. " (use /vd). Currently maintained by Ivaria@US-Hyjal in honor of Anny and our two daughters.");
 
 end
 
@@ -1059,7 +1105,7 @@ function VUHDO_updateGlobalToggles()
 	VUHDO_INTERNAL_TOGGLES[VUHDO_UPDATE_SPELL_TRACE] = VUHDO_CONFIG["SHOW_SPELL_TRACE"] 
 		or VUHDO_isAnyoneInterstedIn(VUHDO_UPDATE_SPELL_TRACE);
 
-	VUHDO_UnRegisterEvent(VUHDO_CONFIG["PARSE_COMBAT_LOG"] or VUHDO_INTERNAL_TOGGLES[VUHDO_UPDATE_SPELL_TRACE], 
+	VUHDO_UnRegisterEvent(sParseCombatLog or VUHDO_INTERNAL_TOGGLES[VUHDO_UPDATE_SPELL_TRACE], 
 		"COMBAT_LOG_EVENT_UNFILTERED");
 end
 
@@ -1142,6 +1188,7 @@ end
 
 --
 local tIsInRange, tIsCharmed;
+local tIsRangeKnown, tRangeSpell;
 local function VUHDO_updateAllRange()
 	for tUnit, tInfo in pairs(VUHDO_RAID) do
 		tInfo["baseRange"] = "player" == tUnit or "pet" == tUnit or UnitInRange(tUnit);
@@ -1159,15 +1206,23 @@ local function VUHDO_updateAllRange()
 			tIsInRange = false;
 		else
 			-- Check if unit is in range
-			if sIsRangeKnown then
+			if UnitCanAttack("player", tUnit) then
+				tIsRangeKnown = sIsHarmfulRangeKnown;
+				tRangeSpell = sRangeSpell["HARMFUL"];
+			else
+				tIsRangeKnown = sIsHelpfulRangeKnown;
+				tRangeSpell = sRangeSpell["HELPFUL"];
+			end
+
+			if tIsRangeKnown then
 				tIsInRange = tInfo["connected"] and 
-					(1 == IsSpellInRange(sRangeSpell, tUnit) or 
+					((tRangeSpell and 1 == IsSpellInRange(tRangeSpell, tUnit)) or 
 						((tInfo["dead"] or tInfo["charmed"]) and tInfo["baseRange"]) or "player" == tUnit or 
-						(VUHDO_isSpecialUnit(tUnit) and CheckInteractDistance(tUnit, 1)));
+						(VUHDO_isSpecialUnit(tUnit) and VUHDO_checkInteractDistance(tUnit, 1)));
 			else
 				tIsInRange = tInfo["connected"] and 
 					(tInfo["baseRange"] or 
-						(VUHDO_isSpecialUnit(tUnit) and CheckInteractDistance(tUnit, 1)));
+						(VUHDO_isSpecialUnit(tUnit) and VUHDO_checkInteractDistance(tUnit, 1)));
 			end
 		end
 
@@ -1356,6 +1411,9 @@ function VUHDO_OnUpdate(_, aTimeDelta)
 
 	-- Own frame flash routines to avoid taints
 	VUHDO_UIFrameFlash_OnUpdate(aTimeDelta);
+
+	-- run deferred updates once per frame
+	VUHDO_updateAllDeferred();
 
 
 	---------------------------------------------------------
@@ -1636,4 +1694,100 @@ function VUHDO_OnLoad(anInstance)
 	anInstance:SetScript("OnUpdate", VUHDO_OnUpdate);
 
 	VUHDO_printAbout();
+end
+
+
+
+--
+local function VUHDO_deferUpdate(aType, aUnit, aMode)
+
+	if not aType or not aUnit or not aMode then
+		return;
+	end
+
+	if not VUHDO_DEFERRED_UPDATES[aType] then
+		VUHDO_DEFERRED_UPDATES[aType] = { };
+	end
+
+	if not VUHDO_DEFERRED_UPDATES[aType][aMode] then
+		VUHDO_DEFERRED_UPDATES[aType][aMode] = { };
+	end
+
+	VUHDO_DEFERRED_UPDATES[aType][aMode][aUnit] = true;
+
+	return;
+
+end
+
+
+
+--
+function VUHDO_deferUpdateHealth(aUnit, aMode)
+
+	VUHDO_deferUpdate(VUHDO_DEFER_HEALTH, aUnit, aMode);
+
+end
+
+
+
+--
+function VUHDO_deferUpdateBouquets(aUnit, aMode)
+
+	VUHDO_deferUpdate(VUHDO_DEFER_BOUQUETS, aUnit, aMode);
+
+end
+
+
+
+--
+function VUHDO_deferUpdateShieldBar(aUnit)
+
+	VUHDO_deferUpdate(VUHDO_DEFER_SHIELD_BAR, aUnit, 1);
+
+end
+
+
+
+--
+function VUHDO_deferUpdateHealAbsorbBar(aUnit)
+
+	VUHDO_deferUpdate(VUHDO_DEFER_HEAL_ABSORB_BAR, aUnit, 1);
+
+end
+
+
+
+--
+local tDelegate;
+function VUHDO_updateAllDeferred()
+
+	for tType in pairs(VUHDO_DEFERRED_UPDATE_TYPES) do
+		if VUHDO_DEFERRED_UPDATES[tType] then
+			tDelegate = sDeferredUpdateDelegates[tType] or function() end;
+
+			for tMode, tModeUnits in pairs(VUHDO_DEFERRED_UPDATES[tType]) do
+				for tUnit, _ in pairs(tModeUnits) do
+					tDelegate(tUnit, tMode);
+
+					VUHDO_DEFERRED_UPDATES[tType][tMode][tUnit] = nil;
+				end
+			end
+		end
+	end
+
+	return;
+
+end
+
+
+
+--
+function VUHDO_getDeferredUpdates(aType)
+
+	if not aType then
+		return VUHDO_DEFERRED_UPDATES;
+	end
+
+	return VUHDO_DEFERRED_UPDATES[aType];
+
 end

@@ -1,9 +1,9 @@
 # Premade Groups Filter
 
-## [4.1.0](https://github.com/0xbs/premade-groups-filter/tree/4.1.0) (2023-07-17)
-[Full Changelog](https://github.com/0xbs/premade-groups-filter/compare/4.0.4...4.1.0) [Previous Releases](https://github.com/0xbs/premade-groups-filter/releases)
+## [5.4.0](https://github.com/0xbs/premade-groups-filter/tree/5.4.0) (2024-04-24)
+[Full Changelog](https://github.com/0xbs/premade-groups-filter/compare/5.3.4...5.4.0) [Previous Releases](https://github.com/0xbs/premade-groups-filter/releases)
 
-- Guard against potential nil pointers  
-- Improve role icon overlap  
-- Add keyword doti for Dawn of the Infinite  
-- Bump TOC to 10.1.5  
+- Update GitHub checkout action  
+- Update copyright to 2024  
+- Add italian translation from Grifo92  
+- Prepare for Dragonflight Season 4  

@@ -122,6 +122,17 @@ function SlashCmdList.DETAILS (msg, editbox)
 
 		dumpt(returnTable)
 
+	elseif (command == "mythic+") then
+		local statName = "mythicdungeoncompletedDF2"
+		local mythicDungeonRuns = Details222.PlayerStats:GetStat(statName)
+
+		dumpt(mythicDungeonRuns)
+
+		for mapChallengeModeID, mapChallengeModeData in pairs(mythicDungeonRuns) do
+			local mapName = C_ChallengeMode.GetMapUIInfo(mapChallengeModeID)
+			print(mapName, mapChallengeModeData.level, mapChallengeModeData.completed, mapChallengeModeData.time)
+		end
+
 	elseif (command == "mergepetspells") then --deprecated
 		Details.merge_pet_abilities = not Details.merge_pet_abilities
 		Details:Msg("Merging pet spells:", Details.merge_pet_abilities or "false")
@@ -372,17 +383,19 @@ function SlashCmdList.DETAILS (msg, editbox)
 		instance2.baseframe:SetPoint("bottomright", RightChatToggleButton, "topright", -1, 1)
 
 	elseif (msg == "pets") then
-		local f = Details:CreateListPanel()
+		local petFrame = Details.PetFrame
+		if (not petFrame) then
+			petFrame = Details:CreateListPanel()
+			Details.PetFrame = petFrame
+		end
 
 		local i = 1
 		for k, v in pairs(Details.tabela_pets.pets) do
-			if (v[6] == "Guardian of Ancient Kings") then
-				Details.ListPanel:add ( k.. ": " ..  v[1] .. " | " .. v[2] .. " | " .. v[3] .. " | " .. v[6], i)
-				i = i + 1
-			end
+			petFrame:add( k .. ": " ..  v[1] .. " | " .. v[2] .. " | " .. v[3] .. " | " .. v[6], i)
+			i = i + 1
 		end
 
-		f:Show()
+		petFrame:Show()
 
 	elseif (msg == "savepets") then
 		Details.tabela_vigente.saved_pets = {}
@@ -415,27 +428,6 @@ function SlashCmdList.DETAILS (msg, editbox)
 			nome = nome.."-"..realm
 		end
 		print(nome, realm)
-
-	elseif (msg == "raid") then
-
-		local player, realm = "Ditador", "Azralon"
-
-		local actorName
-		if (realm ~= GetRealmName()) then
-			actorName = player.."-"..realm
-		else
-			actorName = player
-		end
-
-		print(actorName)
-
-		local guid = Details:FindGUIDFromName ("Ditador")
-		print(guid)
-
-		for i = 1, GetNumGroupMembers()-1, 1 do
-			local name, realm = UnitName ("party"..i)
-			print(name, " -- ", realm)
-		end
 
 	elseif (msg == "cacheparser") then
 		Details:PrintParserCacheIndexes()
@@ -596,11 +588,6 @@ function SlashCmdList.DETAILS (msg, editbox)
 			end
 		end
 
-	elseif (msg == "teste") then
-
-		local a, b = Details:GetEncounterEnd (1098, 3)
-		print(a, unpack(b))
-
 	elseif (msg == "yesno") then
 		--_detalhes:Show()
 
@@ -697,7 +684,7 @@ function SlashCmdList.DETAILS (msg, editbox)
 						Details.id_frame:SetPoint("center", UIParent, "center")
 						Details.id_frame:SetBackdrop(backdrop)
 
-						tinsert(UISpecialFrames, "DetailsID")
+						table.insert(UISpecialFrames, "DetailsID")
 
 						Details.id_frame.texto = CreateFrame("editbox", nil, Details.id_frame, "BackdropTemplate")
 						Details.id_frame.texto:SetPoint("topleft", Details.id_frame, "topleft")
@@ -753,7 +740,7 @@ function SlashCmdList.DETAILS (msg, editbox)
 					Details.id_frame:SetPoint("center", UIParent, "center")
 					Details.id_frame:SetBackdrop(backdrop)
 
-					tinsert(UISpecialFrames, "DetailsID")
+					table.insert(UISpecialFrames, "DetailsID")
 
 					Details.id_frame.texto = CreateFrame("editbox", nil, Details.id_frame, "BackdropTemplate")
 					Details.id_frame.texto:SetPoint("topleft", Details.id_frame, "topleft")
@@ -1061,33 +1048,7 @@ function SlashCmdList.DETAILS (msg, editbox)
 			1 --school =
 		)
 
-	elseif (msg == "ejloot") then
-		DetailsFramework.EncounterJournal.EJ_SelectInstance (669) -- hellfire citadel
-		DetailsFramework.EncounterJournal.EJ_SetDifficulty (16)
-
-		local r = {}
-		local total = 0
-
-		for i = 1, 100 do
-			local name, description, encounterID, rootSectionID, link = DetailsFramework.EncounterJournal.EJ_GetEncounterInfoByIndex (i, 669)
-			if (name) then
-				DetailsFramework.EncounterJournal.EJ_SelectEncounter (encounterID)
-				print(name, encounterID, DetailsFramework.EncounterJournal.EJ_GetNumLoot())
-
-				for o = 1, DetailsFramework.EncounterJournal.EJ_GetNumLoot() do
-					local name, icon, slot, armorType, itemID, link, encounterID = DetailsFramework.EncounterJournal.EJ_GetLootInfoByIndex (o)
-					r[slot] = r[slot] or {}
-					tinsert(r[slot], {itemID, encounterID})
-					total = total + 1
-				end
-			end
-		end
-
-		print("total loot", total)
-		_detalhes_global.ALOOT  = r
-
 	elseif (msg == "ilvl" or msg == "itemlevel" or msg == "ilevel") then
-
 		local item_amount = 16
 		local item_level = 0
 		local failed = 0
@@ -1183,7 +1144,7 @@ function SlashCmdList.DETAILS (msg, editbox)
 		local allspecs = {}
 
 		for a, b in pairs(Details.class_specs_coords) do
-			tinsert(allspecs, a)
+			table.insert(allspecs, a)
 		end
 
 		for i = 1, 10 do
@@ -1284,7 +1245,7 @@ function SlashCmdList.DETAILS (msg, editbox)
 			for o = 1, 3 do
 				local talentID, name, texture, selected, available = GetTalentInfo (i, o, 1)
 				if (selected) then
-					tinsert(talents, talentID)
+					table.insert(talents, talentID)
 					break
 				end
 			end
@@ -1336,26 +1297,11 @@ function SlashCmdList.DETAILS (msg, editbox)
 		newCombat.is_trash = false
 		Details:Msg("done merging, segments: " .. segmentsAdded .. ", total time: " .. DetailsFramework:IntegerToTimer(totalTime))
 
-		--[[ --mythic+ debug
-		--tag the segment as mythic overall segment
-		newCombat.is_mythic_dungeon = {
-			MapID = _detalhes.MythicPlus.Dungeon,
-			StartedAt = _detalhes.MythicPlus.StartedAt, --the start of the run
-			EndedAt = _detalhes.MythicPlus.EndedAt, --the end of the run
-			SegmentID = "overall", --segment number within the dungeon
-			--EncounterID = encounterID,
-			--EncounterName = encounterName,
-			RunID = _detalhes.MythicPlus.RunID,
-			OverallSegment = true,
-		}
-		--]]
-
 		--set some data
-		newCombat:SetStartTime (GetTime() - totalTime)
-		newCombat:SetEndTime (GetTime())
+		newCombat:SetStartTime(GetTime() - totalTime)
+		newCombat:SetEndTime(GetTime())
 
-		newCombat.data_inicio = startDate
-		newCombat.data_fim = endDate
+		newCombat:SetDate(startDate, endDate)
 
 		--immediatly finishes the segment just started
 		Details:SairDoCombate()
@@ -1401,18 +1347,18 @@ function SlashCmdList.DETAILS (msg, editbox)
 			local sectionInfo = C_EncounterJournal.GetSectionInfo (ID)
 
 			if (sectionInfo) then
-				tinsert(result, sectionInfo)
+				table.insert(result, sectionInfo)
 
 				if (sectionInfo.spellID and type(sectionInfo.spellID) == "number" and sectionInfo.spellID ~= 0) then
-					tinsert(spellIDs, sectionInfo.spellID)
+					table.insert(spellIDs, sectionInfo.spellID)
 				end
 
 				local nextChild, nextSibling = sectionInfo.firstChildSectionID, sectionInfo.siblingSectionID
 				if (nextSibling) then
-					tinsert(nextID, nextSibling)
+					table.insert(nextID, nextSibling)
 				end
 				if (nextChild) then
-					tinsert(nextID, nextChild)
+					table.insert(nextID, nextChild)
 				end
 			else
 				break
@@ -1539,14 +1485,6 @@ function SlashCmdList.DETAILS (msg, editbox)
 		print("always use profile:", Details.always_use_profile)
 		print("profile name:", Details.always_use_profile_name)
 		print("version:", Details.build_counter >= Details.alpha_build_counter and Details.build_counter or Details.alpha_build_counter)
-
-	elseif (msg == "record") then
-
-
-			Details.ScheduleLoadStorage()
-			Details.TellDamageRecord = C_Timer.NewTimer(0.6, Details.PrintEncounterRecord)
-			Details.TellDamageRecord.Boss = 2032
-			Details.TellDamageRecord.Diff = 16
 
 	elseif (msg == "recordtest") then
 
@@ -1677,7 +1615,7 @@ function Details.RefreshUserList (ignoreIfHidden)
 			end
 
 			if (not foundPlayer) then
-				tinsert(newList, {playerName, "--", "--"})
+				table.insert(newList, {playerName, "--", "--"})
 			end
 		end
 	end
@@ -1826,20 +1764,23 @@ function Details:UpdateUserPanel(usersTable)
 	DetailsUserPanel:Show()
 end
 
-function Details:CreateListPanel()
-	Details.ListPanel = Details.gump:NewPanel(UIParent, nil, "DetailsActorsFrame", nil, 300, 600)
-	Details.ListPanel:SetPoint("center", UIParent, "center", 300, 0)
-	Details.ListPanel.barras = {}
+function Details:CreateListPanel(name)
+	name = name or ("DetailsListPanel" .. math.random(100000, 1000000))
+	local newListPanel = Details.gump:NewPanel(UIParent, nil, name, nil, 800, 600)
+	newListPanel:SetPoint("center", UIParent, "center", 300, 0)
+	newListPanel.lines = {}
 
-	tinsert(UISpecialFrames, "DetailsActorsFrame")
-	Details.ListPanel.close_with_right = true
+	DetailsFramework:ApplyStandardBackdrop(newListPanel.widget)
 
-	local container_barras_window = CreateFrame("ScrollFrame", "Details_ActorsBarrasScroll", Details.ListPanel.widget)
-	local container_barras = CreateFrame("Frame", "Details_ActorsBarras", container_barras_window)
-	Details.ListPanel.container = container_barras
+	table.insert(UISpecialFrames, name)
+	newListPanel.close_with_right = true
 
-	Details.ListPanel.width = 500
-	Details.ListPanel.locked = false
+	local container_barras_window = CreateFrame("ScrollFrame", "$parentActorsBarrasScroll", newListPanel.widget, "BackdropTemplate")
+	local container_barras = CreateFrame("Frame", "$parentActorsBarras", container_barras_window, "BackdropTemplate")
+	newListPanel.container = container_barras
+
+	newListPanel.width = 835
+	newListPanel.locked = false
 
 	container_barras_window:SetBackdrop({
 		edgeFile = "Interface\\DialogFrame\\UI-DialogBox-gold-Border", tile = true, tileSize = 16, edgeSize = 5,
@@ -1852,19 +1793,19 @@ function Details:CreateListPanel()
 	container_barras:SetBackdropColor(0, 0, 0, 0)
 
 	container_barras:SetAllPoints(container_barras_window)
-	container_barras:SetWidth(500)
-	container_barras:SetHeight(150)
+	container_barras:SetWidth(800)
+	container_barras:SetHeight(550)
 	container_barras:EnableMouse(true)
 	container_barras:SetResizable(false)
 	container_barras:SetMovable(true)
 
-	container_barras_window:SetWidth(460)
+	container_barras_window:SetWidth(800)
 	container_barras_window:SetHeight(550)
 	container_barras_window:SetScrollChild(container_barras)
-	container_barras_window:SetPoint("TOPLEFT", Details.ListPanel.widget, "TOPLEFT", 21, -10)
+	container_barras_window:SetPoint("TOPLEFT", newListPanel.widget, "TOPLEFT", 21, -10)
 
 	Details.gump:NewScrollBar (container_barras_window, container_barras, -10, -17)
-	container_barras_window.slider:Altura (560)
+	container_barras_window.slider:Altura(550)
 	container_barras_window.slider:cimaPoint (0, 1)
 	container_barras_window.slider:baixoPoint (0, -3)
 	container_barras_window.slider:SetFrameLevel(10)
@@ -1873,12 +1814,20 @@ function Details:CreateListPanel()
 
 	container_barras_window.gump = container_barras
 
-	function Details.ListPanel:add (text, index, filter)
-		local row = Details.ListPanel.barras [index]
+	DetailsFramework:ReskinSlider(container_barras_window)
+
+	function newListPanel:reset()
+		for i = 1, #newListPanel.lines do
+			newListPanel.lines[i].text:Hide()
+		end
+	end
+
+	function newListPanel:add(text, index, filter)
+		local row = newListPanel.lines[index]
 		if (not row) then
-			row = {text = Details.ListPanel.container:CreateFontString(nil, "overlay", "GameFontNormal")}
-			Details.ListPanel.barras [index] = row
-			row.text:SetPoint("topleft", Details.ListPanel.container, "topleft", 0, -index * 15)
+			row = {text = newListPanel.container:CreateFontString(nil, "overlay", "GameFontNormal")}
+			newListPanel.lines [index] = row
+			row.text:SetPoint("topleft", newListPanel.container, "topleft", 0, -index * 15)
 		end
 
 		if (filter and text:find(filter)) then
@@ -1888,9 +1837,10 @@ function Details:CreateListPanel()
 		end
 
 		row.text:SetText(text)
+		row.text:Show()
 	end
 
-	return Details.ListPanel
+	return newListPanel
 end
 
 
@@ -1971,9 +1921,11 @@ if (WOW_PROJECT_ID == WOW_PROJECT_MAINLINE) then
 		local openRaidLib = LibStub:GetLibrary("LibOpenRaid-1.0")
 		if (openRaidLib) then
 			if (not DetailsKeystoneInfoFrame) then
+				---@type detailsframework
+				local detailsFramework = DetailsFramework
 
 				local CONST_WINDOW_WIDTH = 614
-				local CONST_WINDOW_HEIGHT = 700
+				local CONST_WINDOW_HEIGHT = 720
 				local CONST_SCROLL_LINE_HEIGHT = 20
 				local CONST_SCROLL_LINE_AMOUNT = 30
 
@@ -1986,7 +1938,7 @@ if (WOW_PROJECT_ID == WOW_PROJECT_MAINLINE) then
 				local backdrop_color_inguild = {.5, .8, .5, 0.2}
 				local backdrop_color_on_enter_inguild = {.5, 1, .5, 0.4}
 
-				local f = DetailsFramework:CreateSimplePanel(UIParent, CONST_WINDOW_WIDTH, CONST_WINDOW_HEIGHT, "M+ Keystones (/key)", "DetailsKeystoneInfoFrame")
+				local f = detailsFramework:CreateSimplePanel(UIParent, CONST_WINDOW_WIDTH, CONST_WINDOW_HEIGHT, "M+ Keystones (/key)", "DetailsKeystoneInfoFrame")
 				f:SetPoint("center", UIParent, "center", 0, 0)
 
 				f:SetScript("OnMouseDown", nil) --disable framework native moving scripts
@@ -1997,15 +1949,46 @@ if (WOW_PROJECT_ID == WOW_PROJECT_MAINLINE) then
 				LibWindow.MakeDraggable(f)
 				LibWindow.RestorePosition(f)
 
-				local scaleBar = DetailsFramework:CreateScaleBar(f, Details.keystone_frame)
+				f:SetScript("OnEvent", function(self, event, ...)
+					if (f:IsShown()) then
+						if (event == "GUILD_ROSTER_UPDATE") then
+							self:RefreshData()
+						end
+					end
+				end)
+
+				local scaleBar = detailsFramework:CreateScaleBar(f, Details.keystone_frame)
 				f:SetScale(Details.keystone_frame.scale)
 
-				local statusBar = DetailsFramework:CreateStatusBar(f)
+				local statusBar = detailsFramework:CreateStatusBar(f)
 				statusBar.text = statusBar:CreateFontString(nil, "overlay", "GameFontNormal")
 				statusBar.text:SetPoint("left", statusBar, "left", 5, 0)
-				statusBar.text:SetText("By Terciob | From Details! Damage Meter|Built with Details! Framework | Data from Open Raid Library")
-				DetailsFramework:SetFontSize(statusBar.text, 11)
-				DetailsFramework:SetFontColor(statusBar.text, "gray")
+				statusBar.text:SetText("By Terciob | From Details! Damage Meter")
+				detailsFramework:SetFontSize(statusBar.text, 12)
+				detailsFramework:SetFontColor(statusBar.text, "gray")
+
+				local requestFromGuildButton = detailsFramework:CreateButton(f, function()
+					local guildName = GetGuildInfo("player")
+					if (guildName) then
+						f:RegisterEvent("GUILD_ROSTER_UPDATE")
+
+						C_Timer.NewTicker(1, function()
+							f:RefreshData()
+						end, 30)
+
+						C_Timer.After(30, function()
+							f:UnregisterEvent("GUILD_ROSTER_UPDATE")
+						end)
+						C_GuildInfo.GuildRoster()
+
+						openRaidLib.RequestKeystoneDataFromGuild()
+					end
+				end, 100, 22, "Request from Guild")
+				requestFromGuildButton:SetPoint("bottomleft", statusBar, "topleft", 2, 2)
+				requestFromGuildButton:SetTemplate(detailsFramework:GetTemplate("button", "OPTIONS_BUTTON_TEMPLATE"))
+				requestFromGuildButton:SetIcon("UI-RefreshButton", 20, 20, "overlay", {0, 1, 0, 1}, "lawngreen")
+				requestFromGuildButton:SetFrameLevel(f:GetFrameLevel()+5)
+				f.RequestFromGuildButton = requestFromGuildButton
 
 				--header
 				local headerTable = {
@@ -2033,8 +2016,8 @@ if (WOW_PROJECT_ID == WOW_PROJECT_MAINLINE) then
 					header_click_callback = headerOnClickCallback,
 				}
 
-				f.Header = DetailsFramework:CreateHeader(f, headerTable, headerOptions, "DetailsKeystoneInfoFrameHeader")
-				f.Header:SetPoint("topleft", f, "topleft", 5, -25)
+				f.Header = detailsFramework:CreateHeader(f, headerTable, headerOptions, "DetailsKeystoneInfoFrameHeader")
+				f.Header:SetPoint("topleft", f, "topleft", 3, -25)
 
 				--scroll
 				local refreshScrollLines = function(self, data, offset, totalLines)
@@ -2071,13 +2054,13 @@ if (WOW_PROJECT_ID == WOW_PROJECT_MAINLINE) then
 							line.icon:SetTexCoord(L+0.02, R-0.02, T+0.02, B-0.02)
 
 							--remove the realm name from the player name (if any)
-							local unitNameNoRealm = DetailsFramework:RemoveRealmName(unitName)
+							local unitNameNoRealm = detailsFramework:RemoveRealmName(unitName)
 							line.playerNameText.text = unitNameNoRealm
 							line.keystoneLevelText.text = level
 							line.dungeonNameText.text = mapName
-							DetailsFramework:TruncateText(line.dungeonNameText, 240)
+							detailsFramework:TruncateText(line.dungeonNameText, 240)
 							line.classicDungeonNameText.text = "" --mapNameChallenge
-							DetailsFramework:TruncateText(line.classicDungeonNameText, 120)
+							detailsFramework:TruncateText(line.classicDungeonNameText, 120)
 							line.inMyParty = inMyParty > 0
 							line.inMyGuild = isGuildMember
 
@@ -2121,8 +2104,8 @@ if (WOW_PROJECT_ID == WOW_PROJECT_MAINLINE) then
 					end
 				end
 
-				local scrollFrame = DetailsFramework:CreateScrollBox(f, "$parentScroll", refreshScrollLines, {}, CONST_WINDOW_WIDTH-10, CONST_WINDOW_HEIGHT-70, CONST_SCROLL_LINE_AMOUNT, CONST_SCROLL_LINE_HEIGHT)
-				DetailsFramework:ReskinSlider(scrollFrame)
+				local scrollFrame = detailsFramework:CreateScrollBox(f, "$parentScroll", refreshScrollLines, {}, CONST_WINDOW_WIDTH-10, CONST_WINDOW_HEIGHT-90, CONST_SCROLL_LINE_AMOUNT, CONST_SCROLL_LINE_HEIGHT)
+				detailsFramework:ReskinSlider(scrollFrame)
 				scrollFrame:SetPoint("topleft", f.Header, "bottomleft", -1, -1)
 				scrollFrame:SetPoint("topright", f.Header, "bottomright", 0, -1)
 
@@ -2153,7 +2136,7 @@ if (WOW_PROJECT_ID == WOW_PROJECT_MAINLINE) then
 					line:SetBackdrop({bgFile = [[Interface\Tooltips\UI-Tooltip-Background]], tileSize = 64, tile = true})
 					line:SetBackdropColor(unpack(backdrop_color))
 
-					DetailsFramework:Mixin(line, DetailsFramework.HeaderFunctions)
+					detailsFramework:Mixin(line, detailsFramework.HeaderFunctions)
 
 					line:SetScript("OnEnter", lineOnEnter)
 					line:SetScript("OnLeave", lineOnLeave)
@@ -2163,19 +2146,19 @@ if (WOW_PROJECT_ID == WOW_PROJECT_MAINLINE) then
 					icon:SetSize(CONST_SCROLL_LINE_HEIGHT - 2, CONST_SCROLL_LINE_HEIGHT - 2)
 
 					--player name
-					local playerNameText = DetailsFramework:CreateLabel(line)
+					local playerNameText = detailsFramework:CreateLabel(line, "")
 
 					--keystone level
-					local keystoneLevelText = DetailsFramework:CreateLabel(line)
+					local keystoneLevelText = detailsFramework:CreateLabel(line, "")
 
 					--dungeon name
-					local dungeonNameText = DetailsFramework:CreateLabel(line)
+					local dungeonNameText = detailsFramework:CreateLabel(line, "")
 
 					--classic dungeon name
-					local classicDungeonNameText = DetailsFramework:CreateLabel(line)
+					local classicDungeonNameText = detailsFramework:CreateLabel(line, "")
 
 					--player rating
-					local ratingText = DetailsFramework:CreateLabel(line)
+					local ratingText = detailsFramework:CreateLabel(line, "")
 
 					line.icon = icon
 					line.playerNameText = playerNameText
@@ -2207,7 +2190,17 @@ if (WOW_PROJECT_ID == WOW_PROJECT_MAINLINE) then
 
 					local guildUsers = {}
 					local totalMembers, onlineMembers, onlineAndMobileMembers = GetNumGuildMembers()
-					local realmName = GetRealmName()
+
+					--[=[
+					local unitsInMyGroup = {
+						[Details:GetFullName("player")] = true,
+					}
+					for i = 1, GetNumGroupMembers() do
+						local unitName = Details:GetFullName("party" .. i)
+						unitsInMyGroup[unitName] = true
+					end
+					--]=]
+
 					--create a string to use into the gsub call when removing the realm name from the player name, by default all player names returned from GetGuildRosterInfo() has PlayerName-RealmName format
 					local realmNameGsub = "%-.*"
 					local guildName = GetGuildInfo("player")
@@ -2296,18 +2289,23 @@ if (WOW_PROJECT_ID == WOW_PROJECT_MAINLINE) then
 					--sort by player class
 					if (columnIndex == 1) then
 						sortByIndex = 5
+
 					--sort by player name
 					elseif (columnIndex == 2) then
 						sortByIndex = 1
+
 					--sort by keystone level
 					elseif (columnIndex == 3) then
 						sortByIndex = 2
+
 					--sort by dungeon name
 					elseif (columnIndex == 4) then
 						sortByIndex = 3
+
 					--sort by classic dungeon name
 					--elseif (columnIndex == 5) then
 					--	sortByIndex = 4
+
 					--sort by mythic+ ranting
 					elseif (columnIndex == 5) then
 						sortByIndex = 6
@@ -2328,7 +2326,7 @@ if (WOW_PROJECT_ID == WOW_PROJECT_MAINLINE) then
 						end
 					end
 
-					newData.offlineGuildPlayers = DetailsFramework.table.reverse(newData.offlineGuildPlayers)
+					newData.offlineGuildPlayers = detailsFramework.table.reverse(newData.offlineGuildPlayers)
 
 					--put players in the group at the top of the list
 					if (IsInGroup() and not IsInRaid()) then
@@ -2345,7 +2343,7 @@ if (WOW_PROJECT_ID == WOW_PROJECT_MAINLINE) then
 							table.sort(playersInTheParty, function(t1, t2) return t1[11] > t2[11] end)
 							for i = 1, #playersInTheParty do
 								local keystoneTable = playersInTheParty[i]
-								tinsert(newData, 1, keystoneTable)
+								table.insert(newData, 1, keystoneTable)
 							end
 						end
 					end
@@ -2372,25 +2370,29 @@ if (WOW_PROJECT_ID == WOW_PROJECT_MAINLINE) then
 				end)
 			end
 
-			--call an update on the guild roster
-			if (C_GuildInfo and C_GuildInfo.GuildRoster) then
-				C_GuildInfo.GuildRoster()
-			end
-
 			--show the frame
 			DetailsKeystoneInfoFrame:Show()
 
 			openRaidLib.RegisterCallback(DetailsKeystoneInfoFrame, "KeystoneUpdate", "OnKeystoneUpdate")
 
-			openRaidLib.WipeKeystoneData()
+			local guildName = GetGuildInfo("player")
+			if (guildName) then
+				--call an update on the guild roster
+				if (C_GuildInfo and C_GuildInfo.GuildRoster) then
+					C_GuildInfo.GuildRoster()
+				end
+				DetailsKeystoneInfoFrame.RequestFromGuildButton:Enable()
+			else
+				DetailsKeystoneInfoFrame.RequestFromGuildButton:Disable()
+			end
+
+			--openRaidLib.WipeKeystoneData()
 
 			if (IsInRaid()) then
 				openRaidLib.RequestKeystoneDataFromRaid()
 			elseif (IsInGroup()) then
 				openRaidLib.RequestKeystoneDataFromParty()
 			end
-
-			openRaidLib.RequestKeystoneDataFromGuild()
 
 			DetailsKeystoneInfoFrame.RefreshData()
 		end

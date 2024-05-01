@@ -1690,6 +1690,7 @@ L["SPELLCHARGETIME_DESC"] = "Tracks the time remaining until a spell like %s or 
 
 L["EMPOWEREDSTAGE"] = "Empowered Spell Stage"
 L["EMPOWEREDSTAGE_DESC"] = "Current stage of empowered spell"
+L["SPELL_LEARNED"] = "Spell Learned"
 L["SPELLREACTIVITY"] = "Spell Reactivity"
 L["MP5"] = "%d MP5"
 L["REACTIVECNDT_DESC"] = "This condition only checks the reactive state of the ability, not the cooldown of it."
@@ -1761,7 +1762,7 @@ L["ABSORBAMT"] = "Absorbtion shield amount"
 L["ABSORBAMT_DESC"] = "Checks the total amount of absorbtion shields that the unit has."
 
 L["CNDT_RANGE"] = "Unit Range"
-L["CNDT_RANGE_DESC"] = "Checks the approximate range of a unit using LibRangeCheck-2.0. Condition will evaluate to false if the unit does not exist."
+L["CNDT_RANGE_DESC"] = "Checks the approximate range of a unit using LibRangeCheck-3.0. Condition will evaluate to false if the unit does not exist."
 L["CNDT_RANGE_PRECISE"] = "%d yds. (|cff00c322Precise|r)"
 L["CNDT_RANGE_IMPRECISE"] = "%d yds. (|cffff1300Imprecise|r)"
 

@@ -1,5 +1,4 @@
 <Ui>
-	<Script file="Ten.lua" />
 	<Script file="Kindred.lua" />
 	<Script file="ActionBook.lua" />
 	<Script file="Locale.lua" />
@@ -8,4 +7,6 @@
 	<Script file="Handlers.lua" />
 	<Script file="Imp.lua" />
 	<Script file="Quirks.lua" />
+	<Script file="Categories.lua" />
+	<Script file="Editors.lua" />
 </Ui>

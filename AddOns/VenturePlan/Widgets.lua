@@ -1625,9 +1625,9 @@ function Factory.MissionPage(parent)
 		s.Version = vButton
 		vButton:Disable()
 		vButton:SetMotionScriptsWhileDisabled(true)
-		local an = GetAddOnMetadata(AN, "Title") or AN or ""
-		local av = GetAddOnMetadata(AN, "Version") or "Q"
-		local aw = GetAddOnMetadata(AN, "X-Website")
+		local an = C_AddOns.GetAddOnMetadata(AN, "Title") or AN or ""
+		local av = C_AddOns.GetAddOnMetadata(AN, "Version") or "Q"
+		local aw = C_AddOns.GetAddOnMetadata(AN, "X-Website")
 		vButton:SetPoint("BOTTOMRIGHT", -62, 20)
 		vButton:SetSize(110, 20)
 		vButton:SetPushedTextOffset(0,0)

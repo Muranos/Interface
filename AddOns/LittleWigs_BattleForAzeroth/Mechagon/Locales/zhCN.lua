@@ -1,7 +1,7 @@
 local L = BigWigs:NewBossLocale("Operation: Mechagon Trash", "zhCN")
 if not L then return end
 if L then
-    L.scrapbone_shaman = "屑骨萨满"
+	L.scrapbone_shaman = "屑骨萨满"
 	L.scrapbone_bully = "屑骨恶霸"
 	L.scrapbone_grinder = "屑骨碾肉者"
 	L.saurolisk_bonenipper = "巨蜥啃骨者"
@@ -29,6 +29,7 @@ if L then
 	L.blastatron_x80 = "爆破金刚X-80型"
 	L.mechagon_mechanic = "麦卡贡机械师"
 	L.workshop_defender = "车间防御者"
+	L.junkyard_d0g = "D.0.G.型垃圾场巡犬"
 end
 
 L = BigWigs:NewBossLocale("Tussle Tonks", "zhCN")

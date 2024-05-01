@@ -14,85 +14,6 @@ local defaultBorderColorTable = {0.1, 0.1, 0.1, 1}
 ---@type edgenames[]
 local cornerNames = {"TopLeft", "TopRight", "BottomLeft", "BottomRight"}
 
----@class blz_backdrop : table
----@field TopLeftCorner texture
----@field TopRightCorner texture
----@field BottomLeftCorner texture
----@field BottomRightCorner texture
----@field TopEdge texture
----@field BottomEdge texture
----@field LeftEdge texture
----@field RightEdge texture
----@field Center texture
-
----@class cornertextures : table
----@field TopLeft texture
----@field TopRight texture
----@field BottomLeft texture
----@field BottomRight texture
-
----@class edgetextures : table
----@field Top texture
----@field Bottom texture
----@field Left texture
----@field Right texture
-
----@class df_roundedpanel_preset : table
----@field border_color any
----@field color any
----@field roundness number
-
----@class df_roundedpanel_options : table
----@field width number
----@field height number
----@field use_titlebar boolean
----@field use_scalebar boolean
----@field title string
----@field scale number
----@field roundness number
----@field color any
----@field border_color any
----@field corner_texture texturepath|textureid
-
----@class df_roundedcornermixin : table
----@field RoundedCornerConstructor fun(self:df_roundedpanel) --called from CreateRoundedPanel
----@field SetColor fun(self:df_roundedpanel, red: any, green: number|nil, blue: number|nil, alpha: number|nil)
----@field SetBorderCornerColor fun(self:df_roundedpanel, red: any, green: number|nil, blue: number|nil, alpha: number|nil)
----@field SetRoundness fun(self:df_roundedpanel, slope: number)
----@field GetCornerSize fun(self:df_roundedpanel) : width, height
----@field OnSizeChanged fun(self:df_roundedpanel) --called when the frame size changes
----@field CreateBorder fun(self:df_roundedpanel) --called from SetBorderCornerColor if the border is not created yet
----@field CalculateBorderEdgeSize fun(self:df_roundedpanel, alignment: "vertical"|"horizontal"): number --calculate the size of the border edge texture
----@field SetTitleBarColor fun(self:df_roundedpanel, red: any, green: number|nil, blue: number|nil, alpha: number|nil)
----@field GetMaxFrameLevel fun(self:df_roundedpanel) : number --return the max frame level of the frame and its children
-
----@class df_roundedpanel : frame, df_roundedcornermixin, df_optionsmixin, df_titlebar
----@field bHasBorder boolean
----@field bHasTitleBar boolean
----@field options df_roundedpanel_options
----@field cornerRoundness number
----@field CornerTextures cornertextures
----@field CenterTextures texture[]
----@field BorderCornerTextures cornertextures
----@field BorderEdgeTextures edgetextures
----@field TitleBar df_roundedpanel
----@field bIsTitleBar boolean
----@field TopLeft texture corner texture
----@field TopRight texture corner texture
----@field BottomLeft texture corner texture
----@field BottomRight texture corner texture
----@field TopEdgeBorder texture border edge
----@field BottomEdgeBorder texture border edge
----@field LeftEdgeBorder texture border edge
----@field RightEdgeBorder texture border edge
----@field TopLeftBorder texture border corner
----@field TopRightBorder texture border corner
----@field BottomLeftBorder texture border corner
----@field BottomRightBorder texture border corner
----@field TopHorizontalEdge texture texture connecting the top corners
----@field BottomHorizontalEdge texture texture connecting the bottom corners
----@field CenterBlock texture texture connecting the bottom left of the topleft corner with the top right of the bottom right corner
-
 ---@param self df_roundedpanel
 ---@param textures cornertextures
 ---@param width number|nil
@@ -293,13 +214,13 @@ detailsFramework.RoundedCornerPanelMixin = {
 
             --set the new size of the corners on all corner textures
             for _, thisTexture in pairs(self.CornerTextures) do
-                thisTexture:SetSize(newCornerSize-self.cornerRoundness, newCornerSize)
+                thisTexture:SetSize(newCornerSize - (self.cornerRoundness - 2), newCornerSize)
             end
 
             --check if the frame has border and set the size of the border corners as well
             if (self.bHasBorder) then
                 for _, thisTexture in pairs(self.BorderCornerTextures) do
-                    thisTexture:SetSize(newCornerSize, newCornerSize)
+                    thisTexture:SetSize(newCornerSize-2, newCornerSize+2)
                 end
 
                 --hide the left and right edges as the corner textures already is enough to fill the frame
@@ -307,8 +228,8 @@ detailsFramework.RoundedCornerPanelMixin = {
                 self.BorderEdgeTextures["Right"]:Hide()
 
                 local horizontalEdgesNewSize = self:CalculateBorderEdgeSize("horizontal")
-                self.BorderEdgeTextures["Top"]:SetSize(horizontalEdgesNewSize, 1)
-                self.BorderEdgeTextures["Bottom"]:SetSize(horizontalEdgesNewSize, 1)
+                self.BorderEdgeTextures["Top"]:SetSize(horizontalEdgesNewSize + (self.options.horizontal_border_size_offset or 0), 1)
+                self.BorderEdgeTextures["Bottom"]:SetSize(horizontalEdgesNewSize + (self.options.horizontal_border_size_offset or 0), 1)
             end
 
             self.CenterBlock:Hide()
@@ -613,6 +534,7 @@ function detailsFramework:AddRoundedCornersToFrame(frame, preset)
 
     --handle preset
     if (preset and type(preset) == "table") then
+        frame.options.horizontal_border_size_offset = preset.horizontal_border_size_offset
         applyPreset(frame, preset)
     else
         applyPreset(frame, defaultPreset)

@@ -402,6 +402,7 @@ plugin.pluginOptions = {
 					max = 10,
 					step = 0.5,
 					order = 9,
+					width = 1.5,
 				},
 				fadetime = {
 					type = "range",
@@ -411,6 +412,7 @@ plugin.pluginOptions = {
 					max = 10,
 					step = 0.5,
 					order = 10,
+					width = 1.5,
 				},
 				newline1 = {
 					type = "description",
@@ -751,8 +753,8 @@ do
 	local anim = updater:CreateAnimation("Alpha")
 	anim:SetFromAlpha(1)
 	anim:SetToAlpha(0)
-	anim:SetDuration(2)
-	anim:SetStartDelay(1.1)
+	anim:SetDuration(1.2)
+	anim:SetStartDelay(1)
 
 	function plugin:EmphasizedPrint(_, text, r, g, b)
 		emphMessageAnchor.header:Hide() -- Hide the header, for config mode

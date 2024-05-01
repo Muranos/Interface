@@ -1,9 +1,6 @@
 local E = select(2, ...):unpack()
 local P, CM, CD = E.Party, E.Comm, E.Cooldowns
 
-local UnitBuff = UnitBuff
-local UnitDebuff = UnitDebuff
-
 P.spell_enabled = {}
 
 function P:Enable()
@@ -160,6 +157,8 @@ function P:UpdatePositionValues()
 	local pixel = (E.db.general.showRange and not db.detached and self.effectivePixelMult or E.PixelMult) / E.db.icons.scale
 	local growLeft = strfind(db.anchor, "RIGHT")
 	local growX = growLeft and -1 or 1
+	local growRowsUpward = db.growUpward
+	local growY = growRowsUpward and 1 or -1
 
 
 	self.point = db.anchor
@@ -178,34 +177,30 @@ function P:UpdatePositionValues()
 	self.displayInactive = db.displayInactive
 	self.maxNumIcons = db.maxNumIcons == 0 and 100 or db.maxNumIcons
 
-	local growRowsUpward = db.growUpward
-	local growY = growRowsUpward and 1 or -1
 	if db.layout == "horizontal" or db.layout == "doubleRow" or db.layout == "tripleRow" then
 		self.ofsX = 0
 		self.ofsY = growY * (E.baseIconHeight + db.paddingY * pixel)
+		self.ofsY2 = 0
 		if growLeft then
 			self.point2 = "TOPRIGHT"
 			self.relativePoint2 = "TOPLEFT"
 			self.ofsX2 = -(db.paddingX * pixel)
-			self.ofsY2 = 0
 		else
 			self.point2 = "TOPLEFT"
 			self.relativePoint2 = "TOPRIGHT"
 			self.ofsX2 = db.paddingX * pixel
-			self.ofsY2 = 0
 		end
 	else
 		self.ofsX = growX * (E.baseIconHeight + db.paddingX  * pixel)
 		self.ofsY = 0
+		self.ofsX2 = 0
 		if growRowsUpward then
 			self.point2 = "BOTTOMRIGHT"
 			self.relativePoint2 = "TOPRIGHT"
-			self.ofsX2 = 0
 			self.ofsY2 = db.paddingY * pixel
 		else
 			self.point2 = "TOPRIGHT"
 			self.relativePoint2 = "BOTTOMRIGHT"
-			self.ofsX2 = 0
 			self.ofsY2 = -(db.paddingY * pixel)
 		end
 	end
@@ -214,42 +209,80 @@ end
 
 
 
-P.GetBuffDuration = E.isClassic and function(P, unit, spellID)
-	for i = 1, 50 do
-		local _,_,_,_,_,_,_,_,_, id = UnitBuff(unit, i)
-		if not id then return end
-		id = E.spell_merged[id] or id
-		if id == spellID then
-			return true
+if AuraUtil and AuraUtil.ForEachAura then
+	P.GetBuffDuration = function(_, unit, spellID)
+		local remainingTime, sourceUnit
+		AuraUtil.ForEachAura(unit, "HELPFUL", nil, function(_,_,_,_, duration, expTime, source, _,_, id)
+			if id == spellID then
+				remainingTime = duration > 0 and expTime - GetTime()
+				sourceUnit = source
+				return true
+			end
+		end)
+		return remainingTime, sourceUnit
+	end
+
+	P.IsDebuffActive = function(_, unit, spellID)
+		local isActive
+		AuraUtil.ForEachAura(unit, "HARMFUL", nil, function(_,_,_,_,_,_,_,_,_, id)
+			if id == spellID then
+				isActive = true
+				return true
+			end
+		end)
+		return isActive
+	end
+
+	P.GetDebuffDuration = function(_, unit, spellID)
+		local remainingTime
+		AuraUtil.ForEachAura(unit, "HARMFUL", nil, function(_,_,_,_, duration, expTime, _,_,_, id)
+			if id == spellID then
+				remainingTime = duration > 0 and expTime - GetTime()
+				return true
+			end
+		end)
+		return remainingTime
+	end
+else
+	local UnitBuff = UnitBuff
+	local UnitDebuff = UnitDebuff
+
+	P.GetBuffDuration = E.isClassic and function(_, unit, spellID)
+		for i = 1, 50 do
+			local _,_,_,_,_,_,_,_,_, id = UnitBuff(unit, i)
+			if not id then return end
+			id = E.spell_merged[id] or id
+			if id == spellID then
+				return true
+			end
+		end
+	end or function(_, unit, spellID)
+		for i = 1, 50 do
+			local _,_,_,_, duration, expTime, source, _,_, id = UnitBuff(unit, i)
+			if not id then return end
+			if id == spellID then
+				return duration > 0 and expTime - GetTime(), source
+			end
 		end
 	end
 
-end or function(P, unit, spellID)
-	for i = 1, 50 do
-		local _,_,_,_, duration, expTime, source, _,_, id = UnitBuff(unit, i)
-		if not id then return end
-		if id == spellID then
-			return duration > 0 and expTime - GetTime(), source
+	P.IsDebuffActive = function(_, unit, spellID)
+		for i = 1, 50 do
+			local _,_,_,_,_,_,_,_,_, id = UnitDebuff(unit, i)
+			if not id then return end
+			if id == spellID then
+				return true
+			end
 		end
 	end
-end
 
-function P:IsDebuffActive(unit, spellID)
-	for i = 1, 50 do
-		local _,_,_,_,_,_,_,_,_, id = UnitDebuff(unit, i)
-		if not id then return end
-		if id == spellID then
-			return true
-		end
-	end
-end
-
-function P:GetDebuffDuration(unit, spellID)
-	for i = 1, 50 do
-		local _,_,_,_, duration, expTime,_,_,_, id = UnitDebuff(unit, i)
-		if not id then return end
-		if id == spellID then
-			return duration > 0 and expTime - GetTime()
+	P.GetDebuffDuration = function(_, unit, spellID)
+		for i = 1, 50 do
+			local _,_,_,_, duration, expTime,_,_,_, id = UnitDebuff(unit, i)
+			if not id then return end
+			if id == spellID then
+				return duration > 0 and expTime - GetTime()
+			end
 		end
 	end
 end
@@ -316,18 +349,21 @@ function P:IsSpecAndTalentForPvpStatus(talentID, info)
 	end
 end
 
-function P:IsSpecOrTalentForPvpStatus(talentID, info, isLearnedLevel)
+function P:IsSpecOrTalentForPvpStatus(talentID, info, isLearnedLevel, talentDisabledSpec)
 	if not talentID then
 		return isLearnedLevel
 	end
 	if type(talentID) == "table" then
 		for _, id in ipairs(talentID) do
-			local talent = P:IsSpecOrTalentForPvpStatus(id, info, isLearnedLevel)
+			local talent = P:IsSpecOrTalentForPvpStatus(id, info, isLearnedLevel, talentDisabledSpec)
 			if talent then return true end
 		end
 	else
 		if specIDs[talentID] then
 			return isLearnedLevel and info.spec == talentID
+		end
+		if talentDisabledSpec and talentDisabledSpec[self.zone] then
+			return
 		end
 		if covenantIDs[talentID] and not self.isInShadowlands then
 			return

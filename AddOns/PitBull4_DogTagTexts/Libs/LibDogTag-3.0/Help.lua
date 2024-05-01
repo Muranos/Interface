@@ -1,5 +1,5 @@
 local MAJOR_VERSION = "LibDogTag-3.0"
-local MINOR_VERSION = tonumber(("20210628175745"):match("%d+")) or 33333333333333
+local MINOR_VERSION = tonumber(("20231107223907"):match("%d+")) or 33333333333333
 
 if MINOR_VERSION > _G.DogTag_MINOR_VERSION then
 	_G.DogTag_MINOR_VERSION = MINOR_VERSION
@@ -16,6 +16,9 @@ local L = DogTag.L
 local newList, newDict, newSet, del = DogTag.newList, DogTag.newDict, DogTag.newSet, DogTag.del
 
 local helpFrame
+
+local wow_ver = select(4, GetBuildInfo())
+local wow_1000 = wow_ver >= 100000
 --[[
 Notes:
 	This opens the in-game documentation, which provides information to users on syntax as well as the available tags and modifiers.
@@ -30,7 +33,11 @@ function DogTag:OpenHelp()
 	helpFrame:EnableMouse(true)
 	helpFrame:SetMovable(true)
 	helpFrame:SetResizable(true)
-	helpFrame:SetMinResize(600, 300)
+	if helpFrame.SetMinResize then
+		helpFrame:SetMinResize(600, 300)
+	elseif helpFrame.SetResizeBounds then
+		helpFrame:SetResizeBounds(600, 300)
+	end
 	helpFrame:SetFrameLevel(50)
 	helpFrame:SetFrameStrata("FULLSCREEN_DIALOG")
 
@@ -571,8 +578,6 @@ function DogTag:OpenHelp()
 	html:SetHeight(1)
 	html:SetWidth(400)
 	html:SetPoint("TOPLEFT", 0, 0)
-	html:SetJustifyH("LEFT")
-	html:SetJustifyV("TOP")
 	
 	local searchBox = CreateFrame("EditBox", helpFrame:GetName() .. "_SearchBox", helpFrame)
 	searchBox:SetFontObject(ChatFontNormal)
@@ -846,7 +851,13 @@ function DogTag:OpenHelp()
 			local x = text:sub(3, -3)
 			x = "[" .. x .. "]"
 			x = DogTag:ColorizeCode(x)
-			local y = x:match("^|cff%x%x%x%x%x%x%[(|cff%x%x%x%x%x%x.*)|cff%x%x%x%x%x%x%]|r$") .. "|r"
+			-- Find the first opening bracket in the colored string,
+			-- which is the one we just prepended to `x`.
+			local first = string.find(x, "|cff%x%x%x%x%x%x%[") + 11
+			-- Find the last closing bracket in the colored string,
+			-- which is the one we just appended to `x`.
+			local last = string.find(x, "|cff%x%x%x%x%x%x%]|r[^%]]*$") - 1
+			local y = x:sub(first, last)
 			return y
 		end
 		return DogTag:ColorizeCode(text:sub(2, -2))

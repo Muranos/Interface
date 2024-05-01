@@ -1,5 +1,8 @@
 if not WeakAuras.IsLibsOK() then return end
-local AddonName, OptionsPrivate = ...
+---@type string
+local AddonName = ...
+---@class OptionsPrivate
+local OptionsPrivate = select(2, ...)
 
 -- Lua APIs
 local pairs, error, coroutine = pairs, error, coroutine
@@ -7,6 +10,7 @@ local pairs, error, coroutine = pairs, error, coroutine
 -- WoW APIs
 local GetSpellInfo, IsSpellKnown = GetSpellInfo, IsSpellKnown
 
+---@class WeakAuras
 local WeakAuras = WeakAuras
 
 local spellCache = {}
@@ -46,6 +50,9 @@ function spellCache.Build()
           cache[name].spells = cache[name].spells .. "," .. id .. "=" .. icon
         end
         misses = 0
+        if WeakAuras.IsClassicEra() and id == 81748 then -- jump around big hole with classic SoD
+          id = 219002
+        end
       else
         misses = misses + 1
       end

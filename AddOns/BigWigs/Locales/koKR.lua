@@ -9,11 +9,15 @@ L.altpower_desc = "보조 마력 창을 표시합니다, 자신의 파티/공격
 L.infobox = "정보 상자"
 L.infobox_desc = "우두머리 전투와 관련된 정보를 담은 상자를 표시합니다."
 L.stages = "단계"
-L.stages_desc = "근접, 바, 기타 등등 우두머리의 다양한 단계와 관련된 기능을 사용합니다."
+L.stages_desc = "단계 변경 경고, 단계 지속 시간 타이머 바 등 우두머리 전투의 다양한 단계와 관련된 기능을 활성화합니다."
 L.warmup = "준비"
 L.warmup_desc = "우두머리와의 전투가 시작되기 까지 시간입니다."
 L.proximity = "근접 디스플레이"
 L.proximity_desc = "이 우두머리 전투에 적절할 때 근접 창을 표시합니다, 자신과 너무 가깝게 서있는 플레이어를 보여줍니다."
+L.adds = "추가 몹"
+L.adds_desc = "우두머리 전투 중 생성되는 다양한 추가 몹들과 관련된 기능들을 사용 가능하게 합니다."
+--L.health = "Health"
+--L.health_desc = "Enable functions for displaying various health information during the boss encounter."
 
 L.already_registered = "|cffff0000경고:|r |cff00ff00%s|r (|cffffff00%s|r)|1은;는; 이미 BigWigs 내에 모듈로 존재합니다, 하지만 무엇인가 다시 등록하려고 시도했습니다. 이는 일반적으로 몇몇 애드온 업데이터 오류로 인해 애드온 폴더 내에 이 모듈의 사본을 가지고 있다는 것을 의미합니다. 설치된 모든 BigWigs 폴더를 삭제한 후 처음부터 다시 설치하는 것을 권장합니다."
 L.testNameplate = "대상이 감지되면, 대상의 이름표 위에 임의로 이름표를 하나 만듭니다. |cFF33FF99이 기능은 거의 쓰이지 않고, 바 하나일 때가 많고, 주로 같은 스킬을 시전하는 여러마리의 넴드나 쫄들과 상대할때 그 쿨다운을 체크하기 위해 씁니다.|r"
@@ -54,7 +58,9 @@ L.expansionNames = {
 	"격전의 아제로스", -- Battle for Azeroth
 	"어둠땅", -- Shadowlands
 	"용군단", -- Dragonflight
+	"내부 전쟁", -- The War Within
 }
+L.currentSeason = "현재 시즌"
 
 -- Media.lua (These are the names of the sounds in the dropdown list in the "sounds" section)
 L.Beware = "조심해라 (알갈론)"
@@ -66,7 +72,7 @@ L.spell_under_you = "BigWigs: 발밑에 바닥"
 
 -- Options.lua
 L.options = "옵션"
---L.optionsKey = "Key: %s" -- The key that messages/bars/options use
+L.optionsKey = "ID: %s" -- The ID that messages/bars/options use
 L.raidBosses = "공격대 우두머리"
 L.dungeonBosses = "던전 우두머리"
 L.introduction = "우두머리 전투가 배회하는 BigWigs에 오신 걸 환영합니다. 안전 벨트를 착용하고, 땅콩을 먹으며 탑승을 즐기세요. 당신의 아이들을 먹진 않지만, 당신의 공격대를 위한 7-코스 저녁 식사로 새로운 우두머리 전투를 준비하는 데 도움을 줄겁니다."
@@ -77,8 +83,6 @@ L.toggleAnchorsBtnHide_desc = "고정기를 모두 숨겨서 다 그자리에 �
 L.testBarsBtn = "테스트 바 만들기"
 L.testBarsBtn_desc = "당신의 현재 표시 설정으로 테스트용 바를 만듭니다."
 L.sound = "소리"
-L.flashScreen = "화면 깜빡임"
-L.flashScreenDesc = "특정 능력은 당신의 모든 주의를 기울일 정도로 중요합니다. 이 능력들이 당신에게 영향을 줄 때 BigWigs가 화면을 깜빡일 수 있습니다."
 L.minimapIcon = "미니맵 아이콘"
 L.minimapToggle = "미니맵 아이콘의 표시/숨기기를 전환합니다."
 L.compartmentMenu = "미니맵 옆에 아이콘 표시"
@@ -94,6 +98,8 @@ L.dbmFaker = "DBM을 사용 중인 것처럼 위장하기"
 L.dbmFakerDesc = "DBM 사용자가 DBM의 버전을 확인하여 누가 DBM을 사용하는지 확인할 때 DBM 사용자 명단에 당신을 표시합니다. DBM 사용을 강제하는 길드에서 유용합니다."
 L.zoneMessages = "지역 메시지 표시"
 L.zoneMessagesDesc = "비활성하면 설치하지 않았지만 BigWigs에 타이머가 있는 지역에 입장했을 때 메시지 표시를 중지합니다. 당신이 유용하다고 느끼는 새로운 지역에 대한 타이머를 우리가 갑자기 만들었을 때 받을 수 있는 유일한 알림이기 때문에 이 기능을 사용하는 걸 권장합니다."
+L.englishSayMessages = "영어 전용 메시지"
+L.englishSayMessagesDesc = "우두머리 전투중 당신이 채팅창에 보내는 모든 '말하기'와 '외치기' 메시지는 항상 영어로 나타납니다. 당신이 혼용된 언어의 사용자들과 함께 할 경우 유용할 수 있습니다."
 
 L.slashDescTitle = "|cFFFED000대화 명령어:|r"
 L.slashDescPull = "|cFFFED000/pull:|r 공격대에 전투 예정 초읽기를 보냅니다."

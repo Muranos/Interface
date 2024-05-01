@@ -4,7 +4,7 @@ local api = {};
 app.Audio = api;
 
 -- Sound Pack Management
-local EventHandlers, SoundPacks, CurrentSoundPack = {}, {};
+local EventHandlers, SoundPacks, CurrentSoundPack = {}, {}, nil;
 function api:ActivateSoundPack(name, noerror)
 	local t = type(name);
 	if t == "string" then
@@ -79,21 +79,24 @@ local DefaultSoundPack = api:CreateSoundPack("Default", {
 		app.asset("fanfare5.ogg"),
 		app.asset("fanfare6.ogg"),
 	},
+	MOUNTFANFARE = {
+		app.asset("mountfanfare1.ogg"),
+	},
 	RAREFIND = {
-		app.asset("rarefind1.ogg"),
+		app.asset("rarefind1.wav"),
 	},
 	REMOVE = {
 		app.asset("remove1.ogg"),
 	},
-	REPORT = {
-		app.asset("report1.ogg"),
-	},
+	REPORT = {},	-- Only specifying the REPORT table prevents any report sound from playing
 });
 CurrentSoundPack = DefaultSoundPack;
 
 -- Some extra Sound Packs
-api:CreateSoundPack("Default (Without Report Sounds)", {
-	REPORT = {},	-- Only specifying the REPORT table prevents any report sound from playing
+api:CreateSoundPack("Default (With Report Sounds)", {
+	REPORT = {
+		app.asset("report1.ogg"),
+	},
 });
 
 -- Play Audio API
@@ -115,6 +118,8 @@ local function PlayAudio(soundType, setting)
 					local soundFile = targetAudio[math.random(1, audioCount)];
 					if soundFile then
 						(type(soundFile) == "string" and PlaySoundFile or PlaySound)(soundFile, app.Settings:GetTooltipSetting("Channel"));
+						app.PrintDebug("PlayAudio",soundFile)
+						return true;
 					end
 				end
 			end
@@ -130,8 +135,13 @@ end
 function api:PlayFanfare()
 	PlayAudio("FANFARE", "Celebrate");
 end
+function api:PlayMountFanfare()
+	if not PlayAudio("MOUNTFANFARE", "Celebrate") then
+		PlayAudio("FANFARE", "Celebrate")
+	end
+end
 function api:PlayRareFindSound()
-	PlayAudio("RAREFIND", "Celebrate");
+	PlayAudio("RAREFIND", "RareFind");
 end
 function api:PlayRemoveSound()
 	PlayAudio("REMOVE", "Warn:Removed");
@@ -143,26 +153,7 @@ function api:PlayReportSound()
 end
 
 -- Deprecated functions (they will still work for now)
-function app:PlayCompleteSound()
-	PlayAudio("COMPLETE", "Celebrate");
-end
-function app:PlayDeathSound()
-	PlayAudio("DEATH", "PlayDeathSound");
-end
-function app:PlayFanfare()
-	PlayAudio("FANFARE", "Celebrate");
-end
-function app:PlayRareFindSound()
-	PlayAudio("RAREFIND", "Celebrate");
-end
-function app:PlayRemoveSound()
-	PlayAudio("REMOVE", "Warn:Removed");
-end
-function app:PlayReportSound()
-	if app.Settings:GetTooltipSetting("Warn:Removed") or app.Settings:GetTooltipSetting("Celebrate") then
-		PlayAudio("REPORT");
-	end
-end
+-- Crieve NOTE: Not sure if that comment above also applies to the following functions too.
 
 -- Accepts various 'type' values to insert a Sound into the respective table
 function app.AddSound(tableName, sound)
@@ -170,7 +161,7 @@ function app.AddSound(tableName, sound)
 	if soundType ~= "string" and soundType ~= "number" then
 		error("Sound must be either a string FilePath ('Interface/...') or a FileDataID number");
 	end
-	tableName = string.upper(tableName or "");
+	tableName = (tableName or ""):upper();
 	if not DefaultSoundPack[tableName] then	-- If it isn't in the default sound pack, it's not valid for any Sound Pack for ATT.
 		error("Sound table '".. tableName .. "' is not valid");
 	end
@@ -187,7 +178,7 @@ function app.AddSound(tableName, sound)
 end
 -- Allows clearing the Sounds for a given 'type' of Sound
 function app.ClearSounds(tableName)
-	tableName = string.upper(tableName or "");
+	tableName = (tableName or ""):upper();
 	if not DefaultSoundPack[tableName] then	-- If it isn't in the default sound pack, it's not valid for any Sound Pack for ATT.
 		error("Sound table '".. tableName .. "' is not valid");
 	end

@@ -1,4 +1,6 @@
-if WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE then return end
+local IS_RETAIL = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
+local IS_CLASSIC_ERA = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
+local IS_CLASSIC = WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC or WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC or WOW_PROJECT_ID == WOW_PROJECT_CATA_CLASSIC
 
 local addonName = ... ---@type string @The name of the addon.
 local ns = select(2, ...) ---@class ns @The addon namespace.
@@ -129,36 +131,44 @@ local HookUtil do
 
 end
 
+-- clients have API naming variants and this helps bridge that gap (this will require revisions/deletion as the clients unify their API's)
+local GetDetailedItemLevelInfo = GetDetailedItemLevelInfo or C_Item.GetDetailedItemLevelInfo ---@diagnostic disable-line: deprecated
+local GetItemInfo = GetItemInfo or C_Item.GetItemInfo ---@diagnostic disable-line: deprecated
+local GetItemInfoInstant = GetItemInfoInstant or C_Item.GetItemInfoInstant ---@diagnostic disable-line: deprecated
+local GetItemQualityColor = GetItemQualityColor or C_Item.GetItemQualityColor ---@diagnostic disable-line: deprecated
+
 -- constants.lua (ns)
 -- dependencies: none
 do
 
     ---@class ns
-    ---@field public DUNGEONS Dungeon[]
-    ---@field public dungeons Dungeon[] @DEPRECATED
-    ---@field public EXPANSION_DUNGEONS Dungeon[]
-    ---@field public expansionDungeons Dungeon[] @DEPRECATED
-    ---@field public RAIDS DungeonRaid[]
-    ---@field public raids DungeonRaid[] @DEPRECATED
-    ---@field public REALMS RealmCollection<string, string>
-    ---@field public realmSlugs RealmCollection<string, string> @DEPRECATED
-    ---@field public REGIONS RegionCollection<number, number>
-    ---@field public regionIDs RegionCollection<number, number> @DEPRECATED
-    ---@field public SCORE_STATS ScoreStatsCollection<number, number>
-    ---@field public scoreLevelStats ScoreStatsCollection<number, number> @DEPRECATED
-    ---@field public SCORE_TIERS ScoreColorCollection<number, ScoreColor>
-    ---@field public scoreTiers ScoreColorCollection<number, ScoreColor> @DEPRECATED
-    ---@field public SCORE_TIERS_SIMPLE ScoreTiersSimpleCollection<number, ScoreTierSimple>
-    ---@field public scoreTiersSimple ScoreTiersSimpleCollection<number, ScoreTierSimple> @DEPRECATED
-    ---@field public SCORE_TIERS_PREV ScoreColorCollection<number, ScoreColor>
-    ---@field public previousScoreTiers ScoreColorCollection<number, ScoreColor> @DEPRECATED
-    ---@field public SCORE_TIERS_SIMPLE_PREV ScoreTiersSimpleCollection<number, ScoreTierSimple>
-    ---@field public previousScoreTiersSimple ScoreTiersSimpleCollection<number, ScoreTierSimple> @DEPRECATED
-    ---@field public CUSTOM_TITLES RecruitmentTitlesCollection<number, RecruitmentTitle>
+    ---@field public DUNGEONS? Dungeon[]
+    ---@field public dungeons? Dungeon[] @DEPRECATED
+    ---@field public EXPANSION_DUNGEONS? Dungeon[]
+    ---@field public expansionDungeons? Dungeon[] @DEPRECATED
+    ---@field public RAIDS? DungeonRaid[]
+    ---@field public raids? DungeonRaid[] @DEPRECATED
+    ---@field public REALMS table<string, string>
+    ---@field public realmSlugs table<string, string> @DEPRECATED
+    ---@field public REGIONS table<number, number>
+    ---@field public regionIDs table<number, number> @DEPRECATED
+    ---@field public SCORE_STATS? table<number, number>
+    ---@field public scoreLevelStats? table<number, number> @DEPRECATED
+    ---@field public DUNGEON_SCORE_STATS? table<number, DungeonScoreStats>
+    ---@field public dungeonScoreStats? table<number, DungeonScoreStats> @DEPRECATED
+    ---@field public SCORE_TIERS? table<number, ScoreColor>
+    ---@field public scoreTiers? table<number, ScoreColor> @DEPRECATED
+    ---@field public SCORE_TIERS_SIMPLE? table<number, ScoreTierSimple>
+    ---@field public scoreTiersSimple? table<number, ScoreTierSimple> @DEPRECATED
+    ---@field public SCORE_TIERS_PREV? table<number, ScoreColor>
+    ---@field public previousScoreTiers? table<number, ScoreColor> @DEPRECATED
+    ---@field public SCORE_TIERS_SIMPLE_PREV table<number, ScoreTierSimple>
+    ---@field public previousScoreTiersSimple table<number, ScoreTierSimple> @DEPRECATED
+    ---@field public CUSTOM_TITLES table<number, RecruitmentTitle>
     ---@field public CLIENT_CHARACTERS table<string, CharacterCollection>
-    ---@field public CLIENT_COLORS ScoreColorCollection<number, ScoreColor>
+    ---@field public CLIENT_COLORS table<number, ScoreColor>
     ---@field public CLIENT_CONFIG ClientConfig
-    ---@field public GUILD_BEST_DATA Guild<string, GuildCollection>
+    ---@field public GUILD_BEST_DATA table<string, GuildCollection>
     ---@field public REPLAYS Replay[]
     ---@field public EXPANSION number @The currently accessible expansion to the playerbase
     ---@field public MAX_LEVEL number @The currently accessible expansion max level to the playerbase
@@ -189,6 +199,13 @@ do
     ns.LOOKUP_MAX_SIZE = floor(2^18-1) -- the maximum index we can use in a table before we start to get errors
     ns.CURRENT_SEASON = 1 -- the current mythic keystone season. dynamically assigned once keystone data is loaded.
     ns.RAIDERIO_ADDON_DOWNLOAD_URL = "https://rio.gg/addon"
+    ns.RAIDERIO_DOMAIN = "raider.io"
+
+    if IS_CLASSIC_ERA then
+        ns.RAIDERIO_DOMAIN = "era.raider.io"
+    elseif IS_CLASSIC then
+        ns.RAIDERIO_DOMAIN = "classic.raider.io"
+    end
 
     ns.EASTER_EGG = {
         ["eu"] = {
@@ -230,7 +247,7 @@ do
     }
 
     local PREVIOUS_SEASON_NUM_DUNGEONS = 8
-    local DUNGEONS = ns.DUNGEONS or ns.dungeons -- DEPRECATED: ns.dungeons
+    local DUNGEONS = ns.DUNGEONS or ns.dungeons or {} -- DEPRECATED: ns.dungeons + FALLBACK
 
     -- threshold for comparing current character's previous season score to current score
     -- meaning: once current score exceeds this fraction of previous season, then show current season
@@ -587,9 +604,7 @@ do
     ---@field public score number
     ---@field public color number[]
 
-    ---@class ScoreColorCollection
-
-    ---@return ScoreColorCollection<number, ScoreColor>
+    ---@return table<number, ScoreColor>
     function ns:GetClientColorData()
         return ns.CLIENT_COLORS
     end
@@ -612,15 +627,14 @@ do
     ---@field public clear_time string
     ---@field public party GuildMythicKeystoneRunMember[]
     ---@field public dungeon Dungeon
+    ---@field public dungeonName string
 
     ---@class GuildCollection
     ---@field public profile GuildProfile
     ---@field public season_best GuildMythicKeystoneRun[]
     ---@field public weekly_best GuildMythicKeystoneRun[]
 
-    ---@class Guild
-
-    ---@return Guild<string, GuildCollection>
+    ---@return table<string, GuildCollection>
     function ns:GetClientGuildData()
         return ns.GUILD_BEST_DATA
     end
@@ -732,7 +746,7 @@ do
     local ALL_DUNGEONS = {}
 
     ---@type Dungeon[]
-    local DUNGEONS = ns.DUNGEONS or ns.dungeons -- DEPRECATED: ns.dungeons
+    local DUNGEONS = ns.DUNGEONS or ns.dungeons or {} -- DEPRECATED: ns.dungeons + FALLBACK
 
     for i = 1, #DUNGEONS do
         local dungeon = DUNGEONS[i] ---@type Dungeon
@@ -742,7 +756,7 @@ do
     end
 
     ---@type Dungeon[]
-    local EXPANSION_DUNGEONS = ns.EXPANSION_DUNGEONS or ns.expansionDungeons -- DEPRECATED: ns.expansionDungeons
+    local EXPANSION_DUNGEONS = ns.EXPANSION_DUNGEONS or ns.expansionDungeons or {} -- DEPRECATED: ns.expansionDungeons + FALLBACK
 
     for i = 1, #EXPANSION_DUNGEONS do
         local dungeon = EXPANSION_DUNGEONS[i] ---@type Dungeon
@@ -752,7 +766,7 @@ do
     end
 
     ---@type DungeonRaid[]
-    local RAIDS = ns.RAIDS or ns.raids -- DEPRECATED: ns.raids
+    local RAIDS = ns.RAIDS or ns.raids or {} -- DEPRECATED: ns.raids + FALLBACK
 
     for i = 1, #RAIDS do
         local raid = RAIDS[i] ---@type DungeonRaid
@@ -770,60 +784,73 @@ do
         return RAIDS
     end
 
-    ---@class RealmCollection
+    ---@type table<string, string>
+    local REALMS = ns.REALMS or ns.realmSlugs -- DEPRECATED: ns.realmSlugs
 
-    ---@return RealmCollection<string, string>
     function ns:GetRealmData()
-        return ns.REALMS or ns.realmSlugs -- DEPRECATED: ns.realmSlugs
+        return REALMS
     end
 
-    ---@class RegionCollection
-
-    ---@return RegionCollection<number, number>
+    ---@return table<number, number>
     function ns:GetRegionData()
         return ns.REGIONS or ns.regionIDs -- DEPRECATED: ns.regionIDs
     end
 
-    ---@class ScoreStatsCollection
+    ---@type table<number, number>
+    local SCORE_STATS = ns.SCORE_STATS or ns.scoreLevelStats or {} -- DEPRECATED: ns.scoreLevelStats + FALLBACK
 
-    ---@return ScoreStatsCollection<number, number>
     function ns:GetScoreStatsData()
-        return ns.SCORE_STATS or ns.scoreLevelStats -- DEPRECATED: ns.scoreLevelStats
+        return SCORE_STATS
     end
 
-    ---@return ScoreColorCollection<number, ScoreColor>
+    ---@class DungeonScoreStats
+    ---@field public [1] number
+    ---@field public [2] number
+
+    ---@type table<number, DungeonScoreStats>
+    local DUNGEON_SCORE_STATS = ns.DUNGEON_SCORE_STATS or ns.dungeonScoreStats or {} -- DEPRECATED: ns.dungeonScoreStats + FALLBACK
+
+    function ns:GetDungeonScoreStatsData()
+        return DUNGEON_SCORE_STATS
+    end
+
+    ---@type table<number, ScoreColor>
+    local SCORE_TIERS = ns.SCORE_TIERS or ns.scoreTiers or {} -- DEPRECATED: ns.scoreTiers + FALLBACK
+
     function ns:GetScoreTiersData()
-        return ns.SCORE_TIERS or ns.scoreTiers -- DEPRECATED: ns.scoreTiers
+        return SCORE_TIERS
     end
 
     ---@class ScoreTierSimple
     ---@field public score number
     ---@field public quality number
 
-    ---@class ScoreTiersSimpleCollection
+    ---@type table<number, ScoreTierSimple>
+    local SCORE_TIERS_SIMPLE = ns.SCORE_TIERS_SIMPLE or ns.scoreTiersSimple or {} -- DEPRECATED: ns.scoreTiersSimple + FALLBACK
 
-    ---@return ScoreTiersSimpleCollection<number, ScoreTierSimple>
     function ns:GetScoreTiersSimpleData()
-        return ns.SCORE_TIERS_SIMPLE or ns.scoreTiersSimple -- DEPRECATED: ns.scoreTiersSimple
+        return SCORE_TIERS_SIMPLE
     end
 
-    ---@return ScoreColorCollection<number, ScoreColor>
+    ---@type table<number, ScoreColor>
+    local SCORE_TIERS_PREV = ns.SCORE_TIERS_PREV or ns.previousScoreTiers or {} -- DEPRECATED ns.previousScoreTiers + FALLBACK
+
     function ns:GetScoreTiersPrevData()
-        return ns.SCORE_TIERS_PREV or ns.previousScoreTiers -- DEPRECATED ns.previousScoreTiers
+        return SCORE_TIERS_PREV
     end
 
-    ---@return ScoreTiersSimpleCollection<number, ScoreTierSimple>
+    ---@type table<number, ScoreTierSimple>
+    local SCORE_TIERS_SIMPLE_PREV = ns.SCORE_TIERS_SIMPLE_PREV or ns.previousScoreTiersSimple or {} -- DEPRECATED: ns.previousScoreTiersSimple + FALLBACK
+
     function ns:GetScoreTiersSimplePrevData()
-        return ns.SCORE_TIERS_SIMPLE_PREV or ns.previousScoreTiersSimple -- DEPRECATED: ns.previousScoreTiersSimple
+        return SCORE_TIERS_SIMPLE_PREV
     end
 
     ---@class RecruitmentTitle
     ---@field public [1] string
     ---@field public [2] number?
 
-    ---@class RecruitmentTitlesCollection
-
-    ---@return RecruitmentTitlesCollection<number, RecruitmentTitle>
+    ---@return table<number, RecruitmentTitle>
     function ns:GetRecruitmentTitles()
         return ns.CUSTOM_TITLES
     end
@@ -846,22 +873,22 @@ do
     ---@field public enabled boolean @Flag indicates if the module is enabled.
     ---@field public dependencies string[] @List over dependencies before we can Load the module.
     -- private functions that should never be called
-    ---@field public SetLoaded function @Internal function should not be called manually.
-    ---@field public Load function @Internal function should not be called manually.
-    ---@field public SetEnabled function @Internal function should not be called manually.
+    ---@field public SetLoaded fun(self: Module, state: boolean) @Internal function should not be called manually.
+    ---@field public Load fun(self: Module):boolean @Internal function should not be called manually.
+    ---@field public SetEnabled fun(self: Module, state: boolean) @Internal function should not be called manually.
     -- protected functions that can be called but should never be overridden
-    ---@field public IsLoaded function @Internal function, can be called but do not override.
-    ---@field public IsEnabled function @Internal function, can be called but do not override.
-    ---@field public Enable function @Internal function, can be called but do not override.
-    ---@field public Disable function @Internal function, can be called but do not override.
-    ---@field public SetDependencies function @Internal function, can be called but do not override.
-    ---@field public HasDependencies function @Internal function, can be called but do not override.
-    ---@field public GetDependencies function @Internal function, can be called but do not override. Returns a table using the same order as the dependencies table. Returns the modules or nil depending if they are available or not.
+    ---@field public IsLoaded fun(self: Module):boolean @Internal function, can be called but do not override.
+    ---@field public IsEnabled fun(self: Module):boolean @Internal function, can be called but do not override.
+    ---@field public Enable fun(self: Module):boolean @Internal function, can be called but do not override.
+    ---@field public Disable fun(self: Module):boolean @Internal function, can be called but do not override.
+    ---@field public SetDependencies fun(self: Module, dependencies?: string[]) @Internal function, can be called but do not override.
+    ---@field public HasDependencies fun(self: Module):boolean @Internal function, can be called but do not override.
+    ---@field public GetDependencies fun(self: Module):string[] @Internal function, can be called but do not override. Returns a table using the same order as the dependencies table. Returns the modules or nil depending if they are available or not.
     -- public functions that can be overridden
-    ---@field public CanLoad function @If it returns true the module will be loaded, otherwise postponed for later. Override to define your modules load criteria that have to be met before loading.
-    ---@field public OnLoad function @Once the module loads this function is executed. Use this to setup further logic for your module. The args provided are the module references as described in the dependencies table.
-    ---@field public OnEnable function @This function is executed when the module is set to enabled state. Use this to setup and prepare.
-    ---@field public OnDisable function @This function is executed when the module is set to disabled state. Use this for cleanup purposes.
+    ---@field public CanLoad fun(self: Module):boolean @If it returns true the module will be loaded, otherwise postponed for later. Override to define your modules load criteria that have to be met before loading.
+    ---@field public OnLoad fun(self: Module) @Once the module loads this function is executed. Use this to setup further logic for your module. The args provided are the module references as described in the dependencies table.
+    ---@field public OnEnable fun(self: Module) @This function is executed when the module is set to enabled state. Use this to setup and prepare.
+    ---@field public OnDisable fun(self: Module) @This function is executed when the module is set to disabled state. Use this for cleanup purposes.
 
     ---@type Module
     local module = {} ---@diagnostic disable-line: missing-fields
@@ -1026,7 +1053,7 @@ do
                 return module
             end
         end
-        assert(silent, "Raider.IO Module expects GetModule(id) where id is a string, and the module must exists, or the silent param must be set to avoid this throw.")
+        assert(silent, format("Raider.IO Module expects GetModule(\"%s\") but the module doesn't exist and the silent flag is not set.", tostring(id)))
     end
 
 end
@@ -1155,6 +1182,7 @@ do
     ---@field public replayPoint ConfigProfilePoint Defaults to `{ point = nil, x = 0, y = 0 }`
     ---@field public profilePoint ConfigProfilePoint Defaults to `{ point = nil, x = 0, y = 0 }`
     ---@field public replayBackground ConfigReplayColor Defaults to `{ r = 0, g = 0, b = 0, a = 0.5 }`
+    ---@field public minimapIcon LibDBIcon.button.DB Defaults to `{ hide = false, lock = false, showInCompartment = true, minimapPos = 180 }`
 
     -- fallback saved variables
     ---@class FallbackConfig
@@ -1205,6 +1233,7 @@ do
         dockReplay = true, -- NEW in 10.1.5
         lockReplay = false, -- NEW in 10.1.5
         replayPoint = { point = nil, x = 0, y = 0 }, -- NEW in 10.1.5
+        minimapIcon = { hide = false, lock = false, showInCompartment = true, minimapPos = 180 }, -- NEW in 10.2.6
     }
 
     -- fallback metatable looks up missing keys into the fallback config table
@@ -1265,6 +1294,11 @@ do
     ---@return any
     function config:GetDefault(key)
         return fallbackConfig[key]
+    end
+
+    function config:Reset()
+        assert(self:IsEnabled(), "Raider.IO Config expects Reset() to only be used after the addon saved variables have been loaded.")
+        table.wipe(RaiderIO_Config)
     end
 
 end
@@ -1595,10 +1629,16 @@ do
     -- Servers that are **not** `IsOnTournamentRealm`, `IsTestBuild`, or part of `ns.IGNORED_REALMS` are considered retail realms.
     -- We will use this function to avoid complaining or printing warnings to the user about these special realms.
     function util:IsOnRetailRealm()
+        if not IS_RETAIL then
+            return false
+        end
         if IsOnTournamentRealm() then
             return false
         end
         if IsTestBuild() then
+            return false
+        end
+        if GetCurrentRegion() == 72 then
             return false
         end
         if ns.IGNORED_REALMS[ns.PLAYER_REALM] or ns.IGNORED_REALMS[ns.PLAYER_REALM_SLUG] then
@@ -1618,7 +1658,7 @@ do
         local serverId = tonumber(strmatch(guid, "^Player%-(%d+)") or 0) or 0
         local regionId = REGION[serverId]
         if not regionId then
-            regionId = GetCurrentRegion()
+            regionId = GetCurrentRegion() ---@type number
             if util:IsOnRetailRealm() then
                 ns.Print(format(L.UNKNOWN_SERVER_FOUND, addonName, guid or "N/A", GetNormalizedRealmName() or "N/A"))
             end
@@ -1750,7 +1790,7 @@ do
 
     ---@param arg1 string @"unit", "name", or "name-realm"
     ---@param arg2? string @"realm" or nil
-    ---@return string, string, string @name, realm, unit
+    ---@return string name, string realm, string unit
     function util:GetNameRealm(arg1, arg2)
         local unit, name, realm
         local _, unitExists, unitIsPlayer = util:IsUnit(arg1, arg2)
@@ -2135,7 +2175,7 @@ do
         if fontObject then
             TOOLTIP_TEXT_FONTSTRING:SetFontObject(fontObject)
         else
-            TOOLTIP_TEXT_FONTSTRING:SetFont(fontWidget:GetFont())
+            TOOLTIP_TEXT_FONTSTRING:SetFont(fontWidget:GetFont()) ---@diagnostic disable-line: param-type-mismatch
         end
     end
 
@@ -2165,7 +2205,7 @@ do
         local realmSlug = util:GetRealmSlug(realm, true)
         local region = select(3, ...)
         region = region and type(region) == "string" and region:len() > 0 and region or ns.PLAYER_REGION
-        return format("https://raider.io/characters/%s/%s/%s?utm_source=addon", region, realmSlug, name), name, realm, realmSlug
+        return format("https://%s/characters/%s/%s/%s?utm_source=addon", ns.RAIDERIO_DOMAIN, region, realmSlug, name), name, realm, realmSlug
     end
 
     ---@param urlSuffix string
@@ -2173,7 +2213,7 @@ do
     function util:GetRaiderIORecruitmentProfileUrl(urlSuffix, ...)
         local name, realm = util:GetNameRealm(...)
         local realmSlug = util:GetRealmSlug(realm, true)
-        return format("https://raider.io/characters/%s/%s/%s/%s?utm_source=addon", ns.PLAYER_REGION, realmSlug, name, urlSuffix), name, realm, realmSlug
+        return format("https://%s/characters/%s/%s/%s/%s?utm_source=addon", ns.RAIDERIO_DOMAIN, ns.PLAYER_REGION, realmSlug, name, urlSuffix), name, realm, realmSlug
     end
 
     ---@class InternalStaticPopupDialog : Frame
@@ -2287,7 +2327,12 @@ do
         return texture, info
     end
 
-    ---@param button Button
+    ---@class ButtonWithTextures : Button
+    ---@field public normalTexture? Texture
+    ---@field public pushedTexture? Texture
+    ---@field public disabledTexture? Texture
+
+    ---@param button Button|ButtonWithTextures
     ---@param icon CustomIcon
     function util:SetButtonTextureFromIcon(button, icon)
         local info = icon("Texture") ---@type CustomIconTexture
@@ -2700,6 +2745,7 @@ do
     end
 
     local function CreateExportButton()
+        ---@class RaiderIOExportButton : Button
         local button = CreateFrame("Button", addonName .. "_ExportButton", LFGListFrame)
         button:SetPoint("BOTTOMRIGHT", button:GetParent(), "BOTTOM", -12, 7) ---@diagnostic disable-line: param-type-mismatch
         button:SetSize(16, 16)
@@ -2896,7 +2942,7 @@ do
                 end
                 if not config:Get("debugMode") then
                     if provider.region ~= ns.PLAYER_REGION then
-                        DisableAddOn(provider.name)
+                        C_AddOns.DisableAddOn(provider.name)
                         table.wipe(provider)
                         table.remove(providers, i)
                     elseif provider.blocked and provider.data == ns.PROVIDER_DATA_TYPE.MythicKeystone and false then -- TODO: do not purge the data just keep it labeled as blocked this way we can always lookup the players own data and still show the warning that its expired
@@ -2925,11 +2971,13 @@ do
     end
 
     local function OnPlayerLogin()
-        if config:Get("debugMode") and not util:IsOnRetailRealm() then
+        if IS_RETAIL and config:Get("debugMode") and not util:IsOnRetailRealm() then
             InjectTestBuildData()
         end
         CheckQueuedProviders()
-        RequestMythicPlusData()
+        if IS_RETAIL then
+            RequestMythicPlusData()
+        end
         provider:Enable()
     end
 
@@ -4491,11 +4539,11 @@ do
         for _, mapID in ipairs(mapIDs) do
             local affixScores ---@type MythicPlusAffixScoreInfo[]?
             local bestOverAllScore ---@type number?
-            local mapRun ---@type MythicPlusRatingMapSummary?
+            local mapRun ---@type MythicPlusRatingMapSummaryRaiderIOExtended?
             for _, run in ipairs(bioSummary.runs) do
                 if mapID == run.challengeModeID then
                     affixScores, bestOverAllScore = C_MythicPlus.GetSeasonBestAffixScoreInfoForMap(mapID)
-                    mapRun = run
+                    mapRun = run ---@diagnostic disable-line: cast-local-type
                     break
                 end
             end
@@ -4521,15 +4569,20 @@ do
     end
 
     local function OnPlayerEnteringWorld()
-        table.wipe(mythicKeystoneProfileCache)
         table.wipe(raidProfileCache)
         table.wipe(pvpProfileCache)
         table.wipe(profileCache)
-        OverridePlayerData()
+        if IS_RETAIL then
+            table.wipe(mythicKeystoneProfileCache)
+            OverridePlayerData()
+        end
     end
 
     callback:RegisterEvent(OnPlayerEnteringWorld, "PLAYER_ENTERING_WORLD")
-    callback:RegisterEvent(OverridePlayerData, "CHALLENGE_MODE_MAPS_UPDATE", "MYTHIC_PLUS_CURRENT_AFFIX_UPDATE")
+
+    if IS_RETAIL then
+        callback:RegisterEvent(OverridePlayerData, "CHALLENGE_MODE_MAPS_UPDATE", "MYTHIC_PLUS_CURRENT_AFFIX_UPDATE")
+    end
 
     function provider:WipeCache()
         OnPlayerEnteringWorld()
@@ -4624,7 +4677,8 @@ do
     local util = ns:GetModule("Util") ---@type UtilModule
     local provider = ns:GetModule("Provider") ---@type ProviderModule
 
-    ---@return string, string, string, number, number, table, string @Always call as `render.GetQuery(...)`. Returns the following args: unit, name, realm, faction, options, args
+    -- Always called as `render.GetQuery(...)`
+    ---@return string unit, string name, string realm, number faction, number options, table args, string region
     function render.GetQuery(...)
         local arg1, arg2, arg3, arg4, arg5, arg6 = ...
         local name, realm, unit = util:GetNameRealm(arg1, arg2)
@@ -4756,6 +4810,7 @@ do
     ---@field public region string @"us","kr","eu","tw","cn"
     ---@field public options number @render.Flags
     ---@field public args table @Assigned dynamically and can contain any kind of data, depending on the usage.
+    ---@field public success? boolean
 
     ---@class TooltipStates
 
@@ -5097,7 +5152,7 @@ do
                     r, g, b = 0, 1, 0
                 end
                 local fatedTexture = fated and format("|A:%s-small:0:0:0:1|a", fated) or ""
-                tooltip:AddLine(format("%s %s", raid.name, fatedTexture), r, g, b) -- TODO: raid.dungeon?.nameLocale
+                tooltip:AddLine(format("%s %s", L["RAID_" .. raid.shortName], fatedTexture), r, g, b) -- TODO: raid.dungeon?.nameLocale
             end
             for j = 1, raid.bossCount do
                 local progressFound = false
@@ -5563,10 +5618,12 @@ do
             return
         end
         if util:IsUnitMaxLevel(unit) then
-            local bioSummary = C_PlayerInfo.GetPlayerMythicPlusRatingSummary(unit)
-            if bioSummary and bioSummary.currentSeasonScore then
-                local name, realm = util:GetNameRealm(unit)
-                provider:OverrideProfile(name, realm, bioSummary.currentSeasonScore, bioSummary.runs)
+            if IS_RETAIL then
+                local bioSummary = C_PlayerInfo.GetPlayerMythicPlusRatingSummary(unit)
+                if bioSummary and bioSummary.currentSeasonScore then
+                    local name, realm = util:GetNameRealm(unit)
+                    provider:OverrideProfile(name, realm, bioSummary.currentSeasonScore, bioSummary.runs)
+                end
             end
             render:ShowProfile(self, unit)
         end
@@ -5651,6 +5708,10 @@ do
         GameTooltip:Hide()
     end
 
+    function tooltip:CanLoad()
+        return FriendsTooltip and config:IsEnabled()
+    end
+
     function tooltip:OnLoad()
         self:Enable()
         hooksecurefunc(FriendsTooltip, "Show", FriendsTooltip_Show)
@@ -5698,7 +5759,11 @@ do
             return
         end
         GameTooltip:Hide()
-        util:ExecuteWidgetOnEnterSafely(GetMouseFocus())
+        util:ExecuteWidgetOnEnterSafely(GetMouseFocus()) ---@diagnostic disable-line: param-type-mismatch
+    end
+
+    function tooltip:CanLoad()
+        return WhoFrame and config:IsEnabled()
     end
 
     function tooltip:OnLoad()
@@ -5783,7 +5848,7 @@ end
 
 -- fanfare.lua (requires debug mode)
 -- dependencies: module, config, util, provider
-do
+if IS_RETAIL then
 
     ---@class FanfareModule : Module
     local fanfare = ns:NewModule("Fanfare") ---@type FanfareModule
@@ -6000,6 +6065,7 @@ do
         self.Sparks:Hide()
     end
 
+    ---@param self RaiderIOFanFareDecorationFrameAnimInSparks
     local function DecorationFrame_AnimIn_Sparks_OnFinished(self)
         self.frame.Sparks:Hide()
     end
@@ -6058,7 +6124,7 @@ do
     ---@field public SetScaleTo fun(x, y)
 
     local function CreateDecorationFrame()
-        local frame = CreateFrame("Frame")
+        local frame = CreateFrame("Frame") ---@class RaiderIOFanFareDecorationFrame : Frame
         frame:Hide()
         frame:SetScript("OnShow", DecorationFrame_OnShow)
         frame:SetScript("OnHide", DecorationFrame_OnHide)
@@ -6101,7 +6167,7 @@ do
             scale:SetDuration(0.25)
             scale:SetScaleFrom(5, 5)
             scale:SetScaleTo(1, 1)
-            local sparks = frame.AnimIn:CreateAnimation("Scale") ---@type Animation|Scale|ScalePolyfill
+            local sparks = frame.AnimIn:CreateAnimation("Scale") ---@class RaiderIOFanFareDecorationFrameAnimInSparks : Animation, Scale, ScalePolyfill
             sparks:SetOrder(1)
             sparks:SetStartDelay(0)
             sparks:SetDuration(LEVEL_UP_EFFECT.duration)
@@ -6114,7 +6180,7 @@ do
     end
 
     local frameHooks = {}
-    local frames = {}
+    local frames = {} ---@type table<string, RaiderIOFanFareDecorationFrame?>
 
     local function OnFrameHidden()
         for _, frame in pairs(frames) do
@@ -6310,7 +6376,7 @@ do
     local fallbackFrame = _G.UIParent
     local fallbackStrata = "LOW"
 
-    local tooltipAnchor ---@type Frame
+    local tooltipAnchor ---@type RaiderIOProfileTooltipAnchorFrame
     local tooltip ---@type GameTooltip
 
     local tooltipAnchorPriority = {
@@ -6470,7 +6536,7 @@ do
     end
 
     local function CreateTooltipAnchor()
-        local frame = CreateFrame("Frame", addonName .. "_ProfileTooltipAnchor", fallbackFrame)
+        local frame = CreateFrame("Frame", addonName .. "_ProfileTooltipAnchor", fallbackFrame) ---@class RaiderIOProfileTooltipAnchorFrame : Frame
         frame:SetFrameStrata(fallbackStrata)
         frame:SetFrameLevel(100)
         frame:SetClampedToScreen(true)
@@ -6520,11 +6586,12 @@ do
         if not showProfileArgs or not showProfileArgs[1] or not showProfileArgs[2] then
             return
         end
+        callback:SendEvent("RAIDERIO_PROFILE_REFRESH", showProfileArgs)
         return profile:ShowProfile(unpack(showProfileArgs))
     end
 
     function profile:CanLoad()
-        return not tooltip and config:IsEnabled() and PVEFrame
+        return not tooltip and config:IsEnabled() -- and PVEFrame
     end
 
     function profile:OnLoad()
@@ -6594,6 +6661,9 @@ do
         if not success then
             profile:HideProfile()
         end
+        if success then
+            callback:SendEvent("RAIDERIO_PROFILE_SHOW", showProfileArgs)
+        end
         return success
     end
 
@@ -6601,17 +6671,36 @@ do
         if not profile:IsEnabled() then
             return
         end
+        callback:SendEvent("RAIDERIO_PROFILE_HIDE", showProfileArgs)
         if showProfileArgs then
             table.wipe(showProfileArgs)
         end
         render:HideTooltip(tooltip)
     end
 
+    function profile:IsProfileShown()
+        return tooltip:IsShown()
+    end
+
+    ---@return Frame? anchor
+    function profile:GetProfileAnchor()
+        return tooltip:IsShown() and showProfileArgs and showProfileArgs[1] ---@type Frame?
+    end
+
+    ---@param frame Frame
+    function profile:IsProfileAnchored(frame)
+        return self:GetProfileAnchor() == frame
+    end
+
+    function profile:GetProfileTooltip()
+        return tooltip
+    end
+
 end
 
 -- lfgtooltip.lua
 -- dependencies: module, config, util, render, profile
-do
+if IS_RETAIL then
 
     ---@class LfgTooltipModule : Module
     local tooltip = ns:NewModule("LfgTooltip") ---@type LfgTooltipModule
@@ -6621,19 +6710,39 @@ do
     local profile = ns:GetModule("Profile") ---@type ProfileModule
     local provider = ns:GetModule("Provider") ---@type ProviderModule
 
+    ---@class LFGListFrameSearchFramePolyfill : Frame
+    ---@field public applicantID? number
+    ---@field public Members? LFGListFrameApplicationFramePolyfill[]
+
+    ---@class LFGListFrameApplicationFramePolyfill : Frame
+    ---@field public memberIdx? number
+
+    ---@alias LFGListFrameWildcardFrame LFGListFrameSearchFramePolyfill|LFGListFrameApplicationFramePolyfill
+
     ---@class LfgResult
-    ---@field public activityID number|nil
+    ---@field public activityID? number
     ---@field public leaderName string
+    ---@field public leaderFaction number
     ---@field public keystoneLevel number
 
     ---@type LfgResult
     local currentResult = {} ---@diagnostic disable-line: missing-fields
 
+    ---@type table<LFGListFrameWildcardFrame|GameTooltip, boolean?>
     local hooked = {}
+
+    ---@type fun(self: LFGListFrameWildcardFrame)
     local OnEnter
+
+    ---@type fun()
     local OnLeave
+
+    ---@type boolean?
     local cleanupPending
 
+    ---@param tooltip GameTooltip
+    ---@param resultID number
+    ---@param autoAcceptOption boolean
     local function SetSearchEntry(tooltip, resultID, autoAcceptOption)
         if not config:Get("enableLFGTooltips") then
             return
@@ -6670,6 +6779,7 @@ do
         end
     end
 
+    ---@param buttons LFGListFrameWildcardFrame[]
     local function HookApplicantButtons(buttons)
         for _, button in pairs(buttons) do
             if not hooked[button] then
@@ -6680,6 +6790,9 @@ do
         end
     end
 
+    ---@param parent Frame
+    ---@param applicantID number
+    ---@param memberIdx number
     local function ShowApplicantProfile(parent, applicantID, memberIdx)
         local fullName, _, _, _, _, _, _, _, _, _, _, dungeonScore, _, factionGroup = C_LFGList.GetApplicantMemberInfo(applicantID, memberIdx)
         if not fullName then
@@ -6701,9 +6814,10 @@ do
 
     local function OnScroll()
         GameTooltip:Hide()
-        util:ExecuteWidgetOnEnterSafely(GetMouseFocus())
+        util:ExecuteWidgetOnEnterSafely(GetMouseFocus()) ---@diagnostic disable-line: param-type-mismatch
     end
 
+    ---@param self LFGListFrameWildcardFrame
     function OnEnter(self)
         local entry = C_LFGList.GetActiveEntryInfo()
         if entry then
@@ -6715,7 +6829,8 @@ do
         if self.applicantID and self.Members then
             HookApplicantButtons(self.Members)
         elseif self.memberIdx then
-            local shown, fullName = ShowApplicantProfile(self, self:GetParent().applicantID, self.memberIdx)
+            local parent = self:GetParent() ---@type LFGListFrameSearchFramePolyfill
+            local shown, fullName = ShowApplicantProfile(self, parent.applicantID, self.memberIdx)
             local success
             if shown then
                 success = profile:ShowProfile(GameTooltip, fullName, currentResult)
@@ -6728,7 +6843,7 @@ do
         end
     end
 
-    function OnLeave(self)
+    function OnLeave()
         GameTooltip:Hide()
         profile:HideProfile()
         profile:ShowProfile(false, "player")
@@ -6798,11 +6913,11 @@ do
             return
         end
         GameTooltip:Hide()
-        util:ExecuteWidgetOnEnterSafely(GetMouseFocus())
+        util:ExecuteWidgetOnEnterSafely(GetMouseFocus()) ---@diagnostic disable-line: param-type-mismatch
     end
 
     function tooltip:CanLoad()
-        return GuildRosterContainer
+        return GuildRosterContainer and config:IsEnabled()
     end
 
     function tooltip:OnLoad()
@@ -6816,7 +6931,7 @@ end
 
 -- communitytooltip.lua
 -- dependencies: module, config, util, render
-do
+if IS_RETAIL then
 
     ---@class CommunityTooltipModule : Module
     local tooltip = ns:NewModule("CommunityTooltip") ---@type CommunityTooltipModule
@@ -6915,11 +7030,11 @@ do
             return
         end
         GameTooltip:Hide()
-        util:ExecuteWidgetOnEnterSafely(GetMouseFocus())
+        util:ExecuteWidgetOnEnterSafely(GetMouseFocus()) ---@diagnostic disable-line: param-type-mismatch
     end
 
     function tooltip:CanLoad()
-        return CommunitiesFrame and ClubFinderGuildFinderFrame and ClubFinderCommunityAndGuildFinderFrame
+        return CommunitiesFrame and ClubFinderGuildFinderFrame and ClubFinderCommunityAndGuildFinderFrame and config:IsEnabled()
     end
 
     function tooltip:OnLoad()
@@ -6944,7 +7059,7 @@ end
 
 -- keystonetooltip.lua
 -- dependencies: module, config, render
-do
+if IS_RETAIL then
 
     ---@class KeystoneTooltipModule : Module
     local tooltip = ns:NewModule("KeystoneTooltip") ---@type KeystoneTooltipModule
@@ -7036,6 +7151,10 @@ do
         render:HideTooltip(self)
     end
 
+    function tooltip:CanLoad()
+        return config:IsEnabled()
+    end
+
     function tooltip:OnLoad()
         self:Enable()
         if TooltipDataProcessor then -- TODO: DF
@@ -7054,7 +7173,7 @@ end
 
 -- guildweekly.lua
 -- dependencies: module, callback, config, util
-do
+if IS_RETAIL then
 
     ---@class GuildWeeklyModule : Module
     local guildweekly = ns:NewModule("GuildWeekly") ---@type GuildWeeklyModule
@@ -7311,7 +7430,7 @@ do
         if self:IsMouseOver(0, 0, 0, 0) then
             local focus = GetMouseFocus()
             if focus and focus ~= GameTooltip:GetOwner() then
-                util:ExecuteWidgetOnEnterSafely(focus)
+                util:ExecuteWidgetOnEnterSafely(focus) ---@diagnostic disable-line: param-type-mismatch
             end
         end
 
@@ -7429,7 +7548,7 @@ do
             end
             -- update anchor
             frame:ClearAllPoints()
-            if IsAddOnLoaded("AngryKeystones") then
+            if C_AddOns.IsAddOnLoaded("AngryKeystones") then
                 frame:SetPoint("TOPRIGHT", ChallengesFrame, "TOPRIGHT", -6, -22)
             else
                 frame:SetPoint("BOTTOMLEFT", ChallengesFrame.DungeonIcons[1], "TOPLEFT", 2, 12)
@@ -7469,7 +7588,7 @@ end
 
 -- replay.lua
 -- dependencies: module, callback, config, util
-do
+if IS_RETAIL then
 
     ---@class ReplayModule : Module
     local replay = ns:NewModule("Replay") ---@type ReplayModule
@@ -7517,7 +7636,7 @@ do
         [5] = "watched_replay",
     }
 
-    ---@class ConfigReplayColor
+    ---@class ConfigReplayColor : ColorMixin
     ---@field public r number
     ---@field public g number
     ---@field public b number
@@ -7538,7 +7657,7 @@ do
             texture:SetColorTexture(color1.r, color1.g, color1.b, color1.a)
             return true
         elseif color1 and color2 then
-            texture:SetGradient("VERTICAL", color1, color2)
+            texture:SetGradient("VERTICAL", color1, color2) ---@diagnostic disable-line: param-type-mismatch
             return true
         end
         return false
@@ -7631,11 +7750,14 @@ do
     ---@type table<number, boolean?>
     local ActiveEncounters = {}
 
+    ---@class AutoScalingFontStringMixin : FontString
+    ---@field public minLineHeight number
+
     ---@param ... FontString
     local function SetupAutoScalingFontStringMixin(...)
         local temp = {...}
         for _, fontString in ipairs(temp) do
-            Mixin(fontString, AutoScalingFontStringMixin)
+            fontString = Mixin(fontString, AutoScalingFontStringMixin) ---@type AutoScalingFontStringMixin
             fontString.minLineHeight = 1
         end
     end
@@ -7860,7 +7982,7 @@ do
         function BossFrameMixin:Setup(bossRows, index)
             self.bossRows = bossRows
             self.index = index
-            self.Name:SetText(self.index)
+            self.Name:SetText(self.index) ---@diagnostic disable-line: param-type-mismatch
             self.InfoL:SetText("")
             self.InfoR:SetText("")
             self:SetBackgroundColor(replayFrame:GetBackgroundColor())
@@ -8480,6 +8602,7 @@ do
         ---@field public hasArrow boolean
         ---@field public notCheckable boolean
         ---@field public menuList ReplayFrameDropDownMenuList
+        ---@field public func? fun(self: UIDropDownMenuInfo)
         ---@field public arg1 ReplayFrameConfigButton
         ---@field public arg2 Replay|ReplayFrameStyle|ReplayFrameDropDownPositionOption
         ---@field public tooltipTitle? string
@@ -9062,7 +9185,14 @@ do
             self.TextBlock.TrashL, self.TextBlock.TrashM, self.TextBlock.TrashR = CreateTextRow(self.TextBlock.BossL, ns.CUSTOM_ICONS.replay.TRASH("TextureMarkup"))
             self.TextBlock.DeathPenL, self.TextBlock.DeathPenM, self.TextBlock.DeathPenR = CreateTextRow(self.TextBlock.TrashL, ns.CUSTOM_ICONS.replay.DEATH("TextureMarkup"))
 
-            self.MDI = CreateFrame("Frame", nil, self, BackdropTemplateMixin and "BackdropTemplate") ---@class ReplayFrameMDI : Frame, BackdropTemplate
+            ---@class FontStringWithBackground : FontString
+            ---@field public Background Texture
+
+            ---@class ReplayFrameMDI : Frame, BackdropTemplate
+            ---@field public DeathPenL FontStringWithBackground
+            ---@field public DeathPenR FontStringWithBackground
+
+            self.MDI = CreateFrame("Frame", nil, self, BackdropTemplateMixin and "BackdropTemplate") ---@class ReplayFrameMDI
             self.MDI:SetPoint("TOPLEFT", self, "TOPLEFT", 0, 0)
             self.MDI:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", 0, 0)
 
@@ -9078,7 +9208,7 @@ do
                 middlePadding = middlePadding or 0
                 fontObject = fontObject or "GameFontNormalHuge4"
                 local equalWidth = (self.widthMDI - (self.contentPaddingX * 2)) / 2 - (self.edgePaddingMDI * 3 / 2) - (middlePadding / 2)
-                local LF = self.MDI:CreateFontString(nil, "ARTWORK", fontObject)
+                local LF = self.MDI:CreateFontString(nil, "ARTWORK", fontObject) ---@diagnostic disable-line: param-type-mismatch
                 LF:SetTextColor(1, 1, 1)
                 LF:SetSize(equalWidth, self.textRowHeightMDI)
                 if previous then
@@ -9088,7 +9218,7 @@ do
                 end
                 LF:SetJustifyH("RIGHT")
                 LF:SetJustifyV("MIDDLE")
-                local RF = self.MDI:CreateFontString(nil, "ARTWORK", fontObject)
+                local RF = self.MDI:CreateFontString(nil, "ARTWORK", fontObject) ---@diagnostic disable-line: param-type-mismatch
                 RF:SetTextColor(1, 1, 1)
                 RF:SetSize(equalWidth, self.textRowHeightMDI)
                 RF:SetPoint("TOPLEFT", LF, "TOPRIGHT", self.edgePaddingMDI + middlePadding, 0)
@@ -10413,11 +10543,11 @@ do
         return temp
     end
 
-    local searchFrame
-    local searchRegionBox
-    local searchRealmBox
-    local searchNameBox
-    local searchTooltip
+    local searchFrame ---@type RaiderIOSearchFrame
+    local searchRegionBox ---@type RaiderIOSearchAutoCompleteEditBox
+    local searchRealmBox ---@type RaiderIOSearchAutoCompleteEditBox
+    local searchNameBox ---@type RaiderIOSearchAutoCompleteEditBox
+    local searchTooltip ---@type RaiderIOSearchTooltip
 
     local function GetRegionName()
         return (searchRegionBox:GetText() and searchRegionBox:GetText() ~= "") and searchRegionBox:GetText() or ns.PLAYER_REGION
@@ -10522,7 +10652,14 @@ do
         return temp
     end
 
+    ---@class RaiderIOSearchAutoCompleteEditBox : EditBox
+    ---@field public autoCompleteFunction fun(text: string, maxResults: number, cursorPosition: number)
+
+    ---@class RaiderIOSearchTooltip : GameTooltip
+    ---@field public hasProfile boolean
+
     local function CreateEditBox()
+        ---@class RaiderIOSearchAutoCompleteEditBox
         local f = CreateFrame("EditBox", nil, UIParent, "AutoCompleteEditBoxTemplate")
         -- autocomplete
         f.autoComplete = AutoCompleteBox
@@ -10576,7 +10713,7 @@ do
     end
 
     local function CreateTooltip()
-        return CreateFrame("GameTooltip", addonName .. "_SearchTooltip", UIParent, "GameTooltipTemplate")
+        return CreateFrame("GameTooltip", addonName .. "_SearchTooltip", UIParent, "GameTooltipTemplate") ---@type RaiderIOSearchTooltip
     end
 
     local function CreateSearchFrame()
@@ -10596,7 +10733,7 @@ do
         realmBox.autoCompleteFunction = GetRealms
         nameBox.autoCompleteFunction = GetNames
 
-        local Frame = CreateFrame("Frame", nil, UIParent, BackdropTemplateMixin and "BackdropTemplate")
+        local Frame = CreateFrame("Frame", addonName .. "_SearchFrame", UIParent, BackdropTemplateMixin and "BackdropTemplate") ---@class RaiderIOSearchFrame : Frame, BackdropTemplate
         do
             Frame:Hide()
             Frame:EnableMouse(true)
@@ -10612,7 +10749,7 @@ do
             end
             Frame.header = Frame:CreateFontString(nil, nil, "ChatFontNormal")
             Frame.header:SetPoint("TOPLEFT", 16, -12)
-            Frame.header:SetText("Enter realm and character name:")
+            Frame.header:SetText(L.ENTER_REALM_AND_CHARACTER)
             Frame:SetMovable(true)
             Frame:RegisterForDrag("LeftButton")
             Frame:SetClampedToScreen(true)
@@ -10748,6 +10885,7 @@ do
             return
         end
         if not region or not realm or not name or strlenutf8(realm) < 1 or strlenutf8(name) < 1 then
+            searchTooltip.hasProfile = false
             searchTooltip:Hide()
             profile:HideProfile()
             return
@@ -10771,6 +10909,7 @@ do
         else
             profile:HideProfile()
         end
+        searchTooltip.hasProfile = shown
         return shown
     end
 
@@ -10802,10 +10941,21 @@ do
     end
 
     function search:SearchAndShowProfile(region, realm, name)
+        if not self:IsEnabled() then
+            return
+        end
         searchRegionBox:SetText(region)
         searchRealmBox:SetText(realm)
         searchNameBox:SetText(name)
         return search:ShowProfile(region, realm, name)
+    end
+
+    ---@return boolean hasProfile, string region, string realm, string name
+    function search:SearchHasProfile()
+        if not self:IsEnabled() then
+            return ---@diagnostic disable-line: missing-return-value
+        end
+        return searchTooltip.hasProfile, searchRegionBox:GetText(), searchRealmBox:GetText(), searchNameBox:GetText()
     end
 
     function search:Toggle()
@@ -10834,6 +10984,9 @@ do
     end
 
     function search:IsShown()
+        if not self:IsEnabled() then
+            return
+        end
         return searchFrame:IsShown()
     end
 
@@ -10856,6 +11009,7 @@ do
         CHAT_ROSTER = true,
         COMMUNITIES_GUILD_MEMBER = true,
         COMMUNITIES_WOW_MEMBER = true,
+        ENEMY_PLAYER = true,
         FOCUS = true,
         FRIEND = true,
         GUILD = true,
@@ -10866,7 +11020,7 @@ do
         RAID_PLAYER = true,
         SELF = true,
         TARGET = true,
-        WORLD_STATE_SCORE = true
+        WORLD_STATE_SCORE = true,
     }
 
     -- if the dropdown is a valid type of dropdown then we mark it as acceptable to check for a unit on it
@@ -11049,7 +11203,7 @@ end
 
 -- rwf.lua (requires rwf mode)
 -- dependencies: module, callback, config, util
-do
+if IS_RETAIL then
 
     ---@class RaceWorldFirstModule : Module
     local rwf = ns:NewModule("RaceWorldFirst") ---@type RaceWorldFirstModule
@@ -11058,7 +11212,7 @@ do
     local util = ns:GetModule("Util") ---@type UtilModule
 
     local LOCATION = {}
-    local LOOT_FRAME
+    local LOOT_FRAME ---@type RaiderIORWFLootFrame
 
     local TRACKING_EVENTS = {
         -- TODO: disable these loot related events since we currently only support the guild news related loot events
@@ -11205,7 +11359,7 @@ do
         lootEntry.isNew = not lootEntry.timestamp
         lootEntry.timestamp = lootEntry.timestamp or timestamp
         lootEntry.isUpdated = timestamp - lootEntry.timestamp > 60
-        lootEntry.itemLevel = GetDetailedItemLevelInfo(link) ---@diagnostic disable-line: assign-type-mismatch
+        lootEntry.itemLevel = GetDetailedItemLevelInfo(link)
         lootEntry.id, lootEntry.itemType, lootEntry.itemSubType, lootEntry.itemEquipLoc, lootEntry.itemIcon, lootEntry.itemClassID, lootEntry.itemSubClassID = GetItemInfoInstant(link)
         lootEntry.link = link
         lootEntry.index = lootEntry.index or CountItems(tables[3]) -- keep same index or count (our item is already included in the count)
@@ -11497,7 +11651,7 @@ do
             end
         end
 
-        local frame = CreateFrame("Frame", addonName .. "_RWFFrame", UIParent, "ButtonFrameTemplate") ---@class ButtonFramePolyfill
+        local frame = CreateFrame("Frame", addonName .. "_RWFFrame", UIParent, "ButtonFrameTemplate") ---@class RaiderIORWFLootFrame : ButtonFramePolyfill
         frame:SetSize(400, 250)
         frame:SetPoint("CENTER")
         frame:SetFrameStrata("HIGH")
@@ -11527,7 +11681,8 @@ do
         frame.TitleBar:SetPoint("TOPRIGHT", 0, 0)
         frame.TitleBar:Init(frame)
 
-        frame.Log = CreateFrame("Frame", nil, frame) ---@diagnostic disable-line: param-type-mismatch
+        ---@class RaiderIORWFLootFrameLog : Frame
+        frame.Log = CreateFrame("Frame", nil, frame)
         frame.Log:SetPoint("TOPLEFT", frame.TitleBar, "BOTTOMLEFT", 8, -32 + 24) ---@diagnostic disable-line: param-type-mismatch
         frame.Log:SetPoint("BOTTOMRIGHT", -9, 28)
 
@@ -11536,18 +11691,18 @@ do
         frame.Log.Bar:SetPoint("TOPLEFT", 0, 0)
         frame.Log.Bar:SetPoint("TOPRIGHT", 0, 0)
 
-        frame.Log.Events = CreateFrame("Frame", nil, frame.Log)
+        frame.Log.Events = CreateFrame("Frame", nil, frame.Log) ---@class RaiderIORWFLootFrameLogEvents : Frame
         frame.Log.Events:SetPoint("TOPLEFT", frame.Log.Bar, "BOTTOMLEFT", 0, -2)
         frame.Log.Events:SetPoint("BOTTOMRIGHT", 0, 0)
 
-        frame.Log.Events.ScrollBox = CreateFrame("Frame", nil, frame.Log.Events, "WowScrollBoxList") ---@type WowScrollBoxListPolyfill
+        frame.Log.Events.ScrollBox = CreateFrame("Frame", nil, frame.Log.Events, "WowScrollBoxList") ---@class RaiderIORWFLootFrameLogEventsScrollBox : WowScrollBoxListPolyfill
         frame.Log.Events.ScrollBox:OnLoad()
         frame.Log.Events.ScrollBox:SetPoint("TOPLEFT", 0, -8) -- 0, 0
         frame.Log.Events.ScrollBox:SetPoint("BOTTOMRIGHT", -25, 0)
         frame.Log.Events.ScrollBox.bgTexture = frame.Log.Events.ScrollBox:CreateTexture(nil, "BACKGROUND")
         frame.Log.Events.ScrollBox.bgTexture:SetColorTexture(0.03, 0.03, 0.03)
 
-        frame.Log.Events.ScrollBar = CreateFrame("EventFrame", nil, frame.Log.Events, "WowTrimScrollBar") ---@type WowTrimScrollBarPolyfill
+        frame.Log.Events.ScrollBar = CreateFrame("EventFrame", nil, frame.Log.Events, "WowTrimScrollBar") ---@class RaiderIORWFLootFrameLogEventsScrollBar : WowTrimScrollBarPolyfill
         frame.Log.Events.ScrollBar:OnLoad()
         frame.Log.Events.ScrollBar:SetPoint("TOPLEFT", frame.Log.Events.ScrollBox, "TOPRIGHT", 0, 3) -- 0, -3
         frame.Log.Events.ScrollBar:SetPoint("BOTTOMLEFT", frame.Log.Events.ScrollBox, "BOTTOMRIGHT", 0, 0)
@@ -11559,7 +11714,11 @@ do
         frame.SubTitle:SetPoint("TOPLEFT", frame.TitleBar, "BOTTOMLEFT", 0, 0) ---@diagnostic disable-line: param-type-mismatch
         frame.SubTitle:SetPoint("BOTTOMRIGHT", frame.Log.Events, "TOPRIGHT", 0, 0)
 
-        frame.EnableModule = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate") ---@diagnostic disable-line: param-type-mismatch
+        ---@class RaiderIORWFLootFrameButton : Button
+        ---@field public tooltip string
+        ---@field public GetAppropriateTooltip fun()
+
+        frame.EnableModule = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate") ---@type RaiderIORWFLootFrameButton
         frame.EnableModule:SetSize(80, 22)
         frame.EnableModule:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -5, 3) ---@diagnostic disable-line: param-type-mismatch
         frame.EnableModule:SetScript("OnClick", function() config:Set("rwfMode", true) ReloadUI() end)
@@ -11569,7 +11728,7 @@ do
         frame.EnableModule:SetScript("OnEnter", UIButtonMixin.OnEnter)
         frame.EnableModule:SetScript("OnLeave", UIButtonMixin.OnLeave)
 
-        frame.DisableModule = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate") ---@diagnostic disable-line: param-type-mismatch
+        frame.DisableModule = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate") ---@type RaiderIORWFLootFrameButton
         frame.DisableModule:SetSize(80, 22)
         frame.DisableModule:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -5, 3) ---@diagnostic disable-line: param-type-mismatch
         frame.DisableModule:SetScript("OnClick", function() config:Set("rwfMode", false) _G.RaiderIO_RWF = {} ReloadUI() end)
@@ -11579,7 +11738,7 @@ do
         frame.DisableModule:SetScript("OnEnter", UIButtonMixin.OnEnter)
         frame.DisableModule:SetScript("OnLeave", UIButtonMixin.OnLeave)
 
-        frame.ReloadUI = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate") ---@diagnostic disable-line: param-type-mismatch
+        frame.ReloadUI = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate") ---@type RaiderIORWFLootFrameButton
         frame.ReloadUI:SetSize(80, 22)
         frame.ReloadUI:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 5, 3) ---@diagnostic disable-line: param-type-mismatch
         frame.ReloadUI:SetScript("OnClick", ReloadUI)
@@ -11589,7 +11748,7 @@ do
         frame.ReloadUI:SetScript("OnEnter", UIButtonMixin.OnEnter)
         frame.ReloadUI:SetScript("OnLeave", UIButtonMixin.OnLeave)
 
-        frame.WipeLog = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate") ---@diagnostic disable-line: param-type-mismatch
+        frame.WipeLog = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate") ---@type RaiderIORWFLootFrameButton
         frame.WipeLog:SetSize(80, 22)
         frame.WipeLog:SetPoint("RIGHT", frame.DisableModule, "LEFT", 2, 0) ---@diagnostic disable-line: param-type-mismatch
         frame.WipeLog:SetScript("OnClick", function() _G.RaiderIO_RWF = {} ReloadUI() end)
@@ -11599,7 +11758,7 @@ do
         frame.WipeLog:SetScript("OnEnter", UIButtonMixin.OnEnter)
         frame.WipeLog:SetScript("OnLeave", UIButtonMixin.OnLeave)
 
-        frame.MiniFrame = CreateFrame("Button", addonName .. "_RWFMiniFrame", UIParent, "UIPanelButtonTemplate") ---@type UIPanelButtonTemplatePolyfill
+        frame.MiniFrame = CreateFrame("Button", addonName .. "_RWFMiniFrame", UIParent, "UIPanelButtonTemplate") ---@class RaiderIORWFLootFrameMiniFrame : UIPanelButtonTemplatePolyfill
         frame.MiniFrame:SetFrameLevel(100)
         frame.MiniFrame:SetClampedToScreen(true)
         frame.MiniFrame:SetSize(32, 32)
@@ -11637,11 +11796,11 @@ do
         util:SetButtonTextureFromIcon(frame.MiniFrame, ns.CUSTOM_ICONS.icons.RAIDERIO_COLOR_CIRCLE) ---@diagnostic disable-line: param-type-mismatch
         frame.MiniFrame:Hide()
 
-        frame.MiniFrame.Spinner = CreateFrame("Button", nil, frame.MiniFrame) ---@diagnostic disable-line: param-type-mismatch
+        frame.MiniFrame.Spinner = CreateFrame("Button", nil, frame.MiniFrame) ---@class RaiderIORWFLootFrameMiniFrameSpinner : Button
         frame.MiniFrame.Spinner:SetAllPoints()
         util:SetButtonTextureFromIcon(frame.MiniFrame.Spinner, ns.CUSTOM_ICONS.icons.RAIDERIO_COLOR_CIRCLE)
         frame.MiniFrame.Spinner:Hide()
-        frame.MiniFrame.Spinner.Anim = frame.MiniFrame.Spinner:CreateAnimationGroup()
+        frame.MiniFrame.Spinner.Anim = frame.MiniFrame.Spinner:CreateAnimationGroup() ---@class RaiderIORWFLootFrameMiniFrameSpinnerAnim : AnimationGroup
         frame.MiniFrame.Spinner.Anim.Rotation = frame.MiniFrame.Spinner.Anim:CreateAnimation("Rotation")
         frame.MiniFrame.Spinner.Anim.Rotation:SetDuration(1)
         frame.MiniFrame.Spinner.Anim.Rotation:SetOrder(1)
@@ -11715,7 +11874,7 @@ do
         end
 
         local function CreateArrow(parent)
-            local arrow = CreateFrame("Frame", nil, parent)
+            local arrow = CreateFrame("Frame", nil, parent) ---@class RaiderIORWFLootFrameMiniFrameArrowFrame : Frame
             arrow.SetArrowDir = SetArrowDir
             arrow:Hide()
             arrow:SetAlpha(0)
@@ -11725,7 +11884,7 @@ do
             arrow.arrowGlow:SetAllPoints()
             arrow.arrowGlow:SetAlpha(0.75)
             arrow.arrowGlow:SetBlendMode("ADD")
-            arrow.Anim = arrow:CreateAnimationGroup()
+            arrow.Anim = arrow:CreateAnimationGroup() ---@class RaiderIORWFLootFrameMiniFrameArrowFrameAnim : AnimationGroup
             arrow.Anim.Translation = arrow.Anim:CreateAnimation("Translation")
             arrow.Anim.Translation:SetDuration(1)
             arrow.Anim.Translation:SetOrder(1)
@@ -11764,7 +11923,7 @@ do
                 self:SetShown(not frame:IsShown())
             end
             local numItems = frame:GetNumLootItems(LOG_TYPE.News)
-            self:SetText(numItems > 0 and numItems or "")
+            self:SetFormattedText("%s", numItems > 0 and numItems or "")
             -- self:SetEnabled(numItems > 0)
             if not self.isGlowing and numItems >= config:Get("rwfBackgroundRemindAt") then
                 self.isGlowing = true
@@ -12116,7 +12275,7 @@ do
 end
 
 -- settings.lua
--- dependencies: module, callback, json, config, util, profile, search
+-- dependencies: module, callback, json, config, util, profile, search, rwf?
 do
 
     ---@class SettingsModule : Module
@@ -12127,7 +12286,7 @@ do
     local util = ns:GetModule("Util") ---@type UtilModule
     local profile = ns:GetModule("Profile") ---@type ProfileModule
     local search = ns:GetModule("Search") ---@type SearchModule
-    local rwf = ns:GetModule("RaceWorldFirst") ---@type RaceWorldFirstModule
+    local rwf = ns:GetModule("RaceWorldFirst", true) ---@type RaceWorldFirstModule?
 
     ---@type InternalStaticPopupDialog
     local RELOAD_POPUP = {
@@ -12186,6 +12345,26 @@ do
         OnCancel = nil
     }
 
+    ---@type InternalStaticPopupDialog
+    local RESET_POPUP = {
+        id = "RAIDERIO_RESET_CONFIRM",
+        text = L.RESET_CONFIRM_TEXT,
+        button1 = L.RESET_CONFIRM_BUTTON,
+        button2 = CANCEL,
+        hasEditBox = false,
+        preferredIndex = 3,
+        timeout = 0,
+        whileDead = true,
+        hideOnEscape = true,
+        OnShow = nil,
+        OnHide = nil,
+        OnAccept = function ()
+            config:Reset()
+            ReloadUI()
+        end,
+        OnCancel = nil
+    }
+
     local settingsFrame
 
     ---@class RaiderIOSettingsModuleColumn
@@ -12196,7 +12375,7 @@ do
 
     ---@type RaiderIOSettingsModuleColumn[]
     local databaseModuleColumns = {
-        { icon = 525134, text = L.DB_MODULES_HEADER_MYTHIC_PLUS, check = "checkButton", addon = "addon1" }, -- 525134 = inv_relics_hourglass
+        { icon = IS_RETAIL and 525134 or 136106, text = L.DB_MODULES_HEADER_MYTHIC_PLUS, check = "checkButton", addon = "addon1" }, -- 525134 = inv_relics_hourglass | 136106 = spell_nature_timestop
         { icon = 254652, text = L.DB_MODULES_HEADER_RAIDING, check = "checkButton2", addon = "addon2" }, -- 254652 = achievement_boss_ragnaros
         { icon = 442272, text = L.DB_MODULES_HEADER_RECRUITMENT, check = "checkButton3", addon = "addon3" }, -- 442272 = achievement_guildperk_everybodysfriend
     }
@@ -12206,16 +12385,18 @@ do
     local function CreateOptions()
 
         ---@class RaiderIOSettingsFrame
-        local configParentFrame = CreateFrame("Frame", nil, UIParent, BackdropTemplateMixin and "BackdropTemplate")
+        local configParentFrame = CreateFrame("Frame", addonName .. "_SettingsFrame", UIParent, BackdropTemplateMixin and "BackdropTemplate")
         configParentFrame:SetSize(400, 600)
         configParentFrame:SetPoint("CENTER")
 
-        local configHeaderFrame = CreateFrame("Frame", nil, configParentFrame) ---@diagnostic disable-line: param-type-mismatch
+        ---@class RaiderIOSettingsFrameHeaderFrame : Frame
+        local configHeaderFrame = CreateFrame("Frame", nil, configParentFrame)
         configHeaderFrame:SetPoint("TOPLEFT", 00, -30)
         configHeaderFrame:SetPoint("TOPRIGHT", 00, 30)
         configHeaderFrame:SetHeight(40)
 
-        local configScrollFrame = CreateFrame("ScrollFrame", nil, configParentFrame) ---@diagnostic disable-line: param-type-mismatch
+        ---@class RaiderIOSettingsFrameScrollFrame : ScrollFrame
+        local configScrollFrame = CreateFrame("ScrollFrame", nil, configParentFrame)
         configScrollFrame:SetPoint("TOPLEFT", configHeaderFrame, "BOTTOMLEFT")
         configScrollFrame:SetPoint("TOPRIGHT", configHeaderFrame, "BOTTOMRIGHT")
         configScrollFrame:SetHeight(475)
@@ -12223,11 +12404,13 @@ do
         configScrollFrame:SetClampedToScreen(true)
         configScrollFrame:SetClipsChildren(true)
 
-        local configButtonFrame = CreateFrame("Frame", nil, configParentFrame) ---@diagnostic disable-line: param-type-mismatch
+        ---@class RaiderIOSettingsFrameButtonFrame : Frame
+        local configButtonFrame = CreateFrame("Frame", nil, configParentFrame)
         configButtonFrame:SetPoint("TOPLEFT", configScrollFrame, "BOTTOMLEFT", 0, -10)
         configButtonFrame:SetPoint("TOPRIGHT", configScrollFrame, "BOTTOMRIGHT")
         configButtonFrame:SetHeight(50)
 
+        ---@class RaiderIOSettingsFrameSliderFrame : Slider
         local configSliderFrame = CreateFrame("Slider", nil, configScrollFrame, "UIPanelScrollBarTemplate")
         configSliderFrame:SetPoint("TOPLEFT", configScrollFrame, "TOPRIGHT", -35, -18)
         configSliderFrame:SetPoint("BOTTOMLEFT", configScrollFrame, "BOTTOMRIGHT", -35, 18)
@@ -12286,7 +12469,6 @@ do
         end
 
         local function Save_OnClick()
-            configParentFrame:Hide()
             local reload
             for i = 1, #configOptions.modules do
                 local f = configOptions.modules[i]
@@ -12295,45 +12477,59 @@ do
                         local check = f[column.check]
                         local addon = f[column.addon]
                         local checked = check:GetChecked()
-                        local loaded = IsAddOnLoaded(addon)
+                        local loaded = C_AddOns.IsAddOnLoaded(addon)
                         if checked then
                             if not loaded then
                                 reload = 1
-                                EnableAddOn(addon)
+                                C_AddOns.EnableAddOn(addon)
                             end
                         elseif loaded then
                             reload = 1
-                            DisableAddOn(addon)
+                            C_AddOns.DisableAddOn(addon)
                         end
                     end
                 end
             end
             for i = 1, #configOptions.options do
                 local f = configOptions.options[i]
-                local checked = f.checkButton:GetChecked()
-                local enabled = config:Get(f.cvar)
-                config:Set(f.cvar, not not checked)
-                if ((not enabled and checked) or (enabled and not checked)) then
-                    if f.needReload then
-                        reload = 1
+                if f.cvar then
+                    local checked = f.checkButton:GetChecked()
+                    local enabled = config:Get(f.cvar)
+                    config:Set(f.cvar, not not checked)
+                    if ((not enabled and checked) or (enabled and not checked)) then
+                        local needReload = f.needReload
+                        if type(needReload) == "function" then
+                            needReload = needReload(f)
+                        end
+                        if needReload then
+                            reload = 1
+                        end
+                        if f.callback then
+                            f.callback(f)
+                        end
                     end
-                    if f.callback then
-                        f.callback()
-                    end
+                elseif f.callback then
+                    f.callback(f)
                 end
             end
             for cvar in pairs(configOptions.radios) do
                 local radios = configOptions.radios[cvar]
                 for i = 1, #radios do
                     local f = radios[i]
-                    local checked = f.checkButton:GetChecked()
-                    local currentValue = config:Get(f.cvar)
-
-                    if checked then
-                        config:Set(f.cvar, f.valueRadio)
-
-                        if currentValue ~= f.valueRadio and f.needReload then
-                            reload = 1
+                    if f.cvar then
+                        local checked = f.checkButton:GetChecked()
+                        local currentValue = config:Get(f.cvar)
+                        if checked then
+                            config:Set(f.cvar, f.valueRadio)
+                            if currentValue ~= f.valueRadio then
+                                local needReload = f.needReload
+                                if type(needReload) == "function" then
+                                    needReload = needReload(f)
+                                end
+                                if needReload then
+                                    reload = 1
+                                end
+                            end
                         end
                     end
                 end
@@ -12358,17 +12554,23 @@ do
                     config:Set(f.cvar, f.selected)
                 end
             end
+            configParentFrame:Hide()
             if reload then
                 util:ShowStaticPopupDialog(RELOAD_POPUP)
             end
             callback:SendEvent("RAIDERIO_SETTINGS_SAVED")
         end
 
+        local function Reset_OnClick()
+            util:ShowStaticPopupDialog(RESET_POPUP)
+        end
+
         ---@class RaiderIOConfigOptions
         configOptions = {
+            lastWidget = nil, ---@type RaiderIOSettingsBaseWidget?
             modules = {}, ---@type RaiderIOSettingsModuleToggleWidget[]
             options = {}, ---@type RaiderIOSettingsToggleWidget[]
-            radios = {}, ---@type RaiderIOSettingsRadioToggleWidget[]
+            radios = {}, ---@type table<string, RaiderIOSettingsRadioToggleWidget[]>
             dropdowns = {}, ---@type RaiderIOSettingsDropDownWidget[]
             colors = {}, ---@type RaiderIOSettingsColorPickerWidget[]
             sliders = {}, ---@type RaiderIOSettingsSliderWidget[]
@@ -12379,11 +12581,16 @@ do
             }
         }
 
-        function configOptions.UpdateWidgetStates(self)
+        ---@param frameClicked? RaiderIOSettingsToggleWidget
+        function configOptions.UpdateWidgetStates(self, frameClicked)
             for i = 1, #self.options do
                 local f = self.options[i]
                 if f.isDisabled then
-                    if f:isDisabled() then
+                    local isDisabled = f.isDisabled
+                    if type(isDisabled) == "function" then
+                        isDisabled = isDisabled(f)
+                    end
+                    if isDisabled then
                         f.text:SetVertexColor(0.5, 0.5, 0.5)
                         f.help.icon:SetVertexColor(0.5, 0.5, 0.5)
                         f.checkButton:SetEnabled(false)
@@ -12395,8 +12602,12 @@ do
                         f.checkButton2:SetEnabled(true)
                     end
                 end
-                if f.isFakeChecked then
-                    local useFakeCheckMark, useGrayCheckMark = f:isFakeChecked()
+                if f.isFakeChecked ~= nil then
+                    local isFakeChecked = f.isFakeChecked
+                    local useFakeCheckMark, useGrayCheckMark = true, false
+                    if type(isFakeChecked) == "function" then
+                        useFakeCheckMark, useGrayCheckMark = isFakeChecked(f)
+                    end
                     if useFakeCheckMark then
                         if useGrayCheckMark then
                             f.checkButton.fakeCheck:SetVertexColor(0.5, 0.5, 0.5)
@@ -12408,15 +12619,25 @@ do
                         f.checkButton.fakeCheck:Hide()
                     end
                 end
+                if f == frameClicked and f.onPreClick then
+                    f.onPreClick(f)
+                end
+                if f.isRealChecked ~= nil then
+                    local isRealChecked = f.isRealChecked
+                    if type(isRealChecked) == "function" then
+                        isRealChecked = isRealChecked(f)
+                    end
+                    f.checkButton:SetChecked(isRealChecked)
+                end
             end
             for i = 1, #self.dropdowns do
                 local f = self.dropdowns[i]
                 if f.isDisabled ~= nil then
-                    local disabled = f.isDisabled
-                    if type(disabled) == "function" then
-                        disabled = disabled(f)
+                    local isDisabled = f.isDisabled
+                    if type(isDisabled) == "function" then
+                        isDisabled = isDisabled(f)
                     end
-                    if disabled then
+                    if isDisabled then
                         f.text:SetVertexColor(0.5, 0.5, 0.5)
                         f.help.icon:SetVertexColor(0.5, 0.5, 0.5)
                         f.toggleButton:SetEnabled(false)
@@ -12434,11 +12655,11 @@ do
             for i = 1, #self.colors do
                 local f = self.colors[i]
                 if f.isDisabled ~= nil then
-                    local disabled = f.isDisabled
-                    if type(disabled) == "function" then
-                        disabled = disabled(f)
+                    local isDisabled = f.isDisabled
+                    if type(isDisabled) == "function" then
+                        isDisabled = isDisabled(f)
                     end
-                    if disabled then
+                    if isDisabled then
                         f.text:SetVertexColor(0.5, 0.5, 0.5)
                         f.help.icon:SetVertexColor(0.5, 0.5, 0.5)
                         f.colorButton:SetEnabled(false)
@@ -12456,11 +12677,11 @@ do
             for i = 1, #self.sliders do
                 local f = self.sliders[i]
                 if f.isDisabled ~= nil then
-                    local disabled = f.isDisabled
-                    if type(disabled) == "function" then
-                        disabled = disabled(f)
+                    local isDisabled = f.isDisabled
+                    if type(isDisabled) == "function" then
+                        isDisabled = isDisabled(f)
                     end
-                    if disabled then
+                    if isDisabled then
                         f.text:SetVertexColor(0.5, 0.5, 0.5)
                         f.help.icon:SetVertexColor(0.5, 0.5, 0.5)
                         f.sliderFrame:SetEnabled(false)
@@ -12482,21 +12703,25 @@ do
                     for _, column in ipairs(databaseModuleColumns) do
                         local check = f[column.check]
                         local addon = f[column.addon]
-                        check:SetChecked(IsAddOnLoaded(addon))
-                        local _, addonTitle = GetAddOnInfo(addon)
+                        check:SetChecked(C_AddOns.IsAddOnLoaded(addon))
+                        local _, addonTitle = C_AddOns.GetAddOnInfo(addon)
                         check:SetShown(addonTitle ~= nil)
                     end
                 end
             end
             for i = 1, #self.options do
                 local f = self.options[i]
-                f.checkButton:SetChecked(config:Get(f.cvar) ~= false)
+                if f.cvar then
+                    f.checkButton:SetChecked(config:Get(f.cvar) ~= false)
+                end
             end
             for cvar in pairs(self.radios) do
                 local radios = configOptions.radios[cvar]
                 for i = 1, #radios do
                     local f = radios[i]
-                    f.checkButton:SetChecked(f.valueRadio == config:Get(f.cvar))
+                    if f.cvar then
+                        f.checkButton:SetChecked(f.valueRadio == config:Get(f.cvar))
+                    end
                 end
             end
             for i = 1, #self.dropdowns do
@@ -12522,13 +12747,24 @@ do
             end
         end
 
-        ---@class RaiderIOSettingsBaseWidget : Button, BackdropTemplate
+        ---@class RaiderIOSettingsBaseWidgetConfigOptions
+        ---@field public needReload? boolean|fun(self: RaiderIOSettingsBaseWidget):boolean
+        ---@field public isDisabled? boolean|fun(self: RaiderIOSettingsBaseWidget):boolean
+        ---@field public isFakeChecked? boolean|fun(self: RaiderIOSettingsBaseWidget):boolean
+        ---@field public isRealChecked? boolean|fun(self: RaiderIOSettingsBaseWidget):boolean
+        ---@field public onPreClick? fun(self: RaiderIOSettingsBaseWidget)
+        ---@field public callback? fun(self: RaiderIOSettingsBaseWidget)
+        ---@field public callbackClose? fun(self: RaiderIOSettingsBaseWidget)
+
+        ---@class RaiderIOSettingsBaseWidgetCheckButton : CheckButton
+        ---@field public fakeCheck Texture
+
+        ---@class RaiderIOSettingsBaseWidget : Button, BackdropTemplate, RaiderIOSettingsBaseWidgetConfigOptions
         ---@field public bg Texture
         ---@field public text FontString
-        ---@field public checkButton CheckButton
-        ---@field public checkButton2 CheckButton
-        ---@field public checkButton3 CheckButton
-        ---@field public help Frame
+        ---@field public checkButton RaiderIOSettingsBaseWidgetCheckButton
+        ---@field public checkButton2 RaiderIOSettingsBaseWidgetCheckButton
+        ---@field public checkButton3 RaiderIOSettingsBaseWidgetCheckButton
         ---@field public tooltip? string
 
         function configOptions.CreateWidget(self, widgetType, height, parentFrame)
@@ -12573,7 +12809,7 @@ do
             widget.checkButton.fakeCheck:SetTexture("Interface\\Buttons\\UI-CheckBox-Check")
             widget.checkButton.fakeCheck:SetAllPoints()
 
-            widget.help = CreateFrame("Frame", nil, widget) ---@diagnostic disable-line: param-type-mismatch
+            widget.help = CreateFrame("Frame", nil, widget) ---@class RaiderIOSettingsBaseWidgetHelpFrame : Frame
             widget.help:Hide()
             widget.help:SetPoint("LEFT", widget.checkButton, "LEFT", -20, 0)
             widget.help:SetSize(16, 16)
@@ -12581,6 +12817,7 @@ do
             widget.help.icon = widget.help:CreateTexture()
             widget.help.icon:SetAllPoints()
             widget.help.icon:SetTexture("Interface\\GossipFrame\\DailyActiveQuestIcon")
+            widget.help.tooltip = nil ---@type string?
 
             widget.help:SetScript("OnEnter", WidgetHelp_OnEnter)
             widget.help:SetScript("OnLeave", GameTooltip_Hide)
@@ -12598,7 +12835,7 @@ do
             end
 
             if not parentFrame then
-                self.lastWidget = widget
+                self.lastWidget = widget ---@diagnostic disable-line: inject-field
             end
 
             return widget
@@ -12649,13 +12886,16 @@ do
         end
 
         ---@class RaiderIOSettingsToggleWidget : RaiderIOSettingsBaseWidget
-        ---@field public tooltip string
-        ---@field public cvar string
-        ---@field public needReload boolean
-        ---@field public isDisabled? boolean
-        ---@field public isFakeChecked? boolean
-        ---@field public callback? function
+        ---@field public tooltip? string
+        ---@field public cvar? string
 
+        ---@param label string
+        ---@param description? string
+        ---@param cvar? string
+        ---@param configOptions? RaiderIOSettingsBaseWidgetConfigOptions
+        ---| RaiderIOSettingsDropDownWidgetOptions
+        ---| RaiderIOSettingsColorPickerWidgetOptions
+        ---| RaiderIOSettingsSliderWidgetOptions
         function configOptions.CreateToggle(self, label, description, cvar, configOptions)
             ---@type RaiderIOSettingsToggleWidget
             local frame = self:CreateWidget("Frame")
@@ -12666,18 +12906,28 @@ do
             frame.needReload = (configOptions and configOptions.needReload) or false
             frame.isDisabled = (configOptions and configOptions.isDisabled) or nil
             frame.isFakeChecked = (configOptions and configOptions.isFakeChecked) or nil
+            frame.isRealChecked = (configOptions and configOptions.isRealChecked) or nil
+            frame.onPreClick = (configOptions and configOptions.onPreClick) or nil
             frame.callback = (configOptions and configOptions.callback) or nil
+            frame.callbackClose = (configOptions and configOptions.callbackClose) or nil
+            if frame.callbackClose then
+                frame:HookScript("OnHide", frame.callbackClose)
+            end
             frame.help.tooltip = description
-            frame.help:Show()
+            frame.help:SetShown(description and description ~= "")
             frame.checkButton:Show()
             return frame
         end
 
+        ---@param label string
+        ---@param description? string
+        ---@param cvar? string
+        ---@param configOptions? RaiderIOSettingsBaseWidgetConfigOptions
         function configOptions.CreateOptionToggle(self, label, description, cvar, configOptions)
             ---@class RaiderIOSettingsToggleWidget
             local frame = self:CreateToggle(label, description, cvar, configOptions)
             frame.checkButton:SetScript("OnClick", function ()
-                self:UpdateWidgetStates()
+                self:UpdateWidgetStates(frame)
             end)
             self.options[#self.options + 1] = frame
             return frame
@@ -12686,6 +12936,11 @@ do
         ---@class RaiderIOSettingsRadioToggleWidget : RaiderIOSettingsToggleWidget
         ---@field public valueRadio any
 
+        ---@param label string
+        ---@param description? string
+        ---@param cvar string
+        ---@param value? any
+        ---@param configOptions? RaiderIOSettingsBaseWidgetConfigOptions
         function configOptions.CreateRadioToggle(self, label, description, cvar, value, configOptions)
             ---@class RaiderIOSettingsRadioToggleWidget
             local frame = self:CreateToggle(label, description, cvar, configOptions)
@@ -13066,7 +13321,7 @@ do
 
             -- add widgets
             local header = configOptions:CreateHeadline(L.RAIDERIO_MYTHIC_OPTIONS .. "\nVersion: " .. tostring(C_AddOns.GetAddOnMetadata(addonName, "Version")), configHeaderFrame)
-            header.text:SetFont(header.text:GetFont(), 16, "OUTLINE")
+            header.text:SetFont(header.text:GetFont(), 16, "OUTLINE") ---@diagnostic disable-line: param-type-mismatch
 
             configOptions:CreateHeadline(L.CHOOSE_HEADLINE_HEADER)
             configOptions:CreateRadioToggle(L.SHOW_BEST_SEASON, L.SHOW_BEST_SEASON_DESC, "mplusHeadlineMode", 1)
@@ -13145,6 +13400,64 @@ do
             configOptions:CreateOptionToggle(L.ALLOW_ON_PLAYER_UNITS, L.ALLOW_ON_PLAYER_UNITS_DESC, "showDropDownCopyURL")
             configOptions:CreateOptionToggle(L.ALLOW_IN_LFD, L.ALLOW_IN_LFD_DESC, "enableLFGDropdown")
 
+            ---@class RaiderIOSettingsToggleWidgetMinimapToggle : RaiderIOSettingsToggleWidget
+            ---@field public value? boolean
+
+            configOptions:CreatePadding()
+            configOptions:CreateHeadline(L.MINIMAP_SHORTCUT_HEADER)
+            configOptions:CreateOptionToggle(L.MINIMAP_SHORTCUT_ENABLE, L.MINIMAP_SHORTCUT_ENABLE_DESC, nil, {
+                ---@param self RaiderIOSettingsToggleWidgetMinimapToggle
+                isRealChecked = function(self)
+                    if self.value == nil then
+                        local db = config:Get("minimapIcon") ---@type LibDBIcon.button.DB
+                        self.value = not db.hide
+                    end
+                    return self.value
+                end,
+                ---@param self RaiderIOSettingsToggleWidgetMinimapToggle
+                onPreClick = function(self)
+                    if self.value ~= nil then
+                        self.value = not self.value
+                    end
+                end,
+                ---@param self RaiderIOSettingsToggleWidgetMinimapToggle
+                callback = function(self)
+                    local db = config:Get("minimapIcon") ---@type LibDBIcon.button.DB
+                    db.hide = not self.value
+                    self.value = nil
+                end,
+                ---@param self RaiderIOSettingsToggleWidgetMinimapToggle
+                callbackClose = function(self)
+                    self.value = nil
+                end,
+            })
+            configOptions:CreateOptionToggle(L.MINIMAP_SHORTCUT_LOCK, nil, nil, {
+                ---@param self RaiderIOSettingsToggleWidgetMinimapToggle
+                isRealChecked = function(self)
+                    if self.value == nil then
+                        local db = config:Get("minimapIcon") ---@type LibDBIcon.button.DB
+                        self.value = not not db.lock
+                    end
+                    return self.value
+                end,
+                ---@param self RaiderIOSettingsToggleWidgetMinimapToggle
+                onPreClick = function(self)
+                    if self.value ~= nil then
+                        self.value = not self.value
+                    end
+                end,
+                ---@param self RaiderIOSettingsToggleWidgetMinimapToggle
+                callback = function(self)
+                    local db = config:Get("minimapIcon") ---@type LibDBIcon.button.DB
+                    db.lock = not not self.value
+                    self.value = nil
+                end,
+                ---@param self RaiderIOSettingsToggleWidgetMinimapToggle
+                callbackClose = function(self)
+                    self.value = nil
+                end,
+            })
+
             configOptions:CreatePadding()
             configOptions:CreateHeadline(L.DB_MODULES)
             local modulesHeader = configOptions:CreateModuleToggle(L.MODULE_AMERICAS, "RaiderIO_DB_US_M", "RaiderIO_DB_US_R", "RaiderIO_DB_US_F")
@@ -13160,6 +13473,7 @@ do
             buttons:Hide()
             local save = configOptions:CreateWidget("Button", 4, configButtonFrame)
             local cancel = configOptions:CreateWidget("Button", 4, configButtonFrame)
+            local reset = configOptions:CreateWidget("Button", 4, configButtonFrame)
             save:ClearAllPoints()
             save:SetPoint("LEFT", buttons, "LEFT", 0, -12)
             save:SetSize(96, 28)
@@ -13172,9 +13486,15 @@ do
             cancel.text:SetText(CANCEL)
             cancel.text:SetJustifyH("CENTER")
             cancel:SetScript("OnClick", Close_OnClick)
+            reset:ClearAllPoints()
+            reset:SetPoint("CENTER", buttons, "CENTER", 0, -12)
+            reset:SetSize(128, 28)
+            reset.text:SetText(L.RESET_BUTTON)
+            reset.text:SetJustifyH("CENTER")
+            reset:SetScript("OnClick", Reset_OnClick)
 
             -- adjust frame height dynamically
-            local children = {configFrame:GetChildren()}
+            local children = {configFrame:GetChildren()} ---@type Region[]
             local height = 0
             for i = 1, #children do
                 height = height + children[i]:GetHeight() + 3.5
@@ -13237,7 +13557,7 @@ do
             end
         end
 
-        local panel = CreateFrame("Frame", addonName .. "_SettingsPanel")
+        local panel = CreateFrame("Frame", addonName .. "_SettingsPanel") ---@class RaiderIOConfigSettingsPanelFrame : Frame
         panel.name = addonName
         panel:Hide()
 
@@ -13271,7 +13591,7 @@ do
                     return
                 end
 
-                if text:find("^%s*[Rr][Ww][Ff]") then
+                if rwf and text:find("^%s*[Rr][Ww][Ff]") then
                     if rwf:IsLoaded() and config:Get("rwfMode") then
                         rwf:ToggleFrame()
                     else
@@ -13307,12 +13627,12 @@ do
         SlashCmdList[addonName] = handler
     end
 
-    local function OnConfigReady()
-        settings:Enable()
+    function settings:CanLoad()
+        return config:IsEnabled()
     end
 
     function settings:OnLoad()
-        callback:RegisterEvent(OnConfigReady, "RAIDERIO_CONFIG_READY")
+        self:Enable()
     end
 
     function settings:Show()
@@ -13592,6 +13912,155 @@ do
 
     function serverlog:OnDisable()
         callback:UnregisterEvent(OnEvent, unpack(TRACKING_EVENTS))
+    end
+
+end
+
+-- shortcuts.lua
+-- dependencies: module, callback, config, util, profile, search, settings, LibDataBroker + LibDBIcon
+do
+
+    ---@class ShortcutsModule : Module
+    local shortcuts = ns:NewModule("Shortcuts") ---@type ShortcutsModule
+    local callback = ns:GetModule("Callback") ---@type CallbackModule
+    local config = ns:GetModule("Config") ---@type ConfigModule
+    local util = ns:GetModule("Util") ---@type UtilModule
+    local profile = ns:GetModule("Profile") ---@type ProfileModule
+    local search = ns:GetModule("Search") ---@type SearchModule
+    local settings = ns:GetModule("Settings") ---@type SettingsModule
+
+    local LDB = LibStub("LibDataBroker-1.1", true)
+    local LDBI = LibStub("LibDBIcon-1.0", true)
+    local anchorFrame ---@type Frame
+
+    ---@return string? name, string realm
+    local function GetSearchInfo()
+        if not util:IsUnitMaxLevel("target") then
+            return ---@diagnostic disable-line: missing-return-value
+        end
+        local name, realm = util:GetNameRealm("target")
+        if not name then
+            return ---@diagnostic disable-line: missing-return-value
+        end
+        return name, realm
+    end
+
+    function shortcuts:GetMinimapIconDB()
+        return config:Get("minimapIcon") ---@type LibDBIcon.button.DB
+    end
+
+    ---@param frame Frame
+    function shortcuts:OnButtonEnter(frame)
+        GameTooltip:SetOwner(frame, "ANCHOR_TOPRIGHT", -frame:GetWidth(), 0)
+        GameTooltip:AddLine(L.MINIMAP_SHORTCUT_HELP)
+        GameTooltip:Show()
+        if profile:IsProfileShown() then
+            return
+        end
+        local offsetX = 0
+        if profile:ShowProfile(anchorFrame, "player") then
+            offsetX = -profile:GetProfileTooltip():GetWidth()
+        end
+        anchorFrame:SetPoint("TOPRIGHT", frame, "TOPLEFT", offsetX, 0)
+    end
+
+    ---@param frame Frame
+    function shortcuts:OnButtonLeave(frame)
+        if profile:IsProfileAnchored(anchorFrame) then
+            profile:HideProfile()
+        end
+        GameTooltip:Hide()
+    end
+
+    ---@param frame Frame
+    ---@param button MouseButton
+    function shortcuts:OnButtonClick(frame, button)
+        if button == "RightButton" then
+            settings:Toggle()
+            return
+        end
+        if search:IsShown() then
+            search:Hide()
+        else
+            search:Show()
+            if not search:SearchHasProfile() then
+                search:SearchAndShowProfile(ns.PLAYER_REGION, ns.PLAYER_REALM, ns.PLAYER_NAME)
+            end
+            local name, realm = GetSearchInfo()
+            if name then
+                search:SearchAndShowProfile(ns.PLAYER_REGION, realm, name)
+            end
+        end
+        if frame:IsVisible() then
+            self:OnButtonEnter(frame)
+        end
+    end
+
+    function shortcuts:InitializeDataBroker()
+        if not LDB or self.dataBroker then
+            return
+        end
+        self.dataBroker = LDB:NewDataObject(addonName, {
+            text = "Raider.IO",
+            type = "launcher",
+            icon = "Interface\\AddOns\\RaiderIO\\icons\\logo",
+            OnEnter = function(...) self:OnButtonEnter(...) end,
+            OnLeave = function(...) self:OnButtonLeave(...) end,
+            OnClick = function(...) self:OnButtonClick(...) end,
+        })
+    end
+
+    function shortcuts:InitializeDBIcon()
+        if not LDBI or self.dbIcon or not self.dataBroker then
+            return
+        end
+        local db = self:GetMinimapIconDB()
+        config:Set("minimapIcon", db) -- force save the initial settings in the SV file
+        LDBI:Register(addonName, self.dataBroker, db) ---@diagnostic disable-line: param-type-mismatch
+        self.dbIcon = LDBI:IsRegistered(addonName)
+    end
+
+    function shortcuts:ShowIcon()
+        if self.dbIcon then
+            LDBI:AddButtonToCompartment(addonName)
+            LDBI:Show(addonName)
+            LDBI:Refresh(addonName, self:GetMinimapIconDB())
+        end
+    end
+
+    function shortcuts:HideIcon()
+        if self.dbIcon then
+            LDBI:RemoveButtonFromCompartment(addonName)
+            LDBI:Hide(addonName)
+        end
+    end
+
+    function shortcuts:UpdateState()
+        local db = self:GetMinimapIconDB()
+        if db.hide then
+            self:HideIcon()
+            return
+        end
+        self:InitializeDataBroker()
+        self:InitializeDBIcon()
+        self:ShowIcon()
+    end
+
+    local function OnEvent(event, ...)
+        if event == "RAIDERIO_SETTINGS_SAVED" then
+            shortcuts:UpdateState()
+        end
+    end
+
+    function shortcuts:CanLoad()
+        return config:IsEnabled() and profile:IsEnabled() and search:IsEnabled() and settings:IsEnabled()
+    end
+
+    function shortcuts:OnLoad()
+        anchorFrame = CreateFrame("Frame", nil, UIParent)
+        anchorFrame:SetSize(1, 1)
+        self:UpdateState()
+        callback:RegisterEvent(OnEvent, "RAIDERIO_SETTINGS_SAVED")
     end
 
 end
@@ -13915,13 +14384,13 @@ do
 end
 
 -- public.lua (global)
--- dependencies: module, util, provider, render, replay
+-- dependencies: module, util, provider, render, replay?
 do
 
     local util = ns:GetModule("Util") ---@type UtilModule
     local provider = ns:GetModule("Provider") ---@type ProviderModule
     local render = ns:GetModule("Render") ---@type RenderModule
-    local replay = ns:GetModule("Replay") ---@type ReplayModule
+    local replay = ns:GetModule("Replay", true) ---@type ReplayModule?
 
     -- TODO: we have a long road a head of us... debugstack(0)
     local function IsSafeCall()
@@ -13946,6 +14415,7 @@ do
         return ns.PLAYER_REGION ~= nil -- GetProfile will fail if called too early before the player info is properly loaded so we avoid doing that by safely checking if we're loaded ready
     end
 
+    ---@class RaiderIOPublicAPIPristine
     local pristine = {
         AddProvider = function(...)
             return provider:AddProvider(...)
@@ -13989,17 +14459,21 @@ do
             local average = util:GetKeystoneAverageScoreForLevel(level)
             return base, average
         end,
-        GetCurrentReplay = function()
-            return replay:GetCurrentReplaySummary()
-        end,
-        ReplayUI_Toggle = function()
-            return replay:Toggle()
-        end,
-        ReplayUI_SetTiming = function(timing)
-            return replay:SetTiming(timing)
-        end,
     }
 
+    if replay then
+        pristine.GetCurrentReplay = function()
+            return replay:GetCurrentReplaySummary()
+        end
+        pristine.ReplayUI_Toggle = function()
+            return replay:Toggle()
+        end
+        pristine.ReplayUI_SetTiming = function(timing)
+            return replay:SetTiming(timing)
+        end
+    end
+
+    ---@class RaiderIOPublicAPIPrivate
     local private = {
         AddProvider = function(...)
             if not IsSafe() then
@@ -14031,24 +14505,6 @@ do
             end
             return pristine.GetScoreForKeystone(...)
         end,
-        GetCurrentReplay = function(...)
-            if not IsSafe() then
-                return
-            end
-            return pristine.GetCurrentReplay(...)
-        end,
-        ReplayUI_Toggle = function(...)
-            if not IsSafe() then
-                return
-            end
-            return pristine.ReplayUI_Toggle(...)
-        end,
-        ReplayUI_SetTiming = function(...)
-            if not IsSafe() then
-                return
-            end
-            return pristine.ReplayUI_SetTiming(...)
-        end,
         -- DEPRECATED: these are here just to help mitigate the transition but do avoid using these as they will probably go away during Shadowlands
         ProfileOutput = setmetatable({}, { __index = function() return 0 end }), -- returns 0 for any query
         TooltipProfileOutput = setmetatable({}, { __index = function() return 0 end }), -- returns 0 for any query
@@ -14059,6 +14515,27 @@ do
         GetRaidDifficultyColor = function(difficulty) local rd = ns.RAID_DIFFICULTY[difficulty] local t if rd then t = { rd.color[1], rd.color[2], rd.color[3], rd.color.hex } end return t end, -- returns the color table for the queried raid difficulty
         GetScore = function() end, -- deprecated early BfA so we just return nothing
     }
+
+    if replay then
+        private.GetCurrentReplay = function(...)
+            if not IsSafe() then
+                return
+            end
+            return pristine.GetCurrentReplay(...)
+        end
+        private.ReplayUI_Toggle = function(...)
+            if not IsSafe() then
+                return
+            end
+            return pristine.ReplayUI_Toggle(...)
+        end
+        private.ReplayUI_SetTiming = function(...)
+            if not IsSafe() then
+                return
+            end
+            return pristine.ReplayUI_SetTiming(...)
+        end
+    end
 
     ---@class RaiderIOInterface
     ---@field public AddProvider fun() For internal RaiderIO use only. Please do not call this function.

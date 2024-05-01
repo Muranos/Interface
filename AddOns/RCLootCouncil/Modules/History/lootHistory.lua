@@ -16,6 +16,8 @@ local LootHistory = addon:NewModule("RCLootHistory", "AceSerializer-3.0")
 local L = LibStub("AceLocale-3.0"):GetLocale("RCLootCouncil")
 local AG = LibStub("AceGUI-3.0")
 local Comms = addon.Require "Services.Comms"
+local ItemUtils = addon.Require "Utils.Item"
+
 local COMMS_PREFIX = addon.PREFIXES.MAIN
 local lootDB, data, db
 --[[ data structure:
@@ -59,6 +61,7 @@ function LootHistory:OnInitialize()
 		{name = "",				width = ROW_HEIGHT, },																				-- Item icon
 		{name = L["Item"],	width = 250, comparesort = self.ItemSort, defaultsort = 1, sortnext = 2},			-- Item string
 		{name = L["Reason"],	width = 220, comparesort = self.ResponseSort,  defaultsort = 1, sortnext = 2},	-- Response aka the text supplied to lootDB...response
+		{ name = L["Notes"],  width = 40, },
 		{name = "",				width = ROW_HEIGHT},																					-- Delete button
 	}
 	filterMenu = _G.MSA_DropDownMenu_Create("RCLootCouncil_LootHistory_FilterMenu", UIParent)
@@ -227,6 +230,7 @@ function LootHistory:BuildData()
 							{DoCellUpdate = self.SetCellGear, args={i.lootWon}},
 							{value = i.lootWon},
 							{DoCellUpdate = self.SetCellResponse, args = {color = i.color, response = i.response, responseID = i.responseID or 0, isAwardReason = i.isAwardReason}},
+							{ DoCellUpdate = self.SetCellNote },
 							{DoCellUpdate = self.SetCellDelete},
 						}
 					}
@@ -481,13 +485,33 @@ function LootHistory.SetCellResponse(rowFrame, frame, data, cols, row, realrow, 
 	local args = data[realrow].cols[column].args
 	frame.text:SetText(args.response)
 
-	if args.color and type(args.color) == "table" then -- Never version saves the color with the entry
+	if args.color and type(args.color) == "table" and type(args.color[1]) == "number" then -- Never version saves the color with the entry
 		frame.text:SetTextColor(unpack(args.color))
 	elseif args.responseID and args.responseID > 0 then -- try to recreate color from ID
 		frame.text:SetTextColor(unpack(addon:GetResponse("default", args.responseID).color))
 	else -- default to white
 		frame.text:SetTextColor(1,1,1,1)
 	end
+end
+
+function LootHistory.SetCellNote(rowFrame, frame, data, cols, row, realrow, column, fShow, table, ...)
+	if not data then return end
+	local row = data[realrow]
+	local note = lootDB[row.name][row.num].note
+	local f = frame.noteBtn or CreateFrame("Button", nil, frame)
+	f:SetSize(ROW_HEIGHT, ROW_HEIGHT)
+	f:SetPoint("CENTER", frame, "CENTER")
+	if note then
+		f:SetNormalTexture("Interface/BUTTONS/UI-GuildButton-PublicNote-Up.png")
+		f:SetScript("OnEnter", function() addon:CreateTooltip(_G.LABEL_NOTE, note) end) -- _G.LABEL_NOTE == "Note" in English
+		f:SetScript("OnLeave", function() addon:HideTooltip() end)
+		data[realrow].cols[column].value = 1                                      -- Set value for sorting compability
+	else
+		f:SetScript("OnEnter", nil)
+		f:SetNormalTexture("Interface/BUTTONS/UI-GuildButton-PublicNote-Disabled.png")
+		data[realrow].cols[column].value = 0
+	end
+	frame.noteBtn = f
 end
 
 function LootHistory.SetCellDelete(rowFrame, frame, data, cols, row, realrow, column, fShow, table, ...)
@@ -639,8 +663,8 @@ function LootHistory.ItemSort(table, rowa, rowb, sortbycol)
 	local column = table.cols[sortbycol]
 	rowa, rowb = table:GetRow(rowa), table:GetRow(rowb);
 	local a,b = lootDB[rowa.name][rowa.num].lootWon, lootDB[rowb.name][rowb.num].lootWon
-	a = addon.Utils:GetItemNameFromLink(a)
-	b = addon.Utils:GetItemNameFromLink(b)
+	a = ItemUtils:GetItemNameFromLink(a)
+	b = ItemUtils:GetItemNameFromLink(b)
 	if a == b then
 		if column.sortnext then
 			local nextcol = table.cols[column.sortnext];
@@ -730,7 +754,7 @@ function LootHistory:ImportHistory(import)
 	import = import:gsub("    ", "\t")
 	local type = self:DetermineImportType(import)
 
-	if not type or type == "Unknown" then
+	if not type or type == "Unknown" or type == "tsv" then
 		addon:Print(L["import_not_supported"])
 		addon:Print(L["Accepted imports: 'Player Export' and 'CSV'"])
 		return
@@ -1572,8 +1596,8 @@ do
 				tinsert(export, tostring(d.time))
 				tinsert(export, tostring(d.id))
 				tinsert(export, CSVEscape(d.lootWon))
-				tinsert(export, addon.Utils:GetItemIDFromLink(d.lootWon))
-				tinsert(export, addon.Utils:GetItemStringFromLink(d.lootWon))
+				tinsert(export, ItemUtils:GetItemIDFromLink(d.lootWon))
+				tinsert(export, ItemUtils:GetItemStringFromLink(d.lootWon))
 				tinsert(export, CSVEscape(d.response))
 				tinsert(export, tostring(d.votes))
 				tinsert(export, tostring(d.class))
@@ -1615,8 +1639,8 @@ do
 				tinsert(export, tostring(self:GetLocalizedDate(d.date)))
 				tinsert(export, tostring(d.time))
 				tinsert(export, "=HYPERLINK(\""..self:GetWowheadLinkFromItemLink(d.lootWon).."\",\""..tostring(d.lootWon).."\")")
-				tinsert(export, addon.Utils:GetItemIDFromLink(d.lootWon))
-				tinsert(export, addon.Utils:GetItemStringFromLink(d.lootWon))
+				tinsert(export, ItemUtils:GetItemIDFromLink(d.lootWon))
+				tinsert(export, ItemUtils:GetItemStringFromLink(d.lootWon))
 				tinsert(export, tostring(d.response))
 				tinsert(export, tostring(d.votes))
 				tinsert(export, tostring(d.class))
@@ -1662,8 +1686,8 @@ do
 				tinsert(export, string.format("\"%s\":\"%s\"", "date", tostring(self:GetLocalizedDate(d.date))))
 				tinsert(export, string.format("\"%s\":\"%s\"", "time", tostring(d.time)))
 				tinsert(export, string.format("\"%s\":\"%s\"", "id", tostring(d.id)))
-				tinsert(export, string.format("\"%s\":%s", "itemID", addon.Utils:GetItemIDFromLink(d.lootWon)))
-				tinsert(export, string.format("\"%s\":\"%s\"", "itemString", addon.Utils:GetItemStringFromLink(d.lootWon)))
+				tinsert(export, string.format("\"%s\":%s", "itemID", ItemUtils:GetItemIDFromLink(d.lootWon)))
+				tinsert(export, string.format("\"%s\":\"%s\"", "itemString", ItemUtils:GetItemStringFromLink(d.lootWon)))
 				tinsert(export, string.format("\"%s\":\"%s\"", "response", QuotesEscape(d.response)))
 				tinsert(export, string.format("\"%s\":%s", "votes", tostring(d.votes or 0)))
 				tinsert(export, string.format("\"%s\":\"%s\"", "class", tostring(d.class)))
@@ -1678,7 +1702,7 @@ do
 				tinsert(export, string.format("\"%s\":\"%s\"", "equipLoc", tostring(getglobal(equipLoc) or "")))
 				tinsert(export, string.format("\"%s\":\"%s\"", "note", QuotesEscape(d.note)))
 				tinsert(export, string.format("\"%s\":\"%s\"", "owner", tostring(d.owner or "Unknown")))
-				tinsert(export, string.format("\"%s\":\"%s\"", "itemName", addon.Utils:GetItemNameFromLink(d.lootWon)))
+				tinsert(export, string.format("\"%s\":\"%s\"", "itemName", ItemUtils:GetItemNameFromLink(d.lootWon)))
 
 				processedEntries = processedEntries + 1;
 
@@ -1751,8 +1775,8 @@ do
 				local hour,minute,second = strsplit(":",d.time,3)
 				local sinceEpoch = time({year = "20"..year, month = month, day = day,hour = hour,min = minute,sec=second})
 				itemsData = itemsData.."\t\t<item>\r\n"
-				.."\t\t\t<itemid>" .. addon.Utils:GetItemStringClean(d.lootWon) .. "</itemid>\r\n"
-				.."\t\t\t<name>" .. addon.Utils:GetItemNameFromLink(d.lootWon) .. "</name>\r\n"
+				.."\t\t\t<itemid>" .. ItemUtils:GetItemStringClean(d.lootWon) .. "</itemid>\r\n"
+				.."\t\t\t<name>" .. ItemUtils:GetItemNameFromLink(d.lootWon) .. "</name>\r\n"
 				.."\t\t\t<member>" .. addon.Ambiguate(player) .. "</member>\r\n"
 				.."\t\t\t<time>" .. sinceEpoch .. "</time>\r\n"
 				.."\t\t\t<count>1</count>\r\n"

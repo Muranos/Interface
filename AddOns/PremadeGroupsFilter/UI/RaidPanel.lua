@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Premade Groups Filter
 -------------------------------------------------------------------------------
--- Copyright (C) 2022 Elotheon-Arthas-EU
+-- Copyright (C) 2024 Bernhard Saumweber
 --
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -167,5 +167,8 @@ function RaidPanel:GetSortingExpression()
 end
 
 RaidPanel:OnLoad()
-PGF.Dialog:RegisterPanel("c3f5", RaidPanel)
-PGF.Dialog:RegisterPanel("c3f6", RaidPanel)
+PGF.Dialog:RegisterPanel("c3f5", RaidPanel) -- Retail
+PGF.Dialog:RegisterPanel("c3f6", RaidPanel) -- Retail
+PGF.Dialog:RegisterPanel("c114f4", RaidPanel) -- Wrath
+PGF.Dialog:RegisterPanel("c114f5", RaidPanel) -- Wrath
+PGF.Dialog:RegisterPanel("c114f6", RaidPanel) -- Wrath

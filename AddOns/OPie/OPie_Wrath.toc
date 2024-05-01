@@ -1,6 +1,6 @@
-## Interface: 30402
+## Interface: 30403
 ## Title: OPie
-## Version: Yuzu 9+3.33
+## Version: Zeta 5a
 ## Author: foxlit
 ## Notes: Group abilities into rings that appear when you hold down a binding.
 ## X-Website: https://www.townlong-yak.com/addons/opie
@@ -14,10 +14,11 @@
 ## Notes-koKR: 단축키를 눌렀을 때 표시되는 고리로 능력을 분류합니다.
 ## Notes-ruRU: Объединяет умения в кольца, которые появляются при нажатии назначенных клавиш.
 ## Notes-zhCN: 当你按下快捷键时显示一个环形的技能分组.
-## Notes-zhTW: 按下快捷鍵時將技能群組顯示在環中。
-## Notes-ptBR: Agrupar habilidades em anéis que aparecem quando você ativa uma ligação.
+## Notes-zhTW: 按下綁定的按鍵時將技能分組到出現的環中。
+## Notes-ptBR: Agrupar habilidades em anéis que aparecem quando você ativa um vínculo.
 ## SavedVariables: OneRing_Config, OPie_SavedData
 ## SavedVariablesPerCharacter: OPie_SavedDataPC
+## OptionalDeps: TaintLess
 ## X-M6-AB: OPie.ActionBook
 Libs\Evie.lua
 Libs\Niji.lua
@@ -25,9 +26,8 @@ Libs\Mirage.lua
 Libs\TaintLess.xml
 Libs\exui\exui.xml
 Libs\ActionBook\ActionBook.xml
-Libs\ActionBook\ActionBookUI.xml
 Libs\TenSettings.lua
-Libs\TenTip.lua
+Libs\NotGameTooltip.lua
 Locale.lua
 OPieCore.lua
 OPieUI.lua

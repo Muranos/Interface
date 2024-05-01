@@ -64,7 +64,7 @@ function P:FindRelativeFrame(guid)
 			end
 			return
 		end
-		for addon, data in pairs(E.customUF.enabledList) do
+		for _, data in pairs(E.customUF.enabledList) do
 			local frames, unitKey = data.frames, data.unit
 			local n = #frames
 			for i = 1, n do
@@ -147,6 +147,20 @@ function P:SetOffset(frame)
 	frame.container:SetPoint("TOPLEFT", frame, self.containerOfsX, self.containerOfsY)
 end
 
+local function SetContainerPosition(frame, relFrame, showRange)
+	for raidBarIndex, container in pairs(frame.exContainers) do
+		if ( showRange ) then
+			container:SetParent(relFrame)
+			container:SetFrameLevel(10)
+		else
+			container:SetParent(UIParent)
+		end
+		container:ClearAllPoints()
+		local f = P.extraBars["raidBar" .. raidBarIndex]
+		container:SetPoint(f.point, relFrame, f.relativePoint, f.containerOfsX, f.containerOfsY)
+	end
+end
+
 function P:UpdatePosition(isRefreshMembers)
 	if self.disabled then
 		return
@@ -180,6 +194,8 @@ function P:UpdatePosition(isRefreshMembers)
 				end
 				frame:ClearAllPoints()
 				frame:SetPoint(point, relFrame, relPoint)
+
+				SetContainerPosition(frame, relFrame, showRange)
 				frame:Show()
 			end
 		end

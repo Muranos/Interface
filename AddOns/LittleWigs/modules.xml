@@ -2,5 +2,6 @@
 ..\FrameXML\UI.xsd">
 
 <Include file="Dragonflight\modules.xml"/>
+<Include file="TWW\modules.xml"/>
 
 </Ui>

@@ -35,6 +35,7 @@ local L = mod:GetLocale()
 if L then
 	L.custom_on_autotalk = "Autotalk"
 	L.custom_on_autotalk_desc = "Instantly selects the gossip options to get profession buffs."
+	L.custom_on_autotalk_icon = "ui_chat"
 
 	L.burning_chain = "Burning Chain"
 	L.qalashi_warden = "Qalashi Warden"
@@ -304,7 +305,7 @@ do
 			return
 		end
 		-- this is cast during RP fighting, filter unless in combat
-		local unit = self:GetUnitIdByGUID(args.sourceGUID)
+		local unit = self:UnitTokenFromGUID(args.sourceGUID)
 		if unit and UnitAffectingCombat(unit) then
 			local t = args.time
 			if t - prev > 1 then

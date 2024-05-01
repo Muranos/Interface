@@ -1,10 +1,10 @@
-local MAJ, REV, COMPAT, _, T = 1, 3, select(4,GetBuildInfo()), ...
+local MAJ, REV, COMPAT, _, T = 1, 7, select(4,GetBuildInfo()), ...
 if T.SkipLocalActionBook then return end
 
 local EV, AB, RW = T.Evie, T.ActionBook:compatible(2,34), T.ActionBook:compatible("Rewire", 1,27)
 assert(EV and AB and RW and 1, "Incompatible library bundle")
 local MODERN, CF_WRATH, CI_ERA = COMPAT >= 10e4, COMPAT < 10e4 and COMPAT >= 3e4, COMPAT < 2e4
-local IM, L, CreateEdge = {}, T.ActionBook.L, T.CreateEdge
+local IM, L, XU = {}, T.ActionBook.L, T.exUI
 
 local function assert(condition, text, level, ...)
 	return condition or error(tostring(text):format(...), 1 + (level or 1))((0)[0])
@@ -22,9 +22,13 @@ local commandType, addCommandType = {["#show"]=0, ["#showtooltip"]=0, ["#imp"]=-
 	for n, ct in ("CAST:1 USE:1 CASTSEQUENCE:2 CASTRANDOM:3 USERANDOM:3"):gmatch("(%a+):(%d+)") do
 		addCommandType(n, ct+0)
 	end
+	if MODERN then
+		addCommandType("PING", 4)
+	end
 end
 
 local toMacroText, quantizeMacro, formatMacro, formatToken, setMountPreference do
+	local COMMA_LIST_COMMAND_TYPES, CAST_ESCAPE_COMMAND_TYPES = {[2]=1, [3]=1}, {[0]=1, [1]=1, [3]=1}
 	local genParser do
 		local doRewrite, replaceFunc, critFail, critLine
 		local function replaceAlternatives(ctype, args)
@@ -114,7 +118,7 @@ local toMacroText, quantizeMacro, formatMacro, formatToken, setMountPreference d
 		end
 	end
 	local function replaceSpellID(ctype, sidlist, prefix, tk)
-		local noEscapes, sr, ar = ctype == 2
+		local noEscapes, sr, ar = not CAST_ESCAPE_COMMAND_TYPES[ctype]
 		for id, sn in sidlist:gmatch("%d+") do
 			id = id + 0
 			sn, sr = GetSpellInfo(id), GetSpellSubtext(id)
@@ -172,8 +176,7 @@ local toMacroText, quantizeMacro, formatMacro, formatToken, setMountPreference d
 			return cs
 		end
 		function replaceMountTag(ctype, tag, prefix)
-			if not MODERN then
-			elseif tag == "ground" then
+			if tag == "ground" then
 				gmSid = gmSid and IsKnownSpell(gmSid) or findMount(gmPref or gmSid, 230, ctype)
 				return replaceSpellID(ctype, tostring(gmSid), prefix)
 			elseif tag == "air" then
@@ -185,6 +188,9 @@ local toMacroText, quantizeMacro, formatMacro, formatToken, setMountPreference d
 			end
 			return nil
 		end
+		if not (MODERN or CF_WRATH) then
+			replaceMountTag = function () end
+		end
 		local function editPreference(orig, new)
 			return type(new) == "number" and new or new ~= false and orig or nil
 		end
@@ -195,12 +201,23 @@ local toMacroText, quantizeMacro, formatMacro, formatToken, setMountPreference d
 			return gmPref, fmPref, drPref
 		end
 	end
+	local pingTextMap, pingTokenMap = {}, {
+		assist=PING_TYPE_ASSIST,
+		attack=PING_TYPE_ATTACK,
+		onmyway=PING_TYPE_ON_MY_WAY,
+		warning=PING_TYPE_WARNING,
+	}
+	for k,v in pairs(pingTokenMap) do
+		pingTextMap[v:lower()], pingTextMap[k] = k, k
+	end
 	toMacroText = genParser(function(ctype, value)
 		local prefix, tkey, tval = value:match("^%s*(!?){{(%a+):([%a%d/]+)}}%s*$")
 		if tkey == "spell" or tkey == "spellr" then
 			return replaceSpellID(ctype, tval, prefix, tkey)
 		elseif tkey == "mount" then
 			return replaceMountTag(ctype, tval, prefix)
+		elseif tkey == "ping" and ctype == 4 then
+			return pingTokenMap[tval] or value
 		elseif value:match('^%s*!?|Hiptok|h|h%s*$') then
 			return '-'
 		end
@@ -208,16 +225,22 @@ local toMacroText, quantizeMacro, formatMacro, formatToken, setMountPreference d
 	end)
 	local toImpText, prepareQuantizer do
 		local spells, specialTokens, OTHER_SPELL_IDS = {}, {}, {150544, 243819}
-		local abTokens = {["Ground Mount"]="{{mount:ground}}", ["Flying Mount"]="{{mount:air}}", ["Dragonriding Mount"]="{{mount:dragon}}"}
+		local abMountTokens = {["Ground Mount"]="{{mount:ground}}", ["Flying Mount"]="{{mount:air}}", ["Dragonriding Mount"]=MODERN and "{{mount:dragon}}" or nil}
 		toImpText = genParser(function(ctype, value, ctx, args, cpos)
 			if type(ctx) == "number" and ctx > 0 then
 				return nil, ctx-1
 			end
-			local noEscapes, cc, pre, name, tws = ctype == 2, 0, value:match("^(%s*!?)(.-)(%s*)$")
+			local commaList, noEscapes = COMMA_LIST_COMMAND_TYPES[ctype], not CAST_ESCAPE_COMMAND_TYPES[ctype]
+			local cc, pre, name, tws = 0, value:match("^(%s*!?)(.-)(%s*)$")
 			repeat
 				local lowname = name:lower()
 				local sid, peek, cnpos = spells[lowname]
-				if sid and noEscapes and RW:IsCastEscape(lowname, true) then
+				if ctype == 4 then
+					name = pingTextMap[lowname]
+					if name then
+						return pre .. "{{ping:" .. name.. "}}" .. tws
+					end
+				elseif sid and noEscapes and RW:IsCastEscape(lowname, true) then
 					-- Don't tokenize escapes in contexts they wont't work in
 				elseif sid then
 					if not MODERN then
@@ -233,7 +256,7 @@ local toMacroText, quantizeMacro, formatMacro, formatToken, setMountPreference d
 				elseif name:match("^{{.*}}$") then
 					return pre .. name .. tws, cc
 				end
-				if ctype >= 2 and args then
+				if commaList and args then
 					peek, cnpos = args:match("^([^,]+),?()", cpos)
 					if peek then
 						cc, cpos, name, tws = cc + 1, cnpos, (name .. "," .. peek):match("^(.-)(%s*)$")
@@ -242,7 +265,7 @@ local toMacroText, quantizeMacro, formatMacro, formatToken, setMountPreference d
 			until not peek or cc > 5
 			return value
 		end)
-		local function addModernSpells()
+		local function addMountSpells()
 			local gmi, idm = C_MountJournal.GetMountInfoByID, C_MountJournal.GetMountIDs()
 			for i=1, #idm do
 				local _, sid = gmi(idm[i])
@@ -251,6 +274,11 @@ local toMacroText, quantizeMacro, formatMacro, formatToken, setMountPreference d
 					spells[sname:lower()] = sid
 				end
 			end
+			for k, tok in pairs(abMountTokens) do
+				specialTokens[k:lower()], specialTokens[L(k):lower()] = tok, tok
+			end
+		end
+		local function addModernSpells()
 			local cid = C_ClassTalents.GetActiveConfigID()
 			if not cid then
 				local spec = GetSpecializationInfo(GetSpecialization())
@@ -286,12 +314,22 @@ local toMacroText, quantizeMacro, formatMacro, formatToken, setMountPreference d
 				k = nl .. " (" .. sr:lower() .. ")"; spells[k] = spells[k] or id
 			end
 		end
-		local function addSpellBookTab(ofs, c, allowGenericOverwrite)
+		local function addSpellBookTab(ofs, c, allowGenericOverwrite, isRuneBook)
 			for j=ofs+1,ofs+c do
 				local n, st, id = GetSpellBookItemName(j, "spell"), GetSpellBookItemInfo(j, "spell")
 				if type(n) ~= "string" or not id then
 				elseif st == "SPELL" or st == "FUTURESPELL" then
-					addSpell(n, id, allowGenericOverwrite and st == "SPELL")
+					local ao = allowGenericOverwrite and st == "SPELL" and not isRuneBook
+					if isRuneBook then
+						local sn, id2 = GetSpellInfo(id), select(7, GetSpellInfo(n))
+						if sn ~= n then
+							addSpell(sn, id, ao)
+						end
+						if id2 and id2 ~= id then
+							addSpell(n, id2, ao)
+						end
+					end
+					addSpell(n, id, ao)
 				elseif st == "FLYOUT" then
 					for j=1,select(3,GetFlyoutInfo(id)) do
 						local sid, _, _, sname = GetFlyoutSlotInfo(id, j)
@@ -313,31 +351,27 @@ local toMacroText, quantizeMacro, formatMacro, formatToken, setMountPreference d
 				end
 			end
 			if MODERN then
+				addMountSpells()
 				addModernSpells()
-				local L = T.ActionBook.L
-				for k, tok in pairs(abTokens) do
-					specialTokens[k:lower()], specialTokens[L(k):lower()] = tok, tok
-				end
 			elseif CF_WRATH then
-				for k=1,2 do
-					k = k == 1 and "MOUNT" or "CRITTER"
-					for i=1,GetNumCompanions(k) do
-						local _, _, sid = GetCompanionInfo(k, i)
-						local sn = GetSpellInfo(sid)
-						if sn then
-							addSpell(sn, sid)
-						end
+				addMountSpells()
+				for i=1,GetNumCompanions("CRITTER") do
+					local _, _, sid = GetCompanionInfo("CRITTER", i)
+					local sn = GetSpellInfo(sid)
+					if sn then
+						addSpell(sn, sid)
 					end
 				end
 			end
 			for curSpec=0,1 do
 				for i=GetNumSpellTabs()+12,1,-1 do
-					local _, _, ofs, c, _, sid = GetSpellTabInfo(i)
+					local _, ico, ofs, c, _, sid = GetSpellTabInfo(i)
 					if ((curSpec == 0) == (sid == 0)) then
-						addSpellBookTab(ofs, c, not MODERN)
+						addSpellBookTab(ofs, c, not MODERN, CI_ERA and ico == 134419)
 					end
 				end
 			end
+			spells[""], spells["()"] = nil
 		end
 	end
 	function quantizeMacro(macro, skipCacheRefresh)
@@ -373,6 +407,11 @@ local toMacroText, quantizeMacro, formatMacro, formatToken, setMountPreference d
 					end
 				elseif token == "mount" then
 					return mountTokens[targ]
+				elseif token == "ping" then
+					local tname = pingTokenMap[targ]
+					if tname then
+						return "|cff71d5ff|Hilt" .. token .. ":" .. targ .. "|h" .. tname .. "|h|r"
+					end
 				end
 				return '{{' .. token .. ':' .. targ .. '}}'
 			end
@@ -482,79 +521,9 @@ do -- AB imptext action type
 		end
 		return L"Custom Macro", "", ico or "interface/icons/inv_misc_questionmark"
 	end
-	AB:RegisterActionType("imptext", createImpMacro, describeImpMacro)
+	AB:RegisterActionType("imptext", createImpMacro, describeImpMacro, 1)
 end
 do -- Editor UI
-	local multilineInput do
-		local function onNavigate(self, _x,y, _w,h)
-			local scroller, insT, insB = self.scroll, 2, 2
-			local occH, occP, y = scroller:GetHeight(), scroller:GetVerticalScroll(), -y
-			if occP > y-insT then
-				occP = y > insT and y-insT or 0 -- too far
-			elseif occP < y+h-occH+insB+insT then
-				occP = y+h-occH+insB+insT -- not far enough
-			else
-				return
-			end
-			local _, mx = scroller.ScrollBar:GetMinMaxValues()
-			occP = (mx-occP)^2 < 1 and mx or math.floor(occP)
-			scroller.ScrollBar:SetMinMaxValues(0, occP < mx and mx or occP)
-			scroller.ScrollBar:SetValue(occP)
-			scroller.ScrollBar:Hide() -- BUG[10.0.7]: Thumb sometimes waits until next frame to move
-			scroller.ScrollBar:Show()
-		end
-		local function onSFClick(self)
-			self.input:SetCursorPosition(#self.input:GetText())
-			self.input:SetFocus()
-		end
-		local function onSCSizeChange(self)
-			local sc, eb = self.scroll or self, self.input or self
-			local yr = eb:GetHeight()-sc:GetHeight() + (eb:GetText():sub(-1) == "\n" and 12+2/9 or 0)
-			yr = yr < 0 and 0 or math.floor(yr+0.5)
-			if sc._vrange ~= yr then
-				sc._vrange = yr
-				ScrollFrame_OnScrollRangeChanged(sc, 0, yr)
-				eb:GetTop() -- BUG[10.0.7]: Don't vanish now, editbox.
-			end
-		end
-		local function onSFSizeChange(self)
-			self.input:SetWidth(self:GetWidth())
-			onSCSizeChange(self)
-		end
-		function multilineInput(name, parent, width)
-			local scroller = CreateFrame("ScrollFrame", name .. "Scroll", parent, "UIPanelScrollFrameTemplate")
-			local input = CreateFrame("Editbox", name, scroller)
-			input:SetWidth(width)
-			input:SetMultiLine(true)
-			input:SetAutoFocus(false)
-			input:SetTextInsets(2,4,2,2)
-			input:SetFontObject(GameFontHighlight)
-			input:SetScript("OnCursorChanged", onNavigate)
-			input:SetScript("OnSizeChanged", onSCSizeChange)
-			scroller:SetScript("OnScrollRangeChanged", onSCSizeChange)
-			scroller:SetScript("OnSizeChanged", onSFSizeChange)
-			scroller:SetScript("OnMouseDown", onSFClick)
-			scroller:EnableMouse(1)
-			scroller:SetScrollChild(input)
-			input.scroll, scroller.input = scroller, input
-			return input, scroller
-		end
-	end
-	local function hasStickyFocus()
-		return true
-	end
-	local function GetHighlightText(editBox)
-		local text, curPos = editBox:GetText(), editBox:GetCursorPosition()
-		editBox:Insert("")
-		local text2, selStart = editBox:GetText(), editBox:GetCursorPosition()
-		local selEnd = selStart + #text - #text2
-		if text ~= text2 then
-			editBox:SetText(text)
-			editBox:SetCursorPosition(curPos)
-			editBox:HighlightText(selStart, selEnd)
-		end
-		return text:sub(selStart+1, selEnd), selStart
-	end
 	local function removeEditorLinks(text)
 		return (text:gsub("|c%x+|Hilt%d+:([%a:%d/]+)|h.-|h|r", "{{%1}}"))
 	end
@@ -575,21 +544,18 @@ do -- Editor UI
 		end
 	end
 
-	local bg = CreateFrame("Frame")
-	CreateEdge(bg, {edgeFile="Interface/Tooltips/UI-Tooltip-Border", bgFile="Interface/DialogFrame/UI-DialogBox-Background-Dark", tile=true, edgeSize=16, tileSize=16, insets={left=4,right=4,bottom=4,top=4}}, 0xb2000000, 0xb2b2b2)
-	bg:Hide()
-	local eb, scroll = multilineInput("ABE_MacroInput", bg, 100)
+	local eb = XU:Create("TextArea", "ABE_MacroInput")
+	eb:Hide()
+	eb:SetStyle("tooltip")
 	eb:SetScript("OnEscapePressed", eb.ClearFocus)
 	eb:SetScript("OnEditFocusLost", function(self)
 		setImpText(self, getImpText(self))
-		local p = bg:GetParent()
+		local p = self:GetParent()
 		if p and type(p.OnActionChanged) == "function" then
-			p:OnActionChanged(bg)
+			p:OnActionChanged(self)
 		end
 	end)
-	scroll:SetPoint("TOPLEFT", 5, -4)
-	scroll:SetPoint("BOTTOMRIGHT", -26, 4)
-	eb.HasStickyFocus = hasStickyFocus
+	eb:SetStickyFocus(true)
 	eb:SetHyperlinksEnabled(true)
 	eb:SetScript("OnHyperlinkClick", function(self, link, text, button)
 		local pos = string.find(self:GetText(), text, 1, 1)-1
@@ -603,30 +569,23 @@ do -- Editor UI
 		end
 		self:SetFocus()
 	end)
-	local function ReplaceSelection(editBox, newSelText)
-		editBox:Insert(newSelText)
-		local cur = editBox:GetCursorPosition()
-		editBox:HighlightText(cur-#newSelText, cur)
-	end
 	eb:SetScript("OnKeyDown", function(self, key)
 		if (key == "C" or key == "X") and (IsMacClient() and IsMetaKeyDown or IsControlKeyDown)() then
-			local stext = GetHighlightText(self)
+			local stext = self:GetHighlightText()
 			if stext:match("[^|]|H.+|h.*|h") then
-				ReplaceSelection(self, removeEditorLinks(stext))
-				if key == "C" then
-					self._rsText = stext
-				end
+				self:SetHighlightText(removeEditorLinks(stext), true)
+				self._rsText = key == "C" and stext or nil
 			end
 		end
 	end)
 	eb:SetScript("OnUpdate", function(self)
 		if self._rsText then
-			ReplaceSelection(self, self._rsText)
+			self:SetHighlightText(self._rsText, true)
 			self._rsText = nil
 		end
 	end)
-	eb:SetScript("OnTabPressed", function()
-		local p = bg:GetParent()
+	eb:SetScript("OnTabPressed", function(self)
+		local p = self:GetParent()
 		if p and type(p.OnTabPressed) then
 			p:OnTabPressed()
 		end
@@ -696,37 +655,36 @@ do -- Editor UI
 		kbf:Insert(prefix .. (atext or link:match("|h%[?(.-[^%]])%]?|h") or stripUIEscapes(link)))
 	end)
 
-	function bg:SetAction(owner, action)
-		local op = bg:GetParent()
+	function eb:SetAction(owner, action)
+		local op = eb:GetParent()
 		if op and op ~= owner and type(op.OnEditorRelease) == "function" then
-			securecall(op.OnEditorRelease, op, bg)
+			securecall(op.OnEditorRelease, op, self)
 		end
-		bg:SetParent(nil)
-		bg:ClearAllPoints()
-		bg:SetAllPoints(owner)
-		bg:SetParent(owner)
+		eb:SetParent(nil)
+		eb:ClearAllPoints()
+		eb:SetAllPoints(owner)
+		eb:SetParent(owner)
 		setImpText(eb, action[1] == "imptext" and action[2] or "")
 		eb:SetCursorPosition(0)
-		bg:Show()
+		eb:Show()
 	end
-	function bg:GetAction(into)
+	function eb:GetAction(into)
 		into[1], into[2] = "imptext", getImpText(eb)
 	end
-	function bg:Release(owner)
-		if bg:IsOwned(owner) then
-			bg:SetParent(nil)
-			bg:ClearAllPoints()
-			bg:Hide()
+	function eb:Release(owner)
+		if eb:IsOwned(owner) then
+			eb:SetParent(nil)
+			eb:ClearAllPoints()
+			eb:Hide()
 		end
 	end
-	function bg:IsOwned(owner)
-		return bg:GetParent() == owner
+	function eb:IsOwned(owner)
+		return eb:GetParent() == owner
 	end
-	function bg:GetTabFocusWidget(_which)
+	function eb:GetTabFocusWidget(_which)
 		return eb
 	end
-	bg.editBox, bg.scrollFrame = bg, eb
-	AB:RegisterEditorPanel("imptext", bg)
+	AB:RegisterEditorPanel("imptext", eb)
 end
 
 function IM:EncodeCommands(macrotext, skipCacheRefresh)

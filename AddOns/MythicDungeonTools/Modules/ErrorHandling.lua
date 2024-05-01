@@ -6,10 +6,42 @@ local tinsert, slen = table.insert, string.len
 -- handle most mdt errors internally and provide an easy way for users to report these errors
 
 local caughtErrors = {}
-local DESTINATIONS = {
-  { name = "GitHub",  url = "https://github.com/Nnoggie/MythicDungeonTools/issues" },
-  { name = "Discord", url = "https://discord.gg/tdxMPb3" },
-}
+
+local function getDiagnostics()
+  local presetExport = MDT:TableToString(MDT:GetCurrentPreset(), true, 5)
+  ---@diagnostic disable-next-line: redundant-parameter
+  local addonVersion = GetAddOnMetadata(AddonName, "Version")
+  local locale = GetLocale()
+  local dateString = date("%d/%m/%y %H:%M:%S")
+  local gameVersion = select(4, GetBuildInfo())
+  local name, realm = UnitFullName("player")
+  local regionId = GetCurrentRegion()
+  local regions = {
+    [1] = "US",
+    [2] = "Korea",
+    [3] = "Europe",
+    [4] = "Taiwan",
+    [5] = "China",
+    [72] = "PTR"
+  }
+  local region = regions[regionId]
+  local combatState = InCombatLockdown() and "In combat" or "Out of combat"
+  local mapID = C_Map.GetBestMapForUnit("player");
+  local zoneInfo = format("Zone: %s (%d)", C_Map.GetMapInfo(C_Map.GetMapInfo(mapID or 0).parentMapID).name, mapID)
+  return {
+    presetExport = presetExport,
+    addonVersion = addonVersion,
+    locale = locale,
+    dateString = dateString,
+    gameVersion = gameVersion,
+    name = name,
+    realm = realm,
+    region = region,
+    combatState = combatState,
+    zoneInfo = zoneInfo
+  }
+end
+
 local hasShown = false
 
 function MDT:DisplayErrors(force)
@@ -54,7 +86,7 @@ function MDT:DisplayErrors(force)
     errorFrame.label:SetText(L["errorLabel1"].."\n"..L["errorLabel2"])
     errorFrame:AddChild(errorFrame.label)
 
-    for _, dest in ipairs(DESTINATIONS) do
+    for _, dest in ipairs(MDT.externalLinks) do
       errorFrame[dest.name.."EditBox"] = AceGUI:Create("EditBox")
       local editBox = errorFrame[dest.name.."EditBox"]
       local copyButton
@@ -148,49 +180,19 @@ function MDT:DisplayErrors(force)
       MDT:ToggleToolbarTooltip(false)
     end)
 
-    local errorButtonGroup = AceGUI:Create("SimpleGroup")
-    errorButtonGroup.frame:ClearAllPoints()
-    if not errorButtonGroup.frame.SetBackdrop then
-      Mixin(errorButtonGroup.frame, BackdropTemplateMixin)
-    end
-    errorButtonGroup.frame:SetBackdropColor(0, 0, 0, 0)
-    errorButtonGroup:SetWidth(40)
-    errorButtonGroup:SetHeight(40)
-    errorButtonGroup:SetPoint("LEFT", MDT.main_frame.bottomLeftPanelString, "RIGHT", -5, -1)
-    errorButtonGroup:SetLayout("Flow")
-    errorButtonGroup.frame:SetFrameStrata("High")
-    errorButtonGroup.frame:SetFrameLevel(7)
-    errorButtonGroup.frame:ClearBackdrop()
-    errorButtonGroup:AddChild(errorButton)
-    MDT:FixAceGUIShowHide(errorButtonGroup, MDT.main_frame)
+    local externalButtonGroup = MDT.main_frame.externalButtonGroup
+    externalButtonGroup:AddChild(errorButton)
+    MDT:FixAceGUIShowHide(externalButtonGroup, MDT.main_frame)
   end
 
   for _, error in ipairs(caughtErrors) do
     errorBoxText = errorBoxText..error.count.."x: "..error.message.."\n"
   end
   --add diagnostics
-  local presetExport = MDT:TableToString(MDT:GetCurrentPreset(), true, 5)
-  local addonVersion = GetAddOnMetadata(AddonName, "Version")
-  local locale = GetLocale()
-  local dateString = date("%d/%m/%y %H:%M:%S")
-  local gameVersion = select(4, GetBuildInfo())
-  local name, realm = UnitFullName("player")
-  local regionId = GetCurrentRegion()
-  local regions = {
-    [1] = "US",
-    [2] = "Korea",
-    [3] = "Europe",
-    [4] = "Taiwan",
-    [5] = "China",
-    [72] = "PTR"
-  }
-  local region = regions[regionId]
-  local combatState = InCombatLockdown() and "In combat" or "Out of combat"
-  local mapID = C_Map.GetBestMapForUnit("player");
-  local zoneInfo = format("Zone: %s (%d)", C_Map.GetMapInfo(C_Map.GetMapInfo(mapID).parentMapID).name, mapID)
-  errorBoxText = errorBoxText.."\n"..dateString.."\nMDT: "..addonVersion.."\nClient: "..gameVersion.." "..locale.."\nCharacter: "..name.."-"..realm.." ("..region..")"
-  errorBoxText = errorBoxText.."\n"..combatState.."\n"..zoneInfo.."\n"
-  errorBoxText = errorBoxText.."\nRoute:\n"..presetExport
+  local diagnostics = getDiagnostics()
+  errorBoxText = errorBoxText.."\n"..diagnostics.dateString.."\nMDT: "..diagnostics.addonVersion.."\nClient: "..diagnostics.gameVersion.." "..diagnostics.locale.."\nCharacter: "..diagnostics.name.."-"..diagnostics.realm.." ("..diagnostics.region..")"
+  errorBoxText = errorBoxText.."\n"..diagnostics.combatState.."\n"..diagnostics.zoneInfo.."\n"
+  errorBoxText = errorBoxText.."\nRoute:\n"..diagnostics.presetExport
   errorBoxText = errorBoxText.."\nStacktraces\n\n"
   for _, error in ipairs(caughtErrors) do
     errorBoxText = errorBoxText..error.stackTrace.."\n"
@@ -218,6 +220,9 @@ local function onError(msg, stackTrace, name)
   local stackTraceValue = stackTrace and name..":\n"..stackTrace
   tinsert(caughtErrors, { message = e, stackTrace = stackTraceValue, count = 1 })
   addTrace = true
+  local diagnostics = getDiagnostics()
+  local diagnosticString = diagnostics.dateString.."\nMDT: "..diagnostics.addonVersion.."\nClient: "..diagnostics.gameVersion.." "..diagnostics.locale.."\n"..diagnostics.region
+  -- MDT.WagoAnalytics:Error(e..diagnosticString)
   if MDT.errorTimer then MDT.errorTimer:Cancel() end
   MDT.errorTimer = C_Timer.NewTimer(0.5, function()
     MDT:DisplayErrors(true)

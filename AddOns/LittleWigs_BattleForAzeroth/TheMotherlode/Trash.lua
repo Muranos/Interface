@@ -171,7 +171,7 @@ function mod:EchoBlade(args)
 end
 
 function mod:ForceCannon(args)
-	local unit = self:GetUnitIdByGUID(args.sourceGUID)
+	local unit = self:UnitTokenFromGUID(args.sourceGUID)
 	if unit and UnitAffectingCombat(unit) then
 		self:Message(args.spellId, "orange", CL.casting:format(args.spellName))
 		self:PlaySound(args.spellId, "alert", "watchstep")
@@ -241,7 +241,7 @@ end
 
 -- Stonefury
 function mod:FuriousQuake(args)
-	local unit = self:GetUnitIdByGUID(args.sourceGUID)
+	local unit = self:UnitTokenFromGUID(args.sourceGUID)
 	if unit and UnitAffectingCombat(unit) then
 		self:Message(args.spellId, "orange", CL.casting:format(args.spellName))
 		self:PlaySound(args.spellId, "warning", "interrupt")
@@ -345,7 +345,7 @@ do
 	function mod:MiningCharge(args)
 		local t = args.time
 		if t-prev > 1.5 then
-			local unit = self:GetUnitIdByGUID(args.sourceGUID)
+			local unit = self:UnitTokenFromGUID(args.sourceGUID)
 			if unit and UnitAffectingCombat(unit) then
 				prev = t
 				self:Message(args.spellId, "yellow")
@@ -362,7 +362,7 @@ function mod:BrainFreezeApplied(args)
 		self:PlaySound(args.spellId, "info", nil, args.destName)
 		self:TargetBar(args.spellId, 6, args.destName)
 		if self:Me(args.destGUID) then
-			self:Say(args.spellId)
+			self:Say(args.spellId, nil, nil, "Brain Freeze")
 		end
 	end
 end
@@ -414,7 +414,7 @@ function mod:ChargedShot(args)
 end
 
 function mod:EnergyShield(args)
-    self:NameplateBar(args.spellId, 22.5, args.sourceGUID)
+	self:NameplateBar(args.spellId, 22.5, args.sourceGUID)
 end
 
 function mod:ChargedClaw(args)

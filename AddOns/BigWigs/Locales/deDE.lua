@@ -9,11 +9,15 @@ L.altpower_desc = "Zeigt ein Fenster mit alternativen Energien der einzelnen Gru
 L.infobox = "Informationsbox"
 L.infobox_desc = "Zeigt eine Box mit Informationen zur Bossbegegnung an"
 L.stages = "Phasen"
-L.stages_desc = "Funktionen für bestimmte Phasen von Bossbegegnungen wie Abstandscheck oder Leisten aktivieren."
+L.stages_desc = "Funktionen für bestimmte Phasen von Bossbegegnungen wie Warnungen zum Phasenwechsel, Leisten für die Phasendauer, etc. aktivieren."
 L.warmup = "Bosskampf beginnt"
 L.warmup_desc = "Verbleibende Zeit bis zum Start der Bossbegegnung."
 L.proximity = "Näherungsanzeige"
 L.proximity_desc = "Zeigt, falls für diese Begegnung relevant, das Näherungsfenster an. Es listet alle Spieler auf, die Dir zu nahe stehen."
+L.adds = "Adds"
+L.adds_desc = "Aktiviert Funktionen für die verschiedenen Adds, die während der Bossbegegnung erscheinen."
+L.health = "Gesundheit"
+L.health_desc = "Aktiviert Funktionen für die Anzeige verschiedener Gesundheits-Informationen während der Bossbegegnung."
 
 L.already_registered = "|cffff0000WARNUNG:|r |cff00ff00%s|r (|cffffff00%s|r) existiert bereits als Modul in BigWigs, aber irgend etwas versucht es erneut anzumelden. Dies bedeutet normalerweise, dass Du zwei Kopien des Moduls aufgrund eines Fehlers beim Aktualisieren in Deinem Addon-Ordner hast. Es wird empfohlen, jegliche BigWigs-Ordner zu löschen und dann von Grund auf neu zu installieren."
 L.testNameplate = "Ziel erkannt, erstelle Test Leiste über Namensplakette des Ziels. |cFF33FF99Diese Funktion wird selten genutzt, besteht aus 1 Leiste und wird verwendet, wenn mehrere Bosse/Adds die gleichen Zauber wirken.|r"
@@ -43,18 +47,20 @@ L.disabledAddOn = "Du hast das Addon |cFF436EEE%s|r deaktiviert, Timer werden ni
 L.removeAddOn = "Bitte entferne '|cFF436EEE%s|r', da es durch '|cFF436EEE%s|r' ersetzt wurde."
 L.alternativeName = "%s (|cFF436EEE%s|r)"
 
---L.expansionNames = {
---	"Classic", -- Classic
---	"The Burning Crusade", -- The Burning Crusade
---	"Wrath of the Lich King", -- Wrath of the Lich King
---	"Cataclysm", -- Cataclysm
---	"Mists of Pandaria", -- Mists of Pandaria
---	"Warlords of Draenor", -- Warlords of Draenor
---	"Legion", -- Legion
---	"Battle for Azeroth", -- Battle for Azeroth
---	"Schattenlande", -- Shadowlands
---	"Dragonflight", -- Dragonflight
---}
+L.expansionNames = {
+	"Classic", -- Classic
+	"The Burning Crusade", -- The Burning Crusade
+	"Wrath of the Lich King", -- Wrath of the Lich King
+	"Cataclysm", -- Cataclysm
+	"Mists of Pandaria", -- Mists of Pandaria
+	"Warlords of Draenor", -- Warlords of Draenor
+	"Legion", -- Legion
+	"Battle for Azeroth", -- Battle for Azeroth
+	"Schattenlande", -- Shadowlands
+	"Dragonflight", -- Dragonflight
+	"The War Within", -- The War Within
+}
+L.currentSeason = "Aktuelle Saison"
 
 -- Media.lua (These are the names of the sounds in the dropdown list in the "sounds" section)
 L.Beware = "Hütet Euch (Algalon)"
@@ -66,7 +72,7 @@ L.spell_under_you = "BigWigs: Zauber unter Dir"
 
 -- Options.lua
 L.options = "Optionen"
-L.optionsKey = "Schlüssel: %s" -- The key that messages/bars/options use
+L.optionsKey = "ID: %s" -- The ID that messages/bars/options use
 L.raidBosses = "Schlachtzugsbosse"
 L.dungeonBosses = "Dungeonbosse"
 L.introduction = "Willkommen bei BigWigs, dort, wo die Bossbegegnungen rumschwirren. Bitte legen Sie Ihren Sicherheitsgurt an, stellen Sie die Rückenlehne gerade und genießen Sie den Flug. Wir werden Ihnen und Ihrer Raidgruppe bei der Begegnung mit Bossen zur Hand gehen und sie Ihnen als 7-Gänge-Menü zubereiten."
@@ -77,8 +83,6 @@ L.toggleAnchorsBtnHide_desc = "Blendet alle Ankerpunkte aus und fixiert alle Anz
 L.testBarsBtn = "Testleiste erstellen"
 L.testBarsBtn_desc = "Erstellt eine Leiste zum Testen der aktuellen Einstellungen an."
 L.sound = "Sound"
-L.flashScreen = "Bildschirm aufleuchten lassen"
-L.flashScreenDesc = "Einige wichtige Fähigkeiten erfordern volle Aufmerksamkeit. Beim Auftreten dieser Fähigkeiten kann BigWigs den Bildschirm aufleuchten lassen."
 L.minimapIcon = "Minikartensymbol"
 L.minimapToggle = "Zeigt oder versteckt das Minikartensymbol."
 L.compartmentMenu = "Kein Addonmenü Icon"
@@ -94,6 +98,8 @@ L.dbmFaker = "Täusche DBM Nutzung vor"
 L.dbmFakerDesc = "Wenn ein DBM-Nutzer eine Versionskontrolle ausführt erscheinst Du in der Liste. Nützlich für Gilden die auf DBM bestehen."
 L.zoneMessages = "Gebietsmeldungen anzeigen"
 L.zoneMessagesDesc = "Wenn Du diese Option deaktivierst, zeigt BigWigs beim Betreten von Gebieten ohne installierte Bossmods keine Meldungen mehr an. Es wird empfohlen, diese Option aktiviert zu lassen, da sie über neu erstellte Timer für neue Gebiete informiert."
+L.englishSayMessages = "Sprechblasen immer auf Englisch senden"
+L.englishSayMessagesDesc = "Alle 'Sagen' und 'Schreien' Nachrichten, welche Du während eines Bosskampfes sendest, werden immer auf Englisch ausgegeben. Kann in Gruppen mit Spielern verschiedener Sprachen nützlich sein."
 
 L.slashDescTitle = "|cFFFED000Slash-Befehle:|r"
 L.slashDescPull = "|cFFFED000/pull:|r Sendet einen Countdown zum Pull an den Raid."

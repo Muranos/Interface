@@ -45,6 +45,7 @@ local Comms = addon.Require "Services.Comms"
 local TempTable = addon.Require "Utils.TempTable"
 local MLDB = addon.Require "Data.MLDB"
 local ErrorHandler = addon.Require "Services.ErrorHandler"
+local ItemUtils = addon.Require "Utils.Item"
 local subscriptions
 
 function RCLootCouncilML:OnInitialize()
@@ -71,10 +72,12 @@ function RCLootCouncilML:OnEnable()
 	self:UpdateGroupCouncil()
 	self.combatQueue = {}	-- The functions that will be executed when combat ends. format: [num] = {func, arg1, arg2, ...}
 	self.timers = {}			-- Table to hold timer references. Each value is the name of a timer, whose value is the timer id.
+	self.groupSize = 0
 
 	self:RegisterEvent("CHAT_MSG_WHISPER",	"OnEvent")
 	self:RegisterEvent("PLAYER_REGEN_ENABLED", "OnEvent")
 	self:RegisterEvent("ENCOUNTER_START", "OnEvent")
+	self:RegisterBucketEvent("GROUP_ROSTER_UPDATE", 5, "OnGroupRosterUpdate")
 	self:RegisterBucketMessage("RCConfigTableChanged", 5, "ConfigTableChanged") -- The messages can burst
 	self:RegisterMessage("RCCouncilChanged", "CouncilChanged")
 	self:RegisterComms()
@@ -88,11 +91,11 @@ end
 
 function RCLootCouncilML:GetItemInfo(item)
 	local name, link, rarity, ilvl, iMinLevel, type, subType, iStackCount, equipLoc, texture, sellPrice, typeID, subTypeID, bindType, expansionID, itemSetID, isCrafting = GetItemInfo(item) -- luacheck: ignore
-	local itemID = addon.Utils:GetItemIDFromLink(link)
+	local itemID = ItemUtils:GetItemIDFromLink(link)
 	if name then
 		-- Most of these are kept for use in SessionFrame
 		return {
-			string 			= addon.Utils:GetTransmittableItemString(link),
+			string 			= ItemUtils:GetTransmittableItemString(link),
 			["link"]		= link,
 			["ilvl"]		= addon:GetTokenIlvl(link) or ilvl, -- if the item is a token, ilvl is the min ilvl of the item it creates.
 			["texture"]		= texture,
@@ -392,6 +395,17 @@ function RCLootCouncilML:CouncilChanged()
 	-- The council was changed, so send out the council
 	self:UpdateGroupCouncil()
 	self:SendCouncil()
+end
+
+function RCLootCouncilML:OnGroupRosterUpdate()
+	-- Push MLDB if new people has joined.
+	local newGroupSize = GetNumGroupMembers() or 0
+	if newGroupSize > self.groupSize then
+		self.Log:d("Group size changed to "..newGroupSize)
+		MLDB:Send("group")
+		self:SendCouncil()
+	end
+	self.groupSize = newGroupSize
 end
 
 function RCLootCouncilML:UpdateMLdb()
@@ -998,7 +1012,7 @@ function RCLootCouncilML:AnnounceItems(table)
 	addon:SendAnnouncement(db.announceText, db.announceChannel)
 	local link
 	for k,v in ipairs(table) do
-		link = v.link and v.link or select(2, GetItemInfo(addon.Utils:UncleanItemString(v.string)))
+		link = v.link and v.link or select(2, GetItemInfo(ItemUtils:UncleanItemString(v.string)))
 		local msg = db.announceItemString
 		for text, func in pairs(self.announceItemStrings) do
 			-- escapePatternSymbols is defined in FrameXML/ChatFrame.lua that escapes special characters.
@@ -1273,7 +1287,7 @@ end
 
 -- Returns true if we are ignoring the item
 function RCLootCouncilML:IsItemIgnored(link)
-	local itemID = addon.Utils:GetItemIDFromLink(link) -- extract itemID
+	local itemID = ItemUtils:GetItemIDFromLink(link) -- extract itemID
 	return addon.Utils:IsItemBlacklisted(itemID) or itemID and db.ignoredItems[itemID]
 end
 
@@ -1483,7 +1497,7 @@ function RCLootCouncilML:SortLootTable(lootTable)
 end
 
 local function GetItemStatsSum(link)
-	local stats = GetItemStats(link)
+	local stats = C_Item.GetItemStats(link)
 	local sum = 0
 	for _, value in pairs(stats or {}) do
 		sum = sum + value
@@ -1513,8 +1527,8 @@ function RCLootCouncilML.LootTableCompare(a, b)
 		return equipLocA < equipLocB
 	end
 	if a.equipLoc == "INVTYPE_TRINKET" and b.equipLoc == "INVTYPE_TRINKET" then
-		local specA = _G.RCTrinketSpecs[addon.Utils:GetItemIDFromLink(a.link)]
-		local specB = _G.RCTrinketSpecs[addon.Utils:GetItemIDFromLink(b.link)]
+		local specA = _G.RCTrinketSpecs[ItemUtils:GetItemIDFromLink(a.link)]
+		local specB = _G.RCTrinketSpecs[ItemUtils:GetItemIDFromLink(b.link)]
 		local categoryA = (specA and _G.RCTrinketCategories[specA]) or ""
 		local categoryB = (specB and _G.RCTrinketCategories[specB]) or ""
 		if categoryA ~= categoryB then
@@ -1542,7 +1556,7 @@ function RCLootCouncilML.LootTableCompare(a, b)
 	if statsA ~= statsB then
 		return statsA > statsB
 	end
-	return addon.Utils:GetItemNameFromLink(a.link) < addon.Utils:GetItemNameFromLink(b.link)
+	return ItemUtils:GetItemNameFromLink(a.link) < ItemUtils:GetItemNameFromLink(b.link)
 end
 
 -------------------------------------------------------------
@@ -1603,7 +1617,9 @@ function RCLootCouncilML:OnReconnectReceived (sender)
 	-- Someone asks for mldb and council
 	local requestPlayer = Player:Get(sender)
 	MLDB:Send(requestPlayer)
-	self:Send(requestPlayer, "council", Council:GetForTransmit())
+	local council = Council:GetForTransmit()
+	self:Send(requestPlayer, "council", council)
+	TempTable:Release(council)
 	if addon.handleLoot then
 		self:Send(requestPlayer, "StartHandleLoot")
 	end

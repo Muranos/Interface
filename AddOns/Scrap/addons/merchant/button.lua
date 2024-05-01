@@ -1,5 +1,5 @@
 --[[
-Copyright 2008-2023 João Cardoso
+Copyright 2008-2024 João Cardoso
 All Rights Reserved
 --]]
 
@@ -12,8 +12,8 @@ local C = LibStub('C_Everywhere').Container
 
 function Button:OnEnable()
 	local icon = self:CreateTexture()
-	icon:SetTexture('Interface/Addons/Scrap/art/scrap-enabled')
-	icon:SetPoint('CENTER', 1, MerchantSellAllJunkButton and 1 or 0)
+	icon:SetTexture(MerchantSellAllJunkButton and 'Interface/Addons/Scrap/Art/Scrap-Big' or 'Interface/Addons/Scrap/Art/Scrap-Small')
+	icon:SetPoint('CENTER')
 	icon:SetSize(33, 33)
 
 	self.icon, self.border = icon, self:CreateTexture(nil, 'OVERLAY')
@@ -88,19 +88,19 @@ function Button:OnClick(button)
 		self:Sell()
 		self:UpdateTip(GameTooltip)
 	elseif button == 'RightButton' and LoadAddOn('Scrap_Config') then
-		local drop = LibStub('Sushi-3.1').Dropdown:Toggle(self)
+		local drop = LibStub('Sushi-3.2').Dropdown:Toggle(self)
 		if drop then
 			drop:SetPoint('TOPLEFT', self, 'BOTTOMLEFT', 0, -12)
 			drop:SetChildren {
 				{ text = 'Scrap', isTitle = 1 },
 				{
-					text = OPTIONS ..'  '.. '|A:worldquest-icon-engineering:12:12|a',
+					text = OPTIONS ..'  |A:worldquest-icon-engineering:12:12|a',
 					func = function() Scrap.Options:Open() end,
 					notCheckable = 1
 				},
 				{
-					text = SHOW_TUTORIALS .. '  |T516770:12:12:0:0:64:64:14:50:14:50|t',
-					func = function() Scrap.Tutorials:Reset() end,
+					text = HELP_LABEL .. '  |T516770:12:12:0:0:64:64:14:50:14:50|t',
+					func = function() Scrap.Options.Help:Open() end,
 					notCheckable = 1
 				},
 				{ text = CANCEL, notCheckable = 1 }
@@ -221,7 +221,7 @@ function Button:GetReport()
 
 	for bag, slot in Scrap:IterateJunk() do
 		local item = C.GetContainerItemInfo(bag, slot)
-		if not item.isLocked then
+		if not item.isLocked and item.quality then
 			qualities[item.quality] = (qualities[item.quality] or 0) + item.stackCount
 			total = total + item.stackCount * (select(11, GetItemInfo(item.itemID)) or 0)
 		end

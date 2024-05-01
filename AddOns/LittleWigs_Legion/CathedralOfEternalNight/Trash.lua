@@ -125,7 +125,7 @@ do
 		if self:Me(guid) then
 			prev = t
 			self:TargetMessageOld(236737, name, "blue", "alert")
-			self:Say(236737)
+			self:Say(236737, nil, nil, "Fel Strike")
 		elseif t-prev > 1.5 then
 			prev = t
 			self:MessageOld(236737, "yellow", "alert")
@@ -178,7 +178,7 @@ do
 		local t = GetTime()
 		if t-prev > 1 then
 			prev = t
-			self:MessageOld(args.spellId == 242837 and 239101 or args.spellId, "orange", "warning", CL.casting:format(L.throw_tome)) -- using a different ID for Arcane Tome's options because 242837 has no description
+			self:MessageOld(args.spellId == 242837 and 239101 or args.spellId, "orange", "warning", CL.casting:format(L.throw_tome)) -- SetOption:242839,242841,239101:::
 		end
 	end
 end

@@ -1,3 +1,136 @@
+# 3.11.1
+
+## Changes
+
+Added support for tier tokens from Awakened Raids.
+
+Added Antique Bronze Bullion to the ignore list.
+
+# 3.11.0
+
+## Changes
+
+Updated for patch 10.2.6.
+
+### Minimize in combat
+
+Loot/Voting frames triggered while in combat will now automatically be minimized if `Minimize in combat` is enabled.
+
+### Group updates
+
+People joining late, or just before a pull now has a much higher chance of receiving required data from the group leader, which should fix most instances of those people not autopassing group loot.
+
+### Loot Status
+
+Removed - hasn't been used since group loot was introduced, and was essentially just using up comms bandwidth.
+
+### Weapons auto pass
+
+By default, RCLootCouncil will now auto pass weapons that you either can't use, or doesn't have the appropiate main stat for your class (e.g. agility weapons for priests). It can be turned off in the response options if needed.
+
+## Bugfixes
+
+- *Fixed issue with importing corrupt history data.*
+- *Fixed formatting of item status string for items with extended info such as 'Shadowflame Suffused'.*
+
+# 3.10.5
+
+## Changes
+
+Updated for patch 10.2.5.
+
+## Bugfixes
+
+- *Fixed an issue with council related comms that could end up spamming the group leader.*
+- *Fixed issue with `/rc start` not always working as intended.*
+
+# 3.10.4
+
+## Changes
+
+Holy Paladins and Mistweavers no longer autopass on Belor'relos, the Suncaller.
+
+RCLootCouncil will no longer group loot legendary items automatically.
+
+Chest pieces with `INVTYPE_ROBE` are now correctly grouped with chests in regards to buttons and responses (#246).
+
+# 3.10.3
+
+## Changes
+
+### Group Loot
+
+Hiding default group loot frames will now also hide the group loot container (would leave behind an invisible frame that intercepted clicks).
+
+### TradeUI
+
+Fixed error when TradeUI being opened in combat.
+
+# 3.10.2
+
+## Changes
+
+### Group Loot
+
+Default WoW group loot frames is now forced hidden after being rolled on by RCLootCouncil.
+
+### Loot History
+
+Added a column for notes.
+
+### Session frame
+
+Will now be shown automatically after a cinematic if it was hidden because of it.
+
+### TradeUI
+
+Addons can no longer check whether people are in trade range during combat, so now the labels are yellow in combat. Clicking the yellow label will attempt to open trade.
+
+# 3.10.1
+
+## Changes
+
+### Hearthstone of the Flame
+
+Hearthstone of the Flame (bonus loot from Larodar) is now ignored by RCLootCouncil as it cannot be traded.
+
+# 3.10.0
+
+## Changes
+
+### Patch 10.2
+
+Updated for patch 10.2.
+Added trinkets and tokens for the new raid.
+
+### CSV import
+
+Smoothened the whole experience, along with some quality of life changes:
+
+- `owner` no longer needs to be set when importing csv data.
+- trailing spaces and/or tabs in both header and data are now ignored.
+- fixed issue in line validation making error messages more useful.
+
+### Observe mode
+
+When using observe mode and having hide votes enabled, non-council members can now see votes, instead of hide votes requiering a vote to be cast before showing votes.
+
+## Bugfixes
+
+- *Trying to import tsv data will now show the correct error message instead of throwing an error.*
+
+# 3.9.3
+
+## Bugfixes
+
+- *Fixed `nil` errors causing error handler to throw errors.*
+
+# 3.9.2
+
+## Changes
+
+Updated for patch 10.1.7
+
 # 3.9.1
 
 ## Changes

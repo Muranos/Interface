@@ -3,57 +3,130 @@
 ## Name: AllTheThings
 ## Notes: Addon for Tracking Collections & Account Completion
 ## Author: Crieve-Sargeras
-## Version: DF-3.5.7
-## Interface: 30402
-## X-Interface: 30402
+## Version: DF-3.11.0
+## Interface: 30403
+## X-Interface: 30403
 ## X-Wago-ID: yQKyY5K7
 ## X-Curse-Project-ID: 267285
-## SavedVariables: ATTCharacterData, ATTAccountWideData, AllTheThingsSavedVariables, ATTClassicSettings, ATTClassicAD, ATTClassicAuctionData, ATTClassicDebugData
-## SavedVariablesPerCharacter: ATTClassicSettingsPerCharacter
+## SavedVariables: ATTCharacterData, ATTAccountWideData, AllTheThingsSavedVariables, AllTheThingsAD, AllTheThingsSettings, AllTheThingsAuctionData, AllTheThingsDebugData, ATTClassicSettings, ATTClassicAuctionData
+## SavedVariablesPerCharacter: AllTheThingsSettingsPerCharacter, ATTClassicSettingsPerCharacter
+## AddonCompartmentFunc: AllTheThings_MinimapButtonOnClick
+## AddonCompartmentFuncOnEnter: AllTheThings_MinimapButtonOnEnter
+## AddonCompartmentFuncOnLeave: AllTheThings_MinimapButtonOnLeave
 lib\LibStub\LibStub.lua
 lib\CallbackHandler-1.0\CallbackHandler-1.0.lua
 lib\LibDataBroker-1.1\LibDataBroker-1.1.lua
 db\RaceDB.lua
-src\base.lua
+
+# Libs (no dependencies, only app assignment)
+lib\Debugging.lua
+lib\Print.lua
+lib\EventRegistration.lua
+lib\Runner.lua
 lib\Colors.lua
 lib\Sort.lua
 lib\Table.lua
+
+# Dependent Libs (may require another lib)
+lib\Callback.lua
+
+# Base ATT functionalities
+src\base.lua
+src\Events.lua
+
+# Not really a lib concept...
+lib\Refresh.lua
+lib\Audio.lua
+
+# Load localization modules
+locales\Default Locale.lua
+# locales\en.lua
+# locales\es.lua
+# locales\de.lua
+# locales\fr.lua
+# locales\it.lua
+# locales\ko.lua
+# locales\pt.lua
+# locales\ru.lua
+# locales\cn.lua
 classic\locales.lua
-classic\src-Classes-base.lua
+
+# Search Cache
+src\Cache.lua
+
+# Helper Modules
+src\Modules\RetrievingData.lua
+src\Modules\FactionData.lua
+src\Modules\Color.lua
+# src\Modules\Costs.lua
 src\Modules\Events.lua
+src\Modules\Filter.lua
+src\Modules\Social.lua
+src\Modules\Tooltip.lua
+# src\Modules\Upgrade.lua
+src\Modules\Vignette.lua
+
+# Expansion specific localization files
 db\Wrath\ExplorationDB.lua
 db\Wrath\LocalizationDB.lua
-classic\Presets.lua
-src\Cache.lua
-lib\Audio.lua
+# db\Wrath\en_auto.lua
+# db\Wrath\ReagentsDB.lua
+db\Presets.lua
+
+# Load object class templates
+src\Classes\base.lua
+src\Classes\CharacterClass.lua
+src\Classes\Difficulty.lua
+src\Classes\Factions.lua
+src\Classes\Quests.lua
+# src\Classes\Item.Retail.lua
+src\Classes\Item.Classic.lua
+src\Classes\Encounter.lua
+src\Classes\Expansion.lua
+src\Classes\Maps.lua
+src\Classes\Objects.lua
+src\Classes\Category.lua
+src\Classes\Deaths.lua
+src\Classes\Dynamic Categories.lua
 src\Classes\Filter Types.lua
+src\Classes\Gear Sets.lua
 src\Classes\Illusions.lua
+# src\Classes\Miscellaneous.lua
 src\Classes\PVP Ranks.lua
-classic\Settings.lua
+src\Classes\Races.lua
+src\Classes\Title.lua
+src\Classes\Transmog.lua
+# src\Classes\CharacterUnlock.lua
+
+# Expansion specific source files
+src\Expansions\Warlords.lua
+src\Expansions\Legion.lua
+src\Expansions\Battle For Azeroth.lua
+src\Expansions\Shadowlands.lua
+src\Expansions\Dragonflight.lua
+
+# Load the Settings Menu
+src\Settings\Classic Settings.xml
+
+# Load primary addon source files
+# AllTheThings.lua
 classic\ATT-Classic.lua
+src\UI\Game Tooltip.lua
+src\UI\Minimap Button.lua
+src\UI\World Map Button.lua
+
+# Once Item Class is added above, move this there.
+src\Classes\Toys.lua
+
+# Window Logic Overhaul
+src\UI\Shared Window Logic.lua
+src\UI\Classic Window Logic.lua
+
+# Load expansion specific category database.
 db\Wrath\Categories.lua
-src\UI\Achievements.lua
-src\UI\Attunements.lua
-src\UI\Auctions.lua
-src\UI\Battle Pets.lua
-src\UI\Breadcrumbs.lua
-src\UI\Dailies.lua
-src\UI\Factions.lua
-src\UI\Flight Paths.lua
-src\UI\Hidden Achievement Triggers.lua
-src\UI\Hidden Quest Triggers.lua
-src\UI\Illusions.lua
-src\UI\Maps.lua
-src\UI\Mounts.lua
-src\UI\Never Implemented.lua
-src\UI\Objects.lua
-src\UI\Quests.lua
-src\UI\Raid Assistant.lua
-src\UI\Random.lua
-src\UI\Removed With Patch Loot.lua
-src\UI\Soft Reserves.lua
-src\UI\Sync.lua
-src\UI\Titles.lua
-src\UI\Toys.lua
-src\UI\Unsorted.lua
+
+# Window Definitions
+src\UI\Windows\Windows.xml
+
+# Finally, prepare the Data Cache
 src\Root.lua

@@ -31,49 +31,76 @@
 	local UnitAffectingCombat = UnitAffectingCombat --wow api local
 	local _InCombatLockdown = InCombatLockdown --wow api local
 
+	local playerRealmName = GetRealmName()
+
 	local gump = Details.gump --details local
 
+	function Details:IsInMythicPlus()
+		return C_ChallengeMode and C_ChallengeMode.IsChallengeModeActive and C_ChallengeMode.IsChallengeModeActive()
+	end
 
-	local predicateFunc = function(spellIdToFind, casterName, _, name, icon, applications, dispelName, duration, expirationTime, sourceUnit, isStealable, nameplateShowPersonal, spellId, canApplyAura, isBossAura, isFromPlayerOrPlayerPet, nameplateShowAll, timeMod, applications)
-		--print(name, texture, count, debuffType, duration, expirationTime, spellID)
-		if (spellIdToFind == spellId and UnitExists(sourceUnit)) then
-			local spellname = GetSpellInfo(spellId)
-			if (casterName == GetUnitName(sourceUnit, true)) then
+	local predicateFunc = function(spellIdToFind, casterName, _, name, icon, applications, dispelName, duration, expirationTime, sourceUnitId, isStealable, nameplateShowPersonal, spellId, canApplyAura, isBossAura, isFromPlayerOrPlayerPet, nameplateShowAll, timeMod, applications)
+		if (spellIdToFind == spellId and UnitExists(sourceUnitId)) then
+			if (casterName == Details:GetUnitNameForAPI(sourceUnitId)) then
 				return true
 			end
 		end
 	end
 
-	---find the duration of a debuff by passing the spellId and the caster name
-	---@param unitId unit
-	---@param spellId spellid
-	---@param casterName actorname
-	---@return auraduration|nil auraDuration
-	---@return number|nil expirationTime
-	function Details:FindDebuffDuration(unitId, spellId, casterName)
-		local name, texture, count, debuffType, duration, expirationTime = AuraUtil.FindAura(predicateFunc, unitId, "HARMFUL", spellId, casterName)
-		if (name) then
-			return duration, expirationTime
+	do
+		---find the duration of a debuff by passing the spellId and the caster name
+		---@param unitId unit
+		---@param spellId spellid
+		---@param casterName actorname
+		---@return auraduration|nil auraDuration
+		---@return number|nil expirationTime
+		function Details:FindDebuffDuration(unitId, spellId, casterName)
+			local name, texture, count, debuffType, duration, expirationTime = AuraUtil.FindAura(predicateFunc, unitId, "HARMFUL", spellId, casterName)
+			if (name) then
+				return duration, expirationTime
+			end
+		end
+
+		function Details:FindDebuffDurationByUnitName(targetString, spellId, casterString)
+			local targetName = Details:Ambiguate(targetString)
+			local casterName = Details:Ambiguate(casterString)
+			return Details:FindDebuffDuration(targetName, spellId, casterName)
 		end
 	end
 
-	---find the duration of a buff by passing the spellId and the caster name
-	---@param unitId unit
-	---@param spellId spellid
-	---@param casterName actorname
-	---@return auraduration|nil auraDuration
-	---@return number|nil expirationTime
-	function Details:FindBuffDuration(unitId, spellId, casterName)
-		local name, texture, count, debuffType, duration, expirationTime = AuraUtil.FindAura(predicateFunc, unitId, "HELPFUL", spellId, casterName)
-		if (name) then
-			return duration, expirationTime
+	do
+		---find the duration of a buff by passing the spellId and the caster name
+		---@param unitId unit
+		---@param spellId spellid
+		---@param casterName actorname
+		---@return auraduration|nil auraDuration
+		---@return number|nil expirationTime
+		function Details:FindBuffDuration(unitId, spellId, casterName) --not called anywhere else except the function below
+			local name, texture, count, debuffType, duration, expirationTime = AuraUtil.FindAura(predicateFunc, unitId, "HELPFUL", spellId, casterName)
+			if (name) then
+				return duration, expirationTime
+			end
+		end
+
+		function Details:FindBuffDurationByUnitName(targetString, spellId, casterString)
+			local targetName = Details:Ambiguate(targetString)
+			local casterName = Details:Ambiguate(casterString)
+			return Details:FindBuffDuration(targetName, spellId, casterName)
 		end
 	end
 
-	function Details:FindBuffCastedBy(unitId, buffSpellId, casterName)
-		local auraName, texture, count, auraType, duration, expirationTime, sourceUnit, isStealable, nameplateShowPersonal, spellId, canApplyAura, isBossAura, isFromPlayerOrPlayerPet, nameplateShowAll, timeMod, v1, v2, v3, v4, v5 = AuraUtil.FindAura(predicateFunc, unitId, "HELPFUL", buffSpellId, casterName)
-		if (auraName) then
-			return auraName, texture, count, auraType, duration, expirationTime, sourceUnit, isStealable, nameplateShowPersonal, spellId, canApplyAura, isBossAura, isFromPlayerOrPlayerPet, nameplateShowAll, timeMod, v1, v2, v3, v4, v5
+	do
+		function Details:FindBuffCastedBy(unitId, buffSpellId, casterName) --not called anywhere else except the function below
+			local auraName, texture, count, auraType, duration, expTime, sourceUnit, isStealable, nameplateShowPersonal, spellId, canApplyAura, isBossAura, playerOrPet, nameplateShowAll, timeMod, v1, v2, v3, v4, v5 = AuraUtil.FindAura(predicateFunc, unitId, "HELPFUL", buffSpellId, casterName)
+			if (auraName) then
+				return auraName, texture, count, auraType, duration, expTime, sourceUnit, isStealable, nameplateShowPersonal, spellId, canApplyAura, isBossAura, playerOrPet, nameplateShowAll, timeMod, v1, v2, v3, v4, v5
+			end
+		end
+
+		function Details:FindBuffCastedByUnitName(targetString, buffSpellId, casterString)
+			local targetName = Details:Ambiguate(targetString)
+			local casterName = Details:Ambiguate(casterString)
+			return Details:FindBuffCastedBy(targetName, buffSpellId, casterName)
 		end
 	end
 
@@ -431,17 +458,17 @@
 	---@return {key1: unixtime, key2: spellid}
 	---@return specializationid specId
 	function Details:UnpackDeathTable(deathTable)
-		local deathevents = deathTable[1]
-		local deathtime = deathTable[2]
-		local playername = deathTable[3]
-		local playerclass = deathTable[4]
-		local playermaxhealth = deathTable[5]
-		local deathtimestring = deathTable[6]
-		local lastcooldown = deathTable.last_cooldown
-		local deathcombattime = deathTable.dead_at
+		local deathEvents = deathTable[1]
+		local deathTime = deathTable[2]
+		local playerName = deathTable[3]
+		local playerClass = deathTable[4]
+		local playerMaxHealth = deathTable[5]
+		local deathTimeString = deathTable[6]
+		local lastCooldown = deathTable.last_cooldown
+		local deathCombatTime = deathTable.dead_at
 		local spec = deathTable.spec
 
-		return playername, playerclass, deathtime, deathcombattime, deathtimestring, playermaxhealth, deathevents, lastcooldown, spec
+		return playerName, playerClass, deathTime, deathCombatTime, deathTimeString, playerMaxHealth, deathEvents, lastCooldown, spec
 	end
 
 	---get a random fraction number
@@ -635,14 +662,14 @@
 
 		Details:Destroy(Details.ToKFunctions)
 
-		tinsert(Details.ToKFunctions, Details.NoToK)
-		tinsert(Details.ToKFunctions, Details.ToK)
-		tinsert(Details.ToKFunctions, Details.ToK2)
-		tinsert(Details.ToKFunctions, Details.ToK0)
-		tinsert(Details.ToKFunctions, Details.ToKMin)
-		tinsert(Details.ToKFunctions, Details.ToK2Min)
-		tinsert(Details.ToKFunctions, Details.ToK0Min)
-		tinsert(Details.ToKFunctions, Details.comma_value)
+		table.insert(Details.ToKFunctions, Details.NoToK)
+		table.insert(Details.ToKFunctions, Details.ToK)
+		table.insert(Details.ToKFunctions, Details.ToK2)
+		table.insert(Details.ToKFunctions, Details.ToK0)
+		table.insert(Details.ToKFunctions, Details.ToKMin)
+		table.insert(Details.ToKFunctions, Details.ToK2Min)
+		table.insert(Details.ToKFunctions, Details.ToK0Min)
+		table.insert(Details.ToKFunctions, Details.comma_value)
 
 	end
 
@@ -768,14 +795,14 @@
 
 		Details:Destroy(Details.ToKFunctions)
 
-		tinsert(Details.ToKFunctions, Details.NoToK)
-		tinsert(Details.ToKFunctions, Details.ToK)
-		tinsert(Details.ToKFunctions, Details.ToK2)
-		tinsert(Details.ToKFunctions, Details.ToK0)
-		tinsert(Details.ToKFunctions, Details.ToKMin)
-		tinsert(Details.ToKFunctions, Details.ToK2Min)
-		tinsert(Details.ToKFunctions, Details.ToK0Min)
-		tinsert(Details.ToKFunctions, Details.comma_value)
+		table.insert(Details.ToKFunctions, Details.NoToK)
+		table.insert(Details.ToKFunctions, Details.ToK)
+		table.insert(Details.ToKFunctions, Details.ToK2)
+		table.insert(Details.ToKFunctions, Details.ToK0)
+		table.insert(Details.ToKFunctions, Details.ToKMin)
+		table.insert(Details.ToKFunctions, Details.ToK2Min)
+		table.insert(Details.ToKFunctions, Details.ToK0Min)
+		table.insert(Details.ToKFunctions, Details.comma_value)
 
 		--
 	end
@@ -1224,6 +1251,13 @@ end
 		Details:BrokerTick()
 		Details:HealthTick()
 
+		local currentCombat = Details:GetCurrentCombat()
+		if (Details.encounter_table.start and not Details.encounter_table["end"] and currentCombat.is_boss) then
+			local encounterHealth = UnitHealth("boss1") or 0
+			local encounterMaxHealth = UnitHealthMax("boss1") or 1
+			currentCombat.boss_hp = encounterHealth / encounterMaxHealth
+		end
+
 		local zoneName, zoneType = GetInstanceInfo()
 
 		if (Details.Coach.Server.IsEnabled()) then
@@ -1264,7 +1298,7 @@ end
 		--coach feature
 		if (not Details.Coach.Server.IsEnabled()) then
 			if (Details.debug) then
-				Details:Msg("coach is disabled, the combat is now over!")
+				--Details:Msg("coach is disabled, the combat is now over!")
 			end
 		end
 
@@ -1286,7 +1320,7 @@ end
 		end
 	end
 
-	function Details:FindGUIDFromName (name)
+	function Details:FindGUIDFromName (name) --deprecated? couldn't find any usage at november 2023
 		if (IsInRaid()) then
 			for i = 1, GetNumGroupMembers(), 1 do
 				local this_name, _ = UnitName ("raid"..i)
@@ -1302,7 +1336,7 @@ end
 				end
 			end
 		end
-		if (UnitName ("player") == name) then
+		if (UnitName ("player") == name or Details.playername == name) then
 			return UnitGUID("player")
 		end
 		return nil
@@ -1770,3 +1804,40 @@ end
 			barra.lineText4:SetSize(texto_direita_tamanho+5, 15)
 		end
 	end
+
+    local defaultIconSize = {16, 16}
+    local defaultIconTexture = [[Interface\WorldStateFrame\ICONS-CLASSES]]
+    local defaultClassIconCoords = {0.25, 0.50, 0, 0.25}
+    local defaultSpecIconCoords = {2/512, 32/512, 480/512, 510/512}
+
+    Details222.BarIconSetList = {
+        {value = [[]], label = Loc ["STRING_OPTIONS_BAR_ICONFILE1"], icon = defaultIconTexture, texcoord = defaultClassIconCoords, iconsize = defaultIconSize, iconcolor = {1, 1, 1, .3}},
+        {value = [[Interface\AddOns\Details\images\classes_small]], label = Loc ["STRING_OPTIONS_BAR_ICONFILE2"], icon = defaultIconTexture, texcoord = defaultClassIconCoords, iconsize = defaultIconSize},
+        {value = [[Interface\AddOns\Details\images\spec_icons_normal]], label = "Specialization", isSpec = true, icon = [[Interface\AddOns\Details\images\icons]], texcoord = defaultSpecIconCoords, iconsize = defaultIconSize},
+        {value = [[Interface\AddOns\Details\images\spec_icons_normal_alpha]], label = "Specialization Alpha", isSpec = true, icon = [[Interface\AddOns\Details\images\icons]], texcoord = defaultSpecIconCoords, iconsize = defaultIconSize},
+        {value = [[Interface\AddOns\Details\images\classes_small_bw]], label = Loc ["STRING_OPTIONS_BAR_ICONFILE3"], icon = defaultIconTexture, texcoord = defaultClassIconCoords, iconsize = defaultIconSize},
+        {value = [[Interface\AddOns\Details\images\classes_small_alpha]], label = Loc ["STRING_OPTIONS_BAR_ICONFILE4"], icon = defaultIconTexture, texcoord = defaultClassIconCoords, iconsize = defaultIconSize},
+        {value = [[Interface\AddOns\Details\images\classes_small_alpha_bw]], label = Loc ["STRING_OPTIONS_BAR_ICONFILE6"], icon = defaultIconTexture, texcoord = defaultClassIconCoords, iconsize = defaultIconSize},
+        {value = [[Interface\AddOns\Details\images\classes]], label = Loc ["STRING_OPTIONS_BAR_ICONFILE5"], icon = defaultIconTexture, texcoord = defaultClassIconCoords, iconsize = defaultIconSize},
+    }
+
+    function Details:AddCustomIconSet(path, dropdownLabel, isSpecIcons, dropdownIcon, dropdownIconTexCoords, dropdownIconSize, dropdownIconColor)
+		--checking the parameters to improve debug for the icon set author
+		assert(self == Details, "Details:AddCustomIconSet() did you used Details.AddCustomIconSet instead of Details:AddCustomIconSet?")
+		assert(type(path) == "string", "Details:AddCustomIconSet() 'path' must be a string.")
+		assert(string.len(path) > 16, "Details:AddCustomIconSet() invalid path.")
+
+        table.insert(Details222.BarIconSetList,
+            {
+                value = path,
+                label = dropdownLabel or "Missing Label",
+                isSpec = isSpecIcons,
+                icon = dropdownIcon or defaultIconTexture,
+                texcoord = dropdownIconTexCoords or (isSpecIcons and defaultSpecIconCoords or defaultClassIconCoords),
+                iconsize = dropdownIconSize or defaultIconSize,
+                iconcolor = dropdownIconColor
+            }
+        )
+
+		return true
+    end

@@ -1,5 +1,5 @@
-local config, COMPAT, _, T = {}, select(4,GetBuildInfo()), ...
-local MODERN, CF_WRATH = COMPAT >= 10e4, COMPAT < 10e4 and COMPAT >= 3e4
+local config, COMPAT, ADDON, T = {}, select(4,GetBuildInfo()), ...
+local MODERN, CF_WRATH, CI_ERA = COMPAT >= 10e4, COMPAT < 10e4 and COMPAT >= 3e4, COMPAT < 2e4
 local L, EV, TS, XU, frame = T.L, T.Evie, T.TenSettings, T.exUI, nil
 local GameTooltip = T.NotGameTooltip or GameTooltip
 T.config = config
@@ -13,7 +13,7 @@ do -- /opie
 		end
 	end
 	addSuffix(function()
-		print("|cff0080ffOPie|r |cffffffff" .. GetAddOnMetadata("OPie", "Version") .. "|r")
+		print("|cff0080ffOPie|r |cffffffff" .. (C_AddOns.GetAddOnMetadata(ADDON, "Version") or "??") .. "|r")
 	end, "version", "v")
 	T.AddSlashSuffix = addSuffix
 
@@ -40,45 +40,9 @@ if TS and TS.Localize then
 end
 
 local KR, PC = T.ActionBook:compatible("Kindred",1,0), T.OPieCore
-local CreateEdge = T.CreateEdge
 
 do -- config.ui
 	config.ui = {}
-	do -- multilineInput
-		local function onNavigate(self, _x,y, _w,h)
-			local scroller, insT, insB = self.scroll, 2, 2
-			local occH, occP, y = scroller:GetHeight(), scroller:GetVerticalScroll(), -y
-			if occP > y-insT then
-				occP = y > insT and y-insT or 0 -- too far
-			elseif occP < y+h-occH+insB+insT then
-				occP = y+h-occH+insB+insT -- not far enough
-			else
-				return
-			end
-			local _, mx = scroller.ScrollBar:GetMinMaxValues()
-			occP = (mx-occP)^2 < 1 and mx or math.floor(occP)
-			scroller.ScrollBar:SetMinMaxValues(0, occP < mx and mx or occP)
-			scroller.ScrollBar:SetValue(occP)
-		end
-		local function onClick(self)
-			self.input:SetFocus()
-		end
-		function config.ui.multilineInput(name, parent, width)
-			local scroller = CreateFrame("ScrollFrame", name .. "Scroll", parent, "UIPanelScrollFrameTemplate")
-			local input = CreateFrame("Editbox", name, scroller)
-			input:SetWidth(width)
-			input:SetMultiLine(true)
-			input:SetAutoFocus(false)
-			input:SetTextInsets(2,4,2,2)
-			input:SetFontObject(GameFontHighlight)
-			input:SetScript("OnCursorChanged", onNavigate)
-			scroller:EnableMouse(1)
-			scroller:SetScript("OnMouseDown", onClick)
-			scroller:SetScrollChild(input)
-			input.scroll, scroller.input = scroller, input
-			return input, scroller
-		end
-	end
 	function config.ui.HideTooltip(self)
 		if GameTooltip:IsOwned(self) then
 			GameTooltip:Hide()
@@ -97,7 +61,7 @@ do -- config.bind
 	local activeCaptureButton
 	local alternateFrame = CreateFrame("Frame", nil, UIParent) do
 		alternateFrame:Hide()
-		CreateEdge(alternateFrame, { bgFile="Interface/ChatFrame/ChatFrameBackground", edgeFile="Interface/DialogFrame/UI-DialogBox-Border", tile=true, tileSize=32, edgeSize=32, insets={left=11, right=11, top=11, bottom=10}}, 0xd8000000)
+		XU:Create("Backdrop", alternateFrame, { bgFile="Interface/ChatFrame/ChatFrameBackground", edgeFile="Interface/DialogFrame/UI-DialogBox-Border", tile=true, tileSize=32, edgeSize=32, insets={left=11, right=11, top=11, bottom=10}, bgColor=0xd8000000})
 		alternateFrame:SetSize(380, 115)
 		alternateFrame:EnableMouse(1)
 		alternateFrame:SetScript("OnHide", alternateFrame.Hide)
@@ -122,13 +86,13 @@ do -- config.bind
 		end)
 		extReminder:SetScript("OnLeave", config.ui.HideTooltip)
 		extReminder:SetScript("OnHide", extReminder:GetScript("OnLeave"))
-		local input, scroll = config.ui.multilineInput("OPC_AlternateBindInput", alternateFrame, 335)
-		alternateFrame.input, alternateFrame.scroll = input, scroll
-		scroll:SetPoint("TOPLEFT", 10, -28)
-		scroll:SetPoint("BOTTOMRIGHT", -33, 10)
-		input:SetMaxBytes(1023)
-		input:SetScript("OnEscapePressed", function() alternateFrame:Hide() end)
-		input:SetScript("OnChar", function(self, c)
+		local textarea = XU:Create("TextArea", "OPC_AlternateBindInput", alternateFrame)
+		textarea:SetPoint("TOPLEFT", 12, -28)
+		textarea:SetPoint("BOTTOMRIGHT", -10, 10)
+		alternateFrame.input = textarea
+		textarea:SetMaxBytes(1023)
+		textarea:SetScript("OnEscapePressed", function() alternateFrame:Hide() end)
+		textarea:SetScript("OnChar", function(self, c)
 			if c == "\n" then
 				local bind = strtrim((self:GetText():gsub("[\r\n]", "")))
 				if bind ~= "" then
@@ -177,6 +141,12 @@ do -- config.bind
 		if bind == "ESCAPE" then
 			return Deactivate(self)
 		elseif unbindableKeys[bind] then
+			return
+		elseif bind and bind:match("PAD") and (
+		         bind == GetCVar("GamePadEmulateAlt") or
+		         bind == GetCVar("GamePadEmulateCtrl") or
+		         bind == GetCVar("GamePadEmulateShift")
+		       ) then
 			return
 		end
 		Deactivate(self)
@@ -258,14 +228,19 @@ do -- config.bind
 		GameTooltip:Show()
 	end
 	local specialSymbolMap = {OPEN="[", CLOSE="]", SEMICOLON=";"}
-	local function bindNameLookup(key)
-		return GetBindingText(specialSymbolMap[key] or key)
-	end
 	local function SetBindingText(self, bind, pre, post, hasBinding)
 		if type(bind) == "string" and bind:match("%[.*%]") then
 			return SetBindingText(self, KR:EvaluateCmdOptions(bind), pre, post or " |cff20ff20[+]|r", true)
 		end
-		local bindText = bind and bind ~= "" and GetBindingText((bind:gsub("[^%-]+$", bindNameLookup)))
+		local bindText = bind and bind ~= "" and GetBindingText((bind:gsub("[^%-]+$", specialSymbolMap)))
+		if CI_ERA and bindText and bind:match("PAD") then
+			for ai in bindText:gmatch("|A:([^:]+)") do
+				if not C_Texture.GetAtlasInfo(ai) then -- BUG[1.14.4/2310]
+					bindText = bind:gsub("[^%-]+$", specialSymbolMap)
+					break
+				end
+			end
+		end
 		self.hasSetBinding, self.bindCoreText = not not (hasBinding or bindText), bindText
 		return self:SetText((pre or "") .. (bindText or L"Not bound") .. (post or ""))
 	end
@@ -360,7 +335,7 @@ do -- config.pulseDropdown
 			drop.LeftA:SetAlpha(s)
 			drop.MiddleA:SetAlpha(s)
 			drop.RightA:SetAlpha(s)
-			C_Timer.After(0, pulse)
+			EV.After(0, pulse)
 		end
 		drop.pulseFunc = pulse
 		pulse()
@@ -415,7 +390,7 @@ local OPC_OptionSets = {
 		{"bool", "ClickActivation", caption=L"Activate on left click"},
 		{"bool", "NoClose", caption=L"Leave open after use", depOn="ClickActivation", depValue=true, otherwise=false},
 		{"bool", "UseDefaultBindings", caption=L"Use default ring bindings"},
-		{"drop", "PadSupportMode", {"freelook", "cursor", "none", freelook=L"Camera analog stick", cursor=L"Virtual mouse cursor", none=L"None"}, caption=L"Controller interaction mode", hideFeature="GamePad"},
+		{"drop", "PadSupportMode", {"freelook", "freelook1", "cursor", "none", freelook=L"Camera analog stick", freelook1=L"Movement analog stick", cursor=L"Virtual mouse cursor", none=L"None"}, caption=L"Controller interaction mode", hideFeature="GamePad"},
 		{"range", "IndicationOffsetX", -500, 500, 50, caption=L"Move rings right", valueFormat="%d"},
 		{"range", "IndicationOffsetY", -300, 300, 50, caption=L"Move rings down", valueFormat="%d"},
 		{"range", "MouseBucket", 5, 1, 1, caption=L"Scroll wheel sensitivity", stdLabels=true},
@@ -464,11 +439,11 @@ do -- Widget construction
 		OPC_AlterOption(drop, dd[2], nv)
 	end
 	local function dropInitialize(self)
-		local dda = OPC_WidgetControl[self][3]
+		local dda, cv = OPC_WidgetControl[self][3], OPC_WidgetControl[self].cv
 		local info = {func=dropSelect, arg2=self, minWidth=self:GetWidth()-40}
 		for i=1,#dda do
 			local k = dda[i]
-			info.text, info.arg1, info.checked = dda[k], k, OPC_WidgetControl[self].cv == k
+			info.text, info.arg1, info.checked = dda[k], k, cv == k
 			UIDropDownMenu_AddButton(info)
 		end
 	end
@@ -556,7 +531,7 @@ do -- Widget construction
 	end
 end
 local OPC_AppearanceFactory = CreateFrame("Frame", "OPC_AppearanceDropdown", frame, "UIDropDownMenuTemplate")
-OPC_AppearanceFactory:SetPoint("LEFT", OPC_OptionSets[2].label, "LEFT", 280, -2)
+OPC_AppearanceFactory:SetPoint("LEFT", OPC_OptionSets[2].label, "LEFT", 284, -1)
 UIDropDownMenu_SetWidth(OPC_AppearanceFactory, 200)
 
 T.OPC_RingScopePrefixes = {
@@ -723,13 +698,15 @@ end
 function OPC_Profile:text()
 	UIDropDownMenu_SetText(self, L"Profile" .. ": " .. OPC_Profile_FormatName(PC:GetCurrentProfile()))
 end
-function OPC_AppearanceFactory:formatText(key, outOfDate, name)
+function OPC_AppearanceFactory:formatText(key, outOfDate, name, disabled)
 	name = name or T.OPieUI:GetIndicatorConstructorName(key)
 	if not name then
 		name = "|cffa0a0a0*[" .. T.OPieUI:GetIndicatorConstructorName() .. "]|r"
 	end
-	if outOfDate then
-		name = "|cffff6060" .. name .. "|r"
+	if disabled then
+		name = "|cff909090" .. name .. "|r"
+	elseif outOfDate then
+		name = "|cffef2020" .. name .. "|r"
 	end
 	if key == "mirage" then
 		name = "|cff00e800" .. name .. "|r"
@@ -739,8 +716,15 @@ function OPC_AppearanceFactory:formatText(key, outOfDate, name)
 	return name
 end
 function OPC_AppearanceFactory:text()
-	local key, own = PC:GetOption("IndicatorFactory", OR_CurrentOptionsDomain)
-	UIDropDownMenu_SetText(self, OR_CurrentOptionsDomain and own == nil and L"Use global setting" or self:formatText(key, false))
+	local key, own, text = PC:GetOption("IndicatorFactory", OR_CurrentOptionsDomain)
+	if OR_CurrentOptionsDomain and own == nil then
+		text = L"Use global setting"
+	else
+		local name, avail = T.OPieUI:GetIndicatorConstructorName(key)
+		key, name = avail and key or nil, avail and name or nil
+		text = self:formatText(key, nil, name) .. (avail and "" or "|cff909090*")
+	end
+	UIDropDownMenu_SetText(self, text)
 end
 local function OPC_AppearanceFactory_set(_, key)
 	PC:SetOption("IndicatorFactory", key, OR_CurrentOptionsDomain)
@@ -752,19 +736,21 @@ local function OPC_AppearanceFactory_set(_, key)
 	end end
 end
 function OPC_AppearanceFactory:initialize()
-	local info = {func=OPC_AppearanceFactory_set, minWidth=UIDROPDOWNMENU_OPEN_MENU:GetWidth()-40, tooltipOnButton=true}
+	local info = {func=OPC_AppearanceFactory_set, minWidth=UIDROPDOWNMENU_OPEN_MENU:GetWidth()-40, tooltipOnButton=true, tooltipWhileDisabled=true}
 	local current, own = PC:GetOption("IndicatorFactory", OR_CurrentOptionsDomain)
-	for k, name, outOfDate in T.OPieUI:EnumerateRegisteredIndicatorConstructors() do
-		name = self:formatText(k, outOfDate, name)
+	for k, name, outOfDate, err in T.OPieUI:EnumerateRegisteredIndicatorConstructors() do
 		if k == "_" then
 			UIDropDownMenu_AddSeparator()
 		end
-		if outOfDate then
+		name = self:formatText(k, outOfDate, name, err ~= nil)
+		if err then
+			info.tooltipTitle, info.tooltipText = "|cffff2020" .. L"Update required", L"Install an updated version of this appearance to select it." .. "\n\n|cff909090" .. err
+		elseif outOfDate then
 			info.tooltipTitle, info.tooltipText = "|cffff2020" .. L"Update required", L"This appearance may not support all OPie features."
 		else
 			info.tooltipTitle, info.tooltipText = nil
 		end
-		info.arg1, info.text, info.checked = k, name, k == own or (own == nil and not OR_CurrentOptionsDomain and current == k)
+		info.arg1, info.text, info.checked, info.disabled = k, name, k == own or (own == nil and not OR_CurrentOptionsDomain and current == k), err ~= nil
 		UIDropDownMenu_AddButton(info)
 	end
 	if OR_CurrentOptionsDomain then

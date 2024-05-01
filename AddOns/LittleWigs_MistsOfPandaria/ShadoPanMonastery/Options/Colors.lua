@@ -1,9 +1,9 @@
 
 BigWigs:AddColors("Gu Cloudstrike", {
-	[-5630] = "blue",
+	[-5630] = {"blue","red"},
 	[102573] = "orange",
 	[107140] = "yellow",
-	["stages"] = "green",
+	["stages"] = "cyan",
 })
 
 BigWigs:AddColors("Master Snowdrift", {
@@ -22,4 +22,9 @@ BigWigs:AddColors("Taran Zhu", {
 	[107087] = "blue",
 	[107356] = "red",
 	[115002] = "orange",
+})
+
+BigWigs:AddColors("Shado-Pan Monastery Trash", {
+	[106942] = "orange",
+	[111690] = "green",
 })

@@ -2,12 +2,63 @@
 --						L O C A L I Z A T I O N  F I L E					  --
 --------------------------------------------------------------------------------
 local name, app = ...;
-local L = {
+local L = app.L;
+for key,value in pairs({
 	-- General Text
-	["TITLE"] = "|c" .. app.Colors.ATT .. "ALL THE THINGS|r";
-	["SHORTTITLE"] = "|c" .. app.Colors.ATT .. "ATT|r";
-	["DESCRIPTION"] = "\"Foolishly you have sought your own demise. Brazenly you have disregarded powers beyond your understanding. You have fought hard to invade the realm of the Collector. Now there is only one way out - To walk the lonely path... of the damned.\"";
-
+	["THINGS_UNTIL"] = " THINGS UNTIL ";
+	["THING_UNTIL"] = " THING UNTIL ";
+	["YOU_DID_IT"] = "YOU DID IT!";
+	
+	-- Social Module
+	["NEW_VERSION_AVAILABLE"] = "A newer version of %s is available. Please update the AddOn, %s.";
+	["NEW_VERSION_FLAVORS"] = {
+		"or we'll give Sylvanas another lighter",
+		"Alexstrasza is worried about you",
+		"and Invincible will drop |cffffaaaafor sure|r next time",
+		"this was merely a setback",
+	};
+	["SOCIAL_PROGRESS"] = "Social Progress";
+	["TRACKING_PROGRESS"] = "Tracking Progress";
+	["COLLECTION_PROGRESS"] = "Collection Progress";
+	
+	-- Settings
+	["SHOW_REMAINING_CHECKBOX"] = "Show Remaining Things";
+	["SHOW_REMAINING_CHECKBOX_TOOLTIP"] = "Enable this option if you want to see the number of items remaining instead of the progress over total.";
+	["PERCENTAGES_CHECKBOX"] = "Show Percentage Completion";
+	["PERCENTAGES_CHECKBOX_TOOLTIP"] = "Enable this option if you want to see the percent completion of each row.\n\nColoring of groups by completion is unaffected.";
+	["DATA_TYPE_NOT_SUPPORTED"] = "This data type is not supported at this time.",
+	
+	["OPEN_MINILIST_FOR"] = "Open mini list for ";
+	["REFRESHING_COLLECTION"] = "Refreshing collection...";
+	["DONE_REFRESHING"] = "Done refreshing collection.";
+	["ADDED_WITH_PATCH"] = "Added With Patch";
+	["REMOVED_WITH_PATCH"] = "Removed With Patch";
+	["AVAILABILITY"] = "Availability";
+	["CREATURES_COUNT"] = "[%s Creatures]";
+	["CREATURES_LIST"] = "Creatures List";
+	["PROGRESS"] = "Progress";
+	["COMPLETED_BY"] = "Completed By: %s";
+	["KNOWN_BY"] = "Known by %s";
+	["OWNED_BY"] = "Owned by %s";
+	["ALIVE"] = "Alive";
+	["SPAWNED"] = "Spawned";
+	["LAYER"] = "Layer";
+	["BINDING"] = "Binding";
+	["BONUS_ID"] = "Bonus ID";
+	["CONDUIT_ID"] = "Conduit ID";
+	["DISPLAY_ID"] = "Display ID";
+	["PET_BATTLES"] = "Pet Battles";
+	["EVENT_ID"] = "Event ID";
+	["ICON_PATH"] = "Icon Path";
+	["ITEM_LEVEL"] = "iLvl";
+	["ITEM_STRING"] = "Item String";
+	["MOD_ID"] = "Mod ID";
+	["OBJECT_TYPE"] = "Object Type";
+	["OBJECTIVES"] = "Objectives";
+	["QUEST_GIVERS"] = "Quest Givers";
+	["RUNEFORGE_POWER_ID"] = "Runeforge Power ID";
+	["UNOBTAINABLE_LABEL"] = "Unobtainable Content";
+	
 	-- Instructional Text
 	["MINIMAP_MOUSEOVER_TEXT"] = "Right click to change settings.\nLeft click to open the Main List.\nCtrl + Left click to open the Mini List.\nShift + Left click to Refresh Collections.";
 	["TOP_ROW_INSTRUCTIONS"] = "|cff3399ffLeft Click and Drag to Move|r\n|cff3399ffRight Click to Open the Settings Menu|r\n|cff3399ffShift + Click to Refresh Collections|r";
@@ -16,33 +67,16 @@ local L = {
 	["OTHER_ROW_INSTRUCTIONS_AH"] = "|cff3399ffLeft Click to Expand/Collapse|r\n|cff3399ffRight Click to Pop Out to Mini List|r\n|cff3399ffShift + Click to Search the Auction House|r";
 	["RECENTLY_MADE_OBTAINABLE"] = "|CFFFF0000If this recently dropped for you (anywhere but Salvage\nCrates), please post in Discord where you got it to drop!|r";
 	["RECENTLY_MADE_OBTAINABLE_PT2"] = "|CFFFF0000The more information, the better.  Thanks!|r";
-	["I_ONLY_CARE_ABOUT_MY_MAIN"] = "|cff3399ffI only care about my main.|r";
 	["MAIN_LIST_REQUIRES_REFRESH"] = "[Click to Update Progress]";
+	["UPDATES_PAUSED"] = "Updates Paused";
 	["VISIT_FLIGHT_MASTER"] = "Visit the Flight Master to cache.";
-
-	["FACTION_MODE_TOOLTIP"] = "Turn this setting on if you want to see Account Mode data only for races and classes of your current faction.";
-	["REQUIRES_PVP"] = "|CFF00FFDEThis may require participation in PvP.|r";
+	["REQUIRES_PVP"] = "|CFF00FFDERequires PvP Activities or Currencies|r";
+	["REQUIRES_PETBATTLES"] = "|CFF00FFDERequires Pet Battling|r";
 	["PLEASE_REPORT_MESSAGE"] = "Please report this to the ATT Discord in #retail-errors! Thanks!";
 	["REPORT_TIP"] = "\n("..CTRL_KEY_TEXT.."+C to copy multiline report to your clipboard)";
-
-	-- Binding Localizations
-	["TOGGLE_ACCOUNT_MODE"] = "Toggle Account Mode";
-	["TOGGLE_DEBUG_MODE"] = "Toggle Debug Mode";
-	["TOGGLE_FACTION_MODE"] = "Toggle Faction Mode";
-	["PREFERENCES"] = "Preferences";
-	["TOGGLE_COMPLETEDTHINGS"] = "Toggle Completed Things (Both)";
-	["TOGGLE_COMPLETEDGROUPS"] = "Toggle Completed Groups";
-	["TOGGLE_COLLECTEDTHINGS"] = "Toggle Collected Things";
-	["TOGGLE_BOEITEMS"] = "Toggle BoE/BoA Items";
-	["TOGGLE_LOOTDROPS"] = "Toggle Loot/Drops/Items";
-	["TOGGLE_SOURCETEXT"] = "Toggle Source Locations";
-	["MODULES"] = "Modules";
-	["TOGGLE_MAINLIST"] = "Toggle ATT Main List";
-	["TOGGLE_MINILIST"] = "Toggle ATT Mini List";
-	["TOGGLE_PROFESSION_LIST"] = "Toggle ATT Profession List";
-	["TOGGLE_RAID_ASSISTANT"] = "Toggle ATT Raid Assistant";
-	["TOGGLE_RANDOM"] = "Toggle ATT Random";
-	["REROLL_RANDOM"] = "Reroll the Random Selection";
+	["QUEST_PREVENTS_BREADCRUMB_COLLECTION_FORMAT"] = "Quest '%s' %s will prevent collection of Breadcrumb Quest '%s' %s";
+	["REPORT_INACCURATE_QUEST"] = "Wrong Quest Info! (Click to Report)";
+	["ITEM_GIVES_REP"] = "Provides Reputation with '";
 
 	-- Event Text
 	["ITEM_ID_ADDED"] = "%s (%d) was added to your collection.";
@@ -56,48 +90,115 @@ local L = {
 	-- Tooltip Text
 	["DROP_RATE"] = "Drop Rate";
 	["QUEST_GIVER"] = "Quest Giver";
+	["COORDINATES"] = "Coordinates";
+	["PLAYER_COORDINATES"] = "Player Coordinates";
+	["EVENT_SCHEDULE"] = "Event Schedule";
+	["EVENT_ACTIVE"] = "Active:";
+	["EVENT_START"] = "Start:";
+	["EVENT_END"] = "End:";
+	["EVENT_WHERE"] = "Where:";
+	["REQUIRES_EVENT"] = "Requires Event";
+	["BREADCRUMBS"] = "Breadcrumbs";
+	["MAPS"] = "Maps";
 	["LOCKOUT"] = "Lockout";
+	["LOCKOUTS"] = "Lockouts";
+	["RESETS"] = "Resets";
 	["SHARED"] = "Shared";
 	["SPLIT"] = "Per Difficulty";
 	["REQUIRES"] = "Requires";
 	["REQUIRES_LEVEL"] = "Requires Level";
 	["LIMITED_QUANTITY"] = "This has a limited quantity and may not always be present on the vendor.";
+	["ADDED_WITH_PATCH_FORMAT"] = "This gets added with patch %s";
+	["ADDED_BACK_WITH_PATCH_FORMAT"] = "This gets added back with patch %s";
+	["REMOVED_WITH_PATCH_FORMAT"] = "This gets removed with patch %s";
+	["WAS_ADDED_WITH_PATCH_FORMAT"] = "This was added with patch %s";
+	["WAS_ADDED_BACK_WITH_PATCH_FORMAT"] = "This was added back with patch %s";
+	
+	["FACTION_SPECIFIC_REP"] = "Not all reputations can be viewed on a single character. IE: Warsong Outriders cannot be viewed by an Alliance Player and Silverwing Sentinels cannot be viewed by a Horde Player.";
+	["MINUMUM_STANDING_WITH_FACTION"] = "Requires a minimum standing of %s with %s.";
+	["MAXIMUM_STANDING_WITH_FACTION"] = "Requires a standing lower than %s with %s.";
+	["MIN_MAX_STANDING_WITH_FACTION"] = "Requires a standing between %s and %s with %s.";
+	
+	["HEIRLOOM_TEXT"] = "Unlocked Heirloom";
+	["HEIRLOOM_TEXT_DESC"] = "This indicates whether or not you have acquired or purchased the heirloom yet.";
+	["HEIRLOOMS_UPGRADES_DESC"] = "This indicates whether or not you have upgraded the heirloom to a certain level.\n\nR.I.P. Gold.\n - Crieve";
+	
+	["LOCK_CRITERIA_LEVEL_LABEL"] = "Player Level";
+	["LOCK_CRITERIA_QUEST_LABEL"] = "Completed Quest";
+	["LOCK_CRITERIA_SPELL_LABEL"] = "Learned Spell/Mount/Recipe";
+	["LOCK_CRITERIA_FACTION_LABEL"] = "Faction Reputation";
+	["LOCK_CRITERIA_SOURCE_LABEL"] = "Known Appearance";
+	["LOCK_CRITERIA_FACTION_FORMAT"] = "%s with %s (Current: %s)";
+	["TITLES_DESC"] = "Titles are tracked across your account, however, your individual character must qualify for certain titles to be usable on that character.";
 
 	-- Filter Text
-	["ACHIEVEMENT_ID"] = "Achievement ID";
 	["ARTIFACT_ID"] = "Artifact ID";
 	["AZERITE_ESSENCE_ID"] = "Azerite Essence ID";
 	["ART_ID"] = "Art ID";
 	["CREATURE_ID"] = "Creature ID";
 	["CURRENCY_ID"] = "Currency ID";
+	["DESCRIPTIONS"] = "Descriptions";
 	["DIFFICULTY_ID"] = "Difficulty ID";
 	["ENCOUNTER_ID"] = "Encounter ID";
 	["EXPANSION_ID"] = "Expansion ID";
 	["EXPLORATION_ID"] = "Exploration ID";
 	["FILTER_ID"] = "Filter ID";
 	["FOLLOWER_ID"] = "Follower ID";
+	["GUID"] = "Global ID";
+	["HEADER_ID"] = "Header ID";
 	["ILLUSION_ID"] = "Illusion ID";
 	["INSTANCE_ID"] = "Instance ID";
+	["SAVED_INSTANCE_ID"] = "Saved Instance ID";
 	["ITEM_ID"] = "Item ID";
 	["FACTION_ID"] = "Faction ID";
 	["FLIGHT_PATH_ID"] = "Flight Path ID";
+	["LORE"] = "Lore";
 	["MAP_ID"] = "Map ID";
 	["MOUNT_ID"] = "Mount ID";
 	["MUSIC_ROLL_ID"] = "Music Roll ID";
 	["NPC_ID"] = "NPC ID";
 	["OBJECT_ID"] = "Object ID";
+	["PROVIDERS"] = "Provider(s)";
 	["QUEST_ID"] = "Quest ID";
 	["SET_ID"] = "Gear Set ID";
 	["SOURCE_ID"] = "Source ID";
 	["SPELL_ID"] = "Spell ID";
+	["SPELL_NAME"] = "Spell Name";
 	["SPECIES_ID"] = "Species ID";
 	["TITLE_ID"] = "Title ID";
 	["TOY_ID"] = "Toy ID";
 	["VISUAL_ID"] = "Visual ID";
+	["AND_MORE"] = "And %s more...";
+	["AND_OTHER_SOURCES"] = "And %s other sources...";
+	["SYM_ROW_INFORMATION"] = "Right Click to see additional content which is Sourced in another location";
+	["SYM_ROW_SKIP_DESC"] = "Linked content is only displayed in the tooltip for this object.";
+	["ACHIEVEMENT_PRE_WRATH_SOURCE_QUEST_INFO"] = "This achievement has associated quests that can be completed before the introduction of the Achievement system coming with the Wrath Prepatch. Not all achievements can be tracked this way, but for those that can, they will be displayed. All other non-trackable achievements will be activated with the prepatch.";
+	["CLASSES"] = "Classes";
 	
 	
+	["INTERFACE_PAGE"] = UIOPTIONS_MENU;
+	["ADDITIONAL_LABEL"] = "Additional Information";
 	["CRITERIA_FOR"] = "Criteria for";
 	["CURRENCY_FOR"] = "Currency for";
+	
+	["CHAT_COMMANDS_LABEL"] = "Chat Commands";
+	["CHAT_COMMANDS_TEXT"] = "/att |cffFFFFFFor|R /allthethings\n|cffFFFFFFOpens the Main List.\n\n|R/attmini\n|cffFFFFFFOpens the Mini List.\n\n|R/attbounty\n|cffFFFFFFOpens a list of bugged or unconfirmed items.\n\n|R/attra\n|cffFFFFFFOpens the Raid Assistant.\n\n|R/attwq\n|cffFFFFFFOpens the World Quests List.\n\n|R/att item:1234 |cffFFFFFFor|R /att [Item Link]\n|cffFFFFFFOpens a window with shared appearances. Also works with other things, such as|R quest:1234|cffFFFFFF, |Rnpcid:1234|cffFFFFFF, |Rmapid:1234|cffFFFFFF or |Rrecipeid:1234|cffFFFFFF.\n\n|R/attrwp\n|cffFFFFFFShows all future Removed With Patch things.\n\n|R/attnwp\n|cffFFFFFFShows all current New With Patch things.\n\n|R/attrandom\n|cffFFFFFFOpens the Random List.\n\n|R/attunsorted\n|cffFFFFFFOpens a list of unsourced items. Best opened in Debug Mode.\n\n|R/rl\n|cffFFFFFFReload your WoW interface.|R";
+	["ICON_LEGEND_LABEL"] = "Icon Legend";
+	["ICON_LEGEND_TEXT"] = app.ccColors.White .. "|TInterface\\AddOns\\AllTheThings\\assets\\status-unobtainable.blp:0|t " .. "Unobtainable" .. "\n|TInterface\\AddOns\\AllTheThings\\assets\\status-prerequisites.blp:0|t " .. "Obtainable only with prerequisites" .. "\n|TInterface\\AddOns\\AllTheThings\\assets\\status-seasonal-available.blp:0|t " .. "Available seasonal content" .. "\n|TInterface\\AddOns\\AllTheThings\\assets\\status-seasonal-unavailable.blp:0|t " .. "Unavailable seasonal content" .. "\n|TInterface\\FriendsFrame\\StatusIcon-Offline:0|t " .. "Unavailable on current character";
+	["KEYBINDINGS"] = SETTINGS_KEYBINDINGS_LABEL;
+	["KEYBINDINGS_TEXT"] = "You can set keybindings for ATT in the game's options.";
+	["MINIMAP_LABEL"] = "Minimap Button";
+	["MODULES_LABEL"] = "Modules & Mini Lists";
+	["AUTO_PROF_LIST_CHECKBOX"] = "Automatically Open the Profession List";
+	["AUTO_PROF_LIST_CHECKBOX_TOOLTIP"] = "Enable this option if you want ATT to open and refresh the profession list when you open your professions. Due to an API limitation imposed by Blizzard, the only time an addon can interact with your profession data is when it is open. The list will automatically switch when you change to a different profession.\n\nWe don't recommend disabling this option as it may prevent recipes from tracking correctly.\n\nYou can also bind this setting to a Key. (only works when a profession is open)\n\nKey Bindings -> Addons -> ALL THE THINGS -> Toggle Profession Mini List";
+	["SKIP_CUTSCENES_CHECKBOX"] = "Automatically Skip Cutscenes";
+	["SKIP_CUTSCENES_CHECKBOX_TOOLTIP"] = "Enable this option if you want ATT to automatically skip all cutscenes on your behalf.";
+	["MINIMAP_BUTTON_CHECKBOX"] = "Show the Minimap Button";
+	["MINIMAP_BUTTON_CHECKBOX_TOOLTIP"] = "Enable this option if you want to see the minimap button. This button allows you to quickly access the Main List, show your Overall Collection Progress, and access the Settings Menu by right clicking it.\n\nSome people don't like clutter. Alternatively, you can access the Main List by typing '/att' in your chatbox. From there, you can right click the header to get to the Settings Menu.";
+	["MINIMAP_SLIDER"] = "Minimap Button Size";
+	["MINIMAP_SLIDER_TOOLTIP"] = 'Use this to customize the size of the Minimap Button.\n\nDefault: 36';
+	["WORLDMAP_BUTTON_CHECKBOX"] = "Show the World Map Button";
+	["WORLDMAP_BUTTON_CHECKBOX_TOOLTIP"] = "Enable this option if you want to see the ATT button on your world map. This button allows you to quickly access the Mini List for the currently displayed zone. Regularly, you'd need to physically travel to the zone in order to see the content on the mini list that you can access by typing '/att mini' in your chatbox.";
 
 	-- Icons and Collection Text
 	["COLLECTED_ICON"] = "|T" .. app.asset("known") .. ":0|t";	-- Acquired the colors and icon from CanIMogIt.
@@ -110,8 +211,6 @@ local L = {
 	["COMPLETE"] = "|T" .. app.asset("known_green") .. ":0|t |cff6dce47Complete|r";		-- Acquired the colors and icon from CanIMogIt.
 	["COMPLETE_OTHER"] = "|T" .. app.asset("known_green") .. ":0|t |cff6dce47Complete*|r";		-- Acquired the colors and icon from CanIMogIt.
 	["INCOMPLETE"] = "|T" .. app.asset("unknown") .. ":0|t |cffff9333Incomplete|r";		-- Acquired the colors and icon from CanIMogIt.
-	["KNOWN_ON_CHARACTER"] = "|T" .. app.asset("known") .. ":0|t |c" .. app.Colors.Completed .. "Known on current character|r";
-	["UNKNOWN_ON_CHARACTER"] = "|T" .. app.asset("unknown") .. ":0|t |cffff9333Unknown on current character|r";
 
 	["ABBREVIATIONS"] = {
 		["ALL THE THINGS"] = "ATT",
@@ -140,16 +239,6 @@ local L = {
 		["25 Player (Heroic)"] = "25M (H)",
 		["Pet Journal"] = PETS,
 		["Toy Box"] = TOY,
-	};
-	["ABBREVIATIONS_POST"] = {
-		--[" %-%> " .. LFG_TYPE_ZONE] = "",
-		[TRACKER_HEADER_QUESTS] = BATTLE_PET_SOURCE_2,
-	};
-	["CUSTOM_DIFFICULTIES"] = {
-		[-1] = "Raid Finder (5.4)",
-		[-2] = "Flexible (5.4)",
-		[-3] = "Normal (5.4)",
-		[-4] = "Heroic (5.4)",
 	};
 	
 	-- These need to be localized manually.
@@ -451,6 +540,9 @@ local L = {
 		
 		-- Does not get added until 4.1.0, btw. So just keep that in mind for wrath.
 		[5788] = { 81, "Agent of the Shen'dralar", "Interface\\Icons\\inv_misc_book_04" },
+		
+		-- Season of Mastery
+		[16433] = { 81, "Soul of Iron", "Interface\\Icons\\inv_qirajidol_life" },
 	},
 	["ACHIEVEMENT_CRITERIA_DATA"] = {
 		[92] = { -1, "Character" },
@@ -486,104 +578,86 @@ local L = {
 		[15301] = { -1, "Expansion Features" },
 	},
 	
-	-- Deprecated! (move these eventually)
-	["HEADER_ICONS"] = {};
-	["HEADER_NAMES"] = {},
-	["HEADER_DESCRIPTIONS"] = {};
-	["HEADER_EVENTS"] = {};
-	["HEADER_LORE"] = {};
-	["EVENT_REMAPPING"] = {};
-	["EVENT_TOOLTIPS"] = {};
-	
 	-- Module Localizations
 	["PVP_RANK_DESCRIPTION"] = "There are a total of 14 ranks for both factions. Each rank requires a minimum amount of Rating Points to be calculated every week, then calculated in comparison to other players on your server.\n\nEach rank grants access to different rewards, from PvP consumables to Epic Mounts that do not require Epic Riding Skill and Epic pieces of gear at the highest ranks. Each rank is also applied to your character as a Title.";
 	
-	["TIER_DATA"] = {
+	["EXPANSION_DATA"] = {
 		{	-- Classic
-			["text"] = "Classic",
+			["name"] = "Classic",
 			["icon"] = app.asset("Expansion_CLASSIC"),
 			["lore"] = "Four years after the Battle of Mount Hyjal, tensions between the Alliance & the Horde begin to arise once again. Intent on settling the arid region of Durotar, Thrall's new Horde expanded its ranks, inviting the undead Forsaken to join orcs, tauren, & trolls. Meanwhile, dwarves, gnomes & the ancient night elves pledged their loyalties to a reinvigorated Alliance, guided by the human kingdom of Stormwind. After Stormwind's king, Varian Wrynn, mysteriously disappeared, Highlord Bolvar Fordragon served as Regent but his service was marred by the manipulations & mind control of the Onyxia, who ruled in disguise as a human noblewoman. As heroes investigated Onyxia's manipulations, ancient foes surfaced in lands throughout the world to menace Horde & Alliance alike.",
 		},
 		{	-- Burning Crusade
-			["text"] = "Burning Crusade",
+			["name"] = "Burning Crusade",
 			["icon"] = app.asset("Expansion_TBC"),
 			["lore"] = "The Burning Crusade is the first expansion. Its main features include an increase of the level cap up to 70, the introduction of the blood elves & the draenei as playable races, & the addition of the world of Outland, along with many new zones, dungeons, items, quests, & monsters.",
 			["lvl"] = 55,
 		},
 		{	-- Wrath of the Lich King
-			["text"] = "Wrath of the Lich King",
+			["name"] = "Wrath of the Lich King",
 			["icon"] = app.asset("Expansion_WOTLK"),
 			["lore"] = "Wrath of the Lich King is the second expansion. The majority of the expansion content takes place in Northrend & centers around the plans of the Lich King. Content highlights include the increase of the level cap from 70 to 80, the introduction of the death knight Hero class, & new PvP/World PvP content.",
 			["lvl"] = 65,
 		},
 		{	-- Cataclysm
-			["text"] = "Cataclysm",
+			["name"] = "Cataclysm",
 			["icon"] = app.asset("Expansion_CATA"),
 			["lore"] = "Cataclysm is the third expansion. Set primarily in a dramatically reforged Kalimdor & Eastern Kingdoms on the world of Azeroth, the expansion follows the return of Deathwing, who causes a new Sundering as he makes his cataclysmic re-entrance into the world from Deepholm. Cataclysm returns players to the two continents of Azeroth for most of their campaigning, opening new zones such as Mount Hyjal, the sunken world of Vashj'ir, Deepholm, Uldum and the Twilight Highlands. It includes two new playable races, the worgen & the goblins. The expansion increases level cap to 85, adds the ability to fly in Kalimdor & Eastern Kingdoms, introduces Archaeology & reforging, & restructures the world itself.",
 			["lvl"] = 75,
 		},
 		{	-- Mists of Pandaria
-			["text"] = "Mists of Pandaria",
+			["name"] = "Mists of Pandaria",
 			["icon"] = app.asset("Expansion_MOP"),
 			["lore"] = "Mists of Pandaria is the fourth expansion pack. The expansion refocuses primarily on the war between the Alliance & Horde, in the wake of the accidental rediscovery of Pandaria. Adventurers rediscover the ancient pandaren people, whose wisdom will help guide them to new destinies; the Pandaren Empire's ancient enemy, the mantid; and their legendary oppressors, the enigmatic mogu. The land changes over time & the conflict between Varian Wrynn & Garrosh Hellscream escalates. As civil war wracks the Horde, the Alliance & forces in the Horde opposed to Hellscream's violent uprising join forces to take the battle directly to Hellscream & his Sha-touched allies in Orgrimmar.",
 			["lvl"] = 82,
 		},
 		{	-- Warlords of Draenor
-			["text"] = "Warlords of Draenor",
+			["name"] = "Warlords of Draenor",
 			["icon"] = app.asset("Expansion_WOD"),
 			["lore"] = "Warlords of Draenor is the fifth expansion. Across Draenor's savage jungles & battle-scarred plains, Azeroth's heroes will engage in a mythic conflict involving mystical draenei champions & mighty orc clans, & cross axes with the likes of Grommash Hellscream, Blackhand, & Ner'zhul at the height of their primal power. Players will need to scour this unwelcoming land in search of allies to help build a desperate defense against the old Horde's formidable engine of conquest, or else watch their own world's bloody, war-torn history repeat itself.",
 			["lvl"] = 88,
 		},
 		{	-- Legion
-			["text"] = "Legion",
+			["name"] = "Legion",
 			["icon"] = app.asset("Expansion_LEGION"),
 			["lore"] = "Legion is the sixth expansion. Gul'dan is expelled into Azeroth to reopen the Tomb of Sargeras & the gateway to Argus, commencing the third invasion of the Burning Legion. After the defeat at the Broken Shore, the defenders of Azeroth search for the Pillars of Creation, which were Azeroth's only hope for closing the massive demonic portal at the heart of the Tomb. However, the Broken Isles came with their own perils to overcome, from Xavius, to God-King Skovald, to the nightborne, & to Tidemistress Athissa. Khadgar moved Dalaran to the shores of this land, the city serves as a central hub for the heroes. The death knights of Acherus also took their floating necropolis to the Isles. The heroes of Azeroth sought out legendary artifact weapons to wield in battle, but also found unexpected allies in the form of the Illidari. Ongoing conflict between the Alliance & the Horde led to the formation of the class orders, with exceptional commanders putting aside faction to lead their classes in the fight against the Legion.",
 			["lvl"] = 98,
 		},
 		{	-- Battle for Azeroth
-			["text"] = "Battle for Azeroth",
+			["name"] = "Battle for Azeroth",
 			["icon"] = app.asset("Expansion_BFA"),
 			["lore"] = "Battle for Azeroth is the seventh expansion. Azeroth paid a terrible price to end the apocalyptic march of the Legion's crusade—but even as the world's wounds are tended, it is the shattered trust between the Alliance and Horde that may prove the hardest to mend. In Battle for Azeroth, the fall of the Burning Legion sets off a series of disastrous incidents that reignites the conflict at the heart of the Warcraft saga. As a new age of warfare begins, Azeroth's heroes must set out on a journey to recruit new allies, race to claim the world's mightiest resources, and fight on several fronts to determine whether the Horde or Alliance will lead Azeroth into its uncertain future.",
 			["lvl"] = 108,
 		},
 		{	-- Shadowlands
-			["text"] = "Shadowlands",
+			["name"] = "Shadowlands",
 			["icon"] = app.asset("Expansion_SL"),
 			["lore"] = "Shadowlands is the eighth expansion. What lies beyond the world you know? The Shadowlands, resting place for every mortal soul—virtuous or vile—that has ever lived.",
 			["lvl"] = 50,
 		},
 		{	-- Dragonflight
-			["text"] = "Dragonflight",
+			["name"] = "Dragonflight",
 			["icon"] = app.asset("Expansion_DF"),
 			["lore"] = "Dragonflight is the ninth expansion. The dragonflights of Azeroth have returned, called upon to defend their ancestral home, the Dragon Isles. Surging with elemental magic and the life energies of Azeroth, the Isles are awakening once more, and it's up to you to explore their primordial wonder and discover long-forgotten secrets.",
 			["lvl"] = 58,
 		},
 	};
 	
-	-- These are alternative map names that we don't want to display, but used for mapID calculations.
-	-- If there is a name provided in the table above, it will prefer that name association.
-	["ZONE_TEXT_TO_MAP_ID"] = {};
-	["ALT_ZONE_TEXT_TO_MAP_ID"] = {
-		["Gates of Ahn'Qiraj"] = 1451,
-		["The Temple of Atal'Hakkar"] = 220,
-		["The Battle for Mount Hyjal"] = 329,
-		["The Eye"] = 334,
-	};
-	
 	-- Unobtainable Listing
 	["UNOBTAINABLE_ITEM_TEXTURES"] = {
-		"Interface\\FriendsFrame\\StatusIcon-DnD", 		-- No Hope
-		"Interface\\FriendsFrame\\StatusIcon-Away", 	-- Little Hope
-		"Interface\\FriendsFrame\\StatusIcon-Online",	-- There is Hope
-		"Interface\\FriendsFrame\\StatusIcon-Offline",	-- Seasonal
+		app.asset("status-unobtainable"),
+		app.asset("status-prerequisites"),
+		"",									-- 3, we want no icon for these
+		app.asset("status-seasonal-unavailable"),	-- Seasonal unavailable
+		app.asset("status-seasonal-available"),	-- Seasonal available
 	};
-	["UNOBTAINABLE_ITEM_REASONS"] = {
+	["AVAILABILITY_CONDITIONS"] = {
 		[1] = {1, "|CFFFF0000This was never available to players.|r", "Never Implemented"},
 		[2] = {1, "|CFFFF0000This has been removed from the game.|r", "Removed From Game"},
 		[3] = {2, "|CFFFF0000This is locked behind a paywall such as the in-game shop, another Blizzard product, or the Recruit-A-Friend service.|r", "Blizzard Balance", nil, nil, "\n \n|CFFFFAAAAThe act of encouraging the use of real money in the Classic version of the game is widely frowned upon. Participate in this content at your own risk.|r" },
 		[4] = {3, "|CFFFF0000This can no longer be purchased or unlocked as Transmog unless you have the required PvP Title, required PvP Rating or were in the Top % of that season.|r", "PvP Elite/Gladiator"},
 		
-		-- Future Content Releases
+		-- Classic Phases
 		[11] = {2, "|CFFAAFFAAThis was not available until Phase 1 of WoW Classic.|r", "Phase 1", 1130100, 11301, "\n \n|CFFFFAAAAIncluded Molten Core and Onyxia's Lair.|r" },
 		[1101] = {2, "|CFFAAFFAAThis became available with the Dire Maul Phase Release of WoW Classic.|r", "Dire Maul", 11301, 11301 },
 		[12] = {2, "|CFFAAFFAAThis was not available until Phase 2 of WoW Classic.|r", "Phase 2", 11301, 11302, "\n \n|CFFFFAAAAIncluded World PvP and PvP Honor Titles.|r" },
@@ -598,7 +672,17 @@ local L = {
 		[1601] = {2, "|CFFAAFFAAThis was only available during the Scourge Invasions.|r", "Scourge Invasion", 11301, nil, "\n \n|CFFFFAAAAIf both Scourge Invasions have been completed on your server, simply turn this off.|r" },
 		[1602] = {2, "|CFFAAFFAAThis was only available during the Silithyst Must Flow World PVP Event.|r", "Silithyst", 11301, 11306, "\n \n|CFFFFAAAAIf the World PVP Event is available, simply turn this on.|r" },
 		[1603] = {2, "|CFFAAFFAAThis was only available after the start of Classic Era.|r", "Classic Era", 11301, 11307, "\n \n|CFFFFAAAAIf the Classic Era has begun, simply turn this on.|r" },
-
+		[1604] = {2, "|CFFAAFFAAThis was only available during Season of Mastery.|r", "Season of Mastery", 11301, nil, "\n \n|CFFFFAAAAIf Season of Mastery is active on your server, simply turn this on.|r" },
+		
+		-- Season of Discovery Phases
+		[1605] = {2, "|CFFAAFFAAThis was not available until Phase 1 of Season of Discovery.|r", "Season of Discovery", 11500, nil, "\n \n|CFFFFAAAAIf Season of Discovery is active on your server, simply turn this on.|r" },
+		[1606] = {2, "|CFFAAFFAAThis was not available until Phase 2 of Season of Discovery.|r", "SOD P2", 11501, nil, "\n \n|CFFFFAAAAIf Season of Discovery is active on your server, simply turn this on.|r" },
+		[1607] = {2, "|CFFAAFFAAThis was not available until Phase 3 of Season of Discovery.|r", "SOD P3", 11502, nil, "\n \n|CFFFFAAAAIf Season of Discovery is active on your server, simply turn this on.|r" },
+		[1608] = {2, "|CFFAAFFAAThis was not available until Phase 4 of Season of Discovery.|r", "SOD P4", 11503, nil, "\n \n|CFFFFAAAAIf Season of Discovery is active on your server, simply turn this on.|r" },
+		[1609] = {2, "|CFFAAFFAAThis was not available until Phase 5 of Season of Discovery.|r", "SOD P5", 11504, nil, "\n \n|CFFFFAAAAIf Season of Discovery is active on your server, simply turn this on.|r" },
+		[1610] = {2, "|CFFAAFFAAThis was not available until Phase 6 of Season of Discovery.|r", "SOD P6", 11505, nil, "\n \n|CFFFFAAAAIf Season of Discovery is active on your server, simply turn this on.|r" },
+		
+		-- TBC Classic Phases
 		[17] = {2, "|CFFAAFFAAThis was not available until Phase 1 of TBC Classic.|r", "Phase 1", 20501, 20501, "\n \n|CFFFFAAAAIncluded Karazhan, Magtheridon's Lair, and Gruul's Lair.|r" },
 		[1701] = {2, "|CFFAAFFAAThis was only available during the Opening of the Dark Portal event before the launch of TBC.|r", "Dark Portal Opens", 20501, nil, "\n \n|CFFFFAAAAIf the Dark Portal has been opened on your server, simply turn this off.|r" },
 		[18] = {2, "|CFFAAFFAAThis was not available until Phase 2 of TBC Classic.|r", "Phase 2", 20501, 20502, "\n \n|CFFFFAAAAIncluded Serpentshrine Cavern, Tempest Keep: The Eye, and Swift Druid Flight Forms.\n\nThe Great Herb/Mining Node War had officially begun.|r" },
@@ -606,7 +690,7 @@ local L = {
 		[1802] = {2, "|CFFAAFFAAThis became available with the Skyguard Faction during TBC Classic.|r", "Skyguard", 20501, 20502, "\n \n|CFFFFAAAAIf the Skyguard Faction is available on your server, simply turn this on.|r" },
 		[19] = {2, "|CFFAAFFAAThis was not available until Phase 3 of TBC Classic.|r", "Phase 3", 20501, 20503, "\n \n|CFFFFAAAAIncluded Hyjal Summit and the Black Temple in addition to the vast majority of end game daily / faction content.|r" },
 		[1901] = {2, "|CFFAAFFAAThis became available with the Netherwing Faction during TBC Classic.|r", "Netherwing", 20501, 20503, "\n \n|CFFFFAAAAIf the Netherwing Faction is available on your server, simply turn this on.|r" },
-		[1902] = {2, "|CFFAAFFAAThe wielder of this Glaive was prepared!|r", "Glaive Prio", 20501, 30400, "\n \n|CFFFFAAAADue to the exclusivity of the Warglaives and how prio isn't always given to collectors over sweaties, Crieve decided it was appropriate for now to provide a filter to reduce guild drama.\n\nThis filter will be defaulted on after wrath prepatch.\n\nIf you do actually have Glaive prio, simply turn this on.|r" },
+		[1902] = {2, "|CFFAAFFAAThe wielder of this Glaive was prepared!|r", "Glaive Prio", 20501, 30001, "\n \n|CFFFFAAAADue to the exclusivity of the Warglaives and how prio isn't always given to collectors over sweaties, Crieve decided it was appropriate for now to provide a filter to reduce guild drama.\n\nThis filter will be defaulted on after wrath prepatch.\n\nIf you do actually have Glaive prio, simply turn this on.|r" },
 		[20] = {2, "|CFFAAFFAAThis was not available until Phase 4 of TBC Classic.|r", "Phase 4", 20501, 20504, "\n \n|CFFFFAAAAIncluded Zul'Aman.|r" },
 		[21] = {2, "|CFFAAFFAAThis was not available until Phase 5 of TBC Classic.|r", "Phase 5", 20501, 20504, "\n \n|CFFFFAAAAIncluded Sunwell Plateau and the Isle of Quel'Danas daily content.|r" },
 		[2101] = {2, "|CFFAAFFAAThis was not available until the Sanctum on the Isle of Quel'Danas was completed.|r", "Sanctum", 20501, 30400, "\n \n|CFFFFAAAAIf the Shattered Sun Offensive has already unlocked the Sanctum and has begun working on the Amory and Portal on your server, simply turn this on.|r" },
@@ -617,54 +701,33 @@ local L = {
 		[2106] = {2, "|CFFAAFFAAThis was not available until the Monument on the Isle of Quel'Danas was completed.|r", "Monument", 20501, 30400, "\n \n|CFFFFAAAAIf the Shattered Sun Offensive has already unlocked the Monument on your server, simply turn this on.|r" },
 		[2107] = {2, "|CFFAAFFAAThis was not available until the Alch Lab on the Isle of Quel'Danas was completed.|r", "Alch Lab", 20501, 30400, "\n \n|CFFFFAAAAIf the Shattered Sun Offensive has already unlocked the Alch Lab on your server, simply turn this on.|r" },
 		
+		-- Wrath Classic Phases
 		[30] = {2, "|CFFAAFFAAThis was not available until Phase 1 of Wrath Classic.|r", "Phase 1", 30400, 30400, "\n \n|CFFFFAAAAIncluded Naxxramas, Obsidian Sanctum, and Eye of Eternity.|r" },
 		[3001] = {2, "|CFFAAFFAAThis was only available for the first player to do the thing on your realm!|r", "Realm First", 30400, nil, "\n \n|CFFFFAAAABut if you were realm first, good for you.|r" },
 		[31] = {2, "|CFFAAFFAAThis was not available until Phase 2 of Wrath Classic.|r", "Phase 2", 30400, 30401, "\n \n|CFFFFAAAAIncluded Ulduar.|r" },
-		[3101] = {2, "|CFFAAFFAAThe wielder of this Hammer was on time!|r", "Hammer Prio", 20501, nil, "\n \n|CFFFFAAAADue to the exclusivity of the Hammer and how prio isn't always given to collectors over sweaties, Crieve decided it was appropriate for now to provide a filter to reduce guild drama.\n\nThis filter will be defaulted on after cata prepatch.\n\nIf you do actually have Hammer prio, simply turn this on.|r" },
+		[3101] = {2, "|CFFAAFFAAThe wielder of this Hammer was on time!|r", "Hammer Prio", 20501, 40001, "\n \n|CFFFFAAAADue to the exclusivity of the Hammer and how prio isn't always given to collectors over sweaties, Crieve decided it was appropriate for now to provide a filter to reduce guild drama.\n\nThis filter will be defaulted on after cata prepatch.\n\nIf you do actually have Hammer prio, simply turn this on.|r" },
 		[32] = {2, "|CFFAAFFAAThis was not available until Phase 3 of Wrath Classic.|r", "Phase 3", 30400, 30402, "\n \n|CFFFFAAAAIncluded Trial of the Crusader.|r" },
 		[33] = {2, "|CFFAAFFAAThis was not available until Phase 4 of Wrath Classic.|r", "Phase 4", 30400, 30403, "\n \n|CFFFFAAAAIncluded Icecrown Citadel.|r" },
-		[3301] = {2, "|CFFAAFFAAThe wielder of this Axe silently mourns for all the people that don't have it.|r", "Shadowmourne Prio", 30400, 30403, "\n \n|CFFFFAAAADue to the exclusivity of Shadowmourne and how prio isn't always given to collectors over sweaties, Crieve decided it was appropriate for now to provide a filter to reduce guild drama.\n\nThis filter will be defaulted on after cata prepatch.\n\nIf you do actually have Shadowmourne prio, simply turn this on.|r" },
-		[34] = {2, "|CFFAAFFAAThis was not available until Phase 5 of Wrath Classic.|r", "Phase 5", 30400, 30404, "\n \n|CFFFFAAAAIncluded The Ruby Sanctum...?|r" },
-		[35] = {2, "|CFFAAFFAAThis was not available until Phase 6 of Wrath Classic.|r", "Phase 6", 30400, 30404, "\n \n|CFFFFAAAAThe Elemental Unrest Pre-Expansion Event?|r" },
+		[3301] = {2, "|CFFAAFFAAThe wielder of Shadowmournes for all the people that don't have it.|r", "Shadowmourne Prio", 30400, 40001, "\n \n|CFFFFAAAADue to the exclusivity of Shadowmourne and how prio isn't always given to collectors over sweaties, Crieve decided it was appropriate for now to provide a filter to reduce guild drama.\n\nThis filter will be defaulted on after cata prepatch.\n\nIf you do actually have Shadowmourne prio, simply turn this on.|r" },
+		[3302] = {2, "|CFFAAFFAAThis became available with the release of Ruby Sanctum during Wrath Classic.|r", "Ruby Sanctum", 30400, 30403, "\n \n|CFFFFAAAAIncluded The Ruby Sanctum.|r" },
+		[3303] = {2, "|CFFAAFFAAThis became available with the release of Operation Gnomeregan and Zalazane's Fall during Wrath Classic.|r", "Operation Zalazane", 30400, 30403, "\n \n|CFFFFAAAAIncluded Operation Gnomeregan and Zalazane's Fall|r" },
+		[3304] = {2, "|CFFAAFFAAThis became available with the release of the Elemental Unrest Cataclysm Prepatch Event during Wrath Classic.|r", "Elemental Unrest", 30400, 30404, "\n \n|CFFFFAAAAThe Elemental Unrest Pre-Expansion Event?|r" },
+		
+		-- Cataclysm Classic Phases
+		[40] = {2, "|CFFAAFFAAThis was not available until Phase 1 of Cataclysm Classic.|r", "Phase 1", 40400, 40400, "\n \n|CFFFFAAAAIncluded Bastion of Twilight, Throne of the Four Winds, and Blackwing Descent.|r" },
+		[41] = {2, "|CFFAAFFAAThis was not available until Phase 2 of Cataclysm Classic.|r", "Phase 2", 40400, 40401, "\n \n|CFFFFAAAAIncluded Zul'Aman and Zul'Gurub Heroic Dungeons.|r" },
+		[42] = {2, "|CFFAAFFAAThis was not available until Phase 3 of Cataclysm Classic.|r", "Phase 3", 40400, 40402, "\n \n|CFFFFAAAAIncluded Firelands.|r" },
+		[43] = {2, "|CFFAAFFAAThis was not available until Phase 4 of Cataclysm Classic.|r", "Phase 4", 40400, 40403, "\n \n|CFFFFAAAAIncluded Dragon Soul.|r" },
 	};
-};
-app.L = L;
-
--- Crieve tested all professions in non-english locales and the skill was not detected without these.
-L["SPELL_NAME_TO_SPELL_ID"] = {
-	-- Riding
-	["Riding"] = 33388,
-	["Equitación"] = 33388,
-	["Reiten"] = 33388,
-	["Monte"] = 33388,
-	["Montaria"] = 33388,
-	["Верховая езда"] = 33388,
-	["탈것 타기"] = 33388,
-	["骑术"] = 33388,
-	
-	-- Herb Gathering
-	-- The skill name is "Herbalism", not "Herb Gathering"
-	["Herbalism"] = 2366,
-	["Herboristería"] = 2366,
-	["Kräuterkunde"] = 2366,
-	["Herboristerie"] = 2366,
-	["Herborismo"] = 2366,
-	["Травничество"] = 2366,
-	["약초채집"] = 2366,
-	["草药学"] = 2366,
-	["草藥學"] = 2366,
-	
-	["Ganzúa"] = 1809,		-- Lock Pick	-- Required for ES (EU)
-	["Desollar"] = 8613,	-- Skinning		-- Required for ES (EU)
-	["Cнятие шкур"] = 8613,	-- Skinning		-- Required for RU
-};
+}) do
+	L[key] = value;
+end
 
 
 
 if GetLocale() == "zhCN" or GetLocale() == "zhTW" then
 
 -- General Text
-L["TITLE"] = "|c" .. app.Colors.ATT .. "ALL THE THINGS|r"
 L["DESCRIPTION"] = '"你愚蠢地寻求自己的终结，厚颜无耻地无视了你无法理解的力量。你入侵了收集者的领域并为此努力。现在只有一条路可走了——这条孤独的路……该死的路。"'
 
 -- Instructional Text 指引
@@ -677,7 +740,6 @@ L["OTHER_ROW_INSTRUCTIONS_AH"] = "|cff3399ff左键：展开／折叠|r\n|cff3399
 -- Binding Localizations 按键设置
 L["TOGGLE_ACCOUNT_MODE"] = "切换账号模式"
 L["TOGGLE_DEBUG_MODE"] = "切换调试模式"
-L["PREFERENCES"] = "偏好"
 L["TOGGLE_COMPLETEDTHINGS"] = "Toggle Completed Things (Both)"
 L["TOGGLE_COMPLETEDGROUPS"] = "Toggle Completed Groups"
 L["TOGGLE_COLLECTEDTHINGS"] = "Toggle Collected Things"
@@ -703,7 +765,6 @@ L["ITEM_ID_REMOVED_SHARED"] = "%s (%d) [+%d] 已从收藏中移除。"
 -- Tooltip Text 鼠标提示
 L["DROP_RATE"] = "掉率"
 L["QUEST_GIVER"] = "任务发放者"
-L["LOCKOUT"] = "Lockout"
 L["REQUIRES"] = "要求"
 L["REQUIRES_LEVEL"] = "要求等级"
 
@@ -714,11 +775,10 @@ L["FILTER_ID"] = "过滤器ID"
 L["ITEM_ID"] = "物品ID"
 L["FACTION_ID"] = "阵营ID"
 L["MAP_ID"] = "地图ID"
-L["NPC_ID"] = "NPC ID"
 L["OBJECT_ID"] = "Object ID"
 L["QUEST_ID"] = "任务ID"
 L["SPELL_ID"] = "法术ID"
-L["iLvl"] = "物品等级"
+L["ITEM_LEVEL"] = "物品等级"
 
 -- Icons and Collection Text
 L["COLLECTED"] = "|T" .. app.asset("known") .. ":0|t |c" .. app.Colors.Completed .. "已收集|r" -- Acquired the colors and icon from CanIMogIt.
@@ -726,6 +786,4 @@ L["COLLECTED_APPEARANCE"] = "|T" .. app.asset("known_circle") .. ":0|t |c" .. ap
 L["NOT_COLLECTED"] = "|T" .. app.asset("unknown") .. ":0|t |cffff9333未收集|r" -- Acquired the colors and icon from CanIMogIt.
 L["COMPLETE"] = "|T" .. app.asset("known_green") .. ":0|t |cff6dce47已完成|r" -- Acquired the colors and icon from CanIMogIt.
 L["INCOMPLETE"] = "|T" .. app.asset("unknown") .. ":0|t |cffff9333未完成|r" -- Acquired the colors and icon from CanIMogIt.
-L["KNOWN_ON_CHARACTER"] = "|T" .. app.asset("known") .. ":0|t |c" .. app.Colors.Completed .. "当前角色已知|r"
-L["UNKNOWN_ON_CHARACTER"] = "|T" .. app.asset("unknown") .. ":0|t |cffff9333当前角色未知|r"
 end

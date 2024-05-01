@@ -14,6 +14,7 @@ local activeDurations = {}
 local healthPools = {}
 local units = {"boss1", "boss2", "boss3", "boss4", "boss5"}
 local difficultyTable = BigWigsLoader.isRetail and {
+	--[9] = "normal", -- raid40 (molten core/BWL/AQ40)
 	[14] = "normal",
 	[15] = "heroic",
 	[16] = "mythic",
@@ -23,16 +24,25 @@ local difficultyTable = BigWigsLoader.isRetail and {
 	[4] = "25N", -- 25N
 	[5] = "10H", -- 10H
 	[6] = "25H", -- 25H
+	[9] = "normal", -- raid40 (molten core/BWL/AQ40)
 	[175] = "normal", -- raid10 (karazhan) -- move from 3 (fake) to 175 (guessed)
-	[9] = "normal", -- raid40
 	[148] = "normal", -- raid20
 	[176] = "normal", -- raid 25 (sunwell)
+	[198] = "normal", -- raid10 (Blackfathom Deeps/Gnomeregan - Classic Season of Discovery)
+	[215] = "normal", -- raid20 (Sunken Temple - Classic Season of Discovery)
 }
 local SPELL_DURATION_SEC = SPELL_DURATION_SEC -- "%.2f sec"
 local GetTime = GetTime
+local dontPrint = { -- Don't print a warning message for these difficulties
+	[1] = true, -- Normal Dungeon
+	[2] = true, -- Heroic Dungeon
+	[8] = true, -- Mythic+ Dungeon
+	[23] = true, -- Mythic Dungeon
+	[24] = true, -- Timewalking
+}
 
 --[[
-10.1.5
+10.2.5
 1. Normal
 2. Heroic
 3. 10 Player
@@ -76,8 +86,9 @@ local GetTime = GetTime
 171. Path of Ascension: Humility
 172. World Boss
 192. Challenge Level 1
+205. Follower
 
-3.4.2
+3.4.3
 1. Normal
 2. Heroic
 3. 10 Player
@@ -93,8 +104,23 @@ local GetTime = GetTime
 193. 10 Player (Heroic)
 194. 25 Player (Heroic)
 
-1.14.4
-Doesn't return results
+1.15.2
+1. Normal
+9. 40 Player
+148. 20 Player
+184. Normal
+185. 20 Player
+186. 40 Player
+197. 10 Player
+198. Normal
+201. Normal
+202. Difficulty A
+203. Difficulty B
+204. Difficulty C
+207. Normal
+213. Infinite
+214. DNT - Internal only
+215. Normal
 /run for i=1, 1000 do local n = GetDifficultyInfo(i) if n then print(i..".", n) end end
 ]]--
 
@@ -153,21 +179,25 @@ do
 						type = "toggle",
 						name = L.printWipeOption,
 						order = 1,
+						width = 1.5,
 					},
 					printKills = {
 						type = "toggle",
 						name = L.printDefeatOption,
 						order = 2,
+						width = 1.5,
 					},
 					printHealth = {
 						type = "toggle",
 						name = L.printHealthOption,
 						order = 3,
+						width = 1.5,
 					},
 					printNewBestKill = {
 						type = "toggle",
 						name = L.printBestTimeOption,
 						order = 4,
+						width = 1.5,
 						disabled = function() return not plugin.db.profile.saveBestKill or not plugin.db.profile.enabled end,
 					},
 				},
@@ -285,7 +315,7 @@ do
 
 				local best = sDB[difficultyTable[diff]].best
 				if self.db.profile.showBar and best then
-					self:SendMessage("BigWigs_StartBar", self, nil, L.bestTimeBar, best, "Interface\\AddOns\\BigWigs\\Media\\Icons\\spell_holy_borrowedtime") -- 237538 = "Interface\\Icons\\spell_holy_borrowedtime"
+					self:SendMessage("BigWigs_StartBar", self, nil, L.bestTimeBar, best, 237538) -- 237538 = "Interface\\Icons\\spell_holy_borrowedtime"
 				end
 			end
 
@@ -335,7 +365,7 @@ function plugin:BigWigs_OnBossWin(event, module)
 				end
 				sDB.best = elapsed
 			end
-		elseif IsInRaid() and diff ~= 24 then -- Not printing for Timewalking (24)
+		elseif IsInRaid() and not dontPrint[diff] then
 			BigWigs:Error("Tell the devs, the stats for this boss were not recorded because a new difficulty id was found: "..diff)
 		end
 	end
@@ -354,7 +384,7 @@ function plugin:BigWigs_OnBossWipe(event, module)
 			end
 
 			local diff = module:Difficulty()
-			if not difficultyTable[diff] and IsInRaid() and diff ~= 24 then -- Not printing for Timewalking (24)
+			if not difficultyTable[diff] and IsInRaid() and not dontPrint[diff] then
 				BigWigs:Error("Tell the devs, the stats for this boss were not recorded because a new difficulty id was found: "..diff)
 			elseif difficultyTable[diff] and self.db.profile.saveWipes then
 				local sDB = BigWigsStatsDB[module.instanceId][journalId][difficultyTable[diff]]

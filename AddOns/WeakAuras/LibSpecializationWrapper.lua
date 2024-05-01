@@ -1,7 +1,9 @@
 if not WeakAuras.IsLibsOK() then return end
 if not WeakAuras.IsRetail() then return end
---- @type string, Private
-local AddonName, Private = ...
+---@type string
+local AddonName = ...
+---@class Private
+local Private = select(2, ...)
 
 --- @class LibSpecialization
 --- @field Register fun(self: LibSpecialization, name: string, callback: function)
@@ -25,7 +27,11 @@ local subscribers = {}
 --- @field SpecForUnit fun(unit: string): number?
 --- @field SpecRolePositionForUnit fun(unit: string): number?, string?, string?
 
-Private.LibSpecWrapper = {}
+Private.LibSpecWrapper = {
+  Register = function(callback) end,
+  SpecForUnit = function(unit) end,
+  SpecRolePositionForUnit = function(unit) end
+}
 if LibSpec then
   local frame = CreateFrame("Frame")
   frame:RegisterEvent("PLAYER_LOGIN")

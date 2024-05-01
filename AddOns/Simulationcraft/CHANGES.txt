@@ -1,10 +1,22 @@
-lightweight tag 185bd019754a74b23eca2d9ab4734810404d5d98 10.1.7-01
+lightweight tag 9f96f8de89a9da98804c37774d35d25a2129f159 10.2.6-03
 Author:	Dave Hendler <sollaires@gmail.com>
-Date:	Thu Aug 31 12:39:26 2023 -0700
+Date:	Tue Apr 23 10:16:01 2024 -0700
 
-commit 185bd019754a74b23eca2d9ab4734810404d5d98
+commit 9f96f8de89a9da98804c37774d35d25a2129f159
 Author: Dave Hendler <sollaires@gmail.com>
-Date:   Thu Aug 31 12:39:26 2023 -0700
+Date:   Tue Apr 23 10:16:01 2024 -0700
 
-    Bump TOC for 10.1.7
+    Handle some 11.0 API changes in a backwards compatible way
+
+commit 56abbc497280c00056a7cebbff2b5da236ede16a
+Author: gastank <42421688+gastank@users.noreply.github.com>
+Date:   Mon Apr 22 19:32:17 2024 -0700
+
+    update hash writer to 11.0
+
+commit 56abbc497280c00056a7cebbff2b5da236ede16a
+Author: gastank <42421688+gastank@users.noreply.github.com>
+Date:   Mon Apr 22 19:32:17 2024 -0700
+
+    update hash writer to 11.0
 

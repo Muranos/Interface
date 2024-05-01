@@ -1,5 +1,8 @@
 if not WeakAuras.IsLibsOK() then return end
-local AddonName, OptionsPrivate = ...
+---@type string
+local AddonName = ...
+---@class OptionsPrivate
+local OptionsPrivate = select(2, ...)
 
 local L = WeakAuras.L;
 
@@ -43,7 +46,7 @@ local function GetCustomTriggerOptions(data, triggernum)
     check = {
       type = "select",
       name = L["Check On..."],
-      width = WeakAuras.doubleWidth / 3,
+      width = WeakAuras.doubleWidth,
       order = 8,
       values = OptionsPrivate.Private.check_types,
       hidden = function() return not (trigger.type == "custom"
@@ -74,7 +77,9 @@ local function GetCustomTriggerOptions(data, triggernum)
     },
     events = {
       type = "input",
-      width = WeakAuras.doubleWidth * 2 / 3,
+      multiline = true,
+      control = "WeakAuras-MultiLineEditBoxWithEnter",
+      width = WeakAuras.doubleWidth,
       name = L["Event(s)"],
       desc = L["Custom trigger status tooltip"],
       order = 8.1,
@@ -89,6 +94,8 @@ local function GetCustomTriggerOptions(data, triggernum)
     },
     events2 = {
       type = "input",
+      multiline = true,
+      control = "WeakAuras-MultiLineEditBoxWithEnter",
       name = L["Event(s)"],
       desc = L["Custom trigger event tooltip"],
       width = WeakAuras.doubleWidth,
@@ -313,6 +320,12 @@ local function GetCustomTriggerOptions(data, triggernum)
     test = "function",
     events = "table",
     values = "table",
+    total = "string",
+    inverse = "string",
+    paused = "string",
+    remaining = "string",
+    modRate = "string",
+    useModRate = "boolean"
   }
 
   local function validateCustomVariables(variables)

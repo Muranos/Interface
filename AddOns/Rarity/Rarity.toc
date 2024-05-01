@@ -1,8 +1,8 @@
 ## Author: Allara
-## Interface: 100105
-## X-Min-Interface: 100105
+## Interface: 100206
+## X-Min-Interface: 100206
 ## Title: Rarity
-## Version: 1.0 (r722-release)
+## Version: 1.0 (r730-release)
 ## X-Curse-Project-ID: 30801
 
 ## Notes: Tracks rare drops, including companions and mounts
@@ -119,6 +119,7 @@ Core\Debugging.lua
 Core\Detection.lua
 Core\EventHandlers.lua
 Core\GUI.lua
+Core\HolidayEvents.lua
 Core\Profiling.lua
 Core\Serialization.lua
 Core\Session.lua
@@ -130,6 +131,7 @@ Core\Waypoints.lua
 # UI
 Core\GUI\AnchoredTrackingBar.lua
 Core\GUI\CopyPastePopup.lua
+Core\GUI\ScrollingDebugMessageFrame.lua
 Core\GUI\DataBrokerDisplay.lua
 Core\GUI\FauxAchievementPopup.lua
 Core\GUI\GameTooltipHooks.lua

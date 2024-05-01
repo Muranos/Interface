@@ -33,6 +33,7 @@ local UnitIsTapDenied = UnitIsTapDenied
 local max = math.max
 local min = math.min
 local abs = math.abs
+local GetSpellInfo = GetSpellInfo or function(spellID) if not spellID then return nil end local si = C_Spell.GetSpellInfo(spellID) if si then return si.name, nil, si.iconID, si.castTime, si.minRange, si.maxRange, si.spellID, si.originalIconID end end
 
 local IS_WOW_PROJECT_MAINLINE = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
 local IS_WOW_PROJECT_NOT_MAINLINE = WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE
@@ -80,6 +81,7 @@ local cleanfunction = function() end
 ---@field oldHealth number
 ---@field currentHealth number
 ---@field currentHealthMax number
+---@field nextShieldHook number
 ---@field WidgetType string
 ---@field Settings df_healthbarsettings
 ---@field background texture
@@ -128,6 +130,7 @@ local cleanfunction = function() end
 		OnShow = {},
 		OnHealthChange = {},
 		OnHealthMaxChange = {},
+		OnAbsorbOverflow = {},
 	}
 
 	--use the hook already existing
@@ -306,11 +309,12 @@ local cleanfunction = function() end
 	healthBarMetaFunctions.UpdateHealPrediction = function(self)
 		local currentHealth = self.currentHealth
 		local currentHealthMax = self.currentHealthMax
-		local healthPercent = currentHealth / currentHealthMax
 
 		if (not currentHealthMax or currentHealthMax <= 0) then
 			return
 		end
+
+		local healthPercent = currentHealth / currentHealthMax
 
 		--order is: the health of the unit > damage absorb > heal absorb > incoming heal
 		local width = self:GetWidth()
@@ -358,17 +362,36 @@ local cleanfunction = function() end
 
 				--if the absorb percent pass 100%, show the glow
 				if ((healthPercent + damageAbsorbPercent) > 1) then
+					self.nextShieldHook = self.nextShieldHook or 0
+
+					if (GetTime() >= self.nextShieldHook) then
+						self:RunHooksForWidget("OnAbsorbOverflow", self, self.displayedUnit, healthPercent + damageAbsorbPercent - 1)
+						self.nextShieldHook = GetTime() + 0.2
+					end
+
 					self.shieldAbsorbGlow:Show()
 				else
 					self.shieldAbsorbGlow:Hide()
+					if (self.nextShieldHook) then
+						self:RunHooksForWidget("OnAbsorbOverflow", self, self.displayedUnit, 0)
+						self.nextShieldHook = nil
+					end
 				end
 			else
 				self.shieldAbsorbIndicator:Hide()
 				self.shieldAbsorbGlow:Hide()
+				if (self.nextShieldHook) then
+					self:RunHooksForWidget("OnAbsorbOverflow", self, self.displayedUnit, 0)
+					self.nextShieldHook = nil
+				end
 			end
 		else
 			self.shieldAbsorbIndicator:Hide()
 			self.shieldAbsorbGlow:Hide()
+			if (self.nextShieldHook) then
+				self:RunHooksForWidget("OnAbsorbOverflow", self, self.displayedUnit, 0)
+				self.nextShieldHook = nil
+			end
 		end
 	end
 
@@ -431,19 +454,19 @@ function detailsFramework:CreateHealthBar(parent, name, settingsOverride)
 
 			--artwork
 			--healing incoming
-			healthBar.incomingHealIndicator = healthBar:CreateTexture(nil, "artwork")
+			healthBar.incomingHealIndicator = healthBar:CreateTexture(nil, "artwork", nil, 5)
 			healthBar.incomingHealIndicator:SetDrawLayer("artwork", 4)
 			--current shields on the unit
-			healthBar.shieldAbsorbIndicator =  healthBar:CreateTexture(nil, "artwork")
+			healthBar.shieldAbsorbIndicator =  healthBar:CreateTexture(nil, "artwork", nil, 3)
 			healthBar.shieldAbsorbIndicator:SetDrawLayer("artwork", 5)
 			--debuff absorbing heal
-			healthBar.healAbsorbIndicator = healthBar:CreateTexture(nil, "artwork")
+			healthBar.healAbsorbIndicator = healthBar:CreateTexture(nil, "artwork", nil, 4)
 			healthBar.healAbsorbIndicator:SetDrawLayer("artwork", 6)
 			--the shield fills all the bar, show that cool glow
-			healthBar.shieldAbsorbGlow = healthBar:CreateTexture(nil, "artwork")
+			healthBar.shieldAbsorbGlow = healthBar:CreateTexture(nil, "artwork", nil, 6)
 			healthBar.shieldAbsorbGlow:SetDrawLayer("artwork", 7)
 			--statusbar texture
-			healthBar.barTexture = healthBar:CreateTexture(nil, "artwork")
+			healthBar.barTexture = healthBar:CreateTexture(nil, "artwork", nil, 1)
 		end
 
 	--mixins
@@ -1435,8 +1458,22 @@ detailsFramework.CastFrameFunctions = {
 		end
 	end,
 
-	UpdateCastingInfo = function(self, unit)
-		local name, text, texture, startTime, endTime, isTradeSkill, castID, notInterruptible, spellID = CastInfo.UnitCastingInfo(unit)
+	UpdateCastingInfo = function(self, unit, ...)
+		local unitID, castID, spellID = ...
+		local name, text, texture, startTime, endTime, isTradeSkill, uciCastID, notInterruptible, uciSpellID = CastInfo.UnitCastingInfo(unit)
+		spellID = uciSpellID or spellID
+		castID = uciCastID or castID
+		
+		if spellID and (not name or not texture or not text) then
+			local siName, _, siIcon, siCastTime = GetSpellInfo(spellID)
+			texture = texture or siIcon
+			name = name or siName
+			text = text or siName
+			if not startTime then
+				startTime = GetTime()
+				endTime = startTime + siCastTime
+			end
+		end
 
 		--is valid?
 		if (not self:IsValid(unit, name, isTradeSkill, true)) then
@@ -1497,8 +1534,8 @@ detailsFramework.CastFrameFunctions = {
 		self:UpdateInterruptState()
 	end,
 
-	UNIT_SPELLCAST_START = function(self, unit)
-		self:UpdateCastingInfo(unit)
+	UNIT_SPELLCAST_START = function(self, unit, ...)
+		self:UpdateCastingInfo(unit, ...)
 		self:RunHooksForWidget("OnCastStart", self, self.unit, "UNIT_SPELLCAST_START")
 	end,
 
@@ -1548,7 +1585,20 @@ detailsFramework.CastFrameFunctions = {
 
 	UpdateChannelInfo = function(self, unit, ...)
 		local unitID, castID, spellID = ...
-		local name, text, texture, startTime, endTime, isTradeSkill, notInterruptible, spellID, _, numStages = CastInfo.UnitChannelInfo (unit)
+		local name, text, texture, startTime, endTime, isTradeSkill, notInterruptible, uciSpellID, _, numStages = CastInfo.UnitChannelInfo (unit)
+		spellID = uciSpellID or spellID
+		castID = uciCastID or castID
+		
+		if spellID and (not name or not texture or not text) then
+			local siName, _, siIcon, siCastTime = GetSpellInfo(spellID)
+			texture = texture or siIcon
+			name = name or siName
+			text = text or siName
+			if not startTime then
+				startTime = GetTime()
+				endTime = startTime + siCastTime
+			end
+		end
 
 		--is valid?
 		if (not self:IsValid (unit, name, isTradeSkill, true)) then
@@ -1914,6 +1964,7 @@ function detailsFramework:CreateCastBar(parent, name, settingsOverride)
 	--mixins
 	detailsFramework:Mixin(castBar, detailsFramework.CastFrameFunctions)
 	detailsFramework:Mixin(castBar, detailsFramework.StatusBarFunctions)
+
 
 	castBar:CreateTextureMask()
 	castBar:AddMaskTexture(castBar.flashTexture)

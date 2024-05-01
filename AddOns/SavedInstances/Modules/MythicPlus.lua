@@ -14,19 +14,38 @@ local C_Container_GetContainerNumSlots = C_Container.GetContainerNumSlots
 local C_MythicPlus_GetRunHistory = C_MythicPlus.GetRunHistory
 local C_MythicPlus_RequestMapInfo = C_MythicPlus.RequestMapInfo
 local C_MythicPlus_GetRewardLevelFromKeystoneLevel = C_MythicPlus.GetRewardLevelFromKeystoneLevel
+local C_MythicPlus_GetCurrentSeasonValues = C_MythicPlus.GetCurrentSeasonValues
 local C_WeeklyRewards_GetActivities = C_WeeklyRewards.GetActivities
 local C_WeeklyRewards_HasAvailableRewards = C_WeeklyRewards.HasAvailableRewards
 local C_WeeklyRewards_CanClaimRewards = C_WeeklyRewards.CanClaimRewards
+local C_WeeklyRewards_GetNumCompletedDungeonRuns = C_WeeklyRewards.GetNumCompletedDungeonRuns
+local WeeklyRewardsUtil_MythicLevel = WeeklyRewardsUtil.MythicLevel
+local WEEKLY_REWARDS_HEROIC, WEEKLY_REWARDS_MYTHIC = WEEKLY_REWARDS_HEROIC, WEEKLY_REWARDS_MYTHIC
 local CreateFrame = CreateFrame
 local SendChatMessage = SendChatMessage
 
 local StaticPopup_Show = StaticPopup_Show
 
-local Enum_WeeklyRewardChestThresholdType_MythicPlus = Enum.WeeklyRewardChestThresholdType.MythicPlus
+local Enum_WeeklyRewardChestThresholdType_Activities = Enum.WeeklyRewardChestThresholdType.Activities
+
+-- this is from https://wago.tools/db2/MythicPlusSeasonRewardLevels?page=1&sort[WeeklyRewardLevel]=asc&filter[MythicPlusSeasonID]=98
+local ItemLevelsBySeason = {
+  -- DF Season 3
+  [98] = {
+    ["HEROIC"] = 441,
+    ["MYTHIC"] = 450,
+  },
+  -- DF Season 4
+  [100] = {
+    ["HEROIC"] = 489,
+    ["MYTHIC"] = 506,
+  },
+}
 
 local KeystoneAbbrev = {
   -- Cataclysm
   [438] = L["VP"], -- The Vortex Pinnacle
+  [456] = L["TOTT"], -- Throne of the Tides
 
   -- Mists of Pandaria
   [2]   = L["TJS"],  -- Temple of the Jade Serpent
@@ -34,6 +53,7 @@ local KeystoneAbbrev = {
   -- Warlords of Draenor
   [165] = L["SBG"],   -- Shadowmoon Burial Grounds
   [166] = L["GD"],    -- Grimrail Depot
+  [168] = L["EB"],    -- Everbloom
   [169] = L["ID"],    -- Iron Docks
 
   -- Legion
@@ -86,6 +106,8 @@ local KeystoneAbbrev = {
   [404] = L["NELT"],  -- Neltharus
   [405] = L["BH"],    -- Brackenhide Hollow
   [406] = L["HOI"],   -- Halls of Infusion
+  [463] = L["FALL"],  -- Dawn of the Infinite: Galakrond's Fall
+  [464] = L["RISE"],  -- Dawn of the Infinite: Murozond's Rise
 }
 SI.KeystoneAbbrev = KeystoneAbbrev
 
@@ -113,7 +135,7 @@ do
     end
 
     local color = C_ChallengeMode_GetKeystoneLevelRarityColor(level)
-    colorCache[level] = color:GenerateHexColor()
+    colorCache[level] = color and color:GenerateHexColor() or 'ffffffff'
     return colorCache[level]
   end
 
@@ -168,7 +190,7 @@ do
     t.MythicKeyBest.rewardWaiting = C_WeeklyRewards_HasAvailableRewards() or C_WeeklyRewards_CanClaimRewards()
     t.MythicKeyBest.ResetTime = SI:GetNextWeeklyResetTime()
 
-    local activities = C_WeeklyRewards_GetActivities(Enum_WeeklyRewardChestThresholdType_MythicPlus)
+    local activities = C_WeeklyRewards_GetActivities(Enum_WeeklyRewardChestThresholdType_Activities)
     sort(activities, activityCompare)
 
     local lastCompletedIndex = 0
@@ -183,12 +205,32 @@ do
     if lastCompletedIndex == 0 then return end
     t.MythicKeyBest.lastCompletedIndex = lastCompletedIndex
 
+    -- add Mythic+ runs
     local runHistory = C_MythicPlus_GetRunHistory(false, true)
     sort(runHistory, runCompare)
     for i = 1, #runHistory do
       runHistory[i].name = C_ChallengeMode_GetMapUIInfo(runHistory[i].mapChallengeModeID)
       runHistory[i].rewardLevel = C_MythicPlus_GetRewardLevelFromKeystoneLevel(runHistory[i].level)
     end
+
+    -- add Mythic 0 and Heroic runs
+    local numHeroic, numMythic = C_WeeklyRewards_GetNumCompletedDungeonRuns()
+    local _, _, rewardSeasonID = C_MythicPlus_GetCurrentSeasonValues()
+    for i = 1, numMythic do
+      runHistory[#runHistory + 1] = {
+        name = WEEKLY_REWARDS_MYTHIC:format(WeeklyRewardsUtil_MythicLevel),
+        rewardLevel = ItemLevelsBySeason[rewardSeasonID] and ItemLevelsBySeason[rewardSeasonID].MYTHIC or 0,
+        level = "M",
+      }
+    end
+    for i = 1, numHeroic do
+      runHistory[#runHistory + 1] = {
+        name = WEEKLY_REWARDS_HEROIC,
+        rewardLevel = ItemLevelsBySeason[rewardSeasonID] and ItemLevelsBySeason[rewardSeasonID].HEROIC or 0,
+        level = "H",
+      }
+    end
+
     t.MythicKeyBest.runHistory = runHistory
 
     for index = 1, lastCompletedIndex do

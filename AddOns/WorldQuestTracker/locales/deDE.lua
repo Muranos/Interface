@@ -275,6 +275,8 @@ L["S_OPTIONS_ACCESSIBILITY_SHOWBOUNTYRING"] = "Zeige Kopfgeld-Ring"
 L["S_OPTIONS_ANIMATIONS"] = "Animationen verwenden"
 --[[Translation missing --]]
 L["S_OPTIONS_GF_DONT_SHOW_IFGROUP"] = "Don't Show if Already in Group"
+--[[Translation missing --]]
+L["S_OPTIONS_GF_SHOWOPTIONS_BUTTON"] = "Show Options Button"
 L["S_OPTIONS_MAPFRAME_ALIGN"] = "Kartenfenster zentrieren"
 L["S_OPTIONS_MAPFRAME_ERROR_SCALING_DISABLED"] = "Du musst zuerst 'Kartenfensterskalierung' aktivieren, kein Wert wurde geändert."
 L["S_OPTIONS_MAPFRAME_SCALE"] = "Kartenfensterskalierung"
@@ -290,7 +292,15 @@ L["S_OPTIONS_QUEST_EMISSARY"] = "Emissary Quest Info"
 L["S_OPTIONS_QUESTBLACKLIST"] = "Quests auf schwarzer Liste"
 L["S_OPTIONS_RESET"] = "Zurücksetzen"
 --[[Translation missing --]]
+L["S_OPTIONS_SHOW_FILTER_BUTTON"] = "Show Filter Button"
+--[[Translation missing --]]
 L["S_OPTIONS_SHOW_MINIMIZE_BUTTON"] = "Show Minimize Button"
+--[[Translation missing --]]
+L["S_OPTIONS_SHOW_SORT_BUTTON"] = "Show Sort Button"
+--[[Translation missing --]]
+L["S_OPTIONS_SHOW_TIMELEFT_BUTTON"] = "Show Time Left Button"
+--[[Translation missing --]]
+L["S_OPTIONS_SHOW_WORLDSHORTCUT_BUTTON"] = "Show World Shortcuts"
 L["S_OPTIONS_SHOWFACTIONS"] = "Fraktionen anzeigen"
 --[[Translation missing --]]
 L["S_OPTIONS_TALKINGHEADS"] = "Supress Talking Heads"
@@ -307,10 +317,20 @@ L["S_OPTIONS_WORLD_ICONSPERROW"] = "Quest Amount Per Row"
 L["S_OPTIONS_WORLD_ORGANIZE_BYMAP"] = "Nach Gebiet anordnen"
 L["S_OPTIONS_WORLD_ORGANIZE_BYTYPE"] = "Nach Questart anordnen"
 --[[Translation missing --]]
+L["S_OPTIONS_WORLD_SUMMARY_ALPHA"] = "Summary Alpha"
+--[[Translation missing --]]
 L["S_OPTIONS_WORLDMAP_ANCHOR_TO"] = "Attach To"
 --[[Translation missing --]]
 L["S_OPTIONS_WORLDMAP_ORGANIZEBY"] = "Organize Quests By"
+--[[Translation missing --]]
+L["S_OPTIONS_WORLDMAP_WIDGET_ALPHA"] = "Pin Alpha"
 L["S_OPTIONS_ZONE_SHOWONLYTRACKED"] = "Nur verfolgte"
+--[[Translation missing --]]
+L["S_OPTTIONS_DRAGONRACE_MINIMAP"] = "Show Track Minimap"
+--[[Translation missing --]]
+L["S_OPTTIONS_DRAGONRACE_TRACKCOLOR"] = "Track Color"
+--[[Translation missing --]]
+L["S_OPTTIONS_TAB_DRAGONRACE_SETTINGS"] = "Dragon Race"
 --[[Translation missing --]]
 L["S_OPTTIONS_TAB_GENERAL_SETTINGS"] = "General Settings"
 --[[Translation missing --]]
@@ -357,6 +377,8 @@ L["S_RAREFINDER_TOOLTIP_SPOTTEDBY"] = "Aufgespürt von"
 L["S_RAREFINDER_TOOLTIP_TIMEAGO"] = "Minuten vergangen"
 --[[Translation missing --]]
 L["S_SCALE"] = "Scale"
+--[[Translation missing --]]
+L["S_SLASH_OPENMAP_FIRST"] = "World Quest Tracker did not loaded yet, open the map to load."
 L["S_SUMMARYPANEL_EXPIRED"] = "ABGELAUFEN"
 L["S_SUMMARYPANEL_LAST15DAYS"] = "Letzten 15 Tage"
 L["S_SUMMARYPANEL_LIFETIMESTATISTICS_ACCOUNT"] = "Accountweite Statistik"
@@ -366,6 +388,8 @@ L["S_SUMMARYPANEL_OTHERCHARACTERS"] = "Andere Charaktere"
 L["S_TEXT_SIZE"] = "Text Size"
 --[[Translation missing --]]
 L["S_TORGAST"] = "Torgasth"
+--[[Translation missing --]]
+L["S_TRACKEROPTIONS_BACKGROUNDALPHA"] = "Background Alpha"
 L["S_TUTORIAL_AMOUNT"] = "Zeigt die zu erhaltene Anzahl an"
 L["S_TUTORIAL_CLICKTOTRACK"] = "Klicken, um eine Quest zu verfolgen."
 L["S_TUTORIAL_PARTY"] = "Wenn du in einer Gruppe bist, zeigt ein blauer Stern bei einer Quest an, dass diese alle Gruppenmitglieder haben."
@@ -374,6 +398,8 @@ L["S_TUTORIAL_TIMELEFT"] = "Zeigt die verbleibende Zeit an (+4 Stunden, +90 Minu
 L["S_TUTORIAL_WORLDBUTTONS"] = "Klicke hier, um zwischen den drei Typen der Übersicht umzuschalten: - |cFFFFAA11Nach Questart|r - |cFFFFAA11Nach Zone|r - |cFFFFAA11Keine|r Klicke |cFFFFAA11Quests ein/-ausblenden|r, um Questorte auszublenden."
 L["S_TUTORIAL_WORLDMAPBUTTON"] = "Diese Schaltfläche öffnet die Karte der Verheerten Inseln."
 L["S_UNKNOWNQUEST"] = "Unbekannte Quest"
+--[[Translation missing --]]
+L["S_VISIBILITY"] = "Visibility"
 L["S_WHATSNEW"] = "Was gibt's Neues?"
 L["S_WORLDBUTTONS_SHOW_TYPE"] = "Nach Typ sortieren"
 L["S_WORLDBUTTONS_SHOW_ZONE"] = "Nach Zone anordnen"

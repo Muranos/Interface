@@ -9,11 +9,15 @@ L.altpower_desc = "Affiche la fenêtre de ressource alternative, qui montre la q
 L.infobox = "Boîte d'information"
 L.infobox_desc = "Affiche une boîte d'information concernant la rencontre."
 L.stages = "Phases"
-L.stages_desc = "Active les fonctions relatives aux différentes phases/étapes du boss telles que la proximité, les barres, etc."
+L.stages_desc = "Active les fonctions relatives aux différentes phases lors d'un combat de boss tels quel les avertissements de changement de phase, les bars de durée de phase, etc."
 L.warmup = "Préparation"
 L.warmup_desc = "Temps avant que le combat face au boss ne commence."
 L.proximity = "Affichage de proximité"
 L.proximity_desc = "Affiche la fenêtre de proximité quand cela est approprié pour cette rencontre, indiquant la liste des joueurs qui se trouvent trop près de vous."
+L.adds = "Adds"
+L.adds_desc = "Active les fonctions relatives aux adds qui apparaissent durant le combat de boss."
+--L.health = "Health"
+--L.health_desc = "Enable functions for displaying various health information during the boss encounter."
 
 L.already_registered = "|cffff0000ATTENTION :|r |cff00ff00%s|r (|cffffff00%s|r) existe déjà en tant que module dans BigWigs, mais quelque chose essaye de l'enregistrer à nouveau. Cela signifie souvent que vous avez deux copies de ce module dans votre répertoire AddOns suite à une mauvaise mise à jour d'un gestionnaire d'addons. Il est recommandé de supprimer tous les répertoires de BigWigs et de le réinstaller complètement."
 L.testNameplate = "Cible détectée, création d'une barre d'info de test par dessus la barre d'info de la cible. |cFF33FF99Cette fonctionnalité est rarement utilisée : elle se présente habituellement sous la forme d'une seule barre, et est nécessaire pour le bon suivi des temps de recharge lors des combats face à plusieurs monstres qui utilisent le même sort.|r"
@@ -43,18 +47,20 @@ L.disabledAddOn = "L'addon |cFF436EEE%s|r est désactivé, les délais ne seront
 L.removeAddOn = "Veuillez enlever '|cFF436EEE%s|r' étant donné qu'il a été remplacé par '|cFF436EEE%s|r'."
 L.alternativeName = "%s (|cFF436EEE%s|r)"
 
---L.expansionNames = {
---	"Classic", -- Classic
---	"The Burning Crusade", -- The Burning Crusade
---	"Wrath of the Lich King", -- Wrath of the Lich King
---	"Cataclysm", -- Cataclysm
---	"Mists of Pandaria", -- Mists of Pandaria
---	"Warlords of Draenor", -- Warlords of Draenor
---	"Legion", -- Legion
---	"Battle for Azeroth", -- Battle for Azeroth
---	"Shadowlands", -- Shadowlands
---	"Dragonflight", -- Dragonflight
---}
+L.expansionNames = {
+	"Classic", -- Classic
+	"The Burning Crusade", -- The Burning Crusade
+	"Wrath of the Lich King", -- Wrath of the Lich King
+	"Cataclysm", -- Cataclysm
+	"Mists of Pandaria", -- Mists of Pandaria
+	"Warlords of Draenor", -- Warlords of Draenor
+	"Legion", -- Legion
+	"Battle for Azeroth", -- Battle for Azeroth
+	"Shadowlands", -- Shadowlands
+	"Dragonflight", -- Dragonflight
+	"The War Within", -- The War Within
+}
+--L.currentSeason = "Current Season"
 
 -- Media.lua (These are the names of the sounds in the dropdown list in the "sounds" section)
 L.Beware = "Attention (Algalon)"
@@ -66,7 +72,7 @@ L.spell_under_you = "BigWigs : sort en dessous de vous"
 
 -- Options.lua
 L.options = "Options"
---L.optionsKey = "Key: %s" -- The key that messages/bars/options use
+--L.optionsKey = "ID: %s" -- The ID that messages/bars/options use
 L.raidBosses = "Boss de raid"
 L.dungeonBosses = "Boss de donjon"
 L.introduction = "Bienvenue sur BigWigs, votre compagnon des rencontres de boss. Attachez votre ceinture, gavez-vous de cacahouètes et profitez du voyage. Il ne fera pas de mal à vos enfants, mais vous aidera à préparer cette nouvelle rencontre de boss pour votre groupe de raid."
@@ -77,8 +83,6 @@ L.toggleAnchorsBtnHide_desc = "Cacher les ancres pour verrouiller les positions.
 L.testBarsBtn = "Créer une barre de test"
 L.testBarsBtn_desc = "Créée une barre pour que vous puissiez tester vos paramètres d'affichage actuels."
 L.sound = "Son"
-L.flashScreen = "Faire clignoter l'écran"
-L.flashScreenDesc = "Certaines techniques sont tellement importantes qu'elles nécessitent toute votre attention. Quand ces techniques vous affectent, BigWigs peut faire clignoter l'écran."
 L.minimapIcon = "Icône de la minicarte"
 L.minimapToggle = "Affiche ou non l'icône de la minicarte."
 L.compartmentMenu = "Aucun icône de compartiment"
@@ -94,6 +98,8 @@ L.dbmFaker = "Prétendre d'utiliser DBM"
 L.dbmFakerDesc = "Si un utilisateur de DBM effectue une vérification des versions pour voir qui utilise DBM, il vous verra sur la liste. Utile pour les guildes qui forcent l'utilisation de DBM."
 L.zoneMessages = "Afficher les messages de zone"
 L.zoneMessagesDesc = "La désactivation de ceci enlevera les messages qui s'affichent quand vous entrez dans une zone pour laquelle BigWigs a un module de délais que vous n'avez pas installé. Nous vous recommendons de laisser ceci activé, étant donné qu'il s'agit de la seule notification que vous recevrez si nous ajoutons un module que vous n'avez pas pour une nouvelle zone qui vous intéresse."
+L.englishSayMessages = "Messages dans le chat en anglais"
+L.englishSayMessagesDesc = "Tous les messages envoyés durant les combats de boss dans les discussions 'dire' et 'crier' seront toujours en anglais. Cette option peut être utile lorsque votre groupe est multilingue."
 
 L.slashDescTitle = "|cFFFED000Commandes :|r"
 L.slashDescPull = "|cFFFED000/pull :|r envoie un compte à rebours de pull à votre raid."
@@ -138,8 +144,8 @@ L.VOICE = "Voix"
 L.VOICE_desc = "Si vous avez un plugin vocal installé, cette option l'activera afin qu'il puisse jouer un fichier son qui dira cette alerte à voix haute pour vous."
 L.COUNTDOWN = "Compte à rebours"
 L.COUNTDOWN_desc = "Si activé, un compte à rebours vocal et visuel sera ajouté lors des 5 dernières secondes. Imaginez quelqu'un faisant le décompte \"5... 4... 3... 2... 1...\" en plus d'un gros chiffre au milieu de votre écran."
---L.CASTBAR_COUNTDOWN = "Countdown (cast bars only)"
---L.CASTBAR_COUNTDOWN_desc = "If enabled, a vocal and visual countdown will be added for the last 5 seconds of the cast bars."
+L.CASTBAR_COUNTDOWN = "Compte à rebours (uniquement pour les barres d'incantation)"
+L.CASTBAR_COUNTDOWN_desc = "Si activé, un compte à rebours vocal et visuel sera ajouté lors des 5 dernières secondes de la barre d'incantation."
 L.INFOBOX = L.infobox
 L.INFOBOX_desc = L.infobox_desc
 L.SOUND = "Son"

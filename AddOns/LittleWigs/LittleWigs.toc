@@ -1,4 +1,4 @@
-## Interface: 100105
+## Interface: 100206
 
 ## Title: LittleWigs
 ## Notes: Boss warnings for 5-man dungeons & scenarios.
@@ -21,9 +21,9 @@
 ## X-WoWI-ID: 9577
 ## X-Wago-ID: 5bGolnN0
 
-## X-BigWigs-LoadOn-InstanceId: 2520, 2527, 2519, 2521, 2526, 2515, 2516, 2451, 2579
+## X-BigWigs-LoadOn-InstanceId: 2520, 2527, 2519, 2521, 2526, 2515, 2516, 2451, 2579, 2648, 2649, 2651, 2652, 2660, 2661, 2662, 2669
 ## Dependencies: BigWigs
 ## LoadOnDemand: 1
-## Version: v10.1.35
+## Version: v10.2.45
 
 modules.xml

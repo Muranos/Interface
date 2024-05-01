@@ -1,15 +1,12 @@
 if not WeakAuras.IsLibsOK() then return end
---- @type string, Private
-local AddonName, Private = ...
+---@type string
+local AddonName = ...
+---@class Private
+local Private = select(2, ...)
 
+---@class WeakAuras
 local WeakAuras = WeakAuras
 local L = WeakAuras.L
-
-local LCD
-if WeakAuras.IsClassicEra() then
-  LCD = LibStub("LibClassicDurations")
-  LCD:RegisterFrame("WeakAuras")
-end
 
 local LibSerialize = LibStub("LibSerialize")
 local LibDeflate = LibStub:GetLibrary("LibDeflate")
@@ -26,23 +23,6 @@ local WA_GetUnitAura = function(unit, spell, filter)
     if spell == spellId or spell == name then
       return UnitAura(unit, i, filter)
     end
-  end
-end
-
-if WeakAuras.IsClassicEra() then
-  local WA_GetUnitAuraBase = WA_GetUnitAura
-  WA_GetUnitAura = function(unit, spell, filter)
-    local name, icon, count, debuffType, duration, expirationTime, source, isStealable, nameplateShowPersonal, spellId,
-          canApplyAura, isBossDebuff, castByPlayer, nameplateShowAll, timeMod = WA_GetUnitAuraBase(unit, spell, filter)
-    if spellId then
-      local durationNew, expirationTimeNew = LCD:GetAuraDurationByUnit(unit, spellId, source, name)
-      if duration == 0 and durationNew then
-          duration = durationNew
-          expirationTime = expirationTimeNew
-      end
-    end
-    return name, icon, count, debuffType, duration, expirationTime, source, isStealable, nameplateShowPersonal, spellId,
-           canApplyAura, isBossDebuff, castByPlayer, nameplateShowAll, timeMod
   end
 end
 
@@ -361,7 +341,7 @@ function Private.ActivateAuraEnvironment(id, cloneId, state, states, onlyConfig)
           local childData = WeakAuras.GetData(childID)
           if childData then
             if not environment_initialized[childID] then
-              Private.ActivateAuraEnvironment(childID)
+              Private.ActivateAuraEnvironment(childID, nil, nil, nil, true)
               Private.ActivateAuraEnvironment()
             end
             current_aura_env.child_envs[dataIndex] = aura_environments[childID]
@@ -472,7 +452,6 @@ local FakeWeakAurasMixin = {
   },
   blockedTables = {
     ModelPaths = true,
-    regionPrototype = true,
     RealTimeProfilingWindow = true,
     -- Note these shouldn't exist in the WeakAuras namespace, but moving them takes a bit of effort,
     -- so for now just block them and clean them up later

@@ -166,7 +166,7 @@ local CROWD_CONTROL_SPELLS_RETAIL = {
   ---------------------------------------------------------------------------------------------------
   -- Evoker
   ---------------------------------------------------------------------------------------------------
-  [358385] = PC_ROOT,             -- Landslide
+  [355689] = PC_ROOT,             -- Landslide
   [351338] = CC_SILENCE,          -- Quell
   [372048] = CC_OTHER,            -- Oppressing Roar
   [357210] = LOC_STUN,            -- Deep Breath
@@ -215,6 +215,9 @@ local CROWD_CONTROL_SPELLS_RETAIL = {
   [161355] = LOC_POLYMORPH, -- Polymorph (Penguin)
   [277787] = LOC_POLYMORPH, -- Polymorph (Direhorn)
   [277792] = LOC_POLYMORPH, -- Polymorph (Bumblebee)
+  [391622] = LOC_POLYMORPH, -- Polymorph (Duck)
+  [321395] = LOC_POLYMORPH, -- Polymorph (Mawrat)
+
   -- [2139] = CC_SILENCE,      -- Counterspell -- does not leave a debuff on target
   [122] = PC_ROOT,          -- Frost Nova (Blizzard)
   [82691] = LOC_STUN,       -- Ring of Frost (Talent, Blizzard)
@@ -1477,6 +1480,8 @@ local function ProcessAllUnitAurasClassic(unitid, effect)
     if aura.name then 
       aura.auraInstanceID = i
 
+      aura.duration = aura.duration or 0
+
       unit_auras[#unit_auras + 1] = aura
       -- Addon.Logging.Debug("Aura:", aura.name, "=> ID:", aura.spellId)
     else
@@ -1508,6 +1513,8 @@ else
           aura.isStealable, aura.nameplateShowPersonal, aura.spellId, aura.canApplyAura, aura.isBossAura, _, aura.nameplateShowAll =
           UnitAuraBySlot(unitid, slots[i])
       
+          aura.duration = aura.duration or 0
+
           local unit_aura_info = GetAuraDataBySlot(unitid, slots[i])   
           if unit_aura_info then
             aura.auraInstanceID = unit_aura_info.auraInstanceID
@@ -1515,7 +1522,7 @@ else
           end
           
           unit_auras[#unit_auras + 1] = aura
-          --Addon.Logging.Debug("Aura:", aura.name, "=> ID:", aura.spellId)
+          -- Addon.Logging.Debug("Aura:", aura.name, "=> ID:", aura.spellId)
       end
     until continuation_token == nil
 
@@ -1738,17 +1745,6 @@ local function UnitAuraEventHandlerV2(widget_frame, event, unitid, unit_aura_upd
       else
         widget_frame:Hide()
       end
-    end
-  end
-end
-
--- For Classic: LibClassicDurations
-local function UnitBuffEventHandler(event, unitid)
-  local plate = GetNamePlateForUnit(unitid)
-  if plate and plate.TPFrame.Active then
-    local widget_frame = plate.TPFrame.widgets.Auras
-    if widget_frame.Active then
-      widget_frame.Widget:UpdateAuras(widget_frame, widget_frame:GetParent().unit)
     end
   end
 end
@@ -2962,22 +2958,10 @@ function Widget:OnEnable()
   self:RegisterEvent("PLAYER_ENTERING_WORLD")
   -- LOSS_OF_CONTROL_ADDED
   -- LOSS_OF_CONTROL_UPDATE
-
-  if Addon.IS_CLASSIC then
-    UnitAuraWrapper = Addon.LibClassicDurations.UnitAuraWithBuffs
-
-    -- Add duration handling from LibClassicDurations
-    Addon.LibClassicDurations:Register("ThreatPlates")
-    -- NOTE: Enemy buff tracking won't start until you register UNIT_BUFF
-    Addon.LibClassicDurations.RegisterCallback(TidyPlatesThreat, "UNIT_BUFF", UnitBuffEventHandler)
-  end
 end
 
 function Widget:OnDisable()
   self:UnregisterAllEvents()
-  if Addon.IS_CLASSIC then
-    Addon.LibClassicDurations.UnregisterCallback(TidyPlatesThreat, "UNIT_BUFF")
-  end
   for plate, _ in pairs(Addon.PlatesVisible) do
     plate.TPFrame.widgets.Auras:UnregisterAllEvents()
   end

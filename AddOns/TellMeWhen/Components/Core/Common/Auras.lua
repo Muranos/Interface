@@ -23,7 +23,7 @@ local setmetatable = setmetatable
 
 local GetAuraDataByAuraInstanceID = C_UnitAuras.GetAuraDataByAuraInstanceID
 local GetAuraDataBySlot = C_UnitAuras.GetAuraDataBySlot
-local UnitAuraSlots = UnitAuraSlots
+local GetAuraSlots = C_UnitAuras.GetAuraSlots or UnitAuraSlots
 local UnitGUID = UnitGUID
 
 if not GetAuraDataByAuraInstanceID then return end
@@ -278,12 +278,14 @@ function Auras:RequestUnits(unitSet)
         -- Get the pure unit set in case the one we were given had conditions attached.
         _, unitSet = TMW:GetUnits(nil, unitSet.unitSettings)
     end
+
     if not registeredUnitSets[unitSet] then
         registeredUnitSets[unitSet] = true
         TMW:RegisterCallback(unitSet.event, TMW_UNITSET_UPDATED)
         unitSet.auraKnownUnits = {}
         unitSet.auraKnownUnitGuids = {}
     end
+
     if not unitSet.allUnitsChangeOnEvent then
         return false, "TMW_UNIT_AURA"
     elseif dedicatedEventUnits[unitSet.unitSettings] then
@@ -300,7 +302,7 @@ local function UpdateAuras(unit, instances, lookup, continuationToken, ...)
         local slot = select(i, ...)
         local instance = GetAuraDataBySlot(unit, slot)
 
-        -- Check `if instance` because sometimes UnitAuraSlots returns invalid slots I guess?
+        -- Check `if instance` because sometimes GetAuraSlots returns invalid slots I guess?
         -- Only ever seen this happen in arena.
         if instance then
             local auraInstanceID = instance.auraInstanceID
@@ -324,7 +326,7 @@ local function UpdateAuras(unit, instances, lookup, continuationToken, ...)
 end
 
 --- It is assumed that the caller has previously called Auras:RequestUnit(unitSet) on a
---- unitset that contained the provided unit, and that unitSet.allUnitsChangeOnEvent == true.
+--- unitSet that contained the provided unit, and that unitSet.allUnitsChangeOnEvent == true.
 function Auras.GetAuras(unit)
     local unitData = data[unit]
     if not unitData then
@@ -337,8 +339,8 @@ function Auras.GetAuras(unit)
         data[unit] = unitData
 
         --print("full updating unit", unit)
-        UpdateAuras(unit, instances, lookup, UnitAuraSlots(unit, "HELPFUL"))
-        UpdateAuras(unit, instances, lookup, UnitAuraSlots(unit, "HARMFUL"))
+        UpdateAuras(unit, instances, lookup, GetAuraSlots(unit, "HELPFUL"))
+        UpdateAuras(unit, instances, lookup, GetAuraSlots(unit, "HARMFUL"))
     end
     return unitData
 end

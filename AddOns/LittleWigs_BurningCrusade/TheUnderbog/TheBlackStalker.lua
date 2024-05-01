@@ -5,8 +5,8 @@
 local mod, CL = BigWigs:NewBoss("The Black Stalker", 546, 579)
 if not mod then return end
 mod:RegisterEnableMob(17882)
-mod.engageId = 1948
--- mod.respawnTime = 0 -- resets, doesn't respawn
+mod:SetEncounterID(1948)
+--mod:SetRespawnTime(0) -- resets, doesn't respawn
 
 -------------------------------------------------------------------------------
 --  Initialization
@@ -15,7 +15,7 @@ mod.engageId = 1948
 function mod:GetOptions()
 	return {
 		31704, -- Levitate
-		{31715, "SAY", "ICON", "PROXIMITY"}, -- Static Charge
+		{31715, "SAY", "ICON"}, -- Static Charge
 		{31717, "SAY", "ICON", "CASTBAR"}, -- Chain Lightning
 	}
 end
@@ -45,10 +45,7 @@ end
 
 function mod:StaticCharge(args)
 	if self:Me(args.destGUID) then
-		self:Say(args.spellId)
-		self:OpenProximity(args.spellId, 8)
-	else
-		self:OpenProximity(args.spellId, 8, args.destName)
+		self:Say(args.spellId, nil, nil, "Static Charge")
 	end
 	self:TargetMessageOld(args.spellId, args.destName, "red", "warning")
 	self:TargetBar(args.spellId, 12, args.destName)
@@ -59,22 +56,21 @@ function mod:StaticChargeRemoved(args)
 	if self:Me(args.destGUID) then
 		self:MessageOld(args.spellId, "green", nil, CL.over:format(args.spellName))
 	end
-	self:CloseProximity(args.spellId)
 	self:SecondaryIcon(args.spellId)
 	self:StopBar(args.spellName, args.destName)
 end
 
 do
-	local function announce(self, target, guid)
+	local function printTarget(self, name, guid)
 		if self:Me(guid) then
-			self:Say(31717)
+			self:Say(31717, nil, nil, "Chain Lightning")
 		end
-		self:TargetMessageOld(31717, target, "yellow")
-		self:PrimaryIcon(31717, target)
+		self:TargetMessageOld(31717, name, "yellow")
+		self:PrimaryIcon(31717, name)
 	end
 
 	function mod:ChainLightning(args)
-		self:GetBossTarget(announce, 0.4, args.sourceGUID)
+		self:GetUnitTarget(printTarget, 0.4, args.sourceGUID)
 		self:CastBar(args.spellId, 3)
 	end
 

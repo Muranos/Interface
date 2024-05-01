@@ -17,6 +17,8 @@ local VUHDO_SHIELDS = {
 	[114908] = 10, -- VUHDO_SPELL_ID.SPIRIT_SHELL
 	[47753] = 17, -- VUHDO_SPELL_ID.DIVINE_AEGIS
 	[414133] = 8, -- VUHDO_SPELL_ID.OVERFLOWING_LIGHT
+	[271466] = 10, -- VUHDO_SPELL_ID.LUMINOUS_BARRIER
+	[401238] = 10, -- VUHDO_SPELL_ID.WRITHING_WARD
 }
 
 
@@ -141,13 +143,22 @@ local GetSpellInfo = GetSpellInfo;
 
 
 --
+local VUHDO_updateBouquetsForEvent;
+local VUHDO_updateShieldBar;
+local VUHDO_updateHealAbsorbBar;
 local VUHDO_PLAYER_GUID = -1;
 local sIsPumpAegis = false;
 local sShowAbsorb = false;
 function VUHDO_shieldAbsorbInitLocalOverrides()
+
+	VUHDO_updateBouquetsForEvent = _G["VUHDO_deferUpdateBouquets"];
+	VUHDO_updateShieldBar = _G["VUHDO_deferUpdateShieldBar"];
+	VUHDO_updateHealAbsorbBar = _G["VUHDO_deferUpdateHealAbsorbBar"];
+
 	VUHDO_PLAYER_GUID = UnitGUID("player");
 	sShowAbsorb = VUHDO_PANEL_SETUP["BAR_COLORS"]["HOTS"]["showShieldAbsorb"];
 	sIsPumpAegis = VUHDO_PANEL_SETUP["BAR_COLORS"]["HOTS"]["isPumpDivineAegis"];
+
 end
 
 

@@ -756,17 +756,22 @@ function WorldQuestTracker.GetOrCreateTrackerWidget (index)
 	f.IconButton = IconButton
 
 	f.Circle = f:CreateTexture(nil, "overlay")
-	f.Circle:SetTexture([[Interface\Transmogrify\Transmogrify]])
-	f.Circle:SetTexCoord(381/512, 405/512, 93/512, 117/512)
-	f.Circle:SetSize(18, 18)
-	f.Circle:SetPoint("topleft", f, "topleft", -14, -1)
+	f.Circle:SetAtlas("transmog-nav-slot-selected")
+	f.Circle:SetSize(22, 22)
+	f.Circle:SetPoint("topleft", f, "topleft", -16, 0)
 	f.Circle:SetDesaturated (true)
 	f.Circle:SetAlpha(.7)
 
 	f.RewardAmount = f:CreateFontString (nil, "overlay", "ObjectiveFont")
 	f.RewardAmount:SetTextColor (titleColor.r, titleColor.g, titleColor.b)
-	f.RewardAmount:SetPoint("top", f.Circle, "bottom", 0, -2)
+	f.RewardAmount:SetPoint("top", f.Circle, "bottom", 1, 3)
 	DF:SetFontSize (f.RewardAmount, 10)
+
+	f.BackgroupTexture = f:CreateTexture(nil, "background")
+	f.BackgroupTexture:SetPoint("topleft", f, "topleft", -25, 2)
+	f.BackgroupTexture:SetPoint("bottomright", f, "bottomright", 20, -2)
+	f.BackgroupTexture:SetTexture([[Interface\AddOns\WorldQuestTracker\media\background_gradient.png]])
+	f.BackgroupTexture:SetVertexColor(0, 0, 0, .5)
 
 	local overlayBorder = f:CreateTexture(nil, "overlay", nil, 5)
 	local overlayBorder2 = f:CreateTexture(nil, "overlay", nil, 6)
@@ -1140,6 +1145,8 @@ function WorldQuestTracker.RefreshTrackerWidgets()
 				widget.info = quest
 				widget.numObjectives = quest.numObjectives
 				widget.SuperTrackButton.questID = quest.questID
+
+				widget.BackgroupTexture:SetVertexColor (0, 0, 0, WorldQuestTracker.db.profile.tracker_background_alpha)
 
 				widget.Title:SetText (title)
 				while (widget.Title:GetStringWidth() > TRACKER_TITLE_TEXTWIDTH_MAX) do

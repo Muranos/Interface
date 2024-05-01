@@ -3,6 +3,29 @@ if not TMW then return end
 TMW.CHANGELOG_LASTVER="7.4.0"
 
 TMW.CHANGELOG = [==[
+## v10.2.4
+* Fix: #2154 - Errors when tracking items by slot number when the slot is empty.
+* Fix: #2155 - Item cooldown API was broken by Blizzard in 10.2.6.
+
+## v10.2.3
+* Fix #2148 - Aura Tracking broken in WoW 1.15.1
+
+## v10.2.2
+* Fix #2137 - Tracking active condition broken in Classic Era.
+
+## v10.2.1
+* Classic: Modern APIs added back in WoW 1.15.0 are used for buff/debuff durations and spell casts.
+* Fix #2122 - Keyboard input blocked after UI reload in combat when Allow Config In Combat enabled.
+* Fix #2132 - attempt to index field 'SuggestionList' (a nil value).
+* Fix #2131 - Additional scenarios where current talent loadout can be unknown.
+
+## v10.2.0
+* Version bumps for all WoW versions. 
+* Fixed classic client detection.
+* Fix #2119 - Handle Blizzard's new, poorly-introduced range check restrictions.
+* Fix #2121 - Efflorescence is now just a buff, no longer a totem. If you were using the Efflorescence icon type (which will now just show as "Totem"), switch to using a buff/debuff icon.
+* Workaround #2114 - Most textures become Avenging Wrath when Avenging Wrath is glyphed.
+
 ## v10.1.6
 * Support for WoW Classic Era 1.14.4. The classic era codebase has been merged into the main codebase, so some features that don't support classic may be present in a non-working state.
 

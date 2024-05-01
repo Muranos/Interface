@@ -75,7 +75,7 @@ local LoadMPOnShow, LoadMP do
 	function LoadMP()
 		if doLoad then
 			doLoad = nil
-			LoadAddOn("MasterPlan")
+			C_AddOns.LoadAddOn("MasterPlan")
 		end
 	end
 	function LoadMPOnShow(f)
@@ -196,10 +196,11 @@ if (GARRISON_LANDING_COVIEW_PATCH_VERSION or 0) < 3 then
 	end)
 end
 
-local function RemoveBuildingsFromMissionList(items)
+local function FixBuildingsInMissionList(items)
 	for i=#items,1,-1 do
-		if items[i].isBuilding then
-			table.remove(items, i)
+		i = items[i]
+		if i.isBuilding then
+			i.followerTypeID, i.level, i.isMaxLevel, i.iLevel, i.durationSeconds, i.missionID = 1, 40, true, 900, 0, 0
 		end
 	end
 end
@@ -216,7 +217,7 @@ function E:ADDON_LOADED(addon)
 end
 function E:ADDON_LOADED(addon)
 	if addon == "Blizzard_GarrisonUI" then
-		hooksecurefunc("GarrisonLandingPageReportMission_FilterOutCombatAllyMissions", RemoveBuildingsFromMissionList)
+		hooksecurefunc("GarrisonLandingPageReportMission_FilterOutCombatAllyMissions", FixBuildingsInMissionList)
 		LoadMPOnShow(GarrisonMissionFrame)
 		LoadMPOnShow(GarrisonShipyardFrame)
 		LoadMPOnShow(GarrisonRecruiterFrame)
@@ -243,5 +244,5 @@ E.ZONE_CHANGED = CheckCacheWarning
 MasterPlanA = api
 
 SLASH_MASTERPLAN1, SlashCmdList.MASTERPLAN = "/masterplan", function()
-	print("|cff0080ffMasterPlan|r v" .. C_AddOns.GetAddOnMetadata("MasterPlan", "Version") .. " (" .. (IsAddOnLoaded("Blizzard_GarrisonUI") and "G" or "N") .. (IsAddOnLoaded("MasterPlan") and "O" or "A") .. ")")
+	print("|cff0080ffMasterPlan|r v" .. C_AddOns.GetAddOnMetadata("MasterPlan", "Version") .. " (" .. (C_AddOns.IsAddOnLoaded("Blizzard_GarrisonUI") and "G" or "N") .. (C_AddOns.IsAddOnLoaded("MasterPlan") and "O" or "A") .. ")")
 end

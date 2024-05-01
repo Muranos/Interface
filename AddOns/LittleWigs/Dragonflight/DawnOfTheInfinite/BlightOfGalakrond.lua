@@ -15,6 +15,14 @@ mod:SetRespawnTime(30)
 mod:SetStage(1)
 
 --------------------------------------------------------------------------------
+-- Locals
+--
+
+local corrosiveInfusionCount = 1
+local incineratingBlightbreathCount = 1
+local necrofrostCount = 1
+
+--------------------------------------------------------------------------------
 -- Initialization
 --
 
@@ -48,6 +56,7 @@ end
 function mod:OnBossEnable()
 	-- Stages
 	self:Log("SPELL_AURA_APPLIED", "MalignantTransferal", 415097, 415114) -- Stage 2, Stage 3
+	self:Log("SPELL_AURA_REMOVED", "MalignantTransferalOver", 415097, 415114) -- Stage 2, Stage 3
 
 	-- Blight of Galakrond
 	self:Log("SPELL_CAST_START", "CorrosiveInfusion", 406886)
@@ -55,7 +64,8 @@ function mod:OnBossEnable()
 	self:Log("SPELL_AURA_REMOVED", "CorrosionRemoved", 407406)
 	self:Log("SPELL_AURA_APPLIED", "CorruptedMindApplied", 418346)
 	self:Log("SPELL_CAST_START", "BlightReclamation", 407159)
-	self:Log("SPELL_AURA_APPLIED", "BlightSeepDamage", 407147)
+	self:Log("SPELL_PERIODIC_DAMAGE", "BlightSeepDamage", 407147)
+	self:Log("SPELL_PERIODIC_MISSED", "BlightSeepDamage", 407147)
 
 	-- Ahnzon
 	self:Log("SPELL_CAST_SUCCESS", "NecroticWinds", 407978)
@@ -65,12 +75,15 @@ function mod:OnBossEnable()
 	self:Log("SPELL_AURA_APPLIED", "NecrofrostApplied", 408084)
 
 	-- Dazhak
-	self:Log("SPELL_CAST_START", "IncineratingBlightbreath", 408141)
+	self:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", nil, "boss2") -- Incinerating Blightbreath
 end
 
 function mod:OnEngage()
+	corrosiveInfusionCount = 1
+	incineratingBlightbreathCount = 1
+	necrofrostCount = 1
 	self:SetStage(1)
-	self:CDBar(406886, 4.9) -- Corrosive Infusion
+	self:CDBar(406886, 4.8) -- Corrosive Infusion
 	self:CDBar(407159, 14.6) -- Blight Reclamation
 end
 
@@ -85,20 +98,29 @@ function mod:MalignantTransferal(args)
 		self:SetStage(2)
 		self:Message("stages", "cyan", CL.percent:format(80, CL.stage:format(2)), args.spellId)
 		self:PlaySound("stages", "long")
-		-- TODO boss moves to a specific location before transforming, is it better to
-		-- use StopBar here and trigger these timers off something else?
-		self:CDBar(407159, 9.7) -- Blight Reclamation
-		self:CDBar(406886, 18.1) -- Corrosive Infusion
-		self:CDBar(407978, 27.8) -- Necrotic Winds
+		self:StopBar(406886) -- Corrosive Infusion
+		self:StopBar(407159) -- Blight Reclamation
 	else -- 415114, Stage 3
+		corrosiveInfusionCount = 1
 		self:SetStage(3)
 		self:Message("stages", "cyan", CL.percent:format(50, CL.stage:format(3)), args.spellId)
 		self:PlaySound("stages", "long")
+		self:StopBar(406886) -- Corrosive Infusion
+		self:StopBar(407159) -- Blight Reclamation
 		self:StopBar(407978) -- Necrotic Winds
-		self:CDBar(407159, 12.4) -- Blight Reclamation
-		self:CDBar(408141, 17.2) -- Incinerating Blightbreath
-		self:CDBar(406886, 24.2) -- Corrosive Infusion
-		self:CDBar(408029, 41.2) -- Necrofrost
+	end
+end
+
+function mod:MalignantTransferalOver(args)
+	if args.spellId == 415097 then -- Stage 2
+		self:CDBar(407159, 30.4) -- Blight Reclamation
+		self:CDBar(406886, 6.9) -- Corrosive Infusion
+		self:CDBar(407978, 16.8) -- Necrotic Winds
+	else -- 415114, Stage 3
+		self:CDBar(407159, 63.8) -- Blight Reclamation
+		self:CDBar(406886, 15.0) -- Corrosive Infusion
+		self:CDBar(408141, 22.4) -- Incinerating Blightbreath
+		self:CDBar(408029, 31.2) -- Necrofrost
 	end
 end
 
@@ -108,11 +130,21 @@ function mod:CorrosiveInfusion(args)
 	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alert")
 	if self:GetStage() == 1 then
-		self:CDBar(args.spellId, 15.7)
+		self:CDBar(args.spellId, 17.0)
 	elseif self:GetStage() == 2 then
-		self:CDBar(args.spellId, 31.6)
+		corrosiveInfusionCount = corrosiveInfusionCount + 1
+		if corrosiveInfusionCount == 2 then
+			self:CDBar(args.spellId, 34.0)
+		else
+			self:CDBar(args.spellId, 31.6)
+		end
 	else -- Stage 3
-		self:CDBar(args.spellId, 32.8)
+		corrosiveInfusionCount = corrosiveInfusionCount + 1
+		if corrosiveInfusionCount == 2 then
+			self:CDBar(args.spellId, 62.0)
+		else
+			self:CDBar(args.spellId, 60.0)
+		end
 	end
 end
 
@@ -121,12 +153,12 @@ function mod:CorrosionApplied(args)
 	self:PlaySound(args.spellId, "info", nil, args.destName)
 	self:SecondaryIcon(args.spellId, args.destName)
 	if self:Mythic() then
-		self:TargetBar(args.spellId, 12, args.destName)
+		self:TargetBar(args.spellId, 15, args.destName)
 	end
 	if self:Me(args.destGUID) then
-		self:Say(args.spellId)
+		self:Say(args.spellId, nil, nil, "Corrosion")
 		if self:Mythic() then
-			self:YellCountdown(args.spellId, 12, nil, 5)
+			self:YellCountdown(args.spellId, 15, nil, 5)
 		end
 	end
 end
@@ -150,20 +182,26 @@ end
 function mod:BlightReclamation(args)
 	self:Message(args.spellId, "purple")
 	self:PlaySound(args.spellId, "alarm")
-	-- TODO these need to be revisited
 	if self:GetStage() == 1 then
-		self:CDBar(args.spellId, 15.7)
+		self:CDBar(args.spellId, 17.0)
 	elseif self:GetStage() == 2 then
 		self:CDBar(args.spellId, 31.6)
 	else -- Stage 3
-		self:CDBar(args.spellId, 32.7)
+		self:CDBar(args.spellId, 60.0)
 	end
 end
 
-function mod:BlightSeepDamage(args)
-	if self:Me(args.destGUID) then
-		self:PersonalMessage(args.spellId, "underyou")
-		self:PlaySound(args.spellId, "underyou")
+do
+	local prev = 0
+	function mod:BlightSeepDamage(args)
+		local t = args.time
+		if t - prev > 2 then
+			prev = t
+			if self:Me(args.destGUID) then
+				self:PersonalMessage(args.spellId, "underyou")
+				self:PlaySound(args.spellId, "underyou")
+			end
+		end
 	end
 end
 
@@ -184,9 +222,16 @@ do
 	end
 
 	function mod:Necrofrost(args)
-		self:GetBossTarget(printTarget, 0.3, args.sourceGUID)
+		self:GetUnitTarget(printTarget, 0.3, args.sourceGUID)
 		-- pull:133.9, 19.4, 42.5
-		self:CDBar(args.spellId, 19.4)
+		necrofrostCount = necrofrostCount + 1
+		if necrofrostCount == 3 then
+			self:CDBar(args.spellId, 42.5)
+		elseif necrofrostCount % 2 == 0 then
+			self:CDBar(args.spellId, 19.4)
+		else
+			self:CDBar(args.spellId, 40.0)
+		end
 	end
 end
 
@@ -200,7 +245,7 @@ do
 			self:PlaySound(408029, "info", nil, args.destName)
 		end
 		if self:Me(args.destGUID) then
-			self:Say(408029)
+			self:Say(408029, nil, nil, "Necrofrost")
 		end
 		necrofrostGUID = args.sourceGUID
 		self:RegisterTargetEvents("MarkNecrofrost")
@@ -217,22 +262,24 @@ end
 
 -- Dazhak
 
-function mod:IncineratingBlightbreath(args)
-	-- can't use GetBossTarget, Dazhak targets a player ~1s before the cast and detargets them as the cast starts
-	local name = self:UnitName("boss2target")
-	local guid = self:UnitGUID("boss2target")
-	if name then
-		self:TargetMessage(args.spellId, "orange", name)
-		self:PlaySound(args.spellId, "alarm", nil, name)
-	else
-		-- just in case?
-		self:Message(args.spellId, "orange")
-		self:PlaySound(args.spellId, "alarm")
+do
+	local function printTarget(self, name, guid)
+		self:TargetMessage(408141, "orange", name)
+		self:PlaySound(408141, "alarm", nil, name)
+		if self:Me(guid) then
+			self:Say(408141, nil, nil, "Incinerating Blightbreath")
+		end
+		incineratingBlightbreathCount = incineratingBlightbreathCount + 1
+		if incineratingBlightbreathCount % 3 == 1 then -- 4, 7...
+			self:CDBar(408141, 25.5)
+		else -- 2, 3, 5, 6...
+			self:CDBar(408141, 17.0)
+		end
 	end
-	if self:Me(guid) then
-		self:Say(args.spellId)
+
+	function mod:UNIT_SPELLCAST_SUCCEEDED(_, unit, _, spellId)
+		if spellId == 413596 then -- Incinerating Blightbreath
+			self:GetNextBossTarget(printTarget, self:UnitGUID(unit), 1)
+		end
 	end
-	-- TODO pattern? pull:227.2, 18.2, 14.7, 16.9, 15.5, 18.5, 14.4
-	-- pull:126.0, 17.6, 18.3, 26.3
-	self:CDBar(args.spellId, 14.4)
 end

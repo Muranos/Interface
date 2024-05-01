@@ -42,7 +42,6 @@ local tremove = tremove
 local db = nil
 local normalAnchor, emphasizeAnchor = nil, nil
 local nameplateBars = {}
-local empUpdate = nil -- emphasize updater frame
 local rearrangeBars
 local rearrangeNameplateBars
 local GetNamePlateForUnit = C_NamePlate.GetNamePlateForUnit
@@ -337,7 +336,6 @@ do
 				border:SetPoint("TOPLEFT", bd, "TOPLEFT", 1, -1)
 				border:SetPoint("BOTTOMRIGHT", bd, "BOTTOMRIGHT", -1, 1)
 			end
-			border:SetFrameLevel(3)
 			border:SetBackdrop(borderBackdrop)
 			border:SetBackdropBorderColor(0, 0, 0)
 			bd.tukiborder = border
@@ -353,7 +351,6 @@ do
 				border:SetPoint("TOPLEFT", bd, "TOPLEFT", -1, 1)
 				border:SetPoint("BOTTOMRIGHT", bd, "BOTTOMRIGHT", 1, -1)
 			end
-			border:SetFrameLevel(3)
 			border:SetBackdrop(borderBackdrop)
 			border:SetBackdropBorderColor(0, 0, 0)
 			bd.tukoborder = border
@@ -586,12 +583,10 @@ do
 		end
 		local f = media:Fetch(FONT, db.fontName)
 		for bar in next, normalAnchor.bars do
-			bar.candyBarLabel:SetFont(f, db.fontSize, flags)
-			bar.candyBarDuration:SetFont(f, db.fontSize, flags)
+			bar:SetFont(f, db.fontSize, flags)
 		end
 		for bar in next, emphasizeAnchor.bars do
-			bar.candyBarLabel:SetFont(f, db.fontSizeEmph, flags)
-			bar.candyBarDuration:SetFont(f, db.fontSizeEmph, flags)
+			bar:SetFont(f, db.fontSizeEmph, flags)
 		end
 	end
 
@@ -1363,15 +1358,7 @@ do
 		return a.remaining < b.remaining and true or false
 	end
 	rearrangeBars = function(anchor)
-		if not anchor then return end
-		if anchor == normalAnchor then -- only show the empupdater when there are bars on the normal anchor running
-			if next(anchor.bars) and db.emphasize then
-				empUpdate:Play()
-			else
-				empUpdate:Stop()
-			end
-		end
-		if not next(anchor.bars) then return end
+		if not anchor or not next(anchor.bars) then return end
 
 		local tmp = {}
 		for bar in next, anchor.bars do
@@ -2035,12 +2022,10 @@ function plugin:CreateBar(module, key, text, time, icon, isApprox, unitGUID)
 	end
 	local f = media:Fetch(FONT, db.fontName)
 	if unitGUID then
-		bar.candyBarLabel:SetFont(f, db.fontSizeNameplate, flags)
-		bar.candyBarDuration:SetFont(f, db.fontSizeNameplate, flags)
+		bar:SetFont(f, db.fontSizeNameplate, flags)
 		bar:SetAlpha(db.nameplateAlpha)
 	else
-		bar.candyBarLabel:SetFont(f, db.fontSize, flags)
-		bar.candyBarDuration:SetFont(f, db.fontSize, flags)
+		bar:SetFont(f, db.fontSize, flags)
 	end
 
 	bar:SetTimeVisibility(db.time)
@@ -2056,31 +2041,30 @@ function plugin:CreateBar(module, key, text, time, icon, isApprox, unitGUID)
 end
 
 do
-	local function PauseAtZero(bar)
-		if bar.remaining < 0.045 then -- Pause at 0.0
-			bar:SetDuration(0.01) -- Make the bar look full
-			bar:Start()
-			bar:SetTimeVisibility(false)
-			bar:Pause()
-		end
+	local function moveBar(bar)
+		plugin:EmphasizeBar(bar)
+		plugin:SendMessage("BigWigs_BarEmphasized", plugin, bar)
+		rearrangeBars(normalAnchor)
+		rearrangeBars(emphasizeAnchor)
 	end
 
 	function plugin:BigWigs_StartBar(_, module, key, text, time, icon, isApprox, maxTime)
 		if not text then text = "" end
 		self:StopSpecificBar(nil, module, text)
-
 		local bar = self:CreateBar(module, key, text, time, icon, isApprox)
 		if isApprox then
-			bar:AddUpdateFunction(PauseAtZero)
+			bar:SetPauseWhenDone(true)
 		end
 		bar:Start(maxTime)
 		if db.emphasize and time < db.emphasizeTime then
 			self:EmphasizeBar(bar, true)
 		else
 			currentBarStyler.ApplyStyle(bar)
+			if db.emphasize then
+				bar:SetTimeCallback(moveBar, db.emphasizeTime)
+			end
 		end
 		rearrangeBars(bar:Get("bigwigs:anchor"))
-
 		self:SendMessage("BigWigs_BarCreated", self, bar, module, key, text, time, icon, isApprox)
 		-- Check if :EmphasizeBar(bar) was run and trigger the callback.
 		-- Bit of a roundabout method to approaching this so that we purposely keep callbacks firing last.
@@ -2122,30 +2106,6 @@ end
 -- Emphasize
 --
 
-do
-	local dirty = nil
-	local frame = CreateFrame("Frame")
-	empUpdate = frame:CreateAnimationGroup()
-	empUpdate:SetScript("OnLoop", function()
-		for k in next, normalAnchor.bars do
-			if k.remaining < db.emphasizeTime and not k:Get("bigwigs:emphasized") then
-				dirty = true
-				plugin:EmphasizeBar(k)
-				plugin:SendMessage("BigWigs_BarEmphasized", plugin, k)
-			end
-		end
-		if dirty then
-			rearrangeBars(normalAnchor)
-			rearrangeBars(emphasizeAnchor)
-			dirty = nil
-		end
-	end)
-	empUpdate:SetLooping("REPEAT")
-
-	local anim = empUpdate:CreateAnimation()
-	anim:SetDuration(0.2)
-end
-
 function plugin:EmphasizeBar(bar, freshBar)
 	if db.emphasizeMove then
 		normalAnchor.bars[bar] = nil
@@ -2170,12 +2130,12 @@ function plugin:EmphasizeBar(bar, freshBar)
 		flags = db.outline
 	end
 	local f = media:Fetch(FONT, db.fontName)
-	bar.candyBarLabel:SetFont(f, db.fontSizeEmph, flags)
-	bar.candyBarDuration:SetFont(f, db.fontSizeEmph, flags)
+	bar:SetFont(f, db.fontSizeEmph, flags)
 
 	bar:SetColor(colors:GetColor("barEmphasized", module, key))
 	bar:SetHeight(db.BigWigsEmphasizeAnchor_height)
 	bar:SetWidth(db.BigWigsEmphasizeAnchor_width)
+	bar:SetFrameLevel(105) -- Put emphasized bars just above normal bars (LibCandyBar 100)
 	currentBarStyler.ApplyStyle(bar)
 	bar:Set("bigwigs:emphasized", true)
 end

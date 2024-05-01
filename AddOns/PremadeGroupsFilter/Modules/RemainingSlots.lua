@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Premade Groups Filter
 -------------------------------------------------------------------------------
--- Copyright (C) 2022 Elotheon-Arthas-EU
+-- Copyright (C) 2024 Bernhard Saumweber
 --
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -103,7 +103,7 @@ end
 
 function PGF.UnitHasProperty(unit, prop)
     local class = select(2, UnitClass(unit)) -- MAGE, WARRIOR, ...
-    return C.DPS_CLASS_TYPE[class][prop]
+    return class and C.DPS_CLASS_TYPE[class] and C.DPS_CLASS_TYPE[class][prop]
 end
 
 function PGF.PlayerOrGroupHasProperty(prop)

@@ -17,12 +17,12 @@ local tokenIlvls = {}
 -- temporarily added patch 10/10.1 token unique names
 --- List of keywords matching each slot
 local keyWords = {
-	["HeadSlot"] = { "helm", "head", "crown", "circlet", "topaz", "melting", },
-	["ShoulderSlot"] = { "shoulder", "pauldron", "mantle", "spaulder", "lapis", "corrupting", },
+	["HeadSlot"] = { "helm", "head", "crown", "circlet", "topaz", "melting", "blazing" },
+	["ShoulderSlot"] = { "shoulder", "pauldron", "mantle", "spaulder", "lapis", "corrupting", "smoldering"},
 	["BackSlot"] = { "cloak" },
-	["ChestSlot"] = { "breastplate", "tunic", "robe", "chest", "amethyst", "ventilation"},
-	["HandsSlot"] = { "hand", "glove", "gauntlets", "garnet", "mixing", },
-	["LegsSlot"] = { "leg", "legs", "jade", "cooling" },
+	["ChestSlot"] = { "breastplate", "tunic", "robe", "chest", "amethyst", "ventilation", "verdurous"},
+	["HandsSlot"] = { "hand", "glove", "gauntlets", "garnet", "mixing", "tormented" },
+	["LegsSlot"] = { "leg", "legs", "jade", "cooling", "ashen" },
 	["Trinket"] = { "badge" },
 	["MultiSlots"] = { "essence", "regalia", "sanctification" },
 	["WristSlot"] = { "wrist", "bracer", "bindings" },
@@ -112,7 +112,6 @@ function RCLootCouncil:ExportTokenData(nextID)
 	frame.exportFrame.edit:SetText(exports)
 end
 
--- REVIEW: Doesn't work. Neither does the new C_TooltipInfo system.
 --- Fetches the slot of a token from its tooltip by
 --- searching the `leftText` of each line for keywords.
 --- @param id ItemID The itemID of the item to scan.
@@ -121,7 +120,6 @@ function RCLootCouncil:GetTokenSlotFromTooltip(id)
 	local lines = self:GetTooltipLines(id)
 	for _, text in ipairs(lines) do
 		if text and text:sub(0, 4) == "Use:" then
-			self.Log:d("Found text", text)
 			for invSlot, keywords in pairs(keyWords) do
 				for _, keyword in pairs(keywords) do
 					if text:lower():find(keyword) then
@@ -788,6 +786,46 @@ _G.RCTokenTable = {
 	[202638] = "HandsSlot",  -- Zenith Mixing Fluid,
 	[202639] = "ChestSlot",  -- Zenith Ventilation Fluid,
 	[202640] = "LegsSlot",   -- Zenith Cooling Fluid,
+	[207462] = "ChestSlot",  -- Dreadful Verdurous Dreamheart,
+	[207463] = "ChestSlot",  -- Mystic Verdurous Dreamheart,
+	[207464] = "ChestSlot",  -- Venerated Verdurous Dreamheart,
+	[207465] = "ChestSlot",  -- Zenith Verdurous Dreamheart,
+	[207466] = "HandsSlot",  -- Dreadful Tormented Dreamheart,
+	[207467] = "HandsSlot",  -- Mystic Tormented Dreamheart,
+	[207468] = "HandsSlot",  -- Venerated Tormented Dreamheart,
+	[207469] = "HandsSlot",  -- Zenith Tormented Dreamheart,
+	[207470] = "HeadSlot",   -- Dreadful Blazing Dreamheart,
+	[207471] = "HeadSlot",   -- Mystic Blazing Dreamheart,
+	[207472] = "HeadSlot",   -- Venerated Blazing Dreamheart,
+	[207473] = "HeadSlot",   -- Zenith Blazing Dreamheart,
+	[207474] = "LegsSlot",   -- Dreadful Ashen Dreamheart,
+	[207475] = "LegsSlot",   -- Mystic Ashen Dreamheart,
+	[207476] = "LegsSlot",   -- Venerated Ashen Dreamheart,
+	[207477] = "LegsSlot",   -- Zenith Ashen Dreamheart,
+	[207478] = "ShoulderSlot", -- Dreadful Smoldering Dreamheart,
+	[207479] = "ShoulderSlot", -- Mystic Smoldering Dreamheart,
+	[207480] = "ShoulderSlot", -- Venerated Smoldering Dreamheart,
+	[207481] = "ShoulderSlot", -- Zenith Smoldering Dreamheart,
+	[217316] = "ChestSlot",  -- Dreadful Fleeting Hourglass,
+	[217317] = "ChestSlot",  -- Mystic Fleeting Hourglass,
+	[217318] = "ChestSlot",  -- Venerated Fleeting Hourglass,
+	[217319] = "ChestSlot",  -- Zenith Fleeting Hourglass,
+	[217320] = "HandsSlot",  -- Dreadful Quickened Bronzestone,
+	[217321] = "HandsSlot",  -- Mystic Quickened Bronzestone,
+	[217322] = "HandsSlot",  -- Venerated Quickened Bronzestone,
+	[217323] = "HandsSlot",  -- Zenith Quickened Bronzestone,
+	[217324] = "HeadSlot",   -- Dreadful Decelerating Chronograph,
+	[217325] = "HeadSlot",   -- Mystic Decelerating Chronograph,
+	[217326] = "HeadSlot",   -- Venerated Decelerating Chronograph,
+	[217327] = "HeadSlot",   -- Zenith Decelerating Chronograph,
+	[217328] = "LegsSlot",   -- Dreadful Ephemeral Hypersphere,
+	[217329] = "LegsSlot",   -- Mystic Ephemeral Hypersphere,
+	[217330] = "LegsSlot",   -- Venerated Ephemeral Hypersphere,
+	[217331] = "LegsSlot",   -- Zenith Ephemeral Hypersphere,
+	[217332] = "ShoulderSlot", -- Dreadful Synchronous Timestrand,
+	[217333] = "ShoulderSlot", -- Mystic Synchronous Timestrand,
+	[217334] = "ShoulderSlot", -- Venerated Synchronous Timestrand,
+	[217335] = "ShoulderSlot", -- Zenith Synchronous Timestrand,
 }
 
 -- The base item level for the token on normal difficulty

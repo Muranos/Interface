@@ -187,10 +187,8 @@ L["S_WORLDQUESTS"] = "Expéditions"
 L["S_APOWER_AVAILABLE"] = "Disponible"
 L["S_APOWER_NEXTLEVEL"] = "Niveau suivant"
 L["S_DECREASESIZE"] = "Réduire la taille"
---[[Translation missing --]]
-L["S_DUNGEON"] = "Dungeon"
---[[Translation missing --]]
-L["S_ENABLE"] = "Enable"
+L["S_DUNGEON"] = "Donjon"
+L["S_ENABLE"] = "Activer"
 L["S_ENABLED"] = "Activé"
 L["S_ERROR_NOTIMELEFT"] = "Cette quête n'a pas de temps restant."
 L["S_ERROR_NOTLOADEDYET"] = "Cette quête n'est pas encore chargée, merci de patienter quelques secondes."
@@ -257,8 +255,7 @@ L["S_MAPBAR_OPTIONSMENU_STATUSBAR_VISIBILITY"] = "Afficher la Barre d'info"
 L["S_MAPBAR_OPTIONSMENU_STATUSBARANCHOR"] = "Attacher en  haut"
 L["S_MAPBAR_OPTIONSMENU_TRACKER_CURRENTZONE"] = "Zone actuelle seulement"
 L["S_MAPBAR_OPTIONSMENU_TRACKER_SCALE"] = "Échelle du Suivi : %s"
---[[Translation missing --]]
-L["S_MAPBAR_OPTIONSMENU_TRACKER_SCALE_NAME"] = "Tracker Scale"
+L["S_MAPBAR_OPTIONSMENU_TRACKER_SCALE_NAME"] = "Échelle de suivi"
 L["S_MAPBAR_OPTIONSMENU_TRACKERCONFIG"] = "Config du Suivi"
 L["S_MAPBAR_OPTIONSMENU_TRACKERMOVABLE_AUTO"] = "Position automatique"
 L["S_MAPBAR_OPTIONSMENU_TRACKERMOVABLE_CUSTOM"] = "Position personnalisée"
@@ -275,64 +272,59 @@ L["S_MAPBAR_SORTORDER_TIMELEFTPRIORITY_SHOWTEXT"] = "Texte temps restant"
 L["S_MAPBAR_SORTORDER_TIMELEFTPRIORITY_SORTBYTIME"] = "Trier par temps"
 L["S_MAPBAR_SORTORDER_TIMELEFTPRIORITY_TITLE"] = "Temps restant"
 L["S_MAPBAR_SUMMARYMENU_ACCOUNTWIDE"] = "Tous vos perso."
---[[Translation missing --]]
-L["S_OPENWORLD"] = "Open World"
+L["S_OPENWORLD"] = "Monde ouvert"
 L["S_OPTIONS_ACCESSIBILITY"] = "Accessibilité"
 L["S_OPTIONS_ACCESSIBILITY_EXTRATRACKERMARK"] = "Marque de Traçage Supplémentaire"
 L["S_OPTIONS_ACCESSIBILITY_SHOWBOUNTYRING"] = "Montrez l'Anneau de Récompense"
 L["S_OPTIONS_ANIMATIONS"] = "Faire des Animations"
---[[Translation missing --]]
-L["S_OPTIONS_GF_DONT_SHOW_IFGROUP"] = "Don't Show if Already in Group"
+L["S_OPTIONS_GF_DONT_SHOW_IFGROUP"] = "Ne pas Afficher si Déjà en Groupe"
+L["S_OPTIONS_GF_SHOWOPTIONS_BUTTON"] = "Afficher le Bouton des Options"
 L["S_OPTIONS_MAPFRAME_ALIGN"] = "Fenêtre de la Carte centré"
 L["S_OPTIONS_MAPFRAME_ERROR_SCALING_DISABLED"] = "Vous devez activer 'Échelle de la fenêtre de la carte' avant, aucune valeur n'a changé."
 L["S_OPTIONS_MAPFRAME_SCALE"] = "Échelle de la fenêtre de la carte"
 L["S_OPTIONS_MAPFRAME_SCALE_ENABLED"] = "Activer la mise à l'échelle de la Fenêtre de la carte"
---[[Translation missing --]]
-L["S_OPTIONS_OPEN"] = "Open Options Panel"
---[[Translation missing --]]
-L["S_OPTIONS_OPEN_FROM_INTERFACE_PANEL"] = "Open World Quest Tracker Options Menu"
---[[Translation missing --]]
-L["S_OPTIONS_PATHLINE"] = "Path Line"
---[[Translation missing --]]
-L["S_OPTIONS_QUEST_EMISSARY"] = "Emissary Quest Info"
+L["S_OPTIONS_OPEN"] = "Ouvrir le Panneau des Options"
+L["S_OPTIONS_OPEN_FROM_INTERFACE_PANEL"] = "Ouvrir les Options du Suivi des Quêtes du Monde"
+L["S_OPTIONS_PATHLINE"] = "Ligne de Trajet"
+L["S_OPTIONS_QUEST_EMISSARY"] = "Informations sur les Quêtes d'Émissaire"
 L["S_OPTIONS_QUESTBLACKLIST"] = "Liste Noire de Quêtes"
 L["S_OPTIONS_RESET"] = "Réinitialiser"
---[[Translation missing --]]
-L["S_OPTIONS_SHOW_MINIMIZE_BUTTON"] = "Show Minimize Button"
+L["S_OPTIONS_SHOW_FILTER_BUTTON"] = "Afficher le bouton de filtre"
+L["S_OPTIONS_SHOW_MINIMIZE_BUTTON"] = "Afficher le Bouton de Réduction"
+L["S_OPTIONS_SHOW_SORT_BUTTON"] = "Afficher le bouton de tri"
+L["S_OPTIONS_SHOW_TIMELEFT_BUTTON"] = "Afficher le bouton de temps restant"
+L["S_OPTIONS_SHOW_WORLDSHORTCUT_BUTTON"] = "Afficher les raccourcis pour le monde"
 L["S_OPTIONS_SHOWFACTIONS"] = "Afficher les Factions"
---[[Translation missing --]]
-L["S_OPTIONS_TALKINGHEADS"] = "Supress Talking Heads"
+L["S_OPTIONS_TALKINGHEADS"] = "Supprimer les Fenêtres de Discussion"
 L["S_OPTIONS_TIMELEFT_NOPRIORITY"] = "Pas de priorité par Temps Restant"
---[[Translation missing --]]
-L["S_OPTIONS_TRACKER_ATTACH_TO_QUESTLOG"] = "Attach to Quest Log"
---[[Translation missing --]]
-L["S_OPTIONS_TRACKER_FLIGHTMASTER"] = "Oribos Flight Master"
+L["S_OPTIONS_TRACKER_ATTACH_TO_QUESTLOG"] = "Attacher au Journal de quêtes"
+L["S_OPTIONS_TRACKER_FLIGHTMASTER"] = "Maître de vol d'Oribos"
 L["S_OPTIONS_TRACKER_RESETPOSITION"] = "Réinitialiser la Position"
 L["S_OPTIONS_WORLD_ANCHOR_LEFT"] = "Ancrer du côté Gauche"
 L["S_OPTIONS_WORLD_ANCHOR_RIGHT"] = "Ancrer du côté Droit"
---[[Translation missing --]]
-L["S_OPTIONS_WORLD_ICONSPERROW"] = "Quest Amount Per Row"
+L["S_OPTIONS_WORLD_ICONSPERROW"] = "Nombre de quêtes par ligne"
 L["S_OPTIONS_WORLD_ORGANIZE_BYMAP"] = "Organiser par Cartes"
 L["S_OPTIONS_WORLD_ORGANIZE_BYTYPE"] = "Organiser par Type de Quêtes"
 --[[Translation missing --]]
-L["S_OPTIONS_WORLDMAP_ANCHOR_TO"] = "Attach To"
+L["S_OPTIONS_WORLD_SUMMARY_ALPHA"] = "Summary Alpha"
+L["S_OPTIONS_WORLDMAP_ANCHOR_TO"] = "Rattacher à"
+L["S_OPTIONS_WORLDMAP_ORGANIZEBY"] = "Organiser les quêtes par"
 --[[Translation missing --]]
-L["S_OPTIONS_WORLDMAP_ORGANIZEBY"] = "Organize Quests By"
+L["S_OPTIONS_WORLDMAP_WIDGET_ALPHA"] = "Pin Alpha"
 L["S_OPTIONS_ZONE_SHOWONLYTRACKED"] = "Seulement Suivies"
 --[[Translation missing --]]
-L["S_OPTTIONS_TAB_GENERAL_SETTINGS"] = "General Settings"
+L["S_OPTTIONS_DRAGONRACE_MINIMAP"] = "Show Track Minimap"
 --[[Translation missing --]]
-L["S_OPTTIONS_TAB_GROUPFINDER_SETTINGS"] = "Group Finder"
+L["S_OPTTIONS_DRAGONRACE_TRACKCOLOR"] = "Track Color"
 --[[Translation missing --]]
-L["S_OPTTIONS_TAB_IGNOREDQUESTS_SETTINGS"] = "Ignored Quests"
---[[Translation missing --]]
+L["S_OPTTIONS_TAB_DRAGONRACE_SETTINGS"] = "Dragon Race"
+L["S_OPTTIONS_TAB_GENERAL_SETTINGS"] = "Paramètres Généraux"
+L["S_OPTTIONS_TAB_GROUPFINDER_SETTINGS"] = "Recherche de Groupe"
+L["S_OPTTIONS_TAB_IGNOREDQUESTS_SETTINGS"] = "Quêtes ignorées"
 L["S_OPTTIONS_TAB_RARES_SETTINGS"] = "Rares"
---[[Translation missing --]]
-L["S_OPTTIONS_TAB_TRACKER_SETTINGS"] = "Tracker"
---[[Translation missing --]]
-L["S_OPTTIONS_TAB_WORLDMAP_SETTINGS"] = "World Map"
---[[Translation missing --]]
-L["S_OPTTIONS_TAB_ZONEMAP_SETTINGS"] = "Zone Map"
+L["S_OPTTIONS_TAB_TRACKER_SETTINGS"] = "Suivi"
+L["S_OPTTIONS_TAB_WORLDMAP_SETTINGS"] = "Carte du Monde"
+L["S_OPTTIONS_TAB_ZONEMAP_SETTINGS"] = "Carte de la Zone"
 L["S_OVERALL"] = "Total"
 L["S_PARTY"] = "Groupe"
 L["S_PARTY_DESC1"] = "Une étoile bleue veut dire que tous le groupe a la quête."
@@ -349,7 +341,6 @@ L["S_QUESTTYPE_PROFESSION"] = "Profession"
 L["S_QUESTTYPE_PVP"] = "JcJ"
 L["S_QUESTTYPE_RESOURCE"] = "Ressources"
 L["S_QUESTTYPE_TRADESKILL"] = "Artisanat"
---[[Translation missing --]]
 L["S_RAID"] = "Raid"
 L["S_RAREFINDER_ADDFROMPREMADE"] = "Ajouter les Elites Trouvés dans les Groupes Personnalisés"
 L["S_RAREFINDER_NPC_NOTREGISTERED"] = "élite non répertoriée"
@@ -364,17 +355,19 @@ L["S_RAREFINDER_TOOLTIP_REMOVE"] = [=[Supprimer
 L["S_RAREFINDER_TOOLTIP_SEACHREALM"] = "Chercher sur d'autres royaumes"
 L["S_RAREFINDER_TOOLTIP_SPOTTEDBY"] = "Repéré par"
 L["S_RAREFINDER_TOOLTIP_TIMEAGO"] = "il y a Quelques Minutes"
+L["S_SCALE"] = "Échelle"
 --[[Translation missing --]]
-L["S_SCALE"] = "Scale"
+L["S_SLASH_OPENMAP_FIRST"] = "World Quest Tracker did not loaded yet, open the map to load."
 L["S_SUMMARYPANEL_EXPIRED"] = "EXPIRÉ"
 L["S_SUMMARYPANEL_LAST15DAYS"] = "Les 15 derniers jours"
 L["S_SUMMARYPANEL_LIFETIMESTATISTICS_ACCOUNT"] = "Statistiques de votre compte "
 L["S_SUMMARYPANEL_LIFETIMESTATISTICS_CHARACTER"] = "Statistiques de votre personnage "
 L["S_SUMMARYPANEL_OTHERCHARACTERS"] = "Autres personnages"
---[[Translation missing --]]
-L["S_TEXT_SIZE"] = "Text Size"
+L["S_TEXT_SIZE"] = "Taille du texte"
 --[[Translation missing --]]
 L["S_TORGAST"] = "Torgasth"
+--[[Translation missing --]]
+L["S_TRACKEROPTIONS_BACKGROUNDALPHA"] = "Background Alpha"
 L["S_TUTORIAL_AMOUNT"] = "Indique le montant à recevoir"
 L["S_TUTORIAL_CLICKTOTRACK"] = "Cliquez pour suivre une quête."
 L["S_TUTORIAL_PARTY"] = "Dans un groupe, une étoile bleue indique les quêtes que tous le groupe fait !"
@@ -389,6 +382,8 @@ Cliquez sur |cFFFFAA11Afficher les quêtes|r pour cacher les emplacements de qu�
 ]=]
 L["S_TUTORIAL_WORLDMAPBUTTON"] = "Ce bouton vous apporte la carte des îles brisées."
 L["S_UNKNOWNQUEST"] = "Quête inconnue"
+--[[Translation missing --]]
+L["S_VISIBILITY"] = "Visibility"
 L["S_WHATSNEW"] = "Quoi de Neuf ?"
 L["S_WORLDBUTTONS_SHOW_TYPE"] = "Afficher par Type"
 L["S_WORLDBUTTONS_SHOW_ZONE"] = "Trier par Zone"

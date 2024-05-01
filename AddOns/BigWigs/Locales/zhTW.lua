@@ -9,11 +9,15 @@ L.altpower_desc = "顯示替代能量視窗，顯示團隊成員的替代能量�
 L.infobox = "訊息盒"
 L.infobox_desc = "顯示當前戰鬥相關的訊息。"
 L.stages = "階段"
-L.stages_desc = "對應首領的不同階段啟用相關功能，如玩家雷達、計時條等。"
+L.stages_desc = "啟用首領戰鬥中與階段相關的各種功能，例如階段轉換的訊息提示、階段持續時間的計時器等。"
 L.warmup = "預備"
 L.warmup_desc = "首領戰鬥之前的預備時間。"
 L.proximity = "玩家雷達"
 L.proximity_desc = "顯示玩家雷達視窗，列出距離你過近的玩家。"
+L.adds = "增援"
+L.adds_desc = "啟用與首領戰鬥中出現的增援相關的各種功能。"
+L.health = "生命值"
+L.health_desc = "顯示與首領戰鬥中相關的生命值資訊。"
 
 L.already_registered = "|cffff0000警告：|r |cff00ff00%s|r（|cffffff00%s|r）在 BigWigs 中已經存在，但該模組仍試圖重新註冊。通常來說，這可能是由於更新失敗導致你的插件資料夾中同時存在兩份相同模組的拷貝。建議刪除所有 BigWigs 資料夾並重新安裝。"
 L.testNameplate = "檢測到目標，在目標名條上創建一個測試計時條。 |cFF33FF99這個功能相當少用，並且通常一次只會有一條；通常用於分別監視多個目標的同個技能冷卻。|r"
@@ -54,7 +58,9 @@ L.expansionNames = {
 	"決戰艾澤拉斯", -- Battle for Azeroth
 	"暗影之境", -- Shadowlands
 	"巨龍崛起", -- Dragonflight
+	"地心之戰", -- The War Within
 }
+L.currentSeason = "當前賽季"
 
 -- Media.lua (These are the names of the sounds in the dropdown list in the "sounds" section)
 L.Beware = "當心（艾爾加隆）"
@@ -66,7 +72,7 @@ L.spell_under_you = "BigWigs: 法術在你腳下"
 
 -- Options.lua
 L.options = "選項"
-L.optionsKey = "ID:%s" -- The key that messages/bars/options use
+L.optionsKey = "ID: %s" -- The ID that messages/bars/options use
 L.raidBosses = "團隊首領"
 L.dungeonBosses = "地城首領"
 L.introduction = "歡迎使用 BigWigs 戲弄各個首領。請繫好安全帶，吃吃花生並享受這次旅行。它不會吃了你的孩子，但會協助你的團隊與新的首領進行戰鬥，如同享受饕餮大餐一樣。"
@@ -77,8 +83,6 @@ L.toggleAnchorsBtnHide_desc = "隱藏所有移動錨點，並鎖定所有元素�
 L.testBarsBtn = "創建測試計時條"
 L.testBarsBtn_desc = "創建一個測試計時條以測試當前顯示設定。"
 L.sound = "音效"
-L.flashScreen = "螢幕閃爍"
-L.flashScreenDesc = "某些技能極其重要到需要充分被重視。當這些能力對你造成影響時 BigWigs 可以使螢幕閃爍。"
 L.minimapIcon = "小地圖圖示"
 L.minimapToggle = "打開或關閉小地圖圖示。"
 L.compartmentMenu = "隱藏暴雪插件收納按鈕"
@@ -94,6 +98,8 @@ L.dbmFaker = "假裝我是 DBM 用戶"
 L.dbmFakerDesc = "當一個 DBM 使用者執行版本檢查以確認哪些人用了 DBM 的時候，他們會看到你在名單之上。當你的公會強制要求使用DBM，這是很有用的。"
 L.zoneMessages = "顯示區域訊息"
 L.zoneMessagesDesc = "此選項於進入區域時提示可安裝的 BigWigs 模組。建議啟用此選項，因為當我們為一個新區域建立 BigWigs 模組，這將會是唯一的提示安裝訊息。"
+L.englishSayMessages = "英文喊話"
+L.englishSayMessagesDesc = "首領戰中所有以「說」與「大喊」發送的提示訊息都會以英文發送。這對多語言團隊非常有用。"
 
 L.slashDescTitle = "|cFFFED000指令：|r"
 L.slashDescPull = "|cFFFED000/pull:|r 發送拉怪倒數提示到團隊。"

@@ -624,6 +624,7 @@
 			esta_barra.minha_tabela = nil
 			esta_barra.animacao_fim = 0
 			esta_barra.animacao_fim2 = 0
+			if esta_barra.extraStatusbar then esta_barra.extraStatusbar:Hide() end
 		end
 
 		if (instancia.rolagem) then
@@ -719,8 +720,9 @@
 					self.barras [index]:SetWidth(self.baseframe:GetWidth()+self.bar_mod)
 				end
 			else
+				local rightOffset = self.row_info.row_offsets.right
 				for index = 1, self.rows_fit_in_window do
-					self.barras [index]:SetWidth(self.baseframe:GetWidth()+self.row_info.space.right)
+					self.barras [index]:SetWidth(self.baseframe:GetWidth()+self.row_info.space.right + rightOffset)
 				end
 			end
 
@@ -1242,7 +1244,7 @@
 		if (not _G.DetailsUpdateDialog) then
 			local updatewindow_frame = CreateFrame("frame", "DetailsUpdateDialog", UIParent, "ButtonFrameTemplate")
 			updatewindow_frame:SetFrameStrata("LOW")
-			tinsert(UISpecialFrames, "DetailsUpdateDialog")
+			table.insert(UISpecialFrames, "DetailsUpdateDialog")
 			updatewindow_frame:SetPoint("center", UIParent, "center")
 			updatewindow_frame:SetSize(512, 200)
 			--updatewindow_frame.portrait:SetTexture([[Interface\CHARACTERFRAME\TEMPORARYPORTRAIT-FEMALE-GNOME]])
@@ -1622,7 +1624,7 @@ function Details.ShowCopyValueFrame(textToShow)
 		frame:SetSize(160, 20)
 		frame:SetPoint("center", UIParent, "center", 0, 0)
 		DetailsFramework:ApplyStandardBackdrop(frame)
-		tinsert(UISpecialFrames, "DetailsCopyValueFrame")
+		table.insert(UISpecialFrames, "DetailsCopyValueFrame")
 
 		frame.editBox = CreateFrame("editbox", nil, frame)
 		frame.editBox:SetPoint("topleft", frame, "topleft")

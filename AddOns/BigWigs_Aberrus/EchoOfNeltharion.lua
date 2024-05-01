@@ -63,7 +63,6 @@ function mod:GetOptions()
 		402902, -- Twisted Earth
 		402115, -- Echoing Fissure
 		-- Stage 2
-		403057, -- Surrender to Corruption
 		{401010, "SAY", "ME_ONLY_EMPHASIZE"}, -- Corruption
 		407036, -- Hidden in Void
 		405433, -- Umbral Annihilation
@@ -75,7 +74,7 @@ function mod:GetOptions()
 		{407917, "CASTBAR", "CASTBAR_COUNTDOWN"}, -- Ebon Destruction
 	},{
 		[402902] = -26192, -- Stage 1
-		[403057] = -26421, -- Stage 2
+		[401010] = -26421, -- Stage 2
 		[407936] = -26422, -- Stage 3
 	},{
 		[407221] = L.rushing_darkness, -- Rushing Darkness (Knock Lines)
@@ -226,7 +225,7 @@ do
 		markedPlayer = player
 		self:TargetMessage("wall_breaker", "yellow", player, L.wall_breaker_message, 407221)
 		if self:Me(guid) then
-			self:Say("wall_breaker", CL.rticon:format(L.wall_breaker_message, 6))
+			self:Say("wall_breaker", CL.rticon:format(L.wall_breaker_message, 6), nil, "Wall Breaker ({rt%6})")
 			self:SayCountdown("wall_breaker", 5)
 		end
 		if self:CheckOption("wall_breaker", "ICON") then
@@ -334,7 +333,7 @@ do
 		playerList[#playerList+1] = args.destName
 		if self:Me(args.destGUID) then
 			self:PlaySound(401010, "warning")
-			self:Say(401010)
+			self:Say(401010, nil, nil, "Corruption")
 		end
 		self:TargetsMessage(401010, "yellow", playerList, nil, msg)
 	end

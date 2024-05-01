@@ -338,6 +338,10 @@ L["opt_autoGroupLoot_name"] = "Auto Group Loot"
 --[[Translation missing --]]
 L["opt_autoGroupLootGuildGroupOnly_desc"] = "When enabled, RCLootCouncil will only do group loot auto pass when you're in a guild group."
 L["opt_autoGroupLootGuildGroupOnly_name"] = "Groupe de Guilde uniquement; Si activé RCLootCouncil ne passera automatiquement que si vous êtes en groupe de guilde"
+--[[Translation missing --]]
+L["opt_autoPassWeapons_desc"] = "Check to enable auto passing of weapons your class can't equip."
+--[[Translation missing --]]
+L["opt_autoPassWeapons_name"] = "Auto Pass Weapons"
 L["opt_autoTrade_desc"] = "Cochez pour automatiquement ajouter les objets assignés à la fenêtre d'échange lorsque vous échanger avec le gagnant. Si décoché, vous verrez une popup avant que les objets ne soient ajoutés."
 L["opt_award_later_desc"] = "Cocher pour automatiquement cocher l'option \"Assigner plus tard\" dans la fenêtre de session."
 L["opt_buttonsGroup_desc"] = "Groupe d'options pour les boutons %s et les réponses. Voir plus haut pour une explication détaillée."

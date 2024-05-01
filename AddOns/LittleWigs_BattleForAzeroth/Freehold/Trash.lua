@@ -157,7 +157,7 @@ function mod:OnBossEnable()
 	self:Log("SPELL_AURA_APPLIED", "PoisoningStrikeApplied", 257437)
 	self:Log("SPELL_AURA_APPLIED_DOSE", "PoisoningStrikeApplied", 257437)
 	-- Cutwater Duelist
-	self:RegisterEvent("UNIT_SPELLCAST_START") -- for Duelist Dash
+	self:Log("SPELL_CAST_START", "DuelistDash", 274400)
 	-- Irontide Oarsman
 	self:Log("SPELL_CAST_SUCCESS", "SeaSpoutSuccess", 258777)
 	-- Cutwater Knife Juggler
@@ -285,17 +285,10 @@ end
 
 -- Cutwater Duelist
 
-do
-	local prev = nil
-	function mod:UNIT_SPELLCAST_START(_, unit, castGUID, spellId)
-		-- this is needed because Duelist Dash does not log SPELL_CAST_START
-		if spellId == 274400 and castGUID ~= prev then -- Duelist Dash
-			prev = castGUID
-			self:Message(274400, "red")
-			self:PlaySound(274400, "alarm")
-			--self:NameplateCDBar(274400, 17.0, self:UnitGUID(unit))
-		end
-	end
+function mod:DuelistDash(args)
+	self:Message(args.spellId, "red")
+	self:PlaySound(args.spellId, "alarm")
+	--self:NameplateCDBar(args.spellId, 17.0, args.sourceGUID)
 end
 
 -- Irontide Oarsman
@@ -315,7 +308,7 @@ do
 			local t = GetTime()
 			if t - prev > 2 then
 				prev = t
-				self:Say(272402)
+				self:Say(272402, nil, nil, "Ricocheting Throw")
 				self:TargetMessage(272402, "blue", name)
 				self:PlaySound(272402, "alert", nil, name)
 			end

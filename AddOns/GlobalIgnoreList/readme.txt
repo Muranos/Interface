@@ -202,6 +202,12 @@ The following commands are accessible by typing /gignore or /gi in the chat box:
 
 => VERSION HISTORY
 
+=> 10.1.7
+
+Updated for latest WoW release
+
+Renamed GUI function
+
 => 10.1.5
 
 Updated for latest WoW release

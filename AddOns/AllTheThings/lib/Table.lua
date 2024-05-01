@@ -44,6 +44,7 @@ end
 -- with a default fallback value if the field does not exist on the table entry
 app.TableConcat = function(tbl, field, def, sep, i, j)
 	if tbl then
+		sep = sep or ""
 		if field then
 			local tblvals = {};
 			for _,val in ipairs(tbl) do
@@ -61,7 +62,7 @@ app.ArrayAppend = function(a1, ...)
 	local arrs = select("#", ...);
 	if arrs > 0 then
 		a1 = a1 or {};
-		local i, a = #a1 + 1;
+		local i, a = #a1 + 1, nil;
 		for n=1,arrs do
 			a = select(n, ...);
 			if a then

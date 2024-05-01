@@ -86,17 +86,18 @@ function private:IncrementErrorCount (errObj)
 end
 
 function private:SanitizeLine (line)
-   return line:gsub("Interface\\AddOns\\", "")
+   return line and line:gsub("Interface\\AddOns\\", "") or ""
 end
 
 function private:DoesErrorExist (err)
-   for _, v in ipairs(self.log) do
+   for _, v in ipairs(self.log or {}) do
       if v.msg == err then return v end
    end
    return false
 end
 
 function private:IsRCLootCouncilError (line)
+   if not line then return false end
    -- Don't track lines related to the error handler
    if strfind(line, "ErrorHandler.lua") then
       return false
@@ -119,7 +120,7 @@ function private:IsRCLootCouncilError (line)
    end
 
    function private:ErrorHandler (msg)
-      local msg = strtrim(tostring(msg))
+      local msg = strtrim(tostring(msg or ""))
       -- Determine if it's an RCLootCouncil related error
       if not self:IsRCLootCouncilError(msg) then
          local found = false

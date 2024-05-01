@@ -1,7 +1,6 @@
 # LittleWigs
 
-## [v10.1.35](https://github.com/BigWigsMods/LittleWigs/tree/v10.1.35) (2023-08-18)
-[Full Changelog](https://github.com/BigWigsMods/LittleWigs/compare/v10.1.34...v10.1.35) [Previous Releases](https://github.com/BigWigsMods/LittleWigs/releases)
+## [v10.2.45](https://github.com/BigWigsMods/LittleWigs/tree/v10.2.45) (2024-04-25)
+[Full Changelog](https://github.com/BigWigsMods/LittleWigs/compare/v10.2.44...v10.2.45) [Previous Releases](https://github.com/BigWigsMods/LittleWigs/releases)
 
-- Dragonflight: Locale cleanups  
-- bump toc  
+- Initial support for Cataclysm Classic (#996)  

@@ -39,7 +39,7 @@ do
 	--helps blend the icons within the map texture
 	WQT_ZONEWIDGET_ALPHA =		0.97
 	WQT_WORLDWIDGET_ALPHA =		0.975
-	WQT_WORLDWIDGET_BLENDED =	ALPHA_BLEND_AMOUNT - 0.11
+	WQT_WORLDWIDGET_BLENDED =	ALPHA_BLEND_AMOUNT
 
 	WQT_ANIMATION_SPEED = 0.05
 
@@ -80,6 +80,9 @@ do
 
 	local default_config = {
 		profile = {
+			ignore_maps = {
+				[1978] = false, --dragon isles
+			},
 			filters = {
 				pet_battles = true,
 				pvp = true,
@@ -92,6 +95,12 @@ do
 				trade_skill = true,
 				reputation_token = true,
 				racing = true,
+			},
+
+			dragon_racing = {
+				minimap_enabled = true,
+				minimap_scale = 1,
+				minimap_track_color = {1, 1, 1},
 			},
 
 			sort_order = {
@@ -167,10 +176,13 @@ do
 				summary_scale = 0.95,
 				summary_showby = "bytype", --"bytype" or "byzone"
 				summary_anchor = "left",
-				summary_widgets_per_row = 10,
+				summary_widgets_per_row = 8,
 			},
 
-			disable_world_map_widgets = false,
+			disable_world_map_widgets = false, --a
+			show_filter_button = false, --a
+			show_sort_button = false, --a
+			show_timeleft_button = true, --a
 
 			show_emissary_info = true,
 
@@ -185,7 +197,12 @@ do
 				use_bounty_ring = false,--a
 			},--a
 
+			show_world_shortcuts = false,
+
 			last_news_time = 0,
+
+			world_summary_alpha = 0.843, --parei fazendo a substituição dos valores hardcoded to these values, parei na criação da opção de mudar o alpha, parei procurando as funções que atualiza of frames com o novo alpha
+			worldmap_widget_alpha = 0.843,
 
 			hoverover_animations = true, --hover and shown slider animations
 			anchor_options = {}, --store the anchor options of each anchor
@@ -220,6 +237,7 @@ do
 			tracker_scale = 1,
 			tracker_show_time = false,
 			tracker_textsize = 12,
+			tracker_background_alpha = 0.15,
 
 			talking_heads_heard = {},--a
 			talking_heads_torgast = false,--a
@@ -232,7 +250,7 @@ do
 
 			show_faction_frame = true,--a
 
-			map_frame_anchor = "center",--a
+			map_frame_anchor = "left",--a
 
 			map_frame_scale_enabled = false,--a
 			map_frame_scale_mod = 1,--a
@@ -329,6 +347,7 @@ do
 
 	--store zone widgets
 	WorldQuestTracker.ZoneWidgetPool = {}
+	WorldQuestTracker.VignettePool = {}
 	--default world quest pins
 	WorldQuestTracker.DefaultWorldQuestPin = {}
 	WorldQuestTracker.ShowDefaultWorldQuestPin = {}
@@ -404,9 +423,6 @@ do
 		WorldMapSquareSize = 24,
 		TimeBlipSize = 14,
 	}
-
-	WorldQuestTrackerAddon.WorldWidgetAlpha = .75
-	WorldQuestTrackerAddon.WorldWidgetSmallAlpha = .75
 
 	WorldQuestTracker.ChangeLogTable = {}
 end

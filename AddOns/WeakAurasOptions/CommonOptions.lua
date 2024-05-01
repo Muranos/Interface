@@ -1,5 +1,8 @@
 if not WeakAuras.IsLibsOK() then return end
-local AddonName, OptionsPrivate = ...
+---@type string
+local AddonName = ...
+---@class OptionsPrivate
+local OptionsPrivate = select(2, ...)
 
 local L = WeakAuras.L
 
@@ -374,8 +377,17 @@ end
 
 local function CreateHiddenAll(subOption)
   return function(data, info)
+    local mainOptions = OptionsPrivate.EnsureOptions(data, subOption)
+    for i=1,#info do
+      mainOptions = mainOptions.args[info[i]];
+    end
+
     if(#data.controlledChildren == 0) then
-      return true;
+      if mainOptions.hiddenAllIfAnyHidden then
+        return false
+      else
+        return true
+      end
     end
 
     for child in  OptionsPrivate.Private.TraverseLeafs(data) do
@@ -387,13 +399,24 @@ local function CreateHiddenAll(subOption)
         childOptionTable[i] = childOption;
       end
       if (childOption) then
-        if (not hiddenChild(childOptionTable, info)) then
-          return false;
+        local childHidden = hiddenChild(childOptionTable, info)
+        if mainOptions.hiddenAllIfAnyHidden then
+          if childHidden then
+            return true
+          end
+        else
+          if not childHidden then
+            return false
+          end
         end
       end
     end
 
-    return true;
+    if mainOptions.hiddenAllIfAnyHidden then
+      return false
+    else
+      return true
+    end
   end
 end
 
@@ -721,6 +744,11 @@ local function replaceNameDescFuncs(intable, data, subOption)
                       if(type(display) == "number") then
                         display = math.floor(display * 100) / 100;
                       else
+                        local nullBytePos = display:find("\0", nil, true)
+                        if nullBytePos then
+                          display = display:sub(1, nullBytePos - 1)
+                        end
+
                         if #display > 50 then
                           display = display:sub(1, 50) .. "..."
                         end
@@ -1021,6 +1049,153 @@ local function CreateExecuteAll(subOption)
   end
 end
 
+local function ProgressOptions(data)
+  local order = 1
+  local options = {
+    __title = L["Progress Settings"],
+    __order = 98,
+  }
+
+  options.progressSource = {
+    type = "select",
+    width = WeakAuras.doubleWidth,
+    name = L["Progress Source"],
+    order = order,
+    control = "WeakAurasTwoColumnDropdown",
+    values = OptionsPrivate.Private.GetProgressSourcesForUi(data),
+    get = function(info)
+      return OptionsPrivate.Private.GetProgressValueConstant(data.progressSource)
+    end,
+    set = function(info, value)
+      if value then
+        data.progressSource = data.progressSource or {}
+        -- Copy only trigger + property
+        data.progressSource[1] = value[1]
+        data.progressSource[2] = value[2]
+      else
+        data.progressSource = nil
+      end
+      WeakAuras.Add(data)
+    end
+  }
+
+  options.progressSourceWarning = {
+    type = "description",
+    width = WeakAuras.doubleWidth,
+    name = L["Note: This progress source does not provide a total value/duration. A total value/duration must be set via \"Set Maximum Progress\""],
+    order = order + 0.5,
+    hidden = function()
+      local progressSource = OptionsPrivate.Private.AddProgressSourceMetaData(data, data.progressSource)
+      -- Auto progress, Manual Progress or the progress source has a total property
+      if not progressSource or progressSource[2] == "auto" or progressSource[1] == 0 or progressSource[4] ~= nil then
+        return true
+      end
+      return false
+    end
+  }
+
+  local function hiddenManual()
+    if data.progressSource and data.progressSource[1] == 0 then
+      return false
+    end
+    return true
+  end
+
+  options.progressSourceManualValue = {
+    type = "range",
+    control = "WeakAurasSpinBox",
+    width = WeakAuras.normalWidth,
+    name = L["Value"],
+    order = order + 0.7,
+    min = 0,
+    softMax = 100,
+    bigStep = 1,
+    hidden = hiddenManual,
+    get = function(info)
+      return data.progressSource and data.progressSource[3] or 0
+    end,
+    set = function(info, value)
+      data.progressSource = data.progressSource or {}
+      data.progressSource[3] = value
+      WeakAuras.Add(data)
+    end
+  }
+
+  options.progressSourceManualTotal = {
+    type = "range",
+    control = "WeakAurasSpinBox",
+    width = WeakAuras.normalWidth,
+    name = L["Total"],
+    order = order + 0.8,
+    min = 0,
+    softMax = 100,
+    bigStep = 1,
+    hidden = hiddenManual,
+    get = function(info)
+      return data.progressSource and data.progressSource[4] or 100
+    end,
+    set = function(info, value)
+      data.progressSource = data.progressSource or {}
+      data.progressSource[4] = value
+      WeakAuras.Add(data)
+    end
+  }
+
+  options.useAdjustededMin = {
+    type = "toggle",
+    width = WeakAuras.normalWidth,
+    name = L["Set Minimum Progress"],
+    desc = L["Values/Remaining Time below this value are displayed as zero progress."],
+    order = order + 1
+  };
+
+  options.adjustedMin = {
+    type = "input",
+    validate = WeakAuras.ValidateNumericOrPercent,
+    width = WeakAuras.normalWidth,
+    order = order + 2,
+    name = L["Minimum"],
+    hidden = function() return not data.useAdjustededMin end,
+    desc = L["Enter static or relative values with %"]
+  };
+
+  options.useAdjustedMinSpacer = {
+    type = "description",
+    width = WeakAuras.normalWidth,
+    name = "",
+    order = order + 3,
+    hidden = function() return not (not data.useAdjustededMin and data.useAdjustededMax) end,
+  }
+
+  options.useAdjustededMax = {
+    type = "toggle",
+    width = WeakAuras.normalWidth,
+    name = L["Set Maximum Progress"],
+    desc = L["Values/Remaining Time above this value are displayed as full progress."],
+    order = order + 4
+  }
+
+  options.adjustedMax = {
+    type = "input",
+    width = WeakAuras.normalWidth,
+    validate = WeakAuras.ValidateNumericOrPercent,
+    order = order + 5,
+    name = L["Maximum"],
+    hidden = function() return not data.useAdjustededMax end,
+    desc = L["Enter static or relative values with %"]
+  }
+
+  options.useAdjustedMaxSpacer = {
+    type = "description",
+    width = WeakAuras.normalWidth,
+    name = "",
+    order = order + 6,
+    hidden = function() return not (data.useAdjustededMin and not data.useAdjustededMax) end,
+  }
+
+  return options
+end
+
 local function PositionOptions(id, data, _, hideWidthHeight, disableSelfPoint, group)
   local metaOrder = 99
   local function IsParentDynamicGroup()
@@ -1098,7 +1273,7 @@ local function PositionOptions(id, data, _, hideWidthHeight, disableSelfPoint, g
       order = 72,
       image = function() return "", 0, 0 end,
       hidden = function()
-        return IsParentDynamicGroup() or not (data.anchorFrameType == "SCREEN" or data.anchorFrameType == "UIPARENT" or data.anchorFrameType == "MOUSE")
+        return IsParentDynamicGroup() or not (data.anchorFrameType == "SCREEN" or data.anchorFrameType == "UIPARENT" or data.anchorFrameType == "MOUSE" or IsGroupByFrame())
       end,
     },
     -- Input field to select frame to anchor on
@@ -1108,7 +1283,7 @@ local function PositionOptions(id, data, _, hideWidthHeight, disableSelfPoint, g
       name = L["Frame"],
       order = 73,
       hidden = function()
-        if (IsParentDynamicGroup()) then
+        if (IsParentDynamicGroup() or IsGroupByFrame()) then
           return true;
         end
         return not (data.anchorFrameType == "SELECTFRAME")
@@ -1121,7 +1296,7 @@ local function PositionOptions(id, data, _, hideWidthHeight, disableSelfPoint, g
       name = L["Choose"],
       order = 74,
       hidden = function()
-        if (IsParentDynamicGroup()) then
+        if (IsParentDynamicGroup() or IsGroupByFrame()) then
           return true;
         end
         return not (data.anchorFrameType == "SELECTFRAME")
@@ -1161,7 +1336,7 @@ local function PositionOptions(id, data, _, hideWidthHeight, disableSelfPoint, g
           if IsParentDynamicGroup() then
             return true
           end
-          return data.anchorFrameType == "SCREEN" or data.anchorFrameType == "UIPARENT" or data.anchorFrameType == "MOUSE";
+          return data.anchorFrameType == "SCREEN" or data.anchorFrameType == "MOUSE";
         else
           return data.anchorFrameType == "MOUSE";
         end
@@ -1178,7 +1353,7 @@ local function PositionOptions(id, data, _, hideWidthHeight, disableSelfPoint, g
         if IsGroupByFrame() then
           return true
         end
-        if (data.anchorFrameType ~= "SCREEN" and data.anchorFrameType ~= "UIPARENT") then
+        if (data.anchorFrameType ~= "SCREEN") then
           return true;
         end
         if (data.parent) then
@@ -1262,7 +1437,7 @@ local function PositionOptions(id, data, _, hideWidthHeight, disableSelfPoint, g
 
   OptionsPrivate.commonOptions.AddCodeOption(positionOptions, data, L["Custom Anchor"], "custom_anchor",
                       "https://github.com/WeakAuras/WeakAuras2/wiki/Custom-Code-Blocks#custom-anchor-function",
-                      71.5, function() return not(data.anchorFrameType == "CUSTOM" and not IsParentDynamicGroup()) end,
+                      71.5, function() return not(data.anchorFrameType == "CUSTOM" and not IsParentDynamicGroup() and not IsGroupByFrame()) end,
                       {"customAnchor"}, false, { setOnParent = group })
   return positionOptions;
 end
@@ -1601,6 +1776,7 @@ OptionsPrivate.commonOptions.CreateSetAll = CreateSetAll
 OptionsPrivate.commonOptions.CreateExecuteAll = CreateExecuteAll
 
 OptionsPrivate.commonOptions.PositionOptions = PositionOptions
+OptionsPrivate.commonOptions.ProgressOptions = ProgressOptions
 OptionsPrivate.commonOptions.BorderOptions = BorderOptions
 OptionsPrivate.commonOptions.AddCodeOption = AddCodeOption
 

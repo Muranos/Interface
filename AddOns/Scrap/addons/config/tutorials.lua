@@ -1,23 +1,17 @@
 --[[
-Copyright 2008-2023 João Cardoso
+Copyright 2008-2024 João Cardoso
 All Rights Reserved
 --]]
 
 local Tutorials = Scrap:NewModule('Tutorials', 'CustomTutorials-2.1')
 local L = LibStub('AceLocale-3.0'):GetLocale('Scrap')
 
-function Tutorials:Start()
-	self:Load()
-	self:TriggerTutorial(5)
+function Tutorials:OnEnable()
+	self:Register()
+	self:TriggerTutorial(1)
 end
 
-function Tutorials:Reset()
-	self:Load()
-	self:ResetTutorials()
-	self:TriggerTutorial(5)
-end
-
-function Tutorials:Load()
+function Tutorials:Register()
 	self:RegisterTutorials {
 		savedvariable = Scrap.sets,
 		key = 'tutorial',
@@ -25,9 +19,9 @@ function Tutorials:Load()
 
 		{
 			text = L.Tutorial_Welcome,
-			image = 'Interface/Addons/Scrap/art/scrap-enabled',
+			image = 'Interface/Addons/Scrap/art/scrap-big',
+			imageW = 128, imageH = 128,
 			point = 'CENTER',
-			height = 150,
 		},
 		{
 			text = L.Tutorial_Button,
@@ -54,15 +48,26 @@ function Tutorials:Load()
 			image = 'Interface/Addons/Scrap/art/tutorial-visualizer',
 			shineRight = -2, shineLeft = 2, shineTop = 6,
 			point = 'TOPLEFT', relPoint = 'TOPRIGHT',
-			shine = Scrap.Visualizer.ParentTab,
+			shine = Scrap.Visualizer and Scrap.Visualizer.ParentTab,
 			anchor = MerchantFrame,
 			y = -16,
 		},
 		{
 			text = L.Tutorial_Bye,
-			image = 'Interface/Addons/Scrap/art/scrap-enabled',
+			image = 'Interface/Addons/Scrap/art/scrap-big',
+			imageW = 128, imageH = 128,
 			point = 'CENTER',
-			height = 150,
-		},
+		}
 	}
+end
+
+function Tutorials:Start()
+	self:Register()
+	self:TriggerTutorial(5)
+end
+
+function Tutorials:Restart()
+	self:Register()
+	self:ResetTutorials()
+	self:TriggerTutorial(1)
 end

@@ -1,4 +1,4 @@
--- Generated from CurseForge on Sun Sep  3 08:20:34 UTC 2023
+-- Generated from CurseForge on Wed May  1 08:11:09 UTC 2024
 local ns = select(2, ...) ---@class ns @The addon namespace.
 
 if ns:IsSameLocale("koKR") then
@@ -22,6 +22,16 @@ L["AUTO_COMBATLOG_DESC"] = "지원되는 던전,공격대에 입장 및 퇴장 �
 L["BEST_FOR_DUNGEON"] = "던전 최고 기록"
 L["BEST_RUN"] = "최고 기록"
 L["BEST_SCORE"] = "최고 쐐기 점수 (%s)"
+--[[Translation missing --]]
+--[[ L["BINDING_CATEGORY_RAIDERIO"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["BINDING_HEADER_RAIDERIO_REPLAYUI"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["BINDING_NAME_RAIDERIO_REPLAYUI_TIMING_BOSS"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["BINDING_NAME_RAIDERIO_REPLAYUI_TIMING_DUNGEON"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["BINDING_NAME_RAIDERIO_REPLAYUI_TOGGLE"] = ""--]] 
 L["CANCEL"] = "취소"
 L["CHANGES_REQUIRES_UI_RELOAD"] = [=[변경 사항이 저장되었지만 변경 사항을 적용하려면 UI를 다시 불러와야 합니다.
 
@@ -74,10 +84,15 @@ L["DISABLE_DEBUG_MODE_RELOAD"] = [=[귀하는 디버그 모드를 비활성화�
 --[[ L["DISABLE_RWF_MODE_RELOAD"] = ""--]] 
 L["DPS"] = "|cffFF3636공격전담|r"
 L["DUNGEON_SHORT_NAME_AA"] = "대학"
+L["DUNGEON_SHORT_NAME_AD"] = "아탈"
 L["DUNGEON_SHORT_NAME_AV"] = "하늘빛"
 L["DUNGEON_SHORT_NAME_BH"] = "담쟁이"
+L["DUNGEON_SHORT_NAME_BRH"] = "검떼"
 L["DUNGEON_SHORT_NAME_COS"] = "별궁"
+L["DUNGEON_SHORT_NAME_DHT"] = "어숲"
 L["DUNGEON_SHORT_NAME_DOS"] = "저편"
+L["DUNGEON_SHORT_NAME_EB"] = "상록숲"
+L["DUNGEON_SHORT_NAME_FALL"] = "몰락"
 L["DUNGEON_SHORT_NAME_FH"] = "자유"
 L["DUNGEON_SHORT_NAME_GD"] = "정비소"
 L["DUNGEON_SHORT_NAME_GMBT"] = "승부수"
@@ -92,6 +107,7 @@ L["DUNGEON_SHORT_NAME_NL"] = "넬둥"
 L["DUNGEON_SHORT_NAME_NO"] = "노쿠드"
 L["DUNGEON_SHORT_NAME_NW"] = "죽상"
 L["DUNGEON_SHORT_NAME_PF"] = "역병"
+L["DUNGEON_SHORT_NAME_RISE"] = "현신"
 L["DUNGEON_SHORT_NAME_RLP"] = "루비"
 L["DUNGEON_SHORT_NAME_SBG"] = "어둠달"
 L["DUNGEON_SHORT_NAME_SD"] = "심연"
@@ -99,11 +115,13 @@ L["DUNGEON_SHORT_NAME_SOA"] = "승천"
 L["DUNGEON_SHORT_NAME_STRT"] = "거리"
 L["DUNGEON_SHORT_NAME_TJS"] = "옥룡사"
 L["DUNGEON_SHORT_NAME_TOP"] = "투기장"
+L["DUNGEON_SHORT_NAME_TOTT"] = "파도"
 L["DUNGEON_SHORT_NAME_ULD"] = "울다만"
 L["DUNGEON_SHORT_NAME_UNDR"] = "썩은굴"
 L["DUNGEON_SHORT_NAME_UPPR"] = "상층"
 L["DUNGEON_SHORT_NAME_VOTW"] = "금고"
 L["DUNGEON_SHORT_NAME_VP"] = "누각"
+L["DUNGEON_SHORT_NAME_WM"] = "웨이"
 L["DUNGEON_SHORT_NAME_WORK"] = "작업장"
 L["DUNGEON_SHORT_NAME_YARD"] = "고철장"
 L["ENABLE_AUTO_FRAME_POSITION"] = "내 프로필 프레임 위치 자동화"
@@ -127,6 +145,8 @@ L["ENABLE_RWF_MODE_BUTTON_TOOLTIP"] = "월드 퍼스트 레이스 모드를 활�
 L["ENABLE_RWF_MODE_RELOAD"] = "월드 퍼스트 레이스(Race to World First) 모드를 활성화하고 있습니다. 신화적인 세계 최초 달성을 위한 경쟁에 사용하기 위한 것이며, 데이터 업로드를 위해 Raider.IO 클라이언트와 함께 사용해야 합니다. 확인을 클릭하면 인터페이스가 다시 로드됩니다."
 L["ENABLE_SIMPLE_SCORE_COLORS"] = "표준 색상 사용"
 L["ENABLE_SIMPLE_SCORE_COLORS_DESC"] = "표준 아이템 품질의 색상만으로 점수를 표시합니다. 이렇게 하면 색각 보정이 필요한 사람들이 점수 등급을 쉽게 구분할 수 있습니다."
+--[[Translation missing --]]
+--[[ L["ENTER_REALM_AND_CHARACTER"] = ""--]] 
 L["EXPORTJSON_COPY_TEXT"] = "다음을 복사하여 |cff00C8FFhttps://raider.io|r에 붙여 넣어 모든 플레이어를 찾으십시오."
 L["GENERAL_TOOLTIP_OPTIONS"] = "일반 툴팁 옵션"
 L["GUILD_BEST_SEASON"] = "길드: 시즌 최고"
@@ -153,10 +173,22 @@ L["HIDE_OWN_PROFILE"] = "개인 RaiderIO 프로필 툴팁 숨기기"
 L["HIDE_OWN_PROFILE_DESC"] = "설정하면 자신의 RaiderIO 프로필 툴팁이 표시되지 않지만 다른 플레이어의 프로필 툴팁이 있으면 표시 할 수 있습니다."
 L["INVERSE_PROFILE_MODIFIER"] = "프로필 전환 사용"
 L["INVERSE_PROFILE_MODIFIER_DESC"] = "툴팁에 프로필 표시 전환 사용. 보조키(Shift/Ctrl/Alt) 유지시 개인 프로필과 파티장 프로필이 전환됩니다."
+--[[Translation missing --]]
+--[[ L["LOCALE_NAME"] = ""--]] 
 L["LOCKING_PROFILE_FRAME"] = "RaiderIO: 프로필 고정"
 L["MAINS_BEST_SCORE_BEST_SEASON"] = "주 캐릭터 최고 쐐기 점수 (%s)"
 L["MAINS_RAID_PROGRESS"] = "주 캐릭터 진행상황"
 L["MAINS_SCORE"] = "주 캐릭터 점수"
+--[[Translation missing --]]
+--[[ L["MINIMAP_SHORTCUT_ENABLE"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["MINIMAP_SHORTCUT_ENABLE_DESC"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["MINIMAP_SHORTCUT_HEADER"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["MINIMAP_SHORTCUT_HELP"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["MINIMAP_SHORTCUT_LOCK"] = ""--]] 
 L["MODULE_AMERICAS"] = "북미"
 L["MODULE_EUROPE"] = "유럽"
 L["MODULE_KOREA"] = "한국"
@@ -184,6 +216,39 @@ L["PROFILE_BEST_RUNS"] = "던전별 최고 기록"
 L["PROVIDER_NOT_LOADED"] = "|cffFF0000경고:|r |cffFFFFFF%s|r은(는) 현재 진영에 대한 데이터를 찾을 수 없습니다. |cffFFFFFF/raiderio|r 설정을 확인하고 |cffFFFFFF%s|r에 대한 툴팁 데이터를 활성화하십시오."
 --[[Translation missing --]]
 --[[ L["PVP_DATA_HEADER"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_AATDH"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_AATSC"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_AVOTI"] = ""--]] 
+L["RAID_BOSS_AATDH_1"] = "옹이뿌리"
+L["RAID_BOSS_AATDH_2"] = "잔혹한 이기라"
+L["RAID_BOSS_AATDH_3"] = "볼코로스"
+L["RAID_BOSS_AATDH_4"] = "꿈의 의회"
+L["RAID_BOSS_AATDH_5"] = "불꽃지기 라로다르"
+L["RAID_BOSS_AATDH_6"] = "순환의 방직공 니무에"
+L["RAID_BOSS_AATDH_7"] = "스몰데론"
+L["RAID_BOSS_AATDH_8"] = "틴드랄 세이지스위프트"
+L["RAID_BOSS_AATDH_9"] = "광염의 피락"
+L["RAID_BOSS_AATSC_1"] = "지옥벼림 카자라"
+L["RAID_BOSS_AATSC_2"] = "융합체의 방"
+L["RAID_BOSS_AATSC_3"] = "잊힌 실험체"
+L["RAID_BOSS_AATSC_4"] = "자칼리의 습격"
+L["RAID_BOSS_AATSC_5"] = "장로 라소크"
+L["RAID_BOSS_AATSC_6"] = "경계하는 청지기 지스카른"
+L["RAID_BOSS_AATSC_7"] = "마그모락스"
+L["RAID_BOSS_AATSC_8"] = "넬타리온의 메아리"
+L["RAID_BOSS_AATSC_9"] = "비늘사령관 사카레스"
+L["RAID_BOSS_ATDH_1"] = "옹이뿌리"
+L["RAID_BOSS_ATDH_2"] = "잔혹한 이기라"
+L["RAID_BOSS_ATDH_3"] = "볼코로스"
+L["RAID_BOSS_ATDH_4"] = "꿈의 의회"
+L["RAID_BOSS_ATDH_5"] = "불꽃지기 라로다르"
+L["RAID_BOSS_ATDH_6"] = "순환의 방직공 니무에"
+L["RAID_BOSS_ATDH_7"] = "스몰데론"
+L["RAID_BOSS_ATDH_8"] = "틴드랄 세이지스위프트"
+L["RAID_BOSS_ATDH_9"] = "광염의 피락"
 L["RAID_BOSS_ATSC_1"] = "지옥벼림 카자라"
 L["RAID_BOSS_ATSC_2"] = "융합체의 방"
 L["RAID_BOSS_ATSC_3"] = "잊힌 실험체"
@@ -193,6 +258,14 @@ L["RAID_BOSS_ATSC_6"] = "경계하는 청지기 지스카른"
 L["RAID_BOSS_ATSC_7"] = "마그모락스"
 L["RAID_BOSS_ATSC_8"] = "넬타리온의 메아리"
 L["RAID_BOSS_ATSC_9"] = "비늘사령관 사카레스"
+L["RAID_BOSS_AVOTI_1"] = "에라노그"
+L["RAID_BOSS_AVOTI_2"] = "테로스"
+L["RAID_BOSS_AVOTI_3"] = "원시 의회"
+L["RAID_BOSS_AVOTI_4"] = "차가운 숨결의 세나스"
+L["RAID_BOSS_AVOTI_5"] = "승천한 자 다테아"
+L["RAID_BOSS_AVOTI_6"] = "쿠로그 그림토템"
+L["RAID_BOSS_AVOTI_7"] = "혈족지기 디우르나"
+L["RAID_BOSS_AVOTI_8"] = "폭풍포식자 라자게스"
 L["RAID_BOSS_CN_1"] = "절규날개"
 L["RAID_BOSS_CN_10"] = "대영주 데나트리우스"
 L["RAID_BOSS_CN_2"] = "사냥꾼 알티모르"
@@ -305,7 +378,19 @@ L["RELOAD_NOW"] = "지금 다시 불러오기"
 --[[Translation missing --]]
 --[[ L["REPLAY_AUTO_SELECTION_TEAM_BEST"] = ""--]] 
 --[[Translation missing --]]
+--[[ L["REPLAY_BACKGROUND_COLOR"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["REPLAY_BACKGROUND_COLOR_DESC"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["REPLAY_DISABLE_CONFIRM"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["REPLAY_FRAME_ALPHA"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["REPLAY_FRAME_ALPHA_DESC"] = ""--]] 
+--[[Translation missing --]]
 --[[ L["REPLAY_MENU_COPY_URL"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["REPLAY_MENU_DISABLE"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["REPLAY_MENU_DOCK"] = ""--]] 
 --[[Translation missing --]]
@@ -333,11 +418,19 @@ L["RELOAD_NOW"] = "지금 다시 불러오기"
 --[[Translation missing --]]
 --[[ L["REPLAY_STYLE_TITLE_MODERN_COMPACT"] = ""--]] 
 --[[Translation missing --]]
+--[[ L["REPLAY_STYLE_TITLE_MODERN_SPLITS"] = ""--]] 
+--[[Translation missing --]]
 --[[ L["REPLAY_SUMMARY_LOGGED"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["REPLAY_TIMING_TITLE_BOSS"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["REPLAY_TIMING_TITLE_DUNGEON"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RESET_BUTTON"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RESET_CONFIRM_BUTTON"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RESET_CONFIRM_TEXT"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["RWF_MINIBUTTON_TOOLTIP"] = ""--]] 
 --[[Translation missing --]]
