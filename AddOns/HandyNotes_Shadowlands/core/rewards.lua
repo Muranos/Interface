@@ -30,11 +30,22 @@ function Reward:Initialize(attrs)
 end
 
 function Reward:IsEnabled()
-    if self.class and self.class ~= ns.class then return false end
-    if self.faction and self.faction ~= ns.faction then return false end
     if self.display_option and not ns:GetOpt(self.display_option) then
         return false
     end
+
+    -- Check faction
+    if self.faction then
+        if ns:GetOpt('ignore_faction_restrictions') then return true end
+        if self.faction ~= ns.faction then return false end
+    end
+
+    -- Check class
+    if self.class then
+        if ns:GetOpt('ignore_class_restrictions') then return true end
+        if self.class ~= ns.class then return false end
+    end
+
     return true
 end
 
@@ -102,6 +113,24 @@ local Spacer = Class('Spacer', Reward)
 function Spacer:IsEnabled() return true end
 
 function Spacer:Render(tooltip) tooltip:AddLine(' ') end
+
+-------------------------------------------------------------------------------
+--------------------------------- HUNTER PET ----------------------------------
+-------------------------------------------------------------------------------
+
+local HunterPet = Class('HunterPet', Reward, {type = L['hunter_pet']})
+
+function HunterPet:GetText()
+    local text = ('{npc:%d}'):format(self.id)
+    return Icon(self.icon) .. ns.RenderLinks(text) .. ' (' .. self.type .. ')'
+end
+
+function HunterPet:IsObtainable() return ns.class == 'HUNTER' end
+
+function HunterPet:GetStatus()
+    local status = Orange(L['unobtainable'])
+    return not self:IsObtainable() and status or nil
+end
 
 -------------------------------------------------------------------------------
 --------------------------------- ACHIEVEMENT ---------------------------------
@@ -193,6 +222,32 @@ function Achievement:GetLines()
 
         return ctext, note, r, g, b
     end
+end
+
+-------------------------------------------------------------------------------
+------------------------------------ BUFF -------------------------------------
+-------------------------------------------------------------------------------
+
+local Buff = Class('Buff', Reward, {type = L['buff']})
+
+function Buff:Initialize(attrs)
+    if attrs then for k, v in pairs(attrs) do self[k] = v end end
+end
+
+function Buff:GetText()
+    local text = ns.RenderLinks(string.format('{spell:%d}', self.id))
+    return text .. ' (' .. self.type .. ')'
+end
+
+function Buff:GetStatus()
+    local stacks = self.stacks or 1
+    local aura = C_UnitAuras.GetPlayerAuraBySpellID(self.id)
+    if aura then
+        local applications = aura.applications
+        local status = applications .. '/' .. stacks
+        return (applications >= stacks) and Green(status) or Red(status)
+    end
+    return Red('0/' .. stacks)
 end
 
 -------------------------------------------------------------------------------
@@ -295,7 +350,10 @@ end
 
 function Item:GetText()
     local text = self.itemLink
-    if self.type then -- mount, pet, toy, etc
+    if self.isCosmetic then
+        local type = self.type and ', ' .. self.type or ''
+        text = text .. ' (' .. L['cosmetic'] .. type .. ')'
+    elseif self.type then -- mount, pet, toy, etc
         text = text .. ' (' .. self.type .. ')'
     end
     if self.count then
@@ -334,6 +392,13 @@ function Heirloom:GetStatus()
     local collected = C_Heirloom.PlayerHasHeirloom(self.item)
     return collected and Green(L['known']) or Red(L['missing'])
 end
+
+-------------------------------------------------------------------------------
+---------------------------------- MANUSCRIPT ---------------------------------
+-------------------------------------------------------------------------------
+
+local Manuscript = Class('Manuscript', Item,
+    {display_option = 'show_manuscript_rewards'})
 
 -------------------------------------------------------------------------------
 ------------------------------------ MOUNT ------------------------------------
@@ -434,8 +499,8 @@ function Recipe:Initialize(attrs)
 end
 
 -- Tooltip Documentation:
--- https://wowpedia.fandom.com/wiki/Patch_10.0.2/API_changes
--- https://wowpedia.fandom.com/wiki/Patch_10.1.0/API_changes
+-- https://warcraft.wiki.gg/wiki/Patch_10.0.2/API_changes
+-- https://warcraft.wiki.gg/wiki/Patch_10.1.0/API_changes
 function Recipe:IsObtained()
     local info = C_TooltipInfo.GetItemByID(self.item)
     if info then
@@ -449,12 +514,16 @@ function Recipe:IsObtained()
 end
 
 function Recipe:GetStatus()
-    return self:IsObtained() and Green(L['known']) or Red(L['missing'])
-end
+    local collected = self:IsObtained()
+    local status = collected and Green(L['known']) or Red(L['missing'])
 
-function Recipe:IsEnabled()
-    if not Item.IsEnabled(self) then return false end
-    return ns.PlayerHasProfession(self.profession)
+    if not collected then
+        if not ns.PlayerHasProfession(self.profession) then
+            status = Orange(L['unlearnable'])
+        end
+    end
+
+    return status
 end
 
 -------------------------------------------------------------------------------
@@ -512,6 +581,31 @@ function Toy:GetStatus()
 end
 
 -------------------------------------------------------------------------------
+---------------------------------- APPEARANCE ---------------------------------
+-------------------------------------------------------------------------------
+
+-- Ensemble, Arsenal, Illusion
+
+local Appearance = Class('Appearance', Item, {
+    display_option = 'show_transmog_rewards',
+    type = _G.APPEARANCE_LABEL
+})
+
+function Appearance:IsObtained()
+    local KnownLineType = Enum.TooltipDataLineType.RestrictedSpellKnown
+    local info = C_TooltipInfo.GetItemByID(self.item)
+    if info then
+        for _, line in ipairs(info.lines) do
+            if line.type == KnownLineType then return true end
+        end
+    end
+    return false
+end
+function Appearance:GetStatus()
+    return self:IsObtained() and Green(L['known']) or Red(L['missing'])
+end
+
+-------------------------------------------------------------------------------
 ---------------------------------- TRANSMOG -----------------------------------
 -------------------------------------------------------------------------------
 
@@ -531,8 +625,9 @@ function Transmog:Prepare()
     Item.Prepare(self)
     local sourceID = select(2, CTC.GetItemInfo(self.item))
     if sourceID then CTC.PlayerCanCollectSource(sourceID) end
-    GetItemSpecInfo(self.item)
+    C_Item.GetItemSpecInfo(self.item)
     CTC.PlayerHasTransmog(self.item)
+    self.isCosmetic = C_Item.IsCosmeticItem(self.item)
 end
 
 function Transmog:IsEnabled()
@@ -571,11 +666,10 @@ function Transmog:IsObtainable()
     if not Item.IsObtainable(self) then return false end
     -- Cosmetic cloaks do not behave well with the GetItemSpecInfo() function.
     -- They return an empty table even though you can get the item to drop.
-    local _, _, _, ilvl, _, _, _, _, equipLoc = GetItemInfo(self.item)
-    if not (ilvl == 1 and equipLoc == 'INVTYPE_CLOAK' and self.slot ==
-        L['cosmetic']) then
+    local _, _, _, ilvl, _, _, _, _, equipLoc = C_Item.GetItemInfo(self.item)
+    if not (ilvl == 1 and equipLoc == 'INVTYPE_CLOAK' and self.isCosmetic) then
         -- Verify the item drops for any of the players specs
-        local specs = GetItemSpecInfo(self.item)
+        local specs = C_Item.GetItemSpecInfo(self.item)
         if type(specs) == 'table' and #specs == 0 then return false end
     end
     return true
@@ -605,16 +699,65 @@ function Transmog:GetStatus()
 end
 
 -------------------------------------------------------------------------------
+--------------------------------- REPUTATION ----------------------------------
+-------------------------------------------------------------------------------
+
+local Reputation = Class('Reputation', Reward,
+    {display_option = 'show_rep_rewards', type = L['rep']})
+
+function Reputation:GetText()
+    local text = ns.api.GetFactionInfoByID(self.id)
+    if self.gain then text = ('+%d %s'):format(self.gain, text) end
+    text = ns.color.LightBlue(text) .. ' (' .. self.type .. ')'
+    if self.note then
+        text = text .. ' (' .. ns.RenderLinks(self.note, true) .. ')'
+    end
+    return text
+end
+
+function Reputation:IsEnabled()
+    if not Reward.IsEnabled(self) then return false end
+    if self:IsObtained() and not ns:GetOpt('show_claimed_rep_rewards') then
+        return false
+    end
+
+    return true
+end
+function Reputation:Prepare() ns.PrepareLinks(self.note) end
+
+function Reputation:GetStatus()
+    if not self.quest then return end
+    return self:IsObtainable() and Red(L['unclaimed']) or Green(L['claimed'])
+end
+
+function Reputation:IsObtainable()
+    if not self.quest then return true end
+    if C_Reputation.IsAccountWideReputation(self.id) then
+        return not C_QuestLog.IsQuestFlaggedCompletedOnAccount(self.quest)
+    else
+        return not C_QuestLog.IsQuestFlaggedCompleted(self.quest)
+    end
+end
+
+function Reputation:IsObtained()
+    if self.quest and self:IsObtainable() then return false end
+    return true
+end
+
+-------------------------------------------------------------------------------
 
 ns.reward = {
     Reward = Reward,
     Section = Section,
     Spacer = Spacer,
     Achievement = Achievement,
+    Buff = Buff,
     Currency = Currency,
     Follower = Follower,
     Item = Item,
     Heirloom = Heirloom,
+    HunterPet = HunterPet,
+    Manuscript = Manuscript,
     Mount = Mount,
     Pet = Pet,
     Quest = Quest,
@@ -622,5 +765,7 @@ ns.reward = {
     Spell = Spell,
     Title = Title,
     Toy = Toy,
-    Transmog = Transmog
+    Appearance = Appearance,
+    Transmog = Transmog,
+    Reputation = Reputation
 }

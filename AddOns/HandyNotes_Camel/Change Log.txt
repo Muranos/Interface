@@ -1,3 +1,70 @@
+== v2.08 - 27th February 2025
+* TOC update to 11.1.0
+
+== v2.07 - 20th February 2025
+* TOC update to 4.4.2
+
+== v2.06 - 21st January 2025
+* Translation for "Go to Uldum" added
+* "Wrong version of Uldum" improved for Korean
+* Show coords supressed for the "X" icon
+* Maladath added
+
+== v2.05 - 7th January 2025
+* Added Kalimdor and Azeroth pins
+* More appropriate pin sizing
+
+== v2.04 - 24th December 2024
+* Translations added for the new map checks
+
+== v2.03 - 10th December 2024
+* TOC update to 11.0.7
+
+== v2.02 - 26th November 2024
+* Improved map "X" message - makes it really clear which version of Uldum you are
+  in and which version of Uldum you are looking at
+
+== v2.01 - 12th November 2024
+* TOC update to 4.4.1
+
+== v2.00 - 29th October 2024
+* Curse and Wago Project IDs added
+* Fix for missing AddOn Compartment popup Tooltip
+* Improved translations / partial translations
+* The options panel now has a lot of helpful notes
+* Title text improved
+* Improved chat command layout
+* Supress the "X" for non-Retail
+
+== v1.14 - 17th October 2024
+* TOC update to 11.0.5
+
+== v1.13 - 18th September 2024
+* Location at (52.15,51.23) tweaked due to author sighting
+
+== v1.12 - 4th September 2024
+* Added (33.23,28.09) - "To the left of the door" from player @f_lambda reported sighting!
+
+== v1.11 - 26th August 2024
+* Fix for deprecated UnitAuras API call. RIP. Simple way was the best
+
+== v1.10 - 21st August 2024
+* TOC update to 11.0.2
+
+== v1.09 - 23rd July 2024
+* TOC update to 11.0.0
+
+== v1.08 - 20th May 2024
+* Translation fix  "l'figurine" > "la figurine" as reported by @Adal4
+* Removed to unused translations for esES
+* Enhanced the new chat commands - menu plus the option to open the Uldum map
+
+== v1.07 - 13th May 2024
+* Added a chat command shortcut to pull up the configuration panel: "/mcf" or "/camel"
+
+== v1.06 - 6th May 2024
+* Classic Cataclysm version included
+
 == v1.05 - 20th April 2024
 * TOC update to 10.2.7
 

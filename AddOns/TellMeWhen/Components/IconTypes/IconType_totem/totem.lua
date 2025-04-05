@@ -1,6 +1,6 @@
 ﻿-- --------------------
 -- TellMeWhen
--- Originally by Nephthys of Hyjal <lieandswell@yahoo.com>
+-- Originally by NephMakes
 
 -- Other contributions by:
 --		Sweetmms of Blackrock, Oozebull of Twisting Nether, Oodyboo of Mug'thol,
@@ -19,8 +19,8 @@ local print = TMW.print
 
 local format, type, tonumber, wipe, bit =
 	  format, type, tonumber, wipe, bit
-local GetTotemInfo, GetSpellInfo =
-	  GetTotemInfo, GetSpellInfo
+local GetTotemInfo =
+	  GetTotemInfo
 
 local GetSpellTexture = TMW.GetSpellTexture
 local strlowerCache = TMW.strlowerCache
@@ -77,7 +77,7 @@ end
 if hasNameConfig then
 	Type:RegisterConfigPanel_XMLTemplate(100, "TellMeWhen_ChooseName", {
 		title = L["ICONMENU_CHOOSENAME3"] .. " " .. L["ICONMENU_CHOOSENAME_ORBLANK"],
-		SUGType = TMW.isRetail and "spell" or "totem",
+		SUGType = TMW.COMMON.TotemRanks and "totem" or "spell",
 	})
 end
 
@@ -210,7 +210,7 @@ function Type:Setup(icon)
 		name = ""
 	end
 
-	icon.Spells = TMW:GetSpells(name, true)
+	icon.Spells = TMW:GetSpells(name, false)
 
 	icon.FirstTexture = icon.Spells.FirstString and GetSpellTexture(icon.Spells.FirstString) 
 	if not icon.FirstTexture and onlySlot then

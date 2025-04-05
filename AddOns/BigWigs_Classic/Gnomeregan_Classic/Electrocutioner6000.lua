@@ -2,10 +2,11 @@
 -- Module Declaration
 --
 
-local mod, CL = BigWigs:NewBoss("Electrocutioner 6000 Discovery", 90, -2927)
+local mod, CL = BigWigs:NewBoss("Electrocutioner 6000 Discovery", 90)
 if not mod then return end
 mod:RegisterEnableMob(220072) -- Electrocutioner 6000
 mod:SetEncounterID(2927)
+mod:SetAllowWin(true)
 
 --------------------------------------------------------------------------------
 -- Locals
@@ -67,7 +68,7 @@ function mod:OnEngage()
 	self:CDBar(433251, 6.2) -- Static Arc
 	self:Bar(433398, 30.5, CL.count:format(CL.knockback, knockbackCount)) -- Discombobulation Protocol
 
-	self:OpenInfo(433251, "BigWigs: |T237587:0:0:0:0:64:64:4:60:4:60|t".. self:SpellName(433251), 10)
+	self:OpenInfo(433251, CL.other:format("BigWigs", "|T237587:0:0:0:0:64:64:4:60:4:60|t".. self:SpellName(433251)), 10)
 	self:SimpleTimer(UpdateInfoBoxList, 0.1)
 end
 
@@ -146,7 +147,7 @@ function UpdateInfoBoxList()
 				mod:SetInfo(433251, line + 1, CL.seconds:format(remaining))
 				mod:SetInfoBar(433251, line, remaining / 20)
 			else
-				if UnitIsDeadOrGhost(player) then
+				if mod:UnitIsDeadOrGhost(player) then
 					mod:SetInfo(433251, line + 1, CL.dead, 1, 0.2, 0.2)
 				else
 					if player == magneticPulsePlayer then

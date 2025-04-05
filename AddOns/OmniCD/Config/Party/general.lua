@@ -1,4 +1,4 @@
-local E, L = select(2, ...):unpack()
+local E, L, C = select(2, ...):unpack()
 local P = E.Party
 
 local general = {
@@ -10,7 +10,7 @@ local general = {
 		local key = info[2]
 		E.profile.Party[key].general[ info[#info] ] = value
 		if P:IsCurrentZone(key) then
-			P:Refresh(true)
+			P:Refresh()
 		end
 	end,
 	args = {
@@ -41,8 +41,14 @@ local general = {
 				if src then
 					E.profile.Party[key] = E:DeepCopy(E.profile.Party[src])
 					E.profile.Party[key].general.zoneSelected = src
+
+					for sId in pairs(C.Party[key].spells) do
+						if not E.profile.Party[src].spells[sId] then
+							E.profile.Party[key].spells[sId] = false
+						end
+					end
 				end
-				P:Refresh(true)
+				P:Refresh()
 			end,
 			confirm = E.ConfirmAction,
 		},
@@ -68,7 +74,7 @@ local general = {
 			set = function(info, value)
 				local key = info[2]
 				E.profile.Party[key].general.showAnchor = value
-				P:ConfigBars(key, "showAnchor")
+				P:Refresh()
 			end,
 		},
 		showPlayer = {

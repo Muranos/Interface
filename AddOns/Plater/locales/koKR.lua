@@ -4,12 +4,18 @@ do
     local L = languageTable
 
 ------------------------------------------------------------
+--[[Translation missing --]]
+L["A /reload may be required to take effect."] = "A /reload may be required to take effect."
+--[[Translation missing --]]
+L["CVar, saved within Plater profile and restored when loading the profile."] = "CVar, saved within Plater profile and restored when loading the profile."
 L["EXPORT"] = "내보내기"
 L["EXPORT_CAST_COLORS"] = "시전바 색상 내보내기"
 L["EXPORT_CAST_SOUNDS"] = "시전바 소리 내보내기"
 L["HIGHLIGHT_HOVEROVER"] = "마우스오버 강조"
 L["HIGHLIGHT_HOVEROVER_ALPHA"] = "마우스오버 강조 투명도"
 L["HIGHLIGHT_HOVEROVER_DESC"] = "마우스를 이름표에 올렸을 때 하이라이트 효과를 적용합니다."
+--[[Translation missing --]]
+L["Hold Shift to change the sound of all casts with the audio %s to %s"] = "Hold Shift to change the sound of all casts with the audio %s to %s"
 L["IMPORT"] = "가져오기"
 L["IMPORT_CAST_COLORS"] = "시전바 색상 가져오기"
 L["IMPORT_CAST_SOUNDS"] = "시전바 소리 가져오기"
@@ -41,6 +47,14 @@ L["OPTIONS_ANCHOR_TARGET_SIDE"] = "이 위젯을 붙일 위치"
 L["OPTIONS_ANCHOR_TOP"] = "위"
 L["OPTIONS_ANCHOR_TOPLEFT"] = "왼쪽 위"
 L["OPTIONS_ANCHOR_TOPRIGHT"] = "오른쪽 위"
+--[[Translation missing --]]
+L["OPTIONS_AUDIOCUE_COOLDOWN"] = "Audio Cooldown"
+--[[Translation missing --]]
+L["OPTIONS_AUDIOCUE_COOLDOWN_DESC"] = [=[Amount of time in milliseconds to wait before playing the SAME audio again.
+
+Prevents loud sounds from playing when two or more casts are happening at the same time.
+
+Set to 0 to disable this feature.]=]
 L["OPTIONS_AURA_DEBUFF_HEIGHT"] = "디버프 아이콘 세로값."
 L["OPTIONS_AURA_DEBUFF_WITH"] = "디버프 아이콘 가로."
 L["OPTIONS_AURA_HEIGHT"] = "디버프 아이콘 세로값"
@@ -94,7 +108,13 @@ L["OPTIONS_CASTBAR_SPELLICON"] = "주문 아이콘"
 L["OPTIONS_CASTBAR_TOGGLE_TEST"] = "테스트용 시전바 켜기"
 L["OPTIONS_CASTBAR_TOGGLE_TEST_DESC"] = "시전바 테스트 시작, 한번 더 누르면 중지됩니다."
 L["OPTIONS_CASTBAR_WIDTH"] = "시전바 너비"
+--[[Translation missing --]]
+L["OPTIONS_CASTCOLORS_DISABLE_SOUNDS"] = "Remove All Sounds"
+--[[Translation missing --]]
+L["OPTIONS_CASTCOLORS_DISABLE_SOUNDS_CONFIRM"] = "Are you sure you want to remove all configured cast sounds?"
 L["OPTIONS_CASTCOLORS_DISABLECOLORS"] = "모든 색상 해제"
+--[[Translation missing --]]
+L["OPTIONS_CASTCOLORS_DISABLECOLORS_CONFIRM"] = "Confirm disable all cast colors?"
 L["OPTIONS_CLICK_SPACE_HEIGHT"] = "대상을 선택하기 위한 마우스 클릭 영역의 높이값"
 L["OPTIONS_CLICK_SPACE_WIDTH"] = "대상을 선택하기 위한 마우스 클릭 영역의 너비값"
 L["OPTIONS_COLOR"] = "색상"
@@ -154,6 +174,10 @@ L["OPTIONS_ICON_WORLDBOSS"] = "월드 보스 아이콘"
 L["OPTIONS_ICONROWSPACING"] = "아이콘 줄 간격"
 L["OPTIONS_ICONSPACING"] = "아이콘 간격"
 L["OPTIONS_INDICATORS"] = "Indicators"
+--[[Translation missing --]]
+L["OPTIONS_INTERACT_OBJECT_NAME_COLOR"] = "Game object name color"
+--[[Translation missing --]]
+L["OPTIONS_INTERACT_OBJECT_NAME_COLOR_DESC"] = "Names on objects will get this color."
 L["OPTIONS_INTERRUPT_FILLBAR"] = "차단 시 시전바 채우기"
 L["OPTIONS_INTERRUPT_SHOW_ANIM"] = "차단 애니메이션 재생"
 L["OPTIONS_INTERRUPT_SHOW_AUTHOR"] = "시전 차단한 유저 표시"
@@ -246,6 +270,8 @@ L["OPTIONS_RESOURCES_TARGET_DESC"] = [=[현재 대상 위에 콤보 포인트같
 
 Character specific setting!]=]
 L["OPTIONS_SCALE"] = "창 크기"
+--[[Translation missing --]]
+L["OPTIONS_SCRIPTING_ADDOPTION"] = "Select which option to add"
 L["OPTIONS_SCRIPTING_REAPPLY"] = "기본값 다시 적용"
 L["OPTIONS_SETTINGS_COPIED"] = "설정이 복사되었습니다."
 L["OPTIONS_SETTINGS_FAIL_COPIED"] = "현재 선택된 탭의 설정을 가져오지 못했습니다."
@@ -340,6 +366,16 @@ L["OPTIONS_YOFFSET"] = "Y 좌표"
 L["OPTIONS_YOFFSET_DESC"] = [=[Y 축 값을 설정합니다.
 
 *우클릭으로 값을 입력할 수 있습니다.]=]
+--[[Translation missing --]]
+L[ [=[Show nameplate for friendly npcs.
+
+|cFFFFFF00 Important |r: This option is dependent on the client`s nameplate state (on/off).
+
+|cFFFFFF00 Important |r: when disabled but enabled on the client through (%s), the healthbar isn't visible but the nameplate is still clickable.]=] ] = [=[Show nameplate for friendly npcs.
+
+|cFFFFFF00 Important |r: This option is dependent on the client`s nameplate state (on/off).
+
+|cFFFFFF00 Important |r: when disabled but enabled on the client through (%s), the healthbar isn't visible but the nameplate is still clickable.]=]
 L["TARGET_CVAR_ALWAYSONSCREEN"] = "대상을 항상 화면안에 표시|cFFFF7700*|r"
 L["TARGET_CVAR_ALWAYSONSCREEN_DESC"] = [=[체크하면 대상이 화면밖일 때에도 이름표가 항상 화면안에 보이도록 합니다.
 

@@ -1,7 +1,7 @@
-## Interface: 100206
-## Title: Titan Panel [|cffeda55f_Core_|r] |cff00aa008.0.11|r
+## Interface: 110100
+## Title: Titan Panel [|cffeda55f_Core_|r] |cff00aa008.2.2|r
 ## Author: Titan Panel Dev Team
-## Version: 8.0.11
+## Version: 8.2.2
 ## IconTexture: Interface\Icons\Achievement_Dungeon_UlduarRaid_Titan_01
 ## SavedVariables: TitanAll, TitanSettings, TitanSkins, ServerTimeOffsets, ServerHourFormat
 ## Notes: Adds display bars to show and control information/launcher plugins.
@@ -41,6 +41,7 @@ locale\Localization.MX.lua
 locale\Localization.RU.lua
 locale\Localization.TW.lua
 
+TitanDebug.lua
 TitanGlobal.lua
 TitanUtils.lua
 TitanHistory.lua

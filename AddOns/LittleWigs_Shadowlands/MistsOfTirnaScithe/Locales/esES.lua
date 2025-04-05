@@ -1,9 +1,11 @@
 local L = BigWigs:NewBossLocale("Mists of Tirna Scithe Trash", "esES") or BigWigs:NewBossLocale("Mists of Tirna Scithe Trash", "esMX")
 if not L then return end
 if L then
-	L.drust_boughbreaker = "Romperramas Drust"
+	L.tirnenn_villager = "Aldeana tirnenn"
 	L.drust_harvester = "Cosechador Drust"
 	L.drust_soulcleaver = "Rajaalmas Drust"
+	L.drust_spiteclaw = "Zarparrencor Drust"
+	L.drust_boughbreaker = "Romperramas Drust"
 	L.mistveil_defender = "Defensora Velo de Niebla"
 	L.mistveil_gorgegullet = "Engullidor Velo de Niebla"
 	L.mistveil_guardian = "Guardián Velo de Niebla"
@@ -15,15 +17,14 @@ if L then
 	L.mistveil_tender = "Cuidadora Velo de Niebla"
 	L.spinemaw_acidgullet = "Gargantácida faucespina"
 	L.spinemaw_staghorn = "Astado faucespina"
-	L.tirnenn_villager = "Aldeana tirnenn"
+	L.spinemaw_gorger = "Engullidor faucespina"
+	L.gormling_larva = "Larva de gormito"
+	L.spinemaw_reaver = "Atracador faucespina"
+
+	--L.gate_open_desc = "Show a bar indicating when the gate to the next area will open after defeating each boss."
 end
 
 L = BigWigs:NewBossLocale("Mistcaller", "esES") or BigWigs:NewBossLocale("Mistcaller", "esMX")
 if L then
 	L.vulpin = "Vulpino"
-end
-
-L = BigWigs:NewBossLocale("Tred'ova", "esES") or BigWigs:NewBossLocale("Tred'ova", "esMX")
-if L then
-	L.parasite = "Parásito"
 end

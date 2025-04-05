@@ -1,12 +1,12 @@
 # SavedInstances
 
-## [10.2.7](https://github.com/SavedInstances/SavedInstances/tree/10.2.7) (2024-04-26)
-[Full Changelog](https://github.com/SavedInstances/SavedInstances/compare/10.2.6...10.2.7) [Previous Releases](https://github.com/SavedInstances/SavedInstances/releases)
+## [11.1.1](https://github.com/SavedInstances/SavedInstances/tree/11.1.1) (2025-03-18)
+[Full Changelog](https://github.com/SavedInstances/SavedInstances/compare/11.1.0...11.1.1) [Previous Releases](https://github.com/SavedInstances/SavedInstances/releases)
 
-- fix(Currency): spark starts in catch-up mode  
-- feat(Progress): add Aiding the Accord in S4 as Last Hurrah  
-- feat(Currency): Dragonflight Season 4 Renascent, Crest, Spark, Dinar and defaults  
-- feat(MythicPlus): add Dragonflight Season 4 item levels  
-- fix: fix currency with totalEarned coloring  
-    amount should be colored by totalEarned / totalMax, when totalEarned and totalMax is available  
-    fixes #831  
+- Always display amount if there is a relatedItemCount  
+    Fixes #953 by displaying a 0 and the relatedItemCount if there is a relatedItemCount  
+- Liberation tracked as dungeon, returning maxPlayers = 5  
+    Fixes #950  
+- Update Quest.lua  
+- Update Coffer Key Shard for 11.1  
+    After update with 1 shard in inventory. Was showing 0 before. Looks like the ID for just the shards changed in 11.1.  

@@ -3,8 +3,8 @@
 local appName, app = ...;
 
 -- Global locals
-local type, ipairs, pairs, setmetatable, rawget, tinsert, unpack
-	= type, ipairs, pairs, setmetatable, rawget, tinsert, unpack;
+local type,ipairs,pairs,setmetatable,rawget,tinsert,unpack,rawset
+	= type,ipairs,pairs,setmetatable,rawget,tinsert,unpack,rawset
 
 -- App locals
 local GetRelativeValue = app.GetRelativeValue;
@@ -101,6 +101,14 @@ local function CreateHash(t)
 end
 app.CreateHash = CreateHash;
 
+-- Helper Functions
+local ShouldExcludeFromTooltipHelper = function(t)
+	-- Whether or not to exclude this data from the source list in the tooltip.
+	local parent = t.parent;
+	if parent then return parent.ShouldExcludeFromTooltip; end
+	return false;
+end
+
 -- Represents default field evaluation logic for all Classes unless defined within the Class
 local DefaultFields = {
 	-- Cloned groups will not directly have a parent, but they will instead have a sourceParent, so fill in with that instead
@@ -115,6 +123,30 @@ local DefaultFields = {
 	["text"] = function(t)
 		return t.link or t.name;
 	end,
+	-- modItemID doesn't exist for Items which NEVER use a modID or bonusID (illusions, music rolls, mounts, etc.)
+	["modItemID"] = function(t)
+		return t.itemID;
+	end,
+	-- whether something is considered 'missing' by seeing if it can search for itself
+	["_missing"] = function(t)
+		local key = t.key;
+		-- only process this logic for real 'Things' in the game
+		if not app.ThingKeys[key] then return; end
+		-- quest 76250
+		-- item with modID, so key is itemID, t[key] is 13544
+		-- SFO uses 'modItemID' to verify 'itemID' search result object accuracy, thus '13544' never matches the expected '13544.01'
+		-- so we need to know to search by 'itemID' but using the 'modItemID' here for base itemID lookups of missing
+		-- i.e. if searching 13544, we allow 13544.01 to count as a non-missing representation of the search... makes sense?
+		local val = key == "itemID" and t.modItemID or t[key];
+		local o = app.SearchForObject(key, val, "field") or (val == t.itemID and app.SearchForObject("itemID", val));
+		local missing = true;
+		while o do
+			missing = rawget(o, "_missing");
+			o = not missing and (o.sourceParent or o.parent);
+		end
+		t._missing = missing or false;
+		return missing;
+	end,
 	-- Whether or not something is repeatable.
 	["repeatable"] = function(t)
 		return t.isDaily or t.isWeekly or t.isMonthly or t.isYearly;
@@ -123,6 +155,42 @@ local DefaultFields = {
     ["upgradeTotal"] = returnZero,
 	["progress"] = returnZero,
     ["total"] = returnZero,
+	["AccessibilityScore"] = function(t)
+		local score = 0;
+		if GetRelativeValue(t, "nmr") then
+			score = score + 20;
+		end
+		if GetRelativeValue(t, "nmc") then
+			score = score + 10;
+		end
+		if GetRelativeValue(t, "rwp") then
+			score = score + 5;
+		end
+		if GetRelativeValue(t, "e") then
+			score = score + 1;
+		end
+		local u = GetRelativeValue(t, "u");
+		if u then
+			if u < 3 then
+				score = score + 100000;
+			elseif u < 4 then
+				score = score + 10;
+			else
+				score = score + 1;
+			end
+		end
+		t.AccessibilityScore = score;
+		return score;
+	end,
+	["creatureID"] = function(t)	-- TODO: Do something about this, it's silly.
+		return t.npcID;
+	end,
+	["ShouldExcludeFromTooltipHelper"] = function(t)
+		return ShouldExcludeFromTooltipHelper;
+	end,
+	["ShouldExcludeFromTooltip"] = function(t)
+		return t.ShouldExcludeFromTooltipHelper(t);
+	end,
 };
 
 if app.IsRetail then
@@ -134,30 +202,6 @@ if app.IsRetail then
 		-- trying to individually maintain variable coloring in every object class is quite absurd
 		["text"] = function(t)
 			return t.link or app.TryColorizeName(t);
-		end,
-		-- modItemID doesn't exist for Items which NEVER use a modID or bonusID (illusions, music rolls, mounts, etc.)
-		["modItemID"] = function(t)
-			return t.itemID;
-		end,
-		-- whether something is considered 'missing' by seeing if it can search for itself
-		["_missing"] = function(t)
-			local key = t.key;
-			-- only process this logic for real 'Things' in the game
-			if not app.ThingKeys[key] then return; end
-			-- quest 76250
-			-- item with modID, so key is itemID, t[key] is 13544
-			-- SFO uses 'modItemID' to verify 'itemID' search result object accuracy, thus '13544' never matches the expected '13544.01'
-			-- so we need to know to search by 'itemID' but using the 'modItemID' here for base itemID lookups of missing
-			-- i.e. if searching 13544, we allow 13544.01 to count as a non-missing representation of the search... makes sense?
-			local val = key == "itemID" and t.modItemID or t[key];
-			local o = app.SearchForObject(key, val, "field") or (val == t.itemID and app.SearchForObject(key, val));
-			local missing = true;
-			while o do
-				missing = rawget(o, "_missing");
-				o = not missing and (o.sourceParent or o.parent);
-			end
-			t._missing = missing or false;
-			return missing;
 		end,
 		["nmc"] = function(t)
 			local c = t.c;
@@ -181,42 +225,40 @@ if app.IsRetail then
 		["iconPath"] = function(t)
 			return rawget(t, "icon")
 		end,
-		["creatureID"] = function(t)	-- TODO: Do something about this, it's silly.
-			return t.npcID;
-		end,
 	}) do
 		DefaultFields[fieldName] = fieldMethod;
 	end
 end
 
+local function ClassError(...)
+	local params = {...}
+	local err = app.TableConcat(params, nil, "", " ")
+	error(err)
+end
+local CloneDictionary = app.CloneDictionary
 -- Creates a Base Object Table which will evaluate the provided set of 'fields' (each field value being a keyed function)
 local classDefinitions, _cache = {}, nil;
 local call = function(class, key, t)
 	_cache = rawget(class, key);
 	if _cache then return _cache(t) end
 end
-local BaseObjectFields = not app.__perf and function(fields, className)
+-- Generates a metatable to use for the given class name based on the provided field functions
+local CreateClassMeta = not app.__perf and function(fields, className)
 	if not className then
-		print("A Class Name must be declared when using BaseObjectFields");
+		ClassError("A Class Name must be declared when using CreateClass");
 	end
 	local class = { __type = function() return className; end };
 	if not classDefinitions[className] then
 		classDefinitions[className] = class;
 	else
-		print("A Class has already been defined with that name!", className);
-	end
-	if fields then
-		for key,method in pairs(fields) do
-			class[key] = method;
-		end
+		ClassError("A Class has already been defined with that name!", className);
 	end
 
+	if fields then CloneDictionary(fields, class) end
+
 	-- Inject the default fields into the class
-	for key,method in pairs(DefaultFields) do
-		if not class[key] then
-			class[key] = method;
-		end
-	end
+	CloneDictionary(DefaultFields, class)
+
 	return {
 		__class = class,
 		__index = function(t, key)
@@ -229,31 +271,24 @@ end
 -- performance tracking wrapped base fields
 or function(fields, className)
 	if not className then
-		print("A Class Name must be declared when using BaseObjectFields");
+		ClassError("A Class Name must be declared when using CreateClassMeta");
 	end
 	local class = { __type = function() return className; end };
-	app.__perf.CaptureTable(class, className)
-	app.__perf.AutoCaptureTable(class, className)
+	app.__perf.AutoCaptureTable(class, "Class:"..className)
 	-- capture keys which are referenced but not implemented in a sub-table for better perf tracking
 	class.__missing = {}
 
 	if not classDefinitions[className] then
 		classDefinitions[className] = class;
 	else
-		print("A Class has already been defined with that name!", className);
-	end
-	if fields then
-		for key,method in pairs(fields) do
-			class[key] = method;
-		end
+		ClassError("A Class has already been defined with that name!", className);
 	end
 
+	if fields then CloneDictionary(fields, class) end
+
 	-- Inject the default fields into the class
-	for key,method in pairs(DefaultFields) do
-		if not class[key] then
-			class[key] = method;
-		end
-	end
+	CloneDictionary(DefaultFields, class)
+
 	return {
 		__class = class,
 		__index = function(t, key)
@@ -266,8 +301,7 @@ or function(fields, className)
 		end
 	}
 end
-app.BaseObjectFields = BaseObjectFields;
-app.BaseClass = BaseObjectFields(nil, "BaseClass");
+app.BaseClass = CreateClassMeta(nil, "BaseClass");
 
 local MaximumInfoRetries = 40;
 app.MaximumItemInfoRetries = MaximumInfoRetries
@@ -357,12 +391,12 @@ local function CloneClassInstance(object, ignoreChildren)
 		end
 	end
 end
-local function CloneObject(object)
+local function CloneObject(object, ignoreChildren)
 	local clone = setmetatable({}, getmetatable(object));
 	for key,value in pairs(object) do
 		clone[key] = value;
 	end
-	if object.g then
+	if object.g and not ignoreChildren then
 		local g = {};
 		for i,object in ipairs(object.g) do
 			local child = CloneObject(object);
@@ -381,17 +415,137 @@ app.CreateClassInstance = CreateClassInstance;
 -- wouldn't even be used obviously... so maybe in the future
 local GlobalVariants = {}
 app.GlobalVariants = GlobalVariants
+-- Takes multiple other variants and combines them together into the specified name, then storing it
+-- into the GlobalVariants table
+GlobalVariants.Combine = function(...)
+	local combine, conditions, name = {}, {}, ""
+	local condition, variantName
+	-- combine tables, check unique fields
+	for _,variant in ipairs({...}) do
+		variantName = variant.__name
+		if not variantName or type(variantName) ~= "string" then
+			ClassError("Cannot combine variants due to variant",variantName or _,"missing valid '__name' string!")
+		end
+		name = name..variantName
+		condition = variant.__condition
+		if not condition or type(condition) ~= "function" then
+			ClassError("Cannot combine variants due to variant",variantName,"missing '__condition' function!")
+		end
+		conditions[#conditions + 1] = condition
+		for k, v in pairs(variant) do
+			if k ~= "__condition" and k ~= "__name" then
+				if combine[k] then
+					ClassError("Cannot combine variants due to conflicting variant key:",k)
+				end
+				combine[k] = v
+			end
+		end
+	end
+	-- save into GlobalVariants
+	if GlobalVariants[name] then
+		ClassError("Cannot Combine variants into",name,"since it has already been defined!")
+	end
+	-- store the combined name
+	combine.__name = name
+	-- create a new __condition based on the running of all other conditions
+	combine.__condition = function(t)
+		for _,condition in ipairs(conditions) do
+			if not condition(t) then return end
+		end
+		return true
+	end
+	GlobalVariants[name] = combine
+	return combine
+end
+
+local function GenerateVariantClasses(class)
+	local fields = class.__class
+	local variants = fields.variants
+	if not variants or #variants == 0 then return end
+	local subbase = function(t, key) return class.__index; end
+	local classname = fields.__type()
+	local variantClone, variantName
+	for i,variant in ipairs(variants) do
+		if not variant.__name then
+			ClassError("Missing Class Variant __name!",i,classname)
+		end
+		if not variant.__condition then
+			ClassError("Missing Class Variant __condition!",variant.__name,classname)
+		end
+		-- raw variant table may be used by other classes, so need to copy it for this specific subclass
+		variantClone = CloneDictionary(fields, CloneDictionary(variant, {base=subbase}))
+		variantName = classname..variant.__name
+		variants[i] = CreateClassMeta(variantClone, variantName);
+		if variant.__onclassgenerated then variant.__onclassgenerated(variantName) end
+	end
+end
+local function AppendVariantConditionals(conditionals, class)
+	local subcassCondition = class.__class.__condition
+	local variants = class.__class.variants
+	if subcassCondition then
+		if variants then
+			conditionals[#conditionals + 1] = function(t)
+				if subcassCondition(t) then
+					-- check any variants for this subclass
+					for i,variant in ipairs(variants) do
+						if variant.__class.__condition(t) then
+							setmetatable(t, variant);
+							-- app.PrintDebug("Create Variant",t.hash,class.__class.__type()..variant.__name)
+							return true
+						end
+					end
+					setmetatable(t, class);
+					return true;
+				end
+			end
+		else
+			conditionals[#conditionals + 1] = function(t)
+				if subcassCondition(t) then
+					setmetatable(t, class);
+					return true;
+				end
+			end
+		end
+	elseif variants then
+		conditionals[#conditionals + 1] = function(t)
+			-- check any variants for this class
+			for i,variant in ipairs(variants) do
+				if variant.__class.__condition(t) then
+					setmetatable(t, variant);
+					-- app.PrintDebug("Create Variant",t.hash,class.__class.__type()..variant.__name)
+					return true
+				end
+			end
+			setmetatable(t, class);
+			return true;
+		end
+	end
+end
+local GenerateSimpleMetaClass = app.EmptyFunction
+-- Only Classic utilizes this 'simplemeta' since the cost logic works completely different than in Retail
+if app.IsClassic then
+GenerateSimpleMetaClass = function(fields,name,subname)
+	if fields.collectibleAsCost then
+		local simpleclass = CloneDictionary(fields, {
+			collectibleAsCost = app.ReturnFalse
+		})
+		simpleclass.collectedAsCost = nil
+		local simplemeta = CreateClassMeta(simpleclass, "Simple" .. name .. (subname or ""))
+		fields.simplemeta = function(t) return simplemeta end
+	end
+end
+end
 
 app.CreateClass = function(className, classKey, fields, ...)
 	-- Validate arguments
 	if not className then
-		print("A Class Name must be declared when using CreateClass");
+		ClassError("A Class Name must be declared when using CreateClass");
 	end
 	if not classKey then
-		print("A Class Key must be declared when using CreateClass");
+		ClassError("A Class Key must be declared when using CreateClass");
 	end
 	if not fields then
-		print("Fields must be declared when using CreateClass");
+		ClassError("Fields must be declared when using CreateClass");
 	end
 
 	-- app.PrintDebug("CreateClass",className, classKey)
@@ -401,125 +555,63 @@ app.CreateClass = function(className, classKey, fields, ...)
 		fields.key = function() return classKey; end;
 	end
 
-	-- If this object supports collectibleAsCost, that means it needs a way to fallback to a version of itself without any cost evaluations should it detect that it doesn't use it anywhere.
-	if fields.collectibleAsCost then
-		local simpleclass = {};
-		for key,method in pairs(fields) do
-			simpleclass[key] = method;
+	-- If a Type is collectible via in-game Event, also enforce that it defines for itself its CacheKey
+	-- for the common immediate collection handling logic
+	if fields.collectible and fields.collected and not fields.RefreshCollectionOnly then
+		if not fields.CACHE then
+			ClassError("Class",className,"is missing CACHE by which the collected Keys are stored in the Cache");
 		end
-		simpleclass.collectibleAsCost = app.ReturnFalse;
-		simpleclass.collectedAsCost = nil;
-		local simplemeta = BaseObjectFields(simpleclass, "Simple" .. className);
-		fields.simplemeta = function(t) return simplemeta; end;
 	end
+
+	-- If this object supports collectibleAsCost, that means it needs a way to fallback to a version of itself without any cost evaluations should it detect that it doesn't use it anywhere.
+	GenerateSimpleMetaClass(fields, className)
 
 	local args = { ... };
 	local total = #args;
+	local Class = CreateClassMeta(fields, className);
+	local conditionals = {};
+	GenerateVariantClasses(Class)
 	if total > 0 then
-		local conditionals = {};
-		local Class;
 		local base = function(t, key) return Class.__index; end
 		for i=1,total,3 do
 			local subclassName = args[i];
 			if subclassName then
 				local conditional = args[i + 2];
-				local class = args[i + 1];
-				if class then
-					for key,method in pairs(fields) do
-						if not rawget(class, key) then
-							class[key] = method;
-						end
-					end
-					class.base = base;
-					if class.collectibleAsCost then
-						local simpleclass = {};
-						for key,method in pairs(class) do
-							simpleclass[key] = method;
-						end
-						simpleclass.collectibleAsCost = app.ReturnFalse;
-						simpleclass.collectedAsCost = nil;
-						local simplemeta = BaseObjectFields(simpleclass, "Simple" .. className .. subclassName);
-						class.simplemeta = function(t) return simplemeta; end;
-					end
-					local subclass = BaseObjectFields(class, className .. subclassName);
-					local variants = class.variants;
-					if variants then
-						local subbase = function(t, key) return subclass.__index; end
-						local variantClone
-						for variantName,variant in pairs(variants) do
-							if not variant.__condition then
-								app.print("Missing Sub-Class Variant __condition!",variantName,subclassName,className)
-							end
-							-- raw variant table may be used by other classes, so need to copy it for this specific subclass
-							variantClone = {}
-							for key,method in pairs(variant) do
-								variantClone[key] = method;
-							end
-							-- copy in the class fields
-							for key,method in pairs(class) do
-								if not variantClone[key] then
-									variantClone[key] = method;
-								end
-							end
-							variantClone.base = subbase;
-							variants[variantName] = BaseObjectFields(variantClone, className .. subclassName .. variantName);
-						end
-					end
-					local a;
-					tinsert(conditionals, function(t)
-						a = conditional(t);
-						if a then
-							-- check any variants for this subclass
-							if variants then
-								local variantCondition
-								for variantName,variant in pairs(variants) do
-									variantCondition = variant.__class.__condition
-									if variantCondition and variantCondition(t) then
-										setmetatable(t, variant);
-										-- app.PrintDebug("Create Variant",t.hash,variantName)
-										return true
-									end
-								end
-							end
-							setmetatable(t, subclass);
-							return true;
-						end
-					end);
+				local subfields = args[i + 1];
+				if subfields then
+					CloneDictionary(fields, subfields)
+					subfields.__condition = conditional
+					subfields.base = base;
+					GenerateSimpleMetaClass(subfields, className, subclassName)
+					local subclass = CreateClassMeta(subfields, className .. subclassName)
+					GenerateVariantClasses(subclass)
+					AppendVariantConditionals(conditionals, subclass)
 				else
-					tinsert(conditionals, conditional);
+					conditionals[#conditionals] = conditional
 				end
 			end
 		end
-		total = #conditionals;
-		fields.conditionals = conditionals;
-		Class = BaseObjectFields(fields, className);
-		local classConstructor = function(id, t)
-			t = constructor(id, t, classKey);
-			for i=1,total,1 do
-				if conditionals[i](t) then
-					return t;
-				end
-			end
-			return setmetatable(t, Class);
-		end;
-		if not classesByKey[classKey] then
-			classesByKey[classKey] = classConstructor;
-		elseif not fields.IsClassIsolated then
-			print(className, "does not have a unique class Key", classKey, "and will have trouble with instance creation without a direct reference to an existing object or a direct integration using parser!");
-		end
-		return classConstructor, Class;
-	else
-		local Class = BaseObjectFields(fields, className);
-		local classConstructor = function(id, t)
-			return setmetatable(constructor(id, t, classKey), Class);
-		end;
-		if not classesByKey[classKey] then
-			classesByKey[classKey] = classConstructor;
-		elseif not fields.IsClassIsolated then
-			print(className, "does not have a unique class Key", classKey, "and will have trouble with instance creation without a direct reference to an existing object or a direct integration using parser!");
-		end
-		return classConstructor, Class;
 	end
+	-- Class variants must be added following other subclasses/variants
+	AppendVariantConditionals(conditionals, Class)
+	total = #conditionals;
+	local classConstructor = total > 0 and function(id, t)
+		t = constructor(id, t, classKey);
+		for i=1,total,1 do
+			if conditionals[i](t) then
+				return t;
+			end
+		end
+		return setmetatable(t, Class);
+	end or function(id, t)
+		return setmetatable(constructor(id, t, classKey), Class);
+	end
+	if not classesByKey[classKey] then
+		classesByKey[classKey] = classConstructor;
+	elseif not fields.IsClassIsolated then
+		ClassError(className, "does not have a unique class Key", classKey, "and will have trouble with instance creation without a direct reference to an existing object or a direct integration using parser!");
+	end
+	return classConstructor, Class;
 end
 app.CreateClassFromArray = function(arr)
 	return app.CreateClass(unpack(arr));
@@ -527,29 +619,27 @@ end
 app.CreateClassWithInfo = function(className, classKey, classInfo, fields)
 	-- Validate arguments
 	if not className then
-		print("A Class Name must be declared when using CreateClassWithInfo");
+		ClassError("A Class Name must be declared when using CreateClassWithInfo");
 	end
 	if not classKey then
-		print("A Class Key must be declared when using CreateClassWithInfo");
+		ClassError("A Class Key must be declared when using CreateClassWithInfo");
 	end
 	if not fields then
-		print("Fields must be declared when using CreateClassWithInfo");
+		ClassError("Fields must be declared when using CreateClassWithInfo");
 	end
 	if not classInfo then
-		print("ClassInfo must be declared when using CreateClassWithInfo");
+		ClassError("ClassInfo must be declared when using CreateClassWithInfo");
 	end
 
 	-- Ensure that a key and _type field exists!
-	local class = {
+	local class = CloneDictionary(DefaultFields, CloneDictionary(fields, {
 		__type = function() return className; end,
 		key = function() return classKey; end
-	};
-	for key,method in pairs(DefaultFields) do class[key] = method; end
-	for key,method in pairs(fields) do class[key] = method; end
+	}))
 	if not classDefinitions[className] then
 		classDefinitions[className] = class;
 	else
-		print("A Class has already been defined with that name!", className);
+		ClassError("A Class has already been defined with that name!", className);
 	end
 
 	local classConstructor = function(id, t)
@@ -577,12 +667,13 @@ app.CreateUnimplementedClass = function(className, classKey)
 			return className;
 		end,
 		icon = function(t)
-			return "Interface\\Icons\\INV_Misc_QuestionMark";
+			return 134400;
 		end,
 		title = function(t)
 			return app.L.DATA_TYPE_NOT_SUPPORTED;
 		end,
 		IsClassIsolated = true,
+		RefreshCollectionOnly = true,
 		isInvalid = app.ReturnTrue,
 		collected = app.ReturnFalse,
 		collectible = app.ReturnTrue,
@@ -591,21 +682,61 @@ end
 app.ExtendClass = function(baseClassName, className, classKey, fields, ...)
 	local baseClass = classDefinitions[baseClassName];
 	if baseClass then
-		if not fields then fields = {}; end
-		for key,method in pairs(baseClass) do
-			if not fields[key] then
-				fields[key] = method;
-			end
-		end
-		fields.__type = nil;
-		fields.key = nil;
-		fields.conditionals = nil;
-		fields.simplemeta = nil;
+		-- clone the base fields and make sure to remove fields we don't want to inherit in the extended classes
+		local basefields = CloneDictionary(baseClass)
+		basefields.__type = nil;
+		basefields.variants = nil
+		basefields.key = nil;
+		basefields.conditionals = nil;
+		basefields.simplemeta = nil;
+		-- then clone those into the extended class
+		fields = CloneDictionary(basefields, fields)
 	else
-		print("Could not find specified base class:", baseClassName);
+		ClassError("Could not find specified base class:", baseClassName);
 	end
 	-- app.PrintDebug("ExtendClass",baseClassName, className, classKey)
 	return app.CreateClass(className, classKey, fields, ...);
+end
+-- Allows swapping the Class's method for a given field
+app.SwapClassDefinitionMethod = function(className, classField, newFunc)
+	local class = classDefinitions[className]
+	if not class then app.print("Class",className,"does not exist!") return end
+
+	local curFunc = class[classField]
+	if not curFunc then app.print("Class",className,"does not contain field",classField) return end
+
+	if newFunc and type(newFunc) ~= "function" then app.print("Cannot assing non-function for Class",className,"field",classField) return end
+
+	local swapdefaults = class.__swapdefaults
+	if not swapdefaults then
+		swapdefaults = {}
+		class.__swapdefaults = swapdefaults
+	end
+
+	if not swapdefaults[classField] then
+		swapdefaults[classField] = curFunc
+	end
+
+	if newFunc then
+		-- app.PrintDebug("SwapClassNew",className,classField,newFunc)
+		class[classField] = newFunc
+	else
+		-- app.PrintDebug("SwapClassDef",className,classField,swapdefaults[classField])
+		class[classField] = swapdefaults[classField]
+	end
+end
+-- Setup a simple true/false swap for the 'collectible' field of the given class based on the tracked setting name
+app.AddSimpleCollectibleSwap = function(classname, setting)
+	local function AssignCollectibleFunction()
+		-- app.PrintDebug("Swapping",classname,".collectible","via",setting,app.Settings.Collectibles[setting])
+		if app.Settings.Collectibles[setting] then
+			app.SwapClassDefinitionMethod(classname,"collectible",app.ReturnTrue)
+		else
+			app.SwapClassDefinitionMethod(classname,"collectible",app.ReturnFalse)
+		end
+	end
+	app.AddEventHandler("OnSettingsNeedsRefresh", AssignCollectibleFunction);
+	app.AddEventHandler("OnStartup", AssignCollectibleFunction);
 end
 
 -- Allows wrapping one Type Object with another Type Object. This allows for fall-through field logic
@@ -649,8 +780,9 @@ end
 
 -- Create a local cache table which can be used by a Type class of a Thing to easily store shared
 -- information based on a unique key field for any Thing object of that Type
-app.CreateCache = function(idField)
+app.CreateCache = function(idField, className)
 	local cache, _t, v = {}, nil, nil;
+	cache.DefaultFunctions = {}
 	cache.GetCached = function(t)
 		local id = t[idField];
 		if id then
@@ -673,14 +805,17 @@ app.CreateCache = function(idField)
 		if _t then
 			-- set a default provided cache value if any default function was provided and evalutes to a value
 			v = _t[field];
-			if not v and default_function then
-				local defVal = default_function(t, field);
-				if defVal then
-					v = defVal;
-					_t[field] = v;
-				end
+			if v ~= nil then return v end
+
+			default_function = default_function or cache.DefaultFunctions[field]
+			if not default_function then return end
+
+			local defVal = default_function(t, field, _t);
+			if defVal then
+				v = defVal;
+				_t[field] = v;
 			end
-			return v;
+			return v
 		end
 	end;
 	cache.SetCachedField = function(t, field, value)
@@ -695,7 +830,76 @@ app.CreateCache = function(idField)
 		_t = cache.GetCached(t);
 		if _t then _t[field] = value; end
 	end;
+	if app.__perf then
+		return app.__perf.AutoCaptureTable(cache, "ClassCache:"..(className or idField))
+	end
 	return cache;
+end
+
+-- Returns an object which contains no data, but can return values from an overrides table, and be loaded/created when a specific field is attempted to be referenced
+-- i.e. Create a data group which contains no information but will attempt to populate itself when [loadField] is referenced
+app.DelayLoadedObject = function(objFunc, loadField, overrides, ...)
+	local o;
+	local def = {}
+	local params = {...};
+	local loader = {
+		__index = function(t, key)
+			-- load the object if it matches the load field and not yet loaded
+			if not o and key == loadField then
+				o = objFunc(unpack(params))
+				if not o then
+					error("DLO failed to generate an Object when loading!",unpack(params))
+				end
+				-- parent of the underlying object should correspond to the hierarchical parent of t (dlo)
+				local dloParent = rawget(t, "parent");
+				rawset(o, "parent", dloParent);
+				rawset(t, "__o", o);
+				-- allow the object to reference the DLO if needed
+				o.__dlo = t;
+				-- app.PrintDebug("DLO:Loaded",o.hash,"parent:",dloParent,dloParent and dloParent.hash)
+				-- DLOs can now have an OnLoad function which runs here when loaded for the first time
+				if overrides.OnLoad then overrides.OnLoad(o); end
+			end
+
+			-- override for the object
+			local override = overrides and overrides[key];
+			if override ~= nil then
+				-- app.PrintDebug("DLO:override",key,":",override)
+				-- overrides can also be a function which will execute once the object has been created
+				if o and type(override) == "function" then
+					return override(o, key);
+				else
+					return override;
+				end
+			-- existing object, then reference the respective key
+			elseif o then
+				return o[key];
+			-- otherwise ensure visible
+			elseif key == "visible" then
+				-- app.PrintDebug("dlo.visible",unpack(params))
+				return true;
+			end
+			-- return any default value
+			return def[key]
+		end,
+		-- transfer field sets to the underlying object if the field does not have an override for the object
+		__newindex = function(t, key, val)
+			if o then
+				if not overrides[key] then
+					-- app.PrintDebug("DLO:__newindex:",o.hash,key,val)
+					rawset(o, key, val);
+				end
+			elseif key == "parent" then
+				rawset(t, key, val);
+			else
+				-- allow direct assignment prior to o creation to the set of default fields
+				def[key] = val
+			end
+		end,
+	};
+	-- data is just an empty table with a loader metatable
+	local dlo = setmetatable({__dlo=true}, loader);
+	return dlo;
 end
 
 --[[
@@ -740,7 +944,7 @@ local fieldsWithWorldQuest = {
 		end
 	end,
 	variants = {
-		AndReputation = {
+		{
 			Test = function(t)
 				return "AndReputation";
 			end,
@@ -749,6 +953,7 @@ local fieldsWithWorldQuest = {
 					print(t.name .. " (" .. t.__type .. "): I'm a subvariant with reputation!");
 				end
 			end,
+			__name = "VariantName",
 			__condition = function(t)
 				return t.maxReputation
 			end,
@@ -782,10 +987,7 @@ local function NotInitialized(name)
 	app.print(name,"not initialized yet...");
 end
 app.SetAccountCollected = function() NotInitialized("SetAccountCollected") end;
-app.SetAccountCollectedForSubType = function() NotInitialized("SetAccountCollectedForSubType") end
 app.SetCollected = function() NotInitialized("SetCollected") end;
-app.SetCollectedForSubType = function() NotInitialized("SetCollectedForSubType") end
--- Classic needs to use modules/Collection.lua pls
 app.SetCached = function() NotInitialized("SetCached") end;
 app.IsCached = function() NotInitialized("IsCached") end;
 app.IsAccountCached = function() NotInitialized("IsAccountCached") end;

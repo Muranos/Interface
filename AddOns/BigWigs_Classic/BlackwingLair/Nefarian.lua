@@ -4,9 +4,11 @@
 
 local mod, CL = BigWigs:NewBoss("Nefarian Classic", 469, 1536)
 if not mod then return end
-mod:RegisterEnableMob(11583, 10162) -- Nefarian, Lord Victor Nefarius
+mod:RegisterEnableMob(11583, 10162, 14261, 14262, 14263, 14264, 14265, 14302) -- Nefarian, Lord Victor Nefarius, Blue, Green, Bronze, Red, Black, Chromatic
 mod:SetEncounterID(617)
-mod:SetRespawnTime(900)
+if mod:Retail() then
+	mod:SetRespawnTime(900)
+end
 mod:SetStage(1)
 
 --------------------------------------------------------------------------------
@@ -24,8 +26,6 @@ local adds_dead = 0
 local L = mod:GetLocale()
 if L then
 	L.engage_yell_trigger = "Let the games begin"
-	L.landing_soon_trigger = "Well done, my minions"
-	L.stage2_yell_trigger = "BURN! You wretches"
 	L.stage3_yell_trigger = "Impossible! Rise my"
 
 	L.shaman_class_call_yell_trigger = "Shamans"
@@ -76,10 +76,10 @@ function mod:GetOptions()
 end
 
 function mod:VerifyEnable(unit, mobId)
-	if mobId == 11583 then -- Nefarian
-		return true
-	else -- Lord Victor Nefarius, prevent enabling at Vael
+	if mobId == 10162 then -- Lord Victor Nefarius, prevent enabling at Vael
 		return self:UnitIsInteractable(unit)
+	else -- Nefarian, adds
+		return true
 	end
 end
 
@@ -88,7 +88,7 @@ function mod:OnRegister()
 		[L.shaman_class_call_yell_trigger] = L.warnshaman,
 		[L.deathknight_class_call_yell_trigger] = L.warndeathknight,
 		[L.monk_class_call_yell_trigger] = L.warnmonk,
-		[L.hunter_class_call_yell_trigger] = L.warnhunter,
+		[L.hunter_class_call_yell_trigger] = L.warnhunter, -- Backup for Hunter spell not working
 	}
 	classCallSpellTable = {
 		[23414] = L.warnrogue,
@@ -100,7 +100,7 @@ function mod:OnRegister()
 		[23418] = L.warnpaladin,
 		[23427] = L.warnwarlock,
 		[204813] = L.warndemonhunter,
-		[23436] = L.warnhunter, -- Might not be working on classic?
+		[23436] = L.warnhunter, -- Hunter sometimes doesn't work
 	}
 end
 
@@ -112,15 +112,17 @@ function mod:OnBossEnable()
 	self:Log("SPELL_AURA_APPLIED", "VeilOfShadow", 22687)
 	self:Log("SPELL_DISPEL", "VeilOfShadowDispelled", "*")
 
-	-- Rogue, Druid, Druid (Retail WoW), Warrior, Priest, Mage, Paladin, Warlock, Demon Hunter
-	self:Log("SPELL_AURA_APPLIED", "ClassCall", 23414, 23398, 350567, 23397, 23401, 23410, 23418, 23427, 204813)
-	self:Log("SPELL_DURABILITY_DAMAGE", "ClassCall", 23436) -- Hunter, might not be working on classic?
+	-- Rogue, Druid, Warrior, Priest, Mage, Paladin, Warlock
+	self:Log("SPELL_AURA_APPLIED", "ClassCall", 23414, 23398, 23397, 23401, 23410, 23418, 23427)
+	if self:Retail() then
+		-- Druid (Retail WoW), Demon Hunter
+		self:Log("SPELL_AURA_APPLIED", "ClassCall", 350567, 204813)
+	end
+	self:Log("SPELL_DURABILITY_DAMAGE", "ClassCall", 23436) -- Hunter, sometimes doesn't work, keeping yell for backup
 
 	self:RegisterEvent("CHAT_MSG_MONSTER_YELL")
 
 	self:Death("AddDied", 14261, 14262, 14263, 14264, 14265, 14302) -- Blue, Green, Bronze, Red, Black, Chromatic
-
-	self:RegisterEvent("PLAYER_REGEN_ENABLED", "CheckForWipe")
 end
 
 function mod:OnEngage()
@@ -143,9 +145,9 @@ do
 		self:PlaySound(args.spellId, "warning", nil, args.destName)
 	end
 	function mod:ShadowCommandRemoved(args)
+		self:StopBar(CL.mind_control_short, args.destName)
 		if args.destGUID == prevMindControl then
 			prevMindControl = nil
-			self:StopBar(CL.mind_control_short, args.destName)
 			self:PrimaryIcon(args.spellId)
 		end
 	end
@@ -193,14 +195,6 @@ end
 function mod:CHAT_MSG_MONSTER_YELL(_, msg)
 	if msg:find(L.engage_yell_trigger, nil, true) then
 		self:Engage()
-	elseif msg:find(L.landing_soon_trigger, nil, true) then
-		self:Message("stages", "cyan", CL.custom_sec:format(CL.stage:format(2), 10), false)
-		self:Bar("stages", 11, CL.stage:format(2), "INV_Misc_Head_Dragon_Black")
-		self:PlaySound("stages", "long")
-	elseif msg:find(L.stage2_yell_trigger, nil, true) then
-		self:SetStage(2)
-		self:Message("stages", "cyan", CL.stage:format(2), false)
-		self:PlaySound("stages", "info")
 	elseif msg:find(L.stage3_yell_trigger, nil, true) then
 		self:SetStage(3)
 		self:Message("stages", "cyan", CL.percent:format(20, CL.stage:format(3)), false)
@@ -216,7 +210,20 @@ function mod:CHAT_MSG_MONSTER_YELL(_, msg)
 	end
 end
 
-function mod:AddDied()
-	adds_dead = adds_dead + 1
-	self:Message("add", "green", CL.add_killed:format(adds_dead, 41), "INV_Misc_Head_Dragon_Black")
+do
+	local function Stage2(self)
+		self:SetStage(2)
+		self:Message("stages", "cyan", CL.stage:format(2), false)
+		self:PlaySound("stages", "info")
+	end
+	function mod:AddDied()
+		adds_dead = adds_dead + 1
+		self:Message("add", "green", CL.add_killed:format(adds_dead, 41), "INV_Misc_Head_Dragon_Black")
+		if adds_dead == 41 then
+			self:Message("stages", "cyan", CL.custom_sec:format(CL.stage:format(2), 12), false)
+			self:Bar("stages", 12, CL.stage:format(2), "INV_Misc_Head_Dragon_Black")
+			self:ScheduleTimer(Stage2, 12, self)
+			self:PlaySound("stages", "long")
+		end
+	end
 end

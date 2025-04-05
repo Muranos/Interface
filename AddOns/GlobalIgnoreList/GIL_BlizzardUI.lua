@@ -4,105 +4,9 @@
 
 local _, L = ...
 
------------------------------
--- UNIT AND CHAT MENU HOOK --
------------------------------
-
-local function getButtonElement (list, name)
-	for index, value in ipairs(list) do
-		if (type(value) == "string") and (value == "IGNORE") then
-			return index
-		end
-	end
-	
-	return -1
-end
-
-local function GilUnitMenu (dropdownMenu, which, unit, name, userData, ...)
-
-	if (UIDROPDOWNMENU_MENU_LEVEL > 1) then
-		return
-	end
-	
-	if (which and (which == "FRIEND")) then
-		
-		local info = UIDropDownMenu_CreateInfo()
-				
-		info.dist = 0
-		info.notCheckable = 1	
-		info.func = function() C_FriendList.AddOrDelIgnore(addServer(name)) GILUpdateUI(true) end
-			
-		if (hasGlobalIgnored(addServer(name)) > 0) then
-			info.text = L["RCM_4"]					
-		else
-			info.text = L["RCM_6"]
-		end	
-				
-		UIDropDownMenu_AddButton(info, UIDROPDOWNMENU_MENU_LEVEL)
-		
-	elseif (which and (which == "PLAYER" or which == "RAID_PLAYER" or which == "PARTY" or which == "TARGET")) then
-		
-		local target, server = UnitName(unit or "target")
-			
-		if server then
-			if server == "" then
-				addServer(target)
-			else
-				target = target .. "-"..server
-			end
-		end
-		
-		target = Proper(target, true)
-		
-		DropDownList1.numButtons = max(0, DropDownList1.numButtons - 1)
-
-		local info = UIDropDownMenu_CreateInfo()
-		info.text = ""
-		info.notCheckable = true
-		info.disabled = true
-		UIDropDownMenu_AddButton(info, UIDROPDOWNMENU_MENU_LEVEL)	
-
-		local info = UIDropDownMenu_CreateInfo()
-				
-		info.dist = 0
-		info.notCheckable = 1
-		
-		if name and name == RAID_TARGET_ICON then
-			info.func = function() AddOrDelNPC("") GILUpdateUI(true) end
-				
-			if (hasNPCIgnored(target) > 0) then
-				info.text = L["RCM_4"]
-			else
-				info.text = L["RCM_6"]
-			end
-
-		else
-			info.func = function() C_FriendList.AddOrDelIgnore(addServer(target)) GILUpdateUI(true) end
-			
-			if (hasGlobalIgnored(addServer(target)) > 0) then
-				info.text = L["RCM_4"]				
-				
-			else
-				info.text = L["RCM_6"]
-			end	
-		end
-		
-		UIDropDownMenu_AddButton(info, UIDROPDOWNMENU_MENU_LEVEL)
-		
-		local info = UIDropDownMenu_CreateInfo()
-		info.text = L["RCM_5"]
-		info.dist = 0
-		info.notCheckable = 1
-		UIDropDownMenu_AddButton(info, UIDROPDOWNMENU_MENU_LEVEL)
-	end
-end
-
 --------------------
 -- LFG TOOL HACKS --
 --------------------
-
-local LFGMenu	= nil
-local LFGLeader	= ""
 
 function GIL_GetPlaystyleString (playstyle, activityInfo)
 
@@ -125,12 +29,6 @@ function GIL_GetPlaystyleString (playstyle, activityInfo)
 	end
 end
 
---C_LFGList.GetPlaystyleString = function (playstyle, activityInfo)
---	return GIL_GetPlaystyleString (playstyle, activityInfo)
---end
-
---LFGListEntryCreation_SetTitleFromActivityInfo = function(_) end
-
 function GIL_LFG_Refresh()
 	if LFGListFrame.SearchPanel ~= nil and LFGListFrame.SearchPanel:IsShown() then
 		LFGListSearchPanel_UpdateResults(LFGListFrame.SearchPanel)
@@ -138,7 +36,6 @@ function GIL_LFG_Refresh()
 end
 
 function GIL_LFG_Update (self)
-
 	if not C_LFGList.HasSearchResultInfo(self.resultID) then return end
 	
 	local info = C_LFGList.GetSearchResultInfo(self.resultID);
@@ -149,9 +46,8 @@ function GIL_LFG_Update (self)
 end
 
 function GIL_LFG_Tooltip (self)
-
 	if not C_LFGList.HasSearchResultInfo(self.resultID) then return end
-	
+
 	local info = C_LFGList.GetSearchResultInfo(self.resultID);
 	
 	if (info ~= nil and info.leaderName ~= nil) then
@@ -174,79 +70,95 @@ function GIL_LFG_Tooltip (self)
 	end
 end
 
-local function GIL_EasyMenu (menu, frame, anchor, x, y, display)
-	if (frame ~= LFGListFrameDropDown or (anchor.resultID == nil)) then return end
+function GIL_LFG_ApplicantMenu(owner, root, contextData)
+	if not owner or not owner.resultID then return end
 	
-	local info = C_LFGList.GetSearchResultInfo(anchor.resultID)
-
-	if (info ~= nil and info.leaderName ~= nil) then
-		LFGLeader = info.leaderName
+	local info = C_LFGList.GetSearchResultInfo(owner.resultID);
+	
+	if not info.leaderName or info.leaderName == "" then return end
+	
+	local target = addServer(info.leaderName)
+	local text   = ""
+	
+	if (hasGlobalIgnored(target) > 0) then
+		text = L["RCM_4"]				
 	else
-		LFGLeader = ""
-		return
-	end
+		text = L["RCM_6"]
+	end	
 	
-	local idx = hasGlobalIgnored(Proper(addServer(LFGLeader)))
-	local ignoreText = L["RCM_6"]
-	local leaderText = format(L["RCM_7"], LFGLeader)
+	local leaderText = format(L["RCM_7"], target)
 	
-	if (idx > 0) then
-		ignoreText = L["RCM_4"]
-	end
-	
-	if LFGMenu == nil then
-		LFGMenu = CreateFrame("Frame", "GIL_LFGMenu", UIParent, "BackdropTemplate")
-		
-		LFGMenu:SetBackdrop ({
-			bgFile = "Interface/Tooltips/UI-Tooltip-Background",
-			edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
-			edgeSize = 16,
-			insets = { left = 4, right = 4, top = 4, bottom = 4 },
-		})
-		
-		LFGMenu:SetBackdropColor(0, 0, .1, .65)
-		LFGMenu:SetFrameStrata("DIALOG")
-		LFGMenu:EnableMouse(true)
-		
-		local t = LFGMenu:CreateFontString("GIL_LFGLeader", "ARTWORK", "GameFontHighlight")
-		t:SetPoint("TOPLEFT", 14, -14)
-		t:SetTextColor(YELLOW_FONT_COLOR:GetRGB())
-		
-		local b = CreateFrame("Button", "GIL_LFGButton", LFGMenu, "UIPanelButtonTemplate")
-		b:SetPoint("TOPLEFT", t, 0, -20)
-		b:SetScript("OnHide",
-			function()
-				if MouseIsOver(GIL_LFGButton) then
-					C_FriendList.AddOrDelIgnore(LFGLeader)
-					GIL_LFG_Refresh()
-				end
-			end)
-	end
-	
-	GIL_LFGLeader:SetText(addServer(leaderText))
-	GIL_LFGButton:SetText(ignoreText)
-	
-	local width = max(DropDownList1:GetWidth(), GIL_LFGLeader:GetStringWidth() + 40)
-
-	LFGMenu:SetSize(width, 70)
-	LFGMenu:SetPoint("TOPLEFT", DropDownList1, "BOTTOMLEFT")
-	
-	GIL_LFGButton:SetSize(max(22, width - 26), 22)
-	
-	DropDownList1:HookScript("OnHide", function() LFGMenu:Hide() end)
-
-	LFGMenu:Show()
+	root:CreateDivider()
+	root:CreateTitle(leaderText)
+	root:CreateButton(text,
+		function(owner, root, contextData)
+			C_FriendList.AddOrDelIgnore(addServer(info.leaderName))
+			GILUpdateUI(true)
+		end)	
 end
 
-function GIL_HookFunctions()
+----------------------
+-- UNIT MENU- HACKS --
+----------------------
 
+function GIL_UnitMenuPlayer (owner, root, contextData)
+	local target, server = UnitName(contextData.unit)
+
+	if server == nil or server == "" then
+		target = addServer(target)
+	else
+		target = target .. "-" .. server
+	end
+
+	target = Proper(target, true)
+
+	local text = ""
+	
+	if (hasGlobalIgnored(addServer(target)) > 0) then
+		text = L["RCM_4"]				
+	else
+		text = L["RCM_6"]
+	end	
+
+	root:CreateDivider()
+	root:CreateButton(text,
+		function(owner, root, contextData)
+			C_FriendList.AddOrDelIgnore(addServer(target))
+			GILUpdateUI(true)
+		end)
+end
+
+-----------------------
+-- ADDON COMPARTMENT --
+-----------------------
+
+AddonCompartmentFrame:RegisterAddon({
+	text = "Global Ignore List",
+	icon = "Interface\\Icons\\ui_chat.blp",
+	notCheckable = true,
+	func = function(button, menuInputData, menu)
+		GIL_GUI()
+	end,
+})
+
+--------------
+-- UI HOOKS --
+--------------
+
+function GIL_HookFunctions()
+	-- /script Menu.PrintOpenMenuTags()
+		
 	if GlobalIgnoreDB.useLFGHacks == true then
 		hooksecurefunc("LFGListSearchEntry_Update", GIL_LFG_Update)
-		hooksecurefunc("LFGListSearchEntry_OnEnter", GIL_LFG_Tooltip)
-		hooksecurefunc("EasyMenu", GIL_EasyMenu)
+		hooksecurefunc("LFGListSearchEntry_OnEnter", GIL_LFG_Tooltip)	
+		
+		Menu.ModifyMenu("MENU_LFG_FRAME_SEARCH_ENTRY", GIL_LFG_ApplicantMenu)
 	end
 	
 	if GlobalIgnoreDB.useUnitHacks == true then
-		hooksecurefunc("UnitPopup_ShowMenu", GilUnitMenu)
+		Menu.ModifyMenu("MENU_UNIT_ENEMY_PLAYER", GIL_UnitMenuPlayer)
+		Menu.ModifyMenu("MENU_UNIT_PLAYER", GIL_UnitMenuPlayer)
+		Menu.ModifyMenu("MENU_UNIT_PARTY", GIL_UnitMenuPlayer)
+		Menu.ModifyMenu("MENU_UNIT_RAID_PLAYER", GIL_UnitMenuPlayer)
 	end
 end

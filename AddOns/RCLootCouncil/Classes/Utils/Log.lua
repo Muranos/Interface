@@ -16,6 +16,8 @@ local private = {
 -- Class Definitions
 -----------------------------------------------------------
 -- Log Class Methods
+
+--- @class Log
 local LOG_METHODS = {
    --- Message
    --- @param self Log
@@ -66,14 +68,15 @@ local LOG_MT = {
 -----------------------------------------------------------
 
 --- Create a new Log class
---- @param prefix string An optional prefix to all messages
+--- @param prefix? string An optional prefix to all messages
 function Log:New(prefix)
-   ---@class Log: LOG_METHODS
-   ---@overload fun(self:Log, ...)
-   local object = {
-      prefix = prefix and "["..prefix.."]" or ""
-   }
-   return setmetatable(object, LOG_MT)
+	--- \<INFO> Logging
+	---@class Log
+	---@overload fun(...) 
+	local object = {
+		prefix = prefix and "["..prefix.."]" or ""
+	}
+	return setmetatable(object, LOG_MT)
 end
 
 --- Clear all stored logs
@@ -114,7 +117,7 @@ function private:Log(Log,prefix, ...)
    end
    local msg = table.concat(t, "")
    TempTable:Release(t)
-	if self.lenght >= addon.db.global.logMaxEntries then
+	if self.lenght >= (addon.db.global.logMaxEntries or 2000) then
 		tremove(self.debugLog, 1) -- We really want to preserve indicies
       self.lenght = self.lenght - 1
 	end

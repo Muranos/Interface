@@ -21,6 +21,7 @@ if L then
 
 	L.debuffs_message = "3/5 減益，注意！"
 	L.debuffs_warning = "4/5 減益， 5層後將%s！"
+	L.bronze = "青銅"
 
 	L.vulnerability = "弱點改變警報"
 	L.vulnerability_desc = "當克洛瑪古斯弱點改變時發出警報。"
@@ -32,8 +33,6 @@ end
 L = BigWigs:NewBossLocale("Nefarian Classic", "zhTW")
 if L then
 	--L.engage_yell_trigger = "Let the games begin"
-	L.landing_soon_trigger = "幹得好，手下們。凡人的勇氣開始消退了！現在，我們就來看看他們怎麼面對黑石之王的力量吧！"
-	L.stage2_yell_trigger = "燃燒吧！一群廢物！燒吧！"
 	L.stage3_yell_trigger = "不可能！來吧，我的僕人！再次為你們的主人服務！"
 
 	L.shaman_class_call_yell_trigger = "薩滿，讓我看看你圖騰到底是什麼用處的"
@@ -64,10 +63,13 @@ end
 L = BigWigs:NewBossLocale("Blackwing Lair Trash", "zhTW")
 if L then
 	--L.wyrmguard_overseer = "Death Talon Wyrmguard / Death Talon Overseer" -- NPC 12460 / 12461
+	--L.sandstorm = "Sandstorm"
 
 	--L.target_vulnerability = "Target Vulnerability Warnings"
 	--L.target_vulnerability_desc = "When your target is a Death Talon Wyrmguard or a Death Talon Overseer, show a warning for what vulnerability it has."
 	--L.target_vulnerability_message = "Target Vulnerability: %s"
 	--L.detect_magic_missing_message = "Detect Magic is missing from your target"
 	--L.detect_magic_warning = "A Mage must cast \124cff71d5ff\124Hspell:2855:0\124h[Detect Magic]\124h\124r on your target for vulnerability warnings to work."
+
+	--L.warlock = "Blackwing Warlock" -- NPC 12459
 end

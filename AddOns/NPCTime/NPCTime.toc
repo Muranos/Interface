@@ -1,0 +1,9 @@
+## Interface: 11506, 40402, 110100
+## Title: |cffEEE4AENPC Time|r
+## Notes: |cffFFC700Slash command: /npctime|r
+## Author: Yuyuli
+## Version: 32
+## IconTexture: 237538
+## SavedVariables: NPCTimeDB
+
+NPCTime.lua

@@ -33,13 +33,13 @@ local replacements = {
     [magicKey .. "15"] = "text",
     [magicKey .. "16"] = "color",
     [magicKey .. "17"] = "autoGroupLoot",
-    [magicKey .. "18"] = "requireNotes",
+    [magicKey .. "18"] = "requireNotes", -- TODO: Duplicate entry, needs removal on patch (not backwards compatible)
 }
 
 local replacements_inv = tInvert(replacements)
 
 --- Gets a transmittable version of the MLDB
---- @param input MLDB @MLDB to convert. Defaults to addon MLDB.
+--- @param input MLDB? @MLDB to convert. Defaults to addon MLDB.
 ---@return table @MLDB that's ready for transmit.
 function MLDB:GetForTransmit(input)
     local mldb = input or (private.isBuilt and private.mldb or private:BuildMLDB())
@@ -55,7 +55,7 @@ function MLDB:RestoreFromTransmit(input)
 end
 
 --- Sends the mldb to the target
---- @param target Player @The target to send to - defaults to "group"
+--- @param target Player|"group" @The target to send to - defaults to "group"
 function MLDB:Send(target)
     Comms:Send {
         target = target,
@@ -105,7 +105,8 @@ function private:BuildMLDB()
             if
                 not addon.defaults.profile.responses[type] or
                     db.responses[type][i].text ~= addon.defaults.profile.responses[type][i].text or
-                    unpack(db.responses[type][i].color) ~= unpack(addon.defaults.profile.responses[type][i].color)
+					not tCompare(db.responses[type][i].color, addon.defaults.profile.responses[type][i].color, 2)
+                    
              then
                 if not changedResponses[type] then
                     changedResponses[type] = {}
@@ -120,10 +121,10 @@ function private:BuildMLDB()
             if i > db.buttons[type].numButtons then
                 break
             end
-            if
-                not addon.defaults.profile.buttons[type] or
-                    db.buttons[type][i].text ~= addon.defaults.profile.buttons[type][i].text
-             then
+            if not addon.defaults.profile.buttons[type] or
+				db.buttons[type][i].text ~= addon.defaults.profile.buttons[type][i].text or
+				db.buttons[type][i].requireNotes ~= addon.defaults.profile.buttons[type][i].requireNotes
+            then
                 if not changedButtons[type] then
                     changedButtons[type] = {}
                 end

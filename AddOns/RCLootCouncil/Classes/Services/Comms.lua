@@ -27,11 +27,13 @@ local private = {
 LibStub("AceComm-3.0"):Embed(private.AceComm)
 LibStub("AceSerializer-3.0"):Embed(private)
 
---- Subscribe to a comm  
+---@alias RecieverFunction fun(data: table, sender: string, command: string, distri: string): nil
+
+--- Subscribe to a comm
 -- TODO Handle order
 --- @param prefix Prefixes The prefix to subscribe to.
 --- @param command string The command to subscribe to.
---- @param func fun(data: table, sender: string, command: string, distri: string): void The function that will be called when the command is received. Receives 4 args:
+--- @param func RecieverFunction The function that will be called when the command is received. Receives 4 args:
 --    data   -- An array of the data sent with the command.
 --    sender -- The sender of the command.
 --    command -- The command
@@ -45,9 +47,9 @@ end
 
 --- Register multiple Comms at once
 --- @param prefix string @The prefix to register
---- @param data table<string,function> @A table of structure ["command"] = function, 
+--- @param data table<string,RecieverFunction> @A table of structure ["command"] = function
 --- @see Comms#Subscribe
---- @return table<number,Subscription> @An array of the created subscriptions
+--- @return table<number,Subscription>? @An array of the created subscriptions
 function Comms:BulkSubscribe (prefix, data)
    if type(data) ~= "table" then return error("Error - wrong data supplied.",2) end
    local subs = {}
@@ -59,7 +61,7 @@ function Comms:BulkSubscribe (prefix, data)
    return subs
 end
 
----@alias CommTarget '"group"' |'"guild"' | "Player"
+---@alias CommTarget '"group"' |'"guild"' | Player
 
 --- Get a Sender function to send commands on the prefix.
 --- The returned function can handle implied selfs.

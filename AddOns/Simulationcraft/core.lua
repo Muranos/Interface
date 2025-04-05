@@ -30,6 +30,7 @@ SimcLDB = LibStub("LibDataBroker-1.1"):NewDataObject("SimulationCraft", {
 LibDBIcon = LibStub("LibDBIcon-1.0")
 
 local SimcFrame = nil
+local OptionsDB = nil
 
 local OFFSET_ITEM_ID = 1
 local OFFSET_ENCHANT_ID = 2
@@ -49,6 +50,8 @@ local ITEM_MOD_TYPE_DROP_LEVEL = 9
 -- 28 shows frequently but is currently unknown
 local ITEM_MOD_TYPE_CRAFT_STATS_1 = 29
 local ITEM_MOD_TYPE_CRAFT_STATS_2 = 30
+
+local SUPPORTED_LOADOUT_SERIALIZATION_VERSION = 2
 
 local WeeklyRewards         = _G.C_WeeklyRewards
 
@@ -85,11 +88,12 @@ local zandalariLoaBuffs   = Simulationcraft.zandalariLoaBuffs
 
 function Simulationcraft:OnInitialize()
   -- init databroker
-  self.db = LibStub("AceDB-3.0"):New("SimulationCraftDB", {
+  OptionsDB = LibStub("AceDB-3.0"):New("SimulationCraftDB", {
     profile = {
       minimap = {
         hide = false,
       },
+      closeOnCopy = true,
       frame = {
         point = "CENTER",
         relativeFrame = nil,
@@ -101,7 +105,7 @@ function Simulationcraft:OnInitialize()
       },
     },
   });
-  LibDBIcon:Register("SimulationCraft", SimcLDB, self.db.profile.minimap)
+  LibDBIcon:Register("SimulationCraft", SimcLDB, OptionsDB.profile.minimap)
   Simulationcraft:UpdateMinimapButton()
   Simulationcraft:RegisterChatCommand('simc', 'HandleChatCommand')
   AddonCompartmentFrame:RegisterAddon({
@@ -123,7 +127,7 @@ function Simulationcraft:OnDisable()
 end
 
 function Simulationcraft:UpdateMinimapButton()
-  if (self.db.profile.minimap.hide) then
+  if (OptionsDB.profile.minimap.hide) then
     LibDBIcon:Hide("SimulationCraft")
   else
     LibDBIcon:Show("SimulationCraft")
@@ -154,9 +158,9 @@ function Simulationcraft:HandleChatCommand(input)
     elseif arg == 'merchant' then
       showMerchant = true
     elseif arg == 'minimap' then
-      self.db.profile.minimap.hide = not self.db.profile.minimap.hide
+      OptionsDB.profile.minimap.hide = not OptionsDB.profile.minimap.hide
       DEFAULT_CHAT_FRAME:AddMessage(
-        "SimulationCraft: Minimap button is now " .. (self.db.profile.minimap.hide and "hidden" or "shown")
+        "SimulationCraft: Minimap button is now " .. (OptionsDB.profile.minimap.hide and "hidden" or "shown")
       )
       Simulationcraft:UpdateMinimapButton()
       return
@@ -311,6 +315,7 @@ end
 --   return str
 -- end
 
+-- based on ClassTalentImportExportMixin:WriteLoadoutHeader
 local function WriteLoadoutHeader(exportStream, serializationVersion, specID, treeHash)
   exportStream:AddValue(bitWidthHeaderVersion, serializationVersion)
   exportStream:AddValue(bitWidthSpecID, specID)
@@ -319,6 +324,7 @@ local function WriteLoadoutHeader(exportStream, serializationVersion, specID, tr
   end
 end
 
+-- based on ClassTalentImportExportMixin:GetActiveEntryIndex(treeNode)
 local function GetActiveEntryIndex(treeNode)
   for i, entryID in ipairs(treeNode.entryIDs) do
     if(treeNode.activeEntry and entryID == treeNode.activeEntry.entryID) then
@@ -329,41 +335,49 @@ local function GetActiveEntryIndex(treeNode)
   return 0;
 end
 
+-- based on ClassTalentImportExportMixin:WriteLoadoutContent
 local function WriteLoadoutContent(exportStream, configID, treeID)
   local treeNodes = C_Traits.GetTreeNodes(treeID)
   for _, treeNodeID in ipairs(treeNodes) do
     local treeNode = C_Traits.GetNodeInfo(configID, treeNodeID);
 
-    local isNodeSelected = treeNode.ranksPurchased > 0;
+    local isNodeGranted = treeNode.activeRank - treeNode.ranksPurchased > 0;
+    local isNodePurchased = treeNode.ranksPurchased > 0;
+    local isNodeSelected = isNodeGranted or isNodePurchased;
     local isPartiallyRanked = treeNode.ranksPurchased ~= treeNode.maxRanks;
     local isChoiceNode = treeNode.type == Enum.TraitNodeType.Selection
       or treeNode.type == Enum.TraitNodeType.SubTreeSelection;
 
     exportStream:AddValue(1, isNodeSelected and 1 or 0);
     if(isNodeSelected) then
-      exportStream:AddValue(1, isPartiallyRanked and 1 or 0);
-      if(isPartiallyRanked) then
-        exportStream:AddValue(bitWidthRanksPurchased, treeNode.ranksPurchased);
-      end
+      exportStream:AddValue(1, isNodePurchased and 1 or 0);
 
-      exportStream:AddValue(1, isChoiceNode and 1 or 0);
-      if(isChoiceNode) then
-        local entryIndex = GetActiveEntryIndex(treeNode);
-        if(entryIndex <= 0 or entryIndex > 4) then
-          local configInfo = Traits.GetConfigInfo(configID)
-          local errorMsg = "Talent loadout '" .. configInfo.name .. "' is corrupt/incomplete. It needs to be"
-            .. " recreated or deleted for /simc to function properly"
-          print(errorMsg);
-          error(errorMsg);
+      if isNodePurchased then
+        exportStream:AddValue(1, isPartiallyRanked and 1 or 0);
+        if(isPartiallyRanked) then
+          exportStream:AddValue(bitWidthRanksPurchased, treeNode.ranksPurchased);
         end
 
-        -- store entry index as zero-index
-        exportStream:AddValue(2, entryIndex - 1);
+        exportStream:AddValue(1, isChoiceNode and 1 or 0);
+        if(isChoiceNode) then
+          local entryIndex = GetActiveEntryIndex(treeNode);
+          if(entryIndex <= 0 or entryIndex > 4) then
+            local configInfo = Traits.GetConfigInfo(configID)
+            local errorMsg = "Talent loadout '" .. configInfo.name .. "' is corrupt/incomplete. Find that talent"
+              .. " loadout in your talents UI and delete or update it. It may be on a different spec."
+            print(errorMsg);
+            error(errorMsg);
+          end
+
+          -- store entry index as zero-index
+          exportStream:AddValue(2, entryIndex - 1);
+        end
       end
     end
   end
 end
 
+-- based on ClassTalentImportExportMixin:GetLoadoutExportString
 local function GetExportString(configID)
   local active = false
   if configID == ClassTalents.GetActiveConfigID() then
@@ -371,23 +385,11 @@ local function GetExportString(configID)
   end
 
   local exportStream = ExportUtil.MakeExportDataStream();
-  local configInfo = Traits.GetConfigInfo(configID)
+  local configInfo = Traits.GetConfigInfo(configID);
   local currentSpecID = PlayerUtil.GetCurrentSpecID();
-
-  local treeID = configInfo.treeIDs[1]
-
-  local serializationVersion;
-  local treeHash;
-
-  if C_Traits.GetLoadoutSerializationVersion then
-    -- 10.0.2 Beta
-    treeHash = C_Traits.GetTreeHash(treeID)
-    serializationVersion = C_Traits.GetLoadoutSerializationVersion()
-  else
-    -- 10.0.0 PTR
-    serializationVersion = 1
-    treeHash = C_Traits.GetTreeHash(configID, treeID)
-  end
+  local treeID = configInfo.treeIDs[1];
+  local treeHash = C_Traits.GetTreeHash(treeID);
+  local serializationVersion = C_Traits.GetLoadoutSerializationVersion();
 
   WriteLoadoutHeader(exportStream, serializationVersion, currentSpecID, treeHash )
   WriteLoadoutContent(exportStream, configID, treeID)
@@ -597,7 +599,8 @@ end
 function Simulationcraft:GetZandalariLoa()
   local zandalariLoa = nil
   for index = 1, 32 do
-    local _, _, _, _, _, _, _, _, _, spellId = UnitBuff("player", index)
+    local auraData = C_UnitAuras.GetBuffDataByIndex("player", index)
+    local spellId = auraData.spellId
     if spellId == nil then
       break
     end
@@ -644,11 +647,23 @@ function Simulationcraft:GetUpgradeCurrencies()
   return table.concat(upgradeCurrencies, '/')
 end
 
+function Simulationcraft:GetItemUpgradeAchievements()
+  local achieves = {}
+  for i=1, #Simulationcraft.upgradeAchievements do
+    local achId = Simulationcraft.upgradeAchievements[i]
+    _, name, points, complete = GetAchievementInfo(achId)
+    if complete then
+      achieves[#achieves + 1] = achId
+    end
+  end
+  return table.concat(achieves, '/')
+end
+
 function Simulationcraft:GetMainFrame(text)
   -- Frame code largely adapted from https://www.wowinterface.com/forums/showpost.php?p=323901&postcount=2
   if not SimcFrame then
     -- Main Frame
-    local frameConfig = self.db.profile.frame
+    local frameConfig = OptionsDB.profile.frame
     local f = CreateFrame("Frame", "SimcFrame", UIParent, "DialogBoxFrame")
     f:ClearAllPoints()
     -- load position from local DB
@@ -692,12 +707,35 @@ function Simulationcraft:GetMainFrame(text)
     sf:SetPoint("BOTTOM", SimcFrameButton, "TOP", 0, 0)
 
     -- edit box
+    local ctrlDown = false
     local eb = CreateFrame("EditBox", "SimcEditBox", SimcScrollFrame)
     eb:SetSize(sf:GetSize())
     eb:SetMultiLine(true)
     eb:SetAutoFocus(true)
     eb:SetFontObject("ChatFontNormal")
     eb:SetScript("OnEscapePressed", function() f:Hide() end)
+    eb:SetScript("OnKeyDown", function(self, key)
+      if key == "LCTRL" or key == "RCTRL" or key == "LMETA" or key == "RMETA" then
+        ctrlDown = true
+      end
+    end)
+    eb:SetScript("OnKeyUp", function(self, key)
+      if key == "LCTRL" or key == "RCTRL" or key == "LMETA" or key == "RMETA" then
+        -- Add a small grace period. In testing, the way I press Ctrl-C would sometimes have Ctrl keyup bfore C
+        C_Timer.After(0.2, function() ctrlDown = false end)
+      end
+      if ctrlDown then
+        -- handle copy or cut
+        if key == "C" or key == "X" then
+          if OptionsDB.profile.closeOnCopy then
+            -- Just in case there's some weird way that WoW could close the window before the OS copies
+            C_Timer.After(0.1, function()
+              f:Hide()
+            end)
+          end
+        end
+      end
+    end)
     sf:SetScrollChild(eb)
 
     -- resizing
@@ -732,6 +770,15 @@ function Simulationcraft:GetMainFrame(text)
         -- save size between sessions
         frameConfig.width = f:GetWidth()
         frameConfig.height = f:GetHeight()
+    end)
+
+    -- Automatic close checkbox
+    local checkbox = CreateFrame("CheckButton", "AutomaticClose", f, "ChatConfigCheckButtonTemplate")
+    checkbox:SetPoint("BOTTOMLEFT", 12, 18)
+    checkbox.Text:SetText("Close after copy")
+    checkbox:SetChecked(true)
+    checkbox:HookScript("OnClick", function(self)
+      OptionsDB.profile.closeOnCopy = self:GetChecked()
     end)
 
     SimcFrame = f
@@ -887,6 +934,20 @@ function Simulationcraft:GetSimcProfile(debugOutput, noBags, showMerchant, links
   elseif ClassTalents then
     -- DRAGONFLIGHT
     -- new dragonflight talents
+    if Traits.GetLoadoutSerializationVersion() ~= SUPPORTED_LOADOUT_SERIALIZATION_VERSION then
+      simcPrintError = 'This version of the SimC addon does not work with this version of WoW.\n'
+      simcPrintError = simcPrintError .. 'There is a mismatch in the version of talent string exports.\n'
+      simcPrintError = simcPrintError .. '\n'
+      if Traits.GetLoadoutSerializationVersion() > SUPPORTED_LOADOUT_SERIALIZATION_VERSION then
+        simcPrintError = simcPrintError .. 'WoW is using a newer version - you probably need to update your addon.\n'
+      else
+        simcPrintError = simcPrintError .. 'WoW is using an older version - you may be running an alpha/beta addon that is not currently ready for retail.\n'
+      end
+      simcPrintError = simcPrintError .. '\n'
+      simcPrintError = simcPrintError .. 'WoW talent string export version = ' .. Traits.GetLoadoutSerializationVersion() .. '\n'
+      simcPrintError = simcPrintError .. 'Addon talent string export version = ' .. SUPPORTED_LOADOUT_SERIALIZATION_VERSION .. '\n'
+    end
+
     local currentConfigId = ClassTalents.GetActiveConfigID()
 
     simulationcraftProfile = simulationcraftProfile .. GetExportString(currentConfigId) .. '\n'
@@ -1019,6 +1080,10 @@ function Simulationcraft:GetSimcProfile(debugOutput, noBags, showMerchant, links
     simulationcraftProfile = simulationcraftProfile .. '#\n'
     simulationcraftProfile = simulationcraftProfile .. '# slot_high_watermarks=' .. highWatermarksStr .. '\n'
   end
+
+  local upgradeAchievementsStr = Simulationcraft:GetItemUpgradeAchievements()
+  simulationcraftProfile = simulationcraftProfile .. '#\n'
+  simulationcraftProfile = simulationcraftProfile .. '# upgrade_achievements=' .. upgradeAchievementsStr .. '\n'
 
   -- sanity checks - if there's anything that makes the output completely invalid, punt!
   if specId==nil then

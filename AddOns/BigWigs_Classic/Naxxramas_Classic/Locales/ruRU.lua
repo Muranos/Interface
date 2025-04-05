@@ -4,7 +4,7 @@ if L then
 	L.add_death = "Оповещать смерть помощников"
 	L.add_death_desc = "Сообщать о смерти помощников."
 
-	L.wave = "%d/23: %s"
+	L.wave = "%d/22: %s"
 
 	L.trainee = "Новобранец" -- Unrelenting Trainee NPC 16124
 	L.deathKnight = "Рыцарь Смерти" -- Unrelenting Death Knight NPC 16125
@@ -46,11 +46,6 @@ end
 L = BigWigs:NewBossLocale("Noth the Plaguebringer", "ruRU")
 if L then
 	L.adds_yell_trigger = "Встаньте мои воины" -- Встаньте мои воины! Встаньте и сражайтесь вновь!
-end
-
-L = BigWigs:NewBossLocale("Maexxna", "ruRU")
-if L then
-	L.cocoons = "Коконы"
 end
 
 L = BigWigs:NewBossLocale("Instructor Razuvious", "ruRU")

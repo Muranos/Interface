@@ -24,6 +24,7 @@
 <Include file="Lib\LibDogTag-Unit-3.0\lib.xml" />
 <Include file="Lib\LibDogTag-Stats-3.0\lib.xml" />
 <Include file="Lib\LibSpellRange-1.0\lib.xml" />
+<Include file="Lib\LibCustomGlow-1.0\LibCustomGlow-1.0.xml" />
 <Script file="Lib\LibRangeCheck-3.0\LibRangeCheck-3.0\LibRangeCheck-3.0.lua" />
 <Include file="Lib\LibBabble-CreatureType-3.0\lib.xml" />
 <Include file="Lib\LibBabble-Race-3.0\lib.xml" />
@@ -62,8 +63,12 @@
 <Script file="Components\Core\Common\SwingTimerMonitor.lua" />
 <Script file="Components\Core\Common\UpdateTableManager.lua" />
 <Script file="Components\Core\Common\PlayerNames.lua" />
+<Script file="Components\Core\Common\Actions.lua" />
+<Script file="Components\Core\Common\Cooldowns.lua" />
 <Script file="Components\Core\Common\Item.lua" />
 <Script file="Components\Core\Common\Auras.lua" />
+<Script file="Components\Core\Common\SpellRange.lua" />
+<Script file="Components\Core\Common\SpellUsable.lua" />
 <Script file="Components\Core\Common\DogTags\DogTags.lua" />
 
 <Script file="Components\Core\Conditions\Conditions.lua" />

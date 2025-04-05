@@ -4,17 +4,16 @@ local P = E.Party
 local sliderTimer
 
 local visibility = {
-	name = format("|cff20ff20%s", L["Visibility"]),
+	name = L["Visibility"],
 	order = 0,
 	type = "group",
 	get = function(info) return E.profile.Party.visibility[ info[#info] ] end,
-	set = function(info, value) E.profile.Party.visibility[ info[#info] ] = value P:Refresh(true) end,
+	set = function(info, value) E.profile.Party.visibility[ info[#info] ] = value P:Refresh() end,
 	args = {
 		zone = {
 			name = ZONE,
 			order = 10,
 			type = "multiselect",
-
 			values = E.L_ALL_ZONE,
 			get = function(_, k) return E.profile.Party.visibility[k] end,
 			set = function(_, k, value)
@@ -22,7 +21,7 @@ local visibility = {
 				if P.isInTestMode and P.testZone == k then
 					P:Test()
 				end
-				P:Refresh(true)
+				P:Refresh()
 			end,
 		},
 		groupType = {
@@ -33,7 +32,8 @@ local visibility = {
 			args = {
 				finder = {
 					name = ENABLE,
-					desc = format("%s (%s, %s, ...)", L["Enable in automated instance groups"] ,LOOKING_FOR_DUNGEON_PVEFRAME, SKIRMISH),
+					desc = format("%s (%s, %s, ...)", L["Enable in automated instance groups"],
+						LOOKING_FOR_DUNGEON_PVEFRAME, SKIRMISH),
 					type = "toggle",
 				},
 			}
@@ -48,7 +48,7 @@ local visibility = {
 				E.profile.Party.groupSize[ info[#info] ] = value
 				if not sliderTimer then
 					sliderTimer = C_Timer.NewTimer(1, function()
-						P:Refresh(true)
+						P:Refresh()
 						sliderTimer = nil
 					end)
 				end

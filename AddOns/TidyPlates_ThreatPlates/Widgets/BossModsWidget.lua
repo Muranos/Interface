@@ -14,7 +14,7 @@ local Widget = Addon.Widgets:NewWidget("BossMods")
 local floor = math.floor
 
 -- WoW APIs
-local GetSpellTexture = GetSpellTexture
+local GetSpellTexture = C_Spell and C_Spell.GetSpellTexture or _G.GetSpellTexture -- Retail now uses C_Spell.GetSpellTexture
 local GetTime = GetTime
 local tremove = tremove
 
@@ -78,7 +78,7 @@ local function CreateAuraTexture(frame, index)
   local time = frame:CreateFontString(nil, "OVERLAY") -- Duration Text
 
   time:SetJustifyH("CENTER")
-  time:SetJustifyV("CENTER")
+  time:SetJustifyV("MIDDLE")
   time:SetShadowOffset(1, -1)
   aura.Time = time
 

@@ -19,12 +19,16 @@ local api = {};
 app.Modules.Upgrade = api;
 
 -- Module locals
-local CreateItem, DGU, TransmogLastRefresh
+local CreateItem, DGU, TransmogLastRefresh, GetGroupItemIDWithModID, GetSourceID, CreateItemSource
 local Runner = app.CreateRunner("upgrade");
+Runner.SetPerFrameDefault(1)
 
 app.AddEventHandler("OnLoad", function()
 	CreateItem = app.CreateItem;
 	DGU = app.DirectGroupUpdate
+	GetGroupItemIDWithModID = app.GetGroupItemIDWithModID
+	GetSourceID = app.GetSourceID
+	CreateItemSource = app.CreateItemSource
 end)
 
 -- Static mapping of BonusID -> Next Unlock BonusID for a corresponding Item. Unlock will most-likely always be an Appearance
@@ -33,6 +37,8 @@ end)
 local BonusIDNextUnlock = {
 
 	-- 10.0.7
+	-- Primalist 1/3 (Vendor)
+	[9340] = 9344,
 	-- Primalist 1/3
 	[9342] = 9344,
 	-- Primalist 2/3
@@ -187,73 +193,168 @@ local BonusIDNextUnlock = {
 
 	-- Explorer
 	-- in case this will be needed but probably not
-	[10321] = 10325,
-	[10322] = 10325,
-	[10323] = 10325,
-	[10324] = 10325,
-	[10325] = 0,
-	[10326] = 0,
-	[10327] = 0,
-	[10328] = 0,
+	-- [10321] = 10325,
+	-- [10322] = 10325,
+	-- [10323] = 10325,
+	-- [10324] = 10325,
+	-- [10325] = 0,
+	-- [10326] = 0,
+	-- [10327] = 0,
+	-- [10328] = 0,
 
 	-- Adventurer
 	-- in case this will be needed but probably not
-	[10305] = 10309,
-	[10306] = 10309,
-	[10307] = 10309,
-	[10308] = 10309,
-	[10309] = 0,
-	[10310] = 0,
-	[10311] = 0,
-	[10312] = 0,
+	-- [10305] = 10309,
+	-- [10306] = 10309,
+	-- [10307] = 10309,
+	-- [10308] = 10309,
+	-- [10309] = 0,
+	-- [10310] = 0,
+	-- [10311] = 0,
+	-- [10312] = 0,
 
 	-- Veteran
-	[10341] = 10345,
-	[10342] = 10345,
-	[10343] = 10345,
-	[10344] = 10345,
-	[10345] = 0,
-	[10346] = 0,
-	[10347] = 0,
-	[10348] = 0,
+	-- [10341] = 10345,
+	-- [10342] = 10345,
+	-- [10343] = 10345,
+	-- [10344] = 10345,
+	-- [10345] = 0,
+	-- [10346] = 0,
+	-- [10347] = 0,
+	-- [10348] = 0,
 
 	-- Champion
-	[10313] = 10317,
-	[10314] = 10317,
-	[10315] = 10317,
-	[10316] = 10317,
-	[10317] = 0,
-	[10318] = 0,
-	[10319] = 0,
-	[10320] = 0,
+	-- [10313] = 10317,
+	-- [10314] = 10317,
+	-- [10315] = 10317,
+	-- [10316] = 10317,
+	-- [10317] = 0,
+	-- [10318] = 0,
+	-- [10319] = 0,
+	-- [10320] = 0,
 
 	-- Hero
-	[10329] = 10333,
-	[10330] = 10333,
-	[10331] = 10333,
-	[10332] = 10333,
-	[10333] = 0,
-	[10334] = 0,
+	-- [10329] = 10333,
+	-- [10330] = 10333,
+	-- [10331] = 10333,
+	-- [10332] = 10333,
+	-- [10333] = 0,
+	-- [10334] = 0,
 
 	-- Myth
-	[10335] = 0,
-	[10336] = 0,
-	[10337] = 0,
-	[10338] = 0,
+	-- [10335] = 0,
+	-- [10336] = 0,
+	-- [10337] = 0,
+	-- [10338] = 0,
 
-	-- Awakened
-	[10407] = 10411,
-	[10408] = 10411,
-	[10409] = 10411,
-	[10410] = 10411,
-	[10411] = 10416,
-	[10412] = 10416,
-	[10413] = 10416,
-	[10414] = 10416,
-	[10415] = 10416,
-	--[10416] = ,	-- ?
-	--[10417] = ,
-	--[10418] = ,
+	-- Awakened 12
+	-- [10407] = 10411,
+	-- [10408] = 10411,
+	-- [10409] = 10411,
+	-- [10410] = 10411,
+	-- [10411] = 10415,
+	-- [10412] = 10415,
+	-- [10413] = 10415,
+	-- [10414] = 10415,
+
+	-- Awakened 14
+	-- [10490] = 10494,
+	-- [10491] = 10494,
+	-- [10492] = 10494,
+	-- [10493] = 10494,
+	-- [10494] = 10498,
+	-- [10495] = 10498,
+	-- [10496] = 10498,
+	-- [10497] = 10498,
+
+	-- 11.0
+	-- Adventurer
+	-- [10297] = 0,
+	-- [10296] = 0,
+	-- [10295] = 0,
+	-- [10294] = 0,
+	-- [10293] = 0,
+	-- [10292] = 0,
+	-- [10291] = 0,
+	-- [10290] = 0,
+
+	-- Veteran
+	-- [10281] = 10277,
+	-- [10280] = 10277,
+	-- [10279] = 10277,
+	-- [10278] = 10277,
+	-- [10277] = 0,
+	-- [10276] = 0,
+	-- [10275] = 0,
+	-- [10274] = 0,
+
+	-- Champion
+	-- [10273] = 10269,
+	-- [10272] = 10269,
+	-- [10271] = 10269,
+	-- [10270] = 10269,
+	-- [10269] = 0,
+	-- [10268] = 0,
+	-- [10267] = 0,
+	-- [10266] = 0,
+
+	-- Hero
+	-- [10265] = 10261,
+	-- [10264] = 10261,
+	-- [10263] = 10261,
+	-- [10262] = 10261,
+	-- [10261] = 0,
+	-- [10256] = 0,
+
+	-- Myth
+	-- [10260] = 0,
+	-- [10259] = 0,
+	-- [10258] = 0,
+	-- [10257] = 0,
+	-- [10298] = 0,
+	-- [10299] = 0,
+
+	-- 11.1
+	-- Veteran [https://wago.tools/db2/ItemBonus?build=11.1.0.59538&filter%5BValue_0%5D=439&filter%5BType%5D=34&page=1&sort%5BParentItemBonusListID%5D=asc]
+	[11969] = 11973,
+	[11970] = 11973,
+	[11971] = 11973,
+	[11972] = 11973,
+	-- [11973] = 0,
+	-- [11974] = 0,
+	-- [11975] = 0,
+	-- [11976] = 0,
+
+	-- Champion [https://wago.tools/db2/ItemBonus?build=11.1.0.59538&filter%5BValue_0%5D=440&filter%5BType%5D=34&page=1&sort%5BParentItemBonusListID%5D=asc]
+	[11977] = 11982,
+	[11978] = 11982,
+	[11979] = 11982,
+	[11980] = 11982,
+	-- [11981] = 0,	-- should be this bonusID, but it's currently assigned to the wrong ItemBonusListGroupID
+	-- [11982] = 0,
+	-- [11983] = 0,
+	-- [11984] = 0,
+
+	-- Hero [https://wago.tools/db2/ItemBonus?build=11.1.0.59538&filter%5BType%5D=34&filter%5BValue_0%5D=441&page=1&sort%5BParentItemBonusListID%5D=asc]
+	[11985] = 11989,
+	[11986] = 11989,
+	[11987] = 11989,
+	[11988] = 11989,
+	-- [11989] = 0,
+	-- [11990] = 0,
+
+	-- Myth [https://wago.tools/db2/ItemBonus?build=11.1.0.59538&filter%5BType%5D=34&filter%5BValue_0%5D=442&page=1&sort%5BParentItemBonusListID%5D=asc]
+	-- [11991] = 0,
+	-- [11992] = 0,
+	-- [11993] = 0,
+	-- [11994] = 0,
+	-- [11995] = 0,
+	-- [11996] = 0,
+}
+-- Which bonusID nested upgrades are allowed to be nested under an already-upgraded listing
+local NestedUpgradesAllowedByBonusID = {
+	-- [10415] = true,	-- Awakened 12 3/3
+	-- [10498] = true,	-- Awakened 14 3/3
 }
 
 local function GetFirstValueAndKey(t, keys)
@@ -308,71 +409,82 @@ local function GetNextItemUnlockBonusID(item)
 end
 api.GetNextItemUnlockBonusID = GetNextItemUnlockBonusID;
 
+local ItemSourceCache = {}
 local function AsItemSource(t)
 	-- already an item source table
 	if t.__type == "ItemWithAppearance" then return t; end
 	local link = t.link or t.rawlink or t.silentLink;
 	if not link then return end
-	local sourceID = app.GetSourceID(link)
-	if sourceID then
-		return app.CreateItemSource(sourceID, t.itemID, t);
-	end
+	local sourceID = GetSourceID(link, true)
+	if sourceID then return CreateItemSource(sourceID, t.itemID, t) end
 end
-local function GetUpgrade(t, upmodID, upbonusID)
+local function GetUpgrade(t, up)
 	local itemID = t.itemID
-	local up = {
-		itemID = itemID,
-		modID = upmodID > 0 and upmodID or nil,
-		bonusID = upbonusID > 0 and upbonusID or nil
-	}
-	return AsItemSource(CreateItem(itemID, up));
+	local upmodID = floor(up);
+	local upbonusID = floor((up - upmodID) * 100000 + 0.5);
+	local modItemID = GetGroupItemIDWithModID(nil, itemID, upmodID, upbonusID)
+	local itemSource = ItemSourceCache[modItemID]
+	-- app.PrintDebug("UPGRADE<=CACHE",itemID,"+",upmodID,upbonusID,"=>",modItemID,"==",itemSource and itemSource.hash)
+	if not itemSource then
+		local tup = {
+			itemID = itemID,
+			modID = upmodID > 0 and upmodID or nil,
+			bonusID = upbonusID > 0 and upbonusID or nil
+		}
+		itemSource = AsItemSource(CreateItem(itemID, tup))
+		if not itemSource then
+			-- app.PrintDebug("GU:no upgrade created",t.modItemID,"=>",up)
+			-- this case always means we expected an upgrade, but got none, which means the upgrade item
+			-- is not yet loaded in the Client and cannot return the proper SourceID because Blizzard.
+			return
+		end
+		ItemSourceCache[modItemID] = itemSource
+		-- app.PrintDebug("UPGRADE=>CACHE",modItemID,"==",itemSource.hash)
+	end
+
+	-- upgrade has to actually be different than the source item
+	if itemSource.sourceID == t.sourceID then
+		-- app.PrintDebug("GU:upgrade is same",t.hash,t.modItemID,"=+>",itemSource.__type,itemSource.modItemID)
+		return;
+	end
+
+	-- cache the upgrade within the item itself
+	t._up = itemSource;
+	-- app.PrintDebug("GU:",itemSource.__type,t.isUpgrade,t.modItemID,itemSource.modItemID)
+	return itemSource
 end
 api.GetUpgrade = GetUpgrade;
 
 -- Returns the different and upgraded version of 't' (via 'up' field only)
 local function HasUpgrade(t)
 
+	-- app.PrintDebug("HU:",t.modItemID)
 	-- '.up' is the modID.bonusID portion of the respective upgrade item defined in ATT
 	local up = t.up;
 	if not up then
 		-- app.PrintDebug("no upgrade",t.modItemID)
-		-- t.isUpgraded = true;
 		return;
 	end
 
 	-- find or create the upgrade for cached reference
-	local upmodID = floor(up);
-	local upbonusID = floor((up - upmodID) * 10000 + 0.5);
-	up = GetUpgrade(t, upmodID, upbonusID);
-	if not up then
-		-- app.PrintDebug("HU:no upgrade created",t.modItemID,"=>",upmodID,upbonusID)
-		-- t.isUpgraded = true;
-		return;
-	end
-
-	-- upgrade has to actually be different than the source item
-	local uphash = up.hash;
-	if uphash and uphash == t.hash or up.sourceID == t.sourceID then
-		-- app.PrintDebug("HU:upgrade is same",t.hash,t.modItemID,"=+>",up.__type,uphash,up.modItemID)
-		-- t.isUpgraded = true;
-		return;
-	end
-
-	-- if up.modID == t.modID and up.bonusID == t.bonusID then
-	-- 	app.print("SAME ITEM AS UPGRADE!?",t.hash,t.modItemID,"=+>",up.__type,up.hash,up.modItemID)
-	-- end
-
-	t._up = up;
-	-- app.PrintDebug("HU:",up.__type,t.isUpgrade,t.modItemID,up.modItemID)
-	return up;
+	return GetUpgrade(t, up);
 end
 
-local UpdateUpgradeGroup
-local function CheckIsUpgrade(t)
+local UpgradeSources = {}
+
+local function SetupUpgrade(t)
 	local upgrade = t._up or HasUpgrade(t);
 	if upgrade then
 		t.isUpgrade = upgrade.collectible and not upgrade.collected
-		-- app.PrintDebug("isUpgrade",t.link,t.isUpgrade)
+		-- app.PrintDebug("SetupUpgrade",t.isUpgrade,app:SearchLink(t),"=>",app:SearchLink(upgrade))
+		-- store the upgrade source for ad-hoc updates
+		local upgradehash = upgrade.hash
+		local sources = UpgradeSources[upgradehash]
+		if not sources then
+			sources = {}
+			UpgradeSources[upgradehash] = sources
+		end
+		sources[#sources + 1] = t
 		Runner.Run(DGU, t)
 		return
 	end
@@ -381,21 +493,49 @@ local function CheckIsUpgrade(t)
 	-- queue this group up to try again since we are only running this logic on groups which we *know*
 	-- have upgrades
 	if IsRetrieving(t.link) then
-		-- app.PrintDebug("re-try upgrade",t.link)
-		Runner.Run(UpdateUpgradeGroup, t)
+		-- app.PrintDebug("re-try upgrade",t.hash,t.link)
+		t.retries = (t.retries or 0) + 1
+		-- in situations where the upgrade item cannot be loaded/found quickly, we unfortunately will just give up
+		if (t.retries > 10) then return end
+		Runner.Run(SetupUpgrade, t)
+	end
+end
+local function CheckIsUpgrade(t)
+	local upgrade = t._up or HasUpgrade(t);
+	if upgrade then
+		t.isUpgrade = upgrade.collectible and not upgrade.collected
+		-- app.PrintDebug("CheckIsUpgrade",t.isUpgrade,app:SearchLink(t),"=>",app:SearchLink(upgrade))
+		Runner.Run(DGU, t)
+		return
+	end
+	-- if it had no upgrade and no link, it isn't cached in game which means
+	-- blizz returns wrong data in some appearance API calls. very nice.
+	-- queue this group up to try again since we are only running this logic on groups which we *know*
+	-- have upgrades
+	if IsRetrieving(t.link) then
+		-- app.PrintDebug("re-try upgrade",t.hash,t.link)
+		t.retries = (t.retries or 0) + 1
+		-- in situations where the upgrade item cannot be loaded/found quickly, we unfortunately will just give up
+		if (t.retries > 10) then return end
+		Runner.Run(CheckIsUpgrade, t)
 	end
 end
 
-UpdateUpgradeGroup = function(ref)
-	-- app.PrintDebug("Upgrade Update",ref.link)
-	CheckIsUpgrade(ref)
+local function OnSearchResultUpdate(t)
+	-- app.PrintDebug("UpdateUpgradeGroup",app:SearchLink(t))
+	local sources = UpgradeSources[t.hash]
+	if not sources then return end
+	for _,upgradeSource in ipairs(sources) do
+		-- app.PrintDebug("UpdateUpgradeGroup.source",app:SearchLink(upgradeSource))
+		CheckIsUpgrade(upgradeSource)
+	end
 end
+app.AddEventHandler("OnSearchResultUpdate", OnSearchResultUpdate)
+
 local function UpdateUpgradeGroups(refs)
-	local ref
 	-- app.PrintDebug("Upgrade Updates",#refs)
 	for i=1,#refs do
-		ref = refs[i];
-		CheckIsUpgrade(ref)
+		SetupUpgrade(refs[i])
 	end
 end
 local function UpdateStart()
@@ -413,16 +553,16 @@ local function UpdateUpgrades()
 	end
 	TransmogLastRefresh = app.Settings.Collectibles.Transmog
 
-	-- cancel all existing running cost updates
+	-- cancel all existing running upgrade updates
 	Runner.Reset()
-	Runner.SetPerFrame(1)
 
 	if app.Debugging then
 		Runner.OnEnd(UpdateEnd)
 		Runner.Run(UpdateStart)
 	end
 
-	-- Get all itemIDAsCost entries
+	wipe(UpgradeSources)
+	-- Get all up entries
 	for up,refs in pairs(SearchForFieldContainer("up")) do
 		Runner.Run(UpdateUpgradeGroups, refs)
 	end
@@ -439,61 +579,27 @@ api.NextUpgrade = function(t)
 	local upgrade = t._up or HasUpgrade(t);
 	if upgrade then return upgrade end
 
-	-- nested upgrades should not be considered for a following upgrade (Contains tooltip/DetermineUpgradeGroups)
-	-- if a situation arises in which a single item can be upgraded across multiple 'collectible' variants, this will have to be revisted
-	-- if t.isUpgraded then
-	-- 	-- app.PrintDebug("isUpgraded",t.modItemID)
-	-- 	return;
-	-- end
-
 	-- is this a non-default item table which has no upgrade unlock?
 	local unlockBonusID = GetNextItemUnlockBonusIDByTable(t)
 	if not unlockBonusID or unlockBonusID < 1 then
 		-- app.PrintDebug("isUpgraded via item",t.modItemID)
-		-- t.isUpgraded = true;
 		return;
+	end
+
+	-- parent is pre-upgrade of itself and not specifically allowed further upgrades, then no upgrade for this
+	if not NestedUpgradesAllowedByBonusID[unlockBonusID] then
+		local p = t.parent
+		local pup = p and p._up;
+		-- app.PrintDebug("parent?",p,pup and pup.hash,t.hash)
+		if pup and pup.hash == t.hash then
+			-- app.PrintDebug("parent is upgrade source",p.modItemID,t.modItemID)
+			return;
+		end
 	end
 
 	-- '.up' is the modID.bonusID portion of the respective upgrade item
-	-- if no upgrade
-	local up = unlockBonusID / 10000
-	-- if not up then
-	-- 	-- app.PrintDebug("no upgrade",t.modItemID)
-	-- 	-- t.isUpgraded = true;
-	-- 	return;
-	-- end
-
-	-- parent is pre-upgrade of itself and less than 2 upgrades allowed from the parent, then no upgrade for this
-	local p = t.parent
-	local pup = p and p._up;
-	-- app.PrintDebug("parent?",p,pup and pup.hash,t.hash)
-	if pup and pup.hash == t.hash then
-		-- app.PrintDebug("parent is upgrade source",p.modItemID,t.modItemID)
-		-- t.isUpgraded = true;
-		return;
-	end
-
 	-- find or create the upgrade for cached reference
-	local upmodID = floor(up);
-	local upbonusID = floor((up - upmodID) * 10000 + 0.5);
-	up = GetUpgrade(t, upmodID, upbonusID);
-	if not up then
-		-- app.PrintDebug("NU:no upgrade created",t.modItemID,"=>",upmodID,upbonusID)
-		-- t.isUpgraded = true;
-		return;
-	end
-
-	-- upgrade has to actually be different than the source item
-	local uphash = up.hash;
-	if uphash and uphash == t.hash or up.sourceID == t.sourceID then
-		-- app.PrintDebug("NU:upgrade is same",uphash,up.modItemID)
-		-- t.isUpgraded = true;
-		return;
-	end
-
-	t._up = up;
-	-- app.PrintDebug("NU:",up.__type,up.collected,t.modItemID,up.modItemID)
-	return up;
+	return GetUpgrade(t, unlockBonusID / 100000);
 end
 
 -- Returns whether 't' has an upgrade AND it is uncollected

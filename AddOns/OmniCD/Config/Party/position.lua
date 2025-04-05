@@ -11,19 +11,10 @@ local L_POINTS = {
 }
 
 local isPreset = function(info)
-	local key = info[2]
-	return E.profile.Party[key].position.preset ~= "manual"
-end
-
-local isManualMode = function(info) return E.profile.Party[ info[2] ].position.detached end
-
-local isMultiline = function(info)
-	local layout = E.profile.Party[ info[2] ].position.layout
-	return layout ~= "vertical" and layout ~= "horizontal", layout == "tripleRow" or layout == "tripleColumn"
+	return E.profile.Party[ info[2] ].position.preset ~= "manual"
 end
 
 local disabledItems = {}
-
 local function GetDisabledItems(info)
 	wipe(disabledItems)
 	local db = E.profile.Party[ info[2] ]
@@ -35,6 +26,18 @@ local function GetDisabledItems(info)
 		end
 	end
 	return disabledItems
+end
+
+local isBySpellPrio = function(info) return E.profile.Party[ info[2] ].position.sortBy == 1 end
+local isBySpellTypePrio = function(info) return E.profile.Party[ info[2] ].position.sortBy == 2 end
+
+local isSingleLine = function(info)
+	local layout = E.profile.Party[ info[2] ].position.layout
+	return layout == "vertical" or layout == "horizontal"
+end
+local isSingleOrDoubleLine = function(info)
+	local layout = E.profile.Party[ info[2] ].position.layout
+	return layout ~= "tripleRow" and layout ~= "tripleColumn"
 end
 
 local position = {
@@ -64,12 +67,12 @@ local position = {
 				db[option .. "More"] = value
 			end
 		end
-
-		P:ConfigBars(key, option)
+		if P:IsCurrentZone(key) then
+			P:Refresh()
+		end
 	end,
 	args = {
 		addOnsSettings = {
-			disabled = isManualMode,
 			name = L["Anchor"],
 			type = "group",
 			inline = true,
@@ -85,8 +88,9 @@ local position = {
 						local key = info[2]
 						local db = E.profile.Party[key].position
 						if P:IsCurrentZone(key) then
-							if value == "blizz" and not db.detached
-								and not ( IsAddOnLoaded("Blizzard_CompactRaidFrames") and IsAddOnLoaded("Blizzard_CUFProfiles") ) then
+							if value == "blizz"
+								and (not C_AddOns.IsAddOnLoaded("Blizzard_CompactRaidFrames")
+								or not C_AddOns.IsAddOnLoaded("Blizzard_CUFProfiles")) then
 								E.Libs.OmniCDC.StaticPopup_Show("OMNICD_RELOADUI", E.STR.ENABLE_BLIZZARD_CRF)
 							else
 								if P.isInTestMode then
@@ -95,7 +99,7 @@ local position = {
 									P:Test(key)
 								else
 									db.uf = value
-									P:Refresh(true)
+									P:Refresh()
 								end
 							end
 						else
@@ -106,7 +110,6 @@ local position = {
 			}
 		},
 		positionSettings = {
-			disabled = isManualMode,
 			name = L["Position"],
 			type = "group",
 			inline = true,
@@ -180,13 +183,22 @@ local position = {
 					},
 					sorting = {"horizontal", "doubleRow", "tripleRow", "vertical", "doubleColumn", "tripleColumn"},
 				},
+				sortBy = {
+					name = COMPACT_UNIT_FRAME_PROFILE_SORTBY,
+					desc = format("%s.\n%s > %s.", L["Spell Priority"], L["Spell-Type Priority"], L["Spell Priority"]),
+					order = 12,
+					type = "select",
+					values = {
+						L["Spell Priority"],
+						format("%s > %s", L["Spell-Type Priority"], L["Spell Priority"]),
+					},
+				},
 				breakPoint = {
-					disabled = function(info)
-						return not isMultiline(info)
-					end,
+					hidden = isBySpellPrio,
+					disabled = isSingleLine,
 					name = L["Breakpoint"],
 					desc = L["Select the highest priority spell type to use as the start of the 2nd row"],
-					order = 12,
+					order = 13,
 					type = "select",
 					values = E.L_PRIORITY,
 					sorting = function(info)
@@ -194,13 +206,11 @@ local position = {
 					end,
 				},
 				breakPoint2 = {
-					disabled = function(info)
-						local multiline, tripleline = isMultiline(info)
-						return not multiline or not tripleline
-					end,
+					hidden = isBySpellPrio,
+					disabled = isSingleOrDoubleLine,
 					name = L["Breakpoint"] .. " 2",
 					desc = L["Select the highest priority spell type to use as the start of the 3rd row"],
-					order = 13,
+					order = 14,
 					type = "select",
 					values = E.L_PRIORITY,
 					sorting = function(info)
@@ -210,17 +220,39 @@ local position = {
 						return GetDisabledItems(info)
 					end,
 				},
+				breakPoint3 = {
+					hidden = isBySpellTypePrio,
+					disabled = isSingleLine,
+					name = L["Breakpoint"],
+					desc = L["Select the highest spell priority to use as the start of the 2nd row"],
+					order = 13,
+					type = "range", min = 0, max = 100, step = 1,
+				},
+				breakPoint4 = {
+					hidden = isBySpellTypePrio,
+					disabled = isSingleOrDoubleLine,
+					name = L["Breakpoint"] .. " 2",
+					desc = L["Select the highest spell priority to use as the start of the 3rd row"],
+					order = 14,
+					type = "range", min = 0, max = 100, step = 1,
+					confirm = function(info, value)
+						return value >= E.profile.Party[ info[2] ].position.breakPoint3
+						and L["Select a value lower than Breakpoint1"] end,
+				},
 				lb1 = {
 					name = "", order = 15, type = "description",
 				},
 				columns = {
-					disabled = isMultiline,
+					disabled = function(info)
+						local layout = E.profile.Party[ info[2] ].position.layout
+						return layout ~= "vertical" and layout ~= "horizontal"
+					end,
 					name = function(info)
 						return E.profile.Party[ info[2] ].position.layout == "vertical" and L["Row"] or L["Column"]
 					end,
 					desc = function(info)
-						return E.profile.Party[ info[2] ].position.layout == "vertical" and L["Set the number of icons per column"]
-						or L["Set the number of icons per row"]
+						return E.profile.Party[ info[2] ].position.layout == "vertical"
+						and L["Set the number of icons per column"] or L["Set the number of icons per row"]
 					end,
 					order = 16,
 					type = "range",
@@ -242,7 +274,10 @@ local position = {
 				},
 				maxNumIcons = {
 					name = L["Max Number of Visible Icons"],
-					desc = format("%s\n\n%s\n\n|cffff2020%s", L["Set the max number of icons that can be displayed per unit"], L["For double/triple layout, it will limit the number of icons per line"], L["0: Disable option"]),
+					desc = format("%s\n\n%s\n\n|cffff2020%s",
+						L["Set the max number of icons that can be displayed per unit"],
+						L["For double/triple layout, it will limit the number of icons per line"],
+						L["0: Disable option"]),
 					order = 19,
 					type = "range",
 					min = 0, max = 100, softMax = 20, step = 1,
@@ -258,66 +293,6 @@ local position = {
 					desc = L["Toggle the grow direction of icon rows"],
 					order = 22,
 					type = "toggle",
-				},
-			}
-		},
-		manualModeSettings = {
-			disabled = function(info)
-				return info[5] and not E.profile.Party[ info[2] ].position.detached
-			end,
-			name = L["Manual Mode"],
-			order = 4,
-			type = "group",
-			inline = true,
-			args = {
-				detached = {
-					disabled = false,
-					name = ENABLE,
-					desc = L["Detach from raid frames and set position manually"],
-					order = 1,
-					type = "toggle",
-					set = function(info, state)
-						local key = info[2]
-						E.profile.Party[key].position.detached = state
-
-						if P:IsCurrentZone(key) then
-							if not state and not E.customUF.active
-								and not ( IsAddOnLoaded("Blizzard_CompactRaidFrames") and IsAddOnLoaded("Blizzard_CUFProfiles") ) then
-								E.Libs.OmniCDC.StaticPopup_Show("OMNICD_RELOADUI", E.STR.ENABLE_BLIZZARD_CRF)
-							end
-							P:ConfigBars(key, "detached")
-							P:UpdatePosition()
-						end
-
-						if E.isDF and P.isInTestMode then
-							local testZone = P.testZone
-							P:Test()
-							P:Test(testZone)
-						end
-					end,
-				},
-				locked = {
-					name = LOCK_FRAME,
-					desc = L["Lock frame position"],
-					order = 2,
-					type = "toggle",
-				},
-				reset = {
-					name = RESET_POSITION,
-					desc = L["Reset frame position"],
-					order = 3,
-					type = "execute",
-					func = function(info)
-						local key = info[2]
-						for k in pairs(E.profile.Party[key].manualPos) do
-							if type(k) == "number" then
-								E.profile.Party[key].manualPos[k] = nil
-							end
-						end
-
-						P:ConfigBars(key, "reset")
-					end,
-					confirm = E.ConfirmAction,
 				},
 			}
 		},

@@ -1,6 +1,6 @@
 ﻿-- --------------------
 -- TellMeWhen
--- Originally by Nephthys of Hyjal <lieandswell@yahoo.com>
+-- Originally by NephMakes
 
 -- Other contributions by:
 --		Sweetmms of Blackrock, Oozebull of Twisting Nether, Oodyboo of Mug'thol,
@@ -19,9 +19,8 @@ local print = TMW.print
 
 local SUG = TMW.SUG
 local strlowerCache = TMW.strlowerCache
-
-local GetNumTrackingTypes = GetNumTrackingTypes or C_Minimap.GetNumTrackingTypes
-local GetTrackingInfo = GetTrackingInfo or C_Minimap.GetTrackingInfo
+local GetSpellInfo = TMW.GetSpellInfo
+local GetSpellName = TMW.GetSpellName
 
 local _, pclass = UnitClass("Player")
 
@@ -32,72 +31,72 @@ Module.noMin = true
 Module.showColorHelp = false
 Module.helpText = L["SUG_TOOLTIPTITLE_GENERIC"]
 
-Module.stances = TMW.isWrath and {
+Module.stances = (TMW.isWrath or TMW.isCata) and {
 	WARRIOR = {
-		[2457] = 	GetSpellInfo(2457), 	-- Battle Stance
-		[71] = 		GetSpellInfo(71),		-- Defensive Stance
-		[2458] = 	GetSpellInfo(2458), 	-- Berserker Stance
+		[2457] = 	GetSpellName(2457), 	-- Battle Stance
+		[71] = 		GetSpellName(71),		-- Defensive Stance
+		[2458] = 	GetSpellName(2458), 	-- Berserker Stance
 	},
 	DRUID = {
-		[5487] = 	GetSpellInfo(5487), 	-- Bear Form
-		[9634] = 	GetSpellInfo(9634), 	-- Dire Bear Form
-		[768] = 	GetSpellInfo(768),		-- Cat Form
-		[783] = 	GetSpellInfo(783),		-- Travel Form
-		[1066] = 	GetSpellInfo(1066),		-- Aquatic Form
-		[24858] = 	GetSpellInfo(24858), 	-- Moonkin Form
-		[33891] = 	GetSpellInfo(33891), 	-- Tree of Life
-		[33943] = 	GetSpellInfo(33943), 	-- Flight Form
-		[40120] = 	GetSpellInfo(40120), 	-- Swift Flight Form	
+		[5487] = 	GetSpellName(5487), 	-- Bear Form
+		[9634] = 	GetSpellName(9634), 	-- Dire Bear Form
+		[768] = 	GetSpellName(768),		-- Cat Form
+		[783] = 	GetSpellName(783),		-- Travel Form
+		[1066] = 	GetSpellName(1066),		-- Aquatic Form
+		[24858] = 	GetSpellName(24858), 	-- Moonkin Form
+		[33891] = 	GetSpellName(33891), 	-- Tree of Life
+		[33943] = 	GetSpellName(33943), 	-- Flight Form
+		[40120] = 	GetSpellName(40120), 	-- Swift Flight Form	
 	},
 	PRIEST = {
-		[15473] = 	GetSpellInfo(15473), 	-- Shadowform	
+		[15473] = 	GetSpellName(15473), 	-- Shadowform	
 	},
 	ROGUE = {
-		[1784] = 	GetSpellInfo(1784), 	-- Stealth	
+		[1784] = 	GetSpellName(1784), 	-- Stealth	
 	},
 	PALADIN = {
-		[19746] = 	GetSpellInfo(19746), 	-- Concentration Aura
-		[32223] = 	GetSpellInfo(32223), 	-- Crusader Aura
-		[465] = 	GetSpellInfo(465),		-- Devotion Aura
-		[19900] = 	GetSpellInfo(19891), 	-- Fire Resistance Aura
-		[19898] = 	GetSpellInfo(19891), 	-- Frost Resistance Aura
-		[19896] = 	GetSpellInfo(19891), 	-- Shadow Resistance Aura
-		[7294] = 	GetSpellInfo(7294),		-- Retribution Aura	
+		[19746] = 	GetSpellName(19746), 	-- Concentration Aura
+		[32223] = 	GetSpellName(32223), 	-- Crusader Aura
+		[465] = 	GetSpellName(465),		-- Devotion Aura
+		[19900] = 	GetSpellName(19891), 	-- Fire Resistance Aura
+		[19898] = 	GetSpellName(19891), 	-- Frost Resistance Aura
+		[19896] = 	GetSpellName(19891), 	-- Shadow Resistance Aura
+		[7294] = 	GetSpellName(7294),		-- Retribution Aura	
 	},
 	DEATHKNIGHT = {
-		[48266] = 	GetSpellInfo(48266), 	-- Blood
-		[48263] = 	GetSpellInfo(48263), 	-- Frost
-		[48265] = 	GetSpellInfo(48265), 	-- Unholy
+		[48266] = 	GetSpellName(48266), 	-- Blood
+		[48263] = 	GetSpellName(48263), 	-- Frost
+		[48265] = 	GetSpellName(48265), 	-- Unholy
 	},
 } or TMW.isClassic and {
 	WARRIOR = {
-		[2457] = 	GetSpellInfo(2457), 	-- Battle Stance
-		[71] = 		GetSpellInfo(71),		-- Defensive Stance
-		[2458] = 	GetSpellInfo(2458), 	-- Berserker Stance
+		[2457] = 	GetSpellName(2457), 	-- Battle Stance
+		[71] = 		GetSpellName(71),		-- Defensive Stance
+		[2458] = 	GetSpellName(2458), 	-- Berserker Stance
 	},
 	DRUID = {
-		[5487] = 	GetSpellInfo(5487), 	-- Bear Form
-		[768] = 	GetSpellInfo(768),		-- Cat Form
-		[783] = 	GetSpellInfo(783),		-- Travel Form
-		[24858] = 	GetSpellInfo(24858), 	-- Moonkin Form
+		[5487] = 	GetSpellName(5487), 	-- Bear Form
+		[768] = 	GetSpellName(768),		-- Cat Form
+		[783] = 	GetSpellName(783),		-- Travel Form
+		[24858] = 	GetSpellName(24858), 	-- Moonkin Form
 	},
 	PRIEST = {
-		[15473] = 	GetSpellInfo(15473), 	-- Shadowform	
+		[15473] = 	GetSpellName(15473), 	-- Shadowform	
 	},
 	ROGUE = {
-		[1784] = 	GetSpellInfo(1784), 	-- Stealth	
+		[1784] = 	GetSpellName(1784), 	-- Stealth	
 	},
 } or {
 	DRUID = {
-		[5487] = 	GetSpellInfo(5487), 	-- Bear Form
-		[768] = 	GetSpellInfo(768),		-- Cat Form
-		[783] = 	GetSpellInfo(783),		-- Travel Form
-		[24858] = 	GetSpellInfo(24858), 	-- Moonkin Form
-		[33891] = 	GetSpellInfo(33891), 	-- Incarnation: Tree of Life
-		[171745] = 	GetSpellInfo(171745), 	-- Claws of Shirvallah	
+		[5487] = 	GetSpellName(5487), 	-- Bear Form
+		[768] = 	GetSpellName(768),		-- Cat Form
+		[783] = 	GetSpellName(783),		-- Travel Form
+		[24858] = 	GetSpellName(24858), 	-- Moonkin Form
+		[33891] = 	GetSpellName(33891), 	-- Incarnation: Tree of Life
+		[171745] = 	GetSpellName(171745), 	-- Claws of Shirvallah	
 	},
 	ROGUE = {
-		[1784] = 	GetSpellInfo(1784), 	-- Stealth	
+		[1784] = 	GetSpellName(1784), 	-- Stealth	
 	},
 }
 function Module:Table_Get()
@@ -150,7 +149,38 @@ Module.showColorHelp = false
 Module.helpText = L["SUG_TOOLTIPTITLE_GENERIC"]
 
 local TrackingCache = {}
-if GetNumTrackingTypes and GetTrackingInfo and GetNumTrackingTypes() > 0 then
+if C_Minimap and C_Minimap.GetTrackingInfo and C_Minimap.GetNumTrackingTypes() > 0 and type(C_Minimap.GetTrackingInfo(1)) == "table" then
+	local GetTrackingInfo = C_Minimap.GetTrackingInfo
+	local GetNumTrackingTypes = C_Minimap.GetNumTrackingTypes
+	-- Wow 11.0+
+	
+	function Module:Table_Get()
+		for i = 1, GetNumTrackingTypes() do
+			local data = GetTrackingInfo(i)
+			TrackingCache[i] = strlower(data.name)
+		end
+		
+		return TrackingCache
+	end
+
+	function Module:Entry_AddToList_1(f, id)
+		local info = GetTrackingInfo(id)
+	
+		f.Name:SetText(info.name)
+		f.ID:SetText(nil)
+	
+		f.tooltiptitle = info.name
+		
+		f.insert = info.name
+	
+		f.Icon:SetTexture(info.texture)
+	end
+
+elseif C_Minimap and C_Minimap.GetTrackingInfo and C_Minimap.GetNumTrackingTypes() > 0 then
+	-- Cata Classic
+	local GetTrackingInfo = C_Minimap.GetTrackingInfo
+	local GetNumTrackingTypes = C_Minimap.GetNumTrackingTypes
+
 	function Module:Table_Get()
 		for i = 1, GetNumTrackingTypes() do
 			local name, _, active = GetTrackingInfo(i)
@@ -172,6 +202,7 @@ if GetNumTrackingTypes and GetTrackingInfo and GetNumTrackingTypes() > 0 then
 	
 		f.Icon:SetTexture(texture)
 	end
+	
 else
 	-- WoW Classic
 	for _, id in pairs{
@@ -188,7 +219,7 @@ else
 		19883, -- Track Humanoids
 		19884, -- Track Undead
 	} do
-		local name = GetSpellInfo(id)
+		local name = GetSpellName(id)
 		TrackingCache[id] = strlower(name)
 	end
 

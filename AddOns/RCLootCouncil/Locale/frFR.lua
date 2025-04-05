@@ -9,7 +9,6 @@ L[" you are now the Master Looter and RCLootCouncil is now handling looting."] =
 L["&p was awarded with &i for &r!"] = "&p a reçu &i pour &r !"
 L["A format to copy/paste to another player."] = "Format à copier/coller à un autre joueur."
 L["A new session has begun, type '/rc open' to open the voting frame."] = "Une nouvelle session a débuté, tapez '/rc open' pour ouvrir la fenêtre de vote."
-L["A tab delimited output for Excel. Might work with other spreadsheets."] = "Format pour Excel, délimité par des onglets. Peut également fonctionner avec d'autres tableurs."
 L["Abort"] = "Annuler"
 L["Accept Whispers"] = "Autoriser les chuchotements"
 L["accept_whispers_desc"] = "Permet aux joueurs de vous chuchoter leur(s) objet(s) équipé(s) pour qu'il(s) soit(-ent) ajouté à la fenêtre de vote."
@@ -110,7 +109,6 @@ Utilisés lorsque vous modifiez une réponse en passant par le menu du clic droi
 L["Awarded"] = "Assigné"
 L["Awarded item cannot be awarded later."] = "Les objets assignés ne peuvent pas être assignés plus tard."
 L["Awards"] = "Attributions"
-L["Azerite Armor"] = "Armure d'Azérite"
 L["Background"] = "Fond"
 L["Background Color"] = "Couleur de fond"
 L["Banking"] = "La banque"
@@ -130,6 +128,8 @@ L["Candidate removed"] = "Candidat retiré"
 L["Candidates that can't use the item"] = "Candidats qui ne peuvent pas utiliser l'objet"
 L["Cannot autoaward:"] = "Attribution automatique impossible :"
 L["Cannot give 'item' to 'player' due to Blizzard limitations. Gave it to you for distribution."] = "Impossible d'attribuer %s à %s en raisons des restrictions fixées par Blizzard. L'objet vous a été attribué pour que vous puissiez le distribuer."
+--[[Translation missing --]]
+L["Catalyst_Items"] = "Catalyst Items"
 L["Change Award"] = "Changer l'assignation"
 L["Change Response"] = "Modifier la réponse"
 L["Changing loot threshold to enable Auto Awarding"] = "Le seuil de qualité est en train d'être modifié afin que l'attribution automatique puisse être activée"
@@ -141,17 +141,49 @@ L["chat version String"] = "|cFF87CEFARCLootCouncil |cFFFFFFFFversion |cFFFFA500
 --[[Translation missing --]]
 L["chat_cmd_add_found_items"] = "Found %d items with trade timers in your bags."
 L["chat_cmd_add_invalid_owner"] = "Le joueur %s n'est pas un candidat ou est invalide."
+--[[Translation missing --]]
+L["chat_command_start_error_onlyUseInRaids"] = "Cannot start: you're in a party and have the 'only use in raids' option enabled."
+--[[Translation missing --]]
+L["chat_command_start_error_start_PartyIsLFG"] = "Cannot start: you are in a LFG party."
+--[[Translation missing --]]
+L["chat_command_start_error_usageNever"] = "Cannot start: your 'usage' option is set to 'never'."
 L["chat_commands_add"] = "Ajouter un objet à la fenêtre de session"
+--[[Translation missing --]]
+L["chat_commands_add_all"] = "Adds all tradable items to the session frame"
 L["chat_commands_award"] = "Commencer une session avec les objets de votre inventaire précédemment ramassés"
+--[[Translation missing --]]
+L["chat_commands_clear"] = "Removes all items from the 'award later' list"
 L["chat_commands_config"] = "Ouvrir l'interface des options"
 L["chat_commands_council"] = "Ouvrir l'interface du conseil"
+--[[Translation missing --]]
+L["chat_commands_export"] = "Exports the items currently in session"
+--[[Translation missing --]]
+L["chat_commands_groupLeader_only"] = "Group Leader commands"
 L["chat_commands_history"] = "Ouvrir l'historique de butin (alt. 'h' ou 'his)"
+--[[Translation missing --]]
+L["chat_commands_list"] = "Lists all items marked for 'award later'"
+--[[Translation missing --]]
+L["chat_commands_ML_only"] = "Master Looter commands"
 L["chat_commands_open"] = "Ouvrir la fenêtre de vote"
+--[[Translation missing --]]
+L["chat_commands_profile"] = "Open the profile manager"
+--[[Translation missing --]]
+L["chat_commands_remove"] = "Removes the item at index from the 'award later' list"
 L["chat_commands_reset"] = "Réinitialiser les positions des fenêtres de l'addon"
+--[[Translation missing --]]
+L["chat_commands_session"] = "Open the session frame (alt. 'ses' or 's')"
+--[[Translation missing --]]
+L["chat_commands_start"] = "Start handling loot"
+--[[Translation missing --]]
+L["chat_commands_stop"] = "Stop handling loot"
 L["chat_commands_sync"] = "Ouvrir la vue de synchronisation"
 L["chat_commands_test"] = "Simuler une session de butin avec # objets, 1 si ignoré"
+--[[Translation missing --]]
+L["chat_commands_trade"] = "Open the TradeUI"
 L["chat_commands_version"] = "Ouvrir la vérification de version (alt. 'v' ou 'ver')"
 L["chat_commands_whisper"] = "Afficher l'aide dans la commande de chuchotement"
+--[[Translation missing --]]
+L["chatCommand_stop_error_notHandlingLoot"] = "Cannot stop: not currently handling loot."
 L["Check this to loot the items and distribute them later."] = "Cocher cette case pour récupérer les objets et les attribuer plus tard."
 L["Check to append the realmname of a player from another realm"] = "Cocher pour ajouter le nom du royaume d'un joueur provenant d'un autre royaume"
 L["Check to have all frames minimize when entering combat"] = "Cocher pour minimiser toutes les fenêtres en entrant en combat. "
@@ -222,6 +254,10 @@ L["group_council_members_head"] = "Ajouter au conseil des membres de votre group
 L["Guild Council Members"] = "Membres de la guilde au conseil"
 L["Hide Votes"] = "Masquer les votes"
 L["hide_votes_desc"] = "Seuls les joueurs ayant déjà voté pourront voir le résultat des votes."
+--[[Translation missing --]]
+L["history_export_excel_international_tip"] = "Tab delimited export for international version of Excel that uses ',' as formula delimiter."
+--[[Translation missing --]]
+L["history_export_sheets_tip"] = "Tab delimited export for Google Sheets and English version of Excel that uses ';' as formula delimiter."
 L["How to sync"] = "Comment synchroniser"
 L["huge_export_desc"] = "Export très lourd. Seules les premières lignes ont été montrées afin d'éviter un freeze du jeu. Ctrl+C pour copier le contenu."
 L["Ignore List"] = "Objets ignorés"
@@ -230,6 +266,8 @@ L["ignore_input_desc"] = "Introduisez l'ID d'un objet pour l'ajouter à la liste
 L["ignore_input_usage"] = "Cette fonction n'accepte que l'ID des objets (numéro)"
 L["ignore_list_desc"] = "Objets ignorés par RCLootCouncil. Cliquez sur un objet pour le retirer de la liste."
 L["ignore_options_desc"] = "Gérez quels objets devraient être ignorés par RCLootCouncil. Si vous ajoutez un objet qui n'a pas été mis en cache, vous devez changer d'onglet puis revenir dans celui-ci pour que vous puissiez voir l'objet en question apparaître dans la liste."
+--[[Translation missing --]]
+L["Import"] = "Import"
 L["Import aborted"] = "Import annulé"
 L["import_desc"] = "Coller les données ici. Seules les premiers 2500 caractères ont été montrés afin d'éviter un freeze du jeu."
 L["import_malformed"] = "L'import est mal formé (n'est pas une chaîne de caractère)"
@@ -362,10 +400,28 @@ L["opt_deleteRaid_desc"] = "Supprimer toutes les entrées d'une instance spécif
 L["opt_moreButtons_desc"] = "Ajouter un nouvel ensemble de boutons pour un emplacement spécifique d'équipement. Le type le plus spécifique est utilisé. Par exemple, ajouter des boutons pour 'Tête' et 'Armure d'Azérite' fera en sorte que les armures d'emplacement de tête utiliseront les boutons de tête plutôt que d'armure d'Azérite."
 L["opt_printCompletedTrade_Desc"] = "Cochez pour activer un message à chaque fois qu'un candidat échange un objet assigné à un gagnant."
 L["opt_printCompletedTrade_Name"] = "Messages d'échange"
+--[[Translation missing --]]
+L["opt_profileSharing_export_desc"] = "Export your current profile."
+--[[Translation missing --]]
+L["opt_profileSharing_fail_noProfileData"] = "Data is not profile data. Ensure imported data originates from profile export."
+--[[Translation missing --]]
+L["opt_profileSharing_import_desc"] = "Import a new RCLootCouncil profile. Imports are non-destructive, unless you're overwriting an existing profile."
+--[[Translation missing --]]
+L["opt_profileSharing_profileExistsWarning"] = "A profile named \"%s\" already exists - do you want to overwrite it?"
 L["opt_rejectTrade_Desc"] = "Cochez pour autoriser les candidats à choisir entre \"donner\" l'objet au conseil ou non. Si cette option n'est pas cochée, tous les objets PL échangeables sont ajoutés automatiquement."
 L["opt_rejectTrade_Name"] = "Autoriser à garder"
+--[[Translation missing --]]
+L["opt_savePersonalLoot_desc"] = "If disabled, personal loot will not be added to the history."
+--[[Translation missing --]]
+L["opt_savePersonalLoot_name"] = "Record Personal Loot"
+--[[Translation missing --]]
+L["opt_sharingProfile_success"] = "Succesfully imported profile: \"%s\""
 L["opt_skipSessionFrame_desc"] = "Passe la fenêtre de session: NOTE : ceci force l'addon à démarrer une session avec tous les objets éligibles sans que vous n'ayez une chance d'éditer la liste !"
 L["opt_skipSessionFrame_name"] = "Passer la fenêtre de session"
+--[[Translation missing --]]
+L["opt_timeoutFlash_desc"] = "When enabled, the loot frame will flash when there's 5 seconds left to the item timeouts."
+--[[Translation missing --]]
+L["opt_timeoutFlash_name"] = "Timeout Flash"
 --[[Translation missing --]]
 L["opt_usage_AskGroupLoot"] = "Ask me every time Group Loot is enabled"
 --[[Translation missing --]]
@@ -400,6 +456,10 @@ L["Print Responses"] = "Afficher la réponse"
 L["print_response_desc"] = "Afficher votre réponse dans la fenêtre de discussion"
 L["Protector Token"] = "Jeton de protection"
 L["Raw lua output. Doesn't work well with date selection."] = "Exporter données lua brutes. Ne fonctionne pas bien avec la sélection de dates."
+--[[Translation missing --]]
+L["rcframe_help"] = [=[Double click here to minimize
+Click and drag to move
+Ctrl+scroll to change scale]=]
 L["RCLootCouncil - Synchronizer"] = "RCLootCouncil - Synchroniseur"
 L["RCLootCouncil Loot Frame"] = "Fenêtre du butin de RCLootCouncil"
 L["RCLootCouncil Loot History"] = "Historique du butin de RCLootCouncil"
@@ -430,6 +490,8 @@ L["Response options"] = "Options de réponse"
 L["Response to 'item'"] = "Réponse à %s"
 L["Response to 'item' acknowledged as 'response'"] = "Réponse à %s reconnue en tant que \" %s \""
 L["response_color_desc"] = "Définir une couleur pour la réponse."
+--[[Translation missing --]]
+L["response_NOTELIGIBLE"] = "Not eligible for this item"
 L["Responses"] = "Réponses"
 L["Responses from Chat"] = "Réponses de la fenêtre de discussion"
 L["responses_from_chat_desc"] = [=[Dans le cas où un joueur n'a pas installé l'add-on (le bouton 1 sera utilisé par défaut si aucun mot-clef n'a été saisi).
@@ -469,6 +531,8 @@ L["sort_items_desc"] = "Trier les sessions par type d'objet et niveau d'objet."
 L["Standard .csv output."] = "Exporter en .csv standard."
 L["Standard JSON output."] = "Tableau JSON contenant un objet JSON par entrée de l'historique."
 L["Status texts"] = "Textes de statut"
+--[[Translation missing --]]
+L["Stop"] = "Stop"
 L["Store in bag and award later"] = "Stocker dans le sac et assigner plus tard"
 L["Succesfully deleted %d entries"] = "Suppression réussie de %d entrées"
 L["Succesfully deleted %d entries from %s"] = "Suppression réussie de %d entrées venant de %s"
@@ -476,6 +540,10 @@ L["Successfully imported 'number' entries."] = "Import réussi de %d entrées."
 L["Successfully received 'type' from 'player'"] = "Réception réussie de %s venant de %s."
 L["Sync"] = "Synchronisation"
 L["sync_detailed_description"] = "1. Vous devez tous les deux avoir la fenêtre de synchronisation ouverte (/rc sync). 2. Sélectionnez le type de donnée que vous souhaitez envoyer. 3. Sélectionner le joueur dont vous souhaitez recevoir les données. 4. Cliquez 'Sync' - vous devez voir une barre de statut avec les données en cours d'envoi. Cette fenêtre a besoin de rester ouverte pour initier la synchronisation mais la fermer n'arrêtera pas sa progression. Les cibles incluent les joueurs de la guilde connectés ainsi que les membres du groupe, les amis et votre cible amie actuelle."
+--[[Translation missing --]]
+L["sync_warning1"] = "Note: Syncing large amounts of data in game can be very slow (especially the loot history)."
+--[[Translation missing --]]
+L["sync_warning2"] = "Settings and loot history can both be exported/imported as an alternative - see '/rc profile' and/or '/rc history' respectively."
 L["test"] = true
 L["Test"] = true
 L["test_desc"] = "Cliquer pour simuler pour vous et tous les membres de votre raid une session de butin où vous êtes le maître du butin."

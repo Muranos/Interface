@@ -2,7 +2,7 @@
 -- Module Declaration
 --
 
-local mod, CL = BigWigs:NewBoss("Mekgineer Thermaplugg Discovery", 90, -2940)
+local mod, CL = BigWigs:NewBoss("Mekgineer Thermaplugg Discovery", 90)
 if not mod then return end
 mod:RegisterEnableMob(
 	218537, -- Mekgineer Thermaplugg
@@ -12,6 +12,7 @@ mod:RegisterEnableMob(
 	218974 -- STX-99/XD
 )
 mod:SetEncounterID(2940)
+mod:SetAllowWin(true)
 mod:SetStage(1)
 
 --------------------------------------------------------------------------------
@@ -110,7 +111,7 @@ function mod:OnEngage()
 	self:SetStage(1)
 	self:Message("stages", "cyan", CL.stage:format(1), false)
 
-	self:OpenInfo(438735, "BigWigs: |T237290:0:0:0:0:64:64:4:60:4:60|t".. L.red_button, 10)
+	self:OpenInfo(438735, CL.other:format("BigWigs", "|T237290:0:0:0:0:64:64:4:60:4:60|t".. L.red_button), 10)
 	self:SimpleTimer(UpdateInfoBoxList, 0.1)
 end
 
@@ -242,8 +243,9 @@ function mod:SprocketfireApplied(args)
 		if self:Me(args.destGUID) then
 			self:StackMessage(args.spellId, "blue", args.destName, args.amount, 4)
 		else
-			local bossUnit = self:GetUnitIdByGUID(currentBossGUID) -- Source can vary or be nil
-			if bossUnit and self:Tanking(bossUnit, args.destName) then
+			local bossUnit = self:GetUnitIdByGUID(currentBossGUID) -- Source can vary or be nil here, so store it from other abilities
+			local targetUnit = self:UnitTokenFromGUID(args.destGUID, true)
+			if bossUnit and targetUnit and self:Tanking(bossUnit, targetUnit) then
 				self:StackMessage(args.spellId, "orange", args.destName, args.amount, 4)
 			end
 		end
@@ -276,8 +278,9 @@ function mod:FreezingApplied(args)
 		if self:Me(args.destGUID) then
 			self:StackMessage(args.spellId, "blue", args.destName, args.amount, 5)
 		elseif self:Player(args.destFlags) then -- Players, not pets
-			local bossUnit = self:GetUnitIdByGUID(currentBossGUID) -- Source can vary or be nil
-			if bossUnit and self:Tanking(bossUnit, args.destName) then
+			local bossUnit = self:GetUnitIdByGUID(currentBossGUID) -- Source can vary or be nil here, so store it from other abilities
+			local targetUnit = self:UnitTokenFromGUID(args.destGUID, true)
+			if bossUnit and targetUnit and self:Tanking(bossUnit, targetUnit) then
 				self:StackMessage(args.spellId, "orange", args.destName, args.amount, 5)
 			end
 		end
@@ -309,8 +312,9 @@ function mod:RadiationSicknessApplied(args)
 	if self:Me(args.destGUID) then
 		self:StackMessage(args.spellId, "blue", args.destName, args.amount, 3, CL.disease)
 	elseif args.amount then
-		local bossUnit = self:GetUnitIdByGUID(currentBossGUID) -- Source can vary or be nil
-		if bossUnit and self:Tanking(bossUnit, args.destName) then
+		local bossUnit = self:GetUnitIdByGUID(currentBossGUID) -- Source can vary or be nil here, so store it from other abilities
+		local targetUnit = self:UnitTokenFromGUID(args.destGUID, true)
+		if bossUnit and targetUnit and self:Tanking(bossUnit, targetUnit) then
 			self:StackMessage(args.spellId, "orange", args.destName, args.amount, 3, CL.disease)
 		end
 	end
@@ -347,7 +351,7 @@ function UpdateInfoBoxList()
 				mod:SetInfo(438735, line + 1, CL.seconds:format(remaining))
 				mod:SetInfoBar(438735, line, remaining / 30)
 			else
-				if UnitIsDeadOrGhost(player) then
+				if mod:UnitIsDeadOrGhost(player) then
 					mod:SetInfo(438735, line + 1, CL.dead, 1, 0.2, 0.2)
 				else
 					mod:SetInfo(438735, line + 1, CL.ready, 0.13, 1, 0.13)

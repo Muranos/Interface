@@ -87,7 +87,7 @@ local function GetProgressTextDefault(progress, total)
 	return tostring(progress) .. " / " .. tostring(total);
 end
 local function GetProgressTextRemaining(progress, total)
-	return tostring((total or 0) - (progress or 0));
+	return tostring(max(0, (total or 0) - (progress or 0)));
 end
 local GetProgressText = GetProgressTextDefault;
 
@@ -200,6 +200,8 @@ app.TryColorizeName = function(group, name)
 		-- class color
 		if group.classID then
 			return Colorize(name, app.ClassInfoByID[group.classID].colorStr);
+		elseif group.accountWide then
+			return Colorize(name, colors.Account)
 		elseif group.c and #group.c == 1 then
 			return Colorize(name, app.ClassInfoByID[group.c[1]].colorStr);
 		-- faction colors
@@ -237,6 +239,8 @@ app.TryColorizeName = function(group, name)
 		-- grey color for things which are otherwise not available to the current character (would only show in account mode due to filtering)
 		elseif not app.CurrentCharacterFilters(group) then
 			return Colorize(name, colors.Unavailable);
+		elseif group.questID and app.AccountWideQuestsDB[group.questID] then
+			return Colorize(name, colors.Account)
 		end
 	end
 	return name;

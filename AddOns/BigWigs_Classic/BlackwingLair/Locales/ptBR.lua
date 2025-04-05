@@ -22,6 +22,7 @@ if L then
 
 	L.debuffs_message = "3/5 penalidades, cuidado!"
 	L.debuffs_warning = "4/5 penalidades, %s na 5ª!"
+	L.bronze = "Bronze"
 
 	L.vulnerability = "Mudanças de vulnerabilidade"
 	L.vulnerability_desc = "Aviso para mudanças de vulnerabilidade."
@@ -33,8 +34,6 @@ end
 L = BigWigs:NewBossLocale("Nefarian Classic", "ptBR")
 if L then
 	L.engage_yell_trigger = "Que comecem os jogos!"
-	L.landing_soon_trigger = "Muito bem, meus lacaios."
-	--L.stage2_yell_trigger = "BURN! You wretches"
 	L.stage3_yell_trigger = "Impossível! Ergam-se, meus lacaios!"
 
 	L.shaman_class_call_yell_trigger = "Xamãs"
@@ -65,10 +64,13 @@ end
 L = BigWigs:NewBossLocale("Blackwing Lair Trash", "ptBR")
 if L then
 	L.wyrmguard_overseer = "Serpeguarda Garra da Morte / Feitor Garra da Morte" -- NPC 12460 / 12461
+	L.sandstorm = "Tempestade de Areia"
 
 	L.target_vulnerability = "Avisos de vulnerabilidade do alvo"
 	L.target_vulnerability_desc = "Quando o seu alvo é um Serpeguarda Garra da Morte ou um Feitor Garra da Morte, mostra um aviso sobre qual vulnerabilidade ele possui."
 	L.target_vulnerability_message = "Vulnerabilidade do alvo: %s"
 	L.detect_magic_missing_message = "Detectar Magia está ausente do seu alvo"
 	L.detect_magic_warning = "Um mago precisa lançar \124cff71d5ff\124Hspell:2855:0\124h[Detectar Magia]\124h\124r no seu alvo para que os avisos de vulnerabilidade funcionem."
+
+	L.warlock = "Bruxo Asa Negra" -- NPC 12459
 end

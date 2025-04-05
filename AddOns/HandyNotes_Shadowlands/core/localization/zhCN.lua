@@ -12,6 +12,7 @@ L['leather'] = '皮甲'
 L['mail'] = '锁甲'
 L['plate'] = '板甲'
 L['cosmetic'] = '装饰品'
+L['tabard'] = '战袍'
 
 L['1h_mace'] = '单手锤'
 L['1h_sword'] = '单手剑'
@@ -44,22 +45,54 @@ L['activation_unknown'] = '激活未知！'
 L['requirement_not_found'] = '所需位置未知！'
 L['multiple_spawns'] = '可能出现在多个位置。'
 L['shared_drops'] = '共享掉落'
+L['zone_drops_label'] = '区域掉落'
+L['zone_drops_note'] = '下面列出的物品可以由该区域中的多个怪物掉落。'
+
+L['poi_entrance_label'] = '入口'
+L['change_map'] = '更改地图'
 
 L['requires'] = '需要'
 L['ranked_research'] = '%s（等级 %d/%d）'
 
 L['focus'] = '焦点'
 L['retrieving'] = '正在获取物品链接…'
+
+L['normal'] = '普通'
+L['hard'] = '困难'
+
+L['completed'] = '已完成'
+L['incomplete'] = '未完成'
+L['claimed'] = '已获得'
+L['unclaimed'] = '未获得'
+L['known'] = '已知'
+L['missing'] = '缺少'
+L['unobtainable'] = '无法获得'
+L['unlearnable'] = '无法解锁'
+L['defeated'] = '已击杀'
+L['undefeated'] = '未击杀'
+L['elite'] = '精英'
+L['quest'] = '任务'
+L['quest_repeatable'] = '可重复任务'
+L['achievement'] = '成就'
+
+---------------------------------- LOCATION -----------------------------------
 L['in_cave'] = '在洞穴。'
 L['in_small_cave'] = '在小洞穴。'
 L['in_water_cave'] = '在水下洞穴。'
 L['in_waterfall_cave'] = '瀑布后面洞穴中。'
 L['in_water'] = '在水中。'
+L['in_building'] = '在建筑里面。'
+
+------------------------------------ TIME -------------------------------------
+L['now'] = '现在'
 L['hourly'] = '每小时'
 L['daily'] = '每日'
 L['weekly'] = '每周'
-L['normal'] = '普通'
-L['hard'] = '困难'
+
+L['time_format_12hrs'] = '%m/%d - %I:%M %p 本地时间'
+L['time_format_24hrs'] = '%m/%d - %H:%M 本地时间'
+
+----------------------------------- REWARDS -----------------------------------
 L['heirloom'] = '传家宝'
 L['item'] = '物品'
 L['mount'] = '坐骑'
@@ -70,29 +103,19 @@ L['title'] = '头衔'
 L['toy'] = '玩具'
 L['currency'] = '货币'
 L['rep'] = '声望'
-L['completed'] = '已完成'
-L['incomplete'] = '未完成'
-L['known'] = '已获得'
-L['missing'] = '未获得'
-L['unobtainable'] = '无法获得'
-L['unlearnable'] = '无法解锁'
-L['defeated'] = '已击杀'
-L['undefeated'] = '未击杀'
-L['elite'] = '精英'
-L['quest'] = '任务'
-L['quest_repeatable'] = '可重复任务'
-L['achievement'] = '成就'
+L['buff'] = '增益'
+L['transmog'] = '幻化'
+L['hunter_pet'] = nil
 
+---------------------------------- FOLLOWERS ----------------------------------
 L['follower_type_follower'] = '追随者'
 L['follower_type_champion'] = '勇士'
 L['follower_type_companion'] = '伙伴'
 
+--------------------------------- REPUTATION ----------------------------------
 L['rep_honored'] = '尊敬'
 L['rep_revered'] = '崇敬'
 L['rep_exalted'] = '崇拜'
-
-L['time_format_12hrs'] = '%m/%d - %I:%M %p 本地时间'
-L['time_format_24hrs'] = '%m/%d - %H:%M 本地时间'
 
 -------------------------------------------------------------------------------
 --------------------------------- DRAGONRACES ---------------------------------
@@ -107,7 +130,7 @@ L['dr_advanced'] = '进阶'
 L['dr_reverse'] = '反向'
 L['dr_challenge'] = '挑战'
 L['dr_reverse_challenge'] = '反向挑战'
-L['dr_storm_race'] = nil
+L['dr_storm_race'] = '风雷之速'
 L['dr_bronze'] = '完成竞速获得 ' .. ns.color.Bronze('青铜') .. '。'
 L['dr_vendor_note'] = '用 {currency:2588} 兑换观龙者手稿和幻化。'
 L['options_icons_dragonrace'] = '驭龙竞速'
@@ -158,8 +181,10 @@ L['options_visibility_settings'] = '可见性'
 L['options_general_settings'] = '通用'
 L['options_show_completed_nodes'] = '显示已完成'
 L['options_show_completed_nodes_desc'] = '显示全部项即使它们今天已被拾取或完成。'
-L['options_toggle_hide_done_rare'] = '隐藏所有拾取已解锁的稀有'
-L['options_toggle_hide_done_rare_desc'] = '隐藏所有拾取已解锁的稀有。'
+L['options_toggle_hide_done_rare'] = '隐藏所有拾取已知的稀有'
+L['options_toggle_hide_done_rare_desc'] = '隐藏所有拾取已知的稀有。'
+L['options_toggle_hide_done_treasure'] = '隐藏所有拾取已知的宝藏'
+L['options_toggle_hide_done_treasure_desc'] = '隐藏所有拾取已知的宝藏。'
 L['options_toggle_hide_minimap'] = '隐藏小地图上的所有图标'
 L['options_toggle_hide_minimap_desc'] = '在小地图上隐藏此插件的所有图标，只会在世界地图上显示。'
 L['options_toggle_maximized_enlarged'] = '世界地图最大化时图标放大'
@@ -171,8 +196,16 @@ L['options_toggle_per_map_settings_desc'] = '应用切换，缩放和透明度�
 L['options_restore_hidden_nodes'] = '恢复隐藏项'
 L['options_restore_hidden_nodes_desc'] = '使用右击菜单恢复全部隐藏项。'
 
+L['ignore_class_restrictions'] = '忽略职业限制'
+L['ignore_class_restrictions_desc'] = '显示需要与当前角色不同职业的组、项和奖励。'
+L['ignore_faction_restrictions'] = '忽略阵营限制'
+L['ignore_faction_restrictions_desc'] = '显示需要对立阵营的组、项和奖励。'
+
 L['options_rewards_settings'] = '奖励'
+L['options_reward_behaviors_settings'] = '奖励行为'
 L['options_reward_types'] = '显示奖励类型'
+L['options_manuscript_rewards'] = '显示观龙者手稿奖励'
+L['options_manuscript_rewards_desc'] = '在提示中显示龙观察者手稿奖励并跟踪其收集状态。'
 L['options_mount_rewards'] = '显示坐骑奖励'
 L['options_mount_rewards_desc'] = '在提示中显示坐骑奖励并跟踪其收集状态。'
 L['options_pet_rewards'] = '显示宠物奖励'
@@ -185,6 +218,10 @@ L['options_transmog_rewards'] = '显示幻化奖励'
 L['options_transmog_rewards_desc'] = '在提示中显示幻化奖励并跟踪其收集状态。'
 L['options_all_transmog_rewards'] = '显示无法获取的幻化奖励'
 L['options_all_transmog_rewards_desc'] = '显示其它职业可以获取的幻化奖励。'
+L['options_rep_rewards'] = '显示声望奖励'
+L['options_rep_rewards_desc'] = '在提示中显示声望奖励并跟踪其收集状态。'
+L['options_claimed_rep_rewards'] = '显示以已获得声望奖励'
+L['options_claimed_rep_rewards_desc'] = '在提示中显示获得战团已获得声望奖励。'
 
 L['options_icons_misc_desc'] = '显示其它未分类项的位置。'
 L['options_icons_misc'] = '杂项'
@@ -192,8 +229,10 @@ L['options_icons_pet_battles_desc'] = '显示宠物训练师和 NPC 的位置。
 L['options_icons_pet_battles'] = '战斗宠物'
 L['options_icons_rares_desc'] = '显示稀有 NPC 的位置。'
 L['options_icons_rares'] = '稀有'
-L['options_icons_treasures_desc'] = '显示隐藏宝藏位置。'
+L['options_icons_treasures_desc'] = '显示隐藏宝藏的位置。'
 L['options_icons_treasures'] = '宝藏'
+L['options_icons_vendors_desc'] = '显示供应商位置。'
+L['options_icons_vendors'] = '供应商'
 
 ------------------------------------ FOCUS ------------------------------------
 
@@ -214,6 +253,8 @@ L['options_toggle_show_notes'] = '显示注释'
 L['options_toggle_show_notes_desc'] = '在提示中添加注释'
 L['options_toggle_use_standard_time'] = '使用12小时时钟'
 L['options_toggle_use_standard_time_desc'] = '在提示中使用12小时时钟（如：8:00 PM）而不是24小时时钟（如：20:00）。'
+L['options_toggle_show_npc_id'] = '显示 NPC ID'
+L['options_toggle_show_npc_id_desc'] = '显示 NPC ID 以供稀有扫描插件使用。'
 
 --------------------------------- DEVELOPMENT ---------------------------------
 

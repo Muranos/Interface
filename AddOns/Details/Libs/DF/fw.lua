@@ -1,6 +1,6 @@
 
 
-local dversion = 532
+local dversion = 592
 local major, minor = "DetailsFramework-1.0", dversion
 local DF, oldminor = LibStub:NewLibrary(major, minor)
 
@@ -14,6 +14,20 @@ _G["DetailsFramework"] = DF
 ---@cast DF detailsframework
 
 local detailsFramework = DF
+
+--store functions to call when the PLAYER_LOGIN event is triggered
+detailsFramework.OnLoginSchedules = {}
+local dfFrame = CreateFrame("frame")
+dfFrame:RegisterEvent("PLAYER_LOGIN")
+dfFrame:SetScript("OnEvent", function(self, event, ...)
+	if (event == "PLAYER_LOGIN") then
+		C_Timer.After(0, function()
+			for _, func in ipairs(detailsFramework.OnLoginSchedules) do
+				func()
+			end
+		end)
+	end
+end)
 
 DetailsFrameworkCanLoad = true
 local SharedMedia = LibStub:GetLibrary("LibSharedMedia-3.0")
@@ -34,21 +48,35 @@ local GetSpellBookItemName = GetSpellBookItemName or C_SpellBook.GetSpellBookIte
 local GetNumSpellTabs = GetNumSpellTabs or C_SpellBook.GetNumSpellBookSkillLines
 local GetSpellTabInfo = GetSpellTabInfo or function(tabLine) local skillLine = C_SpellBook.GetSpellBookSkillLineInfo(tabLine) if skillLine then return skillLine.name, skillLine.iconID, skillLine.itemIndexOffset, skillLine.numSpellBookItems, skillLine.isGuild, skillLine.offSpecID end end
 local SpellBookItemTypeMap = Enum.SpellBookItemType and {[Enum.SpellBookItemType.Spell] = "SPELL", [Enum.SpellBookItemType.None] = "NONE", [Enum.SpellBookItemType.Flyout] = "FLYOUT", [Enum.SpellBookItemType.FutureSpell] = "FUTURESPELL", [Enum.SpellBookItemType.PetAction] = "PETACTION" } or {}
-local GetSpellBookItemInfo = GetSpellBookItemInfo or function(...) local si = C_SpellBook.GetSpellBookItemInfo(...) if si then return SpellBookItemTypeMap[si.itemType] or "NONE", si.spellID end end
+local GetSpellBookItemInfo = GetSpellBookItemInfo or function(...) local si = C_SpellBook.GetSpellBookItemInfo(...) if si then return SpellBookItemTypeMap[si.itemType] or "NONE", (si.itemType == Enum.SpellBookItemType.Flyout or si.itemType == Enum.SpellBookItemType.PetAction) and si.actionID or si.spellID or si.actionID, si end end
 local SPELLBOOK_BANK_PLAYER = Enum.SpellBookSpellBank and Enum.SpellBookSpellBank.Player or "player"
 local SPELLBOOK_BANK_PET = Enum.SpellBookSpellBank and Enum.SpellBookSpellBank.Pet or "pet"
 local IsPassiveSpell = IsPassiveSpell or C_Spell.IsSpellPassive
+local GetOverrideSpell = C_SpellBook and C_SpellBook.GetOverrideSpell or C_Spell.GetOverrideSpell or GetOverrideSpell
+local HasPetSpells = HasPetSpells or C_SpellBook.HasPetSpells
+local spellBookPetEnum = Enum.SpellBookSpellBank and Enum.SpellBookSpellBank.Pet or "pet"
 
 SMALL_NUMBER = 0.000001
 ALPHA_BLEND_AMOUNT = 0.8400251
 
-local _, _, _, buildInfo = GetBuildInfo()
+--cache this stuff
+local g, b, d, t = GetBuildInfo()
+DF.BuildYear = tonumber(d:match("%d+$") or 0)
+DF.GamePatch = g --string "10.2.7"
+DF.BuildId = b --string "55000"
+DF.Toc = t --number 100000
+DF.Exp = floor(DF.Toc/10000)
+
+local buildInfo = DF.Toc
 
 DF.dversion = dversion
 
 DF.AuthorInfo = {
-	Name = "Terciob",
+	Author = "",
+	Name = "Terciob", --terciob
 	Discord = "https://discord.gg/AGSzAZX",
+	Support = "www.patreon.com",
+	SearchVideos = "www.youtube.com",
 }
 
 function DF:Msg(msg, ...)
@@ -100,7 +128,17 @@ end
 ---return if the wow version the player is playing is dragonflight or an expansion after it
 ---@return boolean
 function DF.IsDragonflightAndBeyond()
-	return select(4, GetBuildInfo()) >= 100000
+	return buildInfo >= 100000
+end
+
+function DF.ExpansionHasEvoker()
+	return buildInfo >= 100000
+end
+
+---return true if the wow version is Dragonflight or below
+---@return boolean
+function DF.IsDragonflightOrBelow()
+	return buildInfo < 110000
 end
 
 ---return if the wow version the player is playing is a classic version of wow
@@ -187,6 +225,9 @@ function DF.IsWarWow()
 	return false
 end
 
+function DF.IsTWWWow()
+	return DF.IsWarWow()
+end
 
 ---return true if the player is playing in the WotLK version of wow with the retail api
 ---@return boolean
@@ -198,6 +239,10 @@ function DF.IsNonRetailWowWithRetailAPI()
 	return false
 end
 DF.IsWotLKWowWithRetailAPI = DF.IsNonRetailWowWithRetailAPI -- this is still in use
+
+function DF.ExpansionHasAugEvoker()
+	return DF.IsDragonflightWow() or DF.IsWarWow()
+end
 
 ---for classic wow, get the role using the texture from the talents frame
 local roleBySpecTextureName = {
@@ -259,11 +304,10 @@ function DF:GetRoleByClassicTalentTree()
 	for i = 1, (MAX_TALENT_TABS or 3) do
 		if (i <= numTabs) then
 			--tab information
-			local id, name, description, iconTexture, pointsSpent, fileName
-			if DF.IsCataWow() then
-				id, name, description, iconTexture, pointsSpent, fileName = GetTalentTabInfo(i)
-			else
-				name, iconTexture, pointsSpent, fileName = GetTalentTabInfo(i)
+			local id, name, description, iconTexture, pointsSpent, fileName = GetTalentTabInfo(i)
+			if DF.IsClassicWow() and not fileName then
+				--On pre 1.15.3
+                name, iconTexture, pointsSpent, fileName = id, name, description, iconTexture
 			end
 			if (name) then
 				table.insert(pointsPerSpec, {name, pointsSpent, fileName})
@@ -287,6 +331,43 @@ function DF:GetRoleByClassicTalentTree()
 		return role or "NONE"
 	end
 	return "DAMAGER"
+end
+
+local roleStringToNumber = {
+	["NONE"] = 0,
+	["TANK"] = 1,
+	["HEALER"] = 2,
+	["DAMAGER"] = 3,
+	["SUPPORT"] = 4,
+}
+
+local roleNumberToString = {
+	[0] = "NONE",
+	[1] = "TANK",
+	[2] = "HEALER",
+	[3] = "DAMAGER",
+	[4] = "SUPPORT",
+}
+
+function DF:ConvertRole(value, valueType)
+	if (valueType) then
+		if (type(valueType) == "string") then
+			valueType = roleNumberToString[valueType] or valueType
+		end
+
+		if (type(valueType) == "number") then
+			valueType = roleStringToNumber[valueType] or valueType
+		end
+	end
+
+	if (type(value) == "string") then
+		return roleStringToNumber[value] or 0
+
+	elseif (type(value) == "number") then
+		return roleNumberToString[value] or "NONE"
+	end
+
+	return value
 end
 
 ---return the role of the unit, this is safe to use for all versions of wow
@@ -734,6 +815,17 @@ function DF.table.setfrompath(t, path, value)
 	return false
 end
 
+---return the amount of keys in a table
+---@param t table
+---@return number
+function DF.table.countkeys(t)
+	local count = 0
+	for _ in pairs(t) do
+		count = count + 1
+	end
+	return count
+end
+
 ---find the value inside the table, and it it's not found, add it
 ---@param t table
 ---@param index integer|any
@@ -766,6 +858,25 @@ function DF.table.reverse(t)
 		index = index + 1
 	end
 	return new
+end
+
+---remove a value from an array table
+---@param t table
+---@param value any
+---@return boolean
+function DF.table.remove(t, value)
+	local bRemoved = false
+	local removedAmount = 0
+
+	for i = 1, #t do
+		if (t[i] == value) then
+			table.remove(t, i)
+			bRemoved = true
+			removedAmount = removedAmount + 1
+		end
+	end
+
+	return bRemoved, removedAmount
 end
 
 ---copy the values from table2 to table1 overwriting existing values, ignores __index and __newindex, keys pointing to a UIObject are preserved
@@ -867,6 +978,16 @@ function DF.table.append(t1, t2)
 	return t1
 end
 
+---receive a table and N arguments, add each argument to the table
+---@param t1 table
+---@vararg any
+function DF.table.inserts(t1, ...)
+	for i = 1, select("#", ...) do
+		t1[#t1+1] = select(i, ...)
+	end
+	return t1
+end
+
 ---copy values that does exist on table2 but not on table1
 ---@param t1 table
 ---@param t2 table
@@ -874,8 +995,11 @@ end
 function DF.table.deploy(t1, t2)
 	for key, value in pairs(t2) do
 		if (type(value) == "table") then
-			t1[key] = t1[key] or {}
-			DF.table.deploy(t1[key], t2[key])
+			--check the t1 type as sometimes the key isn't the same type on both tables
+			if (t1[key] == nil or type(t1[key]) == "table") then
+				t1[key] = t1[key] or {}
+				DF.table.deploy(t1[key], t2[key])
+			end
 		elseif (t1[key] == nil) then
 			t1[key] = value
 		end
@@ -1216,6 +1340,17 @@ end
 local dummyFontString = UIParent:CreateFontString(nil, "background", "GameFontNormal")
 local defaultFontFile = dummyFontString:GetFont()
 
+function DF:GetTextWidth(text, size)
+	if (size) then
+		DF:SetFontSize(dummyFontString, size)
+	else
+		DF:SetFontSize(dummyFontString, 12)
+	end
+
+	dummyFontString:SetText(text)
+	return dummyFontString:GetStringWidth()
+end
+
 ---get the UIObject of type 'FontString' and set the default game font into it
 ---@param self table
 ---@param fontString fontstring
@@ -1292,12 +1427,29 @@ function DF:AddColorToText(text, color) --wrap text with a color
 	return text
 end
 
+function DF:GetClassColorByClassId(classId)
+	local classInfo = C_CreatureInfo.GetClassInfo(classId)
+	if (classInfo) then
+		local color = RAID_CLASS_COLORS[classInfo.classFile]
+		if (color) then
+			return color.r, color.g, color.b
+		else
+			return 1, 1, 1
+		end
+	end
+	return 1, 1, 1
+end
+
 ---receives a string 'text' and a class name and return the string wrapped with the class color using |c and |r scape codes
 ---@param self table
 ---@param text string
----@param className string
+---@param className class
 ---@return string
 function DF:AddClassColorToText(text, className)
+	if (type(className) == "number") then
+		className = DF.ClassIndexToFileName[className]
+	end
+
 	if (type(className) ~= "string") then
 		return DF:RemoveRealName(text)
 
@@ -1316,9 +1468,12 @@ function DF:AddClassColorToText(text, className)
 end
 
 ---returns the class icon texture coordinates and texture file path
----@param class string
+---@param class string|number
 ---@return number, number, number, number, string
 function DF:GetClassTCoordsAndTexture(class)
+	if (type(class) == "number") then
+		class = DF.ClassIndexToFileName[class]
+	end
 	local l, r, t, b = unpack(CLASS_ICON_TCOORDS[class])
 	return l, r, t, b, [[Interface\WORLDSTATEFRAME\Icons-Classes]]
 end
@@ -1541,7 +1696,6 @@ function DF:trim(string)
 	return from > #string and "" or string:match(".*%S", from)
 end
 
-
 ---truncate removing at a maximum of 10 character from the string
 ---@param fontString table
 ---@param maxWidth number
@@ -1687,6 +1841,12 @@ function DF:TruncateNumber(number, fractionDigits)
 	return truncatedNumber
 end
 
+function DF:GetCursorPosition()
+	local x, y = GetCursorPosition()
+	local scale = UIParent:GetEffectiveScale()
+	return x / scale, y / scale
+end
+
 ---attempt to get the ID of an npc from a GUID
 ---@param GUID string
 ---@return number
@@ -1763,6 +1923,34 @@ function DF:GetSpellBookSpells()
     return spellNamesInSpellBook, spellIdsInSpellBook
 end
 
+function DF:GetHeroTalentId()
+    local configId = C_ClassTalents.GetActiveConfigID()
+    if (not configId) then
+        return 0
+    end
+    local configInfo = C_Traits.GetConfigInfo(configId)
+    for treeIndex, treeId in ipairs(configInfo.treeIDs) do
+        local treeNodes = C_Traits.GetTreeNodes(treeId)
+        for nodeIdIndex, treeNodeID in ipairs(treeNodes) do
+            local traitNodeInfo = C_Traits.GetNodeInfo(configId, treeNodeID)
+            if (traitNodeInfo) then
+                local activeEntry = traitNodeInfo.activeEntry
+                if (activeEntry) then
+                    local entryId = activeEntry.entryID
+                    local rank = activeEntry.rank
+                    if (rank > 0) then
+                        local entryInfo = C_Traits.GetEntryInfo(configId, entryId)
+						if (not entryInfo.definitionID and entryInfo.subTreeID) then
+							return entryInfo.subTreeID
+						end
+                    end
+                end
+            end
+        end
+    end
+	return 0
+end
+
 ---return a table of passive talents, format: [spellId] = true
 ---@return {Name: string, ID: number, Texture: any, IsSelected: boolean}[]
 function DF:GetAllTalents()
@@ -1785,12 +1973,14 @@ function DF:GetAllTalents()
 						local borderTypes = Enum.TraitNodeEntryType
 						if (traitEntryInfo.type) then -- == borderTypes.SpendCircle
 							local definitionId = traitEntryInfo.definitionID
-							local traitDefinitionInfo = C_Traits.GetDefinitionInfo(definitionId)
-							local spellId = traitDefinitionInfo.overriddenSpellID or traitDefinitionInfo.spellID
-							local spellName, _, spellTexture = GetSpellInfo(spellId)
-							if (spellName) then
-								local talentInfo = {Name = spellName, ID = spellId, Texture = spellTexture, IsSelected = (activeEntry and activeEntry.rank and activeEntry.rank > 0) or false}
-								allTalents[#allTalents+1] = talentInfo
+							if definitionId then
+								local traitDefinitionInfo = C_Traits.GetDefinitionInfo(definitionId)
+								local spellId = traitDefinitionInfo.overriddenSpellID or traitDefinitionInfo.spellID
+								local spellName, _, spellTexture = GetSpellInfo(spellId)
+								if (spellName) then
+									local talentInfo = {Name = spellName, ID = spellId, Texture = spellTexture, IsSelected = (activeEntry and activeEntry.rank and activeEntry.rank > 0) or false}
+									allTalents[#allTalents+1] = talentInfo
+								end
 							end
 						end
 					end
@@ -1808,7 +1998,7 @@ function DF:GetAvailableSpells()
     local completeListOfSpells = {}
 
     --this line might not be compatible with classic
-    --local specId, specName, _, specIconTexture = GetSpecializationInfo(GetSpecialization())
+    local specId, specName, _, specIconTexture = GetSpecializationInfo(GetSpecialization())
     --local classNameLoc, className, classId = UnitClass("player") --not in use
     local locPlayerRace, playerRace, playerRaceId = UnitRace("player")
 
@@ -1825,7 +2015,7 @@ function DF:GetAvailableSpells()
             if (raceId) then
                 if (type(raceId) == "table") then
                     if (raceId[playerRaceId]) then
-                        spellId = C_SpellBook.GetOverrideSpell(spellId)
+                        spellId = GetOverrideSpell(spellId)
                         local spellName = GetSpellInfo(spellId)
                         local bIsPassive = IsPassiveSpell(spellId, SPELLBOOK_BANK_PLAYER)
                         if (spellName and not bIsPassive) then
@@ -1835,7 +2025,7 @@ function DF:GetAvailableSpells()
 
                 elseif (type(raceId) == "number") then
                     if (raceId == playerRaceId) then
-                        spellId = C_SpellBook.GetOverrideSpell(spellId)
+                        spellId = GetOverrideSpell(spellId)
                         local spellName = GetSpellInfo(spellId)
                         local bIsPassive = IsPassiveSpell(spellId, SPELLBOOK_BANK_PLAYER)
                         if (spellName and not bIsPassive) then
@@ -1847,44 +2037,50 @@ function DF:GetAvailableSpells()
         end
     end
 
+	local spellBookPlayerEnum = Enum.SpellBookSpellBank and Enum.SpellBookSpellBank.Player or "player"
+
 	--get spells from the Spec spellbook
-	local amountOfTabs = GetNumSpellTabs()
-    for i = 2, amountOfTabs-1 do --starting at index 2 to ignore the general tab
+	for i = 1, GetNumSpellTabs() do --called "lines" in new v11 api
         local tabName, tabTexture, offset, numSpells, isGuild, offSpecId, shouldHide, specID = GetSpellTabInfo(i)
-		local bIsOffSpec = offSpecId ~= 0
-		offset = offset + 1
-		local tabEnd = offset + numSpells
-		for entryOffset = offset, tabEnd - 1 do
-			local spellType, spellId = GetSpellBookItemInfo(entryOffset, SPELLBOOK_BANK_PLAYER)
-			if (spellId) then
-				if (spellType == "SPELL") then
-					spellId = C_SpellBook.GetOverrideSpell(spellId)
-					local spellName = GetSpellInfo(spellId)
-					local bIsPassive = IsPassiveSpell(spellId, SPELLBOOK_BANK_PLAYER)
-					if (spellName and not bIsPassive) then
-						completeListOfSpells[spellId] = bIsOffSpec == false
+		if (tabTexture == specIconTexture) then
+			offset = offset + 1
+			local tabEnd = offset + numSpells
+			--local bIsOffSpec = offSpecId ~= 0
+			for entryOffset = offset, tabEnd - 1 do
+				local spellType, spellId = GetSpellBookItemInfo(entryOffset, spellBookPlayerEnum)
+				if (spellId) then
+					if (spellType == "SPELL" or spellType == 1) then
+						spellId = GetOverrideSpell(spellId)
+						local spellName = GetSpellInfo(spellId)
+						local bIsPassive = IsPassiveSpell(entryOffset, spellBookPlayerEnum)
+						if (spellName and not bIsPassive) then
+							completeListOfSpells[spellId] = true --bIsOffSpec == false
+						end
 					end
 				end
 			end
 		end
     end
 
+	local CONST_SPELLBOOK_CLASSSPELLS_TABID = 2
+	local CONST_SPELLBOOK_GENERAL_TABID = 1
+
     --get class shared spells from the spell book
-	--[=[
-    local tabName, tabTexture, offset, numSpells, isGuild, offSpecId = GetSpellTabInfo(2)
-	local bIsOffSpec = offSpecId ~= 0
+	--[=
+    local tabName, tabTexture, offset, numSpells, isGuild, offSpecId = GetSpellTabInfo(CONST_SPELLBOOK_CLASSSPELLS_TABID)
     offset = offset + 1
     local tabEnd = offset + numSpells
+	--local bIsOffSpec = offSpecId ~= 0
     for entryOffset = offset, tabEnd - 1 do
-        local spellType, spellId = GetSpellBookItemInfo(entryOffset, "player")
+        local spellType, spellId = GetSpellBookItemInfo(entryOffset, spellBookPlayerEnum)
         if (spellId) then
-            if (spellType == "SPELL") then
-                spellId = C_SpellBook.GetOverrideSpell(spellId)
+            if (spellType == "SPELL" or spellType == 1) then
+                spellId = GetOverrideSpell(spellId)
                 local spellName = GetSpellInfo(spellId)
-                local bIsPassive = IsPassiveSpell(spellId, "player")
+                local bIsPassive = IsPassiveSpell(spellId, spellBookPlayerEnum)
 
 				if (spellName and not bIsPassive) then
-                    completeListOfSpells[spellId] = bIsOffSpec == false
+                    completeListOfSpells[spellId] = true --bIsOffSpec == false
                 end
             end
         end
@@ -1900,10 +2096,10 @@ function DF:GetAvailableSpells()
     local numPetSpells = getNumPetSpells()
     if (numPetSpells) then
         for i = 1, numPetSpells do
-            local spellName, _, unmaskedSpellId = GetSpellBookItemName(i, SPELLBOOK_BANK_PET)
+            local spellName, _, unmaskedSpellId = GetSpellBookItemName(i, spellBookPetEnum)
             if (unmaskedSpellId) then
-                unmaskedSpellId = C_SpellBook.GetOverrideSpell(unmaskedSpellId)
-                local bIsPassive = IsPassiveSpell(unmaskedSpellId, SPELLBOOK_BANK_PET)
+                unmaskedSpellId = GetOverrideSpell(unmaskedSpellId)
+                local bIsPassive = IsPassiveSpell(i, spellBookPetEnum)
                 if (spellName and not bIsPassive) then
                     completeListOfSpells[unmaskedSpellId] = true
                 end
@@ -1962,6 +2158,10 @@ local startFlash_Method = function(self, fadeInTime, fadeOutTime, flashDuration,
 	flashAnimation:Play()
 end
 
+---create a flash animation for a frame
+---@param frame table
+---@param onFinishFunc function?
+---@param onLoopFunc function?
 function DF:CreateFlashAnimation(frame, onFinishFunc, onLoopFunc)
 	local flashAnimation = frame:CreateAnimationGroup()
 
@@ -1986,6 +2186,27 @@ function DF:CreateFlashAnimation(frame, onFinishFunc, onLoopFunc)
 	frame.Stop = stopAnimation_Method
 
 	return flashAnimation
+end
+
+local onStartPunchAnimation = function(animationGroup)
+	local parent = animationGroup:GetParent()
+	animationGroup.parentWidth = parent:GetWidth()
+	animationGroup.parentHeight = parent:GetHeight()
+end
+
+local onStopPunchAnimation = function(animationGroup)
+	local parent = animationGroup:GetParent()
+	parent:SetWidth(animationGroup.parentWidth)
+	parent:SetHeight(animationGroup.parentHeight)
+end
+
+function DF:CreatePunchAnimation(frame, scale)
+	scale = scale or 1.1
+	scale = math.min(scale, 1.9)
+	local animationHub = DF:CreateAnimationHub(frame, onStartPunchAnimation, onStopPunchAnimation)
+	local scaleUp = DF:CreateAnimation(animationHub, "scale", 1, 0.05, 1, 1, scale, scale, "center", 0, 0)
+	local scaleDown = DF:CreateAnimation(animationHub, "scale", 2, 0.05, 1, 1, 1-(scale - 1), 1-(scale - 1), "center", 0, 0)
+	return animationHub
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2038,6 +2259,7 @@ end
 ---@field x number
 ---@field y number
 
+
 DF.AnchorPoints = {
 	"Top Left",
 	"Left",
@@ -2047,16 +2269,122 @@ DF.AnchorPoints = {
 	"Right",
 	"Top Right",
 	"Top",
-	"Center",
-	"Inside Left",
-	"Inside Right",
-	"Inside Top",
-	"Inside Bottom",
-	"Inside Top Left",
-	"Inside Bottom Left",
-	"Inside Bottom Right",
-	"Inside Top Right",
+	"Center", --9
+	"Inside Left", --10
+	"Inside Right", --11
+	"Inside Top", --12
+	"Inside Bottom", --13
+	"Inside Top Left", --14
+	"Inside Bottom Left", --15
+	"Inside Bottom Right", --16
+	"Inside Top Right", --17
 }
+
+DF.AnchorPointsByIndex = {
+	"topleft", --1
+	"left", --2
+	"bottomleft", --3
+	"bottom", --4
+	"bottomright", --5
+	"right", --6
+	"topright", --7
+	"top", --8
+	"center", --9
+}
+
+DF.AnchorPointsToInside = {
+	[9] = 9,
+	[8] = 12,
+	[7] = 17,
+	[6] = 11,
+	[5] = 16,
+	[4] = 13,
+	[3] = 15,
+	[2] = 10,
+	[1] = 14,
+}
+
+DF.InsidePointsToAnchor = {
+	[9] = 9,
+	[12] = 8,
+	[17] = 7,
+	[11] = 6,
+	[16] = 5,
+	[13] = 4,
+	[15] = 3,
+	[10] = 2,
+	[14] = 1,
+}
+
+function DF:ConvertAnchorPointToInside(anchorPoint)
+	return DF.AnchorPointsToInside[anchorPoint] or anchorPoint
+end
+
+local calcPointCoords = function(ninePointsWidget, ninePointsRef, anchorTable, coordIndex, newAnchorSide)
+	--get the location of the topleft corner relative to the bottomleft corner of the screen
+	---@type df_coordinate
+	local widgetPointCoords = ninePointsWidget[coordIndex]
+	--get the topleft coords of the reference widget
+	---@type df_coordinate
+	local refPointCoords = ninePointsRef[coordIndex]
+
+	--calculate the offset of the x and y axis
+	local x = refPointCoords.x - widgetPointCoords.x
+	local y = refPointCoords.y - widgetPointCoords.y
+	anchorTable.x = x
+	anchorTable.y = y
+	anchorTable.side = newAnchorSide
+
+	print("new anchor side", newAnchorSide, "x", x, "y", y)
+end
+
+function DF:ConvertAnchorOffsets(widget, referenceWidget, anchorTable, newAnchorSide)
+	if (anchorTable.side == newAnchorSide) then
+		return anchorTable
+	end
+
+	local ninePoints = DF.Math.GetNinePoints(widget)
+	local refNinePoints = DF.Math.GetNinePoints(referenceWidget)
+
+	--the numeration from 1 to 9 is the index within a ninePoints table
+
+	anchorTable.side = newAnchorSide
+
+	if (newAnchorSide == 14) then --inside topleft
+		anchorTable.x = ninePoints[1].x - refNinePoints[1].x
+		anchorTable.y = ninePoints[1].y - refNinePoints[1].y
+		--print("inside topleft", anchorTable.x, anchorTable.y)
+
+	elseif (newAnchorSide == 15) then --inside bottomleft
+		anchorTable.x = ninePoints[3].x - refNinePoints[3].x
+		anchorTable.y = ninePoints[3].y - refNinePoints[3].y
+
+	elseif (newAnchorSide == 16) then --inside bottomright
+		anchorTable.x = refNinePoints[5].x - ninePoints[5].x
+		anchorTable.y = refNinePoints[5].y - ninePoints[5].y
+
+	elseif (newAnchorSide == 17) then --inside topright
+		anchorTable.x = refNinePoints[7].x - ninePoints[7].x
+		anchorTable.y = refNinePoints[7].y - ninePoints[7].y
+
+	elseif (newAnchorSide == 10) then --inside left
+		calcPointCoords(ninePoints, refNinePoints, anchorTable, 2, newAnchorSide)
+
+	elseif (newAnchorSide == 11) then --inside right
+		calcPointCoords(ninePoints, refNinePoints, anchorTable, 6, newAnchorSide)
+
+	elseif (newAnchorSide == 12) then --inside top
+		calcPointCoords(ninePoints, refNinePoints, anchorTable, 8, newAnchorSide)
+
+	elseif (newAnchorSide == 13) then --inside bottom
+		calcPointCoords(ninePoints, refNinePoints, anchorTable, 4, newAnchorSide)
+
+	elseif (newAnchorSide == 9) then --center
+		calcPointCoords(ninePoints, refNinePoints, anchorTable, 9, newAnchorSide)
+	else
+		--print("not implemented")
+	end
+end
 
 local anchoringFunctions = {
 	function(frame, anchorTo, offSetX, offSetY) --1 TOP LEFT
@@ -2639,6 +2967,9 @@ local templateOnLeave = function(frame)
 	end
 end
 
+DF.TemplateOnEnter = templateOnEnter
+DF.TemplateOnLeave = templateOnLeave
+
 ---set a details framework template into a regular frame
 ---@param self table
 ---@param frame uiobject
@@ -2749,9 +3080,12 @@ end
 
 --DF.font_templates ["ORANGE_FONT_TEMPLATE"] = {color = "orange", size = 11, font = "Accidental Presidency"}
 --DF.font_templates ["OPTIONS_FONT_TEMPLATE"] = {color = "yellow", size = 12, font = "Accidental Presidency"}
-DF.font_templates["ORANGE_FONT_TEMPLATE"] = {color = "orange", size = 10, font = DF:GetBestFontForLanguage()}
-DF.font_templates["OPTIONS_FONT_TEMPLATE"] = {color = "yellow", size = 9.6, font = DF:GetBestFontForLanguage()}
-
+--DF.font_templates["ORANGE_FONT_TEMPLATE"] = {color = "orange", size = 10, font = DF:GetBestFontForLanguage()}
+DF.font_templates["ORANGE_FONT_TEMPLATE"] = {color = {1, 0.8235, 0, 1}, size = 11, font = DF:GetBestFontForLanguage()}
+--DF.font_templates["OPTIONS_FONT_TEMPLATE"] = {color = "yellow", size = 9.6, font = DF:GetBestFontForLanguage()}
+DF.font_templates["OPTIONS_FONT_TEMPLATE"] = {color = {1, 1, 1, 0.9}, size = 9.6, font = DF:GetBestFontForLanguage()}
+DF.font_templates["SMALL_SILVER"] = {color = "silver", size = 9, font = DF:GetBestFontForLanguage()}
+--~templates
 --dropdowns
 DF.dropdown_templates = DF.dropdown_templates or {}
 DF.dropdown_templates["OPTIONS_DROPDOWN_TEMPLATE"] = {
@@ -2763,10 +3097,11 @@ DF.dropdown_templates["OPTIONS_DROPDOWN_TEMPLATE"] = {
 		tile = true
 	},
 
-	backdropcolor = {1, 1, 1, .7},
-	backdropbordercolor = {0, 0, 0, 1},
-	onentercolor = {1, 1, 1, .9},
-	onenterbordercolor = {1, 1, 1, 1},
+	--backdropcolor = {0.1, 0.1, 0.1, .7},
+	backdropcolor = {0.2, 0.2, 0.2, .7},
+	onentercolor = {0.3, 0.3, 0.3, .7},
+	backdropbordercolor = {0, 0, 0, .4},
+	onenterbordercolor = {0.3, 0.3, 0.3, 0.8},
 
 	dropicon = "Interface\\BUTTONS\\arrow-Down-Down",
 	dropiconsize = {16, 16},
@@ -2881,21 +3216,50 @@ DF.button_templates["STANDARD_GRAY"] = {
 	backdropcolor = {0.2, 0.2, 0.2, 0.502},
 	backdropbordercolor = {0, 0, 0, 0.5},
 	onentercolor = {0.4, 0.4, 0.4, 0.502},
+}
 
+DF.button_templates["OPAQUE_DARK"] = {
+	backdrop = {edgeFile = [[Interface\Buttons\WHITE8X8]], edgeSize = 1, bgFile = [[Interface\Buttons\WHITE8X8]], tileSize = 8, tile = true},
+	backdropcolor = {0.2, 0.2, 0.2, 1},
+	backdropbordercolor = {0, 0, 0, 1},
+	onentercolor = {0.4, 0.4, 0.4, 1},
 }
 
 --sliders
 DF.slider_templates = DF.slider_templates or {}
 DF.slider_templates["OPTIONS_SLIDER_TEMPLATE"] = {
 	backdrop = {edgeFile = [[Interface\Buttons\WHITE8X8]], edgeSize = 1, bgFile = [[Interface\Tooltips\UI-Tooltip-Background]], tileSize = 64, tile = true},
-	backdropcolor = {1, 1, 1, .5},
-	backdropbordercolor = {0, 0, 0, 1},
-	onentercolor = {1, 1, 1, .5},
-	onenterbordercolor = {1, 1, 1, 1},
+
+	--original color wow10:
+	--backdropcolor = {1, 1, 1, .5},
+	--backdropbordercolor = {0, 0, 0, 1},
+	--onentercolor = {1, 1, 1, .5},
+	--onenterbordercolor = {1, 1, 1, 1},
+
+	backdropcolor = {0.2, 0.2, 0.2, .7},
+	onentercolor = {0.3, 0.3, 0.3, .7},
+	backdropbordercolor = {0, 0, 0, .4}, --0.7 original alpha wow10
+	onenterbordercolor = {0.3, 0.3, 0.3, 0.8},
+
 	thumbtexture = [[Interface\Tooltips\UI-Tooltip-Background]],
 	thumbwidth = 16,
 	thumbheight = 14,
-	thumbcolor = {0, 0, 0, 0.5},
+	--thumbcolor = {0, 0, 0, 0.5},
+	thumbcolor = {.8, .8, .8, 0.5},
+}
+
+DF.slider_templates["OPTIONS_SLIDERDARK_TEMPLATE"] = {
+	backdrop = {edgeFile = [[Interface\Buttons\WHITE8X8]], edgeSize = 1, bgFile = [[Interface\Tooltips\UI-Tooltip-Background]], tileSize = 64, tile = true},
+
+	backdropcolor = {0.05, 0.05, 0.05, .7},
+	onentercolor = {0.3, 0.3, 0.3, .7},
+	backdropbordercolor = {0, 0, 0, 1},
+	onenterbordercolor = {0, 0, 0, 1},
+
+	thumbtexture = [[Interface\Tooltips\UI-Tooltip-Background]],
+	thumbwidth = 24,
+	thumbheight = 14,
+	thumbcolor = {.8, .8, .8, 0.5},
 }
 
 DF.slider_templates["MODERN_SLIDER_TEMPLATE"] = {
@@ -2927,7 +3291,7 @@ function DF:ParseTemplate(templateCategory, template)
 		if (objectType == "label") then
 			templateCategory = "font"
 
-		elseif (objectType == "dropdown") then
+		elseif (objectType == "dropdown" or objectType == "textentry") then
 			templateCategory = "dropdown"
 
 		elseif (objectType == "button") then
@@ -3174,6 +3538,8 @@ end
 --animations
 
 ---create an animation 'hub' which is an animationGroup but with some extra functions
+--tags: create, animation, hub, group, animationgroup, createanimationhub
+--prompt example: create an animation group for the object 'variable name' with the start animation function doing 'what to do' and the finish animation function doing 'what to do'
 ---@param parent uiobject
 ---@param onPlay function?
 ---@param onFinished function?
@@ -3187,30 +3553,35 @@ function DF:CreateAnimationHub(parent, onPlay, onFinished)
 	return newAnimation
 end
 
----* Create a new animation for an animation hub or group.
+---animation descriptions:
+--tags: animation, create, alpha, scale, translation, rotation, path, vertexcolor, color, animation type, animation duration, animation order, animation object, return variable
+--prompt example: create a new animation of type 'alpha' for the animation group 'variable name', with an order of 'number', a duration of 'number', from alpha 'number' to alpha 'number'
+---* Create a new animation for an animation hub created with CreateAnimationHub().
 ---* Alpha: CreateAnimation(animGroup, "Alpha", order, duration, fromAlpha, toAlpha).
 ---* Scale: CreateAnimation(animGroup, "Scale", order, duration, fromScaleX, fromScaleY, toScaleX, toScaleY, originPoint, x, y).
 ---* Translation: CreateAnimation(animGroup, "Translation", order, duration, xOffset, yOffset).
 ---* Rotation: CreateAnimation(animGroup, "Rotation", order, duration, degrees, originPoint, x, y).
 ---* Path: CreateAnimation(animGroup, "Path", order, duration, xOffset, yOffset, curveType).
 ---* VertexColor: CreateAnimation(animGroup, "VertexColor", order, duration, r1, g1, b1, a1, r2, g2, b2, a2).
----@param animationGroup animationgroup
----@param animationType animationtype
----@param order number
----@param duration number
----@param arg1 any
----@param arg2 any
----@param arg3 any
----@param arg4 any
----@param arg5 any
----@param arg6 any
----@param arg7 any
----@param arg8 any
+---@param animationGroup animationgroup the animation group created with CreateAnimationHub()
+---@param animationType animationtype "Alpha", "Scale", "Translation", "Rotation", "Path", "VertexColor"
+---@param order number the order of the animation, the lower the number, the earlier the animation will play
+---@param duration number the duration of the animation in seconds
+---@param arg1 any for Alpha: fromAlpha, for Scale: fromScaleX, for Translation: xOffset, for Rotation: degrees, for Path: xOffset, for VertexColor: r1
+---@param arg2 any for Alpha: toAlpha, for Scale: fromScaleY, for Translation: yOffset, for Rotation: originPoint, for Path: yOffset, for VertexColor: g1
+---@param arg3 any for Scale: toScaleX, for VertexColor: blue1, for Rotation: originXOffset, for Path: curveType, for VertexColor: b1
+---@param arg4 any for Scale: toScaleY, for VertexColor: a1, for Rotation: originYOffset, for VertexColor: a1
+---@param arg5 any for Scale: originPoint, for VertexColor: r2
+---@param arg6 any for Scale: originXOffset, for VertexColor: g2
+---@param arg7 any for Scale: originYOffset, for VertexColor: b2
+---@param arg8 any for VertexColor: a2
 ---@return animation
 function DF:CreateAnimation(animationGroup, animationType, order, duration, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 	---@type animation
 	local anim = animationGroup:CreateAnimation(animationType)
+	--set the order of the animation, the 'order' parameter isn't passed, it will use the NextAnimation property of the animationGroup
 	anim:SetOrder(order or animationGroup.NextAnimation)
+	--set the duration of the animation
 	anim:SetDuration(duration)
 
 	animationType = string.upper(animationType)
@@ -3227,11 +3598,11 @@ function DF:CreateAnimation(animationGroup, animationType, order, duration, arg1
 			anim:SetFromScale(arg1, arg2)
 			anim:SetToScale(arg3, arg4)
 		end
-		anim:SetOrigin(arg5 or "center", arg6 or 0, arg7 or 0) --point, x, y
+		anim:SetOrigin(arg5 or "center", arg6 or 0, arg7 or 0) --point, originXOffset, originYOffset
 
 	elseif (animationType == "ROTATION") then
 		anim:SetDegrees(arg1) --degree
-		anim:SetOrigin(arg2 or "center", arg3 or 0, arg4 or 0) --point, x, y
+		anim:SetOrigin(arg2 or "center", arg3 or 0, arg4 or 0) --originPoint, originXOffset, originYOffset
 
 	elseif (animationType == "TRANSLATION") then
 		anim:SetOffset(arg1, arg2)
@@ -3257,6 +3628,7 @@ function DF:CreateAnimation(animationGroup, animationType, order, duration, arg1
 			r2, g2, b2, a2 = DF:ParseColors(r2)
 		end
 
+		--CreateColor is a function declared in the game api that return a table with the color values in keys r, g, b, a
 		anim:SetStartColor(CreateColor(r1, g1, b1, a1))
 		anim:SetEndColor(CreateColor(r2, g2, b2, a2))
 	end
@@ -3963,7 +4335,24 @@ function DF:CreateBorder(parent, alpha1, alpha2, alpha3)
 end
 
 --DFNamePlateBorder as copy from "NameplateFullBorderTemplate" -> DF:CreateFullBorder (name, parent)
-local DFNamePlateBorderTemplateMixin = {};
+---@class df_nameplate_border_mixin : table
+---@field SetVertexColor fun(self:border_frame, r:number, g:number, b:number, a:number)
+---@field GetVertexColor fun(self:border_frame):number, number, number r, g, b
+---@field SetBorderSizes fun(self:border_frame, borderSize:number, borderSizeMinPixels:number, upwardExtendHeightPixels:number, upwardExtendHeightMinPixels:number)
+---@field UpdateSizes fun(self:border_frame)
+---@field Left texture
+---@field Right texture
+---@field Bottom texture
+---@field Top texture
+---@field Textures texture[]
+---@field borderSize number
+---@field borderSizeMinPixels number
+---@field upwardExtendHeightPixels number
+---@field upwardExtendHeightMinPixels number
+
+local DFNamePlateBorderTemplateMixin = {}
+
+DF.NameplateBorderMixin = DFNamePlateBorderTemplateMixin
 
 function DFNamePlateBorderTemplateMixin:SetVertexColor(r, g, b, a)
 	for i, texture in ipairs(self.Textures) do
@@ -4010,7 +4399,9 @@ function DFNamePlateBorderTemplateMixin:UpdateSizes()
 	end
 end
 
-function DF:CreateFullBorder (name, parent)
+---@class border_frame : frame, df_nameplate_border_mixin
+
+function DF:CreateFullBorder(name, parent)
 	local border = CreateFrame("Frame", name, parent)
 	border:SetAllPoints()
 	border:SetIgnoreParentScale(true)
@@ -4381,6 +4772,7 @@ function DF:GetClassSpecIds(engClass) --naming conventions
 	return DF:GetClassSpecIDs(engClass)
 end
 
+--kinda deprecated
 local getDragonflightTalents = function()
 	if (not ClassTalentFrame) then
 		ClassTalentFrame_LoadUI()
@@ -4415,9 +4807,17 @@ local getDragonflightTalents = function()
 	return exportStream:GetExportString()
 end
 
+local getDragonflightTalentsEasy = function()
+	local activeConfigID = C_ClassTalents.GetActiveConfigID()
+	if (activeConfigID and activeConfigID > 0) then
+		return C_Traits.GenerateImportString(activeConfigID)
+	end
+	return ""
+end
+
 --/dump DetailsFramework:GetDragonlightTalentString()
 function DF:GetDragonlightTalentString()
-	local runOkay, errorText = pcall(getDragonflightTalents)
+	local runOkay, errorText = pcall(getDragonflightTalentsEasy)
 	if (not runOkay) then
 		DF:Msg("error 0x4517", errorText)
 		return ""
@@ -4437,13 +4837,7 @@ function DF:QuickDispatch(func, ...)
 		return
 	end
 
-	local okay, errortext = xpcall(func, geterrorhandler(), ...)
-
-	if (not okay) then
-		--trigger an error msg
-		dispatch_error(_, errortext)
-		return
-	end
+	xpcall(func, geterrorhandler(), ...)
 
 	return true
 end
@@ -4500,6 +4894,7 @@ DF.ClassIndexToFileName = {
 	[13] = "EVOKER",
 }
 
+--GetNumClasses()
 
 DF.ClassFileNameToIndex = {
 	["WARRIOR"] = 1,
@@ -4517,6 +4912,10 @@ DF.ClassFileNameToIndex = {
 	["EVOKER"] = 13,
 }
 DF.ClassCache = {}
+
+function DF:GetClassIdByFileName(fileName)
+	return DF.ClassFileNameToIndex[fileName]
+end
 
 function DF:GetClassList()
 	if (next (DF.ClassCache)) then
@@ -4670,16 +5069,18 @@ function DF:GetCharacterTalents(bOnlySelected, bOnlySelectedHash)
 
 							if (traitEntryInfo.type) then -- == borderTypes.SpendCircle
 								local definitionId = traitEntryInfo.definitionID
-								local traitDefinitionInfo = C_Traits.GetDefinitionInfo(definitionId)
-								local spellId = traitDefinitionInfo.overriddenSpellID or traitDefinitionInfo.spellID
-								local spellName, _, spellTexture = GetSpellInfo(spellId)
-								local bIsSelected = (activeEntry and activeEntry.rank and activeEntry.rank > 0) or false
-								if (spellName and bIsSelected) then
-									local talentInfo = {Name = spellName, ID = spellId, Texture = spellTexture, IsSelected = true}
-									if (bOnlySelectedHash) then
-										talentList[spellId] = talentInfo
-									else
-										table.insert(talentList, talentInfo)
+								if definitionId then
+									local traitDefinitionInfo = C_Traits.GetDefinitionInfo(definitionId)
+									local spellId = traitDefinitionInfo.overriddenSpellID or traitDefinitionInfo.spellID
+									local spellName, _, spellTexture = GetSpellInfo(spellId)
+									local bIsSelected = (activeEntry and activeEntry.rank and activeEntry.rank > 0) or false
+									if (spellName and bIsSelected) then
+										local talentInfo = {Name = spellName, ID = spellId, Texture = spellTexture, IsSelected = true}
+										if (bOnlySelectedHash) then
+											talentList[spellId] = talentInfo
+										else
+											table.insert(talentList, talentInfo)
+										end
 									end
 								end
 							end
@@ -4738,20 +5139,30 @@ function DF:GetGroupTypes()
 	return DF.GroupTypes
 end
 
-DF.RoleTypes = {
+---@class roleinfo : table
+---@field Name string
+---@field ID string
+---@field Texture string
+
+---@type roleinfo[]
+local roles = {
 	{Name = _G.DAMAGER, ID = "DAMAGER", Texture = _G.INLINE_DAMAGER_ICON},
 	{Name = _G.HEALER, ID = "HEALER", Texture = _G.INLINE_HEALER_ICON},
 	{Name = _G.TANK, ID = "TANK", Texture = _G.INLINE_TANK_ICON},
+	{Name = _G.NONE, ID = "NONE", Texture = _G.INLINE_DAMAGER_ICON},
 }
+
+DF.RoleTypes = roles
+
 function DF:GetRoleTypes()
 	return DF.RoleTypes
 end
 
 local roleTexcoord = {
-	DAMAGER = "72:130:69:127",
-	HEALER = "72:130:2:60",
-	TANK = "5:63:69:127",
-	NONE = "139:196:69:127",
+	DAMAGER = "67:132:67:132",
+	HEALER = "67:132:0:66",
+	TANK = "0:66:67:132",
+	NONE = "134:199:67:132",
 }
 
 local roleTextures = {
@@ -4762,10 +5173,10 @@ local roleTextures = {
 }
 
 local roleTexcoord2 = {
-	DAMAGER = {72/256, 130/256, 69/256, 127/256},
-	HEALER = {72/256, 130/256, 2/256, 60/256},
-	TANK = {5/256, 63/256, 69/256, 127/256},
-	NONE = {139/256, 196/256, 69/256, 127/256},
+	DAMAGER = {67/256, 132/256, 67/256, 132/256},
+	HEALER = {67/256, 132/256, 0/256, 66/256},
+	TANK = {0/256, 66/256, 67/256, 132/256},
+	NONE = {134/256, 199/256, 67/256, 132/256},
 }
 
 function DF:GetRoleIconAndCoords(role)
@@ -4776,11 +5187,12 @@ end
 
 function DF:AddRoleIconToText(text, role, size)
 	if (role and type(role) == "string") then
-		local coords = GetTexCoordsForRole(role)
+		local coords = roleTexcoord2[role]
 		if (coords) then
 			if (type(text) == "string" and role ~= "NONE") then
 				size = size or 14
-				text = "|TInterface\\LFGFRAME\\UI-LFG-ICON-ROLES:" .. size .. ":" .. size .. ":0:0:256:256:" .. roleTexcoord[role] .. "|t " .. text
+				local coordsToString = floor(coords[1]*256) .. ":" .. floor(coords[2]*256) .. ":" .. floor(coords[3]*256) .. ":" .. floor(coords[4]*256)
+				text = "|TInterface\\LFGFRAME\\UI-LFG-ICON-ROLES:" .. size .. ":" .. size .. ":0:0:256:256:" .. coordsToString .. "|t " .. text
 				return text
 			end
 		end
@@ -4991,6 +5403,20 @@ function DF:GetRangeCheckSpellForSpec(specId)
 	return SpellRangeCheckListBySpec[specId]
 end
 
+function DF.CatchString(...)
+	if (not DF.IsDragonflightAndBeyond()) then
+		if (type(select(1, ...)) == "table") then
+			for i = 1, select("#", ...) do
+				local value = select(i, ...)
+				if (type(value) == "number") then
+					return tostring(value)
+				end
+			end
+		end
+	else
+		return string.char(...)
+	end
+end
 
 --key is instanceId from GetInstanceInfo()
 -- /dump GetInstanceInfo()
@@ -5202,8 +5628,10 @@ DF.DebugMixin = {
 	end,
 
 	CheckStack = function(self)
-		local stack = debugstack()
-		Details:Dump (stack)
+		if (Details) then
+			local stack = debugstack()
+			Details:Dump (stack)
+		end
 	end,
 
 }
@@ -5232,6 +5660,7 @@ do
             --need to create the new object
             local newObject = self.newObjectFunc(self, unpack(self.payload))
             if (newObject) then
+				self.objectsCreated = self.objectsCreated + 0
 				table.insert(self.inUse, newObject)
 				if (self.onAcquire) then
 					DF:QuickDispatch(self.onAcquire, newObject)
@@ -5242,7 +5671,15 @@ do
 	end
 
 	local get_all_inuse = function(self)
-		return self.inUse;
+		return self.inUse
+	end
+
+	local sort = function(self, func)
+		if (not func) then
+			table.sort(self.inUse, self.sortFunc)
+		elseif (func) then
+			table.sort(self.inUse, func)
+		end
 	end
 
     local release = function(self, object)
@@ -5289,6 +5726,34 @@ do
 			return #self.notUse + #self.inUse, #self.notUse, #self.inUse
 		end
 
+	---@class df_pool : table
+	---@field objectsCreated number --amount of objects created
+	---@field inUse table[] --objects in use
+	---@field notUse table[] --objects not in use
+	---@field payload table --payload to be sent to the newObjectFunc
+	---@field sortFunc fun(a:table, b:table):boolean --sort function
+	---@field onRelease fun(object:table) --function to be called when an object is released
+	---@field onReset fun(object:table) --function to be called when the pool is reset
+	---@field onAcquire fun(object:table) --function to be called when an object is acquired
+	---@field newObjectFunc fun(self:df_pool, ...):table --function to create a new object, it passes the pool and the payload
+	---@field PoolConstructor fun(self:df_pool, func:fun(object:table), ...:any) --constructor, in case to use an existing object to behave like a pool
+	---@field Get fun(self:df_pool):table --return an object from the pool
+	---@field Acquire fun(self:df_pool):table --alias for :Get()
+	---@field GetAllInUse fun(self:df_pool):table[] --return all objects in use
+	---@field Release fun(self:df_pool, object:table) --release a single object
+	---@field Reset fun(self:df_pool) --release all objects and calls OnReset function if any
+	---@field ReleaseAll fun(self:df_pool) --alias for :Reset()
+	---@field Hide fun(self:df_pool) --hide all objects in use by calling object:Hide()
+	---@field Show fun(self:df_pool) --show all objects in use by calling object:Show()
+	---@field GetAmount fun(self:df_pool):number, number, number --return the amount of objects in the pool in use + not in use, not in use, in use
+	---@field SetOnRelease fun(self:df_pool, func:fun(object:table)) --set a function to be called when an object is released
+	---@field SetCallbackOnRelease fun(self:df_pool, func:fun(object:table)) --set a function to be called when an object is released
+	---@field SetOnReset fun(self:df_pool, func:fun(object:table)) --set a function to be called when the pool is reset
+	---@field SetCallbackOnReleaseAll fun(self:df_pool, func:fun(object:table)) --alias for :SetOnReset()
+	---@field SetOnAcquire fun(self:df_pool, func:fun(object:table)) --set a function to be called when an object is acquired
+	---@field SetCallbackOnGet fun(self:df_pool, func:fun(object:table)) --alias for :SetOnAcquire()
+	---@field RunForInUse fun(self:df_pool, func:fun(object:table)) --run a function for each object in use
+	---@field Sort fun(self:df_pool, func:function?) --sort the objects in use
     local poolMixin = {
 		Get = get,
 		GetAllInUse = get_all_inuse,
@@ -5299,6 +5764,15 @@ do
 		Hide = hide,
 		Show = show,
 		GetAmount = getamount,
+		Sort = sort,
+
+		SetSortFunction = function(self, func)
+			self.sortFunc = func
+		end,
+
+		SetOnRelease = function(self, func)
+			self.onRelease = func
+		end,
 
 		SetCallbackOnRelease = function(self, func)
 			self.onRelease = func
@@ -5317,18 +5791,30 @@ do
 		SetCallbackOnGet = function(self, func)
 			self.onAcquire = func
 		end,
+
+		RunForInUse = function(self, func)
+			for i = 1, #self.inUse do
+				func(self.inUse[i])
+			end
+		end,
+
+		PoolConstructor = function(self, func, ...)
+			self.objectsCreated = 0
+			self.inUse = {}
+			self.notUse = {}
+			self.payload = {...}
+			self.newObjectFunc = func
+		end,
     }
 
+	DF.PoolMixin = poolMixin
+
+	--~pool
     function DF:CreatePool(func, ...)
-        local t = {}
-        DetailsFramework:Mixin(t, poolMixin)
-
-        t.inUse = {}
-        t.notUse = {}
-        t.newObjectFunc = func
-        t.payload = {...}
-
-        return t
+        local newPool = {}
+        DetailsFramework:Mixin(newPool, poolMixin)
+		newPool:PoolConstructor(func, ...)
+        return newPool
 	end
 
 	--alias
@@ -5336,6 +5822,149 @@ do
 		return DF:CreatePool(func, ...)
 	end
 end
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+---bossmobs
+
+DETAILSFRAMEWORK_TIMEBARCACHE = {}
+
+--register phase
+function DF:RegisterEncounterPhaseChange(func, ...)
+	if (not DETAILSFRAMEWORK_PHASECALLBACKS) then
+		DETAILSFRAMEWORK_PHASECALLBACKS = {}
+	end
+	table.insert(DETAILSFRAMEWORK_PHASECALLBACKS, {callback = func, payload = {...}})
+end
+
+--DF:RegisterEncounterPhaseChange(function(...)print("PHASE CHANGED", ...)end, "my payload!")
+
+--unregister phase
+function DF:UnregisterEncounterPhaseChange(func)
+	if (DETAILSFRAMEWORK_PHASECALLBACKS) then
+		for i = #DETAILSFRAMEWORK_PHASECALLBACKS, 1, -1 do
+			if (DETAILSFRAMEWORK_PHASECALLBACKS[i].callback == func) then
+				table.remove(DETAILSFRAMEWORK_PHASECALLBACKS, i)
+			end
+		end
+	end
+end
+
+local sendPhaseNotification = function(phaseId)
+	if (DETAILSFRAMEWORK_PHASECALLBACKS) then
+		for _, data in ipairs(DETAILSFRAMEWORK_PHASECALLBACKS) do
+			DF:Dispatch(data.callback, phaseId, unpack(data.payload))
+		end
+	end
+end
+
+--register time bar
+function DF:RegisterEncounterTimeBar(func, ...)
+	if (not DETAILSFRAMEWORK_TIMEBARCALLBACKS) then
+		DETAILSFRAMEWORK_TIMEBARCALLBACKS = {}
+	end
+	table.insert(DETAILSFRAMEWORK_TIMEBARCALLBACKS, {callback = func, payload = {...}})
+end
+
+--DF:RegisterEncounterTimeBar(function(...) DETAILSFRAMEWORK_TIMEBARCACHE[#DETAILSFRAMEWORK_TIMEBARCACHE+1] = {...} end)
+
+--[=[
+bigwigs
+table: 0000019DA5382410 BigWigs_StartBar table: 0000019EF3E5B910 441362 Volatile Concoction: Jieon* 8 136227 false nil
+table: 0000019DA5382410 BigWigs_StartBar table: 0000019EF3E5B910 443274 Swirls (30) 7.5 538040 false nil
+]=]
+
+--unregister time bar
+function DF:UnregisterEncounterTimeBar(func)
+	if (DETAILSFRAMEWORK_TIMEBARCALLBACKS) then
+		for i = #DETAILSFRAMEWORK_TIMEBARCALLBACKS, 1, -1 do
+			if (DETAILSFRAMEWORK_TIMEBARCALLBACKS[i].callback == func) then
+				table.remove(DETAILSFRAMEWORK_TIMEBARCALLBACKS, i)
+			end
+		end
+	end
+end
+
+local sendTimeBarNotification = function(token, barType, id, msg, timer, icon, spellId, colorId, modid)
+	if (DETAILSFRAMEWORK_TIMEBARCALLBACKS) then
+		for _, data in ipairs(DETAILSFRAMEWORK_TIMEBARCALLBACKS) do
+			DF:Dispatch(data.callback, token, barType, id, msg, timer, icon, spellId, colorId, modid, unpack(data.payload))
+		end
+	end
+end
+
+local createBossModsCallback = function()
+    if (_G.DBM) then
+        local DBM = _G.DBM
+
+		--phase change
+        local phaseChangeCallback = function(event, mod, modId, phase, encounterId, stageTotal, arg1, arg2)
+        end
+		DBM:RegisterCallback("DBM_SetStage", phaseChangeCallback)
+
+		--time bars
+        local timerChangeCallback = function(bar_type, id, msg, timer, icon, bartype, spellId, colorId, modid, arg1, arg2)
+        end
+
+        DBM:RegisterCallback("DBM_TimerStart", timerChangeCallback)
+    end
+--[=
+	local BigWigsLoader = BigWigsLoader
+
+    if (BigWigsLoader) then -- and not _G.DBM
+        --Bigwigs change the phase of an encounter
+        if (BigWigsLoader.RegisterMessage) then
+			local t = {}
+			t.BigWigs_SetStage = function(self, event, module, phase)
+				phase = tonumber(phase)
+				sendPhaseNotification(phase)
+			end
+            BigWigsLoader.RegisterMessage(t, "BigWigs_SetStage")
+		end
+
+		if (BigWigsLoader.RegisterMessage) then
+			local t = {}
+			t.BigWigs_StartBar = function(self, event, module, spellId, barText, barTime, iconTexture, ...)
+				--table: 0000019DA5382410 BigWigs_StartBar table: 0000019EF3E5B910 441362 Volatile Concoction (14) 20 136227 false nil
+				--print("START", self, event, module, spellId, ...)
+				sendTimeBarNotification("START", spellId, barText, barTime, iconTexture, ...)
+			end
+
+			t.BigWigs_StopBar = function(self, event, module, spellId, ...)
+				--print("BW STOP BAR", self, event, module, spellId, ...)
+				sendTimeBarNotification("STOP", spellId)
+			end
+
+			t.BigWigs_StopBars = function(self, event, module, ...)
+				--print("BW STOP BARS", self, event, module, ...)
+				sendTimeBarNotification("STOPALL")
+			end
+
+			t.BigWigs_PauseBar = function(self, event, module, spellId, ...)
+				--print("BW PAUSE BAR", self, event, module, spellId, ...)
+				sendTimeBarNotification("PAUSE", spellId)
+			end
+
+			t.BigWigs_ResumeBar = function(self, event, module, spellId, ...)
+				--print("BW RESUME BAR", self, event, module, spellId, ...)
+				sendTimeBarNotification("RESUME", spellId)
+			end
+
+			BigWigsLoader.RegisterMessage(t, "BigWigs_StartBar")
+			BigWigsLoader.RegisterMessage(t, "BigWigs_StopBar")
+			BigWigsLoader.RegisterMessage(t, "BigWigs_StopBars")
+			BigWigsLoader.RegisterMessage(t, "BigWigs_PauseBar")
+			BigWigsLoader.RegisterMessage(t, "BigWigs_ResumeBar")
+
+			--self:RegisterMessage("BigWigs_StopBars", "StopModuleBars")
+        end
+    end
+	--]=]
+end
+
+
+detailsFramework.OnLoginSchedules[#detailsFramework.OnLoginSchedules+1] = createBossModsCallback
+
 
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -5500,6 +6129,10 @@ function _G.__benchmark(bNotPrintResult)
 		print("Elapsed Time:", elapsed)
 		return elapsed
 	end
+end
+
+function DF:DebugTexture(texture, left, right, top, bottom)
+	return DF:PreviewTexture(texture, left, right, top, bottom)
 end
 
 function DF:PreviewTexture(texture, left, right, top, bottom)

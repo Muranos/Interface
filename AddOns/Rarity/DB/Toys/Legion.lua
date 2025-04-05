@@ -3,6 +3,10 @@ local addonName, addonTable = ...
 local L = LibStub("AceLocale-3.0"):GetLocale("Rarity")
 local CONSTANTS = addonTable.constants
 
+if LE_EXPANSION_LEVEL_CURRENT < LE_EXPANSION_LEGION then
+	return {}
+end
+
 local legionToys = {
 	["Arcano-Shower"] = {
 		cat = CONSTANTS.ITEM_CATEGORIES.LEGION,
@@ -289,6 +293,7 @@ local legionToys = {
 			["SHAMAN"] = true,
 			["WARLOCK"] = true,
 			["WARRIOR"] = true,
+			["EVOKER"] = true,
 		},
 		coords = { { m = 772, i = true } },
 	},
@@ -490,3 +495,4 @@ local legionToys = {
 }
 
 Rarity.ItemDB.MergeItems(Rarity.ItemDB.toys, legionToys)
+return legionToys

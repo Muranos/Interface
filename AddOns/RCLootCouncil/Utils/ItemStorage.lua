@@ -57,14 +57,14 @@ local item_class = {
 	--- Stores Item in persistant db.
 	--- @param self Item
 	Store = function(self)
-		tinsert(db.itemStorage, self)
+		tinsert(addon.db.profile.itemStorage, self)
 		return self
 	end,
 
 	--- Removes Item from persistant db.
 	--- @param self Item
 	Unstore = function(self)
-		tDeleteItem(db.itemStorage, self)
+		tDeleteItem(addon.db.profile.itemStorage, self)
 		return self
 	end,
 
@@ -94,7 +94,9 @@ local item_class = {
 	--- @param timeRemaining? integer Remaining time
 	--- @param fallbackTime? integer Used as `timeRemaining` if that's nil. Defaults to 0.
 	SetUpdateTime = function(self, timeRemaining, fallbackTime)
-		timeRemaining = timeRemaining or fallbackTime or 0
+		if timeRemaining ~= 0 then
+			timeRemaining = fallbackTime or 0
+		end
 		-- Store BoEs (math.huge) as 24 hrs so we don't run into issues when displaying time.
 		self.time_remaining = timeRemaining == math.huge and 86400 or timeRemaining
 		self.time_updated = time()
@@ -103,9 +105,9 @@ local item_class = {
 }
 
 -- lua
-local error, table, tostring, tinsert, tremove, type, select, FindInTableIf, time, tFilter, setmetatable, CopyTable,
+local error, table, tostring, tinsert, tremove, type, select, FindInTableIf, time, tFilter, setmetatable,
 ipairs = error, table, tostring, tinsert, tremove, type, select, FindInTableIf, time, tFilter, setmetatable,
-	CopyTable, ipairs
+	ipairs
 
 function addon:InitItemStorage() -- Extract items from our SV. Could be more elegant
 	db = self:Getdb()
@@ -133,6 +135,7 @@ function addon:InitItemStorage() -- Extract items from our SV. Could be more ele
 		tremove(db.itemStorage, toBeRemoved[i])
 	end
 	TT:Release(toBeRemoved)
+	self:SendMessage("RCItemStorageInitialized", #db.itemStorage)
 end
 
 --- Initiates a new item of item_class
@@ -166,9 +169,9 @@ function Storage:RemoveItem(itemOrItemLink)
 		return error("Unknown item")
 	end
 	-- Find and delete the item
-	local key1 = private:FindItemInTable(db.itemStorage, itemOrItemLink)
+	local key1 = private:FindItemInTable(addon.db.profile.itemStorage, itemOrItemLink)
 	local key2 = private:FindItemInTable(StoredItems, itemOrItemLink)
-	if key1 then addon.Log:D("Removed1:", tremove(db.itemStorage, key1).link) end
+	if key1 then addon.Log:D("Removed1:", tremove(addon.db.profile.itemStorage, key1).link) end
 	if key2 then addon.Log:D("Removed2:", tremove(StoredItems, key2)) end
 
 	-- key1 might not be there if we haven't stored it
@@ -181,7 +184,7 @@ function Storage:RemoveItem(itemOrItemLink)
 end
 
 function Storage:RemoveAllItems()
-	db.itemStorage = {}
+	addon.db.profile.itemStorage = {}
 	StoredItems = {}
 end
 
@@ -226,8 +229,8 @@ function Storage:GetAllItemsLessTimeRemaining(time)
 end
 
 --- Returns all stored Items based on multiple predicates
--- @param ... Predicate functions.
--- @return The filtered list of times.
+--- @param ... fun(item:Item):boolean Predicate functions.
+--- @return Item[] #The filtered list of times.
 function Storage:GetAllItemsMultiPred(...)
 	local args = { ... }
 	return tFilter(StoredItems, function(v)
@@ -294,6 +297,15 @@ function Storage:ItemLocationInArray(list, container, slot)
 	return list and #list > 0 and ContainsIf(list, function(v)
 		return v.container == container and v.slot == slot
 	end)
+end
+
+--- Returns item GUID if it can be found.
+--- Must be in the player's bags.
+---@param item Item|ItemLink
+function Storage:GetItemGUID(item)
+	local c,s = self:GetItemContainerSlot(item)
+	if not (c or s) then return end
+	return Item.CreateFromBagAndSlot and Item:CreateFromBagAndSlot(c, s):GetItemGUID()
 end
 
 

@@ -40,23 +40,56 @@ C.ARENA2V2   = 5
 C.ARENA3V3   = 6
 C.ARENA5V5   = 7
 
+-- Difficulty values as used in various tables like GroupFinderActivity and in lockouts
+C.DIFFICULTY_MAP = {
+    [  1] = C.NORMAL,     -- DungeonNormal
+    [  2] = C.HEROIC,     -- DungeonHeroic
+    [  3] = C.NORMAL,     -- Raid10Normal
+    [  4] = C.NORMAL,     -- Raid25Normal
+    [  5] = C.HEROIC,     -- Raid10Heroic
+    [  6] = C.HEROIC,     -- Raid25Heroic
+    [  7] = 0,            -- RaidLFR
+    [  8] = C.MYTHICPLUS, -- DungeonChallenge
+    [  9] = C.NORMAL,     -- Raid40
+    [ 14] = C.NORMAL,     -- PrimaryRaidNormal
+    [ 15] = C.HEROIC,     -- PrimaryRaidHeroic
+    [ 16] = C.MYTHIC,     -- PrimaryRaidMythic
+    [ 17] = 0,            -- PrimaryRaidLFR
+    [ 23] = C.MYTHIC,     -- DungeonMythic
+    [ 24] = 0,            -- DungeonTimewalker
+    [ 33] = 0,            -- RaidTimewalker
+    [ 38] = C.NORMAL,     -- RandomIslandNormal
+    [ 39] = C.HEROIC,     -- RandomIslandHeroic
+    [ 40] = C.MYTHIC,     -- RandomIslandMythic
+    [ 45] = 0,            -- RandomIslandPvP
+    [148] = C.NORMAL,     -- Raid20 (Ruins of Ahn'Qiraj and Zul'Gurub)
+    [167] = 0,            -- Torghast
+    [175] = C.NORMAL,     -- Ulduar10Normal
+    [176] = C.NORMAL,     -- Ulduar25Normal
+    [193] = C.HEROIC,     -- Ulduar10Heroic
+    [194] = C.HEROIC,     -- Ulduar25Heroic
+}
+setmetatable(C.DIFFICULTY_MAP, { __index = function() return 0 end })
+
 -- corresponds to the third parameter of C_LFGList.GetActivityInfoTable().categoryID
 C.CATEGORY_ID = {
-    QUESTING           = 1,
-    DUNGEON            = 2,
-    RAID               = 3,
-    ARENA              = 4,
-    SCENARIO           = 5,
-    CUSTOM             = 6, -- both PvE and PvP
-    SKIRMISH           = 7,
-    BATTLEGROUND       = 8,
-    RATED_BATTLEGROUND = 9,
-    ASHRAN             = 10,
-    THORGAST           = 113,
-    WRATH_RAID         = 114,
-    WRATH_QUESTING     = 116,
-    WRATH_BATTLEGROUND = 118,
-    WRATH_CUSTOM       = 120,
+    QUESTING             = 1,
+    DUNGEON              = 2,
+    RAID                 = 3,
+    ARENA                = 4,
+    SCENARIO             = 5,
+    CUSTOM               = 6, -- both PvE and PvP
+    SKIRMISH             = 7,
+    BATTLEGROUND         = 8,
+    RATED_BATTLEGROUND   = 9,
+    ASHRAN               = 10,
+    ISLAND               = 111,
+    THORGAST             = 113,
+    CLASSIC_RAID         = 114,
+    CLASSIC_QUESTING     = 116,
+    CLASSIC_BATTLEGROUND = 118,
+    CLASSIC_CUSTOM       = 120,
+    DELVES               = 121,
 }
 
 C.DIFFICULTY_KEYWORD = {
@@ -83,8 +116,9 @@ C.PVP_TIER_MAP = {
 }
 
 C.COLOR_ENTRY_NEW           = { R = 0.3, G = 1.0, B = 0.3 } -- green
-C.COLOR_ENTRY_DECLINED_SOFT = { R = 0.6, G = 0.3, B = 0.1 } -- dark orange
-C.COLOR_ENTRY_DECLINED_HARD = { R = 0.6, G = 0.1, B = 0.1 } -- dark red
+C.COLOR_ENTRY_DECLINED_SOFT = { R = 1.0, G = 0.4, B = 0.1 } -- orange
+C.COLOR_ENTRY_DECLINED_HARD = { R = 1.0, G = 0.1, B = 0.1 } -- red
+C.COLOR_ENTRY_CANCELED      = { R = 1.0, G = 0.1, B = 0.8 } -- pink
 C.COLOR_LOCKOUT_PARTIAL     = { R = 1.0, G = 0.5, B = 0.1 } -- orange
 C.COLOR_LOCKOUT_FULL        = { R = 0.5, G = 0.1, B = 0.1 } -- red
 C.COLOR_LOCKOUT_MATCH       = { R = 1.0, G = 1.0, B = 1.0 } -- white
@@ -109,6 +143,18 @@ C.ROLE_ATLAS = {
     ["TANK"] = "roleicon-tiny-tank",
     ["HEALER"] = "roleicon-tiny-healer",
     ["DAMAGER"] = "roleicon-tiny-dps",
+}
+
+C.ROLE_ATLAS_BORDERLESS = {
+    ["TANK"] = "groupfinder-icon-role-micro-tank",
+    ["HEALER"] = "groupfinder-icon-role-micro-heal",
+    ["DAMAGER"] = "groupfinder-icon-role-micro-dps",
+}
+
+C.ROLE_REMAINING_KEYS = {
+    ["TANK"] = "TANK_REMAINING",
+    ["HEALER"] = "HEALER_REMAINING",
+    ["DAMAGER"] = "DAMAGER_REMAINING",
 }
 
 C.LEADER_ATLAS = "groupfinder-icon-leader"
@@ -136,7 +182,7 @@ end })
 local GetAddOnMetadata = C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetadata
 local flavor = GetAddOnMetadata(PGFAddonName, "X-Flavor")
 function PGF.IsRetail() return flavor == "Retail" end
-function PGF.IsWrath() return flavor == "Wrath" end
+function PGF.IsCata() return flavor == "Cata" end
 function PGF.SupportsMythicPlus() return PGF.IsRetail() end -- Mythic Plus (as opposed to Challenge Mode with gear scaling) is supported from Legion onwards
 function PGF.SupportsSpecializations() return PGF.IsRetail() end -- Specialization (as opposed to free talent trees) are supported from Mists of Pandaria onwards
 function PGF.SupportsDragonflightUI() return PGF.IsRetail() end -- User Interface has changed drastically in Dragonflight
@@ -146,15 +192,19 @@ C.SETTINGS_DEFAULT = {
     dialogMovable = true,
     classNamesInTooltip = true,
     coloredGroupTexts = true,
-    coloredApplications = true,
     ratingInfo = true,
-    classCircle = PGF.SupportsDragonflightUI(),
-    classBar = not PGF.SupportsDragonflightUI(),
+    specIcon = false,
+    classCircle = false,
+    classBar = false,
     leaderCrown = false,
+    missingRoles = false,
     oneClickSignUp = true,
     persistSignUpNote = true,
     signupOnEnter = false,
     skipSignUpDialog = false,
+    cancelOldestApp = false,
+    signUpDeclined = false,
+    rioRatingColors = true,
 }
 
 function PGF.MigrateStateV4()
@@ -222,10 +272,39 @@ function PGF.MigrateStateV6()
     end
 end
 
+function PGF.MigrateStateV7()
+    if PremadeGroupsFilterState.version < 7 then
+        if PremadeGroupsFilterState.c2f4 and PremadeGroupsFilterState.c2f4.dungeon then
+            PremadeGroupsFilterState.c2f4.dungeon.blfit = nil
+            PremadeGroupsFilterState.c2f4.dungeon.brfit = nil
+        end
+        PremadeGroupsFilterState.version = 7
+        print(string.format(L["message.settingsupgraded"], "7"))
+    end
+end
+
+function PGF.MigrateSettingsV2()
+    if not PremadeGroupsFilterSettings.version or PremadeGroupsFilterSettings.version < 2 then
+        if PGF.IsRetail() then -- disable features now provided by default
+            PremadeGroupsFilterSettings.classCircle = false
+        end
+        PremadeGroupsFilterSettings.version = 2
+    end
+end
+
+function PGF.MigrateSettingsV3()
+    if not PremadeGroupsFilterSettings.version or PremadeGroupsFilterSettings.version < 3 then
+        PremadeGroupsFilterSettings.coloredApplications = nil
+        PremadeGroupsFilterSettings.version = 3
+    end
+end
+
 function PGF.OnAddonLoaded(name)
     if name == PGFAddonName then
         -- update new settings with defaults
         PGF.Table_UpdateWithDefaults(PremadeGroupsFilterSettings, PGF.C.SETTINGS_DEFAULT)
+        PGF.MigrateSettingsV2()
+        PGF.MigrateSettingsV3()
 
         -- initialize dialog state and migrate to latest version
         if PremadeGroupsFilterState == nil or PremadeGroupsFilterState.version == nil then
@@ -234,9 +313,9 @@ function PGF.OnAddonLoaded(name)
                 c2f4 = { enabled = true, }, -- Dungeons
                 c3f5 = { enabled = true, }, -- Raids
                 c3f6 = { enabled = true, }, -- Raids
-                c114f4 = { enabled = true, }, -- Raids (Wrath)
-                c114f5 = { enabled = true, }, -- Raids (Wrath)
-                c114f6 = { enabled = true, }, -- Raids (Wrath)
+                c114f4 = { enabled = true, }, -- Raids (Classic)
+                c114f5 = { enabled = true, }, -- Raids (Classic)
+                c114f6 = { enabled = true, }, -- Raids (Classic)
                 c4f8 = { enabled = true, }, -- Arena
                 c9f8 = { enabled = true, }, -- RBG
             }
@@ -244,6 +323,8 @@ function PGF.OnAddonLoaded(name)
         PGF.MigrateStateV4()
         PGF.MigrateStateV5()
         PGF.MigrateStateV6()
+        -- Note: State might contain unused booleans .c2f4.dungeon.blfit and .c2f4.dungeon.brfit
+        -- which I deliberately did not delete if I need to bring back the features
 
         -- request various player information from the server
         RequestRaidInfo()
@@ -258,7 +339,6 @@ function PGF.OnAddonLoaded(name)
 end
 
 function PGF.OnPlayerLogin()
-    PGF.FixGetPlaystyleStringIfPlayerAuthenticated()
     PGF.FixReportAdvertisement()
     PGF.PersistSignUpNote()
 end

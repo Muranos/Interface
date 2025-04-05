@@ -1,6 +1,6 @@
 ﻿-- --------------------
 -- TellMeWhen
--- Originally by Nephthys of Hyjal <lieandswell@yahoo.com>
+-- Originally by NephMakes
 
 -- Other contributions by:
 --		Sweetmms of Blackrock, Oozebull of Twisting Nether, Oodyboo of Mug'thol,
@@ -142,7 +142,7 @@ end
 Type.GuardianInfo = TMW.isClassic and {
 	[510] = Info(45, 31687, false), -- Water Elemental
 	[89] = Info(60 * 5, 1122, false), -- Inferno (warlock)
-} or TMW.isWrath and {
+} or (TMW.isWrath or TMW.isCata) and {
 	[510] = Info(45, 31687, false), -- Water Elemental
 	[19668] = Info(15, 34433, false), -- Shadowfiend
 	[15438] = Info(120, 32982, false), -- Fire ele totem
@@ -176,13 +176,21 @@ Type.GuardianInfo = TMW.isClassic and {
 	[136407] = Info(15, 267995, true), -- Wrathguard (Inner Demons passive)
 	[136408] = Info(15, 267996, true), -- Darkhound (Inner Demons passive)
 
+	[210910] = Info(10, 423585, false), -- Doomfiend (Dragonflight s3/s4 warlock tier set bonus)
 
-	[135816] = Info(15, 264119, true), -- Summon Vilefiend
 	[135002] = Info(15, 265187, true), -- Summon Demonic Tyrant
 
 	[ 17252] = Info(17, 111898, true), -- Grimorie: Felguard
 	[107024] = Info(15, 212459, true), -- Call Fel Lord
 	[107100] = Info(20, 201996, true), -- Call Observer
+
+	[135816] = Info(15, 264119, true), -- Summon Vilefiend
+	-- wowhead.com/npc=226269/charhound
+	-- wowhead.com/spell=455476/summon-charhound
+	[226269] = Info(15, 455476, true),
+	-- wowhead.com/spell=455465/summon-gloomhound
+	-- wowhead.com/npc=226268/gloomhound
+	[226268] = Info(15, 455465, true),
 }
 
 local GuardianInfo = Type.GuardianInfo

@@ -307,60 +307,60 @@ indeterminate or an upgrade. This can be used for auto-sell rules, such as <code
 </ul>
 
 <h2>Updates</h2>
-<h3>Version 2.8.11</h3>
+<h3>Version 2.10.11</h3>
 <ul>
-	<li>Classic Season of Discovery: Added support for those new hit and crit stats, again. Because Blizzard broke them in a patch.</li>
+	<li>Cataclysm Classic: Added support for the new way that weapon stats appear in the French version of the game.</li>
+	<li>Cataclysm Classic: Fixed a minor bug where Rigid Zircon was being suggested as a yellow gem even though it's blue.</li>
 </ul>
-<h3>Version 2.8.10</h3>
+<h3>Version 2.10.10</h3>
 <ul>
-	<li>Classic Season of Discovery: Added support for the new Gnomeregan items with hit or crit to all attacks. Items with the new hit stat will receive points for your Hit and Hit (Spell) stats, and items with the new crit stat will receive points for your Crit and Crit (Spell) stats.</li>
+	<li>Classic Season of Discovery: Added support for the new expertise (chance for your attacks to be dodged or parried), haste (attack speed), and spell haste (casting speed of non-channeled spells) stats in all languages SoD supports.</li>
 </ul>
-<h3>Version 2.8.9</h3>
+<h3>Version 2.10.9</h3>
 <ul>
-	<li>Dragonflight: Updated stat weights for all classes and specs.</li>
-	<li>Dragonflight: Updated Pawn's scale color button to work with the new patch 10.2.5 color picker.</li>
+	<li>Includes more changes to old code to help avoid hard-to-debug problems in the future.</li>
 </ul>
-<h3>Version 2.8.8</h3>
+<h3>Version 2.10.8</h3>
 <ul>
-	<li>Dragonflight: Removed the "Only show upgrades for my best armor type after level 27" option. After level 27, Pawn will now always stop showing items that are not the right type of armor for your class.</li>
-	<li>Classic: Fixed a bug where Pawn would suggest armor your character can't wear as upgrades.</li>
-	<li>Classic: Fixed a bug where Pawn would sometimes suggest socketing Glinting Flame Spessarite when it meant to suggest Sovereign Shadow Draenite. This bug potentially affected any time Glinting Flame Spessarite was suggested (such as in the socketing advisor popup), but didn't affect any other calculations or upgrade suggestions.</li>
+	<li>Cataclysm Classic: Haste should work on more items when playing in Russian. (Thanks DrCrazy!)</li>
 </ul>
-<h3>Version 2.8.7</h3>
+<h3>Version 2.10.7</h3>
 <ul>
-	<li>Classic: Added support for the Classic trade skill and crafting window: hovering over the item icon in that window should now work the same as if the item were already in your bags.</li>
+	<li>The War Within: Other rings will no longer appear as upgrades to Cyrce's Circlet. (Previously, pretty much everything would, since its only stat is Stamina.)</li>
+	<li>Includes a bunch of changes to some old code provided by DrCrazy that should make it easier to edit Pawn. (Thanks!) This shouldn't affect the way the addon functions. Hopefully.</li>
 </ul>
-<h3>Version 2.8.6</h3>
+<h3>Version 2.10.6</h3>
 <ul>
-	<li>Dragonflight: More new stat weight updates, updated for patch 10.2.0.</li>
+	<li>Cataclysm Classic: Slightly updated stat weights for retribution paladins.</li>
 </ul>
-<h3>Version 2.8.5</h3>
+<h3>Version 2.10.5</h3>
 <ul>
-	<li>Dragonflight: New stat weights have been included for all classes and specs, including all evoker specs, based on the latest Ask Mr. Robot raid simulation data.</li>
+	<li>The War Within: Fixed a problem where Pawn would only work if "load out of date addons" was checked.</li>
+	<li>Cataclysm Classic: Updated stat weights for unholy death knights, feral druids, arcane mages, and retribution paladins.</li>
 </ul>
-<h3>Version 2.8.4</h3>
+<h3>Version 2.10.4</h3>
 <ul>
-	<li>To keep things responsive, especially on the slower Classic versions of the game, Pawn has a new system that caps how much processing power it will allow bag addons to use when calculating which items get green upgrade arrows. Roughly speaking, if the game runs at 60 FPS for you, Pawn will block bag addons from reducing that by more than 2 FPS. (This change doesn't affect you if you aren't using a custom bag addon.)</li>
+	<li>Cataclysm Classic: Mastery on items should work again when playing in Russian. (Thanks DrCrazy!)</li>
 </ul>
-<h3>Version 2.8.3</h3>
+<h3>Version 2.10.3</h3>
 <ul>
-	<li>Wrath Classic: The new gems for Content Phase 3 (Cardinal Ruby, etc.) will now show 
-		up in recommendations, and will be taken into account when determining the 
-		value of sockets on high-level gear.</li>
+	<li>Updated default stat weights for all specs in The War Within and several specs in Cataclysm Classic.</li>
 </ul>
-<h3>Version 2.8.2</h3>
+<h3>Version 2.10.2</h3>
 <ul>
-	<li>Dragonflight: Dragonflight 10.1.0 has a game bug that was causing Pawn to show the wrong information on "currently equipped" tooltips. That bug is fixed in Dragonflight 10.1.5. Pawn will stop annotating "currently equipped" tooltips until 10.1.5 launches.</li>
-	<li>Dragonflight: Added support for the 10.1.5 PTR.</li>
-	<li>Dragonflight: Added support for Augmentation Evokers. If you're using Pawn in Automatic mode (the default), you don't need to do anything extra. If you're using Pawn in Manual mode, you'll need to import your own Augmentation scale or use (shift-click) the one that comes with Pawn. (Stat weights for Augmentation aren't available yet so it's a placeholder in this version of Pawn.)</li>
+	<li>The War Within: Adjusted gem recommendations for 80 gear. (Previously, socketed Khaz Algar items were being valued too highly.)</li>
+	<li>Cataclysm Classic: Updated default stat weights for several specs.</li>
 </ul>
-<h3>Version 2.8.1</h3>
+<h3>Version 2.10.1</h3>
 <ul>
-	<li>Dragonflight: Fixed a problem that could occur when showing Pawn's version number on 10.1.0.</li>
+	<li>Cataclysm Classic: Updated default stat weights for fury warriors, and further reduced the value of armor for specs that don't traditionally need much of it.</li>
+	<li>Updated translations for Simplified Chinese. (Thanks LvWind!)</li>
 </ul>
-<h3>Version 2.8.0</h3>
+<h3>Version 2.10.0</h3>
 <ul>
-	<li>Updated for Dragonflight: Embers of Neltharion (10.1.0).</li>
+	<li>The War Within: Added support for the new Khaz Algar gems.</li>
+	<li>The War Within: You can now open the Pawn window from the addons icon in the upper-right corner of the screen, even if you've hidden the Pawn button from your character sheet on Pawn's Options tab.</li>
+	<li>Pawn's window now features some oranger The War Within-inspired visuals.</li>
 </ul>
 
 <h3>Older versions</h3>
@@ -368,7 +368,7 @@ indeterminate or an upgrade. This can be used for auto-sell rules, such as <code
 	information about older versions of Pawn.</p>
 
 <h2>The fine print</h2>
-<p>© 2006-2024 Travis Spomer. This mod is released under the Creative Commons
+<p>© 2006-2025 Travis Spomer. This mod is released under the Creative Commons
 <a href="http://creativecommons.org/licenses/by-nc-nd/3.0/" target="_blank">
 Attribution-NonCommercial-NoDerivs 3.0</a> license. In short, this means 
 that you can use it, copy it, and share it, but you can't sell it or distribute 

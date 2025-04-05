@@ -163,7 +163,7 @@ do
 			isOnMe = true
 			self:PlaySound(254244, "alarm")
 			self:Flash(254244)
-			self:Say(254244)
+			self:Say(254244, nil, nil, "Sleep Canister")
 			addPlayerToList(self, self:UnitName("player"))
 			self:Sync("SleepCanister")
 		end
@@ -190,7 +190,7 @@ do
 	end
 
 	function mod:SleepCanisterRemoved(args)
-		tDeleteItem(canisterProxList, args.destName)
+		self:DeleteFromTable(canisterProxList, args.destName)
 		if #canisterProxList == 0 then
 			self:CloseProximity(254244)
 		else

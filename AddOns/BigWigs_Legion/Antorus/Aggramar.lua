@@ -74,7 +74,7 @@ function mod:GetOptions()
 
 		--[[ Stage One: Wrath of Aggramar ]]--
 		{245990, "TANK"}, -- Taeshalach's Reach
-		{245994, "SAY", "FLASH", "PROXIMITY"}, -- Scorching Blaze
+		{245994, "SAY", "PROXIMITY"}, -- Scorching Blaze
 		{244693, "SAY"}, -- Wake of Flame
 		{244688, "INFOBOX"}, -- Taeshalach Technique
 		245458, -- Foe Breaker
@@ -100,8 +100,8 @@ function mod:GetOptions()
 	}
 end
 
-function mod:VerifyEnable()
-	return BigWigsLoader.GetBestMapForUnit("player") == 917 -- Floor 9, The World Soul
+function mod:VerifyEnable(_, _, mapArtID)
+	return mapArtID == 917 -- Floor 9, The World Soul
 end
 
 function mod:OnBossEnable()
@@ -293,7 +293,7 @@ function mod:EmberDeath(args)
 		self:MessageOld("track_ember", "cyan", "info", CL.mob_remaining:format(self:SpellName(-16686), waveEmberCounter), false)
 		if self:GetOption("custom_off_ember_marker") then -- Remove icon from used list
 			for key,guid in pairs(emberAddMarks) do
-				if guid == args.sourceGUID then
+				if guid == args.destGUID then
 					emberAddMarks[key] = nil
 				end
 			end
@@ -318,7 +318,7 @@ do
 			if mobID == 122532 and waveCollector[currentEmberWave] then
 				if waveCollector[currentEmberWave][guid] then
 					for i = 1, 5 do -- Use only 5 marks, leaving 6, 7, 8 for raid use purposes
-						if not emberAddMarks[i] and not GetRaidTargetIndex(unit) then -- Don't re-mark the same add and re-use marks
+						if not emberAddMarks[i] and not self:GetIcon(unit) then -- Don't re-mark the same add and re-use marks
 							self:CustomIcon(false, unit, i)
 							emberAddMarks[i] = guid
 							break
@@ -410,7 +410,7 @@ do
 			blazeOnMe = true
 			self:PlaySound(args.spellId, "warning")
 			self:TargetMessage(args.spellId, "red", args.destName)
-			self:Say(args.spellId)
+			self:Say(args.spellId, nil, nil, "Scorching Blaze")
 		end
 		if #blazeProxList == 1 then
 			self:SimpleTimer(warn, 0.3)
@@ -425,7 +425,7 @@ do
 		if self:Me(args.destGUID) then
 			blazeOnMe = false
 		end
-		tDeleteItem(blazeProxList, args.destName)
+		self:DeleteFromTable(blazeProxList, args.destName)
 		updateProximity(self)
 	end
 end
@@ -435,7 +435,7 @@ do
 		self:PlaySound(244693, "alert", nil, name)
 		self:TargetMessage(244693, "yellow", name)
 		if self:Me(guid) then
-			self:Say(244693)
+			self:Say(244693, nil, nil, "Wake of Flame")
 		end
 	end
 	function mod:WakeofFlame(args)
@@ -562,7 +562,7 @@ do
 		if self:Me(args.destGUID) then
 			blazeOnMe = true
 			self:Flash(args.spellId)
-			self:Say(args.spellId)
+			self:Say(args.spellId, nil, nil, "Ravenous Blaze")
 			self:PlaySound(args.spellId, "warning")
 		end
 		playerList[#playerList+1] = args.destName
@@ -583,7 +583,7 @@ do
 		if self:Me(args.destGUID) then
 			blazeOnMe = false
 		end
-		tDeleteItem(blazeProxList, args.destName)
+		self:DeleteFromTable(blazeProxList, args.destName)
 		updateProximity(self)
 	end
 end

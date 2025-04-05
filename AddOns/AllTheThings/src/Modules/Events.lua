@@ -3,10 +3,10 @@ local app = select(2, ...);
 local L = app.L;
 
 -- Global API cache
-local C_DateAndTime_GetServerTimeLocal
-	= C_DateAndTime.GetServerTimeLocal;
-local ipairs, tinsert, pairs
-	= ipairs, tinsert, pairs;
+local C_DateAndTime_GetCurrentCalendarTime, C_DateAndTime_AdjustTimeByDays
+	= C_DateAndTime.GetCurrentCalendarTime, C_DateAndTime.AdjustTimeByDays;
+local ipairs, tinsert, pairs, time
+	= ipairs, tinsert, pairs, time;
 
 -- Event Variables
 local ActiveEvents, EventInformation, NextEventSchedule = {}, {}, {};
@@ -16,6 +16,21 @@ local RemappedEventToMapID = {
 	[375] = 1412,	-- Mulgore
 	[376] = 1952,	-- Terrokar Forest
 };
+local function GetEventTimeString(d)
+	if d then
+		if d.weekday then
+			return ("%s, %s %02d, %d at %02d:%02d"):format(
+				CALENDAR_WEEKDAY_NAMES[d.weekday],
+				CALENDAR_FULLDATE_MONTH_NAMES[d.month],
+				d.monthDay, d.year, d.hour, d.minute );
+		else
+			return ("%s %02d, %d at %02d:%02d"):format(
+				CALENDAR_FULLDATE_MONTH_NAMES[d.month],
+				d.monthDay, d.year, d.hour, d.minute );
+		end
+	end
+	return "??";
+end
 
 -- Event ID Remapping by Region
 local remapping = L.EVENT_REMAPPING;
@@ -27,6 +42,7 @@ if GetCVar("portal") == "EU" then
 	remapping[1063] = 1056; -- EU WoD Timewalking
 	remapping[1265] = 1263;	-- EU Legion Timewalking
 	remapping[1398] = 1396;	-- EU Secrets of Azeroth
+	remapping[1514] = 1525;	-- EU Remix: Mists of Pandaria
 elseif GetCVar("portal") == "KO" then
 	remapping[1399] = 1396;	-- KO Secrets of Azeroth
 end
@@ -61,7 +77,7 @@ end
 local SessionEventCache;
 local function GetEventCache()
 	-- app.PrintDebug("GetEventCache")
-	local now = C_DateAndTime_GetServerTimeLocal();
+	local now = CreateTimeStamp(C_DateAndTime_GetCurrentCalendarTime());
 	local cache = SessionEventCache or AllTheThingsSavedVariables.EventCache;
 	if cache and (cache.lease or 0) > now then
 		-- If our cache is still leased, then simply return it.
@@ -74,19 +90,22 @@ local function GetEventCache()
 	cache = {};
 	cache.lease = now + 604800;
 	if isCalendarAvailable then
+		local C_Calendar_SetAbsMonth, C_Calendar_SetMonth, C_Calendar_GetDayEvent, C_Calendar_GetMonthInfo, C_Calendar_GetNumDayEvents
+			= C_Calendar.SetAbsMonth, C_Calendar.SetMonth, C_Calendar.GetDayEvent, C_Calendar.GetMonthInfo, C_Calendar.GetNumDayEvents;
+
 		-- Go back 6 months and then forward to the next year
-		local date = C_DateAndTime.GetCurrentCalendarTime();
-		C_Calendar.SetAbsMonth(date.month, date.year);
-		C_Calendar.SetMonth(-6);
+		local date = C_DateAndTime_GetCurrentCalendarTime();
+		C_Calendar_SetAbsMonth(date.month, date.year);
+		C_Calendar_SetMonth(-6);
 
 		local anyEvents = false;
 		for offset=-6,12,1 do
-			local monthInfo = C_Calendar.GetMonthInfo(0);
+			local monthInfo = C_Calendar_GetMonthInfo(0);
 			for day=1,monthInfo.numDays,1 do
-				local numEvents = C_Calendar.GetNumDayEvents(0, day);
+				local numEvents = C_Calendar_GetNumDayEvents(0, day);
 				if numEvents > 0 then
 					for index=1,numEvents,1 do
-						local event = C_Calendar.GetDayEvent(0, day, index);
+						local event = C_Calendar_GetDayEvent(0, day, index);
 						if event then -- If this is nil, then attempting to index it on the same line will toss an error.
 							if event.calendarType == "HOLIDAY" and (not event.sequenceType or event.sequenceType == "" or event.sequenceType == "START") then
 								local eventID = event.eventID;
@@ -113,11 +132,11 @@ local function GetEventCache()
 					end
 				end
 			end
-			C_Calendar.SetMonth(1);
+			C_Calendar_SetMonth(1);
 		end
 
 		-- Reset Calendar back to last date.
-		C_Calendar.SetAbsMonth(date.month, date.year);
+		C_Calendar_SetAbsMonth(date.month, date.year);
 
 		-- If there were any events, let's wipe the active cache tables.
 		if anyEvents then
@@ -179,7 +198,7 @@ setmetatable(NextEventSchedule, { __index = function(t, id)
 	if info then
 		local times = info.times;
 		if times and #times > 0 then
-			local now = C_DateAndTime_GetServerTimeLocal();
+			local now = CreateTimeStamp(C_DateAndTime_GetCurrentCalendarTime());
 			local schedule;
 			for i,data in ipairs(times) do
 				schedule = data;
@@ -194,10 +213,10 @@ setmetatable(NextEventSchedule, { __index = function(t, id)
 			t[id] = schedule;
 			return schedule;
 		elseif id == 424 then -- EVENTS.KALUAK_FISHING_DERBY
-			local startTime = C_DateAndTime.GetCurrentCalendarTime();
+			local startTime = C_DateAndTime_GetCurrentCalendarTime();
 			local weekDay = date("*t").wday;
 			if weekDay < 7 then
-				startTime = C_DateAndTime.AdjustTimeByDays(startTime, 7 - weekDay);
+				startTime = C_DateAndTime_AdjustTimeByDays(startTime, 7 - weekDay);
 			end
 			local schedule = CreateSchedule({
 				year=startTime.year,
@@ -222,10 +241,10 @@ setmetatable(NextEventSchedule, { __index = function(t, id)
 			t[id] = schedule;
 			return schedule;
 		elseif id == 301 then -- EVENTS.STRANGLETHORN_FISHING_EXTRAVAGANZA
-			local startTime = C_DateAndTime.GetCurrentCalendarTime();
+			local startTime = C_DateAndTime_GetCurrentCalendarTime();
 			local weekDay = date("*t").wday;
 			if weekDay > 1 then
-				startTime = C_DateAndTime.AdjustTimeByDays(startTime, 8 - weekDay);
+				startTime = C_DateAndTime_AdjustTimeByDays(startTime, 8 - weekDay);
 			end
 			local schedule = CreateSchedule({
 				year=startTime.year,
@@ -260,7 +279,7 @@ setmetatable(ActiveEvents, { __index = function(t, id)
 		local eventStart, eventEnd = nextEvent["start"], nextEvent["end"];
 		if eventStart and eventEnd then
 			-- If the event is within the leeway, mark it active
-			local now = C_DateAndTime_GetServerTimeLocal();
+			local now = CreateTimeStamp(C_DateAndTime_GetCurrentCalendarTime());
 			if now < eventEnd and now > (eventStart - UpcomingEventLeeway) then
 				-- app.PrintDebug("ActiveEvents.__index",id,true)
 				t[id] = true;
@@ -299,25 +318,61 @@ local function GetEventName(e)
 	end
 	return "Event #" .. e;
 end
-local function GetEventTimeString(d)
-	if d then
-		if d.weekday then
-			return ("%s, %s %02d, %d at %02d:%02d"):format(
-				CALENDAR_WEEKDAY_NAMES[d.weekday],
-				CALENDAR_FULLDATE_MONTH_NAMES[d.month],
-				d.monthDay, d.year, d.hour, d.minute );
-		else
-			return ("%s %02d, %d at %02d:%02d"):format(
-				CALENDAR_FULLDATE_MONTH_NAMES[d.month],
-				d.monthDay, d.year, d.hour, d.minute );
-		end
+
+-- Timerunning Seasons
+local GetTimerunningSeason;
+local PlayerGetTimerunningSeasonID = PlayerGetTimerunningSeasonID;
+-- Don't add the Timerunning Filter if there's no Season active!
+local IsTimerunningActive = false
+if PlayerGetTimerunningSeasonID and IsTimerunningActive then
+	-- Timerunning API is available.
+	local timerunningSeasons = L.EVENT_TIMERUNNING_SEASONS;
+	GetTimerunningSeason = function()
+		local seasonID = PlayerGetTimerunningSeasonID();
+		if seasonID then return timerunningSeasons[seasonID]; end
 	end
-	return "??";
+	local TimerunningSeasonEventID
+	local GetRelativeRawWithField = app.GetRelativeRawWithField
+	local ThingKeys
+	local function OnlyTimerunning(group)
+		-- app.PrintDebug("F:TR",group.e,TimerunningSeasonEventID,group.__type,ThingKeys[group.key],group.e == TimerunningSeasonEventID)
+		if not ThingKeys[group.key] then return true end
+		return GetRelativeRawWithField(group, "e") == TimerunningSeasonEventID
+	end
+	local function NotMoPRemixTimerunning(group)
+		-- app.PrintDebug("F:~TR",group.e,TimerunningSeasonEventID,group.__type,ThingKeys[group.key],not group.e or group.e ~= 1525)
+		if not ThingKeys[group.key] then return true end
+		local e = GetRelativeRawWithField(group, "e")
+		return not e or e ~= 1525
+	end
+
+	-- Add a Timerunning Filter that can be used for Live/Timerunning characters
+	-- The use of the respective filter would be enabled based on the setting
+	app.AddEventHandler("OnStartup", function()
+		ThingKeys = app.ThingKeys
+		local DefineFilter = app.Modules.Filter.DefineToggleFilter
+		TimerunningSeasonEventID = GetTimerunningSeason()
+		if TimerunningSeasonEventID then
+			-- app.PrintDebug("Added OnlyTimerunning filter")
+			DefineFilter("Timerunning", "A", OnlyTimerunning)
+		else
+			-- app.PrintDebug("Added NotMoPRemixTimerunning filter")
+			DefineFilter("Timerunning", "A", NotMoPRemixTimerunning)
+		end
+	end)
+else
+	-- Timerunning API is not available.
+	GetTimerunningSeason = app.EmptyFunction;
+	-- Make sure the Feature Setting is disabled
+	app.AddEventHandler("OnStartup", function()
+		-- No Timerunning Active, don't be set
+		app.Settings:SetTooltipSetting("Filter:MiniList:Timerunning", false)
+	end)
 end
 
 -- Event API Implementation
 -- Access via AllTheThings.Modules.Events
-local events = {};
+local events = {IsTimerunningActive=IsTimerunningActive};
 app.Modules.Events = events;
 events.CreateSchedule = CreateSchedule;
 events.FilterIsEventActive = FilterIsEventActive;
@@ -338,6 +393,7 @@ end;
 events.SetEventNextSchedule = function(eventID, nextEvent)
 	NextEventSchedule[eventID] = nextEvent;
 end;
+events.GetTimerunningSeason = GetTimerunningSeason;
 events.GetUpcomingEventLeeway = function()
 	return UpcomingEventLeeway;
 end;

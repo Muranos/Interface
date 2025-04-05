@@ -2,263 +2,412 @@ local E = select(2, ...):unpack()
 local P = E.Party
 
 local format, ceil, floor, min, GetTime = string.format, math.ceil, math.floor, math.min, GetTime
-local tremove, tinsert, tonumber, gsub, utf8sub = tremove, tinsert, tonumber, string.gsub, string.utf8sub
-local RESET = NEWBIE_TOOLTIP_STOPWATCH_RESETBUTTON or "Reset"
 
-local unusedStatusBars = {}
-local numStatusBars = 0
-
-local CASTING_BAR_ALPHA_STEP = 0.05;
-
-local CASTING_BAR_HOLD_TIME = 1;
+local CASTING_BAR_ALPHA_STEP = 0.05
+local CASTING_BAR_HOLD_TIME = 1
 local SECONDS_PER_MIN = 60
 
-local function CastingBarFrame_SetStartCastColor(self, r, g, b, a)
-	self.startCastColor = CreateColor(r, g, b, a);
+local CastingBarFrameMixin = {}
+
+function CastingBarFrameMixin:SetStartCastColor(r, g, b, a)
+	self.startCastColor = CreateColor(r, g, b, a)
 end
 
-local function CastingBarFrame_SetStartChannelColor(self, r, g, b, a)
-	self.startChannelColor = CreateColor(r, g, b, a);
+function CastingBarFrameMixin:SetStartChannelColor(r, g, b, a)
+	self.startChannelColor = CreateColor(r, g, b, a)
 end
 
-local function CastingBarFrame_SetStartRechargeColor(self, r, g, b, a)
-	self.startRechargeColor = CreateColor(r, g, b, a);
+function CastingBarFrameMixin:SetStartRechargeColor(r, g, b, a)
+	self.startRechargeColor = CreateColor(r, g, b, a)
 end
 
-local function CastingBarFrame_SetFinishedCastColor(self, r, g, b)
-	self.finishedCastColor = CreateColor(r, g, b);
+function CastingBarFrameMixin:SetFinishedCastColor(r, g, b)
+	self.finishedCastColor = CreateColor(r, g, b)
 end
 
-local function CastingBarFrame_SetFailedCastColor(self, r, g, b)
-	self.failedCastColor = CreateColor(r, g, b);
+function CastingBarFrameMixin:SetFailedCastColor(r, g, b)
+	self.failedCastColor = CreateColor(r, g, b)
 end
 
-local function CastingBarFrame_SetNonInterruptibleCastColor(self, r, g, b)
-	self.nonInterruptibleColor = CreateColor(r, g, b);
+function CastingBarFrameMixin:SetNonInterruptibleCastColor(r, g, b)
+	self.nonInterruptibleColor = CreateColor(r, g, b)
 end
 
-local function CastingBarFrame_SetUseStartColorForFinished(self, finishedColorSameAsStart)
-	self.finishedColorSameAsStart = finishedColorSameAsStart;
+function CastingBarFrameMixin:SetUseStartColorForFinished(finishedColorSameAsStart)
+	self.finishedColorSameAsStart = finishedColorSameAsStart
 end
 
-local function CastingBarFrame_SetUseStartColorForFlash(self, flashColorSameAsStart)
-	self.flashColorSameAsStart = flashColorSameAsStart;
+function CastingBarFrameMixin:SetUseStartColorForFlash(flashColorSameAsStart)
+	self.flashColorSameAsStart = flashColorSameAsStart
 end
 
-local function CastingBarFrame_SetStartCastBGColor(self, r, g, b, a)
-	self.startCastBGColor = CreateColor(r, g, b, a);
+function CastingBarFrameMixin:SetStartCastBGColor(r, g, b, a)
+	self.startCastBGColor = CreateColor(r, g, b, a)
 end
 
-local function CastingBarFrame_SetStartChannelBGColor(self, r, g, b, a)
-	self.startChannelBGColor = CreateColor(r, g, b, a);
+function CastingBarFrameMixin:SetStartChannelBGColor(r, g, b, a)
+	self.startChannelBGColor = CreateColor(r, g, b, a)
 end
 
-local function CastingBarFrame_SetStartRechargeBGColor(self, r, g, b, a)
-	self.startRechargeBGColor = CreateColor(r, g, b, a);
+function CastingBarFrameMixin:SetStartRechargeBGColor(r, g, b, a)
+	self.startRechargeBGColor = CreateColor(r, g, b, a)
 end
 
-local function CastingBarFrame_SetStartCastTextColor(self, r, g, b)
-	self.startCastTextColor = CreateColor(r, g, b);
+function CastingBarFrameMixin:SetStartCastTextColor(r, g, b)
+	self.startCastTextColor = CreateColor(r, g, b)
 end
 
-local function CastingBarFrame_SetStartChannelTextColor(self, r, g, b)
-	self.startChannelTextColor = CreateColor(r, g, b);
+function CastingBarFrameMixin:SetStartChannelTextColor(r, g, b)
+	self.startChannelTextColor = CreateColor(r, g, b)
 end
 
-local function CastingBarFrame_SetStartRechargeTextColor(self, r, g, b)
-	self.startRechargeTextColor = CreateColor(r, g, b);
+function CastingBarFrameMixin:SetStartRechargeTextColor(r, g, b)
+	self.startRechargeTextColor = CreateColor(r, g, b)
 end
 
-local function CastingBarFrame_SetUnit(self, icon)
-	self.name = self.statusBar.name
-	self.unit = icon.guid
-	self.spellID = icon.spellID
+function CastingBarFrameMixin:OnLoad(db, icon)
+	local classColor = RAID_CLASS_COLORS[icon.class]
+	local c, active, recharge
 
-	self.casting = nil;
-	self.channeling = nil;
-	self.holdTime = 0;
-	self.fadeOut = nil;
+	c = db.barColors
+	active = c.useClassColor.active and classColor or c.activeColor
+	recharge = c.useClassColor.recharge and classColor or c.rechargeColor
+	self:SetStartCastColor(active.r, active.g, active.b, c.activeColor.a)
+	self:SetStartChannelColor(active.r, active.g, active.b, c.activeColor.a)
+	self:SetStartRechargeColor(recharge.r, recharge.g, recharge.b, c.rechargeColor.a)
 
-	self:Hide()
-end
+	c = db.bgColors
+	active = c.useClassColor.active and classColor or c.activeColor
+	recharge = c.useClassColor.recharge and classColor or c.rechargeColor
+	self:SetStartCastBGColor(active.r, active.g, active.b, c.activeColor.a)
+	self:SetStartChannelBGColor(active.r, active.g, active.b, c.activeColor.a)
+	self:SetStartRechargeBGColor(recharge.r, recharge.g, recharge.b, c.rechargeColor.a)
 
-local function CastingBarFrame_OnLoad(self, db, icon)
-	local active, recharge
-	local c = RAID_CLASS_COLORS[icon.class]
+	c = db.textColors
+	active = c.useClassColor.active and classColor or c.activeColor
+	recharge = c.useClassColor.recharge and classColor or c.rechargeColor
+	self:SetStartCastTextColor(active.r, active.g, active.b)
+	self:SetStartChannelTextColor(active.r, active.g, active.b)
+	self:SetStartRechargeTextColor(recharge.r, recharge.g, recharge.b)
 
-	local db_bg = db.bgColors
-	active, recharge = db_bg.useClassColor.active and c or db_bg.activeColor, db_bg.useClassColor.recharge and c or db_bg.rechargeColor
-	CastingBarFrame_SetStartCastBGColor(self, active.r, active.g, active.b, db_bg.activeColor.a);
-	CastingBarFrame_SetStartChannelBGColor(self, active.r, active.g, active.b, db_bg.activeColor.a);
-	CastingBarFrame_SetStartRechargeBGColor(self, recharge.r, recharge.g, recharge.b, db_bg.rechargeColor.a);
+	self:SetFinishedCastColor(0.0, 1.0, 0.0)
+	self:SetNonInterruptibleCastColor(0.7, 0.7, 0.7)
+	self:SetFailedCastColor(.55, .27, 1.0)
+	self:SetUseStartColorForFinished(true)
+	self:SetUseStartColorForFlash(true)
 
-	local db_text = db.textColors
-	active, recharge = db_text.useClassColor.active and c or db_text.activeColor, db_text.useClassColor.recharge and c or db_text.rechargeColor
-	CastingBarFrame_SetStartCastTextColor(self, active.r, active.g, active.b);
-	CastingBarFrame_SetStartChannelTextColor(self, active.r, active.g, active.b);
-	CastingBarFrame_SetStartRechargeTextColor(self, recharge.r, recharge.g, recharge.b);
+	self:SetUnit(icon)
 
-	local db_bar = db.barColors
-	active, recharge = db_bar.useClassColor.active and c or db_bar.activeColor, db_bar.useClassColor.recharge and c or db_bar.rechargeColor
-	CastingBarFrame_SetStartRechargeColor(self, recharge.r, recharge.g, recharge.b, db_bar.rechargeColor.a);
-	CastingBarFrame_SetStartCastColor(self, active.r, active.g, active.b, db_bar.activeColor.a);
-	CastingBarFrame_SetStartChannelColor(self, active.r, active.g, active.b, db_bar.activeColor.a);
-	CastingBarFrame_SetFinishedCastColor(self, 0.0, 1.0, 0.0);
-	CastingBarFrame_SetNonInterruptibleCastColor(self, 0.7, 0.7, 0.7);
-	CastingBarFrame_SetFailedCastColor(self, .55, .27, 1.0);
+	self.showCastbar = true
 
-	CastingBarFrame_SetUseStartColorForFinished(self, true);
-	CastingBarFrame_SetUseStartColorForFlash(self, true);
-
-	CastingBarFrame_SetUnit(self, icon);
-
-	self.showCastbar = true;
-
-	local point, _,_,_, offsetY = self.Spark:GetPoint();
+	local point, _,_,_, offsetY = self.Spark:GetPoint()
 	if ( point == "CENTER" ) then
-		self.Spark.offsetY = offsetY;
+		self.Spark.offsetY = offsetY
 	end
-
 
 	self.isSparkEnabled = not db.hideSpark
 	self.Spark:SetShown(self.isSparkEnabled)
 	self.nextTextUpdate = 0
 
-	if P.groupInfo[icon.guid].active[icon.spellID] then
-		P.OmniCDCastingBarFrame_OnEvent(self, db.reverseFill and  'UNIT_SPELLCAST_CHANNEL_START' or 'UNIT_SPELLCAST_START')
+	if ( P.groupInfo[icon.guid].active[icon.spellID] ) then
+		self:OnEvent(db.reverseFill and "UNIT_SPELLCAST_CHANNEL_START" or "UNIT_SPELLCAST_START")
 	end
 end
 
-local OmniCDCastingBarFrame_OnUpdate
-local OmniCDCastingBarFrame_OnShow
+function CastingBarFrameMixin:SetUnit(icon)
+	self.name = self.parent.name
+	self.unit = icon.guid
+	self.spellID = icon.spellID
 
-function P:GetStatusBar(icon, key)
-	local statusBar = tremove(unusedStatusBars)
-	if not statusBar then
-		numStatusBars = numStatusBars + 1
-		statusBar = CreateFrame("Frame", "OmniCDStatusBar" .. numStatusBars, UIParent, "OmniCDStatusBar")
-		statusBar.CastingBar.statusBar = statusBar
-		statusBar.CastingBar:SetScript("OnUpdate", OmniCDCastingBarFrame_OnUpdate)
-		statusBar.CastingBar:SetScript("OnShow", OmniCDCastingBarFrame_OnShow)
+	self.casting = nil
+	self.channeling = nil
+	self.holdTime = 0
+	self.fadeOut = nil
 
-		statusBar.Text:SetFontObject(E.StatusBarFont)
-		statusBar.CastingBar.Text:SetFontObject(E.StatusBarFont)
-		statusBar.CastingBar.Timer:SetFontObject(E.StatusBarFont)
-
-		local texture = E.Libs.LSM:Fetch("statusbar", E.profile.General.textures.statusBar.bar)
-		statusBar.BG:SetTexture(texture)
-		statusBar.CastingBar:SetStatusBarTexture(texture)
-		statusBar.CastingBar.BG:SetTexture(E.Libs.LSM:Fetch("statusbar", E.profile.General.textures.statusBar.BG))
-	end
-
-	local db = E.db.extraBars[key]
-	local name = gsub(self.groupInfo[icon.guid].name, "%-(.*)", "")
-	local numChar = db.truncateStatusBarName
-	if numChar > 0 then
-		name = utf8sub(name, 1, numChar)
-	end
-	statusBar.name = name
-	statusBar.Text:SetText(name)
-	statusBar.key = key
-	statusBar.icon = icon
-
-	CastingBarFrame_OnLoad(statusBar.CastingBar, db, icon)
-
-	statusBar:SetParent(icon)
-	statusBar:ClearAllPoints()
-	statusBar:SetPoint("TOPLEFT", icon, "TOPRIGHT")
-	statusBar:SetPoint("BOTTOMLEFT", icon, "BOTTOMRIGHT")
-	statusBar:Show()
-	statusBar.BG:Show()
-	statusBar.Text:Show()
-
-	icon.statusBar = statusBar
-
-	return statusBar
+	self:Hide()
 end
 
-function P:RemoveStatusBar(statusBar)
-	statusBar:Hide()
-	tinsert(unusedStatusBars, statusBar)
-end
-
-local function CastingBarFrame_FinishSpell(self)
-	if not self.finishedColorSameAsStart then
-		self:SetStatusBarColor(self.finishedCastColor:GetRGB());
-	end
-	if ( self.isSparkEnabled ) then
-		self.Spark:Hide();
-	end
-	--[[
-	if ( self.Flash ) then
-		self.Flash:SetAlpha(0.0);
-		self.Flash:Show();
-	end
-	self.flash = true;
-	]]
-	if not P.extraBars[self.statusBar.key].shouldRearrangeInterrupts then
-		self.fadeOut = true;
-	end
-	self.casting = nil;
-	self.channeling = nil;
-end
-
-local function FindStartEndTime(self, now)
-	local info = P.groupInfo[self.unit]
-	local active = info and info.active[self.spellID]
-	if active then
-
-		local modRate = active.iconModRate
-		self.modRate = modRate
-		if modRate then
-			now = now or GetTime()
-			local newTime = now - (now - active.startTime) / modRate
-			return newTime , newTime + active.duration / modRate
-		end
-		return active.startTime, active.startTime + active.duration
-	end
-end
-
-OmniCDCastingBarFrame_OnShow = function(self)
+function CastingBarFrameMixin:OnShow()
 	if ( self.unit ) then
 		--[[
 		if ( self.casting ) then
-			local startTime = FindStartEndTime(self)
+			local startTime = self:FindStartEndTime()
 			if ( startTime ) then
-				self.value = (GetTime() - startTime);
+				self.value = (GetTime() - startTime)
 			end
 		else
-			local _, endTime = FindStartEndTime(self)
+			local _, endTime = self:FindStartEndTime()
 			if ( endTime ) then
 				self.value = (endTime - GetTime())
 			end
 		end
 		]]
 		if ( self.casting or self.channeling ) then
-			local statusBar = self.statusBar
+			local statusBar = self.parent
 			statusBar.Text:Hide()
 			statusBar.BG:Hide()
 		end
 	end
 end
 
-local function CastingBarFrame_ApplyAlpha(self, alpha)
-	self:SetAlpha(alpha);
-	--[[
-	if self.additionalFadeWidgets then
-		for widget in pairs(self.additionalFadeWidgets) do
-			widget:SetAlpha(alpha);
+function CastingBarFrameMixin:OnHide()
+	local statusBar = self.parent
+	statusBar.Text:Show()
+	statusBar.BG:Show()
+
+
+	local icon = statusBar.parent
+	if ( icon.tooltipID ) then
+		icon.icon:SetTexture(icon.iconTexture)
+		icon.tooltipID = nil
+		if ( not E.db.icons.showTooltip ) then
+			icon:EnableMouse(false)
 		end
 	end
-	]]
+end
+
+function CastingBarFrameMixin:FindStartEndTime(now)
+	local active = P.groupInfo[self.unit].active[self.spellID]
+	if ( not active ) then
+		return false
+	end
+
+	local modRate = active.modRate
+	self.modRate = modRate
+	if ( not modRate ) then
+		now = now or GetTime()
+		local newTime = now - (now - active.startTime) / modRate
+		return newTime , newTime + active.duration / modRate
+	end
+	return active.startTime, active.startTime + active.duration
+end
+
+function CastingBarFrameMixin:GetEffectiveStartColor(isChannel, notInterruptible)
+	if ( self.nonInterruptibleColor and notInterruptible ) then
+		return self.nonInterruptibleColor
+	end
+
+	local icon = self.parent.parent
+	if ( icon.active ~= 0 ) then
+		return self.startRechargeColor, self.startRechargeBGColor, self.startRechargeTextColor
+	elseif ( isChannel ) then
+		return self.startChannelColor, self.startChannelBGColor, self.startChannelTextColor
+	else
+		return self.startCastColor, self.startCastBGColor, self.startCastTextColor
+	end
+end
+
+local RESET = NEWBIE_TOOLTIP_STOPWATCH_RESETBUTTON or "Reset"
+function CastingBarFrameMixin:OnEvent(event)
+	local info = P.groupInfo[self.unit]
+	if ( not info ) then
+		return
+	end
+
+	local statusBar = self.parent
+	if E.db.extraBars[statusBar.key].nameBar then
+		local isChannel = event == "UNIT_SPELLCAST_CHANNEL_START" or event == "UNIT_SPELLCAST_CHANNEL_UPDATE"
+		if ( isChannel or event == "UNIT_SPELLCAST_START" or event == "UNIT_SPELLCAST_CAST_UPDATE" ) then
+			self.casting = not isChannel
+			self.channeling = isChannel
+		elseif ( event == "UNIT_SPELLCAST_STOP" or event == "UNIT_SPELLCAST_CHANNEL_STOP" or event == "UNIT_SPELLCAST_FAILED" ) then
+			self.casting = nil
+			self.channeling = nil
+		end
+		statusBar:SetColors()
+		return
+	end
+
+	if ( event == "UNIT_SPELLCAST_START" ) then
+		local text = self.name
+		local now = GetTime()
+		local startTime, endTime = self:FindStartEndTime(now)
+		if ( not startTime ) then
+			self:Hide()
+			return
+		end
+
+		if ( info.isDeadOrOffline ) then
+			self:SetStatusBarColor(0.3, 0.3, 0.3)
+			self.BG:SetVertexColor(0.3, 0.3, 0.3)
+			self.Text:SetTextColor(0.3, 0.3, 0.3)
+		else
+			local startColor, startBGColor, startTextColor = self:GetEffectiveStartColor(false)
+			self:SetStatusBarColor(startColor:GetRGBA())
+			self.BG:SetVertexColor(startBGColor:GetRGBA())
+			self.Text:SetTextColor(startTextColor:GetRGB())
+		end
+		if ( self.isSparkEnabled ) then
+			self.Spark:Show()
+		end
+		self.value = (now - startTime)
+		self.maxValue = (endTime - startTime)
+		self:SetMinMaxValues(0, self.maxValue)
+		self:SetValue(self.value)
+		self.nextTextUpdate = 0
+		if ( self.Text ) then
+			self.Text:SetText(text)
+		end
+		self:ApplyAlpha(1.0)
+		self.holdTime = 0
+		self.casting = true
+		self.channeling = nil
+		self.fadeOut = nil
+		if ( self.showCastbar ) then
+			self:Show()
+		end
+	elseif ( event == "UNIT_SPELLCAST_STOP" or event == "UNIT_SPELLCAST_CHANNEL_STOP" ) then
+		if ( not self:IsVisible() ) then
+			self:Hide()
+		end
+		if ( self.casting and event == "UNIT_SPELLCAST_STOP" ) or ( self.channeling and event == "UNIT_SPELLCAST_CHANNEL_STOP" ) then
+			if ( self.holdTime > 0 ) then
+				return
+			end
+
+			if ( self.isSparkEnabled ) then
+				self.Spark:Hide()
+			end
+			self:SetValue(self.maxValue)
+			if ( event == "UNIT_SPELLCAST_STOP" ) then
+				self.casting = nil
+				if ( not self.finishedColorSameAsStart ) then
+					self:SetStatusBarColor(self.finishedCastColor:GetRGB())
+				end
+			else
+				self.channeling = nil
+			end
+			self.fadeOut = true
+			self.holdTime = 0
+			self.nextTextUpdate = 0
+		end
+	elseif ( event == "UNIT_SPELLCAST_FAILED" or event == "UNIT_SPELLCAST_INTERRUPTED" ) then
+		if ( self:IsShown() and (self.casting or self.channeling) and not self.fadeOut ) then
+			self:SetValue(self.maxValue)
+			self:SetStatusBarColor(self.failedCastColor:GetRGB())
+			if ( self.isSparkEnabled ) then
+				self.Spark:Hide()
+			end
+			if ( self.Text ) then
+				self.Text:SetText(RESET)
+			end
+			self.casting = nil
+			self.channeling = nil
+			self.fadeOut = true
+			self.holdTime = GetTime() + CASTING_BAR_HOLD_TIME
+			self.nextTextUpdate = 0
+		end
+	elseif ( event == "UNIT_SPELLCAST_DELAYED" ) then
+		if ( self:IsShown() ) then
+			local now = GetTime()
+			local startTime, endTime = self:FindStartEndTime(now)
+			if ( not startTime ) then
+				self:Hide()
+				return
+			end
+
+			self.value = (now - startTime)
+			self.maxValue = (endTime - startTime)
+			self:SetMinMaxValues(0, self.maxValue)
+			self.nextTextUpdate = 0
+			if ( not self.casting ) then
+				self:SetStatusBarColor(self:GetEffectiveStartColor(false):GetRGB())
+				if ( self.isSparkEnabled ) then
+					self.Spark:Show()
+				end
+				self.casting = true
+				self.channeling = nil
+				self.fadeOut = nil
+			end
+		end
+	elseif ( event == "UNIT_SPELLCAST_CAST_UPDATE" ) then
+		if ( self:IsShown() ) then
+			local now = GetTime()
+			local startTime, endTime = self:FindStartEndTime(now)
+			if ( not startTime ) then
+				self:Hide()
+				return
+			end
+
+			self.value = (now - startTime)
+			self.maxValue = (endTime - startTime)
+			self:SetMinMaxValues(0, self.maxValue)
+			self:SetValue(self.value)
+			self.nextTextUpdate = 0
+		end
+	elseif ( event == "UNIT_SPELLCAST_CHANNEL_START" ) then
+		local point, relativeTo, relativePoint, offsetX, offsetY = self:GetPoint()
+		local text = self.name
+		local now = GetTime()
+		local startTime, endTime = self:FindStartEndTime(now)
+		if ( not startTime ) then
+			self:Hide()
+			return
+		end
+
+		if ( info.isDeadOrOffline ) then
+			self:SetStatusBarColor(0.3, 0.3, 0.3)
+			self.BG:SetVertexColor(0.3, 0.3, 0.3)
+			self.Text:SetTextColor(0.3, 0.3, 0.3)
+		else
+			local startColor, startBGColor, startTextColor = self:GetEffectiveStartColor(true)
+			self:SetStatusBarColor(startColor:GetRGBA())
+			self.BG:SetVertexColor(startBGColor:GetRGBA())
+			self.Text:SetTextColor(startTextColor:GetRGB())
+		end
+
+		self.value = endTime - now
+		self.maxValue = endTime - startTime
+		self:SetMinMaxValues(0, self.maxValue)
+		self:SetValue(self.value)
+		self.nextTextUpdate = 0
+		if ( self.Text ) then
+			self.Text:SetText(text)
+		end
+		if ( self.isSparkEnabled ) then
+			self.Spark:Show()
+		end
+		self:ApplyAlpha(1.0)
+		self.holdTime = 0
+		self.casting = nil
+		self.channeling = true
+		self.fadeOut = nil
+		if ( self.showCastbar ) then
+			self:Show()
+		end
+	elseif ( event == "UNIT_SPELLCAST_CHANNEL_UPDATE" ) then
+		if ( self:IsShown() ) then
+			local now = GetTime()
+			local startTime, endTime = self:FindStartEndTime(now)
+			if ( not startTime ) then
+				self:Hide()
+				return
+			end
+
+			self.value = endTime - now
+			self.maxValue = endTime - startTime
+			self:SetMinMaxValues(0, self.maxValue)
+			self:SetValue(self.value)
+			self.nextTextUpdate = 0
+		end
+	elseif ( event == "UNIT_SPELLCAST_INTERRUPTIBLE" or event == "UNIT_SPELLCAST_NOT_INTERRUPTIBLE" ) then
+		self:UpdateInterruptibleState(event == "UNIT_SPELLCAST_NOT_INTERRUPTIBLE")
+	end
+end
+
+function CastingBarFrameMixin:UpdateInterruptibleState(notInterruptible)
+	if ( self.casting or self.channeling ) then
+		local startColor = self:GetEffectiveStartColor(self.channeling, notInterruptible)
+		self:SetStatusBarColor(startColor:GetRGB())
+	end
 end
 
 local function TimeFormat(value)
-	if value > SECONDS_PER_MIN then
-		if value <= P.mmss then
+	if ( value > SECONDS_PER_MIN ) then
+		if ( value <= P.mmss ) then
 			local secRemaining = value%SECONDS_PER_MIN
 			local sec = ceil(secRemaining)
-			if sec == SECONDS_PER_MIN then
+			if ( sec == SECONDS_PER_MIN ) then
 				return format("%d:%02d", floor(value/SECONDS_PER_MIN) + 1, 0), secRemaining%1
 			else
 				return format("%d:%02d", floor(value/SECONDS_PER_MIN), sec), secRemaining%1
@@ -271,438 +420,284 @@ local function TimeFormat(value)
 	end
 end
 
-local function OmniCDCastingBarFrame_OnHide(self)
-	local statusBar = self.statusBar
-	statusBar.Text:Show()
-	statusBar.BG:Show()
-
-
-	local icon = statusBar.icon
-	if icon.tooltipID then
-		statusBar.icon.icon:SetTexture(icon.iconTexture)
-		icon.tooltipID = nil
-		if not E.db.icons.showTooltip then
-			icon:EnableMouse(false)
-		end
-	end
-end
-
-OmniCDCastingBarFrame_OnUpdate = function(self, elapsed)
+function CastingBarFrameMixin:OnUpdate(elapsed)
 	if ( self.casting ) then
 		local modRate = self.modRate
-		if modRate then
+		if ( modRate ) then
 			elapsed = elapsed / modRate
 		end
-		self.value = self.value + elapsed;
+		self.value = self.value + elapsed
+
 		if ( self.value >= self.maxValue ) then
-			self:SetValue(self.maxValue);
-			CastingBarFrame_FinishSpell(self);
-			return;
-		end
-		self:SetValue(self.value);
-		--[[
-		if ( self.Flash ) then
-			self.Flash:Hide();
-		end
-		]]
-		if ( self.isSparkEnabled ) then
-			local sparkPosition = (self.value / self.maxValue) * self:GetWidth();
-			self.Spark:SetPoint("CENTER", self, "LEFT", sparkPosition, self.Spark.offsetY or 2);
+			self:SetValue(self.maxValue)
+			self:FinishSpell()
+			return
 		end
 
-		if self.nextTextUpdate and self.nextTextUpdate > 0 then
+		self:SetValue(self.value)
+		if ( self.isSparkEnabled ) then
+			local sparkPosition = (self.value / self.maxValue) * self:GetWidth()
+			self.Spark:SetPoint("CENTER", self, "LEFT", sparkPosition, self.Spark.offsetY or 2)
+		end
+
+		if ( self.nextTextUpdate and self.nextTextUpdate > 0 ) then
 			self.nextTextUpdate = self.nextTextUpdate - elapsed
 			return
 		end
+
 		local counter, nextTextUpdate = TimeFormat(self.maxValue - self.value)
 		self.nextTextUpdate = nextTextUpdate
 		self.Timer:SetText(counter)
 	elseif ( self.channeling ) then
 		local modRate = self.modRate
-		if modRate then
+		if ( modRate ) then
 			elapsed = elapsed / modRate
 		end
-		self.value = self.value - elapsed;
+		self.value = self.value - elapsed
+
 		if ( self.value <= 0 ) then
-			CastingBarFrame_FinishSpell(self);
-			return;
-		end
-		self:SetValue(self.value);
-		--[[
-		if ( self.Flash ) then
-			self.Flash:Hide();
-		end
-		]]
-		if ( self.isSparkEnabled ) then
-			local sparkPosition = (self.value / self.maxValue) * self:GetWidth();
-			self.Spark:SetPoint("CENTER", self, "LEFT", sparkPosition, self.Spark.offsetY or 2);
+			self:FinishSpell()
+			return
 		end
 
-		if self.nextTextUpdate and self.nextTextUpdate > 0 then
+		self:SetValue(self.value)
+		if ( self.isSparkEnabled ) then
+			local sparkPosition = (self.value / self.maxValue) * self:GetWidth()
+			self.Spark:SetPoint("CENTER", self, "LEFT", sparkPosition, self.Spark.offsetY or 2)
+		end
+
+		if ( self.nextTextUpdate and self.nextTextUpdate > 0 ) then
 			self.nextTextUpdate = self.nextTextUpdate - elapsed
 			return
 		end
+
 		local counter, nextTextUpdate = TimeFormat(self.value)
 		self.nextTextUpdate = nextTextUpdate
 		self.Timer:SetText(counter)
 	elseif ( GetTime() < self.holdTime ) then
-		return;
-	--[[
-	elseif ( self.flash ) then
-		local alpha = 0;
-		if ( self.Flash ) then
-			alpha = self.Flash:GetAlpha() + CASTING_BAR_FLASH_STEP;
-		end
-		if ( alpha < 1 ) then
-			if ( self.Flash ) then
-				self.Flash:SetAlpha(alpha);
-			end
-		else
-			if ( self.Flash ) then
-				self.Flash:SetAlpha(1.0);
-			end
-			self.flash = nil;
-		end
-	]]
+		return
 	elseif ( self.fadeOut ) then
-		local alpha = self:GetAlpha() - CASTING_BAR_ALPHA_STEP;
+		local alpha = self:GetAlpha() - CASTING_BAR_ALPHA_STEP
 		if ( alpha > 0 ) then
-			CastingBarFrame_ApplyAlpha(self, alpha);
+			self:ApplyAlpha(alpha)
 		else
-			self.fadeOut = nil;
-			self:Hide();
-
-			OmniCDCastingBarFrame_OnHide(self)
+			self.fadeOut = nil
+			self:Hide()
+			self:OnHide()
 		end
 	else
-		self:Hide();
-
-		OmniCDCastingBarFrame_OnHide(self)
+		self:Hide()
+		self:OnHide()
 	end
 end
 
-local function CastingBarFrame_GetEffectiveStartColor(self, isChannel, notInterruptible)
-	if self.nonInterruptibleColor and notInterruptible then
-		return self.nonInterruptibleColor;
+function CastingBarFrameMixin:ApplyAlpha(alpha)
+	self:SetAlpha(alpha)
+end
+
+function CastingBarFrameMixin:FinishSpell()
+	if ( not self.finishedColorSameAsStart ) then
+		self:SetStatusBarColor(self.finishedCastColor:GetRGB())
+	end
+	if ( self.isSparkEnabled ) then
+		self.Spark:Hide()
 	end
 
-	local icon = self.statusBar.icon
-	local charges = icon.maxcharges and tonumber(icon.count:GetText())
-	if charges and charges > 0 then
-		return self.startRechargeColor, self.startRechargeBGColor, self.startRechargeTextColor
-	elseif isChannel then
-		return self.startChannelColor, self.startChannelBGColor, self.startChannelTextColor
+	if ( not E.db.extraBars[self.parent.key].shouldRearrangeInterrupts ) then
+		self.fadeOut = true
+	end
+	self.casting = nil
+	self.channeling = nil
+end
+
+local StatusBarFrameMixin = {}
+
+function StatusBarFrameMixin:UpdateTexture(texture1, texture2)
+	self.BG:SetTexture(texture1)
+	self.CastingBar:SetStatusBarTexture(texture1)
+	self.CastingBar.BG:SetTexture(texture2)
+end
+
+function StatusBarFrameMixin:UpdateSettings(db)
+	self:SetWidth(db.statusBarWidth)
+	self:SetColors(db)
+
+	local text = self.Text
+	text:ClearAllPoints()
+	if ( db.nameBar and db.invertNameBar ) then
+		text:SetPoint("TOPLEFT", self.parent, "TOPLEFT", -db.statusBarWidth + db.textOfsX, db.textOfsY)
+		text:SetPoint("BOTTOMRIGHT", self.parent, "BOTTOMLEFT", -db.textOfsX, db.textOfsY)
+		text:SetJustifyH("RIGHT")
 	else
-		return self.startCastColor, self.startCastBGColor, self.startCastTextColor
+		text:SetPoint("LEFT", self, db.textOfsX, db.textOfsY)
+		text:SetPoint("RIGHT", self, -3, db.textOfsY)
+		text:SetJustifyH("LEFT")
 	end
+	text:SetScale(db.textScale)
+
+	local castingBar = self.CastingBar
+	castingBar.Timer:SetPoint("RIGHT", castingBar, -3, db.textOfsY)
+	castingBar.Text:SetPoint("LEFT", castingBar, db.textOfsX, db.textOfsY)
+	castingBar.Text:SetScale(db.textScale)
 end
 
-local function CastingBarFrame_UpdateInterruptibleState(self, notInterruptible)
-	if ( self.casting or self.channeling ) then
-		local startColor = CastingBarFrame_GetEffectiveStartColor(self, self.channeling, notInterruptible);
-		self:SetStatusBarColor(startColor:GetRGB());
-		--[[
-		if self.flashColorSameAsStart then
-			self.Flash:SetVertexColor(startColor:GetRGB());
-		end
+function StatusBarFrameMixin:SetColors(db)
+	local icon = self.parent
+	local info = P.groupInfo[icon.guid]
 
-		if ( self.BorderShield ) then
-			if ( self.showShield and notInterruptible ) then
-				self.BorderShield:Show();
-				if ( self.BarBorder ) then
-					self.BarBorder:Hide();
-				end
-			else
-				self.BorderShield:Hide();
-				if ( self.BarBorder ) then
-					self.BarBorder:Show();
-				end
-			end
-		end
+	db = db or E.db.extraBars[self.key]
 
-		if ( self.Icon and self.iconWhenNoninterruptible ) then
-			self.Icon:SetShown(not notInterruptible);
+	if ( info.isDeadOrOffline ) then
+		if ( icon.active ) then
+			local castingBar = self.CastingBar
+			castingBar:SetStatusBarColor(0.3, 0.3, 0.3)
+			castingBar.BG:SetVertexColor(0.3, 0.3, 0.3)
+			castingBar.Text:SetVertexColor(0.3, 0.3, 0.3)
 		end
-		]]
+		self.BG:SetVertexColor(0.3, 0.3, 0.3)
+		self.Text:SetTextColor(0.3, 0.3, 0.3)
+	elseif ( db.nameBar ) then
+		if ( icon.active ) then
+			local castingBar = self.CastingBar
+			local _,_, startTextColor = castingBar:GetEffectiveStartColor(castingBar.channeling)
+			self.Text:SetTextColor(startTextColor:GetRGB())
+		else
+			local classColor = RAID_CLASS_COLORS[icon.class]
+			local c = db.textColors.useClassColor.inactive and classColor or db.textColors.inactiveColor
+			self.Text:SetTextColor(c.r, c.g, c.b)
+		end
+	else
+		if ( icon.active ) then
+			local castingBar = self.CastingBar
+			local startColor, startBGColor, startTextColor = castingBar:GetEffectiveStartColor(castingBar.channeling)
+			castingBar:SetStatusBarColor(startColor:GetRGBA())
+			castingBar.BG:SetVertexColor(startBGColor:GetRGBA())
+			castingBar.Text:SetTextColor(startTextColor:GetRGB())
+		end
+		local classColor = RAID_CLASS_COLORS[icon.class]
+		local c = db.textColors.useClassColor.inactive and classColor or db.textColors.inactiveColor
+		self.Text:SetTextColor(c.r, c.g, c.b)
+		if ( info.preactiveIcons[icon.spellID] and not E.forbearanceIDs[icon.spellID] ) then
+			self.BG:SetVertexColor(0.7, 0.7, 0.7)
+		else
+			c = db.barColors.useClassColor.inactive and classColor or db.barColors.inactiveColor
+			self.BG:SetVertexColor(c.r, c.g, c.b, db.useIconAlpha and 1 or db.barColors.inactiveColor.a)
+		end
 	end
+
+	self.Text:SetShown(db.nameBar or not icon.active)
+	self.BG:SetShown(not db.nameBar and not icon.active)
 end
 
-function P.OmniCDCastingBarFrame_OnEvent(self, event)
-	local info = P.groupInfo[self.unit]
-	if not info then
+function StatusBarFrameMixin:SetBorder(db, edgeSize, r, g, b)
+	if ( db.nameBar ) then
+		self:DisableDrawLayer("BORDER")
 		return
 	end
 
-	local statusBar = self.statusBar
-	if E.db.extraBars[statusBar.key].nameBar then
-		local isChannel = event == 'UNIT_SPELLCAST_CHANNEL_START' or event == 'UNIT_SPELLCAST_CHANNEL_UPDATE'
-		local _,_, startTextColor = CastingBarFrame_GetEffectiveStartColor(self, isChannel, notInterruptible);
-		if ( isChannel or event == 'UNIT_SPELLCAST_START' or event == 'UNIT_SPELLCAST_CAST_UPDATE' ) then
-			if info.isDeadOrOffline then
-				statusBar.Text:SetTextColor(0.3, 0.3, 0.3)
-			else
-				statusBar.Text:SetTextColor(startTextColor:GetRGB())
-			end
-		elseif ( event == 'UNIT_SPELLCAST_STOP' or event == 'UNIT_SPELLCAST_CHANNEL_STOP' or event == 'UNIT_SPELLCAST_FAILED' ) then
-			P:SetExStatusBarColor(statusBar:GetParent(), statusBar.key)
-		end
+	self:EnableDrawLayer("BORDER")
 
+	self.borderTop:Hide()
+	self.borderTop:ClearAllPoints()
+	self.borderTop:SetPoint("TOPLEFT", self, "TOPLEFT")
+	self.borderTop:SetPoint("BOTTOMRIGHT", self, "TOPRIGHT", 0, -edgeSize)
+
+	self.borderBottom:Hide()
+	self.borderBottom:ClearAllPoints()
+	self.borderBottom:SetPoint("BOTTOMLEFT", self, "BOTTOMLEFT")
+	self.borderBottom:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, edgeSize)
+
+	self.borderRight:Hide()
+	self.borderRight:ClearAllPoints()
+	self.borderRight:SetPoint("TOPRIGHT", self.borderTop, "BOTTOMRIGHT")
+	self.borderRight:SetPoint("BOTTOMLEFT", self.borderBottom, "TOPRIGHT", -edgeSize, 0)
+
+	if ( db.hideBorder ) then
 		return
 	end
+	self.borderTop:SetColorTexture(r, g, b)
+	self.borderTop:Show()
+	self.borderBottom:SetColorTexture(r, g, b)
+	self.borderBottom:Show()
+	self.borderRight:SetColorTexture(r, g, b)
+	self.borderRight:Show()
+end
 
-	if ( event == 'UNIT_SPELLCAST_START' ) then
-		local text, texture, notInterruptible = self.name
-		local now = GetTime()
-		local startTime, endTime = FindStartEndTime(self, now)
-		if ( not startTime ) then
-			self:Hide();
-			return;
-		end
+function P:CreateStatusBarFramePool()
+	local function initializeFunc(framePool, statusBar)
+		local castingBar = statusBar.CastingBar
+		Mixin(castingBar, CastingBarFrameMixin)
+		Mixin(statusBar, StatusBarFrameMixin)
 
-		if info.isDeadOrOffline then
-			self:SetStatusBarColor(0.3, 0.3, 0.3)
-			self.BG:SetVertexColor(0.3, 0.3, 0.3)
-			self.Text:SetTextColor(0.3, 0.3, 0.3)
-		else
-			local startColor, startBGColor, startTextColor = CastingBarFrame_GetEffectiveStartColor(self, false, notInterruptible);
-			self:SetStatusBarColor(startColor:GetRGBA());
-			self.BG:SetVertexColor(startBGColor:GetRGBA())
-			self.Text:SetTextColor(startTextColor:GetRGB())
-		end
-		--[[
-		if self.flashColorSameAsStart then
-			self.Flash:SetVertexColor(startColor:GetRGB());
-		else
-			self.Flash:SetVertexColor(1, 1, 1);
-		end
-		]]
-		if ( self.isSparkEnabled ) then
-			self.Spark:Show();
-		end
-		self.value = (now - startTime);
-		self.maxValue = (endTime - startTime);
-		self:SetMinMaxValues(0, self.maxValue);
-		self:SetValue(self.value);
-		self.nextTextUpdate = 0
-		if ( self.Text ) then
-			self.Text:SetText(text);
-		end
-		--[[
-		if ( self.Icon and texture) then
-			self.Icon:SetTexture(texture);
-			if ( self.iconWhenNoninterruptible ) then
-				self.Icon:SetShown(not notInterruptible);
-			end
-		end
-		]]
-		CastingBarFrame_ApplyAlpha(self, 1.0);
-		self.holdTime = 0;
-		self.casting = true;
+		local setting = E.profile.General.textures.statusBar
+		statusBar:UpdateTexture(E.Libs.LSM:Fetch("statusbar", setting.bar), E.Libs.LSM:Fetch("statusbar", setting.BG))
 
-		self.channeling = nil;
-		self.fadeOut = nil;
-		--[[
-		if ( self.BorderShield ) then
-			if ( self.showShield and notInterruptible ) then
-				self.BorderShield:Show();
-				if ( self.BarBorder ) then
-					self.BarBorder:Hide();
-				end
-			else
-				self.BorderShield:Hide();
-				if ( self.BarBorder ) then
-					self.BarBorder:Show();
-				end
-			end
-		end
-		]]
-		if ( self.showCastbar ) then
-			self:Show();
-		end
-	elseif ( event == 'UNIT_SPELLCAST_STOP' or event == 'UNIT_SPELLCAST_CHANNEL_STOP' ) then
-		if ( not self:IsVisible() ) then
-			self:Hide();
-		end
-		if ( self.casting and event == 'UNIT_SPELLCAST_STOP' ) or ( self.channeling and event == 'UNIT_SPELLCAST_CHANNEL_STOP' ) then
-			if self.holdTime > 0 then
-				return
-			end
+		statusBar.Text:SetFontObject(E.StatusBarFont)
+		statusBar.BG:SetTexelSnappingBias(0.0)
+		statusBar.BG:SetSnapToPixelGrid(false)
+		statusBar.borderTop:SetTexelSnappingBias(0.0)
+		statusBar.borderTop:SetSnapToPixelGrid(false)
+		statusBar.borderBottom:SetTexelSnappingBias(0.0)
+		statusBar.borderBottom:SetSnapToPixelGrid(false)
+		statusBar.borderRight:SetTexelSnappingBias(0.0)
+		statusBar.borderRight:SetSnapToPixelGrid(false)
 
-			if ( self.isSparkEnabled ) then
-				self.Spark:Hide();
-			end
-			--[[
-			if ( self.Flash ) then
-				self.Flash:SetAlpha(0.0);
-				self.Flash:Show();
-			end
-			]]
-			self:SetValue(self.maxValue);
-			if ( event == 'UNIT_SPELLCAST_STOP' ) then
-				self.casting = nil;
-				if not self.finishedColorSameAsStart then
-					self:SetStatusBarColor(self.finishedCastColor:GetRGB());
-				end
-			else
-				self.channeling = nil;
-			end
+		castingBar.parent = statusBar
+		castingBar.Text:SetFontObject(E.StatusBarFont)
+		castingBar.Timer:SetFontObject(E.StatusBarFont)
+		castingBar:SetScript("OnUpdate", castingBar.OnUpdate)
+		castingBar:SetScript("OnShow", castingBar.OnShow)
+		local castingBarTexture = castingBar:GetStatusBarTexture()
+		castingBarTexture:SetTexelSnappingBias(0.0)
+		castingBarTexture:SetSnapToPixelGrid(false)
+		castingBar.BG:SetTexelSnappingBias(0.0)
+		castingBar.BG:SetSnapToPixelGrid(false)
+	end
 
-			self.fadeOut = true;
-			self.holdTime = 0;
-			self.nextTextUpdate = 0
-		end
-	elseif ( event == 'UNIT_SPELLCAST_FAILED' or event == 'UNIT_SPELLCAST_INTERRUPTED' ) then
-		if ( self:IsShown() and (self.casting or self.channeling) and not self.fadeOut ) then
-			self:SetValue(self.maxValue);
-			self:SetStatusBarColor(self.failedCastColor:GetRGB());
-			if ( self.isSparkEnabled ) then
-				self.Spark:Hide();
-			end
-			if ( self.Text ) then
-				--[[
-				if ( event == 'UNIT_SPELLCAST_FAILED' ) then
-					self.Text:SetText(FAILED);
-				else
-					self.Text:SetText(INTERRUPTED);
-				end
-				]]
-				self.Text:SetText(RESET)
-			end
-			self.casting = nil;
-			self.channeling = nil;
-			self.fadeOut = true;
-			self.holdTime = GetTime() + CASTING_BAR_HOLD_TIME;
-			self.nextTextUpdate = 0
-		end
-	elseif ( event == 'UNIT_SPELLCAST_DELAYED' ) then
-		if ( self:IsShown() ) then
-			local notInterruptible
-			local now = GetTime()
-			local startTime, endTime = FindStartEndTime(self, now)
-			if ( not startTime ) then
-				self:Hide();
-				return;
-			end
-			self.value = (now - startTime);
-			self.maxValue = (endTime - startTime);
-			self:SetMinMaxValues(0, self.maxValue);
-			self.nextTextUpdate = 0
-			if ( not self.casting ) then
-				self:SetStatusBarColor(CastingBarFrame_GetEffectiveStartColor(self, false, notInterruptible):GetRGB());
-				if ( self.isSparkEnabled ) then
-					self.Spark:Show();
-				end
-				--[[
-				if ( self.Flash ) then
-					self.Flash:SetAlpha(0.0);
-					self.Flash:Hide();
-				end
-				]]
-				self.casting = true;
-				self.channeling = nil;
+	local function resetterFunc(framePool, statusBar)
+		statusBar:Hide()
+	end
 
-				self.fadeOut = nil;
-			end
-		end
-	elseif ( event == 'UNIT_SPELLCAST_CAST_UPDATE' ) then
-		if ( self:IsShown() ) then
-			local now = GetTime()
-			local startTime, endTime = FindStartEndTime(self, now)
-			if ( not startTime ) then
-				self:Hide();
-				return;
-			end
-			self.value = (now - startTime)
-			self.maxValue = (endTime - startTime)
-			self:SetMinMaxValues(0, self.maxValue);
-			self:SetValue(self.value);
-			self.nextTextUpdate = 0
-		end
-	elseif ( event == 'UNIT_SPELLCAST_CHANNEL_START' ) then
-		local text, texture, notInterruptible = self.name
-		local now = GetTime()
-		local startTime, endTime = FindStartEndTime(self, now)
-		if ( not startTime ) then
-			self:Hide();
-			return;
-		end
+	self.StatusBarPool = E:CreateFramePool("Frame", UIParent, "OmniCDStatusBar", resetterFunc, initializeFunc)
+end
 
-		if info.isDeadOrOffline then
-			self:SetStatusBarColor(0.3, 0.3, 0.3)
-			self.BG:SetVertexColor(0.3, 0.3, 0.3)
-			self.Text:SetTextColor(0.3, 0.3, 0.3)
-		else
-			local startColor, startBGColor, startTextColor = CastingBarFrame_GetEffectiveStartColor(self, true, notInterruptible);
-			--[[
-			if self.flashColorSameAsStart then
-				self.Flash:SetVertexColor(startColor:GetRGB());
-			else
-				self.Flash:SetVertexColor(1, 1, 1);
-			end
-			]]
-			self:SetStatusBarColor(startColor:GetRGBA());
-			self.BG:SetVertexColor(startBGColor:GetRGBA())
-			self.Text:SetTextColor(startTextColor:GetRGB())
-		end
+function P:GetStatusBarFrame(icon, key, nameWithoutRealm)
+	local statusBar = self.StatusBarPool:Acquire()
+	local db = E.db.extraBars[key]
 
-		self.value = endTime - now;
-		self.maxValue = endTime - startTime;
-		self:SetMinMaxValues(0, self.maxValue);
-		self:SetValue(self.value);
-		self.nextTextUpdate = 0
-		if ( self.Text ) then
-			self.Text:SetText(text);
-		end
-		--[[
-		if ( self.Icon ) then
-			self.Icon:SetTexture(texture);
-		end
-		]]
-		if ( self.isSparkEnabled ) then
-			self.Spark:Show();
-		end
-		CastingBarFrame_ApplyAlpha(self, 1.0);
-		self.holdTime = 0;
-		self.casting = nil;
-		self.channeling = true;
-		self.fadeOut = nil;
-		--[[
-		if ( self.BorderShield ) then
-			if ( self.showShield and notInterruptible ) then
-				self.BorderShield:Show();
-				if ( self.BarBorder ) then
-					self.BarBorder:Hide();
-				end
-			else
-				self.BorderShield:Hide();
-				if ( self.BarBorder ) then
-					self.BarBorder:Show();
-				end
-			end
-		end
-		]]
-		if ( self.showCastbar ) then
-			self:Show();
-		end
-	elseif ( event == 'UNIT_SPELLCAST_CHANNEL_UPDATE' ) then
-		if ( self:IsShown() ) then
-			local now = GetTime()
-			local startTime, endTime = FindStartEndTime(self, now)
-			if ( not startTime ) then
-				self:Hide();
-				return;
-			end
-			self.value = (endTime - now)
-			self.maxValue = endTime - startTime
-			self:SetMinMaxValues(0, self.maxValue);
-			self:SetValue(self.value);
-			self.nextTextUpdate = 0
-		end
-	elseif ( event == 'UNIT_SPELLCAST_INTERRUPTIBLE' or event == 'UNIT_SPELLCAST_NOT_INTERRUPTIBLE' ) then
-		CastingBarFrame_UpdateInterruptibleState(self, event == 'UNIT_SPELLCAST_NOT_INTERRUPTIBLE');
+	local numChar = db.truncateStatusBarName
+	if ( numChar > 0 ) then
+		nameWithoutRealm = string.utf8sub(nameWithoutRealm, 1, numChar)
+	end
+	statusBar.name = nameWithoutRealm
+	statusBar.Text:SetText(nameWithoutRealm)
+	statusBar.key = key
+	statusBar.parent = icon
+	statusBar:SetParent(icon)
+	statusBar:ClearAllPoints()
+	statusBar:SetPoint("TOPLEFT", icon, "TOPRIGHT")
+	statusBar:SetPoint("BOTTOMLEFT", icon, "BOTTOMRIGHT")
+	statusBar:Show()
+	statusBar.BG:Show()
+	statusBar.Text:Show()
+	statusBar.CastingBar:OnLoad(db, icon)
+
+	icon.statusBar = statusBar
+	return statusBar
+end
+
+function P:UpdateStatusBarTextures()
+	local texture1 = E.Libs.LSM:Fetch("statusbar", E.profile.General.textures.statusBar.bar)
+	local texture2 = E.Libs.LSM:Fetch("statusbar", E.profile.General.textures.statusBar.BG)
+	for statusBar in self.StatusBarPool:EnumerateAll() do
+		statusBar:UpdateTexture(texture1, texture2)
 	end
 end
 
-P.unusedStatusBars = unusedStatusBars
-P.CastingBarFrame_OnLoad = CastingBarFrame_OnLoad
-P.CastingBarFrame_GetEffectiveStartColor = CastingBarFrame_GetEffectiveStartColor
+function P:UpateStatusBarTimerFormat()
+	local db = E.profile.General.cooldownText.statusBar
+	self.mmss = db.mmss
+	self.ss = db.ss
+	self.mmssColor = db.mmssColor
+	self.ssColor = db.ssColor
+end

@@ -1,5 +1,5 @@
 local myname, ns = ...
-local myfullname = GetAddOnMetadata(myname, "Title")
+local myfullname = C_AddOns.GetAddOnMetadata(myname, "Title")
 
 local isClassic = WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE
 
@@ -41,25 +41,12 @@ local function makeSlider(parent, key, label, minValue, maxValue, step, formatte
     frame.Slider.Thumb = frame.Slider:CreateTexture()
     frame.Slider:SetThumbTexture(frame.Slider.Thumb)
     frame.Slider:SetSize(200, 19)
-    if isClassic then
-        frame.Slider.Left:SetTexture([[Interface\Buttons\UI-SilverButtonLG-Left-Up]])
-        frame.Slider.Left:SetSize(11, 17)
-        frame.Slider.Left:SetPoint("TOP", 0, -4)
-        frame.Slider.Right:SetTexture([[Interface\Buttons\UI-SilverButtonLG-Right-Up]])
-        frame.Slider.Right:SetSize(11, 17)
-        frame.Slider.Right:SetPoint("TOP", 0, -4)
-        frame.Slider.Middle:SetTexture([[Interface\Buttons\UI-SilverButtonLG-Mid-Up]])
-        frame.Slider.Middle:SetHeight(17)
-        frame.Slider.Middle:SetPoint("TOP", 0, -4)
-        -- frame.Slider.Thumb:SetTexture([[Interface\Buttons\UI-SliderBar-Button-Horizontal]])
-        frame.Slider.Thumb:SetTexture([[Interface\COMMON\Indicator-Yellow]]) -- Gray, Red
-        frame.Slider.Thumb:SetSize(24, 24)
-    else
-        frame.Slider.Left:SetAtlas("Minimal_SliderBar_Left", true)
-        frame.Slider.Right:SetAtlas("Minimal_SliderBar_Right", true)
-        frame.Slider.Middle:SetAtlas("_Minimal_SliderBar_Middle", true)
-        frame.Slider.Thumb:SetAtlas("Minimal_SliderBar_Button", true)
-    end
+
+    frame.Slider.Left:SetAtlas("Minimal_SliderBar_Left", true)
+    frame.Slider.Right:SetAtlas("Minimal_SliderBar_Right", true)
+    frame.Slider.Middle:SetAtlas("_Minimal_SliderBar_Middle", true)
+    frame.Slider.Thumb:SetAtlas("Minimal_SliderBar_Button", true)
+
     -- frame.Slider:SetPoint("TOPLEFT", frame, 19)
     -- frame.Slider:SetPoint("BOTTOMRIGHT", frame, -19)
     formatter = formatter or function(value) return string.format("%.1f", value) end
@@ -78,7 +65,6 @@ local function makeSlider(parent, key, label, minValue, maxValue, step, formatte
         end
     end)
     frame.OnStepperClicked = function(self, forward)
-        print("OnStepperClicked", forward)
         local value = self.Slider:GetValue()
         if forward then
             self.Slider:SetValue(value + self.Slider:GetValueStep())
@@ -102,14 +88,8 @@ local function makeSlider(parent, key, label, minValue, maxValue, step, formatte
     frame.Forward.Background:SetPoint("CENTER")
     frame.Forward:SetScript("OnClick", function() frame:OnStepperClicked(true) end)
 
-    if isClassic then
-        frame.Back.Background:SetAtlas("BackArrow-Brown", true)
-        frame.Forward.Background:SetAtlas("BackArrow-Brown", true)
-        frame.Forward.Background:SetRotation(math.pi)
-    else
-        frame.Back.Background:SetAtlas("Minimal_SliderBar_Button_Left", true)
-        frame.Forward.Background:SetAtlas("Minimal_SliderBar_Button_Right", true)
-    end
+    frame.Back.Background:SetAtlas("Minimal_SliderBar_Button_Left", true)
+    frame.Forward.Background:SetAtlas("Minimal_SliderBar_Button_Right", true)
 
     frame.RightText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     frame.RightText:SetPoint("LEFT", frame.Slider, "RIGHT", 25, 0)
@@ -247,7 +227,7 @@ local function makeItemButton(parent)
     -- classic
     if not button.SetItem then
         function button:SetItem(item)
-            local itemID, itemType, itemSubType, itemEquipLoc, icon, classID, subclassID = GetItemInfoInstant(item)
+            local itemID, itemType, itemSubType, itemEquipLoc, icon, classID, subclassID = C_Item.GetItemInfoInstant(item)
             if itemID then
                 self.itemID = itemID
                 SetItemButtonTexture(button, icon)
@@ -257,7 +237,7 @@ local function makeItemButton(parent)
             return self.itemID
         end
         function button:GetItemLink()
-            return select(2, GetItemInfo(self.itemID))
+            return select(2, C_Item.GetItemInfo(self.itemID))
         end
     end
     button:SetScript("OnEnter", button_onenter)
@@ -267,149 +247,143 @@ end
 
 local function makeConfigPanel(id, name, parent, parentname)
     local frame
-    if _G.Settings and type(_G.Settings) == "table" and _G.Settings.RegisterAddOnCategory then
-        frame = CreateFrame("Frame")
-        frame.OnCommit = function() end
-        frame.OnDefault = function() end
-        frame.OnRefresh = function() end
 
-        local category, layout
-        if parent then
-            local parentcategory = Settings.GetCategory(parent)
-            category, layout = Settings.RegisterCanvasLayoutSubcategory(parentcategory, frame, name)
-        else
-            category, layout = Settings.RegisterCanvasLayoutCategory(frame, name)
-            Settings.RegisterAddOnCategory(category)
-        end
-        category.ID = id
-        layout:AddAnchorPoint("TOPLEFT", 10, -10)
-        layout:AddAnchorPoint("BOTTOMRIGHT", -10, 10)
+    frame = CreateFrame("Frame")
+    frame.OnCommit = function() end
+    frame.OnDefault = function() end
+    frame.OnRefresh = function() end
+
+    local category, layout
+    if parent then
+        local parentcategory = Settings.GetCategory(parent)
+        category, layout = Settings.RegisterCanvasLayoutSubcategory(parentcategory, frame, name)
     else
-        frame = CreateFrame("Frame", nil, InterfaceOptionsFramePanelContainer)
-        frame.name = name
-        frame.parent = parentname
-        InterfaceOptions_AddCategory(frame)
+        category, layout = Settings.RegisterCanvasLayoutCategory(frame, name)
+        Settings.RegisterAddOnCategory(category)
     end
+    category.ID = id
+    layout:AddAnchorPoint("TOPLEFT", 10, -10)
+    layout:AddAnchorPoint("BOTTOMRIGHT", -10, 10)
+
     frame:Hide()
     return frame
 end
 
 -- actual config panel:
-
-local demoButtons = {}
-local function refresh(_, value)
-    ns.RefreshOverlayFrames()
-    for itemID, button in pairs(demoButtons) do
-        ns.CleanButton(button)
-        ns.UpdateButtonFromItem(button, Item:CreateFromItemID(itemID), "character")
-    end
-end
-
-do
-    local frame = makeConfigPanel(myname, myfullname)
-    local title = makeTitle(frame, SHOW_ITEM_LEVEL)
-    title:SetPoint("TOPLEFT", frame)
-
-    local checkboxes = {
-        {"bags", BAGSLOTTEXT},
-        {"character", ORDER_HALL_EQUIPMENT_SLOTS},
-        {"inspect", INSPECT},
-        {"loot", LOOT},
-        {"characteravg", "Character average item level"},
-        {"inspectavg", "Inspect average item level"},
-    }
-    if isClassic then
-        table.insert(checkboxes, {"tooltip", "Item tooltips", "Add the item level to tooltips"})
-    end
-
-    local last = makeCheckboxList(frame, checkboxes, title, refresh)
-
-    last = makeCheckboxList(frame, {
-        {false, "Selectiveness"},
-        {"equipment", "Show on equippable items"},
-        {"battlepets", "Show on battle pets"},
-        {"reagents", "Show on crafting reagents"},
-        {"misc", "Show on anything else"},
-    }, last, refresh)
-
-    local values = {}
-    for label, value in pairs(Enum.ItemQuality) do
-        values[value] = label
-    end
-    local quality = makeDropdown(frame, "quality", "Minimum item quality to show", values, refresh)
-    quality:SetPoint("TOPLEFT", last, "BOTTOMLEFT", 0, -4)
-
-    -- Settings.OpenToCategory(myname)
-end
-
-do
-    local frame = makeConfigPanel(myname.."_appearance", APPEARANCE_LABEL, myname, myfullname)
-    local demo = CreateFrame("Frame", nil, frame)
-    if isClassic then
-        demo:SetPoint("TOPLEFT", frame, 0, -8)
-    else
-        demo:SetPoint("TOPLEFT", frame)
-    end
-    demo:SetPoint("RIGHT", frame)
-    demo:SetHeight(43)
-
-    demo:SetScript("OnShow", function()
-        local previousButton
-        for _, itemID in ipairs(isClassic and {19019, 19364, 10328, 11122, 23192, 7997, 14047} or {120978, 186414, 195527, 194065, 197957, 77256, 86079, 44168}) do
-            local button = makeItemButton(demo)
-            if not previousButton then
-                button:SetPoint("TOPLEFT", 112, -2)
-            else
-                button:SetPoint("TOPLEFT", previousButton, "TOPRIGHT", 2, 0)
-            end
-            button:SetItem(itemID)
+function ns:SetupConfig()
+    local demoButtons = {}
+    local function refresh(_, value)
+        ns.RefreshOverlayFrames()
+        for itemID, button in pairs(demoButtons) do
+            ns.CleanButton(button)
             ns.UpdateButtonFromItem(button, Item:CreateFromItemID(itemID), "character")
-            demoButtons[itemID] = button
-            previousButton = button
         end
-        demo:SetScript("OnShow", nil)
-    end)
-
-    local title = makeTitle(frame, APPEARANCE_LABEL)
-    -- title:SetPoint("TOPLEFT", frame)
-    title:SetPoint("TOPLEFT", demo, "BOTTOMLEFT", 0, -4)
-
-    local fonts = {}
-    for k,v in pairs(ns.Fonts) do
-        fonts[k] = k
     end
-    local font = makeDropdown(frame, "font", "Font", fonts, refresh)
-    font:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -4)
 
-    local positions = {}
-    for k,v in pairs(ns.PositionOffsets) do
-        positions[k] = k
+    do
+        local frame = makeConfigPanel(myname, myfullname)
+        local title = makeTitle(frame, SHOW_ITEM_LEVEL)
+        title:SetPoint("TOPLEFT", frame)
+
+        local checkboxes = {
+            {"bags", BAGSLOTTEXT},
+            {"character", ORDER_HALL_EQUIPMENT_SLOTS},
+            {"flyout", "Equipment flyouts"},
+            {"inspect", INSPECT},
+            {"loot", LOOT},
+            {"characteravg", "Character average item level"},
+            {"inspectavg", "Inspect average item level"},
+        }
+        if isClassic or ns.db.tooltip then
+            table.insert(checkboxes, {"tooltip", "Item tooltips", "Add the item level to tooltips"})
+        end
+
+        local last = makeCheckboxList(frame, checkboxes, title, refresh)
+
+        last = makeCheckboxList(frame, {
+            {false, "Selectiveness"},
+            {"equipment", "Show on equippable items"},
+            {"battlepets", "Show on battle pets"},
+            {"reagents", "Show on crafting reagents"},
+            {"misc", "Show on anything else"},
+        }, last, refresh)
+
+        local values = {}
+        for label, value in pairs(Enum.ItemQuality) do
+            values[value] = label
+        end
+        local quality = makeDropdown(frame, "quality", "Minimum item quality to show", values, refresh)
+        quality:SetPoint("TOPLEFT", last, "BOTTOMLEFT", 0, -4)
+
+        -- Settings.OpenToCategory(myname)
     end
-    local position = makeDropdown(frame, "position", "Position of item level", positions, refresh)
-    position:SetPoint("TOPLEFT", font, "BOTTOMLEFT", 0, -4)
-    local positionup = makeDropdown(frame, "positionup", "Position of upgrade indicator", positions, refresh)
-    positionup:SetPoint("TOPLEFT", position, "BOTTOMLEFT", 0, -4)
 
-    local positionmissing = makeDropdown(frame, "positionmissing", "Position of missing indicator", positions, refresh)
-    positionmissing:SetPoint("TOPLEFT", positionup, "BOTTOMLEFT", 0, -4)
-    local scaleup = makeSlider(frame, "scaleup", "Size of upgrade indicator", 0.5, 3, 0.1, nil, refresh, true)
-    scaleup:SetPoint("TOPLEFT", positionmissing, "BOTTOMLEFT", 0, -4)
+    do
+        local frame = makeConfigPanel(myname.."_appearance", APPEARANCE_LABEL, myname, myfullname)
+        local demo = CreateFrame("Frame", nil, frame)
 
-    local positionbound = makeDropdown(frame, "positionbound", "Position of soulbound indicator", positions, refresh)
-    positionbound:SetPoint("TOPLEFT", scaleup, "BOTTOMLEFT", 0, -4)
-    local scalebound = makeSlider(frame, "scalebound", "Size of soulbound indicator", 0.5, 3, 0.1, nil, refresh, true)
-    scalebound:SetPoint("TOPLEFT", positionbound, "BOTTOMLEFT", 0, -4)
+        demo:SetPoint("TOPLEFT", frame)
+        demo:SetPoint("RIGHT", frame)
+        demo:SetHeight(43)
 
-    makeCheckboxList(frame, {
-        {false, DISPLAY_HEADER},
-        {"itemlevel", SHOW_ITEM_LEVEL, "Do you want to disable the core feature of this addon? Maybe."},
-        {"upgrades", ("Flag upgrade items (%s)"):format(ns.upgradeString)},
-        {"missinggems", ("Flag items missing gems (%s)"):format(ns.gemString)},
-        {"missingenchants", ("Flag items missing enchants (%s)"):format(ns.enchantString)},
-        {"missingcharacter", "...missing gems/enchants on the character frame only?"},
-        {"bound", ("Flag items that are %s (%s)"):format(ITEM_SOULBOUND, CreateAtlasMarkup(ns.soulboundAtlas)), "Only on items you control; bags and character"},
-        {"color", "Color item level by item quality"},
-    }, scalebound, refresh)
+        demo:SetScript("OnShow", function()
+            local previousButton
+            for _, itemID in ipairs(isClassic and {19019, 19364, 10328, 11122, 23192, 7997, 14047} or {120978, 186414, 195527, 194065, 197957, 77256, 86079, 44168}) do
+                local button = makeItemButton(demo)
+                if not previousButton then
+                    button:SetPoint("TOPLEFT", 112, -2)
+                else
+                    button:SetPoint("TOPLEFT", previousButton, "TOPRIGHT", 2, 0)
+                end
+                button:SetItem(itemID)
+                ns.UpdateButtonFromItem(button, Item:CreateFromItemID(itemID), "character")
+                demoButtons[itemID] = button
+                previousButton = button
+            end
+            demo:SetScript("OnShow", nil)
+        end)
+
+        local title = makeTitle(frame, APPEARANCE_LABEL)
+        -- title:SetPoint("TOPLEFT", frame)
+        title:SetPoint("TOPLEFT", demo, "BOTTOMLEFT", 0, -4)
+
+        local fonts = {}
+        for k,v in pairs(ns.Fonts) do
+            fonts[k] = k
+        end
+        local font = makeDropdown(frame, "font", "Font", fonts, refresh)
+        font:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -4)
+
+        local positions = {}
+        for k,v in pairs(ns.PositionOffsets) do
+            positions[k] = k
+        end
+        local position = makeDropdown(frame, "position", "Position of item level", positions, refresh)
+        position:SetPoint("TOPLEFT", font, "BOTTOMLEFT", 0, -4)
+        local positionup = makeDropdown(frame, "positionup", "Position of upgrade indicator", positions, refresh)
+        positionup:SetPoint("TOPLEFT", position, "BOTTOMLEFT", 0, -4)
+
+        local positionmissing = makeDropdown(frame, "positionmissing", "Position of missing indicator", positions, refresh)
+        positionmissing:SetPoint("TOPLEFT", positionup, "BOTTOMLEFT", 0, -4)
+        local scaleup = makeSlider(frame, "scaleup", "Size of upgrade indicator", 0.5, 3, 0.1, nil, refresh, true)
+        scaleup:SetPoint("TOPLEFT", positionmissing, "BOTTOMLEFT", 0, -4)
+
+        local positionbound = makeDropdown(frame, "positionbound", "Position of soulbound indicator", positions, refresh)
+        positionbound:SetPoint("TOPLEFT", scaleup, "BOTTOMLEFT", 0, -4)
+        local scalebound = makeSlider(frame, "scalebound", "Size of soulbound indicator", 0.5, 3, 0.1, nil, refresh, true)
+        scalebound:SetPoint("TOPLEFT", positionbound, "BOTTOMLEFT", 0, -4)
+
+        makeCheckboxList(frame, {
+            {false, DISPLAY_HEADER},
+            {"itemlevel", SHOW_ITEM_LEVEL, "Do you want to disable the core feature of this addon? Maybe."},
+            {"upgrades", ("Flag upgrade items (%s)"):format(ns.upgradeString)},
+            {"missinggems", ("Flag items missing gems (%s)"):format(ns.gemString)},
+            {"missingenchants", ("Flag items missing enchants (%s)"):format(ns.enchantString)},
+            {"missingcharacter", "...missing gems/enchants on the character frame only?"},
+            {"bound", ("Flag items that are %s (%s)"):format(ITEM_SOULBOUND, CreateAtlasMarkup(ns.soulboundAtlas)), "Only on items you control; bags and character"},
+            {"color", "Color item level by item quality"},
+        }, scalebound, refresh)
+    end
 end
 
 -- Quick config:
@@ -440,11 +414,6 @@ SlashCmdList[myname:upper()] = function(msg)
         return ns.Print(msg, '=', ns.db[msg] and YES or NO)
     end
     if msg == "" then
-        if InterfaceOptionsFrame_Show then
-            InterfaceOptionsFrame_Show()
-            InterfaceOptionsFrame_OpenToCategory(myfullname)
-        else
-            Settings.OpenToCategory(myname)
-        end
+        Settings.OpenToCategory(myname)
     end
 end

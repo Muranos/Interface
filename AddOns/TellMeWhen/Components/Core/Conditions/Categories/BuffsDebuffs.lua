@@ -1,6 +1,6 @@
 ﻿-- --------------------
 -- TellMeWhen
--- Originally by Nephthys of Hyjal <lieandswell@yahoo.com>
+-- Originally by NephMakes
 
 -- Other contributions by:
 --		Sweetmms of Blackrock, Oozebull of Twisting Nether, Oodyboo of Mug'thol,
@@ -24,20 +24,21 @@ local strlowerCache = TMW.strlowerCache
 local huge = math.huge
 local empty = {}
 
-local UnitAura = UnitAura
-local GetAuras = TMW.COMMON.Auras and TMW.COMMON.Auras.GetAuras
+local GetAuraDataByIndex = C_UnitAuras.GetAuraDataByIndex
+local Auras = TMW.COMMON.Auras
+local GetAuras = Auras.GetAuras
 
 function Env.AuraStacks(unit, name, filter)
 	for i = 1, huge do
-		local buffName, _, count, _, _, _, _, _, _, id = UnitAura(unit, i, filter)
+		local data = GetAuraDataByIndex(unit, i, filter)
 
-		if not buffName then
+		if not data then
 			return 0
-		elseif id == name or strlowerCache[buffName] == name then
-			if count == 0 then
+		elseif data.spellId == name or strlowerCache[data.name] == name then
+			if data.applications == 0 then
 				return 1
 			else
-				return count
+				return data.applications
 			end
 		end
 	end
@@ -66,10 +67,10 @@ function Env.AuraCount(units, spells, filter)
 
 	for u = 1, #units do
 		for i = 1, huge do
-			local buffName, _, _, _, _, _, _, _, _, id = UnitAura(units[u], i, filter)
-			if not buffName then
+			local data = GetAuraDataByIndex(units[u], i, filter)
+			if not data then
 				break
-			elseif names[id] or names[strlowerCache[buffName]] then
+			elseif names[data.spellId] or names[strlowerCache[data.name]] then
 				n = n + 1
 			end
 		end
@@ -100,18 +101,24 @@ function Env.AuraCountPacked(units, spells, kindKey, onlyMine)
 end
 
 function Env.AuraDur(unit, name, filter)
-	local buffName, _, duration, expirationTime, id 
+	local instance
 	for i = 1, huge do
-		buffName, _, _, _, duration, expirationTime, _, _, _, id = UnitAura(unit, i, filter)
-		if not id or id == name or strlowerCache[buffName] == name then
+		instance = GetAuraDataByIndex(unit, i, filter)
+		if not instance or instance.spellId == name or strlowerCache[instance.name] == name then
 			break
 		end
 	end
 	
-	if not buffName then
+	if not instance then
 		return 0, 0, 0
 	else
-		return expirationTime == 0 and huge or expirationTime - TMW.time, duration, expirationTime
+		local expirationTime = instance.expirationTime
+		local timeMod = instance.timeMod
+		return
+			expirationTime == 0 and huge or ((expirationTime - TMW.time) / timeMod), 
+			instance.duration, 
+			expirationTime,
+			timeMod
 	end
 end
 
@@ -124,7 +131,12 @@ function Env.AuraDurPacked(unit, name, kindKey, onlyMine)
 			local instance = instances[auraInstanceID]
 			if instance[kindKey] then
 				local expirationTime = instance.expirationTime
-				return expirationTime == 0 and huge or expirationTime - TMW.time, instance.duration, expirationTime
+				local timeMod = instance.timeMod
+				return 
+					expirationTime == 0 and huge or ((expirationTime - TMW.time) / timeMod), 
+					instance.duration, 
+					expirationTime,
+					timeMod
 			end
 		end
 	end
@@ -132,20 +144,18 @@ function Env.AuraDurPacked(unit, name, kindKey, onlyMine)
 end
 
 function Env.AuraPercent(unit, name, filter)
-	local isID = isNumber[name]
-	
-	local buffName, duration, expirationTime, id, _
+	local data
 	for i = 1, huge do
-		buffName, _, _, _, duration, expirationTime, _, _, _, id = UnitAura(unit, i, filter)
-		if not id or id == name or strlowerCache[buffName] == name then
+		data = GetAuraDataByIndex(unit, i, filter)
+		if not data or data.spellId == name or strlowerCache[data.name] == name then
 			break
 		end
 	end
 	
-	if not buffName then
+	if not data then
 		return 0
 	else
-		return expirationTime == 0 and 1 or ((expirationTime - TMW.time) / duration)
+		return data.expirationTime == 0 and 1 or ((data.expirationTime - TMW.time) / data.duration)
 	end
 end
 
@@ -166,23 +176,17 @@ function Env.AuraPercentPacked(unit, name, kindKey, onlyMine)
 end
 
 function Env.AuraVariableNumber(unit, name, filter)
-	
-	local buffName, id, v1, v2, v3, v4, _
+	local data
 	for i = 1, huge do
-		buffName, _, _, _, _, _, _, _, _, id, _, _, _, _, _, v1, v2, v3, v4 = UnitAura(unit, i, filter)
-		if not id or id == name or strlowerCache[buffName] == name then
+		data = GetAuraDataByIndex(unit, i, filter)
+		if not data or data.spellId == name or strlowerCache[data.name] == name then
 			break
 		end
 	end
 	
-	if v1 and v1 > 0 then
-		return v1
-	elseif v2 and v2 > 0 then
-		return v2
-	elseif v3 and v3 > 0 then
-		return v3
-	elseif v4 and v4 > 0 then
-		return v4
+	for i = 1, #data.points do
+		local v = data.points[i]
+		if v and v > 0 then return v end
 	end
 		
 	return 0
@@ -208,104 +212,21 @@ function Env.AuraVariableNumberPacked(unit, name, kindKey, onlyMine)
 end
 
 
-function Env.AuraTooltipNumber(...)
-	local Parser, LT1, LT2 = TMW:GetParser()
-	local module = CNDT:NewModule("TooltipParser", "AceEvent-3.0")
+function Env.AuraTooltipNumber(unit, name, filter, requestedIndex)
+	requestedIndex = requestedIndex or 1
 
-	local watchedUnits = {}
-	local unitSets = {}
-	local cache = setmetatable({}, {
-		__mode = 'kv',
-		__index = function(s, k)
-			s[k] = {}
-			return s[k]
-		end
-	})
-
-	function module:UNIT_AURA(_, unit)
-		local unitCache = rawget(cache, unit)
-		if unitCache then wipe(unitCache) end
-	end
-	module:RegisterEvent("UNIT_AURA")
-
-	local function TMW_UNITSET_UPDATED(event, UnitSet)
-		local unit = unitSets[UnitSet]
-		if unit and UnitSet.allUnitsChangeOnEvent then
-			wipe(cache[unit])
+	for i = 1, 100 do
+		local data = GetAuraDataByIndex(unit, i, filter)
+		if not data then 
+			break
+		elseif data.spellId == name or strlowerCache[data.name] == name then
+			
+			local tooltipNumbers = Auras.ParseTooltip(unit, instance, i)
+			return tooltipNumbers[requestedIndex] or 0
 		end
 	end
 
-	function Env.AuraTooltipNumber(unit, name, filter, requestedIndex)
-		requestedIndex = requestedIndex or 1
-
-		local UnitSet, _ = watchedUnits[unit]
-		if not UnitSet then
-			_, UnitSet = TMW:GetUnits(nil, unit)
-			unitSets[UnitSet] = unit
-			watchedUnits[unit] = UnitSet
-			TMW:RegisterCallback(UnitSet.event, TMW_UNITSET_UPDATED)
-		end
-
-		local cacheable = UnitSet.allUnitsChangeOnEvent
-		local cachestr = name .. filter
-
-		if cacheable and cache[unit][cachestr] then
-			return isNumber[select(requestedIndex, strsplit(";", cache[unit][cachestr]))] or 0
-		end
-
-		local n
-		for i = 1, 60 do
-			local buffName, _, _, _, _, _, _, _, _, id = UnitAura(unit, i, filter)
-			if not buffName then 
-				break
-			elseif id == name or strlowerCache[buffName] == strlowerCache[name] then
-				n = i
-				break
-			end
-		end
-
-		if n then
-			local index = 0
-		    Parser:SetOwner(UIParent, "ANCHOR_NONE")
-		    Parser:SetUnitAura(unit, n, filter)
-			local text = LT2:GetText() or ""
-			Parser:Hide()
-
-			local number
-			local ret
-			local allNumbers = ""
-			repeat
-				number, text = (text):match("([0-9%" .. LARGE_NUMBER_SEPERATOR .. "]+%" .. DECIMAL_SEPERATOR .. "?[0-9]+)(.*)$")
-
-				if number then
-					-- Remove large number separators
-					number = number:gsub("%" .. LARGE_NUMBER_SEPERATOR, "")
-					-- Normalize decimal separators
-					number = number:gsub("%" .. DECIMAL_SEPERATOR, ".")
-
-					index = index + 1
-					if index == requestedIndex then
-						ret = isNumber[number]
-					end
-					allNumbers = allNumbers .. (index == 1 and "" or ";") .. number
-				end
-			until not number
-
-			if cacheable then
-				cache[unit][cachestr] = allNumbers
-			end
-
-			return ret or 0
-		else
-			if cacheable then
-				cache[unit][cachestr] = ""
-			end
-		end
-
-		return 0
-	end
-
-	return Env.AuraTooltipNumber(...)
+	return 0
 end
 
 function Env.AuraTooltipNumberPacked(unit, name, kindKey, onlyMine, requestedIndex)
@@ -316,34 +237,9 @@ function Env.AuraTooltipNumberPacked(unit, name, kindKey, onlyMine, requestedInd
 		if (isMine or not onlyMine) then
 			local instance = instances[auraInstanceID]
 			if instance[kindKey] then
+				local tooltipNumbers = Auras.ParseTooltip(unit, instance)
 
-				if instance.tmwTooltipNumbers then
-					-- Return cached value if available
-					return instance.tmwTooltipNumbers[requestedIndex] or 0
-				end
-
-				local data = C_TooltipInfo[kindKey == "isHelpful" and "GetUnitBuffByAuraInstanceID" or "GetUnitDebuffByAuraInstanceID"](unit, auraInstanceID)
-				
-				local text = data.lines[2].leftText
-				instance.tmwTooltipNumbers = {}
-				local index = 0
-				local number
-				local allNumbers = ""
-				repeat
-					number, text = (text):match("([0-9%" .. LARGE_NUMBER_SEPERATOR .. "]+%" .. DECIMAL_SEPERATOR .. "?[0-9]+)(.*)$")
-
-					if number then
-						-- Remove large number separators
-						number = number:gsub("%" .. LARGE_NUMBER_SEPERATOR, "")
-						-- Normalize decimal separators
-						number = number:gsub("%" .. DECIMAL_SEPERATOR, ".")
-
-						index = index + 1
-						instance.tmwTooltipNumbers[index] = isNumber[number]
-					end
-				until not number
-
-				return instance.tmwTooltipNumbers[requestedIndex] or 0
+				return tooltipNumbers[requestedIndex] or 0
 			end
 		end
 	end
@@ -352,7 +248,6 @@ function Env.AuraTooltipNumberPacked(unit, name, kindKey, onlyMine, requestedInd
 end
 
 local function CanUsePackedAuras(c)
-	if not GetAuras then return false end
 	if not TMW.COMMON.Auras:RequestUnits(c.Unit) then return false end
 	return true
 end
@@ -389,10 +284,10 @@ ConditionCategory:RegisterCondition(1,	 "BUFFDUR", {
 			and [[AuraDurPacked(c.Unit, c.Spells.First, "isHelpful", ]] .. (tostring(c.Checked)) .. ")" 
 			or [[AuraDur(c.Unit, c.Spells.First, "HELPFUL]] .. (c.Checked and " PLAYER" or "") .. [[")]]
 			
-		return [[local dur, duration, expirationTime = ]] .. getAura .. [[
+		return [[local dur, duration, expirationTime, timeMod = ]] .. getAura .. [[
 		local VALUE
 		if dur and dur > 0 then
-			VALUE = expirationTime and expirationTime - c.Level or 0
+			VALUE = expirationTime and expirationTime - (c.Level * timeMod) or 0
 		else
 			VALUE = 0
 		end]]
@@ -449,10 +344,10 @@ ConditionCategory:RegisterCondition(2.5, "BUFFPERC", {
 			and [[AuraDurPacked(c.Unit, c.Spells.First, "isHelpful", ]] .. (tostring(c.Checked)) .. ")" 
 			or [[AuraDur(c.Unit, c.Spells.First, "HELPFUL]] .. (c.Checked and " PLAYER" or "") .. [[")]]
 			
-		return [[local dur, duration, expirationTime = ]] .. getAura .. [[
+		return [[local dur, duration, expirationTime, timeMod = ]] .. getAura .. [[
 		local VALUE
 		if dur and dur > 0 then
-			VALUE = expirationTime and (expirationTime - c.Level*duration) or 0
+			VALUE = expirationTime and (expirationTime - c.Level*duration*timeMod) or 0
 		else
 			VALUE = 0
 		end]]
@@ -528,7 +423,6 @@ ConditionCategory:RegisterCondition(4,	 "BUFFTOOLTIP", {
 	end,
 	icon = "Interface\\Icons\\inv_elemental_primal_mana",
 	tcoords = CNDT.COMMON.standardtcoords,
-	hidden = not TMW.isRetail,
 	funcstr = function(c)
 		if CanUsePackedAuras(c) then
 			return [[AuraVariableNumberPacked(c.Unit, c.Spells.First, "isHelpful", ]] .. (tostring(c.Checked)) .. [[) c.Operator c.Level]]
@@ -655,10 +549,10 @@ ConditionCategory:RegisterCondition(11,	 "DEBUFFDUR", {
 			and [[AuraDurPacked(c.Unit, c.Spells.First, "isHarmful", ]] .. (tostring(c.Checked)) .. ")" 
 			or [[AuraDur(c.Unit, c.Spells.First, "HARMFUL]] .. (c.Checked and " PLAYER" or "") .. [[")]]
 			
-		return [[local dur, duration, expirationTime = ]] .. getAura .. [[
+		return [[local dur, duration, expirationTime, timeMod = ]] .. getAura .. [[
 		local VALUE
 		if dur and dur > 0 then
-			VALUE = expirationTime and expirationTime - c.Level or 0
+			VALUE = expirationTime and expirationTime - (c.Level*timeMod) or 0
 		else
 			VALUE = 0
 		end]]
@@ -715,10 +609,10 @@ ConditionCategory:RegisterCondition(12.5,"DEBUFFPERC", {
 			and [[AuraDurPacked(c.Unit, c.Spells.First, "isHarmful", ]] .. (tostring(c.Checked)) .. ")" 
 			or [[AuraDur(c.Unit, c.Spells.First, "HARMFUL]] .. (c.Checked and " PLAYER" or "") .. [[")]]
 			
-		return [[local dur, duration, expirationTime = ]] .. getAura .. [[
+		return [[local dur, duration, expirationTime, timeMod = ]] .. getAura .. [[
 		local VALUE
 		if dur and dur > 0 then
-			VALUE = expirationTime and (expirationTime - c.Level*duration) or 0
+			VALUE = expirationTime and (expirationTime - c.Level*duration*timeMod) or 0
 		else
 			VALUE = 0
 		end]]
@@ -795,7 +689,6 @@ ConditionCategory:RegisterCondition(14,	 "DEBUFFTOOLTIP", {
 	end,
 	icon = "Interface\\Icons\\spell_shadow_lifedrain",
 	tcoords = CNDT.COMMON.standardtcoords,
-	hidden = not TMW.isRetail,
 	funcstr = function(c)
 		if CanUsePackedAuras(c) then
 			return [[AuraVariableNumberPacked(c.Unit, c.Spells.First, "isHarmful", ]] .. (tostring(c.Checked)) .. [[) c.Operator c.Level]]
@@ -879,7 +772,9 @@ ConditionCategory:RegisterCondition(21,	 "MAINHAND", {
 	funcstr = [[(select(2, GetWeaponEnchantInfo()) or 0)/1000 c.Operator c.Level]],
 	events = function(ConditionObject, c)
 		return
-			ConditionObject:GenerateNormalEventString("UNIT_INVENTORY_CHANGED", "player")
+			-- See comments in wpnenchant.lua about these events.
+			ConditionObject:GenerateNormalEventString("UNIT_INVENTORY_CHANGED", "player"),
+			ConditionObject:GenerateNormalEventString("UNIT_PORTRAIT_UPDATE", "player")
 	end,
 	anticipate = [[local _, dur = GetWeaponEnchantInfo()
 		local VALUE = time + ((dur or 0)/1000) - c.Level]],
@@ -894,7 +789,8 @@ ConditionCategory:RegisterCondition(22,	 "OFFHAND", {
 	funcstr = [[(select(6, GetWeaponEnchantInfo()) or 0)/1000 c.Operator c.Level]],
 	events = function(ConditionObject, c)
 		return
-			ConditionObject:GenerateNormalEventString("UNIT_INVENTORY_CHANGED", "player")
+			ConditionObject:GenerateNormalEventString("UNIT_INVENTORY_CHANGED", "player"),
+			ConditionObject:GenerateNormalEventString("UNIT_PORTRAIT_UPDATE", "player")
 	end,
 	anticipate = [[local _, _, _, _, _, dur = GetWeaponEnchantInfo()
 		local VALUE = time + ((dur or 0)/1000) - c.Level]],

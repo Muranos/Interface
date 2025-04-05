@@ -10,7 +10,7 @@
 
 --- @type RCLootCouncil
 local addon = select(2, ...)
----@class RCLootHistory : AceSerializer-3.0
+---@class RCLootHistory : AceModule, AceSerializer-3.0
 local LootHistory = addon:NewModule("RCLootHistory", "AceSerializer-3.0")
 --- @type RCLootCouncilLocale
 local L = LibStub("AceLocale-3.0"):GetLocale("RCLootCouncil")
@@ -32,7 +32,6 @@ local selectedDate, selectedName, filterMenu, moreInfo, moreInfoData
 local rightClickMenu;
 local ROW_HEIGHT = 20;
 local NUM_ROWS = 15;
-local epochDates = {} -- [DateTime] = epoch
 local useClassFilters = false
 
 LootHistory.wowheadBaseUrl = "https://www.wowhead.com/item="
@@ -41,23 +40,24 @@ LootHistory.wowheadBaseUrl = "https://www.wowhead.com/item="
 local tinsert, tostring, getglobal, pairs, ipairs, tremove, strsplit = tinsert, tostring, getglobal, pairs, ipairs, tremove, strsplit
 
 function LootHistory:OnInitialize()
-	self.exportSelection = "tsv"
+	self.exportSelection = addon.db.profile.defaultHistoryExport or "player"
 	-- Pointer to export functions. Expected to return a string containing the export
 	self.exports = {
-		csv = 		{func = self.ExportCSV,			name = "CSV",					tip = L["Standard .csv output."]},
-		tsv = 		{func = self.ExportTSV,			name = "TSV (Excel)",		tip = L["A tab delimited output for Excel. Might work with other spreadsheets."]},
-		bbcode = 	{func = self.ExportBBCode,		name = "BBCode", 				tip = L["Simple BBCode output."]},
-		bbcodeSmf = {func = self.ExportBBCodeSMF, name = "BBCode SMF",			tip = L["BBCode export, tailored for SMF."],},
-		eqxml = 		{func = self.ExportEQXML,		name = "EQdkp-Plus XML",	tip = L["EQdkp-Plus XML output, tailored for Enjin import."]},
+		csv = 		{func = self.ExportCSV,			name = "CSV",				tip = L["Standard .csv output."]},
+		tsv = 		{func = self.ExportTSV,			name = "TSV (International Excel)",		tip = L.history_export_excel_international_tip},
+		sheets = 	{func = self.ExportGoogleSheets,	name = "TSV (Google Sheets & English Excel)", tip = L.history_export_sheets_tip},
+		bbcode = 	{func = self.ExportBBCode,		name = "BBCode", 			tip = L["Simple BBCode output."]},
+		bbcodeSmf = {func = self.ExportBBCodeSMF, 	name = "BBCode SMF",		tip = L["BBCode export, tailored for SMF."],},
+		eqxml = 	{func = self.ExportEQXML,			name = "EQdkp-Plus XML",	tip = L["EQdkp-Plus XML output, tailored for Enjin import."]},
 		player = 	{func = self.PlayerExport,		name = "Player Export",		tip = L["A format to copy/paste to another player."]},
-		discord = 	{func = self.ExportDiscord, 	name = "Discord", 			tip = L["Discord friendly output."]},
-		json = 		{func = self.ExportJSON,		name = "JSON",					tip = L["Standard JSON output."]},
+		discord = 	{func = self.ExportDiscord, 		name = "Discord", 			tip = L["Discord friendly output."]},
+		json = 		{func = self.ExportJSON,			name = "JSON",				tip = L["Standard JSON output."]},
 		--html = self.ExportHTML
 	}
 	self.scrollCols = {
 		{name = "",				width = ROW_HEIGHT, sortnext = 2},																-- Class icon, should be same row as player
 		{name = _G.NAME,		width = 100, sortnext = 3, defaultsort = 1,},												-- Name of the player
-		{name = L["Time"],	width = 125, comparesort = self.DateTimeSort, sort = 2,defaultsort = 2,},			-- Time of awarding
+		{name = L["Time"],	width = 130, comparesort = self.DateTimeSort, sort = 2,defaultsort = 2,},			-- Time of awarding
 		{name = "",				width = ROW_HEIGHT, },																				-- Item icon
 		{name = L["Item"],	width = 250, comparesort = self.ItemSort, defaultsort = 1, sortnext = 2},			-- Item string
 		{name = L["Reason"],	width = 220, comparesort = self.ResponseSort,  defaultsort = 1, sortnext = 2},	-- Response aka the text supplied to lootDB...response
@@ -68,23 +68,9 @@ function LootHistory:OnInitialize()
 	rightClickMenu = _G.MSA_DropDownMenu_Create("RCLootCouncil_LootHistory_RightclickMenu", UIParent)
 	_G.MSA_DropDownMenu_Initialize(filterMenu, self.FilterMenu, "MENU")
 	_G.MSA_DropDownMenu_Initialize(rightClickMenu, self.RightClickMenu, "MENU")
-	--MoreInfo
-	self.moreInfo = CreateFrame( "GameTooltip", "RCLootHistoryMoreInfo", nil, "GameTooltipTemplate" )
 
 	self:SubscribeToPermanentComms()
 end
-
-local tierLookUpTable = { -- instanceMapID to Tier text
-	[1530] = L["Tier 19"],
-	[1676] = L["Tier 20"],
-	[1712] = L["Tier 21"],
-}
-
-local difficultyLookupTable = {
-	[14] = L["tier_token_normal"],
-	[15] = L["tier_token_heroic"],
-	[16] = L["tier_token_mythic"],
-}
 
 function LootHistory:OnEnable()
 	addon.Log("LootHistory:OnEnable()")
@@ -136,8 +122,20 @@ end
 
 function LootHistory:OnHistoryReceived (name, history)
 	if not addon:Getdb().enableHistory then return end
+	if not addon:Getdb().savePersonalLoot then
+		if history.responseID == "PL" or history.responseID == "PL_REJECT" then
+			addon.Log:D("Not storing personal loot", history.lootWon)
+			return
+		end
+	end
+	-- v3.15.4 check for old date formats 
+	local d, m, y = strsplit("/", history.date, 3)
+	if #tostring(d) < 4 then
+		history.date = string.format("%04d/%02d/%02d", "20" .. y, m, d)
+	end
 	-- v2.15 Add itemClass and itemSubClass locally:
-	local _, _, _, _, _, itemClassID, itemSubClassID = GetItemInfoInstant(history.lootWon)
+	local itemID, _, _, _, _, itemClassID, itemSubClassID = C_Item.GetItemInfoInstant(history.lootWon)
+	history.tierToken = RCTokenTable[itemID] and true
 	history.iClass = itemClassID
 	history.iSubClass = itemSubClassID
 	if addon.lootDB.factionrealm[name] then
@@ -164,13 +162,6 @@ function LootHistory:OnHistoryDeleteReceived (id)
 	if self:IsEnabled() then -- Update history frame if it is shown currently.
 		self:BuildData()
 	end
-end
-
-function LootHistory:GetLocalizedDate(date) -- date is "DD/MM/YY"
-	local d, m, y = strsplit("/", date, 3)
-	-- FormatShortDate is defined in SharedXML/Util.lua
-	-- "(D)D/(M)M/YY" for EU, "(M)M/DD/YY" otherwise
-	return _G.FormatShortDate(d, m, y)
 end
 
 function LootHistory:BuildData()
@@ -226,7 +217,7 @@ function LootHistory:BuildData()
 						cols = { -- NOTE Don't forget the rightClickMenu dropdown, if the order of these changes
 							{DoCellUpdate = addon.SetCellClassIcon, args = {x.class}, value = x.class},
 							{value = addon.Ambiguate(name), color = addon:GetClassColor(x.class)},
-							{value = self:GetLocalizedDate(date).. "-".. i.time or "", args = {time = i.time, date = date},},
+							{value = (date.. "-".. i.time) or "", args = {id = i.id},},
 							{DoCellUpdate = self.SetCellGear, args={i.lootWon}},
 							{value = i.lootWon},
 							{DoCellUpdate = self.SetCellResponse, args = {color = i.color, response = i.response, responseID = i.responseID or 0, isAwardReason = i.isAwardReason}},
@@ -255,15 +246,7 @@ function LootHistory:BuildData()
 		end
 		tinsert(dateData, {date})
 	end
-	-- Insert players in the group who isn't registered in the lootDB
-	for name,v in pairs(addon.candidates or {}) do
-		if not insertedNames[name] then
-			tinsert(nameData, {
-				{DoCellUpdate = addon.SetCellClassIcon, args = {v.class}},
-				{value = addon.Ambiguate(name), color = addon:GetClassColor(v.class), name = name}
-			})
-		end
-	end
+
 	self.frame.st:SetData(self.frame.rows)
 	self.frame.date:SetData(dateData, true) -- True for minimal data	format
 	self.frame.name:SetData(nameData, true)
@@ -339,24 +322,8 @@ function LootHistory:DeleteEntriesOlderThanEpoch(epoch)
 		removal[name] = {}
 		local num = 1
 		for i,v in ipairs(a) do
-			local index = v.date..v.time
-			if not epochDates[index] then
-				local added = false
-				-- Prefer using the epoch timestamp from the id
-				if v.id then
-					local id = strsplit(v.id, "-")
-					if id and id ~= "" then
-						id = tonumber(id)
-						epochDates[index] = id
-						added = true
-					end
-				end
-				-- Fallback to recreating the time string from date/time.
-				if not added then
-					self:AddEpochDate(v.date, v.time)
-				end
-			end
-			if epochDates[index] < epoch then
+			local time, counter= string.split("-", v.id or "")
+			if tonumber(time) < epoch then
 				removal[name][num] = i
 				num = num + 1
 			end
@@ -438,6 +405,7 @@ function LootHistory:FilterForLootDB (winner, entry)
 end
 
 function LootHistory:GetFilteredDB ()
+	lootDB = addon:GetHistoryDB()
 	local filtered = {}
 	for name, items in pairs(lootDB) do
 		for _, entry in pairs(items) do
@@ -452,7 +420,7 @@ end
 
 -- for date scrolling table
 function LootHistory.SetCellDate(rowFrame, frame, data, cols, row, realrow, column, fShow, table, ...)
-	frame.text:SetText(LootHistory:GetLocalizedDate(data[realrow][column]))
+	frame.text:SetText(data[realrow][column])
 	if table.fSelect then
 		if table.selected == realrow then
 			table:SetHighLightColor(rowFrame, table:GetDefaultHighlight());
@@ -465,9 +433,9 @@ end
 function LootHistory.SetCellGear(rowFrame, frame, data, cols, row, realrow, column, fShow, table, ...)
 	local gear = data[realrow].cols[column].args[1] -- gear1 or gear2
 	if gear then
-		--local texture = select(10, GetItemInfo(gear))
-		local texture = select(5, GetItemInfoInstant(gear))
-		frame:SetNormalTexture(texture)
+		--local texture = select(10, C_Item.GetItemInfo(gear))
+		local texture = select(5, C_Item.GetItemInfoInstant(gear))
+		frame:SetNormalTexture(texture or "Interface/ICONS/INV_Sigil_Thorim.png")
 		frame:SetScript("OnEnter", function() addon:CreateHypertip(gear) end)
 		frame:SetScript("OnLeave", function() addon:HideTooltip() end)
 		frame:SetScript("OnClick", function()
@@ -487,7 +455,7 @@ function LootHistory.SetCellResponse(rowFrame, frame, data, cols, row, realrow, 
 
 	if args.color and type(args.color) == "table" and type(args.color[1]) == "number" then -- Never version saves the color with the entry
 		frame.text:SetTextColor(unpack(args.color))
-	elseif args.responseID and args.responseID > 0 then -- try to recreate color from ID
+	elseif args.responseID and (type(args.responseID) == "string" or args.responseID > 0) then -- try to recreate color from ID
 		frame.text:SetTextColor(unpack(addon:GetResponse("default", args.responseID).color))
 	else -- default to white
 		frame.text:SetTextColor(1,1,1,1)
@@ -517,6 +485,8 @@ end
 function LootHistory.SetCellDelete(rowFrame, frame, data, cols, row, realrow, column, fShow, table, ...)
 	if not frame.created then
 		frame:SetNormalTexture("Interface\\Buttons\\UI-GroupLoot-Pass-Up")
+		frame:SetHighlightTexture("Interface/Buttons/UI-GROUPLOOT-PASS-HIGHLIGHT")
+		frame:SetPushedTexture("Interface/Buttons/UI-GROUPLOOT-PASS-DOWN")
 		frame:SetScript("OnEnter", function()
 			addon:CreateTooltip(L["Double click to delete this entry."])
 		end)
@@ -551,43 +521,26 @@ function LootHistory.SetCellDelete(rowFrame, frame, data, cols, row, realrow, co
 	end)
 end
 
-function LootHistory:AddEpochDate(date, tim)
-	local d, m, y = strsplit("/", date, 3)
-	local h, min, s = strsplit(":", tim, 3)
-	epochDates[date..tim] = self:DateTimeToSeconds(d,m,y,h,min,s)
-end
-
 function LootHistory:DateTimeToSeconds (d,m,y,h,min,s)
-	return time({year = "20"..y or 10, month = m or 1, day = d or 1, hour = h or 0, min = min or 0, sec = s or 0})
+	return time({year = #tostring(y) == 4 and y or "20"..y or 10, month = m or 1, day = d or 1, hour = h or 0, min = min or 0, sec = s or 0})
 end
 
 function LootHistory.DateTimeSort(table, rowa, rowb, sortbycol)
 	local cella, cellb = table:GetCell(rowa, sortbycol), table:GetCell(rowb, sortbycol);
-	local indexa, indexb = cella.args.date..cella.args.time, cellb.args.date..cellb.args.time
-	if not (epochDates[indexa] and epochDates[indexb]) then
-		LootHistory:AddEpochDate(cella.args.date, cella.args.time)
-		LootHistory:AddEpochDate(cellb.args.date, cellb.args.time)
-	end
-	local column = table.cols[sortbycol]
-	local a, b = epochDates[indexa], epochDates[indexb]
-	if a == b then
-		if column.sortnext then
-			local nextcol = table.cols[column.sortnext];
-			if nextcol and not(nextcol.sort) then
-				if nextcol.comparesort then
-					return nextcol.comparesort(table, rowa, rowb, column.sortnext);
-				else
-					return table:CompareSort(rowa, rowb, column.sortnext);
-				end
-			end
-		end
-		return false
+	local idA, idB = cella.args.id, cellb.args.id
+	local timeA, counterA = string.split("-", idA or "")
+	local timeB, counterB = string.split("-", idB or "")
+	if not timeA or not timeB then return false end
+
+	timeA, timeB = tonumber(timeA), tonumber(timeB)
+	if timeA == timeB and counterA ~= "" and counterB ~= "" then
+		return tonumber(counterA) < tonumber(counterB)
 	else
 		local direction = table.cols[sortbycol].sort or table.cols[sortbycol].defaultsort or 1
 		if direction == 1 then
-			return a < b
+			return timeA < timeB
 		else
-			return a > b
+			return timeA > timeB
 		end
 	end
 end
@@ -597,10 +550,10 @@ function LootHistory.DateSort(table, rowa, rowb, sortbycol)
 	rowa, rowb = table:GetRow(rowa), table:GetRow(rowb);
 	local a, b = rowa[1], rowb[1]
 	if not (a and b) then return false end
-	local d, m, y = strsplit("/", a, 3)
-	local aTime = time({year = "20"..y, month = m, day = d})
-	d, m, y = strsplit("/", b, 3)
-	local bTime = time({year = "20"..y, month = m, day = d})
+	local y, m, d = addon.Utils:DateSplit(a)
+	local aTime = time({year = y, month = m, day = d})
+	y, m, d= addon.Utils:DateSplit(b)
+	local bTime = time({year = y, month = m, day = d})
 	local direction = column.sort or column.defaultsort or 1;
 	if direction == 1 then
 		return aTime < bTime;
@@ -691,28 +644,31 @@ function LootHistory:EscapeItemLink(link)
 	return gsub(link, "\124", "\124\124")
 end
 
-function LootHistory:ExportHistory()
+function LootHistory:ExportHistory(format)
+	assert(self.exports[format or self.exportSelection], "Invalid format for exporting history")
 	--debugprofilestart()
-	local export = self.exports[self.exportSelection].func(self)
+	local export = self.exports[format or self.exportSelection].func(self)
 	--addon.Log:D("Export time:", debugprofilestop(), "ms")
 	if export and export ~= "" then -- do something
 		--debugprofilestart()
 		if export:len() < 40000 then
-			self.frame.exportFrame:Show()
-			self.frame.exportFrame.edit:SetCallback("OnTextChanged", function(self)
+			local exportFrame = addon.UI:New("RCExportFrame")
+			exportFrame:Show()
+			exportFrame.edit:SetCallback("OnTextChanged", function(self)
 				self:SetText(export)
 			end)
-			self.frame.exportFrame.edit:SetText(export)
-			self.frame.exportFrame.edit:SetFocus()
-			self.frame.exportFrame.edit:HighlightText()
+			exportFrame.edit:SetText(export)
+			exportFrame.edit:SetFocus()
+			exportFrame.edit:HighlightText()
 		else -- Use hugeExportFrame(Single line editBox) for large export to avoid freezing the game.
-			self.frame.hugeExportFrame:Show()
-			self.frame.hugeExportFrame.edit:SetCallback("OnTextChanged", function(self)
+			local exportFrame = addon.UI:New("RCHugeExportFrame")
+			exportFrame:Show()
+			exportFrame.edit:SetCallback("OnTextChanged", function(self)
 				self:SetText(export)
 			end)
-			self.frame.hugeExportFrame.edit:SetText(export)
-			self.frame.hugeExportFrame.edit:SetFocus()
-			self.frame.hugeExportFrame.edit:HighlightText()
+			exportFrame.edit:SetText(export)
+			exportFrame.edit:SetFocus()
+			exportFrame.edit:HighlightText()
 		end
 		--addonLog:D("Display time:", debugprofilestop(), "ms")
 	end
@@ -769,6 +725,18 @@ function LootHistory:ImportHistory(import)
 	end
 end
 
+---@param data table|string Either complete history entry, or just the date
+local function checkDateFormatting(data)
+	local d, m, y = strsplit("/", data.date and data.date or data)
+	if #d == 4 then return data end -- is in new format
+	if data.date then
+		data.date = "20" ..y .. "/" .. m .. "/" .. d
+	else
+		data = "20" ..y .. "/" .. m .. "/" .. d
+	end
+	return data
+end
+
 -- REVIEW: Needs updating
 function LootHistory:ImportPlayerExport (import)
 	lootDB = addon:GetHistoryDB()
@@ -787,16 +755,20 @@ function LootHistory:ImportPlayerExport (import)
 			for _, v in pairs(data) do
 				local found = false
 				for _, d in pairs(lootDB[name]) do -- REVIEW This is currently ~O(#lootDB[name]^2). Could probably be improved.
-					-- Check if the time matches. If it does, we already have the data and can skip to the next
-					if d.time == v.time then found = true; break end
+					-- Check if the id matches. If it does, we already have the data and can skip to the next
+					if d.id == v.id then found = true; break end
 				end
 				if not found then -- add it
-					tinsert(lootDB[name], v)
+					tinsert(lootDB[name], checkDateFormatting(v))
 					number = number + 1
 				end
 			end
 		else -- It's a new name, so add everything and move on to the next
-			lootDB[name] = data
+			lootDB[name] = {}
+			for _, v in pairs(data) do
+				v = checkDateFormatting(v)
+				tinsert(lootDB[name], v)
+			end
 			number = number + #data
 		end
 	end
@@ -853,7 +825,7 @@ end
 
 function LootHistory:GetFrame()
 	if self.frame then return self.frame end
-	local f = addon.UI:NewNamed("RCFrame", UIParent, "DefaultRCLootHistoryFrame", L["RCLootCouncil Loot History"], 250, 480)
+	local f = addon.UI:NewNamed("RCFrame", UIParent, "DefaultRCLootHistoryFrame", L["RCLootCouncil Loot History"], 250, 490)
 	addon.UI:RegisterForEscapeClose(f, function() if self:IsEnabled() then self:Disable() end end)
 	local st = LibStub("ScrollingTable"):CreateST(self.scrollCols, NUM_ROWS, ROW_HEIGHT, { ["r"] = 1.0, ["g"] = 0.9, ["b"] = 0.0, ["a"] = 0.5 }, f.content)
 	st.frame:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 10, 10)
@@ -875,8 +847,8 @@ function LootHistory:GetFrame()
 	f.st = st
 
 	--Date selection
-	f.date = LibStub("ScrollingTable"):CreateST({{name = L["Date"], width = 70, comparesort = self.DateSort, sort = 2, DoCellUpdate = self.SetCellDate}}, 5, ROW_HEIGHT, { ["r"] = 1.0, ["g"] = 0.9, ["b"] = 0.0, ["a"] = 0.5 }, f.content)
-	f.date.frame:SetPoint("TOPLEFT", f, "TOPLEFT", 10, -20)
+	f.date = LibStub("ScrollingTable"):CreateST({{name = L["Date"], width = 74, comparesort = self.DateSort, sort = 2, DoCellUpdate = self.SetCellDate}}, 5, ROW_HEIGHT, { ["r"] = 1.0, ["g"] = 0.9, ["b"] = 0.0, ["a"] = 0.5 }, f.content)
+	f.date.frame:SetPoint("TOPLEFT", f, "TOPLEFT", 10, -30)
 	f.date:EnableSelection(true)
 	f.date:RegisterEvents({
 		["OnClick"] = function(rowFrame, cellFrame, data, cols, row, realrow, column, table, button, ...)
@@ -890,7 +862,7 @@ function LootHistory:GetFrame()
 
 	--Name selection
 	f.name = LibStub("ScrollingTable"):CreateST({{name = "", width = ROW_HEIGHT},{name = _G.NAME, width = 100, sort = 1}}, 5, ROW_HEIGHT, { ["r"] = 1.0, ["g"] = 0.9, ["b"] = 0.0, ["a"] = 0.5 }, f.content)
-	f.name.frame:SetPoint("TOPLEFT", f.date.frame, "TOPRIGHT", 20, 0)
+	f.name.frame:SetPoint("TOPLEFT", f.date.frame, "TOPRIGHT", 10, 0)
 	f.name:EnableSelection(true)
 	f.name:RegisterEvents({
 		["OnClick"] = function(rowFrame, cellFrame, data, cols, row, realrow, column, table, button, ...)
@@ -904,7 +876,7 @@ function LootHistory:GetFrame()
 
 	-- Abort button
 	local b1 = addon:CreateButton(_G.CLOSE, f.content)
-	b1:SetPoint("TOPRIGHT", f, "TOPRIGHT", -10, -100)
+	b1:SetPoint("TOPRIGHT", f, "TOPRIGHT", -10, -110)
 	b1:SetScript("OnClick", function() self:Disable() end)
 	f.closeBtn = b1
 
@@ -933,9 +905,18 @@ function LootHistory:GetFrame()
 	b2:SetScript("OnLeave", function() addon:HideTooltip() end)
 	f.moreInfoBtn = b2
 
+	self.moreInfo = CreateFrame("GameTooltip", "RCLootHistoryMoreInfo", f.content, "GameTooltipTemplate")
+	self.moreInfo:SetIgnoreParentScale(true)
+	self.moreInfo:SetClampedToScreen(addon:Getdb().moreInfoClampToScreen)
 	f.content:SetScript("OnSizeChanged", function()
-		self.moreInfo:SetScale(f:GetScale() * 0.6)
+		self.moreInfo:SetScale(Clamp(f:GetScale() * 0.6, .4, .9))
 	end)
+
+	-- local count = f:CreateFontString(nil,"OVERLAY", "GameFontNormal")
+	-- count:SetPoint("BOTTOMRIGHT", b2, "TOPRIGHT", 0, 10)
+	-- count:SetText(format("There's %d items in the database", self:CountItems()))
+	-- count:SetTextColor(1, 1, 1, 1)
+	-- self.itemCount = count
 
 	-- Export
 	local b3 = addon:CreateButton(L["Export"], f.content)
@@ -947,8 +928,15 @@ function LootHistory:GetFrame()
 	local b5 = addon:CreateButton("Import", f.content)
 	b5:SetPoint("RIGHT", b3, "LEFT", -10, 0)
 	b5:SetScript("OnClick", function()
-		self.frame.importFrame:Show()
-		self.frame.importFrame.edit:SetFocus()
+		local importFrame = addon.UI:New("RCImportFrame")
+		importFrame.label:SetText(L["Accepted imports: 'Player Export' and 'CSV'"])
+		importFrame.edit:SetCallback("OnEnterPressed", function()
+			addon.Log:D("Import data:", string.sub(importFrame.edit.data, 0, 50))
+			self:ImportHistory(importFrame.edit.data)
+			importFrame:Hide()
+		end)
+		importFrame:Show()
+		importFrame.edit:SetFocus()
 	end)
 	f.importBtn = b5
 
@@ -996,95 +984,21 @@ function LootHistory:GetFrame()
 	b6:SetWidth(125)
 	f.clearSelectionBtn = b6
 
-	-- Export frame
-	local exp = AG:Create("Window")
-	exp:SetLayout("Flow")
-	exp:SetTitle("RCLootCouncil "..L["Export"])
-	exp:SetWidth(700)
-	exp:SetHeight(360)
-
-	local edit = AG:Create("MultiLineEditBox")
-	edit:SetNumLines(20)
-	edit:SetFullWidth(true)
-	edit:SetLabel(L["Export"])
-	edit:SetFullHeight(true)
-	exp:AddChild(edit)
-	exp:Hide()
-	f.exportFrame = exp
-	f.exportFrame.edit = edit
-
-	-- Frame for huge export. Use single line editbox to avoid freezing.
-	local hugeExp = AG:Create("Window")
-	hugeExp:SetLayout("Flow")
-	hugeExp:SetTitle("RCLootCouncil "..L["Export"])
-	hugeExp:SetWidth(700)
-	hugeExp:SetHeight(100)
-
-	edit = AG:Create("EditBox")
-	edit:SetFullWidth(true)
-	edit:SetLabel(L["huge_export_desc"])
-	edit:SetMaxLetters(0)
-	hugeExp:AddChild(edit)
-	hugeExp:Hide()
-	f.hugeExportFrame = hugeExp
-	f.hugeExportFrame.edit = edit
-
-	-- Import frame
-	local imp = AG:Create("Window")
-	imp:SetLayout("Flow")
-	imp:SetTitle("RCLootCouncil Import")
-	imp:SetWidth(700)
-	imp:SetHeight(360)
-
-	edit = AG:Create("MultiLineEditBox")
-	edit:SetNumLines(20)
-	edit:SetFullWidth(true)
-	edit:SetLabel(L["import_desc"])
-	edit:SetFullHeight(true)
-
-	-- Credit to WeakAura2
-	-- Import editbox only shows first 2500 bytes to avoid freezing the game.
-	-- Use 'OnChar' event to store other characters in a text buffer
-	local textBuffer, i, lastPaste = {}, 0, 0
-	local pasted = ""
-	edit.editBox:SetScript("OnShow", function(self)
-		self:SetText("")
-		pasted = ""
-	end)
-	local function clearBuffer(self)
-		self:SetScript('OnUpdate', nil)
-		pasted = strtrim(table.concat(textBuffer))
-		edit.editBox:ClearFocus()
-	end
-	edit.editBox:SetScript('OnChar', function(self, c)
-		if lastPaste ~= GetTime() then
-			textBuffer, i, lastPaste = {}, 0, GetTime()
-			self:SetScript('OnUpdate', clearBuffer)
-		end
-		i = i + 1
-		textBuffer[i] = c
-	end)
-	edit.editBox:SetMaxBytes(2500)
-	edit.editBox:SetScript("OnMouseUp", nil);
-
-	edit:SetCallback("OnEnterPressed", function()
-		self:ImportHistory(pasted)
-		imp:Hide()
-	end)
-
-	local label = AG:Create("Label")
-	label:SetFullWidth(true)
-	label:SetText(L["Accepted imports: 'Player Export' and 'CSV'"])
-	imp:AddChild(label)
-	imp:AddChild(edit)
-
-	imp:Hide()
-	f.importFrame = imp
-	f.importFrame.edit = edit
-
 	-- Set a proper width
 	f:SetWidth(st.frame:GetWidth() + 20)
 	return f;
+end
+
+--- Counts the number of items in a RCLootCouncil.HistoryDB database.
+---@param db RCLootCouncil.HistoryDB
+function LootHistory:CountItems(db)
+	local count = 0
+	for name, items in pairs(db or lootDB) do
+		for _ in pairs(items) do
+			count = count + 1
+		end
+	end
+	return count
 end
 
 --- Returns a table of all the winners of an item.
@@ -1116,9 +1030,8 @@ function LootHistory:UpdateMoreInfo(rowFrame, cellFrame, dat, cols, row, realrow
 	local tip = self.moreInfo -- shortening
 	tip:SetOwner(self.frame, "ANCHOR_RIGHT")
 	local row = dat[realrow]
-	local color = addon:GetClassColor(row.class)
 	local data = lootDB[row.name][row.num]
-	tip:AddLine(addon.Ambiguate(row.name), color.r, color.g, color.b)
+	tip:AddLine(addon:GetClassIconAndColoredName(row.name, 16))
 	tip:AddLine("")
 	tip:AddDoubleLine(L["Time"]..":", (data.time or _G.UNKNOWN) .." ".. row.date or _G.UNKNOWN, 1,1,1, 1,1,1)
 	tip:AddDoubleLine(L["Loot won:"], data.lootWon or _G.UNKNOWN, 1,1,1, 1,1,1)
@@ -1130,7 +1043,7 @@ function LootHistory:UpdateMoreInfo(rowFrame, cellFrame, dat, cols, row, realrow
 	end
 	tip:AddDoubleLine(L["Dropped by:"], data.boss or _G.UNKNOWN, 1,1,1, 0.862745, 0.0784314, 0.235294)
 	tip:AddDoubleLine(_G.FROM, data.instance or _G.UNKNOWN, 1,1,1, 0.823529, 0.411765, 0.117647)
-	tip:AddDoubleLine(L["Original Owner"], data.owner, 1,1,1, 1,1,1)
+	tip:AddDoubleLine(L["Original Owner"], addon:GetClassIconAndColoredName(data.owner), 1,1,1, 1,1,1)
 	tip:AddDoubleLine(L["Votes"]..":", data.votes or _G.UNKNOWN, 1,1,1, 1,1,1)
 	if data.note then
 		tip:AddLine(" ")
@@ -1138,15 +1051,19 @@ function LootHistory:UpdateMoreInfo(rowFrame, cellFrame, dat, cols, row, realrow
 	end
 	tip:AddLine(" ")
 	tip:AddLine(L["Tokens received"])
+	local tokensSorted = {}
+	for n in pairs(moreInfoData[row.name].totals.tokens) do tinsert(tokensSorted, n) end
+	table.sort(tokensSorted)
 	-- Add tier tokens
-	for _, v in pairs(moreInfoData[row.name].totals.tokens) do
-		if v.mapID and v.difficultyID and tierLookUpTable[v.mapID] then
-			tip:AddDoubleLine(tierLookUpTable[v.mapID].." "..difficultyLookupTable[v.difficultyID]..":", v.num, 1,1,1, 1,1,1)
+	for _, instance in pairs(tokensSorted) do
+		local num = moreInfoData[row.name].totals.tokens[instance]
+		if num > 0 then
+			tip:AddDoubleLine(instance..":", num, 1,1,1, 1,1,1)
 		end
 	end
 	tip:AddLine(" ")
 	tip:AddLine(L["Total awards"])
-	table.sort(moreInfoData[row.name].totals.responses, function(a,b) return type(a[4]) == "number" and type(b[4]) == "number" and a[4] < b[4] or false end)
+	table.sort(moreInfoData[row.name].totals.responses, function(a,b) return type(a[2]) == "number" and type(b[2]) == "number" and a[2] > b[2] or false end)
 	for _, v in pairs(moreInfoData[row.name].totals.responses) do
 		local r,g,b
 		if v[3] then r,g,b = unpack(v[3],1,3) end
@@ -1164,7 +1081,7 @@ function LootHistory:UpdateMoreInfo(rowFrame, cellFrame, dat, cols, row, realrow
 	tip:AddLine(format(L["lootHistory_moreInfo_winnersOfItem"], data.lootWon))
 	for _, data in ipairs(winners) do
 		local c = addon:GetClassColor(data[3])
-		tip:AddDoubleLine(addon.Ambiguate(data[2]), data[1], c.r,c.g,c.b, 1,1,1)
+		tip:AddDoubleLine(addon:GetClassIconAndColoredName(data[2]), data[1], c.r,c.g,c.b, 1,1,1)
 	end
 
 	-- Debug stuff
@@ -1181,13 +1098,13 @@ function LootHistory:UpdateMoreInfo(rowFrame, cellFrame, dat, cols, row, realrow
 		tip:AddDoubleLine("difficultyID:", data.difficultyID, 1,1,1, 1,1,1)
 		tip:AddDoubleLine("mapID", data.mapID, 1,1,1, 1,1,1)
 		tip:AddDoubleLine("groupSize", data.groupSize, 1,1,1, 1,1,1)
-		tip:AddDoubleLine("tierToken", data.tierToken, 1,1,1, 1,1,1)
+		tip:AddDoubleLine("tierToken", tostring(data.tierToken), 1,1,1, 1,1,1)
 		tip:AddDoubleLine("tokenRoll", tostring(data.tokenRoll), 1,1,1, 1,1,1)
 		tip:AddDoubleLine("relicRoll", tostring(data.relicRoll), 1,1,1, 1,1,1)
+		tip:AddDoubleLine("typeCode", tostring(data.typeCode))
 		tip:AddLine(" ")
 		tip:AddDoubleLine("Total LootDB entries:", #self.frame.rows, 1,1,1, 0,0,1)
 	end
-	tip:SetScale(self.frame:GetScale() * 0.65)
 	if moreInfo then
 		tip:Show()
 	else
@@ -1282,12 +1199,14 @@ function LootHistory.FilterMenu(menu, level)
 				info.func = function()
 					addon.Log:D("Update class filter")
 					db.modules["RCLootHistory"].filters.class[id] = not db.modules["RCLootHistory"].filters.class[id]
+					local classFilters = false
 					for _,v in pairs(db.modules["RCLootHistory"].filters.class) do
 						if v then
-							useClassFilters = true
+							classFilters = true
 							break
 						end
 					end
+					useClassFilters = classFilters
 					LootHistory:Update()
 				end
 				info.checked = db.modules["RCLootHistory"].filters.class[id]
@@ -1407,17 +1326,17 @@ function LootHistory.RightClickMenu(menu, level)
 					if next(lootDB[namea]) then
 						local datea = lootDB[namea][#lootDB[namea]].date
 						local timea = lootDB[namea][#lootDB[namea]].time
-						local d, m, y = strsplit("/", datea, 3)
+						local y, m, d = addon.Utils:DateSplit(datea)
 						local h, min, s = strsplit(":", timea, 3)
-						epocha = time({year = "20"..y, month = m, day = d, hour = h, min = min, sec = s})
+						epocha = time({year = y, month = m, day = d, hour = h, min = min, sec = s})
 					end
 
 					if next(lootDB[nameb]) then
 						local dateb = lootDB[nameb][#lootDB[nameb]].date
 						local timeb = lootDB[nameb][#lootDB[nameb]].time
-						local d, m, y = strsplit("/", dateb, 3)
+						local y, m, d = addon.Utils:DateSplit(dateb)
 						local h, min, s = strsplit(":", timeb, 3)
-						epochb = time({year = "20"..y, month = m, day = d, hour = h, min = min, sec = s})
+						epochb = time({year = y, month = m, day = d, hour = h, min = min, sec = s})
 					end
 					return epocha < epochb
 				end
@@ -1464,6 +1383,7 @@ function LootHistory.RightClickMenu(menu, level)
 					entry.tokenRoll = nil
 					entry.relicRoll = nil
 					data.response = i
+					entry.typeCode = "default"
 					data.cols[6].args = {color = entry.color, response = entry.response, responseID = i}
 					LootHistory.frame.st:SortData()
 					addon:SendMessage("RCHistory_ResponseEdit", data)
@@ -1473,7 +1393,6 @@ function LootHistory.RightClickMenu(menu, level)
 
 			info = MSA_DropDownMenu_CreateInfo()
 			for k,responses in pairs(db.responses) do
-				addon.Log:D("db.responses:", k)
 				if k ~= "default" and k ~= "*" then
 					info.text = addon.OPT_MORE_BUTTONS_VALUES[k] or _G.UNKNOWN
 					info.isTitle = true
@@ -1481,7 +1400,6 @@ function LootHistory.RightClickMenu(menu, level)
 					info.notCheckable = true
 					MSA_DropDownMenu_AddButton(info, level)
 					for i, v in ipairs(responses) do --luacheck: ignore
-						addon.Log:D("responses:", i)
 						info.text = v.text
 						info.colorCode = "|cff"..addon.Utils:RGBToHex(unpack(v.color))
 						info.isTitle = false
@@ -1494,9 +1412,8 @@ function LootHistory.RightClickMenu(menu, level)
 							entry.response = addon:GetResponse(k,i).text
 							entry.color = {addon:GetResponseColor(k, i)}
 							entry.isAwardReason = nil
-							entry.tokenRoll = nil
-							entry.relicRoll = nil
 							data.response = i
+							entry.typeCode = k
 							data.cols[6].args = {color = entry.color, response = entry.response, responseID = i}
 							LootHistory.frame.st:SortData()
 							addon:SendMessage("RCHistory_ResponseEdit", data)
@@ -1519,6 +1436,7 @@ function LootHistory.RightClickMenu(menu, level)
 							entry.response = addon:GetResponse("default",k).text
 							entry.color = {addon:GetResponseColor("default", k)}
 							entry.isAwardReason = nil
+							entry.typeCode = "default"
 							data.response = k
 							data.cols[6].args = {color = entry.color, response = entry.response, responseID = k}
 							LootHistory.frame.st:SortData()
@@ -1588,11 +1506,11 @@ do
 		tinsert(ret, "player,date,time,id,item,itemID,itemString,response,votes,class,instance,boss,difficultyID,mapID,groupSize,gear1,gear2,responseID,isAwardReason,subType,equipLoc,note,owner\r\n")
 		for player, v in pairs(self:GetFilteredDB()) do
 			for _, d in pairs(v) do
-				_,_,subType, equipLoc = GetItemInfoInstant(d.lootWon)
+				_,_,subType, equipLoc = C_Item.GetItemInfoInstant(d.lootWon)
 				if d.tierToken then subType = L["Armor Token"] end
 				-- We might have commas in various things here :/
 				tinsert(export, tostring(player))
-				tinsert(export, tostring(self:GetLocalizedDate(d.date)))
+				tinsert(export, tostring(d.date))
 				tinsert(export, tostring(d.time))
 				tinsert(export, tostring(d.id))
 				tinsert(export, CSVEscape(d.lootWon))
@@ -1622,9 +1540,16 @@ do
 		return table.concat(ret)
 	end
 
+	--- TSV for Google Sheets and English Excel versions.
+	function LootHistory:ExportGoogleSheets()
+		return self:ExportTSV(";")
+	end
+
 	--- TSV (Tab Seperated Values) for Excel
-	-- Made specificly with excel in mind, but might work with other spreadsheets
-	function LootHistory:ExportTSV()
+	--- Made specificly with excel in mind, but might work with other spreadsheets
+	---@param formulaDelimiter ","|";" Delimiter to use in hyperlink formula. Defaults to ",".
+	function LootHistory:ExportTSV(formulaDelimiter)
+		formulaDelimiter = formulaDelimiter or ","
 		-- Add headers
 		wipe(export)
 		wipe(ret)
@@ -1632,13 +1557,13 @@ do
 		tinsert(ret, "player\tdate\ttime\titem\titemID\titemString\tresponse\tvotes\tclass\tinstance\tboss\tgear1\tgear2\tresponseID\tisAwardReason\trollType\tsubType\tequipLoc\tnote\towner\r\n")
 		for player, v in pairs(self:GetFilteredDB()) do
 			for _, d in pairs(v) do
-				_,_,subType, equipLoc = GetItemInfoInstant(d.lootWon)
+				_,_,subType, equipLoc = C_Item.GetItemInfoInstant(d.lootWon)
 				if d.tierToken then subType = L["Armor Token"] end
 				rollType = (d.tokenRoll and "token") or (d.relicRoll and "relic") or "normal"
 				tinsert(export, tostring(player))
-				tinsert(export, tostring(self:GetLocalizedDate(d.date)))
+				tinsert(export, tostring(d.date))
 				tinsert(export, tostring(d.time))
-				tinsert(export, "=HYPERLINK(\""..self:GetWowheadLinkFromItemLink(d.lootWon).."\",\""..tostring(d.lootWon).."\")")
+				tinsert(export, table.concat {"=HYPERLINK(\"", self:GetWowheadLinkFromItemLink(d.lootWon), "\"", formulaDelimiter, "\"", tostring(d.lootWon), "\")"} or "")
 				tinsert(export, ItemUtils:GetItemIDFromLink(d.lootWon))
 				tinsert(export, ItemUtils:GetItemStringFromLink(d.lootWon))
 				tinsert(export, tostring(d.response))
@@ -1646,8 +1571,8 @@ do
 				tinsert(export, tostring(d.class))
 				tinsert(export, tostring(d.instance))
 				tinsert(export, tostring(d.boss))
-				tinsert(export, d.itemReplaced1 and "=HYPERLINK(\""..self:GetWowheadLinkFromItemLink(tostring(d.itemReplaced1)).."\",\""..tostring(d.itemReplaced1).."\")" or "")
-				tinsert(export, d.itemReplaced2 and "=HYPERLINK(\""..self:GetWowheadLinkFromItemLink(tostring(d.itemReplaced2)).."\",\""..tostring(d.itemReplaced2).."\")" or "")
+				tinsert(export, d.itemReplaced1 and table.concat {"=HYPERLINK(\"", self:GetWowheadLinkFromItemLink(tostring(d.itemReplaced1)), "\"", formulaDelimiter, "\"", tostring(d.itemReplaced1), "\")"} or "")
+				tinsert(export, d.itemReplaced2 and table.concat {"=HYPERLINK(\"", self:GetWowheadLinkFromItemLink(tostring(d.itemReplaced2)), "\"", formulaDelimiter, "\"", tostring(d.itemReplaced2), "\")"} or "")
 				tinsert(export, tostring(d.responseID))
 				tinsert(export, tostring(d.isAwardReason or false))
 				tinsert(export, rollType)
@@ -1669,7 +1594,8 @@ do
 		local subType, equipLoc, rollType
 		local eligibleEntries = 0;
 
-		for _, v in pairs(self:GetFilteredDB()) do
+		local filteredDb = self:GetFilteredDB() 
+		for _, v in pairs(filteredDb) do
 			for _ in pairs(v) do
 					eligibleEntries = eligibleEntries + 1;
 			end
@@ -1677,13 +1603,13 @@ do
 
 		local processedEntries = 0;
 
-		for player, v in pairs(self:GetFilteredDB()) do
+		for player, v in pairs(filteredDb) do
 			for _, d in pairs(v) do
-				_,_,subType, equipLoc = GetItemInfoInstant(d.lootWon)
+				_,_,subType, equipLoc = C_Item.GetItemInfoInstant(d.lootWon)
 				if d.tierToken then subType = L["Armor Token"] end
 				rollType = (d.tokenRoll and "token") or (d.relicRoll and "relic") or "normal"
 				tinsert(export, string.format("\"%s\":\"%s\"", "player", tostring(player)))
-				tinsert(export, string.format("\"%s\":\"%s\"", "date", tostring(self:GetLocalizedDate(d.date))))
+				tinsert(export, string.format("\"%s\":\"%s\"", "date", tostring(d.date)))
 				tinsert(export, string.format("\"%s\":\"%s\"", "time", tostring(d.time)))
 				tinsert(export, string.format("\"%s\":\"%s\"", "id", tostring(d.id)))
 				tinsert(export, string.format("\"%s\":%s", "itemID", ItemUtils:GetItemIDFromLink(d.lootWon)))
@@ -1695,14 +1621,16 @@ do
 				tinsert(export, string.format("\"%s\":\"%s\"", "boss", QuotesEscape(d.boss)))
 				tinsert(export, string.format("\"%s\":\"%s\"", "gear1", QuotesEscape(d.itemReplaced1)))
 				tinsert(export, string.format("\"%s\":\"%s\"", "gear2", QuotesEscape(d.itemReplaced2)))
-				tinsert(export, string.format("\"%s\":\"%s\"", "responseID", tostring(d.responseID)))
+				tinsert(export, string.format("\"%s\":\"%s\"", "responseID", d.responseID))
 				tinsert(export, string.format("\"%s\":\"%s\"", "isAwardReason", tostring(d.isAwardReason or false)))
 				tinsert(export, string.format("\"%s\":\"%s\"", "rollType", rollType))
 				tinsert(export, string.format("\"%s\":\"%s\"", "subType", tostring(subType)))
 				tinsert(export, string.format("\"%s\":\"%s\"", "equipLoc", tostring(getglobal(equipLoc) or "")))
 				tinsert(export, string.format("\"%s\":\"%s\"", "note", QuotesEscape(d.note)))
 				tinsert(export, string.format("\"%s\":\"%s\"", "owner", tostring(d.owner or "Unknown")))
-				tinsert(export, string.format("\"%s\":\"%s\"", "itemName", ItemUtils:GetItemNameFromLink(d.lootWon)))
+				tinsert(export,
+				string.format("\"%s\":\"%s\"", "itemName", QuotesEscape(ItemUtils:GetItemNameFromLink(d.lootWon))))
+				tinsert(export, string.format("\"%s\":\"%s\"", "servertime", (strsplit("-", d.id, 2))))
 
 				processedEntries = processedEntries + 1;
 
@@ -1771,9 +1699,9 @@ do
 		local latest = 0
 		for player, v in pairs(self:GetFilteredDB()) do
 			for _, d in pairs(v) do
-				local day, month, year = strsplit("/", d.date, 3)
+				local year, month, day = addon.Utils:DateSplit(d.date)
 				local hour,minute,second = strsplit(":",d.time,3)
-				local sinceEpoch = time({year = "20"..year, month = month, day = day,hour = hour,min = minute,sec=second})
+				local sinceEpoch = time({year = year, month = month, day = day,hour = hour,min = minute,sec=second})
 				itemsData = itemsData.."\t\t<item>\r\n"
 				.."\t\t\t<itemid>" .. ItemUtils:GetItemStringClean(d.lootWon) .. "</itemid>\r\n"
 				.."\t\t\t<name>" .. ItemUtils:GetItemNameFromLink(d.lootWon) .. "</name>\r\n"
@@ -1789,7 +1717,7 @@ do
 
 				if d.instance then
 					itemsData = itemsData .. "\t\t\t<zone>" .. gsub(tostring(d.instance),",","") .. "</zone>\r\n"
-					raidData[time({year="20"..year,month=month,day=day})] = gsub(tostring(d.instance),",","")
+					raidData[time({year=year, month=month,day=day})] = gsub(tostring(d.instance),",","")
 				else
 					itemsData = itemsData .. "\t\t\t<zone />\r\n"
 				end

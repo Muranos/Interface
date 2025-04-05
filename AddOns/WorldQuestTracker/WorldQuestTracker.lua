@@ -34,6 +34,7 @@ local HaveQuestData = HaveQuestData
 local isWorldQuest = QuestUtils_IsQuestWorldQuest
 local GetQuestInfoByQuestID = C_TaskQuest.GetQuestInfoByQuestID
 local GetQuestTimeLeftMinutes = C_TaskQuest.GetQuestTimeLeftMinutes
+local GetQuestsForPlayerByMapID = C_TaskQuest.GetQuestsForPlayerByMapID or C_TaskQuest.GetQuestsOnMap
 
 local _
 
@@ -228,6 +229,24 @@ function WorldQuestTracker:OnInit()
 		DF.Language.SetCurrentLanguage(addonId, WQTrackerLanguage.language)
 	end
 
+	for hubMapID, defaultScale in pairs(WorldQuestTracker.MapData.HubMapIconsScale) do
+		if (not WorldQuestTracker.db.profile.world_map_hubscale[hubMapID]) then
+			WorldQuestTracker.db.profile.world_map_hubscale[hubMapID] = defaultScale
+		end
+		if (WorldQuestTracker.db.profile.world_map_hubenabled[hubMapID] == nil) then
+			WorldQuestTracker.db.profile.world_map_hubenabled[hubMapID] = true
+		end
+	end
+
+    hooksecurefunc(_G, "StaticPopup_Show", function(token)
+		if (token == "ABANDON_QUEST") then
+			if (WorldQuestTracker.db.profile.close_blizz_popups.ABANDON_QUEST) then
+				---@diagnostic disable-next-line: undefined-global
+				StaticPopup1Button1:Click()
+			end
+		end
+	end)
+
 	WorldQuestTracker.InitAt = GetTime()
 	WorldQuestTracker.LastMapID = WorldQuestTracker.GetCurrentMapAreaID()
 
@@ -240,7 +259,7 @@ function WorldQuestTracker:OnInit()
 	WorldQuestTracker.dbChr.ActiveQuests = WorldQuestTracker.dbChr.ActiveQuests or {}
 
 	local SharedMedia = LibStub:GetLibrary ("LibSharedMedia-3.0")
-	SharedMedia:Register ("statusbar", "Iskar Serenity", [[Interface\AddOns\WorldQuestTracker\media\bar_serenity]])
+	SharedMedia:Register("statusbar", "Iskar Serenity", [[Interface\AddOns\WorldQuestTracker\media\bar_serenity]])
 
 	C_Timer.After (5, function()
 		WorldQuestTracker.InitiateFlyMasterTracker()
@@ -297,6 +316,8 @@ function WorldQuestTracker:OnInit()
 		end
 	end
 
+	WorldQuestTracker.MapChangedTime = time()-1
+
 	C_Timer.After (3, save_player_name)
 	C_Timer.After (10, save_player_name)
 
@@ -304,6 +325,13 @@ function WorldQuestTracker:OnInit()
 
 	local re_ZONE_CHANGED_NEW_AREA = function()
 		WorldQuestTracker:ZONE_CHANGED_NEW_AREA()
+	end
+
+	function WorldQuestTracker.FinishedUpdate_Zone()
+		return true
+	end
+	function WorldQuestTracker.FinishedUpdate_World()
+		return true
 	end
 
 	function WorldQuestTracker.IsInvasionPoint()
@@ -352,6 +380,10 @@ function WorldQuestTracker:OnInit()
 			else
 				C_Timer.After (.5, WorldQuestTracker.UpdateCurrentStandingZone)
 			end
+		end
+
+		if (WorldQuestTracker.DoesMapHasWorldQuests(WorldMapFrame.mapID)) then
+			WorldQuestTracker.PreloadWorldQuestsForMap(WorldMapFrame.mapID)
 		end
 
 		WorldQuestTracker.UpdateExtraMapTextures()
@@ -474,8 +506,10 @@ function WorldQuestTracker:OnInit()
 
 			--FlashClientIcon()
 
+			WorldQuestTracker.RemoveQuestFromCache(questID)
+
 			if (isWorldQuest(questID)) then --wait, is this inception?
-				local title, factionID, tagID, tagName, worldQuestType, rarity, isElite, tradeskillLineIndex, tagID, tagName, worldQuestType, rarity, isElite, tradeskillLineIndex, allowDisplayPastCritical, gold, goldFormated, rewardName, rewardTexture, numRewardItems, itemName, itemTexture, itemLevel, quantity, quality, isUsable, itemID, isArtifact, artifactPower, isStackable, stackAmount = WorldQuestTracker.GetOrLoadQuestData (questID)
+				local title, factionID, tagID, tagName, worldQuestType, rarity, isElite, tradeskillLineIndex, allowDisplayPastCritical, gold, goldFormated, rewardName, rewardTexture, numRewardItems, itemName, itemTexture, itemLevel, quantity, quality, isUsable, itemID, isArtifact, artifactPower, isStackable, stackAmount = WorldQuestTracker.GetOrLoadQuestData (questID)
 				local questHistory = WorldQuestTracker.db.profile.history
 
 				--check if the map is opened in the player screen
@@ -862,73 +896,7 @@ local wait_ShowTutorialAlert = function()
 	WorldQuestTracker.ShowTutorialAlert()
 end
 
-local tutorial_one = function()
-
-	local widget = WorldQuestTracker.WorldSummaryQuestsSquares [1]
-
-	local alert = CreateFrame ("frame", "WorldQuestTrackerTutorialAlert1", worldFramePOIs, "MicroButtonAlertTemplate")
-	alert:SetFrameLevel(302)
-	alert.label = L["S_TUTORIAL_CLICKTOTRACK"]
-	alert.Text:SetSpacing (4)
-	MicroButtonAlert_SetText2 (alert, alert.label)
-
-	if (widget and widget:IsShown()) then
-		alert:SetPoint("bottom", widget, "top", 0, 28)
-	else
-		alert:SetPoint("topleft", worldFramePOIs, "topleft", 64, -270)
-	end
-
-	alert.CloseButton:HookScript ("OnClick", hook_AlertCloseButton)
-	alert:Show()
-
-	WorldQuestTracker.db.profile.TutorialPopupID = WorldQuestTracker.db.profile.TutorialPopupID + 1
-end
-
-local tutorial_two = function()
-	if (WorldQuestTrackerToggleQuestsSummaryButton and WorldQuestTrackerToggleQuestsSummaryButton:IsShown()) then
-		local alert = CreateFrame ("frame", "WorldQuestTrackerTutorialAlert2", worldFramePOIs, "MicroButtonAlertTemplate")
-		alert:SetFrameLevel(302)
-		alert.label = L["S_TUTORIAL_WORLDBUTTONS"]
-		alert.Text:SetSpacing (4)
-		MicroButtonAlert_SetText2 (alert, alert.label)
-
-		alert:SetPoint("bottom", WorldQuestTrackerToggleQuestsSummaryButton, "top", 0, 28)
-
-		alert.CloseButton:HookScript ("OnClick", hook_AlertCloseButton)
-		alert.Arrow:ClearAllPoints()
-		alert.Arrow:SetPoint("topleft", alert, "bottomleft", 70, 0)
-		alert:Show()
-
-		WorldQuestTracker.db.profile.TutorialPopupID = WorldQuestTracker.db.profile.TutorialPopupID + 1
-
-	else
-		C_Timer.After (2, WorldQuestTracker.ShowTutorialAlert)
-	end
-end
-
-local tutorial_three = function()
-	local alert = CreateFrame ("frame", "WorldQuestTrackerTutorialAlert3", worldFramePOIs, "MicroButtonAlertTemplate")
-	alert:SetFrameLevel(302)
-	alert.label = L["S_TUTORIAL_STATISTICS_BUTTON"]
-	alert.Text:SetSpacing (4)
-	MicroButtonAlert_SetText2 (alert, alert.label)
-	alert:SetPoint("bottomleft", WorldQuestTrackerStatisticsButton, "topleft", 0, 32)
-	alert.Arrow:ClearAllPoints()
-	alert.Arrow:SetPoint("topleft", alert, "bottomleft", 10, 0)
-	alert.CloseButton:HookScript ("OnClick", hook_AlertCloseButton)
-	alert:Show()
-
-	WorldQuestTracker.db.profile.TutorialPopupID = WorldQuestTracker.db.profile.TutorialPopupID + 1
-end
-
-local tutorial_four = function()
-	--tutorial four was the tutorial for the centralized button, which has been removed
-	--it just increases the tutorial ID here
-	WorldQuestTracker.db.profile.TutorialPopupID = WorldQuestTracker.db.profile.TutorialPopupID + 1
-end
-
 function WorldQuestTracker.ShowTutorialAlert()
-
 	if (true) then
 		--disabled tutorials for 9.0.1, due to "MicroButtonAlertTemplate" being nil, need to replace with the new animation
 		return
@@ -952,8 +920,6 @@ function WorldQuestTracker.ShowTutorialAlert()
 
 		WorldMapFrame:SetMapID (WorldQuestTracker.MapData.ZoneIDs.KULTIRAS)
 		WorldQuestTracker.UpdateWorldQuestsOnWorldMap (true)
-
-		--C_Timer.After (4, tutorial_one)
 		return
 
 	elseif (WorldQuestTracker.db.profile.TutorialPopupID == 2) then
@@ -1019,7 +985,7 @@ function WorldQuestTracker.CreateLoadingIcon()
 	local anim1 = animGroup1:CreateAnimation ("Alpha")
 	anim1:SetOrder (1)
 	anim1:SetFromAlpha (0)
-	anim1:SetToAlpha (1)
+	anim1:SetToAlpha (0.834)
 	anim1:SetDuration (2)
 	f.FadeIN = animGroup1
 
@@ -1027,11 +993,12 @@ function WorldQuestTracker.CreateLoadingIcon()
 	local anim2 = animGroup2:CreateAnimation ("Alpha")
 	f.FadeOUT = animGroup2
 	anim2:SetOrder (2)
-	anim2:SetFromAlpha (1)
+	anim2:SetFromAlpha (0.834)
 	anim2:SetToAlpha (0)
 	anim2:SetDuration (4)
 	animGroup2:SetScript("OnFinished", function()
 		f:Hide()
+		WorldQuestTracker.LoadingAnimation.IsPlaying = false
 	end)
 
 	f.Text = f:CreateFontString (nil, "overlay", "GameFontNormal")
@@ -1082,7 +1049,9 @@ end
 function WorldQuestTracker.IsPlayingLoadAnimation()
 	return WorldQuestTracker.LoadingAnimation.IsPlaying
 end
+
 function WorldQuestTracker.PlayLoadingAnimation()
+	do return end
 	if (not WorldQuestTracker.IsPlayingLoadAnimation()) then
 		WorldQuestTracker.LoadingAnimation:Show()
 		WorldQuestTracker.LoadingAnimation.FadeIN:Play()
@@ -1090,9 +1059,9 @@ function WorldQuestTracker.PlayLoadingAnimation()
 		WorldQuestTracker.LoadingAnimation.IsPlaying = true
 	end
 end
+
 function WorldQuestTracker.StopLoadingAnimation()
 	WorldQuestTracker.LoadingAnimation.FadeOUT:Play()
-	WorldQuestTracker.LoadingAnimation.IsPlaying = false
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1130,12 +1099,12 @@ function SlashCmdList.WQTRACKER (msg, editbox)
 			WorldQuestTracker:Msg("Character level too low for shadowlands, minimum is 51 for alts.")
 		end
 
-		local bastionQuests = C_TaskQuest.GetQuestsForPlayerByMapID(1533, 1533)
+		local bastionQuests = GetQuestsForPlayerByMapID(1533, 1533)
 		WorldQuestTracker:Msg("Finding quests on Bastion Map")
 		if (bastionQuests and type(bastionQuests) == "table") then
 			WorldQuestTracker:Msg("Found quests, amount:", #bastionQuests)
 		else
-			WorldQuestTracker:Msg("Blizzard's GetQuestsForPlayerByMapID() returned invalid data.")
+			WorldQuestTracker:Msg("Blizzard's GetQuestsOnMap() returned invalid data.")
 		end
 
 	elseif (msg == "debug") then
@@ -1152,16 +1121,20 @@ function SlashCmdList.WQTRACKER (msg, editbox)
 		return
 
 	elseif (msg == "info") then
-		local widget = GetMouseFocus()
+		--local widget = GetMouseFocus()
+        ---@type uiobject[]
+        local uiObjects = GetMouseFoci()
 
-		if (widget) then
+		if (uiObjects and uiObjects[1]) then
+			local widget = uiObjects[1]
+
 			local info = {}
 
 			--quest info
 			tinsert (info, "Name: " .. (widget.GetName and widget:GetName() or "-No Name-"))
 
 			if (widget.questID) then
-				local title, factionID, tagID, tagName, worldQuestType, rarity, isElite, tradeskillLineIndex, tagID, tagName, worldQuestType, rarity, isElite, tradeskillLineIndex, allowDisplayPastCritical, gold, goldFormated, rewardName, rewardTexture, numRewardItems, itemName, itemTexture, itemLevel, quantity, quality, isUsable, itemID, isArtifact, artifactPower, isStackable, stackAmount = WorldQuestTracker.GetOrLoadQuestData (widget.questID)
+				local title, factionID, tagID, tagName, worldQuestType, rarity, isElite, tradeskillLineIndex, allowDisplayPastCritical, gold, goldFormated, rewardName, rewardTexture, numRewardItems, itemName, itemTexture, itemLevel, quantity, quality, isUsable, itemID, isArtifact, artifactPower, isStackable, stackAmount = WorldQuestTracker.GetOrLoadQuestData (widget.questID)
 				tinsert (info, "QuestID: " .. widget.questID .. " Quest Name: " .. (title or "-No Name-"))
 			else
 				tinsert (info, "QuestID: no questID found")
@@ -1258,6 +1231,11 @@ function SlashCmdList.WQTRACKER (msg, editbox)
 	else
 		WorldQuestTracker:Msg("version:", WQT_VERSION)
 
+		if (not WorldQuestTracker.SetupStatusbarButton) then
+			WorldQuestTracker:Msg(L["S_SLASH_OPENMAP_FIRST"])
+			return
+		end
+		WorldQuestTracker.OpenOptionsPanel()
 	end
 end
 

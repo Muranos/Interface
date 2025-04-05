@@ -12,11 +12,13 @@ local Widget = Addon.Widgets:NewWidget("HealerTracker")
 -- Lua APIs
 
 -- WoW APIs
-local IsInInstance = IsInInstance
+local IsInInstance, InCombatLockdown = IsInInstance, InCombatLockdown
+local UnitIsPVP, UnitIsPVPSanctuary = UnitIsPVP, UnitIsPVPSanctuary
 local GetUnitName = GetUnitName
 local RequestBattlefieldScoreData, GetNumBattlefieldScores, GetBattlefieldScore = RequestBattlefieldScoreData, GetNumBattlefieldScores, GetBattlefieldScore
 local CombatLogGetCurrentEventInfo = CombatLogGetCurrentEventInfo
 local NotifyInspect, CanInspect, ClearInspectPlayer, GetInspectSpecialization = NotifyInspect, CanInspect, ClearInspectPlayer, GetInspectSpecialization
+local C_Timer_After = C_Timer.After
 
 -- ThreatPlates APIs
 local PlatesByGUID = Addon.PlatesByGUID
@@ -50,6 +52,8 @@ local HEALER_SPECIALIZATION_ID = {
 -- Store localized names for specializations for parsing the battleground score
 local HEALER_CLASSES = {}
 local HEALER_SPECS = {}
+
+-- GetSpecializationInfoByID: Warlords of Draenor Patch 6.2.0 (2015-06-23): Added GetSpecializationInfoForSpecID()
 if Addon.IS_MAINLINE then
   for specialization_id, _ in pairs(HEALER_SPECIALIZATION_ID) do
     local _, name, _, _, _, classFile, _ =  GetSpecializationInfoByID(specialization_id)
@@ -78,142 +82,206 @@ local HEALER_SPELLS_RETAIL = {
   ----------
   [2060] = "PRIEST",     -- Heal
   [14914] = "PRIEST",    -- Holy Fire
+  [527] = "PRIEST",      -- Purify
   --
-  --[2050] = "PRIEST",     -- Holy Word: Serenity
-  [596] = "PRIEST",      -- Prayer of Healing
+  [2050] = "PRIEST",     -- Holy Word: Serenity
+  [34861] = "PRIEST",    -- Holy Word: Sanctify
   --[47788] = "PRIEST",    -- Guardian Spirit
   --[88625] = "PRIEST",    -- Holy Word: Chastise
-  --[34861] = "PRIEST",    -- Holy Word: Sanctify
+  [596] = "PRIEST",      -- Prayer of Healing
   [204883] = "PRIEST",   -- Circle of Healing
-  --[372616] = "PRIEST",   -- Empyreal Blaze
   --[64843] = "PRIEST",    -- Divine Hymn
   --[64901] = "PRIEST",    -- Symbol of Hope
   --[200183] = "PRIEST",   -- Apotheosis
   --[265202] = "PRIEST",   -- Holy Word: Salvation
   --[372835] = "PRIEST",   -- Lightwell
-  --
-  --[197268] = "PRIEST",   -- Ray of Hope
-  [289666] = "PRIEST",   -- Greater Heal
-  --[328530] = "PRIEST",   -- Divine Ascension
-  --[213610] = "PRIEST",   -- Holy Ward
-  --[197268] = "PRIEST",   -- Ray of Hope
-
-
+  
   -- Discipline Priest
   ----------
   [47540] = "PRIEST",  -- Penance
   --
-  [194509] = "PRIEST", -- Power Word: Radiance
-  --[33206] = "PRIEST", -- Pain Suppression
-  [214621] = "PRIEST", -- Schism
-  [129250] = "PRIEST", -- Power Word: Solace
+  [194509] = "PRIEST",  -- Power Word: Radiance
+  --[33206] = "PRIEST",   -- Pain Suppression
+  --[271466] = "PRIEST",  -- Luminous Barrier
   --[62618] = "PRIEST", -- Power Word: Barrier
-  [204197] = "PRIEST", -- Purge of the Wicked
-  --[47536] = "PRIEST",  -- Rapture
-  [314867] = "PRIEST",  -- Shadow Covenant
-  --[373178] = "PRIEST",  -- Light's Wrath
+  [204197] = "PRIEST",  -- Purge of the Wicked
+  --[47536] = "PRIEST",   -- Rapture
+  --[421543] = "PRIEST",  -- Ultimate Penitence
+  --[246287] = "PRIEST",  -- Evangelism
   --[123040] = "PRIEST",  -- Mindbender
-  --
-  --[197871] = "PRIEST",   -- Dark Archangel
-  --[197862] = "PRIEST",   -- Archangel
 
-  -- Druid (The affinity traits on the other specs makes this difficult)
+
+  -- Druid
   ---------
-  [33763] = "DRUID", -- Lifebloom
-  --[17116] = "DRUID", -- Nature's Swiftness
-  [102351] = "DRUID", -- Cnenarion Ward
-  [33763] = "DRUID", -- Nourish
-  [81262] = "DRUID", -- Efflorescence
-  --[740] = "DRUID", -- Tranquility
-  --[102342] = "DRUID", -- Ironbark
-  --[203651] = "DRUID", -- Overgrowth
-  --[33891] = "DRUID", -- Incarnation: Tree of Life
-  --[391528] = "DRUID", -- Convoke the Spirits
-  [391888] = "DRUID", -- Adaptive Swarm -- Shared with Feral
-  --[197721] = "DRUID", -- Flourish
-  [392160] = "DRUID", -- Invigorate
+  [18562] = "DRUID",   -- Swiftmend
+  [212040] = "DRUID",  -- Revitalize
   --
-
+  [33763] = "DRUID",   -- Lifebloom
+  [132158] = "DRUID",  -- Nature's Swiftness
+  --[102351] = "DRUID",  -- Cenarion Ward
+  [145205] = "DRUID",  -- Efflorescence
+  --[740] = "DRUID",     -- Tranquilit
+  --[102342] = "DRUID",  -- Ironbark
+  --[50464] = "DRUID",   -- Nourish
+  --[102693] = "DRUID",  -- Grove Guardians
+  --[203651] = "DRUID",  -- Overgrowth
+  --[33891] = "DRUID",   -- Incarnation: Tree of Life
+  --[391528] = "DRUID",  -- Convoke the Spirits
+  --[392160] = "DRUID",  -- Invigorate
+  --[197721] = "DRUID",  -- Flourish
+  
 
   -- Shaman
   ---------
-  [61295] = "SHAMAN",  -- Riptide
-  [77472] = "SHAMAN",  -- Healing Wave
-  [73920] = "SHAMAN",  -- Healing Rain
-  --[383009] = "SHAMAN",  -- Stormkeeper
-  --[52127] = "SHAMAN",  -- Water Shield
-  --[98008] = "SHAMAN", -- Spirit Link Totem
-  --[157153] = "SHAMAN", -- Cloudburst Totem
-  --[108280] = "SHAMAN",  -- Healing Tide Totem
-  --[16190] = "SHAMAN", -- Mana Tide Totem
-  [73685] = "SHAMAN",  -- Unleash Life
-  --[198838] = "SHAMAN",  -- Earthen Wall Totem
-  --[207399] = "SHAMAN",  -- Ancestral Protection Totem
-  --[375982] = "SHAMAN", -- Primordial Wave
-  [207778] = "SHAMAN", -- Downpour
-  --[382029] = "SHAMAN", -- Ever-Rising Tide -- was only in Beta available
-  --[114052] = "SHAMAN", -- Ascendance
-  --[197995] = "SHAMAN", -- Wellspring
+  [77130] = "SHAMAN",  -- Purify Spirit
+  [52127] = "SHAMAN",  -- Water Shield
   --
+  [61295] = "SHAMAN",  -- Riptide
+  [73920] = "SHAMAN",  -- Healing Rain
+  [77472] = "SHAMAN",  -- Healing Wave
+  --[98008] = "SHAMAN",  -- Spirit Link Totem
+  --[157153] = "SHAMAN", -- Cloudburst Totem
+  --[108280] = "SHAMAN", -- Healing Tide Totem
+  --[16190] = "SHAMAN",  -- Mana Tide Totem
+  --[73685] = "SHAMAN",  -- Unleash Life
+  --[198838] = "SHAMAN", -- Earthen Wall Totem
+  --[207399] = "SHAMAN", -- Ancestral Protection Totem
+  --[382021] = "SHAMAN", -- Earthliving Weapon
+  --[114052] = "SHAMAN", -- Ascendance
+  --[375982] = "SHAMAN", -- Primordial Wave
+  --[197995] = "SHAMAN", -- Wellspring
+
 
   -- Paladin
   ----------
-  [275773] = "PALADIN", -- Judgment
+  [4987] = "PALADIN", -- Cleanse
+  [82326] = "PALADIN", -- Holy Light
+  [53563] = "PALADIN", -- Beacon of Light
   --
   [20473] = "PALADIN", -- Holy Shock
-  [82326] = "PALADIN", -- Holy Light
   [85222] = "PALADIN", -- Light of Dawn
-  [223306] = "PALADIN", -- Bestow Faith
   --[31821] = "PALADIN", -- Aura Mastery
-  [214202] = "PALADIN", -- Rule of Law
-  [210294] = "PALADIN", -- Divine Favor
-  --[114158] = "PALADIN", -- Light's Hammer
-  [114165] = "PALADIN", -- Holy Prism
-  --[183998] = "PALADIN", -- Licht des Märtyrers ??? Holy or all Paladins
-  --[304971] = "PALADIN", -- Divine Toll  ??? Holy or all Paladins
-  --[216331] = "PALADIN", -- Avenging Crusader
+  --[114165] = "PALADIN", -- Holy Prism
+  --[148039] = "PALADIN", -- Barrier of Faith
+  --[414273] = "PALADIN", -- Hand of Divinity
+  [156910] = "PALADIN", -- Beacon of Faith
+  [200025] = "PALADIN", -- Beacon of Virtue
   --[384376] = "PALADIN", -- Avenging Wrath ??? Holy or all Paladins
-  [148039] = "PALADIN", -- Barrier of Faith
+  --[216331] = "PALADIN", -- Avenging Crusader
+  --[200652] = "PALADIN", -- Tyr's Deliverance
   --[388007] = "PALADIN", -- Blessing of Summer
 
 
   -- Monk
   ---------
+  [115450] = "MONK", -- Detox
+  --
   [124682] = "MONK", -- Envelopping Mist
-  [191837] = "MONK", -- Essence Font
+  [116680] = "MONK", -- Thunder Focus Tea
   [115151] = "MONK", -- Renewing Mist
   --[116849] = "MONK", -- Life Cocoon
-  [116680] = "MONK", -- Thunder Focus Tea
+  [115294] = "MONK", -- Mana Tea
+  --[197908] = "MONK", -- Mana Tea
   --[115310] = "MONK", -- Revival
   --[388615] = "MONK", -- Restoral
-  --[198898] = "MONK", -- Song of Chi-Ji
-  [124081] = "MONK", -- Zen Pulse
-  --[122281] = "MONK", -- Healing Elixir
   --[325197] = "MONK", -- Invoke Chi-Ji, the Red Crane
   --[322118] = "MONK", -- Invoke Yu'lon, the Jade Serpent
-  --[196725] = "MONK", -- Refreshing Jade Wind
-  --[197908] = "MONK", -- Mana Tea
-  --[388193] = "MONK", -- Faeline Stomp
-  --[386276] = "MONK", -- Bonedust Brew
-  --
-  [209584] = "MONK", -- Zen Focus Tea
-  [205234] = "MONK", -- Healing Sphere
-
+  --[388193] = "MONK", -- Jadefire Stomp
+  --[399491] = "MONK", -- Sheilun's Gift
 
   -- Evoker - Preservation
   ---------
+  [360823] = "EVOKER", -- Naturalize
+  --
   [364343] = "EVOKER", -- Echo
   [382614] = "EVOKER", -- Dream Breath
+  --[355936] = "EVOKER", -- Dream Breath
   [366155] = "EVOKER", -- Reversion
   --[366155] = "EVOKER", -- Rewind
   [382731] = "EVOKER", -- Spiritbloom
   --[357170] = "EVOKER", -- Time Dilation
   --[370960] = "EVOKER", -- Emerald Communion
-  [373861] = "EVOKER", -- Temporal Anomaly  
+  --[373861] = "EVOKER", -- Temporal Anomaly  
   --[359816] = "EVOKER", -- Dream Flight
   --[370537] = "EVOKER", -- Stasis  
+}
+
+local HEALER_SPELLS_CATA = {
+  -- Holy Priest
+  ----------
+  -- Key Abilities: Renew, Flash Heal, Prayer of Healing, Greater Heal, Lightwell
+  [47788] = "PRIEST",  -- Guardian Spirit
+  [34861] = "PRIEST",  -- Circle of Healing
+  [14751] = "PRIEST",  -- Chakra
+  [88625] = "PRIEST",  -- Holy Word: Chastise
+  [88684] = "PRIEST",  -- Holy Word: Serenity
+  [88685] = "PRIEST",  -- Holy Word: Sanctuary
+  [724] = "PRIEST",    -- Lightwell
+  [19236] = "PRIEST",  -- Desperate Prayer
+  [101062] = "PRIEST", -- Flash Heal with Surge of Light proc
   --
-  --[377509] = "EVOKER", -- Dream Projection
+  --[139] = "PRIEST",  -- Renew
+  --[2061] = "PRIEST", -- Flash Heal
+  --[596] = "PRIEST",  -- Prayer of Healing
+  --[2060] = "PRIEST", -- Greater Heal
+
+
+  -- Dicipline Priest
+  ----------
+  -- Key Abilities: Power Word: Shield, Power Word: Fortitude, Inner Fire, Mana Burn, Power Infusion
+  -- [47540] = "PRIEST", -- Penance
+  [62618] = "PRIEST", -- Power Word: Barrier
+  [33206] = "PRIEST", -- Pain Suppression
+  [73413] = "PRIEST", -- Inner Will
+  [10060] = "PRIEST", -- Power Infusion
+  [87151] = "PRIEST", -- Archangel
+  --
+  --[47750] = "PRIEST", -- Penance
+  --[17] = "PRIEST",   -- Power Word: Shield
+  --[588] = "PRIEST",  -- Inner Fire
+  --[8129] = "PRIEST", -- Mana Burn
+
+  -- Druid
+  ---------
+  -- Key Abilities: Regrowth, Rejuvenation, Healting Touch, Rebirth, Tranquility
+  [17116] = "DRUID", -- Nature's Swiftness
+  [48438] = "DRUID", -- Wild Growth
+  [33891] = "DRUID", -- Tree of Life (Aura)
+  --
+  --[18562] = "DRUID", -- Swiftmend
+  --[8936] = "DRUID",  -- Regrowth
+  --[774] = "DRUID",   -- Rejuvenation
+  --[5185] = "DRUID",  -- Healing Touch
+  --[20484] = "DRUID", -- Rebirth
+  --[740] = "DRUID",   -- Tranquility
+
+  -- Shaman
+  ---------
+  -- Key Abilities: Healing Wave, Lesser Healing Wave, Chain Heal, Mana Tide Totem
+  [16188] = "SHAMAN", -- Nature's Swiftness
+  [16190] = "SHAMAN", -- Mana Tide Totem
+  [98008] = "SHAMAN", -- Spirit Link Totem
+  [61295] = "SHAMAN", -- Riptide
+  -- 
+  --[974] = "SHAMAN",   -- Earth Shield
+  --[51886] = "SHAMAN", -- Cleanse Spirit
+  --[55198] = "SHAMAN", -- Tidal Force
+  --[331] = "SHAMAN",  -- Healing Wave
+  --[8004] = "SHAMAN", -- Healing Surge
+
+  -- Paladin
+  ----------
+  -- Key Abilities: Holy Light, Flash of Light, Seal of Light, Lay on Hands, Holy Shock
+  [85222] = "PALADIN", -- Light of Dawn
+  [31821] = "PALADIN", -- Aura Mastery
+  [53563] = "PALADIN", -- Beacon of Light
+  [20216] = "PALADIN", -- Divine Favor
+  --
+  --[31842] = "PALADIN", -- Divine Favor
+  --[20473] = "PALADIN", -- Holy Shock
+  --[82326] = "PALADIN", -- Divine Light
+  --[19750] = "PALADIN", -- Flash of Light
+  --[20165] = "PALADIN", -- Seal of Light
 }
 
 local HEALER_SPELLS_CLASSIC = {
@@ -336,6 +404,8 @@ elseif Addon.IS_TBC_CLASSIC then
   HEALER_SPELLS = HEALER_SPELLS_CLASSIC
 elseif Addon.IS_WRATH_CLASSIC then
   HEALER_SPELLS = HEALER_SPELLS_CLASSIC
+elseif Addon.IS_CATA_CLASSIC then
+  HEALER_SPELLS = HEALER_SPELLS_CATA
 else
   HEALER_SPELLS = HEALER_SPELLS_RETAIL
 end
@@ -343,9 +413,11 @@ end
 ---------------------------------------------------------------------------------------------------
 -- Variables
 ---------------------------------------------------------------------------------------------------
-local HealerByName = {}
-local HealerByGUID = {}
---local IsBattleground
+local UnitIsHealer = {}
+local UnitGUIDByName = {}
+local PlayerIsInBattleground = false
+local CheckPvPStateIsEnabled = false
+local CombatLogParsingIsEnabled = false
 local BattlefieldScoreDataRequestPending = false
 local DebugHealerInfoSource = {}
 
@@ -353,9 +425,7 @@ local DebugHealerInfoSource = {}
 -- Functions
 ---------------------------------------------------------------------------------------------------
 
-local function RegisterHealerByGUID(unit_guid, unit_is_healer)
-  HealerByGUID[unit_guid] = unit_is_healer
-
+local function UpdateNameplateByGUID(unit_guid)
   local plate = PlatesByGUID[unit_guid]
   if plate and plate.TPFrame.Active then
     local widget_frame = plate.TPFrame.widgets[Widget.Name]
@@ -373,10 +443,14 @@ function Widget:UPDATE_BATTLEFIELD_SCORE()
   --look at the scoreboard and assign healers from there
   for i = 1, GetNumBattlefieldScores() do
     local name, _, _, _, _, _, _, _, _, _, _, _, _, _, _, talentSpec = GetBattlefieldScore(i)
-    
-    --HealerByName[name] = HEALER_SPECS[talentSpec] ~= nil
-    if HealerByName[name] == nil then
-      HealerByName[name] = HEALER_SPECS[talentSpec] ~= nil
+    if UnitIsHealer[name] == nil then
+      local is_healer_spec = HEALER_SPECS[talentSpec]
+      UnitIsHealer[name] = (is_healer_spec and "HEALER") or "DPS"
+
+      local unit_guid = UnitGUIDByName[unit_name]
+      if unit_guid and is_healer_spec then
+        UpdateNameplateByGUID(unit_guid)
+      end
     end
   end
 
@@ -399,37 +473,79 @@ end
 --   ClearInspectPlayer()
 -- end
 
---triggered when enter and leave instances
-function Widget:PLAYER_ENTERING_WORLD()
-  HealerByName = {}
-  HealerByGUID = {}
+-- Combat log parsing for spells is enabled 
+--   in battlegrounds (but not in other instances) or
+--   in world PvP, i.e, the player has PvP enabled
+-- For efficiency reasons, combat log parsing will be disabled in 
+--   sanctuaries
+--   when leaving combat with a delay of 5 min
+function Widget:COMBAT_LOG_EVENT_UNFILTERED(...)
+  local _, combatevent, _, sourceGUID, _, _, _, _, _, _, _, spellid = CombatLogGetCurrentEventInfo()
+  if sourceGUID and SPELL_EVENTS[combatevent] and not UnitIsHealer[sourceGUID] and HEALER_SPELLS[spellid] then
+    UnitIsHealer[sourceGUID] = "HEALER"
 
-  -- local _, instance_type = IsInInstance()
-  -- if instance_type == "pvp" then
-  --   --IsBattleground = true
-    
-  --   self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-  --   -- if Addon.IS_MAINLINE then
-  --   --   self:RegisterEvent("INSPECT_READY")
-  --   -- end
-  -- else
-  --   --IsBattleground = false
-    
-  --   self:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-  --   -- if Addon.IS_MAINLINE then
-  --   --   self:UnregisterEvent("INSPECT_READY")
-  --   -- end
-  -- end
+    UpdateNameplateByGUID(sourceGUID)
+
+    --local _, combatevent, _, sourceGUID, sourceName, _, _, _, _, _, _, spellid = CombatLogGetCurrentEventInfo()
+    --DebugHealerInfoSource[sourceGUID] = { Name = sourceName, Source = "COMBATLOG"}
+  end
 end
 
-function Widget:COMBAT_LOG_EVENT_UNFILTERED(...)
-  local _, combatevent, _, sourceGUID, sourceName, _, _, _, _, _, _, spellid = CombatLogGetCurrentEventInfo()
-  --local _, combatevent, _, sourceGUID, _, _, _, _, _, _, _, spellid = CombatLogGetCurrentEventInfo()
+function Widget:PLAYER_ENTERING_WORLD()
+  UnitIsHealer = {}
 
-  if sourceGUID and SPELL_EVENTS[combatevent] and not HealerByGUID[sourceGUID] and HEALER_SPELLS[spellid] then
-    RegisterHealerByGUID(sourceGUID, true)
+  local in_instance, instance_type = IsInInstance()
+  PlayerIsInBattleground = (instance_type == "pvp")
+  PlayerIsInWorldPvPArea = (instance_type == "none")
 
-    --DebugHealerInfoSource[sourceGUID] = { Name = sourceName, Source = "COMBATLOG"}
+  if PlayerIsInBattleground then
+    self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+  else
+    self:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+  end
+end
+
+-- PLAYER_REGEN_* is only enabled when PvP is enabled for the player
+function Widget:PLAYER_REGEN_DISABLED()
+  -- Enable/disable combat log parsing for spell detection when entering combat only
+  -- in world PvP.
+  if CombatLogParsingIsEnabled or not PlayerIsInWorldPvPArea or UnitIsPVPSanctuary("player") then return end
+
+  Widget:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+  CombatLogParsingIsEnabled = true
+end
+
+local function DisableCombatLogParsing()
+  Widget:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+  CombatLogParsingIsEnabled = false
+end
+
+function Widget:PLAYER_REGEN_ENABLED()
+  if not CombatLogParsingIsEnabled then return end
+
+  C_Timer_After(360, function()
+    if not InCombatLockdown() then
+      DisableCombatLogParsing()
+    end
+  end)
+end
+
+function Widget:PLAYER_FLAGS_CHANGED(unitid)
+  -- This function is only registered for the player unit, so no need to check
+  -- unitid here
+  if UnitIsPVP("player") then
+    if not CheckPvPStateIsEnabled then
+      self:RegisterEvent("PLAYER_REGEN_ENABLED")
+      self:RegisterEvent("PLAYER_REGEN_DISABLED")
+      CheckPvPStateIsEnabled = true
+    end
+  else
+    if CheckPvPStateIsEnabled then
+      self:UnregisterEvent("PLAYER_REGEN_ENABLED")
+      self:UnregisterEvent("PLAYER_REGEN_DISABLED")
+      DisableCombatLogParsing()
+      CheckPvPStateIsEnabled = false
+    end
   end
 end
 
@@ -442,13 +558,11 @@ function Widget:Create(tp_frame)
   local frame = _G.CreateFrame("Frame", nil, tp_frame)
   frame:Hide()
 
-  -- Custom Code III
-  --------------------------------------
   frame:SetFrameLevel(tp_frame:GetFrameLevel() + 7)
   frame.Icon = frame:CreateTexture(nil, "OVERLAY")
   frame.Icon:SetAllPoints(frame)
-  --------------------------------------
-  -- End Custom Code
+
+  self:UpdateLayout(frame)
 
   return frame
 end
@@ -459,20 +573,22 @@ function Widget:IsEnabled()
 end
 
 function Widget:OnEnable()
+  self:RegisterEvent("PLAYER_ENTERING_WORLD")
+  self:RegisterUnitEvent("PLAYER_FLAGS_CHANGED", "player")
+
   -- We could register/unregister this when entering/leaving the battlefield, but as it only fires when
   -- in a bg, that does not really matter
-  self:RegisterEvent("PLAYER_ENTERING_WORLD")
-  self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+  -- We don't need to register this for Classic, as GetBattlefieldScore does not return talentSpec information
   if Addon.IS_MAINLINE then
-    -- We don't need to register this for Classic, as GetBattlefieldScore does not return talentSpec information
     self:RegisterEvent("UPDATE_BATTLEFIELD_SCORE")
   end
+
+  -- It seems that PLAYER_FLAGS_CHANGED does not fire when loggin in/reloading the UI, so we need to call it
+  -- directly here to initialize combat log parsing.
+  self:PLAYER_FLAGS_CHANGED("player")
 end
 
 function Widget:EnabledForStyle(style, unit)
-  -- Deathknights can be picked up as 'healers' thanks to Dark Simulacrum, so just ignore them.
-  if unit.type ~= "PLAYER" or not HEALER_CLASSES[unit.class] then return false end
-
   if (style == "NameOnly" or style == "NameOnly-Unique") then
     return Addon.db.profile.healerTracker.ShowInHeadlineView
   elseif style ~= "etotem" then
@@ -480,58 +596,74 @@ function Widget:EnabledForStyle(style, unit)
   end
 end
 
-function Widget:OnUnitAdded(widget_frame, unit)
-  -- if not IsBattleground then
-  --   widget_frame:Hide()
-  --   return
-  -- end
-
-  -- HealerByGUID or HealerByName
-  --    true:  Healer
-  --    false: No healer
-  --    nil:   Not yet checked
-  local unit_is_healer = HealerByGUID[unit.guid]
-  if unit_is_healer == nil then
-    -- Healer identified via scoreboard?
-    unit_is_healer = HealerByName[GetUnitName(unit.unitid, true)]
-    if unit_is_healer == nil then
-      -- if CanInspect(unit.unitid) then
-      --   NotifyInspect(unit.unitid)    
-      -- end
-
-      if not BattlefieldScoreDataRequestPending then 
-        BattlefieldScoreDataRequestPending = true
-        RequestBattlefieldScoreData()
+local PlayerRoleIsHealer
+  
+if Addon.IS_MAINLINE then
+  PlayerRoleIsHealer = function(unit)
+    local is_healer
+  
+    if PlayerIsInBattleground then
+      local unit_name = GetUnitName(unit.unitid, true)
+      is_healer = UnitIsHealer[unit_name]
+  
+      if not is_healer then
+        -- Healer is not yet known from battlefield score board, so store it's guid so that we later, when the
+        -- healer is found in the battlefield score board, the healer's namemplate can be updated
+        UnitGUIDByName[unit_name] = unit.guid
+  
+        if not BattlefieldScoreDataRequestPending then 
+          BattlefieldScoreDataRequestPending = true
+          RequestBattlefieldScoreData()
+        end
       end
-    else
-      HealerByGUID[unit.guid] = unit_is_healer
-      
-      --DebugHealerInfoSource[unit.guid] = { Name = unit.name, Source = "SCOREBOARD"}
     end
+  
+    is_healer = is_healer or UnitIsHealer[unit.guid]
+
+    return is_healer == "HEALER"
+  end  
+else
+  PlayerRoleIsHealer = function(unit)
+    return UnitIsHealer[unit.guid] == "HEALER"
   end
+end
 
-  if unit_is_healer then
+function Widget:OnUnitAdded(widget_frame, unit)
+  -- Deathknights can be picked up as 'healers' thanks to Dark Simulacrum, so just ignore them.
+  if unit.type ~= "PLAYER" or not HEALER_CLASSES[unit.class] then return end
+
+  -- Don't check for UnitIsPvP or UnitIsPVPSanctuary here as this widget is not updated when PvP status changes
+  -- or the player enters a sanctuary. 
+  if not PlayerIsInBattleground and not PlayerIsInWorldPvPArea then return end
+
+  --DebugHealerInfoSource[unit.guid] = { Name = GetUnitName(unit.unitid, true), Source = GetUnitName(unit.unitid, true) and "SCOREBOARD" or "SPELL"}
+  if PlayerRoleIsHealer(unit) then
     local db = Addon.db.profile.healerTracker
-
-    widget_frame:SetSize(db.scale, db.scale)
-    widget_frame:SetAlpha(db.alpha)
-
     if unit.style == "NameOnly" or unit.style == "NameOnly-Unique" then
       widget_frame:SetPoint(db.anchor, widget_frame:GetParent(), db.x_hv, db.y_hv)
     else
       widget_frame:SetPoint(db.anchor, widget_frame:GetParent(), db.x, db.y)
     end
   
-    widget_frame.Icon:SetTexture("Interface\\Icons\\Achievement_Guild_DoctorIsIn")
-    
     widget_frame:Show()
   else
     widget_frame:Hide()
   end
 end
 
+function Widget:UpdateLayout(widget_frame)
+  local db = Addon.db.profile.healerTracker
+
+  widget_frame:SetSize(db.scale, db.scale)
+  widget_frame:SetAlpha(db.alpha)
+
+  widget_frame.Icon:SetTexture("Interface\\Icons\\Achievement_Guild_DoctorIsIn")
+end
+
 function Widget:PrintDebug()
   Addon.Logging.Debug(Widget.Name .. ":")
+  Addon.Logging.Debug("    World PvP:", PlayerIsInWorldPvPArea and UnitIsPVP("player") and not UnitIsPVPSanctuary("player"))
+  Addon.Logging.Debug("    Combatlog Partsing enabled:", CombatLogParsingIsEnabled)
   for guid, info in pairs(DebugHealerInfoSource) do
     Addon.Logging.Debug("    ", info.Name, "(", guid, ")", "=>", info.Source)
   end

@@ -1,8 +1,10 @@
 --
+local GetSpellInfo = GetSpellInfo or VUHDO_getSpellInfo;
+local GetSpellTexture = GetSpellTexture or C_Spell.GetSpellTexture;
+local GetSpellName = C_Spell.GetSpellName;
 local UnitPower = UnitPower;
 local UnitGetIncomingHeals = UnitGetIncomingHeals;
 local pairs = pairs;
-local ipairs = ipairs;
 local floor = floor;
 local twipe = table.wipe;
 local select = select;
@@ -47,7 +49,7 @@ VUHDO_AOE_SPELLS = {
 		["base"] = (4599 + 5082) * 0.5, -- MOPok
 		["divisor"] = 10365,
 		["icon"] = (GetSpellTexture(VUHDO_SPELL_ID_COH)),
-		["name"] = (GetSpellInfo(VUHDO_SPELL_ID_COH)),
+		["name"] = (GetSpellName(VUHDO_SPELL_ID_COH)),
 		["avg"] = 0,
 		["max_targets"] = 5,
 		["degress"] = 1,
@@ -59,7 +61,7 @@ VUHDO_AOE_SPELLS = {
 		["thresh"] = 15000,
 		["cone"] = 360,
 		["checkCd"] = true,
-		["time"] = select(7, GetSpellInfo(VUHDO_SPELL_ID_COH)) or 0,
+		["time"] = select(4, GetSpellInfo(VUHDO_SPELL_ID_COH)) or 0,
 	},
 
 	-- Prayer of Healing
@@ -69,7 +71,7 @@ VUHDO_AOE_SPELLS = {
 		["base"] = (8450 + 8927) * 0.5, -- MOP
 		["divisor"] = 10368,
 		["icon"] = (GetSpellTexture(VUHDO_SPELL_ID_POH)),
-		["name"] = (GetSpellInfo(VUHDO_SPELL_ID_POH)),
+		["name"] = (GetSpellName(VUHDO_SPELL_ID_POH)),
 		["avg"] = 0,
 		["max_targets"] = 5,
 		["degress"] = 1,
@@ -81,7 +83,7 @@ VUHDO_AOE_SPELLS = {
 		["thresh"] = 20000,
 		["cone"] = 360,
 		--["checkCd"] = false,
-		["time"] = select(7, GetSpellInfo(VUHDO_SPELL_ID_POH)) or 0,
+		["time"] = select(4, GetSpellInfo(VUHDO_SPELL_ID_POH)) or 0,
 	},
 
 	-- Chain Heal
@@ -91,7 +93,7 @@ VUHDO_AOE_SPELLS = {
 		["base"] = (5135  + 5865) * 0.5, -- MOP
 		["divisor"] = 10035,
 		["icon"] = (GetSpellTexture(VUHDO_SPELL_ID_CH)),
-		["name"] = (GetSpellInfo(VUHDO_SPELL_ID_CH)),
+		["name"] = (GetSpellName(VUHDO_SPELL_ID_CH)),
 		["avg"] = 0,
 		["max_targets"] = 4,
 		["degress"] = 0.66,
@@ -104,7 +106,7 @@ VUHDO_AOE_SPELLS = {
 		["thresh"] = 15000,
 		["cone"] = 360,
 		--["checkCd"] = false,
-		["time"] = select(7, GetSpellInfo(VUHDO_SPELL_ID_CH)) or 0,
+		["time"] = select(4, GetSpellInfo(VUHDO_SPELL_ID_CH)) or 0,
 	},
 
 	-- Wild Growth
@@ -114,7 +116,7 @@ VUHDO_AOE_SPELLS = {
 		["base"] = 6930,
 		["divisor"] = 9345, -- MOP
 		["icon"] = (GetSpellTexture(VUHDO_SPELL_ID_WG)),
-		["name"] = (GetSpellInfo(VUHDO_SPELL_ID_WG)),
+		["name"] = (GetSpellName(VUHDO_SPELL_ID_WG)),
 		["avg"] = 0,
 		["max_targets"] = 6,
 		["degress"] = 1,
@@ -126,7 +128,7 @@ VUHDO_AOE_SPELLS = {
 		["thresh"] = 15000,
 		["cone"] = 360,
 		["checkCd"] = true,
-		["time"] = select(7, GetSpellInfo(VUHDO_SPELL_ID_WG)) or 0,
+		["time"] = select(4, GetSpellInfo(VUHDO_SPELL_ID_WG)) or 0,
 	},
 
 	-- Tranqulity
@@ -136,7 +138,7 @@ VUHDO_AOE_SPELLS = {
 		["base"] = 9037, -- MOP
 		["divisor"] = 9345,
 		["icon"] = (GetSpellTexture(VUHDO_SPELL_ID_TQ)),
-		["name"] = (GetSpellInfo(VUHDO_SPELL_ID_TQ)),
+		["name"] = (GetSpellName(VUHDO_SPELL_ID_TQ)),
 		["avg"] = 0,
 		["max_targets"] = 40,
 		["degress"] = 1,
@@ -148,7 +150,7 @@ VUHDO_AOE_SPELLS = {
 		["thresh"] = 15000,
 		["cone"] = 360,
 		["checkCd"] = true,
-		["time"] = select(7, GetSpellInfo(VUHDO_SPELL_ID_TQ)) or 0,
+		["time"] = select(4, GetSpellInfo(VUHDO_SPELL_ID_TQ)) or 0,
 	},
 
 	-- Light of Dawn
@@ -158,7 +160,7 @@ VUHDO_AOE_SPELLS = {
 		["base"] = (2027 + 2257) * 3 * 0.5, -- MOP
 		["divisor"] = 4859,
 		["icon"] = (GetSpellTexture(VUHDO_SPELL_ID_LOD)),
-		["name"] = (GetSpellInfo(VUHDO_SPELL_ID_LOD)),
+		["name"] = (GetSpellName(VUHDO_SPELL_ID_LOD)),
 		["avg"] = 0,
 		["max_targets"] = 5,
 		["degress"] = 1,
@@ -170,7 +172,7 @@ VUHDO_AOE_SPELLS = {
 		["thresh"] = 8000,
 		["cone"] = 180,
 		--["checkCd"] = false,
-		["time"] = select(7, GetSpellInfo(VUHDO_SPELL_ID_LOD)) or 0,
+		["time"] = select(4, GetSpellInfo(VUHDO_SPELL_ID_LOD)) or 0,
 	},
 
 	-- Chi Burst
@@ -180,7 +182,7 @@ VUHDO_AOE_SPELLS = {
 		["base"] = (325 + 972) * 0.5,
 		["divisor"] = 1.267, -- 1/78,9% Atk
 		["icon"] = (GetSpellTexture(VUHDO_SPELL_ID_CB)),
-		["name"] = (GetSpellInfo(VUHDO_SPELL_ID_CB)),
+		["name"] = (GetSpellName(VUHDO_SPELL_ID_CB)),
 		["avg"] = 0,
 		["max_targets"] = 6,
 		["degress"] = 1,
@@ -194,7 +196,7 @@ VUHDO_AOE_SPELLS = {
 		["isHealsPlayer"] = true,
 		--["cone"] = 15,
 		["checkCd"] = true,
-		["time"] = select(7, GetSpellInfo(VUHDO_SPELL_ID_CB)) or 0,
+		["time"] = select(4, GetSpellInfo(VUHDO_SPELL_ID_CB)) or 0,
 	},
 };
 local VUHDO_AOE_SPELLS = VUHDO_AOE_SPELLS;
@@ -277,7 +279,7 @@ end
 
 
 --
-local function VUHDO_getAverageExpectedHeals(aCluster, aMaxHealAmount, aDegression, aCastTime, aMaxTargets, tTargetPlayer)
+local function VUHDO_getAverageExpectedHeals(aCluster, aMaxHealAmount, aDegression, aCastTime, aMaxTargets, aTargetPlayer)
 	local tHealingTotal = 0;
 	local tNumPlayersHealed = 0;
 

@@ -1,16 +1,16 @@
 ﻿-- Pawn by Vger-Azjol-Nerub
 -- www.vgermods.com
--- © 2006-2024 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
+-- © 2006-2025 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
 -- See Readme.htm for more information.
 
 --
 -- Main non-UI code
 ------------------------------------------------------------
 
-PawnVersion = 2.0811
+PawnVersion = 2.1011
 
 -- Pawn requires this version of VgerCore:
-local PawnVgerCoreVersionRequired = 1.17
+local PawnVgerCoreVersionRequired = 1.18
 
 -- Floating point math
 local PawnEpsilon = 0.0000000001
@@ -27,7 +27,7 @@ PawnPrivateTooltipName = "PawnPrivateTooltip1"
 --	(See PawnGetEmptyCachedItem.)
 --	An entry in the Values table is an ordered array in the following format:
 --	{ ScaleName, Value, UnenchantedValue }
-local PawnItemCache = nil
+local PawnItemCache
 local PawnItemCacheMaxSize = 200 -- thanks to bag arrows, this should be greater than the number of possible inventory slots
 
 local PawnScaleTotals = { }
@@ -45,15 +45,13 @@ PawnScaleBestGems = { }
 PawnPlayerFullName = nil
 
 -- Formatting
-local PawnEnchantedAnnotationFormat = nil
-local PawnUnenchantedAnnotationFormat = nil
-local PawnNoValueAnnotationFormat = nil
+local PawnEnchantedAnnotationFormat, PawnUnenchantedAnnotationFormat, PawnNoValueAnnotationFormat
 
 -- Plugin scale providers
 
 -- PawnScaleProviders["Wowhead"] = { ["Name"] = "Wowhead scales", ["Function"] = <function> }
 PawnScaleProviders = { }
-local PawnScaleProvidersInitialized = nil
+local PawnScaleProvidersInitialized
 
 -- "Constants"
 local PawnCurrentScaleVersion = 1
@@ -114,6 +112,19 @@ local PawnItemEquipLocToSlot2 =
 	INVTYPE_WEAPON = 17,
 }
 
+local PawnReforgeableStats = { "CritRating", "DodgeRating", "ExpertiseRating", "HasteRating", "HitRating", "MasteryRating", "ParryRating", "Spirit" }
+local PawnStatFriendlyNames = -- Currently only contains stat names used for reforging.
+{
+	["CritRating"] = ITEM_MOD_CRIT_RATING_SHORT,
+	["DodgeRating"] = ITEM_MOD_DODGE_RATING_SHORT,
+	["ExpertiseRating"] = ITEM_MOD_EXPERTISE_RATING_SHORT,
+	["HasteRating"] = ITEM_MOD_HASTE_RATING_SHORT,
+	["HitRating"] = ITEM_MOD_HIT_RATING_SHORT,
+	["MasteryRating"] = ITEM_MOD_MASTERY_RATING_SHORT,
+	["ParryRating"] = ITEM_MOD_PARRY_RATING_SHORT,
+	["Spirit"] = ITEM_MOD_SPIRIT_SHORT,
+}
+
 -- Don't taint the global variable "_".
 local _
 
@@ -135,7 +146,7 @@ function PawnOnEvent(Event, arg1, arg2, ...)
 	elseif Event == "PLAYER_SPECIALIZATION_CHANGED" and arg1 == "player" then
 		PawnOnSpecChanged()
 	elseif Event == "ARTIFACT_UPDATE" then
-		PawnOnArtifactUpdated(arg1)
+		PawnOnArtifactUpdated()
 	elseif Event == "GROUP_ROSTER_UPDATE" then
 		PawnShowPlayingWithVgerEasterEgg()
 	elseif Event == "PLAYER_LOGIN" then
@@ -162,7 +173,6 @@ function PawnInitialize()
 	-- Check the user's current locale, and show a message if it isn't the right one for this version of Pawn.
 	local CurrentLocale = GetLocale()
 	local CurrentLocaleIsSupported
-	local SupportedLocale
 	local LanguageList = PawnLocalizedLanguages
 	for _, SupportedLocale in pairs(LanguageList) do
 		if CurrentLocale == SupportedLocale then
@@ -208,70 +218,70 @@ function PawnInitialize()
 	if not VgerCore.IsMainline then
 		-- SetAuctionItem was removed in 8.3.0 but is still there on Classic.  The (incorrect) way that BankItems hooks this function
 		-- causes the detection to fail, so just directly check the version.
-		hooksecurefunc(GameTooltip, "SetAuctionItem", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetAuctionItem", ...) end)
-		hooksecurefunc(GameTooltip, "SetAuctionSellItem", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetAuctionSellItem", ...) end)
+		hooksecurefunc(GameTooltip, "SetAuctionItem", function(_, ...) PawnUpdateTooltip("GameTooltip", "SetAuctionItem", ...) end)
+		hooksecurefunc(GameTooltip, "SetAuctionSellItem", function(_, ...) PawnUpdateTooltip("GameTooltip", "SetAuctionSellItem", ...) end)
 	end
 	if VgerCore.IsMainline then
-		hooksecurefunc(GameTooltip, "SetItemKey", function(self, ItemID, ItemLevel, Suffix, ...) PawnUpdateTooltip("GameTooltip", "SetItemKey", ItemID, ItemLevel, Suffix, ...) end)
+		hooksecurefunc(GameTooltip, "SetItemKey", function(_, ItemID, ItemLevel, Suffix, ...) PawnUpdateTooltip("GameTooltip", "SetItemKey", ItemID, ItemLevel, Suffix, ...) end)
 	end
-	hooksecurefunc(GameTooltip, "SetBagItem", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetBagItem", ...) end)
-	hooksecurefunc(GameTooltip, "SetBuybackItem", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetBuybackItem", ...) end)
+	hooksecurefunc(GameTooltip, "SetBagItem", function() PawnUpdateTooltip("GameTooltip", "SetBagItem") end)
+	hooksecurefunc(GameTooltip, "SetBuybackItem", function() PawnUpdateTooltip("GameTooltip", "SetBuybackItem") end)
 	if GameTooltip.SetExistingSocketGem then
 		-- Gems don't exist in WoW Classic.
-		hooksecurefunc(GameTooltip, "SetExistingSocketGem", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetExistingSocketGem", ...) end)
+		hooksecurefunc(GameTooltip, "SetExistingSocketGem", function() PawnUpdateTooltip("GameTooltip", "SetExistingSocketGem") end)
 	end
 	if GameTooltip.SetGuildBankItem then
 		-- Guild banks don't exist in WoW Classic.
-		hooksecurefunc(GameTooltip, "SetGuildBankItem", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetGuildBankItem", ...) end)
+		hooksecurefunc(GameTooltip, "SetGuildBankItem", function() PawnUpdateTooltip("GameTooltip", "SetGuildBankItem") end)
 	end
 	if GameTooltip.SetHeirloomByItemID then
 		-- ...and neither do heirlooms.
-		hooksecurefunc(GameTooltip, "SetHeirloomByItemID", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetHeirloomByItemID", ...) end)
+		hooksecurefunc(GameTooltip, "SetHeirloomByItemID", function() PawnUpdateTooltip("GameTooltip", "SetHeirloomByItemID") end)
 	end
-	hooksecurefunc(GameTooltip, "SetHyperlink", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetHyperlink", ...) end)
-	hooksecurefunc(GameTooltip, "SetInboxItem", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetInboxItem", ...) end)
-	hooksecurefunc(GameTooltip, "SetInventoryItem", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetInventoryItem", ...) end)
-	hooksecurefunc(GameTooltip, "SetItemByID", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetItemByID", ...) end)
-	hooksecurefunc(GameTooltip, "SetLootItem", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetLootItem", ...) end)
-	hooksecurefunc(GameTooltip, "SetLootRollItem", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetLootRollItem", ...) end)
-	hooksecurefunc(GameTooltip, "SetMerchantItem", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetMerchantItem", ...) end)
-	hooksecurefunc(GameTooltip, "SetQuestItem", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetQuestItem", ...) end)
-	hooksecurefunc(GameTooltip, "SetQuestLogItem", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetQuestLogItem", ...) end)
-	hooksecurefunc(GameTooltip, "SetSendMailItem", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetSendMailItem", ...) end)
+	hooksecurefunc(GameTooltip, "SetHyperlink", function(_, ...) PawnUpdateTooltip("GameTooltip", "SetHyperlink", ...) end)
+	hooksecurefunc(GameTooltip, "SetInboxItem", function() PawnUpdateTooltip("GameTooltip", "SetInboxItem") end)
+	hooksecurefunc(GameTooltip, "SetInventoryItem", function() PawnUpdateTooltip("GameTooltip", "SetInventoryItem") end)
+	hooksecurefunc(GameTooltip, "SetItemByID", function() PawnUpdateTooltip("GameTooltip", "SetItemByID") end)
+	hooksecurefunc(GameTooltip, "SetLootItem", function() PawnUpdateTooltip("GameTooltip", "SetLootItem") end)
+	hooksecurefunc(GameTooltip, "SetLootRollItem", function() PawnUpdateTooltip("GameTooltip", "SetLootRollItem") end)
+	hooksecurefunc(GameTooltip, "SetMerchantItem", function() PawnUpdateTooltip("GameTooltip", "SetMerchantItem") end)
+	hooksecurefunc(GameTooltip, "SetQuestItem", function() PawnUpdateTooltip("GameTooltip", "SetQuestItem") end)
+	hooksecurefunc(GameTooltip, "SetQuestLogItem", function() PawnUpdateTooltip("GameTooltip", "SetQuestLogItem") end)
+	hooksecurefunc(GameTooltip, "SetSendMailItem", function() PawnUpdateTooltip("GameTooltip", "SetSendMailItem") end)
 	if GameTooltip.SetSocketGem then
 		-- Gems don't exist in Classic.
-		hooksecurefunc(GameTooltip, "SetSocketGem", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetSocketGem", ...) end)
+		hooksecurefunc(GameTooltip, "SetSocketGem", function() PawnUpdateTooltip("GameTooltip", "SetSocketGem") end)
 	end
-	hooksecurefunc(GameTooltip, "SetTradePlayerItem", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetTradePlayerItem", ...) end)
+	hooksecurefunc(GameTooltip, "SetTradePlayerItem", function() PawnUpdateTooltip("GameTooltip", "SetTradePlayerItem") end)
 	if GameTooltip.SetRecipeResultItem then
 		hooksecurefunc(GameTooltip, "SetRecipeResultItem",
-			function(self, ...)
-				local ItemLink = C_TradeSkillUI.GetRecipeItemLink(...)
+			function(_, RecipeId)
+				local ItemLink = C_TradeSkillUI.GetRecipeItemLink(RecipeId)
 				PawnUpdateTooltip("GameTooltip", "SetHyperlink", ItemLink)
 			end)
 	end
 	if GameTooltip.SetTradeSkillItem then
-		hooksecurefunc(GameTooltip, "SetTradeSkillItem", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetTradeSkillItem", ...) end)
+		hooksecurefunc(GameTooltip, "SetTradeSkillItem", function() PawnUpdateTooltip("GameTooltip", "SetTradeSkillItem") end)
 	end
-	hooksecurefunc(GameTooltip, "SetTradeTargetItem", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetTradeTargetItem", ...) end)
+	hooksecurefunc(GameTooltip, "SetTradeTargetItem", function() PawnUpdateTooltip("GameTooltip", "SetTradeTargetItem") end)
 	if GameTooltip.SetVoidItem then
-		hooksecurefunc(GameTooltip, "SetVoidItem", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetVoidItem", ...) end)
-		hooksecurefunc(GameTooltip, "SetVoidDepositItem", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetVoidDepositItem", ...) end)
-		hooksecurefunc(GameTooltip, "SetVoidWithdrawalItem", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetVoidWithdrawalItem", ...) end)
+		hooksecurefunc(GameTooltip, "SetVoidItem", function() PawnUpdateTooltip("GameTooltip", "SetVoidItem") end)
+		hooksecurefunc(GameTooltip, "SetVoidDepositItem", function() PawnUpdateTooltip("GameTooltip", "SetVoidDepositItem") end)
+		hooksecurefunc(GameTooltip, "SetVoidWithdrawalItem", function() PawnUpdateTooltip("GameTooltip", "SetVoidWithdrawalItem") end)
 	end
 	hooksecurefunc(GameTooltip, "SetTrainerService",
-		function(self, Index)
+		function(_, Index)
 			local ItemLink = GetTrainerServiceItemLink(Index)
 			if ItemLink then PawnUpdateTooltip("GameTooltip", "SetHyperlink", ItemLink) end
 		end)
 	if GameTooltip.SetWeeklyReward then
-		hooksecurefunc(GameTooltip, "SetWeeklyReward", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetWeeklyReward", ...) end)
+		hooksecurefunc(GameTooltip, "SetWeeklyReward", function() PawnUpdateTooltip("GameTooltip", "SetWeeklyReward") end)
 	end
 	if GameTooltip.SetItemInteractionItem then
-		hooksecurefunc(GameTooltip, "SetItemInteractionItem", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetItemInteractionItem", ...) end)
+		hooksecurefunc(GameTooltip, "SetItemInteractionItem", function() PawnUpdateTooltip("GameTooltip", "SetItemInteractionItem") end)
 	end
 	hooksecurefunc(GameTooltip, "Hide",
-		function(self, ...)
+		function()
 			PawnLastHoveredItem = nil
 			-- Hacky fix to prevent the green tooltip border from "leaking" if the next thing that is hovered over is not an item.
 			-- (Without this, hovering over an upgrade item and then a spell button would still get you a green border.)
@@ -292,7 +302,7 @@ function PawnInitialize()
 
 	-- The item link tooltip (only hook it if it's an actual item)
 	hooksecurefunc(ItemRefTooltip, "SetHyperlink",
-		function(self, ItemLink, ...)
+		function(_, ItemLink, ...)
 			-- Attach an icon to the tooltip first so that an existing icon can be hidden if the new hyperlink doesn't have one.
 			PawnAttachIconToTooltip(ItemRefTooltip, false, ItemLink)
 			if PawnGetHyperlinkType(ItemLink) ~= "item" then return end
@@ -301,10 +311,13 @@ function PawnInitialize()
 	ItemRefTooltip:HookScript("OnEnter", function() local _; _, PawnLastHoveredItem = ItemRefTooltip:GetItem() end)
 	ItemRefTooltip:HookScript("OnLeave", function() PawnLastHoveredItem = nil end)
 	ItemRefTooltip:HookScript("OnMouseUp",
-		function(object, button)
+		function(_, button)
 			if button == "RightButton" then
 				local _, ItemLink = ItemRefTooltip:GetItem()
 				if ItemLink then PawnUI_SetCompareItemAndShow(2, ItemLink) end
+			elseif button == "LeftButton" and IsAltKeyDown() then
+				local _, ItemLink = ItemRefTooltip:GetItem()
+				if ItemLink then PawnUIGetAllTextForItem(ItemLink) end
 			end
 		end)
 
@@ -338,24 +351,24 @@ function PawnInitialize()
 	-- The "currently equipped" tooltips (two, in case of rings, trinkets, and dual wielding)
 	if ShoppingTooltip1.SetCompareItem then
 		hooksecurefunc(ShoppingTooltip1, "SetCompareItem",
-			function(self, ...)
+			function()
 				local _, ItemLink1 = ShoppingTooltip1:GetItem()
-				PawnUpdateTooltip("ShoppingTooltip1", "SetCompareItem", ItemLink1, ...)
+				PawnUpdateTooltip("ShoppingTooltip1", "SetCompareItem", ItemLink1)
 				PawnAttachIconToTooltip(ShoppingTooltip1, true)
 				local _, ItemLink2 = ShoppingTooltip2:GetItem()
 				if ItemLink2 and ShoppingTooltip2:IsShown() then
-					PawnUpdateTooltip("ShoppingTooltip2", "SetHyperlink", ItemLink2, ...)
+					PawnUpdateTooltip("ShoppingTooltip2", "SetHyperlink", ItemLink2)
 					PawnAttachIconToTooltip(ShoppingTooltip2, true)
 				end
 			end)
 		hooksecurefunc(ItemRefShoppingTooltip1, "SetCompareItem",
-			function(self, ...)
+			function()
 				local _, ItemLink1 = ItemRefShoppingTooltip1:GetItem()
-				PawnUpdateTooltip("ItemRefShoppingTooltip1", "SetCompareItem", ItemLink1, ...)
+				PawnUpdateTooltip("ItemRefShoppingTooltip1", "SetCompareItem", ItemLink1)
 				PawnAttachIconToTooltip(ItemRefShoppingTooltip1, true)
 				local _, ItemLink2 = ItemRefShoppingTooltip2:GetItem()
 				if ItemLink2 and ItemRefShoppingTooltip2:IsShown() then
-					PawnUpdateTooltip("ItemRefShoppingTooltip2", "SetHyperlink", ItemLink2, ...)
+					PawnUpdateTooltip("ItemRefShoppingTooltip2", "SetHyperlink", ItemLink2)
 					PawnAttachIconToTooltip(ItemRefShoppingTooltip2, true)
 				end
 			end)
@@ -365,11 +378,11 @@ function PawnInitialize()
 	-- methods, but only in Dragonflight.)
 
 	if ShoppingTooltip1.ProcessInfo then
-		hooksecurefunc(ShoppingTooltip1, "ProcessInfo", function(self)
+		hooksecurefunc(ShoppingTooltip1, "ProcessInfo", function()
 			local _, ItemLink = TooltipUtil.GetDisplayedItem(ShoppingTooltip1)
 			if ItemLink then PawnUpdateTooltip("ShoppingTooltip1", "SetHyperlink", ItemLink) end
 		end)
-		hooksecurefunc(ShoppingTooltip2, "ProcessInfo", function(self)
+		hooksecurefunc(ShoppingTooltip2, "ProcessInfo", function()
 			local _, ItemLink = TooltipUtil.GetDisplayedItem(ShoppingTooltip2)
 			if ItemLink then PawnUpdateTooltip("ShoppingTooltip2", "SetHyperlink", ItemLink) end
 		end)
@@ -377,33 +390,33 @@ function PawnInitialize()
 
 	-- MultiTips compatibility
 	if MultiTips then
-		VgerCore.HookInsecureFunction(ItemRefTooltip2, "SetHyperlink", function(self, ItemLink, ...) PawnUpdateTooltip("ItemRefTooltip2", "SetHyperlink", ItemLink, ...) PawnAttachIconToTooltip(ItemRefTooltip2, false, ItemLink) end)
-		VgerCore.HookInsecureFunction(ItemRefTooltip3, "SetHyperlink", function(self, ItemLink, ...) PawnUpdateTooltip("ItemRefTooltip3", "SetHyperlink", ItemLink, ...) PawnAttachIconToTooltip(ItemRefTooltip3, false, ItemLink) end)
-		VgerCore.HookInsecureFunction(ItemRefTooltip4, "SetHyperlink", function(self, ItemLink, ...) PawnUpdateTooltip("ItemRefTooltip4", "SetHyperlink", ItemLink, ...) PawnAttachIconToTooltip(ItemRefTooltip4, false, ItemLink) end)
-		VgerCore.HookInsecureFunction(ItemRefTooltip5, "SetHyperlink", function(self, ItemLink, ...) PawnUpdateTooltip("ItemRefTooltip5", "SetHyperlink", ItemLink, ...) PawnAttachIconToTooltip(ItemRefTooltip5, false, ItemLink) end)
+		VgerCore.HookInsecureFunction(ItemRefTooltip2, "SetHyperlink", function(_, ItemLink) PawnUpdateTooltip("ItemRefTooltip2", "SetHyperlink", ItemLink) PawnAttachIconToTooltip(ItemRefTooltip2, false, ItemLink) end)
+		VgerCore.HookInsecureFunction(ItemRefTooltip3, "SetHyperlink", function(_, ItemLink) PawnUpdateTooltip("ItemRefTooltip3", "SetHyperlink", ItemLink) PawnAttachIconToTooltip(ItemRefTooltip3, false, ItemLink) end)
+		VgerCore.HookInsecureFunction(ItemRefTooltip4, "SetHyperlink", function(_, ItemLink) PawnUpdateTooltip("ItemRefTooltip4", "SetHyperlink", ItemLink) PawnAttachIconToTooltip(ItemRefTooltip4, false, ItemLink) end)
+		VgerCore.HookInsecureFunction(ItemRefTooltip5, "SetHyperlink", function(_, ItemLink) PawnUpdateTooltip("ItemRefTooltip5", "SetHyperlink", ItemLink) PawnAttachIconToTooltip(ItemRefTooltip5, false, ItemLink) end)
 	end
 
 	-- EquipCompare compatibility
 	if ComparisonTooltip1 then
-		if ComparisonTooltip1.SetHyperlinkCompareItem then VgerCore.HookInsecureFunction(ComparisonTooltip1, "SetHyperlinkCompareItem", function(self, ItemLink, ...) PawnUpdateTooltip("ComparisonTooltip1", "SetHyperlinkCompareItem", ItemLink, ...) PawnAttachIconToTooltip(ComparisonTooltip1, true) end) end
-		if ComparisonTooltip1.SetInventoryItem then VgerCore.HookInsecureFunction(ComparisonTooltip1, "SetInventoryItem", function(self, ...) PawnUpdateTooltip("ComparisonTooltip1", "SetInventoryItem", ...) PawnAttachIconToTooltip(ComparisonTooltip1, true) end) end -- EquipCompare with CharactersViewer
-		if ComparisonTooltip1.SetHyperlink then VgerCore.HookInsecureFunction(ComparisonTooltip1, "SetHyperlink", function(self, ItemLink, ...) PawnUpdateTooltip("ComparisonTooltip1", "SetHyperlink", ItemLink, ...) PawnAttachIconToTooltip(ComparisonTooltip1, true) end) end -- EquipCompare with Armory
+		if ComparisonTooltip1.SetHyperlinkCompareItem then VgerCore.HookInsecureFunction(ComparisonTooltip1, "SetHyperlinkCompareItem", function(_, ItemLink) PawnUpdateTooltip("ComparisonTooltip1", "SetHyperlinkCompareItem", ItemLink) PawnAttachIconToTooltip(ComparisonTooltip1, true) end) end
+		if ComparisonTooltip1.SetInventoryItem then VgerCore.HookInsecureFunction(ComparisonTooltip1, "SetInventoryItem", function() PawnUpdateTooltip("ComparisonTooltip1", "SetInventoryItem") PawnAttachIconToTooltip(ComparisonTooltip1, true) end) end -- EquipCompare with CharactersViewer
+		if ComparisonTooltip1.SetHyperlink then VgerCore.HookInsecureFunction(ComparisonTooltip1, "SetHyperlink", function(_, ItemLink) PawnUpdateTooltip("ComparisonTooltip1", "SetHyperlink", ItemLink) PawnAttachIconToTooltip(ComparisonTooltip1, true) end) end -- EquipCompare with Armory
 	end
 	if ComparisonTooltip2 then
-		if ComparisonTooltip2.SetHyperlinkCompareItem then VgerCore.HookInsecureFunction(ComparisonTooltip2, "SetHyperlinkCompareItem", function(self, ItemLink, ...) PawnUpdateTooltip("ComparisonTooltip2", "SetHyperlinkCompareItem", ItemLink, ...) PawnAttachIconToTooltip(ComparisonTooltip2, true) end) end
-		if ComparisonTooltip2.SetInventoryItem then VgerCore.HookInsecureFunction(ComparisonTooltip2, "SetInventoryItem", function(self, ...) PawnUpdateTooltip("ComparisonTooltip2", "SetInventoryItem", ...) PawnAttachIconToTooltip(ComparisonTooltip2, true) end) end -- EquipCompare with CharactersViewer
-		if ComparisonTooltip2.SetHyperlink then VgerCore.HookInsecureFunction(ComparisonTooltip2, "SetHyperlink", function(self, ItemLink, ...) PawnUpdateTooltip("ComparisonTooltip2", "SetHyperlink", ItemLink, ...) PawnAttachIconToTooltip(ComparisonTooltip2, true) end) end -- EquipCompare with Armory
+		if ComparisonTooltip2.SetHyperlinkCompareItem then VgerCore.HookInsecureFunction(ComparisonTooltip2, "SetHyperlinkCompareItem", function(_, ItemLink) PawnUpdateTooltip("ComparisonTooltip2", "SetHyperlinkCompareItem", ItemLink) PawnAttachIconToTooltip(ComparisonTooltip2, true) end) end
+		if ComparisonTooltip2.SetInventoryItem then VgerCore.HookInsecureFunction(ComparisonTooltip2, "SetInventoryItem", function() PawnUpdateTooltip("ComparisonTooltip2", "SetInventoryItem") PawnAttachIconToTooltip(ComparisonTooltip2, true) end) end -- EquipCompare with CharactersViewer
+		if ComparisonTooltip2.SetHyperlink then VgerCore.HookInsecureFunction(ComparisonTooltip2, "SetHyperlink", function(_, ItemLink) PawnUpdateTooltip("ComparisonTooltip2", "SetHyperlink", ItemLink) PawnAttachIconToTooltip(ComparisonTooltip2, true) end) end -- EquipCompare with Armory
 	end
 
 	-- Outfitter compatibility
 	if Outfitter and Outfitter._ExtendedCompareTooltip then
-		VgerCore.HookInsecureFunction(Outfitter._ExtendedCompareTooltip, "AddShoppingLink", function(self, pTitle, pName, pLink, ...) PawnUpdateTooltip("OutfitterCompareTooltip" .. self.NumTooltipsShown, "SetHyperlink", pLink) end)
+		VgerCore.HookInsecureFunction(Outfitter._ExtendedCompareTooltip, "AddShoppingLink", function(self, _, _, pLink, ...) PawnUpdateTooltip("OutfitterCompareTooltip" .. self.NumTooltipsShown, "SetHyperlink", pLink) end)
 	end
 
 	-- AtlasLoot Enhanced compatibility
 	if AtlasLootTooltip then
-		VgerCore.HookInsecureFunction(AtlasLootTooltip, "SetHyperlink", function(self, ...) PawnUpdateTooltip("AtlasLootTooltip", "SetHyperlink", ...) end)
-		VgerCore.HookInsecureFunction(AtlasLootTooltip, "SetItemByID", function(self, ...) PawnUpdateTooltip("AtlasLootTooltip", "SetItemByID", ...) end)
+		VgerCore.HookInsecureFunction(AtlasLootTooltip, "SetHyperlink", function(_, ...) PawnUpdateTooltip("AtlasLootTooltip", "SetHyperlink", ...) end)
+		VgerCore.HookInsecureFunction(AtlasLootTooltip, "SetItemByID", function() PawnUpdateTooltip("AtlasLootTooltip", "SetItemByID") end)
 	end
 
 	-- LinkWrangler compatibility -- hook the Link Wrangler item link tooltips.
@@ -421,7 +434,7 @@ function PawnInitialize()
 
 	-- AceConfigDialog compatibility
 	if AceConfigDialogTooltip then
-		VgerCore.HookInsecureFunction(AceConfigDialogTooltip, "SetHyperlink", function(self, ItemLink, ...) PawnUpdateTooltip("AceConfigDialogTooltip", "SetHyperlink", ItemLink, ...) end)
+		VgerCore.HookInsecureFunction(AceConfigDialogTooltip, "SetHyperlink", function(_, ItemLink) PawnUpdateTooltip("AceConfigDialogTooltip", "SetHyperlink", ItemLink) end)
 	end
 
 	-- In-bag upgrade icons
@@ -467,7 +480,7 @@ function PawnInitialize()
 		for i = 1, NUM_TOTAL_BAG_FRAMES do
 			local Bag = _G["ContainerFrame" .. i]
 			if Bag.Items then
-				for j, Button in Bag:EnumerateItems() do
+				for _, Button in Bag:EnumerateItems() do
 					hooksecurefunc(Button, "UpdateItemUpgradeIcon", PawnUpdateItemUpgradeIcon)
 				end
 			end
@@ -483,17 +496,18 @@ function PawnInitialize()
 
 	-- Dragonflight professions UI
 	if C_TradeSkillUI and C_TradeSkillUI.SetTooltipRecipeResultItem then
-		hooksecurefunc(C_TradeSkillUI, "SetTooltipRecipeResultItem", function(self, ...) PawnUpdateTooltip("GameTooltip", "C_TradeSkillUI.SetTooltipRecipeResultItem") end)
+		hooksecurefunc(C_TradeSkillUI, "SetTooltipRecipeResultItem", function() PawnUpdateTooltip("GameTooltip", "C_TradeSkillUI.SetTooltipRecipeResultItem") end)
 	end
 
 	-- We're now effectively initialized.  Just the last steps of scale initialization remain.
 	PawnIsInitialized = true
 
 	-- If any of our dependencies have already loaded, pretend that they just loaded now.
-	if IsAddOnLoaded("Blizzard_ArtifactUI") then PawnOnAddonLoaded("Blizzard_ArtifactUI") end
-	if IsAddOnLoaded("Blizzard_EncounterJournal") then PawnOnAddonLoaded("Blizzard_EncounterJournal") end
-	if IsAddOnLoaded("Blizzard_InspectUI") then PawnOnAddonLoaded("Blizzard_InspectUI") end
-	if IsAddOnLoaded("Blizzard_ItemSocketingUI") then PawnOnAddonLoaded("Blizzard_ItemSocketingUI") end
+	if C_AddOns.IsAddOnLoaded("Blizzard_ArtifactUI") then PawnOnAddonLoaded("Blizzard_ArtifactUI") end
+	if C_AddOns.IsAddOnLoaded("Blizzard_EncounterJournal") then PawnOnAddonLoaded("Blizzard_EncounterJournal") end
+	if C_AddOns.IsAddOnLoaded("Blizzard_InspectUI") then PawnOnAddonLoaded("Blizzard_InspectUI") end
+	if C_AddOns.IsAddOnLoaded("Blizzard_ItemSocketingUI") then PawnOnAddonLoaded("Blizzard_ItemSocketingUI") end
+	if C_AddOns.IsAddOnLoaded("Blizzard_ReforgingUI") then PawnOnAddonLoaded("Blizzard_ReforgingUI") end
 
 	-- Now, load any plugins that are ready to be loaded.
 	PawnInitializePlugins()
@@ -504,11 +518,11 @@ function PawnInitialize()
 	end
 
 	-- Warn them if Pawn might be broken due to changing the thousands or decimal separator.
-	if GetLocale() ~= "frFR" or not VgerCore.IsClassic then
+	if not (GetLocale() == "frFR" and not VgerCore.IsMainline) then
 		-- The separator strings are completely wrong on French WoW Classic.  :(
 		if (LARGE_NUMBER_SEPERATOR and PawnLocal.ThousandsSeparator ~= LARGE_NUMBER_SEPERATOR) or
 		(DECIMAL_SEPERATOR and PawnLocal.DecimalSeparator ~= DECIMAL_SEPERATOR) then
-			VgerCore.Fail("Pawn may provide incorrect advice due to a potential addon conflict: Pawn is not compatible with Combat Numbers Separator, Titan Panel Artifact Power, or other addons that change the way that numbers appear. Or, if you're seeing this right after a patch, please let Vger know which language you're playing in.")
+			VgerCore.Fail("Pawn may provide incorrect advice due to a potential addon conflict: Pawn is not compatible with Combat Numbers Separator, Titan Panel Artifact Power, or other addons that change the way that numbers appear. Or, if you're seeing this right after a patch, please let Vger know you're seeing it on WoW " .. GetLocale() .. " " .. GetBuildInfo() .. ".")
 		end
 	end
 
@@ -533,7 +547,6 @@ function PawnOnLogout()
 		-- The user has disabled all upgrade options, so clear out all upgrade information.
 		PawnInvalidateBestItems()
 	else
-		local Scale, _
 		for _, Scale in pairs(PawnCommon.Scales) do
 			local CharacterOptions = Scale.PerCharacterOptions[PawnPlayerFullName]
 			if CharacterOptions and not CharacterOptions.Visible then
@@ -556,6 +569,9 @@ function PawnOnAddonLoaded(AddonName)
 	elseif AddonName == "Blizzard_ItemSocketingUI" then
 		-- After the socketing UI is loaded, it gets a Pawn button too.
 		PawnUI_SocketingPawnButton_Attach()
+	elseif AddonName == "Blizzard_ReforgingUI" then
+		-- After the reforging UI is loaded, it gets the Pawn Reforging Advisor.
+		PawnUI_ReforgingAdvisor_Initialize()
 	elseif AddonName == "Blizzard_ArtifactUI" then
 		-- After the artifact UI is loaded, watch the relic sockets.
 		PawnUI_HookArtifactUI()
@@ -616,7 +632,6 @@ function PawnInitializeOptions()
 	if PawnCommon.ShowSocketingAdvisor == nil then PawnCommon.ShowSocketingAdvisor = true end
 
 	-- Now, migrate all scales from this character over to PawnCommon.
-	local ScaleName, Scale
 	if not PawnCommon.Scales then PawnCommon.Scales = {} end
 	if PawnOptions.Scales then
 		-- Looks like there's one or more scales on this character that need to be migrated.
@@ -670,9 +685,6 @@ function PawnInitializeOptions()
 		PawnRecalculateScaleTotal(ScaleName) -- removes information from the cache
 	end
 
-	-- Some features were deleted in WoW 6.0.
-	PawnCommon.ShowReforgingAdvisor = nil
-
 	-- And some more in WoW 7.1.
 	PawnCommon.IgnoreItemUpgrades = nil
 
@@ -700,11 +712,11 @@ function PawnInitializeOptions()
 		end
 	end
 	if PawnOptions.LastVersion < 2.0219 then
-		-- The item squish happened in WoW 8.0, so relic item levels changed.
+		-- The item squish happened in WoW 8.0, so artifact relic item levels changed.
 		PawnOptions.Artifacts = nil
 	end
 	if PawnOptions.LastVersion < 2.0227 then
-		-- The relic advisor is off by default as of 2.2.27.
+		-- The artifact relic advisor is off by default as of 2.2.27.
 		PawnCommon.ShowRelicUpgrades = false
 	end
 	if PawnCommon.LastVersion < 2.0232 then
@@ -735,8 +747,12 @@ function PawnInitializeOptions()
 		local FrostDK = PawnCommon.Scales["\"MrRobot\":DEATHKNIGHT2"]
 		if FrostDK then FrostDK.DoNotShow2HUpgrades = false end
 	end
+	if (VgerCore.ReforgingExists and PawnCommon.LastVersion < 2.0902) then
+		-- Enable the reforging advisor by default on Cataclysm Classic.
+		PawnCommon.ShowReforgingAdvisor = true
+	end
 	if ((VgerCore.IsMainline) and PawnCommon.LastVersion < PawnMrRobotLastUpdatedVersion) or
-		((VgerCore.IsClassic or VgerCore.IsBurningCrusade or VgerCore.IsWrath) and PawnCommon.LastVersion < PawnClassicLastUpdatedVersion) then
+		((VgerCore.IsClassic or VgerCore.IsBurningCrusade or VgerCore.IsWrath or VgerCore.IsCataclysm) and PawnCommon.LastVersion < PawnClassicLastUpdatedVersion) then
 		-- If the Ask Mr. Robot scales have been updated since the last time they used Pawn, re-scan gear.
 		PawnInvalidateBestItems()
 	end
@@ -868,16 +884,12 @@ function GetPawnStatusForArkInventoryRule(...)
 end
 
 function ArkInventoryRulePawnUpgrade(...)
-	local fn = "PAWNUPGRADE" -- Rule name for errors
-
 	-- For pawnupgrade(), we only want to return true if Pawn is sure that it is an upgrade.
 	-- This means for nil or false, we return false.
 	return GetPawnStatusForArkInventoryRule(...) == true
 end
 
 function ArkInventoryRulePawnNotUpgrade(...)
-	local fn = "PAWNNOTUPGRADE" -- Rule name for errors
-
 	-- For pawnnotupgrade(), we only want to return true if Pawn is sure that it is not an upgrade
 	-- This means for nil or true, we return false.
 	return GetPawnStatusForArkInventoryRule(...) == false
@@ -895,7 +907,7 @@ function PawnIsItemDefinitivelyAnUpgrade(ItemLink, CheckLevel)
 
 	if not PawnIsInitialized then VgerCore.Fail("Can't check to see if items are upgrades until Pawn is initialized") return nil end
 
-	local _, _, _, _, MinLevel = GetItemInfo(ItemLink)
+	local _, _, _, _, MinLevel = C_Item.GetItemInfo(ItemLink)
 
 	-- If it doesn't have a minlevel, we don't care because it isn't gear
 	if MinLevel == nil then return nil end
@@ -912,7 +924,7 @@ function PawnIsItemDefinitivelyAnUpgrade(ItemLink, CheckLevel)
 		-- If upgrade info was returned, it's an upgrade OR if there is an item level increase, it's an upgrade
 		return UpgradeInfo ~= nil or (PawnCommon.ShowItemLevelUpgrades and ItemLevelIncrease ~= nil)
 	elseif PawnCommon.ShowRelicUpgrades and PawnCanItemBeArtifactUpgrade(ItemLink) then
-		-- If there is relic upgrade information, it's an upgrade.
+		-- If there is artifact relic upgrade information, it's an upgrade.
 		return PawnGetRelicUpgradeInfo(ItemLink) ~= nil
 	else
 		-- If the item can't have stats, it isn't gear (probably), so we don't care.
@@ -953,7 +965,7 @@ function PawnCommand(Command)
 		end
 		ItemRefTooltip:Show()
 	elseif strsub(Command, 1, 7) == "compare" then
-		local CompareIndex, ItemLink1, ItemLink2
+		local ItemLink1, ItemLink2
 		if strsub(Command, 9, 13) == "left " then
 			local SplitIndex = strfind(Command, " right ", 13, true)
 			if SplitIndex and SplitIndex + 7 < strlen(Command) then
@@ -975,7 +987,7 @@ function PawnCommand(Command)
 		if ItemLink2 and strlen(ItemLink2) == 0 then ItemLink2 = nil end
 		if ItemLink1 or ItemLink2 then
 			if ItemLink2 then
-				local IsReady2 = (GetItemInfo(ItemLink2) ~= nil)
+				local IsReady2 = (C_Item.GetItemInfo(ItemLink2) ~= nil)
 				if IsReady2 then
 					PawnUI_SetCompareItemAndShow(2, ItemLink2)
 				else
@@ -983,7 +995,7 @@ function PawnCommand(Command)
 				end
 			end
 			if ItemLink1 then
-				local IsReady1 = (GetItemInfo(ItemLink1) ~= nil)
+				local IsReady1 = (C_Item.GetItemInfo(ItemLink1) ~= nil)
 				if IsReady1 then
 					PawnUI_SetCompareItemAndShow(1, ItemLink1)
 				else
@@ -1036,7 +1048,7 @@ function PawnGetCachedItem(ItemLink, ItemName, NumLines)
 		end
 	end
 	if PawnCommon.DebugCache then
-		VgerCore.Message(VgerCore.Color.Salmon .. "    Item was not in the cache.")
+		VgerCore.Message(VgerCore.Color.Salmon .. "    Item " .. tostring(ItemName) .." was not in the cache.")
 	end
 end
 
@@ -1079,7 +1091,6 @@ end
 
 -- Clears only the calculated values for items in the cache, retaining things like stats.
 function PawnClearCacheValuesOnly()
-	local CachedItem, _
 	-- First, the main item cache.
 	if PawnItemCache then
 		for _, CachedItem in pairs(PawnItemCache) do
@@ -1088,10 +1099,12 @@ function PawnClearCacheValuesOnly()
 	end
 	-- Then, the gem caches.  For each gem meta-table, look at the gem table (which is in
 	-- column 3) and then clear out that table's item data cache.
-	local GemQualityData, GemData
-	for _, GemQualityData in pairs(PawnGemQualityLevels) do
-		for _, GemData in pairs(GemQualityData[2]) do
-			GemData.Item = nil
+	local GemCaches = { PawnGemQualityLevels, PawnMetaGemQualityLevels, PawnCogwheelQualityLevels }
+	for _, GemCache in pairs(GemCaches) do
+		for _, GemQualityData in pairs(GemCache) do
+			for _, GemData in pairs(GemQualityData[2]) do
+				GemData.Item = nil
+			end
 		end
 	end
 	-- Then, the Compare tab's cache.
@@ -1172,38 +1185,42 @@ function PawnRecalculateScaleTotal(ScaleName)
 			["BlueSocket"] = { },
 			["BlueSocketValue"] = { },
 			["MetaSocket"] = { },
-			["MetaSocketValue"] = { },		}
+			["MetaSocketValue"] = { },
+			["CogwheelSocket"] = { },
+			["CogwheelSocketValue"] = { },
+		}
 	end
 	local ThisScaleBestGems = PawnScaleBestGems[ScaleName]
 
-	local QualityLevelData
-	for _, QualityLevelData in pairs(PawnGemQualityLevels) do
-		local ItemLevel = QualityLevelData[1]
-		local GemData = QualityLevelData[2]
+	if PawnGemQualityLevels then
+		for _, QualityLevelData in pairs(PawnGemQualityLevels) do
+			local ItemLevel = QualityLevelData[1]
+			local GemData = QualityLevelData[2]
 
-		if PawnCommon.Debug then
-			VgerCore.Message("")
-			VgerCore.Message("GEMS FOR ITEM LEVEL " .. tostring(ItemLevel))
-			VgerCore.Message("")
-		end
+			if PawnCommon.Debug then
+				VgerCore.Message("")
+				VgerCore.Message("GEMS FOR ITEM LEVEL " .. tostring(ItemLevel))
+				VgerCore.Message("")
+			end
 
-		local BestPrismatic
-		BestPrismatic, ThisScaleBestGems.PrismaticSocket[ItemLevel] = PawnFindBestGems(ScaleName, GemData)
-		ThisScaleBestGems.PrismaticSocketValue[ItemLevel] = BestPrismatic
+			local BestPrismatic
+			BestPrismatic, ThisScaleBestGems.PrismaticSocket[ItemLevel] = PawnFindBestGems(ScaleName, GemData)
+			ThisScaleBestGems.PrismaticSocketValue[ItemLevel] = BestPrismatic
 
-		-- Classic Era and the retail realms don't have colored sockets, so don't bother trying to calculate for those.
-		if not VgerCore.IsClassic and not VgerCore.IsMainline then
-			local BestRed
-			BestRed, ThisScaleBestGems.RedSocket[ItemLevel] = PawnFindBestGems(ScaleName, GemData, true, false, false)
-			ThisScaleBestGems.RedSocketValue[ItemLevel] = BestRed
+			-- Classic Era and the retail realms don't have colored sockets, so don't bother trying to calculate for those.
+			if not VgerCore.IsClassic and not VgerCore.IsMainline then
+				local BestRed
+				BestRed, ThisScaleBestGems.RedSocket[ItemLevel] = PawnFindBestGems(ScaleName, GemData, true, false, false)
+				ThisScaleBestGems.RedSocketValue[ItemLevel] = BestRed
 
-			local BestYellow
-			BestYellow, ThisScaleBestGems.YellowSocket[ItemLevel] = PawnFindBestGems(ScaleName, GemData, false, true, false)
-			ThisScaleBestGems.YellowSocketValue[ItemLevel] = BestYellow
+				local BestYellow
+				BestYellow, ThisScaleBestGems.YellowSocket[ItemLevel] = PawnFindBestGems(ScaleName, GemData, false, true, false)
+				ThisScaleBestGems.YellowSocketValue[ItemLevel] = BestYellow
 
-			local BestBlue
-			BestBlue, ThisScaleBestGems.BlueSocket[ItemLevel] = PawnFindBestGems(ScaleName, GemData, false, false, true)
-			ThisScaleBestGems.BlueSocketValue[ItemLevel] = BestBlue
+				local BestBlue
+				BestBlue, ThisScaleBestGems.BlueSocket[ItemLevel] = PawnFindBestGems(ScaleName, GemData, false, false, true)
+				ThisScaleBestGems.BlueSocketValue[ItemLevel] = BestBlue
+			end
 		end
 	end
 
@@ -1225,6 +1242,24 @@ function PawnRecalculateScaleTotal(ScaleName)
 		end
 	end
 
+	-- Now cogwheels.
+	if VgerCore.IsCataclysm then -- or Pandaria
+		for _, QualityLevelData in pairs(PawnCogwheelQualityLevels) do
+			local ItemLevel = QualityLevelData[1]
+			local GemData = QualityLevelData[2]
+
+			if PawnCommon.Debug then
+				VgerCore.Message("")
+				VgerCore.Message("COGWHEELS FOR ITEM LEVEL " .. tostring(ItemLevel))
+				VgerCore.Message("")
+			end
+
+			local BestCogwheel
+			BestCogwheel, ThisScaleBestGems.CogwheelSocket[ItemLevel] = PawnFindBestGems(ScaleName, GemData)
+			ThisScaleBestGems.CogwheelSocketValue[ItemLevel] = BestCogwheel
+		end
+	end
+
 end
 
 -- Recreates the tooltip annotation format strings.
@@ -1237,7 +1272,7 @@ function PawnRecreateAnnotationFormats()
 end
 
 local function PawnCheckItemTypeCore(ItemLink, AllowEquippable, AllowStatGems, AllowRelics)
-	local _, _, _, InvType, _, ItemClassID, ItemSubClassID = GetItemInfoInstant(ItemLink)
+	local _, _, _, InvType, _, ItemClassID, ItemSubClassID = C_Item.GetItemInfoInstant(ItemLink)
 	if (InvType == nil or InvType == "") then
 		-- If the item isn't equippable don't bother parsing it, unless it's a gem or relic.
 		return
@@ -1284,8 +1319,8 @@ function PawnGetItemData(ItemLink)
 	-- If we have an item link, we can extract basic data from it from the user's WoW cache (not the Pawn item cache).
 	-- We get a new, normalized version of ItemLink so that items don't end up in the cache multiple times if they're requested
 	-- using different styles of links that all point to the same item.
-	local ItemID, _, _, InvType, ItemTexture = GetItemInfoInstant(ItemLink)
-	local ItemName, NewItemLink, ItemRarity, ItemLevel = GetItemInfo(ItemLink)
+	local ItemID, _, _, InvType, ItemTexture = C_Item.GetItemInfoInstant(ItemLink)
+	local ItemName, NewItemLink, ItemRarity, ItemLevel = C_Item.GetItemInfo(ItemLink)
 	if NewItemLink then
 		ItemLink = NewItemLink
 	else
@@ -1318,7 +1353,7 @@ function PawnGetItemData(ItemLink)
 	if not Item then
 		Item = PawnGetEmptyCachedItem(ItemLink, ItemName)
 		Item.Rarity = ItemRarity
-		Item.Level = GetDetailedItemLevelInfo(ItemLink) or ItemLevel -- The level from GetItemInfo doesn't take into effect upgrades or heirloom scaling
+		Item.Level = C_Item.GetDetailedItemLevelInfo(ItemLink) or ItemLevel -- The level from GetItemInfo doesn't take into effect upgrades or heirloom scaling
 		Item.ID = ItemID
 		if InvType ~= "" then Item.InvType = InvType end
 		Item.Texture = ItemTexture
@@ -1392,7 +1427,6 @@ function PawnGetItemData(ItemLink)
 			-- (Don't just copy the reference, because then changes to one stat table would also
 			-- change the other!)
 			local TableCopy = {}
-			local StatName
 			if Item.Stats then
 				for StatName, Value in pairs(Item.Stats) do
 					TableCopy[StatName] = Value
@@ -1429,6 +1463,7 @@ function PawnGetItemData(ItemLink)
 				Item.Stats.MetaSocket = nil
 				Item.Stats.MetaSocketEffect = nil
 			end
+			Item.Stats.CogwheelSocket = nil
 		end
 
 		-- If the item doesn't have any stats, don't cache it.  This is done to work around a problem a few people were seeing where
@@ -1458,7 +1493,6 @@ function PawnGetItemData(ItemLink)
 
 		-- Determine if this item could ever be equipped by this class.
 		Item.CanEquip = true
-		local StatName
 		local _, _, ClassID = UnitClass("player")
 		for _, StatName in pairs(PawnNeverUsableStats[ClassID]) do
 			if Item.Stats[StatName] then
@@ -1485,7 +1519,7 @@ function PawnGetGemData(GemData)
 	if GemData.Item then return GemData.Item end
 
 	local ItemID = GemData.ID
-	local ItemName, ItemLink, ItemRarity, ItemLevel, _, _, _, _, _, ItemTexture = GetItemInfo(ItemID)
+	local ItemName, ItemLink, ItemRarity, ItemLevel, _, _, _, _, _, ItemTexture = C_Item.GetItemInfo(ItemID)
 	if ItemLink == nil or ItemName == nil then
 		-- If the gem doesn't exist in the user's local cache, we'll have to fake up some info for it.
 		ItemLink = format(PawnLocal.GenericGemLink, ItemID, ItemID)
@@ -1494,7 +1528,7 @@ function PawnGetGemData(GemData)
 	local Item = PawnGetEmptyCachedItem(ItemLink, ItemName)
 	Item.ID = ItemID
 	Item.Rarity = ItemRarity
-	Item.Level = GetDetailedItemLevelInfo(ItemLink) or ItemLevel
+	Item.Level = C_Item.GetDetailedItemLevelInfo(ItemLink) or ItemLevel
 	Item.Texture = ItemTexture
 	Item.UnenchantedStats = GemData.Stats or { }
 	PawnRecalculateItemValuesIfNecessary(Item, true) -- Ignore the user's normalization factor when determining these gem values.
@@ -1580,7 +1614,7 @@ function PawnGetItemDataForInventorySlot(Slot, Unenchanted, UnitName)
 	if Slot == INVSLOT_OFFHAND and Item and Item.Rarity == 6 then
 		local MainHandLink = GetInventoryItemLink("player", INVSLOT_MAINHAND)
 		if MainHandLink then
-			Item.Level = GetDetailedItemLevelInfo(MainHandLink) or Item.Level
+			Item.Level = C_Item.GetDetailedItemLevelInfo(MainHandLink) or Item.Level
 		end
 	end
 
@@ -1628,8 +1662,8 @@ function PawnGetSingleValueFromItem(Item, ScaleName)
 
 	-- If this scale isn't enabled, just calculate it as a one-off.
 	local Value, UnenchantedValue
-	Value = PawnGetItemValue(Item.Stats, Item.Level, Item.SocketBonusStats, ScaleName, false, false)
-	UnenchantedValue = PawnGetItemValue(Item.UnenchantedStats, Item.Level, Item.UnenchantedSocketBonusStats, ScaleName, false, false)
+	Value = PawnGetItemValue(Item.Stats, Item.Level, Item.SocketBonusStats, ScaleName, false, false, true)
+	UnenchantedValue = PawnGetItemValue(Item.UnenchantedStats, Item.Level, Item.UnenchantedSocketBonusStats, ScaleName, false, false, false)
 	return Value, UnenchantedValue
 end
 
@@ -1657,11 +1691,11 @@ function PawnUpdateTooltip(TooltipName, MethodName, Param1, ...)
 		VgerCore.Message("[" .. TooltipUpdateCounter .. "] Updating " .. TooltipName .. " (" .. Tooltip:NumLines() .. " lines): " .. (ItemLink or "(no item link)"))
 	end
 
-	-- Then get the item or relic data.
+	-- Then get the item or artifact relic data.
 	local Item, IsRelic
 	if ItemLink then
 		if PawnCanItemBeArtifactUpgrade(ItemLink) then
-			-- This is a relic item, so we just get upgrade info directly.
+			-- This is a artifact relic item, so we just get upgrade info directly.
 			IsRelic = true
 		else
 			-- This is the normal case: a normal item for which we have an item link.
@@ -1673,7 +1707,7 @@ function PawnUpdateTooltip(TooltipName, MethodName, Param1, ...)
 	end
 
 	-- If there's no item data, then something failed, so we can't update this tooltip, except to show item IDs.
-	local TooltipWasUpdated, UpgradeInfo, ItemLevelIncrease, BestItemFor, SecondBestItemFor, NeedsEnhancements
+	local UpgradeInfo, ItemLevelIncrease, BestItemFor, SecondBestItemFor, NeedsEnhancements
 
 	if Item then
 		-- If this is a regular item, do the regular calculations to see if it's an upgrade.
@@ -1685,7 +1719,7 @@ function PawnUpdateTooltip(TooltipName, MethodName, Param1, ...)
 			PawnLastHoveredItem = Item.Link
 		end
 	elseif IsRelic then
-		-- If this is a relic, we use a special relic-only codepath for this.
+		-- If this is an artifact relic, we use a special relic-only codepath for this.
 		if not PawnIsHoveringSocketedRelic then
 			if PawnCommon.ShowRelicUpgrades then UpgradeInfo = PawnGetRelicUpgradeInfo(ItemLink) end
 		end
@@ -1699,11 +1733,11 @@ function PawnUpdateTooltip(TooltipName, MethodName, Param1, ...)
 		Tooltip:AddLine(" ")
 	end
 
-	local Annotated, TooltipWasUpdated
+	local TooltipWasUpdated
 
 	if Item then
 		-- Add the scale values and upgrade info to the tooltip.
-		PawnAddValuesToTooltip(Tooltip, Item.Values, UpgradeInfo, BestItemFor, SecondBestItemFor, NeedsEnhancements, Item.InvType)
+		PawnAddValuesToTooltip(Tooltip, Item.Values, UpgradeInfo, BestItemFor, SecondBestItemFor, NeedsEnhancements)
 
 		local Annotated
 		if Item.UnknownLines and Item.Values and #Item.Values > 0 then
@@ -1713,7 +1747,7 @@ function PawnUpdateTooltip(TooltipName, MethodName, Param1, ...)
 		-- Add the item level info to the tooltip.
 		if ItemLevelIncrease and PawnCommon.ShowItemLevelUpgrades then
 			-- Find which line of the tooltip (2-4) contains the text "Item Level" and annotate that.
-			local i, AnnotatedItemLevel
+			local AnnotatedItemLevel
 			for i = 2, 5 do
 				local LeftLine = _G[TooltipName .. "TextLeft" .. i]
 				if LeftLine then
@@ -1734,7 +1768,7 @@ function PawnUpdateTooltip(TooltipName, MethodName, Param1, ...)
 
 		TooltipWasUpdated = true
 	elseif IsRelic then
-		-- Add relic upgrade info to the tooltip.
+		-- Add artifact relic upgrade info to the tooltip.
 		PawnAddRelicUpgradesToTooltip(TooltipName, UpgradeInfo)
 		TooltipWasUpdated = true
 	end
@@ -1784,7 +1818,7 @@ function PawnSetTooltipBorderColor(Tooltip, r, g, b, a)
 		Tooltip.NineSlice.LeftEdge:SetVertexColor(r, g, b, a)
 		Tooltip.NineSlice.RightEdge:SetVertexColor(r, g, b, a)
 	else
-		VgerCore.Fail("Pawn doesn't know how to change tooltip border colors in this version of WoW.")
+		VgerCore.Fail("Pawn doesn't know how to change tooltip border colors in this version of WoW (" .. GetLocale() .. " " .. GetBuildInfo() .. ").")
 	end
 end
 
@@ -1796,13 +1830,13 @@ end
 -- 	UnenchantedItem: A table of unenchanted item values in the format returned by GetStatsFromTooltip.
 -- 	UnenchantedItemSocketBonus: A table of unenchanted item socket bonuses in the format returned by GetStatsFromTooltip.
 --	DebugMessages: If true, debug messages will be printed.
---	NoNormalization: If true, the user's normalization factor will be ignored.
+--	NoNormalization: If true, the user's normalization factor and reforging will be ignored.
 -- Return value: ItemValues
 -- 	ItemValues: A sorted table of scale values in the following format: { {"Scale 1", 100, 90, ...}, {"\"Provider\":Scale2", 200, 175, ...} }.
 --	Values for scales that are not currently enabled are not included.
 function PawnGetAllItemValues(Item, ItemLevel, SocketBonus, UnenchantedItem, UnenchantedItemSocketBonus, DebugMessages, NoNormalization)
 	local ItemValues = {}
-	for ScaleName, Scale in pairs(PawnCommon.Scales) do
+	for ScaleName, _ in pairs(PawnCommon.Scales) do
 		local ShowScale = PawnIsScaleVisible(ScaleName)
 		if ShowScale then -- Skip all disabled scales.  PawnGetSingleValueFromItem will calculate them on-demand if necessary.
 			if ShowScale and DebugMessages then
@@ -1812,14 +1846,14 @@ function PawnGetAllItemValues(Item, ItemLevel, SocketBonus, UnenchantedItem, Une
 			local Value
 			local UnenchantedValue
 			if UnenchantedItem then
-				UnenchantedValue = PawnGetItemValue(UnenchantedItem, ItemLevel, UnenchantedItemSocketBonus, ScaleName, ShowScale and DebugMessages, NoNormalization)
+				UnenchantedValue = PawnGetItemValue(UnenchantedItem, ItemLevel, UnenchantedItemSocketBonus, ScaleName, ShowScale and DebugMessages, NoNormalization, NoNormalization)
 			end
 			if Item then
 				if ShowScale and DebugMessages and PawnCommon.ShowEnchanted then
 					PawnDebugMessage(" ")
 					PawnDebugMessage(PawnLocal.EnchantedStatsHeader)
 				end
-				Value = PawnGetItemValue(Item, ItemLevel, SocketBonus, ScaleName, ShowScale and DebugMessages and PawnCommon.ShowEnchanted, NoNormalization)
+				Value = PawnGetItemValue(Item, ItemLevel, SocketBonus, ScaleName, ShowScale and DebugMessages and PawnCommon.ShowEnchanted, NoNormalization, true)
 			end
 
 			-- Add these values to the table.
@@ -1843,9 +1877,8 @@ end
 --	UpgradeInfo: An array of item upgrade information, in the format returned by PawnIsItemAnUpgrade.
 --	BestItemFor, SecondBestItemFor: A table of scales for which this is the best or second-best item available, in the format returned by PawnIsItemAnUpgrade.
 -- 	NeedsEnhancements: True if the item needs enhancements.
---	InvType: Optionally, the type of item this is.
 --	OnlyFirstValue: If true, only the first value (the "enchanted" one) is used, regardless of the user's settings.
-function PawnAddValuesToTooltip(Tooltip, ItemValues, UpgradeInfo, BestItemFor, SecondBestItemFor, NeedsEnhancements, InvType, OnlyFirstValue)
+function PawnAddValuesToTooltip(Tooltip, ItemValues, UpgradeInfo, BestItemFor, SecondBestItemFor, NeedsEnhancements, OnlyFirstValue)
 	-- First, check input arguments.
 	if type(Tooltip) ~= "table" then
 		VgerCore.Fail("Tooltip must be a valid tooltip, not '" .. type(Tooltip) .. "'.")
@@ -1855,7 +1888,6 @@ function PawnAddValuesToTooltip(Tooltip, ItemValues, UpgradeInfo, BestItemFor, S
 
 	-- Loop through all of the item value subtables.
 	local _, _, ClassID = UnitClass("player")
-	local Entry, _
 	for _, Entry in pairs(ItemValues) do
 		local ScaleName, Value, UnenchantedValue, LocalizedName = Entry[1], Entry[2], Entry[3], Entry[4]
 		local Scale = PawnCommon.Scales[ScaleName]
@@ -1879,7 +1911,7 @@ function PawnAddValuesToTooltip(Tooltip, ItemValues, UpgradeInfo, BestItemFor, S
 				LocalizedName = "|T" .. Scale.IconTexturePath .. ":0|t " .. LocalizedName
 			end
 
-			local TooltipText = nil
+			local TooltipText
 			local TextColor = PawnGetScaleColor(ScaleName)
 			local UnenchantedTextColor = PawnGetScaleColor(ScaleName, true)
 
@@ -1895,7 +1927,6 @@ function PawnAddValuesToTooltip(Tooltip, ItemValues, UpgradeInfo, BestItemFor, S
 
 			-- Add info to the tooltip if this item is an upgrade or best-in-slot.
 			if TooltipText then
-				local ThisUpgrade, _
 				WasUpgradeOrBest = false
 				if UpgradeInfo then
 					for _, ThisUpgrade in pairs(UpgradeInfo) do
@@ -1962,8 +1993,6 @@ end
 function PawnGetInventoryItemValues(UnitName)
 	local Total = {}
 	local TotalItemLevel = 0
-	local SlotStats
-	local Slot
 	local _
 	local MainHandArtifactLevel
 	for Slot = 1, 18 do
@@ -1981,7 +2010,7 @@ function PawnGetInventoryItemValues(UnitName)
 					return
 				end
 				if Slot == 16 then
-					local _, _, _, _, _, _, _, _, InvType = GetItemInfo(GetInventoryItemLink(UnitName, Slot))
+					local _, _, _, _, _, _, _, _, InvType = C_Item.GetItemInfo(GetInventoryItemLink(UnitName, Slot))
 					if (InvType == "INVTYPE_2HWEAPON" or InvType == "INVTYPE_RANGED" or InvType == "INVTYPE_RANGEDRIGHT") and GetInventoryItemID(UnitName, 17) == nil then
 						-- Some ranged weapons are now two-handed too.  If they're using a ranged weapon with no off-hand, count it as a two-hander.
 						ThisItemLevel = ThisItemLevel * 2
@@ -2006,7 +2035,7 @@ function PawnGetInventoryItemValues(UnitName)
 				-- (Same with the relic slot in WoW Classic.)
 				local ItemLink = GetInventoryItemLink(UnitName, Slot)
 				if ItemLink then
-					local ThisItemLevel = GetDetailedItemLevelInfo(ItemLink)
+					local ThisItemLevel = C_Item.GetDetailedItemLevelInfo(ItemLink)
 					if ThisItemLevel then
 						TotalItemLevel = TotalItemLevel + ThisItemLevel
 					end
@@ -2042,7 +2071,6 @@ end
 function PawnFixStupidTooltipFormatting(TooltipName)
 	local Tooltip = _G[TooltipName]
 	if not Tooltip then return end
-	local i
 	for i = 1, Tooltip:NumLines() do
 		local LeftLine = _G[TooltipName .. "TextLeft" .. i]
 		local Text = LeftLine:GetText()
@@ -2187,7 +2215,6 @@ function PawnGetStatsFromTooltip(TooltipName, DebugMessages)
 			IsKillLine = true
 		end
 		if not IsKillLine then
-			local ThisKillLine
 			for _, ThisKillLine in pairs(PawnKillLines) do
 				if strfind(LeftLineText, ThisKillLine) then
 					-- This is a known ignored kill line; stop now.
@@ -2258,7 +2285,6 @@ function PawnGetStatsFromTooltip(TooltipName, DebugMessages)
 
 				-- First, check to see if it starts with any of the ignore prefixes, such as "Use:".
 				local IgnoreLine = false
-				local ThisPrefix
 				for _, ThisPrefix in pairs(PawnSeparatorIgnorePrefixes) do
 					if strfind(CurrentParseText, ThisPrefix, 1, true) == 1 then
 						-- We know that this line doesn't contain a complex stat, so ignore it.
@@ -2277,11 +2303,10 @@ function PawnGetStatsFromTooltip(TooltipName, DebugMessages)
 
 					local Pos = 1
 					local NextPos = 0
-					local InnerStatLine = nil
-					local InnerUnderstood = nil
+					local InnerStatLine
+					local InnerUnderstood
 
 					while Pos < strlen(CurrentParseText) do
-						local ThisSeparator
 						for _, ThisSeparator in pairs(PawnSeparators) do
 							NextPos = strfind(CurrentParseText, ThisSeparator, Pos, false)
 							if NextPos then
@@ -2342,6 +2367,15 @@ function PawnGetStatsFromTooltip(TooltipName, DebugMessages)
 		Stats["IsRanged"] = 1
 	end
 
+	if VgerCore.IsCataclysm then
+		if Stats["Rap"] then
+			-- In Cataclysm, ranged attack power is essentially gone, though it still appears on a few items like Rhok'delar (18713) and some PVP weapons.
+			-- Treat all types of attack power the same until Legion, when attack power was removed entirely.
+			PawnAddStatToTable(Stats, "Ap", Stats["Rap"])
+			Stats["Rap"] = nil
+		end
+	end
+
 	if Stats["IsMainHand"] or Stats["IsOneHand"] or Stats["IsOffHand"] or Stats["IsTwoHand"] or Stats["IsRanged"] then
 		-- Only perform this conversion if this is an actual weapon.  This works around a problem that occurs when you
 		-- enchant your ring with weapon damage and then Pawn would try to calculate DPS for your ring with no Min/MaxDamage.
@@ -2358,7 +2392,7 @@ function PawnGetStatsFromTooltip(TooltipName, DebugMessages)
 			if Stats["MinDamage"] then WeaponStats = WeaponStats + 1 end
 			if Stats["MaxDamage"] then WeaponStats = WeaponStats + 1 end
 			if Stats["Speed"] then WeaponStats = WeaponStats + 1 end
-			VgerCore.Assert(WeaponStats == 0 or WeaponStats == 3, "Pawn couldn't read speed and damage stats from " .. ItemName .. "; translation problem?")
+			VgerCore.Assert(WeaponStats == 0 or WeaponStats == 3, "Pawn couldn't read speed and damage stats from " .. ItemName .. " (" .. GetLocale() .. " " .. GetBuildInfo() .. ") and needs an update.")
 		end
 	end
 
@@ -2413,7 +2447,7 @@ function PawnGetStatsFromTooltip(TooltipName, DebugMessages)
 	end
 
 	if Stats["IsMelee"] and Stats["IsRanged"] then
-		VgerCore.Fail("Weapon that is both melee and ranged was converted to both Melee* and Ranged* stats")
+		VgerCore.Fail("Pawn determined that " .. ItemName .. " is both a melee and a ranged weapon (" .. GetLocale() .. " " .. GetBuildInfo() .. ").")
 	end
 
 	if Stats["IsMelee"] then
@@ -2451,7 +2485,7 @@ function PawnGetStatsFromTooltip(TooltipName, DebugMessages)
 			SocketBonusStats = {}
 		else
 			-- If the socket bonus is not valid, then we need to check for sockets.
-			if Stats["PrismaticSocket"] or Stats["RedSocket"] or Stats["YellowSocket"] or Stats["BlueSocket"] or Stats["MetaSocket"] then
+			if Stats["PrismaticSocket"] or Stats["RedSocket"] or Stats["YellowSocket"] or Stats["BlueSocket"] or Stats["MetaSocket"] or Stats["CogwheelSocket"] then
 				-- There are sockets left, so the player could still meet the requirements.
 				PawnDebugMessage("   (Socket bonus requirements could potentially be met)")
 			else
@@ -2486,11 +2520,11 @@ function PawnLookForSingleStat(RegexTable, Stats, ThisString, DebugMessages)
 	-- First, perform a series of normalizations on the string.  For example, "Stamina +5" should
 	-- be converted to "+5 Stamina" so we don't need two strings for everything.
 	ThisString = strtrim(ThisString)
-	local Entry, Count
+	local Count
 	for _, Entry in pairs(PawnNormalizationRegexes) do
 		---@diagnostic disable-next-line: deprecated
 		local Regex, Replacement = unpack(Entry)
-		local OldString = ThisString
+		-- local OldString = ThisString
 		ThisString, Count = gsub(ThisString, Regex, Replacement, 1)
 		--if Count > 0 then PawnDebugMessage("Normalized string using \"" .. PawnEscapeString(Regex) .. "\" -- was " .. PawnEscapeString(OldString) .. " and is now " .. PawnEscapeString(ThisString)) end
 	end
@@ -2519,7 +2553,7 @@ function PawnLookForSingleStat(RegexTable, Stats, ThisString, DebugMessages)
 				end
 				local ExtractedValue = Matches[MatchIndex]
 				if not ExtractedValue then
-					VgerCore.Fail("Didn't extract a value for " .. Stat .. ".  Is the translation missing a capture (#)?")
+					VgerCore.Fail("Didn't extract a value for " .. Stat .. ".  Is the translation missing a # (" .. GetLocale() .. " " .. GetBuildInfo() .. ")?")
 					ExtractedValue = 0
 				end
 				if Stat ~= "Speed" and (PawnLocal.ThousandsSeparator ~= "" or (PawnLocal.ThousandsSeparator == PawnLocal.DecimalSeparator)) then
@@ -2535,7 +2569,7 @@ function PawnLookForSingleStat(RegexTable, Stats, ThisString, DebugMessages)
 					-- in English format only.
 					ExtractedValue = gsub(ExtractedValue, PawnLocal.DecimalSeparator, ".")
 				end
-				if Stat == "Speed" and VgerCore.IsClassic and GetLocale() == "frFR" then
+				if Stat == "Speed" then
 					-- In French WoW Classic, the weapon speed value uses a comma for the decimal even though everything else uses a period.
 					-- UGH BLIZZARD WHY MUST YOU DO THIS TO ME
 					ExtractedValue = gsub(ExtractedValue, ",", ".")
@@ -2651,11 +2685,10 @@ end
 --		Returns {}, {} if the string was ignored.
 function PawnFindStringInRegexTable(String, RegexTable)
 	if (String == nil) or (String == "") or (String == " ") then return {}, {} end
-	local Entry
 	for _, Entry in pairs(RegexTable) do
 		LastRegex = Entry[1]
 		LastStat = Entry[2]
-		local StartPos, EndPos, m1, m2, m3, m4, m5 = strfind(String, LastRegex)
+		local StartPos, _, m1, m2, m3, m4, m5 = strfind(String, LastRegex)
 		if StartPos then return Entry, { m1, m2, m3, m4, m5 } end
 	end
 	return nil, nil
@@ -2669,11 +2702,12 @@ end
 --		ScaleName: The scale to use.
 --		DebugMessages: If true, debug messages will be shown if appropriate.
 --		NoNormalization: If true, the user's normalization factor will be ignored.
+--		NoReforging: If true, reforging calculations will be skipped.
 --	Returns: Value, TotalSocketValue
 --		Value: The numeric value of an item based on the given scale values.  (example: 21.75)
 --		TotalSocketValue: The total value of the sockets and socket bonus if applicable. (This is already factored into the total value.)
 --		SocketBonusValue: The total value of the socket bonus, IF it's worthwhile. (This is already factored into the previous two values.)
-function PawnGetItemValue(Item, ItemLevel, SocketBonus, ScaleName, DebugMessages, NoNormalization)
+function PawnGetItemValue(Item, ItemLevel, SocketBonus, ScaleName, DebugMessages, NoNormalization, NoReforging)
 	-- If either the item or scale is empty, exit now.
 	if (not Item) or (not ScaleName) then return end
 	local ScaleOptions = PawnCommon.Scales[ScaleName]
@@ -2687,7 +2721,7 @@ function PawnGetItemValue(Item, ItemLevel, SocketBonus, ScaleName, DebugMessages
 	local ProperSocketValue = 0
 	local SocketBonusValue = 0
 	local IsUnusable
-	local ThisValue, Stat, Quantity
+	local ThisValue
 	for Stat, Quantity in pairs(Item) do
 		ThisValue = ScaleValues[Stat]
 		if VgerCore.IsMainline then
@@ -2720,7 +2754,8 @@ function PawnGetItemValue(Item, ItemLevel, SocketBonus, ScaleName, DebugMessages
 			Stat ~= "YellowSocket" and
 			Stat ~= "BlueSocket" and
 			Stat ~= "MetaSocket" and
-			Stat ~= "MetaSocketEffect"
+			Stat ~= "MetaSocketEffect" and
+			Stat ~= "CogwheelSocket"
 		then
 			if ThisValue then
 				-- This stat has a value; add it to the running total.
@@ -2755,19 +2790,22 @@ function PawnGetItemValue(Item, ItemLevel, SocketBonus, ScaleName, DebugMessages
 				Item.YellowSocket or
 				Item.BlueSocket or
 				Item.MetaSocket or
-				Item.MetaSocketEffect
+				Item.MetaSocketEffect or
+				Item.CogwheelSocket
 			) then
 
 				local GemQualityLevel = PawnGetGemQualityForItem(PawnGemQualityLevels, ItemLevel)
 				local MetaGemQualityLevel = PawnGetGemQualityForItem(PawnMetaGemQualityLevels, ItemLevel)
+				local CogwheelQualityLevel = PawnGetGemQualityForItem(PawnCogwheelQualityLevels, ItemLevel)
 
 				local SocketValue = function(Stat, QualityLevel)
+					if QualityLevel == nil then return 0 end
 					local Quantity = Item[Stat]
 					if Quantity then
-						local ThisValue = ThisScaleBestGems[Stat .. "Value"][QualityLevel]
-						if ThisValue then
-							if DebugMessages then PawnDebugMessage(format(PawnLocal.ValueCalculationMessage, Quantity, Stat, ThisValue, Quantity * ThisValue)) end
-							return Quantity * ThisValue
+						local ThisValue2 = ThisScaleBestGems[Stat .. "Value"][QualityLevel]
+						if ThisValue2 then
+							if DebugMessages then PawnDebugMessage(format(PawnLocal.ValueCalculationMessage, Quantity, Stat, ThisValue2, Quantity * ThisValue2)) end
+							return Quantity * ThisValue2
 						else
 							if DebugMessages then PawnDebugMessage("   No known value for " .. Quantity .. " " .. Stat) end
 						end
@@ -2820,13 +2858,16 @@ function PawnGetItemValue(Item, ItemLevel, SocketBonus, ScaleName, DebugMessages
 					end
 				end
 
+				-- In Cataclysm there are also cogwheels for engineering goggles. Sigh.
+				TotalSocketValue = TotalSocketValue + SocketValue("CogwheelSocket", CogwheelQualityLevel)
+
 				Total = Total + TotalSocketValue
 			end -- if ShouldIncludeSockets
 
 		else
 			-- This error case is acceptable if we're calculating data FOR the gems themselves.  (In that case, normalization will be off.)
 			-- If it happens at any other time, we'd want to know about it.
-			VgerCore.Assert(NoNormalization, "Item value calculation will be incomplete because we don't have best gem data and thus can't calculate values for sockets.")
+			VgerCore.Assert(NoNormalization, "Item value calculation will be incomplete because we don't have best gem data and thus can't calculate values for sockets. /console scriptErrors 1 can help discover why.")
 		end
 	end
 
@@ -2835,6 +2876,17 @@ function PawnGetItemValue(Item, ItemLevel, SocketBonus, ScaleName, DebugMessages
 		if ScaleOptions.NormalizationFactor and ScaleOptions.NormalizationFactor > 0 then
 			if DebugMessages then PawnDebugMessage(format(PawnLocal.NormalizationMessage, PawnScaleTotals[ScaleName])) end
 			Total = ScaleOptions.NormalizationFactor * Total / PawnScaleTotals[ScaleName]
+		end
+	end
+
+	-- Decide if the item should be reforged.
+	if VgerCore.ReforgingExists then
+		if (not IsUnusable) and (not NoReforging) and (ItemLevel and ItemLevel >= 200) then
+			local ReforgePotential = PawnFindOptimalReforgingCore(ScaleName, ScaleOptions, ScaleValues, Item, true)
+			if ReforgePotential and ReforgePotential > 0 then
+				if DebugMessages then PawnDebugMessage(format("   ---- Reforge item to gain +%g", ReforgePotential)) end
+				Total = Total + ReforgePotential
+			end
 		end
 	end
 
@@ -2847,14 +2899,14 @@ end
 --		GemListString: A string description of the best gems to use.
 --		IsVague: true if the returned string is not particularly specific.
 function PawnGetGemListString(ScaleName, ListAll, ItemLevel, Color)
-	Socket = Socket or "Prismatic"
+	Color = Color or "Prismatic"
 	local Gems = PawnScaleBestGems[ScaleName]
 	if Gems and Gems[Color .. "Socket"] then
 		local GemQuality = PawnGetGemQualityForItem(PawnGemQualityLevels, ItemLevel)
 		local GemTable = Gems[Color .. "Socket"][GemQuality]
 
 		if ListAll or (Color == "Prismatic" and #GemTable > 2) then
-			local _, GemInfo, GemList
+			local GemList
 			local Separator
 			if ListAll then Separator = "\n" else Separator = ", " end
 			for _, GemInfo in pairs(GemTable) do
@@ -3017,7 +3069,7 @@ function PawnParseScaleTag(ScaleTag)
 	local Values = {}
 	local SpecID
 	local function SplitStatValuePair(Pair)
-		local Pos, _, Stat, Value = strfind(Pair, "^%s*([%a%d]+)%s*=%s*(%-?[%d%.a-zA-Z]+)%s*,$")
+		local Pos2, _, Stat, Value = strfind(Pair, "^%s*([%a%d]+)%s*=%s*(%-?[%d%.a-zA-Z]+)%s*,$")
 		if Stat == "Class" then
 			Value = PawnGetClassIDFromName(Value)
 		elseif Stat == "Spec" then
@@ -3027,7 +3079,7 @@ function PawnParseScaleTag(ScaleTag)
 		else
 			Value = tonumber(Value)
 		end
-		if Pos and Stat and (Stat ~= "") and Value then
+		if Pos2 and Stat and (Stat ~= "") and Value then
 			Values[Stat] = Value
 		end
 	end
@@ -3166,21 +3218,21 @@ function PawnCorrectScaleErrors(ScaleName)
 	ThisScale.Mana = nil
 	ThisScale.Health = nil
 	ThisScale.BaseArmor = nil
-	ThisScale.IsRelic = nil
 	ThisScale.BonusArmor = nil
 	ThisScale.Multistrike = nil
 
 	-- These were introduced in Classic versions.
-	if not (VgerCore.IsClassic or VgerCore.IsBurningCrusade or VgerCore.IsWrath) then
+	if not (VgerCore.IsClassic or VgerCore.IsBurningCrusade or VgerCore.IsWrath or VgerCore.IsCataclysm) then
 		ThisScale.SpellPenetration = nil
-	end
-	if not (VgerCore.IsBurningCrusade or VgerCore.IsWrath) then
+		ThisScale.IsRelic = nil
 		ThisScale.ExpertiseRating = nil
+	end
+	if not (VgerCore.IsBurningCrusade or VgerCore.IsWrath or VgerCore.IsCataclysm) then
 		ThisScale.ResilienceRating = nil
 	end
 
 	-- Spell power appeared in Wrath but disappeared again later.
-	if not VgerCore.IsWrath then
+	if not (VgerCore.IsWrath or VgerCore.IsCataclysm) then
 		ThisScale.SpellPower = nil
 	end
 
@@ -3201,12 +3253,17 @@ function PawnCorrectScaleErrors(ScaleName)
 	ThisScale.DominationSocket = nil
 
 	-- Wrath Classic merges SpellDamage and Healing into SpellPower, and melee and spell ratings.
-	if VgerCore.IsWrath then
+	if VgerCore.IsWrath or VgerCore.IsCataclysm then
 		PawnCombineStats(ThisScale, "SpellPower", "SpellDamage")
 		PawnCombineStats(ThisScale, "SpellPower", "Healing")
 		PawnCombineStats(ThisScale, "HitRating", "SpellHitRating")
 		PawnCombineStats(ThisScale, "CritRating", "SpellCritRating")
 		PawnCombineStats(ThisScale, "HasteRating", "SpellHasteRating")
+	end
+
+	-- Cataclysm effectively eliminates ranged attack power and we consider them merged.
+	if VgerCore.IsCataclysm then
+		PawnCombineStats(ThisScale, "Ap", "Rap")
 	end
 end
 
@@ -3277,7 +3334,7 @@ function PawnAttachIconToTooltip(Tooltip, AttachAbove, ItemLink)
 			_, ItemLink = Tooltip:GetItem()
 		end
 		if ItemLink then
-			TextureName = GetItemIcon(ItemLink)
+			TextureName = C_Item.GetItemIconByID(ItemLink)
 		end
 	end
 
@@ -3356,15 +3413,17 @@ end
 
 -- Given a particular item level and a list of gem tables, return the appropriate gem quality level for an item of the given level.
 -- If ItemLevel is nil, then the highest gem quality is assumed.
+-- Will return nil when there are no known gems of that type at all.
 function PawnGetGemQualityForItem(GemQualityLevels, ItemLevel)
+	if not GemQualityLevels or #GemQualityLevels == 0 then return nil end
 	if not ItemLevel then return GemQualityLevels[1][1] end
 
-	local _, GemQualityData, GemLevel
+	local GemLevel
 	for _, GemQualityData in pairs(GemQualityLevels) do
 		GemLevel = GemQualityData[1]
 		if ItemLevel >= GemLevel then return GemLevel end
 	end
-	VgerCore.Fail("Couldn't find an appropriate gem quality level for an item of level " .. tostring(ItemLevel) .. " in the specified item table.")
+	VgerCore.Fail("Pawn couldn't find the right gems to use for an item of level " .. tostring(ItemLevel) .. " (WoW " .. GetBuildInfo() .. ").")
 	return GemLevel
 end
 
@@ -3400,12 +3459,12 @@ function PawnFindBestGems(ScaleName, GemTable, RedOnly, YellowOnly, BlueOnly)
 	local BestItems = { }
 
 	-- Go through the list of gems, checking each item that matches one of the find criteria.
-	local GemData, ThisGem, _
+	local ThisGem
 	for _, GemData in pairs(GemTable) do
 		ThisGem = PawnGetGemData(GemData)
 		if ThisGem then
 			if ((not RedOnly) or GemData.R) and ((not YellowOnly) or GemData.Y) and ((not BlueOnly) or GemData.B) then
-				local ThisValue = PawnGetItemValue(ThisGem.UnenchantedStats, ThisGem.Level, nil, ScaleName, false, true)
+				local ThisValue = PawnGetItemValue(ThisGem.UnenchantedStats, ThisGem.Level, nil, ScaleName, false, true, true)
 				if ThisValue and ThisValue > BestScore then
 					-- This gem is better than any we've found so far.
 					BestScore = ThisValue
@@ -3427,8 +3486,8 @@ function PawnFindBestGems(ScaleName, GemTable, RedOnly, YellowOnly, BlueOnly)
 	-- In debug mode, display them.
 	if PawnCommon.Debug then
 		VgerCore.Message("=== Best gems for " .. PawnGetScaleLocalizedName(ScaleName) .. ": ===")
-		for _, ThisGem in pairs(BestItems) do
-			VgerCore.Message("  " .. ThisGem.Link)
+		for _, ThisGemDbg in pairs(BestItems) do
+			VgerCore.Message("  " .. ThisGemDbg.Link)
 		end
 		VgerCore.Message(" --> Score: " .. tostring(BestScore))
 	end
@@ -3448,7 +3507,7 @@ function PawnRefreshCachedItem(Item)
 	end
 
 	-- Request the new information.
-	local ItemName, _, _, _, _, _, _, _, _, ItemTexture = GetItemInfo(Item.ID)
+	local ItemName, _, _, _, _, _, _, _, _, ItemTexture = C_Item.GetItemInfo(Item.ID)
 	if not ItemName then
 		-- The client doesn't have any further information on this item yet, so bail out.
 		return false
@@ -3487,7 +3546,7 @@ function PawnIsItemAnUpgrade(Item, DoNotRescan)
 	local CompareUsingItemLevelOnly = (Item.Rarity == 6)
 	local InvType = Item.InvType
 	if not InvType or InvType == "" or InvType == "INVTYPE_BAG" or InvType == "INVTYPE_QUIVER" or InvType == "INVTYPE_TABARD" or InvType == "INVTYPE_BODY" or ((not VgerCore.RangedSlotExists) and (InvType == "INVTYPE_THROWN" or InvType == "INVTYPE_AMMO" or InvType == "INVTYPE_RELIC")) then return nil end
-	local SkipScoreBasedUpgrades = InvType == "INVTYPE_TRINKET"
+	local SkipScoreBasedUpgrades = InvType == "INVTYPE_TRINKET" or PawnGetSlotsForItemType(InvType) == nil
 	local UnenchantedItemLink, NeedsEnhancements = PawnUnenchantItemLink(Item.Link, true)
 	VgerCore.Assert(UnenchantedItemLink ~= nil, "PawnIsItemAnUpgrade failed to get an item link for item " .. tostring(Item.ID))
 
@@ -3521,7 +3580,6 @@ function PawnIsItemAnUpgrade(Item, DoNotRescan)
 
 	local _
 	local UpgradeTable, BestItemTable, SecondBestItemTable
-	local ScaleName, Scale
 	if not SkipScoreBasedUpgrades then
 		for ScaleName, Scale in pairs(PawnCommon.Scales) do
 			InvType = Item.InvType -- need to reset this here since it gets nil'ed out in the coming while loop
@@ -3543,7 +3601,7 @@ function PawnIsItemAnUpgrade(Item, DoNotRescan)
 					PawnFindBestItems(ScaleName)
 				end
 
-				local InvType2 = nil
+				local InvType2
 				local TwoSlotsForThisItemType = (InvType == "INVTYPE_FINGER")
 				if InvType == "INVTYPE_WEAPON" then
 					-- Check one-handed weapons against both the main hand and off hand, and report the best upgrade.
@@ -3567,11 +3625,11 @@ function PawnIsItemAnUpgrade(Item, DoNotRescan)
 				-- 2) The current best MH weapon is a one-hander
 				-- 3) The new MH weapon is better than the old OH weapon
 				-- But, it's not clear how best to present this to the user, so this case (and the vice-versa case) is ignored for now.
-				local ThisValue = nil
-				local NewTableEntry = nil
+				local ThisValue
+				local NewTableEntry
 
 				while InvType do
-					local BestData = nil
+					local BestData
 					if PawnOptions.UpgradeTracking and not CompareUsingItemLevelOnly then
 						BestData = CharacterOptions.BestItems[InvType]
 					else
@@ -3625,7 +3683,7 @@ function PawnIsItemAnUpgrade(Item, DoNotRescan)
 					if BestData then
 						local BestValue = BestData[4] or BestData[1]
 						local BestItem = BestData[5] or BestData[2]
-						local BestMaxHeirloomLevel = BestData[6] or BestData[3]
+						-- local BestMaxHeirloomLevel = BestData[6] or BestData[3]
 						if BestValue then
 							-- Don't bother looking for this item's value if we don't have a best item for this slot.
 							if not ThisValue then
@@ -3739,7 +3797,6 @@ end
 
 -- Invalidates all lists of best items for all characters and scales.
 function PawnInvalidateBestItems()
-	local ScaleName
 	for ScaleName, _ in pairs(PawnCommon.Scales) do
 		PawnInvalidateBestItemsForScale(ScaleName)
 	end
@@ -3752,19 +3809,16 @@ function PawnInvalidateBestItemsForScale(ScaleName)
 		VgerCore.Fail("PawnInvalidateBestItemsForScale: ScaleName must be the name of an existing scale.")
 		return
 	end
-	local CharacterName, CharacterOptions
-	for CharacterName, CharacterOptions in pairs(Scale.PerCharacterOptions) do
+	for _, CharacterOptions in pairs(Scale.PerCharacterOptions) do
 		CharacterOptions.BestItems = nil
 	end
 end
 
 -- Checks the player's equipped items for any new upgrades to his or her item sets.
 function PawnCheckInventoryForUpgrades()
-	local ScaleName
 	for ScaleName, _ in pairs(PawnCommon.Scales) do
 		PawnFindBestItems(ScaleName, true)
 	end
-	local Slot
 	for Slot = 1, 18 do
 		PawnAddItemToLevelTracker(PawnGetItemDataForInventorySlot(Slot))
 	end
@@ -3814,7 +3868,7 @@ function PawnFindBestItems(ScaleName, InventoryOnly)
 	-- Helper function to check an item to see if it should go into BestItems, since we'll be performing this
 	-- operation in different ways from multiple blocks of code.
 	-- Returns true if the item is a new best or second-best item.
-	local function CheckItem(ScaleName, BestItems, Item, PreviousItemLink)
+	local function CheckItem(ScaleNameIn, BestItemsIn, Item, PreviousItemLink)
 		-- Skip trinkets because we can't reliably tell which trinkets are best.
 		-- Also skip item classes that don't have stats, and items that have a zero value.
 		if not Item then return end
@@ -3824,7 +3878,7 @@ function PawnFindBestItems(ScaleName, InventoryOnly)
 		if Item.Rarity == 6 then return end
 		local InvType = Item.InvType
 		if not InvType or InvType == "" or InvType == "INVTYPE_TRINKET" or InvType == "INVTYPE_BAG" or InvType == "INVTYPE_QUIVER" or InvType == "INVTYPE_TABARD" or InvType == "INVTYPE_BODY" then return end
-		local _, Value = PawnGetSingleValueFromItem(Item, ScaleName)
+		local _, Value = PawnGetSingleValueFromItem(Item, ScaleNameIn)
 		if Value <= 0 then return end
 		if PawnNeverShowUpgradesFor[Item.ID] then return end
 		local UnenchantedItemLink = PawnUnenchantItemLink(Item.Link, true)
@@ -3841,12 +3895,12 @@ function PawnFindBestItems(ScaleName, InventoryOnly)
 		end
 
 		-- Okay, now do the calculations.
-		local BestOfType = BestItems[InvType]
+		local BestOfType = BestItemsIn[InvType]
 		if BestOfType == nil or BestOfType[1] == nil or Value > (BestOfType[1] + PawnEpsilon) then
 			-- This item's an upgrade.
 			if BestOfType == nil then
 				BestOfType = { }
-				BestItems[InvType] = BestOfType
+				BestItemsIn[InvType] = BestOfType
 			end
 			if InvType == "INVTYPE_FINGER" or InvType == "INVTYPE_WEAPON" then
 				-- If this is a ring or weapon, keep the current best item as a second-best item.
@@ -3880,7 +3934,7 @@ function PawnFindBestItems(ScaleName, InventoryOnly)
 	-- (end of CheckItem)
 
 	-- Obviously, check the player's currently equipped gear.
-	local Slot, PreviousItemLink
+	local PreviousItemLink
 	for Slot = 1, 18 do if Slot ~= 4 and Slot ~= 13 and Slot ~= 14 then -- Skip slots 0 (ammo), 4 (shirt), 13-14 (trinkets), and 19 (tabard)
 		local Item = PawnGetItemDataForInventorySlot(Slot, true, "player")
 		if Item then
@@ -3891,7 +3945,6 @@ function PawnFindBestItems(ScaleName, InventoryOnly)
 
 	-- Now, scan all of the items in the player's equipment sets.
 	if not InventoryOnly and VgerCore.EquipmentSetsExist then
-		local _, i
 		for _, i in pairs(C_EquipmentSet.GetEquipmentSetIDs()) do
 			local _, _, EquipmentSetID = C_EquipmentSet.GetEquipmentSetInfo(i)
 			local ItemLocations = C_EquipmentSet.GetItemLocations(EquipmentSetID)
@@ -3901,7 +3954,13 @@ function PawnFindBestItems(ScaleName, InventoryOnly)
 				if Location and Location > 1 then
 					-- Getting the item link for an equipment set item is a pain in the ass...
 					local ItemLink
-					local IsOnPlayer, IsInBank, IsInBags, IsInVoidStorage, Slot, Bag, Tab, VoidSlot = EquipmentManager_UnpackLocation(Location)
+					local IsOnPlayer, IsInBank, IsInBags, IsInVoidStorage, SetSlot, Bag, Tab, VoidSlot
+					if VgerCore.IsCataclysm then
+						-- EquipmentManager_UnpackLocation in Cataclysm Classic removes IsInVoidStorage from the return values, shifting everything over.
+						IsOnPlayer, IsInBank, IsInBags, SetSlot, Bag, Tab, VoidSlot = EquipmentManager_UnpackLocation(Location)
+					else
+						IsOnPlayer, IsInBank, IsInBags, IsInVoidStorage, SetSlot, Bag, Tab, VoidSlot = EquipmentManager_UnpackLocation(Location)
+					end
 					if IsInVoidStorage then
 						-- The item link for this item should be GetVoidItemHyperlinkString(VoidSlot), but we'll never get here; location will
 						-- be -1 (item unavailable) for items in void storage.
@@ -3909,12 +3968,12 @@ function PawnFindBestItems(ScaleName, InventoryOnly)
 						VgerCore.Fail("Didn't expect to find an equipment set item in void storage!")
 					elseif not IsInBags then
 						VgerCore.Assert(IsOnPlayer or IsInBank, "Equipment set contains new location data that Pawn doesn't understand; EquipmentManager_UnpackLocation may have been updated.")
-						ItemLink = GetInventoryItemLink("player", Slot)
+						ItemLink = GetInventoryItemLink("player", SetSlot)
 					else
 						if C_Container and C_Container.GetContainerItemLink then
-							ItemLink = C_Container.GetContainerItemLink(Bag, Slot)
+							ItemLink = C_Container.GetContainerItemLink(Bag, SetSlot)
 						else
-							ItemLink = GetContainerItemLink(Bag, Slot)
+							ItemLink = GetContainerItemLink(Bag, SetSlot)
 						end
 					end
 
@@ -3940,10 +3999,10 @@ function PawnFindBestItems(ScaleName, InventoryOnly)
 	--VgerCore.Message(" ")
 	--local InvType, BestOfType
 	--for InvType, BestOfType in pairs(BestItems) do
-	--	local _, ItemLink = GetItemInfo(BestOfType[2])
+	--	local _, ItemLink = C_Item.GetItemInfo(BestOfType[2])
 	--	VgerCore.Message(InvType .. ": " .. ItemLink .. " = " .. tostring(BestOfType[1]))
 	--	if BestOfType[4] then
-	--		_, ItemLink = GetItemInfo(BestOfType[5])
+	--		_, ItemLink = C_Item.GetItemInfo(BestOfType[5])
 	--		VgerCore.Message("    and " .. ItemLink .. " = " .. BestOfType[4])
 	--	end
 	--end
@@ -4069,7 +4128,7 @@ function PawnOnItemLost(ItemLink)
 	if not ItemLink then return end
 	ItemLink = PawnUnenchantItemLink(ItemLink, true)
 	if not ItemLink then return end -- If it's, say, a battle pet.
-	local _, _, _, _, _, _, _, _, InvType = GetItemInfo(ItemLink)
+	local _, _, _, _, _, _, _, _, InvType = C_Item.GetItemInfo(ItemLink)
 	if not InvType or InvType == "" or InvType == "INVTYPE_TRINKET" or InvType == "INVTYPE_BAG" or InvType == "INVTYPE_QUIVER" or InvType == "INVTYPE_TABARD" or InvType == "INVTYPE_BODY" then return end
 	if InvType == "INVTYPE_SHIELD" or InvType == "INVTYPE_HOLDABLE" then
 		InvType = "INVTYPE_WEAPONOFFHAND"
@@ -4079,14 +4138,13 @@ function PawnOnItemLost(ItemLink)
 		-- A ranged weapon could be one-handed (wands) or two-handed (everything else) but it always goes in the main hand.
 		InvType = "INVTYPE_WEAPONMAINHAND"
 	end
-	local InvType2 = nil
+	local InvType2
 	if InvType == "INVTYPE_WEAPON" then
 		InvType = "INVTYPE_WEAPONMAINHAND"
 		InvType2 = "INVTYPE_WEAPONOFFHAND"
 	end
 
-	local ScaleName, Scale
-	for ScaleName, Scale in pairs(PawnCommon.Scales) do
+	for _, Scale in pairs(PawnCommon.Scales) do
 		local CharacterOptions = Scale.PerCharacterOptions[PawnPlayerFullName]
 		if CharacterOptions then
 			local BestItems = CharacterOptions.BestItems
@@ -4152,7 +4210,6 @@ end
 --	List: The same table passed in, with one additional field added: { ..., Result }
 --		Result: "upgrade" if the item is an upgrade, "vendor" if the item is the most valuable choice, "trinket" if the item is a trinket or relic, or nil if none of the above.
 function PawnFindInterestingItems(List)
-	local Info, _
 	local HighestValue, HighestValueInfo = 0, nil
 	local DoNotVendor
 
@@ -4173,7 +4230,7 @@ function PawnFindInterestingItems(List)
 			-- If we haven't already found a choice item upgrade, and this is a choice item, see
 			-- if it's the best thing to vendor.
 			if Info.Item.Link then
-				local _, _, _, _, _, _, _, _, _, _, Value = GetItemInfo(Info.Item.Link)
+				local _, _, _, _, _, _, _, _, _, _, Value = C_Item.GetItemInfo(Info.Item.Link)
 				if Value and Value > HighestValue then
 					HighestValue = Value
 					HighestValueInfo = Info
@@ -4234,6 +4291,121 @@ function PawnIsArmorBestTypeForPlayer(Item)
 	VgerCore.Fail("Tell Vger that PawnIsArmorBestTypeForPlayer needs to be updated for " .. tostring(Class) .. ".")
 end
 
+-- Determines how best to reforge an item to maximize its value for a particular scale.
+-- Parameters: Item, ScaleName, NoInstructions
+--	Item: The item data table to reforge.
+--	ScaleName: The name of the scale to use.
+--	NoInstructions: If true, only the ValueDelta will be calculated and returned.
+-- Returns: ValueDelta, ReforgeString, SuggestedCappedStat
+--	ValueDelta: The increase in the item's value if this reforge is performed.
+--	ReforgeString: A localized string that explains how to reforge the item, such as "25 Critical Strike Rating into Haste Rating".
+--	SuggestedCappedStat: If one of the suggested reforgings was from a capped stat (Hit or Expertise), true, otherwise, false.
+-- If it's impossible to reforge the item, nil is returned.  (This would be the case regardless of the scale passed in, so there's no need to call this
+-- again for the same item and a different scale.)  If it's possible to reforge an item but unwise, the delta will be 0 and the reforge
+-- string will be a localized string containing an explanation.
+function PawnFindOptimalReforging(Item, ScaleName, NoInstructions)
+	if not VgerCore.ReforgingExists then return end
+	-- Items below level 200 can't be reforged.
+	if not Item.Level or Item.Level < 200 then return end
+	local InvType = Item.InvType
+	if InvType == "nil" or InvType == "" or InvType == "INVTYPE_TABARD" or InvType == "INVTYPE_BAG" then return end
+
+	local Scale = PawnCommon.Scales[ScaleName]
+	local Values = Scale.Values
+	local Stats = Item.UnenchantedStats
+	if not Stats then return end
+
+	return PawnFindOptimalReforgingCore(ScaleName, Scale, Values, Stats, NoInstructions)
+end
+
+-- Core functionality of PawnFindOptimalReforging that can be used without an Item table constructed.
+-- PawnGetItemValue also uses this.
+function PawnFindOptimalReforgingCore(ScaleName, Scale, Values, Stats, NoInstructions)
+	-- Find the stat to reforge TO.
+	local ReforgeTo
+	if not NoInstructions then ReforgeTo = { } end
+	local BestValue = 0
+	for _, Stat in pairs(PawnReforgeableStats) do
+		if not Stats[Stat] then
+			local Value = Values[Stat]
+			-- The item doesn't already have this stat.
+			if Value and Value > BestValue then
+				-- This is the best reforgeable stat so far.
+				if not NoInstructions then
+					wipe(ReforgeTo)
+					tinsert(ReforgeTo, PawnStatFriendlyNames[Stat])
+				end
+				BestValue = Value
+			elseif Value == BestValue then
+				-- This stat ties the current best value, so add it to the list.
+				if not NoInstructions then
+					tinsert(ReforgeTo, PawnStatFriendlyNames[Stat])
+				end
+			end
+		end
+	end
+	if BestValue == 0 or (ReforgeTo and #ReforgeTo == #PawnReforgeableStats) then
+		if not NoInstructions then
+			return 0, PawnLocal.UI.ReforgeInstructionsNoReforge, false
+		else
+			return 0
+		end
+	end
+	
+	-- Now, find the stat to reforge FROM.
+	local ReforgeFrom = { }	
+	local BestReforgeDelta = 0
+	local SuggestedCappedStat = false
+	for _, Stat in pairs(PawnReforgeableStats) do
+		local Value = Values[Stat]
+		if not Value or Value < 0 then Value = 0 end -- This would be a great: reforging away a stat with no value at all!
+		local Quantity = Stats[Stat]
+		if Quantity and Value < BestValue then
+			if Quantity then
+				local ReforgeQuantity = floor(Quantity * .4)
+				if ReforgeQuantity > 0 then
+					local StatDelta = ReforgeQuantity * (BestValue - Value)
+					if StatDelta > BestReforgeDelta then
+						-- This is the stat with the best reforge potential so far.
+						if not NoInstructions then
+							SuggestedCappedStat = (Stat == "HitRating" or Stat == "ExpertiseRating")
+							wipe(ReforgeFrom)
+							tinsert(ReforgeFrom, format("%d %s", ReforgeQuantity, PawnStatFriendlyNames[Stat]))
+						end
+						BestReforgeDelta = StatDelta
+					elseif StatDelta == BestReforgeDelta then
+						-- This stat has the same reforge potential as the best so far.
+						if not NoInstructions then
+							SuggestedCappedStat = SuggestedCappedStat or (Stat == "HitRating" or Stat == "ExpertiseRating")
+							tinsert(ReforgeFrom, format("%d %s", ReforgeQuantity, PawnStatFriendlyNames[Stat]))
+						end
+					end
+				end
+			end
+		end
+	end
+	if BestReforgeDelta == 0 then
+		if not NoInstructions then
+			return 0, PawnLocal.UI.ReforgeInstructionsNoReforge, false
+		else
+			return 0
+		end
+	end
+
+	-- Apply the scale's normalization factor if present.
+	if Scale.NormalizationFactor and Scale.NormalizationFactor > 0 and PawnScaleTotals[ScaleName] then
+		BestReforgeDelta = Scale.NormalizationFactor * BestReforgeDelta / PawnScaleTotals[ScaleName]
+	end
+
+	-- Finally, turn it all into a nice localized string.
+	local ReforgeString
+	if not NoInstructions then
+		ReforgeString = format(PawnLocal.UI.ReforgeInstructions, PawnConcatenateWithConjunction(ReforgeFrom, PawnLocal.Or), PawnConcatenateWithConjunction(ReforgeTo, PawnLocal.Or))
+	end
+
+	return BestReforgeDelta, ReforgeString, SuggestedCappedStat
+end
+
 -- Appends the strings in a table together with commas and a conjunction ("or ") as appropriate.  The conjunction can be nil, but if it isn't, it should end in a space.
 function PawnConcatenateWithConjunction(Table, Conjunction)
 	local Size = #Table
@@ -4247,7 +4419,6 @@ function PawnConcatenateWithConjunction(Table, Conjunction)
 	else
 		local Concatenated = ""
 		local Index = 1
-		local Item, _
 		for _, Item in ipairs(Table) do
 			if Index == Size then
 				Concatenated = Concatenated .. Conjunction .. Item
@@ -4298,7 +4469,7 @@ function PawnOnSpecChanged()
 	-- of them in the UI.
 	-- Right now, we only take scales from a provider into account, because some code assumes that only one
 	-- scale can ever be enabled in Automatic mode.
-	local ScaleName, Scale, LastEnabledScaleName, MadeChanges
+	local LastEnabledScaleName, MadeChanges
 	for ScaleName, Scale in pairs(PawnCommon.Scales) do
 		local IsVisible = PawnIsScaleVisible(ScaleName)
 		if Scale.ClassID == ClassID and Scale.SpecID == SpecID and Scale.Provider ~= nil then
@@ -4327,7 +4498,6 @@ end
 
 function PawnEnableAllScalesForClass()
 	local _, _, ClassID = UnitClass("player")
-	local ScaleName, Scale, LastEnabledScaleName
 	for ScaleName, Scale in pairs(PawnCommon.Scales) do
 		PawnSetScaleVisible(ScaleName, Scale.ClassID == ClassID)
 	end
@@ -4339,7 +4509,6 @@ end
 function PawnFindScaleForSpec(ClassID, SpecID)
 	if not ClassID then return nil end
 
-	local ScaleName, Scale
 	for ScaleName, Scale in pairs(PawnCommon.Scales) do
 		if Scale.ClassID == ClassID and (SpecID == nil or Scale.SpecID == SpecID) and Scale.Provider then return ScaleName end
 	end
@@ -4348,7 +4517,7 @@ function PawnFindScaleForSpec(ClassID, SpecID)
 end
 
 -- Called whenever the artifact UI is used.
-function PawnOnArtifactUpdated(NewItem)
+function PawnOnArtifactUpdated()
 	-- Compatibility fix with AethysRotation and any other addon that scans artifacts at startup
 	if not PawnOptions then return nil end
 
@@ -4374,7 +4543,6 @@ function PawnOnArtifactUpdated(NewItem)
 	ThisArtifact.Name = ArtifactName
 
 	local NumRelicSlots = C_ArtifactUI.GetNumRelicSlots() or 0
-	local RelicIndex
 	for RelicIndex = 1, NumRelicSlots do
 		local _, _, _, ThisRelicItemLink = C_ArtifactUI.GetRelicInfo(RelicIndex)
 		local LockedReason = C_ArtifactUI.GetRelicLockedReason(RelicIndex)
@@ -4433,13 +4601,12 @@ function PawnGetItemLevelIncreaseProvidedByRelic(ItemLink)
 
 	local Stats = Parts
 	wipe(Stats)
-	Stats = GetItemStats(ItemLink, Stats)
+	Stats = C_Item.GetItemStats(ItemLink, Stats)
 	return Stats.RELIC_ITEM_LEVEL_INCREASE
 end
 
 function PawnGetItemLinkParts(ItemLink, ReusableTable)
    local Parts = ReusableTable or {}
-   local Match
    for Match in gmatch(ItemLink, ":(%-?%d*)") do
 	  if strlen(Match) == 0 then
 		 tinsert(Parts, 0)
@@ -4457,8 +4624,7 @@ end
 function PawnPrintArtifactDebugInfo()
 	VgerCore.Message(" ")
 	VgerCore.Message("Pawn knows about these artifacts:")
-	local ArtifactItemID, Artifact, UpgradeInfo
-	for ArtifactItemID, Artifact in pairs(PawnOptions.Artifacts) do
+	for _, Artifact in pairs(PawnOptions.Artifacts) do
 		VgerCore.Message(ITEM_QUALITY_COLORS[LE_ITEM_QUALITY_ARTIFACT].hex .. Artifact.Name .. "|r:")
 		for RelicIndex = 1, 3 do
 			local ThisRelic = Artifact.Relics[RelicIndex]
@@ -4479,21 +4645,24 @@ function PawnGetRelicUpgradeInfo(RelicItemLink)
 	-- If we haven't cached any artifacts yet, this can't possibly be an upgrade.
 	if not PawnOptions.Artifacts then return end
 
-	local RelicItemID = GetItemInfoInstant(RelicItemLink)
+	local RelicItemID = C_Item.GetItemInfoInstant(RelicItemLink)
 	local _, _, RelicType = C_ArtifactUI.GetRelicInfoByItemID(RelicItemID)
 	if not RelicType then return end
 	local RelicItemLevel = PawnGetItemLevelIncreaseProvidedByRelic(RelicItemLink)
 	if not RelicItemLevel then return end
 
-	local ArtifactItemID, Artifact, UpgradeInfo
-	for ArtifactItemID, Artifact in pairs(PawnOptions.Artifacts) do
+	local UpgradeInfo
+	for _, Artifact in pairs(PawnOptions.Artifacts) do
 		local BestRelicItemLevelUpgrade = 0
-		local RelicIndex, SlottedRelic
 		for RelicIndex, SlottedRelic in pairs(Artifact.Relics) do
-			--VgerCore.Message(Artifact.Name .. " slot " .. RelicIndex .. ": " .. SlottedRelic.Type .. " +" .. tostring(SlottedRelic.ItemLevel))
+			if PawnCommon.Debug then
+				VgerCore.Message(Artifact.Name .. " slot " .. RelicIndex .. ": " .. SlottedRelic.Type .. " +" .. tostring(SlottedRelic.ItemLevel))
+			end
 			if RelicType == SlottedRelic.Type then
 				local ThisRelicItemLevelUpgrade = RelicItemLevel - (SlottedRelic.ItemLevel or 0)
-				--VgerCore.Message("   Increase found: " .. ThisRelicItemLevelUpgrade)
+				if PawnCommon.Debug then
+					VgerCore.Message("   Increase found: " .. ThisRelicItemLevelUpgrade)
+				end
 				if ThisRelicItemLevelUpgrade > BestRelicItemLevelUpgrade then BestRelicItemLevelUpgrade = ThisRelicItemLevelUpgrade end
 			end
 		end
@@ -4515,7 +4684,6 @@ function PawnAddRelicUpgradesToTooltip(TooltipName, UpgradeInfo)
 		return
 	end
 
-	local i
 	local Lines = Tooltip:NumLines()
 	for i = 1, Lines do
 		local LeftLine = _G[TooltipName .. "TextLeft" .. i]
@@ -4625,7 +4793,6 @@ end
 function PawnShowSlotDebugInfo()
 	if not PawnOptions.ItemLevels then return end
 	local BestItemsDebugInfo = "Best items: "
-	local Slot
 	for Slot = 1, 18 do
 		if PawnOptions.ItemLevels[Slot] then
 			BestItemsDebugInfo = BestItemsDebugInfo .. tostring(PawnOptions.ItemLevels[Slot].Link) .. "=" .. PawnOptions.ItemLevels[Slot].Level .. " "
@@ -4640,6 +4807,7 @@ function PawnIsItemAnItemLevelUpgrade(Item)
 	if not Item.CanEquip then return end
 
 	local Slot1, Slot2 = PawnGetSlotsForItemType(Item.InvType)
+
 	if (Slot1 and PawnOptions.ItemLevels[Slot1] and Item.Link == PawnOptions.ItemLevels[Slot1].Link) or (Slot2 and PawnOptions.ItemLevels[Slot2] and Item.Link == PawnOptions.ItemLevels[Slot2].Link) then
 		-- If the item is already one of your best, it can't be an upgrade.
 		return
@@ -4666,7 +4834,6 @@ function PawnIsPlayingWith(TargetName, TargetRealm)
 	local IsOnTargetRealm = GetRealmName() == TargetRealm
 
 	-- Look through the current group roster for the target.
-	local _, i
 	if IsInRaid() then
 	   local TargetNameAndRealm = IsOnTargetRealm and TargetName or (TargetName .. "-" .. TargetRealm)
 	   for i = 1, GetNumGroupMembers() do
@@ -4702,7 +4869,7 @@ function PawnIsPlayingWith(TargetName, TargetRealm)
 
 	-- Okay, we're gonna do it!
 
-	LoadAddOn("Blizzard_TalkingHeadUI")
+	C_AddOns.LoadAddOn("Blizzard_TalkingHeadUI")
 
 	TalkingHeadFrame_Reset(TalkingHeadFrame, "Hello!  I created your favorite addon Pawn.  Looks like we're playing together, so feel free to say hi, and have a great day!", "Vger")
 	TalkingHeadFrame.MainFrame.Model:SetUnit("player")
@@ -4742,7 +4909,6 @@ end
 function PawnResetScalesCore(ResetCustomScales, ResetProviderScales)
 	if not PawnIsInitialized then VgerCore.Fail("Can't reset scales until Pawn is initialized") return end
 
-	local ScaleName, Scale, _
 	local ScalesToRemove = {}
 	for ScaleName, Scale in pairs(PawnCommon.Scales) do
 		if (ResetProviderScales and Scale.Provider) or (ResetCustomScales and ScaleProvider == nil) then tinsert(ScalesToRemove, ScaleName) end
@@ -4964,7 +5130,6 @@ end
 -- Returns the number of visible scales for the current character.
 function PawnGetVisibleScaleCount()
 	local Count = 0
-	local ScaleName, Scale
 	for ScaleName, Scale in pairs(PawnCommon.Scales) do
 		if PawnIsScaleVisible(ScaleName) and ((not Scale.Provider) or (Scale.ProviderActive)) then
 			Count = Count + 1
@@ -4981,7 +5146,6 @@ function PawnGetAllScales()
 	if not PawnIsInitialized then VgerCore.Fail("Can't get scale list until Pawn is initialized") return end
 
 	local TableCopy = {}
-	local ScaleName, Scale
 	for ScaleName, Scale in pairs(PawnCommon.Scales) do
 		if (not Scale.Provider) or (Scale.ProviderActive) then
 			-- Don't include scales from a provider that isn't active any longer.  (Abandoned provider scales)
@@ -5004,7 +5168,6 @@ function PawnGetAllScalesEx()
 	if not PawnIsInitialized then VgerCore.Fail("Can't get scale list until Pawn is initialized") return end
 
 	local TableCopy = {}
-	local ScaleName, Scale
 	local ActiveScalesHeader = format(PawnLocal.VisibleScalesHeader, UnitName("player"))
 	for ScaleName, Scale in pairs(PawnCommon.Scales) do
 		local IsVisible = PawnIsScaleVisible(ScaleName)
@@ -5112,7 +5275,6 @@ function PawnGetScaleTag(ScaleName)
 		AddComma = true
 		TemplateStats = PawnGetStatValuesForTemplate(PawnFindScaleTemplate(Scale.ClassID, Scale.SpecID), true)
 	end
-	local IncludeThis
 	for StatName, Value in pairs(Scale.Values) do
 		local IncludeThis = (Value and Value ~= 0)
 		if IncludeThis and TemplateStats and Value == TemplateStats[StatName] then
@@ -5196,7 +5358,6 @@ function PawnImportScale(ScaleTag, Overwrite)
 	NewScale.Role = Role
 
 	-- Merge the scale tag's stats into the template's (or the existing scale's) stats.
-	local StatName, Value
 	for StatName, Value in pairs(Values) do
 		NewScale.Values[StatName] = Value
 	end
@@ -5226,7 +5387,6 @@ function PawnSetAllScaleProviderScalesVisible(ProviderInternalName, Visible)
 	local ScaleNamePrefix = PawnGetProviderScaleName(ProviderInternalName, "")
 
 	-- Loop through all scales and turn them on or off.
-	local ScaleName, Scale
 	for ScaleName, Scale in pairs(PawnCommon.Scales) do
 		if strfind(ScaleName, ScaleNamePrefix, 1, true) == 1 then
 			if Scale.PerCharacterOptions == nil then Scale.PerCharacterOptions = {} end
@@ -5403,13 +5563,6 @@ function PawnSetShowUpgradesForWeapons(ScaleName, WeaponSet, ShowUpgrades)
 	PawnResetTooltips()
 end
 
-function PawnGetUpgradesFollowSpecialization(ScaleName)
-	return true
-end
-
-function PawnSetUpgradesFollowSpecialization(ScaleName, FollowSpecialization)
-end
-
 -- Sets whether the upgrade tracking feature is enabled for this character.
 function PawnSetUpgradeTracking(Enabled)
 	if PawnOptions.UpgradeTracking == Enabled then return end
@@ -5442,8 +5595,7 @@ end
 -- Uninitialize the plugin infrastructure and clean up our stale data.  We'll do this upon logging out or reloading the UI.
 function PawnUnitializePlugins()
 	-- Remove values from all read-only scales from providers so they don't get serialized to SavedVariables unnecessarily.
-	local ScaleName, Scale
-	for ScaleName, Scale in pairs(PawnCommon.Scales) do
+	for _, Scale in pairs(PawnCommon.Scales) do
 		if Scale.Provider then
 			Scale.ProviderActive = nil
 			Scale.Values = nil
@@ -5464,7 +5616,6 @@ function PawnInitializePlugins()
 
 	-- Go through the list of scale providers and call their initialization function.  They'll create all of their
 	-- scales as necessary.
-	local Provider, _
 	for _, Provider in pairs(PawnScaleProviders) do
 		if Provider.Function then
 			-- After we call each provider's initialization function, empty it out so that function can be
@@ -5588,8 +5739,7 @@ function PawnAddPluginScaleFromTemplate(ProviderInternalName, ClassID, SpecID, S
 	-- Build up the values table.
 	local ScaleValues = PawnGetStatValuesForTemplate(Template)
 	if Stats then
-		local StatName, Value
-		for StatName, Value in pairs(Stats) do
+		for StatName, _ in pairs(Stats) do
 			ScaleValues[StatName] = Stats[StatName]
 		end
 	end
@@ -5662,9 +5812,11 @@ function PawnGetClassInfo(ClassID)
 end
 
 if not VgerCore.SpecsExist then
-	-- Classic doesn't have a Guardian spec for druids, so rename.
-	PawnLocal.Specs[11][3].Name = PawnLocal.Specs[11][2].Name .. " (" .. TANK .. ")"
-	PawnLocal.Specs[11][2].Name = PawnLocal.Specs[11][2].Name .. " (" .. DAMAGER .. ")"
+	-- Classic doesn't have a Guardian spec for druids before Cataclysm, so rename.
+	if VgerCore.IsClassic or VgerCore.IsBurningCrusade or VgerCore.IsWrath then
+		PawnLocal.Specs[11][3].Name = PawnLocal.Specs[11][2].Name .. " (" .. TANK .. ")"
+		PawnLocal.Specs[11][2].Name = PawnLocal.Specs[11][2].Name .. " (" .. DAMAGER .. ")"
+	end
 	-- And, back then, Outlaw was called Combat.
 	PawnLocal.Specs[4][2].Name = COMBAT
 end
@@ -5672,7 +5824,7 @@ end
 -- Wraps the GetSpecializationInfoForClassID function so that it can be called on WoW Classic.
 -- On WoW Classic, this only returns: _, LocalizedSpecName, _, IconID, Role
 function PawnGetSpecializationInfoForClassID(ClassID, SpecID)
-	if GetSpecializationInfoForClassID then return GetSpecializationInfoForClassID(ClassID, SpecID) end
+	if VgerCore.IsMainline then return GetSpecializationInfoForClassID(ClassID, SpecID) end
 
 	local SpecInfo = PawnLocal.Specs[ClassID][SpecID]
 	-- The second-to-last parameter should be SpecInfo.Icon, but many of the icons used in BfA aren't valid on Classic.
@@ -5793,17 +5945,16 @@ function PawnShouldItemLinkHaveUpgradeArrowUnbudgeted(ItemLink, CheckLevel)
 
 	--if PawnOptions.DebugBagArrows then VgerCore.Message("Checking upgrade information for " .. tostring(ItemLink)) end
 
-	local _, _, _, _, MinLevel = GetItemInfo(ItemLink)
+	local _, _, _, _, MinLevel = C_Item.GetItemInfo(ItemLink)
 	if MinLevel == nil then return nil end
 	if CheckLevel and UnitLevel("player") < MinLevel then return false end
 	if PawnCanItemHaveStats(ItemLink) then
 		local Item = PawnGetItemData(ItemLink)
 		if Item == nil or Item.Link == nil then return nil end -- If we don't have stats for the item yet, ask again later.
 		if PawnOptions.DebugBagArrows then
-			local UpgradeInfo, ItemLevelIncrease, BestItemFor, SecondBestItemFor, NeedsEnhancements = PawnIsItemAnUpgrade(Item)
+			local UpgradeInfo, _, _, _, _ = PawnIsItemAnUpgrade(Item)
 			if UpgradeInfo ~= nil then
 				if PawnOptions.DebugBagArrows then VgerCore.Message("Found upgrade for " .. ItemLink) end
-				local i
 				for i = 1, #UpgradeInfo do
 					local u = UpgradeInfo[i]
 					if PawnOptions.DebugBagArrows then VgerCore.Message("  " .. u.LocalizedScaleName .. ": +" .. u.PercentUpgrade .. "% vs. " .. tostring(u.ExistingItemLink)) end
@@ -5834,7 +5985,6 @@ PawnShouldItemLinkHaveUpgradeArrow = BudgetThrottle(PawnShouldItemLinkHaveUpgrad
 -- Clears the best item level data for this character only.
 function PawnClearBestItemLevelData()
 	PawnOptions.ItemLevels = nil
-	local Slot
 	for Slot = 1, 18 do
 		PawnAddItemToLevelTracker(PawnGetItemDataForInventorySlot(Slot))
 	end

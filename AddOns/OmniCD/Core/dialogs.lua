@@ -1,4 +1,5 @@
 local E, L = select(2, ...):unpack()
+
 local OmniCDC = E.Libs.OmniCDC
 
 OmniCDC.StaticPopupDialogs["OMNICD_CUSTOM_UF_MSG"] = {
@@ -19,8 +20,8 @@ OmniCDC.StaticPopupDialogs["OMNICD_RELOADUI"] = {
 	button1 = ACCEPT,
 	button2 = CANCEL,
 	OnAccept = function()
-		EnableAddOn("Blizzard_CompactRaidFrames")
-		EnableAddOn("Blizzard_CUFProfiles")
+		C_AddOns.EnableAddOn("Blizzard_CompactRaidFrames")
+		C_AddOns.EnableAddOn("Blizzard_CUFProfiles")
 		C_UI.Reload()
 	end,
 	OnCancel = function()
@@ -74,6 +75,20 @@ OmniCDC.StaticPopupDialogs["OMNICD_DF_TEST_MSG"] = {
 	text = "|cffff2020%s",
 	button1 = OKAY,
 	button2 = CLOSE,
+	timeout = 0,
+	whileDead = true,
+	hideOnEscape = true,
+	preferredIndex = STATICPOPUP_NUMDIALOGS
+}
+
+OmniCDC.StaticPopupDialogs["OMNICD_WIPE_DB"] = {
+	text = "|cffff2020Wipe DB?",
+	button1 = OKAY,
+	button2 = CLOSE,
+	OnAccept = function(_, data)
+		OmniCDDB = {}
+		C_UI.Reload()
+	end,
 	timeout = 0,
 	whileDead = true,
 	hideOnEscape = true,

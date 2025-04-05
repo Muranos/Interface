@@ -582,7 +582,7 @@ SingletonUnitFrame.RefixSizeAndPosition = PitBull4:OutOfCombatWrapper(SingletonU
 -- @usage frame:Activate()
 function SingletonUnitFrame:Activate()
 	RegisterUnitWatch(self, true)
-	RegisterStateDriver(self, "pb4visibility", "[petbattle] hide; default")
+	RegisterAttributeDriver(self, "state-pb4visibility", "[petbattle] hide; default")
 end
 SingletonUnitFrame.Activate = PitBull4:OutOfCombatWrapper(SingletonUnitFrame.Activate)
 
@@ -591,7 +591,7 @@ SingletonUnitFrame.Activate = PitBull4:OutOfCombatWrapper(SingletonUnitFrame.Act
 -- @usage frame:Deactivate()
 function SingletonUnitFrame:Deactivate()
 	UnregisterUnitWatch(self)
-	UnregisterStateDriver(self, "pb4visibility")
+	UnregisterAttributeDriver(self, "state-pb4visibility")
 	self:SetAttribute("state-pb4visibility", nil)
 	self:SetAttribute("state-unitexists", nil)
 	self:Hide()
@@ -818,7 +818,8 @@ end
 
 local function iter(frame, id)
 	local func, t = PitBull4:IterateEnabledModules()
-	local id, module = func(t, id) -- luacheck: ignore
+	local module
+	id, module = func(t, id)
 	if id == nil then
 		return nil
 	end
@@ -840,7 +841,8 @@ end
 local iters = setmetatable({}, {__index=function(iters, module_type)
 	local function iter(frame, id)
 		local func, t = PitBull4:IterateModulesOfType(module_type)
-		local id, module = func(t, id) -- luacheck: ignore
+		local module
+		id, module = func(t, id)
 		if id == nil then
 			return nil
 		end

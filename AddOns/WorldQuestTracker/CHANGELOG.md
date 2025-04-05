@@ -1,10 +1,6 @@
 # World Quest Tracker
 
-## [v10.2.6.493](https://github.com/Tercioo/World-Quest-Tracker/tree/v10.2.6.493) (2024-04-29)
-[Full Changelog](https://github.com/Tercioo/World-Quest-Tracker/compare/v10.2.6.492...v10.2.6.493) 
+## [v11.1.0.528](https://github.com/Tercioo/World-Quest-Tracker/tree/v11.1.0.528) (2025-02-26)
+[Full Changelog](https://github.com/Tercioo/World-Quest-Tracker/compare/v11.1.0.527...v11.1.0.528) 
 
-- Added tracker option "Background Alpha"  
-- Fixed a border issue on the icon at the tracker  
-- Fixed a bug when completing a quest, the quest wasn't remove from the map until an update in the zone.  
-- Fixed an issue where the options button could be behind the quest icons  
-- Framework Update  
+- Fixed an issue with undermine not having a parent map for some reason.  

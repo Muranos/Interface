@@ -35,7 +35,7 @@ plugin.defaultDB = {
 
 local db = nil
 
-local L = BigWigsAPI:GetLocale("BigWigs: Plugins")
+local L = BigWigsAPI:GetLocale("BigWigs")
 plugin.displayName = L.proximity_name
 local L_proximityTitle = L.proximityTitle
 
@@ -99,23 +99,23 @@ do
 
 		local expansion = GetServerExpansionLevel()
 		local items = BigWigsLoader.isClassic and {
-			[1] = expansion > 3 and 90175, -- Gin-Ji Knife Set (5.0)
-			[3] = expansion > 1 and 42732, -- Everfrost Razor (3.0)
-			[5] = expansion > 1 and 37727, -- Ruby Acorn (3.0)
+			[1] = expansion > 3 and 90175 or nil, -- Gin-Ji Knife Set (5.0)
+			[3] = expansion > 1 and 42732 or nil, -- Everfrost Razor (3.0)
+			[5] = expansion > 1 and 37727 or nil, -- Ruby Acorn (3.0)
 			[8] = 8149, -- Voodoo Charm
 			-- [9]  = CheckInteractDistance 3
 			-- [10] = CheckInteractDistance 2
-			[13] = expansion > 0 and 32321, -- Sparrowhawk Net (2.1)
+			[13] = expansion > 0 and 32321 or nil, -- Sparrowhawk Net (2.1)
 			[18] = 14530, -- Heavy Runecloth Bandage
 			[23] = 21519, -- Mistletoe
 			[28] = 13289, -- Egan's Blaster
 			-- [30] = CheckInteractDistance 4
 			[33] = 955, -- Scroll of Intellect
 			[38] = 18904, -- Zorbin's Ultra-Shrinker
-			[43] = expansion > 0 and 34471, -- Vial of the Sunwell (2.4)
-			[48] = expansion > 0 and 32698, -- Wrangling Rope (2.1)
-			[53] = expansion > 4 and 116139, -- Haunting Memento (6.0)
-			[63] = expansion > 0 and 32825, -- Soul Cannon (2.1)
+			[43] = expansion > 0 and 34471 or nil, -- Vial of the Sunwell (2.4)
+			[48] = expansion > 0 and 32698 or nil, -- Wrangling Rope (2.1)
+			[53] = expansion > 4 and 116139 or nil, -- Haunting Memento (6.0)
+			[63] = expansion > 0 and 32825 or nil, -- Soul Cannon (2.1)
 		} or {
 			[1] = 90175, -- Gin-Ji Knife Set
 			[3] = 42732, -- Everfrost Razor
@@ -252,13 +252,13 @@ function plugin:RestyleWindow()
 		end
 	end
 	proxAnchor.text:SetFont(media:Fetch(FONT, db.fontName), db.fontSize)
-	if db.lock then
-		locked = nil
-		lockDisplay()
-	else
+	--if db.lock then
+	--	locked = nil
+	--	lockDisplay()
+	--else
 		locked = true
 		unlockDisplay()
-	end
+	--end
 
 	local x = db.posx
 	local y = db.posy
@@ -544,6 +544,7 @@ do
 		close:SetPoint("BOTTOMRIGHT", proxAnchor, "TOPRIGHT", -2, 2)
 		close:SetHeight(16)
 		close:SetWidth(16)
+		close:SetFrameLevel(125)
 		close.tooltipHeader = L.close
 		close.tooltipText = L.closeProximityDesc
 		close:SetScript("OnEnter", onControlEnter)
@@ -560,6 +561,7 @@ do
 		sound:SetPoint("BOTTOMLEFT", proxAnchor, "TOPLEFT", 2, 2)
 		sound:SetHeight(16)
 		sound:SetWidth(16)
+		sound:SetFrameLevel(125)
 		sound.tooltipHeader = L.toggleSound
 		sound.tooltipText = L.toggleSoundDesc
 		sound:SetScript("OnEnter", onControlEnter)
@@ -649,184 +651,184 @@ end
 -- Options
 --
 
-do
-	local disabled = function() return plugin.db.profile.disabled end
-	plugin.pluginOptions = {
-		name = "|TInterface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\Proximity:20|t ".. L.proximity_name,
-		type = "group",
-		order = 13,
-		get = function(info)
-			local key = info[#info]
-			if key == "font" then
-				for i, v in next, media:List(FONT) do
-					if v == db.fontName then return i end
-				end
-			elseif key == "soundName" then
-				for i, v in next, media:List(SOUND) do
-					if v == db.soundName then return i end
-				end
-			else
-				return db[key]
-			end
-		end,
-		set = function(info, value)
-			local key = info[#info]
-			if key == "font" then
-				db.fontName = media:List(FONT)[value]
-			elseif key == "soundName" then
-				db.soundName = media:List(SOUND)[value]
-			else
-				db[key] = value
-			end
-			plugin:RestyleWindow()
-		end,
-		args = {
-			disabled = {
-				type = "toggle",
-				name = L.disabled,
-				desc = L.disabledDisplayDesc,
-				order = 1,
-			},
-			lock = {
-				type = "toggle",
-				name = L.lock,
-				desc = L.lockDesc,
-				order = 2,
-				disabled = disabled,
-			},
-			font = {
-				type = "select",
-				name = L.font,
-				order = 3,
-				values = media:List(FONT),
-				width = "full",
-				itemControl = "DDI-Font",
-			},
-			fontSize = {
-				type = "range",
-				name = L.fontSize,
-				desc = L.fontSizeDesc,
-				order = 4,
-				max = 200,
-				min = 8,
-				softMax = 40,
-				step = 1,
-				width = "full",
-			},
-			soundName = {
-				type = "select",
-				name = L.sound,
-				order = 5,
-				values = media:List(SOUND),
-				width = "full",
-				itemControl = "DDI-Sound"
-				--disabled = disabled,
-			},
-			soundDelay = {
-				type = "range",
-				name = L.soundDelay,
-				desc = L.soundDelayDesc,
-				order = 6,
-				max = 10,
-				min = 1,
-				step = 1,
-				width = "full",
-				disabled = disabled,
-			},
-			showHide = {
-				type = "group",
-				name = L.showHide,
-				inline = true,
-				order = 7,
-				get = function(info)
-					local key = info[#info]
-					return db.objects[key]
-				end,
-				set = function(info, value)
-					local key = info[#info]
-					db.objects[key] = value
-					plugin:RestyleWindow()
-				end,
-				disabled = disabled,
-				args = {
-					title = {
-						type = "toggle",
-						name = L.title,
-						desc = L.titleDesc,
-						order = 1,
-					},
-					background = {
-						type = "toggle",
-						name = L.background,
-						desc = L.backgroundDesc,
-						order = 2,
-					},
-					sound = {
-						type = "toggle",
-						name = L.soundButton,
-						desc = L.soundButtonDesc,
-						order = 3,
-					},
-					close = {
-						type = "toggle",
-						name = L.closeButton,
-						desc = L.closeButtonDesc,
-						order = 4,
-					},
-					ability = {
-						type = "toggle",
-						name = L.abilityName,
-						desc = L.abilityNameDesc,
-						order = 5,
-					},
-					tooltip = {
-						type = "toggle",
-						name = L.tooltip,
-						desc = L.tooltipDesc,
-						order = 6,
-					},
-				},
-			},
-			exactPositioning = {
-				type = "group",
-				name = L.positionExact,
-				order = 8,
-				inline = true,
-				args = {
-					posx = {
-						type = "range",
-						name = L.positionX,
-						desc = L.positionDesc,
-						min = -2048,
-						max = 2048,
-						step = 1,
-						order = 1,
-						width = "full",
-					},
-					posy = {
-						type = "range",
-						name = L.positionY,
-						desc = L.positionDesc,
-						min = -2048,
-						max = 2048,
-						step = 1,
-						order = 2,
-						width = "full",
-					},
-				},
-			},
-			reset = {
-				type = "execute",
-				name = L.resetAll,
-				desc = L.resetProximityDesc,
-				func = function()
-					plugin.db:ResetProfile()
-				end,
-				order = 9,
-			},
-		},
-	}
-end
+--do
+--	local disabled = function() return plugin.db.profile.disabled end
+--	plugin.pluginOptions = {
+--		name = "|TInterface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\Proximity:20|t ".. L.proximity_name,
+--		type = "group",
+--		order = 13,
+--		get = function(info)
+--			local key = info[#info]
+--			if key == "font" then
+--				for i, v in next, media:List(FONT) do
+--					if v == db.fontName then return i end
+--				end
+--			elseif key == "soundName" then
+--				for i, v in next, media:List(SOUND) do
+--					if v == db.soundName then return i end
+--				end
+--			else
+--				return db[key]
+--			end
+--		end,
+--		set = function(info, value)
+--			local key = info[#info]
+--			if key == "font" then
+--				db.fontName = media:List(FONT)[value]
+--			elseif key == "soundName" then
+--				db.soundName = media:List(SOUND)[value]
+--			else
+--				db[key] = value
+--			end
+--			plugin:RestyleWindow()
+--		end,
+--		args = {
+--			disabled = {
+--				type = "toggle",
+--				name = L.disabled,
+--				desc = L.disabledDisplayDesc,
+--				order = 1,
+--			},
+--			lock = {
+--				type = "toggle",
+--				name = L.lock,
+--				desc = L.lockDesc,
+--				order = 2,
+--				disabled = disabled,
+--			},
+--			font = {
+--				type = "select",
+--				name = L.font,
+--				order = 3,
+--				values = media:List(FONT),
+--				width = "full",
+--				itemControl = "DDI-Font",
+--			},
+--			fontSize = {
+--				type = "range",
+--				name = L.fontSize,
+--				desc = L.fontSizeDesc,
+--				order = 4,
+--				max = 200,
+--				min = 8,
+--				softMax = 40,
+--				step = 1,
+--				width = "full",
+--			},
+--			soundName = {
+--				type = "select",
+--				name = L.sound,
+--				order = 5,
+--				values = media:List(SOUND),
+--				width = "full",
+--				itemControl = "DDI-Sound"
+--				--disabled = disabled,
+--			},
+--			soundDelay = {
+--				type = "range",
+--				name = L.soundDelay,
+--				desc = L.soundDelayDesc,
+--				order = 6,
+--				max = 10,
+--				min = 1,
+--				step = 1,
+--				width = "full",
+--				disabled = disabled,
+--			},
+--			showHide = {
+--				type = "group",
+--				name = L.showHide,
+--				inline = true,
+--				order = 7,
+--				get = function(info)
+--					local key = info[#info]
+--					return db.objects[key]
+--				end,
+--				set = function(info, value)
+--					local key = info[#info]
+--					db.objects[key] = value
+--					plugin:RestyleWindow()
+--				end,
+--				disabled = disabled,
+--				args = {
+--					title = {
+--						type = "toggle",
+--						name = L.title,
+--						desc = L.titleDesc,
+--						order = 1,
+--					},
+--					background = {
+--						type = "toggle",
+--						name = L.background,
+--						desc = L.backgroundDesc,
+--						order = 2,
+--					},
+--					sound = {
+--						type = "toggle",
+--						name = L.soundButton,
+--						desc = L.soundButtonDesc,
+--						order = 3,
+--					},
+--					close = {
+--						type = "toggle",
+--						name = L.closeButton,
+--						desc = L.closeButtonDesc,
+--						order = 4,
+--					},
+--					ability = {
+--						type = "toggle",
+--						name = L.abilityName,
+--						desc = L.abilityNameDesc,
+--						order = 5,
+--					},
+--					tooltip = {
+--						type = "toggle",
+--						name = L.tooltip,
+--						desc = L.tooltipDesc,
+--						order = 6,
+--					},
+--				},
+--			},
+--			exactPositioning = {
+--				type = "group",
+--				name = L.positionExact,
+--				order = 8,
+--				inline = true,
+--				args = {
+--					posx = {
+--						type = "range",
+--						name = L.positionX,
+--						desc = L.positionDesc,
+--						min = -2048,
+--						max = 2048,
+--						step = 1,
+--						order = 1,
+--						width = "full",
+--					},
+--					posy = {
+--						type = "range",
+--						name = L.positionY,
+--						desc = L.positionDesc,
+--						min = -2048,
+--						max = 2048,
+--						step = 1,
+--						order = 2,
+--						width = "full",
+--					},
+--				},
+--			},
+--			reset = {
+--				type = "execute",
+--				name = L.resetAll,
+--				desc = L.resetProximityDesc,
+--				func = function()
+--					plugin.db:ResetProfile()
+--				end,
+--				order = 9,
+--			},
+--		},
+--	}
+--end
 
 -------------------------------------------------------------------------------
 -- Events
@@ -996,28 +998,5 @@ SlashCmdList.BigWigs_Proximity = function(input)
 	end
 end
 
-SlashCmdList.BigWigs_ProximityTarget = function(input)
-	if not plugin:IsEnabled() then BigWigs:Enable() end
-	input = input:lower()
-	local range, target, reverse = input:match("^(%d+)%s*(%S*)%s*(%S*)$")
-	range = tonumber(range)
-	if not range or not target or (not UnitInRaid(target) and not UnitInParty(target)) then
-		BigWigs:Print("Usage: /proximitytarget 1-100 player [true]") -- XXX translate
-	else
-		if range > 0 then
-			plugin:Close(true)
-			customProximityOpen = range
-			customProximityTarget = target
-			customProximityReverse = reverse == "true"
-			plugin:Open(range, nil, nil, customProximityTarget, customProximityReverse)
-		else
-			customProximityOpen, customProximityTarget, customProximityReverse = nil, nil, nil
-			plugin:Close(true)
-		end
-	end
-end
-
 SLASH_BigWigs_Proximity1 = "/proximity"
 SLASH_BigWigs_Proximity2 = "/range"
-SLASH_BigWigs_ProximityTarget1 = "/proximitytarget"
-SLASH_BigWigs_ProximityTarget2 = "/rangetarget"

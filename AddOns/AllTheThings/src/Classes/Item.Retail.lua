@@ -3,15 +3,24 @@ local _, app = ...
 local L = app.L
 
 -- App locals
-local GetRawField
-	= app.GetRawField
+local GetRawField, contains
+	= app.GetRawField, app.contains
 local IsQuestFlaggedCompleted, IsQuestFlaggedCompletedForObject = app.IsQuestFlaggedCompleted, app.IsQuestFlaggedCompletedForObject;
+local IsRetrieving = app.Modules.RetrievingData.IsRetrieving;
 
 -- Global locals
 local ipairs, pairs, rawset, rawget, tinsert, math_floor, select, tonumber, tostring, tremove
 	= ipairs, pairs, rawset, rawget, tinsert, math.floor, select, tonumber, tostring, tremove
-local GetItemCount, GetItemInfo, GetItemInfoInstant, GetItemSpecInfo, GetNumSpecializations, GetSpecializationInfo, GetSpecializationInfoByID, GetFactionInfoByID
-	= GetItemCount, GetItemInfo, GetItemInfoInstant, GetItemSpecInfo, GetNumSpecializations, GetSpecializationInfo, GetSpecializationInfoByID, GetFactionInfoByID
+local GetNumSpecializations, GetSpecializationInfo, GetSpecializationInfoByID
+	= GetNumSpecializations, GetSpecializationInfo, GetSpecializationInfoByID
+
+
+-- WoW API Cache
+local GetItemInfo = app.WOWAPI.GetItemInfo;
+local GetItemIcon = app.WOWAPI.GetItemIcon;
+local GetItemCount = app.WOWAPI.GetItemCount;
+local GetItemSpecInfo = app.WOWAPI.GetItemSpecInfo;
+local GetFactionBonusReputation = app.WOWAPI.GetFactionBonusReputation;
 
 -- Class locals
 
@@ -148,6 +157,13 @@ local function GroupMatchesParams(group, key, value, ignoreModID)
 	elseif key == "npcID" or key == "creatureID" then
 		if group.creatureID == value then return true; end
 		if group.npcID == value then return true; end
+		-- treat encounters with this NPC as a match for the NPC
+		if group.encounterID then
+			local crs = group.crs
+			if crs and contains(crs, value) then
+				return true
+			end
+		end
 	-- Criteria contain identical achievementID field, so match by key when checking AchievementID
 	-- (currently not a way to directly search CriteriaID...)
 	elseif key == "achievementID" then
@@ -224,6 +240,8 @@ app.ImportRawLink = function(group, rawlink, ignoreSource)
 end
 
 -- TODO: Once Item information is stored in a single source table, this mechanism can reference that instead of using a cache table here
+local CLASS = "Item"
+local KEY = "itemID"
 local cache = app.CreateCache("modItemID");
 -- Consolidated function to handle how many retries for information an Item may have
 local function HandleItemRetries(t)
@@ -314,10 +332,11 @@ local function default_link(t)
 		-- local link = "|cffff80ff|Htransmogappearance:" .. sourceID .. "|h[Source " .. sourceID .. "]|h|r";
 		-- This is weird...
 	end
-	return UNKNOWN;
+	-- i don't know why this was returning Unknown... bad! default funcs should only return nil or a real value
+	-- return UNKNOWN;
 end
 local function default_icon(t)
-	return t.itemID and select(5, GetItemInfoInstant(t.itemID)) or "Interface\\Icons\\INV_Misc_QuestionMark";
+	return t.itemID and GetItemIcon(t.itemID) or 134400;
 end
 local function default_specs(t)
 	return GetFixedItemSpecInfo(t.itemID);
@@ -407,6 +426,29 @@ local itemFields = {
 	["costsCount"] = function(t)
 		if t.costCollectibles then return #t.costCollectibles; end
 	end,
+	bonuses = function(t)
+		local link = t.link
+		if IsRetrieving(link) then return end
+		local itemVals = {(":"):split(link)}
+
+		-- BonusID count
+		local bonusCount = tonumber(itemVals[14])
+		if not bonusCount or bonusCount < 1 then
+			t.bonuses = app.EmptyTable
+			return app.EmptyTable
+		end
+
+		local bonusID
+		local bonuses = {}
+		for i=15,14 + bonusCount,1 do
+			bonusID = tonumber(itemVals[i])
+			if bonusID then
+				bonuses[#bonuses + 1] = bonusID
+			end
+		end
+		t.bonuses = bonuses
+		return bonuses
+	end,
 	-- some calculated properties can let fall-through to the merge source of a group instead of needing to re-calculate in every copy
 	isCost = function(t)
 		local merge = t.__merge
@@ -425,10 +467,11 @@ itemFields.collectibleAsUpgrade = app.Modules.Upgrade.CollectibleAsUpgrade;
 
 -- This is used for the Grand Commendations unlocking Bonus Reputation
 local ItemWithFactionBonus = {
+	__name = "AndFactionBonus",
 	collected = function(t)
 		local factionID = t.factionID;
 		if ATTAccountWideData.FactionBonus[factionID] then return 1; end
-		if select(15, GetFactionInfoByID(factionID)) then
+		if GetFactionBonusReputation(factionID) then
 			ATTAccountWideData.FactionBonus[factionID] = 1;
 			return 1;
 		end
@@ -437,16 +480,32 @@ local ItemWithFactionBonus = {
 		return not t.repeatable;
 	end,
 }
-app.CreateItem = app.CreateClass("Item", "itemID", itemFields,
-"WithQuest", {
-	collectible = app.GlobalVariants.AndLockCriteria.collectible or app.CollectibleAsQuest,
+app.CreateItem = app.CreateClass(CLASS, KEY, itemFields,
+"AsHQT", {
+	CollectibleType = function() return "QuestsHidden" end,
+	collectible = app.CollectibleAsQuest,
 	locked = app.GlobalVariants.AndLockCriteria.locked,
-	collected = function(t)
-		return IsQuestFlaggedCompletedForObject(t);
-	end,
+	collected = IsQuestFlaggedCompletedForObject,
 	trackable = function(t)
 		-- raw repeatable quests can't really be tracked since they immediately unflag
-		return not rawget(t, "repeatable");
+		return not rawget(t, "repeatable")
+	end,
+	saved = function(t)
+		return IsQuestFlaggedCompleted(t.questID);
+	end
+}, (function(t) return t.type == "ihqt"; end),
+"WithQuest", {
+	CollectibleType = app.IsClassic and function() return "Quests" end
+	-- Retail: items tracked as HQT
+	or function() return "QuestsHidden" end,
+	collectible = app.IsClassic and (app.GlobalVariants.AndLockCriteria.collectible or app.CollectibleAsQuest)
+	-- Retail: these Items not inherently collectible, manually convert to Character Unlocks as needed
+	or app.ReturnFalse,
+	locked = app.GlobalVariants.AndLockCriteria.locked,
+	collected = IsQuestFlaggedCompletedForObject,
+	trackable = function(t)
+		-- raw repeatable quests can't really be tracked since they immediately unflag
+		return not rawget(t, "repeatable")
 	end,
 	saved = function(t)
 		return IsQuestFlaggedCompleted(t.questID);
@@ -468,39 +527,351 @@ app.CreateItem = app.CreateClass("Item", "itemID", itemFields,
 		return cachedFaction.collected;
 	end,
 	variants = {
-		Bonus = ItemWithFactionBonus,
+		ItemWithFactionBonus,
 	},
 }, (function(t) return t.factionID; end));
 
-local setmetatable = setmetatable
-local constructor = app.constructor
 -- Wraps the given Type Object as a Cost Item, allowing altered functionality representing this being a calculable 'cost'
--- TODO: perhaps theres a way to make this use CreateClass... but dont think that really supports as is what this class is designed to do
-local BaseCostItem = app.BaseObjectFields({
+local CreateCostItem = app.CreateClass("CostItem", KEY, {
+	IsClassIsolated = true,
 	-- total is the count of the cost item required
 	["total"] = function(t)
 		return t.count or 1;
 	end,
-	-- progress is how many of the cost item your character has anywhere
+	-- progress is how many of the cost item your character has anywhere (bag/bank/reagent bank/warband bank)
 	["progress"] = function(t)
-		return GetItemCount(t.itemID, true, nil, true) or 0;
+		return GetItemCount(t.itemID, true, nil, true, true) or 0;
 	end,
 	["collectible"] = app.ReturnFalse,
-	["trackable"] = app.ReturnTrue,
-	-- show a check when it is has matching quantity in your bags
+	-- show a check when it is has matching quantity in your bags/reagent bank (bank/warband bank don't count at vendors)
 	["saved"] = function(t)
-		return GetItemCount(t.itemID) >= t.total;
+		return GetItemCount(t.itemID, nil, nil, true) >= t.total;
 	end,
 	-- hide any irrelevant wrapped fields of a cost item
 	["g"] = app.EmptyFunction,
 	["costCollectibles"] = app.EmptyFunction,
 	["collectibleAsCost"] = app.EmptyFunction,
 	["costsCount"] = app.EmptyFunction,
-}, "BaseCostItem");
+})
 app.CreateCostItem = function(t, total)
-	local c = app.WrapObject(setmetatable(constructor(t.itemID, nil, "itemID"), BaseCostItem), t);
+	local c = app.WrapObject(CreateCostItem(t[KEY]), t);
 	c.count = total;
 	-- cost items should always be visible for clarity
 	c.OnUpdate = app.AlwaysShowUpdate;
 	return c;
 end
+
+--------------------------------------------
+-- MUST HAVE DEBUGGING ENABLED TO UTILIZE --
+--------------------------------------------
+if not app.Debugging then return end
+
+-- No reason to create all this for the avg user, and pretty sure none of this is typically used anyway
+local HarvestedItemDatabase;
+local C_Item_GetItemInventoryTypeByID = C_Item.GetItemInventoryTypeByID;
+---@class ATTItemHarvesterForRetail: GameTooltip
+local ItemHarvester = CreateFrame("GameTooltip", "ATTItemHarvester", UIParent, "GameTooltipTemplate");
+local CreateItemTooltipHarvester
+local FilterBind = app.Modules.Filter.Filters.Bind
+app.CreateItemHarvester = app.ExtendClass("Item", "ItemHarvester", "itemID", {
+	IsClassIsolated = true,
+	visible = app.ReturnTrue,
+	RefreshCollectionOnly = true,
+	collectible = app.ReturnTrue,
+	collected = app.ReturnFalse,
+	text = function(t)
+		-- delayed localization since ATT's globals don't exist when this logic is processed on load
+		if not HarvestedItemDatabase then
+			HarvestedItemDatabase = app.LocalizeGlobal("AllTheThingsHarvestItems", true);
+		end
+		local link = t.link;
+		if link then
+			app.ImportRawLink(t, link);
+			local itemName, _, itemQuality, itemLevel, itemMinLevel, itemType, itemSubType, _,
+			itemEquipLoc, _, _, classID, subclassID, bindType
+				= GetItemInfo(link);
+			if itemName then
+				local spellName, spellID;
+				-- Recipe or Mount, grab the spellID if possible
+				if classID == LE_ITEM_CLASS_RECIPE or (classID == LE_ITEM_CLASS_MISCELLANEOUS and subclassID == LE_ITEM_MISCELLANEOUS_MOUNT) then
+					spellName, spellID = GetItemSpell(t.itemID);
+					-- print("Recipe/Mount",classID,subclassID,spellName,spellID);
+					if spellName == "Learning" then spellID = nil; end	-- RIP.
+				end
+				CreateItemTooltipHarvester(t.itemID, t);
+				local info = {
+					["name"] = itemName,
+					["itemID"] = t.itemID,
+					["equippable"] = itemEquipLoc and itemEquipLoc ~= "" and true or false,
+					["class"] = classID,
+					["subclass"] = subclassID,
+					["inventoryType"] = C_Item_GetItemInventoryTypeByID(t.itemID),
+					["b"] = bindType,
+					["q"] = itemQuality,
+					["iLvl"] = itemLevel,
+					["spellID"] = spellID,
+				};
+				if itemMinLevel and itemMinLevel > 0 then
+					info.lvl = itemMinLevel;
+				end
+				if info.inventoryType == 0 then
+					info.inventoryType = nil;
+				end
+				if not FilterBind(info) then
+					info.b = nil;
+				end
+				if info.iLvl and info.iLvl < 2 then
+					info.iLvl = nil;
+				end
+				-- can debug output for tooltip harvesting
+				-- if t.itemID == 141038 then
+				-- 	info._debug = true;
+				-- end
+				t.itemType = itemType;
+				t.itemSubType = itemSubType;
+				t.info = info;
+				t.retries = nil;
+				HarvestedItemDatabase[t.itemID] = info;
+				return link;
+			end
+		end
+
+		local name = t.name;
+		-- retries exceeded, so check the raw .name on the group (gets assigned when retries exceeded during cache attempt)
+		if name then t.collected = true; end
+		return name;
+	end
+});
+CreateItemTooltipHarvester = app.ExtendClass("ItemHarvester", "ItemTooltipHarvester", "itemID", {
+	IsClassIsolated = true,
+	text = function(t)
+		local link = t.link;
+		if link then
+			ItemHarvester:SetOwner(UIParent,"ANCHOR_NONE")
+			ItemHarvester:SetHyperlink(link);
+			-- a way to capture when the tooltip is giving information about something that is NOT the current ItemID
+			local isSubItem, craftName;
+			local lineCount = ItemHarvester:NumLines();
+			local tooltipText = ATTItemHarvesterTextLeft1:GetText();
+			if not IsRetrieving(tooltipText) and lineCount > 0 then
+				-- local debugPrint = t.info._debug;
+				-- if debugPrint then print("Item Info:",t.info.itemID) end
+				for index=1,lineCount,1 do
+					local line = _G["ATTItemHarvesterTextLeft" .. index] or _G["ATTItemHarvesterText" .. index];
+					if line then
+						local text = line:GetText();
+						if text then
+							-- sub items within recipe tooltips show this text, need to wait until it loads
+							if IsRetrieving(text) then
+								t.info.retries = (t.info.retries or 0) + 1;
+								-- 30 attempts to load the sub-item, otherwise just continue parsing tooltip without it
+								if t.info.retries < 30 then
+									return
+								end
+								app.PrintDebug("Failed loading sub-item for",t.info.itemID)
+							end
+							-- pull the "Recipe Type: Recipe Name" out if it matches
+							if index == 1 then
+								-- if debugPrint then
+								-- 	print("line match",text:match("^[^:]+:%s*([^:]+)$"))
+								-- end
+								craftName = text:match("^[^:]+:%s*([^:]+)$");
+								if craftName then
+									-- whitespace search... recipes have whitespace and then a sub-item
+									craftName = "^%s+";
+								end
+							-- use this name to check that the Item it creates may be listed underneath, by finding whitespace after a matching recipe name
+							elseif craftName and text:match(craftName) then
+								-- if debugPrint then
+									-- print("subitem",t.info.itemID,craftName)
+								-- end
+								isSubItem = true;
+							-- leave the sub-item info when reaching the 'Requires' portion of the parent item tooltip
+							elseif isSubItem and text:match("^Requires") then
+								-- if debugPrint then
+								-- 	print("leaving subitem",t.info.itemID,craftName)
+								-- end
+								-- leaving the sub-item tooltip when encountering 'Requires '
+								isSubItem = nil;
+							end
+
+							if not isSubItem then
+								-- if debugPrint then print(text) end
+								if text:find("Classes: ") then
+									local classes = {};
+									local _,list = (":"):split(text);
+									for i,className in ipairs({(","):split(list)}) do
+										tinsert(classes, app.ClassInfoByClassName[className:trim()].classID);
+									end
+									if #classes > 0 then
+										t.info.classes = classes;
+									end
+								elseif text:find("Races: ") then
+									local _,list = (":"):split(text);
+									local raceNames = {(","):split(list)};
+									if raceNames then
+										local races = {};
+										for _,raceName in ipairs(raceNames) do
+											local race = app.RaceDB[raceName:trim()];
+											if not race then
+												print("Unknown Race",t.info.itemID,raceName:trim())
+											elseif type(race) == "number" then
+												tinsert(races, race);
+											else -- Pandaren
+												for _,panda in pairs(race) do
+													tinsert(races, panda);
+												end
+											end
+										end
+										if #races > 0 then
+											t.info.races = races;
+										end
+									else
+										print("Empty Races",t.info.itemID)
+									end
+								elseif text:find(" Only") then
+									local faction, _, c = (" "):split(text);
+									if not c then
+										faction = faction:trim();
+										if faction == "Alliance" then
+											t.info.races = app.Modules.FactionData.FACTION_RACES[1];
+										elseif faction == "Horde" then
+											t.info.races = app.Modules.FactionData.FACTION_RACES[2];
+										else
+											print("Unknown Faction",t.info.itemID,faction);
+										end
+									end
+								elseif text:find("Requires") and not text:find("Level") and not text:find("Riding") then
+									local c = text:sub(1, 1);
+									if c ~= " " and c ~= "\t" and c ~= "\n" and c ~= "\r" then
+										text = text:trim():sub(9);
+										if text:find("-") then
+											t.info.minReputation = app.CreateFactionStandingFromText(text);
+										else
+											if text:find("%(") then
+												if t.info.requireSkill then
+													-- If non-specialization skill is already assigned, skip this part.
+													text = nil;
+												else
+													text = ("("):split(text);
+												end
+											end
+											if text then
+												local spellName = text:trim();
+												if spellName:find("Outland ") then spellName = spellName:sub(9);
+												elseif spellName:find("Northrend ") then spellName = spellName:sub(11);
+												elseif spellName:find("Cataclysm ") then spellName = spellName:sub(11);
+												elseif spellName:find("Pandaria ") then spellName = spellName:sub(10);
+												elseif spellName:find("Draenor ") then spellName = spellName:sub(9);
+												elseif spellName:find("Legion ") then spellName = spellName:sub(8);
+												elseif spellName:find("Kul Tiran ") then spellName = spellName:sub(11);
+												elseif spellName:find("Zandalari ") then spellName = spellName:sub(11);
+												elseif spellName:find("Shadowlands ") then spellName = spellName:sub(13);
+												elseif spellName:find("Classic ") then spellName = spellName:sub(9); end
+												if spellName == "Herbalism" then spellName = "Herb Gathering"; end
+												spellName = spellName:trim();
+												local spellID = app.SpellNameToSpellID[spellName];
+												if spellID then
+													local skillID = app.SkillDB.SpellToSkill[spellID];
+													if skillID then
+														t.info.requireSkill = skillID;
+													elseif spellName == "Pick Pocket" then
+														-- Do nothing, for now.
+													elseif spellName == "Warforged Nightmare" then
+														-- Do nothing, for now.
+													else
+														print("Unknown Skill",t.info.itemID, text, "'" .. spellName .. "'");
+													end
+												elseif spellName == "Previous Rank" then
+													-- Do nothing
+												elseif spellName == "" then
+													-- Do nothing
+												elseif spellName == "Brewfest" then
+													-- Do nothing, yet.
+												elseif spellName == "Call of the Scarab" then
+													-- Do nothing, yet.
+												elseif spellName == "Children's Week" then
+													-- Do nothing, yet.
+												elseif spellName == "Darkmoon Faire" then
+													-- Do nothing, yet.
+												elseif spellName == "Day of the Dead" then
+													-- Do nothing, yet.
+												elseif spellName == "Feast of Winter Veil" then
+													-- Do nothing, yet.
+												elseif spellName == "Hallow's End" then
+													-- Do nothing, yet.
+												elseif spellName == "Love is in the Air" then
+													-- Do nothing, yet.
+												elseif spellName == "Lunar Festival" then
+													-- Do nothing, yet.
+												elseif spellName == "Midsummer Fire Festival" then
+													-- Do nothing, yet.
+												elseif spellName == "Moonkin Festival" then
+													-- Do nothing, yet.
+												elseif spellName == "Noblegarden" then
+													-- Do nothing, yet.
+												elseif spellName == "Pilgrim's Bounty" then
+													-- Do nothing, yet.
+												elseif spellName == "Un'Goro Madness" then
+													-- Do nothing, yet.
+												elseif spellName == "Thousand Boat Bash" then
+													-- Do nothing, yet.
+												elseif spellName == "Glowcap Festival" then
+													-- Do nothing, yet.
+												elseif spellName == "Battle Pet Training" then
+													-- Do nothing.
+												elseif spellName == "Lockpicking" then
+													-- Do nothing.
+												elseif spellName == "Luminous Luminaries" then
+													-- Do nothing.
+												elseif spellName == "Pick Pocket" then
+													-- Do nothing.
+												elseif spellName == "WoW's 14th Anniversary" then
+													-- Do nothing.
+												elseif spellName == "WoW's 13th Anniversary" then
+													-- Do nothing.
+												elseif spellName == "WoW's 12th Anniversary" then
+													-- Do nothing.
+												elseif spellName == "WoW's 11th Anniversary" then
+													-- Do nothing.
+												elseif spellName == "WoW's 10th Anniversary" then
+													-- Do nothing.
+												elseif spellName == "WoW's Anniversary" then
+													-- Do nothing.
+												elseif spellName == "level 1 to 29" then
+													-- Do nothing.
+												elseif spellName == "level 1 to 39" then
+													-- Do nothing.
+												elseif spellName == "level 1 to 44" then
+													-- Do nothing.
+												elseif spellName == "level 1 to 49" then
+													-- Do nothing.
+												elseif spellName == "Unknown" then
+													-- Do nothing.
+												elseif spellName == "Open" then
+													-- Do nothing.
+												elseif spellName:find(" specialization") then
+													-- Do nothing.
+												elseif spellName:find(": ") then
+													-- Do nothing.
+												else
+													print("Unknown Spell",t.info.itemID, text, "'" .. spellName .. "'");
+												end
+											end
+										end
+									end
+								end
+							end
+						end
+					end
+				end
+				-- if debugPrint then print("---") end
+				t.info.retries = nil;
+				t.text = link;
+				t.collected = true;
+			end
+			ItemHarvester:Hide();
+			return link;
+		end
+	end
+});

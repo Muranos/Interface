@@ -4,7 +4,7 @@ if L then
 	L.add_death = "Mort des renforts"
 	L.add_death_desc = "Prévient quand un des renforts meurt."
 
-	L.wave = "%d/23 : %s"
+	L.wave = "%d/22 : %s"
 
 	L.trainee = "Jeune recrue" -- Unrelenting Trainee NPC 16124
 	L.deathKnight = "Chevalier de la mort" -- Unrelenting Death Knight NPC 16125
@@ -46,11 +46,6 @@ end
 L = BigWigs:NewBossLocale("Noth the Plaguebringer", "frFR")
 if L then
 	L.adds_yell_trigger = "Levez-vous, soldats" -- Levez-vous, soldats ! Levez-vous et combattez une fois encore !
-end
-
-L = BigWigs:NewBossLocale("Maexxna", "frFR")
-if L then
-	L.cocoons = "Entoilage"
 end
 
 L = BigWigs:NewBossLocale("Instructor Razuvious", "frFR")

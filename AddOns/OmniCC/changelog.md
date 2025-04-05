@@ -1,5 +1,59 @@
 # OmniCC Changelog
 
+## 11.0.7
+
+* Update TOCs for 11.1.0, 4.4.2 and 1.15.6
+
+## 11.0.6
+
+* Fix another nil value error
+
+## 11.0.5
+
+* Fix an error that could ocurr when updating timer settings while active timers are present
+
+## 11.0.4
+
+* Update TOCs
+* Update cooldown calculations
+* Add typings
+
+## 11.0.3
+
+* Add modRate to display duration calculations
+* Update TOCs
+
+## 11.0.2
+
+* Fixed bug in PreviewDialog that caused some effects not to show
+* Update TOCs
+
+## 11.0.1
+
+* Increase cooldown text frame level
+
+## 11.0.0
+
+* Fix an error when attempting to display the cooldown preview frame
+* Update TOCs
+
+## 10.2.9
+
+* Add an additional check for forbidden frames
+
+## 10.2.8
+
+* Update TOCs
+
+## 10.2.7
+
+* Update TOCs
+* Preliminary War Within support
+
+## 10.2.6
+
+* Update TOCs
+
 ## 10.2.5
 
 * Updated Russian translation (thanks to [Hollicsh](https://github.com/Hollicsh))

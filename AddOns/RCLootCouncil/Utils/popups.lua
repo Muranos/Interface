@@ -4,7 +4,7 @@
 
 --- @type RCLootCouncil
 local addon = select(2, ...)
-local LibDialog = LibStub("LibDialog-1.0")
+local LibDialog = LibStub("LibDialog-1.1")
 --- @type RCLootCouncilLocale
 local L = LibStub("AceLocale-3.0"):GetLocale("RCLootCouncil")
 
@@ -156,7 +156,7 @@ LibDialog:Register("RCLOOTCOUNCIL_KEEP_ITEM", {
    text = "something_went_wrong",
    on_show = function(self, link)
       self.text:SetText(format(L["Do you want to keep %s for yourself or trade?"], link))
-      local tex = select(5, GetItemInfoInstant(link))
+      local tex = select(5, C_Item.GetItemInfoInstant(link))
       self.icon:SetTexture(tex)
       local icon = addon.UI:New("Icon", self, tex)
       icon:SetSize(self.icon:GetSize())
@@ -215,4 +215,21 @@ LibDialog:Register("RCLOOTCOUNCIL_IMPORT_OVERWRITE", {
    },
    hide_on_escape = true,
    show_while_dead = true,
+})
+
+-- Profile overwrite
+LibDialog:Register("RCLOOTCOUNCIL_OVERWRITE_PROFILE", {
+	text = "init",
+	on_show  = function (self, data)
+		self.text:SetText(format(L.opt_profileSharing_profileExistsWarning, data.name))
+	end,
+	buttons = {
+		{
+			text = _G.YES,
+			on_click = function (self, data)
+				addon:ApplyProfile(data.name, data.profile)
+			end
+		},
+		{ text = _G.NO }
+	}
 })

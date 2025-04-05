@@ -1,6 +1,6 @@
 ﻿-- --------------------
 -- TellMeWhen
--- Originally by Nephthys of Hyjal <lieandswell@yahoo.com>
+-- Originally by NephMakes
 
 -- Other contributions by:
 --		Sweetmms of Blackrock, Oozebull of Twisting Nether, Oodyboo of Mug'thol,
@@ -46,6 +46,7 @@ Animations:RegisterEventDefaults{
 	SizeY	  		= 30,
 	Thickness	  	= 2,
 	Scale           = 1,
+	Speed           = 1,
 	Fade	  		= true,
 	Infinite  		= false,
 	AnimColor	  	= "7fff0000",
@@ -265,6 +266,37 @@ Animations:RegisterEventHandlerDataNonSpecific(10, "SCREENSHAKE", {
 		end
 	end,
 })
+
+local function MakeAlphaFlashOnUpdate(target, startFadedOut)
+	return function(self, table)
+		local flashPeriod = table.Period
+		local timePassed = TMW.time - table.Start
+		local fadingIn = flashPeriod == 0 or floor(timePassed/flashPeriod) % 2 == startFadedOut
+
+		local alpha
+		if table.Fade and flashPeriod ~= 0 then
+			local remainingFlash = timePassed % flashPeriod
+			if fadingIn then
+				alpha = table.Alpha*((flashPeriod-remainingFlash)/flashPeriod)
+			else
+				alpha = table.Alpha*(remainingFlash/flashPeriod)
+			end
+		else
+			alpha = fadingIn and table.Alpha or 0
+		end
+
+		if alpha < 0 then alpha = 0
+		elseif alpha > 1 then alpha = 1 end
+
+		self[target]:SetAlpha(alpha)
+
+		-- (mostly) generic expiration -- we just finished the last flash, so dont do any more
+		if timePassed > table.Duration then
+			self:Animations_Stop(table)
+		end
+	end
+end
+
 Animations:RegisterEventHandlerDataNonSpecific(11, "SCREENFLASH", {
 	text = L["ANIM_SCREENFLASH"],
 	desc = L["ANIM_SCREENFLASH_DESC"],
@@ -310,29 +342,7 @@ Animations:RegisterEventHandlerDataNonSpecific(11, "SCREENFLASH", {
 		}
 	end,
 	
-	OnUpdate = function(TMWFlashAnim, table)
-		local FlashPeriod = table.Period
-		local animation_flasher = TMWFlashAnim.animation_flasher
-
-		local timePassed = TMW.time - table.Start
-		local fadingIn = FlashPeriod == 0 or floor(timePassed/FlashPeriod) % 2 == 1
-
-		if table.Fade and FlashPeriod ~= 0 then
-			local remainingFlash = timePassed % FlashPeriod
-			if fadingIn then
-				animation_flasher:SetAlpha(table.Alpha*((FlashPeriod-remainingFlash)/FlashPeriod))
-			else
-				animation_flasher:SetAlpha(table.Alpha*(remainingFlash/FlashPeriod))
-			end
-		else
-			animation_flasher:SetAlpha(fadingIn and table.Alpha or 0)
-		end
-
-		-- (mostly) generic expiration -- we just finished the last flash, so dont do any more
-		if timePassed > table.Duration then
-			TMWFlashAnim:Animations_Stop(table)
-		end
-	end,
+	OnUpdate = MakeAlphaFlashOnUpdate("animation_flasher", 1),
 	OnStart = function(TMWFlashAnim, table)
 		local animation_flasher
 		if TMWFlashAnim.animation_flasher then
@@ -438,29 +448,7 @@ Animations:RegisterEventHandlerDataNonSpecific(30, "ICONFLASH", {
 		}
 	end,
 
-	OnUpdate = function(icon, table)
-		local FlashPeriod = table.Period
-		local animation_flasher = icon.animation_flasher
-
-		local timePassed = TMW.time - table.Start
-		local fadingIn = FlashPeriod == 0 or floor(timePassed/FlashPeriod) % 2 == 1
-
-		if table.Fade and FlashPeriod ~= 0 then
-			local remainingFlash = timePassed % FlashPeriod
-			if fadingIn then
-				animation_flasher:SetAlpha(table.Alpha*((FlashPeriod-remainingFlash)/FlashPeriod))
-			else
-				animation_flasher:SetAlpha(table.Alpha*(remainingFlash/FlashPeriod))
-			end
-		else
-			animation_flasher:SetAlpha(fadingIn and table.Alpha or 0)
-		end
-
-		-- (mostly) generic expiration -- we just finished the last flash, so dont do any more
-		if timePassed > table.Duration then
-			icon:Animations_Stop(table)
-		end
-	end,
+	OnUpdate = MakeAlphaFlashOnUpdate("animation_flasher", 1),
 	OnStart = function(icon, table)
 		local animation_flasher
 		if icon.animation_flasher then
@@ -529,29 +517,7 @@ Animations:RegisterEventHandlerDataNonSpecific(70, "ICONBORDER", {
 		}
 	end,
 
-	OnUpdate = function(icon, table)
-		local FlashPeriod = table.Period
-		local animation_border = icon.animation_border
-
-		local timePassed = TMW.time - table.Start
-		local fadingIn = FlashPeriod == 0 or floor(timePassed/FlashPeriod) % 2 == 0
-
-		if table.Fade and FlashPeriod ~= 0 then
-			local remainingFlash = timePassed % FlashPeriod
-			if not fadingIn then
-				animation_border:SetAlpha(table.Alpha*((FlashPeriod-remainingFlash)/FlashPeriod))
-			else
-				animation_border:SetAlpha(table.Alpha*(remainingFlash/FlashPeriod))
-			end
-		else
-			animation_border:SetAlpha(fadingIn and table.Alpha or 0)
-		end
-
-		-- (mostly) generic expiration -- we just finished the last flash, so dont do any more
-		if timePassed > table.Duration then
-			icon:Animations_Stop(table)
-		end
-	end,
+	OnUpdate = MakeAlphaFlashOnUpdate("animation_border", 0),
 	OnStart = function(icon, table)
 		local animation_border
 		if icon.animation_border then
@@ -599,6 +565,138 @@ Animations:RegisterEventHandlerDataNonSpecific(70, "ICONBORDER", {
 		icon.animation_border:Hide()
 	end,
 })
+
+local LibCustomGlow = LibStub("LibCustomGlow-1.0", true)
+if LibCustomGlow then
+	Animations:RegisterEventHandlerDataNonSpecific(71, "LCG_PIXEL", {
+		text = L["ANIM_LCG_PIXEL"],
+		desc = L["ANIM_LCG_PIXEL_DESC"],
+		ConfigFrames = {
+			"Duration",
+			"Infinite",
+			"Color",
+			"Size_anim",
+			"Thickness",
+			"Speed",
+			"AnchorTo",
+		},
+	
+		Play = function(icon, eventSettings)
+			local Duration = 0
+			if eventSettings.Infinite then
+				Duration = huge
+			else
+				Duration = eventSettings.Duration
+			end
+	
+			local c = TMW:StringToCachedRGBATable(eventSettings.AnimColor)
+			icon:Animations_Start{
+				eventSettings = eventSettings,
+				Start = TMW.time,
+				Duration = Duration,
+	
+				Color = {c.r, c.g, c.b, c.a},
+				Thickness = eventSettings.Thickness,
+				Size = eventSettings.Size_anim,
+				Speed = eventSettings.Speed,
+				Key = tostring(eventSettings),
+				
+				AnchorTo = eventSettings.AnchorTo,
+			}
+		end,
+		OnUpdate = function(icon, table)
+			if table.Duration - (TMW.time - table.Start) < 0 then
+				icon:Animations_Stop(table)
+			end
+		end,
+		OnStart = function(icon, table)
+			local target = GetAnchorOrWarn(icon, table.AnchorTo)
+			if not target.GetFrameLevel then target = icon end
+
+			LibCustomGlow.PixelGlow_Start(
+				target,
+				table.Color,
+				8, -- number of lines. Default value is 8;
+				0.25 * table.Speed, -- frequency, set to negative to inverse direction of rotation. Default value is 0.25;
+				nil, -- length of lines. Default value depends on region size and number of lines;
+				table.Thickness, -- thickness of lines. Default value is 2;
+				table.Size, table.Size, -- xOffset,yOffset - offset of glow relative to region border;
+				false, -- border - set to true to create border under lines;
+				table.Key -- key of glow, allows for multiple glows on one frame;
+			)
+		end,
+		OnStop = function(icon, table)
+			local target = GetAnchorOrWarn(icon, table.AnchorTo)
+			if not target.GetFrameLevel then target = icon end
+			
+			LibCustomGlow.PixelGlow_Stop(target, table.Key)
+		end,
+	})
+	
+	Animations:RegisterEventHandlerDataNonSpecific(72, "LCG_AUTOCAST", {
+		text = L["ANIM_LCG_AUTOCAST"],
+		desc = L["ANIM_LCG_AUTOCAST_DESC"],
+		ConfigFrames = {
+			"Duration",
+			"Infinite",
+			"Color",
+			"Size_anim",
+			"Thickness",
+			"Speed",
+			"AnchorTo",
+		},
+	
+		Play = function(icon, eventSettings)
+			local Duration = 0
+			if eventSettings.Infinite then
+				Duration = huge
+			else
+				Duration = eventSettings.Duration
+			end
+	
+			local c = TMW:StringToCachedRGBATable(eventSettings.AnimColor)
+			icon:Animations_Start{
+				eventSettings = eventSettings,
+				Start = TMW.time,
+				Duration = Duration,
+	
+				Color = {c.r, c.g, c.b, c.a},
+				Thickness = eventSettings.Thickness,
+				Size = eventSettings.Size_anim,
+				Speed = eventSettings.Speed,
+				Key = tostring(eventSettings),
+				
+				AnchorTo = eventSettings.AnchorTo,
+			}
+		end,
+		OnUpdate = function(icon, table)
+			if table.Duration - (TMW.time - table.Start) < 0 then
+				icon:Animations_Stop(table)
+			end
+		end,
+		OnStart = function(icon, table)
+			local target = GetAnchorOrWarn(icon, table.AnchorTo)
+			if not target.GetFrameLevel then target = icon end
+
+			LibCustomGlow.AutoCastGlow_Start(
+				target,
+				table.Color,
+				4, -- number of particle groups. Each group contains 4 particles. Default value is 4;
+				0.25 * table.Speed, -- frequency, set to negative to inverse direction of rotation. Default value is 0.125;
+				table.Thickness, -- scale - scale of particles;
+				table.Size, table.Size, -- xOffset,yOffset - offset of glow relative to region border;
+				table.Key -- key of glow, allows for multiple glows on one frame;
+			)
+		end,
+		OnStop = function(icon, table)
+			local target = GetAnchorOrWarn(icon, table.AnchorTo)
+			if not target.GetFrameLevel then target = icon end
+			
+			LibCustomGlow.AutoCastGlow_Stop(target, table.Key)
+		end,
+	})
+end
+
 Animations:RegisterEventHandlerDataNonSpecific(80, "ICONOVERLAYIMG", {
 	text = L["ANIM_ICONOVERLAYIMG"],
 	desc = L["ANIM_ICONOVERLAYIMG_DESC"],
@@ -645,29 +743,7 @@ Animations:RegisterEventHandlerDataNonSpecific(80, "ICONOVERLAYIMG", {
 		}
 	end,
 
-	OnUpdate = function(icon, table)
-		local FlashPeriod = table.Period
-		local animation_overlay = icon.animation_overlay
-
-		local timePassed = TMW.time - table.Start
-		local fadingIn = FlashPeriod == 0 or floor(timePassed/FlashPeriod) % 2 == 0
-
-		if table.Fade and FlashPeriod ~= 0 then
-			local remainingFlash = timePassed % FlashPeriod
-			if not fadingIn then
-				animation_overlay:SetAlpha(table.Alpha*((FlashPeriod-remainingFlash)/FlashPeriod))
-			else
-				animation_overlay:SetAlpha(table.Alpha*(remainingFlash/FlashPeriod))
-			end
-		else
-			animation_overlay:SetAlpha(fadingIn and table.Alpha or 0)
-		end
-
-		-- (mostly) generic expiration -- we just finished the last flash, so dont do any more
-		if timePassed > table.Duration then
-			icon:Animations_Stop(table)
-		end
-	end,
+	OnUpdate = MakeAlphaFlashOnUpdate("animation_overlay", 0),
 	OnStart = function(icon, table)
 		local animation_overlay
 		if icon.animation_overlay then
@@ -826,10 +902,12 @@ TMW:RegisterCallback("TMW_ICON_ANIMATION_START", function(_, self, table)
 		if TMW.Locked then
 			-- Modify the table to play infinitely
 			table.Duration = math.huge
-		elseif table.Duration then
-			table.Duration = 5
-			TMW:Print("Restricted animation duration to 5 seconds for testing")
 		end
+	end
+	
+	if not TMW.Locked and table.Duration == huge then
+		table.Duration = 5
+		TMW:Print("Restricted animation duration to 5 seconds for testing")
 	end
 end)
 

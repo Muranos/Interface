@@ -1,4 +1,3 @@
-
 --------------------------------------------------------------------------------
 -- Module Declaration
 --
@@ -123,7 +122,7 @@ function mod:AddScanner(event, unit, guid)
 	end
 end
 
-function mod:ImpServant(_, msg)
+function mod:ImpServant()
 	self:MessageOld("imp_servant", "yellow", "info", L.imp_servant, false)
 	self:Bar("imp_servant", 46, L.imp_servant, "spell_warlock_demonsoul")
 end
@@ -153,13 +152,15 @@ do
 	-- 4+: Umbral x2, Fuming, Smoldering x2
 	local prev, count = 0, 0
 	function mod:ShadowShield(args)
-		local t = GetTime()
-		if t-prev > 5 then
+		local t = args.time
+		if t - prev > 5 then
 			prev = t
 			count = 0
-			self:MessageOld(args.spellId, "orange", "alert", CL.count:format(args.spellName, partyCount))
+			self:StopBar(CL.count:format(args.spellName, partyCount))
+			self:Message(args.spellId, "orange", CL.count:format(args.spellName, partyCount))
 			partyCount = partyCount + 1
 			self:CDBar(args.spellId, 61, CL.count:format(args.spellName, partyCount))
+			self:PlaySound(args.spellId, "alert")
 		end
 		count = count + 1
 	end

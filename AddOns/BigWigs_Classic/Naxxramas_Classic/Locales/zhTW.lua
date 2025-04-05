@@ -4,7 +4,7 @@ if L then
 	L.add_death = "增援死亡"
 	L.add_death_desc = "當增援死亡時發出警報。"
 
-	L.wave = "%d/23：%s"
+	L.wave = "%d/22：%s"
 
 	L.trainee = "受訓員" -- Unrelenting Trainee NPC 16124
 	L.deathKnight = "死亡騎士" -- Unrelenting Death Knight NPC 16125
@@ -46,11 +46,6 @@ end
 L = BigWigs:NewBossLocale("Noth the Plaguebringer", "zhTW")
 if L then
 	L.adds_yell_trigger = "起來吧，我的戰士們" -- 起來吧，我的戰士們!起來，再為主人盡忠一次!
-end
-
-L = BigWigs:NewBossLocale("Maexxna", "zhTW")
-if L then
-	L.cocoons = "纏繞之網"
 end
 
 L = BigWigs:NewBossLocale("Instructor Razuvious", "zhTW")

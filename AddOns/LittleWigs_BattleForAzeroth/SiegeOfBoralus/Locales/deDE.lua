@@ -1,38 +1,30 @@
 local L = BigWigs:NewBossLocale("Siege of Boralus Trash", "deDE")
 if not L then return end
 if L then
-	L.cannoneer = "Aschenwindkanonier"
+	L.enforcer = "Vollstrecker der Knochenritzer"
+	L.halberd = "Hellebardier von Kul Tiras"
+	L.gutter = "Schlächter der Knochenritzer"
+	L.bomber = "Schwarzteerbomber"
+	L.waveshaper = "Wellenformer der Eisenfluträuber"
+	L.wavetender = "Wellenzähmer von Kul Tiras"
+	L.raider = "Eisenfluträuber"
+	L.shredder = "Springflutschredder"
+	L.vanguard = "Vorhut von Kul Tiras"
 	L.commander = "Aschenwindkommandant"
+	L.curseblade = "Fluchklinge der Eisenfluträuber"
 	L.spotter = "Aschenwindkundschafter"
+	L.cannoneer = "Aschenwindkanonier"
 	L.demolisher = "Verwüster der Bilgeratten"
+	L.buccaneer = "Bukanier der Bilgeratten"
 	L.pillager = "Brandschatzer der Bilgeratten"
 	L.tempest = "Orkan der Bilgeratten"
-	L.wavetender = "Wellenzähmer von Kul Tiras"
-	L.halberd = "Hellebardier von Kul Tiras"
-	L.raider = "Eisenfluträuber"
-	L.vanguard = "Vorhut von Kul Tiras"
-	L.marksman = "Schütze von Kul Tiras"
-	L.buccaneer = "Bukanier der Bilgeratten"
+	L.cutthroat = "Halsabschneider der Bilgeratten"
 	L.invader = "Aschenwindeindringling"
-	L.dockhound = "Knurrender Dockhund"
-	L.shredder = "Springflutschredder"
-	L.packmaster = "Rottenkommandant der Dockhunde"
-	L.bomber = "Schwarzteerbomber"
+
+	L.gate_open_desc = "Zeigt einen Timer wann das Tor zum nächsten Gebiet nach einer Bossbegegnung geöffnet wird."
 end
 
-L = BigWigs:NewBossLocale("Sergeant Bainbridge", "deDE")
+L = BigWigs:NewBossLocale("Dread Captain Lockwood", "deDE")
 if L then
-	L.remaining = "%s auf %s, %d verbleibend"
-	L.remaining_boss = "%s auf BOSS, %d verbleibend"
-end
-
-L = BigWigs:NewBossLocale("Chopper Redhook", "deDE")
-if L then
-	L.remaining = "%s auf %s, %d verbleibend"
-	L.remaining_boss = "%s auf BOSS, %d verbleibend"
-end
-
-L = BigWigs:NewBossLocale("Viq'Goth", "deDE")
-if L then
-	L.demolishing_desc = "Warnungen und Timer für das Erscheinen des Verwüstenden Schreckens."
+	L.ordnance_dropped = "Instabile Munition fallengelassen"
 end

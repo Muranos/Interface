@@ -1,17 +1,63 @@
-## Interface: 100206
+## Interface: 110100
 ## Title: No Mats; No Make
-## Version: 10.2-011
-## Notes: Hides orders that don't provide all the materials or a decent enough commission
+## Version: 11.1-003
+## Notes: NPC Orders - shows the reward icons without needing to mouse over
 ## Author: Teelo
 ## X-Curse-Project-ID: 841061
-## SavedVariables: PublicOrdersReagentsDB
+## IconTexture: Interface\Icons\INV_Alchemy_90_Reagent_Blue
 ## LoadOnDemand: 1
 ## LoadWith: Blizzard_Professions
-## IconTexture: Interface\Icons\INV_Alchemy_90_Reagent_Blue
+## SavedVariablesPerCharacter: PublicOrdersReagentsColumnToolSelectionDB
+## SavedVariables: PublicOrdersReagentsColumnADB
 
-libs\LibStub.lua
-libs\AceGUI-3.0\AceGUI-3.0.lua
-libs\AceGUI-3.0\widgets\AceGUIWidget-Slider.lua
+## Category-enUS: Professions
+## Category-deDE: Berufe
+## Category-esES: Profesiones
+## Category-esMX: Profesiones
+## Category-frFR: Métiers
+## Category-itIT: Professioni
+## Category-koKR: 전문 기술
+## Category-ptBR: Profissões
+## Category-ruRU: Профессии
+## Category-zhCN: 专业
+## Category-zhTW: 專業技能
 
-PublicOrdersReagentsColumn.xml
+libs\LibStub\LibStub.lua
+libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
+libs\AceAddon-3.0\AceAddon-3.0.xml
+libs\AceEvent-3.0\AceEvent-3.0.xml
+libs\AceTimer-3.0\AceTimer-3.0.xml
+libs\AceBucket-3.0\AceBucket-3.0.xml
+libs\AceHook-3.0\AceHook-3.0.xml
+libs\AceDB-3.0\AceDB-3.0.xml
+libs\AceDBOptions-3.0\AceDBOptions-3.0.xml
+libs\AceLocale-3.0\AceLocale-3.0.xml
+libs\AceConsole-3.0\AceConsole-3.0.xml
+libs\AceGUI-3.0\AceGUI-3.0.xml
+libs\AceConfig-3.0\AceConfig-3.0.xml
 
+## Icons on crafting orders module
+PublicOrdersReagentsColumn.lua
+
+## 'Offline' crafting orders module
+TabHandler.lua
+DuplicateOrdersPage.lua
+DuplicateOrdersPage.xml
+
+## No weekly quest warning module
+NoWeeklyQuestWarning.xml
+NoWeeklyQuestWarning.lua
+
+## Tool flyout automation module
+ToolFlyoutButton.xml
+ToolFlyoutButton.lua
+ToolSelectionLocales.lua
+ToolSelectionFrame.xml
+ToolSelectionFrame.lua
+
+MoveCreateButton.lua
+SkillUpIcon.lua
+FirstCraftIcon.lua
+
+options.lua
+init.lua

@@ -3,10 +3,11 @@
 -- Module declaration
 --
 
-local mod, CL = BigWigs:NewBoss("High Priest Venoxis", 309, -784)
+local mod, CL = BigWigs:NewBoss("High Priest Venoxis", 309)
 if not mod then return end
 mod:RegisterEnableMob(14507)
 mod:SetEncounterID(784)
+mod:SetAllowWin(true)
 
 --------------------------------------------------------------------------------
 -- Localization
@@ -40,7 +41,7 @@ function mod:OnBossEnable()
 	self:Log("SPELL_INTERRUPT", "HolyFireStop", "*")
 	self:Log("SPELL_CAST_SUCCESS", "PoisonCloud", 23861)
 
-	self:RegisteEvent("UNIT_HEALTH")
+	self:RegisterEvent("UNIT_HEALTH")
 end
 
 --------------------------------------------------------------------------------

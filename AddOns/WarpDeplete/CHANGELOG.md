@@ -1,7 +1,9 @@
 # WarpDeplete
 
-## [v2.8.1](https://github.com/happenslol/WarpDeplete/tree/v2.8.1) (2024-03-12)
-[Full Changelog](https://github.com/happenslol/WarpDeplete/compare/v2.8.0...v2.8.1) [Previous Releases](https://github.com/happenslol/WarpDeplete/releases)
+## [v4.2.0](https://github.com/happenslol/WarpDeplete/tree/v4.2.0) (2025-03-16)
+[Full Changelog](https://github.com/happenslol/WarpDeplete/compare/v4.1.6...v4.2.0) [Previous Releases](https://github.com/happenslol/WarpDeplete/releases)
 
+- fix: Fix death count positioning  
+- fix: Fix invalid death count formatting calls  
 - chore: Bump version  
-- Revert "feat: Add an option to show force % above 100% (#65)"  
+- fix: Use timeLost from wow api and remove death count update in timer tick  

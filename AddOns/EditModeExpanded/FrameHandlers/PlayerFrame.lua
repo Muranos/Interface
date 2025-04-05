@@ -1,43 +1,67 @@
 local addonName, addon = ...
 
+local L = LibStub("AceLocale-3.0"):GetLocale(addonName)
 local lib = LibStub:GetLibrary("EditModeExpanded-1.0")
 
 function addon:initPlayerFrame()
     local db = addon.db.global
     if db.EMEOptions.playerFrame then
-        lib:RegisterHideable(PlayerFrame)
+        addon:registerSecureFrameHideable(PlayerFrame)
         lib:RegisterToggleInCombat(PlayerFrame)
         C_Timer.After(4, function()
-            if lib:IsFrameMarkedHidden(PlayerFrame) then
-                PlayerFrame:Hide()
-            end
+            addon:continueAfterCombatEnds(function()
+                if lib:IsFrameMarkedHidden(PlayerFrame) then
+                    if InCombatLockdown() then return end
+                    PlayerFrame:Hide()
+                    PlayerFrame:SetScript("OnEvent", nil)
+                end
+            end)
+            
+            -- From UIParent.lua
+            hooksecurefunc("UpdateUIElementsForClientScene", function(sceneType)
+                addon:continueAfterCombatEnds(function()
+                    if sceneType == Enum.ClientSceneType.MinigameSceneType then return end
+                    if lib:IsFrameMarkedHidden(PlayerFrame) then
+                        PlayerFrame:Hide()
+                        PlayerFrame:SetScript("OnEvent", nil)
+                    end
+                end)
+            end)
         end)
         
-        local checked = false
-        lib:RegisterCustomCheckbox(PlayerFrame, "Hide Resource Bar", 
-            -- on checked
-            function()
-                checked = true
-                PlayerFrame.manabar:Hide()
-            end,
+        
+        do 
+            local frame = PlayerFrame.manabar
+            local x, y
             
-            -- on unchecked
-            function()
-                checked = false
-                PlayerFrame.manabar:Show()
-            end
-        )
-        PlayerFrame.manabar:HookScript("OnShow", function()
-            if checked then
-                PlayerFrame.manabar:Hide()
-            end
-        end)
+            lib:RegisterCustomCheckbox(PlayerFrame, L["Hide Resource Bar"], 
+                -- on checked
+                function()
+                    if InCombatLockdown() then return end
+                    if not x then
+                        x, y = frame:GetLeft(), frame:GetBottom()
+                    end
+                    frame:ClearAllPoints()
+                    frame:SetClampedToScreen(false)
+                    frame:SetPoint("TOPRIGHT", UIParent, "BOTTOMLEFT", -1000, -1000)
+                end,
+                
+                -- on unchecked
+                function()
+                    if InCombatLockdown() then return end
+                    if not x then return end
+                    frame:ClearAllPoints()
+                    frame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", x, y)
+                    x, y = nil, nil
+                end
+            )
+        end
         
         if db.EMEOptions.playerFrameResize then
             lib:RegisterResizable(PlayerFrame)
         end
         
-        lib:RegisterCustomCheckbox(PlayerFrame, "Hide Name",
+        lib:RegisterCustomCheckbox(PlayerFrame, L["Hide Name"],
             function()
                 PlayerFrame.name:Hide()
             end,
@@ -47,7 +71,7 @@ function addon:initPlayerFrame()
             "HideName"
         )
         
-        lib:RegisterCustomCheckbox(PlayerFrame, "Hide Icons",
+        lib:RegisterCustomCheckbox(PlayerFrame, L["Hide Icons"],
             function()
                 PlayerFrame.PlayerFrameContent.PlayerFrameContentContextual:Hide()
                 PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.StatusTexture:Hide()
@@ -60,7 +84,7 @@ function addon:initPlayerFrame()
         )
         
         C_Timer.After(4, function()
-            lib:RegisterCustomCheckbox(PlayerFrame, "Hide Level",
+            lib:RegisterCustomCheckbox(PlayerFrame, L["Hide Level"],
                 function()
                     PlayerLevelText:Hide()
                 end,

@@ -21,6 +21,7 @@ if L then
 
 	--L.debuffs_message = "3/5 debuffs, carefull!"
 	--L.debuffs_warning = "4/5 debuffs, %s on 5th!"
+	L.bronze = "Bronzo"
 
 	--L.vulnerability = "Vulnerability Change"
 	--L.vulnerability_desc = "Warn for Vulnerability changes."
@@ -32,8 +33,6 @@ end
 L = BigWigs:NewBossLocale("Nefarian Classic", "itIT")
 if L then
 	--L.engage_yell_trigger = "Let the games begin"
-	--L.landing_soon_trigger = "Well done, my minions"
-	--L.stage2_yell_trigger = "BURN! You wretches"
 	--L.stage3_yell_trigger = "Impossible! Rise my"
 
 	--L.shaman_class_call_yell_trigger = "Shamans"
@@ -64,10 +63,13 @@ end
 L = BigWigs:NewBossLocale("Blackwing Lair Trash", "itIT")
 if L then
 	L.wyrmguard_overseer = "Guardiadragoni dell'Artiglio della Morte / Sovrintendente dell'Artiglio della Morte" -- NPC 12460 / 12461
+	L.sandstorm = "Tempesta di Sabbia"
 
 	--L.target_vulnerability = "Target Vulnerability Warnings"
 	--L.target_vulnerability_desc = "When your target is a Death Talon Wyrmguard or a Death Talon Overseer, show a warning for what vulnerability it has."
 	--L.target_vulnerability_message = "Target Vulnerability: %s"
 	--L.detect_magic_missing_message = "Detect Magic is missing from your target"
 	--L.detect_magic_warning = "A Mage must cast \124cff71d5ff\124Hspell:2855:0\124h[Detect Magic]\124h\124r on your target for vulnerability warnings to work."
+
+	L.warlock = "Stregone dell'Ala Nera" -- NPC 12459
 end

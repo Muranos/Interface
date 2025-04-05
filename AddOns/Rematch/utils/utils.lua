@@ -448,8 +448,8 @@ function rematch.utils:GetBuffIndex(spellID)
     local buff
     repeat
         index = index + 1
-        buff = select(10,UnitBuff("player",index))
-        if buff==spellID then
+        buff = C_UnitAuras.GetBuffDataByIndex("player",index)
+        if buff and buff.spellId==spellID then
             return index
         end
     until not buff
@@ -457,7 +457,7 @@ end
 
 -- returns the name and spellID if safari hat, pet treat, etc item's buff is active
 function rematch.utils:GetItemBuff(itemID)
-    local buffName, spellID = GetItemSpell(itemID)
+    local buffName, spellID = C_Item.GetItemSpell(itemID)
     if buffName and C_UnitAuras.GetPlayerAuraBySpellID(spellID) then
         return buffName, spellID
     end

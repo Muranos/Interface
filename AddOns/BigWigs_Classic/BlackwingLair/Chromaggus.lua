@@ -29,6 +29,7 @@ if L then
 
 	L.debuffs_message = "3/5 debuffs, carefull!"
 	L.debuffs_warning = "4/5 debuffs, %s on 5th!"
+	L.bronze = "Bronze"
 
 	L.vulnerability = "Vulnerability Change"
 	L.vulnerability_desc = "Warn for Vulnerability changes."
@@ -49,19 +50,39 @@ function mod:GetOptions()
 		{"breath", "CASTBAR"},
 		23174, -- Chromatic Mutation
 		"vulnerability",
+		{23170, "ME_ONLY_EMPHASIZE"}, -- Brood Affliction: Bronze
 	},nil,{
 		[23537] = CL.health_percent:format(20), -- Frenzy / Enrage (20% Health)
 		[23174] = CL.mind_control, -- Chromatic Mutation (Mind Control)
+		[23170] = L.bronze, -- Brood Affliction: Bronze (Bronze)
 	}
+end
+
+if mod:GetSeason() == 2 then
+	function mod:GetOptions()
+		return {
+			23128, -- Enrage / Frenzy (different name on classic era)
+			23537, -- Frenzy / Enrage (different name on classic era)
+			{"breath", "CASTBAR"},
+			23174, -- Chromatic Mutation
+			"vulnerability",
+			{23170, "ME_ONLY_EMPHASIZE"}, -- Brood Affliction: Bronze
+			468195, -- Roll Over!
+		},nil,{
+			[23537] = CL.health_percent:format(20), -- Frenzy / Enrage (20% Health)
+			[23174] = CL.mind_control, -- Chromatic Mutation (Mind Control)
+			[23170] = L.bronze, -- Brood Affliction: Bronze (Bronze)
+		}
+	end
 end
 
 function mod:OnRegister()
 	buffList = {
-		[22277] = L.vulnerability_message:format(STRING_SCHOOL_FIRE),
-		[22278] = L.vulnerability_message:format(STRING_SCHOOL_FROST),
-		[22279] = L.vulnerability_message:format(STRING_SCHOOL_SHADOW),
-		[22280] = L.vulnerability_message:format(STRING_SCHOOL_NATURE),
-		[22281] = L.vulnerability_message:format(STRING_SCHOOL_ARCANE),
+		[22277] = L.vulnerability_message:format(CL.fire),
+		[22278] = L.vulnerability_message:format(CL.frost),
+		[22279] = L.vulnerability_message:format(CL.shadow),
+		[22280] = L.vulnerability_message:format(CL.nature),
+		[22281] = L.vulnerability_message:format(CL.arcane),
 	}
 end
 
@@ -80,6 +101,10 @@ function mod:OnBossEnable()
 	)
 	self:Log("SPELL_AURA_APPLIED", "ElementalShield", 22277, 22278, 22279, 22280, 22281) -- Fire, Frost, Shadow, Nature, Arcane
 
+	if self:GetSeason() == 2 then
+		self:Log("SPELL_CAST_SUCCESS", "RollOver", 468195)
+	end
+
 	if self:Vanilla() then
 		BigWigs:Print(L.detect_magic_warning)
 	end
@@ -87,7 +112,7 @@ end
 
 do
 	local function CheckInitWeakness()
-		if not mod:IsEngaged() then return end
+		if not mod:IsEngaged() or prevWeakness then return end
 
 		local unit = mod:GetUnitIdByGUID(14020)
 		if unit then
@@ -103,6 +128,7 @@ do
 						end
 					end
 				else
+					mod:SimpleTimer(CheckInitWeakness, 0.5)
 					if not firstWarning then
 						firstWarning = true
 						mod:Message("vulnerability", "red", L.detect_magic_missing, 2855)
@@ -131,8 +157,10 @@ do
 		prevWeakness = nil
 		firstWarning = false
 
-		self:Bar("breath", 30, CL.count:format(CL.next_ability, 1), "INV_Misc_QuestionMark")
-		self:Bar("breath", 60, CL.count:format(CL.next_ability, 2), "INV_Misc_QuestionMark")
+		if not self:GetPlayerAura(467047) then -- Black Essence
+			self:Bar("breath", 30, CL.count:format(CL.next_ability, 1), "INV_Misc_QuestionMark")
+			self:Bar("breath", 60, CL.count:format(CL.next_ability, 2), "INV_Misc_QuestionMark")
+		end
 
 		self:SimpleTimer(CheckInitWeakness, 1)
 	end
@@ -161,6 +189,9 @@ end
 
 function mod:BroodAffliction(args)
 	if self:Me(args.destGUID) then
+		if args.spellId == 23170 then -- Brood Affliction: Bronze
+			self:PersonalMessage(23170, nil, L.bronze)
+		end
 		debuffCount = debuffCount + 1
 		if debuffCount == 3 then
 			self:Message(23174, "red", L.debuffs_message, args.spellId)
@@ -178,6 +209,9 @@ end
 function mod:BroodAfflictionRemoved(args)
 	if self:Me(args.destGUID) then
 		debuffCount = debuffCount - 1
+		if args.spellId == 23170 then -- Brood Affliction: Bronze
+			self:PersonalMessage(23170, "removed", L.bronze)
+		end
 	end
 end
 
@@ -192,8 +226,10 @@ function mod:Breaths(args)
 
 	self:CastBar("breath", 2, args.spellName, args.spellId)
 	self:Message("breath", "yellow", CL.casting:format(args.spellName), args.spellId)
-	self:Bar("breath", 60, args.spellName, args.spellId)
-	self:PlaySound("breath", "long")
+	if not self:GetPlayerAura(467047) then -- Black Essence
+		self:Bar("breath", 60, args.spellName, args.spellId)
+		self:PlaySound("breath", "long")
+	end
 end
 
 function mod:ElementalShield(args) -- Weaknesses
@@ -206,4 +242,9 @@ function mod:ElementalShield(args) -- Weaknesses
 		self:CDBar("vulnerability", 0.1, buffList[prevWeakness], prevWeakness)
 		self:PlaySound("vulnerability", "info")
 	end
+end
+
+function mod:RollOver(args)
+	self:Message(args.spellId, "cyan")
+	self:PlaySound(args.spellId, "long")
 end

@@ -3,7 +3,6 @@ local _;
 VUHDO_COMBO_MAX_ENTRIES = 10000;
 
 local floor = floor;
-local mod = mod;
 local tonumber = tonumber;
 local strsub = strsub;
 local pairs = pairs;
@@ -12,11 +11,12 @@ local GetLocale = GetLocale;
 local InCombatLockdown = InCombatLockdown;
 local UnitExists = UnitExists;
 local sIsNotInChina = GetLocale() ~= "zhCN" and GetLocale() ~= "zhTW" and GetLocale() ~= "koKR";
-local sIsManaBar;
-local sIsSideBarLeft;
-local sIsSideBarRight;
+local sIsManaBar = { };
+local sIsSideBarLeft = { };
+local sIsSideBarRight = { };
 local sShowPanels;
 local sIsHideEmptyAndClickThrough;
+local sIsPartyFrameHooked;
 local sEmpty = { };
 
 local tEmptyColor = { };
@@ -34,6 +34,7 @@ local VUHDO_CONFIG = { };
 local VUHDO_PANEL_SETUP = { };
 local VUHDO_USER_CLASS_COLORS = { };
 function VUHDO_guiToolboxInitLocalOverrides()
+
 	--VUHDO_getNumbersFromString = _G["VUHDO_getNumbersFromString"];
 
 	VUHDO_CONFIG = _G["VUHDO_CONFIG"];
@@ -45,13 +46,17 @@ function VUHDO_guiToolboxInitLocalOverrides()
 	VUHDO_getHealthBarText = _G["VUHDO_getHealthBarText"];
 	VUHDO_getUnitButtonsSafe = _G["VUHDO_getUnitButtonsSafe"];
 
-	sIsManaBar = VUHDO_INDICATOR_CONFIG["BOUQUETS"]["MANA_BAR"] ~= "";
-	sIsSideBarLeft = VUHDO_INDICATOR_CONFIG["BOUQUETS"]["SIDE_LEFT"] ~= "";
-	sIsSideBarRight = VUHDO_INDICATOR_CONFIG["BOUQUETS"]["SIDE_RIGHT"] ~= "";
+	for tPanelNum = 1, 10 do -- VUHDO_MAX_PANELS
+		sIsManaBar[tPanelNum] = VUHDO_INDICATOR_CONFIG[tPanelNum]["BOUQUETS"]["MANA_BAR"] ~= "";
+		sIsSideBarLeft[tPanelNum] = VUHDO_INDICATOR_CONFIG[tPanelNum]["BOUQUETS"]["SIDE_LEFT"] ~= "";
+		sIsSideBarRight[tPanelNum] = VUHDO_INDICATOR_CONFIG[tPanelNum]["BOUQUETS"]["SIDE_RIGHT"] ~= "";
+	end
+
 	sShowPanels = VUHDO_CONFIG["SHOW_PANELS"];
 	sIsHideEmptyAndClickThrough = VUHDO_CONFIG["HIDE_EMPTY_BUTTONS"]
 		and VUHDO_CONFIG["HIDE_EMPTY_PANELS"]
 		and VUHDO_CONFIG["LOCK_CLICKS_THROUGH"];
+
 end
 ------------------------------------------------------------------------
 
@@ -210,7 +215,9 @@ end
 
 --
 function VUHDO_getManaBarHeight(aPanelNum)
-	return sIsManaBar and VUHDO_PANEL_SETUP[aPanelNum]["SCALING"]["manaBarHeight"] or 0;
+
+	return sIsManaBar[aPanelNum] and VUHDO_PANEL_SETUP[aPanelNum]["SCALING"]["manaBarHeight"] or 0;
+
 end
 local VUHDO_getManaBarHeight = VUHDO_getManaBarHeight;
 
@@ -225,14 +232,18 @@ end
 
 --
 function VUHDO_getSideBarWidthLeft(aPanelNum)
-	return sIsSideBarLeft and VUHDO_PANEL_SETUP[aPanelNum]["SCALING"]["sideLeftWidth"] or 0;
+
+	return sIsSideBarLeft[aPanelNum] and VUHDO_PANEL_SETUP[aPanelNum]["SCALING"]["sideLeftWidth"] or 0;
+
 end
 
 
 
 --
 function VUHDO_getSideBarWidthRight(aPanelNum)
-	return sIsSideBarRight and VUHDO_PANEL_SETUP[aPanelNum]["SCALING"]["sideRightWidth"] or 0;
+
+	return sIsSideBarRight[aPanelNum] and VUHDO_PANEL_SETUP[aPanelNum]["SCALING"]["sideRightWidth"] or 0;
+
 end
 
 
@@ -342,6 +353,7 @@ local VUHDO_BLIZZ_EVENTS = {
 	"READY_CHECK_CONFIRM",
 	"READY_CHECK_FINISHED",
 	"RUNE_POWER_UPDATE",
+	"SPELLS_CHANGED",
 	"UI_SCALE_CHANGED",
 	"UNIT_AURA",
 	"UNIT_CLASSIFICATION_CHANGED",
@@ -535,17 +547,38 @@ end
 
 
 --
+local function VUHDO_updateBlizzPartyFrames()
+
+	if InCombatLockdown() then
+		return;
+	end
+
+	if VUHDO_CONFIG["BLIZZ_UI_HIDE_PARTY"] == 3 then
+		_G["PartyFrame"]:HidePartyFrames();
+	elseif VUHDO_CONFIG["BLIZZ_UI_HIDE_PARTY"] == 1 then
+		for tPartyMemberFrame in _G["PartyFrame"].PartyMemberFramePool:EnumerateActive() do
+			tPartyMemberFrame:Show();
+			tPartyMemberFrame:UpdateMember();
+		end
+
+		_G["PartyFrame"]:UpdatePartyMemberBackground();
+		_G["PartyFrame"]:Layout();
+	end
+
+end
+
+
+
+--
 local function VUHDO_hideBlizzParty()
 	if not EditModeManagerFrame:UseRaidStylePartyFrames() then
 		local tPartyFrame = _G["PartyFrame"];
 
-		hooksecurefunc(tPartyFrame, "UpdatePartyFrames",
-			function()
-				if not InCombatLockdown() then
-					_G["PartyFrame"]:HidePartyFrames();
-				end
-			end
-		);
+		if not sIsPartyFrameHooked then
+			hooksecurefunc(tPartyFrame, "UpdatePartyFrames", VUHDO_updateBlizzPartyFrames);
+
+			sIsPartyFrameHooked = true;
+		end
 
 		for tPartyMemberFrame in tPartyFrame.PartyMemberFramePool:EnumerateActive() do
 			VUHDO_unregisterAndSaveEvents(false, tPartyMemberFrame, tPartyMemberFrame.HealthBar, tPartyMemberFrame.ManaBar);
@@ -572,19 +605,11 @@ local function VUHDO_showBlizzParty()
 	if not EditModeManagerFrame:UseRaidStylePartyFrames() then
 		local tPartyFrame = _G["PartyFrame"];
 
-		hooksecurefunc(tPartyFrame, "UpdatePartyFrames",
-			function()
-				if not InCombatLockdown() then
-					for tPartyMemberFrame in _G["PartyFrame"].PartyMemberFramePool:EnumerateActive() do
-						tPartyMemberFrame:Show();
-						tPartyMemberFrame:UpdateMember();
-					end
+		if not sIsPartyFrameHooked then
+			hooksecurefunc(tPartyFrame, "UpdatePartyFrames", VUHDO_updateBlizzPartyFrames);
 
-					_G["PartyFrame"]:UpdatePartyMemberBackground();
-					_G["PartyFrame"]:Layout();
-				end
-			end
-		);
+			sIsPartyFrameHooked = true;
+		end
 
 		for tPartyMemberFrame in tPartyFrame.PartyMemberFramePool:EnumerateActive() do
 			VUHDO_registerOriginalEvents(false, tPartyMemberFrame, tPartyMemberFrame.HealthBar, tPartyMemberFrame.ManaBar);
@@ -763,20 +788,21 @@ function VUHDO_fixFrameLevels(anIsForceUpdateChildren, aFrame, aBaseLevel, ...)
 	local tChild = select(tCnt, ...);
 	aFrame:SetFrameLevel(aBaseLevel);
 	while tChild do -- Layer components seem to have no name, important for HoT icons.
-		if tChild:GetName() then
-			tOurLevel = aBaseLevel + 1 + (tChild["addLevel"] or 0);
+		if tChild.IsForbidden and not tChild:IsForbidden() then
+			if tChild.GetName and tChild:GetName() then
+				tOurLevel = aBaseLevel + 1 + (tChild["addLevel"] or 0);
 
-			if not tChild["vfl"] then
-				if not VUHDO_isConfigPanelShowing() then
-					tChild:SetFrameStrata(aFrame:GetFrameStrata());
+				if not tChild["vfl"] then
+					if not VUHDO_isConfigPanelShowing() then
+						tChild:SetFrameStrata(aFrame:GetFrameStrata());
+					end
+					tChild:SetFrameLevel(tOurLevel);
+					tChild["vfl"] = true;
+					VUHDO_fixFrameLevels(anIsForceUpdateChildren, tChild, tOurLevel, tChild:GetChildren());
+				elseif(anIsForceUpdateChildren) then
+					VUHDO_fixFrameLevels(true, tChild, tOurLevel, tChild:GetChildren());
 				end
-				tChild:SetFrameLevel(tOurLevel);
-				tChild["vfl"] = true;
-				VUHDO_fixFrameLevels(anIsForceUpdateChildren, tChild, tOurLevel, tChild:GetChildren());
-			elseif(anIsForceUpdateChildren) then
-				VUHDO_fixFrameLevels(true, tChild, tOurLevel, tChild:GetChildren());
 			end
-
 		end
 		tCnt = tCnt + 1;
 		tChild = select(tCnt, ...);
@@ -982,8 +1008,40 @@ end
 
 
 --
-function VUHDO_indicatorTextCallback(aBarNum, aUnit, aPanelNum, aProviderName, aText, aValue)
+local tPanelNum;
+function VUHDO_indicatorTextCallback(aBarNum, aUnit, aProviderName, aText, aValue, anIndicatorName)
+
 	for _, tButton in pairs(VUHDO_getUnitButtonsSafe(aUnit)) do
-		VUHDO_getHealthBarText(tButton, aBarNum):SetText(aText);
+		tPanelNum = VUHDO_BUTTON_CACHE[tButton];
+
+		if VUHDO_INDICATOR_CONFIG[tPanelNum]["TEXT_INDICATORS"][anIndicatorName]["TEXT_PROVIDER"] == aProviderName then
+			VUHDO_getHealthBarText(tButton, aBarNum):SetText(aText);
+		end
 	end
+
+end
+
+
+
+--
+local VUHDO_COLOR_CACHE = { };
+local tColorCacheKey;
+local tColor;
+function VUHDO_getOrCreateCachedColor(aR, aG, aB, aO)
+
+	if not aR or not aG or not aB then
+		return;
+	end
+
+	tColorCacheKey = aR .. "|" .. aG .. "|" .. aB ..  "|" .. (aO or "");
+
+	if VUHDO_COLOR_CACHE[tColorCacheKey] then
+		return VUHDO_COLOR_CACHE[tColorCacheKey];
+	else
+		tColor = CreateColor(aR, aG, aB, aO);
+		VUHDO_COLOR_CACHE[tColorCacheKey] = tColor;
+
+		return tColor;
+	end
+
 end

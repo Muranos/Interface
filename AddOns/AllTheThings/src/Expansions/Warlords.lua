@@ -4,12 +4,16 @@ local _, app = ...;
 -- Check to see if Garrison APIs are available for Warlords
 local C_Garrison = C_Garrison;
 if not C_Garrison then
-	app.CreateGarrisonBuilding = app.CreateUnimplementedClass("GarrisonBuilding", "garrisonBuildingID");
+	app.CreateGarrisonBuilding = app.CreateUnimplementedClass("GarrisonBuilding", "garrisonbuildingID");
 	app.CreateGarrisonMission = app.CreateUnimplementedClass("GarrisonMission", "missionID");
 	app.CreateGarrisonTalent = app.CreateUnimplementedClass("GarrisonTalent", "garrisonTalentID");
 	app.CreateFollower = app.CreateUnimplementedClass("Follower", "followerID");
 	return
 end
+
+-- WoW API Cache
+local GetItemInfo = app.WOWAPI.GetItemInfo;
+local GetItemIcon = app.WOWAPI.GetItemIcon;
 
 local select, setmetatable, pairs
 	= select, setmetatable, pairs
@@ -17,9 +21,9 @@ local L = app.L;
 
 -- Buildings
 do
-	local KEY, CACHE = "garrisonBuildingID", "GarrisonBuildings"
-	local C_Garrison_GetBuildingInfo, GetItemInfo, GetItemInfoInstant
-		= C_Garrison.GetBuildingInfo, GetItemInfo, GetItemInfoInstant;
+	local KEY, CACHE = "garrisonbuildingID", "GarrisonBuildings"
+	local C_Garrison_GetBuildingInfo
+		= C_Garrison.GetBuildingInfo;
 	local GarrisonBuildingInfoMeta = { __index = function(t, key)
 		local _, name, _, icon, lore = C_Garrison_GetBuildingInfo(t[KEY]);
 		if not name then return nil; end
@@ -53,7 +57,7 @@ do
 			return L.GARRISON_BUILDINGS_REQUIRE_GARRISON
 		end,
 		icon = function(t)
-			return select(5, GetItemInfoInstant(t.itemID)) or t.info.icon;
+			return GetItemIcon(t.itemID) or t.info.icon;
 		end,
 		link = function(t)
 			return select(2, GetItemInfo(t.itemID)) or RETRIEVING_DATA;
@@ -71,11 +75,7 @@ do
 		-- we collect the "Recipes" to know how to build the buildings
 		collectible = function(t) return app.Settings.Collectibles.Recipes; end,
 		collected = function(t)
-			local id = t[KEY];
-			-- character collected
-			if app.IsCached(CACHE, id) then return 1; end
-			-- account-wide collected
-			if app.IsAccountTracked(CACHE, id) then return 2; end
+			return app.TypicalCharacterCollected(CACHE, t[KEY])
 		end,
 	}, (function(t) return t.itemID; end));
 
@@ -111,9 +111,13 @@ do
 			return C_Garrison_GetMissionName(t.missionID);
 		end,
 		icon = function(t)
-			return "Interface/ICONS/INV_Icon_Mission_Complete_Order";
+			return 1103070;
 		end,
 	});
+	-- Information Types
+	app.AddEventHandler("OnLoad", function()
+		app.Settings.CreateInformationType("missionID", { text = L.MISSION_ID })
+	end)
 end
 
 -- Talents
@@ -123,7 +127,7 @@ do
 		local info = C_Garrison_GetTalentInfo(t.garrisonTalentID);
 		if not info then return nil; end
 		t.name = info.name;
-		t.icon = info.icon or "Interface/ICONS/INV_Icon_Mission_Complete_Order";
+		t.icon = info.icon or 1103070;
 		t.description = info.description;
 		setmetatable(t, nil);
 		return t[key];
@@ -146,7 +150,6 @@ do
 		description = function(t)
 			return t.info.description;
 		end,
-		trackable = app.ReturnTrue,
 		saved = function(t)
 			return C_Garrison_GetTalentInfo(t.garrisonTalentID).researched;
 		end,
@@ -156,6 +159,7 @@ end
 -- Followers (Not Warlords exclusive, but the API originally was added with Warlords!)
 do
 	local KEY, CACHE = "followerID", "Followers"
+	local CLASSNAME = "Follower"
 	local C_Garrison_GetFollowerInfo, C_Garrison_GetFollowerLinkByID, C_Garrison_IsFollowerCollected
 		= C_Garrison.GetFollowerInfo, C_Garrison.GetFollowerLinkByID, C_Garrison.IsFollowerCollected;
 	local cache = app.CreateCache(KEY);
@@ -173,7 +177,7 @@ do
 		_t.link = C_Garrison_GetFollowerLinkByID(id);
 		if field then return _t[field]; end
 	end
-	app.CreateFollower = app.CreateClass("Follower", KEY, {
+	app.CreateFollower = app.CreateClass(CLASSNAME, KEY, {
 		name = function(t)
 			return cache.GetCachedField(t, "name", CacheInfo);
 		end,
@@ -187,7 +191,7 @@ do
 			return cache.GetCachedField(t, "title", CacheInfo);
 		end,
 		displayID = function(t)
-			-- return cache.GetCachedField(t, "displayID", CacheInfo);
+			return cache.GetCachedField(t, "displayID", CacheInfo);
 		end,
 		link = function(t)
 			return cache.GetCachedField(t, "link", CacheInfo);
@@ -195,15 +199,11 @@ do
 		description = function(t)
 			return L.FOLLOWERS_COLLECTION_DESC;
 		end,
+		RefreshCollectionOnly = true,
 		collectible = function(t) return app.Settings.Collectibles[CACHE]; end,
 		collected = function(t)
-			local id = t[KEY];
-			-- character collected
-			if app.IsCached(CACHE, id) then return 1; end
-			-- account-wide collected
-			if app.IsAccountTracked(CACHE, id) then return 2; end
+			return app.TypicalCharacterCollected(CACHE, t[KEY])
 		end,
-		trackable = app.ReturnTrue,
 		saved = function(t)
 			local id = t[KEY];
 			-- character collected
@@ -229,6 +229,7 @@ do
 			if not currentCharacter[CACHE] then currentCharacter[CACHE] = {} end
 			if not accountWideData[CACHE] then accountWideData[CACHE] = {} end
 		end);
+		app.AddSimpleCollectibleSwap(CLASSNAME, CACHE)
 	});
 end
 
@@ -236,7 +237,7 @@ end
 local function common_wod_dungeon_drop(ResolveFunctions)
 	local select, pop, where = ResolveFunctions.select, ResolveFunctions.pop, ResolveFunctions.where;
 	return function(finalized, searchResults, o, cmd, difficultyID, headerID)
-		select(finalized, searchResults, o, "select", "headerID", app.HeaderConstants.COMMON_DUNGEON_DROP);	-- Common Dungeon Drops
+		select(finalized, searchResults, o, "select", "headerID", app.HeaderConstants.COMMON_DUNGEON_DROPS);	-- Common Dungeon Drops
 		pop(finalized, searchResults);	-- Discard the Header and acquire all of their children.
 		where(finalized, searchResults, o, "where", "difficultyID", difficultyID);	-- Normal/Heroic/Mythic/Timewalking
 		pop(finalized, searchResults);	-- Discard the Diffculty Header and acquire all of their children.
@@ -246,7 +247,7 @@ end
 local function common_wod_dungeon_drop_tw(ResolveFunctions)
 	local select, pop, where = ResolveFunctions.select, ResolveFunctions.pop, ResolveFunctions.where;
 	return function(finalized, searchResults, o, cmd, difficultyID, headerID)
-		select(finalized, searchResults, o, "select", "headerID", app.HeaderConstants.COMMON_DUNGEON_DROP);	-- Common Dungeon Drops
+		select(finalized, searchResults, o, "select", "headerID", app.HeaderConstants.COMMON_DUNGEON_DROPS);	-- Common Dungeon Drops
 		where(finalized, searchResults, o, "where", "e", 1271);	-- only the Common Dungeon Drops which is marked as TIMEWALKING
 		pop(finalized, searchResults);	-- Discard the Header and acquire all of their children.
 		where(finalized, searchResults, o, "where", "headerID", headerID);	-- Head/Shoulder/Chest/Legs/Feet/Wrist/Hands/Waist

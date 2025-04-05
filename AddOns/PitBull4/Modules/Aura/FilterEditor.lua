@@ -2,6 +2,7 @@
 
 local PitBull4 = _G.PitBull4
 local L = PitBull4.L
+
 local PitBull4_Aura = PitBull4:GetModule("Aura")
 
 -- The type of control to use for multiselect options in the Filter Editor.
@@ -119,8 +120,8 @@ local function any_layout_uses_filter(filter)
 	return false
 end
 
-local _,player_class = UnitClass('player')
-local _,player_race = UnitRace('player')
+local player_class = UnitClassBase("player")
+local _, player_race = UnitRace("player")
 local function filter_from_map(map)
 	local filters = PitBull4_Aura.db.profile.global.filters
 	local map_filter = filters[map]

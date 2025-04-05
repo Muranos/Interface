@@ -34,6 +34,14 @@ app.containsValue = function(dict, value)
 		if value2 == value then return true; end
 	end
 end
+app.containsAnyKey = function(dict, arr)
+	local count = #arr
+	local k
+	for j=1,count do
+		k = arr[j]
+		if dict[k] ~= nil then return k end
+	end
+end
 app.indexOf = function(arr, value)
 	local count = #arr;
 	for i=1,count,1 do
@@ -48,7 +56,7 @@ app.TableConcat = function(tbl, field, def, sep, i, j)
 		if field then
 			local tblvals = {};
 			for _,val in ipairs(tbl) do
-				tinsert(tblvals, val[field] or def);
+				tblvals[#tblvals + 1] = val[field] or def
 			end
 			return table_concat(tblvals, sep, i, j);
 		else
@@ -62,13 +70,12 @@ app.ArrayAppend = function(a1, ...)
 	local arrs = select("#", ...);
 	if arrs > 0 then
 		a1 = a1 or {};
-		local i, a = #a1 + 1, nil;
+		local a
 		for n=1,arrs do
 			a = select(n, ...);
 			if a then
 				for ai=1,#a do
-					a1[i] = a[ai];
-					i = i + 1;
+					a1[#a1 + 1] = a[ai];
 				end
 			end
 		end

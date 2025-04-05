@@ -5,6 +5,8 @@ local R = Rarity
 local GUI = Rarity.GUI
 local CONSTANTS = addonTable.constants
 
+--- WoW API
+local GetItemInfo = _G.C_Item.GetItemInfo
 local GetBestMapForUnit = C_Map.GetBestMapForUnit
 local IsWorldQuestActive = C_TaskQuest.IsActive
 local IsQuestFlaggedCompleted = _G.C_QuestLog.IsQuestFlaggedCompleted
@@ -817,7 +819,7 @@ end
 local function addGroup(group, requiresGroup)
 	local trackedItem = Rarity.Tracking:GetTrackedItem()
 
-	R:ProfileStart2()
+	R.Profiling:StartTimer("GUI.MainWindow.AddGroup." .. group.name)
 
 	local addGroupStart = debugprofilestop()
 
@@ -1091,11 +1093,12 @@ local function addGroup(group, requiresGroup)
 								status = colorize(L["Unavailable"], gray)
 							end
 						end
-
-						if v.requiresCovenant and v.requiredCovenantID ~= nil then
-							local activeCovenantID = C_Covenants.GetActiveCovenantID()
-							if activeCovenantID ~= v.requiredCovenantID then
-								status = colorize(L["Unavailable"], gray)
+						if LE_EXPANSION_LEVEL_CURRENT >= LE_EXPANSION_SHADOWLANDS then
+							if v.requiresCovenant and v.requiredCovenantID ~= nil then
+								local activeCovenantID = C_Covenants.GetActiveCovenantID()
+								if activeCovenantID ~= v.requiredCovenantID then
+									status = colorize(L["Unavailable"], gray)
+								end
 							end
 						end
 
@@ -1337,20 +1340,7 @@ local function addGroup(group, requiresGroup)
 
 	local addGroupEnd = debugprofilestop()
 
-	R:ProfileStop2(
-		"addGroup("
-			.. group.name
-			.. ", "
-			.. tostring(requiresGroup)
-			.. ") took %fms"
-			.. format(
-				" (Total: %f, Sort: %f, Iteration: %f, Tooltip: %f",
-				(addGroupEnd - addGroupStart),
-				(addGroupSortEnd - addGroupSortStart),
-				(addGroupIterationEnd - addGroupSortEnd),
-				(addGroupEnd - addGroupIterationEnd)
-			)
-	)
+	R.Profiling:EndTimer("GUI.MainWindow.AddGroup." .. group.name)
 
 	return added, itemsExistInThisGroup
 end
@@ -1409,6 +1399,8 @@ function R:ShowTooltip(hidden)
 		tooltip:SetScale(self.db.profile.tooltipScale or 1)
 	end
 
+	self.Profiling:StartTimer("GUI.MainWindow.ShowTooltip")
+
 	table.wipe(headers)
 	local addedLast
 	local itemsExistInThisGroup
@@ -1416,7 +1408,8 @@ function R:ShowTooltip(hidden)
 	showedHolidayReminderOverflow = false
 	local delay
 	if self.db.profile.tooltipHideDelay <= 0 then
-		delay = 0.01
+		local hideOnClick = (Rarity.db.profile.tooltipActivation == CONSTANTS.TOOLTIP.ACTIVATION_METHOD_CLICK)
+		delay = hideOnClick and 0 or 0.01 -- Hiding manually is only possible when not in hover mode
 	else
 		delay = self.db.profile.tooltipHideDelay or 0.6
 	end
@@ -1482,7 +1475,6 @@ function R:ShowTooltip(hidden)
 	tooltip:SetLineScript(line, "OnMouseUp", OnHeaderClicked)
 
 	-- Item groups
-	R:ProfileStart()
 
 	local somethingAdded = false
 
@@ -1594,21 +1586,6 @@ function R:ShowTooltip(hidden)
 		)
 	end
 
-	R:ProfileStop(
-		"Tooltip rendering took %fms"
-			.. format(
-				" (%f, %f, %f, %f, %f, %f, %f, %f)",
-				(group1end - group1start),
-				(group2end - group2start),
-				(group3end - group3start),
-				(group4end - group4start),
-				(group5end - group5start),
-				(group6end - group6start),
-				(group7end - group7start),
-				(group8end - group8start)
-			)
-	)
-
 	-- Footer
 	line = tooltip:AddLine()
 	tooltip:SetCell(line, 1, colorize(L["Click to toggle the progress bar"], gray), nil, nil, 3)
@@ -1628,6 +1605,9 @@ function R:ShowTooltip(hidden)
 			)
 		end
 	end
+
+	self.Profiling:EndTimer("GUI.MainWindow.ShowTooltip")
+
 	if hidden == true or Rarity.frame == nil then
 		renderingTip = false
 		return

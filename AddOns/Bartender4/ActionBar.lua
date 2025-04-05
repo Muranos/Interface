@@ -13,6 +13,11 @@ local WoW10 = select(4, GetBuildInfo()) >= 100000
 
 local tonumber, format, min = tonumber, format, min
 
+local GetSpellBookItemInfo = GetSpellBookItemInfo
+if C_SpellBook and C_SpellBook.GetSpellBookItemType then
+	GetSpellBookItemInfo = function(index, book) assert(book == "spell") return C_SpellBook.GetSpellBookItemType(index, Enum.SpellBookSpellBank.Player) end
+end
+
 -- GLOBALS: UIParent, VehicleExit
 
 --[[===================================================================================
@@ -152,17 +157,30 @@ local UpdateSmartTarget = [[
 		end
 		if type == "spell" and action > 0 then
 			if BT_Spell_Overrides[action] then action = BT_Spell_Overrides[action] end
-			local id, subtype = FindSpellBookSlotBySpellID(action), "spell"
-			if id and id > 0 then
-				if IsHelpfulSpell(id, subtype) == IsHarmfulSpell(id, subtype) then
+			if IsSpellHarmful and IsSpellHelpful then
+				if IsSpellHelpful(action) == IsSpellHarmful(action) then
 					self:SetAttribute("targettype", 3)
 					self:SetAttribute("unit", self:GetAttribute("target_all"))
-				elseif IsHelpfulSpell(id, subtype) then
+				elseif IsSpellHelpful(action) then
 					self:SetAttribute("targettype", 1)
 					self:SetAttribute("unit", self:GetAttribute("target_help"))
-				elseif IsHarmfulSpell(id, subtype) then
+				elseif IsSpellHarmful(action) then
 					self:SetAttribute("targettype", 2)
 					self:SetAttribute("unit", self:GetAttribute("target_harm"))
+				end
+			else
+				local id, subtype = FindSpellBookSlotBySpellID(action), "spell"
+				if id and id > 0 then
+					if IsHelpfulSpell(id, subtype) == IsHarmfulSpell(id, subtype) then
+						self:SetAttribute("targettype", 3)
+						self:SetAttribute("unit", self:GetAttribute("target_all"))
+					elseif IsHelpfulSpell(id, subtype) then
+						self:SetAttribute("targettype", 1)
+						self:SetAttribute("unit", self:GetAttribute("target_help"))
+					elseif IsHarmfulSpell(id, subtype) then
+						self:SetAttribute("targettype", 2)
+						self:SetAttribute("unit", self:GetAttribute("target_harm"))
+					end
 				end
 			end
 		end
@@ -177,17 +195,19 @@ function ActionBar:SetupSmartTarget()
 	]]
 
 	local i = 1
-	local subtype, action = GetSpellBookItemInfo(i, "spell")
+	local subtype, action, spellId = GetSpellBookItemInfo(i, "spell")
 	while subtype do
 		if subtype == "SPELL" then
-			local spellId = select(7, GetSpellInfo(i, "spell"))
+			if not (C_SpellBook and C_SpellBook.GetSpellBookItemType) then
+				spellId = select(7, GetSpellInfo(i, "spell"))
+			end
 			if spellId and spellId ~= action then
 				s = s .. "\n" .. ([[ BT_Spell_Overrides[%d] = %d ]]):format(spellId, action)
 			end
 		end
 
 		i = i + 1
-		subtype, action = GetSpellBookItemInfo(i, "spell")
+		subtype, action, spellId = GetSpellBookItemInfo(i, "spell")
 	end
 
 	self:Execute(s)

@@ -31,6 +31,7 @@ DF.Math = {}
 ---@field GetBezierPoint fun(value: number, point1: table, point2: table, point3: table) : number find a point in a bezier curve
 ---@field LerpNorm fun(minValue: number, maxValue: number, value: number) : number normalized value 0-1 result in the value on the range given, e.g 200-400 range with a value of .5 result in 300
 ---@field LerpLinearColor fun(deltaTime: number, interpSpeed: number, r1: number, g1: number, b1: number, r2: number, g2: number, b2: number) : number, number, number change the color by the deltaTime
+---@field InvertInRange fun(minValue: number, maxValue: number, value: number) : number invert the value in a range, example: InvertInRange(0, 1, 0.75) return 0.25, InvertInRange(0, 100, 75) return 25, InvertInRange(-1, 1, 0.5) return -0.5, InvertInRange(-3, 1, -0.75) return -2.25
 ---@field IsNearlyEqual fun(value1: number, value2: number, tolerance: number) : boolean check if a number is near another number by a tolerance
 ---@field IsNearlyZero fun(value: number, tolerance: number) : boolean check if a number is near zero
 ---@field IsWithin fun(minValue: number, maxValue: number, value: number, isInclusive: boolean) : boolean check if a number is within a two other numbers, if isInclusive is true, it'll  include the max value
@@ -40,12 +41,113 @@ DF.Math = {}
 ---@field MultiplyBy fun(value: number, ...) : ... multiply all the passed values by value.
 ---@field MapRangeColor fun(inputX: number, inputY: number, outputX: number, outputY: number, red: number, green: number, blue: number) : number, number, number
 ---@field RandomFraction fun(minValue: number, maxValue: number) : number
+---@field GetNinePoints fun(object: uiobject) : df_ninepoints
+---@field GetClosestPoint fun(ninePoints: df_ninepoints, coordinate: df_coordinate) : anchorid
+---@field GetVectorLength fun(vectorX: number, vectorY: number, vectorZ: number?) : number return the magnitude of a vector
+---@field GetSortFractionFromString fun(str: string) : number return a fraction based on the string first two leters, useful for sorting cases where the number repeats
+
+---@class df_coordinate : table
+---@field x number
+---@field y number
+
+---@class df_ninepoints : df_coordinate[]
+---@field GetClosestPoint fun(ninePoints: df_ninepoints, coordinate: df_coordinate) : anchorid
+
+---this function receives a df_ninepoints and a df_coordinate, iterates among the points and return the closest point to the given coordinate
+---@param ninePoints df_ninepoints
+---@param coordinate df_coordinate
+---@return anchorid, number, number, number, number
+function DF.Math.GetClosestPoint(ninePoints, coordinate)
+	local closestPoint = 1
+	local closestDistance = DF.Math.GetPointDistance(ninePoints[1].x, ninePoints[1].y, coordinate.x, coordinate.y)
+
+	--get the x and y offset from the closest point to the given coordinate
+	local offsetX = coordinate.x - ninePoints[1].x
+	local offsetY = coordinate.y - ninePoints[1].y
+
+	for i = 2, #ninePoints do
+		local distance = DF.Math.GetPointDistance(ninePoints[i].x, ninePoints[i].y, coordinate.x, coordinate.y)
+		if (distance < closestDistance) then
+			closestDistance = distance
+			closestPoint = i
+
+			--updade the offset
+			offsetX = coordinate.x - ninePoints[i].x
+			offsetY = coordinate.y - ninePoints[i].y
+		end
+	end
+
+	return closestPoint, offsetX, offsetY, ninePoints[closestPoint].x, ninePoints[closestPoint].y
+end
+
+---this function receives an object and get the location of the topleft, left, bottomleft, bottom, bottomright, right, topright, top and center points
+---return a table with subtables with x and y values for each point
+---@param object uiobject
+---@return df_ninepoints
+function DF.Math.GetNinePoints(object)
+	local centerX, centerY = object:GetCenter()
+	local width = object:GetWidth()
+	local height = object:GetHeight()
+
+	local halfWidth = width / 2
+	local halfHeight = height / 2
+
+	---@type df_ninepoints
+	local ninePoints = {
+		{x = centerX - halfWidth, y = centerY + halfHeight}, --topleft 1
+		{x = centerX - halfWidth, y = centerY}, --left 2
+		{x = centerX - halfWidth, y = centerY - halfHeight}, --bottomleft 3
+		{x = centerX, y = centerY - halfHeight}, --bottom 4
+		{x = centerX + halfWidth, y = centerY - halfHeight}, --bottomright 5
+		{x = centerX + halfWidth, y = centerY}, --right 6
+		{x = centerX + halfWidth, y = centerY + halfHeight}, --topright 7
+		{x = centerX, y = centerY + halfHeight}, --top 8
+		{x = centerX, y = centerY}, --center 9
+		GetClosestPoint = DF.Math.GetClosestPoint
+	}
+
+	--debug
+	--[=[
+	local f = CreateFrame("frame", nil, UIParent)
+	f:SetFrameStrata("TOOLTIP")
+	f:SetSize(1, 1)
+	f:SetPoint("center", UIParent, "center", 0, 0)
+	for i = 1, #ninePoints do
+		local point = ninePoints[i]
+
+		local t = f:CreateTexture(nil, "overlay")
+		t:SetColorTexture(1, 0, 0, 1)
+		t:SetSize(2, 2)
+		t:SetPoint("bottomleft", UIParent, "bottomleft", point.x, point.y)
+	end
+	--]=]
+
+	return ninePoints
+end
+
+function DF.Math.GetSortFractionFromString(str)
+	local name = string.upper(str) .. "ZZ"
+	local byte1 = abs(string.byte(name, 2)-91) / 1000000
+	return byte1 + abs(string.byte(name, 1)-91) / 10000
+end
+
+function DF.Math.GetVectorLength(vectorX, vectorY, vectorZ)
+	if (not vectorZ) then
+		return (vectorX * vectorX + vectorY * vectorY) ^ 0.5
+	end
+	return (vectorX * vectorX + vectorY * vectorY + vectorZ * vectorZ) ^ 0.5
+end
 
 ---return a random fraction between two values, example: RandomFraction(.2, .3) returns a number between .2 and .3, 0.25, 0.28, 0.21, etc
 function DF.Math.RandomFraction(minValue, maxValue)
     minValue = minValue or 0
     maxValue = maxValue or 1
     return DF.Math.MapRangeClamped(0, 1, minValue, maxValue, math.random())
+end
+
+---invert the value in a range, example: InvertInRange(0, 1, 0.75) return 0.25, InvertInRange(0, 100, 75) return 25, InvertInRange(-1, 1, 0.5) return -0.5, InvertInRange(-3, 1, -0.75) return -2.25
+function DF.Math.InvertInRange(minValue, maxValue, value)
+	return DF.Math.GetRangeValue(minValue, maxValue, 1 - DF.Math.GetRangePercent(minValue, maxValue, value))
 end
 
 ---find distance between two units
@@ -208,6 +310,14 @@ end
 function DF:GetBezierPoint(value, point1, point2, point3)
 	return DF.Math.GetBezierPoint(value, point1, point2, point3)
 end
+
+function DF:GetVectorLength(vectorX, vectorY, vectorZ)
+	if (not vectorZ) then
+		return (vectorX * vectorX + vectorY * vectorY) ^ 0.5
+	end
+	return (vectorX * vectorX + vectorY * vectorY + vectorZ * vectorZ) ^ 0.5
+end
+
 --normalized value 0-1 result in the value on the range given, e.g 200-400 range with a value of .5 result in 300
 function DF:LerpNorm(minValue, maxValue, value)
 	return (minValue + value * (maxValue - minValue))

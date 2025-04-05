@@ -57,7 +57,7 @@ end
 local LDB = LibStub("LibDataBroker-1.1"):NewDataObject("MythicDungeonTools", {
   type = "data source",
   text = "Mythic Dungeon Tools",
-  icon = "Interface\\AddOns\\"..AddonName.."\\Textures\\NnoggieMinimap",
+  icon = "Interface\\AddOns\\"..AddonName.."\\Textures\\MDTMinimap",
   OnClick = function(button, buttonPressed)
     if buttonPressed == "RightButton" then
       if db.minimap.lock then
@@ -156,7 +156,6 @@ local defaultSavedVars = {
     enemyForcesFormat = 2,
     useForcesCount = false, -- replaces percent in pull buttons with count
     enemyStyle = 1,
-    currentDungeonIdx = 100,
     currentDifficulty = 10,
     xoffset = -80,
     yoffset = -100,
@@ -182,7 +181,9 @@ local defaultSavedVars = {
       customPaletteValues = {},
       numberCustomColors = 12,
     },
-    selectedDungeonList = 8,
+    currentDungeonIdx = 115, -- set this one every new season
+    latestDungeonSeen = 0,
+    selectedDungeonList = 1,
     knownAffixWeeks = {},
   },
 }
@@ -199,6 +200,10 @@ do
     }
     defaultSavedVars.global.currentPreset[i] = 1
   end
+end
+
+function MDT:GetDefaultSavedVariables()
+  return defaultSavedVars
 end
 
 -- Init db
@@ -269,10 +274,6 @@ do
   function MDT.PLAYER_ENTERING_WORLD()
     --initialize Blizzard_ChallengesUI
     C_Timer.After(1, function()
-      LoadAddOn("Blizzard_ChallengesUI")
-      C_MythicPlus.RequestCurrentAffixes()
-      C_MythicPlus.RequestMapInfo()
-      C_MythicPlus.RequestRewards()
       if db.loadOnStartUp and db.devMode then MDT:Async(function() MDT:ShowInterfaceInternal(true) end, "showInterface") end
     end)
     eventFrame:UnregisterEvent("PLAYER_ENTERING_WORLD")
@@ -283,16 +284,16 @@ end
 --https://www.wowhead.com/affixes
 --lvl 4 affix, lvl 7 affix, tyrannical/fortified, seasonal affix
 local affixWeeks = {
-  [1] = { 136, 8, 10 },
-  [2] = { 134, 11, 9 },
-  [3] = { 3, 123, 10 },
-  [4] = { 124, 6, 9 },
-  [5] = { 134, 7, 10 },
-  [6] = { 136, 123, 9 },
-  [7] = { 135, 6, 10 },
-  [8] = { 3, 8, 9 },
-  [9] = { 124, 11, 10 },
-  [10] = { 135, 7, 9 },
+  [1] = { 9, 148 },
+  [2] = { 10 },
+  [3] = { 9 },
+  [4] = { 10 },
+  [5] = { 9 },
+  [6] = { 10 },
+  [7] = { 9 },
+  [8] = { 10 },
+  [9] = { 9 },
+  [10] = { 10 },
 }
 
 MDT.mapInfo = {}
@@ -312,16 +313,13 @@ MDT.dungeonList = {
 
 function MDT:IsOnBetaServer()
   local realm = GetRealmName()
+  local regionID = GetCurrentRegion()
+  if regionID <= 5 then return false end
   local realms = {
-    ["Anasterian"] = true,
-    ["Benedictus"] = true,
-    ["Broxigar"] = true,
-    ["Lycanthoth"] = true,
-    ["Nobundo"] = true,
-    ["Fyrakk"] = true,
-    ["Iridikron"] = true,
-    ["Raszageth"] = true,
-    ["Vyranoth"] = true,
+    ["These Go To Eleven"] = true,
+    ["Turnips Delight"] = true,
+    ["Alleria"] = true,
+    ["Khadgar"] = true,
   }
   return realms[realm]
 end
@@ -334,7 +332,13 @@ function MDT:GetNumDungeons()
   return count
 end
 
-function MDT:GetDungeonName(idx) return MDT.dungeonList[idx] end
+function MDT:GetDungeonName(idx, forceEnglish)
+  -- don't fail hard for legacy dungeons
+  if forceEnglish and MDT.mapInfo[idx].englishName then
+    return MDT.mapInfo[idx].englishName
+  end
+  return MDT.dungeonList[idx]
+end
 
 function MDT:GetDungeonSublevels()
   return MDT.dungeonSubLevels
@@ -354,6 +358,10 @@ function MDT:ShowInterface(force)
 end
 
 function MDT:ShowInterfaceInternal(force)
+  if not self:IsCompatibleVersion() then
+    self:ShowFallbackWindow()
+    return
+  end
   if self:CheckAddonConflicts() then
     self.ShowConflictFrame()
     return
@@ -365,7 +373,6 @@ function MDT:ShowInterfaceInternal(force)
     MDT:HideInterface()
   else
     self.main_frame:Show()
-    self.main_frame.HelpButton:Show()
     self:CheckCurrentZone()
     --edge case if user closed MDT window while in the process of dragging a corrupted blip
     if self.draggedBlip then
@@ -382,9 +389,6 @@ end
 function MDT:HideInterface()
   if self.main_frame then
     self.main_frame:Hide()
-    if self.main_frame.HelpButton then
-      self.main_frame.HelpButton:Hide()
-    end
   end
 end
 
@@ -447,8 +451,6 @@ function MDT:CreateMenu()
   setLivePresetButton:SetFrameLevel(4)
   setLivePresetButton.tooltip = L["Make this preset the live preset"]
 
-  self:SkinMenuButtons()
-
   --Resize Handle
   self.main_frame.resizer = CreateFrame("BUTTON", nil, self.main_frame.sidePanel)
   local resizer = self.main_frame.resizer
@@ -469,7 +471,6 @@ function MDT:CreateMenu()
     self.main_frame:StopMovingOrSizing()
     self:UpdateEnemyInfoFrame()
     self:UpdateMap()
-    self:CreateTutorialButton(self.main_frame)
     self:UpdateBottomText()
     self.main_frame:SetScript("OnSizeChanged", function()
     end)
@@ -494,25 +495,6 @@ function MDT:CreateMenu()
   resizer:SetHighlightTexture(highlight)
 end
 
-function MDT:SkinMenuButtons()
-  --attempt to skin close button for ElvUI
-  if IsAddOnLoaded("ElvUI") and ElvUI then
-    local E, L, V, P, G = unpack(ElvUI)
-    local S
-    if E then S = E:GetModule("Skins") end
-    if S then
-      S:HandleCloseButton(self.main_frame.closeButton)
-      S:HandleMaxMinFrame(self.main_frame.maximizeButton)
-      S:HandleButton(self.main_frame.liveReturnButton)
-      self.main_frame.liveReturnButton:Size(26)
-      --self.main_frame.liveReturnButton.Icon:SetVertexColor(0,1,1,1)
-      S:HandleButton(self.main_frame.setLivePresetButton)
-      self.main_frame.setLivePresetButton:Size(26)
-      self.main_frame.setLivePresetButton.Icon:SetVertexColor(1, .82, 0, 0.8)
-    end
-  end
-end
-
 ---GetDefaultMapPanelSize
 function MDT:GetDefaultMapPanelSize()
   return sizex, sizey
@@ -534,7 +516,6 @@ function MDT:StartScaling()
   oldScrollValues.oldScrollV = f.scrollFrame:GetVerticalScroll()
   oldScrollValues.oldSizeX = f.scrollFrame:GetWidth()
   oldScrollValues.oldSizeY = f.scrollFrame:GetHeight()
-  HelpPlate_Hide(true)
   self:DungeonEnemies_HideAllBlips()
   self:POI_HideAllPoints()
   self:KillAllAnimatedLines()
@@ -584,26 +565,6 @@ function MDT:SkinProgressBar(progressBar)
   if not bar then return end
   bar.Icon:Hide()
   bar.IconBG:Hide()
-  if IsAddOnLoaded("ElvUI") and ElvUI then
-    local E, L, V, P, G = unpack(ElvUI)
-    if bar.BarFrame then bar.BarFrame:Hide() end
-    if bar.BarFrame2 then bar.BarFrame2:Hide() end
-    if bar.BarFrame3 then bar.BarFrame3:Hide() end
-    if bar.BarGlow then bar.BarGlow:Hide() end
-    if bar.Sheen then bar.Sheen:Hide() end
-    if bar.IconBG then bar.IconBG:SetAlpha(0) end
-    if bar.BorderLeft then bar.BorderLeft:SetAlpha(0) end
-    if bar.BorderRight then bar.BorderRight:SetAlpha(0) end
-    if bar.BorderMid then bar.BorderMid:SetAlpha(0) end
-    bar:Height(18)
-    bar:StripTextures()
-    bar:CreateBackdrop("Transparent")
-    bar:SetStatusBarTexture(E.media.normTex)
-    local label = bar.Label
-    if not label then return end
-    label:ClearAllPoints()
-    label:SetPoint("CENTER", bar, "CENTER")
-  end
 end
 
 function MDT:IsFrameOffScreen()
@@ -658,12 +619,10 @@ function MDT:MakeTopBottomTextures(frame)
     frame.topPanelTex:SetDrawLayer(canvasDrawLayer, -5)
     frame.topPanelTex:SetColorTexture(unpack(MDT.BackdropColor))
     frame.topPanelString = frame.topPanel:CreateFontString("MDT name")
-    --use default font if ElvUI is enabled
-    --if IsAddOnLoaded("ElvUI") then
     frame.topPanelString:SetFontObject(GameFontNormalMed3)
     frame.topPanelString:SetTextColor(1, 1, 1, 1)
     frame.topPanelString:SetJustifyH("CENTER")
-    frame.topPanelString:SetJustifyV("CENTER")
+    frame.topPanelString:SetJustifyV("MIDDLE")
     --frame.topPanelString:SetWidth(600)
     frame.topPanelString:SetHeight(20)
     frame.topPanelString:SetText("Mythic Dungeon Tools")
@@ -672,10 +631,10 @@ function MDT:MakeTopBottomTextures(frame)
     frame.topPanelString:Show()
     frame.topPanelString:SetFont(frame.topPanelString:GetFont() or '', 20, '')
     frame.topPanelLogo = frame.topPanel:CreateTexture(nil, "ARTWORK", nil, 7)
-    frame.topPanelLogo:SetTexture("Interface\\AddOns\\"..AddonName.."\\Textures\\Nnoggie")
-    frame.topPanelLogo:SetWidth(24)
-    frame.topPanelLogo:SetHeight(24)
-    frame.topPanelLogo:SetPoint("RIGHT", frame.topPanelString, "LEFT", -5, 0)
+    frame.topPanelLogo:SetTexture("Interface\\AddOns\\"..AddonName.."\\Textures\\MDTFull")
+    frame.topPanelLogo:SetWidth(30)
+    frame.topPanelLogo:SetHeight(30)
+    frame.topPanelLogo:SetPoint("RIGHT", frame.topPanelString, "LEFT", -5, -1)
     frame.topPanelLogo:Show()
   end
 
@@ -719,7 +678,7 @@ function MDT:MakeTopBottomTextures(frame)
   frame.bottomPanelString = frame.bottomPanel:CreateFontString("MDTMid")
   frame.bottomPanelString:SetFontObject(GameFontNormalSmall)
   frame.bottomPanelString:SetJustifyH("CENTER")
-  frame.bottomPanelString:SetJustifyV("CENTER")
+  frame.bottomPanelString:SetJustifyV("MIDDLE")
   frame.bottomPanelString:SetPoint("CENTER", frame.bottomPanel, "CENTER", 0, 0)
   frame.bottomPanelString:SetTextColor(1, 1, 1, 1)
   frame.bottomPanelString:Show()
@@ -727,16 +686,17 @@ function MDT:MakeTopBottomTextures(frame)
   frame.bottomLeftPanelString = frame.bottomPanel:CreateFontString("MDTVersion")
   frame.bottomLeftPanelString:SetFontObject(GameFontNormalSmall)
   frame.bottomLeftPanelString:SetJustifyH("LEFT")
-  frame.bottomLeftPanelString:SetJustifyV("CENTER")
+  frame.bottomLeftPanelString:SetJustifyV("MIDDLE")
   frame.bottomLeftPanelString:SetPoint("LEFT", frame.bottomPanel, "LEFT", 0, 0)
   frame.bottomLeftPanelString:SetTextColor(1, 1, 1, 1)
   ---@diagnostic disable-next-line: redundant-parameter
-  frame.bottomLeftPanelString:SetText(" v"..GetAddOnMetadata(AddonName, "Version"))
+  frame.bottomLeftPanelString:SetText(" v"..C_AddOns.GetAddOnMetadata(AddonName, "Version"))
   frame.bottomLeftPanelString:Show()
 
   local externalButtonGroup = AceGUI:Create("SimpleGroup")
   MDT:FixAceGUIShowHide(externalButtonGroup, frame)
   externalButtonGroup.frame:ClearAllPoints()
+  externalButtonGroup.frame:SetParent(frame.bottomPanel)
   if not externalButtonGroup.frame.SetBackdrop then
     Mixin(externalButtonGroup.frame, BackdropTemplateMixin)
   end
@@ -770,7 +730,7 @@ function MDT:MakeTopBottomTextures(frame)
   frame.statusString = frame.bottomPanel:CreateFontString("MDTStatusLabel")
   frame.statusString:SetFontObject(GameFontNormalSmall)
   frame.statusString:SetJustifyH("RIGHT")
-  frame.statusString:SetJustifyV("CENTER")
+  frame.statusString:SetJustifyV("MIDDLE")
   frame.statusString:SetPoint("RIGHT", frame.bottomPanel, "RIGHT", 0, 0)
   frame.statusString:SetTextColor(1, 1, 1, 1)
   frame.statusString:Hide()
@@ -808,7 +768,7 @@ function MDT:MakeCopyHelper(frame)
   MDT.copyHelper.text = MDT.copyHelper:CreateFontString("MDT name")
   MDT.copyHelper.text:SetFontObject(GameFontNormalMed3)
   MDT.copyHelper.text:SetJustifyH("CENTER")
-  MDT.copyHelper.text:SetJustifyV("CENTER")
+  MDT.copyHelper.text:SetJustifyV("MIDDLE")
   MDT.copyHelper.text:SetText(L["errorLabel3"])
   MDT.copyHelper.text:ClearAllPoints()
   MDT.copyHelper.text:SetPoint("CENTER", MDT.copyHelper, "CENTER")
@@ -885,6 +845,7 @@ function MDT:MakeSidePanel(frame)
   frame.sidePanelString:Hide()
 
   frame.sidePanel.WidgetGroup = AceGUI:Create("SimpleGroup")
+  frame.sidePanel.WidgetGroup.frame:SetParent(frame.sidePanel)
   frame.sidePanel.WidgetGroup:SetWidth(245)
   frame.sidePanel.WidgetGroup:SetHeight(frame:GetHeight() + (frame.topPanel:GetHeight() * 2) - 31)
   frame.sidePanel.WidgetGroup:SetPoint("TOP", frame.sidePanel, "TOP", 3, 5)
@@ -912,6 +873,7 @@ function MDT:MakeSidePanel(frame)
 
   --preset selection
   frame.sidePanel.WidgetGroup.PresetDropDown = AceGUI:Create("Dropdown")
+  frame.sidePanel.WidgetGroup.PresetDropDown.pullout.frame:SetParent(frame.sidePanel.WidgetGroup.PresetDropDown.frame)
   local dropdown = frame.sidePanel.WidgetGroup.PresetDropDown
   dropdown.frame:SetWidth(170)
   dropdown.text:SetJustifyH("LEFT")
@@ -1228,6 +1190,7 @@ function MDT:MakeSidePanel(frame)
   end
 
   frame.sidePanel.affixDropdown = AceGUI:Create("Dropdown")
+  frame.sidePanel.affixDropdown.pullout.frame:SetParent(frame.sidePanel.affixDropdown.frame)
   local affixDropdown = frame.sidePanel.affixDropdown
   affixDropdown.text:SetJustifyH("LEFT")
   affixDropdown:SetLabel(L["Affixes"])
@@ -1291,7 +1254,7 @@ function MDT:MakeSidePanel(frame)
     GameTooltip:Hide()
   end)
 
-  frame.sidePanel.WidgetGroup:AddChild(affixDropdown)
+  -- frame.sidePanel.WidgetGroup:AddChild(affixDropdown)
 
   --affix not current week warning
   frame.sidePanel.affixWeekWarning = AceGUI:Create("Icon")
@@ -1333,7 +1296,6 @@ function MDT:MakeSidePanel(frame)
     if (difficulty >= 10 and db.currentDifficulty < 10) or (difficulty < 10 and db.currentDifficulty >= 10) then
       db.currentDifficulty = difficulty or db.currentDifficulty
       MDT:DungeonEnemies_UpdateSeasonalAffix()
-      frame.sidePanel.difficultyWarning:Toggle(difficulty)
       MDT:POI_UpdateAll()
       MDT:KillAllAnimatedLines()
       MDT:DrawAllAnimatedLines()
@@ -1374,59 +1336,13 @@ function MDT:MakeSidePanel(frame)
   end)
   frame.sidePanel.WidgetGroup:AddChild(frame.sidePanel.DifficultySlider)
 
-  --dungeon level below 10 warning
-  frame.sidePanel.difficultyWarning = AceGUI:Create("Icon")
-  local difficultyWarning = frame.sidePanel.difficultyWarning
-  difficultyWarning:SetImage("Interface\\DialogFrame\\UI-Dialog-Icon-AlertNew")
-  difficultyWarning:SetImageSize(25, 25)
-  difficultyWarning:SetWidth(30)
-  difficultyWarning:SetCallback("OnEnter", function(...)
-    GameTooltip:SetOwner(frame.sidePanel.DifficultySlider.frame, "ANCHOR_CURSOR")
-    GameTooltip:AddLine(L["The selected dungeon level is below 10"], 1, 1, 1)
-    GameTooltip:AddLine(L["Enemies related to seasonal affixes are currently hidden"], 1, 1, 1)
-    GameTooltip:AddLine(L["Click to set dungeon level to 10"], 1, 1, 1)
-    GameTooltip:Show()
-  end)
-  difficultyWarning:SetCallback("OnLeave", function(...)
-    GameTooltip:Hide()
-  end)
-  difficultyWarning:SetCallback("OnClick", function(...)
-    frame.sidePanel.DifficultySlider:SetValue(10)
-    db.currentDifficulty = 10
-    MDT:GetCurrentPreset().difficulty = db.currentDifficulty
-    MDT:DungeonEnemies_UpdateSeasonalAffix()
-    MDT:POI_UpdateAll()
-    MDT:UpdateProgressbar()
-    MDT:ReloadPullButtons()
-    difficultyWarning:Toggle(db.currentDifficulty)
-    if MDT.liveSessionActive then
-      local livePreset = MDT:GetCurrentLivePreset()
-      local shouldUpdate = livePreset == MDT:GetCurrentPreset()
-      if shouldUpdate then MDT:LiveSession_SendDifficulty() end
-    end
-    MDT:KillAllAnimatedLines()
-    MDT:DrawAllAnimatedLines()
-  end)
-  function difficultyWarning:Toggle(difficulty)
-    if difficulty < 10 then
-      self.image:Show()
-      self:SetDisabled(false)
-    else
-      self.image:Hide()
-      self:SetDisabled(true)
-    end
-  end
-
-  difficultyWarning:Toggle(db.currentDifficulty)
-  frame.sidePanel.WidgetGroup:AddChild(difficultyWarning)
-
   frame.sidePanel.middleLine = AceGUI:Create("Heading")
   frame.sidePanel.middleLine:SetWidth(240)
   frame.sidePanel.WidgetGroup:AddChild(frame.sidePanel.middleLine)
   frame.sidePanel.WidgetGroup.frame:SetFrameLevel(3)
 
   --progress bar
-  frame.sidePanel.ProgressBar = CreateFrame("Frame", nil, frame.sidePanel, "ScenarioTrackerProgressBarTemplate")
+  frame.sidePanel.ProgressBar = CreateFrame("Frame", nil, frame.sidePanel, "ScenarioProgressBarTemplate")
   frame.sidePanel.ProgressBar:Show()
   frame.sidePanel.ProgressBar:ClearAllPoints()
   frame.sidePanel.ProgressBar:SetPoint("TOP", frame.sidePanel.WidgetGroup.frame, "BOTTOM", -10, 5)
@@ -1668,15 +1584,6 @@ end
 ---
 function MDT:ActivatePullTooltip(pull)
   local pullTooltip = MDT.pullTooltip
-  --[[
-    if not pullTooltip.ranOnce then
-        --fix elvui skinning
-        pullTooltip:SetPoint("TOPRIGHT",UIParent,"BOTTOMRIGHT")
-        pullTooltip:SetPoint("BOTTOMRIGHT",UIParent,"BOTTOMRIGHT")
-        pullTooltip:Show()
-        pullTooltip.ranOnce = true
-    end
-    ]]
   pullTooltip.currentPull = pull
   pullTooltip:Show()
 end
@@ -1900,15 +1807,19 @@ function MDT:IsCurrentPresetTeeming()
 end
 
 function MDT:IsCurrentPresetFortified()
-  return affixWeeks[self:GetCurrentPreset().week][3] == 10
+  local currentWeek = self:GetCurrentPreset().week
+  return affixWeeks[currentWeek][1] == 10 or
+      affixWeeks[currentWeek][2] == 10 or
+      affixWeeks[currentWeek][3] == 10 or
+      affixWeeks[currentWeek][4] == 10
 end
 
 function MDT:IsCurrentPresetTyrannical()
-  return affixWeeks[self:GetCurrentPreset().week][3] == 9
-end
-
-function MDT:IsCurrentPresetThundering()
-  return affixWeeks[self:GetCurrentPreset().week][4] == 132
+  local currentWeek = self:GetCurrentPreset().week
+  return affixWeeks[currentWeek][1] == 9 or
+      affixWeeks[currentWeek][2] == 9 or
+      affixWeeks[currentWeek][3] == 9 or
+      affixWeeks[currentWeek][4] == 9
 end
 
 function MDT:MouseDownHook()
@@ -2184,48 +2095,46 @@ local function round(number, decimals)
   return tonumber((("%%.%df"):format(decimals)):format(number))
 end
 
-function MDT:CalculateEnemyHealth(boss, baseHealth, level, ignoreFortified)
-  local fortified = MDT:IsCurrentPresetFortified()
-  local tyrannical = MDT:IsCurrentPresetTyrannical()
-  local thundering = MDT:IsCurrentPresetThundering()
-  local mult = 1
-  if boss == false and fortified == true and (not ignoreFortified) then mult = 1.2 end
-  if boss == true and tyrannical == true then mult = 1.3 end
-  if thundering == true then mult = mult * 1.05 end
+do
+  local fortMult = 1.2
+  local tyrMult = 1.25
+  local scalingNormal = 1.07
+  local scalingExtra = 1.1 -- Xalatath's Guile
+  local extraScalingLevel = 11
 
-  -- https://www.wowhead.com/news/impact-of-new-mythic-scaling-in-dragonflight-10-scaling-starting-at-keystone-11-329269
-  -- the part of lvl 10 and below -  8% gain per level
-  local levelsTenBelow = math.min(level, 10)
-  mult = round((1.08 ^ math.max(levelsTenBelow - 2, 0)) * mult, 2)
-  -- the part of lvl 11 and above -  10% gain per level
-  local levelsElevenAbove = math.max(math.min(level, 20) - 10, 0)
-  mult = round((1.1 ^ levelsElevenAbove) * mult, 2)
-  --https://www.wowhead.com/news/mythic-high-keys-nerfed-for-rest-of-season-2-334624
-  --21 and above 8% per level
-  local levelsTwentyOneAbove = math.max(level - 20, 0)
-  mult = round((1.08 ^ levelsTwentyOneAbove) * mult, 2)
-  return round(mult * baseHealth, 0)
-end
+  local getFortTyrMult = function(level, boss, fortified, tyrannical, ignoreFortified)
+    local mult = 1
+    if level >= 4 then
+      if not boss and (fortified and not ignoreFortified) then mult = mult * fortMult end
+      if boss and tyrannical then mult = mult * tyrMult end
+    end
+    return mult
+  end
 
-function MDT:ReverseCalcEnemyHealth(health, level, boss, fortified, tyrannical, thundering)
-  local mult = 1
-  if boss == false and fortified == true then mult = 1.2 end
-  if boss == true and tyrannical == true then mult = 1.3 end
-  if thundering then mult = mult * 1.05 end
+  local function getScaling(mult, level)
+    local scaling = mult * (scalingNormal ^ math.min(level - 1, extraScalingLevel - 2)) * (scalingExtra ^ math.max(0, level - extraScalingLevel + 1))
+    return round(scaling, 2) --not sure if this additional rounding is needed, but it was in the original code
+  end
 
-  -- the part of lvl 10 and below -  8% gain per level
-  local levelsTenBelow = math.min(level, 10)
-  mult = round((1.08 ^ math.max(levelsTenBelow - 2, 0)) * mult, 2)
-  -- the part of lvl 11 and above -  10% gain per level
-  local levelsElevenAbove = math.max(math.min(level, 20) - 10, 0)
-  mult = round((1.1 ^ levelsElevenAbove) * mult, 2)
-  --https://www.wowhead.com/news/mythic-high-keys-nerfed-for-rest-of-season-2-334624
-  --21 and above 8% per level
-  local levelsTwentyOneAbove = math.max(level - 20, 0)
-  mult = round((1.08 ^ levelsTwentyOneAbove) * mult, 2)
+  function MDT:CalculateEnemyHealth(boss, baseHealth, level, ignoreFortified)
+    local fortified = true --fort and tyr are always present in 10 and above, we don't really care for lower levels
+    local tyrannical = true
+    local mult = 1
 
-  local baseHealth = round(health / mult, 0)
-  return baseHealth
+    mult = getFortTyrMult(level, boss, fortified, tyrannical, ignoreFortified)
+    mult = getScaling(mult, level)
+
+    return round(mult * baseHealth, 0)
+  end
+
+  function MDT:ReverseCalcEnemyHealth(health, level, boss, fortified, tyrannical)
+    local mult = 1
+    mult = getFortTyrMult(level, boss, fortified, tyrannical, false)
+    mult = getScaling(mult, level)
+
+    local baseHealth = round(health / mult, 0)
+    return baseHealth
+  end
 end
 
 function MDT:FormatEnemyHealth(amount)
@@ -2233,9 +2142,8 @@ function MDT:FormatEnemyHealth(amount)
   if not amount then return "" end
 
   if self:GetLocaleIndex() == 9 then
-    if amount < 1e3 then
-      return 0
-    elseif amount >= 1e16 then
+    -- KR
+    if amount >= 1e16 then
       return string.format("%.3f경", amount / 1e16)
     elseif amount >= 1e12 then
       return string.format("%.3f조", amount / 1e12)
@@ -2243,11 +2151,19 @@ function MDT:FormatEnemyHealth(amount)
       return string.format("%.2f억", amount / 1e8)
     elseif amount >= 1e4 then
       return string.format("%.1f만", amount / 1e4)
+    else
+      return amount
+    end
+  elseif self:GetLocaleIndex() == 10 or self:GetLocaleIndex() == 11 then
+    if amount >= 1e8 then
+      return string.format("%.2f亿", amount / 1e8)
+    elseif amount >= 1e4 then
+      return string.format("%d万", math.floor(amount / 1e4))
+    else
+      return amount
     end
   else
-    if amount < 1e3 then
-      return 0
-    elseif amount >= 1e12 then
+    if amount >= 1e12 then
       return string.format("%.3ft", amount / 1e12)
     elseif amount >= 1e9 then
       return string.format("%.3fb", amount / 1e9)
@@ -2255,6 +2171,8 @@ function MDT:FormatEnemyHealth(amount)
       return string.format("%.2fm", amount / 1e6)
     elseif amount >= 1e3 then
       return string.format("%.1fk", amount / 1e3)
+    else
+      return amount
     end
   end
 end
@@ -2507,7 +2425,6 @@ function MDT:UpdateMap(ignoreSetSelection, ignoreReloadPullButtons, ignoreUpdate
   if preset.difficulty then
     db.currentDifficulty = preset.difficulty
     frame.sidePanel.DifficultySlider:SetValue(db.currentDifficulty)
-    frame.sidePanel.difficultyWarning:Toggle(db.currentDifficulty)
   end
   if not framesInitialized then coroutine.yield() end
   local textureInfo = MDT.dungeonMaps[db.currentDungeonIdx][preset.value.currentSublevel]
@@ -2550,7 +2467,7 @@ function MDT:UpdateMap(ignoreSetSelection, ignoreReloadPullButtons, ignoreUpdate
     for i = 1, 10 do
       for j = 1, 15 do
         local fileSuffix = (i - 1) * 15 + j
-        local texName = 'Interface\\AddOns\\'..AddonName..'\\Textures\\Upscaled\\'..textureInfo.customTextures..'\\'..sublevel..'_'..fileSuffix..".png"
+        local texName = textureInfo.customTextures..'\\'..sublevel..'_'..fileSuffix..".png"
         local tile = frame["largeMapPanelTile"..i..j]
         tile:SetTexture(texName)
         tile:Show()
@@ -2601,8 +2518,6 @@ function MDT:UpdateMap(ignoreSetSelection, ignoreReloadPullButtons, ignoreUpdate
     --frame.sidePanel.affixDropdown:SetAffixWeek(MDT:GetCurrentPreset().week,ignoreReloadPullButtons,ignoreUpdateProgressBar)
     frame.sidePanel.affixDropdown:SetValue(MDT:GetCurrentPreset().week)
     if not framesInitialized then coroutine.yield() end
-    MDT:ToggleBoralusSelector(db.currentDungeonIdx == 19)
-    if not framesInitialized then coroutine.yield() end
     MDT:DrawAllPresetObjects()
     if not framesInitialized then coroutine.yield() end
     MDT:KillAllAnimatedLines()
@@ -2610,12 +2525,12 @@ function MDT:UpdateMap(ignoreSetSelection, ignoreReloadPullButtons, ignoreUpdate
     MDT:DrawAllAnimatedLines()
     if not framesInitialized then coroutine.yield() end
     MDT:UpdateProgressbar()
-    MDT:FixDungeonDropDownList()
   end, "UpdateMap", true)
 end
 
 ---Updates the map to the specified dungeon
 function MDT:UpdateToDungeon(dungeonIdx, ignoreUpdateMap, init)
+  if dungeonIdx == db.currentDungeonIdx then return end
   db.currentDungeonIdx = dungeonIdx
   if not db.presets[db.currentDungeonIdx][db.currentPreset[db.currentDungeonIdx]].value.currentSublevel then
     db.presets[db.currentDungeonIdx][db.currentPreset[db.currentDungeonIdx]].value.currentSublevel = 1
@@ -2741,6 +2656,8 @@ end
 
 function MDT:MakeChatPresetImportFrame(frame)
   frame.chatPresetImportFrame = AceGUI:Create("Frame")
+  frame.chatPresetImportFrame.frame:SetParent(frame)
+  frame.chatPresetImportFrame.frame:SetFrameStrata("DIALOG")
   local chatImport = frame.chatPresetImportFrame
   chatImport:SetTitle(L["Import Preset"])
   chatImport:SetWidth(400)
@@ -2802,6 +2719,8 @@ end
 
 function MDT:MakePresetImportFrame(frame)
   frame.presetImportFrame = AceGUI:Create("Frame")
+  frame.presetImportFrame.frame:SetParent(frame)
+  frame.presetImportFrame.frame:SetFrameStrata("DIALOG")
   frame.presetImportFrame:SetTitle(L["Import Preset"])
   frame.presetImportFrame:SetWidth(400)
   frame.presetImportFrame:SetHeight(200)
@@ -2918,6 +2837,8 @@ end
 
 function MDT:MakePresetCreationFrame(frame)
   frame.presetCreationFrame = AceGUI:Create("Frame")
+  frame.presetCreationFrame.frame:SetParent(frame)
+  frame.presetCreationFrame.frame:SetFrameStrata("DIALOG")
   frame.presetCreationFrame:SetTitle(L["New Preset"])
   frame.presetCreationFrame:SetWidth(400)
   frame.presetCreationFrame:SetHeight(200)
@@ -2998,7 +2919,9 @@ end
 
 function MDT:ImportPreset(preset, fromLiveSession)
   --change dungeon to dungeon of the new preset
-  self:UpdateToDungeon(preset.value.currentDungeonIdx, true)
+  MDT:SetDungeonList(nil, preset.value.currentDungeonIdx)
+  MDT:UpdateDungeonDropDown()
+  MDT:UpdateToDungeon(preset.value.currentDungeonIdx, true)
   --search for uid
   local updateIndex
   local duplicatePreset
@@ -3226,21 +3149,27 @@ end
 ---creates frame housing settings for user customized color palette
 function MDT:MakeCustomColorFrame(frame)
   --Base frame for custom palette setup
-  frame.CustomColorFrame = AceGUI:Create("Frame")
-  frame.CustomColorFrame:SetTitle(L["Custom Color Palette"])
-  frame.CustomColorFrame:SetWidth(290)
-  frame.CustomColorFrame:SetHeight(220)
-  frame.CustomColorFrame:EnableResize(false)
-  frame.CustomColorFrame:SetLayout("Flow")
-  frame.CustomColorFrame.statustext:GetParent():Hide()
-  frame:AddChild(frame.CustomColorFrame)
+  if not frame.CustomColorFrame then
+    frame.CustomColorFrame = AceGUI:Create("Frame")
+    frame.CustomColorFrame.frame:SetParent(frame.frame)
+    frame.CustomColorFrame.frame:SetFrameStrata("DIALOG")
+    frame.CustomColorFrame:SetTitle(L["Custom Color Palette"])
+    frame.CustomColorFrame:SetWidth(290)
+    frame.CustomColorFrame:SetHeight(220)
+    frame.CustomColorFrame:EnableResize(false)
+    frame.CustomColorFrame:SetLayout("Flow")
+    frame.CustomColorFrame.statustext:GetParent():Hide()
+    frame:AddChild(frame.CustomColorFrame)
+    --Slider to adjust number of different colors and remake the frame OnMouseUp
+    frame.CustomColorFrame.ColorSlider = AceGUI:Create("Slider")
+    frame.CustomColorFrame.ColorSlider:SetSliderValues(2, 20, 1)
+    frame.CustomColorFrame.ColorSlider:SetLabel(L["Choose number of colors"])
+    frame.CustomColorFrame.ColorSlider:SetRelativeWidth(1)
+    frame.CustomColorFrame:AddChild(frame.CustomColorFrame.ColorSlider)
+    frame.CustomColorFrame.ColorPicker = {}
+  end
 
-  --Slider to adjust number of different colors and remake the frame OnMouseUp
-  frame.CustomColorFrame.ColorSlider = AceGUI:Create("Slider")
-  frame.CustomColorFrame.ColorSlider:SetSliderValues(2, 20, 1)
   frame.CustomColorFrame.ColorSlider:SetValue(db.colorPaletteInfo.numberCustomColors)
-  frame.CustomColorFrame.ColorSlider:SetLabel(L["Choose number of colors"])
-  frame.CustomColorFrame.ColorSlider:SetRelativeWidth(1)
   frame.CustomColorFrame.ColorSlider:SetCallback("OnMouseUp", function(event, callbackName, value)
     if value > 20 then
       db.colorPaletteInfo.numberCustomColors = 20
@@ -3256,35 +3185,37 @@ function MDT:MakeCustomColorFrame(frame)
     MDT:MakeCustomColorFrame(frame)
     MDT:OpenCustomColorsDialog()
   end)
-  frame.CustomColorFrame:AddChild(frame.CustomColorFrame.ColorSlider)
 
   --Loop to create as many colorpickers as requested limited by db.colorPaletteInfo.numberCustomColors
-  local ColorPicker = {}
+  frame.CustomColorFrame:ReleaseChildren()
+
   for i = 1, db.colorPaletteInfo.numberCustomColors do
-    ColorPicker[i] = AceGUI:Create("ColorPicker")
+    frame.CustomColorFrame.ColorPicker[i] = frame.CustomColorFrame.ColorPicker[i] or AceGUI:Create("ColorPicker")
     if db.colorPaletteInfo.customPaletteValues[i] then
-      ColorPicker[i]:SetColor(db.colorPaletteInfo.customPaletteValues[i][1],
+      frame.CustomColorFrame.ColorPicker[i]:SetColor(db.colorPaletteInfo.customPaletteValues[i][1],
         db.colorPaletteInfo.customPaletteValues[i][2], db.colorPaletteInfo.customPaletteValues[i][3])
     else
       db.colorPaletteInfo.customPaletteValues[i] = { 1, 1, 1 }
-      ColorPicker[i]:SetColor(db.colorPaletteInfo.customPaletteValues[i][1],
+      frame.CustomColorFrame.ColorPicker[i]:SetColor(db.colorPaletteInfo.customPaletteValues[i][1],
         db.colorPaletteInfo.customPaletteValues[i][2], db.colorPaletteInfo.customPaletteValues[i][3])
     end
-    ColorPicker[i]:SetLabel(" "..i)
-    ColorPicker[i]:SetRelativeWidth(0.25)
-    ColorPicker[i]:SetHeight(15)
-    ColorPicker[i]:SetCallback("OnValueChanged", function(widget, event, r, g, b)
+    frame.CustomColorFrame.ColorPicker[i]:SetLabel(" "..i)
+    frame.CustomColorFrame.ColorPicker[i]:SetRelativeWidth(0.25)
+    frame.CustomColorFrame.ColorPicker[i]:SetHeight(15)
+    frame.CustomColorFrame.ColorPicker[i]:SetCallback("OnValueChanged", function(widget, event, r, g, b)
       db.colorPaletteInfo.customPaletteValues[i] = { r, g, b }
       MDT:SetPresetColorPaletteInfo()
       MDT:ReloadPullButtons()
     end)
-    frame.CustomColorFrame:AddChild(ColorPicker[i])
+    frame.CustomColorFrame:AddChild(frame.CustomColorFrame.ColorPicker[i])
   end
   frame.CustomColorFrame:Hide()
 end
 
 function MDT:MakeSettingsFrame(frame)
   frame.settingsFrame = AceGUI:Create("Frame")
+  frame.settingsFrame.frame:SetParent(frame)
+  frame.settingsFrame.frame:SetFrameStrata("DIALOG")
   frame.settingsFrame:SetTitle(L["Settings"])
   local frameWidth = 300
   frame.settingsFrame:SetWidth(frameWidth)
@@ -3428,7 +3359,7 @@ function MDT:MakePullSelectionButtons(frame)
   frame.PullButtonScrollGroup:SetPoint("TOPLEFT", frame.WidgetGroup.frame, "BOTTOMLEFT", -4, -32)
   frame.PullButtonScrollGroup:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 0, 30)
   frame.PullButtonScrollGroup:SetLayout("Fill")
-  frame.PullButtonScrollGroup.frame:SetFrameStrata(mainFrameStrata)
+  frame.PullButtonScrollGroup.frame:SetParent(frame)
   if not frame.PullButtonScrollGroup.frame.SetBackdrop then
     Mixin(frame.PullButtonScrollGroup.frame, BackdropTemplateMixin)
   end
@@ -3917,6 +3848,8 @@ end
 
 function MDT:MakeRenameFrame(frame)
   frame.RenameFrame = AceGUI:Create("Frame")
+  frame.RenameFrame.frame:SetParent(frame)
+  frame.RenameFrame.frame:SetFrameStrata("DIALOG")
   frame.RenameFrame:SetTitle(L["Rename Preset"])
   frame.RenameFrame:SetWidth(350)
   frame.RenameFrame:SetHeight(150)
@@ -3972,6 +3905,8 @@ end
 ---Creates the frame used to export presets to a string which can be uploaded to text sharing websites like pastebin
 function MDT:MakeExportFrame(frame)
   frame.ExportFrame = AceGUI:Create("Frame")
+  frame.ExportFrame.frame:SetParent(frame)
+  frame.ExportFrame.frame:SetFrameStrata("DIALOG")
   frame.ExportFrame:SetTitle(L["Export"])
   frame.ExportFrame:SetWidth(600)
   frame.ExportFrame:SetHeight(400)
@@ -4026,6 +3961,8 @@ end
 ---Creates the delete confirmation dialog that pops up when a user wants to delete a preset
 function MDT:MakeDeleteConfirmationFrame(frame)
   frame.DeleteConfirmationFrame = AceGUI:Create("Frame")
+  frame.DeleteConfirmationFrame.frame:SetParent(frame)
+  frame.DeleteConfirmationFrame.frame:SetFrameStrata("DIALOG")
   frame.DeleteConfirmationFrame:SetTitle(L["Delete Preset"])
   frame.DeleteConfirmationFrame:SetWidth(250)
   frame.DeleteConfirmationFrame:SetHeight(120)
@@ -4064,6 +4001,8 @@ end
 ---Creates the clear confirmation dialog that pops up when a user wants to clear a preset
 function MDT:MakeClearConfirmationFrame(frame)
   frame.ClearConfirmationFrame = AceGUI:Create("Frame")
+  frame.ClearConfirmationFrame.frame:SetParent(frame)
+  frame.ClearConfirmationFrame.frame:SetFrameStrata("DIALOG")
   frame.ClearConfirmationFrame:SetTitle(L["Reset Preset"])
   frame.ClearConfirmationFrame:SetWidth(250)
   frame.ClearConfirmationFrame:SetHeight(120)
@@ -4114,6 +4053,8 @@ function MDT:OpenConfirmationFrame(width, height, title, buttonText, prompt, cal
   if not f then
     if MDT.main_frame then
       MDT.main_frame.ConfirmationFrame = AceGUI:Create("Frame")
+      MDT.main_frame.ConfirmationFrame.frame:SetParent(MDT.main_frame)
+      MDT.main_frame.ConfirmationFrame.frame:SetFrameStrata("DIALOG")
       f = MDT.main_frame.ConfirmationFrame
     else
       MDT.tempConfirmationFrame = AceGUI:Create("Frame")
@@ -4178,76 +4119,6 @@ function MDT:OpenConfirmationFrame(width, height, title, buttonText, prompt, cal
   f:SetPoint("CENTER", MDT.main_frame or UIParent, "CENTER", 0, 50)
   f.label:SetText(prompt)
   f:Show()
-end
-
----Creates the tutorial button and sets up the help plate frames
-function MDT:CreateTutorialButton(parent)
-  local scale = self:GetScale()
-  local sidePanelHeight = MDT.main_frame.sidePanel.PullButtonScrollGroup.frame:GetHeight()
-  local helpPlate = {
-    FramePos = { x = 0, y = 0 },
-    FrameSize = { width = sizex, height = sizey },
-    [1] = {
-      ButtonPos = { x = 160, y = 0 },
-      HighLightBox = { x = 0, y = 0, width = 170, height = 40 },
-      ToolTipDir = "RIGHT",
-      ToolTipText = L["helpPlateDungeonSelect"]
-    },
-    [2] = {
-      ButtonPos = { x = 205, y = -210 * scale },
-      HighLightBox = { x = 0, y = -58, width = (sizex - 6) * scale * 0.84, height = (sizey * scale * 0.82) - 58 },
-      ToolTipDir = "RIGHT",
-      ToolTipText = string.format(L["helpPlateNPC"], "\n", "\n")
-    },
-    [3] = {
-      ButtonPos = { x = 800 * scale, y = 0 * scale },
-      HighLightBox = { x = 703 * scale, y = 30, width = 210, height = 105 },
-      ToolTipDir = "LEFT",
-      ToolTipText = L["helpPlatePresets"]
-    },
-    [4] = {
-      ButtonPos = { x = 800 * scale, y = -87 * scale },
-      HighLightBox = { x = 703 * scale, y = 30 - 105, width = 210, height = 95 },
-      ToolTipDir = "LEFT",
-      ToolTipText = L["helpPlateDungeon"]
-    },
-    [5] = {
-      ButtonPos = { x = 800 * scale, y = -(115 + 102 * scale) },
-      HighLightBox = { x = 703 * scale, y = (30 - (105 + 102)), width = 210, height = (sidePanelHeight - 30) },
-      ToolTipDir = "LEFT",
-      ToolTipText = string.format(L["helpPlatePulls"], "\n")
-    },
-  }
-  if not parent.HelpButton then
-    parent.HelpButton = CreateFrame("Button", "MDTMainHelpPlateButton", parent, "MainHelpPlateButton")
-    parent.HelpButton:ClearAllPoints()
-    parent.HelpButton:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, 48)
-    parent.HelpButton:SetScale(0.8)
-    parent.HelpButton:SetFrameStrata(mainFrameStrata)
-    parent.HelpButton:SetFrameLevel(6)
-    parent.HelpButton:Hide()
-    --hook to make button hide
-    local originalHide = parent.Hide
-    function parent:Hide(...)
-      parent.HelpButton:Hide()
-      return originalHide(self, ...)
-    end
-
-    local function TutorialButtonOnHide(self)
-      HelpPlate_Hide(true)
-    end
-
-    parent.HelpButton:SetScript("OnHide", TutorialButtonOnHide)
-  end
-  local function TutorialButtonOnClick(self)
-    if not HelpPlate_IsShowing(helpPlate) then
-      HelpPlate_Show(helpPlate, MDT.main_frame, self)
-    else
-      HelpPlate_Hide(true)
-    end
-  end
-
-  parent.HelpButton:SetScript("OnClick", TutorialButtonOnClick)
 end
 
 function MDT:Round(number, decimals)
@@ -4520,14 +4391,14 @@ function MDT:FixAceGUIShowHide(widget, frame, isFrame, hideOnly)
 end
 
 function MDT:GetCurrentAffixWeek()
-  if not IsAddOnLoaded("Blizzard_ChallengesUI") then
-    LoadAddOn("Blizzard_ChallengesUI")
+  if not C_AddOns.IsAddOnLoaded("Blizzard_ChallengesUI") then
+    C_AddOns.LoadAddOn("Blizzard_ChallengesUI")
   end
   C_MythicPlus.RequestCurrentAffixes()
   C_MythicPlus.RequestMapInfo()
   C_MythicPlus.RequestRewards()
   local affixIds = C_MythicPlus.GetCurrentAffixes() --table
-  if not affixIds then return end
+  if not affixIds then return 1 end
   if not affixIds[1] then return 1 end
   for week, affixes in ipairs(affixWeeks) do
     if affixes[1] == affixIds[2].id and affixes[2] == affixIds[3].id and affixes[3] == affixIds[1].id then
@@ -4570,6 +4441,12 @@ function MDT:PrintCurrentAffixes()
     [130] = L["Encrypted"],
     [131] = L["Shrouded"],
     [132] = L["Thundering"],
+    [147] = L["Xal'atath's Guile"],
+    [148] = L["Xal'atath's Bargain: Ascendant"],
+    [152] = L["Challenger's Peril"],
+    [158] = L["Xal'atath's Bargain: Voidbound"],
+    [159] = L["Xal'atath's Bargain: Oblivion"],
+    [160] = L["Xal'atath's Bargain: Devour"],
   }
   local affixIds = C_MythicPlus.GetCurrentAffixes()
   for idx, data in ipairs(affixIds) do
@@ -4586,6 +4463,7 @@ end
 function MDT:ResetMainFramePos(soft)
   MDT:Async(function()
     --soft reset just redraws the window with existing coordinates from db
+    if not framesInitialized then initFrames() end
     local f = self.main_frame
     if not soft then
       db.nonFullscreenScale = defaultSavedVars.global.nonFullscreenScale
@@ -4702,19 +4580,7 @@ end
 function MDT:UpdatePullButtonColor(pullIdx, r, g, b)
   local button = MDT:GetPullButton(pullIdx)
   if not button then return end
-
-  local function updateSwatch(t)
-    for k, v in pairs(t) do
-      if v.hasColorSwatch then
-        v.r, v.g, v.b = r, g, b
-        return
-      end
-    end
-  end
-
   button.color.r, button.color.g, button.color.b = r, g, b
-  updateSwatch(button.menu)
-  updateSwatch(button.multiselectMenu)
   button:UpdateColor()
 end
 
@@ -4780,6 +4646,7 @@ function initFrames()
     end
   end
   MDT:RegisterErrorHandledFunctions()
+  MDT:CheckSeenDungeonLists()
 
   local initSpinner = CreateFrame("Button", "MDTInitSpinner", UIParent, "LoadingSpinnerTemplate")
   initSpinner.BackgroundFrame.Background:SetVertexColor(0, 1, 0, 1)
@@ -4792,6 +4659,7 @@ function initFrames()
   MDT.initSpinner = initSpinner
 
   local main_frame = CreateFrame("frame", "MDTFrame", UIParent)
+  main_frame:SetToplevel(true)
   MDT:SetUpModifiers(main_frame)
   main_frame:Hide()
   tinsert(UISpecialFrames, "MDTFrame")
@@ -4822,7 +4690,7 @@ function initFrames()
   main_frame:SetSize(sizex * db.scale, sizey * db.scale)
   main_frame:SetResizable(true)
   local _, _, fullscreenScale = MDT:GetFullScreenSizes()
-  main_frame:SetResizeBounds(sizex * 0.75, sizey * 0.75, sizex * fullscreenScale, sizey * fullscreenScale)
+  main_frame:SetResizeBounds(sizex * 0.9, sizey * 0.9, sizex * fullscreenScale, sizey * fullscreenScale)
   MDT.main_frame = main_frame
 
   main_frame.mainFrametex = main_frame:CreateTexture(nil, "BACKGROUND", nil, 0)
@@ -4831,7 +4699,7 @@ function initFrames()
   main_frame.mainFrametex:SetColorTexture(unpack(MDT.BackdropColor))
 
   ---@diagnostic disable-next-line: redundant-parameter
-  local version = GetAddOnMetadata(AddonName, "Version"):gsub("%.", "")
+  local version = C_AddOns.GetAddOnMetadata(AddonName, "Version"):gsub("%.", "")
   db.version = tonumber(version)
   -- Set frame position
   main_frame:ClearAllPoints()
@@ -4853,8 +4721,8 @@ function initFrames()
   MDT:MakePresetImportFrame(main_frame)
   coroutine.yield()
   MDT:DungeonEnemies_CreateFramePools()
-  --MDT:UpdateDungeonEnemies(main_frame)
-  MDT:CreateDungeonSelectDropdown(main_frame)
+  MDT:CreateSeasonDropdown(main_frame)
+  MDT:CreateSublevelDropdown(main_frame)
   coroutine.yield()
   MDT:MakePullSelectionButtons(main_frame.sidePanel)
   coroutine.yield()
@@ -4866,7 +4734,6 @@ function initFrames()
   coroutine.yield()
   MDT:MakeClearConfirmationFrame(main_frame)
   coroutine.yield()
-  MDT:CreateTutorialButton(main_frame)
   MDT:POI_CreateFramePools()
   MDT:MakeChatPresetImportFrame(main_frame)
   coroutine.yield()
@@ -4880,24 +4747,6 @@ function initFrames()
 
   db.currentSeason = defaultSavedVars.global.currentSeason
 
-  --ElvUI skinning
-  local skinTooltip = function(tooltip)
-    if IsAddOnLoaded("ElvUI") and ElvUI and ElvUI[1].Tooltip then
-      if not tooltip.SetBackdrop then
-        Mixin(tooltip, BackdropTemplateMixin)
-      end
-      tooltip:HookScript("OnShow", function(self) --ignore updates
-        if self:IsForbidden() then return end
-        self:ClearBackdrop()
-        self:CreateBackdrop('Transparent')
-        local r, g, b = self:GetBackdropColor()
-        self:SetBackdropColor(r, g, b, ElvUI[1].Tooltip.db.colorAlpha)
-      end)
-      if tooltip.String then tooltip.String:SetFont(tooltip.String:GetFont(), 11, "") end
-      if tooltip.topString then tooltip.topString:SetFont(tooltip.topString:GetFont(), 11, "") end
-      if tooltip.botString then tooltip.botString:SetFont(tooltip.botString:GetFont(), 11, "") end
-    end
-  end
   --tooltip new
   do
     MDT.tooltip = CreateFrame("Frame", "MDTModelTooltip", UIParent, "TooltipBorderedFrameTemplate")
@@ -4924,7 +4773,7 @@ function initFrames()
     tooltip.String:SetFont(tooltip.String:GetFont() or '', 10, '')
     tooltip.String:SetTextColor(1, 1, 1, 1)
     tooltip.String:SetJustifyH("LEFT")
-    --tooltip.String:SetJustifyV("CENTER")
+    --tooltip.String:SetJustifyV("MIDDLE")
     tooltip.String:SetWidth(tooltip:GetWidth())
     tooltip.String:SetHeight(90)
     tooltip.String:SetWidth(175)
@@ -4932,7 +4781,6 @@ function initFrames()
     ---@diagnostic disable-next-line: param-type-mismatch
     tooltip.String:SetPoint("TOPLEFT", tooltip, "TOPLEFT", 110, -10)
     tooltip.String:Show()
-    skinTooltip(tooltip)
   end
 
   --pullTooltip
@@ -4990,13 +4838,12 @@ function initFrames()
     botString:SetFontObject(GameFontNormalSmall)
     botString:SetFont(MDT.pullTooltip.topString:GetFont() or '', 10, '')
     botString:SetTextColor(1, 1, 1, 1)
-    botString:SetJustifyH("TOP")
+    botString:SetJustifyH("CENTER")
     botString:SetJustifyV("TOP")
     botString:SetHeight(40)
     botString:SetWidth(250)
     botString:SetPoint("TOPLEFT", heading, "LEFT", -12, -7)
     botString:Hide()
-    skinTooltip(pullTT)
   end
 
   coroutine.yield()

@@ -77,7 +77,9 @@ Rarity.relevantSpells = {
 	[102216] = "Skinning",
 	[158756] = "Skinning",
 	[49383] = "Engineering - Scavenging",
-
+	[430315] = "Thaumaturgy",
 	-- Not tested (and disabled until they are needed)
 	-- [1804] = "Pick Lock",
 }
+
+return Rarity.relevantSpells

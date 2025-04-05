@@ -20,4 +20,6 @@ addon.coreEvents = {
    ["LOOT_READY"] = "OnEvent",
    ["ENCOUNTER_LOOT_RECEIVED"] = "OnEvent",
    ["BONUS_ROLL_RESULT"] = "OnBonusRoll",
+   ["PLAYER_LOGOUT"] = "OnEvent",
+   ["ACTIVE_PLAYER_SPECIALIZATION_CHANGED"] = "OnSpecChanged",
 }

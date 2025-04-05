@@ -1,5 +1,6 @@
 local addonName, addon = ...
 
+local L = LibStub("AceLocale-3.0"):GetLocale(addonName)
 local lib = LibStub:GetLibrary("EditModeExpanded-1.0")
 
 EventUtil.RegisterOnceFrameEventAndCallback("PLAYER_ENTERING_WORLD", function()
@@ -14,7 +15,7 @@ EventUtil.RegisterOnceFrameEventAndCallback("PLAYER_ENTERING_WORLD", function()
         end)
     end
 
-    addon:initAchievementFrame()
+    addon:initAlertFrame()
     addon:initTargetFrame()    
     addon:initFocusFrame()
     addon:initTargetOfTarget()
@@ -35,6 +36,11 @@ EventUtil.RegisterOnceFrameEventAndCallback("PLAYER_ENTERING_WORLD", function()
     addon:initChatButtons()
     addon:initBuffs()
     addon:initObjectiveTracker()
+    addon:initGameMenu()
+    addon:initTooltip()
+    addon:initLossOfControl()
+    addon:initPet()
+    addon:initExtraActionButton()
         
     local class = UnitClassBase("player")
         
@@ -81,13 +87,32 @@ EventUtil.RegisterOnceFrameEventAndCallback("PLAYER_ENTERING_WORLD", function()
     end
 end)
 
-local editModeLayoutsUpdatedHandle
-editModeLayoutsUpdatedHandle = EventRegistry:RegisterFrameEventAndCallbackWithHandle("EDIT_MODE_LAYOUTS_UPDATED", function()
-    local layoutInfo = EditModeManagerFrame:GetActiveLayoutInfo()
-    if layoutInfo.layoutType == 0 then return end
-    editModeLayoutsUpdatedHandle:Unregister()
-    addon:initRaidFrames()
-end)
+do
+    local once
+    EventRegistry:RegisterFrameEventAndCallback("EDIT_MODE_LAYOUTS_UPDATED", function()
+        if once then return end
+        local layoutInfo = EditModeManagerFrame:GetActiveLayoutInfo()
+        if layoutInfo.layoutType == 0 then return end
+        once = true
+        addon:initRaidFrames()
+        
+        if EditModeManagerExpandedFrame then
+            EditModeExpandedWarningFrame:SetParent(EditModeManagerExpandedFrame)
+            EditModeExpandedWarningFrame:SetPoint("TOPLEFT", EditModeManagerExpandedFrame, "BOTTOMLEFT", 0, -2)
+            EditModeExpandedWarningFrame.ScrollingFont:SetText(L["WARNING_FRAME_TEXT"])
+            if EditModeManagerFrame.EnableSnapCheckButton:IsControlChecked() then
+                EditModeExpandedWarningFrame:Show()
+            end
+            hooksecurefunc(EditModeManagerFrame, "SetEnableSnap", function(self, enableSnap, isUserInput)
+                if enableSnap then
+                    EditModeExpandedWarningFrame:Show()
+                else
+                    EditModeExpandedWarningFrame:Hide()
+                end
+            end)
+        end
+    end)
+end
 
 EventUtil.ContinueOnAddOnLoaded(addonName, function()
     addon:initOptions()
@@ -99,23 +124,20 @@ EventUtil.ContinueOnAddOnLoaded("Blizzard_AuctionHouseUI", function()
     local db = addon.db.global
     
     if db.EMEOptions.auctionMultisell then
-        local alreadyInitialized
-        AuctionHouseMultisellProgressFrame:HookScript("OnShow", function()
-            if alreadyInitialized then
-                lib:RepositionFrame(AuctionHouseMultisellProgressFrame)
-                return
-            end
-            alreadyInitialized = true
-            lib:RegisterFrame(AuctionHouseMultisellProgressFrame, "Auction Multisell", db.AuctionHouseMultisellProgressFrame)
+        addon.hookScriptOnce(AuctionHouseMultisellProgressFrame, "OnShow", function()
+            lib:RegisterFrame(AuctionHouseMultisellProgressFrame, L["Auction Multisell"], db.AuctionHouseMultisellProgressFrame)
             hooksecurefunc(UIParentBottomManagedFrameContainer, "Layout", function()
-                lib:RepositionFrame(AuctionHouseMultisellProgressFrame)
+                addon.ResetFrame(AuctionHouseMultisellProgressFrame)
+            end)
+            AuctionHouseMultisellProgressFrame:HookScript("OnShow", function()
+                addon.ResetFrame(AuctionHouseMultisellProgressFrame)
             end)
         end)
     end
 end)
 
 EventUtil.ContinueOnAddOnLoaded("Blizzard_UIWidgets", function()
-    local loading, finished = IsAddOnLoaded(addonName)
+    local loading, finished = C_AddOns.IsAddOnLoaded(addonName)
     if not finished then return end
     addon:initBelowMinimapContainer()
 end)

@@ -18,12 +18,16 @@ local ATTAccountWideData
 local GetProgressColor = app.Modules.Color.GetProgressColor;
 local Colorize = app.Modules.Color.Colorize;
 
--- Blizz locals
-local GetFactionInfoByID = GetFactionInfoByID;
+-- WoW API Cache
+local GetFactionName = app.WOWAPI.GetFactionName;
+local GetFactionLore = app.WOWAPI.GetFactionLore;
+local GetFactionReaction = app.WOWAPI.GetFactionReaction;
+local GetFactionCurrentReputation = app.WOWAPI.GetFactionCurrentReputation;
+local GetFactionReputationCeiling = app.WOWAPI.GetFactionReputationCeiling;
 
 -- Faction API Implementation
-app.AddEventHandler("OnStartup", function()
-	ATTAccountWideData = app.LocalizeGlobalIfAllowed("ATTAccountWideData", true);
+app.AddEventHandler("OnSavedVariablesAvailable", function(currentCharacter, accountWideData)
+	ATTAccountWideData = accountWideData
 end)
 
 
@@ -109,7 +113,7 @@ for id=1,8,1 do
 end
 local Exalted = StandingByID[8];
 local function GetFactionStanding(reputationPoints)
-	-- Total earned rep from GetFactionInfoByID is a value AWAY FROM ZERO, not a value within the standing bracket.
+	-- Total earned rep is a value AWAY FROM ZERO, not a value within the standing bracket.
 	if reputationPoints then
 		for i=8,1,-1 do
 			local threshold = StandingByID[i].threshold;
@@ -124,6 +128,7 @@ end
 -- Faction lib
 local KEY, CACHE, SETTING = "factionID", "Factions", "Reputations"
 app.CreateFaction = app.CreateClass("Faction", KEY, {
+	CACHE = function() return CACHE end,
 	text = function(t)
 		local name = t.name;
 		if name then
@@ -136,25 +141,27 @@ app.CreateFaction = app.CreateClass("Faction", KEY, {
 		end
 	end,
 	name = function(t)
-		return GetFactionInfoByID(t[KEY]) or (t.creatureID and app.NPCNameFromID[t.creatureID]) or (FACTION .. " #" .. t[KEY]);
+		return GetFactionName(t[KEY]) or (t.creatureID and app.NPCNameFromID[t.creatureID]) or (FACTION .. " #" .. t[KEY]);
 	end,
 	description = function(t)
 		if not t.lore then return L.FACTION_SPECIFIC_REP; end
 	end,
 	lore = function(t)
-		return select(2, GetFactionInfoByID(t[KEY]));
+		return GetFactionLore(t[KEY]);
 	end,
 	icon = function(t)
-		return app.asset("Category_Factions");
+		return app.GetIconFromProviders(t)
+			or app.asset("Category_Factions");
 	end,
 	trackable = app.ReturnTrue,
 	isHeader = app.ReturnTrue,
+	isMinilistHeader = app.ReturnTrue,
 	collectible = function(t)
 		if app.Settings.Collectibles[SETTING] then
 			-- If your reputation is higher than the maximum for a different faction, return partial completion.
 			if not app.Settings.AccountWide[SETTING] then
 				local maxReputation = t.maxReputation;
-				if maxReputation and maxReputation[1] ~= t[KEY] and (select(3, GetFactionInfoByID(maxReputation[1])) or 4) >= GetFactionStanding(maxReputation[2]) then
+				if maxReputation and maxReputation[1] ~= t[KEY] and (GetFactionReaction(maxReputation[1]) or 4) >= GetFactionStanding(maxReputation[2]) then
 					return false;
 				end
 			end
@@ -166,11 +173,7 @@ app.CreateFaction = app.CreateClass("Faction", KEY, {
 		if t.saved then return 1; end
 		if app.Settings.AccountWide.Reputations and ATTAccountWideData.Factions[t[KEY]] then return 2; end
 	end or function(t)
-		local id = t[KEY];
-		-- character collected
-		if app.IsCached(CACHE, id) then return 1; end
-		-- account-wide collected
-		if app.IsAccountTracked(CACHE, id, SETTING) then return 2; end
+		return app.TypicalCharacterCollected(CACHE, t[KEY], SETTING)
 	end,
 	saved = app.IsClassic and function(t)
 		local factionID = t[KEY];
@@ -199,17 +202,16 @@ app.CreateFaction = app.CreateClass("Faction", KEY, {
 		return title;
 	end,
 	reputation = function(t)
-		return select(6, GetFactionInfoByID(t[KEY])) or 0;
+		return GetFactionCurrentReputation(t[KEY]);
 	end,
 	reputationThreshold = function(t)
 		return { GetFactionStanding(t.reputation) };
 	end,
 	ceiling = function(t)
-		local _, _, _, m, ma = GetFactionInfoByID(t[KEY]);
-		return ma and m and (ma - m);
+		return GetFactionReputationCeiling(t[KEY]);
 	end,
 	standing = function(t)
-		return select(3, GetFactionInfoByID(t[KEY])) or 1;
+		return GetFactionReaction(t[KEY]) or 1;
 	end,
 	maxstanding = function(t)
 		local minReputation = t.minReputation;
@@ -364,11 +366,14 @@ if app.IsRetail then
 		local faction
 		local saved, none = {}, {}
 		for id,_ in pairs(app.GetRawFieldContainer(KEY)) do
-			faction = app.SearchForObject(KEY, id)
-			if faction.standing >= faction.maxstanding then
-				saved[id] = true
-			else
-				none[id] = true
+			faction = app.SearchForObject(KEY, id, "key")
+			if faction then
+				if faction.standing >= faction.maxstanding then
+					saved[id] = true
+				else
+					none[id] = true
+				end
+			else app.PrintDebug(Colorize("MISSING FACTION", app.Colors.ChatLinkError),app:Linkify("Faction "..id,app.Colors.ChatLinkError,"search:factionID:"..id))
 			end
 		end
 		-- Character Cache
@@ -384,11 +389,14 @@ if app.IsRetail then
 		for id,_ in pairs(app.GetRawFieldContainer(KEY)) do
 			if not IsCached(CACHE, id) then
 				-- app.PrintDebug("Check Uncached Faction",id)
-				faction = SearchForObject(KEY, id)
-				-- factions can dynamically be during the 'UPDATE_FACTION' event (thanks Blizzard not telling us which Faction got rep...)
-				if faction.standing >= faction.maxstanding then
-					-- Character Cache
-					app.SetCollected(faction, CACHE, id, true, SETTING)
+				faction = SearchForObject(KEY, id, "key")
+				if faction then
+					-- factions can dynamically be during the 'UPDATE_FACTION' event (thanks Blizzard not telling us which Faction got rep...)
+					if faction.standing >= faction.maxstanding then
+						-- Character Cache
+						app.SetThingCollected(KEY, id, false, true)
+					end
+				else app.PrintDebug(Colorize("MISSING FACTION", app.Colors.ChatLinkError),app:Linkify("Faction "..id,app.Colors.ChatLinkError,"search:factionID:"..id))
 				end
 			end
 		end

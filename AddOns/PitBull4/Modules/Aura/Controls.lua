@@ -2,6 +2,7 @@
 
 local PitBull4 = _G.PitBull4
 local L = PitBull4.L
+
 local PitBull4_Aura = PitBull4:GetModule("Aura")
 
 -- Table of functions included into the aura controls
@@ -23,12 +24,11 @@ end
 -- Not in the Aura table since it is only active when the
 -- tooltip is displayed.
 local last_aura_OnUpdate = 0
-local function OnUpdate(self)
-	local current_time = GetTime()
-	if last_aura_OnUpdate+0.2 > current_time then
-		return
-	end
-	last_aura_OnUpdate = current_time
+local function OnUpdate(self, elapsed)
+	last_aura_OnUpdate = last_aura_OnUpdate + elapsed
+	if last_aura_OnUpdate < 0.2 then return end
+	last_aura_OnUpdate = 0
+
 	local id = self.id
 	if id > 0 then
 		-- Real Buffs
@@ -39,19 +39,17 @@ local function OnUpdate(self)
 		-- tooltip will match.  UNIT_AURA events are not fired when the
 		-- unit goes out of range but the order of the auras by index change.
 		-- For a more detailed explanation for why this silly hack is necessary see:
-		-- http://www.wowace.com/addons/pitbull4/tickets/532-aura-tooltips-not-matching-icons/
-		-- or
-		-- http://forums.worldofwarcraft.com/thread.html?topicId=16904201555&sid=1&pageNo=9#166
-		local name = UnitAura(unit, id, filter)
-		if name ~= self.name then
+		-- https://www.wowace.com/projects/pitbull-unit-frames-4-0/issues/532
+		local auraData = C_UnitAuras.GetAuraDataByIndex(unit, id, filter)
+		if not auraData or auraData.name ~= self.name then
 			local i = 1
 			while true do
-				name = UnitAura(unit,i,filter)
-				if not name then
+				auraData = C_UnitAuras.GetAuraDataByIndex(unit, i, filter)
+				if not auraData then
 					-- Couldn't find a matching aura so do nothing.
 					return
 				end
-				if name == self.name then
+				if auraData.name == self.name then
 					-- Use this id, it may not be the right one but if the name
 					-- doesn't match it means we're out of range of the unit so
 					-- it doesn't matter which one we use as long as it is the same
@@ -117,7 +115,7 @@ function Aura_scripts:OnEnter()
 	GameTooltip:SetOwner(self, "ANCHOR_BOTTOMRIGHT")
 	last_aura_OnUpdate = 0
 	self:SetScript("OnUpdate", OnUpdate)
-	OnUpdate(self)
+	OnUpdate(self, 1)
 end
 
 function Aura_scripts:OnLeave()

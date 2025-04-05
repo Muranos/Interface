@@ -7,8 +7,8 @@ do
 
     local buttons = {
         {button = CharacterMicroButton, name = "CharacterInfo"},
-        {button = SpellbookMicroButton, name = "SpellbookAbilities"},
-        {button = TalentMicroButton, name = "SpecTalents"},
+        {button = ProfessionMicroButton, name = "SpellbookAbilities"},
+        {button = PlayerSpellsMicroButton, name = "SpecTalents"},
         {button = AchievementMicroButton, name = "Achievements"},
         {button = QuestLogMicroButton, name = "Questlog"},
         {button = GuildMicroButton, name = "GuildCommunities"},
@@ -169,8 +169,8 @@ do
 
     local buttons = {
         {button = CharacterMicroButton, name = "Character"},
-        {button = SpellbookMicroButton, name = "Spellbook"},
-        {button = TalentMicroButton, name = "Talents"},
+        {button = ProfessionMicroButton, name = "Spellbook"},
+        {button = PlayerSpellsMicroButton, name = "Talents"},
         {button = AchievementMicroButton, name = "Achievement"},
         {button = QuestLogMicroButton, name = "Quest"},
         {button = GuildMicroButton, name = "Socials"},

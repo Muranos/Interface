@@ -1,4 +1,4 @@
-## Interface: 100205
+## Interface: 110005, 110007, 110002
 
 ## Title: BigWigs [|cffeda55fLegion|r]
 ## Title-zhCN: BigWigs [|cffeda55f军团再临|r]
@@ -25,7 +25,7 @@
 
 ## LoadOnDemand: 1
 ## Dependencies: BigWigs
-## Version: v10.2.1
+## Version: v11.0.1
 ## IconTexture: Interface\AddOns\BigWigs\Media\Icons\minimap_legacy.tga
 
 ## X-Category: Raid
@@ -36,6 +36,7 @@
 ## X-BigWigs-ExtraMenu: -619
 ## X-BigWigs-LoadOn-InstanceId: 1712, 1779, 1530, 1520, 1676, 1648
 ## X-BigWigs-LoadOn-WorldBoss: -630, 108829, -630, 109331, -634, 107023, -630, 102075, -650, 110378, -650, 99929, -641, 108678, -641, 108879, -634, 106981, -634, 106982, -634, 106984, -680, 110321, -646, 121124, -646, 117239, -646, 117303, -646, 117470
+## X-BigWigs-Minimum: 350
 
 modules.xml
 

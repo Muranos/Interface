@@ -56,17 +56,17 @@ end
 -- But when that project comes around I guess we will see what happens...
 
 local CreateCharacterUnlockQuestItem = app.ExtendClass("Item", "CharacterUnlockQuestItem", "questID", {
+	RefreshCollectionOnly = true,
 	collectible = Collectible,
 	collected = CollectedAsQuest,
-	trackable = app.ReturnTrue,
 	saved = SavedAsQuest,
 	characterUnlock = app.ReturnTrue,
 	IsClassIsolated = true,
 })
 local CreateCharacterUnlockSpellItem = app.ExtendClass("Item", "CharacterUnlockSpellItem", "spellID", {
+	RefreshCollectionOnly = true,
 	collectible = Collectible,
 	collected = CollectedAsSpell,
-	trackable = app.ReturnTrue,
 	saved = SavedAsSpell,
 	characterUnlock = app.ReturnTrue,
 	IsClassIsolated = true,
@@ -74,15 +74,16 @@ local CreateCharacterUnlockSpellItem = app.ExtendClass("Item", "CharacterUnlockS
 local CreateCharacterUnlockQuest = app.ExtendClass("Quest", "CharacterUnlockQuest", "questID", {
 	collectible = Collectible,
 	collected = CollectedAsQuest,
-	trackable = app.ReturnTrue,
 	saved = SavedAsQuest,
 	characterUnlock = app.ReturnTrue,
 	IsClassIsolated = true,
+	variants = {
+		app.GlobalVariants.WithAutoName
+	}
 })
 local CreateCharacterUnlockSpell = app.ExtendClass("Spell", "CharacterUnlockSpell", "spellID", {
 	collectible = Collectible,
 	collected = CollectedAsSpell,
-	trackable = app.ReturnTrue,
 	saved = SavedAsSpell,
 	characterUnlock = app.ReturnTrue,
 	IsClassIsolated = true,

@@ -9,8 +9,11 @@ local _, app = ...;
 -- Encapsulates the functionality for all filtering logic which is used to check if a given Object meets the applicable filters via User Settings
 
 -- Global locals
-local ipairs, select, pairs, type, GetFactionInfoByID, rawget, wipe
-	= ipairs, select, pairs, type, GetFactionInfoByID, rawget, wipe;
+local ipairs, select, pairs, type, rawget, wipe
+	= ipairs, select, pairs, type, rawget, wipe;
+
+-- WoW API Cache
+local GetFactionCurrentReputation = app.WOWAPI.GetFactionCurrentReputation;
 
 -- App locals
 local containsAny = app.containsAny;
@@ -18,7 +21,7 @@ local ALLIANCE_ONLY, HORDE_ONLY = unpack(app.Modules.FactionData.FACTION_RACES);
 local GetRelativeValue = app.GetRelativeValue;
 
 -- Module locals
-local ActiveCustomCollects, FactionID, CollectibleHeirlooms, SettingsUnobtainable;
+local ActiveCustomCollects, FactionID, SettingsUnobtainable;
 local SettingsFilterIDs = {};
 
 -- Filter API Implementation
@@ -67,6 +70,7 @@ local function DefineToggleFilter(name, filterGroup, filter)
 	api.Filters[name] = filter;
 	-- Set implementation
 	api.Set[name] = function(active)
+		-- app.PrintDebug("FILTER",name,"->",active)
 		filterGroup[name] = active and api.Filters[name] or nil;
 	end
 	-- Get implementation
@@ -86,6 +90,9 @@ local function DefineToggleFilter(name, filterGroup, filter)
 		RawCharacterFilters[name] = filter;
 	end
 end
+api.DefineToggleFilter = function(name, filterScope, filter)
+	DefineToggleFilter(name, filterScope == "A" and AccountFilters or CharacterFilters, filter)
+end
 
 -- Whether the group has a binding designation, which means it basically cannot be moved to another Character
 local function FilterBind(group)
@@ -93,8 +100,6 @@ local function FilterBind(group)
 	return group.b == 1;-- or group.b == 4;
 end
 api.Filters.Bind = FilterBind;
--- Used in a lot of places, need to keep for now
-app.IsBoP = FilterBind;
 local function FilterInGame(item)
 	return not item.u or item.u > 2;
 end
@@ -105,7 +110,8 @@ RawCharacterFilters.InGame = api.Filters.InGame
 -- Unobtainable
 DefineToggleFilter("Unobtainable", AccountFilters,
 function(item)
-	return not item.u or SettingsUnobtainable[item.u];
+	local u = item.u
+	return not u or SettingsUnobtainable[u];
 end);
 
 -- PvP
@@ -118,6 +124,12 @@ end);
 DefineToggleFilter("PetBattles", AccountFilters,
 function(item)
 	return not item.pb or false
+end);
+
+-- Skyriding
+DefineToggleFilter("Skyriding", AccountFilters,
+function(item)
+	return not item.sr or false
 end);
 
 -- UnavailablePersonalLoot
@@ -152,7 +164,7 @@ function(item)
 	local minReputation = item.minReputation;
 	if minReputation then
 		if ExclusiveFactions[minReputation[1]] then
-			if minReputation[2] > (select(6, GetFactionInfoByID(minReputation[1])) or 0) then
+			if minReputation[2] > GetFactionCurrentReputation(minReputation[1]) then
 				return false;
 			else
 				return true;
@@ -170,7 +182,7 @@ end);
 -- function(item)
 -- 	local maxReputation = item.maxReputation;
 -- 	if maxReputation then
--- 		if maxReputation[2] > (select(6, GetFactionInfoByID(maxReputation[1])) or 0) then
+-- 		if maxReputation[2] > GetFactionCurrentReputation(maxReputation[1]) then
 -- 			return false;
 -- 		else
 -- 			return true;
@@ -203,6 +215,12 @@ end
 api.Get.ItemUnbound = function() return SettingsFilterItemUnbound == api.Filters.ItemUnbound end
 
 -- FilterID
+do
+local FilterFilterID_IgnoredTypes = {}
+app.AddEventHandler("OnRecalculate_NewSettings", function()
+	FilterFilterID_IgnoredTypes.Heirloom = app.Settings.Collectibles.Heirlooms
+	FilterFilterID_IgnoredTypes.HeirloomAndAppearance = app.Settings.Collectibles.Heirlooms
+end)
 DefineToggleFilter("FilterID", CharacterFilters,
 function(item)
 	local f = item.f;
@@ -211,14 +229,15 @@ function(item)
 		if SettingsFilterIDs[f] then
 			return true;
 		end
-		-- don't filter Heirlooms by their Type if they are collectible as Heirlooms
-		if CollectibleHeirlooms and item.__type == "Heirloom" then
+		-- don't filter Types by their FilterID in some cases
+		if FilterFilterID_IgnoredTypes[item.__type or 0] then
 			return true;
 		end
 	else
 		return true;
 	end
-end);
+end)
+end
 
 -- Bound
 DefineToggleFilter("Bound", CharacterFilters,
@@ -390,17 +409,10 @@ end
 
 -- Filter Combinations
 local function PrintExclusionCause(name, o)
-	app.PrintDebug("FilterExclude",name,o.hash,o.link or o.name)
+	app.PrintDebug("F-EX",name,o.hash,o.link or o.name)
 end
-local function SettingsAccountFilters(o)
-	for name,filter in pairs(AccountFilters) do
-		-- if not filter(o) then PrintExclusionCause(name, o) return end
-		if not filter(o) then return end
-	end
-	return true;
-end
-local function SettingsCharacterFilters(o)
-	for name,filter in pairs(CharacterFilters) do
+local function ApplySettingsFilters(o, filters)
+	for name,filter in pairs(filters) do
 		-- if not filter(o) then PrintExclusionCause(name, o) return end
 		if not filter(o) then return end
 	end
@@ -409,16 +421,34 @@ end
 
 -- Represents filters which should be applied during Updates to groups
 local function SettingsFilters(item)
-	if SettingsAccountFilters(item) then
+	if ApplySettingsFilters(item, AccountFilters) then
 		-- BoE can skip Character trait filters
 		if SettingsFilterItemUnbound(item) then return true; end
-		return SettingsCharacterFilters(item)
+		return ApplySettingsFilters(item, CharacterFilters)
+	end
+end
+local function SettingsFilters_Account(item)
+	return ApplySettingsFilters(item, AccountFilters)
+end
+local function SettingsExtraFilters(item, extraFilters)
+	if SettingsFilters(item) then
+		if extraFilters then
+			local filter
+			for name,_ in pairs(extraFilters) do
+				filter = api.Filters[name]
+				if filter then
+					-- if not filter(item) then PrintExclusionCause(name, item) return end
+					if not filter(item) then return end
+				end
+			end
+		end
+		return true;
 	end
 end
 -- Represents filters which should be applied during Updates to groups, but skips the BoE filter
 local function SettingsFilters_IgnoreBoEFilter(item)
-	if SettingsAccountFilters(item) then
-		return SettingsCharacterFilters(item)
+	if ApplySettingsFilters(item, AccountFilters) then
+		return ApplySettingsFilters(item, CharacterFilters)
 	end
 end
 api.SettingsFilters.IgnoreBoEFilter = SettingsFilters_IgnoreBoEFilter
@@ -439,6 +469,7 @@ api.Get.Group = function()
 end
 api.Set.Group = function(active)
 	app.GroupFilter = active and SettingsFilters or NoFilter;
+	app.GroupExtraFilter = active and SettingsExtraFilters or NoFilter;
 end
 -- Used to show completed Groups
 api.Filters.CompletedGroups = FilterCompletion
@@ -472,6 +503,28 @@ local function RecursiveGroupRequirementsFilter(group)
 	return true;
 end
 app.RecursiveGroupRequirementsFilter = RecursiveGroupRequirementsFilter;
+api.Filters.RecursiveGroupRequirementsFilter = RecursiveGroupRequirementsFilter
+-- Recursively check outwards to find if any parent group restricts the filter for only Account-based settings
+local function RecursiveGroupRequirementsFilter_Account(group)
+	local Filter = SettingsFilters_Account
+	while group do
+		if not Filter(group) then return; end
+		group = group.sourceParent or group.parent;
+	end
+	return true;
+end
+api.Filters.RecursiveGroupRequirementsFilter_Account = RecursiveGroupRequirementsFilter_Account
+-- Recursively check outwards to find if any parent group restricts the filter for the current settings with Extra Filters
+local function RecursiveGroupRequirementsExtraFilter(group, extraFilters)
+	local Filter = app.GroupExtraFilter;
+	while group do
+		if not Filter(group, extraFilters) then return; end
+		group = group.sourceParent or group.parent;
+	end
+	return true;
+end
+app.RecursiveGroupRequirementsExtraFilter = RecursiveGroupRequirementsExtraFilter;
+api.Filters.RecursiveGroupRequirementsExtraFilter = RecursiveGroupRequirementsExtraFilter
 -- Recursively check outwards within the direct parent chain only to find if any parent group restricts the filter for this character
 local function RecursiveDirectGroupRequirementsFilter(group)
 	local Filter = app.GroupFilter;
@@ -482,15 +535,18 @@ local function RecursiveDirectGroupRequirementsFilter(group)
 	return true;
 end
 app.RecursiveDirectGroupRequirementsFilter = RecursiveDirectGroupRequirementsFilter;
+api.Filters.RecursiveDirectGroupRequirementsFilter = RecursiveDirectGroupRequirementsFilter
 local function RecursiveUnobtainableFilter(group)
+	local Unobtainable, Event = AccountFilters.Unobtainable or NoFilter, AccountFilters.Event or NoFilter
 	while group do
 		---@diagnostic disable-next-line: redundant-parameter
-		if not ((AccountFilters.Unobtainable or NoFilter)(group) and (AccountFilters.Event or NoFilter)(group)) then return; end
+		if not (Unobtainable(group) and Event(group)) then return; end
 		group = group.parent;
 	end
 	return true;
 end
 app.RecursiveUnobtainableFilter = RecursiveUnobtainableFilter;
+api.Filters.RecursiveUnobtainableFilter = RecursiveUnobtainableFilter
 -- Recursively check outwards to find if any parent group restricts the filter for the current character (regardless of settings)
 local function RecursiveCharacterRequirementsFilter(group)
 	while group do
@@ -500,6 +556,7 @@ local function RecursiveCharacterRequirementsFilter(group)
 	return true;
 end
 app.RecursiveCharacterRequirementsFilter = RecursiveCharacterRequirementsFilter;
+api.Filters.RecursiveCharacterRequirementsFilter = RecursiveCharacterRequirementsFilter
 local function RecursiveDefaultCharacterRequirementsFilter(group)
 	local defaultClassFilter, defaultRaceFilter = api.Filters.Class, api.Filters.Race;
 	while group do
@@ -509,6 +566,7 @@ local function RecursiveDefaultCharacterRequirementsFilter(group)
 	return true;
 end
 app.RecursiveDefaultCharacterRequirementsFilter = RecursiveDefaultCharacterRequirementsFilter;
+api.Filters.RecursiveDefaultCharacterRequirementsFilter = RecursiveDefaultCharacterRequirementsFilter
 local function RecursiveFilter(group, filterName)
 	local filter = api.Filters[filterName]
 	while group do
@@ -521,7 +579,6 @@ app.RecursiveFilter = RecursiveFilter;
 
 -- Caching Helpers
 local function CacheSettingsData()
-	CollectibleHeirlooms = app.Settings.Collectibles.Heirlooms;
 	SettingsUnobtainable = app.Settings:GetRawSettings("Unobtainable");
 	wipe(SettingsFilterIDs)
 	local rawFilters = app.Settings:GetRawFilters();
@@ -556,6 +613,50 @@ end)
 app.AddEventHandler("OnRecalculate_NewSettings", function()
 	CacheSettingsData();
 end)
+
+-- Maybe need something like this eventually? This hasn't been tested or utilized much
+-- local PreviousFilters = {}
+-- -- Returns the set of Filter names which are currently enabled
+-- api.GetFilterSet = function(filters)
+-- 	local Get = api.Get
+-- 	wipe(PreviousFilters)
+-- 	for name,_ in pairs(api.Filters) do
+-- 		PreviousFilters[name] = Get[name]() or nil
+-- 	end
+-- 	app.PrintDebug("ALL FILTERS GET")
+-- 	return PreviousFilters
+-- end
+-- -- Expects being provided with a table of Filter names for which Filters should be activated
+-- -- If nothing is provided, then the previous filters are re-enabled
+-- -- Ideally used for allowing a swap of filters for processing a specific ATT window
+-- api.SwapFilterSet = function(filters)
+-- 	if not filters and not PreviousFilters then return end
+-- 	local Get = api.Get
+-- 	local Set = api.Set
+-- 	if PreviousFilters then
+-- 		for name,_ in pairs(api.Filters) do
+-- 			Set[name]()
+-- 		end
+-- 		app.PrintDebug("ALL FILTERS OFF")
+-- 		for _,name in pairs(PreviousFilters) do
+-- 			app.PrintDebug("PREV FILTER ON:",name)
+-- 			Set[name](true)
+-- 		end
+-- 		wipe(PreviousFilters)
+-- 	end
+-- 	if filters then
+-- 		PreviousFilters = filters
+-- 		for name,_ in pairs(api.Filters) do
+-- 			PreviousFilters[name] = Get[name]() or nil
+-- 			Set[name]()
+-- 			app.PrintDebug("ALL FILTERS SWAPPED")
+-- 		end
+-- 		for _,name in pairs(filters) do
+-- 			app.PrintDebug("SWAP FILTER ON:",name)
+-- 			Set[name](true)
+-- 		end
+-- 	end
+-- end
 
 -- temp sanity debug logging
 -- for name,setFilter in pairs(api.Set) do

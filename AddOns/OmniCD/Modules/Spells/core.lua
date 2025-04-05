@@ -1,37 +1,29 @@
 local E = select(2, ...):unpack()
 
-E.spell_highlighted = {}
-E.spell_modifiers = {}
+local spell_highlighted = {}
+local spellcast_all = {}
+local hash_spelldb = {}
 
-E.spell_marked = {
-
-	[48707] = 205727,
-	[287250] = true,
-
-	[198589] = 205411,
-
-	[217832] = 205596,
-	[187650] = 203340,
-	[116849] = 388218,
-	[122470] = 280195,
-	[853] = 234299,
-	[228049] = true,
-	[199448] = true,
-	[62618] = 197590,
-	[8122] = 196704,
-	[88625] = 200199,
-
-	[1966] = 79008,
-	[2094] = 200733,
-	[79206] = 290254,
-
-	[23920] = 213915,
-
-
-	[360806] = 410962,
-	[34433] = 314867,
-	[123040] = 314867,
+E.wwDamageSpells = {
+	[100780] = true,
+	[100784] = true,
+	[107428] = true,
+	[113656] = true,
+	[152175] = true,
+	[392983] = true,
+	[322109] = true,
+	[117952] = true,
+	[101546] = true,
+	[388193] = true,
+	[1217413] = true,
 }
+
+E.specTalentChangeIDs = {
+	[63644] = true,
+	[63645] = true,
+	[384255] = true,
+}
+
 
 function E:ProcessSpellDB()
 	for k, v in pairs(self.spell_db) do
@@ -42,50 +34,73 @@ function E:ProcessSpellDB()
 			if C_Spell.DoesSpellExist(id) then
 				t.class = t.class or k
 
-				local name = GetSpellInfo(id) or ""
-				if self.spellNameToID then
-					self.spellNameToID[name] = id
+				local name
+				if k == "TRINKET" and itemID and itemID > 0 then
+					name = C_Item.GetItemNameByID(itemID) or C_Spell.GetSpellName(id)
+				else
+					name = C_Spell.GetSpellName(id)
 				end
-				t.name = name
+				t.name = name or ""
+
 
 				if k == "TRINKET" or k == "PVPTRINKET" then
 					if itemID == 37864 and self.userFaction == "Horde" then
 						itemID = 37865
 					end
-					t.icon = t.icon or GetItemIcon(itemID)
+					t.icon = t.icon or C_Item.GetItemIconByID(itemID)
 				else
 					if id == 2825 and self.userFaction ~= "Horde" then
 						t.icon = 132313
 					end
-					t.icon = t.icon or select(2, GetSpellTexture(self.iconFix[id] or id))
+					t.icon = t.icon or select(2, C_Spell.GetSpellTexture(id))
 				end
+
 
 				t.buff = t.buff or self.buffFix[id] or id
 				if self.L_HIGHLIGHTS[stype] then
-					self.spell_highlighted[t.buff] = true
+					spell_highlighted[t.buff] = true
 				end
 
 				if self.spell_requiredLevel then
 					self.spell_requiredLevel[id] = t.rlvl
 				end
+
+				hash_spelldb[id] = t
+				spellcast_all[id] = true
 			else
 				tremove(v, i)
-
+				--[==[@debug@
+				E.write("Removing invalid spell_db ID:" , id)
+				--@end-debug@]==]
 			end
 		end
 	end
 
 
-	for k, v in pairs(self.spell_merged) do
-		self.spell_highlighted[k] = self.spell_highlighted[v]
+
+	for castID in pairs(self.spellcast_merged) do
+		spell_highlighted[castID] = true
 	end
 
-	for k in self.pairs(self.spell_linked, self.spell_merged, self.spellcast_shared_cdstart, self.spellcast_cdreset, self.spellcast_cdr, self.spellcast_cdr_powerspender, self.covenant_abilities, self.spellcast_cdr_azerite) do
-		self.spell_modifiers[k] = true
+	for castID in self.pairs(
+		self.spellcast_linked,
+		self.spellcast_merged,
+		self.spellcast_shared_cdstart,
+		self.spellcast_cdreset,
+		self.spellcast_cdr,
+		self.covenant_abilities,
+		self.spellcast_cdr_azerite,
+		self.wwDamageSpells,
+		self.specTalentChangeIDs
+		) do
+		spellcast_all[castID] = true
+	end
+	for castID in pairs(E.spell_dispel_cdstart) do
+		spellcast_all[castID] = nil
 	end
 end
 
-if E.preCata then
+if not E.isRetail then
 	E.spell_cxmod_azerite = E.BLANK
 	E.spellcast_cdr_azerite = E.BLANK
 	E.spell_damage_cdr_azerite = E.BLANK
@@ -96,3 +111,7 @@ if E.preCata then
 	E.essMinorStrive = E.BLANK
 	E.spell_cdmod_ess_strive_mult = E.BLANK
 end
+
+E.spell_highlighted = spell_highlighted
+E.spellcast_all = spellcast_all
+E.hash_spelldb = hash_spelldb

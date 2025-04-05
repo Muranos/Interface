@@ -3,15 +3,15 @@ local app = select(2, ...);
 local L = app.L;
 
 -- App locals
-local AssignChildren, GetRelativeField, GetRelativeValue, SearchForField =
-	app.AssignChildren, app.GetRelativeField, app.GetRelativeValue, app.SearchForField;
+local AssignChildren, GetRelativeField, GetRelativeValue, SearchForField, GetRelativeByFunc =
+	app.AssignChildren, app.GetRelativeField, app.GetRelativeValue, app.SearchForField, app.GetRelativeByFunc;
 local IsRetrieving = app.Modules.RetrievingData.IsRetrieving;
 local Colorize = app.Modules.Color.Colorize;
 local Search = app.SearchForObject
 
 -- Global locals
-local ipairs, pairs, rawset, rawget, tinsert, math_floor, RETRIEVING_DATA, wipe, select, tonumber
-	= ipairs, pairs, rawset, rawget, tinsert, math.floor, RETRIEVING_DATA, wipe, select, tonumber;
+local ipairs, pairs, rawset, rawget, tinsert, math_floor, RETRIEVING_DATA, wipe, select, tonumber,type,unpack
+	= ipairs, pairs, rawset, rawget, tinsert, math.floor, RETRIEVING_DATA, wipe, select, tonumber,type,unpack
 local C_QuestLog_GetAllCompletedQuestIDs, C_QuestLog_GetQuestObjectives = C_QuestLog.GetAllCompletedQuestIDs, C_QuestLog.GetQuestObjectives;
 ---@diagnostic disable-next-line: undefined-global
 local GetQuestLogIndexByID = C_QuestLog.GetLogIndexForQuestID or GetQuestLogIndexByID;
@@ -19,10 +19,16 @@ local C_QuestLog_IsQuestFlaggedCompleted = C_QuestLog.IsQuestFlaggedCompleted;
 ---@diagnostic disable-next-line: undefined-global
 local C_QuestLog_ReadyForTurnIn = C_QuestLog.ReadyForTurnIn or IsQuestComplete;
 local C_QuestLog_IsOnQuest = C_QuestLog.IsOnQuest;
-local GetFactionInfoByID, GetNumQuestLogRewardCurrencies, GetQuestLogRewardInfo, GetSpellInfo =
-	  GetFactionInfoByID, GetNumQuestLogRewardCurrencies, GetQuestLogRewardInfo, GetSpellInfo;
-local ALLIANCE_FACTION_ID = Enum.FlightPathFaction.Alliance;
+local GetQuestLogRewardInfo =
+	  GetQuestLogRewardInfo;
 local HORDE_FACTION_ID = Enum.FlightPathFaction.Horde;
+
+-- WoW API Cache
+local GetFactionName = app.WOWAPI.GetFactionName;
+local GetFactionCurrentReputation = app.WOWAPI.GetFactionCurrentReputation;
+local GetSpellName = app.WOWAPI.GetSpellName;
+local GetSpellIcon = app.WOWAPI.GetSpellIcon;
+local IsQuestFlaggedCompletedOnAccount = app.WOWAPI.IsQuestFlaggedCompletedOnAccount;
 
 -- Class locals
 local LastQuestTurnedIn, MostRecentQuestTurnIns;
@@ -32,6 +38,10 @@ local RepeatableQuestIcon = app.asset("Interface_Questd");
 
 -- Module locals
 local OneTimeQuests
+local AccountWideLockedQuestsCache = {}
+local Runner = app.CreateRunner("quests")
+-- there's some limit to quest data checking that causes d/c... not entirely sure what or how much
+Runner.SetPerFrameDefault(10)
 
 -- Quest Name Lib
 local GetTitleForQuestID, GetQuestTimeLeftMinutes;
@@ -55,24 +65,26 @@ local C_QuestLog_RequestLoadQuestByID = C_QuestLog.RequestLoadQuestByID;
 if C_QuestLog_RequestLoadQuestByID and pcall(app.RegisterEvent, app, "QUEST_DATA_LOAD_RESULT") then
 	local QuestsRequested = {};
 	local QuestsToPopulate = {};
+	local QuestsWithCallbacks = {};
+	local QuestsCallbackParams = {};
 
 	local QuestNameFromServer = setmetatable({}, { __index = function(t, id)
-		if id then
-			local name = GetTitleForQuestID(id);
-			if not IsRetrieving(name) then
-				t[id] = name;
-				return name;
-			end
+		if not id then return end
 
-			RequestLoadQuestByID(id);
-		end
-	end});
-	local QuestNameDefault = setmetatable({}, { __index = function(t, id)
-		if id and rawget(QuestNameFromServer, id) ~= nil then
-			local name = "Quest #"..id.."*";
+		local name = GetTitleForQuestID(id);
+		if not IsRetrieving(name) then
 			t[id] = name;
 			return name;
 		end
+
+		RequestLoadQuestByID(id);
+	end});
+	local QuestNameDefault = setmetatable({}, { __index = function(t, id)
+		if not id or rawget(QuestNameFromServer, id) == nil then return end
+
+		local name = "Quest #"..id.."*";
+		t[id] = name;
+		return name;
 	end});
 	QuestNameFromID = setmetatable(L.QUEST_NAMES, { __index = function(t, id)
 		return QuestNameFromServer[id] or QuestNameDefault[id]
@@ -83,22 +95,35 @@ if C_QuestLog_RequestLoadQuestByID and pcall(app.RegisterEvent, app, "QUEST_DATA
 	end
 
 	-- Checks if we need to request Quest data from the Server, and returns whether the request is pending
-	-- Passing in the data will cause the data to have quest rewards populated once the data is retrieved
-	RequestLoadQuestByID = function(questID, questObjectRef)
+	-- Passing in the data(table) will cause the data to have quest rewards populated once the data is retrieved
+	-- Passing in a Callback Function for when the questID is returned from Server
+	-- will be called with the QuestID and Success of the data lookup event. Additional params will be provided as a
+	-- 3rd parameter table to the callback
+	RequestLoadQuestByID = function(questID, questObjectRef, ...)
 		-- only allow requests once per frame until received
-		if not QuestsRequested[questID] then
-			QuestsRequested[questID] = true;
-			-- app.PrintDebug("RequestLoadQuestByID",questID,"Data:",questObjectRef)
-			if questObjectRef then QuestsToPopulate[questID] = questObjectRef; end
+		if QuestsRequested[questID] then return end
 
-			-- there's some limit to quest data checking that causes d/c... not entirely sure what or how much
-			app.FunctionRunner.SetPerFrame(10);
-			app.FunctionRunner.Run(C_QuestLog_RequestLoadQuestByID, questID);
+		QuestsRequested[questID] = true;
+		-- app.PrintDebug("RequestLoadQuestByID",questID,"Data/CB:",questObjectRef,...)
+		if questObjectRef then
+			if type(questObjectRef) == "table" then
+				QuestsToPopulate[questID] = questObjectRef
+			else
+				QuestsWithCallbacks[questID] = questObjectRef
+				if select("#", ...) > 0 then
+					QuestsCallbackParams[questID] = {...}
+				end
+			end
 		end
+
+		Runner.Run(C_QuestLog_RequestLoadQuestByID, questID);
+	end
+	if app.Debugging then
+		app.RequestLoadQuestByID = RequestLoadQuestByID
 	end
 
 	-- This event seems to fire synchronously from C_QuestLog.RequestLoadQuestByID if we already have the data
-	app.events.QUEST_DATA_LOAD_RESULT = function(questID, success)
+	app:RegisterFuncEvent("QUEST_DATA_LOAD_RESULT", function(questID, success)
 		-- app.PrintDebug("QUEST_DATA_LOAD_RESULT",questID,success)
 		QuestsRequested[questID] = nil;
 
@@ -108,7 +133,7 @@ if C_QuestLog_RequestLoadQuestByID and pcall(app.RegisterEvent, app, "QUEST_DATA
 			if rawget(QuestNameFromServer, questID) == false then
 				QuestNameFromServer[questID] = nil
 				app.PrintDebug("Fresh Quest Name!",questID,QuestNameFromServer[questID])
-				app:RefreshWindows();
+				app.CallbackEvent("OnRenderDirty")
 			end
 		else
 			-- this quest name cannot be populated by the server
@@ -122,8 +147,21 @@ if C_QuestLog_RequestLoadQuestByID and pcall(app.RegisterEvent, app, "QUEST_DATA
 			QuestsToPopulate[questID] = nil;
 			app.TryPopulateQuestRewards(questObject);
 		end
-	end
 
+		-- see if this Quest is awaiting a callback, call it with the questID and success from the server
+		local questCallback = QuestsWithCallbacks[questID]
+		if questCallback then
+			QuestsWithCallbacks[questID] = nil
+			local params = QuestsCallbackParams[questID]
+			-- app.PrintDebug("Run:Callback",questID,success,params)
+			if params then
+				QuestsCallbackParams[questID] = nil
+				Runner.Run(questCallback, questID, success, params)
+			else
+				Runner.Run(questCallback, questID, success)
+			end
+		end
+	end)
 else
 	local QuestRetries = setmetatable({}, { __index = function(t, questID)
 		RequestLoadQuestByID(questID);
@@ -151,8 +189,16 @@ else
 	ResetQuestName = function(questID)
 		rawset(QuestNameFromID, questID, nil);
 	end
-	RequestLoadQuestByID = function(questID)
+	RequestLoadQuestByID = function(questID, questObjectRef, ...)
 		-- Function not available in this environment. :(
+		-- need to support callback attempts anyway by just immediately calling on the Runner
+		if questObjectRef and type(questObjectRef) == "function" then
+			if select("#", ...) > 0 then
+				Runner.Run(questObjectRef, questID, nil, {...})
+			else
+				Runner.Run(questObjectRef, questID)
+			end
+		end
 	end
 end
 
@@ -200,6 +246,44 @@ end
 
 -- Quest Completion Lib
 local PrintQuestInfo
+local DoQuestPrints
+do
+	local function UpdateDoQuestPrints()
+		DoQuestPrints = app.IsReady and app.Settings:GetTooltipSetting("Report:CompletedQuests")
+	end
+	app.AddEventHandler("OnSettingsRefreshed", UpdateDoQuestPrints)
+	app.AddEventHandler("OnReady", UpdateDoQuestPrints)
+end
+local function PrintQuestInfoCallback(questID, success, params)
+	-- app.PrintDebug("PrintQuestInfoCallback",questID,success,params and unpack(params))
+	-- this quest has no server name, but maybe it's linked to something else with a name, so let's check that instead
+	if not success then
+		local ref = Search("questID", questID, "field")
+		if ref then
+			if IsRetrieving(ref.name) then
+				ref._questnameretry = (ref._questnameretry or 0) + 1
+				if ref._questnameretry < 20 then
+					-- app.PrintDebug("Retry for quest name from ref",app:SearchLink(ref),ref._questnameretry,questID)
+					Runner.Run(PrintQuestInfoCallback, questID, success, params)
+					return
+				else
+					-- give up trying to get the name
+					ref._questnameretry = nil
+				end
+			end
+		end
+	end
+	if params then
+		PrintQuestInfo(questID, unpack(params))
+	else
+		PrintQuestInfo(questID)
+	end
+end
+local function PrintQuestInfoViaCallback(questID, new)
+	if not DoQuestPrints then return end
+	-- app.PrintDebug("PrintQuestInfoViaCallback",questID,new)
+	RequestLoadQuestByID(questID, PrintQuestInfoCallback, new)
+end
 -- DirtyQuests became a table instead of an array like before, so it broke a lot of things... I'll make one for each version to keep it working
 local ClassicDirtyQuests, RetailDirtyQuests = {}, {}
 local CollectibleAsQuest, IsQuestFlaggedCompletedForObject;
@@ -209,8 +293,12 @@ app.AddEventHandler("OnSavedVariablesAvailable", function(currentCharacter, acco
 	local userignored = ATTAccountWideData.IGNORE_QUEST_PRINT
 	-- add user ignored to the list if any, don't save our hardcoded quests for everyone...
 	if userignored then
-		for i,questID in ipairs(userignored) do
-			IgnoreErrorQuests[questID] = 1;
+		for i,questID in pairs(userignored) do
+			if questID == 1 then
+				IgnoreErrorQuests[i] = 1;
+			else
+				IgnoreErrorQuests[questID] = 1;
+			end
 		end
 		-- a bunch of bad data got contaminated into literally everyones saved vars... so let's clean it
 		if IgnoreErrorQuests[7171] or IgnoreErrorQuests[8706] or IgnoreErrorQuests[10759]
@@ -219,6 +307,54 @@ app.AddEventHandler("OnSavedVariablesAvailable", function(currentCharacter, acco
 			app.CallbackHandlers.DelayedCallback(app.print, 10, "Wiped 'ATTAccountWideData.IGNORE_QUEST_PRINT' Saved Variable table due to bad data!")
 		end
 	end
+	-- Allows a user to use /att ignore-quest-print ### ### ### ### ...
+	-- to manually add to IGNORE_QUEST_PRINT without needing to run scripts or modify saved variables
+	app.ChatCommands.Add("ignore-quest-print", function(args)
+		if not userignored then
+			userignored = {}
+			ATTAccountWideData.IGNORE_QUEST_PRINT = userignored
+		end
+		local questID
+		for i=2,#args do
+			questID = tonumber(args[i])
+			if not questID then
+				app.print("Unable to add a questID to ignore",questID)
+			else
+				if not app.contains(userignored, questID) then
+					userignored[#userignored + 1] = questID
+				end
+				IgnoreErrorQuests[questID] = 1
+				app.print("Ignoring Quest Chat output for",questID,app:SearchLink(Search("questID",questID,"field")))
+			end
+		end
+		return true
+	end, {
+		"Usage : /att ignore-quest-print questID1 [questID2] [questID3] ...",
+		"Example : /att ignore-quest-print 12345",
+		"          Will ignore Quest 12345 flagging from being reported in chat"
+	})
+	app.ChatCommands.Add("allow-quest-print", function(args)
+		if not userignored then
+			userignored = {}
+			ATTAccountWideData.IGNORE_QUEST_PRINT = userignored
+		end
+		local questID
+		for i=2,#args do
+			questID = tonumber(args[i])
+			if not questID then
+				app.print("Unable to add a questID to allow",questID)
+			else
+				tremove(userignored, app.indexOf(userignored, questID))
+				IgnoreErrorQuests[questID] = nil
+				app.print("Allowing Quest Chat output for",questID,app:SearchLink(Search("questID",questID,"field")))
+			end
+		end
+		return true
+	end, {
+		"Usage : /att allow-quest-print questID1 [questID2] [questID3] ...",
+		"Example : /att allow-quest-print 12345",
+		"          Will allow Quest 12345 flagging to be reported in chat"
+	})
 end)
 local BatchRefresh
 -- We can't track unflagged quests with a single meta-table unless we double-assign keys... that's a bit silly
@@ -247,9 +383,9 @@ local CompletedQuests = setmetatable({}, {
 			rawset(ClassicDirtyQuests, questID, true);
 			if state then
 				app.SetCollected(nil, "Quests", questID, true);
-				PrintQuestInfo(questID);
+				PrintQuestInfoViaCallback(questID);
 			else
-				PrintQuestInfo(questID, false);
+				PrintQuestInfoViaCallback(questID, false);
 			end
 		end
 	end
@@ -260,11 +396,11 @@ local CompletedQuests = setmetatable({}, {
 			if state then
 				if not RetailRawQuests[questID] then
 					RetailRawQuests[questID] = state;
-					PrintQuestInfo(questID);
+					PrintQuestInfoViaCallback(questID);
 				end
 			else
 				RetailRawQuests[questID] = nil;
-				PrintQuestInfo(questID, false);
+				PrintQuestInfoViaCallback(questID, false);
 			end
 			-- Way too much overhead to assume this should be done every time a key is changed
 			if not BatchRefresh then
@@ -284,7 +420,10 @@ if app.IsRetail then
 		if questID then
 			if IsQuestFlaggedCompleted(questID) then return 1; end
 			if not t.repeatable then
-				return app.IsAccountTracked("Quests", questID) and 2
+				-- ATT Account cache tracking (may eventually remove)
+				if app.IsAccountTracked("Quests", questID) then return 2 end
+				-- WoW Account tracking
+				if app.Settings.AccountWide.Quests and IsQuestFlaggedCompletedOnAccount(questID) then return 2 end
 			end
 		end
 		-- account-mode: any character is viable to complete the quest, so alt quest completion shouldn't count for this quest
@@ -302,8 +441,12 @@ if app.IsRetail then
 		questID
 		and
 		(
-			-- Regular Quests
-			app.Settings.Collectibles.Quests
+			-- Quest collectible type is being collected
+			-- TODO: will probably need to split this method into separate types
+			-- and use in separate Quest types...
+			-- but really need a revision of the Variant/Subclass logic to make this
+			-- viable and not chaos like it is becoming
+			app.Settings.Collectibles[t.CollectibleType or "Quests"]
 			and
 			(
 				(
@@ -368,7 +511,7 @@ else
 				return true;
 			end
 			if t.locked then return app.Settings.AccountWide.Quests; end
-			return not t.repeatable and not t.isBreadcrumb;
+			return not t.repeatable;
 		end
 	end
 end
@@ -381,7 +524,9 @@ local function CollectibleAsLocked(t, locked)
 	and (locked or t.locked)
 	-- not a repeatable quest
 	and not t.repeatable
-	-- TODO: Not Locked by a OPA Quest...
+	and
+	-- Not Locked by a OPA/AW Quest
+	not AccountWideLockedQuestsCache[t.questID]
 	and
 	(
 		-- debug/account mode
@@ -395,6 +540,44 @@ local function CollectibleAsQuestOrAsLocked(t)
 	local locked = t.locked
 	return (not locked and CollectibleAsQuest(t))
 		or CollectibleAsLocked(t, locked);
+end
+-- Returns whether the provided Quest group is expected to be available to the current character or another character when in debug/account mode
+app.IsQuestAvailable = function(t)
+	local questID = t.questID
+	return
+	-- must have a questID associated
+	questID
+	and
+	(
+		-- Non-Locked Repeatable quests cannot ever 'really' be completed, though sometimes their saved state persists
+		-- until manually started via an Item
+		(
+			rawget(t, "repeatable")
+			and
+			not t.locked
+		)
+		or
+		(
+			-- not already completed by current character
+			not CompletedQuests[questID]
+			and
+			-- and not OTQ or is OTQ not yet known to be completed by any character
+			not OneTimeQuests[questID]
+			and
+			(
+				-- able to access quest on current character
+				not t.locked
+				or
+				(
+					-- debug/account mode
+					app.MODE_DEBUG_OR_ACCOUNT
+					and
+					-- Not Locked by a OPA/AW Quest (to access via another Character)
+					not AccountWideLockedQuestsCache[questID]
+				)
+			)
+		)
+	)
 end
 
 local function IsQuestSaved(questID)
@@ -416,6 +599,12 @@ local function GetQuestIndicator(t)
 		end
 	end
 end
+local NonQuestDataKeys = {
+	aqd = 1,
+	hqd = 1,
+	otherQuestData = 1,
+	g = 1,
+}
 local function ResolveQuestData(t)
 	local aqd, hqd = t.aqd, t.hqd;
 	if aqd and hqd then
@@ -439,24 +628,21 @@ local function ResolveQuestData(t)
 			end
 			questData.g = nil;
 		end
-		if otherQuestData.g then
-			for _,o in ipairs(otherQuestData.g) do
-				o.parent = otherQuestData;
-			end
-		end
+		app.AssignChildren(otherQuestData)
+		otherQuestData.parent = t.parent
 
 		-- Apply this quest's current data into the other faction's quest. (this is for tooltip caching and source quest resolution)
 		for key,value in pairs(t) do
-			if key ~= "g" then
+			if not NonQuestDataKeys[key] then
 				otherQuestData[key] = value;
 			end
 		end
 
 		-- Apply the faction specific quest data to this object.
 		for key,value in pairs(questData) do t[key] = value; end
-		aqd.r = ALLIANCE_FACTION_ID;
-		hqd.r = HORDE_FACTION_ID;
 		t.otherQuestData = otherQuestData;
+		t.aqd = nil
+		t.hqd = nil
 		otherQuestData.nmr = 1;
 	else
 		error("Missing AQD / HQD: " .. (aqd and true or false) .. " " .. (hqd and true or false));
@@ -522,9 +708,9 @@ local function BuildDiscordQuestInfoTable(id, infoText, questChange, questRef, c
 			covInfo = covInfo .. "N/A";
 		end
 		if C_MajorFactions then
-			local DFmajorFactionIDs, majorFactionInfo, data = C_MajorFactions.GetMajorFactionIDs(9), {}, nil;
-			if DFmajorFactionIDs then
-				for _,factionID in ipairs(DFmajorFactionIDs) do
+			local MajorFactionIDs, majorFactionInfo, data = C_MajorFactions.GetMajorFactionIDs(10), {}, nil;
+			if MajorFactionIDs then
+				for _,factionID in ipairs(MajorFactionIDs) do
 					tinsert(majorFactionInfo, "|");
 					tinsert(majorFactionInfo, factionID);
 					data = C_MajorFactions.GetMajorFactionData(factionID);
@@ -556,8 +742,9 @@ local function BuildDiscordQuestInfoTable(id, infoText, questChange, questRef, c
 		local acctUnlocks = {
 			IsQuestFlaggedCompleted(72366) and "DF_CA" or "N",	-- Dragonflight Campaign Complete
 			IsQuestFlaggedCompleted(75658) and "DF_ZC" or "N",	-- Dragonflight Zaralek Caverns Complete
+			IsQuestFlaggedCompleted(79573) and "WW_CA" or "N",	-- The War Within Campaign Complete
 		}
-		tinsert(info, "unlocks:"..app.TableConcat(acctUnlocks, nil, nil, "|"))
+		tinsert(info, "unlocks:"..app.TableConcat(acctUnlocks, nil, nil, "/"))
 	end
 	tinsert(info, "sq:"..GenerateSourceQuestString(questRef or id));
 	tinsert(info, "lq:"..(app.TableConcat(MostRecentQuestTurnIns, nil, nil, "<") or ""));
@@ -578,52 +765,33 @@ local function BuildDiscordQuestInfoTable(id, infoText, questChange, questRef, c
 	return info;
 end
 PrintQuestInfo = function(questID, new)
+	if not DoQuestPrints then return end
 	-- Users can manually set certain QuestIDs to be ignored because Blizzard decides to toggle them on and off constantly forever
-	if IgnoreErrorQuests[questID] then return; end
-	if not (app.IsReady and app.Settings:GetTooltipSetting("Report:CompletedQuests")) then
-		return;
-	end
+	if IgnoreErrorQuests[questID] then return end
 
-	local text, questRef
+	local text
 	local questChange = (new == true and "accepted") or (new == false and "unflagged") or "completed";
-	local searchResults = SearchForField("questID", questID);
-	if #searchResults > 0 then
-		local nmr, nmc, nyi, hqt
-		if #searchResults == 1 then
-			questRef = searchResults[1]
-			nmr = questRef.nmr
-			nmc = questRef.nmc
-			nyi = GetRelativeField(questRef, "u", 1) or GetRelativeValue(questRef, "_unsorted")
-			hqt = GetRelativeValue(questRef, "_hqt")
-		else
-			for i,searchResult in ipairs(searchResults) do
-				if searchResult.key == "questID" then
-					nmr = nmr or searchResult.nmr
-					nmc = nmc or searchResult.nmc
-					nyi = nyi or GetRelativeField(searchResult, "u", 1) or GetRelativeValue(searchResult, "_unsorted")
-					hqt = hqt or GetRelativeValue(searchResult, "_hqt")
-					questRef = searchResult
-				end
-			end
-			if not questRef then
-				-- This basically happens when a quest is both Sourced 2+ times and none have a key of questID (DMs)
-				-- app.PrintDebug(Colorize("Failed to check quest info for: "..(questID or "???"), app.Colors.ChatLinkError))
-				questRef = searchResults[1]
-			end
-		end
+	local questRef = Search("questID", questID, "field")
+	if questRef then
+
+		local nyi = GetRelativeField(questRef, "u", 1)
+		local unsorted = GetRelativeValue(questRef, "_unsorted") or nyi
 
 		-- if user is allowing reporting of Sourced quests (true = don't report Sourced)
-		if not nyi and app.Settings:GetTooltipSetting("Report:UnsortedQuests") then
+		if not unsorted and app.Settings:GetTooltipSetting("Report:UnsortedQuests") then
 			return true;
 		end
 
-		-- don't worry about names if we know it's HQT
-		if hqt then
-			text = questID
-		else
-			-- Quest can be linked to all sorts of things...
-			text = (QuestNameFromID[questID] or (questRef and questRef.name) or UNKNOWN) .. " (" .. questID .. ")"
+		local nmr = questRef.nmr
+		local nmc = questRef.nmc
+		local hqt = GetRelativeValue(questRef, "_hqt")
+
+		-- Quest can be linked to all sorts of things...
+		text = questRef.name or hqt and UNKNOWN or QuestNameFromID[questID]
+		if IsRetrieving(text) then
+			text = UNKNOWN
 		end
+		text = text .. " (" .. questID .. ")"
 		if nmc then text = text .. "[C]"; end
 		if nmr then text = text .. "[R]"; end
 		-- only check to report when accepting a quest, quests flag complete all the time without being filtered
@@ -641,7 +809,21 @@ PrintQuestInfo = function(questID, new)
 			app:SetupReportDialog(popupID, "NYI Quest: " .. questID,
 				BuildDiscordQuestInfoTable(questID, "nyi-quest", questChange)
 			);
-			print("Quest", questChange, app:Linkify(text .. " [NYI] ATT " .. app.Version, app.Colors.ChatLinkError, "dialog:" .. popupID));
+			app.print("Quest", questChange, app:Linkify(text .. " [NYI] ATT " .. app.Version, app.Colors.ChatLinkError, "dialog:" .. popupID));
+			return
+		end
+
+		-- give a chat output if the user has just interacted with a quest flagged as Unsorted
+		if unsorted then
+			-- Play a sound when a reportable error is found, if any sound setting is enabled
+			app.Audio:PlayReportSound();
+
+			-- Linkify the output
+			local popupID = "quest-" .. questID .. questChange;
+			app:SetupReportDialog(popupID, "Unsorted Quest: " .. questID,
+				BuildDiscordQuestInfoTable(questID, "unsorted-quest", questChange)
+			);
+			app.print("Quest", questChange, app:Linkify(text .. " [UNS] ATT " .. app.Version, app.Colors.ChatLinkError, "dialog:" .. popupID));
 			return
 		end
 
@@ -653,7 +835,7 @@ PrintQuestInfo = function(questID, new)
 		else
 			text = app:Linkify(text, app.Colors.ChatLink, "search:questID:" .. questID);
 		end
-		print("Quest", questChange, text, GetQuestFrequency(questID) or "");
+		app.print("Quest", questChange, text, GetQuestFrequency(questID) or "");
 	else
 		text = (QuestNameFromID[questID] or UNKNOWN) .. " (" .. questID .. ")";
 
@@ -665,8 +847,11 @@ PrintQuestInfo = function(questID, new)
 		app:SetupReportDialog(popupID, "Missing Quest: " .. questID,
 			BuildDiscordQuestInfoTable(questID, "missing-quest", questChange)
 		);
-		print("Quest", questChange, app:Linkify(text .. " (Not in ATT " .. app.Version .. ")", app.Colors.ChatLinkError, "dialog:" .. popupID), GetQuestFrequency(questID) or "");
+		app.print("Quest", questChange, app:Linkify(text .. " (Not in ATT " .. app.Version .. ")", app.Colors.ChatLinkError, "dialog:" .. popupID), GetQuestFrequency(questID) or "");
 	end
+end
+local function NotInGame(ref)
+	return not app.Modules.Filter.Filters.InGame(ref)
 end
 app.CheckInaccurateQuestInfo = function(questRef, questChange, forceShow)
 	-- Checks a given quest reference against the current character info to see if something is inaccurate
@@ -681,7 +866,8 @@ app.CheckInaccurateQuestInfo = function(questRef, questChange, forceShow)
 		-- is marked as in the game
 		-- NOTE: Classic doesn't use the Filters Module yet. (TODO)
 		-- The logic is simple enough to where it shouldn't matter.
-		local inGame = not questRef.u or questRef.u > 2--app.Modules.Filter.Filters.InGame(questRef);
+		-- This now checks recursively outwards to ensure that an in-game quest isn't buried inside a removed header
+		local inGame = not GetRelativeByFunc(questRef, NotInGame)
 		-- repeatable or not previously completed or the accepted quest was immediately completed prior to the check, or character in party sync
 		local incomplete = (questRef.repeatable or not completed or LastQuestTurnedIn == completed or IsPartySyncActive);
 		-- not missing pre-requisites
@@ -791,6 +977,7 @@ if app.IsRetail then
 		BatchRefresh = nil
 	end
 
+	local Register_CRITERIA_UPDATE = app.EmptyFunction
 	local function RefreshQuestCompletionState(questID)
 		-- app.PrintDebug("RefreshQuestCompletionState",questID)
 		wipe(RetailDirtyQuests);
@@ -806,7 +993,7 @@ if app.IsRetail then
 			end
 		end
 
-		app:RegisterEvent("CRITERIA_UPDATE");
+		Register_CRITERIA_UPDATE()
 		-- app.PrintDebugPrior("RefreshedQuestCompletionState")
 	end
 	RefreshAllQuestInfo = function()
@@ -824,12 +1011,16 @@ if app.IsRetail then
 	end
 
 	-- Retail Event Handlers
-	app:RegisterEvent("LOOT_OPENED");
-	app.events.LOOT_OPENED = RefreshAllQuestInfo;
+	app.AddEventRegistration("LOOT_OPENED", RefreshAllQuestInfo)
 	-- We don't want any reporting/updating of completed quests when ATT starts... simply capture all completed quests
 	app.AddEventHandler("OnStartup", QueryCompletedQuests);
 	app.AddEventHandler("OnRecalculate", QueryCompletedQuests);
 	app.AddEventHandler("OnPlayerLevelUp", RefreshAllQuestInfo);
+	app.AddEventHandler("OnReady", function()
+		Register_CRITERIA_UPDATE = function()
+			app:RegisterEvent("CRITERIA_UPDATE");
+		end
+	end)
 else
 	---@diagnostic disable-next-line: undefined-global
 	local GetQuestsCompleted = GetQuestsCompleted;
@@ -936,7 +1127,6 @@ else
 			app.WipeSearchCache();
 			app:RefreshDataQuietly("RefreshQuestInfo", true);
 		end
-		app:RegisterEvent("QUEST_LOG_UPDATE");
 	end
 	RefreshAllQuestInfo = function()
 		RefreshQuestInfo();
@@ -948,7 +1138,7 @@ else
 end
 
 -- World Quest Support Lib
-local C_QuestLog_GetQuestTagInfo, GetWorldQuestIcon, IsWorldQuest = C_QuestLog.GetQuestTagInfo, nil, nil;
+local C_QuestLog_GetQuestTagInfo, GetWorldQuestIcon = C_QuestLog.GetQuestTagInfo, nil
 if C_QuestLog_GetQuestTagInfo then
 	local TagType = Enum.QuestTagType;
 	local WorldQuestTypeIcons = setmetatable({
@@ -980,19 +1170,10 @@ if C_QuestLog_GetQuestTagInfo then
 		end
 		return DefaultWorldQuestIcon;
 	end
-	IsWorldQuest = function(t)
-		local info = C_QuestLog_GetQuestTagInfo(t.questID);
-		if info and info.worldQuestType then
-			return true;
-		else
-			return false;
-		end
-	end;
 else
 	GetWorldQuestIcon = function(t)
 		return DefaultWorldQuestIcon;
 	end
-	IsWorldQuest = app.ReturnFalse;
 end
 
 -- Breadcrumb Checking
@@ -1003,7 +1184,7 @@ if app.IsRetail then
 	local function PrintBreadcrumbWarning(accepted, bc)
 		local acceptText, bcText = accepted.text, bc.text
 		if IsRetrieving(acceptText) or IsRetrieving(bcText) then
-			app.FunctionRunner.Run(PrintBreadcrumbWarning, accepted, bc)
+			Runner.Run(PrintBreadcrumbWarning, accepted, bc)
 			return
 		end
 
@@ -1024,7 +1205,7 @@ if app.IsRetail then
 				local accepted = Search("questID", questID) or app.CreateQuest(questID)
 				for _,bc in pairs(nextQuests) do
 					if bc.collectible and not bc.collected and not bc.locked and app.RecursiveCharacterRequirementsFilter(bc) and app.RecursiveUnobtainableFilter(bc) then
-						app.FunctionRunner.Run(PrintBreadcrumbWarning, accepted, bc)
+						Runner.Run(PrintBreadcrumbWarning, accepted, bc)
 					end
 				end
 			end
@@ -1079,13 +1260,26 @@ local criteriaFuncs = {
         return lvl;
     end,
 
-    questID = IsQuestSaved,
+    questID = function(questID)
+		-- saved on this character to this quest
+		if IsQuestSaved(questID) then return true end
+		-- questID is saved in OneTimeQuests to another character
+		-- local otq = OneTimeQuests[questID]
+		if OneTimeQuests[questID] then return true end
+		-- hmmm not really sure we want to worry about chained locking...
+		-- could just add the chained requirements as possible locks for the base quest
+		-- known OTQ is unsaved, then leave
+		-- if otq == false then app.PrintDebug("otq:false",questID) return end
+		-- questID is itself Locked for this character
+		-- local q = Search(questID)
+		-- if q and q.locked then app.PrintDebug("locked",questID) return true end
+	end,
 	label_questID = L.LOCK_CRITERIA_QUEST_LABEL,
     text_questID = function(questID)
 		-- sometimes we can get nice names from non-server quests... so use their actual implementation
 		local questObject = app.SearchForObject("questID", questID, "field")
 		local questName
-		if questObject then questName = questObject.name end
+		if questObject then questName = app.TryColorizeName(questObject) end
         return ("[%d] %s"):format(questID, questName or RETRIEVING_DATA);
     end,
 
@@ -1112,6 +1306,23 @@ local criteriaFuncs = {
         return L.LOCK_CRITERIA_FACTION_FORMAT:format(faction.rankText, faction.name, faction.standingText);
     end,
 
+    renownID = function(v)
+		-- v = factionID.levelRequiredToLock
+		local factionID = math_floor(v + 0.00001);
+		local lockStanding = math_floor((v - factionID) * 100 + 0.00001);
+        local standing = app.CreateFaction(factionID).standing;
+		-- app.PrintDebug(("Check Renown %s Standing (%d) is locked @ (%d)"):format(factionID, standing, lockStanding))
+		return standing >= lockStanding;
+    end,
+	label_renownID = L.LOCK_CRITERIA_FACTION_LABEL,
+    text_renownID = function(v)
+		-- v = factionID.standingRequiredToLock
+		local factionID = math_floor(v + 0.00001);
+		local faction = app.CreateFaction(factionID);
+		faction.rank = math_floor((v - factionID) * 100 + 0.00001);
+        return L.LOCK_CRITERIA_FACTION_FORMAT:format(faction.rankText, faction.name, faction.standingText);
+    end,
+
     sourceID = function(sourceID)
 		return app.IsAccountCached("Sources", sourceID)
 	end,
@@ -1124,23 +1335,39 @@ local criteriaFuncs = {
 app.AddEventHandler("OnLoad", function()
 	criteriaFuncs.text_spellID = app.GetSpellName
 end)
+local AWQuestLockers = setmetatable({
+	-- sourceID is account-wide, so any lock via that will lock account-wide
+	sourceID = app.ReturnTrue,
+	-- achID is possibly account-wide, so lock could also mean quest is locked account-wide
+	achID = function(id)
+		local ach = Search("achievementID", id, "field")
+		-- app.PrintDebug("Locked due to AW Ach?",ach.accountWide,app:SearchLink(ach))
+		if ach and ach.accountWide then return true end
+	end,
+}, { __index = function(t,key) return app.ReturnFalse end})
 local function IsGroupLocked(t)
 	local lockCriteria = t.lc;
 	if lockCriteria then
 		local criteriaRequired = lockCriteria[1];
-		local critKey, critFunc, nonQuestLock;
+		local critKey, critFunc, critVal, nonQuestLock;
 		for i=2,#lockCriteria,2 do
 			critKey = lockCriteria[i];
 			critFunc = criteriaFuncs[critKey];
 			if critFunc then
-				if critFunc(lockCriteria[i + 1]) then
-					if not nonQuestLock and critKey ~= "questID" then
+				critVal = lockCriteria[i + 1]
+				if critFunc(critVal) then
+					if critKey ~= "questID" then
 						nonQuestLock = true;
+						if AWQuestLockers[critKey](critVal) then
+							AccountWideLockedQuestsCache[t.questID] = true
+						end
+					elseif app.AccountWideQuestsDB[critVal] then
+						-- this quest is locked by a completed AWQ, so we know it can't be completed on another character either
+						AccountWideLockedQuestsCache[t.questID] = true
 					end
 					criteriaRequired = criteriaRequired - 1;
 					if criteriaRequired <= 0 then
 						-- app.PrintDebug("Locked:",app:Linkify(t.questID, app.Colors.ChatLink, "search:questID:" .. t.questID),"=>",critKey,lockCriteria[i + 1])
-						LockedQuestCache[t.questID] = true
 						-- if this was locked due to something other than a Quest specifically, indicate it cannot be done in Party Sync
 						if nonQuestLock then
 							-- app.PrintDebug("Automatic DisablePartySync", app:Linkify(questID, app.Colors.ChatLink, "search:questID:" .. questID))
@@ -1162,7 +1389,10 @@ local function LockedAsQuest(t)
 	if cached ~= nil then return cached end
 	if not IsQuestFlaggedCompleted(questID) then
 		-- generic locked functionality based on lockCriteria
-		if IsGroupLocked(t) then return true; end
+		if IsGroupLocked(t) then
+			LockedQuestCache[questID] = true
+			return true;
+		end
 		-- if an alt-quest is completed, then this quest is locked
 		if t.altcollected then
 			LockedQuestCache[questID] = true
@@ -1189,6 +1419,11 @@ local function LockedAsBreadcrumb(t)
 				if IsQuestFlaggedCompleted(nqID) then
 					-- app.PrintDebug("Locked Breadcrumb from",nqID,app:Linkify(questID, app.Colors.ChatLink, "search:questID:" .. questID))
 					LockedBreadcrumbCache[questID] = true
+					if app.AccountWideQuestsDB[nqID] then
+						-- app.PrintDebug("...Also locked Account-Wide")
+						-- this quest is locked by a completed AWQ, so we know it can't be completed on another character either
+						AccountWideLockedQuestsCache[questID] = true
+					end
 					return true;
 				else
 					-- this questID may not even be available to pick up, so try to find a Thing with this questID to determine if the object is complete
@@ -1196,6 +1431,11 @@ local function LockedAsBreadcrumb(t)
 					if nq and (nq.altcollected or nq.locked) then
 						-- app.PrintDebug("Locked Breadcrumb from",nq.hash,app:Linkify(questID, app.Colors.ChatLink, "search:questID:" .. questID))
 						LockedBreadcrumbCache[questID] = true
+						if app.AccountWideQuestsDB[nqID] then
+							-- app.PrintDebug("...Also locked Account-Wide")
+							-- this quest is locked by a completed AWQ, so we know it can't be completed on another character either
+							AccountWideLockedQuestsCache[questID] = true
+						end
 						return true;
 					end
 				end
@@ -1214,7 +1454,7 @@ app.QuestLockCriteriaFunctions = criteriaFuncs;
 local function QuestWithReputationDescription(t)
 	if app.Settings.Collectibles.Reputations then
 		local factionID = t.maxReputation[1];
-		return L.ITEM_GIVES_REP .. (select(1, GetFactionInfoByID(factionID)) or ("Faction #" .. tostring(factionID))) .. "'";
+		return L.ITEM_GIVES_REP .. (GetFactionName(factionID) or ("Faction #" .. tostring(factionID))) .. "'";
 	end
 end
 local function QuestWithReputationCollectibleAsCost(t)
@@ -1233,6 +1473,7 @@ end
 -- Guess it's easiest for now to make a global variant and just 'remember' to
 -- add it in every possible Class which could have a questID...
 local AndLockCriteria = {
+	__name = "AndLockCriteria",
 	collectible = CollectibleAsQuestOrAsLocked,
 	locked = LockedAsQuest,
 	__condition = function(t)
@@ -1245,6 +1486,7 @@ app.GlobalVariants.AndLockCriteria = AndLockCriteria
 -- logic fell through. i.e. for breadcrumbs... check variant of 'locked' and then fallback to the base breadcrumb.locked
 -- for now I guess this is an explicit variant which covers both
 local AndBreadcrumbWithLockCriteria = {
+	__name = "AndBreadcrumbWithLockCriteria",
 	collectible = CollectibleAsQuestOrAsLocked,
 	locked = function(t)
 		return LockedAsQuest(t) or LockedAsBreadcrumb(t)
@@ -1253,51 +1495,46 @@ local AndBreadcrumbWithLockCriteria = {
 		return t.lc or t.altQuests
 	end,
 }
-if app.IsRetail then
-	local WithTypeName = {
-		name = function(t)
-			local type, id = (":"):split(t.type)
-			local data = app.GetAutomaticHeaderData(id,type)
-			for key,value in pairs(data) do
-				t[key] = value;
-			end
-			return data.name
-		end,
-		icon = function(t)
-			local type, id = (":"):split(t.type)
-			local data = app.GetAutomaticHeaderData(id,type)
-			for key,value in pairs(data) do
-				t[key] = value;
-			end
-			return data.icon
-		end,
-		__condition = function(t)
-			return t.type
-		end,
-	}
-	app.GlobalVariants.WithTypeName = WithTypeName
-else
-	app.GlobalVariants.WithTypeName = {}
-end
+app.GlobalVariants.WithAutoName = {
+	__name = "WithAutoName",
+	name = function(t)
+		local type, id = (":"):split(t.an)
+		local data = app.GetAutomaticHeaderData(id,type)
+		app.CloneDictionary(data, t)
+		return data.name
+	end,
+	icon = function(t)
+		local type, id = (":"):split(t.an)
+		local data = app.GetAutomaticHeaderData(id,type)
+		app.CloneDictionary(data, t)
+		return data.icon
+	end,
+	__condition = function(t)
+		return t.an
+	end,
+}
+
+app.GlobalVariants.Combine(
+	app.GlobalVariants.AndLockCriteria,
+	app.GlobalVariants.WithAutoName)
 
 -- Party Sync Support
-local IsQuestReplayable, OnUpdateForPartySyncedQuest = C_QuestLog.IsQuestReplayable, nil;
+local IsQuestReplayable = C_QuestLog.IsQuestReplayable
+local OnSetVisibilityForNestedQuest
 if IsQuestReplayable then
 	-- Provide support for Party Sync'd Quests here
-	local IsPartySynced, IsQuestReplayedRecently =
-		C_QuestSession.Exists, C_QuestLog.IsQuestReplayedRecently;
+	local IsQuestReplayedRecently = C_QuestLog.IsQuestReplayedRecently
 	IsQuestSaved = function(questID)
-		if IsPartySynced() then
+		if IsPartySyncActive then
 			return IsQuestReplayedRecently(questID)
 				or (not IsQuestReplayable(questID) and IsQuestFlaggedCompleted(questID));
 		end
 		return IsQuestFlaggedCompleted(questID);
 	end;
-	criteriaFuncs.questID = IsQuestSaved;
 
 	-- Causes a group to remain visible if it is replayable, regardless of collection status
-	OnUpdateForPartySyncedQuest = function(data)
-		data.visible = IsQuestReplayable(data.questID) or app.CollectedItemVisibilityFilter(data);
+	OnSetVisibilityForNestedQuest = function(data)
+		return not data.saved or IsQuestReplayable(data.questID) or app.CollectedItemVisibilityFilter(data);
 	end
 
 	-- Detect state changes
@@ -1308,14 +1545,14 @@ if IsQuestReplayable then
 			app.HandleEvent("OnUpdateWindows", true)
 		end
 	end
-	app.events.QUEST_SESSION_JOINED = function()
+	app.AddEventRegistration("QUEST_SESSION_JOINED", function()
 		if IsPartySyncActive then return; end
 		-- app.PrintDebug("QUEST_SESSION_JOINED")
 		IsPartySyncActive = true;
 		app.HandleEvent("OnUpdateWindows", true)
-	end
-	app.events.QUEST_SESSION_LEFT = LeavePartySync;
-	app.events.QUEST_SESSION_DESTROYED = LeavePartySync;
+	end)
+	app.AddEventRegistration("QUEST_SESSION_LEFT", LeavePartySync)
+	app.AddEventRegistration("QUEST_SESSION_DESTROYED", LeavePartySync)
 	app:RegisterEvent("QUEST_SESSION_JOINED");
 	app:RegisterEvent("QUEST_SESSION_LEFT");
 	app:RegisterEvent("QUEST_SESSION_DESTROYED");
@@ -1325,16 +1562,19 @@ if IsQuestReplayable then
 	end);
 end
 
--- Quest Lib (From Classic)
+-- Quest Lib
 local createQuest = app.CreateClass("Quest", "questID", {
+	CollectibleType = function() return "Quests" end,
 	text = app.IsClassic and function(t)
 		if t.repeatable then return "|cff0070DD" .. t.name .. "|r"; end
 		return t.name;
 	end or nil,
 	name = function(t)
+		-- TODO: need app.GetAutomaticHeaderData to provide name if not returned from server prior to using QuestNameDefault
 		return QuestNameFromID[t.questID] or RETRIEVING_DATA;
 	end,
 	icon = function(t)
+		-- TODO: need app.GetAutomaticHeaderData to provide icon
 		return app.GetIconFromProviders(t)
 			or (t.isWorldQuest and GetWorldQuestIcon(t))
 			or (t.repeatable and RepeatableQuestIcon)
@@ -1358,8 +1598,12 @@ local createQuest = app.CreateClass("Quest", "questID", {
 		return GetQuestLinkForObject(t);
 	end,
 	tooltipLink = function(t)
+		-- linktests[#linktests + 1] = "|cffffff00|Hquest:"..t.questID..":"..(app._subid or 0).."|h["..(t.name or "").."]|h|r" -- works when _subid is correct for questid
+		-- linktests[#linktests + 1] = "|cffffff00|Hquest:"..t.questID..":"..(app._subid or 0).."|h["..(t.name or "").." "..t.questID.."]|h|r" -- de-links
+		-- linktests[#linktests + 1] = "|cffffff00|Hquest:"..t.questID..":"..(app._subid or 0).."|h["..t.questID.."]|h|r" -- cannot send message
 		return "quest:"..t.questID
 	end,
+	RefreshCollectionOnly = true,
 	collectible = CollectibleAsQuest,
 	collected = IsQuestFlaggedCompletedForObject,
 	altcollected = function(t)
@@ -1373,7 +1617,10 @@ local createQuest = app.CreateClass("Quest", "questID", {
 			end
 		end
 	end,
-	trackable = app.ReturnTrue,
+	trackable = function(t)
+		-- raw repeatable quests can't really be tracked since they immediately unflag
+		return not rawget(t, "repeatable") and t.repeatable
+	end,
 	saved = function(t)
 		return IsQuestSaved(t.questID);
 	end,
@@ -1439,6 +1686,11 @@ local createQuest = app.CreateClass("Quest", "questID", {
 		end
 	end,
 	indicatorIcon = GetQuestIndicator,
+	variants = {
+		app.GlobalVariants.AndLockCriteriaWithAutoName,
+		app.GlobalVariants.AndLockCriteria,
+		app.GlobalVariants.WithAutoName,
+	}
 },
 "WithReputation", {
 	-- Classic: Quests which give Reputation are always collectible if tracking Quests & Reputations
@@ -1456,7 +1708,7 @@ local createQuest = app.CreateClass("Quest", "questID", {
 		local flag = IsQuestFlaggedCompletedForObject(t);
 		if flag then return flag; end
 		local maxReputation = t.maxReputation;
-		if (select(6, GetFactionInfoByID(maxReputation[1])) or 0) >= maxReputation[2] then
+		if GetFactionCurrentReputation(maxReputation[1]) >= maxReputation[2] then
 			return t.repeatable and 1 or 2;
 		end
 		if app.Settings.AccountWide.Reputations then
@@ -1474,9 +1726,20 @@ local createQuest = app.CreateClass("Quest", "questID", {
 	-- Retail: Quests which have a maxrepuation can be considered a Cost for the respective Faction
 	collectibleAsCost = not app.IsClassic and QuestWithReputationCollectibleAsCost or nil,
 	variants = {
-		AndLockCriteria = AndLockCriteria,
-	},
+		app.GlobalVariants.AndLockCriteriaWithAutoName,
+		app.GlobalVariants.AndLockCriteria,
+		app.GlobalVariants.WithAutoName,
+	}
 }, (function(t) return t.maxReputation; end),
+"AsHQT", {
+	CollectibleType = function() return "QuestsHidden" end,
+	isHQT = app.ReturnTrue,
+	variants = {
+		app.GlobalVariants.AndLockCriteriaWithAutoName,
+		app.GlobalVariants.AndLockCriteria,
+		app.GlobalVariants.WithAutoName,
+	}
+}, (function(t) return t.type == "hqt" end),
 -- Both: Breadcrumbs
 "AsBreadcrumb", {
 	text = function(t)
@@ -1501,7 +1764,7 @@ local createQuest = app.CreateClass("Quest", "questID", {
 	end or CollectibleAsQuestOrAsLocked,
 	locked = LockedAsBreadcrumb,
 	variants = {
-		AndBreadcrumbWithLockCriteria = AndBreadcrumbWithLockCriteria,
+		AndBreadcrumbWithLockCriteria,
 	},
 }, (function(t) return t.isBreadcrumb; end)
 -- Both: World Quests (Baked back into Quest for now since multiple types can be WorldQuests)
@@ -1518,10 +1781,6 @@ local createQuest = app.CreateClass("Quest", "questID", {
 	end,
 }, (function(t) return (t.isWorldQuest or IsWorldQuest(t)); end)
 --]]
--- Both: Locked Quest support (no way to make a variant on the base Class at this time)
-,"WithLockCriteria", app.CloneDictionary(AndLockCriteria), AndLockCriteria.__condition
--- Retail: Quests with a 'type' field can derive their name from other in-game data automatically
-,app.IsRetail and "WithTypeName" or false, app.CloneDictionary(app.GlobalVariants.WithTypeName), app.GlobalVariants.WithTypeName.__condition
 );
 
 app.CreateQuest = createQuest;
@@ -1539,18 +1798,18 @@ app.CreateQuestObjective = app.CreateClass("Objective", "objectiveID", {
 			local objectives = C_QuestLog_GetQuestObjectives(questID);
 			if objectives then
 				local objective = objectives[t.objectiveID];
-				if objective then return objective.text; end
+				if objective and not IsRetrieving(objective.text) then return objective.text; end
 			end
 			return app.GetNameFromProviders(t)
-				or (t.spellID and GetSpellInfo(t.spellID))
+				or (t.spellID and GetSpellName(t.spellID))
 				or RETRIEVING_DATA;
 		end
 		return "INVALID: Must be relative to a Quest Object.";
 	end,
 	icon = function(t)
 		return app.GetIconFromProviders(t)
-			or (t.spellID and select(3, GetSpellInfo(t.spellID)))
-			or t.parent.icon or "Interface\\Worldmap\\Gear_64Grey";
+			or (t.spellID and GetSpellIcon(t.spellID))
+			or t.parent.icon or 311226;
 	end,
 	model = function(t)
 		if t.providers then
@@ -1572,6 +1831,7 @@ app.CreateQuestObjective = app.CreateClass("Objective", "objectiveID", {
 	questID = function(t)
 		return t.parent.questID;
 	end,
+	RefreshCollectionOnly = true,
 	collectible = function(t)
 		if not t.questID then
 			return false;
@@ -1717,42 +1977,37 @@ local softRefresh = function()
 	wipe(LockedQuestCache)
 	wipe(LockedBreadcrumbCache)
 end;
-app.events.BAG_NEW_ITEMS_UPDATED = softRefresh;
 if app.IsClassic then
 	-- Way too spammy to be used without a Callback or combat protection
-	app:RegisterEvent("CRITERIA_UPDATE");
-	app.events.CRITERIA_UPDATE = softRefresh;
+	app.AddEventRegistration("CRITERIA_UPDATE", softRefresh)
 	-- This triggers in many situations where nothing actually changes... (like opening Quest Log)
-	app:RegisterEvent("QUEST_LOG_UPDATE");
-	app.events.QUEST_LOG_UPDATE = function()
-		-- app.PrintDebug("QUEST_LOG_UPDATE")
-		RefreshAllQuestInfo();
-	end
+	app.AddEventRegistration("QUEST_LOG_UPDATE", RefreshAllQuestInfo)
 else
 	-- In Retail, this has a cooldown and OOC protection, plus it actually allows accurate
 	-- triggering of quest status changes without user action.
 	-- Additionally, RefreshAllQuestInfo is extremely efficient for Retail and characters with 25,000 completed
 	-- quests should not notice any FPS stutters even up to 120 FPS
-	app:RegisterEvent("CRITERIA_UPDATE");
-	app.events.CRITERIA_UPDATE = RefreshAllQuestInfo;
+	app.AddEventRegistration("CRITERIA_UPDATE", RefreshAllQuestInfo)
 end
-app.events.QUEST_REMOVED = softRefresh;
-app.events.QUEST_WATCH_UPDATE = softRefresh;
-app.events.QUEST_ACCEPTED = function(questLogIndex, questID)
+app.AddEventRegistration("BAG_NEW_ITEMS_UPDATED", softRefresh)
+app.AddEventRegistration("QUEST_REMOVED", softRefresh)
+app.AddEventRegistration("QUEST_WATCH_UPDATE", softRefresh)
+app.AddEventRegistration("QUEST_ACCEPTED", function(questLogIndex, questID)
 	if not questID then questID = questLogIndex; end	-- NOTE: In Classic there's an extra parameter.
 	softRefresh();
 	if questID then
 		-- app.PrintDebug("QUEST_ACCEPTED",questID)
 		ResetQuestName(questID)
-		PrintQuestInfo(questID, true);
+		PrintQuestInfoViaCallback(questID, true);
 		CheckFollowupQuests(questID);
 	end
-end
-app.events.QUEST_TURNED_IN = function(questID)
+end)
+app.AddEventRegistration("QUEST_TURNED_IN", function(questID)
 	if questID then
 		LastQuestTurnedIn = questID;
 		if not MostRecentQuestTurnIns then
 			MostRecentQuestTurnIns = {questID}
+			app.MostRecentQuestTurnIns = MostRecentQuestTurnIns
 		else
 			tinsert(MostRecentQuestTurnIns, 1, questID);
 			if #MostRecentQuestTurnIns > 5 then
@@ -1761,12 +2016,7 @@ app.events.QUEST_TURNED_IN = function(questID)
 		end
 		RefreshQuestInfo(questID);
 	end
-end
-app:RegisterEvent("BAG_NEW_ITEMS_UPDATED");
-app:RegisterEvent("QUEST_ACCEPTED");
-app:RegisterEvent("QUEST_REMOVED");
-app:RegisterEvent("QUEST_TURNED_IN");
-app:RegisterEvent("QUEST_WATCH_UPDATE");
+end)
 app.AddEventHandler("OnRefreshCollections", RefreshAllQuestInfo);
 
 
@@ -1851,9 +2101,7 @@ if app.IsRetail then
 			end
 
 			-- If the user is in a Party Sync session, then force showing pre-req quests which are replayable if they are collected already
-			if OnUpdateForPartySyncedQuest and IsPartySyncActive and questRef.collected and not questRef.OnUpdate then
-				questRef.OnUpdate = OnUpdateForPartySyncedQuest;
-			end
+			questRef.OnSetVisibility = OnSetVisibilityForNestedQuest
 
 			-- If the quest is provided by an Item, then show that Item directly under the quest so it can easily show tooltip/Source information if desired
 			if questRef.providers then
@@ -1862,15 +2110,18 @@ if app.IsRetail then
 					if p[1] == "i" then
 						id = p[2];
 						-- print("Quest Item Provider",p[1], id);
-						local pRef = Search("itemID", id, "field");
+						local pRef = Search("itemID", id, "field")
 						if pRef then
+							pRef = app.CloneClassInstance(pRef, true)
+							-- Make sure to always show the Quest starting item
+							pRef.OnSetVisibility = app.ReturnTrue;
 							app.NestObject(questRef, pRef, true, 1);
 						else
 							pRef = app.CreateItem(id);
+							-- Make sure to always show the Quest starting item
+							pRef.OnSetVisibility = app.ReturnTrue;
 							app.NestObject(questRef, pRef, nil, 1);
 						end
-						-- Make sure to always show the Quest starting item
-						pRef.OnUpdate = app.AlwaysShowUpdate;
 						-- Quest started by this Item should be represented using any sourceQuests on the Item
 						if pRef.sourceQuests then
 							if not questRef.sourceQuests then questRef.sourceQuests = {}; end
@@ -1881,6 +2132,7 @@ if app.IsRetail then
 				end
 			end
 
+			questRef.SortType = "Total"
 			refs[questID] = questRef;
 		end
 
@@ -1907,8 +2159,141 @@ if app.IsRetail then
 			MapSourceQuestsRecursive(questID, sq, nextDepth, depths, parents, refs, inFilters);
 		end
 	end
+
+	local function NestSourceQuests(questChainRoot, group)
+		-- Create a copy of the root group
+		local root = app.__CreateObject(group);
+		local g = { root };
+
+		local sourceQuests, sourceQuest, subSourceQuests, prereqs = root.sourceQuests, nil, nil, nil;
+		local addedQuests = {};
+		while sourceQuests and #sourceQuests > 0 do
+			subSourceQuests = {}; prereqs = {};
+			for i,sourceQuestID in ipairs(sourceQuests) do
+				if not addedQuests[sourceQuestID] then
+					addedQuests[sourceQuestID] = true;
+					local qs = sourceQuestID < 1 and SearchForField("creatureID", math.abs(sourceQuestID)) or SearchForField("questID", sourceQuestID);
+					if qs and #qs > 0 then
+						local i, sq = #qs,nil;
+						while not sq and i > 0 do
+							if qs[i].questID == sourceQuestID then sq = qs[i]; end
+							i = i - 1;
+						end
+						-- just throw every sourceQuest into groups since it's specific questID?
+						-- continue to force collectible though even without quest tracking since it's a temp window
+						-- only reason to include altQuests in search was because of A/H questID usage, which is now cleaned up for quest objects
+						local found = nil;
+						if sq and sq.questID then
+							if sq.parent and sq.parent.questID == sq.questID then
+								sq = sq.parent;
+							end
+							found = sq;
+						end
+						if found
+							-- ensure the character meets the custom collect for the quest
+							and app.CheckCustomCollects(found)
+							-- ensure the current settings do not filter the quest
+							and app.RecursiveGroupRequirementsFilter(found) then
+							sourceQuest = app.__CreateObject(found);
+							sourceQuest.visible = true;
+							if found.sourceQuests and #found.sourceQuests > 0 and
+								(not found.saved or app.CollectedItemVisibilityFilter(sourceQuest)) then
+								-- Mark the sub source quest IDs as marked (as the same sub quest might point to 1 source quest ID)
+								for j, subsourceQuests in ipairs(found.sourceQuests) do
+									subSourceQuests[subsourceQuests] = true;
+								end
+							end
+						else
+							sourceQuest = nil;
+						end
+					elseif sourceQuestID > 0 then
+						-- Create a Quest Object.
+						sourceQuest = app.CreateQuest(sourceQuestID, { ['visible'] = true, ['collectible'] = true });
+					else
+						-- Create a NPC Object.
+						sourceQuest = app.CreateNPC(math.abs(sourceQuestID), { ['visible'] = true });
+					end
+
+					-- If the quest was valid, attach it.
+					if sourceQuest then tinsert(prereqs, sourceQuest); end
+				end
+			end
+
+			-- Convert the subSourceQuests table into an array
+			sourceQuests = {};
+			if #prereqs > 0 then
+				for sourceQuestID,i in pairs(subSourceQuests) do
+					tinsert(sourceQuests, tonumber(sourceQuestID));
+				end
+				-- print("Shifted pre-reqs down & next sq layer",#prereqs)
+				-- app.PrintTable(sourceQuests)
+				-- print("---")
+				tinsert(prereqs, {
+					text = L.UPON_COMPLETION,
+					description = L.UPON_COMPLETION_DESC,
+					icon = 135932,
+					visible = true,
+					expanded = true,
+					g = g,
+				});
+				g = prereqs;
+			end
+		end
+
+		-- Clean up the recursive hierarchy. (this removed duplicates)
+		sourceQuests = {};
+		prereqs = g;
+		while prereqs and #prereqs > 0 do
+			for i=#prereqs,1,-1 do
+				local o = prereqs[i];
+				if o.key then
+					sourceQuest = o.key .. o[o.key];
+					if sourceQuests[sourceQuest] then
+						-- Already exists in the hierarchy. Uh oh.
+						tremove(prereqs, i);
+					else
+						sourceQuests[sourceQuest] = true;
+					end
+				end
+			end
+
+			if #prereqs > 1 then
+				prereqs = prereqs[#prereqs];
+				if prereqs then prereqs = prereqs.g; end
+			else
+				prereqs = prereqs[#prereqs];
+				if prereqs then prereqs = prereqs.g; end
+			end
+		end
+
+		-- Clean up standalone "Upon Completion" headers.
+		prereqs = g;
+		repeat
+			local n = #prereqs;
+			local lastprereq = prereqs[n];
+			if lastprereq.text == "Upon Completion" and n > 1 then
+				tremove(prereqs, n);
+				local g = prereqs[n-1].g;
+				if not g then
+					g = {};
+					prereqs[n-1].g = g;
+				end
+				if lastprereq.g then
+					for i,data in ipairs(lastprereq.g) do
+						tinsert(g, data);
+					end
+				end
+				prereqs = g;
+			else
+				prereqs = lastprereq.g;
+			end
+		until not prereqs or #prereqs < 1;
+
+		app.NestObjects(questChainRoot, g);
+	end
+
 	-- Will find, clone, and nest into 'root' all known source quests starting from the provided 'root', listing each quest once at the maximum depth that it has been encountered
-	app.NestSourceQuestsV2 = function(questChainRoot, questID)
+	local function NestSourceQuestsNested(questChainRoot, questID)
 		if not questID then
 			if not questChainRoot.sourceQuests then return; end
 			questID = 0;
@@ -1955,6 +2340,68 @@ if app.IsRetail then
 		end
 	end
 
+	local function BuildSourceQuestChain(group)
+		if not ((group.key == "questID" and group.questID) or group.sourceQuests) then return end
+
+		group.isQuestChain = true;
+
+		-- if the group was created from a popout and thus contains its own pre-req quests already, then clean out direct quest entries from the group
+		if group.g then
+			local noQuests = {}
+			for _,o in pairs(group.g) do
+				if o.key ~= "questID" then
+					noQuests[#noQuests + 1] = o
+				end
+			end
+			group.g = noQuests
+		end
+
+		-- Check to see if Source Quests are listed elsewhere.
+		if group.questID and not group.sourceQuests then
+			local questID = group.questID;
+			local qs = SearchForField("questID", group.questID);
+			if #qs > 1 then
+				local sq
+				local i = #qs
+				while not sq and i > 0 do
+					-- found another group with this questID that has sourceQuests listed
+					if qs[i].questID == questID and qs[i].sourceQuests then sq = qs[i]; end
+					i = i - 1;
+				end
+				-- copy the found sq sourceQuests into the group
+				if sq then
+					group.sourceQuests = app.CloneArray(sq.sourceQuests)
+				end
+			end
+		end
+
+		-- Show Quest Prereqs
+		if group.sourceQuests then
+			local useNested = app.Settings:GetTooltipSetting("QuestChain:Nested");
+			local questChainHeader = app.CreateRawText(useNested and L.NESTED_QUEST_REQUIREMENTS or L.QUEST_CHAIN_REQ, {
+				description = L.QUEST_CHAIN_REQ_DESC,
+				icon = 135932,
+				OnUpdate = app.AlwaysShowUpdate,
+				OnClick = app.UI.OnClick.IgnoreRightClick,
+				-- sourceIgnored = true,
+				skipFill = true,
+				skipContains = true,
+				SortPriority = 1.0,	-- follow any raw content in group
+				SortType = "Total",
+				-- copy any sourceQuests into the header incase the root is not actually a quest
+				sourceQuests = group.sourceQuests,
+			});
+			if useNested then
+				NestSourceQuestsNested(questChainHeader, group.questID)
+			else
+				NestSourceQuests(questChainHeader, group)
+			end
+			app.NestObject(group, questChainHeader);
+			questChainHeader.sourceQuests = nil;
+		end
+	end
+	app.AddEventHandler("OnNewPopoutGroup", BuildSourceQuestChain)
+
 	-- These are Items/Currencies rewarded by WQs which are treated as currency but have a 'huge' amount of purchases
 	-- and are often readily available
 	local SuperSpammyWorldQuestDrops = {
@@ -1973,8 +2420,9 @@ if app.IsRetail then
 	-- Quest Harvesting Lib (http://www.wowinterface.com/forums/showthread.php?t=46934)
 	local QuestHarvester = CreateFrame("GameTooltip", "AllTheThingsQuestHarvester", UIParent, "GameTooltipTemplate");
 
-	local GetNumQuestLogRewards,GetQuestLogRewardCurrencyInfo,HaveQuestRewardData =
-		  GetNumQuestLogRewards,GetQuestLogRewardCurrencyInfo,HaveQuestRewardData;
+	local GetNumQuestLogRewards,HaveQuestRewardData =
+		  GetNumQuestLogRewards,HaveQuestRewardData;
+	local GetQuestRewardCurrencies = C_QuestLog.GetQuestRewardCurrencies
 	local function TryPopulateQuestRewards(questObject)
 		-- Will attempt to populate the rewards of the quest object into itself or request itself to be loaded
 		if not questObject then return end
@@ -2059,10 +2507,10 @@ if app.IsRetail then
 
 		-- Add info for currency rewards as containers for their respective collectibles
 		---@diagnostic disable-next-line: redundant-parameter
-		local numCurrencies = GetNumQuestLogRewardCurrencies(questID);
+		local questCurrencies = GetQuestRewardCurrencies(questID) or app.EmptyTable
 		local currencyID, cachedCurrency;
-		for j=1,numCurrencies,1 do
-			currencyID = select(4, GetQuestLogRewardCurrencyInfo(j, questID));
+		for _,currencyInfo in ipairs(questCurrencies) do
+			currencyID = currencyInfo.currencyID
 			if currencyID then
 				-- app.PrintDebug("TryPopulateQuestRewards_currencies:found",questID,currencyID,questObject.missingCurr)
 

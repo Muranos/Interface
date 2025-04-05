@@ -6,7 +6,6 @@ local AssignChildren, CloneClassInstance, CloneReference
 local IsQuestFlaggedCompleted, IsQuestReadyForTurnIn = app.IsQuestFlaggedCompleted, app.IsQuestReadyForTurnIn;
 local DESCRIPTION_SEPARATOR = app.DESCRIPTION_SEPARATOR;
 local GetDeepestRelativeValue = app.GetDeepestRelativeValue;
-local GetCompletionIcon = app.GetCompletionIcon;
 local GetProgressTextForRow = app.GetProgressTextForRow;
 local GetRelativeValue = app.GetRelativeValue;
 local ResolveSymbolicLink = app.ResolveSymbolicLink;
@@ -149,68 +148,6 @@ local function CalculateRowIndent(data)
 		return 0;
 	end
 end
-local function CalculateRowDisplayID(data, all)
-	-- don't create a displayID for groups with a sourceID/itemID/difficultyID/mapID
-	if data.sourceID or data.itemID or data.difficultyID or data.mapID then return; end
-	if all then
-		local displayInfo, _ = {}, nil;
-		-- specific displayID
-		_ = data.displayID;
-		if _ then tinsert(displayInfo, _); data.displayInfo = displayInfo; return displayInfo; end
-
-		-- specific creatureID for displayID
-		_ = data.creatureID and app.NPCDisplayIDFromID[data.creatureID];
-		if _ then tinsert(displayInfo, _); data.displayInfo = displayInfo; return displayInfo; end
-
-		-- loop through "n" providers
-		if data.providers then
-			for k,v in pairs(data.providers) do
-				-- if one of the providers is an NPC, we should show its texture regardless of other providers
-				if v[1] == "n" then
-					_ = v[2] and app.NPCDisplayIDFromID[v[2]];
-					if _ then tinsert(displayInfo, _); end
-				end
-			end
-		end
-		if displayInfo[1] then data.displayInfo = displayInfo; return displayInfo; end
-
-		-- for quest givers
-		if data.qgs then
-			for k,v in pairs(data.qgs) do
-				_ = v and app.NPCDisplayIDFromID[v];
-				if _ then tinsert(displayInfo, _); end
-			end
-		end
-		if displayInfo[1] then data.displayInfo = displayInfo; return displayInfo; end
-	else
-		-- specific displayID
-		local _ = data.displayID or data.fetchedDisplayID;
-		if _ then return _; end
-
-		-- specific creatureID for displayID
-		_ = data.creatureID and app.NPCDisplayIDFromID[data.creatureID];
-		if _ then data.fetchedDisplayID = _; return _; end
-
-		-- loop through "n" providers
-		if data.providers then
-			for k,v in pairs(data.providers) do
-				-- if one of the providers is an NPC, we should show its texture regardless of other providers
-				if v[1] == "n" then
-					_ = v[2] and app.NPCDisplayIDFromID[v[2]];
-					if _ then data.fetchedDisplayID = _; return _; end
-				end
-			end
-		end
-
-		-- for quest givers
-		if data.qgs then
-			for k,v in pairs(data.qgs) do
-				_ = v and app.NPCDisplayIDFromID[v];
-				if _ then data.fetchedDisplayID = _; return _; end
-			end
-		end
-	end
-end
 local function CalculateRowIndicatorTexture(group)
 	-- If group is quest and is currently accepted or saved...
 	local questID = group.questID;
@@ -223,11 +160,11 @@ local function CalculateRowIndicatorTexture(group)
 			return app.asset("known_green");
 		end
 	end
-	
+
 	if group.u then
-		local condition = L["AVAILABILITY_CONDITIONS"][group.u];
-		if condition and (not condition[5] or app.GameBuildVersion < condition[5]) then
-			return L["UNOBTAINABLE_ITEM_TEXTURES"][condition[1]];
+		local phase = L.PHASES[group.u];
+		if phase and (not phase.buildVersion or app.GameBuildVersion < phase.buildVersion) then
+			return L["UNOBTAINABLE_ITEM_TEXTURES"][phase.state];
 		end
 	end
 	return group.e and L["UNOBTAINABLE_ITEM_TEXTURES"][app.Modules.Events.FilterIsEventActive(group) and 5 or 4];
@@ -253,20 +190,28 @@ local function HasExpandedSubgroup(group)
 end
 app.ExpandGroupsRecursively = ExpandGroupsRecursively;
 
+local IconPortraitTooltipExtraSettings = {
+	questID = "IconPortraitsForQuests",
+};
 local SetPortraitTexture = _G["SetPortraitTexture"];
 local SetPortraitTextureFromDisplayID = _G["SetPortraitTextureFromCreatureDisplayID"];
 local function SetPortraitIcon(self, data, x)
-	local displayID = CalculateRowDisplayID(data);
-	if displayID then
-		SetPortraitTextureFromDisplayID(self, type(displayID) == "number" and displayID or displayID[1]);
-		self:SetWidth(self:GetHeight());
-		self:SetTexCoord(0, 1, 0, 1);
-		return true;
-	elseif data.unit and not data.icon then
-		SetPortraitTexture(self, data.unit);
-		self:SetWidth(self:GetHeight());
-		self:SetTexCoord(0, 1, 0, 1);
-		return true;
+	if app.Settings:GetTooltipSetting("IconPortraits") then
+		local extraSetting = IconPortraitTooltipExtraSettings[data.key];
+		if not extraSetting or app.Settings:GetTooltipSetting(extraSetting) then
+			local displayID = app.GetDisplayID(data);
+			if displayID then
+				SetPortraitTextureFromDisplayID(self, displayID);
+				self:SetWidth(self:GetHeight());
+				self:SetTexCoord(0, 1, 0, 1);
+				return true;
+			elseif data.unit and not data.icon then
+				SetPortraitTexture(self, data.unit);
+				self:SetWidth(self:GetHeight());
+				self:SetTexCoord(0, 1, 0, 1);
+				return true;
+			end
+		end
 	end
 
 	-- Fallback to a traditional icon.
@@ -395,7 +340,7 @@ local function SetRowData(self, row, data)
 		else
 			row.text = text;
 		end
-		row.Label:SetText(text);
+		row.Label:SetText(app.TryColorizeName(data, text));
 		row:SetHeight(select(2, row.Label:GetFont()) + 4);
 	end
 
@@ -558,17 +503,19 @@ local function StopMovingOrSizing(self)
 	if self.isMoving then
 		self:StopMovingOrSizing();
 		self.isMoving = false;
+		self:RecordSettings();
 	end
 end
 local function StartMovingOrSizing(self)
-	if not (self:IsMovable() or self:IsResizable()) then
+	if not (self:IsMovable() or self:IsResizable()) or self.isLocked then
 		return
 	end
 	if self.isMoving then
 		StopMovingOrSizing(self);
 	else
 		self.isMoving = true;
-		if not self:IsMovable() or ((select(2, GetCursorPosition()) / self:GetEffectiveScale()) < math.max(self:GetTop() - 40, self:GetBottom() + 10)) then
+		self.isMoving = true;
+		if ((select(2, GetCursorPosition()) / self:GetEffectiveScale()) < math.max(self:GetTop() - 40, self:GetBottom() + 10)) then
 			self:StartSizing();
 			self:StartATTCoroutine("StartMovingOrSizing (Sizing)", function()
 				while self.isMoving do
@@ -577,27 +524,8 @@ local function StartMovingOrSizing(self)
 				end
 				self:RecordSettings();
 			end);
-		else
+		elseif self:IsMovable() then
 			self:StartMoving();
-			self:StartATTCoroutine("StartMovingOrSizing (Moving)", function()
-				while IsSelfOrChild(self, GetMouseFocus()) do
-					coroutine.yield();
-				end
-				StopMovingOrSizing(self);
-			end);
-		end
-	end
-end
-local function SearchForMissingItemsRecursively(group, listing)
-	if group.visible then
-		if group.itemID and (group.collectible or (group.total and group.total > 0)) and not app.IsBoP(group) then
-			tinsert(listing, group);
-		end
-		if group.g and group.expanded then
-			-- Go through the sub groups and determine if any of them have a response.
-			for i, subgroup in ipairs(group.g) do
-				SearchForMissingItemsRecursively(subgroup, listing);
-			end
 		end
 	end
 end
@@ -608,7 +536,7 @@ local function RowOnClick(self, button)
 		if reference.OnClick and reference.OnClick(self, button) then
 			return true;
 		end
-		
+
 		local window = self:GetParent():GetParent();
 		if IsShiftKeyDown() then
 			if button == "RightButton" then
@@ -634,7 +562,7 @@ local function RowOnClick(self, button)
 			local isTSMOpen = TSM_API and TSM_API.IsUIVisible("AUCTION");
 			if isTSMOpen or (AuctionFrame and AuctionFrame:IsShown()) or (AuctionHouseFrame and AuctionHouseFrame:IsShown()) then
 				local missingItems = {};
-				SearchForMissingItemsRecursively(reference, missingItems);
+				app.Search.SearchForMissingItemsRecursively(reference, missingItems);
 				local count = #missingItems;
 				if count < 1 then
 					app.print("No cached items found in search. Expand the group and view the items to cache the names and try again. Only Bind on Equip items will be found using this search.");
@@ -678,14 +606,18 @@ local function RowOnClick(self, button)
 					for key,value in pairs(uniqueNames) do
 						tinsert(arr, key);
 					end
-					Auctionator.API.v1.MultiSearchExact(L["TITLE"], arr);
+					Auctionator.API.v1.MultiSearch(L["TITLE"], arr);
 					return;
 				end
 
 				-- Attempt to search manually with the link.
 				local link = reference.link or reference.silentLink;
 				if link and HandleModifiedItemClick(link) then
-					AuctionFrameBrowse_Search();
+					if AuctionHouseFrame.SearchBar then
+						AuctionHouseFrame.SearchBar:StartSearch();
+					else
+						AuctionFrameBrowse_Search();
+					end
 				end
 				return true;
 			else
@@ -779,22 +711,26 @@ local function RowOnEnter(self)
 		tooltip:ClearATTReferenceTexture();
 	end
 	--print("RowOnEnter", "Rebuilding...");
-	
-	
+
+
 	-- Always display tooltip data when viewing information from our windows.
 	local wereTooltipIntegrationsDisabled = not app.Settings:GetTooltipSetting("Enabled");
 	if wereTooltipIntegrationsDisabled then app.Settings:SetTooltipSetting("Enabled", true); end
-	
+
 	-- Build tooltip information.
 	local tooltipInfo = {};
 	tooltip:ClearLines();
 	app.ActiveRowReference = reference;
-	if self:GetCenter() > (UIParent:GetWidth() / 2) and (not AuctionFrame or not AuctionFrame:IsVisible()) then
-		tooltip:SetOwner(self, "ANCHOR_LEFT");
-	else
-		tooltip:SetOwner(self, "ANCHOR_RIGHT");
+	local anchor = self:GetParent():GetParent().TooltipAnchor;
+	if not anchor then
+		if self:GetCenter() > (UIParent:GetWidth() / 2) and (not AuctionFrame or not AuctionFrame:IsVisible()) then
+			anchor = "ANCHOR_LEFT";
+		else
+			anchor = "ANCHOR_RIGHT";
+		end
 	end
-	
+	tooltip:SetOwner(self, anchor);
+
 	-- Attempt to show the object as a hyperlink in the tooltip
 	local linkSuccessful;
 	if reference.key ~= "encounterID" and reference.key ~= "instanceID" and reference.key ~= "questID" then
@@ -808,7 +744,7 @@ local function RowOnEnter(self)
 			--print("Link:", link:gsub("|","\\"));
 			--print("Link Result!", success, reference.key, reference.__type);
 		end
-		
+
 		-- Only if the link was unsuccessful.
 		if (not linkSuccessful or tooltip.ATT_AttachComplete == nil) and reference.currencyID then
 			---@diagnostic disable-next-line: redundant-parameter
@@ -842,7 +778,7 @@ local function RowOnEnter(self)
 			r = 1, g = 1, b = 1,
 		});
 	end
-	
+
 	if reference.cost then
 		if type(reference.cost) == "table" then
 			local _, name, icon, amount;
@@ -881,50 +817,14 @@ local function RowOnEnter(self)
 			});
 		end
 	end
-	
+
 	-- Process all Information Types
 	if tooltip.ATT_AttachComplete == nil then
 		app.ProcessInformationTypes(tooltipInfo, reference);
 	end
-	
-	-- Show Breadcrumb information
-	if reference.isBreadcrumb then tinsert(tooltipInfo, { left = "This is a breadcrumb quest." }); end
-	if reference.repeatable then
-		if reference.isDaily then tinsert(tooltipInfo, { left = "This can be completed daily." });
-		elseif reference.isWeekly then tinsert(tooltipInfo, { left = "This can be completed weekly." });
-		elseif reference.isMontly then tinsert(tooltipInfo, { left = "This can be completed monthly." });
-		elseif reference.isYearly then tinsert(tooltipInfo, { left = "This can be completed yearly." });
-		else tinsert(tooltipInfo, { left = "This can be completed multiple times.", wrap = true }); end
-	end
 
-	if reference.questID and app.Settings:GetTooltipSetting("SummarizeThings") then
-		if not reference.repeatable and app.Settings:GetTooltipSetting("Show:OtherCharacterQuests") then
-			local incompletes, realmName = {}, GetRealmName();
-			for guid,character in pairs(ATTCharacterData) do
-				if not character.ignored and character.realm == realmName
-					and (not reference.r or (character.factionID and reference.r == character.factionID))
-					and (not reference.races or (character.raceID and contains(reference.races, character.raceID)))
-					and (not reference.c or (character.classID and contains(reference.c, character.classID)))
-					and (character.Quests and not character.Quests[reference.questID]) then
-					incompletes[guid] = character;
-				end
-			end
-			incompletes[app.GUID] = nil;
-			local desc, j = "", 0;
-			for guid,character in pairs(incompletes) do
-				if j > 0 then desc = desc .. ", "; end
-				desc = desc .. (character.text or guid);
-				j = j + 1;
-			end
-			if j > 0 then
-				tinsert(tooltipInfo, {
-					left = "Incomplete on " .. desc:gsub("-" .. realmName, ""),
-					r = 1, g = 1, b = 1,
-					wrap = true,
-				});
-			end
-		end
-	end
+	-- Show Breadcrumb information
+	if reference.isBreadcrumb then tinsert(tooltipInfo, { left = "This is a breadcrumb quest.", color = app.Colors.Breadcrumb }); end
 
 	-- Show Quest Prereqs
 	local isDebugMode = app.MODE_DEBUG;
@@ -972,7 +872,7 @@ local function RowOnEnter(self)
 				if mapID and mapID ~= currentMapID then text = text .. " (" .. app.GetMapName(mapID) .. ")"; end
 				tinsert(tooltipInfo, {
 					left = text,
-					right = GetCompletionIcon(IsQuestFlaggedCompleted(prereq.questID)),
+					right = app.GetCompletionIcon(IsQuestFlaggedCompleted(prereq.questID)),
 				});
 			end
 		end
@@ -987,38 +887,77 @@ local function RowOnEnter(self)
 				if mapID and mapID ~= currentMapID then text = text .. " (" .. app.GetMapName(mapID) .. ")"; end
 				tinsert(tooltipInfo, {
 					left = text,
-					right = GetCompletionIcon(IsQuestFlaggedCompleted(prereq.questID)),
+					right = app.GetCompletionIcon(IsQuestFlaggedCompleted(prereq.questID)),
+				});
+			end
+		end
+	end
+	if reference.sourceAchievements and (isDebugMode or not reference.collected) then
+		local currentMapID, prereqs, bc = app.CurrentMapID, {}, {};
+		for i,sourceAchievementID in ipairs(reference.sourceAchievements) do
+			if sourceAchievementID > 0 and (isDebugMode or not ATTAccountWideData.Achievements[sourceAchievementID]) then
+				local sas = SearchForField("achievementID", sourceAchievementID);
+				if #sas > 0 then
+					local bestMatch = nil;
+					for j,sa in ipairs(sas) do
+						if sa.achievementID == sourceAchievementID then
+							if isDebugMode or (app.RecursiveCharacterRequirementsFilter(sa) and not sa.collected) then
+								bestMatch = sa;
+							end
+						end
+					end
+					if bestMatch then
+						tinsert(prereqs, bestMatch);
+					end
+				else
+					tinsert(prereqs, app.CreateAchievement(sourceAchievementID));
+				end
+			end
+		end
+
+		if prereqs and #prereqs > 0 then
+			tinsert(tooltipInfo, {
+				left = "This has an incomplete prerequisite achievement that you need to complete first.",
+				wrap = true,
+			});
+			for i,prereq in ipairs(prereqs) do
+				local text = "   " .. prereq.achievementID .. ": " .. (prereq.text or RETRIEVING_DATA);
+				if prereq.isGuild then text = text .. " (" .. GUILD .. ")"; end
+				tinsert(tooltipInfo, {
+					left = text,
+					right = app.GetCompletionIcon(prereq.collected),
+				});
+			end
+		end
+	end
+	if app.Settings:GetTooltipSetting("Show:TooltipHelp") then
+		if reference.g then
+			-- If we're at the Auction House
+			if (AuctionFrame and AuctionFrame:IsShown()) or (AuctionHouseFrame and AuctionHouseFrame:IsShown()) then
+				tinsert(tooltipInfo, {
+					left = L[(self.index > 0 and "OTHER_ROW_INSTRUCTIONS_AH") or "TOP_ROW_INSTRUCTIONS_AH"],
+					r = 1, g = 1, b = 1,
+					wrap = true,
+				});
+			else
+				tinsert(tooltipInfo, {
+					left = L[(self.index > 0 and "OTHER_ROW_INSTRUCTIONS") or "TOP_ROW_INSTRUCTIONS"],
+					r = 1, g = 1, b = 1,
+					wrap = true,
 				});
 			end
 		end
 	end
 
-	if reference.g then
-		-- If we're at the Auction House
-		if (AuctionFrame and AuctionFrame:IsShown()) or (AuctionHouseFrame and AuctionHouseFrame:IsShown()) then
-			tinsert(tooltipInfo, {
-				left = L[(self.index > 0 and "OTHER_ROW_INSTRUCTIONS_AH") or "TOP_ROW_INSTRUCTIONS_AH"],
-				r = 1, g = 1, b = 1,
-				wrap = true,
-			});
-		else
-			tinsert(tooltipInfo, {
-				left = L[(self.index > 0 and "OTHER_ROW_INSTRUCTIONS") or "TOP_ROW_INSTRUCTIONS"],
-				r = 1, g = 1, b = 1,
-				wrap = true,
-			});
-		end
-	end
-	
 	-- Attach all of the Information to the tooltip.
 	app.Modules.Tooltip.AttachTooltipInformation(tooltip, tooltipInfo);
 	if not IsRefreshing then tooltip:SetATTReferenceForTexture(reference); end
 	tooltip:Show();
 	app.ActiveRowReference = nil;
-	
+
 	-- Reactivate the original tooltip integrations setting.
 	if wereTooltipIntegrationsDisabled then app.Settings:SetTooltipSetting("Enabled", false); end
-	
+
 	-- Tooltip for something which was not attached via search, so mark it as complete here
 	tooltip.ATT_AttachComplete = not reference.working;
 end
@@ -1049,7 +988,7 @@ CreateRow = function(self)
 	tinsert(self.rows, row);
 
 	-- Setup highlighting and event handling
-	row:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight", "ADD");
+	row:SetHighlightTexture(136810, "ADD");
 	row:RegisterForClicks("LeftButtonDown","RightButtonDown");
 	row:SetScript("OnClick", RowOnClick);
 	row:SetScript("OnEnter", RowOnEnter);
@@ -1076,7 +1015,7 @@ CreateRow = function(self)
 	row.Background:SetPoint("BOTTOM");
 	row.Background:SetPoint("RIGHT");
 	row.Background:SetPoint("TOP");
-	row.Background:SetTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight");
+	row.Background:SetTexture(136810);
 
 	-- Indicator is used by the Instance Saves functionality.
 	row.Indicator = row:CreateTexture(nil, "ARTWORK");
@@ -1110,8 +1049,8 @@ end
 -- Window Creation
 app.Windows = {};
 local defaultBackdrop = {
-	bgFile = "Interface/Tooltips/UI-Tooltip-Background",
-	edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+	bgFile = 137056,
+	edgeFile = 137057,
 	tile = true, tileSize = 16, edgeSize = 16,
 	insets = { left = 4, right = 4, top = 4, bottom = 4 }
 };
@@ -1128,7 +1067,9 @@ local function ApplySettingsForWindow(self, windowSettings)
 	if windowSettings.movable then
 		self:ClearAllPoints();
 		if windowSettings.x then
-			self:SetPoint(windowSettings.point or "CENTER", windowSettings.relativeTo or UIParent, windowSettings.relativePoint or "CENTER", windowSettings.x, windowSettings.y);
+			local relativeTo = windowSettings.relativeTo;
+			if relativeTo and not _G[relativeTo] then relativeTo = UIParent; end
+			self:SetPoint(windowSettings.point or "CENTER", relativeTo or UIParent, windowSettings.relativePoint or "CENTER", windowSettings.x, windowSettings.y);
 		else
 			self:SetPoint("CENTER", UIParent, "CENTER");
 		end
@@ -1219,7 +1160,7 @@ app.AddEventHandler("OnStartup", function()
 		windowSettings = {};
 		savedVariables.Windows = windowSettings;
 	end
-	
+
 	-- Rename the old mini list settings container.
 	local oldMiniListData = windowSettings.CurrentInstance;
 	if oldMiniListData then
@@ -1227,7 +1168,7 @@ app.AddEventHandler("OnStartup", function()
 		windowSettings.CurrentInstance = nil;
 		windowSettings.MiniList = oldMiniListData;
 	end
-	
+
 	-- Load the Window Settings
 	if AllWindowSettings then
 		return;
@@ -1416,7 +1357,7 @@ local function RefreshData(source, trigger)
 			refreshDataCooldown = refreshDataCooldown - 1;
 			coroutine.yield();
 		end
-		
+
 		-- Execute the OnRecalculate handlers.
 		app.HandleEvent("OnRecalculate");
 
@@ -1429,14 +1370,14 @@ local function RefreshData(source, trigger)
 
 				app.HandleEvent("OnRecalculate_NewSettings")
 			end
-			
+
 			app:UpdateWindows(source, true, refreshFromTrigger);
 		else
 			app:UpdateWindows(source, nil, refreshFromTrigger);
 		end
 		refreshFromTrigger = nil;
 		currentlyRefreshingData = false;
-		
+
 		-- Execute the OnRefreshComplete handlers.
 		app.HandleEvent("OnRefreshComplete");
 	end);
@@ -1450,83 +1391,99 @@ function app:RefreshDataQuietly(source, trigger)
 end
 
 local BuildCategory = function(self, headers, searchResults, inst)
-	local sources, header, headerType = {}, self, nil;
+	local count = #searchResults;
+	if count == 0 then return; end
+	if count > 1 then
+		-- Find the most accessible version of the thing.
+		app.Sort(searchResults, app.SortDefaults.Accessibility);
+	end
+	local mostAccessibleSource = searchResults[1];
+	inst.sourceParent = mostAccessibleSource;
+	local u = GetRelativeValue(mostAccessibleSource, "u");
+	if u then
+		if u == 1 then return inst; end
+		inst.u = u;
+	end
+	local e = GetRelativeValue(mostAccessibleSource, "e");
+	if e then inst.e = e; end
+	local awp = GetRelativeValue(mostAccessibleSource, "awp");
+	if awp then inst.awp = awp; end
+	local rwp = GetRelativeValue(mostAccessibleSource, "rwp");
+	if rwp then inst.rwp = rwp; end
+	local r = GetRelativeValue(mostAccessibleSource, "r");
+	if r then inst.r = r; end
+	local c = GetRelativeValue(mostAccessibleSource, "c");
+	if c then inst.c = c; end
+	local races = GetRelativeValue(mostAccessibleSource, "races");
+	if races then inst.races = races; end
+	for key,value in pairs(mostAccessibleSource) do
+		inst[key] = value;
+	end
+
+	local header, headerType = {}, self, nil;
 	for j,o in ipairs(searchResults) do
-		local u = GetRelativeValue(o, "u");
-		if not u or u ~= 1 then
-			app.MergeClone(sources, o);
-			if o.parent then
-				if not o.sourceQuests then
-					local questID = GetRelativeValue(o, "questID");
-					if questID then
+		if o.parent then
+			if not o.sourceQuests then
+				local questID = GetRelativeValue(o, "questID");
+				if questID then
+					if not inst.sourceQuests then
+						inst.sourceQuests = {};
+					end
+					if not contains(inst.sourceQuests, questID) then
+						tinsert(inst.sourceQuests, questID);
+					end
+				else
+					local sourceQuests = GetRelativeValue(o, "sourceQuests");
+					if sourceQuests then
 						if not inst.sourceQuests then
 							inst.sourceQuests = {};
-						end
-						if not contains(inst.sourceQuests, questID) then
-							tinsert(inst.sourceQuests, questID);
-						end
-					else
-						local sourceQuests = GetRelativeValue(o, "sourceQuests");
-						if sourceQuests then
-							if not inst.sourceQuests then
-								inst.sourceQuests = {};
-								for k,questID in ipairs(sourceQuests) do
+							for k,questID in ipairs(sourceQuests) do
+								tinsert(inst.sourceQuests, questID);
+							end
+						else
+							for k,questID in ipairs(sourceQuests) do
+								if not contains(inst.sourceQuests, questID) then
 									tinsert(inst.sourceQuests, questID);
-								end
-							else
-								for k,questID in ipairs(sourceQuests) do
-									if not contains(inst.sourceQuests, questID) then
-										tinsert(inst.sourceQuests, questID);
-									end
 								end
 							end
 						end
 					end
 				end
+			end
 
-				if GetRelativeValue(o, "isHolidayCategory") then
-					headerType = "holiday";
-				elseif GetRelativeValue(o, "isPromotionCategory") then
-					headerType = "promo";
-				elseif GetRelativeValue(o, "isPVPCategory") or o.pvp then
-					headerType = "pvp";
-				elseif GetRelativeValue(o, "isEventCategory") then
-					headerType = "event";
-				elseif GetRelativeValue(o, "isWorldDropCategory") or o.parent.headerID == app.HeaderConstants.COMMON_BOSS_DROPS then
+			if GetRelativeValue(o, "isHolidayCategory") then
+				headerType = "holiday";
+			elseif GetRelativeValue(o, "isPromotionCategory") then
+				headerType = "promo";
+			elseif GetRelativeValue(o, "isPVPCategory") or o.pvp then
+				headerType = "pvp";
+			elseif GetRelativeValue(o, "isEventCategory") then
+				headerType = "event";
+			elseif GetRelativeValue(o, "isWorldDropCategory") or o.parent.headerID == app.HeaderConstants.COMMON_BOSS_DROPS then
+				headerType = "drop";
+			elseif o.parent.npcID then
+				headerType = GetDeepestRelativeValue(o, "headerID") or o.parent.parent.headerID == app.HeaderConstants.VENDORS and app.HeaderConstants.VENDORS or "drop";
+			elseif GetRelativeValue(o, "isCraftedCategory") then
+				headerType = "crafted";
+			elseif o.parent.achievementID then
+				headerType = app.HeaderConstants.ACHIEVEMENTS;
+			else
+				headerType = GetDeepestRelativeValue(o, "headerID") or "drop";
+				if headerType == true then	-- Seriously don't do this...
 					headerType = "drop";
-				elseif o.parent.npcID then
-					headerType = GetDeepestRelativeValue(o, "headerID") or o.parent.parent.headerID == app.HeaderConstants.VENDORS and app.HeaderConstants.VENDORS or "drop";
-				elseif GetRelativeValue(o, "isCraftedCategory") then
-					headerType = "crafted";
-				elseif o.parent.achievementID then
-					headerType = app.HeaderConstants.ACHIEVEMENTS;
-				else
-					headerType = GetDeepestRelativeValue(o, "headerID") or "drop";
-					if headerType == true then	-- Seriously don't do this...
-						headerType = "drop";
-					end
 				end
-				local coords = GetRelativeValue(o, "coords");
-				if coords then
-					if not inst.coords then
-						inst.coords = { unpack(coords) };
-					else
-						for i,coord in ipairs(coords) do
-							tinsert(inst.coords, coord);
-						end
+			end
+			local coords = GetRelativeValue(o, "coords");
+			if coords then
+				if not inst.coords then
+					inst.coords = { unpack(coords) };
+				else
+					for i,coord in ipairs(coords) do
+						tinsert(inst.coords, coord);
 					end
 				end
 			end
 		end
-	end
-	local count = #sources;
-	if count == 0 then return inst; end
-	if count > 1 then
-		-- Find the most accessible version of the thing.
-		app.Sort(sources, app.SortDefaults.Accessibility);
-	end
-	for key,value in pairs(sources[1]) do
-		inst[key] = value;
 	end
 
 	-- Determine the type of header to put the thing into.
@@ -1660,7 +1617,7 @@ function app:CreateWindow(suffix, settings)
 
 
 
-		-- Visible, which overrides the default functions and gives the addon the ability to recieve information about it.
+		-- Visible, which overrides the default functions and gives the addon the ability to receive information about it.
 		local visible, oldShow, oldHide = false, window.Show, window.Hide;
 		function window:Show()
 			if not visible then
@@ -1903,7 +1860,7 @@ function app:CreateWindow(suffix, settings)
 		container:Show();
 
 		local topright = window:CreateTexture(nil, "OVERLAY")
-		topright:SetTexture(251963) -- Interface\\PaperDollInfoFrame\\UI-GearManager-Border
+		topright:SetTexture(251963)
 		topright:SetPoint("TOPRIGHT", window, "TOPRIGHT", -2, -2);
 		topright:SetTexCoord(0.7, 0.745, 0.04, 0.4)
 		topright:SetSize(20, 20);
@@ -2027,24 +1984,20 @@ function app:CreateWindow(suffix, settings)
 					window:Toggle(cmd);
 				end
 			end
-			
-			-- Commands are forced lower case.
-			local commandRoot = settings.Commands[settings.RootCommandIndex or 1]:upper();
-			SlashCmdList[commandRoot] = onCommand;
-			local commands, cmd = {}, nil;
-			for i,command in ipairs(settings.Commands) do
-				cmd = command:lower();
-				_G["SLASH_" .. commandRoot .. i] = "/" .. cmd;
-				commands[i] = cmd;
-			end
-			window.Commands = commands;
+
+			settings.Commands.RootCommandIndex = settings.RootCommandIndex
+			app.AddSlashCommands(settings.Commands, onCommand)
+			window.Commands = settings.Commands;
 			window.HideFromSettings = settings.HideFromSettings;
 			window.SettingsName = settings.SettingsName or window.Suffix;
+		end
+		if settings.TooltipAnchor then
+			window.TooltipAnchor = settings.TooltipAnchor;
 		end
 		window.IsDynamicCategory = settings.IsDynamicCategory;
 		window.IsTopLevel = settings.IsTopLevel;
 		LoadSettingsForWindow(window);
-		
+
 		-- Replace some functions.
 		local oldSetBackdropColor = window.SetBackdropColor;
 		window.SetBackdropColor = function(self, ...)
@@ -2266,7 +2219,7 @@ local function OnInitForPopout(self, group)
 					tinsert(prereqs, {
 						["text"] = "Upon Completion",
 						["description"] = "The above quests need to be completed before being able to complete the quest(s) listed below.",
-						["icon"] = "Interface\\Icons\\Spell_Holy_MagicalSentry.blp",
+						["icon"] = 135932,
 						["visible"] = true,
 						["expanded"] = true,
 						["hideText"] = true,
@@ -2335,7 +2288,7 @@ local function OnInitForPopout(self, group)
 		end
 		self.data = {
 			text = "Quest Chain Requirements",
-			icon = "Interface\\Icons\\Spell_Holy_MagicalSentry.blp",
+			icon = 135932,
 			description = "The following quests need to be completed before being able to complete the final quest.",
 			hideText = true,
 			g = g,
@@ -2380,6 +2333,11 @@ local function OnInitForPopout(self, group)
 	self.data.indent = 0;
 	self.data.total = 0;
 	self.data.progress = 0;
+	app.HandleEvent("OnNewPopoutGroup", self.data);
+	if self.data.g then
+		-- Sort any content added to the Popout data by the Global sort
+		app.Sort(self.data.g, app.SortDefaults.Global)
+	end
 
 	-- If this is an achievement, build the criteria within it if possible.
 	local achievementID = group.achievementID;
@@ -2404,7 +2362,7 @@ local function OnInitForPopout(self, group)
 			local usedtobuy = {};
 			usedtobuy.g = {};
 			usedtobuy.text = "Used to Buy";
-			usedtobuy.icon = "Interface\\Icons\\INV_Misc_Coin_01";
+			usedtobuy.icon = 133784;
 			usedtobuy.description = "This tooltip dynamically calculates the total number you need based on what is still visible below this header.";
 			usedtobuy.OnTooltip = function(t, tooltipInfo)
 				local total = 0;
@@ -2445,7 +2403,7 @@ local function OnInitForPopout(self, group)
 			local tradedin = {};
 			tradedin.g = {};
 			tradedin.text = "Used For";
-			tradedin.icon = "Interface\\Icons\\INV_Misc_Coin_01";
+			tradedin.icon = 133784;
 			tradedin.description = "This tooltip dynamically calculates the total number you need based on what is still visible below this header.";
 			tradedin.OnTooltip = function(t, tooltipInfo)
 				local total = 0;
@@ -2479,14 +2437,14 @@ local function OnInitForPopout(self, group)
 		end
 	end
 	]]--
-	
+
 	local dataKey = self.data.key;
 	if dataKey then
 		if group.cost and type(group.cost) == "table" then
 			local costGroup = {
 				["text"] = "Cost",
 				["description"] = "The following contains all of the relevant items or currencies needed to acquire this.",
-				["icon"] = "Interface\\Icons\\INV_Misc_Coin_02",
+				["icon"] = 133785,
 				["OnUpdate"] = app.AlwaysShowUpdate,
 				["g"] = {},
 			};
@@ -2515,7 +2473,7 @@ local function OnInitForPopout(self, group)
 			local sourceGroup = {
 				["text"] = "Sources",
 				["description"] = "The following contains all of the relevant sources.",
-				["icon"] = "Interface\\Icons\\INV_Misc_Coin_02",
+				["icon"] = 133785,
 				["OnUpdate"] = app.AlwaysShowUpdate,
 				["g"] = {},
 			};
@@ -2538,8 +2496,8 @@ local function OnInitForPopout(self, group)
 				end
 			end
 			if group.crs then
-				for _,cr in ipairs(group.crs) do
-					sourceItem = app.CreateNPC(cr);
+				for _,creatureID in ipairs(group.crs) do
+					sourceItem = app.CreateNPC(creatureID);
 					sourceItem.visible = true;
 					sourceItem.OnUpdate = app.AlwaysShowUpdate;
 					MergeObject(sourceGroup.g, sourceItem);
@@ -2558,7 +2516,7 @@ local function OnInitForPopout(self, group)
 				MergeObject(self.data.g, sourceGroup, 1);
 			end
 		end
-		
+
 		if not (self.data.ignoreSourceLookup or (self.data.g and #self.data.g > 0)) then
 			local results = app:BuildSearchResponse(app:GetDataCache().g, dataKey, self.data[dataKey]);
 			if results and #results > 0 then
@@ -2576,7 +2534,7 @@ end
 function app:CreateMiniListForGroup(group)
 	-- Is this an achievement criteria or lacking some achievement information?
 	local achievementID = group.achievementID;
-	if achievementID and (group.criteriaID or not group.g) then
+	if achievementID and group.criteriaID then
 		local searchResults = SearchForField("achievementID", achievementID);
 		if #searchResults > 0 then
 			local bestResult;

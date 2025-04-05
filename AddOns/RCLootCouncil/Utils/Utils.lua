@@ -9,11 +9,11 @@ local addon = select(2, ...)
 local L = LibStub("AceLocale-3.0"):GetLocale("RCLootCouncil")
 local ItemUtils = addon.Require "Utils.Item"
 
+---@class RCLootCouncil.Utils
 local Utils = {}
 addon.Utils = Utils
 
-local string, gsub, strmatch, tonumber, format, date, time, strsplit = string, gsub, strmatch, tonumber, format, date,
-	time, strsplit
+local string, gsub, format, date, time, strsplit = string, gsub, format, date, time, strsplit
 -- GLOBALS: IsInRaid, UnitGroupRolesAssigned
 
 --- Extracts the creature id from a guid
@@ -39,15 +39,6 @@ function Utils:GetAnnounceChannel(channel)
 	return channel == "group" and (IsInRaid() and "RAID" or "PARTY") or channel
 end
 
-function Utils:GetItemLevelText(ilvl, token)
-	if not ilvl then return "" end
-	if token and ilvl > 600 then -- Armor token warforged is introduced since WoD
-		return ilvl .. "+"
-	else
-		return ilvl
-	end
-end
-
 function Utils:GetPlayerRole()
 	return UnitGroupRolesAssigned("player")
 end
@@ -56,16 +47,13 @@ function Utils:TranslateRole(role)
 	return (role and role ~= "") and _G[role] or ""
 end
 
--- REVIEW FrameXML/Utils have something like this
 --- Calculates how long ago a given date was.
--- Assumes the date is of year 2000+.
---- @param oldDate string A string specifying the date, formatted as "dd/mm/yy".
+--- @param oldDate string A string specifying the date, formatted as "yyyy/mm/dd".
 function Utils:GetNumberOfDaysFromNow(oldDate)
-	local d, m, y = strsplit("/", oldDate, 3)
-	local sinceEpoch = time({ year = "20" .. y, month = m, day = d, hour = 0, }) -- convert from string to seconds since epoch
-	local diff = date("*t", math.abs(time() - sinceEpoch))               -- get the difference as a table
-	-- Convert to number of d/m/y
-	return diff.day - 1, diff.month - 1, diff.year - 1970
+	local y, m, d = self:DateSplit(oldDate)
+	local sinceEpoch = time({ year = y, month = m, day = d, hour = 0, }) -- convert from string to seconds since epoch
+
+	return ConvertSecondsToUnits(GetServerTime() - (sinceEpoch or 0)).days
 end
 
 --- Takes the return value from :GetNumberOfDaysFromNow() and converts it to text.
@@ -82,6 +70,14 @@ function Utils:ConvertDateToString(day, month, year)
 		text = format(L["days and x months"], text, month)
 	end
 	return text;
+end
+
+--- Breaks an ISO date into it's components
+---@param date string Date in the format "yyyy/mm/dd"
+---@return number year, number month, number day
+function Utils:DateSplit(date)
+	local y, m, d = strsplit("/", date, 3)
+	return tonumber(y or 1), tonumber(m or 1), tonumber(d or 1)
 end
 
 --- Returns the number of available spaces in the players bags
@@ -113,11 +109,11 @@ end
 
 --- Checks if the item is in our blacklist
 -- TODO Should be moved to it's own class in the future
---- @param item string Any valid input for *GetItemInfoInstant()*
+--- @param item string Any valid input for *C_Item.GetItemInfoInstant()*
 --- @return boolean #True if the item is blacklisted
 function Utils:IsItemBlacklisted(item)
 	if not item then return false end
-	local itemId, _, _, _, _, itemClassID, itemsubClassID = GetItemInfoInstant(item)
+	local itemId, _, _, _, _, itemClassID, itemsubClassID = C_Item.GetItemInfoInstant(item)
 	if not (itemClassID and itemsubClassID) then return false end
 	if addon.blacklistedItemClasses[itemClassID] then
 		if addon.blacklistedItemClasses[itemClassID].all or addon.blacklistedItemClasses[itemClassID][itemsubClassID] then
@@ -136,8 +132,7 @@ end
 ---@return VersionCodes
 function Utils:CheckOutdatedVersion(baseVersion, newVersion, basetVersion, newtVersion)
 	baseVersion = baseVersion or addon.version
-
-	if strfind(newVersion, "%a+") then return self:Debug("Someone's tampering with version?", newVersion) end
+	if strfind(newVersion, "%a+") then return addon.Log:E("Someone's tampering with version?", newVersion) end
 
 	if newtVersion and not basetVersion then
 		return addon.VER_CHECK_CODES[1] -- Don't treat test versions as the latest
@@ -150,6 +145,55 @@ function Utils:CheckOutdatedVersion(baseVersion, newVersion, basetVersion, newtV
 	else
 		return addon.VER_CHECK_CODES[1] -- All fine
 	end
+end
+
+--- Returns 1 if the given player has an older version than `version`, otherwise 0.
+--- Disregards players using test versions.
+local checkVersion = function(name, version, strict)
+	local tChk = time() - 86400 -- Must be newer than 1 day
+	local data = addon.db.global.verTestCandidates[name]
+	if not data then return strict and 1 or 0 end
+	if not data[2] and addon:VersionCompare(data[1], version) then
+		-- Inverted since we don't want to include those we haven't recently registered,
+		-- unless strict is set.
+		if data[3] < tChk then
+			return strict and 1 or 0
+		end
+		return 1
+	end
+	return 0
+end
+
+--- Checks if everyone in our group has `version` or never installed.
+--- Assumes we are on the requested version or newer.
+--- If we don't have a record of a players version, we pretend they're on the latest.
+---@param version string Version string, e.g. "3.0.1"
+---@param strict boolean? When true, counts players with no record or older than 24 hour as outdated.
+function Utils:GroupHasVersion(version, strict)
+	if not IsInGroup() then return true end
+	local i = 0
+	for name in pairs(addon.candidatesInGroup) do
+		i = i + checkVersion(name, version, strict)
+	end
+	return i == 0
+end
+
+--- Checks if a list of Players has a specific version.
+---@param players Player[]
+---@param version string Version string, e.g. "3.0.1"
+---@param strict boolean? When true, counts players with no record or older than 24 hour as outdated.
+function Utils:PlayersHasVersion(players, version, strict)
+	local i = 0
+	for _, player in ipairs(players) do
+		i = i + checkVersion(player.name, version, strict)
+	end
+	return i == 0
+end
+
+---@param player string|Player Name or player object
+---@param version string Version string, e.g. "3.0.1"
+function Utils:PlayerHasVersion(player, version)
+	return checkVersion(type(player) == "string" and player or player.name, version) == 0
 end
 
 function Utils:GuildRoster()
@@ -202,7 +246,7 @@ function Utils:UnitName(input_unit)
 		name = name:lower():gsub("^%l", string.upper)
 		return cacheUnitName(input_unit, name .. "-" .. realm)
 	elseif find and find == #unit then -- trailing '-'
-		unit = string.sub(unit,1,-2)
+		unit = string.sub(unit, 1, -2)
 	end
 	-- Apparently functions like GetRaidRosterInfo() will return "real" name, while UnitName() won't
 	-- always work with that (see ticket #145). We need this to be consistant, so just lowercase the unit:
@@ -271,6 +315,42 @@ function Utils:IsWhisperTarget(target)
 	return C_PlayerInfo.UnitIsSameServer(_G.PlayerLocation:CreateFromGUID(target:GetGUID()))
 end
 
+--- Creates a table containing everything in 't' that is different from 'base'.
+--- Empty table values are not included.
+---@param base table
+---@param t table
+function Utils:GetTableDifference(base, t)
+	local ret = {}
+	for k, v in pairs(t) do
+		if base[k] == nil or base[k] ~= v then
+			if type(v) == "table" then
+				ret[k] = Utils:GetTableDifference(base[k] or {}, v)
+				if not next(ret[k]) then
+					ret[k] = nil
+				end
+			else
+				ret[k] = v
+			end
+		end
+	end
+	return ret
+end
+
+--- Converts an integer into a binary string
+---@param n integer Number to convert
+function Utils:Int2Bin(n)
+	local result = ""
+	while n ~= 0 and n do
+		if n % 2 == 0 then
+			result = "0" .. result
+		else
+			result = "1" .. result
+		end
+		n = math.floor(n / 2)
+	end
+	return string.format("%04s", result)
+end
+
 ---@deprecated
 ---@see Utils.Item.GetTransmittableItemString
 function Utils:GetTransmittableItemString(link)
@@ -320,4 +400,10 @@ end
 ---@see Utils.Item.NeutralizeItem
 function Utils:NeutralizeItem(item)
 	return ItemUtils:NeutralizeItem(item)
+end
+
+---@deprecated v3.13.0: No longer does anything
+function Utils:GetItemLevelText(ilvl)
+	if not ilvl then return "" end
+	return ilvl
 end

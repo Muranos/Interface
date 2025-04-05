@@ -4,7 +4,7 @@ if L then
 	--L.add_death = "Add Death Alert"
 	--L.add_death_desc = "Alerts when an add dies."
 
-	--L.wave = "%d/23: %s"
+	--L.wave = "%d/22: %s"
 
 	L.trainee = "Allievo" -- Unrelenting Trainee NPC 16124
 	L.deathKnight = "Cavaliere della Morte" -- Unrelenting Death Knight NPC 16125
@@ -41,11 +41,6 @@ if L then
 	--L.stage2_yell_trigger3 = "The end is upon you!"
 	--L.stage3_yell_trigger = "Master, I require aid!"
 	--L.adds_yell_trigger = "Very well. Warriors of the frozen wastes, rise up! I command you to fight, kill and die for your master! Let none survive!"
-end
-
-L = BigWigs:NewBossLocale("Maexxna", "itIT")
-if L then
-	--L.cocoons = "Cocoons"
 end
 
 L = BigWigs:NewBossLocale("Noth the Plaguebringer", "itIT")

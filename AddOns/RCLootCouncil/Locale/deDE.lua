@@ -9,7 +9,6 @@ L[" you are now the Master Looter and RCLootCouncil is now handling looting."] =
 L["&p was awarded with &i for &r!"] = "&i wurde an &p wegen &r vergeben!"
 L["A format to copy/paste to another player."] = "Ein Format zum Kopieren und Einfügen zu einem anderen Spieler."
 L["A new session has begun, type '/rc open' to open the voting frame."] = "Eine neue Sitzung hat begonnen, tippe '/rc open', um das Abstimmungsfenster zu öffnen."
-L["A tab delimited output for Excel. Might work with other spreadsheets."] = "Eine tabulatorgetrennte Ausgabe für Excel. Könnte auch mit anderen Tabellenkalkulationsprogrammen funktionieren."
 L["Abort"] = "Abbrechen"
 L["Accept Whispers"] = "Flüsternachrichten akzeptieren"
 L["accept_whispers_desc"] = "Ermöglicht es Spielern, ihre(n) momentanen Gegenstand/-stände zu dir zu flüstern, um dem Abstimmungsfenster hinzugefügt zu werden."
@@ -77,8 +76,7 @@ L["Auto extracted from whisper"] = "Aus einer Flüsternachricht automatisch extr
 L["Auto Open"] = "Automatisch öffnen"
 L["Auto Pass"] = "Automatisches Passen"
 L["Auto pass BoE"] = "Auf BoE automatisch passen"
---[[Translation missing --]]
-L["Auto Pass Transmog"] = "Auto Pass Transmog"
+L["Auto Pass Transmog"] = "Auf Transmog automatisch passen"
 --[[Translation missing --]]
 L["Auto Pass Transmog Source"] = "Auto Pass Transmog Source"
 L["Auto Pass Trinkets"] = "Auf Schmuckstücke automatisch passen"
@@ -90,13 +88,10 @@ L["auto_enable_desc"] = "Aktivieren, dass RCLootCouncil sich um die Beute kümme
 L["auto_open_desc"] = "Aktivieren, um das Abstimmungsfenster automatisch zu öffnen, falls es verfügbar ist. Das Abstimmungsfenster kann anderenfalls mit \"/rc open\" geöffnet werden. Hinweis: Dies erfordert die Erlaubnis des Plündermeisters."
 L["auto_pass_boe_desc"] = "Deaktivieren, um niemals auf beim Anlegen gebundene Gegenstände automatisch zu passen."
 L["auto_pass_desc"] = "Aktivieren, um automatisch auf Gegenstände zu passen, die deine Klasse nicht benutzen kann."
---[[Translation missing --]]
-L["auto_pass_transmog_desc"] = "Check to enable autopassing of items your class can only use for transmog."
---[[Translation missing --]]
-L["auto_pass_transmog_source_desc"] = "Check to enable autopassing of items your class can only use for transmog and the appearance is already known from another item."
+L["auto_pass_transmog_desc"] = "Aktiviere diese Option, um das automatische Passen auf Gegenstände zu aktivieren, die deine Klasse nur zum Transmog verwenden kann und deren Aussehen bereits von einem anderen Gegenstand bekannt ist."
+L["auto_pass_transmog_source_desc"] = "Aktiviere diese Option, um das automatische Passen auf Gegenstände zu aktivieren, die deine Klasse nur zum Transmog verwenden kann und deren Aussehen bereits von einem anderen Gegenstand bekannt ist."
 L["auto_pass_trinket_desc"] = "Auswählen, um automatisch auf Schmuckstücke zu passen, die laut Dungeonjournal nicht für Deine Klasse geeignet sind"
---[[Translation missing --]]
-L["autoGroupLoot_warning"] = "Note: Group Leader's settings will cause RCLootCouncil to automatically control group loot."
+L["autoGroupLoot_warning"] = "Hinweis: Die Einstellungen des Gruppenleiters bewirken, dass RCLootCouncil die Gruppenbeute automatisch kontrolliert."
 L["autoloot_others_item_combat"] = [=[%s hat %s geplündert. Der Gegenstand wird der Session hinzugefügt, sobald der Kampf endet.
 ]=]
 L["Autopass"] = "Automatisches Passen"
@@ -116,7 +111,6 @@ Wird benutzt, wenn eine Antwort mit dem Rechtsklick-Menü geändert wird und fü
 L["Awarded"] = "Vergeben"
 L["Awarded item cannot be awarded later."] = "Ein vergebener Gegenstand kann nicht später vergeben werden."
 L["Awards"] = "Vergaben"
-L["Azerite Armor"] = "Azeritrüstung"
 L["Background"] = "Hintergrund"
 L["Background Color"] = "Hintergrundfarbe"
 L["Banking"] = "Bankfach"
@@ -137,6 +131,8 @@ L["Candidate removed"] = "Kandidat entfernt"
 L["Candidates that can't use the item"] = "Kandidaten, die den Gegenstand nicht nutzen können"
 L["Cannot autoaward:"] = "Konnte nicht automatisch vergeben werden:"
 L["Cannot give 'item' to 'player' due to Blizzard limitations. Gave it to you for distribution."] = "%s kann nicht an %s vergeben werden, aufgrund von Einschränkungen seitens Blizzard. Es wurde dir zur Verteilung gegeben."
+--[[Translation missing --]]
+L["Catalyst_Items"] = "Catalyst Items"
 L["Change Award"] = "Zuteilung ändern "
 L["Change Response"] = "Antwort ändern"
 L["Changing loot threshold to enable Auto Awarding"] = "Die Plünderschwelle verändert sich, um automatische Vergabe zu aktivieren"
@@ -145,21 +141,52 @@ L["channel_desc"] = "Der Kanal, in den die Nachricht gesendet wird."
 L["Chat print"] = "Chatausgabe"
 L["chat tVersion string"] = "|cFF87CEFARCLootCouncil |cFFFFFFFFVersion |cFFFFA500 %s - %s"
 L["chat version String"] = "|cFF87CEFARCLootCouncil |cFFFFFFFFVersion |cFFFFA500 %s"
---[[Translation missing --]]
-L["chat_cmd_add_found_items"] = "Found %d items with trade timers in your bags."
+L["chat_cmd_add_found_items"] = "Hat %d Gegenstände mit Handels-Timern in deinen Taschen gefunden."
 L["chat_cmd_add_invalid_owner"] = "Der Spieler %s war entweder ungültig oder kein Kandidat."
+--[[Translation missing --]]
+L["chat_command_start_error_onlyUseInRaids"] = "Cannot start: you're in a party and have the 'only use in raids' option enabled."
+--[[Translation missing --]]
+L["chat_command_start_error_start_PartyIsLFG"] = "Cannot start: you are in a LFG party."
+--[[Translation missing --]]
+L["chat_command_start_error_usageNever"] = "Cannot start: your 'usage' option is set to 'never'."
 L["chat_commands_add"] = "Gegenstand zur Sitzung hinzufügen"
+--[[Translation missing --]]
+L["chat_commands_add_all"] = "Adds all tradable items to the session frame"
 L["chat_commands_award"] = [=[Sitzung mit geplünderten Gegenständen aus dem Inventar starten
 ]=]
+--[[Translation missing --]]
+L["chat_commands_clear"] = "Removes all items from the 'award later' list"
 L["chat_commands_config"] = "Optionsmenü öffnen"
 L["chat_commands_council"] = "Konzilmenü öffnen"
+--[[Translation missing --]]
+L["chat_commands_export"] = "Exports the items currently in session"
+--[[Translation missing --]]
+L["chat_commands_groupLeader_only"] = "Group Leader commands"
 L["chat_commands_history"] = "Vergabeverlauf öffnen (alt. 'h' oder 'his')"
+--[[Translation missing --]]
+L["chat_commands_list"] = "Lists all items marked for 'award later'"
+--[[Translation missing --]]
+L["chat_commands_ML_only"] = "Master Looter commands"
 L["chat_commands_open"] = "Das Abstimmungsfenster öffnen"
+--[[Translation missing --]]
+L["chat_commands_profile"] = "Open the profile manager"
+--[[Translation missing --]]
+L["chat_commands_remove"] = "Removes the item at index from the 'award later' list"
 L["chat_commands_reset"] = "Die Position des Addonfensters zurücksetzen"
+--[[Translation missing --]]
+L["chat_commands_session"] = "Open the session frame (alt. 'ses' or 's')"
+--[[Translation missing --]]
+L["chat_commands_start"] = "Start handling loot"
+--[[Translation missing --]]
+L["chat_commands_stop"] = "Stop handling loot"
 L["chat_commands_sync"] = "Das Synchronisationsfenster öffnen"
 L["chat_commands_test"] = "Simuliere eine Vergabesitzung mit # Gegenständen, 1 zum Auslassen "
+--[[Translation missing --]]
+L["chat_commands_trade"] = "Open the TradeUI"
 L["chat_commands_version"] = "Den Versionscheck öffnen (alt. 'v' oder 'ver')"
 L["chat_commands_whisper"] = "Bietet Unterstützung für Flüsterkommandos"
+--[[Translation missing --]]
+L["chatCommand_stop_error_notHandlingLoot"] = "Cannot stop: not currently handling loot."
 L["Check this to loot the items and distribute them later."] = "Aktiviere dies, um die Gegenstände zu plündern und sie später zu verteilen."
 L["Check to append the realmname of a player from another realm"] = "Hake diese Option an, damit der Realmname eines Spielers hinzugefügt wird, falls dieser Spieler auf einem anderen Realm spielt."
 L["Check to have all frames minimize when entering combat"] = "Aktivieren, um alle Fenster bei Kampfbeitritt zu minimieren"
@@ -231,6 +258,10 @@ L["group_council_members_head"] = "Füge Ratsmitglieder aus deiner aktuellen Gru
 L["Guild Council Members"] = "Ratsmitglieder der Gilde"
 L["Hide Votes"] = "Stimmen verstecken"
 L["hide_votes_desc"] = "Nur Spieler, die bereits abgestimmt haben, werden die Stimmen sehen können."
+--[[Translation missing --]]
+L["history_export_excel_international_tip"] = "Tab delimited export for international version of Excel that uses ',' as formula delimiter."
+--[[Translation missing --]]
+L["history_export_sheets_tip"] = "Tab delimited export for Google Sheets and English version of Excel that uses ';' as formula delimiter."
 L["How to sync"] = "So funktioniert das Synchronisieren"
 L["huge_export_desc"] = "Riesiger Export. Damit Dein Spiel stabil bleibt, wird nur die erste Zeile angezeigt. Drücke Strg+C, um den kompletten Inhalt zu kopieren."
 L["Ignore List"] = "Ignorierliste"
@@ -239,6 +270,8 @@ L["ignore_input_desc"] = "Gib eine Gegenstands-ID ein, die der Ignorierliste hin
 L["ignore_input_usage"] = "Diese Funktion akzeptiert nur Gegenstands-IDs (Nummer), Gegenstandsname oder Gegenstandslink."
 L["ignore_list_desc"] = "Gegenstände, die RCLootCouncil ignoriert. Klicke auf einen Gegenstand, um ihn zu entfernen."
 L["ignore_options_desc"] = "Steuere, welche Gegenstände RCLootCouncil ignorieren soll. Wenn du einen Gegenstand hinzufügst, der nicht zwischengespeichert ist, musst du in einen anderen Reiter wechseln und zurück, bevor du ihn in der Liste siehst. "
+--[[Translation missing --]]
+L["Import"] = "Import"
 L["Import aborted"] = "Importierung abgebrochen"
 L["import_desc"] = "Daten hier einfügen. Es werden nur die ersten 2500 Zeichen angezeigt, damit das Spiel stabil bleibt."
 L["import_malformed"] = "Der Import war fehlerhaft (keine Zeichenfolge)"
@@ -343,27 +376,19 @@ L["opt_autoAddItems_name"] = "Gegenstände automatisch hinzugefügen"
 L["opt_autoAddPets_desc"] = "Automatisch alle Haustiere einer Sitzung hinzufügen."
 L["opt_autoAddPets_name"] = "Begleiter hinzufügen"
 L["opt_autoAwardPrioList_desc"] = "Gegenstände werden an den dieser Prioritätsliste nach ersten Kandidaten aus deiner Gruppe  vergeben."
---[[Translation missing --]]
-L["opt_autoGroupLoot_desc"] = "When enabled, RCLootCouncil will automatically click the pass and greed buttons so that all items lands in your inventory."
---[[Translation missing --]]
-L["opt_autoGroupLoot_name"] = "Auto Group Loot"
---[[Translation missing --]]
-L["opt_autoGroupLootGuildGroupOnly_desc"] = "When enabled, RCLootCouncil will only do group loot auto pass when you're in a guild group."
---[[Translation missing --]]
-L["opt_autoGroupLootGuildGroupOnly_name"] = "Guild Groups Only"
---[[Translation missing --]]
-L["opt_autoPassWeapons_desc"] = "Check to enable auto passing of weapons your class can't equip."
---[[Translation missing --]]
-L["opt_autoPassWeapons_name"] = "Auto Pass Weapons"
+L["opt_autoGroupLoot_desc"] = "Wenn aktiviert, wird RCLootCouncil automatisch auf die Knöpfe Passen und Gier klicken, sodass alle Gegenstände in deinem Inventar landen."
+L["opt_autoGroupLoot_name"] = "Automatisches Gruppenplündern"
+L["opt_autoGroupLootGuildGroupOnly_desc"] = "Wenn diese Option aktiviert ist, führt RCLootCouncil die automatische Gruppenbeute nur dann durch, wenn du in einer Gildengruppe bist."
+L["opt_autoGroupLootGuildGroupOnly_name"] = "Nur in Gildengruppen"
+L["opt_autoPassWeapons_desc"] = "Anhaken damit automatisch auf Waffen gepasst wird, die deine Klasse nicht anlegen kann."
+L["opt_autoPassWeapons_name"] = "Auf Waffen automatisch passen"
 L["opt_autoTrade_desc"] = "Anhaken, um vergebene Gegenstände dem Handelsfenster automatisch hinzuzufügen, wenn man mit dem Gewinner handelt. Wenn deaktiviert, wird ein Pop-up eingeblendet bevor die Gegenstände hinzugefügt werden. "
 L["opt_award_later_desc"] = "Anhaken, um die \"Später vergeben\"-Funktion im Sitzungsfenster automatisch zu aktivieren."
 L["opt_buttonsGroup_desc"] = "Optionsgruppe für %s Schaltflächen und Antworten. Für eine detaillierte Erklärung siehe oben. "
 L["opt_chatFrameName_desc"] = "Wähle aus, in welchem Chatfenster RCLootCouncil Informationen ausgeben soll."
 L["opt_chatFrameName_name"] = "Chatfenster"
---[[Translation missing --]]
-L["opt_closeWithEscape_desc"] = "When enabled, all non-critical RCLootCouncil frames can be closed by pressing 'Escape'. (Requires reload to take effect on already created frames)"
---[[Translation missing --]]
-L["opt_closeWithEscape_name"] = "Escape Close"
+L["opt_closeWithEscape_desc"] = "Wenn aktiviert können alle nichtkritischen Fenster von RCLootCouncil mit Escape geschlossen werden. (Benötigt ein Neuladen des Interfaces um bereits erstellte Fenster zu schließen)"
+L["opt_closeWithEscape_name"] = "Per Esc schließen"
 L["opt_deleteDate_confirm"] = [=[Bist du sicher, dass du alles, das älter als das gewählte ist, löschen möchtest?
 Dies kann nicht rückgängig gemacht werden.]=]
 L["opt_deleteDate_desc"] = "Lösche alles, was älter als die ausgewählte Anzahl an Tagen ist."
@@ -378,14 +403,31 @@ L["opt_deleteRaid_desc"] = "Lösche alle Einträge einer bestimmten Instanz."
 L["opt_moreButtons_desc"] = "Füge ein neues Set an Schaltflächen für einen bestimmten Ausrüstungsslot hinzu. Der spezifischste Typ wird verwendet, d. H. das Hinzufügen von Schaltflächen für \"Kopf\" und \"Azerit-Rüstung\" bewirkt, dass Kopf-Rüstungen die Kopfknöpfe anstelle von Azerit-Rüstungen verwenden."
 L["opt_printCompletedTrade_Desc"] = "Anhaken, damit jedes Mal eine Nachricht verschickt wird, wenn ein Kandidat einen vergebenen Gegenstand mit dem Gewinner handelt."
 L["opt_printCompletedTrade_Name"] = "Handelsnachrichten"
+--[[Translation missing --]]
+L["opt_profileSharing_export_desc"] = "Export your current profile."
+--[[Translation missing --]]
+L["opt_profileSharing_fail_noProfileData"] = "Data is not profile data. Ensure imported data originates from profile export."
+--[[Translation missing --]]
+L["opt_profileSharing_import_desc"] = "Import a new RCLootCouncil profile. Imports are non-destructive, unless you're overwriting an existing profile."
+--[[Translation missing --]]
+L["opt_profileSharing_profileExistsWarning"] = "A profile named \"%s\" already exists - do you want to overwrite it?"
 L["opt_rejectTrade_Desc"] = "Aktiviere diese Option, damit die Kandidaten auswählen können, ob sie den Gegenstand dem Rat \"geben\" möchten oder nicht. Wenn diese Option nicht aktiviert ist, werden alle handelbaren PL-Gegenstände automatisch hinzugefügt."
 L["opt_rejectTrade_Name"] = "Behalten erlauben"
+--[[Translation missing --]]
+L["opt_savePersonalLoot_desc"] = "If disabled, personal loot will not be added to the history."
+--[[Translation missing --]]
+L["opt_savePersonalLoot_name"] = "Record Personal Loot"
+--[[Translation missing --]]
+L["opt_sharingProfile_success"] = "Succesfully imported profile: \"%s\""
 L["opt_skipSessionFrame_desc"] = "Überspringt das Sitzungsfenster. BEACHTE: Dies führt dazu, dass das Addon eine Sitzung mit allen wählbaren Gegenständen startet, ohne dass du die Möglichkeit hast die Liste zu bearbeiten!"
 L["opt_skipSessionFrame_name"] = "Sitzungsfenster überspringen"
 --[[Translation missing --]]
-L["opt_usage_AskGroupLoot"] = "Ask me every time Group Loot is enabled"
+L["opt_timeoutFlash_desc"] = "When enabled, the loot frame will flash when there's 5 seconds left to the item timeouts."
 --[[Translation missing --]]
-L["opt_usage_GroupLoot"] = "Always use RCLootCouncil with Group Loot"
+L["opt_timeoutFlash_name"] = "Timeout Flash"
+L["opt_usage_AskGroupLoot"] = [=[Frag mich jedes Mal, wenn Plündern als Gruppe aktiviert ist
+]=]
+L["opt_usage_GroupLoot"] = "RCLootCouncil immer mit Plündern als Gruppe verwenden"
 L["opt_useSlashRC_desc"] = "Deaktiviere diese Option, wenn du '/rc' für den Bereitschaftscheck wiederherstellen möchtest. RCLootCouncil-Kommandos sind immer noch mit '/rclc' verfügbar. Ein '/reload' wird benötigt damit diese Option in Kraft tritt."
 L["opt_useSlashRC_name"] = "Benutze /rc"
 L["options_autoAwardBoE_desc"] = "Aktiviere diese Option, um alle epischen BoE-Gegenständie (Beim Anlegen gebunden) aus dem ausgewählten Grund automatisch an eine bestimmte Person zu vergeben."
@@ -414,6 +456,10 @@ L["Print Responses"] = "Antworten ausgeben"
 L["print_response_desc"] = "Gib Deine Antwort im Chatfenster aus"
 L["Protector Token"] = "Beschützer-Marke"
 L["Raw lua output. Doesn't work well with date selection."] = "Unbearbeitete Lua-Ausgabe. Funktioniert nicht gut mit Datumsauswahl."
+--[[Translation missing --]]
+L["rcframe_help"] = [=[Double click here to minimize
+Click and drag to move
+Ctrl+scroll to change scale]=]
 L["RCLootCouncil - Synchronizer"] = "RCLootCouncil - Synchronisierer"
 L["RCLootCouncil Loot Frame"] = "RCLootCouncil Beutefenster"
 L["RCLootCouncil Loot History"] = "RCLootCouncil Beuteverlauf"
@@ -444,6 +490,8 @@ L["Response options"] = "Antwortoptionen"
 L["Response to 'item'"] = "Antwort auf %s"
 L["Response to 'item' acknowledged as 'response'"] = "Antwort auf %s mit \" %s \""
 L["response_color_desc"] = "Stelle eine Farbe für die Antworten ein."
+--[[Translation missing --]]
+L["response_NOTELIGIBLE"] = "Not eligible for this item"
 L["Responses"] = "Antworten"
 L["Responses from Chat"] = "Antworten per Chat"
 L["responses_from_chat_desc"] = [=[Für den Fall, dass jemand das Addon nicht installiert hat. (Button 1 wird verwendet, wenn kein Schlüsselwort angegeben wurde.)
@@ -481,6 +529,8 @@ L["sort_items_desc"] = "Sortiere Session nach Gegenstandstyp und -stufe."
 L["Standard .csv output."] = "Standard"
 L["Standard JSON output."] = "JSON-Array beinhaltet ein JSON-Objekt pro Verlaufseintrag."
 L["Status texts"] = "Statustexte"
+--[[Translation missing --]]
+L["Stop"] = "Stop"
 L["Store in bag and award later"] = "In der Tasche lagern und später verteilen"
 L["Succesfully deleted %d entries"] = "%d Einträge erfolgreich gelöscht"
 L["Succesfully deleted %d entries from %s"] = [=[%d Einträge wurden erfolgreich aus %s gelöscht
@@ -499,6 +549,10 @@ du kannst es jedoch schließen, ohne dass eine bereits laufende Synchronisierung
 
 Als Ziele werden Gilden- und Gruppenmitglieder, Freunde und Dein aktuelles freundlich gesinntes Ziel ausgewählt.
 ]=]
+--[[Translation missing --]]
+L["sync_warning1"] = "Note: Syncing large amounts of data in game can be very slow (especially the loot history)."
+--[[Translation missing --]]
+L["sync_warning2"] = "Settings and loot history can both be exported/imported as an alternative - see '/rc profile' and/or '/rc history' respectively."
 L["test"] = "Test"
 L["Test"] = true
 L["test_desc"] = "Klicke, um zu simulieren, wenn du der Plündermeister bist und Gegenstände für dich und jeden in deinem Schlachtzug plünderst."

@@ -2,43 +2,23 @@
 -- Module Declaration
 --
 
-if BigWigsLoader.isClassic then return end
+if BigWigsLoader.isVanilla then return end
 
 local plugin = BigWigs:NewPlugin("AltPower")
 if not plugin then return end
-
-do
-	local name = plugin:GetDefaultFont()
-	local _, size = plugin:GetDefaultFont(12)
-	plugin.defaultDB = {
-		position = {"CENTER", "CENTER", 450, -160},
-		fontName = name,
-		fontSize = size,
-		outline = "NONE",
-		additionalWidth = 0,
-		additionalHeight = 0,
-		barTextColor = {1, 0.82, 0},
-		barColor = {0.2, 0, 1, 0.5},
-		backgroundColor = {0, 0, 0, 0.3},
-		monochrome = false,
-		expanded = false,
-		disabled = false,
-		lock = false,
-	}
-end
 
 --------------------------------------------------------------------------------
 -- Locals
 --
 
-local L = BigWigsAPI:GetLocale("BigWigs: Plugins")
+local L = BigWigsAPI:GetLocale("BigWigs")
 local media = LibStub("LibSharedMedia-3.0")
 local FONT = media.MediaType and media.MediaType.FONT or "font"
 plugin.displayName = L.altPowerTitle
 
 local powerList, powerMaxList, sortedUnitList, roleColoredList = nil, nil, nil, nil
 local unitList = nil
-local maxPlayers = 0
+local maxPlayers = -1
 local display, updater = nil, nil
 local opener = nil
 local currentTitle = nil
@@ -110,6 +90,79 @@ function plugin:RestyleWindow()
 	-- 210 = 16*13 + (1*2 padding - top and bottom)
 	-- 82 = 16*5 + (1*2 padding - top and bottom)
 	display:SetSize(240+(db.additionalWidth*2), db.expanded and 210+(db.additionalHeight*13) or 82+(db.additionalHeight*5))
+end
+
+--------------------------------------------------------------------------------
+-- Profile
+--
+
+do
+	local name = plugin:GetDefaultFont()
+	local _, size = plugin:GetDefaultFont(12)
+	plugin.defaultDB = {
+		position = {"CENTER", "CENTER", 450, -160},
+		fontName = name,
+		fontSize = size,
+		outline = "NONE",
+		additionalWidth = 0,
+		additionalHeight = 0,
+		barTextColor = {1, 0.82, 0},
+		barColor = {0.2, 0, 1, 0.5},
+		backgroundColor = {0, 0, 0, 0.3},
+		monochrome = false,
+		expanded = false,
+		disabled = false,
+		lock = false,
+	}
+end
+
+local function updateProfile()
+	db = plugin.db.profile
+
+	for k, v in next, db do
+		local defaultType = type(plugin.defaultDB[k])
+		if defaultType == "nil" then
+			db[k] = nil
+		elseif type(v) ~= defaultType then
+			db[k] = plugin.defaultDB[k]
+		end
+	end
+
+	if db.fontSize < 10 or db.fontSize > 200 then
+		db.fontSize = plugin.defaultDB.fontSize
+	end
+	if db.outline ~= "NONE" and db.outline ~= "OUTLINE" and db.outline ~= "THICKOUTLINE" then
+		db.outline = plugin.defaultDB.outline
+	end
+	if db.additionalWidth < 0 or db.additionalWidth > 100 then
+		db.additionalWidth = plugin.defaultDB.additionalWidth
+	end
+	if db.additionalHeight < 0 or db.additionalHeight > 100 then
+		db.additionalHeight = plugin.defaultDB.additionalHeight
+	end
+	for i = 1, 3 do
+		local n = db.barTextColor[i]
+		if type(n) ~= "number" or n < 0 or n > 1 then
+			db.barTextColor = plugin.defaultDB.barTextColor
+			break -- If 1 entry is bad, reset the whole table
+		end
+	end
+	for i = 1, 4 do
+		local n = db.barColor[i]
+		if type(n) ~= "number" or n < 0 or n > 1 then
+			db.barColor = plugin.defaultDB.barColor
+			break -- If 1 entry is bad, reset the whole table
+		end
+	end
+	for i = 1, 4 do
+		local n = db.backgroundColor[i]
+		if type(n) ~= "number" or n < 0 or n > 1 then
+			db.backgroundColor = plugin.defaultDB.backgroundColor
+			break -- If 1 entry is bad, reset the whole table
+		end
+	end
+
+	plugin:RestyleWindow()
 end
 
 -------------------------------------------------------------------------------
@@ -245,9 +298,7 @@ do
 						name = L.fontSize,
 						desc = L.fontSizeDesc,
 						order = 11,
-						max = 200, softMax = 25,
-						min = 1,
-						step = 1,
+						softMax = 25, max = 200, min = 10, step = 1,
 						disabled = disabled,
 					},
 					outline = {
@@ -295,6 +346,7 @@ do
 						func = function()
 							plugin:Contract()
 							plugin.db:ResetProfile()
+							updateProfile()
 						end,
 						order = 16,
 					},
@@ -374,66 +426,14 @@ end
 -- Initialization
 --
 
-do
-	local function updateProfile()
-		db = plugin.db.profile
-
-		for k, v in next, db do
-			local defaultType = type(plugin.defaultDB[k])
-			if defaultType == "nil" then
-				db[k] = nil
-			elseif type(v) ~= defaultType then
-				db[k] = plugin.defaultDB[k]
-			end
-		end
-
-		if db.fontSize < 1 or db.fontSize > 200 then
-			db.fontSize = plugin.defaultDB.fontSize
-		end
-		if db.outline ~= "NONE" and db.outline ~= "OUTLINE" and db.outline ~= "THICKOUTLINE" then
-			db.outline = plugin.defaultDB.outline
-		end
-		if db.additionalWidth < 0 or db.additionalWidth > 100 then
-			db.additionalWidth = plugin.defaultDB.additionalWidth
-		end
-		if db.additionalHeight < 0 or db.additionalHeight > 100 then
-			db.additionalHeight = plugin.defaultDB.additionalHeight
-		end
-		for i = 1, 3 do
-			local n = db.barTextColor[i]
-			if type(n) ~= "number" or n < 0 or n > 1 then
-				db.barTextColor = plugin.defaultDB.barTextColor
-				break -- If 1 entry is bad, reset the whole table
-			end
-		end
-		for i = 1, 4 do
-			local n = db.barColor[i]
-			if type(n) ~= "number" or n < 0 or n > 1 then
-				db.barColor = plugin.defaultDB.barColor
-				break -- If 1 entry is bad, reset the whole table
-			end
-		end
-		for i = 1, 4 do
-			local n = db.backgroundColor[i]
-			if type(n) ~= "number" or n < 0 or n > 1 then
-				db.backgroundColor = plugin.defaultDB.backgroundColor
-				break -- If 1 entry is bad, reset the whole table
-			end
-		end
-
-		plugin:RestyleWindow()
-	end
-
-	function plugin:OnPluginEnable()
-		self:RegisterMessage("BigWigs_StartSyncingPower")
-		self:RegisterMessage("BigWigs_ShowAltPower")
-		self:RegisterMessage("BigWigs_HideAltPower", "Close")
-		self:RegisterMessage("BigWigs_OnBossDisable")
-		self:RegisterMessage("BigWigs_OnBossWipe", "BigWigs_OnBossDisable")
-
-		self:RegisterMessage("BigWigs_ProfileUpdate", updateProfile)
-		updateProfile()
-	end
+function plugin:OnPluginEnable()
+	self:RegisterMessage("BigWigs_StartSyncingPower")
+	self:RegisterMessage("BigWigs_ShowAltPower")
+	self:RegisterMessage("BigWigs_HideAltPower", "Close")
+	self:RegisterMessage("BigWigs_OnBossDisable")
+	self:RegisterMessage("BigWigs_OnBossWipe", "BigWigs_OnBossDisable")
+	self:RegisterMessage("BigWigs_ProfileUpdate", updateProfile)
+	updateProfile()
 end
 
 function plugin:OnPluginDisable()
@@ -449,30 +449,30 @@ do
 	-- whilst the display is shown (more likely to happen in LFR). The display should not be shown outside of an encounter
 	-- where the event seems to fire frequently, which would make this very inefficient.
 	local function GROUP_ROSTER_UPDATE()
-		if not IsInGroup() then plugin:Close() return end
-
 		local players = GetNumGroupMembers()
 		if players ~= maxPlayers then
 			if updater then plugin:CancelTimer(updater) end
 
-			if repeatSync then
-				syncPowerList = {}
-				syncPowerMaxList = {}
-			end
-			maxPlayers = players
-			unitList = IsInRaid() and plugin:GetRaidList() or plugin:GetPartyList()
-			powerList, powerMaxList, sortedUnitList, roleColoredList = {}, {}, {}, {}
+			if IsInGroup() then
+				if repeatSync then
+					syncPowerList = {}
+					syncPowerMaxList = {}
+				end
+				maxPlayers = players
+				unitList = IsInRaid() and plugin:GetRaidList() or plugin:GetPartyList()
+				powerList, powerMaxList, sortedUnitList, roleColoredList = {}, {}, {}, {}
 
-			local UnitClass, UnitGroupRolesAssigned = UnitClass, UnitGroupRolesAssigned
-			local colorTbl = CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS
-			for i = 1, players do
-				local unit = unitList[i]
-				sortedUnitList[i] = unit
+				local UnitClass, UnitGroupRolesAssigned = UnitClass, UnitGroupRolesAssigned
+				local colorTbl = CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS
+				for i = 1, players do
+					local unit = unitList[i]
+					sortedUnitList[i] = unit
 
-				local name = plugin:UnitName(unit, true) or "???"
-				local _, class = UnitClass(unit)
-				local tbl = class and colorTbl[class] or GRAY_FONT_COLOR
-				roleColoredList[unit] = ("%s|cFF%02x%02x%02x%s|r"):format(roleIcons[UnitGroupRolesAssigned(unit)], tbl.r*255, tbl.g*255, tbl.b*255, name)
+					local name = plugin:UnitName(unit, true) or "???"
+					local _, class = UnitClass(unit)
+					local tbl = class and colorTbl[class] or GRAY_FONT_COLOR
+					roleColoredList[unit] = ("%s|cFF%02x%02x%02x%s|r"):format(roleIcons[UnitGroupRolesAssigned(unit)], tbl.r*255, tbl.g*255, tbl.b*255, name)
+				end
 			end
 			updater = plugin:ScheduleRepeatingTimer(UpdateDisplay, 1)
 		end
@@ -541,7 +541,29 @@ do
 		end)
 		display.expand = expand
 
-		local header = display:CreateFontString()
+		local barDrag = CreateFrame("Frame", nil, display)
+		barDrag:SetClampedToScreen(true)
+		barDrag:EnableMouse(true)
+		barDrag:SetFrameStrata("MEDIUM")
+		barDrag:SetFixedFrameStrata(true)
+		barDrag:SetFrameLevel(125)
+		barDrag:SetFixedFrameLevel(true)
+		barDrag:RegisterForDrag("LeftButton")
+		barDrag:SetScript("OnDragStart", function()
+			if display:IsMovable() then
+				display:StartMoving()
+			end
+		end)
+		barDrag:SetScript("OnDragStop", function()
+			display:StopMovingOrSizing()
+			local point, _, relPoint, x, y = display:GetPoint()
+			db.position = {point, relPoint, x, y}
+			plugin:UpdateGUI() -- Update X/Y if GUI is open.
+		end)
+		barDrag:SetPoint("TOPLEFT", expand, "TOPRIGHT", 4, 0)
+		barDrag:SetPoint("BOTTOMRIGHT", close, "BOTTOMLEFT", -4, 0)
+
+		local header = barDrag:CreateFontString()
 		header:SetShadowOffset(1, -1)
 		header:SetTextColor(1,0.82,0,1)
 		header:SetPoint("BOTTOM", display, "TOP", 0, 4)
@@ -549,7 +571,7 @@ do
 		bg:SetPoint("TOP", header, "TOP", 0, 2)
 		display.title = header
 
-		local bar = display:CreateTexture(nil, nil, nil, 1) -- above background
+		local bar = barDrag:CreateTexture(nil, nil, nil, 1) -- above background
 		bar:SetPoint("LEFT", expand, "RIGHT", 4, 0)
 		bar:SetPoint("BOTTOM", header, "BOTTOM")
 		bar:SetPoint("TOP", header, "TOP")
@@ -578,7 +600,7 @@ do
 	-- This module is rarely used, and opened once during an encounter where it is.
 	-- We will prefer on-demand variables over permanent ones.
 	function plugin:BigWigs_ShowAltPower(event, module, title, sorting, sync)
-		if db.disabled or not IsInGroup() then return end -- Solo runs of old content
+		if db.disabled then return end
 
 		self:RestyleWindow()
 		self:Close()
@@ -592,7 +614,7 @@ do
 		opener = module
 		sortDir = sorting
 		currentTitle = title
-		maxPlayers = 0 -- Force an update via GROUP_ROSTER_UPDATE
+		maxPlayers = -1 -- Force an update via GROUP_ROSTER_UPDATE
 		display:Show()
 		GROUP_ROSTER_UPDATE()
 		UpdateDisplay()
@@ -666,26 +688,35 @@ do
 	end
 
 	function UpdateDisplay()
-		for i = 1, maxPlayers do
-			local unit = unitList[i]
-			-- If we don't have sync data (players not using BigWigs) use whatever (potentially incorrect) data Blizz gives us.
-			powerList[unit] = syncPowerList and syncPowerList[unit] or UnitPower(unit, 10) -- Enum.PowerType.Alternate = 10
-			powerMaxList[unit] = syncPowerMaxList and syncPowerMaxList[unit] or UnitPowerMax(unit, 10) -- Enum.PowerType.Alternate = 10
+		local maxPower = UnitPowerMax("player", 10)
+		if maxPower ~= 0 then
+			local power = UnitPower("player", 10)
+			local percent = power / UnitPowerMax("player", 10)
+			display.bar:SetWidth(percent * (200+(db.additionalWidth*2)))
+			display.title:SetFormattedText(L.yourAltPower, currentTitle, power)
+		else
+			display.bar:SetWidth(0)
+			display.title:SetFormattedText(L.yourAltPower, currentTitle, 0)
 		end
-		local power = UnitPower("player", 10)
-		local percent = power / UnitPowerMax("player", 10)
-		display.bar:SetWidth(percent * (200+(db.additionalWidth*2)))
-		display.title:SetFormattedText(L.yourAltPower, currentTitle, power)
-		tsort(sortedUnitList, sortTbl)
-		for i = 1, db.expanded and 26 or 10 do
-			local unit = sortedUnitList[i]
-			if unit then
-				local power = powerList[unit]
-				local powerMax = powerMaxList[unit]
-				local r, g = colorize(power, powerMax)
-				display.text[i]:SetFormattedText("|cFF%02x%02x00[%d]|r %s", r, g, power, roleColoredList[unit])
-			else
-				display.text[i]:SetText("")
+
+		if sortedUnitList then
+			for i = 1, maxPlayers do
+				local unit = unitList[i]
+				-- If we don't have sync data (players not using BigWigs) use whatever (potentially incorrect) data Blizz gives us.
+				powerList[unit] = syncPowerList and syncPowerList[unit] or UnitPower(unit, 10) -- Enum.PowerType.Alternate = 10
+				powerMaxList[unit] = syncPowerMaxList and syncPowerMaxList[unit] or UnitPowerMax(unit, 10) -- Enum.PowerType.Alternate = 10
+			end
+			tsort(sortedUnitList, sortTbl)
+			for i = 1, db.expanded and 26 or 10 do
+				local unit = sortedUnitList[i]
+				if unit then
+					local power = powerList[unit]
+					local powerMax = powerMaxList[unit]
+					local r, g = colorize(power, powerMax)
+					display.text[i]:SetFormattedText("|cFF%02x%02x00[%d]|r %s", r, g, power, roleColoredList[unit])
+				else
+					display.text[i]:SetText("")
+				end
 			end
 		end
 	end
@@ -755,7 +786,7 @@ do
 		-- This is for people that don't show the AltPower display (event isn't registered to the display as it normally would be).
 		-- It will force sending the current power for those that do have the display shown but just had their power list reset by a
 		-- GROUP_ROSTER_UPDATE. Or someone DCd and is logging back on, so send an update.
-		if not IsInGroup() then plugin:Close() return end
+		if not IsInGroup() then return end
 		self:CancelTimer(repeatSync)
 		power = -1
 		repeatSync = self:ScheduleRepeatingTimer(sendPower, 1)

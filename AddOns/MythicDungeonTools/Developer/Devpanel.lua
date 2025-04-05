@@ -9,7 +9,7 @@ local UnitName, UnitGUID, UnitCreatureType, UnitHealthMax, UnitLevel = UnitName,
   1. Add clone
   /run MDT:AddCloneAtCursorPosition()
   2. Add patrol point to clone
-  /run MDT:AddPatrolPointAtCursorPosition()
+  /run MDT:AddPatrolWaypointAtCursorPosition()
   3. Add untargetable unit if needed
   /run MDT:AddNPCFromUnit("mouseover")
 ]]
@@ -645,7 +645,6 @@ function MDT:CreateDevPanel(frame)
         if not data.clones[currentBlip.cloneIdx].patrol then
           currentBlip.patrolActive = false
         end
-        currentBlip:ShowBlipPatrol(false)
         MDT:UpdateMap()
       end
     end)

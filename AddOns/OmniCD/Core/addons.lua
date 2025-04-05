@@ -10,14 +10,14 @@ local unitFrameData = {
 	]]
 	{
 		[1] = "VuhDo",
-		[2] = "Vd%dH", -- panel#
+		[2] = "Vd%dH",
 		[3] = "raidid",
 		[4] = 2,
 		[5] = 40,
 	},
 	{
 		[1] = "Grid2",
-		[2] = "Grid2LayoutHeader%dUnitButton", -- not group#
+		[2] = "Grid2LayoutHeader%dUnitButton",
 		[3] = "unit",
 		[4] = 1,
 		[5] = 5,
@@ -40,7 +40,7 @@ local unitFrameData = {
 		[3] = "unit",
 		[4] = 1,
 		[5] = 5,
-		[6] = 0, -- Group0 for party
+		[6] = 0,
 	},
 	{
 		[1] = "Lime",
@@ -62,7 +62,7 @@ local unitFrameData = {
 		[2] = "PlexusLayoutHeader1UnitButton",
 		[3] = "unit",
 		[4] = 1,
-		[5] = 40, -- certain layout uses Header1 only
+		[5] = 40,
 	},
 	{
 		[1] = "HealBot",
@@ -72,15 +72,31 @@ local unitFrameData = {
 		[5] = 50,
 	},
 	{
-		[1] = "Cell",
+		[1] = "Cell-Party",
 		[2] = "CellPartyFrameMember",
 		[3] = "unit",
 		[4] = 1,
 		[5] = 5,
 	},
+	--[[ error in Cell's pattern matching raidID's
 	{
 		[1] = "Cell-Raid",
 		[2] = "CellRaidFrameMember",
+		[3] = "unit",
+		[4] = 1,
+		[5] = 40,
+	},
+	]]
+	{
+		[1] = "Cell-Raid",
+		[2] = "CellRaidFrameHeader%dUnitButton",
+		[3] = "unit",
+		[4] = 1,
+		[5] = 5,
+	},
+	{
+		[1] = "Cell-Raid-CombinedGroups",
+		[2] = "CellRaidFrameHeader0UnitButton",
 		[3] = "unit",
 		[4] = 1,
 		[5] = 40,
@@ -90,7 +106,7 @@ local unitFrameData = {
 		[2] = "CellSpotlightFrameUnitButton",
 		[3] = "unit",
 		[4] = 1,
-		[5] = 10,
+		[5] = 15,
 	},
 	{
 		[1] = "Cell-QuickCast",
@@ -108,7 +124,7 @@ local unitFrameData = {
 	},
 	{
 		[1] = "AshToAsh",
-		[2] = "AshToAshUnit%dUnit", -- panel#
+		[2] = "AshToAshUnit%dUnit",
 		[3] = "unit",
 		[4] = 1,
 		[5] = 40
@@ -127,36 +143,6 @@ local unitFrameData = {
 		[4] = 1,
 		[5] = 5,
 	},
-	--[[ pre v12.85
-	{
-		[1] = "ElvUI-Raid",
-		[2] = "ElvUF_RaidGroup%dUnitButton",
-		[3] = "unit",
-		[4] = 1,
-		[5] = 5,
-	},
-	{
-		[1] = "ElvUI-Raid-RWS", -- 'Raid Wide Sorting'
-		[2] = "ElvUF_RaidGroup1UnitButton",
-		[3] = "unit",
-		[4] = 1,
-		[5] = 40,
-	},
-	{
-		[1] = "ElvUI-Raid40",
-		[2] = "ElvUF_Raid40Group%dUnitButton",
-		[3] = "unit",
-		[4] = 1,
-		[5] = 5,
-	},
-	{
-		[1] = "ElvUI-Raid40-RWS",
-		[2] = "ElvUF_Raid40Group1UnitButton",
-		[3] = "unit",
-		[4] = 1,
-		[5] = 40,
-	},
-	]]
 	{
 		[1] = "Tukui",
 		[2] = "TukuiPartyUnitButton",
@@ -182,7 +168,7 @@ local unitFrameData = {
 		[5] = 40,
 	},
 	{
-		[1] = "ShadowUF-Raid1", -- 'Separate raid frames' option
+		[1] = "ShadowUF-Raid1",
 		[2] = "SUFHeaderraid%dUnitButton",
 		[3] = "unit",
 	},
@@ -197,7 +183,7 @@ local unitFrameData = {
 		[3] = "partyid",
 	},
 	{
-		[1] = "PitBull4", -- no default raid frame
+		[1] = "PitBull4",
 		[2] = "PitBull4_Groups_PartyUnitButton",
 		[3] = "unit",
 		[4] = 1,
@@ -224,7 +210,7 @@ local unitFrameData = {
 		[3] = "unit",
 	},
 	{
-		[1] = "RUF", -- no raid frame
+		[1] = "RUF",
 		[2] = "oUF_RUF_PartyUnitButton",
 		[3] = "unit",
 	},
@@ -249,21 +235,55 @@ local unitFrameData = {
 		[3] = "unit",
 	},
 	{
-		[1] = "GW2_UI",
-		[2] = "GwCompactPartyFrame",
-		[3] = "unit",
-	},
-	{
 		[1] = "GW2_UI-Party",
 		[2] = "GwPartyFrame",
 		[3] = "unit",
 	},
 	{
-		[1] = "GW2_UI-Raid",
-		[2] = "GwCompactRaidFrame",
+		[1] = "GW2_UI-Raid40",
+		[2] = "GW2_Raid40Group%dUnitButton",
+		[3] = "unit",
+	},
+	{
+		[1] = "GW2_UI-Raid25",
+		[2] = "GW2_Raid25Group%dUnitButton",
+		[3] = "unit",
+	},
+	{
+		[1] = "GW2_UI-Raid10",
+		[2] = "GW2_Raid10Group%dUnitButton",
+		[3] = "unit",
+	},
+	{
+		[1] = "GW2_UI-Raid40-RWS",
+		[2] = "GW2_Raid40Group1UnitButton",
 		[3] = "unit",
 		[4] = 1,
-		[5] = 40
+		[5] = 40,
+	},
+	{
+		[1] = "GW2_UI-Raid25-RWS",
+		[2] = "GW2_Raid25Group1UnitButton",
+		[3] = "unit",
+		[4] = 1,
+		[5] = 25,
+	},
+	{
+		[1] = "GW2_UI-Raid10-RWS",
+		[2] = "GW2_Raid10Group1UnitButton",
+		[3] = "unit",
+		[4] = 1,
+		[5] = 10,
+	},
+	{
+		[1] = "GW2_UI-Maintank",
+		[2] = "GW2_MaintankGroup1UnitButton",
+		[3] = "unit",
+	},
+	{
+		[1] = "GW2_UI-Party-Grid",
+		[2] = "GW2_PartyGroup1UnitButton",
+		[3] = "unit",
 	},
 	{
 		[1] = "AltzUI",
@@ -298,29 +318,13 @@ local unitFrameData = {
 
 local customUF = { optionTable = { auto = L["Auto"], blizz = "Blizzard" }, enabledList = false }
 
-function E:SetActiveUnitFrameData()
-	if customUF.enabledList then
-		-- auto no longer looks for prio, instead it iterates all frames til it finds a 'visible' match. prio is only used to set active now
-		local addon = self.db.position.uf == "auto" and customUF.prio or self.db.position.uf
-		local data = customUF.enabledList[addon]
-		if data then
-			customUF.unit = data.unit
-			customUF.delay = data.delay
-			customUF.frames = data.frames
-			customUF.active = data.addonName
-		else -- blizz
-			customUF.active = nil
-		end
-	end
-end
-
 function E:UnitFrames()
 	for i = 1, #unitFrameData do
 		local data = unitFrameData[i]
 		local addon, frame, unit, delay, index, minGroup = unpack(data)
 
 		local addonName = addon:match("[^%-]+")
-		if _G[addonName] or IsAddOnLoaded(addonName) then
+		if _G[addonName] or C_AddOns.IsAddOnLoaded(addonName) then
 			customUF.enabledList = customUF.enabledList or {}
 			local t = {}
 			index = index or 5
@@ -341,51 +345,42 @@ function E:UnitFrames()
 				for j = 1, 3 do
 					for k = 1, 8 do
 						local formatted = format(frame, j, k)
-						insertFrame(formatted, k == 1 and 40) -- 'Raid Wide Sorting' fix
+						insertFrame(formatted, k == 1 and 40)
 					end
 				end
 			elseif strfind(frame, "%%d") then
-				for j = minGroup, 8 do -- IRF3, Lime
+				for j = minGroup, 8 do
 					local formatted = format(frame, j)
 					insertFrame(formatted)
 				end
-			else
+			elseif addon ~= "HealBot" then
 				insertFrame(frame)
 			end
 			t.frames = f
 			customUF.enabledList[addon] = t
-
-			if not customUF.prio then
-				customUF.prio = addon
-			end
-
 			customUF.optionTable[addon] = addon
 		end
 	end
 
-	if customUF.enabledList then
-		-- Fallback to auto if addon was removed
-		for zone in pairs(self.L_CFG_ZONE) do
-			local uf = self.profile.Party[zone].position.uf
-			if uf ~= "blizz" and not customUF.enabledList[uf] then
-				self.profile.Party[zone].position.uf = "auto"
+
+	for zone in pairs(self.L_CFG_ZONE) do
+		local uf = self.profile.Party[zone].position.uf
+		if uf ~= "auto" and uf ~= "blizz" and (not customUF.enabledList or not customUF.enabledList[uf]) then
+			self.profile.Party[zone].position.uf = "auto"
+		end
+		for bar, db in pairs(self.profile.Party[zone].extraBars) do
+			if db.uf ~= "auto" and db.uf ~= "blizz" and (not customUF.enabledList or not customUF.enabledList[db.uf]) then
+				db.uf = self.profile.Party[zone].position.uf
 			end
 		end
-
-		self:SetActiveUnitFrameData()
-
-		--[[ remove nag
-		if not self.global.disableElvMsg then
-			self.Libs.OmniCDC.StaticPopup_Show("OMNICD_CUSTOM_UF_MSG")
-		end
-		]]
 	end
 end
 
 function E:Counters()
-	if IsAddOnLoaded("OmniCC") then
+	if C_AddOns.IsAddOnLoaded("OmniCC") then
 		self.OmniCC = OmniCC
-	elseif not GetCVarBool("countdownForCooldowns") and E.profile.General.cooldownText.useElvUICooldownTimer then -- WA no longer shows double text but whatever
+	elseif not GetCVarBool("countdownForCooldowns") and E.profile.General.cooldownText.useElvUICooldownTimer then
+
 		local ElvUI1 = ElvUI and ElvUI[1]
 		self.ElvUI1 = ElvUI1 and type(ElvUI1.CooldownEnabled) == "function" and ElvUI1:CooldownEnabled()
 			and type(ElvUI1.RegisterCooldown) == "function" and ElvUI1

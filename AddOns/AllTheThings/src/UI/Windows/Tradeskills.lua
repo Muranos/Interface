@@ -7,11 +7,16 @@ local CloneReference, ExpandGroupsRecursively, ResolveSymbolicLink, SearchForFie
 local ipairs, pairs, tinsert =
 	  ipairs, pairs, tinsert;
 local C_TradeSkillUI, GetCraftDisplaySkillLine, GetCraftInfo, GetCraftNumReagents, GetCraftReagentInfo, GetCraftReagentItemLink,
-	GetItemInfoInstant, GetNumCrafts, GetSkillLineInfo, GetSpellInfo, GetTradeSkillLine, InCombatLockdown, IsSpellKnown, IsTradeSkillLinked =
+	GetNumCrafts, GetSkillLineInfo, GetTradeSkillLine, InCombatLockdown, IsSpellKnown, IsTradeSkillLinked =
 	  C_TradeSkillUI, GetCraftDisplaySkillLine, GetCraftInfo, GetCraftNumReagents, GetCraftReagentInfo, GetCraftReagentItemLink,
-	GetItemInfoInstant, GetNumCrafts, GetSkillLineInfo, GetSpellInfo, GetTradeSkillLine, InCombatLockdown, IsSpellKnown, IsTradeSkillLinked;
+	GetNumCrafts, GetSkillLineInfo, GetTradeSkillLine, InCombatLockdown, IsSpellKnown, IsTradeSkillLinked;
 ---@class ATTGameTooltip: GameTooltip
 local GameTooltip = GameTooltip;
+
+-- WoW API Cache
+local GetItemID = app.WOWAPI.GetItemID;
+local GetSpellName = app.WOWAPI.GetSpellName;
+local GetSpellIcon = app.WOWAPI.GetSpellIcon;
 
 local function RefreshSkills()
 	-- Store Skill Data
@@ -27,9 +32,9 @@ local function RefreshSkills()
 			if not header and skillName then
 				local spellID = app.SpellNameToSpellID[skillName];
 				if spellID then
-					local spellName = GetSpellInfo(spellID);
+					local spellName = GetSpellName(spellID);
 					for skillID,sp in pairs(app.SkillIDToSpellID) do
-						if GetSpellInfo(sp) == spellName then
+						if GetSpellName(sp) == spellName then
 							spellID = sp;
 							break;
 						end
@@ -37,7 +42,7 @@ local function RefreshSkills()
 					activeSkills[spellID] = { skillRank, skillMaxRank };
 				else
 					for skillID,sp in pairs(app.SkillIDToSpellID) do
-						if GetSpellInfo(sp) == skillName then
+						if GetSpellName(sp) == skillName then
 							spellID = sp;
 							break;
 						end
@@ -84,7 +89,7 @@ app:CreateWindow("Tradeskills", {
 		self.cache = {};
 		self.header = {
 			['text'] = "Profession List",
-			['icon'] = "Interface\\Icons\\INV_Scroll_04",
+			['icon'] = 134940,
 			["description"] = "Open your professions to cache them.",
 			['visible'] = true,
 			['expanded'] = true,
@@ -111,7 +116,12 @@ app:CreateWindow("Tradeskills", {
 			local skillCache = SearchForFieldContainer("spellID");
 			if skillCache then
 				-- Cache learned recipes and reagents
-				local reagentCache = app.GetDataMember("Reagents", {});
+				local reagentCache = AllTheThingsAD.Reagents;
+				if not reagentCache then
+					reagentCache = {};
+					AllTheThingsAD.Reagents = reagentCache;
+				end
+
 				local learned, craftSkillID, tradeSkillID, shouldShowSpellRanks = 0, 0, 0, nil;
 				rawset(app.SpellNameToSpellID, 0, nil);
 				app.GetSpellName(0);
@@ -161,9 +171,9 @@ app:CreateWindow("Tradeskills", {
 				end
 
 				if craftSkillID ~= 0 then
-					local spellName = GetSpellInfo(craftSkillID);
+					local spellName = GetSpellName(craftSkillID);
 					for skillID,spellID in pairs(app.SkillIDToSpellID) do
-						if GetSpellInfo(spellID) == spellName then
+						if GetSpellName(spellID) == spellName then
 							craftSkillID = spellID;
 							break;
 						end
@@ -181,7 +191,7 @@ app:CreateWindow("Tradeskills", {
 								elseif spellID == 20583 then spellID = 24492; end 	-- Fix rank 1 Nature Resistance.
 								app.CurrentCharacter.SpellRanks[spellID] = shouldShowSpellRanks and app.CraftTypeToCraftTypeID(craftType) or nil;
 								if not app.CurrentCharacter.Spells[spellID] then
-									app.SetCollectedForSubType(nil, "Spells", "Recipes", spellID, true);
+									app.SetThingCollected("spellID", spellID, false, true);
 									learned = learned + 1;
 								end
 								if not skillCache[spellID] then
@@ -197,11 +207,11 @@ app:CreateWindow("Tradeskills", {
 								---@diagnostic disable-next-line: undefined-field
 								GameTooltip.SetCraftSpell(ATTCNPCHarvester, craftIndex);
 								local link, craftedItemID = select(2, ATTCNPCHarvester:GetItem());
-								if link then craftedItemID = GetItemInfoInstant(link); end
+								if link then craftedItemID = GetItemID(link); end
 
 								-- Cache the Reagents used to make this item.
 								for i=1,GetCraftNumReagents(craftIndex) do
-									local itemID = GetItemInfoInstant(GetCraftReagentItemLink(craftIndex, i));
+									local itemID = GetItemID(GetCraftReagentItemLink(craftIndex, i));
 									if itemID then
 										-- Make sure a cache table exists for this item.
 										local _, _, reagentCount = GetCraftReagentInfo(craftIndex, i);
@@ -220,9 +230,9 @@ app:CreateWindow("Tradeskills", {
 				end
 
 				if tradeSkillID ~= 0 then
-					local spellName = GetSpellInfo(tradeSkillID);
+					local spellName = GetSpellName(tradeSkillID);
 					for skillID,spellID in pairs(app.SkillIDToSpellID) do
-						if GetSpellInfo(spellID) == spellName then
+						if GetSpellName(spellID) == spellName then
 							tradeSkillID = spellID;
 							break;
 						end
@@ -241,7 +251,7 @@ app:CreateWindow("Tradeskills", {
 								elseif spellID == 20583 then spellID = 24492; end 	-- Fix rank 1 Nature Resistance.
 								app.CurrentCharacter.SpellRanks[spellID] = shouldShowSpellRanks and app.CraftTypeToCraftTypeID(skillType) or nil;
 								if not app.CurrentCharacter.Spells[spellID] then
-									app.SetCollectedForSubType(nil, "Spells", "Recipes", spellID, true);
+									app.SetThingCollected("spellID", spellID, false, true);
 									learned = learned + 1;
 								end
 
@@ -256,10 +266,10 @@ app:CreateWindow("Tradeskills", {
 							-- Cache the Reagents used to make this item.
 							local tradeSkillItemLink = GetTradeSkillItemLink(skillIndex);
 							if tradeSkillItemLink then
-								local craftedItemID = GetItemInfoInstant(tradeSkillItemLink);
+								local craftedItemID = GetItemID(tradeSkillItemLink);
 								for i=1,GetTradeSkillNumReagents(skillIndex) do
 									local reagentCount = select(3, GetTradeSkillReagentInfo(skillIndex, i));
-									local itemID = GetItemInfoInstant(GetTradeSkillReagentItemLink(skillIndex, i));
+									local itemID = GetItemID(GetTradeSkillReagentItemLink(skillIndex, i));
 
 									-- Make sure a cache table exists for this item.
 									-- Index 1: The Recipe Skill IDs
@@ -333,7 +343,7 @@ app:CreateWindow("Tradeskills", {
 					while not self:IsVisible() do
 						coroutine.yield();
 					end
-					
+
 					app.WipeSearchCache();
 					self:CacheRecipes();
 				end);
@@ -457,28 +467,8 @@ app:CreateWindow("Tradeskills", {
 
 		local newSpellLearned = function(self, spellID)
 			if spellID then
-				if not app.CurrentCharacter.Spells[spellID] then
-					local searchResults, spell = SearchForField("spellID", spellID);
-					if #searchResults > 0 then
-						spell = searchResults[1];
-						for i=2,#searchResults,1 do
-							local searchResult = searchResults[i];
-							if not searchResult.itemID then
-								spell = searchResult;
-							end
-						end
-					else
-						spell = app.CreateSpell(spellID);
-					end
-					if spell.f == app.FilterConstants.RECIPES then
-						app.SetCollectedForSubType(spell, "Spells", "Recipes", spellID, true);
-					else
-						app.SetCollected(spell, "Spells", spellID, true);
-					end
-					app:RefreshDataQuietly("NEW_SPELL_LEARNED", true);
-				else
-					self:RefreshRecipes();
-				end
+				app.SetThingCollected("spellID", spellID, false, true);
+				app:RefreshDataQuietly("NEW_SPELL_LEARNED", true);
 			end
 		end
 		handlers.NEW_RECIPE_LEARNED = newSpellLearned;

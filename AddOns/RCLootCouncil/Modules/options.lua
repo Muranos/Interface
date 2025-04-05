@@ -58,7 +58,7 @@ local function createNewButtonSet(path, name, order)
 				max = addon.db.profile.maxButtons,
 				step = 1,
 				get = function() return addon.db.profile.buttons[name].numButtons or 3 end,
-				set = function(_,v) 
+				set = function(_,v)
 					addon.db.profile.buttons[name].numButtons = v
 					addon:ConfigTableChanged("responses")
 				end,
@@ -238,9 +238,24 @@ local function autoAwardFieldProcessor(list)
 	end
 end
 
+--- Sorts by linking indicies to GUIDs in `keyToGUID`
+---@param names Player[] Array of `Player`s sorted _in-place_.
+---@param keyToGUID string[] Should be empty. Will be populated with keys from `names` to GUIDs.
+---@param textColorOnly? bool Won't prefix class icon if `true`.
+---@return string[] #`names` routed through `GetClassIconAndColoredName` or `GetClassColoredName`.
+local function processAndSortPlayerTable(names,keyToGUID, textColorOnly)
+	table.sort(names, function(v1, v2)
+		return v1 and v2 and (v1.name or "") < (v2.name or "")
+	end)
+	for k, player in ipairs(names) do
+		keyToGUID[k] = player:GetGUID()
+		names[k] = textColorOnly == nil and addon:GetClassIconAndColoredName(player, 18) or player:GetClassColoredName()
+	end
+	return names
+end
+
 local selections = {}
 function addon:OptionsTable()
-	local db = self:Getdb()
 	---@type AceConfigOptionsTable
 	local options = {
 		name = "RCLootCouncil",
@@ -457,8 +472,14 @@ function addon:OptionsTable()
 										desc = L.opt_closeWithEscape_desc,
 										type = "toggle"
 									},
-									chatFrameName = {
+									timeoutFlash = {
 										order = 7,
+										name = L.opt_timeoutFlash_name,
+										desc = L.opt_timeoutFlash_desc,
+										type = "toggle"
+									},
+									chatFrameName = {
+										order = 8,
 										name = L["opt_chatFrameName_name"],
 										desc = L["opt_chatFrameName_desc"],
 										type = "select",
@@ -507,6 +528,12 @@ function addon:OptionsTable()
 										type = "toggle",
 										disabled = function() return not self.db.profile.sendHistory end,
 									},
+									savePersonalLoot = {
+										order = 3.2,
+										name = L.opt_savePersonalLoot_name,
+										desc = L.opt_savePersonalLoot_desc,
+										type = "toggle",
+									},
 									header = {
 										order = 4,
 										type = "header",
@@ -517,6 +544,7 @@ function addon:OptionsTable()
 										name = L["Open the Loot History"],
 										desc = L["open_the_loot_history_desc"],
 										type = "execute",
+										width = 1.2,
 										func = function() self:CallModule("history");	HideUIPanel(SettingsPanel);end,
 									},
 									clearLootDB = {
@@ -524,7 +552,7 @@ function addon:OptionsTable()
 										name = L["Clear Loot History"],
 										desc = L["clear_loot_history_desc"],
 										type = "execute",
-										func = function() self.lootDB:ResetDB() end,
+										func = function() wipe(self.lootDB.factionrealm) end,
 										confirm = true,
 									},
 									spacer = {
@@ -756,12 +784,12 @@ function addon:OptionsTable()
 										width = "double",
 										values = function()
 											local t = {}
-											for k,v in pairs(db.skins) do
+											for k,v in pairs(self.db.profile.skins) do
 												t[k] = v.name
 											end
 											return t
 										end,
-										get = function() return db.currentSkin	end,
+										get = function() return self.db.profile.currentSkin	end,
 										set = function(info, key)
 											self:ActivateSkin(key)
 										end,
@@ -772,14 +800,14 @@ function addon:OptionsTable()
 										desc = L["save_skin_desc"],
 										type = "input",
 										set = function(info, text)
-											db.skins[text] = {
+											self.db.profile.skins[text] = {
 												name = text,
-												bgColor = {unpack(db.UI.default.bgColor)},
-												borderColor = {unpack(db.UI.default.borderColor)},
-												background = db.UI.default.background,
-												border = db.UI.default.border,
+												bgColor = {unpack(self.db.profile.UI.default.bgColor)},
+												borderColor = {unpack(self.db.profile.UI.default.borderColor)},
+												background = self.db.profile.UI.default.background,
+												border = self.db.profile.UI.default.border,
 											}
-											db.currentSkin = text
+											self.db.profile.currentSkin = text
 										end,
 									},
 									deleteSkin = {
@@ -789,8 +817,8 @@ function addon:OptionsTable()
 										type = "execute",
 										confirm = true,
 										func = function()
-											db.skins[db.currentSkin] = nil
-											for k in pairs(db.skins) do db.currentSkin = k break end --luacheck: ignore
+											self.db.profile.skins[self.db.profile.currentSkin] = nil
+											for k in pairs(self.db.profile.skins) do self.db.profile.currentSkin = k break end --luacheck: ignore
 										end,
 									},
 									resetSkins = {
@@ -801,9 +829,9 @@ function addon:OptionsTable()
 										confirm = true,
 										func = function()
 											for k,v in pairs(self.defaults.profile.skins) do
-												db.skins[k] = v
+												self.db.profile.skins[k] = v
 											end
-											db.currentSkin = self.defaults.profile.currentSkin
+											self.db.profile.currentSkin = self.defaults.profile.currentSkin
 										end,
 									},
 								},
@@ -826,9 +854,9 @@ function addon:OptionsTable()
 										type = "select",
 										dialogControl = "LSM30_Background",
 										values = AceGUIWidgetLSMlists.background,
-										get = function() return db.UI.default.background end,
+										get = function() return self.db.profile.UI.default.background end,
 										set = function(info, key)
-											for _,v in pairs(db.UI) do
+											for _,v in pairs(self.db.profile.UI) do
 												v.background = key
 											end
 											self:UpdateFrames()
@@ -839,9 +867,9 @@ function addon:OptionsTable()
 										name = L["Background Color"],
 										type = "color",
 										hasAlpha = true,
-										get = function() return unpack(db.UI.default.bgColor) end,
+										get = function() return unpack(self.db.profile.UI.default.bgColor) end,
 										set = function(info, r,g,b,a)
-											for _,v in pairs(db.UI) do
+											for _,v in pairs(self.db.profile.UI) do
 												v.bgColor = {r,g,b,a}
 											end
 											self:UpdateFrames()
@@ -854,9 +882,9 @@ function addon:OptionsTable()
 										width = "double",
 										dialogControl = "LSM30_Border",
 										values = _G.AceGUIWidgetLSMlists.border,
-										get = function() return db.UI.default.border end,
+										get = function() return self.db.profile.UI.default.border end,
 										set = function(info, key)
-											for _,v in pairs(db.UI) do
+											for _,v in pairs(self.db.profile.UI) do
 												v.border = key
 											end
 											self:UpdateFrames()
@@ -867,9 +895,9 @@ function addon:OptionsTable()
 										name = L["Border Color"],
 										type = "color",
 										hasAlpha = true,
-										get = function() return unpack(db.UI.default.borderColor) end,
+										get = function() return unpack(self.db.profile.UI.default.borderColor) end,
 										set = function(info, r,g,b,a)
-											for _,v in pairs(db.UI) do
+											for _,v in pairs(self.db.profile.UI) do
 												v.borderColor = {r,g,b,a}
 											end
 											self:UpdateFrames()
@@ -882,11 +910,11 @@ function addon:OptionsTable()
 										type = "execute",
 										confirm = true,
 										func = function()
-											for _,v in pairs(db.UI) do
-												v.bgColor = db.skins[db.currentSkin].bgColor
-												v.borderColor = db.skins[db.currentSkin].borderColor
-												v.background = db.skins[db.currentSkin].background
-												v.border = db.skins[db.currentSkin].border
+											for _,v in pairs(self.db.profile.UI) do
+												v.bgColor = self.db.profile.skins[self.db.profile.currentSkin].bgColor
+												v.borderColor = self.db.profile.skins[self.db.profile.currentSkin].borderColor
+												v.background = self.db.profile.skins[self.db.profile.currentSkin].background
+												v.border = self.db.profile.skins[self.db.profile.currentSkin].border
 											end
 											self:UpdateFrames()
 										end,
@@ -1123,11 +1151,11 @@ function addon:OptionsTable()
 										name = L["Add Item"],
 										desc = L["ignore_input_desc"],
 										type = "input",
-										validate = function(_, val) return GetItemInfoInstant(val) end,
+										validate = function(_, val) return C_Item.GetItemInfoInstant(val) end,
 										usage = L["ignore_input_usage"],
 										get = function() return "\"item ID, Name or Link\"" end,
 										set = function(info, val)
-											local id = GetItemInfoInstant(val)
+											local id = C_Item.GetItemInfoInstant(val)
 											if id then
 												self.db.profile.ignoredItems[id] = true
 												LibStub("AceConfigRegistry-3.0"):NotifyChange("RCLootCouncil")
@@ -1145,7 +1173,7 @@ function addon:OptionsTable()
 											local t = {}
 											for id, val in pairs(self.db.profile.ignoredItems) do
 												if val then
-													local link = select(2, GetItemInfo(id))
+													local link = select(2, C_Item.GetItemInfo(id))
 													if link then
 														t[id] = link.."  (id: "..id..")"
 													else
@@ -1196,7 +1224,7 @@ function addon:OptionsTable()
 										values = function()
 											local t = {}
 											for i = 0, 5 do
-												local _,_,_,hex = GetItemQualityColor(i)
+												local _,_,_,hex = C_Item.GetItemQualityColor(i)
 												t[i] = "|c"..hex.." "..getglobal("ITEM_QUALITY"..i.."_DESC")
 											end
 											return t;
@@ -1226,7 +1254,7 @@ function addon:OptionsTable()
 										type = "input",
 										hidden = function() return GetNumGroupMembers() > 0 end,
 										get = function() return "" end,
-										set = autoAwardFieldProcessor(db.autoAwardTo),
+										set = autoAwardFieldProcessor(self.db.profile.autoAwardTo),
 									},
 									autoAwardTo = {
 										order = 2,
@@ -1245,8 +1273,8 @@ function addon:OptionsTable()
 										end,
 										get = function() return "" end,
 										set = function(_, val)
-											if not tContains(db.autoAwardTo, val) then
-												tinsert(db.autoAwardTo, val)
+											if not tContains(self.db.profile.autoAwardTo, val) then
+												tinsert(self.db.profile.autoAwardTo, val)
 											end
 										end,
 										hidden = function() return GetNumGroupMembers() == 0 end,
@@ -1271,8 +1299,8 @@ function addon:OptionsTable()
 										name = L["Auto Award to"],
 										type = "group",
 										inline = true,
-										hidden = function() return not db.autoAward or #db.autoAwardTo == 0 end,
-										args = createAutoAwardPrioList(db.autoAwardTo)
+										hidden = function() return not self.db.profile.autoAward or #self.db.profile.autoAwardTo == 0 end,
+										args = createAutoAwardPrioList(self.db.profile.autoAwardTo)
 									},
 								},
 							},
@@ -1299,7 +1327,7 @@ function addon:OptionsTable()
 										type = "input",
 										hidden = function() return GetNumGroupMembers() > 0 end,
 										get = function() return "" end,
-										set = autoAwardFieldProcessor(db.autoAwardBoETo),
+										set = autoAwardFieldProcessor(self.db.profile.autoAwardBoETo),
 									},
 									autoAwardBoETo = {
 										order = 2,
@@ -1318,8 +1346,8 @@ function addon:OptionsTable()
 										end,
 										get = function() return "" end,
 										set = function(_,val)
-											if not tContains(db.autoAwardBoETo, val) then
-												tinsert(db.autoAwardBoETo, val)
+											if not tContains(self.db.profile.autoAwardBoETo, val) then
+												tinsert(self.db.profile.autoAwardBoETo, val)
 											end
 										end,
 										hidden = function() return GetNumGroupMembers() == 0 end,
@@ -1343,8 +1371,8 @@ function addon:OptionsTable()
 										name = L["Auto Award to"],
 										type = "group",
 										inline = true,
-										hidden = function() return not db.autoAwardBoE or #db.autoAwardBoETo == 0 end,
-										args = createAutoAwardPrioList(db.autoAwardBoETo)
+										hidden = function() return not self.db.profile.autoAwardBoE or #self.db.profile.autoAwardBoETo == 0 end,
+										args = createAutoAwardPrioList(self.db.profile.autoAwardBoETo)
 									},
 								}
 							},
@@ -1368,6 +1396,18 @@ function addon:OptionsTable()
 										min = 1,
 										max = self.db.profile.maxAwardReasons,
 										step = 1,
+										set = function (info, val)
+											addon.db.profile[info[#info]] = val
+											-- Update disenchant - especially if we just hid the only disenachant reason
+											addon.db.profile.disenchant = false
+											for  i = 1, self.db.profile.numAwardReasons do
+												if self.db.profile.awardReasons[i].disenchant then
+													addon.db.profile.disenchant = true
+													break
+												end
+											end
+											addon:ConfigTableChanged(info[#info])
+										end
 									},
 									-- Award reasons made further down
 									reset = {
@@ -1558,11 +1598,11 @@ function addon:OptionsTable()
 										type = "execute",
 										func = function()
 											local selection = selections.AddMoreButtons or "INVTYPE_HEAD"
-											db.enabledButtons[selection] = true
+											self.db.profile.enabledButtons[selection] = true
 											-- Also setup default options
 											for i = 1, self.db.profile.maxButtons do
-												if not db.buttons[selection][i] then
-													db.buttons[selection][i] = {text = L["Button"]}
+												if not self.db.profile.buttons[selection][i] then
+													self.db.profile.buttons[selection][i] = {text = L["Button"]}
 												end
 											end
 										end,
@@ -1683,23 +1723,28 @@ function addon:OptionsTable()
 										name = L["current_council_desc"],
 										type = "description",
 									},
-									councilList = {
-										order = 2,
-										type = "multiselect",
-										name = "",
-										values = function()
-											local t = {}
-											for _,v in ipairs(self.db.profile.council) do t[v] = addon.Ambiguate(Player:Get(v):GetName()) end
-											table.sort(t)
-											return t;
-										end,
-										width = "full",
-										get = function() return true end,
-										set = function(m,key)
-											tDeleteItem(self.db.profile.council, key)
-											addon:CouncilChanged()
-										end,
-									},
+									councilList = (function ()
+										---@type table<number,Player>
+										local names = {}
+										local keyToGUID = {}
+										return {
+											order = 2,
+											type = "multiselect",
+											name = "",
+											values = function()
+												wipe(names)
+												wipe(keyToGUID)
+												for k,v in ipairs(self.db.profile.council) do names[k] = Player:Get(v) end
+												return processAndSortPlayerTable(names, keyToGUID)
+											end,
+											width = "full",
+											get = function() return true end,
+											set = function(m,key)
+												tDeleteItem(self.db.profile.council, keyToGUID[key])
+												addon:CouncilChanged()
+											end,
+										}
+									end)(),
 									removeAll = {
 										order = 3,
 										name = L["Remove All"],
@@ -1784,36 +1829,36 @@ function addon:OptionsTable()
 										name = L["group_council_members_desc"],
 										type = "description",
 									},
-									list = {
-										order = 3,
-										type = "multiselect",
-										name = "",
-										width = "full",
-										values = function()
-											local t = {}
-											for i = 1, GetNumGroupMembers() do
-												local name = select(1,GetRaidRosterInfo(i))
-												local guid = UnitGUID(name)
-												t[guid] = self.Ambiguate(name)
-											end
-											if #t == 0 then t[self.player:GetGUID()] = self.player:GetShortName() end -- Insert ourself
-											table.sort(t, function(v1, v2)
-												return v1 and v1 < v2
-											end)
-											return t
-										end,
-										set = function(info,key,tag)
-											if tag then -- add
-												tinsert(self.db.profile.council, key)
-											else -- remove
-												tDeleteItem(self.db.profile.council, key)
-											end
-											addon:CouncilChanged()
-										end,
-										get = function(info, key)
-											return tContains(self.db.profile.council, key)
-										end,
-									},
+									list = (function()
+										local names = {}
+										local keyToGUID = {}
+										return {
+											order = 3,
+											type = "multiselect",
+											name = "",
+											width = "full",
+											values = function()
+												wipe(names)
+												wipe(keyToGUID)
+												for i = 1, GetNumGroupMembers() do
+													names[#names + 1] = Player:Get(select(1,GetRaidRosterInfo(i)))
+												end
+												if #names == 0 then names[1] = self.player end -- Insert ourself
+												return processAndSortPlayerTable(names, keyToGUID)
+											end,
+											set = function(info,key,tag)
+												if tag then -- add
+													tinsert(self.db.profile.council, keyToGUID[key])
+												else -- remove
+													tDeleteItem(self.db.profile.council, keyToGUID[key])
+												end
+												addon:CouncilChanged()
+											end,
+											get = function(info, key)
+												return tContains(self.db.profile.council, keyToGUID[key])
+											end,
+										}
+									end)(),
 								},
 							},
 						},
@@ -2047,22 +2092,129 @@ function addon:OptionsTable()
 	end
 	-- #endregion
 	local i = 4
-	for group in pairs(db.enabledButtons) do
+	for group in pairs(self.db.profile.enabledButtons) do
 		createNewButtonSet(options.args.mlSettings.args.buttonsTab.args, group, i)
 		i = i + 1
 	end
 
 	options.args.settings.args.profiles = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db) -- Add profile tab
+	-- Build export options
+	MergeTable(options.args.settings.args.profiles.args, {
+		export = {
+			name = L["Export"],
+			desc = L.opt_profileSharing_export_desc,
+			type = "execute",
+			order = 46,
+			width = "half",
+			func = function ()
+				local export = addon:GetProfileForExport()
+				local exportFrame = addon.UI:New("RCExportFrame")
+				exportFrame:Show()
+				exportFrame.edit:SetCallback("OnTextChanged", function(self)
+					self:SetText(export)
+				end)
+				exportFrame.edit:SetText(export)
+				exportFrame.edit:SetFocus()
+				exportFrame.edit:HighlightText()
+			end
+		},
+		import = {
+			name = L["Import"],
+			desc = L.opt_profileSharing_import_desc,
+			type = "execute",
+			order = 45,
+			width = "half",
+			func = function ()
+				local importFrame = addon.UI:New("RCImportFrame")
+				importFrame.label:SetText("Accepted imports: Player profile")
+				importFrame.edit:SetCallback("OnEnterPressed", function()
+					addon.Log:D("Import data:", string.sub(importFrame.edit.data, 0, 50))
+					self:ImportProfile(importFrame.edit.data)
+					importFrame:Hide()
+				end)
+				importFrame:Show()
+				importFrame.edit:SetFocus()
+			end
+		}
+	})
 	addon.options = options
 	self:GetGuildOptions()
 	return options
 end
 
+function addon:ApplyProfile(name, data)
+	self.db:SetProfile(name)
+	-- We want any value not mentioned to reset, so nil them out and have defaults pick them up later
+	for k in pairs(self.db.profile) do
+		-- except for these specifc ones:
+		if k ~= "UI" and k ~= "itemStorage" and k ~= "baggedItems" then
+			self.db.profile[k] = data[k]
+		end
+	end
+	-- Yes, :SetProfile would also have triggered callbacks calling this, but it's
+	-- now, after the profile is changed, that we need to merge our changes, and then
+	-- ensure we still have defaults available, which UpdateDB() handles.
+	self:UpdateDB()
+	LibStub("AceConfigRegistry-3.0"):NotifyChange("RCLootCouncil")
+	self:Print(format(L.opt_sharingProfile_success, name))
+end
+
+--- String format: PROFILE_EXPORT_IDENTIFIER\nname\nencoded
+--- where encoded is the db serialized and deflated changes from defaults.
+---@param data string
+function addon:ImportProfile(data)
+	local isProfileData = data:sub(1, self.PROFILE_EXPORT_IDENTIFIER:len()) == self.PROFILE_EXPORT_IDENTIFIER
+	if not isProfileData then
+		self.Log:D("Non profile data on import", data:sub(1, 50))
+		self:Print(L.opt_profileSharing_fail_noProfileData)
+		return
+	end
+	local name, encoded = data:match(".-\n(.-)\n(.+)")
+	if not (name and encoded) then
+		self.Log:E("Error importing profile:", name, encoded)
+		self:Print(L.import_not_supported)
+		return
+	end
+	local ld = LibStub("LibDeflate")
+	local decoded = ld:DecodeForPrint(encoded)
+	local decompressed = ld:DecompressDeflate(decoded or "")
+	local test, profile = LibStub("AceSerializer-3.0"):Deserialize(decompressed or "")
+	if not test then
+		self.Log:E("ImportProfile deserialization failed with:", decompressed)
+		self:Print(L.import_not_supported)
+		return
+	end
+	if self.db.profiles[name] then
+		LibStub("LibDialog-1.1"):Spawn("RCLOOTCOUNCIL_OVERWRITE_PROFILE", {
+			name = name,
+			profile = profile,
+		})
+	else
+		self:ApplyProfile(name, profile)
+	end
+end
+
+function addon:GetProfileForExport()
+	local ld = LibStub("LibDeflate")
+	local db = self:GetDBForExport()
+	local data = LibStub("AceSerializer-3.0"):Serialize(db)
+	local encoded = ld:EncodeForPrint(ld:CompressDeflate(data))
+	local t = {
+		self.PROFILE_EXPORT_IDENTIFIER,
+		self.db:GetCurrentProfile(), -- profile name
+		encoded
+	}
+	local res = table.concat(t, "\n")
+	self.Log:D("Profile export size:", #res / 1000, "kb")
+	return res
+end
+
 function addon:GetGuildOptions()
+	---@type table<number,Player>
+	local names = {}
+	local keyToGUID = {}
 	for i = 1, GuildControlGetNumRanks() do
 		local rank = GuildControlGetRankName(i)
-		local names = {}
-
 		-- Define the individual council option:
 		local option = {
 			order = i + 2,
@@ -2076,28 +2228,27 @@ function addon:GetGuildOptions()
 					width = "full",
 					values = function()
 						wipe(names)
+						wipe(keyToGUID)
 						for ci = 1, GetNumGuildMembers() do
-							local name, _, rankIndex,_, _, _, _, _, _, _, _, _, _, _, _, _, guid = GetGuildRosterInfo(ci); -- NOTE I assume the realm part of name is without spaces.
-							if (rankIndex + 1) == i then names[guid] = addon.Ambiguate(name) end -- Ambiguate to show realmname for players from another realm
+							local _, _, rankIndex,_, _, _, _, _, _, _, _, _, _, _, _, _, guid = GetGuildRosterInfo(ci)
+							if (rankIndex + 1) == i then names[#names+1] = Player:Get(guid) end
 						end
-						table.sort(names, function(v1, v2)
-							return v1 and v1 < v2
-						end)
-						return names
+						-- REVIEW: For whatever reason using class icons here causes major lag when rebuilding options window.
+						return processAndSortPlayerTable(names, keyToGUID, true)
 					end,
 					get = function(info, key)
-						return tContains(self.db.profile.council, key)
+						return tContains(self.db.profile.council, keyToGUID[key])
 					end,
 					set = function(info, key, tag)
 						if tag then
-							tinsert(self.db.profile.council, key)
+							tinsert(self.db.profile.council, keyToGUID[key])
 						else
-							tDeleteItem(self.db.profile.council, key)
+							tDeleteItem(self.db.profile.council, keyToGUID[key])
 						end
 						addon:CouncilChanged()
 					end,
-				},
-			},
+				}
+			}
 		}
 
 		-- Add it to the guildMembersGroup arguments:

@@ -1,6 +1,6 @@
 ﻿-- --------------------
 -- TellMeWhen
--- Originally by Nephthys of Hyjal <lieandswell@yahoo.com>
+-- Originally by NephMakes
 
 -- Other contributions by:
 --		Sweetmms of Blackrock, Oozebull of Twisting Nether, Oodyboo of Mug'thol,
@@ -212,6 +212,7 @@ local function AddConditionToDropDown(dropdown, conditionData)
 	
 	info.tooltipTitle = text
 	info.tooltipText = get(conditionData.tooltip)
+	info.tooltipFunc = conditionData.tooltipFunc
 	
 	info.value = conditionData.identifier
 	info.arg1 = dropdown

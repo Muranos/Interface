@@ -3,6 +3,10 @@ local addonName, addonTable = ...
 local L = LibStub("AceLocale-3.0"):GetLocale("Rarity")
 local CONSTANTS = addonTable.constants
 
+if LE_EXPANSION_LEVEL_CURRENT < LE_EXPANSION_BATTLE_FOR_AZEROTH then
+	return {}
+end
+
 local bfaToys = {
 
 	["Oomgut Ritual Drum"] = {
@@ -213,8 +217,6 @@ local bfaToys = {
 		npcs = { 138122 },
 		questId = { 53001, 53002 }, -- Loot lockout
 		chance = 100, -- Need more data. Until then, this is a blind guess...
-		groupSize = 3,
-		equalOdds = true,
 		requiresAlliance = true,
 		coords = { { m = CONSTANTS.UIMAPIDS.ARATHI_HIGHLANDS, x = 37.09, y = 39.21, n = L["Doom's Howl"] } },
 		enableCoin = true,
@@ -229,8 +231,6 @@ local bfaToys = {
 		npcs = { 137374 },
 		questId = { 53001, 53002 }, -- Loot Lockout
 		chance = 100, -- Blind guess :|
-		groupSize = 3,
-		equalOdds = true,
 		requiresHorde = true,
 		coords = { { m = CONSTANTS.UIMAPIDS.ARATHI_HIGHLANDS, x = 37.09, y = 39.21, n = L["The Lion's Roar"] } },
 		enableCoin = true,
@@ -758,3 +758,4 @@ local bfaToys = {
 }
 
 Rarity.ItemDB.MergeItems(Rarity.ItemDB.toys, bfaToys)
+return bfaToys

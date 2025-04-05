@@ -21,6 +21,7 @@ if L then
 
 	--L.debuffs_message = "3/5 debuffs, carefull!"
 	--L.debuffs_warning = "4/5 debuffs, %s on 5th!"
+	L.bronze = "청동"
 
 	L.vulnerability = "약화 속성 경고"
 	L.vulnerability_desc = "약화 속성 변경에 대한 경고."
@@ -32,8 +33,6 @@ end
 L = BigWigs:NewBossLocale("Nefarian Classic", "koKR")
 if L then
 	--L.engage_yell_trigger = "Let the games begin"
-	L.landing_soon_trigger = "적들의 사기가 떨어지고 있다"
-	L.stage2_yell_trigger = "불타라! 활활!"
 	L.stage3_yell_trigger = "말도 안 돼! 일어나라!"
 
 	L.shaman_class_call_yell_trigger = "주술사"
@@ -64,10 +63,13 @@ end
 L = BigWigs:NewBossLocale("Blackwing Lair Trash", "koKR")
 if L then
 	L.wyrmguard_overseer = "죽음의발톱 고룡수호병 / 죽음의발톱 감독관" -- NPC 12460 / 12461
+	L.sandstorm = "모래폭풍"
 
 	--L.target_vulnerability = "Target Vulnerability Warnings"
 	--L.target_vulnerability_desc = "When your target is a Death Talon Wyrmguard or a Death Talon Overseer, show a warning for what vulnerability it has."
 	--L.target_vulnerability_message = "Target Vulnerability: %s"
 	L.detect_magic_missing_message = "마법 감지 is missing from your target"
 	L.detect_magic_warning = "A Mage must cast \124cff71d5ff\124Hspell:2855:0\124h[마법 감지]\124h\124r on your target for vulnerability warnings to work."
+
+	L.warlock = "검은날개 흑마법사" -- NPC 12459
 end

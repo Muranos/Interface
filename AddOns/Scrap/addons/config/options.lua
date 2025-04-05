@@ -1,33 +1,34 @@
 --[[
-Copyright 2008-2024 João Cardoso
+Copyright 2008-2025 João Cardoso
 All Rights Reserved
 --]]
 
 local Sushi = LibStub('Sushi-3.2')
-local BasePanel = Sushi.OptionsGroup:NewClass()
-local Options = Scrap:NewModule('Options', BasePanel('|Tinterface/addons/scrap/art/scrap-small:16:16:2:0|t  Scrap'))
+local Options = Scrap:NewModule('Options', Sushi.OptionsGroup:NewClass())
 local L = LibStub('AceLocale-3.0'):GetLocale('Scrap')
 
-local PATRONS = {{title='Jenkins',people={'Gnare','Adcantu','Justin Hall','Debora S Ogormanw','Johnny Rabbit','Francesco Rollo'}},{title='Ambassador',people={'Julia F','Lolari ','Rafael Lins','Dodgen','Ptsdthegamer','Burt Humburg','Adam Mann','Bc Spear','Jury ','Tigran Andrew','Swallow@area52','Peter Hollaubek','Michael Kinasz','Kelly Wolf','Kopernikus ','Metadata','Ds9293','Charles Howarth','Lyta ','נעמי מקינו','Melinani King'}}} -- generated patron list
+local PATRONS = {{title='Jenkins',people={'Gnare','Debora S Ogormanw','Johnny Rabbit','Shaun Potts','Dean Cutsforth'}},{title='Ambassador',people={'Julia F','Lolari ','Rafael Lins','Ptsdthegamer','Swallow@area52','Adam Mann','Bc Spear','Jury ','Peter Hollaubek','Michael Kinasz','Lisa','M Prieto','Ronald Platz'}}} -- generated patron list
 local PATREON_ICON = '  |TInterface/Addons/Scrap/art/patreon:12:12|t'
 local HELP_ICON = '  |T516770:13:13:0:0:64:64:14:50:14:50|t'
-local FOOTER = 'Copyright 2012-2024 João Cardoso'
+local FOOTER = 'Copyright 2012-2025 João Cardoso'
 
 
 --[[ Startup ]]--
 
-function Options:OnEnable()
-	self.Filters = BasePanel(self, L.JunkList .. ' ' .. CreateAtlasMarkup('poi-workorders'))
+function Options:OnLoad()
+	self.Main = self('|Tinterface/addons/scrap/art/scrap-small:16:16:2:0|t  Scrap')
+		:SetSubtitle(L.GeneralDescription):SetFooter(FOOTER):SetChildren(self.OnMain)
+	self.Filters = self(self.Main, L.JunkList .. ' ' .. CreateAtlasMarkup('poi-workorders'))
 		:SetSubtitle(L.ListDescription):SetFooter(FOOTER):SetChildren(self.OnFilters)
-	self.Help = Sushi.OptionsGroup(self, HELP_LABEL .. HELP_ICON)
-		:SetSubtitle(L.HelpDescription):SetFooter(FOOTER):SetChildren(self.OnHelp)
-	self.Credits = Sushi.OptionsGroup(self, 'Patrons' .. PATREON_ICON)
-		:SetSubtitle(L.PatronsDescription):SetFooter(FOOTER):SetOrientation('HORIZONTAL'):SetChildren(self.OnCredits)
 
-	self:SetFooter(FOOTER)
-	self:SetSubtitle(L.GeneralDescription)
-	self:SetCall('OnChildren', self.OnMain)
+	self.Help = Sushi.OptionsGroup(self.Main, HELP_LABEL .. HELP_ICON)
+		:SetSubtitle(L.HelpDescription):SetFooter(FOOTER):SetChildren(self.OnHelp)
+	self.Credits = Sushi.OptionsGroup(self.Main, 'Patrons' .. PATREON_ICON)
+		:SetSubtitle(L.PatronsDescription):SetFooter(FOOTER):SetOrientation('HORIZONTAL'):SetChildren(self.OnCredits)
 end
+
+
+--[[ Panels ]]--
 
 function Options:OnMain()
 	self:Add('RedButton', SETTINGS_KEYBINDINGS_LABEL):SetKeys{top = -5, bottom = 15}:SetCall('OnClick', function()
@@ -53,7 +54,7 @@ end
 function Options:OnFilters()
 	self:Add('Check', L.CharSpecific):SetChecked(not Scrap.charsets.share):SetCall('OnInput', function(share, v)
 		Scrap.charsets.share = not v
-		self:SendSignal('SETS_CHANGED')
+		Scrap:SendSignal('SETS_CHANGED')
 	end)
 	self:AddCheck {set = 'learn', text = 'Learning'}
 
@@ -61,7 +62,7 @@ function Options:OnFilters()
 	self:AddCheck {set = 'unusable', text = 'Unusable', char = true}
 	self:AddCheck {set = 'equip', text = 'LowEquip', char = true}
 	self:AddTreshold ('equip')
-	self:AddCheck {set = 'consumable', text = 'LowConsume', char = true}
+	self:AddCheck {set = 'consumable', text = 'LowConsumable', char = true}
 	self:AddTreshold ('consumable')
 end
 
@@ -103,11 +104,11 @@ end
 
 --[[ API ]]--
 
-function BasePanel:AddHeader(text)
+function Options:AddHeader(text)
 	self:Add('Header', text, GameFontHighlight, true)
 end
 
-function BasePanel:AddCheck(info)
+function Options:AddCheck(info)
 	local sets = info.char and Scrap.charsets or Scrap.sets
 	local b = self:Add('Check', L[info.text])
 	b.left = b.left + (info.parent and 10 or 0)
@@ -117,18 +118,20 @@ function BasePanel:AddCheck(info)
 	b:SetSmall(info.parent)
 	b:SetCall('OnInput', function(b, v)
 		sets[info.set] = v
-		Options:SendSignal('LIST_CHANGED')
+		Scrap:SendSignal('LIST_CHANGED')
 	end)
 end
 
-function BasePanel:AddTreshold(set)
+function Options:AddTreshold(set)
 	if Scrap.charsets[set] then
-		local set = set .. 'Factor'
-		local s = self:Add('Slider', L.iLevelTreshold, (Scrap.charsets[set] - 1) * 100, 0,100,1, '%s%')
+		local key = set .. 'Lvl'
+		local Set = set:gsub('^%l', strupper)
+		local s = self:Add('Slider', L.iLevelTreshold, Scrap.charsets[key] * 100, 0,100,1, '%s%')
 		s:SetSmall(true):SetKeys {top = 5, left = 40, bottom = 15}
+		s:SetTip(L['Low' .. Set], L[Set .. 'LevelTip'])
 		s:SetCall('OnInput', function(s, v)
-			Scrap.charsets[set] = 1 + v / 100
-			Options:SendSignal('LIST_CHANGED')
+			Scrap.charsets[key] = v / 100
+			Scrap:SendSignal('LIST_CHANGED')
 		end)
 	end
 end

@@ -1,297 +1,342 @@
 local E = select(2, ...):unpack()
 local P = E.Party
+local BarFrameIconMixin = P.BarFrameIconMixin
 
-local MIN_RESET_DURATION = (E.isWOTLKC or E.TocVersion > 90100) and 120 or 180
+function BarFrameIconMixin:SetCooldownElements()
+	local noSwipe = self.isHighlighted or self.active ~= 0 or (self.statusBar and not E.db.extraBars[self.statusBar.key].nameBar)
+	local noCount = noSwipe or not E.db.icons.showCounter
+	self.cooldown:SetDrawEdge(not self.isHighlighted and self.maxcharges)
+	self.cooldown:SetDrawSwipe(not noSwipe)
+	self.cooldown:SetHideCountdownNumbers(noCount)
 
-function P:ResetCooldown(icon)
-	local info = self.groupInfo[icon.guid]
+	if E.OmniCC then
+		E.OmniCC.Cooldown.SetNoCooldownCount(self.cooldown, noCount)
+	elseif self.cooldown.timer then
+		self.cooldown.timer:SetShown(not noCount)
+		self.cooldown.timer.forceDisabled = noCount
+	end
+end
+
+function BarFrameIconMixin:ResetCooldown(resetAllCharges)
+	local info = P.groupInfo[self.guid]
 	if not info then
 		return
 	end
 
-	local spellID = icon.spellID
-	local active = info.active[spellID]
+	local active = info.active[self.spellID]
 	if not active then
 		return
 	end
 
 
-	if (spellID == 45438 or spellID == 414658) and E.db.icons.showForbearanceCounter then
-		local timeLeft = self:GetDebuffDuration(info.unit, 41425)
-		if timeLeft then
-			self:StartCooldown(icon, timeLeft, nil, true)
+	if (self.spellID == 45438 or self.spellID == 414658) and E.db.icons.showForbearanceCounter then
+		local duration, expTime = P:GetDebuffDuration(info.unit, 41425)
+		if duration and duration > 0 then
+			duration = expTime - GetTime()
+			if duration > 0 then
+				self:StartCooldown(duration, nil, true)
+			end
 			return
 		end
 	end
 
 
-	local maxcharges = icon.maxcharges
+	local maxcharges = self.maxcharges
 	local currCharges = active.charges
-	local statusBar = icon.statusBar
+	local statusBar = self.statusBar
 	if maxcharges and currCharges and currCharges + 1 < maxcharges then
-		currCharges = currCharges + 1
-		icon.count:SetText(currCharges)
-		active.charges = currCharges
-		P:SetCooldownElements(icon, currCharges)
+		if resetAllCharges then
+			active.charges = maxcharges
+			self.cooldown:Clear()
+			if statusBar then
 
-		local castingBar = statusBar and not E.db.extraBars[statusBar.key].nameBar and currCharges == 1 and statusBar.castingBar
-		if castingBar then
-			local rechargeColor, rechargeBGColor, rechargeTextColor = self.CastingBarFrame_GetEffectiveStartColor(castingBar, true)
-			castingBar:SetStatusBarColor(rechargeColor:GetRGBA())
-			castingBar.BG:SetVertexColor(rechargeBGColor:GetRGBA())
-			castingBar.Text:SetTextColor(rechargeTextColor:GetRGB())
+				statusBar.CastingBar:OnEvent("UNIT_SPELLCAST_FAILED")
+			end
+			return
+		end
+
+		currCharges = currCharges + 1
+		active.charges = currCharges
+		self.count:SetText(currCharges)
+		self.active = currCharges
+
+		self:SetCooldownElements()
+		self:SetOpacity()
+		self:SetColorSaturation()
+		self:SetBorderGlow(info.isDeadOrOffline, E.db.highlight.glowBorderCondition)
+		if statusBar then
+			statusBar:SetColors()
 		end
 	else
-		icon.cooldown:Clear()
+		self.cooldown:Clear()
 		if statusBar then
-			self.OmniCDCastingBarFrame_OnEvent(statusBar.CastingBar, 'UNIT_SPELLCAST_FAILED')
+			statusBar.CastingBar:OnEvent("UNIT_SPELLCAST_FAILED")
 		end
 	end
 end
 
-function P:UpdateCooldown(icon, reducedTime, auraMult, isDFSpaghetti)
-	local info = self.groupInfo[icon.guid]
+function BarFrameIconMixin:UpdateCooldown(reducedTime, updateActiveTimer)
+	local info = P.groupInfo[self.guid]
 	if not info then
 		return
 	end
 
-	local active = info.active[icon.spellID]
+	local active = info.active[self.spellID]
 	if not active then
 		return
 	end
 
 	local startTime = active.startTime
 	local duration = active.duration
-	local modRate = active.iconModRate or 1
-
-
-
-
-
-
-	if not E.isBFA and not isDFSpaghetti then
-		reducedTime = reducedTime * modRate
-	end
-
+	local modRate = active.modRate or 1
 	local now = GetTime()
-	if auraMult then
-		local elapsed = (now - startTime) * auraMult
+
+
+
+
+
+	reducedTime = reducedTime * modRate
+
+
+
+	if updateActiveTimer then
+		local elapsed = (now - startTime) * updateActiveTimer
 		startTime = now - elapsed
-		duration = duration * auraMult
-		reducedTime = reducedTime * auraMult
+		duration = duration * updateActiveTimer
+
 	end
 
 	startTime = startTime - reducedTime
 
 	if active.charges then
 		local queuedCdrOnRecharge = now - startTime - duration
-		if queuedCdrOnRecharge > 0 and active.charges + 1 < icon.maxcharges then
+		if queuedCdrOnRecharge > 0 and active.charges + 1 < self.maxcharges then
 			active.queuedCdrOnRecharge = queuedCdrOnRecharge
 		end
 	end
 
-	icon.cooldown:SetCooldown(startTime, duration, modRate)
+	self.cooldown:SetCooldown(startTime, duration, modRate)
 	active.startTime = startTime
 	active.duration = duration
-	local statusBar = icon.statusBar
+	local statusBar = self.statusBar
 	if statusBar then
-		self.OmniCDCastingBarFrame_OnEvent(statusBar.CastingBar, E.db.extraBars[statusBar.key].reverseFill and 'UNIT_SPELLCAST_CHANNEL_UPDATE' or 'UNIT_SPELLCAST_CAST_UPDATE')
+		statusBar.CastingBar:OnEvent(statusBar.CastingBar.channeling and "UNIT_SPELLCAST_CHANNEL_UPDATE" or "UNIT_SPELLCAST_CAST_UPDATE")
 	end
 end
 
-function P:SetCooldownElements(icon, charges)
-	local noSwipe = icon.isHighlighted or (icon.statusBar and not E.db.extraBars[icon.statusBar.key].nameBar) or (charges and charges > 0)
-	local noCount = noSwipe or not E.db.icons.showCounter
-	icon.cooldown:SetDrawEdge(charges and true)
-	icon.cooldown:SetDrawSwipe(not noSwipe)
-	icon.cooldown:SetHideCountdownNumbers(noCount)
-	if E.OmniCC then
-		E.OmniCC.Cooldown.SetNoCooldownCount(icon.cooldown, noCount)
-	elseif icon.cooldown.timer then
-		icon.cooldown.timer:SetShown(not noCount)
-		icon.cooldown.timer.forceDisabled = noCount
-	end
-end
-
-function P:StartCooldown(icon, cd, isRecharge, noGlow)
-	local info = self.groupInfo[icon.guid]
+function BarFrameIconMixin:StartCooldown(cd, isRecharge, noGlow, reducedStartTime)
+	local info = P.groupInfo[self.guid]
 	if not info then
 		return
 	end
 
-	local spellID = icon.spellID
-
-	if not isRecharge and info.auras[spellID] then
-		return
-	end
-
-	info.active[spellID] = info.active[spellID] or {}
-
-	local active = info.active[spellID]
-	local currCharges = active.charges or icon.maxcharges
-	local now = GetTime()
-
-	if info.auras.isGlimpseOfClarity then
-		cd = cd - 3
-	end
-
-	local modRate = (E.BOOKTYPE_CATEGORY[icon.category] or E.spaghettiFix[spellID]) and info.modRate or 1
-
-	local spellModRate = info.spellModRates[spellID]
-	if spellModRate then
-		modRate = modRate * spellModRate
-	end
+	local spellID = self.spellID
 
 
-	cd = cd * modRate
 
+	local multiplier
 	local auraMult = E.spell_cdmod_by_aura_mult[spellID]
 	if auraMult then
 		for i = 1, #auraMult, 2 do
-			local auraKeyOrID = auraMult[i + 1]
-			if info.auras[auraKeyOrID] then
+			local auraString = auraMult[i + 1]
+			if info.auras[auraString] then
 				local mult = auraMult[i]
-				if mult == 0 then
+				if mult == 0 and not isRecharge then
+					if self.active and info.auras.mult_premonitionOfInsight then
+						self:UpdateCooldown(info.talentData[440743] and 9.8 or 7)
+					end
 					return
 				end
-				mult = mult or info.auras[auraKeyOrID]
-				cd = cd * mult
+				multiplier = (multiplier or 1) * mult
 			end
 		end
 	end
+
+
+	cd = cd or self.duration
+	local ocd = cd
+	local reduceStartTimeInstead
+	if not isRecharge and self.isBookType then
+		if info.auras.glimpseOfClarity then
+			cd = cd - 3
+		end
+		if spellID ~= 428933 and info.auras.mult_premonitionOfInsight then
+			reduceStartTimeInstead = true
+			cd = cd - (info.talentData[440743] and 9.8 or 7)
+		end
+	end
+
+
+	if multiplier then
+		cd = cd * multiplier
+	end
+
+	if E.spell_cdmod_by_haste[spellID] and info.auras.mult_lust then
+		cd = cd * 0.7
+	end
+
+
+	local modRate = self.modRate
+	cd = cd * modRate
+
+	info.active[spellID] = info.active[spellID] or {}
+	local active = info.active[spellID]
+	local currCharges = active.charges or self.maxcharges
+	local now = GetTime()
+	if reducedStartTime then
+		reducedStartTime = reducedStartTime * modRate
+		now = now - reducedStartTime
+	end
+
+
+
+
+
+
+
+
+
 
 	if currCharges then
 		if isRecharge then
-			local queuedCdr = active.queuedCdrOnRecharge
-			if queuedCdr then
-				now = now - queuedCdr
+			if active.queuedCdrOnRecharge then
+				now = now - active.queuedCdrOnRecharge
 				active.queuedCdrOnRecharge = nil
 			end
 			currCharges = currCharges + 1
-			icon.cooldown:SetCooldown(now, cd, modRate)
-		elseif currCharges == icon.maxcharges then
+			self.cooldown:SetCooldown(now, cd, modRate)
+		elseif currCharges == self.maxcharges then
 			currCharges = currCharges - 1
-			icon.cooldown:SetCooldown(now, cd, modRate)
+			if reduceStartTimeInstead then
+				now = now - (ocd - cd)
+				cd = ocd * modRate
+			end
+			self.cooldown:SetCooldown(now, cd, modRate)
 		elseif currCharges == 0 then
-
-
-			icon.cooldown:SetCooldown(now, cd, modRate)
+			self.cooldown:SetCooldown(now, cd, modRate)
 		else
-			currCharges = currCharges - 1
-			now = active.startTime
+			if reduceStartTimeInstead then
+				local rt = active.duration - cd
+				local remainingTime = active.startTime + active.duration - now - rt
+				if remainingTime < 0 then
+					now = now + remainingTime
+				else
+					currCharges = currCharges - 1
+					now = active.startTime - rt
+				end
+				cd = active.duration
+				self.cooldown:SetCooldown(now, cd, modRate)
+			else
+				currCharges = currCharges - 1
+				now = active.startTime
+				cd = active.duration
+			end
 		end
-		icon.count:SetText(currCharges)
+		self.count:SetText(currCharges)
 		active.charges = currCharges
 	else
-		icon.cooldown:SetCooldown(now, cd, modRate)
+		if reduceStartTimeInstead then
+			now = now - (ocd - cd)
+			cd = ocd * modRate
+		end
+		self.cooldown:SetCooldown(now, cd, modRate)
 	end
-
 	active.startTime = now
 	active.duration = cd
-	active.iconModRate = modRate ~= 1 and modRate or nil
+	active.modRate = modRate
 	if E.selfLimitedMinMaxReducer[spellID] then
 		active.numHits = 0
 	end
 
-	icon.active = true
+	local statusBar = self.statusBar
+	if info.preactiveIcons[spellID] then
+		info.preactiveIcons[spellID] = nil
 
-	local frame = icon:GetParent():GetParent()
+		if statusBar then
+			statusBar:SetColors()
+		end
+	end
+
+	self.active = currCharges or 0
+
+	local frame = self:GetParent():GetParent()
 	local key = frame.key
 	if type(key) == "number" then
-		icon:SetAlpha(E.db.icons.activeAlpha)
-		if not self.displayInactive then
-			self:SetIconLayout(frame)
+		if not P.displayInactive then
+			frame:UpdateLayout()
 		end
 	else
-		local statusBar = icon.statusBar
-		if statusBar then
-			self:SetExStatusBarColor(icon, statusBar.key)
-			self.OmniCDCastingBarFrame_OnEvent(statusBar.CastingBar, E.db.extraBars[key].reverseFill and 'UNIT_SPELLCAST_CHANNEL_START' or 'UNIT_SPELLCAST_START')
-			if E.db.extraBars[key].useIconAlpha then
-				icon:SetAlpha(E.db.icons.activeAlpha)
-			end
-		else
-			icon:SetAlpha(E.db.icons.activeAlpha)
-		end
 		if frame.shouldRearrangeInterrupts then
-			self:SetExIconLayout(key, true)
+			frame:UpdateLayout(true)
 		end
 	end
 
-	if not self:HighlightIcon(icon) then
-		if not isRecharge and not noGlow and E.db.highlight.glow then
-			self:SetGlow(icon)
-		end
-		self:SetCooldownElements(icon, currCharges)
-		if not info.isDeadOrOffline then
-			icon.icon:SetDesaturated(E.db.icons.desaturateActive and (not currCharges or currCharges == 0))
-		end
+	if not self:SetHighlight() and not isRecharge and not noGlow and E.db.highlight.glow then
+		self:SetGlow()
 	end
-
-	if E.isBFA and icon.guid == E.userGUID and self.isInPvPInstance and spellID == info.talentData["essStrivedPvpID"] then
-		E.TimerAfter(2, E.Comm.SendStrivePvpTalentCD, spellID)
+	self:SetCooldownElements()
+	self:SetOpacity()
+	self:SetColorSaturation()
+	self:SetBorderGlow(info.isDeadOrOffline, E.db.highlight.glowBorderCondition)
+	if statusBar then
+		statusBar.CastingBar:OnEvent(E.db.extraBars[key].reverseFill and "UNIT_SPELLCAST_CHANNEL_START" or "UNIT_SPELLCAST_START")
 	end
 end
 
-function P:ResetAllIcons(reason)
+local MIN_RESET_DURATION = ((E.isWOTLKC or E.isCata) or E.TocVersion > 90100) and 120 or 180
+function P:ResetAllIcons(reason, clearSession)
+	local notEncounterEnd = reason ~= "encounterEnd"
 	for guid, info in pairs(self.groupInfo) do
+		local isDeadOrOffline = info.isDeadOrOffline
+		local condition = E.db.highlight.glowBorderCondition
 		for spellID, icon in pairs(info.spellIcons) do
-			if reason ~= "encounterEnd" or (not E.spell_noreset_onencounterend[spellID] and icon.baseCooldown >= MIN_RESET_DURATION) then
+			if notEncounterEnd or not E.spell_noreset_onencounterend[spellID] and icon.baseCooldown >= MIN_RESET_DURATION then
 				local statusBar = icon.statusBar
 				if icon.active then
-
 					info.active[spellID] = nil
 					icon.active = nil
-
-					local maxcharges = icon.maxcharges
-					if maxcharges then
-						icon.count:SetText(maxcharges)
-					end
-					if not info.isDeadOrOffline then
-						icon.icon:SetDesaturated(false)
-					end
-
 					icon.cooldown:Clear()
-					if statusBar then
-						icon:SetAlpha(E.db.extraBars[statusBar.key].useIconAlpha and E.db.icons.inactiveAlpha or 1.0)
-						self.OmniCDCastingBarFrame_OnEvent(statusBar.CastingBar, 'UNIT_SPELLCAST_FAILED')
-					else
-						icon:SetAlpha(E.db.icons.inactiveAlpha)
+					if icon.maxcharges then
+						icon.count:SetText(icon.maxcharges)
 					end
-				elseif info.preactiveIcons[spellID] then
+					if statusBar then
+						statusBar.CastingBar:OnEvent("UNIT_SPELLCAST_FAILED")
+					end
+				end
+
+				if info.preactiveIcons[spellID] then
 					info.preactiveIcons[spellID] = nil
 					if statusBar then
-						self:SetExStatusBarColor(icon, statusBar.key)
+						statusBar:SetColors()
 					end
-					icon.icon:SetVertexColor(1, 1, 1)
 				end
 
 				if icon.isHighlighted then
-					self:RemoveHighlight(icon)
+					icon:RemoveHighlight()
 				end
+				icon:SetCooldownElements()
+				icon:SetOpacity()
+				icon:SetColorSaturation()
+				icon:SetBorderGlow(isDeadOrOffline, condition)
 
-				if reason == "joinedPvP" and spellID == 323436 then
+				if reason == "joinedPvP" and (spellID == 323436 or spellID == 6262) then
+					info.auras.healthStoneStacks = nil
 					info.auras.purifySoulStacks = nil
 					icon.count:SetText("")
 				end
 			end
 		end
 
-		for _, timer in pairs(info.callbackTimers) do
-			if type(timer) == "table" then
-				timer:Cancel()
-			end
-		end
-		self.groupInfo[guid].callbackTimers = {}
-
-		if not self.displayInactive then
-			self:SetIconLayout(info.bar)
+		info:CancelTimers(not notEncounterEnd)
+		if clearSession then
+			info:ClearSessionItemData()
+			info:SetupBar()
+		elseif not self.displayInactive then
+			info.bar:UpdateLayout()
 		end
 	end
 
-	for key, frame in pairs(self.extraBars) do
-		if frame.shouldRearrangeInterrupts then
-			self:SetExIconLayout(key, true)
-		end
+	if not clearSession then
+		self:RearrangeExBarIcons()
 	end
 end

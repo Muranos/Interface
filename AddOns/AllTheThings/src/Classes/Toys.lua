@@ -1,14 +1,16 @@
 -- App locals
 local appName,app = ...;
 
-local pairs, GetItemCount, PlayerHasToy
----@diagnostic disable-next-line: deprecated
-	= pairs, ((C_Item and C_Item.GetItemCount) or GetItemCount), PlayerHasToy;
+local pairs, PlayerHasToy = pairs, PlayerHasToy;
+
+-- WoW API Cache
+local GetItemCount = app.WOWAPI.GetItemCount;
 
 -- Toy Lib
 local KEY, CACHE = "toyID", "Toys"
 local AccountWideToyData = {};
 local toyFields = {
+	CACHE = function() return CACHE end,
 	f = function(t)
 		return 102;
 	end,
@@ -20,9 +22,7 @@ local toyFields = {
 		-- should be a cached check with a re-evaluation if not cached state
 		return app.SetCollected(t, CACHE, t[KEY], GetItemCount(t[KEY], true) > 0);
 	end or function(t)
-		local id = t[KEY];
-		-- account-wide collected
-		if app.IsAccountTracked(CACHE, id) then return 1; end
+		return app.TypicalAccountCollected(CACHE, t[KEY])
 	end,
 	itemID = function(t)
 		return t[KEY];
@@ -63,9 +63,7 @@ toyFields.collected = app.IsClassic and function(t)
 		return app.SetCollected(t, CACHE, toyID, GetItemCount(toyID, true) > 0);
 	end
 end or function(t)
-	local id = t[KEY];
-	-- account-wide collected
-	if app.IsAccountTracked(CACHE, id) then return 1; end
+	return app.TypicalAccountCollected(CACHE, t[KEY])
 end;
 toyFields.description = function(t)
 	if not IsToyBNETCollectible[t[KEY]] then
@@ -73,20 +71,16 @@ toyFields.description = function(t)
 	end
 end;
 
-app.events.TOYS_UPDATED = app.IsRetail and function(itemID, new)
-	if itemID and not AccountWideToyData[itemID] and PlayerHasToy(itemID) then
-		app.SetAccountCollected(app.SearchForObject(KEY, itemID) or app.CreateToy(itemID), CACHE, itemID, true);
-		app.UpdateRawID("itemID", itemID);
+app.AddEventRegistration("TOYS_UPDATED", app.IsRetail and function(itemID, new)
+	if itemID and PlayerHasToy(itemID) then
+		app.SetThingCollected(KEY, itemID, true, true)
 	end
 end or function(toyID, new)
 	if toyID then
 		app.SetAccountCollected(app.SearchForField(KEY, toyID)[1] or app.CreateToy(toyID), CACHE, toyID, PlayerHasToy(toyID));
 		app:RefreshDataQuietly("TOYS_UPDATED", true);
 	end
-end
-app.AddEventHandler("OnReady", function()
-	app:RegisterEvent("TOYS_UPDATED");
-end);
+end)
 if app.IsClassic then
 	app.AddEventHandler("OnRefreshCollections", function()
 		-- Refresh Toys
@@ -124,23 +118,28 @@ app.AddEventHandler("OnSavedVariablesAvailable", function(currentCharacter, acco
 		accountWideData.Toys = AccountWideToyData;
 	end
 
-	-- With Wrath Classic, toys became *mostly* account wide.
-	local characterData = currentCharacter.Toys;
-	if characterData then
-		app:StartATTCoroutine("ValidateCharacterToys", function()
-			-- Wait until the Piccolo is detected as a toy.
-			while not IsToyBNETCollectible[13379] do	-- Piccolo
-				coroutine.yield();
-			end
-			for toyID,collected in pairs(characterData) do
-				if collected and IsToyBNETCollectible[toyID] then
-					AccountWideToyData[toyID] = 1;
-					characterData[toyID] = nil;
+	if app.IsClassic then
+		-- With Wrath Classic, toys became *mostly* account wide.
+		local characterData = currentCharacter.Toys;
+		if characterData then
+			app:StartATTCoroutine("ValidateCharacterToys", function()
+				-- Wait until the Piccolo is detected as a toy.
+				while not IsToyBNETCollectible[13379] do	-- Piccolo
+					coroutine.yield();
 				end
-			end
-		end);
-	else
-		currentCharacter.Toys = {};
+				for toyID,collected in pairs(characterData) do
+					if collected and IsToyBNETCollectible[toyID] then
+						AccountWideToyData[toyID] = 1;
+						characterData[toyID] = nil;
+					end
+				end
+			end);
+		else
+			currentCharacter.Toys = {};
+		end
 	end
 end);
-app.CreateToy = app.ExtendClass("Item", "Toy", "toyID", toyFields);
+local CLASSNAME = "Toy"
+app.CreateToy = app.ExtendClass("Item", CLASSNAME, "toyID", toyFields);
+
+app.AddSimpleCollectibleSwap(CLASSNAME, CACHE)

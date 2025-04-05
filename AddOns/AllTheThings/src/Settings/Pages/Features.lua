@@ -52,7 +52,7 @@ end)
 checkboxShowMinimapButton:SetATTTooltip(L.MINIMAP_BUTTON_CHECKBOX_TOOLTIP)
 checkboxShowMinimapButton:SetPoint("TOPLEFT", headerMinimapButton, "BOTTOMLEFT", -2, 0)
 
-local sliderMinimapButtonSize = CreateFrame("Slider", "ATTsliderMinimapButtonSize", child, "OptionsSliderTemplate")
+local sliderMinimapButtonSize = CreateFrame("Slider", "ATTsliderMinimapButtonSize", child, "UISliderTemplate")
 sliderMinimapButtonSize:SetPoint("TOPLEFT", checkboxShowMinimapButton, "BOTTOMLEFT", 5, -12)
 table.insert(settings.Objects, sliderMinimapButtonSize)
 settings.sliderMinimapButtonSize = sliderMinimapButtonSize
@@ -63,10 +63,16 @@ sliderMinimapButtonSize:SetHeight(20)
 sliderMinimapButtonSize:SetValueStep(1)
 sliderMinimapButtonSize:SetMinMaxValues(18, 48)
 sliderMinimapButtonSize:SetObeyStepOnDrag(true)
-_G[sliderMinimapButtonSize:GetName() .. 'Low']:SetText('18')
-_G[sliderMinimapButtonSize:GetName() .. 'High']:SetText('48')
-_G[sliderMinimapButtonSize:GetName() .. 'Text']:SetText(L.MINIMAP_SLIDER)
-_G[sliderMinimapButtonSize:GetName() .. 'Text']:SetPoint("LEFT", sliderMinimapButtonSize, 0, 0)
+sliderMinimapButtonSize.Text = sliderMinimapButtonSize:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+sliderMinimapButtonSize.Text:SetPoint("BOTTOMLEFT", sliderMinimapButtonSize, "TOPLEFT", 0, 0)
+sliderMinimapButtonSize.Text:SetText(L.MINIMAP_SLIDER)
+sliderMinimapButtonSize.Text:SetTextColor(1, 1, 1)
+sliderMinimapButtonSize.LabelLow = sliderMinimapButtonSize:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+sliderMinimapButtonSize.LabelLow:SetPoint("TOPLEFT", sliderMinimapButtonSize, "BOTTOMLEFT", 0, 2)
+sliderMinimapButtonSize.LabelLow:SetText('18')
+sliderMinimapButtonSize.LabelHigh = sliderMinimapButtonSize:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+sliderMinimapButtonSize.LabelHigh:SetPoint("TOPRIGHT", sliderMinimapButtonSize, "BOTTOMRIGHT", 0, 2)
+sliderMinimapButtonSize.LabelHigh:SetText('48')
 sliderMinimapButtonSize.Label = sliderMinimapButtonSize:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
 sliderMinimapButtonSize.Label:SetPoint("TOP", sliderMinimapButtonSize, "BOTTOM", 0, 2)
 sliderMinimapButtonSize.Label:SetText(sliderMinimapButtonSize:GetValue())
@@ -136,36 +142,58 @@ checkboxAutomaticallySkipCutscenes:SetPoint("TOPLEFT", headerModules, "BOTTOMLEF
 
 local checkboxAutomaticallyOpenBountyList;
 if app.IsRetail then
--- Classic Windows persist their states, this isn't necessary in that environment. (coming to retail soon!)
-local checkboxAutomaticallyOpenMainList = child:CreateCheckBox(L.AUTO_MAIN_LIST_CHECKBOX,
-function(self)
-	self:SetChecked(settings:GetTooltipSetting("Auto:MainList"))
-end,
-function(self)
-	settings:SetTooltipSetting("Auto:MainList", self:GetChecked())
-end)
-checkboxAutomaticallyOpenMainList:SetATTTooltip(L.AUTO_MAIN_LIST_CHECKBOX_TOOLTIP)
-checkboxAutomaticallyOpenMainList:AlignBelow(checkboxAutomaticallySkipCutscenes)
+	-- Classic Windows persist their states, this isn't necessary in that environment. (coming to retail soon!)
+	local checkboxAutomaticallyOpenMainList = child:CreateCheckBox(L.AUTO_MAIN_LIST_CHECKBOX,
+	function(self)
+		self:SetChecked(settings:GetTooltipSetting("Auto:MainList"))
+	end,
+	function(self)
+		settings:SetTooltipSetting("Auto:MainList", self:GetChecked())
+	end)
+	checkboxAutomaticallyOpenMainList:SetATTTooltip(L.AUTO_MAIN_LIST_CHECKBOX_TOOLTIP)
+	checkboxAutomaticallyOpenMainList:AlignBelow(checkboxAutomaticallySkipCutscenes)
 
-local checkboxAutomaticallyOpenMiniList = child:CreateCheckBox(L.AUTO_MINI_LIST_CHECKBOX,
-function(self)
-	self:SetChecked(settings:GetTooltipSetting("Auto:MiniList"))
-end,
-function(self)
-	settings:SetTooltipSetting("Auto:MiniList", self:GetChecked())
-end)
-checkboxAutomaticallyOpenMiniList:SetATTTooltip(L.AUTO_MINI_LIST_CHECKBOX_TOOLTIP)
-checkboxAutomaticallyOpenMiniList:AlignBelow(checkboxAutomaticallyOpenMainList)
+	local checkboxAutomaticallyOpenMiniList = child:CreateCheckBox(L.AUTO_MINI_LIST_CHECKBOX,
+	function(self)
+		self:SetChecked(settings:GetTooltipSetting("Auto:MiniList"))
+	end,
+	function(self)
+		settings:SetTooltipSetting("Auto:MiniList", self:GetChecked())
+	end)
+	checkboxAutomaticallyOpenMiniList:SetATTTooltip(L.AUTO_MINI_LIST_CHECKBOX_TOOLTIP)
+	checkboxAutomaticallyOpenMiniList:AlignBelow(checkboxAutomaticallyOpenMainList)
 
-checkboxAutomaticallyOpenBountyList = child:CreateCheckBox(L.AUTO_BOUNTY_CHECKBOX,
-function(self)
-	self:SetChecked(settings:GetTooltipSetting("Auto:BountyList"))
-end,
-function(self)
-	settings:SetTooltipSetting("Auto:BountyList", self:GetChecked())
-end)
-checkboxAutomaticallyOpenBountyList:SetATTTooltip(L.AUTO_BOUNTY_CHECKBOX_TOOLTIP)
-checkboxAutomaticallyOpenBountyList:AlignBelow(checkboxAutomaticallyOpenMiniList)
+	local function AddTimerunningToCurrentInstance()
+		local active = settings:GetTooltipSetting("Filter:MiniList:Timerunning")
+		app:GetWindow("CurrentInstance").Filters = active and { Timerunning = true } or nil
+	end
+	app.AddEventHandler("OnLoad", AddTimerunningToCurrentInstance)
+	local checkboxFilterMiniListTimerunning = child:CreateCheckBox(L.FILTER_MINI_LIST_FOR_TIMERUNNING_CHECKBOX,
+	function(self)
+		self:SetChecked(settings:GetTooltipSetting("Filter:MiniList:Timerunning"))
+		self:SetAlpha(0.4)
+	end,
+	function(self)
+		-- No Timerunning Active, don't modify settings
+		if not app.Modules.Events.IsTimerunningActive then self:SetChecked(false) return end
+		settings:SetTooltipSetting("Filter:MiniList:Timerunning", self:GetChecked())
+		AddTimerunningToCurrentInstance()
+		app.LocationTrigger(true)
+		-- changing this now needs to update Costs again since they now depend on this Filter
+		app.HandleEvent("OnRecalculate_NewSettings")
+	end)
+	checkboxFilterMiniListTimerunning:SetATTTooltip(L.FILTER_MINI_LIST_FOR_TIMERUNNING_CHECKBOX_TOOLTIP)
+	checkboxFilterMiniListTimerunning:AlignBelow(checkboxAutomaticallyOpenMiniList, 1)
+
+	checkboxAutomaticallyOpenBountyList = child:CreateCheckBox(L.AUTO_BOUNTY_CHECKBOX,
+	function(self)
+		self:SetChecked(settings:GetTooltipSetting("Auto:BountyList"))
+	end,
+	function(self)
+		settings:SetTooltipSetting("Auto:BountyList", self:GetChecked())
+	end)
+	checkboxAutomaticallyOpenBountyList:SetATTTooltip(L.AUTO_BOUNTY_CHECKBOX_TOOLTIP)
+	checkboxAutomaticallyOpenBountyList:AlignBelow(checkboxFilterMiniListTimerunning, -1)
 end
 
 local checkboxAutomaticallyOpenProfessionList = child:CreateCheckBox(L.AUTO_PROF_LIST_CHECKBOX,

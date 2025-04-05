@@ -1,9 +1,10 @@
 --- @type RCLootCouncil
 local addon = select(2, ...)
+---@class RCLootHistory
 local His = addon:GetModule("RCLootHistory")
 --- @type RCLootCouncilLocale
 local L = LibStub("AceLocale-3.0"):GetLocale("RCLootCouncil")
-local LibDialog = LibStub("LibDialog-1.0")
+local LibDialog = LibStub("LibDialog-1.1")
 local private = {
    errorList = {
       -- [i] = {line, cause}
@@ -188,6 +189,9 @@ function His:DoErrorCheck ()
    return false
 end
 
+---@param input string
+---@param delimiter string
+---@param notFirst boolean?
 function His:ExtractLine (input, delimiter, notFirst)
    local ret = {}
    -- Check for any escaped commas:
@@ -197,8 +201,22 @@ function His:ExtractLine (input, delimiter, notFirst)
       local first, last = input:find("\".-\"")
       -- do the first and second half, and put this in the middle.
       ret = self:ExtractLine(strsub(input, 1, math.max(first - 2,0)), delimiter, true)
-      tinsert(ret, strsub(input, first + 1, last - 1))
-      local t2 = self:ExtractLine(strsub(input, last + 2), delimiter, true)
+	  -- if the quote is directly before or after the delimiter, it should be split
+	  if first > 1 and input:sub(first - 1, first - 1) ~= delimiter and
+		 last < #input and input:sub(last + 1, last + 1) ~= delimiter then
+			-- Find next delimiter
+			local next = input:find(delimiter, last + 2)
+			-- Last entry should now be set to this entry
+			if next then
+				ret[#ret] = ret[#ret] ..strsub(input, first -1, next - 1)
+				last = next - 1 -- -1 to account for the delimiter
+			else
+				addon.Log:E("Could not find next delimiter")
+			end
+		 else
+			tinsert(ret, strsub(input, first + 1, last - 1))
+		 end
+	local t2 = self:ExtractLine(strsub(input, last + 2), delimiter, true)
       local len = #ret
       for k, v in ipairs(t2) do
          ret[len + k] = v
@@ -235,7 +253,7 @@ function private:RebuildResponseID(data,t, line)
       end
    end
    if not t.lootWon or t.lootWon == "" then return end -- Return silently - lootWon handler will have created error
-   local type = select(4, GetItemInfoInstant(t.lootWon))
+   local type = select(4, C_Item.GetItemInfoInstant(t.lootWon))
    if not type then return self:AddError(line, type, "Unknown type") end
    -- Check for special buttons
    if addon.BTN_SLOTS[type] then
@@ -270,7 +288,7 @@ function private:RebuildTime (data, t, line)
    local dato, time, id = data[2], data[3], data[4]
    if not dato and not time and not id then
       -- Not provided, just use current time
-      t.date = date("%d/%m/%y")
+      t.date = date("%Y/%m/%d")
       t.time = date("%H:%M:%S")
       t.id = GetServerTime() .."-"..private.idCount
       private.idCount = private.idCount + 1
@@ -286,29 +304,29 @@ function private:RebuildTime (data, t, line)
          t.id = id .. "-"..private.idCount
          private.idCount = private.idCount + 1
       end
-      t.date = date("%d/%m/%y", secs)
-      t.time = date("%H:%M:%S", secs)
+      t.date = date("!%Y/%m/%d", secs)
+      t.time = date("!%H:%M:%S", secs)
    elseif dato and time then
-      local d, m, y = strsplit("/", dato or "", 3)
+		local y, m, d = addon.Utils:DateSplit(dato or "")
       local h,mm,s = strsplit(":",time,3)
       local secs = His:DateTimeToSeconds(d,m,y,h,mm,s)
-      t.date = date("%d/%m/%y", secs)
+      t.date = date("%Y/%m/%d", secs)
       t.time = date("%H:%M:%S", secs)
       t.id = secs .. "-"..private.idCount
       private.idCount = private.idCount + 1
    elseif dato then
-      local d, m, y = strsplit("/", dato or "", 3)
+      local y, m, d = addon.Utils:DateSplit(dato or "")
       local secs = His:DateTimeToSeconds(d,m,y) -- Will provide 0:0:0
-      t.date = date("%d/%m/%y", secs)
-      t.time = date("%H:%M:%S", secs)
+		t.date = date("%Y/%m/%d", secs)
+		t.time = date("%H:%M:%S", secs)
       t.id = secs .. "-"..private.idCount
       private.idCount = private.idCount + 1
    elseif time then
-      local d, m, y = strsplit("/", date("%d/%m/%y"), 3) -- Use today
+		local y, m, d = addon.Utils:DateSplit(date("%Y/%m/%d")) -- Use today
       local h, min, s = strsplit(":", time, 3) -- but keep the time
       local secs = His:DateTimeToSeconds(d,m,y,h,min,s)
-      t.date = date("%d/%m/%y", secs)
-      t.time = date("%H:%M:%S", secs)
+		t.date = date("%Y/%m/%d", secs)
+		t.time = date("%H:%M:%S", secs)
       t.id = secs .. "-"..private.idCount
       private.idCount = private.idCount + 1
    else
@@ -345,7 +363,7 @@ function private:RebuildReplacedGear(data, t,line)
       local item = self:SetItemInfo(nil, gear1, line)
       if item then
          success = self:LoadItem(item, function ()
-            t.itemReplaced1 = select(2,GetItemInfo(gear1))
+            t.itemReplaced1 = select(2,C_Item.GetItemInfo(gear1))
          end)
       end
       if not (item and success) then return self:AddError(line, gear1, "Error rebuilding gear1") end
@@ -354,7 +372,7 @@ function private:RebuildReplacedGear(data, t,line)
       local item = self:SetItemInfo(nil, gear2, line)
       if item then
          success = self:LoadItem(item, function ()
-            t.itemReplaced2 = select(2,GetItemInfo(gear2))
+            t.itemReplaced2 = select(2,C_Item.GetItemInfo(gear2))
          end)
       end
       if not (item and success) then return self:AddError(line, gear2, "Error rebuilding gear2") end
@@ -372,8 +390,8 @@ function private:RebuildLootWon(data ,t, line)
    local item = self:SetItemInfo(itemID, itemString, line)
    if item then
       success = self:LoadItem(item, function()
-         t.lootWon = select(2,GetItemInfo(item:GetItemLink()))
-         local _, _, _, _, _, itemClassID, itemSubClassID = GetItemInfoInstant(t.lootWon)
+         t.lootWon = select(2,C_Item.GetItemInfo(item:GetItemLink()))
+         local _, _, _, _, _, itemClassID, itemSubClassID = C_Item.GetItemInfoInstant(t.lootWon)
          t.iClass = itemClassID
          t.iSubClass = itemSubClassID
       end)

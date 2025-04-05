@@ -35,6 +35,9 @@ local function toLowerString(value)
 	---@diagnostic disable-next-line: undefined-field
 	return tostring(value):lower();
 end
+local function calculateAccessibility(source)
+	return source.AccessibilityScore or 10000000;
+end
 local function defaultComparison(a,b)
 	-- If either object doesn't exist
 	if a then
@@ -52,6 +55,12 @@ local function defaultComparison(a,b)
 		return a < b;
 	end
 	local acomp, bcomp;
+	-- SortPriority
+	acomp = a.SortPriority or 0
+	bcomp = b.SortPriority or 0
+	if acomp ~= 0 or bcomp ~= 0 then
+		return acomp < bcomp
+	end
 	-- Maps
 	acomp = a.mapID;
 	bcomp = b.mapID;
@@ -69,8 +78,8 @@ local function defaultComparison(a,b)
 		return false;
 	end
 	-- Headers/Filters/AchievementCategories (or other Types which are used as Headers)
-	acomp = a.headerID or a.filterID or a.achievementCategoryID or a.isHeader
-	bcomp = b.headerID or b.filterID or b.achievementCategoryID or b.isHeader
+	acomp = a.headerID or a.filterID or a.achievementCategoryID or a.isHeader or a.isMinilistHeader
+	bcomp = b.headerID or b.filterID or b.achievementCategoryID or b.isHeader or b.isMinilistHeader
 	if acomp then
 		if not bcomp then return true; end
 	elseif bcomp then
@@ -190,10 +199,18 @@ app.SortDefaults = setmetatable({
 			-- neither a or b exists, equality returns false
 			return false;
 		end
-		local acomp, bcomp;
-		acomp = a.g and #a.g or 0;
-		bcomp = b.g and #b.g or 0;
-		return acomp < bcomp;
+		-- Items always prioritize above other Types
+		local acomp = a.itemID;
+		local bcomp = b.itemID;
+		if acomp then
+			if not bcomp then return true; end
+		elseif bcomp then
+			return false;
+		end
+		-- Otherwise order by container size
+		acomp = a.g
+		bcomp = b.g
+		return (acomp and #acomp or 0) < (bcomp and #bcomp or 0);
 	end,
 	-- Sorts objects first by how many total collectibles they contain
 	Total = function(a,b)
@@ -266,6 +283,9 @@ app.SortDefaults = setmetatable({
 			return calculateSourceQuestDepth(a, sortA) < calculateSourceQuestDepth(b, sortB);
 		end
 		return sortA < sortB;
+	end,
+	Accessibility = function(a, b)
+		return calculateAccessibility(a) < calculateAccessibility(b);
 	end,
 	name = function(a,b)
 		-- If either object doesn't exist

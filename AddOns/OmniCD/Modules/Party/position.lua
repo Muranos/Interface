@@ -1,9 +1,7 @@
 local E = select(2, ...):unpack()
 local P = E.Party
 
-local _G = _G
-local GetNumGroupMembers, IsInRaid, UnitGUID = GetNumGroupMembers, IsInRaid, UnitGUID
-local isColdStartDC = true
+LibStub("AceHook-3.0"):Embed(P)
 
 local COMPACT_RAID = {
 	"CompactRaidFrame1", "CompactRaidFrame2", "CompactRaidFrame3", "CompactRaidFrame4", "CompactRaidFrame5",
@@ -16,6 +14,17 @@ local COMPACT_RAID = {
 	"CompactRaidFrame36", "CompactRaidFrame37", "CompactRaidFrame38", "CompactRaidFrame39", "CompactRaidFrame40",
 	"CompactRaidFrame41", "CompactRaidFrame42", "CompactRaidFrame43", "CompactRaidFrame44", "CompactRaidFrame45",
 	"CompactRaidFrame46", "CompactRaidFrame47", "CompactRaidFrame48", "CompactRaidFrame49", "CompactRaidFrame50",
+
+	"CompactRaidFrame41", "CompactRaidFrame42", "CompactRaidFrame43", "CompactRaidFrame44", "CompactRaidFrame45",
+	"CompactRaidFrame46", "CompactRaidFrame47", "CompactRaidFrame48", "CompactRaidFrame49", "CompactRaidFrame50",
+	"CompactRaidFrame51", "CompactRaidFrame52", "CompactRaidFrame53", "CompactRaidFrame54", "CompactRaidFrame55",
+	"CompactRaidFrame56", "CompactRaidFrame57", "CompactRaidFrame58", "CompactRaidFrame59", "CompactRaidFrame60",
+	"CompactRaidFrame61", "CompactRaidFrame62", "CompactRaidFrame63", "CompactRaidFrame64", "CompactRaidFrame65",
+	"CompactRaidFrame66", "CompactRaidFrame67", "CompactRaidFrame68", "CompactRaidFrame69", "CompactRaidFrame70",
+	"CompactRaidFrame71", "CompactRaidFrame72", "CompactRaidFrame73", "CompactRaidFrame74", "CompactRaidFrame75",
+	"CompactRaidFrame76", "CompactRaidFrame77", "CompactRaidFrame78", "CompactRaidFrame79", "CompactRaidFrame80",
+	"CompactRaidFrame81", "CompactRaidFrame82", "CompactRaidFrame83", "CompactRaidFrame84", "CompactRaidFrame85",
+	"CompactRaidFrame86", "CompactRaidFrame87", "CompactRaidFrame88", "CompactRaidFrame89", "CompactRaidFrame90",
 }
 
 local COMPACT_RAID_KGT = {
@@ -49,37 +58,40 @@ function P:CompactFrameIsShown()
 	return self.isCompactFrameSetShown and self:ShouldShowCompactFrame()
 end
 
-function P:FindRelativeFrame(guid)
-	if E.customUF.active then
-		if E.db.position.uf ~= "auto" then
-			local frames, unitKey = E.customUF.frames, E.customUF.unit
-			local n = #frames
-			for i = 1, n do
-				local name = frames[i]
-				local f = _G[name]
-				local unit = f and (f[unitKey] or f:GetAttribute("unit"))
-				if E.UNIT_TO_PET[unit] and UnitGUID(unit) == guid then
-					return f:IsVisible() and f
-				end
-			end
-			return
+local function GetAddOnFrame(guid, data)
+	if data.addonName == "HealBot" then
+		local f = HealBot_Panel_RaidButton(guid)
+		return f and f.gref.Back
+	end
+
+	local n = #data.frames
+	for i = 1, n do
+		local name = data.frames[i]
+		local f = _G[name]
+		local unit = f and (f[data.unit] or f:GetAttribute("unit"))
+		if E.UNIT_TO_PET[unit] and UnitGUID(unit) == guid then
+			return f
 		end
-		for _, data in pairs(E.customUF.enabledList) do
-			local frames, unitKey = data.frames, data.unit
-			local n = #frames
-			for i = 1, n do
-				local name = frames[i]
-				local f = _G[name]
-				local unit = f and (f[unitKey] or f:GetAttribute("unit"))
-				if E.UNIT_TO_PET[unit] and UnitGUID(unit) == guid and f:IsVisible() then
+	end
+end
+
+function P:FindRelativeFrame(guid, uf)
+	if E.customUF.enabledList then
+		if uf == "auto" then
+			for _, data in pairs(E.customUF.enabledList) do
+				local f = GetAddOnFrame(guid, data)
+				if f and f:IsVisible() then
 					return f
 				end
 			end
+		elseif uf ~= "blizz" then
+			local f = GetAddOnFrame(guid, E.customUF.enabledList[uf])
+			return f and f:IsVisible() and f
 		end
 	end
 
 	local isInRaid = IsInRaid()
-	if E.isDF then
+	if E.postDF then
 
 		local compactFrame = nil
 		if isInRaid and not self.isInArena then
@@ -112,7 +124,10 @@ function P:FindRelativeFrame(guid)
 		end
 	else
 		if self:CompactFrameIsActive(isInRaid) or self.isInTestMode then
-			if not self.isCompactFrameSetShown then return end
+			if not self.isCompactFrameSetShown then
+				return
+			end
+
 			local compactFrame = not self.keepGroupsTogether and COMPACT_RAID or (isInRaid and COMPACT_RAID_KGT or COMPACT_PARTY)
 			local n = #compactFrame
 			for i = 1, n do
@@ -136,79 +151,26 @@ function P:FindRelativeFrame(guid)
 	end
 end
 
-function P:SetAnchorPosition(frame)
-	frame.anchor:ClearAllPoints()
-	frame.anchor:SetPoint(self.anchorPoint, frame, self.point)
-end
-
-function P:SetOffset(frame)
-	frame.container:ClearAllPoints()
-
-	frame.container:SetPoint("TOPLEFT", frame, self.containerOfsX, self.containerOfsY)
-end
-
-local function SetContainerPosition(frame, relFrame, showRange)
-	for raidBarIndex, container in pairs(frame.exContainers) do
-		if ( showRange ) then
-			container:SetParent(relFrame)
-			container:SetFrameLevel(10)
-		else
-			container:SetParent(UIParent)
-		end
-		container:ClearAllPoints()
-		local f = P.extraBars["raidBar" .. raidBarIndex]
-		container:SetPoint(f.point, relFrame, f.relativePoint, f.containerOfsX, f.containerOfsY)
-	end
-end
-
-function P:UpdatePosition(isRefreshMembers)
+local isColdStartDC = true
+function P:UpdatePosition()
 	if self.disabled then
 		return
 	end
 
 	if isColdStartDC then
 		isColdStartDC = nil
-		if IsAddOnLoaded("Blizzard_CompactRaidFrames") and IsAddOnLoaded("Blizzard_CUFProfiles") then
+		if C_AddOns.IsAddOnLoaded("Blizzard_CompactRaidFrames") and C_AddOns.IsAddOnLoaded("Blizzard_CUFProfiles") then
 			self:UpdateCompactFrameSystemSettings()
 		end
 	end
 
-	self:HideBars()
-
-	local showRange = E.db.general.showRange
-	local point, relPoint = self.point, self.relativePoint
-	for guid, info in pairs(self.groupInfo) do
-		local frame = info.bar
-		if E.db.position.detached then
-			frame:SetParent(UIParent)
-			E.LoadPosition(frame)
-			frame:Show()
-		else
-			local relFrame = self:FindRelativeFrame(guid)
-			if relFrame then
-				if showRange then
-					frame:SetParent(relFrame)
-					frame:SetFrameLevel(10)
-				else
-					frame:SetParent(UIParent)
-				end
-				frame:ClearAllPoints()
-				frame:SetPoint(point, relFrame, relPoint)
-
-				SetContainerPosition(frame, relFrame, showRange)
-				frame:Show()
-			end
-		end
-
-		if not isRefreshMembers then
-			self:SetAnchorPosition(frame)
-			self:SetOffset(frame)
-		end
+	for bar in self.BarPool:EnumerateActive() do
+		bar:UpdatePosition()
 	end
 end
 
 function P:UpdateCompactFrameSystemSettings()
-	if E.isDF then
+	if E.postDF then
 		self.useRaidStylePartyFrames = EditModeManagerFrame:UseRaidStylePartyFrames()
 		self.keepGroupsTogether = EditModeManagerFrame:ShouldRaidFrameShowSeparateGroups()
 	else
@@ -218,154 +180,159 @@ function P:UpdateCompactFrameSystemSettings()
 	self.isCompactFrameSetShown = CompactRaidFrameManager_GetSetting("IsShown")
 end
 
-do
-	local hookTimer
+local hookTimer
+local pauseTimer
 
-	local UpdatePosition_OnTimerEnd = function()
-		P:UpdatePosition()
-		hookTimer = nil
+local UpdatePosition_OnTimerEnd = function()
+	P:UpdatePosition()
+	hookTimer = nil
+end
+
+function P:HookFunc()
+	if self.disabled or hookTimer then
+		return
+	end
+	hookTimer = C_Timer.NewTimer(0.2, UpdatePosition_OnTimerEnd)
+end
+
+function P:CVAR_UPDATE(cvar, value)
+	if cvar == "USE_RAID_STYLE_PARTY_FRAMES"
+		or cvar == "useCompactPartyFrames" then
+		self.useRaidStylePartyFrames = value == "1"
+		self:HookFunc()
+	end
+end
+
+function P:SetHooks()
+	if self.hooked or not C_AddOns.IsAddOnLoaded("Blizzard_CompactRaidFrames") or not C_AddOns.IsAddOnLoaded("Blizzard_CUFProfiles") then
+		return
 	end
 
-	function P:HookFunc()
-		if self.enabled and E.db.position and not E.db.position.detached then
-			if not hookTimer then
-				hookTimer = C_Timer.NewTimer(0.5, UpdatePosition_OnTimerEnd)
+
+	self:UpdateCompactFrameSystemSettings()
+
+	if E.postDF then
+
+		self:SecureHook("CompactRaidFrameManager_SetSetting", function(arg)
+			if arg == "IsShown" then
+				local isShown = CompactRaidFrameManager_GetSetting("IsShown")
+				if self.isCompactFrameSetShown ~= isShown then
+					self.isCompactFrameSetShown = isShown
+					self:HookFunc()
+				end
 			end
-			if E.isDF and self.isInTestMode and not E.customUF.active and not P.isInEditMode then
+		end)
+
+
+		self:SecureHook(EditModeManagerFrame, "UpdateRaidContainerFlow", function()
+			if self.isInEditMode then
+				self.keepGroupsTogether = EditModeManagerFrame:ShouldRaidFrameShowSeparateGroups()
+				self:HookFunc()
+			end
+		end)
+
+
+		self:SecureHook("UpdateRaidAndPartyFrames", function()
+			if self.isInEditMode then
+				self.useRaidStylePartyFrames = EditModeManagerFrame:UseRaidStylePartyFrames()
+				self:HookFunc()
+			end
+		end)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		--[[
+
+		if CompactPartyFrame_RefreshMembers then
+			self:SecureHook("CompactPartyFrame_RefreshMembers", OnRefreshMemebers)
+		else
+			self:SecureHook(CompactPartyFrame, "RefreshMembers", OnRefreshMemebers)
+		end
+		]]
+
+
+		EventRegistry:RegisterCallback("EditMode.Exit", function()
+			self.isInEditMode = nil
+			if self.isInTestMode then
 				self:Test()
 				E:ACR_NotifyChange()
 			end
-		end
-	end
+		end)
 
-	function P:CVAR_UPDATE(cvar, value)
-		if cvar == "USE_RAID_STYLE_PARTY_FRAMES"
-			or cvar == "useCompactPartyFrames" then
-			self.useRaidStylePartyFrames = value == "1"
-			self:HookFunc()
-		end
-	end
-
-	local pauseTimer
-
-	local function ResetPause()
-		pauseTimer = nil
-	end
-
-	local function UpdatePosition_OnRefreshMembers()
-		P:UpdatePosition(true)
-		pauseTimer = C_Timer.NewTimer(6, ResetPause)
-	end
-
-	function P:SetHooks()
-		if self.hooked then
-			return
-		end
-
-		if not IsAddOnLoaded("Blizzard_CompactRaidFrames") or not IsAddOnLoaded("Blizzard_CUFProfiles") then
-			return
-		end
-
-
-		self:UpdateCompactFrameSystemSettings()
-
-		if E.isDF then
-
-			hooksecurefunc("CompactRaidFrameManager_SetSetting", function(arg)
-				if arg == "IsShown" then
-					local isShown = CompactRaidFrameManager_GetSetting("IsShown")
-					if P.isCompactFrameSetShown ~= isShown then
-						P.isCompactFrameSetShown = isShown
-						P:HookFunc()
-					end
-				end
-			end)
-
-
-			hooksecurefunc(EditModeManagerFrame, "UpdateRaidContainerFlow", function()
-				if P.isInEditMode then
-					P.keepGroupsTogether = EditModeManagerFrame:ShouldRaidFrameShowSeparateGroups()
-					P:HookFunc()
-				end
-			end)
-
-
-			hooksecurefunc("UpdateRaidAndPartyFrames", function()
-				if P.isInEditMode then
-					P.useRaidStylePartyFrames = EditModeManagerFrame:UseRaidStylePartyFrames()
-					P:HookFunc()
-				end
-			end)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-			if CompactPartyFrame_RefreshMembers then
-				hooksecurefunc("CompactPartyFrame_RefreshMembers", function()
-					if not pauseTimer and not P.disabled and P.isInArena and not E.db.position.detached
-						and EditModeManagerFrame:GetSettingValue(Enum.EditModeSystem.UnitFrame, Enum.EditModeUnitFrameSystemIndices.Party, Enum.EditModeUnitFrameSetting.SortPlayersBy) ~= 1 then
-						UpdatePosition_OnRefreshMembers()
-					end
-				end)
-			else
-				hooksecurefunc(CompactPartyFrame, "RefreshMembers", function()
-					if not pauseTimer and not P.disabled and P.isInArena and not E.db.position.detached
-						and EditModeManagerFrame:GetSettingValue(Enum.EditModeSystem.UnitFrame, Enum.EditModeUnitFrameSystemIndices.Party, Enum.EditModeUnitFrameSetting.SortPlayersBy) ~= 1 then
-						UpdatePosition_OnRefreshMembers()
-					end
-				end)
+		EventRegistry:RegisterCallback("EditMode.Enter", function()
+			self.isInEditMode = true
+		end)
+	else
+		self:SecureHook("CompactUnitFrameProfiles_ApplyProfile", function(profile)
+			if self:CompactFrameIsActive() then
+				self:HookFunc()
 			end
+		end)
 
-			EventRegistry:RegisterCallback("EditMode.Enter", function()
-				P.isInEditMode = true
-			end)
-
-			EventRegistry:RegisterCallback("EditMode.Exit", function()
-				P.isInEditMode = nil
-
-				if P.isInTestMode then
-					P:Test()
-					E:ACR_NotifyChange()
+		self:SecureHook("CompactRaidFrameManager_SetSetting", function(arg)
+			if arg == "IsShown" then
+				local isShown = CompactRaidFrameManager_GetSetting("IsShown")
+				if self.isCompactFrameSetShown ~= isShown then
+					self.isCompactFrameSetShown = isShown
+					self:HookFunc()
 				end
-			end)
+			elseif arg == "KeepGroupsTogether" then
+				self.keepGroupsTogether = CompactRaidFrameManager_GetSetting("KeepGroupsTogether")
+			end
+		end)
+	end
+
+	self.hooked = true
+end
+
+local function ResetPause()
+	pauseTimer = nil
+end
+
+local function OnRefreshMemebers()
+	if P.disabled or pauseTimer
+		or EditModeManagerFrame:GetSettingValue(
+			Enum.EditModeSystem.UnitFrame,
+			Enum.EditModeUnitFrameSystemIndices.Party,
+			Enum.EditModeUnitFrameSetting.SortPlayersBy
+		) == 1 then
+		return
+	end
+	P:UpdatePosition(true)
+	pauseTimer = C_Timer.NewTimer(6, ResetPause)
+end
+
+function P:HookRefreshMembers()
+	if not E.postDF or not C_AddOns.IsAddOnLoaded("Blizzard_CompactRaidFrames") or not C_AddOns.IsAddOnLoaded("Blizzard_CUFProfiles") then
+		return
+	end
+	if self.isInArena and not self:IsHooked(CompactPartyFrame, "RefreshMembers") then
+		if CompactPartyFrame_RefreshMembers then
+			self:SecureHook("CompactPartyFrame_RefreshMembers", OnRefreshMemebers)
 		else
-			hooksecurefunc("CompactUnitFrameProfiles_ApplyProfile", function(profile)
-				if P:CompactFrameIsActive() then
-					P:HookFunc()
-				end
-			end)
-
-			hooksecurefunc("CompactRaidFrameManager_SetSetting", function(arg)
-				if arg == "IsShown" then
-					local isShown = CompactRaidFrameManager_GetSetting("IsShown")
-					if P.isCompactFrameSetShown ~= isShown then
-						P.isCompactFrameSetShown = isShown
-						P:HookFunc()
-					end
-				elseif arg == "KeepGroupsTogether" then
-					P.keepGroupsTogether = CompactRaidFrameManager_GetSetting("KeepGroupsTogether")
-				end
-			end)
-
-
-
-
-
-
-
-
+			self:SecureHook(CompactPartyFrame, "RefreshMembers", OnRefreshMemebers)
 		end
+	end
+end
 
-		self.hooked = true
+function P:UnhookRefreshMembers()
+	if not E.postDF or not C_AddOns.IsAddOnLoaded("Blizzard_CompactRaidFrames") or not C_AddOns.IsAddOnLoaded("Blizzard_CUFProfiles") then
+		return
+	end
+	if self:IsHooked(CompactPartyFrame, "RefreshMembers") then
+		self:Unhook(CompactPartyFrame, "RefreshMembers")
 	end
 end

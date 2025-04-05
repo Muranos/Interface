@@ -391,6 +391,8 @@ L["S_OPTIONS_SHOW_SORT_BUTTON"] = "Show Sort Button"
 --[[Translation missing --]]
 L["S_OPTIONS_SHOW_TIMELEFT_BUTTON"] = "Show Time Left Button"
 --[[Translation missing --]]
+L["S_OPTIONS_SHOW_WARBAND_REP_WARNING"] = "Show Warband no Rep [!]"
+--[[Translation missing --]]
 L["S_OPTIONS_SHOW_WORLDSHORTCUT_BUTTON"] = "Show World Shortcuts"
 --[[Translation missing --]]
 L["S_OPTIONS_SHOWFACTIONS"] = "Show Factions"
@@ -425,9 +427,15 @@ L["S_OPTIONS_WORLDMAP_WIDGET_ALPHA"] = "Pin Alpha"
 --[[Translation missing --]]
 L["S_OPTIONS_ZONE_SHOWONLYTRACKED"] = "Only Tracked"
 --[[Translation missing --]]
+L["S_OPTTIONS_AUTOACCEPT_ABANDONQUEST"] = "Auto Accept Abandon Quests"
+--[[Translation missing --]]
 L["S_OPTTIONS_DRAGONRACE_MINIMAP"] = "Show Track Minimap"
 --[[Translation missing --]]
 L["S_OPTTIONS_DRAGONRACE_TRACKCOLOR"] = "Track Color"
+--[[Translation missing --]]
+L["S_OPTTIONS_NUMERATE_QUEST"] = "Enumerate Quests"
+--[[Translation missing --]]
+L["S_OPTTIONS_QUESTLOCATIONSCALE_BYWORLDMAP"] = "Quest Scale by World Map"
 --[[Translation missing --]]
 L["S_OPTTIONS_TAB_DRAGONRACE_SETTINGS"] = "Dragon Race"
 --[[Translation missing --]]
@@ -444,6 +452,8 @@ L["S_OPTTIONS_TAB_TRACKER_SETTINGS"] = "Tracker"
 L["S_OPTTIONS_TAB_WORLDMAP_SETTINGS"] = "World Map"
 --[[Translation missing --]]
 L["S_OPTTIONS_TAB_ZONEMAP_SETTINGS"] = "Zone Map"
+--[[Translation missing --]]
+L["S_OPTTIONS_WORLDMAP_HUB_ENABLE"] = "Which World Maps Show Quests"
 L["S_OVERALL"] = "Totale"
 L["S_PARTY"] = "Gruppo"
 --[[Translation missing --]]
@@ -487,6 +497,14 @@ L["S_RAREFINDER_TOOLTIP_TIMEAGO"] = "minutes ago"
 L["S_SCALE"] = "Scale"
 --[[Translation missing --]]
 L["S_SLASH_OPENMAP_FIRST"] = "World Quest Tracker did not loaded yet, open the map to load."
+--[[Translation missing --]]
+L["S_SPEEDRUN"] = "Speed Run"
+--[[Translation missing --]]
+L["S_SPEEDRUN_AUTO_ACCEPT"] = "Auto Accept Quests"
+--[[Translation missing --]]
+L["S_SPEEDRUN_AUTO_COMPLETE"] = "Auto Complete Quests"
+--[[Translation missing --]]
+L["S_SPEEDRUN_CANCEL_CINEMATIC"] = "Auto Skip Cinematics"
 L["S_SUMMARYPANEL_EXPIRED"] = "SCADUTO"
 L["S_SUMMARYPANEL_LAST15DAYS"] = "Ultimi 15 Giorni"
 --[[Translation missing --]]

@@ -46,10 +46,8 @@ local PGFSettingsTable = {
         visible = true,
     },
     {
-        key = "coloredApplications",
-        type = "checkbox",
-        title = L["settings.coloredApplications.title"],
-        tooltip = L["settings.coloredApplications.tooltip"],
+        type = "header",
+        title = L["settings.section.mythicplus.title"],
         visible = true,
     },
     {
@@ -57,20 +55,38 @@ local PGFSettingsTable = {
         type = "checkbox",
         title = L["settings.ratingInfo.title"],
         tooltip = L["settings.ratingInfo.tooltip"],
+        image = "Interface\\AddOns\\PremadeGroupsFilter\\Textures\\SettingsRatingInfo",
         visible = true,
+    },
+    {
+        key = "rioRatingColors",
+        type = "checkbox",
+        title = L["settings.rioRatingColors.title"],
+        tooltip = L["settings.rioRatingColors.tooltip"],
+        image = nil,
+        visible = RaiderIO and true or false,
+    },
+    {
+        key = "specIcon",
+        type = "checkbox",
+        title = L["settings.specIcon.title"],
+        tooltip = L["settings.specIcon.tooltip"],
+        image = "Interface\\AddOns\\PremadeGroupsFilter\\Textures\\SettingsSpecIcon",
+        visible = PGF.SupportsSpecializations(),
     },
     {
         key = "classCircle",
         type = "checkbox",
         title = L["settings.classCircle.title"],
         tooltip = L["settings.classCircle.tooltip"],
-        visible = PGF.IsRetail(),
+        visible = false, -- circle not available in wrath and provided by default in retail since 10.2.7
     },
     {
         key = "classBar",
         type = "checkbox",
         title = L["settings.classBar.title"],
         tooltip = L["settings.classBar.tooltip"],
+        image = "Interface\\AddOns\\PremadeGroupsFilter\\Textures\\SettingsClassBar",
         visible = true,
     },
     {
@@ -78,6 +94,20 @@ local PGFSettingsTable = {
         type = "checkbox",
         title = L["settings.leaderCrown.title"],
         tooltip = L["settings.leaderCrown.tooltip"],
+        image = "Interface\\AddOns\\PremadeGroupsFilter\\Textures\\SettingsLeaderCrown",
+        visible = true,
+    },
+    {
+        key = "missingRoles",
+        type = "checkbox",
+        title = L["settings.missingRoles.title"],
+        tooltip = L["settings.missingRoles.tooltip"],
+        image = "Interface\\AddOns\\PremadeGroupsFilter\\Textures\\SettingsMissingRoles",
+        visible = PGF.SupportsDragonflightUI(),
+    },
+    {
+        type = "header",
+        title = L["settings.section.signup.title"],
         visible = true,
     },
     {
@@ -85,6 +115,13 @@ local PGFSettingsTable = {
         type = "checkbox",
         title = L["settings.oneClickSignUp.title"],
         tooltip = L["settings.oneClickSignUp.tooltip"],
+        visible = true,
+    },
+    {
+        key = "cancelOldestApp",
+        type = "checkbox",
+        title = L["settings.cancelOldestApp.title"],
+        tooltip = L["settings.cancelOldestApp.tooltip"],
         visible = true,
     },
     {
@@ -109,6 +146,14 @@ local PGFSettingsTable = {
         tooltip = L["settings.skipSignUpDialog.tooltip"],
         visible = true,
     },
+    {
+        key = "signUpDeclined",
+        type = "checkbox",
+        title = L["settings.signUpDeclined.title"],
+        tooltip = L["settings.signUpDeclined.tooltip"],
+        visible = PGF.IsRetail(),
+        callback = function (value) if value then LFGListFrame.declines = {} end end
+    },
 }
 
 function PGFSettings:OnLoad()
@@ -120,7 +165,9 @@ function PGFSettings:OnLoad()
     view:SetElementFactory(function(factory, elementData) self.CreateListItem(factory, elementData) end)
     ScrollUtil.InitScrollBoxListWithScrollBar(self.ScrollBox, self.ScrollBar, view)
 
-    Settings.RegisterAddOnCategory(Settings.RegisterCanvasLayoutCategory(self, L["addon.name.long"]))
+    local category, layout = Settings.RegisterCanvasLayoutCategory(self, L["addon.name.long"])
+    Settings.RegisterAddOnCategory(category)
+    PGF.settingsCategory = category
 end
 
 function PGFSettings.CreateListItem(factory, elementData)
@@ -138,6 +185,13 @@ function PGFSettings.CreateListItem(factory, elementData)
                     elementData.callback(button:GetChecked())
                 end
             end)
+            if PGF.SupportsDragonflightUI() and elementData.image then
+                item.Image:SetTexture(elementData.image)
+            end
+        end)
+    elseif elementData.type == "header" then
+        factory("PremadeGroupsFilterSettingsListSectionHeaderTemplate", function(item, elementData)
+            item.Title:SetText(elementData.title)
         end)
     end
 end
@@ -167,6 +221,10 @@ end
 
 function PGFSettings:OnRefresh()
     -- Options dialog opened
+end
+
+function PGF.OpenSettings()
+    Settings.OpenToCategory(PGF.settingsCategory.ID)
 end
 
 PGFSettings:SetScript("OnShow", PGFSettings.OnShow)

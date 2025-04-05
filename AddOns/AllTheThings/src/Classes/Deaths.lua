@@ -38,13 +38,13 @@ local fields = {
 		return "deathtracker";
 	end,
 	["progress"] = function(t)
-		return math.min(t.total, app.Settings.AccountWide.Deaths and ATTAccountWideData.Deaths or app.CurrentCharacter.Deaths);
+		return math.min(t.total, app.Settings.AccountWide.DeathTracker and ATTAccountWideData.Deaths or app.CurrentCharacter.Deaths);
 	end,
 	["OnTooltip"] = function()
 		return OnTooltipForDeathTracker;
 	end,
 };
-if C_GameRules and C_GameRules.IsHardcoreActive() then
+if app.GameBuildVersion <= 40000 and C_GameRules and C_GameRules.IsHardcoreActive() then
 	fields.description = function(t)
 		return "The ATT Gods must be sated. Go forth and attempt to level, mortal!\n\n 'Live! Die! Try Again!'\n";
 	end;
@@ -60,7 +60,7 @@ local GetStatistic = GetStatistic;
 if GetStatistic and GetStatistic(60) then
 	-- Statistics are available, this means we can get the actual statistic from the server's database.
 	local OnUpdateForDeathTrackerLib = function(t)
-		if app.MODE_DEBUG or app.Settings:Get("DeathTracker") then
+		if app.MODE_DEBUG or app.Settings:Get("Thing:DeathTracker") then
 			---@diagnostic disable-next-line: missing-parameter
 			local stat = GetStatistic(60) or "0";
 			if stat == "--" then stat = "0"; end
@@ -80,13 +80,13 @@ if GetStatistic and GetStatistic(60) then
 	fields.OnUpdate = function(t)
 		return OnUpdateForDeathTrackerLib;
 	end
-	app.events.PLAYER_DEAD = function()
+	app.AddEventRegistration("PLAYER_DEAD", function()
 		app.Audio:PlayDeathSound();
-	end
+	end)
 else
 	-- Oh boy, we have to track it ourselves!
 	local OnUpdateForDeathTrackerLib = function(t)
-		if app.MODE_DEBUG or app.Settings:Get("DeathTracker") then
+		if app.MODE_DEBUG or app.Settings:Get("Thing:DeathTracker") then
 			t.parent.progress = t.parent.progress + t.progress;
 			t.parent.total = t.parent.total + t.total;
 			t.visible = app.GroupVisibilityFilter(t);
@@ -98,17 +98,16 @@ else
 	fields.OnUpdate = function(t)
 		return OnUpdateForDeathTrackerLib;
 	end
-	app.events.PLAYER_DEAD = function()
+	app.AddEventRegistration("PLAYER_DEAD", function()
 		ATTAccountWideData.Deaths = ATTAccountWideData.Deaths + 1;
 		app.CurrentCharacter.Deaths = app.CurrentCharacter.Deaths + 1;
 		app.Audio:PlayDeathSound();
 		app:RefreshDataQuietly("PLAYER_DEAD");
-	end
+	end)
 end
-app:RegisterEvent("PLAYER_DEAD");
 app.CreateDeathClass = app.CreateClass("DeathTracker", "deaths", fields);
-app.AddEventHandler("OnStartup", function()
-	ATTAccountWideData = app.LocalizeGlobalIfAllowed("ATTAccountWideData", true);
+app.AddEventHandler("OnSavedVariablesAvailable", function(currentCharacter, accountWideData)
+	ATTAccountWideData = accountWideData
 	ATTCharacterData = app.LocalizeGlobalIfAllowed("ATTCharacterData", true);
 end)
 end

@@ -1,6 +1,6 @@
 ﻿-- --------------------
 -- TellMeWhen
--- Originally by Nephthys of Hyjal <lieandswell@yahoo.com>
+-- Originally by NephMakes
 
 -- Other contributions by:
 --		Sweetmms of Blackrock, Oozebull of Twisting Nether, Oodyboo of Mug'thol,
@@ -76,12 +76,12 @@ end)
 
 Hook:DeclareUpValue("STATE_DEFAULT_DURATIONFAILED", STATE)
 Hook:RegisterCompileFunctionSegmentHook("post", function(Processor, t)
-	-- GLOBALS: start, duration
+	-- GLOBALS: start, duration, modRate
 	t[#t+1] = [[
 
 	
 	if duration > 0 or doFireIconUpdated then
-		local d = duration - (TMW.time - start)
+		local d = (duration - (TMW.time - start)) / (modRate or 1)
 		
 		local state_durationFailed = nil
 		if

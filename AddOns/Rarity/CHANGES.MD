@@ -1,5 +1,10 @@
-**r730:**
+**r742:**
+
+Additions:
+> Enabled defeat detection for Beledar's Spawn and Regurgitated Mole Reins
 
 Fixes:
-> Fixed an oversight that would prevent attempts for Quantum Courser from being tracked correctly
-<br>Using Pick Pocket on an enemy should no longer prevent regular loot events from being counted
+> Rarity's tooltip additions should once again be displayed for container items
+<br>Disabling the tooltip additions should work as expected for items, and not just units
+
+Contributors (in alphabetical order):

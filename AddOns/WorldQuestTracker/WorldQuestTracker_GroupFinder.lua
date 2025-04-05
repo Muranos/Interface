@@ -20,7 +20,7 @@ local L = DF.Language.GetLanguageTable(addonId)
 local ff = WorldQuestTrackerFinderFrame
 local rf = WorldQuestTrackerRareFrame
 
-
+local GetQuestsForPlayerByMapID = C_TaskQuest.GetQuestsForPlayerByMapID or C_TaskQuest.GetQuestsOnMap
 
 ff.cannot_group_quest = {}
 
@@ -33,16 +33,6 @@ local GameCooltip = GameCooltip2
 local _
 local C_TaskQuest = _G.C_TaskQuest
 local isWorldQuest = QuestUtils_IsQuestWorldQuest
-local GetNumQuestLogRewardCurrencies = _G.GetNumQuestLogRewardCurrencies
-local GetQuestLogRewardInfo = _G.GetQuestLogRewardInfo
-local GetQuestLogRewardCurrencyInfo = _G.GetQuestLogRewardCurrencyInfo
-local GetQuestLogRewardMoney = _G.GetQuestLogRewardMoney
-local GetNumQuestLogRewards = _G.GetNumQuestLogRewards
-local GetQuestInfoByQuestID = C_TaskQuest.GetQuestInfoByQuestID
-
-local MapRangeClamped = DF.MapRangeClamped
-local FindLookAtRotation = DF.FindLookAtRotation
-local GetDistance_Point = DF.GetDistance_Point
 
 --create tick frame
 	ff.TickFrame = CreateFrame("frame", nil, UIParent, "BackdropTemplate")
@@ -877,31 +867,41 @@ local playerEnteredWorldQuestZone = function(questID, npcID, npcName)
 		end
 
 		ff.CurrentQuestName = title
-
 		ff:SetTitle(title)
-		ff.QuestIcon.mapID = WorldQuestTracker.GetCurrentStandingMapAreaID()
-		ff.QuestIcon.questID = questID
-		ff.QuestIcon.numObjectives = 1
-		ff.QuestIcon.questName = title
-		ff.QuestIcon.Order = 1
-		ff.QuestIcon.Currency_Gold = 0
-		ff.QuestIcon.Currency_ArtifactPower = 0
-		ff.QuestIcon.Currency_Resources = 0
-		ff.QuestIcon.worldQuestType = worldQuestType
-		ff.QuestIcon.rarity = rarity
-		ff.QuestIcon.isElite = isElite
-		ff.QuestIcon.tradeskillLineIndex = tradeskillLineIndex
-		ff.QuestIcon.inProgress = false
-		ff.QuestIcon.selected = false
-		ff.QuestIcon.isSelected = false
-		ff.QuestIcon.isCriteria = false
-		ff.QuestIcon.isSpellTarget = false
+		ff.QuestIcon:Show()
 
-		WorldQuestTracker.SetupWorldQuestButton(ff.QuestIcon, worldQuestType, rarity, isElite, tradeskillLineIndex)
+		local questData = WorldQuestTracker.GetQuestDataFromCache(questID, true)
+		if (questData) then
+			WorldQuestTracker.SetupWorldQuestButton(ff.QuestIcon, questData)
+		else
+			ff.QuestIcon.mapID = WorldQuestTracker.GetCurrentStandingMapAreaID()
+			ff.QuestIcon.questID = questID
+			ff.QuestIcon.numObjectives = 1
+			ff.QuestIcon.questName = title
+			ff.QuestIcon.Order = 1
+			ff.QuestIcon.Currency_Gold = 0
+			ff.QuestIcon.Currency_ArtifactPower = 0
+			ff.QuestIcon.Currency_Resources = 0
+			ff.QuestIcon.worldQuestType = worldQuestType
+			ff.QuestIcon.rarity = rarity
+			ff.QuestIcon.isElite = isElite
+			ff.QuestIcon.tradeskillLineIndex = tradeskillLineIndex
+			ff.QuestIcon.inProgress = false
+			ff.QuestIcon.selected = false
+			ff.QuestIcon.isSelected = false
+			ff.QuestIcon.isCriteria = false
+			ff.QuestIcon.isSpellTarget = false
+			ff.QuestIcon:Hide()
+		end
 
 		--update a second time
 		C_Timer.After(1.5, function()
-			WorldQuestTracker.SetupWorldQuestButton(ff.QuestIcon, worldQuestType, rarity, isElite, tradeskillLineIndex)
+			questData = WorldQuestTracker.GetQuestDataFromCache(questID, true)
+			if (questData) then
+				WorldQuestTracker.SetupWorldQuestButton(ff.QuestIcon, questData)
+			else
+				ff.QuestIcon:Hide()
+			end
 
 			ff.QuestIcon:SetParent(ff)
 			ff.QuestIcon:SetPoint("left", ff.TitleBar, "left", 2, 0)
@@ -943,6 +943,9 @@ local playerEnteredWorldQuestZone = function(questID, npcID, npcName)
 	end
 end
 
+--QuestObjectiveSetupBlockButton_AddRightButton
+
+--[=[
 hooksecurefunc("QuestObjectiveSetupBlockButton_AddRightButton", function(block, groupFinderButton, buttonType)
 	if (buttonType == "groupFinder") then
 --		for a, b in pairs(block.TrackedQuest) do
@@ -965,6 +968,7 @@ hooksecurefunc("QuestObjectiveSetupBlockButton_AddRightButton", function(block, 
 		end
 	end
 end)
+--]=]
 
 function ff:PlayerEnteredWorldQuestZone(questID, npcID, npcName)
 	C_Timer.After(0.6, function()
@@ -1214,6 +1218,10 @@ ff:SetScript("OnEvent", function (self, event, questID, arg2, arg3)
 	elseif (event == "QUEST_ACCEPTED") then
 		--> get quest data
 
+		if (not questID) then
+			return
+		end
+
 		local isInArea, isOnMap = GetTaskInfo(questID)
 
 		-->  do the regular checks
@@ -1281,6 +1289,10 @@ ff:SetScript("OnEvent", function (self, event, questID, arg2, arg3)
 
 
 	elseif (event == "QUEST_TURNED_IN") then
+		if (not questID) then
+			return
+		end
+
 		local isWorldQuest = isWorldQuest(questID)
 		if (isWorldQuest) then
 			ff.WorldQuestFinished (questID)
@@ -1411,7 +1423,7 @@ ff:SetScript("OnEvent", function (self, event, questID, arg2, arg3)
 end)
 
 function ff.CheckForQuestsInTheArea()
-	local allQuestsInTheMap = C_TaskQuest.GetQuestsForPlayerByMapID(WorldQuestTracker.GetCurrentStandingMapAreaID())
+	local allQuestsInTheMap = GetQuestsForPlayerByMapID(WorldQuestTracker.GetCurrentStandingMapAreaID())
 	if (allQuestsInTheMap) then
 		for index, questInfo in ipairs(allQuestsInTheMap) do
 			local questId = questInfo.questId

@@ -6,7 +6,12 @@ if (not detailsFramework or not DetailsFrameworkCanLoad) then
 end
 
 local unpack = unpack
-local CreateFrame = CreateFrame
+local G_CreateFrame = _G.CreateFrame
+local CreateFrame = function (frameType , name, parent, template, id)
+	local frame = G_CreateFrame(frameType , name, parent, template, id)
+	detailsFramework:Mixin(frame, detailsFramework.FrameFunctions)
+	return frame
+end
 local PixelUtil = PixelUtil
 local GetTime = GetTime
 local GetSpellInfo = GetSpellInfo or function(spellID) if not spellID then return nil end local si = C_Spell.GetSpellInfo(spellID) if si then return si.name, nil, si.iconID, si.castTime, si.minRange, si.maxRange, si.spellID, si.originalIconID end end
@@ -277,17 +282,19 @@ detailsFramework.IconMixin = {
 			--iconFrame.Border:SetColorTexture(0, 0, 0, 1)
 
 			if (startTime) then
-				CooldownFrame_Set(iconFrame.Cooldown, startTime, duration, true, true, modRate)
+				local now = GetTime()
+
+				iconFrame.timeRemaining = (startTime + duration - now) / (modRate or 1)
+				iconFrame.expirationTime = startTime + duration
+				
+				if iconFrame.timeRemaining > 0 then
+					CooldownFrame_Set(iconFrame.Cooldown, startTime, duration, true, true, modRate)
+				end
 
 				if (self.options.show_text) then
 					iconFrame.CountdownText:Show()
 
-					local now = GetTime()
-
-					iconFrame.timeRemaining = (startTime + duration - now) / modRate
-					iconFrame.expirationTime = startTime + duration
-
-					local formattedTime = (iconFrame.timeRemaining > 0) and self.options.decimal_timer and iconFrame.parentIconRow.FormatCooldownTimeDecimal(iconFrame.timeRemaining) or iconFrame.parentIconRow.FormatCooldownTime(iconFrame.timeRemaining) or ""
+					local formattedTime = (iconFrame.timeRemaining > 0) and (self.options.decimal_timer and iconFrame.parentIconRow.FormatCooldownTimeDecimal(iconFrame.timeRemaining) or iconFrame.parentIconRow.FormatCooldownTime(iconFrame.timeRemaining)) or ""
 					iconFrame.CountdownText:SetText(formattedTime)
 
 					iconFrame.CountdownText:SetPoint(self.options.text_anchor or "center", iconFrame, self.options.text_rel_anchor or "center", self.options.text_x_offset or 0, self.options.text_y_offset or 0)

@@ -5,6 +5,9 @@ local _G = _G
 
 local L = LibStub("AceLocale-3.0"):GetLocale("PitBull4")
 
+
+local wow_cata = WOW_PROJECT_ID == WOW_PROJECT_CATACLYSM_CLASSIC or nil
+
 local SINGLETON_CLASSIFICATIONS = {
 	"player",
 	"pet",
@@ -78,7 +81,7 @@ if LibSharedMedia and not LibSharedMedia:IsValid("font", DEFAULT_LSM_FONT) then 
 	DEFAULT_LSM_FONT = LibSharedMedia:GetDefault("font")
 end
 
-local CURRENT_CONFIG_VERSION = 5
+local CURRENT_CONFIG_VERSION = 7
 
 local DATABASE_DEFAULTS = {
 	profile = {
@@ -317,9 +320,12 @@ local DEFAULT_UNITS =  {
 
 local LOCALIZED_NAMES = {}
 do
-	for i = 1, GetNumClasses() do
+	local num_classes = wow_cata and 11 or GetNumClasses()
+	for i = 1, num_classes do
 		local info = C_CreatureInfo.GetClassInfo(i)
-		LOCALIZED_NAMES[info.classFile] = info.className
+		if info then
+			LOCALIZED_NAMES[info.classFile] = info.className
+		end
 	end
 
 	for i = 1, 77 do
@@ -346,10 +352,12 @@ _G.PitBull4 = PitBull4
 local DEBUG = PitBull4.DEBUG
 local expect = PitBull4.expect
 
-PitBull4.version = "v4.2.30"
+PitBull4.version = "v4.2.41"
 if PitBull4.version:match("@") then
 	PitBull4.version = "Development"
 end
+
+PitBull4.wow_cata = wow_cata
 
 PitBull4.L = L
 
@@ -1206,6 +1214,8 @@ local upgrade_functions = {
 
 		return true
 	end,
+	-- [5] = classic
+	-- [6] = classic
 }
 
 local function check_config_version(sv)
@@ -1259,10 +1269,19 @@ function PitBull4:OnInitialize()
 		icon = [[Interface\AddOns\PitBull4\pitbull]],
 		OnClick = function(frame, button)
 			if button == "RightButton" then
-				if IsShiftKeyDown() then
-					self.db.profile.frame_snap = not self.db.profile.frame_snap
-				else
+				if not IsShiftKeyDown() then
 					self.db.profile.lock_movement = not self.db.profile.lock_movement
+				elseif not db.profile.lock_movement then
+					self.db.profile.frame_snap = not db.profile.frame_snap
+				end
+				if self.db.profile.lock_movement then
+					self:Print(L["Locked"])
+				else
+					if self.db.profile.frame_snap then
+						self:Print(L["Unlocked with snap"])
+					else
+						self:Print(L["Unlocked without snap"])
+					end
 				end
 				LibStub("AceConfigRegistry-3.0"):NotifyChange("PitBull4")
 			else
@@ -1283,8 +1302,8 @@ function PitBull4:OnInitialize()
 	end
 
 	self:RegisterEvent("PLAYER_ROLES_ASSIGNED", "OnTanksUpdated")
-	if _G.oRA3 then
-		_G.oRA3.RegisterCallback(self, "OnTanksUpdated")
+	if oRA3 then
+		oRA3.RegisterCallback(self, "OnTanksUpdated")
 	end
 end
 
@@ -1306,11 +1325,11 @@ do
 		end
 
 		-- must be Load-on-demand (obviously)
-		if not IsAddOnLoadOnDemand(i) then
+		if not C_AddOns.IsAddOnLoadOnDemand(i) then
 			return iter(num_addons, i)
 		end
 
-		local name = GetAddOnInfo(i)
+		local name = C_AddOns.GetAddOnInfo(i)
 		-- must start with PitBull4_
 		local module_name = name:match("^PitBull4_(.*)$")
 		if not module_name then
@@ -1318,11 +1337,11 @@ do
 		end
 
 		-- PitBull4 must be in the Dependency list
-		if not find_PitBull4(GetAddOnDependencies(i)) then
+		if not find_PitBull4(C_AddOns.GetAddOnDependencies(i)) then
 			return iter(num_addons, i)
 		end
 
-		local condition = GetAddOnMetadata(name, "X-PitBull4-Condition")
+		local condition = C_AddOns.GetAddOnMetadata(name, "X-PitBull4-Condition")
 		if condition then
 			local func = loadstring(condition)
 			if func then
@@ -1349,7 +1368,7 @@ do
 	-- end
 	-- @return an iterator which returns id, name, module_name
 	function PitBull4:IterateLoadOnDemandModules()
-		return iter, GetNumAddOns(), 0
+		return iter, C_AddOns.GetNumAddOns(), 0
 	end
 end
 
@@ -1418,9 +1437,9 @@ function PitBull4:LoadModules()
 	local sv_namespaces = sv and sv.namespaces
 	for i, name, module_name in self:IterateLoadOnDemandModules() do
 		if blacklist[name] then
-			if GetAddOnEnableState(nil, name) > 0 then
+			if C_AddOns.GetAddOnEnableState(name) > 0 then
 				-- print(("Found bad module '%s'."):format(module_name))
-				DisableAddOn(name, true)
+				C_AddOns.DisableAddOn(name, true)
 				blacklisted_module_loaded = true
 			end
 		else
@@ -1430,14 +1449,14 @@ function PitBull4:LoadModules()
 
 			if enabled == nil then
 				-- we have to figure out the default state
-				local default_state = GetAddOnMetadata(name, "X-PitBull4-DefaultState")
+				local default_state = C_AddOns.GetAddOnMetadata(name, "X-PitBull4-DefaultState")
 				enabled = (default_state ~= "disabled")
 			end
 
 			local loaded
 			if enabled then
 				-- print(("Found module '%s', attempting to load."):format(module_name))
-				loaded = LoadAddOn(name)
+				loaded = C_AddOns.LoadAddOn(name)
 			end
 
 			if not loaded then
@@ -1466,7 +1485,7 @@ end
 
 --- Load the module with the given id and enable it
 function PitBull4:LoadAndEnableModule(id)
-	local loaded, reason = LoadAddOn('PitBull4_' .. id)
+	local loaded, reason = C_AddOns.LoadAddOn('PitBull4_' .. id)
 	if loaded then
 		local module = self:GetModule(id)
 		assert(module)
@@ -1498,15 +1517,14 @@ function PitBull4:OnProfileChanged()
 	self.ReactionColors = db.profile.colors.reaction
 	self.ClassOrder = db.profile.class_order
 	self.RoleOrder = db.profile.role_order
-	for i, v in ipairs(CLASS_SORT_ORDER) do
-		local found = false
-		for j, u in ipairs(self.ClassOrder) do
-			if v == u then
-				found = true
-				break
-			end
+
+	for i, v in ipairs_reverse(self.ClassOrder) do
+		if not tContains(CLASS_SORT_ORDER, v) then
+			table.remove(self.ClassOrder, i)
 		end
-		if not found then
+	end
+	for _, v in ipairs(CLASS_SORT_ORDER) do
+		if not tContains(self.ClassOrder, v) then
 			self.ClassOrder[#self.ClassOrder + 1] = v
 		end
 	end
@@ -1594,6 +1612,9 @@ function PitBull4:OnProfileChanged()
 	if LibDBIcon then
 		LibDBIcon:Refresh("PitBull4", db.profile.minimap_icon)
 	end
+
+	PitBull4.Options.OnProfileChanged()
+	LibStub("AceConfigRegistry-3.0"):NotifyChange("PitBull4")
 end
 
 function PitBull4:OnNewProfile()
@@ -1642,7 +1663,9 @@ function PitBull4:OnEnable()
 	self:RegisterEvent("PLAYER_ENTERING_WORLD")
 	self:RegisterEvent("PLAYER_LEAVING_WORLD")
 
-	self:RegisterEvent("PET_BATTLE_OPENING_START")
+	if not wow_cata then
+		self:RegisterEvent("PET_BATTLE_OPENING_START")
+	end
 
 	timerFrame:Show()
 
@@ -1903,7 +1926,7 @@ StateHeader:WrapScript(StateHeader, "OnAttributeChanged", [[
     end
   end
 ]])
-RegisterStateDriver(StateHeader, "group", "[petbattle] petbattle; [target=raid31, exists] raid40; [target=raid26, exists] raid30; [target=raid21, exists] raid25; [target=raid16, exists] raid20; [target=raid11, exists] raid15; [target=raid6, exists] raid10; [group:raid] raid; [group:party] party; solo")
+RegisterAttributeDriver(StateHeader, "state-group", "[target=raid31, exists] raid40; [target=raid26, exists] raid30; [target=raid21, exists] raid25; [target=raid16, exists] raid20; [target=raid11, exists] raid15; [target=raid6, exists] raid10; [group:raid] raid; [group:party] party; solo")
 
 function PitBull4:AddGroupToStateHeader(header)
 	local header_name = header:GetName()

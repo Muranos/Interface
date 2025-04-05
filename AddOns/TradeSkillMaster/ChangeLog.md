@@ -1,5 +1,5 @@
-## v4.13.21 Changes
+## v4.14.34 Changes
 
-* [Wrath] Fixed issue related to the gold cap being increased
+* [Retail] Updated bonus IDs to account for new 11.1 items
 
 [Known Issues](https://support.tradeskillmaster.com/en_US/known_issues)

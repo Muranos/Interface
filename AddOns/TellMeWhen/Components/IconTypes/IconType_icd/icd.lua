@@ -1,6 +1,6 @@
 ﻿-- --------------------
 -- TellMeWhen
--- Originally by Nephthys of Hyjal <lieandswell@yahoo.com>
+-- Originally by NephMakes
 
 -- Other contributions by:
 --		Sweetmms of Blackrock, Oozebull of Twisting Nether, Oodyboo of Mug'thol,
@@ -18,8 +18,11 @@ local print = TMW.print
 local UnitGUID = 
 	  UnitGUID
 
+local GetSpellInfo = TMW.GetSpellInfo
 local GetSpellTexture = TMW.GetSpellTexture
+local GetSpellName = TMW.GetSpellName
 local strlowerCache = TMW.strlowerCache
+local spellTextureCache = TMW.spellTextureCache
 
 local pGUID = nil -- UnitGUID() returns nil at load time, so we set this later.
 
@@ -132,7 +135,7 @@ local function ICD_OnEvent(icon, event, ...)
 			then
 		local unit
 		unit, _, spellID = ...
-		spellName = GetSpellInfo(spellID)
+		spellName = GetSpellName(spellID)
 
 		valid = unit == "player"
 	end
@@ -151,7 +154,7 @@ local function ICD_OnEvent(icon, event, ...)
 			icon.ICDDuration = icon.Spells.Durations[Key]
 			icon:SetInfo("spell; texture", 
 				icon.ICDID,
-				GetSpellTexture(spellID == 0 and spellName or spellID)
+				spellTextureCache[spellID == 0 and spellName or spellID]
 			)
 			icon.NextUpdateTime = 0
 		end

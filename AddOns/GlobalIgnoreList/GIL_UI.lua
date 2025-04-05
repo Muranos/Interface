@@ -66,12 +66,12 @@ StaticPopupDialogs["GIL_REASON"] = {
 	end,
 	OnAccept = function(self)
 		GlobalIgnoreDB.notes[hasAnyIgnored(nameUI)] = self.editBox:GetText()
-		IgnoreList_Update()
+		GILUpdateUI()
 	end,
 	EditBoxOnEnterPressed = function(self)
 		GlobalIgnoreDB.notes[hasAnyIgnored(nameUI)] = self:GetParent().editBox:GetText()
-		IgnoreList_Update()
 		self:GetParent():Hide()
+		GILUpdateUI()
 	end,
 	EditBoxOnEscapePressed = function(self)
 		self:GetParent():Hide()
@@ -82,7 +82,7 @@ local function setExpire (text)
 
 	if tonumber(text) then
 		GlobalIgnoreDB.expList[hasAnyIgnored(nameUI)] = tonumber(text)	
-		IgnoreList_Update()
+		GILUpdateUI()
 	end	
 end
 
@@ -483,23 +483,34 @@ function IgnoreScrollClick(self, button, down)
 	
 	if button == "RightButton" then	
 		nameUI = GlobalIgnoreDB.ignoreList[IgnoreScrollIndex[IgnoreScrollSelect]]
-
-		local IgnoreRightClickMenu = {
-
-			{ text = nameUI, isTitle = true, notCheckable = true },
-			{ text = L["RCM_1"], notCheckable = true, func = function() IgnoreScrollDoubleClick() end },
-			{ text = "", disabled = true, notCheckable = true },
-			{ text = L["RCM_2"], notCheckable = true, func = function() StaticPopup_Show("GIL_EXPIRE", nameUI) end },
-			{ text = L["RCM_3"], notCheckable = true, func = function() GlobalIgnoreDB.expList[IgnoreScrollIndex[IgnoreScrollSelect]] = 0 IgnoreList_Update() end },
-			{ text = "", disabled = true, notCheckable = true },
-			{ text = L["RCM_4"], notCheckable = true, func = function() ButtonIgnoreRemove() end },
-			{ text = "", notCheckable = true, disabled = true },
-			{ text = L["RCM_5"], notCheckable = true }
-		}	
-	
-		local menuFrame = CreateFrame("Frame", "GILIgnoreRightClick", UIParent, "UIDropDownMenuTemplate")
-
-		EasyMenu(IgnoreRightClickMenu, menuFrame, "cursor", 0 , 0, "MENU")
+		
+		MenuUtil.CreateContextMenu(UIParent, function(ownerRegion, root)
+			root:CreateTitle(nameUI)
+			root:CreateDivider()
+			root:CreateButton(L["RCM_1"],
+				function()
+					IgnoreScrollDoubleClick()
+				end)
+			root:CreateDivider()
+			root:CreateButton(L["RCM_2"],
+				function()
+					StaticPopup_Show("GIL_EXPIRE", nameUI)
+				end)
+			root:CreateButton(L["RCM_3"],
+				function()
+					GlobalIgnoreDB.expList[IgnoreScrollIndex[IgnoreScrollSelect]] = 0
+					GILUpdateUI()
+				end)
+			root:CreateDivider()
+			root:CreateButton(L["RCM_4"],
+				function()
+					ButtonIgnoreRemove()
+				end)
+			root:CreateDivider()
+			root:CreateButton(L["RCM_5"],
+				function()					
+				end)			
+		end)
 	end
 end
 
@@ -1409,6 +1420,33 @@ local function CreateUIFrames()
 	Button:SetScript("OnShow",  function(self) self:SetChecked(GlobalIgnoreDB.autoUpdate == true) end)
 	Button:SetScript("OnClick" ,function(self) GlobalIgnoreDB.autoUpdate = (self:GetChecked() or false) end)
 
+	-- Flood Dropdown 
+	
+	Button = Tab3Frame.Slate:CreateFontString("GILFrame3FloodText", "OVERLAY", "GameFontHighlight")
+	Button:SetPoint("TOPLEFT", GILFrame3UpdateFilter, "BOTTOMLEFT", 6, -4)
+	Button:SetText(L["OPT_20"])
+	
+	local function getFloodType()
+		if GlobalIgnoreDB.floodFilter == 0 then
+			return L["OPT_21"]
+		elseif GlobalIgnoreDB.floodFilter == 1 then
+			return L["OPT_22"]
+		else
+			return L["OPT_23"]
+		end
+	end
+	
+	local Drop = CreateFrame("DropdownButton", "GILFrame3FloodMenu", Tab3Frame.Slate, "WowStyle1DropdownTemplate")
+	Drop:SetDefaultText(getFloodType())
+	Drop:SetPoint("TOPLEFT", GILFrame3FloodText, "TOPRIGHT", 0, 6)
+	Drop:SetWidth(180)
+
+	Drop:SetupMenu(function(self, root)
+		root:CreateButton(L["OPT_21"], function() GlobalIgnoreDB.floodFilter = 0 self:SetDefaultText(getFloodType()) end)
+		root:CreateButton(L["OPT_22"], function() GlobalIgnoreDB.floodFilter = 1 self:SetDefaultText(getFloodType()) end)
+		root:CreateButton(L["OPT_23"], function() GlobalIgnoreDB.floodFilter = 2 self:SetDefaultText(getFloodType()) end)
+	end)
+
 	Button = CreateFrame("CheckButton", "GILFrame3SkipGuild", Tab3Frame.Slate, "UICheckButtonTemplate")
 	Button:SetPoint("TOPLEFT", Text, "BOTTOMLEFT", 450, -6)
 	 _G[Button:GetName().."Text"]:SetText(L["OPT_12"])
@@ -1429,12 +1467,19 @@ local function CreateUIFrames()
 	 _G[Button:GetName().."Text"]:SetFontObject("GameFontHighlight")
 	Button:SetScript("OnShow",  function(self) self:SetChecked(GlobalIgnoreDB.skipPrivate == true) end)
 	Button:SetScript("OnClick" ,function(self) GlobalIgnoreDB.skipPrivate = (self:GetChecked() or false) end)
+
+	Button = CreateFrame("CheckButton", "GILFrame3SkipYourself", Tab3Frame.Slate, "UICheckButtonTemplate")
+	Button:SetPoint("TOPLEFT", GILFrame3SkipPrivate, "BOTTOMLEFT", 0, 6)
+	 _G[Button:GetName().."Text"]:SetText(L["OPT_19"])
+	 _G[Button:GetName().."Text"]:SetFontObject("GameFontHighlight")
+	Button:SetScript("OnShow",  function(self) self:SetChecked(GlobalIgnoreDB.skipYourself == true) end)
+	Button:SetScript("OnClick" ,function(self) GlobalIgnoreDB.skipYourself = (self:GetChecked() or false) end)
 	
 	-- UI Options
 	
 	Text = Tab3Frame.Slate:CreateFontString("FontString", "OVERLAY", "GameFontNormalLarge")
 	Text:SetWidth(200)
-	Text:SetPoint("TOPLEFT", GILFrame3UpdateFilter, "BOTTOMLEFT", -10, -10)
+	Text:SetPoint("TOPLEFT", GILFrame3UpdateFilter, "BOTTOMLEFT", -10, -40)
 	Text:SetJustifyH("LEFT");
 	Text:SetText(L["OPT_15"])
 

@@ -26,8 +26,7 @@ local default = function(parentType)
     model_st_rz = 0,
     model_st_us = 40,
 
-    model_fileId = "235338",
-    model_path = "spells/arcanepower_state_chest.m2",
+    model_fileId = WeakAuras.IsClassic() and "165589" or "235338",
     bar_model_clip = true
   }
 end
@@ -68,7 +67,7 @@ local function PreShow(self)
       data.model_st_us / 1000);
   else
     self:SetPosition(data.model_z, data.model_x, data.model_y);
-    self:SetFacing(0);
+    self:SetFacing(rad(data.rotation))
   end
   self:SetModelAlpha(self.region.alpha)
 end
@@ -94,7 +93,11 @@ local function AcquireModel(region, data)
 
   local anchor
   if region.parentType == "aurabar" then
-    anchor = region.parent.bar
+    if data.bar_model_clip then
+      anchor = region.parent.bar.fgMask
+    else
+      anchor = region.parent.bar
+    end
   else
     anchor = region.parent
   end
@@ -127,7 +130,7 @@ local function AcquireModel(region, data)
       data.model_st_us / 1000);
   else
     model:SetPosition(data.model_z, data.model_x, data.model_y);
-    model:SetFacing(0);
+    model:SetFacing(rad(data.rotation))
   end
   return model
 end
@@ -190,7 +193,7 @@ local funcs = {
 
 local function create()
   local subRegion = CreateFrame("Frame", nil, UIParent)
-  subRegion:SetClipsChildren(true)
+  subRegion:SetFlattensRenderLayers(true)
 
   for k, v in pairs(funcs) do
     subRegion[k] = v
@@ -207,8 +210,6 @@ end
 local function onRelease(subRegion)
   subRegion:Hide()
 end
-
-
 
 local function modify(parent, region, parentData, data, first)
   if region.model then
@@ -257,6 +258,7 @@ local function supports(regionType)
          or regionType == "icon"
          or regionType == "aurabar"
          or regionType == "text"
+         or regionType == "empty"
 end
 
 WeakAuras.RegisterSubRegionType("submodel", L["Model"], supports, create, modify, onAcquire, onRelease, default, nil, properties);

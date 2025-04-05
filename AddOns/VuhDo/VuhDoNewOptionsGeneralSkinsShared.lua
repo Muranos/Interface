@@ -85,7 +85,10 @@ local VUHDO_DEFAULT_PROFILES = {
 				["point"] = "TOPRIGHT",
 				["timer"] = true,
 				["isName"] = false, 
-				["isShowOnlyForFriendly"] = false, 
+				["isShowFriendly"] = true,
+				["isShowHostile"] = true,
+				["isHostileMine"] = true,
+				["isHostileOthers"] = true,
 				["xAdjust"] = -2,
 				["max_num"] = 3,
 				["blacklistModi"] = "ALT-CTRL-SHIFT",
@@ -377,7 +380,7 @@ local VUHDO_DEFAULT_PROFILES = {
 			},
 			["HOTS"] = {
 				["SLOTS"] = {
-					[10] = "BOUQUET_" .. VUHDO_I18N_DEF_AOE_ADVICE,
+					["firstFlood"] = true,
 				},
 				["BARS"] = {
 					["radioValue"] = 1,
@@ -696,6 +699,34 @@ local VUHDO_DEFAULT_PROFILES = {
 					["TR"] = 0.6,
 					["TO"] = 1,
 					["B"] = 0.3,
+					["O"] = 1,
+					["useBackground"] = true,
+					["isFullDuration"] = false,
+					["useText"] = true,
+				},
+				["HOT11"] = {
+					["TG"] = 0.443,
+					["countdownMode"] = 0,
+					["R"] = 0.890,
+					["TB"] = 0.063,
+					["G"] = 0.408,
+					["TR"] = 0.992,
+					["TO"] = 1,
+					["B"] = 0.133,
+					["O"] = 1,
+					["useBackground"] = true,
+					["isFullDuration"] = false,
+					["useText"] = true,
+				},
+				["HOT12"] = {
+					["TG"] = 0.676,
+					["countdownMode"] = 0,
+					["R"] = 0.2,
+					["TB"] = 0.598,
+					["G"] = 0.576,
+					["TR"] = 0.3,
+					["TO"] = 1,
+					["B"] = 0.498,
 					["O"] = 1,
 					["useBackground"] = true,
 					["isFullDuration"] = false,
@@ -1625,7 +1656,7 @@ local VUHDO_DEFAULT_PROFILES = {
 			},
 			["HOTS"] = {
 				["SLOTS"] = {
-					[10] = "BOUQUET_" .. VUHDO_I18N_DEF_AOE_ADVICE,
+					["firstFlood"] = true,
 				},
 				["BARS"] = {
 					["radioValue"] = 1,
@@ -1974,6 +2005,34 @@ local VUHDO_DEFAULT_PROFILES = {
 					["isFullDuration"] = false,
 					["useText"] = true,
 				},
+				["HOT11"] = {
+					["TG"] = 0.443,
+					["countdownMode"] = 1,
+					["R"] = 0.890,
+					["TB"] = 0.063,
+					["G"] = 0.408,
+					["TR"] = 0.992,
+					["TO"] = 1,
+					["B"] = 0.133,
+					["O"] = 1,
+					["useBackground"] = true,
+					["isFullDuration"] = false,
+					["useText"] = true,
+				},
+				["HOT12"] = {
+					["TG"] = 0.676,
+					["countdownMode"] = 1,
+					["R"] = 0.2,
+					["TB"] = 0.598,
+					["G"] = 0.576,
+					["TR"] = 0.3,
+					["TO"] = 1,
+					["B"] = 0.498,
+					["O"] = 1,
+					["useBackground"] = true,
+					["isFullDuration"] = false,
+					["useText"] = true,
+				},
 				["HOT_CHARGE_4"] = {
 					["TG"] = 1,
 					["R"] = 0.8,
@@ -2093,8 +2152,6 @@ end
 --
 VUHDO_DEBUG_AUTO_PROFILE = nil;
 VUHDO_IS_SHOWN_BY_GROUP = true;
-local tIndex;
-local VUHDO_PROFILE_CFG;
 
 
 
@@ -2260,6 +2317,7 @@ function VUHDO_createNewProfileName(aName, aUnitName)
 	local tIdx = 1;
 	local tProfile = { };
 	local tPrefix = aUnitName .. ": ";
+	local tNewName;
 
 	while tProfile do
 		tNewName = tPrefix .. aName;
@@ -2276,9 +2334,11 @@ end
 
 --
 function VUHDO_createNewLayoutName(aName, aUnitName)
+
 	local tIdx = 1;
 	local tLayout = { };
 	local tPrefix = aUnitName .. ": ";
+	local tNewName;
 
 	while tLayout do
 		tNewName = tPrefix .. aName;
@@ -2288,7 +2348,12 @@ function VUHDO_createNewLayoutName(aName, aUnitName)
 		tPrefix = aUnitName .. "(" .. tIdx .. "): ";
 	end
 
+	if VUHDO_strempty(aName) then
+		tNewName = strtrim(tNewName);
+	end
+
 	return tNewName;
+
 end
 
 
@@ -2353,7 +2418,7 @@ end
 
 --
 function VUHDO_saveProfile(aName)
-	local tExistingIndex, tExistingProfile = VUHDO_getProfileNamedCompressed(aName);
+	local _, tExistingProfile = VUHDO_getProfileNamedCompressed(aName);
 	if tExistingProfile then
 		VUHDO_TARGET_PROFILE_NAME = aName;
 
@@ -2480,6 +2545,7 @@ local VUHDO_PROFILE_MODEL = {
 
 	["SPELL_CONFIG"] = {
 		["-root-"] = VUHDO_PROFILE_MODEL_MATCH_TOON,
+		["IS_TOOLTIP_INFO"] = VUHDO_PROFILE_MODEL_MATCH_ALL,
 	},
 
 	["BUFF_SETTINGS"] = {
@@ -2496,6 +2562,17 @@ local VUHDO_PROFILE_MODEL = {
 
 	["INDICATOR_CONFIG"] = {
 		["-root-"] = VUHDO_PROFILE_MODEL_MATCH_ALL,
+
+		[1] = VUHDO_PER_PANEL_PROFILE_MODEL,
+		[2] = VUHDO_PER_PANEL_PROFILE_MODEL,
+		[3] = VUHDO_PER_PANEL_PROFILE_MODEL,
+		[4] = VUHDO_PER_PANEL_PROFILE_MODEL,
+		[5] = VUHDO_PER_PANEL_PROFILE_MODEL,
+		[6] = VUHDO_PER_PANEL_PROFILE_MODEL,
+		[7] = VUHDO_PER_PANEL_PROFILE_MODEL,
+		[8] = VUHDO_PER_PANEL_PROFILE_MODEL,
+		[9] = VUHDO_PER_PANEL_PROFILE_MODEL,
+		[10] = VUHDO_PER_PANEL_PROFILE_MODEL,
 	},
 };
 
@@ -2618,6 +2695,7 @@ end
 
 --
 function VUHDO_loadProfile(aName)
+
 	VUHDO_loadProfileNoInit(aName);
 	VUHDO_initAllBurstCaches();
 	VUHDO_loadVariables();
@@ -2645,7 +2723,8 @@ function VUHDO_loadProfile(aName)
 		VUHDO_spellTraceUpdateEditBox(VuhDoNewOptionsGeneralSpellTraceStorePanelEditBox);
 	end
 
-	collectgarbage('collect');
+	collectgarbage("collect");
+
 end
 
 

@@ -10,6 +10,10 @@ local R = Rarity
 local GUI = Rarity.GUI
 local CONSTANTS = addonTable.constants
 
+--- WoW API
+local GetItemInfo = _G.C_Item.GetItemInfo
+local LoadAddOn = _G.C_AddOns.LoadAddOn
+
 local dataobj = ldb:NewDataObject("Rarity", {
 	type = "data source",
 	text = L["Loading"],
@@ -56,16 +60,7 @@ function dataobj:OnClick(button)
 	local isLeftButton = button == "LeftButton"
 
 	if IsShiftKeyDown() and isLeftButton then
-		-- Show options
-		Rarity:Debug("Loading Rarity_Options addon")
-		LoadAddOn("Rarity_Options")
-		if R.optionsFrame then
-			-- Thanks, Blizzard (https://www.wowinterface.com/forums/showthread.php?t=54599)
-			InterfaceOptionsFrame_OpenToCategory(R.optionsFrame)
-			InterfaceOptionsFrame_OpenToCategory(R.optionsFrame)
-		else
-			R:Print(L["The Rarity Options module has been disabled. Log out and enable it from your add-ons menu."])
-		end
+		Rarity:TryShowOptionsUI()
 	elseif IsControlKeyDown() and isLeftButton then
 		Rarity.GUI:SelectNextSortOrder()
 	elseif
@@ -96,7 +91,7 @@ function GUI:UpdateText()
 		return
 	end
 
-	self:ProfileStart()
+	self.Profiling:StartTimer("GUI.UpdateText")
 	local attempts, dropChance, chance
 
 	local trackedItem = Rarity.Tracking:GetTrackedItem(1)
@@ -274,5 +269,5 @@ function GUI:UpdateText()
 			self.bar2:SetValue(chance, 100)
 		end
 	end
-	self:ProfileStop("UpdateText: %fms")
+	self.Profiling:EndTimer("GUI.UpdateText")
 end

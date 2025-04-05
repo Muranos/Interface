@@ -1,9 +1,9 @@
 --[[
-Copyright 2008-2024 João Cardoso
+Copyright 2008-2025 João Cardoso
 All Rights Reserved
 --]]
 
-if BagBrother then return end
+if Bagnon or Bagnonium then return end
 local Spotlight = Scrap:NewModule('Spotlight')
 local C = LibStub('C_Everywhere').Container
 local R,G,B = GetItemQualityColor(0)
@@ -11,31 +11,35 @@ local R,G,B = GetItemQualityColor(0)
 
 --[[ Display ]]--
 
-function Spotlight:OnEnable()
+function Spotlight:OnLoad()
 	self.Glows, self.Icons = {}, {}
 	self:RegisterSignal('LIST_CHANGED', 'UpdateAll')
 
+	local update = GenerateClosure(self.UpdateContainer, self)
 	if ContainerFrame_Update then
-		hooksecurefunc('ContainerFrame_Update', function(frame) self:UpdateContainer(frame) end)
+		hooksecurefunc('ContainerFrame_Update', update)
 	else
+		hooksecurefunc(ContainerFrameCombinedBags, 'Update', update)
 		self:IterateFrames('ContainerFrame', function(frame)
-			hooksecurefunc(frame, 'Update', function(frame) self:UpdateContainer(frame) end)
+			hooksecurefunc(frame, 'Update', update)
 		end)
-
-		hooksecurefunc(ContainerFrameCombinedBags, 'Update', function() self:UpdateAll() end)
 	end
 end
 
 function Spotlight:UpdateAll()
-	self:IterateFrames('ContainerFrame', function(frame)
-		self:UpdateContainer(frame)
-	end)
+	self:UpdateContainer(ContainerFrameCombinedBags)
+	self:IterateFrames('ContainerFrame', GenerateClosure(self.UpdateContainer, self))
 end
 
 function Spotlight:UpdateContainer(frame)
-	self:IterateFrames(frame:GetName() .. 'Item', function(button)
-		self:UpdateButton(frame, button)
-	end)
+	if frame then
+		local update = GenerateClosure(self.UpdateButton, self, frame)
+		if frame.Items then
+			TableUtil.Execute(frame.Items, update)
+		else
+			self:IterateFrames(frame:GetName() .. 'Item', update)
+		end
+	end
 end
 
 function Spotlight:UpdateButton(frame, button)

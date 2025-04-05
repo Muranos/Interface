@@ -21,6 +21,7 @@ if L then
 
 	L.debuffs_message = "3/5 affaiblissements, prudence !"
 	L.debuffs_warning = "4/5 affaiblissements, %s sur le 5ème !"
+	L.bronze = "Bronze"
 
 	L.vulnerability = "Changement de vulnérabilité"
 	L.vulnerability_desc = "Préviens quand la vulnérabilité change."
@@ -32,8 +33,6 @@ end
 L = BigWigs:NewBossLocale("Nefarian Classic", "frFR")
 if L then
 	L.engage_yell_trigger = "Que les jeux commencent"
-	L.landing_soon_trigger = "Beau travail"
-	L.stage2_yell_trigger = "BRÛLEZ, misérables"
 	L.stage3_yell_trigger = "C'est impossible"
 
 	L.shaman_class_call_yell_trigger = "Chamans, montrez moi"
@@ -64,10 +63,13 @@ end
 L = BigWigs:NewBossLocale("Blackwing Lair Trash", "frFR")
 if L then
 	L.wyrmguard_overseer = "Garde wyrm Griffemort / Surveillant Griffemort" -- NPC 12460 / 12461
+	L.sandstorm = "Tempête de sable"
 
 	L.target_vulnerability = "Avertissements de vulnérabilité de la cible"
 	L.target_vulnerability_desc = "Lorsque votre cible est un Garde wyrm Griffemort ou un Surveillant Griffemort, affichez un avertissement pour indiquer sa vulnérabilité."
 	L.target_vulnerability_message = "Vulnérabilité de la cible: %s"
 	L.detect_magic_missing_message = "Détection de la magie est absente de votre cible"
 	L.detect_magic_warning = "Un mage doit incanter \124cff71d5ff\124Hspell:2855:0\124h[Détection de la magie]\124h\124r sur votre cible pour que les avertissements de vulnérabilité fonctionnent."
+
+	L.warlock = "Démoniste de l'Aile noire" -- NPC 12459
 end

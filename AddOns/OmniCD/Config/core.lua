@@ -35,14 +35,6 @@ local getFieldText = function(info)
 	return E[label] or fieldText[label] or ""
 end
 
-local isFound
-local changelog = E.changelog:gsub("^[ \t\n]*", E.HEX_C[WOW_PROJECT_ID]):gsub("\n\nv([%d%.]+)", function(ver)
-	if not isFound and ver ~= E.Version then
-		isFound = true
-		return "|cff808080\n\nv" .. ver
-	end
-end):gsub("\t", "\32\32\32\32\32\32\32\32")
-
 local getGlobalOption = function(info) return E.global[ info[#info] ] end
 local setGlobalOption = function(info, value) E.global[ info[#info] ] = value end
 
@@ -54,8 +46,6 @@ local function GetOptions()
 			type = "group",
 			args = {
 				Home = {
-
-
 
 					name = format("|T%s:18|t %s", E.Libs.OmniCDC.texture.logo, E.AddOn),
 					order = 0,
@@ -79,35 +69,35 @@ local function GetOptions()
 							name = L["Version"],
 							order = 2,
 							type = "input",
-							dialogControl = "Info-OmniCD",
+							dialogControl = "Info-OmniCDC",
 							get = getFieldText,
 						},
 						Author = {
 							name = L["Author"],
 							order = 3,
 							type = "input",
-							dialogControl = "Info-OmniCD",
+							dialogControl = "Info-OmniCDC",
 							get = getFieldText,
 						},
 						supportedUis = {
 							name = L["Supported UI"],
 							order = 4,
 							type = "input",
-							dialogControl = "Info-OmniCD",
+							dialogControl = "Info-OmniCDC",
 							get = getFieldText,
 						},
 						localizations = {
 							name = LANGUAGES_LABEL,
 							order = 5,
 							type = "input",
-							dialogControl = "Info-OmniCD",
+							dialogControl = "Info-OmniCDC",
 							get = getFieldText,
 						},
 						translations = {
 							name = BUG_CATEGORY15,
 							order = 6,
 							type = "input",
-							dialogControl = "Info-OmniCD",
+							dialogControl = "Info-OmniCDC",
 							get = getFieldText,
 						},
 						pd2 = {
@@ -179,9 +169,9 @@ local function GetOptions()
 							type = "description",
 						},
 						notice1 = {
-							name = format("|cffff2020* %s", (E.isWOTLKC and L["Group member must have OmniCD to detect cooldown reduction by Glyphs."])
+							name = format("|cffff2020* %s", ((E.isWOTLKC or E.isCata) and L["Group member must have OmniCD to detect cooldown reduction by Glyphs."])
 								or (E.isSL and L["Group member must have OmniCD to detect cooldown reduction with a chance to proc and Soulbind Conduits."])
-								or (E.isDF and L["Group member must have OmniCD to detect cooldown reduction with a chance to proc."])
+								or (E.postDF and L["Group member must have OmniCD to detect cooldown reduction with a chance to proc."])
 
 								or ""),
 							order = 18,
@@ -199,7 +189,7 @@ local function GetOptions()
 									name = "\n", order = 0, type = "description",
 								},
 								changelog = {
-									name = changelog,
+									name = E.changelog,
 									order = 1,
 									type = "description",
 								},
@@ -218,28 +208,28 @@ local function GetOptions()
 									name = "/oc t:",
 									order = 5,
 									type = "input",
-									dialogControl = "Info-OmniCD",
+									dialogControl = "Info-OmniCDC",
 									get = function() return L["Toggle test frames for current zone."] end,
 								},
 								reload = {
 									name = "/oc rl:",
 									order = 6,
 									type = "input",
-									dialogControl = "Info-OmniCD",
+									dialogControl = "Info-OmniCDC",
 									get = function() return L["Reload addon."] end,
 								},
 								resetTimers = {
 									name = "/oc rt:",
 									order = 7,
 									type = "input",
-									dialogControl = "Info-OmniCD",
+									dialogControl = "Info-OmniCDC",
 									get = function() return L["Reset all cooldown timers."] end,
 								},
 								resetDB = {
 									name = "/oc rt db:",
 									order = 8,
 									type = "input",
-									dialogControl = "Info-OmniCD",
+									dialogControl = "Info-OmniCDC",
 									get = function() return L["Clean wipe the savedvariable file. |cffff2020Warning|r: This can not be undone!"] end,
 								},
 
@@ -255,7 +245,7 @@ local function GetOptions()
 									desc = L["Press Ctrl+C to copy URL"],
 									order = 1,
 									type = "input",
-									dialogControl = "Link-OmniCD",
+									dialogControl = "Link-OmniCDC",
 									get = function() return "https://www.curseforge.com/wow/addons/omnicd/issues" end,
 								},
 								translate = {
@@ -263,12 +253,12 @@ local function GetOptions()
 									desc = L["Press Ctrl+C to copy URL"],
 									order = 2,
 									type = "input",
-									dialogControl = "Link-OmniCD",
+									dialogControl = "Link-OmniCDC",
 									get = function() return "https://www.curseforge.com/wow/addons/omnicd/localization" end,
 								},
 							}
 						},
-						plugins = E.isDF and {
+						plugins = E.postDF and {
 							name = L["Plugins"],
 							order = 50,
 							type = "group",
@@ -278,12 +268,22 @@ local function GetOptions()
 									desc = L["Press Ctrl+C to copy URL"],
 									order = 1,
 									type = "input",
-									dialogControl = "Link-OmniCD",
+									dialogControl = "Link-OmniCDC",
 									get = function() return "https://www.curseforge.com/wow/addons/omnicd-battleres" end,
 								},
+								--[[
+								enemyCD = {
+									name = L["Enemy CD"],
+									desc = L["Press Ctrl+C to copy URL"],
+									order = 2,
+									type = "input",
+									dialogControl = "Link-OmniCDC",
+									get = function() return "" end,
+								},
+								]]
 							}
 						} or nil,
-						otherAddOns = E.isDF and {
+						otherAddOns = E.postDF and {
 							name = ADDONS,
 							order = 60,
 							type = "group",
@@ -293,19 +293,9 @@ local function GetOptions()
 									desc = "Track important buffs and debuffs on any Blizzard frame",
 									order = 1,
 									type = "input",
-									dialogControl = "Link-OmniCD",
+									dialogControl = "Link-OmniCDC",
 									get = function() return "https://www.curseforge.com/wow/addons/omniauras" end,
 								},
-								--[[
-								omnisort = {
-									name = "OmniSort",
-									desc = "Party group sorter with auto-adjusting keybinds and macros",
-									order = 2,
-									type = "input",
-									dialogControl = "Link-OmniCD",
-									get = function() return "https://www.curseforge.com/wow/addons/omnisort" end,
-								},
-								]]
 							}
 						} or nil,
 					}
@@ -352,18 +342,20 @@ local function GetOptions()
 		E:AddSpellEditor()
 		E:AddProfileSharing()
 	end
+
+	E:AddSpellPickers()
 	return E.options
 end
 
 function E:SetupOptions()
 	self.Libs.OmniCDC.texture = self.Libs.OmniCDC.texture or {
-		logo	= [[Interface\AddOns\OmniCD\Config\Libs\Media\omnicd-logo64]],
-		recent	= [[Interface\AddOns\OmniCD\Config\Libs\Media\omnicd-recent]],
-		resizer	= [[Interface\AddOns\OmniCD\Config\Libs\Media\omnicd-bullet-resizer]],
-		plus	= [[Interface\AddOns\OmniCD\Config\Libs\Media\omnicd-bg-gnav2-plus]],
-		minus	= [[Interface\AddOns\OmniCD\Config\Libs\Media\omnicd-bg-gnav2-minus]],
-		arrow	= [[Interface\AddOns\OmniCD\Config\Libs\Media\omnicd-bg-gnav2-dn]],
-		arrowb	= [[Interface\AddOns\OmniCD\Config\Libs\Media\omnicd-bg-gnav2-dn-b]],
+		logo	= [[Interface\AddOns\OmniCD\Libs\LibOmniCDC\Media\omnicd-logo64]],
+		recent	= [[Interface\AddOns\OmniCD\Libs\LibOmniCDC\Media\omnicd-recent]],
+		resizer	= [[Interface\AddOns\OmniCD\Libs\LibOmniCDC\Media\omnicd-bullet-resizer]],
+		plus	= [[Interface\AddOns\OmniCD\Libs\LibOmniCDC\Media\omnicd-bg-gnav2-plus]],
+		minus	= [[Interface\AddOns\OmniCD\Libs\LibOmniCDC\Media\omnicd-bg-gnav2-minus]],
+		arrow	= [[Interface\AddOns\OmniCD\Libs\LibOmniCDC\Media\omnicd-bg-gnav2-dn]],
+		arrowb	= [[Interface\AddOns\OmniCD\Libs\LibOmniCDC\Media\omnicd-bg-gnav2-dn-b]],
 	}
 	self.Libs.OmniCDC.SetOptionFontDefaults(nil, nil)
 	self.Libs.ACR:RegisterOptionsTable(self.AddOn, GetOptions, true)
@@ -372,7 +364,7 @@ function E:SetupOptions()
 	self.optionsFrames.profiles = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.DB)
 	self.optionsFrames.profiles.order = 1000
 
-	if not self.preCata then
+	if self.postMoP then
 		local LDS = LibStub("LibDualSpec-1.0")
 		LDS:EnhanceDatabase(self.DB, "OmniCDDB")
 		LDS:EnhanceOptions(self.optionsFrames.profiles, self.DB)
@@ -394,6 +386,7 @@ end
 
 function E:RefreshProfile(currentProfile)
 	currentProfile = currentProfile or self.DB:GetCurrentProfile()
-	self.DB.keys.profile = currentProfile .. ":D"
+
+	self.DB.keys.profile = ""
 	self.DB:SetProfile(currentProfile)
 end

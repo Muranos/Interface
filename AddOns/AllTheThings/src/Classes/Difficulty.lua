@@ -1,11 +1,37 @@
 do
 -- App locals
 local appName,app = ...;
-local L, contains, GetRelativeValue = app.L, app.contains, app.GetRelativeValue;
+local L, contains, containsValue, GetRelativeValue = app.L, app.contains, app.containsValue, app.GetRelativeValue;
 
 -- Global locals
 local date, pairs, select, GetDifficultyInfo, IsInInstance, GetInstanceInfo, UNKNOWN
 	= date, pairs, select, GetDifficultyInfo, IsInInstance, GetInstanceInfo, UNKNOWN;
+
+local function GetRelativeDifficulty(group, checkDifficultyID)
+	if not group then return end
+	local difficultyID = group.difficultyID
+	if difficultyID then
+		if difficultyID == checkDifficultyID then
+			return true;
+		end
+		local difficulties = group.difficulties
+		if difficulties then
+			for i=1,#difficulties do
+				if difficulties[i] == checkDifficultyID then
+					return true;
+				end
+			end
+		end
+		return false;
+	end
+	local parent = group.parent
+	if parent then
+		return GetRelativeDifficulty(group.sourceParent or parent, checkDifficultyID);
+	else
+		return true;
+	end
+end
+app.GetRelativeDifficulty = GetRelativeDifficulty
 
 -- Class Locals
 local DifficultyColors = {
@@ -29,8 +55,8 @@ local DifficultyIcons = {
 	[6] = app.asset("Difficulty_Heroic"),
 	[7] = app.asset("Difficulty_LFR"),
 	[9] = app.asset("Difficulty_Mythic"),
-	[11] = app.asset("Difficulty_Normal"),
-	[12] = app.asset("Difficulty_Heroic"),
+	[11] = app.asset("Difficulty_Heroic"),
+	[12] = app.asset("Difficulty_Normal"),
 	[14] = app.asset("Difficulty_Normal"),
 	[15] = app.asset("Difficulty_Heroic"),
 	[16] = app.asset("Difficulty_Mythic"),
@@ -41,7 +67,7 @@ local DifficultyIcons = {
 	[33] = app.asset("Difficulty_Timewalking"),
 };
 local DifficultyMap = {
-	[1] = { 9, 148, 173 },
+	[1] = { 9, 148, 173, 201 },
 	[2] = { 174 },
 	[3] = { 175, 198 },
 	[4] = { 176 },
@@ -52,6 +78,7 @@ local DifficultyMap = {
 	[175] = { 3 },
 	[176] = { 4 },
 	[198] = { 3 },
+	[201] = { 1 },
 };
 local blacklistedDifficulties = {
 	[3] = true,
@@ -66,6 +93,7 @@ if not GetDifficultyInfo(3) then
 		[1] = "Normal",
 		[3] = "10-Player",
 		[198] = "10-Player",
+		[201] = "20-Player",
 	};
 	local oldGetDifficultyInfo = GetDifficultyInfo;
 	GetDifficultyInfo = function(difficultyID)
@@ -151,6 +179,20 @@ app.CreateDifficulty = app.CreateClass("Difficulty", "difficultyID", {
 			end
 			return key .. t[key];
 		end
+	end,
+	["ShouldExcludeFromTooltip"] = function(t)
+		local difficultyID = app.GetCurrentDifficultyID();
+		if difficultyID > 0 then
+			if t.difficultyID == difficultyID then
+				return false;
+			end
+			local difficulties = t.difficulties;
+			if difficulties and containsValue(difficulties, difficultyID) then
+				return false;
+			end
+			return true;
+		end
+		return t.ShouldExcludeFromTooltipHelper(t);
 	end,
 },
 "Group", {
@@ -248,8 +290,14 @@ app.AddEventHandler("OnLoad", function()
 		end,
 	});
 end);
+local CurrentDifficultyRemapper ={
+	[205] = 1,	-- Follower Dungeon -> Normal Dungeon
+	[220] = 220,	-- Story -> Story (currently only available to defeat during a quest and provides no loot...)
+}
 app.GetCurrentDifficultyID = function()
-	return IsInInstance() and select(3, GetInstanceInfo()) or 0;
+	if not IsInInstance() then return 0 end
+	local diff = select(3, GetInstanceInfo()) or 0
+	return CurrentDifficultyRemapper[diff] or diff
 end
 app.GetRelativeDifficultyIcon = function(t)
 	return DifficultyIcons[GetRelativeValue(t, "difficultyID") or 1];

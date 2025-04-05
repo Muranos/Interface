@@ -115,6 +115,36 @@ This tag allows filters to be created to filter out community Join requests.
 No other data is used for this tag; If you wish to filter anything that
 contains a Join request, simply include this tag
 
+**[trade]**
+
+This tag allows filters to be created to filter out tradeskill links.
+No other data is used for this tag; If you wish to filter anything that
+contains a tradeskill link, simply include this tag.
+
+**[journal]**
+
+This tag allows filters to be created to filter out dungeon journal links.
+No other data is used for this tag; If you wish to filter anything that
+contains a journal link, simply include this tag.
+
+**[mount]**
+
+This tag allows filters to be created to filter out mount links.
+No other data is used for this tag; If you wish to filter anything that
+contains a mount link, simply include this tag.
+
+**[guild]**
+
+This tag allows filters to be created to filter out guild links.
+No other data is used for this tag; If you wish to filter anything that
+contains a guild link, simply include this tag.
+
+**[outfit]**
+
+This tag allows filters to be created to filter out outfit links.
+No other data is used for this tag; If you wish to filter anything that
+contains an outfit link, simply include this tag.
+
 **[nonlatin]**
 
 This tag allows filters messages that contain Chinese/Japanese/Korean characters
@@ -134,13 +164,30 @@ number.  For example, channel 1 would be zone, 2 would be city/trade, and so on.
 you wanted a filter to apply only to trade chat you could do "[channel=2]" somewhere
 in your filter.
 
+**[chname=name]**
+
+This tag allows filters to test that a line of text sourced from a specific channel
+name.  When the text sourced from a channel that does not have a chat channel name
+GIL will set the name to a value that corresponds to the type of chat it is, as
+follows:  say, yell, whisper, officer, guild, party, raid, raid_leader,
+instance_chat, instance_chat_leader, battleground, battleground_leader.
+
+As with other filter tags paces must be escaped with the backslash character. For
+example to create a filter that only applies to Trade chat you would use a tag with
+the spaces escaped: [chname=Trade\ -\ City].  If want to apply a filter only to guild
+chat you would use [chname=guild].
+
+The "Never filter party, guild, yourself, private messages" options still apply here,
+so if those are enabled even a filter with a channel name will not apply to those
+channels as they are configured to never be filtered.
+
 **SPECIAL CHARACTERS IN FILTERS**
 
-Spaces can be used in a [Contains] tag by escaping the character by putting a
-forward slash before the space (\).  Other characters can be escaped the same
+Spaces can be used in a [Contains] tag by escaping the character using a forward
+slash before the space (\).  Other characters can be escaped the same
 way: parenthesis (), brackets [], and backslash.  For example:
 
-  [contains=Filter\ this]
+  [contains=filter\ this]
 
 Here are some other examples:
 
@@ -176,7 +223,7 @@ The following commands are accessible by typing /gignore or /gi in the chat box:
 
 /gi list [days] - Show a list of all players on the global ignore list, along with their server, faction, and the date they were added to the list.  An optional number of days can be added if you'd like to only show people who have been on the list for [days] or more days
 
-/gi clear - Clear the global ignore list.  Please understand that clearing this list means that you are clearing everything on all characters that you've previous logged in as!  You will need to provide a follow up confirmation command before the clear will work
+/gi clear - Clear the global ignore list.  Please understand that clearing this list means that you are clearing everything on all characters that you've previous logged in as!  You will need to provide a follow up confirmation command before the clear will work.  This is a tricky command and most likely needs to be done on every character you have otherwise GIL will keep trying to add/remove people to the list when you login to other characters.
 
 /gi add player_name - This provides a way to add a player to the list, but the Blizzard UI and /ignore works too!  You can optionally add a reason as well.  If a server name is involved all spaces should be removed.  For example: /gi add mytoon-Area52 this is an ignore reason
 
@@ -201,6 +248,53 @@ The following commands are accessible by typing /gignore or /gi in the chat box:
 /gi server servername - Add or remove a whole-server ignore
 
 => VERSION HISTORY
+
+=> 11.0.2.7
+
+Added new [chname=name] tag where name is the channel name that you want the filter to apply to. Reminder that spaces must be escaped with the backslash character for example [chname=Trade\ -\ City].  Text that does not have a channel will still have a channel name set as follows: say, yell, whisper, officer, guild, party, raid, raid_leader, instance_chat, instance_chat_leader, battleground, battleground_leader.
+
+Added new option to filter repeated messages in chat.  This is off by default but if enabled it will block players who spam the same message over and over again so long as it was within the last 50 messages processed.
+
+=> 11.0.2.6
+
+Added an option to "Never filter yourself" to the Chat Filtering options panel
+
+=> 11.0.2.5
+
+Fixed a small bug in the chat filtering
+
+=> 11.0.2.4
+
+Added an [outfit] tag to filter out outfit links.
+
+Updated the readme.txt and the CurseForge page to include the latest tags.
+
+After a few people have asked, I have created a "Buy me a Coffee" page if you like my addon and would like to buy be a coffee:
+https://buymeacoffee.com/missiceypop
+
+=> 11.0.2.3
+
+Fixed a bug with UI updating when using the ignore button
+
+The right click menu in the GIL ignore list UI now works again to allow editing notes, setting expirations, etc
+
+=> 11.0.2.2
+
+You can now ignore group leaders again directly from the LFG menu by right clicking their group
+
+Fixed a bug where the ignore list UI wasn't updating correctly when using the Remove Ignore button
+
+=> 11.0.2.1
+
+Added icon in addons list and added entry into addons compartment
+
+=> 11.0.2
+
+Bugfixes and more UI stuff working again
+
+=> 11.0.0
+
+Updated for The War Within pre-patch.  Some UI features are not yet working in this release (such as LFG tool hacks)
 
 => 10.1.7
 

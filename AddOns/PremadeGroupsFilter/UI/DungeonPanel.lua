@@ -30,25 +30,25 @@ local DIFFICULTY_TEXT = {
 }
 
 local CMID_MAP = {
-    -- Dragonflight Season 3
-    [463] = { order = 1, keyword = "fall" }, -- Dawn of the Infinite: Galakrond's Fall
-    [464] = { order = 2, keyword = "rise" }, -- Dawn of the Infinite: Murozond's Rise
-    [248] = { order = 3, keyword = "wm" },   -- Waycrest Manor (Battle for Azeroth)
-    [244] = { order = 4, keyword = "ad" },   -- Atal'Dazar (Battle for Azeroth)
-    [198] = { order = 5, keyword = "dht" },  -- Darkheart Thicket (Legion)
-    [199] = { order = 6, keyword = "brh" },  -- Black Rook Hold (Legion)
-    [168] = { order = 7, keyword = "eb" },   -- The Everbloom (Warlords of Draenor)
-    [456] = { order = 8, keyword = "tott" }, -- Throne of the Tides (Cataclysm)
+    -- The War Within Season 1
+    [503] = { order = 1, activityGroupID = 323, keyword = "arak"  }, -- Ara-Kara, City of Echoes
+    [502] = { order = 2, activityGroupID = 329, keyword = "cot"   }, -- City of Threads
+    [505] = { order = 3, activityGroupID = 326, keyword = "dawn"  }, -- The Dawnbreaker
+    [507] = { order = 4, activityGroupID =  56, keyword = "gb"    }, -- Grim Batol
+    [375] = { order = 5, activityGroupID = 262, keyword = "mists" }, -- Mists of Tirna Scithe
+    [376] = { order = 6, activityGroupID = 265, keyword = "nw"    }, -- The Necrotic Wake
+    [353] = { order = 7, activityGroupID = 146, keyword = "siege" }, -- Siege of Boralus
+    [501] = { order = 8, activityGroupID = 328, keyword = "sv"    }, -- The Stonevault
 
-    -- Dragonflight Season 4
-    [402] = { order = 1, keyword = "aa" },   -- Algeth'ar Academy
-    [401] = { order = 2, keyword = "av" },   -- The Azure Vault
-    [405] = { order = 3, keyword = "bh" },   -- Brackenhide Hollow
-    [406] = { order = 4, keyword = "hoi" },  -- Halls of Infusion
-    [404] = { order = 5, keyword = "nelt" }, -- Neltharus
-    [400] = { order = 6, keyword = "no" },   -- The Nokhud Offensive
-    [399] = { order = 7, keyword = "rlp" },  -- Ruby Life Pools
-    [403] = { order = 8, keyword = "uld" },  -- Uldaman: Legacy of Tyr
+    -- The War Within Season 2
+    [506] = { order = 1, activityGroupID = 327, keyword = "brew" }, -- Cinderbrew Meadery
+    [504] = { order = 2, activityGroupID = 322, keyword = "dfc"  }, -- Darkflame Cleft
+    [499] = { order = 3, activityGroupID = 324, keyword = "psf"  }, -- Priory of the Sacred Flame
+    [500] = { order = 4, activityGroupID = 325, keyword = "rook" }, -- The Rookery
+    [525] = { order = 5, activityGroupID = 371, keyword = "fg"   }, -- Operation: Floodgate
+    [382] = { order = 6, activityGroupID = 266, keyword = "top"  }, -- Theater of Pain
+    [247] = { order = 7, activityGroupID = 140, keyword = "ml"   }, -- The MOTHERLODE!!
+    [370] = { order = 8, activityGroupID = 257, keyword = "work" }, -- Operation: Mechagon - Workshop
 
     -- cmID can be found here as column ID: https://wago.tools/db2/MapChallengeMode?page=1&sort[ID]=desc
 }
@@ -72,6 +72,14 @@ local stripPrefixes = {
     "^무한의 여명: ",                -- Korean
     "^恆龍黎明：",                   -- Traditional Chinese
     "^永恒黎明：",                   -- Simplified Chinese
+    -- Mechagon/Floodgate
+    "^Operation: ",  -- English/German
+    "^Operación: ",  -- Spanish
+    "^Opération ",   -- French
+    "^Operazione: ", -- Italian
+    "^Operação: ",   -- Portugues
+    "^Операция ",    -- Russian
+    "^작전명: ",      -- Korean
     -- Articles
     "^The ",      -- English
     "^Der ",      -- German
@@ -91,6 +99,8 @@ function DungeonPanel:OnLoad()
     self.cmIDs = {}
 
     self:RegisterEvent("CHALLENGE_MODE_MAPS_UPDATE")
+    self:RegisterEvent("ACTIVE_PLAYER_SPECIALIZATION_CHANGED")
+    self:RegisterEvent("GROUP_ROSTER_UPDATE")
     self:SetScript("OnEvent", self.OnEvent)
 
     -- Group
@@ -103,21 +113,12 @@ function DungeonPanel:OnLoad()
     PGF.UI_SetupMinMaxField(self, self.Group.DPS, "dps", self.groupWidth)
     PGF.UI_SetupCheckBox(self, self.Group.Partyfit, "partyfit", self.groupWidth)
     PGF.UI_SetupCheckBox(self, self.Group.BLFit, "blfit", self.groupWidth)
-    PGF.UI_SetupCheckBox(self, self.Group.BRFit, "brfit", self.groupWidth)
+    PGF.UI_SetupCheckBox(self, self.Group.NeedsBL, "needsbl", self.groupWidth)
+    PGF.UI_SetupCheckBox(self, self.Group.NotDeclined, "notdeclined", self.groupWidth)
     PGF.UI_SetupAdvancedExpression(self)
 
     -- Dungeons
     self.Dungeons.Title:SetText(L["dialog.filters.dungeons"])
-    self.Dungeons.Alert.Icon:SetTexture("Interface\\DialogFrame\\UI-Dialog-Icon-AlertNew")
-    self.Dungeons.Alert:SetScript("OnEnter", function (self)
-        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        GameTooltip:SetText(L["dialog.dungeon.alert.single.title"], nil, nil, nil, nil, true)
-        GameTooltip:AddLine(L["dialog.dungeon.alert.single.info"], 1, 1, 1, 1, true)
-        GameTooltip:Show()
-    end)
-    self.Dungeons.Alert:SetScript("OnLeave", function(self)
-        GameTooltip:Hide()
-    end)
 
     for i = 1, NUM_DUNGEON_CHECKBOXES do
         local dungeon = self.Dungeons["Dungeon"..i]
@@ -128,7 +129,6 @@ function DungeonPanel:OnLoad()
         dungeon.Title:SetWidth(105)
         dungeon.Act:SetScript("OnClick", function(element)
             self.state["dungeon" .. i] = element:GetChecked()
-            self:ToogleDungeonAlert()
             self:TriggerFilterExpressionChange()
         end)
         dungeon:SetScript("OnEnter", function (self)
@@ -208,25 +208,30 @@ function DungeonPanel:Init(state)
 
     self.Group.Partyfit.Act:SetChecked(self.state.partyfit or false)
     self.Group.BLFit.Act:SetChecked(self.state.blfit or false)
-    self.Group.BRFit.Act:SetChecked(self.state.brfit or false)
+    self.Group.NeedsBL.Act:SetChecked(self.state.needsbl or false)
+    self.Group.NotDeclined.Act:SetChecked(self.state.notdeclined or false)
 
     for i = 1, NUM_DUNGEON_CHECKBOXES do
         self.Dungeons["Dungeon"..i].Act:SetChecked(self.state["dungeon"..i] or false)
     end
     self.Advanced.Expression.EditBox:SetText(self.state.expression or "")
-    self:ToogleDungeonAlert()
 end
 
 function DungeonPanel:OnEvent(event)
     if event == "CHALLENGE_MODE_MAPS_UPDATE" then
         PGF.Logger:Debug("DungeonPanel:OnEvent(CHALLENGE_MODE_MAPS_UPDATE)")
         self:InitChallengeModes()
+    elseif (event == "ACTIVE_PLAYER_SPECIALIZATION_CHANGED" or event == "GROUP_ROSTER_UPDATE") and self.state then
+        PGF.Logger:Debug("DungeonPanel:OnEvent(" .. event .. ")")
+        self:UpdateCheckboxVisibility()
+        self:UpdateAdvancedFilters()
     end
 end
 
 function DungeonPanel:OnShow()
     PGF.Logger:Debug("DungeonPanel:OnShow")
     self:TryInitChallengeModes()
+    self:UpdateCheckboxVisibility()
 end
 
 function DungeonPanel:OnHide()
@@ -253,7 +258,8 @@ function DungeonPanel:OnReset()
     self.state.dps.max = ""
     self.state.partyfit = false
     self.state.blfit = false
-    self.state.brfit = false
+    self.state.needsbl = false
+    self.state.notdeclined = false
     for i = 1, NUM_DUNGEON_CHECKBOXES do
         self.state["dungeon"..i] = false
     end
@@ -273,6 +279,8 @@ function DungeonPanel:TriggerFilterExpressionChange()
     local expression = self:GetFilterExpression()
     local hint = expression == "true" and "" or expression
     self.Advanced.Expression.EditBox.Instructions:SetText(hint)
+    self:UpdateCheckboxVisibility()
+    self:UpdateAdvancedFilters()
     PGF.Dialog:OnFilterExpressionChanged()
 end
 
@@ -302,9 +310,18 @@ function DungeonPanel:GetFilterExpression()
         if PGF.NotEmpty(self.state.dps.min) then expression = expression .. " and dps >= " .. self.state.dps.min end
         if PGF.NotEmpty(self.state.dps.max) then expression = expression .. " and dps <= " .. self.state.dps.max end
     end
-    if self.state.partyfit    then expression = expression .. " and partyfit"     end
-    if self.state.blfit       then expression = expression .. " and blfit"        end
-    if self.state.brfit       then expression = expression .. " and brfit"        end
+    if self.state.partyfit then
+        expression = expression .. " and partyfit"
+    end
+    if self.state.blfit and not PGF.PlayerOrGroupHasBloodlust() then -- use blfit only if group does not have BL
+        expression = expression .. " and blfit"
+    end
+    if self.state.needsbl and PGF.PlayerOrGroupHasBloodlust() then -- use needsbl only if group has BL
+        expression = expression .. " and not hasbl"
+    end
+    if self.state.notdeclined then
+        expression = expression .. " and not declined"
+    end
 
     if self:GetNumDungeonsSelected() > 0 then
         expression = expression .. " and ( false" -- start with neutral element of logical or
@@ -341,13 +358,56 @@ function DungeonPanel:GetNumDungeonsSelected()
     return numDungeonsSelected
 end
 
-function DungeonPanel:ToogleDungeonAlert()
-    PGF.Logger:Debug("DungeonPanel:ToogleDungeonAlert")
-    if self:GetNumDungeonsSelected() == 1 then
-        self.Dungeons.Alert:Show()
+function DungeonPanel:UpdateCheckboxVisibility()
+    if PGF.PlayerOrGroupHasBloodlust() then
+        self.Group.BLFit:Hide()
+        self.Group.NeedsBL:Show()
     else
-        self.Dungeons.Alert:Hide()
+        self.Group.BLFit:Show()
+        self.Group.NeedsBL:Hide()
     end
+end
+
+function DungeonPanel:UpdateAdvancedFilters()
+    local enabled = PGF.GetAdvancedFilterDefaults()
+    if self.state.difficulty.act and self.state.difficulty.val then
+        enabled.difficultyNormal = self.state.difficulty.val == C.NORMAL
+        enabled.difficultyHeroic = self.state.difficulty.val == C.HEROIC
+        enabled.difficultyMythic = self.state.difficulty.val == C.MYTHIC
+        enabled.difficultyMythicPlus = self.state.difficulty.val == C.MYTHICPLUS
+    end
+    if self.state.mprating.act then
+        enabled.minimumRating = PGF.NotEmpty(self.state.mprating.min) and tonumber(self.state.mprating.min) or 0
+        --MinRatingFrame.MinRating:SetNumber(enabled.minimumRating)
+    end
+    if self.state.tanks.act then
+        enabled.hasTank = PGF.NotEmpty(self.state.tanks.min) and tonumber(self.state.tanks.min) > 0
+        enabled.needsTank = PGF.NotEmpty(self.state.tanks.max) and tonumber(self.state.tanks.max) == 0
+    end
+    if self.state.heals.act then
+        enabled.hasHealer = PGF.NotEmpty(self.state.heals.min) and tonumber(self.state.heals.min) > 0
+        enabled.needsHealer = PGF.NotEmpty(self.state.heals.max) and tonumber(self.state.heals.max) == 0
+    end
+    if self.state.dps.act then
+        enabled.needsDamage = PGF.NotEmpty(self.state.dps.max) and tonumber(self.state.dps.max) < 3
+    end
+    if self.state.partyfit then
+        local partyRoles = PGF.GetPartyRoles()
+        enabled.needsTank = partyRoles["TANK"] > 0
+        enabled.needsHealer = partyRoles["HEALER"] > 0
+        enabled.needsDamage = partyRoles["DAMAGER"] > 0
+    end
+    if self:GetNumDungeonsSelected() > 0 then
+        local selectedDungeons = {};
+        for i = 1, NUM_DUNGEON_CHECKBOXES do
+            local activityGroupID = CMID_MAP[self.cmIDs[i]].activityGroupID
+            if self.state["dungeon"..i] and activityGroupID then
+                table.insert(selectedDungeons, activityGroupID)
+            end
+        end
+        enabled.activities = selectedDungeons
+    end
+    PGF.SetAdvancedFilter(enabled)
 end
 
 DungeonPanel:OnLoad()

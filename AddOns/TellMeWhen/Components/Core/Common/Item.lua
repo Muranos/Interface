@@ -1,6 +1,6 @@
 -- --------------------
 -- TellMeWhen
--- Originally by Nephthys of Hyjal <lieandswell@yahoo.com>
+-- Originally by NephMakes
 
 -- Other contributions by:
 --		Sweetmms of Blackrock, Oozebull of Twisting Nether, Oodyboo of Mug'thol,
@@ -17,19 +17,20 @@ local TMW = TMW
 local L = TMW.L
 local print = TMW.print
 
-local IsEquippedItem, GetItemCount, GetItemInfo, GetItemIcon, IsItemInRange
-	= IsEquippedItem, GetItemCount, GetItemInfo, GetItemIcon, IsItemInRange
 local GetInventoryItemTexture, GetInventoryItemCooldown, GetInventoryItemID, GetInventoryItemLink
 	= GetInventoryItemTexture, GetInventoryItemCooldown, GetInventoryItemID, GetInventoryItemLink
 local tonumber, type, pairs, strfind, strmatch, ipairs, strtrim, error
 	= tonumber, type, pairs, strfind, strmatch, ipairs, strtrim, error
 
-local GetItemCooldown = GetItemCooldown or (C_Container and C_Container.GetItemCooldown)
+local GetItemInfo = C_Item and C_Item.GetItemInfo or GetItemInfo
+local IsEquippedItem = C_Item and C_Item.IsEquippedItem or IsEquippedItem
+local GetItemCount = C_Item and C_Item.GetItemCount or GetItemCount
+local GetItemIcon = C_Item and C_Item.GetItemIconByID or GetItemIcon
+local IsItemInRange = C_Item and C_Item.IsItemInRange or IsItemInRange
+local GetItemCooldown = (C_Item and C_Item.GetItemCooldown) or (C_Container and C_Container.GetItemCooldown) or GetItemCooldown
+local GetItemSpell = C_Item and C_Item.GetItemSpell or GetItemSpell
 
 local INVSLOT_LAST_EQUIPPED = INVSLOT_LAST_EQUIPPED
-
-local OnGCD = TMW.OnGCD
-
 
 local Item = TMW:NewClass("Item")
 
@@ -161,7 +162,7 @@ function Item:GetCooldownDurationNoGCD()
 	if enable == 0 then
 		return math.huge
 	elseif duration then
-		return ((duration == 0 or OnGCD(duration)) and 0) or (duration - (TMW.time - start))
+		return ((duration == 0 or TMW.OnGCD(duration)) and 0) or (duration - (TMW.time - start))
 	end
 	return 0
 end
@@ -247,8 +248,16 @@ function ItemByID:GetName()
 	end
 end
 function ItemByID:GetLink()
+	-- It seems that around WoW 11.0, the game will "forget"
+	-- about items that it previously had returns for from GetItemInfo,
+	-- so use a cached return here if it comes back nil.
 	local _, itemLink = GetItemInfo(self.itemID)
-	return itemLink
+	if itemLink then
+		self.link = itemLink
+		return itemLink
+	else
+		return self.link
+	end
 end
 
 

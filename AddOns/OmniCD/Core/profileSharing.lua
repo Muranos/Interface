@@ -7,6 +7,8 @@ local LibDeflate = LibStub("LibDeflate")
 local ACD_Tooltip = E.Libs.ACD.tooltip
 local Dialog
 
+local PS_VERSION = "OmniCD2"
+
 local function Move_OnMouseDown(self, button)
 	if button == "LeftButton" and not self.isMoving then
 		self:StartMoving()
@@ -53,6 +55,7 @@ end
 
 function PS:ShowProfileDialog(text)
 	if not Dialog then
+
 		Dialog = CreateFrame("Frame", "OmniCD_ProfileDialog", UIParent, "DialogBoxFrame")
 		Dialog:SetPoint("CENTER")
 		Dialog:SetSize(600, 400)
@@ -77,7 +80,7 @@ function PS:ShowProfileDialog(text)
 		end)
 
 
-		local Label = Dialog:CreateFontString(nil, "ARTWORK", "GameFontNormal-OmniCD")
+		local Label = Dialog:CreateFontString(nil, "ARTWORK", "GameFontNormal-OmniCDC")
 		Label:SetPoint("TOP", 0, -1)
 
 
@@ -106,12 +109,13 @@ function PS:ShowProfileDialog(text)
 
 
 		local Resizer = CreateFrame("Button", "OmniCD_ProfileDialogResizeButton", Dialog)
-
-
-
-
-
-
+		--[[ TODO: highlight/pushed texture
+		Resizer:SetPoint("BOTTOMRIGHT", -6, 7)
+		Resizer:SetSize(16, 16)
+		Resizer:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
+		Resizer:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
+		Resizer:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down")
+		]]
 		Resizer:SetPoint("BOTTOMRIGHT", -8, 8)
 		Resizer:SetSize(16, 16)
 		Resizer:SetNormalTexture(E.Libs.OmniCDC.texture.resizer)
@@ -158,8 +162,10 @@ function PS:ShowProfileDialog(text)
 		ScrollBar:SetPoint("TOPLEFT", ScrollContainer, "TOPRIGHT", 4, -1)
 		ScrollBar:SetPoint("BOTTOMLEFT", ScrollContainer, "BOTTOMRIGHT", 4, 1)
 
-
-
+		--[[
+		ScrollBar.ScrollUpButton:Hide()
+		ScrollBar.ScrollDownButton:Hide()
+		]]
 		ScrollBar.ScrollUpButton:SetNormalTexture(0)
 		ScrollBar.ScrollUpButton:SetPushedTexture(0)
 		ScrollBar.ScrollUpButton:SetDisabledTexture(0)
@@ -168,6 +174,7 @@ function PS:ShowProfileDialog(text)
 		ScrollBar.ScrollDownButton:SetPushedTexture(0)
 		ScrollBar.ScrollDownButton:SetDisabledTexture(0)
 		ScrollBar.ScrollDownButton:SetHighlightTexture(0)
+
 		ScrollBar.ThumbTexture:SetTexture([[Interface\BUTTONS\White8x8]])
 		ScrollBar.ThumbTexture:SetSize(16, 32)
 		ScrollBar.ThumbTexture:SetColorTexture(0.3, 0.3, 0.3)
@@ -180,7 +187,7 @@ function PS:ShowProfileDialog(text)
 		EditBox:SetSize(ScrollFrame:GetSize())
 		EditBox:SetMultiLine(true)
 		EditBox:SetAutoFocus(false)
-		EditBox:SetFontObject("GameFontHighlight-OmniCD")
+		EditBox:SetFontObject("GameFontHighlight-OmniCDC")
 		EditBox:SetScript("OnEscapePressed", function(self)
 			self:ClearFocus()
 		end)
@@ -261,12 +268,12 @@ function PS:Decode(encodedData)
 		return "^^"
 	end)
 
-	if not appendage or not strfind(appendage, E.AddOn) then
+	if not appendage or not strfind(appendage, PS_VERSION) then
 		ErrorMessage(L["Not an OmniCD profile!"])
 		return
 	end
 
-	appendage = gsub(appendage, "^OmniCD", "")
+	appendage = gsub(appendage, "^" .. PS_VERSION, "")
 	local profileType, profileKey = strsplit(",", appendage, 2)
 
 	local success, profileData = self:Deserialize(serializedData)
@@ -288,6 +295,7 @@ function PS:CopyProfile(profileType, profileKey, profileData)
 	if profileType == "all" then
 		OmniCDDB.profiles[profileKey] = profileData
 	else
+
 		local currentProfile = E.DB:GetCurrentProfile()
 		OmniCDDB.profiles[profileKey] = E:DeepCopy(OmniCDDB.profiles[currentProfile])
 		OmniCDDB.profiles[profileKey].Party[profileType] = profileData
@@ -301,6 +309,8 @@ function PS:ImportProfile(encodedData)
 	if not profileData then
 		return
 	end
+
+	E.FixOldProfile(profileData)
 
 	local prefix = "[IMPORT-%s]%s"
 	local n = 1
@@ -339,6 +349,7 @@ function PS:ExportProfile(profileType)
 		profileData = E:DeepCopy(OmniCDDB.profiles[profileKey], blackList)
 		profileData = E:RemoveEmptyDuplicateTables(profileData, C)
 	else
+
 		profileData = E:DeepCopy(OmniCDDB.profiles[profileKey].Party[profileType])
 		profileData = E:RemoveEmptyDuplicateTables(profileData, C.Party[profileType])
 	end
@@ -353,14 +364,14 @@ function PS:ExportProfile(profileType)
 		return
 	end
 
-	profileKey = gsub(profileKey, "^%[IMPORT.-%]", "")
-
 	local serializedData = self:Serialize(profileData)
 	if type(serializedData) ~= "string" then
 		ErrorMessage(L["Serialize failed!"])
+		return
 	end
 
-	serializedData = format("%sOmniCD%s,%s", serializedData, profileType, profileKey)
+	profileKey = gsub(profileKey, "^%[IMPORT.-%]", "")
+	serializedData = format("%s%s%s,%s", serializedData, PS_VERSION, profileType, profileKey)
 
 	local compressedData = LibDeflate:CompressDeflate(serializedData)
 	local encodedData = LibDeflate:EncodeForPrint(compressedData)

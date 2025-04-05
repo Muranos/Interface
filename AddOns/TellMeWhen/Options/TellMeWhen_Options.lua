@@ -1,6 +1,6 @@
 ﻿-- --------------------
 -- TellMeWhen
--- Originally by Nephthys of Hyjal <lieandswell@yahoo.com>
+-- Originally by NephMakes
 
 -- Other contributions by:
 --		Sweetmms of Blackrock, Oozebull of Twisting Nether, Oodyboo of Mug'thol,
@@ -31,8 +31,6 @@ local AceDB = LibStub("AceDB-3.0")
 ---------- Upvalues ----------
 local TMW = TMW
 local L = TMW.L
-local GetSpellInfo =
-	  GetSpellInfo
 local tonumber, tostring, type, pairs, ipairs, tinsert, tremove, sort, wipe, next, getmetatable, setmetatable, pcall, assert, rawget, rawset, unpack, select =
 	  tonumber, tostring, type, pairs, ipairs, tinsert, tremove, sort, wipe, next, getmetatable, setmetatable, pcall, assert, rawget, rawset, unpack, select
 local format, gsub, strlenutf8, strsplit, strlower, max, min, floor, ceil, log10 =
@@ -261,15 +259,16 @@ function IE:OnInitialize()
 	TMW:Fire("TMW_OPTIONS_LOADING")
 	TMW:UnregisterAllCallbacks("TMW_OPTIONS_LOADING")
 
-	-- Make TMW.IE be the same as IE.
-	-- IE[0] = TellMeWhen_IconEditor[0] (already done in .xml)
-	-- local meta = CopyTable(getmetatable(IE))
-	-- meta.__index = getmetatable(TellMeWhen_IconEditor).__index
-	-- setmetatable(IE, meta)
-
-
-	hooksecurefunc("PickupSpellBookItem", function(...) IE.DraggingInfo = {...} end)
-	WorldFrame:HookScript("OnMouseDown", function()
+	if PickupSpellBookItem then
+		-- Pre wow 11.0
+		hooksecurefunc("PickupSpellBookItem", function(...) IE.DraggingInfo = {...} end)
+	end
+	if C_SpellBook and C_SpellBook.PickupSpellBookItem then
+		-- WoW 11.0+
+		hooksecurefunc(C_SpellBook, "PickupSpellBookItem", function(...) IE.DraggingInfo = {...} end)
+	end
+	
+	TMW:RegisterCallback("TMW_WORLD_FRAME_MOUSE_DOWN", function()
 		IE.DraggingInfo = nil
 	end)
 	hooksecurefunc("ClearCursor", IE.BAR_HIDEGRID)
@@ -829,7 +828,7 @@ function IE:Equiv_GenerateTips(equiv)
 	local original = TMW.EquivOriginalLookup[equiv]
 
 	for k, v in pairs(IDs) do
-		local name, _, texture = GetSpellInfo(v)
+		local name, _, texture = TMW.GetSpellInfo(v)
 		if not name then
 			if TMW.debug then
 				TMW:Error("INVALID ID FOUND: %s:%s", equiv, v)
@@ -1954,7 +1953,7 @@ TMW:NewClass("Config_EditBox", "EditBox", "Config_Frame"){
 	
 	UpdateLabel = function(self, label)
 		local text = self:GetText()
-		if text and text:trim(" \t\r\n") == "" then
+		if text and text:trim(" \t\r\n"):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "") == "" then
 			self.BackgroundText:SetText(self.label)
 		else
 			self.BackgroundText:SetText(nil)
@@ -2980,7 +2979,7 @@ TMW:NewClass("Config_ColorButton", "Button", "Config_Frame"){
 	end,
 }
 
-if TMW.isWrath then 
+if TMW.isCata or TMW.isWrath then 
 	TMW:NewClass("Config_Button_Rune", "Button", "Config_BitflagBase", "Config_Frame"){
 		-- Constructor
 		Runes = {

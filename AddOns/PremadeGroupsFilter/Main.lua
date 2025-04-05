@@ -26,8 +26,8 @@ PGF.currentSearchResults = {}
 PGF.lastSearchEntryReset = time()
 PGF.previousSearchExpression = ""
 PGF.currentSearchExpression = ""
-PGF.previousSearchLeaders = {}
-PGF.currentSearchLeaders = {}
+PGF.previousSearchGroupKeys = {}
+PGF.currentSearchGroupKeys = {}
 PGF.searchResultIDInfo = {}
 PGF.numResultsBeforeFilter = 0
 PGF.numResultsAfterFilter = 0
@@ -35,8 +35,8 @@ PGF.numResultsAfterFilter = 0
 function PGF.ResetSearchEntries()
     -- make sure to wait at least some time between two resets
     if time() - PGF.lastSearchEntryReset > C.SEARCH_ENTRY_RESET_WAIT then
-        PGF.previousSearchLeaders = PGF.Table_Copy_Shallow(PGF.currentSearchLeaders)
-        PGF.currentSearchLeaders = {}
+        PGF.previousSearchGroupKeys = PGF.Table_Copy_Shallow(PGF.currentSearchGroupKeys)
+        PGF.currentSearchGroupKeys = {}
         PGF.previousSearchExpression = PGF.currentSearchExpression
         PGF.lastSearchEntryReset = time()
         PGF.searchResultIDInfo = {}
@@ -68,7 +68,7 @@ function PGF.SortSearchResults(results)
     elseif PGF.IsRetail() then -- use our extended useful sorting
         table.sort(results, PGF.SortByUsefulOrder)
     end
-    -- else keep the existing sorting as Wrath clients have a pretty big
+    -- else keep the existing sorting as classic clients have a pretty big
     -- intelligent sorting algorithm in LFGBrowseUtil_SortSearchResults
 end
 
@@ -105,10 +105,9 @@ function PGF.SortByUsefulOrder(searchResultID1, searchResultID2)
     if not info1 or not info2 then return false end -- race condition
 
     -- sort applications to the top
-    local isApplication1 = info1.env.appstatus ~= "none" or info1.env.pendingstatus or false
-    local isApplication2 = info2.env.appstatus ~= "none" or info2.env.pendingstatus or false
-    if isApplication1 ~= isApplication2 then return isApplication1 end
-    if info1.env.appduration ~= info2.env.appduration then return info1.env.appduration > info2.env.appduration end
+    if info1.env.apporder ~= info2.env.apporder then
+        return info1.env.apporder > info2.env.apporder
+    end
 
     local searchResultInfo1 = info1.searchResultInfo
     local searchResultInfo2 = info2.searchResultInfo
@@ -194,11 +193,20 @@ function PGF.DoFilterSearchResults(results)
     -- loop backwards through the results list so we can remove elements from the table
     for idx = #results, 1, -1 do
         local resultID = results[idx]
-        local searchResultInfo = C_LFGList.GetSearchResultInfo(resultID)
-        -- /dump C_LFGList.GetSearchResultInfo(select(2, C_LFGList.GetSearchResults())[1])
+        local searchResultInfo = PGF.GetSearchResultInfo(resultID)
+        -- /dump PGF.GetSearchResultInfo(select(2, C_LFGList.GetSearchResults())[1])
         -- name and comment are now protected strings like "|Ks1969|k0000000000000000|k" which can only be printed
         local _, appStatus, pendingStatus, appDuration = C_LFGList.GetApplicationInfo(resultID)
         -- /dump C_LFGList.GetApplicationInfo(select(2, C_LFGList.GetSearchResults())[1])
+        -- appStatus flow:
+        --   none ─┬─▶ applied ─┬─▶ invited ───┬─▶ inviteaccepted
+        --         └─▶ failed   ├─▶ cancelled  └─▶ invitedeclined
+        --                      ├─▶ declined
+        --                      ├─▶ declined_delisted
+        --                      ├─▶ declined_full
+        --                      └─▶ timedout
+        -- pendingStatus flow (used for role check if in a group before transition of appStatus to applied):
+        --   <nil> ◀──▶ applied ──▶ cancelled
         local memberCounts = C_LFGList.GetSearchResultMemberCounts(resultID)
         local numGroupDefeated, numPlayerDefeated, maxBosses,
               matching, groupAhead, groupBehind = PGF.GetLockoutInfo(searchResultInfo.activityID, resultID)
@@ -242,9 +250,10 @@ function PGF.DoFilterSearchResults(results)
         env.groupid = activityInfo.groupFinderActivityGroupID
         env.autoinv = searchResultInfo.autoAccept
         env.questid = searchResultInfo.questID
-        env.declined = PGF.IsHardDeclinedGroup(searchResultInfo)
-        env.harddeclined = env.declined
+        env.harddeclined = PGF.IsHardDeclinedGroup(searchResultInfo)
         env.softdeclined = PGF.IsSoftDeclinedGroup(searchResultInfo)
+        env.declined = env.harddeclined or env.softdeclined
+        env.canceled = PGF.IsCanceledGroup(searchResultInfo)
         env.warmode = searchResultInfo.isWarMode or false
         env.playstyle = searchResultInfo.playstyle
         env.earnconq  = searchResultInfo.playstyle == 1
@@ -280,6 +289,8 @@ function PGF.DoFilterSearchResults(results)
         env.appstatus = appStatus
         env.pendingstatus = pendingStatus
         env.appduration = appDuration
+        env.isapp = appStatus ~= "none" or pendingStatus or false
+        env.apporder = env.isapp and resultID or 0 -- allows sorting applications to the top via `apporder desc`
 
         PGF.PutSearchResultMemberInfos(resultID, searchResultInfo, env)
         PGF.PutEncounterNames(resultID, env)
@@ -329,8 +340,9 @@ function PGF.DoFilterSearchResults(results)
             activityInfo = activityInfo,
         }
         if PGF.DoesPassThroughFilter(env, exp) then
-            -- leaderName is usually still nil at this point if the group is new, but we can live with that
-            if searchResultInfo.leaderName then PGF.currentSearchLeaders[searchResultInfo.leaderName] = true end
+            local groupKey = PGF.GetGroupKey(searchResultInfo)
+            -- group key can be nil if falling back to leaderName, which is nil at this point if the group is new
+            if groupKey then PGF.currentSearchGroupKeys[groupKey] = true end
         else
             table.remove(results, idx)
         end
@@ -343,15 +355,14 @@ end
 
 function PGF.ColorGroupTexts(self, searchResultInfo)
     if not PremadeGroupsFilterSettings.coloredGroupTexts then return end
-
-    -- try once again to update the leaderName (this information is not immediately available)
-    if searchResultInfo.leaderName then PGF.currentSearchLeaders[searchResultInfo.leaderName] = true end
-    -- self.ActivityName:SetText("[" .. searchResultInfo.activityID .. "/" .. self.resultID .. "] " .. self.ActivityName:GetText()) -- DEBUG
+    local groupKey = PGF.GetGroupKey(searchResultInfo)
+    -- try once again to update the group key if we had to fall back to the leaderName
+    if groupKey then PGF.currentSearchGroupKeys[groupKey] = true end
     if not searchResultInfo.isDelisted then
         -- color name if new
-        if PGF.currentSearchExpression ~= "true"                        -- not trivial search
-        and PGF.currentSearchExpression == PGF.previousSearchExpression -- and the same search
-        and (searchResultInfo.leaderName and not PGF.previousSearchLeaders[searchResultInfo.leaderName]) then -- and leader is new
+        if PGF.currentSearchExpression ~= "true"                          -- not trivial search
+        and PGF.currentSearchExpression == PGF.previousSearchExpression   -- and the same search
+        and (groupKey and not PGF.previousSearchGroupKeys[groupKey]) then -- and group is new
             local color = C.COLOR_ENTRY_NEW
             self.Name:SetTextColor(color.R, color.G, color.B)
         end
@@ -359,9 +370,19 @@ function PGF.ColorGroupTexts(self, searchResultInfo)
         if PGF.IsSoftDeclinedGroup(searchResultInfo) then
             local color = C.COLOR_ENTRY_DECLINED_SOFT
             self.Name:SetTextColor(color.R, color.G, color.B)
+            if not PremadeGroupsFilterSettings.signUpDeclined then
+                self.PendingLabel:SetTextColor(color.R, color.G, color.B)
+            end
         end
         if PGF.IsHardDeclinedGroup(searchResultInfo) then
             local color = C.COLOR_ENTRY_DECLINED_HARD
+            self.Name:SetTextColor(color.R, color.G, color.B)
+            if not PremadeGroupsFilterSettings.signUpDeclined then
+                self.PendingLabel:SetTextColor(color.R, color.G, color.B)
+            end
+        end
+        if PGF.IsCanceledGroup(searchResultInfo) then
+            local color = C.COLOR_ENTRY_CANCELED
             self.Name:SetTextColor(color.R, color.G, color.B)
         end
         -- color activity if lockout
@@ -380,9 +401,9 @@ function PGF.ColorGroupTexts(self, searchResultInfo)
 end
 
 function PGF.OnLFGListSearchEntryUpdate(self)
-    local searchResultInfo = C_LFGList.GetSearchResultInfo(self.resultID)
+    local searchResultInfo = PGF.GetSearchResultInfo(self.resultID)
+    --self.Name:SetText("r:"..self.resultID .. " a:"..select(2, C_LFGList.GetApplicationInfo(self.resultID)).." "..self.Name:GetText())
     PGF.ColorGroupTexts(self, searchResultInfo)
-    PGF.ColorApplications(self, searchResultInfo)
     PGF.AddRoleIndicators(self, searchResultInfo)
     PGF.AddRatingInfo(self, searchResultInfo)
 end
@@ -406,3 +427,14 @@ end
 
 hooksecurefunc("LFGListSearchEntry_Update", PGF.OnLFGListSearchEntryUpdate)
 hooksecurefunc("LFGListSearchPanel_UpdateResultList", PGF.OnLFGListSearchPanelUpdateResultList)
+
+-- Allow other addons to overwrite the sorting function
+local originalSortSearchResults = PGF.SortSearchResults
+PremadeGroupsFilter.OverwriteSortSearchResults = function(addonName, func)
+    PGF.SortSearchResults = func
+    print(string.format(L["message.sortingoverwritten"], (addonName or "<?>")))
+end
+PremadeGroupsFilter.RestoreSortSearchResults = function(addonName)
+    PGF.SortSearchResults = originalSortSearchResults
+    print(string.format(L["message.sortingrestored"], (addonName or "<?>")))
+end

@@ -631,11 +631,13 @@ L["RUNES"] = "Rune(s) to check"
 
 
 L["ICONMENU_SHOWTTTEXT2"] = "Aura variables"
-L["ICONMENU_SHOWTTTEXT_DESC2"] = [[Report the icon's stacks as a variable associated with the aura. Practical uses include monitoring damage shield amounts.
+L["ICONMENU_SHOWTTTEXT_DESC2"] = [[Choose which value will be reported as the icon's stacks.
 
-This value will be reported and shown in place of the icon's stack count.
-
-Numbers are provided by Blizzard API and do not necessarily match numbers found on the tooltip of the aura.]]
+Choose between:
+• The actual aura stacks
+• Variables reported by Blizzard's API
+• Numbers extracted from the aura's tooltip
+]]
 
 L["ICONMENU_SHOWTTTEXT_STACKS"] = "Stacks (default behavior)"
 L["ICONMENU_SHOWTTTEXT_STACKS_DESC"] = "Causes the buff/debuff's stacks to be reported as the icon's stacks."
@@ -643,10 +645,15 @@ L["ICONMENU_SHOWTTTEXT_FIRST"] = "First non-zero variable"
 L["ICONMENU_SHOWTTTEXT_FIRST_DESC"] = [[Causes the first non-zero variable associated with the buff/debuff to be reported as the icon's stacks.
 
 Usually this will be the correct variable if you desire one of the aura's variables.]]
-L["ICONMENU_SHOWTTTEXT_VAR"] = "Only Variable #%d"
+L["ICONMENU_SHOWTTTEXT_VAR"] = "Variable #%d"
 L["ICONMENU_SHOWTTTEXT_VAR_DESC"] = [[Causes only this variable to be reported as the icon's stacks.
 
 Use this if other, incorrect variables are sometimes reported. Use trial-and-error to figure out which of the variables is correct.]]
+
+L["ICONMENU_SHOWTTTEXT_TT"] = "Tooltip #%d"
+L["ICONMENU_SHOWTTTEXT_TT_DESC"] = [[Causes only the number at position %d in the aura's tooltip to be reported as the icon's stacks.
+
+Tooltip scanning consumes additional resources - only use when the Variable numbers aren't being provided by Blizzard.]]
 
 
 
@@ -1136,6 +1143,7 @@ L["UIPANEL_RELATIVEPOINT2_DESC"] = "Anchor the group to the %s of the anchor tar
 L["ASCENDING"] = "Ascending"
 L["DESCENDING"] = "Descending"
 L["UIPANEL_SCALE"] = "Scale"
+L["UIPANEL_SPEED"] = "Speed"
 L["UIPANEL_LEVEL"] = "Frame Level"
 L["UIPANEL_LEVEL_DESC"] = "The level within the group's strata that it should be drawn on."
 L["UIPANEL_STRATA"] = "Strata"
@@ -1691,9 +1699,22 @@ L["SPELLCHARGETIME_DESC"] = "Tracks the time remaining until a spell like %s or 
 L["EMPOWEREDSTAGE"] = "Empowered Spell Stage"
 L["EMPOWEREDSTAGE_DESC"] = "Current stage of empowered spell"
 L["SPELL_LEARNED"] = "Spell Learned"
+L["SPELL_LEARNED_DESC"] = [[Checks if the given spell is learned.
+
+Note that this can fail to work for some types of spells - especially spells that replace other spells. For those cases, use the Spell Overridden condition.]]
+
+L["SPELL_OVERRIDE"] = "Spell Overridden"
+L["SPELL_OVERRIDE_DESC"] = [[Checks if the given base spell is currently overridden by the specified override spell.
+
+To check if the base spell is not overriden by anything, enter the same spell as both the base and override spell.]]
+L["SPELL_OVERRIDE_BASE"] = "Base Spell"
+L["SPELL_OVERRIDE_TARGET"] = "Override Spell"
+
 L["SPELLREACTIVITY"] = "Spell Reactivity"
 L["MP5"] = "%d MP5"
-L["REACTIVECNDT_DESC"] = "This condition only checks the reactive state of the ability, not the cooldown of it."
+L["REACTIVECNDT_DESC"] = [[This condition only checks the reactive state of the ability, not the cooldown of it.
+
+Reactive abilities are those that are only usable under certain conditions in combat, like %s or %s.]]
 L["BUFFCNDT_DESC"] = "Only the first spell will be checked, all others will be ignored."
 L["CNDT_ONLYFIRST"] = "Only the first spell/item will be checked - semicolon-delimited lists are not valid for this condition type."
 L["CNDT_MULTIPLEVALID"] = "You can enter multiple names/IDs to check by separating each with a semicolon."
@@ -2426,6 +2447,12 @@ L["ANIM_ICONBORDER"] = "Icon: Border"
 L["ANIM_ICONBORDER_DESC"] = "Overlays a colored border on the icon."
 L["ANIM_ICONOVERLAYIMG"] = "Icon: Image Overlay"
 L["ANIM_ICONOVERLAYIMG_DESC"] = "Overlays a custom image over the icon."
+
+L["ANIM_LCG_PIXEL"] = "Icon: Pixel Border"
+L["ANIM_LCG_PIXEL_DESC"] = "Overlays the LibCustomGlow animated pixel border."
+L["ANIM_LCG_AUTOCAST"] = "Icon: Autocast Border"
+L["ANIM_LCG_AUTOCAST_DESC"] = "Overlays an effect similar to the pet autocasting indicator animation."
+
 L["ANIM_ICONCLEAR"] = "Icon: Stop Animations"
 L["ANIM_ICONCLEAR_DESC"] = "Stops all animations that are playing on the current icon."
 

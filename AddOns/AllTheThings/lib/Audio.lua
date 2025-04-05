@@ -147,7 +147,7 @@ function api:PlayRemoveSound()
 	PlayAudio("REMOVE", "Warn:Removed");
 end
 function api:PlayReportSound()
-	if app.Settings:GetTooltipSetting("Warn:Removed") or app.Settings:GetTooltipSetting("Celebrate") then
+	if app.Settings:GetTooltipSetting("Warn:Removed") or app.Settings:GetTooltipSetting("Celebrate") or app.Contributor then
 		PlayAudio("REPORT");
 	end
 end
@@ -190,3 +190,45 @@ function app.ClearSounds(tableName)
 		wipe(soundTable);
 	end
 end
+
+-- Note that any enabled sound table will completely replace the Default sounds for that table
+local AprilFoolsSoundPack = api:CreateSoundPack("April Fools Sounds", {
+	COMPLETE = {
+		49371,
+		49372,
+	},
+	DEATH = {
+		20278,
+	},
+	FANFARE = {
+		app.asset("ffdamnson.ogg"),
+		app.asset("ffanime.ogg"),
+		app.asset("ffezz.ogg"),
+		app.asset("ffprettygood.ogg"),
+		app.asset("ffwow.ogg"),
+		app.asset("ffnice.ogg"),
+	},
+	MOUNTFANFARE = {
+		108419,
+	},
+	RAREFIND = {
+		256849,
+	},
+	REMOVE = {
+		24272,
+	},
+	REPORT = {
+		161694,
+	},
+});
+
+local StartupSpecialSoundPack
+local currentCalendarTime = C_DateAndTime and C_DateAndTime.GetCurrentCalendarTime()
+if currentCalendarTime and currentCalendarTime.month == 4 and currentCalendarTime.monthDay == 1 then
+	StartupSpecialSoundPack = AprilFoolsSoundPack
+end
+
+app.AddEventHandler("OnReady", function()
+	-- Prepare the Sound Pack!
+	api:ActivateSoundPack(StartupSpecialSoundPack or AllTheThingsSavedVariables.CurrentSoundPack or "Default", true);
+end);

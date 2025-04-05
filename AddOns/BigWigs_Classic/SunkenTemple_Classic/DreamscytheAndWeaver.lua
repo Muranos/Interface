@@ -2,10 +2,11 @@
 -- Module Declaration
 --
 
-local mod, CL = BigWigs:NewBoss("Dreamscythe and Weaver Discovery", 109, -2955)
+local mod, CL = BigWigs:NewBoss("Dreamscythe and Weaver Discovery", 109)
 if not mod then return end
 mod:RegisterEnableMob(220833, 220864) -- Dreamscythe, Weaver
 mod:SetEncounterID(2955)
+mod:SetAllowWin(true)
 mod:SetStage(1)
 
 --------------------------------------------------------------------------------
@@ -64,8 +65,8 @@ function mod:AcidBreathApplied(args)
 			self:PlaySound(args.spellId, "alert")
 		end
 	else
-		local bossUnit = self:GetUnitIdByGUID(args.sourceGUID)
-		if bossUnit and self:Tanking(bossUnit, args.destName) then
+		local bossUnit, targetUnit = self:GetUnitIdByGUID(args.sourceGUID), self:UnitTokenFromGUID(args.destGUID, true)
+		if bossUnit and targetUnit and self:Tanking(bossUnit, targetUnit) then
 			self:StackMessage(args.spellId, "purple", args.destName, args.amount, 2)
 			if args.amount then
 				self:PlaySound(args.spellId, "alert")

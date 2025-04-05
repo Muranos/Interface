@@ -5,6 +5,8 @@ local L = PitBull4.L
 
 local LibBossIDs = LibStub("LibBossIDs-1.0", true)
 
+local wow_cata = PitBull4.wow_cata
+
 local DEBUG = PitBull4.DEBUG
 local expect = PitBull4.expect
 
@@ -66,9 +68,6 @@ do
 		better_unit_ids["raidpet" .. i] = "raidpet" .. i
 		better_unit_ids["raid" .. i .. "pet"] = "raidpet" .. i
 	end
-	-- There's no good constant for this.  We used to use
-	-- MAX_ARENA_TEAM_MEMBERS which doesn't make sense and broke
-	-- when 5.2 moved it into the PVPUI addon.
 	for i = 1, 5 do
 		better_unit_ids["arena" .. i] = "arena" .. i
 		better_unit_ids["arenapet" .. i] = "arenapet" .. i

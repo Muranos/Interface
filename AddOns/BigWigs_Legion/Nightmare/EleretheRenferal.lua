@@ -35,7 +35,6 @@ if L then
 	L.custom_off_webofpain_marker = "Web of Pain marker"
 	L.custom_off_webofpain_marker_desc = "Mark Web of Pain targets with {rt1}{rt2}{rt3}{rt4}, requires promoted or leader. The tanks will be marked with {rt1} and {rt2}. The other targets with {rt3} and {rt4}."
 	L.custom_off_webofpain_marker_icon = 1
-
 end
 
 --------------------------------------------------------------------------------
@@ -137,7 +136,7 @@ do
 				if unit == "player" then
 					self:MessageOld(spellId, "blue", "long", CL.you:format(spellName))
 					self:Flash(spellId)
-					self:Say(spellId)
+					self:Say(spellId, nil, nil, spellId == 215443 and "Necrotic Venom" or "Twisting Shadows")
 
 					local _, _, _, expires = self:UnitDebuff(unit, spellName)
 					local remaining = expires-GetTime()

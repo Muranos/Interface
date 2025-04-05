@@ -21,6 +21,7 @@ if L then
 
 	L.debuffs_message = "3/5 减益，注意！"
 	L.debuffs_warning = "4/5 减益， 5层后将%s！"
+	L.bronze = "青铜"
 
 	L.vulnerability = "弱点警报"
 	L.vulnerability_desc = "克洛玛古斯弱点改变时发出警报。"
@@ -32,8 +33,6 @@ end
 L = BigWigs:NewBossLocale("Nefarian Classic", "zhCN")
 if L then
 	L.engage_yell_trigger = "比赛现在开始"
-	L.landing_soon_trigger = "干得好，我的手下。"
-	L.stage2_yell_trigger = "燃烧吧！"
 	L.stage3_yell_trigger = "不可能"
 
 	L.shaman_class_call_yell_trigger = "萨满祭司"
@@ -64,10 +63,13 @@ end
 L = BigWigs:NewBossLocale("Blackwing Lair Trash", "zhCN")
 if L then
 	L.wyrmguard_overseer = "黑翼龙人护卫 / 黑翼监工" -- NPC 12460 / 12461
+	L.sandstorm = "沙尘暴"
 
 	L.target_vulnerability = "目标弱点警报"
 	L.target_vulnerability_desc = "当你的目标是黑翼龙人护卫/黑翼监工时，显示它的弱点警报。"
 	L.target_vulnerability_message = "目标弱点: %s"
 	L.detect_magic_missing_message = "目标缺少侦测魔法"
 	L.detect_magic_warning = "法师必须对你的目标施放\124cff71d5ff\124Hspell:2855:0\124h[侦测魔法]\124h\124r，弱点警报才会有效。"
+
+	L.warlock = "黑翼管理者" -- NPC 12459
 end

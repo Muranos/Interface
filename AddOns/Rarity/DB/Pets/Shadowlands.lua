@@ -3,6 +3,10 @@ local addonName, addonTable = ...
 local L = LibStub("AceLocale-3.0"):GetLocale("Rarity")
 local CONSTANTS = addonTable.constants
 
+if LE_EXPANSION_LEVEL_CURRENT < LE_EXPANSION_SHADOWLANDS then
+	return {}
+end
+
 local shadowlandsPets = {
 	-- 9.0 Pets
 	["Feasting Larva"] = {
@@ -564,8 +568,6 @@ local shadowlandsPets = {
 		tooltipNpcs = { 168938, 167406 },
 		chance = 33,
 		statisticId = { 14455, 14458 }, -- Normal and LFR are the only two confirmed sources.
-		groupSize = 10,
-		equalOdds = true,
 		instanceDifficulties = {
 			[CONSTANTS.INSTANCE_DIFFICULTIES.NORMAL_RAID] = true,
 			[CONSTANTS.INSTANCE_DIFFICULTIES.LFR] = true,
@@ -607,8 +609,6 @@ local shadowlandsPets = {
 		tooltipNpcs = { 180018 },
 		chance = 100, -- Blind guess
 		statisticId = { 15143 }, -- Mythic is only confirmed source.
-		groupSize = 25,
-		equalOdds = true,
 		instanceDifficulties = { [CONSTANTS.INSTANCE_DIFFICULTIES.MYTHIC_RAID] = true },
 		lockoutDetails = {
 			mode = CONSTANTS.DEFEAT_DETECTION.MODE_AND,
@@ -631,8 +631,6 @@ local shadowlandsPets = {
 		tooltipNpcs = { 180018 },
 		chance = 100, -- Blind guess
 		statisticId = { 15140, 15143, 15142, 15141 }, -- All difficulties.
-		groupSize = 10,
-		equalOdds = true,
 		instanceDifficulties = {
 			[CONSTANTS.INSTANCE_DIFFICULTIES.MYTHIC_RAID] = true,
 			[CONSTANTS.INSTANCE_DIFFICULTIES.HEROIC_RAID] = true,
@@ -672,8 +670,6 @@ local shadowlandsPets = {
 		tooltipNpcs = { 175727 },
 		chance = 100, -- Blind guess
 		statisticId = { 15155, 15153, 15154, 15152 }, -- All difficulties.
-		groupSize = 10,
-		equalOdds = true,
 		instanceDifficulties = {
 			[CONSTANTS.INSTANCE_DIFFICULTIES.MYTHIC_RAID] = true,
 			[CONSTANTS.INSTANCE_DIFFICULTIES.HEROIC_RAID] = true,
@@ -713,8 +709,6 @@ local shadowlandsPets = {
 		tooltipNpcs = { 15990 },
 		chance = 100, -- Blind guess
 		statisticId = { 15169, 15171, 15172, 15170 }, -- All difficulties.
-		groupSize = 10,
-		equalOdds = true,
 		instanceDifficulties = {
 			[CONSTANTS.INSTANCE_DIFFICULTIES.MYTHIC_RAID] = true,
 			[CONSTANTS.INSTANCE_DIFFICULTIES.HEROIC_RAID] = true,
@@ -950,3 +944,4 @@ local shadowlandsPets = {
 }
 
 Rarity.ItemDB.MergeItems(Rarity.ItemDB.pets, shadowlandsPets)
+return shadowlandsPets

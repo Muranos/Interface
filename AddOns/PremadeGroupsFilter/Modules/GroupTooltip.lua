@@ -23,10 +23,13 @@ local L = PGF.L
 local C = PGF.C
 
 function PGF.AddClassSpecListing(tooltip, resultID, searchResultInfo)
+    tooltip:AddLine(" ")
+    tooltip:AddLine(CLASS_ROLES)
+
     local members = PGF.GetSearchResultMemberInfoTable(resultID, searchResultInfo.numMembers)
     for _, m in pairs(members) do
         local roleClassSpec
-        if m.specLocalized and m.specLocalized ~= "" then -- no real specs in Wrath
+        if m.specLocalized and m.specLocalized ~= "" then -- no real specs in classic editions
             roleClassSpec = string.format("%s %s - %s %s", m.roleMarkup, m.classLocalized, m.specLocalized, m.leaderMarkup)
         else
             roleClassSpec = string.format("%s %s %s", m.roleMarkup, m.classLocalized, m.leaderMarkup)
@@ -36,17 +39,22 @@ function PGF.AddClassSpecListing(tooltip, resultID, searchResultInfo)
 end
 
 function PGF.AddClassCountListing(tooltip, resultID, searchResultInfo)
+    tooltip:AddLine(" ")
+    tooltip:AddLine(CLASS_ROLES)
+
     local roles = {}
     local classInfo = {}
     for i = 1, searchResultInfo.numMembers do
-        local role, class, classLocalized = C_LFGList.GetSearchResultMemberInfo(resultID, i)
-        classInfo[class] = {
-            name = classLocalized,
-            color = RAID_CLASS_COLORS[class] or NORMAL_FONT_COLOR
-        }
-        if not roles[role] then roles[role] = {} end
-        if not roles[role][class] then roles[role][class] = 0 end
-        roles[role][class] = roles[role][class] + 1
+        local role, class, classLocalized = PGF.GetSearchResultMemberInfo(resultID, i)
+        if role and class then -- can be nil, see #297
+            classInfo[class] = {
+                name = classLocalized or "?",
+                color = RAID_CLASS_COLORS[class] or NORMAL_FONT_COLOR
+            }
+            if not roles[role] then roles[role] = {} end
+            if not roles[role][class] then roles[role][class] = 0 end
+            roles[role][class] = roles[role][class] + 1
+        end
     end
 
     for role, classes in pairs(roles) do
@@ -63,7 +71,7 @@ end
 function PGF.OnLFGListUtilSetSearchEntryTooltip(tooltip, resultID, autoAcceptOption)
     if not PremadeGroupsFilterSettings.classNamesInTooltip then return end
 
-    local searchResultInfo = C_LFGList.GetSearchResultInfo(resultID)
+    local searchResultInfo = PGF.GetSearchResultInfo(resultID)
     local activityInfo = C_LFGList.GetActivityInfoTable(searchResultInfo.activityID)
 
     -- do not show members where Blizzard already does that
@@ -76,13 +84,18 @@ function PGF.OnLFGListUtilSetSearchEntryTooltip(tooltip, resultID, autoAcceptOpt
     -- Comment         ?
 
     if searchResultInfo.isDelisted or not tooltip:IsShown() then return end
-    tooltip:AddLine(" ")
-    tooltip:AddLine(CLASS_ROLES)
 
-    if activityInfo.displayType == Enum.LFGListDisplayType.RoleEnumerate then
-        PGF.AddClassSpecListing(tooltip, resultID, searchResultInfo)
-    else
+    -- restore age dropped in 10.2.7
+    if searchResultInfo.age > 0 then
+        tooltip:AddLine(" ")
+        tooltip:AddLine(string.format(LFG_LIST_TOOLTIP_AGE, SecondsToTime(searchResultInfo.age, false, false, 1, false)));
+    end
+
+    if activityInfo.displayType ~= Enum.LFGListDisplayType.ClassEnumerate and
+            activityInfo.displayType ~= Enum.LFGListDisplayType.RoleEnumerate then
         PGF.AddClassCountListing(tooltip, resultID, searchResultInfo)
+    elseif not PGF.IsRetail() then -- retail has spec enumeration since 10.2.7
+        PGF.AddClassSpecListing(tooltip, resultID, searchResultInfo)
     end
     tooltip:Show()
 end

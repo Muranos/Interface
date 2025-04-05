@@ -595,7 +595,61 @@ local instanceMixins = {
 		instance:ResetWindow()
 		instance:RefreshWindow(true)
 	end,
+
+	---open a window with the keys and values of the actor object being shown in the line index
+	---this function doesn't not return the values, it will 'dump' the values in a new window by calling 'dumpt'
+	---@param self instance
+	---@param index number
+	GetActorInfoFromLineIndex = function(self, index)
+		local actor = self.barras[index] and self.barras[index].minha_tabela
+		if (actor) then
+			Details:DumpActorInfo(actor)
+		else
+			Details:Msg("no actor found in line index", index)
+		end
+	end,
 }
+
+function Details:DumpActorInfo(actor)
+	local tableToDump = Details:GenerateActorInfo(actor)
+	dumpt(tableToDump)
+end
+
+local tablesToIgnore = {
+	["pets"] = "type = table",
+	["friendlyfire"] = "type = table",
+	["damage_from"] = "type = table",
+	["targets"] = "type = table",
+	["raid_targets"] = "type = table",
+	["minha_barra"] = "type = table",
+	["__index"] = "type = table",
+	["spells"] = "type = table",
+}
+
+function Details:GenerateActorInfo(actor, errorText, bIncludeStack)
+	local tableToDump = {}
+	for k, v in pairs(actor) do
+		if (not tablesToIgnore[k]) then
+			if (type(k) == "string") then
+				if (type(v) == "number" or type(v) == "string"or type(v) == "boolean") then
+					tableToDump[k] = v
+				elseif (type(v) == "table") then
+					tableToDump[k] = "table{}"
+				end
+			end
+		end
+	end
+
+	if (errorText) then
+		tableToDump["__ERRORTEXT"] = errorText
+	end
+
+	if (bIncludeStack) then
+		tableToDump["__STACKCALL"] = debugstack(2)
+	end
+
+	return tableToDump
+end
 
 ---get the table with all instances, these instance could be not initialized yet, some might be open, some not in use
 ---@return instance[]
@@ -1413,7 +1467,7 @@ function Details:BaseFrameSnap()
 		if (instancia_alvo) then
 			if (instancia_alvo.ativa and instancia_alvo.baseframe) then
 				if (lado == 1) then --a esquerda
-					instancia_alvo.baseframe:SetPoint("TOPRIGHT", my_baseframe, "TOPLEFT")
+					instancia_alvo.baseframe:SetPoint("TOPRIGHT", my_baseframe, "TOPLEFT", -Details.grouping_horizontal_gap, 0)
 
 				elseif (lado == 2) then --em baixo
 					local statusbar_y_mod = 0
@@ -1423,7 +1477,7 @@ function Details:BaseFrameSnap()
 					instancia_alvo.baseframe:SetPoint("TOPLEFT", my_baseframe, "BOTTOMLEFT", 0, -34 + statusbar_y_mod)
 
 				elseif (lado == 3) then --a direita
-					instancia_alvo.baseframe:SetPoint("BOTTOMLEFT", my_baseframe, "BOTTOMRIGHT")
+					instancia_alvo.baseframe:SetPoint("BOTTOMLEFT", my_baseframe, "BOTTOMRIGHT", Details.grouping_horizontal_gap, 0)
 
 				elseif (lado == 4) then --em cima
 					local statusbar_y_mod = 0
@@ -1466,7 +1520,7 @@ function Details:BaseFrameSnap()
 					if (instancia_alvo.ativa and instancia_alvo.baseframe) then
 
 						if (lado_reverso == 1) then --a esquerda
-							instancia_alvo.baseframe:SetPoint("BOTTOMLEFT", instancia.baseframe, "BOTTOMRIGHT")
+							instancia_alvo.baseframe:SetPoint("BOTTOMLEFT", instancia.baseframe, "BOTTOMRIGHT", Details.grouping_horizontal_gap, 0)
 
 						elseif (lado_reverso == 2) then --em baixo
 
@@ -1478,7 +1532,7 @@ function Details:BaseFrameSnap()
 							instancia_alvo.baseframe:SetPoint("BOTTOMLEFT", instancia.baseframe, "TOPLEFT", 0, 34 + statusbar_y_mod) -- + (statusbar_y_mod*-1)
 
 						elseif (lado_reverso == 3) then --a direita
-							instancia_alvo.baseframe:SetPoint("TOPRIGHT", instancia.baseframe, "TOPLEFT")
+							instancia_alvo.baseframe:SetPoint("TOPRIGHT", instancia.baseframe, "TOPLEFT", -Details.grouping_horizontal_gap, 0)
 
 						elseif (lado_reverso == 4) then --em cima
 
@@ -1505,7 +1559,7 @@ function Details:BaseFrameSnap()
 
 					if (instancia_alvo.ativa and instancia_alvo.baseframe) then
 						if (lado == 1) then --a esquerda
-							instancia_alvo.baseframe:SetPoint("TOPRIGHT", instancia.baseframe, "TOPLEFT")
+							instancia_alvo.baseframe:SetPoint("TOPRIGHT", instancia.baseframe, "TOPLEFT", -Details.grouping_horizontal_gap, 0)
 
 						elseif (lado == 2) then --em baixo
 							local statusbar_y_mod = 0
@@ -1515,7 +1569,7 @@ function Details:BaseFrameSnap()
 							instancia_alvo.baseframe:SetPoint("TOPLEFT", instancia.baseframe, "BOTTOMLEFT", 0, -34 + statusbar_y_mod)
 
 						elseif (lado == 3) then --a direita
-							instancia_alvo.baseframe:SetPoint("BOTTOMLEFT", instancia.baseframe, "BOTTOMRIGHT")
+							instancia_alvo.baseframe:SetPoint("BOTTOMLEFT", instancia.baseframe, "BOTTOMRIGHT", Details.grouping_horizontal_gap, 0)
 
 						elseif (lado == 4) then --em cima
 
@@ -1547,9 +1601,9 @@ function Details:agrupar_janelas(lados)
 
 			if (lado == 3) then --direita
 				--mover frame
-				instancia.baseframe:SetPoint("TOPRIGHT", esta_instancia.baseframe, "TOPLEFT")
-				instancia.baseframe:SetPoint("RIGHT", esta_instancia.baseframe, "LEFT")
-				instancia.baseframe:SetPoint("BOTTOMRIGHT", esta_instancia.baseframe, "BOTTOMLEFT")
+				instancia.baseframe:SetPoint("TOPRIGHT", esta_instancia.baseframe, "TOPLEFT", -Details.grouping_horizontal_gap, 0)
+				instancia.baseframe:SetPoint("RIGHT", esta_instancia.baseframe, "LEFT", -Details.grouping_horizontal_gap, 0)
+				instancia.baseframe:SetPoint("BOTTOMRIGHT", esta_instancia.baseframe, "BOTTOMLEFT", -Details.grouping_horizontal_gap, 0)
 
 				local _, height = esta_instancia:GetSize()
 				instancia:SetSize(nil, height)
@@ -1580,9 +1634,9 @@ function Details:agrupar_janelas(lados)
 			elseif (lado == 1) then --esquerda
 				--mover frame
 
-				instancia.baseframe:SetPoint("TOPLEFT", esta_instancia.baseframe, "TOPRIGHT")
-				instancia.baseframe:SetPoint("LEFT", esta_instancia.baseframe, "RIGHT")
-				instancia.baseframe:SetPoint("BOTTOMLEFT", esta_instancia.baseframe, "BOTTOMRIGHT")
+				instancia.baseframe:SetPoint("TOPLEFT", esta_instancia.baseframe, "TOPRIGHT", Details.grouping_horizontal_gap, 0)
+				instancia.baseframe:SetPoint("LEFT", esta_instancia.baseframe, "RIGHT", Details.grouping_horizontal_gap, 0)
+				instancia.baseframe:SetPoint("BOTTOMLEFT", esta_instancia.baseframe, "BOTTOMRIGHT", Details.grouping_horizontal_gap, 0)
 
 				local _, height = esta_instancia:GetSize()
 				instancia:SetSize(nil, height)
@@ -2594,7 +2648,7 @@ function Details:AtualizaSegmentos_AfterCombat(instancia)
 		instancia.v_barras = true
 		instancia:ResetaGump()
 		instancia:RefreshMainWindow(true)
-		Details:AtualizarJanela (instancia)
+		Details:UpdateWindow (instancia)
 
 	elseif (segmento < Details.segments_amount and segmento > 0) then
 		instancia.showing = segmentsTable[segmento]
@@ -2605,7 +2659,7 @@ function Details:AtualizaSegmentos_AfterCombat(instancia)
 		instancia.v_barras = true
 		instancia:ResetaGump()
 		instancia:RefreshMainWindow(true)
-		Details:AtualizarJanela (instancia)
+		Details:UpdateWindow (instancia)
 	end
 end
 
@@ -3482,7 +3536,7 @@ function Details:monta_relatorio (este_relatorio, custom)
 
 		if (already_exists) then
 			--push it to  front
-			local t = tremove(Details.latest_report_table, already_exists)
+			local t = table.remove(Details.latest_report_table, already_exists)
 			t [4] = amt
 			table.insert(Details.latest_report_table, 1, t)
 		else
@@ -3494,7 +3548,7 @@ function Details:monta_relatorio (este_relatorio, custom)
 			end
 		end
 
-		tremove(Details.latest_report_table, 11)
+		table.remove(Details.latest_report_table, 11)
 	end
 
 	local barras = self.barras
@@ -3637,7 +3691,7 @@ function Details:monta_relatorio (este_relatorio, custom)
 			Details:FormatReportLines (report_lines, t, report_name_function, report_amount_function, report_build_line)
 		else
 			for i = #raw_data_to_report, amt+1, -1 do
-				tremove(raw_data_to_report, i)
+				table.remove(raw_data_to_report, i)
 			end
 			Details:FormatReportLines (report_lines, raw_data_to_report, report_name_function, report_amount_function, report_build_line)
 		end

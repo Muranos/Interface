@@ -369,6 +369,14 @@
 			"GetNumSubgroupMembers",
 			"GetNumGroupMembers",
 			"UnitExists"
-		]
-	}
+		],
+		"Lua.misc.parameters": [
+			"--develop=true",
+			"--dbgport=11428"
+		],	
+	},
+	"launch": {
+		"version": "0.2.0",
+		"configurations": []
+	},
 }

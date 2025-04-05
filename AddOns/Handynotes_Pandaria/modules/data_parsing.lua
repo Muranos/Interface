@@ -1,87 +1,34 @@
-local addonName, shared = ...;
+local _, addon = ...;
+
+local tinsert = _G.tinsert;
 
 local GetAchievementNumCriteria = _G.GetAchievementNumCriteria;
 local GetAchievementCriteriaInfo = _G.GetAchievementCriteriaInfo;
 
-local addon = shared.addon;
-
 local function parseData ()
-  local rareInfo = shared.rareData;
-  local treasureInfo = shared.treasureData;
-
-  local function parseMountData ()
-    local mountData = shared.mountData;
-
-    if (mountData == nil) then return end
-
-    for mountId, rareList in pairs(mountData) do
-      if (type(rareList) ~= 'table') then
-        rareList = {rareList};
-      end
-
-      for x = 1, #rareList, 1 do
-        local rareId = rareList[x];
-        local rareData = rareInfo[rareId];
-
-        if (rareData == nil) then
-          rareInfo[rareId] = {mounts = {mountId}};
-        elseif (rareData.mounts == nil) then
-          rareData.mounts = {mountId};
-        else
-          table.insert(rareData.mounts, mountId);
-        end
-      end
-    end
-
-    shared.mountData = nil;
-  end
-
-  local function parseToyData ()
-    local toyData = shared.toyData;
-
-    if (toyData == nil) then return end
-
-    for toyId, rareList in pairs(toyData) do
-      if (type(rareList) ~= 'table') then
-        rareList = {rareList};
-      end
-
-      for x = 1, #rareList, 1 do
-        local rareId = rareList[x];
-        local rareData = rareInfo[rareId];
-
-        if (rareData == nil) then
-          rareInfo[rareId] = {toys = {toyId}};
-        elseif (rareData.toys == nil) then
-          rareData.toys = {toyId};
-        else
-          table.insert(rareData.toys, toyId);
-        end
-      end
-    end
-
-    shared.toyData = nil;
-  end
+  local rareInfo = addon.rareData;
+  local treasureInfo = addon.treasureData;
 
   local function parseAchievementdata ()
-    local achievementData = shared.achievementData;
+    local achievementData = addon.achievementData;
 
     if (achievementData == nil) then return end
 
-    local function addAchievementInfo (infoTable, id, achievementId, criteriaIndex, description)
+    local function addAchievementInfo (infoTable, id, achievementId, criteriaIndex)
       local data;
 
       infoTable[id] = infoTable[id] or {};
       data = infoTable[id];
 
-      data.achievements = data.achievements or {};
-      table.insert(data.achievements, {
-        id = achievementId,
-        index = criteriaIndex,
-      });
-
-      if (description ~= nil and data.description == nil) then
-        data.description = description;
+      if (data.achievements == nil) then
+        data.achievements = achievementId;
+        data.criteria = criteriaIndex;
+      elseif (type(data.achievements) == 'table') then
+        tinsert(data.achievements, achievementId);
+        tinsert(data.criteria, criteriaIndex);
+      else
+        data.achievements = {data.achievements, achievementId};
+        data.criteria = {data.criteria, criteriaIndex};
       end
 
       return data;
@@ -92,8 +39,8 @@ local function parseData ()
 
       if (rareAchievementData == nil) then return end
 
-      local function addRareAchievementInfo (rareId, achievementId, criteriaIndex, description)
-        local rareData = addAchievementInfo(rareInfo, rareId, achievementId, criteriaIndex, description);
+      local function addRareAchievementInfo (rareId, achievementId, criteriaIndex)
+        local rareData = addAchievementInfo(rareInfo, rareId, achievementId, criteriaIndex);
 
         if (rareData.name == nil and criteriaIndex > 0) then
           local numCriteria = GetAchievementNumCriteria(achievementId);
@@ -142,8 +89,7 @@ local function parseData ()
               rareData = {id = rareData};
             end
 
-            addRareAchievementInfo(rareData.id, achievement,
-                rareData.index or -1, rareData.description);
+            addRareAchievementInfo(rareData.id, achievement, rareData.index or x);
           end
         end
       end
@@ -157,8 +103,30 @@ local function parseData ()
 
       if (treasureAchievementData == nil) then return end
 
-      local function addTreasureAchievementInfo (treasureId, achievementId, criteriaIndex, description)
-        addAchievementInfo(treasureInfo, treasureId, achievementId, criteriaIndex, description);
+      local function addTreasureAchievementInfo (treasureId, achievementId, criteriaIndex)
+        addAchievementInfo(treasureInfo, treasureId, achievementId, criteriaIndex);
+      end
+
+      local function parseDynamicData ()
+        local achievementList = treasureAchievementData.auto;
+
+        if (achievementList == nil) then return end
+
+        for _, achievementId in ipairs(achievementList) do
+          local numCriteria  = GetAchievementNumCriteria(achievementId);
+
+          for x = 1, numCriteria, 1 do
+            local criteriaInfo = {GetAchievementCriteriaInfo(achievementId, x)};
+            local treasureId = criteriaInfo[8];
+
+            -- -- this is for detecting unhandled rares
+            -- if (rareId == nil or rareId == 0) then
+            --   print(y, criteriaInfo[1], '-', rareId);
+            -- end
+
+            addTreasureAchievementInfo(treasureId, achievementId, x);
+          end
+        end
       end
 
       local function parseStaticData ()
@@ -175,11 +143,12 @@ local function parseData ()
             end
 
             addTreasureAchievementInfo(treasureData.id, achievement,
-                treasureData.index or -1, treasureData.description);
+                treasureData.index or -1);
           end
         end
       end
 
+      parseDynamicData();
       parseStaticData();
     end
 
@@ -187,12 +156,16 @@ local function parseData ()
     parseTreasureData();
   end
 
-  parseMountData();
-  parseToyData();
   parseAchievementdata();
-
-  shared.achievementData = nil;
-  shared.mountData = nil;
+  addon.achievementData = nil;
 end
 
-addon.on('PLAYER_LOGIN', parseData);
+--[[ Some character and anchievement data is only available after PLAYER_LOGIN
+     and event callbacks are not called in order. Therefore waiting for one
+     frame after PLAYER_LOGIN is required. ]]
+addon.onOnce('PLAYER_LOGIN', function ()
+  _G.C_Timer.After(0, function ()
+    parseData();
+    addon.integrateWithHandyNotes();
+  end);
+end);

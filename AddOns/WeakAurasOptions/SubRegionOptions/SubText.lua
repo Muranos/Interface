@@ -21,6 +21,8 @@ local self_point_types = {
   AUTO = L["Automatic"]
 }
 
+local dynamicTextInputs = {}
+
 local function createOptions(parentData, data, index, subIndex)
   -- The toggles for font flags is intentionally not keyed on the id
   -- So that all auras share the state of that toggle
@@ -48,17 +50,45 @@ local function createOptions(parentData, data, index, subIndex)
     },
     text_text = {
       type = "input",
-      width = WeakAuras.normalWidth,
-      desc = function()
-        return L["Dynamic text tooltip"] .. OptionsPrivate.Private.GetAdditionalProperties(parentData)
-      end,
+      width = WeakAuras.normalWidth - 0.15,
       name = L["Display Text"],
       order = 11,
       set = function(info, v)
         data.text_text = OptionsPrivate.Private.ReplaceLocalizedRaidMarkers(v)
         WeakAuras.Add(parentData)
         WeakAuras.ClearAndUpdateOptions(parentData.id)
-      end
+      end,
+      control = "WeakAurasInput",
+      callbacks = {
+        OnEditFocusGained = function(self)
+          local widget = dynamicTextInputs[subIndex]
+          OptionsPrivate.ToggleTextReplacements(parentData, widget, "OnEditFocusGained")
+        end,
+        OnEditFocusLost = function(self)
+          OptionsPrivate.ToggleTextReplacements(nil, nil, "OnEditFocusLost")
+        end,
+        OnEnterPressed = function(self)
+          OptionsPrivate.ToggleTextReplacements(nil, nil, "OnEnterPressed")
+        end,
+        OnShow = function(self)
+          dynamicTextInputs[subIndex] = self
+        end,
+      }
+    },
+    text_replacements_button = {
+      type = "execute",
+      width = 0.15,
+      name = L["Dynamic Text Replacements"],
+      desc = L["There are several special codes available to make this text dynamic. Click to view a list with all dynamic text codes."],
+      order = 11.1,
+      func = function()
+        local widget = dynamicTextInputs[subIndex]
+        OptionsPrivate.ToggleTextReplacements(parentData, widget, "ToggleButton")
+      end,
+      imageWidth = 24,
+      imageHeight = 24,
+      control = "WeakAurasIcon",
+      image = "Interface\\AddOns\\WeakAuras\\Media\\Textures\\sidebar",
     },
     text_font = {
       type = "select",
@@ -293,7 +323,7 @@ local function createOptions(parentData, data, index, subIndex)
     control = "WeakAurasExpandSmall",
     name = function()
       local selfPoint = data.text_selfPoint ~= "AUTO" and self_point_types[data.text_selfPoint]
-      local anchorPoint = anchors[data.text_anchorPoint or "CENTER"] or anchors["CENTER"]
+      local anchorPoint = anchors[data.anchor_point or "CENTER"] or anchors["CENTER"]
 
       local xOffset = data.text_anchorXOffset or 0
       local yOffset = data.text_anchorYOffset or 0
@@ -358,7 +388,7 @@ local function createOptions(parentData, data, index, subIndex)
     hidden = hiddenFunction
   }
 
-  options.text_anchorPoint = {
+  options.anchor_point = {
     type = "select",
     width = WeakAuras.normalWidth,
     name = function()

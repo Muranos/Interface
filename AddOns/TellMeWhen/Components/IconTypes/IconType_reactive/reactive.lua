@@ -1,6 +1,6 @@
 ﻿-- --------------------
 -- TellMeWhen
--- Originally by Nephthys of Hyjal <lieandswell@yahoo.com>
+-- Originally by NephMakes
 
 -- Other contributions by:
 --		Sweetmms of Blackrock, Oozebull of Twisting Nether, Oodyboo of Mug'thol,
@@ -14,17 +14,25 @@ local TMW = TMW
 if not TMW then return end
 local L = TMW.L
 
-local print = TMW.print
-local GetSpellCooldown, IsUsableSpell, GetSpellInfo, GetSpellCharges, GetSpellCount =
-	  GetSpellCooldown, IsUsableSpell, GetSpellInfo, GetSpellCharges, GetSpellCount
 local _, pclass = UnitClass("player")
 
+local print = TMW.print
+
+local GetSpellInfo = TMW.GetSpellInfo
+local GetSpellName = TMW.GetSpellName
 local GetSpellTexture = TMW.GetSpellTexture
+local GetSpellCharges = TMW.COMMON.Cooldowns.GetSpellCharges
+local GetSpellCooldown = TMW.COMMON.Cooldowns.GetSpellCooldown
+local GetSpellCastCount = TMW.COMMON.Cooldowns.GetSpellCastCount
+local IsUsableSpell = TMW.COMMON.SpellUsable.IsUsableSpell
+
+local spellTextureCache = TMW.spellTextureCache
 local strlowerCache = TMW.strlowerCache
 local OnGCD = TMW.OnGCD
-local SpellHasNoMana = TMW.SpellHasNoMana
 local GetRuneCooldownDuration = TMW.GetRuneCooldownDuration
-local IsSpellInRange = LibStub("SpellRange-1.0").IsSpellInRange
+
+local SpellRange = TMW.COMMON.SpellRange
+local IsSpellInRange = SpellRange.IsSpellInRange
 
 local Type = TMW.Classes.IconType:New("reactive")
 Type.name = L["ICONMENU_REACTIVE"]
@@ -133,14 +141,33 @@ end)
 
 
 local function Reactive_OnEvent(icon, event, arg1)
-	-- If icon.UseActvtnOverlay == true, treat the icon as usable if the spell has an activation overlay glow.
-	if icon.Spells.First == arg1 or strlowerCache[GetSpellInfo(arg1)] == icon.Spells.FirstString then
-		icon.activationOverlayActive = event == "SPELL_ACTIVATION_OVERLAY_GLOW_SHOW"
-		icon.NextUpdateTime = 0
+	if event == "TMW_SPELL_UPDATE_USABLE" then
+		if not arg1 then
+			icon.NextUpdateTime = 0
+		else
+			local NameArray = icon.Spells.Array;
+			for _, spell in pairs(NameArray) do
+				if arg1[spell] then
+					icon.NextUpdateTime = 0
+					return
+				end
+			end
+		end
+
+	elseif event == "SPELL_ACTIVATION_OVERLAY_GLOW_SHOW"
+	    or event == "SPELL_ACTIVATION_OVERLAY_GLOW_HIDE"
+	then
+		-- If icon.UseActvtnOverlay == true, treat the icon as usable if the spell has an activation overlay glow.
+		if icon.Spells.First == arg1 or strlowerCache[GetSpellName(arg1)] == icon.Spells.FirstString then
+			icon.activationOverlayActive = event == "SPELL_ACTIVATION_OVERLAY_GLOW_SHOW"
+			icon.NextUpdateTime = 0
+		end
 	end
 end
 
-local mindfreeze = GetSpellInfo(47528) and strlower(GetSpellInfo(47528))
+local emptyTable = {}
+local offCooldown = { startTime = 0, duration = 0 }
+local mindfreeze = GetSpellName(47528) and strlower(GetSpellName(47528))
 local function Reactive_OnUpdate(icon, time)
 
 	-- Upvalue things that will be referenced a lot in our loops.
@@ -150,7 +177,7 @@ local function Reactive_OnUpdate(icon, time)
 	local activationOverlayActive = icon.activationOverlayActive
 
 	-- These variables will hold all the attributes that we pass to SetInfo().
-	local inrange, nomana, start, duration, CD, usable, charges, maxCharges, chargeStart, chargeDur, stack, start_charge, duration_charge
+	local inrange, noMana, cooldown, CD, usable, charges, stack, start_charge, duration_charge
 
 	local numChecked = 1
 	local runeCD = IgnoreRunes and GetRuneCooldownDuration()
@@ -161,29 +188,28 @@ local function Reactive_OnUpdate(icon, time)
 		numChecked = i
 		
 
-		start, duration = GetSpellCooldown(iName)
-		charges, maxCharges, chargeStart, chargeDur = GetSpellCharges(iName)
-		stack = charges or GetSpellCount(iName)
+		cooldown = GetSpellCooldown(iName)
+		charges = GetSpellCharges(iName) or emptyTable
+		stack = charges and charges.currentCharges or GetSpellCastCount(iName)
 		
-		if duration then
+		if cooldown then
+			local duration = cooldown.duration
 			inrange, CD = true, nil
 
 			if RangeCheck then
 				inrange = IsSpellInRange(iName, "target")
-				if inrange == 1 or inrange == nil then
+				if inrange == nil then
 					inrange = true
-				else
-					inrange = false
 				end
 			end
 
-			usable, nomana = IsUsableSpell(iName)
+			usable, noMana = IsUsableSpell(iName)
 			if IgnoreNomana then
-				usable = usable or nomana
+				usable = usable or noMana
 			end
 
 			if not ManaCheck then
-				nomana = nil
+				noMana = nil
 			end
 
 			if CooldownCheck then
@@ -193,7 +219,8 @@ local function Reactive_OnUpdate(icon, time)
 					
 					-- In Wrath, mind Freeze has an actual CD of 10 seconds though, and doesn't cost runes,
 					-- so it is excluded from this logic.
-					start, duration = 0, 0
+					cooldown = offCooldown
+					duration = 0
 				end
 				CD = not (duration == 0 or OnGCD(duration))
 			end
@@ -203,12 +230,12 @@ local function Reactive_OnUpdate(icon, time)
 			else
 				usable = activationOverlayActive or usable
 			end
-			if usable and not CD and not nomana and inrange then --usable
-				icon:SetInfo("state; texture; start, duration; charges, maxCharges, chargeStart, chargeDur; stack, stackText; spell",
+			if usable and not CD and not noMana and inrange then --usable
+				icon:SetInfo("state; texture; start, duration, modRate; charges, maxCharges, chargeStart, chargeDur; stack, stackText; spell",
 					STATE_USABLE,
-					GetSpellTexture(iName),
-					start, duration,
-					charges, maxCharges, chargeStart, chargeDur,
+					spellTextureCache[iName],
+					cooldown.startTime, cooldown.duration, cooldown.modRate,
+					charges.currentCharges, charges.maxCharges, charges.cooldownStartTime, charges.cooldownDuration,
 					stack, stack,
 					iName		
 				)
@@ -223,39 +250,37 @@ local function Reactive_OnUpdate(icon, time)
 	local NameFirst = icon.Spells.First
 	if numChecked > 1 then
 
-		start, duration = GetSpellCooldown(NameFirst)
-		charges, maxCharges, chargeStart, chargeDur = GetSpellCharges(NameFirst)
-		stack = charges or GetSpellCount(NameFirst)
+		cooldown = GetSpellCooldown(NameFirst)
+		charges = GetSpellCharges(NameFirst) or emptyTable
+		stack = charges and charges.currentCharges or GetSpellCastCount(NameFirst)
 
-		if IgnoreRunes and duration == runeCD and NameFirst ~= mindfreeze and NameFirst ~= 47528 then
+		if IgnoreRunes and (cooldown and cooldown.duration) == runeCD and NameFirst ~= mindfreeze and NameFirst ~= 47528 then
 			-- DK abilities that are on cooldown because of runes are always reported
 			-- as having a cooldown duration of 10 seconds. We use this fact to filter out rune cooldowns.
 			
 			-- In Wrath, mind Freeze has an actual CD of 10 seconds though, and doesn't cost runes,
 			-- so it is excluded from this logic.
-			start, duration = 0, 0
+			cooldown = offCooldown
 		end
 
-		inrange, nomana = true, nil
+		inrange, noMana = true, nil
 		if RangeCheck then
 			inrange = IsSpellInRange(NameFirst, "target")
-			if inrange == 1 or inrange == nil then
+			if inrange == nil then
 				inrange = true
-			else
-				inrange = false
 			end
 		end
 		if ManaCheck then
-			nomana = SpellHasNoMana(NameFirst)
+			usable, noMana = IsUsableSpell(NameFirst)
 		end
 	end
 	
-	if duration then
+	if cooldown then
 		icon:SetInfo("state; texture; start, duration; charges, maxCharges, chargeStart, chargeDur; stack, stackText; spell",
-			not inrange and STATE_UNUSABLE_NORANGE or nomana and STATE_UNUSABLE_NOMANA or STATE_UNUSABLE,
+			not inrange and STATE_UNUSABLE_NORANGE or noMana and STATE_UNUSABLE_NOMANA or STATE_UNUSABLE,
 			icon.FirstTexture,
-			start, duration,
-			charges, maxCharges, chargeStart, chargeDur,
+			cooldown.startTime, cooldown.duration,
+			charges.currentCharges, charges.maxCharges, charges.cooldownStartTime, charges.cooldownDuration,
 			stack, stack,
 			NameFirst
 		)
@@ -278,31 +303,40 @@ function Type:Setup(icon)
 		icon.IgnoreRunes = nil
 	end
 	
-
+	local isManual = true
+	if icon.RangeCheck then
+		for _, spell in pairs(icon.Spells.Array) do
+			if not SpellRange.HasRangeEvents(spell) then
+				isManual = false
+				break
+			end
+		end
+	end
 
 	-- Register events and setup update functions
+	icon:SetScript("OnEvent", Reactive_OnEvent)
+
 	if icon.UseActvtnOverlay then
 		icon:RegisterEvent("SPELL_ACTIVATION_OVERLAY_GLOW_SHOW")
 		icon:RegisterEvent("SPELL_ACTIVATION_OVERLAY_GLOW_HIDE")
-		icon:SetScript("OnEvent", Reactive_OnEvent)
 	end
 	
-	if not icon.RangeCheck then
-		-- There are no events for when you become in range/out of range for a spell
+	if isManual then
+		-- Normally we'd need to watch SPELLS_CHANGED to handle updates to `icon.Spells`,
+		-- but it gets handled by proxy through TMW_SPELL_UPDATE_USABLE.
 
-		icon:RegisterSimpleUpdateEvent("SPELL_UPDATE_COOLDOWN")
-		icon:RegisterSimpleUpdateEvent("SPELL_UPDATE_USABLE")
-		icon:RegisterSimpleUpdateEvent("SPELL_UPDATE_CHARGES")
+		icon:RegisterEvent("TMW_SPELL_UPDATE_USABLE")
+		icon:RegisterSimpleUpdateEvent("TMW_SPELL_UPDATE_COOLDOWN")
+		icon:RegisterSimpleUpdateEvent("TMW_SPELL_UPDATE_CHARGES")
+		if icon.RangeCheck then
+			icon:RegisterSimpleUpdateEvent("TMW_SPELL_UPDATE_RANGE")
+		end
 		if icon.IgnoreRunes then
 			if GetRuneType then
 				icon:RegisterSimpleUpdateEvent("RUNE_TYPE_UPDATE")
 			end
 			icon:RegisterSimpleUpdateEvent("RUNE_POWER_UPDATE")
 		end	
-		if icon.ManaCheck then
-			icon:RegisterSimpleUpdateEvent("UNIT_POWER_FREQUENT", "player")
-			-- icon:RegisterSimpleUpdateEvent("SPELL_UPDATE_USABLE") -- already registered
-		end
 	
 		icon:SetUpdateMethod("manual")
 	end

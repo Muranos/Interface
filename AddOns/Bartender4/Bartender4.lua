@@ -10,11 +10,12 @@ local L = LibStub("AceLocale-3.0"):GetLocale("Bartender4")
 
 local WoWClassic = (WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE)
 local WoWWrath = (WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC)
+local WoWCata = (WOW_PROJECT_ID == WOW_PROJECT_CATACLYSM_CLASSIC)
 local WoW10 = select(4, GetBuildInfo()) >= 100000
 
 local LDB = LibStub("LibDataBroker-1.1", true)
 local LDBIcon = LibStub("LibDBIcon-1.0", true)
-local LibDualSpec = (not WoWClassic or WoWWrath) and LibStub("LibDualSpec-1.0", true)
+local LibDualSpec = (not WoWClassic or WoWWrath or WoWCata) and LibStub("LibDualSpec-1.0", true)
 
 local _G = _G
 local type, pairs, hooksecurefunc = type, pairs, hooksecurefunc
@@ -286,7 +287,7 @@ function Bartender4:ShowUnlockDialog()
 		desc:SetPoint("BOTTOMRIGHT", -18, 48)
 		desc:SetText(L["Bars unlocked. Move them now and click Lock when you are done."])
 
-		local snapping = CreateFrame("CheckButton", "Bartender4Snapping", f, WoW10 and "UICheckButtonTemplate" or "OptionsCheckButtonTemplate")
+		local snapping = CreateFrame("CheckButton", "Bartender4Snapping", f, "UICheckButtonTemplate")
 		_G[snapping:GetName() .. "Text"]:SetText(L["Bar Snapping"])
 
 		snapping:SetScript("OnShow", function(frame)
@@ -297,7 +298,7 @@ function Bartender4:ShowUnlockDialog()
 			setSnap(frame:GetChecked())
 		end)
 
-		local lockBars = CreateFrame("CheckButton", "Bartender4DialogLock", f, WoW10 and "UIPanelButtonTemplate" or "OptionsButtonTemplate")
+		local lockBars = CreateFrame("CheckButton", "Bartender4DialogLock", f, "UIPanelButtonTemplate")
 		lockBars:SetWidth(150)
 		_G[lockBars:GetName() .. "Text"]:SetText(L["Lock"])
 
@@ -371,6 +372,15 @@ function Bartender4.Util:Merge(target, source)
 		end
 	end
 	return target
+end
+
+Bartender4.Compat = {}
+if C_Spell and C_Spell.GetSpellName then
+	Bartender4.Compat.GetSpellName = C_Spell.GetSpellName
+else
+	function Bartender4.Compat.GetSpellName(id)
+		return (GetSpellInfo(id))
+	end
 end
 
 Bartender4.modulePrototype = {}

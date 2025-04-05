@@ -1,6 +1,6 @@
 # Prat 3.0
 
-## [3.9.1-1-g6978fc8](https://github.com/sylvanaar/prat-3-0/tree/6978fc805bff74a62d91b9c0a793031a208f93c5) (2021-02-13)
-[Full Changelog](https://github.com/sylvanaar/prat-3-0/compare/3.9.1...6978fc805bff74a62d91b9c0a793031a208f93c5) [Previous Releases](https://github.com/sylvanaar/prat-3-0/releases)
+## [3.9.65](https://github.com/Legacy-of-Sylvanaar/prat-3-0/tree/3.9.65) (2025-03-12)
+[Full Changelog](https://github.com/Legacy-of-Sylvanaar/prat-3-0/compare/3.9.64...3.9.65) [Previous Releases](https://github.com/Legacy-of-Sylvanaar/prat-3-0/releases)
 
-- Toc Updates  
+- [Fixes #230] Fix error when acquiring client icons for out-of-game friends  

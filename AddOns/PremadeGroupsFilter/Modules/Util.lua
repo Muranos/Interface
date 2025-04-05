@@ -124,6 +124,14 @@ function PGF.Table_Median(tbl)
     end
 end
 
+function PGF.Table_Invert(tbl)
+    local inverted = {}
+    for key, value in pairs(tbl) do
+        inverted[value] = key
+    end
+    return inverted
+end
+
 function PGF.IsMostLikelySameInstance(instanceName, activityName)
     -- instanceName is just the dungeon's name used in the lockout and challenge mode APIs, e.g. 'The Emerald Nightmare'
     local instanceNameLower = instanceName:lower()
@@ -138,7 +146,8 @@ function PGF.IsMostLikelySameInstance(instanceName, activityName)
 
     -- check word by word if every word of the activityName is contained in the instanceName
     for token in string.gmatch(activityNameWithoutDifficulty, "[^%s]+") do
-        if not string.find(instanceNameLower, token) then return false end
+        -- We want to use "plain" matching here as "Nerub-ar Palace" has a dash in it which is a special char
+        if not string.find(instanceNameLower, token, 1, true) then return false end
     end
 
     return true

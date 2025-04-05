@@ -147,7 +147,7 @@ function mod:ArchmageSolDefeated()
 	self:Bar("gate_open", 35.0, L.gate_open, L.gate_open_icon)
 end
 
-function mod:CHAT_MSG_MONSTER_YELL(_, msg, sender)
+function mod:CHAT_MSG_MONSTER_YELL(_, msg)
 	if msg == L.yalnu_warmup_trigger then
 		-- The portal is lost! We must stop this beast before it can escape!#Lady Baihu
 		local yalnuMod = BigWigs:GetBossModule("Yalnu", true)
@@ -183,7 +183,7 @@ do
 			self:Message(args.spellId, "yellow", CL.casting:format(args.spellName))
 			self:PlaySound(args.spellId, "alert")
 		end
-		--self:NameplateCDBar(args.spellId, 21.8, args.sourceGUID)
+		--self:Nameplate(args.spellId, 21.8, args.sourceGUID)
 	end
 end
 
@@ -220,7 +220,7 @@ do
 			self:Message(args.spellId, "red", CL.casting:format(args.spellName))
 			self:PlaySound(args.spellId, "alert")
 		end
-		--self:NameplateCDBar(args.spellId, 14.6, args.sourceGUID)
+		--self:Nameplate(args.spellId, 14.6, args.sourceGUID)
 	end
 end
 
@@ -266,7 +266,7 @@ do
 				self:PlaySound(args.spellId, "alert")
 			end
 		end
-		--self:NameplateCDBar(args.spellId, 19.4, args.sourceGUID)
+		--self:Nameplate(args.spellId, 19.4, args.sourceGUID)
 	end
 end
 
@@ -330,8 +330,8 @@ do
 			self:Message(args.spellId, "orange")
 			self:PlaySound(args.spellId, "alarm")
 		end
+		--self:Nameplate(args.spellId, 16.9, args.sourceGUID)
 	end
-	--self:NameplateCDBar(args.spellId, 16.9, args.sourceGUID)
 end
 
 -- Twisted Abomination
@@ -345,8 +345,8 @@ do
 			self:Message(args.spellId, "red")
 			self:PlaySound(args.spellId, "alert")
 		end
+		--self:Nameplate(args.spellId, 15.8, args.sourceGUID)
 	end
-	--self:NameplateCDBar(args.spellId, 15.8, args.sourceGUID)
 end
 
 -- Infested Icecaller
@@ -354,7 +354,7 @@ end
 function mod:ColdFusion(args)
 	self:Message(args.spellId, "yellow")
 	self:PlaySound(args.spellId, "alarm")
-	--self:NameplateCDBar(args.spellId, 21.8, args.sourceGUID)
+	--self:Nameplate(args.spellId, 21.8, args.sourceGUID)
 end
 
 -- Putrid Pyromancer
@@ -362,7 +362,7 @@ end
 function mod:CinderboltSalvo(args)
 	self:Message(args.spellId, "orange")
 	self:PlaySound(args.spellId, "alert")
-	--self:NameplateCDBar(args.spellId, 18.2, args.sourceGUID)
+	--self:Nameplate(args.spellId, 18.2, args.sourceGUID)
 end
 
 -- Addled Arcanomancer
@@ -370,5 +370,5 @@ end
 function mod:SpatialDisruption(args)
 	self:Message(args.spellId, "red")
 	self:PlaySound(args.spellId, "alarm")
-	--self:NameplateCDBar(args.spellId, 19.4, args.sourceGUID)
+	--self:Nameplate(args.spellId, 19.4, args.sourceGUID)
 end

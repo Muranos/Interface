@@ -1,196 +1,303 @@
 local E = select(2, ...):unpack()
 local P = E.Party
 
-local tonumber, sort, min, max = tonumber, table.sort, math.min, math.max
+local BarFrameIconMixin = {}
 
-local sortPriority = function(a, b)
-	local aprio, bprio = E.db.priority[a.type], E.db.priority[b.type]
-	if aprio == bprio then
-		return a.spellID < b.spellID
-	end
-	return aprio > bprio
-end
-P.sortPriority = sortPriority
-
-function P:SetIconLayout(frame, sortOrder)
-	local icons = frame.icons
-	local displayInactive = self.displayInactive
-
-	if sortOrder then
-		sort(icons, sortPriority)
-	end
-
-	local db_prio = E.db.priority
-	local count, rows, numActive, lastActiveIndex = 0, 1, 1
-	for i = 1, frame.numIcons do
-		local icon = icons[i]
-		icon:Hide()
-
-		if (displayInactive or icon.active) and (self.multiline or numActive <= self.maxNumIcons) then
-			icon:ClearAllPoints()
-			if numActive > 1 then
-				count = count + 1
-				if not self.multiline and count == self.columns or
-					(self.multiline and (rows == 1 and db_prio[icon.type] <= self.breakPoint or (self.tripleline and rows == 2 and db_prio[icon.type] <= self.breakPoint2))) then
-					if self.tripleline and rows == 1 and db_prio[icon.type] <= self.breakPoint2 then
-						rows = rows + 1
-					end
-					icon:SetPoint(self.point, frame.container, self.ofsX * rows, self.ofsY * rows)
-					count = 0
-					rows = rows + 1
-				else
-					icon:SetPoint(self.point2, icons[lastActiveIndex], self.relativePoint2, self.ofsX2, self.ofsY2)
-				end
-			else
-				if self.multiline and db_prio[icon.type] <= self.breakPoint then
-					if self.tripleline and rows == 1 and db_prio[icon.type] <= self.breakPoint2 then
-						rows = rows + 1
-					end
-					icon:SetPoint(self.point, frame.container, self.ofsX * rows, self.ofsY * rows)
-					rows = rows + 1
-				else
-					icon:SetPoint(self.point, frame.container)
-				end
-			end
-
-			numActive = numActive + 1
-			lastActiveIndex = i
-
-			if not self.multiline or count < self.maxNumIcons then
-				icon:Show()
-			end
+local textureUVs = { "borderTop", "borderBottom", "borderRight", "borderLeft" }
+function BarFrameIconMixin:HideBorder()
+	for _, pieceName in pairs(textureUVs) do
+		local region = self[pieceName]
+		if region then
+			region:Hide()
 		end
 	end
+	self.icon:SetTexCoord(0, 1, 0, 1)
 end
 
-function P:SetAnchor(frame)
-	local anchorShouldShow = E.db.position.detached and not E.db.position.locked
-	if anchorShouldShow or E.db.general.showAnchor then
-		frame.anchor:Show()
-	else
-		frame.anchor:Hide()
-	end
-
-	if anchorShouldShow then
-		frame.anchor:EnableMouse(true)
-		frame.anchor.background:SetColorTexture(0, 0.8, 0, 1)
-	else
-		frame.anchor:EnableMouse(false)
-		frame.anchor.background:SetColorTexture(0.756, 0, 0.012, 0.7)
-	end
-end
-
-function P:SetIconScale(frame)
-	local scale = E.db.icons.scale
-	frame.anchor:SetScale(min(max(0.7, scale), 1))
-	frame.container:SetScale(scale)
-end
-
-function P:SetBorder(icon, db)
-	if db.displayBorder then
-		icon.borderTop:ClearAllPoints()
-		icon.borderBottom:ClearAllPoints()
-		icon.borderRight:ClearAllPoints()
-		icon.borderLeft:ClearAllPoints()
-		local edgeSize = ( E.db.general.showRange and not E.db.position.detached and self.effectivePixelMult or E.PixelMult) / db.scale
-		icon.borderTop:SetPoint("TOPLEFT", icon, "TOPLEFT")
-		icon.borderTop:SetPoint("BOTTOMRIGHT", icon, "TOPRIGHT", 0, -edgeSize)
-		icon.borderBottom:SetPoint("BOTTOMLEFT", icon, "BOTTOMLEFT")
-		icon.borderBottom:SetPoint("TOPRIGHT", icon, "BOTTOMRIGHT", 0, edgeSize)
-		icon.borderLeft:SetPoint("TOPLEFT", icon, "TOPLEFT", 0, -edgeSize)
-		icon.borderLeft:SetPoint("BOTTOMRIGHT", icon, "BOTTOMLEFT", edgeSize, edgeSize)
-		icon.borderRight:SetPoint("TOPRIGHT", icon, "TOPRIGHT", 0, -edgeSize)
-		icon.borderRight:SetPoint("BOTTOMLEFT", icon, "BOTTOMRIGHT", -edgeSize, edgeSize)
-		local r, g, b = db.borderColor.r, db.borderColor.g, db.borderColor.b
-		icon.borderTop:SetColorTexture(r, g, b)
-		icon.borderBottom:SetColorTexture(r, g, b)
-		icon.borderRight:SetColorTexture(r, g, b)
-		icon.borderLeft:SetColorTexture(r, g, b)
-		icon.borderTop:Show()
-		icon.borderBottom:Show()
-		icon.borderRight:Show()
-		icon.borderLeft:Show()
-		icon.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
-	else
-		icon.borderTop:Hide()
-		icon.borderBottom:Hide()
-		icon.borderRight:Hide()
-		icon.borderLeft:Hide()
-		icon.icon:SetTexCoord(0, 1, 0, 1)
-	end
-end
-
-function P:SetMarker(icon, markEnhanced)
-	local hotkey = icon.hotKey
-	if markEnhanced then
-		local spellID = icon.spellID
-		local mark = E.spell_marked[spellID]
-		if mark and (mark == true or self:IsTalentForPvpStatus(mark, self.groupInfo[icon.guid])) then
-			hotkey:Show()
-		else
-			hotkey:Hide()
-		end
-	else
-		hotkey:Hide()
-	end
-end
-
-function P:SetOpacity(icon, db, opaque)
-
-	if opaque then
-		icon:SetAlpha(1.0)
-	else
-		icon:SetAlpha(icon.active and db.activeAlpha or db.inactiveAlpha)
-	end
-
-
-	local info = self.groupInfo[icon.guid]
-	if not info then return end
-	if info.isDeadOrOffline then
-		icon.icon:SetDesaturated(true)
-		icon.icon:SetVertexColor(0.3, 0.3, 0.3)
-	else
-		if info.preactiveIcons[icon.spellID] and not icon.isHighlighted then
-			icon.icon:SetVertexColor(0.4, 0.4, 0.4)
-		else
-			icon.icon:SetVertexColor(1, 1, 1)
-		end
-		local charges = icon.maxcharges and tonumber(icon.count:GetText())
-		icon.icon:SetDesaturated(db.desaturateActive and icon.active and not icon.isHighlighted and (not charges or charges == 0))
-	end
-end
-
-function P:SetSwipeCounter(icon, db)
-	self:SetCooldownElements(icon, icon.maxcharges and tonumber(icon.count:GetText()))
-	icon.cooldown:SetReverse(db.reverse)
-	icon.cooldown:SetSwipeColor(0, 0, 0, db.swipeAlpha)
-	icon.counter:SetScale(db.counterScale)
-end
-
-function P:SetChargeScale(icon, chargeScale)
-	icon.count:SetScale(chargeScale)
-end
-
-function P:SetTooltip(icon, showTooltip)
-	icon:EnableMouse((not icon.SetPassThroughButtons or icon.isPassThrough) and (showTooltip or icon.tooltipID))
-end
-
-function P:ApplySettings(frame)
-	self:SetAnchor(frame)
-	self:SetIconScale(frame)
-
+function BarFrameIconMixin:SetBorder(settings, edgeSize)
 	local db = E.db.icons
-	local markEnhanced = db.markEnhanced
-	local chargeScale = db.chargeScale
-	local showTooltip = db.showTooltip
-	local numIcons = frame.numIcons
-	for i = 1, numIcons do
-		local icon = frame.icons[i]
-		self:SetBorder(icon, db)
-		self:SetMarker(icon, markEnhanced)
-		self:SetOpacity(icon, db)
-		self:SetSwipeCounter(icon, db)
-		self:SetChargeScale(icon, chargeScale)
-		self:SetTooltip(icon, showTooltip)
+	local statusBar = self.statusBar
+
+	if not db.displayBorder and not statusBar then
+		self:HideBorder()
+		return
+	end
+
+	local r, g, b = db.borderColor.r, db.borderColor.g, db.borderColor.b
+	edgeSize = edgeSize or P.pixel
+
+	self.borderTop:ClearAllPoints()
+	self.borderTop:SetPoint("TOPLEFT", self, "TOPLEFT")
+	self.borderTop:SetPoint("BOTTOMRIGHT", self, "TOPRIGHT", 0, -edgeSize)
+	self.borderTop:SetColorTexture(r, g, b)
+	self.borderTop:Show()
+
+	self.borderBottom:ClearAllPoints()
+	self.borderBottom:SetPoint("BOTTOMLEFT", self, "BOTTOMLEFT")
+	self.borderBottom:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, edgeSize)
+	self.borderBottom:SetColorTexture(r, g, b)
+	self.borderBottom:Show()
+
+	self.borderRight:ClearAllPoints()
+	self.borderRight:SetPoint("TOPRIGHT", self, "TOPRIGHT", 0, -edgeSize)
+	self.borderRight:SetPoint("BOTTOMLEFT", self, "BOTTOMRIGHT", -edgeSize, edgeSize)
+	self.borderRight:SetColorTexture(r, g, b)
+	self.borderRight:Show()
+
+	self.borderLeft:ClearAllPoints()
+	self.borderLeft:SetPoint("TOPLEFT", self, "TOPLEFT", 0, -edgeSize)
+	self.borderLeft:SetPoint("BOTTOMRIGHT", self, "BOTTOMLEFT", edgeSize, edgeSize)
+	self.borderLeft:SetColorTexture(r, g, b)
+	self.borderLeft:Show()
+
+	self.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+
+	if statusBar then
+		statusBar:SetBorder(settings, edgeSize, r, g, b)
 	end
 end
+
+function BarFrameIconMixin:SetMarker()
+	local mark = E.spell_marked[self.spellID]
+	if not mark or self.statusBar then
+		self.hotKey:Hide()
+	elseif mark == true or P.groupInfo[self.guid]:IsTalentForPvpStatus(mark) then
+		self.hotKey:Show()
+	end
+end
+
+function BarFrameIconMixin:SetOpacity()
+
+	local statusBar = self.statusBar
+	if self.isHighlighted or (statusBar and not E.db.extraBars[statusBar.key].useIconAlpha) then
+		self:SetAlpha(1.0)
+	else
+		self:SetAlpha(self.active == 0 and E.db.icons.activeAlpha or E.db.icons.inactiveAlpha)
+	end
+end
+
+function BarFrameIconMixin:SetColorSaturation()
+	local info = P.groupInfo[self.guid]
+	if info.isDeadOrOffline then
+		self.icon:SetVertexColor(0.3, 0.3, 0.3)
+		self.icon:SetDesaturated(true)
+	elseif self.isHighlighted then
+		self.icon:SetVertexColor(1, 1, 1)
+		self.icon:SetDesaturated(false)
+	else
+
+		local c = info.preactiveIcons[self.spellID] and 0.4 or 1
+		self.icon:SetVertexColor(c, c, c)
+		self.icon:SetDesaturated(E.db.icons.desaturateActive and self.active == 0)
+	end
+end
+
+function BarFrameIconMixin:SetSwipeCounter()
+	if self.active then
+		self:SetCooldownElements()
+	end
+	local db = E.db.icons
+	self.cooldown:SetReverse(db.reverse)
+	self.cooldown:SetSwipeColor(0, 0, 0, db.swipeAlpha)
+	self.counter:SetScale(db.counterScale)
+end
+
+function BarFrameIconMixin:SetChargeScale()
+	self.count:SetScale(E.db.icons.chargeScale)
+end
+
+function BarFrameIconMixin:SetTooltip()
+	self:EnableMouse((not self.SetPassThroughButtons or self.isPassThrough) and (E.db.icons.showTooltip or self.tooltipID))
+end
+
+function BarFrameIconMixin:SetBorderGlow(isDeadOrOffline, condition)
+	if not self.glowBorder then
+		return
+	end
+
+	local shouldShow = condition==3 or (condition==1 and self.active~=0) or (condition==2 and self.active==0)
+	self.Glow:SetShown(not isDeadOrOffline and shouldShow)
+end
+
+function BarFrameIconMixin:SetExIconName(db)
+	if db.layout == "vertical" and db.progressBar or not db.showName or db.unitBar then
+		self.name:Hide()
+	else
+		self.name:SetPoint("BOTTOM", 0, db.nameOfsY)
+		local nameWithoutRealm = P.groupInfo[self.guid].nameWithoutRealm
+		local numChar = db.truncateIconName
+		if numChar > 0 then
+			nameWithoutRealm = string.utf8sub(nameWithoutRealm, 1, numChar)
+		end
+		if db.classColor then
+			local c = RAID_CLASS_COLORS[self.class]
+			if c and c.r then
+				self.name:SetTextColor(c.r, c.g, c.b)
+			end
+		else
+			self.name:SetTextColor(1, 1, 1)
+		end
+		self.name:SetText(nameWithoutRealm)
+		self.name:Show()
+	end
+end
+
+
+local pendingPassThroughButtons = {}
+
+function P:UpdatePassThroughButtons()
+	if #pendingPassThroughButtons == 0 then
+		return
+	end
+
+	local showTooltip = E.db.icons.showTooltip
+	for i = #pendingPassThroughButtons, 1, -1 do
+		local icon = pendingPassThroughButtons[i]
+		icon:SetPassThroughButtons("LeftButton", "RightButton")
+		icon.isPassThrough = true
+		if showTooltip then
+			icon:EnableMouse(true)
+		end
+		pendingPassThroughButtons[i] = nil
+	end
+end
+
+local function OmniCDCooldown_OnHide(self)
+	if self:GetCooldownTimes() > 0 then
+		return
+	end
+
+	local icon = self:GetParent()
+
+	local info = P.groupInfo[icon.guid]
+	if not info then
+		return
+	end
+
+	local active = info.active[icon.spellID]
+	if not active then
+		return
+	end
+
+	local maxcharges = icon.maxcharges
+	local charges = active.charges
+	if maxcharges and charges then
+		if charges + 1 < maxcharges then
+			icon:StartCooldown(icon.duration, true)
+			return
+		end
+		icon.count:SetText(maxcharges)
+	end
+
+	info.active[icon.spellID] = nil
+	icon.active = nil
+
+
+	if info.talentData[434249] then
+		local auraString = E.controlOfTheDreamIDs[icon.spellID]
+		if auraString then
+			info.auras[auraString] = GetTime()
+		end
+	end
+
+	local frame = icon:GetParent():GetParent()
+	local key = frame.key
+	if type(key) == "number" then
+		if not P.displayInactive then
+			frame:UpdateLayout()
+		end
+	else
+		if frame.shouldRearrangeInterrupts then
+			frame:UpdateLayout(true)
+		end
+	end
+
+	if icon.isHighlighted then
+		icon:RemoveHighlight()
+	end
+	icon:SetCooldownElements()
+	icon:SetOpacity()
+	icon:SetColorSaturation()
+	icon:SetBorderGlow(info.isDeadOrOffline, E.db.highlight.glowBorderCondition)
+	if icon.statusBar then
+		icon.statusBar.CastingBar:OnEvent("UNIT_SPELLCAST_STOP")
+	end
+end
+
+local SpellTooltip = CreateFrame("GameTooltip", "OmniCDSpellTooltip", UIParent, "GameTooltipTemplate")
+local TOOLTIP_UPDATE_TIME = 0.2
+SpellTooltip.updateTooltipTimer = TOOLTIP_UPDATE_TIME
+
+local function SpellTooltip_OnUpdate(self, elapsed)
+	self.updateTooltipTimer = self.updateTooltipTimer - elapsed
+	if self.updateTooltipTimer > 0 then
+		return
+	end
+	self.updateTooltipTimer = TOOLTIP_UPDATE_TIME
+	local owner = self:GetOwner()
+	if owner then
+		self:SetSpellByID(owner.tooltipID or owner.spellID)
+	end
+end
+SpellTooltip:SetScript("OnUpdate", SpellTooltip_OnUpdate)
+
+local function OmniCDIcon_OnEnter(self)
+	local id = self.tooltipID or self.spellID
+	if id then
+		SpellTooltip:SetOwner(self, "ANCHOR_RIGHT")
+		SpellTooltip:SetSpellByID(id)
+	end
+end
+
+local function OmniCDIcon_OnLeave()
+	SpellTooltip:Hide()
+end
+
+E.BASE_ICON_HEIGHT = 36
+
+function P:CreateIconFramePool()
+	local function initializeFunc(framePool, icon)
+		icon:SetSize(E.BASE_ICON_HEIGHT, E.BASE_ICON_HEIGHT)
+		icon.counter = icon.cooldown:GetRegions()
+		for _, pieceName in ipairs(textureUVs) do
+			local region = icon[pieceName]
+			if region then
+				region:SetTexelSnappingBias(0.0)
+				region:SetSnapToPixelGrid(false)
+			end
+		end
+		icon.icon:SetTexelSnappingBias(0.0)
+		icon.icon:SetSnapToPixelGrid(false)
+
+		icon.name:SetFontObject(E.IconFont)
+		if E.ElvUI1 then
+			E.ElvUI1:RegisterCooldown(icon.cooldown, "OmniCD")
+		end
+		icon.cooldown:SetScript("OnHide", OmniCDCooldown_OnHide)
+		icon:SetScript("OnEnter", OmniCDIcon_OnEnter)
+		icon:SetScript("OnLeave", OmniCDIcon_OnLeave)
+		if icon.SetPassThroughButtons then
+			if self.inLockdown then
+				tinsert(pendingPassThroughButtons, icon)
+			else
+				icon:SetPassThroughButtons("LeftButton", "RightButton")
+				icon.isPassThrough = true
+			end
+		end
+		Mixin(icon, BarFrameIconMixin)
+	end
+
+	local function resetterFunc(framePool, icon)
+		local statusBar = icon.statusBar
+		if statusBar then
+			self.StatusBarPool:Release(statusBar)
+			icon.statusBar = nil
+		end
+		icon:HideOverlayGlow()
+		icon:Hide()
+	end
+
+	self.IconPool = E:CreateFramePool("Button", UIParent, "OmniCDButtonTemplate", resetterFunc, initializeFunc)
+end
+
+P.BarFrameIconMixin = BarFrameIconMixin

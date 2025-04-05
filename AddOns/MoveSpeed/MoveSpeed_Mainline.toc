@@ -1,0 +1,9 @@
+## Interface: 110100
+## Title: |cFF00FF00MoveSpeed
+## Author: Darganon
+## Version: v1.1.6
+## Notes: Click to drag the frame around.
+## OptionalDeps: LibDataBroker-1.1
+## IconTexture: Interface\AddOns\MoveSpeed\movesmall
+
+movespeed.lua

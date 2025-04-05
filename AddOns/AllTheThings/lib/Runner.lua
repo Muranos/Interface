@@ -8,14 +8,14 @@ local _, app = ...;
 -- Capability to add to and run a sequence of Functions with a specific allotment being processed individually each frame
 
 -- Global locals
-local wipe, math_max, tonumber, unpack, coroutine, type, select, tremove, pcall, C_Timer_After =
-	  wipe, math.max, tonumber, unpack, coroutine, type, select, tremove, pcall,  C_Timer.After;
+local wipe, math_max, tonumber, unpack, coroutine, type, select, tremove, pcall,xpcall, C_Timer_After,GetTimePreciseSec =
+	  wipe, math.max, tonumber, unpack, coroutine, type, select, tremove, pcall,xpcall, C_Timer.After,GetTimePreciseSec
 local c_create, c_yield, c_resume, c_status
 	= coroutine.create, coroutine.yield, coroutine.resume, coroutine.status;
 
 local function PrintError(err, source, co)
-	print("ERROR:",source,":",err)
-	if co and app.Debugging then
+	app.print(app.Modules.Color.Colorize("ERROR:",app.Colors.ChatLinkError),source,":",err)
+	if co then
 		local instanceTrace = debugstack(co);
 		print(instanceTrace)
 	end
@@ -177,6 +177,9 @@ app.StartCoroutine = StartCoroutine;
 local function CreateRunner(name)
 	local FunctionQueue, ParameterBucketQueue, ParameterSingleQueue, Config = {}, {}, {}, { PerFrame = 1 };
 	local Name = "Runner:"..name;
+	if app.__perf then
+		app.__perf.AutoCaptureTable(FunctionQueue, Name..".FunctionQueue")
+	end
 	local QueueIndex, RunIndex = 1, 1
 	local Pushed, perFrame
 	local function SetPerFrame(count)
@@ -200,49 +203,67 @@ local function CreateRunner(name)
 	end
 
 	-- Static coroutine for the Runner which runs one loop each time the Runner is called, and yields on the Stack
-	local RunnerCoroutine = c_create(function()
-		while true do
-			perFrame = Config.PerFrame
-			local params;
-			local func = FunctionQueue[RunIndex];
-			-- app.PrintDebug("FRC.Running."..name)
-			while func do
-				perFrame = perFrame - 1;
-				params = ParameterBucketQueue[RunIndex];
-				if params then
-					-- app.PrintDebug("FRC.Run.N."..name,RunIndex,unpack(params))
-					local ok, err = pcall(func, unpack(params));
-					if not ok then PrintError(err, "Run."..Name) end
-				else
-					-- app.PrintDebug("FRC.Run.1."..name,RunIndex,ParameterSingleQueue[RunIndex])
-					local ok, err = pcall(func, ParameterSingleQueue[RunIndex]);
-					if not ok then PrintError(err, "Run."..Name) end
+	local RunnerCoroutine
+	local function err(msg)
+		PrintError(msg, "Runner."..name, RunnerCoroutine)
+	end
+	local SetRunnerCoroutine = function()
+		RunnerCoroutine = c_create(function()
+			while true do
+				local frameStartTime = Config.DebugFrameTime and GetTimePreciseSec() or nil
+				perFrame = Config.PerFrame
+				local params;
+				local func = FunctionQueue[RunIndex];
+				-- app.PrintDebug("FRC.Running."..name)
+				while func do
+					perFrame = perFrame - 1;
+					params = ParameterBucketQueue[RunIndex];
+					if params then
+						-- app.PrintDebug("FRC.Run.N."..name,RunIndex,unpack(params))
+						xpcall(func, err, unpack(params));
+					else
+						-- app.PrintDebug("FRC.Run.1."..name,RunIndex,ParameterSingleQueue[RunIndex])
+						xpcall(func, err, ParameterSingleQueue[RunIndex]);
+					end
+					-- app.PrintDebug("FRC.Done."..name,RunIndex)
+					if perFrame <= 0 then
+						-- app.PrintDebug("FRC.Yield."..name)
+						if frameStartTime then
+							local diff = math.floor(100000 * (GetTimePreciseSec() - frameStartTime)) / 100
+							app.PrintDebug("FRC",name,"FrameTime","#",Config.PerFrame,diff,"ms Stutter @", math.ceil(1000 / diff))
+						end
+						c_yield();
+						frameStartTime = Config.DebugFrameTime and GetTimePreciseSec() or nil
+						perFrame = Config.PerFrame;
+					end
+					RunIndex = RunIndex + 1;
+					func = FunctionQueue[RunIndex];
 				end
-				-- app.PrintDebug("FRC.Done."..name,RunIndex)
-				if perFrame <= 0 then
-					-- app.PrintDebug("FRC.Yield."..name)
-					c_yield();
-					perFrame = Config.PerFrame;
+				-- Run the OnEnd function if it exists
+				local OnEnd = FunctionQueue[0];
+				if OnEnd then
+					-- app.PrintDebug("FRC.End."..name,#FunctionQueue)
+					OnEnd();
 				end
-				RunIndex = RunIndex + 1;
-				func = FunctionQueue[RunIndex];
+				Pushed = nil;
+				Reset();
+				if frameStartTime then
+					local diff = math.floor(100000 * (GetTimePreciseSec() - frameStartTime)) / 100
+					app.PrintDebug("FRC",name,"FrameTime","#",Config.PerFrame,diff,"ms Stutter @", math.ceil(1000 / diff))
+				end
+				-- Yield false to kick the StackRun off the Stack to stop calling this coroutine since it is complete until Run is called again
+				c_yield(false);
+				frameStartTime = Config.DebugFrameTime and GetTimePreciseSec() or nil
 			end
-			-- Run the OnEnd function if it exists
-			local OnEnd = FunctionQueue[0];
-			if OnEnd then
-				-- app.PrintDebug("FRC.End."..name,#FunctionQueue)
-				OnEnd();
-			end
-			Pushed = nil;
-			Reset();
-			-- Yield false to kick the StackRun off the Stack to stop calling this coroutine since it is complete until Run is called again
-			c_yield(false);
-		end
-	end);
+		end);
+		-- app.PrintDebug("SetRunnerCoroutine",Name)
+	end
+	SetRunnerCoroutine()
 
 	-- Static Function that handles the Stack-Run for the Runner-Coroutine
 	local function StackRun()
 		-- app.PrintDebug("Stack.Run",Name)
+		if c_status(RunnerCoroutine) == "dead" then SetRunnerCoroutine() end
 		local ok, err = c_resume(RunnerCoroutine);
 		if ok then
 			if err == false then
@@ -285,7 +306,9 @@ local function CreateRunner(name)
 		-- Return if the Runner is currently Running
 		IsRunning = function() return Pushed end,
 		-- Allows defining the default PerFrame for this Runner (i.e. when Reset)
-		SetPerFrameDefault = function(count) Config.PerFrameDefault = count end
+		SetPerFrameDefault = function(count) Config.PerFrameDefault = count; Config.PerFrame = count end,
+		-- Allows adding/removing timing tracking into PrintDebug messages for this Runner
+		ToggleDebugFrameTime = function() Config.DebugFrameTime = not Config.DebugFrameTime; return Config.DebugFrameTime end,
 	};
 	-- Defines how many functions will be executed per frame. Executes via the Runner when encountered in the Queue, unless specified as 'instant'
 	Runner.SetPerFrame = function(count, instant)
@@ -307,3 +330,4 @@ app.CreateRunner = function(name)
 	return app.Runners[name] or CreateRunner(name)
 end
 app.Runners = {}
+app.FunctionRunner = CreateRunner("default");

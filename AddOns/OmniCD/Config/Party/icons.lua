@@ -21,11 +21,11 @@ local icons = {
 					type = "range",
 					min = 0.2, max = 2.0, step = 0.01, isPercent = true,
 					set = function(info, value)
-						local key = info[2]
-						local option = info[#info]
+						local key, option = info[2], info[#info]
 						E.profile.Party[key].icons[option] = value
-
-						P:ConfigSize(key, true)
+						if P:IsCurrentZone(key) then
+							P:ConfigSize()
+						end
 					end,
 				},
 				chargeScale = {
@@ -74,9 +74,7 @@ local icons = {
 			}
 		},
 		borderSettings = {
-			disabled = function(info)
-				return not E.profile.Party[ info[2] ].icons.displayBorder
-			end,
+			disabled = function(info) return not E.profile.Party[ info[2] ].icons.displayBorder end,
 			name = L["Border"],
 			order = 30,
 			type = "group",
@@ -95,30 +93,19 @@ local icons = {
 					name = L["Border Color"],
 					order = 1,
 					type = "color",
-					dialogControl = "ColorPicker-OmniCD",
+					dialogControl = "ColorPicker-OmniCDC",
 					get = function(info)
-						local key = info[2]
-						local db = E.profile.Party[key].icons
+						local db = E.profile.Party[ info[2] ].icons
 						return db.borderColor.r, db.borderColor.g, db.borderColor.b
 					end,
 					set = function(info, r, g, b)
-						local key = info[2]
-						local db = E.profile.Party[key].icons
+						local db = E.profile.Party[ info[2] ].icons
 						db.borderColor.r = r
 						db.borderColor.g = g
 						db.borderColor.b = b
-
-						P:ConfigIcons(key, "borderColor")
+						P:Refresh()
 					end,
 				},
-				--[[
-				borderPixels = {
-					name = L["Border Thickness"],
-					order = 2,
-					type = "select",
-					values = {1,2,3,4,5},
-				},
-				]]
 			}
 		},
 		miscSettings = {
@@ -157,7 +144,7 @@ local icons = {
 					set = function(info, state)
 						local key = info[2]
 						E.profile.Party[key].position.displayInactive = state
-						P:ConfigBars(key, "displayInactive")
+						P:Refresh()
 					end,
 				},
 				lb1 = {
@@ -167,5 +154,27 @@ local icons = {
 		},
 	}
 }
+
+local sliderTimer
+local function UpdatePixelObjects()
+	for bar in P.BarPool:EnumerateActive() do
+		bar:SetBarBackdrop()
+		bar:UpdateLayout()
+	end
+	sliderTimer = nil
+end
+
+function P:ConfigSize()
+	self:UpdatePositionValues()
+	for bar in P.BarPool:EnumerateActive() do
+		bar:SetContainerSize()
+		bar:SetContainerOffset()
+	end
+	if E.db.icons.displayBorder then
+		if not sliderTimer then
+			sliderTimer = C_Timer.After(0.3, UpdatePixelObjects)
+		end
+	end
+end
 
 P:RegisterSubcategory("icons", icons)

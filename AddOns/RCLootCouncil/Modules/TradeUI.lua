@@ -10,13 +10,13 @@
 
 --- @class RCLootCouncil
 local addon = select(2, ...)
---- @class TradeUI : AceEvent-3.0, AceTimer-3.0
+--- @class TradeUI : AceModule, AceEvent-3.0, AceTimer-3.0
 local TradeUI = addon:NewModule("TradeUI", "AceEvent-3.0", "AceTimer-3.0")
 addon.TradeUI = TradeUI -- Shorthand for easier access
 local ST = LibStub("ScrollingTable")
 --- @type RCLootCouncilLocale
 local L = LibStub("AceLocale-3.0"):GetLocale("RCLootCouncil")
-local LibDialog = LibStub("LibDialog-1.0")
+local LibDialog = LibStub("LibDialog-1.1")
 local _G = _G
 local Comms = addon.Require "Services.Comms"
 local PREFIX = addon.PREFIXES.MAIN
@@ -30,8 +30,8 @@ local UPDATE_TIME_INTERVAL = 1 -- 1 sec
 local TRADE_ADD_DELAY = 0.100 -- sec
 
 -- lua
-local select, GetItemInfoInstant, pairs, ipairs,  unpack, tinsert, wipe, format, GetTime, InitiateTrade
-    = select, GetItemInfoInstant, pairs, ipairs,  unpack, tinsert, wipe, format, GetTime, InitiateTrade
+local GetTime, InitiateTrade
+    = GetTime, InitiateTrade
 -- GLOBALS: ClickTradeButton, PickupContainerItem, ClearCursor, GetTradePlayerItemInfo,
 -- GLOBALS: IsModifiedClick, HandleModifiedItemClick, GetTradePlayerItemLink, Ambiguate
 
@@ -48,20 +48,22 @@ function TradeUI:OnInitialize()
 end
 
 function TradeUI:OnEnable()
-   addon:Log("TradeUI enabled")
-   db = addon.Getdb()
-   self.isTrading = false  -- Are we currently trading
-   self.tradeItems = {}    -- Items we are currently trading
-   self.tradeTarget = nil  -- Name of our last trade target
-   self.itemsInTradeWindow = {} --- @type SkipInventoryItem[]
+	addon:Log("TradeUI enabled")
+	db = addon.Getdb()
+	self.isTrading = false  -- Are we currently trading
+	self.tradeItems = {}    -- Items we are currently trading
+	self.tradeTarget = nil  -- Name of our last trade target
+	self.itemsInTradeWindow = {} --- @type SkipInventoryItem[]
 
-   self:RegisterComms()
-   self:RegisterEvent("TRADE_SHOW", "OnEvent_TRADE_SHOW")
-   self:RegisterEvent("TRADE_CLOSED", "OnEvent_TRADE_CLOSED")
-   self:RegisterEvent("TRADE_ACCEPT_UPDATE", "OnEvent_TRADE_ACCEPT_UPDATE")
-   self:RegisterEvent("UI_INFO_MESSAGE", "OnEvent_UI_INFO_MESSAGE")
-   self:CheckTimeRemaining()
-   self:ScheduleRepeatingTimer("CheckTimeRemaining", TIME_REMAINING_INTERVAL)
+	self:RegisterComms()
+	self:RegisterEvent("TRADE_SHOW", "OnEvent_TRADE_SHOW")
+	self:RegisterEvent("TRADE_CLOSED", "OnEvent_TRADE_CLOSED")
+	self:RegisterEvent("TRADE_ACCEPT_UPDATE", "OnEvent_TRADE_ACCEPT_UPDATE")
+	self:RegisterEvent("UI_INFO_MESSAGE", "OnEvent_UI_INFO_MESSAGE")
+	self:CheckTimeRemaining()
+	self:ScheduleRepeatingTimer("CheckTimeRemaining", TIME_REMAINING_INTERVAL)
+	-- Calling show will only show the frame if we have items to trade
+	self:RegisterMessage("RCItemStorageInitialized", "Show", nil)
 end
 
 function TradeUI:OnDisable() -- Shouldn't really happen
@@ -107,7 +109,7 @@ function TradeUI:Update(forceShow)
             {DoCellUpdate = self.SetCellItemIcon},
             {value = v.link},
             {value = "-->"},
-            {value = v.args.recipient and addon.Ambiguate(v.args.recipient) or "Unknown", color = addon:GetClassColor(v.args.recipient.class or "nothing")},
+            {value = v.args.recipient and addon:GetClassIconAndColoredName(v.args.recipient, 16) or "Unknown"},
             {value = _G.TRADE, color = self.GetTradeLabelColor, colorargs = {self, v.args.recipient},},
             {DoCellUpdate = self.SetCellDelete },
          }
@@ -343,6 +345,10 @@ function TradeUI:GetStoredItemBySession (session)
 end
 
 local function addItemToTradeWindow (tradeBtn, Item)
+	if not TradeUI.isTrading then
+		addon.Log:W("addItemToTradeWindow: No longer trading", TradeUI.tradeTarget, Item.link)
+		return
+	end
 	local c,s = addon.ItemStorage:GetItemContainerSlot(Item, TradeUI.itemsInTradeWindow)
 
 	if not c or not s then -- Item is gone?!
@@ -353,6 +359,10 @@ local function addItemToTradeWindow (tradeBtn, Item)
 	local containerInfo = addon.C_Container.GetContainerItemInfo(c, s)
 
 	if containerInfo and addon:ItemIsItem(containerInfo.hyperlink, Item.link) then -- Extra check, probably also redundant
+		if containerInfo.isLocked then
+			addon:Print("Item is locked")
+			addon.Log:E("<TradeUI>", "Item locked when attempting to trade", Item.link, TradeUI.tradeTarget)
+		end
 		addon.Log:d("Trading", Item.link, c,s)
 		ClearCursor()
 		addon.C_Container.PickupContainerItem(c, s)
@@ -367,13 +377,14 @@ function TradeUI:AddAwardedInBagsToTradeWindow()
    local items = addon.ItemStorage:GetAllItemsMultiPred(
       funcTradeTargetIsRecipient, funcItemHasMoreTimeLeft, funcStorageTypeIsToTrade
    )
-   addon.Log:d("Number of items to trade:", #items)
+   addon.Log:d("Number of items to trade:", #items, self.tradeTarget)
    for k, Item in ipairs(items) do
       if k > _G.MAX_TRADE_ITEMS - 1 then -- All available slots used (The last trade slot is "Will not be traded" slot).
 			break
 		end
       if self.isTrading then
          addon.Log:d("<TradeUI> Scheduling trade add timer for #", k)
+		 addon:LogItemGUID(Item)
          -- Delay the adding of items, as we can't add them all at once
          self:ScheduleTimer(addItemToTradeWindow, TRADE_ADD_DELAY * k, k, Item)
       end
@@ -387,7 +398,7 @@ end
 --------------------------------------------------------
 function TradeUI.SetCellItemIcon(rowFrame, frame, data, cols, row, realrow, column, fShow, table, ...)
    local link = data[realrow].link
-   local texture = select(5, GetItemInfoInstant(link)) or "Interface/ICONS/INV_Sigil_Thorim.png"
+   local texture = select(5, C_Item.GetItemInfoInstant(link)) or "Interface/ICONS/INV_Sigil_Thorim.png"
 	frame:SetNormalTexture(texture)
 	frame:SetScript("OnEnter", function() addon:CreateHypertip(link) end)
 	frame:SetScript("OnLeave", function() addon:HideTooltip() end)
@@ -447,6 +458,8 @@ function TradeUI.SetCellDelete(rowFrame, frame, data, cols, row, realrow, column
 	if not frame.created then
       frame:SetHeight(ROW_HEIGHT / 2)
 		frame:SetNormalTexture("Interface\\Buttons\\UI-GroupLoot-Pass-Up")
+		frame:SetHighlightTexture("Interface/Buttons/UI-GROUPLOOT-PASS-HIGHLIGHT")
+		frame:SetPushedTexture("Interface/Buttons/UI-GROUPLOOT-PASS-DOWN")
 		frame:SetScript("OnEnter", function()
 			addon:CreateTooltip(L["Double click to delete this entry."])
 		end)
@@ -463,6 +476,9 @@ function TradeUI.SetCellDelete(rowFrame, frame, data, cols, row, realrow, column
 
          local Item = addon.ItemStorage:GetItem(link, "to_trade")
          addon.ItemStorage:RemoveItem(Item)
+		 if #addon.ItemStorage:GetAllItemsOfType("to_trade") == 0 then
+			TradeUI:Hide()
+		 end
 		else
 			frame.lastClick = GetTime()
 		end

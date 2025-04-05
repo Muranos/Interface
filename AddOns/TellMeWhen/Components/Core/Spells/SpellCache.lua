@@ -1,6 +1,6 @@
 ﻿-- --------------------
 -- TellMeWhen
--- Originally by Nephthys of Hyjal <lieandswell@yahoo.com>
+-- Originally by NephMakes
 
 -- Other contributions by:
 --		Sweetmms of Blackrock, Oozebull of Twisting Nether, Oodyboo of Mug'thol,
@@ -19,8 +19,12 @@ local print = TMW.print
 
 local strfind, strlower, pairs
     = strfind, strlower, pairs
-local GetSpellInfo, InCombatLockdown, C_TradeSkillUI
-    = GetSpellInfo, InCombatLockdown, C_TradeSkillUI
+local InCombatLockdown, C_TradeSkillUI
+    = InCombatLockdown, C_TradeSkillUI
+
+local GetSpellTexturePlain = C_Spell and C_Spell.GetSpellTexture or GetSpellTexture
+local GetSpellInfo = TMW.GetSpellInfo
+local GetSpellName = TMW.GetSpellName
 
 local debugprofilestop = debugprofilestop_SAFE
 
@@ -43,10 +47,12 @@ SpellCache.CONST = {
 	-- after retail spells, in the IDs around 430000.
 	-- Since we save ranges of invalid IDs to skip, this won't matter for perf at all
 	-- in any spell scan where SpellCacheInvalidRanges has nonstale data.
-	MAX_SPELLID_GUESS = 440000,
+	MAX_SPELLID_GUESS = 1232790,
 	
 	-- Maximum number of non-existant spellIDs that will be checked before the cache is declared complete.
-	MAX_FAILED_SPELLS = 10000,
+	-- This used to be a much smaller number, but Blizzard went off the rails around 11.0.7 and put huge gaps in the SpellIDs.
+	-- The biggest known gap at the time of this comment is a gap of 379444 at ID 556607.
+	MAX_FAILED_SPELLS = 500000,
 	
 	WHITELIST = {
 		-- A list of spells that will fail other filters, but are still desired
@@ -141,8 +147,8 @@ TMW.IE:RegisterUpgrade(71016, {
 })
 
 -- Force a re-cache - If a re-cache is needed, just update this version num to the latest version.
--- 102101 - Updated spell ID range for Classic SOD.
-TMW.IE:RegisterUpgrade(102101, {
+-- 11010101 - Increased MAX_FAILED_SPELLS to handle huge gaps in spellIDs 
+TMW.IE:RegisterUpgrade(11010101, {
 	locale = function(self, locale)
 		locale.SpellCacheWoWVersion = 0
 	end,
@@ -265,9 +271,10 @@ TMW:RegisterCallback("TMW_OPTIONS_LOADED", function()
 				spellID = spellID + skip
 			end
 
-			local name, _, icon = GetSpellInfo(spellID)
+			local name = GetSpellName(spellID)
 			local fail = false
 			if name then
+				local icon = GetSpellTexturePlain(spellID)
 				spellsFailed = 0
 
 				-- This is our best filter by far - about 70k spells are filtered out by this.
@@ -404,7 +411,7 @@ TMW:RegisterCallback("TMW_OPTIONS_LOADED", function()
 				Cache[spellID] = nil
 			end
 			for spellID in pairs(CONST.WHITELIST) do
-				local name = GetSpellInfo(spellID)
+				local name = GetSpellName(spellID)
 				if name then
 					Cache[spellID] = strlower(name)
 				end

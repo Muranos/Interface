@@ -26,6 +26,30 @@ do
 	end
 end
 
+-------------------------------------------------------------------------------
+-- Locals
+--
+
+local media = LibStub("LibSharedMedia-3.0")
+local FONT = media.MediaType and media.MediaType.FONT or "font"
+local BigWigsAPI = BigWigsAPI
+local L = BigWigsAPI:GetLocale("BigWigs")
+plugin.displayName = L.countdown
+
+local countdownAnchor = nil
+local countdownFrame = nil
+local countdownText = nil
+local inConfigMode = false
+
+local validFramePoints = {
+	["TOPLEFT"] = L.TOPLEFT, ["TOPRIGHT"] = L.TOPRIGHT, ["BOTTOMLEFT"] = L.BOTTOMLEFT, ["BOTTOMRIGHT"] = L.BOTTOMRIGHT,
+	["TOP"] = L.TOP, ["BOTTOM"] = L.BOTTOM, ["LEFT"] = L.LEFT, ["RIGHT"] = L.RIGHT, ["CENTER"] = L.CENTER,
+}
+
+--------------------------------------------------------------------------------
+-- Profile
+--
+
 plugin.defaultDB = {
 	textEnabled = true,
 	fontName = plugin:GetDefaultFont(),
@@ -39,20 +63,82 @@ plugin.defaultDB = {
 	bossCountdowns = {},
 }
 
--------------------------------------------------------------------------------
--- Locals
---
+local function UpdateFont()
+	local flags = nil
+	if plugin.db.profile.monochrome and plugin.db.profile.outline ~= "NONE" then
+		flags = "MONOCHROME," .. plugin.db.profile.outline
+	elseif plugin.db.profile.monochrome then
+		flags = "MONOCHROME"
+	elseif plugin.db.profile.outline ~= "NONE" then
+		flags = plugin.db.profile.outline
+	end
+	countdownText:SetFont(media:Fetch(FONT, plugin.db.profile.fontName), plugin.db.profile.fontSize, flags)
+	countdownText:SetTextColor(plugin.db.profile.fontColor.r, plugin.db.profile.fontColor.g, plugin.db.profile.fontColor.b)
+end
 
-local media = LibStub("LibSharedMedia-3.0")
-local FONT = media.MediaType and media.MediaType.FONT or "font"
-local BigWigsAPI = BigWigsAPI
-local L = BigWigsAPI:GetLocale("BigWigs: Plugins")
-plugin.displayName = L.countdown
+local function updateProfile()
+	local db = plugin.db.profile
 
-local countdownAnchor = nil
-local countdownFrame = nil
-local countdownText = nil
-local inConfigMode = false
+	for k, v in next, db do
+		local defaultType = type(plugin.defaultDB[k])
+		if defaultType == "nil" then
+			db[k] = nil
+		elseif type(v) ~= defaultType then
+			db[k] = plugin.defaultDB[k]
+		end
+	end
+
+	if not media:IsValid(FONT, db.fontName) then
+		db.fontName = plugin:GetDefaultFont()
+	end
+	if db.outline ~= "NONE" and db.outline ~= "OUTLINE" and db.outline ~= "THICKOUTLINE" then
+		db.outline = plugin.defaultDB.outline
+	end
+	if db.fontSize < 20 or db.fontSize > 200 then
+		db.fontSize = plugin.defaultDB.fontSize
+	end
+	if type(db.fontColor.r) ~= "number" or db.fontColor.r < 0 or db.fontColor.r > 1
+	or type(db.fontColor.g) ~= "number" or db.fontColor.g < 0 or db.fontColor.g > 1
+	or type(db.fontColor.b) ~= "number" or db.fontColor.b < 0 or db.fontColor.b > 1 then
+		db.fontColor = plugin.defaultDB.fontColor
+	end
+	if db.countdownTime < 3 or db.countdownTime > 10 then
+		db.countdownTime = plugin.defaultDB.countdownTime
+	end
+	local checkCount = math.floor(db.countdownTime+0.5)
+	if checkCount ~= db.countdownTime then
+		db.countdownTime = checkCount
+	end
+	if type(db.position[1]) ~= "string" or type(db.position[2]) ~= "string"
+	or type(db.position[3]) ~= "number" or type(db.position[4]) ~= "number"
+	or not validFramePoints[db.position[1]] or not validFramePoints[db.position[2]] then
+		db.position = plugin.defaultDB.position
+	else
+		local x = math.floor(db.position[3]+0.5)
+		if x ~= db.position[3] then
+			db.position[3] = x
+		end
+		local y = math.floor(db.position[4]+0.5)
+		if y ~= db.position[4] then
+			db.position[4] = y
+		end
+	end
+
+	UpdateFont()
+	countdownAnchor:RefixPosition()
+
+	-- Reset invalid voice selections
+	if not BigWigsAPI:HasCountdown(db.voice) then
+		db.voice = defaultVoice
+	end
+	for boss, tbl in next, db.bossCountdowns do
+		for ability, chosenVoice in next, tbl do
+			if not BigWigsAPI:HasCountdown(chosenVoice) then
+				db.bossCountdowns[boss][ability] = nil
+			end
+		end
+	end
+end
 
 -------------------------------------------------------------------------------
 -- Countdown Registration
@@ -125,17 +211,21 @@ end
 -- Anchors & Frames
 --
 
-local function showAnchors()
-	inConfigMode = true
-	countdownAnchor:Show()
-	countdownFrame:Show()
-	countdownText:SetText("5")
+local function showAnchors(_, mode)
+	if not mode or mode == "Messages" then
+		inConfigMode = true
+		countdownAnchor:Show()
+		countdownFrame:Show()
+		countdownText:SetText("5")
+	end
 end
 
-local function hideAnchors()
-	inConfigMode = false
-	countdownAnchor:Hide()
-	countdownFrame:Hide()
+local function hideAnchors(_, mode)
+	if not mode or mode == "Messages" then
+		inConfigMode = false
+		countdownAnchor:Hide()
+		countdownFrame:Hide()
+	end
 end
 
 do
@@ -145,8 +235,13 @@ do
 	local function OnDragStop(self)
 		self:StopMovingOrSizing()
 		local point, _, relPoint, x, y = self:GetPoint()
+		x = math.floor(x+0.5)
+		y = math.floor(y+0.5)
 		plugin.db.profile.position = {point, relPoint, x, y}
-		plugin:UpdateGUI() -- Update X/Y if GUI is open.
+		self:RefixPosition()
+		if BigWigsOptions and BigWigsOptions:IsOpen() then
+			plugin:UpdateGUI() -- Update X/Y if GUI is open
+		end
 	end
 	local function RefixPosition(self)
 		self:ClearAllPoints()
@@ -201,19 +296,6 @@ local function voiceSorting()
 	sort(sorted, function(a, b) return list[a] < list[b] end)
 	tinsert(sorted, 1, L.none)
 	return sorted
-end
-
-local function UpdateFont()
-	local flags = nil
-	if plugin.db.profile.monochrome and plugin.db.profile.outline ~= "NONE" then
-		flags = "MONOCHROME," .. plugin.db.profile.outline
-	elseif plugin.db.profile.monochrome then
-		flags = "MONOCHROME"
-	elseif plugin.db.profile.outline ~= "NONE" then
-		flags = plugin.db.profile.outline
-	end
-	countdownText:SetFont(media:Fetch(FONT, plugin.db.profile.fontName), plugin.db.profile.fontSize, flags)
-	countdownText:SetTextColor(plugin.db.profile.fontColor.r, plugin.db.profile.fontColor.g, plugin.db.profile.fontColor.b)
 end
 
 do
@@ -366,6 +448,7 @@ do
 							local restoreCountdowns = plugin.db.profile.bossCountdowns
 							plugin.db:ResetProfile()
 							plugin.db.profile.bossCountdowns = restoreCountdowns
+							updateProfile()
 						end,
 						order = 16,
 					},
@@ -373,7 +456,7 @@ do
 						type = "execute",
 						name = L.resetAll,
 						desc = L.resetAllCountdownDesc,
-						func = function() plugin.db:ResetProfile() end,
+						func = function() plugin.db:ResetProfile() updateProfile() end,
 						order = 17,
 					},
 				},
@@ -466,110 +549,18 @@ end
 -- Initialization
 --
 
-do
-	local LOCALE = GetLocale()
-	local KEY = "%s: Default (Female)"
-	local function check(voice)
-		local lang = voice and voice:match("^(.+): Heroes of the Storm$")
-		if not lang then return end
+function plugin:OnPluginEnable()
+	updateProfile()
+	createOptions()
 
-		if lang == "Español" then
-			-- Try to pick the correct Spanish locale
-			if LOCALE == "esMX" or LOCALE == "esES" then
-				return KEY:format(LOCALE)
-			end
-			return KEY:format(GetCurrentRegion() == 1 and "esMX" or "esES") -- NA or EU
-		end
-
-		for locale, info in next, voiceMap do
-			if info[1]:sub(1, #lang) == lang then
-				return KEY:format(locale)
-			end
-		end
-	end
-
-	local function upgradeDB(sv)
-		if not sv or not sv.profiles then return end
-		for profile, db in next, sv.profiles do
-			local voice = check(db.voice)
-			if voice then
-				db.voice = voice
-			end
-			if db.bossCountdowns then
-				for moduleName, abilities in next, db.bossCountdowns do
-					for k, v in next, abilities do
-						local voice = check(v)
-						if voice then
-							abilities[k] = voice
-						end
-					end
-				end
-			end
-		end
-	end
-
-	function plugin:OnRegister()
-		-- XXX temp 9.0.5
-		upgradeDB(self.db)
-		upgradeDB(BigWigs3DB.namespaces["BigWigs_Plugins_Pull"])
-	end
-end
-
-do
-	local function updateProfile()
-		local db = plugin.db.profile
-
-		for k, v in next, db do
-			local defaultType = type(plugin.defaultDB[k])
-			if defaultType == "nil" then
-				db[k] = nil
-			elseif type(v) ~= defaultType then
-				db[k] = plugin.defaultDB[k]
-			end
-		end
-
-		if db.outline ~= "NONE" and db.outline ~= "OUTLINE" and db.outline ~= "THICKOUTLINE" then
-			db.outline = plugin.defaultDB.outline
-		end
-		if db.fontSize < 20 or db.fontSize > 200 then
-			db.fontSize = plugin.defaultDB.fontSize
-		end
-		if type(db.fontColor.r) ~= "number" or db.fontColor.r < 0 or db.fontColor.r > 1
-		or type(db.fontColor.g) ~= "number" or db.fontColor.g < 0 or db.fontColor.g > 1
-		or type(db.fontColor.b) ~= "number" or db.fontColor.b < 0 or db.fontColor.b > 1 then
-			db.fontColor = plugin.defaultDB.fontColor
-		end
-		if db.countdownTime < 3 or db.countdownTime > 10 then
-			db.countdownTime = plugin.defaultDB.countdownTime
-		end
-
-		UpdateFont()
-		countdownAnchor:RefixPosition()
-
-		-- Reset invalid voice selections
-		if not BigWigsAPI:HasCountdown(db.voice) then
-			db.voice = defaultVoice
-		end
-		for boss, tbl in next, db.bossCountdowns do
-			for ability, chosenVoice in next, tbl do
-				if not BigWigsAPI:HasCountdown(chosenVoice) then
-					db.bossCountdowns[boss][ability] = nil
-				end
-			end
-		end
-	end
-
-	function plugin:OnPluginEnable()
-		self:RegisterMessage("BigWigs_StartCountdown")
-		self:RegisterMessage("BigWigs_StopCountdown")
-		self:RegisterMessage("BigWigs_OnBossDisable")
-		self:RegisterMessage("BigWigs_OnBossWipe", "BigWigs_OnBossDisable")
-		self:RegisterMessage("BigWigs_ProfileUpdate", updateProfile)
-		self:RegisterMessage("BigWigs_StartConfigureMode", showAnchors)
-		self:RegisterMessage("BigWigs_StopConfigureMode", hideAnchors)
-		updateProfile()
-		createOptions()
-	end
+	self:RegisterMessage("BigWigs_StartCountdown")
+	self:RegisterMessage("BigWigs_StopCountdown")
+	self:RegisterMessage("BigWigs_OnBossDisable")
+	self:RegisterMessage("BigWigs_OnBossWipe", "BigWigs_OnBossDisable")
+	self:RegisterMessage("BigWigs_ClearNameplate")
+	self:RegisterMessage("BigWigs_ProfileUpdate", updateProfile)
+	self:RegisterMessage("BigWigs_StartConfigureMode", showAnchors)
+	self:RegisterMessage("BigWigs_StopConfigureMode", hideAnchors)
 end
 
 -------------------------------------------------------------------------------
@@ -616,56 +607,130 @@ end
 
 do
 	local timers = {}
-	function plugin:BigWigs_StartCountdown(_, module, key, text, time, customVoice, customStart, audioOnly)
-		if module and time > 1.3 then
-			self:BigWigs_StopCountdown(nil, module, text)
-			if not timers[module] then
-				timers[module] = {}
+	local GUIDtimers = {}
+	do
+		local GetTime = GetTime
+		local function LowestCountdown(tableToMatch, module, text)
+			local lowestText, lowestCountdownTable
+			if timers[module] and timers[module][text] and not timers[module][text][2] then
+				lowestText = timers[module][text][1]
+				lowestCountdownTable = timers[module][text]
 			end
-			local count = customStart or self.db.profile.countdownTime
-			while count >= time do
-				count = count - 1
-			end
-			local cancelTimer = {false}
-			timers[module][text] = cancelTimer
 
-			local voice = customVoice or plugin.db.profile.bossCountdowns[module.name] and plugin.db.profile.bossCountdowns[module.name][key] or plugin.db.profile.voice
-			local function printTime()
-				if not cancelTimer[1] then
-					if not audioOnly and plugin.db.profile.textEnabled then
-						plugin:SetText(count, cancelTimer)
+			if GUIDtimers[module] and GUIDtimers[module][text] then
+				local currentTime = GetTime()
+				for _, countdownTable in next, GUIDtimers[module][text] do
+					local timeInTable = countdownTable[1]
+					if not countdownTable[2] and (not lowestText or timeInTable < lowestText) and timeInTable > currentTime then
+						lowestText = timeInTable
+						lowestCountdownTable = countdownTable
 					end
-					local sound = BigWigsAPI:GetCountdownSound(voice, count)
-					if sound then
-						self:PlaySoundFile(sound)
-					end
-					count = count - 1
 				end
 			end
-			local startOffset = count + 0.3
-			for i = 1.3, startOffset do
-				self:SimpleTimer(printTime, time-i)
+			return lowestCountdownTable == tableToMatch
+		end
+
+		function plugin:BigWigs_StartCountdown(_, module, key, text, time, guid, customVoice, customStart, audioOnly)
+			if module and time >= 1 then
+				local countdownTable = {GetTime()+time}
+				if guid then
+					if GUIDtimers[module] then
+						if GUIDtimers[module][text] then
+							if GUIDtimers[module][text][guid] then
+								GUIDtimers[module][text][guid][2] = true
+							end
+						else
+							GUIDtimers[module][text] = {}
+						end
+					else
+						GUIDtimers[module] = {}
+						GUIDtimers[module][text] = {}
+					end
+					GUIDtimers[module][text][guid] = countdownTable
+				else
+					if timers[module] then
+						if timers[module][text] then
+							timers[module][text][2] = true
+						end
+					else
+						timers[module] = {}
+					end
+					timers[module][text] = countdownTable
+				end
+
+				local textCount = customStart or self.db.profile.countdownTime
+				if time < textCount then
+					textCount = math.floor(time)
+				end
+
+				local function announce()
+					if not countdownTable[2] then
+						if LowestCountdown(countdownTable, module, text) then
+							if not audioOnly and plugin.db.profile.textEnabled then
+								plugin:SetText(textCount, countdownTable)
+							end
+							local voice = customVoice or plugin.db.profile.bossCountdowns[module.name] and plugin.db.profile.bossCountdowns[module.name][key] or plugin.db.profile.voice
+							local sound = BigWigsAPI:GetCountdownSound(voice, textCount)
+							if sound then
+								self:PlaySoundFile(sound)
+							end
+						end
+						textCount = textCount - 1
+					end
+				end
+				for i = 1, textCount do
+					self:SimpleTimer(announce, time-i)
+				end
 			end
 		end
 	end
-	function plugin:BigWigs_StopCountdown(_, module, text)
-		local moduleTimers = timers[module]
-		if moduleTimers and moduleTimers[text] then
-			moduleTimers[text][1] = true
-			if latestCountdown == moduleTimers[text] then
+	function plugin:BigWigs_StopCountdown(_, module, text, guid)
+		local countdownTable
+		if guid then
+			countdownTable = GUIDtimers[module] and GUIDtimers[module][text] and GUIDtimers[module][text][guid]
+		else
+			countdownTable = timers[module] and timers[module][text]
+		end
+		if countdownTable then
+			countdownTable[2] = true
+			if latestCountdown == countdownTable then
 				self:SetText("") -- Only clear the text if the cancelled countdown was the last to display something
 			end
 		end
 	end
 	function plugin:BigWigs_OnBossDisable(_, module)
 		if timers[module] then
-			for _, timer in next, timers[module] do
-				timer[1] = true
-				if latestCountdown == timer then
+			for _, countdownTable in next, timers[module] do
+				countdownTable[2] = true
+				if latestCountdown == countdownTable then
 					self:SetText("") -- Only clear the text if the cancelled countdown was the last to display something
 				end
 			end
 			timers[module] = nil
+		end
+		if GUIDtimers[module] then
+			for _, guidTable in next, GUIDtimers[module] do
+				for _, countdownTable in next, guidTable do
+					countdownTable[2] = true
+					if latestCountdown == countdownTable then
+						self:SetText("") -- Only clear the text if the cancelled countdown was the last to display something
+					end
+				end
+			end
+			GUIDtimers[module] = nil
+		end
+	end
+	function plugin:BigWigs_ClearNameplate(_, module, guid)
+		if GUIDtimers[module] then
+			for _, guidTable in next, GUIDtimers[module] do
+				local countdownTable = guidTable[guid]
+				if countdownTable then
+					countdownTable[2] = true
+					if latestCountdown == countdownTable then
+						self:SetText("") -- Only clear the text if the cancelled countdown was the last to display something
+					end
+				end
+			end
 		end
 	end
 end

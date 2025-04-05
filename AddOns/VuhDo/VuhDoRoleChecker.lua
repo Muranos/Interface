@@ -10,14 +10,11 @@ VUHDO_NEXT_INSPECT_TIME_OUT = nil;
 
 
 --------------------------------------------------------------
-local twipe = table.wipe;
-local UnitIsUnit = UnitIsUnit;
 local NotifyInspect = NotifyInspect;
 local GetSpecializationInfo = GetSpecializationInfo;
 local ClearInspectPlayer = ClearInspectPlayer;
 local UnitStat = UnitStat;
 local UnitGroupRolesAssigned = UnitGroupRolesAssigned;
-local UnitLevel = UnitLevel;
 local UnitPowerType = UnitPowerType;
 local VUHDO_isUnitInModel;
 local VUHDO_checkInteractDistance;
@@ -133,6 +130,7 @@ local tClassId;
 local tRole;
 local tTreeId;
 function VUHDO_inspectRole(aUnit)
+
 	tInfo = VUHDO_RAID[aUnit];
 
 	if not tInfo then 
@@ -146,7 +144,7 @@ function VUHDO_inspectRole(aUnit)
 			return VUHDO_ID_UNDEFINED;
 		end
 		
-		tTreeId, _, _, _, _, tRole = GetSpecializationInfo(tActiveTree, false, false);
+		tTreeId, _, _, _, tRole = GetSpecializationInfo(tActiveTree, false, false);
 	else
 		tTreeId = GetInspectSpecialization(aUnit);
 		tRole = GetSpecializationRoleByID(tTreeId);
@@ -194,16 +192,14 @@ function VUHDO_inspectRole(aUnit)
 	else
 		return VUHDO_ID_UNDEFINED;
 	end
+
 end
 
 
 
 --
 local tActiveTree;
-local tIsInspect;
 local tInfo;
-local tClassId;
-local tRole;
 local tTreeId;
 function VUHDO_inspectLockRole()
 	tInfo = VUHDO_RAID[VUHDO_NEXT_INSPECT_UNIT];
@@ -222,10 +218,9 @@ function VUHDO_inspectLockRole()
 			return;
 		end
 
-		tTreeId, _, _, _, _, tRole = GetSpecializationInfo(tActiveTree, false, false);
+		tTreeId = GetSpecializationInfo(tActiveTree, false, false);
 	else
 		tTreeId = GetInspectSpecialization(VUHDO_NEXT_INSPECT_UNIT);
-		tRole = GetSpecializationRoleByID(tTreeId);
 	end
 
 	if (tTreeId or 0) == 0 then
@@ -301,15 +296,12 @@ end
 
 
 --
-local tName;
 local tInfo;
-local tDefense;
 local tPowerType;
 local tBuffExist;
 local tFixRole;
 local tIntellect, tStrength, tAgility;
 local tClassId, tClassRole, tName;
-local tLevel;
 local tRole;
 function VUHDO_determineRole(aUnit)
 	tInfo = VUHDO_RAID[aUnit];
@@ -451,8 +443,8 @@ function VUHDO_determineRole(aUnit)
 		end
 
 	elseif 32 == tClassId then -- VUHDO_ID_EVOKERS
-		-- FIXME: at max level does Devastation still have this low cap?
-		if UnitPowerMax(aUnit) == 10000 then
+		-- FIXME: all Evoker specs have the same max mana and essence
+		if UnitPowerMax(aUnit) == 250000 then
 			return 62; -- VUHDO_ID_RANGED_DAMAGE
 		else
 			return 63; -- VUHDO_ID_RANGED_HEAL

@@ -14,7 +14,8 @@ addon.responses = {
 		WAIT         = { color = { 1, 1, 0, 1, }, sort = 503, text = L["Candidate is selecting response, please wait"], },
 		TIMEOUT      = { color = { 1, 0, 0, 1, }, sort = 504, text = L["Candidate didn't respond on time"], },
 		REMOVED      = { color = { 0.8, 0.5, 0, 1, }, sort = 505, text = L["Candidate removed"], },
-		NOTHING      = { color = { 0.5, 0.5, 0.5, 1, }, sort = 505, text = L["Offline or RCLootCouncil not installed"], },
+		NOTHING      = { color = { 0.5, 0.5, 0.5, 1, }, sort = 506, text = L["Offline or RCLootCouncil not installed"], },
+		NOTELIGIBLE  = { color = { 0.8, 0.5, 0, 1, }, sort = 507, text = L.response_NOTELIGIBLE, },
 		BONUSROLL    = { color = { 1, 0.8, 0, 1, }, sort = 510, text = _G.BONUS_ROLL_TOOLTIP_TITLE, },
 		PASS         = { color = { 0.7, 0.7, 0.7, 1, }, sort = 800, text = _G.PASS, },
 		AUTOPASS     = { color = { 0.7, 0.7, 0.7, 1, }, sort = 801, text = L["Autopass"], },
@@ -37,14 +38,14 @@ addon.responses = {
 -- Option table defaults
 addon.defaults = {
 	global = {
-		logMaxEntries = 2000,
+		logMaxEntries = 4000,
 		log = {}, -- debug log
 		verTestCandidates = {}, -- Stores received verTests
 		errors = {},
 		cache = {},
 	},
 	profile = {
-		skipCombatLockdown = false,
+		skipCombatLockdown = true,
 
 		baggedItems = {}, -- Items that are stored in MLs inventory for award later.
 		-- i = { {link=link, winner=winner, addedTime=sec between UTC epoch to when the item is added to lootInBags, }, bop=Item is BOP?}
@@ -70,11 +71,13 @@ addon.defaults = {
 		autoTrade = false,
 		showSpecIcon = false,
 		closeWithEscape = true,
+		timeoutFlash = true,
 		chatFrameName = "DEFAULT_CHAT_FRAME", -- The chat frame to use for :Print()s
 		-- General - History
 		enableHistory = true,
 		sendHistory = true,
 		sendHistoryToGuildChannel = false,
+		savePersonalLoot = true,
 
 		-- ML - General - Usage
 		usage = { -- State of enabledness
@@ -166,25 +169,25 @@ addon.defaults = {
 		-- Other
 		iLvlDecimal = false,
 		showAutoGroupLootWarning = true, -- Show warning OnMLDBReceived if autoGroupLoot is on.
+		defaultHistoryExport = "player",
 
 		UI = { -- stores all ui information
 			["**"] = { -- Defaults
 				y           = 0,
 				x           = 0,
 				point       = "CENTER",
-				scale       = 1.1, --0.8,
+				scale       = 1,
 				bgColor     = { 0, 0, 0.2, 1, },
 				borderColor = { 0.3, 0.3, 0.5, 1, },
 				border      = "Blizzard Tooltip",
 				background  = "Blizzard Tooltip",
 			},
-			lootframe = { -- We want the Loot Frame to get a little lower
+			DefaultRCLootFrame = { -- We want the Loot Frame to get a little lower
 				y = -200,
 			},
-			tradeui = {
+			RCDefaultTradeUIFrame = {
 				x = -300,
 			},
-			default = {}, -- base line
 		},
 
 		skins = {
@@ -256,6 +259,8 @@ addon.defaults = {
 			[162461] = true, -- Sanguicell (BfA crafting)
 			[213089] = true, -- Antique Bronze Bullion (DF S4 Weapon/Trinket currency)
 		},
+
+		moreInfoClampToScreen = false,
 	},
 } -- defaults end
 

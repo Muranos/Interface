@@ -726,7 +726,7 @@ PL:AddLocale(PRAT_MODULE, "deDE", L)
 L = {
 	["Substitutions"] = {
 		["%d total user defined substitutions"] = "총 %d개의 사용자 설정 대용어",
-		["|cffff0000warning:|r subtitution \"%s\" already defined as \"%s\", overwriting"] = "|cffff0000경고:|r 대용어 \"%s\"|1은;는; 이미 \"%s\"|1으로;로; 정의 되었습니다, 덮어씁니다",
+		["|cffff0000warning:|r subtitution \"%s\" already defined as \"%s\", overwriting"] = "|cffff0000경고:|r 대용어 \"%s\"|1은;는; 이미 \"%s\"|1으로;로; 정의되었습니다, 덮어씁니다",
 		["<noguild>"] = "<길드없음>",
 		["<notarget>"] = "<대상없음>",
 		["A module to provide basic chat substitutions."] = "기본적인 대화 대용어를 제공하는 모듈입니다.",

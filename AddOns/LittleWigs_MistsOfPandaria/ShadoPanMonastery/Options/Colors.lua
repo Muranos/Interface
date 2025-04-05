@@ -8,20 +8,24 @@ BigWigs:AddColors("Gu Cloudstrike", {
 
 BigWigs:AddColors("Master Snowdrift", {
 	[106434] = "orange",
-	[106747] = "green",
+	[106454] = "yellow",
+	[106747] = "yellow",
+	[106853] = "red",
 	[118961] = {"blue","red"},
-	["stages"] = "green",
+	["stages"] = "cyan",
 })
 
 BigWigs:AddColors("Sha of Violence", {
-	[-5813] = {"green","red"},
-	[106872] = {"blue","orange"},
+	[38166] = "red",
+	[106826] = "yellow",
+	[106872] = {"blue","purple"},
 })
 
 BigWigs:AddColors("Taran Zhu", {
 	[107087] = "blue",
 	[107356] = "red",
-	[115002] = "orange",
+	[115002] = "yellow",
+	[131521] = "orange",
 })
 
 BigWigs:AddColors("Shado-Pan Monastery Trash", {

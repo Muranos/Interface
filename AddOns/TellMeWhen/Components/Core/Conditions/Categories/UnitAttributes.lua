@@ -1,6 +1,6 @@
 -- --------------------
 -- TellMeWhen
--- Originally by Nephthys of Hyjal <lieandswell@yahoo.com>
+-- Originally by NephMakes
 
 -- Other contributions by:
 --		Sweetmms of Blackrock, Oozebull of Twisting Nether, Oodyboo of Mug'thol,
@@ -305,7 +305,9 @@ ConditionCategory:RegisterCondition(8.5,  "LIBRANGECHECK", {
 		end
 	end,
 
-	customDeprecated = ("NOTICE: As of Nov 16 2023, this condition is nearly useless due to Blizzard restrictions. If you want to check the range of a spell, consider using the %q condition instead. The range levels that can still be checked precisely vary depending on your class."):format(L["CONDITIONPANEL_SPELLRANGE"])
+	customDeprecated = 
+		("NOTICE: Due to Blizzard restrictions, this condition doesn't allow checking the range of friendly units while in combat. For that scenario, it is recommended to use the %q condition instead."):format(L["CONDITIONPANEL_SPELLRANGE"]) .. 
+		(TMW.isRetail and (" \n\nIf checking your own spells against hostile targets, the %q condition is also usually much more CPU efficient."):format(L["CONDITIONPANEL_SPELLRANGE"]) or "")
 	-- events = absolutely no events
 })
 
@@ -541,12 +543,14 @@ ConditionCategory:RegisterCondition(13.1,   "UNITRACE", {
 			["NightElf"] = {order = 3, text = Name("Night Elf")},
 			["Gnome"] = {order = 4, text = Name("Gnome")},
 			["Draenei"] = {order = 5, text = Name("Draenei")},
+			["Worgen"] = {order = 6, text = Name("Worgen")},
 
 			["Orc"] = {order = 7, text = Name("Orc")},
 			["Scourge"] = {order = 8, text = Name("Undead")},
 			["Tauren"] = {order = 9, text = Name("Tauren")},
 			["Troll"] = {order = 10, text = Name("Troll")},
 			["BloodElf"] = {order = 11, text = Name("Blood Elf")},
+			["Goblin"] = {order = 12, text = Name("Goblin")},
 		}
 
 		if TMW.isRetail then

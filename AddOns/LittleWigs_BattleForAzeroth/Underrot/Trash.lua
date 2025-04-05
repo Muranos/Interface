@@ -25,10 +25,6 @@ mod:RegisterEnableMob(
 
 local L = mod:GetLocale()
 if L then
-	L.custom_on_fixate_plates = "Thirst For Blood icon on Enemy Nameplate"
-	L.custom_on_fixate_plates_desc = "Show an icon on the target nameplate that is fixating on you.\nRequires the use of Enemy Nameplates. This feature is currently only supported by KuiNameplates."
-	L.custom_on_fixate_plates_icon = 266107
-
 	L.spirit = "Befouled Spirit"
 	L.priest = "Devout Blood Priest"
 	L.maggot = "Fetid Maggot"
@@ -66,8 +62,7 @@ function mod:GetOptions()
 		-- Diseased Lasher
 		278961, -- Decaying Mind
 		-- Feral Bloodswarmer
-		266107, -- Thirst For Blood
-		"custom_on_fixate_plates",
+		{266107, "NAMEPLATE"}, -- Thirst For Blood
 		266106, -- Sonic Screech
 		-- Living Rot
 		265668, -- Wave of Decay
@@ -157,16 +152,6 @@ function mod:OnBossEnable()
 	-- Faceless Corruptor
 	self:Log("SPELL_CAST_START", "AbyssalReach", 272592)
 	self:Log("SPELL_CAST_START", "MaddeningGaze", 272609)
-
-	if self:GetOption("custom_on_fixate_plates") then
-		self:ShowPlates()
-	end
-end
-
-function mod:OnBossDisable()
-	if self:GetOption("custom_on_fixate_plates") then
-		self:HidePlates()
-	end
 end
 
 --------------------------------------------------------------------------------
@@ -194,7 +179,7 @@ function mod:HarrowingDespair(args)
 	if self:Interrupter() then
 		self:PlaySound(args.spellId, "warning")
 	end
-	--self:NameplateCDBar(args.spellId, 32.8, args.sourceGUID)
+	--self:Nameplate(args.spellId, 32.8, args.sourceGUID)
 end
 
 -- Devout Blood Priest
@@ -225,7 +210,7 @@ end
 function mod:RottenBile(args)
 	self:Message(args.spellId, "yellow")
 	self:PlaySound(args.spellId, "alarm")
-	--self:NameplateCDBar(args.spellId, 10.1, args.sourceGUID)
+	--self:Nameplate(args.spellId, 10.1, args.sourceGUID)
 end
 
 -- Chosen Blood Matron
@@ -238,20 +223,20 @@ function mod:BloodHarvest(args)
 		-- Savage Cleave will be immediately cast in their direction.
 		self:Say(args.spellId, nil, nil, "Blood Harvest")
 	end
-	--self:NameplateCDBar(args.spellId, 12.1, args.sourceGUID)
+	--self:Nameplate(args.spellId, 12.1, args.sourceGUID)
 end
 
 function mod:SavageCleave(args)
 	self:Message(args.spellId, "red")
 	self:PlaySound(args.spellId, "alarm")
-	--self:NameplateCDBar(args.spellId, 12.3, args.sourceGUID)
+	--self:Nameplate(args.spellId, 12.3, args.sourceGUID)
 end
 
 function mod:Warcry(args)
 	if self:Tank() or self:Healer() or self:Dispeller("enrage", true) then
 		self:Message(args.spellId, "red")
 		self:PlaySound(args.spellId, "long")
-		--self:NameplateCDBar(args.spellId, 25.5, args.sourceGUID)
+		--self:Nameplate(args.spellId, 25.5, args.sourceGUID)
 	end
 end
 
@@ -269,7 +254,7 @@ end
 function mod:DecayingMind(args)
 	self:Message(args.spellId, "orange", CL.casting:format(args.spellName))
 	self:PlaySound(args.spellId, "alert")
-	--self:NameplateCDBar(args.spellId, 27.1, args.sourceGUID)
+	--self:Nameplate(args.spellId, 27.1, args.sourceGUID)
 end
 
 function mod:DecayingMindApplied(args)
@@ -296,18 +281,16 @@ do
 				self:PersonalMessage(args.spellId, nil, CL.fixate)
 				self:PlaySound(args.spellId, "alarm")
 			end
-			if self:GetOption("custom_on_fixate_plates") then
-				self:AddPlateIcon(args.spellId, args.sourceGUID)
-			end
+			self:Nameplate(args.spellId, 15, args.sourceGUID, CL.fixate)
 		end
 		-- if this is uncommented, move to SPELL_CAST_SUCCESS
-		--self:NameplateCDBar(args.spellId, 31.6, args.sourceGUID)
+		--self:Nameplate(args.spellId, 31.6, args.sourceGUID)
 	end
 end
 
 function mod:ThirstForBloodRemoved(args)
-	if self:Me(args.destGUID) and self:GetOption("custom_on_fixate_plates") then
-		self:RemovePlateIcon(args.spellId, args.sourceGUID)
+	if self:Me(args.destGUID) then
+		self:StopNameplate(args.spellId, args.sourceGUID, CL.fixate)
 	end
 end
 
@@ -317,7 +300,7 @@ function mod:SonicScreech(args)
 	end
 	self:Message(args.spellId, "red", CL.casting:format(args.spellName))
 	self:PlaySound(args.spellId, "warning")
-	--self:NameplateCDBar(args.spellId, 25.5, args.sourceGUID)
+	--self:Nameplate(args.spellId, 25.5, args.sourceGUID)
 end
 
 -- Living Rot
@@ -350,7 +333,7 @@ function mod:WickedFrenzy(args)
 	end
 	self:Message(args.spellId, "orange", CL.casting:format(args.spellName))
 	self:PlaySound(args.spellId, "alert")
-	--self:NameplateCDBar(args.spellId, 25.5, args.sourceGUID)
+	--self:Nameplate(args.spellId, 25.5, args.sourceGUID)
 end
 
 do
@@ -389,7 +372,7 @@ function mod:DarkEchoes(args)
 	end
 	self:Message(args.spellId, "red", CL.casting:format(args.spellName))
 	self:PlaySound(args.spellId, "warning")
-	--self:NameplateCDBar(args.spellId, 20.6, args.sourceGUID)
+	--self:Nameplate(args.spellId, 20.6, args.sourceGUID)
 end
 
 -- Bloodsworn Defiler
@@ -397,19 +380,19 @@ end
 function mod:ShadowBoltVolley(args)
 	self:Message(args.spellId, "orange", CL.casting:format(args.spellName))
 	self:PlaySound(args.spellId, "alert")
-	--self:NameplateCDBar(args.spellId, 29.1, args.sourceGUID)
+	--self:Nameplate(args.spellId, 29.1, args.sourceGUID)
 end
 
 function mod:WitheringCurse(args)
 	self:Message(args.spellId, "red", CL.casting:format(args.spellName))
 	self:PlaySound(args.spellId, "alert")
-	--self:NameplateCDBar(args.spellId, 25.5, args.sourceGUID)
+	--self:Nameplate(args.spellId, 25.5, args.sourceGUID)
 end
 
 function mod:SummonSpiritDrainTotem(args)
 	self:Message(args.spellId, "yellow")
 	self:PlaySound(args.spellId, "info")
-	--self:NameplateCDBar(args.spellId, 35.2, args.sourceGUID)
+	--self:Nameplate(args.spellId, 35.2, args.sourceGUID)
 end
 
 -- Faceless Corruptor
@@ -423,7 +406,7 @@ do
 			self:Message(args.spellId, "cyan")
 			self:PlaySound(args.spellId, "long")
 		end
-		--self:NameplateCDBar(args.spellId, 16.2, args.sourceGUID)
+		--self:Nameplate(args.spellId, 16.2, args.sourceGUID)
 	end
 end
 
@@ -436,6 +419,6 @@ do
 			self:Message(args.spellId, "orange")
 			self:PlaySound(args.spellId, "alarm")
 		end
-		--self:NameplateCDBar(args.spellId, 15.8, args.sourceGUID)
+		--self:Nameplate(args.spellId, 15.8, args.sourceGUID)
 	end
 end

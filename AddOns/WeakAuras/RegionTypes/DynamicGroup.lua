@@ -449,7 +449,7 @@ local centeredIndexerStart = {
     if maxIndex >= 3 then
       return maxIndex - maxIndex % 2
     else
-      return maxIndex
+      return maxIndex > 0 and maxIndex or nil
     end
   end,
   -- Center -> Right -> Left, e.g: 3 1 2 4
@@ -457,7 +457,7 @@ local centeredIndexerStart = {
     if maxIndex % 2 == 1 then
       return maxIndex
     else
-     return maxIndex - 1
+     return maxIndex > 0 and maxIndex - 1 or nil
     end
   end
 }
@@ -1537,6 +1537,15 @@ local function modify(parent, region, data)
       Private.StartProfileSystem("dynamicgroup")
       Private.StartProfileAura(data.id)
       local numVisible, minX, maxX, maxY, minY = 0, nil, nil, nil, nil
+      local isRestricted = region:IsAnchoringRestricted()
+      if isRestricted and not WeakAuras.IsOptionsOpen() then
+        -- workaround for restricted anchor families (mostly PRD)
+        -- if region is in a restricted anchor family, we're not allowed to get the rect of its children
+        -- and via Blizzard's extremely finite wisdom, the personal resource display is one such restricted family
+        -- so, temporarily reanchor to unrestrict us & child auras
+        region:RealClearAllPoints()
+        region:SetPoint("CENTER", UIParent, "CENTER")
+      end
       for active, regionData in ipairs(self.sortedChildren) do
         if regionData.shown then
           numVisible = numVisible + 1
@@ -1581,6 +1590,8 @@ local function modify(parent, region, data)
       end
       if WeakAuras.IsOptionsOpen() then
         Private.OptionsFrame().moversizer:ReAnchor()
+      elseif isRestricted then
+        self:ReAnchor()
       end
       Private.StopProfileSystem("dynamicgroup")
       Private.StopProfileAura(data.id)

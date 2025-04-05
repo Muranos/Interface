@@ -12,6 +12,7 @@ L['leather'] = '가죽'
 L['mail'] = '사슬'
 L['plate'] = '판금'
 L['cosmetic'] = '장식'
+L['tabard'] = '겉옷'
 
 L['1h_mace'] = '한손 둔기'
 L['1h_sword'] = '한손 도검'
@@ -44,34 +45,25 @@ L['activation_unknown'] = '활성화 방법 알려지지 않음!'
 L['requirement_not_found'] = '요구사항 위치 불명!'
 L['multiple_spawns'] = '생성 위치가 여러 곳입니다.'
 L['shared_drops'] = nil
+L['zone_drops_label'] = nil
+L['zone_drops_note'] = nil
+
+L['poi_entrance_label'] = nil
+L['change_map'] = nil
 
 L['requires'] = '요구사항'
 L['ranked_research'] = '%s (연구단계 %d/%d)'
 
 L['focus'] = '고정'
 L['retrieving'] = '아이템 링크 가져오는 중...'
-L['in_cave'] = '동굴 안에 있음.'
-L['in_small_cave'] = '작은 동굴 안에 있음.'
-L['in_water_cave'] = '수중 동굴 안에 있음.'
-L['in_waterfall_cave'] = '폭포 뒤 동굴 안에 있음.'
-L['in_water'] = '물 속에 있음.'
-L['hourly'] = '한시간단위'
-L['daily'] = '일간'
-L['weekly'] = '주간'
+
 L['normal'] = '보통'
 L['hard'] = '어려움'
-L['heirloom'] = '유산'
-L['item'] = nil
-L['mount'] = '탈것'
-L['pet'] = '애완동물'
-L['recipe'] = nil
-L['spell'] = '주문'
-L['title'] = '칭호'
-L['toy'] = '장난감'
-L['currency'] = nil
-L['rep'] = '평판'
+
 L['completed'] = '완료'
 L['incomplete'] = '미완료'
+L['claimed'] = nil
+L['unclaimed'] = nil
 L['known'] = '확인'
 L['missing'] = '미확인'
 L['unobtainable'] = '획득불가'
@@ -83,16 +75,47 @@ L['quest'] = nil
 L['quest_repeatable'] = nil
 L['achievement'] = nil
 
+---------------------------------- LOCATION -----------------------------------
+L['in_cave'] = '동굴 안에 있음.'
+L['in_small_cave'] = '작은 동굴 안에 있음.'
+L['in_water_cave'] = '수중 동굴 안에 있음.'
+L['in_waterfall_cave'] = '폭포 뒤 동굴 안에 있음.'
+L['in_water'] = '물 속에 있음.'
+L['in_building'] = nil
+
+------------------------------------ TIME -------------------------------------
+L['now'] = nil
+L['hourly'] = '한시간단위'
+L['daily'] = '일간'
+L['weekly'] = '주간'
+
+L['time_format_12hrs'] = nil
+L['time_format_24hrs'] = nil
+
+----------------------------------- REWARDS -----------------------------------
+L['heirloom'] = '유산'
+L['item'] = nil
+L['mount'] = '탈것'
+L['pet'] = '애완동물'
+L['recipe'] = nil
+L['spell'] = '주문'
+L['title'] = '칭호'
+L['toy'] = '장난감'
+L['currency'] = nil
+L['rep'] = '평판'
+L['buff'] = nil
+L['transmog'] = nil
+L['hunter_pet'] = nil
+
+---------------------------------- FOLLOWERS ----------------------------------
 L['follower_type_follower'] = '추종자'
 L['follower_type_champion'] = '영웅'
 L['follower_type_companion'] = '동료'
 
+--------------------------------- REPUTATION ----------------------------------
 L['rep_honored'] = nil
 L['rep_revered'] = nil
 L['rep_exalted'] = nil
-
-L['time_format_12hrs'] = nil
-L['time_format_24hrs'] = nil
 
 -------------------------------------------------------------------------------
 --------------------------------- DRAGONRACES ---------------------------------
@@ -160,6 +183,8 @@ L['options_show_completed_nodes'] = '완료 지점 표시'
 L['options_show_completed_nodes_desc'] = '이미 완료한 지점도 표시하도록 설정합니다'
 L['options_toggle_hide_done_rare'] = '모든 보상을 획득한 희귀몹 숨김'
 L['options_toggle_hide_done_rare_desc'] = '모든 보상을 획득한 희귀몹을 지도에서 숨깁니다.'
+L['options_toggle_hide_done_treasure'] = nil
+L['options_toggle_hide_done_treasure_desc'] = nil
 L['options_toggle_hide_minimap'] = '미니맵 상의 모든 아이콘 숨김'
 L['options_toggle_hide_minimap_desc'] = '이 애드온이 표시하는 미니맵 내의 모든 아이콘을 숨기고 지도에서만 나타나도록 합니다'
 L['options_toggle_maximized_enlarged'] = '세계지도 최대화면 모드에서 아이콘 확대'
@@ -171,8 +196,16 @@ L['options_toggle_per_map_settings_desc'] = '개별 지역별로 토글, 크기,
 L['options_restore_hidden_nodes'] = '숨긴 지점 복구'
 L['options_restore_hidden_nodes_desc'] = '우클릭 메뉴에서 숨긴 지점 복구 기능을 켭니다.'
 
+L['ignore_class_restrictions'] = nil
+L['ignore_class_restrictions_desc'] = nil
+L['ignore_faction_restrictions'] = nil
+L['ignore_faction_restrictions_desc'] = nil
+
 L['options_rewards_settings'] = '보상'
+L['options_reward_behaviors_settings'] = nil
 L['options_reward_types'] = '보상 종류 표시'
+L['options_manuscript_rewards'] = nil
+L['options_manuscript_rewards_desc'] = nil
 L['options_mount_rewards'] = '탈것 보상 표시'
 L['options_mount_rewards_desc'] = '탈것 보상을 툴팁에 표시하고 수집 진행상황을 추적합니다'
 L['options_pet_rewards'] = '애완동물 보상 표시'
@@ -185,6 +218,10 @@ L['options_transmog_rewards'] = '형상변환 보상 표시'
 L['options_transmog_rewards_desc'] = '형상변환 보상을 툴팁에 표시하고 수집 진행상황을 추적합니다'
 L['options_all_transmog_rewards'] = '획득 불가 형상변환 보상 표시'
 L['options_all_transmog_rewards_desc'] = '타직업으로만 수집가능한 형상변환 보상을 표시합니다'
+L['options_rep_rewards'] = nil
+L['options_rep_rewards_desc'] = nil
+L['options_claimed_rep_rewards'] = nil
+L['options_claimed_rep_rewards_desc'] = nil
 
 L['options_icons_misc_desc'] = '기타 위치 정보 표시'
 L['options_icons_misc'] = '기타'
@@ -194,6 +231,8 @@ L['options_icons_rares_desc'] = '희귀몹 위치 표시'
 L['options_icons_rares'] = '희귀몹'
 L['options_icons_treasures_desc'] = '숨겨진 보물 위치 표시'
 L['options_icons_treasures'] = '보물'
+L['options_icons_vendors_desc'] = nil
+L['options_icons_vendors'] = nil
 
 ------------------------------------ FOCUS ------------------------------------
 
@@ -214,6 +253,8 @@ L['options_toggle_show_notes'] = '가이드 표시'
 L['options_toggle_show_notes_desc'] = '가이드가 있으면 툴팁에 표시합니다'
 L['options_toggle_use_standard_time'] = nil
 L['options_toggle_use_standard_time_desc'] = nil
+L['options_toggle_show_npc_id'] = nil
+L['options_toggle_show_npc_id_desc'] = nil
 
 --------------------------------- DEVELOPMENT ---------------------------------
 

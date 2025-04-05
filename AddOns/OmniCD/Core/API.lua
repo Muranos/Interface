@@ -1,4 +1,5 @@
-local E = select(2, ...):unpack()
+local _, NS = ...
+local E, L = NS:unpack()
 
 -- OmniCD.AddUnitFrameData
 --	This adds a new or overwrite existing raid frame data for anchoring cooldown frames
@@ -43,6 +44,6 @@ function OmniCD.AddUnitFrameData(addon, frame, unit, delay, testFunc, index)
 	end
 
 	if testFunc then
-		E.addOnTestMode[addon] = testFunc
+		E.AddOnTestMode[addon] = testFunc
 	end
 end

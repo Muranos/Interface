@@ -3,13 +3,15 @@
 	<!-- Party -->
 	<Include file="Party\Templates.xml"/>
 	<Include file="Party\StatusBar.xml"/>
+	<Include file="Party\Highlights.xml"/>
 	<Script file="Party\Core.lua"/>
+	<Script file="Party\GroupInfo.lua"/>
 	<Script file="Party\Bars.lua"/>
 	<Script file="Party\Icons.lua"/>
 	<Script file="Party\Position.lua"/>
 	<Script file="Party\Visibility.lua"/>
-	<Script file="Party\Cooldowns.lua"/>
 	<Script file="Party\Highlights.lua"/>
+	<Script file="Party\Cooldowns.lua"/>
 	<Script file="Party\Test.lua"/>
 	<Script file="Party\ExtraBars.lua"/>
 	<Script file="Party\StatusBar.lua"/>
@@ -19,4 +21,5 @@
 
 	<!-- Blizzard -->
 	<Script file="Blizzard\Blizzard.lua"/>
+	<Script file="Blizzard\TooltipID.lua"/>
 </Ui>

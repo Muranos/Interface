@@ -1,5 +1,5 @@
 local SI, L = unpack((select(2, ...)))
-local Module = SI:NewModule('Currency', 'AceEvent-3.0', 'AceTimer-3.0', 'AceBucket-3.0')
+local Module = SI:NewModule("Currency", "AceEvent-3.0", "AceTimer-3.0", "AceBucket-3.0")
 
 -- Lua functions
 local ipairs, pairs = ipairs, pairs
@@ -8,7 +8,7 @@ local ipairs, pairs = ipairs, pairs
 local C_Covenants_GetActiveCovenantID = C_Covenants.GetActiveCovenantID
 local C_CurrencyInfo_GetCurrencyInfo = C_CurrencyInfo.GetCurrencyInfo
 local C_QuestLog_IsQuestFlaggedCompleted = C_QuestLog.IsQuestFlaggedCompleted
-local GetItemCount = GetItemCount
+local C_Item_GetItemCount = C_Item.GetItemCount
 local GetMoney = GetMoney
 
 local currency = {
@@ -122,6 +122,33 @@ local currency = {
   2812, -- Aspect's Awakened Crest
   2800, -- 10.2.6 Professions - Personal Tracker - S4 Spark Drops (Hidden)
   3010, -- 10.2.6 Rewards - Personal Tracker - S4 Dinar Drops (Hidden)
+  2778, -- Bronze
+
+  -- The War Within
+  3089, -- Residual Memories
+  2803, -- Undercoin
+  2815, -- Resonance Crystals
+  3028, -- Restored Coffer Key
+  3056, -- Kej
+  3008, -- Valorstones
+  2813, -- Harmonized Silk
+  2914, -- Weathered Harbinger Crest
+  2915, -- Carved Harbinger Crest
+  2916, -- Runed Harbinger Crest
+  2917, -- Gilded Harbinger Crest
+  3023, -- 11.0 Professions - Personal Tracker - S1 Spark Drops (Hidden)
+  3100, -- Bronze Celebration Token
+  3090, -- Flame-Blessed Iron
+  3218, -- Empty Kaja'Cola Can
+  3220, -- Vintage Kaja'Cola Can
+  3226, -- Market Research
+  3116, -- Essence of Kaja'mite
+  3107, -- Weathered Undermine Crest
+  3108, -- Carved Undermine Crest
+  3109, -- Runed Undermine Crest
+  3110, -- Gilded Undermine Crest
+  3132, -- 11.1 Professions - Personal Tracker - S2 Spark Drops (Hidden)
+  3216, -- Bounty's Remnants
 }
 SI.currency = currency
 
@@ -129,21 +156,20 @@ local currencySorted = {}
 for _, idx in ipairs(currency) do
   table.insert(currencySorted, idx)
 end
-table.sort(currencySorted, function (c1, c2)
+table.sort(currencySorted, function(c1, c2)
   local c1_name = C_CurrencyInfo_GetCurrencyInfo(c1).name
   local c2_name = C_CurrencyInfo_GetCurrencyInfo(c2).name
   return c1_name < c2_name
 end)
 SI.currencySorted = currencySorted
 
-local hiddenCurrency = {
-}
+local hiddenCurrency = {}
 
 local specialCurrency = {
   [1129] = { -- WoD - Seal of Tempered Fate
     weeklyMax = 3,
     earnByQuest = {
-      36058,  -- Seal of Dwarven Bunker
+      36058, -- Seal of Dwarven Bunker
       -- Seal of Ashran quests
       36054,
       37454,
@@ -190,6 +216,11 @@ local specialCurrency = {
       id = 173363, -- Vessel of Horrific Visions
     },
   },
+  [3028] = { -- Restored Coffer Key
+    relatedItem = {
+      id = 236096, -- Coffer Key Shard
+    },
+  },
 }
 SI.specialCurrency = specialCurrency
 
@@ -210,6 +241,8 @@ Module.OverrideName = {
   [2774] = L["Loot Spark of Dreams"], -- 10.2 Professions - Personal Tracker - S3 Spark Drops (Hidden)
   [2800] = L["Loot Spark of Awakening"], -- 10.2.6 Professions - Personal Tracker - S4 Spark Drops (Hidden)
   [3010] = L["Loot Antique Bronze Bullion"], -- 10.2.6 Rewards - Personal Tracker - S4 Dinar Drops (Hidden)
+  [3023] = L["Loot Spark of Omens"], -- 11.0 Professions - Personal Tracker - S1 Spark Drops (Hidden)
+  [3132] = L["Loot Spark of Fortunes"], -- 11.1 Professions - Personal Tracker - S2 Spark Drops (Hidden)
 }
 
 Module.OverrideTexture = {
@@ -217,23 +250,27 @@ Module.OverrideTexture = {
   [2774] = 5341573, -- 10.2 Professions - Personal Tracker - S3 Spark Drops (Hidden)
   [2800] = 4693222, -- 10.2.6 Professions - Personal Tracker - S4 Spark Drops (Hidden)
   [3010] = 4555657, -- 10.2.6 Rewards - Personal Tracker - S4 Dinar Drops (Hidden)
+  [3023] = 5929759, -- 11.0 Professions - Personal Tracker - S1 Spark Drops (Hidden)
+  [3132] = 5929757, -- 11.1 Professions - Personal Tracker - S2 Spark Drops (Hidden)
 }
 
 function Module:OnEnable()
   self:RegisterEvent("PLAYER_MONEY", "UpdateCurrency")
   self:RegisterBucketEvent("CURRENCY_DISPLAY_UPDATE", 0.25, "UpdateCurrency")
-  self:RegisterEvent("BAG_UPDATE", "UpdateCurrencyItem")
+  self:RegisterEvent("BAG_UPDATE_DELAYED", "UpdateCurrencyItem")
 end
 
 function Module:UpdateCurrency()
-  if SI.logout then return end -- currency is unreliable during logout
+  if SI.logout then
+    return
+  end -- currency is unreliable during logout
 
   local t = SI.db.Toons[SI.thisToon]
   t.Money = GetMoney()
   t.currency = t.currency or {}
 
   local covenantID = C_Covenants_GetActiveCovenantID()
-  for _,idx in ipairs(currency) do
+  for _, idx in ipairs(currency) do
     local data = C_CurrencyInfo_GetCurrencyInfo(idx)
     if not data.discovered and not hiddenCurrency[idx] then
       t.currency[idx] = nil
@@ -249,7 +286,9 @@ function Module:UpdateCurrency()
       -- handle special currency
       if specialCurrency[idx] then
         local tbl = specialCurrency[idx]
-        if tbl.weeklyMax then ci.weeklyMax = tbl.weeklyMax end
+        if tbl.weeklyMax then
+          ci.weeklyMax = tbl.weeklyMax
+        end
         if tbl.earnByQuest then
           ci.earnedThisWeek = 0
           for _, questID in ipairs(tbl.earnByQuest) do
@@ -259,7 +298,7 @@ function Module:UpdateCurrency()
           end
         end
         if tbl.relatedItem then
-          ci.relatedItemCount = GetItemCount(tbl.relatedItem.id)
+          ci.relatedItemCount = C_Item_GetItemCount(tbl.relatedItem.id)
         end
       elseif idx == 1822 then -- Renown
         -- plus one to amount and totalMax
@@ -274,29 +313,33 @@ function Module:UpdateCurrency()
           ci.covenant = ci.covenant or {}
           ci.covenant[covenantID] = ci.amount
         end
-      elseif idx == 2800 then -- 10.2.6 Professions - Personal Tracker - S4 Spark Drops (Hidden)
-        local duration = SI:GetNextWeeklyResetTime() - 1713276000 -- 2024-04-16T14:00:00+00:00
-        ci.totalMax = floor(duration / 604800) -- 7 days
-      elseif idx == 3010 then -- 10.2.6 Rewards - Personal Tracker - S4 Dinar Drops (Hidden)
-        local duration = SI:GetNextWeeklyResetTime() - 1713880800 -- 2024-04-23T14:00:00+00:00
-        ci.totalMax = floor(duration / 604800) -- 7 days
       end
       -- don't store useless info
-      if ci.weeklyMax == 0 then ci.weeklyMax = nil end
-      if ci.totalMax == 0 then ci.totalMax = nil end
-      if ci.earnedThisWeek == 0 then ci.earnedThisWeek = nil end
-      if ci.totalEarned == 0 then ci.totalEarned = nil end
+      if ci.weeklyMax == 0 then
+        ci.weeklyMax = nil
+      end
+      if ci.totalMax == 0 then
+        ci.totalMax = nil
+      end
+      if ci.earnedThisWeek == 0 then
+        ci.earnedThisWeek = nil
+      end
+      if ci.totalEarned == 0 then
+        ci.totalEarned = nil
+      end
       t.currency[idx] = ci
     end
   end
 end
 
 function Module:UpdateCurrencyItem()
-  if not SI.db.Toons[SI.thisToon].currency then return end
+  if not SI.db.Toons[SI.thisToon].currency then
+    return
+  end
 
   for currencyID, tbl in pairs(specialCurrency) do
     if tbl.relatedItem and SI.db.Toons[SI.thisToon].currency[currencyID] then
-      SI.db.Toons[SI.thisToon].currency[currencyID].relatedItemCount = GetItemCount(tbl.relatedItem.id)
+      SI.db.Toons[SI.thisToon].currency[currencyID].relatedItemCount = C_Item_GetItemCount(tbl.relatedItem.id)
     end
   end
 end

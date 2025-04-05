@@ -1,3 +1,152 @@
+== v4.01 - 31st March 2025
+* Further tweaks to options. Renaming, translating, added a mention about a console command, etc
+* Further modularising of the code. Colours
+* Removed some unnecessary localisations
+* Adjusted a note/reminder about why I use one of two viable (at least in retail)
+  means of obtaining a localised quest name
+* Cosmetic change to highlighted text in the AddOn menu
+* Stranglethorn Buckets shunted around a bit for Horde
+* Dalaran and adjacent zones all coordinates adjusted for Classic Cataclysm AND Retail
+  Over time Dalaran has shifted around slightly:
+  Between Classic Cata and Dragonflight it has drifted a little to the South-east.
+  Sometime after Dragonflight it has had a further, smaller shift to the south-east
+  but with an additional small anti-clockwise rotation. This throws off all Dalaran coordinates
+  with respect to other zones. Interestingly The Underbelly coordinates remain as is always.
+  It didn't move but the open air surface above did move! Someone stuffed up at Blizzard lol.
+  (Proof is in my October 2022 v1.05 release: I don't imagine those coordinates or pluck em out of the air
+  or copy paste off dodgy website data. I literally stand on top of the Candy Bucket myself!)
+* All Northrend data slightly changed for Classic Cataclysm to reflect versioning
+
+== v4.00 - 24th March 2025
+* Complete coding makeover
+* Better Tooltip design
+* New colour scheme
+* Better map phase detection/messages
+* Locations tweaked for various pins. Eg: Azure Watch
+* Works around the erroneous data returned by GetAchievementCriteriaInfo
+* Lots of small errors found adn corrected. Eg: Darkbreak Cove misplaced in Vashj'ir
+* Removed most advertising for my other AddOns. A couple remain
+* Removed the hack to force pins to propagate upwards as the problem is now resolved
+* Every Guide and Tip were reviewed and improved
+
+== v3.22 - 27th February 2025
+* TOC update to 11.1.0
+
+== v3.21 - 20th February 2025
+* TOC update to 4.4.2
+
+== v3.20 - 2nd February 2025
+* Better Refresh delay to prevent that annoying GetAchievementCriteriaInfo abend
+
+== v3.19 - 13th January 2025
+* Added another HandyNotes Refresh() delay for logins (both new and character swap),
+  reloads, and loading screen situations (various - enter/exit instances or Mage
+  teleport, etc). This will assist players with slow internet, unusual Blizzard
+  server glitches, too many AddOns, potato PCs
+  Note: This is a preemptive change due to one report for another of my AddOns
+	
+== v3.18 - 30th December 2024
+* Alliance Theramore pins - bug fix
+* Upvalue for GetTime added
+
+== v3.17 - 20th December 2024
+* An abend might occur for a GetAchievementCriteriaInfo() call during a load screen,
+  resulting in a nonsense LUA error message. Simple solution: the Minimap refresh
+  delay is extended from 3 to 7 seconds.
+  Note: This is a preemptive change due to one report for another of my AddOns
+
+== v3.16 - 10th December 2024
+* TOC update to 11.0.7
+
+== v3.15 - 26th November 2024
+* Minimap pins now disappear/appear around the same time as they do on the World Map
+  I arbitrarily set the timer to checking every 3 seconds - to avoid FPS / DPS hits
+  If show/hide via the options panel then that's instant
+  If in combat then I rely wholly on the HandyNotes engine to avoid taint errors
+  (a main reason I moved to the HN ecosystem years ago)
+* Maladath added to the OCE server list
+
+== v3.14 - 12th November 2024
+* TOC update to 4.4.1
+
+== v3.13 - 7th November 2024
+* Typo: Exobar changed to Exodar
+* Val'sharah (641) translated: daily and the breadcrumb
+* "Garrision dailies" heading translated as best as I could
+
+== v3.12 - 5th November 2024
+* A lot more translations added. Mostly but not exclusively Garrison
+
+== v3.11 - 3rd November 2024
+* Fix for Dragon Isles Summary
+
+== v3.10 - 2nd November 2024
+* Dragonmaw Port bug fix
+
+== v3.09 - 1st November 2024
+* Translations added. More will come as I get the time
+
+== v3.08 - 31st October 2024
+* Using a better shade of blue - easier to read - for dailies!
+* Added the four Garrison dailies as separate entries
+* Overhauled the popup layout to ensure more consistency
+* Overhauled the assigning of icons to be more consistent
+* Fire extinguishing dailies added in all locations
+* closeby typo fixed
+* Ramkahen Candy Bucket added to Tanaris map (A/H)
+* Desolation Hold in Southern Barrens added to Dustwallow Marsh (H)
+
+== v3.07 - 30th October 2024
+* Fire Extinguishing practice added
+* Now distinguishig between Daily, Seasonal and One Time Quests
+* Bug fix: double achievement title in popup
+
+== v3.06 - 29th October 2024
+* Val'sharah daily added
+* Dalaran text for ^ was tweaked slightly
+
+== v3.05 - 28th October 2024
+* Improved logic for Summary displays
+
+== v3.04 - 27th October 2024
+* Dragon Isles is now a Summary on the Azeroth map - less clutter!
+* Pandaria too
+* Suppress coordinates for summary pins
+* Removed a whole lot of unnecessary Continent filling code ( collating all pins from zone children)
+* Reworked the logic for deciding whether a pin will be shown or not
+
+== v3.03 - 26th October 2024
+* Remove stray Khaz Algar pin from Classic Cataclysm
+* Move an Ironforge Commons pin in Classic Cataclysm
+* The Khaz Algar pin is now a lot more helpful!
+* Emergency code fix for null quest field in ShowConditionallyS
+
+== v3.02 - 26th October 2024
+* Exact TWW coordinates now included
+* City of Threads now also overlay onto Azj-Kahet
+* Likewise I overlaid Dornogal onto the Isle of Dorn
+
+== v3.01 - 25th October 2024
+* Fix for Northrend T&T candy bucket popups to format like all the others
+* The War Within Candy Buckets
+
+== v3.00 - 23rd October 2024
+* Slash/chat commands added
+* Lots of helpful text added to the Options panel
+* Added Curse and Wago Project IDs
+* Title text now more spooky (ie coloured better)
+* Small change to colourising of AddOn title text
+* Classic Cataclysm support
+
+== v2.33 - 17th October 2024
+* TOC update to 11.0.5
+
+== v2.32 - 21st August 2024
+* TOC update to 11.0.2
+
+== v2.31 - 23rd July 2024
+* TOC update to 11.0.0
+
 == v2.30 - 20th April 2024
 * TOC update to 10.2.7
 * Removed old X- lines from the TOC files
@@ -135,6 +284,7 @@ All changes are for DF
 * The marker for Boralus in map 1161 was missing. It's there now!
 
 == v1.05 - 23rd October 2022
+  (What the hell happened between this release and the previous one. Release notes are identical. WTH lol)
 * So many changes.... the main ones:
 * Added a 3rd icon for "Other" or "miscellany". Specifically those candy buckets which are not a part of any achievement.
 * Help for Draenor and Broken Isles now included for those completionists.

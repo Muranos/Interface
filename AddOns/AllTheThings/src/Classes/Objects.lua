@@ -12,11 +12,9 @@ local C_QuestLog_IsOnQuest, ipairs, setmetatable, rawget
 	= C_QuestLog.IsOnQuest, ipairs, setmetatable, rawget;
 
 local GenerateGroupsForGenericSubGroup = function(t)
-	local spg = t._g
-	if spg then return spg end
-
-	-- only load this if we're in a tooltip-level build
-	if app.GetSkipLevel() ~= 1 then return end
+	-- only load this if we're in a tooltip-level or new window build
+	if app.GetSkipLevel() < 1 then return end
+	if rawget(t,"parent") then return end
 
 	-- local parent = rawget(t,"parent")
 	-- local window = app.GetRelativeValue(t, "window")
@@ -26,9 +24,11 @@ local GenerateGroupsForGenericSubGroup = function(t)
 	-- 	"sp",sp and app:SearchLink(sp),
 	-- 	"w",window and window.Suffix)
 
+	local spg = t._g
+	if spg then return spg end
+
 	-- direct object which is a child of a 'generic object container' can instead show the generic parent object content
 	-- when the direct object is the root of a window/tooltip
-	if rawget(t,"parent") then return end
 	local sp = t.sourceParent
 	if not sp then app.PrintDebug("spg.sourceParent MISSING??",app:SearchLink(t)) return end
 	spg = {}
@@ -61,7 +61,18 @@ app.CreateObject = app.CreateClass("Object", "objectID", {
 		return app.GetNameFromProviders(t) or ("Object ID #" .. t.objectID);
 	end,
 	icon = function(t)
-		return app.ObjectIcons[t.objectID] or app.GetIconFromProviders(t) or "Interface\\Icons\\INV_Misc_Bag_10";
+		local customIcon = app.ObjectIcons[t.objectID] or app.GetIconFromProviders(t)
+		if customIcon then return customIcon end
+
+		local g = t.g
+		if g then
+			for _,o in ipairs(g) do
+				customIcon = (o.itemID or o.criteriaID) and o.icon or nil
+				if customIcon then return customIcon end
+			end
+		end
+		-- default object icon
+		return 133639
 	end,
 	model = function(t)
 		return app.ObjectModels[t.objectID];
@@ -73,7 +84,12 @@ app.CreateObject = app.CreateClass("Object", "objectID", {
 	end,
 },
 "AsGenericObjectContainer", {
-	trackable = app.ReturnTrue,
+	__ignoreCaching = app.ReturnTrue,
+	trackable = function(t)
+		for _,group in ipairs(t.g) do
+			if group.objectID and group.trackable then return true; end
+		end
+	end,
 	repeatable = function(t)
 		for _,group in ipairs(t.g) do
 			if group.objectID and group.repeatable then return true; end
@@ -126,18 +142,24 @@ app.CreateObject = app.CreateClass("Object", "objectID", {
 },
 function(t) return t.type == "AsGenericObjectContainer" end,
 "AsSubGenericObjectWithQuest", {
+	CollectibleType = app.IsClassic and function() return "Quests" end
+	-- Retail: objects tracked as HQT
+	or function() return "QuestsHidden" end,
 	collectible = app.IsClassic and function(t)
 		return app.Settings.Collectibles.Quests and (not t.repeatable and not t.isBreadcrumb or C_QuestLog_IsOnQuest(t.questID));
 	end
-	-- Retail: typical object collectibility matches Quest collectibility
-	or app.CollectibleAsQuest,
+	-- Retail: typical object collectibility matches Lockable Quest collectibility
+	or app.GlobalVariants.AndLockCriteria.collectible,
 	collected = IsQuestFlaggedCompletedForObject,
-	trackable = app.ReturnTrue,
+	trackable = function(t)
+		-- raw repeatable quests can't really be tracked since they immediately unflag
+		return not rawget(t, "repeatable") and t.repeatable
+	end,
 	saved = function(t)
-		return t.collected == 1;
+		return IsQuestFlaggedCompletedForObject(t) == 1;
 	end,
 	variants = {
-		AndLockCriteria = app.GlobalVariants.AndLockCriteria,
+		app.GlobalVariants.AndLockCriteria,
 	},
 	g = GenerateGroupsForGenericSubGroup,
 },
@@ -147,18 +169,24 @@ function(t) return t.questID and t.type == "AsSubGenericObject" end,
 },
 function(t) return t.type == "AsSubGenericObject" end,
 "WithQuest", {
+	CollectibleType = app.IsClassic and function() return "Quests" end
+	-- Retail: objects tracked as HQT
+	or function() return "QuestsHidden" end,
 	collectible = app.IsClassic and function(t)
 		return app.Settings.Collectibles.Quests and (not t.repeatable and not t.isBreadcrumb or C_QuestLog_IsOnQuest(t.questID));
 	end
-	-- Retail: typical object collectibility matches Quest collectibility
-	or app.CollectibleAsQuest,
+	-- Retail: typical object collectibility matches Lockable Quest collectibility
+	or app.GlobalVariants.AndLockCriteria.collectible,
 	collected = IsQuestFlaggedCompletedForObject,
-	trackable = app.ReturnTrue,
+	trackable = function(t)
+		-- raw repeatable quests can't really be tracked since they immediately unflag
+		return not rawget(t, "repeatable") and t.repeatable
+	end,
 	saved = function(t)
-		return t.collected == 1;
+		return IsQuestFlaggedCompletedForObject(t) == 1;
 	end,
 	variants = {
-		AndLockCriteria = app.GlobalVariants.AndLockCriteria,
+		app.GlobalVariants.AndLockCriteria,
 	},
 }, function(t) return t.questID end);
 end

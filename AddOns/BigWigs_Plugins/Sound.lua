@@ -2,15 +2,19 @@
 -- Module Declaration
 --
 
-local plugin = BigWigs:NewPlugin("Sounds")
+local plugin = BigWigs:NewPlugin("Sounds", {
+	"db",
+	"soundOptions",
+	"SetSoundOptions",
+	"GetDefaultSound",
+})
 if not plugin then return end
 
 -------------------------------------------------------------------------------
 -- Locals
 --
 
-local L = BigWigsAPI:GetLocale("BigWigs: Plugins")
-local BL = BigWigsAPI:GetLocale("BigWigs")
+local L = BigWigsAPI:GetLocale("BigWigs")
 local media = LibStub("LibSharedMedia-3.0")
 local SOUND = media.MediaType and media.MediaType.SOUND or "sound"
 local soundList = nil
@@ -21,12 +25,13 @@ local sounds = {
 	Alert = "BigWigs: Alert",
 	Alarm = "BigWigs: Alarm",
 	Warning = "BigWigs: Raid Warning",
-	--onyou = BL.spell_on_you,
-	underyou = BL.spell_under_you,
+	--onyou = L.spell_on_you,
+	underyou = L.spell_under_you,
+	privateaura = "BigWigs: Raid Warning",
 }
 
 --------------------------------------------------------------------------------
--- Options
+-- Profile
 --
 
 plugin.defaultDB = {
@@ -36,8 +41,9 @@ plugin.defaultDB = {
 		Alert = sounds.Alert,
 		Alarm = sounds.Alarm,
 		Warning = sounds.Warning,
-		--onyou = BL.spell_on_you,
-		underyou = BL.spell_under_you,
+		--onyou = L.spell_on_you,
+		underyou = L.spell_under_you,
+		privateaura = sounds.privateaura,
 	},
 	Long = {},
 	Info = {},
@@ -45,7 +51,32 @@ plugin.defaultDB = {
 	Alarm = {},
 	Warning = {},
 	underyou = {},
+	privateaura = {},
 }
+
+local function updateProfile()
+	db = plugin.db.profile
+	for k, v in next, db do
+		local defaultType = type(plugin.defaultDB[k])
+		if defaultType == "nil" then
+			db[k] = nil
+		elseif type(v) ~= defaultType then
+			db[k] = plugin.defaultDB[k]
+		end
+	end
+	for k, v in next, db.media do
+		local defaultType = type(plugin.defaultDB.media[k])
+		if defaultType == "nil" then
+			db.media[k] = nil
+		elseif type(v) ~= defaultType then
+			db.media[k] = plugin.defaultDB.media[k]
+		end
+	end
+end
+
+--------------------------------------------------------------------------------
+-- Options
+--
 
 plugin.pluginOptions = {
 	type = "group",
@@ -88,20 +119,29 @@ plugin.pluginOptions = {
 			width = "full",
 			itemControl = "DDI-Sound",
 		},
+		privateaura = {
+			type = "select",
+			name = L.privateaura,
+			order = 4,
+			values = function() return soundList end,
+			width = "full",
+			itemControl = "DDI-Sound",
+			hidden = BigWigsLoader.isClassic,
+		},
 		newline2 = {
 			type = "description",
 			name = "\n\n",
-			order = 3.5,
+			order = 20,
 		},
 		oldSounds = {
 			type = "header",
 			name = L.oldSounds,
-			order = 4,
+			order = 21,
 		},
 		Alarm = {
 			type = "select",
 			name = L.Alarm,
-			order = 5,
+			order = 22,
 			values = function() return soundList end,
 			width = "full",
 			itemControl = "DDI-Sound",
@@ -109,7 +149,7 @@ plugin.pluginOptions = {
 		Alert = {
 			type = "select",
 			name = L.Alert,
-			order = 6,
+			order = 23,
 			values = function() return soundList end,
 			width = "full",
 			itemControl = "DDI-Sound",
@@ -117,7 +157,7 @@ plugin.pluginOptions = {
 		Info = {
 			type = "select",
 			name = L.Info,
-			order = 7,
+			order = 24,
 			values = function() return soundList end,
 			width = "full",
 			itemControl = "DDI-Sound",
@@ -125,7 +165,7 @@ plugin.pluginOptions = {
 		Long = {
 			type = "select",
 			name = L.Long,
-			order = 8,
+			order = 25,
 			values = function() return soundList end,
 			width = "full",
 			itemControl = "DDI-Sound",
@@ -133,7 +173,7 @@ plugin.pluginOptions = {
 		Warning = {
 			type = "select",
 			name = L.Warning,
-			order = 9,
+			order = 26,
 			values = function() return soundList end,
 			width = "full",
 			itemControl = "DDI-Sound",
@@ -148,14 +188,14 @@ plugin.pluginOptions = {
 					plugin.db.profile.media[k] = sounds[k]
 				end
 			end,
-			order = 10,
+			order = 27,
 		},
 		resetAll = {
 			type = "execute",
 			name = L.resetAll,
 			desc = L.resetAllCustomSound,
-			func = function() plugin.db:ResetProfile() end,
-			order = 11,
+			func = function() plugin.db:ResetProfile() updateProfile() end,
+			order = 28,
 		},
 	}
 }
@@ -205,26 +245,6 @@ end
 -------------------------------------------------------------------------------
 -- Initialization
 --
-
-local function updateProfile()
-	db = plugin.db.profile
-	for k, v in next, db do
-		local defaultType = type(plugin.defaultDB[k])
-		if defaultType == "nil" then
-			db[k] = nil
-		elseif type(v) ~= defaultType then
-			db[k] = plugin.defaultDB[k]
-		end
-	end
-	for k, v in next, db.media do
-		local defaultType = type(plugin.defaultDB.media[k])
-		if defaultType == "nil" then
-			db.media[k] = nil
-		elseif type(v) ~= defaultType then
-			db.media[k] = plugin.defaultDB.media[k]
-		end
-	end
-end
 
 function plugin:OnRegister()
 	updateProfile()
@@ -313,6 +333,20 @@ do
 			local path = db.media[newSound] and media:Fetch(SOUND, db.media[newSound], true) or media:Fetch(SOUND, newSound, true)
 			return path
 		end
+	end
+
+	function plugin:GetDefaultSound(soundName)
+		if not soundName then return end
+		if soundName == "none" then
+			return "None"
+		end
+		soundName = tmp[soundName] or soundName
+
+		local custom = soundName:match("^name:(.+)$")
+		if custom and not media:Fetch(SOUND, custom, true) then
+			return
+		end
+		return custom or db.media[soundName]
 	end
 end
 

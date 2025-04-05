@@ -23,6 +23,7 @@ points[ 249 ] = {
 	[33197204] = { camel=true, tip="Near a corner. Can see from afar" },
 	[33206283] = { camel=true, author=true, tip="On the left side of the entrance.\nAn equally small purple cat\nfigurine is across from it" },
 	[33276778] = { camel=true, author=true, tip="In a nook, with the stairs\nto its west side and a wall\nto its north side" },
+	[33232809] = { camel=true, author=true, tip="To the left of the door" },
 	[33682538] = { camel=true, tip="Outside the tent. Easy to see.\nIn front of a crate and guy rope" },
 	[34321963] = { camel=true, tip="Approximately between an upturned\ntable and a toppled bird carving" },
 	[34382128] = { camel=true, tip="Under the tent, triscted by the\npole, the skin and the rug" },
@@ -49,16 +50,24 @@ points[ 249 ] = {
 	[51475116] = { camel=true, author=true, tip="Above the building, on\nthe roof in a corner" },
 	[51794934] = { camel=true, tip="In the grass, trisected by a large\npalm, a shorter one and a leafy shrub" },
 	[51927081] = { camel=true, author=true, tip="On the ground at the back of a\nwagon. A camel is concealing it" },
-	[52145121] = { camel=true, author=true, tip="In a nook between the\nbench and the doorway" },
+	[52155123] = { camel=true, tip="In a nook between the\nbench and the doorway" },
 	[52232804] = { camel=true, author=true, tip="Out in the open. Ideal\nfor a quick fly past" },
 	[64663027] = { camel=true, author=true, tip="At the base of a small sand\nmound in a corner at the base\nof a very tall column" },
 	[69875813] = { camel=true, tip="Alongside a fallen and partially\ncovered stone plinth. Easy to see" },
 	[72024388] = { camel=true, author=true, tip="In this nook" },
 	[73447361] = { camel=true, author=true,
 					tip="Inside the altar structure. At the\nbase and to one side of a purple\nbird statue. Two baskets are nearby" },
+
+	[26002700] = { testUldum=true },	
 }
 points[ 1527 ] = {
 	[26002700] = { testUldum=true },	
+}
+points[ 12 ] = { -- Kalimdor
+	[49509300] = { camel=true },
+}
+points[ 947 ] = { -- Azeroth
+	[17507460] = { camel=true },
 }
 
 -- Choice of texture
@@ -85,22 +94,22 @@ textures[17] = "Interface\\PlayerFrame\\UI-PlayerFrame-DeathKnight-Frost"
 textures[18] = "Interface\\HelpFrame\\HelpIcon-CharacterStuck"	
 textures[19] = "Interface\\Vehicles\\UI-Vehicles-Raid-Icon"
 
-scaling[1] = 0.55
-scaling[2] = 0.55
-scaling[3] = 0.55
-scaling[4] = 0.55
-scaling[5] = 0.55
-scaling[6] = 0.55
-scaling[7] = 0.65
-scaling[8] = 0.63
-scaling[9] = 0.75
-scaling[10] = 0.75
-scaling[11] = 0.38
-scaling[12] = 0.5
-scaling[13] = 0.5
-scaling[14] = 0.5
-scaling[15] = 0.46
-scaling[16] = 0.45
-scaling[17] = 0.41
-scaling[18] = 0.6
-scaling[19] = 0.43
+scaling[1] = 0.413
+scaling[2] = 0.413
+scaling[3] = 0.413
+scaling[4] = 0.413
+scaling[5] = 0.413
+scaling[6] = 0.413
+scaling[7] = 0.489
+scaling[8] = 0.465
+scaling[9] = 0.563
+scaling[10] = 0.563
+scaling[11] = 0.278
+scaling[12] = 0.368
+scaling[13] = 0.368
+scaling[14] = 0.368
+scaling[15] = 0.323
+scaling[16] = 0.308
+scaling[17] = 0.296
+scaling[18] = 0.428
+scaling[19] = 0.323

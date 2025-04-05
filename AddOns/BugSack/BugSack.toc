@@ -1,5 +1,5 @@
-## Interface: 100205
-## Version: v10.2.3
+## Interface: 11506, 11507, 20504, 30404, 40402, 40401, 110105, 110007, 110100
+## Version: v11.1.0
 ## Title: BugSack
 ## Notes: Toss those bugs inna sack.
 ## Notes-deDE: Werft den Fehler in einen Sack.
@@ -11,7 +11,7 @@
 ## Notes-esES: Mete esos errores en un saco.
 ## Notes-esMX: Mete esos errores en un saco.
 ## Notes-ptBR: Toss those bugs inna sack.
-## Notes-itIT: Toss those bugs inna sack.
+## Notes-itIT: Metti quei bugs in un sacchetto.
 ## Author: Funkydude
 ## SavedVariables: BugSackDB, BugSackLDBIconDB
 ## OptionalDeps: Ace3, LibSharedMedia-3.0, LibDBIcon-1.0, !BugGrabber

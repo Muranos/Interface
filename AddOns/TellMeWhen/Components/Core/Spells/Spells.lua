@@ -1,6 +1,6 @@
 -- --------------------
 -- TellMeWhen
--- Originally by Nephthys of Hyjal <lieandswell@yahoo.com>
+-- Originally by NephMakes
 
 -- Other contributions by:
 --		Sweetmms of Blackrock, Oozebull of Twisting Nether, Oodyboo of Mug'thol,
@@ -20,8 +20,9 @@ local print = TMW.print
 local type, pairs, gsub, strfind, strmatch, strsplit, strtrim, tonumber, tremove, ipairs, tinsert, CopyTable, setmetatable =
 	  type, pairs, gsub, strfind, strmatch, strsplit, strtrim, tonumber, tremove, ipairs, tinsert, CopyTable, setmetatable
 local tconcat = table.concat
-local GetSpellInfo = 
-	  GetSpellInfo
+local GetSpellName = TMW.GetSpellName
+local GetSpellInfo = TMW.GetSpellInfo
+local GetSpellTexture = TMW.GetSpellTexture
 
 local strlowerCache = TMW.strlowerCache
 
@@ -146,60 +147,19 @@ parseSpellsString = TMW:MakeNArgFunctionCached(3, parseSpellsString)
 
 -- IDs of spells that can't be tracked properly because of blizzard bugs.
 local fixSpellMap = { 
-	[382614] = function()
-		-- Evoker https://github.com/ascott18/TellMeWhen/issues/2017
-		-- 375783: Font of Magic (talent)
-		-- 382614: Dream Breath (Preservation talent, with Font of Magic LEARNED)
-		-- 355936: Dream Breath (Preservation talent, with Font of Magic UNLEARNED)
-		if not IsPlayerSpell(382614) and not IsPlayerSpell(375783) then
-			return 355936
-		end
-	end,
-	[382731] = function()
-		-- Evoker https://github.com/ascott18/TellMeWhen/issues/2017
-		-- 375783: Font of Magic (talent)
-		-- 382731: Spiritbloom (Preservation talent, with Font of Magic LEARNED)
-		-- 367226: Spiritbloom (Preservation talent, with Font of Magic UNLEARNED)
-		if not IsPlayerSpell(382731) and not IsPlayerSpell(375783) then
-			return 367226
-		end
-	end,
-	[280735] = function()
-		-- Fury Execute https://github.com/ascott18/TellMeWhen/issues/2054
-		-- 206315: Massacre (fury talent)
-		-- 280735: Execute when Massacre is learned
-		--   5308: Execute when Massacre is unlearned.
-		-- Execute is not trackable by name when massacre is learned,
-		-- Despite the fact that GetSpellInfo("Execute") does always return the right ID
-		-- (unlike the evoker bugs where GetSpellInfo returns the wrong id)
-		if IsPlayerSpell(206315) and not IsPlayerSpell(280735) then
-			-- force to be the ID. Yes this is a weird case.
-			return 280735
+	[382266] = function()
+		-- Evoker https://github.com/ascott18/TellMeWhen/issues/2212
+		-- Fire Breath + font of magic
+		if 
+			not IsPlayerSpell(382266) -- The fire breath ID reported by blizzard is actually unlearned
+		and not IsPlayerSpell(408083) -- Font of magic (augmentation) talent unlearned
+		and not IsPlayerSpell(411212) -- Font of magic (devastation) talent unlearned
+		and not IsPlayerSpell(375783) -- Font of magic (preservation) talent unlearned
+		then
+			return 357208 -- Fire breath without font of magic
 		end
 	end,
 }
-local function covenantFix(shadowlandsId, talentedId)
-	-- For covenant abilities that became talents,
-	-- there are two abilities with different cooldowns, names, ids, etc.
-	
-	-- However, the talent cannot be used while the covenant ability is on CD, and vice-versa.
-	-- Additionally, and the reason for this fix, is spell APIs by name will resolve to the covenant ability,
-	-- not to the talent. So, when both are learned, we'll assume that if the player has both abilities learned,
-	-- then the talent one is the one they're actually using, so we have TMW replace the spell with the ID of the talent.
-
-	-- Note: not all covenant abilities are broken in this way.
-	-- For example, Convoke the Spirits, while it does have two different spells,
-	-- resolves by-name to the correct spell based on talent learned vs unlearned.
-
-	fixSpellMap[shadowlandsId] = function()
-		if IsPlayerSpell(shadowlandsId) and IsPlayerSpell(talentedId) then
-			return talentedId
-		end
-	end
-end
-
-covenantFix(325727, 391888) -- Adaptive Swarm (druid, necrolord) https://github.com/ascott18/TellMeWhen/issues/2055
-covenantFix(325640, 386997) -- Soul Rot (warlock, nf) https://github.com/ascott18/TellMeWhen/issues/1978
 
 local function getSpellNames(setting, doLower, firstOnly, convert, hash, allowRenaming)
 	local spells = parseSpellsString(setting, doLower, false)
@@ -211,17 +171,29 @@ local function getSpellNames(setting, doLower, firstOnly, convert, hash, allowRe
 		for k, v in ipairs(spells) do
 			-- Doesn't matter if the input is a name or an ID.
 			-- We need to map it to an ID to fix blizzard bugs
-			local name, _, _, _, _, _, spellID = GetSpellInfo(v or "")
-			if spellID then
-				if fixSpellMap[spellID] then
-					-- Attempt to fix blizzard bugs like https://github.com/Stanzilla/WoWUIBugs/issues/354
-					local newSpell = fixSpellMap[spellID]()
-					if newSpell then
-						print("fixing bugged spell", v, spellID, "=>", newSpell)
-						spells[k] = newSpell
+
+			-- As of WoW 11.0, we have to always replace spells with the result of GetOverrideSpell.
+			-- Even the most simple spells like "Thrash" don't work anymore without this:
+			--    GetSpellInfo("Thrash") returns spellID 106832,
+			--    but the spellID that actually has Thrash's cooldown is 77758.
+			--    Thrash is NOT a "replacement spell", so this is bizarre.
+			--    Fortunately, GetOverrideSpell returns 77758 for both "Thrash" and 106832.
+
+			if C_Spell and C_Spell.GetOverrideSpell then
+				local spellID = C_Spell.GetOverrideSpell(v or "")
+				if spellID and spellID ~= 0 then
+					if fixSpellMap[spellID] then
+						-- Attempt to fix blizzard bugs like https://github.com/Stanzilla/WoWUIBugs/issues/354
+						local newSpell = fixSpellMap[spellID]()
+						if newSpell then
+							print("fixing bugged spell", v, spellID, "=>", newSpell)
+							spells[k] = newSpell
+						else 
+							spells[k] = spellID
+						end
+					else
+						spells[k] = spellID
 					end
-				elseif convert == "id" then
-					spells[k] = spellID
 				end
 			end
 		end
@@ -231,7 +203,7 @@ local function getSpellNames(setting, doLower, firstOnly, convert, hash, allowRe
 		local hash = {}
 		for k, v in ipairs(spells) do
 			if convert == "name" and (allowRenaming or tonumber(v)) then
-				v = GetSpellInfo(v or "") or v -- Turn the value into a name if needed
+				v = GetSpellName(v or "") or v -- Turn the value into a name if needed
 			end
 
 			if doLower then
@@ -250,7 +222,7 @@ local function getSpellNames(setting, doLower, firstOnly, convert, hash, allowRe
 			-- Turn the first value into a name and return it
 			local ret = spells[1] or ""
 			if (allowRenaming or tonumber(ret)) then
-				ret = GetSpellInfo(ret) or ret 
+				ret = GetSpellName(ret) or ret 
 			end
 
 			if doLower then
@@ -262,7 +234,7 @@ local function getSpellNames(setting, doLower, firstOnly, convert, hash, allowRe
 			-- Convert everything to a name
 			for k, v in ipairs(spells) do
 				if (allowRenaming or tonumber(v)) then
-					spells[k] = GetSpellInfo(v or "") or v 
+					spells[k] = GetSpellName(v or "") or v 
 				end
 			end
 
@@ -334,6 +306,8 @@ local tableArgs = {
 }
 local __index_old = nil
 
+local RenamingSpellSetInstances = {}
+setmetatable(RenamingSpellSetInstances, {__mode='kv'})
 
 TMW:NewClass("SpellSet"){
 	OnFirstInstance = function(self)
@@ -354,7 +328,9 @@ TMW:NewClass("SpellSet"){
 
 		self.Name = name
 		self.AllowRenaming = allowRenaming
-		
+		if allowRenaming then
+			RenamingSpellSetInstances[self] = true
+		end
 		setmetatable(self, self.betterMeta)
 	end,
 
@@ -397,6 +373,19 @@ TMW:RegisterCallback("TMW_GLOBAL_UPDATE", function()
 		instance:Wipe()
 	end
 end)
+
+if C_Spell and C_Spell.GetOverrideSpell then
+	-- When spell overrides might change,
+	-- we need to wipe all the data about spell overrides that are cached on SpellSet instances
+	-- so the can be recalculated. For example, Void Eruption <-> Void Bolt.
+	-- This used to work automatically through GetSpellCooldown prior to WoW 11.0,
+	-- but now we have to manage spell overrides ourselves.
+	TMW:RegisterEvent("SPELLS_CHANGED", function()
+		for instance in pairs(RenamingSpellSetInstances) do
+			instance:Wipe()
+		end
+	end)
+end
 
 
 --- Returns an instance of {{{TMW.C.SpellSet}}} for the given spellString.
@@ -577,7 +566,97 @@ TMW:MakeSingleArgFunctionCached(TMW, "EquivToTable")
 ---------------------------------
 -- Constant spell data
 ---------------------------------
-if not TMW.isRetail then
+if TMW.isCata then
+	if pclass == "PALADIN" then
+		local name = GetSpellName(26573) 
+		TMW.COMMON.CurrentClassTotems = {
+			name = name,
+			desc = L["ICONMENU_TOTEM_GENERIC_DESC"]:format(name),
+			{
+				hasVariableNames = false,
+				name = GetSpellName(26573), --consecration
+				texture = GetSpellTexture(26573)
+			}
+		}
+	elseif pclass == "DEATHKNIGHT" then
+		local npcName = function(npcID)
+			local cachedName = TMW:TryGetNPCName(npcID)
+			return function()
+				if cachedName then return cachedName end
+				cachedName = TMW:TryGetNPCName(npcID)
+				return cachedName
+			end
+		end
+		local name = GetSpellName(46584)
+		TMW.COMMON.CurrentClassTotems = {
+			name = name,
+			desc = function() return L["ICONMENU_TOTEM_GENERIC_DESC"]:format(name) end,
+			texture = GetSpellTexture(49206),
+			[1] = { -- Risen Ghoul
+				hasVariableNames = false,
+				name = npcName(26125),
+				texture = GetSpellTexture(46584),
+			},
+			-- Ebon Gargoyle is NOT a totem in cata
+		}
+	elseif pclass == "SHAMAN" then
+		TMW.COMMON.CurrentClassTotems = {
+			name = L["ICONMENU_TOTEM"],
+			desc = L["ICONMENU_TOTEM_DESC"],
+			{
+				hasVariableNames = true,
+				name = L["FIRE"],
+				texture = GetSpellTexture(8227), -- flametongue
+			},
+			{
+				hasVariableNames = true,
+				name = L["EARTH"],
+				texture = GetSpellTexture(8072), -- stoneskin
+			},
+			{
+				hasVariableNames = true,
+				name = L["WATER"],
+				texture = GetSpellTexture(5675), -- mana spring
+			},
+			{
+				hasVariableNames = true,
+				name = L["AIR"],
+				texture = GetSpellTexture(8512), -- windfury
+			},
+		}
+	else
+		TMW.COMMON.CurrentClassTotems = {
+			name = L["ICONMENU_TOTEM"],
+			desc = L["ICONMENU_TOTEM_DESC"],
+			{
+				hasVariableNames = true,
+				name = L["GENERICTOTEM"]:format(1),
+				texture = "Interface\\ICONS\\ability_shaman_tranquilmindtotem"
+			},
+			{
+				hasVariableNames = true,
+				name = L["GENERICTOTEM"]:format(2),
+				texture = "Interface\\ICONS\\ability_shaman_tranquilmindtotem"
+			},
+			{
+				hasVariableNames = true,
+				name = L["GENERICTOTEM"]:format(3),
+				texture = "Interface\\ICONS\\ability_shaman_tranquilmindtotem"
+			},
+			{
+				hasVariableNames = true,
+				name = L["GENERICTOTEM"]:format(4),
+				texture = "Interface\\ICONS\\ability_shaman_tranquilmindtotem"
+			},
+			{
+				hasVariableNames = true,
+				name = L["GENERICTOTEM"]:format(5),
+				texture = "Interface\\ICONS\\ability_shaman_tranquilmindtotem"
+			},
+		}
+	end
+
+elseif not TMW.isRetail then
 	TMW.COMMON.CurrentClassTotems = {
 		name = L["ICONMENU_TOTEM"],
 		desc = L["ICONMENU_TOTEM_DESC"],
@@ -629,7 +708,7 @@ if not TMW.isRetail then
 			rankRoman = numerals[rank]
 		}
 		
-		data.spellName = GetSpellInfo(spellID)
+		data.spellName = GetSpellName(spellID)
 		if not data.spellName then
 			if not TMW.isClassic then
 				-- don't debug on classic - we use wrath's data and filter out totems that don't exist
@@ -817,18 +896,18 @@ else
 	}
 
 	if pclass == "PALADIN" then
-		local name = GetSpellInfo(26573) .. " & " .. GetSpellInfo(114158)
+		local name = GetSpellName(26573) .. " & " .. GetSpellName(114158)
 		TMW.COMMON.CurrentClassTotems = {
 			name = name,
 			desc = L["ICONMENU_TOTEM_GENERIC_DESC"]:format(name),
 			{
 				hasVariableNames = false,
-				name = GetSpellInfo(26573), --consecration
+				name = GetSpellName(26573), --consecration
 				texture = GetSpellTexture(26573)
 			},
 			{
 				hasVariableNames = false,
-				name = GetSpellInfo(114158), --light's hammer
+				name = GetSpellName(114158), --light's hammer
 				texture = GetSpellTexture(114158)
 			}
 		}
@@ -841,7 +920,7 @@ else
 				return cachedName
 			end
 		end
-		local name = GetSpellInfo(49206)
+		local name = GetSpellName(49206)
 		TMW.COMMON.CurrentClassTotems = {
 			name = name,
 			desc = function() return L["ICONMENU_TOTEM_GENERIC_DESC"]:format(name) end,
@@ -928,7 +1007,7 @@ local function ProcessEquivalencies()
 			end
 
 			for _, spell in pairs(tbl) do
-				if type(spell) == "number" and not GetSpellInfo(spell) then
+				if type(spell) == "number" and not GetSpellName(spell) then
 					TMW:Debug("Invalid spellID found: %s (%s - %s)!",
 						spell, category, equiv)
 				end

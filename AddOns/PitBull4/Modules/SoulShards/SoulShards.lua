@@ -1,4 +1,4 @@
-if select(2, UnitClass("player")) ~= "WARLOCK" then
+if UnitClassBase("player") ~= "WARLOCK" then
 	return
 end
 
@@ -41,34 +41,17 @@ PitBull4_SoulShards:SetDefaults({
 
 function PitBull4_SoulShards:OnEnable()
 	self:RegisterUnitEvent("UNIT_POWER_FREQUENT", nil, "player")
-	self:RegisterEvent("UNIT_DISPLAYPOWER")
-	self:RegisterEvent("PLAYER_ENTERING_WORLD")
+	self:RegisterUnitEvent("UNIT_DISPLAYPOWER", nil, "player")
+	self:RegisterEvent("PLAYER_ENTERING_WORLD", "UNIT_DISPLAYPOWER")
 end
 
-local function update_player(self)
-	for frame in PitBull4:IterateFramesForUnitID("player") do
-		self:Update(frame)
-	end
+function PitBull4_SoulShards:UNIT_POWER_FREQUENT(_, unit, power_type)
+	if power_type ~= "SOUL_SHARDS" then return end
+	self:UpdateForUnitID("player")
 end
 
-function PitBull4_SoulShards:UNIT_POWER_FREQUENT(event, unit, power_type)
-	if unit ~= "player" or power_type ~= "SOUL_SHARDS" then
-		return
-	end
-
-	update_player(self)
-end
-
-function PitBull4_SoulShards:UNIT_DISPLAYPOWER(event, unit)
-	if unit ~= "player" then
-		return
-	end
-
-	update_player(self)
-end
-
-function PitBull4_SoulShards:PLAYER_ENTERING_WORLD(event)
-	update_player(self)
+function PitBull4_SoulShards:UNIT_DISPLAYPOWER()
+	self:UpdateForUnitID("player")
 end
 
 function PitBull4_SoulShards:ClearFrame(frame)

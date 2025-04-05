@@ -1,15 +1,20 @@
 local addonName, addon = ...
 
+local L = LibStub("AceLocale-3.0"):GetLocale(addonName)
 local lib = LibStub:GetLibrary("EditModeExpanded-1.0")
 
 function addon:initActionBars()
     local db = addon.db.global
     if not db.EMEOptions.actionBars then return end
-    C_Timer.After(10, function()
+    C_Timer.After(5, function()
         if InCombatLockdown() then return end 
         local bars = {MainMenuBar, MultiBarBottomLeft, MultiBarBottomRight, MultiBarRight, MultiBarLeft, MultiBar5, MultiBar6, MultiBar7}
 
         for _, bar in ipairs(bars) do
+            
+            --[[
+            -- setting.buttonPadding causes taint to spread and cause issues
+            -- another method needed, if its even possible
             lib:RegisterCustomCheckbox(bar, "Override Icon Padding to Zero", 
                 -- on checked
                 function()
@@ -27,11 +32,12 @@ function addon:initActionBars()
                 
                 "OverrideIconPadding"
             )
+            --]]
             
             addon:registerSecureFrameHideable(bar)
             
             local alreadyHidden
-            lib:RegisterCustomCheckbox(bar, "Hide macro/keybind names",
+            lib:RegisterCustomCheckbox(bar, L["ACTION_BARS_CHECKBOX_HIDE_NAMES_DESCRIPTION"],
                 function()
                     for _, button in pairs(bar.actionButtons) do
                         button.Name:Hide()

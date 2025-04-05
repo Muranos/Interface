@@ -10,9 +10,11 @@ local GetTitleName, UnitName, CALENDAR_PLAYER_NAME, IsTitleKnown, GetNumTitles =
 -- Module
 
 -- App
+local Colorize = app.Modules.Color.Colorize
 
 -- Title Lib!
 local KEY, CACHE = "titleID", "Titles"
+local CLASSNAME = "Title"
 
 local function CalculateTitleStyle(name)
 	if name then
@@ -82,69 +84,62 @@ local OnUpdateForSpecificGender = function(t, parent, defaultUpdate)
 	return true;
 end
 app.CreateTitle = app.CreateClass("Title", "titleID", {
-	["icon"] = function(t)
+	icon = function(t)
 		return app.asset("Category_Titles");
 	end,
-	["description"] = function(t)
+	description = function(t)
 		return L.TITLES_DESC;
 	end,
-	["text"] = function(t)
-		return "|c" .. app.Colors.Account .. t.name .. "|r";
+	text = function(t)
+		return Colorize(t.name, app.Colors.Account)
 	end,
-	["name"] = function(t)
-		return StylizePlayerTitle(t.titleName, t.style, UnitName("player"));
+	name = function(t)
+		local name = StylizePlayerTitle(t.titleName, t.style, UnitName("player"))
+		t.name = name
+		return name
 	end,
-	["titleName"] = function(t)
+	titleName = function(t)
 		return GetTitleName(t[KEY]);
 	end,
-	["title"] = function(t)
+	title = function(t)
 		return StylizePlayerTitle(t.titleName, t.style, "("..CALENDAR_PLAYER_NAME..")");
 	end,
-	["style"] = function(t)
+	style = function(t)
 		local style = CalculateTitleStyle(t.titleName);
 		if style then
 			t.style = style;
 			return style;
 		end
 	end,
-	["collectible"] = function(t)
+	RefreshCollectionOnly = true,
+	collectible = function(t)
 		return app.Settings.Collectibles.Titles;
 	end,
-	["trackable"] = app.ReturnTrue,
-	["collected"] = app.IsClassic and function(t)
-		local titleID = t[KEY];
-		return app.SetCollected(t, "Titles", titleID, IsTitleKnown(titleID));
-	end or function(t)
-		local id = t[KEY];
-		-- character collected
-		if app.IsCached(CACHE, id) then return 1; end
-		-- account-wide collected
-		if app.IsAccountTracked(CACHE, id) then return 2; end
+	collected = function(t)
+		return app.TypicalCharacterCollected(CACHE, t[KEY])
 	end,
-	["saved"] = function(t)
+	saved = function(t)
 		return IsTitleKnown(t[KEY]);
 	end,
-	["OnUpdate"] = function(t)
+	OnUpdate = function(t)
 		return t.gender and OnUpdateForSpecificGender;
 	end
 });
+app.AddSimpleCollectibleSwap(CLASSNAME, CACHE)
 
 -- Title Refresh
-if app.IsRetail then
--- NOTE: Not sure if this is necessary for Classic.
-	app.AddEventHandler("OnRefreshCollections", function()
-		local saved, none = {}, {}
-		for i=1,GetNumTitles(),1 do
-			if IsTitleKnown(i) then
-				saved[i] = true
-			else
-				none[i] = true
-			end
+app.AddEventHandler("OnRefreshCollections", function()
+	local saved, none = {}, {}
+	for i=1,GetNumTitles(),1 do
+		if IsTitleKnown(i) then
+			saved[i] = true
+		else
+			none[i] = true
 		end
-		-- Character Cache
-		app.SetBatchCached(CACHE, saved, 1)
-		app.SetBatchCached(CACHE, none)
-		-- Account Cache (removals handled by Sync)
-		app.SetBatchAccountCached(CACHE, saved, 1)
-	end);
-end
+	end
+	-- Character Cache
+	app.SetBatchCached(CACHE, saved, 1)
+	app.SetBatchCached(CACHE, none)
+	-- Account Cache (removals handled by Sync)
+	app.SetBatchAccountCached(CACHE, saved, 1)
+end);

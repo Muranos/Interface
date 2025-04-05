@@ -1,7 +1,8 @@
 
-## v10.2.4
-* Fix: #2154 - Errors when tracking items by slot number when the slot is empty.
-* Fix: #2155 - Item cooldown API was broken by Blizzard in 10.2.6.
+## v11.1.1
+* Added support to new WoW 11.1.5 spell range events
+* Fix: Adjust some parameters to better handle the 7 digit spellIDs that Blizzard started adding in 11.0.7
+* Fix: #2266 Occasional incorrect cooldown duration for haste-affected cooldowns, especially those that have or can have charges, due to Blizzard not firing events.
 
 
-[View Full Changelog](https://github.com/ascott18/TellMeWhen/blob/209b9b0214ffbf83c2bbe0a1a1e5d5d917ae21d7/CHANGELOG.md)
+[View Full Changelog](https://github.com/ascott18/TellMeWhen/blob/990b1cb9f225ef63702512a0569fb979ab502177/CHANGELOG.md)

@@ -3,6 +3,10 @@ local addonName, addonTable = ...
 local L = LibStub("AceLocale-3.0"):GetLocale("Rarity")
 local CONSTANTS = addonTable.constants
 
+if LE_EXPANSION_LEVEL_CURRENT < LE_EXPANSION_BATTLE_FOR_AZEROTH then
+	return {}
+end
+
 local bfaMounts = {
 	--- 8.0
 	["Witherbark Direwing"] = {
@@ -346,8 +350,6 @@ local bfaMounts = {
 		instanceDifficulties = { [CONSTANTS.INSTANCE_DIFFICULTIES.MYTHIC_RAID] = true },
 		chance = 100,
 		wasGuaranteed = true,
-		groupSize = 10,
-		equalOdds = true,
 		statisticId = { 13382 },
 		coords = { { m = CONSTANTS.UIMAPIDS.BATTLE_FOR_DAZARALOR_RAID, i = true } },
 	},
@@ -408,8 +410,6 @@ local bfaMounts = {
 		itemId = 168826,
 		npcs = { 150190 },
 		chance = 200,
-		groupSize = 5,
-		equalOdds = true,
 		instanceDifficulties = { [CONSTANTS.INSTANCE_DIFFICULTIES.MYTHIC_DUNGEON] = true },
 		lockoutDetails = {
 			mode = CONSTANTS.DEFEAT_DETECTION.MODE_AND,
@@ -704,8 +704,6 @@ local bfaMounts = {
 			value = 146409,
 		},
 		chance = 100,
-		groupSize = 5,
-		equalOdds = true,
 		statisticId = { 13372, 13373, 13374, 13379 },
 		lockoutDetails = {
 			mode = CONSTANTS.DEFEAT_DETECTION.MODE_AND,
@@ -807,11 +805,19 @@ local bfaMounts = {
 		instanceDifficulties = { [CONSTANTS.INSTANCE_DIFFICULTIES.MYTHIC_RAID] = true },
 		chance = 100,
 		wasGuaranteed = true,
-		groupSize = 10,
-		equalOdds = true,
 		statisticId = { 14138 },
 		coords = { { m = CONSTANTS.UIMAPIDS.NYALOTHA, i = true } },
+		lockoutDetails = {
+			mode = CONSTANTS.DEFEAT_DETECTION.MODE_AND,
+			{
+				encounterName = "N'Zoth the Corruptor",
+				instanceDifficulties = {
+					[CONSTANTS.INSTANCE_DIFFICULTIES.MYTHIC_RAID] = true,
+				},
+			},
+		},
 	},
 }
 
 Rarity.ItemDB.MergeItems(Rarity.ItemDB.mounts, bfaMounts)
+return bfaMounts

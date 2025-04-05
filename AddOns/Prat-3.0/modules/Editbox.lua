@@ -387,8 +387,6 @@ end
 
 
 
-  local mustUseAlt = true -- select(4, _G.GetBuildInfo()) >= 50400
-
   local Media = Prat.Media
   local backgrounds, borders, fonts = {}, {}, {}
   local CreateFrame = _G.CreateFrame
@@ -571,12 +569,6 @@ end
             header:SetFont(font, s, m)
           end
         end
-      },
-      info = {
-        name = PL.currently_broken_alt_behavior;
-        type = "description",
-        hidden = not mustUseAlt;
-        order = 1000;
       },
     },
   })
@@ -949,7 +941,12 @@ end
           frame:SetScript("OnMouseUp", stopMoving)
           frame:SetWidth(w)
           frame:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", x, y)
-          frame:SetMinResize(40, 1)
+          local minWidth, minHeight = 40, 1
+          if frame.SetResizeBounds then
+            frame:SetResizeBounds(minWidth, minHeight)
+          else
+            frame:SetMinResize(minWidth, minHeight)
+          end
 
           frame.lDrag:EnableMouse(true)
           frame.rDrag:EnableMouse(true)

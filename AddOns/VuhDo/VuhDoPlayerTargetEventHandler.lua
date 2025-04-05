@@ -69,9 +69,11 @@ function VUHDO_updatePlayerTarget()
 			VUHDO_setHealth("target", 1); -- VUHDO_UPDATE_ALL
 		else
 			VUHDO_removeHots("target");
-			VUHDO_resetDebuffsFor("target");
 			VUHDO_removeAllDebuffIcons("target");
+			VUHDO_resetDebuffsFor("target");
+
 			VUHDO_updateTargetBars("target");
+
 			table.wipe(VUHDO_RAID["target"] or tEmptyInfo);
 			VUHDO_RAID["target"] = nil;
 		end
@@ -86,16 +88,22 @@ end
 --
 local tBorder;
 function VUHDO_barBorderBouquetCallback(aUnit, anIsActive, anIcon, aTimer, aCounter, aDuration, aColor, aBuffName, aBouquetName, anImpact)
+
 	for _, tButton in pairs(VUHDO_getUnitButtonsSafe(aUnit)) do
-		if aColor then
-			tBorder = VUHDO_getPlayerTargetFrame(tButton);
-			tBorder:SetFrameLevel(tButton:GetFrameLevel() + (anImpact or 0) + 2);
-			tBorder:SetBackdropBorderColor(VUHDO_backColorWithFallback(aColor));
-			tBorder:Show();
-		else
-			VUHDO_getPlayerTargetFrame(tButton):Hide();
+		if VUHDO_INDICATOR_CONFIG[VUHDO_BUTTON_CACHE[tButton]]["BOUQUETS"]["BAR_BORDER"] == aBouquetName then
+			if aColor then
+				tBorder = VUHDO_getPlayerTargetFrame(tButton);
+
+				tBorder:SetFrameLevel(tButton:GetFrameLevel() + (anImpact or 0) + 2);
+				tBorder:SetBackdropBorderColor(VUHDO_backColorWithFallback(aColor));
+
+				tBorder:Show();
+			else
+				VUHDO_getPlayerTargetFrame(tButton):Hide();
+			end
 		end
 	end
+
 end
 
 

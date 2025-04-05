@@ -3,6 +3,7 @@ local _;
 local VUHDO_IS_SMART_CAST = false;
 
 local SecureButton_GetButtonSuffix = SecureButton_GetButtonSuffix;
+local GetTexCoordsForRole = GetTexCoordsForRole or VUHDO_getTexCoordsForRole;
 local InCombatLockdown = InCombatLockdown;
 local strlower = strlower;
 local strfind = strfind;
@@ -278,13 +279,21 @@ end
 --
 local tQuota, tHighlightBar;
 function VUHDO_highlighterBouquetCallback(aUnit, anIsActive, anIcon, aCurrValue, aCounter, aMaxValue, aColor, aBuffName, aBouquetName)
-	tQuota = (anIsActive or (aMaxValue or 0) > 1)	and 1 or 0;
+
+	tQuota = (anIsActive or (aMaxValue or 0) > 1) and 1 or 0;
 
 	for _, tButton in pairs(VUHDO_getUnitButtonsSafe(aUnit)) do
-		tHighlightBar = VUHDO_getHealthBar(tButton, 8);
-		if aColor then tHighlightBar:SetVuhDoColor(aColor); end
-		tHighlightBar:SetValue(tQuota);
+		if VUHDO_INDICATOR_CONFIG[VUHDO_BUTTON_CACHE[tButton]]["BOUQUETS"]["MOUSEOVER_HIGHLIGHT"] == aBouquetName then
+			tHighlightBar = VUHDO_getHealthBar(tButton, 8);
+
+			if aColor then
+				tHighlightBar:SetVuhDoColor(aColor);
+			end
+
+			tHighlightBar:SetValue(tQuota);
+		end
 	end
+
 end
 
 
@@ -407,12 +416,12 @@ function VUHDO_showDebuffTooltip(aDebuffIcon)
 		GameTooltip:SetOwner(aDebuffIcon, "ANCHOR_RIGHT", 0, 0);
 	end
 
-	if aDebuffIcon["debuffCnt"] then
+	if aDebuffIcon["debuffInstanceId"] then
 		if not GameTooltip:IsForbidden() then
 			if aDebuffIcon["isBuff"] then 
-				GameTooltip:SetUnitBuff(tButton["raidid"], aDebuffIcon["debuffCnt"]);
+				GameTooltip:SetUnitBuffByAuraInstanceID(tButton["raidid"], aDebuffIcon["debuffInstanceId"]);
 			else 
-				GameTooltip:SetUnitDebuff(tButton["raidid"], aDebuffIcon["debuffCnt"]); 
+				GameTooltip:SetUnitDebuffByAuraInstanceID(tButton["raidid"], aDebuffIcon["debuffInstanceId"]); 
 			end
 		end
 	end

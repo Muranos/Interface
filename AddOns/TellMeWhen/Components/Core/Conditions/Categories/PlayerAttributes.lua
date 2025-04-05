@@ -1,6 +1,6 @@
 ﻿-- --------------------
 -- TellMeWhen
--- Originally by Nephthys of Hyjal <lieandswell@yahoo.com>
+-- Originally by NephMakes
 
 -- Other contributions by:
 --		Sweetmms of Blackrock, Oozebull of Twisting Nether, Oodyboo of Mug'thol,
@@ -23,11 +23,12 @@ local strlowerCache = TMW.strlowerCache
 
 local _, pclass = UnitClass("Player")
 
+local GetSpellName = TMW.GetSpellName
+local GetSpellTexture = C_Spell and C_Spell.GetSpellTexture or GetSpellTexture
+
 local IsInInstance, GetInstanceDifficulty, GetNumShapeshiftForms, GetShapeshiftFormInfo = 
 	  IsInInstance, GetInstanceDifficulty, GetNumShapeshiftForms, GetShapeshiftFormInfo
 local GetPetActionInfo = GetPetActionInfo
-local GetNumTrackingTypes = GetNumTrackingTypes or C_Minimap.GetNumTrackingTypes
-local GetTrackingInfo = GetTrackingInfo or C_Minimap.GetTrackingInfo
 	  
 local ConditionCategory = CNDT:GetCategory("ATTRIBUTES_PLAYER", 2, L["CNDTCAT_ATTRIBUTES_PLAYER"], false, false)
 
@@ -46,6 +47,10 @@ ConditionCategory:RegisterCondition(3,	 "MOUNTED", {
 		IsMounted = IsMounted,
 	},
 	funcstr = [[BOOLCHECK( IsMounted() )]],
+	events = function(ConditionObject, c)
+		return
+			ConditionObject:GenerateNormalEventString("TMW_UNIT_AURA_PLAYER")
+	end,
 })
 ConditionCategory:RegisterCondition(4,	 "SWIMMING", {
 	text = L["CONDITIONPANEL_SWIMMING"],
@@ -192,7 +197,7 @@ ConditionCategory:RegisterCondition(6,	 "STANCE", {
 				return strlowerCache[NONE]
 			else
 				local icons, active, catable, spellID = GetShapeshiftFormInfo(i)
-				return spellID and strlowerCache[GetSpellInfo(spellID)] or ""
+				return spellID and strlowerCache[GetSpellName(spellID)] or ""
 			end
 		end
 	},
@@ -223,7 +228,7 @@ ConditionCategory:RegisterCondition(12,	 "AUTOCAST", {
 	icon = "Interface\\Icons\\ability_physical_taunt",
 	tcoords = CNDT.COMMON.standardtcoords,
 	Env = {
-		GetSpellAutocast = GetSpellAutocast,
+		GetSpellAutocast = C_Spell and C_Spell.GetSpellAutoCast or _G.GetSpellAutocast,
 	},
 	funcstr = [[BOOLCHECK( select(2, GetSpellAutocast(c.Spells.FirstString)) )]],
 	events = function(ConditionObject, c)
@@ -329,8 +334,29 @@ ConditionCategory:RegisterSpacer(15.5)
 
 
 Env.Tracking = {}
-if GetNumTrackingTypes and GetTrackingInfo and GetNumTrackingTypes() > 0 then
-	-- Wrath+
+
+-- As of 7/26/2024:
+-- C_Minimap.GetTrackingInfo exists in Retail, and data is provided through a single returned table
+-- C_Minimap.GetTrackingInfo exists in Cata, and data is provided through multiple return values
+-- C_Minimap.GetTrackingInfo exists in Classic Era, but never returns anything
+
+if C_Minimap and C_Minimap.GetTrackingInfo and C_Minimap.GetNumTrackingTypes() > 0 and type(C_Minimap.GetTrackingInfo(1)) == "table" then
+	-- Wow 11.0+
+	local GetTrackingInfo = C_Minimap.GetTrackingInfo
+	local GetNumTrackingTypes = C_Minimap.GetNumTrackingTypes
+
+	function CNDT:MINIMAP_UPDATE_TRACKING()
+		wipe(Env.Tracking)
+		for i = 1, GetNumTrackingTypes() do
+			local data = GetTrackingInfo(i)
+			Env.Tracking[strlower(data.name)] = data.active and 1 or nil
+		end
+	end
+elseif C_Minimap and C_Minimap.GetTrackingInfo and C_Minimap.GetNumTrackingTypes() > 0 then
+	-- Cata Classic
+	local GetTrackingInfo = C_Minimap.GetTrackingInfo
+	local GetNumTrackingTypes = C_Minimap.GetNumTrackingTypes
+
 	function CNDT:MINIMAP_UPDATE_TRACKING()
 		wipe(Env.Tracking)
 		for i = 1, GetNumTrackingTypes() do

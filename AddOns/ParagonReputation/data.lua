@@ -1,5 +1,5 @@
 		-------------------------------------------------
-		-- Paragon Reputation 1.52 by Fail US-Ragnaros --
+		-- Paragon Reputation 1.62 by Fail US-Ragnaros --
 		-------------------------------------------------
 
 		  --[[	  Special thanks to Ammako for
@@ -537,4 +537,97 @@ PR.PARAGON_DATA = {
 			factionID = 2510,
 			cache = 199475,
 		},
+	
+	--War Within
+		[79219] = { -- Council of Dornogal
+			factionID = 2590,
+			cache = 225239,
+		}, 
+		[79218] = { -- Hallowfall Arathi
+			factionID = 2570,
+			cache = 225246,
+		},
+		[79220] = { -- The Assembly of the Deep
+			factionID = 2594,
+			cache = 225245,
+		},
+		[85805] = { -- The Cartels of Undermine
+			factionID = 2653,
+			cache = 232463,
+		},
+			[85471] = { -- Gallagio Loyalty Rewards Club
+				factionID = 2685,
+				cache = 232463,
+			},
+			[85806] = { -- Bilgewater Cartel
+				factionID = 2673,
+				cache = 237132,
+				rewards = {
+					{ -- Bilgewater Bombardier
+						type = MOUNT,
+						itemID = 229957,
+						mountID = 2295,
+					},
+				},
+			},
+			[85807] = { -- Blackwater Cartel
+				factionID = 2675,
+				cache = 237135,
+				rewards = {
+					{ -- Blackwater Bonecrusher
+						type = MOUNT,
+						itemID = 229937,
+						mountID = 2274,
+					},
+				},
+			},
+			[85808] = { -- Darkfuse Solutions
+				factionID = 2669,
+				cache = 232465,
+				rewards = {
+					{ -- Bronze Goblin Waveshredder
+						type = MOUNT,
+						itemID = 233064,
+						mountID = 2334,
+					},
+				},
+			},
+			[85809] = { -- Steamwheedle Cartel
+				factionID = 2677,
+				cache = 237134,
+				rewards = {
+					{ -- Steamwheedle Supplier
+						type = MOUNT,
+						itemID = 229943,
+						mountID = 2281,
+					},
+				},
+			},
+			[85810] = { -- Venture Company
+				factionID = 2671,
+				cache = 237133,
+				rewards = {
+					{ -- Venture Co-ordinator
+						type = MOUNT,
+						itemID = 229951,
+						mountID = 2289,
+					},
+				},
+			},
+		[79196] = { -- The Severed Threads
+			factionID = 2600,
+			cache = 225247,
+		},
+			[83739] = { -- The General
+				factionID = 2605,
+				cache = 226045,
+			},
+			[83740] = { -- The Vizier
+				factionID = 2607,
+				cache = 226100,
+			},
+			[83738] = { -- The Weaver
+				factionID = 2601,
+				cache = 226103,
+			},
 }

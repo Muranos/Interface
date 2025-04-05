@@ -1,13 +1,8 @@
-do
--- CRIEVE NOTE: This file is currently identical in both Retail and Classic.
--- DO NOT TOUCH IT.
 local app = select(2, ...);
 local L = app.L
 
--- Global Variables
-local GetItemInfo =
----@diagnostic disable-next-line: deprecated
-	((C_Item and C_Item.GetItemInfo) or GetItemInfo);
+-- WoW API Cache
+local GetItemInfo = app.WOWAPI.GetItemInfo;
 
 -- Illusion Class
 local AccountWideIllusionData = {};
@@ -30,21 +25,23 @@ local function GetDefaultItemInfo(t, field)
 	return t[field]
 end
 
+local CLASSNAME, KEY, CACHE = "Illusion", "illusionID", "Illusions"
 local illusionFields = {
-	["filterID"] = function(t)
+	filterID = function(t)
 		return 103;
 	end,
-	["text"] = function(t)
+	text = function(t)
 		return t.link;
 	end,
-	["icon"] = function(t)
-		return "Interface/ICONS/INV_Enchant_Disenchant";
+	icon = function(t)
+		return 132853;
 	end,
-	["collectible"] = function(t)
-		return app.Settings.Collectibles.Illusions;
+	RefreshCollectionOnly = true,
+	collectible = function(t)
+		return app.Settings.Collectibles[CACHE];
 	end,
-	["collected"] = function(t)
-		return AccountWideIllusionData[t.illusionID];
+	collected = function(t)
+		return AccountWideIllusionData[t[KEY]];
 	end,
 };
 if C_TransmogCollection then
@@ -52,15 +49,15 @@ if C_TransmogCollection then
 	local GetIllusionStrings = C_TransmogCollection.GetIllusionStrings;
 	if GetIllusionStrings then
 		illusionFields.link = function(t)
-			return select(2, GetIllusionStrings(t.illusionID));
+			return select(2, GetIllusionStrings(t[KEY]));
 		end
 	elseif GetIllusionLink then
 		illusionFields.link = function(t)
-			return select(3, GetIllusionLink(t.illusionID));
+			return select(3, GetIllusionLink(t[KEY]));
 		end
 	else
 		illusionFields.text = function(t)
-			return "[Illusion: " .. t.illusionID .. " (Unsupported)]";
+			return "[Illusion: " .. t[KEY] .. " (Unsupported)]";
 		end
 	end
 	if illusionFields.link then
@@ -77,7 +74,7 @@ if C_TransmogCollection then
 		end);
 	end
 end
-app.CreateIllusion = app.CreateClass("Illusion", "illusionID", illusionFields,
+app.CreateIllusion = app.CreateClass(CLASSNAME, KEY, illusionFields,
 "WithItem", {
 	link = function(t)
 		return app.TryGetField(t, "link", GetIllusionItemInfo, GetDefaultItemInfo)
@@ -98,4 +95,5 @@ app.AddEventHandler("OnSavedVariablesAvailable", function(currentCharacter, acco
 		accountWideData.Illusions = AccountWideIllusionData;
 	end
 end);
-end
+
+app.AddSimpleCollectibleSwap(CLASSNAME, CACHE)

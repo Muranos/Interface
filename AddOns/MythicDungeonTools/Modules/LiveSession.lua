@@ -21,7 +21,6 @@ function MDT:LiveSession_Enable()
   self:SetUniqueID(self:GetCurrentPreset())
   self.livePresetUID = self:GetCurrentPreset().uid
   self:UpdatePresetDropdownTextColor()
-  self:SetThrottleValues()
   timer = C_Timer.NewTimer(2, function()
     local callback = function()
       self.liveSessionRequested = false
@@ -65,7 +64,6 @@ function MDT:LiveSession_Disable()
   if timer then timer:Cancel() end
   self.liveSessionRequested = false
   self.main_frame.SendingStatusBar:Hide()
-  self:RestoreThrottleValues()
   if self.main_frame.LoadingSpinner then
     self.main_frame.LoadingSpinner:Hide()
     self.main_frame.LoadingSpinner.Anim:Stop()
@@ -236,15 +234,6 @@ function MDT:LiveSession_SendAffixWeek(week)
   local distribution = self:IsPlayerInGroup()
   if distribution then
     MDTcommsObject:SendCommMessage(self.liveSessionPrefixes.week, week.."", distribution, nil, "ALERT")
-  end
-end
-
----sends boralus selector updates
-function MDT:LiveSession_SendBoralusSelector(faction)
-  local distribution = self:IsPlayerInGroup()
-  if distribution then
-    local msg = faction..""
-    MDTcommsObject:SendCommMessage(self.liveSessionPrefixes.bora, msg, distribution, nil, "ALERT")
   end
 end
 

@@ -1071,7 +1071,7 @@ L = {
             return false
           end
 
-          if GetAddOnInfo("LibWho-2.0") then
+          if C_AddOns.GetAddOnInfo("LibWho-2.0") then
             return false
           end
 
@@ -1094,7 +1094,7 @@ L = {
       self:SetAltInvite()
     elseif field == "usewho" then
       if b and not LibStub:GetLibrary("LibWho-2.0", true) then
-        LoadAddOn("LibWho-2.0")
+        C_AddOns.LoadAddOn("LibWho-2.0")
       end
       self.wholib = b and LibStub:GetLibrary("LibWho-2.0", true)
       self:updateAll()
@@ -1136,7 +1136,7 @@ L = {
 
     if self.db.profile.usewho then
       if not LibStub:GetLibrary("LibWho-2.0", true) then
-        LoadAddOn("LibWho-2.0")
+        C_AddOns.LoadAddOn("LibWho-2.0")
       end
       self.wholib = LibStub:GetLibrary("LibWho-2.0", true)
     end
@@ -1149,6 +1149,8 @@ L = {
     end
 
     self:TabComplete(self.db.profile.tabcomplete)
+
+    self:CacheAppIcons()
   end
 
   function module:OnModuleDisable()
@@ -1291,12 +1293,46 @@ L = {
     end
   end
 
-  -- This function is a wrapper for the Blizzard GuildRoster function, to account for the differences between Retail and Classic
-  function module:GuildRoster(...)
-    if Prat.IsRetail then
-      return C_GuildInfo.GuildRoster(...)
+  function module:CacheAppIcons()
+    self.appIcons = {}
+
+    -- List derived from old atlas containing client icons
+    for _, client in ipairs({
+      "App", -- B.net
+      "WoW",
+      "Hero", -- Heroes of the Storm
+      "LAZR", -- Modern Warfare 2
+      "OSI", -- Diablo Something
+      "Pro", -- Overwatch
+      "Overwatch-zhCN", -- Overwatch zhCN
+      "RTRO",
+      "ODIN", -- Modern Warfare
+      "S1", -- Starcraft 1
+      "WTCG", -- Hearthstone
+      "ZEUS", -- Black Ops
+      "FEN", -- Diablo 4
+      "D3", -- Diablo 3
+      "ANBS", -- Diablo Something
+      "VIPR",
+      "W3", -- Warcraft 3
+      "WLBY",
+      "GRY",
+    }) do
+      C_Texture.GetTitleIconTexture(client, 0, function(success, texture)
+        if success then
+          self.appIcons[client] = texture
+        end
+      end)
+    end
+  end
+
+  -- This function is a wrapper for the Blizzard GuildRoster function
+  -- All supported builds of WoW should now use C_GuildInfo.GuildRoster()
+  function module.GuildRoster()
+    if C_GuildInfo and C_GuildInfo.GuildRoster then
+      return C_GuildInfo.GuildRoster()
     else
-      return GuildRoster(...)
+      return GuildRoster()
     end
   end
 
@@ -1318,7 +1354,7 @@ L = {
 
     self.NEEDS_INIT = nil
 
-    self:updateGuild(self.db.profile.keeplots)
+    self:updateGuild()
   end
 
 
@@ -1354,19 +1390,29 @@ L = {
   end
 
 
+  local GuildRosterIsReady = false
 
-  function module:updateGuild()
+  function module:updateGuild(canRequestRosterUpdate)
     if IsInGuild() then
+      if canRequestRosterUpdate ~= nil then GuildRosterIsReady = true end
       self.GuildRoster()
+      if not GuildRosterIsReady then return end
 
       local Name, Class, Level, _
-      for i = 1, GetNumGuildMembers(true) do
+      for i = 1, GetNumGuildMembers() do
         Name, _, _, Level, _, _, _, _, _, _, Class = GetGuildRosterInfo(i)
 
-        local plr, svr = Name:match("([^%-]+)%-?(.*)")
+        -- Despite the safeguards, it's still possible for GetGuildRosterInfo() to return invalid data.
+        -- Add an additional sanity check to make sure name isn't null before proceeding.
+        if Name then
+          local plr, svr = Name:match("([^%-]+)%-?(.*)")
 
-        self:addName(plr, nil, Class, Level, nil, "GUILD")
-        self:addName(plr, svr, Class, Level, nil, "GUILD")
+          -- @TODO: Note that since cross-realm guilds are now a thing, this logic may no longer be correct.
+          -- We can no longer assume that a player name without a server is automatically the same as being on our server.
+          -- In other words, if both Someplayer-ServerA and Someplayer-ServerB are in our guild, and they are different class/level, then this logic would overwrite the info of the first one processed with that of the second.
+          self:addName(plr, nil, Class, Level, nil, "GUILD")
+          self:addName(plr, svr, Class, Level, nil, "GUILD")
+        end
       end
     end
   end
@@ -1397,11 +1443,11 @@ L = {
   end
 
   function module:updateGroup()
-  	if IsInRaid() then
-  		self:updateRaid()
-  	elseif IsInGroup() then
-  		self:updateParty()
-  	end
+    if IsInRaid() then
+      self:updateRaid()
+    elseif IsInGroup() then
+      self:updateParty()
+    end
   end
 
   function module:updateTarget()
@@ -1640,8 +1686,14 @@ L = {
 
       if self.db.profile.bnetclienticon then
         local client = GetBnetClientByID(message.PRESENCE_ID)
-        if client then
-          message.PLAYERCLIENTICON = ("|T%s:%d:%d:%d:%d|t"):format(BNet_GetClientTexture(client), 14)
+        if client and self.appIcons[client] then
+          message.PLAYERCLIENTICON = CreateTextureMarkup(self.appIcons[client], 12, 12, 12, 12, 0, 1, 0, 1) .. " "
+        elseif client then
+          C_Texture.GetTitleIconTexture(client, 0, function(success, texture)
+            if success then
+              self.appIcons[client] = texture
+            end
+          end)
         end
       end
     else

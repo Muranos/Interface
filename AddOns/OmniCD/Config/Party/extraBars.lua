@@ -1,6 +1,22 @@
 local E, L, C = select(2, ...):unpack()
 local P = E.Party
 
+local extraBars = {
+	name = L["Extra Bars"],
+	type = "group",
+	childGroups = "tab",
+	order = 80,
+	get = function(info) return E.profile.Party[ info[2] ].extraBars[ info[4] ][ info[#info] ] end,
+	set = function(info, value)
+		local key, bar, option = info[2], info[4], info[#info]
+		E.profile.Party[key].extraBars[bar][option] = value
+		if P:IsCurrentZone(key) then
+			P:Refresh()
+		end
+	end,
+	args = {}
+}
+
 local L_POINTS = {
 	["TOPLEFT"] = L["TOPLEFT"],
 	["TOPRIGHT"] = L["TOPRIGHT"],
@@ -21,18 +37,22 @@ end
 local setColor = function(info, r, g, b, a)
 	local key, bar, ele, option = info[2], info[4], info[#info-1], info[#info]
 	local c = E.profile.Party[key].extraBars[bar][ele][option]
-	c.r = r
-	c.g = g
-	c.b = b
-	c.a = a
-
+	c.r, c.g, c.b, c.a = r, g, b, a
 	if P:IsCurrentZone(key) then
-		P:ConfigExBar(bar, ele)
+		P:Refresh()
 	end
 end
 
 local isRaidCDBar = function(info)
-	return info[4] ~= "raidBar0"
+	return info[4] ~= "raidBar1"
+end
+
+local notInterruptBar = function(info)
+	return E.preCata or info[4] ~= "raidBar1"
+end
+
+local isEnabled = function(info)
+	return E.profile.Party[ info[2] ].extraBars[ info[4] ].enabled
 end
 
 local isDisabled = function(info)
@@ -59,27 +79,36 @@ local isEnabledProgressBar = function(info)
 	return not db.enabled or (db.layout == "vertical" and db.progressBar)
 end
 
+local notTextColor = function(info)
+	return info[#info-1] ~= "textColors"
+end
+
+local isIconNameHidden = function(info)
+	return not E.profile.Party[ info[2] ].extraBars[ info[4] ].showName or isEnabledProgressBar(info)
+end
+
 local sortByValues = {
-	raidBar0 = {
-		[1] = format("%s>%s", L["Cooldown"], CLASS),
-		[2] = format("%s>%s>%s", L["Cooldown Remaining"], L["Cooldown"], CLASS),
+	raidBar1 = {
+		[1] = L["Cooldown"],
 		[5] = ROLE,
 		[6] = CLASS,
+		[15] = L["Priority"],
+		[2] = format("%s>%s", L["Cooldown Remaining"], L["Cooldown"]),
 		[7] = format("%s>%s", L["Cooldown Remaining"], ROLE),
 		[8] = format("%s>%s", L["Cooldown Remaining"], CLASS),
+		[16] = format("%s>%s", L["Cooldown Remaining"], L["Priority"]),
+		--[11] = GROUP,
+		--[12] = NAME,
+		--[13] = format("%s>%s", L["Cooldown Remaining"], GROUP),
+		--[14] = format("%s>%s", L["Cooldown Remaining"], NAME),
 	},
-	raidBar1 = {
-		[3] = format("%s>%s>%s", L["Priority"], CLASS, L["Spell ID"]),
-		[4] = format("%s>%s>%s", CLASS, L["Priority"], L["Spell ID"]),
-		[9] = format("%s>%s>%s>%s", L["Cooldown Remaining"], L["Priority"], CLASS, "ID"),
-		[10] = format("%s>%s>%s>%s", L["Cooldown Remaining"], CLASS, L["Priority"], "ID"),
+	raidBar2 = {
+		[3] = L["Priority"],
+		[4] = CLASS,
+		[9] = format("%s>%s", L["Cooldown Remaining"], L["Priority"]),
+		[10] = format("%s>%s", L["Cooldown Remaining"], CLASS),
 	},
 }
-local interruptBarSortByDesc = format("%s.\n%s.\n%s.\n%s.\n%s.\n%s.", sortByValues.raidBar0[1], sortByValues.raidBar0[2], sortByValues.raidBar0[5], sortByValues.raidBar0[6], sortByValues.raidBar0[7], sortByValues.raidBar0[8])
-local raidBarSortByDesc = format("%s.\n%s.\n%s.\n%s.", sortByValues.raidBar1[3], sortByValues.raidBar1[4], sortByValues.raidBar1[9], sortByValues.raidBar1[10])
-
-local notTextColor = function(info) return info[#info-1] ~= "textColors" end
-local isIconNameHidden = function(info) return not E.profile.Party[ info[2] ].extraBars[ info[4] ].showName or isEnabledProgressBar(info) end
 
 local progressBarColorInfo = {
 	lb1 = {
@@ -97,7 +126,7 @@ local progressBarColorInfo = {
 		name = "",
 		order = 1,
 		type = "color",
-		dialogControl = "ColorPicker-OmniCD",
+		dialogControl = "ColorPicker-OmniCDC",
 		hasAlpha = notTextColor,
 		width = 0.5,
 
@@ -106,7 +135,7 @@ local progressBarColorInfo = {
 		name = "",
 		order = 2,
 		type = "color",
-		dialogControl = "ColorPicker-OmniCD",
+		dialogControl = "ColorPicker-OmniCDC",
 		hasAlpha = notTextColor,
 		width = 0.5,
 	},
@@ -122,7 +151,7 @@ local progressBarColorInfo = {
 		name = "",
 		order = 3,
 		type = "color",
-		dialogControl = "ColorPicker-OmniCD",
+		dialogControl = "ColorPicker-OmniCDC",
 		hasAlpha = notTextColor,
 		width = 0.5,
 	},
@@ -130,21 +159,18 @@ local progressBarColorInfo = {
 		name = "",
 		order = 4,
 		type = "multiselect",
-		dialogControl = "Dropdown-OmniCD",
+		dialogControl = "Dropdown-OmniCDC",
 		values = {
 			active = L["Active"],
 			inactive = L["Inactive"],
 			recharge = L["Recharge"],
 		},
-		get = function(info, k)
-			return E.profile.Party[ info[2] ].extraBars[ info[4] ][ info[#info-1] ].useClassColor[k]
-		end,
+		get = function(info, k) return E.profile.Party[ info[2] ].extraBars[ info[4] ][ info[#info-1] ].useClassColor[k] end,
 		set = function(info, k, value)
 			local key, bar = info[2], info[4]
 			E.profile.Party[key].extraBars[bar][ info[#info-1] ].useClassColor[k] = value
-
 			if P:IsCurrentZone(key) then
-				P:ConfigExBar(bar, "barColors")
+				P:Refresh()
 			end
 		end,
 		disabledItem = function(info)
@@ -159,36 +185,80 @@ local extraBarsInfo = {
 	end,
 	name = function(info)
 		local bar = info[4]
-		return E.profile.Party[ info[2] ].extraBars[bar].name or bar == "raidBar0" and L["Interrupt Bar"] or P.extraBars[bar].index
+		return E.profile.Party[ info[2] ].extraBars[bar].name or bar == "raidBar1" and L["Interrupts"] or strsub(info[4], 8)
 	end,
-	order = function(info)
-		return P.extraBars[ info[4] ].index
-	end,
+	order = function(info) return tonumber(strsub(info[4], 8)) end,
 	type = "group",
 	args = {
 		enabled = {
 			disabled = false,
 			name = ENABLE,
+			--[[
 			desc = function(info)
-				return info[4] == "raidBar0" and format("%s\n\n|cffffd200%s", L["Move your group's Interrupt spells to the Interrupt Bar."], L["Interrupt spell types are automatically added to this bar."])
+				return info[4] == "raidBar1" and format("%s\n\n|cffffd200%s", L["Move your group's Interrupt spells to the Interrupt Bar."], L["Interrupt spell types are automatically added to this bar."])
 				or format("%s\n\n|cffffd200%s", L["Move your group's Raid Cooldowns to the Raid Bar."], L["Select the spells you want to move from the \'Raid CD\' tab. The spell must be enabled from the \'Spells\' tab first."])
 			end,
+			]]
 			order = 1,
 			type = "toggle",
 		},
-		unitBar = {
-			hidden = function(info) return not E.profile.Party[ info[2] ].extraBars[ info[4] ].enabled end,
-			name = E.STR.WHATS_NEW_ESCSEQ .. L["Attach to Raid Frame"],
-			desc = L["Convert to additional CD bars that attach to each unit's raid frame."],
+		redirect = {
+			hidden = isEnabled,
+			disabled = false,
+			name = L["Redirect Spells"],
+			desc = L["Redirect spells to the raid frame instead of removing them when this bar is disabled."],
 			order = 2,
+			type = "toggle",
+		},
+		unitBar = {
+			hidden = isDisabled,
+			name = L["Attach to Raid Frame"],
+			desc = L["Convert to additional CD bars that attach to each unit's raid frame."],
+			order = 3,
 			type = "toggle",
 		},
 		locked = {
 			hidden = isUnitBar,
 			name = LOCK_FRAME,
 			desc = L["Lock frame position"],
-			order = 3,
+			order = 4,
 			type = "toggle",
+		},
+		addOnsSettings = {
+			hidden = notUnitBar,
+			name = L["Anchor"],
+			type = "group",
+			inline = true,
+			order = 5,
+			args = {
+				uf = {
+					name = ADDONS,
+					desc = L["Select addon to override auto anchoring"],
+					order = 1,
+					type = "select",
+					values = function() return E.customUF.optionTable end,
+					set = function(info, value)
+						local key, bar = info[2], info[4]
+						local db = E.profile.Party[key].extraBars[bar]
+						if P:IsCurrentZone(key) then
+							if value == "blizz" and not ( C_AddOns.IsAddOnLoaded("Blizzard_CompactRaidFrames") and C_AddOns.IsAddOnLoaded("Blizzard_CUFProfiles") ) then
+								E.Libs.OmniCDC.StaticPopup_Show("OMNICD_RELOADUI", E.STR.ENABLE_BLIZZARD_CRF)
+							else
+								if P.isInTestMode then
+									P:Test()
+									db.uf = value
+									P:Test(key)
+								else
+									db.uf = value
+									P:Refresh()
+								end
+							end
+						else
+							db.uf = value
+						end
+					end,
+				},
+			}
 		},
 		positionSettings = {
 			hidden = notUnitBar,
@@ -236,24 +306,26 @@ local extraBarsInfo = {
 			order = 20,
 			args = {
 				spellType = {
-					disabled = function(info)
-						return not E.profile.Party[ info[2] ].extraBars[ info[4] ].enabled or info[4] == "raidBar0"
-					end,
-					name = L["Spell Types"],
-					desc = format("|cffff2020[%s]|r %s", L["Multiselect"], L["Select the spell types you want to display on this column."]),
+					name = format("%s (%s)", L["Spell Types"], L["Multiselect"]),
+					desc = format("%s\n\n%s", L["Select the spell types you want to display on this column."], L["You can mangage spell types for all bars from the Frame option"]),
 					order = 1,
 					type = "multiselect",
-					dialogControl = "Dropdown-OmniCD",
+					dialogControl = "Dropdown-OmniCDC",
 					values = E.L_PRIORITY,
-					get = function(info, k) return E.DB.profile.Party[ info[2] ].extraBars[ info[4] ].spellType[k] end,
+					get = function(info, k) return E.profile.Party[ info[2] ].frame[k] == tonumber(strsub(info[4], 8)) end,
 					set = function(info, k, state)
 						local key = info[2]
-						for bar in pairs(P.extraBars) do
-							E.DB.profile.Party[key].extraBars[bar].spellType[k] = state and bar == info[4]
+						local value = state and tonumber(strsub(info[4], 8)) or 0
+						E.profile.Party[key].frame[k] = value
+
+						for id, v in pairs(E.profile.Party[key].spellFrame) do
+							if E.hash_spelldb[id].type == k and v == value then
+								E.profile.Party[key].spellFrame[id] = nil
+							end
 						end
 						if P:IsCurrentZone(key) then
 							P:UpdateEnabledSpells()
-							P:Refresh()
+							P:UpdateAllBars()
 						end
 					end,
 					disabledItem = function() return "interrupt" end,
@@ -272,13 +344,13 @@ local extraBarsInfo = {
 					hidden = isUnitBar,
 					disabled = isUnitBar,
 					name = COMPACT_UNIT_FRAME_PROFILE_SORTBY,
-					desc = function(info)
-						return info[4] == "raidBar0" and interruptBarSortByDesc or raidBarSortByDesc
-					end,
 					order = 3,
 					type = "select",
 					values = function(info)
-						return sortByValues[ info[4] ] or sortByValues.raidBar1
+						return sortByValues[ info[4] ] or sortByValues.raidBar2
+					end,
+					sorting = function(info)
+						return info[4] == "raidBar1" and {1,5,6,15,2,7,8,16} or nil
 					end,
 				},
 				sortDirection = {
@@ -301,28 +373,28 @@ local extraBarsInfo = {
 						return E.profile.Party[ info[2] ].extraBars[ info[4] ].layout == "horizontal"
 						and L["Set the number of icons per row"] or L["Set the number of icons per column"]
 					end,
-					order = 6,
+					order = 5,
 					type = "range",
 					min = 1, max = 100, softMax = 30, step = 1,
 				},
 				paddingX = {
 					name = L["Padding X"],
 					desc = L["Set the padding space between icon columns"],
-					order = 7,
+					order = 6,
 					type = "range",
 					min = -5, max = 100, softMin = -1, softMax = 20, step = 1,
 				},
 				paddingY = {
 					name = L["Padding Y"],
 					desc = L["Set the padding space between icon rows"],
-					order = 8,
+					order = 7,
 					type = "range",
 					min = -5, max = 100, softMin = -1, softMax = 20, step = 1,
 				},
 				growUpward = {
 					name = L["Grow Rows Upward"],
 					desc = L["Toggle the grow direction of icon rows"],
-					order = 10,
+					order = 8,
 					type = "toggle",
 				},
 				growLeft = {
@@ -330,7 +402,7 @@ local extraBarsInfo = {
 					disabled = isUnitBar,
 					name = L["Grow Columns Left"],
 					desc = L["Toggle the grow direction of icon columns"],
-					order = 11,
+					order = 9,
 					type = "toggle",
 				},
 			}
@@ -348,6 +420,16 @@ local extraBarsInfo = {
 					order = 1,
 					type = "range",
 					min = 0.2, max = 2.0, step = 0.01, isPercent = true,
+					set = function(info, value)
+						local key, bar, option = info[2], info[4], info[#info]
+						E.profile.Party[key].extraBars[bar].scale = value
+						if P:IsCurrentZone(key) then
+							local exBar = P.activeExBars[bar]
+							if exBar then
+								P:ConfigExSize(exBar)
+							end
+						end
+					end
 				},
 				showName = {
 					hidden = isUnitBar,
@@ -377,7 +459,7 @@ local extraBarsInfo = {
 				classColor = {
 					hidden = isUnitBar,
 					disabled = isIconNameHidden,
-					name = E.STR.WHATS_NEW_ESCSEQ .. CLASS_COLORS,
+					name = CLASS_COLORS,
 					order = 5,
 					type = "toggle",
 				},
@@ -387,7 +469,7 @@ local extraBarsInfo = {
 			hidden = isUnitBar,
 			disabled = function(info)
 				local db = E.profile.Party[ info[2] ].extraBars[ info[4] ]
-				return not db.enabled or not db.progressBar or db.layout == "horizontal"
+				return not db.enabled or db.layout == "horizontal" or not db.progressBar
 			end,
 			name = L["Status Bar Timer"],
 			order = 40,
@@ -417,8 +499,7 @@ local extraBarsInfo = {
 						lb1 = { name = L["Active"], order = 1, type = "description", width = 0.5 },
 						lb2 = { name = L["Recharge"], order = 2, type = "description", width = 0.5 },
 						lb3 = { name = L["Inactive"], order = 3, type = "description", width = 0.5 },
-						lb4 = { name = format("%s (%s)", CLASS_COLORS, L["Multiselect"]),
-							order = 4, type = "description", width = 1 },
+						lb4 = { name = format("%s (%s)", CLASS_COLORS, L["Multiselect"]), order = 4, type = "description", width = 1 },
 					}
 				},
 				textColors = {
@@ -462,7 +543,7 @@ local extraBarsInfo = {
 				invertNameBar = {
 					disabled = function(info)
 						local db = E.profile.Party[ info[2] ].extraBars[ info[4] ]
-						return not db.enabled or not db.progressBar or db.layout == "horizontal" or not db.nameBar
+						return not db.enabled or db.layout == "horizontal" or not db.progressBar or not db.nameBar
 					end,
 					name = L["Invert Name Bar"],
 					desc = L["Attach Name Bar to the left of icon"],
@@ -497,9 +578,7 @@ local extraBarsInfo = {
 					type = "toggle",
 				},
 				showInterruptedSpell = {
-					hidden = function(info)
-						return E.preCata or isRaidCDBar(info)
-					end,
+					hidden = notInterruptBar,
 					disabled = isDisabledProgressBarOrNameBar,
 					name = L["Interrupted Spell Icon"],
 					desc = format("%s\n\n|cffff2020%s",
@@ -509,9 +588,7 @@ local extraBarsInfo = {
 					type = "toggle",
 				},
 				showRaidTargetMark = {
-					hidden = function(info)
-						return E.preCata or isRaidCDBar(info)
-					end,
+					hidden = notInterruptBar,
 					disabled = isDisabledProgressBarOrNameBar,
 					name = L["Interrupted Target Marker"] .. E.RAID_TARGET_MARKERS[1],
 					desc = L["Show the interrupted unit's target marker if it exists."],
@@ -552,17 +629,20 @@ local extraBarsInfo = {
 						local key, bar = info[2], info[4]
 						E.profile.Party[key].extraBars[bar].truncateStatusBarName = value
 						if P:IsCurrentZone(key) then
-							for _, icon in pairs(P.extraBars[bar].icons) do
-								local name = P.groupInfo[icon.guid].name
-								if value > 0 then
-									name = string.utf8sub(name, 1, value)
+							local icons = P.activeExBars[bar] and P.activeExBars[bar].icons
+							if icons then
+								for _, icon in ipairs(icons) do
+									local name = P.groupInfo[icon.guid].nameWithoutRealm
+									if value > 0 then
+										name = string.utf8sub(name, 1, value)
+									end
+									local statusBar = icon.statusBar
+									local castingBar = statusBar.CastingBar
+									statusBar.name = name
+									castingBar.name = name
+									statusBar.Text:SetText(name)
+									castingBar.Text:SetText(name)
 								end
-								local statusBar = icon.statusBar
-								local castingBar = statusBar.CastingBar
-								statusBar.name = name
-								castingBar.name = name
-								statusBar.Text:SetText(name)
-								castingBar.Text:SetText(name)
 							end
 						end
 					end,
@@ -577,7 +657,7 @@ local extraBarsInfo = {
 			}
 		},
 		miscSettings = {
-			hidden = isUnitBar,
+			hidden = isDisabled,
 			name = MISCELLANEOUS,
 			type = "group",
 			inline = true,
@@ -590,39 +670,42 @@ local extraBarsInfo = {
 					get = function(info)
 						local value = E.profile.Party[ info[2] ].extraBars[ info[4] ].name
 						if not value then
-							local index = strmatch(info[4], "%d$")
-							value = index == "0" and L["Interrupts"] or index
+							local index = strsub(info[4], 8)
+							value = index == "1" and L["Interrupts"] or index
 						end
 						return value
 					end,
 					set = function(info, value)
 						local key, bar = info[2], info[4]
 						if value == "" then
-							local index = strmatch(bar, "%d$")
-							value = index == "0" and L["Interrupts"] or index
+							local index = strsub(info[4], 8)
+							value = index == "1" and L["Interrupts"] or index
 						end
 						E.profile.Party[key].extraBars[bar].name = value
 						if P:IsCurrentZone(key) then
-							local frame = P.extraBars[bar]
-							local db = frame.db
-							P:SetExAnchor(frame, db)
+							local exBar = P.activeExBars[bar]
+							if exBar then
+								exBar:UpdatePositionValues()
+								exBar:SetAnchor()
+							end
 						end
 					end,
 				},
-				reset = {
+				resetPos = {
+					hidden = isUnitBar,
 					name = RESET_POSITION,
 					desc = L["Reset frame position"],
 					order = 2,
 					type = "execute",
 					func = function(info)
 						local key, bar = info[2], info[4]
-						local frame = P.extraBars[bar]
-						if frame then
+						local exBar = P.activeExBars[bar]
+						if exBar then
 							if E.profile.Party[key].extraBars[bar].manualPos[bar] then
 								wipe(E.profile.Party[key].extraBars[bar].manualPos[bar])
 							end
 							if P:IsCurrentZone(key) then
-								E.LoadPosition(frame)
+								E.LoadPosition(exBar)
 							end
 						end
 					end,
@@ -644,128 +727,26 @@ local extraBarsInfo = {
 		},
 	}
 }
-
-local extraBars = {
-	name = E.STR.WHATS_NEW_ESCSEQ .. L["Extra Bars"],
-	type = "group",
-	childGroups = "tab",
-	order = 70,
-	get = function(info) return E.profile.Party[ info[2] ].extraBars[ info[4] ][ info[#info] ] end,
-	set = function(info, value)
-		local key, bar, option = info[2], info[4], info[#info]
-		E.profile.Party[key].extraBars[bar][option] = value
-
-		if P:IsCurrentZone(key) then
-			local frame = P.extraBars[bar]
-			local db = frame.db
-			if option == "locked" then
-				P:SetExAnchor(frame, db)
-			elseif option == "scale" then
-				P:ConfigExSize(bar, true)
-			elseif option == "enabled" or option == "unitBar" then
-				P:Refresh(true)
-			else
-				P:ConfigExBar(bar, option)
-			end
-		end
-	end,
-	args = {}
-}
-
-for i = 0, 8 do
-	local bar = "raidBar" .. i
+for i = 1, 8 do
+	local bar = P.extraBarKeys[i]
 	extraBars.args[bar] = extraBarsInfo
 end
 
-function P:ConfigExBar(key, arg)
-	local db_icon = E.db.icons
-	local db = E.db.extraBars[key]
-	local frame = self.extraBars[key]
-
-
-	if ( arg == "anchor" or arg == "attach" or arg == "offsetX" or arg == "offsetY" ) then
-		self:UpdateExBarPositionValues()
-		for _, info in pairs(self.groupInfo) do
-			local f = info.bar
-			local _, relativeTo = f:GetPoint()
-			local container = f.exContainers[frame.index]
-			if ( container and relativeTo ~= UIParent ) then
-				container:ClearAllPoints()
-				container:SetPoint(frame.point, relativeTo, frame.relativePoint, frame.containerOfsX, frame.containerOfsY)
-			end
-		end
-		self:SetExIconLayout(key, false, true)
-		return
-	end
-
-	for i = 1, frame.numIcons do
-		local icon = frame.icons[i]
-		local statusBar = icon.statusBar
-		if arg == "layout" or arg == "progressBar" then
-			if ( db.layout == "vertical" and db.progressBar and not db.unitBar ) then
-				statusBar = statusBar or self:GetStatusBar(icon, key)
-				self:SetExBorder(icon, db)
-				self:SetExStatusBarWidth(statusBar, db)
-				self:SetExStatusBarColor(icon, key)
-			elseif statusBar then
-				self:RemoveStatusBar(statusBar)
-				icon.statusBar = nil
-			end
-			self:SetExIconName(icon, db)
-			self:SetOpacity(icon, db_icon, statusBar and not db.useIconAlpha)
-		elseif arg == "useIconAlpha" then
-			self:SetExStatusBarColor(icon, key)
-			self:SetOpacity(icon, db_icon, statusBar and not db.useIconAlpha)
-		elseif arg == "showName" or arg == "truncateIconName" or arg == "nameOfsY" or arg == "classColor" then
-			self:SetExIconName(icon, db)
-		elseif arg == "barColors" or arg == "bgColors" or arg == "textColors" or arg == "reverseFill" or arg == "hideSpark" then
-			self.CastingBarFrame_OnLoad(statusBar.CastingBar, db, icon)
-			self:SetExStatusBarColor(icon, key)
-		elseif arg == "statusBarWidth" or arg == "textOfsX" or arg == "textOfsY" or arg == "invertNameBar" or arg == "textScale" then
-			self:SetExStatusBarWidth(statusBar, db)
-		elseif arg == "hideBorder" then
-			P:SetExBorder(icon, db)
-		elseif arg == "nameBar" then
-			self:SetExBorder(icon, db)
-			self.CastingBarFrame_OnLoad(statusBar.CastingBar, db, icon)
-			self:SetExStatusBarColor(icon, key)
-			self:SetSwipeCounter(icon, db_icon)
-			self:SetExStatusBarWidth(statusBar, db)
-		end
-	end
-	if arg == "layout" or arg == "sortBy" or arg == "sortDirection"
-		or arg == "columns" or arg == "paddingX" or arg == "paddingY" or arg == "growUpward" or arg == "growLeft"
-		or arg == "progressBar" or arg == "statusBarWidth" then
-		self:UpdateExBarPositionValues()
-		self:SetExIconLayout(key, sortOrder, true)
-	end
-end
-
 local sliderTimer = {}
-
-local updatePixelObj = function(key, frame, db, noDelay)
-	P:UpdateExBarBackdrop(frame, db)
-	P:UpdateExBarPositionValues()
-	P:SetExIconLayout(key)
-	P:SetExAnchor(frame, db)
-
-	if not noDelay then
-		sliderTimer[key] = nil
-	end
+local updatePixelObj = function(exBar)
+	exBar:UpdateExBarBackdrop()
+	exBar:UpdateLayout()
+	exBar:SetAnchor()
+	sliderTimer[exBar.key] = nil
 end
 
-function P:ConfigExSize(key, slider)
-	local frame = self.extraBars[key]
-	local db = E.db.extraBars[key]
-	self:SetExScale(frame, db)
-
-	if E.db.icons.displayBorder or (db.layout == "vertical" and db.progressBar) then
-		if slider then
-			if not sliderTimer[key] then
-				sliderTimer[key] = E.TimerAfter(0.3, updatePixelObj, key, frame, db)
-			end
-		else
-			updatePixelObj(key, frame, db, true)
+function P:ConfigExSize(exBar)
+	exBar:UpdatePositionValues()
+	exBar:SetContainerSize()
+	exBar:SetUnitBarOffset()
+	if E.db.icons.displayBorder or (exBar.db.layout == "vertical" and exBar.db.progressBar) then
+		if not sliderTimer[exBar.key] then
+			sliderTimer[exBar.key] = E.TimerAfter(0.3, updatePixelObj, exBar)
 		end
 	end
 end

@@ -1,6 +1,6 @@
 local L = LibStub("AceLocale-3.0"):NewLocale("OmniCD", "frFR")
+if not L then return end
 
-L = L or {}
 --[[Translation missing --]]
 L[ [=[%d: spellID.
 %d-%d: spellID-talentID (Mark spell if talent is selected).]=] ] = [=[%d: spellID.
@@ -21,9 +21,11 @@ L["|cffff2020Friendly CD module must be enabled for the corresponding instance z
 L["|cffff2020Glow and Highlights are never applied on cropped icons. \"Border\" must be enabled."] = "|cffff2020Glow and Highlights are never applied on cropped icons. \"Border\" must be enabled."
 --[[Translation missing --]]
 L["|cffff2020Important!|r Covenant and Soulbind Conduit data can only be acquired from group members with OmniCD installed."] = "|cffff2020Important!|r Covenant and Soulbind Conduit data can only be acquired from group members with OmniCD installed."
-L["> 1 minute"] = true
+L["> 1 minute"] = "> 1 minute"
 --[[Translation missing --]]
 L["0: Disable option"] = "0: Disable option"
+--[[Translation missing --]]
+L["0: Raid Frame, 1: Interrupt Bar, 2-8: Extra Bar"] = "0: Raid Frame, 1: Interrupt Bar, 2-8: Extra Bar"
 L["2nd Row Icons (Double Row Layout)"] = "Icônes de la 2ème ligne (affichage sur deux lignes)"
 L["2px Border"] = "Bordure 2px"
 L["A new update is available. |cff99cdff(%s)"] = "Une nouvelle mise à jour est disponible. |cff99cdff(%s)"
@@ -49,12 +51,16 @@ L["All user set values will be lost. Do you want to proceed?"] = "Toutes les val
 L["Always attach to Blizzard frames. By default, bars attach to whichever frame is visible, and if both are visible UF addon take precedence over Blizzard"] = "Toujours attacher aux cadres Blizzard. Par défaut, les barres s'attachent à n'importe quel cadre visible, et si les deux sont visibles, l'addon UF a priorité sur Blizzard"
 L["Always Bottom"] = "Toujours en bas"
 --[[Translation missing --]]
+L["Always Show"] = "Always Show"
+--[[Translation missing --]]
 L["Always Show Cooldown Numbers"] = "Always Show Cooldown Numbers"
 L["Always Top"] = "Toujours en haut"
 L["Anchor"] = "Ancrage"
 L["Anchor Point"] = "Point d'ancrage"
 L["Anchor Position"] = "Position de l'ancrage"
 L["Animate"] = "Animer"
+--[[Translation missing --]]
+L["AOE CC"] = "AOE CC"
 --[[Translation missing --]]
 L["Apply 'Icons' alpha settings to the status bar"] = "Apply 'Icons' alpha settings to the status bar"
 L["Ascending"] = "Vers le haut"
@@ -82,6 +88,8 @@ L["Border Thickness"] = "Epaisseur de bordure"
 L["Borders retain 1px width regardless of the UI scale"] = "Les bordures conservent une largeur de 1 px quelle que soit l'échelle de l'interface utilisateur"
 L["Borders retain 1px width regardless of the UI scale. Need to reload the UI when the UI or icon scale changes"] = [=[Les bordures conservent une largeur de 1 px quelle que soit l'échelle de l'interface utilisateur.
 Vous devez recharger l'interface à chaque fois que l'échelle de l'interface ou que la taille des icônes changent]=]
+--[[Translation missing --]]
+L["Both"] = "Both"
 L["BOTTOM"] = "BAS"
 L["BOTTOMLEFT"] = "BASGAUCHE"
 L["BOTTOMRIGHT"] = "BASDROITE"
@@ -99,7 +107,7 @@ L["CENTER"] = "CENTRER"
 L["Center Horizontally"] = "Centrer horizontalement"
 --[[Translation missing --]]
 L["CENTER will keep the rows centered and grow icons bidirectionally."] = "CENTER will keep the rows centered and grow icons bidirectionally."
-L["Changelog"] = true
+L["Changelog"] = "Changelog"
 --[[Translation missing --]]
 L["Changing party display options in your UF addon while OmniCD is active will break the anchors. Type (/oc rl) to fix the anchors"] = "Changing party display options in your UF addon while OmniCD is active will break the anchors. Type (/oc rl) to fix the anchors"
 --[[Translation missing --]]
@@ -118,12 +126,14 @@ L["Column"] = "Colonne"
 L["Column Padding"] = "Column Padding"
 L["Commands:"] = "Commandes : "
 --[[Translation missing --]]
+L["Condition"] = "Condition"
+--[[Translation missing --]]
 L["Convert the status bar timer to a simple name display by disabling all timer functions. The 'Name' color scheme will be retained."] = "Convert the status bar timer to a simple name display by disabling all timer functions. The 'Name' color scheme will be retained."
 --[[Translation missing --]]
 L["Convert to additional CD bars that attach to each unit's raid frame."] = "Convert to additional CD bars that attach to each unit's raid frame."
 --[[Translation missing --]]
 L["Convert to Name Bar"] = "Convert to Name Bar"
-L["Cooldown"] = true
+L["Cooldown"] = "Cooldown"
 L["Cooldown Remaining"] = "Cooldown restant"
 --[[Translation missing --]]
 L["Cooldown Timer"] = "Cooldown Timer"
@@ -241,6 +251,16 @@ L["For double/triple layout, it will limit the number of icons per line"] = "For
 --[[Translation missing --]]
 L["Force Disable"] = "Force Disable"
 --[[Translation missing --]]
+L["Frame"] = "Frame"
+--[[Translation missing --]]
+L["Freedom"] = "Freedom"
+--[[Translation missing --]]
+L["Glow"] = "Glow"
+--[[Translation missing --]]
+L["Glow Border"] = "Glow Border"
+--[[Translation missing --]]
+L["Glow condition can be changed from the Highlighting tab."] = "Glow condition can be changed from the Highlighting tab."
+--[[Translation missing --]]
 L["Glow Icons"] = "Glow Icons"
 --[[Translation missing --]]
 L["Group member must have OmniCD to detect cooldown reduction by Glyphs."] = "Group member must have OmniCD to detect cooldown reduction by Glyphs."
@@ -256,8 +276,14 @@ L["Group Type"] = "Type de groupe"
 --[[Translation missing --]]
 L["Grow Columns Left"] = "Grow Columns Left"
 L["Grow Rows Upward"] = "Etendre les lignes vers le haut"
+--[[Translation missing --]]
+L["Hard CC"] = "Hard CC"
 L["Having \"BOTTOM\" in the anchor point, icons grow upward, otherwise downward"] = "Avoir \"BAS\" comme point d'ancrage signifie que les icônes apparaîtront vers le haut"
 L["Having \"RIGHT\" in the anchor point, icons grow left, otherwise right"] = "Avoir \"DROITE\" comme point d'ancrage signifie que les icônes apparaîtront vers la gauche"
+--[[Translation missing --]]
+L["Heal"] = "Heal"
+--[[Translation missing --]]
+L["Healthstone and Demonic Gateway are added on cast"] = "Healthstone and Demonic Gateway are added on cast"
 L["Help Translate"] = "Aider à traduire"
 --[[Translation missing --]]
 L["Hide Border"] = "Hide Border"
@@ -277,7 +303,7 @@ L["Highlight Icons"] = "Mettre les icônes en surbrillance"
 L["Highlight the icon when a buffing spell is used until the buff falls off"] = "Highlight the icon when a buffing spell is used until the buff falls off"
 --[[Translation missing --]]
 L["Hold Time"] = "Hold Time"
-L["Horizontal"] = true
+L["Horizontal"] = "Horizontal"
 --[[Translation missing --]]
 L["Horizontal + CD Groups"] = "Horizontal + CD Groups"
 --[[Translation missing --]]
@@ -297,8 +323,8 @@ L["Icons"] = "Icônes"
 L["Immunity"] = "Immunité"
 L["Import"] = "Importer"
 L["Import Profile"] = "Importer un profil"
-L["Importing `%s` will create a new profile."] = "L'importation de `%s` créera un nouveau profil."
-L["Importing `%s` will merge new spells to your list and overwrite same spells."] = "L'importation de `%s` fusionnera les nouveaux sorts dans votre liste et écrasera les sorts identiques."
+L["Importing '%s' will create a new profile."] = "L'importation de `%s` créera un nouveau profil."
+L["Importing '%s' will merge new spells to your list and overwrite same spells."] = "L'importation de `%s` fusionnera les nouveaux sorts dans votre liste et écrasera les sorts identiques."
 --[[Translation missing --]]
 L["Importing Custom Spells will reload UI. Press Cancel to abort."] = "Importing Custom Spells will reload UI. Press Cancel to abort."
 --[[Translation missing --]]
@@ -347,6 +373,8 @@ L["Mouseovering the icon will show the interrupted spell information regardless 
 L["Move your group's Interrupt spells to the Interrupt Bar."] = "Déplacer les sorts d'interruption de son groupe vers la barre d'interruption."
 --[[Translation missing --]]
 L["Move your group's Raid Cooldowns to the Raid Bar."] = "Move your group's Raid Cooldowns to the Raid Bar."
+--[[Translation missing --]]
+L["Movement"] = "Movement"
 L["Multiselect"] = "Sélection multiple"
 --[[Translation missing --]]
 L["Name Bar"] = "Name Bar"
@@ -363,16 +391,22 @@ L["None of the CD counter skins support modrate. Timers will fluctuate erratical
 L["Not an OmniCD profile!"] = "Not an OmniCD profile!"
 --[[Translation missing --]]
 L["Not Supported:"] = "Not Supported:"
-L["Notes"] = true
+L["Notes"] = "Notes"
 L["Notify Updates"] = "Etre informé des mises à jour"
 --[[Translation missing --]]
 L["Offensive"] = "Offensive"
 L["Offset X"] = "Décalage X"
 L["Offset Y"] = "Décalage Y"
 --[[Translation missing --]]
+L["Only applies to spells that have Glow enabled in the Spells tab"] = "Only applies to spells that have Glow enabled in the Spells tab"
+--[[Translation missing --]]
 L[ [=[Only for talent abilities.
 Current ability for this specialization will no longer be tracked while you are in the selected zone(s)]=] ] = [=[Only for talent abilities.
 Current ability for this specialization will no longer be tracked while you are in the selected zone(s)]=]
+--[[Translation missing --]]
+L["Override spell-type frame."] = "Override spell-type frame."
+--[[Translation missing --]]
+L["Override spell-type priority."] = "Override spell-type priority."
 --[[Translation missing --]]
 L["Padding"] = "Padding"
 L["Padding X"] = "Espacement X"
@@ -387,7 +421,7 @@ L["Pixel Perfect ON."] = "Pixel Perfect ON."
 L["Player Frame in Party"] = "Player Frame in Party"
 --[[Translation missing --]]
 L["Plugins"] = "Plugins"
-L["Position"] = true
+L["Position"] = "Position"
 --[[Translation missing --]]
 L["Press Accept to save profile %s. Addon will switch to the imported profile."] = "Press Accept to save profile %s. Addon will switch to the imported profile."
 L["Press Ctrl+C to copy profile"] = "Appuyer sur Ctrl+C pour copier le profil"
@@ -417,6 +451,10 @@ L["Raid Frames for testing doesn't exist for %s. If it fails to load, configure 
 L["Raid Movement"] = "Raid Movement"
 --[[Translation missing --]]
 L["Recharge"] = "Recharge"
+--[[Translation missing --]]
+L["Redirect Spells"] = "Redirect Spells"
+--[[Translation missing --]]
+L["Redirect spells to the raid frame instead of removing them when this bar is disabled."] = "Redirect spells to the raid frame instead of removing them when this bar is disabled."
 L["Reload addon."] = "Recharger l'addon"
 L["Reload UI?"] = "Recharger l'interface ?"
 --[[Translation missing --]]
@@ -447,6 +485,8 @@ L["Same category units are sorted alphabetically in ascending order"] = "Same ca
 --[[Translation missing --]]
 L["Select a spell type to enable all spells in that category for all classes"] = "Select a spell type to enable all spells in that category for all classes"
 --[[Translation missing --]]
+L["Select a value lower than Breakpoint1"] = "Select a value lower than Breakpoint1"
+--[[Translation missing --]]
 L["Select addon to override auto anchoring"] = "Select addon to override auto anchoring"
 --[[Translation missing --]]
 L["Select how the player frame is displayed inside the party frame"] = "Select how the player frame is displayed inside the party frame"
@@ -454,10 +494,16 @@ L["Select how the player frame is displayed inside the party frame"] = "Select h
 L["Select the column(s) that you want the rows to grow upwards."] = "Select the column(s) that you want the rows to grow upwards."
 --[[Translation missing --]]
 L["Select the column(s) that you want to detach and position manually."] = "Select the column(s) that you want to detach and position manually."
+--[[Translation missing --]]
+L["Select the frame to use as default for each spell type."] = "Select the frame to use as default for each spell type."
 L["Select the group size for which you want to set the spell bar position"] = "Sélectionner la taille du groupe pour lequel vous souhaitez définir la position de la barre de sorts"
 L["Select the highest priority spell type to use as the start of the 2nd row"] = "Sélectionner le type de sort à afficher en priorité au début de la 2ème ligne"
 --[[Translation missing --]]
 L["Select the highest priority spell type to use as the start of the 3rd row"] = "Select the highest priority spell type to use as the start of the 3rd row"
+--[[Translation missing --]]
+L["Select the highest spell priority to use as the start of the 2nd row"] = "Select the highest spell priority to use as the start of the 2nd row"
+--[[Translation missing --]]
+L["Select the highest spell priority to use as the start of the 3rd row"] = "Select the highest spell priority to use as the start of the 3rd row"
 --[[Translation missing --]]
 L["Select the icon layout"] = "Select the icon layout"
 --[[Translation missing --]]
@@ -546,6 +592,8 @@ L["Show Trinket Only"] = "Show Trinket Only"
 L["Size"] = "Size"
 L["Slash Commands"] = "Commandes Slash"
 --[[Translation missing --]]
+L["Soft CC"] = "Soft CC"
+--[[Translation missing --]]
 L["Sort Direction"] = "Sort Direction"
 --[[Translation missing --]]
 L["Sort Order"] = "Sort Order"
@@ -553,8 +601,12 @@ L["Source Profile"] = "Profil source"
 L["Spacing"] = "Espacement"
 L["Spell Editor"] = "Editeur de sorts"
 L["Spell ID"] = "ID du sort"
+--[[Translation missing --]]
+L["Spell Priority"] = "Spell Priority"
 L["Spell Types"] = "Types de sort"
 L["Spells"] = "Sorts"
+--[[Translation missing --]]
+L["Spell-Type Priority"] = "Spell-Type Priority"
 --[[Translation missing --]]
 L["Status Bar"] = "Status Bar"
 --[[Translation missing --]]
@@ -568,6 +620,10 @@ L["Synchronize"] = "Synchroniser"
 --[[Translation missing --]]
 L["Talent Ability"] = "Talent Ability"
 L["Talent ID"] = "ID du talent"
+--[[Translation missing --]]
+L["Tank Defensive"] = "Tank Defensive"
+--[[Translation missing --]]
+L["Taunt"] = "Taunt"
 L["Test"] = "Tester"
 L["Test frames will be hidden once player is out of combat"] = "Les cadres de test seront cachés une fois que le joueur sera hors combat"
 L["Test Mode Disabled: Non-Blizzard party frames"] = "Mode de test désactivé : cadres de groupe non-Blizzard"
@@ -606,6 +662,10 @@ L["Trinket Items"] = "Trinket Items"
 L["Truncate Name"] = "Truncate Name"
 L["UI Scale Changed."] = "L'échelle de l'interface a été modifiée."
 L["Unit CD bars are limited to 5 man groups unless Blizzard Raid Frames are used."] = "Les barres de CD sont limitées à groupes de 5 personnes, sauf si des barres de raid Blizzard sont utilisées."
+--[[Translation missing --]]
+L["Unusable"] = "Unusable"
+--[[Translation missing --]]
+L["Usable"] = "Usable"
 L["Usage:"] = "Utilisation : "
 L["Use a semi-colon(;) to seperate multiple IDs."] = "Utiliser un point-virgule (;) pour séparer plusieurs ID."
 --[[Translation missing --]]
@@ -620,14 +680,20 @@ L["Use this setting for all group sizes"] = "Utiliser ce paramètre pour toutes 
 L["Use Triple Column"] = "Utiliser trois colonnes"
 L["Use Triple Row"] = "Utiliser trois lignes"
 L["Use Zone Settings From:"] = "Utiliser les paramètres de zone de :"
+--[[Translation missing --]]
+L["Utility"] = "Utility"
 L["Utils"] = "Divers"
 L["Value 'Manual Position' includes Interrupt and Raid Bar's saved positions."] = "La valeur « Position manuelle » inclut les positions enregistrées des interruptions et des barres de raid."
-L["Version"] = true
-L["Vertical"] = true
+L["Version"] = "Version"
+L["Vertical"] = "Vertical"
 --[[Translation missing --]]
 L["Vertical + CD Groups"] = "Vertical + CD Groups"
 L["Vertical Groups"] = "Groupes verticaux"
 L["Visibility"] = "Visibilité"
 L["Weak Purple Glow"] = "Lueur violette faible"
+--[[Translation missing --]]
+L["You can mangage spell types for all bars from the Frame option"] = "You can mangage spell types for all bars from the Frame option"
+--[[Translation missing --]]
+L["You can override this setting on individual spells from the Spells tab."] = "You can override this setting on individual spells from the Spells tab."
 --[[Translation missing --]]
 L["You must manually enable either the 'Party Frames' or 'Raid Frames' in Blizzard's 'HUD Edit Mode'."] = "You must manually enable either the 'Party Frames' or 'Raid Frames' in Blizzard's 'HUD Edit Mode'."

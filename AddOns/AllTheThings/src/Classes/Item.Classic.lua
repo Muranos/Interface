@@ -2,17 +2,23 @@ local appName, app = ...
 local L = app.L;
 
 -- Global locals
-local ipairs, pairs, rawset, select, setmetatable, tonumber, tostring, type, GetItemCount, GetItemInfo, GetItemInfoInstant
----@diagnostic disable-next-line: deprecated
-	= ipairs, pairs, rawset, select, setmetatable, tonumber, tostring, type, GetItemCount, GetItemInfo, GetItemInfoInstant;
-local C_QuestLog_IsOnQuest
-	= C_QuestLog.IsOnQuest;
+local ipairs, pairs, rawset, select, setmetatable, tonumber, tostring, type, tinsert
+	= ipairs, pairs, rawset, select, setmetatable, tonumber, tostring, type, tinsert;
+local C_QuestLog_IsOnQuest = C_QuestLog.IsOnQuest;
+
+-- WoW API Cache
+local GetItemID = app.WOWAPI.GetItemID;
+local GetItemInfo = app.WOWAPI.GetItemInfo;
+local GetItemIcon = app.WOWAPI.GetItemIcon;
+local GetItemCount = app.WOWAPI.GetItemCount;
+local GetFactionBonusReputation = app.WOWAPI.GetFactionBonusReputation;
 
 -- App locals
 local AssignChildren, GetRelativeValue, IsQuestFlaggedCompletedForObject, NestObject, SearchForField, SearchForFieldContainer
 	= app.AssignChildren, app.GetRelativeValue, app.IsQuestFlaggedCompletedForObject, app.NestObject, app.SearchForField, app.SearchForFieldContainer;
 
 local BestItemLinkPerItemID = setmetatable({}, { __index = function(t, id)
+	if not id then return end
 	local link = select(2, GetItemInfo(id));
 	if link then
 		rawset(t, id, link);
@@ -32,7 +38,7 @@ app.ParseItemID = function(itemName)
 			return itemID;
 		else
 			-- The itemID given was actually the name or a link.
-			itemID = GetItemInfoInstant(itemName);
+			itemID = GetItemID(itemName);
 			if itemID then
 				-- Oh good, it was cached by WoW.
 				return itemID;
@@ -61,7 +67,7 @@ local collectibleAsCostForItem = function(t)
 							costTotal = costTotal + 1;
 						end
 					elseif (ref.collectible and not ref.collected) or (ref.total and ref.total > ref.progress) then
-						if ref.cost then
+						if ref.cost and type(ref.cost) == "table" then
 							for k,v in ipairs(ref.cost) do
 								if v[2] == id and v[1] == "i" then
 									costTotal = costTotal + (v[3] or 1);
@@ -110,9 +116,6 @@ local isCollectibleTransmog = function(t)
 		end
 		local itemID = t.itemID;
 		if itemID and t.collectible ~= false then
-			--if t.rwp or (t.u and (t.u == 2 or t.u == 3 or t.u == 4)) then
-			--	print("Missing SourceID for RWP", itemID);
-			--end
 			t.missingSourceID = true;
 		end
 	end
@@ -150,19 +153,12 @@ local collectedAsTransmog = function(t)
 		end
 	end
 end;
-local isCollectibleTransmogField = function(t)
-	if t.collectibleAsCost then return true; end
-	if app.Settings.Collectibles.Transmog then
-		if app.Settings.OnlyRWP and not t.rwp then return false; end
-		return true;
-	end
-end
 local itemFields = {
 	["text"] = function(t)
 		return t.link;
 	end,
 	["icon"] = function(t)
-		return select(5, GetItemInfoInstant(t.itemID)) or "Interface\\Icons\\INV_Misc_QuestionMark";
+		return GetItemIcon(t.itemID) or 134400;
 	end,
 	["link"] = function(t)
 		return BestItemLinkPerItemID[t.itemID];
@@ -187,6 +183,7 @@ local itemFields = {
 	["GetItemCount"] = function(t)
 		return baseGetItemCount;
 	end,
+	RefreshCollectionOnly = true,
 	["collectible"] = function(t)
 		return t.collectibleAsCost;
 	end,
@@ -198,13 +195,27 @@ local itemFields = {
 };
 app.CreateItem = app.CreateClass("Item", "itemID", itemFields,
 "AsTransmog", {
-	collectible = isCollectibleTransmogField,
+	collectible = app.GameBuildVersion >= 40000 and function(t)
+		if t.collectibleAsCost then return true; end
+		if app.Settings.OnlyNotTrash and (not t.q or t.q < 2) then return false; end
+		return app.Settings.Collectibles.Transmog;
+	end or function(t)
+		if t.collectibleAsCost then return true; end
+		if app.Settings.Collectibles.Transmog then
+			if app.Settings.OnlyRWP and not t.rwp then return false; end
+			if app.Settings.OnlyNotTrash and (not t.q or t.q < 2) then return false; end
+			return true;
+		end
+	end,
 	collected = function(t)
 		if t.collectedAsCost == false then
 			return;
 		end
 		return collectedAsTransmog(t);
 	end,
+	["description"] = app.GameBuildVersion > 40000 and function(t)
+		return t.collectible and "Blizzard isn't detecting white/grey quality transmogs as collectible, so for the meantime, send this item to an alt to hold on to until they fix it. If its soulbound and from a quest, you're probably okay to vendor it.";
+	end or nil,
 }, isCollectibleTransmog,
 "WithQuest", {
 	collectible = function(t)
@@ -250,6 +261,7 @@ if C_Heirloom and app.GameBuildVersion >= 30000 then
 		description = function(t)
 			return L["HEIRLOOM_TEXT_DESC"];
 		end,
+		RefreshCollectionOnly = true,
 		collectible = function(t)
 			return app.Settings.Collectibles.Heirlooms;
 		end,
@@ -261,7 +273,7 @@ if C_Heirloom and app.GameBuildVersion >= 30000 then
 	-- Clone base item fields and extend the properties.
 	local heirloomFields = {
 		icon = function(t)
-			return select(4, C_Heirloom_GetHeirloomInfo(t.heirloomID)) or select(5, GetItemInfoInstant(t.heirloomID));
+			return select(4, C_Heirloom_GetHeirloomInfo(t.heirloomID)) or GetItemIcon(t.heirloomID);
 		end,
 		link = function(t)
 			return C_Heirloom_GetHeirloomLink(t.heirloomID) or select(2, GetItemInfo(t.heirloomID));
@@ -276,20 +288,20 @@ if C_Heirloom and app.GameBuildVersion >= 30000 then
 	if gameBuildVersion > 60100 then
 		-- Extend the heirloom lib to account for upgrade levels.
 		local armorTextures = {
-			"Interface/ICONS/INV_Icon_HeirloomToken_Armor01",
-			"Interface/ICONS/INV_Icon_HeirloomToken_Armor02",
-			"Interface/ICONS/Inv_leather_draenordungeon_c_01shoulder",
-			"Interface/ICONS/inv_mail_draenorquest90_b_01shoulder",
-			"Interface/ICONS/inv_leather_warfrontsalliance_c_01_shoulder",
-			"Interface/ICONS/inv_shoulder_armor_dragonspawn_c_02",
+			1097737,
+			1097738,
+			960150,
+			929921,
+			1805932,
+			4673926,
 		};
 		local weaponTextures = {
-			"Interface/ICONS/INV_Icon_HeirloomToken_Weapon01",
-			"Interface/ICONS/INV_Icon_HeirloomToken_Weapon02",
-			"Interface/ICONS/inv_weapon_shortblade_112",
-			"Interface/ICONS/inv_weapon_shortblade_111",
-			"Interface/ICONS/inv_weapon_shortblade_102",
-			"Interface/ICONS/inv_weapon_shortblade_84",
+			1097739,
+			1097740,
+			353645,
+			353136,
+			314894,
+			135718,
 		};
 
 		local weaponFilterIDs = { 20, 29, 28, 21, 22, 23, 24, 25, 26, 50, 57, 34, 35, 27, 33, 32, 31 };
@@ -310,6 +322,7 @@ if C_Heirloom and app.GameBuildVersion >= 30000 then
 			["description"] = function(t)
 				return L["HEIRLOOMS_UPGRADES_DESC"];
 			end,
+			RefreshCollectionOnly = true,
 			["collectible"] = function(t)
 				return app.Settings.Collectibles.Heirlooms and app.Settings.Collectibles.HeirloomUpgrades;
 			end,
@@ -457,22 +470,54 @@ if C_Heirloom and app.GameBuildVersion >= 30000 then
 		end
 	end
 
-	local CreateHeirloom = app.ExtendClass("Item", "Heirloom", "heirloomID", heirloomFields,
-	"AsTransmog", {
-		collectible = function(t)
-			return t.collectibleAsCost or app.Settings.Collectibles.Transmog;
-		end,
-		collected = function(t)
-			if t.collectedAsCost == false then
-				return;
+	-- Heirlooms are containers for unlocks & upgrade levels.
+	local heirloomDefinition = { "Item", "Heirloom", "heirloomID", heirloomFields };
+	if gameBuildVersion < 40000 then
+		-- Prior to Cataclysm, we need to collect transmog the same way as we do for items.
+		tinsert(heirloomDefinition, "AsTransmog");
+		tinsert(heirloomDefinition, {
+			collectible = function(t)
+				return t.collectibleAsCost or app.Settings.Collectibles.Transmog;
+			end,
+			collected = function(t)
+				if t.collectedAsCost == false then
+					return;
+				end
+				return collectedAsTransmog(t);
+			end,
+			description = function()
+				return "This item also has a sourceID with it, keep at least one somewhere on your account. I'm not sure if Blizzard is planning on deprecating this completely before transmog comes out or not!\n\n  - Crieve";
+			end,
+		});
+		tinsert(heirloomDefinition, isCollectibleTransmog);
+	else
+		-- After the Cataclysm, we can use the transmog API.
+		local AccountSources;
+		tinsert(heirloomDefinition, "AsTransmog");
+		tinsert(heirloomDefinition, {
+			collectible = function(t)
+				return t.collectibleAsCost or app.Settings.Collectibles.Transmog;
+			end,
+			collected = function(t)
+				if t.collectedAsCost == false then
+					return;
+				end
+				return AccountSources[t.sourceID];
+			end,
+		});
+		tinsert(heirloomDefinition, isCollectibleTransmog);
+		app.AddEventHandler("OnSavedVariablesAvailable", function(currentCharacter, accountWideData)
+			AccountSources = accountWideData.Sources;
+			if not AccountSources then
+				AccountSources = {};
+				accountWideData.Sources = AccountSources;
 			end
-			return collectedAsTransmog(t);
-		end,
-		description = function()
-			return "This item also has a sourceID with it, keep at least one somewhere on your account. I'm not sure if Blizzard is planning on deprecating this completely before transmog comes out or not!\n\n  - Crieve";
-		end,
-	}, isCollectibleTransmog,
-	"WithFaction", {
+		end);
+	end
+
+	-- Faction Extension.
+	tinsert(heirloomDefinition, "WithFaction");
+	tinsert(heirloomDefinition, {
 		collectible = function(t)
 			return t.collectibleAsCost or app.Settings.Collectibles.Reputations;
 		end,
@@ -486,7 +531,7 @@ if C_Heirloom and app.GameBuildVersion >= 30000 then
 			else
 				-- This is used for the Grand Commendations unlocking Bonus Reputation
 				if ATTAccountWideData.FactionBonus[t.factionID] then return 1; end
-				if select(15, GetFactionInfoByID(t.factionID)) then
+				if GetFactionBonusReputation(t.factionID) then
 					ATTAccountWideData.FactionBonus[t.factionID] = 1;
 					return 1;
 				end
@@ -495,13 +540,18 @@ if C_Heirloom and app.GameBuildVersion >= 30000 then
 			if app.CurrentCharacter.Factions[t.factionID] then return 1; end
 			if app.Settings.AccountWide.Reputations and ATTAccountWideData.Factions[t.factionID] then return 2; end
 		end,
-	}, (function(t) return t.factionID; end));
+	});
+	tinsert(heirloomDefinition, function(t) return t.factionID; end);
+
+	local CreateHeirloom = app.ExtendClass(unpack(heirloomDefinition));
 	app.CreateHeirloom = function(id, t)
 		t = CreateHeirloom(id, t);
 		--t.b = 2;	-- Heirlooms are always BoA
 
 		-- unlocking the heirloom is the only thing contained in the heirloom
-		t.g = { CreateHeirloomUnlock(id, { e = t.e, u = t.u }); }
+		local unlock = CreateHeirloomUnlock(id, { e = t.e, u = t.u });
+		unlock.parent = t;
+		t.g = { unlock }
 		tinsert(heirloomIDs, id);
 		return t;
 	end

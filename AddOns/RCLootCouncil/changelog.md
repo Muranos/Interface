@@ -1,3 +1,299 @@
+# v3.15.4
+
+## Changes
+
+Instance data is now recorded when a boss is killed, allowing you to award items outside an instance and still have accurate history data. The recorded instance is attached to sessions, and is only used for a maximum of 30 mins after a kill. Note that entering a new instance before starting the session will cause it to use the new instances' data.
+
+It persists through reloads and is also reset when testing.
+
+## Bugfixes
+
+- *Improved transmission of settings for people joining the raid late.*
+- *Fixed issue with importing csv data with quotes in notes.*
+- *Loot history data is now again sorted properly by award time.*
+- *Clearing the loot history now only deletes entries from the current characters' faction-realm storage instead of everything recorded.*
+
+# v3.15.3
+
+## Bugfixes
+
+- *"Best-In-Slots" will no longer be auto passed by classes that can use the intellect version.*
+- *Evokers are no longer auto passing Two-Handed Maces.*
+- *Untradable mounts should no longer be added to the session frame (hopefully).*
+- *Fixed json export error when item name contained `"`s (#263).*
+- *Fixed issue with certain imports after a reload or login.*
+
+# v3.15.2
+
+## Bugfixes
+
+- *Prevented "Explosive Hearthstone" from being automatically looted, as it cannot be traded.*
+
+# v3.15.1
+
+## Bugfixes
+
+- *Fixed history date selector not sorting properly.*
+- *Fixed date/time issue with certain history exports.*
+- *Fixed issue with updating during a session breaking the loot history.*
+
+# 3.15.0
+
+Updated for patch 11.1.0.
+
+## Changes
+
+Added trinkets and tokens from new raid and dungeon.
+
+Added `servertime` field to JSON export.
+
+### Time handling
+
+All time stamps are now based off server time instead of the group leader's local time.
+
+- This will reduce accuracy as local server time is only updated once a minute.
+
+All date formats now follows the ISO standard of `YYYY/MM/DD`.
+
+- This includes importing - they must now be of the new format. *Note: if you have a backup in either `Player Export` or `CSV` (with `id` field) those will import into the new format.*
+- Existing history will be updated to the new format, but the timestamps will not, and are assumed to be server time going forwards.
+
+Voting Frame more info tooltip showing time since award has been changed to just show the number of days.
+
+### Bugfixes
+
+- *Council wouldn't always be registered properly.*
+
+# 3.14.5
+
+## Changes
+
+Updated for patch 11.0.7.
+
+### Request rolls
+
+Asking a candidate to roll will now change their roll to "?" when they have received the request.
+
+# 3.14.4
+
+## Changes
+
+## Bugfixes
+
+- *Fixed Group Leader chat command help not being printed without having other modules enabled (Curse#546).*
+- *Moving a frame the exact moment it's minimized will no longer make it stuck to the mouse.*
+- *Clicking the "Disenchant" button in the voting frame could use values from hidden award reasons.*
+
+# 3.14.3
+
+## Changes
+
+### More info tooltips
+
+Now properly tracks responses from item groups other than default and tier token.
+
+Responses are now sorted by number of awards.
+
+## Bugfixes
+
+- *Fixed broken sorting in Voting Frame.*
+
+# 3.14.2
+
+## Changes
+
+Updated for patch 11.0.5.
+
+Added trinkets from Blackrock Depths.
+
+## Bugfixes
+
+- *Fixed Voting Frame sometimes breaking when extending a session while there's changes in group composition.*
+
+# 3.14.1
+
+## Changes
+
+### Rolls
+
+Requesting rolls now only resets the roll for the people requested.
+
+Auto passing when requesting rolls will now show a '-' in the roll column, like when passing the roll.
+
+## Bugfixes
+
+- *Fixed wrong specs autopassing a few trinkets.*
+
+# 3.14.0
+
+## Changes
+
+### Buttons and Responses
+
+Added button group for Catalyst items. (#257)
+
+Removed "Azerite" button group.
+
+### Group Loot Status
+
+The version checker now includes group loot status for each player. Use this to check if RCLootCouncil will do group loot for everyone. Won't work for players using versions older than 3.13.3.
+
+The tooltip includes specific information as to why it won't do group loot, such as being in a non-guild group without disabling "Guild Groups Only".
+
+### Options and Commands
+
+Added option to not store personal loot in the history.
+
+Added new command `/rc session` - opens the session frame if you're the group leader.
+
+Added new command `/rc stop` - inverse of start, stops handling loot.
+
+Reworked the chat command help section (`/rc` or `/rc help`) - now shows commands useable at the moment. Group leader has a seperate section for group leader only commands. Also added description for the commands that missed them.
+
+### Profile Export & Sync
+
+Module specific options (show more info, show tooltip, filters, etc) are no longer included in exported/synced profiles.
+
+### Voting Frame
+
+Hovering a candidate's class/spec icon will now show the name of their current class and spec.
+
+## Bugfixes
+
+- *WuE items will no longer register as BoEs (despite GetItemInfo saying so).*
+- *Fixed Conniver's Badges being incorrectly shown as trinket slot.*
+- *Changing roles should now properly update the column in the voting frame.*
+- *Changing leader would not always activate RCLootCouncil properly.*
+
+# 3.13.3
+
+## Changes
+
+## Bugfixes
+
+- *Addon should now always properly initialize when reloading as the ML.*
+- *No longer prints the reroll message for candidates not being asked to reroll.*
+
+# 3.13.2
+
+## Changes
+
+More info frames is no longer clamped to screen.
+
+## Bugfixes
+
+- *Selecting an item for "Award Later" during a session will now properly count the item as awarded.*
+- *Tier token items are now properly registered as such for usage in more info tooltips.*
+- *BoE's are recognized once again.*
+
+# 3.13.1
+
+## Changes
+
+Updated for patch 11.0.2.
+
+### History Export
+
+Added a new export option for Google Sheets and English versions of Excel that uses ";" as formula delimiter.
+
+Changed default export to Player Export.
+
+### Winners of item in Voting Frame
+
+The more info tooltip in the votingframe nows shows previous winners of the selected item.
+Their response and the item level of the version of the item they received is also shown there.
+
+## Bugfixes
+
+- *Enabling "Observe" now more reliably prepares the voting frame for the next session.*
+
+# 3.13.0
+
+## Changes
+
+Updated for the War Within prepatch (11.0.0).
+
+### Comms optimization
+
+Optimized random rolls from 1 message per session to approximately 1 message per 10 sessions. You can once again safely use the `"Add Rolls"` option.
+
+Optimized Rerolls and Request Rolls from 1-2 message(s) per candidate per session to 1-2 messages per request.
+
+Both are fully backwards compatible (uses old system for those that haven't updated).
+
+### Look and Feel
+
+Reviewed all addon prints/displays of player names and added class icon/colors where appropiate.
+
+Added highlight and push textures to several buttons that didn't have them.
+
+Added help tooltip and hover effect when hovering frame titles.
+
+Made frame scaling more granular.
+
+Prevented more info frames from getting too small/large.
+
+All import/export frames are now closeable with "Esc".
+
+When awarding an item, voting frame now switches to the *next* unawarded item instead of the *first*.
+
+Reviewed all UI layouts and margins. Updated all inconsistencies for a more unified look.
+
+Frame position and size settings has been reset due to these changes.
+
+### Loot Frame
+
+Loot Frame will now always "shrink" upwards when rolling on items, no matter where it's positioned.
+
+Integrated timeout bar with background and refreshed layout.
+
+The new timeout bar will flash when there's 5 seconds to timeout - can be disabled in the options menu (`Timeout Flash`).
+
+### Profile sharing
+
+It's now possible to export and import profile settings. This new feature is located at the "Profiles" tab in the options menu (`/rc profile`).
+
+### TradeUI
+
+TradeUI will now popup automatically after reloads/relogs if there's items to trade.
+
+Removing the last item in the list will now close the window.
+
+## Bugfixes
+
+- *Player names in voting frame vote status tooltip is again shown with class colors.*
+- *Loot- and Voting frame item type text now only shows subtype for most miscellaneous items.*
+- *Voting Frame More info now correctly updates when changing sessions while shown.*
+- *More info frames now minimizes with their parent frame.*
+- *Item owner information is again sent when reannouncing loot.*
+- *In loot history filter: deselecting a single selected class now resets the filter.*
+
+# 3.12.1
+
+## Bugfixes
+
+- *Fixed tertiary stats not being shown in loot/voting frame.*
+- *Miscellaneous items is now listed as their subtype instead of "armor token" (unless their subtype is junk) in voting frame more info.*
+- *Setting "Require Note" on a button that has default text now actually makes said note required.*
+- *Fixed players guild ranks occasionally dissappearing.*
+
+# 3.12.0
+
+## Changes
+
+Updated for patch 10.2.7.
+
+### Comms throttle
+
+Voting Frame data is no longer being sent when reloading/reconnecting.
+
+`Add Rolls` option has been reset to `false` due to the extra comms required for it.
+
+## Bugfixes
+
+- *Fixed `/rc council` not properly opening council menu.*
+
+
 # 3.11.1
 
 ## Changes

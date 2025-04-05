@@ -1,6 +1,6 @@
 ﻿-- --------------------
 -- TellMeWhen
--- Originally by Nephthys of Hyjal <lieandswell@yahoo.com>
+-- Originally by NephMakes
 
 -- Other contributions by:
 --		Sweetmms of Blackrock, Oozebull of Twisting Nether, Oodyboo of Mug'thol,
@@ -22,6 +22,7 @@ local UnitGUID =
 
 local isNumber = TMW.isNumber
 local strlowerCache = TMW.strlowerCache
+local spellTextureCache = TMW.spellTextureCache
 local GetSpellTexture = TMW.GetSpellTexture
 
 local huge = math.huge
@@ -158,7 +159,7 @@ end)
 TMW:RegisterCallback("TMW_EQUIVS_PROCESSING", function()
 	-- Create our own DR equivalencies in TMW using the data from DRList-1.0
 
-	local myCategories = TMW.isWrath and {
+	local myCategories = (TMW.isWrath or TMW.isCata) and {
 		incapacitate = "DR-Incapacitate",
 		stun =         "DR-ControlledStun",
 		fear =         "DR-Fear",
@@ -171,6 +172,8 @@ TMW:RegisterCallback("TMW_EQUIVS_PROCESSING", function()
 		horror =       "DR-Horrify",
 		disarm =       "DR-Disarm",
 		scatter =      "DR-Scatter",
+		cyclone =      "DR-Cyclone",
+		entrapment =   "DR-Entrapment",
 	} or TMW.isClassic and {
 		incapacitate = "DR-Incapacitate",
 		stun =         "DR-ControlledStun",
@@ -190,12 +193,11 @@ TMW:RegisterCallback("TMW_EQUIVS_PROCESSING", function()
 		disarm 			= "DR-Disarm",
 	}
 
-	local ignored = TMW.isWrath and {
+	local ignored = (TMW.isCata or TMW.isWrath) and {
 		knockback = true,
-		frost_shock = true,
-		cyclone = true,
 		counterattack = true,
 		charge = true,
+		dragons = true,
 	} or TMW.isClassic and {
 		knockback = true,
 		frost_shock = true,
@@ -233,14 +235,16 @@ TMW:RegisterCallback("TMW_EQUIVS_PROCESSING", function()
 			end
 		end
 
-		local k = myCategories[category]
+		if category then
+			local k = myCategories[category]
 
-		if k then
-			usedCategories[category] = true
-			dr[k] = dr[k] or {}
-			tinsert(dr[k], spellID)
-		elseif TMW.debug and not ignored[category] then
-			TMW:Error("The DR category %q is undefined!", category)
+			if k then
+				usedCategories[category] = true
+				dr[k] = dr[k] or {}
+				tinsert(dr[k], spellID)
+			elseif TMW.debug and not ignored[category] then
+				TMW:Error("The DR category %q is undefined!", category)
+			end
 		end
 	end
 
@@ -285,7 +289,7 @@ local function DR_OnEvent(icon, event, arg1)
 								amt = 50,
 								start = TMW.time,
 								duration = icon.DRDuration,
-								tex = GetSpellTexture(spellID)
+								tex = spellTextureCache[spellID]
 							}
 							icon.DRInfo[destGUID] = dr
 						else
@@ -296,7 +300,7 @@ local function DR_OnEvent(icon, event, arg1)
 								dr.amt = amt > 25 and amt/2 or 0
 								dr.duration = icon.DRDuration
 								dr.start = TMW.time
-								dr.tex = GetSpellTexture(spellID)
+								dr.tex = spellTextureCache[spellID]
 							end
 						end
 					end

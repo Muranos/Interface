@@ -1,6 +1,10 @@
 # LittleWigs
 
-## [v10.2.45](https://github.com/BigWigsMods/LittleWigs/tree/v10.2.45) (2024-04-25)
-[Full Changelog](https://github.com/BigWigsMods/LittleWigs/compare/v10.2.44...v10.2.45) [Previous Releases](https://github.com/BigWigsMods/LittleWigs/releases)
+## [v11.1.24](https://github.com/BigWigsMods/LittleWigs/tree/v11.1.24) (2025-04-04)
+[Full Changelog](https://github.com/BigWigsMods/LittleWigs/compare/v11.1.23...v11.1.24) [Previous Releases](https://github.com/BigWigsMods/LittleWigs/releases)
 
-- Initial support for Cataclysm Classic (#996)  
+- Bump min version  
+- Shadowlands/TheaterOfPain/Trash: Bone Spikes timer update  
+- Update koKR (#1307)  
+- Delves/Trash/UnderpinRares: Fix Time-Bomb Launcher timer  
+- Update zhCN (#1306)  

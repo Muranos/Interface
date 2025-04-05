@@ -4,7 +4,7 @@ if L then
 	L.add_death = "추가 몹 죽음 알림"
 	L.add_death_desc = "추가된 몹 죽음을 알립니다."
 
-	L.wave = "%d/23: %s"
+	L.wave = "%d/22: %s"
 
 	L.trainee = "수련생" -- Unrelenting Trainee NPC 16124
 	L.deathKnight = "죽음의 기사" -- Unrelenting Death Knight NPC 16125
@@ -46,11 +46,6 @@ end
 L = BigWigs:NewBossLocale("Noth the Plaguebringer", "koKR")
 if L then
 	L.adds_yell_trigger = "일어나라,병사들이여" -- 일어나라,병사들이여! 다시 일어나 싸워라!
-end
-
-L = BigWigs:NewBossLocale("Maexxna", "koKR")
-if L then
-	L.cocoons = "거미줄 감싸기"
 end
 
 L = BigWigs:NewBossLocale("Instructor Razuvious", "koKR")

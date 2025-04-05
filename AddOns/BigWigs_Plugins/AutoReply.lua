@@ -22,7 +22,7 @@ plugin.defaultDB = {
 --
 
 local Ambiguate, SendChatMessage, GetTime = BigWigsLoader.Ambiguate, BigWigsLoader.SendChatMessage, GetTime
-local L = BigWigsAPI:GetLocale("BigWigs: Plugins")
+local L = BigWigsAPI:GetLocale("BigWigs")
 plugin.displayName = L.autoReply
 local curDiff = 0
 local curModule = nil
@@ -37,7 +37,7 @@ local timer = nil
 do
 	local disabled = function() return plugin.db.profile.disabled end
 	local bossText = BigWigsAPI:GetLocale("BigWigs: Common").boss
-	local heroicText = BigWigsAPI:GetLocale("BigWigs").heroic
+	local heroicText = L.heroic
 	local modeTbl = {
 		type = "select",
 		name = L.responseType,
@@ -161,9 +161,9 @@ end
 -- Event Handlers
 --
 
-function plugin:BigWigs_OnBossEngage(event, module, difficulty)
-	if not self.db.profile.disabled and module and module:GetJournalID() and not module.worldBoss then
-		curDiff = difficulty
+function plugin:BigWigs_OnBossEngage(event, module)
+	if not self.db.profile.disabled and module and (module:GetJournalID() or module:GetAllowWin()) and not module.worldBoss then
+		curDiff = module:Difficulty()
 		curModule = module
 		throttle, throttleBN, friendlies = {}, {}, {}
 		self:RegisterEvent("CHAT_MSG_WHISPER")
@@ -177,7 +177,7 @@ do
 			local playersTotal, playersAlive = 0, 0
 			for unit in curModule:IterateGroup() do
 				playersTotal = playersTotal + 1
-				if not UnitIsDeadOrGhost(unit) then
+				if not curModule:UnitIsDeadOrGhost(unit) then
 					playersAlive = playersAlive + 1
 				end
 			end
@@ -298,7 +298,7 @@ do
 			local playersTotal, playersAlive = 0, 0
 			for unit in curModule:IterateGroup() do
 				playersTotal = playersTotal + 1
-				if not UnitIsDeadOrGhost(unit) then
+				if not curModule:UnitIsDeadOrGhost(unit) then
 					playersAlive = playersAlive + 1
 				end
 			end
@@ -308,7 +308,7 @@ do
 			local playersTotal, playersAlive = 0, 0
 			for unit in curModule:IterateGroup() do
 				playersTotal = playersTotal + 1
-				if not UnitIsDeadOrGhost(unit) then
+				if not curModule:UnitIsDeadOrGhost(unit) then
 					playersAlive = playersAlive + 1
 				end
 			end

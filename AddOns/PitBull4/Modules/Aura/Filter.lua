@@ -2,16 +2,21 @@
 
 local PitBull4 = _G.PitBull4
 local L = PitBull4.L
+
 local PitBull4_Aura = PitBull4:GetModule("Aura")
 
-local _, player_class = UnitClass("player")
+local wow_cata = PitBull4.wow_cata
+
+local GetSpellName = C_Spell.GetSpellName or _G.GetSpellInfo -- XXX Classic
+
+local player_class = UnitClassBase("player")
 local _, player_race = UnitRace("player")
 
 --- Return the DB dictionary for the specified filter.
 -- Filter Types should use this to get their db.
 -- @param filter the name of the filter
 -- @usage local db = PitBull4_Aura:GetFilterDB("myfilter")
--- @return the DB dictionrary for the specified filter or nil
+-- @return the DB dictionary for the specified filter or nil
 function PitBull4_Aura:GetFilterDB(filter)
 	return self.db.profile.global.filters[filter]
 end
@@ -58,89 +63,143 @@ PitBull4_Aura.can_purge = can_purge
 
 -- Rescan spells that can change what we can dispel and purge.
 function PitBull4_Aura:PLAYER_TALENT_UPDATE()
-	if player_class == "DEMONHUNTER" then
-		can_purge.DEMONHUNTER.Magic = IsPlayerSpell(278326) -- Consume Magic
-		self:GetFilterDB(',,7').aura_type_list.Magic = can_purge.DEMONHUNTER.Magic
+	if not wow_cata then
+		-- Retail
+		if player_class == "DEMONHUNTER" then
+			can_purge.DEMONHUNTER.Magic = IsPlayerSpell(278326) -- Consume Magic
+			self:GetFilterDB(',,7').aura_type_list.Magic = can_purge.DEMONHUNTER.Magic
 
-	elseif player_class == "DRUID" then
-		can_dispel.DRUID.Curse = IsPlayerSpell(2782) or IsPlayerSpell(392378) -- Remove Corruption / Improved Nature's Cure
-		self:GetFilterDB(',3').aura_type_list.Curse = can_dispel.DRUID.Curse
-		can_dispel.DRUID.Poison = can_dispel.DRUID.Curse
-		self:GetFilterDB(',3').aura_type_list.Poison = can_dispel.DRUID.Poison
-		can_dispel.DRUID.Magic = IsPlayerSpell(88423) -- Nature's Cure
-		self:GetFilterDB(',3').aura_type_list.Magic = can_dispel.DRUID.Magic
+		elseif player_class == "DRUID" then
+			can_dispel.DRUID.Curse = IsPlayerSpell(2782) or IsPlayerSpell(392378) -- Remove Corruption / Improved Nature's Cure
+			self:GetFilterDB(',3').aura_type_list.Curse = can_dispel.DRUID.Curse
+			can_dispel.DRUID.Poison = can_dispel.DRUID.Curse
+			self:GetFilterDB(',3').aura_type_list.Poison = can_dispel.DRUID.Poison
+			can_dispel.DRUID.Magic = IsPlayerSpell(88423) -- Nature's Cure
+			self:GetFilterDB(',3').aura_type_list.Magic = can_dispel.DRUID.Magic
 
-		can_purge.DRUID.Enrage = IsPlayerSpell(2908) -- Soothe
-		self:GetFilterDB(',7').aura_type_list.Enrage = can_purge.DRUID.Enrage
+			can_purge.DRUID.Enrage = IsPlayerSpell(2908) -- Soothe
+			self:GetFilterDB(',7').aura_type_list.Enrage = can_purge.DRUID.Enrage
 
-	elseif player_class == "EVOKER" then
-		can_dispel.EVOKER.Poison = IsPlayerSpell(360823) or IsPlayerSpell(365585) or IsPlayerSpell(374251) -- Naturalize / Expunge / Cauterizing Flame
-		self:GetFilterDB('--3').aura_type_list.Poison = can_dispel.EVOKER.Poison
-		can_dispel.EVOKER.Curse = IsPlayerSpell(374251) -- Cauterizing Flame
-		self:GetFilterDB('--3').aura_type_list.Curse = can_dispel.EVOKER.Curse
-		can_dispel.EVOKER.Disease = IsPlayerSpell(374251) -- Cauterizing Flame
-		self:GetFilterDB('--3').aura_type_list.Disease = can_dispel.EVOKER.Disease
-		can_dispel.EVOKER.Magic = IsPlayerSpell(360823) -- Naturalize
-		self:GetFilterDB('--3').aura_type_list.Magic = can_dispel.EVOKER.Magic
+		elseif player_class == "EVOKER" then
+			can_dispel.EVOKER.Poison = IsPlayerSpell(360823) or IsPlayerSpell(365585) or IsPlayerSpell(374251) -- Naturalize / Expunge / Cauterizing Flame
+			self:GetFilterDB('--3').aura_type_list.Poison = can_dispel.EVOKER.Poison
+			can_dispel.EVOKER.Curse = IsPlayerSpell(374251) -- Cauterizing Flame
+			self:GetFilterDB('--3').aura_type_list.Curse = can_dispel.EVOKER.Curse
+			can_dispel.EVOKER.Disease = IsPlayerSpell(374251) -- Cauterizing Flame
+			self:GetFilterDB('--3').aura_type_list.Disease = can_dispel.EVOKER.Disease
+			can_dispel.EVOKER.Magic = IsPlayerSpell(360823) -- Naturalize
+			self:GetFilterDB('--3').aura_type_list.Magic = can_dispel.EVOKER.Magic
 
-		can_purge.EVOKER.Magic = IsPlayerSpell(372048) -- Oppressing Roar
-		self:GetFilterDB('--7').aura_type_list.Magic = can_purge.EVOKER.Magic
+			can_purge.EVOKER.Magic = IsPlayerSpell(372048) -- Oppressing Roar
+			self:GetFilterDB('--7').aura_type_list.Magic = can_purge.EVOKER.Magic
 
-	elseif player_class == "HUNTER" then
-		can_purge.HUNTER.Enrage = IsPlayerSpell(19801) -- Tranquilizing Shot
-		self:GetFilterDB('-7').aura_type_list.Enrage = can_purge.HUNTER.Enrage
-		can_purge.HUNTER.Magic = can_purge.HUNTER.Enrage
-		self:GetFilterDB('-7').aura_type_list.Magic = can_purge.HUNTER.Magic
+		elseif player_class == "HUNTER" then
+			can_purge.HUNTER.Enrage = IsPlayerSpell(19801) -- Tranquilizing Shot
+			self:GetFilterDB('-7').aura_type_list.Enrage = can_purge.HUNTER.Enrage
+			can_purge.HUNTER.Magic = can_purge.HUNTER.Enrage
+			self:GetFilterDB('-7').aura_type_list.Magic = can_purge.HUNTER.Magic
 
-	elseif player_class == "MAGE" then
-		can_dispel.MAGE.Curse = IsPlayerSpell(475) -- Remove Curse
-		self:GetFilterDB('.3').aura_type_list.Curse = can_dispel.MAGE.Curse
+		elseif player_class == "MAGE" then
+			can_dispel.MAGE.Curse = IsPlayerSpell(475) -- Remove Curse
+			self:GetFilterDB('.3').aura_type_list.Curse = can_dispel.MAGE.Curse
 
-		can_purge.MAGE.Magic = IsPlayerSpell(30449) -- Spellsteal
-		self:GetFilterDB('.7').aura_type_list.Magic = can_purge.MAGE.Magic
+			can_purge.MAGE.Magic = IsPlayerSpell(30449) -- Spellsteal
+			self:GetFilterDB('.7').aura_type_list.Magic = can_purge.MAGE.Magic
 
-	elseif player_class == "MONK" then
-		can_dispel.MONK.Poison = IsPlayerSpell(218164) or IsPlayerSpell(388874) -- Detox / Improved Detox
-		self:GetFilterDB('//3').aura_type_list.Poison = can_dispel.MONK.Poison
-		can_dispel.MONK.Disease = can_dispel.MONK.Poison
-		self:GetFilterDB('//3').aura_type_list.Disease = can_dispel.MONK.Disease
-		can_dispel.MONK.Magic = IsPlayerSpell(115450) -- Detox (Mistweaver)
-		self:GetFilterDB('//3').aura_type_list.Magic = can_dispel.MONK.Magic
+		elseif player_class == "MONK" then
+			can_dispel.MONK.Poison = IsPlayerSpell(218164) or IsPlayerSpell(388874) -- Detox / Improved Detox
+			self:GetFilterDB('//3').aura_type_list.Poison = can_dispel.MONK.Poison
+			can_dispel.MONK.Disease = can_dispel.MONK.Poison
+			self:GetFilterDB('//3').aura_type_list.Disease = can_dispel.MONK.Disease
+			can_dispel.MONK.Magic = IsPlayerSpell(115450) -- Detox (Mistweaver)
+			self:GetFilterDB('//3').aura_type_list.Magic = can_dispel.MONK.Magic
 
-	elseif player_class == "PALADIN" then
-		can_dispel.PALADIN.Poison = IsPlayerSpell(213644) or IsPlayerSpell(393024) -- Cleanse Toxins / Improved Cleanse
-		self:GetFilterDB('/3').aura_type_list.Poison = can_dispel.PALADIN.Poison
-		can_dispel.PALADIN.Disease = can_dispel.PALADIN.Poison
-		self:GetFilterDB('/3').aura_type_list.Disease = can_dispel.PALADIN.Disease
-		can_dispel.PALADIN.Magic = IsPlayerSpell(4987) -- Cleanse
-		self:GetFilterDB('/3').aura_type_list.Magic = can_dispel.PALADIN.Magic
+		elseif player_class == "PALADIN" then
+			can_dispel.PALADIN.Poison = IsPlayerSpell(213644) or IsPlayerSpell(393024) -- Cleanse Toxins / Improved Cleanse
+			self:GetFilterDB('/3').aura_type_list.Poison = can_dispel.PALADIN.Poison
+			can_dispel.PALADIN.Disease = can_dispel.PALADIN.Poison
+			self:GetFilterDB('/3').aura_type_list.Disease = can_dispel.PALADIN.Disease
+			can_dispel.PALADIN.Magic = IsPlayerSpell(4987) -- Cleanse
+			self:GetFilterDB('/3').aura_type_list.Magic = can_dispel.PALADIN.Magic
 
-	elseif player_class == "PRIEST" then
-		can_dispel.PRIEST.Disease = IsPlayerSpell(213634) or IsPlayerSpell(390632) -- Purify Disease / Improved Purify
-		self:GetFilterDB('03').aura_type_list.Disease = can_dispel.PRIEST.Disease
-		can_dispel.PRIEST.Magic = IsPlayerSpell(527) -- Purify
-		self:GetFilterDB('03').aura_type_list.Magic = can_dispel.PRIEST.Magic
+		elseif player_class == "PRIEST" then
+			can_dispel.PRIEST.Disease = IsPlayerSpell(213634) or IsPlayerSpell(390632) -- Purify Disease / Improved Purify
+			self:GetFilterDB('03').aura_type_list.Disease = can_dispel.PRIEST.Disease
+			can_dispel.PRIEST.Magic = IsPlayerSpell(527) -- Purify
+			self:GetFilterDB('03').aura_type_list.Magic = can_dispel.PRIEST.Magic
 
-		can_purge.PRIEST.Magic = IsPlayerSpell(528) or IsPlayerSpell(32375) -- Dispel Magic / Mass Dispel
-		self:GetFilterDB('07').aura_type_list.Magic = can_purge.PRIEST.Magic
+			can_purge.PRIEST.Magic = IsPlayerSpell(528) or IsPlayerSpell(32375) -- Dispel Magic / Mass Dispel
+			self:GetFilterDB('07').aura_type_list.Magic = can_purge.PRIEST.Magic
 
-	elseif player_class == "SHAMAN" then
-		can_dispel.SHAMAN.Curse = IsPlayerSpell(51886) or IsPlayerSpell(383016) -- Cleanse Spirit / Improved Purify Spirit
-		self:GetFilterDB('23').aura_type_list.Curse = can_dispel.SHAMAN.Curse
-		can_dispel.SHAMAN.Poison = IsPlayerSpell(383013) -- Poison Cleansing Totem
-		self:GetFilterDB('23').aura_type_list.Poison = can_dispel.DRUID.SHAMAN
-		can_dispel.SHAMAN.Magic = IsPlayerSpell(77130) -- Purify Spirit
-		self:GetFilterDB('23').aura_type_list.Magic = can_dispel.SHAMAN.Magic
+		elseif player_class == "SHAMAN" then
+			can_dispel.SHAMAN.Curse = IsPlayerSpell(51886) or IsPlayerSpell(383016) -- Cleanse Spirit / Improved Purify Spirit
+			self:GetFilterDB('23').aura_type_list.Curse = can_dispel.SHAMAN.Curse
+			can_dispel.SHAMAN.Poison = IsPlayerSpell(383013) -- Poison Cleansing Totem
+			self:GetFilterDB('23').aura_type_list.Poison = can_dispel.DRUID.SHAMAN
+			can_dispel.SHAMAN.Magic = IsPlayerSpell(77130) -- Purify Spirit
+			self:GetFilterDB('23').aura_type_list.Magic = can_dispel.SHAMAN.Magic
 
-		can_purge.SHAMAN.Magic = IsPlayerSpell(370) or IsPlayerSpell(378773) -- Purge / Greater Purge
-		self:GetFilterDB('27').aura_type_list.Magic = can_purge.SHAMAN.Magic
+			can_purge.SHAMAN.Magic = IsPlayerSpell(370) or IsPlayerSpell(378773) -- Purge / Greater Purge
+			self:GetFilterDB('27').aura_type_list.Magic = can_purge.SHAMAN.Magic
 
-	elseif player_class == "WARLOCK" then
-		can_dispel.WARLOCK.Magic = IsSpellKnown(89808, true) -- Singe Magic (Imp)
-		self:GetFilterDB('33').aura_type_list.Magic = can_dispel.WARLOCK.Magic
+		elseif player_class == "WARLOCK" then
+			can_dispel.WARLOCK.Magic = IsSpellKnown(89808, true) -- Singe Magic (Imp)
+			self:GetFilterDB('33').aura_type_list.Magic = can_dispel.WARLOCK.Magic
 
-		can_purge.WARLOCK.Magic = IsSpellKnown(19505, true) -- Devour Magic (Felhunter)
-		self:GetFilterDB('37').aura_type_list.Magic = can_purge.WARLOCK.Magic
+			can_purge.WARLOCK.Magic = IsSpellKnown(19505, true) -- Devour Magic (Felhunter)
+			self:GetFilterDB('37').aura_type_list.Magic = can_purge.WARLOCK.Magic
+		end
+	else
+		-- Cataclysm Classic
+		if player_class == "DRUID" then
+			can_dispel.DRUID.Curse = IsPlayerSpell(2782) -- Remove Curse
+			self:GetFilterDB(',3').aura_type_list.Curse = can_dispel.DRUID.Curse
+			can_dispel.DRUID.Poison = IsPlayerSpell(2893) or IsPlayerSpell(8946) -- Abolish Poison, Cure Poison
+			self:GetFilterDB(',3').aura_type_list.Poison = can_dispel.DRUID.Poison
+
+		elseif player_class == "HUNTER" then
+			can_purge.HUNTER.Enrage = IsPlayerSpell(19801) -- Tranuilizing Shot
+			self:GetFilterDB('-7').aura_type_list.Enrage = can_purge.HUNTER.Enrage
+			can_purge.HUNTER.Magic = can_purge.HUNTER.Enrage
+			self:GetFilterDB('-7').aura_type_list.Magic = can_purge.HUNTER.Magic
+
+		elseif player_class == "MAGE" then
+			can_dispel.MAGE.Curse = IsPlayerSpell(475) -- Remove Lesser Curse
+			self:GetFilterDB('.3').aura_type_list.Curse = can_dispel.MAGE.Curse
+
+		elseif player_class == "PALADIN" then
+			can_dispel.PALADIN.Magic = IsPlayerSpell(4987) -- Cleanse
+			self:GetFilterDB('/3').aura_type_list.Magic = can_dispel.PALADIN.Magic
+			can_dispel.PALADIN.Disease = can_dispel.PALADIN.Magic or IsPlayerSpell(1152) -- Cleanse, Purify
+			self:GetFilterDB('/3').aura_type_list.Disease = can_dispel.PALADIN.Disease
+			can_dispel.PALADIN.Poison = can_dispel.PALADIN.Disease
+			self:GetFilterDB('/3').aura_type_list.Poison = can_dispel.PALADIN.Poison
+
+		elseif player_class == "PRIEST" then
+			can_dispel.PRIEST.Magic = IsPlayerSpell(527) or IsPlayerSpell(32375) -- Dispel Magic, Mass Dispel
+			self:GetFilterDB('03').aura_type_list.Magic = can_dispel.PRIEST.Magic
+			can_dispel.PRIEST.Disease = IsPlayerSpell(528) or IsPlayerSpell(552) -- Cure Disease, Abolish Disease
+			self:GetFilterDB('03').aura_type_list.Disease = can_dispel.PRIEST.Disease
+
+		elseif player_class == "SHAMAN" then
+			can_dispel.SHAMAN.Curse = IsPlayerSpell(51886) -- Cleanse Spirit
+			self:GetFilterDB('23').aura_type_list.Curse = can_dispel.SHAMAN.Curse
+			can_dispel.SHAMAN.Disease = IsPlayerSpell(2870) -- or IsPlayerSpell(8170) -- Cure Disease, Disease Cleansing Totem
+			self:GetFilterDB('23').aura_type_list.Disease = can_dispel.SHAMAN.Disease
+			can_dispel.SHAMAN.Poison = IsPlayerSpell(526) -- or IsPlayerSpell(8166) -- Cure Poison, Poison Cleansing Totem
+			self:GetFilterDB('23').aura_type_list.Poison = can_dispel.SHAMAN.Poison
+
+			can_purge.SHAMAN.Magic = IsPlayerSpell(370) -- Purge
+			self:GetFilterDB('27').aura_type_list.Magic = can_purge.SHAMAN.Magic
+
+		elseif player_class == "WARLOCK" then
+			can_purge.WARLOCK.Magic = IsSpellKnown(19505, true) -- Devour Magic
+			self:GetFilterDB('37').aura_type_list.Magic = can_purge.WARLOCK.Magic
+
+		elseif player_class == "WARRIOR" then
+			can_purge.WARRIOR.Magic = IsPlayerSpell(23922) -- Shield Slam
+			self:GetFilterDB('47').aura_type_list.Magic = can_purge.WARRIOR.Magic
+		end
 	end
 
 	-- Blood Elf Arcane Torrent
@@ -184,7 +243,7 @@ end
 -- Build the class filters
 do
 	-- some shenanigans to only load LPS if the module is enabled (for nolib installs)
-	local LibPlayerSpells = LibStub("LibPlayerSpells-1.0", true)
+	local LibPlayerSpells = not PitBull4.wow_cata and LibStub("LibPlayerSpells-1.0", true)
 	if LibPlayerSpells then
 		local AURA = LibPlayerSpells.constants.AURA
 		local INVERT_AURA = LibPlayerSpells.constants.INVERT_AURA
@@ -296,7 +355,7 @@ friend_buffs.DarkIronDwarf = {
 }
 friend_debuffs.DarkIronDwarf = {}
 self_buffs.DarkIronDwarf = {
-	[273104] = true, -- Fireblood
+	[273104] = not wow_cata, -- Fireblood
 }
 self_debuffs.DarkIronDwarf = {}
 pet_buffs.DarkIronDwarf = {}
@@ -318,7 +377,7 @@ friend_buffs.VoidElf = {
 }
 friend_debuffs.VoidElf = {}
 self_buffs.VoidElf = {
-	[256948] = true, -- Spatial Rift
+	[256948] = not wow_cata, -- Spatial Rift
 }
 self_debuffs.VoidElf = {}
 pet_buffs.VoidElf = {}
@@ -420,10 +479,10 @@ friend_buffs.MagharOrc = {
 friend_debuffs.MagharOrc = {}
 self_buffs.MagharOrc = {
 	-- Ancestral Call
-	[274739] = true, -- Rictus of the Laughing Skull
-	[274740] = true, -- Zeal of the Burning Blade
-	[274741] = true, -- Ferocity of the Frostwolf
-	[274742] = true, -- Might of the Blackrock
+	[274739] = not wow_cata, -- Rictus of the Laughing Skull
+	[274740] = not wow_cata, -- Zeal of the Burning Blade
+	[274741] = not wow_cata, -- Ferocity of the Frostwolf
+	[274742] = not wow_cata, -- Might of the Blackrock
 }
 self_debuffs.MagharOrc = {}
 pet_buffs.MagharOrc = {}
@@ -438,7 +497,7 @@ self_buffs.HighmountainTauren = {}
 self_debuffs.HighmountainTauren = {}
 pet_buffs.HighmountainTauren = {}
 enemy_debuffs.HighmountainTauren = {
-	[255723] = true, -- Bull Rush
+	[255723] = not wow_cata, -- Bull Rush
 }
 
 -- Nightborne
@@ -450,7 +509,7 @@ self_buffs.Nightborne = {}
 self_debuffs.Nightborne = {}
 pet_buffs.Nightborne = {}
 enemy_debuffs.Nightborne = {
-	[260369] = true, -- Arcane Pulse
+	[260369] = not wow_cata, -- Arcane Pulse
 }
 
 -- Zandalari Troll
@@ -483,7 +542,7 @@ self_buffs.Pandaren = {}
 self_debuffs.Pandaren = {}
 pet_buffs.Pandaren = {}
 enemy_debuffs.Pandaren = {
-	[107079] = true, -- Quaking Palm
+	[107079] = not wow_cata, -- Quaking Palm
 }
 
 -- Dracthyr
@@ -502,15 +561,17 @@ local extra_buffs = {
 	[34976] = true, -- Netherstorm Flag
 }
 
+local debug_spells = {}
 local function turn(t, shallow)
 	local tmp = {}
 	local function turn(entry) -- luacheck: ignore
 		for id, v in next, entry do
-			local spell = GetSpellInfo(id)
-			if not spell then
-				DEFAULT_CHAT_FRAME:AddMessage(string.format("PitBull4_Aura: Unknown spell ID: %s", id))
-			else
+			local spell = GetSpellName(id)
+			if spell and v then
 				tmp[spell] = v
+			elseif v and PitBull4.DEBUG then
+				PitBull4_Aura:Printf("Invalid spell ID: %d", id)
+				debug_spells[#debug_spells + 1] = id
 			end
 		end
 		wipe(entry)
@@ -553,8 +614,7 @@ function PitBull4_Aura:FilterEntry(name, entry, frame)
 end
 
 
-PitBull4_Aura.OnProfileChanged_funcs[#PitBull4_Aura.OnProfileChanged_funcs+1] =
-function(self)
+PitBull4_Aura.OnProfileChanged_funcs[#PitBull4_Aura.OnProfileChanged_funcs + 1] = function(self)
 	-- Fix name lists containing spell ids (issue in 27703b7)
 	for _, filter in next, PitBull4_Aura.db.profile.global.filters do
 		if filter.name_list then
@@ -562,12 +622,21 @@ function(self)
 			for id, v in next, name_list do
 				if type(id) == "number" then
 					name_list[id] = nil
-					local spell = GetSpellInfo(id)
+					local spell = GetSpellName(id)
 					if spell then
 						name_list[spell] = v
 					end
 				end
 			end
 		end
+	end
+end
+
+PitBull4_Aura.OnProfileChanged_funcs[#PitBull4_Aura.OnProfileChanged_funcs + 1] = function(self)
+	if PitBull4.DEBUG then
+		if not PitBull4.db.global.debug_spells then
+			PitBull4.db.global.debug_spells = {}
+		end
+		PitBull4.db.global.debug_spells[WOW_PROJECT_ID] = debug_spells
 	end
 end

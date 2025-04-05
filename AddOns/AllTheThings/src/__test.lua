@@ -205,6 +205,7 @@ app.errors = function(msg)
 
 	local runner1 = app.CreateRunner("error1")
 	local runner2 = app.CreateRunner("error2")
+	local UpdateRunner = app.CreateRunner("update")
 
 	-- push function error
 	app.Push("push"..msg, "test", throw)
@@ -217,6 +218,10 @@ app.errors = function(msg)
 	runner1.Run(throw, msg.."2")
 	runner2.Run(throw, msg.."3")
 	runner2.Run(throw, msg.."4")
+
+	-- repeated test on consistent runner
+	UpdateRunner.Run(throw, "update"..msg.."5")
+	UpdateRunner.Run(throw, "update"..msg.."6")
 
 end
 
@@ -416,4 +421,174 @@ function ATTcoroutines(count)
 	app:StartATTCoroutine("ccb",ccb)
 	-- app.PrintMemoryUsage()
 
+end
+
+function ATTmetatest()
+
+
+	local C_TransmogCollection_GetAllAppearanceSources,C_TransmogCollection_GetSourceInfo
+		= C_TransmogCollection.GetAllAppearanceSources,C_TransmogCollection.GetSourceInfo
+	local VisualIDSourceIDsCache = setmetatable({}, { __index = function(t, visualID)
+		local sourceIDs = C_TransmogCollection_GetAllAppearanceSources(visualID)
+		t[visualID] = sourceIDs
+		return sourceIDs
+	end})
+
+
+	local temp, knownSource
+	app.PrintDebug("API",app.MaxSourceID)
+	-- 0.600820 @ 222939
+	for i=1,app.MaxSourceID do
+		knownSource = C_TransmogCollection_GetSourceInfo(i);
+		if knownSource then
+			temp = C_TransmogCollection_GetAllAppearanceSources(knownSource.visualID)
+		end
+	end
+	app.PrintDebugPrior("---")
+
+	app.PrintDebug("meta-cache",app.MaxSourceID)
+	-- 0.381800 @ 222939
+	for i=1,app.MaxSourceID do
+		knownSource = C_TransmogCollection_GetSourceInfo(i);
+		if knownSource then
+			temp = VisualIDSourceIDsCache[knownSource.visualID]
+		end
+	end
+	app.PrintDebugPrior("---")
+
+end
+
+function ATTcheckawquests()
+
+	local isaw = C_QuestLog.IsAccountQuest
+	-- local load = app.RequestLoadQuestByID
+	local dc = app.CallbackHandlers.DelayedCallback
+	local aw, cur, step = {}, 1, 250
+	local lim = step
+	AllTheThingsHarvestItems.AccountWideQuestsDB = aw
+	local awdb = app.AccountWideQuestsDB
+	local function scan()
+		for i=cur,lim do
+			if not awdb[i] and isaw(i) then
+				app.print("NEW AW-Quest!",i)
+				aw[i] = true
+			end
+		end
+		app.PrintDebug("scanned thru",lim)
+		cur = lim + 1
+		lim = lim + step
+		if lim > 95000 then return end
+		dc(scan, 1)
+	end
+	scan()
+end
+
+
+function ATTtestsort()
+
+	local sort1 = app.SortDefaults.Global
+	local sort2 = app.SortDefaults.Accessibility
+
+	local rawdatasearch1 = app:BuildSearchResponse("u", 2)
+	local rawdatasearch2 = app:BuildSearchResponse("u", 2)
+
+	local function dosorts()
+		app.PrintDebug("doSorts")
+		coroutine.yield()
+		app.PrintDebug("sort1")
+		app.Sort(rawdatasearch1, sort1, true)
+		app.PrintDebugPrior("sort1.done")
+		coroutine.yield()
+		app.PrintDebug("sort2")
+		app.Sort(rawdatasearch2, sort2, true)
+		app.PrintDebugPrior("sort2.done")
+	end
+
+	app.StartCoroutine("dosorts",dosorts)
+end
+
+function ATTclones(count)
+
+	local tinsert,ipairs
+		= tinsert,ipairs
+	local function CloneArray_ipairs(arr)
+		local clone = {};
+		for i,value in ipairs(arr) do
+			tinsert(clone, value);
+		end
+		return clone;
+	end
+	local function CloneArray_index(arr, clone)
+		local clone = clone or {}
+		for i=1,#arr do
+			clone[#clone + 1] = arr[i]
+		end
+		return clone
+	end
+
+	local test = {}
+	for i = 1, count, 1 do
+		test[#test + 1] = i
+	end
+
+	app.PrintDebug("CloneArray_ipairs",count)
+	-- 0.283 @ 1M
+	local new = CloneArray_ipairs(test)
+	app.PrintDebugPrior("---")
+
+	app.PrintDebug("CloneArray_index",count)
+	-- 0.101 @ 1M
+	local new = CloneArray_index(test)
+	app.PrintDebugPrior("---")
+end
+
+function ATTscripttimeout(source, immediatesec)
+	app.print("Script Timeout test via",source,"@",immediatesec)
+	local Success
+	local function LongRun(sec)
+		Success = nil
+		app.print("waiting",sec,"s ... via",source)
+		local done = GetTimePreciseSec() + (sec or 0)
+		while GetTimePreciseSec() < done do
+		end
+		app.print("waited",sec,"s via",source)
+		Success = true
+	end
+
+	if immediatesec then
+		LongRun(tonumber(immediatesec))
+		return
+	end
+
+	local Runner = app.CreateRunner("TestScriptTimeout")
+	Runner.SetPerFrameDefault(1)
+	local function VerifyPriorSuccess()
+		if Success then
+			app.print("Success!")
+		else
+			app.print("Script Timeout!")
+		end
+	end
+
+	for i=0,5 do
+		-- Runner.Run(LongRun, math.pow(2,i))
+		Runner.Run(LongRun, 5)
+		Runner.Run(VerifyPriorSuccess)
+	end
+end
+
+-- ATTscripttimeout("immediate", 21)
+-- app.AddEventHandler("OnLoad", ATTscripttimeout)
+-- app.AddEventHandler("OnReady", ATTscripttimeout)
+
+function DumpAllGlobals()
+	local ks = {}
+	for k, v in pairs(_G) do
+		if type(v) == "string" then
+			ks[#ks + 1] = ("%s = \"%s\""):format(k,v)
+		end
+	end
+
+	local allkeys = table.concat(ks, "\n")
+	app:ShowPopupDialogWithMultiLineEditBox(allkeys)
 end

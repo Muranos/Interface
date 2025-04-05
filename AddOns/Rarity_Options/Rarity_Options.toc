@@ -1,12 +1,14 @@
 ## Author: Allara
-## Interface: 100206
-## X-Min-Interface: 100206
-## Notes: Rarity configuration. Use AddonLoader to load this on demand.
+## Interface: 110100, 40402, 11506
+## X-Min-Interface: 110100, 40402, 11506
+## Notes: Rarity configuration. Should be loaded automatically on demand.
 ## Title: Rarity [|caaedc99fOptions|r]
 ## Dependencies: Rarity
 ## X-Part-Of: Rarity
-## LoadManagers: AddonLoader
+## LoadOnDemand: 1
 ## X-LoadOn-Slash: /rarity, /rare
 ## X-LoadOn-InterfaceOptions: Rarity
+
+## IconTexture: Interface\Icons\spell_nature_forceofnature.blp
 
 Options.lua

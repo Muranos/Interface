@@ -14,6 +14,12 @@ mod:SetEncounterID(1121)
 local killedBosses = {}
 local markCounter = 1
 local UpdateInfoBoxList
+local bossList = {
+	[16062] = 1, -- Highlord Mograine
+	[16063] = 3, -- Sir Zeliek
+	[16064] = 5, -- Thane Korth'azz
+	[16065] = 7, -- Lady Blaumeux
+}
 
 --------------------------------------------------------------------------------
 -- Localization
@@ -50,6 +56,10 @@ end
 function mod:OnBossEnable()
 	self:Log("SPELL_CAST_SUCCESS", "Mark", 28832, 28833, 28834, 28835) -- Mark of Korth'azz, Mark of Blaumeux, Mark of Mograine, Mark of Zeliek
 	self:Log("SPELL_AURA_APPLIED_DOSE", "MarkApplied", 28832, 28833, 28834, 28835)
+	if self:GetSeason() == 2 then
+		self:Log("SPELL_CAST_SUCCESS", "Mark", 1226221, 1226219, 1226220, 1226218) -- Mark of Korth'azz, Mark of Blaumeux, Mark of Mograine, Mark of Zeliek
+		self:Log("SPELL_AURA_APPLIED_DOSE", "MarkApplied", 1226221, 1226219, 1226220, 1226218)
+	end
 	self:Log("SPELL_CAST_SUCCESS", "Meteor", 28884)
 	self:Log("SPELL_CAST_SUCCESS", "VoidZone", 28863)
 	self:Log("SPELL_CAST_SUCCESS", "HolyWrath", 28883)
@@ -63,13 +73,11 @@ function mod:OnEngage()
 	markCounter = 1
 	killedBosses = {}
 
-	self:OpenInfo("health", "BigWigs: ".. CL.health)
-	local npcId = 16061
-	for i = 1, 7, 2 do
-		npcId = npcId + 1
-		self:SetInfo("health", i, L[npcId])
-		self:SetInfoBar("health", i, 1)
-		self:SetInfo("health", i + 1, "100%")
+	self:OpenInfo("health", CL.other:format("BigWigs", CL.health))
+	for npcId, line in next, bossList do
+		self:SetInfo("health", line, L[npcId])
+		self:SetInfoBar("health", line, 1)
+		self:SetInfo("health", line + 1, "100%")
 	end
 	self:SimpleTimer(UpdateInfoBoxList, 1)
 
@@ -89,6 +97,15 @@ end
 do
 	local prev = 0
 	function mod:Mark(args)
+		local npcId = self:MobId(args.sourceGUID)
+		local line = bossList[npcId]
+		if not line then return end -- Their spirits keep casting after they die, but the casts are out of sync with the alive ones, so filter them out
+
+		local icon = self:GetIconTexture(self:GetIcon(args.sourceRaidFlags))
+		if icon then
+			self:SetInfo("health", line, icon.. L[npcId]) -- Add raid icons to the boss names
+		end
+
 		if args.time - prev > 5 then
 			prev = args.time
 			local markMsg = CL.count:format(CL.mark, markCounter)
@@ -147,21 +164,17 @@ end
 function mod:ShieldWall(args)
 	local npcId = self:MobId(args.destGUID)
 	local msg = CL.other:format(args.spellName, L[npcId])
-	self:Message(args.spellId, "yellow", msg)
 	self:Bar(args.spellId, 20, msg)
 	local unit = self:GetUnitIdByGUID(args.destGUID)
-	if unit and self:UnitWithinRange(unit, 35) or args.destGUID == self:UnitGUID("target") then
+	if (unit and self:UnitWithinRange(unit, 35)) or args.destGUID == self:UnitGUID("target") then
+		self:Message(args.spellId, "yellow", msg)
 		self:PlaySound(args.spellId, "long")
+	else
+		self:Message(args.spellId, "yellow", msg, nil, true) -- Disable emphasize when not nearby
 	end
 end
 
 do
-	local bossList = {
-		[16062] = 1, -- Highlord Mograine
-		[16063] = 3, -- Sir Zeliek
-		[16064] = 5, -- Thane Korth'azz
-		[16065] = 7, -- Lady Blaumeux
-	}
 	local unitTracker = {}
 	function mod:Deaths(args)
 		unitTracker[args.mobId] = nil

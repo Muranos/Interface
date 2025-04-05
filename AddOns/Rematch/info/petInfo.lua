@@ -245,7 +245,7 @@ function funcs:Stats()
         local owner = self.battleOwner
         local index = self.battleIndex
         if C_PetBattles.GetPetSpeciesID(owner,index) then
-            rarity = C_PetBattles.GetBreedQuality(owner,index)
+            rarity = C_PetBattles.GetBreedQuality(owner,index)+1
             health = C_PetBattles.GetHealth(owner,index)
             maxHealth = C_PetBattles.GetMaxHealth(owner,index)
             power = C_PetBattles.GetPower(owner,index)
@@ -357,7 +357,7 @@ function funcs:StrongVs()
     if abilityList then
         for _,abilityID in ipairs(abilityList) do
             local _,_,_,_,_,_,abilityType,noHints = C_PetBattles.GetAbilityInfoByID(abilityID)
-            if not noHints then -- skipping self heals and such that don't attack
+            if not noHints and abilityType then -- skipping self heals and such that don't attack
                 strongVs[abilityID] = C.HINTS_OFFENSE[abilityType][1]
             end
         end
@@ -434,11 +434,11 @@ function funcs:Breed()
                 breedID = BPBID_Internal.breedCache[self.battleIndex + (self.battleOwner==2 and 3 or 0)]
             end
         elseif source=="PetTracker" then
-            if idType=="pet" then
+            if idType=="pet" and PetTracker and PetTracker.Pet then
                 breedID = PetTracker.Pet(self.petID):GetBreed()
-            elseif idType=="link" then
+            elseif idType=="link" and PetTracker and PetTracker.Predict then
                 breedID = PetTracker.Predict:Breed(self.speciesID,self.level,self.rarity,self.maxHealth,self.power,self.speed)
-            elseif idType=="battle" and PetTracker.Battle then
+            elseif idType=="battle" and PetTracker and PetTracker.Battle then
                 breedID = PetTracker.Battle(self.battleOwner,self.battleIndex):GetBreed()
             end
         end

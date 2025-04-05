@@ -299,7 +299,7 @@ function mod:RAID_BOSS_WHISPER(_, msg)
 	if msg:find("208689", nil, true) then -- Ground Slam
 		self:MessageOld(208689, "blue", "alarm", CL.you:format(self:SpellName(208689)))
 		self:Flash(208689)
-		self:Say(208689)
+		self:Say(208689, nil, nil, "Ground Slam")
 	end
 end
 
@@ -390,7 +390,7 @@ do
 		if self:Me(args.destGUID) then
 			self:TargetBar(args.spellId, 10, args.destName)
 			self:Flash(args.spellId)
-			self:Say(args.spellId)
+			self:Say(args.spellId, nil, nil, "Spew Corruption")
 		end
 	end
 end
@@ -482,7 +482,7 @@ do
 			isOnMe = true
 			self:TargetMessageOld(args.spellId, args.destName, "blue", "warning")
 			self:Flash(args.spellId)
-			self:Say(args.spellId)
+			self:Say(args.spellId, nil, nil, "Cursed Blood")
 			self:TargetBar(args.spellId, 8, args.destName)
 			self:OpenProximity(args.spellId, 11)
 			self:SayCountdown(args.spellId, 8)
@@ -507,7 +507,7 @@ do
 			self:CancelSayCountdown(args.spellId)
 		end
 
-		tDeleteItem(proxList, args.destName)
+		self:DeleteFromTable(proxList, args.destName)
 
 		if not isOnMe then -- Don't change proximity if it's on you and expired on someone else
 			if #proxList == 0 then

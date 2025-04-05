@@ -1,6 +1,6 @@
 ﻿-- --------------------
 -- TellMeWhen
--- Originally by Nephthys of Hyjal <lieandswell@yahoo.com>
+-- Originally by NephMakes
 
 -- Other contributions by:
 --		Sweetmms of Blackrock, Oozebull of Twisting Nether, Oodyboo of Mug'thol,
@@ -19,6 +19,8 @@ local print = TMW.print
 
 local strlowerCache = TMW.strlowerCache
 local GetSpellTexture = TMW.GetSpellTexture
+local GetSpellInfo = TMW.GetSpellInfo
+local GetSpellName = TMW.GetSpellName
 
 local _, pclass = UnitClass("Player")
 local LSM = LibStub("LibSharedMedia-3.0")
@@ -27,8 +29,10 @@ local tonumber, tostring, type, pairs, ipairs, tinsert, tremove, sort, wipe, nex
 	  tonumber, tostring, type, pairs, ipairs, tinsert, tremove, sort, wipe, next, getmetatable, setmetatable, assert, rawget, rawset, unpack, select
 local strfind, strmatch, strbyte, format, gsub, strsub, strtrim, strlen, strsplit, strlower, max, min, floor, ceil, log10 =
 	  strfind, strmatch, strbyte, format, gsub, strsub, strtrim, strlen, strsplit, strlower, max, min, floor, ceil, log10
-local GetSpellInfo, GetItemInfo, GetItemIcon = 
-      GetSpellInfo, GetItemInfo, GetItemIcon
+
+local GetItemIcon = C_Item and C_Item.GetItemIconByID or GetItemIcon
+local GetItemInfo = C_Item and C_Item.GetItemInfo or GetItemInfo
+
 
 -- GLOBALS: GameTooltip, GameTooltip_SetDefaultAnchor
 
@@ -875,10 +879,7 @@ function Module:Table_GetNormalSuggestions(suggestions, tbl)
 		local len = #suggestions
 		for id in pairs(tbl) do if ]]
 
-		-- If WoW ever get spellIDs in the millions, this will break.
-		-- Just need to increment this number here to 6.
-		-- At current rates, that will be sometime in the 2040s.
-		local maxTrailingZeroes = 5
+		local maxTrailingZeroes = floor(log10(SpellCache.CONST.MAX_SPELLID_GUESS))
 
 		local endParens = ""
 		for i = maxTrailingZeroes - floor(log10(match)), 1, -1 do
@@ -1291,7 +1292,7 @@ function Module:Table_GetSorter()
 end
 function Module:Entry_AddToList_1(f, id)
 	if tonumber(id) then --sanity check
-		local name = GetSpellInfo(id)
+		local name = GetSpellName(id)
 
 		f.Name:SetText(name)
 		f.ID:SetText(id)
@@ -1336,7 +1337,7 @@ end
 local Module = SUG:NewModule("texture", SUG:GetModule("spell"))
 function Module:Entry_AddToList_1(f, id)
 	if tonumber(id) then --sanity check
-		local name = GetSpellInfo(id)
+		local name = GetSpellName(id)
 
 		f.Name:SetText(name)
 		f.ID:SetText(id)

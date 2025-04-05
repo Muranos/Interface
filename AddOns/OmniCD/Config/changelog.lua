@@ -1,42 +1,71 @@
-local E, L, C = select(2, ...):unpack()
+local _, NS = ...
 
-if E.isClassic then E.changelog = [=[
-v1.15.0.2775
-	Talent inspection will correctly work for group members without OmniCD
+local changelog = [=[
+### v2.8.17
+-   Fix nil err
 
+### v2.8.16
+-   Fix compatibility issue with old profile (pre 2.7.8000)
+-   Fix Show Player not updating while in a group
+-   Fix Greater Invisibility highlighting
+-   Remove NPC unit CDs when Test Mode ends
+-   Add Harrier's Cry to haste CDR
+
+### v2.8.15
+-   Classic nil err fix
+
+### v2.8.14
+-   Update for Patch 11.1
+-   Verify CD/R
+-   Anchor attached extrabars individually for multiframe users
+-   Hide NPC units in group unless in test mode
+-   Retain inspect order by added time
+-   Ignore inspect request from units already in queue
+-   Update BM Hunter 4-pc set bonus CDR amount (March 3, 2025 hotfix)
+-   Update Human Racial shared CD for healer spec (March 11, 2025 hotfix)
+-   Fix Empowered Renew to benefit from Naaru/Apo (March 12, 2025 hotfix)
+-   Fix sync request being made before collecting all unit info
+-   Fix brief event-to-unit dissociation caused by delay
+-   Fix units being flagged as NPC or offline in a raid
+-   Fix anchoring when joining a raid during Edit Mode
+
+### v2.8.13
+-   Cata: PvP trinket, set bonus updated for Ruthless/Cataclysmic (season 10/11)
+-   Fix shadowwlands zone for testmode
+
+### v2.8.12
+-   Fixed progressbar alpha
+-   Fixed nil err
+-   Hotfixes: Nov 26, 2024
+
+### v2.8.10
+-   Realm name removed from icons
+-   Fixed Purifying Brew CD
+-   Fixed interrupt bar icon and raid marker resetting
+-   Fixed anchoring for Cell Raid frames
+-   Fixed Adaptive Swarm, The Hunt spell icons
+-   Fixed Crusade not showing
+
+### v2.8.9
+-   Patch 11.0.5 updates
 ]=]
-elseif E.isBCC then E.changelog = [=[
-v2.5.4.2722
-	Fixed sync for cross realm group members
 
-]=]
-elseif E.isWOTLKC then E.changelog = [=[
-v3.4.3.2773
-	Added season 8 Wrathful Gladiator's set bonuses
-	Fixed incorrect sorting when a unit dies or resurrects on ver.2772
-	Added option to change icon texture for 'Trinket, Main Hand, Consumables' spell type.
-
-]=]
-else E.changelog = [=[
-v10.2.7.2787
-	bump toc
-	Season 4 PvP trinkets added
-	Season 4 tier set bonus added
-
-v10.2.6.2786
-	bump toc
-	10.2.6 Class Updates
-		Casting Holy Word: Chastise with Divine Word active now refunds 15 seconds from the cooldown of Holy Word: Chastise.
-		Voice of Harmony now causes Holy Nova to reduce the cooldown of Chastise in addition to Holy Fire.
-		Lightwell cooldown reduced by 3 seconds when you cast Holy Word: Serenity or Holy Word: Sanctify.
-	Talent trees updated
-
-v10.2.5.2785
-	Float Like a Butterfly will correctly reduce Evasion and Feint by 0.5 sec per combo point spent.
-	Hotfixes: March 12, 2024
-		Float Like a Butterfly (talent) effectiveness is now reduced by 50% in PvP combat.
-
-]=]
+if NS and NS[1] then
+	local found
+	NS[1].changelog = "|cff99cdff" .. changelog:gsub("#+%s+", "", 5):gsub("\n+###.*", ""):gsub("v[%d%.]+", function(ver)
+		if not found and ver ~= NS[1].Version then
+			found = true
+			return "|cff808080" .. ver
+		end
+	end)
+	return
 end
 
-E.changelog = E.changelog .. "\n\n|cff808080Full list of changes can be found in the CHANGELOG file"
+if arg and arg[1] then
+	if arg[1] == "latest" then
+		local latestChangelog = changelog:gsub("\n+###%sv%d.*", "")
+		print(latestChangelog)
+	else
+		print(changelog)
+	end
+end

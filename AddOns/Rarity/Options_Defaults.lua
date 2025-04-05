@@ -63,6 +63,7 @@ R.catIcons = {
 	[CONSTANTS.ITEM_CATEGORIES.BFA] = "bfa",
 	[CONSTANTS.ITEM_CATEGORIES.SHADOWLANDS] = "shadowlands",
 	[CONSTANTS.ITEM_CATEGORIES.DRAGONFLIGHT] = "dragonflight",
+	[CONSTANTS.ITEM_CATEGORIES.TWW] = "tww",
 }
 
 function R:PrepareDefaults()
@@ -80,6 +81,7 @@ function R:PrepareDefaults()
 			blankLineBeforeTooltipAdditions = true,
 			tooltipAttempts = true,
 			hideKnownItemsInTooltip = false,
+			hideUntrackedItemsInTooltip = false,
 			takeScreenshot = true,
 			hideUnavailable = true,
 			hideDefeated = false,
@@ -97,6 +99,11 @@ function R:PrepareDefaults()
 			blankLineAfterRarity = false,
 			hideOutsideZone = false,
 			showAchievementToast = true,
+
+			-- Since 10.0 the default channel used by LibSink is Blizzard's Floating Combat Text
+			-- This isn't what people have come to expect of Rarity, so let's just change it back
+			sink20OutputSink = "ChatFrame",
+
 			tooltipShowDelay = 0.1,
 
 			trackedGroup = "pets",
@@ -132,6 +139,7 @@ function R:PrepareDefaults()
 				[CONSTANTS.ITEM_CATEGORIES.BFA] = true,
 				[CONSTANTS.ITEM_CATEGORIES.SHADOWLANDS] = true,
 				[CONSTANTS.ITEM_CATEGORIES.DRAGONFLIGHT] = true,
+				[CONSTANTS.ITEM_CATEGORIES.TWW] = true,
 			},
 			collectionType = {
 				[CONSTANTS.ITEM_TYPES.MOUNT] = true,
@@ -184,6 +192,12 @@ function R:PrepareDefaults()
 				16678, -- Adventurer of The Azure Span
 				16679, -- Adventurer of Thaldraszus
 				17525, -- Champion of the Forbidden Reach
+
+				-- The War Within
+				40435, -- Adventurer of the Isle of Dorn
+				40837, -- Adventurer of The Ringing Deeps
+				40840, -- Adventurer of Azj-Kahet
+				40851, -- Adventurer of Hallowfall
 			},
 			-- These are inventory items that may result in another CONSTANTS.ITEM_TYPES.ITEM that Rarity would like to make you aware of
 			extraTooltips = {

@@ -17,6 +17,7 @@ local waveCount = 0
 local traineeCount = 1
 local deathKnightCount = 1
 local riderCount = 1
+local timerList = {}
 
 --------------------------------------------------------------------------------
 -- Localization
@@ -27,7 +28,7 @@ if L then
 	L.add_death = "Add Death Alert"
 	L.add_death_desc = "Alerts when an add dies."
 
-	L.wave = "%d/23: %s"
+	L.wave = "%d/22: %s"
 
 	L.trainee = "Trainee" -- Unrelenting Trainee NPC 16124
 	-- Technically "Deathknight" in classic era but we are using the modern 2 word term
@@ -60,6 +61,7 @@ function mod:OnEngage()
 	traineeCount = 1
 	deathKnightCount = 1
 	riderCount = 1
+	timerList = {}
 	self:SetStage(1)
 
 	self:Message("stages", "cyan", CL.stage:format(1), false)
@@ -128,28 +130,39 @@ do
 			mod:StopBar(CL.count:format(L.trainee, traineeCount - 1))
 			mod:StopBar(CL.count:format(L.deathKnight, deathKnightCount - 1))
 			mod:StopBar(CL.count:format(L.rider, riderCount - 1))
-			mod:CancelAllTimers()
+			for i = 1, 6 do
+				if timerList[i] then
+					mod:CancelTimer(timerList[i])
+				end
+			end
+			timerList = {}
 		end
 	end
 
 	function mod:NewTrainee(timeTrainee)
-		self:Bar("adds", timeTrainee, CL.count:format(L.trainee, traineeCount), "Achievement_character_human_male")
-		self:ScheduleTimer(waveWarn, timeTrainee - 3, "yellow", CL.custom_sec:format(L.trainee, 3), "Achievement_character_human_male")
-		self:ScheduleTimer("NewTrainee", timeTrainee, 20)
-		traineeCount = traineeCount + 1
+		if traineeCount < 12 then
+			self:Bar("adds", timeTrainee, CL.count:format(L.trainee, traineeCount), "Achievement_character_human_male")
+			timerList[1] = self:ScheduleTimer(waveWarn, timeTrainee - 3, "yellow", CL.custom_sec:format(L.trainee, 3), "Achievement_character_human_male")
+			timerList[2] = self:ScheduleTimer("NewTrainee", timeTrainee, 20)
+			traineeCount = traineeCount + 1
+		end
 	end
 
 	function mod:NewDeathKnight(timeDK)
-		self:Bar("adds", timeDK, CL.count:format(L.deathKnight, deathKnightCount), "Spell_deathknight_frostpresence")
-		self:ScheduleTimer(waveWarn, timeDK - 3, "orange", CL.custom_sec:format(L.deathKnight, 3), "Spell_deathknight_frostpresence")
-		self:ScheduleTimer("NewDeathKnight", timeDK, 25)
-		deathKnightCount = deathKnightCount + 1
+		if deathKnightCount < 8 then
+			self:Bar("adds", timeDK, CL.count:format(L.deathKnight, deathKnightCount), "Spell_deathknight_frostpresence")
+			timerList[3] = self:ScheduleTimer(waveWarn, timeDK - 3, "orange", CL.custom_sec:format(L.deathKnight, 3), "Spell_deathknight_frostpresence")
+			timerList[4] = self:ScheduleTimer("NewDeathKnight", timeDK, 25)
+			deathKnightCount = deathKnightCount + 1
+		end
 	end
 
 	function mod:NewRider(timeRider)
-		self:Bar("adds", timeRider, CL.count:format(L.rider, riderCount), "ability_mount_undeadhorse")
-		self:ScheduleTimer(waveWarn, timeRider - 3, "red", CL.custom_sec:format(L.rider, 3), "ability_mount_undeadhorse")
-		self:ScheduleTimer("NewRider", timeRider, 30)
-		riderCount = riderCount + 1
+		if riderCount < 5 then
+			self:Bar("adds", timeRider, CL.count:format(L.rider, riderCount), "ability_mount_undeadhorse")
+			timerList[5] = self:ScheduleTimer(waveWarn, timeRider - 3, "red", CL.custom_sec:format(L.rider, 3), "ability_mount_undeadhorse")
+			timerList[6] = self:ScheduleTimer("NewRider", timeRider, 30)
+			riderCount = riderCount + 1
+		end
 	end
 end

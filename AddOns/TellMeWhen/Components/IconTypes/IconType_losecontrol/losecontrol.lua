@@ -1,6 +1,6 @@
 ﻿-- --------------------
 -- TellMeWhen
--- Originally by Nephthys of Hyjal <lieandswell@yahoo.com>
+-- Originally by NephMakes
 
 -- Other contributions by:
 --		Sweetmms of Blackrock, Oozebull of Twisting Nether, Oodyboo of Mug'thol,
@@ -19,8 +19,6 @@ if not _G.C_LossOfControl then
 end
 
 local print = TMW.print
-local GetSpellInfo =
-	  GetSpellInfo
 local GetEventInfo = C_LossOfControl.GetEventInfo or C_LossOfControl.GetActiveLossOfControlData
 local GetNumEvents = C_LossOfControl.GetNumEvents or C_LossOfControl.GetActiveLossOfControlDataCount
 

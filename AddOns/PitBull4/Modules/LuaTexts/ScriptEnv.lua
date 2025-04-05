@@ -4,7 +4,11 @@ local PitBull4 = _G.PitBull4
 local L = PitBull4.L
 local PitBull4_LuaTexts = PitBull4:GetModule("LuaTexts")
 
+local wow_cata = PitBull4.wow_cata
+local GetSpellName = C_Spell.GetSpellName or _G.GetSpellInfo -- XXX Classic
+
 -- luacheck: globals Enum AzeriteUtil
+
 
 -- The ScriptEnv table serves as the environment that the scripts run
 -- under LuaTexts run under.  The functions included in it are accessible
@@ -401,15 +405,17 @@ end
 ScriptEnv.HostileColor = HostileColor
 
 local function ClassColor(unit)
-	local _, class = UnitClass(unit)
+	local class = UnitClassBase(unit)
 	local color = PitBull4.ClassColors[class] or PitBull4.ClassColors.UNKNOWN
 	return color[1] * 255, color[2] * 255, color[3] * 255
 end
 ScriptEnv.ClassColor = ClassColor
 
 local function Level(unit)
-	if UnitIsWildBattlePet(unit) or UnitIsBattlePetCompanion(unit) then
-		return UnitBattlePetLevel(unit)
+	if not wow_cata then
+		if UnitIsWildBattlePet(unit) or UnitIsBattlePetCompanion(unit) then
+			return UnitBattlePetLevel(unit)
+		end
 	end
 	local level = UnitLevel(unit)
 	if level <= 0 then
@@ -500,7 +506,7 @@ local function ShortClass(arg)
 	if not short and PitBull4.Utils.GetBestUnitID(arg) then
 		-- If it's empty then maybe arg is a unit
 		if UnitIsPlayer(arg) then
-			local _, class = UnitClass(arg)
+			local class = UnitClassBase(arg)
 			short = ShortClass_abbrev[class]
 		else
 			local _, classId = UnitClassBase(arg)
@@ -515,8 +521,10 @@ end
 ScriptEnv.ShortClass = ShortClass
 
 local function Creature(unit)
-	if UnitIsWildBattlePet(unit) or UnitIsBattlePetCompanion(unit) then
-		return _G["BATTLE_PET_NAME_"..UnitBattlePetType(unit)].." "..TOOLTIP_BATTLE_PET
+	if not wow_cata then
+		if UnitIsWildBattlePet(unit) or UnitIsBattlePetCompanion(unit) then
+			return _G["BATTLE_PET_NAME_"..UnitBattlePetType(unit)].." "..TOOLTIP_BATTLE_PET
+		end
 	end
 	return UnitCreatureFamily(unit) or UnitCreatureType(unit) or UNKNOWN
 end
@@ -619,12 +627,12 @@ local function Dead(unit)
 end
 ScriptEnv.Dead = Dead
 
-local MOONKIN_FORM = GetSpellInfo(24858)
-local TRAVEL_FORM = GetSpellInfo(783)
-local TREE_OF_LIFE = GetSpellInfo(33891)
+local MOONKIN_FORM = GetSpellName(24858)
+local TRAVEL_FORM = GetSpellName(783)
+local TREE_OF_LIFE = GetSpellName(33891)
 
 local function DruidForm(unit)
-	local _, class = UnitClass(unit)
+	local class = UnitClassBase(unit)
 	if class == "DRUID" then
 		local power = UnitPowerType(unit)
 		if power == 1 then
@@ -634,7 +642,8 @@ local function DruidForm(unit)
 		else
 			local i = 1
 			repeat
-				local name = UnitAura(unit, i, "HELPFUL")
+				local auraData = C_UnitAuras.GetAuraDataByIndex(unit, i, "HELPFUL")
+				local name = auraData and auraData.name
 				if name then
 					if name == MOONKIN_FORM then
 						return L["Moonkin"]
@@ -697,7 +706,7 @@ local function Power(unit, power_type)
 end
 ScriptEnv.Power = Power
 
--- more symmetry
+-- More symmetry
 local MaxPower = UnitPowerMax
 ScriptEnv.MaxPower = MaxPower
 
@@ -995,37 +1004,54 @@ ScriptEnv.RestXP = RestXP
 
 -- Pre-Dragonflight API wrapper for old texts
 local function GetFriendshipReputation(id)
-	local info = C_GossipInfo.GetFriendshipReputation(id)
-	if info.friendshipFactionID > 0 then
-		return info.friendshipFactionID, info.standing, info.maxRep, info.name, info.text, info.texture, info.reaction, info.reactionThreshold, info.nextThreshold
+	if not wow_cata then
+		local info = C_GossipInfo.GetFriendshipReputation(id)
+		if info.friendshipFactionID > 0 then
+			return info.friendshipFactionID, info.standing, info.maxRep, info.name, info.text, info.texture, info.reaction, info.reactionThreshold, info.nextThreshold
+		end
 	end
 end
 ScriptEnv.GetFriendshipReputation = GetFriendshipReputation
 
 local function WatchedFactionInfo()
-	local name, reaction, min, max, value, faction_id = GetWatchedFactionInfo()
+	local name, reaction, min, max, value, faction_id
+	if GetWatchedFactionInfo then
+		name, reaction, min, max, value, faction_id = GetWatchedFactionInfo()
+	else -- XXX wow_tww
+		local watchedFactionData = C_Reputation.GetWatchedFactionData()
+		if watchedFactionData then
+			name = watchedFactionData.name
+			reaction =  watchedFactionData.reaction
+			min = watchedFactionData.currentReactionThreshold
+			max = watchedFactionData.nextReactionThreshold
+			value = watchedFactionData.currentStanding
+			faction_id = watchedFactionData.factionID
+		end
+	end
 	if not name then
 		return nil
 	end
 
-	local rep_info = C_GossipInfo.GetFriendshipReputation(faction_id)
-	local friendship_id = rep_info.friendshipFactionID
+	if not wow_cata then
+		local rep_info = C_GossipInfo.GetFriendshipReputation(faction_id)
+		local friendship_id = rep_info.friendshipFactionID
 
-	if C_Reputation.IsFactionParagon(faction_id) then
-		local paragon_value, threshold, _, has_reward = C_Reputation.GetFactionParagonInfo(faction_id)
-		min, max = 0, threshold
-		value = paragon_value % threshold
-		if has_reward then
-			value = value + threshold
-		end
-	elseif C_Reputation.IsMajorFaction(faction_id) then
-		local faction_info = C_MajorFactions.GetMajorFactionData(faction_id)
-		min, max = 0, faction_info.renownLevelThreshold
-	elseif friendship_id > 0 then
-		if rep_info.nextThreshold then
-			min, max, value = rep_info.reactionThreshold, rep_info.nextThreshold, rep_info.standing
-		else -- max, show full amount?
-			min, max, value = 0, rep_info.standing, rep_info.standing
+		if C_Reputation.IsFactionParagon(faction_id) then
+			local paragon_value, threshold, _, has_reward = C_Reputation.GetFactionParagonInfo(faction_id)
+			min, max = 0, threshold
+			value = paragon_value % threshold
+			if has_reward then
+				value = value + threshold
+			end
+		elseif C_Reputation.IsMajorFaction(faction_id) then
+			local faction_info = C_MajorFactions.GetMajorFactionData(faction_id)
+			min, max = 0, faction_info.renownLevelThreshold
+		elseif friendship_id > 0 then
+			if rep_info.nextThreshold then
+				min, max, value = rep_info.reactionThreshold, rep_info.nextThreshold, rep_info.standing
+			else -- max, show full amount?
+				min, max, value = 0, rep_info.standing, rep_info.standing
+			end
 		end
 	end
 
@@ -1063,6 +1089,11 @@ local function ThreatPair(unit)
 	end
 end
 ScriptEnv.ThreatPair = ThreatPair
+
+local function ThreatSituation(unit, target)
+	return UnitDetailedThreatSituation(unit, target)
+end
+ScriptEnv.ThreatSituation = ThreatSituation
 
 local function ThreatStatusColor(status)
 	local r, g, b = GetThreatStatusColor(status)

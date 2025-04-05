@@ -1,9 +1,10 @@
 --------------------------------------------------------------------------------
 --                        A L L   T H E   T H I N G S                         --
 --------------------------------------------------------------------------------
---            Copyright 2017-2024 Dylan Fortune (Crieve-Sargeras)             --
+--            Copyright 2017-2025 Dylan Fortune (Crieve-Sargeras)             --
 --------------------------------------------------------------------------------
-local rawget, ipairs, pairs, tinsert, setmetatable, print = rawget, ipairs, pairs, tinsert, setmetatable, print
+local rawget, ipairs, pairs, tinsert, setmetatable, print,math_sqrt,math_floor,getmetatable
+	= rawget, ipairs, pairs, tinsert, setmetatable, print,math.sqrt,math.floor,getmetatable
 -- This is a hidden frame that intercepts all of the event notifications that we have registered for.
 local appName, app = ...;
 app.EmptyFunction = function() end;
@@ -19,9 +20,6 @@ if v:match("version") then
 else
 	app.Version = "" .. v;
 end
-app.GameBuildVersion = select(4, GetBuildInfo());
-app.IsRetail = app.GameBuildVersion >= 100000;
-app.IsClassic = not app.IsRetail;
 app.DESCRIPTION_SEPARATOR = "`"
 
 -- ReloadUI slash command (for ease of use)
@@ -29,7 +27,7 @@ SLASH_RELOADUI1 = "/reloadui";
 SLASH_RELOADUI2 = "/rl";
 SlashCmdList.RELOADUI = ReloadUI;
 
-local assetRootPath = "Interface\\Addons\\" .. appName .. "\\assets\\";
+local assetRootPath = "interface/Addons\\" .. appName .. "\\assets\\";
 app.asset = function(path)
 	return assetRootPath .. path;
 end
@@ -71,19 +69,30 @@ local function AssignFieldValue(group, field, value)
 		end
 	end
 end
-local function CloneArray(arr)
-	local clone = {};
-	for i,value in ipairs(arr) do
-		tinsert(clone, value);
+local function CloneArray(arr, clone)
+	local clone = clone or {}
+	for i=1,#arr do
+		clone[#clone + 1] = arr[i]
 	end
-	return clone;
+	return clone
 end
-local function CloneDictionary(data)
-	local clone = {};
-	for key,value in pairs(data) do
-		clone[key] = value;
+local function CloneDictionary(data, clone)
+	if clone and getmetatable(clone) then
+		for key,value in pairs(data) do
+			if rawget(clone, key) == nil then
+				clone[key] = value
+			end
+		end
+		return clone
+	else
+		clone = clone or {}
+		for key,value in pairs(data) do
+			if clone[key] == nil then
+				clone[key] = value
+			end
+		end
+		return clone
 	end
-	return clone;
 end
 local function CloneReference(group)
 	local clone = {};
@@ -97,6 +106,14 @@ local function CloneReference(group)
 		clone.g = g;
 	end
 	return setmetatable(clone, { __index = group });
+end
+app.distance = function( x1, y1, x2, y2 )
+	return math_sqrt( (x2-x1)^2 + (y2-y1)^2 )
+end
+-- from http://lua-users.org/wiki/SimpleRound
+app.round = function(num, numDecimalPlaces)
+	local mult = 10^(numDecimalPlaces or 0)
+	return math_floor(num * mult + 0.5) / mult
 end
 -- Returns the best mapID for a group based on that group's coordinate and map data. If the current mapID is included in any of those fields, it will return that. This is used exclusively within tooltips and does not need to reference the source parent.
 local function GetBestMapForGroup(group, currentMapID)
@@ -139,6 +156,11 @@ local function GetRelativeField(group, field, value)
 		return group[field] == value or GetRelativeField(group.sourceParent or group.parent, field, value);
 	end
 end
+local function GetRawRelativeField(group, field, value)
+	if group then
+		return group[field] == value or GetRawRelativeField(rawget(group, "parent"), field, value)
+	end
+end
 -- Returns the first encountered group's value tracing upwards in parent hierarchy which has a value for the provided field
 -- Prioritizes sourceParent before parent
 local function GetRelativeValue(group, field)
@@ -176,7 +198,59 @@ app.CloneReference = CloneReference;
 app.GetBestMapForGroup = GetBestMapForGroup;
 app.GetDeepestRelativeValue = GetDeepestRelativeValue;
 app.GetRelativeField = GetRelativeField;
+app.GetRawRelativeField = GetRawRelativeField
 app.GetRelativeValue = GetRelativeValue;
+app.IsComplete = function(o)
+	local total = o.total
+	if total and total > 0 then return total == o.progress; end
+	if o.collectible then return o.collected; end
+	if o.trackable then return o.saved; end
+	return true;
+end
+
+local GetItemIcon = app.WOWAPI.GetItemIcon;
+app.GetIconFromProviders = function(group)
+	if group.providers then
+		local icon;
+		for k,v in ipairs(group.providers) do
+			if v[2] > 0 then
+				if v[1] == "o" then
+					icon = app.ObjectIcons[v[2]];
+				elseif v[1] == "i" then
+					icon = GetItemIcon(v[2]);
+				end
+				if icon then return icon; end
+			end
+		end
+	end
+end;
+local GetItemInfo = app.WOWAPI.GetItemInfo;
+app.GetNameFromProviders = function(group)
+	if group.providers then
+		local name;
+		for k,v in ipairs(group.providers) do
+			if v[2] > 0 then
+				if v[1] == "o" then
+					name = app.ObjectNames[v[2]];
+				elseif v[1] == "i" then
+					name = GetItemInfo(v[2]);
+				elseif v[1] == "n" then
+					name = app.NPCNameFromID[v[2]];
+				end
+				if name then return name; end
+			end
+		end
+	end
+end;
+
+-- Common Metatable Functions
+app.MetaTable = {}
+app.MetaTable.AutoTable = { __index = function(t, key)
+	if key == nil then return end
+	local k = {}
+	t[key] = k
+	return k
+end}
 
 -- Cache information about the player.
 app.Gender = UnitSex("player");
@@ -211,73 +285,6 @@ local raceIndex = app.RaceDB[race] or raceID;
 app.RaceIndex = type(raceIndex) == "table" and raceIndex[factionGroup] or raceIndex;
 app.RaceID = raceID;
 app.Race = race;
-
--- Accessibility Sorting
-local function calculateAccessibility(source)
-	local score = source.AccessibilityScore or 0;
-	if score > 0 then return score; end
-	if GetRelativeValue(source, "nmr") then
-		score = score + 20;
-	end
-	if GetRelativeValue(source, "nmc") then
-		score = score + 10;
-	end
-	if GetRelativeValue(source, "rwp") then
-		score = score + 5;
-	end
-	if GetRelativeValue(source, "e") then
-		score = score + 1;
-	end
-	local u = GetRelativeValue(source, "u");
-	if u then
-		if u < 3 then
-			score = score + 100;
-		elseif u < 4 then
-			score = score + 10;
-		else
-			score = score + 1;
-		end
-	end
-	source.AccessibilityScore = score;
-	return score;
-end
-app.SortDefaults.Accessibility = function(a, b)
-	return calculateAccessibility(a) < calculateAccessibility(b);
-end
-
--- Accessibility + Distance Sorting
-local function calculateAccessibilityAndDistance(source)
-	local score = source.AccessibilityScore or 0;
-	if score > 0 then return score; end
-	if GetRelativeValue(source, "nmr") then
-		score = score + 20;
-	end
-	if GetRelativeValue(source, "nmc") then
-		score = score + 10;
-	end
-	if GetRelativeValue(source, "rwp") then
-		score = score + 5;
-	end
-	if GetRelativeValue(source, "e") then
-		score = score + 1;
-	end
-	local u = GetRelativeValue(source, "u");
-	if u then
-		if u < 3 then
-			score = score + 100;
-		elseif u < 4 then
-			score = score + 10;
-		else
-			score = score + 1;
-		end
-	end
-	score = score + (source.distance or 99999);
-	source.AccessibilityScore = score;
-	return score;
-end
-app.SortDefaults.AccessibilityAndDistance = function(a, b)
-	return calculateAccessibilityAndDistance(a) < calculateAccessibilityAndDistance(b);
-end
 
 -- Whether ATT should ignore saving data experienced during the play session
 app.IgnoreDataCaching = function()
@@ -321,6 +328,8 @@ app.LocalizeGlobalIfAllowed = function(globalName, init)
 	end
 	return app.LocalizeGlobal(globalName, init);
 end
+
+if not app.Presets.ALL then app.Presets.ALL = setmetatable({}, {__index = app.ReturnTrue}) end
 
 (function()
 -- Extend the Frame Class and give them ATT-Style Coroutines and Tooltips!
@@ -491,8 +500,8 @@ function app:ShowPopupDialogWithMultiLineEditBox(text, onclick, label)
 		f:SetPoint("CENTER")
 		f:SetSize(600, 500)
 		f:SetBackdrop({
-			bgFile = "Interface/Tooltips/UI-Tooltip-Background",
-			edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+			bgFile = 137056,
+			edgeFile = 137057,
 			tile = true, tileSize = 16, edgeSize = 16,
 			insets = { left = 4, right = 4, top = 4, bottom = 4 }
 		})
@@ -558,9 +567,9 @@ function app:ShowPopupDialogWithMultiLineEditBox(text, onclick, label)
 		rb:SetPoint("BOTTOMRIGHT", -6, 7)
 		rb:SetSize(16, 16)
 
-		rb:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
-		rb:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
-		rb:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down")
+		rb:SetNormalTexture(386864)
+		rb:SetHighlightTexture(386863)
+		rb:SetPushedTexture(386862)
 
 		rb:SetScript("OnMouseDown", function(self, button)
 			if button == "LeftButton" then
@@ -576,6 +585,7 @@ function app:ShowPopupDialogWithMultiLineEditBox(text, onclick, label)
 		f:Show()
 	end
 	f.OnClick = onclick;
+	f:Show()
 	if text then
 		if label then
 			local l = f.Label;
@@ -585,7 +595,6 @@ function app:ShowPopupDialogWithMultiLineEditBox(text, onclick, label)
 		f.EditBox:HighlightText();
 		f.EditBox:SetFocus();
 	end
-	f:Show()
 end
 function app:ShowPopupDialogToReport(reportReason, text)
 	app:ShowPopupDialogWithMultiLineEditBox(text, nil, (reportReason or "Missing Data").."\n"..app.L.PLEASE_REPORT_MESSAGE..app.L.REPORT_TIP);

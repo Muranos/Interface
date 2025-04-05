@@ -3,7 +3,7 @@
 local PitBull4 = _G.PitBull4
 local L = PitBull4.L
 
-local PitBull4_Aura = PitBull4:NewModule("Aura", "AceEvent-3.0")
+local PitBull4_Aura = PitBull4:NewModule("Aura")
 
 PitBull4_Aura:SetModuleType("custom")
 PitBull4_Aura:SetName(L["Aura"])
@@ -56,7 +56,6 @@ function PitBull4_Aura:OnProfileChanged()
 	for i = 1, #funcs do
 		funcs[i](self)
 	end
-	LibStub("AceConfigRegistry-3.0"):NotifyChange("PitBull4")
 end
 
 function PitBull4_Aura:ClearFrame(frame)

@@ -1,5 +1,6 @@
 local _;
 
+local huge = math.huge;
 local strsub = strsub;
 local InCombatLockdown = InCombatLockdown;
 local twipe = table.wipe;
@@ -16,21 +17,18 @@ local IsInGroup = IsInGroup;
 local UnitInRange = UnitInRange;
 local GetRaidRosterInfo = GetRaidRosterInfo;
 local IsInInstance = IsInInstance;
-local IsSpellInRange = IsSpellInRange;
 local GetTime = GetTime;
 local GetRealZoneText = GetRealZoneText;
-local GetSpellInfo = GetSpellInfo;
-local SetMapToCurrentZone = SetMapToCurrentZone;
 local UnitPowerBarID = UnitPowerBarID;
 local GetUnitPowerBarInfoByID = GetUnitPowerBarInfoByID;
 local WorldMapFrame = WorldMapFrame;
-local GetMouseFocus = GetMouseFocus;
 local GetPlayerFacing = GetPlayerFacing;
-local GetSpellBookItemInfo = GetSpellBookItemInfo;
+local GetSpellName = C_Spell.GetSpellName;
 local CheckInteractDistance = CheckInteractDistance;
 local UnitIsUnit = UnitIsUnit;
-local IsSpellInRange = IsSpellInRange;
 local UnitInRange = UnitInRange;
+local UnitPlayerOrPetInParty = UnitPlayerOrPetInParty;
+local UnitCanAttack = UnitCanAttack;
 local IsAltKeyDown = IsAltKeyDown;
 local IsControlKeyDown = IsControlKeyDown;
 local IsShiftKeyDown = IsShiftKeyDown;
@@ -40,18 +38,14 @@ local floor = floor;
 local pairs = pairs;
 local type = type;
 local abs = abs;
-
-local UnitAura = UnitAura or (C_UnitAuras and
-			(function(aUnit, anIndex, aFilter)
-				local tAuraData = C_UnitAuras.GetAuraDataByIndex(aUnit, anIndex, aFilter);
-
-				if not tAuraData then
-					return nil;
-				end
-
-				return AuraUtil.UnpackAuraData(tAuraData);
-			end)
-);
+local GetAuraDataBySlot = C_UnitAuras and C_UnitAuras.GetAuraDataBySlot;
+local GetAuraDataBySpellName = C_UnitAuras and C_UnitAuras.GetAuraDataBySpellName;
+local GetAuraSlots = C_UnitAuras and C_UnitAuras.GetAuraSlots;
+local UnpackAuraData = AuraUtil.UnpackAuraData or VUHDO_unpackAuraData;
+local FindAura = AuraUtil.FindAura;
+local FindAuraByName = AuraUtil.FindAuraByName;
+local IsUsableItem = IsUsableItem or C_Item.IsUsableItem;
+local IsUsableSpell = IsUsableSpell or C_Spell.IsSpellUsable;
 
 -- talent cache maps for new large Dragonflight talent trees
 local VUHDO_TALENT_CACHE_SPELL_ID = {
@@ -80,6 +74,148 @@ VUHDO_META_NEW_ARRAY = {
 		return tValue;
 	end
 };
+
+
+
+--
+local tSpellInfo;
+function VUHDO_getSpellInfo(aSpellId)
+
+	if not aSpellId then
+		return;
+	end
+
+	if GetSpellInfo then
+		return GetSpellInfo(aSpellId);
+	end
+
+	tSpellInfo = C_Spell.GetSpellInfo(aSpellId);
+
+	if not tSpellInfo then
+		return;
+	end
+
+	return tSpellInfo.name, nil, tSpellInfo.iconID, tSpellInfo.castTime, tSpellInfo.minRange, tSpellInfo.maxRange, tSpellInfo.spellID, tSpellInfo.originalIconID;
+
+end
+
+
+
+--
+local tSpellCooldown;
+function VUHDO_getSpellCooldown(aSpellId)
+
+	if not aSpellId then
+		return;
+	end
+
+	if GetSpellCooldown then
+		return GetSpellCooldown(aSpellId);
+	end
+
+	tSpellCooldown = C_Spell.GetSpellCooldown(aSpellId);
+
+	if not tSpellCooldown then
+		return;
+	end
+
+	return tSpellCooldown.startTime, tSpellCooldown.duration, tSpellCooldown.isEnabled, tSpellCooldown.modRate;
+
+end
+
+
+
+--
+local tIconId;
+function VUHDO_getSpellBookItemTexture(aSpellId)
+
+	if not aSpellId then
+		return;
+	end
+
+	_, tIconId = VUHDO_getSpellInfo(aSpellId);
+
+	return tIconId;
+
+end
+
+
+
+--
+local VUHDO_RANGE_SPELLS_REMAP = {
+	["HELPFUL"] = {
+		[VUHDO_SPELL_ID.LIVING_FLAME] = { VUHDO_SPELL_ID.EMERALD_BLOSSOM },
+		[VUHDO_SPELL_ID.DETOX] = { VUHDO_SPELL_ID.VIVIFY },
+	},
+	["HARMFUL"] = {
+		[VUHDO_SPELL_ID.SMITE] = { VUHDO_SPELL_ID.SHADOW_WORD_PAIN },
+		[VUHDO_SPELL_ID.LIVING_FLAME] = { VUHDO_SPELL_ID.AZURE_STRIKE },
+		[VUHDO_SPELL_ID.LIGHTNING_BOLT] = { VUHDO_SPELL_ID.FLAME_SHOCK },
+	},
+};
+
+local tIsSpellInRange;
+function VUHDO_isSpellInRange(aSpell, aUnit, aUnitReaction)
+
+	if not aSpell or not aUnit then
+		return;
+	end
+
+	if IsSpellInRange then
+		return IsSpellInRange(aSpell, aUnit);
+	end
+
+	tIsSpellInRange = C_Spell.IsSpellInRange(aSpell, aUnit);
+
+	if tIsSpellInRange == nil and aUnitReaction and
+		VUHDO_RANGE_SPELLS_REMAP[aUnitReaction] and VUHDO_RANGE_SPELLS_REMAP[aUnitReaction][aSpell] then
+		for _, tRangeSpell in pairs(VUHDO_RANGE_SPELLS_REMAP[aUnitReaction][aSpell]) do
+			tIsSpellInRange = C_Spell.IsSpellInRange(tRangeSpell, aUnit);
+
+			if tIsSpellInRange == true then
+				return 1;
+			elseif tIsSpellInRange == false then
+				return 0;
+			end
+		end
+	end
+
+	return tIsSpellInRange and 1 or 0;
+
+end
+
+
+
+--
+local tTextureHeight, tTextureWidth = 256, 256;
+local tRoleHeight, tRoleWidth = 67, 67;
+function VUHDO_getTexCoordsForRole(aRole)
+
+	if aRole == "GUIDE" then
+		return GetTexCoordsByGrid(1, 1, tTextureWidth, tTextureHeight, tRoleWidth, tRoleHeight);
+	elseif aRole == "TANK" then
+		return GetTexCoordsByGrid(1, 2, tTextureWidth, tTextureHeight, tRoleWidth, tRoleHeight);
+	elseif aRole == "HEALER" then
+		return GetTexCoordsByGrid(2, 1, tTextureWidth, tTextureHeight, tRoleWidth, tRoleHeight);
+	elseif aRole == "DAMAGER" then
+		return GetTexCoordsByGrid(2, 2, tTextureWidth, tTextureHeight, tRoleWidth, tRoleHeight);
+	end
+
+end
+
+
+
+--
+local tMouseFoci;
+function VUHDO_getMouseFocus()
+
+	tMouseFoci = GetMouseFoci();
+
+	if tMouseFoci and tMouseFoci[1] then
+		return tMouseFoci[1];
+	end
+
+end
 
 
 
@@ -172,11 +308,9 @@ end
 
 
 ----------------------------------------------------
-local VUHDO_RAID_NAMES;
 local VUHDO_RAID;
 local VUHDO_UNIT_BUTTONS;
 local VUHDO_CONFIG;
-local VUHDO_GROUPS_BUFFS;
 local VUHDO_BOSS_UNITS;
 local sRangeSpell;
 local sIsHelpfulGuessRange = true;
@@ -186,22 +320,18 @@ local sZeroRange = "";
 
 
 --
-local VUHDO_updateBouquetsForEvent;
 function VUHDO_toolboxInitLocalOverrides()
-	VUHDO_RAID_NAMES = _G["VUHDO_RAID_NAMES"];
 	VUHDO_RAID = _G["VUHDO_RAID"];
 	VUHDO_UNIT_BUTTONS = _G["VUHDO_UNIT_BUTTONS"];
 	VUHDO_CONFIG = _G["VUHDO_CONFIG"];
-	VUHDO_GROUPS_BUFFS = _G["VUHDO_GROUPS_BUFFS"];
 	VUHDO_BOSS_UNITS = _G["VUHDO_BOSS_UNITS"];
-	VUHDO_updateBouquetsForEvent = _G["VUHDO_updateBouquetsForEvent"];
 	sScanRange = tonumber(VUHDO_CONFIG["SCAN_RANGE"]);
 
 	-- FIXME: why can't model sanity be run prior to burst cache initialization?
 	if type(VUHDO_CONFIG["RANGE_SPELL"]) == "table" and type(VUHDO_CONFIG["RANGE_PESSIMISTIC"]) == "table" then
 		sRangeSpell = VUHDO_CONFIG["RANGE_SPELL"];
-		sIsHelpfulGuessRange = VUHDO_CONFIG["RANGE_PESSIMISTIC"]["HELPFUL"] or GetSpellInfo(sRangeSpell["HELPFUL"]) == nil;
-		sIsHarmfulGuessRange = VUHDO_CONFIG["RANGE_PESSIMISTIC"]["HARMFUL"] or GetSpellInfo(sRangeSpell["HARMFUL"]) == nil;
+		sIsHelpfulGuessRange = VUHDO_CONFIG["RANGE_PESSIMISTIC"]["HELPFUL"] or GetSpellName(sRangeSpell["HELPFUL"]) == nil;
+		sIsHarmfulGuessRange = VUHDO_CONFIG["RANGE_PESSIMISTIC"]["HARMFUL"] or GetSpellName(sRangeSpell["HARMFUL"]) == nil;
 	end
 
 	sZeroRange = "0.0 " .. VUHDO_I18N_YARDS;
@@ -282,7 +412,6 @@ end
 
 
 -- Extracts unit number from a Unit's name
-local tUnitNo;
 function VUHDO_getUnitNo(aUnit)
 	if not aUnit or VUHDO_isSpecialUnit(aUnit) then return 0; end
 	if "player" == aUnit then aUnit = VUHDO_PLAYER_RAID_ID or "player"; end
@@ -303,37 +432,33 @@ end
 
 
 --
+local tIsInRange;
+local tIsChecked;
 function VUHDO_checkInteractDistance(aUnit, aDistIndex)
 
 	if not InCombatLockdown() then
 		return CheckInteractDistance(aUnit, aDistIndex);
 	else
 		if not sIsHarmfulGuessRange and UnitCanAttack("player", aUnit) then
-			return (IsSpellInRange(sRangeSpell["HARMFUL"], aUnit) == 1) and true or false;
+			return (VUHDO_isSpellInRange(sRangeSpell["HARMFUL"], aUnit, "HARMFUL") == 1) and true or false;
 		elseif not sIsHelpfulGuessRange then
-			return (IsSpellInRange(sRangeSpell["HELPFUL"], aUnit) == 1) and true or false;
+			return (VUHDO_isSpellInRange(sRangeSpell["HELPFUL"], aUnit, "HELPFUL") == 1) and true or false;
 		else
-			-- default to showing in-range when we don't know any better
-			return true;
+			tIsInRange, tIsChecked = UnitInRange(aUnit);
+
+			if tIsChecked and not tIsInRange then
+				return false;
+			else
+				return true;
+			end
 		end
 	end
-	
+
 end
-local VUHDO_checkInteractDistance = VUHDO_checkInteractDistance;
 
 
 
 --
-function VUHDO_isTargetInRange(aUnit)
-
-	return UnitIsUnit("player", aUnit) or VUHDO_checkInteractDistance(aUnit, 1);
-
-end
-local VUHDO_isTargetInRange = VUHDO_isTargetInRange;
-
-
-
--- FIXME: workaround for Blizzard API bug: https://github.com/Stanzilla/WoWUIBugs/issues/49
 function VUHDO_unitPhaseReason(aUnit) 
 
 	if not aUnit then
@@ -342,6 +467,7 @@ function VUHDO_unitPhaseReason(aUnit)
 
 	local tPhaseReason = UnitPhaseReason(aUnit);
 
+	-- FIXME: workaround for Blizzard API bug: https://github.com/Stanzilla/WoWUIBugs/issues/49
 	if (tPhaseReason == Enum.PhaseReason.WarMode or tPhaseReason == Enum.PhaseReason.ChromieTime) and UnitIsVisible(aUnit) then
 		return nil;
 	else
@@ -353,36 +479,62 @@ end
 
 
 -- returns whether or not a unit is in range
+local tIsInRange;
+local tIsChecked;
+local tIsGuessRange;
+local tRangeSpell;
+local tUnitReaction;
 function VUHDO_isInRange(aUnit)
-	
-	if "player" == aUnit then 
+
+	if not aUnit then
+		return;
+	end
+
+	if "player" == aUnit or UnitIsUnit(aUnit, "player") then
 		return true;
-	elseif VUHDO_isSpecialUnit(aUnit) then 
-		return VUHDO_isTargetInRange(aUnit);
 	elseif VUHDO_unitPhaseReason(aUnit) then
 		return false;
 	else
-		local tIsGuessRange;
-		local tRangeSpell;
+		if UnitPlayerOrPetInParty(aUnit) then
+			tIsInRange, tIsChecked = UnitInRange(aUnit);
+
+			if tIsChecked then
+				return tIsInRange;
+			end
+		end
 
 		if UnitCanAttack("player", aUnit) then
 			tIsGuessRange = sIsHarmfulGuessRange;
-			tRangeSpell = sRangeSpell["HARMFUL"];
+			tUnitReaction = "HARMFUL";
 		else
 			tIsGuessRange = sIsHelpfulGuessRange;
-			tRangeSpell = sRangeSpell["HELPFUL"];
+			tUnitReaction = "HELPFUL";
 		end
+
+		tRangeSpell = sRangeSpell[tUnitReaction];
 
 		if tIsGuessRange or not tRangeSpell then
-			return UnitInRange(aUnit);
+			tIsInRange, tIsChecked = UnitInRange(aUnit);
+
+			if tIsChecked and not tIsInRange then
+				return false;
+			else
+				return true;
+			end
 		end
 
-		local tIsSpellInRange = IsSpellInRange(tRangeSpell, aUnit);
+		local tIsSpellInRange = VUHDO_isSpellInRange(tRangeSpell, aUnit, tUnitReaction);
 
 		if tIsSpellInRange ~= nil then
 			return (tIsSpellInRange == 1) and true or false;
 		else
-			return UnitInRange(aUnit);
+			tIsInRange, tIsChecked = UnitInRange(aUnit);
+
+			if tIsChecked and not tIsInRange then
+				return false;
+			else
+				return true;
+			end
 		end
 	end
 
@@ -512,7 +664,6 @@ function VUHDO_getPlayerRaidUnit()
 	end
 	return "player";
 end
-local VUHDO_getPlayerRaidUnit = VUHDO_getPlayerRaidUnit;
 
 
 
@@ -603,15 +754,15 @@ function VUHDO_isSpellKnown(aSpellName)
 
 	if (type(aSpellName) == "number" and IsSpellKnown(aSpellName))
 		or (type(aSpellName) == "number" and IsSpellKnownOrOverridesKnown(aSpellName))
-		or (type(aSpellName) == "number" and IsPlayerSpell(aSpellName))
-		or GetSpellBookItemInfo(aSpellName) ~= nil
-		or VUHDO_NAME_TO_SPELL[aSpellName] ~= nil and GetSpellBookItemInfo(VUHDO_NAME_TO_SPELL[aSpellName]) then
+		or (type(aSpellName) == "number" and IsPlayerSpell(aSpellName)) then
 		return true;
 	elseif type(aSpellName) ~= "number" then
-		_, _, _, _, _, _, tSpellId = GetSpellInfo(aSpellName);
+		aSpellName = VUHDO_NAME_TO_SPELL[aSpellName] or aSpellName;
+
+		_, _, _, _, _, _, tSpellId = VUHDO_getSpellInfo(aSpellName);
 
 		if tSpellId then
-			return IsSpellKnownOrOverridesKnown(tSpellId);
+			return IsSpellKnownOrOverridesKnown(tSpellId) or IsSpellKnown(tSpellId) or IsPlayerSpell(tSpellId);
 		end
 	end
 
@@ -649,7 +800,7 @@ function VUHDO_initTalentSpellCaches()
 						local tDefinitionInfo = C_Traits.GetDefinitionInfo(tEntryInfo.definitionID);
 
 						if tDefinitionInfo and tDefinitionInfo.spellID then
-							local tSpellName = GetSpellInfo(tDefinitionInfo.spellID);
+							local tSpellName = GetSpellName(tDefinitionInfo.spellID);
 
 							VUHDO_TALENT_CACHE_SPELL_ID[tDefinitionInfo.spellID] = tSpellName;
 							VUHDO_TALENT_CACHE_SPELL_NAME[tSpellName] = tDefinitionInfo.spellID;
@@ -890,21 +1041,23 @@ function VUHDO_isActionValid(anActionName, anIsCustom, anIsHostile)
 	tActionLowerName = strlower(anActionName);
 
 	if anIsHostile then
-		if (VUHDO_SPELL_KEY_ASSIST == tActionLowerName 
+		if (VUHDO_SPELL_KEY_ASSIST == tActionLowerName
 		 or VUHDO_SPELL_KEY_FOCUS == tActionLowerName
-		 or VUHDO_SPELL_KEY_TARGET == tActionLowerName 
-		 or VUHDO_SPELL_KEY_EXTRAACTIONBUTTON == tActionLowerName 
-		 or VUHDO_SPELL_KEY_MOUSELOOK == tActionLowerName) then
+		 or VUHDO_SPELL_KEY_TARGET == tActionLowerName
+		 or VUHDO_SPELL_KEY_EXTRAACTIONBUTTON == tActionLowerName
+		 or VUHDO_SPELL_KEY_MOUSELOOK == tActionLowerName
+		 or VUHDO_SPELL_KEY_PING == tActionLowerName) then
 			tIsHostileAction = true;
 		end
 	else
-		if VUHDO_SPELL_KEY_ASSIST == tActionLowerName 
-		 or VUHDO_SPELL_KEY_FOCUS == tActionLowerName 
-		 or VUHDO_SPELL_KEY_MENU == tActionLowerName 
-		 or VUHDO_SPELL_KEY_TELL == tActionLowerName 
-		 or VUHDO_SPELL_KEY_TARGET == tActionLowerName 
-		 or VUHDO_SPELL_KEY_EXTRAACTIONBUTTON == tActionLowerName 
-		 or VUHDO_SPELL_KEY_MOUSELOOK == tActionLowerName 
+		if VUHDO_SPELL_KEY_ASSIST == tActionLowerName
+		 or VUHDO_SPELL_KEY_FOCUS == tActionLowerName
+		 or VUHDO_SPELL_KEY_MENU == tActionLowerName
+		 or VUHDO_SPELL_KEY_TELL == tActionLowerName
+		 or VUHDO_SPELL_KEY_TARGET == tActionLowerName
+		 or VUHDO_SPELL_KEY_EXTRAACTIONBUTTON == tActionLowerName
+		 or VUHDO_SPELL_KEY_MOUSELOOK == tActionLowerName
+		 or VUHDO_SPELL_KEY_PING == tActionLowerName
 		 or VUHDO_SPELL_KEY_DROPDOWN == tActionLowerName then
 			tIsFriendlyAction = true;
 		end
@@ -1038,7 +1191,7 @@ function VUHDO_getUnitDirection(aUnit)
 	tIsInInstance, _ = IsInInstance();
 
 	if tIsInInstance or (WorldMapFrame ~= nil and WorldMapFrame:IsShown())
-		or (GetMouseFocus() ~= nil and GetMouseFocus():GetName() == nil) then
+		or (VUHDO_getMouseFocus() ~= nil and VUHDO_getMouseFocus():GetName() == nil) then
 		return nil;
 	end
 
@@ -1167,21 +1320,34 @@ end
 
 
 
+--
+local function VUHDO_isSpellIdMatch(aMatchSpellId, _, _, _, _, _, _, _, _, _, _, _, aSpellId)
+
+	return aMatchSpellId == aSpellId;
+
+end
+
+
+
+--
+local tSpellId;
 function VUHDO_unitAura(aUnit, aSpell, aFilter)
 
 	if (aFilter == nil) then
 		aFilter = "HELPFUL";
 	end
 
-	for tCnt = 1, 40 do
-		local tSpellName, tIcon, tCount, tDebuffType, tDuration, tExpirationTime, tSource, tIsStealable, tNameplateShowPersonal, tSpellId, tCanApplyAura, tIsBossDebuff, tNameplateShowAll, tTimeMod, tValue1, tValue2, tValue3 = UnitAura(aUnit, tCnt, aFilter);
+	tSpellId = tonumber(aSpell);
 
-		if (aSpell == tSpellName or tonumber(aSpell) == tSpellId) then
-			return tSpellName, tIcon, tCount, tDebuffType, tDuration, tExpirationTime, tSource, tIsStealable, tNameplateShowPersonal, tSpellId, tCanApplyAura, tIsBossDebuff, tNameplateShowAll, tTimeMod, tValue1, tValue2, tValue3;
+	if tSpellId == nil then
+		if UnpackAuraData and GetAuraDataBySpellName then
+			return UnpackAuraData(GetAuraDataBySpellName(aUnit, aSpell, aFilter));
+		else
+			return FindAuraByName(aSpell, aUnit, aFilter);
 		end
+	else
+		return FindAura(VUHDO_isSpellIdMatch, aUnit, aFilter, tSpellId);
 	end
-
-	return nil;
 
 end
 
@@ -1203,6 +1369,142 @@ end
 
 
 
+--
+local function VUHDO_packAuraDataHelper(aSpellName, anIcon, aCount, aDebuffType, aDuration, aExpirationTime, aSource, anIsStealable, aNameplateShowPersonal, aSpellId, aCanApplyAura, anIsBossDebuff, aNameplateShowAll, aTimeMod, ...)
+
+	return aSpellName, anIcon, aCount, aDebuffType, aDuration, aExpirationTime, aSource, anIsStealable, aNameplateShowPersonal, aSpellId, aCanApplyAura, anIsBossDebuff, aNameplateShowAll, aTimeMod, { ... };
+
+end
+
+
+
+--
+local function VUHDO_packAuraData(aSpellName, anIcon, aCount, aDebuffType, aDuration, aExpirationTime, aSource, anIsStealable, aNameplateShowPersonal, aSpellId, aCanApplyAura, anIsBossDebuff, aNameplateShowAll, aTimeMod, ...)
+
+	local tAuraData = { };
+
+	tAuraData.name,	tAuraData.icon,	tAuraData.applications,	tAuraData.dispelName, tAuraData.duration, tAuraData.expirationTime, tAuraData.sourceUnit,
+		tAuraData.isStealable, tAuraData.nameplateShowPersonal, tAuraData.spellId, tAuraData.canApplyAura, tAuraData.isBossAura, 
+		tAuraData.nameplateShowAll, tAuraData.timeMod, tAuraData.points = VUHDO_packAuraDataHelper(
+			aSpellName, anIcon, aCount, aDebuffType, aDuration, aExpirationTime, aSource, anIsStealable, aNameplateShowPersonal, aSpellId, 
+			aCanApplyAura, anIsBossDebuff, aNameplateShowAll, aTimeMod, ...);
+
+	return tAuraData;
+
+end
+
+
+
+--
+local function VUHDO_getAuraDataByIndex(aUnit, aIndex, aFilter)
+
+	return VUHDO_packAuraData(UnitAura(aUnit, aIndex, aFilter));
+
+
+end
+
+
+
+--
+function VUHDO_unpackAuraData(anAuraData)
+
+	if not anAuraData then
+		return nil;
+	end
+
+	return anAuraData.name,
+		anAuraData.icon,
+		anAuraData.applications,
+		anAuraData.dispelName,
+		anAuraData.duration,
+		anAuraData.expirationTime,
+		anAuraData.sourceUnit,
+		anAuraData.isStealable,
+		anAuraData.nameplateShowPersonal,
+		anAuraData.spellId,
+		anAuraData.canApplyAura,
+		anAuraData.isBossAura,
+		anAuraData.isFromPlayerOrPlayerPet,
+		anAuraData.nameplateShowAll,
+		anAuraData.timeMod,
+		unpack(anAuraData.points);
+
+end
+
+
+
+--
+local tMaxCnt;
+local tSlot;
+local tDone;
+local tAuraInfo;
+local function VUHDO_forEachAuraHelper(aUnit, aFilter, aPredicate, aUsePackedAura, aContinuationToken, ...)
+
+	tMaxCnt = select('#', ...);
+
+	for tCnt = 1, tMaxCnt do
+		tSlot = select(tCnt, ...);
+
+		tAuraInfo = GetAuraDataBySlot(aUnit, tSlot);
+
+		if aUsePackedAura then
+			tDone = aPredicate(tAuraInfo);
+		else
+			tDone = aPredicate(UnpackAuraData(tAuraInfo));
+		end
+
+		if tDone then
+			return nil;
+		end
+	end
+
+	return aContinuationToken;
+
+end
+
+
+
+--
+local tContinuationToken;
+local tDone;
+function VUHDO_forEachAura(aUnit, aFilter, aMaxCnt, aPredicate, aUsePackedAura)
+
+		if aMaxCnt and aMaxCnt <= 0 then
+			return;
+		end
+
+		if GetAuraSlots then
+			tContinuationToken = nil;
+
+			repeat
+				tContinuationToken = VUHDO_forEachAuraHelper(aUnit, aFilter, aPredicate, aUsePackedAura, 
+					GetAuraSlots(aUnit, aFilter, aMaxCnt, tContinuationToken));
+			until tContinuationToken == nil;
+		else
+			for tCnt = 1, (aMaxCnt or huge) do
+				tAuraInfo = VUHDO_getAuraDataByIndex(aUnit, tCnt, aFilter);
+
+				if not tAuraInfo.icon then
+					return nil;
+				end
+
+				if aUsePackedAura then
+					tDone = aPredicate(tAuraInfo);
+				else
+					tDone = aPredicate(UnpackAuraData(tAuraInfo));
+				end
+
+				if tDone then
+					return nil;
+				end
+			end
+		end
+
+end
+
+
+
+--
 function VUHDO_playSoundFile(aSound)
 
 	if (aSound and (aSound == "Interface\\Quiet.ogg" or aSound == "Interface\\Quiet.mp3")) then
@@ -1243,3 +1545,294 @@ function VUHDO_playSoundFile(aSound)
 
 end
 
+
+
+--
+local tCnt;
+local tStringChar;
+local tPrefixChar;
+local tSubstring;
+local tPrefixSuffix;
+local tStringSuffix;
+local function VUHDO_radixTreePrefixSubstring(aPrefix, aString)
+
+	if not aPrefix or not aString then
+		return;
+	end
+
+	tCnt = 1;
+
+	while tCnt <= strlen(aString) do
+		tStringChar = string.sub(aString, tCnt, tCnt);
+		tPrefixChar = string.sub(aPrefix, tCnt, tCnt);
+
+		if tStringChar ~= tPrefixChar then
+			break;
+		end
+
+		tCnt = tCnt + 1;
+	end
+
+	if tCnt > 1 then
+		tSubstring = string.sub(aPrefix, 1, tCnt - 1);
+
+		tPrefixSuffix = string.sub(aPrefix, tCnt, strlen(aPrefix));
+		tStringSuffix = string.sub(aString, tCnt, strlen(aString));
+
+		return tSubstring, tPrefixSuffix, tStringSuffix;
+	else
+		return nil, nil, nil;
+	end
+
+end
+
+
+
+--
+function VUHDO_radixTreeCreate()
+
+	local tRootNode = {
+		["prefix"] = "",
+		["isLeaf"] = true,
+		["children"] = { },
+	};
+
+	return tRootNode;
+
+end
+
+
+
+--
+local tChar;
+local tFound;
+local tNode;
+local tSubstringChar;
+local tNodeTemp;
+function VUHDO_radixTreeAdd(aTree, aString)
+
+	if not aTree or not aString then
+		return;
+	end
+
+	if aTree["prefix"] == aString and not aTree["isLeaf"] then
+		aTree["isLeaf"] = true;
+	else
+		tChar = string.sub(aString, 1, 1);
+
+		tFound = false;
+		for tChildChar, _ in pairs(aTree["children"]) do
+			if tChildChar == tChar then
+				tFound = true;
+			end
+		end
+
+		if tChar and not tFound then
+			aTree["children"][tChar] = {
+				["prefix"] = aString,
+				["isLeaf"] = true,
+				["children"] = { },
+			};
+		elseif tChar then
+			tNode = aTree["children"][tChar];
+
+			tSubstring, tPrefixSuffix, tStringSuffix = VUHDO_radixTreePrefixSubstring(tNode["prefix"], aString);
+			tSubstringChar = string.sub(tSubstring, 1, 1);
+
+			if tSubstringChar and VUHDO_strempty(tPrefixSuffix) then
+				VUHDO_radixTreeAdd(aTree["children"][tSubstringChar], tStringSuffix);
+			elseif tSubstringChar then
+				tNode["prefix"] = tPrefixSuffix;
+
+				tNodeTemp = aTree["children"][tSubstringChar];
+
+				aTree["children"][tSubstringChar] = {
+					["prefix"] = tSubstring,
+					["isLeaf"] = false,
+					["children"] = {
+						[tPrefixSuffix] = {
+							["prefix"] = tNodeTemp["prefix"],
+							["isLeaf"] = tNodeTemp["isLeaf"],
+							["children"] = tNodeTemp["children"],
+						},
+					},
+				};
+
+				if VUHDO_strempty(tStringSuffix) then
+					aTree["children"][tSubstringChar]["isLeaf"] = true;
+				else
+					VUHDO_radixTreeAdd(aTree["children"][tSubstringChar], tStringSuffix);
+				end
+			end
+		end
+	end
+
+end
+
+
+
+--
+function VUHDO_radixTreeAddAll(aTree, ...)
+
+	if not aTree then
+		return;
+	end
+
+	for _, tString in pairs({ ... }) do
+		VUHDO_radixTreeAdd(aTree, tString);
+	end
+
+end
+
+
+
+--
+function VUHDO_radixTreeContains(aTree, aString)
+
+	if not aTree or not aString then
+		return;
+	end
+
+	tChar = string.sub(aString, 1, 1);
+
+	if tChar then
+		tNode = aTree["children"][tChar];
+
+		if not tNode then
+			return false;
+		else
+			tSubstring, tPrefixSuffix, tStringSuffix = VUHDO_radixTreePrefixSubstring(tNode["prefix"], aString);
+
+			if not VUHDO_strempty(tPrefixSuffix) then
+				return false;
+			elseif VUHDO_strempty(tStringSuffix) then
+				return tNode["isLeaf"];
+			else
+				return VUHDO_radixTreeContains(tNode, tStringSuffix);
+			end
+		end
+	else
+		return false;
+	end
+
+end
+
+
+
+--
+local tTokens;
+local function VUHDO_tokenizeByWord(aString)
+
+	if not aString then
+		return;
+	end
+
+	tTokens = { };
+
+	-- first try to split on camel case
+	for tWord in string.gmatch(aString, "%u%U*") do
+		table.insert(tTokens, tWord);
+	end
+
+	-- fallback to split on whitespace
+	if #tTokens < 1 then
+		for tWord in string.gmatch(aString, "%S+") do
+			table.insert(tTokens, tWord);
+		end
+	end
+
+	return tTokens;
+
+end
+
+
+
+--
+local tNGrams;
+local function VUHDO_tokenizeByNGram(aString, aLength)
+
+	if not aString or not aLength then
+		return;
+	end
+
+	tNGrams = { };
+
+	if aLength > #aString then
+		table.insert(tNGrams, aString);
+
+		return tNGrams;
+	end
+
+	for tCnt = 1, strlen(aString) - aLength + 1 do
+		table.insert(tNGrams, string.sub(aString, tCnt, tCnt + aLength - 1));
+	end
+
+	return tNGrams;
+
+end
+
+
+
+--
+local tTriGramIndex;
+local tTriGramCnt;
+function VUHDO_createTriGramIndex(aString)
+
+	if not aString then
+		return;
+	end
+
+	tTriGramIndex = { };
+	tTriGramCnt = 0;
+
+	for _, tWord in pairs(VUHDO_tokenizeByWord(aString)) do
+		for _, tGram in pairs(VUHDO_tokenizeByNGram(tWord, 3)) do
+			tTriGramIndex[tGram] = true;
+
+			tTriGramCnt = tTriGramCnt + 1;
+		end
+	end
+
+	return tTriGramIndex, tTriGramCnt;
+
+end
+
+
+
+--
+local tIsMatch;
+function VUHDO_matchTriGramIndices(aTriGramIndexOne, aTriGramIndexTwo)
+
+	if not aTriGramIndexOne or not aTriGramIndexTwo then
+		return;
+	end
+
+	tIsMatch = false;
+
+	-- return true if the first tri gram index contains the second
+	for tGram in pairs(aTriGramIndexTwo) do
+		if aTriGramIndexOne[tGram] then
+			tIsMatch = true;
+		else
+			tIsMatch = false;
+
+			break;
+		end
+	end
+
+	return tIsMatch;
+
+end
+
+
+
+--
+function VUHDO_matchTriGramIndex(aTriGramIndex, aString)
+
+	if not aTriGramIndex or not aString then
+		return;
+	end
+
+	return VUHDO_matchTriGramIndices(aTriGramIndex, VUHDO_createTriGramIndex(aString));
+
+end

@@ -245,7 +245,7 @@ local function CheckItemRewards(w)
 	for j=2,3 do
 		local rw = S[w].Rewards[j]
 		if rw and rw:IsShown() and rw.itemID and (not rw.itemLink or rw.itemLink:match("|h%[%]|h")) then
-			hadItems, hadUnknowns = true, hadUnknowns or (GetItemInfo(rw.itemLink or rw.itemID) == nil)
+			hadItems, hadUnknowns = true, hadUnknowns or (C_Item.GetItemNameByID(rw.itemLink or rw.itemID) == nil)
 		end
 	end
 	return hadItems, hadUnknowns

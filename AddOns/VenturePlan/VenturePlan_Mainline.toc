@@ -1,6 +1,6 @@
-## Interface: 100206
+## Interface: 110100
 ## Title: Venture Plan
-## Version: 4.40f
+## Version: 4.42d
 ## Author: foxlit
 ## Notes: Interface improvements for Adventures.
 ## X-Website: https://www.townlong-yak.com/addons/venture-plan

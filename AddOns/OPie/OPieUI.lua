@@ -1,5 +1,5 @@
-local configCache, _, T = {}, ...
-local PC, EV, api, iapi = T.OPieCore, T.Evie, {}, {}
+local COMPAT, _, T = select(4, GetBuildInfo()), ...
+local PC, EV, api, iapi, configCache, vis = T.OPieCore, T.Evie, {}, {}, {}, {}
 local GameTooltip = T.NotGameTooltip or GameTooltip
 local max, min, abs, floor, sin, cos = math.max, math.min, math.abs, math.floor, sin, cos
 local MIN_ANIMATION_FPS, LOCKED_FRAMERATE = 20, 60 do
@@ -49,15 +49,23 @@ local CreateQuadTexture do
 end
 
 local gfxBase = ([[Interface\AddOns\%s\gfx\]]):format((...))
-local anchorFrame = CreateFrame("Frame")
-	anchorFrame:SetSize(1,1)
-	anchorFrame:SetPoint("CENTER")
-	anchorFrame:Hide()
+local mainAnchor, proxyAnchor = CreateFrame("Frame"), CreateFrame("Frame")
+	for i=1,2 do
+		i = i == 1 and mainAnchor or proxyAnchor
+		i:SetSize(1,1)
+		i:SetPoint("CENTER")
+		i:Hide()
+	end
+local proxyFrame = CreateFrame("Frame", "OPieVisualElementsProxy", UIParent)
 local mainFrame = CreateFrame("Frame", nil, UIParent)
-	mainFrame:Hide()
-	mainFrame:SetSize(128,128)
-	mainFrame:SetPoint("CENTER", anchorFrame)
-	mainFrame:SetFrameStrata("FULLSCREEN")
+	for i=1,2 do
+		local f = i == 1 and proxyFrame or mainFrame
+		f:Hide()
+		f:SetSize(150, 150)
+		f:SetFrameStrata("FULLSCREEN")
+		f:SetFrameLevel(50*i)
+		f:SetPoint("CENTER", i == 1 and proxyAnchor or mainAnchor)
+	end
 local centerPointer = mainFrame:CreateTexture(nil, "ARTWORK")
 	centerPointer:SetSize(192,192)
 	centerPointer:SetPoint("CENTER")
@@ -87,11 +95,28 @@ local ringQuad, setRingRotationPeriod, centerCircle, centerGlow = {} do
 		for i=1,4 do animations[i]:SetDuration(p) end
 	end
 end
+local function setIndicationPosition(rel, ox, oy)
+	mainAnchor:SetPoint("CENTER", nil, rel, ox, oy)
+	proxyAnchor:ClearAllPoints()
+	proxyAnchor:SetPoint("CENTER", nil, rel, ox, oy)
+end
+local function setIndicationScale(sc)
+	mainFrame:SetScale(sc)
+	proxyFrame:SetScale(sc)
+end
+local function setIndicationAlpha(alpha)
+	mainFrame:SetAlpha(alpha)
+	proxyFrame:SetAlpha(alpha)
+end
+local function setIndicationShown(shown)
+	mainFrame:SetShown(shown)
+	proxyFrame:SetShown(shown)
+end
 
-local function SetAngle(self, angle, radius)
+local function setAngle(self, angle, radius)
 	self:SetPoint("CENTER", radius*cos(90+angle), radius*cos(angle))
 end
-local function CalculateRingRadius(n, fLength, aLength, min, baseAngle)
+local function calculateRingRadius(n, fLength, aLength, min, baseAngle)
 	if n < 2 then return min end
 	local radius, mLength, astep = max(min, (fLength + aLength * (n-1))/6.2831853071796), (fLength+aLength)/2, 360 / n
 	repeat
@@ -106,9 +131,9 @@ local function CalculateRingRadius(n, fLength, aLength, min, baseAngle)
 	until clear
 	return radius
 end
-local function SetupTransitionAnimation(anim, uf)
+local function setupTransitionAnimation(anim, uf)
 	local fps, _, screenHeight = LOCKED_FRAMERATE or GetFramerate(), GetPhysicalScreenSize()
-	local radiusRaw, hadOnUpdate = mainFrame.radius, mainFrame:IsVisible() and mainFrame:GetScript("OnUpdate")
+	local radiusRaw, hadOnUpdate = vis.radius, mainFrame:IsVisible() and mainFrame:GetScript("OnUpdate")
 	local radiusPix = (34+radiusRaw)*UIParent:GetEffectiveScale()*configCache.RingScale/768*screenHeight
 	local zoomTime = configCache.XTAnimation and fps >= MIN_ANIMATION_FPS and 0.25 or 0
 	local miZoomScale = 140*zoomTime*fps*radiusPix^-1.375
@@ -117,7 +142,7 @@ local function SetupTransitionAnimation(anim, uf)
 	configCache.MIZoomOutScale = max(0.4, min(0.75, 0.4*miZoomScale))
 	configCache.MISpinOutProg = 150*max(0.15, min(1, fps*fps*fps/216000))
 	configCache.MIScaleAdd = configCache.MIScale and (radiusRaw > 200 and 0.05 or 0.10) or 0
-	mainFrame.eleft = anim == "fast-in" and 0.5*zoomTime or zoomTime
+	vis.eleft = anim == "fast-in" and 0.5*zoomTime or zoomTime
 	mainFrame:SetScript("OnUpdate", uf)
 	uf(mainFrame, hadOnUpdate and 0 or 1/60)
 end
@@ -163,7 +188,7 @@ do -- GhostIndication
 		f[1] = 1
 		return f
 	end
-	function GhostIndication:ActivateGroup(index, count, incidentAngle, mainRadius, mainScale)
+	function GhostIndication:ActivateGroup(index, count, incidentAngle, mainRadius)
 		local ret = currentGroups[index] or next(spareGroups) or newGhostGroup()
 		currentGroups[index], spareGroups[ret] = ret
 		if not ret:IsShown() then
@@ -173,13 +198,12 @@ do -- GhostIndication
 		end
 		if activeGroup ~= ret then GhostIndication:Deactivate() end
 		if ret.incident ~= incidentAngle or ret.count ~= count then
-			local baseSize = 48 + 48*configCache.MIButtonMargin
-			local radius, angleStep = CalculateRingRadius(count, baseSize*mainScale, 48*0.80, 30, incidentAngle-180)/0.80, 360/count
+			local radius, angleStep = calculateRingRadius(count, configCache.MIReserveSize, 48*0.80, 30, incidentAngle-180)/0.80, 360/count
 			local angle = incidentAngle - angleStep + 90
 			for i=2,count do
 				local cell = ret[i] or next(spareSlices) or CreateIndicator(nil, ret, 48, true)
 				cell:SetParent(ret)
-				SetAngle(cell, angle, radius)
+				setAngle(cell, angle, radius)
 				cell:SetShown(true)
 				ret[i], angle, spareSlices[cell] = cell, angle - angleStep
 			end
@@ -264,7 +288,7 @@ local SwitchIndicatorFactory, ValidateIndicator do
 				oldPool[v], Slices[k] = true, nil
 				v:SetShown(false)
 			end
-			mainFrame:Hide()
+			setIndicationShown(false)
 			CreateIndicator, ActiveIndicatorFactory = finfo.CreateIndicator, finfo
 			GhostIndication:SwitchSparePool(finfo.ghostPool)
 		end
@@ -295,7 +319,7 @@ local SwitchIndicatorFactory, ValidateIndicator do
 	end
 end
 
-local tokenR, tokenG, tokenB, tokenIcon, iconIsAtlas, tokenQuest = {}, {}, {}, {}, {}, {}
+local tokenR, tokenG, tokenB, tokenIcon, tokenLabel, iconIsAtlas, tokenQuest = {}, {}, {}, {}, {}, {}, {}
 local qualMap, qualMod, qualModLow = {}, 131072, 16384 do
 	for v=qualModLow, qualMod-1, qualModLow do
 		qualMap[v] = v/qualModLow
@@ -362,15 +386,25 @@ local function applyExtIconVertexColor(self, ext)
 		return true
 	end
 end
-local function SetDefaultAnchor(tt, owner)
+local function anchorTooltip(tt, owner, at, angle)
 	if tt:IsOwned(owner) then
 		tt:ClearLines()
+	elseif at == "side" then
+		tt:SetOwner(owner, "ANCHOR_NONE")
 	else
 		GameTooltip_SetDefaultAnchor(tt, owner)
 	end
+	if at == "side" then
+		local left, s = angle < 280 and angle > 80, configCache.RingScale
+		if vis[left and "noTL" or "noTR"] then
+			left = not left
+		end
+		tt:ClearAllPoints()
+		tt:SetPoint(left and "LEFT" or "RIGHT", proxyFrame, "CENTER", (vis.radius+60)*(left and s or -s), 0)
+	end
 end
-local function updateCentralElements(self, si, _, tok, usable, state, icon, caption, _, _, _, tipFunc, tipArg, _, stext)
-	local osi, time = self.oldSlice, GetTime()
+local function updateCentralElements(_self, si, _, tok, usable, state, icon, caption, _, _, _, tipFunc, tipArg, _, stext)
+	local osi, time = vis.oldSlice, GetTime()
 
 	if tok then
 		local r,g,b = getSliceColor(tok, tokenIcon[tok] or icon or "Interface/Icons/INV_Misc_QuestionMark")
@@ -385,34 +419,34 @@ local function updateCentralElements(self, si, _, tok, usable, state, icon, capt
 
 	if configCache.UseGameTooltip then
 		if not (tipFunc and tipArg) then
-			local text = caption and caption ~= "" and caption or stext
+			local text = caption and caption ~= "" and caption or tokenLabel[tok] or stext
 			tipFunc, tipArg = text and GameTooltip.AddLine, text
 		end
 		if tipFunc then
-			if not checkTipThrottle(mainFrame, tipFunc, tipArg, time) then
-				SetDefaultAnchor(GameTooltip, mainFrame)
+			if not checkTipThrottle(proxyFrame, tipFunc, tipArg, time) then
+				anchorTooltip(GameTooltip, proxyFrame, configCache.TooltipAnchor, vis.angle)
 				tipFunc(GameTooltip, tipArg)
 				GameTooltip:Show()
 			end
-		elseif GameTooltip:IsOwned(mainFrame) then
+		elseif GameTooltip:IsOwned(proxyFrame) then
 			GameTooltip:Hide()
 		end
 	end
 
-	local sm = (state and (state % 4 > 1) and 0.625 or 1)
-	if self.rotPeriod ~= sm then
-		self.rotPeriod = sm
+	local sm = state and (state % 4 > 1) and 0.625 or 1
+	if vis.rotPeriod ~= sm then
+		vis.rotPeriod = sm
 		setRingRotationPeriod(configCache.XTRotationPeriod*sm)
 	end
 
-	local gAnim, gEnd, oIG, usable = self.gAnim, self.gEnd, self.oldIsGlowing, usable or (state and usable ~= false) or false
+	local gAnim, gEnd, oIG, usable = vis.gAnim, vis.gEnd, vis.oldIsGlowing, usable or (state and usable ~= false) or false
 	if usable ~= oIG then
 		gAnim, gEnd = usable and "in" or "out",  time + 0.3 - (gEnd and gEnd > time and (gEnd-time) or 0)
-		self.oldIsGlowing, self.gAnim, self.gEnd = usable, gAnim, gEnd
+		vis.oldIsGlowing, vis.gAnim, vis.gEnd = usable, gAnim, gEnd
 		centerGlow:SetShown(true)
 	end
 	if gAnim and gEnd <= time or oIG == nil then
-		self.gAnim, self.gEnd = nil, nil
+		vis.gAnim, vis.gEnd = nil, nil
 		centerGlow:SetShown(usable)
 		centerGlow:SetAlpha(0.75)
 	elseif gAnim then
@@ -420,7 +454,7 @@ local function updateCentralElements(self, si, _, tok, usable, state, icon, capt
 		local a = usable and (pg > 0.75 and 0 or (0.75 - pg)) or pg
 		centerGlow:SetAlpha(a < 0 and 0 or a)
 	end
-	self.oldSlice = si
+	vis.oldSlice = si
 end
 local function updateSlice(self, originAngle, selected, tok, usable, state, icon, _, count, cd, cd2, _tf, _ta, ext, stext)
 	local isJump, origIcon, tokIcon, jumpOtherTok, isJumpIconOverlay, isAtlasIcon = false, icon, tokenIcon[tok]
@@ -462,7 +496,7 @@ local function updateSlice(self, originAngle, selected, tok, usable, state, icon
 		self:SetOverlayIconVertexColor(1,1,1)
 	end
 	if ActiveIndicatorFactory.supportsShortLabels then
-		self:SetShortLabel(configCache.ShowShortLabels and stext or "")
+		self:SetShortLabel(configCache.ShowShortLabels and (tokenLabel[tok] or stext) or "")
 	end
 	self:SetQualityOverlay(qual)
 	self:SetCooldown(cd, cd2, usableCharge)
@@ -492,7 +526,7 @@ end
 local function updateSliceBindings(imode)
 	local showSliceBinds, _, sliceBind, sliceBind2 = configCache.ShowKeys
 	imode = showSliceBinds and (imode or PC:GetCurrentInputs())
-	for i=1, mainFrame.count do
+	for i=1, vis.count do
 		if showSliceBinds then
 			_, _, sliceBind, sliceBind2 = PC:GetOpenRingSlice(i)
 			if sliceBind2 then
@@ -509,28 +543,27 @@ local function updateSliceBindings(imode)
 	configCache.lastBindingMode = imode
 end
 
-local lastConAngle = nil
 local function OnUpdate_CheckAlpha(self, count)
 	local ea = self:GetEffectiveAlpha()
-	if self.oldEA ~= ea then
-		self.oldEA = ea
+	if vis.oldEA ~= ea then
+		vis.oldEA = ea
 		notifyAlpha(self, Slices, count)
 		GhostIndication:NotifyAlpha()
 	end
 end
 local function OnUpdate_Main(self, elapsed)
-	local count, offset, lastBindingMode = self.count, self.offset, configCache.lastBindingMode
+	local count, offset, lastBindingMode = vis.count, vis.offset, configCache.lastBindingMode
 	local imode, qaid, angle, isActiveRadius, stl = PC:GetCurrentInputs()
-	local radius, miScaleAdd, frameRate = self.radius, configCache.MIScaleAdd, LOCKED_FRAMERATE or GetFramerate()
+	local radius, miScaleAdd, frameRate = vis.radius, configCache.MIScaleAdd, LOCKED_FRAMERATE or GetFramerate()
 
 	if qaid and count > 0 then
 		angle = (90 - offset - (qaid-1)*360/count) % 360
 	elseif imode == "stick" then
-		angle = stl < 0.25 and lastConAngle or angle
-		lastConAngle = angle
+		angle = stl < 0.25 and vis.lastConAngle or angle
+		vis.lastConAngle = angle
 	end
 
-	local oangle = qaid and angle or self.angle or angle
+	local oangle = qaid and angle or vis.angle or angle
 	local adiff, arate = min((angle-oangle) % 360, (oangle-angle) % 360)
 	if adiff > 60 then
 		arate = 420 + 120*sin(min(90, adiff-60))
@@ -541,8 +574,8 @@ local function OnUpdate_Main(self, elapsed)
 	end
 	local abound = configCache.XTPointerSnap and 360 or (1.25*arate/frameRate)
 	local arotDirection = ((oangle - angle) % 360 < (angle - oangle) % 360) and -1 or 1
-	self.angle = (adiff < abound or frameRate < MIN_ANIMATION_FPS) and angle or (oangle + arotDirection * abound) % 360
-	centerPointer:SetRotation(self.angle/180*3.1415926535898 - 90/180*3.1415926535898)
+	vis.angle = (adiff < abound or frameRate < MIN_ANIMATION_FPS) and angle or (oangle + arotDirection * abound) % 360
+	centerPointer:SetRotation(vis.angle/180*3.1415926535898 - 90/180*3.1415926535898)
 
 	local si = qaid or (count <= 0 and 0) or isActiveRadius and
 		(floor(((90-angle - offset) * count/360 + 0.5) % count) + 1) or 0
@@ -555,16 +588,17 @@ local function OnUpdate_Main(self, elapsed)
 		for i=1,count do
 			local s, new = Slices[i], i == si and miScaleAdd+1 or 1
 			local old = s:GetScale()
-			s:SetScale(old + min(limit, max(-limit, new-old)))
+			local d = new-old
+			s:SetScale(d <= limit and -d <= limit and new or d < 0 and (old - limit) or (old + limit))
 		end
 	end
 	OnUpdate_CheckAlpha(self, count)
 
-	local cmState, mut = (IsShiftKeyDown() and 1 or 0) + (IsControlKeyDown() and 2 or 0) + (IsAltKeyDown() and 4 or 0) + (IsMetaKeyDown() and 8 or 0), self.schedMultiUpdate or 0
-	if self.omState == cmState and mut < 0  then
-		self.schedMultiUpdate = mut + elapsed
+	local cmState, mut = (IsShiftKeyDown() and 1 or 0) + (IsControlKeyDown() and 2 or 0) + (IsAltKeyDown() and 4 or 0) + (IsMetaKeyDown() and 8 or 0), vis.schedMultiUpdate or 0
+	if vis.omState == cmState and mut < 0  then
+		vis.schedMultiUpdate = mut + elapsed
 	else
-		self.omState, self.schedMultiUpdate = cmState, -0.05
+		vis.omState, vis.schedMultiUpdate = cmState, -0.05
 		for i=1,count do
 			local originAngle = 90 - (i-1)*360/count - offset
 			securecall(callElementUpdate, Slices[i], updateSlice, i, nil, originAngle, si == i)
@@ -577,7 +611,7 @@ local function OnUpdate_Main(self, elapsed)
 				local jump1 = (atype == "jump" and not isNested) and 1 or 0
 				local originAngle, nestAngleStep = 90 - 360/count*(si-1) - offset, 360/(nestedCount+jump1)
 				local nestAngleBase = 180+originAngle + (1-jump1)*nestAngleStep
-				local group = GhostIndication:ActivateGroup(si, nestedCount + jump1, originAngle, radius*(miScaleAdd+1), 1.10)
+				local group = GhostIndication:ActivateGroup(si, nestedCount + jump1, originAngle, radius*(miScaleAdd+1))
 				for i=2-jump1, nestedCount do
 					securecall(callElementUpdate, group[i+jump1], updateSlice, si, i, nestAngleBase - nestAngleStep*i, false)
 				end
@@ -590,60 +624,61 @@ local function OnUpdate_Main(self, elapsed)
 	GhostIndication:OnUpdate(elapsed)
 end
 local function OnUpdate_ZoomIn(self, elapsed)
-	local r, sm, a = self.eleft - elapsed
-	self.eleft, r = r, r > 0 and r/configCache.XTZoomTime or 0
+	local r, sm, a = vis.eleft - elapsed
+	vis.eleft, r = r, r > 0 and r/configCache.XTZoomTime or 0
 	if r == 0 then self:SetScript("OnUpdate", OnUpdate_Main) end
 	sm = 1 + configCache.MIZoomInScale*0.375*r/(1.375-r)
 	a = r > 0.4 and 1-(r-0.4)/0.6 or 1
-	self:SetScale(configCache.RingScale*sm)
-	self:SetAlpha(a < 0 and 0 or a)
+	setIndicationScale(configCache.RingScale*sm)
+	setIndicationAlpha(a < 0 and 0 or a)
 	return OnUpdate_Main(self, elapsed)
 end
 local function OnUpdate_ZoomOut(self, elapsed)
-	local r = self.eleft - elapsed
-	self.eleft, r = r, r > 0 and r/configCache.XTZoomTime or 0
+	local r = vis.eleft - elapsed
+	vis.eleft, r = r, r > 0 and r/configCache.XTZoomTime or 0
 	if r <= 0 then
-		self:Hide()
 		self:SetScript("OnUpdate", nil)
+		setIndicationShown(false)
 		return
 	elseif configCache.MISpinOnHide then
-		local count = self.count
+		local count = vis.count
 		if count > 0 then
-			local sliceAngle, angleStep, radius, prog = 45 - self.offset + 45*r, 360/count, self.radius, (1-r)*configCache.MISpinOutProg
+			local sliceAngle, angleStep, radius, prog = 45 - vis.offset + 45*r, 360/count, vis.radius, (1-r)*configCache.MISpinOutProg
 			for i=1,count do
 				Slices[i]:SetPoint("CENTER", cos(sliceAngle)*radius + cos(sliceAngle-90)*prog, sin(sliceAngle)*radius + sin(sliceAngle-90)*prog)
 				sliceAngle = sliceAngle - angleStep
 			end
 		end
-		self:SetScale(configCache.RingScale*(1+configCache.MIZoomOutScale*(1-r)))
+		setIndicationScale(configCache.RingScale*(1+configCache.MIZoomOutScale*(1-r)))
 	else
-		self:SetScale(configCache.RingScale*r)
+		setIndicationScale(configCache.RingScale*r)
 	end
-	self:SetAlpha(r < 1 and r or 1)
-	OnUpdate_CheckAlpha(self, self.count)
+	setIndicationAlpha(r < 1 and r or 1)
+	OnUpdate_CheckAlpha(self, vis.count)
 	GhostIndication:OnUpdate(elapsed)
 end
 mainFrame:SetScript("OnHide", function(self)
 	if self:IsShown() and self:GetScript("OnUpdate") == OnUpdate_ZoomOut then
 		self:SetScript("OnUpdate", nil)
-		self:Hide()
+		setIndicationShown(false)
 	end
 end)
 
 function iapi:Show(_, _, fastOpen)
 	local _, count, offset = PC:GetOpenRing(configCache)
-	local baseSize, radius = 48 + 48*configCache.MIButtonMargin
-	radius = CalculateRingRadius(count or 3, baseSize, baseSize, 100, 90-(offset or 0))
-	mainFrame.count, mainFrame.offset, mainFrame.radius = count, offset, radius
-	mainFrame.oldSlice, mainFrame.angle, mainFrame.omState, mainFrame.oldIsGlowing, mainFrame.rotPeriod, lastConAngle, mainFrame.oldEA = -1
+	local baseSize, scale, radius = configCache.MIReserveSize, max(0.1, configCache.RingScale)
+	radius = calculateRingRadius(count or 3, baseSize, baseSize, configCache.MIMinRadius, 90-(offset or 0))
+	vis.count, vis.offset, vis.radius = count, offset, radius
+	vis.oldSlice, vis.angle, vis.omState, vis.oldIsGlowing, vis.rotPeriod, vis.lastConAngle, vis.oldEA = -1
 	GhostIndication:Reset()
 	SwitchIndicatorFactory(configCache.IndicatorFactory)
+	centerPointer:SetShown(configCache.InteractionMode ~= 3)
 
 	local astep = count == 0 and 0 or -360/count
 	for i=1, count do
 		local indic = Slices[i] or rawset(Slices, i, next(ActiveIndicatorFactory.mainPool) or CreateIndicator(nil, mainFrame, 48))[i]
 		ActiveIndicatorFactory.mainPool[indic] = nil
-		SetAngle(indic, (i - 1) * astep - mainFrame.offset, radius)
+		setAngle(indic, (i - 1) * astep - offset, radius)
 		if ActiveIndicatorFactory.supportsCooldownNumbers then
 			indic:SetCooldownTextShown(configCache.ShowCooldowns, configCache.ShowRecharge)
 		end
@@ -655,33 +690,40 @@ function iapi:Show(_, _, fastOpen)
 	end
 	updateSliceBindings(nil)
 
-	configCache.RingScale = max(0.1, configCache.RingScale)
-	mainFrame:SetScale(configCache.RingScale)
-	if fastOpen == "inplace-switch" then
-	elseif configCache.RingAtMouse then
-		local cx, cy = GetCursorPosition()
-		anchorFrame:SetPoint("CENTER", nil, "BOTTOMLEFT", cx + configCache.IndicationOffsetX, cy - configCache.IndicationOffsetY)
-	else
-		anchorFrame:SetPoint("CENTER", nil, "CENTER", configCache.IndicationOffsetX, -configCache.IndicationOffsetY)
+	configCache.RingScale = scale
+	setIndicationScale(scale)
+	if fastOpen ~= "inplace-switch" then
+		local atMouse, ox, oy = configCache.RingAtMouse, configCache.IndicationOffsetX, -configCache.IndicationOffsetY
+		if atMouse then
+			local cx, cy = GetCursorPosition()
+			ox, oy = cx + ox, cy + oy
+		end
+		setIndicationPosition(atMouse and "BOTTOMLEFT" or "CENTER", ox, oy)
 	end
-	SetupTransitionAnimation(fastOpen and "fast-in" or "in", OnUpdate_ZoomIn)
-	mainFrame:Show()
+	if configCache.TooltipAnchor == "side" then
+		local sw, sr =  GetScreenWidth(), proxyFrame:GetCenter()
+		local sl, rw = sw/scale - sr, radius + 60 + 220/scale
+		vis.noTL, vis.noTR = sl < rw and sr > rw, sr < rw and sl > rw
+	end
+	setupTransitionAnimation(fastOpen and "fast-in" or "in", OnUpdate_ZoomIn)
+	setIndicationShown(true)
 end
 function iapi:Hide()
-	SetupTransitionAnimation("out", OnUpdate_ZoomOut)
+	setupTransitionAnimation("out", OnUpdate_ZoomOut)
 	GhostIndication:Deactivate()
-	if GameTooltip:IsOwned(mainFrame) then
+	if GameTooltip:IsOwned(proxyFrame) then
 		GameTooltip:Hide()
 	end
 	wipeTokenCache()
 end
 
-function api:SetDisplayOptions(token, icon, _, r,g,b)
+function api:SetDisplayOptions(token, icon, label, r,g,b)
 	if type(r) ~= "number" or type(g) ~= "number" or type(b) ~= "number" then r,g,b = nil end
+	if label == "" or type(label) ~= "string" then label = nil end
 	if iconIsAtlas[icon] or type(icon) == "string" and not GetFileIDFromPath(icon) and C_Texture.GetAtlasInfo(icon) then
 		iconIsAtlas[icon] = true
 	end
-	tokenR[token], tokenG[token], tokenB[token], tokenIcon[token] = r,g,b, icon
+	tokenR[token], tokenG[token], tokenB[token], tokenIcon[token], tokenLabel[token] = r,g,b, icon, label
 end
 function api:SetQuestHint(sliceToken, hint)
 	tokenQuest[sliceToken] = hint or nil
@@ -709,6 +751,11 @@ function api:RegisterIndicatorConstructor(key, info)
 	assert(type(onPAC) == "function" or onPAC == nil, 'RegisterIndicatorConstructor: info.onParentAlphaChanged, if set, must be a function', 2)
 
 	local mainPool, err = ValidateIndicator(apiLevel, reqAPILevel, info)
+	local fbKey = key == "elvui" and COMPAT ~= 40400 and (COMPAT > 11e4 and "fixedFrameBuffering" or COMPAT > 2e4 and "fixedFrameBufferingClassic" or "fixedFrameBufferingEra")
+	if fbKey and not info[fbKey] then
+		-- BUG[2408/11.0.2,1.15.4,4.4.1]: Showing buffered frames while a model frame is visible can crash to desktop with an assertion failure (test builds)/restart the renderer in a loop/crash the client
+		mainPool, err = nil, 'Disabled to avoid triggering a client crash (missing flag: ' .. fbKey .. ').'
+	end
 	LastRegisteredIndicatorFactory, IndicatorFactories[key] = mainPool and key or LastRegisteredIndicatorFactory, {
 		name = iname:gsub("|+", ""),
 		apiLevel = apiLevel,
@@ -720,13 +767,15 @@ function api:RegisterIndicatorConstructor(key, info)
 		onParentAlphaChanged = onPAC,
 		err = err,
 	}
-	assert(mainPool, err, 2)
+	return not not mainPool, not mainPool and err or nil
 end
 
 for k,v in pairs({IndicatorFactory="_",
-	ShowCooldowns=false, ShowRecharge=false, UseGameTooltip=true, ShowKeys=true, ShowOneCount=false, ShowShortLabels=true,
-	MIScale=true, MISpinOnHide=true, MIButtonMargin=0.1, GhostMIRings=true,
-	XTPointerSnap=false, XTAnimation=true, XTRotationPeriod=4, GhostShowDelay=0.25}) do
+	ShowCooldowns=false, ShowRecharge=false, UseGameTooltip=true, ShowKeys=true, ShowOneCount=false, ShowShortLabels=true, TooltipAnchor="hud",
+	MIScale=true, MISpinOnHide=true, GhostMIRings=true,
+	XTPointerSnap=false, XTAnimation=true, XTRotationPeriod=4,
+	MIReserveSize=54, MIMinRadius=110, GhostShowDelay=0.25,
+}) do
 	PC:RegisterOption(k,v)
 end
 api:RegisterIndicatorConstructor("mirage", T.Mirage)

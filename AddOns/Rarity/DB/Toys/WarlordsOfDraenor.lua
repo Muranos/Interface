@@ -3,6 +3,10 @@ local addonName, addonTable = ...
 local L = LibStub("AceLocale-3.0"):GetLocale("Rarity")
 local CONSTANTS = addonTable.constants
 
+if LE_EXPANSION_LEVEL_CURRENT < LE_EXPANSION_WARLORDS_OF_DRAENOR then
+	return {}
+end
+
 local wodToys = {
 	-- Toys (6.x)
 	["Crashin' Thrashin' Cannon Controller"] = {
@@ -62,6 +66,7 @@ local wodToys = {
 			["SHAMAN"] = true,
 			["WARLOCK"] = true,
 			["WARRIOR"] = true,
+			["EVOKER"] = true,
 		},
 		lockoutDetails = {
 			mode = CONSTANTS.DEFEAT_DETECTION.MODE_AND,
@@ -108,3 +113,4 @@ local wodToys = {
 }
 
 Rarity.ItemDB.MergeItems(Rarity.ItemDB.toys, wodToys)
+return wodToys

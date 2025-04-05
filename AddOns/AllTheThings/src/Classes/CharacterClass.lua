@@ -7,8 +7,8 @@ local Colorize = app.Modules.Color.Colorize;
 local C_CreatureInfo = C_CreatureInfo;
 local RAID_CLASS_COLORS, GetPlayerInfoByGUID, UnitClass, UnitGUID, UnitIsGroupLeader, UnitRace
 	= RAID_CLASS_COLORS, GetPlayerInfoByGUID, UnitClass, UnitGUID, UnitIsGroupLeader, UnitRace;
-local math_floor, rawget, rawset, setmetatable
-	= math.floor, rawget, rawset, setmetatable;
+local math_floor, rawget, rawset, setmetatable, ipairs
+	= math.floor, rawget, rawset, setmetatable, ipairs
 
 -- Class Info Helpers
 local ClassIcons = {
@@ -54,9 +54,9 @@ if GetSpecializationInfoByID then
 			rawset(t, key, specInfo);
 			return specInfo;
 		end
-		
+
 		local info = {
-			icon = ClassIcons[key] or "Interface\\Icons\\INV_Misc_QuestionMark",
+			icon = ClassIcons[key] or 134400,
 			file = "WARRIOR",
 			name = UNKNOWN,
 			classID = key,
@@ -78,7 +78,7 @@ else
 		end
 		if not info then
 			info = {
-				icon = ClassIcons[key] or "Interface\\Icons\\INV_Misc_QuestionMark",
+				icon = ClassIcons[key] or 134400,
 				file = "WARRIOR",
 				name = UNKNOWN,
 				classID = specID,
@@ -94,7 +94,7 @@ else
 end
 local ClassInfoMetatableAfterCache = { __index = function(t, key)
 	local info = {
-		icon = "Interface\\Icons\\INV_Misc_QuestionMark",
+		icon = 134400,
 		file = WARRIOR,
 		name = UNKNOWN,
 		classID = 0,
@@ -124,7 +124,7 @@ local ClassInfoMetatable = { __index = function(t, key)
 			};
 			---@diagnostic disable-next-line: inject-field
 			info.icontext = "|T" .. info.icon .. ":0|t " .. info.text;
-			
+
 			rawset(ClassInfoByID, classID, info);
 			rawset(ClassInfoByClassFile, info.file, info);
 			rawset(ClassInfoByClassName, info.name, info);
@@ -138,6 +138,37 @@ end };
 setmetatable(ClassInfoByID, ClassInfoMetatable);
 setmetatable(ClassInfoByClassFile, ClassInfoMetatable);
 setmetatable(ClassInfoByClassName, ClassInfoMetatable);
+
+-- Returns a string containing the class icons, followed by their respective names if desired
+local function GetClassesString(c, includeNames, trim)
+	local icons = {}
+	local info
+	local i = 1
+	if includeNames then
+		for _,cl in ipairs(c) do
+			info = ClassInfoByID[cl]
+			if info then
+				icons[i] = info.icontext
+				i = i + 1
+			end
+		end
+	else
+		for _,cl in ipairs(c) do
+			info = ClassIcons[cl]
+			if info then
+				icons[i * 3 - 2] = "|T";
+				icons[i * 3 - 1] = info
+				icons[i * 3] = ":0|t ";
+				i = i + 1
+			end
+		end
+	end
+	if trim then
+		return app.TableConcat(icons):match('^%s*(.*%S)');
+	end
+	return app.TableConcat(icons);
+end
+app.GetClassesString = GetClassesString
 
 -- Implementation
 app.CreateCharacterClass = app.CreateClassWithInfo("CharacterClass", "classID", ClassInfoByID, {
@@ -157,7 +188,7 @@ app.CreateUnit = app.CreateClass("Unit", "unit", {
 		for guid,character in pairs(ATTCharacterData) do
 			if guid == unit or character.name == unit then
 				rawset(t, "guid", character.guid);
-				rawset(t, "name", character.name);
+				rawset(t, "name", ("%s - %s"):format(character.name, character.realm or UNKNOWN));
 				rawset(t, "lvl", character.lvl);
 				if character.classID then
 					rawset(t, "classID", character.classID);
@@ -249,6 +280,8 @@ app.CreateUnit = app.CreateClass("Unit", "unit", {
 	["ignoreSourceLookup"] = function(t)
 		return true;
 	end,
+	isHeader = app.ReturnTrue,
+	isMinilistHeader = app.ReturnTrue,
 });
 
 -- External API

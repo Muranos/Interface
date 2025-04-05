@@ -3,13 +3,11 @@ local _;
 local smatch = string.match;
 
 local InCombatLockdown = InCombatLockdown;
+local GetSpellName = C_Spell.GetSpellName;
 
-local VUHDO_updateAllHoTs;
-local VUHDO_updateAllCyclicBouquets;
 local VUHDO_initGcd;
 local VUHDO_strempty;
 
-local VUHDO_ACTIVE_HOTS;
 local VUHDO_RAID_NAMES;
 local VUHDO_CONFIG = { };
 
@@ -20,12 +18,9 @@ local sEmpty = { };
 
 
 function VUHDO_spellEventHandlerInitLocalOverrides()
-	VUHDO_updateAllHoTs = _G["VUHDO_updateAllHoTs"];
-	VUHDO_updateAllCyclicBouquets = _G["VUHDO_updateAllCyclicBouquets"];
 	VUHDO_initGcd = _G["VUHDO_initGcd"];
 	VUHDO_strempty = _G["VUHDO_strempty"];
 
-	VUHDO_ACTIVE_HOTS = _G["VUHDO_ACTIVE_HOTS"];
 	VUHDO_RAID_NAMES = _G["VUHDO_RAID_NAMES"];
 	VUHDO_CONFIG = _G["VUHDO_CONFIG"];
 
@@ -64,29 +59,6 @@ end
 
 
 --
-local tSpellName;
-function VUHDO_spellcastSucceeded(aUnit, aSpellId)
-
-	if "player" ~= aUnit and VUHDO_PLAYER_RAID_ID ~= aUnit then 
-		return;
-	end
-
-	if aSpellId then
-		tSpellName = GetSpellInfo(aSpellId);
-	end
-
-	if tSpellName and (VUHDO_ACTIVE_HOTS[tSpellName] or VUHDO_ACTIVE_HOTS[tostring(aSpellId)]) then
-		VUHDO_updateAllHoTs();
-		VUHDO_updateAllCyclicBouquets(true);
-	end
-
-	VUHDO_aoeUpdateAll();
-
-end
-
-
-
---
 local tTargetUnit;
 local tCateg;
 local tSpellName;
@@ -100,7 +72,7 @@ function VUHDO_spellcastSent(aUnit, aTargetName, aSpellId)
 	end
 
 	if aSpellId then
-		tSpellName = GetSpellInfo(aSpellId);
+		tSpellName = GetSpellName(aSpellId);
 	end
 
 	if not tSpellName then

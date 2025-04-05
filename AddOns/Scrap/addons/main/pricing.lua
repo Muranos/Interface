@@ -1,5 +1,5 @@
 --[[
-Copyright 2008-2024 João Cardoso
+Copyright 2008-2025 João Cardoso
 All Rights Reserved
 --]]
 
@@ -10,7 +10,7 @@ local C = LibStub('C_Everywhere').Container
 
 --[[ Main ]]--
 
-function Prices:OnEnable()
+function Prices:OnLoad()
     local meta = getmetatable(GameTooltip).__index
     hooksecurefunc(meta, 'SetBagItem', self.OnBag)
     hooksecurefunc(meta, 'SetLootItem', self.OnLoot)

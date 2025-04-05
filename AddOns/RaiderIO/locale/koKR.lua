@@ -1,4 +1,4 @@
--- Generated from CurseForge on Wed May  1 08:11:09 UTC 2024
+-- Generated from CurseForge on Wed Oct  9 07:18:21 UTC 2024
 local ns = select(2, ...) ---@class ns @The addon namespace.
 
 if ns:IsSameLocale("koKR") then
@@ -9,6 +9,10 @@ if ns:IsSameLocale("koKR") then
 	L.LOCALE_NAME = "koKR"
 
 L["ALLOW_IN_LFD"] = "던전 찾기 허용"
+--[[Translation missing --]]
+--[[ L["ALLOW_IN_LFD_CLASSIC"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["ALLOW_IN_LFD_CLASSIC_DESC"] = ""--]] 
 L["ALLOW_IN_LFD_DESC"] = "던전 찾기에서 파티나 신청자를 우클릭하여 Raider.IO 프로필 URL을 복사합니다."
 L["ALLOW_ON_PLAYER_UNITS"] = "플레이어 유닛프레임도 허용"
 L["ALLOW_ON_PLAYER_UNITS_DESC"] = "플레이어를 우클릭하여 Raider.IO 프로필 URL로 복사합니다."
@@ -19,6 +23,8 @@ L["API_DEPRECATED_WITH"] = "|cffFF0000경고!|r addon |cffFFFFFF%s|r은(는) 더
 L["API_INVALID_DATABASE"] = "|cffff0000 경고!|r |cffffffff%s|r에서 잘못된 RaiderIO 데이터베이스를 감지했습니다. RaiderIO Client에서 모든 지역과 진영을 새로 고치거나 Addon을 수동으로 다시 설치하십시오."
 L["AUTO_COMBATLOG"] = "던전 & 공격대에서 자동으로 전투로그 기록 활성"
 L["AUTO_COMBATLOG_DESC"] = "지원되는 던전,공격대에 입장 및 퇴장 시 자동으로 전투로그 기록을 활성하거나 해제합니다."
+--[[Translation missing --]]
+--[[ L["AUTO_COMBATLOG_DISABLED_DESC"] = ""--]] 
 L["BEST_FOR_DUNGEON"] = "던전 최고 기록"
 L["BEST_RUN"] = "최고 기록"
 L["BEST_SCORE"] = "최고 쐐기 점수 (%s)"
@@ -85,15 +91,19 @@ L["DISABLE_DEBUG_MODE_RELOAD"] = [=[귀하는 디버그 모드를 비활성화�
 L["DPS"] = "|cffFF3636공격전담|r"
 L["DUNGEON_SHORT_NAME_AA"] = "대학"
 L["DUNGEON_SHORT_NAME_AD"] = "아탈"
+L["DUNGEON_SHORT_NAME_ARAK"] = "아라카라"
 L["DUNGEON_SHORT_NAME_AV"] = "하늘빛"
 L["DUNGEON_SHORT_NAME_BH"] = "담쟁이"
 L["DUNGEON_SHORT_NAME_BRH"] = "검떼"
 L["DUNGEON_SHORT_NAME_COS"] = "별궁"
+L["DUNGEON_SHORT_NAME_COT"] = "실타래"
+L["DUNGEON_SHORT_NAME_DAWN"] = "새인호"
 L["DUNGEON_SHORT_NAME_DHT"] = "어숲"
 L["DUNGEON_SHORT_NAME_DOS"] = "저편"
 L["DUNGEON_SHORT_NAME_EB"] = "상록숲"
 L["DUNGEON_SHORT_NAME_FALL"] = "몰락"
 L["DUNGEON_SHORT_NAME_FH"] = "자유"
+L["DUNGEON_SHORT_NAME_GB"] = "그림 바톨"
 L["DUNGEON_SHORT_NAME_GD"] = "정비소"
 L["DUNGEON_SHORT_NAME_GMBT"] = "승부수"
 L["DUNGEON_SHORT_NAME_HOA"] = "속죄"
@@ -111,8 +121,10 @@ L["DUNGEON_SHORT_NAME_RISE"] = "현신"
 L["DUNGEON_SHORT_NAME_RLP"] = "루비"
 L["DUNGEON_SHORT_NAME_SBG"] = "어둠달"
 L["DUNGEON_SHORT_NAME_SD"] = "심연"
+L["DUNGEON_SHORT_NAME_SIEGE"] = "보랄"
 L["DUNGEON_SHORT_NAME_SOA"] = "승천"
 L["DUNGEON_SHORT_NAME_STRT"] = "거리"
+L["DUNGEON_SHORT_NAME_SV"] = "바위금고"
 L["DUNGEON_SHORT_NAME_TJS"] = "옥룡사"
 L["DUNGEON_SHORT_NAME_TOP"] = "투기장"
 L["DUNGEON_SHORT_NAME_TOTT"] = "파도"
@@ -180,6 +192,10 @@ L["MAINS_BEST_SCORE_BEST_SEASON"] = "주 캐릭터 최고 쐐기 점수 (%s)"
 L["MAINS_RAID_PROGRESS"] = "주 캐릭터 진행상황"
 L["MAINS_SCORE"] = "주 캐릭터 점수"
 --[[Translation missing --]]
+--[[ L["MINIMAP_SHORTCUT_BROKER_ENABLE"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["MINIMAP_SHORTCUT_BROKER_ENABLE_DESC"] = ""--]] 
+--[[Translation missing --]]
 --[[ L["MINIMAP_SHORTCUT_ENABLE"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["MINIMAP_SHORTCUT_ENABLE_DESC"] = ""--]] 
@@ -188,7 +204,21 @@ L["MAINS_SCORE"] = "주 캐릭터 점수"
 --[[Translation missing --]]
 --[[ L["MINIMAP_SHORTCUT_HELP"] = ""--]] 
 --[[Translation missing --]]
+--[[ L["MINIMAP_SHORTCUT_HELP_LEFT_CLICK"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["MINIMAP_SHORTCUT_HELP_RIGHT_CLICK"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["MINIMAP_SHORTCUT_HELP_SEARCH"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["MINIMAP_SHORTCUT_HELP_SETTINGS"] = ""--]] 
+--[[Translation missing --]]
 --[[ L["MINIMAP_SHORTCUT_LOCK"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["MINIMAP_SHORTCUT_MINIMAP_ENABLE"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["MINIMAP_SHORTCUT_MINIMAP_ENABLE_DESC"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["MINIMAP_SHORTCUT_MINIMAP_LOCK"] = ""--]] 
 L["MODULE_AMERICAS"] = "북미"
 L["MODULE_EUROPE"] = "유럽"
 L["MODULE_KOREA"] = "한국"
@@ -266,6 +296,28 @@ L["RAID_BOSS_AVOTI_5"] = "승천한 자 다테아"
 L["RAID_BOSS_AVOTI_6"] = "쿠로그 그림토템"
 L["RAID_BOSS_AVOTI_7"] = "혈족지기 디우르나"
 L["RAID_BOSS_AVOTI_8"] = "폭풍포식자 라자게스"
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_BOT_1"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_BOT_2"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_BOT_3"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_BOT_4"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_BOT_5"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_BWD_1"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_BWD_2"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_BWD_3"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_BWD_4"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_BWD_5"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_BWD_6"] = ""--]] 
 L["RAID_BOSS_CN_1"] = "절규날개"
 L["RAID_BOSS_CN_10"] = "대영주 데나트리우스"
 L["RAID_BOSS_CN_2"] = "사냥꾼 알티모르"
@@ -307,6 +359,40 @@ L["RAID_BOSS_FSOD_6"] = "고통장이 라즈날"
 L["RAID_BOSS_FSOD_7"] = "태초의 존재의 수호자"
 L["RAID_BOSS_FSOD_8"] = "운명필경사 로칼로"
 L["RAID_BOSS_FSOD_9"] = "켈투자드"
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_ICC_1"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_ICC_10"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_ICC_11"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_ICC_12"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_ICC_2"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_ICC_3"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_ICC_4"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_ICC_5"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_ICC_6"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_ICC_7"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_ICC_8"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_ICC_9"] = ""--]] 
+L["RAID_BOSS_NP_1"] = "포식자 울그락스"
+L["RAID_BOSS_NP_2"] = "피결속 공포"
+L["RAID_BOSS_NP_3"] = "수레키 대장 시크란"
+L["RAID_BOSS_NP_4"] = "라샤난"
+L["RAID_BOSS_NP_5"] = "혈족왜곡자 오비낙스"
+L["RAID_BOSS_NP_6"] = "연합공작 카이베자"
+L["RAID_BOSS_NP_7"] = "비단 궁정"
+L["RAID_BOSS_NP_8"] = "여왕 안수레크"
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_RS_1"] = ""--]] 
 L["RAID_BOSS_SFO_1"] = "경계하는 수호자"
 L["RAID_BOSS_SFO_10"] = "라이겔론"
 L["RAID_BOSS_SFO_11"] = "간수"
@@ -328,6 +414,10 @@ L["RAID_BOSS_SOD_6"] = "고통장이 라즈날"
 L["RAID_BOSS_SOD_7"] = "태초의 존재의 수호자"
 L["RAID_BOSS_SOD_8"] = "운명필경사 로칼로"
 L["RAID_BOSS_SOD_9"] = "켈투자드"
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_TOTFW_1"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BOSS_TOTFW_2"] = ""--]] 
 L["RAID_BOSS_VOTI_1"] = "에라노그"
 L["RAID_BOSS_VOTI_2"] = "테로스"
 L["RAID_BOSS_VOTI_3"] = "원시 의회"
@@ -336,13 +426,40 @@ L["RAID_BOSS_VOTI_5"] = "승천한 자 다테아"
 L["RAID_BOSS_VOTI_6"] = "크로그 그림 토템"
 L["RAID_BOSS_VOTI_7"] = "혈족지기 디우르나"
 L["RAID_BOSS_VOTI_8"] = "폭풍포식자 라자게스"
+--[[Translation missing --]]
+--[[ L["RAID_BOT"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_BWD"] = ""--]] 
 L["RAID_DIFFICULTY_NAME_HEROIC"] = "영웅"
+--[[Translation missing --]]
+--[[ L["RAID_DIFFICULTY_NAME_HEROIC10"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_DIFFICULTY_NAME_HEROIC25"] = ""--]] 
 L["RAID_DIFFICULTY_NAME_MYTHIC"] = "신화"
 L["RAID_DIFFICULTY_NAME_NORMAL"] = "일반"
+--[[Translation missing --]]
+--[[ L["RAID_DIFFICULTY_NAME_NORMAL10"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_DIFFICULTY_NAME_NORMAL25"] = ""--]] 
 L["RAID_DIFFICULTY_SUFFIX_HEROIC"] = "영"
+--[[Translation missing --]]
+--[[ L["RAID_DIFFICULTY_SUFFIX_HEROIC10"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_DIFFICULTY_SUFFIX_HEROIC25"] = ""--]] 
 L["RAID_DIFFICULTY_SUFFIX_MYTHIC"] = "신"
 L["RAID_DIFFICULTY_SUFFIX_NORMAL"] = "일"
+--[[Translation missing --]]
+--[[ L["RAID_DIFFICULTY_SUFFIX_NORMAL10"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_DIFFICULTY_SUFFIX_NORMAL25"] = ""--]] 
 L["RAID_ENCOUNTERS_DEFEATED_TITLE"] = "공격대 보스 처치"
+--[[Translation missing --]]
+--[[ L["RAID_ICC"] = ""--]] 
+L["RAID_NP"] = "네룹아르 궁전"
+--[[Translation missing --]]
+--[[ L["RAID_RS"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["RAID_TOTFW"] = ""--]] 
 L["RAIDERIO_AVERAGE_PLAYER_SCORE"] = "+%s단 시간내 평균 점수"
 L["RAIDERIO_BEST_RUN"] = "Raider.IO 쐐기 최고 단수"
 L["RAIDERIO_CLIENT_CUSTOMIZATION"] = "RaiderIO 클라이언트 사용자 정의"
@@ -468,6 +585,8 @@ L["SHOW_CURRENT_SEASON_DESC"] = "플레이어의 쐐기 현 시즌 점수를 툴
 L["SHOW_IN_FRIENDS"] = "친구 목록 표시"
 L["SHOW_IN_FRIENDS_DESC"] = "친구에게 마우스를 올리면 Mythic+ 점수를 표시합니다."
 L["SHOW_IN_LFD"] = "던전 찾기 표시"
+--[[Translation missing --]]
+--[[ L["SHOW_IN_LFD_CLASSIC"] = ""--]] 
 L["SHOW_IN_LFD_DESC"] = "파티나 신청자에 마우스를 올리면 Mythic+ 점수를 표시합니다."
 L["SHOW_IN_SLASH_WHO_RESULTS"] = "/who 결과에 표시"
 L["SHOW_IN_SLASH_WHO_RESULTS_DESC"] = "\"/who\" 결과의 누군가에게 Mythic+ 점수가 표시됩니다."
@@ -489,6 +608,8 @@ L["SHOW_RAIDERIO_BESTRUN_FIRST"] = "(실험적) Raider.IO 최고 단수를 보�
 L["SHOW_RAIDERIO_BESTRUN_FIRST_DESC"] = "이것은 실험적인 기능입니다. Raider.IO 점수를 첫 번째 줄로 표시하는 대신 플레이어의 최고 단수를 보여줍니다."
 L["SHOW_RAIDERIO_PROFILE"] = "파티 구성하기 툴팁에 표시"
 L["SHOW_RAIDERIO_PROFILE_DESC"] = "파티 구성하기 툴팁에 Raider.IO 프로필을 표시합니다."
+--[[Translation missing --]]
+--[[ L["SHOW_RAIDERIO_PROFILE_OPTION"] = ""--]] 
 L["SHOW_ROLE_ICONS"] = "역할 아이콘 툴팁에 표시"
 L["SHOW_ROLE_ICONS_DESC"] = "이 기능을 사용하면 쐐기에서 플레이어의 역할 아이콘이 툴팁에 표시됩니다."
 L["SHOW_SCORE_IN_COMBAT"] = "전투 중 점수 표시"
@@ -497,6 +618,10 @@ L["SHOW_SCORE_IN_COMBAT_DESC"] = "비활성화시 전투에 영향이 없도록 
 --[[ L["SHOW_SCORE_WITH_MODIFIER"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["SHOW_SCORE_WITH_MODIFIER_DESC"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["SHOW_WARBAND_SCORE"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["SHOW_WARBAND_SCORE_DESC"] = ""--]] 
 L["TANK"] = "|cff2478FF방어전담|r"
 --[[Translation missing --]]
 --[[ L["TEAM_LF_MPLUS_DEFAULT"] = ""--]] 
@@ -506,6 +631,10 @@ L["TIMED_10_RUNS"] = "+10-14단 횟수"
 L["TIMED_15_RUNS"] = "15단+ 횟수"
 L["TIMED_20_RUNS"] = "20단+ 횟수"
 L["TIMED_5_RUNS"] = "+5-9단 횟수"
+--[[Translation missing --]]
+--[[ L["TIMED_RUNS_MINIMUM"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["TIMED_RUNS_RANGE"] = ""--]] 
 L["TOOLTIP_PROFILE"] = "프로필 설정"
 L["UNKNOWN_SERVER_FOUND"] = "|cffFFFFFF%s|r: 새 서버가 발견되었습니다. |cffFF9999 {|r |cffFFFFFF%s|r  |cffFF9999,|r |cffFFFFFF%s|r |cffFF9999}|r의 정보를 적은 후 개발자에게 보고해주세요. 감사합니다!"
 L["UNLOCKING_PROFILE_FRAME"] = "RaiderIO: 내 프로필 고정 해제"
@@ -515,6 +644,10 @@ L["USE_ENGLISH_ABBREVIATION_DESC"] = "설정하면, 던전에 현재 사용중�
 --[[ L["USE_RAIDERIO_CLIENT_LIVE_TRACKING_SETTINGS"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["USE_RAIDERIO_CLIENT_LIVE_TRACKING_SETTINGS_DESC"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["WARBAND_BEST_SCORE_BEST_SEASON"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["WARBAND_SCORE"] = ""--]] 
 L["WARNING_DEBUG_MODE_ENABLE"] = "|cffFFFFFF%s|r 디버그 모드가 활성화되었습니다. |cffFFFFFF/raiderio debug|r을 입력하여 기능을 비활성화 할 수 있습니다."
 L["WARNING_LOCK_POSITION_FRAME_AUTO"] = "RaiderIO: 먼저 내 프로필 위치 자동화 설정을 비활성화해야 합니다."
 --[[Translation missing --]]

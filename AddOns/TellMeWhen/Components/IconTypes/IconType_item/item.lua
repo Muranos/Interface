@@ -1,6 +1,6 @@
 ﻿-- --------------------
 -- TellMeWhen
--- Originally by Nephthys of Hyjal <lieandswell@yahoo.com>
+-- Originally by NephMakes
 
 -- Other contributions by:
 --		Sweetmms of Blackrock, Oozebull of Twisting Nether, Oodyboo of Mug'thol,
@@ -17,11 +17,10 @@ local L = TMW.L
 local print = TMW.print
 local pairs, ipairs =
 	  pairs, ipairs
-local GetItemInfo =
-	  GetItemInfo
 
 local OnGCD = TMW.OnGCD
 local GetSpellTexture = TMW.GetSpellTexture
+local GetItemInfo = C_Item and C_Item.GetItemInfo or GetItemInfo
 
 
 

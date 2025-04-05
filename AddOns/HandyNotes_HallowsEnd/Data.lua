@@ -1,1235 +1,2352 @@
 local _, ns = ...
-local points = ns.points
-local texturesL = ns.texturesL
-local scalingL = ns.scalingL
-local texturesS = ns.texturesS
-local scalingS = ns.scalingS
+ns.points = {}
+ns.textures = {}
+ns.scaling = {}
 
--- =====================================
--- Kalimdor
--- =====================================
+-- Achievements:
+-- Saviour of Hallow's End					289		Both		fires
+-- Tricks and Treats of Kalimdor			963		Alliance	candy
+-- Tricks and Treats of Kalimdor			965		Horde		candy
+-- Tricks and Treats of Eastern Kingdoms	966		Alliance	candy
+-- Tricks and Treats of Eastern Kingdoms	967		Horde		candy
+-- Tricks and Treats of Outland				969		Alliance	candy
+-- Tricks and Treats of Outland				968		Horde		candy
+-- Tricks and Treats of Northrend			5836	Alliance	candy
+-- Tricks and Treats of Northrend			5835	Horde		candy
+-- Tricks and Treats of the Cataclysm		5837	Alliance	candy
+-- Tricks and Treats of the Cataclysm		5838	Horde		candy
+-- Tricks and Treats of Pandaria			7601	Alliance	candy
+-- Tricks and Treats of Pandaria			7602	Horde		candy
+-- Tricks and Treats of the Dragon Isles	18360	Both		candy
+-- Rotten Hallow							1040	Alliance	rotten
+-- Rotten Hallow							1041	Horde		rotten
 
-local hatchling = "Grab a Leaping Hatchling pet from nearby... oh yeah, did I mention that I\n"
-				.."have an AddOn for that too? Collect all four of the adorable raptor pets!"
-local teldrassil = "Speak to Zidormi in Darkshore if Teldrassil seems somewhat destroyed!"
+ns.practice = "Fire Brigade Practice"
+ns.training = "Fire Training"
+ns.letFiresCome = "The idea is to form a large \"bucket brigade\" but that'd need an organised pug which of course will never "
+			.."happen.\n\nAlliance: Goldshire is best. Horde: Razor Hill, sometimes Brill.\n\nYou'll eventually notice patterns. "
+			.."2 or 3 buildings alight. Fire starts on the top of the roof then spreads to the eaves. You'll notice players focus "
+			.."on the lower, smaller blazes. Smart you focuses on the source at the very top. When a building has been "
+			.."extinguished, be ready with a bucket for it to be ignited again. Camp it.\n\nSolo: Alliance Azure Watch is doable, "
+			.."Horde try Falconwing Square. The mechanics are a bit more lenient as there are fewer players expected and flying is "
+			.."not possible! Focus on one building and get it extinguished then move to the next but always check for reignition of "
+			.."a previous building. Don't try if the event has already started and there's nobody there. The wait is about 5 "
+			.."minutes - standby with a bucket. A nice quick start is the key.\n\nHorde, if lucking out then go pickup and complete "
+			.."your Stormwind dousing daily. Logout then relog. You'll now be in Elwynn. Fly to Goldshire nearby and hover above. "
+			.."You'll get credit. Alliance can try Brill but it's often very quiet there.\n\nFinally, the Shade of the Horseman is "
+			.."dismounted. Allow the guards to do almost all of the work. If soloing, strafe and kite in a circle to buy time for "
+			.."the guards to quickly respawn.\n\nThe seasonal \"Fire Brigade Practice\" may be completed anywhere and solo. The "
+			.."bucket daily names are a bit confusing. If the event is already underway you'll be given \"Stop the Fires!\" but if "
+			.."it's not then you'll receive \"Let the Fires Come!\", it's as simple as that. Either counts for the achievement.\n\n"
+			.."The Pumpkin daily occurs after the Headless Horseman has been defeated. A large Jack-o'-Lantern will spawn in the "
+			.."town. If you arrive and the pumpkin is already there then lucky you but be quick as it will despawn after a minute." .."\n\nI leave my Alliance alts in the Goldshire inn, ready to ninja (assuming I get the same phase)!"
+ns.fireQSet = { { id=11440, name=ns.practice, faction="Alliance", qType="Seasonal", tip="Azuremyst", },
+					{ id=11360, name=ns.practice, faction="Alliance", qType="Seasonal", tip="Goldshire", },
+					{ id=11439, name=ns.practice, faction="Alliance", qType="Seasonal", tip="Kharanos", },
+					{ id=11449, name=ns.training, faction="Horde", qType="Seasonal", tip="Brill", },
+					{ id=11450, name=ns.training, faction="Horde", qType="Seasonal", tip="Falconwing Square", },
+					{ id=11361, name=ns.training, faction="Horde", qType="Seasonal", tip="Razor Hill", },
+					{ id=12135, name="Let the Fires Come!", faction="Alliance", qType="Daily", },
+					{ id=12139, name="Let the Fires Come!", faction="Horde", qType="Daily", },
+					{ id=11131, name="Stop the Fires!", faction="Alliance", qType="Daily", },
+					{ id=11219, name="Stop the Fires!", faction="Horde", qType="Daily", },
+					{ id=12133, name="Smash the Pumpkin", faction="Alliance", qType="Daily", },
+					{ id=12155, name="Smash the Pumpkin", faction="Horde", qType="Daily", }, }
+-- Dun Morogh has it's own as the coordinates are too different between Cata and pre-Cata
+ns.fireSetA = { fires=true, version=30000, faction="Alliance", achievements={ { id=289, }, }, quests=ns.fireQSet,
+			guide=ns.letFiresCome, }
+ns.fireSetH = { fires=true, version=30000, faction="Horde", achievements={ { id=289, }, }, quests=ns.fireQSet,
+			guide=ns.letFiresCome, }
 
-points[ 97 ] = { -- Azuremyst Isle
-	[48494905] = { aIDA=963, indexA=2, quest=12333, location="Azure Watch" },
-	[29293485] = { aIDA=963, indexA=9, quest=12337, location="Seat of the Naaru", tip="In the Exobar" },
-}
-points[ 1943 ] = { -- Azuremyst Isle
-	[48494905] = { aIDA=963, indexA=9, quest=12333, location="Azure Watch" },
-	[29293485] = { aIDA=963, indexA=9, quest=12337, location="Seat of the Naaru", tip="In the Exobar" },
-}
-points[ 106 ] = { -- Bloodmyst Isle
-	[55695997] = { aIDA=963, indexA=3, quest=12341, location="Blood Watch" },
-}
-points[ 1950 ] = { -- Bloodmyst Isle
-	[55695997] = { aIDA=963, indexA=5, quest=12341, location="Blood Watch" },
-}
-points[ 63 ] = { -- Ashenvale
-	[02216659] = { aIDA=963, indexA=21, quest=29012, location="Thal'darah Overlook" },
-	[13003410] = { aIDH=965, indexH=4, quest=28989, location="Zoram'gar Outpost" },
-	[13369829] = { aIDH=965, indexH=25, quest=12378, location="Sun Rock Retreat" },
-	[22229064] = { aIDA=963, indexA=22, quest=29011, location="Windshear Hold", tip="Fallowmere Inn" },
-	[29859870] = { aIDH=965, indexH=24, quest=29009, location="Krom'gar Fortress", tip="Inside the smallest building" },
-	[37014926] = { aIDA=963, indexA=1, quest=12345, location="Astranaar", tip="Your quest phase does not matter - the bucket is always available" },
-	[38654234] = { aIDH=965, indexH=1, quest=28958, location="Hellscream's Watch", tip="Outside, easy to see" },
-	[50256727] = { aIDH=965, indexH=2, quest=28953, location="Silverwind Refuge" },
-	[73966060] = { aIDH=965, indexH=3, quest=12377, location="Splintertree Post", tip="Follow the map marker for the correct building" },
-	[88269101] = { aIDH=965, indexH=18, quest=29003, location="Nozzlepot's Outpost" },
-}
-points[ 1440 ] = { -- Ashenvale
-	[37014926] = { aIDA=963, indexA=6, quest=12345, location="Astranaar" },
-	[73966060] = { aIDH=965, indexH=6, quest=12377, location="Splintertree Post" },
-}
-points[ 76 ] = { -- Azshara
-	[57115017] = { aIDH=965, indexH=5, quest=28992, location="Bilgewater Harbor",
-						tip="Exclusive Taraezor tip! Pause to check your map while you are\n"
-							.."inside the inn next to the candy bucket. You want to stretch\nthat rested bonus for as long as possible!" },
-}
-points[ 62 ] = { -- Darkshore
-	[50791890] = { aIDA=963, indexA=4, quest=28951, location="Lor'danel",
-						tip="Exclusive Taraezor tip! Pause to check your map while you are\n"
-							.."inside the inn next to the candy bucket. You want to stretch\nthat rested bonus for as long as possible!" },
-	[60665005] = { aIDA=963, indexA=11, aIDH=965, indexH=11, quest=28994, neighbour=true, location="Whisperwind Grove" },
-	[73277154] = { aIDA=5837, indexA=2, aIDH=5838, indexH=2, quest=29000, neighbour=true, location="Grove of Aessina" },
-	[76874791] = { aIDA=963, indexA=10, quest=28995, neighbour=true, location="Talonbranch Glade" },
-	[89077706] = { aIDA=5837, indexA=4, aIDH=5838, indexH=4, quest=29001, neighbour=true, location="Shrine of Aviana" },
-}
-points[ 1439 ] = { -- Darkshore
-	[37004410] = { aIDA=963, indexA=1, quest=28951, location="Lor'danel",
-						tip="Exclusive Taraezor tip! Pause to check your map while you are\n"
-							.."inside the inn next to the candy bucket. You want to stretch\nthat rested bonus for as long as possible!" },
-}
-points[ 89 ] = { -- Darnassus
-	[62283315] = { aIDA=963, indexA=5, quest=12334, location="Craftsmen's Terrace" },
-}
-points[ 1457 ] = { -- Darnassus
-	[67401600] = { aIDA=963, indexA=16, quest=12334, location="Craftsmen's Terrace" },
-}
-points[ 66 ] = { -- Desolace
-	[24076829] = { aIDH=965, indexH=7, quest=12381, location="Shadowprey Village" },
-	[56725012] = { aIDA=963, indexA=6, aIDH=965, indexH=6, quest=28993, location="Karnum's Glade" },
-	[66330659] = { aIDA=963, indexA=7, quest=12348, location="Nigel's Point" },
-	[93265850] = { aIDH=965, indexH=17, quest=12367, location="Lower Rise", tip="Inside \"The Cat and the Shaman\" inn" },
-}
-points[ 1443 ] = { -- Desolace
-	[24076829] = { aIDH=965, indexH=3, quest=12381, location="Shadowprey Village" },
-	[66330659] = { aIDA=963, indexA=3, quest=12348, location="Nigel's Point" },
-}
-points[ 1 ] = { -- Durotar
-	[12876288] = { aIDH=965, indexH=16, quest=12374, location="The Crossroads" },
-	[20144344] = { aIDH=965, indexH=17, quest=29002, location="Grol'dom Farm" },
-	[26991798] = { aIDH=965, indexH=18, quest=29003, location="Nozzlepot's Outpost" },
-	[32248109] = { aIDA=963, indexA=14, aIDH=965, indexH=19, quest=12396, location="Ratchet", tip=hatchling },
-	[46940672] = { aIDH=965, indexH=20, quest=12366, location="Valley of Strength" },
-	[51544158] = { aIDH=965, indexH=8, quest=12361, location="Razor Hill" },
-}
-points[ 1411 ] = { -- Durotar
-	[46940672] = { aIDH=965, indexH=2, quest=12366, location="Valley of Strength" },
-	[51604170] = { aIDH=965, indexH=9, quest=12361, location="Razor Hill" },
-}
-points[ 70 ] = { -- Dustwallow Marsh
-	[24843279] = { aIDA=963, indexA=16, quest=29008, location="Fort Triumph" },
-	[36783244] = { aIDH=965, indexH=9, quest=12383, location="Brackenwall Village" },
-	[41867409] = { aIDA=963, indexA=8, aIDH=965, indexH=10, quest=12398, location="Mudsprocket", tip="Upstairs, inside the main hut" },
-	[48220178] = { aIDA=963, indexA=18, quest=29007, location="Northwatch Hold" },
-	[66604528] = { faction="Alliance", title="Theramore (Old)", quest=12349, location="Theramore", tip="Inside the inn" },
-}
-points[ 1445 ] = { -- Dustwallow Marsh
-	[36783244] = { aIDH=965, indexH=11, quest=12383, location="Brackenwall Village" },
-	[41867409] = { aIDA=963, indexA=4, aIDH=965, indexH=16, quest=12398, location="Mudsprocket", tip="Upstairs, inside the main hut" },
-	[66604530] = { aIDA=963, indexA=15, quest=12349, location="Theramore" },
-}
-points[ 77 ] = { -- Felwood
-	[13989589] = { aIDH=965, indexH=4, quest=28989, location="Zoram'gar Outpost" },
-	[44582899] = { aIDA=963, indexA=11, aIDH=965, indexH=11, quest=28994, location="Whisperwind Grove",
-						tip="There's space inside the inn, as usual, for the candy bucket yet...\n"
-							.."it's placed on the landing outside. Unusual! Spooky?" },
-	[58035192] = { aIDA=5837, indexA=2, aIDH=5838, indexH=2, quest=29000, location="Grove of Aessina" },
-	[61862671] = { aIDA=963, indexA=10, quest=28995, location="Talonbranch Glade",
-						tip="Ever wanted to experiment with \"Particle Density\" in\n"
-							.."System->Graphics->Advanced? Stand at the entrance and\nlook towards the candy bucket!" },
-	[74875780] = { aIDA=5837, indexA=4, aIDH=5838, indexH=4, quest=29001, location="Shrine of Aviana" },
-	[89144269] = { aIDA=5837, indexA=3, aIDH=5838, indexH=3, quest=28999, location="Nordrassil" },
-}
-points[ 69 ] = { -- Feralas
-	[41451568] = { aIDH=965, indexH=12, quest=28996, location="Camp Ataya",
-						tip="Hey, why not change the icons!\nESC->Interface->AddOns->HandyNotes->Plugins expand->Hallow's End" },
-	[46334519] = { aIDA=963, indexA=13, quest=12350, location="Feathemoon Stronghold",
-						tip="Hey, why not change the icons!\nESC->Interface->AddOns->HandyNotes->Plugins expand->Hallow's End" },
-	[51071781] = { aIDA=963, indexA=12, quest=28952, location="Dreamer's Rest" },
-	[51974764] = { aIDH=965, indexH=14, quest=28998, location="Stonemaul Hold" },
-	[74834514] = { aIDH=965, indexH=13, quest=12386, location="Camp Mojache" },
-	[67769716] = { aIDA=963, indexA=15, aIDH=965, indexH=21, quest=12401, location="Cenarion Hold", tip="In the Oasis inn, below the Flight Masters" },
-	[83270000] = { aIDH=965, indexH=7, quest=12362, location="Bloodhoof Village" },
-}
-points[ 1444 ] = { -- Feralas
-	[30904340] = { aIDA=963, indexA=14, quest=12350, location="Feathemoon Stronghold" },
-	[74834514] = { aIDH=965, indexH=5, quest=12386, location="Camp Mojache" },
-}
-points[ 7 ] = { -- Mulgore
-	[05738321] = { aIDA=963, indexA=12, quest=28952, location="Dreamer's Rest" },
-	[09562427] = { aIDA=963, indexA=6, aIDH=965, indexH=6, quest=28993, location="Karnum's Glade" },
-	[46796041] = { aIDH=965, indexH=15, quest=12362, location="Bloodhoof Village" },
-	[39703118] = { aIDH=965, indexH=28, quest=12367, location="Lower Rise", tip="Inside \"The Cat and the Shaman\" inn" },
-	[68620468] = { aIDA=963, indexA=17, quest=29006, location="Honor's Stand", tip="It's out in the open" },
-	[69001706] = { aIDH=965, indexH=23, quest=29004, location="Hunter's Hill" },
-	[70928401] = { aIDH=965, indexH=22, quest=29005, location="Desolation Hold" },
-	[82268291] = { aIDA=963, indexA=16, quest=29008, location="Fort Triumph", tip="Another candy bucket that's not in a building. Hooray!" },
-	[88940659] = { aIDH=965, indexH=16, quest=12374, location="The Crossroads", tip="Main building. It's the inn. De rigueur" },
-	[93768257] = { aIDH=965, indexH=9, quest=12383, location="Brackenwall Village" },
-}
-points[ 1412 ] = { -- Mulgore
-	[46796041] = { aIDH=965, indexH=7, quest=12362, location="Bloodhoof Village" },
-	[39703118] = { aIDH=965, indexH=17, quest=12367, location="Lower Rise", tip="Inside \"The Cat and the Shaman\" inn" },
-}
-points[ 10 ] = { -- Northern Barrens
-	[02818123] = { aIDH=965, indexH=17, quest=12367, location="Lower Rise", tip="Inside \"The Cat and the Shaman\" inn" },
-	[03892430] = { aIDH=965, indexH=24, quest=29009, location="Krom'gar Fortress", tip="Inside the smallest building" },
-	[08533959] = { aIDA=963, indexA=20, quest=29010, location="Northwatch Expedition Base" },
-	[30245610] = { aIDA=963, indexA=17, quest=29006, location="Honor's Stand", tip="It's out in the open" },
-	[30606784] = { aIDH=965, indexH=23, quest=29004, location="Hunter's Hill" },
-	[67347466] = { aIDA=963, indexA=14, aIDH=965, indexH=19, quest=12396, location="Ratchet", tip=hatchling },
-	[49515791] = { aIDH=965, indexH=16, quest=12374, location="The Crossroads", tip="Main building. It's the inn. De rigueur" },
-	[56214003] = { aIDH=965, indexH=17, quest=29002, location="Grol'dom Farm" },
-	[62511659] = { aIDH=965, indexH=18, quest=29003, location="Nozzlepot's Outpost" },
-	[80870624] = { aIDH=965, indexH=20, quest=12366, location="Valley of Strength" },
-	[85103831] = { aIDH=965, indexH=8, quest=12361, location="Razor Hill" },
-}
-points[ 85 ] = { -- Orgrimmar
-	[53937894] = { aIDH=965, indexH=20, quest=12366, location="Valley of Strength" },
-	[50843631] = { aIDH=5838, indexH=1, quest=29019, tip="Through this portal for the Deepholm candy bucket.\n"
-						.."A Vashj'ir portal is closeby too!", location="Temple of Earth" },
-}
-points[ 1454 ] = { -- Orgrimmar
-	[54506850] = { aIDH=965, indexH=2, quest=12366, location="Valley of Strength" },
-}
-points[ 81 ] = { -- Silithus
-	[53929072] = { aIDA=5837, aIDH=5838, indexA=9, indexH=8, quest=29016, neighbour=true, location="Oasis of Vir'sar" },
-	[55473679] = { aIDA=963, indexA=15, aIDH=965, indexH=21, quest=12401, location="Cenarion Hold", tip="In the Oasis inn, below the Flight Masters" },
-}
-points[ 1451 ] = { -- Silithus
-	[51803900] = { aIDA=963, indexA=11, aIDH=965, indexH=4, quest=12401, location="Cenarion Hold" },
-}
-points[ 199 ] = { -- Southern Barrens
-	[15049435] = { aIDH=965, indexH=13, quest=12386, location="Camp Mojache" },
-	[17753047] = { aIDH=965, indexH=17, quest=12367, location="Lower Rise", tip="Inside \"The Cat and the Shaman\" inn" },
-	[22965196] = { aIDH=965, indexH=7, quest=12362, location="Bloodhoof Village" },
-	[39021099] = { aIDA=963, indexA=17, quest=29006, location="Honor's Stand", tip="It's out in the open" },
-	[39292009] = { aIDH=965, indexH=23, quest=29004, location="Hunter's Hill" },
-	[40706932] = { aIDH=965, indexH=22, quest=29005, location="Desolation Hold" },
-	[49046850] = { aIDA=963, indexA=16, quest=29008, location="Fort Triumph", tip="Another candy bucket that's not in a building. Hooray!" },
-	[53951239] = { aIDH=965, indexH=16, quest=12374, location="The Crossroads", tip="Main building. It's the inn. De rigueur" },
-	[57506826] = { aIDH=965, indexH=9, quest=12383, location="Brackenwall Village" },
-	[61109775] = { aIDA=963, indexA=8, aIDH=965, indexH=10, quest=12398, location="Mudsprocket", tip="Upstairs, inside the main hut" },
-	[65604654] = { aIDA=963, indexA=18, quest=29007, location="Northwatch Hold", tip="To the south, just across the border into Dustwallow Marsh.\n"
-						.."is an adorable and oh so cute raptor hatchling pet, one of\na set of four. Why not \"dart\" over and grab it now!" },
-	[67772538] = { aIDA=963, indexA=14, aIDH=965, indexH=19, quest=12396, location="Ratchet", tip=hatchling },
-	[78627735] = { faction="Alliance", title="Theramore (Old)", quest=12349, location="Theramore", tip="Inside the inn" },
-}
-points[ 65 ] = { -- Stonetalon Mountains
-	[31536066] = { aIDA=963, indexA=19, quest=29013, location="Farwatcher's Glen", tip="Another open air Elven inn - fly right in!" },
-	[39483281] = { aIDA=963, indexA=21, quest=29012, location="Thal'darah Overlook" },
-	[44938007] = { aIDA=963, indexA=7, quest=12348, location="Nigel's Point" },
-	[50030107] = { aIDH=965, indexH=4, quest=28989, location="Zoram'gar Outpost" },
-	[50376379] = { aIDH=965, indexH=25, quest=12378, location="Sun Rock Retreat",
-						tip="Alchemy completionists will want the Fire Protection potion\nfrom Jeeda upstaits. Good luck!" },
-	[59045632] = { aIDA=963, indexA=22, quest=29011, location="Windshear Hold", tip="Fallowmere Inn" },
-	[66506419] = { aIDH=965, indexH=24, quest=29009, location="Krom'gar Fortress", tip="Inside the smallest building" },
-	[71027908] = { aIDA=963, indexA=20, quest=29010, location="Northwatch Expedition Base" },
-	[73501588] = { aIDA=963, indexA=1, quest=12345, location="Astranaar", tip="Your quest phase does not matter - the bucket is always available" },
-	[75100912] = { aIDH=965, indexH=1, quest=28958, location="Hellscream's Watch", tip="Outside, easy to see" },
-	[86443348] = { aIDH=965, indexH=2, quest=28953, location="Silverwind Refuge" },
-	[92179516] = { aIDA=963, indexA=17, quest=29006, location="Honor's Stand", tip="It's out in the open" },
-}
-points[ 1442 ] = { -- Stonetalon Mountains
-	[47506210] = { aIDH=965, indexH=10, quest=12378, location="Sun Rock Retreat" },
-	[35600650] = { aIDH=963, indexH=2, quest=12347, location="Stonetalon Peak" },
-}
-points[ 71 ] = { -- Tanaris
-	[20093594] = { aIDH=965, indexH=29, aIDA=963, indexA=26, quest=29018, location="Marshal's Stand" },
-	[52552710] = { aIDA=963, indexA=24, aIDH=965, indexH=27, quest=12399, location="Gadgetzan",
-						tip="Did you stock up on Noggenfogger while you are here?\nOh yeah, the candy bucket is inside \"The Road Warrior\" inn" },
-	[55706096] = { aIDA=963, indexA=23, aIDH=965, indexH=26, quest=29014, location="Bootlegger Outpost" },
-}
-points[ 1446 ] = { -- Tanaris
-	[52562790] = { aIDA=963, indexA=8, aIDH=965, indexH=14, quest=12399, location="Gadgetzan",
-						tip="Did you stock up on Noggenfogger while you are here?" },
-}
-points[ 57 ] = { -- Teldrassil
-	[55365229] = { aIDA=963, indexA=25, quest=12331, location="Dolanaar" },
-	[34164401] = { aIDA=963, indexA=5, quest=12334, location="Craftsmen's Terrace" },
-}
-points[ 1438 ] = { -- Teldrassil
-	[55705980] = { aIDA=963, indexA=13, quest=12331, location="Dolanaar" },
-	[29105030] = { aIDA=963, indexA=16, quest=12334, location="Craftsmen's Terrace" },
-}
-points[ 1413 ] = { -- The Barrens
-	[67347465] = { aIDA=963, indexA=12, quest=12396, location="Ratchet", tip=hatchling },
-	[52002990] = { aIDH=965, indexH=12, quest=12374, location="The Crossroads" },
-	[62103940] = { aIDH=965, indexH=8, quest=12396, location="Ratchet", tip=hatchling },
-	[45605900] = { aIDH=965, indexH=13, quest=12375, location="Camp Taurajo" },
-}
-points[ 103 ] = { -- The Exodar
-	[59251846] = { aIDA=963, indexA=9, quest=12337, location="Seat of the Naaru", tip="In the Exobar" },
-}
-points[ 1947 ] = { -- The Exodar
-	[59251846] = { aIDA=963, indexA=7, quest=12337, location="Seat of the Naaru", tip="In the Exobar" },
-}
-points[ 64 ] = { -- Thousand Needles
-	[62262249] = { aIDA=963, indexA=8, aIDH=965, indexH=10, quest=12398, location="Mudsprocket", tip="Upstairs, inside the main hut" },
-}
-points[ 1441 ] = { -- Thousand Needles
-	[46105150] = { aIDH=965, indexH=1, quest=12379, location="Freewind Post" },
-}
-points[ 88 ] = { -- Thunder Bluff
-	[45626493] = { aIDH=965, indexH=28, quest=12367, location="Lower Rise", tip="Inside \"The Cat and the Shaman\" inn" },
-}
-points[ 1456 ] = { -- Thunder Bluff
-	[45626493] = { aIDH=965, indexH=17, quest=12367, location="Lower Rise", tip="Inside \"The Cat and the Shaman\" inn" },
-}
-points[ 78 ] = { -- Un'Goro Crater
-	[55266212] = { aIDH=965, indexH=29, aIDA=963, indexA=26, quest=29018, location="Marshal's Stand",
-						tip="Did you get your awesome Venomhide Ravasaur mount while you were here?\nJust... make sure you're Horde!" },
-}
-points[ 83 ] = { -- Winterspring
-	[11848913] = { aIDA=5837, indexA=2, aIDH=5838, indexH=2, quest=29000, location="Grove of Aessina" },
-	[15626429] = { aIDA=963, indexA=10, quest=28995, location="Talonbranch Glade" },
-	[28459493] = { aIDA=5837, indexA=4, aIDH=5838, indexH=4, quest=29001, location="Shrine of Aviana" },
-	[42518004] = { aIDA=5837, indexA=3, aIDH=5838, indexH=3, quest=28999, location="Nordrassil" },
-	[59835122] = { aIDA=963, indexA=27, aIDH=965, indexH=30, quest=12400, location="Everlook",
-						tip="Grab a Winterspring Cub pet from Michelle De Rum who is\n"
-							.."standing near the candy bucket. Awwww... so cute!\nDon't forget the Mount Hyjal locations too!" },
-}
-points[ 1452 ] = { -- Winterspring
-	[61303880] = { aIDA=963, indexA=10, aIDH=965, indexH=15, quest=12400, location="Everlook",
-						tip="Grab a Winterspring Cub pet from\nMichelle De Rum. Awwww... so cute!" },
+ns.aeriePeak = "The lowest level hillside building of Aerie Peak"
+ns.astranaar = "Your quest phase does not matter - the bucket is always available"
+ns.cataclysmPortals = "Through this portal for the Temple of the Earth (Deepholm) candy bucket. Convenient portals for Nordrassil, "
+			.."Ramkahen, Twilight Highlands, and Vashj'ir are available too!"
+ns.cenarion = "In the Oasis inn, below the Flight Masters of Cenarion Hold"
+ns.cleanup = "To see the orange plumes you must have \"Particle Density\" at least minimally enabled. Go to "
+			.."System->Graphics->Effects. If you get debuffed then you may cleanse yourself. Shapeshifting also works"
+ns.cleanUpA = "Pickup the quest from Gretchen Fenlow who is just outside the Stormwind gates. " ..ns.cleanup
+ns.cleanUpH = "Pickup the quest from Candace Fenlow. " ..ns.cleanup
+ns.falconwing = "Go through the blue doorway of Falconwing Square"
+ns.goEast = "Brill is a great location to set your hearth for Hallows End. There is a portal/zeppelin tower nearby. Quick access "
+			.."to Grom'gol to commence an efficient circuit of Eastern Kingdoms, beginning with Grom'gol.\n\nThe key is to return "
+			.."to Brill via The Hinterlands and Silverpine Forest, completely missing The Bulwark (no bucket prior to Cataclysm)." .."\n\nThen, from Brill go to The Bulwark and finish at Light's Hope Chapel where you get a taxi to Tranquillien. You "
+			.."will proced to Silvermoon city via Falconwing Square. From there take the Orb of Translocation back to the Ruins of "
+			.."Lordaeron"
+ns.ironSummit = "Outside, high up on a perimiter ledge of the Iron Summit"
+ns.jeeda = "Alchemy completionists will want the Fire Protection Potion from Jeeda, upstairs at Sun Rock Retreat. Goodluck!"
+ns.lowerRise = "Inside \"The Cat and the Shaman\" inn, Lower Rise"
+ns.mudsprocket = "Upstairs, inside the main hut at Mudsprocket"
+ns.practice = "This quest is just solo practice for the daily\n\"extinguishing\" quest in the same area"
+ns.raptorHatchling = "My \"Adorable Raptor Hatchlings\" AddOn will assist in collecting several adorable and cute baby raptor "
+			.."pets! There's one nearby but you need to know the spawn locations. No battling/fighting. Go plunder the nest you "
+			.."heartless collector!"
+ns.royalExchange = "In the Silvermoon City Inn, The Royal Exchange"
+ns.stinkBombsA = "You will ride on a broomstick taxi from Gertrude Fenlow. You'll do a \"bombing run\", with a vehicle interface, "
+			.."through the Undercity!\n\nSoon after completion, and while still in the Undercity, you could consider logging out. "
+			.."You will respawn at the Scarlet Watchtower in Tirisfal Glades, right at the sewer enrance/exit of The Undercity.\n\n"
+			.."This will save a ton of time if you also intend doing \"A Time to Lose\" in the Ruins of Lordaeron!"
+ns.stinkBombsH = "You will ride on a broomstick taxi from Crina Fenlow. You'll do a \"bombing run\", with a vehicle interface, "
+			.."through Stormwind!\n\nSoon after completion, and while still in Stormwind, you could consider logging out. You'll "
+			.."respawn at the Eastvale Logging Camp graveyard, at the far east of Elwynn Forest.\n\nThis will save a ton of time if "
+			.."you also intend doing \"A Time to Lose\" at the Stormwind front gate!"
+ns.stinkBombsLogoutA = "If you logout immediately after completion and while still in the Undercity then when you login you will "
+			.."respawn near here. Perfect for \"A Time to Lose\"!"
+ns.stinkBombsLogoutH = "If you logout immediately after completion and while still in Stormwind then when you login you will "
+			.."respawn here. Perfect for \"A Time to Break Down\"!"
+ns.taraezorTip = "Exclusive Taraezor tip! Pause to check your map while you are inside an inn near/with a candy bucket.\n\nYou "
+			.."want to stretch that rested bonus for as long as possible!"
+ns.taxi = "Use a taxi between Light's Hope Chapel and Tranquillien. For all of Ghostlands, Eversong Woods, Falconwing Square and "
+			.."Silvermoon City there is no flying. By far the best strategy is to commence from Light's Hope Chapel. Proceed then "
+			.."to Tranquillien etc, using taxis always. Saving Silvermoon City for last you may exit from there back to the Ruins "
+			.."of Lordaeron via a portal from the Orb of Translocation, in a room behind Lor'themar Theron's chambers"
+ns.theBazaar = "In the Wayfarer's Rest inn of The Bazaar"
+ns.theTradeQuarter = "The Trade Quarter in the Undercity, which is below the Ruins of Lordaeron"
+ns.timeDouse = "\n\nDo NOT try to target the Wickerman. Stand near it and click on your Dousing Agent. Immediately mount and hit "
+			.."\"space\" to fly straight up. Find somewhere safe to hearth or else do nearby Candy Buckets"
+ns.timeBreakDown1 = "Ideally, just as you finish your \"Stink Bombs Away!\" bombing run daily, you should immediately logout. "
+			.."Relogging places you at the Eastvale Logging Camp at the far east of Elwynn Forest.\n\n Approach from due east. Use "
+			.."the large tree and the ledge as cover. Stay away from the wall to avoid zoning out and adding to phasing problems. "
+			.."\n\nReports suggest activating Warmode will help but that might be troll suggestion too." ..ns.timeDouse			
+ns.timeBreakDown2 = "You will douse a Wickerman in front of the main gate into Stormwind. Pickup the quest here from Darkcaller "
+			.."Yanks.\n\n" ..ns.timeBreakDown1
+ns.timeToLose1 = "Ideally, just as you finish your \"Stink Bombs Away!\" bombing run daily, you should immediately logout. "
+			.."Relogging places you nearby the Ruins of Lordaeron, at the sewer entrance/exit.\n\nTake extra care as you have no "
+			.."ground cover. Hover far above then suddenly swoop down amd land on the narrow embankment near the bright green moat "
+			.."and on the southern side of the wickerman. Hug the wall. There is a pat above this ledge but you'll be out of line "
+			.."of sight." ..ns.timeDouse
+ns.timeToLose2 = "You will douse a Wickerman in the Ruins of Lordaeron. Pickup the quest here from Keira.\n\n" ..ns.timeToLose1
+ns.uldumPromo = "Within both the Cataclysm and current phases there's the opportunity to snare cool mounts. Please see my "
+			.."\"Springfur Alpaca\" and \"Mysterious Camel Figurine\" AddOns!"
+
+--==================================================================================================================================
+--
+-- KALIMDOR
+--
+--==================================================================================================================================
+
+ns.points[ ns.map.ashenvale ] = { -- Ashenvale
+	[02216659] = { candy=true, version=40000, faction="Alliance", achievements={ { id=963, index=21, version=60000, },
+					{ id=963, index=27, versionUnder=60000, }, },
+					quests={ { id=29012, qType="Seasonal", }, }, tip="Thal'darah Overlook", },
+	[13003410] = { candy=true, version=40000, faction="Horde", achievements={ { id=965, index=4, version=60000, }, 
+					{ id=965, index=21, versionUnder=60000, }, },
+					quests={ { id=28989, qType="Seasonal", }, }, tip="Zoram'gar Outpost", },
+	[13369829] = { candy=true, version=40000, faction="Horde",
+					achievements={ { id=965, index=25, version=60000, }, { id=965, index=9, versionUnder=60000, }, },
+					quests={ { id=12378, qType="Seasonal", }, }, tip=ns.jeeda, },
+	[22229064] = { candy=true, version=40000, faction="Alliance", achievements={ { id=963, index=22, version=60000, }, },
+					quests={ { id=29011, qType="Seasonal", }, }, tip="Fallowmere Inn, Windshear Hold", },
+	[29859870] = { candy=true, version=40000, faction="Horde", achievements={ { id=965, index=24, version=60000, },
+					{ id=965, index=22, versionUnder=60000, }, },
+					quests={ { id=29009, qType="Seasonal", }, }, tip="Inside the smallest building, Krom'gar Fortress", },
+	[37014926] = { candy=true, faction="Alliance", achievements={ { id=963, index=1, version=60000, }, -- or 7 or 11
+					{ id=963, index=4, version=40000, versionUnder=60000, }, { id=963, index=6, versionUnder=40000, }, },
+					quests={ { id=12345, qType="Seasonal", }, }, tip=ns.astranaar, },
+	[38654234] = { candy=true, version=40000, faction="Horde", achievements={ { id=965, index=1, version=60000, }, 
+					{ id=965, index=28, versionUnder=60000, }, },
+					quests={ { id=28958, qType="Seasonal", }, }, tip="Hellscream's Watch", },
+	[50256727] = { candy=true, version=40000, faction="Horde", achievements={ { id=965, index=2, version=60000, },
+					{ id=965, index=30, versionUnder=60000, }, },
+					quests={ { id=28953, qType="Seasonal", }, }, tip="Silverwind Refuge", },
+	[73966060] = { candy=true, faction="Horde", achievements={ { id=965, index=3, version=60000, },
+					{ id=965, index=5, version=40000, versionUnder=60000, }, -- or 4 or 7
+					{ id=965, index=6, versionUnder=40000, }, }, quests={ { id=12377, qType="Seasonal", }, },
+					tip="Follow the map pin for the correct building in Splintertree Post", },
+	[88269101] = { candy=true, version=40000, faction="Horde", achievements={ { id=965, index=18, version=60000, },
+					{ id=965, index=24, versionUnder=60000, }, },
+					quests={ { id=29003, qType="Seasonal", }, }, tip="Nozzlepot's Outpost", },
 }
 
--- =====================================
--- Eastern Kingdoms
--- =====================================
-
-local raptorHatchling = "Just nearby is an adorable raptor hatchling pet. It's oh so cute.\n"
-						.."Steal it from her mother's nest you heartless pet collector!\nOh, did I say that I have an AddOn to help you collect four?"
-
-points[ 14 ] = { -- Arathi Highlands
-	[40064909] = { aIDA=966, indexA=1, quest=28954, location="Refuge Point", tip="If you cannot see the candy bucket then you'll\n"
-						.."need to visit Zidormi. I marked her on the map." },
-	[38259009] = { aIDA=966, indexA=1, quest=28954, location="Refuge Point", tip="Zidormi is at this location. You'll probably\n"
-						.."need her for the Refuge Point candy bucket." },
-	[69023327] = { aIDH=967, indexH=1, quest=12380, location="Hammerfall", tip="Well if it's not outside then it must be..." },
-	[99462082] = { aIDH=967, indexH=5, quest=12387, location="Revantusk Village", tip="Inside the main (only) building" },
-}
-points[ 1417 ] = { -- Arathi Highlands
-	[73903260] = { aIDH=967, indexH=7, quest=12380, location="Hammerfall" },
-}
-points[ 15 ] = { -- Badlands
-	[20875632] = { aIDA=966, indexA=2, quest=28956, location="Dragon's Mouth" },
-	[65863565] = { aIDA=966, indexA=3, aIDH=967, indexH=2, quest=28955, location="Fuselight", tip="The apple bobbing tub is outside, the pumpkin is inside" },
-	[18364273] = { aIDH=967, indexH=3, quest=28957, location="New Kargath" },
-}
-points[ 1418 ] = { -- Badlands
-	[02904600] = { aIDH=967, indexH=16, quest=12385, location="Kargath" },
-}
-points[ 17 ] = { -- Blasted Lands
-	[60691407] = { aIDA=966, indexA=4, quest=28960, location="Nethergarde Keep", tip="Erm... mobs looking a bit too red, a bit too hostile for your\n"
-						.."liking? That'll be Zidormi you'll be needing. She's nearby.\nThe correct building is the one on the left of the main gate.\n"
-						.."When you enter, turn right and then left. Voilà!" },
-	[44348759] = { aIDA=966, indexA=5, quest=28961, location="Surwich", tip="Hey, fun trivia... see Garrod's house nearby? You\n"
-						.."won't get dismounted - you can fly around inside!\nOh yeah... Zidormi is not required for Surwich!" },
-	[40471128] = { aIDH=967, indexH=4, quest=28959, location="Dreadmaul Hold", tip="If the guards are hostile... It's a Zidormi problem, sigh. She'd just nearby!" },
-}
-points[ 36 ] = { -- Burning Steppes
-	[23450460] = { aIDA=966, indexA=18, aIDH=967, indexH=16, quest=28965, location="Iron Summit", tip="Outside, high up on a perimiter ledge" },
-	[65930100] = { aIDA=966, indexA=2, quest=28956, location="Dragon's Mouth" },
-}
-points[ 42 ] = { -- Deadwind Pass
-	[13043879] = { aIDA=966, indexA=8, quest=12344, location="Darkshire" },
-	[73715952] = { aIDH=967, indexH=4, quest=28959, location="Dreadmaul Hold" },
-	[78941265] = { aIDA=966, indexA=21, quest=28968, location="The Harborage" },
-	[78951265] = { aIDA=966, indexA=21, quest=28968, location="The Harborage" },
-	[96943727] = { aIDH=967, indexH=22, quest=12384, location="Stonard" },
-}
-points[ 27 ] = { -- Dun Morogh
-	[54495076] = { aIDA=966, indexA=7, quest=12332, location="Kharanos", tip="Inside the Thunderbrew Distillery at the eating area" },
-	[61172746] = { aIDA=966, indexA=13, quest=12335, location="The Commons", tip="Inside the Stonefire Tavern in The Commons" },
-	[68229619] = { aIDA=966, indexA=18, aIDH=967, indexH=16, quest=28965, location="Iron Summit", tip="Outside, high up on a perimiter ledge" },
-	[93998536] = { aIDH=967, indexH=3, quest=28957, location="New Kargath" },
-	[95569388] = { aIDA=966, indexA=2, quest=28956, location="Dragon's Mouth" },
-}
-points[ 1426 ] = { -- Dun Morogh
-	[45855090] = { aIDA=966, indexA=13, quest=12332, location="Kharanos", tip="Inside the Thunderbrew Distillery at the eating area" },
-	[51703410] = { aIDA=966, indexA=4, quest=12335, location="The Commons", tip="Inside the Stonefire Tavern in The Commons" },
-}
-points[ 47 ] = { -- Duskwood
-	[73804425] = { aIDA=966, indexA=8, quest=12344, location="Darkshire" },
-}
-points[ 1431 ] = { -- Duskwood
-	[73804425] = { aIDA=966, indexA=9, quest=12344, location="Darkshire" },
-}
-points[ 23 ] = { -- Eastern Plaguelands
-	[75575231] = { aIDA=966, indexA=9, aIDH=967, indexH=7, quest=12402, location="Light's Hope Chapel",
-						tip="Use a taxi between Light's Hope Chapel and Tranquillien" },
-}
-points[ 24 ] = { -- Light's Hope Chapel - Sanctum of Light
-	[40709036] = { aIDA=966, indexA=9, aIDH=967, indexH=7, quest=12402 },
-}
-points[ 1423 ] = { -- Eastern Plaguelands
-	[75905230] = { aIDA=966, indexA=3, aIDH=967, indexH=15, quest=12402, location="Light's Hope Chapel" },
-}
-points[ 37 ] = { -- Elwynn Forest
-	[43746589] = { aIDA=966, indexA=10, quest=12286, location="Goldshire" },
-	[24894013] = { aIDA=966, indexA=19, quest=12336 },
-	[32355088] = { aIDA=1040, indexA=1, daily=true, quest=29054, tip="Pickup the quest here from Gretchen Fenlow and\n"
-						.."then your broomstick taxi from Gertrude Fenlow,\nwho is nearby. Soon after completion you could\n"
-						.."consider logging out. You will respawn at the Scarlet\nWatchtower in Tirisfal Glades. This will save a lot\n"
-						.."of time if you also intend doing \"A Time to Lose\"" },									
-	[29694442] = { aIDA=1040, indexA=2, daily=true, quest=29144, tip="Pickup the quest from Gretchen Fenlow who is just outside\n"
-						.."the Stormwind gates. To see the orange plumes you must\nhave \"Particle Density\" at least minimally enabled. Go to\n"
-						.."System->Graphics->Effects. If you get debuffed then you\nmay cleanse yourself. Shapeshifting also works" },
-	[32095059] = { aIDA=1040, indexA=4, daily=true, quest=29371, tip="Pickup the quest here from Keira. See my travel notes for\n"
-						.."the quest \"Stink Bombs Away\". Take extra care as you\nwill have no ground/structure cover. My approach is to\n"
-						.."fly in from very high and then plummet straight down" },
-	[22133396] = { aIDH=1041, indexH=1, daily=true, quest=29374, tip="If you logout while in Stormwind you'll respawn nearby.\n"
-						.."Handy for doing \"A Time to Break Down\"" },
-	[34104740] = { aIDH=1041, indexH=4, daily=true, quest=29377, tip="The location of the Alliance Wickerman.\n"
-						.."Approach from due east. Use the large tree and the ledge\nas cover. Stay away from the wall to avoid zoning out and\n"
-						.."adding to phasing problems. Reports suggest activating\nWarmode in Orgrimmar will help in that respect. Do NOT\n"
-						.."try to target the Wickerman. Stand near it and click on\nyour Dousing Agent. Immediately mount and hit \"space\"\n"
-						.."to fly straight up" },
-	[31241227] = { aIDA=5837, indexA=1, quest=29020, location="Temple of Earth", tip="Through this portal for the Deepholm candy bucket.\n"
-						.."A Vashj'ir portal is closeby too!" },
-}
-points[ 1429 ] = { -- Elwynn Forest
-	[24894014] = { aIDA=966, indexA=2, quest=12336, location="Stormwind City" },
-	[43746589] = { aIDA=966, indexA=12, quest=12286, location="Goldshire" },
-}
-points[ 94 ] = { -- Eversong Woods
-	[43707103] = { aIDH=967, indexH=8, quest=12365, location="Fairbreeze Village", tip="Use a taxi between Fairbreeze Village and Tranquillien." },
-	[48204788] = { aIDH=967, indexH=9, quest=12364, location="Falconwing Square", tip="Go through the \"blue\" doorway" },
-	[55474495] = { aIDH=967, indexH=17, quest=12370, location="The Bazaar", tip="Wayfarer's Rest inn" },
-	[59294137] = { aIDH=967, indexH=18, quest=12369, location="The Royal Exchange", tip="Silvermoon City Inn" },
-}
-points[ 1941 ] = { -- Eversong Woods
-	[43707103] = { aIDH=967, indexH=8, quest=12365, location="Fairbreeze Village" },
-	[48204788] = { aIDH=967, indexH=14, quest=12364, location="Falconwing Square", tip="Go through the \"blue\" doorway" },
-	[55474495] = { aIDH=967, indexH=13, quest=12370, location="The Bazaar", tip="Wayfarer's Rest inn" },
-	[59294137] = { aIDH=967, indexH=2, quest=12369, location="The Royal Exchange", tip="Silvermoon City Inn" },
-}
-points[ 95 ] = { -- Ghostlands
-	[48683190] = { aIDH=967, indexH=10, quest=12373, location="Tranquillien", tip="Use a taxi between Light's Hope Chapel and Tranquillien.\n"
-						.."Use a taxi between Fairbreeze Village and Tranquillien." },
-}
-points[ 1942 ] = { -- Ghostlands
-	[48683190] = { aIDH=967, indexH=6, quest=12373, location="Tranquillien" },
-}
-points[ 25 ] = { -- Hillsbrad Foothills
-	[05361180] = { aIDH=967, indexH=19, quest=28966, location="Forsaken Rear Guard" },
-	[07223134] = { aIDH=967, indexH=20, quest=12371, location="The Sepulcher", tip="In the largest building" },
-	[57854727] = { aIDH=967, indexH=12, quest=12376, location="Tarren Mill", tip="Identical building design as Andorhal. Follow the map marker please." },
-	[60266374] = { aIDH=967, indexH=11, quest=28962, location="Eastpoint Tower", tip="Hooray! It's outdoors and a no-brainer to find. Wooooo!" },
-	[67841645] = { aIDA=966, indexA=22, quest=28988, location="Chillwind Camp" },
-	[81673576] = { aIDA=966, indexA=11, quest=12351, location="Aerie Peak", tip="The lowest level hillside building" },
-	[89878518] = { aIDA=966, indexA=1, quest=28954, location="Refuge Point" },
-	[95624627] = { aIDH=967, indexH=13, quest=28971, location="Hiri'watha Research Station" },
-}
-points[ 1424 ] = { -- Hillsbrad Foothills
-	[51105890] = { aIDA=966, indexA=11, quest=12346, location="Southshore" },
-	[62801900] = { aIDH=967, indexH=3, quest=12376, location="Tarren Mill" },
-}
-points[ 87 ] = { -- Ironforge
-	[18345094] = { aIDA=966, indexA=13, quest=12335, location="The Commons", tip="Inside the Stonefire Tavern in The Commons" },
-}
-points[ 1455 ] = { -- Ironforge
-	[18345094] = { aIDA=966, indexA=4, quest=12335, location="The Commons", tip="Inside the Stonefire Tavern in The Commons" },
-}
-points[ 48 ] = { -- Loch Modan
-	[83026353] = { aIDA=966, indexA=14, quest=28963, location="Farstrider Lodge" },
-	[35544850] = { aIDA=966, indexA=15, quest=12339, location="Thelsamar" },
-}
-points[ 1432 ] = { -- Loch Modan
-	[35544850] = { aIDA=966, indexA=8, quest=12339, location="Thelsamar" },
-}
-points[ 50 ] = { -- Northern Stranglethorn
-	[24838108] = { aIDH=967, indexH=6, quest=28969, tip="It's in the building next to the apple bobbing tub", location="Hardwrench Hideaway" },
-	[37385178] = { aIDH=967, indexH=15, quest=12382, location="Grom'gol Base Camp", tip="At the base of the zeppelin tower" },
-	[53166698] = { aIDA=966, indexA=16, quest=28964, location="Fort Livingston" },
-}
-points[ 49 ] = { -- Redridge Mountains
-	[26464150] = { aIDA=966, indexA=17, quest=12342, location="Lakeshire" },
-	[51699126] = { aIDA=966, indexA=21, quest=28968, location="The Harborage" },
-	[93407338] = { aIDA=966, indexA=20, aIDH=967, indexH=21, quest=28967, location="Bogpaddle" },
-}
-points[ 1433 ] = { -- Redridge Mountains
-	[27094492] = { aIDA=966, indexA=7, quest=12342, location="Lakeshire" },
-}
-points[ 32 ] = { -- Searing Gorge
-	[39486602] = { aIDA=966, indexA=18, aIDH=967, indexH=16, quest=28965, location="Iron Summit", tip="Outside, high up on a perimiter ledge" },
-	[96044224] = { aIDH=967, indexH=3, quest=28957, location="New Kargath" },
-	[99496094] = { aIDA=966, indexA=2, quest=28956, location="Dragon's Mouth" },
-}
-points[ 110 ] = { -- Silvermoon City
-	[38008479] = { aIDH=967, indexH=9, quest=12364, location="Falconwing Square", tip="Go through the \"blue\" doorway" },
-	[67597289] = { aIDH=967, indexH=17, quest=12370, location="The Bazaar", tip="Wayfarer's Rest inn" },
-	[70357702] = { aIDH=967, indexH=17, quest=12370, tip="Enter through here!" },
-	[79435765] = { aIDH=967, indexH=18, quest=12369, location="The Royal Exchange", tip="Silvermoon City Inn" },
-	[83125829] = { aIDH=967, indexH=18, quest=12369, tip="Enter through here!" },
-}
-points[ 1954 ] = { -- Silvermoon City
-	[38008479] = { aIDH=967, indexH=14, quest=12364, location="Falconwing Square", tip="Go through the \"blue\" doorway" },
-	[67597289] = { aIDH=967, indexH=13, quest=12370, location="The Bazaar", tip="Wayfarer's Rest inn" },
-	[70357702] = { aIDH=967, indexH=13, quest=12370, tip="Enter through here!" },
-	[79435765] = { aIDH=967, indexH=2, quest=12369, location="The Royal Exchange", tip="Silvermoon City Inn" },
-	[83125829] = { aIDH=967, indexH=2, quest=12369, tip="Enter through here!" },
-}
-points[ 21 ] = { -- Silverpine Forest
-	[44302028] = { aIDH=967, indexH=19, quest=28966, location="Forsaken Rear Guard" },
-	[46454291] = { aIDH=967, indexH=20, quest=12371, location="The Sepulcher", tip="In the largest building" },
-	[76830101] = { aIDH=967, indexH=11, quest=12368, location="The Trade Quarter" },
-	[99270001] = { aIDH=967, indexH=24, quest=28972, location="The Bulwark" },	
-}
-points[ 1421 ] = { -- Silverpine Forest
-	[43204140] = { aIDH=967, indexH=4, quest=12371, location="The Sepulcher" },
-}
-points[ 224 ] = { -- Stranglethorn Vale
-	[52094310] = { aIDA=966, indexA=16, quest=28964, location="Fort Livingston" },
-	[37907993] = { aIDA=966, indexA=6, aIDH=967, indexH=5, quest=12397, tip="It's in the Salty Sailor Tavern", location="Booty Bay" },
-	[42213359] = { aIDH=967, indexH=15, quest=12382, tip="At the base of the zeppelin tower", location="Grom'gol Base Camp" },
-	[34365192] = { aIDH=967, indexH=6, quest=28969, tip="It's in the building next to the apple bobbing tub", location="Hardwrench Hideaway" },
-	[88444023] = { aIDA=966, indexA=5, quest=28961, location="Surwich" },
-}
-points[ 1434 ] = { -- Stranglethorn Vale
-	[27107730] = { aIDA=966, indexA=1, aIDH=967, indexH=10, quest=12397, location="Booty Bay", tip="It's in the Salty Sailor Tavern" },
-	[31502970] = { aIDH=967, indexH=9, quest=12382, location="Grom'gol Base Camp" },
-}
-points[ 84 ] = { -- Stormwind City
-	[60517534] = { aIDA=966, indexA=19, quest=12336, location="Stormwind City" },
-	[75419681] = { aIDA=1040, indexA=1, daily=true, quest=29054, tip="Pickup the quest here from Gretchen Fenlow and\n"
-						.."then your broomstick taxi from Gertrude Fenlow,\nwho is nearby. Soon after completion you could\n"
-						.."consider logging out. You will respawn at the Scarlet\nWatchtower in Tirisfal Glades. This will save a ton\n"
-						.."of time if you also intend doing \"A Time to Lose\"" },									
-	[70108390] = { aIDA=1040, indexA=2, daily=true, quest=29144, tip="Pickup the quest from Gretchen Fenlow who is just outside\n"
-						.."the Stormwind gates. To see the orange plumes you must\nhave \"Particle Density\" at least minimally enabled. Go to\n"
-						.."System->Graphics->Effects. If you get debuffed then you\nmay cleanse yourself. Shapeshifting also works" },
-	[74889624] = { aIDA=1040, indexA=4, daily=true, quest=29371, tip="Pickup the quest here from Keira. See my travel notes for\n"
-						.."the quest \"Stink Bombs Away\". Take extra care as you\nwill have no ground/structure cover. My approach is to\n"
-						.."fly in from very high and then plummet straight down" },
-	[55006300] = { aIDH=1041, indexH=1, daily=true, quest=29374, tip="If you logout while in Stormwind you'll respawn at the\n"
-						.."Eastvale Logging Camp in Elwynn Forest. Handy for\ndoing \"A Time to Break Down\"" },
-	[78918986] = { aIDH=1041, indexH=4, daily=true, quest=29377, tip="The location of the Alliance Wickerman.\n"
-						.."Approach from due east. Use the large tree and the ledge\nas cover. Stay away from the wall to avoid zoning out and\n"
-						.."adding to phasing problems. Reports suggest activating\nWarmode in Orgrimmar will help in that respect. Do NOT\n"
-						.."try to target the Wickerman. Stand near it and click on\nyour Dousing Agent. Immediately mount and hit \"space\"\n"
-						.."to fly straight up" },
-	[73191967] = { aIDA=5837, indexA=1, quest=29020, location="Temple of Earth",
-						tip="Through this portal for the Deepholm candy bucket.\nA Vashj'ir portal is closeby too!" },
-}
-points[ 1453 ] = { -- Stormwind City
-	[60517534] = { aIDA=966, indexA=2, quest=12336, location="Stormwind City" },
-}
-points[ 51 ] = { -- Swamp of Sorrows
-	[23717910] = { aIDH=967, indexH=4, quest=28959, location="Dreadmaul Hold" },
-	[71651410] = { aIDA=966, indexA=20, aIDH=967, indexH=21, quest=28967, location="Bogpaddle" },
-	[28933240] = { aIDA=966, indexA=21, quest=28968, location="The Harborage",
-						tip="Hey, why not change the icons!\nESC->Interface->AddOns->HandyNotes->Plugins expand->Hallow's End" },
-	[46875693] = { aIDH=967, indexH=22, quest=12384, location="Stonard",
-						tip="Hey, why not change the icons!\nESC->Interface->AddOns->HandyNotes->Plugins expand->Hallow's End" },
-	[53238317] = { aIDA=966, indexA=4, quest=28960, location="Nethergarde Keep" },
-}
-points[ 1435 ] = { -- Swamp of Sorrows
-	[46885692] = { aIDH=967, indexH=1, quest=12384, location="Stonard" },
-}
-points[ 210 ] = { -- The Cape of Stranglethorn
-	[40917372] = { aIDA=966, indexA=6, aIDH=967, indexH=5, quest=12397, tip="It's in the Salty Sailor Tavern" },
-	[35042722] = { aIDH=967, indexH=6, quest=28969, location="Hardwrench Hideaway", tip="It's in the building next to the apple bobbing tub" },
-	[64481257] = { aIDA=966, indexA=16, quest=28964, location="Fort Livingston" },
-}
-points[ 26 ] = { -- The Hinterlands
-	[14194460] = { aIDA=966, indexA=11, quest=12351, location="Aerie Peak", tip="The lowest level hillside building" },
-	[66164443] = { aIDA=966, indexA=12, quest=28970, location="Stormfeather Outpost" },
-	[31805787] = { aIDH=967, indexH=13, quest=28971, location="Hiri'watha Research Station" },
-	[78198147] = { aIDH=967, indexH=14, quest=12387, location="Revantusk Village", tip="Inside the main (only) building" },
-}
-points[ 1425 ] = { -- The Hinterlands
-	[14194460] = { aIDA=966, indexA=6, quest=12351, location="Aerie Peak", tip="The lowest level hillside building" },
-	[50709272] = { aIDH=967, indexH=1, quest=12380, location="Hammerfall", tip="Well if it's not outside then it must be..." },
-	[78198147] = { aIDH=967, indexH=5, quest=12387, location="Revantusk Village", tip="Inside the main (only) building" },
-}
-points[ 18 ] = { -- Tirisfal Glades
-	[31959091] = { aIDH=967, indexH=19, quest=28966, location="Forsaken Rear Guard" },
-	[62197300] = { aIDH=967, indexH=25, quest=12368, location="The Trade Quarter", tip="In Undercity, which is below the Ruins of Lordaeron" },
-	[60995141] = { aIDH=967, indexH=23, quest=12363, location="Brill", tip="Brill might work as your Hearth for this event for an alt. Quick\n"
-						.."return from Elwynn after your dailies in Stormwind, plus the\nzeppelin post gets me to Kalimdor and Northrend for my Tricks\n"
-						.."and Treats circuit. Later I switch to Orgrimmar for Pandaria etc\nT&T accessibility. Using Brill avoids the annoying portal from\n"
-						.."Orgrimmar into Undercity" },
-	[83047207] = { aIDH=967, indexH=24, quest=28972, location="The Bulwark" },	
-	[62136702] = { aIDH=1041, indexH=1, daily=true, quest=29374, tip="Pickup the quest from Candace Fenlow, nearby, and\n"
-						.."get your instant taxi from Crina Fenlow. Soon after\ncompletion you could consider logging out. You will\n"
-						.."respawn at the Eastvale Logging Camp graveyard in\nElwynn Forest. This will save a ton of time if you also\n"
-						.."intend doing \"A Time to Break Down\"" },
-	[62436671] = { aIDH=1041, indexH=2, daily=true, quest=29375, tip="Pickup the quest from Candace Fenlow. To see the orange\n"
-						.."plumes you must have \"Particle Density\" at least\nminimally enabled. Go to System->Graphics->Effects. If\n"
-						.."you get debuffed then you may cleanse yourself.\nShapeshifting also works" },
-	[66606200] = { aIDH=1041, indexH=2, daily=true, quest=29375, tip="If things are not \"peaceful\" then do NOT attempt to\n"
-						.."enter Lordaeron. Speak to Zidormi who is nearby" },
-	[62126783] = { aIDH=1041, indexH=4, daily=true, quest=29377, tip="Pickup the quest here from Darkcaller Yanks. See my travel\n"
-						.."notes for the quest \"Stink Bombs Away\". Approach from\nthe east, hugging the terrain. A large tree will cover your\n"
-						.."final approach" },
-	[61508110] = { aIDA=1040, indexA=1, daily=true, quest=29054, tip="If you logout while in Undercity you'll respawn nearby.\n"
-						.."Handy for doing \"A Time to Lose\"" },
-	[62406820] = { aIDA=1040, indexA=4, daily=true, quest=29371, tip="The location of the Horde Wickerman.\n"
-						.."Approach from as high up as possible. Plummet down.\nLand between the Wickerman and the wall, preferably\n"
-						.."with a pillar providing a little cover. The pillar where\nthe green bubbling liquid begins is perfect. Do NOT\n"
-						.."try to target the Wickerman. Stand near it and click\non your Dousing Agent. Immediately mount and hit\n"
-						.."\"space\" to fly straight up" },
-	[99189591] = { aIDA=966, indexA=22, quest=28988, neighbour=true, location="Chillwind Camp" },
-}
-points[ 1420 ] = { -- Tirisfal Glades
-	[62197300] = { aIDH=967, indexH=11, quest=12368, location="The Trade Quarter", tip="In Undercity, which is below the Ruins of Lordaeron" },
-	[61805220] = { aIDH=967, indexH=12, quest=12363, location="Brill" },
-}
-points[ 90 ] = { -- Undercity
-	[67753742] = { aIDH=967, indexH=25, quest=12368, location="The Trade Quarter", tip="In Undercity, which is below the Ruins of Lordaeron" },
-	[76503301] = { aIDH=1041, indexH=2, daily=true, quest=29375, tip="To see the orange plumes you must have \"Particle Density\"\n"
-						.."at least minimally enabled via System->Graphics->Effects" },
-	[75703300] = { aIDA=1040, indexA=1, daily=true, quest=29054, tip="If you logout while in Undercity you'll respawn nearby.\n"
-						.."Handy for doing \"A Time to Lose\"" },
-	[76105320] = { aIDA=1040, indexA=4, daily=true, quest=29371, tip="Logout while in Undercity doing \"Stink Bombs "
-						.."Away\"\nfor faster travelling back to Lordaeron" },
-}
-points[ 1458 ] = { -- Undercity
-	[67763741] = { aIDH=967, indexH=11, quest=12368, location="The Trade Quarter" },
-}
-points[ 22 ] = { -- Western Plaguelands
-	[03243760] = { aIDH=967, indexH=23, quest=12363, location="Brill" },
-	[04506029] = { aIDH=967, indexH=11, quest=12368, location="The Trade Quarter" },
-	[26425931] = { aIDH=967, indexH=24, quest=28972, location="The Bulwark" },	
-	[43388437] = { aIDA=966, indexA=22, quest=28988, location="Chillwind Camp" },
-	[48286365] = { aIDH=967, indexH=26, quest=28987, location="Andorhal", tip="Impossible to describe. Trust in the coordinates / map marker please!" },
-}
-points[ 52 ] = { -- Westfall
-	[52915374] = { aIDA=966, indexA=25, quest=12340, location="Sentinel Hill",
-						tip="In the Inn or atop the tower, depending upon your quest phase.\nThis map marker is for the inn" },
-}
-points[ 1436 ] = { -- Westfall
-	[52915360] = { aIDA=966, indexA=5, quest=12340, location="Sentinel Hill" },
-}
-points[ 56 ] = { -- Wetlands
-	[10836099] = { aIDA=966, indexA=23, quest=12343, location="Menethil Harbor", tip="Don't go into the big fort/castle. Go around the back to the inn" },
-	[11349760] = { aIDA=966, indexA=13, quest=12335, location="The Commons", tip="Inside the Stonefire Tavern in The Commons" },
-	[26072598] = { aIDA=966, indexA=24, quest=28990, location="Swiftgear Station" },
-	[58213920] = { aIDA=966, indexA=26, quest=28991, location="Greenwarden's Grove", tip=raptorHatchling },
-}
-points[ 1437 ] = { -- Wetlands
-	[10836099] = { aIDA=966, indexA=10, quest=12343, location="Menethil Harbor", tip=raptorHatchling },
+ns.points[ ns.map.azshara ] = { -- Azshara
+	[57115017] = { candy=true, version=40000, faction="Horde", achievements={ { id=965, index=5, version=60000, }, 
+					{ id=965, index=25, versionUnder=60000, }, },
+					quests={ { id=28992, qType="Seasonal", }, }, guide=ns.taraezorTip, tip="Bilgewater Harbor", },
 }
 
--- ============================
--- Outland
--- ============================
+ns.points[ ns.map.azuremyst ] = { -- Azuremyst Isle
+	[29293485] = { candy=true, faction="Alliance", achievements={ { id=963, index=9, version=60000, }, -- or 4, 10
+					{ id=963, index=5, version=40000, versionUnder=60000, }, { id=963, index=7, versionUnder=40000, }, },
+					quests={ { id=12337, qType="Seasonal", }, }, tip="Seat of the Naaru, in the Exodar", },
+	[48494905] = { candy=true, faction="Alliance", achievements={ { id=963, index=2, version=60000, },
+					{ id=963, index=7, version=40000, versionUnder=60000, }, { id=963, index=2, versionUnder=40000, }, }, -- 3, 8 
+					quests={ { id=12333, qType="Seasonal", }, }, tip="Azure Watch", },
+	[49205140] = ns.fireSetA,
+}
 
-points[ 105 ] = { -- Blade's Edge Mountains
-	[27239263] = { aIDA=969, indexA=14, quest=12355, location="Orebor Harborage", tip="Inside the building with the mailbox" },
-	[35836373] = { aIDA=969, indexA=2, quest=12358, location="Sylvanaar", tip="At the rear of the inn, behind the main building" },
-	[53435555] = { aIDH=968, indexH=3, quest=12393, location="Thunderlord Stronghold", tip="Inside the main building" },
-	[61056808] = { aIDA=969, indexA=3, quest=12359, location="Toshley's Station", tip="At the rear of the inn. he building has a mailbox" },
-	[62903833] = { aIDA=969, indexA=1, aIDH=968, indexH=1, quest=12406, location="Evergrove", tip="Inside the inn, mailbox at the front" },
-	[76226039] = { aIDH=968, indexH=2, quest=12394, location="Mok'Nathal Village", tip="Inside the main building" },
-	[94893725] = { aIDA=969, indexA=7, aIDH=968, indexH=7, quest=12407, location="Area 52", tip="A little inside the main building" },
+ns.points[ ns.map.bloodmyst ] = { -- Bloodmyst Isle
+	[55695997] = { candy=true, faction="Alliance", achievements={ { id=963, index=3, version=40000, },
+					{ id=963, index=5, versionUnder=40000, }, },
+					quests={ { id=12341, qType="Seasonal", }, }, tip="Blood Watch", }, -- 5 or 12
 }
-points[ 1949 ] = { -- Blade's Edge Mountains
-	[27239263] = { aIDA=969, indexA=1, quest=12355, location="Orebor Harborage", tip="Inside the building with the mailbox" },
-	[35836373] = { aIDA=969, indexA=15, quest=12358, location="Sylvanaar", tip="At the rear of the inn, behind the main building" },
-	[53435555] = { aIDH=968, indexH=11, quest=12393, location="Thunderlord Stronghold", tip="Inside the main building" },
-	[61056808] = { aIDA=969, indexA=14, quest=12359, location="Toshley's Station", tip="At the rear of the inn. he building has a mailbox" },
-	[62903833] = { aIDA=969, indexA=8, aIDH=968, indexH=14, quest=12406, location="Evergrove", tip="Inside the inn, mailbox at the front" },
-	[76226039] = { aIDH=968, indexH=3, quest=12394, location="Mok'Nathal Village", tip="Inside the main building" },
-	[94893725] = { aIDA=969, indexA=7, aIDH=968, indexH=13, quest=12407, location="Area 52", tip="A little inside the main building" },
+
+ns.points[ ns.map.darkshore ] = { -- Darkshore
+	[37004410] = { candy=true, versionUnder=40000, faction="Alliance", achievements={ { id=963, index=1, }, }, 
+					quests={ { id=12338, qType="Seasonal", }, }, guide=ns.taraezorTip, tip="Auberdine", }, -- 6 or 16
+	[50791890] = { candy=true, version=40000, faction="Alliance", achievements={ { id=963, index=4, version=60000, },
+					{ id=963, index=28, versionUnder=60000, }, },
+					quests={ { id=28951, qType="Seasonal", }, }, guide=ns.taraezorTip, tip="Lor'danel", },
+	[60665005] = { candy=true, version=40000, achievements={ { id=963, index=11, faction="Alliance", version=60000, },
+					{ id=963, index=25, faction="Alliance", versionUnder=60000, },
+					{ id=965, index=11, faction="Horde", version=60000, },
+					{ id=965, index=19, faction="Horde", versionUnder=60000, }, },
+					quests={ { id=28994, qType="Seasonal", }, }, noZidormi=true, tip="Whisperwind Grove", },
+	[73277154] = { candy=true, version=40000, achievements={ { id=5837, index=2, faction="Alliance", },
+					{ id=5838, index=2, faction="Horde", }, },
+					quests={ { id=29000, qType="Seasonal", }, }, noZidormi=true, tip="Grove of Aessina", },
+	[76874791] = { candy=true, version=40000, faction="Alliance",
+					achievements={ { id=963, index=10, version=60000, }, { id=963, index=24, versionUnder=60000, }, },
+					quests={ { id=28995, qType="Seasonal", }, }, noZidormi=true, tip="Talonbranch Glade", },
+	[89077706] = { candy=true, version=40000, achievements={ { id=5837, index=4, faction="Alliance", version=60000, },
+					{ id=5837, index=13, faction="Alliance", versionUnder=60000, },
+					{ id=5838, index=4, faction="Horde", version=60000, },
+					{ id=5838, index=1, faction="Horde", versionUnder=60000, }, },
+					quests={ { id=29001, qType="Seasonal", }, }, noZidormi=true, tip="Shrine of Aviana", },
 }
-points[ 100 ] = { -- Hellfire Peninsula
-	[00164803] = { aIDA=969, indexA=13, aIDH=968, indexH=14, quest=12403, location="Cenarion Refuge", tip="Inside the main building" },
-	[23423637] = { aIDA=969, indexA=5, quest=12353, location="Temple of Telhamat", tip="In the main building at the end of the promenade" },
-	[26895947] = { aIDH=968, indexH=4, quest=12389, location="Falcon Watch", tip="In the lower, domed building" },
-	[54256368] = { aIDA=969, indexA=4, quest=12352, location="Honor Hold", tip="In the inn, mailbox at the front" },
-	[56813745] = { aIDH=968, indexH=5, quest=12388, location="Thrallmar", tip="In the smaller of the two main buildings" },
+
+ns.points[ ns.map.darnassus ] = { -- Darnassus
+	[62283315] = { candy=true, version=40000, faction="Alliance", achievements={ { id=963, index=5, version=60000, }, 
+					{ id=963, index=14, versionUnder=60000, }, },
+					quests={ { id=12334, qType="Seasonal", }, }, tip="Craftsmen's Terrace", },
+	[67401560] = { candy=true, versionUnder=40000, faction="Alliance", achievements={ { id=963, index=16, }, }, -- or 2 or 1
+					quests={ { id=12334, qType="Seasonal", }, }, tip="Craftsmen's Terrace", },
 }
-points[ 1944 ] = { -- Hellfire Peninsula
-	[00164803] = { aIDA=969, indexA=2, aIDH=968, indexH=2, quest=12403, location="Cenarion Refuge", tip="Inside the main building" },
-	[23423637] = { aIDA=969, indexA=12, quest=12353, location="Temple of Telhamat", tip="In the main building at the end of the promenade" },
-	[26895947] = { aIDH=968, indexH=6, quest=12389, location="Falcon Watch", tip="In the lower, domed building" },
-	[54256368] = { aIDA=969, indexA=13, quest=12352, location="Honor Hold", tip="In the inn, mailbox at the front" },
-	[56813745] = { aIDH=968, indexH=9, quest=12388, location="Thrallmar", tip="In the smaller of the two main buildings" },
+
+ns.points[ ns.map.desolace ] = { -- Desolace
+	[24076829] = { candy=true, faction="Horde", achievements={ { id=965, index=7, version=60000, }, -- 15 or 4
+					{ id=965, index=2, version=40000, versionUnder=60000, }, { id=965, index=3, versionUnder=40000, }, },
+					quests={ { id=12381, qType="Seasonal", }, }, tip="Shadowprey Village", },
+	[56725012] = { candy=true, version=40000, achievements={ { id=963, index=6, faction="Alliance", version=60000, }, 
+					{ id=963, index=26, faction="Alliance", versionUnder=60000, },
+					{ id=965, index=6, faction="Horde", version=60000, },
+					{ id=965, index=20, faction="Horde", versionUnder=60000, }, },
+					quests={ { id=28993, qType="Seasonal", }, }, tip="Karnum's Glade", },
+	[66330659] = { candy=true, faction="Alliance", achievements={ { id=963, index=7, version=60000, }, -- 10, 14
+					{ id=963, index=1, version=40000, versionUnder=60000, }, { id=963, index=3, versionUnder=40000, }, },
+					quests={ { id=12348, qType="Seasonal", }, }, tip="Nigel's Point", },					
+	[93265850] = { candy=true, faction="Horde", achievements={ { id=965, index=28, version=60000, },
+					{ id=965, index=15, version=40000, versionUnder=60000, }, { id=965, index=17, versionUnder=40000, }, },
+					quests={ { id=12367, qType="Seasonal", }, }, tip=ns.lowerRise, }, -- or 16, 10
 }
-points[ 107 ] = { -- Nagrand
-	[54197588] = { aIDA=969, indexA=6, quest=12357, location="Telaar", tip="Below the Flight Master.\nIf mobs are orange it's still okay" },
-	[56683448] = { aIDH=968, indexH=6, quest=12392, location="Garadar", tip="At the centre of the huge round building.\nIf mobs are orange it's still okay." },
-	[81985275] = { aIDA=969, indexA=11, aIDH=968, indexH=11, quest=12404, location="Aldor Rise",
-						tip="You must be Aldor but... if absolutely neutral then your choice" },
-	[86240582] = { aIDA=969, indexA=13, aIDH=968, indexH=14, quest=12403, location="Cenarion Refuge", tip="Inside the main building" },
-	[88626052] = { aIDA=969, indexA=11, aIDH=968, indexH=11, quest=12404, location="Scryer's Tier",
-						tip="You must be Scryer but... if absolutely neutral then your choice" },
+
+ns.points[ ns.map.durotar ] = { -- Durotar
+	[52604120] = ns.fireSetH,	
+	[12876288] = { candy=true, version=40000, faction="Horde", achievements={ { id=965, index=16, version=60000, },
+					{ id=965, index=11, versionUnder=60000, }, },
+					quests={ { id=12374, qType="Seasonal", }, }, tip="The Crossroads", },
+	[52002990] = { candy=true, versionUnder=40000, faction="Horde", achievements={ { id=965, index=12, }, },
+					quests={ { id=12374, qType="Seasonal", }, }, tip="The Crossroads", }, -- or 6, 13
+	[20144344] = { candy=true, version=40000, faction="Horde", achievements={ { id=965, index=17, version=60000, },
+					{ id=965, index=29, versionUnder=60000, }, },
+					quests={ { id=29002, qType="Seasonal", }, }, tip="Grol'dom Farm", },
+	[26991798] = { candy=true, version=40000, faction="Horde", achievements={ { id=965, index=18, version=60000, },
+					{ id=965, index=24, versionUnder=60000, }, },
+					quests={ { id=29003, qType="Seasonal", }, }, tip="Nozzlepot's Outpost", },
+	[32248109] = { candy=true, version=40000, achievements={ { id=963, index=14, faction="Alliance", version=60000, },
+					{ id=963, index=10, faction="Alliance", versionUnder=60000, },
+					{ id=965, index=19, faction="Horde", version=60000, },
+					{ id=965, index=7, faction="Horde", versionUnder=60000, }, },
+					quests={ { id=12396, qType="Seasonal", }, }, tip="Ratchet\n\n" ..ns.raptorHatchling, },
+	[46940672] = { candy=true, faction="Horde", achievements={ { id=965, index=20, version=60000, },
+					{ id=965, index=1, version=40000, versionUnder=60000, },
+					{ id=965, index=2, versionUnder=40000, }, }, -- or 1, 3
+					quests={ { id=12366, qType="Seasonal", }, }, tip="Valley of Strength", },
+	[51544158] = { candy=true, version=40000, faction="Horde", achievements={ { id=965, index=8, }, },
+					quests={ { id=12361, qType="Seasonal", }, }, tip="Razor Hill", },
+	[51604170] = { candy=true, versionUnder=40000, faction="Horde", achievements={ { id=965, index=9, }, }, -- or 2, 1
+					quests={ { id=12361, qType="Seasonal", }, }, tip="Razor Hill", },
 }
-points[ 1951 ] = { -- Nagrand
-	[54197588] = { aIDA=969, indexA=3, quest=12357, location="Telaar", tip="Below the Flight Master.\nIf mobs are orange it's still okay" },
-	[56683448] = { aIDH=968, indexH=1, quest=12392, location="Garadar", tip="At the centre of the huge round building.\nIf mobs are orange it's still okay." },
-	[81985275] = { aIDA=969, indexA=11, aIDH=968, indexH=11, quest=12404, location="Aldor Rise",
-						tip="You must be Aldor but... if absolutely neutral then your choice" },
-	[86240582] = { aIDA=969, indexA=2, aIDH=968, indexH=2, quest=12403, location="Cenarion Refuge", tip="Inside the main building" },
-	[88626052] = { aIDA=969, indexA=11, aIDH=968, indexH=11, quest=12404, location="Scryer's Tier",
-						tip="You must be Scryer but... if absolutely neutral then your choice" },
+
+ns.points[ ns.map.dustwallow ] = { -- Dustwallow Marsh
+	[13073393] = { candy=true, version=40000, faction="Horde", achievements={ { id=965, index=22, version=60000, },
+					{ id=965, index=23, versionUnder=60000, }, noZidormi=true, },
+					quests={ { id=29005, qType="Seasonal", }, }, tip="Desolation Hold", },
+	[24843279] = { candy=true, version=40000, faction="Alliance", achievements={ { id=963, index=16, version=60000, }, 
+					{ id=963, index=22, versionUnder=60000, }, },
+					quests={ { id=29008, qType="Seasonal", }, }, noZidormi=true, tip="Fort Triumph", },
+	[36783244] = { candy=true, faction="Horde", achievements={ { id=965, index=9, version=60000, },
+					{ id=965, index=10, version=40000, versionUnder=60000, }, { id=965, index=11, versionUnder=40000, }, },
+					quests={ { id=12383, qType="Seasonal", }, }, noZidormi=true, tip="Brackenwall Village", }, -- or 9, 12
+	[41867409] = { candy=true, achievements={ { id=963, index=8, faction="Alliance", version=60000, },
+					{ id=963, index=2, faction="Alliance", version=40000, versionUnder=60000, },
+					{ id=963, index=4, faction="Alliance", versionUnder=40000, }, -- or 13, 13
+					{ id=965, index=10, faction="Horde", version=60000, },
+					{ id=965, index=14, faction="Horde", version=40000, versionUnder=60000, }, 
+					{ id=965, index=16, faction="Horde", versionUnder=40000, }, }, -- or 10, 17
+					quests={ { id=12398, qType="Seasonal", }, }, noZidormi=true, tip=ns.mudsprocket, },
+	[48220178] = { candy=true, version=40000, faction="Alliance", achievements={ { id=963, index=18, version=60000, },
+					{ id=963, index=20, versionUnder=60000, }, },
+					quests={ { id=29007, qType="Seasonal", }, }, noZidormi=true, tip="Northwatch Hold", },
+	[66604528] = { candy=true, faction="Alliance", -- or 12, 2
+					achievements={ { id=963, index=13, version=40000, }, { id=963, index=15, versionUnder=40000, }, },
+					quests={ { id=12349, qType="Seasonal", }, }, tip="Inside the inn, Theramore Isle", },
 }
-points[ 109 ] = { -- Netherstorm
-	[00906549] = { aIDA=969, indexA=1, aIDH=968, indexH=1, quest=12406, location="Evergrove", tip="Inside the inn, mailbox at the front" },
-	[13858696] = { aIDH=968, indexH=2, quest=12394, location="Mok'Nathal Village", tip="Inside the main building" },
-	[32026444] = { aIDA=969, indexA=7, aIDH=968, indexH=7, quest=12407, location="Area 52", tip="A little inside the main building" },
-	[43313609] = { aIDA=969, indexA=8, aIDH=968, indexH=8, quest=12408, location="The Stormspire", tip="Fly high up. Inside the lowest building" },
+
+ns.points[ ns.map.felwood ] = { -- Felwood
+	[13989589] = { candy=true, version=40000, faction="Horde", achievements={ { id=965, index=4, version=60000, }, 
+					{ id=965, index=21, versionUnder=60000, }, },
+					quests={ { id=28989, qType="Seasonal", }, }, tip="Zoram'gar Outpost", },
+	[44582899] = { candy=true, version=40000, achievements={ { id=963, index=11, faction="Alliance", version=60000, },
+					{ id=963, index=25, faction="Alliance", versionUnder=60000, },
+					{ id=965, index=11, faction="Horde", version=60000, },
+					{ id=965, index=19, faction="Horde", versionUnder=60000, }, },
+					quests={ { id=28994, qType="Seasonal", }, }, tip="Whisperwind Grove", },
+	[58035192] = { candy=true, version=40000, achievements={ { id=5837, index=2, faction="Alliance", },
+					{ id=5838, index=2, faction="Horde", }, },
+					quests={ { id=29000, qType="Seasonal", }, }, tip="Grove of Aessina", },
+	[61862671] = { candy=true, version=40000, faction="Alliance",
+					achievements={ { id=963, index=10, version=60000, }, { id=963, index=24, versionUnder=60000, }, },
+					quests={ { id=28995, qType="Seasonal", }, }, tip="Talonbranch Glade", }, 
+	[74875780] = { candy=true, version=40000, achievements={ { id=5837, index=4, faction="Alliance", version=60000, },
+					{ id=5837, index=13, faction="Alliance", versionUnder=60000, },
+					{ id=5838, index=4, faction="Horde", version=60000, },
+					{ id=5838, index=1, faction="Horde", versionUnder=60000, }, },
+					quests={ { id=29001, qType="Seasonal", }, }, tip="Shrine of Aviana", },
+	[89144269] = { candy=true, version=40000, achievements={ { id=5837, index=3, faction="Alliance", version=60000, },
+					{ id=5837, index=10, faction="Alliance", versionUnder=60000, },
+					{ id=5838, index=3, faction="Horde", version=60000, },
+					{ id=5838, index=12, faction="Horde", versionUnder=60000, }, },
+					quests={ { id=28999, qType="Seasonal", }, }, tip="Nordrassil", },
 }
-points[ 1953 ] = { -- Netherstorm
-	[00906549] = { aIDA=969, indexA=8, aIDH=968, indexH=14, quest=12406, location="Evergrove", tip="Inside the inn, mailbox at the front" },
-	[13858696] = { aIDH=968, indexH=3, quest=12394, location="Mok'Nathal Village", tip="Inside the main building" },
-	[32026444] = { aIDA=969, indexA=7, aIDH=968, indexH=13, quest=12407, location="Area 52", tip="A little inside the main building" },
-	[43313609] = { aIDA=969, indexA=6, aIDH=968, indexH=5, quest=12408, location="The Stormspire", tip="Fly high up. Inside the lowest building" },
+
+ns.points[ ns.map.feralas ] = { -- Feralas
+	[30904340] = { candy=true, versionUnder=40000, faction="Alliance", -- or 15, 3
+					achievements={ { id=963, index=14, }, },
+					quests={ { id=12350, qType="Seasonal", }, }, tip="Feathemoon Stronghold", },
+	[41451568] = { candy=true, version=40000, faction="Horde", achievements={ { id=965, index=12, version=60000, },
+					{ id=965, index=27, versionUnder=60000, }, },
+					quests={ { id=28996, qType="Seasonal", }, }, tip="Camp Ataya", },
+	[46334519] = { candy=true, version=40000, faction="Alliance", achievements={ { id=963, index=13, version=60000, },
+					{ id=963, index=12, versionUnder=60000, }, },
+					quests={ { id=12350, qType="Seasonal", }, }, tip="Feathemoon Stronghold", },
+	[51071781] = { candy=true, version=40000, faction="Alliance", achievements={ { id=963, index=12, version=60000, },
+					{ id=963, index=23, versionUnder=60000, }, },
+					quests={ { id=28952, qType="Seasonal", }, }, tip="Dreamer's Rest", },
+	[51974764] = { candy=true, version=40000, faction="Horde", achievements={ { id=965, index=14, version=60000, },
+					{ id=965, index=26, versionUnder=60000, }, },
+					quests={ { id=28998, qType="Seasonal", }, }, tip="Stonemaul Hold", },
+	[67769716] = { candy=true, version=40000, achievements={ { id=963, index=15, faction="Alliance", version=60000, },
+					{ id=963, index=9, faction="Alliance", versionUnder=60000, },
+					{ id=965, index=21, faction="Horde", version=60000, },
+					{ id=965, index=3, faction="Horde", versionUnder=60000, }, },
+					quests={ { id=12401, qType="Seasonal", }, }, tip=ns.cenarion, },
+	[74834514] = { candy=true, faction="Horde", achievements={ { id=965, index=13, version=60000, }, -- or 14, 6
+					{ id=965, index=4, version=40000, versionUnder=60000, }, { id=965, index=5, versionUnder=40000, }, },
+					quests={ { id=12386, qType="Seasonal", }, }, tip="Camp Mojache", },
+	[83270000] = { candy=true, version=40000, faction="Horde", achievements={ { id=965, index=15, version=60000, }, 
+					{ id=965, index=6, versionUnder=60000, }, },
+					quests={ { id=12362, qType="Seasonal", }, }, tip="Bloodhoof Village", },
 }
-points[ 104 ] = { -- Shadowmoon Valley
-	[30272770] = { aIDH=968, indexH=10, quest=12395, location="Shadowmoon Village", tip="In the main building" },
-	[37015829] = { aIDA=969, indexA=10, quest=12360, location="Wildhammer Stronghold",
-						tip="In the dining area of the Kharanos-style inn with\nbrewing iconography. Don't enter the big building" },
-	[56375982] = { aIDA=969, indexA=9, aIDH=968, indexH=9, quest=12409, location="Sanctum of the Stars",
-						tip="You must be Scryer but... if absolutely neutral then your choice." },
-	[61002817] = { aIDA=969, indexA=9, aIDH=968, indexH=9, quest=12409, location="Altar of Sha'tar",
-						tip="You must be Aldor but... if absolutely neutral then your choice." },
+
+ns.points[ ns.map.mulgore ] = { -- Mulgore
+	[05738321] = { candy=true, version=40000, faction="Alliance", achievements={ { id=963, index=12, version=60000, },
+					{ id=963, index=23, versionUnder=60000, }, },
+					quests={ { id=28952, qType="Seasonal", }, }, tip="Dreamer's Rest", },
+	[09562427] = { candy=true, version=40000, achievements={ { id=963, index=6, faction="Alliance", version=60000, }, 
+					{ id=963, index=26, faction="Alliance", versionUnder=60000, },
+					{ id=965, index=6, faction="Horde", version=60000, },
+					{ id=965, index=20, faction="Horde", versionUnder=60000, }, },
+					quests={ { id=28993, qType="Seasonal", }, }, tip="Karnum's Glade", },
+	[39703118] = { candy=true, faction="Horde", achievements={ { id=965, index=28, version=60000, },
+					{ id=965, index=15, version=40000, versionUnder=60000, }, { id=965, index=17, versionUnder=40000, }, },
+					quests={ { id=12367, qType="Seasonal", }, }, tip=ns.lowerRise, }, -- or 16, 10
+	[46796041] = { candy=true, faction="Horde", achievements={ { id=965, index=15, version=60000, }, -- Or 17, 8
+					{ id=965, index=6, version=40000, versionUnder=60000, }, { id=965, index=7, versionUnder=40000, }, },
+					quests={ { id=12362, qType="Seasonal", }, }, tip="Bloodhoof Village", },
+	[68620468] = { candy=true, version=40000, faction="Alliance", achievements={ { id=963, index=17, version=60000, },
+					{ id=963, index=21, versionUnder=60000, }, },
+					quests={ { id=29006, qType="Seasonal", }, }, tip="Honor's Stand", },
+	[69001706] = { candy=true, version=40000, faction="Horde", achievements={ { id=965, index=23, version=60000, }, 
+					{ id=965, index=6, versionUnder=60000, }, },
+					quests={ { id=29004, qType="Seasonal", }, }, tip="Hunter's Hill", },
+	[70928401] = { candy=true, version=40000, faction="Horde", achievements={ { id=965, index=22, version=60000, },
+					{ id=965, index=23, versionUnder=60000, }, },
+					quests={ { id=29005, qType="Seasonal", }, }, tip="Desolation Hold", },
+	[82268291] = { candy=true, version=40000, faction="Alliance", achievements={ { id=963, index=16, version=60000, }, 
+					{ id=963, index=22, versionUnder=60000, }, },
+					quests={ { id=29008, qType="Seasonal", }, }, tip="Fort Triumph", },
+	[88940659] = { candy=true, version=40000, faction="Horde", achievements={ { id=965, index=16, version=60000, },
+					{ id=965, index=11, versionUnder=60000, }, },
+					quests={ { id=12374, qType="Seasonal", }, }, tip="The Crossroads", },
+	[93768257] = { candy=true, faction="Horde", achievements={ { id=965, index=9, version=60000, },
+					{ id=965, index=10, version=40000, versionUnder=60000, }, { id=965, index=11, versionUnder=40000, }, },
+					quests={ { id=12383, qType="Seasonal", }, }, tip="Brackenwall Village", }, -- or 9, 12
 }
-points[ 1948 ] = { -- Shadowmoon Valley
-	[30272770] = { aIDH=968, indexH=8, quest=12395, location="Shadowmoon Village", tip="In the main building" },
-	[37015829] = { aIDA=969, indexA=5, quest=12360, location="Wildhammer Stronghold",
-						tip="In the dining area of the Kharanos-style inn with\nbrewing iconography. Don't enter the big building" },
-	[56375982] = { aIDA=969, indexA=4, aIDH=968, indexH=4, quest=12409, location="Sanctum of the Stars",
-						tip="You must be Scryer but... if absolutely neutral then your choice." },
-	[61002817] = { aIDA=969, indexA=4, aIDH=968, indexH=4, quest=12409, location="Altar of Sha'tar",
-						tip="You must be Aldor but... if absolutely neutral then your choice." },
+
+ns.points[ ns.map.barrens ] = { -- Northern Barrens (Retail) / The Barrens (Classic Cata)
+	[02818123] = { candy=true, faction="Horde", achievements={ { id=965, index=28, version=60000, },
+					{ id=965, index=15, version=40000, versionUnder=60000, },
+					{ id=965, index=17, versionUnder=40000, }, }, -- or 16, 10
+					quests={ { id=12367, qType="Seasonal", }, }, tip=ns.lowerRise, },
+	[03892430] = { candy=true, version=40000, faction="Horde", achievements={ { id=965, index=24, version=60000, },
+					{ id=965, index=22, versionUnder=60000, }, },
+					quests={ { id=29009, qType="Seasonal", }, }, tip="Inside the smallest building, Krom'gar Fortress", },
+	[08533959] = { candy=true, version=40000, faction="Alliance", achievements={ { id=963, index=20, version=60000, }, 
+					{ id=963, index=18, versionUnder=60000, }, },
+					quests={ { id=29010, qType="Seasonal", }, }, tip="Northwatch Expedition Base", },
+	[30245610] = { candy=true, version=40000, faction="Alliance", achievements={ { id=963, index=17, version=60000, },
+					{ id=963, index=21, versionUnder=60000, }, },
+					quests={ { id=29006, qType="Seasonal", }, }, tip="Honor's Stand", },
+	[30606784] = { candy=true, version=40000, faction="Horde", achievements={ { id=965, index=23, version=60000, }, 
+					{ id=965, index=6, versionUnder=60000, }, },
+					quests={ { id=29004, qType="Seasonal", }, }, tip="Hunter's Hill", },
+	[45605900] = { candy=true, versionUnder=40000, faction="Horde", achievements={ { id=965, index=13, }, },
+					quests={ { id=12375, qType="Seasonal", }, }, tip="Camp Taurajo", }, -- Or 8, 14
+	[49515791] = { candy=true, version=40000, faction="Horde", achievements={ { id=965, index=16, version=60000, },
+					{ id=965, index=11, versionUnder=60000, }, },
+					quests={ { id=12374, qType="Seasonal", }, }, tip="The Crossroads", },
+	[52002990] = { candy=true, versionUnder=40000, faction="Horde", achievements={ { id=965, index=12, }, },
+					quests={ { id=12374, qType="Seasonal", }, }, tip="The Crossroads", }, -- or 6, 13
+	[56214003] = { candy=true, version=40000, faction="Horde", achievements={ { id=965, index=17, version=60000, },
+					{ id=965, index=29, versionUnder=60000, }, },
+					quests={ { id=29002, qType="Seasonal", }, }, tip="Grol'dom Farm", },
+	[62103940] = { candy=true, versionUnder=40000, achievements={ { id=963, index=12, faction="Alliance", }, -- A: 11, 5
+					{ id=965, index=8, faction="Horde", }, },
+					quests={ { id=12396, qType="Seasonal", }, }, tip="Ratchet", },  -- or H: 7, 9
+	[62511659] = { candy=true, version=40000, faction="Horde", achievements={ { id=965, index=18, version=60000, },
+					{ id=965, index=24, versionUnder=60000, }, },
+					quests={ { id=29003, qType="Seasonal", }, }, tip="Nozzlepot's Outpost", },
+	[67347466] = { candy=true, version=40000, achievements={ { id=963, index=14, faction="Alliance", version=60000, },
+					{ id=963, index=10, faction="Alliance", versionUnder=60000, },
+					{ id=965, index=19, faction="Horde", version=60000, },
+					{ id=965, index=7, faction="Horde", versionUnder=60000, }, },
+					quests={ { id=12396, qType="Seasonal", }, }, tip="Ratchet\n\n" ..ns.raptorHatchling, },
+	[80870624] = { candy=true, faction="Horde", achievements={ { id=965, index=20, version=60000, },
+					{ id=965, index=1, version=40000, versionUnder=60000, }, },
+					quests={ { id=12366, qType="Seasonal", }, }, tip="Valley of Strength", },
+	[85103831] = { candy=true, version=40000, faction="Horde", achievements={ { id=965, index=8, }, },
+					quests={ { id=12361, qType="Seasonal", }, }, tip="Razor Hill", },
 }
-points[ 111 ] = { -- Shattrath City
-	[28234908] = { aIDA=969, indexA=11, aIDH=968, indexH=11, quest=12404, location="Aldor Rise",
-						tip="You must be Aldor but... if absolutely neutral then your choice" },
-	[56308195] = { aIDA=969, indexA=11, aIDH=968, indexH=11, quest=12404, location="Scryer's Tier",
-						tip="You must be Scryer but... if absolutely neutral then your choice" },
+
+ns.points[ ns.map.orgrimmar ] = { -- Orgrimmar
+	[53937894] = { candy=true, version=40000, faction="Horde", achievements={ { id=965, index=20, version=60000, }, 
+					{ id=965, index=1, versionUnder=60000, }, },
+					quests={ { id=12366, qType="Seasonal", }, }, tip="Valley of Strength", },
+	[54506850] = { candy=true, versionUnder=40000, faction="Horde", achievements={ { id=965, index=2, }, }, 
+					quests={ { id=12366, qType="Seasonal", }, }, tip="Valley of Strength", }, -- or 1, 3
+	[50843631] = { candy=true, version=40000, faction="Horde", noContinent=true, 
+					achievements={ { id=5838, index=1, version=60000, }, { id=5838, index=9, versionUnder=60000, }, },
+					quests={ { id=29019, qType="Seasonal", }, }, tip="Temple of the Earth\n\n" ..ns.cataclysmPortals, },
 }
-points[ 1955 ] = { -- Shattrath City
-	[28234908] = { aIDA=969, indexA=11, aIDH=968, indexH=11, quest=12404, location="Aldor Rise",
-						tip="You must be Aldor but... if absolutely neutral then your choice" },
-	[56308195] = { aIDA=969, indexA=11, aIDH=968, indexH=7, quest=12404, location="Scryer's Tier",
-						tip="You must be Scryer but... if absolutely neutral then your choice" },
+
+ns.points[ ns.map.silithus ] = { -- Silithus
+	[51803900] = { candy=true, versionUnder=40000, achievements={ { id=963, index=11, faction="Alliance", },
+					{ id=965, index=4, faction="Horde", }, }, -- A: 16 or 6. H: 13 or 5
+					quests={ { id=12401, qType="Seasonal", }, }, tip=ns.cenarion, },
+	[53929072] = { candy=true, achievements={ { id=5837, index=9, faction="Alliance", version=60000, },
+					{ id=5837, index=14, faction="Alliance", versionUnder=60000, },
+					{ id=5838, index=8, faction="Horde", version=60000, },
+					{ id=5838, index=10, faction="Horde", versionUnder=60000, }, },
+					quests={ { id=29016, qType="Seasonal", }, }, noZidormi=true, tip="Oasis of Vir'sar\n\n" ..ns.uldumPromo, },
+	[55473679] = { candy=true, version=40000, achievements={ { id=963, index=15, faction="Alliance", version=60000, },
+					{ id=963, index=9, faction="Alliance", versionUnder=60000, },
+					{ id=965, index=21, faction="Horde", version=60000, },
+					{ id=965, index=3, faction="Horde", versionUnder=60000, }, },
+					quests={ { id=12401, qType="Seasonal", }, }, tip=ns.cenarion, },
 }
-points[ 108 ] = { -- Terokkar Forest
-	[24392504] = { aIDA=969, indexA=11, aIDH=968, indexH=11, quest=12404, location="Aldor Rise",
-						tip="You must be Aldor but... if absolutely neutral then your choice" },
-	[31183299] = { aIDA=969, indexA=11, aIDH=968, indexH=11, quest=12404, location="Scryer's Tier",
-						tip="You must be Scryer but... if absolutely neutral then your choice" },
-	[48734517] = { aIDH=968, indexH=12, quest=12391, location="Stonebreaker Hold", tip="Inside the huge round building" },
-	[56595322] = { aIDA=969, indexA=12, quest=12356, location="Allerian Stronghold", tip="Inside the only round, domed (elven) building" },
-	[83775454] = { aIDH=968, indexH=10, quest=12395, location="Shadowmoon Village", tip="In the main building" },
-	[90638570] = { aIDA=969, indexA=10, quest=12360, location="Wildhammer Stronghold",
-						tip="In the dining area of the Kharanos-style inn with\nbrewing iconography. Don't enter the big building" },
+
+ns.points[ 199 ] = { -- Southern Barrens
+	[15049435] = { candy=true, faction="Horde", achievements={ { id=965, index=13, version=60000, }, -- or 14, 6
+					{ id=965, index=4, version=40000, versionUnder=60000, }, { id=965, index=5, versionUnder=40000, }, },
+					quests={ { id=12386, qType="Seasonal", }, }, tip="Camp Mojache", },
+	[17753047] = { candy=true, faction="Horde", achievements={ { id=965, index=28, version=60000, },
+					{ id=965, index=15, version=40000, versionUnder=60000, }, { id=965, index=17, versionUnder=40000, }, },
+					quests={ { id=12367, qType="Seasonal", }, }, tip=ns.lowerRise, }, -- or 16, 10
+	[22965196] = { candy=true, faction="Horde", achievements={ { id=965, index=15, version=60000, }, -- Or 17, 8
+					{ id=965, index=6, version=40000, versionUnder=60000, }, { id=965, index=7, versionUnder=40000, }, },
+					quests={ { id=12362, qType="Seasonal", }, }, tip="Bloodhoof Village", },
+	[39021099] = { candy=true, version=40000, faction="Alliance", achievements={ { id=963, index=17, version=60000, },
+					{ id=963, index=21, versionUnder=60000, }, },
+					quests={ { id=29006, qType="Seasonal", }, }, tip="Honor's Stand", },
+	[39292009] = { candy=true, version=40000, faction="Horde", achievements={ { id=965, index=23, version=60000, }, 
+					{ id=965, index=6, versionUnder=60000, }, },
+					quests={ { id=29004, qType="Seasonal", }, }, tip="Hunter's Hill", },	
+	[40706932] = { candy=true, version=40000, faction="Horde", achievements={ { id=965, index=22, version=60000, },
+					{ id=965, index=23, versionUnder=60000, }, },
+					quests={ { id=29005, qType="Seasonal", }, }, tip="Desolation Hold", },	
+	[49046850] = { candy=true, version=40000, faction="Alliance", achievements={ { id=963, index=16, version=60000, }, 
+					{ id=963, index=22, versionUnder=60000, }, },
+					quests={ { id=29008, qType="Seasonal", }, }, tip="Fort Triumph", },
+	[53951239] = { candy=true, version=40000, faction="Horde", achievements={ { id=965, index=16, version=60000, },
+					{ id=965, index=11, versionUnder=60000, }, },
+					quests={ { id=12374, qType="Seasonal", }, }, tip="The Crossroads", },
+	[57506826] = { candy=true, faction="Horde", achievements={ { id=965, index=9, version=60000, },
+					{ id=965, index=10, version=40000, versionUnder=60000, }, { id=965, index=11, versionUnder=40000, }, },
+					quests={ { id=12383, qType="Seasonal", }, }, tip="Brackenwall Village", }, -- or 9, 12
+	[61109775] = { candy=true, achievements={ { id=963, index=8, faction="Alliance", version=60000, },
+					{ id=963, index=2, faction="Alliance", version=40000, versionUnder=60000, },
+					{ id=963, index=4, faction="Alliance", versionUnder=40000, }, -- or 13, 13
+					{ id=965, index=10, faction="Horde", version=60000, },
+					{ id=965, index=14, faction="Horde", version=40000, versionUnder=60000, }, 
+					{ id=965, index=16, faction="Horde", versionUnder=40000, }, tip="Mudsprocket", }, -- or 10, 17
+					quests={ { id=12398, qType="Seasonal", }, }, tip=ns.mudsprocket, },
+	[65604654] = { candy=true, version=40000, faction="Alliance", achievements={ { id=963, index=18, version=60000, },
+					{ id=963, index=20, versionUnder=60000, }, },
+					quests={ { id=29007, qType="Seasonal", }, }, tip="Northwatch Hold", },
+	[67772538] = { candy=true, version=40000, achievements={ { id=963, index=14, faction="Alliance", version=60000, },
+					{ id=963, index=10, faction="Alliance", versionUnder=60000, },
+					{ id=965, index=19, faction="Horde", version=60000, },
+					{ id=965, index=7, faction="Horde", versionUnder=60000, }, },
+					quests={ { id=12396, qType="Seasonal", }, }, tip="Ratchet\n\n" ..ns.raptorHatchling, },
+	[78627735] = { candy=true, faction="Alliance", -- or 12, 2
+					achievements={ { id=963, index=13, version=40000, }, { id=963, index=15, versionUnder=40000, }, },
+					quests={ { id=12349, qType="Seasonal", }, }, tip="Inside the inn, Theramore Isle", },
 }
-points[ 1952 ] = { -- Terokkar Forest
-	[24392504] = { aIDA=969, indexA=11, aIDH=968, indexH=11, quest=12404, location="Aldor Rise",
-						tip="You must be Aldor but... if absolutely neutral then your choice" },
-	[31183299] = { aIDA=969, indexA=11, aIDH=968, indexH=11, quest=12404, location="Scryer's Tier",
-						tip="You must be Scryer but... if absolutely neutral then your choice" },
-	[48734517] = { aIDH=968, indexH=12, quest=12391, location="Stonebreaker Hold", tip="Inside the huge round building" },
-	[56595322] = { aIDA=969, indexA=10, quest=12356, location="Allerian Stronghold", tip="Inside the only round, domed (elven) building" },
-	[83775454] = { aIDH=968, indexH=8, quest=12395, location="Shadowmoon Village", tip="In the main building" },
-	[90638570] = { aIDA=969, indexA=5, quest=12360, location="Wildhammer Stronghold",
-						tip="In the dining area of the Kharanos-style inn with\nbrewing iconography. Don't enter the big building" },
+
+ns.points[ ns.map.stonetalon ] = { -- Stonetalon Mountains
+	[31536066] = { candy=true, version=40000, faction="Alliance", achievements={ { id=963, index=19, }, },
+					quests={ { id=29013, qType="Seasonal", }, },
+					tip="Farwatcher's Glen. Another open air Elven inn. Fly right in!", },
+	[35600650] = { candy=true, versionUnder=40000, faction="Alliance", -- or 9, 15
+					achievements={ { id=963, index=2, }, },
+					quests={ { id=12347, qType="Seasonal", }, }, tip="Stonetalon Peak", },
+	[39483281] = { candy=true, version=40000, faction="Alliance", achievements={ { id=963, index=21, version=60000, },
+					{ id=963, index=27, versionUnder=60000, }, },
+					quests={ { id=29012, qType="Seasonal", }, }, tip="Thal'darah Overlook", },
+	[44938007] = { candy=true, faction="Alliance", achievements={ { id=963, index=7, version=60000, }, -- 10, 14
+					{ id=963, index=1, version=40000, versionUnder=60000, }, { id=963, index=3, versionUnder=40000, }, },
+					quests={ { id=12348, qType="Seasonal", }, }, tip="Nigel's Point", },
+	[47506210] = { candy=true, versionUnder=40000, faction="Horde", -- or 5, 11
+					achievements={ { id=965, index=10, }, }, quests={ { id=12378, qType="Seasonal", }, }, tip=ns.jeeda, },
+	[50030107] = { candy=true, version=40000, faction="Horde", achievements={ { id=965, index=4, version=60000, }, 
+					{ id=965, index=21, versionUnder=60000, }, },
+					quests={ { id=28989, qType="Seasonal", }, }, tip="Zoram'gar Outpost", },
+	[50376379] = { candy=true, version=40000, faction="Horde",
+					achievements={ { id=965, index=25, version=60000, }, { id=965, index=9, versionUnder=60000, }, },
+					quests={ { id=12378, qType="Seasonal", }, }, tip=ns.jeeda, },
+	[59045632] = { candy=true, version=40000, faction="Alliance", achievements={ { id=963, index=22, version=60000, }, },
+					quests={ { id=29011, qType="Seasonal", }, }, tip="Fallowmere Inn at Windshear Hold", },
+	[66506419] = { candy=true, version=40000, faction="Horde", achievements={ { id=965, index=24, version=60000, },
+					{ id=965, index=22, versionUnder=60000, }, },
+					quests={ { id=29009, qType="Seasonal", }, }, tip="Inside the smallest building of Krom'gar Fortress", },
+	[71027908] = { candy=true, version=40000, faction="Alliance", achievements={ { id=963, index=20, version=60000, }, 
+					{ id=963, index=18, versionUnder=60000, }, },
+					quests={ { id=29010, qType="Seasonal", }, }, tip="Northwatch Expedition Base", },
+	[73501588] = { candy=true, faction="Alliance", achievements={ { id=963, index=1, version=60000, }, -- or 7 or 11
+					{ id=963, index=4, version=40000, versionUnder=60000, }, { id=963, index=6, versionUnder=40000, }, },
+					quests={ { id=12345, qType="Seasonal", }, }, tip=ns.astranaar, },
+	[75100912] = { candy=true, version=40000, faction="Horde", achievements={ { id=965, index=1, version=60000, }, 
+					{ id=965, index=28, versionUnder=60000, }, },
+					quests={ { id=28958, qType="Seasonal", }, }, tip="Hellscream's Watch", },
+	[86443348] = { candy=true, version=40000, faction="Horde", achievements={ { id=965, index=2, version=60000, },
+					{ id=965, index=30, versionUnder=60000, }, },
+					quests={ { id=28953, qType="Seasonal", }, }, tip="Silverwind Refuge", },
+	[92179516] = { candy=true, version=40000, faction="Alliance", achievements={ { id=963, index=17, version=60000, },
+					{ id=963, index=21, versionUnder=60000, }, },
+					quests={ { id=29006, qType="Seasonal", }, }, tip="Honor's Stand", },
 }
-points[ 102 ] = { -- Zangarmarsh
-	[30625087] = { aIDH=968, indexH=13, quest=12390, location="Zabra'jin", tip="The ground level of the inn with no name :(" },
-	[41902617] = { aIDA=969, indexA=14, quest=12355, location="Orebor Harborage", tip="Inside the building with the mailbox" },
-	[45979438] = { aIDH=968, indexH=6, quest=12392, location="Garadar", tip="At the centre of the huge round building.\nIf mobs are orange it's still okay." },
-	[67164894] = { aIDA=969, indexA=15, quest=12354, location="Telredor", tip="Right next to the innkeeper" },
-	[78456289] = { aIDA=969, indexA=13, aIDH=968, indexH=14, quest=12403, location="Cenarion Refuge", tip="Inside the main building" },
+
+ns.points[ ns.map.tanaris ] = { -- Tanaris
+	[12247531] = { candy=true, achievements={ { id=5837, index=10, faction="Alliance", version=60000, },
+					{ id=5837, index=8, faction="Alliance", versionUnder=60000, },
+					{ id=5838, index=9, faction="Horde", version=60000, },
+					{ id=5838, index=7, faction="Horde", versionUnder=60000, }, },
+					quests={ { id=29017, qType="Seasonal", }, }, tip="Ramkahen\n\n" ..ns.uldumPromo, },
+	[20093594] = { candy=true, version=40000, achievements={ { id=963, index=26, faction="Alliance", version=60000, },
+					{ id=963, index=15, faction="Alliance", versionUnder=60000, },
+					{ id=965, index=29, faction="Horde", version=60000, },
+					{ id=965, index=16, faction="Horde", versionUnder=60000, }, },
+					quests={ { id=29018, qType="Seasonal", }, }, tip="Marshal's Stand\n\n" ..ns.raptorHatchling, },
+	[52552710] = { candy=true, version=40000, achievements={ { id=963, index=24, faction="Alliance", version=60000, },
+					{ id=963, index=6, faction="Alliance", versionUnder=60000, },
+					{ id=965, index=27, faction="Horde", version=60000, },
+					{ id=965, index=12, faction="Horde", versionUnder=60000, }, },
+					quests={ { id=12399, qType="Seasonal", }, }, tip="Inside \"The Road Warrior\" inn, Gadgetzan", },
+	[52562790] = { candy=true, versionUnder=40000, achievements={ { id=963, index=8, faction="Alliance", }, -- A: 14, 9
+					{ id=965, index=14, faction="Horde", }, },
+					quests={ { id=12399, qType="Seasonal", }, }, tip="Gadgetzan", }, -- H: 12, 15
+	[55706096] = { candy=true, version=40000, achievements={ { id=963, index=23, faction="Alliance", version=60000, },
+					{ id=963, index=16, faction="Alliance", versionUnder=60000, },
+					{ id=965, index=26, faction="Horde", version=60000, },
+					{ id=965, index=17, faction="Horde", versionUnder=60000, }, },
+					quests={ { id=29014, qType="Seasonal", }, }, tip="Bootlegger Outpost", },
+
 }
-points[ 1946 ] = { -- Zangarmarsh
-	[30625087] = { aIDH=968, indexH=10, quest=12390, location="Zabra'jin", tip="The ground level of the inn with no name :(" },
-	[41902617] = { aIDA=969, indexA=1, quest=12355, location="Orebor Harborage", tip="Inside the building with the mailbox" },
-	[45979438] = { aIDH=968, indexH=1, quest=12392, location="Garadar", tip="At the centre of the huge round building.\nIf mobs are orange it's still okay." },
-	[67164894] = { aIDA=969, indexA=9, quest=12354, location="Telredor", tip="Right next to the innkeeper" },
-	[78456289] = { aIDA=969, indexA=2, aIDH=968, indexH=2, quest=12403, location="Cenarion Refuge", tip="Inside the main building" },
+
+ns.points[ ns.map.teldrassil ] = { -- Teldrassil
+	[29105030] = { candy=true, versionUnder=40000, faction="Alliance", achievements={ { id=963, index=16, }, }, -- or 2 or 1
+					quests={ { id=12334, qType="Seasonal", }, }, tip="Craftsmen's Terrace", },
+	[34164401] = { candy=true, version=40000, faction="Alliance", achievements={ { id=963, index=5, version=60000, }, 
+					{ id=963, index=14, versionUnder=60000, }, },
+					quests={ { id=12334, qType="Seasonal", }, }, tip="Craftsmen's Terrace", },
+	[55365229] = { candy=true, version=40000, faction="Alliance", achievements={ { id=963, index=25, version=60000, },
+					{ id=963, index=11, versionUnder=60000, }, },
+					quests={ { id=12331, qType="Seasonal", }, }, tip="Dolanaar", },
+	[55705980] = { candy=true, versionUnder=40000, faction="Alliance", achievements={ { id=963, index=13, }, },
+					quests={ { id=12331, qType="Seasonal", }, }, tip="Dolanaar", },
 }
-points[ 101 ] = { -- Outland
+
+ns.points[ ns.map.theExodar ] = { -- The Exodar
+	[59251846] = { candy=true, faction="Alliance", achievements={ { id=963, index=9, version=60000, }, -- or 4, 10
+					{ id=963, index=5, version=40000, versionUnder=60000, }, { id=963, index=7, versionUnder=40000, }, },
+					quests={ { id=12337, qType="Seasonal", }, }, tip="Seat of the Naaru, in the Exodar", },
+}
+
+ns.points[ ns.map.thousand ] = { -- Thousand Needles
+	[46105150] = { candy=true, versionUnder=40000, faction="Horde", achievements={ { id=965, index=1, }, }, -- 11, 2
+					quests={ { id=12379, qType="Seasonal", }, }, tip="Freewind Post", },
+	[62262249] = { candy=true, achievements={ { id=963, index=8, faction="Alliance", version=60000, },
+					{ id=963, index=2, faction="Alliance", version=40000, versionUnder=60000, },
+					{ id=963, index=4, faction="Alliance", versionUnder=40000, }, -- or 13, 13
+					{ id=965, index=10, faction="Horde", version=60000, },
+					{ id=965, index=14, faction="Horde", version=40000, versionUnder=60000, }, 
+					{ id=965, index=16, faction="Horde", versionUnder=40000, }, }, -- or 10, 17
+					quests={ { id=12398, qType="Seasonal", }, }, tip=ns.mudsprocket, },
+}
+
+ns.points[ ns.map.thunder ] = { -- Thunder Bluff
+	[45626493] = { candy=true, faction="Horde", achievements={ { id=965, index=28, version=60000, },
+					{ id=965, index=15, version=40000, versionUnder=60000, }, { id=965, index=17, versionUnder=40000, }, },
+					quests={ { id=12367, qType="Seasonal", }, }, tip=ns.lowerRise, }, -- or 16, 10
+}
+
+ns.points[ ns.map.ungoro ] = { -- Un'Goro Crater
+	[55266212] = { candy=true, version=40000, achievements={ { id=963, index=26, faction="Alliance", version=60000, },
+					{ id=963, index=15, faction="Alliance", versionUnder=60000, },
+					{ id=965, index=29, faction="Horde", version=60000, },
+					{ id=965, index=16, faction="Horde", versionUnder=60000, }, },
+					quests={ { id=29018, qType="Seasonal", }, }, tip="Marshal's Stand\n\n" ..ns.raptorHatchling, },
+}
+
+ns.points[ ns.map.winterspring ] = { -- Winterspring
+	[11848913] = { candy=true, version=40000, achievements={ { id=5837, index=2, faction="Alliance", },
+					{ id=5838, index=2, faction="Horde", }, },
+					quests={ { id=29000, qType="Seasonal", }, }, tip="Grove of Aessina", },
+	[15626429] = { candy=true, version=40000, faction="Alliance",
+					achievements={ { id=963, index=10, version=60000, }, { id=963, index=24, versionUnder=60000, }, },
+					quests={ { id=28995, qType="Seasonal", }, }, tip="Talonbranch Glade", },
+	[28459493] = { candy=true, version=40000, achievements={ { id=5837, index=4, faction="Alliance", version=60000, },
+					{ id=5837, index=13, faction="Alliance", versionUnder=60000, },
+					{ id=5838, index=4, faction="Horde", version=60000, },
+					{ id=5838, index=1, faction="Horde", versionUnder=60000, }, },
+					quests={ { id=29001, qType="Seasonal", }, }, tip="Shrine of Aviana", },
+	[42518004] = { candy=true, version=40000, achievements={ { id=5837, index=3, faction="Alliance", version=60000, },
+					{ id=5837, index=10, faction="Alliance", versionUnder=60000, },
+					{ id=5838, index=3, faction="Horde", version=60000, },
+					{ id=5838, index=12, faction="Horde", versionUnder=60000, }, },
+					quests={ { id=28999, qType="Seasonal", }, }, tip="Nordrassil", },
+	[59835122] = { candy=true, version=40000, achievements={ { id=963, index=27, faction="Alliance", version=60000, },
+					{ id=963, index=8, faction="Alliance", versionUnder=60000, },
+					{ id=965, index=30, faction="Horde", version=60000, },
+					{ id=965, index=13, faction="Horde", versionUnder=60000, }, },
+					quests={ { id=12400, qType="Seasonal", }, }, tip="Everlook", },
+	[61303880] = { candy=true, versionUnder=40000, achievements={ { id=963, index=10, faction="Alliance", }, -- A: 8, 7
+					{ id=965, index=15, faction="Horde", }, },
+					quests={ { id=12400, qType="Seasonal", }, }, tip="Everlook", }, -- H: 3, 16
+}
+
+ns.points[ ns.map.kalimdor ] = { -- Kalimdor
+	[26007600] = { candy=true, version=40000, achievements={ { id=963, faction="Alliance", showAllCriteria=true, },
+					{ id=965, faction="Horde", showAllCriteria=true, }, }, large=true, noContinent=true, alwaysShow=true,
+					noCoords=true, },
+}
+
+--==================================================================================================================================
+--
+-- EASTERN KINGDOMS
+--
+--==================================================================================================================================
+
+ns.points[ ns.map.arathi ] = { -- Arathi Highlands
+	[40064909] = { candy=true, version=40000, faction="Alliance",
+					achievements={ { id=966, index=1, version=60000, }, { id=966, index=26, versionUnder=60000, }, },
+					quests={ { id=28954, qType="Seasonal", }, }, tip="Refuge Point", },
+	[69023327] = { candy=true, version=40000, faction="Horde",
+					achievements={ { id=967, index=1, version=60000, }, { id=967, index=7, versionUnder=60000, }, },
+					quests={ { id=12380, qType="Seasonal", }, }, tip="Hammerfall", },
+	[73903260] = { candy=true, versionUnder=40000, faction="Horde", -- or 8, 10
+					achievements={ { id=967, index=7, }, }, quests={ { id=12380, qType="Seasonal", }, }, tip="Hammerfall", },
+	[99462082] = { candy=true, version=40000, faction="Horde",
+					achievements={ { id=967, index=14, version=60000, }, { id=967, index=5, versionUnder=60000, }, },
+					quests={ { id=12387, qType="Seasonal", }, }, tip="Inside the main (only) building of Revantusk Village", },
+--	[38259009] = { aIDA=966, indexA=1, quest=28954, location="Refuge Point", tip="Zidormi is at this location. You'll probably\n"
+--						.."need her for the Refuge Point candy bucket." },
+}
+
+ns.points[ ns.map.badlands ] = { -- Badlands
+	[02904600] = { candy=true, versionUnder=40000, faction="Horde", -- or 16, 1
+					achievements={ { id=967, index=16, }, }, quests={ { id=12385, qType="Seasonal", }, }, tip="Kargath", },
+	[18364273] = { candy=true, version=40000, faction="Horde",
+					achievements={ { id=967, index=3, version=60000, }, { id=967, index=24, versionUnder=60000, }, },
+					quests={ { id=28957, qType="Seasonal", }, }, tip="New Kargath", },
+	[20875632] = { candy=true, version=40000, faction="Alliance",
+					achievements={ { id=966, index=2, version=60000, }, { id=966, index=26, versionUnder=60000, }, },
+					quests={ { id=28956, qType="Seasonal", }, }, tip="Dragon's Mouth", },
+	[65863565] = { candy=true, version=40000, achievements={ { id=966, index=3, faction="Alliance", version=60000, },
+					{ id=966, index=15, faction="Alliance", versionUnder=60000, },
+					{ id=967, index=2, faction="Horde", version=60000, },
+					{ id=967, index=25, faction="Horde", versionUnder=60000, }, }, quests={ { id=28955, qType="Seasonal", }, },
+					tip="The apple bobbing tub is outside, the pumpkin is inside. Fuselight", },
+}
+
+ns.points[ ns.map.blastedLands ] = { -- Blasted Lands
+	[44348759] = { candy=true, version=40000, faction="Alliance",
+					achievements={ { id=966, index=5, version=60000, }, { id=966, index=23, versionUnder=60000, }, },
+					quests={ { id=28961, qType="Seasonal", }, }, tip="Surwich", },
+	[60691407] = { candy=true, version=40000, faction="Alliance",
+					achievements={ { id=966, index=4, version=60000, }, { id=966, index=24, versionUnder=60000, }, },
+					quests={ { id=28960, qType="Seasonal", }, }, tip="Nethergarde Keep", },
+	[40471128] = { candy=true, version=40000, faction="Horde",
+					achievements={ { id=967, index=4, version=60000, }, { id=967, index=18, versionUnder=60000, }, },
+					quests={ { id=28959, qType="Seasonal", }, }, tip="Dreadmaul Hold", },
+}
+
+ns.points[ ns.map.burningSteppes ] = { -- Burning Steppes
+	[23450460] = { candy=true, version=40000, achievements={ { id=966, index=18, faction="Alliance", version=60000, },
+					{ id=966, index=14, faction="Alliance", versionUnder=60000, },
+					{ id=967, index=16, faction="Horde", version=60000, },
+					{ id=967, index=17, faction="Horde", versionUnder=60000, }, }, quests={ { id=28965, qType="Seasonal", }, },
+					tip=ns.ironSummit, },
+	[65930100] = { candy=true, version=40000, faction="Alliance",
+					achievements={ { id=966, index=2, version=60000, }, { id=966, index=26, versionUnder=60000, }, },
+					quests={ { id=28956, qType="Seasonal", }, }, tip="Dragon's Mouth", },
+}
+
+ns.points[ ns.map.deadwind ] = { -- Deadwind Pass
+	[13043879] = { candy=true, faction="Alliance", -- Or 12, 5
+					achievements={ { id=966, index=8, version=60000, }, { id=966, index=9, versionUnder=60000, },
+					{ id=966, index=9, versionUnder=40000, }, },
+					quests={ { id=12344, qType="Seasonal", }, }, tip="Darkshire", },
+	[73715952] = { candy=true, version=40000, faction="Horde",
+					achievements={ { id=967, index=4, version=60000, }, { id=967, index=18, versionUnder=60000, }, },
+					quests={ { id=28959, qType="Seasonal", }, }, tip="Dreadmaul Hold", },
+	[78941265] = { candy=true, version=40000, faction="Alliance",
+					achievements={ { id=966, index=21, version=60000, }, { id=966, index=20, versionUnder=60000, }, },
+					quests={ { id=28968, qType="Seasonal", }, }, tip="The Harborage", },
+	[96943727] = { candy=true, version=40000, faction="Horde", -- Or 15, 16
+					achievements={ { id=967, index=22, version=60000, }, { id=967, index=1, versionUnder=60000, },
+					{ id=967, index=1, versionUnder=40000, }, },
+					quests={ { id=12384, qType="Seasonal", }, }, tip="Stonard", },
+}
+
+ns.points[ ns.map.dunMorogh ] = { -- Dun Morogh
+	[46205300] = { fires=true, version=30000, versionUnder=40000, faction="Alliance", achievements={ { id=289, }, },
+					quests=ns.fireQSet, guide=ns.letFiresCome, },
+	[53205140] = { fires=true, version=40000, faction="Alliance", achievements={ { id=289, }, }, quests=ns.fireQSet,
+					guide=ns.letFiresCome, },
+	[45855090] = { candy=true, versionUnder=40000, faction="Alliance", achievements={ { id=966, index=13, versionUnder=40000, }, },
+					quests={ { id=12332, qType="Seasonal", }, }, tip="Inside Thunderbrew Distillery of Kharanos", }, -- Or 6, 1
+	[54495076] = { candy=true, version=40000, faction="Alliance", 
+					achievements={ { id=966, index=7, version=60000, }, { id=966, index=9, versionUnder=60000, }, },
+					quests={ { id=12332, qType="Seasonal", }, }, tip="Inside Thunderbrew Distillery of Kharanos", },
+	[61172746] = { candy=true, faction="Alliance", -- 7 or 10. Was 4 intended as shared?
+					achievements={ { id=966, index=13, version=60000, }, { id=966, index=4, versionUnder=60000, },
+					{ id=966, index=0, versionUnder=40000, }, },
+					quests={ { id=12335, qType="Seasonal", }, }, tip="Inside the Stonefire Tavern of The Commons in Ironforge", },
+	[68229619] = { candy=true, version=40000, achievements={ { id=966, index=18, faction="Alliance", version=60000, },
+					{ id=966, index=14, faction="Alliance", versionUnder=60000, },
+					{ id=967, index=16, faction="Horde", version=60000, },
+					{ id=967, index=17, faction="Horde", versionUnder=60000, }, }, quests={ { id=28965, qType="Seasonal", }, },
+					tip=ns.ironSummit, },
+	[93998536] = { candy=true, version=40000, faction="Horde",
+					achievements={ { id=967, index=3, version=60000, }, { id=967, index=24, versionUnder=60000, }, },
+					quests={ { id=28957, qType="Seasonal", }, }, tip="New Kargath", },
+	[95569388] = { candy=true, version=40000, faction="Alliance",
+					achievements={ { id=966, index=2, version=60000, }, { id=966, index=26, versionUnder=60000, }, },
+					quests={ { id=28956, qType="Seasonal", }, }, tip="Dragon's Mouth", },
+}
+
+ns.points[ ns.map.duskwood ] = { -- Duskwood
+	[73804425] = { candy=true, faction="Alliance", -- Or 12, 5
+					achievements={ { id=966, index=8, version=60000, }, { id=966, index=9, versionUnder=60000, },
+					{ id=966, index=9, versionUnder=40000, }, },
+					quests={ { id=12344, qType="Seasonal", }, }, tip="Darkshire", },
+}
+
+ns.points[ ns.map.easternP ] = { -- Eastern Plaguelands
+	[75575231] = { candy=true, achievements={ { id=966, index=9, faction="Alliance", version=60000, },
+					{ id=966, index=3, faction="Alliance", version=40000, versionUnder=60000, },
+					{ id=966, index=3, faction="Alliance", versionUnder=40000, }, -- Or 1, 11
+					-- Cooincidence my old data had the same indexes for Cata and Wrath, H and A?
+					{ id=967, index=7, faction="Horde", version=60000, },
+					{ id=967, index=15, faction="Horde", version=40000, versionUnder=60000, },
+					{ id=967, index=15, faction="Horde", versionUnder=40000, }, }, -- Or 6, 2
+					quests={ { id=12402, faction="Alliance", qType="Seasonal", },
+					{ id=12402, faction="Horde", qType="Seasonal", guide=ns.taxi, }, }, tip="Light's Hope Chapel", },
+}
+
+ns.points[ 24 ] = { -- Light's Hope Chapel - Sanctum of Light
+	[40709036] = { candy=true, version=40000, tip=ns.taxi, achievements={ { id=966, index=9, faction="Alliance", version=60000, },
+					{ id=966, index=3, faction="Alliance", versionUnder=60000, },
+					{ id=967, index=7, faction="Horde", version=60000, },
+					{ id=967, index=15, faction="Horde", versionUnder=60000, }, },
+					quests={ { id=12402, qType="Seasonal", }, }, tip="Sanctum of Light, Light's Hope Chapel", },
+}
+
+ns.points[ ns.map.elwynn ] = { -- Elwynn Forest
+	[22133396] = { rotten=true, version=40000, faction="Horde",
+					achievements={ { id=1041, index=1, version=60000, }, { id=1041, index=4, versionUnder=60000, }, },
+					quests={ { id=29374, name="Stink Bombs Away!", qType="Daily", }, }, guide=ns.stinkBombsLogoutH, },
+	[24894013] = { candy=true, version=40000, faction="Alliance", achievements={ { id=966, index=19, version=60000, }, 
+					{ id=966, index=2, versionUnder=60000, }, },
+					quests={ { id=12336, qType="Seasonal", }, }, tip="The Trade District, Stormwind", },
+	[29694442] = { rotten=true, version=40000, faction="Alliance",
+					achievements={ { id=1040, index=2, version=60000, }, { id=1040, index=4, versionUnder=60000, }, },
+					quests={ { id=29144, name="Clean Up In Stormwind", qType="Daily", }, }, guide=ns.cleanUpA },
+	[31241227] = { candy=true, version=40000, faction="Alliance", noContinent=true, 
+					achievements={ { id=5837, index=1, version=60000, }, { id=5837, index=11, versionUnder=60000, }, },
+					quests={ { id=29020, qType="Seasonal", }, }, tip="Temple of the Earth\n\n" ..ns.cataclysmPortals, },
+	[32095059] = { rotten=true, version=40000, faction="Alliance",
+					achievements={ { id=1040, index=4, version=60000, }, { id=1040, index=1, versionUnder=60000, }, },
+					quests={ { id=29371, name="A Time to Lose", qType="Daily", }, }, guide=ns.timeToLose2, },
+	[32355088] = { rotten=true, version=40000, faction="Alliance",
+					achievements={ { id=1040, index=1, version=60000, }, { id=1040, index=3, versionUnder=60000, }, },
+					quests={ { id=29054, name="Stink Bombs Away!", qType="Daily", }, }, guide=ns.stinkBombsA, },
+	[34104740] = { rotten=true, version=40000, faction="Horde",
+					achievements={ { id=1041, index=4, version=60000, }, { id=1040, index=2, versionUnder=60000, }, },
+					quests={ { id=29377, name="A Time to Break Down", qType="Daily", }, }, guide=ns.timeBreakDown1 },
+	[42606440] = ns.fireSetA,
+	[43746589] = { candy=true, faction="Alliance", achievements={ { id=966, index=10, version=60000, }, -- or 9, 2
+					{ id=966, index=11, version=40000, versionUnder=60000, }, { id=966, index=12, versionUnder=40000, }, },
+					quests={ { id=12286, qType="Seasonal", }, }, tip="Goldshire", },
+}
+
+-- Memory note: Too many coincidences here? The 14xx map data elsewhere is for Wrath. But for Eversong too many matches to Cata
+
+ns.points[ ns.map.eversong ] = { -- Eversong Woods
+	[43707103] = { candy=true, faction="Horde", achievements={ { id=967, index=8, }, }, -- Or 4, 9
+					quests={ { id=12365, qType="Seasonal", }, }, guide="Fairbreeze Village\n\n" ..ns.taxi, },
+	[47204650] = ns.fireSetH,
+	[48204788] = { candy=true, faction="Horde", -- Or 3, 3
+					achievements={ { id=967, index=9, version=60000, }, { id=967, index=9, version=40000, versionUnder=60000, },
+					{ id=967, index=14, versionUnder=40000, }, }, quests={ { id=12364, qType="Seasonal", }, },
+					guide=ns.taxi, tip=ns.falconwing, },
+	[55474495] = { candy=true, faction="Horde", -- Or 2, 4
+					achievements={ { id=967, index=17, version=60000, }, { id=967, index=13, version=40000, versionUnder=60000, },
+					{ id=967, index=13, versionUnder=40000, }, }, quests={ { id=12370, qType="Seasonal", }, },
+					guide=ns.taxi, tip=ns.theBazaar, },
+	[59294137] = { candy=true, faction="Horde", -- Or 1, 15
+					achievements={ { id=967, index=18, version=60000, }, { id=967, index=2, version=40000, versionUnder=60000, },
+					{ id=967, index=2, versionUnder=40000, }, }, quests={ { id=12369, qType="Seasonal", }, },
+					guide=ns.taxi, tip=ns.royalExchange, },	
+}
+
+ns.points[ ns.map.ghostlands ] = { -- Ghostlands
+	[48683190] = { candy=true, faction="Horde", -- Or 5, 11
+					achievements={ { id=967, index=10, version=60000, }, { id=967, index=6, version=40000, versionUnder=60000, },
+					{ id=967, index=6, versionUnder=40000, }, },
+					quests={ { id=12373, qType="Seasonal", }, }, guide="Tranquillien\n\n" ..ns.taxi, },
+}
+
+ns.points[ ns.map.hillsbrad ] = { -- Hillsbrad Foothills
+	[05361180] = { candy=true, version=40000, faction="Horde", -- 
+					achievements={ { id=967, index=19, version=60000, }, { id=967, index=23, versionUnder=60000, }, },
+					quests={ { id=28966, qType="Seasonal", }, }, tip="Forsaken Rear Guard", },
+	[04002980] = { candy=true, versionUnder=40000, faction="Horde", achievements={ { id=967, index=4, }, },
+					quests={ { id=12371, qType="Seasonal", }, }, tip="In the largest building of The Sepulcher", }, -- Or 10, 13
+					-- Very approximate coords - extrapolated from actual zone comparison between Retail and Wrath
+	[07223134] = { candy=true, version=40000, faction="Horde", achievements={ { id=967, index=20, version=60000, },
+					{ id=967, index=4, versionUnder=60000, }, }, -- Or 10, 13
+					quests={ { id=12371, qType="Seasonal", }, }, tip="In the largest building of The Sepulcher", },
+	[51105890] = { candy=true, versionUnder=40000, faction="Alliance", -- or 3, 3
+					achievements={ { id=966, index=11, }, }, quests={ { id=12346, qType="Seasonal", }, }, tip="Southshore", },
+	[57854727] = { candy=true, version=40000, faction="Horde", -- Or 9, 14
+					achievements={ { id=967, index=12, version=60000, }, { id=967, index=3, versionUnder=60000, }, },
+					quests={ { id=12376, qType="Seasonal", }, }, tip="Tarren Mill", },
+	[60266374] = { candy=true, version=40000, faction="Horde",
+					achievements={ { id=967, index=11, version=60000, }, { id=967, index=26, versionUnder=60000, }, },
+					quests={ { id=28962, qType="Seasonal", }, }, tip="Eastpoint Tower", },
+	[62801900] = { candy=true, versionUnder=40000, faction="Horde", -- Or 9, 14
+					achievements={ { id=967, index=3, }, },
+					quests={ { id=12376, qType="Seasonal", }, }, tip="Tarren Mill", },
+	[67841645] = { candy=true, version=40000, faction="Alliance",
+					achievements={ { id=966, index=22, version=60000, }, { id=966, index=18, versionUnder=60000, }, },
+					quests={ { id=28988, qType="Seasonal", }, }, tip="Chillwind Camp", },
+	[81673576] = { candy=true, faction="Alliance", achievements={ { id=966, index=11, version=60000, },  -- or 2, 8
+					{ id=966, index=6, version=40000, versionUnder=60000, }, { id=966, index=6, versionUnder=40000, }, },
+					quests={ { id=12351, qType="Seasonal", }, }, tip=ns.aeriePeak, },
+	[89878518] = { candy=true, version=40000, faction="Alliance",
+					achievements={ { id=966, index=1, version=60000, }, { id=966, index=26, versionUnder=60000, }, },
+					quests={ { id=28954, qType="Seasonal", }, }, tip="Refuge Point", },
+	[95624627] = { candy=true, version=40000, faction="Horde",
+					achievements={ { id=967, index=13, version=60000, }, { id=967, index=19, versionUnder=60000, }, },
+					quests={ { id=28971, qType="Seasonal", }, }, tip="Hiri'watha Research Station", },
+}
+
+ns.points[ ns.map.ironforge ] = { -- Ironforge
+	[18345094] = { candy=true, faction="Alliance", -- 7 or 10. Was 4 intended as shared?
+					achievements={ { id=966, index=13, version=60000, }, { id=966, index=4, versionUnder=60000, },
+					{ id=966, index=4, versionUnder=40000, }, },
+					quests={ { id=12335, qType="Seasonal", }, }, tip="Inside the Stonefire Tavern of The Commons in Ironforge", },
+}
+
+ns.points[ ns.map.lochModan ] = { -- Loch Modan
+	[83026353] = { candy=true, faction="Alliance", version=40000,
+					achievements={ { id=966, index=14, version=60000, }, { id=966, index=22, versionUnder=60000, }, },
+					quests={ { id=28963, qType="Seasonal", }, }, tip="Farstrider Lodge", },
+	[35544850] = { candy=true, faction="Alliance", achievements={ { id=966, index=15, version=60000, }, -- Or 5, 6
+					{ id=966, index=8, versionUnder=60000, }, },
+					quests={ { id=12339, qType="Seasonal", }, }, tip="Thelsamar", }, -- Shared??
+}
+
+ns.points[ ns.map.redridge ] = { -- Redridge Mountains
+	[26464150] = { candy=true, version=40000, faction="Alliance",
+					achievements={ { id=966, index=17, version=60000, }, { id=966, index=7, versionUnder=60000, }, },
+					quests={ { id=12342, qType="Seasonal", }, }, tip="Lakeshire", },
+	[27094492] = { candy=true, versionUnder=40000, faction="Alliance", achievements={ { id=966, index=7, }, }, -- Or 5, 6
+					quests={ { id=12342, qType="Seasonal", }, }, tip="Lakeshire", },
+	[51699126] = { candy=true, version=40000, faction="Alliance",
+					achievements={ { id=966, index=21, version=60000, }, { id=966, index=20, versionUnder=60000, }, },
+					quests={ { id=28968, qType="Seasonal", }, }, tip="The Harborage", },
+	[93407338] = { candy=true, version=40000,
+					achievements={ { id=966, index=20, faction="Alliance", version=60000, },
+					{ id=966, index=13, faction="Alliance", versionUnder=60000, },
+					{ id=967, index=21, faction="Horde", version=60000, },
+					{ id=967, index=16, faction="Horde", versionUnder=60000, },},
+					quests={ { id=28967, qType="Seasonal", }, }, tip="Bogpaddle", },
+}
+
+ns.points[ ns.map.searingGorge ] = { -- Searing Gorge
+	[39486602] = { candy=true, version=40000,achievements={ { id=966, index=18, faction="Alliance", version=60000, },
+					{ id=966, index=14, faction="Alliance", versionUnder=60000, },
+					{ id=967, index=16, faction="Horde", version=60000, },
+					{ id=967, index=17, faction="Horde", versionUnder=60000, }, }, quests={ { id=28965, qType="Seasonal", }, },
+					tip=ns.ironSummit, },
+	[96044224] = { candy=true, version=40000, faction="Horde",
+					achievements={ { id=967, index=3, version=60000, }, { id=967, index=24, versionUnder=60000, }, },
+					quests={ { id=28957, qType="Seasonal", }, }, tip="New Kargath", },
+	[99496094] = { candy=true, version=40000, faction="Alliance",
+					achievements={ { id=966, index=2, version=60000, }, { id=966, index=26, versionUnder=60000, }, },
+					quests={ { id=28956, qType="Seasonal", }, }, tip="Dragon's Mouth", },
+}
+
+ns.points[ ns.map.silvermoon ] = { -- Silvermoon City
+	[38008479] = { candy=true, faction="Horde", -- Or 3, 3
+					achievements={ { id=967, index=9, version=60000, }, { id=967, index=9, version=40000, versionUnder=60000, },
+					{ id=967, index=14, versionUnder=40000, }, },
+					quests={ { id=12364, qType="Seasonal", }, }, tip=ns.falconwing, guide=ns.taxi, },
+	[67597289] = { candy=true, faction="Horde", -- Or 2, 4
+					achievements={ { id=967, index=17, version=60000, }, { id=967, index=13, version=40000, versionUnder=60000, },
+					{ id=967, index=13, versionUnder=40000, }, },
+					quests={ { id=12370, qType="Seasonal", }, }, tip=ns.theBazaar, guide=ns.taxi, },
+	[70357702] = { candy=true, faction="Horde", noContinent=true, -- Or 2, 4
+					achievements={ { id=967, index=17, version=60000, }, { id=967, index=13, version=40000, versionUnder=60000, },
+					{ id=967, index=13, versionUnder=40000, }, },
+					quests={ { id=12370, qType="Seasonal", }, }, tip=ns.theBazaar ..". Enter through here", },
+	[79435765] = { candy=true, faction="Horde", noContinent=true, -- Or 1, 15
+					achievements={ { id=967, index=18, version=60000, }, { id=967, index=2, version=40000, versionUnder=60000, },
+					{ id=967, index=2, versionUnder=40000, }, },
+					quests={ { id=12369, qType="Seasonal", }, }, tip=ns.royalExchange ..". Enter through here", },
+	[83125829] = { candy=true, faction="Horde", -- Or 1, 15
+					achievements={ { id=967, index=18, version=60000, }, { id=967, index=2, version=40000, versionUnder=60000, },
+					{ id=967, index=2, versionUnder=40000, }, },
+					quests={ { id=12369, qType="Seasonal", }, }, guide=ns.taxi, tip=ns.royalExchange, },
+}
+
+ns.points[ ns.map.silverpine ] = { -- Silverpine Forest
+	[43204140] = { candy=true, versionUnder=40000, faction="Horde", achievements={ { id=967, index=4, }, },
+					quests={ { id=12371, qType="Seasonal", }, }, tip="In the largest building of The Sepulcher", }, -- Or 10, 13,
+	[44302028] = { candy=true, version=40000, faction="Horde", -- Or 5, 11
+					achievements={ { id=967, index=19, version=60000, }, { id=967, index=23, versionUnder=60000, }, },
+					quests={ { id=28966, qType="Seasonal", }, }, guide=ns.taxi, tip="Forsaken Rear Guard", },
+	[46454291] = { candy=true, version=40000, faction="Horde", achievements={ { id=967, index=20, version=60000, },
+					{ id=967, index=4, versionUnder=60000, }, }, -- Or 10, 13
+					quests={ { id=12371, qType="Seasonal", }, }, tip="In the largest building of The Sepulcher", },
+	[76830101] = { candy=true, faction="Horde", achievements={ { id=967, index=25, version=60000, }, -- or 11, 6
+					{ id=967, index=11, versionUnder=60000, }, }, -- Shared again
+					quests={ { id=12368, qType="Seasonal", }, }, tip=ns.theTradeQuarter .."\n\n" ..ns.goEast, },
+	[99270001] = { candy=true, version=40000, faction="Horde",
+					achievements={ { id=967, index=24, version=60000, }, { id=967, index=21, versionUnder=60000, }, }, 
+					quests={ { id=28972, qType="Seasonal", }, }, tip="The Bulwark", },	
+}
+
+ns.points[ ns.map.stormwind ] = { -- Stormwind City
+	[55006300] = { rotten=true, version=40000, faction="Horde",
+					achievements={ { id=1041, index=1, version=60000, }, { id=1041, index=4, versionUnder=60000, }, },
+					quests={ { id=29374, name="Stink Bombs Away!", qType="Daily", }, }, guide=ns.stinkBombsLogoutH, },
+	[60517534] = { candy=true, version=40000, faction="Alliance", achievements={ { id=966, index=19, version=60000, }, 
+					{ id=966, index=2, versionUnder=60000, }, },
+					quests={ { id=12336, qType="Seasonal", }, }, tip="The Trade District, Stormwind", },
+	[70108390] = { rotten=true, version=40000, faction="Alliance",
+					achievements={ { id=1040, index=2, version=60000, }, { id=1040, index=4, versionUnder=60000, }, },
+					quests={ { id=29144, name="Clean Up In Stormwind", qType="Daily", }, }, guide=ns.cleanUpA },
+	[73191967] = { candy=true, version=40000, faction="Alliance", achievements={ { id=5837, index=1, version=60000, },
+					{ id=5837, index=11, versionUnder=60000, }, tip="Temple of the Earth\n\n" ..ns.cataclysmPortals, },
+					quests={ { id=29020, qType="Seasonal", }, }, tip=ns.cataclysmPortals, },
+	[74889624] = { rotten=true, version=40000, faction="Alliance",
+					achievements={ { id=1040, index=4, version=60000, }, { id=1040, index=1, versionUnder=60000, }, },
+					quests={ { id=29371, name="A Time to Lose", qType="Daily", }, }, guide=ns.timeToLose2, },
+	[75419681] = { rotten=true, version=40000, faction="Alliance",
+					achievements={ { id=1040, index=1, version=60000, }, { id=1040, index=3, versionUnder=60000, }, },
+					quests={ { id=29054, name="Stink Bombs Away!", qType="Daily", }, }, guide=ns.stinkBombsA, },
+	[78918986] = { rotten=true, version=40000, faction="Horde",
+					achievements={ { id=1041, index=4, version=60000, }, { id=1040, index=2, versionUnder=60000, }, },
+					quests={ { id=29377, name="A Time to Break Down", qType="Daily", }, }, guide=ns.timeBreakDown1 },
+}
+
+ns.points[ ns.map.swampOS ] = { -- Swamp of Sorrows
+	[23717910] = { candy=true, version=40000, faction="Horde",
+					achievements={ { id=967, index=4, version=60000, }, { id=967, index=18, versionUnder=60000, }, },
+					quests={ { id=28959, qType="Seasonal", }, }, tip="Dreadmaul Hold", },
+	[28933240] = { candy=true, version=40000, faction="Alliance",
+					achievements={ { id=966, index=21, version=60000, }, { id=966, index=20, versionUnder=60000, }, },
+					quests={ { id=28968, qType="Seasonal", }, }, tip="The Harborage", },
+	[46875693] = { candy=true, version=40000, faction="Horde", -- Or 15, 16
+					achievements={ { id=967, index=22, version=60000, }, { id=967, index=1, versionUnder=60000, },
+					{ id=967, index=1, versionUnder=40000, }, }, quests={ { id=12384, qType="Seasonal", }, }, tip="Stonard", },
+	[53238317] = { candy=true, version=40000, faction="Alliance",
+					achievements={ { id=966, index=4, version=60000, }, { id=966, index=24, versionUnder=60000, }, },
+					quests={ { id=28960, qType="Seasonal", }, }, tip="Nethergarde Keep", },
+	[71651410] = { candy=true, version=40000,
+					achievements={ { id=966, index=20, faction="Alliance", version=60000, },
+					{ id=966, index=13, faction="Alliance", versionUnder=60000, },
+					{ id=967, index=21, faction="Horde", version=60000, },
+					{ id=967, index=16, faction="Horde", versionUnder=60000, },},
+					quests={ { id=28967, qType="Seasonal", }, }, tip="Bogpaddle", },					
+}
+
+ns.points[ ns.map.TheHinter ] = { -- The Hinterlands
+	[14194460] = { candy=true, faction="Alliance", achievements={ { id=966, index=11, version=60000, },  -- or 2, 8
+					{ id=966, index=6, version=40000, versionUnder=60000, }, { id=966, index=6, versionUnder=40000, }, },
+					quests={ { id=12351, qType="Seasonal", }, }, tip=ns.aeriePeak, },
+	[50709272] = { candy=true, version=40000, faction="Horde",
+					achievements={ { id=967, index=1, version=60000, }, { id=967, index=7, versionUnder=60000, }, },
+					quests={ { id=12380, qType="Seasonal", }, }, tip="Hammerfall", },
+	[66164443] = { candy=true, version=40000, faction="Alliance",
+					achievements={ { id=966, index=12, version=60000, }, { id=966, index=19, versionUnder=60000, }, },
+					quests={ { id=28970, qType="Seasonal", }, }, tip="Stormfeather Outpost", },
+	[31805787] = { candy=true, version=40000, faction="Horde",
+					achievements={ { id=967, index=13, version=60000, }, { id=967, index=19, versionUnder=60000, }, },
+					quests={ { id=28971, qType="Seasonal", }, }, tip="Hiri'watha Research Station", },
+	[78198147] = { candy=true, version=40000, faction="Horde",
+					achievements={ { id=967, index=14, version=60000, }, { id=967, index=5, versionUnder=60000, }, },
+					quests={ { id=12387, qType="Seasonal", }, }, tip="Inside the main (only) building of Revantusk Village", },
+	[32095059] = { rotten=true, version=40000, faction="Alliance",
+					achievements={ { id=1040, index=4, version=60000, }, { id=1040, index=1, versionUnder=60000, }, },
+					quests={ { id=29371, name="A Time to Lose", qType="Daily", }, }, guide=ns.timeToLose1, },
+	[34104740] = { rotten=true, version=40000, faction="Horde",
+					achievements={ { id=1041, index=4, version=60000, }, { id=1040, index=2, versionUnder=60000, }, },
+					quests={ { id=29377, name="A Time to Break Down", qType="Daily", }, }, guide=ns.timeBreakDown2 },
+	[42606440] = ns.fireSetA,
+}
+
+ns.points[ ns.map.tirisfal ] = { -- Tirisfal Glades
+	[31959091] = { candy=true, version=40000, faction="Horde", -- Or 5, 11
+					achievements={ { id=967, index=19, version=60000, }, { id=967, index=23, versionUnder=60000, }, },
+					quests={ { id=28966, qType="Seasonal", guide=ns.taxi, }, }, guide=ns.taxi, tip="Forsaken Rear Guard", },
+	[60605330] = { fires=true, version=30000, versionUnder=40000, faction="Alliance", achievements={ { id=289, }, },
+					quests=ns.fireQSet, guide=ns.letFiresCome, },
+	[60805320] = { fires=true, version=40000, faction="Horde", achievements={ { id=289, }, }, quests=ns.fireQSet,
+					guide=ns.letFiresCome, },
+	[62197300] = { candy=true, faction="Horde", achievements={ { id=967, index=25, version=60000, }, -- or 11, 6
+					{ id=967, index=11, versionUnder=60000, }, }, -- Shared again
+					quests={ { id=12368, qType="Seasonal", }, }, guide=ns.theTradeQuarter .."\n\n" ..ns.goEast, },					
+	[60995141] = { candy=true, version=40000, faction="Horde",
+					achievements={ { id=967, index=23, version=60000, }, { id=967, index=12, versionUnder=60000, }, },
+					quests={ { id=12363, qType="Seasonal", }, }, tip="Brill\n\n" ..ns.goEast, },
+	[61508110] = { rotten=true, version=40000, faction="Alliance",
+					achievements={ { id=1040, index=1, version=60000, }, { id=1040, index=3, versionUnder=60000, }, },
+					quests={ { id=29054, name="Stink Bombs Away!", qType="Daily", }, }, guide=ns.stinkBombsLogoutA, },
+	[61805220] = { candy=true, versionUnder=40000, faction="Horde", tip="Brill\n\n" ..ns.goEast, -- or 12, 5
+					achievements={ { id=967, index=12, }, }, quests={ { id=12363, qType="Seasonal", }, }, },
+	[83047207] = { candy=true, version=40000, faction="Horde",
+					achievements={ { id=967, index=24, version=60000, }, { id=967, index=21, versionUnder=60000, }, }, 
+					quests={ { id=28972, qType="Seasonal", }, }, tip="The Bulwark", },
+	[62126783] = { rotten=true, version=40000, faction="Horde",
+					achievements={ { id=1041, index=4, version=60000, }, { id=1041, index=2, versionUnder=60000, }, },
+					quests={ { id=29377, name="A Time to Break Down", qType="Daily", }, }, guide=ns.timeBreakDown2, },
+	[62136702] = { rotten=true, version=40000, faction="Horde",
+					achievements={ { id=1041, index=1, version=60000, }, { id=1041, index=4, versionUnder=60000, }, },
+					quests={ { id=29374, name="Stink Bombs Away!", qType="Daily", }, }, guide=ns.stinkBombsH, },
+	[62406820] = { rotten=true, version=40000, faction="Alliance",
+					achievements={ { id=1040, index=4, version=60000, }, { id=1040, index=1, versionUnder=60000, }, },
+					quests={ { id=29371, name="A Time to Lose", qType="Daily", }, }, guide=ns.timeToLose1, },
+	[62436671] = { rotten=true, version=40000, faction="Horde",
+					achievements={ { id=1041, index=2, version=60000, }, { id=1041, index=3, versionUnder=60000, }, },
+					quests={ { id=29375, name="Clean Up In Undercity", qType="Daily", }, }, guide=ns.cleanUpH },
+	[99189591] = { candy=true, version=40000, faction="Alliance",
+					achievements={ { id=966, index=22, version=60000, }, { id=966, index=18, versionUnder=60000, }, },
+					quests={ { id=28988, qType="Seasonal", }, }, noZidormi=true, tip="Chillwind Camp", },
+}
+
+ns.points[ ns.map.undercity ] = { -- Undercity
+	[67753742] = { candy=true, faction="Horde", achievements={ { id=967, index=25, version=60000, }, -- or 11, 6
+					{ id=967, index=11, versionUnder=60000, }, }, -- Shared again
+					quests={ { id=12368, qType="Seasonal", }, }, tip=ns.theTradeQuarter .."\n\n" ..ns.goEast, },
+	[76503301] = { rotten=true, version=40000, faction="Horde",
+					achievements={ { id=1041, index=2, version=60000, }, { id=1041, index=3, versionUnder=60000, }, },
+					quests={ { id=29375, name="Clean Up In Undercity", qType="Daily", }, }, guide=ns.cleanUpH },
+	[75703300] = { rotten=true, version=40000, faction="Alliance",
+					achievements={ { id=1040, index=1, version=60000, }, { id=1040, index=3, versionUnder=60000, }, },
+					quests={ { id=29054, name="Stink Bombs Away!", qType="Daily", }, }, guide=ns.stinkBombsLogoutA, },
+	[76105320] = { rotten=true, version=40000, faction="Alliance",
+					achievements={ { id=1040, index=4, version=60000, }, { id=1040, index=1, versionUnder=60000, }, },
+					quests={ { id=29371, name="A Time to Lose", qType="Daily", }, }, guide=ns.timeToLose1, },
+}
+
+ns.points[ ns.map.westernP ] = { -- Western Plaguelands
+	[03243760] = { candy=true, version=40000, faction="Horde",
+					achievements={ { id=967, index=23, version=60000, }, { id=967, index=12, versionUnder=60000, }, },
+					quests={ { id=12363, qType="Seasonal", }, }, tip="Brill\n\n" ..ns.goEast, },
+	[04506029] = { candy=true, faction="Horde", achievements={ { id=967, index=25, version=60000, }, -- or 11, 6
+					{ id=967, index=11, versionUnder=60000, }, }, -- Shared again
+					quests={ { id=12368, qType="Seasonal", }, }, tip=ns.theTradeQuarter .."\n\n" ..ns.goEast, },
+	[26425931] = { candy=true, version=40000, faction="Horde",
+					achievements={ { id=967, index=24, version=60000, }, { id=967, index=21, versionUnder=60000, }, }, 
+					quests={ { id=28972, qType="Seasonal", }, }, tip="The Bulwark", },	
+	[43388437] = { candy=true, version=40000, faction="Alliance",
+					achievements={ { id=966, index=22, version=60000, }, { id=966, index=18, versionUnder=60000, }, },
+					quests={ { id=28988, qType="Seasonal", }, }, tip="Chillwind Camp", },
+	[48286365] = { candy=true, version=40000, faction="Horde",
+					achievements={ { id=967, index=26, version=60000, }, { id=967, index=20, versionUnder=60000, }, }, 
+					quests={ { id=28987, qType="Seasonal", }, }, tip="Andorhal", },	
+}
+
+ns.points[ ns.map.westfall ] = { -- Westfall
+	[52915360] = { candy=true, versionUnder=40000, faction="Alliance", -- or 10, 9
+					achievements={ { id=966, index=5, }, }, quests={ { id=12340, qType="Seasonal", }, }, tip="Sentinel Hill", },
+	[52915374] = { candy=true, version=40000, faction="Alliance", quests={ { id=12340, qType="Seasonal", }, },
+					achievements={ { id=966, index=25, version=60000, }, { id=966, index=5, versionUnder=60000, }, },
+					tip="Sentinel Hill. Inn marker, but could also be the top of the tower. Depends on your quest phasing", },
+}
+
+ns.points[ ns.map.wetlands ] = { -- Wetlands
+	[10836099] = { candy=true, faction="Alliance", achievements={ { id=966, index=23, version=60000, }, -- or 4, 4
+					{ id=966, index=10, version=40000, versionUnder=60000, }, { id=966, index=10, versionUnder=40000, }, },
+					quests={ { id=12343, qType="Seasonal", }, }, tip="Menethil Harbor. In the inn that's behind the fort", },
+	[11349760] = { candy=true, faction="Alliance", -- 7 or 10. Was 4 intended as shared?
+					achievements={ { id=966, index=13, version=60000, }, { id=966, index=4, versionUnder=60000, },
+					{ id=966, index=0, versionUnder=40000, }, tip="he Commons", },
+					quests={ { id=12335, qType="Seasonal", }, }, tip="Inside the Stonefire Tavern", },
+	[26072598] = { candy=true, version=40000, faction="Alliance",
+					achievements={ { id=966, index=24, version=60000, }, { id=966, index=16, versionUnder=60000, }, },
+					quests={ { id=28990, qType="Seasonal", }, }, tip="Swiftgear Station", },
+	[58213920] = { candy=true, faction="Alliance", version=40000,
+					achievements={ { id=966, index=26, version=60000, }, { id=966, index=17, versionUnder=60000, }, },
+					quests={ { id=28991, qType="Seasonal", }, }, tip="Greenwarden's Grove\n\n" ..ns.raptorHatchling, },
+}
+
+ns.points[ ns.map.northStrangle ] = { -- Northern Stranglethorn
+	[24838108] = { candy=true, version=60000, faction="Horde", tip="Hardwrench Hideaway",
+					achievements={ { id=967, index=6, }, }, quests={ { id=28969, qType="Seasonal", }, }, },
+	[25007990] = { candy=true, version=40000, versionUnder=60000, faction="Horde",  tip="Hardwrench Hideaway",
+					achievements={ { id=967, index=22, }, }, quests={ { id=28969, qType="Seasonal", }, }, },
+	[27107730] = { candy=true, versionUnder=40000, -- or A: 13, 13; H: 14, 7
+					achievements={ { id=966, index=1, faction="Alliance", }, { id=967, index=10, faction="Horde", },},
+					quests={ { id=12397, qType="Seasonal", }, }, tip="It's in the Salty Sailor Tavern at Booty Bay", },
+	[31502970] = { candy=true, versionUnder=40000, faction="Horde", tip="Grom'gol Base Camp", -- or 13, 8
+					achievements={ { id=967, index=9, }, }, quests={ { id=12382, qType="Seasonal", }, }, },
+	[39005230] = { candy=true, version=60000, faction="Horde", tip="Grom'gol Base Camp", 
+					achievements={ { id=967, index=15, }, }, quests={ { id=12382, qType="Seasonal", }, }, },
+	[37305170] = { candy=true, version=40000, versionUnder=60000, faction="Horde", tip="Grom'gol Base Camp",
+					achievements={ { id=967, index=9, }, }, quests={ { id=12382, qType="Seasonal", }, }, },
+	[53166698] = { candy=true, version=40000, faction="Alliance",
+					achievements={ { id=966, index=16, version=60000, }, { id=966, index=21, versionUnder=60000, }, },
+					quests={ { id=28964, qType="Seasonal", }, }, tip="Fort Livingston", },
+}
+
+ns.points[ 210 ] = { -- The Cape of Stranglethorn
+	[40917372] = { candy=true, version=40000, -- Booty Bay
+					achievements={ { id=966, index=6, faction="Alliance", version=60000, },
+					{ id=966, index=1, faction="Alliance", versionUnder=60000, },
+					{ id=967, index=5, faction="Horde", version=60000, },
+					{ id=967, index=10, faction="Horde", versionUnder=60000, },},
+					quests={ { id=12397, qType="Seasonal", }, }, tip="It's in the Salty Sailor Tavern", },					
+	[35042722] = { candy=true, version=40000, faction="Horde", tip="Hardwrench Hideaway",
+					achievements={ { id=967, index=6, version=60000, }, { id=967, index=22, versionUnder=60000, }, },
+					quests={ { id=28969, qType="Seasonal", }, }, },
+	[64481257] = { candy=true, version=40000, faction="Alliance",
+					achievements={ { id=966, index=16, version=60000, }, { id=966, index=21, versionUnder=60000, }, },
+					quests={ { id=28964, qType="Seasonal", }, }, tip="Fort Livingston", },
+}
+
+ns.points[ 224 ] = { -- Stranglethorn Vale
+	[27107730] = { candy=true, versionUnder=40000, -- Booty Bay, or A: 13, 13; H: 14, 7
+					achievements={ { id=966, index=1, faction="Alliance", }, { id=967, index=10, faction="Horde", },},
+					quests={ { id=12397, qType="Seasonal", }, }, tip="It's in the Salty Sailor Tavern", },					
+	[34365192] = { candy=true, version=40000, faction="Horde", tip="Hardwrench Hideaway",
+					achievements={ { id=967, index=6, version=60000, }, { id=967, index=22, versionUnder=60000, }, },
+					quests={ { id=28969, qType="Seasonal", }, }, },
+	[37907993] = { candy=true, version=40000, -- Booty Bay
+					achievements={ { id=966, index=6, faction="Alliance", version=60000, },
+					{ id=966, index=1, faction="Alliance", versionUnder=60000, },
+					{ id=967, index=5, faction="Horde", version=60000, },
+					{ id=967, index=10, faction="Horde", versionUnder=60000, },},
+					quests={ { id=12397, qType="Seasonal", }, }, tip="It's in the Salty Sailor Tavern", },					
+	[42213359] = { candy=true, versionUnder=40000, faction="Horde", tip="Grom'gol Base Camp", -- or 13, 8
+					achievements={ { id=967, index=9, }, }, quests={ { id=12382, qType="Seasonal", }, }, },
+	[42173354] = { candy=true, version=40000, versionUnder=60000, faction="Horde", tip="Grom'gol Base Camp",
+					achievements={ { id=967, index=9, }, }, quests={ { id=12382, qType="Seasonal", }, }, },
+	[43233392] = { candy=true, version=60000, faction="Horde", tip="Grom'gol Base Camp", 
+					achievements={ { id=967, index=15, }, }, quests={ { id=12382, qType="Seasonal", }, }, },
+	[51704300] = { candy=true, version=40000, faction="Alliance",
+					achievements={ { id=966, index=16, version=60000, }, { id=966, index=21, versionUnder=60000, }, },
+					quests={ { id=28964, qType="Seasonal", }, }, tip="Fort Livingston", },
+	[88444023] = { candy=true, version=40000, faction="Alliance",
+					achievements={ { id=966, index=5, version=60000, }, { id=966, index=23, versionUnder=60000, }, },
+					quests={ { id=28961, qType="Seasonal", }, }, tip="Surwich", },
+}
+
+ns.points[ ns.map.easternK ] = { -- Eastern Kingdoms
+	[28007600] = { candy=true, version=40000, achievements={ { id=966, faction="Alliance", showAllCriteria=true, },
+					{ id=967, faction="Horde", showAllCriteria=true, }, }, large=true, alwaysShow=true, noContinent=true,
+					noCoords=true, },
+}
+
+--==================================================================================================================================
+--
+-- OUTLAND
+--
+--==================================================================================================================================
+
+-- <= Outland buckets and achievements added in WotLK. Northrend buckets added in WotLK but achievements added in Cata
+-- Indexes checked 2/3/2025 for Both Retail and Classic Cata. Classic TBC not available
+
+ns.aldorScryer = "but... if absolutely neutral then your choice, Aldor or Scryer, but only one"
+ns.aldor = "Aldor Rise. You must be Aldor " ..ns.aldorScryer
+ns.aldorSet = { candy=true, achievements={ { id=969, index=11, faction="Alliance", }, 
+			{ id=968, index=11, faction="Horde", version=60000, }, { id=968, index=7, faction="Horde", versionUnder=60000, }, },
+			quests={ { id=12404, qType="Seasonal", }, }, tip=ns.aldor, }
+ns.scryer = "Scryer's Tier. You must be Scryer " ..ns.aldorScryer
+ns.scryerSet = { candy=true, achievements={ { id=969, index=11, faction="Alliance", }, 
+			{ id=968, index=11, faction="Horde", version=60000, }, { id=968, index=7, faction="Horde", versionUnder=60000, }, },
+			quests={ { id=12404, qType="Seasonal", }, }, tip=ns.scryer, }
+
+ns.area52 = "Area 52. A little inside the main building"
+ns.cenarionRSet = { candy=true, achievements={ { id=969, index=13, faction="Alliance", version=60000, },
+			{ id=969, index=2, faction="Alliance", version=60000, },
+			{ id=968, index=14, faction="Horde", }, },
+			quests={ { id=12403, qType="Seasonal", }, }, tip="Cenarion Refuge. Inside the main building", }
+ns.cenarionCSet = { candy=true, achievements={ { id=969, index=2, faction="Alliance", }, { id=968, index=2, faction="Horde", }, },
+			quests={ { id=12403, qType="Seasonal", }, }, tip="Cenarion Refuge. Inside the main building", }
+ns.evergrove = "Evergrove. Inside the inn, mailbox at the front"
+ns.garadar = "Garadar. At the centre of the huge round building. If mobs are orange it's still okay"
+ns.mokNathal = "Mok'Nathal Village. Inside the main building"
+ns.orebor = "Orebor Harborage. Inside the building with the mailbox"
+
+ns.points[ ns.map.bladesEdge ] = { -- Blade's Edge Mountains
+	[27239263] = { candy=true, faction="Alliance", achievements={ { id=969, index=14, version=60000, },
+					{ id=969, index=1, versionUnder=60000, }, },
+					quests={ { id=12355, qType="Seasonal", }, }, tip=ns.orebor, },
+	[35836373] = { candy=true, faction="Alliance", achievements={ { id=969, index=2, version=60000, },
+					{ id=969, index=15, versionUnder=60000, }, }, quests={ { id=12358, qType="Seasonal", }, },
+					tip="Sylvanaar. At the rear of the inn, behind the main building", },
+	[53435555] = { candy=true, faction="Horde", achievements={ { id=968, index=3, version=60000, },
+					{ id=968, index=11, versionUnder=60000, }, },
+					quests={ { id=12393, qType="Seasonal", }, }, tip="Thunderlord Stronghold. Inside the main building", },
+	[61056808] = { candy=true, faction="Alliance", achievements={ { id=969, index=3, version=60000, },
+					{ id=969, index=14, versionUnder=60000, }, }, quests={ { id=12359, qType="Seasonal", }, },
+					tip="Toshley's Station. At the rear of the inn. The building has a mailbox", },
+	[62903833] = { candy=true, achievements={ { id=969, index=1, faction="Alliance", version=60000, },
+					{ id=969, index=8, faction="Alliance", versionUnder=60000, },
+					{ id=968, index=14, faction="Horde", }, }, quests={ { id=12406, qType="Seasonal", }, }, tip=ns.evergrove, },
+	[76226039] = { candy=true, faction="Horde", achievements={ { id=968, index=2, version=60000, },
+					{ id=968, index=3, versionUnder=60000, }, },
+					quests={ { id=12394, qType="Seasonal", }, }, tip=ns.mokNathal, },
+	[94893725] = { candy=true, achievements={ { id=969, index=7, faction="Alliance", },
+					{ id=968, index=7, faction="Horde", version=60000, },
+					{ id=968, index=13, faction="Horde", versionUnder=60000, }, },
+					quests={ { id=12407, qType="Seasonal", }, }, tip=ns.area52, },
+}
+
+ns.points[ ns.map.hellfire ] = { -- Hellfire Peninsula
+	[00164803] = ns.cenarionRSet,
+	[23423637] = { candy=true, faction="Alliance", achievements={ { id=969, index=5, version=60000, },
+					{ id=969, index=12, versionUnder=60000, }, },
+					quests={ { id=12353, qType="Seasonal", }, },
+					tip="Temple of Telhamat. In the main building at the end of the promenade", },
+	[26895947] = { candy=true, faction="Horde", achievements={ { id=968, index=4, version=60000, },
+					{ id=968, index=6, versionUnder=60000, }, },
+					quests={ { id=12389, qType="Seasonal", }, }, tip="Falcon Watch. In the lower, domed building", },
+	[54256368] = { candy=true, faction="Alliance", achievements={ { id=969, index=4, version=60000, },
+					{ id=969, index=13, versionUnder=60000, }, },
+					quests={ { id=12352, qType="Seasonal", }, }, tip="Honor Hold. In the inn, mailbox at the front", },
+	[56813745] = { candy=true, faction="Horde", achievements={ { id=968, index=5, version=60000, },
+					{ id=968, index=9, versionUnder=60000, }, },
+					quests={ { id=12388, qType="Seasonal", }, }, tip="Thrallmar. In the smaller of the two main buildings", },
+}
+
+ns.points[ ns.map.nagrand ] = { -- Nagrand
+	[54197588] = { candy=true, faction="Alliance", achievements={ { id=969, index=6, version=60000, }, 
+					{ id=969, index=3, versionUnder=60000, }, }, quests={ { id=12357, qType="Seasonal", }, },
+					tip="Telaar. Below the Flight Master. If mobs are orange it's still okay", },
+	[56683448] = { candy=true, faction="Horde", achievements={ { id=968, index=6, version=60000, },
+					{ id=968, index=1, versionUnder=60000, }, }, quests={ { id=12392, qType="Seasonal", }, }, tip=ns.garadar, },
+	[81985275] = ns.aldorSet,					
+	[86240582] = ns.cenarionRSet,
+	[88626052] = ns.scryerSet,
+}
+
+ns.points[ ns.map.netherstorm ] = { -- Netherstorm
+	[00906549] = { candy=true, achievements={ { id=969, index=1, faction="Alliance", version=60000, },
+					{ id=969, index=8, faction="Alliance", versionUnder=60000, },
+					{ id=968, index=1, faction="Horde", version=60000, },
+					{ id=968, index=14, faction="Horde", versionUnder=60000, }, },
+					quests={ { id=12406, qType="Seasonal", }, }, tip=ns.evergrove, },
+	[13858696] = { candy=true, faction="Horde", achievements={ { id=968, index=2, version=60000, },
+					{ id=968, index=3, versionUnder=60000, }, },
+					quests={ { id=12394, qType="Seasonal", }, }, tip=ns.mokNathal, },
+	[32026444] = { candy=true, achievements={ { id=969, index=7, faction="Alliance", }, { id=968, index=13, faction="Horde", }, },
+					quests={ { id=12407, qType="Seasonal", }, }, tip=ns.area52, },
+	[43313609] = { candy=true, achievements={ { id=969, index=8, faction="Alliance", version=60000, },
+					{ id=969, index=6, faction="Alliance", versionUnder=60000, },
+					{ id=968, index=8, faction="Horde", version=60000, },
+					{ id=968, index=5, faction="Horde", versionUnder=60000, },					},
+					quests={ { id=12408, qType="Seasonal", }, }, tip="The Stormspire. Fly high up. Inside the lowest building", },
+}
+
+ns.points[ ns.map.shadowmoon ] = { -- Shadowmoon Valley
+	[30272770] = { candy=true, faction="Horde", achievements={ { id=968, index=10, version=60000, },
+					{ id=968, index=8, versionUnder=60000, }, },
+					quests={ { id=12395, qType="Seasonal", }, }, tip="Shadowmoon Village. In the main building", },
+	[37015829] = { candy=true, faction="Alliance", achievements={ { id=969, index=10, version=60000, },
+					{ id=969, index=5, versionUnder=60000, }, },
+					quests={ { id=12360, qType="Seasonal", }, }, tip="Wildhammer Stronghold. In the dining area of the "
+						.."Kharanos-style inn with brewing iconography. Don't enter the big building", },
+	[56375982] = { candy=true, achievements={ { id=969, index=9, faction="Alliance", version=60000, },
+					{ id=969, index=4, faction="Alliance", versionUnder=60000, },
+					{ id=968, index=9, faction="Horde", version=60000, },
+					{ id=968, index=4, faction="Horde", versionUnder=60000, }, },
+					quests={ { id=12409, qType="Seasonal", }, },
+					tip="Sanctum of the Stars. You must be Scryer " ..ns.aldorScryer, },
+	[61002817] = { candy=true, achievements={ { id=969, index=9, faction="Alliance", version=60000, },
+					{ id=969, index=4, faction="Alliance", versionUnder=60000, },
+					{ id=968, index=9, faction="Horde", version=60000, },
+					{ id=968, index=4, faction="Horde", versionUnder=60000, }, },
+					quests={ { id=12409, qType="Seasonal", }, },
+					tip="Altar of Sha'tar. You must be Aldor " ..ns.aldorScryer, },
+}
+
+ns.points[ ns.map.shattrath ] = { -- Shattrath City
+	[28234908] = ns.aldorSet,
+	[56308195] = ns.scryerSet,
+}
+
+ns.points[ ns.map.terokkar ] = { -- Terokkar Forest
+	[24392504] = ns.aldorSet,
+	[31183299] = ns.scryerSet,
+	[48734517] = { candy=true, faction="Horde", achievements={ { id=968, index=12, }, },
+					quests={ { id=12391, qType="Seasonal", }, }, tip="Stonebreaker Hold. Inside the huge round building", },
+	[56595322] = { candy=true, faction="Alliance", achievements={ { id=969, index=12, version=60000, },
+					{ id=969, index=10, versionUnder=60000, }, },
+					quests={ { id=12356, qType="Seasonal", }, },
+					tip="Allerian Stronghold. Inside the only round, domed (elven) building", },
+	[83775454] = { candy=true, faction="Horde", achievements={ { id=968, index=10, version=60000, },
+					{ id=968, index=8, versionUnder=60000, }, },
+					quests={ { id=12395, qType="Seasonal", }, }, tip="Shadowmoon Village. In the main building", },
+	[90638570] = { candy=true, faction="Alliance", achievements={ { id=969, index=10, version=60000, },
+					{ id=969, index=5, versionUnder=60000, }, },
+					quests={ { id=12360, qType="Seasonal", }, }, tip="Wildhammer Stronghold. In the dining area of the "
+						.."Kharanos-style inn with brewing iconography. Don't enter the big building", },
+}
+
+ns.points[ ns.map.zangarmarsh ] = { -- Zangarmarsh
+	[30625087] = { candy=true, faction="Horde", achievements={ { id=968, index=13, version=60000, },
+					{ id=968, index=10, versionUnder=60000, }, },
+					quests={ { id=12390, qType="Seasonal", }, }, tip="Zabra'jin. The ground level of the inn with no name ", },
+	[41902617] = { candy=true, faction="Alliance", achievements={ { id=969, index=14, version=60000, },
+					{ id=969, index=1, versionUnder=60000, }, },
+					quests={ { id=12355, qType="Seasonal", }, }, tip=ns.orebor, },
+	[45979438] = { candy=true, faction="Horde", achievements={ { id=968, index=1, version=60000, },
+					{ id=968, index=6, versionUnder=60000, }, },
+					quests={ { id=12392, qType="Seasonal", }, }, tip=ns.garadar, },
+	[67164894] = { candy=true, faction="Alliance", achievements={ { id=969, index=15, version=60000, },
+					{ id=969, index=9, versionUnder=60000, }, },
+					quests={ { id=12354, qType="Seasonal", }, }, tip="Telredor. Right next to the innkeeper", },
+	[78456289] = ns.cenarionRSet,
+}
+
+ns.points[ ns.map.outland ] = { -- Outland
 	[73003880] = { title="Candy Bucket Macro", tip="#showtooltip Handful of Treats\n/use Handful of Treats" },
 }
-points[ 1945 ] = { -- Outland
-	[73003880] = { title="Candy Bucket Macro", tip="#showtooltip Handful of Treats\n/use Handful of Treats" },
-}
 
--- ==============================
--- Northrend
--- ==============================
+--==================================================================================================================================
+--
+-- NORTHREND
+--
+--==================================================================================================================================
 
-local herosWelcome = "Don't go into the Silver Enclave.\nIt's in the adjacent \"A Hero's Welcome\" inn.\n"
-					.."Under the stairs on the right side"
-local xAndY = "Hey, did you download my \X and Y\" AddOn for cool minimap coordinates!\n"
-				.."(Shameless self promotion)"
+-- <= Outland buckets and achievements added in WotLK. Northrend buckets added in WotLK but achievements added in Cata
+-- Indexes checked 3/3/2025 for Both Retail and Classic Cata
+
+ns.argentStrandSet = { candy=true, version=40000, achievements={ { id=5836, index=21, faction="Alliance", version=60000, },
+			{ id=5836, index=1, faction="Alliance", versionUnder=60000, }, { id=5835, index=23, faction="Horde", version=60000, },
+			{ id=5835, index=1, faction="Horde", versionUnder=60000, }, }, quests={ { id=12941, qType="Seasonal", }, },
+			tip="The Argent Strand", }
+ns.cantripsAch = { { id=5836, index=6, faction="Alliance", version=60000, },
+			{ id=5836, index=10, faction="Alliance", version=40000, versionUnder=60000, },
+			{ id=5835, index=7, faction="Horde", version=60000, },
+			{ id=5835, index=13, faction="Horde", version=40000, versionUnder=60000, }, }
+ns.cantripsQ = { { id=13472, qType="Seasonal", }, }
+ns.cantripsTip = "Cantrips & Crows, below in The Underbelly"
+ns.filthyAch = { { id=5835, index=6, version=60000, }, { id=5835, index=21, version=40000, versionUnder=60000, }, }
+ns.filthyQ = { { id=13474, qType="Seasonal", }, }
+ns.filthyTip = "The Filthy Animal - Sunreaver's Sanctuary"
+ns.heroesWelcomeAch = { { id=5836, index=5, version=60000, }, { id=5836, index=11, version=40000, versionUnder=60000, }, }
+ns.heroesWelcomeQ = { { id=13473, qType="Seasonal", }, }
+ns.heroesWelcomeTip = "A Hero's Welcome. Don't go into the Silver Enclave. It's in the adjacent \"A Hero's Welcome\" inn. Under "
+			.."the stairs on the right side"
+ns.k3Set = { candy=true, achievements={ { id=5836, index=20, faction="Alliance", version=60000, },
+			{ id=5836, index=6, faction="Alliance", version=40000, versionUnder=60000, },
+			{ id=5835, index=22, faction="Horde", version=60000, },
+			{ id=5835, index=9, faction="Horde", version=40000, versionUnder=60000, }, },
+			quests={ { id=13461, qType="Seasonal", }, }, tip="Icon marks the entrance to the Inn at K3", }
+ns.legerdemainAch = { { id=5836, index=4, faction="Alliance", version=60000, },
+			{ id=5836, index=12, faction="Alliance", version=40000, versionUnder=60000, },
+			{ id=5835, index=5, faction="Horde", version=60000, },
+			{ id=5835, index=4, faction="Horde", version=40000, versionUnder=60000, }, }
+ns.legerdemainQ = { { id=13463, qType="Seasonal", }, }
+ns.legerdemaintTip = "In The Legerdemain Lounge inn"
+ns.legerdemainSet = { candy=true, achievements=ns.legerdemainAch, quests=ns.legerdemainQ, tip=ns.legerdemaintTip, }
 									
-points[ 114 ] = { -- Borean Tundra
-	[41715440] = { aIDH=5835, indexH=4, quest=13468, iabc=true, tip="The lowest level. Use the south-south-east entrance\n"
-						.."at ground level and enter the pidgeon hole in the stairs.\n"
-						.."Do NOT ascend those stairs!", location="Warsong Hold" },
-	[49750998] = { aIDH=5835, indexH=1, quest=13501, iabc=true, location="Bor'gorok Outpost" },
-	[57071907] = { aIDA=5836, indexA=1, quest=13437, iabc=true, tip="Inside the main building. Icon marks the entrance", location="Fizzcrank Airstrip" },
-	[58526787] = { aIDA=5836, indexA=3, quest=13436, iabc=true, tip="Quite a ways inside the inn, which is adjacent to the Flight Master", location="Valiance Keep" },
-	[76663747] = { aIDH=5835, indexH=2, quest=13467, iabc=true, location="Taunka'le Village" },
-	[78454916] = { aIDA=5836, indexA=2, aIDH=5835, indexH=3, quest=13460, iabc=true, tip="Inside the inn / main building which is above the shore",
-					location="Unu'pe" },
-}
-points[ 127 ] = { -- Crystalsong Forest
-	[24903750] = { aIDA=5836, indexA=5, quest=13473, iabc=true, tip=herosWelcome, location="A Hero's Welcome" },
-	[27304170] = { aIDA=5836, indexA=6, aIDH=5835, indexH=7, quest=13472, iabc=true, tip="Cantrips & Crows", location="The Underbelly" },
-	[29003240] = { aIDA=5836, indexA=4, aIDH=5835, indexH=5, quest=13463, iabc=true, tip=xAndY, location="The Legerdemain Lounge" },
-	[30703770] = { aIDH=5835, indexH=6, quest=13474, iabc=true, tip="The Filthy Animal", location="Sunreaver's Sanctuary" },
-	[92292093] = { aIDA=5836, indexA=20, aIDH=5835, indexH=22, quest=13461, iabc=true, tip="Icon marks the entrance to the Inn. Surprise!", location="K3" },
-}
-points[ 125 ] = { -- Dalaran
-	[38225962] = { aIDA=5836, indexA=6, aIDH=5835, indexH=7, quest=13472, iabc=true, tip="Cantrips & Crows", location="The Underbelly" },
-	[42366313] = { aIDA=5836, indexA=5, quest=13473, iabc=true, tip="Don't go into the Silver Enclave.\nIt's in the adjacent \"A Hero's Welcome\" inn.\n"
-					.."Under the stairs on the right side", location="A Hero's Welcome" },
-	[48144132] = { aIDA=5836, indexA=4, aIDH=5835, indexH=5, quest=13463, iabc=true, tip="Hey, did you download my \X and Y\" AddOn for cool minimap coordinates!\n"
-					.."(Shameless self promotion)", location="The Legerdemain Lounge" },
-	[66703000] = { aIDH=5835, indexH=6, quest=13474, iabc=true, tip="The Filthy Animal", location="Sunreaver's Sanctuary" },
-}
-points[ 126 ] = { -- The Underbelly
-	[40205950] = { aIDA=5836, indexA=6, aIDH=5835, indexH=7, quest=13472, iabc=true, tip="Cantrips & Crows", location="The Underbelly" },
-}
-points[ 115 ] = { -- Dragonblight
-	[48117465] = { aIDA=5836, indexA=7, aIDH=5835, indexH=9, quest=13459, iabc=true, location="Moa'ki Harbor" },
-	[28955622] = { aIDA=5836, indexA=8, quest=13438, iabc=true, location="Stars' Rest" },
-	[77285099] = { aIDA=5836, indexA=9, quest=13439, iabc=true, tip="Icon marks the entrance to the inn. It's the closest building to the Flight Master",
-					location="Wintergarde Keep" },
-	[60155345] = { aIDA=5836, indexA=10, aIDH=5835, indexH=11, quest=13456, iabc=true, tip="The ground floor. Use the nearest entrance to the Gryphon Master",
-					location="Wyrmrest Temple" },
-	[37834647] = { aIDH=5835, indexH=8, quest=13469, iabc=true, location="Agmar's Hammer" },
-	[76826328] = { aIDH=5835, indexH=10, quest=13470, iabc=true, location="Venomspite" },
-}
-points[ 116 ] = { -- Grizzly Hills
-	[20896477] = { aIDH=5835, indexH=13, quest=12946, iabc=true, location="Conquest Hold" },
-	[29140133] = { aIDA=5836, indexA=21, aIDH=5835, indexH=23, quest=12941, iabc=true, location="The Argent Stand" },
-	[31946021] = { aIDA=5836, indexA=11, quest=12944, iabc=true, location="Amberpine Lodge" },
-	[59642636] = { aIDA=5836, indexA=12, quest=12945, iabc=true, location="Westfall Brigade" },
-	[62368101] = { aIDH=5835, indexH=14, quest=13464, iabc=true, location="Camp Winterhoof" },
-	[65364700] = { aIDH=5835, indexH=12, quest=12947, iabc=true, location="Camp Oneqwah" },
-	[75138689] = { aIDA=5836, indexA=13, quest=13435, iabc=true, location="Fort Wildervar" },
-}
-points[ 117 ] = { -- Howling Fjord
-	[25315914] = { aIDA=5836, indexA=14, aIDH=5835, indexH=15, quest=13452, iabc=true, tip="Icon marks the entrance to the subterranean Inn", location="Kamagua" },
-	[30834205] = { aIDA=5836, indexA=16, quest=13434, iabc=true, tip="The usual :). Icon marks the inn entrance", location="Westguard Keep" },
-	[49401080] = { aIDH=5835, indexH=14, quest=13464, iabc=true, location="Camp Winterhoof" },
-	[52106620] = { aIDH=5835, indexH=16, quest=13465, iabc=true, location="New Agamand" },
-	[58676316] = { aIDA=5836, indexA=15, quest=13433, iabc=true, tip="The Inn entrance is at the side....\nThe Penny Pouch is awesome!\nNot :/", location="Valgarde" },
-	[60481591] = { aIDA=5836, indexA=13, quest=13435, iabc=true, location="Fort Wildervar" },
-	[79273063] = { aIDH=5835, indexH=17, quest=13466, iabc=true, tip="The Inn entrance is at the side....\nThe Penny Pouch is awesome!\nNot :/",
-					location="Vengeance Landing" },
-}
-points[ 118 ] = { -- Icecrown
-	[74608623] = { aIDA=5836, indexA=5, quest=13473, iabc=true, tip=herosWelcome, location="A Hero's Welcome" },
-	[75648805] = { aIDA=5836, indexA=6, aIDH=5835, indexH=7, quest=13472, iabc=true, tip="Cantrips & Crows", location="The Underbelly" },
-	[76388420] = { aIDA=5836, indexA=4, aIDH=5835, indexH=5, quest=13463, iabc=true, tip=xAndY, location="The Legerdemain Lounge" },
-	[77128631] = { aIDH=5835, indexH=6, quest=13474, iabc=true, tip="The Filthy Animal", location="Sunreaver's Sanctuary" },
-	[90016580] = { aIDA=5836, indexA=19, quest=13448, iabc=true, location="Frosthold" },
-	[92122346] = { aIDA=5836, indexA=18, aIDH=5835, indexH=19, quest=13462, iabc=true, tip="Quest phasing issues reported. Icon marks the entrance",
-					location="Bouldercrag's Refuge" },
-	[99513771] = { aIDH=5835, indexH=21, quest=13548, iabc=true, location="Grom'arsh Crash Site" },
-}
-points[ 119 ] = { -- Sholazar Basin
-	[26615920] = { aIDA=5836, indexA=17, aIDH=5835, indexH=18, quest=12950, iabc=true, tip="At the rear of the larger tent", location="Nesingwary Base Camp" },
-	[28159550] = { aIDH=5835, indexH=1, quest=13501, iabc=true, location="Bor'gorok Outpost" },
-}
-points[ 120 ] = { -- The Storm Peaks
-	[15139230] = { aIDA=5836, indexA=5, quest=13473, iabc=true, tip=herosWelcome, location="A Hero's Welcome" },
-	[16059390] = { aIDA=5836, indexA=6, aIDH=5835, indexH=7, quest=13472, iabc=true, tip="Cantrips & Crows", location="The Underbelly" },
-	[16709034] = { aIDA=5836, indexA=4, aIDH=5835, indexH=5, quest=13463, iabc=true, tip=xAndY, location="The Legerdemain Lounge" },
-	[17359237] = { aIDH=5835, indexH=6, quest=13474, iabc=true, tip="The Filthy Animal", location="Sunreaver's Sanctuary" },
-	[28727428] = { aIDA=5836, indexA=19, quest=13448, iabc=true, location="Frosthold" },
-	[30583694] = { aIDA=5836, indexA=18, aIDH=5835, indexH=19, quest=13462, iabc=true, tip="Quest phasing issues reported. Icon marks the entrance",
-					location="Bouldercrag's Refuge" },
-	[37094951] = { aIDH=5835, indexH=21, quest=13548, iabc=true, location="Grom'arsh Crash Site" },
-	[40938595] = { aIDA=5836, indexA=20, aIDH=5835, indexH=22, quest=13461, iabc=true, tip="Icon marks the entrance to the Inn. Surprise!", location="K3" },
-	[63029971] = { aIDA=5836, indexA=21, aIDH=5835, indexH=23, quest=12941, iabc=true, location="The Argent Stand" },
-	[67655069] = { aIDH=5835, indexH=20, quest=13471, iabc=true, location="Camp Tunka'lo" },
-	[75999351] = { aIDA=5836, indexA=22, aIDH=5835, indexH=24, quest=12940, iabc=true, location="Zim'Torga" },
-}
-points[ 123 ] = { -- Wintergrasp
-	[94919476] = { aIDH=5835, indexH=8, quest=13469, iabc=true, location="Agmar's Hammer" },
-}
-points[ 121 ] = { -- Zul'Drak
-	[09404645] = { aIDA=5836, indexA=20, aIDH=5835, indexH=22, quest=13461, iabc=true, tip="Icon marks the entrance to the Inn. Surprise!", location="K3" },
-	[40866604] = { aIDA=5836, indexA=21, aIDH=5835, indexH=23, quest=12941, iabc=true, location="The Argent Stand" },
-	[59335721] = { aIDA=5836, indexA=22, aIDH=5835, indexH=24, quest=12940, iabc=true, location="Zim'Torga" },
-	[72929235] = { aIDA=5836, indexA=12, quest=12945, iabc=true, location="Westfall Brigade" },
+ns.points[ 114 ] = { -- Borean Tundra
+	[41715440] = { candy=true, version=40000, faction="Horde", achievements={ { id=5835, index=4, version=60000, },
+					{ id=5835, index=5, versionUnder=60000, }, }, quests={ { id=13468, qType="Seasonal", }, },
+					tip="Warsong Hold. The lowest level. Use the south-south-east entrance at ground level and enter the pidgeon "
+						.."hole in the stairs. Do NOT ascend those stairs!", },
+	[49750998] = { candy=true, version=40000, faction="Horde", quests={ { id=13501, qType="Seasonal", }, }, tip="Bor'gorok Outpost",
+					achievements={ { id=5835, index=1, version=60000, }, { id=5835, index=3, versionUnder=60000, }, }, },
+	[57071907] = { candy=true, version=40000, faction="Alliance", quests={ { id=13437, qType="Seasonal", }, },
+					achievements={ { id=5836, index=1, version=60000, }, { id=5836, index=21, versionUnder=60000, }, },
+					tip="Fizzcrank Airstrip. Inside the main building. Icon marks the entrance", },
+	[58526787] = { candy=true, version=40000, faction="Alliance",
+					achievements={ { id=5836, index=3, version=60000, }, { id=5836, index=20, versionUnder=60000, }, },
+					quests={ { id=13436, qType="Seasonal", }, tip="Valiance Keep", },
+					tip="Quite a ways inside the inn, which is adjacent to the Flight Master", },
+	[76663747] = { candy=true, version=40000, faction="Horde",
+					achievements={ { id=5835, index=2, version=60000, }, { id=5835, index=24, versionUnder=60000, }, },
+					quests={ { id=13467, qType="Seasonal", }, }, tip="Taunka'le Village", },					
+	[78454916] = { candy=true, version=40000, achievements={ { id=5836, index=2, faction="Alliance", version=60000, },
+					{ id=5836, index=13, faction="Alliance", versionUnder=60000, },
+					{ id=5835, index=3, faction="Horde", version=60000, },
+					{ id=5835, index=14, faction="Horde", versionUnder=60000, }, },
+					quests={ { id=13460, qType="Seasonal", }, },
+					tip="Unu'pe. Inside the inn / main building which is above the shore", },
 }
 
--- ==================================
--- Cataclysm
--- ==================================
-
-points[ 207 ] = { -- Deepholm
-	[47365171] = { aIDA=5837, indexA=1, quest=29020, location="Temple of Earth" },
-	[51194990] = { aIDH=5838, indexH=1, quest=29019, location="Temple of Earth" },
-}
-local experiment = "The lake area behind the Nordrassil inn is the perfect place to\n"
-					.."experiment with your advanced graphics settings. Particle Density,\n"
-					.."Ground Clutter, and Liquid Detail in particular are worth trying.\n"
-					.."So divinely serene and gorgeous!"
-					
-points[ 198 ] = { -- Mount Hyjal
-	[18633732] = { aIDA=5837, indexA=2, aIDH=5838, indexH=2, quest=29000, location="Grove of Aessina",
-						tip="Just this once max out \"Ground Clutter\" in your settings. You're welcome!" },
-	[24100134] = { aIDA=963, indexA=10, quest=28995, location="Talonbranch Glade" },
-	[63052415] = { aIDA=5837, indexA=3, aIDH=5838, indexH=3, quest=28999, location="Nordrassil" },
-	[42684572] = { aIDA=5837, indexA=4, aIDH=5838, indexH=4, quest=29001, location="Shrine of Aviana" },
-}
-points[ 241 ] = { -- Twilight Highlands
-	[06823051] = { aIDA=966, indexA=26, quest=28991, location="Greenwarden's Grove", tip=raptorHatchling },
-	[10189172] = { aIDA=966, indexA=15, quest=12339, location="Thelsamar" },
-	[35039958] = { aIDA=966, indexA=14, quest=28963, location="Farstrider Lodge" },
-	[43505727] = { aIDA=5837, indexA=8, quest=28979, location="Victor's Point" },
-	[45117681] = { aIDH=5838, indexH=6, quest=28974, location="Crushblow", tip="Inside the only building" },
-	[49603036] = { aIDA=5837, indexA=7, quest=28978, location="Thundermar", tip="The building with the mailbox" },
-	[53404284] = { aIDH=5838, indexH=5, quest=28973, location="Bloodgulch", tip="Ground floor, main building" },
-	[60365825] = { aIDA=5837, indexA=5, quest=28977, location="Firebeard's Patrol",
-						tip="The village is under attack but the dwarves\nsaved their blessed tavern. Priorities!" },
-	[75411653] = { aIDH=5838, indexH=7, quest=28976, location="The Krazzworks", tip="Difficult to describe - trust in the coordinates please!\n"
-									.."Or... just look for the apple bobbing tub at the doorway!" },
-	[75365492] = { faction="Horde", title="Dragonmaw Port", quest=28975, tip="To see the liberated version of Dragonmaw Port\n"
-						.."you must have completed the zone storyline up\nto \"Returning to the Highlands\". The flight point\nbecomes available then too" },
-	[78877780] = { aIDA=5837, indexA=6, quest=28980, location="Highbank",
-						tip="Regardless of quest phase, you'll be okay for the candy bucket.\nFrom the entrance straight to the courtyard. Right then left" },
-}
-points[ 249 ] = { -- Uldum
-	[26580724] = { aIDA=5837, aIDH=5838, indexA=9, indexH=8, quest=29016, location="Oasis of Vir'sar",
-						tip="Why not grab the cool Springfur Alpaca mount while you're here!\nYou guessed it, sigh. I've an AddOn for that too! :)" },
-	[54683301] = { aIDA=5837, aIDH=5838, indexA=10, indexH=9, quest=29017, location="Ramkahen" },
-}
-points[ 1527 ] = { -- Wrong Uldum
-	[26600725] = { aIDA=5837, aIDH=5838, indexA=9, indexH=8, quest=29016, tip="\124cFFFF0000Wrong version of Uldum. Speak to Zidormi." },
-	[54683301] = { aIDA=5837, aIDH=5838, indexA=10, indexH=9, quest=29017, tip="\124cFFFF0000Wrong version of Uldum. Speak to Zidormi." },
-}
-points[ 204 ] = { -- Abyssal Depths in Vashj'ir
-	[61897915] = { aIDA=5837, indexA=11, quest=28985, tip="Inside Darkbreak Cove. Dive straight down. The icon marks the entrance.\n"
-						.."The cave may appear empty, Give the art assets time to appear" },
-	[94867350] = { aIDH=5838, indexH=11, quest=28984, tip="Inside Legion's Rest. Dive straight down. The icon marks the entrance" },
-	[60005670] = { aIDH=5838, indexH=13, quest=28986, tip="Inside Tenebrous Cove. Dive straight down. The icon marks the entrance" },
-}
-points[ 201 ] = { -- Kelp'thar Forest in Vashj'ir
-	[60686609] = { aIDA=5837, indexA=12, aIDH=5838, indexH=10, quest=28981, tip="Inside Deepmist Grotto. Dive straight down. The icon marks the entrance" },
-}
-points[ 205 ] = { -- Shimmering Expanse in Vashj'ir
-	[20007114] = { aIDA=5837, indexA=11, quest=28985, tip="Inside Darkbreak Cove. Dive straight down. The icon marks the entrance.\n"
-									.."The cave may appear empty, Give the art assets time to appear" },
-	[68261539] = { aIDA=5837, indexA=12, aIDH=5838, indexH=10, quest=28981, tip="Inside Deepmist Grotto. Dive straight down. The icon marks the entrance" },
-	[51564154] = { aIDA=5837, indexA=13, aIDH=5838, indexH=12, quest=28982, tip="Inside Silver Tide Hollow. Dive straight down. The icon marks the entrance" },
-	[45025707] = { aIDA=5837, indexA=14, quest=28983, tip="Inside the Tranquil Wash. Dive straight down. The icon marks the entrance" },
-	[47706640] = { aIDH=5838, indexH=11, quest=28984, tip="Inside Legion's Rest. Dive straight down. The icon marks the entrance" },
-	[18415228] = { aIDH=5838, indexH=13, quest=28986, tip="Inside Tenebrous Cove. Dive straight down. The icon marks the entrance" },
-}
--- The Maelstrom map is not treated as a continent in the game (or is it Handy Notes?) so I need to include it here
-points[ 948 ] = { -- The Maelstrom
-	[50002900] = { aIDA=5837, indexA=1, quest=29020, location="Temple of Earth", tip="Access via the Cataclysm portal cluster in Stormwind" },
-	[50002901] = { aIDH=5838, indexH=1, quest=29019, location="Temple of Earth", tip="Access via the Cataclysm portal cluster in Orgrimmar" },
+ns.points[ 127 ] = { -- Crystalsong Forest
+	[27284325] = { candy=true, faction="Alliance", versionUnder=60000, achievements=ns.heroesWelcomeAch,
+					quests=ns.heroesWelcomeQ, tip=ns.heroesWelcomeTip, },
+	[28154209] = { candy=true, faction="Alliance", version=60000, achievements=ns.heroesWelcomeAch,
+					quests=ns.heroesWelcomeQ, tip=ns.heroesWelcomeTip, },
+	[27294137] = { candy=true, achievements=ns.cantripsAch, quests=ns.cantripsQ, tip=ns.cantripsTip, },
+	[29043660] = { candy=true, versionUnder=60000, achievements=ns.legerdemainAch, quests=ns.legerdemainQ,
+					tip=ns.legerdemaintTip, },
+	[29343758] = { candy=true, version=60000, achievements=ns.legerdemainAch, quests=ns.legerdemainQ, tip=ns.legerdemaintTip, },
+	[34703314] = { candy=true, faction="Horde", versionUnder=60000, achievements=ns.filthyAch, quests=ns.filthyQ ,
+					tip=ns.filthyTip, },
+	[33183524] = { candy=true, faction="Horde", version=60000, achievements=ns.filthyAch, quests=ns.filthyQ , tip=ns.filthyTip, },
+	[92292093] = ns.k3Set,
 }
 
--- =================================
--- Pandaria
--- =================================
-
-local kunlaiTip = "Phasing issue here. Go to Binan Village. Complete \"Hit Medicine\",\n"
-				.."\"Call Out Their Leader\", \"All of the Arrows\". Then complete\n"
-				.."\"Admiral Taylor...\". Then \"Westwind Rest\" by heading over\n"
-				.."towards Westwind. Finally complete \"Challenge Accepted\" from\n"
-				.."Elder Tsulan. Voilà - unlocked!"
-									
-points[ 422 ] = { -- Dread Wastes
-	[55217120] = { aIDA=7601, indexA=2, aIDH=7602, indexH=2, quest=32023, location="Soggy's Gamble", tip="Inside The Chum Bucket Inn" },
-	[55933227] = { aIDA=7601, indexA=1, aIDH=7602, indexH=1, quest=32024, location="Klaxxi'vess" },
-	[79234989] = { aIDA=7601, indexA=22, aIDH=7602, indexH=24, quest=32046, location="Stoneplow", tip="Yeah.. another inn... The Stone Mug Tavern" },
-	[84388721] = { aIDH=7602, indexH=10, quest=32020, location="Dawnchaser Retreat" },
-	[84982190] = { aIDA=7601, indexA=19, aIDH=7602, indexH=21, quest=32044, location="Mistfall Village", tip="In The Golden Rose inn" },
-}
-points[ 418 ] = { -- Krasarang Wilds
-	[22370811] = { aIDA=7601, indexA=22, aIDH=7602, indexH=24, quest=32046, location="Stoneplow", tip="Yeah.. another inn... The Stone Mug Tavern" },
-	[28255074] = { aIDH=7602, indexH=10, quest=32020, location="Dawnchaser Retreat" },
-	[51407729] = { aIDA=7601, indexA=10, aIDH=7602, indexH=11, quest=32034, location="Marista", tip="The \"Bait and Brew\". Pretty much the only building" },
-	[61152504] = { aIDH=7602, indexH=12, quest=32047, location="Thunder Cleft" },
-	[75920687] = { aIDA=7601, indexA=11, aIDH=7602, indexH=13, quest=32036, location="Zhu's Watch", tip="In the Wilds' Edge Inn" },
-	[98660525] = { aIDA=7601, indexA=6, quest=32049, location="Paw'don Village", tip="First visit to Pandaria? Always grab those flight points!" },
+ns.points[ 125 ] = { -- Dalaran
+	[38225962] = { candy=true, noContinent=true, achievements=ns.cantripsAch, quests=ns.cantripsQ, tip=ns.cantripsTip, },
+	[42366313] = { candy=true, faction="Alliance", noContinent=true, achievements=ns.heroesWelcomeAch,
+					quests=ns.heroesWelcomeQ, tip=ns.heroesWelcomeTip, },
+	[48144132] = { candy=true, noContinent=true, achievements=ns.legerdemainAch, quests=ns.legerdemainQ, tip=ns.legerdemaintTip, },
+	[66703000] = { candy=true, faction="Horde", noContinent=true, achievements=ns.filthyAch, quests=ns.filthyQ, tip=ns.filthyTip, },
 }
 
-points[ 379 ] = { -- Kun-Lai Summit
-	[29507843] = { aIDA=7601, indexA=18, aIDH=7602, indexH=20, quest=32043, location="Longying Outpost" },
-	[54078282] = { aIDA=7601, indexA=15, quest=32042, tip=kunlaiTip, location="Westwind Rest" },
-	[57455995] = { aIDA=7601, indexA=14, aIDH=7602, indexH=17, quest=32037, location="One Keg", tip="Inside The Lucky Traveller" },
-	[62502890] = { aIDA=7601, indexA=16, aIDH=7602, indexH=18, quest=32051, location="Zouchin Village",
-							tip="Inside the North Wind Tavern. Right near the Flight Master" },
-	[62778050] = { aIDH=7602, indexH=15, quest=32040, location="Eastwind Rest",
-							tip="Phasing issue here. Go to Binan Village. Complete \"Hit Medicine\",\n"
-									.."\"Call Out Their Leader\", \"All of the Arrows\". Then complete\n"
-									.."\"General Nazgrim...\". Then \n\"Eastwind Rest\" by heading over\n"
-									.."towards Eastwind. Finally complete \"Challenge Accepted\" from\nElder Shiao. Voilà - unlocked!" },
-	[62779454] = { aIDH=7602, indexH=22, quest=32022, location="Shrine of Two Moons" },
-	[64216127] = { aIDA=7601, indexA=13, aIDH=7602, indexH=16, quest=32041, location="The Grummle Bazaar", tip="Inside The Two Fisted Brew" },
-	[72739228] = { aIDA=7601, indexA=12, aIDH=7602, indexH=14, quest=32039, location="Binan Village", tip="Inside the Binan Brew and Chunder Inn" },
-}
-points[ 393 ] = { -- Shrine of the Seven Stars
-	[37876584] = { aIDA=7601, indexA=20, quest=32052, tip="In the Golden Lantern inn.\nThe inn is on the "
-									.."right side of the Shrine's entrance" },
-}
-points[ 392 ] = { -- The Imperial Mercantile
-	[58907831] = { aIDH=7602, indexH=22, quest=32022, location="Shrine of Two Moons",
-							tip="From the main entrance go up the stairs on the right side.\n"
-									.."Go through each room until you arrive at the balcony /\nmezzanine of The Keggary." },
-}
-points[ 371 ] = { -- The Jade Forest
-	[02981149] = { aIDA=7601, indexA=14, aIDH=7602, indexH=17, quest=32037, location="One Keg", tip="Inside The Lucky Traveller" },
-	[07752992] = { aIDH=7602, indexH=15, quest=32040, location="Eastwind Rest" },
-	[07754251] = { aIDH=7602, indexH=22, quest=32022, location="Shrine of Two Moons" },
-	[09041268] = { aIDA=7601, indexA=13, aIDH=7602, indexH=16, quest=32041, location="The Grummle Bazaar", tip="Inside The Two Fisted Brew" },
-	[16674048] = { aIDA=7601, indexA=12, aIDH=7602, indexH=14, quest=32039, location="Binan Village", tip="Inside the Binan Brew and Chunder Inn" },
-	[16836159] = { aIDA=7601, indexA=20, quest=32052, tip="In the Golden Lantern inn.\nThe inn is on the "
-									.."right side of the Shrine's entrance" },
-	[23326073] = { aIDA=7601, indexA=17, aIDH=7602, indexH=19, quest=32026, tip="Tavern in the Mists" },
-	[28024739] = { aIDH=7602, indexH=5, quest=32028, location="Grookin Hill",
-						tip="The candy bucket is present even if you have\nnot yet made the Grookin friendly.\n\n"
-							.."But check the placement in the hut.\nDesperate to squeeze it in much?" },
-	[28451327] = { aIDH=7602, indexH=6, quest=32050, location="Honeydew Village" },
-	[29446625] = { aIDA=7601, indexA=21, aIDH=7602, indexH=23, quest=32048, location="Pang's Stead", tip="Hey, you know that you can change the icons?\n"
-									.."ESC->Interface->AddOns->HandyNotes->Plugins expand->Hallow's End" },
-	[29548546] = { aIDA=7601, indexA=11, aIDH=7602, indexH=13, quest=32036, location="Zhu's Watch", tip="In the Wilds' Edge Inn" },
-	[41682314] = { aIDA=7601, indexA=9, aIDH=7602, indexH=9, quest=32021, location="Tian Monastery", tip="Inside Paur's Pub" },
-	[44818437] = { aIDA=7601, indexA=6, quest=32049, location="Paw'don Village", tip="First visit to Pandaria? Always grab those flight points!" },
-	[45774360] = { aIDA=7601, indexA=3, aIDH=7602, indexH=3, quest=32027, location="Dawn's Blossom", tip="Inside The Drunken Hozen Inn" },
-	[48093462] = { aIDA=7601, indexA=4, aIDH=7602, indexH=4, quest=32029, location="Greenstone Village" },
-	[54606333] = { aIDA=7601, indexA=5, aIDH=7602, indexH=7, quest=32032, location="Jade Temple Grounds", tip="Inside The Dancing Serpent Inn" },
-	[55712441] = { aIDA=7601, indexA=8, aIDH=7602, indexH=8, quest=32031, location="Sri-La Village", tip="Yeah... it's inside the Inn!" },
-	[59568324] = { aIDA=7601, indexA=7, quest=32033, location="Pearlfin Village" },
-}
-points[ 433 ] = { -- The Veiled Stair
-	[29887560] = { aIDA=7601, indexA=20, quest=32052, tip="In the Golden Lantern inn.\nThe inn is on the "
-									.."right side of the Shrine's entrance" },
-	[55117224] = { aIDA=7601, indexA=17, aIDH=7602, indexH=19, quest=32026, tip="Taraezor has lots of handy \"HandyNotes\" AddOns!" },
-	[73412031] = { aIDH=7602, indexH=5, quest=32028, location="Grookin Hill" },
-	[78969372] = { aIDA=7601, indexA=21, aIDH=7602, indexH=23, quest=32048, location="Pang's Stead",
-							tip="Hey, you know that you can change the icons?\n"
-									.."ESC->Interface->AddOns->HandyNotes->Plugins expand->Hallow's End" },
-}
-points[ 388 ] = { -- Townlong Steppes, Longying Outpost
-	[71145777] = { aIDA=7601, indexA=18, aIDH=7602, indexH=20, quest=32043, location="Longying Outpost" },
-	[97916256] = { aIDA=7601, indexA=15, quest=32042, tip=kunlaiTip, location="Westwind Rest" },
-}
-points[ 390 ] = { -- Vale of Eternal Blossoms
-	[35147778] = { aIDA=7601, indexA=19, aIDH=7602, indexH=21, quest=32044, location="Mistfall Village", tip="In The Golden Rose inn" },
-	[61991626] = { aIDH=7602, indexH=22, quest=32022, location="Shrine of Two Moons",
-						tip="From the main entrance go up the stairs on the right side.\n"
-									.."Go through each room until you arrive at the balcony /\nmezzanine of The Keggary." },
-	[87036888] = { aIDA=7601, indexA=20, quest=32052, tip="In the Golden Lantern inn.\nThe inn is on the "
-									.."right side of the Shrine's entrance" },
-	[86581066] = { aIDA=7601, indexA=12, aIDH=7602, indexH=14, quest=32039, location="Binan Village", tip="Inside the Binan Brew and Chunder Inn" },
-}
-points[ 376 ] = { -- Valley of the Four Winds
-	[19875578] = { aIDA=7601, indexA=22, aIDH=7602, indexH=24, quest=32046, location="Stoneplow", tip="Yeah.. another inn... The Stone Mug Tavern" },
-	[27721760] = { aIDA=7601, indexA=19, aIDH=7602, indexH=21, quest=32044, location="Mistfall Village", tip="In The Golden Rose inn" },
-	[61211186] = { aIDA=7601, indexA=20, quest=32052, tip="In the Golden Lantern inn.\nThe inn is on the "
-									.."right side of the Shrine's entrance" },
-	[72751032] = { aIDA=7601, indexA=17, aIDH=7602, indexH=19, quest=32026, tip="Tavern in the Mists" },
-	[83642014] = { aIDA=7601, indexA=21, aIDH=7602, indexH=23, quest=32048, location="Pang's Stead",
-								tip="Hey, you know that you can change the icons?\n"
-									.."ESC->Interface->AddOns->HandyNotes->Plugins expand->Hallow's End" },
-	[83835431] = { aIDA=7601, indexA=11, aIDH=7602, indexH=13, quest=32036, location="Zhu's Watch", tip="In the Wilds' Edge Inn" },
+ns.points[ 126 ] = { -- The Underbelly
+	[38225962] = { candy=true, noContinent=true, achievements=ns.cantripsAch, quests=ns.cantripsQ, tip=ns.cantripsTip, },
 }
 
--- =====================================
--- Garrison / Draenor
--- =====================================
-
-local draenorS = "You must have a Tier 3 Town Hall or else\n"
-				.."the Candy Bucket will not be present."
-local draenorD = "Orukan has four dailies and Izzy Hollyfizzle\n"
-				.."sells Garrison decorations, purchasable only\n"
-				.."with the daily rewards. A Tier 3 Town Hall is\n"
-				.."required for these NPCs to appear."
-
-points[ 582 ] = { -- Lunarfall Garrison in Draenor
-	[40276963] = { achievement=10365, title="Spooky Pepe", item=128874, tip="Sitting on the largest gravestone" },	
-	[43515151] = { faction="Alliance", title="Draenor / Lunarfall Garrison", quest=39657, tip=draenorS },
-	[44405180] = { faction="Alliance", title="Draenor / Lunarfall Garrison", daily=true, quest=39719, tip=draenorD },
-	[48904540] = { achievement=10365, title="Pepe", item=128874, tip="Pepe seen on a branch here. It's the WRONG pepe" },
-	[29003440] = { faction="Alliance", title="Get Spooky - Garrison Mission", tip="Rarely and randomly occurs. Rewards 15 candy!" },
-}
-points[ 539 ] = { -- Shadowmoon Valley in Draenor
-	[29741983] = { achievement=10365, title="Spooky Pepe", item=128874, tip="Sitting on the largest gravestone" },	
-	[30011780] = { faction="Alliance", title="Draenor / Lunarfall Garrison", quest=39657, tip=draenorS },
-	[30251805] = { faction="Alliance", title="Draenor / Lunarfall Garrison", daily=true, quest=39719, tip=draenorD },
-	[28701600] = { faction="Alliance", title="Get Spooky - Garrison Mission", tip="Rarely and randomly occurs. Rewards 15 candy!" },
-}
-points[ 590 ] = { -- Frostwall Garrison in Draenor
-	[41654497] = { achievement=10365, title="Pepe", item=128874, tip="Pepe seen on a branch here. It's the WRONG pepe" },
-	[46993759] = { faction="Horde", title="Draenor / Frostwall Garrison", quest=39657, tip=draenorS },
-	[47903790] = { faction="Horde", title="Draenor / Frostwall Garrison", daily=true, quest=39719, tip=draenorD },
-	[41005300] = { faction="Horde", title="Get Spooky - Garrison Mission", tip="Rarely and randomly occurs. Rewards 15 candy!" },
-	[70768989] = { achievement=10365, title="Spooky Pepe", item=128874, tip="Sitting on the largest gravestone" },	
-}
-points[ 525 ] = { -- Frostfire Ridge in Draenor
-	[48256435] = { faction="Horde", title="Draenor / Frostwall Garrison", quest=39657, tip=draenorS },
-	[48506460] = { faction="Horde", title="Draenor / Frostwall Garrison", daily=true, quest=39719, tip=draenorD },
-	[46006800] = { faction="Horde", title="Get Spooky - Garrison Mission", tip="Rarely and randomly occurs. Rewards 15 candy!" },
-	[50897046] = { achievement=10365, title="Spooky Pepe", item=128874, tip="Sitting on the largest gravestone" },	
+ns.points[ 115 ] = { -- Dragonblight
+	[28955622] = { candy=true, faction="Alliance", quests={ { id=13438, qType="Seasonal", }, }, tip="Star's Rest",
+					achievements={ { id=5836, index=8, version=60000, },
+					{ id=5836, index=17, version=40000, versionUnder=60000, }, }, },
+	[48117465] = { candy=true, quests={ { id=13459, qType="Seasonal", }, },
+					achievements={ { id=5836, index=7, faction="Alliance", version=60000, },
+					{ id=5836, index=9, faction="Alliance", version=40000, versionUnder=60000, },
+					{ id=5835, index=9, faction="Horde", version=60000, },
+					{ id=5835, index=2, faction="Horde", version=40000, versionUnder=60000, }, }, tip="Moa'ki Harbor", },
+	[77285099] = { candy=true, faction="Alliance", achievements={ { id=5836, index=9, version=60000, },
+					{ id=5836, index=19, version=40000, versionUnder=60000, }, },
+					quests={ { id=13439, qType="Seasonal", }, }, tip="Wintergarde Keep. Icon marks the entrance to the inn. "
+						.."It's the closest building to the Flight Master", },
+	[60155345] = { candy=true, quests={ { id=13456, qType="Seasonal", }, },
+					achievements={ { id=5836, index=10, faction="Alliance", version=60000, },
+					{ id=5836, index=3, faction="Alliance", version=40000, versionUnder=60000, },
+					{ id=5835, index=11, faction="Horde", version=60000, },
+					{ id=5835, index=20, faction="Horde", version=40000, versionUnder=60000, }, },					
+					tip="Wyrmrest Temple. The ground floor. Use the nearest entrance to the Gryphon Master", },
+	[37834647] = { candy=true, faction="Horde", tip="Agmar's Hammer",
+					achievements={ { id=5835, index=8, version=60000, },
+					{ id=5835, index=23, version=40000, versionUnder=60000, }, }, quests={ { id=13469, qType="Seasonal", }, }, },
+	[76826328] = { candy=true, faction="Horde", achievements={ { id=5835, index=10, version=60000, },
+					{ id=5835, index=12, version=40000, versionUnder=60000, }, },
+					quests={ { id=13470, qType="Seasonal", }, }, tip="Venomspite", },
 }
 
--- =====================================
--- Legion / Broken Isles
--- =====================================
-
-points[ 627 ] = { -- Dalaran Broken Isles
-	[41476398] = { faction="Alliance", title="Dalaran Broken Isles", quest=43056, tip="In \"A Hero's Welcome\" inn." },
-	[47964178] = { faction="Neutral", title="Dalaran Broken Isles", quest=43055, tip="In The Legerdemain Lounge." },
-	[47294077] = { faction="Neutral", title="Beware of the Crooked Tree", quest=43259, tip="Speak to Duroc Ironjaw. "
-								.."This is a simple \"fly to X\" quest\nbut with very "
-								.."worthwhile XP, especially for a trivial flight.\n"
-								.."The quest that follows is devilishly difficult and "
-								.."is not\nrecommended. Just hearth/fly back to Dalaran." },
-	[67042941] = { faction="Horde", title="Dalaran Broken Isles", quest=43057, tip="In \"The Filthy Animal\" inn." },
-	[59174564] = { achievement=291, 0, tip="Just stand here with a cuppa and wait. Couldn't be easier." },
+ns.points[ 116 ] = { -- Grizzly Hills
+	[20896477] = { candy=true, faction="Horde", quests={ { id=12946, qType="Seasonal", }, },
+					achievements={ { id=5835, index=13, version=60000, },
+					{ id=5835, index=6, version=40000, versionUnder=60000, }, }, tip="Conquest Hold", },	
+	[29140133] = ns.argentStrandSet,
+	[31946021] = { candy=true, faction="Alliance", quests={ { id=12944, qType="Seasonal", }, }, 
+					achievements={ { id=5836, index=11, version=60000, },
+					{ id=5836, index=16, version=40000, versionUnder=60000, }, },
+					tip="Amberpine Lodge", },
+	[59642636] = { candy=true, faction="Alliance", quests={ { id=12945, qType="Seasonal", }, },
+					achievements={ { id=5836, index=12, version=60000, },
+					{ id=5836, index=8, version=40000, versionUnder=60000, }, }, tip="Westfall Brigade", },
+	[62368101] = { candy=true, faction="Horde", quests={ { id=13464, qType="Seasonal", }, }, tip="Camp Winterhoof",
+					achievements={ { id=5835, index=14, version=60000, },
+					{ id=5835, index=19, version=40000, versionUnder=60000, }, }, },					
+	[65364700] = { candy=true, faction="Horde", achievements={ { id=5835, index=12, version=60000, }, tip="Camp Oneqwah", 
+					{ id=5835, index=7, version=40000, versionUnder=60000, }, }, quests={ { id=12947, qType="Seasonal", }, }, },
+	[75138689] = { candy=true, faction="Alliance", quests={ { id=13435, qType="Seasonal", }, },
+					achievements={ { id=5836, index=13, version=60000, },
+					{ id=5836, index=18, version=40000, versionUnder=60000, }, }, tip="Fort Wildervar", },
 }
 
--- =====================================
--- Battle for Azeroth
--- =====================================
-
-points[ 1163 ] = { -- Dazar'alor - The Great Seal
-	[49828478] = { faction="Horde", title="Zuldazar", quest=54709, tip="In \"The Great Seal\" in Dazar'alor." },
-}
-points[ 1164 ] = { -- Dazar'alor - The Hall of Chroniclers
-	[49828478] = { faction="Horde", title="Zuldazar", quest=54709, tip="In \"The Great Seal\" in Dazar'alor." },
-}
-points[ 1165 ] = { -- Dazar'alor
-	[50014684] = { faction="Horde", title="Zuldazar", quest=54709, tip="In \"The Great Seal\" in Dazar'alor." },
-}
-points[ 862 ] = { -- Zuldazar
-	[57984468] = { faction="Horde", title="Zuldazar", quest=54709, tip="In \"The Great Seal\" in Dazar'alor." },
-}
-points[ 1161 ] = { -- Boralus - Tiragarde Sound
-	[73701219] = { faction="Alliance", title="Boralus Harbor", quest=54710, tip="In the \"Snug Harbor Inn\"." },
-}
-points[ 895 ] = { -- Tiragarde Sound
-	[75182272] = { faction="Alliance", title="Boralus Harbor", quest=54710, tip="In the \"Snug Harbor Inn\"." },
-}
-
--- =====================================
--- Dragon Isles
--- =====================================
-
-points[ 2023 ] = { -- Ohn'ahran Plains
-	[46224060] = { achievement=18360, index=1, quest=75684 }, -- Bloodhoof Outpost
-	[66252453] = { achievement=18360, index=2, quest=75693 }, -- Emberwatch
-	[72138039] = { achievement=18360, index=3, quest=75692 }, -- Forkriver Crossing
-	[62934056] = { achievement=18360, index=4, quest=75685 }, -- Maruukaï
-	[57147672] = { achievement=18360, index=5, quest=75687 }, -- Ohn'iri Springs
-	[81295920] = { achievement=18360, index=6, quest=75688 }, -- Pinewood Post
-	[85843536] = { achievement=18360, index=7, quest=75689 }, -- Rusza'thar Reach
-	[28646056] = { achievement=18360, index=8, quest=75686 }, -- Shady Sanctuary
-	[41916044] = { achievement=18360, index=9, quest=75691 }, -- Teerakaï
-	[85042603] = { achievement=18360, index=10, quest=75690 }, -- Timberstep Outpost
-}
-points[ 2025 ] = { -- Thaldraszus
-	[44891063] = { achievement=18360, index=34, quest=75683 }, -- Wingrest Embassy
-	[48910791] = { aIDA=18360, indexA=33, quest=75681 }, -- Wild Coast
-	[50084273] = { achievement=18360, index=11, quest=75698 }, -- Algeth'era Court
-	[35087920] = { achievement=18360, index=12, quest=75696 }, -- Garden Shrine
-	[52416981] = { achievement=18360, index=13, quest=75697 }, -- Gelikyr Post
-	[59858269] = { achievement=18360, index=14, quest=75695 }, -- Temporal Conflux
-	[43175940] = { achievement=18360, index=15, quest=75700 }, -- Valdrakken - The Parting Glass
-	[39525922] = { achievement=18360, index=16, quest=75699 }, -- Valdrakken - The Roasted Ram
-	[35955711] = { achievement=18360, index=17, quest=75701 }, -- Valdrakken - Weyrnrest
-}
-points[ 2024 ] = { -- The Azure Span
-	[47034026] = { achievement=18360, index=18, quest=75667 }, -- Camp Antonidas
-	[62785773] = { achievement=18360, index=19, quest=75668 }, -- Camp Nowhere
-	[12384933] = { achievement=18360, index=20, quest=75669 }, -- Iskaara
-	[65501625] = { achievement=18360, index=21, quest=75670 }, -- Theron's Watch
-	[18812455] = { achievement=18360, index=22, quest=75671 }, -- Three-Falls Lookout
-}
-points[ 2151 ] = { -- The Forbidden Reach
-	[33845881] = { achievement=18360, index=23, quest=75702 }, -- Morqut Village
-}
-points[ 2022 ] = { -- The Waking Shores
-	[24468210] = { achievement=18360, index=24, quest=75672 }, -- Apex Observatory
-	[47678330] = { achievement=18360, index=25, quest=75673 }, -- Dragonscale Basecamp
-	[65225793] = { achievement=18360, index=26, quest=75675 }, -- Life Vault Ruins
-	[43106666] = { achievement=18360, index=27, quest=77698 }, -- Obsidian Bulwark
-	[25775518] = { achievement=18360, index=28, quest=75676 }, -- Obsidian Throne
-	[58036731] = { achievement=18360, index=29, quest=75674 }, -- Ruby Lifeshrine
-	[76075475] = { achievement=18360, index=30, quest=75677 }, -- Skytop Observatory
-	[53913903] = { achievement=18360, index=31, quest=75678 }, -- Uktulut Backwater
-	[46432740] = { achievement=18360, index=32, quest=75679 }, -- Uktulut Pier
-	[80422788] = { aIDH=18360, indexH=33, quest=75682 }, -- Wild Coast
-	[81313196] = { aIDA=18360, indexA=33, quest=75681 }, -- Wild Coast
-	[76213541] = { achievement=18360, index=34, quest=75683 }, -- Wingrest Embassy
-}
-points[ 2112 ] = { -- Valdrakken
-	[72374667] = { achievement=18360, index=15, quest=75700 }, -- The Parting Glass
-	[47134542] = { achievement=18360, index=16, quest=75699 }, -- The Roasted Ram
-	[22363084] = { achievement=18360, index=17, quest=75701 }, -- Weyrnrest
-}
-points[ 2133 ] = { -- Zaralek Cavern
-	[56375636] = { achievement=18360, index=35, quest=75704 }, -- Loamm
-	[52122647] = { achievement=18360, index=36, quest=75703 }, -- Obsidian Rest
+ns.points[ 117 ] = { -- Howling Fjord
+	[25315914] = { candy=true, achievements={ { id=5836, index=14, faction="Alliance", version=60000, },
+					{ id=5836, index=2, faction="Alliance", version=40000, versionUnder=60000, },
+					{ id=5835, index=15, faction="Horde", version=60000, },
+					{ id=5835, index=18, faction="Horde", version=40000, versionUnder=60000, }, },
+					quests={ { id=13452, qType="Seasonal", }, }, tip="Kamagua. Icon marks the entrance to the subterranean Inn", },
+	[30834205] = { candy=true, faction="Alliance",
+					achievements={ { id=5836, index=16, version=60000, },
+					{ id=5836, index=15, version=40000, versionUnder=60000, }, },
+					quests={ { id=13434, qType="Seasonal", }, }, tip="Westguard Keep. Icon marks the inn entrance", },
+	[49401080] = { candy=true, faction="Horde", quests={ { id=13464, qType="Seasonal", }, }, tip="Camp Winterhoof",
+					achievements={ { id=5835, index=14, version=60000, },
+					{ id=5835, index=19, version=40000, versionUnder=60000, }, }, },
+	[52106620] = { candy=true, faction="Horde", achievements={ { id=5835, index=16, version=60000, }, tip="New Agamand",
+					{ id=5835, index=15, version=40000, versionUnder=60000, }, }, quests={ { id=13465, qType="Seasonal", }, }, },
+	[58676316] = { candy=true, faction="Alliance", achievements={ { id=5836, index=15, version=60000, },
+					{ id=5836, index=7, version=40000, versionUnder=60000, }, },
+					quests={ { id=13433, qType="Seasonal", }, }, tip="Valgarde. The Inn entrance is at the side", },
+	[60481591] = { candy=true, faction="Alliance", quests={ { id=13435, qType="Seasonal", }, },
+					achievements={ { id=5836, index=13, version=60000, },
+					{ id=5836, index=18, version=40000, versionUnder=60000, }, }, tip="Fort Wildervar", },
+	[79273063] = { candy=true, faction="Horde", quests={ { id=13466, qType="Seasonal", }, },
+					achievements={ { id=5835, index=17, version=60000, },
+					{ id=5835, index=22, version=40000, versionUnder=60000, }, },
+					tip="Vengeance Landing. The Inn entrance is at the side", },
 }
 
--- =====================================
--- Continents & Sub-Continents
--- =====================================
-
-points[ 12 ] = { -- Kalimdor
-	-- Azuremyst Isle
-	[32402650] = { aIDA=963, indexA=2, quest=12333, location="Azure Watch" },
-	-- Teldrassil
-	[43711023] = { aIDA=963, indexA=25, quest=12331, location="Dolanaar" },
-	[40320891] = { aIDA=963, indexA=5, quest=12334, location="Craftsmen's Terrace" },
+ns.points[ 118 ] = { -- Icecrown
+	[75638872] = { candy=true, faction="Alliance", versionUnder=60000, noContinent=true, achievements=ns.heroesWelcomeAch,
+					quests=ns.heroesWelcomeQ, tip=ns.heroesWelcomeTip, },
+	[76018822] = { candy=true, faction="Alliance", version=60000, noContinent=true, achievements=ns.heroesWelcomeAch,
+					quests=ns.heroesWelcomeQ, tip=ns.heroesWelcomeTip, },
+	[75648791] = { candy=true,  noContinent=true, achievements=ns.cantripsAch, quests=ns.cantripsQ,
+					tip=ns.cantripsTip, },
+	[76408584] = { candy=true, versionUnder=60000, noContinent=true, achievements=ns.legerdemainAch, quests=ns.legerdemainQ,
+					tip=ns.legerdemaintTip, },
+	[76538626] = { candy=true, version=60000, noContinent=true, achievements=ns.legerdemainAch, quests=ns.legerdemainQ,
+					tip=ns.legerdemaintTip, },
+	[78858434] = { candy=true, faction="Horde", versionUnder=60000, noContinent=true, achievements=ns.filthyAch, quests=ns.filthyQ,
+					tip=ns.filthyTip, },
+	[78208525] = { candy=true, faction="Horde", version=60000, noContinent=true, achievements=ns.filthyAch, quests=ns.filthyQ,
+					tip=ns.filthyTip, },
+	[90016580] = { candy=true, faction="Alliance", achievements={ { id=5836, index=19, version=60000, },
+					{ id=5836, index=5, version=40000, versionUnder=60000, }, },
+					quests={ { id=13448, qType="Seasonal", }, }, tip="Frosthold", },
+	[92122346] = { candy=true, achievements={ { id=5836, index=18, faction="Alliance", version=60000, },
+					{ id=5836, index=14, faction="Alliance", version=40000, versionUnder=60000, },
+					{ id=5835, index=19, faction="Horde", version=60000, },
+					{ id=5835, index=11, faction="Horde", version=40000, versionUnder=60000, }, },
+					quests={ { id=13462, qType="Seasonal", }, },
+					tip="Bouldercrag's Refuge. Quest phasing issues reported. Icon marks the entrance", },
+	[99513771] = { candy=true, faction="Horde", quests={ { id=13548, qType="Seasonal", }, },
+					achievements={ { id=5835, index=21, version=60000, },
+					{ id=5835, index=16, version=40000, versionUnder=60000, }, }, tip="Grom'arsh Crash Site", },
 }
-points[ 947 ] = { -- Azeroth
-	[70707500] = { title="Candy Bucket Macro", tip="#showtooltip Handful of Treats\n/use Handful of Treats" },
-	[45194849] = { aIDA=5837, indexA=1, quest=29020, iabc=true, ibc=true, tip="Access via the Cataclysm portal cluster in Stormwind.", location="Temple of Earth" },
-	[45194851] = { aIDH=5838, indexH=1, quest=29019, iabc=true, ibc=true, tip="Access via the Cataclysm portal cluster in Orgrimmar.", location="Temple of Earth" },
+
+ns.points[ 119 ] = { -- Sholazar Basin
+	[26615920] = { candy=true, quests={ { id=12950, qType="Seasonal", }, },
+					achievements={ { id=5836, index=17, faction="Alliance", version=60000, },
+					{ id=5836, index=22, faction="Alliance", version=40000, versionUnder=60000, },
+					{ id=5835, index=18, faction="Horde", version=60000, },
+					{ id=5835, index=17, faction="Horde", version=40000, versionUnder=60000, }, }, tip="Nesingwary Base Camp", },
+	[28159550] = { candy=true, faction="Horde", quests={ { id=13501, qType="Seasonal", }, }, tip="Bor'gorok Outpost",
+					achievements={ { id=5835, index=1, version=60000, },
+					{ id=5835, index=3, version=40000, versionUnder=60000, }, }, },
+}
+
+ns.points[ 120 ] = { -- The Storm Peaks
+	[16049449] = { candy=true, faction="Alliance", versionUnder=60000, noContinent=true, achievements=ns.heroesWelcomeAch,
+					quests=ns.heroesWelcomeQ, tip=ns.heroesWelcomeTip, },
+	[16379405] = { candy=true, faction="Alliance", version=60000, noContinent=true, achievements=ns.heroesWelcomeAch,
+					quests=ns.heroesWelcomeQ, tip=ns.heroesWelcomeTip, },
+	[16049377] = { candy=true, noContinent=true, achievements=ns.cantripsAch, quests=ns.cantripsQ,
+					tip=ns.cantripsTip, },
+	[16719195] = { candy=true, versionUnder=60000, noContinent=true, achievements=ns.legerdemainAch, quests=ns.legerdemainQ,
+					tip=ns.legerdemaintTip, },
+	[16839232] = { candy=true, version=60000, noContinent=true, achievements=ns.legerdemainAch, quests=ns.legerdemainQ,
+					tip=ns.legerdemaintTip, },
+	[18889063] = { candy=true, faction="Horde", versionUnder=60000, noContinent=true, achievements=ns.filthyAch, quests=ns.filthyQ,
+					tip=ns.filthyTip, },
+	[18309143] = { candy=true, faction="Horde", version=60000, noContinent=true, achievements=ns.filthyAch, quests=ns.filthyQ,
+					tip=ns.filthyTip, },
+	[28727428] = { candy=true, faction="Alliance", achievements={ { id=5836, index=19, version=60000, },
+					{ id=5836, index=5, version=40000, versionUnder=60000, }, }, quests={ { id=13448, qType="Seasonal", }, },
+					tip="Frosthold", },
+	[30583694] = { candy=true, uests={ { id=13462, qType="Seasonal", }, },
+					achievements={ { id=5836, index=18, faction="Alliance", version=60000, },
+					{ id=5836, index=14, faction="Alliance", version=40000, versionUnder=60000, },
+					{ id=5835, index=19, faction="Horde", version=60000, },
+					{ id=5835, index=11, faction="Horde", version=40000, versionUnder=60000, }, },
+					tip="Bouldercrag's Refuge. Quest phasing issues reported. Icon marks the entrance", },
+	[37094951] = { candy=true, faction="Horde", quests={ { id=13548, qType="Seasonal", }, },
+					achievements={ { id=5835, index=21, version=60000, },
+					{ id=5835, index=16, version=40000, versionUnder=60000, }, }, tip="Grom'arsh Crash Site", },
+	[40938595] = ns.k3Set,
+	[63029971] = ns.argentStrandSet,
+	[67655069] = { candy=true, faction="Horde", quests={ { id=13471, qType="Seasonal", }, }, tip="Camp Tunka'lo",
+					achievements={ { id=5835, index=20, version=60000, },
+					{ id=5835, index=8, version=40000, versionUnder=60000, }, }, },
+	[75999351] = { candy=true, achievements={ { id=5836, index=22, faction="Alliance", version=60000, },
+					{ id=5836, index=4, faction="Alliance", version=40000, versionUnder=60000, },
+					{ id=5835, index=24, faction="Horde", version=60000, },
+					{ id=5835, index=10, faction="Horde", version=40000, versionUnder=60000, }, },
+					quests={ { id=12940, qType="Seasonal", }, }, tip="Zim'Torga", },
+}
+
+ns.points[ 123 ] = { -- Wintergrasp
+	[94919476] = { candy=true, version=40000, faction="Horde",
+					achievements={ { id=5835, index=8, version=60000, }, tip="Agmar's Hammer",
+					{ id=5835, index=23, version=40000, versionUnder=60000, }, }, quests={ { id=13469, qType="Seasonal", }, }, },
+}
+
+ns.points[ 121 ] = { -- Zul'Drak
+	[09404645] = ns.k3Set,
+	[40866604] = ns.argentStrandSet,
+	[59335721] = { candy=true, achievements={ { id=5836, index=22, faction="Alliance", version=60000, },
+					{ id=5836, index=4, faction="Alliance", version=40000, versionUnder=60000, },
+					{ id=5835, index=24, faction="Horde", version=60000, },
+					{ id=5835, index=10, faction="Horde", version=40000, versionUnder=60000, }, },
+					quests={ { id=12940, qType="Seasonal", }, }, tip="Zim'Torga", },
+	[72929235] = { candy=true, faction="Alliance", quests={ { id=12945, qType="Seasonal", }, },
+					achievements={ { id=5836, index=12, version=60000, },
+					{ id=5836, index=8, version=40000, versionUnder=60000, }, }, tip="Westfall Brigade", },
+}
+
+ns.points[ 113 ] = { -- Northrend
+	[20008600] = { candy=true, version=40000, achievements={ { id=5836, faction="Alliance", showAllCriteria=true, },
+					{ id=5835, faction="Horde", showAllCriteria=true, }, }, large=true, alwaysShow=true, noContinent=true,
+					noCoords=true, },
+}
+
+--==================================================================================================================================
+--
+-- CATACLYSM
+--
+--==================================================================================================================================
+-- Indexes checked 2/3/2025 for Both Retail and Classic Cata
+-- Included neighbours checked 4/3/25
+
+ns.points[ 207 ] = { -- Deepholm
+	[47365171] = { candy=true, faction="Alliance", achievements={ { id=5837, index=1, version=60000, },
+					{ id=5837, index=11, versionUnder=60000, }, },
+					quests={ { id=29020, qType="Seasonal", }, }, tip="Temple of the Earth\n\n" ..ns.cataclysmPortals, },
+	[51194990] = { candy=true, faction="Horde", achievements={ { id=5838, index=1, version=60000, },
+					{ id=5838, index=9, versionUnder=60000, }, },
+					quests={ { id=29019, qType="Seasonal", }, }, tip="Temple of the Earth\n\n" ..ns.cataclysmPortals, },
+}
+				
+ns.points[ 198 ] = { -- Mount Hyjal
+	[18633732] = { candy=true, tip="Grove of Aessina", achievements={ { id=5837, index=2, faction="Alliance", },
+					{ id=5838, index=2, faction="Horde", }, }, quests={ { id=29000, qType="Seasonal", }, }, },
+	[24100134] = { candy=true, faction="Alliance",
+					achievements={ { id=963, index=10, version=60000, }, { id=963, index=24, versionUnder=60000, }, },
+					quests={ { id=28995, qType="Seasonal", }, }, tip="Talonbranch Glade", },
+	[42684572] = { candy=true, achievements={ { id=5837, index=4, faction="Alliance", version=60000, },
+					{ id=5837, index=13, faction="Alliance", versionUnder=60000, },
+					{ id=5838, index=4, faction="Horde", version=60000, },
+					{ id=5838, index=1, faction="Horde", versionUnder=60000, }, },
+					quests={ { id=29001, qType="Seasonal", }, }, tip="Shrine of Aviana", },
+	[63052415] = { candy=true, achievements={ { id=5837, index=3, faction="Alliance", version=60000, },
+					{ id=5837, index=10, faction="Alliance", versionUnder=60000, },
+					{ id=5838, index=3, faction="Horde", version=60000, },
+					{ id=5838, index=12, faction="Horde", versionUnder=60000, }, },
+					quests={ { id=28999, qType="Seasonal", }, }, tip="Nordrassil", },
+}
+
+ns.points[ 241 ] = { -- Twilight Highlands
+	[06823051] = { candy=true, faction="Alliance",
+					achievements={ { id=966, index=26, version=60000, }, { id=966, index=17, versionUnder=60000, }, },
+					quests={ { id=28991, qType="Seasonal", }, }, tip="Greenwarden's Grove\n\n" ..ns.raptorHatchling, },
+	[10189172] = { candy=true, faction="Alliance", achievements={ { id=966, index=15, version=60000, }, -- Or 5, 6
+					{ id=966, index=8, versionUnder=60000, }, }, quests={ { id=12339, qType="Seasonal", }, },
+					tip="Thelsamar", }, -- Shared??
+	[35039958] = { candy=true, faction="Alliance",
+					achievements={ { id=966, index=14, version=60000, }, { id=966, index=22, versionUnder=60000, }, },
+					quests={ { id=28963, qType="Seasonal", }, }, tip="Farstrider Lodge", }, 
+	[43505727] = { candy=true, faction="Alliance", quests={ { id=28979, qType="Seasonal", }, }, tip="Victor's Point",
+					achievements={ { id=5837, index=8, version=60000, }, { id=5837, index=1, versionUnder=60000, }, }, },
+	[45117681] = { candy=true, faction="Horde",
+					achievements={ { id=5838, index=6, version=60000, }, { id=5838, index=8, versionUnder=60000, }, },
+					quests={ { id=28974, qType="Seasonal", }, }, tip="Crushblow. Inside the only building", },
+	[49603036] = { candy=true, faction="Alliance",
+					achievements={ { id=5837, index=7, version=60000, }, { id=5837, index=9, versionUnder=60000, }, },
+					quests={ { id=28978, qType="Seasonal", }, }, tip="Thundermar. The building with the mailbox" },
+	[53404284] = { candy=true, faction="Horde",
+					achievements={ { id=5838, index=5, version=60000,}, { id=5838, index=11, versionUnder=60000, }, },
+					quests={ { id=28973, qType="Seasonal", }, }, tip="Bloodgulch. Round floor, main building", },
+	[60365825] = { candy=true, faction="Alliance",
+					achievements={ { id=5837, index=5, version=60000, }, { id=5837, index=12, versionUnder=60000, }, },
+					quests={ { id=28977, qType="Seasonal", }, }, tip="Firebeard's Patrol. The village is under attack but the "
+						.."dwarves saved their blessed tavern. Priorities!" },
+	[75411653] = { candy=true, faction="Horde",
+					achievements={ { id=5838, index=7, version=60000, }, { id=5838, index=13, versionUnder=60000, }, },
+					quests={ { id=28976, qType="Seasonal", }, }, tip="The Krazzworks. Difficult to describe - trust in the "
+						.."coordinates please! Or, just look for the apple bobbing tub at the doorway!", },
+	[75365492] = { candy=true, name=ns.candyBucket, faction="Horde", quests={ { id=28975, qType="Seasonal", }, },
+					guide="Dragonmaw Port. To see the liberated version of Dragonmaw Port you must have completed the zone "
+						.."storyline up to \"Returning to the Highlands\". The flight point becomes available then too.\n\n"
+						.."NOT a Cataclysm T&T achievement bucket", },
+	[78877780] = { candy=true, faction="Alliance", achievements={ { id=5837, index=6, }, },
+					quests={ { id=28980, qType="Seasonal", }, }, tip="Highbank. Regardless of quest phase, you'll be okay for "
+						.."the candy bucket.\n\nFrom the entrance head straight into the courtyard. Right then left" },
+}
+
+ns.points[ 249 ] = { -- Uldum
+	[26580724] = { candy=true, achievements={ { id=5837, index=9, faction="Alliance", version=60000, },
+					{ id=5837, index=14, faction="Alliance", versionUnder=60000, },
+					{ id=5838, index=8, faction="Horde", version=60000, },
+					{ id=5838, index=10, faction="Horde", versionUnder=60000, }, },
+					quests={ { id=29016, qType="Seasonal", }, }, tip="Oasis of Vir'sar\n\n" ..ns.uldumPromo, },
+	[54683301] = { candy=true, achievements={ { id=5837, index=10, faction="Alliance", version=60000, },
+					{ id=5837, index=8, faction="Alliance", versionUnder=60000, },
+					{ id=5838, index=9, faction="Horde", version=60000, },
+					{ id=5838, index=7, faction="Horde", versionUnder=60000, }, },
+					quests={ { id=29017, qType="Seasonal", }, }, tip="Ramkahen\n\n" ..ns.uldumPromo, },
+}
+
+ns.points[ 1527 ] = { -- Wrong Uldum
+	[26580724] = { candy=true, achievements={ { id=5837, index=9, faction="Alliance", version=60000, },
+					{ id=5837, index=14, faction="Alliance", versionUnder=60000, },
+					{ id=5838, index=8, faction="Horde", version=60000, },
+					{ id=5838, index=10, faction="Horde", versionUnder=60000, }, },
+					quests={ { id=29016, qType="Seasonal", }, }, tip="Oasis of Vir'sar\n\n" ..ns.uldumPromo, },
+	[54683301] = { candy=true, achievements={ { id=5837, index=10, faction="Alliance", version=60000, },
+					{ id=5837, index=8, faction="Alliance", versionUnder=60000, },
+					{ id=5838, index=9, faction="Horde", version=60000, },
+					{ id=5838, index=7, faction="Horde", versionUnder=60000, }, },
+					quests={ { id=29017, qType="Seasonal", }, }, tip="Ramkahen\n\n" ..ns.uldumPromo, },
+}
+
+ns.diveDown = "Dive straight down. The icon marks the entrance"
+ns.diveDownDarkbreak = "Darkbreak Cove. " ..ns.diveDown .." The cave may appear empty, Give the art assets time to appear"
+
+ns.points[ 204 ] = { -- Abyssal Depths in Vashj'ir
+	[94867350] = { candy=true, faction="Horde", achievements={ { id=5838, index=11, version=60000, },
+					{ id=5838, index=6, versionUnder=60000, }, }, quests={ { id=28984, qType="Seasonal", }, },
+					tip="Legion's Rest. " ..ns.diveDown, },
+	[60005670] = { candy=true, faction="Horde", tip="Tenebrous Cove. " ..ns.diveDown,
+					achievements={ { id=5838, index=13, version=60000, }, { id=5838, index=3, versionUnder=60000, }, },
+					quests={ { id=28986, qType="Seasonal", }, }, },
+	[61897915] = { candy=true, faction="Alliance", quests={ { id=28985, qType="Seasonal", }, }, tip=ns.diveDownDarkbreak,
+					achievements={ { id=5837, index=11, version=60000, }, { id=5837, index=4, versionUnder=60000, }, }, },
+}
+
+ns.points[ 201 ] = { -- Kelp'thar Forest in Vashj'ir
+	[60686609] = { candy=true, achievements={ { id=5837, index=12, faction="Alliance", version=60000, }, 
+					{ id=5837, index=3, faction="Alliance", versionUnder=60000, },
+					{ id=5838, index=10, faction="Horde", version=60000, },
+					{ id=5838, index=5, faction="Horde", versionUnder=60000, }, }, quests={ { id=28981, qType="Seasonal", }, },
+					tip="Deepmist Grotto. " ..ns.diveDown, },
+}
+
+ns.points[ 205 ] = { -- Shimmering Expanse in Vashj'ir
+	[20007114] = { candy=true, faction="Alliance", quests={ { id=28985, qType="Seasonal", }, }, tip=ns.diveDownDarkbreak,
+					achievements={ { id=5837, index=11, version=60000, }, { id=5837, index=4, versionUnder=60000, }, }, },
+	[68261539] = { candy=true, achievements={ { id=5837, index=12, faction="Alliance", version=60000, },
+					{ id=5837, index=3, faction="Alliance", versionUnder=60000, },
+					{ id=5838, index=10, faction="Horde", version=60000, },
+					{ id=5838, index=5, faction="Horde", versionUnder=60000, }, }, quests={ { id=28981, qType="Seasonal", }, },
+					tip="Deepmist Grotto. " ..ns.diveDown, },
+	[51564154] = { candy=true, achievements={ { id=5837, index=13, faction="Alliance", version=60000, },
+					{ id=5837, index=5, faction="Alliance", versionUnder=60000, },
+					{ id=5838, index=12, faction="Horde", version=60000, },
+					{ id=5838, index=4, faction="Horde", versionUnder=60000, }, }, quests={ { id=28982, qType="Seasonal", }, },
+					tip="Silver Tide Hollow. " ..ns.diveDown, },
+	[45025707] = { candy=true, faction="Alliance",
+					achievements={ { id=5837, index=14, version=60000, }, { id=5837, index=7, versionUnder=60000, }, },
+					quests={ { id=28983, qType="Seasonal", }, }, tip="Tranquil Wash. " ..ns.diveDown, },
+	[47706640] = { candy=true, faction="Horde", achievements={ { id=5838, index=11, version=60000, },
+					{ id=5838, index=6, versionUnder=60000, }, }, quests={ { id=28984, qType="Seasonal", }, },
+					tip="Legion's Rest. " ..ns.diveDown, },
+	[18415228] = { candy=true, faction="Horde",
+					achievements={ { id=5838, index=13, version=60000, }, { id=5838, index=3, versionUnder=60000, }, },
+					quests={ { id=28986, qType="Seasonal", }, }, tip="Tenebrous Cove. " ..ns.diveDown, },
+}
+
+ns.points[ 948 ] = { -- The Maelstrom
+	[50002900] = { candy=true, faction="Alliance", tip=ns.templeOfEarth,
+					achievements={ { id=5837, index=1, version=60000, }, { id=5837, index=11, versionUnder=60000, }, },
+					quests={ { id=29020, qType="Seasonal", }, }, },
+	[50002901] = { candy=true, faction="Horde", tip=ns.templeOfEarth, achievements={ { id=5838, index=1, version=60000, },
+					{ id=5838, index=9, versionUnder=60000, }, }, quests={ { id=29019, qType="Seasonal", }, }, },
+}
+
+--==================================================================================================================================
+--
+-- PANDARIA
+--
+--==================================================================================================================================
+
+ns.chunderInnSet = { candy=true, achievements={ { id=7601, index=12, faction="Alliance", },
+					{ id=7602, index=14, faction="Horde", }, },
+					quests={ { id=32039, qType="Seasonal", }, }, tip="Inside the Binan Brew and Chunder Inn at Binan Village", }
+ns.goldenRoseSet = { candy=true, achievements={ { id=7601, index=19, faction="Alliance", },
+					{ id=7602, index=21, faction="Horde", }, },
+					quests={ { id=32044, qType="Seasonal", }, }, tip="Inside The Golden Rose inn at Mistfall Village", }
+ns.grookinSet = { candy=true, faction="Horde", achievements={ { id=7602, index=5, }, }, quests={ { id=32028, qType="Seasonal", }, },
+					tip="Grookin Hill\n\nThe candy bucket is present even if you have not yet made the Grookin friendly.\n\nBut "
+					.."check the placement in the hut! Desperate to squeeze it in much?", }
+ns.pangsSteadSet = { candy=true, achievements={ { id=7601, index=21, faction="Alliance", },
+					{ id=7602, index=23, faction="Horde", }, },
+					quests={ { id=32048, qType="Seasonal", }, }, tip="Pang's Stead", }
+ns.stoneplowSet = { candy=true, achievements={ { id=7601, index=22, faction="Alliance", },
+					{ id=7602, index=24, faction="Horde", }, },
+					quests={ { id=32046, qType="Seasonal", }, }, tip="Inside The Stone Mug Tavern at Stoneplow", }
+ns.wildsEdgeSet = { candy=true, achievements={ { id=7601, index=11, faction="Alliance", },
+					{ id=7602, index=13, faction="Horde", }, },
+					quests={ { id=32036, qType="Seasonal", }, }, tip="Inside the Wilds' Edge Inn at Zhu's Watch", }
+ns.goldenLantern = "In the Golden Lantern inn, on the right side of the entrance"
+ns.kunlaiTip = "Phasing issue here. Go to Binan Village. Complete \"Hit Medicine\", \"Call Out Their Leader\", \"All of the "
+			.."Arrows\". Then complete "
+ns.kunlaiTipA = ns.kunlaiTip .."\"Admiral Taylor...\". Then \"Westwind Rest\" by heading over towards Westwind. Finally complete "
+			.."\"Challenge Accepted\" from Elder Tsulan. Voilà - unlocked!"
+ns.kunlaiTipH = ns.kunlaiTip .."\"General Nazgrim...\". Then \"Eastwind Rest\" by heading over towards Eastwind. Finally complete "
+			.."\"Challenge Accepted\" from Elder Shiao. Voilà - unlocked!"
+ns.shrineOTM = "Shrine of Two Moons\n\nFrom the main entrance go up the stairs on the right side. Go through each room until you "
+			.."arrive at the balcony / mezzanine of The Keggary."
+
+ns.points[ 422 ] = { -- Dread Wastes
+	[55217120] = { candy=true, achievements={ { id=7601, index=2, faction="Alliance", }, { id=7602, index=2, faction="Horde", }, },
+					quests={ { id=32023, qType="Seasonal", }, }, tip="Inside The Chum Bucket Inn at Soggy's Gamble", },
+	[55933227] = { candy=true, achievements={ { id=7601, index=1, faction="Alliance", }, { id=7602, index=1, faction="Horde", }, },
+					quests={ { id=32024, qType="Seasonal", }, }, tip="Klaxxi'vess", },
+	[79234989] = ns.stoneplowSet,
+	[84388721] = { candy=true, faction="Horde", achievements={ { id=7602, index=10, }, },
+					quests={ { id=32020, qType="Seasonal", }, }, tip="Dawnchaser Retreat", },
+	[84982190] = ns.goldenRoseSet,
+}
+
+ns.points[ 418 ] = { -- Krasarang Wilds
+	[22370811] = ns.stoneplowSet,
+	[28255074] = { candy=true, faction="Horde", achievements={ { id=7602, index=10, }, },
+					quests={ { id=32020, qType="Seasonal", }, }, tip="Dawnchaser Retreat", },
+	[51407729] = { candy=true, achievements={ { id=7601, index=10, faction="Alliance", },
+					{ id=7602, index=11, faction="Horde", }, },
+					quests={ { id=32034, qType="Seasonal", }, }, tip="Inside the \"Bait and Brew\" at Marista", },
+	[61152504] = { candy=true, faction="Horde", achievements={ { id=7602, index=12, }, },
+					quests={ { id=32047, qType="Seasonal", }, }, tip="Thunder Cleft", },
+	[75920687] = ns.wildsEdgeSet,
+	[98660525] = { candy=true, faction="Alliance", achievements={ { id=7601, index=6, }, },
+					quests={ { id=32049, qType="Seasonal", }, }, tip="Paw'don Village", },
+}
+
+ns.points[ 379 ] = { -- Kun-Lai Summit
+	[29507843] = { candy=true, tip="Longying Outpost", achievements={ { id=7601, index=18, faction="Alliance", },
+					{ id=7602, index=20, faction="Horde", }, }, quests={ { id=32043, qType="Seasonal", }, }, },
+	[54078282] = { candy=true, faction="Alliance", achievements={ { id=7601, index=15, }, },
+					quests={ { id=32042, qType="Seasonal", }, }, tip="Westwind Rest\n\n" ..ns.kunlaiTipA, },
+	[57455995] = { candy=true, achievements={ { id=7601, index=14, faction="Alliance", },
+					{ id=7602, index=17, faction="Horde", }, }, quests={ { id=32037, qType="Seasonal", }, },
+					tip="Inside The Lucky Traveller at One Keg", },
+	[62502890] = { candy=true, achievements={ { id=7601, index=16, faction="Alliance", },
+					{ id=7602, index=18, faction="Horde", }, }, quests={ { id=32051, qType="Seasonal", }, },
+					tip="Inside the North Wind Tavern at Zouchin Village. Right near the Flight Master", },
+	[54078282] = { candy=true, faction="Horde", achievements={ { id=7602, index=15, }, },
+					quests={ { id=32040, qType="Seasonal", }, }, tip="Eastwind Rest\n\n" ..ns.kunlaiTipH, },
+	[62779454] = { candy=true, faction="Horde", achievements={ { id=7602, index=22, }, },
+					quests={ { id=32022, qType="Seasonal", }, }, tip="Shrine of Two Moons", },
+	[64216127] = { candy=true, achievements={ { id=7601, index=13, faction="Alliance", },
+					{ id=7602, index=16, faction="Horde", }, },
+					quests={ { id=32041, qType="Seasonal", }, }, tip="Inside The Two Fisted Brew at The Grummle Bazaar", },
+	[72739228] = ns.chunderInnSet,
+}
+
+ns.points[ 393 ] = { -- Shrine of the Seven Stars
+	[37876584] = { candy=true, faction="Alliance", achievements={ { id=7601, index=20, }, },
+					quests={ { id=32052, qType="Seasonal", }, }, tip=ns.goldenLantern, },
+}
+
+ns.points[ 392 ] = { -- The Imperial Mercantile
+	[58907831] = { candy=true, faction="Horde", achievements={ { id=7602, index=22, }, },
+					quests={ { id=32022, qType="Seasonal", }, }, tip=ns.shrineOTM, },
+}
+
+ns.points[ 371 ] = { -- The Jade Forest
+	[02981149] = { candy=true, achievements={ { id=7601, index=14, faction="Alliance", },
+					{ id=7602, index=17, faction="Horde", }, }, quests={ { id=32037, qType="Seasonal", }, },
+					tip="Inside The Lucky Traveller at One Keg", },
+	[07752992] = { candy=true, faction="Horde", achievements={ { id=7602, index=15, }, },
+					quests={ { id=32040, qType="Seasonal", }, }, tip="Eastwind Rest\n\n" ..ns.kunlaiTipH, },
+	[07754251] = { candy=true, faction="Horde", achievements={ { id=7602, index=22, }, },
+					quests={ { id=32022, qType="Seasonal", }, }, tip="Shrine of Two Moons", },
+	[09041268] = { candy=true, achievements={ { id=7601, index=13, faction="Alliance", },
+					{ id=7602, index=16, faction="Horde", }, },
+					quests={ { id=32041, qType="Seasonal", }, }, tip="Inside The Two Fisted Brew at The Grummle Bazaar", },
+	[16674048] = ns.chunderInnSet,
+	[16836159] = { candy=true, faction="Alliance", achievements={ { id=7601, index=20, }, },
+					quests={ { id=32052, qType="Seasonal", }, }, tip=ns.goldenLantern, },
+	[23326073] = { candy=true, tip="Tavern in the Mists", achievements={ { id=7601, index=17, faction="Alliance", },
+					{ id=7602, index=19, faction="Horde", }, }, quests={ { id=32026, qType="Seasonal", }, }, },
+	[28024739] = ns.grookinSet,
+	[28451327] = { candy=true, faction="Alliance", achievements={ { id=7601, index=6, }, },
+					quests={ { id=32050, qType="Seasonal", }, }, tip="Honeydew Village", },
+	[29446625] = ns.pangsSteadSet,
+	[29548546] = ns.wildsEdgeSet,
+	[41682314] = { candy=true, achievements={ { id=7601, index=9, faction="Alliance", }, { id=7602, index=9, faction="Horde", }, },
+					quests={ { id=32021, qType="Seasonal", }, }, tip="Inside Paur's Pub at Tian Monastery", },
+	[44818437] = { candy=true, faction="Alliance", achievements={ { id=7601, index=6, }, },
+					quests={ { id=32049, qType="Seasonal", }, }, tip="Paw'don Village", },
+	[45774360] = { candy=true, achievements={ { id=7601, index=3, faction="Alliance", }, { id=7602, index=3, faction="Horde", }, },
+					quests={ { id=32027, qType="Seasonal", }, }, tip="Inside The Drunken Hozen Inn at Dawn's Blossom", },
+	[48093462] = { candy=true, achievements={ { id=7601, index=4, faction="Alliance", }, { id=7602, index=4, faction="Horde", }, },
+					quests={ { id=32029, qType="Seasonal", }, }, tip="Greenstone Village", },
+	[54606333] = { candy=true, achievements={ { id=7601, index=5, faction="Alliance", }, { id=7602, index=7, faction="Horde", }, },
+					quests={ { id=32032, qType="Seasonal", }, }, tip="Inside The Dancing Serpent Inn at the Jade Temple Grounds", },
+	[55712441] = { candy=true, achievements={ { id=7601, index=8, faction="Alliance", }, { id=7602, index=8, faction="Horde", }, },
+					quests={ { id=32031, qType="Seasonal", }, }, tip="Inside the inn at Sri-La Village", },
+	[59568324] = { candy=true, faction="Alliance", achievements={ { id=7601, index=7, }, },
+					quests={ { id=32033, qType="Seasonal", }, }, tip="Pearlfin Village", },
+}
+
+ns.points[ 433 ] = { -- The Veiled Stair
+	[29887560] = { candy=true, faction="Alliance", achievements={ { id=7601, index=20, }, },
+					quests={ { id=32052, qType="Seasonal", }, }, tip=ns.goldenLantern, },
+	[55117224] = { candy=true, achievements={ { id=7601, index=17, faction="Alliance", },
+					{ id=7602, index=19, faction="Horde", }, },
+					quests={ { id=32026, qType="Seasonal", }, }, tip="Inside the Tavern in the Mists", },
+	[73412031] = ns.grookinSet,
+	[78969372] = ns.pangsSteadSet,
+}
+
+ns.points[ 388 ] = { -- Townlong Steppes, Longying Outpost
+	[71145777] = { candy=true, tip="Longying Outpost", achievements={ { id=7601, index=18, faction="Alliance", },
+					{ id=7602, index=20, faction="Horde", }, }, quests={ { id=32043, qType="Seasonal", }, }, },
+	[97916256] = { candy=true, faction="Alliance", achievements={ { id=7601, index=15, }, },
+					quests={ { id=32042, qType="Seasonal", }, }, tip="Westwind Rest\n\n" ..ns.kunlaiTipA, },
+}
+
+ns.points[ 390 ] = { -- Vale of Eternal Blossoms
+	[35147778] = ns.goldenRoseSet,
+	[61991626] = { candy=true, faction="Horde", achievements={ { id=7602, index=22, }, },
+					quests={ { id=32022, qType="Seasonal", }, }, tip=ns.shrineOTM, },
+	[87036888] = { candy=true, faction="Alliance", achievements={ { id=7601, index=20, }, },
+					quests={ { id=32052, qType="Seasonal", }, }, tip=ns.goldenLantern, },
+	[86581066] = ns.chunderInnSet,
+}
+
+ns.points[ 376 ] = { -- Valley of the Four Winds
+	[19875578] = ns.stoneplowSet,
+	[27721760] = ns.goldenRoseSet,
+	[61211186] = { candy=true, faction="Alliance", achievements={ { id=7601, index=20, }, },
+					quests={ { id=32052, qType="Seasonal", }, }, tip=ns.goldenLantern, },
+	[72751032] = { candy=true, tip="Tavern in the Mists", achievements={ { id=7601, index=17, faction="Alliance", },
+					{ id=7602, index=19, faction="Horde", }, }, quests={ { id=32026, qType="Seasonal", }, }, },
+	[83642014] = ns.pangsSteadSet,
+	[83835431] = ns.wildsEdgeSet,
+}
+
+ns.points[ 424 ] = { -- Pandaria
+	[70008900] = { candy=true, version=40000, achievements={ { id=7601, faction="Alliance", showAllCriteria=true, }, -- Pandaria
+					{ id=7602, faction="Horde", showAllCriteria=true, }, }, large=true, alwaysShow=true, noContinent=true,
+					noCoords=true, },
+}
+
+--==================================================================================================================================
+--
+-- GARRISON / DRAENOR
+--
+--==================================================================================================================================
+
+ns.dailiesSet = { { id=39721, name="Culling the Crew", qType="Daily", },
+						{ id=39720, name="Foul Fertilizer", qType="Daily", },
+						{ id=39719, name="Mutiny on the Boneship", qType="Daily", },
+						{ id=39716, name="Smashing Squashlings", qType="Daily", }, }
+ns.draenorS = "You must have a Tier 3 Town Hall or else the Candy Bucket will not be present."
+ns.draenorD = "Orukan has four dailies and Izzy Hollyfizzle sells Garrison decorations, purchasable only with the daily rewards. A "
+			.."Tier 3 Town Hall is required for these NPCs to appear"
+ns.getSpooky = "Get Spooky - Garrison Mission"
+ns.getSpookyTip = "Rarely and randomly occurs. Rewards 15 candy!"
+ns.spookyPepe = "Sitting on the largest gravestone"
+ns.wrongPepe = "Pepe seen on a branch here. It's the WRONG pepe"
+
+ns.points[ 582 ] = { -- Lunarfall Garrison in Draenor
+	[40276963] = { name="Spooky Pepe", version=60202, faction="Alliance", achievements={ { id=10365, }, }, tip=ns.spookyPepe, },
+	[43515151] = { candy=true, name=ns.candyBucket, version=60202, faction="Alliance", quests={ { id=39657, qType="Seasonal", }, },
+					tip=ns.draenorS, },
+	[44405180] = { name="Garrison Dailies", version=60202, faction="Alliance", quests=ns.dailiesSet, tip=ns.draenorD, },
+	[48904540] = { name="Spooky Pepe", version=60202, faction="Alliance", achievements={ { id=10365, }, }, tip=ns.wrongPepe, },
+	[29003440] = { name=ns.getSpooky, version=80200, faction="Alliance", tip=ns.getSpookyTip, },
+}
+ns.points[ 539 ] = { -- Shadowmoon Valley in Draenor
+	[29741983] = { name="Spooky Pepe", version=60202, faction="Alliance", achievements={ { id=10365, }, }, tip=ns.spookyPepe, },	
+	[30011780] = { candy=true, name=ns.candyBucket, version=60202, faction="Alliance", quests={ { id=39657, qType="Seasonal", }, },
+					tip=ns.draenorS, },
+	[30251805] = { name="Garrison Dailies", version=60202, faction="Alliance", quests=ns.dailiesSet, tip=ns.draenorD, },
+	[28701600] = { name=ns.getSpooky, version=80200, faction="Alliance", tip=ns.getSpookyTip, },
+}
+ns.points[ 590 ] = { -- Frostwall Garrison in Draenor
+	[41654497] = { name="Spooky Pepe", version=60202, faction="Horde", achievements={ { id=10365, }, }, tip=ns.wrongPepe, },
+	[46993759] = { candy=true, name=ns.candyBucket, version=60202, faction="Horde", quests={ { id=39657, qType="Seasonal", }, },
+					tip=ns.draenorS, },
+	[47903790] = { name="Garrison Dailies", version=60202, faction="Horde", quests=ns.dailiesSet, tip=ns.draenorD, },
+	[41005300] = { name=ns.getSpooky, version=80200, faction="Horde", tip=ns.getSpookyTip, },
+	[70768989] = { name="Spooky Pepe", version=60202, faction="Horde", achievements={ { id=10365, }, }, tip=ns.spookyPepe, },	
+}
+ns.points[ 525 ] = { -- Frostfire Ridge in Draenor
+	[48256435] = { candy=true, name=ns.candyBucket, version=60202, faction="Horde", quests={ { id=39657, qType="Seasonal", }, },
+					tip=ns.draenorS, },
+	[48506460] = { name="Garrison Dailies", version=60202, faction="Horde", quests=ns.dailiesSet, tip=ns.draenorD, },
+	[46006800] = { name=ns.getSpooky, version=80200, faction="Horde", tip=ns.getSpookyTip, },
+	[50897046] = { name="Spooky Pepe", version=60202, faction="Horde", achievements={ { id=10365, }, }, tip=ns.spookyPepe, },	
+}
+
+--==================================================================================================================================
+--
+-- LEGION / BROKEN ISLES
+--
+--==================================================================================================================================
+
+ns.points[ 501 ] = { -- The Situation in Dalaran
+	[48144132] = ns.legerdemainSet, -- Same object and quest ID so has to count for the Northrend achievement surely?
+}
+
+ns.points[ 627 ] = { -- Dalaran Broken Isles
+	[41476398] = { candy=true, name=ns.candyBucket, faction="Alliance", quests={ { id=43056, qType="Seasonal", }, },
+					tip="In \"A Hero's Welcome\" inn", },
+	[47964178] = { candy=true, name=ns.candyBucket, quests={ { id=43055, qType="Seasonal", }, },
+					tip="In The Legerdemain Lounge", },
+	[47294077] = { version=70000, quests={ { id=43259, name="Beware of the Crooked Tree", qType="Seasonal", }, },
+					guide="Speak to Duroc Ironjaw.\n\n This is a simple \"fly to X\" quest but with very worthwhile XP, especially "
+						.."for a trivial flight. Location in Val'sharah is marked on your map.\n\nThe quest that follows is "
+						.."devilishly difficult and is not recommended. Just hearth/fly back to Dalaran", },
+	[67042941] = { candy=true, name=ns.candyBucket, faction="Horde", quests={ { id=43057, qType="Seasonal", }, },
+					tip="In \"The Filthy Animal\" inn", },
+	[59174564] = { achievements={ { id=291, }, },  tip="Just stand here with a cuppa and wait. Couldn't be easier", },
+}
+
+ns.points[ 641 ] = { -- Val'sharah 								**** 1188? ****
+	[35005600] = { version=70000, quests={ { id=43162, name="Under the Crooked Tree", qType="Daily", }, },
+					guide="Speak to the Hag.\n\nSoloing at the intended level is devilishly difficult and is not recommended. "
+						.."Just hearth/fly back to Dalaran if you're under levelled.\n\nIf lucky, the Hag will drop one of four "
+						.."possible cosmetic hats, known in the community as the \"Sister Hats\". This is what all the fuss is "
+						.."about!", },
+}
+
+--==================================================================================================================================
+--
+-- BATTLE FOR AZEROTH
+--
+--==================================================================================================================================
+
+ns.points[ 1163 ] = { -- Dazar'alor - The Great Seal
+	[49828478] = { candy=true, name=ns.candyBucket, faction="Horde", quests={ { id=54709, qType="Seasonal", }, },
+					tip="In \"The Great Seal\"", },
+}
+ns.points[ 1164 ] = { -- Dazar'alor - The Hall of Chroniclers
+	[49828478] = { candy=true, name=ns.candyBucket, faction="Horde", quests={ { id=54709, qType="Seasonal", }, },
+					tip="In \"The Great Seal\"", },
+}
+ns.points[ 1165 ] = { -- Dazar'alor
+	[50014684] = { candy=true, name=ns.candyBucket, faction="Horde", quests={ { id=54709, qType="Seasonal", }, },
+					tip="In \"The Great Seal\"", },
+}
+ns.points[ 862 ] = { -- Zuldazar
+	[57984468] = { candy=true, name=ns.candyBucket, faction="Horde", quests={ { id=54709, qType="Seasonal", }, },
+					tip="In \"The Great Seal\"", },
+}
+ns.points[ 1161 ] = { -- Boralus - Tiragarde Sound
+	[73701219] = { candy=true, name=ns.candyBucket, faction="Alliance", quests={ { id=54710, qType="Seasonal", }, },
+					tip="In the \"Snug Harbor Inn\"", },
+}
+ns.points[ 895 ] = { -- Tiragarde Sound
+	[75182272] = { candy=true, name=ns.candyBucket, faction="Alliance", quests={ { id=54710, qType="Seasonal", }, },
+					tip="In the \"Snug Harbor Inn\"", },
+}
+
+--==================================================================================================================================
+--
+-- DRAGON ISLES
+--
+--==================================================================================================================================
+
+ns.points[ 2023 ] = { -- Ohn'ahran Plains
+	[46224060] = { candy=true, achievements={ { id=18360, index=1, }, }, 
+					quests={ { id=75684, qType="Seasonal", }, }, tip="Bloodhoof Outpost", },
+	[66252453] = { candy=true, achievements={ { id=18360, index=2, }, },
+					quests={ { id=75693, qType="Seasonal", }, }, tip="Emberwatch", },
+	[72138039] = { candy=true, achievements={ { id=18360, index=3, }, },
+					quests={ { id=75692, qType="Seasonal", }, }, tip="Forkriver Crossing", },
+	[62934056] = { candy=true, achievements={ { id=18360, index=4, }, },
+					quests={ { id=75685, qType="Seasonal", }, }, tip="Maruukaï", },
+	[57147672] = { candy=true, achievements={ { id=18360, index=5, }, },
+					quests={ { id=75687, qType="Seasonal", }, }, tip="Ohn'iri Springs", },
+	[81295920] = { candy=true, achievements={ { id=18360, index=6, }, },
+					quests={ { id=75688, qType="Seasonal", }, }, tip="Pinewood Post", },
+	[85843536] = { candy=true, achievements={ { id=18360, index=7, }, },
+					quests={ { id=75689, qType="Seasonal", }, }, tip="Rusza'thar Reach", },
+	[28646056] = { candy=true, achievements={ { id=18360, index=8, }, },
+					quests={ { id=75686, qType="Seasonal", }, }, tip="Shady Sanctuary", },
+	[41916044] = { candy=true, achievements={ { id=18360, index=9, }, },
+					quests={ { id=75691, qType="Seasonal", }, }, tip="Teerakaï", },
+	[85042603] = { candy=true, achievements={ { id=18360, index=10, }, },
+					quests={ { id=75690, qType="Seasonal", }, }, tip="Timberstep Outpost", },
+}
+
+ns.points[ 2025 ] = { -- Thaldraszus
+	[44891063] = { candy=true, achievements={ { id=18360, index=34, }, },
+					quests={ { id=75683, qType="Seasonal", }, }, tip="Wingrest Embassy", },
+	[48910791] = { candy=true, faction="Alliance", achievements={ { id=18360, index=33, }, },
+					quests={ { id=75681, qType="Seasonal", }, }, tip="Wild Coast", },
+	[50084273] = { candy=true, achievements={ { id=18360, index=11, }, },
+					quests={ { id=75698, qType="Seasonal", }, }, tip="Algeth'era Court", },
+	[35087920] = { candy=true, achievements={ { id=18360, index=12, }, },
+					quests={ { id=75696, qType="Seasonal", }, }, tip="Garden Shrine", },
+	[52416981] = { candy=true, achievements={ { id=18360, index=13, }, },
+					quests={ { id=75697, qType="Seasonal", }, }, tip="Gelikyr Post", },
+	[59858269] = { candy=true, achievements={ { id=18360, index=14, }, },
+					quests={ { id=75695, qType="Seasonal", }, }, tip="Temporal Conflux", },
+	[43175940] = { candy=true, achievements={ { id=18360, index=15, }, },
+					quests={ { id=75700, qType="Seasonal", }, }, tip="Valdrakken. The Parting Glass", },
+	[39525922] = { candy=true, achievements={ { id=18360, index=16, }, },
+					quests={ { id=75699, qType="Seasonal", }, }, tip="Valdrakken. The Roasted Ram", },
+	[35955711] = { candy=true, achievements={ { id=18360, index=17, }, },
+					quests={ { id=75701, qType="Seasonal", }, }, tip="Valdrakken. Weyrnrest", },
+}
+
+ns.points[ 2024 ] = { -- The Azure Span
+	[47034026] = { candy=true, achievements={ { id=18360, index=18, }, },
+					quests={ { id=75667, qType="Seasonal", }, }, tip="Camp Antonidas", },
+	[62785773] = { candy=true, achievements={ { id=18360, index=19, }, },
+					quests={ { id=75668, qType="Seasonal", }, }, tip="Camp Nowhere", },
+	[12384933] = { candy=true, achievements={ { id=18360, index=20, }, },
+					quests={ { id=75669, qType="Seasonal", }, }, tip="Iskaara", },
+	[65501625] = { candy=true, achievements={ { id=18360, index=21, }, },
+					quests={ { id=75670, qType="Seasonal", }, }, tip="Theron's Watch", },
+	[18812455] = { candy=true, achievements={ { id=18360, index=22, }, },
+					quests={ { id=75671, qType="Seasonal", }, }, tip="Three-Falls Lookout", },
+}
+
+ns.points[ 2151 ] = { -- The Forbidden Reach
+	[33845881] = { candy=true, achievements={ { id=18360, index=23, }, },
+					quests={ { id=75702, qType="Seasonal", }, }, tip="Morqut Village", },
+}
+
+ns.points[ 2022 ] = { -- The Waking Shores
+	[24468210] = { candy=true, achievements={ { id=18360, index=24, }, },
+					quests={ { id=75672, qType="Seasonal", }, }, tip="Apex Observatory", },
+	[47678330] = { candy=true, achievements={ { id=18360, index=25, }, },
+					quests={ { id=75673, qType="Seasonal", }, }, tip="Dragonscale Basecamp", },
+	[65225793] = { candy=true, achievements={ { id=18360, index=26, }, },
+					quests={ { id=75675, qType="Seasonal", }, }, tip="Life Vault Ruins", },
+	[43106666] = { candy=true, achievements={ { id=18360, index=27, }, },
+					quests={ { id=77698, qType="Seasonal", }, }, tip="Obsidian Bulwark", },
+	[25775518] = { candy=true, achievements={ { id=18360, index=28, }, },
+					quests={ { id=75676, qType="Seasonal", }, }, tip="Obsidian Throne", },
+	[58036731] = { candy=true, achievements={ { id=18360, index=29, }, },
+					quests={ { id=75674, qType="Seasonal", }, }, tip="Ruby Lifeshrine", },
+	[76075475] = { candy=true, achievements={ { id=18360, index=30, }, },
+					quests={ { id=75677, qType="Seasonal", }, }, tip="Skytop Observatory", },
+	[53913903] = { candy=true, achievements={ { id=18360, index=31, }, },
+					quests={ { id=75678, qType="Seasonal", }, }, tip="Uktulut Backwater", },
+	[46432740] = { candy=true, achievements={ { id=18360, index=32, }, },
+					quests={ { id=75679, qType="Seasonal", }, }, tip="Uktulut Pier", },
+	[80422788] = { candy=true, faction="Horde", achievements={ { id=18360, indexH=33, }, },
+					quests={ { id=75682, qType="Seasonal", }, }, tip="Wild Coast", },
+	[81313196] = { candy=true, faction="Alliance", achievements={ { id=18360, indexA=33, }, },
+					quests={ { id=75681, qType="Seasonal", }, }, tip="Wild Coast", },
+	[76213541] = { candy=true, achievements={ { id=18360, index=34, }, },
+					quests={ { id=75683, qType="Seasonal", }, }, tip="Wingrest Embassy", },
+}
+
+ns.points[ 2112 ] = { -- Valdrakken
+	[72374667] = { candy=true, achievements={ { id=18360, index=15, }, },
+					quests={ { id=75700, qType="Seasonal", }, }, tip="The Parting Glass", },
+	[47134542] = { candy=true, achievements={ { id=18360, index=16, }, },
+					quests={ { id=75699, qType="Seasonal", }, }, tip="The Roasted Ram", },
+	[22363084] = { candy=true, achievements={ { id=18360, index=17, }, },
+					quests={ { id=75701, qType="Seasonal", }, }, tip="Weyrnrest", },
+}
+
+ns.points[ 2133 ] = { -- Zaralek Cavern
+	[56375636] = { candy=true, achievements={ { id=18360, index=35, }, },
+					quests={ { id=75704, qType="Seasonal", }, }, tip="Loamm", },
+	[52122647] = { candy=true, achievements={ { id=18360, index=36, }, },
+					quests={ { id=75703, qType="Seasonal", }, }, tip="Obsidian Rest", },
+}
+
+ns.points[ 1978 ] = { -- Dragon Isles
+	[82003000] = { candy=true, version=40000, achievements={ { id=18360, showAllCriteria=true, }, }, large=true, alwaysShow=true,
+					noContinent=true, noCoords=true, },
+}
+
+--==================================================================================================================================
+--
+-- KHAZ ALGAR / THE WAR WITHIN
+--
+--==================================================================================================================================
+
+ns.points[ 2255 ] = { -- Azj-Kahet
+	[44846627] = { candy=true, achievements={ { id=40862, index=4, }, },
+					quests={ { id=84581, qType="Seasonal", }, }, tip="Wildcamp Ul'ar", },
+	[48627270] = { candy=true, achievements={ { id=40862, index=6, }, },
+					quests={ { id=84578, qType="Seasonal", }, }, tip="Umbral Bazzar", },
+	[51287838] = { candy=true, achievements={ { id=40862, index=7, }, },
+					quests={ { id=84577, qType="Seasonal", }, }, tip="Lower, The Burrows", },
+	[52797926] = { candy=true, achievements={ { id=40862, index=5, }, },
+					quests={ { id=84576, qType="Seasonal", }, }, tip="High Hollows", },
+	[56853899] = { candy=true, achievements={ { id=40862, index=3, }, },
+					quests={ { id=84582, qType="Seasonal", }, }, tip="Weaver's Lair", },
+	[58961862] = { candy=true, achievements={ { id=40862, index=1, }, },
+					quests={ { id=84579, qType="Seasonal", }, }, tip="Faerin's Advance", },
+	[77966280] = { candy=true, achievements={ { id=40862, index=2, }, },
+					quests={ { id=84580, qType="Seasonal", }, }, tip="Mmarl", },
+}
+ns.points[ 2216 ] = { -- City of Threads / Azj-Kahet - Lower
+	[57423847] = { candy=true, achievements={ { id=40862, index=7, }, },
+					quests={ { id=84577, qType="Seasonal", }, }, tip="Lower, The Burrows", },
+}
+ns.points[ 2213 ] = { -- City of Threads / Azj-Kahet
+	[57423847] = { candy=true, achievements={ { id=40862, index=7, }, },
+					quests={ { id=84577, qType="Seasonal", }, }, tip="Lower, The Burrows", },
+	[49752227] = { candy=true, achievements={ { id=40862, index=6, }, },
+					quests={ { id=84578, qType="Seasonal", }, }, tip="Umbral Bazzar", },
+	[62084138] = { candy=true, achievements={ { id=40862, index=5, }, },
+					quests={ { id=84576, qType="Seasonal", }, }, tip="High Hollows", },
+}
+ns.points[ 2339 ] = { -- Dornogal City
+	[45014735] = { candy=true, achievements={ { id=40862, index=12, }, },
+					quests={ { id=84564, qType="Seasonal", }, }, tip="Dornogal City", },
+}
+ns.points[ 2215 ] = { -- Hallowfall
+	[40586798] = { candy=true, achievements={ { id=40862, index=9, }, },
+					quests={ { id=84574, qType="Seasonal", }, }, tip="Light's Redoubt", },
+	[42765571] = { candy=true, achievements={ { id=40862, index=11, }, },
+					quests={ { id=84575, qType="Seasonal", }, }, tip="Mereldar", },
+	[49133954] = { candy=true, achievements={ { id=40862, index=10, }, },
+					quests={ { id=84573, qType="Seasonal", }, }, tip="Lorel's Crossing", },
+	[69064570] = { candy=true, achievements={ { id=40862, index=8, }, },
+					quests={ { id=84572, qType="Seasonal", }, }, tip="Dunelle's Kindness", },
+}
+ns.points[ 2248 ] = { -- Isle of Dorn
+	[42007439] = { candy=true, achievements={ { id=40862, index=13, }, },
+					quests={ { id=84566, qType="Seasonal", }, }, tip="Freywold Village", },
+	[48434386] = { candy=true, achievements={ { id=40862, index=12, }, },
+					quests={ { id=84564, qType="Seasonal", }, }, tip="Dornogal City", },
+	[58172713] = { candy=true, achievements={ { id=40862, index=14, }, },
+					quests={ { id=84567, qType="Seasonal", }, }, tip="Rambleshire", },
+}
+ns.points[ 2214 ] = { -- The Ringing Deeps
+	[47883211] = { candy=true, achievements={ { id=40862, index=16, }, },
+					quests={ { id=84569, qType="Seasonal", }, }, tip="Gundargaz", },
+	[59456409] = { candy=true, achievements={ { id=40862, index=15, }, },
+					quests={ { id=84568, qType="Seasonal", }, }, tip="Camp Murroch", },
+	[61854626] = { candy=true, achievements={ { id=40862, index=18, }, },
+					quests={ { id=84571, qType="Seasonal", }, }, tip="Shadowvein Point", },
+	[63407897] = { candy=true, achievements={ { id=40862, index=17, }, },
+					quests={ { id=84570, qType="Seasonal", }, }, tip="Opportunity Point", },
+}
+ns.points[ 2274 ] = { -- Khaz Algar
+	[10008400] = { candy=true, achievements={ { id=40862, showAllCriteria=true, }, }, large=true, -- Khaz Algar
+					alwaysShow=true, noContinent=true, noCoords=true, },
+	[42777916] = { candy=true, achievements={ { id=40862, index=4, }, },
+					quests={ { id=84581, qType="Seasonal", }, }, tip="Wildcamp Ul'ar", },
+	[46647035] = { candy=true, achievements={ { id=40862, index=3, }, },
+					quests={ { id=84582, qType="Seasonal", }, }, tip="Weaver's Lair", },
+	[47336380] = { candy=true, achievements={ { id=40862, index=1, }, },
+					quests={ { id=84579, qType="Seasonal", }, }, tip="Faerin's Advance", },
+	[53467803] = { candy=true, achievements={ { id=40862, index=2, }, },
+					quests={ { id=84580, qType="Seasonal", }, }, tip="Mmarl", },
+	[44858306] = { candy=true, achievements={ { id=40862, index=7, }, },
+					quests={ { id=84577, qType="Seasonal", }, }, tip="Lower, The Burrows", },
+	[44008125] = { candy=true, achievements={ { id=40862, index=6, }, },
+					quests={ { id=84578, qType="Seasonal", }, }, tip="Umbral Bazzar", },
+	[45388338] = { candy=true, achievements={ { id=40862, index=5, }, },
+					quests={ { id=84576, qType="Seasonal", }, }, tip="High Hollows", },
+	[35096040] = { candy=true, achievements={ { id=40862, index=9, }, },
+					quests={ { id=84574, qType="Seasonal", }, }, tip="Light's Redoubt", },
+	[35955560] = { candy=true, achievements={ { id=40862, index=11, }, },
+					quests={ { id=84575, qType="Seasonal", }, }, tip="Mereldar", },
+	[38404936] = { candy=true, achievements={ { id=40862, index=10, }, },
+					quests={ { id=84573, qType="Seasonal", }, }, tip="Lorel's Crossing", },
+	[46155176] = { candy=true, achievements={ { id=40862, index=8, }, },
+					quests={ { id=84572, qType="Seasonal", }, }, tip="Dunelle's Kindness", },
+	[68803412] = { candy=true, achievements={ { id=40862, index=13, }, },
+					quests={ { id=84566, qType="Seasonal", }, }, tip="Freywold Village", },
+	[71692056] = { candy=true, achievements={ { id=40862, index=12, }, },
+					quests={ { id=84564, qType="Seasonal", }, }, tip="Dornogal City", },
+	[76041302] = { candy=true, achievements={ { id=40862, index=14, }, },
+					quests={ { id=84567, qType="Seasonal", }, }, tip="Rambleshire", },
+	[53055265] = { candy=true, achievements={ { id=40862, index=16, }, },
+					quests={ { id=84569, qType="Seasonal", }, }, tip="Gundargaz", },
+	[56956342] = { candy=true, achievements={ { id=40862, index=15, }, },
+					quests={ { id=84568, qType="Seasonal", }, }, tip="Camp Murroch", },
+	[57755735] = { candy=true, achievements={ { id=40862, index=18, }, },
+					quests={ { id=84571, qType="Seasonal", }, }, tip="Shadowvein Point", },
+	[58296845] = { candy=true, achievements={ { id=40862, index=17, }, },
+					quests={ { id=84570, qType="Seasonal", }, }, tip="Opportunity Point", },
+}
+
+--==================================================================================================================================
+--
+-- AZEROTH
+--
+--==================================================================================================================================
+
+ns.points[ 947 ] = { -- Azeroth
+	[05506700] = { candy=true, version=100000, achievements={ { id=963, faction="Alliance", showAllCriteria=true, }, -- Kalimdor
+					{ id=965, faction="Horde", showAllCriteria=true, }, }, large=true, alwaysShow=true, noCoords=true, },
+	[06007600] = { candy=true, versionUnder=100000, achievements={ { id=963, faction="Alliance", showAllCriteria=true, },
+					{ id=965, faction="Horde", showAllCriteria=true, }, }, large=true, alwaysShow=true, noCoords=true, }, -- Kal
+	[18509100] = { candy=true, version=110000, achievements={ { id=40862, showAllCriteria=true, }, }, large=true, -- Khaz Algar
+					alwaysShow=true, noContinent=true, noCoords=true, },
+	[41502500] = { candy=true, version=100000, achievements={ { id=5836, faction="Alliance", showAllCriteria=true, }, -- Northrend
+					{ id=5835, faction="Horde", showAllCriteria=true, }, }, large=true, alwaysShow=true, noCoords=true, },
+	[40003400] = { candy=true, versionUnder=100000, achievements={ { id=5836, faction="Alliance", showAllCriteria=true, },
+					{ id=5835, faction="Horde", showAllCriteria=true, }, }, large=true, alwaysShow=true, noCoords=true, }, -- North.
+	[41502500] = { candy=true, version=100000, achievements={ { id=5837, faction="Alliance", showAllCriteria=true, }, -- Cataclysm
+					{ id=5838, faction="Horde", showAllCriteria=true, }, }, large=true, alwaysShow=true, noCoords=true, },
+	[42004700] = { candy=true, versionUnder=100000, achievements={ { id=5837, faction="Alliance", showAllCriteria=true, },
+					{ id=5838, faction="Horde", showAllCriteria=true, }, }, large=true, alwaysShow=true, noCoords=true, }, -- Cata
+	[75506700] = { candy=true, version=100000, achievements={ { id=966, faction="Alliance", showAllCriteria=true, }, -- E. Kingdoms
+					{ id=967, faction="Horde", showAllCriteria=true, }, }, large=true, alwaysShow=true, noCoords=true, },
+	[65507600] = { candy=true, versionUnder=100000, achievements={ { id=966, faction="Alliance", showAllCriteria=true, }, -- EK
+					{ id=967, faction="Horde", showAllCriteria=true, }, }, large=true, alwaysShow=true, noCoords=true, },
+	[53009100] = { candy=true, version=50000, achievements={ { id=7601, faction="Alliance", showAllCriteria=true, }, -- Pandaria
+					{ id=7602, faction="Horde", showAllCriteria=true, }, }, large=true, alwaysShow=true, noCoords=true, },
+	[85501750] = { candy=true, version=100000, achievements={ { id=18360, showAllCriteria=true, }, }, large=true, -- Dragon Isles
+					alwaysShow=true, noCoords=true, },
+		
+--	[70707500] = { specialBig=true, title="Candy Bucket Macro", tip="#showtooltip Handful of Treats\n/use Handful of Treats" },
 }
 
 -- Choice of texture
 -- Note that these textures are all repurposed and as such have non-uniform sizing. I've copied my scaling factors from my old AddOn
 -- in order to homogenise the sizes. I should also allow for non-uniform origin placement as well as adjust the x,y offsets
-texturesL[1] = "Interface\\PlayerFrame\\MonkLightPower"
-texturesL[2] = "Interface\\PlayerFrame\\MonkDarkPower"
-texturesL[3] = "Interface\\Common\\Indicator-Red"
-texturesL[4] = "Interface\\Common\\Indicator-Yellow"
-texturesL[5] = "Interface\\Common\\Indicator-Green"
-texturesL[6] = "Interface\\Common\\Indicator-Gray"
-texturesL[7] = "Interface\\Common\\Friendship-ManaOrb"	
-texturesL[8] = "Interface\\TargetingFrame\\UI-PhasingIcon"
-texturesL[9] = "Interface\\Store\\Category-icon-pets"
-texturesL[10] = "Interface\\Store\\Category-icon-featured"
-texturesL[11] = "Interface\\AddOns\\HandyNotes_HallowsEnd\\AzerothCandySwirl"
-texturesL[12] = "Interface\\AddOns\\HandyNotes_HallowsEnd\\Pumpkin"
-texturesL[13] = "Interface\\AddOns\\HandyNotes_HallowsEnd\\EvilPumpkin"
-texturesL[14] = "Interface\\AddOns\\HandyNotes_HallowsEnd\\HalloweenBat"
-texturesL[15] = "Interface\\AddOns\\HandyNotes_HallowsEnd\\HalloweenCat"
-texturesL[16] = "Interface\\AddOns\\HandyNotes_HallowsEnd\\HalloweenGhost"
-texturesL[17] = "Interface\\AddOns\\HandyNotes_HallowsEnd\\HalloweenWitch"
-texturesS[1] = "Interface\\Common\\RingBorder"
-texturesS[2] = "Interface\\PlayerFrame\\DeathKnight-Energize-Blood"
-texturesS[3] = "Interface\\PlayerFrame\\DeathKnight-Energize-Frost"
-texturesS[4] = "Interface\\PlayerFrame\\DeathKnight-Energize-Unholy"
-texturesS[5] = "Interface\\PetBattles\\DeadPetIcon"
-texturesS[6] = "Interface\\RaidFrame\\UI-RaidFrame-Threat"
-texturesS[7] = "Interface\\PlayerFrame\\UI-PlayerFrame-DeathKnight-Frost"
-texturesS[8] = "Interface\\HelpFrame\\HelpIcon-CharacterStuck"	
-texturesS[9] = "Interface\\AddOns\\HandyNotes_HallowsEnd\\AzerothCandySwirl"
-texturesS[10] = "Interface\\AddOns\\HandyNotes_HallowsEnd\\Pumpkin"
-texturesS[11] = "Interface\\AddOns\\HandyNotes_HallowsEnd\\EvilPumpkin"
-texturesS[12] = "Interface\\AddOns\\HandyNotes_HallowsEnd\\HalloweenBat"
-texturesS[13] = "Interface\\AddOns\\HandyNotes_HallowsEnd\\HalloweenCat"
-texturesS[14] = "Interface\\AddOns\\HandyNotes_HallowsEnd\\HalloweenGhost"
-texturesS[15] = "Interface\\AddOns\\HandyNotes_HallowsEnd\\HalloweenWitch"
+ns.textures[1] = "Interface\\PlayerFrame\\MonkLightPower"
+ns.textures[2] = "Interface\\PlayerFrame\\MonkDarkPower"
+ns.textures[3] = "Interface\\Common\\Indicator-Red"
+ns.textures[4] = "Interface\\Common\\Indicator-Yellow"
+ns.textures[5] = "Interface\\Common\\Indicator-Green"
+ns.textures[6] = "Interface\\Common\\Indicator-Gray"
+ns.textures[7] = "Interface\\Common\\Friendship-ManaOrb"	
+ns.textures[8] = "Interface\\TargetingFrame\\UI-PhasingIcon"
+ns.textures[9] = "Interface\\Store\\Category-icon-pets"
+ns.textures[10] = "Interface\\Store\\Category-icon-featured"
+ns.textures[11] = "Interface\\AddOns\\HandyNotes_HallowsEnd\\AzerothCandySwirl"
+ns.textures[12] = "Interface\\AddOns\\HandyNotes_HallowsEnd\\Pumpkin"
+ns.textures[13] = "Interface\\AddOns\\HandyNotes_HallowsEnd\\EvilPumpkin"
+ns.textures[14] = "Interface\\AddOns\\HandyNotes_HallowsEnd\\HalloweenBat"
+ns.textures[15] = "Interface\\AddOns\\HandyNotes_HallowsEnd\\HalloweenCat"
+ns.textures[16] = "Interface\\AddOns\\HandyNotes_HallowsEnd\\HalloweenGhost"
+ns.textures[17] = "Interface\\AddOns\\HandyNotes_HallowsEnd\\HalloweenWitch"
 
-scalingL[1] = 0.55
-scalingL[2] = 0.55
-scalingL[3] = 0.55
-scalingL[4] = 0.55
-scalingL[5] = 0.55
-scalingL[6] = 0.55
-scalingL[7] = 0.65
-scalingL[8] = 0.64
-scalingL[9] = 0.77
-scalingL[10] = 0.75
-scalingL[11] = 0.44
-scalingL[12] = 0.40
-scalingL[13] = 0.45
-scalingL[14] = 0.42
-scalingL[15] = 0.42
-scalingL[16] = 0.45
-scalingL[17] = 0.45
-scalingS[1] = 0.37
-scalingS[2] = 0.49
-scalingS[3] = 0.49
-scalingS[4] = 0.49
-scalingS[5] = 0.43
-scalingS[6] = 0.41
-scalingS[7] = 0.42
-scalingS[8] = 0.57
-scalingS[9] = 0.44
-scalingS[10] = 0.40
-scalingS[11] = 0.45
-scalingS[12] = 0.42
-scalingS[13] = 0.42
-scalingS[14] = 0.45
-scalingS[15] = 0.45
-
+ns.scaling[1] = 0.55
+ns.scaling[2] = 0.55
+ns.scaling[3] = 0.55
+ns.scaling[4] = 0.55
+ns.scaling[5] = 0.55
+ns.scaling[6] = 0.55
+ns.scaling[7] = 0.65
+ns.scaling[8] = 0.64
+ns.scaling[9] = 0.77
+ns.scaling[10] = 0.75
+ns.scaling[11] = 0.44
+ns.scaling[12] = 0.40
+ns.scaling[13] = 0.45
+ns.scaling[14] = 0.42
+ns.scaling[15] = 0.42
+ns.scaling[16] = 0.45
+ns.scaling[17] = 0.45

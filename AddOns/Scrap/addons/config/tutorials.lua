@@ -1,12 +1,12 @@
 --[[
-Copyright 2008-2024 João Cardoso
+Copyright 2008-2025 João Cardoso
 All Rights Reserved
 --]]
 
 local Tutorials = Scrap:NewModule('Tutorials', 'CustomTutorials-2.1')
 local L = LibStub('AceLocale-3.0'):GetLocale('Scrap')
 
-function Tutorials:OnEnable()
+function Tutorials:OnLoad()
 	self:Register()
 	self:TriggerTutorial(1)
 end
