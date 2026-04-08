@@ -1,8 +1,8 @@
 local _, app = ...;
-local L, settings = app.L.SETTINGS_MENU, app.Settings;
+local L, settings = app.L, app.Settings;
 
 -- Settings: General Page
-local child = settings:CreateOptionsPage(L.UNOBTAINABLES_PAGE, "General")
+local child = settings:CreateOptionsPage(L.UNOBTAINABLES_PAGE, L.GENERAL_PAGE)
 
 local headerUnobtainableContent = child:CreateHeaderLabel(L.UNOBTAINABLE_LABEL)
 if child.separator then
@@ -19,6 +19,7 @@ app.AddEventHandler("OnSettingsRefresh", function()
 end);
 
 local phases = L.PHASES;
+local UnobtainableSettingsBase = settings.__UnobtainableSettingsBase;
 local UnobtainableFilterOnClick = function(self)
 	settings:SetUnobtainableFilter(self.u, self:GetChecked());
 end;
@@ -30,7 +31,11 @@ local UnobtainableOnRefresh = function(self)
 	else
 		self:Enable();
 		self:SetAlpha(1);
-		self.Text:SetTextColor(1, 1, 1);
+		if UnobtainableSettingsBase.__index[self.u] then
+			self.Text:SetTextColor(0.6, 0.7, 1);
+		else
+			self.Text:SetTextColor(1, 1, 1);
+		end
 	end
 end;
 local AvailabilityConditions = {
@@ -40,6 +45,7 @@ local AvailabilityConditions = {
 	5,	-- Unlearnable
 	0,	-- Blank Space
 	3,	-- Real Money
+	7,	-- Trading Post
 	9,	-- Black Market AH
 	10,	-- Trading Card Game
 	0,	-- Blank Space
@@ -49,23 +55,6 @@ local AvailabilityConditions = {
 
 if app.IsClassic then
 	-- Temporary stuff
-	local UnobtainableSettingsBase = settings.__UnobtainableSettingsBase;
-	UnobtainableOnRefresh = function(self)
-		self:SetChecked(settings:GetUnobtainableFilter(self.u));
-		if app.MODE_DEBUG then
-			self:Disable();
-			self:SetAlpha(0.2);
-		else
-			self:Enable();
-			self:SetAlpha(1);
-			if UnobtainableSettingsBase.__index[self.u] then
-				self.Text:SetTextColor(0.6, 0.7, 1);
-			else
-				self.Text:SetTextColor(1, 1, 1);
-			end
-		end
-	end;
-
 	-- The ids are different in classic.
 	AvailabilityConditions = {
 		1,	-- Never Implemented
@@ -138,7 +127,8 @@ if app.GameBuildVersion > 90000 then
 				or (app.CurrentCharacter and app.CurrentCharacter.CustomCollects and app.CurrentCharacter.CustomCollects[cc]))
 			self:SetChecked(automatic or settings:Get(filterID))
 			if automatic then
-				self:SetAlpha(0.6)
+				self:Disable()
+				self:SetAlpha(0.4)
 			else
 				self:Enable()
 				self:SetAlpha(1)
@@ -177,7 +167,8 @@ if app.GameBuildVersion > 90000 then
 				or (app.CurrentCharacter and app.CurrentCharacter.CustomCollects and app.CurrentCharacter.CustomCollects[cc]))
 			self:SetChecked(automatic or settings:Get(filterID))
 			if automatic then
-				self:SetAlpha(0.6)
+				self:Disable()
+				self:SetAlpha(0.4)
 			else
 				self:Enable()
 				self:SetAlpha(1)

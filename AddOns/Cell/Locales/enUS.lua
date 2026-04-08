@@ -87,13 +87,138 @@ select(2, ...).L = setmetatable({
 
     ["CHANGELOGS"] = [[
         <h2>If there are any issues after an update, check through all code snippets first.</h2>
-        <p>(Retail) Enable "Always Update Auras" in General tab, if indicators do not update correctly.</p>
-        <h2>The scaling "issue" isn't a bug; it's due to changes in the scaling method. Please readjust Cell's scale and dimensions.</h2>
+        <br/>
+
+        <h1>r274-release (2026-01-22 19:07 GMT+8)</h1>
+        <p>* Update Molten Core debuffs (thanks Rurutia).</p>
+        <p>* Fixed an issue with getting hostile boss frames via LibGetFrame.</p>
+        <br/>
+
+        <h1>r273-release (2025-12-29 17:40 GMT+8)</h1>
+        <p>+ Added support for TBC classic.</p>
+        <p>* Improved range check.</p>
+        <p>* Updated locales.</p>
+        <br/>
+
+        <h1>r272-release (2025-12-10 11:00 GMT+8)</h1>
+        <p>* Updated debuffs for Throne of Thunder (#436, thanks Ekkles).</p>
+        <p>* Fixed boss list for Throne of Thunder.</p>
+        <p>* (MoP) Added Eternal Flame for "Healers".</p>
+        <br/>
+
+        <h1>r271-release (2025-12-08 12:00 GMT+8)</h1>
+        <p>* Fixed a OmniCD related issue.</p>
+        <p>* (Classic) The "Debuffs" indicator no longer shows WeakenedSoul for non-priests.</p>
+        <br/>
+
+        <h1>r270-release (2025-12-04 10:00 GMT+8)</h1>
+        <p>* Updated toc version.</p>
+        <p>* Fixed display of the separate pet frame in arenas.</p>
+        <br/>
+
+        <h1>r269-release (2025-11-04 10:29 GMT+8)</h1>
+        <p>* (CN MoP) Fixed Monk-related issues.</p>
+        <br/>
+
+        <h1>r268-release (2025-10-30 11:15 GMT+8)</h1>
+        <p>* Fixed spell rank issue for the English client.</p>
+        <p>* Fixed potential nil error in Actions indicator.</p>
+        <p>* Updated locales.</p>
+        <br/>
+
+        <h1>r267-release (Oct 27, 2025, 17:50 GMT+8)</h1>
+        <p>* Fixed specID check (layout switch) on auto spec change.</p>
+        <p>* Fixed spell ranks for click-castings.</p>
+        <p>+ Added esMX (thanks maylisdalan).</p>
+        <p>* Updated locales, fixed missing phrases.</p>
+        <br/>
+
+        <h1>r266-release (Oct 14, 2025, 14:25 GMT+8)</h1>
+        <p>* Delayed creation of some indicators to avoid potential issues.</p>
+        <br/>
+
+        <h1>r265-release (Oct 10, 2025, 14:00 GMT+8)</h1>
+        <p>* Fixed Health Text indicator.</p>
+        <p>* (Retail) Added delayed groupType check for more reliable layout switching.</p>
+        <br/>
+
+        <h1>r264-release (Oct 10, 2025, 11:50 GMT+8)</h1>
+        <p>* Fixed dual spec for anniversary servers (#427, thanks muffinhydra).</p>
+        <p>* Fixed indicator loading issues.</p>
+        <p>* Improved layout fallback handling for Retail.</p>
+        <p>* Updated BuffTracker options for Vanilla/Wrath/Cata.</p>
+        <br/>
+
+        <h1>r263-beta (Sep 28, 2025, 14:10 GMT+8)</h1>
+        <p>+ Added baseline support for dual spec for anniversary servers (#416, thanks muffinhydra).</p>
+        <p>* Refactored layout visibility and indicator updates.</p>
+        <p>* Fixed aura tooltips for retail.</p>
+        <p>* Changed to delayed pixel updates when UI_SCALE_CHANGED.</p>
+        <p>* Fixed layout fallbacks.</p>
+        <p>- Removed alwaysUpdateAuras from retail.</p>
+        <p>* Updated locales.</p>
+        <br/>
+
+        <h1>r262-release (Sep 18, 2025, 18:50 GMT+8)</h1>
+        <p>* Updated MoP debuffs (#417, thanks Ekkles).</p>
+        <p>* Added missing paladin click-casting spell (#389, thanks gpejski).</p>
+        <p>* Partial aura updates (#413, thanks cont1nuity).</p>
+        <p>* (Retail) Refactored aura update logic and cache handling, slightly improved performance.</p>
+        <p>* Added option to hide Blizzard Raid Manager.</p>
+        <p>* Added "Cast By" for custom debuff indicators.</p>
+        <p>* Updated TWW debuffs and targeted spells.</p>
+        <br/>
+
+        <h1>r261-release (Aug 22, 2025, 20:40 GMT+8)</h1>
+        <p>* Updated MoP debuffs (thanks Ekkles).</p>
+        <p>* Updated TWW debuffs.</p>
+        <br/>
+
+        <h1>r260-release (Aug 18, 2025, 17:20 GMT+8)</h1>
+        <p>* Updated TWW raid debuffs (thanks swirl).</p>
+        <br/>
+
+        <h1>r259-release (Aug 6, 2025, 16:27 GMT+8)</h1>
+        <p>* Updated TWW debuffs (thanks 钛锬 and 枫岚).</p>
+        <p>* Updated MoP debuffs.</p>
+        <br/>
+
+        <h1>r258-release (Jul 13, 2025, 11:30 GMT+8)</h1>
+        <p>* Attempt to fix aura update.</p>
+        <br/>
+
+        <h1>r257-release (Jul 11, 2025, 17:00 GMT+8)</h1>
+        <p>* Bump up toc for Wrath (CN).</p>
+        <br/>
+
+        <h1>r256-release (Jul 8, 2025, 18:00 GMT+8)</h1>
+        <p>* (MoP) Fixed PW:S indicator.</p>
+        <br/>
+
+        <h1>r255-release (Jul 8, 2025, 16:00 GMT+8)</h1>
+        <p>+ Added Healer frame to spotlight (#393 by hreich).</p>
+        <p>+ (MoP) Added back PW:S indicator.</p>
+        <p>* (MoP) Fixed click-cast for Soulstone.</p>
+        <p>* Reworked BuffTracker &amp; MissingBuffs for all flavors.</p>
+        <p>- (Vanilla) Removed debuff duration limit from display logic.</p>
+        <br/>
+
+        <h1>r254-release (Jul 4, 2025, 21:20 GMT+8)</h1>
+        <p>* Updated for MoP. Updated for MoP. Layout Auto Switch and Power Filters have been reset due to the game version update.</p>
+        <p>* Disabled dragging while in combat.</p>
+        <p>* BuffTracker updated: now only available for Retail and MoP..</p>
+        <p>- Removed MissingBuffs indicator.</p>
+        <p>+ (Retail) Cell will attempt to restore the correct layout after reconnecting during combat.</p>
+        <br/>
+
+        <h1>r253-release (May 13, 2025, 20:30 GMT+8)</h1>
+        <p>* Updated libs.</p>
+        <p>* Updated targeted spells.</p>
         <br/>
 
         <h1>r252-release (Apr 1, 2025, 14:15 GMT+8)</h1>
         <p>* Fixed powerfilter values (#367).</p>
-        <p>* Update locales.</p>
+        <p>* Updated locales.</p>
         <p>- Removed global names for custom indicators.</p>
         <br/>
 

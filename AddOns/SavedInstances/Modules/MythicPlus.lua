@@ -2,57 +2,54 @@ local SI, L = unpack((select(2, ...)))
 local Module = SI:NewModule("MythicPlus", "AceEvent-3.0", "AceBucket-3.0")
 
 -- Lua functions
-local _G = _G
 local ipairs, sort, strsplit, tonumber, wipe = ipairs, sort, strsplit, tonumber, wipe
 
 -- WoW API / Variables
-local C_ChallengeMode_GetKeystoneLevelRarityColor = C_ChallengeMode.GetKeystoneLevelRarityColor
 local C_ChallengeMode_GetMapUIInfo = C_ChallengeMode.GetMapUIInfo
+local C_ChatInfo_SendChatMessage = C_ChatInfo.SendChatMessage
 local C_Container_GetContainerItemID = C_Container.GetContainerItemID
 local C_Container_GetContainerItemLink = C_Container.GetContainerItemLink
 local C_Container_GetContainerNumSlots = C_Container.GetContainerNumSlots
+local C_MythicPlus_GetCurrentSeasonValues = C_MythicPlus.GetCurrentSeasonValues
+local C_MythicPlus_GetRewardLevelFromKeystoneLevel = C_MythicPlus.GetRewardLevelFromKeystoneLevel
 local C_MythicPlus_GetRunHistory = C_MythicPlus.GetRunHistory
 local C_MythicPlus_RequestMapInfo = C_MythicPlus.RequestMapInfo
-local C_MythicPlus_GetRewardLevelFromKeystoneLevel = C_MythicPlus.GetRewardLevelFromKeystoneLevel
-local C_MythicPlus_GetCurrentSeasonValues = C_MythicPlus.GetCurrentSeasonValues
-local C_WeeklyRewards_GetActivities = C_WeeklyRewards.GetActivities
-local C_WeeklyRewards_HasAvailableRewards = C_WeeklyRewards.HasAvailableRewards
 local C_WeeklyRewards_CanClaimRewards = C_WeeklyRewards.CanClaimRewards
+local C_WeeklyRewards_GetActivities = C_WeeklyRewards.GetActivities
 local C_WeeklyRewards_GetNumCompletedDungeonRuns = C_WeeklyRewards.GetNumCompletedDungeonRuns
-local WeeklyRewardsUtil_MythicLevel = WeeklyRewardsUtil.MythicLevel
-local WEEKLY_REWARDS_HEROIC, WEEKLY_REWARDS_MYTHIC = WEEKLY_REWARDS_HEROIC, WEEKLY_REWARDS_MYTHIC
+local C_WeeklyRewards_HasAvailableRewards = C_WeeklyRewards.HasAvailableRewards
 local CreateFrame = CreateFrame
-local SendChatMessage = SendChatMessage
 
 local StaticPopup_Show = StaticPopup_Show
 
 local Enum_WeeklyRewardChestThresholdType_Activities = Enum.WeeklyRewardChestThresholdType.Activities
+local WEEKLY_REWARDS_HEROIC, WEEKLY_REWARDS_MYTHIC = WEEKLY_REWARDS_HEROIC, WEEKLY_REWARDS_MYTHIC
+local WeeklyRewardsUtil_MythicLevel = WeeklyRewardsUtil.MythicLevel
 
--- this is from https://wago.tools/db2/MythicPlusSeasonRewardLevels?page=1&sort[WeeklyRewardLevel]=asc&filter[MythicPlusSeasonID]=98
+-- Step 1. https://wago.tools/db2/WeeklyRewardChestActivityTier
+--         Find latest ActivityTierIDs with field 1 and 2 has value of 0, 2 and 1, 23, which are for heroic and mythic dungeons respectively.
+--         For Midnight Season 1, these are 101 and 102.
+-- Step 2. https://wago.tools/db2/MythicPlusSeasonRewardLevels
+--         Find the records with ActivityTierID from step 1. These records should have same MythicPlusSeasonID matched with each other.
+--         For Midnight Season 1, the MythicPlusSeasonID is 117.
+-- Note: Sometimes there are placeholder records with bigger IDs. Cross check should be done to make sure the correct records are used.
 local ItemLevelsBySeason = {
-  -- DF Season 3
-  [98] = {
-    ["HEROIC"] = 441,
-    ["MYTHIC"] = 450,
+  -- TWW Season 3
+  [108] = {
+    ["HEROIC"] = 118,
+    ["MYTHIC"] = 131,
   },
-  -- DF Season 4
-  [100] = {
-    ["HEROIC"] = 489,
-    ["MYTHIC"] = 506,
-  },
-  -- TWW Season 1
-  [99] = {
-    ["HEROIC"] = 593,
-    ["MYTHIC"] = 603,
-  },
-  -- TWW Season 2
-  [103] = {
-    ["HEROIC"] = 632,
-    ["MYTHIC"] = 645,
+  -- MID Season 1
+  [117] = {
+    ["HEROIC"] = 243,
+    ["MYTHIC"] = 256,
   },
 }
 
 local KeystoneAbbrev = {
+  -- Wrath of the Lich King
+  [556] = L["POS"], -- Pit of Saron
+
   -- Cataclysm
   [438] = L["VP"], -- The Vortex Pinnacle
   [456] = L["TOTT"], -- Throne of the Tides
@@ -62,6 +59,7 @@ local KeystoneAbbrev = {
   [2] = L["TJS"], -- Temple of the Jade Serpent
 
   -- Warlords of Draenor
+  [161] = L["SR"], -- Skyreach
   [165] = L["SBG"], -- Shadowmoon Burial Grounds
   [166] = L["GD"], -- Grimrail Depot
   [168] = L["EB"], -- Everbloom
@@ -130,6 +128,13 @@ local KeystoneAbbrev = {
   [505] = L["DAWN"], -- The Dawnbreaker
   [506] = L["BREW"], -- Cinderbrew Meadery
   [525] = L["FLOOD"], -- Operation: Floodgate
+  [542] = L["EDA"], -- Eco-Dome Al'dani
+
+    -- Midnight
+  [557] = L["WS"], -- Windrunner Spire
+  [558] = L["MT"], -- Magisters' Terrace
+  [559] = L["NPX"], -- Nexus-Point Xenas
+  [560] = L["MC"], -- Maisara Caverns
 }
 SI.KeystoneAbbrev = KeystoneAbbrev
 
@@ -149,30 +154,15 @@ function Module:OnEnable()
   self:RefreshMythicWeeklyBestInfo()
 end
 
-do
-  local colorCache = {}
-  local function getLevelColor(level)
-    if colorCache[level] then
-      return colorCache[level]
-    end
+function Module:ProcessKey(itemLink, targetTable)
+  local _, _, _, mapID, mapLevel = strsplit(":", itemLink)
+  mapID = tonumber(mapID)
+  mapLevel = tonumber(mapLevel)
 
-    local color = C_ChallengeMode_GetKeystoneLevelRarityColor(level)
-    colorCache[level] = color and color:GenerateHexColor() or "ffffffff"
-    return colorCache[level]
-  end
-
-  function Module:ProcessKey(itemLink, targetTable)
-    local _, _, mapID, mapLevel = strsplit(":", itemLink)
-    mapID = tonumber(mapID)
-    mapLevel = tonumber(mapLevel)
-
-    targetTable.link = itemLink
-    targetTable.mapID = mapID
-    targetTable.level = mapLevel
-    targetTable.name = C_ChallengeMode_GetMapUIInfo(mapID)
-    targetTable.color = getLevelColor(mapLevel)
-    targetTable.ResetTime = SI:GetNextWeeklyResetTime()
-  end
+  targetTable.link = itemLink
+  targetTable.mapID = mapID
+  targetTable.level = mapLevel
+  targetTable.ResetTime = SI:GetNextWeeklyResetTime()
 end
 
 function Module:RefreshMythicKeyInfo()
@@ -299,7 +289,7 @@ end
 
 function Module:ReportKeys(target, index)
   self:KeyData(index, function(toon, key)
-    SendChatMessage(toon .. " - " .. key, target)
+    C_ChatInfo_SendChatMessage(toon .. " - " .. key, target)
   end)
 end
 
@@ -346,7 +336,7 @@ function Module:ExportKeys(index)
 end
 
 StaticPopupDialogs["SAVEDINSTANCES_REPORT_KEYS"] = {
-  preferredIndex = STATICPOPUP_NUMDIALOGS, -- reduce the chance of UI taint
+  preferredIndex = 1,
   text = L["Are you sure you want to report all your keys to %s?"],
   button1 = OKAY,
   button2 = CANCEL,

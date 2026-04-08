@@ -1,11 +1,11 @@
 --
--- Copyright (c) 2024 by Ludicrous Speed, LLC
+-- Copyright (c) 2025 by RaiderIO, Inc.
 -- All rights reserved.
 --
-local provider={name=...,data=3,region="us",date="2024-10-09T06:16:45Z",numCharacters=52,db={}}
+local provider={name=...,data=3,region="us",date="2026-03-23T06:06:18Z",numCharacters=14,db={}}
 local F
 
-F = function() provider.db["Arugal"]={0,"Careface","Chubs","Harrock"} end F()
+F = function() provider.db["Nazgrim"]={0,"Afksham"} end F()
 
 F = nil
 RaiderIO.AddProvider(provider)

@@ -49,9 +49,9 @@ local function ColorizeRGB(str, r, g, b)
 end
 
 -- Generates a Color Scale between Red and Green with the Blue Completed color for 100%
-local colors, red, green, h = app.Colors, RGBToHSV(1,0,0), RGBToHSV(0,1,0);
+local red, green, h = RGBToHSV(1,0,0), RGBToHSV(0,1,0);
 local ProgressColors = setmetatable({
-	[1] = colors.Completed,
+	[1] = app.Colors.Completed,
 }, {
 	__index = function(t, p)
 		p = tonumber(p);
@@ -115,13 +115,45 @@ local function GetNumberWithZeros(number, desiredLength)
 		return tostring(floor(number));
 	end
 end
+local function GetCoordString(x, y)
+	return GetNumberWithZeros(app.round(x, 1), 1) .. ", " .. GetNumberWithZeros(app.round(y, 1), 1);
+end
+local function GetPatchString(patch)
+	patch = tonumber(patch)
+	return patch and (floor(patch / 10000) .. "." .. (floor(patch / 100) % 100) .. "." .. (patch % 10))
+end
+local SettingsPrecision, UseMoreColors = 2, true;
 local function GetPercentageTextDefault(percent)
-	return " (" .. GetNumberWithZeros(percent * 100, app.Settings:GetTooltipSetting("Precision")) .. "%)";
+	return " (" .. GetNumberWithZeros(percent * 100, SettingsPrecision) .. "%)";
 end
 local function GetPercentageEmpty(percent)
 	return " ";
 end
 local GetPercentageText = GetPercentageTextDefault;
+local TooltipSettingsSwaps = {
+	Precision = function(value) SettingsPrecision = value end,
+	UseMoreColors = function(value) UseMoreColors = value end,
+	["Show:Remaining"] = function(value)
+		GetProgressText = value and GetProgressTextRemaining or GetProgressTextDefault
+	end,
+	["Show:Percentage"] = function(value)
+		GetPercentageText = value and GetPercentageTextDefault or GetPercentageEmpty
+	end,
+}
+app.AddEventHandler("OnStartup", function()
+	for k, v in pairs(TooltipSettingsSwaps) do
+		v(app.Settings:GetTooltipSetting(k))
+	end
+end)
+app.AddEventHandler("Settings.OnSet", function(container, key, value)
+	if container == "Tooltips" then
+		local func = TooltipSettingsSwaps[key]
+		if func then
+			func(value)
+			app.CallbackEvent("OnRedrawWindows")
+		end
+	end
+end)
 
 local function GetProgressColorText(progress, total)
 	if total and total > 0 then
@@ -156,6 +188,8 @@ api.Colorize = Colorize;
 api.ColorizeRGB = ColorizeRGB;
 api.HexToARGB = HexToARGB;
 api.RGBToHex = RGBToHex;
+api.GetCoordString = GetCoordString;
+api.GetPatchString = GetPatchString;
 api.GetNumberWithZeros = GetNumberWithZeros;
 api.GetProgressColor = GetProgressColor;
 api.GetProgressColorText = GetProgressColorText;
@@ -163,12 +197,6 @@ api.GetProgressTextToNextPercent = GetProgressTextToNextPercent;
 api.GetProgressText = function(...)
 	-- NOTE: This is so you can cache the function externally and not lose the ability to swap the behaviour.
 	return GetProgressText(...);
-end
-api.SetShowPercentageText = function(setShowPercentageText)
-	GetPercentageText = setShowPercentageText and GetPercentageTextDefault or GetPercentageEmpty;
-end
-api.SetShowRemainingText = function(showRemainingText)
-	GetProgressText = showRemainingText and GetProgressTextRemaining or GetProgressTextDefault;
 end
 
 -- TODO: Convert these to module locals. (meaning api scoped)
@@ -184,34 +212,33 @@ app.TryColorizeName = function(group, name)
 	if IsRetrieving(name) then return name; end
 	-- raid headers
 	if group.isRaid then
-		return Colorize(name, colors.Raid);
+		return Colorize(name, app.Colors.Raid);
 	-- groups which are ignored for progress
 	elseif group.sourceIgnored then
-		return Colorize(name, colors.SourceIgnored);
+		return Colorize(name, app.Colors.SourceIgnored);
 	-- locked things
 	elseif group.locked then
-		return Colorize(name, colors.Locked);
-	-- breadcrumbs (should always be covered within Quest lib)
-	-- elseif group.isBreadcrumb then
-	-- 	return Colorize(name, colors.Breadcrumb);
-	-- if people REALLY only want to see colors in account/debug then we can comment this in
-	elseif app.Settings:GetTooltipSetting("UseMoreColors") --and (app.MODE_DEBUG_OR_ACCOUNT)
+		return Colorize(name, app.Colors.Locked);
+	-- lockable things / breadcrumbs
+	elseif group.lc or group.isBreadcrumb then
+		return Colorize(name, app.Colors.Breadcrumb)
+	elseif UseMoreColors
 	then
 		-- class color
 		if group.classID then
 			return Colorize(name, app.ClassInfoByID[group.classID].colorStr);
 		elseif group.accountWide then
-			return Colorize(name, colors.Account)
+			return Colorize(name, app.Colors.Account)
 		elseif group.c and #group.c == 1 then
 			return Colorize(name, app.ClassInfoByID[group.c[1]].colorStr);
 		-- faction colors
 		elseif group.r then
 			-- red for Horde
 			if group.r == Horde then
-				return Colorize(name, colors.Horde);
+				return Colorize(name, app.Colors.Horde);
 			-- blue for Alliance
 			elseif group.r == Alliance then
-				return Colorize(name, colors.Alliance);
+				return Colorize(name, app.Colors.Alliance);
 			end
 		-- specific races
 		elseif group.races then
@@ -219,10 +246,10 @@ app.TryColorizeName = function(group, name)
 			local arace = containsAny(group.races, ALLIANCE_ONLY);
 			if hrace and not arace then
 				-- this group requires a horde-only race, and not any alliance race
-				return Colorize(name, colors.Horde);
+				return Colorize(name, app.Colors.Horde);
 			elseif arace and not hrace then
 				-- this group requires a alliance-only race, and not any horde race
-				return Colorize(name, colors.Alliance);
+				return Colorize(name, app.Colors.Alliance);
 			end
 		-- specific raceID
 		elseif group.raceID then
@@ -230,17 +257,17 @@ app.TryColorizeName = function(group, name)
 			local arace = contains(ALLIANCE_ONLY, group.raceID);
 			if hrace and not arace then
 				-- this group requires a horde-only race, and not any alliance race
-				return Colorize(name, colors.Horde);
+				return Colorize(name, app.Colors.Horde);
 			elseif arace and not hrace then
 				-- this group requires a alliance-only race, and not any horde race
-				return Colorize(name, colors.Alliance);
+				return Colorize(name, app.Colors.Alliance);
 			end
 		-- un-acquirable color
 		-- grey color for things which are otherwise not available to the current character (would only show in account mode due to filtering)
 		elseif not app.CurrentCharacterFilters(group) then
-			return Colorize(name, colors.Unavailable);
+			return Colorize(name, app.Colors.Unavailable);
 		elseif group.questID and app.AccountWideQuestsDB[group.questID] then
-			return Colorize(name, colors.Account)
+			return Colorize(name, app.Colors.Account)
 		end
 	end
 	return name;
@@ -248,13 +275,13 @@ end
 app.GetColoredTimeRemaining = function(t)
 	-- Returns 'Time Left: %s'
 	if t and t > 0 then
-		local timeLeft = BONUS_OBJECTIVE_TIME_LEFT:format(SecondsToTime(t * 60));
+		local timeLeft = BONUS_OBJECTIVE_TIME_LEFT:format(SecondsToTime(t))
 		if t < 30 then
-			return Colorize(timeLeft, colors.TimeUnder30Min);
+			return Colorize(timeLeft, app.Colors.TimeUnder30Min);
 		elseif t < 120 then
-			return Colorize(timeLeft, colors.TimeUnder2Hr);
+			return Colorize(timeLeft, app.Colors.TimeUnder2Hr);
 		else
-			return Colorize(timeLeft, colors.Time);
+			return Colorize(timeLeft, app.Colors.Time);
 		end
 	end
 end

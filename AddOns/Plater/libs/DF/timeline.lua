@@ -663,6 +663,7 @@ detailsFramework.TimeLine_LineMixin = {
 ---@field UpdateOnClickCallback fun(self:df_timeline, button:button?)
 ---@field HideVerticalScroll fun(self:df_timeline)
 ---@field SetScale fun(self:df_timeline, scale:number)
+---@field GetScale fun(self:df_timeline):number
 
 detailsFramework.TimeLineMixin = {
 	GetHorizontalScrolledWidth = function(self)
@@ -697,6 +698,10 @@ detailsFramework.TimeLineMixin = {
 				end
 			end
 		end
+	end,
+
+	GetScale = function(self)
+		return self.currentScale
 	end,
 
 	SetScale = function(self, scale)
@@ -962,8 +967,11 @@ detailsFramework.TimeLineMixin = {
 
 	GetTimeUnderMouse = function(self)
 		local bodyWidthUnderMouse = self:GetBodyWidthUnderMouse()
-		local time = bodyWidthUnderMouse / (self.pixelPerSecond * self.currentScale)
-		return time
+		if self.pixelPerSecond then
+			local time = bodyWidthUnderMouse / (self.pixelPerSecond * self.currentScale)
+			return time
+		end
+		return 0
 	end,
 
 	GetBlocksAtTime = function(self, time)

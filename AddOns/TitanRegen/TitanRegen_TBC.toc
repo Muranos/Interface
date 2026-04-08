@@ -1,0 +1,9 @@
+## Interface: 20505
+## Title: Titan Panel [|cffeda55fRegen|r] |cff00aa009.1.0-pre|r
+## Version: 9.1.0-pre
+## Notes: Adds a regen monitor to Titan Panel to show HP/MANA regen - Classic versions only
+## Author: Titan Panel Development Team
+## SavedVariables: 
+## OptionalDeps: 
+## Dependencies: Titan
+TitanRegen.lua

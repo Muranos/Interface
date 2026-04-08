@@ -1,7 +1,7 @@
 ﻿-- Pawn by Vger-Azjol-Nerub
 -- www.vgermods.com
--- © 2006-2025 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
--- See Readme.htm for more information.
+-- © 2006-2026 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
+-- See Readme.md for more information.
 
 --
 -- French resources
@@ -72,7 +72,7 @@ www.vgermods.com
 /pawn debug [ on | off ] -- affiche les messages de debug sur la console
 /pawn backup -- sauvegarde toutes vos échelles dans vos formules
  
-Pour plus d'information sur la Personnalisation de Pawn, regarder le fichier d'aide (Readme.htm) inclu dans le mod.]=],
+Pour plus d'information sur la Personnalisation de Pawn, regarder le fichier d'aide (Readme.md) inclu dans le mod.]=],
 	["ValueCalculationMessage"] = "   %g %s x %g chaque = %g",
 	["VisibleScalesHeader"] = "Échelles de %s",
 	["Stats"] = {
@@ -126,12 +126,14 @@ Pour plus d'information sur la Personnalisation de Pawn, regarder le fichier d'a
 		["MovementSpeedInfo"] = "Vitesse de déplacement. Fait que personnage se déplace plus rapidement.",
 		["Mp5"] = "Mana per 5",
 		["Mp5Info"] = "Mana regeneration per 5 seconds.  Affects your mana regeneration even when in combat.",
+		["MultistrikeInfo"] = "Multistrike. Increases the chance that your attacks and healing spells will hit your target two extra times at reduced potency.",
 		["NatureResistInfo"] = "Nature Resistance.  Reduces the damage taken from nature-based attacks.",
 		["NatureSpellDamage"] = "Nature Damage",
 		["NatureSpellDamageInfo"] = "Nature damage.  Increases the damage dealt by your nature spells.",
 		["ParryInfo"] = "Parry.  Increases the chance that you'll parry enemy attacks.",
 		["Plate"] = "Plaque",
 		["PlateInfo"] = "points a etre ajouté si l'item est en plaque",
+		["PvPPowerInfo"] = "Puissance JcJ. Fait que vos capacités effectuent plus de dégats aux autres joueurs (mais pas aux créatures), et que vos sorts de soins soient plus puissant dans certaines situations JcJ.",
 		["RapInfo"] = "Ranged Attack Power.  Increases the damage of ranged physical attacks.  Does not include attack power gained from agility.",
 		--[[Translation missing --]]
 		["ResilienceInfo"] = "Resilience. Reduces the chance that you'll be critically hit, and decreases the damage of critical hits that you do take.",
@@ -315,9 +317,7 @@ Essayez ces fonctionnalités une fois que vous vous serez habitué aux bases:
 		["OptionsBagUpgradeAdvisor"] = "Montrer les améliorations de sac conseillées.",
 		["OptionsBagUpgradeAdvisorTooltip"] = [=[Activez cette option pour que Pawn prenne en charge les flèches de mise à niveau dans le sac.
 
-Si cette option est cochée, Pawn trouvera des objets dans vos sacs et marquera ceux qui sont de meilleurs pour l'une de vos échelle actives avec des flèches vertes.
-
-Si cette option n'est pas cochée, WoW marquera les objets dont le niveau est supérieur à celui de votre tenue actuelle, et Pawn n'interférera pas avec la fonction intégrée.]=],
+Si cette option est cochée, Pawn trouvera des objets dans vos sacs et marquera ceux qui sont de meilleurs pour l'une de vos échelle actives avec des flèches vertes.]=],
 		["OptionsBlankLine"] = "Ajoute une ligne vide avant les valeurs",
 		["OptionsBlankLineTooltip"] = "Cette option permet de séparer les informations de Pawn, en ajoutant une ligne vide",
 		["OptionsButtonHidden"] = "Caché",
@@ -544,6 +544,7 @@ PawnLocal.TooltipParsing = {
 	["EnchantmentPyriumWeaponChain"] = "^Dragonne en pyrium$",
 	["EnchantmentTitaniumWeaponChain"] = "^Dragonne en titane$",
 	["Equip"] = "Équipé :",
+	["Expertise"] = "^%+?# Expertise$",
 	["ExpertiseClassic"] = "^Equipé : Réduit les chances que vos attaques soient esquivées ou parées de # %%%.$",
 	["ExpertiseRating"] = "^Équipé : Augmente de # le score d’expertise%.$",
 	["ExpertiseRatingShort"] = "^%+?# au score d'expertise$",
@@ -567,7 +568,7 @@ PawnLocal.TooltipParsing = {
 	["HasteRating"] = "^Équipé : Augmente de # le score de hâte%.$",
 	["HasteRating2"] = "^UNUSED$",
 	["HasteRatingShort"] = "^%+?# au score de hâte$",
-	["HaventCollectedAppearance"] = "^Vous n'avez pas récupéré cette apparence$",
+	["HaventCollectedAppearance"] = "^Vous n'avez pas reçu cette apparence%.$",
 	["Healing"] = "^%+# aux sorts de soins$",
 	["Healing2"] = "^E?\195?\137?quipé : Augmente les soins prodigués par les sorts et effets de # au maximum%.$",
 	["Healing3"] = "^%+# aux soins$",
@@ -585,6 +586,7 @@ PawnLocal.TooltipParsing = {
 	["HitRating2"] = "^Équipé : Augmente votre score de toucher de #%.$",
 	["HitRating3"] = "^UNUSED$",
 	["HitRatingShort"] = "^%+?# au score de toucher$",
+	["HitRatingShorter"] = "^%+?# Toucher$",
 	["HolySpellDamage"] = "^%+# aux dégâts des sorts du Sacré$",
 	["HolySpellDamage2"] = "^E?\195?\137?quipé : Augmente les dégâts infligés par les sorts et effets du Sacré de # au maximum%.$",
 	["HolySpellDamage3"] = "^E?\195?\137?quipé : Augmente de # au maximum les dégâts infligés par les sorts et effets du Sacré%.$",
@@ -659,7 +661,7 @@ PawnLocal.TooltipParsing = {
 	["SpellDamageAndHealingEnchant"] = "^%+# aux soins et %+# aux dégâts des sorts$",
 	["SpellDamageAndHealingShort"] = "^%+# aux sorts de soins et %+# aux dégâts des sorts$",
 	["SpellDamageAndHealingShort2"] = "^UNUSED$",
-	["SpellHasteClassic"] = "^Equipé : Augmente la vitesse d’incantation des sorts non canalisés de # %%%.$",
+	["SpellHasteClassic"] = "^Equipé : Augmente votre vitesse d’incantation de # %%%.$",
 	["SpellHasteRating"] = "^Équipé : Augmente de # le score de hâte des sorts%.$",
 	["SpellHasteRatingShort"] = "^%+?# au score de hâte des sorts$",
 	["SpellHit"] = "^E?\195?\137?quipé : Augmente vos chances de toucher avec des sorts de #%%%.$",
@@ -669,7 +671,7 @@ PawnLocal.TooltipParsing = {
 	["SpellPenetration"] = "^Équipé : Augmente la pénétration de vos sorts de #%.$",
 	["SpellPenetrationClassic"] = "^E?\195?\137?quipé : Diminue les résistances magiques des cibles de vos sorts de #%.$",
 	["SpellPenetrationShort"] = "^%+?# à la pénétration des sorts$",
-	["SpellPower"] = "^%+?# à? ?l?a? ?[Pp]uissance des sorts$",
+	["SpellPower"] = "^%+?# \195?\160? ?l?a? ?[Pp]uissance des sorts$",
 	["SpellPower2"] = "^Équipé : Augmente la puissance des sorts de #%.$",
 	["SpellPower3"] = "^Équipé : Augmente de # la puissance des sorts%.$",
 	["Spirit"] = "^%+?# Esprit$",
@@ -716,12 +718,12 @@ if VgerCore.IsClassic or VgerCore.IsBurningCrusade then
 elseif VgerCore.IsWrath then
 	PawnLocal.ThousandsSeparator = ""
 	PawnLocal.DecimalSeparator = ","
-elseif VgerCore.IsCataclysm then
+elseif VgerCore.IsCataclysm or VgerCore.IsMists then
 	PawnLocal.ThousandsSeparator = " "
 	PawnLocal.DecimalSeparator = ","
 end
 
-if VgerCore.IsClassic or VgerCore.IsBurningCrusade or VgerCore.IsWrath or VgerCore.IsCataclysm then
+if VgerCore.IsClassic or VgerCore.IsBurningCrusade or VgerCore.IsWrath or VgerCore.IsCataclysm or VgerCore.IsMists then
 	local TooltipParsing_Classic =
 	{
 		["WeaponDamageArcane"] = "^Dégâts %(Arcanes%) : # %- #$",
@@ -744,7 +746,7 @@ if VgerCore.IsClassic or VgerCore.IsBurningCrusade or VgerCore.IsWrath or VgerCo
 	end
 end
 
-if VgerCore.IsBurningCrusade or VgerCore.IsWrath or VgerCore.IsCataclysm then
+if VgerCore.IsBurningCrusade or VgerCore.IsWrath or VgerCore.IsCataclysm or VgerCore.IsMists then
 
 	local TooltipParsing_BurningCrusade =
 	{
@@ -819,14 +821,12 @@ PawnLocal.Specs =
 	[12] = {
 		{ Name="Dévastation", Icon=1247264, Role="DAMAGER" },
 		{ Name="Vengeance", Icon=1247265, Role="TANK" },
+		{ Name="Dévoreur", Icon=7455385, Role="DAMAGER" },
 	},
 }
 
 end
 
-if GetLocale() == "frFR" then
-	PawnUseThisLocalization()
-end
-
--- After using this localization or deciding that we don't need it, remove it from memory.
+-- Initiate self-destruct sequence.
+PawnUseThisLocalization()
 PawnUseThisLocalization = nil

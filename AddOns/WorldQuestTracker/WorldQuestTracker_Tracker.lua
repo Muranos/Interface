@@ -38,6 +38,12 @@ local FindLookAtRotation = DF.FindLookAtRotation
 local GetDistance_Point = DF.GetDistance_Point
 
 local LibWindow = LibStub ("LibWindow-1.1")
+
+-- Helper to safely check if a value is greater than 0 (guards against secret values in 12.0+)
+local function safeGT0(value)
+	if issecretvalue and issecretvalue(value) then return false end
+	return value and value > 0
+end
 if (not LibWindow) then
 	print ("|cFFFFAA00World Quest Tracker|r: libwindow not found, did you just updated the addon? try reopening the client.|r")
 end
@@ -117,7 +123,7 @@ function WorldQuestTracker.AddQuestToTracker(self, questID, mapID)
 		--return true
 	end
 
-	local timeLeft = WorldQuestTracker.GetQuest_TimeLeft (questID)
+	local timeLeft = WorldQuestTracker.GetQuest_TimeLeft(questID)
 	if (timeLeft and timeLeft > 0) then
 		local mapID = self.mapID
 		local iconTexture = self.IconTexture
@@ -280,9 +286,9 @@ end
 
 --~trackerframe
 --this is the main frame for the quest tracker, every thing on the tracker is parent of this frame
-local WorldQuestTrackerFrame = CreateFrame("frame", "WorldQuestTrackerScreenPanel", UIParent, "BackdropTemplate")
-WorldQuestTrackerFrame:SetSize(235, 500)
-WorldQuestTrackerFrame:SetFrameStrata("LOW") --thanks @p3lim on curseforge
+local WorldQuestTrackerFrame_ScreenPanel = CreateFrame("frame", "WorldQuestTrackerScreenPanel", UIParent, "BackdropTemplate")
+WorldQuestTrackerFrame_ScreenPanel:SetSize(235, 500)
+WorldQuestTrackerFrame_ScreenPanel:SetFrameStrata("LOW") --thanks @p3lim on curseforge
 
 function WorldQuestTracker.TrackerFrameOnInit()
 	LibWindow.RegisterConfig(WorldQuestTrackerScreenPanel, WorldQuestTracker.db.profile)
@@ -296,7 +302,7 @@ function WorldQuestTracker.TrackerFrameOnInit()
 	WorldQuestTracker.RefreshTrackerAnchor()
 end
 
-local WorldQuestTrackerFrame_QuestHolder = CreateFrame ("frame", "WorldQuestTrackerScreenPanel_QuestHolder", WorldQuestTrackerFrame, "BackdropTemplate")
+local WorldQuestTrackerFrame_QuestHolder = CreateFrame ("frame", "WorldQuestTrackerScreenPanel_QuestHolder", WorldQuestTrackerFrame_ScreenPanel, "BackdropTemplate")
 WorldQuestTrackerFrame_QuestHolder:SetAllPoints()
 WorldQuestTrackerFrame_QuestHolder:SetBackdrop({bgFile = "Interface\\Tooltips\\UI-Tooltip-Background", tile = true, tileSize = 16})
 WorldQuestTrackerFrame_QuestHolder.MoveMeLabel = WorldQuestTracker:CreateLabel (WorldQuestTrackerFrame_QuestHolder, "== Move Me ==")
@@ -313,14 +319,14 @@ WorldQuestTrackerFrame_QuestHolder.MoveMeLabel:Hide()
 WorldQuestTrackerFrame_QuestHolder.LockButton:Hide()
 
 function WorldQuestTracker.UpdateTrackerScale()
-	WorldQuestTrackerFrame:SetScale (WorldQuestTracker.db.profile.tracker_scale)
+	WorldQuestTrackerFrame_ScreenPanel:SetScale (WorldQuestTracker.db.profile.tracker_scale)
 	--WorldQuestTrackerFrame_QuestHolder:SetScale (WorldQuestTracker.db.profile.tracker_scale) --aumenta s� as quests sem mexer no cabe�alho
 end
 
 --cria o header
-local WorldQuestTrackerHeader = CreateFrame ("frame", "WorldQuestTrackerQuestsHeader", WorldQuestTrackerFrame, "ObjectiveTrackerContainerHeaderTemplate") -- "ObjectiveTrackerHeaderTemplate"
+local WorldQuestTrackerHeader = CreateFrame ("frame", "WorldQuestTrackerQuestsHeader", WorldQuestTrackerFrame_ScreenPanel, "ObjectiveTrackerContainerHeaderTemplate") -- "ObjectiveTrackerHeaderTemplate"
 WorldQuestTrackerHeader.Text:SetText ("World Quest Tracker")
-local minimizeButton = CreateFrame ("button", "WorldQuestTrackerQuestsHeaderMinimizeButton", WorldQuestTrackerFrame, "BackdropTemplate")
+local minimizeButton = CreateFrame ("button", "WorldQuestTrackerQuestsHeaderMinimizeButton", WorldQuestTrackerFrame_ScreenPanel, "BackdropTemplate")
 local minimizeButtonText = minimizeButton:CreateFontString (nil, "overlay", "GameFontNormal")
 
 --hide the default minimize button from the blizz template
@@ -330,19 +336,19 @@ minimizeButtonText:SetText (L["S_WORLDQUESTS"])
 minimizeButtonText:SetPoint("right", minimizeButton, "left", -3, 1)
 minimizeButtonText:Hide()
 
-WorldQuestTrackerFrame.MinimizeButton = minimizeButton
+WorldQuestTrackerFrame_ScreenPanel.MinimizeButton = minimizeButton
 minimizeButton:SetSize(16, 16)
 minimizeButton:SetPoint("topright", WorldQuestTrackerHeader, "topright", 0, -4)
 minimizeButton:SetScript("OnClick", function()
-	if (WorldQuestTrackerFrame.collapsed) then
-		WorldQuestTrackerFrame.collapsed = false
+	if (WorldQuestTrackerFrame_ScreenPanel.collapsed) then
+		WorldQuestTrackerFrame_ScreenPanel.collapsed = false
 		minimizeButton:GetNormalTexture():SetTexCoord(0, 0.5, 0.5, 1)
 		minimizeButton:GetPushedTexture():SetTexCoord(0.5, 1, 0.5, 1)
 		WorldQuestTrackerFrame_QuestHolder:Show()
 		WorldQuestTrackerHeader:Show()
 		minimizeButtonText:Hide()
 	else
-		WorldQuestTrackerFrame.collapsed = true
+		WorldQuestTrackerFrame_ScreenPanel.collapsed = true
 		minimizeButton:GetNormalTexture():SetTexCoord(0, 0.5, 0, 0.5)
 		minimizeButton:GetPushedTexture():SetTexCoord(0.5, 1, 0, 0.5)
 		WorldQuestTrackerFrame_QuestHolder:Hide()
@@ -364,6 +370,7 @@ local TrackerWidgetPool = {}
 --height of the quest tracker
 WorldQuestTracker.TrackerHeight = 0
 
+
 --refresh the tracker positioning
 function WorldQuestTracker.RefreshTrackerAnchor()
 	--if not using the tracker, hide it and return
@@ -376,21 +383,52 @@ function WorldQuestTracker.RefreshTrackerAnchor()
 	--when attached to the objective tracker, it'll ignore the locked setting
 	--also on automatic it should never save the position in the libwindow
 	if (WorldQuestTracker.db.profile.tracker_attach_to_questlog) then
+
+		local questLogParts = {
+			ObjectiveTrackerFrame.Header,
+			ScenarioObjectiveTracker,
+			UIWidgetObjectiveTracker,
+			CampaignQuestObjectiveTracker,
+			QuestObjectiveTracker,
+			AdventureObjectiveTracker,
+			AchievementObjectiveTracker,
+			MonthlyActivitiesObjectiveTracker,
+			ProfessionsRecipeTracker,
+			BonusObjectiveTracker,
+			WorldQuestObjectiveTracker,
+		}
+
+		local totalHeight = 0
+		for _, part in ipairs(questLogParts) do
+			if (part and part:IsShown()) then
+				totalHeight = totalHeight + part:GetHeight()
+			end
+		end
+
 		WorldQuestTrackerScreenPanel:EnableMouse(false)
 		WorldQuestTrackerScreenPanel:ClearAllPoints()
-
-		for i = 1, ObjectiveTrackerFrame:GetNumPoints() do
-			local point, relativeTo, relativePoint, xOfs, yOfs = ObjectiveTrackerFrame:GetPoint (i)
-			WorldQuestTrackerScreenPanel:SetPoint(point, relativeTo, relativePoint, -10 + xOfs, yOfs - WorldQuestTracker.TrackerHeight - 20)
-		end
-
-		if (WorldQuestTracker.TrackerAttachToModule) then
-			WorldQuestTrackerScreenPanel:ClearAllPoints()
-			WorldQuestTrackerScreenPanel:SetPoint("top", WorldQuestTracker.TrackerAttachToModule.Header, "bottom", 0, -WorldQuestTracker.TrackerHeight + 10)
-		end
+		WorldQuestTrackerScreenPanel:SetPoint("topleft", ObjectiveTrackerFrame, "topleft", 7, -totalHeight - WorldQuestTrackerHeader:GetHeight() - 5)
 
 		WorldQuestTrackerHeader:ClearAllPoints()
-		WorldQuestTrackerHeader:SetPoint("bottom", WorldQuestTrackerFrame, "top", 0, -20)
+		WorldQuestTrackerHeader:SetPoint("topright", ObjectiveTrackerFrame, "topright", 0, -totalHeight - WorldQuestTrackerHeader:GetHeight() - 5)
+
+		WorldQuestTrackerHeader:ClearAllPoints()
+		WorldQuestTrackerHeader:SetPoint("top", WorldQuestTrackerScreenPanel, "top", 0, 0)
+
+		--DF:DebugVisibility(WorldQuestTrackerScreenPanel)
+
+		--for i = 1, ObjectiveTrackerFrame:GetNumPoints() do
+			--local point, relativeTo, relativePoint, xOfs, yOfs = ObjectiveTrackerFrame:GetPoint (i)
+			--WorldQuestTrackerScreenPanel:SetPoint(point, relativeTo, relativePoint, -10 + xOfs, yOfs - WorldQuestTracker.TrackerHeight - 20)
+		--end
+
+		--if (WorldQuestTracker.TrackerAttachToModule) then
+			--WorldQuestTrackerScreenPanel:ClearAllPoints()
+			--WorldQuestTrackerScreenPanel:SetPoint("top", WorldQuestTracker.TrackerAttachToModule.Header, "bottom", 0, -WorldQuestTracker.TrackerHeight + 10)
+		--end
+
+		--WorldQuestTrackerHeader:ClearAllPoints()
+		--WorldQuestTrackerHeader:SetPoint("bottom", WorldQuestTrackerFrame, "top", 0, -26)
 
 		--hide the unlocked widgets
 		WorldQuestTrackerFrame_QuestHolder.LockButton:Hide()
@@ -419,7 +457,7 @@ function WorldQuestTracker.RefreshTrackerAnchor()
 		LibWindow.RestorePosition(WorldQuestTrackerScreenPanel)
 
 		WorldQuestTrackerHeader:ClearAllPoints()
-		WorldQuestTrackerHeader:SetPoint("bottom", WorldQuestTrackerFrame, "top", 0, -20)
+		WorldQuestTrackerHeader:SetPoint("bottom", WorldQuestTrackerFrame_ScreenPanel, "top", 0, -20)
 
 		WorldQuestTrackerScreenPanel:Show()
 	end
@@ -520,6 +558,8 @@ end
 
 
 local buildTooltip = function(self)
+	do return end
+
 	GameTooltip:ClearAllPoints()
 	GameTooltip:SetPoint("TOPRIGHT", self, "TOPLEFT", -20, 0)
 	GameTooltip:SetOwner (self, "ANCHOR_PRESERVE")
@@ -593,48 +633,58 @@ local buildTooltip = function(self)
 	end
 
 	-- rewards
-	if ( GetQuestLogRewardXP(questID) > 0 or GetNumQuestLogRewardCurrencies(questID) > 0 or GetNumQuestLogRewards(questID) > 0 or GetQuestLogRewardMoney(questID) > 0 or GetQuestLogRewardArtifactXP(questID) > 0 ) then
+	if ( safeGT0(GetQuestLogRewardXP(questID)) or safeGT0(GetNumQuestLogRewardCurrencies(questID)) or safeGT0(GetNumQuestLogRewards(questID)) or safeGT0(GetQuestLogRewardMoney(questID)) or safeGT0(GetQuestLogRewardArtifactXP(questID)) ) then
 		GameTooltip:AddLine(" ");
 		GameTooltip:AddLine(QUEST_REWARDS, NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b, true);
 		local hasAnySingleLineRewards = false;
 		-- xp
 		local xp = GetQuestLogRewardXP(questID);
-		if ( xp > 0 ) then
+		if ( safeGT0(xp) ) then
 			GameTooltip:AddLine(BONUS_OBJECTIVE_EXPERIENCE_FORMAT:format(xp), HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
 			hasAnySingleLineRewards = true;
 		end
 		-- money
 		local money = GetQuestLogRewardMoney(questID);
-		if ( money > 0 ) then
-			SetTooltipMoney(GameTooltip, money, nil);
+		if ( safeGT0(money) ) then
+			pcall(SetTooltipMoney, GameTooltip, money, nil);
 			hasAnySingleLineRewards = true;
 		end
 		local artifactXP = GetQuestLogRewardArtifactXP(questID);
-		if ( artifactXP > 0 ) then
+		if ( safeGT0(artifactXP) ) then
 			GameTooltip:AddLine(BONUS_OBJECTIVE_ARTIFACT_XP_FORMAT:format(artifactXP), HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
 			hasAnySingleLineRewards = true;
 		end
 		-- currency
 		local numQuestCurrencies = GetNumQuestLogRewardCurrencies(questID);
-		for i = 1, numQuestCurrencies do
-			local name, texture, numItems = GetQuestLogRewardCurrencyInfo(i, questID);
-			local text = BONUS_OBJECTIVE_REWARD_WITH_COUNT_FORMAT:format(texture, numItems, name);
-			GameTooltip:AddLine(text, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
-			hasAnySingleLineRewards = true;
+		if not (issecretvalue and issecretvalue(numQuestCurrencies)) then
+			for i = 1, numQuestCurrencies do
+				local name, texture, numItems = GetQuestLogRewardCurrencyInfo(i, questID);
+				if name and texture and numItems and not (issecretvalue and issecretvalue(numItems)) then
+					local text = BONUS_OBJECTIVE_REWARD_WITH_COUNT_FORMAT:format(texture, numItems, name);
+					GameTooltip:AddLine(text, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
+					hasAnySingleLineRewards = true;
+				end
+			end
 		end
 		-- items
 		local numQuestRewards = GetNumQuestLogRewards (questID)
-		for i = 1, numQuestRewards do
-			local name, texture, numItems, quality, isUsable = GetQuestLogRewardInfo(i, questID);
-			local text;
-			if ( numItems > 1 ) then
-				text = string.format(BONUS_OBJECTIVE_REWARD_WITH_COUNT_FORMAT, texture, numItems, name);
-			elseif( texture and name ) then
-				text = string.format(BONUS_OBJECTIVE_REWARD_FORMAT, texture, name);
-			end
-			if( text ) then
-				local color = ITEM_QUALITY_COLORS[quality];
-				GameTooltip:AddLine(text, color.r, color.g, color.b);
+		if not (issecretvalue and issecretvalue(numQuestRewards)) then
+			for i = 1, numQuestRewards do
+				local name, texture, numItems, quality, isUsable = GetQuestLogRewardInfo(i, questID);
+				local text;
+				if name and texture and not (issecretvalue and issecretvalue(numItems or 0)) then
+					if ( numItems and numItems > 1 ) then
+						text = string.format(BONUS_OBJECTIVE_REWARD_WITH_COUNT_FORMAT, texture, numItems, name);
+					elseif( texture and name ) then
+						text = string.format(BONUS_OBJECTIVE_REWARD_FORMAT, texture, name);
+					end
+				end
+				if( text ) then
+					local color = ITEM_QUALITY_COLORS[quality];
+					if color then
+						GameTooltip:AddLine(text, color.r, color.g, color.b);
+					end
+				end
 			end
 		end
 
@@ -656,9 +706,11 @@ local TrackerFrameOnEnter = function(self)
 
 	self.RightBackground:SetAlpha(TRACKER_BACKGROUND_ALPHA_MAX)
 	self.Arrow:SetAlpha(TRACKER_ARROW_ALPHA_MAX)
-	buildTooltip (self)
 
 	self.HasOverHover = true
+
+	do return end
+	buildTooltip (self)
 end
 
 local TrackerFrameOnLeave = function(self)
@@ -670,10 +722,12 @@ local TrackerFrameOnLeave = function(self)
 
 	self.RightBackground:SetAlpha(TRACKER_BACKGROUND_ALPHA_MIN)
 	self.Arrow:SetAlpha(TRACKER_ARROW_ALPHA_MIN)
-	GameTooltip:Hide()
 
 	self.HasOverHover = nil
 	self.QuestInfomation.text = ""
+
+	do return end
+	GameTooltip:Hide()
 end
 
 local TrackerIconButtonOnEnter = function(self)
@@ -1165,7 +1219,7 @@ function WorldQuestTracker.RefreshTrackerWidgets()
 			if (not quest.isDisabled and title and (not onlyCurrentMap or (onlyCurrentMap and Sort_currentMapID == quest.mapID))) then
 				local widget = WorldQuestTracker.GetOrCreateTrackerWidget(nextWidget)
 				widget:ClearAllPoints()
-				widget:SetPoint("topleft", WorldQuestTrackerFrame, "topleft", 0, y)
+				widget:SetPoint("topleft", WorldQuestTrackerFrame_ScreenPanel, "topleft", 0, y-10)
 				widget.questID = quest.questID
 				widget.questMapID = quest.mapID
 				widget.info = quest
@@ -1314,7 +1368,7 @@ function WorldQuestTracker.RefreshTrackerWidgets()
 		WorldQuestTrackerHeader:Hide()
 		minimizeButton:Hide()
 	else
-		if (not WorldQuestTrackerFrame.collapsed) then
+		if (not WorldQuestTrackerFrame_ScreenPanel.collapsed) then
 			WorldQuestTrackerHeader:Show()
 		end
 		minimizeButton:Show()

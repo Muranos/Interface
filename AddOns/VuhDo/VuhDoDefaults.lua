@@ -1,10 +1,59 @@
 local GetSpellName = C_Spell.GetSpellName;
 local pairs = pairs;
+local min = math.min;
+local max = math.max;
 local _;
 
 VUHDO_GLOBAL_CONFIG = {
 	["PROFILES_VERSION"] = 1;
 };
+
+VUHDO_AURA_IGNORE_LIST_DEFAULTS = {
+	[57724] = true, -- Sated (Bloodlust)
+	[57723] = true, -- Exhaustion (Heroism)
+	[80354] = true, -- Temporal Displacement (Time Warp)
+	[264689] = true, -- Fatigued (Primal Fury)
+	[26013] = true, -- Deserter (LFG penalty)
+	[71041] = true, -- Dungeon Deserter
+	[95809] = true, -- Insanity (Drums variant)
+	[160455] = true, -- Fatigued (Drums of Fury)
+	[390435] = true, -- Exhaustion (alternate)
+	[1227806] = true, -- Lifebloom (hidden player aura)
+	[404464] = true, -- Flight Style: Skyriding
+	[404468] = true, -- Flight Style: Steady
+	[418590] = true, -- Static Charge (Skyriding)
+	[377234] = true, -- Thrill of the Skies (Skyriding)
+	[369968] = true, -- Racing (Dragonriding)
+	[447959] = true, -- Ride Along - Enabled (Skyriding)
+	[447960] = true, -- Ride Along - Inactive (Skyriding)
+	[427490] = true, -- Ride Along (Skyriding vehicle)
+	[388367] = true, -- Ohn'ahra's Gusts (Dragonriding)
+};
+
+
+
+--
+function VUHDO_initAuraIgnoreList()
+
+	if not VUHDO_AURA_IGNORE_LIST then
+		VUHDO_AURA_IGNORE_LIST = { };
+	else
+		table.wipe(VUHDO_AURA_IGNORE_LIST);
+	end
+
+	for tKey, _ in pairs(VUHDO_AURA_IGNORE_LIST_DEFAULTS) do
+		VUHDO_AURA_IGNORE_LIST[tKey] = true;
+	end
+
+	return;
+
+end
+
+
+
+if not VUHDO_AURA_IGNORE_LIST then
+	VUHDO_initAuraIgnoreList();
+end
 
 
 --
@@ -186,115 +235,115 @@ local VUHDO_DEFAULT_SPELLS_KEYBOARD = {};
 
 local VUHDO_CLASS_DEFAULT_SPELL_ASSIGNMENT = {
 	["PALADIN"] = {
-		["1"] = {"", "1", VUHDO_SPELL_ID.FLASH_OF_LIGHT},
-		["2"] = {"", "2", VUHDO_SPELL_ID.PALA_CLEANSE},
-		["3"] = {"", "3", "menu"},
-		["4"] = {"", "4", VUHDO_SPELL_ID.LIGHT_OF_DAWN},
+		["1"] = { "", "1", VUHDO_SPELL_ID.FLASH_OF_LIGHT },
+		["2"] = { "", "2", VUHDO_SPELL_ID.HOLY_SHOCK },
+		["3"] = { "", "3", "dropdown" },
 
-		["alt1"] = {"alt-", "1", "target"},
+		["alt1"] = { "alt-", "1", "target" },
+		["alt2"] = { "alt-", "2", "focus" },
+		["alt3"] = { "alt-", "3", "menu" },
 
-		["ctrl1"] = {"ctrl-", "1", VUHDO_SPELL_ID.HOLY_LIGHT},
-		["ctrl2"] = {"ctrl-", "2", VUHDO_SPELL_ID.HOLY_SHOCK},
+		["ctrl1"] = { "ctrl-", "1", VUHDO_SPELL_ID.HOLY_LIGHT },
+		["ctrl2"] = { "ctrl-", "2", VUHDO_SPELL_ID.LAY_ON_HANDS },
+		["ctrl3"] = { "ctrl-", "3", "menu" },
 
-		["shift1"] = {"shift-", "1", VUHDO_SPELL_ID.HOLY_RADIANCE},
-		["shift2"] = {"shift-", "2", VUHDO_SPELL_ID.LAY_ON_HANDS},
+		["shift1"] = { "shift-", "1", VUHDO_SPELL_ID.LIGHT_OF_DAWN },
+		["shift2"] = { "shift-", "2", VUHDO_SPELL_ID.PALA_CLEANSE },
+		["shift3"] = { "shift-", "3", "menu" },
 	},
 
 	["SHAMAN"] = {
-		["1"] = {"", "1", VUHDO_SPELL_ID.HEALING_WAVE},
-		["2"] = {"", "2", VUHDO_SPELL_ID.CHAIN_HEAL},
-		["3"] = {"", "3", "menu"},
+		["1"] = { "", "1", VUHDO_SPELL_ID.HEALING_WAVE },
+		["2"] = { "", "2", VUHDO_SPELL_ID.CHAIN_HEAL },
+		["3"] = { "", "3", "dropdown" },
 
-		["alt1"] = {"alt-", "1", VUHDO_SPELL_ID.BUFF_EARTH_SHIELD},
-		["alt2"] = {"alt-", "2", VUHDO_SPELL_ID.GIFT_OF_THE_NAARU},
-		["alt3"] = {"alt-", "3", "menu"},
+		["alt1"] = { "alt-", "1", "target" },
+		["alt2"] = { "alt-", "2", "focus" },
+		["alt3"] = { "alt-", "3", "menu" },
 
-		["ctrl1"] = {"ctrl-", "1", "target"},
-		["ctrl2"] = {"ctrl-", "2", "target"},
-		["ctrl3"] = {"ctrl-", "3", "menu"},
+		["ctrl1"] = { "ctrl-", "1", VUHDO_SPELL_ID.BUFF_EARTH_SHIELD },
+		["ctrl2"] = { "ctrl-", "2", VUHDO_SPELL_ID.GIFT_OF_THE_NAARU },
+		["ctrl3"] = { "ctrl-", "3", "menu" },
 
-		["shift1"] = {"shift-", "1", VUHDO_SPELL_ID.HEALING_WAVE},
-		["shift2"] = {"shift-", "2", VUHDO_SPELL_ID.CHAIN_HEAL},
-		["shift3"] = {"shift-", "3", "menu" },
-
-		["altctrl1"] = {"alt-ctrl-", "1", VUHDO_SPELL_ID.PURIFY_SPIRIT},
-		["altctrl2"] = {"alt-ctrl-", "2", VUHDO_SPELL_ID.PURIFY_SPIRIT},
+		["shift1"] = { "shift-", "1", VUHDO_SPELL_ID.RIPTIDE },
+		["shift2"] = { "shift-", "2", VUHDO_SPELL_ID.PURIFY_SPIRIT },
+		["shift3"] = { "shift-", "3", "menu" },
 	},
 
 	["PRIEST"] = {
-		["1"] = {"", "1", VUHDO_SPELL_ID.FLASH_HEAL},
-		["2"] = {"", "2", VUHDO_SPELL_ID.HEAL},
-		["3"] = {"", "3", VUHDO_SPELL_ID.DESPERATE_PRAYER},
-		["4"] = {"", "4", VUHDO_SPELL_ID.RENEW},
-		["5"] = {"", "5", VUHDO_SPELL_ID.BINDING_HEAL},
+		["1"] = { "", "1", VUHDO_SPELL_ID.FLASH_HEAL },
+		["2"] = { "", "2", VUHDO_SPELL_ID.RENEW },
+		["3"] = { "", "3", "dropdown" },
+		["4"] = { "", "4", VUHDO_SPELL_ID.PRAYER_OF_MENDING },
 
-		["alt1"] = {"alt-", "1", "target"},
-		["alt2"] = {"alt-", "2", "focus"},
-		["alt3"] = {"alt-", "3", VUHDO_SPELL_ID.POWERWORD_SHIELD},
-		["alt4"] = {"alt-", "4", VUHDO_SPELL_ID.POWERWORD_SHIELD},
-		["alt5"] = {"alt-", "5", VUHDO_SPELL_ID.POWERWORD_SHIELD},
+		["alt1"] = { "alt-", "1", "target" },
+		["alt2"] = { "alt-", "2", "focus" },
+		["alt3"] = { "alt-", "3", "menu" },
 
-		["ctrl1"] = {"ctrl-", "1", VUHDO_SPELL_ID.PRAYER_OF_HEALING},
-		["ctrl2"] = {"ctrl-", "2", VUHDO_SPELL_ID.CIRCLE_OF_HEALING},
-		["ctrl3"] = {"ctrl-", "3", "menu"},
-		["ctrl4"] = {"ctrl-", "4", VUHDO_SPELL_ID.PRAYER_OF_MENDING},
-		["ctrl5"] = {"ctrl-", "5", VUHDO_SPELL_ID.PRAYER_OF_MENDING},
+		["ctrl1"] = { "ctrl-", "1", VUHDO_SPELL_ID.PRAYER_OF_HEALING },
+		["ctrl2"] = { "ctrl-", "2", VUHDO_SPELL_ID.CIRCLE_OF_HEALING },
+		["ctrl3"] = { "ctrl-", "3", "menu" },
 
-		["shift2"] = {"shift-", "2", VUHDO_SPELL_ID.PURIFY},
-		["shift3"] = {"shift-", "3", "menu"},
+		["shift1"] = { "shift-", "1", VUHDO_SPELL_ID.POWERWORD_SHIELD },
+		["shift2"] = { "shift-", "2", VUHDO_SPELL_ID.PURIFY },
+		["shift3"] = { "shift-", "3", "menu" },
 	},
 
 	["DRUID"] = {
-		["1"] = {"", "1", VUHDO_SPELL_ID.HEALING_TOUCH},
-		["2"] = {"", "2", VUHDO_SPELL_ID.REJUVENATION},
-		["3"] = {"", "3", "menu"},
-		["4"] = {"", "4", VUHDO_SPELL_ID.INNERVATE},
-		["5"] = {"", "5", VUHDO_SPELL_ID.INNERVATE},
+		["1"] = { "", "1", VUHDO_SPELL_ID.REGROWTH },
+		["2"] = { "", "2", VUHDO_SPELL_ID.REJUVENATION },
+		["3"] = { "", "3", "dropdown" },
 
-		["alt1"] = {"alt-", "1", "target"},
-		["alt2"] = {"alt-", "2", "focus"},
-		["alt3"] = {"alt-", "3", "menu"},
+		["alt1"] = { "alt-", "1", "target" },
+		["alt2"] = { "alt-", "2", "focus" },
+		["alt3"] = { "alt-", "3", "menu" },
 
-		["ctrl1"] = {"ctrl-", "1", VUHDO_SPELL_ID.REGROWTH},
-		["ctrl2"] = {"ctrl-", "2", VUHDO_SPELL_ID.LIFEBLOOM},
-		["ctrl4"] = {"ctrl-", "4", VUHDO_SPELL_ID.TRANQUILITY},
-		["ctrl5"] = {"ctrl-", "5", VUHDO_SPELL_ID.TRANQUILITY},
+		["ctrl1"] = { "ctrl-", "1", VUHDO_SPELL_ID.INNERVATE },
+		["ctrl2"] = { "ctrl-", "2", VUHDO_SPELL_ID.LIFEBLOOM },
+		["ctrl3"] = { "ctrl-", "3", "menu" },
 
-		["shift2"] = {"shift-", "2", VUHDO_SPELL_ID.NATURES_CURE},
+		["shift1"] = { "shift-", "1", VUHDO_SPELL_ID.TRANQUILITY },
+		["shift2"] = { "shift-", "2", VUHDO_SPELL_ID.NATURES_CURE },
+		["shift3"] = { "shift-", "3", "menu" },
 	},
 
 	["MONK"] = {
-		["1"] = { "", "1", VUHDO_SPELL_ID.SURGING_MIST },
+		["1"] = { "", "1", VUHDO_SPELL_ID.RENEWING_MIST },
 		["2"] = { "", "2", VUHDO_SPELL_ID.ENVELOPING_MIST },
-		["3"] = { "", "3", "menu"},
-		["4"] = { "", "4", VUHDO_SPELL_ID.RENEWING_MIST },
+		["3"] = { "", "3", "dropdown" },
+		["4"] = { "", "4", VUHDO_SPELL_ID.CHI_WAVE },
 		["5"] = { "", "5", VUHDO_SPELL_ID.SOOTHING_MIST },
 
 		["alt1"] = { "alt-", "1", "target" },
-		["alt2"] = { "alt-", "2", VUHDO_SPELL_ID.CHI_WAVE },
+		["alt2"] = { "alt-", "2", "focus" },
+		["alt3"] = { "alt-", "3", "menu" },
 
-		["ctrl1"] = { "ctrl-", "1", VUHDO_SPELL_ID.DETOX },
+		["ctrl1"] = { "ctrl-", "1", VUHDO_SPELL_ID.REVIVAL },
 		["ctrl2"] = { "ctrl-", "2", VUHDO_SPELL_ID.LIFE_COCOON },
+		["ctrl3"] = { "ctrl-", "3", "menu" },
 
 		["shift1"] = { "shift-", "1", VUHDO_SPELL_ID.VIVIFY },
-		["shift2"] = { "shift-", "2", VUHDO_SPELL_ID.REVIVAL },
+		["shift2"] = { "shift-", "2", VUHDO_SPELL_ID.DETOX },
+		["shift3"] = { "shift-", "3", "menu" },
 	},
 
 	["EVOKER"] = {
 		["1"] = { "", "1", VUHDO_SPELL_ID.LIVING_FLAME },
 		["2"] = { "", "2", VUHDO_SPELL_ID.EMERALD_BLOSSOM },
-		["3"] = { "", "3", "menu"},
+		["3"] = { "", "3", "dropdown" },
 		["4"] = { "", "4", VUHDO_SPELL_ID.ECHO },
-		["5"] = { "", "5", VUHDO_SPELL_ID.DREAM_BREATH },
 
 		["alt1"] = { "alt-", "1", "target" },
 		["alt2"] = { "alt-", "2", "focus" },
+		["alt3"] = { "alt-", "3", "menu" },
 
-		["ctrl1"] = { "ctrl-", "1", VUHDO_SPELL_ID.NATURALIZE },
-		["ctrl2"] = { "ctrl-", "2", VUHDO_SPELL_ID.CAUTERIZING_FLAME },
+		["ctrl1"] = { "ctrl-", "1", VUHDO_SPELL_ID.DREAM_BREATH },
+		["ctrl2"] = { "ctrl-", "2", VUHDO_SPELL_ID.DREAM_FLIGHT },
+		["ctrl3"] = { "ctrl-", "3", "menu" },
 
-		["shift1"] = { "shift-", "1", VUHDO_SPELL_ID.ZEPHYR },
-		["shift2"] = { "shift-", "2", VUHDO_SPELL_ID.DREAM_FLIGHT },
+		["shift1"] = { "shift-", "1", VUHDO_SPELL_ID.CAUTERIZING_FLAME },
+		["shift2"] = { "shift-", "2", VUHDO_SPELL_ID.NATURALIZE },
+		["shift3"] = { "shift-", "3", "menu" },
 	},
 };
 
@@ -302,11 +351,11 @@ local VUHDO_CLASS_DEFAULT_SPELL_ASSIGNMENT = {
 
 --
 local VUHDO_GLOBAL_DEFAULT_SPELL_ASSIGNMENT = {
-	["1"] = {"", "1", "target"},
-	["2"] = {"", "2", "assist"},
-	["3"] = {"", "3", "focus"},
-	["4"] = {"", "4", "menu"},
-	["5"] = {"", "5", "menu"},
+	["1"] = { "", "1", "target" },
+	["2"] = { "", "2", "dropdown" },
+	["3"] = { "", "3", "focus" },
+	["4"] = { "", "4", "menu" },
+	["5"] = { "", "5", "assist" },
 };
 
 
@@ -326,7 +375,8 @@ VUHDO_DEFAULT_SPELL_CONFIG = {
 	["IS_FIRE_CUSTOM_2"] = false,
 	["FIRE_CUSTOM_2_SPELL"] = "",
 	["IS_TOOLTIP_INFO"] = false,
-	["IS_LOAD_HOTS"] = false,
+	["IS_LOAD_AURAS"] = false,
+	["IS_LOAD_AURAS_ONLY_ANCHORS"] = false,
 	["smartCastModi"] = "all",
 	["autoBattleRez"] = true,
 	["custom1Unit"] = "@player",
@@ -395,14 +445,27 @@ end
 
 
 --
+local tSpecId;
+local tClass;
+local tDefaultAssignments;
 local function VUHDO_assignDefaultSpells()
-	local _, tClass = UnitClass("player");
 
-	VUHDO_SPELL_ASSIGNMENTS = VUHDO_deepCopyTable(VUHDO_CLASS_DEFAULT_SPELL_ASSIGNMENT[tClass] ~= nil
-		and VUHDO_CLASS_DEFAULT_SPELL_ASSIGNMENT[tClass] or VUHDO_GLOBAL_DEFAULT_SPELL_ASSIGNMENT);
+	tSpecId = GetSpecializationInfo(GetSpecialization() or 0);
+	_, tClass = UnitClass("player");
+
+	if tSpecId and VUHDO_CLASS_DEFAULT_SPELL_ASSIGNMENT[tSpecId] then
+		tDefaultAssignments = VUHDO_CLASS_DEFAULT_SPELL_ASSIGNMENT[tSpecId];
+	elseif tClass and VUHDO_CLASS_DEFAULT_SPELL_ASSIGNMENT[tClass] then
+		tDefaultAssignments = VUHDO_CLASS_DEFAULT_SPELL_ASSIGNMENT[tClass];
+	else
+		tDefaultAssignments = VUHDO_GLOBAL_DEFAULT_SPELL_ASSIGNMENT;
+	end
+
+	VUHDO_SPELL_ASSIGNMENTS = VUHDO_deepCopyTable(tDefaultAssignments);
 
 	VUHDO_CLASS_DEFAULT_SPELL_ASSIGNMENT = nil;
 	VUHDO_GLOBAL_DEFAULT_SPELL_ASSIGNMENT = nil;
+
 end
 
 
@@ -436,6 +499,16 @@ function VUHDO_loadSpellArray()
 		VUHDO_SPELL_CONFIG = VUHDO_deepCopyTable(VUHDO_DEFAULT_SPELL_CONFIG);
 	end
 	VUHDO_SPELL_CONFIG = VUHDO_ensureSanity("VUHDO_SPELL_CONFIG", VUHDO_SPELL_CONFIG, VUHDO_DEFAULT_SPELL_CONFIG);
+
+	if VUHDO_SPELL_CONFIG["IS_LOAD_HOTS"] ~= nil then
+		VUHDO_SPELL_CONFIG["IS_LOAD_AURAS"] = VUHDO_SPELL_CONFIG["IS_LOAD_HOTS"];
+		VUHDO_SPELL_CONFIG["IS_LOAD_HOTS"] = nil;
+	end
+
+	if VUHDO_SPELL_CONFIG["IS_LOAD_HOTS_ONLY_SLOTS"] ~= nil then
+		VUHDO_SPELL_CONFIG["IS_LOAD_AURAS_ONLY_ANCHORS"] = VUHDO_SPELL_CONFIG["IS_LOAD_HOTS_ONLY_SLOTS"];
+		VUHDO_SPELL_CONFIG["IS_LOAD_HOTS_ONLY_SLOTS"] = nil;
+	end
 
 	if (VUHDO_SPELL_LAYOUTS == nil) then
 		VUHDO_SPELL_LAYOUTS = { };
@@ -506,6 +579,8 @@ local function VUHDO_customDebuffsAddDefaultSettings(aBuffName)
 			["isOthers"] = true,
 			["isBarGlow"] = false,
 			["isIconGlow"] = false,
+			["isClock"] = false,
+			["isFullDuration"] = VUHDO_CONFIG["CUSTOM_DEBUFF"]["isFullDuration"],
 		}
 	end
 
@@ -534,23 +609,23 @@ end
 
 
 --
-local function VUHDO_addCustomSpellIds(aVersion, ...)
-	if ((VUHDO_CONFIG["CUSTOM_DEBUFF"].version or 0) < aVersion) then
+local tName;
+local function VUHDO_addCustomSpellIds(aVersion, aDebuffs)
+
+	if (VUHDO_CONFIG["CUSTOM_DEBUFF"].version or 0) < aVersion then
 		VUHDO_CONFIG["CUSTOM_DEBUFF"].version = aVersion;
 
-		local tArg;
-		for tCnt = 1, select("#", ...) do
-			tArg = select(tCnt, ...);
-
-			if (type(tArg) == "number") then
-				-- make sure the spell ID is still added as a string
-				-- otherwise getKeyFromValue look-ups w/ spell ID string fail later
-				tArg = tostring(tArg);
+		for tSpellId, tIsAddBySpellId in pairs(aDebuffs) do
+			if tIsAddBySpellId then
+				tName = tostring(tSpellId);
+			else
+				tName = GetSpellName(tSpellId);
 			end
 
-			VUHDO_tableUniqueAdd(VUHDO_CONFIG["CUSTOM_DEBUFF"]["STORED"], tArg);
+			VUHDO_tableUniqueAdd(VUHDO_CONFIG["CUSTOM_DEBUFF"]["STORED"], tName);
 		end
 	end
+
 end
 
 
@@ -613,6 +688,8 @@ local VUHDO_DEFAULT_CONFIG = {
 	["LOCK_IN_FIGHT"] = true,
 	["PARSE_COMBAT_LOG"] = false,
 	["HIDE_EMPTY_BUTTONS"] = false,
+	["USE_DEFERRED_REDRAW"] = true,
+	["USE_ANIMATION_GROUPS"] = true,
 
 	["MODE"] = VUHDO_MODE_NEUTRAL,
 	["EMERGENCY_TRIGGER"] = 100,
@@ -636,6 +713,7 @@ local VUHDO_DEFAULT_CONFIG = {
 	["DETECT_DEBUFFS_IGNORE_NO_HARM"] = true,
 	["DETECT_DEBUFFS_IGNORE_MOVEMENT"] = true,
 	["DETECT_DEBUFFS_IGNORE_DURATION"] = true,
+	["DETECT_DEBUFFS_IGNORE_PURGEABLE_BUFFS"] = false,
 
 	["SMARTCAST_RESURRECT"] = true,
 	["SMARTCAST_CLEANSE"] = false,
@@ -657,6 +735,8 @@ local VUHDO_DEFAULT_CONFIG = {
 	["BLIZZ_UI_HIDE_FOCUS"] = 2,
 	["BLIZZ_UI_HIDE_RAID"] = 2,
 	["BLIZZ_UI_HIDE_RAID_MGR"] = 2,
+	["BLIZZ_UI_HIDE_BOSS"] = 2,
+	["BLIZZ_UI_HIDE_ARENA"] = 2,
 
 	["CURRENT_PROFILE"] = "",
 	["IS_ALWAYS_OVERWRITE_PROFILE"] = false,
@@ -666,7 +746,11 @@ local VUHDO_DEFAULT_CONFIG = {
 	["STANDARD_TOOLTIP"] = false,
 	["DEBUFF_TOOLTIP"] = true,
 
-	["AUTO_PROFILES"] = {	},
+	["AUTO_PROFILES"] = { },
+
+	["AURA_GROUPS"] = { },
+	["AURA_GROUP_DISABLED"] = { },
+	["AURA_IGNORE_MODI"] = "ALT-CTRL-SHIFT",
 
 	["RES_ANNOUNCE_TEXT"] = VUHDO_I18N_DEFAULT_RES_ANNOUNCE,
 	["RES_ANNOUNCE_MASS_TEXT"] = VUHDO_I18N_DEFAULT_RES_ANNOUNCE_MASS,
@@ -674,14 +758,15 @@ local VUHDO_DEFAULT_CONFIG = {
 
 	["CUSTOM_DEBUFF"] = {
 		["scale"] = 0.8,
-		["animate"] = true,
+		["animate"] = false,
 		["timer"] = true,
 		["max_num"] = 3,
 		["isNoRangeFade"] = false,
 		["isIcon"] = true,
 		["isColor"] = false,
-		["isStacks"] = false,
-		["isName"] = false, 
+		["isStacks"] = true,
+		["isName"] = false,
+		["isFullDuration"] = false,
 		["isShowFriendly"] = true,
 		["isShowHostile"] = true,
 		["isHostileMine"] = true,
@@ -804,27 +889,27 @@ local VUHDO_DEFAULT_CONFIG = {
 
 		["config"] = {
 			["coh"] = {
-				["enable"] = true,
+				["enable"] = false,
 				["thresh"] = 15000,
 			},
 			["poh"] = {
-				["enable"] = true,
+				["enable"] = false,
 				["thresh"] = 20000,
 			},
 			["ch"] = {
-				["enable"] = true,
+				["enable"] = false,
 				["thresh"] = 15000,
 			},
 			["wg"] = {
-				["enable"] = true,
+				["enable"] = false,
 				["thresh"] = 15000,
 			},
 			["tq"] = {
-				["enable"] = true,
+				["enable"] = false,
 				["thresh"] = 15000,
 			},
 			["lod"] = {
-				["enable"] = true,
+				["enable"] = false,
 				["thresh"] = 8000,
 			},
 			["hr"] = {
@@ -845,6 +930,16 @@ local VUHDO_DEFAULT_CONFIG = {
 	["IS_READY_CHECK_DISABLED"] = false,
 
 	["SHOW_SPELL_TRACE"] = false,
+
+	["PIXEL_PERFECT"] = {
+		["enabled"] = true,
+		["redrawOnScaleChange"] = true,
+		["scaleChangeDelay"] = 0.1,
+		["logScaleChanges"] = false,
+		["autoRefresh"] = true,
+		["debounceTime"] = 0.5,
+		["testMode"] = false,
+	},
 };
 
 
@@ -853,7 +948,7 @@ local VUHDO_DEFAULT_CU_DE_STORED_SETTINGS = {
 	["isIcon"] = true,
 	["isColor"] = false,
 --	["SOUND"] = "",
-	["animate"] = true,
+	["animate"] = false,
 	["timer"] = true,
 	["isStacks"] = true,
 	["isAliveTime"] = false,
@@ -925,7 +1020,7 @@ function VUHDO_loadDefaultConfig()
 	if (VUHDO_CONFIG == nil) then
 		VUHDO_CONFIG = VUHDO_decompressOrCopy(VUHDO_DEFAULT_CONFIG);
 	end
-	
+
 	VUHDO_CONFIG["BLIZZ_UI_HIDE_PLAYER"] = VUHDO_convertToTristate(VUHDO_CONFIG["BLIZZ_UI_HIDE_PLAYER"], 3, 2);
 	VUHDO_CONFIG["BLIZZ_UI_HIDE_PARTY"] = VUHDO_convertToTristate(VUHDO_CONFIG["BLIZZ_UI_HIDE_PARTY"], 3, 2);
 	VUHDO_CONFIG["BLIZZ_UI_HIDE_TARGET"] = VUHDO_convertToTristate(VUHDO_CONFIG["BLIZZ_UI_HIDE_TARGET"], 3, 2);
@@ -933,9 +1028,19 @@ function VUHDO_loadDefaultConfig()
 	VUHDO_CONFIG["BLIZZ_UI_HIDE_FOCUS"] = VUHDO_convertToTristate(VUHDO_CONFIG["BLIZZ_UI_HIDE_FOCUS"], 3, 2);
 	VUHDO_CONFIG["BLIZZ_UI_HIDE_RAID"] = VUHDO_convertToTristate(VUHDO_CONFIG["BLIZZ_UI_HIDE_RAID"], 3, 2);
 	VUHDO_CONFIG["BLIZZ_UI_HIDE_RAID_MGR"] = VUHDO_convertToTristate(VUHDO_CONFIG["BLIZZ_UI_HIDE_RAID_MGR"], 3, 2);
+	VUHDO_CONFIG["BLIZZ_UI_HIDE_BOSS"] = VUHDO_convertToTristate(VUHDO_CONFIG["BLIZZ_UI_HIDE_BOSS"], 3, 2);
+	VUHDO_CONFIG["BLIZZ_UI_HIDE_ARENA"] = VUHDO_convertToTristate(VUHDO_CONFIG["BLIZZ_UI_HIDE_ARENA"], 3, 2);
 
 	VUHDO_DEFAULT_CONFIG = VUHDO_decompressIfCompressed(VUHDO_DEFAULT_CONFIG);
 	VUHDO_CONFIG = VUHDO_ensureSanity("VUHDO_CONFIG", VUHDO_CONFIG, VUHDO_DEFAULT_CONFIG);
+
+	local tBooleanAllowList = { "USE_DEFERRED_REDRAW", "USE_ANIMATION_GROUPS", };
+
+	for _, tKey in pairs(tBooleanAllowList) do
+		if VUHDO_DEFAULT_CONFIG[tKey] ~= nil and type(VUHDO_DEFAULT_CONFIG[tKey]) == "boolean" and VUHDO_CONFIG[tKey] == nil then
+			VUHDO_CONFIG[tKey] = VUHDO_DEFAULT_CONFIG[tKey];
+		end
+	end
 
 	-- deprecate "show only for friendly" option in favor of distinct show on friendly and hostile options
 	if VUHDO_CONFIG["CUSTOM_DEBUFF"] and VUHDO_DEFAULT_CONFIG["CUSTOM_DEBUFF"] then
@@ -966,7 +1071,9 @@ function VUHDO_loadDefaultConfig()
 		for tUnitReaction, tRangeSpells in pairs(VUHDO_DEFAULT_RANGE_SPELLS[tClass]) do
 			local tIsGuessRange = true;
 
-			if VUHDO_strempty(VUHDO_CONFIG["RANGE_SPELL"][tUnitReaction]) then
+			if VUHDO_strempty(VUHDO_CONFIG["RANGE_SPELL"][tUnitReaction])
+				or (not VUHDO_strempty(VUHDO_CONFIG["RANGE_SPELL"][tUnitReaction])
+					and GetSpellName(VUHDO_CONFIG["RANGE_SPELL"][tUnitReaction]) == nil) then
 				for _, tRangeSpell in pairs(tRangeSpells) do
 					if type(tRangeSpell) == "number" then
 						tRangeSpell = IsPlayerSpell(tRangeSpell) and GetSpellName(tRangeSpell) or "!";
@@ -1801,7 +1908,7 @@ function VUHDO_loadDefaultConfig()
 ----		250191, -- Conflagration
 ----		254181, -- Seared Skin
 ----		248255, -- Infernal Rockets
---		-- Kin’garoth
+--		-- Kin?garoth
 ----		254919, -- Forging Strike
 --		249535, -- Demolished (M)
 --		246706, -- Demolish
@@ -1833,7 +1940,7 @@ function VUHDO_loadDefaultConfig()
 ----		250757, -- Cosmic Glare (M)
 --		-- Aggramar
 ----		244291, -- Foe Breaker
-----		245990, -- Taeschalach’s Reach
+----		245990, -- Taeschalach?s Reach
 --		245994, -- Scorching Blaze
 ----		246014, -- Searing Tempest
 ----		244736, -- Wake of Flame
@@ -1854,7 +1961,7 @@ function VUHDO_loadDefaultConfig()
 ----		258646, -- Gift of the Sky
 ----		255199, -- Avatar of Aggramar
 --		250669, -- Soulburst
-----		255200, -- Aggramar’s Boon
+----		255200, -- Aggramar?s Boon
 ----		257299, -- Ember of Rage
 ----		252729, -- Cosmic Ray
 ----		252634, -- Cosmic Smash
@@ -2381,52 +2488,383 @@ function VUHDO_loadDefaultConfig()
 	-- );
 
 	-- 10.0.2 Dragonflight
-	VUHDO_addCustomSpellIds(53,
-		-- [[ Vault of the Incarnates ]]
-		-- Eranog
-		394917, -- Leaping Flames
-		370597, -- Kill Order
-		396023, -- Incinerating Roar
-		-- Terros
-		381315, -- Awakened Earth
-		380487, -- Rock Blast
-		381595, -- Seismic Assault
-		382458, -- Resonant Aftermath
-		391592, -- Infused Fallout
-		-- The Primal Council
-		371624, -- Conductive Mark
-		371836, -- Primal Blizzard
-		374039, -- Meteor Axes
-		-- Sennarth the Cold Breath
-		372044, -- Wrapped in Webs
-		371976, -- Chilling Blast
-		372082, -- Enveloping Webs
-		373048, -- Suffocating Webs
-		373027, -- Suffocating Webs
-		-- Dathea Ascended
-		391686, -- Conductive Mark
-		-- Kurog Grimtotem
-		372044, -- Absolute Zero
-		382563, -- Magma Burst
-		391696, -- Lethal Current
-		391019, -- Frigid Torrent
-		396106, -- Dominance
-		372517, -- Frozen Solid
-		391056, -- Enveloping Earth
-		391055, -- Enveloping Earth
-		373487, -- Lightning Crash
-		374623, -- Frost Binds
-		-- Broodkeeper Diurna
-		388716, -- Icy Shroud
-		388717, -- Icy Shroud
-		388920, -- Frozen Shroud
-		388918, -- Frozen Shroud
-		375575, -- Flame Sentry
-		-- Raszageth
-		381615, -- Static Charge
-		399713, -- Fulminating Charge
-		377467  -- Magnetic Charge
-	);
+	-- VUHDO_addCustomSpellIds(53,
+	--	-- [[ Vault of the Incarnates ]]
+	--	-- Eranog
+	--	394917, -- Leaping Flames
+	--	370597, -- Kill Order
+	--	396023, -- Incinerating Roar
+	--	-- Terros
+	--	381315, -- Awakened Earth
+	--	380487, -- Rock Blast
+	--	381595, -- Seismic Assault
+	--	382458, -- Resonant Aftermath
+	--	391592, -- Infused Fallout
+	--	-- The Primal Council
+	--	371624, -- Conductive Mark
+	--	371836, -- Primal Blizzard
+	--	374039, -- Meteor Axes
+	--	-- Sennarth the Cold Breath
+	--	372044, -- Wrapped in Webs
+	--	371976, -- Chilling Blast
+	--	372082, -- Enveloping Webs
+	--	373048, -- Suffocating Webs
+	--	373027, -- Suffocating Webs
+	--	-- Dathea Ascended
+	--	391686, -- Conductive Mark
+	--	-- Kurog Grimtotem
+	--	372044, -- Absolute Zero
+	--	382563, -- Magma Burst
+	--	391696, -- Lethal Current
+	--	391019, -- Frigid Torrent
+	--	396106, -- Dominance
+	--	372517, -- Frozen Solid
+	--	391056, -- Enveloping Earth
+	--	391055, -- Enveloping Earth
+	--	373487, -- Lightning Crash
+	--	374623, -- Frost Binds
+	--	-- Broodkeeper Diurna
+	--	388716, -- Icy Shroud
+	--	388717, -- Icy Shroud
+	--	388920, -- Frozen Shroud
+	--	388918, -- Frozen Shroud
+	--	375575, -- Flame Sentry
+	--	-- Raszageth
+	--	381615, -- Static Charge
+	--	399713, -- Fulminating Charge
+	--	377467  -- Magnetic Charge
+	-- );
+
+	-- 11.1.0 The War Within Season 2 Dungeons
+	VUHDO_addCustomSpellIds(54, {
+		[302477] = false,
+		[323437] = false,
+		[285440] = false,
+		[387151] = false,
+		[106113] = false,
+		[381862] = false,
+		[374789] = false,
+		[372087] = false,
+		[384953] = false,
+		[144519] = false,
+		[263943] = false,
+		[254959] = false,
+		[428542] = false,
+		[416139] = false,
+		[409266] = false,
+		[204611] = false,
+		[201399] = false,
+		[260741] = false,
+		[333492] = false,
+		[427329] = false,
+		[327393] = false,
+		[427378] = false,
+		[460135] = false,
+		[448064] = false,
+		[451107] = false,
+		[431349] = false,
+		[473540] = false,
+		[447272] = false,
+		[422245] = false,
+		[466190] = false,
+		[426619] = false,
+		[259940] = false,
+		[468815] = false,
+		[447439] = false,
+		[228958] = true,
+		[227985] = true,
+		[323406] = true,
+		[324154] = true,
+		[356666] = true,
+		[319626] = true,
+		[356925] = true,
+		[168398] = true,
+		[162415] = true,
+		[346962] = true,
+		[154469] = true,
+		[375937] = true,
+		[376864] = true,
+		[193660] = true,
+		[397907] = true,
+		[397908] = true,
+		[373693] = true,
+		[372718] = true,
+		[373735] = true,
+		[265019] = true,
+		[377222] = true,
+		[372566] = true,
+		[372224] = true,
+		[372570] = true,
+		[381770] = true,
+		[256363] = true,
+		[377017] = true,
+		[377018] = true,
+		[197546] = true,
+		[415436] = true,
+		[250096] = true,
+		[260551] = true,
+		[200238] = true,
+		[267907] = true,
+		[255445] = true,
+		[255421] = true,
+		[273470] = true,
+		[451395] = true,
+		[451396] = true,
+		[433740] = true,
+		[449169] = true,
+		[322486] = true,
+		[331288] = true,
+	} );
+
+	-- 11.1.0 The War Within Liberation of Undermine
+	VUHDO_addCustomSpellIds(55, {
+		-- Vexie Fullthrottle
+		[459978] = false,
+		[468216] = false,
+		[459683] = true,
+		-- Cauldron of Carnage
+		[1213690] = false,
+		[1214009] = false,
+		-- Rik Reverb
+		[467044] = false,
+		[469380] = false,
+		[468119] = false,
+		[1214598] = true,
+		-- Stix Bunkjunker
+		[461536] = false,
+		[472893] = true,
+		[466748] = true,
+		-- Sprocketmonger Lockenstock
+		[1217261] = false,
+		-- One-Armed Bandit
+		[471927] = true,
+		-- Mug'Zee
+		[466476] = false,
+		-- Chrome King Gallywix
+		[1220761] = false,
+		[1214755] = false,
+		[466154] = false,
+		[466751] = false,
+		[466834] = false,
+		[469297] = false,
+		[467182] = true,
+	} );
+
+	-- 11.2.0 The War Within Ghosts of K'aresh
+	VUHDO_addCustomSpellIds(56, {
+		-- Plexus Sentinel
+		[1219459] = false,  -- Manifest Matrices (magic)
+		[1218626] = false,  -- Displacement Matrix (magic)
+		--[1219531] = false,  -- Eradicating Salvo (magic)
+		[1219354] = false,  -- Potent Mana Residue (magic)
+		--[1219248] = false,  -- Arcane Radiation (magic)
+		--[1233110] = false,  -- Purging Lightning (magic)
+		-- Loom'ithar
+		[1226311] = false,  -- Infusion Tether (magic)
+		[1226721] = false,  -- Silken Snare (magic)
+		[1227784] = false,  -- Arcane Outrage (magic)
+		[1226395] = false,  -- Overinfusion Burst (magic)
+		--[1243771] = false,  -- Arcane Ichor (magic)
+		[1226366] = false,  -- Living Silk (nature)
+		-- Soulbinder Naazindhri
+		[1226827] = false,  -- Soulrend Orb (magic)
+		[1227048] = false,  -- Voidblade Ambush (shadow)
+		[1227052] = true,   -- Void Burst (shadow)
+		[1252952] = true,   -- Void Burst (shadow)
+		[1225616] = false,  -- Soulfire Convergence (magic)
+		[1227276] = false,  -- Soulfray Annihilation (magic)
+		[1249065] = false,  -- Soulfire Convergence (magic)
+		--[1237607] = false,  -- Mystic Lash (magic)
+		--[1242088] = false,  -- Arcane Expulsion (magic)
+		--[1242084] = true,   -- Arcane Energy (magic)
+		--[1242086] = true,   -- Arcane Energy (magic)
+		--[1250008] = false,  -- Shatterpulse (magic)
+		-- Forgeweaver Araz
+		[1228214] = false,  -- Astral Harvest (magic)
+		[1228188] = false,  -- Silencing Tempest (magic)
+		[245075] = false,   -- Hungering Gloom (shadow)
+		--[1243901] = false,  -- Void Harvest (shadow)
+		--[1234324] = false,  -- Photon Blast (magic)
+		--[1232412] = true,   -- Focusing Iris (magic)
+		--[1250185] = true,   -- Focusing Iris (magic)
+		--[1232411] = true,   -- Focusing Iris (magic)
+		--[1240705] = false,  -- Astral Burn (magic)
+		--[1233076] = false,  -- Dark Singularity (shadow)
+		-- The Soul Hunters
+		[1234565] = true,   -- Consume (cosmic)
+		[1222307] = true,   -- Consume (cosmic)
+		[1235158] = true,   -- Consume (cosmic)
+		--[1225127] = true,   -- Felblade (fire)
+		--[1225130] = true,   -- Felblade (fire)
+		--[1241917] = true,   -- Frailty (chaos)
+		--[1241946] = true,   -- Frailty (chaos)
+		--[1254762] = true,   -- Frailty (chaos)
+		--[1233968] = true,   -- Event Horizon (cosmic)
+		--[1235045] = false,  -- Encroaching Oblivion (cosmic)
+		--[1242284] = true,   -- Soulcrush (cosmic)
+		--[1233105] = false,  -- Dark Residue (cosmic)
+		--[1223725] = true,   -- Fel Inferno (fire)
+		--[1245384] = true,   -- Fel Inferno (fire)
+		--[1239269] = true,   -- Fel Inferno (fire)
+		--[1228238] = true,   -- Fel Inferno (fire)
+		-- Fractilus
+		[1224414] = false,  -- Crystalline Shockwave (shadow)
+		[1227373] = false,  -- Shattershell (shadow)
+		[1247424] = false,  -- Null Consumption (shadow)
+		--[1250600] = true,   -- Void Lightning (shadow)
+		--[1241137] = false,  -- Refracted Entropy (shadow)
+		-- Nexus-King Salhadaar
+		[1227529] = true,   -- Banishment (shadow)
+		[1227549] = true,   -- Banishment (shadow)
+		[1227562] = true,   -- Banishment (shadow)
+		[1227554] = true,   -- Banishment (shadow)
+		--[1224787] = false,  -- Conquer (shadow)
+		--[1224737] = false,  -- Oath-Bound (shadow)
+		--[1228196] = false,  -- Dimension Breath (cosmic)
+		--[1226362] = false,  -- Twilight Scar (cosmic)
+		--[1231097] = false,  -- Cosmic Rip (cosmic)
+		--[1225444] = false,  -- Atomized (cosmic)
+		--[1227330] = true,   -- Besiege (cosmic)
+		--[1227472] = true,   -- Besiege (cosmic)
+		--[1227331] = true,   -- Besiege (cosmic)
+		--[1227384] = true,   -- Besiege (cosmic)
+		--[1227470] = true,   -- Besiege (cosmic)
+		--[1247194] = true,   -- Besiege (cosmic)
+		--[1237120] = true,   -- Besiege (cosmic)
+		--[1228081] = false,  -- Nexus Beams (shadow)
+		[1228053] = true,   -- Reap (shadow)
+		[1228056] = true,   -- Reap (shadow)
+		-- Dimensius
+		--[1243699] = false,  -- Spatial Fragment (cosmic)
+		[1231002] = false,  -- Dark Energy (cosmic)
+		--[1237097] = false,  -- Astrophysical Jet (cosmic)
+		--[1238765] = true,   -- Extinction (cosmic)
+		--[1238773] = true,   -- Extinction (cosmic)
+		--[1239270] = false,  -- Voidwarding (shadow)
+		--[1237325] = false,  -- Gamma Burst (cosmic)
+		--[1246145] = false,  -- Touch of Oblivion (shadow)
+		[1246542] = false,  -- Null Binding (shadow)
+		--[1237696] = false,  -- Debris Field (cosmic)
+		[1234054] = false,  -- Shadowquake (shadow)
+		[1232394] = true,   -- Gravity Well (shadow)
+		--[1250055] = false,  -- Voidgrasp (cosmic)
+	} );
+
+	-- 11.2.0 The War Within Season 3 dungeons
+	VUHDO_addCustomSpellIds(57, {
+		-- Ara-Kara, City of Echoes
+		--[438599] = false,  -- Bleeding Jab (bleed)
+		--[1241785] = true,  -- Tainted Blood (magic, stacking tank debuff)
+		--[436614] = true,   -- Web Wrap (magic)
+		--[219861] = true,   -- Web Wrap (magic)
+		[461487] = false,  -- Cultivated Poisons (poison, via Ki'katal)
+		--[461507] = false,  -- Cultivated Poisons (poison, dot version)
+		[436322] = true,   -- Poison Bolt (poison, interruptible)
+		--[448248] = false,  -- Revolting Volley (poison, interruptible)
+		[433841] = true,   -- Venom Volley (poison, interruptible)
+		[432227] = true,   -- Venom Volley (poison, interruptible)
+		[438618] = true,   -- Venomous Spit (poison)
+		-- Eco-Dome Al'dani
+		--[1219535] = false, -- Rift Claws (bleed, tank debuff)
+		--[1221133] = true,  -- Hungering Rage (enrage)
+		[1221483] = true,  -- Arcing Energy (magic)
+		[1221484] = true,  -- Arcing Energy (magic)
+		[1221485] = true,  -- Arcing Energy (magic)
+		[1221615] = true,  -- Arcing Energy (magic)
+		--[1231608] = true,  -- Alacrity (purge)
+		--[1223000] = false, -- Embrace of K'aresh (purge)
+		-- Halls of Atonement
+		--[1235245] = true,  -- Ankle Bite (bleed, stacking)
+		[1237602] = true,  -- Gushing Wound (bleed, stacking tank debuff)
+		--[326450] = false,  -- Loyal Beasts (enrage, interruptible)
+		--[1235060] = false, -- Anima Tainted Armor (magic, stacking tank debuff)
+		--[325876] = false,  -- Mark of Obliteration (magic)
+		[339237] = false,  -- Sinlight Visions (magic)
+		[325701] = true,   -- Siphon Life (magic, interruptible)
+		[1235762] = true,  -- Turn to Stone (magic)
+		[1236513] = true,  -- Unstable Anima (magic, spread mechanic)
+		[1236514] = true,  -- Unstable Anima (magic, spread mechanic)
+		[1236512] = true,  -- Unstable Anima (magic, spread mechanic)
+		-- Operation: Floodgate
+		[468631] = true,   -- Harpoon (bleed, interruptible)
+		--[1213803] = false, -- Nailed (bleed, roots)
+		--[463061] = false,  -- Bloodthirsty Cackle (enrage, interruptible)
+		--[462737] = false,  -- Black Blood Wound (magic, stacking tank debuff)
+		--[473713] = false,  -- Kinetic Explosive Gel (magic)
+		[469799] = true,   -- Overcharge (magic, stuns if not dispelled)
+		--[465813] = false,  -- Lethargic Venom (poison)
+		--[471733] = false,  -- Restorative Algae (purge, interruptible)
+		-- Priory of the Sacred Flame
+		--[453461] = true,   -- Caltrops (bleed, avoidable)
+		--[453458] = true,   -- Caltrops (bleed, avoidable)
+		[427635] = true,   -- Grievous Rip (bleed)
+		[446779] = true,   -- Grievous Rip (bleed)
+		[427621] = true,   -- Impale (bleed)
+		--[424426] = false,  -- Lunging Strike (bleed, avoidable)
+		[424414] = true,   -- Pierce Armor (bleed)
+		--[424419] = true,   -- Battle Cry (enrage, interruptible)
+		[435148] = true,   -- Blazing Strike (magic, tankbuster)
+		[435165] = true,   -- Blazing Strike (magic, tankbuster)
+		[435166] = true,   -- Blazing Strike (magic, tankbuster)
+		[428170] = true,   -- Blinding Light (magic)
+		[428169] = true,   -- Blinding Light (magic)
+		[448515] = false,  -- Divine Judgment (magic, tankbuster)
+		[427897] = true,   -- Heat Wave (magic)
+		--[451606] = false,  -- Holy Flame (magic)
+		[427583] = true,   -- Repentance (magic, interruptible)
+		--[427342] = false,  -- Defend (purge)
+		--[427346] = true,   -- Inner Fire (purge, stuns on removal)
+		--[427347] = true,   -- Inner Fire (purge, stuns on removal)
+		--[429103] = true,   -- Inner Fire (purge, stuns on removal)
+		--[429104] = true,   -- Inner Fire (purge, stuns on removal)
+		--[428916] = true,   -- Inner Fire (purge, stuns on removal)
+		--[429091] = true,   -- Inner Fire (purge, stuns on removal)
+		--[444728] = false,  -- Templar's Wrath (purge)
+		-- Tazavesh: So'leah's Gambit
+		[351119] = true,   -- Shuriken Blitz (bleed, interruptible)
+		[351120] = true,   -- Shuriken Blitz (bleed, interruptible)
+		[351121] = true,   -- Shuriken Blitz (bleed, interruptible)
+		[351122] = true,   -- Shuriken Blitz (bleed, interruptible)
+		--[355057] = false,  -- Cry of Mrrggllrrgg (enrage)
+		--[356133] = false,  -- Super Saison (enrage)
+		[1240097] = true,  -- Time Bomb (magic, spread mechanic)
+		[1240099] = true,  -- Time Bomb (magic, spread mechanic)
+		[1240102] = true,  -- Time Bomb (magic, spread mechanic)
+		--[1240214] = false, -- Double Time (purge)
+		-- Tazavesh: Streets of Wonder
+		--[350101] = false,  -- Chains of Damnation (bleed)
+		--[357827] = false,  -- Frantic Rip (bleed)
+		[347716] = false,  -- Letter Opener (bleed, tankbuster)
+		--[1248211] = false, -- Phase Slash (bleed, party wide)
+		--[355832] = false,  -- Quickblade (bleed)
+		--[356407] = false,  -- Ancient Dread (curse)
+		--[353706] = true,   -- Rowdy (enrage)
+		--[1244446] = false, -- Force Multiplier (enrage)
+		--[346844] = false,  -- Alchemical Residue (magic)
+		--[356324] = false,  -- Empowered Glyph of Restraint (magic)
+		--[355915] = false,  -- Glyph of Restraint (magic)
+		[355934] = true,   -- Hard Light Barrier (magic)
+		--[355888] = true,   -- Hard Light Baton (magic)
+		[355889] = true,   -- Hard Light Baton (magic)
+		--[357029] = false,  -- Hyperlight Bomb (magic)
+		[356943] = true,   -- Lockdown (magic)
+		[356942] = true,   -- Lockdown (magic)
+		[349954] = false,  -- Purification Protocol (magic)
+		--[355641] = false,  -- Scintillate (magic)
+		--[351960] = true,   -- Static Cling (magic)
+		--[349933] = false,  -- Flagellation Protocol (purge)
+		--[355980] = false,  -- Refraction Shield (purge)
+		--[347775] = false,  -- Spam Filter (purge)
+		-- The Dawnbreaker
+		--[431491] = false,  -- Tainted Slash (bleed)
+		--[431309] = false,  -- Ensnaring Shadows (curse)
+		--[1242074] = false, -- Intensifying Aggression (enrage, stacks)
+		--[451112] = false,  -- Tactician's Rage (enrage)
+		[426735] = true,   -- Burning Shadows (magic)
+		[426734] = true,   -- Burning Shadows (magic)
+		[432448] = false,  -- Stygian Seed (magic)
+		--[450756] = false,  -- Abyssal Howl (purge)
+	} );
 
 	local debuffRemovalList = {};
 
@@ -2478,11 +2916,14 @@ function VUHDO_loadDefaultConfig()
 	end
 	VUHDO_POWER_TYPE_COLORS = VUHDO_ensureSanity("VUHDO_POWER_TYPE_COLORS", VUHDO_POWER_TYPE_COLORS, VUHDO_DEFAULT_POWER_TYPE_COLORS);
 	VUHDO_DEFAULT_POWER_TYPE_COLORS = VUHDO_compressAndPackTable(VUHDO_DEFAULT_POWER_TYPE_COLORS);
+
 end
 
 
 
 local VUHDO_DEFAULT_PANEL_SETUP = {
+	["PRIVATE_AURA_SHOW_DISPEL_TYPE"] = true,
+
 	["RAID_ICON_FILTER"] = {
 		[1] = true,
 		[2] = true,
@@ -2577,18 +3018,29 @@ local VUHDO_DEFAULT_PANEL_SETUP = {
 		["TARGET_NEUTRAL"] = VUHDO_makeFullColor(1, 1, 0, 1,   1, 1, 0, 1),
 		["TARGET_ENEMY"] = VUHDO_makeFullColor(1, 0, 0, 1,   1, 0, 0, 1),
 
-		["DEBUFF" .. VUHDO_DEBUFF_TYPE_NONE] =  {
-			["useText"] = false, ["useBackground"] = false, ["useOpacity"] = false,
-		},
+		["DEBUFF" .. VUHDO_DEBUFF_TYPE_NONE] = VUHDO_makeFullColor(0, 0, 0, 0,   0, 0, 0, 0),
 		["DEBUFF" .. VUHDO_DEBUFF_TYPE_POISON] = VUHDO_makeFullColor(0, 0.592, 0.8, 1,   0, 1, 0.686, 1),
 		["DEBUFF" .. VUHDO_DEBUFF_TYPE_DISEASE] = VUHDO_makeFullColor(0.8, 0.4, 0.4, 1,   1, 0, 0, 1),
 		["DEBUFF" .. VUHDO_DEBUFF_TYPE_CURSE] = VUHDO_makeFullColor(0.7, 0, 0.7, 1,   1, 0, 1, 1),
 		["DEBUFF" .. VUHDO_DEBUFF_TYPE_MAGIC] = VUHDO_makeFullColor(0.4, 0.4, 0.8, 1,   0.329, 0.957, 1, 1),
 		["DEBUFF" .. VUHDO_DEBUFF_TYPE_CUSTOM] = VUHDO_makeFullColor(0.6, 0.3, 0, 1,   0.8, 0.5, 0, 1),
 		["DEBUFF" .. VUHDO_DEBUFF_TYPE_BLEED] = VUHDO_makeFullColor(1, 0.2, 0, 1,   1, 0.2, 0.4, 1),
+		["DEBUFF" .. VUHDO_DEBUFF_TYPE_ENRAGE] = VUHDO_makeFullColor(0.95, 0.95, 0.32, 1,   1, 1, 0, 1),
 		["DEBUFF_BAR_GLOW"] = VUHDO_makeFullColor(0.95, 0.95, 0.32, 1,   1, 1, 0, 1),
 		["DEBUFF_ICON_GLOW"] = VUHDO_makeFullColor(0.95, 0.95, 0.32, 1,   1, 1, 0, 1),
 		["CHARMED"] = VUHDO_makeFullColor(0.51, 0.082, 0.263, 1,   1, 0.31, 0.31, 1),
+
+		["AURA_BAR_DEFAULT"] = {
+			["R"] = 0.7098, ["G"] = 0.7294, ["B"] = 0.7412, ["O"] = 0.5,
+			["TR"] = 1, ["TG"] = 1, ["TB"] = 1, ["TO"] = 1,
+			["useText"] = false, ["useBackground"] = true, ["useOpacity"] = true,
+		},
+
+		["AURA_STACK_TRIANGLE"] = {
+			["R"] = 0.180, ["G"] = 0.937, ["B"] = 0.169, ["O"] = 1,
+			["TR"] = 1, ["TG"] = 1, ["TB"] = 1, ["TO"] = 1,
+			["useText"] = true, ["useBackground"] = true, ["useOpacity"] = false,
+		},
 
 		["BAR_FRAMES"] = {
 			["R"] = 0, ["G"] = 0, ["B"] = 0, ["O"] = 0.7,
@@ -2601,8 +3053,8 @@ local VUHDO_DEFAULT_PANEL_SETUP = {
 		},
 
 		["HOTS"] = {
-			["useColorText"] = true,
-			["useColorBack"] = true,
+			["useColorText"] = false,
+			["useColorBack"] = false,
 			["isFadeOut"] = false,
 			["isFlashWhenLow"] = false,
 			["showShieldAbsorb"] = true,
@@ -2696,11 +3148,727 @@ local VUHDO_DEFAULT_PANEL_SETUP = {
 			},
 		},
 	}, -- BAR_COLORS
+
+	["AURA_DEFAULTS"] = {
+		["iconSize"] = 40,
+		["iconSpacing"] = 2,
+		["barWidth"] = 100,
+		["barHeight"] = 30,
+		["showTimer"] = true,
+		["showStacks"] = true,
+		["showClock"] = false,
+		["fadeOnLow"] = false,
+		["fadeThreshold"] = 3,
+		["flashOnLow"] = false,
+		["flashThreshold"] = 2,
+		["dispelBorder"] = false,
+		["showTooltip"] = true,
+	},
 };
 
 
 
 --
+VUHDO_DEFAULT_AURA_GROUPS = {
+	["MY_HOTS"] = {
+		["type"] = 1,
+		["filter"] = "HELPFUL|PLAYER|RAID_IN_COMBAT",
+		["excludeFilter"] = nil,
+		["priority"] = 10,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["enabled"] = true,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["OTHERS_HOTS"] = {
+		["type"] = 1,
+		["filter"] = "HELPFUL|RAID_IN_COMBAT",
+		["excludeFilter"] = "PLAYER",
+		["priority"] = 11,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["enabled"] = true,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["ALL_HOTS"] = {
+		["type"] = 1,
+		["filter"] = "HELPFUL|RAID_IN_COMBAT",
+		["excludeFilter"] = nil,
+		["priority"] = 12,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["enabled"] = true,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["DISPELLABLE"] = {
+		["type"] = 1,
+		["filter"] = "HARMFUL|RAID_PLAYER_DISPELLABLE",
+		["excludeFilter"] = nil,
+		["priority"] = 1,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_DISPEL,
+		["canColorBar"] = true,
+		["canColorText"] = true,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["enabled"] = true,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["CC_EFFECTS"] = {
+		["type"] = 1,
+		["filter"] = "HARMFUL|CROWD_CONTROL",
+		["excludeFilter"] = nil,
+		["priority"] = 2,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["enabled"] = true,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["BIG_DEFENSIVES"] = {
+		["type"] = 1,
+		["filter"] = "HELPFUL|BIG_DEFENSIVE",
+		["excludeFilter"] = nil,
+		["priority"] = 5,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["enabled"] = true,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["EXTERNAL_DEFENSIVES"] = {
+		["type"] = 1,
+		["filter"] = "HELPFUL|EXTERNAL_DEFENSIVE",
+		["excludeFilter"] = nil,
+		["priority"] = 7,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["enabled"] = true,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["ALL_DEBUFFS"] = {
+		["type"] = 1,
+		["filter"] = "HARMFUL",
+		["excludeFilter"] = nil,
+		["priority"] = 20,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["enabled"] = true,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["ALL_BUFFS"] = {
+		["type"] = 1,
+		["filter"] = "HELPFUL",
+		["excludeFilter"] = nil,
+		["priority"] = 21,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["enabled"] = true,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["MY_BUFFS"] = {
+		["type"] = 1,
+		["filter"] = "HELPFUL|RAID|PLAYER",
+		["excludeFilter"] = nil,
+		["priority"] = 13,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["enabled"] = true,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["OTHERS_BUFFS"] = {
+		["type"] = 1,
+		["filter"] = "HELPFUL|RAID",
+		["excludeFilter"] = "PLAYER",
+		["priority"] = 14,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["enabled"] = true,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["ALL_RAID_BUFFS"] = {
+		["type"] = 1,
+		["filter"] = "HELPFUL|RAID",
+		["excludeFilter"] = nil,
+		["priority"] = 15,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["enabled"] = true,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["RAID_DEBUFFS"] = {
+		["type"] = 1,
+		["filter"] = "HARMFUL|RAID",
+		["excludeFilter"] = nil,
+		["priority"] = 3,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["enabled"] = true,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["IMPORTANT_BUFFS"] = {
+		["type"] = 1,
+		["filter"] = "HELPFUL|IMPORTANT",
+		["excludeFilter"] = nil,
+		["priority"] = 6,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["enabled"] = true,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["IMPORTANT_DEBUFFS"] = {
+		["type"] = 1,
+		["filter"] = "HARMFUL|IMPORTANT",
+		["excludeFilter"] = nil,
+		["priority"] = 4,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["enabled"] = true,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["MY_NAMEPLATE_DEBUFFS"] = {
+		["type"] = 1,
+		["filter"] = "HARMFUL|INCLUDE_NAME_PLATE_ONLY|PLAYER",
+		["excludeFilter"] = nil,
+		["priority"] = 17,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["enabled"] = true,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["OTHERS_NAMEPLATE_DEBUFFS"] = {
+		["type"] = 1,
+		["filter"] = "HARMFUL|INCLUDE_NAME_PLATE_ONLY",
+		["excludeFilter"] = "PLAYER",
+		["priority"] = 18,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["enabled"] = true,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["ALL_NAMEPLATE_DEBUFFS"] = {
+		["type"] = 1,
+		["filter"] = "HARMFUL|INCLUDE_NAME_PLATE_ONLY",
+		["excludeFilter"] = nil,
+		["priority"] = 19,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["enabled"] = true,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["MY_DEBUFFS"] = {
+		["type"] = 1,
+		["filter"] = "HARMFUL|PLAYER",
+		["excludeFilter"] = nil,
+		["priority"] = 22,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["enabled"] = true,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["MY_EXTERNAL_DEFENSIVES"] = {
+		["type"] = 1,
+		["filter"] = "HELPFUL|EXTERNAL_DEFENSIVE|PLAYER",
+		["excludeFilter"] = nil,
+		["priority"] = 8,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["enabled"] = true,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["MY_RAID_DEBUFFS"] = {
+		["type"] = 1,
+		["filter"] = "HARMFUL|RAID|PLAYER",
+		["excludeFilter"] = nil,
+		["priority"] = 16,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["enabled"] = true,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["CANCELABLE_BUFFS"] = {
+		["type"] = 1,
+		["filter"] = "HELPFUL|CANCELABLE",
+		["excludeFilter"] = nil,
+		["priority"] = 23,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["enabled"] = true,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["NOT_CANCELABLE_BUFFS"] = {
+		["type"] = 1,
+		["filter"] = "HELPFUL|NOT_CANCELABLE",
+		["excludeFilter"] = nil,
+		["priority"] = 24,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["enabled"] = true,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["TORGHAST_ANIMA"] = {
+		["type"] = 1,
+		["filter"] = "HELPFUL|MAW",
+		["excludeFilter"] = nil,
+		["priority"] = 30,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["enabled"] = true,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["PRESERVATION_EVOKER_HOTS"] = {
+		["type"] = 2,
+		["entries"] = {
+			{ ["entryType"] = 1, ["value"] = 355941, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 363502, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 364343, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 366155, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 367364, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 373267, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 376788, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 409895, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 444490, ["mine"] = true, ["others"] = false },
+		},
+		["displayName"] = nil,
+		["enabled"] = true,
+		["priority"] = 50,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["AUGMENTATION_EVOKER_BUFFS"] = {
+		["type"] = 2,
+		["entries"] = {
+			{ ["entryType"] = 1, ["value"] = 360827, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 395152, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 395296, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 410089, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 410263, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 410686, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 413984, ["mine"] = true, ["others"] = false },
+		},
+		["displayName"] = nil,
+		["enabled"] = true,
+		["priority"] = 50,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["RESTORATION_DRUID_HOTS"] = {
+		["type"] = 2,
+		["entries"] = {
+			{ ["entryType"] = 1, ["value"] = 774, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 8936, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 33763, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 48438, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 155777, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 439530, ["mine"] = true, ["others"] = false },
+		},
+		["displayName"] = nil,
+		["enabled"] = true,
+		["priority"] = 50,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["DISCIPLINE_PRIEST_HOTS"] = {
+		["type"] = 2,
+		["entries"] = {
+			{ ["entryType"] = 1, ["value"] = 17, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 194384, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 1253593, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 41635, ["mine"] = true, ["others"] = false },
+		},
+		["displayName"] = nil,
+		["enabled"] = true,
+		["priority"] = 50,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["HOLY_PRIEST_HOTS"] = {
+		["type"] = 2,
+		["entries"] = {
+			{ ["entryType"] = 1, ["value"] = 139, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 41635, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 77489, ["mine"] = true, ["others"] = false },
+		},
+		["displayName"] = nil,
+		["enabled"] = true,
+		["priority"] = 50,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["MISTWEAVER_MONK_HOTS"] = {
+		["type"] = 2,
+		["entries"] = {
+			{ ["entryType"] = 1, ["value"] = 115175, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 119611, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 124682, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 450769, ["mine"] = true, ["others"] = false },
+		},
+		["displayName"] = nil,
+		["enabled"] = true,
+		["priority"] = 50,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["RESTORATION_SHAMAN_HOTS"] = {
+		["type"] = 2,
+		["entries"] = {
+			{ ["entryType"] = 1, ["value"] = 974, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 383648, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 61295, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 382024, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 207400, ["mine"] = true, ["others"] = false },
+		},
+		["displayName"] = nil,
+		["enabled"] = true,
+		["priority"] = 50,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["HOLY_PALADIN_HOTS"] = {
+		["type"] = 2,
+		["entries"] = {
+			{ ["entryType"] = 1, ["value"] = 53563, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 156322, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 156910, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 200025, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 1244893, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 431381, ["mine"] = true, ["others"] = false },
+		},
+		["displayName"] = nil,
+		["enabled"] = true,
+		["priority"] = 50,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["RAID_BUFFS"] = {
+		["type"] = 2,
+		["entries"] = {
+			{ ["entryType"] = 1, ["value"] = 1126, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 1459, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 6673, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 21562, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 369459, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 462854, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 474754, ["mine"] = true, ["others"] = false },
+		},
+		["displayName"] = nil,
+		["enabled"] = true,
+		["priority"] = 50,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["BLESSING_OF_BRONZE"] = {
+		["type"] = 2,
+		["entries"] = {
+			{ ["entryType"] = 1, ["value"] = 381732, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 381741, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 381746, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 381748, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 381749, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 381750, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 381751, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 381752, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 381753, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 381754, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 381756, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 381757, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 381758, ["mine"] = true, ["others"] = false },
+		},
+		["displayName"] = nil,
+		["enabled"] = true,
+		["priority"] = 50,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["ROGUE_POISONS"] = {
+		["type"] = 2,
+		["entries"] = {
+			{ ["entryType"] = 1, ["value"] = 2823, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 8679, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 3408, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 5761, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 315584, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 381637, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 381664, ["mine"] = true, ["others"] = false },
+		},
+		["displayName"] = nil,
+		["enabled"] = true,
+		["priority"] = 50,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["SHAMAN_WEAPON_IMBUEMENTS"] = {
+		["type"] = 2,
+		["entries"] = {
+			{ ["entryType"] = 1, ["value"] = 319773, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 319778, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 382021, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 382022, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 457496, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 457481, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 462757, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 462742, ["mine"] = true, ["others"] = false },
+		},
+		["displayName"] = nil,
+		["enabled"] = true,
+		["priority"] = 50,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["PALADIN_WEAPON_IMBUEMENTS"] = {
+		["type"] = 2,
+		["entries"] = {
+			{ ["entryType"] = 1, ["value"] = 433568, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 433583, ["mine"] = true, ["others"] = false },
+		},
+		["displayName"] = nil,
+		["enabled"] = true,
+		["priority"] = 50,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["ENHANCEMENT_SHAMAN_BUFFS"] = {
+		["type"] = 2,
+		["entries"] = {
+			{ ["entryType"] = 1, ["value"] = 344179, ["mine"] = true, ["others"] = false },
+		},
+		["displayName"] = nil,
+		["enabled"] = true,
+		["priority"] = 50,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["BREWMASTER_MONK_BUFFS"] = {
+		["type"] = 2,
+		["entries"] = {
+			{ ["entryType"] = 1, ["value"] = 124255, ["mine"] = true, ["others"] = false },
+		},
+		["displayName"] = nil,
+		["enabled"] = true,
+		["priority"] = 50,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	["WARLOCK_METAMORPHOSIS"] = {
+		["type"] = 2,
+		["entries"] = {
+			{ ["entryType"] = 1, ["value"] = 1217607, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 1225789, ["mine"] = true, ["others"] = false },
+			{ ["entryType"] = 1, ["value"] = 1227702, ["mine"] = true, ["others"] = false },
+		},
+		["displayName"] = nil,
+		["enabled"] = true,
+		["priority"] = 50,
+		["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+		["canColorBar"] = false,
+		["canColorText"] = false,
+		["canGlowBar"] = false,
+		["glowBarColor"] = nil,
+		["ignoreList"] = { },
+		["sound"] = nil,
+	},
+	-- ["INFERRED_RIPTIDE"] = {
+	-- 	["filter"] = nil,
+	-- 	["isInferred"] = true,
+	-- 	["inferredType"] = "SHAMAN_RIPTIDE",
+	-- 	["playerClassRequired"] = "SHAMAN",
+	-- 	["priority"] = 31,
+	-- 	["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+	-- 	["canColorBar"] = false,
+	-- 	["canColorText"] = false,
+	-- 	["enabled"] = true,
+	-- },
+	-- ["INFERRED_ECHO"] = {
+	-- 	["filter"] = nil,
+	-- 	["isInferred"] = true,
+	-- 	["inferredType"] = "EVOKER_ECHO",
+	-- 	["playerClassRequired"] = "EVOKER",
+	-- 	["priority"] = 32,
+	-- 	["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+	-- 	["canColorBar"] = false,
+	-- 	["canColorText"] = false,
+	-- 	["enabled"] = true,
+	-- },
+	-- ["INFERRED_ATONEMENT"] = {
+	-- 	["filter"] = nil,
+	-- 	["isInferred"] = true,
+	-- 	["inferredType"] = "PRIEST_ATONEMENT",
+	-- 	["playerClassRequired"] = "PRIEST",
+	-- 	["priority"] = 33,
+	-- 	["colorType"] = VUHDO_AURA_GROUP_COLOR_OFF,
+	-- 	["canColorBar"] = false,
+	-- 	["canColorText"] = false,
+	-- 	["enabled"] = true,
+	-- },
+};
+
+
+
 local VUHDO_DEFAULT_PER_PANEL_SETUP = {
 	["HOTS"] = {
 		["size"] = 40,
@@ -2899,10 +4067,27 @@ local VUHDO_DEFAULT_PER_PANEL_SETUP = {
 
 	["PRIVATE_AURA"] = {
 		["show"] = true,
-		["scale"] = 0.8,
 		["point"] = "LEFT",
 		["xAdjust"] = 5,
 		["yAdjust"] = 0,
+		["numAuras"] = 3,
+		["orientation"] = "HORIZONTAL",
+		["spacing"] = 0,
+		["showCooldown"] = true,
+		["showCooldownNumbers"] = true,
+		["showDuration"] = false,
+		["durationPosition"] = "BOTTOM",
+		["durationOffsetX"] = 0,
+		["durationOffsetY"] = 0,
+		["showBorder"] = true,
+		["iconSize"] = 40,
+		["frameLevel"] = 13,
+		["growthDir"] = "RIGHT",
+		["wrapDir"] = "DOWN",
+		["maxColumns"] = 3,
+		["maxRows"] = 2,
+		["showTooltip"] = false,
+		["VERSION"] = 3,
 	},
 
 	["RAID_ICON"] = {
@@ -2922,6 +4107,172 @@ local VUHDO_DEFAULT_PER_PANEL_SETUP = {
 	},
 
 	["frameStrata"] = "MEDIUM",
+
+	["AURA_ANCHORS"] = {
+		["1"] = {
+			["groupId"] = "MY_HOTS",
+			["enabled"] = true,
+			["radioValue"] = 13,
+			["offsetX"] = 0,
+			["offsetY"] = 0,
+			["maxDisplay"] = 9,
+			["maxColumns"] = 9,
+			["maxRows"] = 1,
+			["sortRule"] = 3,
+			["sortDir"] = 0,
+			["size"] = 20,
+			["barWidth"] = 100,
+			["barHeight"] = 12,
+			["barVertical"] = false,
+			["barTurnAxis"] = false,
+			["barInvertGrowth"] = false,
+			["spacing"] = nil,
+			["style"] = "icons",
+			["growthDir"] = "RIGHT",
+			["wrapDir"] = "UP",
+			["showTimer"] = 2,
+			["showStacks"] = 2,
+			["showClock"] = 2,
+			["showTooltip"] = 2,
+			["fadeOnLow"] = 2,
+			["flashOnLow"] = 2,
+			["dispelBorder"] = 2,
+			["colorMode"] = "default",
+			["iconType"] = 1,
+			["stackType"] = 1,
+			["fixedSlots"] = false,
+			["TIMER_TEXT"] = {
+				["ANCHOR"] = "BOTTOMRIGHT",
+				["X_ADJUST"] = 25,
+				["Y_ADJUST"] = 0,
+				["SCALE"] = 40,
+				["FONT"] = "Interface\\AddOns\\VuhDo\\Fonts\\ariblk.ttf",
+				["COLOR"] = VUHDO_makeFullColor(0, 0, 0, 1, 1, 1, 1, 1),
+				["USE_SHADOW"] = false,
+				["USE_OUTLINE"] = true,
+				["USE_MONO"] = false,
+			},
+			["COUNTER_TEXT"] = {
+				["ANCHOR"] = "TOP",
+				["X_ADJUST"] = -25,
+				["Y_ADJUST"] = 0,
+				["SCALE"] = 40,
+				["FONT"] = "Interface\\AddOns\\VuhDo\\Fonts\\ariblk.ttf",
+				["COLOR"] = VUHDO_makeFullColor(0, 0, 0, 1, 0, 1, 0, 1),
+				["USE_SHADOW"] = false,
+				["USE_OUTLINE"] = true,
+				["USE_MONO"] = false,
+			},
+		},
+		["2"] = {
+			["groupId"] = "DISPELLABLE",
+			["enabled"] = true,
+			["radioValue"] = 17,
+			["offsetX"] = 0,
+			["offsetY"] = 0,
+			["maxDisplay"] = 3,
+			["maxColumns"] = 3,
+			["maxRows"] = 1,
+			["sortRule"] = 0,
+			["sortDir"] = 0,
+			["size"] = 20,
+			["barWidth"] = 100,
+			["barHeight"] = 12,
+			["barVertical"] = false,
+			["barTurnAxis"] = false,
+			["barInvertGrowth"] = false,
+			["spacing"] = nil,
+			["style"] = "icons",
+			["growthDir"] = "LEFT",
+			["wrapDir"] = "DOWN",
+			["showTimer"] = 2,
+			["showStacks"] = 2,
+			["showTooltip"] = 2,
+			["showClock"] = 2,
+			["fadeOnLow"] = 2,
+			["flashOnLow"] = 2,
+			["dispelBorder"] = 1,
+			["colorMode"] = "default",
+			["iconType"] = 1,
+			["stackType"] = 1,
+			["fixedSlots"] = false,
+			["TIMER_TEXT"] = {
+				["ANCHOR"] = "BOTTOMRIGHT",
+				["X_ADJUST"] = 25,
+				["Y_ADJUST"] = 0,
+				["SCALE"] = 40,
+				["FONT"] = "Interface\\AddOns\\VuhDo\\Fonts\\ariblk.ttf",
+				["COLOR"] = VUHDO_makeFullColor(0, 0, 0, 1, 1, 1, 1, 1),
+				["USE_SHADOW"] = false,
+				["USE_OUTLINE"] = true,
+				["USE_MONO"] = false,
+			},
+			["COUNTER_TEXT"] = {
+				["ANCHOR"] = "TOP",
+				["X_ADJUST"] = -25,
+				["Y_ADJUST"] = 0,
+				["SCALE"] = 40,
+				["FONT"] = "Interface\\AddOns\\VuhDo\\Fonts\\ariblk.ttf",
+				["COLOR"] = VUHDO_makeFullColor(0, 0, 0, 1, 0, 1, 0, 1),
+				["USE_SHADOW"] = false,
+				["USE_OUTLINE"] = true,
+				["USE_MONO"] = false,
+			},
+		},
+		["3"] = {
+			["groupId"] = "BIG_DEFENSIVES",
+			["enabled"] = true,
+			["radioValue"] = 16,
+			["position"] = "CENTER",
+			["offsetX"] = 0,
+			["offsetY"] = 0,
+			["maxDisplay"] = 3,
+			["maxColumns"] = 3,
+			["maxRows"] = 1,
+			["sortRule"] = 0,
+			["sortDir"] = 0,
+			["size"] = 45,
+			["barWidth"] = 100,
+			["barHeight"] = 12,
+			["spacing"] = nil,
+			["style"] = "icons",
+			["growthDir"] = "RIGHT",
+			["wrapDir"] = "DOWN",
+			["showTimer"] = 3,
+			["showStacks"] = 3,
+			["showTooltip"] = 2,
+			["showClock"] = 1,
+			["fadeOnLow"] = 2,
+			["flashOnLow"] = 2,
+			["dispelBorder"] = 2,
+			["colorMode"] = "default",
+			["iconType"] = 1,
+			["stackType"] = 1,
+			["fixedSlots"] = false,
+			["TIMER_TEXT"] = {
+				["ANCHOR"] = "BOTTOMRIGHT",
+				["X_ADJUST"] = 25,
+				["Y_ADJUST"] = 0,
+				["SCALE"] = 40,
+				["FONT"] = "Interface\\AddOns\\VuhDo\\Fonts\\ariblk.ttf",
+				["COLOR"] = VUHDO_makeFullColor(0, 0, 0, 1, 1, 1, 1, 1),
+				["USE_SHADOW"] = false,
+				["USE_OUTLINE"] = true,
+				["USE_MONO"] = false,
+			},
+			["COUNTER_TEXT"] = {
+				["ANCHOR"] = "TOP",
+				["X_ADJUST"] = -25,
+				["Y_ADJUST"] = 0,
+				["SCALE"] = 40,
+				["FONT"] = "Interface\\AddOns\\VuhDo\\Fonts\\ariblk.ttf",
+				["COLOR"] = VUHDO_makeFullColor(0, 0, 0, 1, 0, 1, 0, 1),
+				["USE_SHADOW"] = false,
+				["USE_OUTLINE"] = true,
+				["USE_MONO"] = false,
+			},
+		},
+	},
 };
 
 
@@ -2929,6 +4280,7 @@ local VUHDO_DEFAULT_PER_PANEL_SETUP = {
 --
 function VUHDO_loadDefaultPanelSetup()
 	local tAktPanel;
+	local tPrivateAura;
 
 	if not VUHDO_PANEL_SETUP then
 		VUHDO_PANEL_SETUP = VUHDO_decompressOrCopy(VUHDO_DEFAULT_PANEL_SETUP);
@@ -3009,12 +4361,58 @@ function VUHDO_loadDefaultPanelSetup()
 			end
 		end
 
+		tAktPanel = VUHDO_PANEL_SETUP[tPanelNum];
+
+		if tAktPanel and tAktPanel["PRIVATE_AURA"] then
+
+			tPrivateAura = tAktPanel["PRIVATE_AURA"];
+
+			if tPrivateAura["iconSize"] == nil and tPrivateAura["scale"] ~= nil then
+				tPrivateAura["iconSize"] = 40;
+
+				tPrivateAura["scale"] = nil;
+			end
+
+			if (tPrivateAura["VERSION"] or 0) < 1 then
+				if tPrivateAura["iconSize"] == 80 then
+					tPrivateAura["iconSize"] = 40;
+				end
+
+				tPrivateAura["showBorder"] = true;
+
+				tPrivateAura["VERSION"] = 1;
+			end
+
+			if (tPrivateAura["VERSION"] or 0) < 2 then
+				tPrivateAura["growthDir"] = "RIGHT";
+				tPrivateAura["wrapDir"] = "DOWN";
+				tPrivateAura["maxColumns"] = 3;
+				tPrivateAura["maxRows"] = 2;
+
+				tPrivateAura["VERSION"] = 2;
+			end
+
+			if (tPrivateAura["VERSION"] or 0) < 3 then
+				tPrivateAura["showCooldown"] = true;
+				tPrivateAura["showCooldownNumbers"] = true;
+				tPrivateAura["showDuration"] = false;
+
+				tPrivateAura["VERSION"] = 3;
+			end
+		end
+
+		if VUHDO_PANEL_SETUP["PRIVATE_AURA_SHOW_DISPEL_TYPE"] == nil then
+			VUHDO_PANEL_SETUP["PRIVATE_AURA_SHOW_DISPEL_TYPE"] = true;
+		end
+
 		VUHDO_PANEL_SETUP[tPanelNum] = VUHDO_ensureSanity("VUHDO_PANEL_SETUP[" .. tPanelNum .. "]", VUHDO_PANEL_SETUP[tPanelNum], VUHDO_DEFAULT_PER_PANEL_SETUP);
 	end
 
 	if VUHDO_PANEL_SETUP["HOTS"] and not VUHDO_PANEL_SETUP["HOTS"]["VERSION"] then
 		VUHDO_PANEL_SETUP["HOTS"] = nil;
 	end
+
+	VUHDO_migrateOldConfigsToAuraAnchors();
 
 	VUHDO_PANEL_SETUP = VUHDO_ensureSanity("VUHDO_PANEL_SETUP", VUHDO_PANEL_SETUP, VUHDO_DEFAULT_PANEL_SETUP);
 	VUHDO_DEFAULT_PANEL_SETUP = VUHDO_compressAndPackTable(VUHDO_DEFAULT_PANEL_SETUP);
@@ -3094,17 +4492,18 @@ VUHDO_DEFAULT_USER_CLASS_COLORS = {
 
 -- DK: 0.498, 0.075, 0.149
 -- DH: 0.365, 0.137, 0.573
--- DD: 1, 0.239, 0.008
--- EV: 0.196, 0.467, 0.537
+-- DD: 0.65, 0.27, 0.02
+-- EV: 0.06, 0.28, 0.24
 -- HU: 0.404, 0.537, 0.224
 -- MA: 0, 0.333, 0.537
 -- MO: 0.016, 0.608, 0.369
 -- PA: 1, 0.267, 0.537
 -- PR: 0.357, 0.357, 0.357
+-- PT: 0.2, 0.35, 0.2
 -- SH: 0, 0.259, 0.51
--- WA: 0.263, 0.267, 0.467
--- WR: 0.427, 0.137, 0.09
--- RO: 1, 0.686, 0
+-- WA: 0.3, 0.27, 0.52
+-- WR: 0.45, 0.3, 0.15
+-- RO: 0.7, 0.65, 0.1
 
 -- Gradient Color 'max":
 
@@ -3117,14 +4516,15 @@ VUHDO_DEFAULT_USER_CLASS_COLORS = {
 -- MO: 0, 1, 0.588
 -- PA: 0.957, 0.549, 0.729
 -- PR: 0.988, 0.988, 0.988
+-- PT: 0.4, 0.6, 0.4
 -- SH: 0, 0.439, 0.871
--- WA: 0.663, 0.392, 0.784
--- WR: 0.565, 0.431, 0.247
--- RO: 1, 0.831, 0.255
+-- WA: 0.58, 0.51, 0.79
+-- WR: 0.78, 0.61, 0.43
+-- RO: 1, 0.96, 0.41
 
 VUHDO_DEFAULT_USER_CLASS_GRADIENT_COLORS = {
 	[VUHDO_ID_DRUIDS] = {
-		["min"] = VUHDO_makeFullColor(1,    0.24, 0.01, 1,   1,    0.6,  0.04, 1),
+		["min"] = VUHDO_makeFullColor(0.65, 0.27, 0.02, 1,   1,    0.6,  0.04, 1),
 		["max"] = VUHDO_makeFullColor(1,    0.49, 0.04, 1,   1,    0.6,  0.04, 1),
 	},
 	[VUHDO_ID_HUNTERS] = {
@@ -3144,20 +4544,20 @@ VUHDO_DEFAULT_USER_CLASS_GRADIENT_COLORS = {
 		["max"] = VUHDO_makeFullColor(0.99, 0.99, 0.99, 1,   1,    1,    1,    1),
 	},
 	[VUHDO_ID_ROGUES] = {
-		["min"] = VUHDO_makeFullColor(1,    0.69, 0,    1,   1,    1,    0.51, 1),
-		["max"] = VUHDO_makeFullColor(1,    0.83, 0.26, 1,   1,    1,    0.51, 1),
+		["min"] = VUHDO_makeFullColor(0.70, 0.65, 0.10, 1,   1,    1,    0.51, 1),
+		["max"] = VUHDO_makeFullColor(1,    0.96, 0.41, 1,   1,    1,    0.51, 1),
 	},
 	[VUHDO_ID_SHAMANS] = {
 		["min"] = VUHDO_makeFullColor(0,    0.26, 0.51, 1,   0.24, 0.45, 1,    1),
 		["max"] = VUHDO_makeFullColor(0,    0.44, 0.87, 1,   0.24, 0.45, 1,    1),
 	},
 	[VUHDO_ID_WARLOCKS] = {
-		["min"] = VUHDO_makeFullColor(0.26, 0.27, 0.47, 1,   0.68, 0.61, 0.89, 1),
-		["max"] = VUHDO_makeFullColor(0.66, 0.39, 0.78, 1,   0.68, 0.61, 0.89, 1),
+		["min"] = VUHDO_makeFullColor(0.30, 0.27, 0.52, 1,   0.68, 0.61, 0.89, 1),
+		["max"] = VUHDO_makeFullColor(0.58, 0.51, 0.79, 1,   0.68, 0.61, 0.89, 1),
 	},
 	[VUHDO_ID_WARRIORS] = {
-		["min"] = VUHDO_makeFullColor(0.43, 0.14, 0.09, 1,   0.88, 0.71, 0.53, 1),
-		["max"] = VUHDO_makeFullColor(0.57, 0.43, 0.25, 1,   0.88, 0.71, 0.53, 1),
+		["min"] = VUHDO_makeFullColor(0.45, 0.30, 0.15, 1,   0.88, 0.71, 0.53, 1),
+		["max"] = VUHDO_makeFullColor(0.78, 0.61, 0.43, 1,   0.88, 0.71, 0.53, 1),
 	},
 	[VUHDO_ID_DEATH_KNIGHT] = {
 		["min"] = VUHDO_makeFullColor(0.5,  0.08, 0.15, 1,   0.87, 0.22, 0.33, 1),
@@ -3172,11 +4572,11 @@ VUHDO_DEFAULT_USER_CLASS_GRADIENT_COLORS = {
 		["max"] = VUHDO_makeFullColor(0.75, 0.19, 1,    1,   0.64, 0.19, 0.79, 1),
 	},
 	[VUHDO_ID_EVOKERS] = {
-		["min"] = VUHDO_makeFullColor(0.2,  0.47, 0.54, 1,   0.20, 0.58, 0.50, 1),
+		["min"] = VUHDO_makeFullColor(0.06, 0.28, 0.24, 1,   0.20, 0.58, 0.50, 1),
 		["max"] = VUHDO_makeFullColor(0.2,  0.58, 0.5,  1,   0.20, 0.58, 0.50, 1),
 	},
 	[VUHDO_ID_PETS] = {
-		["min"] = VUHDO_makeFullColor(0.4,  0.6,  0.4,  1,   0.5,  0.9,  0.5,  1),
+		["min"] = VUHDO_makeFullColor(0.20, 0.35, 0.20, 1,   0.5,  0.9,  0.5,  1),
 		["max"] = VUHDO_makeFullColor(0.4,  0.6,  0.4,  1,   0.5,  0.9,  0.5,  1),
 	},
 	["isClassGradient"] = false,

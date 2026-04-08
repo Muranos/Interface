@@ -129,7 +129,7 @@ L["auto_open_desc"] = "Check to Auto Open the voting frame when available. The v
 --[[Translation missing --]]
 L["auto_pass_boe_desc"] = "Uncheck to never autopass Bind on Equip items."
 --[[Translation missing --]]
-L["auto_pass_desc"] = "Check to enable autopassing of items your class cannot use."
+L["auto_pass_desc"] = "When enabled, items you cannot or should not use will be automatically passed. Other auto pass options can modify this behavior."
 --[[Translation missing --]]
 L["auto_pass_transmog_desc"] = "Check to enable autopassing of items your class can only use for transmog."
 --[[Translation missing --]]
@@ -284,6 +284,8 @@ L["chat_commands_version"] = "Open the Version Checker (alt. 'v' or 'ver')"
 --[[Translation missing --]]
 L["chat_commands_whisper"] = "Displays help to whisper commands"
 --[[Translation missing --]]
+L["chat_restrictions_enabled"] = "Not currently possible due to Addon Restrictions."
+--[[Translation missing --]]
 L["chatCommand_stop_error_notHandlingLoot"] = "Cannot stop: not currently handling loot."
 --[[Translation missing --]]
 L["Check this to loot the items and distribute them later."] = "Check this to loot the items and distribute them later."
@@ -346,10 +348,6 @@ L["Data Received"] = "Data Received"
 --[[Translation missing --]]
 L["Date"] = "Date"
 --[[Translation missing --]]
-L["days and x months"] = "%s and %d months"
---[[Translation missing --]]
-L["days, x months, y years"] = "%s, %d months and %d years"
---[[Translation missing --]]
 L["Delete Skin"] = "Delete Skin"
 --[[Translation missing --]]
 L["delete_skin_desc"] = "Delete the currently selected non-default skin from the list."
@@ -383,6 +381,10 @@ L["enable_timeout_desc"] = "Check to enable timeout on the Loot Frame"
 L["Enter your note:"] = "Enter your note:"
 --[[Translation missing --]]
 L["EQdkp-Plus XML output, tailored for Enjin import."] = "EQdkp-Plus XML output, tailored for Enjin import."
+--[[Translation missing --]]
+L["error_no_autoAward_candidates"] = "You've enabled auto awarding of items, but haven't set any candidate(s) to auto award to."
+--[[Translation missing --]]
+L["error_no_autoAwardBoE_candidates"] = "You've enabled auto awarding of BoE items, but haven't set any candidate(s) to auto award to."
 --[[Translation missing --]]
 L["error_test_as_non_leader"] = "You cannot initiate a test while in a group without being the group leader."
 --[[Translation missing --]]
@@ -543,6 +545,8 @@ L["ML_ADD_INVALID_ITEM"] = "Invalid itemLink or itemID: %s"
 --[[Translation missing --]]
 L["ML_ADD_ITEM_MAX_ATTEMPTS"] = "Couldn't fetch item info for %s - probably not a real item."
 --[[Translation missing --]]
+L["ML_REQUEST_VOTES"] = "%s has requested you to vote for item #%d: %s"
+--[[Translation missing --]]
 L["ml_sees_voting_desc"] = "Allows the Master Looter to see who's voting for whom."
 --[[Translation missing --]]
 L["module_tVersion_outdated_msg"] = "Newest module %s test version is: %s"
@@ -634,6 +638,8 @@ L["Opens the synchronizer"] = "Opens the synchronizer"
 --[[Translation missing --]]
 L["opt_addButton_desc"] = "Add a new button group for the selected slot."
 --[[Translation missing --]]
+L["opt_announceAward_WHISPER_WINNER"] = "/w winner"
+--[[Translation missing --]]
 L["opt_autoAddBoEs_desc"] = "Automatically add all BoE (Bind on Equip) items to a session."
 --[[Translation missing --]]
 L["opt_autoAddBoEs_name"] = "Auto Add BoEs"
@@ -652,17 +658,29 @@ L["opt_autoGroupLoot_desc"] = "When enabled, RCLootCouncil will automatically cl
 --[[Translation missing --]]
 L["opt_autoGroupLoot_name"] = "Auto Group Loot"
 --[[Translation missing --]]
+L["opt_autoGroupLootDecor_desc"] = "Caution: Only enable this if you're certain decor items are tradeable."
+--[[Translation missing --]]
+L["opt_autoGroupLootDecor_name"] = "Loot Decor"
+--[[Translation missing --]]
 L["opt_autoGroupLootGuildGroupOnly_desc"] = "When enabled, RCLootCouncil will only do group loot auto pass when you're in a guild group."
 --[[Translation missing --]]
 L["opt_autoGroupLootGuildGroupOnly_name"] = "Guild Groups Only"
 --[[Translation missing --]]
-L["opt_autoPassWeapons_desc"] = "Check to enable auto passing of weapons your class can't equip."
+L["opt_autoPass_name"] = "Enable Auto Pass"
+--[[Translation missing --]]
+L["opt_autoPassWeapons_desc"] = "Check to enable auto passing of weapons that doesn't have your classes primary stat."
 --[[Translation missing --]]
 L["opt_autoPassWeapons_name"] = "Auto Pass Weapons"
 --[[Translation missing --]]
 L["opt_autoTrade_desc"] = "Check to automatically add awarded items to the trade window when trading with the winner. If disabled, you'll see a popup before items are added."
 --[[Translation missing --]]
 L["opt_award_later_desc"] = "Check to automatically check the 'Award Later' option in the Session Frame."
+--[[Translation missing --]]
+L["opt_blockTradesInVoting_desc"] = "When enabled, any trade attempts will be cancelled while the voting frame is active."
+--[[Translation missing --]]
+L["opt_blockTradesInVoting_message"] = "Trade from %s blocked"
+--[[Translation missing --]]
+L["opt_blockTradesInVoting_name"] = "Block Trades"
 --[[Translation missing --]]
 L["opt_buttonsGroup_desc"] = [=[Options group for %s buttons and responses.
 See above for a detailed explanation.]=]
@@ -695,7 +713,16 @@ This cannot be undone.]=]
 --[[Translation missing --]]
 L["opt_deleteRaid_desc"] = "Delete all entries from a specific instance."
 --[[Translation missing --]]
+L["opt_lootDecor_desc"] = "Automatically add tradeable decor items to a session."
+--[[Translation missing --]]
+L["opt_lootDecor_name"] = "Add Decor"
+--[[Translation missing --]]
 L["opt_moreButtons_desc"] = "Add a new set of buttons for a specific gear slot. The most specific type is used, i.e. adding buttons for 'Head' and 'Catalyst Items' will make head type armor use the head buttons instead of catalyst."
+--[[Translation missing --]]
+L["opt_moreInfo_onlyShowRaids_desc"] = [=[If any raids are selected, the 'More Info' window will only show awards from those raids. If nothing's selected, all raids will be shown.
+Note: This does not apply to the 'Winners of [item]' section.]=]
+--[[Translation missing --]]
+L["opt_moreInfo_onlyShowRaids_name"] = "Only specific raids"
 --[[Translation missing --]]
 L["opt_printCompletedTrade_Desc"] = "Check to enable a message every time a candidate trades an awarded item to the winner."
 --[[Translation missing --]]
@@ -751,6 +778,8 @@ L["Out of instance"] = "Out of instance"
 --[[Translation missing --]]
 L["Patch"] = "Patch"
 --[[Translation missing --]]
+L["PAUSED"] = "Paused"
+--[[Translation missing --]]
 L["Personal Loot - Non tradeable"] = "Personal Loot - Non tradeable"
 --[[Translation missing --]]
 L["Personal Loot - Rejected Trade"] = "Personal Loot - Rejected Trade"
@@ -784,6 +813,8 @@ L["Print Responses"] = "Print Responses"
 L["print_response_desc"] = "Print your response in the chat window"
 --[[Translation missing --]]
 L["Protector Token"] = "Protector Token"
+--[[Translation missing --]]
+L["Rare_Items"] = "Rare items"
 --[[Translation missing --]]
 L["Raw lua output. Doesn't work well with date selection."] = "Raw lua output. Doesn't work well with date selection."
 --[[Translation missing --]]
@@ -919,6 +950,8 @@ L["Something went wrong during syncing, please try again."] = "Something went wr
 L["Sort Items"] = "Sort Items"
 --[[Translation missing --]]
 L["sort_items_desc"] = "Sort sessions by item type and item level."
+--[[Translation missing --]]
+L["Special_Effects_Items"] = "Items /w special effects"
 --[[Translation missing --]]
 L["Standard .csv output."] = "Standard CSV export that can be edited and reimported."
 --[[Translation missing --]]
@@ -1077,6 +1110,10 @@ L["Version Check"] = "Version Check"
 L["version_check_desc"] = "Opens the version checker module."
 --[[Translation missing --]]
 L["version_outdated_msg"] = "Your version %s is outdated. Newer version is %s, please update RCLootCouncil."
+--[[Translation missing --]]
+L["VF_REQUEST_VOTES"] = "Request Votes"
+--[[Translation missing --]]
+L["VF_REQUEST_VOTES_SENT"] = "Vote request sent"
 --[[Translation missing --]]
 L["Vote"] = "Vote"
 --[[Translation missing --]]

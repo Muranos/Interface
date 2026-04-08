@@ -1,3 +1,6 @@
+local addonName, addon = ...
+local L = LibStub("AceLocale-3.0"):GetLocale(addonName)
+
 -- datamine from https://www.wowhead.com/search?q=services+requested
 -- 1 = Blacksmithing, 2 = Leatherworking, 3 = Alchemy, 7 = Tailoring, 8 = Engineering, 12 = Jewelcrafting, 13 = Inscription
 local db = {
@@ -7,12 +10,15 @@ local db = {
     TWW = {
         [3] = 84133, [1] = 84127, [7] = 84132, [8] = 84128, [12] = 84130, [2] = 84131, [13] = 84129,
     },
+    NOON = {
+        [1] = 93691, [2] = 93695, [3] = 93690, [7] = 93696, [8] = 93692, [12] = 93694, [13] = 93693,
+    },
 }
 
 local warningFrame = ProfessionsFrame.NoWeeklyQuestWarning
 warningFrame:SetParent(ProfessionsFrame.OrdersPage.BrowseFrame)
 warningFrame:SetPoint("TOP", ProfessionsFrame.OrdersPage, "TOP", 0, -31)
-warningFrame.Text:SetText("Weekly Crafting Orders quest missing!")
+warningFrame.Text:SetText(L["NO_WEEKLY_QUEST_WARNING_TEXT"])
 
 local function checkVisible()
     warningFrame:Hide()
@@ -23,15 +29,17 @@ local function checkVisible()
         questID = db.DF[professionID]
     elseif GetExpansionLevel() == 10 then
         questID = db.TWW[professionID]
+    elseif GetExpansionLevel() == 11 then
+        questID = db.NOON[professionID]
     end
     if not questID then return end
     if C_QuestLog.IsOnQuest(questID) or C_QuestLog.IsQuestFlaggedCompleted(questID) then return end
     warningFrame:Show()
-
 end
 
 ProfessionsFrame.OrdersPage:HookScript("OnShow", checkVisible)
 ProfessionsFrame:HookScript("OnShow", function()
+    if addon.db.global.suppressNoWeeklyQuestWarning then return end
     if ProfessionsFrame.tabSystem.selectedTabID == ProfessionsFrame.craftingOrdersTabID then
         RunNextFrame(checkVisible)
     end

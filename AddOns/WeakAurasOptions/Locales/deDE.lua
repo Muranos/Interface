@@ -38,6 +38,10 @@ local L = WeakAuras.L
 	L["%s - Finish Custom Text"] = "%s - Benutzerdefinierter Endtext"
 	L["%s - Init Action"] = "%s - Initialisierung"
 	L["%s - Main"] = "%s - Haupt"
+	--[[Translation missing --]]
+	L["%s - OnLoad"] = "%s - OnLoad"
+	--[[Translation missing --]]
+	L["%s - OnUnload"] = "%s - OnUnload"
 	L["%s - Option #%i has the key %s. Please choose a different option key."] = "Die %s - Option #%i hat bereits den Schlüssel %s. Bitte wähle einen anderen Optionsschlüssel."
 	L["%s - Rotate Animation"] = "%s - Rotierungsanimation"
 	L["%s - Scale Animation"] = "%s - Skalierungsanimation"
@@ -236,8 +240,6 @@ Off Screen]=]
 	L["Auto-Clone (Show All Matches)"] = "Auto-Clone (Show All Matches)"
 	--[[Translation missing --]]
 	L["Automatic length"] = "Automatic length"
-	--[[Translation missing --]]
-	L["Available Voices are system specific"] = "Available Voices are system specific"
 	L["Backdrop Color"] = "Hintergrundfarbe"
 	--[[Translation missing --]]
 	L["Backdrop in Front"] = "Backdrop in Front"
@@ -296,6 +298,8 @@ Off Screen]=]
 	L["Clear Debug Logs"] = "Clear Debug Logs"
 	--[[Translation missing --]]
 	L["Clear Saved Data"] = "Clear Saved Data"
+	--[[Translation missing --]]
+	L["Click to replace the name with %s."] = "Click to replace the name with %s."
 	--[[Translation missing --]]
 	L["Clip Overlays"] = "Clip Overlays"
 	--[[Translation missing --]]
@@ -356,7 +360,15 @@ Off Screen]=]
 	--[[Translation missing --]]
 	L["Custom Frames"] = "Custom Frames"
 	--[[Translation missing --]]
+	L["Custom Functions"] = "Custom Functions"
+	--[[Translation missing --]]
+	L["Custom Init"] = "Custom Init"
+	--[[Translation missing --]]
+	L["Custom Load"] = "Custom Load"
+	--[[Translation missing --]]
 	L["Custom Options"] = "Custom Options"
+	--[[Translation missing --]]
+	L["Custom Text Update Throttle"] = "Custom Text Update Throttle"
 	L["Custom Trigger"] = "Benutzerdefinierter Auslöser"
 	L["Custom trigger event tooltip"] = [=[Wähle die Ereignisse, die den benutzerdefinierten Auslöser aufrufen sollen.
 Mehrere Ereignisse können durch Komma oder Leerzeichen getrennt werden.
@@ -370,9 +382,13 @@ Mehrere Events können durch Komma oder Leerzeichen getrennt werden.
 |cFF4444FFBeispiel:|r
 UNIT_POWER, UNIT_AURA PLAYER_TARGET_CHANGED]=]
 	--[[Translation missing --]]
+	L["Custom trigger Update Throttle"] = "Custom trigger Update Throttle"
+	--[[Translation missing --]]
 	L["Custom Trigger: Ignore Lua Errors on OPTIONS event"] = "Custom Trigger: Ignore Lua Errors on OPTIONS event"
 	--[[Translation missing --]]
 	L["Custom Trigger: Send fake events instead of STATUS event"] = "Custom Trigger: Send fake events instead of STATUS event"
+	--[[Translation missing --]]
+	L["Custom Unload"] = "Custom Unload"
 	L["Custom Untrigger"] = "Benutzerdefinierter Umkehrauslöser"
 	--[[Translation missing --]]
 	L["Debug Log"] = "Debug Log"
@@ -393,6 +409,8 @@ UNIT_POWER, UNIT_AURA PLAYER_TARGET_CHANGED]=]
 	L["Differences"] = "Unterschiede"
 	--[[Translation missing --]]
 	L["Disallow Entry Reordering"] = "Disallow Entry Reordering"
+	--[[Translation missing --]]
+	L["Discord"] = "Discord"
 	L["Display Name"] = "Anzeigename"
 	L["Display Text"] = "Anzeigetext"
 	L["Displays a text, works best in combination with other displays"] = "Zeigt einen Text an, funktioniert am besten in Kombination mit anderen Anzeigen"
@@ -614,6 +632,8 @@ Falls die Zahl als Dezimalzahl (z.B. 0.5), Bruch (z.B. 1/2) oder Prozentsatz (z.
 	L["Hawk"] = "Falke"
 	L["Help"] = "Hilfe"
 	--[[Translation missing --]]
+	L["Hide After"] = "Hide After"
+	--[[Translation missing --]]
 	L["Hide Background"] = "Hide Background"
 	--[[Translation missing --]]
 	L["Hide Glows applied by this aura"] = "Hide Glows applied by this aura"
@@ -724,8 +744,6 @@ Falls die Zahl als Dezimalzahl (z.B. 0.5), Bruch (z.B. 1/2) oder Prozentsatz (z.
 	L["Is Stealable"] = "Ist stehlbar"
 	--[[Translation missing --]]
 	L["Is Unit"] = "Is Unit"
-	--[[Translation missing --]]
-	L["Join Discord"] = "Join Discord"
 	L["Justify"] = "Ausrichten"
 	--[[Translation missing --]]
 	L["Keep Aspect Ratio"] = "Keep Aspect Ratio"
@@ -772,6 +790,8 @@ Falls die Zahl als Dezimalzahl (z.B. 0.5), Bruch (z.B. 1/2) oder Prozentsatz (z.
 	L["Main"] = "Hauptanimation"
 	--[[Translation missing --]]
 	L["Manual with %i/%i"] = "Manual with %i/%i"
+	--[[Translation missing --]]
+	L["Matches %s spells"] = "Matches %s spells"
 	--[[Translation missing --]]
 	L["Matches the height setting of a horizontal bar or width for a vertical bar."] = "Matches the height setting of a horizontal bar or width for a vertical bar."
 	L["Max"] = "Max"
@@ -877,7 +897,6 @@ every 3 events starting from 2nd and ending at 11th: 2-11/3]=]
 	--[[Translation missing --]]
 	L["ON"] = "ON"
 	L["On Hide"] = "Beim Ausblenden"
-	L["On Init"] = "Beim Initialisieren"
 	L["On Show"] = "Beim Einblenden"
 	--[[Translation missing --]]
 	L["Only Match auras cast by a player (not an npc)"] = "Only Match auras cast by a player (not an npc)"
@@ -933,6 +952,8 @@ every 3 events starting from 2nd and ending at 11th: 2-11/3]=]
 	--[[Translation missing --]]
 	L["Places a tick on the bar"] = "Places a tick on the bar"
 	L["Play Sound"] = "Sound abspielen"
+	--[[Translation missing --]]
+	L["Player Spells found:"] = "Player Spells found:"
 	L["Portrait Zoom"] = "Portraitzoom"
 	--[[Translation missing --]]
 	L["Position and Size Settings"] = "Position and Size Settings"
@@ -971,6 +992,8 @@ every 3 events starting from 2nd and ending at 11th: 2-11/3]=]
 	L["Re-center Y"] = "Zentrum (Y)"
 	--[[Translation missing --]]
 	L["Reciprocal TRIGGER:# requests will be ignored!"] = "Reciprocal TRIGGER:# requests will be ignored!"
+	--[[Translation missing --]]
+	L["Redo"] = "Redo"
 	--[[Translation missing --]]
 	L["Regions of type \"%s\" are not supported."] = "Regions of type \"%s\" are not supported."
 	L["Remove"] = "Entfernen"
@@ -1141,10 +1164,11 @@ every 3 events starting from 2nd and ending at 11th: 2-11/3]=]
 	L["Specific Currency ID"] = "Specific Currency ID"
 	--[[Translation missing --]]
 	L["Spell Selection Filters"] = "Spell Selection Filters"
+	--[[Translation missing --]]
+	L["Spells found:"] = "Spells found:"
 	L["Stack Info"] = "Stapelinfo"
 	--[[Translation missing --]]
 	L["Stacks - The number of stacks of an aura (usually)"] = "Stacks - The number of stacks of an aura (usually)"
-	L["Stagger"] = "Taumeln"
 	--[[Translation missing --]]
 	L["Standby"] = "Standby"
 	L["Star"] = "Stern"
@@ -1160,6 +1184,8 @@ every 3 events starting from 2nd and ending at 11th: 2-11/3]=]
 	--[[Translation missing --]]
 	L["Stop Motion Settings"] = "Stop Motion Settings"
 	L["Stop Sound"] = "Sound stoppen"
+	--[[Translation missing --]]
+	L["Stretched by Foreground"] = "Stretched by Foreground"
 	--[[Translation missing --]]
 	L["Sub Elements"] = "Sub Elements"
 	--[[Translation missing --]]
@@ -1199,6 +1225,10 @@ every 3 events starting from 2nd and ending at 11th: 2-11/3]=]
 	L["The duration of the animation in seconds. The finish animation does not start playing until after the display would normally be hidden."] = "Die Dauer der Animation in Sekunden. Die Endanimation erscheint erst zum Zeitpunkt des Ausblendens."
 	--[[Translation missing --]]
 	L["The group and all direct children will share the same base frame level."] = "The group and all direct children will share the same base frame level."
+	--[[Translation missing --]]
+	L["The Multi Target mode is less reliable and not recommended."] = "The Multi Target mode is less reliable and not recommended."
+	--[[Translation missing --]]
+	L["The Multi Target mode requires a name or spell id filter"] = "The Multi Target mode requires a name or spell id filter"
 	--[[Translation missing --]]
 	L["The trigger number is optional. When no trigger number is specified, the trigger selected via dynamic information will be used."] = "The trigger number is optional. When no trigger number is specified, the trigger selected via dynamic information will be used."
 	L["The type of trigger"] = "Auslösertyp"
@@ -1291,6 +1321,8 @@ Upgrade your version of WeakAuras or wait for next release before installing thi
 	L["Trigger Combination"] = "Trigger Combination"
 	--[[Translation missing --]]
 	L["Type 'select' for '%s' requires a values member'"] = "Type 'select' for '%s' requires a values member'"
+	--[[Translation missing --]]
+	L["Undo"] = "Undo"
 	L["Ungroup"] = "Gruppierung aufheben"
 	--[[Translation missing --]]
 	L["Unit %s is not a valid unit for RegisterUnitEvent"] = "Unit %s is not a valid unit for RegisterUnitEvent"
@@ -1346,11 +1378,17 @@ Upgrade your version of WeakAuras or wait for next release before installing thi
 	--[[Translation missing --]]
 	L["View custom code"] = "View custom code"
 	--[[Translation missing --]]
-	L["Voice"] = "Voice"
+	L["Voice Settings"] = "Voice Settings"
 	--[[Translation missing --]]
 	L["We thank"] = "We thank"
 	--[[Translation missing --]]
 	L["WeakAuras %s on WoW %s"] = "WeakAuras %s on WoW %s"
+	--[[Translation missing --]]
+	L["WeakAuras recommends using spell ids instead of names. Spell ids are automatically localized."] = "WeakAuras recommends using spell ids instead of names. Spell ids are automatically localized."
+	--[[Translation missing --]]
+	L[ [=[WeakAuras will not support Midnight. On release of the prepatch, WeakAuras will be disabled.
+Read more on our Patreon page https://patreon.com/WeakAuras]=] ] = [=[WeakAuras will not support Midnight. On release of the prepatch, WeakAuras will be disabled.
+Read more on our Patreon page https://patreon.com/WeakAuras]=]
 	--[[Translation missing --]]
 	L["What do you want to do?"] = "What do you want to do?"
 	--[[Translation missing --]]
@@ -1373,6 +1411,16 @@ Upgrade your version of WeakAuras or wait for next release before installing thi
 	L["You are about to delete %d aura(s). |cFFFF0000This cannot be undone!|r Would you like to continue?"] = "Du bist im Begriff %d Aura/Auren zu löschen. |cFFFF0000Das Löschen kann nicht rückgängig gemacht werden!|r Willst du fortfahren?"
 	--[[Translation missing --]]
 	L["You are about to delete a trigger. |cFFFF0000This cannot be undone!|r Would you like to continue?"] = "You are about to delete a trigger. |cFFFF0000This cannot be undone!|r Would you like to continue?"
+	--[[Translation missing --]]
+	L[ [=[You are about to Import an Aura with custom Lua code on a Hardcore server.
+
+|cFFFF0000There is a risk the custom code could be used to kill your hardcore character!|r
+
+Would you like to continue?]=] ] = [=[You are about to Import an Aura with custom Lua code on a Hardcore server.
+
+|cFFFF0000There is a risk the custom code could be used to kill your hardcore character!|r
+
+Would you like to continue?]=]
 	--[[Translation missing --]]
 	L[ [=[You can add a comma-separated list of state values here that (when changed) WeakAuras should also run the Anchor Code on.
 

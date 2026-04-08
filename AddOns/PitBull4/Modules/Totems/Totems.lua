@@ -3,10 +3,6 @@ local player_class = UnitClassBase("player")
 local PitBull4 = _G.PitBull4
 local L = PitBull4.L
 
-local wow_cata = PitBull4.wow_cata
-local GetSpellName = C_Spell.GetSpellName or _G.GetSpellInfo -- XXX Classic
-local GetSpellTexture = C_Spell.GetSpellTexture or _G.GetSpellTexture -- XXX Classic
-
 -- CONSTANTS ----------------------------------------------------------------
 
 local MAX_TOTEMS = 4
@@ -112,10 +108,10 @@ PitBull4_Totems:SetDefaults({
 function PitBull4_Totems:OnEnable()
 	self:RegisterEvent("PLAYER_TOTEM_UPDATE")
 	self:RegisterEvent("PLAYER_ENTERING_WORLD", "ForceSilentTotemUpdate")
-	if wow_cata then
-		self:RegisterEvent("CHARACTER_POINTS_CHANGED", "UpdateAll")
-	else
+	if ClassicExpansionAtLeast(LE_EXPANSION_MISTS_OF_PANDARIA) then
 		self:RegisterEvent("PLAYER_TALENT_UPDATE", "UpdateAll")
+	else
+		self:RegisterEvent("CHARACTER_POINTS_CHANGED", "UpdateAll")
 	end
 end
 
@@ -235,8 +231,8 @@ do
 			config_times[slot] = t + duration
 			if REQUIRED_SPELL then
 				local spell = REQUIRED_SPELL[1]
-				name = GetSpellName(spell)
-				icon = GetSpellTexture(spell)
+				name = C_Spell.GetSpellName(spell)
+				icon = C_Spell.GetSpellTexture(spell)
 			else
 				name, icon = "Fake Totem", CONFIG_MODE_ICON
 			end

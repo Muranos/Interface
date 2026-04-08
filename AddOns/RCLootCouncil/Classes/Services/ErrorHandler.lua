@@ -101,7 +101,9 @@ function private:NewError (err)
       count = 1,
       time = GetServerTime()
    }
-   addon:DumpDebugVariables() -- REVIEW: Consider make new errors subscribable to avoid this binding.
+	if addon.DumpDebugVariables then
+		addon:DumpDebugVariables() -- REVIEW: Consider make new errors subscribable to avoid this binding.
+	end
 end
 
 function private:IncrementErrorCount (errObj)
@@ -111,14 +113,16 @@ function private:IncrementErrorCount (errObj)
 end
 
 function private:SanitizeLine (line)
-   return line and line:gsub("Interface\\AddOns\\", "") or ""
+	if issecretvalue(line) then return line end
+   	return line and line:gsub("Interface\\AddOns\\", "") or ""
 end
 
 function private:DoesErrorExist (err)
-   for _, v in ipairs(self.log or {}) do
-      if v.msg == err then return v end
-   end
-   return false
+	if issecretvalue(err) then return false	end
+	for _, v in ipairs(self.log or {}) do
+		if v.msg == err then return v end
+	end
+	return false
 end
 
 function private:IsRCLootCouncilError (line)

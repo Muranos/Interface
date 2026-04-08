@@ -9,6 +9,8 @@ L["A /reload may be required to take effect."] = "A /reload may be required to t
 --[[Translation missing --]]
 L["CVar, saved within Plater profile and restored when loading the profile."] = "CVar, saved within Plater profile and restored when loading the profile."
 --[[Translation missing --]]
+L["DISABLE_TESTING_AURAS"] = ""
+--[[Translation missing --]]
 L["EXPORT"] = "Export"
 --[[Translation missing --]]
 L["EXPORT_CAST_COLORS"] = "Share Colors"
@@ -534,7 +536,7 @@ L["OPTIONS_THREAT_USE_AGGRO_FLASH"] = "Enable aggro flash"
 --[[Translation missing --]]
 L["OPTIONS_THREAT_USE_AGGRO_FLASH_DESC"] = "Enables the -AGGRO- flash animation on the nameplates when gaining aggro as dps."
 --[[Translation missing --]]
-L["OPTIONS_THREAT_USE_AGGRO_GLOW"] = "Enable aggro glow"
+L["OPTIONS_THREAT_USE_AGGRO_GLOW"] = "Enable health bar aggro glow"
 --[[Translation missing --]]
 L["OPTIONS_THREAT_USE_AGGRO_GLOW_DESC"] = "Enables the healthbar glow on the nameplates when gaining aggro as dps or losing aggro as tank."
 --[[Translation missing --]]
@@ -567,6 +569,12 @@ L[ [=[Show nameplate for friendly npcs.
 |cFFFFFF00 Important |r: This option is dependent on the client`s nameplate state (on/off).
 
 |cFFFFFF00 Important |r: when disabled but enabled on the client through (%s), the healthbar isn't visible but the nameplate is still clickable.]=]
+--[[Translation missing --]]
+L[ [=[Show nameplate for friendly npcs.
+
+|cFFFFFF00 Important |r: This option is dependent on the client`s nameplate state (on/off).
+
+|cFFFFFF00 Important |r: when disabled but enabled on the client through (%s), the healthbar isn't visible but the nameplate is still clickable.]=] ] = ""
 --[[Translation missing --]]
 L["TARGET_CVAR_ALWAYSONSCREEN"] = "Target Always on the Screen|cFFFF7700*|r"
 --[[Translation missing --]]

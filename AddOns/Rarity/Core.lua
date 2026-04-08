@@ -21,9 +21,7 @@ Rarity.pet_sources = {}
 Rarity.lockouts = {}
 Rarity.lockouts_detailed = {}
 Rarity.lockouts_holiday = {}
-Rarity.holiday_textures = {}
-Rarity.ach_npcs_isKilled = {}
-Rarity.ach_npcs_achId = {}
+Rarity.activeHolidayEvents = {}
 Rarity.stats_to_scan = {}
 Rarity.items_with_stats = {}
 Rarity.collection_items = {}
@@ -180,6 +178,7 @@ do
 		self.db = LibStub("AceDB-3.0"):New("RarityDB", self.defaults, true)
 		Output:Setup()
 
+		self:RegisterGameTooltipHooks()
 		self:RegisterChatCommand("rarity", "OnChatCommand")
 		self:RegisterChatCommand("rare", "OnChatCommand")
 

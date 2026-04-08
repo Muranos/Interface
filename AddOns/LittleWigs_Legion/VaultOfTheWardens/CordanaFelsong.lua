@@ -28,9 +28,9 @@ if L then
 	L.light_dropped = "%s dropped the Light."
 	L.light_picked = "%s picked up the Light."
 
-	L.warmup_text = "Cordana Felsong Active"
 	L.warmup_trigger = "I have what I was after. But I stayed just so that I could put an end to you... once and for all!"
 	L.warmup_trigger_2 = "And now you fools have fallen into my trap. Let's see how you fare in the dark."
+	L.warmup_icon = "achievement_dungeon_vaultofthewardens"
 end
 
 --------------------------------------------------------------------------------
@@ -76,10 +76,10 @@ end
 function mod:Warmup(event, msg)
 	if msg == L.warmup_trigger then
 		self:UnregisterEvent(event)
-		self:Bar("warmup", 17.8, L.warmup_text, "achievement_dungeon_vaultofthewardens")
+		self:Bar("warmup", 17.8, CL.active, L.warmup_icon)
 	elseif msg == L.warmup_trigger_2 then
 		self:UnregisterEvent(event)
-		self:Bar("warmup", 5.5, L.warmup_text, "achievement_dungeon_vaultofthewardens")
+		self:Bar("warmup", 5.5, CL.active, L.warmup_icon)
 	end
 end
 
@@ -87,17 +87,17 @@ do
 	local prev, prevGUID = 0, nil
 	function mod:UNIT_SPELLCAST_SUCCEEDED(_, unit, castGUID, spellId)
 		if unit == "boss1" then
-			if spellId == 197796 then -- Avatar of Vengeance
+			if not self:IsSecret(spellId) and spellId == 197796 then -- Avatar of Vengeance
 				self:MessageOld(spellId, "orange", "long")
 				self:Bar(spellId, 45)
-			elseif spellId == 213583 or spellId == 197578 or spellId == 226312 or spellId == 213576 then -- Deepening Shadows
+			elseif not self:IsSecret(spellId) and (spellId == 213583 or spellId == 197578 or spellId == 226312 or spellId == 213576) then -- Deepening Shadows
 				local t = GetTime()
 				if t-prev > 2 then
 					prev = t
 					self:MessageOld(213583, "yellow", "alarm")
 				end
 			end
-		elseif spellId == 228210 and castGUID ~= prevGUID then -- Elune's Light picked up
+		elseif not self:IsSecret(spellId) and spellId == 228210 and castGUID ~= prevGUID then -- Elune's Light picked up
 			prevGUID = castGUID
 			self:MessageOld(204481, "green", "long", L.light_picked:format(self:ColorName(self:UnitName(unit))))
 		end

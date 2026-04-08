@@ -1,8 +1,5 @@
 ﻿
 local L = LibStub("AceLocale-3.0"):NewLocale("TellMeWhen", "esES", false)
-if not L then
-	L = LibStub("AceLocale-3.0"):NewLocale("TellMeWhen", "esMX", false)
-end
 if not L then return end
 
 
@@ -16,6 +13,7 @@ L["ALLOWCOMM"] = "Permitir compartir en el juego"
 L["ALLOWCOMM_DESC"] = "Permitir a otros usuarios de TellMeWhen enviarle datos. "
 L["ALLOWVERSIONWARN"] = "Notificar de nueva versión"
 L["ALPHA"] = "Opacidad"
+L["ANCHOR_CURSOR_DUMMY"] = "cursor de anclaje ficticio"
 L["ANCHORTO"] = "Anclar a"
 L["ANIM_ACTVTNGLOW"] = "Icono: Borde de Activación"
 L["ANIM_ACTVTNGLOW_DESC"] = "Muestra el borde de activación de hechizo de Blizzard en el icono. "

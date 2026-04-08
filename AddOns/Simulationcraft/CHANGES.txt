@@ -1,10 +1,10 @@
-lightweight tag 4706b5464f13ac2a6ee72d5f6795e97a4800f651 patch-11.1.0-03
+lightweight tag 2a789725ac135910b9681f07cb80f93ee1cbb88b 12.0.1-04
 Author:	Dave Hendler <sollaires@gmail.com>
-Date:	Wed Mar 19 14:22:58 2025 -0700
+Date:	Mon Mar 30 16:06:33 2026 -0700
 
-commit 4706b5464f13ac2a6ee72d5f6795e97a4800f651
+commit 2a789725ac135910b9681f07cb80f93ee1cbb88b
 Author: Dave Hendler <sollaires@gmail.com>
-Date:   Wed Mar 19 14:22:58 2025 -0700
+Date:   Mon Mar 30 16:06:33 2026 -0700
 
-    Add Undermine crest discount achievements
+    Set addon category to Other
 

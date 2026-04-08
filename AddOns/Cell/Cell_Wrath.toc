@@ -1,6 +1,6 @@
-## Interface: 30404
+## Interface: 38000
 ## Title: Cell
-## Version: r252-release
+## Version: r274-release
 ## Author: enderneko
 ## X-Flavor: Wrath
 ## SavedVariables: CellDB, CellDBBackup
@@ -37,7 +37,7 @@ RaidFrames\MainFrame.lua
 
 RaidDebuffs\ExpansionData\LoadExpansionData.xml
 Modules\LoadModules_Classic.xml
-Utilities\LoadUtilities_Wrath.xml
+Utilities\LoadUtilities_Classic.xml
 RaidDebuffs\LoadRaidDebuffs_Wrath.xml
 
 RaidFrames\UnitButton_Cata_Wrath.lua

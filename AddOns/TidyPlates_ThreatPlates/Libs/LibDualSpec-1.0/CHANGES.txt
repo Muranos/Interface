@@ -1,12 +1,12 @@
-tag 83f5d1251166a2bf44a782acbc10ed0a01420131 v1.24.0
+tag a1877a2514f03cd73a76fd145ca513a85019d9ba v1.29.0
 Author:	Kyle Buller <bullerk@gmail.com>
-Date:	Wed Jul 10 02:16:07 2024 -0500
+Date:	Sat Feb 14 10:42:15 2026 -0600
 
-Tagging as v1.24.0
+Tagging as v1.29.0
 
-commit e0da0f71030bc52fd07cdaf56543c139fdc09276
+commit 18d5cc4d53f7819c344262fc7a8a0ea4b72f7ef6
 Author: Kyle Buller <bullerk@gmail.com>
-Date:   Wed Jul 10 01:46:35 2024 -0500
+Date:   Sat Feb 14 10:34:33 2026 -0600
 
-    Add support for Wrath Classic (China)
+    Fix options error
 

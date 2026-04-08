@@ -1,8 +1,9 @@
 # BigWigs [Cataclysm]
 
-## [v11.1.2](https://github.com/BigWigsMods/BigWigs_Cataclysm/tree/v11.1.2) (2025-03-24)
-[Full Changelog](https://github.com/BigWigsMods/BigWigs_Cataclysm/compare/v11.1.1...v11.1.2) [Previous Releases](https://github.com/BigWigsMods/BigWigs_Cataclysm/releases)
+## [v12.0.1](https://github.com/BigWigsMods/BigWigs_Cataclysm/tree/v12.0.1) (2026-04-02)
+[Full Changelog](https://github.com/BigWigsMods/BigWigs_Cataclysm/compare/v12.0.0...v12.0.1) [Previous Releases](https://github.com/BigWigsMods/BigWigs_Cataclysm/releases)
 
-- Update zhCN (#38)  
 - Bump min version  
+- Update option files  
 - Bump toc  
+- Update zhTW (#43)  

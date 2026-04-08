@@ -16,6 +16,7 @@ if not TMW then return end
 local TMW = TMW
 local L = TMW.L
 local print = TMW.print
+local issecretvalue = TMW.issecretvalue
 
 local next, pairs, error, rawget, next, wipe, tinsert, sort, strsplit, table, assert, loadstring, ipairs, tostring, assert, strmatch
 	= next, pairs, error, rawget, next, wipe, tinsert, sort, strsplit, table, assert, loadstring, ipairs, tostring, assert, strmatch
@@ -172,17 +173,118 @@ function Icon.__tostring(icon)
 end
 
 function Icon.ScriptSort(iconA, iconB)
-	local gOrder = 1 -- -TMW.db.profile.CheckOrder
-	local gA = iconA.group.ID
-	local gB = iconB.group.ID
+	local gA = iconA.group.ID + (iconA.group.Domain == 'global' and 10000 or 0)
+	local gB = iconB.group.ID + (iconB.group.Domain == 'global' and 10000 or 0)
 	if gA == gB then
-		local iOrder = 1 -- -iconA.group.CheckOrder
-		return iconA.ID*iOrder < iconB.ID*iOrder
+		return iconA.ID < iconB.ID
 	end
-	return gA*gOrder < gB*gOrder
+	return gA < gB
 end
-Icon:UpdateTable_SetAutoSort(Icon.ScriptSort)
-TMW:RegisterCallback("TMW_GLOBAL_UPDATE_POST", Icon, "UpdateTable_PerformAutoSort")
+
+-- Dependency-aware sorting function
+local function SortIconUpdateTable(icons)
+	-- First, collect all dependencies for all icons
+	local iconDependencies = {}
+	local iconsInTable = {}
+	
+	-- Build lookup tables
+	for i = 1, #icons do
+		local icon = icons[i]
+		iconsInTable[icon] = i
+	end
+	
+	-- Collect dependencies for each icon
+	for i = 1, #icons do
+		local icon = icons[i]
+		local dependencies = {}
+		
+		-- Fire the dependency collection event
+		TMW:Fire("TMW_ICON_COLLECT_DEPENDENCIES", icon, dependencies)
+		
+		-- Filter dependencies to only include icons that are actually in the update table
+		local filteredDeps = {}
+		for _, depGUID in ipairs(dependencies) do
+			local depIcon = TMW.GUIDToOwner[depGUID]
+			if depIcon and iconsInTable[depIcon] then
+				tinsert(filteredDeps, depIcon)
+			end
+		end
+		
+		iconDependencies[icon] = filteredDeps
+	end
+	
+	-- Perform topological sort with fallback to original sort for cycles
+	local sorted = {}
+	local visiting = {}
+	local visited = {}
+	local hasCycle = {}
+	
+	local function visit(icon)
+		if visiting[icon] then
+			-- Cycle detected
+			hasCycle[icon] = true
+			return
+		end
+		if visited[icon] then
+			return
+		end
+		
+		visiting[icon] = true
+		
+		-- Visit all dependencies first
+		local deps = iconDependencies[icon] or {}
+		for _, depIcon in ipairs(deps) do
+			if not hasCycle[depIcon] then
+				visit(depIcon)
+			end
+		end
+		
+		visiting[icon] = nil
+		visited[icon] = true
+		tinsert(sorted, icon)
+	end
+	
+	-- Sort icons by the original criteria first to maintain deterministic order
+	local iconsCopy = {}
+	for i = 1, #icons do
+		iconsCopy[i] = icons[i]
+	end
+	sort(iconsCopy, Icon.ScriptSort)
+	
+	-- Visit all icons in the original sort order
+	for _, icon in ipairs(iconsCopy) do
+		if not visited[icon] and not hasCycle[icon] then
+			visit(icon)
+		end
+	end
+	
+	-- Add any icons that were part of cycles at the end, in original sort order
+	for _, icon in ipairs(iconsCopy) do
+		if hasCycle[icon] and not visited[icon] then
+			tinsert(sorted, icon)
+			visited[icon] = true
+		end
+	end
+	
+	-- Copy the sorted result back to the original array
+	for i = 1, #sorted do
+		icons[i] = sorted[i]
+	end
+end
+
+-- Debounced sorting triggered by icon setup changes
+-- By triggering on icon setup instead of TMW_GLOBAL_UPDATE_POST,
+-- we can perform sorting after icons and groups are enabled/disabled with slash commands.
+local sortUpdateQueued = false
+TMW:RegisterCallback("TMW_ICON_SETUP_POST", function()
+	if not sortUpdateQueued then
+		sortUpdateQueued = true
+		C_Timer.After(0, function()
+			sortUpdateQueued = false
+			SortIconUpdateTable(TMW.IconsToUpdate)
+		end)
+	end
+end)
 
 -- [WRAPPER] (no documentation needed)
 Icon.SetScript_Blizz = Icon.SetScript
@@ -311,26 +413,16 @@ end
 -- @return [String] The GUID of the icon.
 -- @usage local GUID = icon:GetGUID()
 function Icon.GetGUID(icon, generate)
-	local GUID = icon:GetRealSettings().GUID
+	local GUID = icon._GUID
+	if GUID and not generate then return GUID end
+
+	GUID = icon:GetRealSettings().GUID
 	if GUID == "" then
 		GUID = nil
 	end
 
 	if not GUID then
-		if not icon.TempGUID then
-			icon.TempGUID = TMW:GenerateGUID("icon", TMW.CONST.GUID_SIZE)
-			GUID = icon.TempGUID
-		end
-		if generate then
-			GUID = icon.TempGUID
-			icon.TempGUID = nil
-
-			icon:GetRealSettings().GUID = GUID
-			icon.GUID = GUID
-			icon:Setup()
-		else
-			return icon.TempGUID
-		end
+		GUID = icon.TempGUID
 	else
 		-- Nil this out for icons that are imported that have a GUID.
 		-- There will be a tempGUID already for the icon, but it won't match
@@ -338,6 +430,18 @@ function Icon.GetGUID(icon, generate)
 		icon.TempGUID = nil
 	end
 
+	if not GUID then
+		GUID = TMW:GenerateGUID("icon", TMW.CONST.GUID_SIZE)
+		icon.TempGUID = GUID
+	end
+
+	if generate then
+		icon.TempGUID = nil
+		icon:GetRealSettings().GUID = GUID
+		-- icon:Setup()
+	end
+
+	icon._GUID = GUID
 	return GUID
 end
 
@@ -583,6 +687,14 @@ function Icon.SetUpdateMethod(icon, method)
 	end
 end
 
+--- Gets the update method that is being used by the icon.
+-- @name Icon:GetUpdateMethod
+-- @paramsig
+-- @return [string] The update method being used by the icon ("auto" or "manual")
+function Icon.GetUpdateMethod(icon)
+	return icon.Update_Method or "auto"
+end
+
 -- [INTERNAL] (no documentation needed)
 function Icon.ScheduleNextUpdate(icon)
 	local time = TMW.time
@@ -596,12 +708,14 @@ function Icon.ScheduleNextUpdate(icon)
 			
 			if not attributes.shown then
 				break
-			end
+			end 
 
-			local d = attributes.duration - (time - attributes.start)
+			if not issecretvalue(attributes.duration) then
+				local d = attributes.duration - (time - attributes.start)
 
-			if d > 0 and d < duration then
-				duration = d
+				if d > 0 and d < duration then
+					duration = d
+				end
 			end
 		end
 
@@ -611,8 +725,28 @@ function Icon.ScheduleNextUpdate(icon)
 	else
 		local attributes = icon.attributes
 
-		duration = attributes.duration - (time - attributes.start)
-		if duration < 0 then duration = 0 end
+		if issecretvalue(attributes.duration) then
+			duration = 0
+
+			-- Use a hidden Cooldown frame to detect when the secret duration expires,
+			-- since we can't do arithmetic on secret values to schedule a future update.
+			local durObj = attributes.durObj
+			if durObj and icon.typeData.hasNoDurationEndEvent then
+				local cd = icon.__secretDurCD
+				if not cd then
+					cd = CreateFrame("Cooldown", nil, icon)
+					cd:SetAlpha(0)
+					cd:SetScript("OnCooldownDone", function()
+						icon.NextUpdateTime = 0
+					end)
+					icon.__secretDurCD = cd
+				end
+				cd:SetCooldownFromDurationObject(durObj, true)
+			end
+		else
+			duration = attributes.duration - (time - attributes.start)
+			if duration < 0 then duration = 0 end
+		end
 	end
 
 	if duration == 0 then
@@ -899,7 +1033,7 @@ function Icon.DisableIcon(icon, soft)
 
 	if not soft then
 		local iconGUID = icon:GetGUID()
-		if iconGUID then
+		if iconGUID and TMW:GetDataOwner(iconGUID) == icon then
 			TMW:DeclareDataOwner(iconGUID, nil)
 		end
 	end
@@ -936,7 +1070,8 @@ end
 -- @paramsig 
 function Icon.Setup(icon)
 	if not icon or not icon[0] then return end
-	
+	icon._GUID = nil -- clear cached guid
+
 	local group = icon.group
 	local ics = icon:GetSettings()
 	local typeData = TMW.Types[ics.Type]
@@ -989,7 +1124,6 @@ function Icon.Setup(icon)
 
 	-- Store all of the icon's relevant settings on the icon,
 	-- and nil out any settings that aren't relevant.
-	-- TODO: (really big TODO) get rid of this behavior.
 	for k in pairs(TMW.Icon_Defaults) do
 		if typeData.RelevantSettings[k] then
 			icon[k] = ics[k]
@@ -1029,28 +1163,31 @@ function Icon.Setup(icon)
 
 		------------ Icon Type ------------
 		typeData:ImplementIntoIcon(icon)
-			
-		-- Only perform a setup for icons that aren't controlled.
-		-- Controlled icons shouldn't be setup because they aren't autonomous.
-		if not icon:IsControlled() then 
-			icon.LastUpdate = 0
-			icon.NextUpdateTime = 0
-			TMW.safecall(typeData.Setup, typeData, icon)
-		end
 
+		if typeData.obsolete then
+			icon:SetInfo("texture", 237555)
+		else
+			-- Only perform a setup for icons that aren't controlled.
+			-- Controlled icons shouldn't be setup because they aren't autonomous.
+			if not icon:IsControlled() then 
+				icon.LastUpdate = 0
+				icon.NextUpdateTime = 0
+				TMW.safecall(typeData.Setup, typeData, icon)
+			end
 
-		------------ Conditions ------------
-		-- Don't setup conditions to untyped icons.
-		if icon.typeData.type ~= "" then
-			-- Create our condition object for the icon.
-			local ConditionObjectConstructor = icon:Conditions_GetConstructor(icon.Conditions)
-			icon.ConditionObject = ConditionObjectConstructor:Construct()
-			
-			if icon.ConditionObject then
-				-- If this icon has valid conditions, listen for updates to them.
-				icon.ConditionObject:DeclareExternalUpdater(icon, true)
-				TMW:RegisterCallback("TMW_CNDT_OBJ_PASSING_CHANGED", icon)
-				icon:SetInfo("conditionFailed", icon.ConditionObject.Failed)
+			------------ Conditions ------------
+			-- Don't setup conditions to untyped icons.
+			if typeData.type ~= "" then
+				-- Create our condition object for the icon.
+				local ConditionObjectConstructor = icon:Conditions_GetConstructor(icon.Conditions)
+				icon.ConditionObject = ConditionObjectConstructor:Construct()
+				
+				if icon.ConditionObject then
+					-- If this icon has valid conditions, listen for updates to them.
+					icon.ConditionObject:DeclareExternalUpdater(icon, true)
+					TMW:RegisterCallback("TMW_CNDT_OBJ_PASSING_CHANGED", icon)
+					icon:SetInfo("conditionFailed", icon.ConditionObject.Failed)
+				end
 			end
 		end
 	else
@@ -1178,7 +1315,7 @@ TMW.IconStateArbitrator = {
 			
 			local stateData = attributes[handler.attribute]
 			
-			if stateData and stateData.Alpha == 0 then
+			if stateData and (issecretvalue(stateData.Alpha) or stateData.Alpha == 0) then
 				-- If an alpha is set to 0, then the icon should be hidden no matter what, 
 				-- so use it as the final alpha value and stop looking for more.
 				-- This functionality has existed in TMW since practically day one, by the way. So don't be clever and remove it.
@@ -1201,16 +1338,20 @@ TMW.IconStateArbitrator = {
 			-- realAlpha does the same for the alpha. We use it on top of calculatedState in favor of backwards compatibility.
 			local state = attributes[handlerToUse.attribute]
 
-			if not state.Alpha then
-				-- Attempting to catch an elusive bug. Remove this if it doesn't seem to be happening anymore.
+			if state.secretBool ~= nil or issecretvalue(state.Alpha) then
+				icon:SetInfo_INTERNAL("realAlpha; calculatedState", 1, state)
+			else
+				if not state.Alpha then
+					-- Attempting to catch an elusive bug. Remove this if it doesn't seem to be happening anymore.
 
-				-- One case I've seen is doing an undo/redo while TMW is locked. 
-				-- The underlying data on the setting table that gets passed as a state gets nilled out,
-				-- so there may be no value.
-				-- This happens when undoing to a blank icon from a non-blank icon, for example.
-				print("NO ALPHA ON STATE:", handlerToUse.attribute, icon, icon:GetName(), state.Alpha, state)
+					-- One case I've seen is doing an undo/redo while TMW is locked. 
+					-- The underlying data on the setting table that gets passed as a state gets nilled out,
+					-- so there may be no value.
+					-- This happens when undoing to a blank icon from a non-blank icon, for example.
+					print("NO ALPHA ON STATE:", handlerToUse.attribute, icon, icon:GetName(), state.Alpha, state)
+				end
+				icon:SetInfo_INTERNAL("realAlpha; calculatedState", state.Alpha or 0, state)
 			end
-			icon:SetInfo_INTERNAL("realAlpha; calculatedState", state.Alpha or 0, state)
 		end
 	end,
 
@@ -1420,7 +1561,6 @@ local SetInfoFuncs = setmetatable({}, { __index = function(self, signature)
 	
 	return func
 end})
-
 
 --- Sets attributes of an icon.
 -- 

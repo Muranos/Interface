@@ -1,8 +1,10 @@
+if BigWigsLoader.isRetail then return end -- Classic only module
+
 -------------------------------------------------------------------------------
 -- Module Declaration
 --
 
-local plugin = BigWigs:NewPlugin("Raid Icons")
+local plugin, L = BigWigs:NewPlugin("Raid Icons")
 if not plugin then return end
 
 -------------------------------------------------------------------------------
@@ -12,7 +14,6 @@ if not plugin then return end
 local lastplayer = {}
 local SetRaidTarget = BigWigsLoader.SetRaidTarget
 
-local L = BigWigsAPI:GetLocale("BigWigs")
 local icons = {
 	RAID_TARGET_1,
 	RAID_TARGET_2,
@@ -46,7 +47,7 @@ do
 	plugin.pluginOptions = {
 		type = "group",
 		name = "|TInterface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\Markers:20|t ".. L.icons,
-		order = 11,
+		order = 15,
 		get = get,
 		set = set,
 		args = {

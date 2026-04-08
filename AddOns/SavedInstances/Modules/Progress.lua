@@ -203,6 +203,16 @@ local presets = {
     persists = false,
     fullObjective = false,
   },
+  -- Delver's Bounty
+  ["delvers-bounty"] = {
+    type = "single",
+    index = 3.1,
+    name = L["Delver's Bounty"],
+    questID = 86371,
+    reset = "weekly",
+    persists = false,
+    fullObjective = false,
+  },
   -- The World Awaits
   ["the-world-awaits"] = {
     type = "single",
@@ -233,10 +243,20 @@ local presets = {
     persists = false,
     fullObjective = false,
   },
+  -- Brawl Weekly
+  ["brawl-weekly"] = {
+    type = "single",
+    index = 7,
+    name = L["Brawl Weekly"],
+    questID = 47148,
+    reset = "weekly",
+    persists = true,
+    fullObjective = false,
+  },
   -- Timewalking
   ["timewalking"] = {
     type = "any",
-    index = 7,
+    index = 8,
     name = L["Timewalking Weekend Event"],
     questID = {
       83363, -- A Burning Path Through Time - TBC Timewalking
@@ -246,6 +266,8 @@ local presets = {
       83364, -- A Savage Path Through Time - WOD Timewalking
       83360, -- A Fel Path Through Time - LEG Timewalking
       86731, -- An Original Path Through Time - CLA Timewalking
+      88805, -- A Scarred Path Through Time - BFA Timewalking
+      92649, -- A Shadowed Path Through Time - SL Timewalking
     },
     reset = "weekly",
     persists = false,
@@ -815,6 +837,29 @@ local presets = {
       [84739] = L["Fourth Cache"],
     },
   },
+  -- TWW Season 3 Weekly Cache
+  ["tww-s3-weekly-cache"] = {
+    type = "list",
+    expansion = 10,
+    index = 1.1,
+    name = L["TWW Season 3 Weekly Cache"],
+    questID = {
+      91175,
+      91176,
+      91177,
+      91178,
+    },
+    reset = "weekly",
+    persists = false,
+    progress = false,
+    onlyOnOrCompleted = false,
+    questName = {
+      [91175] = L["First Cache"],
+      [91176] = L["Second Cache"],
+      [91177] = L["Third Cache"],
+      [91178] = L["Fourth Cache"],
+    },
+  },
   -- Lesser Keyflame
   ["tww-lesser-keyflame"] = {
     type = "list",
@@ -846,17 +891,6 @@ local presets = {
     progress = true,
     onlyOnOrCompleted = true,
   },
-  -- Brawl Weekly
-  ["tww-brawl-weekly"] = {
-    type = "single",
-    expansion = 10,
-    index = 3,
-    name = L["Brawl Weekly"],
-    questID = 47148,
-    reset = "weekly",
-    persists = true,
-    fullObjective = false,
-  },
   -- PvP Weekly
   ["tww-pvp-weekly"] = {
     type = "any",
@@ -870,21 +904,6 @@ local presets = {
       80187, -- Preserving in Skirmishes
       80188, -- Preserving in Arenas
       80189, -- Preserving Teamwork
-    },
-    reset = "weekly",
-    persists = true,
-    fullObjective = false,
-  },
-  ["tww-pvp-world"] = {
-    type = "any",
-    expansion = 10,
-    index = 5,
-    name = L["World PvP Weekly"],
-    questID = {
-      81793, -- Sparks of War: Isle of Dorn
-      81794, -- Sparks of War: The Ringing Deeps
-      81795, -- Sparks of War: Hallowfall
-      81796, -- Sparks of War: Azj-Kahet
     },
     reset = "weekly",
     persists = true,
@@ -918,6 +937,9 @@ local presets = {
       82453, -- Worldsoul: Encore!
       82489, -- Worldsoul: The Dawnbreaker
       82659, -- Worldsoul: Nerub-ar Palace
+      87417, -- Worldsoul: Dungeons
+      91052, -- Worldsoul: Overcharged Delves
+      87419, -- Worldsoul: Delves
       82490, -- Worldsoul: Priory of the Sacred Flame
       82491, -- Worldsoul: Ara-Kara, City of Echoes
       82492, -- Worldsoul: City of Threads
@@ -938,14 +960,21 @@ local presets = {
       82508, -- Worldsoul: The Rookery
       82509, -- Worldsoul: Nerub-ar Palace
       82510, -- Worldsoul: Nerub-ar Palace
+      89514, -- Worldsoul: Horrific Visions Revisited
+      87424, -- Worldsoul: World Bosses
       82511, -- Worldsoul: Awakening Machine
       82512, -- Worldsoul: World Boss
+      89492, -- Worldsoul: Dastardly Duos in the Dome!
+      87423, -- Worldsoul: Undermine Explorer
       82488, -- Worldsoul: Darkflame Cleft
+      91855, -- Worldsoul: K'aresh World Quests
       82487, -- Worldsoul: The Stonevault
       82486, -- Worldsoul: The Rookery
       82485, -- Worldsoul: Cinderbrew Meadery
       82452, -- Worldsoul: World Quests
+      87422, -- Worldsoul: Undermine World Quests
       82495, -- Worldsoul: Cinderbrew Meadery
+      89502, -- Worldsoul: Nightfall
     },
     reset = "weekly",
     persists = true,
@@ -959,8 +988,8 @@ local presets = {
     name = L["Archives"],
     questID = {
       -- https://wago.tools/db2/QuestLineXQuest?filter[QuestLineID]=5572&page=1&sort[OrderIndex]=asc
-      82678, -- Archives: The First Disc
       82679, -- Archives: Seeking History
+      82678, -- Archives: The First Disc
     },
     reset = "weekly",
     persists = true,
@@ -974,14 +1003,14 @@ local presets = {
     name = L["Delves"],
     questID = {
       -- https://wago.tools/db2/QuestLineXQuest?filter[QuestLineID]=5572&page=1&sort[OrderIndex]=asc
-      82708, -- Delves: Nerubian Menace
-      82707, -- Delves: Earthen Defense
-      82706, -- Delves: Khaz Algar Research
-      82709, -- Delves: Percussive Archaeology
-      82710, -- Delves: Empire-ical Exploration
-      82711, -- Delves: Lost and Found
-      82712, -- Delves: Trouble Up and Down Khaz Algar
-      82746, -- Delves: Breaking Tough to Loot Stuff
+      -- 82708, -- Delves: Nerubian Menace
+      -- 82707, -- Delves: Earthen Defense
+      82706, -- Delves: Worldwide Research
+      -- 82709, -- Delves: Percussive Archaeology
+      -- 82710, -- Delves: Empire-ical Exploration
+      -- 82711, -- Delves: Lost and Found
+      -- 82712, -- Delves: Trouble Up and Down Khaz Algar
+      -- 82746, -- Delves: Breaking Tough to Loot Stuff
     },
     reset = "weekly",
     persists = true,
@@ -1025,20 +1054,26 @@ local presets = {
     type = "list",
     expansion = 10,
     index = 11,
-    name = L["Special Assignments"],
+    name = L["TWW Special Assignments"],
     questID = {
       82355, -- Special Assignment: Cinderbee Surge (Completing)
+      81647, -- Special Assignment: Titanic Resurgence (Completing)
       81649, -- Special Assignment: Titanic Resurgence (Completing)
+      81650, -- Special Assignment: Titanic Resurgence (Completing)
       81691, -- Special Assignment: Shadows Below (Completing)
       83229, -- Special Assignment: When the Deeps Stir (Completing)
       82852, -- Special Assignment: Lynx Rescue (Completing)
       82787, -- Special Assignment: Rise of the Colossals (Completing)
       82414, -- Special Assignment: A Pound of Cure (Completing)
       82531, -- Special Assignment: Bombs from Behind (Completing)
+      85487, -- Special Assignment: Boom! Headshot! (Completing)
+      85488, -- Special Assignment: Security Detail (Completing)
+      89294, -- Special Assignment: Aligned Views (Completing)
+      89293, -- Special Assignment: Overshadowed (Completing)
     },
     reset = "weekly",
     persists = false,
-    threshold = 2,
+    threshold = 4,
     progress = true,
     onlyOnOrCompleted = true,
   },
@@ -1068,6 +1103,7 @@ local presets = {
       83459, -- The Dawnbreaker
       83465, -- Ara-Kara, City of Echoes
       83469, -- City of Threads
+      86203, -- Operation: Floodgate
     },
     reset = "weekly",
     persists = false,
@@ -1086,7 +1122,7 @@ local presets = {
   },
   -- TWW Services Requested
   ["tww-services-requested"] = {
-    type = "any",
+    type = "list",
     expansion = 10,
     index = 15,
     name = L["TWW Profession Weeklies"],
@@ -1120,7 +1156,8 @@ local presets = {
     reset = "weekly",
     persists = true,
     threshold = 2,
-    fullObjective = false,
+    progress = true,
+    onlyOnOrCompleted = true,
   },
   -- TWW Treatise
   ["tww-algari-treatise"] = {
@@ -1175,7 +1212,7 @@ local presets = {
   ["tww-siren-isle-weekly"] = {
     type = "list",
     expansion = 10,
-    index = 16,
+    index = 18,
     name = L["Siren Isle Weekly"],
     questID = {
       -- Vrykul invasion
@@ -1206,6 +1243,653 @@ local presets = {
     progress = true,
     onlyOnOrCompleted = true,
   },
+  -- Free C.H.E.T.T. List
+  ["tww-free-chett-list"] = {
+    type = "single",
+    expansion = 10,
+    index = 19,
+    name = L["Free C.H.E.T.T. List"],
+    questID = 87296,
+    reset = "weekly",
+    persists = false,
+    fullObjective = false,
+  },
+  -- C.H.E.T.T. List
+  ["tww-chett-list"] = {
+    type = "list",
+    expansion = 10,
+    index = 20,
+    name = L["C.H.E.T.T. List"],
+    questID = {
+      86915, -- Side with a Cartel
+      86917, -- Ship Right
+      86918, -- Reclaimed Scrap
+      86919, -- Side Gig
+      86920, -- War Mode Violence
+      86923, -- Go Fish
+      86924, -- Gotta Catch at Least a Few
+      87302, -- Rare Rivals
+      87303, -- Clean the Sidestreets
+      87304, -- Time to Vacate
+      87305, -- Desire to D.R.I.V.E.
+      87306, -- Kaja Cruising
+      87307, -- Garbage Day
+    },
+    reset = "weekly",
+    persists = true,
+    threshold = 4,
+    progress = true,
+    onlyOnOrCompleted = true,
+    questName = {
+      [86915] = L["Side with a Cartel"],
+      [86917] = L["Ship Right"],
+      [86918] = L["Reclaimed Scrap"],
+      [86919] = L["Side Gig"],
+      [86920] = L["War Mode Violence"],
+      [86923] = L["Go Fish"],
+      [86924] = L["Gotta Catch at Least a Few"],
+      [87302] = L["Rare Rivals"],
+      [87303] = L["Clean the Sidestreets"],
+      [87304] = L["Time to Vacate"],
+      [87305] = L["Desire to D.R.I.V.E."],
+      [87306] = L["Kaja Cruising"],
+      [87307] = L["Garbage Day"],
+    },
+  },
+  -- Urge to Surge
+  ["tww-urge-to-surge"] = {
+    type = "single",
+    expansion = 10,
+    index = 21,
+    name = L["Urge to Surge"],
+    questID = 86775,
+    reset = "weekly",
+    persists = true,
+    fullObjective = false,
+  },
+  -- Many Jobs, Handle It!
+  ["tww-many-jobs-handle-it"] = {
+    type = "single",
+    expansion = 10,
+    index = 22,
+    name = L["Many Jobs, Handle It!"],
+    questID = 85869,
+    reset = "weekly",
+    persists = true,
+    fullObjective = false,
+  },
+  -- Reduce, Reuse, Resell
+  ["tww-reduce-reuse-resell"] = {
+    type = "single",
+    expansion = 10,
+    index = 23,
+    name = L["Reduce, Reuse, Resell"],
+    questID = 85879,
+    reset = "weekly",
+    persists = true,
+    fullObjective = false,
+  },
+  -- The Flame Burns Eternal
+  ["tww-nightfall-scenario"] = {
+    type = "single",
+    expansion = 10,
+    index = 24,
+    name = L["The Flame Burns Eternal"],
+    questID = 91173,
+    reset = "weekly",
+    persists = true,
+    fullObjective = false,
+  },
+  -- Nightfall Daily
+  ["tww-nightfall-daily"] = {
+    type = "list",
+    expansion = 10,
+    index = 25,
+    name = L["Nightfall Daily"],
+    questID = {
+      87475, -- Sureki Incursion: Hold the Wall
+      87477, -- Sureki Incursion: Southern Swarm
+      87480, -- Sureki Incursion: The Eastern Assault
+      88711, -- Radiant Incursion: Toxins and Pheromones
+      88916, -- Radiant Incursion: Sureki's End
+      88945, -- Radiant Incursion: Rak-Zakaz
+    },
+    reset = "daily",
+    persists = false,
+    threshold = 3,
+    progress = true,
+    onlyOnOrCompleted = true,
+  },
+  -- More Than Just a Phase
+  ["tww-more-than-just-a-phase"] = {
+    type = "single",
+    expansion = 10,
+    index = 26,
+    name = L["More Than Just a Phase"],
+    questID = 91093,
+    reset = "weekly",
+    persists = true,
+    fullObjective = false,
+  },
+  -- Ecological Succession
+  ["tww-ecological-succession"] = {
+    type = "single",
+    expansion = 10,
+    index = 27,
+    name = L["Ecological Succession"],
+    questID = 85460,
+    reset = "weekly",
+    persists = true,
+    fullObjective = false,
+  },
+  -- K'aresh Warrants
+  ["tww-karesh-warrants"] = {
+    type = "any",
+    expansion = 10,
+    index = 28,
+    name = L["K'aresh Warrants"],
+    questID = {
+      90122, -- Eliminate Xy'vox the Twisted
+      90123, -- Eliminate Hollowbane
+      90124, -- Eliminate Shatterpulse
+      90125, -- Eliminate Purple Peat
+      90126, -- Eliminate Grubber
+      90127, -- Eliminate Arcana-Monger So'zer
+    },
+    reset = "weekly",
+    persists = false,
+    fullObjective = false,
+  },
+  -- Midnight Meta Quest
+  ["mn-meta-quest"] = {
+    type = "any",
+    expansion = 11,
+    index = 2,
+    name = L["Midnight Meta Quest"],
+    questID = {
+      -- https://wago.tools/db2/QuestLabel?filter%5BLabelID%5D=6072&page=1
+      93766, -- Midnight: World Quests
+      93767, -- Midnight: Arcantina
+      93769, -- Midnight: Housing
+      93889, -- Midnight: Saltheril's Soiree
+      93890, -- Midnight: Abundance
+      93891, -- Midnight: Legends of the Haranir
+      93892, -- Midnight: Stormarion Assault
+      93909, -- Midnight: Delves
+      93910, -- Midnight: Prey
+      93911, -- Midnight: Dungeons
+      93912, -- Midnight: Raid
+      93913, -- Midnight: World Boss
+      94457, -- Midnight: Battlegrounds
+      95842, -- Midnight: Void Assaults
+      95843, -- Midnight: Ritual Sites
+    },
+    reset = "weekly",
+    persists = false,
+    fullObjective = false,
+  },
+  -- Special Assignments
+  ["mn-special-assignments"] = {
+    type = "list",
+    expansion = 11,
+    index = 3,
+    name = L["Midnight Special Assignments"],
+    questID = {
+      -- https://wago.tools/db2/QuestV2CliTask?filter%5BField_12_0_5_66330_001_lang%5D=Special%20Assignment&page=1
+      91390, -- Special Assignment: What Remains of a Temple Broken
+      91796, -- Special Assignment: Ours Once More!
+      92063, -- Special Assignment: A Hunter's Regret
+      92139, -- Special Assignment: Shade and Claw
+      92145, -- Special Assignment: The Grand Magister's Drink
+      93013, -- Special Assignment: Push Back the Light
+      93244, -- Special Assignment: Agents of the Shield
+      93438, -- Special Assignment: Precision Excision
+    },
+    reset = "weekly",
+    persists = false,
+    threshold = 2,
+    progress = true,
+    onlyOnOrCompleted = true,
+  },
+  -- Midnight Weekly Dungeon Quest
+  ["mn-dungeon-quest"] = {
+    type = "any",
+    expansion = 11,
+    index = 4,
+    name = L["Midnight Dungeon Quest"],
+    questID = {
+      -- https://wago.tools/db2/QuestLabel?filter%5BLabelID%5D=4887&page=1
+      93751, -- Windrunner Spire
+      93752, -- Murder Row
+      93753, -- Magisters' Terrace
+      93754, -- Maisara Caverns
+      93755, -- Den of Nalorakk
+      93756, -- The Blinding Vale
+      93757, -- Voidscar Arena
+      93758, -- Nexus-Point Xenas
+    },
+    reset = "weekly",
+    persists = false,
+    fullObjective = false,
+  },
+  -- Midnight Prey Normal
+  ["mn-prey-normal"] = {
+    type = "list",
+    expansion = 11,
+    index = 5,
+    name = L["Midnight Prey Normal"],
+    questID = {
+      -- https://wago.tools/db2/QuestLabel?filter%5BLabelID%5D=6036&page=1
+      91124, -- Prey: Dengzag, the Darkened Blaze (Normal)
+      91123, -- Prey: Grothoz, the Burning Shadow (Normal)
+      91122, -- Prey: Thorn-Witch Liset (Normal)
+      91121, -- Prey: Thornspeaker Edgath (Normal)
+      91120, -- Prey: Neydra the Starving (Normal)
+      91119, -- Prey: Lost Theldrin (Normal)
+      91118, -- Prey: Vylenna the Defector (Normal)
+      91117, -- Prey: Knight-Errant Bloodshatter (Normal)
+      91116, -- Prey: Imperator Enigmalia (Normal)
+      91115, -- Prey: Executor Kaenius (Normal)
+      91114, -- Prey: Consul Nebulor (Normal)
+      91113, -- Prey: Praetor Singularis (Normal)
+      91112, -- Prey: Crusader Luxia Maxwell (Normal)
+      91111, -- Prey: High Vindicator Vureem (Normal)
+      91110, -- Prey: Lamyne of the Undercroft (Normal)
+      91109, -- Prey: Petyoll the Razorleaf (Normal)
+      91108, -- Prey: Lieutenant Blazewing (Normal)
+      91107, -- Prey: Ranger Swiftglade (Normal)
+      91106, -- Prey: The Wing of Akil'zon (Normal)
+      91105, -- Prey: The Talon of Jan'alai (Normal)
+      91104, -- Prey: Zadu, Fist of Nalorakk (Normal)
+      91103, -- Prey: Jo'zolo the Breaker (Normal)
+      91102, -- Prey: Nexus-Edge Hadim (Normal)
+      91101, -- Prey: Phaseblade Talasha (Normal)
+      91100, -- Prey: Deliah Gloomsong (Normal)
+      91099, -- Prey: Mordril Shadowfell (Normal)
+      91098, -- Prey: L-N-0R the Recycler (Normal)
+      91097, -- Prey: Senior Tinker Ozwold (Normal)
+      91096, -- Prey: Magistrix Emberlash (Normal)
+      91095, -- Prey: Magister Sunbreaker (Normal)
+    },
+    reset = "weekly",
+    persists = false,
+    threshold = 4,
+    progress = true,
+    onlyOnOrCompleted = true,
+  },
+  -- Midnight Prey Hard
+  ["mn-prey-hard"] = {
+    type = "list",
+    expansion = 11,
+    index = 6,
+    name = L["Midnight Prey Hard"],
+    questID = {
+      -- https://wago.tools/db2/QuestLabel?filter%5BLabelID%5D=6036&page=1
+      91255, -- Prey: Dengzag, the Darkened Blaze (Hard)
+      91254, -- Prey: Grothoz, the Burning Shadow (Hard)
+      91253, -- Prey: Thorn-Witch Liset (Hard)
+      91252, -- Prey: Thornspeaker Edgath (Hard)
+      91251, -- Prey: Neydra the Starving (Hard)
+      91250, -- Prey: Lost Theldrin (Hard)
+      91249, -- Prey: Vylenna the Defector (Hard)
+      91248, -- Prey: Knight-Errant Bloodshatter (Hard)
+      91247, -- Prey: Imperator Enigmalia (Hard)
+      91246, -- Prey: Executor Kaenius (Hard)
+      91245, -- Prey: Consul Nebulor (Hard)
+      91244, -- Prey: Praetor Singularis (Hard)
+      91243, -- Prey: Crusader Luxia Maxwell (Hard)
+      91242, -- Prey: High Vindicator Vureem (Hard)
+      91240, -- Prey: Lamyne of the Undercroft (Hard)
+      91238, -- Prey: Petyoll the Razorleaf (Hard)
+      91236, -- Prey: Lieutenant Blazewing (Hard)
+      91234, -- Prey: Ranger Swiftglade (Hard)
+      91232, -- Prey: The Wing of Akil'zon (Hard)
+      91230, -- Prey: The Talon of Jan'alai (Hard)
+      91228, -- Prey: Zadu, Fist of Nalorakk (Hard)
+      91226, -- Prey: Jo'zolo the Breaker (Hard)
+      91224, -- Prey: Nexus-Edge Hadim (Hard)
+      91222, -- Prey: Phaseblade Talasha (Hard)
+      91220, -- Prey: Deliah Gloomsong (Hard)
+      91218, -- Prey: Mordril Shadowfell (Hard)
+      91216, -- Prey: L-N-0R the Recycler (Hard)
+      91214, -- Prey: Senior Tinker Ozwold (Hard)
+      91212, -- Prey: Magistrix Emberlash (Hard)
+      91210, -- Prey: Magister Sunbreaker (Hard)
+    },
+    reset = "weekly",
+    persists = false,
+    threshold = 4,
+    progress = true,
+    onlyOnOrCompleted = true,
+  },
+  -- Midnight Prey Nightmare
+  ["mn-prey-nightmare"] = {
+    type = "list",
+    expansion = 11,
+    index = 7,
+    name = L["Midnight Prey Nightmare"],
+    questID = {
+      -- https://wago.tools/db2/QuestLabel?filter%5BLabelID%5D=6036&page=1
+      91269, -- Prey: Dengzag, the Darkened Blaze (Nightmare)
+      91268, -- Prey: Grothoz, the Burning Shadow (Nightmare)
+      91267, -- Prey: Thorn-Witch Liset (Nightmare)
+      91266, -- Prey: Thornspeaker Edgath (Nightmare)
+      91265, -- Prey: Neydra the Starving (Nightmare)
+      91264, -- Prey: Lost Theldrin (Nightmare)
+      91263, -- Prey: Vylenna the Defector (Nightmare)
+      91262, -- Prey: Knight-Errant Bloodshatter (Nightmare)
+      91261, -- Prey: Imperator Enigmalia (Nightmare)
+      91260, -- Prey: Executor Kaenius (Nightmare)
+      91259, -- Prey: Consul Nebulor (Nightmare)
+      91258, -- Prey: Praetor Singularis (Nightmare)
+      91257, -- Prey: Crusader Luxia Maxwell (Nightmare)
+      91256, -- Prey: High Vindicator Vureem (Nightmare)
+      91241, -- Prey: Lamyne of the Undercroft (Nightmare)
+      91239, -- Prey: Petyoll the Razorleaf (Nightmare)
+      91237, -- Prey: Lieutenant Blazewing (Nightmare)
+      91235, -- Prey: Ranger Swiftglade (Nightmare)
+      91233, -- Prey: The Wing of Akil'zon (Nightmare)
+      91231, -- Prey: The Talon of Jan'alai (Nightmare)
+      91229, -- Prey: Zadu, Fist of Nalorakk (Nightmare)
+      91227, -- Prey: Jo'zolo the Breaker (Nightmare)
+      91225, -- Prey: Nexus-Edge Hadim (Nightmare)
+      91223, -- Prey: Phaseblade Talasha (Nightmare)
+      91221, -- Prey: Deliah Gloomsong (Nightmare)
+      91219, -- Prey: Mordril Shadowfell (Nightmare)
+      91217, -- Prey: L-N-0R the Recycler (Nightmare)
+      91215, -- Prey: Senior Tinker Ozwold (Nightmare)
+      91213, -- Prey: Magistrix Emberlash (Nightmare)
+      91211, -- Prey: Magister Sunbreaker (Nightmare)
+    },
+    reset = "weekly",
+    persists = false,
+    threshold = 4,
+    progress = true,
+    onlyOnOrCompleted = true,
+  },
+  -- A Nightmarish Task
+  ["mn-a-nightmarish-task"] = {
+    type = "single",
+    expansion = 11,
+    index = 7.1,
+    name = L["A Nightmarish Task"],
+    questID = 94446,
+    reset = "weekly",
+    persists = false,
+    fullObjective = false,
+  },
+  -- Abundant Offerings
+  ["mn-abundant-offerings"] = {
+    type = "single",
+    expansion = 11,
+    index = 8,
+    name = L["Abundant Offerings"],
+    questID = 89507,
+    reset = "weekly",
+    persists = false,
+    fullObjective = false,
+  },
+  -- Legends of the Haranir
+  ["mn-legends-of-the-haranir"] = {
+    type = "any",
+    expansion = 11,
+    index = 9,
+    name = L["Legends of the Haranir"],
+    questID = {
+      88993, -- Wey'nan's Ward
+      88994, -- The Cauldron of Echoes
+      88995, -- Aln'hara's Bloom
+      88996, -- The Echoless Flame
+      88997, -- Russula's Outreach
+      88998, -- Root of the World
+      88999, -- Sky's Hope
+    },
+    reset = "weekly",
+    persists = false,
+    fullObjective = false,
+  },
+  -- Harandar Daily Wanted
+  ["mn-harandar-daily-wanted"] = {
+    type = "any",
+    expansion = 11,
+    index = 10,
+    name = L["Harandar Daily Wanted"],
+    questID = {
+      91970, -- WANTED: Gelatonius
+      91980, -- WANTED: Hellebora's Thorn
+      91982, -- WANTED: Toadshade's Petals
+      91998, -- WANTED: Muckmire's Choking Vines
+      92010, -- WANTED: Slewstalk's Stalks
+      92012, -- WANTED: Gorebarb's Pincers
+      92013, -- WANTED: Dionaea's Thorntusks
+    },
+    reset = "daily",
+    persists = false,
+    fullObjective = false,
+  },
+  -- Fortify the Runestones
+  ["mn-fortify-the-runestones"] = {
+    type = "any",
+    expansion = 11,
+    index = 11,
+    name = L["Fortify the Runestones"],
+    questID = {
+      90573, -- Fortify the Runestones: Magisters
+      90574, -- Fortify the Runestones: Blood Knights
+      90575, -- Fortify the Runestones: Farstriders
+      90576, -- Fortify the Runestones: Shades of the Row
+    },
+    reset = "weekly",
+    persists = false,
+    fullObjective = false,
+  },
+  -- Midnight Saltheril's Haven
+  ["mn-saltherils-haven"] = {
+    type = "list",
+    expansion = 11,
+    index = 12,
+    name = L["Midnight Saltheril's Haven"],
+    questID = {
+      -- https://wago.tools/db2/QuestLabel?filter%5BLabelID%5D=5316&page=1
+      89276, -- Light Snacks
+      89277, -- Illuminate the Space
+      89278, -- Minding Our Duty
+      91971, -- Hitting the Hammer
+      91972, -- Hold the Watch
+      91973, -- Naga Blades
+      91974, -- Sunfire to the Blade
+      91975, -- That's Our Wood
+      91976, -- Lightbloom Dimmed
+      91977, -- Less Lawless
+      91978, -- Taxing the Tideborne
+      91979, -- Chop It Down
+      91983, -- Lovely Plumage
+      91984, -- Sungrub Silk
+      91985, -- ?
+      91986, -- Put a Little Snap in Their Step
+      91987, -- Potted Lashers
+      91988, -- Brightwing Conservation
+      91989, -- Ghostland Peppers
+      91990, -- Sunset to Sea
+      91991, -- A Little Errand
+      91992, -- Where Has the Wine Gone?
+      91993, -- Diminutive Demand
+      91994, -- Pyrepetal Purposes
+      91995, -- What Horrible Magic
+      91996, -- Fit for a Magister
+      91997, -- Power Clean
+      91999, -- A Bit of Bloodthistle
+      92000, -- Bring the Ruckus
+      92001, -- One Smuggler to Another
+      92002, -- Dangerous Showpieces
+      92003, -- Artisanal Replicas
+      92004, -- Shady Dealings
+      92005, -- Throw the Dice
+      92006, -- We Need a Refill
+      92007, -- Begged, Borrowed, or Stolen
+    },
+    reset = "weekly",
+    persists = false,
+    threshold = 3,
+    progress = true,
+    onlyOnOrCompleted = true,
+  },
+  -- Saltheril's Soiree
+  ["mn-saltherils-soiree"] = {
+    type = "single",
+    expansion = 11,
+    index = 13,
+    name = L["Saltheril's Soiree"],
+    questID = 91966,
+    reset = "daily",
+    persists = false,
+    fullObjective = false,
+  },
+  -- Stormarion Assault
+  ["mn-stormarion-assault"] = {
+    type = "single",
+    expansion = 11,
+    index = 14,
+    name = L["Stormarion Assault"],
+    questID = 90962,
+    reset = "weekly",
+    persists = false,
+    fullObjective = false,
+  },
+  -- Research Console: Exploring the Void
+  ["mn-research-console-exploring-the-void"] = {
+    type = "single",
+    expansion = 11,
+    index = 15,
+    name = L["Research Console: Exploring the Void"],
+    questID = 94790,
+    reset = "weekly",
+    persists = false,
+    fullObjective = false,
+  },
+  -- Midnight Sparks of War
+  ["mn-sparks-of-war"] = {
+    type = "any",
+    expansion = 11,
+    index = 16,
+    name = L["Midnight Sparks of War"],
+    questID = {
+      93423, -- Sparks of War: Eversong Woods
+      93424, -- Sparks of War: Zul'Aman
+      93425, -- Sparks of War: Harandar
+      93426, -- Sparks of War: Voidstorm
+    },
+    reset = "weekly",
+    persists = false,
+    fullObjective = false,
+  },
+  -- Preparing for Battle
+  ["mn-preparing-for-battle"] = {
+    type = "single",
+    expansion = 11,
+    index = 17,
+    name = L["Preparing for Battle"],
+    questID = 89354,
+    reset = "weekly",
+    persists = false,
+    fullObjective = false,
+  },
+  -- Carve Your Way
+  ["mn-carve-your-way"] = {
+    type = "single",
+    expansion = 11,
+    index = 18,
+    name = L["Carve Your Way"],
+    questID = 93865,
+    reset = "daily",
+    persists = false,
+    fullObjective = false,
+  },
+  -- Midnight Profession Weeklies
+  ["mn-profession-weeklies"] = {
+    type = "list",
+    expansion = 11,
+    index = 19,
+    name = L["Midnight Profession Weeklies"],
+    questID = {
+      93690, -- Alchemy Services Requested
+      93691, -- Blacksmithing Services Requested
+      93692, -- Engineering Services Requested
+      93693, -- Inscription Services Requested
+      93694, -- Jewelcrafting Services Requested
+      93695, -- Leatherworking Services Requested
+      93696, -- Tailoring Services Requested
+      -- https://wago.tools/db2/QuestLabel?filter%5BLabelID%5D=6079&page=1
+      -- Enchanting
+      93697, -- ?
+      93698, -- Splintered Radiance
+      93699, -- A Ray of Sunlight
+      -- https://wago.tools/db2/QuestLabel?filter%5BLabelID%5D=6080&page=1
+      -- Herbalism
+      93700, -- Experience Tranquility
+      93701, -- ?
+      93702, -- The Root of Life
+      93703, -- Sin'dorei Vices
+      93704, -- Traditional Harvests
+      -- https://wago.tools/db2/QuestLabel?filter%5BLabelID%5D=6082&page=1
+      -- Mining
+      93705, -- Copper for Your Thoughts?
+      93706, -- Aggressive Tin-dencies
+      93707, -- ?
+      93708, -- Conductive Metals
+      93709, -- Stocking the Staples
+      -- https://wago.tools/db2/QuestLabel?filter%5BLabelID%5D=6083&page=1
+      -- Skinning
+      93710, -- Tempered in Darkness
+      93711, -- The Chill of the Void
+      93712, -- Style and Skill
+      93713, -- ?
+      93714, -- Minor Scales
+    },
+    reset = "weekly",
+    persists = true,
+    threshold = 2,
+    progress = true,
+    onlyOnOrCompleted = true,
+  },
+  -- Midnight Thalassian Treatise
+  ["mn-thalassian-treatise"] = {
+    type = "list",
+    expansion = 11,
+    index = 20,
+    name = L["Midnight Thalassian Treatise"],
+    questID = {
+      95127, -- Thalassian Treatise on Alchemy
+      95128, -- Thalassian Treatise on Blacksmithing
+      95129, -- Thalassian Treatise on Enchanting
+      95138, -- Thalassian Treatise on Engineering
+      95130, -- Thalassian Treatise on Herbalism
+      95131, -- Thalassian Treatise on Inscription
+      95133, -- Thalassian Treatise on Jewelcrafting
+      95134, -- Thalassian Treatise on Leatherworking
+      95135, -- Thalassian Treatise on Mining
+      95136, -- Thalassian Treatise on Skinning
+      95137, -- Thalassian Treatise on Tailoring
+    },
+    reset = "weekly",
+    persists = false,
+    threshold = 2,
+    progress = false,
+    onlyOnOrCompleted = true,
+    questName = {
+      [95127] = L["Thalassian Treatise on Alchemy"],
+      [95128] = L["Thalassian Treatise on Blacksmithing"],
+      [95129] = L["Thalassian Treatise on Enchanting"],
+      [95138] = L["Thalassian Treatise on Engineering"],
+      [95130] = L["Thalassian Treatise on Herbalism"],
+      [95131] = L["Thalassian Treatise on Inscription"],
+      [95133] = L["Thalassian Treatise on Jewelcrafting"],
+      [95134] = L["Thalassian Treatise on Leatherworking"],
+      [95135] = L["Thalassian Treatise on Mining"],
+      [95136] = L["Thalassian Treatise on Skinning"],
+      [95137] = L["Thalassian Treatise on Tailoring"],
+    },
+  },
 }
 
 ---update the progress of quest to the store
@@ -1220,7 +1904,7 @@ local function UpdateQuestStore(store, questID)
     store.isComplete = true
 
     return true
-  elseif not C_QuestLog.IsOnQuest(questID) then
+  elseif not C_QuestLog.IsOnQuest(questID) and not C_TaskQuest.IsActive(questID) then
     store.show = false
 
     return false
@@ -1235,6 +1919,15 @@ local function UpdateQuestStore(store, questID)
       ---@cast _ boolean
       ---@cast numFulfilled number
       ---@cast numRequired number
+
+      if not text and not C_QuestLog.IsOnQuest(questID) then
+        -- some quest (like A Worthy Ally: Loamm Niffen) is display on map to remind players to accpet,
+        -- but don't have any objective yet, this is not on quest, nor world quest that we should track
+
+        store.show = false
+
+        return false
+      end
 
       local objectiveText
       if objectiveType == "progressbar" then
@@ -1318,7 +2011,7 @@ local function ShowQuestListStore(store, entry)
 
   if entry.questAbbr then
     for _, questID in ipairs(entry.questID) do
-      if store[questID].isComplete and entry.questAbbr[questID] then
+      if store[questID] and store[questID].isComplete and entry.questAbbr[questID] then
         return entry.questAbbr[questID]
       end
     end
@@ -1328,7 +2021,7 @@ local function ShowQuestListStore(store, entry)
   local total = entry.threshold or #entry.questID
 
   for _, questID in ipairs(entry.questID) do
-    if store[questID].isComplete then
+    if store[questID] and store[questID].isComplete then
       completed = completed + 1
     end
   end
@@ -1374,7 +2067,7 @@ local function TooltipQuestListStore(_, arg)
   local total = entry.threshold or #entry.questID
 
   for _, questID in ipairs(entry.questID) do
-    if store[questID].isComplete then
+    if store[questID] and store[questID].isComplete then
       completed = completed + 1
     end
   end
@@ -1386,11 +2079,11 @@ local function TooltipQuestListStore(_, arg)
       tip:AddLine(entry.separateLines[i])
     end
 
-    if not entry.onlyOnOrCompleted or store[questID].show then
+    if not entry.onlyOnOrCompleted or (store[questID] and store[questID].show) then
       local questName = entry.questName and entry.questName[questID] or SI:QuestInfo(questID)
       local questText
       if entry.progress then
-        if not store.show then
+        if not store.show or not store[questID] then
           -- do nothing
         elseif store[questID].isComplete then
           questText = SI.questCheckMark
@@ -1403,7 +2096,8 @@ local function TooltipQuestListStore(_, arg)
         end
       else
         questText = (
-          store[questID].isComplete and (RED_FONT_COLOR_CODE .. CRITERIA_COMPLETED .. FONT_COLOR_CODE_CLOSE)
+          (store[questID] and store[questID].isComplete)
+          and (RED_FONT_COLOR_CODE .. CRITERIA_COMPLETED .. FONT_COLOR_CODE_CLOSE)
           or (GREEN_FONT_COLOR_CODE .. AVAILABLE .. FONT_COLOR_CODE_CLOSE)
         )
       end

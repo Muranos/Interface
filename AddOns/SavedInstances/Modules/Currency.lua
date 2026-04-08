@@ -128,7 +128,6 @@ local currency = {
   3089, -- Residual Memories
   2803, -- Undercoin
   2815, -- Resonance Crystals
-  3028, -- Restored Coffer Key
   3056, -- Kej
   3008, -- Valorstones
   2813, -- Harmonized Silk
@@ -148,7 +147,47 @@ local currency = {
   3109, -- Runed Undermine Crest
   3110, -- Gilded Undermine Crest
   3132, -- 11.1 Professions - Personal Tracker - S2 Spark Drops (Hidden)
-  3216, -- Bounty's Remnants
+  3149, -- Displaced Corrupted Mementos
+  3278, -- Ethereal Strands
+  3303, -- Untethered Coin
+  3356, -- Untainted Mana-Crystals
+  3269, -- Ethereal Voidsplinter
+  3284, -- Weathered Ethereal Crest
+  3286, -- Carved Ethereal Crest
+  3288, -- Runed Ethereal Crest
+  3290, -- Gilded Ethereal Crest
+  3141, -- Starlight Spark Dust
+
+  -- Midnight
+  3319, -- Twilight's Blade Insignia
+  3316, -- Voidlight Marl
+  3373, -- Angler Pearls
+  3376, -- Shard of Dundun
+  3377, -- Unalloyed Abundance
+  3379, -- Brimming Arcana
+  3385, -- Luminous Dust
+  3392, -- Remnant of Anguish
+  3400, -- Uncontaminated Void Sample
+  3256, -- Artisan Alchemist's Moxie
+  3257, -- Artisan Blacksmith's Moxie
+  3258, -- Artisan Enchanter's Moxie
+  3259, -- Artisan Engineer's Moxie
+  3260, -- Artisan Herbalist's Moxie
+  3261, -- Artisan Scribe's Moxie
+  3262, -- Artisan Jewelcrafter's Moxie
+  3263, -- Artisan Leatherworker's Moxie
+  3264, -- Artisan Miner's Moxie
+  3265, -- Artisan Skinner's Moxie
+  3266, -- Artisan Tailor's Moxie
+  3028, -- Restored Coffer Key
+  3310, -- Coffer Key Shards
+  3212, -- Radiant Spark Dust
+  3378, -- Dawnlight Manaflux
+  3383, -- Adventurer Dawncrest
+  3341, -- Veteran Dawncrest
+  3343, -- Champion Dawncrest
+  3345, -- Hero Dawncrest
+  3347, -- Myth Dawncrest
 }
 SI.currency = currency
 
@@ -218,7 +257,7 @@ local specialCurrency = {
   },
   [3028] = { -- Restored Coffer Key
     relatedItem = {
-      id = 236096, -- Coffer Key Shard
+      id = 252609, -- Coffer Key Shard
     },
   },
 }
@@ -258,6 +297,20 @@ function Module:OnEnable()
   self:RegisterEvent("PLAYER_MONEY", "UpdateCurrency")
   self:RegisterBucketEvent("CURRENCY_DISPLAY_UPDATE", 0.25, "UpdateCurrency")
   self:RegisterEvent("BAG_UPDATE_DELAYED", "UpdateCurrencyItem")
+
+  hooksecurefunc(C_CurrencyInfo, 'RequestCurrencyFromAccountCharacter', function(sourceCharacterGUID, currencyID, quantity)
+    for _, t in pairs(SI.db.Toons) do
+      if t.GUID == sourceCharacterGUID then
+        if t.currency and t.currency[currencyID] then
+          local totalQuantityConsumed = C_CurrencyInfo.GetCostToTransferCurrency(currencyID, quantity)
+
+          t.currency[currencyID].amount = t.currency[currencyID].amount - totalQuantityConsumed
+        end
+
+        break
+      end
+    end
+  end)
 end
 
 function Module:UpdateCurrency()

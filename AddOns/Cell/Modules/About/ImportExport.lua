@@ -1,6 +1,7 @@
 local _, Cell = ...
 local L = Cell.L
 local F = Cell.funcs
+local U = Cell.uFuncs
 local P = Cell.pixelPerfectFuncs
 
 local Serializer = LibStub:GetLibrary("LibSerialize")
@@ -25,9 +26,7 @@ local function DoImport(noReload)
     end
 
     -- deal with invalid
-    if Cell.isRetail then
-        imported["appearance"]["useLibHealComm"] = false
-    elseif Cell.isVanilla or Cell.isWrath or Cell.isCata then
+    if Cell.isMists or Cell.isCata or Cell.isTBC or Cell.isVanilla then
         imported["quickCast"] = nil
         imported["quickAssist"] = nil
         imported["appearance"]["healAbsorb"][1] = false
@@ -75,17 +74,17 @@ local function DoImport(noReload)
     -- click-castings
     local clickCastings
     if imported["clickCastings"] then
-        if Cell.isRetail then -- RETAIL -> RETAIL
+        if Cell.flavor == imported.flavor then -- same flavor
             clickCastings = imported["clickCastings"]
-        else -- RETAIL -> WRATH
+        else -- RETAIL -> CLASSIC
             clickCastings = nil
         end
         imported["clickCastings"] = nil
 
     elseif imported["characterDB"] and imported["characterDB"]["clickCastings"] then
-        if (Cell.isVanilla or Cell.isWrath or Cell.isCata) and imported["characterDB"]["clickCastings"]["class"] == Cell.vars.playerClass then -- WRATH -> WRATH, same class
+        if (Cell.isVanilla or Cell.isTBC or Cell.isWrath or Cell.isCata) and imported["characterDB"]["clickCastings"]["class"] == Cell.vars.playerClass then -- WRATH -> WRATH, same class
             clickCastings = imported["characterDB"]["clickCastings"]
-            if Cell.isVanilla then -- no dual spec system
+            if Cell.isVanilla and GetNumTalentGroups() == 1 then -- no dual spec system
                 clickCastings["useCommon"] = true
             end
         else -- WRATH -> RETAIL
@@ -97,7 +96,7 @@ local function DoImport(noReload)
     -- layout auto switch
     local layoutAutoSwitch
     if imported["layoutAutoSwitch"] then
-        if Cell.isRetail then -- RETAIL -> RETAIL
+        if Cell.flavor == imported.flavor then -- same flavor
             layoutAutoSwitch = imported["layoutAutoSwitch"]
         else -- RETAIL -> WRATH
             layoutAutoSwitch = nil
@@ -105,7 +104,7 @@ local function DoImport(noReload)
         imported["layoutAutoSwitch"] = nil
 
     elseif imported["characterDB"] and imported["characterDB"]["layoutAutoSwitch"] then
-        if Cell.isVanilla or Cell.isWrath or Cell.isCata then -- WRATH -> WRATH
+        if Cell.isVanilla or Cell.isTBC or Cell.isWrath or Cell.isCata then -- WRATH -> WRATH
             layoutAutoSwitch = imported["characterDB"]["layoutAutoSwitch"]
         else -- CLASSIC -> RETAIL
             layoutAutoSwitch = nil
@@ -131,6 +130,11 @@ local function DoImport(noReload)
     --     imported["snippets"][i]["autorun"] = false
     -- end
 
+    -- buffTracker
+    if Cell.flavor ~= imported.flavor then
+        imported["tools"]["buffTracker"][5] = U.GetBuffTrackerDefaults()
+    end
+
     --! filter out ignored
     for index, ignored in pairs(ignoredIndices) do
         if ignored then
@@ -139,7 +143,7 @@ local function DoImport(noReload)
     end
 
     --! overwrite
-    if Cell.isRetail then
+    if Cell.isRetail or Cell.isMists then
         if not ignoredIndices["clickCastings"] then
             CellDB["clickCastings"] = clickCastings
         end
@@ -185,6 +189,8 @@ local function GetExportString(includeNicknames, includeCharacter)
     end
 
     db["flavor"] = Cell.flavor
+    db["fallbackGroupType"] = nil
+    db["fallbackInMythic"] = nil
 
     local str = Serializer:Serialize(db) -- serialize
     str = LibDeflate:CompressDeflate(str, deflateConfig) -- compress
@@ -520,7 +526,7 @@ function F.ShowExportFrame()
 
     includeNicknamesCB:SetChecked(false)
     includeNicknamesCB:Show()
-    if Cell.isVanilla or Cell.isWrath or Cell.isCata then
+    if Cell.isVanilla or Cell.isTBC or Cell.isWrath or Cell.isCata then
         includeCharacterCB:SetChecked(false)
         includeCharacterCB:Show()
     end

@@ -1,7 +1,7 @@
 ﻿-- Pawn by Vger-Azjol-Nerub
 -- www.vgermods.com
--- © 2006-2025 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
--- See Readme.htm for more information.
+-- © 2006-2026 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
+-- See Readme.md for more information.
 --
 -- Scale templates
 ------------------------------------------------------------
@@ -11,7 +11,7 @@
 function PawnFindScaleTemplate(ClassID, SpecID)
 	local _, Template
 
-	if VgerCore.IsClassic or VgerCore.IsBurningCrusade or VgerCore.IsWrath or VgerCore.IsCataclysm then
+	if VgerCore.IsClassic or VgerCore.IsBurningCrusade or VgerCore.IsWrath or VgerCore.IsCataclysm or VgerCore.IsMists then
 		for _, Template in pairs(PawnScaleTemplatesClassic) do
 			if Template.ClassID == ClassID then return Template end
 		end
@@ -31,7 +31,7 @@ function PawnGetStatValuesForTemplate(Template, NoStats)
 	if NoStats then
 		ScaleValues = {}
 	else
-		if VgerCore.IsClassic or VgerCore.IsBurningCrusade or VgerCore.IsWrath or VgerCore.IsCataclysm then
+		if VgerCore.IsClassic or VgerCore.IsBurningCrusade or VgerCore.IsWrath or VgerCore.IsCataclysm or VgerCore.IsMists then
 			ScaleValues =
 			{
 				["Stamina"] = 0.01,
@@ -44,6 +44,7 @@ function PawnGetStatValuesForTemplate(Template, NoStats)
 				["SpellCritRating"] = 1,
 				["HasteRating"] = 1,
 				["SpellHasteRating"] = 1,
+				["MasteryRating"] = 1,
 				["ExpertiseRating"] = 1,
 				["SpellPenetration"] = 1,
 				-- ["AxeRating"] = 1,
@@ -142,7 +143,7 @@ function PawnGetStatValuesForTemplate(Template, NoStats)
 			end
 
 			-- Wrath merged some stats together.
-			if VgerCore.IsWrath or VgerCore.IsCataclysm then
+			if VgerCore.IsWrath or VgerCore.IsCataclysm or VgerCore.IsMists then
 				ScaleValues.SpellCritRating = nil
 				ScaleValues.SpellHitRating = nil
 				ScaleValues.SpellHasteRating = nil
@@ -152,7 +153,7 @@ function PawnGetStatValuesForTemplate(Template, NoStats)
 			end
 
 			-- Cataclysm removed a few more things.
-			if VgerCore.IsCataclysm then
+			if VgerCore.IsCataclysm or VgerCore.IsMists then
 				ScaleValues.DefenseRating = nil
 				ScaleValues.BlockValue = nil
 				ScaleValues.HolySpellDamage = nil
@@ -190,7 +191,7 @@ function PawnGetStatValuesForTemplate(Template, NoStats)
 		for _, StatName in pairs(Template.UnusableStats) do
 			ScaleValues[StatName] = PawnIgnoreStatValue
 
-			if (VgerCore.IsClassic or VgerCore.IsBurningCrusade or VgerCore.IsWrath or VgerCore.IsCataclysm) and StatName == "IsShield" then
+			if (VgerCore.IsClassic or VgerCore.IsBurningCrusade or VgerCore.IsWrath or VgerCore.IsCataclysm or VgerCore.IsMists) and StatName == "IsShield" then
 				ScaleValues.BlockRating = nil
 				ScaleValues.BlockValue = nil
 			end
@@ -245,6 +246,15 @@ PawnScaleTemplates =
 	["SpecID"] = 2, -- Vengeance
 	["Role"] = "TANK",
 	["PrimaryStat"] = "Agility",
+	["HideUpgrades"] = 2, -- Hide 2H upgrades
+	["UnusableStats"] = { "IsFrill" }
+},
+
+{
+	["ClassID"] = 12, -- Demon Hunter
+	["SpecID"] = 3, -- Devourer
+	["Role"] = "DAMAGER",
+	["PrimaryStat"] = "Intellect",
 	["HideUpgrades"] = 2, -- Hide 2H upgrades
 	["UnusableStats"] = { "IsFrill" }
 },
@@ -515,7 +525,7 @@ PawnScaleTemplates =
 	["Role"] = "DAMAGER",
 	["PrimaryStat"] = "Strength",
 	["HideUpgrades"] = 1, -- Hide 1H upgrades
-	["UnusableStats"] = { "IsFrill", "IsBow", "IsCrossbow", "IsGun" }
+	["UnusableStats"] = { "IsFrill", "IsBow", "IsCrossbow", "IsGun", "IsOffHand" }
 },
 
 {
@@ -558,6 +568,11 @@ PawnScaleTemplatesClassic =
 {
 	["ClassID"] = 8, -- Mage
 	["PrimaryStats"] = { "Strength", "Agility", "Intellect", "Spirit" }
+},
+
+{
+	["ClassID"] = 10, -- Monk
+	["PrimaryStats"] = { "Agility", "Intellect", "Spirit" }
 },
 
 {

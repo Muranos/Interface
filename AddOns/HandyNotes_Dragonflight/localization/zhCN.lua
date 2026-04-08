@@ -582,7 +582,7 @@ L['prismatic_leaper_school_label'] = '棱光跃鲑鱼群'
 L['prismatic_leaper_school_note'] = '与 {location:伊斯卡拉} 的 {npc:195935} 交谈以进行升级。\n\n从整个 {location:欧恩哈拉平原} 的 {object:棱光跃鲑鱼群} 中钓取以下物品：\n\n{item:%d}\n{item:%d}\n{item:%d}\n{item:%d}\n{item:%d}'
 
 L['aylaag_spear'] = '艾拉格长矛'
-L['dedication_plaquard'] = '奉献壁橱'
+L['dedication_plaquard'] = '专心标牌'
 
 -------------------------------------------------------------------------------
 --------------------------------- THALDRASZUS ---------------------------------
@@ -922,6 +922,7 @@ L['smelly_treasure_chest_label'] = '臭垃圾箱'
 L['options_icons_smelly_treasure_chest'] = '臭垃圾箱'
 L['options_icons_smelly_treasure_chest_desc'] = '显示 {object:臭垃圾箱} 可能的位置。'
 
+L['seething_cache'] = '沸燃之箱'
 L['seething_cache_treasure_note'] = '为了能够看到 {object:沸燃之箱} 并拾取 {item:192779}，需要从位于 {location:查拉雷克洞窟} 的 {location:扎卡利喷口} 区域的 {object:沸燃宝珠} 获得3层 {spell:399342} 负面效果。'
 L['chest_of_the_flights_treasure_note'] = '要打开宝箱，需要按 {note:红 > 黑 > 蓝 > 黄 > 绿} 的顺序点击 {object:强化宝石}。'
 L['curious_top_hat_note'] = '在拥有 {spell:410288} 增益时与 {npc:205010} 互动并得到 {item:205021}。如果没有增益并靠近他，他就会逃跑。'
@@ -1252,7 +1253,7 @@ L['soa_13_great_place_c_note'] = '在一座小建筑里，两个 {npc:197035} �
 L['soa_13_great_place_d_label'] = '研究员的笔记'
 L['soa_13_great_place_d_note'] = '在一栋小建筑内，一些书旁边。'
 L['soa_13_great_place_e_label'] = '字迹潦草的字条'
-L['soa_13_great_place_e_note'] = '在 {ocation:匠人集市} 的供应商摊位后面。'
+L['soa_13_great_place_e_note'] = '在 {location:匠人集市} 的供应商摊位后面。'
 L['soa_13_great_place_f_label'] = '给克里沙的便条'
 L['soa_13_great_place_f_note'] = '在 {location:巨龙宝藏} 内的一个箱子上。\n\n需要对 {location:脆烤山羊旅店} 中的 {npc:189827} 进行表情 {emote:/鞠躬}，{emote:/bow} 才能进入秘密酒吧。'
 

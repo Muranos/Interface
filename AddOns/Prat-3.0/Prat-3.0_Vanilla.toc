@@ -1,4 +1,4 @@
-## Interface: 11506
+## Interface: 11508
 
 ## X-Curse-Project-ID: 7473
 ## X-WoWI-ID: 10783
@@ -25,7 +25,7 @@
 ## Category-ruRU: Чат
 ## Category-zhCN: 聊天
 ## Category-zhTW: 對話
-## Version: 3.9.65
+## Version: 3.9.98
 ## Author: Sylvanaar (Sylvaann - Proudmoore/US-Alliance)
 ## eMail: sylvanaar@mindspring.com
 
@@ -50,4 +50,3 @@ fonts\includes.xml
 addon\includes.xml
 services\includes.xml
 modules\includes.xml
-modules\highcpu2.xml

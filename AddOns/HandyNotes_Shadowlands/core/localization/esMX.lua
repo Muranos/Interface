@@ -74,6 +74,7 @@ L['elite'] = nil
 L['quest'] = nil
 L['quest_repeatable'] = nil
 L['achievement'] = nil
+L['decor_owned'] = nil
 
 ---------------------------------- LOCATION -----------------------------------
 L['in_cave'] = 'En una cueva.'
@@ -93,6 +94,7 @@ L['time_format_12hrs'] = '%I:%M %p - %d/%m heure locale'
 L['time_format_24hrs'] = '%H:%M - %d/%m heure locale'
 
 ----------------------------------- REWARDS -----------------------------------
+L['decor'] = 'Decoraciones de viviendas'
 L['heirloom'] = nil
 L['item'] = nil
 L['mount'] = 'Montura'
@@ -118,23 +120,23 @@ L['rep_revered'] = nil
 L['rep_exalted'] = nil
 
 -------------------------------------------------------------------------------
---------------------------------- DRAGONRACES ---------------------------------
+------------------------------- SKYRIDING RACES -------------------------------
 -------------------------------------------------------------------------------
 
-L['dr_your_best_time'] = nil
-L['dr_your_target_time'] = nil
-L['dr_best_time'] = nil
-L['dr_target_time'] = nil
-L['dr_normal'] = nil
-L['dr_advanced'] = nil
-L['dr_reverse'] = nil
-L['dr_challenge'] = nil
-L['dr_reverse_challenge'] = nil
-L['dr_storm_race'] = nil
-L['dr_bronze'] = nil
-L['dr_vendor_note'] = nil
-L['options_icons_dragonrace'] = nil
-L['options_icons_dragonrace_desc'] = nil
+L['sr_your_best_time'] = nil
+L['sr_your_target_time'] = nil
+L['sr_best_time'] = nil
+L['sr_target_time'] = nil
+L['sr_normal'] = nil
+L['sr_advanced'] = nil
+L['sr_reverse'] = nil
+L['sr_challenge'] = nil
+L['sr_reverse_challenge'] = nil
+L['sr_storm_race'] = nil
+L['sr_bronze'] = nil
+L['sr_vendor_note'] = nil
+L['options_icons_skyriding_race'] = nil
+L['options_icons_skyriding_race_desc'] = nil
 
 -------------------------------------------------------------------------------
 --------------------------------- CONTEXT MENU --------------------------------
@@ -204,6 +206,8 @@ L['ignore_faction_restrictions_desc'] = nil
 L['options_rewards_settings'] = nil
 L['options_reward_behaviors_settings'] = nil
 L['options_reward_types'] = nil
+L['options_decor_rewards'] = nil
+L['options_decor_rewards_desc'] = nil
 L['options_manuscript_rewards'] = nil
 L['options_manuscript_rewards_desc'] = nil
 L['options_mount_rewards'] = nil

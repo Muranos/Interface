@@ -19,6 +19,7 @@ local L = TMW.L
 local print = TMW.print
 local strlowerCache = TMW.strlowerCache
 
+local issecretvalue = TMW.issecretvalue
 local tonumber, pairs, wipe, assert =
       tonumber, pairs, wipe, assert
 local strfind, strmatch, strtrim, gsub, gmatch, strsplit, abs =
@@ -93,17 +94,19 @@ function NAMES:OnInitialize()
 	self:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
 end
 
+local scoreHasRankReturn = type(select(7, GetBattlefieldScore(1))) == 'number'
 function NAMES:UPDATE_BATTLEFIELD_SCORE()
 	for i = 1, GetNumBattlefieldScores() do
 		local name, class, _
-		if not TMW.isRetail then
+		if scoreHasRankReturn then
 			-- There's an extra "rank" return that's not there in retail.
+			-- Its there in classic up through at least MOP.
 			name, _, _, _, _, _, _, _, _, class = GetBattlefieldScore(i)
 		else
 			name, _, _, _, _, _, _, _, class = GetBattlefieldScore(i)
 		end
 
-		if name and class then -- sometimes this returns nil??
+		if name and class and not issecretvalue(name) then -- sometimes this returns nil??
 			local color = self.ClassColors[class]
 			if color then
 				self.ClassColoredNameCache[name] = color .. name .. "|r"
@@ -118,7 +121,10 @@ end
 
 function NAMES:UPDATE_MOUSEOVER_UNIT()
 	local name, server = UnitName("mouseover")
+	
+	if issecretvalue(name) then return end
 	if not name then return end
+
 	if server then
 		name = name .. "-" .. server
 	end
@@ -251,8 +257,11 @@ TMW:RegisterCallback("TMW_GLOBAL_UPDATE", function()
 	-- if another addon (like ThreatPlates) loads LDT-Unit after TMW,
 	-- and if this other addon has a newer version of LDT-Unit than what
 	-- was already loaded (by TMW or some other addon),
-	-- then it'll wipe out this tag when it ugprades itself.
+	-- then it'll wipe out this tag when it upgrades itself.
+		
+	if not DogTag.Tags.Unit then return end
 	if DogTag.Tags.Unit.TMWName then return end
+
 	DogTag:AddTag("Unit", "TMWName", {
 		code = function(unit, color, server)
 			if NAMES.dogTag_forceUncolored then

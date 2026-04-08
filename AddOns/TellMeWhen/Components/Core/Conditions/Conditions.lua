@@ -31,7 +31,6 @@ local NONE = NONE
 local _G = _G
 local print = TMW.print
 local get = TMW.get
-local clientVersion = select(4, GetBuildInfo())
 local strlowerCache = TMW.strlowerCache
 local isNumber = TMW.isNumber
 local huge = math.huge
@@ -540,6 +539,7 @@ CNDT.Env = {
 	TMW = TMW,
 	GCDSpell = TMW.GCDSpell,
 	GUIDToOwner = TMW.GUIDToOwner,
+	issecretvalue = TMW.issecretvalue,
 	
 	SemicolonConcatCache = setmetatable(
 	{}, {
@@ -730,13 +730,6 @@ CNDT.Substitutions = {
 		else
 			return [[not %1]]
 		end
-	end,
-},
-{	src = "MULTINAMECHECK(%b())",
-	-- TODO: Replace this horrifying thing with 
-	-- e.g. [[BOOLCHECK(c.Spells.Hash[GetShapeshiftForm() or ""])]],
-	rep = function(conditionData, conditionSettings, name, name2)
-		return [[ (not not strfind(";" .. c.Name .. ";", SemicolonConcatCache[%1])) ]]
 	end,
 },
 

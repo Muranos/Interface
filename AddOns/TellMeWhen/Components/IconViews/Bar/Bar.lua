@@ -104,11 +104,11 @@ TMW:RegisterCallback("TMW_CONFIG_ICON_TYPE_CHANGED", function(event, icon, type,
 		local layout = TMW.TEXT:GetTextLayoutForIcon(icon)
 
 		if layout == "bar1" or layout == "bar2" then
-			icspv.Texts[1] = "[(Value / ValueMax * 100):Round:Percent]"
+			icspv.Texts[1] = "[ValuePercent:Round:Percent]"
 			icspv.Texts[2] = "[Value:Short \"/\" ValueMax:Short]"
 		end
 	elseif TMW.Types[oldType].barIsValue and not TMW.Types[type].barIsValue then
-		if icspv.Texts[1] == "[(Value / ValueMax * 100):Round:Percent]" then
+		if icspv.Texts[1] == "[ValuePercent:Round:Percent]" then
 			icspv.Texts[1] = nil
 		end
 		if icspv.Texts[2] == "[Value:Short \"/\" ValueMax:Short]" then
@@ -180,26 +180,25 @@ View:ImplementsModule("IconModule_TimerBar_BarDisplay", 50, function(Module, ico
 	
 	Module.bar:SetOrientation("HORIZONTAL")
 	Module.bar:SetRotatesTexture(false)
-	
-	Module.bar:SetFrameLevel(icon:GetFrameLevel())
+	Module.container:SetFrameLevel(icon:GetFrameLevel())
 
 	local inset = gspv.BorderBar
 	local iconInset = gspv.BorderInset and 0 or gspv.BorderIcon
 
-	Module.bar:ClearAllPoints()
+	Module.container:ClearAllPoints()
 	if not gspv.Icon then
-		Module.bar:SetPoint("TOPLEFT", inset, -inset)
-		Module.bar:SetPoint("BOTTOMRIGHT", -inset, inset)
+		Module.container:SetPoint("TOPLEFT", inset, -inset)
+		Module.container:SetPoint("BOTTOMRIGHT", -inset, inset)
 
 	elseif gspv.Flip then
-		Module.bar:SetPoint("TOPLEFT", inset, -inset)
-		Module.bar:SetPoint("BOTTOMLEFT", inset, inset)
-		Module.bar:SetPoint("RIGHT", IconContainer.container, "LEFT", -gspv.Padding - inset - iconInset, 0)
+		Module.container:SetPoint("TOPLEFT", inset, -inset)
+		Module.container:SetPoint("BOTTOMLEFT", inset, inset)
+		Module.container:SetPoint("RIGHT", IconContainer.container, "LEFT", -gspv.Padding - inset - iconInset, 0)
 
 	elseif not gspv.Flip then
-		Module.bar:SetPoint("TOPRIGHT", -inset, -inset)
-		Module.bar:SetPoint("BOTTOMRIGHT", -inset, inset)
-		Module.bar:SetPoint("LEFT", IconContainer.container, "RIGHT", gspv.Padding + inset + iconInset, 0)
+		Module.container:SetPoint("TOPRIGHT", -inset, -inset)
+		Module.container:SetPoint("BOTTOMRIGHT", -inset, inset)
+		Module.container:SetPoint("LEFT", IconContainer.container, "RIGHT", gspv.Padding + inset + iconInset, 0)
 	end
 
 	-- We can only query the size of the bar if the icon has had its position set.
@@ -213,7 +212,7 @@ View:ImplementsModule("IconModule_Backdrop", 51, function(Module, icon)
 	local gspv = group:GetSettingsPerView()
 
 	Module:SetBorder(gspv.BorderBar, gspv.BorderColor)
-	Module:SetOrientation("HORIZONTAL")
+		Module:SetOrientation("HORIZONTAL")
 	
 	Module.container:ClearAllPoints()
 	Module.container:SetAllPoints(icon.Modules.IconModule_TimerBar_BarDisplay.bar)

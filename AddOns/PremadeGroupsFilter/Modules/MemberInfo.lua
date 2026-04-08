@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Premade Groups Filter
 -------------------------------------------------------------------------------
--- Copyright (C) 2024 Bernhard Saumweber
+-- Copyright (C) 2026 Bernhard Saumweber
 --
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -27,6 +27,11 @@ function PGF.PutSearchResultMemberInfos(resultID, searchResultInfo, env)
     -- init to zero
     env.ranged = 0
     env.melees = 0
+    env.hasmyclass = false
+    env.hasmyspec = false
+    env.hasmyarmor = false
+    env.hasleaver = false
+    local mySpecInfo = PGF.GetSpecializationInfoForPlayer()
     local specs = PGF.GetAllSpecializations()
     for specID, specInfo in pairs(specs) do
         env[specInfo.specKeyword] = 0
@@ -38,7 +43,10 @@ function PGF.PutSearchResultMemberInfos(resultID, searchResultInfo, env)
 
     -- increment keywords
     for i = 1, searchResultInfo.numMembers do
-        local role, class, classLocalized, specLocalized = PGF.GetSearchResultMemberInfo(resultID, i)
+        local role, class, classLocalized, specLocalized, isLeader, isLeaver = PGF.GetSearchResultMemberInfo(resultID, i)
+        if isLeaver then
+            env.hasleaver = true
+        end
         local specInfo = PGF.GetSpecializationInfoByLocalizedName(class, specLocalized)
         if specInfo then
             if specInfo.role == "DAMAGER" then
@@ -50,6 +58,17 @@ function PGF.PutSearchResultMemberInfos(resultID, searchResultInfo, env)
             env[specInfo.roleClassKeyword] = env[specInfo.roleClassKeyword] + 1
             env[specInfo.classRoleKeyword] = env[specInfo.classRoleKeyword] + 1
             env[specInfo.armor] = env[specInfo.armor] + 1
+            if mySpecInfo then
+                if mySpecInfo.armor == specInfo.armor then
+                    env.hasmyarmor = true
+                end
+                if mySpecInfo.classKeyword == specInfo.classKeyword then
+                    env.hasmyclass = true
+                    if mySpecInfo.specKeyword == specInfo.specKeyword then
+                        env.hasmyspec = true
+                    end
+                end
+            end
         end
     end
 
@@ -61,7 +80,7 @@ function PGF.PutSearchResultMemberInfos(resultID, searchResultInfo, env)
 end
 
 local function GetRoleClassOrder(resultID)
-    local displayData = C_LFGList.GetSearchResultMemberCounts(resultID)
+    local displayData = PGF.GetSearchResultMemberCounts(resultID)
     local result = {}
     local roleOrder = LFG_LIST_GROUP_DATA_ROLE_ORDER -- { "TANK", "HEALER", "DAMAGER" }
     for i = 1, #roleOrder do
@@ -95,12 +114,14 @@ end
 function PGF.GetSearchResultMemberInfoTable(resultID, numMembers)
     local members = {}
     for i = 1, numMembers do
-        local role, class, classLocalized, specLocalized, isLeader = PGF.GetSearchResultMemberInfo(resultID, i)
+        local role, class, classLocalized, specLocalized, isLeader, isLeaver = PGF.GetSearchResultMemberInfo(resultID, i)
         local specInfo = PGF.GetSpecializationInfoByLocalizedName(class, specLocalized)
         if specInfo then
             local memberInfo = PGF.Table_Copy_Shallow(specInfo)
             memberInfo.isLeader = isLeader
+            memberInfo.isLeaver = isLeaver
             memberInfo.leaderMarkup = isLeader and string.format("|A:%s:10:12:0:0|a", C.LEADER_ATLAS) or ""
+            memberInfo.leaverMarkup = isLeader and string.format("|A:%s:10:12:0:0|a", C.LEAVER_ATLAS) or ""
             table.insert(members, memberInfo)
         end
     end

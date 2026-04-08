@@ -80,7 +80,7 @@ do
 	end
 
 	function mod:CHAT_MSG_MONSTER_YELL(_, _, source, _, _, target)
-		if source == target then -- Intermission (or a wipe, or someone with the same name on koKR where it doesn't have a hyphen)
+		if not self:IsSecret(source) and not self:IsSecret(target) and source == target then -- Intermission (or a wipe, or someone with the same name on koKR where it doesn't have a hyphen)
 			startTimers(self, -0.2)
 			self:RegisterUnitEvent("UNIT_POWER_FREQUENT", nil, "boss1") -- Power resets to 0 at the end of the intermission
 		end
@@ -158,7 +158,7 @@ do
 	end
 
 	function mod:UNIT_SPELLCAST_SUCCEEDED(_, unit, _, spellId)
-		if spellId == 321088 then -- Charged Spear (targetting)
+		if not self:IsSecret(spellId) and spellId == 321088 then -- Charged Spear (targetting)
 			local unitToken = unit.."target"
 			local destName = self:UnitName(unitToken)
 			if destName and not self:Tanking(unit, unitToken) then
@@ -166,16 +166,18 @@ do
 			else
 				self:RegisterEvent("CHAT_MSG_RAID_BOSS_EMOTE")
 			end
-		elseif spellId == 321009 then -- Charged Spear (thrown)
+		elseif not self:IsSecret(spellId) and spellId == 321009 then -- Charged Spear (thrown)
 			self:UnregisterEvent("CHAT_MSG_RAID_BOSS_EMOTE")
-		elseif spellId == 324662 then -- Ionized Plasma (Charged Spear landed)
+		elseif not self:IsSecret(spellId) and spellId == 324662 then -- Ionized Plasma (Charged Spear landed)
 			self:PrimaryIcon(321009)
 		end
 	end
 
 	function mod:CHAT_MSG_RAID_BOSS_EMOTE(event, _, _, _, _, destName)
 		self:UnregisterEvent(event)
-		printTarget(self, destName, -0.2)
+		if not self:IsSecret(destName) then
+			printTarget(self, destName, -0.2)
+		end
 	end
 end
 

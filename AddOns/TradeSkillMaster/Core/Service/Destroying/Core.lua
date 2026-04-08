@@ -435,13 +435,18 @@ function private.UpdateBagDB()
 	if not private.settings.includeSoulbound then
 		query:Equal("isBound", false)
 	end
-	if ClientInfo.IsCataClassic() then
+	if ClientInfo.IsPandaClassic() then
 		local disenchantName = Spell.GetInfo(7411)
 		local jewelcraftName = Spell.GetInfo(28897)
 		local inscriptionName = Spell.GetInfo(45357)
 		private.disenchantSkillLevel = TSM.Crafting.PlayerProfessions.GetProfessionSkill(UnitName("player"), disenchantName)
 		private.jewelcraftSkillLevel = TSM.Crafting.PlayerProfessions.GetProfessionSkill(UnitName("player"), jewelcraftName)
 		private.inscriptionSkillLevel = TSM.Crafting.PlayerProfessions.GetProfessionSkill(UnitName("player"), inscriptionName)
+	elseif ClientInfo.IsBCClassic() then
+		local disenchantName = Spell.GetInfo(7411)
+		local jewelcraftName = Spell.GetInfo(28897)
+		private.disenchantSkillLevel = TSM.Crafting.PlayerProfessions.GetProfessionSkill(UnitName("player"), disenchantName)
+		private.jewelcraftSkillLevel = TSM.Crafting.PlayerProfessions.GetProfessionSkill(UnitName("player"), jewelcraftName)
 	end
 	for _, slotId, itemString, quantity in query:Iterator() do
 		local minQuantity = nil
@@ -500,7 +505,7 @@ function private.IsDestroyable(itemString)
 	local quality = ItemInfo.GetQuality(itemString)
 	if ItemInfo.IsDisenchantable(itemString) and quality <= private.settings.deMaxQuality then
 		local hasSourceItem = true
-		if ClientInfo.IsCataClassic() then
+		if ClientInfo.IsPandaClassic() or ClientInfo.IsBCClassic() then
 			local classId = ItemInfo.GetClassId(itemString)
 			local itemLevel = ItemInfo.GetItemLevel(ItemString.GetBase(itemString))
 			hasSourceItem = false

@@ -31,7 +31,7 @@ function MDT:LiveSession_Enable()
       local presetName = preset.text
       local name, realm = UnitFullName("player")
       local fullName = name.."+"..realm
-      SendChatMessage(prefix..fullName.." - "..dungeon..": "..presetName.."]", distribution)
+      C_ChatInfo.SendChatMessage(prefix..fullName.." - "..dungeon..": "..presetName.."]", distribution)
     end
     local cancelCallback = function()
       MDT:LiveSession_Disable()
@@ -247,15 +247,6 @@ do
     colorTimer = C_Timer.NewTimer(0.2, function()
       self:LiveSession_SendPulls(self:GetPulls())
     end)
-  end
-end
-
----Sends Corrupted NPC Offset Positions
-function MDT:LiveSession_SendCorruptedPositions(offsets)
-  local distribution = self:IsPlayerInGroup()
-  if distribution then
-    local export = MDT:TableToString(offsets, false, 5)
-    MDTcommsObject:SendCommMessage(self.liveSessionPrefixes.corrupted, export, distribution, nil, "ALERT")
   end
 end
 

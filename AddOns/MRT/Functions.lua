@@ -10,6 +10,8 @@ local UnitGroupRolesAssigned = UnitGroupRolesAssigned or ExRT.NULLfunc
 local GetRaidRosterInfo = GetRaidRosterInfo
 local GetItemInfo, GetItemInfoInstant  = C_Item and C_Item.GetItemInfo or GetItemInfo,  C_Item and C_Item.GetItemInfoInstant or GetItemInfoInstant
 local GetSpecialization = GetSpecialization
+local GetSpecializationInfo = C_SpecializationInfo and C_SpecializationInfo.GetSpecializationInfo or GetSpecializationInfo
+local SendChatMessage = C_ChatInfo and C_ChatInfo.SendChatMessage or SendChatMessage
 
 if not GetSpecialization and ExRT.isClassic then
 	GetSpecialization = function()
@@ -297,6 +299,9 @@ end
 
 function ExRT.F.UnitCombatlogname(unit)
 	local name,server = UnitName(unit or "?")
+	if issecretvalue and issecretvalue(name) then
+		return
+	end
 	if name and server and server~="" then
 		name = name .. "-" .. server
 	end
@@ -679,6 +684,14 @@ function ExRT.F.table_to_string(t)
 	return str
 end
 
+function ExRT.F.table_keys_to_string(t,sep)
+	local str = ""
+	for k in pairs(t) do
+		str = str .. (str ~= "" and (sep or " ") or "") .. k
+	end
+	return str
+end
+
 function ExRT.F.tohex(num,size)
 	return format("%0"..(size or "1").."X",num)
 end
@@ -732,7 +745,7 @@ end
 
 function ExRT.F.GetItemBonuses(link)
 	if link then 
-		local _,itemID,enchant,gem1,gem2,gem3,gem4,suffixID,uniqueID,level,specializationID,upgradeType,instanceDifficultyID,numBonusIDs,restLink = strsplit(":",link,15)
+		local _,itemID,enchant,gem1,gem2,gem3,gem4,suffixID,uniqueID,level,specializationID,upgradeType,instanceDifficultyID,numBonusIDs,restLink = strsplit(":",link:match("|H.-|h") or link,15)
 		numBonusIDs = tonumber(numBonusIDs or "?") or 0
 		local bonusStr = ""
 		for i=1,numBonusIDs do
@@ -751,9 +764,8 @@ end
 function ExRT.F.IsPlayerRLorOfficer(unitName)
 	local shortName = ExRT.F.delUnitNameServer(unitName)
 	for i=1,GetNumGroupMembers() do
-		--if name and (name == unitName or ExRT.F.delUnitNameServer(name) == shortName) then
+		local name,rank = GetRaidRosterInfo(i)
 		if UnitIsUnit(unitName,"raid"..i) or UnitIsUnit(shortName,"raid"..i) then
-			local name,rank = GetRaidRosterInfo(i)
 			if rank > 0 then
 				return rank
 			else
@@ -768,10 +780,23 @@ function ExRT.F.IsPlayerRLorOfficer(unitName)
 	-- 2: rl
 end
 
+if ExRT.isMN then
+	function ExRT.F.IsPlayerRLorOfficer(unitName)
+		unitName = Ambiguate(unitName,"none") or unitName
+		if UnitIsGroupLeader(unitName) then
+			return 2
+		elseif UnitIsGroupAssistant(unitName) then
+			return 1
+		else
+			return false
+		end
+	end
+end
+
 function ExRT.F.GetPlayerParty(unitName)
 	for i=1,GetNumGroupMembers() do
 		local name,_,subgroup = GetRaidRosterInfo(i)
-		if UnitIsUnit(name,unitName) then
+		if (not C_Secrets or not C_Secrets.ShouldUnitComparisonBeSecret(name,unitName)) and name and UnitIsUnit(name,unitName) then
 			return subgroup
 		end
 	end
@@ -781,12 +806,25 @@ end
 function ExRT.F.GetOwnPartyNum()
 	for i=1,GetNumGroupMembers() do
 		local name,_,subgroup = GetRaidRosterInfo(i)
-		if UnitIsUnit(name,'player') then
+		if (not C_Secrets or not C_Secrets.ShouldUnitComparisonBeSecret(name,'player')) and name and UnitIsUnit(name,'player') then
 			return subgroup
 		end
 	end
 	return 1
 end
+if ExRT.isMN then
+	function ExRT.F.GetOwnPartyNum()
+		local shortName = UnitName'player'
+		for i=1,GetNumGroupMembers() do
+			local name,_,subgroup = GetRaidRosterInfo(i)
+			if (not canaccessvalue or canaccessvalue(name)) and name and shortName == ExRT.F.delUnitNameServer(name) then
+				return subgroup
+			end
+		end
+		return 1
+	end
+end
+
 
 function ExRT.F.CreateAddonMsg(...)
 	local result = ""
@@ -942,9 +980,9 @@ function ExRT.F.IterateRoster(maxGroup,index)
 		if subgroup > maxGroup then
 			return ExRT.F.IterateRoster(maxGroup,index)
 		end
-		local guid = UnitGUID(name or "raid"..index)
+		local guid = UnitGUID("raid"..index)
 		name = name or ""
-		return index, name, subgroup, fileName, guid, rank, level, online, isDead, combatRole
+		return index, name, subgroup, fileName, guid, rank, level, online, isDead, combatRole, "raid"..index
 	else
 		local name, rank, subgroup, level, class, fileName, online, isDead, combatRole, _
 
@@ -956,11 +994,7 @@ function ExRT.F.IterateRoster(maxGroup,index)
 		end
 
 		subgroup = 1
-		name, _ = UnitName(unit)
-		name = name or ""
-		if _ then
-			name = name .. "-" .. _
-		end
+		name = GetUnitName(unit, true) or ""
 		class, fileName = UnitClass(unit)
 
 		if UnitIsGroupLeader(unit) then
@@ -981,7 +1015,7 @@ function ExRT.F.IterateRoster(maxGroup,index)
 
 		combatRole = UnitGroupRolesAssigned(unit)
 
-		return index, name, subgroup, fileName, guid, rank, level, online, isDead, combatRole
+		return index, name, subgroup, fileName, guid, rank, level, online, isDead, combatRole, unit
 	end
 end
 
@@ -2096,6 +2130,7 @@ ExRT.GDB.ClassSpecializationIcons = {
 	[1467] = "Interface\\Icons\\classicon_evoker_devastation",
 	[1468] = "Interface\\Icons\\classicon_evoker_preservation",
 	[1473] = "Interface\\Icons\\classicon_evoker_augmentation",
+	[1480] = "Interface\\Icons\\classicon_demonhunter_void",
 }
 
 ExRT.GDB.ClassList = {
@@ -2126,7 +2161,7 @@ ExRT.GDB.ClassSpecializationList = {
 	["WARLOCK"] = {265, 266, 267},
 	["MONK"] = {268, 269, 270},
 	["DRUID"] = {102, 103, 104, 105},
-	["DEMONHUNTER"] = {577, 581},
+	["DEMONHUNTER"] = {577, 581, 1480},
 	["EVOKER"] = {1467, 1468, 1473},
 }
 
@@ -2186,6 +2221,7 @@ ExRT.GDB.ClassSpecializationRole = {
 	[1467] = 'RANGE',
 	[1468] = 'HEAL',
 	[1473] = 'RANGE',
+	[1480] = 'MELEE',
 }
 
 ExRT.GDB.ClassID = {
@@ -2204,7 +2240,7 @@ ExRT.GDB.ClassID = {
 	EVOKER=13,
 }
 
-if ExRT.isCata then
+if ExRT.isCata and not ExRT.isMoP then
 	ExRT.GDB.ClassSpecializationList = {
 		WARRIOR = {746,815,845},	--Arms,Fury,Protection
 		PALADIN = {831,839,855},	--Holy,Protection,Retribution
@@ -2368,22 +2404,23 @@ ExRT.GDB.JournalInstance = {
 {9,1197,1203,1198,1199,1196,1202,1201,1204,1209,0,1200,1207,1208,1205},	--Dragonflight
 {-1,65,68,313,537,556,767,762,721,740,800,1001,968,1022,1021,1197,1203,1198,1199,1196,1202,1201,1204,1209,0,1200,1207,1208,1205,n=EXPANSION_NAME9,s=4},	--Current Season
 {-1,1270,1271,1274,1269,1182,1184,1023,71,n=EXPANSION_NAME10,s=1},	--Current Season
-{10,1268,1267,1210,1269,1271,1272,1270,1274,1298,0,1273,1296,1278},	--The War Within
+{10,1268,1267,1210,1269,1271,1272,1270,1274,1298,1303,0,1273,1296,1278,1302},	--The War Within
+{11,1299,1300,1304,1311,1309,1315,1316,1313,0,1307,1308,1312,1314},	--Midnight
 }
 --/run local s="" for i=1,100 do local id=EJ_GetInstanceByIndex(i,false) if not id then break end s=s..id.."," end GExRT.F:Export2(s)
 
 ExRT.GDB.MapIDToJournalInstance = {
-[2792]=1301,[2774]=1278,[2773]=1298,[2769]=1296,[2669]=1274,[2662]=1270,[2661]=1272,[2660]=1271,[2657]=1273,[2652]=1269,[2651]=1210,[2649]=1267,[2648]=1268,[2579]=1209,[2574]=1205,[2569]=1208,[2559]=1192,
-[2549]=1207,[2527]=1204,[2526]=1201,[2522]=1200,[2521]=1202,[2520]=1196,[2519]=1199,[2516]=1198,[2515]=1203,[2481]=1195,[2451]=1197,[2450]=1193,[2441]=1194,[2296]=1190,[2293]=1187,[2291]=1188,[2290]=1184,
-[2289]=1183,[2287]=1185,[2286]=1182,[2285]=1186,[2284]=1189,[2217]=1180,[2164]=1179,[2097]=1178,[2096]=1177,[2070]=1176,[1877]=1030,[1864]=1036,[1862]=1021,[1861]=1031,[1861]=1031,[1841]=1022,[1822]=1023,
-[1771]=1002,[1763]=968,[1762]=1041,[1754]=1001,[1753]=945,[1712]=946,[1677]=900,[1676]=875,[1651]=860,[1648]=861,[1594]=1012,[1571]=800,[1544]=777,[1530]=786,[1520]=959,[1520]=959,[1520]=959,[1516]=726,
-[1501]=740,[1493]=707,[1492]=727,[1477]=721,[1466]=762,[1458]=767,[1456]=716,[1448]=669,[1358]=559,[1279]=556,[1228]=557,[1228]=557,[1209]=476,[1208]=536,[1205]=457,[1195]=558,[1182]=547,[1176]=537,[1175]=385,
-[1136]=369,[1098]=362,[1011]=324,[1009]=330,[1008]=317,[1007]=246,[1004]=316,[1001]=311,[996]=322,[996]=322,[994]=321,[967]=187,[962]=303,[961]=302,[960]=313,[959]=312,[940]=186,[939]=185,[938]=184,[859]=76,
-[757]=75,[755]=69,[754]=74,[725]=67,[724]=761,[720]=78,[671]=72,[670]=71,[669]=73,[668]=276,[658]=278,[657]=68,[650]=284,[649]=757,[645]=66,[644]=70,[643]=65,[632]=280,[631]=758,[624]=753,[619]=271,[616]=756,
-[615]=755,[608]=283,[604]=274,[603]=759,[602]=275,[601]=272,[600]=273,[599]=277,[595]=279,[585]=249,[580]=752,[578]=282,[576]=281,[575]=286,[574]=285,[568]=77,[565]=746,[564]=751,[560]=251,[558]=247,[557]=250,
-[556]=252,[555]=253,[554]=258,[553]=257,[552]=254,[550]=749,[548]=748,[547]=260,[546]=262,[545]=261,[544]=747,[543]=248,[542]=256,[540]=259,[534]=750,[533]=754,[532]=745,[531]=744,[509]=743,[469]=742,[429]=1277,
-[429]=1277,[429]=1277,[409]=741,[389]=226,[349]=232,[329]=1292,[329]=1292,[269]=255,[249]=760,[230]=228,[229]=229,[209]=241,[129]=233,[109]=237,[90]=231,[70]=239,[48]=227,[47]=234,[43]=240,[36]=63,[34]=238,
-[33]=64,
+[3029]=1319,[2939]=1314,[2930]=1312,[2923]=1313,[2915]=1316,[2913]=1308,[2912]=1307,[2874]=1315,[2859]=1309,[2830]=1303,[2825]=1311,[2813]=1304,[2811]=1300,[2810]=1302,[2805]=1299,[2792]=1301,[2774]=1278,
+[2773]=1298,[2769]=1296,[2669]=1274,[2662]=1270,[2661]=1272,[2660]=1271,[2657]=1273,[2652]=1269,[2651]=1210,[2649]=1267,[2648]=1268,[2579]=1209,[2574]=1205,[2569]=1208,[2559]=1192,[2549]=1207,[2527]=1204,
+[2526]=1201,[2522]=1200,[2521]=1202,[2520]=1196,[2519]=1199,[2516]=1198,[2515]=1203,[2481]=1195,[2451]=1197,[2450]=1193,[2441]=1194,[2296]=1190,[2293]=1187,[2291]=1188,[2290]=1184,[2289]=1183,[2287]=1185,
+[2286]=1182,[2285]=1186,[2284]=1189,[2217]=1180,[2164]=1179,[2097]=1178,[2096]=1177,[2070]=1176,[1877]=1030,[1864]=1036,[1862]=1021,[1861]=1031,[1861]=1031,[1841]=1022,[1822]=1023,[1771]=1002,[1763]=968,
+[1762]=1041,[1754]=1001,[1753]=945,[1712]=946,[1677]=900,[1676]=875,[1651]=860,[1648]=861,[1594]=1012,[1571]=800,[1544]=777,[1530]=786,[1520]=959,[1520]=959,[1520]=959,[1516]=726,[1501]=740,[1493]=707,
+[1492]=727,[1477]=721,[1466]=762,[1458]=767,[1456]=716,[1448]=669,[1358]=559,[1279]=556,[1228]=557,[1228]=557,[1209]=476,[1208]=536,[1205]=457,[1195]=558,[1182]=547,[1176]=537,[1175]=385,[1136]=369,[1098]=362,
+[1011]=324,[1009]=330,[1008]=317,[1007]=246,[1004]=316,[1001]=311,[996]=322,[996]=322,[994]=321,[967]=187,[962]=303,[961]=302,[960]=313,[959]=312,[940]=186,[939]=185,[938]=184,[859]=76,[757]=75,[755]=69,
+[754]=74,[725]=67,[724]=761,[720]=78,[671]=72,[670]=71,[669]=73,[668]=276,[658]=278,[657]=68,[650]=284,[649]=757,[645]=66,[644]=70,[643]=65,[632]=280,[631]=758,[624]=753,[619]=271,[616]=756,[615]=755,[608]=283,
+[604]=274,[603]=759,[602]=275,[601]=272,[600]=273,[599]=277,[595]=279,[585]=249,[580]=752,[578]=282,[576]=281,[575]=286,[574]=285,[568]=77,[565]=746,[564]=751,[560]=251,[558]=247,[557]=250,[556]=252,[555]=253,
+[554]=258,[553]=257,[552]=254,[550]=749,[548]=748,[547]=260,[546]=262,[545]=261,[544]=747,[543]=248,[542]=256,[540]=259,[534]=750,[533]=754,[532]=745,[531]=744,[509]=743,[469]=742,[429]=1277,[429]=1277,
+[429]=1277,[409]=741,[389]=226,[349]=232,[329]=1292,[329]=1292,[269]=255,[249]=760,[230]=228,[229]=229,[209]=241,[129]=233,[109]=237,[90]=231,[70]=239,[48]=227,[47]=234,[43]=240,[36]=63,[34]=238,[33]=64,
 }
 
 ExRT.GDB.EncountersList = {
@@ -2535,6 +2572,17 @@ ExRT.GDB.EncountersList = {
 	{2359,2837,2838,2839},	--The Dawnbreaker:Dung
 	{2343,2907,2908,2905,2909},	--City of Threads:Dung
 	{2387,3020,3019,3053,3054},	--Operation: Floodgate:Dung
+	{2449,3107,3108,3109},	--Eco-Dome Al'dani:Dung
+	{1989,2425,2441,2424,2440,2437,2426,2419,2442},	--Tazavesh, the Veiled Market:Dung
+
+	{2494,3056,3057,3058,3059},	--Windrunner Spire:Dung
+	{2511,3071,3072,3073,3074},	--Magisters' Terrace:Dung
+	{2433,3101,3102,3103,3105},	--Murder Row:Dung
+	{2514,3207,3208,3209},	--Den of Nalorakk:Dung
+	{2500,3199,3200,3201,3202},	--The Blinding Vale:Dung
+	{2501,3212,3213,3214},	--Maisara Caverns:Dung
+	{2556,3328,3332,3333},	--Nexus-Point Xenas:Dung
+	{2572,3285,3286,3287},	--Voidscar Arena:Dung
 
 	{232,663,664,665,666,667,668,669,670,671,672},
 	{287,610,611,612,613,614,615,616,617},
@@ -2587,8 +2635,12 @@ ExRT.GDB.EncountersList = {
 	{2232,2820,2709,2737,2731,2728,2708,2824,2786,2677},	--d
 
 	{2292,2902,2917,2898,2918,2919,2920,2921,2922},	--Nerub-ar Palace:Raid
-	{"11.1",2406,3009,3010,3011,3012,3013,3014,3015,3016},	--Liberation of Undermine:Raid
+	{2406,3009,3010,3011,3012,3013,3014,3015,3016},	--Liberation of Undermine:Raid
+	{2460,3129,3131,3130,3132,3122,3133,3134,3135},	--Manaforge Omega
 
+	{2529,3176,3177,3179,3178,3180,3181},	--The Voidspire:Raid
+	{2532,3306},	--The Dreamrift:Raid
+	{2533,3182,3183},	--March on Quel'Danas:Raid
 }
 
 function ExRT.F.EJ_AutoScan()
@@ -2745,7 +2797,10 @@ end
 
 local ACTUAL_RAID = 1735
 local ACTUAL_DUNG = 1666
-if UnitLevel'player' > 70 then
+if UnitLevel'player' > 80 then
+	ACTUAL_DUNG = 2494
+	ACTUAL_RAID = 2529
+elseif UnitLevel'player' > 70 then
 	ACTUAL_DUNG = 2316
 	ACTUAL_RAID = 2292
 elseif UnitLevel'player' > 60 then

@@ -33,6 +33,11 @@ if not Type then return end
 -- GLOBALS: CreateFrame
 
 
+if TMW.clientHasSecrets then
+	Type:RegisterConfigPanel_XMLTemplate(90, "TellMeWhen_SecretsWarning", {
+		text = L["UIPANEL_SECRETS_META_DESC"]
+	})
+end
 
 Type:RegisterConfigPanel_XMLTemplate(145, "TellMeWhen_IconStates", { })
 
@@ -40,7 +45,7 @@ Type:RegisterConfigPanel_XMLTemplate(150, "TellMeWhen_MetaIconOptions")
 
 
 Type:RegisterConfigPanel_ConstructorFunc(170, "TellMeWhen_MetaSortSettings", function(self)
-	self:SetTitle(TMW.L["SORTBY"])
+	self:SetTitle(TMW.L["SORTBY"], true)
 	self:BuildSimpleCheckSettingFrame({
 		numPerRow = 3,
 		function(check)

@@ -1,6 +1,92 @@
 local GlobalAddonName, ExRT = ...
 
 ExRT.Options.Changelog = [=[
+v.5280
+* Data updates
+* Minor fixes
+
+v.5275
+* Raid check: flasks fix
+
+v.5270
+* Data updates
+* Minor fixes
+
+v.5260
+* Fixes
+* Timers: added font options
+
+v.5251
+* Midnight update
+* Minor fixes
+
+v.5251-MoP
+* Note: added ToT bosses autoload
+
+v.5240-MoP
+* ToT updates
+
+v.5230
+* Added Midnight beta support
+* Fixes
+
+v.5220
+* Note: option "Hide lines with timers but without my name" now also hides names of other players in shown line (for Name {spell:X} formatting)
+* Raid check: added Soulgorged Augment Rune support
+* Fixes
+
+v.5220-MoP
+* Fixes for autochange loot distribution
+
+v.5215
+* Added Ethereal Augment Rune support
+* Data updates
+* Fixes
+
+v.5210
+* Data updates
+
+v.5210-MoP
+* Fixes
+
+v.5205
+* Data updates
+
+v.5205-MoP
+* Fixes
+
+v.5200
+* 11.2 update
+
+v.5200-MoP
+* Readded "Bonus Loot" module
+
+v.5195
+* Minor updates
+
+v.5195-MoP
+* Raid Check: updated MoP raid buffs
+
+v.5190
+* Fixes
+
+v.5190-MoP
+* Fixes
+* MoP updates
+
+v.5181
+* Pull timer fix
+
+v.5180
+* Fixes
+* 11.1.7 update
+
+v.5180-MoP
+* 5.5.0 Update
+
+v.5160
+* 11.1.5 update
+
 v.5150
 * Reminder: added timelines for Liberation of Undermine mythic bosses
 * Raid check: added custom ilvl column

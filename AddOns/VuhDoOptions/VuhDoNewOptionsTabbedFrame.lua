@@ -1,5 +1,7 @@
 VUHDO_MENU_RETURN_TARGET = nil;
 VUHDO_MENU_RETURN_TARGET_MAIN = nil;
+VUHDO_MENU_RETURN_TARGET_SAVED = nil;
+VUHDO_MENU_RETURN_TARGET_MAIN_SAVED = nil;
 
 
 local _;
@@ -108,10 +110,18 @@ function VUHDO_tabbedPanelOkayClicked(aButton)
 	elseif (tProfile ~= nil and tProfile["LOCKED"]) then
 		VUHDO_Msg("Profile locked: Settings have NOT been saved to " .. tProfile["NAME"]);
 	else
+		local tSkinsPanel = _G["VuhDoNewOptionsToolsSkins"];
+
+		if tSkinsPanel and VUHDO_isAutoProfilesModified() then
+			VUHDO_skinsSaveAutoProfileButtonEnablement(tSkinsPanel, VUHDO_CONFIG["CURRENT_PROFILE"]);
+			VUHDO_resetAutoProfilesModified();
+		end
+
 		VUHDO_saveCurrentProfile();
 		VUHDO_CURRENT_PROFILE = VUHDO_CONFIG["CURRENT_PROFILE"];
 	end
 
+	VUHDO_invalidateBindingCodeCache();
 	VUHDO_initAllBurstCaches();
 	VUHDO_trimSpellAssignments(VUHDO_SPELL_ASSIGNMENTS);
 	VUHDO_trimSpellAssignments(VUHDO_HOSTILE_SPELL_ASSIGNMENTS);
@@ -146,7 +156,7 @@ local tAllPanels = {
 	{ "VuhDoNewOptionsColors", "Colors" },
 	{ "VuhDoNewOptionsMove", "Move" },
 	{ "VuhDoNewOptionsBuffs", "Buffs" },
-	{ "VuhDoNewOptionsDebuffs", "Debuffs" },
+	{ "VuhDoNewOptionsAura", "Auras" },
 	{ "VuhDoNewOptionsTools", "Tools" },
 }
 

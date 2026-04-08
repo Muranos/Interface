@@ -2015,7 +2015,7 @@ function Private.Modernize(data, oldSnapshot)
   end
 
   if data.internalVersion < 72 then
-    if WeakAuras.IsClassic() then
+    if WeakAuras.IsClassicEra() then
       if data.model_path and data.modelIsUnit then
         data.model_fileId = data.model_path
       end
@@ -2408,6 +2408,82 @@ function Private.Modernize(data, oldSnapshot)
               trigger.use_isBarEnabled = true
             end
           end
+        end
+      end
+    end
+  end
+
+  if data.internalVersion < 85 then
+    if data.triggers then
+      local eventTypes = {
+        ["Unit Characteristics"] = true,
+        ["Health"] = true,
+        ["Power"] = true,
+        ["Alternate Power"] = true,
+        ["Cast"] = true
+      }
+      for _, triggerData in ipairs(data.triggers) do
+        local trigger = triggerData.trigger
+        if trigger and trigger.type == "unit" then
+          if eventTypes[trigger.event] then
+            local rt = trigger.raidMarkIndex
+            if type(rt) == "number" then
+              trigger.raidMarkIndex = {
+                single = rt
+              }
+            end
+            if trigger.use_raidMarkIndex == false then
+              trigger.use_raidMarkIndex = nil
+            end
+          end
+        end
+      end
+    end
+  end
+
+  if data.internalVersion < 86 then
+    if data.subRegions then
+      for index, subRegionData in ipairs(data.subRegions) do
+        if subRegionData.type == "submodel" then
+          subRegionData.bar_model_attach = subRegionData.bar_model_clip
+          subRegionData.bar_model_clip = nil
+          if subRegionData.bar_model_attach then
+            subRegionData.bar_model_stretch = true
+          end
+        end
+      end
+    end
+  end
+
+  if data.internalVersion < 87 then
+    if data.conditions then
+      for conditionIndex, condition in ipairs(data.conditions) do
+        for changeIndex, change in ipairs(condition.changes) do
+          if change.property == "icon_visible" then
+            change.property = "icon"
+          end
+        end
+      end
+    end
+  end
+
+  if data.internalVersion < 88 then
+    if WeakAuras.IsTBCOrWrath() then
+      for _, triggerData in ipairs(data.triggers) do
+        local trigger = triggerData.trigger
+        if trigger and trigger.event == "Talent Known" and trigger.talent then
+          if trigger.use_talent and trigger.talent.single then
+            trigger.talent.multi = {}
+            trigger.talent.multi[trigger.talent.single] = false
+            trigger.use_talent = false
+          end
+          if trigger.use_inverse and trigger.talent.multi then
+            for talentIndex in pairs(trigger.talent.multi) do
+              trigger.talent.multi[talentIndex] = false
+            end
+          end
+          trigger.talent.single = nil
+          trigger.use_inverse = nil
         end
       end
     end

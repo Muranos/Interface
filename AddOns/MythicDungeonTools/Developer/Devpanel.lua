@@ -57,8 +57,6 @@ end
 
 local currentEnemyIdx
 local currentCloneGroup
-local currentTeeming
-local currentInspiring
 local currentPatrol
 local currentBossEnemyIdx = 1
 local currentCloneScale
@@ -75,11 +73,7 @@ function MDT:CreateDevPanel(frame)
     {
       { text = "POI/Zoom",  value = "tab1" },
       { text = "Enemy",     value = "tab2" },
-      { text = "Infested",  value = "tab3" },
-      { text = "Week",      value = "tab4" },
-      { text = "Corrupted", value = "tab5" },
-      { text = "Manage DB", value = "tab6" },
-      { text = "Shrouded",  value = "tab7" },
+      { text = "Manage DB", value = "tab3" },
     }
   )
   devPanel:SetWidth(250)
@@ -378,45 +372,13 @@ function MDT:CreateDevPanel(frame)
     end)
     container:AddChild(enemyInfoButton)
 
-    local collectedSpellsButton = AceGUI:Create("Button")
-    collectedSpellsButton:SetText("Add collected spells")
-    collectedSpellsButton:SetCallback("OnClick", function()
-      MDT.DataCollection:AddCollectedDataToEnemyTable(db.currentDungeonIdx, false, true)
-    end)
-    container:AddChild(collectedSpellsButton)
-
-    local collectedCharacteristicsButton = AceGUI:Create("Button")
-    collectedCharacteristicsButton:SetText("Add collected characteristics")
-    collectedCharacteristicsButton:SetCallback("OnClick", function()
-      MDT.DataCollection:AddCollectedDataToEnemyTable(db.currentDungeonIdx, true, false)
-    end)
-    container:AddChild(collectedCharacteristicsButton)
-
-    local collectedHealthButton = AceGUI:Create("Button")
-    collectedHealthButton:SetText("Add collected Health Values")
-    collectedHealthButton:SetCallback("OnClick", function()
-      if db.newDataCollectionActive then
-        MDT:ProcessHealthTrack()
-      else
-        print("MDT DevMode: Cant process Health Track, reload to enable Data Collection first!")
-        MDT:ToggleDataCollection()
-      end
-    end)
-    container:AddChild(collectedHealthButton)
-
-    local cleanSpellDataButton = AceGUI:Create("Button")
-    cleanSpellDataButton:SetText("Clean spells")
-    cleanSpellDataButton:SetCallback("OnClick", function()
-      MDT:CleanEnemyInfoSpells()
-    end)
-    container:AddChild(cleanSpellDataButton)
-
     local findCloneIssuesButton = AceGUI:Create("Button")
     findCloneIssuesButton:SetText("Find Clone Issues")
     findCloneIssuesButton:SetCallback("OnClick", function()
-      local cloneIssues = ""
+      local issues = ""
       for i = 1, 200 do
         local enemies = MDT.dungeonEnemies[i]
+        local dungeonIssues
         if enemies then
           for _, enemy in pairs(enemies) do
             local l = #enemy.clones
@@ -425,16 +387,41 @@ function MDT:CreateDevPanel(frame)
               realLength = realLength + 1
             end
             if l ~= realLength then
-              local dungeonName = MDT.dungeonList[i]
-              local enemyName = enemy.name
-              cloneIssues = cloneIssues..dungeonName..": "..enemyName.."\n"
+              dungeonIssues = dungeonIssues or ("--- "..MDT.dungeonList[i]).."\n"
+              dungeonIssues = dungeonIssues..enemy.name.."\n"
             end
+          end
+          if dungeonIssues then
+            issues = issues..dungeonIssues.."\n"
           end
         end
       end
-      MDT:ExportString(cloneIssues)
+      MDT:ExportString(issues)
     end)
     container:AddChild(findCloneIssuesButton)
+
+    local findMissingLocaleButton = AceGUI:Create("Button")
+    findMissingLocaleButton:SetText("Find Missing Localizations")
+    findMissingLocaleButton:SetCallback("OnClick", function()
+      local issues = ""
+      for i = 1, 200 do
+        local enemies = MDT.dungeonEnemies[i]
+        local dungeonIssues
+        if enemies then
+          for _, enemy in pairs(enemies) do
+            if not MDT.L[enemy.name] then
+              dungeonIssues = dungeonIssues or ("--- "..MDT.dungeonList[i]).."\n"
+              dungeonIssues = dungeonIssues..("L[\"%s\"] = \"%s\"\n"):format(enemy.name, enemy.name)
+            end
+          end
+          if dungeonIssues then
+            issues = issues..dungeonIssues.."\n"
+          end
+        end
+      end
+      MDT:ExportString(issues)
+    end)
+    container:AddChild(findMissingLocaleButton)
 
     local button3 = AceGUI:Create("Button")
     button3:SetText("Export to LUA")
@@ -617,21 +604,6 @@ function MDT:CreateDevPanel(frame)
     end)
     container:AddChild(cloneGroupMaxButton)
 
-    local teemingCheckbox = AceGUI:Create("CheckBox")
-    teemingCheckbox:SetLabel("Teeming")
-    teemingCheckbox:SetCallback("OnValueChanged", function(widget, callbackName, value)
-      currentTeeming = value and true or nil
-      local currentBlip = MDT:GetCurrentDevmodeBlip()
-      if currentBlip then
-        local data = MDT.dungeonEnemies[db.currentDungeonIdx][currentBlip.enemyIdx]
-        data.clones[currentBlip.cloneIdx].teeming = currentTeeming
-        MDT:UpdateMap()
-      end
-    end)
-    teemingCheckbox:SetValue(currentTeeming)
-    container:AddChild(teemingCheckbox)
-
-
     --patrol
     local patrolCheckbox = AceGUI:Create("CheckBox")
     patrolCheckbox:SetLabel("Patrol")
@@ -683,60 +655,6 @@ function MDT:CreateDevPanel(frame)
     end)
     container:AddChild(neutralCheckbox)
 
-    --upstairs
-    local upstairsCheckbox = AceGUI:Create("CheckBox")
-    upstairsCheckbox:SetLabel("Upstairs")
-    upstairsCheckbox:SetCallback("OnValueChanged", function(widget, callbackName, value)
-      local currentBlip = MDT:GetCurrentDevmodeBlip()
-      if currentBlip then
-        local data = MDT.dungeonEnemies[db.currentDungeonIdx][currentBlip.enemyIdx]
-        data.clones[currentBlip.cloneIdx].upstairs = value or nil
-        MDT:UpdateMap()
-      end
-    end)
-    container:AddChild(upstairsCheckbox)
-
-    --negative teeming
-    local negativeteemingCheckbox = AceGUI:Create("CheckBox")
-    negativeteemingCheckbox:SetLabel("Negative Teeming")
-    negativeteemingCheckbox:SetCallback("OnValueChanged", function(widget, callbackName, value)
-      local currentBlip = MDT:GetCurrentDevmodeBlip()
-      if currentBlip then
-        local data = MDT.dungeonEnemies[db.currentDungeonIdx][currentBlip.enemyIdx]
-        data.clones[currentBlip.cloneIdx].negativeTeeming = value or nil
-        MDT:UpdateMap()
-      end
-    end)
-    container:AddChild(negativeteemingCheckbox)
-
-    local inspiringCheckbox = AceGUI:Create("CheckBox")
-    inspiringCheckbox:SetLabel("Inspiring")
-    inspiringCheckbox:SetCallback("OnValueChanged", function(widget, callbackName, value)
-      currentInspiring = value and true or nil
-      local currentBlip = MDT:GetCurrentDevmodeBlip()
-      if currentBlip then
-        local data = MDT.dungeonEnemies[db.currentDungeonIdx][currentBlip.enemyIdx]
-        data.clones[currentBlip.cloneIdx].inspiring = currentInspiring
-        MDT:UpdateMap()
-      end
-    end)
-    inspiringCheckbox:SetValue(currentInspiring)
-    container:AddChild(inspiringCheckbox)
-
-    --faction
-    local faction = AceGUI:Create("EditBox")
-    faction:SetLabel("Faction:")
-    faction:SetCallback("OnEnterPressed", function(widget, callbackName, text)
-      local value = tonumber(text)
-      local currentBlip = MDT:GetCurrentDevmodeBlip()
-      if currentBlip then
-        local data = MDT.dungeonEnemies[db.currentDungeonIdx][currentBlip.enemyIdx]
-        data.clones[currentBlip.cloneIdx].faction = value
-        MDT:UpdateMap()
-      end
-    end)
-    container:AddChild(faction)
-
     --sublevel
     local sublevel = AceGUI:Create("EditBox")
     sublevel:SetLabel("Sublevel:")
@@ -757,17 +675,11 @@ function MDT:CreateDevPanel(frame)
       cloneGroup:SetText(currentBlip.clone.g)
       currentCloneGroup = currentBlip.clone.g
       currentCloneScale = currentBlip.clone.scale
-      teemingCheckbox:SetValue(currentBlip.clone.teeming)
-      inspiringCheckbox:SetValue(currentBlip.clone.inspiring)
-      currentTeeming = currentBlip.clone.teeming
       currentPatrol = currentBlip.patrol and true or nil
       patrolCheckbox:SetValue(currentBlip.clone.patrol)
       stealthDetectCheckbox:SetValue(currentBlip.data.stealthDetect)
       stealthCheckbox:SetValue(currentBlip.data.stealth)
       neutralCheckbox:SetValue(currentBlip.data.neutral)
-      upstairsCheckbox:SetValue(currentBlip.clone.upstairs)
-      negativeteemingCheckbox:SetValue(currentBlip.clone.negativeTeeming)
-      faction:SetText(currentBlip.clone.faction)
       sublevel:SetText(currentBlip.clone.sublevel)
     else
       cloneGroup:SetText(currentCloneGroup)
@@ -780,126 +692,6 @@ function MDT:CreateDevPanel(frame)
   end
 
   local function DrawGroup3(container)
-    for i = 1, 12 do
-      local infestedCheckbox = AceGUI:Create("CheckBox")
-      infestedCheckbox:SetLabel("Infested Week "..i)
-      infestedCheckbox:SetCallback("OnValueChanged", function(widget, callbackName, value)
-        local currentBlip = MDT:GetCurrentDevmodeBlip()
-        local data = MDT.dungeonEnemies[db.currentDungeonIdx][currentBlip.enemyIdx]
-        data.clones[currentBlip.cloneIdx].infested = data.clones[currentBlip.cloneIdx].infested or {}
-        data.clones[currentBlip.cloneIdx].infested[i] = value or nil
-        MDT:UpdateMap()
-      end)
-      local currentBlip = MDT:GetCurrentDevmodeBlip()
-      if currentBlip then
-        infestedCheckbox:SetValue(currentBlip.clone.infested and currentBlip.clone.infested[i])
-      end
-      container:AddChild(infestedCheckbox)
-    end
-  end
-
-  local function DrawGroup4(container)
-    for i = 1, 12 do
-      local weekCheckbox = AceGUI:Create("CheckBox")
-      weekCheckbox:SetLabel("Week "..i)
-      weekCheckbox:SetCallback("OnValueChanged", function(widget, callbackName, value)
-        local currentBlip = MDT:GetCurrentDevmodeBlip()
-        local data = MDT.dungeonEnemies[db.currentDungeonIdx][currentBlip.enemyIdx]
-        data.clones[currentBlip.cloneIdx].week = data.clones[currentBlip.cloneIdx].week or {}
-        data.clones[currentBlip.cloneIdx].week[i] = value or nil
-        MDT:UpdateMap()
-      end)
-      local currentBlip = MDT:GetCurrentDevmodeBlip()
-      if currentBlip then
-        weekCheckbox:SetValue(currentBlip.clone.week and currentBlip.clone.week[i])
-      end
-      container:AddChild(weekCheckbox)
-    end
-  end
-
-  local spireNames = {
-    [1] = "Entropic Spire of Ny'alotha",
-    [2] = "Cursed Spire of Ny'alotha",
-    [3] = "Brutal Spire of Ny'alotha",
-    [4] = "Defiled Spire of Ny'alotha",
-  }
-
-  local function DrawGroup5(container)
-    local index, tooltipIndex, scale
-    local week = {}
-
-    local indexEditbox = AceGUI:Create("EditBox")
-    indexEditbox:SetLabel("Index")
-    indexEditbox:SetCallback("OnEnterPressed", function(widget, callbackName, text)
-      index = tonumber(text)
-    end)
-    container:AddChild(indexEditbox)
-
-
-    local tooltipIndexEditbox = AceGUI:Create("EditBox")
-    tooltipIndexEditbox:SetLabel("Tooltip Index")
-    tooltipIndexEditbox:SetCallback("OnEnterPressed", function(widget, callbackName, text)
-      tooltipIndex = tonumber(text)
-    end)
-    container:AddChild(tooltipIndexEditbox)
-
-    local tooltipIndexLabel = AceGUI:Create("Label")
-    tooltipIndexLabel:SetText("1 = Entropic Spire of Ny'alotha (Sam'rek)\n2 = Cursed Spire of Ny'alotha (Voidweaver)\n3 = Brutal Spire of Ny'alotha (Urg'roth)\n4 = Defiled Spire of Ny'alotha (Blood)\n")
-    container:AddChild(tooltipIndexLabel)
-
-    local scaleEditbox = AceGUI:Create("EditBox")
-    scaleEditbox:SetLabel("Scale")
-    scaleEditbox:SetCallback("OnEnterPressed", function(widget, callbackName, text)
-      scale = tonumber(text)
-    end)
-    container:AddChild(scaleEditbox)
-
-    for i = 1, 12 do
-      local weekCheckbox = AceGUI:Create("CheckBox")
-      weekCheckbox:SetLabel("Week "..i)
-      weekCheckbox:SetCallback("OnValueChanged", function(widget, callbackName, value)
-        if value then week[i] = true else week[i] = nil end
-      end)
-      container:AddChild(weekCheckbox)
-    end
-    local createSpireButton = AceGUI:Create("Button")
-    createSpireButton:SetText("Create Spire+NPC")
-    local tooltipIdxToNpcId = {
-      [1] = 161243,
-      [2] = 161241,
-      [3] = 161124,
-      [4] = 161244,
-    }
-    createSpireButton:SetCallback("OnClick", function()
-      if not MDT.mapPOIs[db.currentDungeonIdx] then MDT.mapPOIs[db.currentDungeonIdx] = {} end
-      if not MDT.mapPOIs[db.currentDungeonIdx][MDT:GetCurrentSubLevel()] then
-        MDT.mapPOIs[db.currentDungeonIdx][MDT:GetCurrentSubLevel()] = {}
-      end
-      local pois = MDT.mapPOIs[db.currentDungeonIdx][MDT:GetCurrentSubLevel()]
-      local posx, posy = 300, -200
-      local newWeek = MDT:DeepCopy(week)
-      tinsert(pois,
-        {
-          x = posx,
-          y = posy,
-          index = index,
-          weeks = newWeek,
-          tooltipText = spireNames[tooltipIndex],
-          template = "VignettePinTemplate",
-          type = "nyalothaSpire",
-          scale = scale,
-          npcId = tooltipIdxToNpcId[
-          tooltipIndex]
-        })
-      newWeek = MDT:DeepCopy(week)
-      MDT:POI_UpdateAll()
-      --add associated NPC to the map
-      MDT:AddCloneFromData(tooltipIdxToNpcId[tooltipIndex], newWeek)
-    end)
-    container:AddChild(createSpireButton)
-  end
-
-  local function DrawGroup6(container)
     local toggleDevModeButton = AceGUI:Create("Button")
     toggleDevModeButton:SetText("Toggle DevMode")
     toggleDevModeButton:SetCallback("OnClick", function()
@@ -930,8 +722,6 @@ function MDT:CreateDevPanel(frame)
     clearCacheButton:SetText("Clear Cache + DC")
     clearCacheButton:SetCallback("OnClick", function()
       MDT:ResetDataCache()
-      db.dataCollection = {}
-      db.dataCollectionCC = {}
     end)
     container:AddChild(clearCacheButton)
 
@@ -947,144 +737,9 @@ function MDT:CreateDevPanel(frame)
     local vdtDbButton = AceGUI:Create("Button")
     vdtDbButton:SetText("VDT DB")
     vdtDbButton:SetCallback("OnClick", function()
-      ViragDevTool_AddData(db)
+      DevTool:AddData(db)
     end)
     container:AddChild(vdtDbButton)
-
-    local leechButton = AceGUI:Create("Button")
-    leechButton:SetText("Leech Data")
-    leechButton:SetCallback("OnClick", function()
-      MDT:RequestDataCollectionUpdate()
-    end)
-    container:AddChild(leechButton)
-  end
-
-  local shroudedEnemyData = {
-    [1] = {
-      ["clones"] = {
-      },
-      ["name"] = "Nathrezim Infiltrator",
-      ["characteristics"] = {
-        ["Taunt"] = true,
-      },
-      ["spells"] = {
-        [373364] = {},
-        [373429] = {},
-        [373370] = {},
-        [373391] = {},
-      },
-      ["health"] = 999999,
-      ["count"] = 0,
-      ["displayId"] = 101016,
-      ["creatureType"] = "Demon",
-      ["level"] = 61,
-      ["id"] = 189878,
-      ["scale"] = 1.2
-    },
-    [2] = {
-      ["clones"] = {
-      },
-      ["name"] = "Zul'gamux",
-      ["characteristics"] = {
-        ["Taunt"] = true,
-      },
-      ["spells"] = {
-        [373509] = {},
-        [373724] = {},
-        [373513] = {},
-        [373552] = {},
-        [373570] = {},
-        [373607] = {},
-      },
-      ["health"] = 999999,
-      ["count"] = 0,
-      ["displayId"] = 101106,
-      ["creatureType"] = "Demon",
-      ["level"] = 61,
-      ["id"] = 190128,
-      ["scale"] = 1.8
-    },
-  }
-
-  local function DrawGroup7(container)
-    local currentShroudedTypeEditBox = AceGUI:Create("EditBox")
-    currentShroudedTypeEditBox:SetLabel("Shrouded Type: (number: 1 or 2)")
-    currentShroudedTypeEditBox:SetText("1")
-    container:AddChild(currentShroudedTypeEditBox)
-
-    local makeShroudedButton = AceGUI:Create("Button")
-    makeShroudedButton:SetText("Make Shrouded")
-    makeShroudedButton:SetCallback("OnClick", function()
-      local value = currentShroudedTypeEditBox:GetText()
-      local shroudedIndex = tonumber(value)
-      local currentBlip = MDT:GetCurrentDevmodeBlip()
-      if currentBlip and (shroudedIndex == 1 or shroudedIndex == 2) then
-        local data = MDT.dungeonEnemies[db.currentDungeonIdx]
-        local shroudedData = shroudedEnemyData[shroudedIndex]
-        -- 1. create shrouded enemy if it doesnt exist in this dungeon
-        local shroudedEnemyExists = false
-        for _, enemy in pairs(data) do
-          if enemy.id == shroudedData.id then
-            shroudedEnemyExists = true
-            break
-          end
-        end
-        if not shroudedEnemyExists then
-          tinsert(data, MDT:DeepCopy(shroudedData))
-        end
-        -- 2. find the shrouded enemy in the data table for this dungeon
-        local shroudedEnemy = nil
-        for _, enemy in pairs(data) do
-          if enemy.id == shroudedData.id then
-            shroudedEnemy = enemy
-            break
-          end
-        end
-        -- 3. add the clone from this blip to the shrouded enemy, make sure to deep copy clone data
-        local clone = MDT:DeepCopy(currentBlip.clone)
-        clone.shrouded = true
-        if shroudedEnemy and shroudedEnemy.clones then
-          tinsert(shroudedEnemy.clones, clone)
-        end
-
-        -- 4. add disguised tag to original enemy
-        currentBlip.clone.disguised = true
-
-        MDT:UpdateMap()
-      end
-    end)
-    container:AddChild(makeShroudedButton)
-
-    local inspiringCheckbox = AceGUI:Create("CheckBox")
-    inspiringCheckbox:SetLabel("Inspiring")
-    inspiringCheckbox:SetCallback("OnValueChanged", function(widget, callbackName, value)
-      currentInspiring = value and true or nil
-      local currentBlip = MDT:GetCurrentDevmodeBlip()
-      if currentBlip then
-        local data = MDT.dungeonEnemies[db.currentDungeonIdx][currentBlip.enemyIdx]
-        data.clones[currentBlip.cloneIdx].inspiring = currentInspiring
-        MDT:UpdateMap()
-      end
-    end)
-    inspiringCheckbox:SetValue(currentInspiring)
-    container:AddChild(inspiringCheckbox)
-
-    local currentBlip = MDT:GetCurrentDevmodeBlip()
-    if currentBlip then
-      inspiringCheckbox:SetValue(currentBlip.clone.inspiring)
-    end
-
-    local unDisguiseButton = AceGUI:Create("Button")
-    unDisguiseButton:SetText("Remove Disguised Tag")
-    unDisguiseButton:SetCallback("OnClick", function()
-      local currentBlip = MDT:GetCurrentDevmodeBlip()
-      if currentBlip then
-        local data = MDT.dungeonEnemies[db.currentDungeonIdx][currentBlip.enemyIdx]
-        data.clones[currentBlip.cloneIdx].disguised = nil
-        MDT:UpdateMap()
-      end
-    end)
-    container:AddChild(unDisguiseButton)
   end
 
   -- Callback function for OnGroupSelected
@@ -1096,14 +751,6 @@ function MDT:CreateDevPanel(frame)
       DrawGroup2(container)
     elseif group == "tab3" then
       DrawGroup3(container)
-    elseif group == "tab4" then
-      DrawGroup4(container)
-    elseif group == "tab5" then
-      DrawGroup5(container)
-    elseif group == "tab6" then
-      DrawGroup6(container)
-    elseif group == "tab7" then
-      DrawGroup7(container)
     end
   end
 
@@ -1134,25 +781,6 @@ function MDT:CreateDevPanel(frame)
   end
 end
 
-function MDT:AddCloneFromData(npcId, weeks)
-  local sublevel = MDT:GetCurrentSubLevel()
-  local x, y = 320, -200
-  local data
-  for _, enemyData in pairs(MDT.dungeonEnemies[db.currentDungeonIdx]) do
-    if enemyData.id == npcId then
-      data = enemyData
-      break
-    end
-  end
-  if not data then
-    print("Could not find enemy with id "..npcId)
-    return
-  end
-  tinsert(data.clones, { x = x, y = y, sublevel = sublevel, week = weeks })
-  print(string.format("MDT: Created clone %s %d at %d,%d", data.name, #data.clones, x, y))
-  MDT:UpdateMap()
-end
-
 ---AddCloneAtCursorPosition
 ---Adds a clone at the cursor position to the dungeon enemy table
 ---bound to hotkey and used to add new npcs to the map
@@ -1170,7 +798,6 @@ function MDT:AddCloneAtCursorPosition()
         y = cursory,
         sublevel = MDT:GetCurrentSubLevel(),
         g = currentCloneGroup,
-        teeming = currentTeeming,
         scale = currentCloneScale
       })
     print(string.format("MDT: Created clone %s %d at %d,%d", data.name, #data.clones, cursorx, cursory))

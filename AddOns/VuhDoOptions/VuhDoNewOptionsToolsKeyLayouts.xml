@@ -6,7 +6,7 @@
 
 			<Frame name="$parentStorePanel" inherits="VuhDoPanelTemplate">
 				<Size>
-					<AbsDimension x="320" y="245" />
+					<AbsDimension x="320" y="285" />
 				</Size>
 				<Anchors>
 					<Anchor point="TOPLEFT">
@@ -23,7 +23,7 @@
 						<Anchors>
 							<Anchor point="TOPLEFT">
 								<Offset>
-									<AbsDimension x="210" y="-127" />
+									<AbsDimension x="210" y="-165" />
 								</Offset>
 							</Anchor>
 						</Anchors>
@@ -41,7 +41,7 @@
 						<Anchors>
 							<Anchor point="TOPLEFT">
 								<Offset>
-									<AbsDimension x="210" y="-165" />
+									<AbsDimension x="210" y="-203" />
 								</Offset>
 							</Anchor>
 						</Anchors>
@@ -59,7 +59,7 @@
 						<Anchors>
 							<Anchor point="TOPLEFT">
 								<Offset>
-									<AbsDimension x="210" y="-203" />
+									<AbsDimension x="210" y="-241" />
 								</Offset>
 							</Anchor>
 						</Anchors>
@@ -242,7 +242,7 @@
 						<Anchors>
 							<Anchor point="TOPLEFT">
 								<Offset>
-									<AbsDimension x="210" y="-89" />
+									<AbsDimension x="210" y="-127" />
 								</Offset>
 							</Anchor>
 						</Anchors>
@@ -260,7 +260,7 @@
 						<Anchors>
 							<Anchor point="TOPLEFT">
 								<Offset>
-									<AbsDimension x="210" y="-51" />
+									<AbsDimension x="210" y="-89" />
 								</Offset>
 							</Anchor>
 						</Anchors>
@@ -271,7 +271,7 @@
 						</Scripts>
 					</Button>
 
-					<CheckButton name="$parentLoadHotsCheckButton"  text="VUHDO_I18N_LOAD_HOTS" inherits="VuhDoCheckButtonTemplate">
+					<CheckButton name="$parentLoadAurasCheckButton"  text="VUHDO_I18N_LOAD_AURAS" inherits="VuhDoCheckButtonTemplate">
 						<Anchors>
 							<Anchor point="TOPLEFT">
 								<Offset>
@@ -281,11 +281,30 @@
 						</Anchors>
 						<Scripts>
 							<OnLoad>
-								VUHDO_lnfSetModel(self, "VUHDO_SPELL_CONFIG.IS_LOAD_HOTS");
+								VUHDO_lnfSetModel(self, "VUHDO_SPELL_CONFIG.IS_LOAD_AURAS");
 								VUHDO_lnfSetTooltip(self, VUHDO_I18N_TT.K365);
 							</OnLoad>
 						</Scripts>
 					</CheckButton>
+
+					<CheckButton name="$parentLoadAurasOnlyAnchorsCheckButton"  text="VUHDO_I18N_LOAD_AURAS_ONLY_ANCHORS" inherits="VuhDoCheckButtonTemplate">
+						<Anchors>
+							<Anchor point="TOPLEFT">
+								<Offset>
+									<AbsDimension x="210" y="-51" />
+								</Offset>
+							</Anchor>
+						</Anchors>
+						<Scripts>
+							<OnLoad>
+								VUHDO_lnfSetModel(self, "VUHDO_SPELL_CONFIG.IS_LOAD_AURAS_ONLY_ANCHORS");
+								VUHDO_lnfSetTooltip(self, VUHDO_I18N_TT.K609);
+
+								VUHDO_lnfAddConstraint(self, VUHDO_LF_CONSTRAINT_DISABLE, "VUHDO_SPELL_CONFIG.IS_LOAD_AURAS", false);
+							</OnLoad>
+						</Scripts>
+					</CheckButton>
+
 
 					<Frame name="$parentTitleLabel" inherits="VuhDoLabelFrameTemplate">
 						<Layers>
@@ -307,7 +326,7 @@
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset>
-							<AbsDimension x="30" y="-285" />
+							<AbsDimension x="30" y="-325" />
 						</Offset>
 					</Anchor>
 				</Anchors>

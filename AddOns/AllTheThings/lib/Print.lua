@@ -1,8 +1,8 @@
 -- Chat and Print functionality
 local appName, app = ...;
 
-local print, tostring, ipairs, pairs, type
-	= print, tostring, ipairs, pairs, type
+local print, tostring, ipairs, pairs, type,math_floor
+	= print, tostring, ipairs, pairs, type,math.floor
 
 app.print = function(...)
 	print(app.L.SHORTTITLE, ...);
@@ -14,6 +14,7 @@ app.report = function(...)
 	app.print(app.Version..": "..app.L.PLEASE_REPORT_MESSAGE);
 end
 app.PrintMemoryUsage = function(...)
+	collectgarbage()
 	UpdateAddOnMemoryUsage();
 	app.print(... or "Memory", GetAddOnMemoryUsage(appName));
 end
@@ -29,10 +30,10 @@ app.PrintDebugPrior = function(...)
 	if app.Debugging then
 		local now = GetTimePreciseSec();
 		if DEBUG_PRINT_LAST then
-			local diff = now - DEBUG_PRINT_LAST;
-			print(now,"<>",diff,"Stutter @", math.ceil(1 / diff), ...)
+			local diff = now - DEBUG_PRINT_LAST
+			print(now,...,"<>",math_floor(diff * 10000 / 10),"ms @", math.ceil(1 / diff),"FPS")
 		else
-			print(now,0,...)
+			print(now,...)
 		end
 		DEBUG_PRINT_LAST = GetTimePreciseSec();
 	end
@@ -44,7 +45,7 @@ app.PrintGroup = function(group,depth)
 		for i=0,depth,1 do
 			p = p .. "-";
 		end
-		p = p .. tostring(group.key or group.text) .. ":" .. tostring(group[group.key or "NIL"]);
+		p = p .. tostring(group.key or group.text) .. ":" .. tostring(group.keyval);
 		print(p);
 		if group.g then
 			for i,sg in ipairs(group.g) do
@@ -54,6 +55,12 @@ app.PrintGroup = function(group,depth)
 	end
 	print("---")
 end
+local SkipTableFields = {
+	parent = 1,
+	sourceParent = 1,
+	__merge = 1,
+	window = 1,
+}
 app.PrintTable = function(t,depth)
 	-- only allowing table prints when Debug print is active
 	if not app.Debugging then return; end
@@ -70,7 +77,7 @@ app.PrintTable = function(t,depth)
 		app._PrintTable[t] = true;
 		print(p,tostring(t),"__type",t.__type," {");
 		for k,v in pairs(t) do
-			if k == "parent" or k == "sourceParent" or k == "__merge" then
+			if SkipTableFields[k] then
 				print(p,k,":",tostring(v), "[SKIPPED]")
 			elseif type(v) == "table" then
 				if k == "g" then

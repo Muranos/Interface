@@ -19,6 +19,7 @@ local L = LibStub("AceLocale-3.0"):GetLocale("RCLootCouncil")
 local LibDialog = LibStub("LibDialog-1.1")
 local _G = _G
 local Comms = addon.Require "Services.Comms"
+local ItemUtils = addon.Require "Utils.Item"
 local PREFIX = addon.PREFIXES.MAIN
 
 local ROW_HEIGHT = 30
@@ -125,7 +126,8 @@ function TradeUI:OnDoTrade (trader, item, winner)
       local Item = addon.ItemStorage:GetItem(item, "temp")
       if not Item then
          addon.Log:E("TradeUI", "Couldn't find item for 'DoTrade'", item, winner)
-         return addon:Print(format("Couldn't find %s to trade to %s",tostring(item), tostring(winner)))
+			return addon:Print(format("Couldn't find %s to trade to %s", ItemUtils:GetItemTextWithIcon(tostring(item)),
+			addon:GetClassIconAndColoredName(tostring(winner))))
       end
       Item.type = "to_trade"
       Item.args.recipient = winner
@@ -226,6 +228,7 @@ function TradeUI:OnAwardReceived (session, winner, trader)
 end
 
 function TradeUI:CheckTimeRemaining()
+	if addon.inCombat then return end
    local Items = addon.ItemStorage:GetAllItemsLessTimeRemaining(TIME_REMAINING_WARNING)
    -- Filter for items with "to_trade" and "award_later"
    Items = tFilter(Items, function(item)
@@ -234,7 +237,7 @@ function TradeUI:CheckTimeRemaining()
    if #Items > 0 then
       addon:Print(format(L["time_remaining_warning"], TIME_REMAINING_WARNING/60))
       for i, Item in pairs(Items) do
-         addon:Print(i, Item)
+			addon:Print(i, ItemUtils:GetItemTextWithIcon(Item))
       end
       for _, Item in pairs(Items) do
          if Item.time_remaining <= 0 and Item:SafeToRemove() then
@@ -250,21 +253,27 @@ end
 --------------------------------------------------------------
 
 function TradeUI:OnEvent_TRADE_SHOW (event, ...)
-   self.isTrading = true
    wipe(self.tradeItems)
-
+   
    -- Try to grab the trader from Blizzard UI
    local target = _G.TradeFrameRecipientNameText:GetText()
    if not target or target == "" then
-      target = "NPC" -- Otherwise fallback to `UnitName("NPC")`
-   end
+	target = "NPC" -- Otherwise fallback to `UnitName("NPC")`
+	end
 
-   -- If target is from another realm, the name in the trade frame will be "Name(*)"
-   if target:find("(*)") then
+	-- If target is from another realm, the name in the trade frame will be "Name(*)"
+	if target:find("(*)") then
 		-- Remove the "(*)" so `UnitName` can attach realm.
 		target = string.sub(target, 1, -4)
-   end
-   self.tradeTarget = addon:UnitName(target)
+	end
+	if db.blockTradesInVoting and addon:GetActiveModule("votingframe"):IsActive() then
+		CloseTrade()
+		addon:Print(string.format(L["opt_blockTradesInVoting_message"], addon:GetClassIconAndColoredName(target)))
+		return
+	end
+
+	self.tradeTarget = addon:UnitName(target)
+	self.isTrading = true
 
    local count = self:GetNumAwardedInBagsToTradeWindow()
 

@@ -6,8 +6,6 @@ local L = PitBull4.L
 
 local PitBull4_Aura = PitBull4:GetModule("Aura")
 
-local wow_cata = PitBull4.wow_cata
-
 local GetItemInfo = C_Item.GetItemInfo
 local GetItemQualityColor = C_Item.GetItemQualityColor
 
@@ -57,6 +55,7 @@ local function get_aura_list(list, unit, db, is_buff, frame)
 	local filter = is_buff and "HELPFUL" or "HARMFUL"
 	local id = 1
 	local index = 1
+	local set_consolidate = PitBull4.wow_expansion < LE_EXPANSION_LEGION
 
 	-- Loop through the auras
 	while true do
@@ -72,6 +71,11 @@ local function get_aura_list(list, unit, db, is_buff, frame)
 		-- The enrage dispel type is "" instead of "Enrage"
 		if entry.dispelName == "" then
 			entry.dispelName = "Enrage"
+		end
+
+		-- Only available in the classic API z.z
+		if set_consolidate then
+			entry.shouldConsolidate = select(16, _G.UnitAura(unit, id, filter))
 		end
 
 		-- Pass the entry through to the Highlight system
@@ -163,7 +167,7 @@ end
 -- Get the name of the temporary enchant on a weapon from the tooltip
 -- given the item slot the weapon is in.
 local get_weapon_enchant_name
-if not wow_cata then
+if C_TooltipInfo then -- XXX wow_retail
 	function get_weapon_enchant_name(slot)
 		local data = C_TooltipInfo.GetInventoryItem("player", slot, true)
 		if not data then return end
@@ -179,8 +183,9 @@ if not wow_cata then
 		end
 	end
 else
-	local tt = CreateFrame("GameTooltip", "PitBull4_Aura_Tooltip", UIParent)
-	tt:SetOwner(UIParent, "ANCHOR_NONE")
+	local WorldFrame = _G.WorldFrame
+	local tt = CreateFrame("GameTooltip", "PitBull4_Aura_Tooltip", nil)
+	tt:SetOwner(WorldFrame, "ANCHOR_NONE")
 	local left = {}
 
 	local g = tt:CreateFontString()
@@ -194,8 +199,8 @@ else
 
 	get_weapon_enchant_name = function(slot)
 		tt:ClearLines()
-		if not tt:IsOwned(UIParent) then
-			tt:SetOwner(UIParent, "ANCHOR_NONE")
+		if not tt:IsOwned(WorldFrame) then
+			tt:SetOwner(WorldFrame, "ANCHOR_NONE")
 		end
 		tt:SetInventoryItem("player", slot)
 
@@ -411,7 +416,7 @@ local function set_aura(frame, db, aura_controls, aura, i, is_friend)
 	control.caster = aura.sourceUnit
 	control.spell_id = aura.spellId
 	control.time_mod = aura.timeMod
-	control.should_consolidate = wow_cata and (#aura.points > 0) or nil
+	control.should_consolidate = aura.shouldConsolidate
 
 	local class_db = frame.classification_db
 	if not db.click_through and class_db and not class_db.click_through then

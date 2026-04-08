@@ -19,6 +19,8 @@ local tonumber, pairs, type, format, select =
 	  tonumber, pairs, type, format, select
 
 local GetAuraDataByIndex = C_UnitAuras.GetAuraDataByIndex
+local GetAuraDuration = C_UnitAuras.GetAuraDuration
+local IsAuraFilteredOutByInstanceID = C_UnitAuras.IsAuraFilteredOutByInstanceID
 
 local Auras = TMW.COMMON.Auras
 local GetAuras = Auras.GetAuras
@@ -29,6 +31,10 @@ local GetSpellName = TMW.GetSpellName
 local GetSpellTexture = TMW.GetSpellTexture
 local strlowerCache = TMW.strlowerCache
 local isNumber = TMW.isNumber
+
+local issecretvalue = TMW.issecretvalue
+local clientHasSecrets = TMW.clientHasSecrets
+
 local empty = {}
 
 -- GLOBALS: TellMeWhen_ChooseName
@@ -39,6 +45,7 @@ Type.name = L["ICONMENU_BUFFDEBUFF"]
 Type.desc = L["ICONMENU_BUFFDEBUFF_DESC"]
 Type.menuIcon = GetSpellTexture(774)
 Type.usePocketWatch = 1
+Type.AllowNoName = true
 Type.menuSpaceBefore = true
 Type.unitType = "unitid"
 Type.hasNoGCD = true
@@ -91,18 +98,51 @@ Type:RegisterIconDefaults{
 	-- Hide the icon if TMW's unit system left icon.Units empty.
 	-- This can happen, for example, if checking only raid units while not in a raid.
 	HideIfNoUnits			= false,
+
+	-- Hide the icon while auras are secret.
+	HideWhileSecret			= false,
+
+	-- Filter auras by specific ExtraFilters (IMPORTANT, CROWD_CONTROL, etc.)
+	ExtraFilter				= { ["*"] = false },
 }
 
 
-Type:RegisterConfigPanel_XMLTemplate(100, "TellMeWhen_ChooseName", {
-	OnSetup = function(self, panelInfo, supplementalData)
-		if TMW.CI.icon:IsGroupController() then
-			self:SetTexts(L["ICONMENU_CHOOSENAME3"] .. " " .. L["ICONMENU_CHOOSENAME_ORBLANK"], L["CHOOSENAME_DIALOG"])
-		else
-			self:SetTexts(L["ICONMENU_CHOOSENAME3"], L["CHOOSENAME_DIALOG"])
-		end
-	end,
 
+if clientHasSecrets then
+	Type:RegisterConfigPanel_XMLTemplate(121, "TellMeWhen_SecretsWarning", {
+		text = L["UIPANEL_SECRETS_AURAS_DISALLOWED_DESC"] .. "\n\n" .. L["UIPANEL_SECRETS_AURAS_DISALLOWED_EXCEPT_DESC"],
+		OnSetup = function(self)
+			if TMW.CI.ics.Name == "" then
+				self:Hide()
+				return
+			end
+
+			-- If all spells entered pass TMW.COMMON.Auras.SpellHasCDMHook(spell), hide.
+			local ics = TMW.CI.ics
+			local spells = TMW:GetSpells(ics.Name, false).Array
+			local _, unitSet = TMW:GetUnits(TMW.CI.icon, ics.Unit)
+			local pass = false
+			if unitSet.unitSettings == "player" then
+				pass = ics.BuffOrDebuff == "HELPFUL" or ics.BuffOrDebuff == "EITHER"
+			elseif unitSet.unitSettings == "target" then
+				pass = ics.BuffOrDebuff == "HARMFUL" or ics.BuffOrDebuff == "EITHER"
+			end
+			for i = 1, #spells do
+				if not Auras.SpellHasCDMHook(spells[i]) then
+					pass = false
+					break;
+				end
+			end
+			if pass then
+				self:Hide()
+			end
+			
+		end,
+	})
+end
+
+Type:RegisterConfigPanel_XMLTemplate(100, "TellMeWhen_ChooseName", {
+	title = L["ICONMENU_CHOOSENAME3"] .. " " .. L["ICONMENU_CHOOSENAME_ORBLANK"],
 	SUGType = "buff",
 })
 
@@ -137,12 +177,24 @@ Type:RegisterConfigPanel_ConstructorFunc(125, "TellMeWhen_BuffSettings", functio
 			check:SetSetting("OnlyMine")
 		end,
 		function(check)
-			check:SetTexts(L["ICONMENU_STEALABLE"], L["ICONMENU_STEALABLE_DESC"])
+			local name = L["ICONMENU_STEALABLE"]
+			local desc = L["ICONMENU_STEALABLE_DESC"]
+			
+			if clientHasSecrets then
+				name = name .. " " .. TMW:GetRestrictedTString()
+				desc = desc .. "\n\n" .. L["UIPANEL_SECRETS_DISALLOWED_DESC"]
+			end
+			
+			check:SetTexts(name, desc)
 			check:SetSetting("Stealable")
 		end,
 		function(check)
 			check:SetTexts(L["ICONMENU_HIDENOUNITS"], L["ICONMENU_HIDENOUNITS_DESC"])
 			check:SetSetting("HideIfNoUnits")
+		end,
+		function(check)
+			check:SetTexts(L["ICONMENU_HIDEWHILESECRET"], L["ICONMENU_HIDEWHILESECRET_DESC"])
+			check:SetSetting("HideWhileSecret")
 		end,
 	})
 
@@ -169,6 +221,7 @@ Type:RegisterConfigPanel_ConstructorFunc(125, "TellMeWhen_BuffSettings", functio
 		local info = TMW.DD:CreateInfo()
 		info.text = L["ICONMENU_SHOWTTTEXT_FIRST"]
 		info.tooltipTitle = info.text
+		info.icon = "Interface\\AddOns\\TellMeWhen\\Textures\\restricted.png"
 		info.tooltipText = L["ICONMENU_SHOWTTTEXT_FIRST_DESC"]
 		info.func = OnClick
 		info.arg1 = true
@@ -180,6 +233,7 @@ Type:RegisterConfigPanel_ConstructorFunc(125, "TellMeWhen_BuffSettings", functio
 			info.text = L["ICONMENU_SHOWTTTEXT_VAR"]:format(var)
 			info.tooltipTitle = info.text
 			info.tooltipText = L["ICONMENU_SHOWTTTEXT_VAR_DESC"]
+			info.icon = TMW.clientHasSecrets and "Interface\\AddOns\\TellMeWhen\\Textures\\restricted.png"
 			info.func = OnClick
 			info.arg1 = var
 			info.checked = info.arg1 == TMW.CI.ics.ShowTTText
@@ -193,6 +247,7 @@ Type:RegisterConfigPanel_ConstructorFunc(125, "TellMeWhen_BuffSettings", functio
 			local info = TMW.DD:CreateInfo()
 			info.text = L["ICONMENU_SHOWTTTEXT_TT"]:format(-var)
 			info.tooltipTitle = info.text
+			info.icon = TMW.clientHasSecrets and "Interface\\AddOns\\TellMeWhen\\Textures\\restricted.png"
 			info.tooltipText = L["ICONMENU_SHOWTTTEXT_TT_DESC"]:format(-var)
 			info.func = OnClick
 			info.arg1 = var
@@ -213,9 +268,90 @@ Type:RegisterConfigPanel_ConstructorFunc(125, "TellMeWhen_BuffSettings", functio
 
 	TMW.IE:DistributeFrameAnchorsLaterally(self, 2, self.HideIfNoUnits, self.ShowTTText)
 	self.ShowTTText:ClearAllPoints()
-	self.ShowTTText:SetPoint("TOPLEFT", self.Stealable, "BOTTOMLEFT", 4, 0)
+	self.ShowTTText:SetPoint("TOPLEFT", self.Stealable, "BOTTOMLEFT", 4, -3)
 	self.ShowTTText:SetPoint("RIGHT", -7, 0)
 	self.HideIfNoUnits:ConstrainLabel(self.ShowTTText)
+
+	if clientHasSecrets then
+		self.HideWhileSecret:ClearAllPoints()
+		self.HideWhileSecret:SetPoint("TOPLEFT", self.HideIfNoUnits, "BOTTOMLEFT", 0, 0)
+	else
+		self.HideWhileSecret:Hide()
+	end
+
+	local AuraFilterKeys = {
+		"Important",
+		"CrowdControl",
+		"BigDefensive",
+		"ExternalDefensive",
+		"RaidPlayerDispellable",
+		"Raid",
+		"RaidInCombat",
+	}
+
+	local AuraFilterData = {}
+	for _, key in ipairs(AuraFilterKeys) do
+		local filterValue = AuraUtil.AuraFilters[key]
+		if filterValue then
+			local localeBase = "ICONMENU_AURAFILTER_" .. filterValue
+			table.insert(AuraFilterData, {
+				key = filterValue,
+				text = L[localeBase],
+				desc = L[localeBase .. "_DESC"]
+			})
+		end
+	end
+
+	if #AuraFilterData > 0 then
+		local function ExtraFilter_OnClick(button, dropdown)
+			local filterKey = button.value
+			TMW.CI.ics.ExtraFilter[filterKey] = not TMW.CI.ics.ExtraFilter[filterKey]
+			dropdown:OnSettingSaved()
+		end
+		
+		self.ExtraFilter = TMW.C.Config_DropDownMenu:New("Frame", "$parentAuraFilter", self, "TMW_DropDownMenuTemplate")
+		self.ExtraFilter:SetTexts(L["ICONMENU_AURAFILTER"], L["ICONMENU_AURAFILTER_DESC"])
+		self.ExtraFilter:SetWidth(200)
+		self.ExtraFilter:SetFunction(function(dropdown)
+			for _, filter in ipairs(AuraFilterData) do
+				local info = TMW.DD:CreateInfo()
+				info.text = filter.text
+				info.tooltipTitle = filter.text
+				info.tooltipText = filter.desc
+				info.value = filter.key
+				info.func = ExtraFilter_OnClick
+				info.arg1 = dropdown
+				info.keepShownOnClick = true
+				info.isNotRadio = true
+				info.checked = TMW.CI.ics.ExtraFilter[filter.key]
+				
+				TMW.DD:AddButton(info)
+			end
+		end)
+
+		TMW.IE:DistributeFrameAnchorsLaterally(self, 2, self.HideWhileSecret, self.ExtraFilter)
+		self.ExtraFilter:ClearAllPoints()
+		self.ExtraFilter:SetPoint("TOPLEFT", self.ShowTTText, "BOTTOMLEFT", 0, -10)
+		self.ExtraFilter:SetPoint("RIGHT", -7, 0)
+		self.HideWhileSecret:ConstrainLabel(self.ExtraFilter)
+		
+		self:CScriptAdd("ReloadRequested", function(self, panel, panelInfo)
+			local n = 0
+			for k, v in pairs(TMW.CI.ics.ExtraFilter) do
+				if v then
+					n = n + 1
+				end
+			end
+			
+			if n == 0 then
+				self.ExtraFilter:SetText(L["ICONMENU_AURAFILTER_NONE"])
+			else
+				self.ExtraFilter:SetText(L["ICONMENU_AURAFILTER"] .. ": |cFFFF5959" .. n)
+			end
+		end)
+	end
+
+	self:AdjustHeight()
 end)
 
 Type:RegisterConfigPanel_XMLTemplate(165, "TellMeWhen_IconStates", {
@@ -224,7 +360,7 @@ Type:RegisterConfigPanel_XMLTemplate(165, "TellMeWhen_IconStates", {
 })
 
 Type:RegisterConfigPanel_ConstructorFunc(170, "TellMeWhen_SortSettingsWithStacks", function(self)
-	self:SetTitle(TMW.L["SORTBY"])
+	self:SetTitle(TMW.L["SORTBY"], true)
 	self:BuildSimpleCheckSettingFrame({
 		numPerRow = 3,
 		function(check)
@@ -279,6 +415,43 @@ local NOT_ACTUALLY_SPELLSTEALABLE = {
 	[642] = true,	-- Divine Shield
 }
 
+local function CheckExtraFilter(unit, instance, filterNames)
+	local cached = instance[filterNames]
+	if cached ~= nil then
+		return cached
+	end
+
+	-- Check if any of the selected filters allow this aura
+	for i = 1, #filterNames do
+		local filterName = filterNames[i]
+		local cached = instance[filterName]
+		
+		if cached == nil then
+			-- The new filters must be accompanied by HELPFUL or HARMFUL,
+			-- but since isHelpful/isHarmful might be secret on the instance (WHY, BLIZZARD, WHY),
+			-- just try both. We cache it anyway so don't really care about perf.
+			local filter = filterName .. "|HELPFUL|INCLUDE_NAME_PLATE_ONLY"
+			local filterH = filterName .. "|HARMFUL|INCLUDE_NAME_PLATE_ONLY"
+			
+			cached = 
+				not IsAuraFilteredOutByInstanceID(unit, instance.auraInstanceID, filter) or
+				not IsAuraFilteredOutByInstanceID(unit, instance.auraInstanceID, filterH)
+
+			instance[filterName] = cached
+		end
+		
+		-- If any filter passes, return true
+		if cached then
+			instance[filterNames] = true
+			return true
+		end
+	end
+	
+	-- None of the filters passed
+	instance[filterNames] = false
+	return false
+end
+
 
 local function Buff_OnEvent(icon, event, arg1, arg2, arg3)
 	if event == icon.auraEvent and icon.UnitSet.UnitsLookup[arg1] then
@@ -304,9 +477,15 @@ end
 
 local huge = math.huge
 local function Buff_OnUpdate(icon, time)
+	if icon.HideWhileSecret and C_Secrets.ShouldAurasBeSecret() then
+		-- Force hide icon
+		icon:YieldInfo(false, nil, "_secrets")
+		return
+	end
+
 	-- Upvalue things that will be referenced a lot in our loops.
-	local Units, Hash, Filter, Filterh, DurationSort, StackSort
-	= icon.Units, icon.Spells.Hash, icon.Filter, icon.Filterh, icon.Sort, icon.StackSort
+	local Units, Hash, Filter, Filterh, DurationSort, StackSort, ExtraFilters
+	= icon.Units, icon.Spells.Hash, icon.Filter, icon.Filterh, icon.Sort, icon.StackSort, icon.ExtraFilters
 	local NotStealable = not icon.Stealable
 
 	-- These variables will hold all the attributes that we pass to YieldInfo().
@@ -345,6 +524,8 @@ local function Buff_OnUpdate(icon, time)
 						-- Break GetAuraDataByIndex loop (while true do ...)
 						break
 					end
+				elseif issecretvalue(instance.spellId) then
+					index = index + 1
 				else
 					index = index + 1
 
@@ -356,7 +537,8 @@ local function Buff_OnUpdate(icon, time)
 
 					if 
 						(Hash[instance.spellId] or Hash[_dispelType] or Hash[strlowerCache[instance.name]]) 
-					and (NotStealable or (instance.isStealable and not NOT_ACTUALLY_SPELLSTEALABLE[instance.spellId])) 
+					and (not ExtraFilters or CheckExtraFilter(unit, instance, ExtraFilters))
+					and (NotStealable or (instance.isStealable and not NOT_ACTUALLY_SPELLSTEALABLE[instance.spellId]))
 					then
 						if DurationSort then
 							local remaining = (instance.expirationTime == 0 and huge) or ((instance.expirationTime - time) / instance.timeMod)
@@ -405,9 +587,15 @@ local function Buff_OnUpdate(icon, time)
 end
 
 local function Buff_OnUpdate_Packed(icon, time)
+	if icon.HideWhileSecret and C_Secrets.ShouldAurasBeSecret() then
+		-- Force hide icon
+		icon:YieldInfo(false, nil, "_secrets")
+		return
+	end
+
 	-- Upvalue things that will be referenced a lot in our loops.
-	local Units, SpellsArray, DurationSort, StackSort, KindKey
-	    = icon.Units, icon.Spells.Array, icon.Sort, icon.StackSort, icon.KindKey
+	local Units, SpellsArray, DurationSort, StackSort, KindKey, ExtraFilters
+	    = icon.Units, icon.Spells.Array, icon.Sort, icon.StackSort, icon.KindKey, icon.ExtraFilters
 	local NotStealable = not icon.Stealable
 	local NotOnlyMine = not icon.OnlyMine
 		
@@ -430,15 +618,22 @@ local function Buff_OnUpdate_Packed(icon, time)
 
 			for i = 1, #SpellsArray do
 				local spell = SpellsArray[i]
-				for auraInstanceID, isMine in next, auras.lookup[spell] or empty do
+				for auraInstanceID, isMine in next, lookup[spell] do
 					local instance = instances[auraInstanceID]
-
+					
 					if 
 						(not KindKey or instance[KindKey])
 					and	(NotOnlyMine or isMine)
-					and (NotStealable or (instance.isStealable and not NOT_ACTUALLY_SPELLSTEALABLE[instance.spellId])) 
+					and (not ExtraFilters or CheckExtraFilter(unit, instance, ExtraFilters))
+					and (NotStealable or (instance.isStealable and not NOT_ACTUALLY_SPELLSTEALABLE[instance.spellId]))
 					then
-						if DurationSort then
+						if issecretvalue(instance.expirationTime) then
+							-- Can't sort secrets.
+							-- Instance could be partially secret due to CDM leaks.
+							foundInstance = instance
+							foundUnit = unit
+							break
+						elseif DurationSort then
 							local remaining = (instance.expirationTime == 0 and huge) or ((instance.expirationTime - time) / instance.timeMod)
 	
 							-- If we haven't found anything yet, or if this aura beats the previous by sort order, then use it.
@@ -485,10 +680,15 @@ local function Buff_OnUpdate_Packed(icon, time)
 end
 
 local function Buff_OnUpdate_Controller(icon, time)
-	
+	if icon.HideWhileSecret and C_Secrets.ShouldAurasBeSecret() then
+		-- Force hide icon
+		icon:YieldInfo(false, nil, "_secrets")
+		return
+	end
+
 	-- Upvalue things that will be used in our loops.
-	local Units, NameFirst, Hash, Filter, Filterh
-	= icon.Units, icon.Spells.First, icon.Spells.Hash, icon.Filter, icon.Filterh
+	local Units, NameFirst, Hash, Filter, Filterh, ExtraFilters
+	= icon.Units, icon.Spells.First, icon.Spells.Hash, icon.Filter, icon.Filterh, icon.ExtraFilters
 	local NotStealable = not icon.Stealable
 	
 	for u = 1, #Units do
@@ -512,6 +712,17 @@ local function Buff_OnUpdate_Controller(icon, time)
 					else
 						break
 					end
+				elseif issecretvalue(instance.spellId) then
+					index = index + 1
+				
+					if  (NameFirst == '')
+					and (not ExtraFilters or CheckExtraFilter(unit, instance, ExtraFilters))
+					then
+						if not icon:YieldInfo(true, unit, instance) then
+							-- YieldInfo returns true if we need to keep harvesting data. Otherwise, it returns false.
+							return
+						end
+					end
 				else
 					index = index + 1
 				
@@ -522,6 +733,7 @@ local function Buff_OnUpdate_Controller(icon, time)
 					end
 
 					if  (NameFirst == '' or Hash[instance.spellId] or Hash[_dispelType] or Hash[strlowerCache[instance.name]])
+					and (not ExtraFilters or CheckExtraFilter(unit, instance, ExtraFilters))
 					and (NotStealable or (instance.isStealable and not NOT_ACTUALLY_SPELLSTEALABLE[instance.spellId]))
 					then
 						
@@ -544,10 +756,15 @@ local function auraInstanceCompare(a,b)
 end
 local binaryInsert = TMW.binaryInsert
 local function Buff_OnUpdate_Controller_Packed(icon, time)
-	
+	if icon.HideWhileSecret and C_Secrets.ShouldAurasBeSecret() then
+		-- Force hide icon
+		icon:YieldInfo(false, nil, "_secrets")
+		return
+	end
+
 	-- Upvalue things that will be used in our loops.
-	local Units, NameFirst, SpellsArray, KindKey
-	= icon.Units, icon.Spells.First, icon.Spells.Array, icon.KindKey
+	local Units, NameFirst, SpellsArray, KindKey, ExtraFilters
+	= icon.Units, icon.Spells.First, icon.Spells.Array, icon.KindKey, icon.ExtraFilters
 	local NotStealable = not icon.Stealable
 	local NotOnlyMine = not icon.OnlyMine
 	
@@ -557,19 +774,19 @@ local function Buff_OnUpdate_Controller_Packed(icon, time)
 		-- is known by TMW.UNITS to definitely exist.
 		if icon.UnitSet:UnitExists(unit) then
 			local auras = GetAuras(unit)
-			local lookup, instances = auras.lookup, auras.instances
+			local instances = auras.instances
 
 			if NameFirst == '' then
 				-- I don't feel bad about allocation here because this OnUpdate
 				-- method is always 100% event driven. We have to sort here because otherwise new auras will jump around.
 				local results = {}
 				for auraInstanceID, instance in next, instances do
-					local sourceUnit = instance.sourceUnit
 					
 					if 
 						(not KindKey or instance[KindKey])
-					and	(NotOnlyMine or sourceUnit == "player" or sourceUnit == "pet")
-					and (NotStealable or (instance.isStealable and not NOT_ACTUALLY_SPELLSTEALABLE[instance.spellId])) 
+					and	(NotOnlyMine or instance.isMine)
+					and (not ExtraFilters or CheckExtraFilter(unit, instance, ExtraFilters))
+					and (NotStealable or (instance.isStealable and not NOT_ACTUALLY_SPELLSTEALABLE[instance.spellId]))
 					then
 						binaryInsert(results, instance, auraInstanceCompare)
 					end
@@ -583,15 +800,17 @@ local function Buff_OnUpdate_Controller_Packed(icon, time)
 					end
 				end
 			else
+				local lookup = auras.lookup
 				for i = 1, #SpellsArray do
 					local spell = SpellsArray[i]
-					for auraInstanceID, isMine in next, auras.lookup[spell] or empty do
+					for auraInstanceID, isMine in next, lookup[spell] do
 						local instance = instances[auraInstanceID]
 
 						if 
 							(not KindKey or instance[KindKey])
 						and	(NotOnlyMine or isMine)
-						and (NotStealable or (instance.isStealable and not NOT_ACTUALLY_SPELLSTEALABLE[instance.spellId])) 
+						and (NotStealable or (instance.isStealable and not NOT_ACTUALLY_SPELLSTEALABLE[instance.spellId]))
+						and (not ExtraFilters or CheckExtraFilter(unit, instance, ExtraFilters))
 						then
 							
 							if not icon:YieldInfo(true, unit, instance) then
@@ -637,22 +856,47 @@ function Type:HandleYieldedInfo(icon, iconToSet, unit, instance)
 				-- Negative numbers represent indexes into tooltip scanning.
 				local tooltipNumbers = ParseTooltip(unit, instance)
 				count = tooltipNumbers[-icon.ShowTTText]
-			else
+			elseif not issecretvalue(instance.points) then
 				count = instance.points[icon.ShowTTText]
 			end
 		end
 
-		iconToSet:SetInfo("state; texture; start, duration, modRate; stack, stackText; spell; unit, GUID; auraSourceUnit, auraSourceGUID",
-			STATE_PRESENT,
-			instance.icon,
-			instance.expirationTime - instance.duration, instance.duration, instance.timeMod,
-			count, count,
-			instance.spellId,
-			unit, nil,
-			instance.sourceUnit, nil
-		)
+		if clientHasSecrets then
+			local start
+			local durObj = GetAuraDuration(unit, instance.auraInstanceID)
+			if durObj then
+				start = durObj:GetStartTime()
+			else
+				-- Sometimes durObj comes out nil????
+				start = 0
+				if issecretvalue(instance.duration) then
+					-- Match secret state of unknown start so secret tests don't mismatch between start + duration
+					start = secretwrap(start)
+				end
+			end
 
-	elseif not Units[1] and icon.HideIfNoUnits then
+			iconToSet:SetInfo("state; texture; start, duration, modRate, durObj; stack, stackText; spell; unit, GUID; auraSourceUnit, auraSourceGUID",
+				STATE_PRESENT,
+				instance.icon,
+				start, instance.duration, instance.timeMod, durObj,
+				count, count,
+				instance.spellId,
+				unit, nil,
+				not issecretvalue(instance.sourceUnit) and instance.sourceUnit or nil, nil
+			)
+		else
+			iconToSet:SetInfo("state; texture; start, duration, modRate; stack, stackText; spell; unit, GUID; auraSourceUnit, auraSourceGUID",
+				STATE_PRESENT,
+				instance.icon,
+				instance.expirationTime - instance.duration, instance.duration, instance.timeMod,
+				count, count,
+				instance.spellId,
+				unit, nil,
+				instance.sourceUnit, nil
+			)
+		end
+
+	elseif instance == "_secrets" or (not Units[1] and icon.HideIfNoUnits) then
 		iconToSet:SetInfo("state; texture; start, duration; stack, stackText; spell; unit, GUID; auraSourceUnit, auraSourceGUID",
 			0,
 			icon.FirstTexture,
@@ -699,24 +943,39 @@ local aurasWithNoSourceReported = {
 	nil,	-- Terminate with nil to prevent all Warsong's return values from filling the table
 }
 
-
-
 -- This IDP is used to hold the source of the aura being repoted by the icon. Used by the [AuraSource] DogTag.
 local Processor = TMW.Classes.IconDataProcessor:New("BUFF_SOURCEUNIT", "auraSourceUnit, auraSourceGUID")
 function Processor:CompileFunctionSegment(t)
 	-- GLOBALS: auraSourceUnit, auraSourceGUID
-	t[#t+1] = [[
-	
-	auraSourceGUID = auraSourceGUID or (unit and (unit == "player" and playerGUID or UnitGUID(unit)))
-	
-	if attributes.auraSourceUnit ~= auraSourceUnit or attributes.auraSourceGUID ~= auraSourceGUID then
-		attributes.auraSourceUnit = auraSourceUnit
-		attributes.auraSourceGUID = auraSourceGUID
+	if TMW.clientHasSecrets then
+		t[#t+1] = [[
 		
-		TMW:Fire(BUFF_SOURCEUNIT.changedEvent, icon, auraSourceUnit, auraSourceGUID)
-		doFireIconUpdated = true
+		if not auraSourceGUID and unit == "player" then
+			auraSourceGUID = playerGUID
+		end
+
+		if attributes.auraSourceUnit ~= auraSourceUnit then
+			attributes.auraSourceUnit = auraSourceUnit
+			attributes.auraSourceGUID = auraSourceGUID
+			
+			TMW:Fire(BUFF_SOURCEUNIT.changedEvent, icon, auraSourceUnit, auraSourceGUID)
+			doFireIconUpdated = true
+		end
+		--]]
+	else
+		t[#t+1] = [[
+		
+		auraSourceGUID = auraSourceGUID or (unit and (unit == "player" and playerGUID or UnitGUID(unit)))
+		
+		if attributes.auraSourceUnit ~= auraSourceUnit or attributes.auraSourceGUID ~= auraSourceGUID then
+			attributes.auraSourceUnit = auraSourceUnit
+			attributes.auraSourceGUID = auraSourceGUID
+			
+			TMW:Fire(BUFF_SOURCEUNIT.changedEvent, icon, auraSourceUnit, auraSourceGUID)
+			doFireIconUpdated = true
+		end
+		--]]
 	end
-	--]]
 end
 Processor:RegisterDogTag("TMW", "AuraSource", {
 	code = function(icon)
@@ -748,6 +1007,17 @@ Processor:RegisterDogTag("TMW", "AuraSource", {
 
 function Type:Setup(icon)
 	icon.Spells = TMW:GetSpells(icon.Name, false)
+	if not clientHasSecrets then
+		icon.HideWhileSecret = false
+	end
+	
+	icon.ExtraFilters = nil
+	for k, v in pairs(icon.ExtraFilter) do
+		if v and tContains(AuraUtil.AuraFilters, k) then
+			icon.ExtraFilters = icon.ExtraFilters or {}
+			tinsert(icon.ExtraFilters, k)
+		end
+	end
 	
 	icon.Units, icon.UnitSet = TMW:GetUnits(icon, icon.Unit, icon:GetSettings().UnitConditions)
 
@@ -762,9 +1032,9 @@ function Type:Setup(icon)
 	end
 	icon.KindKey = nil
 	if icon.BuffOrDebuff == "HELPFUL" then
-		icon.KindKey = "isHelpful" 
+		icon.KindKey = "isHelpful"
 	elseif icon.BuffOrDebuff == "HARMFUL" then
-		icon.KindKey = "isHarmful" 
+		icon.KindKey = "isHarmful"
 	end
 
 	-- There are lots of spells (RPPM enchants) that don't report a source.
@@ -801,13 +1071,13 @@ function Type:Setup(icon)
 
 	-- Setup events and update functions.
 
-	if icon:IsGroupController() then
+	if icon:IsGroupController() or icon.Spells.First == '' then
 		icon:SetUpdateFunction(Buff_OnUpdate_Controller)
 	else
 		icon:SetUpdateFunction(Buff_OnUpdate)
 	end
 
-	if icon.UnitSet.allUnitsChangeOnEvent then
+	if icon.UnitSet.allUnitsChangeOnEvent and icon.Enabled then
 		icon:SetUpdateMethod("manual")
 		
 		icon:SetScript("OnEvent", Buff_OnEvent)
@@ -818,10 +1088,11 @@ function Type:Setup(icon)
 		icon:RegisterEvent(auraEvent)
 
 		if canUsePacked then
-			icon:SetUpdateFunction(icon:IsGroupController() 
-				and Buff_OnUpdate_Controller_Packed 
-				or Buff_OnUpdate_Packed
-			)
+			if icon:IsGroupController() or icon.Spells.First == '' then
+				icon:SetUpdateFunction(Buff_OnUpdate_Controller_Packed)
+			else
+				icon:SetUpdateFunction(Buff_OnUpdate_Packed)
+			end
 		end
 	end
 

@@ -6,6 +6,8 @@ do
 ------------------------------------------------------------
 L["A /reload may be required to take effect."] = "可能需要重新加载(/reload)才能生效。"
 L["CVar, saved within Plater profile and restored when loading the profile."] = "保存在 Plater 配置文件中的 CVar，在加载配置文件时恢复。"
+--[[Translation missing --]]
+L["DISABLE_TESTING_AURAS"] = ""
 L["EXPORT"] = "导出"
 L["EXPORT_CAST_COLORS"] = "导出施法条颜色"
 L["EXPORT_CAST_SOUNDS"] = "导出施法条声音"
@@ -99,13 +101,10 @@ L["OPTIONS_CASTBAR_SPELLICON"] = "法术图标"
 L["OPTIONS_CASTBAR_TOGGLE_TEST"] = "施法条测试开关"
 L["OPTIONS_CASTBAR_TOGGLE_TEST_DESC"] = "开始施法条测试，再次点击停止。"
 L["OPTIONS_CASTBAR_WIDTH"] = "施法条宽度"
---[[Translation missing --]]
-L["OPTIONS_CASTCOLORS_DISABLE_SOUNDS"] = "Remove All Sounds"
---[[Translation missing --]]
-L["OPTIONS_CASTCOLORS_DISABLE_SOUNDS_CONFIRM"] = "Are you sure you want to remove all configured cast sounds?"
+L["OPTIONS_CASTCOLORS_DISABLE_SOUNDS"] = "移除所有声音"
+L["OPTIONS_CASTCOLORS_DISABLE_SOUNDS_CONFIRM"] = "您确定要删除所有已配置的施法声音吗？"
 L["OPTIONS_CASTCOLORS_DISABLECOLORS"] = "禁用所有颜色"
---[[Translation missing --]]
-L["OPTIONS_CASTCOLORS_DISABLECOLORS_CONFIRM"] = "Confirm disable all cast colors?"
+L["OPTIONS_CASTCOLORS_DISABLECOLORS_CONFIRM"] = "确认禁用所有施法颜色？"
 L["OPTIONS_CLICK_SPACE_HEIGHT"] = "接受鼠标点击以选择目标的区域高度"
 L["OPTIONS_CLICK_SPACE_WIDTH"] = "接受鼠标点击以选择目标的区域宽度"
 L["OPTIONS_COLOR"] = "颜色"
@@ -303,8 +302,8 @@ L["OPTIONS_THREAT_MODIFIERS_NAMECOLOR"] = "姓名颜色"
 L["OPTIONS_THREAT_PULL_FROM_ANOTHER_TANK"] = "从其他坦克转移"
 L["OPTIONS_THREAT_PULL_FROM_ANOTHER_TANK_TANK"] = "该单位仇恨在另一个坦克身上，但即将转移至你。"
 L["OPTIONS_THREAT_USE_AGGRO_FLASH"] = "启用仇恨闪光"
-L["OPTIONS_THREAT_USE_AGGRO_FLASH_DESC"] = "当作为伤害输出获得仇恨时，启用姓名板上的 -AGGRO- 闪光动画"
-L["OPTIONS_THREAT_USE_AGGRO_GLOW"] = "启用仇恨发光"
+L["OPTIONS_THREAT_USE_AGGRO_FLASH_DESC"] = "当作为伤害输出获得仇恨时，启用姓名板上的仇恨闪光动画"
+L["OPTIONS_THREAT_USE_AGGRO_GLOW"] = "启用生命条仇恨闪光"
 L["OPTIONS_THREAT_USE_AGGRO_GLOW_DESC"] = "当作为伤害输出获得仇恨，或作为坦克失去仇恨时，使姓名板上的生命条发光。"
 L["OPTIONS_THREAT_USE_SOLO_COLOR"] = "单人颜色"
 L["OPTIONS_THREAT_USE_SOLO_COLOR_DESC"] = "不在小队和团队中时，使用“单人”颜色。"
@@ -315,6 +314,11 @@ L["OPTIONS_XOFFSET"] = "X 偏移"
 L["OPTIONS_XOFFSET_DESC"] = "调整X轴上的位置。右键点击输入数值。"
 L["OPTIONS_YOFFSET"] = "Y 偏移"
 L["OPTIONS_YOFFSET_DESC"] = "调整Y轴上的位置。右键点击输入数值。"
+L[ [=[Show nameplate for friendly npcs.
+
+|cFFFFFF00 Important |r: This option is dependent on the client`s nameplate state (on/off).
+
+|cFFFFFF00 Important |r: when disabled but enabled on the client through (%s), the healthbar isn't visible but the nameplate is still clickable.]=] ] = "显示友方NPC的姓名板。|cFFFFFF00 重要 |r： 此选项取决于客户端的姓名板状态（开/关）。|cFFFFFF00 重要 |r：当禁用后但客户端通过（%s）启用时，生命栏将不可见，但姓名板仍可点击。"
 L[ [=[Show nameplate for friendly npcs.
 
 |cFFFFFF00 Important |r: This option is dependent on the client`s nameplate state (on/off).

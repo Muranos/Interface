@@ -78,14 +78,14 @@ end
 
 function mod:OnBossEnable()
 	self:RegisterEvent("INSTANCE_ENCOUNTER_ENGAGE_UNIT", "CheckBossStatus")
-	self:RegisterEvent("CHAT_MSG_MONSTER_SAY", "SayTriggers")
+	self:RegisterEvent("CHAT_MSG_MONSTER_SAY")
 	self:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", nil, "boss1")
 
 	self:Log("SPELL_CAST_START", "NetherStorm", 240790)
 	self:Log("SPELL_CAST_START", "DrainLife", 234423)
 	self:Log("SPELL_CAST_START", "HolyWard", 233473)
 	self:Log("SPELL_AURA_APPLIED_DOSE", "AuraOfDecay", 234422)
-	self:Log("SPELL_CAST_START", "Smash", 234631)
+	self:Log("SPELL_CAST_START", "Smash", 234631, 241717, 236537) -- Uses multiple
 	self:Log("SPELL_CAST_START", "Annihilate", 236572)
 	self:Log("SPELL_CAST_SUCCESS", "AnnihilateSuccess", 236572)
 	self:Log("SPELL_CAST_START", "TwistedReflections", 234676)
@@ -105,7 +105,8 @@ end
 -- Event Handlers
 --
 
-function mod:SayTriggers(_, msg)
+function mod:CHAT_MSG_MONSTER_SAY(_, msg)
+	if self:IsSecret(msg) then return end
 	if msg == L.warmup_trigger then
 		self:Bar("warmup", 25, CL.active, "inv_pet_inquisitoreye")
 	elseif msg == L.win_trigger then
@@ -114,6 +115,7 @@ function mod:SayTriggers(_, msg)
 end
 
 function mod:UNIT_SPELLCAST_SUCCEEDED(_, _, _, spellId)
+	if self:IsSecret(spellId) then return end
 	if spellId == 234428 then -- Summon Tormenting Eye
 		self:Message(spellId, "yellow")
 		self:CDBar(spellId, 17)
@@ -176,8 +178,8 @@ function mod:AuraOfDecay(args)
 end
 
 function mod:Smash(args)
-	self:Message(args.spellId, "red")
-	self:PlaySound(args.spellId, "alarm")
+	self:Message(234631, "red")
+	self:PlaySound(234631, "alarm")
 end
 
 function mod:KruulIncoming(args)

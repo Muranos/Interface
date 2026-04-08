@@ -99,7 +99,7 @@ end
 --
 
 function mod:CHAT_MSG_MONSTER_YELL(_, msg)
-	if msg:find(L.wave_trigger1a, nil, true) or msg:find(L.wave_trigger1b, nil, true) then
+	if not self:IsSecret(msg) and (msg:find(L.wave_trigger1a, nil, true) or msg:find(L.wave_trigger1b, nil, true)) then
 		addsAlive = 7
 		self:SetStage(1)
 		self:Message("stages", "cyan", CL.wave_count:format(1, 8), false)
@@ -149,7 +149,7 @@ function mod:Thundercrash(args)
 end
 
 function mod:EnlargeApplied(args)
-	self:Message(args.spellId, "orange", CL.buff_other:format(args.destName, args.spellName))
+	self:Message(args.spellId, "orange", CL.magic_buff_other:format(args.destName, args.spellName))
 	if self:Dispeller("magic", true) then
 		self:PlaySound(args.spellId, "alarm")
 	end

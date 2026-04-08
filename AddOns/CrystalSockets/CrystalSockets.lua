@@ -1,5 +1,5 @@
---     Crystal Sockets - A convenient way to display all your gem sockets.
---     Copyright (C) 2020  Nivix
+--     Crystal Sockets - A lightweight solution to show sockets and enchantments on your character sheet.
+--     Copyright (C) 2026  Nivix
 -- 
 --     This program is free software: you can redistribute it and/or modify
 --     it under the terms of the GNU General Public License as published by

@@ -91,7 +91,9 @@ local CreateLazyItemButton do
 				end
 			end
 		end
-		if generic then
+		if generic and self.isToy then
+			GameTooltip:SetToyByItemID(iid)
+		elseif generic then
 			GameTooltip:SetItemByID(iid)
 		end
 		GameTooltip:Show()
@@ -119,7 +121,8 @@ local CreateLazyItemButton do
 		f:SetScript("OnEnter", OnEnter)
 		f:SetScript("OnLeave", T.HideOwnedGameTooltip)
 		f:SetScript("PreClick", OnClick)
-		T.TenSABT(f)
+		f:SetAttribute("useOnKeyDown", false)
+		f:RegisterForClicks("LeftButtonUp")
 		f:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
 		f:SetPushedTexture("Interface\\Buttons\\UI-Quickslot-Depress")
 		return f,f
@@ -133,8 +136,6 @@ local CreateLazyItemButton do
 	end
 	T.CreateLazyItemButton = CreateLazyItemButton
 end
-
-ShoppingTooltip1TextLeft3:SetJustifyH("LEFT")
 
 do -- SetModifierSensitiveTooltip
 	local func, owner, watching, a1, a2, a3, a4, a5
@@ -176,4 +177,8 @@ function T.EasyMenu(menuList, menuFrame, anchor, x, y, displayMode, autoHideDela
 	end
 	UIDropDownMenu_Initialize(menuFrame, EasyMenu_Initialize, displayMode, nil, menuList)
 	ToggleDropDownMenu(1, nil, menuFrame, anchor, x, y, menuList, nil, autoHideDelay)
+end
+
+if ShoppingTooltip1TextLeft3 then -- TODO[11.2.7]: does not spawn until used
+	ShoppingTooltip1TextLeft3:SetJustifyH("LEFT")
 end

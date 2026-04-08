@@ -231,7 +231,7 @@ function mod:OnBossEnable()
 	self:Log("SPELL_AURA_APPLIED", "DreamEssenceApplied", 424258)
 	self:Log("SPELL_AURA_APPLIED_DOSE", "DreamEssenceApplied", 424258)
 	self:Log("SPELL_AURA_APPLIED", "EmpoweredFeatherApplied", 422509) -- XXX currently hidden
-	self:RegisterEvent("CHAT_MSG_RAID_BOSS_WHISPER") -- Feather alternative
+	self:RegisterEvent("RAID_BOSS_WHISPER") -- Feather alternative
 	self:Log("SPELL_CAST_START", "Supernova", 424140, 429169) -- intermission, enrage
 	self:Log("SPELL_AURA_APPLIED", "SupernovaApplied", 424140)
 	self:Log("SPELL_AURA_REMOVED", "SupernovaRemoved", 424140)
@@ -522,7 +522,7 @@ function mod:EmpoweredFeatherApplied(args)
 	end
 end
 
-function mod:CHAT_MSG_RAID_BOSS_WHISPER(_, msg)
+function mod:RAID_BOSS_WHISPER(_, msg)
 	--|TInterface\\ICONS\\Ability_DragonRiding_DragonRiding01.BLP:20|t Take flight!
 	if msg:find("Ability_DragonRiding_DragonRiding01", nil, true) then
 		self:Message(422509, "green", CL.flying_available)

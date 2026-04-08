@@ -26,6 +26,8 @@ platerInternal.Scripts.DefaultCastScripts = {
 	"Cast - Very Important [Plater]",
 }
 
+platerInternal.Scripts.CurrentCastScripts = {}
+
 do
 	PlaterScriptLibrary = {}
 
@@ -1536,6 +1538,68 @@ do
 			end
 		end,
 	})
+	
+	--#40 pre-set 'always show' auto toggle
+	tinsert (PlaterPatchLibrary, {
+		NotEssential = false,
+
+		Notes = {
+			"- Setup 'Always Show Nameplates' auto toggle."
+		},
+		Func = function()
+			local alwaysShow = GetCVarBool("nameplateShowAll")
+			local profile = Plater.db.profile
+			if profile.auto_toggle_combat_enabled then
+				profile.auto_toggle_combat.always_show_ic = alwaysShow
+				profile.auto_toggle_combat.always_show_ooc = alwaysShow
+			end
+		end,
+	})
+
+	--[=[
+		--#41 midnight pre patch, remove all triggers from scripts
+		tinsert (PlaterPatchLibrary, {
+			NotEssential = false,
+
+			Notes = {
+				"- Remove all triggers from scripts to avoid secret conflicts."
+			},
+			Func = function()
+				if detailsFramework.IsAddonApocalypseWow() then
+					---@type scriptdata[]
+					local scriptList = Plater.db.profile.script_data
+					for i = 1, #scriptList do
+						local scriptObject = scriptList[i]
+						local npcIdTriggers = scriptObject.NpcNames
+						local spellIdTriggers = scriptObject.SpellIds
+						wipe(npcIdTriggers)
+						wipe(spellIdTriggers)
+					end
+					Plater.WipeAndRecompileAllScripts("hook")
+				end
+			end,
+		})
+
+		--#42 midnight pre patch, disable all mods to avoid conflicts
+		tinsert (PlaterPatchLibrary, {
+			NotEssential = false,
+
+			Notes = {
+				"- Disable all mods to avoid conflicts."
+			},
+			Func = function()
+				if detailsFramework.IsAddonApocalypseWow() then
+					local hookData = Plater.db.profile.hook_data
+					for i = 1, #hookData do
+						local hook = hookData[i]
+						hook.Enabled = false
+					end
+					Plater.WipeAndRecompileAllScripts("hook")
+				end
+			end,
+		})
+	--]=]
+
 
 	--[=[
 	tinsert (PlaterPatchLibrary, {

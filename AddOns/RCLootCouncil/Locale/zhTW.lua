@@ -193,6 +193,8 @@ L["chat_commands_trade"] = "Open the TradeUI"
 L["chat_commands_version"] = "打開版本檢查器 (簡稱： 'v' 或者 'ver')"
 L["chat_commands_whisper"] = "顯示密語幫助"
 --[[Translation missing --]]
+L["chat_restrictions_enabled"] = "Not currently possible due to Addon Restrictions."
+--[[Translation missing --]]
 L["chatCommand_stop_error_notHandlingLoot"] = "Cannot stop: not currently handling loot."
 L["Check this to loot the items and distribute them later."] = "點擊拾取物品稍後分配"
 L["Check to append the realmname of a player from another realm"] = "顯示不同伺服器玩家的伺服器名稱"
@@ -226,8 +228,6 @@ L["Customize appearance"] = "客製外觀"
 L["customize_appearance_desc"] = "你可以在這邊客製RCLootCouncil的外觀。點擊上面的保存鍵更換外觀。"
 L["Data Received"] = "數據已接收"
 L["Date"] = "日期"
-L["days and x months"] = "%s，%d月"
-L["days, x months, y years"] = "%s，%d月和%d年"
 L["Delete Skin"] = "刪除外觀"
 L["delete_skin_desc"] = "從選單中刪除目前選取的非預設外觀"
 L["Deselect responses to filter them"] = "取消回應以過濾"
@@ -246,6 +246,10 @@ L["enable_loot_history_desc"] = "啓用拾取歷史。如果關閉RCLootCouncil 
 L["enable_timeout_desc"] = "點選啟動拾取視窗超時功能"
 L["Enter your note:"] = "輸入你的筆記："
 L["EQdkp-Plus XML output, tailored for Enjin import."] = "EQdkp-Plus XML輸出，適用於Enjin輸入。"
+--[[Translation missing --]]
+L["error_no_autoAward_candidates"] = "You've enabled auto awarding of items, but haven't set any candidate(s) to auto award to."
+--[[Translation missing --]]
+L["error_no_autoAwardBoE_candidates"] = "You've enabled auto awarding of BoE items, but haven't set any candidate(s) to auto award to."
 L["error_test_as_non_leader"] = "你無法在隊伍中以非隊長的身分啟動測試"
 --[[Translation missing --]]
 L["Everybody is up to date."] = "Everybody is up to date."
@@ -345,6 +349,8 @@ L["ML sees voting"] = "分裝者可見投票"
 L["ML_ADD_INVALID_ITEM"] = "Invalid itemLink or itemID: %s"
 --[[Translation missing --]]
 L["ML_ADD_ITEM_MAX_ATTEMPTS"] = "Couldn't fetch item info for %s - probably not a real item."
+--[[Translation missing --]]
+L["ML_REQUEST_VOTES"] = "%s has requested you to vote for item #%d: %s"
 L["ml_sees_voting_desc"] = "允許分裝者查看投票詳情"
 L["module_tVersion_outdated_msg"] = "最新模塊 %s 的測試版本為: %s"
 L["module_version_outdated_msg"] = "模塊 %s 版本 %s 已過期。新版本為 %s。"
@@ -392,6 +398,8 @@ L["open_the_loot_history_desc"] = "打開拾取歷史"
 L["Opens the synchronizer"] = "開啟同步"
 L["opt_addButton_desc"] = "對選擇部位增加新的按鈕群組"
 --[[Translation missing --]]
+L["opt_announceAward_WHISPER_WINNER"] = "/w winner"
+--[[Translation missing --]]
 L["opt_autoAddBoEs_desc"] = "Automatically add all BoE (Bind on Equip) items to a session."
 --[[Translation missing --]]
 L["opt_autoAddBoEs_name"] = "Auto Add BoEs"
@@ -410,17 +418,29 @@ L["opt_autoGroupLoot_desc"] = "When enabled, RCLootCouncil will automatically cl
 --[[Translation missing --]]
 L["opt_autoGroupLoot_name"] = "Auto Group Loot"
 --[[Translation missing --]]
+L["opt_autoGroupLootDecor_desc"] = "Caution: Only enable this if you're certain decor items are tradeable."
+--[[Translation missing --]]
+L["opt_autoGroupLootDecor_name"] = "Loot Decor"
+--[[Translation missing --]]
 L["opt_autoGroupLootGuildGroupOnly_desc"] = "When enabled, RCLootCouncil will only do group loot auto pass when you're in a guild group."
 --[[Translation missing --]]
 L["opt_autoGroupLootGuildGroupOnly_name"] = "Guild Groups Only"
 --[[Translation missing --]]
-L["opt_autoPassWeapons_desc"] = "Check to enable auto passing of weapons your class can't equip."
+L["opt_autoPass_name"] = "Enable Auto Pass"
+--[[Translation missing --]]
+L["opt_autoPassWeapons_desc"] = "Check to enable auto passing of weapons that doesn't have your classes primary stat."
 --[[Translation missing --]]
 L["opt_autoPassWeapons_name"] = "Auto Pass Weapons"
 --[[Translation missing --]]
 L["opt_autoTrade_desc"] = "Check to automatically add awarded items to the trade window when trading with the winner. If disabled, you'll see a popup before items are added."
 --[[Translation missing --]]
 L["opt_award_later_desc"] = "Check to automatically check the 'Award Later' option in the Session Frame."
+--[[Translation missing --]]
+L["opt_blockTradesInVoting_desc"] = "When enabled, any trade attempts will be cancelled while the voting frame is active."
+--[[Translation missing --]]
+L["opt_blockTradesInVoting_message"] = "Trade from %s blocked"
+--[[Translation missing --]]
+L["opt_blockTradesInVoting_name"] = "Block Trades"
 --[[Translation missing --]]
 L["opt_buttonsGroup_desc"] = [=[Options group for %s buttons and responses.
 See above for a detailed explanation.]=]
@@ -448,7 +468,16 @@ This cannot be undone.]=]
 --[[Translation missing --]]
 L["opt_deleteRaid_desc"] = "Delete all entries from a specific instance."
 --[[Translation missing --]]
+L["opt_lootDecor_desc"] = "Automatically add tradeable decor items to a session."
+--[[Translation missing --]]
+L["opt_lootDecor_name"] = "Add Decor"
+--[[Translation missing --]]
 L["opt_moreButtons_desc"] = "Add a new set of buttons for a specific gear slot. The most specific type is used, i.e. adding buttons for 'Head' and 'Catalyst Items' will make head type armor use the head buttons instead of catalyst."
+--[[Translation missing --]]
+L["opt_moreInfo_onlyShowRaids_desc"] = [=[If any raids are selected, the 'More Info' window will only show awards from those raids. If nothing's selected, all raids will be shown.
+Note: This does not apply to the 'Winners of [item]' section.]=]
+--[[Translation missing --]]
+L["opt_moreInfo_onlyShowRaids_name"] = "Only specific raids"
 --[[Translation missing --]]
 L["opt_printCompletedTrade_Desc"] = "Check to enable a message every time a candidate trades an awarded item to the winner."
 --[[Translation missing --]]
@@ -501,6 +530,8 @@ L["Original Owner"] = "Original Owner"
 L["Out of instance"] = "不在副本內"
 --[[Translation missing --]]
 L["Patch"] = "Patch"
+--[[Translation missing --]]
+L["PAUSED"] = "Paused"
 L["Personal Loot - Non tradeable"] = "個人拾取 - 無法交易"
 L["Personal Loot - Rejected Trade"] = "個人拾取 - 拒絕交易"
 L["'player' can't receive 'type'"] = "%s無法獲得%s - 版本不同?"
@@ -518,6 +549,8 @@ L["Please wait before trying to sync again."] = "請稍等一下再嘗試同步�
 L["Print Responses"] = "輸出回應"
 L["print_response_desc"] = "在聊天窗口中顯示你的回應"
 L["Protector Token"] = "保衛者代幣"
+--[[Translation missing --]]
+L["Rare_Items"] = "Rare items"
 L["Raw lua output. Doesn't work well with date selection."] = "原始lua輸出。不適合日期選擇。"
 --[[Translation missing --]]
 L["rcframe_help"] = [=[Double click here to minimize
@@ -591,6 +624,8 @@ L["Something went wrong :'("] = "出現了一些問題 哭哭"
 L["Something went wrong during syncing, please try again."] = "同步發生錯誤，請再試一次。"
 L["Sort Items"] = "物品排序"
 L["sort_items_desc"] = "將物品按照類型與裝等排序。"
+--[[Translation missing --]]
+L["Special_Effects_Items"] = "Items /w special effects"
 L["Standard .csv output."] = "標準.csv輸出格式"
 --[[Translation missing --]]
 L["Standard JSON output."] = "JSON array containing one JSON object per history entry."
@@ -677,6 +712,10 @@ L["Version"] = "版本"
 L["Version Check"] = "版本檢查"
 L["version_check_desc"] = "開啓版本檢查模組"
 L["version_outdated_msg"] = "你的版本%s已經過期。最新版本為%s，請升級你的RCLootCouncil"
+--[[Translation missing --]]
+L["VF_REQUEST_VOTES"] = "Request Votes"
+--[[Translation missing --]]
+L["VF_REQUEST_VOTES_SENT"] = "Vote request sent"
 L["Vote"] = "投票"
 L["Voters"] = "投票者"
 L["Votes"] = "投票"

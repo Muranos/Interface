@@ -8,6 +8,7 @@ local GetSpellLevelLearned = E.spell_requiredLevel and function(id)
 	or E.preCata and function() return 0 end
 	or C_Spell and C_Spell.GetSpellLevelLearned
 	or GetSpellLevelLearned
+local C_UnitAuras_GetBuffDataByIndex = C_UnitAuras and C_UnitAuras.GetBuffDataByIndex
 
 local loginsessionData = {}
 
@@ -24,6 +25,7 @@ function GroupInfoMixin:ProcessSpell(spellID)
 		return
 	end
 
+	--[[
 	local covenantID = E.covenant_abilities[spellID]
 	if covenantID and P.isInShadowlands and guid ~= E.userGUID and not CM.syncedGroupMembers[guid] then
 		loginsessionData[guid] = loginsessionData[guid] or {}
@@ -54,6 +56,7 @@ function GroupInfoMixin:ProcessSpell(spellID)
 			end
 		end
 	end
+	]]
 
 	local icon, mergedID
 	if E.spellcast_merged[spellID] then
@@ -157,7 +160,7 @@ function GroupInfoMixin:ProcessSpell(spellID)
 				if not active or (active.startTime + active.duration - now < sharedCD) then
 					sharedIcon:StartCooldown(sharedCD)
 				end
-				if not E.preCata then
+				if not E.preMoP then
 					break
 				end
 			end
@@ -186,6 +189,7 @@ function GroupInfoMixin:ProcessSpell(spellID)
 		end
 	end
 
+	--[[
 	if not E.isBFA then
 		return
 	end
@@ -207,6 +211,7 @@ function GroupInfoMixin:ProcessSpell(spellID)
 	if (stiveSpec == true or stiveSpec == self.spec) and guid == E.userGUID and P.isPvP then
 		C_Timer.After(2, function() CM.SendStrivePvpTalentCD(spellID) end)
 	end
+	]]
 end
 
 local wotlkcReadinessExcluded = {
@@ -299,6 +304,31 @@ function GroupInfoMixin:FindIconFromCastID(spellID)
 	return nil
 end
 
+function GroupInfoMixin:AddOnCast(spellID, itemID, castID)
+
+	castID = castID or spellID
+	local isUser = self.guid == E.userGUID
+	local isSyncSpell = E.sync_cooldowns[self.class] and E.sync_cooldowns[self.class][castID] or E.sync_cooldowns.ALL[castID]
+
+	if not P.spell_enabled[spellID] and (not isUser or not isSyncSpell) then
+		return
+	end
+
+	if itemID then
+		self.sessionItemData[itemID] = true
+	end
+
+
+	if isUser and isSyncSpell then
+		CM.cooldownSyncIDs[castID] = spellID
+		CM.cooldownSyncSpellIDs[spellID] = true
+		CM:ToggleCooldownSync()
+	end
+	self:SetupBar()
+
+	return self.spellIcons[spellID]
+end
+
 local twwHeroTalents = {
 	[436358] = true,
 	[439843] = true,
@@ -314,17 +344,21 @@ local twwHeroTalents = {
 
 function GroupInfoMixin:SetupBar(isUpdateBarsOrGRU)
 	local guid, index, unit, raceID, specID, class, name, lvl = self.guid, self.index, self.unit, self.raceID, self.spec, self.class, self.name, self.level
-	local notUser = guid ~= E.userGUID
+	local isUser = guid == E.userGUID
 
 	wipe(self.spellIcons)
 
 	local bar = self.bar or self:GetBarFrame()
-	bar:RefreshUnitBarFrames()
 	bar:UnregisterAllEvents()
 	bar:SetUnit(self, unit, index)
+	bar:RefreshUnitBarFrames()
 
 	if self.isAdminForMDI then
+		if isUser then
+			CM.CooldownSyncFrame:ReleaseIcons()
+		end
 		bar:ReleaseIcons()
+		bar.anchor:Hide()
 		return
 	end
 
@@ -334,17 +368,30 @@ function GroupInfoMixin:SetupBar(isUpdateBarsOrGRU)
 	self:SetClassVariables()
 
 	local iconIndex = 0
+	local syncIndex = 0
 	for spellID, spell in pairs(E.hash_spelldb) do
 		local cat, spellType, spec, race, item, talent, disabledSpec = spell.class, spell.type, spell.spec, spell.race, spell.item, spell.talent, spell.disabledSpec
-		if not disabledSpec or not disabledSpec[specID] or not disabledSpec[specID][P.zone] then
+
+		local isDisabledSpec = disabledSpec and disabledSpec[specID] and disabledSpec[specID][P.zone]
+		if not isDisabledSpec or isUser then
 			local isValidSpell
 			local enabledSpell = P.spell_enabled[spellID]
+
 			local extraBarKey, extraBarFrame
 			if enabledSpell and enabledSpell > 0 then
 				extraBarKey = P.extraBarKeys[enabledSpell]
 				extraBarFrame = P.activeExBars[extraBarKey]
 			end
-			if enabledSpell and (notUser or not P.isUserHidden or (extraBarFrame and not extraBarFrame.db.unitBar)) then
+
+			local isUserEnabled, isUserSyncOnly
+			if isUser then
+				isUserEnabled = not isDisabledSpec and enabledSpell and (enabledSpell > 0 and extraBarFrame.db.showPlayer or enabledSpell == 0 and not P.isUserHidden)
+				if not isUserEnabled then
+					isUserSyncOnly = CM.cooldownSyncSpellIDs[spellID]
+				end
+			end
+
+			if not isUser and enabledSpell or isUserEnabled or isUserSyncOnly then
 				if cat == "RACIAL" then
 					if type(race) == "table" then
 						for k = 1, #race do
@@ -375,14 +422,14 @@ function GroupInfoMixin:SetupBar(isUpdateBarsOrGRU)
 					elseif cat == "COVENANT" then
 						isValidSpell = P.isInShadowlands and sessionData and sessionData[spec]
 					elseif cat == "TRINKET" then
-						isValidSpell = not item or self.sessionItemData[item]
+						isValidSpell = not item or self.sessionItemData[item] and (item ~= 5512 or class ~= "WARLOCK")
 					end
 				end
 			end
 
 			if isValidSpell then
 				local cd = self:GetValueByType(spell.duration)
-				if cd and (not E.preCata or not P.isInArena or cd < 900) then
+				if cd and (not P.isInArena or E.isBCC and cd < 900 or cd < 600) then
 					local buffID, iconTexture = spell.buff, spell.icon
 					local ch = self:GetValueByType(spell.charges) or 1
 					local baseCooldown = cd
@@ -533,7 +580,22 @@ function GroupInfoMixin:SetupBar(isUpdateBarsOrGRU)
 					ch = ch > 1 and ch
 
 					local icon
-					if extraBarFrame then
+					if isUserSyncOnly then
+						syncIndex = syncIndex + 1
+						icon = CM.CooldownSyncFrame.icons[syncIndex]
+						if not icon then
+							icon = P.IconPool:Acquire()
+							CM.CooldownSyncFrame.icons[syncIndex] = icon
+							icon:SetParent(CM.CooldownSyncFrame)
+							icon.parent = CM.CooldownSyncFrame
+							icon:ClearAllPoints()
+							icon:SetPoint("BOTTOMLEFT", CM.CooldownSyncFrame, "BOTTOMLEFT", syncIndex * 36, 0)
+							--[==[@debug@
+							icon:HideBorder()
+							--@end-debug@]==]
+							icon:Show()
+						end
+					elseif extraBarFrame then
 						icon = P.IconPool:Acquire()
 						if extraBarFrame.db.unitBar then
 							local unitBar = bar.activeUnitBars[enabledSpell]
@@ -576,6 +638,7 @@ function GroupInfoMixin:SetupBar(isUpdateBarsOrGRU)
 					iconTexture = spellID == 371032 and (self.talentData[403631] and 5199622 or 4622450) or iconTexture
 					icon.icon:SetTexture(iconTexture)
 					icon.iconTexture = iconTexture
+					icon.isUserSyncOnly = isUserSyncOnly
 
 					icon.active = nil
 					icon.tooltipID = nil
@@ -603,18 +666,27 @@ function GroupInfoMixin:SetupBar(isUpdateBarsOrGRU)
 
 
 					if self.preactiveIcons[spellID] then
-						self.preactiveIcons[spellID] = icon
+
+						if spellID == 642 and self.talentData[146956] then
+							self.preactiveIcons[spellID] = nil
+						else
+							self.preactiveIcons[spellID] = icon
+						end
 						icon:SetHighlight(true)
 					end
 					self.spellIcons[spellID] = icon
 
 
-					if extraBarFrame and extraBarFrame.shouldShowProgressBar then
+					if extraBarFrame and extraBarFrame.shouldShowProgressBar and not isUserSyncOnly then
 						P:GetStatusBarFrame(icon, extraBarKey, self.nameWithoutRealm)
 					end
 				end
 			end
 		end
+	end
+
+	if isUser then
+		CM.CooldownSyncFrame:ReleaseIcons(syncIndex)
 	end
 	bar:ReleaseIcons(iconIndex)
 
@@ -679,6 +751,178 @@ function GroupInfoMixin:SetUnitAuraItemData()
 	end
 end
 
+if E.isMoP then
+	local druidSymbiosisIDs = {
+		DEATHKNIGHT = {
+			[102] = 110570,
+			[103] = 122282,
+			[104] = 122285,
+			[105] = 110575,
+		},
+		HUNTER = {
+			[102] = 110588,
+			[103] = 110597,
+			[104] = 110600,
+			[105] = 110617,
+		},
+		MAGE = {
+			[102] = 110621,
+			[103] = 110693,
+			[104] = 110694,
+			[105] = 110696,
+		},
+		MONK = {
+			[102] = 126458,
+			[103] = 126449,
+			[104] = 126453,
+			[105] = 126456,
+		},
+		PALADIN = {
+			[102] = 110698,
+			[103] = 110700,
+			[104] = 110701,
+			[105] = 122288,
+		},
+		PRIEST = {
+			[102] = 110707,
+			[103] = 110715,
+			[104] = 110717,
+			[105] = 110718,
+		},
+		ROGUE = {
+			[102] = 110788,
+			[103] = 110730,
+			[104] = 122289,
+			[105] = 110791,
+		},
+		SHAMAN = {
+			[102] = 110802,
+			[103] = 110807,
+			[104] = 110803,
+			[105] = 110806,
+		},
+		WARLOCK = {
+			[102] = 122291,
+			[103] = 110810,
+			[104] = 122290,
+			[105] = 112970,
+		},
+		WARRIOR = {
+			[102] = 122292,
+			[103] = 112997,
+			[104] = 113002,
+			[105] = 113004,
+		},
+	}
+
+	local symbiosisIDs = {
+		[110478] = {
+			[250] = 113072,
+			[251] = 113516,
+			[252] = 113516,
+		},
+		[110479] = {
+			[253] = 113073,
+			[254] = 113073,
+			[255] = 113073,
+		},
+		[110482] = {
+			[62] = 113074,
+			[63] = 113074,
+			[64] = 113074,
+		},
+		[110483] = {
+			[268] = 113306,
+			[269] = 127361,
+			[270] = 113275,
+		},
+		[110484] = {
+			[65] = 113269,
+			[66] = 113075,
+			[70] = 122287,
+		},
+		[110485] = {
+			[256] = 113506,
+			[257] = 113506,
+			[258] = 113277,
+		},
+		[110486] = {
+			[259] = 113613,
+			[260] = 113613,
+			[261] = 113613,
+		},
+		[110488] = {
+			[262] = 113286,
+			[263] = 113286,
+			[264] = 113289,
+		},
+		[110490] = {
+			[265] = 113295,
+			[266] = 113295,
+			[267] = 113295,
+		},
+		[110491] = {
+			[71] = 122294,
+			[72] = 122294,
+			[73] = 122286,
+		},
+	}
+
+	function GroupInfoMixin:SetUnitAuraItemData()
+
+		if self.class == "DRUID" then
+			local id = self.auras.symbiosisId
+			if id then
+				self.talentData[id] = true
+			end
+		end
+
+		if not self.spec or self.class == "DRUID" then
+			return
+		end
+
+		local id = self.auras.symbiosisId
+		if id then
+			self.talentData[id] = nil
+			self.auras.symbiosisId = nil
+		end
+
+		for i = 1, 50 do
+			local aura = C_UnitAuras_GetBuffDataByIndex(self.unit, i)
+			if not aura then break end
+
+			local auraId = aura.spellId
+			if auraId and symbiosisIDs[auraId] then
+				local id = symbiosisIDs[auraId] and symbiosisIDs[auraId][self.spec]
+				if id then
+					self.talentData[id] = true
+					self.auras.symbiosisId = id
+				end
+
+				if aura.sourceUnit then
+					local guid = UnitGUID(aura.sourceUnit)
+					local info = P.groupInfo[guid]
+					if info and info.spec then
+						local id = info.auras.symbiosisId
+						if id then
+							info.talentData[id] = nil
+							info.auras.symbiosisId = nil
+						end
+
+						id = druidSymbiosisIDs[self.class] and druidSymbiosisIDs[self.class][info.spec]
+						if id then
+							info.talentData[id] = true
+							info.auras.symbiosisId = id
+						end
+						info:SetupBar()
+					end
+				end
+				break
+			end
+		end
+	end
+end
+
 function GroupInfoMixin:SetClassVariables()
 	if not E.postDF then
 		return
@@ -698,10 +942,16 @@ function GroupInfoMixin:SetClassVariables()
 			cp = cp + 1
 		end
 		self.maxCP = cp
+
+
+		self.heroSpecID = self.heroSpecID or self.talentData[452536] and 52
 	elseif self.class == "EVOKER" then
 		self.isWingleader = self.talentData[441206]
 			and (P.spell_enabled[357210] or P.spell_enabled[371032] or P.spell_enabled[403631])
 		CD:UpdateBombardiers(self.isWingleader)
+
+
+		self.heroSpecID = self.heroSpecID or self.talentData[431442] and 38
 	end
 end
 
@@ -730,8 +980,18 @@ function GroupInfoMixin:IsSpecOrTalentForPvpStatus(talentID, isLearnedLevel)
 			end
 		end
 	else
-		if specIDs[talentID] then
-			return isLearnedLevel and self.spec == talentID
+		if talentID < 0 then
+			return not self.talentData[-talentID]
+		end
+		if E.postMoP then
+			if specIDs[talentID] then
+				return isLearnedLevel and self.spec == talentID
+			end
+		else
+
+			if self.spec == talentID then
+				return isLearnedLevel
+			end
 		end
 		if covenantIDs[talentID] and not P.isInShadowlands then
 			return
@@ -829,6 +1089,9 @@ function GroupInfoMixin:Delete()
 	P.groupInfo[guid] = nil
 
 	if guid == E.userGUID then
+
+
+		wipe(P.userInfo.active)
 		wipe(P.userInfo.sessionItemData)
 	end
 end

@@ -639,7 +639,7 @@ function mod:CorruptRemoved(args)
 end
 
 function mod:CHAT_MSG_MONSTER_YELL(_, _, sender)
-	if sender == L.spirits_trigger then
+	if not self:IsSecret(sender) and sender == L.spirits_trigger then
 		self:StopBar(CL.count:format(CL.spirits, spiritsCount))
 		self:Message(422032, "green", CL.count:format(CL.spirits, spiritsCount))
 		if self:Healer() then

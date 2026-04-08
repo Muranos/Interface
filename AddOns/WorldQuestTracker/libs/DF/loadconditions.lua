@@ -24,6 +24,7 @@ local GetTalentInfoByID = GetTalentInfoByID ---@diagnostic disable-line
 local IS_WOW_PROJECT_MAINLINE = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE ---@diagnostic disable-line
 local IS_WOW_PROJECT_NOT_MAINLINE = WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE ---@diagnostic disable-line
 local IS_WOW_PROJECT_CLASSIC_ERA = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC ---@diagnostic disable-line
+local IS_WOW_PROJECT_MIDNIGHT = detailsFramework.IsAddonApocalypseWow() ---@diagnostic disable-line
 
 local PixelUtil = PixelUtil or DFPixelUtil  ---@diagnostic disable-line
 local UnitGroupRolesAssigned = detailsFramework.UnitGroupRolesAssigned
@@ -116,13 +117,13 @@ local deprecatedAffixes = {
 	[144] = true, --Thorned
 	[145] = true, --Reckless
 	[146] = true, --Attuned
-	--[147] = true, --Xal'atath's Guile
-	--[148] = true, --Xal'atath's Bargain: Ascendant
+	[147] = true, --Xal'atath's Guile
+	[148] = true, --Xal'atath's Bargain: Ascendant
 	--[152] = true, --Challenger's Peril
-	--[153] = true, --Xal'atath's Bargain: Frenzied
-	--[158] = true, --Xal'atath's Bargain: Voidbound
-	--[159] = true, --Xal'atath's Bargain: Oblivion
-	--[160] = true, --Xal'atath's Bargain: Devour
+	[153] = true, --Xal'atath's Bargain: Frenzied
+	[158] = true, --Xal'atath's Bargain: Voidbound
+	[159] = true, --Xal'atath's Bargain: Oblivion
+	[160] = true, --Xal'atath's Bargain: Devour
 }
 
 local default_load_conditions_frame_options = {
@@ -158,6 +159,7 @@ function detailsFramework:CreateLoadFilterParser(callback)
 
 		elseif (event == "CHAT_MSG_LOOT") then
 			local message = ...
+			if IS_WOW_PROJECT_MIDNIGHT and issecretvalue(message) then return end
 			local itemId = message:match("|Hitem:(%d+):")
 			itemId = tonumber(itemId)
 
@@ -346,7 +348,8 @@ function detailsFramework:PassLoadFilters(loadTable, encounterID)
 			return false, "M+ Affix"
 		end
 
-		local level, affixes, wasEnergized = C_ChallengeMode.GetActiveKeystoneInfo()
+		local GetActiveKeystoneInfo = C_ChallengeMode.GetActiveKeystoneInfo or function() return 0, {}, false end -- ensure all three return values.
+		local level, affixes, wasEnergized = GetActiveKeystoneInfo()
 		local hasAffix = false
 		for _, affixID in ipairs(affixes) do
 			if affixID and(loadTable.affix[affixID] or loadTable.affix[affixID .. ""]) then
@@ -368,7 +371,7 @@ function detailsFramework:PassLoadFilters(loadTable, encounterID)
 
 		local bHasEncounter
 		for _, userEnteredEncounterId in pairs(loadTable.encounter_ids) do
-			if (userEnteredEncounterId == encounterID) then
+			if (tonumber(userEnteredEncounterId) == tonumber(encounterID)) then
 				bHasEncounter = true
 				break
 			end
@@ -416,7 +419,7 @@ function detailsFramework:OpenLoadConditionsPanel(optionsTable, callback, frameO
 	detailsFramework:UpdateLoadConditionsTable(optionsTable)
 
 	if (not loadConditionsFrame) then
-		loadConditionsFrame = detailsFramework:CreateSimplePanel(UIParent, 1024, 620, "Load Conditions", "loadConditionsFrame")
+		loadConditionsFrame = detailsFramework:CreateSimplePanel(UIParent, 1024, 640, "Load Conditions", "loadConditionsFrame")
 		loadConditionsFrame:SetBackdropColor(0, 0, 0, 1)
 		loadConditionsFrame.AllRadioGroups = {}
 		loadConditionsFrame.AllTextEntries = {}
@@ -763,7 +766,6 @@ function detailsFramework:OpenLoadConditionsPanel(optionsTable, callback, frameO
 			for _, roleTable in ipairs(detailsFramework:GetRoleTypes()) do
 				local texture, l, r, t, b = detailsFramework:GetRoleIconAndCoords(roleTable.ID)
 				table.insert(roleTypes, {
-					name = (roleTable.Texture .. " " .. roleTable.Name),
 					name = roleTable.Name,
 					texture = texture,
 					texcoord = {l, r, t, b},
@@ -781,9 +783,10 @@ function detailsFramework:OpenLoadConditionsPanel(optionsTable, callback, frameO
 		--create radio group for mythic+ affixes
 			if IS_WOW_PROJECT_MAINLINE then
 				local affixes = {}
+				local GetAffixInfo = C_ChallengeMode.GetAffixInfo or function() return nil end
 				for i = 2, 1000 do
-					local affixName, desc, texture = C_ChallengeMode.GetAffixInfo(i)
-					if (affixName and not deprecatedAffixes[i]) then
+					local affixName, desc, texture = GetAffixInfo(i)
+					if (affixName and affixName ~= "" and not deprecatedAffixes[i]) then
 						table.insert(affixes, {
 							name = affixName,
 							set = loadConditionsFrame.OnRadioCheckboxClick,

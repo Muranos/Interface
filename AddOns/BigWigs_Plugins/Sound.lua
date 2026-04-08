@@ -2,11 +2,12 @@
 -- Module Declaration
 --
 
-local plugin = BigWigs:NewPlugin("Sounds", {
+local plugin, L = BigWigs:NewPlugin("Sounds", {
 	"db",
 	"soundOptions",
 	"SetSoundOptions",
 	"GetDefaultSound",
+	"GetDefaultSoundFile",
 })
 if not plugin then return end
 
@@ -14,9 +15,8 @@ if not plugin then return end
 -- Locals
 --
 
-local L = BigWigsAPI:GetLocale("BigWigs")
-local media = LibStub("LibSharedMedia-3.0")
-local SOUND = media.MediaType and media.MediaType.SOUND or "sound"
+local LibSharedMedia = LibStub("LibSharedMedia-3.0")
+local SOUND = LibSharedMedia.MediaType and LibSharedMedia.MediaType.SOUND or "sound"
 local soundList = nil
 local db
 local sounds = {
@@ -29,6 +29,7 @@ local sounds = {
 	underyou = L.spell_under_you,
 	privateaura = "BigWigs: Raid Warning",
 }
+local allowBlizzMessages = true
 
 --------------------------------------------------------------------------------
 -- Profile
@@ -56,21 +57,53 @@ plugin.defaultDB = {
 
 local function updateProfile()
 	db = plugin.db.profile
+	local printTbl, blockedFromPrints = {}, {}
 	for k, v in next, db do
 		local defaultType = type(plugin.defaultDB[k])
 		if defaultType == "nil" then
 			db[k] = nil
 		elseif type(v) ~= defaultType then
 			db[k] = plugin.defaultDB[k]
+		elseif sounds[k] then
+			for bossModuleName, soundTbl in next, v do
+				for optionKey, soundName in next, soundTbl do
+					if not LibSharedMedia:IsValid("sound", soundName) then
+						soundTbl[optionKey] = nil -- Invalid sound, remove
+						if not blockedFromPrints[soundName] then
+							blockedFromPrints[soundName] = true
+							local moduleName = bossModuleName:sub(16) -- Remove "BigWigs_Bosses_" text
+							printTbl[#printTbl+1] = L.soundResetPrint:format(moduleName, soundName)
+						end
+					end
+				end
+				if not next(soundTbl) then
+					db[k][bossModuleName] = nil -- Sounds list for this boss module is an empty table, remove it
+				end
+			end
 		end
 	end
+
 	for k, v in next, db.media do
 		local defaultType = type(plugin.defaultDB.media[k])
 		if defaultType == "nil" then
 			db.media[k] = nil
 		elseif type(v) ~= defaultType then
-			db.media[k] = plugin.defaultDB.media[k]
+			db.media[k] = plugin.defaultDB.media[k] -- Invalid type, reset
+		elseif not LibSharedMedia:IsValid("sound", v) then
+			db.media[k] = plugin.defaultDB.media[k] -- Invalid sound, reset
+			if not blockedFromPrints[v] then
+				blockedFromPrints[v] = true
+				printTbl[#printTbl+1] = L.soundResetPrint:format(plugin.moduleName, v)
+			end
 		end
+	end
+
+	if printTbl[1] then
+		plugin:SimpleTimer(function()
+			for i = 1, #printTbl do
+				plugin:Print(printTbl[i])
+			end
+		end, 0)
 	end
 end
 
@@ -91,9 +124,9 @@ plugin.pluginOptions = {
 	set = function(info, value)
 		local sound = info[#info]
 		db.media[sound] = soundList[value]
-		plugin:PlaySoundFile(media:Fetch(SOUND, soundList[value]))
+		plugin:PlaySoundFile(LibSharedMedia:Fetch(SOUND, soundList[value]))
 	end,
-	order = 4,
+	order = 7,
 	args = {
 		heading = {
 			type = "description",
@@ -236,7 +269,7 @@ do
 		keyTable[2] = key
 		local t = addKey(soundOptions, keyTable)
 		if t.args.countdown then
-			t.args.countdown.disabled = not flags or bit.band(flags, C.COUNTDOWN) == 0
+			t.args.countdown.disabled = not flags or (bit.band(flags, C.COUNTDOWN) == 0 and bit.band(flags, C.CASTBAR_COUNTDOWN) == 0)
 		end
 		return t
 	end
@@ -246,10 +279,11 @@ end
 -- Initialization
 --
 
-function plugin:OnRegister()
+function plugin:OnPluginEnable()
 	updateProfile()
 
-	soundList = media:List(SOUND)
+	soundList = LibSharedMedia:List(SOUND)
+	allowBlizzMessages = true
 
 	for k in next, sounds do
 		local n = L[k] or k
@@ -270,7 +304,7 @@ function plugin:OnRegister()
 				local optionName = info[#info]
 				if not db[optionName][name] then db[optionName][name] = {} end
 				db[optionName][name][key] = soundList[value]
-				self:PlaySoundFile(media:Fetch(SOUND, soundList[value]))
+				self:PlaySoundFile(LibSharedMedia:Fetch(SOUND, soundList[value]))
 				-- We don't cleanup/reset the DB as someone may have a custom global sound but wish to use the default sound on a specific option
 			end,
 			hidden = function(info)
@@ -302,12 +336,41 @@ function plugin:OnRegister()
 			itemControl = "DDI-Sound",
 		}
 	end
-end
 
-function plugin:OnPluginEnable()
+	local soundsPlayedTable = {}
+	for optionKey, soundName in next, db.media do
+		if sounds[optionKey] and soundName ~= "None" and not soundsPlayedTable[soundName] then
+			soundsPlayedTable[soundName] = true
+		end
+	end
+	for k, v in next, db do
+		if sounds[k] then
+			for _, soundTbl in next, v do
+				for _, soundName in next, soundTbl do
+					if soundName ~= "None" and not soundsPlayedTable[soundName] then
+						soundsPlayedTable[soundName] = true
+					end
+				end
+			end
+		end
+	end
+	local timer
+	local function Loop()
+		local soundName = next(soundsPlayedTable)
+		if not soundName then timer:Cancel() return end
+		soundsPlayedTable[soundName] = nil
+		local played, id = self:PlaySoundFile(LibSharedMedia:Fetch(SOUND, soundName))
+		if played then StopSound(id) end
+	end
+	timer = BigWigsLoader.CTimerNewTicker(0, Loop)
+
 	self:RegisterMessage("BigWigs_Sound")
 	self:RegisterMessage("BigWigs_ProfileUpdate", updateProfile)
-	updateProfile()
+	if BigWigsLoader.isRetail then
+		self:RegisterEvent("ENCOUNTER_WARNING")
+		self:RegisterMessage("BigWigs_BlockBlizzMessages")
+		self:RegisterMessage("BigWigs_AllowBlizzMessages")
+	end
 end
 
 -------------------------------------------------------------------------------
@@ -326,11 +389,11 @@ do
 		soundName = tmp[soundName] or soundName
 		local sDb = db[soundName]
 		if not module or not key or not sDb or not sDb[module.name] or not sDb[module.name][key] then
-			local path = db.media[soundName] and media:Fetch(SOUND, db.media[soundName], true) or media:Fetch(SOUND, soundName, true)
+			local path = db.media[soundName] and LibSharedMedia:Fetch(SOUND, db.media[soundName], true) or LibSharedMedia:Fetch(SOUND, soundName, true)
 			return path
 		else
 			local newSound = sDb[module.name][key]
-			local path = db.media[newSound] and media:Fetch(SOUND, db.media[newSound], true) or media:Fetch(SOUND, newSound, true)
+			local path = db.media[newSound] and LibSharedMedia:Fetch(SOUND, db.media[newSound], true) or LibSharedMedia:Fetch(SOUND, newSound, true)
 			return path
 		end
 	end
@@ -343,16 +406,46 @@ do
 		soundName = tmp[soundName] or soundName
 
 		local custom = soundName:match("^name:(.+)$")
-		if custom and not media:Fetch(SOUND, custom, true) then
+		if custom and not LibSharedMedia:Fetch(SOUND, custom, true) then
 			return
 		end
 		return custom or db.media[soundName]
 	end
+
+	function plugin:GetDefaultSoundFile(soundName)
+		local defaultSound = self:GetDefaultSound(soundName)
+		return defaultSound and LibSharedMedia:Fetch(SOUND, defaultSound, true)
+	end
 end
 
-function plugin:BigWigs_Sound(event, module, key, soundName)
+function plugin:BigWigs_Sound(_, module, key, soundName)
 	local soundPath = self:GetSoundFile(module, key, soundName)
 	if soundPath then
 		self:PlaySoundFile(soundPath)
 	end
+end
+
+do
+	local severitySoundMap = {
+		[0] = "alert",
+		[1] = "alarm",
+		[2] = "warning",
+	}
+	function plugin:ENCOUNTER_WARNING(_, eventInfo)
+		if allowBlizzMessages then
+			local shouldPlaySound = eventInfo.shouldPlaySound
+			local severity = eventInfo.severity
+			if shouldPlaySound then
+				self:BigWigs_Sound(nil, nil, false, severitySoundMap[severity] or "alert")
+			end
+		end
+	end
+end
+
+function plugin:BigWigs_AllowBlizzMessages()
+	allowBlizzMessages = true
+end
+
+function plugin:BigWigs_BlockBlizzMessages()
+	allowBlizzMessages = false
 end

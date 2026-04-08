@@ -8,10 +8,10 @@ local L = LibStub("AceLocale-3.0"):GetLocale("Bartender4")
 local AceConfigDialog = LibStub("AceConfigDialog-3.0")
 
 local error, select, pairs = error, select, pairs
+local WoWClassicEra = (WOW_PROJECT_ID == WOW_PROJECT_CLASSIC)
+local WoWBCC = (WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC)
 local WoWClassic = (WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE)
-local WoWWrath = (WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC)
-local WoWCata = (WOW_PROJECT_ID == WOW_PROJECT_CATACLYSM_CLASSIC)
-local WoW10 = select(4, GetBuildInfo()) >= 100000
+local WoWRetail = (WOW_PROJECT_ID == WOW_PROJECT_MAINLINE)
 local SaveBindings = SaveBindings or AttemptToSaveBindings
 
 -- GLOBALS: LibStub, UnitHasVehicleUI, GetModifiedClick, SetModifiedClick, SaveBindings, GetCurrentBindingSet, InCombatLockdown
@@ -31,7 +31,7 @@ end
 local s_HookedKeyBound, s_KeyBoundHookShowBTOptions
 local KB = LibStub("LibKeyBound-1.0")
 local LDBIcon = LibStub("LibDBIcon-1.0", true)
-local LibDualSpec = (not WoWClassic or WoWWrath or WoWCata) and LibStub("LibDualSpec-1.0", true)
+local LibDualSpec = (not WoWClassicEra) and LibStub("LibDualSpec-1.0", true)
 
 local function generateOptions()
 	Bartender4.options = {
@@ -124,20 +124,33 @@ local function generateOptions()
 								name = L["Toggle actions on key press instead of release"],
 								desc = L["Toggles actions immediately when you press the key, and not only on release. Note that the buttons need to be locked for actions to run on key press."],
 								get = function(info)
-									if WoW10 then
+									if WoWRetail or WoWBCC then
 										return GetCVarBool("ActionButtonUseKeyDown")
 									else
 										return Bartender4.db.profile.onkeydown
 									end
 								end,
 								set = function(info, value)
-									if WoW10 then
+									if WoWRetail or WoWBCC then
 										SetCVar("ActionButtonUseKeyDown", value)
 									else
 										Bartender4.db.profile.onkeydown = value
 										Bartender4.Bar:ForAll("UpdateButtonConfig")
 									end
 								end,
+								width = "full",
+							},
+							spellCastVFX = {
+								order = 3,
+								type = "toggle",
+								name = L["Show Spell Cast VFX on action buttons"],
+								desc = L["Shows the miniature cast bar on action buttons when casting spells."],
+								get = function(info) return Bartender4.db.profile.spellCastVFX end,
+								set = function(info, value)
+									Bartender4.db.profile.spellCastVFX = value
+									Bartender4.Bar:ForAll("UpdateButtonConfig")
+								end,
+								hidden = WoWClassic,
 								width = "full",
 							},
 							selfcastmodifier = {
@@ -344,11 +357,6 @@ local function generateOptions()
 						type = "description",
 						name = L["You can report bugs or give suggestions on the project page at |cffffff78https://www.wowace.com/projects/bartender4|r or on GitHub at |cffffff78https://github.com/Nevcairiel/Bartender4|r"],
 						order = 8,
-					},
-					line9 = {
-						type = "description",
-						name = "\n" .. L["Alternatively, you can also find us on the |cffffff78WoWUIDev Discord|r"] .. "\n",
-						order = 9,
 					},
 					line10 = {
 						type = "description",

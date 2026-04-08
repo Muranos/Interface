@@ -6,7 +6,7 @@ local lib = LibStub:GetLibrary("EditModeExpanded-1.0")
 function addon:initRaidFrames()
     local db = addon.db.global
     if not db.EMEOptions.compactRaidFrameContainer then return end
-    lib:RegisterFrame(CompactRaidFrameManager, L["Raid Manager"], db.CompactRaidFrameManager, nil, "TOPLEFT", false)
+    addon:registerFrame(CompactRaidFrameManager, L["Raid Manager"], db.CompactRaidFrameManager, nil, "TOPLEFT", false)
                 --[[
     hooksecurefunc("CompactRaidFrameManager_Expand", function()
         if InCombatLockdown() then return end
@@ -82,6 +82,7 @@ function addon:initRaidFrames()
             end
         end
     end)
+    ]]
     
     local partyFrameNamesWereHidden
     lib:RegisterCustomCheckbox(PartyFrame, L["Hide Names"],
@@ -128,6 +129,30 @@ function addon:initRaidFrames()
         end,
         "HideRaidNames"
     )
+    
+    local raidFrameNamesSize = 1
+    
+    local function updateRaidFrameNamesSizes()
+        for groupID = 1, 8 do
+            local group = _G["CompactRaidGroup"..groupID]
+            if group then
+                for playerID = 1, 5 do
+                    local player = _G["CompactRaidGroup"..groupID.."Member"..playerID]
+                    if player then
+                        player.name:SetScale(raidFrameNamesSize)
+                    end
+                end
+            end
+        end
+    end
+    
+    lib:RegisterSlider(CompactRaidFrameContainer, "Name Scale", "Name Scale",
+        function(newValue)
+            raidFrameNamesSize = newValue
+            updateRaidFrameNamesSizes()
+        end,
+        0.5, 3, 0.1)
 
-    hooksecurefunc("CompactUnitFrame_UpdateName", updateHideRaidFrameNames)]]
+    hooksecurefunc("CompactUnitFrame_UpdateName", updateHideRaidFrameNames)
+    hooksecurefunc("CompactUnitFrame_UpdateName", updateRaidFrameNamesSizes)
 end

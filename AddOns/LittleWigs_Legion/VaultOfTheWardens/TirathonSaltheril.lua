@@ -62,7 +62,7 @@ end
 --
 
 function mod:Warmup(event, msg)
-	if msg == L.warmup_trigger then
+	if not self:IsSecret(msg) and msg == L.warmup_trigger then
 		self:UnregisterEvent(event)
 		self:Bar("warmup", 8, CL.active, "achievement_dungeon_vaultofthewardens")
 	end
@@ -85,7 +85,7 @@ function mod:Havoc(args)
 end
 
 function mod:UNIT_SPELLCAST_SUCCEEDED(_, _, _, spellId)
-	if spellId == 190830 then -- Hatred
+	if not self:IsSecret(spellId) and spellId == 190830 then -- Hatred
 		self:MessageOld(spellId, "yellow", "warning")
 		self:CastBar(spellId, 10)
 		self:CDBar(spellId, 30)

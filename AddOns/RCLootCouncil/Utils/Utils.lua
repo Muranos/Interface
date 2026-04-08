@@ -6,7 +6,6 @@
 ---@class RCLootCouncil
 local addon = select(2, ...)
 --- @type RCLootCouncilLocale
-local L = LibStub("AceLocale-3.0"):GetLocale("RCLootCouncil")
 local ItemUtils = addon.Require "Utils.Item"
 
 ---@class RCLootCouncil.Utils
@@ -29,6 +28,26 @@ end
 -- This way we can use the function as a table reference
 function Utils.HideTooltip()
 	addon:HideTooltip()
+end
+
+--- Searches for a string in a tooltip lines.
+--- Search text can be either a multiple string or a table of strings.
+--- Searching is done with pattern matching.
+---@param tooltipLines TooltipDataLine[]
+---@vararg string|string[]
+---@return string? #The first line that matches the search text, or nil if not found.
+function Utils:FindInTooltip(tooltipLines, ...)
+	---@type string[]
+	local searchStrings = type(select(1, ...)) == "table" and select(1, ...) or { ..., }
+	for _, line in ipairs(tooltipLines) do
+		if line.type == Enum.TooltipDataLineType.None then
+			for _, searchString in ipairs(searchStrings) do
+				if line.leftText:find(searchString) then
+					return line.leftText
+				end
+			end
+		end
+	end
 end
 
 function Utils:RGBToHex(r, g, b)
@@ -63,6 +82,7 @@ end
 --- @param year number
 --- @return string #A formatted string.
 function Utils:ConvertDateToString(day, month, year)
+	local L = LibStub("AceLocale-3.0"):GetLocale("RCLootCouncil")
 	local text = format(L["x days"], day)
 	if year > 0 then
 		text = format(L["days, x months, y years"], text, month, year)
@@ -91,7 +111,7 @@ end
 
 function Utils:IsInNonInstance()
 	local instance_type = select(2, IsInInstance())
-	if self.IsPartyLFG() or instance_type == "pvp" or instance_type == "arena" then
+	if self:IsPartyLFG() or instance_type == "pvp" or instance_type == "arena" then
 		return true
 	else
 		return false
@@ -234,6 +254,7 @@ end
 --- @param input_unit string @Any unit, except those that include '-' like "name-target".
 --- @return string @Titlecased "unitName-realmName"
 function Utils:UnitName(input_unit)
+	if self:IsSecretValue(input_unit) then return input_unit end
 	if self.unitNameLookup[input_unit] then return self.unitNameLookup[input_unit] end
 	if not input_unit or input_unit == "" then return "" end
 	-- First strip any spaces
@@ -281,9 +302,19 @@ end
 ---@param unit1 string | Player
 ---@param unit2 string | Player
 function Utils:UnitIsUnit(unit1, unit2)
+	-- Rule out nils
+	if type(unit1) == "nil" or type(unit2) == "nil" then return false end
+	-- If both are Player objects, use it's comparison
+	if type(unit1) ~= "string" and type(unit2) ~= "string" then return unit1 == unit2 end
+	-- Otherwise extract names and compare those
+	if type(unit1) ~= "string" then unit1 = unit1.name end
+	if type(unit2) ~= "string" then unit2 = unit2.name end
+	-- Now check for secret values before we start real processing
+	if self:IsSecretValue(unit1, unit2) then
+		addon.Require "Services.ErrorHandler":ThrowSilentError(string.format("Trying to compare secret values in Utils:UnitIsUnit(%s, %s)", self:SecretsForPrint(unit1, unit2)))
+		return false
+	end
 	if not unit1 or not unit2 then return false end
-	if unit1.name then unit1 = unit1.name end
-	if unit2.name then unit2 = unit2.name end
 	-- Remove realm names, if any
 	if strfind(unit1, "-", nil, true) ~= nil then
 		unit1 = Ambiguate(unit1, "short")
@@ -294,7 +325,12 @@ function Utils:UnitIsUnit(unit1, unit2)
 	-- v2.3.3 There's problems comparing non-ascii characters of different cases using UnitIsUnit()
 	-- I.e. UnitIsUnit("Potdisc", "potdisc") works, but UnitIsUnit("Æver", "æver") doesn't.
 	-- Since I can't find a way to ensure consistant returns from UnitName(), just lowercase units here before passing them.
-	return UnitIsUnit(unit1:lower(), unit2:lower())
+	local res = UnitIsUnit(unit1:lower(), unit2:lower())
+	-- v3.19.6: Calling UnitIsUnit() under `SecretWhenUnitComparisonRestricted` with a "non-available unit" will result in `<secret> false`
+	if self:IsSecretValue(res) then
+		return unit1 == unit2
+	end
+	return res
 end
 
 --- Returns the current loot threshold.
@@ -349,6 +385,38 @@ function Utils:Int2Bin(n)
 		n = math.floor(n / 2)
 	end
 	return string.format("%04s", result)
+end
+
+local symbols = { "%%", "%*", "%+", "%-", "%?", "%(", "%)", "%[", "%]", "%$", "%^", } --% has to be escaped first or everything is ruined
+local replacements = { "%%%%", "%%%*", "%%%+", "%%%-", "%%%?", "%%%(", "%%%)", "%%%[", "%%%]", "%%%$", "%%%^", }
+--- Reimplementation of Blizzard function (make local in 11.2.7)
+function Utils:escapePatternSymbols(text)
+	for i = 1, #symbols do
+		text = text:gsub(symbols[i], replacements[i])
+	end
+	return text
+end
+
+--- Protected check for secret values - works in any game version.
+--- Returns true if any of the passed values is a secret value.
+--- @param ... any
+function Utils:IsSecretValue(...)
+	if not issecretvalue then return false end
+	for i = 1, select("#", ...) do
+		if issecretvalue(select(i, ...)) then return true end
+	end
+	return false
+end
+
+--- Stringifies value(s) if it's not a secret value, otherwise returns `"<secret>"`.
+---@param ... any
+function Utils:SecretsForPrint(...)
+	local ret = {}
+	for i = 1, select("#", ...) do
+		local v = select(i, ...)
+		ret[i] = self:IsSecretValue(v) and "<secret>" or tostring(v)
+	end
+	return unpack(ret)
 end
 
 ---@deprecated

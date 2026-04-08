@@ -6,7 +6,7 @@ local mod, CL = BigWigs:NewBoss("Liskanoth, The Futurebane", -2085, 2518)
 if not mod then return end
 mod:RegisterEnableMob(193533) -- Liskanoth
 mod.otherMenu = -1978
-mod.worldBoss = 193533
+mod:SetWorldModule(true)
 
 --------------------------------------------------------------------------------
 -- Initialization

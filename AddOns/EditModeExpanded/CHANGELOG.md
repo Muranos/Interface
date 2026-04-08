@@ -1,7 +1,8 @@
 # Edit Mode Expanded
 
-## [11.0-043](https://github.com/teelolws/EditModeExpanded/tree/11.0-043) (2025-04-03)
-[Full Changelog](https://github.com/teelolws/EditModeExpanded/compare/11.0-042...11.0-043) [Previous Releases](https://github.com/teelolws/EditModeExpanded/releases)
+## [12.0-032](https://github.com/teelolws/EditModeExpanded/tree/12.0-032) (2026-04-06)
+[Full Changelog](https://github.com/teelolws/EditModeExpanded/compare/12.0-031...12.0-032) [Previous Releases](https://github.com/teelolws/EditModeExpanded/releases)
 
-- Add resize to Extra Abilities  
-    Closes: https://github.com/teelolws/EditModeExpanded/issues/164#issuecomment-2773841819  
+- Fix issue with druid combo point frame  
+    Closes: https://github.com/teelolws/EditModeExpanded/issues/222#issuecomment-4194134464  
+- Update enus.lua  

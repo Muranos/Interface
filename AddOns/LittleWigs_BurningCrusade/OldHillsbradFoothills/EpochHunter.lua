@@ -50,6 +50,7 @@ end
 --  Event Handlers
 
 function mod:CHAT_MSG_MONSTER_YELL(event, msg)
+	if self:IsSecret(msg) then return end
 	if msg:find(L.trash_warmup_trigger, nil, true) then
 		self:Bar("warmup", 22.6, CL.active, "inv_sword_01")
 	elseif msg:find(L.boss_warmup_trigger, nil, true) then
@@ -57,7 +58,6 @@ function mod:CHAT_MSG_MONSTER_YELL(event, msg)
 		self:Bar("warmup", 2.7, CL.active, "inv_sword_01")
 	end
 end
-
 
 function mod:MagicDisruptionAura(args)
 	if self:Dispeller("magic", true, args.spellId) then

@@ -54,18 +54,18 @@ VUHDO_I18N_BUFF_ALL = "alle";
 VUHDO_I18N_SHOW_BUFF_WATCH = "Buff Watch anzeigen";
 -- Chat messages
 -- @EXACT = false
-VUHDO_I18N_COMMAND_LIST = "\n|cffffe566 - [ VuhDo Kommandos ] -|r";
-VUHDO_I18N_COMMAND_LIST = VUHDO_I18N_COMMAND_LIST .. "|n|cffffe566opt|r[ions] - VuhDo Optionen";
-VUHDO_I18N_COMMAND_LIST = VUHDO_I18N_COMMAND_LIST .. "|n|cffffe566res|r[et] - Panel Positionen zurücksetzen";
-VUHDO_I18N_COMMAND_LIST = VUHDO_I18N_COMMAND_LIST .. "|n|cffffe566lock|r - Panelpositionen sperren/freigeben";
-VUHDO_I18N_COMMAND_LIST = VUHDO_I18N_COMMAND_LIST .. "|n|cffffe566mm, map, minimap|r - Minimap Icon an/aus";
-VUHDO_I18N_COMMAND_LIST = VUHDO_I18N_COMMAND_LIST .. "|n|cffffe566compart|r[ment] - Toggle AddOn Compartment Icon";
-VUHDO_I18N_COMMAND_LIST = VUHDO_I18N_COMMAND_LIST .. "|n|cffffe566show, hide, toggle|r - Panels anzeigen/verbergen";
-VUHDO_I18N_COMMAND_LIST = VUHDO_I18N_COMMAND_LIST .. "|n|cffffe566load|r - [Profile],[Key Layout]";
-VUHDO_I18N_COMMAND_LIST = VUHDO_I18N_COMMAND_LIST .. "|n[broad]|cffffe566cast, mt|r[s] - Main Tanks übertragen";
-VUHDO_I18N_COMMAND_LIST = VUHDO_I18N_COMMAND_LIST .. "|n|cffffe566role|r - Spielerrollen zuruecksetzen";
-VUHDO_I18N_COMMAND_LIST = VUHDO_I18N_COMMAND_LIST .. "|n|cffffe566ab|r[out] - About this add-on";
-VUHDO_I18N_COMMAND_LIST = VUHDO_I18N_COMMAND_LIST .. "|n|cffffe566help,?|r - Diese Befehlsliste\n";
+VUHDO_I18N_COMMAND_LIST = "\n|cffffe566 - [ VuhDo Kommandos ] -|r\n" ..
+"|cffffe566opt|r[ions] - VuhDo Optionen\n" ..
+"|cffffe566res|r[et] - Setze Panel Positionen zurück\n" ..
+"|cffffe566lock|r - Panelsperre umschalten\n" ..
+"|cffffe566mm, map, minimap|r - Minimap Icon umschalten\n" ..
+"|cffffe566compart|r[ment] - Addon-Leisten-Icon umschalten\n" ..
+"|cffffe566show, hide, toggle|r - Panels an/aus\n" ..
+"|cffffe566load|r - [Profil],[Tastenbelegung]\n" ..
+"[broad]|cffffe566cast, mt|r[s] - Maintanks im Raid bekanntgeben\n" ..
+"|cffffe566role|r - Spielerrollen zurücksetzen\n" ..
+"|cffffe566ab|r[out] - Über dieses Add-on\n" ..
+"|cffffe566help,?|r - Diese Kommandoliste\n";
 VUHDO_I18N_BAD_COMMAND = "Ungültiges Argument! '/vuhdo help' oder '/vd ?' für eine Liste der Kommandos.";
 VUHDO_I18N_CHAT_SHOWN = "|cffffe566sichtbar|r.";
 VUHDO_I18N_CHAT_HIDDEN = "|cffffe566versteckt|r.";
@@ -558,3 +558,52 @@ VUHDO_I18N_BOUQUET_CHI_HARMONY_ICON_OTHERS = "Icon: Chi Harmony (Others)";
 VUHDO_I18N_DEF_BOUQUET_CHI_HARMONY_ICON_OTHERS = "Chi Harmony (Others)";
 VUHDO_I18N_BOUQUET_CHI_HARMONY_ICON_BOTH = "Icon: Chi Harmony (Both)";
 VUHDO_I18N_DEF_BOUQUET_CHI_HARMONY_ICON_BOTH = "Chi Harmony (Both)";
+
+VUHDO_I18N_BOUQUET_DEBUFF_ENRAGE = "Flag: Debuff Enrage";
+
+VUHDO_I18N_AURA_GROUP_MY_HOTS = "My HoTs (Combat Auras)";
+VUHDO_I18N_AURA_GROUP_OTHERS_HOTS = "Others' HoTs (Combat Auras)";
+VUHDO_I18N_AURA_GROUP_ALL_HOTS = "All HoTs (Combat Auras)";
+VUHDO_I18N_AURA_GROUP_DISPELLABLE = "Dispellable Debuffs";
+VUHDO_I18N_AURA_GROUP_CC = "CC Effects";
+VUHDO_I18N_AURA_GROUP_BIG_DEF = "Big Defensives";
+VUHDO_I18N_AURA_GROUP_EXTERNAL_DEF = "External Defensives";
+VUHDO_I18N_AURA_GROUP_ALL_DEBUFFS = "All Debuffs";
+VUHDO_I18N_AURA_GROUP_ALL_BUFFS = "All Buffs";
+VUHDO_I18N_AURA_GROUP_MY_BUFFS = "My Class-Relevant Buffs";
+VUHDO_I18N_AURA_GROUP_OTHERS_BUFFS = "Others' Class-Relevant Buffs";
+VUHDO_I18N_AURA_GROUP_ALL_RAID_BUFFS = "All Class-Relevant Buffs";
+VUHDO_I18N_AURA_GROUP_RAID_DEBUFFS = "Raid Debuffs";
+VUHDO_I18N_AURA_GROUP_IMPORTANT_BUFFS = "Important Buffs";
+VUHDO_I18N_AURA_GROUP_IMPORTANT_DEBUFFS = "Important Debuffs";
+VUHDO_I18N_AURA_GROUP_CANCELABLE = "Cancelable Buffs";
+VUHDO_I18N_AURA_GROUP_NOT_CANCELABLE = "Not Cancelable Buffs";
+VUHDO_I18N_AURA_GROUP_TORGHAST_ANIMA = "Torghast Anima Powers";
+VUHDO_I18N_AURA_GROUP_INFERRED_RIPTIDE = "Riptide (Inferred)";
+VUHDO_I18N_AURA_GROUP_INFERRED_ECHO = "Echo (Inferred)";
+VUHDO_I18N_AURA_GROUP_INFERRED_ATONEMENT = "Atonement (Inferred)";
+VUHDO_I18N_AURA_GROUP_MY_NAMEPLATE = "My Nameplate Debuffs";
+VUHDO_I18N_AURA_GROUP_OTHERS_NAMEPLATE = "Others' Nameplate Debuffs";
+VUHDO_I18N_AURA_GROUP_ALL_NAMEPLATE = "All Nameplate Debuffs";
+VUHDO_I18N_AURA_GROUP_MY_DEBUFFS = "My Debuffs";
+VUHDO_I18N_AURA_GROUP_MY_EXTERNAL_DEF = "My External Defensives";
+VUHDO_I18N_AURA_GROUP_MY_RAID_DEBUFFS = "My Raid Debuffs";
+VUHDO_I18N_AURA_GROUP_PRESERVATION_EVOKER_HOTS = "Preservation Evoker HoTs";
+VUHDO_I18N_AURA_GROUP_AUGMENTATION_EVOKER_BUFFS = "Augmentation Evoker Buffs";
+VUHDO_I18N_AURA_GROUP_RESTORATION_DRUID_HOTS = "Restoration Druid HoTs";
+VUHDO_I18N_AURA_GROUP_DISCIPLINE_PRIEST_HOTS = "Discipline Priest HoTs";
+VUHDO_I18N_AURA_GROUP_HOLY_PRIEST_HOTS = "Holy Priest HoTs";
+VUHDO_I18N_AURA_GROUP_MISTWEAVER_MONK_HOTS = "Mistweaver Monk HoTs";
+VUHDO_I18N_AURA_GROUP_RESTORATION_SHAMAN_HOTS = "Restoration Shaman HoTs";
+VUHDO_I18N_AURA_GROUP_HOLY_PALADIN_HOTS = "Holy Paladin HoTs";
+VUHDO_I18N_AURA_GROUP_RAID_BUFFS = "Raid Buffs";
+VUHDO_I18N_AURA_GROUP_BLESSING_OF_BRONZE = "Blessing of the Bronze";
+VUHDO_I18N_AURA_GROUP_ROGUE_POISONS = "Rogue Poisons";
+VUHDO_I18N_AURA_GROUP_SHAMAN_WEAPON_IMBUEMENTS = "Shaman Weapon Imbuements";
+VUHDO_I18N_AURA_GROUP_PALADIN_WEAPON_IMBUEMENTS = "Paladin Weapon Imbuements";
+VUHDO_I18N_AURA_GROUP_ENHANCEMENT_SHAMAN_BUFFS = "Enhancement Shaman Buffs";
+VUHDO_I18N_AURA_GROUP_BREWMASTER_MONK_BUFFS = "Brewmaster Monk Buffs";
+VUHDO_I18N_AURA_GROUP_WARLOCK_METAMORPHOSIS = "Warlock Metamorphosis";
+VUHDO_I18N_AURA_GROUP_MIGRATED_HOTS = "Migrated HoTs";
+VUHDO_I18N_AURA_GROUP_MIGRATED_HOT_ICONS = "Migrated HoT Icons";
+VUHDO_I18N_AURA_GROUP_MIGRATED_HOT_BARS = "Migrated HoT Bars";

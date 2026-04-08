@@ -62,11 +62,20 @@
                 </Texture>
             </Layer>
             <Layer level="BORDER">
-                <Texture name="$parent_Portrait" hidden="false" parentKey="texture_Portrait">
-                    <Anchors>
-                        <Anchor point="CENTER"/>
-                    </Anchors>
-                </Texture>
+              <Texture name="$parent_Portrait" hidden="false" parentKey="texture_Portrait">
+              <Anchors>
+                  <Anchor point="CENTER"/>
+              </Anchors>
+              </Texture>
+              <MaskTexture parentKey="mask_PortraitMask" file="Interface\CHARACTERFRAME\TempPortraitAlphaMask">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeKey="$parent.texture_Portrait" x="0" y="0"/>
+                    <Anchor point="BOTTOMRIGHT" relativeKey="$parent.texture_Portrait" x="0" y="0"/>
+                </Anchors>
+                <MaskedTextures>
+                  <MaskedTexture childKey="texture_Portrait"/> \
+                </MaskedTextures>
+              </MaskTexture>
             </Layer>
 
             <Layer level="ARTWORK">
@@ -85,21 +94,6 @@
                         <Anchor point="CENTER"/>
                     </Anchors>
                 </Texture>
-                <Texture name="$parent_Reaping" hidden="true" parentKey="texture_Reaping" file = "Interface\Icons\ability_warlock_improvedsoulleech" >
-                    <Color r="0" g="0" b="0" a="0"/>
-                    <Anchors>
-                        <Anchor point="TOP">
-                            <Offset><AbsDimension x="0" y="2"/></Offset>
-                        </Anchor>
-                    </Anchors>
-                </Texture>
-                <Texture name="$parent_shrouded_Indicator" hidden="false" parentKey="shrouded_Indicator" file = "Interface\AddOns\MythicDungeonTools\Textures\UI-EncounterJournalTextures">
-                    <TexCoords left="0.85" right="0.97" top="0.43" bottom="0.4865"/>
-                    <Color r="2.04" g="0" b="0" a="0"/>
-                    <Anchors>
-                        <Anchor point="CENTER"/>
-                    </Anchors>
-                </Texture>
                 <Texture name="$parent_Indicator" hidden="false" parentKey="texture_Indicator" file = "Interface\AddOns\MythicDungeonTools\Textures\UI-EncounterJournalTextures">
                     <TexCoords left="0.85" right="0.97" top="0.43" bottom="0.4865"/>
                     <Color r="2.04" g="0" b="0" a="0"/>
@@ -113,6 +107,11 @@
                     <Anchors>
                         <Anchor point="CENTER"/>
                     </Anchors>
+                </Texture>
+                <Texture name="$parent_OverlayIcon" hidden="false" parentKey="texture_OverlayIcon">
+                  <Anchors>
+                      <Anchor point="CENTER"/>
+                  </Anchors>
                 </Texture>
                 <FontString name="$parent_Text1" hidden="true" parentKey="fontstring_Text1">
                     <Color r="1" g="1" b="1" a="1"/>

@@ -1,3 +1,71 @@
+== v4.34 - 19th February 2026
+* Placeholder "fix" to prevent abend on console commands
+  due to Blizzard recent API changes
+
+== v4.33 - 18th February 2026
+* TOC update to 12.0.1
+
+== v4.32 - 24th January 2026
+* TOC update to 12.0.0
+
+== v4.31 - 6th January 2026
+* TOC update to 5.5.3
+
+== v4.30 - 17th December 2025
+* TOC update to 11.2.7
+
+== v4.29 - 5th November 2025
+* TOC update to 5.5.2
+
+== v4.28 - 3rd October 2025
+* TOC update to 11.2.5
+
+== v4.27 - 26th September 2025
+* TOC update to 5.5.1
+
+== v4.26 - 3rd August 2025
+* TOC update to 11.2.0
+
+== v4.25 - 29th July 2025
+* Dragons Tread Lightly now has increased accuracy for
+  Classic Mists: What you will see will be a very small increase
+  in precision on the continent maps and bigger improvement on
+  the Azeroth map. DTL v1.03
+
+== v4.24 - 24th July 2025
+* Ensure that DB is correctly saved across AddOns
+* Missing colour table entry for a quest type
+
+== v4.23 - 17th July 2025
+* Further modularisation of Lunar Festival
+* Now partially overrides HN module Here Be Dragons
+  due to incompatibility with Classic Mists. This AddOn
+  now uses my Dragons Tread Lightly, which is a performance
+  gain and enhancement anyway
+* Various pin movements/changes to accomodate Classic Mists
+  Note to self: Dungeon / special instanced zones were getting
+  rippled up to Azeroth ( and the Situation in Dalaran to EK!).
+  Could prevent this in a DTL table in the future
+
+== v4.22 - 18th June 2025
+* TOC update to 11.1.7
+* Classic Mists 5.5.0 added!
+
+== v4.21 - 5th May 2025
+* Restructured files that are commonly shared between my event AddOns
+* Improved various common AddOn routines
+
+== v4.20 - 8th April 2025
+* TOC update to 11.1.5
+
+== v4.19 - 8th April 2025
+* Duplicate colour in the pin cluster! Doh!
+* Small change to one pin's positioning in the pin cluster
+* Switched load order of Data and Core
+* Renamed setHistory to setFlavour because I wanted to lol
+* Rarely encountered space line bug fixed
+* Potential missing Achievement criteria in the pin cluster resolved
+
 == v4.18 - 29th March 2025
 * Colours in their own file
 * Map ID numbers use a standardised format which works across all game versions

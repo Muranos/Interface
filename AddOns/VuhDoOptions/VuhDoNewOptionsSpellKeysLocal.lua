@@ -46,7 +46,7 @@ local function VUHDO_addKeyboardMacroSlot(aScrollPanel, anIndex, someDefs)
 	local tFrame = _G[tName];
 	tFrame:Show();
 	tFrame:SetAttribute("list_index", anIndex);
-	tFrame:SetPoint("TOPLEFT", aScrollPanel:GetName(), "TOPLEFT", 5, -(anIndex - 1) * tFrame:GetHeight() - 7);
+	VUHDO_PixelUtil.SetPoint(tFrame, "TOPLEFT", aScrollPanel:GetName(), "TOPLEFT", 5, -(anIndex - 1) * tFrame:GetHeight() - 7);
 
 	local tEditBox = _G[tFrame:GetName() .. "EditBox"];
 	VUHDO_lnfSetModel(tEditBox, "VUHDO_SPELLS_KEYBOARD.INTERNAL.##" .. anIndex .. ".##1");
@@ -82,7 +82,7 @@ function VUHDO_keyboardlocalSpellsScrollPanelOnShow(aScrollPanel)
 	end
 
 	if (tFrame ~= nil) then
-		aScrollPanel:SetHeight((#VUHDO_SPELLS_KEYBOARD["INTERNAL"] + 1) * tFrame:GetHeight() + 18);
+		VUHDO_PixelUtil.SetHeight(aScrollPanel, (#VUHDO_SPELLS_KEYBOARD["INTERNAL"] + 1) * tFrame:GetHeight() + 18);
 	end
 
 	VUHDO_setHint("");
@@ -283,14 +283,20 @@ end
 
 --
 function VUHDO_spellsKeysLocalRemoveClicked(aButton)
+
 	local tScroll = _G[aButton:GetParent():GetName() .. "ScrollPanel"];
 	local tChild = _G[tScroll:GetName() .. "Child"];
+
 	tremove(VUHDO_SPELLS_KEYBOARD["INTERNAL"], selectedIdx);
 
 	if (selectedIdx > 1 and selectedIdx > #VUHDO_SPELLS_KEYBOARD["INTERNAL"]) then
 		selectedIdx = selectedIdx - 1;
 	end
+
 	VUHDO_keyboardlocalSpellsScrollPanelOnShow(tChild);
+
+	return;
+
 end
 
 

@@ -11,7 +11,6 @@ local State = LibTSMService:Include("Profession.State")
 local Quality = LibTSMService:Include("Profession.Quality")
 local ItemInfo = LibTSMService:Include("Item.ItemInfo")
 local EnchantData = LibTSMService:From("LibTSMData"):Include("Enchant")
-local OptionalMatData = LibTSMService:From("LibTSMData"):Include("OptionalMat")
 local SalvageData = LibTSMService:From("LibTSMData"):Include("Salvage")
 local TempTable = LibTSMService:From("LibTSMUtil"):Include("BaseType.TempTable")
 local Database = LibTSMService:From("LibTSMUtil"):Include("Database")
@@ -382,7 +381,7 @@ function Scanner.GetResultItem(craftString)
 	else
 		spellId = private.classicSpellIdLookup[spellId] or spellId
 		local itemLink, indirectSpellId = TradeSkill.GetResult(spellId)
-		if LibTSMService.IsCataClassic() then
+		if LibTSMService.IsPandaClassic() then
 			local itemString = Data.GetIndirectCraftResult(indirectSpellId)
 			itemLink = itemString and ItemInfo.GetLink(itemString) or itemLink
 		end
@@ -605,17 +604,15 @@ function private.ScanProfession()
 						local result = TradeSkill.GetResult(spellId)
 						if type(result) == "table" then
 							numResultItems = #result
-						else
-							if ItemString.GetBase(result) then
-								local ilvlBonuses = info.qualityIlvlBonuses
-								if ilvlBonuses then
-									numResultItems = #ilvlBonuses
-								else
-									numResultItems = 1
-								end
+						elseif ItemString.GetBase(result) then
+							local ilvlBonuses = info.qualityIlvlBonuses
+							if ilvlBonuses and #ilvlBonuses > 1 then
+								numResultItems = #ilvlBonuses
 							else
 								numResultItems = 1
 							end
+						else
+							numResultItems = 1
 						end
 					end
 					if not info.supportsQualities or info.isSalvageRecipe then
@@ -739,9 +736,13 @@ function private.GetItemStringAndCraftName(craftString)
 	-- Get the itemString and craft name
 	local itemString, craftName = nil, nil
 	if quality then
-		assert(type(resultItem) == "table")
-		assert(resultItem[quality])
-		itemString = ItemString.ToLevel(ItemString.Get(resultItem[quality]))
+		if type(resultItem) == "table" then
+			assert(resultItem[quality])
+			itemString = ItemString.ToLevel(ItemString.Get(resultItem[quality]))
+		else
+			assert(resultItem)
+			itemString = ItemString.Get(resultItem)
+		end
 		craftName = ItemInfo.GetName(itemString)
 	elseif strfind(resultItem, "enchant:") then
 		itemString = ""
@@ -750,9 +751,12 @@ function private.GetItemStringAndCraftName(craftString)
 		-- Result of craft is item
 		local level = CraftString.GetLevel(craftString)
 		if level and level > 0 then
-			local relLevel = OptionalMatData.ItemLevelByRank[level]
 			local baseItemString = ItemString.GetBase(resultItem)
-			itemString = baseItemString..(relLevel < 0 and "::-" or "::+")..abs(relLevel)
+			local baseItemLevel = ItemInfo.GetItemLevel(baseItemString)
+			if not baseItemLevel then
+				return nil, nil
+			end
+			itemString = baseItemString.."::i"..abs(baseItemLevel + level)
 		else
 			itemString = ItemString.GetBase(resultItem)
 		end
@@ -804,7 +808,7 @@ function private.BulkInsertMats(craftString)
 		end
 	end
 
-	if LibTSMService.IsCataClassic() and TradeSkill.IsEnchant(spellIdOrIndex) then
+	if LibTSMService.IsPandaClassic() and TradeSkill.IsEnchant(spellIdOrIndex) then
 		-- Add a vellum to the list of mats
 		local vellumItemString = Scanner.GetVellumItemString(craftString)
 		if vellumItemString then

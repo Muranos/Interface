@@ -5,8 +5,81 @@ local reagentIconsPrimary, reagentIconsDuplicate = {}, {}
 local textFieldsPrimary, textFieldsDuplicate = {}, {}
 local errorTexturesPrimary, errorTexturesDuplicate = {}, {}
 local priorityTexturesPrimary, priorityTexturesDuplicate = {}, {}
+local buttonRegistered = {}
 
-local function showGeneric(self, orders, browseType, offset, isSorted)
+function addon.getOneTimeUniqueID(row)
+    local data = row.rowData.option
+    return tostring(data.orderID)..data.expirationTime
+end
+
+function addon.markRowOneTimeHidden(row)
+    local uid = addon.getOneTimeUniqueID(row)
+    addon.db.profile.suppressedListingOneTime[uid] = true
+end
+
+function addon.unmarkRowOneTimeHidden(row)
+    local uid = addon.getOneTimeUniqueID(row)
+    addon.db.profile.suppressedListingOneTime[uid] = nil
+end
+
+function addon.getPermanentUniqueID(row, withCommission)
+    local data = row.rowData.option
+    local itemID = data.itemID
+    local reagents = ""
+    for _, reagentData in ipairs(data.reagents) do
+        local reagent = reagentData.reagentInfo.reagent
+        if reagent.itemID then
+            reagents = reagents..reagent.itemID
+        elseif reagent.currencyID then
+            reagents = reagents..reagent.currencyID
+        else
+            -- reagent is something besides a currency or an item?
+            print("NoMatsNoMake: getPermanentUniqueID error, notify author!")
+            for k, v in pairs(reagent) do
+                print(k, v)
+            end
+        end
+    end
+    local commission = ""
+    if withCommission and data.npcOrderRewards then
+        for _, rewardData in ipairs(data.npcOrderRewards) do
+            if not rewardData.itemLink then
+                zzzz = rewardData
+            end
+            
+            if rewardData.currencyType then
+                commission = commission..rewardData.currencyType
+            elseif rewardData.itemLink then
+                commission = commission..rewardData.itemLink
+            end
+            
+            commission = commission..rewardData.count
+        end
+    end
+    return itemID..reagents..commission
+end
+
+function addon.markRowPermanentlyHidden(row, withCommission)
+    local uid = addon.getPermanentUniqueID(row, withCommission)
+    if withCommission then
+        addon.db.profile.suppressedListingPermanentWithCommission[uid] = true
+    else
+        addon.db.profile.suppressedListingPermanent[uid] = true
+    end
+end
+
+function addon.unmarkRowPermanentlyHidden(row)
+    local uid = addon.getPermanentUniqueID(row, true)
+    addon.db.profile.suppressedListingPermanentWithCommission[uid] = nil
+    uid = addon.getPermanentUniqueID(row)
+    addon.db.profile.suppressedListingPermanent[uid] = nil
+end
+
+function addon.isRowMarkedSuppressed(row) 
+    return addon.db.profile.suppressedListingOneTime[addon.getOneTimeUniqueID(row)] or addon.db.profile.suppressedListingPermanent[addon.getPermanentUniqueID(row)] or addon.db.profile.suppressedListingPermanentWithCommission[addon.getPermanentUniqueID(row, true)]
+end
+
+local function showGeneric(self, _, browseType)
     local rewardIcons = rewardIconsPrimary
     local reagentIcons = reagentIconsPrimary
     local textFields = textFieldsPrimary
@@ -21,13 +94,13 @@ local function showGeneric(self, orders, browseType, offset, isSorted)
         priorityTextures = priorityTexturesDuplicate
     end
     
-    for i, r in pairs(reagentIcons) do
-        for j, s in pairs(r) do
+    for _, r in pairs(reagentIcons) do
+        for _, s in pairs(r) do
             s:Hide()
         end
     end
-    for i, r in pairs(rewardIcons) do
-        for j, s in pairs(r) do
+    for _, r in pairs(rewardIcons) do
+        for _, s in pairs(r) do
             s:Hide()
         end
     end
@@ -46,11 +119,19 @@ local function showGeneric(self, orders, browseType, offset, isSorted)
         t:Hide()
     end
     
-    if browseType ~= 1 then return end
-    
     local rows = self.BrowseFrame.OrderList.ScrollBox:GetView().frames
+
+    if browseType ~= 1 then
+        -- if rows were previously faded out, and we have switched to category view, then fade the rows back in
+        for _, row in ipairs(rows) do
+            if math.floor(row:GetAlpha()*10) == 2 then
+                row:SetAlpha(1)
+            end
+        end
+        return
+    end
     
-    for rowID, row in ipairs(rows) do
+    for _, row in ipairs(rows) do
         -- highlight red rows with unlearned recipes
         local skillLineAbilityID = row.rowData.option.skillLineAbilityID
         local recipeInfo = C_TradeSkillUI.GetRecipeInfoForSkillLineAbility(skillLineAbilityID)
@@ -66,16 +147,99 @@ local function showGeneric(self, orders, browseType, offset, isSorted)
             errorTexture:Show()
         end
     end
+
+    -- Listen for right clicks on the name cell
+    for _, row in ipairs(rows) do
+        if not buttonRegistered[row] then
+            row:HookScript("OnClick", function(self, button)
+                if button ~= "RightButton" then return end
+                
+        		
+                -- Customized from Blizzard_ProfessionsCrafterOrderPage.lua, ProfessionsCrafterOrderListElementMixin:OnClick(button)
+                MenuUtil.CreateContextMenu(self, function(_, rootDescription)
+        			rootDescription:SetTag("MENU_PROFESSIONS_CRAFTER_ORDER");
+
+        			local recipeID = self.option.spellID;
+        			local currentlyFavorite = C_TradeSkillUI.IsRecipeFavorite(recipeID);
+        			local text = currentlyFavorite and BATTLE_PET_UNFAVORITE or BATTLE_PET_FAVORITE;
+        			rootDescription:CreateButton(text, function()
+        				C_TradeSkillUI.SetRecipeFavorite(recipeID, not currentlyFavorite);
+        			end);
+
+        			if self.orderType == Enum.CraftingOrderType.Personal then
+        				rootDescription:CreateButton(PROFESSIONS_DECLINE_ORDER, function()
+        					local emptyRejectionNote = "";
+        					C_CraftingOrders.RejectOrder(self.option.orderID, emptyRejectionNote, self.professionInfo.profession);
+        				end);
+        			end
+                    
+                    if addon.isRowMarkedSuppressed(row) then
+                        rootDescription:CreateButton("Unfade listings like this", function()
+                            addon.unmarkRowOneTimeHidden(row)
+                            addon.unmarkRowPermanentlyHidden(row)
+                            row:SetAlpha(1)
+                        end)
+                    else
+                        rootDescription:CreateButton("Fade this listing (just this time)", function()
+                            addon.markRowOneTimeHidden(row)
+                            row:SetAlpha(0.2)
+                        end)
+                        
+                        rootDescription:CreateButton("Always fade listings like this (item + reagent combination)", function()
+                            addon.markRowPermanentlyHidden(row)
+                            row:SetAlpha(0.2)
+                        end)
+                        
+                        rootDescription:CreateButton("Always fade listings like this (item + reagent + commission combination)", function()
+                            addon.markRowPermanentlyHidden(row, true)
+                            row:SetAlpha(0.2)
+                        end)
+                    end
+        		end);
+            end)
+            buttonRegistered[row] = true
+        end
+    end
     
-    -- Public orders already have to provate all materials, so no need to show reagent icons or highlight them
+    for _, row in ipairs(rows) do
+        -- fade out rows we have marked hidden
+        if addon.isRowMarkedSuppressed(row) then
+            row:SetAlpha(0.2)
+        elseif math.floor(row:GetAlpha()*10) == 2 then
+            row:SetAlpha(1)
+        end
+    end
+    
+    -- Public orders already have to provide all materials, so no need to show reagent icons or highlight them
     if self.orderType == Enum.CraftingOrderType.Public then return end
-    
+
     -- resize the commission and reagents columns
     local columns = self.tableBuilder:GetColumns()
-    local commissionColumn, reagentColumn = columns[3], columns[4]
-    commissionColumn.fixedWidth = 100
-    reagentColumn.fixedWidth = 130
-    self.tableBuilder:Arrange()
+    
+    -- This is the old, simple way. Unfortunately, as of 12.0 it spreads taint which eventually reaches GameTooltip and causes secret errors.
+    --local commissionColumn, reagentColumn = columns[3], columns[4]
+    --commissionColumn.fixedWidth = 100
+    --reagentColumn.fixedWidth = 130
+    --self.tableBuilder:Arrange()
+	
+    for columnIndex, column in ipairs(columns) do
+		local header = column.headerFrame
+        if columnIndex == 3 then
+            -- commission column
+            header:SetWidth(100)
+            
+            for _, row in pairs(column.table.rows) do
+                self.tableBuilder:ArrangeHorizontally(row.cells[3], row.cells[2], 100, "TOPLEFT", "TOPRIGHT", "BOTTOMLEFT", "BOTTOMRIGHT", -25)
+            end
+        elseif columnIndex == 4 then
+            -- reagent column
+            header:SetWidth(130)
+            for _, row in pairs(column.table.rows) do
+                self.tableBuilder:ArrangeHorizontally(row.cells[4], row.cells[3], 130, "TOPLEFT", "TOPRIGHT", "BOTTOMLEFT", "BOTTOMRIGHT", 25)
+            end
+        end   
+	end
+    
     
     local padding = addon.db.global.increasedPadding
     for rowID, row in ipairs(rows) do
@@ -98,7 +262,6 @@ local function showGeneric(self, orders, browseType, offset, isSorted)
         if not cell.RewardIcon then return end
         local rowData = cell.rowData.option.npcOrderRewards
         for idx, reward in ipairs(rowData) do
-            local quantity = reward.count
             local itemLink = reward.itemLink
             
             local button = rewardIcons[rowID][idx] 
@@ -152,7 +315,7 @@ local function showGeneric(self, orders, browseType, offset, isSorted)
                     local found = false
                     for _, reagentChoice in pairs(reagentData.reagents) do
                         for _, providedReagentData in ipairs(rowData.reagents) do
-                            if providedReagentData.reagent.itemID == reagentChoice.itemID then
+                            if providedReagentData.reagentInfo.reagent.itemID == reagentChoice.itemID then
                                 found = true
                                 break
                             end
@@ -221,7 +384,7 @@ EventUtil.ContinueOnAddOnLoaded("Blizzard_Professions", function()
     hooksecurefunc(ProfessionsFrame.OrdersPage, "ShowGeneric", showGeneric)
     RunNextFrame(function() hooksecurefunc(ProfessionsFrame.OrdersPageOffline, "ShowGeneric", showGeneric) end)
     
-    hooksecurefunc(ProfessionsCrafterTableCellCommissionMixin, "Populate", function(self, rowData, dataIndex)
+    hooksecurefunc(ProfessionsCrafterTableCellCommissionMixin, "Populate", function(self)
         if ProfessionsFrame.OrdersPage.browseType ~= 1 then return end
         local goldButton = self.TipMoneyDisplayFrame.GoldDisplay
         local silverButton = self.TipMoneyDisplayFrame.SilverDisplay
@@ -237,7 +400,7 @@ end)
 
 PublicOrdersReagentsColumnProfessionsCrafterTableCellExpirationMixin = CreateFromMixins(TableBuilderCellMixin);
 
-function PublicOrdersReagentsColumnProfessionsCrafterTableCellExpirationMixin:Populate(rowData, dataIndex)
+function PublicOrdersReagentsColumnProfessionsCrafterTableCellExpirationMixin:Populate(rowData)
 	local order = rowData.option;
 	local remainingTime = Professions.GetCraftingOrderRemainingTime(order.expirationTime);
 	local seconds = remainingTime >= 60 and remainingTime or 60; -- Never show < 1min

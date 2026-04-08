@@ -255,14 +255,6 @@ local function MakeEnemeyInfoFrame()
     end)
     f.enemyDataContainer:AddChild(f.enemyDataContainer.countEditBox)
 
-    f.enemyDataContainer.teemingCountEditBox = AceGUI:Create("EditBox")
-    f.enemyDataContainer.teemingCountEditBox:SetLabel(L["Enemy Info NPC Enemy Forces (Teeming)"])
-    f.enemyDataContainer.teemingCountEditBox:DisableButton(true)
-    f.enemyDataContainer.teemingCountEditBox:SetCallback("OnTextChanged", function(self)
-      self:SetText(self.defaultText)
-    end)
-    f.enemyDataContainer:AddChild(f.enemyDataContainer.teemingCountEditBox)
-
     f.enemyDataContainer.stealthCheckBox = AceGUI:Create("CheckBox")
     f.enemyDataContainer.stealthCheckBox:SetLabel(L["Enemy Info NPC Stealth"])
     f.enemyDataContainer.stealthCheckBox:SetWidth((f.enemyDataContainer.frame:GetWidth() / 2) - 40)
@@ -358,10 +350,10 @@ local function MakeEnemeyInfoFrame()
       local distribution = (UnitInRaid("player") and "RAID") or (IsInGroup() and "PARTY")
       if not distribution then return end
       local enemyName = f.enemyDropDown.text:GetText()
-      SendChatMessage(string.format(L["MDT: Spells for %s:"], enemyName), distribution)
+      C_ChatInfo.SendChatMessage(string.format(L["MDT: Spells for %s:"], enemyName), distribution)
       for i, child in pairs(f.spellScroll.children) do
         local link = C_Spell.GetSpellLink(child.spellId)
-        SendChatMessage(i..". "..link, distribution)
+        C_ChatInfo.SendChatMessage(i..". "..link, distribution)
       end
     end)
     spellButtonsContainer:AddChild(sendSpellsButton)
@@ -428,7 +420,6 @@ local characteristics = {
 local spellBlacklist = {
   [277564] = true, --Regenerative Blood
   [277247] = true, --Regenerative Blood
-  [277242] = true, --Infested
   [209859] = true, --Bolster
   [233490] = true, --UA
   [91021]  = true, --Find Weakness
@@ -480,7 +471,6 @@ local spellBlacklist = {
   [50707]  = true, --
   [240443] = true, --
   [328506] = true, --
-  [343502] = true, -- inspiring presence
   [344663] = true, -- shattered psyche
   [176039] = true, -- flametongue
   [176033] = true, -- flametongue
@@ -519,12 +509,8 @@ function MDT:UpdateEnemyInfoFrame(enemyIdx)
   local f = MDT.EnemyInfoFrame
   f:SetTitle(L[data.name])
   f.model:SetDisplayInfo(data.displayId or 39490)
-  f.model:ResetModel()
-  if data.modelPosition then
-    f.model:SetPosition(unpack(data.modelPosition))
-  else
-    f.model:SetPosition(0, 0, 0)
-  end
+  if f.model.ResetModel then f.model:ResetModel() end
+  f.model:SetPosition(0, 0, 0)
 
   local container = f.tabGroup
   ---rescaling
@@ -658,13 +644,6 @@ function MDT:UpdateEnemyInfoData(enemyIdx)
   f.enemyDataContainer.levelEditBox.defaultText = data.level
   f.enemyDataContainer.countEditBox:SetText(data.count)
   f.enemyDataContainer.countEditBox.defaultText = data.count
-  if not data.teemingCount then
-    f.enemyDataContainer.teemingCountEditBox.frame:Hide()
-  else
-    f.enemyDataContainer.teemingCountEditBox.frame:Show()
-    f.enemyDataContainer.teemingCountEditBox:SetText(data.teemingCount)
-    f.enemyDataContainer.teemingCountEditBox.defaultText = data.teemingCount
-  end
   f.enemyDataContainer.stealthCheckBox:SetValue(data.stealth)
   f.enemyDataContainer.stealthCheckBox.defaultValue = data.stealth
   f.enemyDataContainer.stealthDetectCheckBox:SetValue(data.stealthDetect)

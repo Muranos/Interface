@@ -1,7 +1,9 @@
-## Interface: 110100
+## Interface: 120001
 ## Title: No Mats; No Make
-## Version: 11.1-003
+## Version: 12.0-018
 ## Notes: NPC Orders - shows the reward icons without needing to mouse over
+## Notes-zhCN: NPC 订单 - 无需鼠标悬停即可显示奖励图标
+## Notes-zhTW: NPC 訂單 - 無需滑鼠懸停即可顯示獎勵圖示
 ## Author: Teelo
 ## X-Curse-Project-ID: 841061
 ## IconTexture: Interface\Icons\INV_Alchemy_90_Reagent_Blue
@@ -35,29 +37,42 @@ libs\AceLocale-3.0\AceLocale-3.0.xml
 libs\AceConsole-3.0\AceConsole-3.0.xml
 libs\AceGUI-3.0\AceGUI-3.0.xml
 libs\AceConfig-3.0\AceConfig-3.0.xml
+libs\HereBeDragons\HereBeDragons-2.0.lua
+libs\HereBeDragons\HereBeDragons-Pins-2.0.lua
 
-## Icons on crafting orders module
+Locales\enus.lua
+Locales\ruRU.lua
+Locales\zhCN.lua
+Locales\zhTW.lua
+
+# Icons on crafting orders module
 PublicOrdersReagentsColumn.lua
 
-## 'Offline' crafting orders module
+# 'Offline' crafting orders module
 TabHandler.lua
 DuplicateOrdersPage.lua
 DuplicateOrdersPage.xml
 
-## No weekly quest warning module
+# No weekly quest warning module
 NoWeeklyQuestWarning.xml
 NoWeeklyQuestWarning.lua
 
-## Tool flyout automation module
+# Tool flyout automation module
 ToolFlyoutButton.xml
 ToolFlyoutButton.lua
-ToolSelectionLocales.lua
 ToolSelectionFrame.xml
 ToolSelectionFrame.lua
+
+# Recolour minimap treasure chest module
+MinimapTreasureChest.lua
 
 MoveCreateButton.lua
 SkillUpIcon.lua
 FirstCraftIcon.lua
+
+# Moxie Icon module
+MoxieIcon.lua
+MoxieIcon.xml
 
 options.lua
 init.lua

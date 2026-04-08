@@ -1,5 +1,5 @@
 --@curseforge-project-slug: libchatanims@
-local MAJOR, MINOR = "LibChatAnims", 4 -- Bump minor on changes
+local MAJOR, MINOR = "LibChatAnims", 6 -- Bump minor on changes
 local LCA = LibStub:NewLibrary(MAJOR, MINOR)
 if not LCA then return end -- No upgrade needed
 
@@ -133,7 +133,12 @@ end
 --	button:Show()
 --end
 
+local issecretvalue = issecretvalue or function() return false end
 FCF_StartAlertFlash = function(chatFrame)
+	if issecretvalue(chatFrame) then
+		return
+	end
+
 	local chatTab = _G[chatFrame:GetName().."Tab"]
 
 	if chatFrame.minFrame then
@@ -203,6 +208,10 @@ FCF_StartAlertFlash = function(chatFrame)
 end
 
 FCF_StopAlertFlash = function(chatFrame)
+	if issecretvalue(chatFrame) then
+		return
+	end
+
 	local chatTab = _G[chatFrame:GetName().."Tab"]
 
 	if chatFrame.minFrame then
@@ -240,3 +249,57 @@ FCF_StopAlertFlash = function(chatFrame)
 	--FCFDockOverflowButton_UpdatePulseState(GENERAL_CHAT_DOCK.overflowButton)
 end
 
+if WOW_PROJECT_ID == 1 then -- Retail only, dealing with a "secret" bug
+	LCA.dedicatedWindows = LCA.dedicatedWindows or {}
+
+	local function FCFManager_GetToken(chatType, chatTarget)
+		return string.lower(chatType)..(chatTarget and ";;"..string.lower(chatTarget) or "")
+	end
+
+	function LCA:FCFManager_RegisterDedicatedFrame(chatFrame, chatType, chatTarget)
+		if issecretvalue(chatTarget) then
+			return
+		end
+
+		local token = FCFManager_GetToken(chatType, chatTarget)
+		if not LCA.dedicatedWindows[token] then
+			LCA.dedicatedWindows[token] = {}
+		end
+
+		if not LCA.dedicatedWindows[token][chatFrame] then
+			LCA.dedicatedWindows[token][chatFrame] = true
+		end
+	end
+
+	function LCA:FCFManager_UnregisterDedicatedFrame(chatFrame, chatType, chatTarget)
+		if issecretvalue(chatTarget) then
+			return
+		end
+
+		local token = FCFManager_GetToken(chatType, chatTarget)
+		local windowList = LCA.dedicatedWindows[token]
+		if windowList then
+			LCA.dedicatedWindows[token][chatFrame] = nil
+		end
+	end
+
+	function FCFManager_StopFlashOnDedicatedWindows(chatType, chatTarget)
+		if issecretvalue(chatTarget) then
+			return
+		end
+
+		local token = FCFManager_GetToken(chatType, chatTarget)
+		local windowList = LCA.dedicatedWindows[token]
+		if windowList then
+			for chatFrame in next, windowList do
+				FCF_StopAlertFlash(chatFrame)
+			end
+		end
+	end
+
+	if not LCA.FCFHooked then
+		LCA.FCFHooked = true
+		hooksecurefunc("FCFManager_RegisterDedicatedFrame", function(...) LCA:FCFManager_RegisterDedicatedFrame(...) end)
+		hooksecurefunc("FCFManager_UnregisterDedicatedFrame", function(...) LCA:FCFManager_UnregisterDedicatedFrame(...) end)
+	end
+end

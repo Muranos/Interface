@@ -2,13 +2,13 @@ local L = BigWigs:NewBossLocale("Viscidus", "esES")
 if not L then return end
 if L then
 	L.freeze = "Estados de congelación"
-	L.freeze_desc = "Anunciar los diferentes estados de congelación."
+	L.freeze_desc = "Anuncia los diferentes estados de congelación."
 
-	L.freeze_trigger1 = "%s comienza a ir más despacio!"
-	L.freeze_trigger2 = "%s se está congelando!"
-	L.freeze_trigger3 = "%s no se puede mover!"
-	L.freeze_trigger4 = "%s comienza a desmoronarse!"
-	L.freeze_trigger5 = "%s parece a punto de hacerse añicos!"
+	L.freeze_trigger1 = "¡%s comienza a remitir!"
+	L.freeze_trigger2 = "¡%s se queda inmóvil!"
+	L.freeze_trigger3 = "¡%s está !"
+	L.freeze_trigger4 = "¡%s empieza a desmoronarse!"
+	L.freeze_trigger5 = "¡%s parece a punto de hacerse añicos!"
 
 	L.freeze_warn1 = "¡Primera fase de congelación!"
 	L.freeze_warn2 = "¡Segunda fase de congelación!"
@@ -19,16 +19,21 @@ if L then
 	L.freeze_warn_frost = "%d ataques de escarcha - faltan %d"
 end
 
+L = BigWigs:NewBossLocale("Silithid Royalty", "esES")
+if L then
+	L[15543] = "Yauj"
+	L[15544] = "Vem"
+	L[15511] = "Kri"
+end
+
 L = BigWigs:NewBossLocale("Ouro", "esES")
 if L then
-	L.engage_message = "¡Entrando en combate con Ouro! ¡Sumersión posible en 90 segundos!"
-	L.possible_submerge_bar = "Sumersión posible"
-
 	L.emerge_message = "Ouro se ha emergido"
 	L.emerge_bar = "Emersión"
 
 	L.submerge_message = "Ouro se ha sumergido"
 	L.submerge_bar = "Sumersión"
+	L.submerge_early_message = "Sumersión temprana - Nadie estaba en rango"
 
 	L.scarab = "Desaparición de escarabajo"
 	L.scarab_desc = "Anuncio para desaparición de escarabajo."
@@ -49,11 +54,10 @@ if L then
 	L.giant_eye_tentacle = "Tentáculo ocular gigante"
 	L.giant_eye_tentacle_desc = "Temporizadores para Tentáculo ocular gigante."
 
-	L.weakened_desc = "Anunciar debilidad."
+	L.weakened_desc = "Anuncia debilidad."
 
 	L.dark_glare_message = "%s: %s (Grupo %s)" -- Dark Glare: PLAYER_NAME (Group 1)
-	--L.stomach = "Stomach"
-	--L.tentacle = "Tentacle (%d)"
+	L.stomach = "Estómago"
 end
 
 L = BigWigs:NewBossLocale("Ahn'Qiraj Trash", "esES")

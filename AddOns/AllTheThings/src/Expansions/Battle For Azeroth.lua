@@ -55,6 +55,7 @@ app.CreateAzeriteEssence = app.CreateClass(CLASSNAME, KEY, {
 	end,
 });
 
+app.AddGenericFieldConverter(KEY);
 app.AddEventHandler("OnRefreshCollections", function()
 	local state
 	local ranks = {[1]={},[2]={},[3]={},[4]={}}
@@ -217,7 +218,9 @@ local function common_island_expedition_salvage(ResolveFunctions)
 				163614,	-- Exotic Spices (A)
 				163615,	-- Lost Sea Scroll (A)
 				163617,	-- Rusted Alliance Insignia (A)
-				166501	-- Soggy Page
+				166501,	-- Soggy Page
+				173947,	-- Glittering Abyssal Conch (A)
+				173948	-- Glittering Abyssal Conch (H)
 			);
 			push(finalized, searchResults, o, "push", "f", 50);	-- Miscellaneous Filter header
 		end
@@ -231,4 +234,5 @@ app.AddEventHandler("OnLoad", function()
 	app.RegisterSymlinkSubroutine("bfa_azerite_armor_chest_zonedrops", bfa_azerite_armor_chest_zonedrops);
 	app.RegisterSymlinkSubroutine("bfa_azerite_armor_chest", bfa_azerite_armor_chest);
 	app.RegisterSymlinkSubroutine("common_island_expedition_salvage", common_island_expedition_salvage);
+	app.AddDynamicCategoryHeader({ id = "azeriteessenceID", name = SPLASH_BATTLEFORAZEROTH_8_2_0_FEATURE2_TITLE, icon = app.asset("Category_AzeriteEssences") });
 end);

@@ -1,4 +1,5 @@
-local L = BigWigsAPI:NewLocale("BigWigs: Common", "ptBR")
+local _, addonTbl = ...
+local L = addonTbl.API:NewLocale("BigWigs: Common", "ptBR")
 if not L then return end
 
 -- Prototype.lua common words
@@ -13,8 +14,10 @@ L.buff_other = "Buff no %s: %s"
 L.magic_buff_boss = "Buff mágico no CHEFE: %s" -- Magic buff on BOSS: SPELL_NAME
 L.magic_buff_other = "Buff mágico em %s: %s" -- Magic buff on NPC_NAME: SPELL_NAME
 L.on = "%s em %s"
-L.stack = "%dx %s em %s"
-L.stackyou = "%dx %s em VOCÊ"
+L.stack = "%dx %s em %s" -- "5x SPELL_NAME on PLAYER_OR_NPC" showing how many stacks of a buff/debuff are on a player or NPC
+L.stackyou = "%dx %s em VOCÊ" -- "5x SPELL_NAME on YOU" showing how many stacks of a buff/debuff are on you
+L.stackboss = "%dx %s no BOSS" -- "5x SPELL_NAME on BOSS" showing how many stacks of a buff/debuff are on the boss
+L.stack_gained = "Ganhou %dx" -- "Gained 5x" for situations where we show how many stacks of a buff were gained since last time a message showed
 L.cast = "<Conjurando %s>"
 L.casting = "Conjurando: %s"
 L.soon = "%s em breve"
@@ -43,10 +46,11 @@ L.dead = "Morto" -- When a player is dead
 L.general = "Geral" -- General settings, i.e. things that apply to normal, heroic and mythic mode.
 L.health = "Vida" -- The health of an NPC
 L.health_percent = "%d%% de Vida" -- "10% Health" The health percentage of an NPC
+L.energy = "Energia"
+L.energy_percent = "Energia em %d%%" -- "80% Energy" The energy percentage of an NPC
 L.door_open = "Porta Aberta" -- When a door is open, usually after a speech from an NPC
 L.gate_open = "Portão Aberto" -- When a gate is open, usually after a speech from an NPC
 L.threat = "Ameaça"
-L.energy = "Energia"
 
 L.remaining = "%d restantes" -- 5 remaining
 L.duration = "%s durante %s seg" -- Spell for 10 seconds
@@ -66,9 +70,16 @@ L.cancelled = "%s Cancelado" -- Spell Cancelled
 L.you_die = "Você morrerá" -- You will die
 L.you_die_sec = "Você morrerá em %d seg" -- "You die in 15 sec" (sec = seconds)
 L.next_ability = "Próxima Habilidade" -- We don't know what ability will be next, we only know when it will happen (showing a bar)
-L.landing = "%s está pousando" -- "NPC_NAME is landing" Used when a flying NPC/dragon/boss is landing
+L.boss_landing = "%s está pousando" -- "NPC_NAME is landing" Used when a flying NPC/dragon/boss is landing
+L.landing = "Pousando" -- Used when a flying NPC/dragon/boss is landing
 L.flying_available = "Pode voar agora"
---L.bosses_too_close = "Bosses are too close" -- When 2 or more bosses are too close to each other, buffing each other with a shield, extra damage, etc.
+L.bosses_too_close = "Chefes muito próximos um do outro" -- When 2 or more bosses are too close to each other, buffing each other with a shield, extra damage, etc.
+L.keep_moving = "Continue se movendo" -- An ability that forces you to keep moving or you will take damage
+L.stand_still = "Fique parado" -- An ability that forces you to stand still or you will take damage
+L.safe_to_stop = "É seguro ficar parado" -- When an ability that forces you to keep moving fades from you, allowing you to stop moving
+L.safe_to_move = "É seguro se mover" -- When an ability to forces you to stand still fades from you, allowing you to move again
+L.safe = "Seguro" -- You are safe from a bad ability
+L.unsafe = "Perigo" -- You are unsafe (in danger) of a bad ability
 
 -- Add related
 L.add_spawned = "Add surgiu" -- singular
@@ -104,10 +115,10 @@ L.crenna = "Crenna Filha da Terra" -- AI druid healer (NPC 209072)
 L.crenna_short = "*Crenna"
 L.austin = "Austin Huxworth" -- AI hunter dps (NPC 209065)
 L.austin_short = "*Austin"
---L.breka = "Warlord Breka Grimaxe" -- AI warrior tank (NPC 215517)
---L.breka_short = "*Breka"
---L.henry = "Henry Garrick" -- AI priest healer (NPC 215011)
---L.henry_short = "*Henry"
+L.breka = "Senhora da Guerra Bekka Sinistracha" -- AI warrior tank (NPC 215517)
+L.breka_short = "*Bekka"
+L.henry = "Henrique Garrick" -- AI priest healer (NPC 215011)
+L.henry_short = "*Henrique"
 
 -- Localizers note:
 -- The default mod:Berserk(600) uses spell ID 26662 to get the Berserk name
@@ -126,6 +137,9 @@ L.marker = "Marcador %s"
 L.marker_player_desc = "Marca jogadores afetados por %s com %s, requer líder ou assistente." -- Mark players affected by 'SPELL_NAME' with SKULL_ICON
 L.marker_npc_desc = "Marca %s com %s, requer líder ou assistente." -- Mark NPC_NAME with SKULL_ICON
 L.marker_npc_aura_desc = "Marca NPCs afetados por '%s' com %s, requer líder ou assistente." -- Mark NPCs affected by 'SPELL_NAME' with SKULL_ICON
+L.disabled = "Desativado"
+L.none = "Nenhum"
+L.markers = "Marcadores" -- Plural of marker
 
 -- Ability where two players have to move close to each other
 L.link = "Vínculo"
@@ -146,10 +160,14 @@ L.seconds = "%.1fs" -- 1.1 segundos
 
 -- Directions
 L.top = "Topo"
+L.top_right = "Superior Direito"
+L.top_left = "Superior Esquerdo"
 L.up = "Cima"
 L.middle = "Meio"
 L.down = "Baixo"
 L.bottom = "Fundo"
+L.bottom_right = "Inferior Direito"
+L.bottom_left = "Inferior Esquerdo"
 L.left = "Esquerda"
 L.right = "Direita"
 L.north = "Norte"
@@ -160,6 +178,11 @@ L.south = "Sul"
 L.south_west = "Sudoeste"
 L.west = "Oeste"
 L.north_west = "Noroeste"
+
+-- Sizes
+L.small = "Pequeno"
+L.medium = "Médio"
+L.large = "Grande"
 
 -- Schools
 L.fire = "Fogo"
@@ -172,12 +195,12 @@ L.arcane = "Arcano"
 L.autotalk = "Interação automática com NPC"
 L.autotalk_boss_desc = "Seleciona automaticamente as opções de diálogo do NPC que iniciam o encontro com o chefe."
 L.autotalk_generic_desc = "Seleciona automaticamente as opções de diálogo do NPC que permitem você progredir para o próximo estágio da masmorra."
+L.autotalk_notice = "Interagindo automaticamente com NPC %s."
 
 -- Common ability name replacements
 L.absorb = "Absorver" -- Used for shield-like abilities that absorb damage or healing
 L.heal_absorb = "Absorção de Cura" -- Used for shield-like abilities that absorb healing only
 L.heal_absorbs = "Absorção de Cura" -- Plural of L.heal_absorb
-L.tank_combo = "Combo de Tanque" -- Used for tank swap mechanics where the boss casts a sequence of tank buster attacks
 L.laser = "Laser" -- Used for abilities that act like a laser. Usually from the boss to a player, or, from the boss to a specific area
 L.lasers = "Lasers" -- Plural of L.lasers
 L.beam = "Feixe" -- Similar to "Laser" (a beam from boss to player/boss to area) but can be used to better describe certain abilities that don't look like a Laser
@@ -191,7 +214,6 @@ L.traps = "Armadilhas" -- Used for abilities that act like traps on the floor e.
 L.meteor = "Meteoro" -- This one will probably only ever be used for actual meteors
 L.shield = "Escudo" -- Abilities that absorb damage/healing creating a "shield" around the boss/player e.g. "Shield on boss" or "Shield remaining"
 L.teleport = "Teleporte" -- A boss/add/etc teleported somewhere
-L.fear = "Medo" -- For abilities that cause you to flee in fear
 L.breath = "Sopro" -- When a boss breathes fire/frost/etc on to a player or the raid e.g. a Dragon breathing fire on everyone
 L.roar = "Rugido" -- When a boss opens their mouth to let out a loud roar, sometimes used to inflict damage on the raid
 L.leap = "Salto" -- When a boss leaps through the air from one location to another location, or from a location to a player, etc
@@ -219,26 +241,41 @@ L.spirits = "Espíritos" -- Plural of L.spirit
 L.tornado = "Tornado" -- 'A tornado is a violently rotating column of air that is in contact with both the surface of the Earth and a cloud' - Wikipedia
 L.tornadoes = "Tornados" -- Plural of L.tornado
 L.frontal_cone = "Cônica à Frente" -- Usually a bad Area-of-Effect ability cast by the boss in a cone/triangle/pizza shape in front of them, don't stand in front of the boss!
-L.fear = "Medo" -- Similar to a warlock or priest ability, when a boss casts a fear on a player or multiple players, that makes them run around out of control
 L.mark = "Marca" -- Short name for abilites with "Mark" in the name, for example "Mark of Death" or "Toxic Mark" or "Mark of Frost" etc.
 L.marks = "Marcas" -- Plural of L.marks
 L.mind_control = "Controle Mental" -- Any kind of Mind Control ability, where a player loses control of their character
 L.mind_control_short = "CM" -- Short version of Mind Control, mainly for bars
-L.soak = "Soak" -- Abilities you have to stand in on purpose to soak the damage, like a sponge soaks water. Commonly for abilities that split damage between everyone standing in them.
-L.soaks = "Soaks" -- Plural of L.soak
 L.spell_reflection = "Reflexão de Feitiço" -- Any ability that reflects spells
-L.parasite = "Parasita" -- Any ability where a parasite is involved e.g. "Parasitic Infection", "Parasitic Growth", etc
 L.rooted = "Enraizado" -- Any ability that roots you in place, preventing you from moving
 
 -- Common ability name replacements A-Z
+L.ball = "Bola" -- A ball, like a football, basketball, etc
+L.balls = "Bolas" -- Plural of L.ball
+L.blind = "Cegar" -- Any ability that blinds or disorientates you. Usually an ability a boss casts and you need to turn away from the boss or it will blind you.
 L.dodge = "Esquiva" -- When you need to continually run around to dodge abilities, like missiles landing on the ground under you
 L.enrage = "Enfurecer" -- Any enrage buff that can be removed by players using abilities like Soothe (Druid), Tranquilizing Shot (Hunter) and Shiv (Rogue)
+L.fear = "Medo" -- Similar to a warlock or priest ability, when a boss casts a fear on a player or multiple players, that makes them run around out of control
 L.fixate = "Fixação" -- Used when a boss or add is chasing/fixated on a player
---L.fixates = "Fixates" -- Plural of L.fixate
---L.group_damage = "Group Damage" -- Any ability that causes damage to every player in the 5 player group
+L.fixates = "Fixados" -- Plural of L.fixate
+L.group_damage = "Dano no Grupo" -- Any ability that causes damage to every player in the 5 player group
 L.health_drain = "Dreno de Vida" -- Any ability that drains health from the player
---L.raid_damage = "Raid Damage" -- Any ability that causes damage to every player in the raid
+L.parasite = "Parasita" -- Any ability where a parasite is involved e.g. "Parasitic Infection", "Parasitic Growth", etc
+L.parasites = "Parasitas" -- Plural of L.parasite
+L.pull_in = "Arrastar para Perto" -- An ability that pulls you in towards the boss against your will
+L.raid_damage = "Dano na Raid" -- Any ability that causes damage to every player in the raid
 L.smash = "Esmagamento" -- Short for any ability with the name "smash" in it e.g. "Darkrift Smash" or "Seismic Smash" or "Arcing Smash"
+L.soak = "Soak" -- Abilities you have to stand in on purpose to soak the damage, like a sponge soaks water. Commonly for abilities that split damage between everyone standing in them.
+L.soaks = "Soaks" -- Plural of L.soak
 L.spike = "Espinho" -- Short for any ability with the name "spike" in it e.g. "Glacial Spike" or "Fel Spike" or "Volatile Spike"
 L.spikes = "Espinhos" -- Plural of L.spike
+L.spread = "Espalhar" -- An ability that forces you to spread out away from other players, or you might damage them
+L.tank_bomb = "Bomba no Tanque" -- Similar to L.bomb but only applies to tanks
+L.tank_combo = "Combo de Tanque" -- Used for tank swap mechanics where the boss casts a sequence of tank buster attacks
+L.tank_debuff = "Debuff do Tanque" -- Used for debuffs that only apply to tanks, usually an indicator that you need to taunt
+L.tank_frontal = "Frontal Tanque" -- Similar to L.frontal_cone but only applies to tanks
+L.tank_soak = "Soak Tanque" -- Similar to L.soak but only applies to tanks
+L.tentacle = "Tentáculo" -- Used for bosses that summon tentacles
+L.tentacles = "Tentáculos" -- Plural of L.tentacle
 L.waves = "Ondas" -- Multiple waves of a bad ability coming from a boss, like waves in the ocean
+L.whelp = "Dragonete" -- Short for Whelpling, a baby dragonkin (Dragon Whelp)
+L.whelps = "Dragonetes" -- Plural of L.whelp

@@ -10,6 +10,13 @@ mod:RegisterEnableMob(
 )
 mod:SetEncounterID(2564)
 mod:SetRespawnTime(30)
+if mod:Retail() then -- Midnight+
+	mod:SetPrivateAuraSounds({
+		{376760, sound = "info"}, -- Gale Force
+		{376997, sound = "alert"}, -- Savage Peck
+		{377009, sound = "alarm"}, -- Deafening Screech
+	})
+end
 
 --------------------------------------------------------------------------------
 -- Localization
@@ -24,7 +31,7 @@ end
 -- Locals
 --
 
-local playBallCount = 0
+local playBallCount = 1
 local searingBlazeGoals = 0
 local rushingWindsGoals = 0
 local sonicVulnerabilityStacks = 0
@@ -69,7 +76,7 @@ function mod:OnBossEnable()
 end
 
 function mod:OnEngage()
-	playBallCount = 0
+	playBallCount = 1
 	searingBlazeGoals = 0
 	rushingWindsGoals = 0
 	sonicVulnerabilityStacks = 0
@@ -81,6 +88,174 @@ function mod:OnEngage()
 		self:CDBar(377004, 10.1) -- Deafening Screech
 	end
 	self:Bar(377034, 15.8) -- Overpowering Gust
+end
+
+--------------------------------------------------------------------------------
+-- Midnight Locals
+--
+
+local savagePeckCount = 1
+local deafeningScreechCount = 1
+local overpoweringGustCount = 1
+local activeBars = {}
+
+--------------------------------------------------------------------------------
+-- Midnight Initialization
+--
+
+if mod:Retail() then -- Midnight+
+	function mod:GetOptions()
+		return {
+			"warmup",
+			377182, -- Play Ball
+			389481, -- Goal of the Searing Blaze
+			376448, -- Firestorm
+			389483, -- Goal of the Rushing Winds
+			376467, -- Gale Force
+			377004, -- Deafening Screech
+			377034, -- Overpowering Gust
+			{376760, "PRIVATE"}, -- Gale Force
+			{376997, "PRIVATE"}, -- Savage Peck
+			{377009, "PRIVATE"}, -- Deafening Screech
+		}
+	end
+
+	function mod:OnBossEnable()
+		-- Lish Llrath
+		self:RegisterWidgetEvent(4183, "GoalOfTheSearingBlaze")
+		self:RegisterWidgetEvent(4184, "GoalOfTheRushingWinds")
+	end
+
+	mod:UseCustomTimers(true)
+	function mod:OnEncounterStart()
+		playBallCount = 1
+		searingBlazeGoals = 0
+		rushingWindsGoals = 0
+		savagePeckCount = 1
+		deafeningScreechCount = 1
+		overpoweringGustCount = 1
+		activeBars = {}
+		if self:ShouldShowBars() then
+			self:RegisterEvent("ENCOUNTER_TIMELINE_EVENT_ADDED")
+			self:RegisterEvent("ENCOUNTER_TIMELINE_EVENT_STATE_CHANGED")
+			self:RegisterEvent("ENCOUNTER_TIMELINE_EVENT_REMOVED")
+		end
+	end
+end
+
+--------------------------------------------------------------------------------
+-- Timeline Event Handlers
+--
+
+function mod:ENCOUNTER_TIMELINE_EVENT_ADDED(_, eventInfo)
+	if eventInfo.source ~= 0 then return end -- Enum.EncounterTimelineEventSource.Encounter
+	local duration = self:RoundNumber(eventInfo.duration, 0)
+	local barInfo
+	if duration == 5 then -- Savage Peck
+		barInfo = self:SavagePeckTimeline(eventInfo)
+	elseif duration == 14 then -- Deafening Screech
+		barInfo = self:DeafeningScreechTimeline(eventInfo)
+	elseif duration == 20 then -- Overpowering Gust
+		barInfo = self:OverpoweringGustTimeline(eventInfo)
+	elseif not self:IsWiping() then
+		self:ErrorForTimelineEvent(eventInfo)
+	end
+	if barInfo then
+		activeBars[eventInfo.id] = barInfo
+	end
+end
+
+function mod:ENCOUNTER_TIMELINE_EVENT_STATE_CHANGED(_, eventID)
+	local barInfo = activeBars[eventID]
+	if barInfo then
+		local state = C_EncounterTimeline.GetEventState(eventID)
+		if state == 0 then -- Active
+			self:ResumeBar(barInfo.key, barInfo.msg)
+		elseif state == 1 then -- Paused
+			self:PauseBar(barInfo.key, barInfo.msg)
+		elseif state == 2 then -- Finished
+			self:StopBar(barInfo.msg)
+			if barInfo.callback then
+				barInfo.callback()
+			end
+			activeBars[eventID] = nil
+		elseif state == 3 then -- Canceled
+			self:StopBar(barInfo.msg)
+			activeBars[eventID] = nil
+			-- when all bars are canceled it's because Play Ball is starting
+			if not self:IsWiping() then
+				self:PlayBall()
+			end
+		end
+	end
+end
+
+function mod:ENCOUNTER_TIMELINE_EVENT_REMOVED(_, eventID)
+	local barInfo = activeBars[eventID]
+	if barInfo then
+		self:StopBar(barInfo.msg)
+		activeBars[eventID] = nil
+	end
+end
+
+--------------------------------------------------------------------------------
+-- Timeline Ability Handlers
+--
+
+function mod:SavagePeckTimeline(eventInfo)
+	local barText = CL.count:format(self:SpellName(376997), savagePeckCount)
+	self:CDBar(376997, eventInfo.duration, barText, nil, eventInfo.id)
+	savagePeckCount = savagePeckCount + 1
+	return {
+		msg = barText,
+		key = 376997,
+		callback = function()
+			self:Message(376997, "purple", barText)
+			self:PlaySound(376997, "alert")
+		end
+	}
+end
+
+function mod:DeafeningScreechTimeline(eventInfo)
+	local barText = CL.count:format(self:SpellName(377004), deafeningScreechCount)
+	self:CDBar(377004, eventInfo.duration, barText, nil, eventInfo.id)
+	deafeningScreechCount = deafeningScreechCount + 1
+	return {
+		msg = barText,
+		key = 377004,
+		callback = function()
+			self:Message(377004, "yellow", barText)
+			self:PlaySound(377004, "warning")
+		end
+	}
+end
+
+function mod:OverpoweringGustTimeline(eventInfo)
+	local barText = CL.count:format(self:SpellName(377034), overpoweringGustCount)
+	self:CDBar(377034, eventInfo.duration, barText, nil, eventInfo.id)
+	overpoweringGustCount = overpoweringGustCount + 1
+	return {
+		msg = barText,
+		key = 377034,
+		callback = function()
+			self:Message(377034, "orange", barText)
+			self:PlaySound(377034, "alarm")
+		end
+	}
+end
+
+do
+	local prev = 0
+	function mod:PlayBall()
+		if GetTime() - prev > 2 and playBallCount < 3 then
+			prev = GetTime()
+			-- cast at 75% and 45% health
+			local percent = playBallCount == 1 and 75 or 45
+			playBallCount = playBallCount + 1
+			self:Message(377182, "cyan", CL.percent:format(percent, self:SpellName(377182)))
+			self:PlaySound(377182, "long")
+		end
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -97,30 +272,32 @@ end
 -- Lish Llrath
 
 function mod:CHAT_MSG_RAID_BOSS_EMOTE(_, msg)
-	if msg:find("377182", nil, true) then -- Play Ball
+	if not self:IsSecret(msg) and msg:find("377182", nil, true) then -- Play Ball
 		-- cast at 75% and 45% health
-		local percent = playBallCount == 0 and 75 or 45
+		local percent = playBallCount == 1 and 75 or 45
 		playBallCount = playBallCount + 1
 		self:Message(377182, "cyan", CL.percent:format(percent, self:SpellName(377182)))
 		self:PlaySound(377182, "long")
 	end
 end
 
--- [UPDATE_UI_WIDGET] widgetID:4183, shownState:1, text:Goal of the Searing Blaze, barValue:0
 function mod:GoalOfTheSearingBlaze(_, _, info)
+	-- [UPDATE_UI_WIDGET] widgetID:4183, shownState:1, text:Goal of the Searing Blaze, barValue:0
 	local shownState = info.shownState
 	local barValue = info.barValue
 	if shownState == 1 and barValue == 3 then
-		if self:Mythic() then
-			-- reset the count in the Deafening Screech bar back to 1
-			local oldBarText = CL.count:format(self:SpellName(377004), sonicVulnerabilityStacks + 1) -- Deafening Screech (n)
-			local barTimeLeft = self:BarTimeLeft(oldBarText)
-			if barTimeLeft > .1 then
-				self:StopBar(oldBarText)
-				self:CDBar(377004, {barTimeLeft, 22.7}, CL.count:format(self:SpellName(377004), 1)) -- Deafening Screech (1)
+		if not self:Retail() then -- Pre-Midnight
+			if self:Mythic() then
+				-- reset the count in the Deafening Screech bar back to 1
+				local oldBarText = CL.count:format(self:SpellName(377004), sonicVulnerabilityStacks + 1) -- Deafening Screech (n)
+				local barTimeLeft = self:BarTimeLeft(oldBarText)
+				if barTimeLeft > .1 then
+					self:StopBar(oldBarText)
+					self:CDBar(377004, {barTimeLeft, 22.7}, CL.count:format(self:SpellName(377004), 1)) -- Deafening Screech (1)
+				end
 			end
+			sonicVulnerabilityStacks = 0
 		end
-		sonicVulnerabilityStacks = 0
 		searingBlazeGoals = barValue
 		self:Message(376448, "red") -- Firestorm
 		self:PlaySound(376448, "long")
@@ -139,21 +316,23 @@ function mod:FirestormApplied(args)
 	self:PlaySound(376448, "info")
 end
 
--- [UPDATE_UI_WIDGET] widgetID:4184, shownState:1, text:Goal of the Rushing Winds, barValue:0
 function mod:GoalOfTheRushingWinds(_, _, info)
+	-- [UPDATE_UI_WIDGET] widgetID:4184, shownState:1, text:Goal of the Rushing Winds, barValue:0
 	local shownState = info.shownState
 	local barValue = info.barValue
 	if shownState == 1 and barValue == 3 then
-		if self:Mythic() then
-			-- reset the count in the Deafening Screech bar back to 1
-			local oldBarText = CL.count:format(self:SpellName(377004), sonicVulnerabilityStacks + 1) -- Deafening Screech (n)
-			local barTimeLeft = self:BarTimeLeft(oldBarText)
-			if barTimeLeft > .1 then
-				self:StopBar(oldBarText)
-				self:CDBar(377004, {barTimeLeft, 22.7}, CL.count:format(self:SpellName(377004), 1)) -- Deafening Screech (1)
+		if not self:Retail() then -- Pre-Midnight
+			if self:Mythic() then
+				-- reset the count in the Deafening Screech bar back to 1
+				local oldBarText = CL.count:format(self:SpellName(377004), sonicVulnerabilityStacks + 1) -- Deafening Screech (n)
+				local barTimeLeft = self:BarTimeLeft(oldBarText)
+				if barTimeLeft > .1 then
+					self:StopBar(oldBarText)
+					self:CDBar(377004, {barTimeLeft, 22.7}, CL.count:format(self:SpellName(377004), 1)) -- Deafening Screech (1)
+				end
 			end
+			sonicVulnerabilityStacks = 0
 		end
-		sonicVulnerabilityStacks = 0
 		rushingWindsGoals = barValue
 		self:Message(376467, "red") -- Gale Force
 		self:PlaySound(376467, "long")
@@ -178,8 +357,8 @@ end
 
 function mod:OverpoweringGust(args)
 	self:Message(args.spellId, "orange")
-	self:PlaySound(args.spellId, "alarm")
 	self:CDBar(args.spellId, 28.6)
+	self:PlaySound(args.spellId, "alarm")
 end
 
 function mod:DeafeningScreech(args)
@@ -198,6 +377,6 @@ end
 
 function mod:SavagePeck(args)
 	self:Message(args.spellId, "purple")
-	self:PlaySound(args.spellId, "alert")
 	self:CDBar(args.spellId, 14.6)
+	self:PlaySound(args.spellId, "alert")
 end

@@ -201,7 +201,7 @@ function module.options:Load()
 		else
 			for i=1,GetNumGroupMembers() do
 				local name = GetRaidRosterInfo(i)
-				if not inList[name] then
+				if name and not inList[name] then
 					if not name:find("%-") or not inList[strsplit("-",name)] then
 						notInList[#notInList+1] = name
 					end
@@ -277,10 +277,19 @@ function module.options:Load()
 	
 		local roster = {}
 		for i=1,8 do roster[i] = {} end
+		local secretlock = false
 
 		for i=1,GetNumGroupMembers() do
 			local name, rank, subgroup = GetRaidRosterInfo(i)
-			tinsert(roster[subgroup],name)
+			if not canaccessvalue or canaccessvalue(name) then
+				tinsert(roster[subgroup],name)
+			else
+				secretlock = true
+			end
+		end
+
+		if secretlock then
+			print("Can't access raid names in combat")
 		end
 
 		for i=1,8 do 

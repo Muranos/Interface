@@ -81,11 +81,7 @@ function RCLootCouncilML:OnEnable()
 	self:RegisterMessage("RCCouncilChanged", "CouncilChanged")
 	self:RegisterComms()
 
-	-- Subscribe after comms, as that will override the table
-	tinsert(subscriptions, addon.Require "Utils.GroupLoot".OnLootRoll:subscribe(
-		function (...)
-		self:OnGroupLootRoll(...)
-	end))
+	self:SetupGroupLootIntegration()
 end
 
 function RCLootCouncilML:GetItemInfo(item)
@@ -95,11 +91,16 @@ function RCLootCouncilML:GetItemInfo(item)
 		-- Most of these are kept for use in SessionFrame
 		return {
 			string 			= ItemUtils:GetTransmittableItemString(link),
-			["link"]		= link,
-			["ilvl"]		= addon:GetTokenIlvl(link) or ilvl, -- if the item is a token, ilvl is the min ilvl of the item it creates.
-			["texture"]		= texture,
-			["token"]		= itemID and RCTokenTable[itemID],
-			["classes"]		= addon:GetItemClassesAllowedFlag(link)
+			link		= link,
+			ilvl		= addon:GetTokenIlvl(link) or ilvl, -- if the item is a token, ilvl is the min ilvl of the item it creates.
+			texture		= texture,
+			token		= itemID and RCTokenTable[itemID],
+			classes		= addon:GetItemClassesAllowedFlag(link),
+			equipLoc	= equipLoc,
+			type 		= type,
+			subType 	= subType,
+			typeID 		= typeID,
+			subTypeID 	= subTypeID
 		}
 	else
 		return nil
@@ -140,7 +141,7 @@ function RCLootCouncilML:AddItem(item, bagged, slotIndex, owner, entry, boss)
 	entry.bagged = bagged
 	entry.lootSlot = slotIndex
 	entry.awarded = false
-	entry.owner = owner
+	entry.owner = owner or nil
 	entry.boss = boss or addon.bossName
 	entry.isSent = false
 	entry.typeCode = addon:GetTypeCodeForItem(item)
@@ -335,7 +336,7 @@ function RCLootCouncilML:PrintItemsInBags()
 	addon:Print(L["Following items were registered in the award later list:"])
 	for i, Item in ipairs(Items) do
 		Item:UpdateTime()
-		addon:Print(i..". "..Item.link, format(GUILD_BANK_LOG_TIME, SecondsToTime(time() - Item.time_added, true)) )
+		addon:Print(i .. ". " .. ItemUtils:GetItemTextWithIcon(Item.link), format(GUILD_BANK_LOG_TIME, SecondsToTime(time() - Item.time_added, true)) )
 		-- GUILD_BANK_LOG_TIME == "( %s ago )", although the constant name does not make sense here, this constant expresses we intend to do.
 		-- SecondsToTime is defined in SharedXML/util.lua
 	end
@@ -366,7 +367,7 @@ function RCLootCouncilML:RemoveItemsInBags(...)
 	else
 		addon:Print(L["The following entries are removed from the award later list:"])
 		for k, v in ipairs(removedEntries) do
-			addon:Print(k..". "..v.link, "-->", v.args.recipient and addon:GetUnitClassColoredName(v.args.recipient) or L["Unawarded"],
+			addon:Print(k..". ".. ItemUtils:GetItemTextWithIcon(v.link), "-->", v.args.recipient and addon:GetClassIconAndColoredName(v.args.recipient) or L["Unawarded"],
 				format(GUILD_BANK_LOG_TIME, SecondsToTime(time()-v.time_added)) )
 		end
 	end
@@ -378,6 +379,9 @@ local lastCheckItemsInBagsLowTradeTimeRemainingReminder = 0
 function RCLootCouncilML:ItemsInBagsLowTradeTimeRemainingReminder()
 	if GetTime() - lastCheckItemsInBagsLowTradeTimeRemainingReminder < 120 then -- Dont spam
 		return
+	end
+	if addon.inCombat then
+		return self:ScheduleTimer("ItemsInBagsLowTradeTimeRemainingReminder", 30, self)
 	end
 	local entriesToRemind = TempTable:Acquire()
 	local remindThreshold = 1200 -- 20min
@@ -393,7 +397,8 @@ function RCLootCouncilML:ItemsInBagsLowTradeTimeRemainingReminder()
 	if #entriesToRemind > 0 then
 		addon:Print(format(L["item_in_bags_low_trade_time_remaining_reminder"], "|cffff0000"..SecondsToTime(remindThreshold).."|r"))
 		for _, v in ipairs(entriesToRemind) do
-			addon:Print(v.index..". "..v.Item.link, "-->", v.args.recipient and addon:GetUnitClassColoredName(v.args.recipient) or L["Unawarded"],
+			addon:Print(v.index .. ". " .. ItemUtils:GetItemTextWithIcon(v.Item.link), "-->",
+			v.args.recipient and addon:GetClassIconAndColoredName(v.args.recipient) or L["Unawarded"],
 				"(", _G.CLOSES_IN..":", SecondsToTime(v.remainingTime), ")")
 		end
 	end
@@ -404,6 +409,7 @@ end
 function RCLootCouncilML:ConfigTableChanged(value)
 	-- The db was changed, so check if we should make a new mldb
 	-- We can do this by checking if the changed value is a key in mldb
+	db = addon:Getdb() -- Update db reference
 	if not addon.mldb then return self:UpdateMLdb() end -- mldb isn't made, so just make it
 	for val in pairs(value) do
 		if MLDB:IsKey(val) then return self:UpdateMLdb() end
@@ -493,7 +499,7 @@ function RCLootCouncilML:HandleReceivedTradeable (sender, item)
 	self.Log:d("ML:HandleReceivedTradeable", item, sender)
 
 	-- For ML loot method, ourselve must be excluded because it should be handled in self:LootOpen()
-	if not addon:UnitIsUnit(sender, "player") or addon.lootMethod ~= "master" then
+	if not addon:UnitIsUnit(sender, "player") or addon.lootMethod ~= Enum.LootMethod.Masterlooter then
 		local quality = select(3, C_Item.GetItemInfo(item))
 		local autoAward, mode, winner = self:ShouldAutoAward(item, quality)
 		if autoAward then
@@ -558,11 +564,10 @@ function RCLootCouncilML:OnEvent(event, ...)
 		wipe(self.combatQueue)
 
 	elseif event == "ENCOUNTER_START" then
-		-- FIXME: People joining after "StartHandleLoot" is sent naturally won't have it,
-		-- but they still need it for group loot auto pass to work. For now just send it everytime
-		-- we start an encounter.
+		-- People joining after "StartHandleLoot" is sent naturally won't have it,
+		-- This should be redundant with the status monitoring
 		if addon.handleLoot then
-			self:Send("group", "StartHandleLoot")
+			Comms:SendGuaranteed {target = "group", command = "StartHandleLoot"}
 		end
 	end
 end
@@ -626,7 +631,7 @@ function RCLootCouncilML:HaveFreeSpaceForItem(item)
 	for bag = BACKPACK_CONTAINER, NUM_BAG_SLOTS do
 		local freeSlots, bagFamily = addon.C_Container.GetContainerNumFreeSlots(bag)
 
-		if freeSlots and freeSlots > 0 and (bagFamily == 0 or bit.band(itemFamily, bagFamily) > 0) then
+		if freeSlots and freeSlots > 0 and (bagFamily == 0 or bit.band(itemFamily or 0, bagFamily) > 0) then
 			return true
 		end
 	end
@@ -1038,7 +1043,7 @@ function RCLootCouncilML:AnnounceItems(table)
 		local msg = db.announceItemString
 		for text, func in pairs(self.announceItemStrings) do
 			-- escapePatternSymbols is defined in FrameXML/ChatFrame.lua that escapes special characters.
-			msg = gsub(msg, text, escapePatternSymbols(tostring(func(v.session or k, link, v))))
+			msg = gsub(msg, text, addon.Utils:escapePatternSymbols(tostring(func(v.session or k, link, v))))
 		end
 		if v.isRoll then
 			msg = _G.ROLL..": "..msg
@@ -1098,12 +1103,29 @@ function RCLootCouncilML:AnnounceAward(name, link, response, roll, session, chan
 			local message = v.text
 			for text, func in pairs(self.awardStrings) do
 				-- escapePatternSymbols is defined in FrameXML/ChatFrame.lua that escapes special characters.
-				message = gsub(message, text, escapePatternSymbols(tostring(func(name, link, response, roll, session, owner))))
+				message = gsub(message, text,
+				addon.Utils:escapePatternSymbols(tostring(func(name, link, response, roll, session, owner))))
 			end
 			if changeAward then
 				message = "("..L["Change Award"]..") "..message
 			end
-			addon:SendAnnouncement(message, v.channel)
+			if v.channel == "WHISPER" then
+				addon:SendAnnouncement(message, "WHISPER", name)
+			else
+				addon:SendAnnouncement(message, v.channel)
+			end
+		end
+	end
+end
+
+--- Gets the first candidate on the auto award list that is present in the group
+--- @param list string[] The list of candidates to check, db.autoAwardTo or db.autoAwardBoETo.
+--- @return string? playerName The name of the candidate that should receive the auto award or nil.
+function RCLootCouncilML:GetAutoAwardCandidate(list)
+	for _, name in ipairs(list) do
+		local n = addon:UnitName(name)
+		if addon.candidatesInGroup[n] then
+			return addon:UnitName(n)
 		end
 	end
 end
@@ -1126,23 +1148,29 @@ function RCLootCouncilML:ShouldAutoAward(item, quality)
 
 	local boe = addon:IsItemBoE(item)
 	if boe and db.autoAwardBoE and quality == 4 and C_Item.IsEquippableItem(item) then -- Epic Equippable BoE
-		for _,name in ipairs(db.autoAwardBoETo) do
-			if addon.candidatesInGroup[addon:UnitName(name)] then
-				return true, "boe", addon:UnitName(name)
-			end
+		local name = self:GetAutoAwardCandidate(db.autoAwardBoETo)
+		if name then
+			return true, "boe", addon:UnitName(name)
 		end
-		self:PrintAutoAwardErrorWithPlayer(db.autoAwardBoETo[1])
+		if #db.autoAwardBoETo == 0 then
+			addon:Print(L.error_no_autoAwardBoE_candidates)
+		else
+			self:PrintAutoAwardErrorWithPlayer(db.autoAwardBoETo[1])
+		end
 		return false
 	end
 	if db.autoAward and quality >= db.autoAwardLowerThreshold and quality <= db.autoAwardUpperThreshold
 		and C_Item.IsEquippableItem(item) then
 		if db.autoAwardLowerThreshold >= GetLootThreshold() or db.autoAwardLowerThreshold < 2 then
-			for _, name in ipairs(db.autoAwardTo) do
-				if addon.candidatesInGroup[addon:UnitName(name)] then
-					return true, "normal", addon:UnitName(name)
-				end
+			local name = self:GetAutoAwardCandidate(db.autoAwardTo)
+			if name then
+				return true, "normal", addon:UnitName(name)
 			end
-			self:PrintAutoAwardErrorWithPlayer(db.autoAwardTo[1])
+			if #db.autoAwardTo == 0 then
+				addon:Print(L.error_no_autoAward_candidates)
+			else
+				self:PrintAutoAwardErrorWithPlayer(db.autoAwardTo[1])
+			end
 		else
 			addon:Print(format(L["Could not Auto Award i because the Loot Threshold is too high!"], item))
 		end
@@ -1161,10 +1189,10 @@ end
 -- @param mode: The mode as returned by `:ShouldAutoAward`. Defaults to "normal".
 function RCLootCouncilML:AutoAward(lootIndex, item, quality, name, mode, boss, owner)
 	name = addon:UnitName(name)
-	self.Log("ML:AutoAward", lootIndex, item, quality, name, mode, boss, owner)
+	self.Log:D("ML:AutoAward", lootIndex, item, quality, name, mode, boss, owner)
 	local reason = mode == "boe" and db.autoAwardBoEReason or db.autoAwardReason
 
-	if addon.lootMethod == "personalloot" then -- Normal restrictions doesn't apply here
+	if addon.lootMethod == Enum.LootMethod.Personal then -- Normal restrictions doesn't apply here
 		addon:Print(format(L["Auto awarded 'item'"], item))
 		self:Send("group", "do_trade", owner, item, name)
 		self:AnnounceAward(name, item, db.awardReasons[reason].text, nil, nil, nil, owner)
@@ -1187,7 +1215,7 @@ function RCLootCouncilML:AutoAward(lootIndex, item, quality, name, mode, boss, o
 	else
 		self:GiveLoot(lootIndex, name, function(awarded, cause)
 			if awarded then
-				addon:Print(format(L["Auto awarded 'item'"], item))
+				addon:Print(format(L["Auto awarded 'item'"], ItemUtils:GetItemTextWithIcon(item)))
 				self:AnnounceAward(name, item, db.awardReasons[reason].text)
 				self:TrackAndLogLoot(name, item, reason, boss, db.awardReasons[reason])
 				return true
@@ -1290,7 +1318,7 @@ function RCLootCouncilML:EndSession()
 	self.Log:d("ML:EndSession()")
 	self.oldLootTable = self.lootTable
 	self.lootTable = {}
-	self:Send("group", "session_end")
+	Comms:SendGuaranteed({target = "group", command = "session_end"})
 	self.running = false
 	self:CancelAllTimers()
 	if addon.testMode then -- We need to undo our ML status
@@ -1418,8 +1446,8 @@ function RCLootCouncilML:GetItemsFromMessage(msg, sender, retryCount)
 
 	-- Let people know we've done stuff
 	addon:Print(format(L["Item received and added from 'player'"], addon:GetClassIconAndColoredName(sender)))
-	SendChatMessage("[RCLootCouncil]: "..format(L["Response to 'item' acknowledged as 'response'"],
-		addon:GetItemTextWithCount(link, count), addon:GetResponse(typeCode, response).text), "WHISPER", nil, sender)
+	addon.SendChatMessage("[RCLootCouncil]: "..format(L["Response to 'item' acknowledged as 'response'"],
+		ItemUtils:GetItemTextWithCount(link, count), addon:GetResponse(typeCode, response).text), "WHISPER", nil, sender)
 end
 
 function RCLootCouncilML:SendWhisperHelp(target)
@@ -1427,18 +1455,18 @@ function RCLootCouncilML:SendWhisperHelp(target)
 	local msg
 	local guide1 = L["whisper_guide"]
 	if #guide1 > 254 then -- French locale reported too long
-		SendChatMessage(strsub(guide1, 0, 254), "WHISPER", nil, target)
-		SendChatMessage(strsub(guide1, 255), "WHISPER", nil, target)
+		addon.SendChatMessage(strsub(guide1, 0, 254), "WHISPER", nil, target)
+		addon.SendChatMessage(strsub(guide1, 255), "WHISPER", nil, target)
 	else
-		SendChatMessage(guide1, "WHISPER", nil, target)
+		addon.SendChatMessage(guide1, "WHISPER", nil, target)
 	end
 
 	for i = 1, db.buttons.default.numButtons do
 		msg = "[RCLootCouncil]: "..db.buttons.default[i]["text"]..":  " -- i.e. MainSpec/Need:
 		msg = msg..""..db.buttons.default[i]["whisperKey"].."." -- need, mainspec, etc
-		SendChatMessage(msg, "WHISPER", nil, target)
+		addon.SendChatMessage(msg, "WHISPER", nil, target)
 	end
-	SendChatMessage(L["whisper_guide2"], "WHISPER", nil, target)
+	addon.SendChatMessage(L["whisper_guide2"], "WHISPER", nil, target)
 	addon:Print(format(L["Sent whisper help to 'player'"], addon:GetClassIconAndColoredName(target)))
 end
 
@@ -1583,13 +1611,42 @@ function RCLootCouncilML.LootTableCompare(a, b)
 	return ItemUtils:GetItemNameFromLink(a.link) < ItemUtils:GetItemNameFromLink(b.link)
 end
 
+function RCLootCouncilML:SetupGroupLootIntegration()
+	local GroupLoot = addon.Require "Utils.GroupLoot"
+	-- Subscribe after comms, as that will override the table
+	tinsert(subscriptions, GroupLoot.OnLootRoll:subscribe(
+		function(...)
+			self:OnGroupLootRoll(...)
+		end))
+
+	-- Monitor GroupLoot status to send "StartHandleLoot" at the right time.
+	-- Needed as we can no longer rely on just sending "StartHandleLoot" at ENCOUNTER_START
+	tinsert(subscriptions, Comms:Subscribe(addon.PREFIXES.VERSION, "f", function(data, sender, command, distri)
+		if addon.Utils:UnitIsUnit(sender, "player") then return end
+		local status = data[7]
+		local targetStatus = GroupLoot:GetTargetedStatus()
+		if bit.band(status, targetStatus) == targetStatus then
+			return -- Everythings fine
+		end
+		if addon.handleLoot then
+			self.Log:d("GroupLoot Status mismatch for:", sender, status, targetStatus)
+			if bit.band(status, 1) == 0 then -- 0000 0001 Missing mldb
+				MLDB:Send "group"
+			end
+			if bit.band(status, 4) == 0 then -- 0000 0100 Missing HandleLoot
+				Comms:SendGuaranteed { target = "group", command = "StartHandleLoot", }
+			end
+		end
+	end))
+end
+
 -------------------------------------------------------------
 -- Comm Handlers
 -------------------------------------------------------------
 function RCLootCouncilML:RegisterComms ()
 	subscriptions = Comms:BulkSubscribe(addon.PREFIXES.MAIN, {
-		MLdb_request = function(data)
-			MLDB:Send("group")
+		MLdb_request = function(_, sender)
+			self:OnMLDBRequestReceived(sender)
 		end,
 
 		council_request = function ()
@@ -1598,13 +1655,13 @@ function RCLootCouncilML:RegisterComms ()
 		end,
 
 		reconnect = function (_, sender)
-			if not addon:UnitIsUnit(sender, addon.player) then
+			if not addon:UnitIsUnit(sender, "player") then
 				self:OnReconnectReceived(sender)
 			end
 		end,
 
 		lootTable = function (_, sender)
-			if addon:UnitIsUnit(sender, addon.player) then
+			if addon:UnitIsUnit(sender, "player") then
 				self:ScheduleTimer("Timer", 11 + 0.5*#self.lootTable, "LootSend")
 			end
 		end,
@@ -1666,4 +1723,11 @@ function RCLootCouncilML:OnReconnectReceived (sender)
 		-- end
 	end
 	self.Log("Responded to reconnect from", sender)
+end
+
+function RCLootCouncilML:OnMLDBRequestReceived (sender)
+	MLDB:Send "group"
+	if addon.handleLoot then
+		self:Send("group", "StartHandleLoot")
+	end
 end

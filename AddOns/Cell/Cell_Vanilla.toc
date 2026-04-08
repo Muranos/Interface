@@ -1,6 +1,6 @@
-## Interface: 11506
+## Interface: 11508
 ## Title: Cell
-## Version: r252-beta
+## Version: r274-release
 ## Author: enderneko
 ## X-Flavor: Vanilla
 ## SavedVariables: CellDB, CellDBBackup
@@ -37,7 +37,7 @@ RaidFrames\MainFrame.lua
 
 RaidDebuffs\ExpansionData\LoadExpansionData.xml
 Modules\LoadModules_Classic.xml
-Utilities\LoadUtilities_Vanilla.xml
+Utilities\LoadUtilities_Classic.xml
 RaidDebuffs\LoadRaidDebuffs_Vanilla.xml
 
 RaidFrames\UnitButton_Vanilla.lua

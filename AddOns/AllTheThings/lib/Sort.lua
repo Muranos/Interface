@@ -58,7 +58,7 @@ local function defaultComparison(a,b)
 	-- SortPriority
 	acomp = a.SortPriority or 0
 	bcomp = b.SortPriority or 0
-	if acomp ~= 0 or bcomp ~= 0 then
+	if acomp ~= bcomp then
 		return acomp < bcomp
 	end
 	-- Maps
@@ -207,6 +207,22 @@ app.SortDefaults = setmetatable({
 		elseif bcomp then
 			return false;
 		end
+		-- Specific Class stuff for the current character should prioritize
+		acomp = not a.nmc
+		bcomp = not b.nmc
+		if acomp then
+			if not bcomp then return true; end
+		elseif bcomp then
+			return false;
+		end
+		-- Race-based stuff for the current character should prioritize
+		acomp = not a.nmr
+		bcomp = not b.nmr
+		if acomp then
+			if not bcomp then return true; end
+		elseif bcomp then
+			return false;
+		end
 		-- Otherwise order by container size
 		acomp = a.g
 		bcomp = b.g
@@ -287,6 +303,44 @@ app.SortDefaults = setmetatable({
 	Accessibility = function(a, b)
 		return calculateAccessibility(a) < calculateAccessibility(b);
 	end,
+	MapClassSortType = function(a, b)
+		-- If either object doesn't exist
+		if a then
+			if not b then
+				return true;
+			end
+		elseif b then
+			return false;
+		else
+			-- neither a or b exists, equality returns false
+			return false;
+		end
+		if a.mapID or a.maps then
+			if not (b.mapID or b.maps) then
+				return true;
+			end
+		elseif b.mapID or b.maps then
+			return false;
+		end
+		if a.isRaid then
+			if not b.isRaid then
+				return true;
+			end
+		elseif b.isRaid then
+			return false;
+		end
+		if a.isBreadcrumb then
+			if not b.isBreadcrumb then
+				return true;
+			end
+		elseif b.isBreadcrumb then
+			return false;
+		end
+		-- Any two similar-type groups with text
+		a = toLowerString(a.name or a.text);
+		b = toLowerString(b.name or b.text);
+		return a < b;
+	end,
 	name = function(a,b)
 		-- If either object doesn't exist
 		if a then
@@ -298,6 +352,12 @@ app.SortDefaults = setmetatable({
 		else
 			-- neither a or b exists, equality returns false
 			return false;
+		end
+		-- SortPriority
+		local acomp = a.SortPriority or 0
+		local bcomp = b.SortPriority or 0
+		if acomp ~= bcomp then
+			return acomp < bcomp
 		end
 		-- Any two similar-type groups with text
 		a = toLowerString(a.name);
@@ -346,8 +406,58 @@ app.SortDefaults = setmetatable({
 			return true;
 		end
 	end,
+	expansion = function(a, b)
+		-- If either object doesn't exist
+		if a then
+			if not b then
+				return true
+			end
+		elseif b then
+			return false
+		else
+			-- neither a or b exists, equality returns false
+			return false
+		end
+
+		-- Compare by expansionID (lowest to highest)
+		local aExp = a.expansionID or 0
+		local bExp = b.expansionID or 0
+
+		if aExp == bExp then
+			-- fallback: alphabetical by name/text if same
+			a = toLowerString(a.name or a.text)
+			b = toLowerString(b.name or b.text)
+			return a < b
+		else
+			return aExp < bExp
+		end
+	end,
 	progress = function(a, b)
-		return GetGroupSortValue(a) > GetGroupSortValue(b);
+		-- If either object doesn't exist
+		if a then
+			if not b then
+				return true;
+			end
+		elseif b then
+			return false;
+		else
+			-- neither a or b exists, equality returns false
+			return false;
+		end
+		-- SortPriority
+		local acomp = a.SortPriority or 0
+		local bcomp = b.SortPriority or 0
+		if acomp ~= 0 or bcomp ~= 0 then
+			return acomp < bcomp
+		end
+		-- progress value
+		local acomp = GetGroupSortValue(a)
+		local bcomp = GetGroupSortValue(b)
+		if acomp ~= bcomp then
+			return acomp > bcomp
+		end
+		-- identical progress, sort by name
+		return app.SortDefaults.name(a,b);
 	end,
 	IndexOneStrings = function(a,b)
 		return stringComparison(a[1], b[1]);

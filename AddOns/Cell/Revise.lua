@@ -2,6 +2,7 @@ local addonName, Cell = ...
 local L = Cell.L
 local F = Cell.funcs
 local I = Cell.iFuncs
+local U = Cell.uFuncs
 
 function F.Revise()
     local dbRevision = CellDB["revise"] and tonumber(string.match(CellDB["revise"], "%d+")) or 0
@@ -3112,7 +3113,6 @@ function F.Revise()
             end
         end
     end
-    ]=]
 
     -- r240-release
     if CellDB["revise"] and dbRevision < 240 then
@@ -3304,6 +3304,7 @@ function F.Revise()
             CellDB["tools"]["showBattleRes"] = nil
         end
     end
+    ]=]
 
     -- r247-release
     if CellDB["revise"] and dbRevision < 247 then
@@ -3321,62 +3322,93 @@ function F.Revise()
                 end
             end
         end
+    end
 
+    -- 254-release
+    if CellDB["revise"] and dbRevision < 254 then
+        if Cell.isMists then
+            for _, layout in pairs(CellDB["layouts"]) do
+                for _, i in pairs(layout["indicators"]) do
+                    if i.indicatorName == "powerText" then
+                        -- reset powerText filter
+                        i.filters = F.Copy(Cell.defaults.layout.indicators[Cell.defaults.indicatorIndices.powerText].filters)
+                    end
+                end
+
+                -- reset power filters
+                layout["powerFilters"] = F.Copy(Cell.defaults.layout.powerFilters)
+            end
+
+            -- enable healAbsorb
+            CellDB["appearance"]["healAbsorb"][1] = true
+
+            -- reset layoutAutoSwitch
+            -- if not CellDB["layoutAutoSwitch"] then
+            --     CellDB["layoutAutoSwitch"] = {}
+            -- end
+            -- if not CellDB["layoutAutoSwitch"]["role"] then
+            --     CellDB["layoutAutoSwitch"]["role"] = {
+            --         ["TANK"] = F.Copy(Cell.defaults.layoutAutoSwitch),
+            --         ["HEALER"] = F.Copy(Cell.defaults.layoutAutoSwitch),
+            --         ["DAMAGER"] = F.Copy(Cell.defaults.layoutAutoSwitch),
+            --     }
+            -- end
+            -- if not CellDB["layoutAutoSwitch"][Cell.vars.playerClass] then
+            --     CellDB["layoutAutoSwitch"][Cell.vars.playerClass] = {}
+            -- end
+
+            if not next(CellDB["actions"]) then
+                CellDB["actions"] = I.GetDefaultActions()
+            end
+        end
+    end
+
+    -- r262-release
+    if CellDB["revise"] and dbRevision < 262 then
+        CellDB["general"]["alwaysUpdateAuras"] = false
+
+        if type(CellDB["general"]["hideBlizzardRaidManager"]) ~= "boolean" then
+            CellDB["general"]["hideBlizzardRaidManager"] = true
+        end
+
+        for _, layout in pairs(CellDB["layouts"]) do
+            for _, i in pairs(layout["indicators"]) do
+                if i.auraType == "debuff" and not i.castBy then
+                    i.castBy = "anyone"
+                end
+            end
+        end
+    end
+
+    -- r264-release
+    if CellDB["revise"] and dbRevision < 264 then
         if Cell.isRetail then
-            -- 伤逝剧场
-            if not F.TContains(CellDB["targetedSpellsList"], 342675) then -- 骨矛
-                tinsert(CellDB["targetedSpellsList"], 342675)
-            end
-            if not F.TContains(CellDB["targetedSpellsList"], 320644) then -- 残酷连击
-                tinsert(CellDB["targetedSpellsList"], 320644)
-            end
-            if not F.TContains(CellDB["targetedSpellsList"], 323515) then -- 仇恨打击
-                tinsert(CellDB["targetedSpellsList"], 323515)
-            end
-            if not F.TContains(CellDB["targetedSpellsList"], 1217138) then -- 通灵箭
-                tinsert(CellDB["targetedSpellsList"], 1217138)
+            F.TInsertIfNotExists(CellDB["targetedSpellsList"], unpack(I.GetDefaultTargetedSpellsList()))
+        end
+
+        CellDB["tools"]["buffTracker"][5] = U.GetBuffTrackerDefaults()
+    end
+
+    -- 269-release
+    if CellDB["revise"] and dbRevision < 269 then
+        if Cell.isMists and GetCVar("portal") == "CN" then
+            for _, layout in pairs(CellDB["layouts"]) do
+                for _, i in pairs(layout["indicators"]) do
+                    if i.indicatorName == "powerText" then
+                        -- reset powerText filter
+                        i.filters = F.Copy(Cell.defaults.layout.indicators[Cell.defaults.indicatorIndices.powerText].filters)
+                    end
+                end
+
+                -- reset power filters
+                layout["powerFilters"] = F.Copy(Cell.defaults.layout.powerFilters)
             end
 
-            -- 圣焰隐修院
-            if not F.TContains(CellDB["targetedSpellsList"], 424414) then -- 贯穿护甲
-                tinsert(CellDB["targetedSpellsList"], 424414)
-            end
-            if not F.TContains(CellDB["targetedSpellsList"], 427583) then -- 忏悔
-                tinsert(CellDB["targetedSpellsList"], 427583)
-            end
-            if not F.TContains(CellDB["targetedSpellsList"], 447270) then -- 掷矛
-                tinsert(CellDB["targetedSpellsList"], 447270)
-            end
-            if not F.TContains(CellDB["targetedSpellsList"], 448515) then -- 神圣审判
-                tinsert(CellDB["targetedSpellsList"], 448515)
-            end
+            -- enable healAbsorb
+            CellDB["appearance"]["healAbsorb"][1] = true
 
-            -- 暗焰裂口
-            if not F.TContains(CellDB["targetedSpellsList"], 421277) then -- 暗焰之锄
-                tinsert(CellDB["targetedSpellsList"], 421277)
-            end
-            if not F.TContains(CellDB["targetedSpellsList"], 427011) then -- 暗影冲击
-                tinsert(CellDB["targetedSpellsList"], 427011)
-            end
-            if not F.TContains(CellDB["targetedSpellsList"], 422245) then -- 穿岩凿
-                tinsert(CellDB["targetedSpellsList"], 422245)
-            end
-            if not F.TContains(CellDB["targetedSpellsList"], 422116) then -- 鲁莽冲锋
-                tinsert(CellDB["targetedSpellsList"], 422116)
-            end
-
-            -- 燧酿酒庄
-            if not F.TContains(CellDB["targetedSpellsList"], 432229) then -- 醉酿投
-                tinsert(CellDB["targetedSpellsList"], 432229)
-            end
-            if not F.TContains(CellDB["targetedSpellsList"], 439031) then -- 干杯勾拳
-                tinsert(CellDB["targetedSpellsList"], 439031)
-            end
-            if not F.TContains(CellDB["targetedSpellsList"], 436592) then -- 点钞大炮
-                tinsert(CellDB["targetedSpellsList"], 436592)
-            end
-            if not F.TContains(CellDB["targetedSpellsList"], 440134) then -- 蜂蜜料汁
-                tinsert(CellDB["targetedSpellsList"], 440134)
+            if not next(CellDB["actions"]) then
+                CellDB["actions"] = I.GetDefaultActions()
             end
         end
     end

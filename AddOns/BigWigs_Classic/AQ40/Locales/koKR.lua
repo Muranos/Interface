@@ -4,11 +4,11 @@ if L then
 	--L.freeze = "Freezing States"
 	--L.freeze_desc = "Warn for the different frozen states."
 
-	L.freeze_trigger1 = "%s|1이;가; 느려지기 시작했습니다!" -- CHECK
-	L.freeze_trigger2 = "%s|1이;가; 얼어붙고 있습니다!" -- CHECK
-	L.freeze_trigger3 = "%s|1이;가; 단단하게 얼었습니다!" -- CHECK
-	L.freeze_trigger4 = "%s|1이;가; 분해되기 시작합니다!" -- CHECK
-	L.freeze_trigger5 = "%s|1이;가; 부서질 것 같습니다!" -- CHECK
+	L.freeze_trigger1 = "%s|1이;가; 느려지기 시작했습니다!"
+	L.freeze_trigger2 = "%s|1이;가; 얼어붙고 있습니다!"
+	L.freeze_trigger3 = "%s|1이;가; 단단하게 얼었습니다!"
+	L.freeze_trigger4 = "%s|1이;가; 분해되기 시작합니다!"
+	L.freeze_trigger5 = "%s|1이;가; 부서질 것 같습니다!"
 
 	--L.freeze_warn1 = "First freeze phase!"
 	--L.freeze_warn2 = "Second freeze phase!"
@@ -19,16 +19,21 @@ if L then
 	--L.freeze_warn_frost = "%d frost attacks - %d more to go"
 end
 
+L = BigWigs:NewBossLocale("Silithid Royalty", "koKR")
+if L then
+	L[15543] = "야우즈"
+	L[15544] = "벰"
+	L[15511] = "크리"
+end
+
 L = BigWigs:NewBossLocale("Ouro", "koKR")
 if L then
-	--L.engage_message = "Ouro engaged! Possible Submerge in 90sec!"
-	--L.possible_submerge_bar = "Possible submerge"
-
 	--L.emerge_message = "Ouro has emerged"
 	--L.emerge_bar = "Emerge"
 
 	--L.submerge_message = "Ouro has submerged"
 	--L.submerge_bar = "Submerge"
+	--L.submerge_early_message = "Early Submerge - No one was in range"
 
 	--L.scarab = "Scarab Despawn"
 	--L.scarab_desc = "Warn for Scarab Despawn."
@@ -53,7 +58,6 @@ if L then
 
 	--L.dark_glare_message = "%s: %s (Group %s)" -- Dark Glare: PLAYER_NAME (Group 1)
 	--L.stomach = "Stomach"
-	--L.tentacle = "Tentacle (%d)"
 end
 
 L = BigWigs:NewBossLocale("Ahn'Qiraj Trash", "koKR")

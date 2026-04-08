@@ -176,7 +176,7 @@ function AuctionHouse.GetOwnedInfo(index)
 			duration = time() + duration
 		end
 	elseif saleStatus == 1 then
-		if not currentBid and not LibTSMWoW.IsVanillaClassic() then
+		if not currentBid and not LibTSMWoW.IsVanillaClassic() and not LibTSMWoW.IsBCClassic() then
 			-- Sometimes wow doesn't tell us the current bid on sold auctions
 			currentBid = 0
 		end
@@ -221,11 +221,25 @@ end
 ---Register a secure hook function for when a GetAll scan is started
 ---@param func fun() The function to call
 function AuctionHouse.SecureHookGetAllScan(func)
-	assert(not ClientInfo.HasFeature(ClientInfo.FEATURES.C_AUCTION_HOUSE))
 	if #private.getAllHookFuncs == 0 then
-		hooksecurefunc("QueryAuctionItems", private.QueryAuctionItemsHook)
+		if ClientInfo.HasFeature(ClientInfo.FEATURES.C_AUCTION_HOUSE) then
+			hooksecurefunc(C_AuctionHouse, "ReplicateItems", private.GetAllScanHook)
+		else
+			hooksecurefunc("QueryAuctionItems", function(_, _, _, _, _, _, isGetAll)
+				if not isGetAll then
+					return
+				end
+				private.GetAllScanHook()
+			end)
+		end
 	end
 	tinsert(private.getAllHookFuncs, func)
+end
+
+---Starts a GetAll scan.
+function AuctionHouse.StartGetAllScan()
+	assert(ClientInfo.HasFeature(ClientInfo.FEATURES.C_AUCTION_HOUSE))
+	C_AuctionHouse.ReplicateItems()
 end
 
 ---Gets info on the last purchase made.
@@ -264,8 +278,6 @@ end
 ---@return ItemKey
 function AuctionHouse.MakeItemKey(itemId, battlePetSpeciesId)
 	local itemKey = C_AuctionHouse.MakeItemKey(itemId, 0, 0, battlePetSpeciesId)
-	-- FIX for 9.0.1 bug where MakeItemKey randomly adds an itemLevel which breaks scanning
-	itemKey.itemLevel = 0
 	return itemKey
 end
 
@@ -306,6 +318,17 @@ function AuctionHouse.GetNumAuctions()
 	assert(not ClientInfo.HasFeature(ClientInfo.FEATURES.C_AUCTION_HOUSE))
 	local numAuctions = GetNumAuctionItems("list")
 	return numAuctions
+end
+
+---Gets the number of auctions for a GetAll scan.
+---@return number
+function AuctionHouse.GetNumGetAllAuctions()
+	if ClientInfo.HasFeature(ClientInfo.FEATURES.C_AUCTION_HOUSE) then
+		return C_AuctionHouse.GetNumReplicateItems()
+	else
+		local numAuctions = GetNumAuctionItems("list")
+		return numAuctions
+	end
 end
 
 ---Gets the number of pages of browse results.
@@ -358,10 +381,15 @@ end
 ---@return number? stackSize
 ---@return number? buyout
 function AuctionHouse.GetGetAllResult(index)
-	assert(not ClientInfo.HasFeature(ClientInfo.FEATURES.C_AUCTION_HOUSE))
-	local itemLink = GetAuctionItemLink("list", index)
-	local _, _, stackSize, _, _, _, _, _, _, buyout = GetAuctionItemInfo("list", index)
-	return itemLink, stackSize, buyout
+	if ClientInfo.HasFeature(ClientInfo.FEATURES.C_AUCTION_HOUSE) then
+		local itemLink = C_AuctionHouse.GetReplicateItemLink(index - 1)
+		local _, _, stackSize, _, _, _, _, _, _, buyout = C_AuctionHouse.GetReplicateItemInfo(index - 1)
+		return itemLink, stackSize, buyout
+	else
+		local itemLink = GetAuctionItemLink("list", index)
+		local _, _, stackSize, _, _, _, _, _, _, buyout = GetAuctionItemInfo("list", index)
+		return itemLink, stackSize, buyout
+	end
 end
 
 ---Gets the search result info.
@@ -447,7 +475,7 @@ end
 function AuctionHouse.IsPurchaseMessage(msg, name, quantity)
 	if msg == AuctionHouse.GetPurchaseMessage(name) then
 		return true
-	elseif quantity and not LibTSMWoW.IsVanillaClassic() and msg == format(ERR_AUCTION_COMMODITY_WON_S, name, quantity) then
+	elseif quantity and not LibTSMWoW.IsVanillaClassic() and not LibTSMWoW.IsBCClassic() and msg == format(ERR_AUCTION_COMMODITY_WON_S, name, quantity) then
 		return true
 	end
 	return false
@@ -577,10 +605,7 @@ function private.HandleCommodityNotification(_, _, quantity)
 	end
 end
 
-function private.QueryAuctionItemsHook(_, _, _, _, _, _, isGetAll)
-	if not isGetAll then
-		return
-	end
+function private.GetAllScanHook()
 	for _, func in ipairs(private.getAllHookFuncs) do
 		func()
 	end

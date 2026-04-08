@@ -1,7 +1,7 @@
 ﻿-- Pawn by Vger-Azjol-Nerub
 -- www.vgermods.com
--- © 2006-2025 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
--- See Readme.htm for more information.
+-- © 2006-2026 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
+-- See Readme.md for more information.
 --
 -- User interface code
 ------------------------------------------------------------
@@ -69,7 +69,7 @@ local PawnUIFrameNeedsScaleSelector = { true, true, true, true, false, false, fa
 function PawnUI_InventoryPawnButton_Move()
 	if PawnCommon.ButtonPosition == PawnButtonPositionRight then
 		PawnUI_InventoryPawnButton:ClearAllPoints()
-		if VgerCore.IsCataclysm or PaperDollFrame.ExpandButton then
+		if VgerCore.IsCataclysm or VgerCore.IsMists or PaperDollFrame.ExpandButton then
 			-- DejaCharacterStats compatibility
 			PawnUI_InventoryPawnButton:SetPoint("TOPRIGHT", "CharacterTrinket1Slot", "BOTTOMRIGHT", -25, -8)
 		else
@@ -78,7 +78,12 @@ function PawnUI_InventoryPawnButton_Move()
 		PawnUI_InventoryPawnButton:Show()
 		if PawnUI_InspectPawnButton then
 			PawnUI_InspectPawnButton:ClearAllPoints()
-			PawnUI_InspectPawnButton:SetPoint("TOPRIGHT", "InspectTrinket1Slot", "BOTTOMRIGHT", -1, -8)
+			if VgerCore.IsMainline then
+				-- In The War Within, a Talents button was added where the Pawn button would normally be, so force Pawn to the left.
+				PawnUI_InspectPawnButton:SetPoint("TOPLEFT", "InspectWristSlot", "BOTTOMLEFT", 1, -8)
+			else
+				PawnUI_InspectPawnButton:SetPoint("TOPRIGHT", "InspectTrinket1Slot", "BOTTOMRIGHT", -1, -8)
+			end
 			PawnUI_InspectPawnButton:Show()
 		end
 		if PawnUI_SocketingPawnButton then
@@ -166,9 +171,9 @@ function PawnUI_AddInventoryTotalsToTooltip(Tooltip, Unit)
 			PawnAddValuesToTooltip(Tooltip, ItemValues, nil, nil, nil, nil, true)
 		end
 	end
-	-- Add average item level information to the inspect window.  (It's not necessary for the current player's
+	-- Add average item level information to the inspect window. (On Mainline it's not necessary for the current player's
 	-- character sheet because that's part of the default UI now.)
-	if AverageItemLevel and AverageItemLevel > 0 and Unit ~= "player" then
+	if AverageItemLevel and AverageItemLevel > 0 and (not VgerCore.IsMainline or Unit ~= "player") then
 		if PawnCommon.AlignNumbersRight then
 			Tooltip:AddDoubleLine(PawnLocal.AverageItemLevelIgnoringRarityTooltipLine,  AverageItemLevel, VgerCore.Color.OrangeR, VgerCore.Color.OrangeG, VgerCore.Color.OrangeB, VgerCore.Color.OrangeR, VgerCore.Color.OrangeG, VgerCore.Color.OrangeB)
 		else
@@ -1351,6 +1356,7 @@ function PawnUI_CompareItems(IsAutomatedRefresh)
 	AddSockets("BlueSocket", BLUE_GEM)
 	AddSockets("MetaSocket", META_GEM)
 	AddSockets("CogwheelSocket", EMPTY_SOCKET_COGWHEEL)
+	AddSockets("ShaTouchedSocket", EMPTY_SOCKET_HYDRAULIC)
 
 	local _, TotalSocketValue1, SocketBonusValue1 = PawnGetItemValue(ItemStats1, Item1.Level, ItemSocketBonusStats1, PawnUICurrentScale, false, true)
 	local _, TotalSocketValue2, SocketBonusValue2 = PawnGetItemValue(ItemStats2, Item2.Level, ItemSocketBonusStats2, PawnUICurrentScale, false, true)
@@ -1622,7 +1628,12 @@ function PawnUIGetAllTextForItem(Item)
 		end
 	end
 
-	AllText = AllText .. "\n" .. GetBuildInfo() .. " " .. GetLocale() .. "\n/pawn compare " .. PawnGetItemIDsForDisplay(ItemLink, false)
+	local DisplayIDs = PawnGetItemIDsForDisplay(ItemLink, false)
+	if DisplayIDs then
+		AllText = AllText .. "\n" .. GetBuildInfo() .. " " .. GetLocale() .. "\n/pawn compare " .. DisplayIDs
+	else
+		VgerCore.Fail("Failed to find the item IDs in " .. PawnEscapeString(ItemLink))
+	end
 
 	local ItemName
 	if Item then
@@ -1947,20 +1958,15 @@ function PawnUIOptionsTabPage_OnShow()
 	PawnUIFrame_UpgradeTrackingList_UpdateSelection()
 
 	-- Advisor options
-	if not VgerCore.IsMainline then
-		-- The bag upgrade advisor isn't supported on Classic.
-		PawnUIFrame_ShowBagUpgradeAdvisorCheck:Hide()
+	if PawnBags then
+		PawnUIFrame_ShowBagUpgradeAdvisorCheck:SetChecked(PawnBags:IsEnabled())
 	else
-		PawnUIFrame_ShowBagUpgradeAdvisorCheck:SetChecked(PawnCommon.ShowBagUpgradeAdvisor)
+		PawnUIFrame_ShowBagUpgradeAdvisorCheck:Hide()
 	end
 	PawnUIFrame_ShowLootUpgradeAdvisorCheck:SetChecked(PawnCommon.ShowLootUpgradeAdvisor)
 	PawnUIFrame_ShowQuestUpgradeAdvisorCheck:SetChecked(PawnCommon.ShowQuestUpgradeAdvisor)
 	PawnUIFrame_ShowSocketingAdvisorCheck:SetChecked(PawnCommon.ShowSocketingAdvisor)
-	if not VgerCore.ReforgingExists then
-		PawnUIFrame_ShowReforgingAdvisorCheck:Hide()
-	else
-		PawnUIFrame_ShowReforgingAdvisorCheck:SetChecked(PawnCommon.ShowReforgingAdvisor)
-	end
+	PawnUIFrame_ShowReforgingAdvisorCheck:SetChecked(PawnCommon.ShowReforgingAdvisor)
 	PawnUIFrame_ShowItemLevelUpgradesCheck:SetChecked(PawnCommon.ShowItemLevelUpgrades)
 
 	-- Other options
@@ -2028,22 +2034,7 @@ function PawnUIFrame_EnchantedValuesCheck_OnClick()
 end
 
 function PawnUIFrame_ShowBagUpgradeAdvisorCheck_OnClick()
-	PawnCommon.ShowBagUpgradeAdvisor = PawnUIFrame_ShowBagUpgradeAdvisorCheck:GetChecked()
-
-	-- When toggling this option, refresh all bags.
-	local BagIndex
-	for BagIndex = 1, NUM_CONTAINER_FRAMES, 1 do
-		local BagFrame = _G["ContainerFrame" .. BagIndex];
-		if BagFrame:IsShown() then
-			if BagFrame.UpdateItemUpgradeIcons then
-				-- Dragonflight onward
-				BagFrame:UpdateItemUpgradeIcons()
-			elseif ContainerFrame_UpdateItemUpgradeIcons then
-				-- Legion through Shadowlands
-				ContainerFrame_UpdateItemUpgradeIcons(BagFrame)
-			end
-		end
-	end
+	if PawnBags then PawnBags:SetEnabled(PawnUIFrame_ShowBagUpgradeAdvisorCheck:GetChecked()) end
 end
 
 function PawnUIFrame_ShowLootUpgradeAdvisorCheck_OnClick()
@@ -2060,11 +2051,12 @@ function PawnUIFrame_ShowSocketingAdvisorCheck_OnClick()
 end
 
 function PawnUIFrame_ShowReforgingAdvisorCheck_OnClick()
-	PawnCommon.ShowReforgingAdvisor = PawnUIFrame_ShowReforgingAdvisorCheck:GetChecked() ~= nil
+	PawnCommon.ShowReforgingAdvisor = PawnUIFrame_ShowReforgingAdvisorCheck:GetChecked()
 end
 
 function PawnUIFrame_ShowItemLevelUpgradesCheck_OnClick()
 	PawnCommon.ShowItemLevelUpgrades = PawnUIFrame_ShowItemLevelUpgradesCheck:GetChecked()
+	PawnResetBags()
 end
 
 function PawnUIFrame_IgnoreGemsWhileLevelingCheck_OnClick()
@@ -2072,6 +2064,7 @@ function PawnUIFrame_IgnoreGemsWhileLevelingCheck_OnClick()
 	PawnClearCache()
 	PawnInvalidateBestItems()
 	PawnResetTooltips()
+	PawnResetBags()
 end
 
 function PawnUIFrame_ResetUpgradesButton_OnClick()
@@ -2079,6 +2072,7 @@ function PawnUIFrame_ResetUpgradesButton_OnClick()
 	PawnInvalidateBestItems()
 	PawnResetTooltips()
 	PawnClearBestItemLevelData()
+	PawnResetBags()
 end
 
 function PawnUIFrame_DebugCheck_OnClick()
@@ -2111,7 +2105,9 @@ function PawnUIAboutTabPage_OnShow()
 		-- WoW Classic doesn't use the Mr. Robot scales, so hide that logo and information.
 		PawnUIFrame_MrRobotLogo:Hide()
 		PawnUIFrame_MrRobotLabel:SetPoint("TOPLEFT", 25, -210)
-		if VgerCore.IsCataclysm then
+		if VgerCore.IsMists then
+			PawnUIFrame_MrRobotLabel:SetText("Special thanks to Wowhead for providing the stat weights used in the starter scales.")
+		elseif VgerCore.IsCataclysm then
 			PawnUIFrame_MrRobotLabel:SetText("Default stat weights are based on the work of the WoWSims team. You can get more accurate, customized stat weights for your character by using the simulator at wowsims.github.io.")
 		else
 			PawnUIFrame_MrRobotLabel:SetText("Special thanks to HawsJon for collecting the stat weights used in the starter scales.")
@@ -2127,6 +2123,7 @@ function PawnUI_OnSocketUpdate()
 	if PawnSocketingTooltip then PawnSocketingTooltip:Hide() end
 	PawnUI_EnsureLoaded()
 	if StandardGemsUnavailable then return end
+	if not PawnCommon.ShowSocketingAdvisor then return end
 
 	-- Find out what item it is.
 	local _, ItemLink = ItemSocketingDescription:GetItem()
@@ -2194,6 +2191,9 @@ function PawnUI_OnSocketUpdate()
 					if GemListString then GemListString = GemListString .. ", " .. ThisColorGemList else GemListString = ThisColorGemList end
 				end
 			else
+				-- This case is for when there's no socket bonus or the value is maximized by ignoring gem color. But this case is also hit
+				-- for items that are too low-level when the "ignore sockets on low-level items" feature is enabled. Right now we don't have
+				-- a way to tell those two cases apart from this code, and it's a minor edge case, so we can live with it.
 				GemListString, IsVague = PawnGetGemListString(ScaleName, PawnOptions.AutoSelectScales, Item.Level, "Prismatic")
 				if IsVague then GemListString = PawnLocal.GemListMany end
 			end
@@ -2311,13 +2311,15 @@ end
 function PawnUI_LootUpgradeAdvisor_OnLoad(self)
 	self:SetFrameLevel(self:GetParent():GetFrameLevel() + 8)
 
+	-- WoW 11.5.0 changed the capitalization of Arrow and Glow so we have to be able to handle both
+	local Arrow = self.arrow.Arrow or self.arrow.arrow or _G[self.arrow:GetName() .. "Arrow"]
+	local Glow = self.arrow.Glow or self.arrow.glow or _G[self.arrow:GetName() .. "Glow"]
+
 	self.arrow:SetSize(21, 53)
-	self.arrow.arrow = _G[self.arrow:GetName() .. "Arrow"]
-	self.arrow.glow = _G[self.arrow:GetName() .. "Glow"]
-	self.arrow.arrow:SetAllPoints(true)
-	self.arrow.glow:SetAllPoints(true)
-	self.arrow.arrow:SetTexCoord(0.78515625, 0.58789063, 0.99218750, 0.58789063, 0.78515625, 0.54687500, 0.99218750, 0.54687500)
-	self.arrow.glow:SetTexCoord(0.40625000, 0.82812500, 0.66015625, 0.82812500, 0.40625000, 0.77343750, 0.66015625, 0.77343750)
+	Arrow:SetAllPoints(true)
+	Glow:SetAllPoints(true)
+	Arrow:SetTexCoord(0.78515625, 0.58789063, 0.99218750, 0.58789063, 0.78515625, 0.54687500, 0.99218750, 0.54687500)
+	Glow:SetTexCoord(0.40625000, 0.82812500, 0.66015625, 0.82812500, 0.40625000, 0.77343750, 0.66015625, 0.77343750)
 end
 
 function PawnUI_GroupLootFrame_OnShow(self)
@@ -2490,13 +2492,11 @@ function PawnUI_OnQuestInfo_ShowRewards()
 	-- Now, get information about this quest.
 	local QuestID
 	if C_QuestLog.GetSelectedQuest then QuestID = C_QuestLog.GetSelectedQuest() end
-	local IsInMap = WorldMapFrame:IsShown()
+	local IsInMap = VgerCore.IsMainline and WorldMapFrame:IsShown() -- we only care about the Shadowlands+ map (or maybe Legion+)
 	local StaticRewards, RewardChoices
 	local SetQuestRewardFunctionName, GetRewardInfoFunction, GetChoiceInfoFunction
 	if QuestInfoFrame.questLog then
 		StaticRewards = GetNumQuestLogRewards()
-		-- Ignore this warning: it's incorrect; GetNumQuestLogChoices does indeed take two parameters.
-		---@diagnostic disable-next-line: redundant-parameter
 		RewardChoices = GetNumQuestLogChoices(QuestID, false)
 		SetQuestRewardFunctionName = "SetQuestLogItem"
 		GetRewardInfoFunction = GetQuestLogRewardInfo
@@ -2521,13 +2521,26 @@ function PawnUI_OnQuestInfo_ShowRewards()
 	for i = 1, StaticRewards do
 		-- BUG: In 9.0, the "get the item link for a quest reward" functions return incorrect data for some Shadowlands quests, so
 		-- we work around this by calling the "show this quest reward on a tooltip" method and then getting the item link from THAT, which is correct.
+		local ItemName, _, _, _, Usable, ItemID = GetRewardInfoFunction(i)
 		Tooltip[SetQuestRewardFunctionName](Tooltip, "reward", i)
 		local _, ItemLink = Tooltip:GetItem()
+		-- Workaround for bug in Mists of Pandaria Classic
+		-- Skip this for non-MoP clients because it can get falsely triggered by quests that reward a recipe, because Tooltip:GetItem() returns what the recipe produces, not the recipe itself.
+		if VgerCore.IsMists and ItemName and ItemLink and ItemName ~= strsub(ItemLink, (strfind(ItemLink, "%[") or 0) + 1, (strfind(ItemLink, "%[") or 0) + strlen(ItemName)) then
+			VgerCore.Message("Pawn thinks static reward #" .. i .. " is:\n" .. tostring(ItemName) .. " " .. tostring(ItemID or "") .. "\n" .. tostring(ItemLink) .. " " .. PawnGetItemIDsForDisplay(ItemLink))
+			Tooltip:ClearLines()
+			Tooltip[SetQuestRewardFunctionName](Tooltip, "reward", i)
+			_, ItemLink = Tooltip:GetItem()
+			if ItemName == strsub(ItemLink, (strfind(ItemLink, "%[") or 0) + 1, (strfind(ItemLink, "%[") or 0) + strlen(ItemName)) then
+				VgerCore.Message(VgerCore.Color.Green .. "WRONG ITEM but Pawn worked around the problem")
+			else
+				VgerCore.Message(VgerCore.Color.Salmon .. "WRONG ITEM and unable to work around it")
+			end
+		end
 		local Item = PawnGetItemData(ItemLink)
 
 		if Item then
-			local _, _, _, _, Usable = GetRewardInfoFunction(i)
-			tinsert(QuestRewards, { ["Item"] = Item, ["RewardType"] = "reward", ["Usable"] = Usable, ["Index"] = i + RewardChoices })
+			tinsert(QuestRewards, { Item = Item, RewardType = "reward", Usable = Usable, Index = i + RewardChoices })
 		else
 			--VgerCore.Fail("Pawn can't display upgrade information because the server hasn't given us item stats for fixed rewards yet.")
 			-- TODO: Queue this up and retry these calculations later...
@@ -2536,13 +2549,26 @@ function PawnUI_OnQuestInfo_ShowRewards()
 		end
 	end
 	for i = 1, RewardChoices do
+		local ItemName, _, _, _, Usable, ItemID = GetChoiceInfoFunction(i)
 		Tooltip[SetQuestRewardFunctionName](Tooltip, "choice", i)
 		local _, ItemLink = Tooltip:GetItem()
+		-- Workaround for bug in Mists of Pandaria Classic
+		-- Skip this for non-MoP clients because it can get falsely triggered by quests that reward a recipe, because Tooltip:GetItem() returns what the recipe produces, not the recipe itself.
+		if VgerCore.IsMists and ItemName and ItemLink and ItemName ~= strsub(ItemLink, (strfind(ItemLink, "%[") or 0) + 1, (strfind(ItemLink, "%[") or 0) + strlen(ItemName)) then
+			VgerCore.Message("Pawn thinks choice reward #" .. i .. " is:\n" .. tostring(ItemName) .. " " .. tostring(ItemID or "") .. "\n" .. tostring(ItemLink) .. " " .. PawnGetItemIDsForDisplay(ItemLink))
+			Tooltip:ClearLines()
+			Tooltip[SetQuestRewardFunctionName](Tooltip, "choice", i)
+			_, ItemLink = Tooltip:GetItem()
+			if ItemName == strsub(ItemLink, (strfind(ItemLink, "%[") or 0) + 1, (strfind(ItemLink, "%[") or 0) + strlen(ItemName)) then
+				VgerCore.Message(VgerCore.Color.Green .. "WRONG ITEM but Pawn worked around the problem")
+			else
+				VgerCore.Message(VgerCore.Color.Salmon .. "WRONG ITEM and unable to work around it")
+			end
+		end
 		local Item = PawnGetItemData(ItemLink)
 
 		if Item then
-			local _, _, _, _, Usable = GetChoiceInfoFunction(i)
-			tinsert(QuestRewards, { ["Item"] = Item, ["RewardType"] = "choice", ["Usable"] = Usable, ["Index"] = i })
+			tinsert(QuestRewards, { Item = Item, RewardType = "choice", Usable = Usable, Index = i })
 		else
 			--VgerCore.Fail("Pawn can't display upgrade information because the server hasn't given us item stats for reward choices yet.")
 			-- TODO: Queue this up and retry these calculations later...
@@ -2745,6 +2771,9 @@ function PawnUI_EnsureLoaded()
 		if not VgerCore.HasSpecs then
 			PawnUIFrame_ShowSpecIconsCheck:Hide()
 		end
+		if not VgerCore.ReforgingExists then
+			PawnUIFrame_ShowReforgingAdvisorCheck:Hide()
+		end
 		if not PawnCommon then
 			VgerCore.Fail("Pawn UI OnShow handler was called before PawnCommon was initialized.")
 			PawnUISwitchToTab(PawnUIHelpTabPage)
@@ -2778,7 +2807,7 @@ function PawnUIFrame_TooltipOn(self)
 			GameTooltip:ClearLines()
 			GameTooltip:SetOwner(self, "ANCHOR_BOTTOMRIGHT")
 			GameTooltip:AddLine(Label, 1, 1, 1, 1)
-			GameTooltip:AddLine(TooltipText, nil, nil, nil, 1, 1)
+			GameTooltip:AddLine(TooltipText, nil, nil, nil, 1)
 			GameTooltip:Show()
 		end
 	end

@@ -18,8 +18,10 @@ local DATA = {}
 function Prospect.Get()
 	if LibTSMData.IsRetail() then
 		return DATA.Retail
-	elseif LibTSMData.IsCataClassic() then
-		return DATA.Cata
+	elseif LibTSMData.IsPandaClassic() then
+		return DATA.Panda
+	elseif LibTSMData.IsBCClassic() then
+		return DATA.BCC
 	elseif LibTSMData.IsVanillaClassic() then
 		return DATA.Vanilla
 	else
@@ -39,10 +41,127 @@ DATA.Vanilla = {
 
 
 -- ============================================================================
--- Cata
+-- Burning Crusade
 -- ============================================================================
 
-DATA.Cata = {
+DATA.BCC = {
+	-- Uncommon Gems
+	["i:774"] = { -- Malachite
+		["i:2770"] = {requiredSkill = 20, matRate = 0.5000, minAmount = 1, maxAmount = 1, amountOfMats = 0.1000}, -- Copper Ore
+	},
+	["i:818"] = { -- Tigerseye
+		["i:2770"] = {requiredSkill = 20, matRate = 0.5000, minAmount = 1, maxAmount = 1, amountOfMats = 0.1000}, -- Copper Ore
+	},
+	["i:1210"] = {  -- Shadowgem
+		["i:2771"] = {requiredSkill = 50, matRate = 0.3800, minAmount = 1, maxAmount = 2, amountOfMats = 0.0800}, -- Tin Ore
+		["i:2770"] = {requiredSkill = 20, matRate = 0.1000, minAmount = 1, maxAmount = 1, amountOfMats = 0.0200}, -- Copper Ore
+	},
+	["i:1206"] = { -- Moss Agate
+		["i:2771"] = {requiredSkill = 50, matRate = 0.3800, minAmount = 1, maxAmount = 2, amountOfMats = 0.0800}, -- Tin Ore
+	},
+	["i:1705"] = { -- Lesser Moonstone
+		["i:2771"] = {requiredSkill = 50, matRate = 0.3800, minAmount = 1, maxAmount = 2, amountOfMats = 0.0800}, -- Tin Ore
+		["i:2772"] = {requiredSkill = 125, matRate = 0.3500, minAmount = 1, maxAmount = 2, amountOfMats = 0.0700}, -- Iron Ore
+	},
+	["i:1529"] = { -- Jade
+		["i:2772"] = {requiredSkill = 125, matRate = 0.3500, minAmount = 1, maxAmount = 2, amountOfMats = 0.0700}, -- Iron Ore
+		["i:2771"] = {requiredSkill = 50, matRate = 0.0325, minAmount = 1, maxAmount = 1, amountOfMats = 0.0065}, -- Tin Ore
+	},
+	["i:3864"] = { -- Citrine
+		["i:2772"] = {requiredSkill = 125, matRate = 0.3800, minAmount = 1, maxAmount = 2, amountOfMats = 0.0785}, -- Iron Ore
+		["i:3858"] = {requiredSkill = 175, matRate = 0.3500, minAmount = 1, maxAmount = 2, amountOfMats = 0.0725}, -- Mithril Ore
+		["i:2771"] = {requiredSkill = 50, matRate = 0.0325, minAmount = 1, maxAmount = 1, amountOfMats = 0.0065}, -- Tin Ore
+	},
+	["i:7909"] = { -- Aquamarine
+		["i:3858"] = {requiredSkill = 175, matRate = 0.3500, minAmount = 1, maxAmount = 2, amountOfMats = 0.0725}, -- Mithril Ore
+		["i:2772"] = {requiredSkill = 125, matRate = 0.0500, minAmount = 1, maxAmount = 1, amountOfMats = 0.0100}, -- Iron Ore
+		["i:2771"] = {requiredSkill = 50, matRate = 0.0325, minAmount = 1, maxAmount = 1, amountOfMats = 0.0065}, -- Tin Ore
+	},
+	["i:7910"] = { -- Star Ruby
+		[ "i:3858"] = {requiredSkill = 175, matRate = 0.3500, minAmount = 1, maxAmount = 2, amountOfMats = 0.0725}, -- Mithril Ore
+		["i:10620"] = {requiredSkill = 250, matRate = 0.1550, minAmount = 1, maxAmount = 2, amountOfMats = 0.0320}, -- Thorium Ore
+		[ "i:2772"] = {requiredSkill = 125, matRate = 0.0500, minAmount = 1, maxAmount = 1, amountOfMats = 0.0100}, -- Iron Ore
+	},
+	["i:12361"] = { -- Blue Sapphire
+		["i:10620"] = {requiredSkill = 250, matRate = 0.3100, minAmount = 1, maxAmount = 2, amountOfMats = 0.0660}, -- Thorium Ore
+		[ "i:3858"] = {requiredSkill = 175, matRate = 0.0225, minAmount = 1, maxAmount = 1, amountOfMats = 0.0050}, -- Mithril Ore
+	},
+	["i:12799"] = { -- Large Opal
+		["i:10620"] = {requiredSkill = 250, matRate = 0.3100, minAmount = 1, maxAmount = 2, amountOfMats = 0.0660}, -- Thorium Ore
+		[ "i:3858"] = {requiredSkill = 175, matRate = 0.0225, minAmount = 1, maxAmount = 1, amountOfMats = 0.0050}, -- Mithril Ore
+	},
+	["i:12800"] = { -- Azerothian Diamond
+		["i:10620"] = {requiredSkill = 250, matRate = 0.3100, minAmount = 1, maxAmount = 2, amountOfMats = 0.0660}, -- Thorium Ore
+		[ "i:3858"] = {requiredSkill = 175, matRate = 0.0225, minAmount = 1, maxAmount = 1, amountOfMats = 0.0050}, -- Mithril Ore
+	},
+	["i:12364"] = { -- Huge Emerald
+		["i:10620"] = {requiredSkill = 250, matRate = 0.3100, minAmount = 1, maxAmount = 2, amountOfMats = 0.0660}, -- Thorium Ore
+		[ "i:3858"] = {requiredSkill = 175, matRate = 0.0225, minAmount = 1, maxAmount = 1, amountOfMats = 0.0050}, -- Mithril Ore
+	},
+	["i:23117"] = { -- Azure Moonstone
+		["i:10620"] = {requiredSkill = 250, matRate = 0.0150, minAmount = 1, maxAmount = 1, amountOfMats = 0.0150}, -- Thorium Ore
+		["i:23424"] = {requiredSkill = 275, matRate = 0.1800, minAmount = 1, maxAmount = 2, amountOfMats = 0.0365}, -- Fel Iron Ore
+		["i:23425"] = {requiredSkill = 325, matRate = 0.1800, minAmount = 1, maxAmount = 2, amountOfMats = 0.0365}, -- Adamantite Ore
+	},
+	["i:23077"] = { -- Blood Garnet
+		["i:10620"] = {requiredSkill = 250, matRate = 0.0150, minAmount = 1, maxAmount = 1, amountOfMats = 0.0150}, -- Thorium Ore
+		["i:23424"] = {requiredSkill = 275, matRate = 0.1800, minAmount = 1, maxAmount = 2, amountOfMats = 0.0365}, -- Fel Iron Ore
+		["i:23425"] = {requiredSkill = 325, matRate = 0.1800, minAmount = 1, maxAmount = 2, amountOfMats = 0.0365}, -- Adamantite Ore
+	},
+	["i:23079"] = { -- Deep Peridot
+		["i:10620"] = {requiredSkill = 250, matRate = 0.0150, minAmount = 1, maxAmount = 1, amountOfMats = 0.0150}, -- Thorium Ore
+		["i:23424"] = {requiredSkill = 275, matRate = 0.1800, minAmount = 1, maxAmount = 2, amountOfMats = 0.0365}, -- Fel Iron Ore
+		["i:23425"] = {requiredSkill = 325, matRate = 0.1800, minAmount = 1, maxAmount = 2, amountOfMats = 0.0365}, -- Adamantite Ore
+	},
+	["i:21929"] = { -- Flame Spessarite
+		["i:10620"] = {requiredSkill = 250, matRate = 0.0150, minAmount = 1, maxAmount = 1, amountOfMats = 0.0150}, -- Thorium Ore
+		["i:23424"] = {requiredSkill = 275, matRate = 0.1800, minAmount = 1, maxAmount = 2, amountOfMats = 0.0365}, -- Fel Iron Ore
+		["i:23425"] = {requiredSkill = 325, matRate = 0.1800, minAmount = 1, maxAmount = 2, amountOfMats = 0.0365}, -- Adamantite Ore
+	},
+	["i:23112"] = { -- Golden Draenite
+		["i:10620"] = {requiredSkill = 250, matRate = 0.0150, minAmount = 1, maxAmount = 1, amountOfMats = 0.0150}, -- Thorium Ore
+		["i:23424"] = {requiredSkill = 275, matRate = 0.1800, minAmount = 1, maxAmount = 2, amountOfMats = 0.0365}, -- Fel Iron Ore
+		["i:23425"] = {requiredSkill = 325, matRate = 0.1800, minAmount = 1, maxAmount = 2, amountOfMats = 0.0365}, -- Adamantite Ore
+	},
+	["i:23107"] = { -- Shadow Draenite
+		["i:10620"] = {requiredSkill = 250, matRate = 0.0150, minAmount = 1, maxAmount = 1, amountOfMats = 0.0150}, -- Thorium Ore
+		["i:23424"] = {requiredSkill = 275, matRate = 0.1800, minAmount = 1, maxAmount = 2, amountOfMats = 0.0365}, -- Fel Iron Ore
+		["i:23425"] = {requiredSkill = 325, matRate = 0.1800, minAmount = 1, maxAmount = 2, amountOfMats = 0.0365}, -- Adamantite Ore
+	},
+	-- Rare Gems
+	["i:23440"] = { -- Dawnstone
+		["i:23424"] = {requiredSkill = 275, matRate = 0.0150, minAmount = 1, maxAmount = 1, amountOfMats = 0.0030}, -- Fel Iron Ore
+		["i:23425"] = {requiredSkill = 325, matRate = 0.0400, minAmount = 1, maxAmount = 1, amountOfMats = 0.0080}, -- Adamantite Ore
+	},
+	["i:23436"] = { -- Living Ruby
+		["i:23424"] = {requiredSkill = 275, matRate = 0.0150, minAmount = 1, maxAmount = 1, amountOfMats = 0.0030}, -- Fel Iron Ore
+		["i:23425"] = {requiredSkill = 325, matRate = 0.0400, minAmount = 1, maxAmount = 1, amountOfMats = 0.0080}, -- Adamantite Ore
+	},
+	["i:23441"] = { -- Nightseye
+		["i:23424"] = {requiredSkill = 275, matRate = 0.0150, minAmount = 1, maxAmount = 1, amountOfMats = 0.0030}, -- Fel Iron Ore
+		["i:23425"] = {requiredSkill = 325, matRate = 0.0400, minAmount = 1, maxAmount = 1, amountOfMats = 0.0080}, -- Adamantite Ore
+	},
+	["i:23439"] = { -- Noble Topaz
+		["i:23424"] = {requiredSkill = 275, matRate = 0.0150, minAmount = 1, maxAmount = 1, amountOfMats = 0.0030}, -- Fel Iron Ore
+		["i:23425"] = {requiredSkill = 325, matRate = 0.0400, minAmount = 1, maxAmount = 1, amountOfMats = 0.0080}, -- Adamantite Ore
+	},
+	["i:23438"] = { -- Star of Elune
+		["i:23424"] = {requiredSkill = 275, matRate = 0.0150, minAmount = 1, maxAmount = 1, amountOfMats = 0.0030}, -- Fel Iron Ore
+		["i:23425"] = {requiredSkill = 325, matRate = 0.0400, minAmount = 1, maxAmount = 1, amountOfMats = 0.0080}, -- Adamantite Ore
+	},
+	["i:23437"] = { -- Talasite
+		["i:23424"] = {requiredSkill = 275, matRate = 0.0150, minAmount = 1, maxAmount = 1, amountOfMats = 0.0030}, -- Fel Iron Ore
+		["i:23425"] = {requiredSkill = 325, matRate = 0.0400, minAmount = 1, maxAmount = 1, amountOfMats = 0.0080}, -- Adamantite Ore
+	},
+}
+
+
+
+-- ============================================================================
+-- Panda
+-- ============================================================================
+
+DATA.Panda = {
 	-- Uncommon Gems
 	["i:774"] = { -- Malachite
 		["i:2770"] = {requiredSkill = 20, matRate = 0.5000, minAmount = 1, maxAmount = 1, amountOfMats = 0.1000}, -- Copper Ore
@@ -180,6 +299,42 @@ DATA.Cata = {
 		["i:52185"] = {requiredSkill = 475, matRate = 0.1800, minAmount = 1, maxAmount = 2, amountOfMats = 0.0365}, -- Elementium Ore
 		["i:52183"] = {requiredSkill = 500, matRate = 0.1650, minAmount = 1, maxAmount = 1, amountOfMats = 0.0330}, -- Pyrite Ore
 	},
+	["i:76130"] = { -- Tiger Opal
+		["i:72092"] = {requiredSkill = 500, matRate = 0.2335, minAmount = 1, maxAmount = 2, amountOfMats = 0.0494}, -- Ghost Iron Ore
+		["i:72093"] = {requiredSkill = 550, matRate = 0.2335, minAmount = 1, maxAmount = 2, amountOfMats = 0.0494}, -- Kyparite
+		["i:72103"] = {requiredSkill = 600, matRate = 0.1600, minAmount = 1, maxAmount = 1, amountOfMats = 0.0341}, -- White Trillium Ore
+		["i:72094"] = {requiredSkill = 600, matRate = 0.1600, minAmount = 1, maxAmount = 1, amountOfMats = 0.0341}, -- Black Trillium Ore
+	},
+	["i:76133"] = { -- Lapis Lazuli
+		["i:72092"] = {requiredSkill = 500, matRate = 0.2335, minAmount = 1, maxAmount = 2, amountOfMats = 0.0494}, -- Ghost Iron Ore
+		["i:72093"] = {requiredSkill = 550, matRate = 0.2335, minAmount = 1, maxAmount = 2, amountOfMats = 0.0494}, -- Kyparite
+		["i:72103"] = {requiredSkill = 600, matRate = 0.1600, minAmount = 1, maxAmount = 1, amountOfMats = 0.0341}, -- White Trillium Ore
+		["i:72094"] = {requiredSkill = 600, matRate = 0.1600, minAmount = 1, maxAmount = 1, amountOfMats = 0.0341}, -- Black Trillium Ore
+	},
+	["i:76134"] = { -- Sunstone
+		["i:72092"] = {requiredSkill = 500, matRate = 0.2335, minAmount = 1, maxAmount = 2, amountOfMats = 0.0494}, -- Ghost Iron Ore
+		["i:72093"] = {requiredSkill = 550, matRate = 0.2335, minAmount = 1, maxAmount = 2, amountOfMats = 0.0494}, -- Kyparite
+		["i:72103"] = {requiredSkill = 600, matRate = 0.1600, minAmount = 1, maxAmount = 1, amountOfMats = 0.0341}, -- White Trillium Ore
+		["i:72094"] = {requiredSkill = 600, matRate = 0.1600, minAmount = 1, maxAmount = 1, amountOfMats = 0.0341}, -- Black Trillium Ore
+	},
+	["i:76135"] = { -- Roguestone
+		["i:72092"] = {requiredSkill = 500, matRate = 0.2335, minAmount = 1, maxAmount = 2, amountOfMats = 0.0494}, -- Ghost Iron Ore
+		["i:72093"] = {requiredSkill = 550, matRate = 0.2335, minAmount = 1, maxAmount = 2, amountOfMats = 0.0494}, -- Kyparite
+		["i:72103"] = {requiredSkill = 600, matRate = 0.1600, minAmount = 1, maxAmount = 1, amountOfMats = 0.0341}, -- White Trillium Ore
+		["i:72094"] = {requiredSkill = 600, matRate = 0.1600, minAmount = 1, maxAmount = 1, amountOfMats = 0.0341}, -- Black Trillium Ore
+	},
+	["i:76136"] = { -- Pandarian Garnet
+		["i:72092"] = {requiredSkill = 500, matRate = 0.2335, minAmount = 1, maxAmount = 2, amountOfMats = 0.0494}, -- Ghost Iron Ore
+		["i:72093"] = {requiredSkill = 550, matRate = 0.2335, minAmount = 1, maxAmount = 2, amountOfMats = 0.0494}, -- Kyparite
+		["i:72103"] = {requiredSkill = 600, matRate = 0.1600, minAmount = 1, maxAmount = 1, amountOfMats = 0.0341}, -- White Trillium Ore
+		["i:72094"] = {requiredSkill = 600, matRate = 0.1600, minAmount = 1, maxAmount = 1, amountOfMats = 0.0341}, -- Black Trillium Ore
+	},
+	["i:76137"] = { -- Alexandrite
+		["i:72092"] = {requiredSkill = 500, matRate = 0.2335, minAmount = 1, maxAmount = 2, amountOfMats = 0.0494}, -- Ghost Iron Ore
+		["i:72093"] = {requiredSkill = 550, matRate = 0.2335, minAmount = 1, maxAmount = 2, amountOfMats = 0.0494}, -- Kyparite
+		["i:72103"] = {requiredSkill = 600, matRate = 0.1600, minAmount = 1, maxAmount = 1, amountOfMats = 0.0341}, -- White Trillium Ore
+		["i:72094"] = {requiredSkill = 600, matRate = 0.1600, minAmount = 1, maxAmount = 1, amountOfMats = 0.0341}, -- Black Trillium Ore
+	},
 
 	-- Rare Gems
 	["i:23440"] = { -- Dawnstone
@@ -265,6 +420,42 @@ DATA.Cata = {
 		["i:53038"] = {requiredSkill = 425, matRate = 0.0125, minAmount = 1, maxAmount = 1, amountOfMats = 0.0025}, -- Obsidium Ore
 		["i:52185"] = {requiredSkill = 475, matRate = 0.0450, minAmount = 1, maxAmount = 2, amountOfMats = 0.0091}, -- Elementium Ore
 		["i:52183"] = {requiredSkill = 500, matRate = 0.0750, minAmount = 1, maxAmount = 2, amountOfMats = 0.0152}, -- Pyrite Ore
+	},
+	["i:76131"] = { -- Primordial Ruby
+		["i:72092"] = {requiredSkill = 500, matRate = 0.0450, minAmount = 1, maxAmount = 2, amountOfMats = 0.0091}, -- Ghost Iron Ore
+		["i:72093"] = {requiredSkill = 550, matRate = 0.0450, minAmount = 1, maxAmount = 2, amountOfMats = 0.0091}, -- Kyparite
+		["i:72103"] = {requiredSkill = 600, matRate = 0.1600, minAmount = 1, maxAmount = 3, amountOfMats = 0.0341}, -- White Trillium Ore
+		["i:72094"] = {requiredSkill = 600, matRate = 0.1600, minAmount = 1, maxAmount = 3, amountOfMats = 0.0341}, -- Black Trillium Ore
+	},
+	["i:76138"] = { -- River's Heart
+		["i:72092"] = {requiredSkill = 500, matRate = 0.0450, minAmount = 1, maxAmount = 2, amountOfMats = 0.0091}, -- Ghost Iron Ore
+		["i:72093"] = {requiredSkill = 550, matRate = 0.0450, minAmount = 1, maxAmount = 2, amountOfMats = 0.0091}, -- Kyparite
+		["i:72103"] = {requiredSkill = 600, matRate = 0.1600, minAmount = 1, maxAmount = 3, amountOfMats = 0.0341}, -- White Trillium Ore
+		["i:72094"] = {requiredSkill = 600, matRate = 0.1600, minAmount = 1, maxAmount = 3, amountOfMats = 0.0341}, -- Black Trillium Ore
+	},
+	["i:76139"] = { -- Wild Jade
+		["i:72092"] = {requiredSkill = 500, matRate = 0.0450, minAmount = 1, maxAmount = 2, amountOfMats = 0.0091}, -- Ghost Iron Ore
+		["i:72093"] = {requiredSkill = 550, matRate = 0.0450, minAmount = 1, maxAmount = 2, amountOfMats = 0.0091}, -- Kyparite
+		["i:72103"] = {requiredSkill = 600, matRate = 0.1600, minAmount = 1, maxAmount = 3, amountOfMats = 0.0341}, -- White Trillium Ore
+		["i:72094"] = {requiredSkill = 600, matRate = 0.1600, minAmount = 1, maxAmount = 3, amountOfMats = 0.0341}, -- Black Trillium Ore
+	},
+	["i:76140"] = { -- Vermillion Onyx
+		["i:72092"] = {requiredSkill = 500, matRate = 0.0450, minAmount = 1, maxAmount = 2, amountOfMats = 0.0091}, -- Ghost Iron Ore
+		["i:72093"] = {requiredSkill = 550, matRate = 0.0450, minAmount = 1, maxAmount = 2, amountOfMats = 0.0091}, -- Kyparite
+		["i:72103"] = {requiredSkill = 600, matRate = 0.1600, minAmount = 1, maxAmount = 3, amountOfMats = 0.0341}, -- White Trillium Ore
+		["i:72094"] = {requiredSkill = 600, matRate = 0.1600, minAmount = 1, maxAmount = 3, amountOfMats = 0.0341}, -- Black Trillium Ore
+	},
+	["i:76141"] = { -- Imperial Amethyst
+		["i:72092"] = {requiredSkill = 500, matRate = 0.0450, minAmount = 1, maxAmount = 2, amountOfMats = 0.0091}, -- Ghost Iron Ore
+		["i:72093"] = {requiredSkill = 550, matRate = 0.0450, minAmount = 1, maxAmount = 2, amountOfMats = 0.0091}, -- Kyparite
+		["i:72103"] = {requiredSkill = 600, matRate = 0.1600, minAmount = 1, maxAmount = 3, amountOfMats = 0.0341}, -- White Trillium Ore
+		["i:72094"] = {requiredSkill = 600, matRate = 0.1600, minAmount = 1, maxAmount = 3, amountOfMats = 0.0341}, -- Black Trillium Ore
+	},
+	["i:76142"] = { -- Sun's Radiance
+		["i:72092"] = {requiredSkill = 500, matRate = 0.0450, minAmount = 1, maxAmount = 2, amountOfMats = 0.0091}, -- Ghost Iron Ore
+		["i:72093"] = {requiredSkill = 550, matRate = 0.0450, minAmount = 1, maxAmount = 2, amountOfMats = 0.0091}, -- Kyparite
+		["i:72103"] = {requiredSkill = 600, matRate = 0.1600, minAmount = 1, maxAmount = 3, amountOfMats = 0.0341}, -- White Trillium Ore
+		["i:72094"] = {requiredSkill = 600, matRate = 0.1600, minAmount = 1, maxAmount = 3, amountOfMats = 0.0341}, -- Black Trillium Ore
 	},
 
 	-- Epic Gems

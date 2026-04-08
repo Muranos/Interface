@@ -1,6 +1,6 @@
 
 --do not load if this is a classic version of the game
-if (DetailsFramework.IsTBCWow() or DetailsFramework.IsWotLKWow() or DetailsFramework.IsClassicWow() or DetailsFramework.IsCataWow()) then
+if (DetailsFramework.IsTBCWow() or DetailsFramework.IsWotLKWow() or DetailsFramework.IsClassicWow() or DetailsFramework.IsCataWow() or DetailsFramework.IsPandaWow()) then
 	return
 end
 
@@ -755,7 +755,7 @@ local CreatePluginFrames = function()
 			if (not talentsTable) then
 				local playersInfoData = openRaidLib.GetAllUnitsInfo()
 				local playerTalentsInfo = playersInfoData[GetUnitName(unitId, true)]
-				if (playerTalentsInfo) then
+				if (playerTalentsInfo and playerTalentsInfo.talents and type(playerTalentsInfo.talents) == "table") then
 					talentsTable = DF.table.copy({}, playerTalentsInfo.talents)
 				end
 			end

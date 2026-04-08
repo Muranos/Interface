@@ -4,10 +4,10 @@ do
     local L = languageTable
 
 ------------------------------------------------------------
+L["A /reload may be required to take effect."] = "Может потребоваться /reload для применения изменений."
+L["CVar, saved within Plater profile and restored when loading the profile."] = "CVar, сохраняется в профиле Plater и восстанавливается при загрузке профиля."
 --[[Translation missing --]]
-L["A /reload may be required to take effect."] = "A /reload may be required to take effect."
---[[Translation missing --]]
-L["CVar, saved within Plater profile and restored when loading the profile."] = "CVar, saved within Plater profile and restored when loading the profile."
+L["DISABLE_TESTING_AURAS"] = ""
 L["EXPORT"] = "Экспорт"
 L["EXPORT_CAST_COLORS"] = "Поделиться Цветами"
 L["EXPORT_CAST_SOUNDS"] = "Поделиться Звуками"
@@ -397,7 +397,7 @@ L["OPTIONS_THREAT_USE_AGGRO_FLASH"] = "Enable aggro flash"
 --[[Translation missing --]]
 L["OPTIONS_THREAT_USE_AGGRO_FLASH_DESC"] = "Enables the -AGGRO- flash animation on the nameplates when gaining aggro as dps."
 --[[Translation missing --]]
-L["OPTIONS_THREAT_USE_AGGRO_GLOW"] = "Enable aggro glow"
+L["OPTIONS_THREAT_USE_AGGRO_GLOW"] = "Enable health bar aggro glow"
 --[[Translation missing --]]
 L["OPTIONS_THREAT_USE_AGGRO_GLOW_DESC"] = "Enables the healthbar glow on the nameplates when gaining aggro as dps or losing aggro as tank."
 L["OPTIONS_THREAT_USE_SOLO_COLOR"] = "\"Соло\" цвет"
@@ -421,6 +421,12 @@ L[ [=[Show nameplate for friendly npcs.
 |cFFFFFF00 Important |r: This option is dependent on the client`s nameplate state (on/off).
 
 |cFFFFFF00 Important |r: when disabled but enabled on the client through (%s), the healthbar isn't visible but the nameplate is still clickable.]=]
+--[[Translation missing --]]
+L[ [=[Show nameplate for friendly npcs.
+
+|cFFFFFF00 Important |r: This option is dependent on the client`s nameplate state (on/off).
+
+|cFFFFFF00 Important |r: when disabled but enabled on the client through (%s), the healthbar isn't visible but the nameplate is still clickable.]=] ] = ""
 L["TARGET_CVAR_ALWAYSONSCREEN"] = "Цель ВСЕГДА на экране|cFFFF7700*|r"
 --[[Translation missing --]]
 L["TARGET_CVAR_ALWAYSONSCREEN_DESC"] = [=[When enabled, the nameplate of your target is always shown even when the enemy isn't in the screen.

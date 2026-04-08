@@ -1,0 +1,144 @@
+--------------------------------------------------------------------------------
+-- Module Declaration
+--
+
+local mod, CL = BigWigs:NewBoss("Prince Malchezaar", 532, 1563)
+if not mod then return end
+mod:RegisterEnableMob(15690)
+mod:SetEncounterID(661)
+mod:SetRespawnTime(60)
+mod:SetStage(1)
+
+--------------------------------------------------------------------------------
+-- Locals
+--
+
+local enfeebleTimer = nil
+
+--------------------------------------------------------------------------------
+-- Localization
+--
+
+local L = mod:GetLocale()
+if L then
+	L.phase1_trigger = "Madness has brought you here to me. I shall be your undoing!"
+	L.phase2_trigger = "Simple fools! Time is the fire in which you'll burn!"
+	L.phase3_trigger = "How can you hope to stand against such overwhelming power?"
+
+	L.infernal = "Infernals"
+	L.infernal_desc = "Show cooldown timer for Infernal summons."
+	L.infernal_icon = "INV_Stone_05"
+	L.infernal_bar = "Incoming Infernal"
+	L.infernal_message = "Infernal Landed! Hellfire in 5sec!"
+	L.infernal_trigger1 = "but the legions I command"
+	L.infernal_trigger2 = "All realities"
+end
+
+--------------------------------------------------------------------------------
+-- Initialization
+--
+
+function mod:GetOptions()
+	return {
+		"stages",
+		{30843, "CASTBAR", "ME_ONLY_EMPHASIZE"}, -- Enfeeble
+		{30852, "CASTBAR"}, -- Shadow Nova
+		"infernal",
+	}
+end
+
+function mod:OnBossEnable()
+	self:Log("SPELL_CAST_SUCCESS", "Enfeeble", 30843)
+	self:Log("SPELL_AURA_APPLIED", "EnfeebleApplied", 30843)
+	self:Log("SPELL_CAST_START", "ShadowNovaStart", 30852)
+	self:Log("SPELL_CAST_SUCCESS", "ShadowNova", 30852)
+	if self:Classic() then
+		self:BossYell("Infernal", L["infernal_trigger1"], L["infernal_trigger2"])
+	else
+		self:Log("SPELL_CAST_SUCCESS", "Infernal", 30834)
+	end
+
+	self:BossYell("Stage2Yell", L["phase2_trigger"])
+	self:BossYell("Stage3Yell", L["phase3_trigger"])
+
+	self:BossYell("Engage", L["phase1_trigger"]) -- ENCOUNTER_END bugged on wipe
+end
+
+function mod:OnEngage()
+	enfeebleTimer = nil
+	self:SetStage(1)
+	self:ScheduleTimer("CheckForWipe", 5) -- ENCOUNTER_END bugged on wipe
+
+	self:CDBar(30843, 30) -- Enfeeble
+	self:CDBar(30852, 33.5) -- Shadow Nova
+end
+
+--------------------------------------------------------------------------------
+-- Event Handlers
+--
+
+do
+	local function DelayEnfeeble()
+		enfeebleTimer = nil
+		mod:CDBar(30843, 21) -- 30-9
+	end
+	function mod:Enfeeble(args)
+		self:StopBar(args.spellName)
+		self:Message(args.spellId, "red")
+		self:CastBar(args.spellId, 9)
+		enfeebleTimer = self:ScheduleTimer(DelayEnfeeble, 9)
+	end
+end
+
+function mod:EnfeebleApplied(args)
+	if self:Me(args.destGUID) then
+		self:PersonalMessage(args.spellId)
+		self:PlaySound(args.spellId, "warning", nil, args.destName)
+	end
+end
+
+function mod:ShadowNovaStart(args)
+	self:StopBar(args.spellName)
+	self:Message(args.spellId, "yellow")
+	self:CastBar(args.spellId, 2)
+	self:PlaySound(args.spellId, "alarm")
+end
+
+function mod:ShadowNova(args)
+	if self:GetStage() == 3 then
+		self:CDBar(args.spellId, 16) -- 18-2
+	else
+		self:CDBar(args.spellId, 29) -- 31-2
+	end
+end
+
+do
+	local function DelayInfernal()
+		mod:Message("infernal", "orange", L.infernal_message, L.infernal_icon)
+		mod:PlaySound("infernal", "alert")
+	end
+	function mod:Infernal()
+		self:ScheduleTimer(DelayInfernal, 12)
+		self:Message("infernal", "orange", CL.custom_sec:format(L.infernal_bar, 17), L.infernal_icon)
+		self:Bar("infernal", 17, L.infernal_bar, L.infernal_icon)
+		self:PlaySound("infernal", "info")
+	end
+end
+
+function mod:Stage2Yell()
+	self:SetStage(2)
+	self:Message("stages", "cyan", CL.percent:format(60, CL.stage:format(2)), false)
+	self:PlaySound("stages", "long")
+end
+
+function mod:Stage3Yell()
+	self:SetStage(3)
+	self:StopBar(30843) -- Enfeeble
+	if enfeebleTimer then
+		self:CancelTimer(enfeebleTimer)
+		enfeebleTimer = nil
+	end
+	self:CDBar(30852, 17) -- Shadow Nova
+	self:Message("stages", "cyan", CL.percent:format(30, CL.stage:format(3)), false)
+	self:PlaySound("stages", "long")
+end

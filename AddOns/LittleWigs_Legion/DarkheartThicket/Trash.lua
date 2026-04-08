@@ -4,7 +4,7 @@
 
 local mod, CL = BigWigs:NewBoss("Darkheart Thicket Trash", 1466)
 if not mod then return end
-mod.displayName = CL.trash
+mod:SetTrashModule(true)
 mod:RegisterEnableMob(
 	95769,  -- Mindshattered Screecher
 	95771,  -- Dreadsoul Ruiner
@@ -160,7 +160,7 @@ end
 --
 
 function mod:CHAT_MSG_MONSTER_YELL(event, msg)
-	if msg == L.archdruid_glaidalis_warmup_trigger then
+	if not self:IsSecret(msg) and msg == L.archdruid_glaidalis_warmup_trigger then
 		-- Archdruid Glaidalis Warmup
 		local archdruidGlaidalisModule = BigWigs:GetBossModule("Archdruid Glaidalis", true)
 		if archdruidGlaidalisModule then

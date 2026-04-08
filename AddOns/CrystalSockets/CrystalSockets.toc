@@ -1,5 +1,5 @@
-#     Crystal Sockets - A convenient way to display all your gem sockets.
-#     Copyright (C) 2020  Nivix
+#     Crystal Sockets - A lightweight solution to show sockets and enchantments on your character sheet.
+#     Copyright (C) 2026  Nivix
 # 
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -14,13 +14,11 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-# Credit to Simulationcraft creators for the copy frame.
-
-## Interface: 100002
+## Interface: 120001
 ## Title: Crystal Sockets
 ## Author: Nivix
-## Version: 1.10
-## Notes: Showing sockets and enchantments on equiped gear.
+## Version: 1.12
+## Notes: A lightweight solution to show sockets and enchantments on your character sheet.
 ## SavedVariables: 
 
 CrystalSockets.lua

@@ -200,16 +200,21 @@ local function alertWithCopy(msg, textToCopy)
 		hasEditBox = 1,
 		button2 = "",
 		OnShow = function(self)
-			self.editBox:SetText(textToCopy)
-			self.editBox:SetFocus()
-			self.editBox:HighlightText()
-			_G[self:GetName() .. "Button2"]:Hide()
-			_G[self:GetName() .. "Button1"]:ClearAllPoints()
-			_G[self:GetName() .. "Button1"]:SetPoint("TOP", self.editBox, "BOTTOM", 0, -8)
+			local editBox = self.GetEditBox and self:GetEditBox() or self.editBox
+			editBox:SetText(textToCopy)
+			editBox:SetFocus()
+			editBox:HighlightText()
+			local button2 = self.GetButton2 and self:GetButton2() or _G[self:GetName() .. "Button2"]
+			button2:Hide()
+			local button1 = self.GetButton1 and self:GetButton1() or _G[self:GetName() .. "Button1"]
+			button1:ClearAllPoints()
+			button1:SetPoint("TOP", editBox, "BOTTOM", 0, -8)
 		end,
 		OnHide = function(self)
-			self.editBox:SetText("")
-			_G[self:GetName() .. "Button2"]:Show()
+			local editBox = self.GetEditBox and self:GetEditBox() or self.editBox
+			editBox:SetText("")
+			local button2 = self.GetButton2 and self:GetButton2() or _G[self:GetName() .. "Button2"]
+			button2:Show()
 		end,
 		EditBoxOnEnterPressed = function(self)
 			self:GetParent():Hide()
@@ -998,19 +1003,6 @@ function R:PrepareOptions()
 						order = newOrder(),
 						inline = true,
 						args = {
-							anchor = {
-								type = "toggle",
-								order = newOrder(),
-								name = L["Show anchor"],
-								get = function()
-									return self.db.profile.bar.anchor
-								end,
-								set = function(info, val)
-									self.db.profile.bar.anchor = val
-									Rarity.GUI:UpdateBar()
-									Rarity.GUI:UpdateText()
-								end,
-							},
 							locked = {
 								type = "toggle",
 								order = newOrder(),
@@ -1059,6 +1051,19 @@ function R:PrepareOptions()
 								end,
 								set = function(info, val)
 									self.db.profile.bar.showIcon = val
+									Rarity.GUI:UpdateBar()
+									Rarity.GUI:UpdateText()
+								end,
+							},
+							showSpark = {
+								type = "toggle",
+								order = newOrder(),
+								name = L["Show Spark"],
+								get = function()
+									return self.db.profile.bar.showSpark
+								end,
+								set = function(info, val)
+									self.db.profile.bar.showSpark = val
 									Rarity.GUI:UpdateBar()
 									Rarity.GUI:UpdateText()
 								end,
@@ -2633,7 +2638,7 @@ function R:CreateGroup(options, group, isUser)
 					end,
 					hidden = function()
 						return (item.cat ~= HOLIDAY and item.worldQuestId == nil)
-							or (item.questId == nil and item.lockDungeonId == nil and item.holidayTexture == nil)
+							or (item.questId == nil and item.lockDungeonId == nil and item.holidayEvents == nil)
 					end,
 				},
 				spacer3 = { type = "header", name = L["Defeat Detection"], order = newOrder() },

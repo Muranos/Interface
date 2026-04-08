@@ -50,7 +50,7 @@ function mod:GetOptions()
 		{-7062, "FLASH"}, 136878, {136857, "FLASH", "DISPEL"}, 136894, -- Sul the Sandcrawler
 		{137122, "FLASH"}, -- Kazra'jin
 		{-7054, "TANK_HEALER"}, {136992, "ICON", "SAY", "PROXIMITY"}, 136990, 137084, {137085, "FLASH"}, -- Frost King Malakk
-		136442, "custom_on_markpossessed", {137650, "FLASH"}, "proximity", "berserk",
+		136442, "custom_on_markpossessed", 137650, "proximity", "berserk",
 	}, {
 		["priestess_adds"] = -7050,
 		[-7062] = -7049,
@@ -222,7 +222,7 @@ do
 	end
 	function mod:UNIT_AURA(_, unit)
 		if hasFrostbite and not someoneHasBodyHeat then
-			local _, _, duration = self:UnitDebuff(unit, bodyHeat)
+			local _, _, duration = self:UnitDebuff(unit, bodyHeat, 137084) -- 137084 on 5
 			if duration and duration > 7 then
 				-- everyone should be stacked and get their debuffs at the same time (having four bars up would be annoying)
 				someoneHasBodyHeat = true
@@ -230,7 +230,7 @@ do
 				self:ScheduleTimer(reset, duration)
 			end
 		end
-		if unit == "player" and not hasChilledToTheBone and self:UnitDebuff(unit, chilledToTheBone) then
+		if unit == "player" and not hasChilledToTheBone and self:UnitDebuff(unit, chilledToTheBone, 137085) then -- 137085 on 5/6
 			hasChilledToTheBone = true
 			self:MessageOld(137085, "blue", "info") -- run away little girl!
 			self:Flash(137085)

@@ -37,12 +37,12 @@ function TM:Test(zone)
 		end
 		self:ToggleAddOnTestFrames(P.isInTestMode)
 
-		P.UpdateDelayedZoneData()
+		P:UpdateDelayedZoneData()
 		P:Refresh()
 
-		self:UndateIndicator(zone)
-		self:RegisterEvent("PLAYER_LEAVING_WORLD")
+		self:UpdateIndicator(zone)
 		self:UselessBling()
+		self:RegisterEvent("PLAYER_LEAVING_WORLD")
 	else
 		if self:ShouldShowBlizzardFrames() then
 			self:HideBlizzardFrames()
@@ -59,15 +59,15 @@ end
 
 function TM:ShouldShowBlizzardFrames()
 	for _, db in pairs(E.db.extraBars) do
-		if db.enabled and db.unitBar and db.uf == "blizz" then
+		if db.enabled and db.unitBar and (db.uf == "blizz" or db.uf == "auto")then
 			return true
 		end
 	end
-	return E.db.position.uf == "blizz" or E.db.position.uf == "auto"
+	return not E.db.position.detached and (E.db.position.uf == "blizz" or E.db.position.uf == "auto")
 end
 
 function TM:ShowBlizzardFrames()
-	if E.postDF then
+	if E.hasEditMode then
 		if (GetNumGroupMembers() == 0 or not P:CompactFrameIsActive()) and not P.isInEditMode then
 			ShowUIPanel(EditModeManagerFrame)
 		end
@@ -77,8 +77,7 @@ function TM:ShowBlizzardFrames()
 			E.Libs.OmniCDC.StaticPopup_Show("OMNICD_DF_TEST_MSG", E.STR.ENABLE_HUDEDITMODE_FRAME)
 		end
 	else
-		if C_AddOns.IsAddOnLoaded("Blizzard_CompactRaidFrames")
-			and C_AddOns.IsAddOnLoaded("Blizzard_CUFProfiles") then
+		if E:IsBlizzardCUFLoaded() then
 			CompactRaidFrameManager:Show()
 			CompactRaidFrameContainer:Show()
 		else
@@ -88,7 +87,7 @@ function TM:ShowBlizzardFrames()
 end
 
 function TM:HideBlizzardFrames()
-	if E.postDF then
+	if E.hasEditMode then
 
 		if P.isInEditMode then
 			if P.inLockdown then
@@ -139,7 +138,7 @@ local function GetIndicator()
 	return indicator
 end
 
-function TM:UndateIndicator(zone)
+function TM:UpdateIndicator(zone)
 	local indicator = self.indicator or GetIndicator()
 	indicator.anchor:ClearAllPoints()
 	indicator.anchor:SetPoint("BOTTOMLEFT", P.userInfo.bar.anchor, "BOTTOMRIGHT")
@@ -161,22 +160,22 @@ function TM:UselessBling()
 end
 
 function TM:EndTestOOC()
-	if not E.postDF then
+	if not E.hasEditMode then
 		E.write(L["Test frames will be hidden once player is out of combat"])
 	end
 	self:RegisterEvent("PLAYER_REGEN_ENABLED")
 end
 
 function TM:PLAYER_REGEN_ENABLED()
-	if E.postDF then
+	if E.hasEditMode then
 		if P.isInEditMode then
 			HideUIPanel(EditModeManagerFrame)
 		end
-	elseif C_AddOns.IsAddOnLoaded("Blizzard_CompactRaidFrames")
-		and C_AddOns.IsAddOnLoaded("Blizzard_CUFProfiles")
-		and (P:GetEffectiveNumGroupMembers() == 0 or not P:CompactFrameIsActive()) then
-		CompactRaidFrameManager:Hide()
-		CompactRaidFrameContainer:Hide()
+	else
+		if E:IsBlizzardCUFLoaded() and (P:GetEffectiveNumGroupMembers() == 0 or not P:CompactFrameIsActive()) then
+			CompactRaidFrameManager:Hide()
+			CompactRaidFrameContainer:Hide()
+		end
 	end
 	self:UnregisterEvent("PLAYER_REGEN_ENABLED")
 end

@@ -5,11 +5,10 @@ This file contains the routines to initialize, get, and set the basic data struc
 --[===[ Var
 TitanBarData ^^: Titan static bar reference and placement info
 TitanAll is used for settings used for Titan itself such as use global profile, tootip modifier, etc.
-TitanSettings, TitanSkins, ServerTimeOffsets, ServerHourFormat are the structures saved to disk (listed in toc).
+TitanSettings, TitanSkins,  are the structures saved to disk (listed in toc).
 TitanSettings : is the table that holds the Titan variables by character and the plugins used by that character.
 TitanSkins : holds the list of Titan and custom skins available to the user.
    It is assumed that the skins are in the proper folder on the hard drive. Blizzard does not allow addons to access the disk.
-ServerTimeOffsets and ServerHourFormat: are the tables that hold the user selected hour offset and display format per realm (server).
 
 
 TitanSettings has major sections with associated shortcuts in the code
@@ -323,6 +322,7 @@ TitanSkinsPathEnd = "\\"
 ---Global is an additional index used if the user wants all Bars to be the same skin or color.
 
 TitanBarVarsDefaults = {
+	--[[
 	["Global"] = -- holds 'global' user settings; NOT for use in the frame loop!
 	{
 		skin = { path = TitanSkinsDefaultPath, alpha = 0.7 },
@@ -330,17 +330,21 @@ TitanBarVarsDefaults = {
 		texure = Titan_Global.NONE, -- Titan_Global.NONE or Titan_Global.SKIN or Titan_Global.COLOR
 		hide_in_combat = false,
 	},
+	--]]
 	[TITAN_PANEL_DISPLAY_PREFIX .. "Bar"] = {
 		off_x = 0,
 		off_y = 0,
 		off_w = x_max,
 		skin = { path = TitanSkinsDefaultPath, alpha = 0.7 },
 		color = { r = 1.0, g = .5, b = 1.0, alpha = 1.0 },
+		color_border = true,
 		texure = Titan_Global.SKIN, -- or Titan_Global.COLOR
 		show = true,
 		auto_hide = false,
 		align = TITAN_PANEL_BUTTONS_ALIGN_LEFT, -- TITAN_PANEL_BUTTONS_ALIGN_CENTER
 		hide_in_combat = false,
+		hide_in_pvp = false,
+		plugin_off_y = 0,
 	},
 	[TITAN_PANEL_DISPLAY_PREFIX .. "Bar2"] = {
 		off_x = 0,
@@ -348,11 +352,14 @@ TitanBarVarsDefaults = {
 		off_w = x_max,
 		skin = { path = TitanSkinsDefaultPath, alpha = 0.7 },
 		color = { r = 1.0, g = .5, b = 1.0, alpha = 1.0 },
+		color_border = true,
 		texure = Titan_Global.SKIN,
 		show = false,
 		auto_hide = false,
 		align = TITAN_PANEL_BUTTONS_ALIGN_LEFT, -- TITAN_PANEL_BUTTONS_ALIGN_CENTER
 		hide_in_combat = false,
+		hide_in_pvp = false,
+		plugin_off_y = 0,
 	},
 	[TITAN_PANEL_DISPLAY_PREFIX .. "AuxBar2"] = {
 		off_x = 0,
@@ -360,11 +367,14 @@ TitanBarVarsDefaults = {
 		off_w = x_max,
 		skin = { path = TitanSkinsDefaultPath, alpha = 0.7 },
 		color = { r = 1.0, g = .5, b = 1.0, alpha = 1.0 },
+		color_border = true,
 		texure = Titan_Global.SKIN,
 		show = false,
 		auto_hide = false,
 		align = TITAN_PANEL_BUTTONS_ALIGN_LEFT, -- TITAN_PANEL_BUTTONS_ALIGN_CENTER
 		hide_in_combat = false,
+		hide_in_pvp = false,
+		plugin_off_y = 0,
 	},
 	[TITAN_PANEL_DISPLAY_PREFIX .. "AuxBar"] = {
 		off_x = 0,
@@ -372,11 +382,14 @@ TitanBarVarsDefaults = {
 		off_w = x_max,
 		skin = { path = TitanSkinsDefaultPath, alpha = 0.7 },
 		color = { r = 1.0, g = .5, b = 1.0, alpha = 1.0 },
+		color_border = true,
 		texure = Titan_Global.SKIN,
 		show = false,
 		auto_hide = false,
 		align = TITAN_PANEL_BUTTONS_ALIGN_LEFT, -- TITAN_PANEL_BUTTONS_ALIGN_CENTER
 		hide_in_combat = false,
+		hide_in_pvp = false,
+		plugin_off_y = 0,
 	},
 	[TITAN_PANEL_DISPLAY_PREFIX .. "Short01"] = {
 		off_x = x_mid,
@@ -384,11 +397,14 @@ TitanBarVarsDefaults = {
 		off_w = SHORT_WIDTH,
 		skin = { path = TitanSkinsDefaultPath, alpha = 0.7 },
 		color = { r = 1.0, g = .5, b = 1.0, alpha = 1.0 },
+		color_border = true,
 		texure = Titan_Global.SKIN,
 		show = false,
 		auto_hide = false,
 		align = TITAN_PANEL_BUTTONS_ALIGN_LEFT, -- TITAN_PANEL_BUTTONS_ALIGN_CENTER
 		hide_in_combat = false,
+		hide_in_pvp = false,
+		plugin_off_y = 0,
 	},
 	[TITAN_PANEL_DISPLAY_PREFIX .. "Short02"] = {
 		off_x = x_mid,
@@ -396,11 +412,14 @@ TitanBarVarsDefaults = {
 		off_w = SHORT_WIDTH,
 		skin = { path = TitanSkinsDefaultPath, alpha = 0.7 },
 		color = { r = 1.0, g = .5, b = 1.0, alpha = 1.0 },
+		color_border = true,
 		texure = Titan_Global.SKIN,
 		show = false,
 		auto_hide = false,
 		align = TITAN_PANEL_BUTTONS_ALIGN_LEFT, -- TITAN_PANEL_BUTTONS_ALIGN_CENTER
 		hide_in_combat = false,
+		hide_in_pvp = false,
+		plugin_off_y = 0,
 	},
 	[TITAN_PANEL_DISPLAY_PREFIX .. "Short03"] = {
 		off_x = x_mid,
@@ -408,11 +427,14 @@ TitanBarVarsDefaults = {
 		off_w = SHORT_WIDTH,
 		skin = { path = TitanSkinsDefaultPath, alpha = 0.7 },
 		color = { r = 1.0, g = .5, b = 1.0, alpha = 1.0 },
+		color_border = true,
 		texure = Titan_Global.SKIN,
 		show = false,
 		auto_hide = false,
 		align = TITAN_PANEL_BUTTONS_ALIGN_LEFT, -- TITAN_PANEL_BUTTONS_ALIGN_CENTER
 		hide_in_combat = false,
+		hide_in_pvp = false,
+		plugin_off_y = 0,
 	},
 	[TITAN_PANEL_DISPLAY_PREFIX .. "Short04"] = {
 		off_x = x_mid,
@@ -420,11 +442,14 @@ TitanBarVarsDefaults = {
 		off_w = SHORT_WIDTH,
 		skin = { path = TitanSkinsDefaultPath, alpha = 0.7 },
 		color = { r = 1.0, g = .5, b = 1.0, alpha = 1.0 },
+		color_border = true,
 		texure = Titan_Global.SKIN,
 		show = false,
 		auto_hide = false,
 		align = TITAN_PANEL_BUTTONS_ALIGN_LEFT, -- TITAN_PANEL_BUTTONS_ALIGN_CENTER
 		hide_in_combat = false,
+		hide_in_pvp = false,
+		plugin_off_y = 0,
 	},
 	[TITAN_PANEL_DISPLAY_PREFIX .. "Short05"] = {
 		off_x = x_mid,
@@ -432,11 +457,14 @@ TitanBarVarsDefaults = {
 		off_w = SHORT_WIDTH,
 		skin = { path = TitanSkinsDefaultPath, alpha = 0.7 },
 		color = { r = 1.0, g = .5, b = 1.0, alpha = 1.0 },
+		color_border = true,
 		texure = Titan_Global.SKIN,
 		show = false,
 		auto_hide = false,
 		align = TITAN_PANEL_BUTTONS_ALIGN_LEFT, -- TITAN_PANEL_BUTTONS_ALIGN_CENTER
 		hide_in_combat = false,
+		hide_in_pvp = false,
+		plugin_off_y = 0,
 	},
 	[TITAN_PANEL_DISPLAY_PREFIX .. "Short06"] = {
 		off_x = x_mid,
@@ -444,11 +472,14 @@ TitanBarVarsDefaults = {
 		off_w = SHORT_WIDTH,
 		skin = { path = TitanSkinsDefaultPath, alpha = 0.7 },
 		color = { r = 1.0, g = .5, b = 1.0, alpha = 1.0 },
+		color_border = true,
 		texure = Titan_Global.SKIN,
 		show = false,
 		auto_hide = false,
 		align = TITAN_PANEL_BUTTONS_ALIGN_LEFT, -- TITAN_PANEL_BUTTONS_ALIGN_CENTER
 		hide_in_combat = false,
+		hide_in_pvp = false,
+		plugin_off_y = 0,
 	},
 	[TITAN_PANEL_DISPLAY_PREFIX .. "Short07"] = {
 		off_x = x_mid,
@@ -456,11 +487,14 @@ TitanBarVarsDefaults = {
 		off_w = SHORT_WIDTH,
 		skin = { path = TitanSkinsDefaultPath, alpha = 0.7 },
 		color = { r = 1.0, g = .5, b = 1.0, alpha = 1.0 },
+		color_border = true,
 		texure = Titan_Global.SKIN,
 		show = false,
 		auto_hide = false,
 		align = TITAN_PANEL_BUTTONS_ALIGN_LEFT, -- TITAN_PANEL_BUTTONS_ALIGN_CENTER
 		hide_in_combat = false,
+		hide_in_pvp = false,
+		plugin_off_y = 0,
 	},
 	[TITAN_PANEL_DISPLAY_PREFIX .. "Short08"] = {
 		off_x = x_mid,
@@ -468,11 +502,14 @@ TitanBarVarsDefaults = {
 		off_w = SHORT_WIDTH,
 		skin = { path = TitanSkinsDefaultPath, alpha = 0.7 },
 		color = { r = 1.0, g = .5, b = 1.0, alpha = 1.0 },
+		color_border = true,
 		texure = Titan_Global.SKIN,
 		show = false,
 		auto_hide = false,
 		align = TITAN_PANEL_BUTTONS_ALIGN_LEFT, -- TITAN_PANEL_BUTTONS_ALIGN_CENTER
 		hide_in_combat = false,
+		hide_in_pvp = false,
+		plugin_off_y = 0,
 	},
 	[TITAN_PANEL_DISPLAY_PREFIX .. "Short09"] = {
 		off_x = x_mid,
@@ -480,11 +517,14 @@ TitanBarVarsDefaults = {
 		off_w = SHORT_WIDTH,
 		skin = { path = TitanSkinsDefaultPath, alpha = 0.7 },
 		color = { r = 1.0, g = .5, b = 1.0, alpha = 1.0 },
+		color_border = true,
 		texure = Titan_Global.SKIN,
 		show = false,
 		auto_hide = false,
 		align = TITAN_PANEL_BUTTONS_ALIGN_LEFT, -- TITAN_PANEL_BUTTONS_ALIGN_CENTER
 		hide_in_combat = false,
+		hide_in_pvp = false,
+		plugin_off_y = 0,
 	},
 	[TITAN_PANEL_DISPLAY_PREFIX .. "Short10"] = {
 		off_x = x_mid,
@@ -493,10 +533,13 @@ TitanBarVarsDefaults = {
 		skin = { path = TitanSkinsDefaultPath, alpha = 0.7 },
 		color = { r = 1.0, g = .5, b = 1.0, alpha = 1.0 },
 		texure = Titan_Global.SKIN,
+		color_border = true,
 		show = false,
 		auto_hide = false,
 		align = TITAN_PANEL_BUTTONS_ALIGN_LEFT, -- TITAN_PANEL_BUTTONS_ALIGN_CENTER
 		hide_in_combat = false,
+		hide_in_pvp = false,
+		plugin_off_y = 0,
 	},
 }
 
@@ -530,22 +573,33 @@ TitanPluginExtrasNum = 0
 -- Global to hold where the Titan menu orginated from...
 TitanPanel_DropMenu = nil
 
-local Default_Plugins = {
-	{ id = "Location",     loc = "Bar" },
-	{ id = "XP",           loc = "Bar" },
-	{ id = "Gold",         loc = "Bar" },
-	{ id = "Clock",        loc = "Bar" },
-	{ id = "Volume",       loc = "Bar" },
-	{ id = "AutoHide_Bar", loc = "Bar" },
-	{ id = "Bag",          loc = "Bar" },
-	{ id = "Repair",       loc = "Bar" },
-}
 --[===[ Var
 TITAN_PANEL_SAVED_VARIABLES table holds the Titan Panel Default SavedVars.
 --]===]
+-- These two MUST be in sync, same number of entries
+local Default_Buttons = {
+	"Location",
+	"XP",
+	"Gold",
+	"Clock",
+	"Volume",
+	"AutoHide_Bar",
+	"Bag",
+	"Repair",
+}
+local Default_Button_Locs = {
+	"Bar",
+	"Bar",
+	"Bar",
+	"Bar",
+	"Bar",
+	"Bar",
+	"Bar",
+	"Bar",
+}
 TITAN_PANEL_SAVED_VARIABLES = {
-	Buttons = {},
-	Location = {},
+	Buttons = Default_Buttons,
+	Location = Default_Button_Locs,
 	TexturePath = "Interface\\AddOns\\Titan\\Artwork\\",
 	Transparency = 0.7,
 	AuxTransparency = 0.7,
@@ -554,6 +608,7 @@ TITAN_PANEL_SAVED_VARIABLES = {
 	IconSpacing = 0,
 	TooltipTrans = 1,
 	TooltipFont = 1,
+	TooltipTimeout = 0.0, -- New 2026 Jan
 	DisableTooltipFont = 1,
 	FontName = TPC.FONT_NAME,
 	FrameStrata = "LOW",
@@ -569,8 +624,8 @@ TITAN_PANEL_SAVED_VARIABLES = {
 	VersionShown = 1,
 	ToolTipsShown = 1,
 	HideTipsInCombat = false,
-	HideBarsInCombat = false,
-	HideBarsInPVP = false,
+	--	HideBarsInCombat = false, -- removed for 8.4.0 Sep 2025
+	--	HideBarsInPVP = false,    -- removed for 8.4.0 Sep 2025
 	-- Classic
 	ScreenAdjust = false,
 	AuxScreenAdjust = false,
@@ -594,6 +649,8 @@ TITAN_PANEL_SAVED_VARIABLES = {
 	AuxBar2_Hide = false,
 	AuxBar2_Transparency = 0.7,
 	AuxBar2_Align = TITAN_PANEL_BUTTONS_ALIGN_LEFT,
+	--
+	SyncWithProfile = "<>" -- new Oct 2025
 };
 
 --[===[ Var
@@ -701,7 +758,7 @@ local function TitanVariables_SyncRegisterSavedVariables(registeredVariables, sa
 		-- Init registeredVariables
 		for index, value in pairs(registeredVariables) do
 			--[[
-print("_sync"
+print(".._sync"
 .." "..tostring(index)..""
 .." : "..tostring(value)..""
 )
@@ -716,46 +773,6 @@ print("_sync"
 			if (not TitanUtils_TableContainsIndex(registeredVariables, index)) then
 				savedVariables[index] = nil;
 			end
-		end
-	end
-end
-
----local Set the plugins (if registered)
----@param reset boolean
---- - true : Use Titan default
---- - false : Use current profile
-local function Plugin_settings(reset)
-	--[[
-- It is assumed this is a plugin wipe of the given profile.
-- Use the default Titan plugin list to display on the given bar.
-- These will be saved on exit or reload in the given profile.
---]]
-	local plugin_list = {}
-	if reset then -- use the default install list
-		plugin_list = Default_Plugins
-		--[[
-print("plugins init"
-.." "..tostring(reset)..""
-)
---]]
-	else -- use the current profile
-		plugin_list = TitanPanelSettings.Buttons
-	end
-
-	-- Init each and every default plugin
-	for idx, default_plugin in pairs(plugin_list) do
-		local id = default_plugin.id
-		local loc = default_plugin.loc
-		local plugin = TitanUtils_GetPlugin(id)
-		--TitanDebug("Plugin: "..tostring(id).." "..(plugin and "T" or "F"))
-		-- See if plugin is registered
-		if (plugin) then
-			--TitanDebug("__Plugin: "..tostring(id).." "..tostring(loc))
-			-- Synchronize registered and saved variables
-			TitanVariables_SyncRegisterSavedVariables(
-				plugin.savedVariables, TitanPluginSettings[id])
-			TitanUtils_AddButtonOnBar(loc, id)
-			TitanPanelButton_UpdateButton(id)
 		end
 	end
 end
@@ -926,25 +943,99 @@ local function Titan_SyncAdjList()
 	end
 end
 
----Titan Ensure TitanSettings (one of the saved vars in the toc) exists and set the Titan version.
---- Called when Titan is loaded (ADDON_LOADED event)
-function TitanVariables_InitTitanSettings()
-	local player = TitanUtils_GetPlayer()
-	Titan_Global.dbg:Out("Menu", "_Init begin " .. tostring(player))
+local function AdjBarVars(to_profile)
+		local BV = TitanSettings.Players[to_profile].BarVars
+		for idx, v in pairs(TitanBarData) do
+			if BV[idx].color_border == nil then -- NEW Jan 2026
+				BV[idx].color_border = true
+			end
+			if BV[idx].plugin_off_y == nil then -- NEW Jan 2026
+				BV[idx].plugin_off_y = 0
+			end
+--print("Vars Y"
+--	.. " " .. tostring(idx) .. ""
+--	.. " " .. tostring(BV[idx].plugin_off_y) .. ""
+--)
+		end
+end
 
+---local Set the Titan bar settings of the given profile from saved variables
+---@param to_profile string
+--- If no profile found, use Titan defaults
+local function Set_bar_vars(to_profile)
+	local str = "" -- for debug output
+
+	if TitanSettings.Players[to_profile].BarVars == nil then
+		-- Likely a new toon or new to Titan so just get defaults.
+		-- build debug output
+		str = "Set_bar_vars init"
+			.. " " .. tostring(to_profile) .. ""
+		Titan_Debug.Out('titan', 'profile', str)
+
+		-- Set to defaults
+		TitanSettings.Players[to_profile].BarVars = TitanBarVarsDefaults
+		local BV = TitanSettings.Players[to_profile].BarVars
+
+		-- Cannot assume profile is current / cannot use Get Var routines.
+		local panel = TitanSettings.Players[to_profile].Panel
+
+		local tex = panel["TexturePath"]:gsub("TitanClassic", "Titan") -- hold over, just in case...
+		Titan_Debug.Out('titan', 'profile', "tex path '" .. tex .. "'")
+
+		for idx, v in pairs(TitanBarData) do
+			if v.user_move == false then
+				-- Set original Bar options from the 'old' saved vars location
+				BV[idx].show = panel[v.name .. "_Show"]
+				BV[idx].auto_hide = panel[v.name .. "_Hide"]
+				BV[idx].align = panel[v.name .. "_Align"]
+				-- only skins before 7.x
+				BV[idx].texure = Titan_Global.SKIN
+				BV[idx].skin.alpha = panel[v.name .. "_Transparency"]
+				BV[idx].skin.path = tex
+			end
+		end
+	else
+		-- All good
+		-- build debug output
+		str = "Set_bar_vars found"
+			.. " " .. tostring(to_profile) .. ""
+		Titan_Debug.Out('titan', 'profile', str)
+	end
+
+	-- New 2026 : Add any new BarVar or delete removed fields to ALL known profiles
+	AdjBarVars(to_profile)
+end
+
+local function Check_Titan_settings()
+	-- ==== Ensure Titan level settings are whole
 	if (TitanSettings) then
 		-- all is good
 	else
+		-- empty saved vars. New install or wipe
 		TitanSettings = {}
-		Titan_Global.dbg:Out("Menu", "TitanSettings {}")
+		Titan_Debug.Out('titan', 'profile', "TitanSettings {}")
 	end
 
 	-- check for player list per issue #745
 	if TitanSettings.Players then
 		-- all is good
 	else
-		TitanSettings.Players = {} -- empty saved vars. New install or wipe
-		Titan_Global.dbg:Out("Menu", "TitanSettings.Players {}")
+		TitanSettings.Players = {}
+		Titan_Debug.Out('titan', 'profile', "TitanSettings.Players {}")
+	end
+	-- ==== At minimum, THIS toon must exist
+	local profile = TitanUtils_GetPlayer() -- only need profile
+	if TitanSettings.Players[profile] == nil then
+		TitanSettings.Players[profile] = {}
+	else
+		-- exists, good
+	end
+
+	-- Info for THIS toon for display in Profile
+	if TitanSettings.Players[profile].Info == nil then
+		TitanSettings.Players[profile].Info = {}
+	else
+		-- exists, good
 	end
 
 	if (TitanAll) then
@@ -952,34 +1043,348 @@ function TitanVariables_InitTitanSettings()
 	else
 		TitanAll = {}
 	end
+end
 
-	Titan_Global.dbg:Out("Menu", "Sync Titan Panel saved variables with TitanAll")
+---local Check the given profile ensuring any profile pointed to exists;
+--- This updates ONLY profile settings
+---@param profile string
+local function TitanVariables_ValidateProfile(profile)
+	local toon = profile --
+	if toon == nil then -- sanity check to return something valid
+		toon = TitanUtils_GetPlayer()
+	end
+
+	local glob = (TitanAllGetVar("GlobalProfileUse") == true)
+	local sync = TitanSettings.Players[toon].Panel["SyncWithProfile"]
+
+	local gcheck = ""
+	local scheck = ""
+
+	local str = "_ValidateProfile [" .. tostring(profile) .. "]"
+	str = str
+		.. " > '" .. tostring(toon) .. "'"
+		.. " g'" .. tostring(glob) .. "'"
+		.. " s'" .. tostring(sync) .. "'"
+	Titan_Debug.Out('titan', 'profile', str)
+	--
+	-- Validate profile against settings
+
+	-- First Global
+	if glob then
+		gcheck = TitanAllGetVar("GlobalProfileName")
+		if TitanSettings.Players[gcheck] then
+			-- Referenced profile exists
+		else
+			-- Need to clear, the profile is not known...
+			TitanAllSetVar("GlobalProfileUse", false)
+			glob = false
+		end
+	else
+		-- not global
+	end
+
+	-- Second Sync
+	-- Checking this separately ensures profile settings in saved vars stays consistent when a user
+	-- mixes global and sync over time.
+	if not (sync == Titan_Global.profile.NONE) then
+		scheck = TitanSettings.Players[toon].Panel["SyncWithProfile"]
+		if TitanSettings.Players[scheck].Panel then
+			-- Referenced profile exists
+		else
+			-- Need to clear, the profile is not known...
+			TitanSettings.Players[toon].Panel["SyncWithProfile"] = Titan_Global.profile.NONE
+			sync = Titan_Global.profile.NONE
+		end
+	else
+		-- not sync
+	end
+
+	-- Third Toon
+	-- The PEW process Titan will ensure the toon is whole
+
+	str = "..._ValidateProfile [" .. tostring(toon) .. "]"
+		.. "g [" .. tostring(gcheck) .. "] > "
+		.. " '" .. tostring(glob) .. "'"
+		.. "s [" .. tostring(scheck) .. "] > "
+		.. " '" .. tostring(sync) .. "'"
+	Titan_Debug.Out('titan', 'profile', str)
+end
+
+---Titan Get the current profile per user settings with type and color-code version;
+--- Priority is Global; Sync; current toon
+---@param get_me string
+---@return Get_Profile_Result res Profile info
+function TitanVariables_GetProfile(get_me)
+	local ptype = ""
+	local profile = ""
+	local cprofile = ""
+	local res = {}
+	local toon = get_me --
+
+	local glob = (TitanAllGetVar("GlobalProfileUse") == true)
+	local sync = TitanSettings.Players[toon].Panel["SyncWithProfile"]
+
+	--
+	-- Gather profile data per settings
+	if glob then
+		-- Use the global toon user as set
+		ptype = Titan_Global.profile.GLOBAL
+		profile = TitanAllGetVar("GlobalProfileName")
+		cprofile = TitanUtils_GetHexText(profile, Titan_Global.colors.orange)
+	elseif (sync == Titan_Global.profile.NONE) then
+		-- Use the current player
+		ptype = Titan_Global.profile.TOON
+		profile = toon
+		cprofile = TitanUtils_GetHexText(profile, Titan_Global.colors.gold)
+	else
+		-- use the sync as set
+		ptype = Titan_Global.profile.SYNC
+		profile = sync
+		cprofile = TitanUtils_GetHexText(profile, Titan_Global.colors.green)
+	end
+
+	local str = "_GetProfile"
+		.. " " .. tostring(ptype) .. ""
+		.. " '" .. tostring(cprofile) .. "'"
+		.. " g'" .. tostring(glob) .. "'"
+		.. " s'" .. tostring(sync) .. "'"
+		.. " t'" .. tostring(toon) .. "'"
+	Titan_Debug.Out('titan', 'profile', str)
+
+	res.ptype = ptype
+	res.pname = profile
+	res.cname = cprofile
+--	res.sync = sync
+	return res
+end
+
+---Titan Set the profile per user settings
+---@param set_me? string Profile to set / update
+---@param ptype string Type of profile being set: Global | Sync | Toon
+---@param to_profile string Profile to use
+function TitanVariables_SetProfile(set_me, ptype, to_profile)
+	local str = "_SetProfile"
+		.. " [" .. tostring(set_me) .. "]"
+		.. " " .. tostring(ptype) .. ""
+		.. " to '" .. tostring(to_profile) .. "'"
+	Titan_Debug.Out('titan', 'profile', str)
+
+	-- Nov 2025 : The change to Sync only touched a nerve :); adding back Global override...
+	if ptype == Titan_Global.profile.GLOBAL then
+		TitanAllSetVar("GlobalProfileUse", true)
+		TitanAllSetVar("GlobalProfileName", to_profile)
+	elseif ptype == Titan_Global.profile.SYNC then
+		TitanSettings.Players[set_me].Panel["SyncWithProfile"] = to_profile
+	else
+		-- just current toon
+	end
+end
+
+--- Ensure the given toon is ready to accept profile values; sync to defaults
+---@param toon string Toon name <name>@<server>
+---@param toon_table table From TitanSettings (saved vars)
+local function Check_toon_settings(toon, toon_table)
+	local v = toon_table
+	local str = ""
+
+	if TitanSettings.Players[toon] == nil
+	or TitanSettings.Players[toon] == TITAN_PROFILE_RESET then
+		-- build debug output
+		str = "Init_player_settings"
+			.. " " .. tostring(TitanSettings.Players[toon]) .. ""
+			.. " " .. tostring("TitanSettings.Players[] {}") .. ""
+		Titan_Debug.Out('titan', 'profile', str)
+
+		-- Create the bare player tables so profile(s) can be added
+		TitanSettings.Players[toon] = {}
+
+		-- ptr changed
+		v = TitanSettings.Players[toon]
+	else
+		-- all is good
+		-- build debug output
+		str = "Init_player_settings"
+			.. " " .. tostring("TitanSettings.Players[] ") .. ""
+			.. " " .. tostring(toon) .. ""
+		Titan_Debug.Out('titan', 'profile', str)
+	end
+
+	-- The saved vars were grown organically over years making this section piece meal
+	Titan_Debug.Out('titan', 'profile', "Sync " .. toon .. " toon defaults (Panel)(BarVars)")
+	if v["Panel"] then
+		-- exists
+	else
+		v["Panel"] = {}
+	end
+	-- Note: the sync routine only ensures first level, NOT recursive
+	TitanVariables_SyncRegisterSavedVariables(TITAN_PANEL_SAVED_VARIABLES, v["Panel"])
+
+
+	-- ====== New Mar 2023 : TitanSettings.Players[player].BarData to hold Short bar data
+	Set_bar_vars(toon)
+
+	-- These are dynamically filled, just make sure the entry exists
+	if v.Plugins then
+		-- exists
+	else
+		v.Plugins = {}
+	end
+	if v.Register then
+		-- exists
+	else
+		v.Register = {}
+	end
+	if v.Adjust then -- New May 2023
+		-- exists
+	else
+		v.Adjust = {}
+	end
+
+	-- Toon is now ready to accept profile values
+end
+
+---Create an export string form a list of toons and whether to include Titan saved vars
+---@param export table
+---@param titan_all boolean
+---@return string export string
+function TitanVariables_CreateExport(export, titan_all)
+	local res = ""
+	local str = ""
+	local new_ex =
+	{
+		version = 1,
+		addon = "Titan_export",
+		titan_all = false,
+		toons = {}, -- list of toons exported
+	}
+
+	str = "_CreateExport"
+	.." ".. tostring(export) .. ""
+	.." ".. tostring(titan_all) .. ""
+	Titan_Debug.Out('titan', 'profile', "_CreateExport")
+
+	str = "... loop "..type(export).."\n"
+	if type(export) == 'table' then
+		for index, val in pairs(export) do
+			local added = false
+			str = str .."... toon".. " '" .. tostring(index) .. "'"
+			if val then
+				str = str.." include"
+				if TitanSettings.Players[index] then
+					new_ex.toons[index] = TitanSettings.Players[index]
+					added = true
+				else
+					-- no player?
+					added = false
+				end
+				str = str .. " + " .. tostring(added) .. ""
+			else
+				str = str.." exclude"
+			end
+			str = str.." \n"
+		end
+	else
+		-- something
+		str = str.."not table?? \n"
+	end
+	Titan_Debug.Out('titan', 'profile', str)
+
+	res = TitanUtils_CompressData(new_ex, "print")
+
+	str = "... result length ".. string.len(res).." bytes"
+	Titan_Debug.Out('titan', 'profile', str)
+	Titan_Debug.Out('titan', 'profile', "_CreateExport fini")
+
+	return res
+end
+
+function TitanVariables_ProcessImport(import)
+	local res = false
+	local str = ""
+	local new_im = {}
+	local ok = false
+
+	str = "_ProcessImport"
+	.." ".. type(import) .. ""
+	.." ".. string.len(import) .. ""
+	Titan_Debug.Out('titan', 'profile', "_CreateExport")
+
+	str = "... loop ".."\n"
+	if type(import) == 'string' then
+		-- decompress and make into a table...
+		ok, new_im = TitanUtils_DecompressData(import, "print")
+
+		if ok then
+			-- process any toons found by putting them into TitanSettings.Players
+			for index, val in pairs(new_im.toons) do
+				str = str .."... toon".. " '" .. tostring(index) .. "'"
+				if TitanSettings.Players[index] then
+					TitanSettings.Players[index] = nil -- likely not needed but safe
+				else
+					-- just add below
+				end
+				TitanSettings.Players[index] = val
+				str = str.." \n"
+			end
+			res = true -- all should be ok...
+		else
+			-- The decompress should have output an err...
+		end
+	else
+		-- something
+		str = str.."not string?? \n"
+	end
+	Titan_Debug.Out('titan', 'profile', str)
+
+	Titan_Debug.Out('titan', 'profile', "_ProcessImport fini")
+
+	return res
+end
+
+function TitanVariables_ProcessExport(export)
+end
+
+---Titan Ensure TitanSettings (one of the saved vars in the toc) exists and set the Titan version.
+--- Called early when processing PLAYER_ENTERING_WORLD event)
+function TitanVariables_InitTitanSettings()
+	local player = TitanUtils_GetPlayer()
+	Titan_Debug.Out('titan', 'profile', "_Init begin " .. tostring(player))
+
+	-- ==== Ensure Titan level settings are whole and contain this toon at min
+	Check_Titan_settings()
+
+	Titan_Debug.Out('titan', 'profile', "Sync TitanAll defaults")
 	TitanVariables_SyncRegisterSavedVariables(TITAN_ALL_SAVED_VARIABLES, TitanAll)
-	Titan_Global.dbg:Out("Menu", "> Sync Done")
+	--	Titan_Debug.Out('titan', 'profile', "> Sync Done")
 
-	Titan_Global.dbg:Out("Menu", "_Init end " .. tostring(player))
-
-	-- Current Titan list known - all toons player has profiles for
+	-- ==== Create Titan toon list and ensure settings are whole.
 	-- Sort in alphabetical order.
+	-- Sync *each* toon with defaults to ensure latest data changes are applied.
 	-- Used for menus.
-	Titan_Global.players = {}
+	local str = ""
 	for idx, v in pairs(TitanSettings.Players) do
-		table.insert(Titan_Global.players, idx)
+		if type(idx) == string then -- for sanity and IDE
+			table.insert(Titan_Global.players, idx)
+		end
+
+		-- Sync with defaults - in case of changed defaults
+		-- New Oct 2025 : All toons instead of current toon (Init_player_settings)
+		Titan_Debug.Out('titan', 'profile', "Sync " .. idx .. " toon defaults (Panel)(BarVars)")
+		Check_toon_settings(idx, v)
+
+		-- Ensure profile vars are proper
+		TitanVariables_ValidateProfile(idx)
 	end
 	table.sort(Titan_Global.players, function(a, b)
 		return a < b
 	end)
-	--[===[
-for idx = 1, #Titan_Global.players do
-	print("["..idx.."] : '"..Titan_Global.players[idx].."'")
-end
---]===]
 
 	TitanSettings.Version = TITAN_VERSION;
+
+	Titan_Debug.Out('titan', 'profile', "_Init end " .. tostring(player))
 end
 
 ---Titan Update local and saved vars to new bar position per user or reset to default
---- Called when Titan is loaded (ADDON_LOADED event)
 ---@param self table Bar frame
 ---@param reset boolean Set to default position
 ---@param x_off? number Set to X
@@ -1023,10 +1428,10 @@ function TitanVariables_GetBarPos(frame_str)
 end
 
 ---Titan Build the frame name from the bar name
----@param bar_str string Short bar name
+---@param bar_str string? Short bar name
 ---@return string is_icon Bar frame name
 function TitanVariables_GetFrameName(bar_str)
-	return TITAN_PANEL_DISPLAY_PREFIX .. bar_str
+	return tostring(TITAN_PANEL_DISPLAY_PREFIX) .. bar_str
 end
 
 ---local Original : lua-users.org/wiki/CopyTable
@@ -1047,42 +1452,6 @@ local function deepcopy(orig)
 	return copy
 end
 
----local Set the Titan bar settings of the given profile from saved variables
----@param to_profile string
---- If no profile found, use Titan defaults
-local function Set_bar_vars(to_profile)
-	if TitanSettings.Players[to_profile].BarVars then
-		-- All good
-		Titan_Global.dbg:Out("Menu", "Set_bar_vars found")
-	else
-		Titan_Global.dbg:Out("Menu", "Set_bar_vars init")
-		-- Set to defaults
-		TitanSettings.Players[to_profile].BarVars = TitanBarVarsDefaults
-		local BV = TitanSettings.Players[to_profile].BarVars
-
-		-- Cannot assume profile is current / cannot use Get Var routines.
-		local panel = TitanSettings.Players[to_profile].Panel
-
-		local tex = panel["TexturePath"]:gsub("TitanClassic", "Titan")
-		Titan_Global.dbg:Out("Menu", "tex path '" .. tex .. "'")
-
-		-- Bring original Titan bar optionss to the current user settings.
-		-- If this is a new toon or new saved vars then it will just get defaults.
-		for idx, v in pairs(TitanBarData) do
-			if v.user_move == false then
-				-- Set original Bar options from the 'old' saved vars location
-				BV[idx].show = panel[v.name .. "_Show"]
-				BV[idx].auto_hide = panel[v.name .. "_Hide"]
-				BV[idx].align = panel[v.name .. "_Align"]
-				-- only skins before 7.x
-				BV[idx].texure = Titan_Global.SKIN
-				BV[idx].skin.alpha = panel[v.name .. "_Transparency"]
-				BV[idx].skin.path = tex
-			end
-		end
-	end
-end
-
 ---local Use the Titan settings, the plugin settings, the 'extras' data of the given profile.
 ---@param from_profile string?
 ---@param to_profile string
@@ -1091,80 +1460,64 @@ end
 --- Create the "to" profile if it does not exist.
 local function Init_player_settings(from_profile, to_profile, action)
 	--[[
-- Called at PLAYER_ENTERING_WORLD event after we know Titan has registered plugins.
+- Called at PLAYER_ENTERING_WORLD event after Titan has registered plugins.
 - There are 3 actions: USE, RESET, and INIT
 - USE:
  From: the user chosen profile
- To: Player or Global profile
+ To: Player or profile
 - RESET:
  From: Titan defaults
- To: Player or Global profile
+ To: Player or profile
 - INIT:
  From: saved variables of that profile
  To: Player or Global profile
 	--]]
+	local str = "" -- for debug output
 	local old_player = {}
 	local old_panel = {}
 	local old_plugins = {}
 	local reset = (action == TITAN_PROFILE_RESET)
 
-	local msg = "Init_player_settings"
+	str = "Init_player_settings"
 		.. " from: " .. tostring(from_profile) .. ""
 		.. " to: " .. tostring(to_profile) .. ""
 		.. " action: " .. tostring(action) .. ""
-	Titan_Global.dbg:Out("Menu", msg)
+	Titan_Debug.Out('titan', 'profile', str)
 
 	CleanupProfile() -- hide currently shown plugins
 
-	if TitanSettings.Players[to_profile] then
-		-- all is good
+	if reset then
+		-- ensure the profile is rebuilt with defaults
+		TitanSettings.Players[to_profile] = nil
 	else
-		-- Create the bare player tables so profile(s) can be added
-		Titan_Global.dbg:Out("Menu", "TitanSettings.Players[] {}")
-		TitanSettings.Players[to_profile] = {}
-		TitanSettings.Players[to_profile].Plugins = {}
-		TitanSettings.Players[to_profile].Panel = TITAN_PANEL_SAVED_VARIABLES
-		TitanSettings.Players[to_profile].Panel.Buttons = {}
-		TitanSettings.Players[to_profile].Panel.Location = {}
-		TitanPlayerSettings = {}
-		TitanPlayerSettings["Plugins"] = {}
-		TitanPlayerSettings["Panel"] = {}
-		TitanPlayerSettings["Register"] = {}
-		TitanPlayerSettings["BarVars"] = TitanBarVarsDefaults -- New Mar 2023
-		TitanPlayerSettings["Adjust"] = {}              -- New May 2023
+		-- proceed
 	end
-	-- Set global variables
+
+	-- === Ensure we have a place to store profile, could be new toon or new install
+	Check_toon_settings(to_profile, TitanSettings.Players[to_profile])
+
+	-- Set variables used to reference this profile
 	TitanPlayerSettings = TitanSettings.Players[to_profile];
 	TitanPluginSettings = TitanPlayerSettings["Plugins"];
 	TitanPanelSettings = TitanPlayerSettings["Panel"];
-	TitanVariables_SyncRegisterSavedVariables(TITAN_PANEL_SAVED_VARIABLES, TitanPanelSettings)
 
 	-- ====== New May 2023 : Back to adjusting a couple frames per user settings
-	-- Could be new toon / ...
-	if TitanPlayerSettings["Adjust"] then
-		-- No action needed
-	else
-		TitanPlayerSettings["Adjust"] = {}
-	end
 	TitanAdjustSettings = TitanPlayerSettings["Adjust"]
 	Titan_SyncAdjList()
 	-- The player settings are known, init the adjustable frames
 	for idx, v in pairs(Titan_Global.AdjList) do
 		TitanPanel_AdjustFrameInit(idx)
 	end
+
 	-- ======
 
-	-- ====== New Mar 2023 : TitanSettings.Players[player].BarData to hold Short bar data
-	Set_bar_vars(to_profile)
-	-- ======
 	if action == TITAN_PROFILE_RESET then
-		-- default is global profile OFF
 		TitanAll = {}
 		TitanVariables_SyncRegisterSavedVariables(TITAN_ALL_SAVED_VARIABLES, TitanAll)
 	elseif action == TITAN_PROFILE_INIT then
 		--	
 	elseif action == TITAN_PROFILE_USE then
-		-- Copy from the from_profile to profile - not anything in saved vars
+		-- Copy the from_profile to profile - not anything in saved vars
 
 		if from_profile and TitanSettings.Players[from_profile] then
 			old_player = TitanSettings.Players[from_profile]
@@ -1176,21 +1529,9 @@ local function Init_player_settings(from_profile, to_profile, action)
 				old_plugins = old_player["Plugins"]
 			end
 
-			-- Ensure the old profile Bar data is whole...
-			Set_bar_vars(from_profile)
+			-- Get the profile Bar data...
 			TitanSettings.Players[to_profile]["BarVars"] = deepcopy(old_player["BarVars"])
---[[
-			if Titan_Global.dbg:EnableTopic("Menu") then
-				-- Apply the new bar positions
-				for idx, v in pairs(TitanBarData) do
-					local str = "BarVars "
-						.. " " .. tostring(v.name) .. ""
-						.. " " .. tostring(TitanSettings.Players[from_profile]["BarVars"][idx].show) .. ""
-						.. " " .. tostring(TitanSettings.Players[to_profile]["BarVars"][idx].show) .. ""
-					Titan_Global.dbg:Out("Menu", str)
-				end
-			end
---]]
+
 			-- Copy the panel settings
 			for index, id in pairs(old_panel) do
 				TitanPanelSetVar(index, old_panel[index]);
@@ -1206,16 +1547,20 @@ local function Init_player_settings(from_profile, to_profile, action)
 	end
 
 	TitanBarDataVars = TitanPlayerSettings["BarVars"] -- works here, after setting BarVars
+	-- build debug output
+	str = "Init_player_settings"
+		.. " " .. tostring("BarVars now set") .. ""
+	Titan_Debug.Out('titan', 'profile', str)
 
 	if (TitanPlayerSettings) then
+		-- build debug output
+		str = "Init_player_settings"
+			.. " " .. tostring("_SyncPluginSettings") .. ""
+		Titan_Debug.Out('titan', 'profile', str)
 		-- Synchronize plugin settings with plugins that were registered
 		TitanVariables_SyncPluginSettings()
 		-- Display the plugins the user selected AND are registered
-		if reset then
-			Plugin_settings(reset)
-		else
-			TitanVariables_PluginSettingsInit()
-		end
+		TitanVariables_PluginSettingsInit()
 	end
 
 	TitanSkins = TitanVariables_SyncSkins()
@@ -1223,15 +1568,8 @@ local function Init_player_settings(from_profile, to_profile, action)
 	Set_Timers(reset)
 
 	-- for debug if a user needs to send in the Titan saved vars
-	if TitanPlayerSettings["Register"] then
-		-- From WoW saved vars
-	else
-		-- New install or after reset
-		TitanPlayerSettings["Register"] = {}
-	end
-	TitanPanelRegister = TitanPlayerSettings["Register"]
-
-	TitanSettings.Profile = to_profile
+--	TitanPanelRegister = TitanPlayerSettings["Register"]
+	TitanPlayerSettings["Register"] = nil
 end
 
 ---API Get the value of the requested plugin variable.
@@ -1388,49 +1726,114 @@ end
 
 ---Titan Set the Titan variables and plugin variables to the passed in profile.
 --- Called from the Titan right click menu
---- profile is compared as 'lower' so the case of profile does not matter
----@param profile? string name
----@param action string Use | Reset
-function TitanVariables_UseSettings(profile, action)
-	local from_profile = nil
+--- profile is compared using 'lower' so the case does not matter
+---@param from? string profile to copy from
+---@param profile string required: profile to use, may not be player!
+---@param action string Use | Reset | Init
+function TitanVariables_UseSettings(from, profile, action)
+	local str = "" -- for debug output if requested
+	local _ = nil -- for scope; do not care about this value
+
+	-- Oct and Dec 2025 : 
+	-- Added 'from' to be explicit when Load of a source profile
+	-- Profile param is now required - usually current player
+	-- The target profile could be overridden per global or sync featuresettings
+
+	local from_profile = from
+
+	str = "_UseSettings"
+		.. " " .. tostring(action) .. ""
+		.. " : '" .. tostring(from) .. "'"
+		.. " > '" .. tostring(profile) .. "'"
+	Titan_Debug.Out('titan', 'profile', str)
+
+	-- ==== Determine the profile to use based on profile settings
+	local profile_info = TitanVariables_GetProfile(profile)
+	local profile_name = profile_info.pname
+	--[[
 	if action == TITAN_PROFILE_USE then
-		-- Grab the old profile currently in use
-		from_profile = profile or nil
-	end
-
-	local _ = nil
-	local glob, name, player, server = TitanUtils_GetGlobalProfile()
-	-- Get the profile according to the user settings
-	if glob then
-		profile = name                   -- Use global toon
+		local profile_info = TitanVariables_GetProfile(profile)
+		profile_name = profile_info.pname
+	elseif action == TITAN_PROFILE_RESET then
+		profile_name = profile
 	else
-		profile, _, _ = TitanUtils_GetPlayer() -- Use current toon
+		-- action == TITAN_PROFILE_INIT
+		-- OR something bad; use curent toon
+		if profile == nil then
+			-- Likely login of current toon
+			profile, _, _ = TitanUtils_GetPlayer()
+		else
+			-- Use what was given
+		end
+		str = "_UseSettings - init check"
+			.. " for '" .. tostring(profile) .. "'"
+		Titan_Debug.Out('titan', 'profile', str)
+		local profile_info = TitanVariables_GetProfile(profile)
+		profile_name = profile_info.pname
 	end
-
+	--]]
+--[[
+	-- User setting 'sync with' will cause profile to change to the user selected sync.
+	if action == TITAN_PROFILE_USE then
+		-- Will copy profile to current toon
+		-- Assumed to be NOT nil!
+		profile = profile_name
+	elseif action == TITAN_PROFILE_RESET then
+		-- Nuke given profile to defaults
+		-- Reset will clear global for ALL toons
+	else
+		-- action == TITAN_PROFILE_INIT
+		-- OR something bad; use curent toon
+		if profile == nil then
+			-- Likely login of current toon
+			profile, _, _ = TitanUtils_GetPlayer()
+		else
+			-- Use what was given
+		end
+		str = "_UseSettings - init check"
+			.. " for '" .. tostring(profile) .. "'"
+		Titan_Debug.Out('titan', 'profile', str)
+		profile = Check_sync_profile(profile)
+	end
+--]]
 	-- Find the profile in a case insensitive manner
 	local new_profile = ""
-	profile = string.lower(profile)
+	profile_name = string.lower(profile_name)
 	for index, id in pairs(TitanSettings.Players) do
-		if profile == string.lower(index) then
+		if profile_name == string.lower(index) then
 			new_profile = index
 		end
 	end
 	if new_profile == "" then
-		-- Assume we need the current player
-		new_profile = TitanUtils_GetPlayer() --TitanSettings.Player
-		-- And it needs to be created
+		-- new toon to Titan; needs to be created
+		new_profile = TitanUtils_GetPlayer()
 		action = TITAN_PROFILE_RESET
 	end
 
 	-- Now that we know what profile to use - act on the data
+	str = "_UseSettings"
+		.. " " .. tostring(action) .. ""
+		.. " from '" .. tostring(from_profile) .. "'"
+		.. " to '" .. tostring(new_profile) .. "'"
+	Titan_Debug.Out('titan', 'profile', str)
 	Init_player_settings(from_profile, new_profile, action)
 
 	-- set strata in case it has changed
 	TitanVariables_SetPanelStrata(TitanPanelGetVar("FrameStrata"))
 
 	-- show the new profile
+--[[
+	-- build debug output
+	str = "...init bars"
+		.. " " .. tostring(action) .. ""
+	Titan_Debug.Out('titan', 'profile', str)
 	TitanPanel_InitPanelBarButton("UseSettings");
-	TitanPanel_InitPanelButtons();
+--]]
+	-- build debug output
+	str = "...init plugins on bars"
+		.. " " .. tostring(action) .. ""
+	Titan_Debug.Out('titan', 'profile', str)
+	TitanPanel_InitPanelButtons("_UseSettings");
 end
 
 -- decrecated routines

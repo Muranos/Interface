@@ -4,7 +4,7 @@
 
 local mod, CL = BigWigs:NewBoss("Temple of the Jade Serpent Trash", 960)
 if not mod then return end
-mod.displayName = CL.trash
+mod:SetTrashModule(true)
 mod:RegisterEnableMob(
 	59873,  -- Corrupt Living Water
 	200126, -- Fallen Waterspeaker
@@ -44,95 +44,113 @@ end
 -- Initialization
 --
 
-function mod:GetOptions()
-	return {
-		-- Corrupt Living Water
-		397881, -- Surging Deluge
-		397878, -- Tainted Ripple
-		-- Fallen Waterspeaker
-		397889, -- Tidal Burst
-		-- Haunting Sha
-		395859, -- Haunting Scream
-		{114646, "TANK"}, -- Haunting Gaze
-		-- The Talking Fish
-		{395872, "DISPEL"}, -- Sleepy Soliloquy
-		-- The Songbird Queen
-		396001, -- Territorial Display
-		-- The Crybaby Hozen
-		{396018, "DISPEL"}, -- Fit of Rage
-		-- The Nodding Tiger
-		396073, -- Cat Nap
-		-- The Golden Beetle
-		{396020, "DISPEL"}, -- Golden Barrier
-		-- Sha-Touched Guardian
-		397899, -- Leg Sweep
-		-- Depraved Mistweaver
-		{397911, "DISPEL"}, -- Touch of Ruin
-		397914, -- Defiling Mist
-		-- Shambling Infester
-		398300, -- Flames of Doubt
-		-- Minion of Doubt
-		{397931, "TANK"}, -- Dark Claw
-		{110125, "DISPEL"}, -- Shattered Resolve
-	}, {
-		[397881] = L.corrupt_living_water,
-		[397889] = L.fallen_waterspeaker,
-		[395859] = L.haunting_sha,
-		[395872] = L.the_talking_fish,
-		[396001] = L.the_songbird_queen,
-		[396018] = L.the_crybaby_hozen,
-		[396073] = L.the_nodding_tiger,
-		[396020] = L.the_golden_beetle,
-		[397899] = L.sha_touched_guardian,
-		[397911] = L.depraved_mistweaver,
-		[398300] = L.shambling_infester,
-		[397931] = L.minion_of_doubt,
-	}
+if mod:Retail() then -- Dragonflight+
+	function mod:GetOptions()
+		return {
+			-- Corrupt Living Water
+			397881, -- Surging Deluge
+			397878, -- Tainted Ripple
+			-- Fallen Waterspeaker
+			397889, -- Tidal Burst
+			-- Haunting Sha
+			395859, -- Haunting Scream
+			{114646, "TANK"}, -- Haunting Gaze
+			-- The Talking Fish
+			{395872, "DISPEL"}, -- Sleepy Soliloquy
+			-- The Songbird Queen
+			396001, -- Territorial Display
+			-- The Crybaby Hozen
+			{396018, "DISPEL"}, -- Fit of Rage
+			-- The Nodding Tiger
+			396073, -- Cat Nap
+			-- The Golden Beetle
+			{396020, "DISPEL"}, -- Golden Barrier
+			-- Sha-Touched Guardian
+			397899, -- Leg Sweep
+			-- Depraved Mistweaver
+			{397911, "DISPEL"}, -- Touch of Ruin
+			397914, -- Defiling Mist
+			-- Shambling Infester
+			398300, -- Flames of Doubt
+			-- Minion of Doubt
+			{397931, "TANK"}, -- Dark Claw
+			{110125, "DISPEL"}, -- Shattered Resolve
+		}, {
+			[397881] = L.corrupt_living_water,
+			[397889] = L.fallen_waterspeaker,
+			[395859] = L.haunting_sha,
+			[395872] = L.the_talking_fish,
+			[396001] = L.the_songbird_queen,
+			[396018] = L.the_crybaby_hozen,
+			[396073] = L.the_nodding_tiger,
+			[396020] = L.the_golden_beetle,
+			[397899] = L.sha_touched_guardian,
+			[397911] = L.depraved_mistweaver,
+			[398300] = L.shambling_infester,
+			[397931] = L.minion_of_doubt,
+		}
+	end
+else -- Classic Mists through Shadowlands
+	function mod:GetOptions()
+		return {
+			-- Minion of Doubt
+			{110125, "DISPEL"}, -- Shattered Resolve
+			110099, -- Shadows of Doubt
+		}, {
+			[110125] = L.minion_of_doubt,
+		}
+	end
 end
 
 function mod:OnBossEnable()
-	-- Corrupt Living Water
-	self:Log("SPELL_CAST_START", "SurgingDeluge", 397881)
-	self:Log("SPELL_CAST_START", "TaintedRipple", 397878)
+	if self:Retail() then -- Dragonflight+
+		-- Corrupt Living Water
+		self:Log("SPELL_CAST_START", "SurgingDeluge", 397881)
+		self:Log("SPELL_CAST_START", "TaintedRipple", 397878)
 
-	-- Fallen Waterspeaker
-	self:Log("SPELL_CAST_START", "TidalBurst", 397889)
+		-- Fallen Waterspeaker
+		self:Log("SPELL_CAST_START", "TidalBurst", 397889)
 
-	-- Haunting Sha
-	self:Log("SPELL_CAST_START", "HauntingScream", 395859)
-	self:Log("SPELL_CAST_START", "HauntingGaze", 114646)
+		-- Haunting Sha
+		self:Log("SPELL_CAST_START", "HauntingScream", 395859)
+		self:Log("SPELL_CAST_START", "HauntingGaze", 114646)
 
-	-- The Talking Fish
-	self:Log("SPELL_CAST_START", "SleepySoliloquy", 395872)
-	self:Log("SPELL_AURA_APPLIED", "SleepySoliloquyApplied", 395872)
+		-- The Talking Fish
+		self:Log("SPELL_CAST_START", "SleepySoliloquy", 395872)
+		self:Log("SPELL_AURA_APPLIED", "SleepySoliloquyApplied", 395872)
 
-	-- The Songbird Queen
-	self:Log("SPELL_CAST_START", "TerritorialDisplay", 396001)
+		-- The Songbird Queen
+		self:Log("SPELL_CAST_START", "TerritorialDisplay", 396001)
 
-	-- The Crybaby Hozen
-	self:Log("SPELL_CAST_START", "FitOfRage", 396018)
-	self:Log("SPELL_AURA_APPLIED", "FitOfRageApplied", 396018)
+		-- The Crybaby Hozen
+		self:Log("SPELL_CAST_START", "FitOfRage", 396018)
+		self:Log("SPELL_AURA_APPLIED", "FitOfRageApplied", 396018)
 
-	-- The Nodding Tiger
-	self:Log("SPELL_CAST_START", "CatNap", 396073)
+		-- The Nodding Tiger
+		self:Log("SPELL_CAST_START", "CatNap", 396073)
 
-	-- The Golden Beetle
-	self:Log("SPELL_CAST_START", "GoldenBarrier", 396020)
-	self:Log("SPELL_AURA_APPLIED", "GoldenBarrierApplied", 396020)
+		-- The Golden Beetle
+		self:Log("SPELL_CAST_START", "GoldenBarrier", 396020)
+		self:Log("SPELL_AURA_APPLIED", "GoldenBarrierApplied", 396020)
 
-	-- Sha-Touched Guardian
-	self:Log("SPELL_AURA_APPLIED", "TouchOfRuinApplied", 397911)
-	self:Log("SPELL_AURA_APPLIED", "TouchOfRuinAbsorbApplied", 397936)
-	self:Log("SPELL_CAST_START", "LegSweep", 397899)
+		-- Sha-Touched Guardian
+		self:Log("SPELL_AURA_APPLIED", "TouchOfRuinApplied", 397911)
+		self:Log("SPELL_AURA_APPLIED", "TouchOfRuinAbsorbApplied", 397936)
+		self:Log("SPELL_CAST_START", "LegSweep", 397899)
 
-	-- Depraved Mistweaver
-	self:Log("SPELL_CAST_START", "DefilingMist", 397914)
+		-- Depraved Mistweaver
+		self:Log("SPELL_CAST_START", "DefilingMist", 397914)
 
-	-- Shambling Infester
-	self:Log("SPELL_CAST_START", "FlamesOfDoubt", 398300)
+		-- Shambling Infester
+		self:Log("SPELL_CAST_START", "FlamesOfDoubt", 398300)
 
-	-- Minion of Doubt
-	self:Log("SPELL_CAST_START", "DarkClaw", 397931)
+		-- Minion of Doubt
+		self:Log("SPELL_CAST_START", "DarkClaw", 397931)
+	else -- Classic Mists through Shadowlands
+		self:Log("SPELL_AURA_APPLIED", "ShadowsOfDoubtDamage", 110099)
+		self:Log("SPELL_PERIODIC_DAMAGE", "ShadowsOfDoubtDamage", 110099)
+		self:Log("SPELL_PERIODIC_MISSED", "ShadowsOfDoubtDamage", 110099)
+	end
 	self:Log("SPELL_AURA_APPLIED", "ShatteredResolveApplied", 110125)
 end
 
@@ -272,9 +290,27 @@ function mod:DarkClaw(args)
 	self:PlaySound(args.spellId, "alert")
 end
 
+do
+	local prev = 0
+	function mod:ShadowsOfDoubtDamage(args)
+		if self:Me(args.destGUID) and args.time - prev > 1.5 then -- 1s tick rate
+			prev = args.time
+			self:PersonalMessage(args.spellId, "underyou")
+			self:PlaySound(args.spellId, "underyou")
+		end
+	end
+end
+
 function mod:ShatteredResolveApplied(args)
-	if self:Dispeller("curse", nil, args.spellId) then
-		self:TargetMessage(args.spellId, "red", args.destName)
-		self:PlaySound(args.spellId, "alert", nil, args.destName)
+	if self:Retail() then -- Dragonflight+
+		if self:Dispeller("curse", nil, args.spellId) then
+			self:TargetMessage(args.spellId, "red", args.destName)
+			self:PlaySound(args.spellId, "alert", nil, args.destName)
+		end
+	else -- Classic Mists through Shadowlands
+		if self:Dispeller("magic", nil, args.spellId) then
+			self:TargetMessage(args.spellId, "red", args.destName)
+			self:PlaySound(args.spellId, "alert", nil, args.destName)
+		end
 	end
 end

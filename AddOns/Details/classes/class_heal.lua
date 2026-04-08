@@ -191,8 +191,8 @@ function healingClass:ContainerRefreshHps (container, combat_time)
 	return total
 end
 
-function healingClass:ReportSingleDamagePreventedLine (actor, instancia)
-	local barra = instancia.barras [actor.minha_barra]
+function healingClass:ReportSingleDamagePreventedLine (actor, instance)
+	local barra = instance.barras [actor.minha_barra]
 
 	local reportar = {"Details!: " .. actor.nome .. " - " .. Loc ["STRING_ATTRIBUTE_HEAL_PREVENT"]}
 	for i = 2, GameCooltip:GetNumLines()-2 do
@@ -206,27 +206,39 @@ function healingClass:ReportSingleDamagePreventedLine (actor, instancia)
 	return _detalhes:Reportar (reportar, {_no_current = true, _no_inverse = true, _custom = true})
 end
 
-function healingClass:RefreshWindow (instancia, tabela_do_combate, forcar, exportar)
+function healingClass:RefreshWindow (instance, tabela_do_combate, forcar, exportar)
+	if detailsFramework.IsAddonApocalypseWow() then
+		if Details:IsUsingBlizzardAPI(instance) then
+			Details222.BParser.UpdateAppocalypse(instance, forcar)
+			return
+		end
+	end
+
+	--if not Details222.UpdateIsAllowed() then return end --temporary stop updates in th new dlc
 
 	local showing = tabela_do_combate [class_type] --o que esta sendo mostrado -> [1] - dano [2] - cura
 
 	--n�o h� barras para mostrar -- not have something to show
 	if (#showing._ActorTable < 1) then --n�o h� barras para mostrar
 		--colocado isso recentemente para fazer as barras de dano sumirem na troca de atributo
-		return _detalhes:HideBarsNotInUse(instancia, showing), "", 0, 0
+		return _detalhes:HideBarsNotInUse(instance, showing), "", 0, 0
 	end
 
 	--total
 	local total = 0
 	--top actor #1
-	instancia.top = 0
+	instance.top = 0
 
 	local using_cache = false
 
-	local sub_atributo = instancia.sub_atributo --o que esta sendo mostrado nesta inst�ncia
+	local sub_atributo = instance.sub_atributo --o que esta sendo mostrado nesta inst�ncia
 	local conteudo = showing._ActorTable
 	local amount = #conteudo
-	local modo = instancia.modo
+	local modo = instance.modo
+
+	if detailsFramework.IsAddonApocalypseWow() then
+		instance:CheckForSecretsAndAspects()
+	end
 
 	--pega qual a sub key que ser� usada
 	if (exportar) then
@@ -251,9 +263,9 @@ function healingClass:RefreshWindow (instancia, tabela_do_combate, forcar, expor
 			keyName = exportar.key
 			modo = exportar.modo
 		end
-	elseif (instancia.atributo == 5) then --custom
+	elseif (instance.atributo == 5) then --custom
 		keyName = "custom"
-		total = tabela_do_combate.totals [instancia.customName]
+		total = tabela_do_combate.totals [instance.customName]
 	else
 		if (sub_atributo == 1) then --healing DONE
 			keyName = "total"
@@ -272,19 +284,19 @@ function healingClass:RefreshWindow (instancia, tabela_do_combate, forcar, expor
 		end
 	end
 
-	if (instancia.atributo == 5) then --custom
+	if (instance.atributo == 5) then --custom
 		--faz o sort da categoria e retorna o amount corrigido
 		amount = _detalhes:ContainerSortHeal (conteudo, amount, keyName)
 
 		--grava o total
-		instancia.top = conteudo[1][keyName]
+		instance.top = conteudo[1][keyName]
 
-	elseif (instancia.modo == modo_ALL or sub_atributo == 5 or sub_atributo == 7) then --mostrando ALL
+	elseif (instance.modo == modo_ALL or sub_atributo == 5 or sub_atributo == 7) then --mostrando ALL
 
 		amount = _detalhes:ContainerSortHeal (conteudo, amount, keyName)
 
 		if (sub_atributo == 2) then --hps
-			local combat_time = instancia.showing:GetCombatTime()
+			local combat_time = instance.showing:GetCombatTime()
 			total = healingClass:ContainerRefreshHps (conteudo, combat_time)
 		else
 			--pega o total ja aplicado na tabela do combate
@@ -292,11 +304,11 @@ function healingClass:RefreshWindow (instancia, tabela_do_combate, forcar, expor
 		end
 
 		--grava o total
-		instancia.top = conteudo[1][keyName]
+		instance.top = conteudo[1][keyName]
 
-	elseif (instancia.modo == modo_GROUP) then --mostrando GROUP
+	elseif (instance.modo == modo_GROUP) then --mostrando GROUP
 
-		if (_detalhes.in_combat and instancia.segmento == 0 and not exportar) then
+		if (_detalhes.in_combat and instance.segmento == 0 and not exportar) then
 			using_cache = true
 		end
 
@@ -304,12 +316,12 @@ function healingClass:RefreshWindow (instancia, tabela_do_combate, forcar, expor
 			conteudo = _detalhes.cache_healing_group
 
 			if (sub_atributo == 2) then --hps
-				local combat_time = instancia.showing:GetCombatTime()
+				local combat_time = instance.showing:GetCombatTime()
 				healingClass:ContainerRefreshHps (conteudo, combat_time)
 			end
 
 			if (#conteudo < 1) then
-				return _detalhes:HideBarsNotInUse(instancia, showing), "", 0, 0
+				return _detalhes:HideBarsNotInUse(instance, showing), "", 0, 0
 			end
 
 			_detalhes:ContainerSortHeal (conteudo, nil, keyName)
@@ -317,7 +329,7 @@ function healingClass:RefreshWindow (instancia, tabela_do_combate, forcar, expor
 			if (conteudo[1][keyName] < 1) then
 				amount = 0
 			else
-				instancia.top = conteudo[1][keyName]
+				instance.top = conteudo[1][keyName]
 				amount = #conteudo
 			end
 
@@ -327,7 +339,7 @@ function healingClass:RefreshWindow (instancia, tabela_do_combate, forcar, expor
 
 		else
 			if (sub_atributo == 2) then --hps
-				local combat_time = instancia.showing:GetCombatTime()
+				local combat_time = instance.showing:GetCombatTime()
 				healingClass:ContainerRefreshHps (conteudo, combat_time)
 			end
 
@@ -341,7 +353,7 @@ function healingClass:RefreshWindow (instancia, tabela_do_combate, forcar, expor
 						amount = index - 1
 						break
 					elseif (index == 1) then --esse IF aqui, precisa mesmo ser aqui? n�o daria pra pega-lo com uma chave [1] nad grupo == true?
-						instancia.top = conteudo[1][keyName]
+						instance.top = conteudo[1][keyName]
 					end
 
 					total = total + player[keyName]
@@ -359,25 +371,25 @@ function healingClass:RefreshWindow (instancia, tabela_do_combate, forcar, expor
 	showing:remapear()
 
 	if (exportar) then
-		return total, keyName, instancia.top, amount
+		return total, keyName, instance.top, amount
 	end
 
 	if (amount < 1) then --n�o h� barras para mostrar
-		instancia:EsconderScrollBar()
-		return _detalhes:EndRefresh (instancia, total, tabela_do_combate, showing) --retorna a tabela que precisa ganhar o refresh
+		instance:EsconderScrollBar()
+		return _detalhes:EndRefresh (instance, total, tabela_do_combate, showing) --retorna a tabela que precisa ganhar o refresh
 	end
 
 	--estra mostrando ALL ent�o posso seguir o padr�o correto? primeiro, atualiza a scroll bar...
-	instancia:RefreshScrollBar (amount)
+	instance:RefreshScrollBar (amount)
 
 	--depois faz a atualiza��o normal dele atrav�s dos iterators
 	local whichRowLine = 1
-	local barras_container = instancia.barras --evita buscar N vezes a key .barras dentro da inst�ncia
-	local percentage_type = instancia.row_info.percent_type
-	local bars_show_data = instancia.row_info.textR_show_data
-	local bars_brackets = instancia:GetBarBracket()
-	local bars_separator = instancia:GetBarSeparator()
-	local baseframe = instancia.baseframe
+	local barras_container = instance.barras --evita buscar N vezes a key .barras dentro da inst�ncia
+	local percentage_type = instance.row_info.percent_type
+	local bars_show_data = instance.row_info.textR_show_data
+	local bars_brackets = instance:GetBarBracket()
+	local bars_separator = instance:GetBarSeparator()
+	local baseframe = instance.baseframe
 
 	local use_animations = _detalhes.is_using_row_animations and (not baseframe.isStretching and not forcar and not baseframe.isResizing)
 
@@ -386,7 +398,7 @@ function healingClass:RefreshWindow (instancia, tabela_do_combate, forcar, expor
 	end
 
 	local myPos
-	local following = instancia.following.enabled
+	local following = instance.following.enabled
 
 	if (following) then
 		if (using_cache) then
@@ -402,95 +414,95 @@ function healingClass:RefreshWindow (instancia, tabela_do_combate, forcar, expor
 		end
 	end
 
-	local combat_time = instancia.showing:GetCombatTime()
-	UsingCustomLeftText = instancia.row_info.textL_enable_custom_text
-	UsingCustomRightText = instancia.row_info.textR_enable_custom_text
+	local combat_time = instance.showing:GetCombatTime()
+	UsingCustomLeftText = instance.row_info.textL_enable_custom_text
+	UsingCustomRightText = instance.row_info.textR_enable_custom_text
 
 	local use_total_bar = false
-	if (instancia.total_bar.enabled) then
+	if (instance.total_bar.enabled) then
 		use_total_bar = true
 
-		if (instancia.total_bar.only_in_group and (not IsInGroup() and not IsInRaid())) then
+		if (instance.total_bar.only_in_group and (not IsInGroup() and not IsInRaid())) then
 			use_total_bar = false
 		end
 	end
 
-	if (instancia.bars_sort_direction == 1) then --top to bottom
+	if (instance.bars_sort_direction == 1) then --top to bottom
 
-		if (use_total_bar and instancia.barraS[1] == 1) then
+		if (use_total_bar and instance.barraS[1] == 1) then
 
 			whichRowLine = 2
-			local iter_last = instancia.barraS[2]
-			if (iter_last == instancia.rows_fit_in_window) then
+			local iter_last = instance.barraS[2]
+			if (iter_last == instance.rows_fit_in_window) then
 				iter_last = iter_last - 1
 			end
 
 			local row1 = barras_container [1]
 			row1.minha_tabela = nil
 			row1.lineText1:SetText(Loc ["STRING_TOTAL"])
-			if (instancia.use_multi_fontstrings) then
-				instancia:SetInLineTexts(row1, "", _detalhes:ToK2 (total), _detalhes:ToK (total / combat_time))
+			if (instance.use_multi_fontstrings) then
+				instance:SetInLineTexts(row1, "", _detalhes:ToK2 (total), _detalhes:ToK (total / combat_time))
 			else
 				row1.lineText4:SetText(_detalhes:ToK2 (total) .. " (" .. _detalhes:ToK (total / combat_time) .. ")")
 			end
 
 			row1:SetValue(100)
-			local r, g, b = unpack(instancia.total_bar.color)
+			local r, g, b = unpack(instance.total_bar.color)
 			row1.textura:SetVertexColor(r, g, b)
 
-			row1.icone_classe:SetTexture(instancia.total_bar.icon)
+			row1.icone_classe:SetTexture(instance.total_bar.icon)
 			row1.icone_classe:SetTexCoord(0.0625, 0.9375, 0.0625, 0.9375)
 
 			Details.FadeHandler.Fader(row1, "out")
 
-			if (following and myPos and myPos+1 > instancia.rows_fit_in_window and instancia.barraS[2] < myPos+1) then
-				for i = instancia.barraS[1], iter_last-1, 1 do --vai atualizar s� o range que esta sendo mostrado
+			if (following and myPos and myPos+1 > instance.rows_fit_in_window and instance.barraS[2] < myPos+1) then
+				for i = instance.barraS[1], iter_last-1, 1 do --vai atualizar s� o range que esta sendo mostrado
 					if (conteudo[i]) then
-						conteudo[i]:RefreshLine(instancia, barras_container, whichRowLine, i, total, sub_atributo, forcar, keyName, combat_time, percentage_type, use_animations, bars_show_data, bars_brackets, bars_separator)
+						conteudo[i]:RefreshLine(instance, barras_container, whichRowLine, i, total, sub_atributo, forcar, keyName, combat_time, percentage_type, use_animations, bars_show_data, bars_brackets, bars_separator)
 						whichRowLine = whichRowLine+1
 					end
 				end
 
-				conteudo[myPos]:RefreshLine(instancia, barras_container, whichRowLine, myPos, total, sub_atributo, forcar, keyName, combat_time, percentage_type, use_animations, bars_show_data, bars_brackets, bars_separator)
+				conteudo[myPos]:RefreshLine(instance, barras_container, whichRowLine, myPos, total, sub_atributo, forcar, keyName, combat_time, percentage_type, use_animations, bars_show_data, bars_brackets, bars_separator)
 				whichRowLine = whichRowLine+1
 			else
 
-				for i = instancia.barraS[1], iter_last, 1 do --vai atualizar s� o range que esta sendo mostrado
+				for i = instance.barraS[1], iter_last, 1 do --vai atualizar s� o range que esta sendo mostrado
 					if (conteudo[i]) then
-						conteudo[i]:RefreshLine(instancia, barras_container, whichRowLine, i, total, sub_atributo, forcar, keyName, combat_time, percentage_type, use_animations, bars_show_data, bars_brackets, bars_separator)
+						conteudo[i]:RefreshLine(instance, barras_container, whichRowLine, i, total, sub_atributo, forcar, keyName, combat_time, percentage_type, use_animations, bars_show_data, bars_brackets, bars_separator)
 						whichRowLine = whichRowLine+1
 					end
 				end
 			end
 
 		else
-			if (following and myPos and myPos > instancia.rows_fit_in_window and instancia.barraS[2] < myPos) then
-				for i = instancia.barraS[1], instancia.barraS[2]-1, 1 do --vai atualizar s� o range que esta sendo mostrado
+			if (following and myPos and myPos > instance.rows_fit_in_window and instance.barraS[2] < myPos) then
+				for i = instance.barraS[1], instance.barraS[2]-1, 1 do --vai atualizar s� o range que esta sendo mostrado
 					if (conteudo[i]) then
-						conteudo[i]:RefreshLine(instancia, barras_container, whichRowLine, i, total, sub_atributo, forcar, keyName, combat_time, percentage_type, use_animations, bars_show_data, bars_brackets, bars_separator)
+						conteudo[i]:RefreshLine(instance, barras_container, whichRowLine, i, total, sub_atributo, forcar, keyName, combat_time, percentage_type, use_animations, bars_show_data, bars_brackets, bars_separator)
 						whichRowLine = whichRowLine+1
 					end
 				end
 
-				conteudo[myPos]:RefreshLine(instancia, barras_container, whichRowLine, myPos, total, sub_atributo, forcar, keyName, combat_time, percentage_type, use_animations, bars_show_data, bars_brackets, bars_separator)
+				conteudo[myPos]:RefreshLine(instance, barras_container, whichRowLine, myPos, total, sub_atributo, forcar, keyName, combat_time, percentage_type, use_animations, bars_show_data, bars_brackets, bars_separator)
 				whichRowLine = whichRowLine+1
 			else
-				for i = instancia.barraS[1], instancia.barraS[2], 1 do --vai atualizar s� o range que esta sendo mostrado
+				for i = instance.barraS[1], instance.barraS[2], 1 do --vai atualizar s� o range que esta sendo mostrado
 					if (conteudo[i]) then
-						conteudo[i]:RefreshLine(instancia, barras_container, whichRowLine, i, total, sub_atributo, forcar, keyName, combat_time, percentage_type, use_animations, bars_show_data, bars_brackets, bars_separator)
+						conteudo[i]:RefreshLine(instance, barras_container, whichRowLine, i, total, sub_atributo, forcar, keyName, combat_time, percentage_type, use_animations, bars_show_data, bars_brackets, bars_separator)
 						whichRowLine = whichRowLine+1
 					end
 				end
 			end
 		end
 
-	elseif (instancia.bars_sort_direction == 2) then --bottom to top
+	elseif (instance.bars_sort_direction == 2) then --bottom to top
 
-		if (use_total_bar and instancia.barraS[1] == 1) then
+		if (use_total_bar and instance.barraS[1] == 1) then
 
 			whichRowLine = 2
-			local iter_last = instancia.barraS[2]
-			if (iter_last == instancia.rows_fit_in_window) then
+			local iter_last = instance.barraS[2]
+			if (iter_last == instance.rows_fit_in_window) then
 				iter_last = iter_last - 1
 			end
 
@@ -498,52 +510,52 @@ function healingClass:RefreshWindow (instancia, tabela_do_combate, forcar, expor
 			row1.minha_tabela = nil
 			row1.lineText1:SetText(Loc ["STRING_TOTAL"])
 			--
-			if (instancia.use_multi_fontstrings) then
-				instancia:SetInLineTexts(row1, "", _detalhes:ToK2(total), _detalhes:ToK(total / combat_time))
+			if (instance.use_multi_fontstrings) then
+				instance:SetInLineTexts(row1, "", _detalhes:ToK2(total), _detalhes:ToK(total / combat_time))
 			else
 				row1.lineText4:SetText(_detalhes:ToK2 (total) .. " (" .. _detalhes:ToK (total / combat_time) .. ")")
 			end
 
 			row1:SetValue(100)
-			local r, g, b = unpack(instancia.total_bar.color)
+			local r, g, b = unpack(instance.total_bar.color)
 			row1.textura:SetVertexColor(r, g, b)
 
-			row1.icone_classe:SetTexture(instancia.total_bar.icon)
+			row1.icone_classe:SetTexture(instance.total_bar.icon)
 			row1.icone_classe:SetTexCoord(0.0625, 0.9375, 0.0625, 0.9375)
 
 			Details.FadeHandler.Fader(row1, "out")
 
-			if (following and myPos and myPos+1 > instancia.rows_fit_in_window and instancia.barraS[2] < myPos+1) then
-				conteudo[myPos]:RefreshLine(instancia, barras_container, whichRowLine, myPos, total, sub_atributo, forcar, keyName, combat_time, percentage_type, use_animations, bars_show_data, bars_brackets, bars_separator)
+			if (following and myPos and myPos+1 > instance.rows_fit_in_window and instance.barraS[2] < myPos+1) then
+				conteudo[myPos]:RefreshLine(instance, barras_container, whichRowLine, myPos, total, sub_atributo, forcar, keyName, combat_time, percentage_type, use_animations, bars_show_data, bars_brackets, bars_separator)
 				whichRowLine = whichRowLine+1
-				for i = iter_last-1, instancia.barraS[1], -1 do --vai atualizar s� o range que esta sendo mostrado
+				for i = iter_last-1, instance.barraS[1], -1 do --vai atualizar s� o range que esta sendo mostrado
 					if (conteudo[i]) then
-						conteudo[i]:RefreshLine(instancia, barras_container, whichRowLine, i, total, sub_atributo, forcar, keyName, combat_time, percentage_type, use_animations, bars_show_data, bars_brackets, bars_separator)
+						conteudo[i]:RefreshLine(instance, barras_container, whichRowLine, i, total, sub_atributo, forcar, keyName, combat_time, percentage_type, use_animations, bars_show_data, bars_brackets, bars_separator)
 						whichRowLine = whichRowLine+1
 					end
 				end
 			else
-				for i = iter_last, instancia.barraS[1], -1 do --vai atualizar s� o range que esta sendo mostrado
+				for i = iter_last, instance.barraS[1], -1 do --vai atualizar s� o range que esta sendo mostrado
 					if (conteudo[i]) then
-						conteudo[i]:RefreshLine(instancia, barras_container, whichRowLine, i, total, sub_atributo, forcar, keyName, combat_time, percentage_type, use_animations, bars_show_data, bars_brackets, bars_separator)
+						conteudo[i]:RefreshLine(instance, barras_container, whichRowLine, i, total, sub_atributo, forcar, keyName, combat_time, percentage_type, use_animations, bars_show_data, bars_brackets, bars_separator)
 						whichRowLine = whichRowLine+1
 					end
 				end
 			end
 		else
-			if (following and myPos and myPos > instancia.rows_fit_in_window and instancia.barraS[2] < myPos) then
-				conteudo[myPos]:RefreshLine(instancia, barras_container, whichRowLine, myPos, total, sub_atributo, forcar, keyName, combat_time, percentage_type, use_animations, bars_show_data, bars_brackets, bars_separator)
+			if (following and myPos and myPos > instance.rows_fit_in_window and instance.barraS[2] < myPos) then
+				conteudo[myPos]:RefreshLine(instance, barras_container, whichRowLine, myPos, total, sub_atributo, forcar, keyName, combat_time, percentage_type, use_animations, bars_show_data, bars_brackets, bars_separator)
 				whichRowLine = whichRowLine+1
-				for i = instancia.barraS[2]-1, instancia.barraS[1], -1 do --vai atualizar s� o range que esta sendo mostrado
+				for i = instance.barraS[2]-1, instance.barraS[1], -1 do --vai atualizar s� o range que esta sendo mostrado
 					if (conteudo[i]) then
-						conteudo[i]:RefreshLine(instancia, barras_container, whichRowLine, i, total, sub_atributo, forcar, keyName, combat_time, percentage_type, use_animations, bars_show_data, bars_brackets, bars_separator)
+						conteudo[i]:RefreshLine(instance, barras_container, whichRowLine, i, total, sub_atributo, forcar, keyName, combat_time, percentage_type, use_animations, bars_show_data, bars_brackets, bars_separator)
 						whichRowLine = whichRowLine+1
 					end
 				end
 			else
-				for i = instancia.barraS[2], instancia.barraS[1], -1 do --vai atualizar s� o range que esta sendo mostrado
+				for i = instance.barraS[2], instance.barraS[1], -1 do --vai atualizar s� o range que esta sendo mostrado
 					if (conteudo[i]) then
-						conteudo[i]:RefreshLine(instancia, barras_container, whichRowLine, i, total, sub_atributo, forcar, keyName, combat_time, percentage_type, use_animations, bars_show_data, bars_brackets, bars_separator)
+						conteudo[i]:RefreshLine(instance, barras_container, whichRowLine, i, total, sub_atributo, forcar, keyName, combat_time, percentage_type, use_animations, bars_show_data, bars_brackets, bars_separator)
 						whichRowLine = whichRowLine+1
 					end
 				end
@@ -552,11 +564,13 @@ function healingClass:RefreshWindow (instancia, tabela_do_combate, forcar, expor
 
 	end
 
-	if (use_animations) then
-		instancia:PerformAnimations (whichRowLine - 1)
+	if not detailsFramework.IsAddonApocalypseWow() then
+		if (use_animations) then
+			instance:PerformAnimations (whichRowLine - 1)
+		end
 	end
 
-	if (instancia.atributo == 5) then --custom
+	if (instance.atributo == 5) then --custom
 		--zerar o .custom dos Actors
 		for index, player in ipairs(conteudo) do
 			if (player.custom > 0) then
@@ -569,17 +583,19 @@ function healingClass:RefreshWindow (instancia, tabela_do_combate, forcar, expor
 
 	--beta, hidar barras n�o usadas durante um refresh for�ado
 	if (forcar) then
-		if (instancia.modo == 2) then --group
-			for i = whichRowLine, instancia.rows_fit_in_window  do
-				Details.FadeHandler.Fader(instancia.barras [i], "in", Details.fade_speed)
+		if (instance.modo == 2) then --group
+			for i = whichRowLine, instance.rows_fit_in_window  do
+				Details.FadeHandler.Fader(instance.barras [i], "in", Details.fade_speed)
 			end
 		end
 	end
 
-	instancia:AutoAlignInLineFontStrings()
+	if not detailsFramework.IsAddonApocalypseWow() then
+		instance:AutoAlignInLineFontStrings()
+	end
 
 	-- showing.need_refresh = false
-	return Details:EndRefresh (instancia, total, tabela_do_combate, showing) --retorna a tabela que precisa ganhar o refresh
+	return Details:EndRefresh (instance, total, tabela_do_combate, showing) --retorna a tabela que precisa ganhar o refresh
 
 end
 
@@ -595,6 +611,8 @@ function healingClass:RefreshLine(instancia, barras_container, whichRowLine, lug
 		return
 	end
 
+	thisLine.statusbar:SetMinMaxValues(0, 100)
+
 	local tabela_anterior = thisLine.minha_tabela
 
 	thisLine.minha_tabela = self --grava uma refer�ncia dessa classe de dano na barra
@@ -608,7 +626,7 @@ function healingClass:RefreshLine(instancia, barras_container, whichRowLine, lug
 
 	--local porcentagem = self [keyName] / total * 100
 	local porcentagem
-	local esta_porcentagem
+	local percentNumber
 
 	if (percentage_type == 1) then
 		porcentagem = _cstr ("%.1f", self [keyName] / total * 100)
@@ -616,6 +634,8 @@ function healingClass:RefreshLine(instancia, barras_container, whichRowLine, lug
 	elseif (percentage_type == 2) then
 		porcentagem = _cstr ("%.1f", self [keyName] / instancia.top * 100)
 	end
+
+	local combatTime = instancia:GetCombat():GetCombatTime()
 
 	if ((_detalhes.time_type == 2 and self.grupo) or _detalhes.time_type == 3 or (not _detalhes:CaptureGet("heal") and not _detalhes:CaptureGet("aura")) or instancia.segmento == -1) then
 		if (instancia.segmento == -1 and combat_time == 0) then
@@ -654,206 +674,241 @@ function healingClass:RefreshLine(instancia, barras_container, whichRowLine, lug
 		else
 			thisLine.lineText4:SetText(_detalhes:ToK (self.custom) .. " (" .. porcentagem .. "%)")
 		end
-		esta_porcentagem = _math_floor((self.custom/instancia.top) * 100)
+		percentNumber = _math_floor((self.custom/instancia.top) * 100)
 
 	else
 		if (sub_atributo == 1) then --mostrando healing done
-
-			hps = _math_floor(hps)
-			local formated_heal = SelectedToKFunction (_, healing_total)
-			local formated_hps = SelectedToKFunction (_, hps)
-			thisLine.ps_text = formated_hps
-
-			if (not bars_show_data [1]) then
-				formated_heal = ""
-			end
-			if (not bars_show_data [2]) then
-				formated_hps = ""
-			end
-			if (not bars_show_data [3]) then
-				porcentagem = ""
+			if detailsFramework.IsAddonApocalypseWow() then
+				local ruleToUse = 2 --total dps
+				--print(hps, AbbreviateNumbers(hps, Details.abbreviateOptionsDPS))
+				Details:SimpleFormat(thisLine.lineText2, thisLine.lineText3, thisLine.lineText4, AbbreviateNumbers(healing_total, Details.abbreviateOptionsDamage), AbbreviateNumbers(hps, Details.abbreviateOptionsDPS), nil, ruleToUse)
+				percentNumber = _math_floor((healing_total/instancia.top) * 100)
 			else
-				porcentagem = porcentagem .. "%"
-			end
+				hps = _math_floor(hps)
+				local formated_heal = SelectedToKFunction (_, healing_total)
+				local formated_hps = SelectedToKFunction (_, hps)
+				thisLine.ps_text = formated_hps
 
-			local rightText = formated_heal .. bars_brackets[1] .. formated_hps .. bars_separator .. porcentagem .. bars_brackets[2]
-			if (UsingCustomRightText) then
-				thisLine.lineText4:SetText(_string_replace (instancia.row_info.textR_custom_text, formated_heal, formated_hps, porcentagem, self, instancia.showing, instancia, rightText))
-			else
-				if (instancia.use_multi_fontstrings) then
-					instancia:SetInLineTexts(thisLine, formated_heal, formated_hps, porcentagem)
-				else
-					thisLine.lineText4:SetText(rightText)
+				if (not bars_show_data [1]) then
+					formated_heal = ""
 				end
+				if (not bars_show_data [2]) then
+					formated_hps = ""
+				end
+				if (not bars_show_data [3]) then
+					porcentagem = ""
+				else
+					porcentagem = porcentagem .. "%"
+				end
+
+				local rightText = formated_heal .. bars_brackets[1] .. formated_hps .. bars_separator .. porcentagem .. bars_brackets[2]
+				if (UsingCustomRightText) then
+					thisLine.lineText4:SetText(_string_replace (instancia.row_info.textR_custom_text, formated_heal, formated_hps, porcentagem, self, instancia.showing, instancia, rightText))
+				else
+					if (instancia.use_multi_fontstrings) then
+						instancia:SetInLineTexts(thisLine, formated_heal, formated_hps, porcentagem)
+					else
+						thisLine.lineText4:SetText(rightText)
+					end
+				end
+				percentNumber = _math_floor((healing_total/instancia.top) * 100)
 			end
-			esta_porcentagem = _math_floor((healing_total/instancia.top) * 100)
 
 		elseif (sub_atributo == 2) then --mostrando hps
-
-			hps = _math_floor(hps)
-			local formated_heal = SelectedToKFunction (_, healing_total)
-			local formated_hps = SelectedToKFunction (_, hps)
-			thisLine.ps_text = formated_hps
-
-			if (not bars_show_data [1]) then
-				formated_hps = ""
-			end
-			if (not bars_show_data [2]) then
-				formated_heal = ""
-			end
-			if (not bars_show_data [3]) then
-				porcentagem = ""
+			if detailsFramework.IsAddonApocalypseWow() then
+				local ruleToUse = -1 --only show total
+				Details:SimpleFormat(thisLine.lineText2, thisLine.lineText3, thisLine.lineText4, AbbreviateNumbers(hps, Details.abbreviateOptionsDPS), nil, nil, ruleToUse)
+				percentNumber = _math_floor((hps/instancia.top) * 100)
 			else
-				porcentagem = porcentagem .. "%"
-			end
+				hps = _math_floor(hps)
+				local formated_heal = SelectedToKFunction (_, healing_total)
+				local formated_hps = SelectedToKFunction (_, hps)
+				thisLine.ps_text = formated_hps
 
-			local rightText = formated_hps .. bars_brackets[1] .. formated_heal .. bars_separator .. porcentagem .. bars_brackets[2]
-			if (UsingCustomRightText) then
-				thisLine.lineText4:SetText(_string_replace (instancia.row_info.textR_custom_text, formated_hps, formated_heal, porcentagem, self, instancia.showing, instancia, rightText))
-			else
-				if (instancia.use_multi_fontstrings) then
-					instancia:SetInLineTexts(thisLine, formated_hps, formated_heal, porcentagem)
-				else
-					thisLine.lineText4:SetText(rightText)
+				if (not bars_show_data [1]) then
+					formated_hps = ""
 				end
-			end
+				if (not bars_show_data [2]) then
+					formated_heal = ""
+				end
+				if (not bars_show_data [3]) then
+					porcentagem = ""
+				else
+					porcentagem = porcentagem .. "%"
+				end
 
-			esta_porcentagem = _math_floor((hps/instancia.top) * 100)
+				local rightText = formated_hps .. bars_brackets[1] .. formated_heal .. bars_separator .. porcentagem .. bars_brackets[2]
+				if (UsingCustomRightText) then
+					thisLine.lineText4:SetText(_string_replace (instancia.row_info.textR_custom_text, formated_hps, formated_heal, porcentagem, self, instancia.showing, instancia, rightText))
+				else
+					if (instancia.use_multi_fontstrings) then
+						instancia:SetInLineTexts(thisLine, formated_hps, formated_heal, porcentagem)
+					else
+						thisLine.lineText4:SetText(rightText)
+					end
+				end
+
+				percentNumber = _math_floor((hps/instancia.top) * 100)
+			end
 
 		elseif (sub_atributo == 3) then --mostrando overall
-
-			local formated_overheal = SelectedToKFunction (_, self.totalover)
-
-			local percent = self.totalover / (self.totalover + self.total) * 100
-			local overheal_percent = _cstr ("%.1f", percent)
-
-			local rr, gg, bb = _detalhes:percent_color (percent, true)
-			rr, gg, bb = _detalhes:hex (_math_floor(rr*255)), _detalhes:hex (_math_floor(gg*255)), _detalhes:hex (_math_floor(bb*255))
-			overheal_percent = "|cFF" .. rr .. gg .. bb .. overheal_percent .. "|r"
-
-			if (not bars_show_data [1]) then
-				formated_overheal = ""
-			end
-			if (not bars_show_data [3]) then
-				overheal_percent = ""
+			if detailsFramework.IsAddonApocalypseWow() then
+				local ruleToUse = 2 --total dps
+				Details:SimpleFormat(thisLine.lineText2, thisLine.lineText3, thisLine.lineText4, AbbreviateNumbers(self.totalover, Details.abbreviateOptionsDamage), AbbreviateNumbers(self.totalover / combatTime, Details.abbreviateOptionsDPS), nil, ruleToUse)
+				percentNumber = _math_floor((self.totalover/instancia.top) * 100)
 			else
-				overheal_percent = overheal_percent .. "%"
-			end
+				local formated_overheal = SelectedToKFunction (_, self.totalover)
 
-			local rightText = formated_overheal .. bars_brackets[1] .. overheal_percent .. bars_brackets[2]
-			if (UsingCustomRightText) then
-				thisLine.lineText4:SetText(_string_replace (instancia.row_info.textR_custom_text, formated_overheal, "", overheal_percent, self, instancia.showing, instancia, rightText))
-			else
-				if (instancia.use_multi_fontstrings) then
-					instancia:SetInLineTexts(thisLine, "", formated_overheal, overheal_percent)
-				else
-					thisLine.lineText4:SetText(rightText)
+				local percent = self.totalover / (self.totalover + self.total) * 100
+				local overheal_percent = _cstr ("%.1f", percent)
+
+				local rr, gg, bb = _detalhes:percent_color (percent, true)
+				rr, gg, bb = _detalhes:hex (_math_floor(rr*255)), _detalhes:hex (_math_floor(gg*255)), _detalhes:hex (_math_floor(bb*255))
+				overheal_percent = "|cFF" .. rr .. gg .. bb .. overheal_percent .. "|r"
+
+				if (not bars_show_data [1]) then
+					formated_overheal = ""
 				end
-			end
+				if (not bars_show_data [3]) then
+					overheal_percent = ""
+				else
+					overheal_percent = overheal_percent .. "%"
+				end
 
-			esta_porcentagem = _math_floor((self.totalover/instancia.top) * 100)
+				local rightText = formated_overheal .. bars_brackets[1] .. overheal_percent .. bars_brackets[2]
+				if (UsingCustomRightText) then
+					thisLine.lineText4:SetText(_string_replace (instancia.row_info.textR_custom_text, formated_overheal, "", overheal_percent, self, instancia.showing, instancia, rightText))
+				else
+					if (instancia.use_multi_fontstrings) then
+						instancia:SetInLineTexts(thisLine, "", formated_overheal, overheal_percent)
+					else
+						thisLine.lineText4:SetText(rightText)
+					end
+				end
+
+				percentNumber = _math_floor((self.totalover/instancia.top) * 100)
+			end
 
 		elseif (sub_atributo == 4) then --mostrando healing taken
-
-			local formated_healtaken = SelectedToKFunction (_, self.healing_taken)
-
-			if (not bars_show_data [1]) then
-				formated_healtaken = ""
-			end
-			if (not bars_show_data [3]) then
-				porcentagem = ""
+			if detailsFramework.IsAddonApocalypseWow() then
+				local ruleToUse = 2 --total dps
+				Details:SimpleFormat(thisLine.lineText2, thisLine.lineText3, thisLine.lineText4, AbbreviateNumbers(self.healing_taken, Details.abbreviateOptionsDamage), AbbreviateNumbers(self.healing_taken / combatTime, Details.abbreviateOptionsDPS), nil, ruleToUse)
+				percentNumber = _math_floor((self.healing_taken/instancia.top) * 100)
 			else
-				porcentagem = porcentagem .. "%"
-			end
+				local formated_healtaken = SelectedToKFunction (_, self.healing_taken)
 
-			local rightText = formated_healtaken .. bars_brackets[1] .. porcentagem .. bars_brackets[2]
-			if (UsingCustomRightText) then
-				thisLine.lineText4:SetText(_string_replace (instancia.row_info.textR_custom_text, formated_healtaken, "", porcentagem, self, instancia.showing, instancia, rightText))
-			else
-				if (instancia.use_multi_fontstrings) then
-					instancia:SetInLineTexts(thisLine, "", formated_healtaken, porcentagem)
-				else
-					thisLine.lineText4:SetText(rightText)
+				if (not bars_show_data [1]) then
+					formated_healtaken = ""
 				end
-			end
+				if (not bars_show_data [3]) then
+					porcentagem = ""
+				else
+					porcentagem = porcentagem .. "%"
+				end
 
-			esta_porcentagem = _math_floor((self.healing_taken/instancia.top) * 100)
+				local rightText = formated_healtaken .. bars_brackets[1] .. porcentagem .. bars_brackets[2]
+				if (UsingCustomRightText) then
+					thisLine.lineText4:SetText(_string_replace (instancia.row_info.textR_custom_text, formated_healtaken, "", porcentagem, self, instancia.showing, instancia, rightText))
+				else
+					if (instancia.use_multi_fontstrings) then
+						instancia:SetInLineTexts(thisLine, "", formated_healtaken, porcentagem)
+					else
+						thisLine.lineText4:SetText(rightText)
+					end
+				end
+
+				percentNumber = _math_floor((self.healing_taken/instancia.top) * 100)
+			end
 
 		elseif (sub_atributo == 5) then --mostrando enemy heal
-
-			local formated_enemyheal = SelectedToKFunction (_, self.heal_enemy_amt)
-
-			if (not bars_show_data [1]) then
-				formated_enemyheal = ""
-			end
-			if (not bars_show_data [3]) then
-				porcentagem = ""
+			if detailsFramework.IsAddonApocalypseWow() then
+				local ruleToUse = 2 --total dps
+				Details:SimpleFormat(thisLine.lineText2, thisLine.lineText3, thisLine.lineText4, AbbreviateNumbers(self.heal_enemy_amt, Details.abbreviateOptionsDamage), AbbreviateNumbers(self.heal_enemy_amt / combatTime, Details.abbreviateOptionsDPS), nil, ruleToUse)
+				percentNumber = _math_floor((self.heal_enemy_amt/instancia.top) * 100)
 			else
-				porcentagem = porcentagem .. "%"
-			end
+				local formated_enemyheal = SelectedToKFunction (_, self.heal_enemy_amt)
 
-			local rightText = formated_enemyheal .. bars_brackets[1] .. porcentagem .. bars_brackets[2]
-			if (UsingCustomRightText) then
-				thisLine.lineText4:SetText(_string_replace (instancia.row_info.textR_custom_text, formated_enemyheal, "", porcentagem, self, instancia.showing, instancia, rightText))
-			else
-				if (instancia.use_multi_fontstrings) then
-					instancia:SetInLineTexts(thisLine, "", formated_enemyheal, porcentagem)
-				else
-					thisLine.lineText4:SetText(rightText)
+				if (not bars_show_data [1]) then
+					formated_enemyheal = ""
 				end
+				if (not bars_show_data [3]) then
+					porcentagem = ""
+				else
+					porcentagem = porcentagem .. "%"
+				end
+
+				local rightText = formated_enemyheal .. bars_brackets[1] .. porcentagem .. bars_brackets[2]
+				if (UsingCustomRightText) then
+					thisLine.lineText4:SetText(_string_replace (instancia.row_info.textR_custom_text, formated_enemyheal, "", porcentagem, self, instancia.showing, instancia, rightText))
+				else
+					if (instancia.use_multi_fontstrings) then
+						instancia:SetInLineTexts(thisLine, "", formated_enemyheal, porcentagem)
+					else
+						thisLine.lineText4:SetText(rightText)
+					end
+				end
+				percentNumber = _math_floor((self.heal_enemy_amt/instancia.top) * 100)
 			end
-			esta_porcentagem = _math_floor((self.heal_enemy_amt/instancia.top) * 100)
 
 		elseif (sub_atributo == 6) then --mostrando damage prevented
-
-			local formated_absorbs = SelectedToKFunction (_, self.totalabsorb)
-
-			if (not bars_show_data [1]) then
-				formated_absorbs = ""
-			end
-			if (not bars_show_data [3]) then
-				porcentagem = ""
+			if detailsFramework.IsAddonApocalypseWow() then
+				local ruleToUse = 2 --total dps
+				Details:SimpleFormat(thisLine.lineText2, thisLine.lineText3, thisLine.lineText4, AbbreviateNumbers(self.totalabsorb, Details.abbreviateOptionsDamage), AbbreviateNumbers(self.totalabsorb / combatTime, Details.abbreviateOptionsDPS), nil, ruleToUse)
+				percentNumber = _math_floor((self.totalabsorb/instancia.top) * 100)
 			else
-				porcentagem = porcentagem .. "%"
-			end
+				local formated_absorbs = SelectedToKFunction (_, self.totalabsorb)
 
-			local rightText = formated_absorbs .. bars_brackets[1] .. porcentagem .. bars_brackets[2]
-			if (UsingCustomRightText) then
-				thisLine.lineText4:SetText(_string_replace (instancia.row_info.textR_custom_text, formated_absorbs, "", porcentagem, self, instancia.showing, instancia, rightText))
-			else
-				if (instancia.use_multi_fontstrings) then
-					instancia:SetInLineTexts(thisLine, "", formated_absorbs, porcentagem)
-				else
-					thisLine.lineText4:SetText(rightText)
+				if (not bars_show_data [1]) then
+					formated_absorbs = ""
 				end
+				if (not bars_show_data [3]) then
+					porcentagem = ""
+				else
+					porcentagem = porcentagem .. "%"
+				end
+
+				local rightText = formated_absorbs .. bars_brackets[1] .. porcentagem .. bars_brackets[2]
+				if (UsingCustomRightText) then
+					thisLine.lineText4:SetText(_string_replace (instancia.row_info.textR_custom_text, formated_absorbs, "", porcentagem, self, instancia.showing, instancia, rightText))
+				else
+					if (instancia.use_multi_fontstrings) then
+						instancia:SetInLineTexts(thisLine, "", formated_absorbs, porcentagem)
+					else
+						thisLine.lineText4:SetText(rightText)
+					end
+				end
+				percentNumber = _math_floor((self.totalabsorb/instancia.top) * 100)
 			end
-			esta_porcentagem = _math_floor((self.totalabsorb/instancia.top) * 100)
 
 		elseif (sub_atributo == 7) then --mostrando cura negada
-
-			local formated_absorbs = SelectedToKFunction (_, self.totaldenied)
-
-			if (not bars_show_data [1]) then
-				formated_absorbs = ""
-			end
-			if (not bars_show_data [3]) then
-				porcentagem = ""
+			if detailsFramework.IsAddonApocalypseWow() then
+				local ruleToUse = 2 --total dps
+				Details:SimpleFormat(thisLine.lineText2, thisLine.lineText3, thisLine.lineText4, AbbreviateNumbers(self.totaldenied, Details.abbreviateOptionsDamage), AbbreviateNumbers(self.totaldenied / combatTime, Details.abbreviateOptionsDPS), nil, ruleToUse)
+				percentNumber = _math_floor((self.totaldenied/instancia.top) * 100)
 			else
-				porcentagem = porcentagem .. "%"
-			end
+				local formated_absorbs = SelectedToKFunction (_, self.totaldenied)
 
-			local rightText = formated_absorbs .. bars_brackets[1] .. porcentagem .. bars_brackets[2]
-			if (UsingCustomRightText) then
-				thisLine.lineText4:SetText(_string_replace (instancia.row_info.textR_custom_text, formated_absorbs, "", porcentagem, self, instancia.showing, instancia, rightText))
-			else
-				if (instancia.use_multi_fontstrings) then
-					instancia:SetInLineTexts(thisLine, "", formated_absorbs, porcentagem)
-				else
-					thisLine.lineText4:SetText(rightText)
+				if (not bars_show_data [1]) then
+					formated_absorbs = ""
 				end
-			end
-			esta_porcentagem = _math_floor((self.totaldenied/instancia.top) * 100)
+				if (not bars_show_data [3]) then
+					porcentagem = ""
+				else
+					porcentagem = porcentagem .. "%"
+				end
 
+				local rightText = formated_absorbs .. bars_brackets[1] .. porcentagem .. bars_brackets[2]
+				if (UsingCustomRightText) then
+					thisLine.lineText4:SetText(_string_replace (instancia.row_info.textR_custom_text, formated_absorbs, "", porcentagem, self, instancia.showing, instancia, rightText))
+				else
+					if (instancia.use_multi_fontstrings) then
+						instancia:SetInLineTexts(thisLine, "", formated_absorbs, porcentagem)
+					else
+						thisLine.lineText4:SetText(rightText)
+					end
+				end
+				percentNumber = _math_floor((self.totaldenied/instancia.top) * 100)
+			end
 		end
 	end
 
@@ -863,7 +918,15 @@ function healingClass:RefreshLine(instancia, barras_container, whichRowLine, lug
 
 	actor_class_color_r, actor_class_color_g, actor_class_color_b = self:GetBarColor()
 
-	return self:RefreshBarra2 (thisLine, instancia, tabela_anterior, forcar, esta_porcentagem, whichRowLine, barras_container, use_animations)
+	if detailsFramework.IsAddonApocalypseWow() then
+		if not percentNumber then
+			if Details.test_bar_update or self.testBar then
+				percentNumber = math.random(20, 100)
+			end
+		end
+	end
+
+	return self:RefreshBarra2 (thisLine, instancia, tabela_anterior, forcar, percentNumber, whichRowLine, barras_container, use_animations)
 end
 
 function healingClass:RefreshBarra2 (thisLine, instancia, tabela_anterior, forcar, esta_porcentagem, whichRowLine, barras_container, use_animations)
@@ -872,6 +935,7 @@ function healingClass:RefreshBarra2 (thisLine, instancia, tabela_anterior, forca
 	if (thisLine.colocacao == 1) then
 		if (not tabela_anterior or tabela_anterior ~= thisLine.minha_tabela or forcar) then
 			thisLine:SetValue(100)
+			thisLine:Show()
 
 			if (thisLine.hidden or thisLine.fading_in or thisLine.faded) then
 				Details.FadeHandler.Fader(thisLine, "out")
@@ -1300,23 +1364,32 @@ end
 ---------HEALING DONE / HPS / OVERHEAL
 local background_heal_vs_absorbs = {value = 100, color = {1, 1, 0, .25}, specialSpark = false, texture = [[Interface\AddOns\Details\images\bar4_glass]]}
 
-function healingClass:ToolTip_HealingDone (instancia, numero, barra, keydown)
-
+function healingClass:ToolTip_HealingDone (instance, numero, barra, keydown)
 	local owner = self.owner
 	if (owner and owner.classe) then
-		r, g, b = unpack(_detalhes.class_colors [owner.classe])
+		local thisColor = _detalhes.class_colors[owner.classe]
+		if not thisColor then
+			thisColor = _detalhes.class_colors["UNKNOW"]
+		end
+		r, g, b = unpack(thisColor)
 	else
-		r, g, b = unpack(_detalhes.class_colors [self.classe])
+		local thisColor = _detalhes.class_colors[self.classe]
+		if not thisColor then
+			thisColor = _detalhes.class_colors["UNKNOW"]
+		end
+		r, g, b = unpack(thisColor)
 	end
+
+	local combatObject = instance:GetCombat()
 
 	local ActorHealingTable = {}
 	local ActorHealingTargets = {}
 	local ActorSkillsContainer = self.spells._ActorTable
 
 	local actor_key, skill_key = "total", "total"
-	if (instancia.sub_atributo == 3) then
+	if (instance.sub_atributo == 3) then
 		actor_key, skill_key = "totalover", "overheal"
-	elseif (instancia.sub_atributo == 6) then
+	elseif (instance.sub_atributo == 6) then
 		actor_key, skill_key = "totalabsorb", "totalabsorb"
 	end
 
@@ -1324,7 +1397,7 @@ function healingClass:ToolTip_HealingDone (instancia, numero, barra, keydown)
 	if (_detalhes.time_type == 1 or not self.grupo) then
 		meu_tempo = self:Tempo()
 	elseif (_detalhes.time_type == 2 or _detalhes.time_type == 3) then
-		meu_tempo = instancia.showing:GetCombatTime()
+		meu_tempo = combatObject:GetCombatTime()
 	end
 
 	local ActorTotal = self [actor_key]
@@ -1348,7 +1421,7 @@ function healingClass:ToolTip_HealingDone (instancia, numero, barra, keydown)
 
 	--add actor pets
 	for petIndex, petName in ipairs(self:Pets()) do
-		local petActor = instancia.showing[class_type]:PegarCombatente (nil, petName)
+		local petActor = combatObject[class_type]:PegarCombatente (nil, petName)
 		if (petActor) then
 			for _spellid, _skill in pairs(petActor:GetActorSpells()) do
 				if (_skill [skill_key] > 0) then
@@ -1375,7 +1448,7 @@ function healingClass:ToolTip_HealingDone (instancia, numero, barra, keydown)
 	for targetName, amount in pairs(ActorSkillsContainer) do
 		if (amount > 0) then
 			--translate cyrillic alphabet to western alphabet by Vardex (https://github.com/Vardex May 22, 2019)
-			if (instancia.row_info.textL_translit_text) then
+			if (instance.row_info.textL_translit_text) then
 				targetName = Translit:Transliterate(targetName, "!")
 			end
 
@@ -1398,7 +1471,7 @@ function healingClass:ToolTip_HealingDone (instancia, numero, barra, keydown)
 	end
 
 	local tooltip_max_abilities = _detalhes.tooltip.tooltip_max_abilities
-	if (instancia.sub_atributo == 3 or instancia.sub_atributo == 2) then
+	if (instance.sub_atributo == 3 or instance.sub_atributo == 2) then
 		tooltip_max_abilities = 9
 	end
 
@@ -1426,7 +1499,7 @@ function healingClass:ToolTip_HealingDone (instancia, numero, barra, keydown)
 			spellName = spellName .. " (|cFFCCBBBB" .. petName .. "|r)"
 		end
 
-		if (instancia.sub_atributo == 2) then --hps
+		if (instance.sub_atributo == 2) then --hps
 
 			local formatedTotal = FormatTooltipNumber (_,  _math_floor(ActorHealingTable[i][5]))
 			local antiHeal = ActorHealingTable[i][8]
@@ -1436,7 +1509,7 @@ function healingClass:ToolTip_HealingDone (instancia, numero, barra, keydown)
 
 			GameCooltip:AddLine(spellName , formatedTotal .. " (".._cstr ("%.1f", ActorHealingTable[i][3]).."%)")
 
-		elseif (instancia.sub_atributo == 3) then --overheal
+		elseif (instance.sub_atributo == 3) then --overheal
 			local overheal = ActorHealingTable[i][2]
 			local total = ActorHealingTable[i][6]
 			local formatedTotal = FormatTooltipNumber (_,  _math_floor(ActorHealingTable[i][2]))
@@ -1463,7 +1536,7 @@ function healingClass:ToolTip_HealingDone (instancia, numero, barra, keydown)
 		_detalhes:AddTooltipBackgroundStatusbar (false, ActorHealingTable[i][2] / topAbility * 100)
 	end
 
-	if (instancia.sub_atributo == 6) then
+	if (instance.sub_atributo == 6) then
 		GameCooltip:AddLine("")
 		GameCooltip:AddLine(Loc ["STRING_REPORT_LEFTCLICK"], nil, 1, _unpack(self.click_to_report_color))
 		GameCooltip:AddIcon ([[Interface\TUTORIALFRAME\UI-TUTORIAL-FRAME]], 1, 1, 12, 16, 0.015625, 0.13671875, 0.4375, 0.59765625)
@@ -1471,10 +1544,10 @@ function healingClass:ToolTip_HealingDone (instancia, numero, barra, keydown)
 		GameCooltip:ShowCooltip()
 	end
 
-	local container = instancia.showing [2]
+	local container = combatObject [2]
 	local topTarget = ActorHealingTargets [1] and ActorHealingTargets [1][2] or 0
 
-	if (instancia.sub_atributo == 1) then -- 1 or 2 -> healing done or hps
+	if (instance.sub_atributo == 1) then -- 1 or 2 -> healing done or hps
 		_detalhes:AddTooltipSpellHeaderText ("", headerColor, 1, false, 0.1, 0.9, 0.1, 0.9, true) --add a space
 		_detalhes:AddTooltipSpellHeaderText (Loc ["STRING_TARGETS"], headerColor, #ActorHealingTargets, [[Interface\TUTORIALFRAME\UI-TutorialFrame-LevelUp]], 0.10546875, 0.89453125, 0.05859375, 0.6796875)
 
@@ -1525,7 +1598,7 @@ function healingClass:ToolTip_HealingDone (instancia, numero, barra, keydown)
 	--PETS
 	local meus_pets = self.pets
 
-	if (#meus_pets > 0 and (instancia.sub_atributo == 1 or instancia.sub_atributo == 2 or instancia.sub_atributo == 3)) then --teve ajudantes
+	if (#meus_pets > 0 and (instance.sub_atributo == 1 or instance.sub_atributo == 2 or instance.sub_atributo == 3)) then --teve ajudantes
 
 		local quantidade = {} --armazena a quantidade de pets iguais
 		local totais = {} --armazena o dano total de cada objeto
@@ -1534,17 +1607,17 @@ function healingClass:ToolTip_HealingDone (instancia, numero, barra, keydown)
 			if (not quantidade [nome]) then
 				quantidade [nome] = 1
 
-				local my_self = instancia.showing [class_type]:PegarCombatente (nil, nome)
+				local my_self = combatObject [class_type]:PegarCombatente (nil, nome)
 
 				if (my_self) then
 					local meu_tempo
 					if (_detalhes.time_type == 1 or not self.grupo) then
 						meu_tempo = my_self:Tempo()
 					elseif (_detalhes.time_type == 2 or _detalhes.time_type == 3) then
-						meu_tempo = instancia.showing:GetCombatTime()
+						meu_tempo = combatObject:GetCombatTime()
 					end
 
-					if (instancia.sub_atributo == 3) then
+					if (instance.sub_atributo == 3) then
 						totais [#totais+1] = {nome, my_self.totalover, my_self.total_without_pet}
 					else
 						totais [#totais+1] = {nome, my_self.total_without_pet, my_self.total_without_pet / meu_tempo}
@@ -1586,10 +1659,10 @@ function healingClass:ToolTip_HealingDone (instancia, numero, barra, keydown)
 				end
 
 				local n = _table [1]:gsub(("%s%<.*"), "")
-				if (instancia.sub_atributo == 3) then --overheal
+				if (instance.sub_atributo == 3) then --overheal
 					GameCooltip:AddLine(n .. " (|cFFFF3333" .. _math_floor( (_table [2] / (_table [2] + _table [3])) * 100)  .. "%|r):", FormatTooltipNumber (_,  _math_floor(_table [2])) .. " (" .. _math_floor( (_table [2] / (_table [2] + _table [3])) * 100) .. "%)")
 
-				elseif (instancia.sub_atributo == 2) then --hps
+				elseif (instance.sub_atributo == 2) then --hps
 					GameCooltip:AddLine(n, FormatTooltipNumber (_,  _math_floor(_table [3])) .. " (" .. _math_floor(_table [2]/self.total*100) .. "%)")
 				else
 					GameCooltip:AddLine(n, FormatTooltipNumber (_, _table [2]) .. " (" .. _math_floor(_table [2]/self.total*100) .. "%)")
@@ -1601,8 +1674,8 @@ function healingClass:ToolTip_HealingDone (instancia, numero, barra, keydown)
 	end
 
 	--~Phases
-	if (instancia.sub_atributo == 1 or instancia.sub_atributo == 2) then
-		local segment = instancia:GetShowingCombat()
+	if (instance.sub_atributo == 1 or instance.sub_atributo == 2) then
+		local segment = combatObject
 		if (segment and self.grupo) then
 			local bossInfo = segment:GetBossInfo()
 			local phasesInfo = segment:GetPhases()
@@ -1992,7 +2065,7 @@ function healingClass:MontaInfoHealingDone()
 	if (Details.time_type == 1 or not actorObject.grupo) then
 		actorCombatTime = actorObject:Tempo()
 	elseif (Details.time_type == 2 or Details.use_realtimedps) then
-		actorCombatTime = breakdownWindowFrame.instancia.showing:GetCombatTime()
+		actorCombatTime = breakdownWindowFrame:GetCombat():GetCombatTime()
 	end
 
 	--actor spells
@@ -2118,9 +2191,9 @@ function healingClass:MontaInfoHealingDone()
 
 	--get the targets table: in the class heal, an actor has two targets table, one for normal healing and one for overheal
 	---@type targettable
-	local normalTargetsTable = self:GetTargets("targets")
+	local normalTargetsTable = self:GetTargets("targets") or {}
 	---@type targettable
-	local overhealTargetsTable = self:GetTargets("targets_overheal")
+	local overhealTargetsTable = self:GetTargets("targets_overheal") or {}
 
 	local targetTotalValue = 0
 	local targetOverhealTotalValue = 0
@@ -2161,157 +2234,6 @@ function healingClass:MontaInfoHealingDone()
 	targetList.combatTime = actorCombatTime
 
 	Details222.BreakdownWindow.SendTargetData(targetList, actorObject, combatObject, instance)
-
-	if 1 then return end
-
-	local instancia = breakdownWindowFrame.instancia
-	local total = self.total
-	local tabela = self.spells._ActorTable
-	local minhas_curas = {}
-	local barras = breakdownWindowFrame.barras1
-
-	--get time type
-	local meu_tempo
-	if (_detalhes.time_type == 1 or not self.grupo) then
-		meu_tempo = self:Tempo()
-	elseif (_detalhes.time_type == 2 or _detalhes.time_type == 3) then
-		meu_tempo = breakdownWindowFrame.instancia.showing:GetCombatTime()
-	end
-
-	for spellid, tabela in pairs(tabela) do
-		local nome, rank, icone = _GetSpellInfo(spellid)
-		tinsert(minhas_curas, {
-			spellid,
-			tabela.total,
-			tabela.total/total*100,
-			nome,
-			icone,
-			false, --not a pet
-			tabela.anti_heal,
-		})
-	end
-
-	breakdownWindowFrame:SetStatusbarText()
-
-	--add pets
-	local ActorPets = self.pets
-	--local class_color = RAID_CLASS_COLORS [self.classe] and RAID_CLASS_COLORS [self.classe].colorStr
-	local class_color = "FFDDDDDD"
-	for _, PetName in ipairs(ActorPets) do
-		local PetActor = instancia.showing (class_type, PetName)
-		if (PetActor) then
-			local PetSkillsContainer = PetActor.spells._ActorTable
-			for _spellid, _skill in pairs(PetSkillsContainer) do --da foreach em cada spellid do container
-				local nome, _, icone = _GetSpellInfo(_spellid)
-				tinsert(minhas_curas, {
-					_spellid,
-					_skill.total,
-					_skill.total/total*100,
-					nome .. " (|c" .. class_color .. PetName:gsub((" <.*"), "") .. "|r)",
-					icone,
-					PetActor
-				})
-			end
-		end
-	end
-
-	_table_sort (minhas_curas, _detalhes.Sort2)
-
-	local amt = #minhas_curas
-	gump:JI_AtualizaContainerBarras (amt)
-
-	local max_ = minhas_curas[1] and minhas_curas[1][2] or 0
-	local foundSpellDetail = false
-
-	for index, tabela in ipairs(minhas_curas) do
-
-		local barra = barras [index]
-
-		if (not barra) then
-			barra = gump:CriaNovaBarraInfo1 (instancia, index)
-			barra.textura:SetStatusBarColor(1, 1, 1, 1)
-			barra.on_focus = false
-		end
-
-		self:FocusLock(barra, tabela[1])
-
-		barra.other_actor = tabela [6]
-
-		if (breakdownWindowFrame.sub_atributo == 2) then
-			local formated_value = SelectedToKFunction (_, _math_floor(tabela[2]/meu_tempo))
-			self:UpdadeInfoBar(barra, index, tabela[1], tabela[4], tabela[2], formated_value, max_, tabela[3], tabela[5], true)
-		else
-			local formated_value = SelectedToKFunction (_, _math_floor(tabela[2]))
-			if (tabela [7]) then
-				formated_value = formated_value .. " [|cFFFF5500" .. SelectedToKFunction (_, _math_floor(tabela [7])) .." " .. Loc ["STRING_DAMAGE"] .."|r] "
-			end
-			self:UpdadeInfoBar(barra, index, tabela[1], tabela[4], tabela[2], formated_value, max_, tabela[3], tabela[5], true)
-		end
-
-		barra.minha_tabela = self
-		barra.show = tabela[1]
-		barra.spellid = self.nome
-		barra:Show()
-
-		if (self.detalhes and self.detalhes == barra.show and not foundSpellDetail) then
-			self:MontaDetalhes (self.detalhes, barra)
-			foundSpellDetail = true
-		end
-	end
-
-	--TOP CURADOS
-	local healedTargets = {}
-	tabela = self.targets
-	for target_name, amount in pairs(tabela) do
-		tinsert(healedTargets, {target_name, amount, amount / total*100})
-	end
-	_table_sort(healedTargets, _detalhes.Sort2)
-
-	gump:JI_AtualizaContainerAlvos(#healedTargets)
-	local topHealingDone = max(healedTargets[1] and healedTargets[1][2] or 0, 0.0001)
-
-	for index, healDataTable in ipairs(healedTargets) do
-		local barra = breakdownWindowFrame.barras2[index]
-
-		if (not barra) then
-			barra = gump:CriaNovaBarraInfo2(instancia, index)
-			barra.textura:SetStatusBarColor(1, 1, 1, 1)
-		end
-
-		local healingDone = healDataTable[2]
-
-		if (index == 1) then
-			barra.textura:SetValue(100)
-		else
-			barra.textura:SetValue(healingDone / topHealingDone * 100)
-		end
-
-		local target_actor = instancia.showing(2, healDataTable[1])
-		if (target_actor) then
-			target_actor:SetClassIcon(barra.icone, instancia, target_actor.classe)
-		else
-			barra.icone:SetTexture([[Interface\AddOns\Details\images\classes_small_alpha]]) --CLASSE
-			local texCoords = _detalhes.class_coords ["ENEMY"]
-			barra.icone:SetTexCoord(_unpack(texCoords))
-		end
-
-		barra.lineText1:SetText(index .. ". " .. _detalhes:GetOnlyName(healDataTable[1]))
-		barra.textura:SetStatusBarColor(1, 1, 1, 1)
-
-		if (breakdownWindowFrame.sub_atributo == 2) then
-			barra.lineText4:SetText(_detalhes:comma_value(_math_floor(healingDone/meu_tempo)) .." (" .. _cstr ("%.1f", healDataTable[3]) .. "%)")
-		else
-			barra.lineText4:SetText(SelectedToKFunction(_, healingDone) .. " (" .. _cstr ("%.1f", healDataTable[3]) .. "%)")
-		end
-
-		barra.minha_tabela = self
-		barra.nome_inimigo = healDataTable[1]
-
-		-- no lugar do spell id colocar o que?
-		barra.spellid = healDataTable[5]
-		barra:Show()
-	end
-
 end
 
 function healingClass:MontaTooltipAlvos (thisLine, index, instancia)

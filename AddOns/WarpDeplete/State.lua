@@ -5,6 +5,7 @@ local L = WarpDeplete.L
 ---@field name? string
 ---@field description string
 ---@field time integer|nil
+---@field dungeonEncounterID integer|nil
 
 ---@class WarpDepleteState
 WarpDeplete.defaultState = {
@@ -41,6 +42,7 @@ WarpDeplete.defaultState = {
 
 	objectives = {}, ---@type WarpDepleteObjective[]
 	ejObjectiveNames = nil, ---@type string[]|nil
+	ejEncounterNames = nil, ---@type table<integer, string>|nil
 
 	forcesCompleted = false,
 	forcesCompletionTime = nil,
@@ -201,6 +203,7 @@ function WarpDeplete:GetEJObjectiveNames()
 	end
 
 	local result = {}
+	local encounterResults = {}
 
 	-- EJ_GetEncounterInfoByIndex requires EJ_SelectInstance to be called at least once during the session when passing a journalInstanceID to not return nil
 	EJ_SelectInstance(1267)
@@ -208,22 +211,20 @@ function WarpDeplete:GetEJObjectiveNames()
 	-- There are never more than 20 objectives
 	-- (probably way less, but let's be safe here)
 	for i = 1, 20 do
-		local name = EJ_GetEncounterInfoByIndex(i, instanceID)
+		local name, _, _, _, _, _, dungeonEncounterID = EJ_GetEncounterInfoByIndex(i, instanceID)
 
 		if name then
 			result[#result + 1] = name
+			encounterResults[dungeonEncounterID] = name
+			self:PrintDebug("Found boss name ", i, ":", name, " (dungeonEncounterID: ", dungeonEncounterID, ")")
 		end
 	end
 
-	for i, bossName in ipairs(result) do
-		self:PrintDebug("Found boss name " .. tostring(i) .. ": " .. tostring(bossName))
-	end
-	
 	if #result == 0 then
 		return nil
 	end
 
-	return result
+	return result, encounterResults
 end
 
 function WarpDeplete:ResetCurrentPull()
@@ -247,7 +248,7 @@ function WarpDeplete:RefreshObjectiveNames(count)
 	count = count or 6
 	self:PrintDebug("Refreshing boss names (" .. tostring(count) .. ")")
 
-	self.state.ejObjectiveNames = self:GetEJObjectiveNames()
+	self.state.ejObjectiveNames, self.state.ejEncounterNames = self:GetEJObjectiveNames()
 	if not self.state.ejObjectiveNames then
 		self:PrintDebug("No EJ objective names received")
 
@@ -261,25 +262,31 @@ function WarpDeplete:RefreshObjectiveNames(count)
 	end
 
 	for i, boss in ipairs(self.state.objectives) do
-		boss.name = self:FindObjectiveName(boss.description, i)
+		boss.name = self:FindObjectiveName(boss.description, i, boss.dungeonEncounterID)
 	end
 end
 
 ---@param description string
 ---@param index integer
+---@param dungeonEncounterID integer?
 ---@return string name
-function WarpDeplete:FindObjectiveName(description, index)
+function WarpDeplete:FindObjectiveName(description, index, dungeonEncounterID)
+	if dungeonEncounterID and self.state.ejEncounterNames and self.state.ejEncounterNames[dungeonEncounterID] then
+		local name = self.state.ejEncounterNames[dungeonEncounterID]
+		self:PrintDebug("Using EJ boss name for dungeonEncounterID", dungeonEncounterID, ":", description, "->" .. name)
+		return Util.utf8Sub(name, 40)
+	end
+
+	local offset = C_ChallengeMode.GetActiveChallengeMapID() == 392 and 5 or 0 -- tazavesh gambit starts at boss 6
+	index = index + offset
 	if self.state.ejObjectiveNames and self.state.ejObjectiveNames[index] then
 		local name = self.state.ejObjectiveNames[index]
-		self:PrintDebug("Using EJ boss name at index " .. tostring(index)
-			.. ": " .. description .. " -> " .. name)
+		self:PrintDebug("Using EJ boss name at index ", index, ":", description, "->", name)
 		return Util.utf8Sub(name, 40)
 	end
 
 	local filtered = Util.formatObjectiveName(description)
-	self:PrintDebug("No EJ boss name at index " .. tostring(index)
-		.. ", falling back to string filtering: "
-		.. description .. " -> " .. filtered)
+	self:PrintDebug("No EJ boss name at index", index, ", falling back to string filtering:", description, "->", filtered)
 	return Util.utf8Sub(filtered, 40)
 end
 
@@ -292,45 +299,64 @@ function WarpDeplete:UpdateObjectives()
 	local completionChanged = false
 	local bossesLoaded = false
 
-	for i = 1, stepCount do
-		local info = C_ScenarioInfo.GetCriteriaInfo(i)
-		if not info.isWeightedProgress then
-			if not self.state.objectives[i] then
-				local name = self:FindObjectiveName(info.description, i)
-				self.state.objectives[i] = { name = name, description = info.description, time = nil }
+	for i = 1, 10 do
+		-- Unload bosses if we initially got too many (e.g. tazavesh)
+		-- TODO: Find out how we can initially get the correct bosses only for the
+		-- current challenge. In tazavesh, we get all bosses for both challenges,
+		-- and then they update during the countdown.
+		if i > stepCount then
+			if self.state.objectives[i] then
 				bossesLoaded = true
 			end
+			self.state.objectives[i] = nil
 
-			local objective = self.state.objectives[i]
-			if not objective.time and info.completed then
-				local time = select(2, GetWorldElapsedTime(1)) - (info.elapsed or 0)
-				objective.time = time
-				completionChanged = true
-			end
-		elseif info.isWeightedProgress and info.totalQuantity and info.totalQuantity > 0 then
-			-- NOTE: The current count contains a percentage sign
-			-- even though it's an absolute value.
-			local currentCount = info.quantityString and tonumber(info.quantityString:match("%d+")) or 0
-
-			if currentCount ~= self.state.currentCount then
-				self:SetForcesCurrent(currentCount)
-			end
-
-			if info.totalQuantity ~= self.state.totalCount then
-				self:SetForcesTotal(info.totalQuantity)
-			end
-
-			if currentCount >= info.totalQuantity then
-				if not self.state.forcesCompleted then
-					self:PrintDebug("Setting forces to completed")
-					self.state.forcesCompleted = true
-					self:RenderForces()
+		-- Otherwise, load normally
+		else
+			local info = C_ScenarioInfo.GetCriteriaInfo(i)
+			if not info.isWeightedProgress then
+				-- criteriaType 165 = Defeat DungeonEncounter, in which case the assetID will be the DungeonEncounterID
+				local dungeonEncounterID = info.criteriaType == 165 and info.assetID or nil
+				local name = self:FindObjectiveName(info.description, i, dungeonEncounterID)
+				if not self.state.objectives[i] or self.state.objectives[i].name ~= name then
+					self.state.objectives[i] = { name = name, description = info.description, time = nil, dungeonEncounterID = dungeonEncounterID }
+					bossesLoaded = true
 				end
 
-				if not self.state.forcesCompletionTime then
-					self:PrintDebug("Setting forces completion time")
-					self.state.forcesCompletionTime = select(2, GetWorldElapsedTime(1)) - (info.elapsed or 0)
+				local objective = self.state.objectives[i]
+				if not objective.time and info.completed then
+					local time = select(2, GetWorldElapsedTime(1)) - (info.elapsed or 0)
+					objective.time = time
 					completionChanged = true
+				end
+			elseif info.isWeightedProgress and info.totalQuantity and info.totalQuantity > 0 then
+				if self.state.objectives[i] then 
+					bossesLoaded = true
+				end
+				self.state.objectives[i] = nil
+				-- NOTE: The current count contains a percentage sign
+				-- even though it's an absolute value.
+				local currentCount = info.quantityString and tonumber(info.quantityString:match("%d+")) or 0
+
+				if currentCount ~= self.state.currentCount then
+					self:SetForcesCurrent(currentCount)
+				end
+
+				if info.totalQuantity ~= self.state.totalCount then
+					self:SetForcesTotal(info.totalQuantity)
+				end
+
+				if currentCount >= info.totalQuantity then
+					if not self.state.forcesCompleted then
+						self:PrintDebug("Setting forces to completed")
+						self.state.forcesCompleted = true
+						self:RenderForces()
+					end
+
+					if not self.state.forcesCompletionTime then
+						self:PrintDebug("Setting forces completion time")
+						self.state.forcesCompletionTime = select(2, GetWorldElapsedTime(1)) - (info.elapsed or 0)
+						completionChanged = true
+					end
 				end
 			end
 		end
@@ -371,7 +397,7 @@ function WarpDeplete:EnableChallengeMode()
 	self:LoadKeyDetails()
 	self:LoadDeathCount()
 
-	self.state.ejObjectiveNames = self:GetEJObjectiveNames()
+	self.state.ejObjectiveNames, self.state.ejEncounterNames = self:GetEJObjectiveNames()
 	self:UpdateObjectives()
 
 	self:Show()
@@ -396,7 +422,9 @@ function WarpDeplete:CompleteChallenge()
 	self:ResetCurrentPull()
 
 	self.state.challengeCompleted = true
-	local _, _, timeMs, onTime = C_ChallengeMode.GetCompletionInfo()
+	local ChallengeCompletionInfo = C_ChallengeMode.GetChallengeCompletionInfo()
+	local timeMs = ChallengeCompletionInfo.time
+	local onTime = ChallengeCompletionInfo.onTime
 
 	self.state.completedOnTime = onTime
 	self.state.completionTimeMs = timeMs

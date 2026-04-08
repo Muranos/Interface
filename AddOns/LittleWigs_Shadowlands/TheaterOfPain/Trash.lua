@@ -4,7 +4,7 @@
 
 local mod, CL = BigWigs:NewBoss("Theater Of Pain Trash", 2293)
 if not mod then return end
-mod.displayName = CL.trash
+mod:SetTrashModule(true)
 mod:RegisterEnableMob(
 	170838, -- Unyielding Contender
 	174197, -- Battlefield Ritualist
@@ -57,6 +57,8 @@ if L then
 	L.soulforged_bonereaver = "Soulforged Bonereaver"
 
 	L.mordretha_warmup_trigger = "Soldiers of Maldraxxus! Are you ready for some carnage?!"
+
+	L["334023_desc"] = 334025 -- Bloodthirsty Charge, 334023 has a broken description
 end
 
 --------------------------------------------------------------------------------
@@ -267,8 +269,8 @@ end
 
 -- Warmup
 
-function mod:CHAT_MSG_MONSTER_YELL(event, msg)
-	if msg == L.mordretha_warmup_trigger then -- Mordretha Warmup
+function mod:CHAT_MSG_MONSTER_YELL(_, msg)
+	if not self:IsSecret(msg) and msg == L.mordretha_warmup_trigger then -- Mordretha Warmup
 		local mordrethaModule = BigWigs:GetBossModule("Mordretha, the Endless Empress", true)
 		if mordrethaModule then
 			mordrethaModule:Enable()

@@ -1,5 +1,5 @@
-## Interface: 110100
-## Version: 4.18
+## Interface: 120001
+## Version: 4.34
 ## Author: Taraezor
 ## IconTexture: Interface\Icons\Inv_misc_elvencoins
 ## Title: Lunar Festival
@@ -27,17 +27,21 @@
 ## Notes-zhCN: |cFFE9AB17帮助完成 |cFFC11B17春节|cFFE9AB17 成就和任务
 ## Notes-zhTW: |cFFE9AB17幫助完成 |cFFC11B17春節|cFFE9AB17 成就和任務
 ## RequiredDeps: HandyNotes
-## SavedVariables: HandyNotes_LunarFestivalDB
+## SavedVariables: LunarFestivalDB
 ## AddonCompartmentFunc: HandyNotes_LunarFestival_OnAddonCompartmentClick
 ## AddonCompartmentFuncOnEnter: HandyNotes_LunarFestival_OnAddonCompartmentEnter
 ## AddonCompartmentFuncOnLeave: HandyNotes_LunarFestival_OnAddonCompartmentLeave
 ## X-Curse-Project-ID: 776143
 ## X-Wago-ID: baND0oNo
 
-ColoursEtc.lua
+Colours_LF.lua
+Common.lua
 Localisations_Common.lua
 Localisations_Events.lua
 Localisations_LF.lua
 Mapping.lua
-Core.lua
 Data.lua
+DragonsTreadLightly.lua
+Common_Functions.lua
+Core.lua
+

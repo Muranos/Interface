@@ -172,25 +172,26 @@ end
 
 function Details:CreatePanicWarning()
 	Details.instance_load_failed = CreateFrame("frame", "DetailsPanicWarningFrame", UIParent,"BackdropTemplate")
-	Details.instance_load_failed:SetHeight(80)
+	Details.instance_load_failed:SetHeight(130)
 	--tinsert(UISpecialFrames, "DetailsPanicWarningFrame")
 	Details.instance_load_failed.text = Details.instance_load_failed:CreateFontString(nil, "overlay", "GameFontNormal")
 	Details.instance_load_failed.text:SetPoint("center", Details.instance_load_failed, "center")
 	Details.instance_load_failed.text:SetTextColor(1, 0.6, 0)
 	Details.instance_load_failed:SetBackdrop({bgFile = [[Interface\Tooltips\UI-Tooltip-Background]], tileSize = 64, tile = true})
-	Details.instance_load_failed:SetBackdropColor(1, 0, 0, 0.2)
+	Details.instance_load_failed:SetBackdropColor(0.7, 0.3, 0.3, 0.9)
 	Details.instance_load_failed:SetPoint("topleft", UIParent, "topleft", 0, -250)
 	Details.instance_load_failed:SetPoint("topright", UIParent, "topright", 0, -250)
 end
 
 local safe_load = function(func, param1, ...)
-	local okey, errortext = pcall(func, param1, ...)
-	if (not okey) then
+	--local okey, errortext = pcall(func, param1, ...)
+	local okey, errortext = xpcall(func, geterrorhandler(), param1, ...)
+	if (false and not okey) then
 		if (not Details.instance_load_failed) then
 			Details:CreatePanicWarning()
 		end
 		Details.do_not_save_skins = true
-		Details.instance_load_failed.text:SetText("Failed to load a Details! window.\n/reload or reboot the game client may fix the problem.\nIf the problem persist, try /details reinstall.\nError: " .. errortext .. "")
+		Details.instance_load_failed.text:SetText("Failed to load a Details! window.\n/reload or reboot the game client may fix the problem.\nIf the problem persist, try /details reinstall.\nError: " .. errortext)
 	end
 	return okey
 end
@@ -614,6 +615,8 @@ local default_profile = {
 		[1473] = {384/512, 448/512, 256/512, 320/512}, -- Augmentation
 	},
 
+	window2_data = {},
+
 	--class icons and colors
 	class_icons_small = [[Interface\AddOns\Details\images\classes_small]],
 	class_coords = {
@@ -853,6 +856,16 @@ local default_profile = {
 		},
 	},
 
+	righttext_simple_formatting = {
+		enabled = true,
+		format_tsp = "%s (%s, %s)",
+		format_ts = "%s (%s)",
+		format_tp = "%s (%s)",
+		use_alignment = false,
+		alignment_space = 60,
+		first_run = false,
+	},
+
 	death_log_colors = {
 		damage = "red",
 		heal = "green",
@@ -864,6 +877,9 @@ local default_profile = {
 
 	fade_speed = 0.15,
 	use_self_color = false,
+
+	damage_meter_type = 0,
+	damage_meter_position = {},
 
 	--minimap
 		minimap = {hide = false, radius = 160, minimapPos = 220, onclick_what_todo = 1, text_type = 1, text_format = 3},
@@ -1139,6 +1155,8 @@ local default_profile = {
 			tooltip_max_targets = 2,
 			tooltip_max_pets = 2,
 
+			grow_direction = "down",
+
 			--menus_bg_coords = {331/512, 63/512, 109/512, 143/512}, --with gradient on right side
 			menus_bg_coords = {0.309777336120606, 0.924000015258789, 0.213000011444092, 0.279000015258789},
 			menus_bg_color = {.8, .8, .8, 0.2},
@@ -1151,6 +1169,15 @@ local default_profile = {
 			line_height = 17,
 
 			show_border_shadow = true, --from spell tooltips from the main window
+
+			--apocalypse
+			show_header = true,
+			show_percent_column = true,
+			show_dps_column = true,
+			show_help = true,
+			show_help_count = 0, --when reaches MAX_TOOLTIP_HELP, set show_help to false
+			apocalypse_width = 300,
+			apocalypse_width_useline = false,
 		},
 
 	--new window system
@@ -1169,6 +1196,10 @@ local default_player_data = {
 			welcome_panel_pos = {},
 			last_coach_name = false,
 		},
+
+		arena_data_headers = {},
+		arena_data_compressed = {}, --store data for arena the character did
+		arena_data_index_selected = 1, --index of the arena data selected to be shown in the arena data panel
 
 		player_stats = {},
 
@@ -1351,6 +1382,10 @@ local default_player_data = {
 
 	--death panel buttons
 		on_death_menu = false,
+	--damage meter sessions
+		damage_meter_sessions = {},
+	--misc data about a session
+		damage_meter_session_info = {},
 }
 
 Details.default_player_data = default_player_data
@@ -1399,6 +1434,13 @@ local default_global_data = {
 		encounter_journal_cache = {}, --store a dump of the encounter journal
 		installed_skins_cache = {},
 		last_10days_cache_cleanup = 0,
+		recent_players = {},
+
+		appocalypse_mode = 0,
+
+		slashk_dnd = false,
+		slashk_addon = "bigwigs",
+		slashk_addon_first = false,
 
 		auto_change_to_standard = true,
 
@@ -1409,6 +1451,8 @@ local default_global_data = {
 
 		boss_wipe_counter = {},
 		boss_wipe_min_time = 20, --minimum time to consider a wipe as a boss wipe
+
+		arena_debug = false,
 
 		user_is_patreon_supporter = false,
 
@@ -1484,6 +1528,17 @@ local default_global_data = {
 
 	frame_background_color = {0.0549, 0.0549, 0.0549, 0.934},
 
+	breakdown_midnight = {
+		players = {width = 200, height = 296},
+		segments = {width = 200, height = 228},
+		spells = {width = 464, height = 398},
+		targets = {width = 300, height = 170},
+		spelldetails = {width = 231, height = 261},
+		compare = {width = 231, height = 200},
+		headers_width = {},
+		headers_shown = {},
+	},
+
 --/run Details.breakdown_spell_tab.spellcontainer_height = 311 --352
 	--breakdown spell tab
 	breakdown_spell_tab = {
@@ -1534,6 +1589,7 @@ local default_global_data = {
 		genericcontainer_right_height = 460,
 
 		spellbar_background_alpha = 0.92,
+		section_background_color = {0.1, 0.1, 0.1, 0.4},
 
 		spellcontainer_headers = {}, --store information about active headers and their sizes (spells)
 		targetcontainer_headers = {}, --store information about active headers and their sizes (target)
@@ -1556,12 +1612,14 @@ local default_global_data = {
 		show_totalhitdamage_on_overkill = false,
 
 	--switch tables
+		switch_missing_type = 0,
 		switchSaved = {slots = 4, table = {
 			{["atributo"] = 1, ["sub_atributo"] = 1}, --damage done
 			{["atributo"] = 2, ["sub_atributo"] = 1}, --healing done
 			{["atributo"] = 1, ["sub_atributo"] = 6}, --enemies
 			{["atributo"] = 4, ["sub_atributo"] = 5}, --deaths
 		}},
+		switch_post_apoc = false,
 		report_pos = {1, 1},
 
 	--tutorial
@@ -1647,7 +1705,6 @@ local default_global_data = {
 		mythic_plus = {
 			merge_boss_trash = true,
 			boss_dedicated_segment = true,
-			make_overall_when_done = true,
 			make_overall_boss_only = false,
 			show_damage_graphic = true,
 
@@ -1862,7 +1919,7 @@ function Details:RestoreState_CurrentMythicDungeonRun()
 				Details:Msg("D! (debug) mythic dungeon state restored.")
 
 				C_Timer.After(2, function()
-					Details:SendEvent("COMBAT_MYTHICDUNGEON_START")
+					Details:SendEvent("COMBAT_MYTHICDUNGEON_CONTINUE")
 				end)
 				return
 			else
@@ -2070,7 +2127,6 @@ function Details:ImportProfile (profileString, newProfileName, bImportAutoRunCod
 		local mythicPlusSettings = Details.mythic_plus
 		mythicPlusSettings.merge_boss_trash = true
 		mythicPlusSettings.boss_dedicated_segment = true
-		mythicPlusSettings.make_overall_when_done = true
 		mythicPlusSettings.make_overall_boss_only = false
 		mythicPlusSettings.show_damage_graphic = true
 		mythicPlusSettings.reverse_death_log = false

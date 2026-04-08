@@ -11,7 +11,6 @@ end
 L = BigWigs:NewBossLocale("Vaelastrasz the Corrupt", "ruRU")
 if L then
 	--L.warmup_trigger = "Too late, friends!"
-	--L.tank_bomb = "Tank Bomb"
 end
 
 L = BigWigs:NewBossLocale("Chromaggus", "ruRU")
@@ -32,7 +31,7 @@ end
 
 L = BigWigs:NewBossLocale("Nefarian Classic", "ruRU")
 if L then
-	--L.engage_yell_trigger = "Let the games begin"
+	L.engage_yell_trigger = "Ну что ж, поиграем!"
 	L.stage3_yell_trigger = "Невозможно!"
 
 	L.shaman_class_call_yell_trigger = "Шаманы! Покажитесь мне!"

@@ -24,7 +24,7 @@ local IsAddOnLoaded = C_AddOns and C_AddOns.IsAddOnLoaded or IsAddOnLoaded
 TELLMEWHEN_VERSION = GetAddOnMetadata("TellMeWhen", "Version")
 
 TELLMEWHEN_VERSION_MINOR = ""
-local projectVersion = "11.1.1" -- comes out like "6.2.2-21-g4e91cee"
+local projectVersion = "12.0.11" -- comes out like "6.2.2-21-g4e91cee"
 if projectVersion:find("project%-version") then
 	TELLMEWHEN_VERSION_MINOR = "dev"
 elseif strmatch(projectVersion, "%-%d+%-") then
@@ -33,7 +33,7 @@ end
 
 TELLMEWHEN_VERSION_FULL = TELLMEWHEN_VERSION .. " " .. TELLMEWHEN_VERSION_MINOR
 
-local REVISION = 1
+local REVISION = 3
 if #TELLMEWHEN_VERSION > 7 or REVISION >= 100 then
 	return error("TELLMEWHEN: UNEXPECTEDLY HIGH VERSION/REVISION")
 end
@@ -80,6 +80,23 @@ This can happen especially if you use the Twitch app - ensure "Install Libraries
 
 	-- Stop trying to load TMW.
 	return
+elseif _G.GetLib and (not LibStub.libs or not pcall(LibStub.NewLibrary, LibStub, "__TMW_GetLib_test", "20250806041923")) then
+	local _, fault = issecurevariable("GetLib");
+	StaticPopupDialogs["TMW_MISSINGLIB"] = {
+		text = ([[TellMeWhen:
+
+You appear to have installed an AddOn that includes a piece of poorly functioning code called "RasuForge-GetLib". 
+
+This code attempts to replace LibStub, the registry of shared AddOn library code that is used by nearly every WoW AddOn for almost 20 years. Unfortunately, it is poorly made and interferes with the way that LibStub normally functions.
+
+TellMeWhen's best guess at where this came from is the addon %q. TellMeWhen will not function properly while this addon is installed and enabled.]]):format(fault), 
+		button1 = OKAY,
+		timeout = 0,
+		showAlert = true,
+		whileDead = true,
+		preferredIndex = 3, -- http://forums.wowace.com/showthread.php?p=320956
+	}
+	StaticPopup_Show("TMW_MISSINGLIB")
 end
 
 local L = LibStub("AceLocale-3.0"):GetLocale("TellMeWhen", true)
@@ -97,14 +114,9 @@ _G.TMW = LibStub("AceAddon-3.0"):NewAddon(TMW, "TellMeWhen", "AceEvent-3.0", "Ac
 _G.TellMeWhen = _G.TMW
 local TMW = _G.TMW
 
-local tocVersion = select(4, GetBuildInfo());
-TMW.isClassic = tocVersion <= 19999
-TMW.isWrath = tocVersion >= 30400 and tocVersion <= 30499
-TMW.isCata = tocVersion >= 40400 and tocVersion <= 40499
-TMW.isRetail = tocVersion >= 90000
-
-
-local DogTag = LibStub("LibDogTag-3.0", true)
+TMW.issecretvalue = _G.issecretvalue or function() end
+TMW.clientHasSecrets = C_Secrets and C_Secrets.HasSecretRestrictions()
+TMW.wowMajor = math.floor(select(4, GetBuildInfo()) / 10000)
 
 if false then
 	 -- stress testing for text widths
@@ -164,8 +176,8 @@ end)
 
 ---------- Upvalues ----------
 local GetSpellTexture = C_Spell and C_Spell.GetSpellTexture or GetSpellTexture
-local InCombatLockdown, GetTalentInfo =
-	  InCombatLockdown, GetTalentInfo
+local InCombatLockdown =
+	  InCombatLockdown
 local IsInGuild, IsInGroup, IsInInstance =
 	  IsInGuild, IsInGroup, IsInInstance
 local tonumber, tostring, type, pairs, ipairs, tinsert, tremove, sort, select, wipe, rawget, rawset, assert, pcall, error, getmetatable, setmetatable, loadstring, unpack, debugstack =
@@ -175,6 +187,7 @@ local strfind, strmatch, format, gsub, gmatch, strsub, strtrim, strsplit, strlow
 local _G, coroutine, table, GetTime, CopyTable =
 	  _G, coroutine, table, GetTime, CopyTable
 local tostringall = tostringall
+local debugprofilestop = debugprofilestop
 
 ---------- Locals ----------
 local Locked
@@ -252,6 +265,13 @@ TMW.Defaults = {
 		EffThreshold      = 15,
 		BackupDbInOptions = true,
 		CreateImportBackup = true,
+		EditModeLayouts = {
+			["**"] = {
+				CDMHide = {
+					["*"] = false,
+				}
+			}
+		},
 
 		NumGroups         = 0,
 		-- Groups = {} -- this will be set to the profile group defaults in a second.
@@ -282,6 +302,9 @@ TMW.Defaults = {
 				--CheckOrder		= -1,
 				EnabledSpecs	= {
 					["*"]		= true,
+				},
+				CDMViewerHide	= {
+					["*"]		= false,
 				},
 				Role 			= 0x7,
 				SettingsPerView	= {
@@ -490,12 +513,7 @@ function TMW.print(...)
 		local prefix = format("|cffff0000 %s", linenum(3, true)) .. ":|r "
 
 		local func = TMW.debug and TMW.debug.print or _G.print
-		if ... == TMW then
-			prefix = "s" .. prefix
-			func(prefix, select(2,...))
-		else
-			func(prefix, ...)
-		end
+		func(prefix, ...)
 	end
 	return ...
 end
@@ -503,49 +521,14 @@ local print = TMW.print
 
 
 do	-- TMW.safecall
-	--[[
-		xpcall safecall implementation
-	]]
 	local xpcall = xpcall
 
-	local function errorhandler(err)
-		return geterrorhandler()(err)
-	end
-
-	local function CreateDispatcher(argCount)
-		local code = [[
-			local xpcall, eh = ...
-			local method, ARGS
-			local function call() return method(ARGS) end
-		
-			local function dispatch(func, ...)
-				method = func
-				if not method then return end
-				ARGS = ...
-				return xpcall(call, eh)
-			end
-		
-			return dispatch
-		]]
-		
-		local ARGS = {}
-		for i = 1, argCount do ARGS[i] = "arg"..i end
-		ARGS = table.concat(ARGS, ", ")
-		code = code:gsub("ARGS", ARGS)
-		return assert(loadstring(code, "safecall Dispatcher["..argCount.."]"))(xpcall, errorhandler)
-	end
-
-	local Dispatchers = setmetatable({}, {__index=function(self, argCount)
-		local dispatcher = CreateDispatcher(argCount)
-		rawset(self, argCount, dispatcher)
-		return dispatcher
-	end})
-	Dispatchers[0] = function(func)
-		return xpcall(func, errorhandler)
+	local errorhandler = _G.CallErrorHandler or function(...)
+		return geterrorhandler()(...)
 	end
 
 	function TMW.safecall(func, ...)
-		return Dispatchers[select('#', ...)](func, ...)
+		return xpcall(func, errorhandler, ...)
 	end
 end
 local safecall = TMW.safecall
@@ -613,22 +596,6 @@ function TMW:ValidateType(argN, methodName, var, reqType)
 		error(("Bad argument %s to %q. %s expected, got %s (%s)"):format(argN, methodName, reqType, varTypeName, tostring(var) or "[noval]"), 3)
 	end
 end
-
--- This code is here to prevent other addons from resetting
--- the high-precision timer. It isn't fool-proof (if someone upvalues debugprofilestart
--- then this won't have an effect on calls to that upvalue), but it helps.
-local start_old = debugprofilestart
-local lastReset = 0
-function _G.debugprofilestart()
-	lastReset = lastReset + debugprofilestop()
-
-	return start_old()
-end
-
-function _G.debugprofilestop_SAFE()
-	return debugprofilestop() + lastReset    
-end
-local debugprofilestop = debugprofilestop_SAFE
 
 
 
@@ -1087,9 +1054,7 @@ function TMW:PLAYER_LOGIN()
 	-- end
 	
 
-
-	TMW:UpdateTalentTextureCache()
-
+	safecall(TMW.UpdateTalentTextureCache, TMW)
 
 	TMW:RegisterEvent("GLOBAL_MOUSE_DOWN")
 	
@@ -1099,12 +1064,9 @@ function TMW:PLAYER_LOGIN()
 	end
 	TMW:RegisterEvent("PLAYER_TALENT_UPDATE", "PLAYER_SPECIALIZATION_CHANGED")
 	TMW:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED", "PLAYER_SPECIALIZATION_CHANGED")
-	if TMW.isRetail then
-		TMW:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
-		TMW:RegisterEvent("TRAIT_CONFIG_UPDATED", "PLAYER_SPECIALIZATION_CHANGED")
-	else
-		TMW:RegisterEvent("CHARACTER_POINTS_CHANGED", "PLAYER_SPECIALIZATION_CHANGED")
-	end
+	TMW:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
+	TMW:RegisterEvent("TRAIT_CONFIG_UPDATED", "PLAYER_SPECIALIZATION_CHANGED")
+	TMW:RegisterEvent("CHARACTER_POINTS_CHANGED", "PLAYER_SPECIALIZATION_CHANGED")
 
 
 
@@ -1517,6 +1479,15 @@ TMW.C.TMW:Inherit("Core_Upgrades")
 
 function TMW:GetBaseUpgrades()			-- upgrade functions
 	return {
+		[12000603] = {
+			group = function(self, gs, domain, groupID)
+				-- EnabledSpecs was previously not applied to global groups.
+				-- Wipe out any lingering so groups aren't suddenly hidden.
+				if domain == "global" then
+					wipe(gs.EnabledSpecs)
+				end
+			end,
+		},
 
 		[92400] = {
 			-- The lua import detector for the luavalue icon type
@@ -1612,63 +1583,6 @@ function TMW:GetBaseUpgrades()			-- upgrade functions
 
 		[80005] = {
 			group = function(self, gs, domain, groupID)
-				if domain == "profile" and GetSpecialization then
-					local expectedProfileName = UnitName("player") .. " - " .. GetRealmName()
-					if expectedProfileName == TMW.db:GetCurrentProfile() or TMW.db.profile.Version > 70001 then
-						-- If the current profile is named after the current character,
-						-- or if the version is after 70001 (which is the all-profiles upgrade)
-						-- we can safely pull the player's current talents to get rid of these settings.
-
-						-- If neither of these things are the case, then just kill the settings without trying to upgrade.
-						-- The user will have to re-configure those groups that will now be showing when they shouldn't be.
-
-
-						-- Normalize these with their old default values to make this easier.
-						if gs.PrimarySpec == nil then
-							gs.PrimarySpec = true
-						end
-						if gs.SecondarySpec == nil then
-							gs.SecondarySpec = true
-						end
-
-						-- Only do anything if only one of these was enabled.
-						-- If both were enabled, don't disable anything (duh),
-						-- and if both were disabled, then.... why? Silly user!
-						if (gs.PrimarySpec and not gs.SecondarySpec)
-						or (not gs.PrimarySpec and gs.SecondarySpec)
-						then
-							local enabledSpec 
-							if gs.PrimarySpec then
-								enabledSpec = GetSpecialization(false, false, 1)
-							else
-								enabledSpec = GetSpecialization(false, false, 2)
-							end
-
-							-- Disable any specs that aren't the one that was enabled.
-							for i = 1, 4 do
-								if i ~= enabledSpec then
-									gs["Tree" .. i] = false
-								end
-							end
-						end
-
-
-						-- Now, upgrade the Tree settings. These are moving from being stored in one key per tree
-						-- to a table that stores specIDs. This prevents the stuff we had to go through for this upgrade:
-						-- the old settings we context-sensitive (on the player's class), while the new settings are not.
-
-						for treeID = 1, GetNumSpecializations() do
-							local specID = GetSpecializationInfo(treeID)
-							local specEnabled = gs["Tree" .. treeID]
-							if specEnabled == nil then
-								specEnabled = true
-							end
-
-							gs.EnabledSpecs[specID] = specEnabled
-						end
-					end
-				end
-
 				-- We're done with these now. Goodbye!
 				gs.PrimarySpec = nil
 				gs.SecondarySpec = nil
@@ -2573,7 +2487,7 @@ do	-- TMW:OnUpdate()
 	local updateInProgress, shouldSafeUpdate
 	local start
 	-- Assume in combat unless we find out otherwise.
-	local inCombatLockdown = 1
+	local inCombatLockdown = true
 
 	-- Limit in milliseconds for each OnUpdate cycle.
 	local CoroutineLimit = 50
@@ -2592,7 +2506,7 @@ do	-- TMW:OnUpdate()
 
 	local function checkYield()
 		if inCombatLockdown and debugprofilestop() - start > CoroutineLimit then
-			TMW:Debug("OnUpdate yielded early at %s", time)
+			--TMW:Debug("OnUpdate yielded early at %s", time)
 
 			coroutine.yield()
 		end
@@ -2719,23 +2633,13 @@ function TMW:UpdateNormally()
 
 	for groupID = 1, max(TMW.db.profile.NumGroups, #TMW.profile) do
 		-- Cant use TMW.InGroups() because groups wont exist yet on the first call of this.
-		local group = TMW.profile[groupID] or
-			TMW.Classes.Group:New("Frame", "TellMeWhen_Group" .. groupID, TMW, "TellMeWhen_GroupTemplate", groupID)
-
-		group.Domain = "profile"
-		TMW[group.Domain][groupID] = group
-
+		local group = TMW.Classes.Group:GetOrCreate("profile", groupID)
 		TMW.safecall(group.Setup, group)
 	end
 
 	for groupID = 1, max(TMW.db.global.NumGroups, #TMW.global) do
 		-- Cant use TMW.InGroups() because groups wont exist yet on the first call of this.
-		local group = TMW.global[groupID] or
-			TMW.Classes.Group:New("Frame", "TellMeWhen_GlobalGroup" .. groupID, TMW, "TellMeWhen_GlobalGroupTemplate", groupID)
-
-		group.Domain = "global"
-		TMW[group.Domain][groupID] = group
-
+		local group = TMW.Classes.Group:GetOrCreate("global", groupID)
 		TMW.safecall(group.Setup, group)
 	end
 
@@ -2769,7 +2673,7 @@ do -- TMW:UpdateViaCoroutine()
 
 	local function CheckCoroutineTermination()
 		if UpdateCoroutine and debugprofilestop() - CoroutineStartTime > COROUTINE_MAX_TIME_PER_FRAME then
-			TMW:Debug("Update() yielded early at %s", time)
+			--TMW:Debug("Update() yielded early at %s", time)
 			coroutine.yield(UpdateCoroutine)
 		end
 	end
@@ -2893,28 +2797,16 @@ function TMW:ScheduleUpdate(delay)
 end
 
 function TMW:UpdateTalentTextureCache()
-	if MAX_TALENT_TIERS then
-		for tier = 1, MAX_TALENT_TIERS do
-			for column = 1, NUM_TALENT_COLUMNS do
-				local id, name, tex = GetTalentInfo(tier, column, 1)
+	for _, talentInfoQuery in TMW.GetTalentQueries() do
+		local talentInfo = C_SpecializationInfo.GetTalentInfo(talentInfoQuery);
+		if talentInfo then
+			local name = talentInfo.name
+			local tex = talentInfo.fileID
 
-				local lower = name and strlowerCache[name]
-				
-				if lower then
-					SpellTexturesMetaIndex[lower] = tex
-				end
-			end
-		end
-	elseif GetNumTalentTabs then
-		for tab = 1, GetNumTalentTabs() do
-			for index = 1, GetNumTalents(tab) do
-				local name, iconTexture = GetTalentInfo(tab, index)
+			local lower = name and strlowerCache[name]
 
-				local lower = name and strlowerCache[name]
-				
-				if lower then
-					SpellTexturesMetaIndex[lower] = iconTexture
-				end
+			if lower then
+				SpellTexturesMetaIndex[lower] = tex
 			end
 		end
 	end
@@ -2998,6 +2890,25 @@ end
 
 function TMW:AssertOptionsInitialized()
 	if not TMW.IE or not TMW.IE.Initialized then
+
+		-- Detect https://github.com/KaspOu/K-Cursor-Cooldown/issues/23 and warn users.
+		if AceAddon30Frame._RegisterUnitEvents and IsAddOnLoaded("CursorCooldown") then
+			StaticPopupDialogs["TMW_CCR"] = {
+				text = 
+[[TellMeWhen has detected that you have installed "Cursor Cooldown Reloaded". 
+
+Unfortunately, this addon tampers with the shared library AceAddon-3.0 in a way that breaks TellMeWhen, Dominos, and probably other addons. 
+
+TellMeWhen's options cannot load unless you disable or uninstall Cursor Cooldown Reloaded.]], 
+				button1 = OKAY,
+				timeout = 0,
+				showAlert = true,
+				whileDead = true,
+				preferredIndex = 3, -- http://forums.wowace.com/showthread.php?p=320956
+			}
+			StaticPopup_Show("TMW_CCR")
+		end
+		
 		TMW:Print(L["ERROR_NOTINITIALIZED_OPT_NO_ACTION"])
 		
 		return true
@@ -3142,6 +3053,13 @@ function TMW:SlashCommand(str)
 end
 TMW:RegisterChatCommand("tmw", "SlashCommand")
 TMW:RegisterChatCommand("tellmewhen", "SlashCommand")
+TMW:RegisterChatCommand("rl", ReloadUI)
+if _G.CooldownViewerSettings then
+	TMW:RegisterChatCommand("cdm", function()
+		_G.CooldownViewerSettings:SetShown(not _G.CooldownViewerSettings:IsShown())
+	end)
+end
+
 
 function TMW:LoadOptions(recursed)
 	--[[ Here's the story of some taint. A better version is at
@@ -3239,7 +3157,7 @@ function TMW:LoadOptions(recursed)
 		return;
 	end
 
-	TMW:Debug(L["LOADINGOPT"])
+	--TMW:Debug(L["LOADINGOPT"])
 
 	local loaded, reason = LoadAddOn("TellMeWhen_Options")
 	if not loaded then

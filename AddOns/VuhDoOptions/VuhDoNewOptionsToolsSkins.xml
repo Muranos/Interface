@@ -575,6 +575,9 @@
 							</Anchor>
 						</Anchors>
 						<Scripts>
+							<OnLoad>
+								VUHDO_lnfSetTooltip(self, VUHDO_I18N_TT.K814);
+							</OnLoad>
 							<OnShow>
 								VUHDO_lnfPatchFont(self, "Label");
 								VUHDO_lnfCheckButtonInitFromModel(self);
@@ -599,6 +602,9 @@
 							</Anchor>
 						</Anchors>
 						<Scripts>
+							<OnLoad>
+								VUHDO_lnfSetTooltip(self, VUHDO_I18N_TT.K815);
+							</OnLoad>
 							<OnShow>
 								VUHDO_lnfPatchFont(self, "Label");
 								VUHDO_lnfCheckButtonInitFromModel(self);
@@ -913,7 +919,11 @@
 				_G[self:GetName() .. "ImportFrame"]:Hide();
 			</OnShow>
 			<OnHide>
-				VUHDO_skinsSaveAutoProfileButtonEnablement(self, VUHDO_CURRENT_PROFILE);
+				if VUHDO_isAutoProfilesModified() then
+					VUHDO_skinsSaveAutoProfileButtonEnablement(self, VUHDO_CURRENT_PROFILE);
+
+					VUHDO_resetAutoProfilesModified();
+				end
 			</OnHide>
 		</Scripts>
 	</Frame>

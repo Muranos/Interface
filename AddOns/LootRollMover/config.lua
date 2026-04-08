@@ -1,13 +1,61 @@
-local ADDON_NAME, addon = ...
+-- Changes made:
+-- - Localized globals and added idempotent config initialization to avoid duplicate UI creation.
+-- - Added defensive nil checks for anchor frame actions.
+-- - Simplified control creation helpers and improved ordering/clarity.
+
+local _G = _G
+local CreateFrame = _G.CreateFrame
+local UIParent = _G.UIParent
+local DEFAULT_CHAT_FRAME = _G.DEFAULT_CHAT_FRAME
+local print = _G.print
+local ipairs = ipairs
+local math_floor = math.floor
+local string_gsub = string.gsub
+local tonumber = tonumber
+local type = type
+
+local ADDON_NAME, private = ...
 if not _G[ADDON_NAME] then
 	_G[ADDON_NAME] = CreateFrame("Frame", ADDON_NAME, UIParent, BackdropTemplateMixin and "BackdropTemplate")
 end
-addon = _G[ADDON_NAME]
+local addon = _G[ADDON_NAME]
 
 addon.configFrame = CreateFrame("frame", ADDON_NAME.."_config_eventFrame", UIParent, BackdropTemplateMixin and "BackdropTemplate")
 local configFrame = addon.configFrame
 
-local L = LibStub("AceLocale-3.0"):GetLocale(ADDON_NAME)
+addon.private = private
+addon.L = (private and private.L) or addon.L or {}
+local L = addon.L
+local ClampScale = addon.ClampScale or function(value)
+	value = tonumber(value) or 1
+	if value < 0.5 then return 0.5 end
+	if value > 5 then return 5 end
+	return value
+end
+local PrintMessage = addon.PrintMessage or function(message)
+	if message == nil then return end
+	if DEFAULT_CHAT_FRAME and DEFAULT_CHAT_FRAME.AddMessage then
+		DEFAULT_CHAT_FRAME:AddMessage(message)
+	else
+		print(message)
+	end
+end
+local function IsAlertAnchorEnabled()
+	if type(addon.IsAlertAnchorEnabled) == "function" then
+		return addon:IsAlertAnchorEnabled()
+	end
+	return true
+end
+local GetMetadata = (C_AddOns and C_AddOns.GetAddOnMetadata) or GetAddOnMetadata
+
+local SLIDER_BACKDROP = {
+	bgFile = "Interface\\Buttons\\UI-SliderBar-Background",
+	edgeFile = "Interface\\Buttons\\UI-SliderBar-Border",
+	tile = true,
+	tileSize = 8,
+	edgeSize = 8,
+	insets = { left = 3, right = 3, top = 6, bottom = 6 },
+}
 
 local lastObject
 local function addConfigEntry(objEntry, adjustX, adjustY)
@@ -28,7 +76,10 @@ local function createCheckbutton(parentFrame, displayText)
 	chkBoxIndex = chkBoxIndex + 1
 
 	local checkbutton = CreateFrame("CheckButton", ADDON_NAME.."_config_chkbtn_" .. chkBoxIndex, parentFrame, "ChatConfigCheckButtonTemplate")
-	getglobal(checkbutton:GetName() .. 'Text'):SetText(" "..displayText)
+	local label = _G[checkbutton:GetName() .. "Text"]
+	if label then
+		label:SetText(" " .. (displayText or ""))
+	end
 
 	return checkbutton
 end
@@ -49,22 +100,17 @@ local sliderIndex = 0
 local function createSlider(parentFrame, displayText, minVal, maxVal, setStep)
 	sliderIndex = sliderIndex + 1
 
-	local SliderBackdrop  = {
-		bgFile = "Interface\\Buttons\\UI-SliderBar-Background",
-		edgeFile = "Interface\\Buttons\\UI-SliderBar-Border",
-		tile = true, tileSize = 8, edgeSize = 8,
-		insets = { left = 3, right = 3, top = 6, bottom = 6 }
-	}
-
+	local minValue = minVal or 0.5
+	local maxValue = maxVal or 5
 	local slider = CreateFrame("Slider", ADDON_NAME.."_config_slider_" .. sliderIndex, parentFrame, BackdropTemplateMixin and "BackdropTemplate")
 	slider:SetOrientation("HORIZONTAL")
 	slider:SetHeight(15)
 	slider:SetWidth(300)
 	slider:SetHitRectInsets(0, 0, -10, 0)
 	slider:SetThumbTexture("Interface\\Buttons\\UI-SliderBar-Button-Horizontal")
-	slider:SetMinMaxValues(minVal or 0.5, maxVal or 5)
-	slider:SetValue(0.5)
-	slider:SetBackdrop(SliderBackdrop)
+	slider:SetMinMaxValues(minValue, maxValue)
+	slider:SetValue(minValue)
+	slider:SetBackdrop(SLIDER_BACKDROP)
 	slider:SetValueStep(setStep or 1)
 
 	local label = slider:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -75,11 +121,11 @@ local function createSlider(parentFrame, displayText, minVal, maxVal, setStep)
 
 	local lowtext = slider:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
 	lowtext:SetPoint("TOPLEFT", slider, "BOTTOMLEFT", 2, 3)
-	lowtext:SetText(minVal)
+	lowtext:SetText(minValue)
 
 	local hightext = slider:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
 	hightext:SetPoint("TOPRIGHT", slider, "BOTTOMRIGHT", -2, 3)
-	hightext:SetText(maxVal)
+	hightext:SetText(maxValue)
 
 	local currVal = slider:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
 	currVal:SetPoint("TOPRIGHT", slider, "BOTTOMRIGHT", 45, 12)
@@ -96,8 +142,8 @@ local function LoadAboutFrame()
 	about.name = ADDON_NAME
 	about:Hide()
 
-    local fields = {"Version", "Author"}
-	local notes = C_AddOns.GetAddOnMetadata(ADDON_NAME, "Notes")
+	local fields = {"Version", "Author"}
+	local notes = (GetMetadata and GetMetadata(ADDON_NAME, "Notes")) or ""
 
     local title = about:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
 
@@ -114,15 +160,15 @@ local function LoadAboutFrame()
 	subtitle:SetText(notes)
 
 	local anchor
-	for _,field in pairs(fields) do
-		local val = C_AddOns.GetAddOnMetadata(ADDON_NAME, field)
+	for _, field in ipairs(fields) do
+		local val = GetMetadata and GetMetadata(ADDON_NAME, field)
 		if val then
 			local title = about:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
 			title:SetWidth(75)
 			if not anchor then title:SetPoint("TOPLEFT", subtitle, "BOTTOMLEFT", -2, -8)
 			else title:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -6) end
 			title:SetJustifyH("RIGHT")
-			title:SetText(field:gsub("X%-", ""))
+			title:SetText(string_gsub(field, "X%-", ""))
 
 			local detail = about:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
 			detail:SetPoint("LEFT", title, "RIGHT", 4, 0)
@@ -146,21 +192,18 @@ local function LoadAboutFrame()
 end
 
 function configFrame:EnableConfig()
+	if self._enabled then return end
+	self._enabled = true
+
+	LRMDB = LRMDB or {}
 
 	addon.aboutPanel = LoadAboutFrame()
 
 	--login message
 	local btnAddonLoadedChk = createCheckbutton(addon.aboutPanel, L.AddonLoginMsg)
 	btnAddonLoadedChk:SetScript("OnShow", function() btnAddonLoadedChk:SetChecked(LRMDB.addonLoginMsg) end)
-	btnAddonLoadedChk.func = function(slashSwitch)
-		local value = LRMDB.addonLoginMsg
-		if not slashSwitch then value = LRMDB.addonLoginMsg end
-
-		if value then
-			LRMDB.addonLoginMsg = false
-		else
-			LRMDB.addonLoginMsg = true
-		end
+	btnAddonLoadedChk.func = function()
+		LRMDB.addonLoginMsg = not LRMDB.addonLoginMsg
 	end
 	btnAddonLoadedChk:SetScript("OnClick", btnAddonLoadedChk.func)
 
@@ -170,12 +213,28 @@ function configFrame:EnableConfig()
 	--anchor
 	local btnAnchor = createButton(addon.aboutPanel, L.SlashAnchorText)
 	btnAnchor.func = function()
-		if _G["LootRollMoverAnchor_Frame"]:IsVisible() then
-			_G["LootRollMoverAnchor_Frame"]:Hide()
-			DEFAULT_CHAT_FRAME:AddMessage(L.SlashAnchorOff)
-		else
-			_G["LootRollMoverAnchor_Frame"]:Show()
-			DEFAULT_CHAT_FRAME:AddMessage(L.SlashAnchorOn)
+		local lootAnchor = _G.LootRollMoverAnchor_Frame
+		local alertAnchor = _G.LRM_AlertFrame_Anchor
+		local alertEnabled = IsAlertAnchorEnabled()
+		if lootAnchor then
+			if lootAnchor:IsVisible() then
+				lootAnchor:Hide()
+				PrintMessage(L.SlashAnchorOff)
+			else
+				lootAnchor:Show()
+				PrintMessage(L.SlashAnchorOn)
+			end
+		end
+		if alertAnchor then
+			if alertEnabled then
+				if alertAnchor:IsVisible() then
+					alertAnchor:Hide()
+				else
+					alertAnchor:Show()
+				end
+			else
+				alertAnchor:Hide()
+			end
 		end
 	end
 	btnAnchor:SetScript("OnClick", btnAnchor.func)
@@ -183,13 +242,37 @@ function configFrame:EnableConfig()
 	addConfigEntry(btnAnchor, 0, -30)
 	addon.aboutPanel.btnAnchor = btnAnchor
 
+	--alert system toggle
+	local btnAlert = createButton(addon.aboutPanel, L.AlertAnchorText or "Toggle Alert System")
+	btnAlert.func = function()
+		if addon and addon.ToggleAlertSystem then
+			addon:ToggleAlertSystem()
+		end
+	end
+	btnAlert:SetScript("OnClick", btnAlert.func)
+
+	addConfigEntry(btnAlert, 0, -25)
+	addon.aboutPanel.btnAlert = btnAlert
+
 	--reset
 	local btnReset = createButton(addon.aboutPanel, L.SlashResetText)
 	btnReset.func = function()
-		DEFAULT_CHAT_FRAME:AddMessage(L.SlashResetAlert)
-		_G["LootRollMoverAnchor_Frame"]:ClearAllPoints()
-		_G["LootRollMoverAnchor_Frame"]:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
-		_G["LootRollMoverAnchor_Frame"]:Show()
+		PrintMessage(L.SlashResetAlert)
+		local lootAnchor = _G.LootRollMoverAnchor_Frame
+		local alertAnchor = _G.LRM_AlertFrame_Anchor
+		local alertEnabled = IsAlertAnchorEnabled()
+		if lootAnchor then
+			lootAnchor:ClearAllPoints()
+			lootAnchor:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
+			lootAnchor:Show()
+		end
+		if alertAnchor and alertEnabled then
+			alertAnchor:ClearAllPoints()
+			alertAnchor:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
+			alertAnchor:Show()
+		elseif alertAnchor then
+			alertAnchor:Hide()
+		end
 	end
 	btnReset:SetScript("OnClick", btnReset.func)
 
@@ -199,19 +282,17 @@ function configFrame:EnableConfig()
 	--scale
 	local sliderScale = createSlider(addon.aboutPanel, L.SlashScaleText, 0.5, 5, 0.1)
 	sliderScale:SetScript("OnShow", function()
-		sliderScale:SetValue(LRMDB.scale)
-		sliderScale.currVal:SetText("("..LRMDB.scale..")")
+		local scale = ClampScale(LRMDB.scale)
+		LRMDB.scale = scale
+		sliderScale:SetValue(scale)
+		sliderScale.currVal:SetText("("..scale..")")
 	end)
 	sliderScale.sliderFunc = function(self, value)
-		value = math.floor(value * 10) / 10
-		if value < 0.5 then value = 0.5 end --always make sure we are 0.5 as the highest zero.  Anything lower will make the frame dissapear
-		if value > 5 then value = 5 end --nothing bigger than this
+		value = ClampScale(math_floor(value * 10) / 10)
 		sliderScale.currVal:SetText("("..value..")")
-		sliderScale:SetValue(value)
 	end
 	sliderScale.sliderMouseUp = function(self, button)
-		local value = math.floor(self:GetValue() * 10) / 10
-		addon:SetScale(value)
+		addon:SetScale(ClampScale(math_floor(self:GetValue() * 10) / 10))
 	end
 	sliderScale:SetScript("OnValueChanged", sliderScale.sliderFunc)
 	sliderScale:SetScript("OnMouseUp", sliderScale.sliderMouseUp)

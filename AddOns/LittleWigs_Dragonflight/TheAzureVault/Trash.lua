@@ -4,7 +4,7 @@
 
 local mod, CL = BigWigs:NewBoss("The Azure Vault Trash", 2515)
 if not mod then return end
-mod.displayName = CL.trash
+mod:SetTrashModule(true)
 mod:RegisterEnableMob(
 	194602, -- Book of Translocation (Proceed to Upper Chambers)
 	194618, -- Book of Translocation (Return from Upper Chambers)
@@ -37,9 +37,9 @@ mod:RegisterEnableMob(
 local L = mod:GetLocale()
 if L then
 	L.book_of_translocation = "Book of Translocation"
-	L.custom_on_book_autotalk = "Autotalk"
+	L.custom_on_book_autotalk = CL.autotalk
 	L.custom_on_book_autotalk_desc = "Instantly proceed to the next area when talking to Books of Translocation."
-	L.custom_on_book_autotalk_icon = "ui_chat"
+	L.custom_on_book_autotalk_icon = mod:GetMenuIcon("SAY")
 
 	L.shrieking_whelp = "Shrieking Whelp"
 	L.conjured_lasher = "Conjured Lasher"

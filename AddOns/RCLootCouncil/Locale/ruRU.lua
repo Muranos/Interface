@@ -4,12 +4,12 @@
 local L = LibStub("AceLocale-3.0"):NewLocale("RCLootCouncil", "ruRU")
 if not L then return end
 
-L[" is not active in this raid."] = "не участвует в текущем рейде."
+L[" is not active in this raid."] = "не принимает участия в этом рейде."
 L[" you are now the Master Looter and RCLootCouncil is now handling looting."] = "теперь вы мастерлутер и RCLootCouncil отвечает за распределение лута."
 L["&p was awarded with &i for &r!"] = "&p получил &i для &r!"
 L["A format to copy/paste to another player."] = "Формат для копирования / вставки для другого игрока."
 L["A new session has begun, type '/rc open' to open the voting frame."] = "Новая сессия запущена, введите '/rc open' для открытия окна голосования."
-L["Abort"] = "Сбросить"
+L["Abort"] = "Прервать"
 L["Accept Whispers"] = "Принимать ЛС"
 L["accept_whispers_desc"] = "Позволяет игрокам шептать их нынешние вещи для того что бы добавить в окно голосования."
 L["Accepted imports: 'Player Export' and 'CSV'"] = "Разрешенный импорт: 'Player Export' и 'CSV'"
@@ -43,30 +43,17 @@ L["always_show_tooltip_howto"] = "Двойное нажатие что бы вы
 L["Announce Awards"] = "Анонс наград"
 --[[Translation missing --]]
 L["Announce Considerations"] = "Announce Considerations"
---[[Translation missing --]]
-L["announce_&i_desc"] = "|cfffcd400 &i|r: item link."
---[[Translation missing --]]
-L["announce_&l_desc"] = "|cfffcd400 &l|r: item level."
---[[Translation missing --]]
-L["announce_&m_desc"] = "|cfffcd400 &m|r: candidates note."
---[[Translation missing --]]
-L["announce_&n_desc"] = "|cfffcd400 &n|r: roll, if supplied."
---[[Translation missing --]]
-L["announce_&o_desc"] = "|cfffcd400 &o|r: item owner, if applicable."
---[[Translation missing --]]
-L["announce_&p_desc"] = "|cfffcd400 &p|r: name of the player getting the loot."
---[[Translation missing --]]
-L["announce_&r_desc"] = "|cfffcd400 &r|r: reason."
---[[Translation missing --]]
-L["announce_&s_desc"] = "|cfffcd400 &s|r: session id."
---[[Translation missing --]]
-L["announce_&t_desc"] = "|cfffcd400 &t|r: item type."
---[[Translation missing --]]
-L["announce_awards_desc"] = "Enables the announcement of awards in chat."
---[[Translation missing --]]
-L["announce_awards_desc2"] = [=[
-Choose which channel(s) you want to announce to along with the text. The following keyword substitutions are available:
-]=]
+L["announce_&i_desc"] = "|cffcd400 &i|r: ссылка на предмет."
+L["announce_&l_desc"] = "|cffcd400 &l|r: уровень предмета."
+L["announce_&m_desc"] = "|cffcd400 &m|r: примечание для кандидатов."
+L["announce_&n_desc"] = "|cfffcd400 &n|r: бросок, если указан."
+L["announce_&o_desc"] = "|cffcd400 &o|r: владелец предмета, если применимо."
+L["announce_&p_desc"] = "|cffcd400 &p|r: имя игрока, получающего добычу."
+L["announce_&r_desc"] = "|cffcd400 &r|r: причина."
+L["announce_&s_desc"] = "|cffcd400 &s|r: идентификатор сеанса."
+L["announce_&t_desc"] = "|cffcd400 &t|r: тип предмета."
+L["announce_awards_desc"] = "Позволяет объявлять награды в чате."
+L["announce_awards_desc2"] = "Выберите, на каких каналах Вы хотите сделать объявление вместе с текстом. Доступны следующие варианты замены ключевых слов:"
 --[[Translation missing --]]
 L["announce_considerations_desc"] = "Activates announcement of items under consideration whenever a session starts."
 --[[Translation missing --]]
@@ -94,8 +81,7 @@ L["Auto Award"] = "Автовручение"
 L["Auto Award to"] = "Автовручить"
 L["Auto awarded 'item'"] = "Автовручено %s"
 L["Auto Close"] = "Автозакрытие"
---[[Translation missing --]]
-L["Auto Enable"] = "Auto Enable"
+L["Auto Enable"] = "Автоматическое включение"
 --[[Translation missing --]]
 L["Auto extracted from whisper"] = "Auto extracted from whisper"
 L["Auto Open"] = "Автооткрытие"
@@ -118,7 +104,7 @@ L["auto_open_desc"] = "Check to Auto Open the voting frame when available. The v
 --[[Translation missing --]]
 L["auto_pass_boe_desc"] = "Uncheck to never autopass Bind on Equip items."
 --[[Translation missing --]]
-L["auto_pass_desc"] = "Check to enable autopassing of items your class cannot use."
+L["auto_pass_desc"] = "When enabled, items you cannot or should not use will be automatically passed. Other auto pass options can modify this behavior."
 --[[Translation missing --]]
 L["auto_pass_transmog_desc"] = "Check to enable autopassing of items your class can only use for transmog."
 --[[Translation missing --]]
@@ -242,6 +228,8 @@ L["chat_commands_version"] = "Open the Version Checker (alt. 'v' or 'ver')"
 --[[Translation missing --]]
 L["chat_commands_whisper"] = "Displays help to whisper commands"
 --[[Translation missing --]]
+L["chat_restrictions_enabled"] = "Not currently possible due to Addon Restrictions."
+--[[Translation missing --]]
 L["chatCommand_stop_error_notHandlingLoot"] = "Cannot stop: not currently handling loot."
 --[[Translation missing --]]
 L["Check this to loot the items and distribute them later."] = "Check this to loot the items and distribute them later."
@@ -282,8 +270,6 @@ L["Customize appearance"] = "Customize appearance"
 L["customize_appearance_desc"] = "Here you can fully customize the look of RCLootCouncil. Use the save function above to quickly switch skins."
 L["Data Received"] = "Данные получены"
 L["Date"] = "Дата"
-L["days and x months"] = "%s и %d месяцев"
-L["days, x months, y years"] = "%s, %d месяцев и %d лет"
 L["Delete Skin"] = "Удалить скин"
 L["delete_skin_desc"] = "Удалить выбранный не стандартный скин из списка."
 --[[Translation missing --]]
@@ -310,6 +296,10 @@ L["enable_timeout_desc"] = "Check to enable timeout on the Loot Frame"
 L["Enter your note:"] = "Введите вашу записку:"
 --[[Translation missing --]]
 L["EQdkp-Plus XML output, tailored for Enjin import."] = "EQdkp-Plus XML output, tailored for Enjin import."
+--[[Translation missing --]]
+L["error_no_autoAward_candidates"] = "You've enabled auto awarding of items, but haven't set any candidate(s) to auto award to."
+--[[Translation missing --]]
+L["error_no_autoAwardBoE_candidates"] = "You've enabled auto awarding of BoE items, but haven't set any candidate(s) to auto award to."
 L["error_test_as_non_leader"] = "Вы не можете начать тестирование пока вы не являетесь лидером группы."
 --[[Translation missing --]]
 L["Everybody is up to date."] = "Everybody is up to date."
@@ -416,6 +406,8 @@ L["ML sees voting"] = "МЛ видит голосование"
 L["ML_ADD_INVALID_ITEM"] = "Invalid itemLink or itemID: %s"
 --[[Translation missing --]]
 L["ML_ADD_ITEM_MAX_ATTEMPTS"] = "Couldn't fetch item info for %s - probably not a real item."
+--[[Translation missing --]]
+L["ML_REQUEST_VOTES"] = "%s has requested you to vote for item #%d: %s"
 L["ml_sees_voting_desc"] = "Позволяет мастерлутеру видеть кто голосует за кого."
 --[[Translation missing --]]
 L["module_tVersion_outdated_msg"] = "Newest module %s test version is: %s"
@@ -472,6 +464,8 @@ L["open_the_loot_history_desc"] = "Нажми что бы открыть ист�
 L["Opens the synchronizer"] = "Открыть синхронизатор"
 --[[Translation missing --]]
 L["opt_addButton_desc"] = "Add a new button group for the selected slot."
+--[[Translation missing --]]
+L["opt_announceAward_WHISPER_WINNER"] = "/w winner"
 L["opt_autoAddBoEs_desc"] = "Автоматически добавлять все БоЕ в сессию."
 L["opt_autoAddBoEs_name"] = "Автодобавление БоЕ"
 --[[Translation missing --]]
@@ -487,17 +481,29 @@ L["opt_autoGroupLoot_desc"] = "When enabled, RCLootCouncil will automatically cl
 --[[Translation missing --]]
 L["opt_autoGroupLoot_name"] = "Auto Group Loot"
 --[[Translation missing --]]
+L["opt_autoGroupLootDecor_desc"] = "Caution: Only enable this if you're certain decor items are tradeable."
+--[[Translation missing --]]
+L["opt_autoGroupLootDecor_name"] = "Loot Decor"
+--[[Translation missing --]]
 L["opt_autoGroupLootGuildGroupOnly_desc"] = "When enabled, RCLootCouncil will only do group loot auto pass when you're in a guild group."
 --[[Translation missing --]]
 L["opt_autoGroupLootGuildGroupOnly_name"] = "Guild Groups Only"
 --[[Translation missing --]]
-L["opt_autoPassWeapons_desc"] = "Check to enable auto passing of weapons your class can't equip."
+L["opt_autoPass_name"] = "Enable Auto Pass"
+--[[Translation missing --]]
+L["opt_autoPassWeapons_desc"] = "Check to enable auto passing of weapons that doesn't have your classes primary stat."
 --[[Translation missing --]]
 L["opt_autoPassWeapons_name"] = "Auto Pass Weapons"
 --[[Translation missing --]]
 L["opt_autoTrade_desc"] = "Check to automatically add awarded items to the trade window when trading with the winner. If disabled, you'll see a popup before items are added."
 --[[Translation missing --]]
 L["opt_award_later_desc"] = "Check to automatically check the 'Award Later' option in the Session Frame."
+--[[Translation missing --]]
+L["opt_blockTradesInVoting_desc"] = "When enabled, any trade attempts will be cancelled while the voting frame is active."
+--[[Translation missing --]]
+L["opt_blockTradesInVoting_message"] = "Trade from %s blocked"
+--[[Translation missing --]]
+L["opt_blockTradesInVoting_name"] = "Block Trades"
 --[[Translation missing --]]
 L["opt_buttonsGroup_desc"] = [=[Options group for %s buttons and responses.
 See above for a detailed explanation.]=]
@@ -529,7 +535,16 @@ This cannot be undone.]=]
 --[[Translation missing --]]
 L["opt_deleteRaid_desc"] = "Delete all entries from a specific instance."
 --[[Translation missing --]]
+L["opt_lootDecor_desc"] = "Automatically add tradeable decor items to a session."
+--[[Translation missing --]]
+L["opt_lootDecor_name"] = "Add Decor"
+--[[Translation missing --]]
 L["opt_moreButtons_desc"] = "Add a new set of buttons for a specific gear slot. The most specific type is used, i.e. adding buttons for 'Head' and 'Catalyst Items' will make head type armor use the head buttons instead of catalyst."
+--[[Translation missing --]]
+L["opt_moreInfo_onlyShowRaids_desc"] = [=[If any raids are selected, the 'More Info' window will only show awards from those raids. If nothing's selected, all raids will be shown.
+Note: This does not apply to the 'Winners of [item]' section.]=]
+--[[Translation missing --]]
+L["opt_moreInfo_onlyShowRaids_name"] = "Only specific raids"
 --[[Translation missing --]]
 L["opt_printCompletedTrade_Desc"] = "Check to enable a message every time a candidate trades an awarded item to the winner."
 --[[Translation missing --]]
@@ -578,6 +593,8 @@ L["options_requireNotes_desc"] = "If enabled, candidates cannot submit their res
 L["Original Owner"] = "Изначальный владелец"
 L["Out of instance"] = "Вне подземелья"
 L["Patch"] = "Патч"
+--[[Translation missing --]]
+L["PAUSED"] = "Paused"
 L["Personal Loot - Non tradeable"] = "Персональный лут - Не передается"
 L["Personal Loot - Rejected Trade"] = "Персональный лут - Отмененный трейд"
 L["'player' can't receive 'type'"] = "%s не может получить %s - версии не совпадают?"
@@ -598,6 +615,8 @@ L["Print Responses"] = "Вывести ответы"
 --[[Translation missing --]]
 L["print_response_desc"] = "Print your response in the chat window"
 L["Protector Token"] = "Токен защитника"
+--[[Translation missing --]]
+L["Rare_Items"] = "Rare items"
 --[[Translation missing --]]
 L["Raw lua output. Doesn't work well with date selection."] = "Raw lua output. Doesn't work well with date selection."
 --[[Translation missing --]]
@@ -688,6 +707,8 @@ L["Something went wrong :'("] = "Что-то пошло не так :'("
 L["Something went wrong during syncing, please try again."] = "Что то пошло не так во время синхронизации, попробуйте еще раз."
 L["Sort Items"] = "Сортировать"
 L["sort_items_desc"] = "Сортировать сессии по слоту и илвлу."
+--[[Translation missing --]]
+L["Special_Effects_Items"] = "Items /w special effects"
 --[[Translation missing --]]
 L["Standard .csv output."] = "Standard CSV export that can be edited and reimported."
 --[[Translation missing --]]
@@ -796,6 +817,10 @@ L["Version"] = "Версия"
 L["Version Check"] = "Проверка версии"
 L["version_check_desc"] = "Открытие модуля проверки версии аддона."
 L["version_outdated_msg"] = "Ваша версия аддона %s устарела. Последняя версия %s , пожалуйста обновите RCLootCouncil."
+--[[Translation missing --]]
+L["VF_REQUEST_VOTES"] = "Request Votes"
+--[[Translation missing --]]
+L["VF_REQUEST_VOTES_SENT"] = "Vote request sent"
 L["Vote"] = "Голос"
 L["Voters"] = "Голосующие"
 L["Votes"] = "Голоса"

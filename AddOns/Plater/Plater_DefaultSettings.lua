@@ -7,6 +7,9 @@ if (not DF) then
 	return
 end
 
+--this table is used to share local variables between files
+platerInternal.VarSharing = {}
+
 local LibSharedMedia = LibStub:GetLibrary ("LibSharedMedia-3.0")
 
 LibSharedMedia:Register ("statusbar", "DGround", [[Interface\AddOns\Plater\images\bar_background]])
@@ -151,10 +154,17 @@ PLATER_DEFAULT_SETTINGS = {
 		},
 
 		click_space = {140, 28}, --classic: {132, 32}, retail: {110, 45},
+		click_space_scale = {1, 1},
+		click_space_scale_friendly = {1, 1},
+		overlap_space_scale = {1, 1},
+		overlap_space_scale_friendly = {1, 1},
 		click_space_friendly = {140, 28}, --classic: {132, 32}, retail: {110, 45},
 		click_space_always_show = false,
 		hide_friendly_castbars = false,
 		hide_enemy_castbars = false,
+
+		hide_realm_name_on_blizzard = true,
+		hide_friendly_npc_healthbar = false,
 		
 		--> offset of the whole nameplate
 		global_offset_y = 0,
@@ -200,6 +210,7 @@ PLATER_DEFAULT_SETTINGS = {
 				actorname_text_shadow_color = {0, 0, 0, 1},
 				actorname_text_shadow_color_offset = {1, -1},
 				actorname_text_anchor = {side = 8, x = 0, y = 0},
+				actorname_text_max_width = 0,
 				
 				spellname_text_size = 10,
 				spellname_text_font = "Arial Narrow",
@@ -208,6 +219,7 @@ PLATER_DEFAULT_SETTINGS = {
 				spellname_text_shadow_color = {0, 0, 0, 1},
 				spellname_text_shadow_color_offset = {1, -1},
 				spellname_text_anchor = {side = 9, x = 0, y = 0},
+				spellname_text_max_width = 0,
 				
 				spellpercent_text_enabled = false,
 				spellpercent_text_size = 10,
@@ -271,6 +283,7 @@ PLATER_DEFAULT_SETTINGS = {
 				actorname_text_shadow_color = {0, 0, 0, 1},
 				actorname_text_shadow_color_offset = {1, -1},
 				actorname_text_anchor = {side = 4, x = 0, y = 0},
+				actorname_text_max_width = 0,
 				
 				spellname_text_size = 10,
 				spellname_text_font = "Arial Narrow",
@@ -279,6 +292,7 @@ PLATER_DEFAULT_SETTINGS = {
 				spellname_text_shadow_color = {0, 0, 0, 1},
 				spellname_text_shadow_color_offset = {1, -1},
 				spellname_text_anchor = {side = 9, x = 0, y = 0},
+				spellname_text_max_width = 0,
 				
 				spellpercent_text_enabled = true,
 				spellpercent_text_size = 10,
@@ -355,6 +369,7 @@ PLATER_DEFAULT_SETTINGS = {
 				actorname_text_shadow_color = {0, 0, 0, 1},
 				actorname_text_shadow_color_offset = {1, -1},
 				actorname_text_anchor = {side = 8, x = 0, y = 0},
+				actorname_text_max_width = 0,
 				
 				spellname_text_size = 10,
 				spellname_text_font = "Arial Narrow",
@@ -363,6 +378,7 @@ PLATER_DEFAULT_SETTINGS = {
 				spellname_text_shadow_color = {0, 0, 0, 1},
 				spellname_text_shadow_color_offset = {1, -1},
 				spellname_text_anchor = {side = 9, x = 0, y = 0},
+				spellname_text_max_width = 0,
 				
 				spellpercent_text_enabled = false,
 				spellpercent_text_size = 10,
@@ -440,6 +456,7 @@ PLATER_DEFAULT_SETTINGS = {
 				actorname_text_shadow_color = {0, 0, 0, 1},
 				actorname_text_shadow_color_offset = {1, -1},
 				actorname_text_anchor = {side = 4, x = 0, y = 0},
+				actorname_text_max_width = 0,
 				
 				spellname_text_size = 12,
 				spellname_text_font = "Arial Narrow",
@@ -448,6 +465,7 @@ PLATER_DEFAULT_SETTINGS = {
 				spellname_text_shadow_color = {0, 0, 0, 1},
 				spellname_text_shadow_color_offset = {1, -1},
 				spellname_text_anchor = {side = 9, x = 0, y = 0},
+				spellname_text_max_width = 0,
 				
 				spellpercent_text_enabled = true,
 				spellpercent_text_size = 11,
@@ -531,6 +549,7 @@ PLATER_DEFAULT_SETTINGS = {
 				actorname_text_shadow_color = {0, 0, 0, 1},
 				actorname_text_shadow_color_offset = {1, -1},
 				actorname_text_anchor = {side = 8, x = 0, y = 0},
+				actorname_text_max_width = 0,
 				
 				spellname_text_size = 10,
 				spellname_text_font = "Arial Narrow",
@@ -539,6 +558,7 @@ PLATER_DEFAULT_SETTINGS = {
 				spellname_text_shadow_color = {0, 0, 0, 1},
 				spellname_text_shadow_color_offset = {1, -1},
 				spellname_text_anchor = {side = 9, x = 0, y = 0},
+				spellname_text_max_width = 0,
 				
 				spellpercent_text_enabled = true,
 				spellpercent_text_size = 10,
@@ -736,8 +756,6 @@ PLATER_DEFAULT_SETTINGS = {
 		widget_bar_scale = 0.75,
 		widget_bar_anchor = {side = 4, x = 0, y = 0},
 		
-		no_spellname_length_limit = false,
-		
 		--> castbar target name
 		castbar_target_show = false,
 		castbar_target_notank = false,
@@ -748,6 +766,7 @@ PLATER_DEFAULT_SETTINGS = {
 		castbar_target_shadow_color_offset = {1, -1},
 		castbar_target_color = {0.968627, 0.992156, 1, 1},
 		castbar_target_font = "Arial Narrow",
+		castbar_target_text_max_width = 0,
 
 		--> castbar icon
 		castbar_icon_customization_enabled = true,
@@ -755,6 +774,7 @@ PLATER_DEFAULT_SETTINGS = {
 		castbar_icon_attach_to_side = "left", --"right"
 		castbar_icon_size = "same as castbar", --"same as castbar plus healthbar"
 		castbar_icon_x_offset = 0,
+		castbar_icon_showshield = true,
 		
 		
 		--> store spells from the latest event the player has been into
@@ -779,6 +799,7 @@ PLATER_DEFAULT_SETTINGS = {
 		health_cutoff_upper = true,
 		health_cutoff_extra_glow = false,
 		health_cutoff_hide_divisor = false,
+		health_cutoff_alpha = 0.3,
 		
 		update_throttle = 0.25,
 		culling_distance = 100,
@@ -832,11 +853,13 @@ PLATER_DEFAULT_SETTINGS = {
 		aura_consolidate = false, --aura icons shown with the same name is stacked into only one
 		aura_consolidate_timeleft_lower = true, --when stacking auras with the same name, show the time left for the aura with the lesser remaining time
 		aura_sort = false, -- sort auras via sort function -> default by time left
+		aura_max_shown_limit = 0,
 		
 		aura_alpha = 0.85,
 		aura_custom = {},
 		
 		aura_timer = true,
+		aura_timer_pandemic_color = true,
 		aura_timer_decimals = false,
 		aura_timer_text_size = 15,
 		aura_timer_text_font = "Arial Narrow",
@@ -900,15 +923,23 @@ PLATER_DEFAULT_SETTINGS = {
 		aura_show_buffs_personal = false,
 		aura_show_debuffs_personal = true,
 		aura_show_all_duration_buffs_personal = false,
+		aura_show_only_important_buffs_personal = false,
 		
-		aura_show_important = true,
+		aura_show_important = false,
+		aura_show_important_new = false,
 		aura_show_dispellable = true,
+		aura_show_raid = false,
 		aura_show_only_short_dispellable_on_players = false,
 		aura_show_enrage = false,
 		aura_show_magic = false,
 		aura_show_aura_by_the_player = true,
+		aura_show_debuff_by_the_player = false,
+		aura_show_debuff_as_blizzard_does = true,
+		aura_show_buff_as_blizzard_does = true,
+		aura_show_buff_by_the_player = false,
 		aura_show_aura_by_other_players = false,
 		aura_show_buff_by_the_unit = true,
+		aura_show_buff_on_enemy_npc = false,
 		aura_show_debuff_by_the_unit = true,
 		aura_show_aura_by_other_npcs = true,
 		aura_border_colors_by_type = false,
@@ -920,6 +951,7 @@ PLATER_DEFAULT_SETTINGS = {
 			steal_or_purge = {0, .5, .98, 1},
 			enrage = {0.85, 0.2, 0.1, 1},
 			is_buff = {0, .65, .1, 1},
+			is_debuff = {1, 0, 0, 1},
 			is_show_all = {.7, .1, .1, 1},
 			defensive = {.85, .45, .1, 1},
 			offensive = {0, .65, .1, 1},
@@ -1047,6 +1079,8 @@ PLATER_DEFAULT_SETTINGS = {
 			enemy_ooc = false,
 			blizz_healthbar_ic = false,
 			blizz_healthbar_ooc = false,
+			always_show_ic = false,
+			always_show_ooc = false,
 		},
 
 		spell_animations = true,
@@ -3028,6 +3062,8 @@ PLATER_DEFAULT_SETTINGS = {
 		cast_statusbar_bgcolor = {0.113725, 0.113725, 0.113725, 0.891240},
 		cast_statusbar_color = {1, .7, 0, 0.96},
 		cast_statusbar_color_channeling = {0, 1, 0, 0.96},
+		cast_statusbar_color_empowered = {0, 1, 0, 0.96},
+		cast_statusbar_color_important = {1, .29, 0, 0.96},
 		cast_statusbar_color_nointerrupt = {.5, .5, .5, 0.96},
 		cast_statusbar_color_interrupted = {1, .1, .1, 1},
 		cast_statusbar_color_finished = {0, 1, 0, 1},
@@ -3117,6 +3153,16 @@ PLATER_DEFAULT_SETTINGS = {
 			use_aggro_solo = false,
 		},
 		
+		unit_type_coloring_enabled = true,
+		unit_type_coloring_no_override_threat = true,
+		unit_type_coloring_boss = {0.423529, 0.172549, 0.6901960, 1},
+		unit_type_coloring_miniboss = {0.278431, 0.258823, 1, 1},
+		unit_type_coloring_caster = {0, 0.8196, 1, 1},
+		unit_type_coloring_elite = {1, 0.5961, 0.51373, 1},
+		unit_type_coloring_trivial = {.5, .5, .5, 1},
+		unit_type_coloring_enable_elite = false,
+		unit_type_coloring_enable_trivial = false,
+
 		news_frame = {},
 		first_run2 = false,
 	}

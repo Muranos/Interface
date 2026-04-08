@@ -2,6 +2,7 @@ local _, T = ...
 if T.Mark ~= 50 then return end
 local G, L, E = T.Garrison, T.L, T.Evie
 local GameTooltip = T.NotGameTooltip or GameTooltip
+local SetPortraitToTexture = T.SetPortraitToTexture
 
 local function HookOnShow(self, OnShow)
 	self:HookScript("OnShow", OnShow)
@@ -44,7 +45,7 @@ function T.SetRecruitTooltip(GameTooltip, recruitTime)
 	GameTooltip:SetText((select(2, C_Garrison.GetBuildingInfo(35))))
 	local dt = GetServerTime()-recruitTime
 	if dt < 604800 then
-		GameTooltip:AddLine("\n" .. (L"Last recruited: %s ago"):format("|cffffffff" .. SecondsToTime(dt) .. "|r"))
+		GameTooltip:AddLine("\n" .. (L"Next recruit in: %s"):format("|cffffffff" .. SecondsToTime(604800-dt) .. "|r"))
 	else
 		GameTooltip:AddLine("|n" .. GREEN_FONT_COLOR_CODE .. AVAILABLE)
 	end
@@ -114,6 +115,11 @@ local function Ship_SetRecruit(ship)
 end
 hooksecurefunc("GarrisonLandingPageReport_GetShipments", function(self)
 	if GarrisonLandingPage.garrTypeID >= 3 then return end
+	-- BUG[12.0/2601]: SetMaskTexture fizzles, and our replacement can get recycled onto other widgets.
+	-- Force it for everyone, then.
+	for w in self.shipmentsPool:EnumerateActive() do
+		SetPortraitToTexture(w.Icon, w.Icon:GetTexture())
+	end
 	local index, ship = self.shipmentsPool:GetNumActive(), self.shipmentsPool:Acquire()
 	ship:SetPoint("TOPLEFT", 60 + (index % 3) * 105, -105 - math.floor(index / 3) * 100)
 	if Ship_SetRecruit(ship) then
@@ -154,6 +160,7 @@ end
 T.RegisterCallback_OnInitializedFrame(GarrisonLandingPageReport.List.ScrollBox, ShowReportMissionExpirationTime)
 
 local hs = T.CreateLazyItemButton(GarrisonLandingPageReport, 110560)
+hs.isToy = true
 hs:SetSize(24, 24)
 hs:SetPoint("LEFT", GarrisonLandingPage, "TOPLEFT", 40, -63)
 hs.Count:Hide()

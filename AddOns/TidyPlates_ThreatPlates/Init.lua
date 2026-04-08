@@ -1,22 +1,16 @@
 local ADDON_NAME, Addon = ...
 
 ---------------------------------------------------------------------------------------------------
--- Define table that contains all addon-global variables and functions
----------------------------------------------------------------------------------------------------
-Addon.ThreatPlates = {}
-local ThreatPlates = Addon.ThreatPlates
-
----------------------------------------------------------------------------------------------------
 -- Imported functions and constants
 ---------------------------------------------------------------------------------------------------
 
 -- Lua APIs
+local next, setmetatable, getmetatable, rawset = next, setmetatable, getmetatable, rawset
+local ipairs, type, insert = ipairs, type, table.insert
 local string, floor = string, floor
-local rawset = rawset
 
 -- WoW APIs
 local UnitIsUnit, UnitClass, UnitExists = UnitIsUnit, UnitClass, UnitExists
-local LoadAddOn = C_AddOns and C_AddOns.LoadAddOn or _G.LoadAddOn
 
 -- ThreatPlates APIs
 local UnitDetailedThreatSituation = UnitDetailedThreatSituation
@@ -25,42 +19,95 @@ local UnitDetailedThreatSituation = UnitDetailedThreatSituation
 -- WoW Version Check
 ---------------------------------------------------------------------------------------------------
 Addon.IS_CLASSIC = (WOW_PROJECT_ID == WOW_PROJECT_CLASSIC)
-Addon.IS_CLASSIC_SOD = (Addon.IS_CLASSIC and (select(4, GetBuildInfo()) >= 11500))
+Addon.IS_CLASSIC_SOM = (Addon.IS_CLASSIC and C_Seasons and C_Seasons.GetActiveSeason() == 1)
+Addon.IS_CLASSIC_SOD = (Addon.IS_CLASSIC and C_Seasons and C_Seasons.GetActiveSeason() == 2)
 Addon.IS_TBC_CLASSIC = (GetClassicExpansionLevel and GetClassicExpansionLevel() == LE_EXPANSION_BURNING_CRUSADE)
+Addon.IS_TBC_CLASSIC_ANNIVERSARY = (Addon.IS_TBC_CLASSIC and C_Seasons and C_Seasons.GetActiveSeason() == 125)
 Addon.IS_WRATH_CLASSIC = (GetClassicExpansionLevel and GetClassicExpansionLevel() == LE_EXPANSION_WRATH_OF_THE_LICH_KING)
 Addon.IS_CATA_CLASSIC = (GetClassicExpansionLevel and GetClassicExpansionLevel() == LE_EXPANSION_CATACLYSM)
+Addon.IS_MISTS_CLASSIC = (GetClassicExpansionLevel and GetClassicExpansionLevel() == LE_EXPANSION_MISTS_OF_PANDARIA)
+--Addon.IS_MIDNIGHT = GetServerExpansionLevel() == LE_EXPANSION_MIDNIGHT
+Addon.IS_MIDNIGHT = (select(4, GetBuildInfo()) >= 120000)
 Addon.IS_MAINLINE = (WOW_PROJECT_ID == WOW_PROJECT_MAINLINE)
 -- Addon.IS_TBC_CLASSIC = (WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC and LE_EXPANSION_LEVEL_CURRENT == LE_EXPANSION_BURNING_CRUSADE)
 -- Addon.IS_WRATH_CLASSIC = (WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC and LE_EXPANSION_LEVEL_CURRENT == LE_EXPANSION_WRATH_OF_THE_LICH_KING)
-Addon.WOW_USES_CLASSIC_NAMEPLATES = (Addon.IS_CLASSIC or Addon.IS_TBC_CLASSIC or Addon.IS_WRATH_CLASSIC or Addon.IS_CATA_CLASSIC)
--- ? Addon.WOW_FEATURE_ABSORBS
 
-Addon.ExpansionIsClassicAndAtLeast = function(expansion_id)
-	-- Method does not exist which means that this is the most recent / highest WoW version (Mainline) 
-	-- so we have to return true
-	-- Method exists, so this is a Classic WoW version, but as the expansion id is unknown, the expansion is 
-	-- an older one, so we have to return false
-	if Addon.IS_MAINLINE or not GetClassicExpansionLevel or not expansion_id then
-		return false
-	else
+-- For Mainline, this always returns true. 
+Addon.ExpansionIsAtLeast = function(expansion_id)
+	if Addon.IS_MAINLINE then 
+		return true 
+	elseif not expansion_id then 
+		-- Expansion id is unknown (not sure if that can ever happen), so the expansion is an older one: return false
+		return false 
+	else			
+		-- GetClassicExpansionLevel should be defined here as version is not mainline
 		return GetClassicExpansionLevel() >= expansion_id
 	end
 end
 
--- For Mainline, this always returns true. 
-Addon.ExpansionIsAtLeast = function(expansion_id)
-	return Addon.IS_MAINLINE or Addon.ExpansionIsClassicAndAtLeast(expansion_id)
+-- Does not work for expansion_id_start = LE_EXPANSION_CLASSIC
+Addon.ExpansionIsBetween = function(expansion_id_start, expansion_id_end)
+	if GetClassicExpansionLevel then
+		local classic_expansion_level = GetClassicExpansionLevel()
+		return classic_expansion_level >= expansion_id_start and classic_expansion_level <= expansion_id_end
+	else
+		return false
+	end
 end
+
+Addon.GetExpansionLevel = function ()
+	if Addon.IS_MAINLINE then
+		return "MAINLINE"
+	elseif Addon.IS_CLASSIC then
+		return LE_EXPANSION_CLASSIC
+	else
+		return GetClassicExpansionLevel()
+	end
+end
+
+Addon.WOW_USES_CLASSIC_NAMEPLATES = not Addon.ExpansionIsAtLeast(LE_EXPANSION_LEGION)
+-- Absorbs bug in Mists: https://github.com/Stanzilla/WoWUIBugs/issues/736
+Addon.WOW_FEATURE_ABSORBS = Addon.ExpansionIsAtLeast(LE_EXPANSION_MISTS_OF_PANDARIA)
+Addon.WOW_FEATURE_BLIZZARD_AURA_FILTER =  not Addon.WOW_USES_CLASSIC_NAMEPLATES
+
+Addon.ExpansionIsAtLeastTBC = Addon.ExpansionIsAtLeast(LE_EXPANSION_BURNING_CRUSADE)
+Addon.ExpansionIsAtLeastWrath = Addon.ExpansionIsAtLeast(LE_EXPANSION_WRATH_OF_THE_LICH_KING)
+Addon.ExpansionIsAtLeastCata = Addon.ExpansionIsAtLeast(LE_EXPANSION_CATACLYSM)
+Addon.ExpansionIsAtLeastMists = Addon.ExpansionIsAtLeast(LE_EXPANSION_MISTS_OF_PANDARIA)
+Addon.ExpansionIsAtLeastWoD = Addon.ExpansionIsAtLeast(LE_EXPANSION_WARLORDS_OF_DRAENOR)
+Addon.ExpansionIsAtLeastLegion = Addon.ExpansionIsAtLeast(LE_EXPANSION_LEGION)
+Addon.ExpansionIsAtLeastBfA = Addon.ExpansionIsAtLeast(LE_EXPANSION_BATTLE_FOR_AZEROTH)
+Addon.ExpansionIsAtLeastDF = Addon.ExpansionIsAtLeast(LE_EXPANSION_DRAGONFLIGHT)
+Addon.ExpansionIsAtLeastTWW = Addon.ExpansionIsAtLeast(LE_EXPANSION_WAR_WITHIN)
+Addon.ExpansionIsAtLeastMidnight = Addon.IS_MIDNIGHT
+
+---------------------------------------------------------------------------------------------------
+-- Constants with different values in different expansions
+---------------------------------------------------------------------------------------------------
+
+Addon.NAMEPLATE_MAX_DISTANCE_MAX_VALUE = {
+  [LE_EXPANSION_CLASSIC] = 20,
+  [LE_EXPANSION_BURNING_CRUSADE] = 41,
+  [LE_EXPANSION_WRATH_OF_THE_LICH_KING] = 41,
+  [LE_EXPANSION_CATACLYSM] = 41,
+  [LE_EXPANSION_MISTS_OF_PANDARIA] = 41,
+  MAINLINE = 100,
+}
 
 ---------------------------------------------------------------------------------------------------
 -- Libraries
 ---------------------------------------------------------------------------------------------------
 local LibStub = LibStub
-ThreatPlates.L = LibStub("AceLocale-3.0"):GetLocale("TidyPlatesThreat")
+Addon.L = LibStub("AceLocale-3.0"):GetLocale("TidyPlatesThreat")
+
+---------------------------------------------------------------------------------------------------
+-- Define AceAddon TidyPlatesThreat
+---------------------------------------------------------------------------------------------------
+TidyPlatesThreat = LibStub("AceAddon-3.0"):NewAddon("TidyPlatesThreat", "AceConsole-3.0", "AceEvent-3.0")
+-- Global for DBM to differentiate between Threat Plates and Tidy Plates: Threat
+TidyPlatesThreatDBM = true
 
 Addon.BackdropTemplate = BackdropTemplateMixin and "BackdropTemplate"
-
-local L = ThreatPlates.L
 
 -- Use this once SetBackdrop backwards compatibility is removed
 --if BackdropTemplateMixin then -- Shadowlands
@@ -77,15 +124,43 @@ local L = ThreatPlates.L
 --end
 
 ---------------------------------------------------------------------------------------------------
--- Define AceAddon TidyPlatesThreat
+-- Central addon constants
 ---------------------------------------------------------------------------------------------------
-TidyPlatesThreat = LibStub("AceAddon-3.0"):NewAddon("TidyPlatesThreat", "AceConsole-3.0", "AceEvent-3.0")
--- Global for DBM to differentiate between Threat Plates and Tidy Plates: Threat
-TidyPlatesThreatDBM = true
 
 -- Returns if the currently active spec is tank (true) or dps/heal (false)
 Addon.PlayerClass = select(2, UnitClass("player"))
 Addon.PlayerName = select(1, UnitName("player"))
+
+---------------------------------------------------------------------------------------------------
+-- Define table that contains all addon-global variables and functions
+---------------------------------------------------------------------------------------------------
+Addon.Debug = {}
+Addon.Theme = {}
+
+Addon.PlatesCreated = {}
+Addon.PlatesByUnit = {}
+Addon.PlatesByGUID = {}
+
+-- Modules
+Addon.Threat = {}
+Addon.Style = {}
+Addon.Color = {}
+Addon.Transparency = {}
+Addon.Scaling = {}
+-- UI Element Modules
+Addon.Font = {}
+Addon.Icon = {}
+Addon.Animation = {}
+Addon.Localization = {}
+
+-- Internal API
+Addon.Data = {}
+Addon.Logging = {}
+Addon.Debug = {}
+
+---------------------------------------------------------------------------------------------------
+-- Caches to the reduce CPU load of expensive functions
+---------------------------------------------------------------------------------------------------
 
 -- Cache (weak table) for memoizing expensive text functions (like abbreviation, tranliteration)
 local CacheCreateEntry = function(table, key)
@@ -103,11 +178,6 @@ local CreateTextCache = function()
 	return text_cache
 end
 
----------------------------------------------------------------------------------------------------
--- Caches to the reduce CPU load of expensive functions
----------------------------------------------------------------------------------------------------
-
-Addon.Animations = {}
 Addon.Cache = {
 	Texts = CreateTextCache(),
 	TriggerWildcardTests = {},
@@ -118,16 +188,12 @@ Addon.Cache = {
 		Cast = {},
 		Script = {},
 	},
-	Styles = {
+		Styles = {
 		ForAllInstances = {},
 		PerInstance = {},
 		ForCurrentInstance = {},
 	}
 }
--- Internal API
-Addon.Data = {}
-Addon.Logging = {}
-Addon.Debug = {}
 
 ---------------------------------------------------------------------------------------------------
 -- Addon-wide wrapper functions and constants for WoW Classic
@@ -138,7 +204,14 @@ Addon.Debug = {}
 if Addon.IS_MAINLINE then
 	Addon.UnitDetailedThreatSituationWrapper = UnitDetailedThreatSituation
 	Addon.IsSoloShuffle = C_PvP.IsSoloShuffle
-	Addon.GetSpellInfo = C_Spell.GetSpellInfo 
+	Addon.GetSpellInfo = C_Spell.GetSpellInfo
+elseif Addon.IS_MISTS_CLASSIC then
+	Addon.UnitDetailedThreatSituationWrapper = UnitDetailedThreatSituation
+	
+	-- Not available in Mists Classic
+	Addon.IsSoloShuffle = function() return false end
+
+	Addon.GetSpellInfo = C_Spell.GetSpellInfo
 else
   Addon.UnitDetailedThreatSituationWrapper = function(source, target)
     local is_tanking, status, threatpct, rawthreatpct, threat_value = UnitDetailedThreatSituation(source, target)
@@ -168,6 +241,10 @@ else
 	end
 end
 
+--------------------------------------------------------------------------------------------------
+-- Compatibility with other addons 
+---------------------------------------------------------------------------------------------------
+
 ---------------------------------------------------------------------------------------------------
 -- Aura Highlighting
 ---------------------------------------------------------------------------------------------------
@@ -183,6 +260,14 @@ local function Wrapper_AutoCastGlow_Start(frame, color, framelevel)
 	Addon.LibCustomGlow.AutoCastGlow_Start(frame, color, nil, nil, nil, nil, nil, nil, framelevel)
 end
 
+-- As there can be several custom styles with different glow effects be active on a unit, we have to stop all here
+local function Wrapper__PixelGlow_Stop(highlight_frame)
+  Addon.LibCustomGlow.ButtonGlow_Stop(highlight_frame)
+  Addon.LibCustomGlow.PixelGlow_Stop(highlight_frame)
+  Addon.LibCustomGlow.AutoCastGlow_Stop(highlight_frame)
+	highlight_frame:Hide()
+end
+
 Addon.CUSTOM_GLOW_FUNCTIONS = {
 	Button = { "ButtonGlow_Start", "ButtonGlow_Stop", 8 },
 	Pixel = { "PixelGlow_Start", "PixelGlow_Stop", 3 },
@@ -193,34 +278,68 @@ Addon.CUSTOM_GLOW_WRAPPER_FUNCTIONS = {
 	ButtonGlow_Start = Wrapper_ButtonGlow_Start,
 	PixelGlow_Start = Wrapper_PixelGlow_Start,
 	AutoCastGlow_Start = Wrapper_AutoCastGlow_Start,
+	Glow_Stop = Wrapper__PixelGlow_Stop,
 }
+
+---------------------------------------------------------------------------------------------------
+-- Functions for cooldown handling incl. OmniCC support
+---------------------------------------------------------------------------------------------------
+
+local function SetShownCooldownSwipe(self, show_cooldown_swipe, hide_omnic_cc)
+  if show_cooldown_swipe then
+    self:SetDrawEdge(true)
+    self:SetDrawSwipe(true)
+  else
+    self:SetDrawEdge(false)
+    self:SetDrawSwipe(false)
+  end
+
+  -- Fix for OmnniCC cooldown numbers being shown on auras
+  if self.noCooldownCount ~= hide_omnic_cc then
+    self.noCooldownCount = hide_omnic_cc
+    -- Force an update on OmniCC cooldowns
+    self:Hide()
+    self:Show()
+  end
+end
+
+local function SetCooldown(self, start, duration)
+  if start and duration and start > 0 and duration > 0 then
+    self:SetCooldown(start, duration)
+  else
+    self:Clear()
+  end
+end
+
+Addon.CreateCooldown = function (parent, hide_omnic_cc)
+  -- When the cooldown shares the frameLevel of its parent, the icon texture can sometimes render
+  -- ontop of it. So it looks like it's not drawing a cooldown but it's just hidden by the icon.
+
+  local frame = _G.CreateFrame("Cooldown", nil, parent, "ThreatPlatesCooldownSwipe")
+  frame:SetAllPoints(parent.Icon)
+  frame:SetReverse(true)
+  frame:SetHideCountdownNumbers(true)
+	frame:SetFrameLevel(parent:GetFrameLevel())
+  
+	frame.noCooldownCount = hide_omnic_cc
+
+	frame.SetShownSwipe = SetShownCooldownSwipe
+	frame.Set = SetCooldown
+
+  return frame
+end
 
 --------------------------------------------------------------------------------------------------
 -- General Functions
 ---------------------------------------------------------------------------------------------------
 
-Addon.LoadOnDemandLibraries = function()
-	local db = Addon.db.profile
-
-	-- Enable or disable LibDogTagSupport based on custom status text being actually used
-	if db.HeadlineView.FriendlySubtext == "CUSTOM" or db.HeadlineView.EnemySubtext == "CUSTOM" or db.settings.customtext.FriendlySubtext == "CUSTOM" or db.settings.customtext.EnemySubtext == "CUSTOM" then
-		if Addon.LibDogTag == nil then
-			LoadAddOn("LibDogTag-3.0")
-			Addon.LibDogTag = LibStub("LibDogTag-3.0", true)
-			if not Addon.LibDogTag then
-				Addon.LibDogTag = false
-				Addon.Logging.Error(L["Custom status text requires LibDogTag-3.0 to function."])
-			else
-				LoadAddOn("LibDogTag-Unit-3.0")
-			  if not LibStub("LibDogTag-Unit-3.0", true) then
-					Addon.LibDogTag = false
-					Addon.Logging.Error(L["Custom status text requires LibDogTag-Unit-3.0 to function."])
-				elseif not Addon.LibDogTag.IsLegitimateUnit or not Addon.LibDogTag.IsLegitimateUnit["nameplate1"] then
-					Addon.LibDogTag = false
-					Addon.Logging.Error(L["Your version of LibDogTag-Unit-3.0 does not support nameplates. You need to install at least v90000.3 of LibDogTag-Unit-3.0."])
-				end
-			end
-		end
+Addon.Clamp = function(number, min_number, max_number)
+	if number <= min_number then
+		return min_number
+	elseif number >= max_number then
+		return max_number
+	else
+		return number
 	end
 end
 
@@ -229,30 +348,31 @@ end
 ---------------------------------------------------------------------------------------------------
 
 -- Create a percentage-based WoW color based on integer values from 0 to 255 with optional alpha value
-ThreatPlates.RGB = function(red, green, blue, alpha)
-	local color = { r = red/255, g = green/255, b = blue/255 }
-	if alpha then color.a = alpha end
-	return color
+Addon.RGB = function(red, green, blue, alpha)
+  local color = { r = red/255, g = green/255, b = blue/255 }
+  if alpha then color.a = alpha end
+  return color
 end
 
-ThreatPlates.RGB_WITH_HEX = function(red, green, blue, alpha)
-	local color = ThreatPlates.RGB(red, green, blue, alpha)
+Addon.RGB_P = function(red, green, blue, alpha)
+  return { r = red, g = green, b = blue, a = alpha}
+end
+
+Addon.RGB_WITH_HEX = function(red, green, blue, alpha)
+	local color = Addon.RGB(red, green, blue, alpha)
 	color.colorStr = CreateColor(color.r, color.g, color.b, color.a):GenerateHexColor()
 	return color
 end
 
-ThreatPlates.RGB_P = function(red, green, blue, alpha)
-	return { r = red, g = green, b = blue, a = alpha}
-end
-
-ThreatPlates.RGB_UNPACK = function(color)
-	return color.r, color.g, color.b, color.a or 1
-end
-
 -- thanks to https://github.com/Perkovec/colorise-lua
-ThreatPlates.HEX2RGB = function (hex)
+Addon.HEX2RGB = function (hex)
   hex = hex:gsub("#","")
   return tonumber("0x"..hex:sub(1,2)), tonumber("0x"..hex:sub(3,4)), tonumber("0x"..hex:sub(5,6))
+end
+
+Addon.ClassColorAsHex = function(class)
+  local str = RAID_CLASS_COLORS[class].colorStr;
+  return gsub(str, "(ff)", "", 1)
 end
 
 Addon.ColorByClass = function(class_name, text)
@@ -270,9 +390,9 @@ end
 
 --------------------------------------------------------------------------------------------------
 -- Utility functions
----------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
 
-ThreatPlates.Meta = function(value)
+Addon.Meta = function(value)
 	local meta
 	if strlower(value) == "titleshort" then
 		meta = "|cff89F559TP|r"
@@ -282,17 +402,8 @@ ThreatPlates.Meta = function(value)
 	return meta or ""
 end
 
-do
-	ThreatPlates.HCC = {}
-	for i=1,#CLASS_SORT_ORDER do
-		local str = RAID_CLASS_COLORS[CLASS_SORT_ORDER[i]].colorStr;
-		local str = gsub(str,"(ff)","",1)
-		ThreatPlates.HCC[CLASS_SORT_ORDER[i]] = str;
-	end
-end
-
 -- Helper Functions
-ThreatPlates.STT = function(...)
+Addon.STT = function(...)
 	local s = {}
 	local i, l
 	for i = 1, select("#", ...) do
@@ -304,7 +415,7 @@ ThreatPlates.STT = function(...)
 	return s
 end
 
-ThreatPlates.TTS = function(s)
+Addon.TTS = function(s)
 	local list
 	for i=1,#s do
 		if not list then
@@ -319,70 +430,6 @@ ThreatPlates.TTS = function(s)
 		end
 	end
 	return list
-end
-
-ThreatPlates.CopyTable = function(input)
-	local output = {}
-	for k,v in pairs(input) do
-		if type(v) == "table" then
-			output[k] = ThreatPlates.CopyTable(v)
-		else
-			output[k] = v
-		end
-	end
-	return output
-end
-
-Addon.MergeIntoTable = function(target, source)
-	if source == nil then return end
-
-  for k,v in pairs(source) do
-    if type(v) == "table" then
-			target[k] = target[k] or {}
-      Addon.MergeIntoTable(target[k], v)
-    else
-      target[k] = v
-    end
-  end
-end
-
-Addon.MergeDefaultsIntoTable = function(target, defaults)
-	for k,v in pairs(defaults) do
-		if type(v) == "table" then
-			target[k] = target[k] or {}
-			Addon.MergeDefaultsIntoTable(target[k], v)
-		else
-			target[k] = target[k] or v
-		end
-	end
-end
-
-Addon.ConcatTables = function(base_table, table_to_concat)
-	local concat_result = ThreatPlates.CopyTable(base_table)
-
-	for i = 1, #table_to_concat do
-		concat_result[#concat_result + 1] = table_to_concat[i]
-	end
-
-	return concat_result
-end
-
-Addon.CheckTableStructure = function(reference_structure, table_to_check)
-	if table_to_check == nil then
-		return false
-	end
-
-	for k,v in pairs(reference_structure) do
-		if table_to_check[k] == nil or type(table_to_check[k]) ~= type(v) then
-			return false
-		elseif type(v) == "table" then
-			if not Addon.CheckTableStructure(v, table_to_check[k]) then
-				return false
-			end
-		end
-	end
-
-	return true
 end
 
 Addon.Split = function(split_string)
@@ -446,131 +493,116 @@ Addon.Logging.Print = function(...)
 end
 
 --------------------------------------------------------------------------------------------------
--- Debug functions
+-- Functions for working with tables
 ---------------------------------------------------------------------------------------------------
 
--- Function from: https://coronalabs.com/blog/2014/09/02/tutorial-printing-table-contents/
-Addon.Debug.PrintTable = function(data)
-  local print_r_cache={}
-  local function sub_print_r(data,indent)
-    if (print_r_cache[tostring(data)]) then
-			Addon.Logging.Debug(indent.."*"..tostring(data))
-    else
-      print_r_cache[tostring(data)]=true
-      if (type(data)=="table") then
-        for pos,val in pairs(data) do
-          if (type(val)=="table") then
-						Addon.Logging.Debug(indent.."["..tostring(pos).."] => "..tostring(data).." {")
-            sub_print_r(val,indent..string.rep(" ",string.len(pos)+8))
-						Addon.Logging.Debug(indent..string.rep(" ",string.len(pos)+6).."}")
-          elseif (type(val)=="string") then
-						Addon.Logging.Debug(indent.."["..tostring(pos)..'] => "'..val..'"')
-          else
-						Addon.Logging.Debug(indent.."["..tostring(pos).."] => "..tostring(val))
-          end
-        end
-      else
-				Addon.Logging.Debug(indent..tostring(data))
-      end
-    end
-  end
-  if (type(data)=="table") then
-		Addon.Logging.Debug(tostring(data).." {")
-    sub_print_r(data,"  ")
-		Addon.Logging.Debug("}")
-  else
-    sub_print_r(data,"  ")
-  end
+local function DeepCopyTable(orig)
+	local orig_type = type(orig)
+	local copy
+	if orig_type == 'table' then
+		copy = {}
+		for orig_key, orig_value in next, orig, nil do
+			copy[DeepCopyTable(orig_key)] = DeepCopyTable(orig_value)
+		end
+		setmetatable(copy, DeepCopyTable(getmetatable(orig)))
+	else -- number, string, boolean, etc
+		copy = orig
+	end
+	return copy
 end
 
-Addon.Debug.PrintUnit = function(unitid)
-	local plate = C_NamePlate.GetNamePlateForUnit(unitid)
-	if not plate then return end
-
-	Addon.Logging.Debug("Unit:", UnitName(unitid), "=>", unitid)
-	Addon.Logging.Debug("-------------------------------------------------------------")
-	Addon.Logging.Debug("  Show UnitFrame =", plate.UnitFrame:IsShown())
-	Addon.Logging.Debug("  Show TPFrame =", plate.TPFrame:IsShown())
-	Addon.Logging.Debug("  Active =", plate.TPFrame.Active)
-	Addon.Logging.Debug("-------------------------------------------------------------")
-
-	if unitid then
-		local tp_frame = plate.TPFrame
-		local unit = tp_frame and tp_frame.unit
-
-		if Addon.IS_MAINLINE then
-			Addon.Logging.Debug("  UnitNameplateShowsWidgetsOnly = ", UnitNameplateShowsWidgetsOnly(unitid))
+Addon.CopyTable = function(input)
+	local output = {}
+	for k,v in pairs(input) do
+		if type(v) == "table" then
+			output[k] = Addon.CopyTable(v)
+		else
+			output[k] = v
 		end
-    Addon.Logging.Debug("  Reaction = ", UnitReaction("player", unitid))
-    local r, g, b, a = UnitSelectionColor(unitid, true)
-    Addon.Logging.Debug("  SelectionColor: r =", ceil(r * 255), ", g =", ceil(g * 255), ", b =", ceil(b * 255), ", a =", ceil(a * 255))
-		Addon.Logging.Debug("  -- Threat ---------------------------------")
-		Addon.Logging.Debug("    UnitAffectingCombat = ", UnitAffectingCombat(unitid))
-		if unit then
-			Addon.Logging.Debug("    Addon:OnThreatTable = ", Addon:OnThreatTable(unit))
+	end
+	return output
+end
+
+Addon.MergeIntoTable = function(target, source)
+	if source == nil then return end
+
+	for k,v in pairs(source) do
+		if type(v) == "table" then
+			target[k] = target[k] or {}
+			Addon.MergeIntoTable(target[k], v)
+		else
+			target[k] = v
 		end
-		Addon.Logging.Debug("    UnitThreatSituation = ", UnitThreatSituation("player", unitid))
-		Addon.Logging.Debug("    Target Unit = ", UnitExists(unitid .. "target"))
-		if unit then
-			if unit.style == "unique" then
-				Addon.Logging.Debug("    GetThreatSituation(Unique) = ", Addon.GetThreatSituation(unit, unit.style, Addon.db.profile.threat.toggle.OffTank))
-			else
-				Addon.Logging.Debug("    GetThreatSituation = ", Addon.GetThreatSituation(unit, Addon:GetThreatStyle(unit), Addon.db.profile.threat.toggle.OffTank))
+	end
+end
+
+Addon.MergeDefaultsIntoTable = function(target, defaults)
+	for k,v in pairs(defaults) do
+		if type(v) == "table" then
+			target[k] = target[k] or {}
+			Addon.MergeDefaultsIntoTable(target[k], v)
+		else
+			target[k] = target[k] or v
+		end
+	end
+end
+
+Addon.ConcatTables = function(base_table, table_to_concat)
+	local concat_result = Addon.CopyTable(base_table)
+
+	for i = 1, #table_to_concat do
+		concat_result[#concat_result + 1] = table_to_concat[i]
+	end
+
+	return concat_result
+end
+
+Addon.CheckTableStructure = function(reference_structure, table_to_check)
+	if table_to_check == nil then
+		return false
+	end
+
+	for k,v in pairs(reference_structure) do
+		if table_to_check[k] == nil or type(table_to_check[k]) ~= type(v) then
+			return false
+		elseif type(v) == "table" then
+			if not Addon.CheckTableStructure(v, table_to_check[k]) then
+				return false
 			end
 		end
-		Addon.Logging.Debug("  -- Player Control ---------------------------------")
-		Addon.Logging.Debug("    UnitPlayerControlled =", UnitPlayerControlled(unitid))
-		Addon.Logging.Debug("    Player is UnitIsOwnerOrControllerOfUnit =", UnitIsOwnerOrControllerOfUnit("player", unitid))
-		Addon.Logging.Debug("    Player Pet =", UnitIsUnit(unitid, "pet"))
-    Addon.Logging.Debug("    IsOtherPlayersPet =", UnitIsOtherPlayersPet(unitid))
-		if Addon.IS_MAINLINE then
-			Addon.Logging.Debug("    IsBattlePet =", UnitIsBattlePet(unitid))
-		end
-		Addon.Logging.Debug("  -- PvP ---------------------------------")
-		Addon.Logging.Debug("    PvP On =", UnitIsPVP(unitid))
-		Addon.Logging.Debug("    PvP Sanctuary =", UnitIsPVPSanctuary(unitid))
+	end
 
-    --		Addon.Logging.Debug("  isFriend = ", TidyPlatesUtilityInternal.IsFriend(unit.name))
-    --		Addon.Logging.Debug("  isGuildmate = ", TidyPlatesUtilityInternal.IsGuildmate(unit.name))
-
-		if unit then
-			for key, val in pairs(unit) do
-				Addon.Logging.Debug(key .. ":", val)
-			end	
-		else
-			Addon.Logging.Debug("  <No TPFrame>")
-		end
-  end
-
-  Addon.Logging.Debug("--------------------------------------------------------------")
+	return true
 end
 
-
---local function DEBUG_PRINT_TARGET(unit)
---  if unit.isTarget then
---		DEBUG_PRINT_UNIT(unit)
---  end
---end
 --
---local function DEBUG_AURA_LIST(data)
---	local res = ""
---	for pos,val in pairs(data) do
---		local a = data[pos]
---		if not a then
---			res = res .. " nil"
---		elseif not a.priority then
---			res = res .. " nil(" .. a.name .. ")"
---		else
---			res = res .. a.name
---		end
---		if pos ~= #data then
---			res = res .. " - "
---		end
---	end
---	ThreatPlates.DEBUG("Aura List = [ " .. res .. " ]")
---end
+-- Flattens a hierarchy of tables into a single array containing all
+-- of the values.
+--
+Addon.FlattenTable = function(arr, ...)
+	local result = {}
 
-Addon.Debug.PrintCaches = function()
+	local function LocalFlatten(arr)
+		for _, v in ipairs(arr) do
+			if type(v) == "table" then
+				LocalFlatten(v)
+			else
+				insert(result, v)
+			end
+		end
+	end
+
+	LocalFlatten(arr)
+
+	local arg = { ... }
+	for i = 1, #arg do
+		result[#result + 1] = arg[i]
+	end
+
+	return result
+end
+
+Addon.DebugPrintCaches = function()
 	print ("Wildcard Unit Test Cache:")
 	for k, v in pairs(Addon.Cache.TriggerWildcardTests) do
 		print ("  " .. k .. ":", v)

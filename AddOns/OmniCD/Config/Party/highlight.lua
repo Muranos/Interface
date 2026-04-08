@@ -22,6 +22,11 @@ E.spell_marked = E.isRetail and {
 	[2094] = 200733,
 	[1966] = 79008,
 	[1218128] = 1218692,
+} or E.isMoP and {
+	[770] = 114237,
+	[10326] = 110301,
+	[32379] = 120583,
+	[104773] = 148683,
 } or E.BLANK
 
 local markEnhancedDesc = {}
@@ -117,7 +122,8 @@ local highlight = {
 				glowBorder = {
 					disabled = false,
 					name = ENABLE,
-					desc = format("%s.\n\n|cffff2020%s", L["Glow Border"], L["Only applies to spells that have Glow enabled in the Spells tab"]),
+					desc = format("%s.\n\n|cffff2020%s", L["Glow Border"],
+						L["Only applies to spells that have Glow enabled in the Spells tab"]),
 					order = 1,
 					type = "toggle",
 				},

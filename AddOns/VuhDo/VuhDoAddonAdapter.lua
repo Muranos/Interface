@@ -17,6 +17,7 @@ VUHDO_LibCompressEncode = VUHDO_LibCompress:GetAddonEncodeTable();
 VUHDO_LibBase64 = LibStub:GetLibrary("LibBase64-1.0");
 VUHDO_LibCustomGlow = LibStub("LibCustomGlow-1.0");
 VUHDO_LibNickTag = LibStub("NickTag-1.0");
+VUHDO_LibSpec = LibStub("LibSpecialization", true);
 
 VUHDO_LibSharedMedia:Register("font", "Arial Black", "Interface\\AddOns\\VuhDo\\Fonts\\ariblk.ttf");
 VUHDO_LibSharedMedia:Register("font", "Emblem",	"Interface\\AddOns\\VuhDo\\Fonts\\Emblem.ttf");
@@ -187,32 +188,42 @@ end
 
 
 --
+local tBtnName;
+local tHeader;
 function VUHDO_initCliqueSupport()
-	if not VUHDO_CONFIG["IS_CLIQUE_COMPAT_MODE"] then return; end
+
+	if not VUHDO_CONFIG["IS_CLIQUE_COMPAT_MODE"] then
+		return;
+	end
 
 	if not IsAddOnLoaded("Clique") then
 		VUHDO_Msg("WARNING: Clique compatibility mode is enabled but clique doesn't seem to be loaded!", 1, 0.4, 0.4);
+
+		return;
 	end
 
-	ClickCastFrames = ClickCastFrames or {};
+	ClickCastFrames = ClickCastFrames or { };
 
-	local tBtnName;
-	local tIcon;
+	tHeader = _G["VuhDoHealButtonSecureHeaderFrame"];
+
+	if tHeader and ClickCastHeader then
+		tHeader:SetFrameRef("sCliqueHeader", ClickCastHeader);
+	end
 
 	for tPanelNum = 1, 10 do -- VUHDO_MAX_PANELS
 		for tButtonNum = 1, 51 do -- VUHDO_MAX_BUTTONS_PANEL
 			tBtnName = format("Vd%dH%d", tPanelNum, tButtonNum);
+
 			if _G[tBtnName] then
 				ClickCastFrames[_G[tBtnName]] = true;
 				ClickCastFrames[_G[tBtnName .. "Tg"]] = true;
 				ClickCastFrames[_G[tBtnName .. "Tot"]] = true;
-				for tIconNum = 40, 44 do
-					tIcon = _G[format("%sBgBarIcBarHlBarIc%d", tBtnName, tIconNum)];
-					if tIcon then ClickCastFrames[tIcon] = true; end
-				end
 			end
 		end
 	end
+
+	return;
+
 end
 
 
@@ -225,6 +236,20 @@ function VUHDO_initButtonFacade(anInstance)
 		VUHDO_LibButtonFacade:Group("VuhDo", VUHDO_I18N_BUFF_WATCH);
 		VUHDO_LibButtonFacade:Group("VuhDo", VUHDO_I18N_HOTS);
 	end
+end
+
+
+
+--
+local tLibSpec = { };
+function VUHDO_initLibSpecialization()
+
+	if not VUHDO_LibSpec or not tLibSpec then
+		return;
+	end
+
+	VUHDO_LibSpec.RegisterGroup(tLibSpec, VUHDO_updateRoleBySpecialization);
+
 end
 
 

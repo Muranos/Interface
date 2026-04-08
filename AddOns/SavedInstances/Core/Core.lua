@@ -4,7 +4,7 @@ local QTip = SI.Libs.QTip
 local db
 local maxdiff = 33 -- max number of instance difficulties
 local maxcol = 4 -- max columns per player+instance
-local maxid = 3000 -- highest possible value for an instanceID, current max (Battle of Dazar'alor) is 2070
+local maxid = 4000 -- highest possible value for an instanceID, current max (The Voidspire) is 3159
 
 local table, math, bit, string, pairs, ipairs, unpack, strsplit, time, type, wipe, tonumber, select, strsub =
   table, math, bit, string, pairs, ipairs, unpack, strsplit, time, type, wipe, tonumber, select, strsub
@@ -66,7 +66,7 @@ SI.Indicators = {
 
 SI.Categories = {}
 local maxExpansion
-for i = 0, 10 do
+for i = 0, GetExpansionLevel() do
   local ename = _G["EXPANSION_NAME" .. i]
   if ename then
     maxExpansion = i
@@ -169,6 +169,7 @@ SI.defaultDB = {
   -- Artifact: string REMOVED
   -- Cloak: string REMOVED
   -- Covenant: number
+  -- GUID: string
   -- MythicPlusScore: number
   -- Paragon: table
   -- oRace: string
@@ -212,19 +213,15 @@ SI.defaultDB = {
   -- item: linkstring or nil
 
   -- MythicKey
-  -- name: string
   -- ResetTime: expiry
   -- mapID: int
   -- level: int
-  -- color: string
   -- link: string
 
   -- TimewornMythicKey
-  -- name: string
   -- ResetTime: expiry
   -- mapID: int
   -- level: int
-  -- color: string
   -- link: string
 
   -- MythicKeyBest
@@ -383,22 +380,34 @@ SI.defaultDB = {
     TrackPlayed = true,
     AugmentBonus = true,
     CurrencyValueColor = true,
-    Currency2803 = true, -- Undercoin
-    Currency2815 = true, -- Resonance Crystals
+    Currency3316 = true, -- Voidlight Marl
+    Currency3373 = true, -- Angler Pearls
+    Currency3376 = true, -- Shard of Dundun
+    Currency3377 = true, -- Unalloyed Abundance
+    Currency3379 = true, -- Brimming Arcana
+    Currency3385 = true, -- Luminous Dust
+    Currency3392 = true, -- Remnant of Anguish
+    Currency3400 = true, -- Uncontaminated Void Sample
+    Currency3256 = true, -- Artisan Alchemist's Moxie
+    Currency3257 = true, -- Artisan Blacksmith's Moxie
+    Currency3258 = true, -- Artisan Enchanter's Moxie
+    Currency3259 = true, -- Artisan Engineer's Moxie
+    Currency3260 = true, -- Artisan Herbalist's Moxie
+    Currency3261 = true, -- Artisan Scribe's Moxie
+    Currency3262 = true, -- Artisan Jewelcrafter's Moxie
+    Currency3263 = true, -- Artisan Leatherworker's Moxie
+    Currency3264 = true, -- Artisan Miner's Moxie
+    Currency3265 = true, -- Artisan Skinner's Moxie
+    Currency3266 = true, -- Artisan Tailor's Moxie
     Currency3028 = true, -- Restored Coffer Key
-    Currency3056 = true, -- Kej
-    Currency3008 = true, -- Valorstones
-    Currency3090 = true, -- Flame-Blessed Iron
-    Currency3218 = true, -- Empty Kaja'Cola Can
-    Currency3220 = true, -- Vintage Kaja'Cola Can
-    Currency3226 = true, -- Market Research
-    Currency3116 = true, -- Essence of Kaja'mite
-    Currency3107 = true, -- Weathered Undermine Crest
-    Currency3108 = true, -- Carved Undermine Crest
-    Currency3109 = true, -- Runed Undermine Crest
-    Currency3110 = true, -- Gilded Undermine Crest
-    Currency3132 = true, -- 11.1 Professions - Personal Tracker - S2 Spark Drops (Hidden)
-    Currency3216 = true, -- Bounty's Remnants
+    Currency3310 = true, -- Coffer Key Shards
+    Currency3212 = true, -- Radiant Spark Dust
+    Currency3378 = true, -- Dawnlight Manaflux
+    Currency3383 = true, -- Adventurer Dawncrest
+    Currency3341 = true, -- Veteran Dawncrest
+    Currency3343 = true, -- Champion Dawncrest
+    Currency3345 = true, -- Hero Dawncrest
+    Currency3347 = true, -- Myth Dawncrest
     CurrencyMax = false,
     CurrencyEarned = true,
     CurrencySortName = false,
@@ -1198,6 +1207,10 @@ function SI:UpdateInstance(id)
     -- lfr process can be attached to the other difficulty raid instance found by name
     return nil, nil, true
   end
+  if difficulty == 220 then
+    -- ignore Story difficulty, which has no save and has wrong infos (issue #1036)
+    return nil, nil, true
+  end
   if typeID == 1 and subtypeID == 5 and difficulty == 14 and maxPlayers == 25 then
     --print("ignoring "..id, GetLFGDungeonInfo(id))
     return nil, nil, true -- ignore old Flex entries
@@ -1315,6 +1328,8 @@ function SI:UpdateToonData()
           or id == 1971 -- Random Timewalking Dungeon (Warlords of Draenor)
           or id == 2274 -- Random Timewalking Dungeon (Legion)
           or id == 2634 -- Random Timewalking Dungeon (Classic)
+          or id == 2874 -- Random Timewalking Dungeon (Battle for Azeroth)
+          or id == 3076 -- Random Timewalking Dungeon (Shadowlands)
           or id == 2714 -- The Codex of Chromie
         )
       then -- donetoday flag is falsely set for some level/dungeon combos where no daily incentive is available
@@ -1387,11 +1402,11 @@ function SI:UpdateToonData()
 
   t.SpecializationIDs = t.SpecializationIDs or {}
   for i = 1, GetNumSpecializations() do
-    t.SpecializationIDs[i] = GetSpecializationInfo(i) or t.SpecializationIDs[i]
+    t.SpecializationIDs[i] = C_SpecializationInfo.GetSpecializationInfo(i) or t.SpecializationIDs[i]
   end
   -- Solo Shuffle rating is unique to each specialization
   t.SoloShuffleRating = t.SoloShuffleRating or {}
-  local currentSpecID = GetSpecialization()
+  local currentSpecID = C_SpecializationInfo.GetSpecialization()
   if currentSpecID then
     t.SoloShuffleRating[currentSpecID] = GetPersonalRatedInfo(7) or t.SoloShuffleRating[currentSpecID]
   end
@@ -1544,6 +1559,7 @@ function SI:UpdateToonData()
     t.Warmode = C_PvP.IsWarModeDesired()
     t.Covenant = C_Covenants.GetActiveCovenantID()
     t.MythicPlusScore = C_ChallengeMode.GetOverallDungeonScore()
+    t.GUID = SI.playerGUID
   end
 
   t.LastSeen = time()
@@ -1744,9 +1760,7 @@ hoverTooltip.ShowToonTooltip = function(cell, arg, ...)
     local when = date("%c", t.LastSeen)
     indicatortip:AddLine(L["Last updated"], when)
   end
-  if SI.db.Tooltip.TrackPlayed and t.PlayedTotal and t.PlayedLevel and ChatFrame_TimeBreakDown then
-    --indicatortip:AddLine((TIME_PLAYED_TOTAL):format((TIME_DAYHOURMINUTESECOND):format(ChatFrame_TimeBreakDown(t.PlayedTotal))))
-    --indicatortip:AddLine((TIME_PLAYED_LEVEL):format((TIME_DAYHOURMINUTESECOND):format(ChatFrame_TimeBreakDown(t.PlayedLevel))))
+  if SI.db.Tooltip.TrackPlayed and t.PlayedTotal and t.PlayedLevel then
     indicatortip:AddLine((TIME_PLAYED_TOTAL):format(""), SecondsToTime(t.PlayedTotal))
     indicatortip:AddLine((TIME_PLAYED_LEVEL):format(""), SecondsToTime(t.PlayedLevel))
   end
@@ -2517,7 +2531,7 @@ end
 function SI:OnInitialize()
   local versionString = C_AddOns.GetAddOnMetadata("SavedInstances", "version")
   --[==[@debug@
-  if versionString == "11.1.1" then
+  if versionString == "12.0.4" then
     versionString = "Dev"
   end
   --@end-debug@]==]
@@ -2603,8 +2617,7 @@ function SI:OnInitialize()
           if InCombatLockdown() then
             return
           end
-          ToggleFriendsFrame(4) -- open Blizzard Raid window
-          RaidInfoFrame:Show()
+          ToggleRaidFrame()
         elseif button == "LeftButton" then
           Tooltip:ToggleDetached()
         else
@@ -2748,6 +2761,7 @@ end
 
 local currency_msg = CURRENCY_GAINED:gsub(":.*$", "")
 function SI:CheckSystemMessage(event, msg)
+  if issecretvalue(msg) then return end
   local inst, t = IsInInstance()
   -- note: currency is already updated in TooltipShow,
   -- here we just hook JP/VP currency messages to capture lockout changes
@@ -2850,7 +2864,7 @@ local function doExplicitReset(instancemsg, failed)
     if SI.db.Tooltip.ReportResets then
       local msg = instancemsg or RESET_INSTANCES
       msg = msg:gsub("\1241.+;.+;", "") -- ticket 76, remove |1;; escapes on koKR
-      SendChatMessage("<" .. "SavedInstances" .. "> " .. msg, reportchan)
+      C_ChatInfo.SendChatMessage("<" .. "SavedInstances" .. "> " .. msg, reportchan)
     end
   end
 end
@@ -2876,6 +2890,7 @@ function SI.HistoryEvent(f, evt, ...)
     end
   elseif evt == "CHAT_MSG_SYSTEM" then
     local msg = ...
+    if issecretvalue(msg) then return end
     if msg:match("^" .. resetmsg .. "$") then -- I performed expicit reset
       doExplicitReset(msg)
     elseif msg:match("^" .. INSTANCE_SAVED .. "$") then -- just got saved
@@ -2917,10 +2932,16 @@ function SI:histZoneKey()
   if insttype == nil or insttype == "none" or insttype == "arena" or insttype == "pvp" then -- pvp doesnt count
     return nil
   end
+  if diff == 208 then -- delves dont count
+    return nil
+  end
   if (IsInLFGDungeon() or IsInScenarioGroup()) and diff ~= 19 and diff ~= 17 then -- LFG instances don't count, but Holiday Events and LFR both count
     return nil
   end
   if C_Garrison.IsOnGarrisonMap() then -- Garrisons don't count
+    return nil
+  end
+  if C_Housing.IsOnNeighborhoodMap() then -- Housing Neighborhood doesn't count
     return nil
   end
   -- check if we're locked (using FindInstance so we don't complain about unsaved unknown instances)
@@ -3387,10 +3408,10 @@ local function ChatLink(self, link, button)
   if not link then
     return
   end
-  if ChatEdit_GetActiveWindow() then
-    ChatEdit_InsertLink(link)
+  if ChatFrameUtil.GetActiveWindow() then
+    ChatFrameUtil.InsertLink(link)
   else
-    ChatFrame_OpenChat(link, DEFAULT_CHAT_FRAME)
+    ChatFrameUtil.OpenChat(link, DEFAULT_CHAT_FRAME)
   end
 end
 
@@ -3801,11 +3822,9 @@ function SI:ShowTooltip(anchorframe)
   if SI.db.Tooltip.MythicKey or showall then
     local show = false
     for toon, t in cpairs(SI.db.Toons, true) do
-      if t.MythicKey then
-        if t.MythicKey.link then
-          show = true
-          addColumns(columns, toon, tooltip)
-        end
+      if t.MythicKey and t.MythicKey.link and t.MythicKey.mapID then
+        show = true
+        addColumns(columns, toon, tooltip)
       end
     end
     if show then
@@ -3818,16 +3837,20 @@ function SI:ShowTooltip(anchorframe)
       tooltip:SetCellScript(show, 1, "OnMouseDown", ReportKeys, "MythicKey")
     end
     for toon, t in cpairs(SI.db.Toons, true) do
-      if t.MythicKey and t.MythicKey.link then
+      if t.MythicKey and t.MythicKey.link and t.MythicKey.mapID then
         local col = columns[toon .. 1]
-        local name
-        if SI.db.Tooltip.AbbreviateKeystone then
-          name = SI.KeystoneAbbrev[t.MythicKey.mapID] or t.MythicKey.name
+        local mapName = C_ChallengeMode.GetMapUIInfo(t.MythicKey.mapID)
+        if mapName then
+          local name = SI.db.Tooltip.AbbreviateKeystone and SI.KeystoneAbbrev[t.MythicKey.mapID] or mapName
+          local color = C_ChallengeMode.GetKeystoneLevelRarityColor(t.MythicKey.level) or WHITE_FONT_COLOR
+          local text = color:WrapTextInColorCode(name .. " (" .. t.MythicKey.level .. ")")
+          tooltip:SetCell(show, col, text, "CENTER", maxcol)
+          tooltip:SetCellScript(show, col, "OnMouseDown", ChatLink, t.MythicKey.link)
         else
-          name = t.MythicKey.name
+          -- might be caused by corrupted keystone parsing
+          tooltip:SetCell(show, col, t.MythicKey.link, "CENTER", maxcol)
+          tooltip:SetCellScript(show, col, "OnMouseDown", ChatLink, t.MythicKey.link)
         end
-        tooltip:SetCell(show, col, "|c" .. t.MythicKey.color .. name .. " (" .. t.MythicKey.level .. ")" .. FONTEND, "CENTER", maxcol)
-        tooltip:SetCellScript(show, col, "OnMouseDown", ChatLink, t.MythicKey.link)
       end
     end
   end
@@ -3852,14 +3875,18 @@ function SI:ShowTooltip(anchorframe)
     for toon, t in cpairs(SI.db.Toons, true) do
       if t.TimewornMythicKey and t.TimewornMythicKey.link then
         local col = columns[toon .. 1]
-        local name
-        if SI.db.Tooltip.AbbreviateKeystone then
-          name = SI.KeystoneAbbrev[t.TimewornMythicKey.mapID] or t.TimewornMythicKey.name
+        local mapName = C_ChallengeMode.GetMapUIInfo(t.TimewornMythicKey.mapID)
+        if mapName then
+          local name = SI.db.Tooltip.AbbreviateKeystone and SI.KeystoneAbbrev[t.TimewornMythicKey.mapID] or mapName
+          local color = C_ChallengeMode.GetKeystoneLevelRarityColor(t.TimewornMythicKey.level) or WHITE_FONT_COLOR
+          local text = color:WrapTextInColorCode(name .. " (" .. t.TimewornMythicKey.level .. ")")
+          tooltip:SetCell(show, col, text, "CENTER", maxcol)
+          tooltip:SetCellScript(show, col, "OnMouseDown", ChatLink, t.TimewornMythicKey.link)
         else
-          name = t.TimewornMythicKey.name
+          -- might be caused by corrupted keystone parsing
+          tooltip:SetCell(show, col, t.TimewornMythicKey.link, "CENTER", maxcol)
+          tooltip:SetCellScript(show, col, "OnMouseDown", ChatLink, t.TimewornMythicKey.link)
         end
-        tooltip:SetCell(show, col, "|c" .. t.TimewornMythicKey.color .. name .. " (" .. t.TimewornMythicKey.level .. ")" .. FONTEND, "CENTER", maxcol)
-        tooltip:SetCellScript(show, col, "OnMouseDown", ChatLink, t.TimewornMythicKey.link)
       end
     end
   end

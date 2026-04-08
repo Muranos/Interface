@@ -18,20 +18,25 @@ function addon:initPlayerFrame()
             end)
             
             -- From UIParent.lua
-            hooksecurefunc("UpdateUIElementsForClientScene", function(sceneType)
-                addon:continueAfterCombatEnds(function()
-                    if sceneType == Enum.ClientSceneType.MinigameSceneType then return end
-                    if lib:IsFrameMarkedHidden(PlayerFrame) then
-                        PlayerFrame:Hide()
-                        PlayerFrame:SetScript("OnEvent", nil)
-                    end
+            if UpdateUIElementsForClientScene then
+                hooksecurefunc("UpdateUIElementsForClientScene", function(sceneType)
+                    addon:continueAfterCombatEnds(function()
+                        if sceneType == Enum.ClientSceneType.MinigameSceneType then return end
+                        if lib:IsFrameMarkedHidden(PlayerFrame) then
+                            PlayerFrame:Hide()
+                            PlayerFrame:SetScript("OnEvent", nil)
+                        end
+                    end)
                 end)
-            end)
+            end
         end)
         
         
         do 
             local frame = PlayerFrame.manabar
+            if PlayerFrame.PlayerFrameContent then
+                frame = PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.ManaBarArea
+            end
             local x, y
             
             lib:RegisterCustomCheckbox(PlayerFrame, L["Hide Resource Bar"], 
@@ -71,17 +76,19 @@ function addon:initPlayerFrame()
             "HideName"
         )
         
-        lib:RegisterCustomCheckbox(PlayerFrame, L["Hide Icons"],
-            function()
-                PlayerFrame.PlayerFrameContent.PlayerFrameContentContextual:Hide()
-                PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.StatusTexture:Hide()
-            end,
-            function()
-                PlayerFrame.PlayerFrameContent.PlayerFrameContentContextual:Show()
-                PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.StatusTexture:Show()
-            end,
-            "HideIcons"
-        )
+        if PlayerFrame.PlayerFrameContent then
+            lib:RegisterCustomCheckbox(PlayerFrame, L["Hide Icons"],
+                function()
+                    PlayerFrame.PlayerFrameContent.PlayerFrameContentContextual:Hide()
+                    PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.StatusTexture:Hide()
+                end,
+                function()
+                    PlayerFrame.PlayerFrameContent.PlayerFrameContentContextual:Show()
+                    PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.StatusTexture:Show()
+                end,
+                "HideIcons"
+            )
+        end
         
         C_Timer.After(4, function()
             lib:RegisterCustomCheckbox(PlayerFrame, L["Hide Level"],

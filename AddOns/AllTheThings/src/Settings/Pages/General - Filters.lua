@@ -1,8 +1,8 @@
 local _, app = ...;
-local L, settings = app.L.SETTINGS_MENU, app.Settings;
+local L, settings = app.L, app.Settings;
 
 -- Settings: General Page
-local child = settings:CreateOptionsPage("Filters", "General")
+local child = settings:CreateOptionsPage(L.FILTERS_PAGE, L.GENERAL_PAGE)
 
 -- Top 1
 local headerWeaponsAndArmor = child:CreateHeaderLabel(L.ITEM_FILTER_LABEL)
@@ -204,16 +204,14 @@ buttonNone.OnRefresh = function(self)
 	end
 end
 
-if app.IsRetail then
-	local checkboxStoreInProfile = child:CreateCheckBox(L.STORE_IN_PROFILE_BUTTON,
-	function(self)
-		self:SetChecked(settings:Get("Profile:StoreFilters"))
-	end,
-	function(self)
-		settings:Set("Profile:StoreFilters", self:GetChecked())
-		app.HandleEvent("OnSettingChanged", "Profile:StoreFilters");
-		settings:UpdateMode(1)
-	end)
-	checkboxStoreInProfile:SetATTTooltip(L.STORE_IN_PROFILE_BUTTON_TOOLTIP)
-	checkboxStoreInProfile:AlignAfter(buttonNone, 8)
-end
+local checkboxStoreInProfile = child:CreateCheckBox(L.STORE_IN_PROFILE_BUTTON,
+function(self)
+	self:SetChecked(settings:Get("Profile:StoreFilters"))
+end,
+function(self)
+	settings:Set("Profile:StoreFilters", self:GetChecked())
+	app.HandleEvent("OnSettingChanged", "Profile:StoreFilters");
+	settings:UpdateMode(1)
+end)
+checkboxStoreInProfile:SetATTTooltip(L.STORE_IN_PROFILE_BUTTON_TOOLTIP)
+checkboxStoreInProfile:AlignAfter(buttonNone, 8)

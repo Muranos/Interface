@@ -34,6 +34,9 @@ local detailsFramework = DetailsFramework
 --[[global]] DETAILS_SEGMENTTYPE_MYTHICDUNGEON_BOSSTRASH = 15
 --[[global]] DETAILS_SEGMENTTYPE_MYTHICDUNGEON_BOSSWIPE = 16
 
+--[[global]] DETAILS_SEGMENTTYPE_ID = "ID"
+--[[global]] DETAILS_SEGMENTTYPE_TYPE = "Type"
+
 --[[global]] DETAILS_SEGMENTTYPE_PVP_ARENA = 20
 --[[global]] DETAILS_SEGMENTTYPE_PVP_BATTLEGROUND = 21
 
@@ -292,21 +295,25 @@ local segmentTypeToString = {
 	---return the amount of casts of crowd control spell by an actor
 	---@param self combat
 	---@param actorName string
-	---@return table<string, number>
+	---@return table<spellid, number>
 	---@return number
 	function classCombat:GetCrowdControlSpells(actorName)
 		local spellsCastedByThisActor = self:GetSpellCastTable(actorName)
 		local amountOfCCCastsByThisActor = self:GetCCCastAmount(actorName)
-		local ccSpellNames = Details.CrowdControlSpellNamesCache
+		local ccSpellIds = Details.CrowdControlSpellIdsCache
 
-		---@type table<string, number>
+		---@type table<spellid, number>
 		local crowdControlSpellsUsed = {}
 
-		for spellName in pairs(ccSpellNames) do
-			if (spellsCastedByThisActor[spellName]) then
-				local amountOfCasts = spellsCastedByThisActor[spellName]
+		for spellId in pairs(ccSpellIds) do
+			local spellInfo = C_Spell.GetSpellInfo(spellId)
+			if (spellInfo and spellsCastedByThisActor[spellInfo.name]) then
+				local amountOfCasts = spellsCastedByThisActor[spellInfo.name]
 				if (amountOfCasts > 0) then
-					crowdControlSpellsUsed[spellName] = amountOfCasts
+					if (Details.debug_spell_cast) then
+						print("GetCrowdControlSpells > ", actorName, spellId, spellInfo.name, amountOfCasts)
+					end
+					crowdControlSpellsUsed[spellId] = amountOfCasts
 				end
 			end
 		end
@@ -668,6 +675,10 @@ local segmentTypeToString = {
 			return Loc ["STRING_SEGMENT_TRASH"]
 		end
 
+		if combatType == DETAILS_SEGMENTTYPE_TRAININGDUMMY then
+			return Loc["STRING_TRAINING_DUMMY"]
+		end
+
 		if (self.enemy) then
 			return self.enemy
 		end
@@ -679,7 +690,6 @@ local segmentTypeToString = {
 				return newName
 			end
 		end
-
 		local segmentId = self:GetSegmentSlotId()
 		return Loc["STRING_FIGHTNUMBER"] .. segmentId
 	end
@@ -833,7 +843,7 @@ local segmentTypeToString = {
 		--dungeon or raid
 		local instanceType = self.instance_type
 
-		if (instanceType == "party") then
+		if (instanceType == "party" or instanceType == "scenario") then
 			if (self.is_dungeon_overall) then
 				--self.combat_type = DETAILS_SEGMENTTYPE_DUNGEON_OVERALL
 				return DETAILS_SEGMENTTYPE_DUNGEON_OVERALL
@@ -1261,6 +1271,54 @@ local segmentTypeToString = {
 		end
 	end
 
+	function classCombat:GetTwinCombat(twinIdentifier)
+		local segmentsTable = Details:GetCombatSegments()
+		for i = 1, #segmentsTable do
+			---@type combat
+			local thisCombat = segmentsTable[i]
+			if (thisCombat.twinIdentifier == twinIdentifier) then
+				return thisCombat
+			end
+		end
+		return nil
+	end
+
+	function Details:GetTwinCombat(twinIdentifier)
+		local segmentsTable = Details:GetCombatSegments()
+		for i = 1, #segmentsTable do
+			---@type combat
+			local thisCombat = segmentsTable[i]
+			if (thisCombat.twinIdentifier == twinIdentifier) then
+				return thisCombat
+			end
+		end
+		return nil
+	end
+
+	function Details:HasCombatWithSessionId(combatSessionId)
+		local segmentsTable = Details:GetCombatSegments()
+		for i = 1, #segmentsTable do
+			---@type combat
+			local thisCombat = segmentsTable[i]
+			if (thisCombat.combatSessionId == combatSessionId) then
+				return true
+			end
+		end
+		return false
+	end
+
+	function Details:GetCombatWithSessionId(combatSessionId)
+		local segmentsTable = Details:GetCombatSegments()
+		for i = 1, #segmentsTable do
+			---@type combat
+			local thisCombat = segmentsTable[i]
+			if (thisCombat.combatSessionId == combatSessionId) then
+				return thisCombat, i
+			end
+		end
+		return nil, nil
+	end
+
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --internals
 
@@ -1285,6 +1343,7 @@ end
 ---@return combat
 function classCombat:NovaTabela(bTimeStarted, overallCombatObject, combatId, ...) --~init
 	---@type combat
+	---@diagnostic disable-next-line: missing-fields
 	local combatObject = {}
 
 	combatObject[1] = classActorContainer:NovoContainer(Details.container_type.CONTAINER_DAMAGE_CLASS,	combatObject, combatId) --Damage
@@ -1303,7 +1362,11 @@ function classCombat:NovaTabela(bTimeStarted, overallCombatObject, combatId, ...
 	--try discover if is a pvp combat
 	local sourceGUID, sourceName, sourceFlags, targetGUID, targetName, targetFlags = ...
 
-	if (targetGUID) then
+	if not targetGUID and detailsFramework.IsAddonApocalypseWow() then
+		targetGUID = Details222.BParser.GetPlayerTargetGUID()
+	end
+
+	if (targetGUID and issecretvalue and not issecretvalue(targetGUID)) then
 		local npcId = Details:GetNpcIdFromGuid(targetGUID)
 		if (npcId) then
 			if (Details222.TrainingDummiesNpcId[npcId]) then
@@ -1332,6 +1395,8 @@ function classCombat:NovaTabela(bTimeStarted, overallCombatObject, combatId, ...
 	combatObject.data_fim = 0
 	combatObject.data_inicio = 0
 	combatObject.tempo_start = _tempo
+
+	combatObject.compressed_charts = {}
 
 	combatObject.boss_hp = 1
 
@@ -1380,9 +1445,10 @@ function classCombat:NovaTabela(bTimeStarted, overallCombatObject, combatId, ...
 		n = 1 --event counter
 	}
 
-	local zoneName, _, _, _, _, _, _, zoneMapID = GetInstanceInfo()
+	local zoneName, instanceType, _, _, _, _, _, zoneMapID = GetInstanceInfo()
 	combatObject.zoneName = zoneName
 	combatObject.mapId = zoneMapID
+	combatObject.instance_type = instanceType
 
 	--a tabela sem o tempo de inicio � a tabela descartavel do inicio do addon
 	if (bTimeStarted) then
@@ -1465,7 +1531,14 @@ end
 	function classCombat:CreateLastEventsTable(playerName)
 		local lastEventsTable = {}
 
-		for i = 1, Details.deadlog_events do
+		local amountOfIndexes = Details.deadlog_events
+		if (Details.temp_deathlog_limit) then
+			if (Details.temp_deathlog_limit > Details.deadlog_events) then
+				amountOfIndexes = Details.temp_deathlog_limit
+			end
+		end
+
+		for i = 1, amountOfIndexes do
 			lastEventsTable[i] = {}
 		end
 

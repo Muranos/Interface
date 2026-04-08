@@ -60,7 +60,7 @@ function WarpDeplete:InitRender()
 	-- Objectives
 	local objectiveTexts = {}
 
-	for i = 1, 5 do
+	for i = 1, 10 do
 		local objectiveText = self.frames.root:CreateFontString(nil, "ARTWORK")
 		objectiveTexts[i] = objectiveText
 	end
@@ -135,8 +135,8 @@ function WarpDeplete:CreateProgressBar(frame)
 		barFrame:SetSize(width, height)
 		barFrame:SetPoint("LEFT", xOffset, yOffset)
 		barFrame:SetBackdrop({
-			bgFile = WarpDeplete.LSM:Fetch("statusbar", "ElvUI Blank"),
-			edgeFile = WarpDeplete.LSM:Fetch("border", "Square Full White"),
+			bgFile = WarpDeplete.LSM:Fetch("statusbar", "WarpDeplete Blank"),
+			edgeFile = WarpDeplete.LSM:Fetch("border", "WarpDeplete Blank"),
 			edgeSize = 1,
 			insets = { top = 1, right = 1, bottom = 1, left = 1 },
 		})
@@ -454,7 +454,7 @@ function WarpDeplete:RenderLayout()
 	currentOffset = currentOffset + barFrameHeight + barFramePaddingBottom + verticalOffset
 
 	-- Objectives
-	for i = 1, 5 do
+	for i = 1, 10 do
 		local objectiveText = self.frames.root.objectiveTexts[i]
 		objectiveText:SetFont(self.LSM:Fetch("font", objectivesFont), objectivesFontSize, objectivesFontFlags)
 		objectiveText:SetNonSpaceWrap(false)
@@ -635,7 +635,7 @@ function WarpDeplete:RenderObjectives()
 	local alignStart = self.db.profile.alignBossClear == "start"
 
 	-- Clear existing objective list
-	for i = 1, 5 do
+	for i = 1, 10 do
 		self.frames.root.objectiveTexts[i]:SetText("")
 	end
 

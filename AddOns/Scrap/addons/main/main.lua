@@ -1,18 +1,20 @@
 --[[
-Copyright 2008-2025 João Cardoso
+Copyright 2008-2026 João Cardoso
 All Rights Reserved
 --]]
 
 local ADDON, Addon = ...
 local Scrap = LibStub('WildAddon-1.1'):NewAddon(ADDON, Addon, 'StaleCheck-1.0')
 
-local L = LibStub('AceLocale-3.0'):GetLocale('Scrap')
 local Search = LibStub('ItemSearch-1.3')
+local L = LibStub('AceLocale-3.0'):GetLocale('Scrap')
 local C = LibStub('C_Everywhere')
 
 local NUM_BAGS = NUM_TOTAL_EQUIPPED_BAG_SLOTS or NUM_BAG_SLOTS
-local WEAPON, ARMOR, CONSUMABLES = Enum.ItemClass.Weapon, Enum.ItemClass.Armor, Enum.ItemClass.Consumable
+local WEAPON, ARMOR, CONSUMABLES, MISC = Enum.ItemClass.Weapon, Enum.ItemClass.Armor, Enum.ItemClass.Consumable, Enum.ItemClass.Miscellaneous
+local COMPANION, MOUNT = Enum.ItemMiscellaneousSubclass.CompanionPet, Enum.ItemMiscellaneousSubclass.Mount
 local FISHING_POLE = Enum.ItemWeaponSubclass.Fishingpole
+local BIND_EQUIP = Enum.ItemBind.OnEquip
 
 local POOR, COMMON, UNCOMMON, RARE, EPIC = 0,1,2,3,4
 local ACTUAL_SLOTS = {
@@ -34,9 +36,14 @@ SCRAP = 'Scrap'
 
 function Scrap:OnLoad()
 	self:OnSettings()
-	self:RegisterSignal('SETS_CHANGED', 'OnSettings')
-	self:RegisterEvent('MERCHANT_SHOW', function() C.AddOns.LoadAddOn('Scrap_Merchant'); self:SendSignal('MERCHANT_SHOW') end)
 	self:CheckForUpdates(ADDON, self.sets, 'interface/addons/scrap/art/scrap-big')
+	self:RegisterSignal('SETS_CHANGED', 'OnSettings')
+	self:RegisterEvent('MERCHANT_SHOW', function()
+		C.AddOns.LoadAddOn('Scrap_Merchant')
+		RunNextFrame(function()
+			self:SendSignal('MERCHANT_SHOW')
+		end)
+	end)
 
 	Scrap_Sets, Scrap_CharSets = self.sets, self.charsets
 	if (Scrap_Sets.tutorial or 0) > 0 then
@@ -144,8 +151,19 @@ end
 
 function Scrap:IsFiltered(id, ...)
 	local location = self:GuessLocation(id, ...)
-	local _, link, quality, level,_,_,_,_, slot, _, value, class, subclass, bound = C.Item.GetItemInfo(id)
+	local _, link, quality, level,_,_,_,_, slot, _, value, class, subclass, bind = C.Item.GetItemInfo(id)
 	local level = location and C.Item.GetCurrentItemLevel(location) or level or 0
+	local bound = location and C.Item.IsBound(location)
+
+	if class == MISC and bound then
+		if subclass == MOUNT then
+			return self:IsOwnedMount(id)
+		elseif subclass == COMPANION then
+			return self:IsOwnedCompanion(id)
+		elseif (C.ToyBox.GetToyInfo or nop)(id) then
+			return PlayerHasToy(id)
+		end
+	end
 
 	if not value or value == 0 then
 		return
@@ -154,9 +172,9 @@ function Scrap:IsFiltered(id, ...)
 		if value and slot ~= 'INVTYPE_TABARD' and slot ~= 'INVTYPE_BODY' and subclass ~= FISHING_POLE then
 			if self.charsets.uncollected or link and not Search:IsUncollected(id, link) then
 				if quality == POOR then
-					return bound ~= LE_ITEM_BIND_ON_EQUIP and ((slot ~= 'INVTYPE_SHOULDER' and level > INTRO_BREAKPOINT) or level > SHOULDER_BREAKPOINT)
-				elseif quality >= UNCOMMON and quality <= EPIC and location and C.Item.IsBound(location) then
-					if IsEquippableItem(id) and not Search:BelongsToSet(id) then
+					return bind ~= BIND_EQUIP and ((slot ~= 'INVTYPE_SHOULDER' and level > INTRO_BREAKPOINT) or level > SHOULDER_BREAKPOINT)
+				elseif quality >= UNCOMMON and quality <= EPIC and bound then
+					if C.Item.IsEquippableItem(id) and not Search:BelongsToSet(id) then
 						return self:IsLowEquip(slot, level) or self.charsets.unusable and Search:IsUnusable(id)
 					end
 				end
@@ -164,7 +182,7 @@ function Scrap:IsFiltered(id, ...)
 		end
 
 	elseif quality == POOR then
-		return bound ~= LE_ITEM_BIND_ON_EQUIP
+		return bind ~= BIND_EQUIP
 	elseif class == CONSUMABLES then
 		return self.charsets.consumable and quality < RARE and self:IsLowConsumable(level)
 	end
@@ -203,6 +221,19 @@ end
 
 function Scrap:IsLowConsumable(level)
 	return level > 1 and level < UnitLevel('player')  * self.charsets.consumableLvl
+end
+
+function Scrap:IsOwnedMount(id)
+	local mount = (C.MountJournal.GetMountFromItem or nop)(id)
+	return mount and select(11, C.MountJournal.GetMountInfoByID(mount))
+end
+
+function Scrap:IsOwnedCompanion(id)
+	local species = select(13, (C.PetJournal.GetPetInfoByItemID or nop)(id))
+	if species then
+		local numCollected, limit = C.PetJournal.GetNumCollectedInfo(species)
+		return numCollected == limit
+	end
 end
 
 
@@ -244,7 +275,11 @@ function Scrap:Print(text, channel)
 
 	while frame do
 		if frame:IsEventRegistered(channel) then
-			ChatFrame_MessageEventHandler(frame, channel, text, '', nil, '')
+			if frame.MessageEventHandler then
+				frame:MessageEventHandler(channel, text, '', nil, '')
+			elseif ChatFrame_MessageEventHandler then
+				ChatFrame_MessageEventHandler(frame, channel, text, '', nil, '')
+			end
 		end
 
 		i = i + 1

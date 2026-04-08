@@ -6,7 +6,7 @@ local mod, CL = BigWigs:NewBoss("Aurostor", -2200, 2562)
 if not mod then return end
 mod:RegisterEnableMob(209574)
 mod.otherMenu = -1978
-mod.worldBoss = 209574
+mod:SetWorldModule(true)
 
 --------------------------------------------------------------------------------
 -- Locals

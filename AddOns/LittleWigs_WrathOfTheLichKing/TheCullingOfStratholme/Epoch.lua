@@ -2,7 +2,7 @@
 -- Module Declaration
 --
 
-local mod, CL = BigWigs:NewBoss("Chrono-Lord Epoch", 595, 613)
+local mod, CL = BigWigs:NewBoss("Chrono-Lord Epoch", {595, 2849}, 613)
 if not mod then return end
 mod:RegisterEnableMob(26532)
 mod:SetEncounterID(mod:Classic() and 295 or 2003)
@@ -46,7 +46,7 @@ end
 --
 
 function mod:Warmup(event, msg)
-	if msg:find(L.warmup_trigger, nil, true) then
+	if not self:IsSecret(msg) and msg:find(L.warmup_trigger, nil, true) then
 		self:UnregisterEvent(event)
 		self:Bar("warmup", 19.2, CL.active, "inv_sword_01")
 	end

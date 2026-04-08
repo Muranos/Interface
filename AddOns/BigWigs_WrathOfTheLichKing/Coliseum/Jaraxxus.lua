@@ -66,11 +66,11 @@ function mod:OnBossEnable()
 	self:Log("SPELL_INTERRUPT", "MistressKissInterrupted", 66335, 66359) -- debuff after getting interrupted
 
 	self:RegisterEvent("CHAT_MSG_MONSTER_YELL")
-	self:RegisterEvent("PLAYER_REGEN_ENABLED", "CheckForWipe")
 	self:Death("Win", 34780)
 end
 
 function mod:OnEngage()
+	self:RegisterEvent("PLAYER_REGEN_ENABLED", "CheckForWipe")
 	self:Bar("adds", 20, L["netherportal_bar"], 66269)
 	if self:Heroic() then
 		self:Berserk(600)
@@ -82,6 +82,7 @@ end
 --
 
 function mod:CHAT_MSG_MONSTER_YELL(_, msg)
+	if self:IsSecret(msg) then return end
 	if msg == L.enable_trigger or msg:find(L.enable_trigger, nil, true) then
 		self:Enable()
 	elseif msg == L.engage_trigger1 or msg:find(L.engage_trigger1, nil, true) then

@@ -1,5 +1,22 @@
-local sIsChecking = false;
 local _;
+
+local pairs = pairs;
+local GetReadyCheckStatus = GetReadyCheckStatus;
+
+local VUHDO_RAID;
+
+local sIsChecking = false;
+
+
+
+--
+function VUHDO_readyCheckInitLocalOverrides()
+
+	VUHDO_RAID = _G["VUHDO_RAID"];
+
+	return;
+
+end
 
 
 
@@ -13,10 +30,11 @@ local function VUHDO_placeReadyIcon(aButton)
 	else
 		VUHDO_UIFrameFlashStop(tIcon);
 		tIcon:SetTexture("Interface\\AddOns\\VuhDo\\Images\\icon_info");
+		VUHDO_PixelUtil.ApplySettings(tIcon);
 		tIcon:ClearAllPoints();
-		tIcon:SetPoint("LEFT", aButton:GetName(), "LEFT", -5, 0);
-		tIcon:SetWidth(16);
-		tIcon:SetHeight(16);
+		VUHDO_PixelUtil.SetPoint(tIcon, "LEFT", aButton:GetName(), "LEFT", -5, 0);
+		VUHDO_PixelUtil.SetWidth(tIcon, 16);
+		VUHDO_PixelUtil.SetHeight(tIcon, 16);
 		tIcon:SetAlpha(1);
 		tIcon:Show();
 	end
@@ -72,6 +90,7 @@ local function VUHDO_updateReadyIcon(aUnit, anIsReady)
 	for _, tButton in pairs(VUHDO_getUnitButtonsSafe(aUnit)) do
 		VUHDO_getBarRoleIcon(tButton, 20):SetTexture(
 			"Interface\\AddOns\\VuhDo\\Images\\" .. (anIsReady and "icon_check_2" or "icon_cancel_1"));
+		VUHDO_PixelUtil.ApplySettings(VUHDO_getBarRoleIcon(tButton, 20));
 	end
 end
 
@@ -89,9 +108,17 @@ end
 
 --
 function VUHDO_readyStartCheck(aName, aDuration)
-	if VUHDO_RAID_NAMES[aName] then
-		VUHDO_readyCheckConfirm(VUHDO_RAID_NAMES[aName], true); -- Originator is always ready
+
+	VUHDO_readyCheckStarted();
+
+	for tUnit, _ in pairs(VUHDO_RAID) do
+		if GetReadyCheckStatus(tUnit) == "ready" then
+			VUHDO_readyCheckConfirm(tUnit, true);
+		end
 	end
+
+	return;
+
 end
 
 

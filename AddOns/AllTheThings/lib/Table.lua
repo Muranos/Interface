@@ -8,8 +8,8 @@ local _, app = ...;
 -- Encapsulates the functionality concerning consistent and complex operations on Lua Tables
 
 -- Global locals
-local ipairs, pairs, tinsert, select, table_concat
-	= ipairs, pairs, tinsert, select, table.concat;
+local pairs, select, table_concat,next
+	= pairs, select, table.concat,next
 
 -- App locals
 
@@ -30,7 +30,7 @@ app.containsAny = function(arr, arr2)
 	end
 end
 app.containsValue = function(dict, value)
-	for _,value2 in pairs(dict) do
+	for _,value2 in next,dict do
 		if value2 == value then return true; end
 	end
 end
@@ -48,6 +48,11 @@ app.indexOf = function(arr, value)
 		if arr[i] == value then return i; end
 	end
 end
+-- Simply wipes the array portion of a table
+-- NOTE: compared to base wipe() this is giga-fast
+app.wipearray = function(t)
+	for i=1,#t do t[i] = nil end
+end
 -- Performs table.concat(tbl, sep, i, j) on the given table, but uses the specified field of table values if provided,
 -- with a default fallback value if the field does not exist on the table entry
 app.TableConcat = function(tbl, field, def, sep, i, j)
@@ -55,13 +60,26 @@ app.TableConcat = function(tbl, field, def, sep, i, j)
 		sep = sep or ""
 		if field then
 			local tblvals = {};
-			for _,val in ipairs(tbl) do
-				tblvals[#tblvals + 1] = val[field] or def
+			for i=1,#tbl do
+				tblvals[#tblvals + 1] = tbl[i][field] or def
 			end
 			return table_concat(tblvals, sep, i, j);
 		else
 			return table_concat(tbl, sep, i, j);
 		end
+	end
+	return "";
+end
+-- Concats all the key/value pairs in the table into a string
+app.StringifyTable = function(tbl, sep)
+	if tbl then
+		local tostring = tostring
+		sep = sep or ""
+		local tblvals = {};
+		for k,v in pairs(tbl) do
+			tblvals[#tblvals + 1] = k..":"..tostring(tbl[k])
+		end
+		return table_concat(tblvals, sep)
 	end
 	return "";
 end
@@ -84,7 +102,7 @@ app.ArrayAppend = function(a1, ...)
 end
 -- Allows for returning a reversed array. Will do nothing for un-ordered tables or tables with a single entry
 app.ReverseOrder = function(a)
-	if a[1] and a[2] then
+	if a and a[1] and a[2] then
 		local b, n, j = {}, #a, 1;
 		for i=n,1,-1 do
 			b[j] = a[i];
@@ -93,4 +111,27 @@ app.ReverseOrder = function(a)
 		return b;
 	end
 	return a;
+end
+-- Returns true if the two tables have any difference in assigned keys
+app.TableKeyDiff = function(a,b)
+	if not a then
+		if b then return true end
+		return
+	elseif not b then
+		if a then return true end
+		return
+	end
+    -- Check keys in a that are missing in b
+    for k in next,a do
+        if not b[k] then
+            return true
+        end
+    end
+
+    -- Check keys in b that are missing in a
+    for k in next,b do
+        if not a[k] then
+            return true
+        end
+    end
 end

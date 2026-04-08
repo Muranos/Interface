@@ -17,12 +17,12 @@
 		end
 		local addonName, Details222 = ...
 		local version, build, date, tvs = GetBuildInfo()
-		Details.build_counter = 13502
-		Details.alpha_build_counter = 13502 --if this is higher than the regular counter, use it instead
+		Details.build_counter = 14850
+		Details.alpha_build_counter = 14850 --if this is higher than the regular counter, use it instead
 		Details.dont_open_news = true
 		Details.game_version = version
 		Details.userversion = version .. " " .. Details.build_counter
-		Details.realversion = 162 --core version, this is used to check API version for scripts and plugins (see alias below)
+		Details.realversion = 171 --core version, this is used to check API version for scripts and plugins (see alias below)
 		Details.gametoc = tvs
 		Details.APIVersion = Details.realversion --core version
 		Details.version = Details.userversion .. " (core " .. Details.realversion .. ")" --simple stirng to show to players
@@ -40,11 +40,13 @@
 		Details.BFACORE = 131 --core version on BFA launch
 		Details.SHADOWLANDSCORE = 143 --core version on Shadowlands launch
 		Details.DRAGONFLIGHT = 147 --core version on Dragonflight launch
+		Details.TBCANNIVERSARY = 166
 		Details.V11CORE = 160 --core version on V11 launch
+		Details.V12CORE = 166 --core version on V12 launch
 
 		Details = Details
 
-		local gameVersionPrefix = "VCT" --v1, v4, v11
+		local gameVersionPrefix = "VCPM" --v1, v2 v5, v12
 
 		Details.gameVersionPrefix = gameVersionPrefix
 
@@ -66,7 +68,18 @@
 			return Details.gameVersionPrefix .. " " .. Details.build_counter .. " " .. alphaId .. " " .. Details.game_version .. ""
 		end
 
+		Details.DM = C_DamageMeter
 		Details.DefaultTooltipIconSize = 20
+		local isWowApocalypse = (tvs >= 120000)
+
+		function Details222.UpdateIsAllowed()
+			if (isWowApocalypse) then
+				if InCombatLockdown() then
+					return false
+				end
+			end
+			return true
+		end
 
 		--namespace for the player breakdown window
 		Details.PlayerBreakdown = {}
@@ -77,6 +90,13 @@
 		Details222.StartUp = {}
 
 		Details222.Unknown = _G["UNKNOWN"]
+
+		Details222.IsPTR = function()
+			local _, _, _, a = GetBuildInfo()
+			if a >= 120005 then
+				return true
+			end
+		end
 
 		--namespace color
 		Details222.ColorScheme = {
@@ -110,7 +130,16 @@
 			[114840] = true, --orgrimmar
 			[114832] = true, --stormwind
 			[153292] = true, --stormwind
+			[225982] = true, --dornogal
+			[225977] = true, --dornogal
+			[225983] = true, --dornogal
+			[225978] = true, --dornogal
+			[219250] = true, --dornogal
+			[225985] = true, --dornogal
+			[225976] = true, --dornogal
+			[225984] = true, --dornogal
 		}
+
 
 		---@type details_storage_feature
 		---@diagnostic disable-next-line: missing-fields
@@ -146,6 +175,10 @@
 			DebugBuff = false,
 		}
 
+		---@type details_allinonewindow
+		---@diagnostic disable-next-line: missing-fields
+		Details222.AllInOneWindow = {}
+
 		Details222.Tvs = tvs
 		--namespace for pet
 		Details222.Pets = {}
@@ -168,6 +201,7 @@
 		Details222.BarIconSetList = {}
 		Details222.Instances = {}
 		Details222.Combat = {}
+		Details222.BParser = {}
 		Details222.MythicPlus = {
 			Charts = {},
 			Frames = {},
@@ -180,6 +214,7 @@
 		Details222.Mixins = {}
 		Details222.Cache = {}
 		Details222.Perf = {}
+		Details222.Recap = {}
 		Details222.Cooldowns = {}
 		Details222.GarbageCollector = {}
 		Details222.BreakdownWindow = {}
@@ -224,6 +259,166 @@
 		--aura scanner
 		Details222.AuraScan = {}
 
+		Details222.B = {}
+
+		Details222.Apocalypse = {
+			ServerInCombat = false,
+			TypeDetails = 0,
+			TypeGame = 1,
+			segmentType = 1,
+			GetType = function() --addon wide segment type
+				return Details222.Apocalypse.segmentType
+			end,
+			SetType = function(newType)
+				Details222.Apocalypse.segmentType = newType
+			end,
+			IsServerInCombat = function()
+				return Details222.Apocalypse.ServerInCombat
+			end
+		}
+
+		--simplify and reduce the amount of functions to work with
+		local mainFName = "GetCombatSession"
+		local getSegmentFName = mainFName .. "From"
+		local getSpellFname = mainFName .. "SourceFrom"
+
+		function Details222.B.GetEmptySegment()
+			return {
+				combatSources = {},
+				totalAmount = 0,
+				maxAmount = 0,
+				durationSeconds = 0,
+			}
+		end
+
+		---return a segment
+		---@param type string
+		---@param identifier number
+		---@param attribute number
+		---@return damagemeter_combat_session
+		function Details222.B.GetSegment(type, identifier, attribute)
+			local result = Details.DM[(getSegmentFName .. type)](identifier, attribute)
+			return result
+		end
+
+		---return a spell container
+		---@param type string
+		---@param identifier number
+		---@param attribute number
+		---@param guid string
+		---@return damagemeter_combat_session_source
+		function Details222.B.GetSpells(type, identifier, attribute, guid, x)
+			if Details222.B.IsSegmentType(type) then
+				return Details.DM[(getSpellFname .. DETAILS_SEGMENTTYPE_TYPE)](identifier, attribute, guid, x)
+			else
+				return Details.DM[(getSpellFname .. type)](identifier, attribute, guid, x)
+			end
+		end
+
+		---usage: local actorList, amountOfActors, totalAmount, combatTime = Details222.B.GetSegmentInfo(segment)
+		---@param s damagemeter_combat_session
+		---@return damagemeter_combat_source[] actorList
+		---@return number amountOfActors
+		---@return number totalAmount
+		---@return number combatTime
+		function Details222.B.GetSegmentInfo(s)
+			return s.combatSources, #s.combatSources, s.totalAmount, s.durationSeconds
+		end
+
+		---usage: local spellList, amountOfSpells, totalAmount, maxAmount = Details222.B.GetSpellContainerInfo(spellContainer)
+		---@param s damagemeter_combat_session_source
+		---@return damagemeter_combat_spell[] spells
+		---@return number totalSpells
+		---@return number totalAmount
+		---@return number maxAmount
+		function Details222.B.GetSpellContainerInfo(s)
+			return s.combatSpells, #s.combatSpells, s.totalAmount, s.maxAmount
+		end
+
+		---usage: local spellId, total, perSecond, creatureName, overkill, isAvoidable, isDeadly, spellDetails = Details222.B.GetSpellInfo(spell)
+		---@param s damagemeter_combat_spell
+		---@return number spellID
+		---@return number totalAmount
+		---@return number amountPerSecond
+		---@return string creatureName
+		---@return number overkillAmount
+		---@return boolean isAvoidable
+		---@return boolean isDeadly
+		---@return damagemeter_combat_spell_unit_details[] combatSpellDetails
+		function Details222.B.GetSpellDetails(s)
+			return s.spellID, s.totalAmount, s.amountPerSecond, s.creatureName, s.overkillAmount, s.isAvoidable, s.isDeadly, s.combatSpellDetails
+		end
+
+		---usage: local actorName, actorGUID, total, perSecond, icon, class, deathId, deathTime, creatureId, classification, isLocalPlayer = Details222.B.GetActorDetails(actor)
+		---@param s damagemeter_combat_source
+		---@return string actorName
+		---@return string actorGUID
+		---@return number totalAmount
+		---@return number amountPerSecond
+		---@return number specIconID
+		---@return string classFilename
+		---@return number deathRecapID
+		---@return number deathTimeSeconds
+		---@return number sourceCreatureID
+		---@return string classification
+		---@return boolean isLocalPlayer
+		function Details222.B.GetActorDetails(s)
+			return s.name, s.sourceGUID, s.totalAmount, s.amountPerSecond, s.specIconID,
+			s.classFilename, s.deathRecapID, s.deathTimeSeconds, s.sourceCreatureID, s.classification, s.isLocalPlayer
+		end
+
+		function Details222.B.GetAllCombatTypes(type, identifier)
+			local result = {}
+			for i = 0, 10 do
+				local segment = Details222.B.GetSegment(type, identifier, i)
+				if segment then
+					result[#result + 1] = segment
+				end
+			end
+			return result
+		end
+
+		function Details222.B.IsSegmentType(id)
+			if type(id) == "number" and id <= 1 then
+				return true
+			end
+			return false
+		end
+
+		---return the amount of segments available in Details!
+		---usage: local amountOfSegments = Details222.B.GetAmountOfSegments()
+		---@return number
+		function Details222.B.GetAmountOfSegments()
+			return #Details.DM.GetAvailableCombatSessions()
+		end
+
+		---usage: local allSegments = Details222.B.GetAllSegments()
+		function Details222.B.GetAllSegments()
+			return Details.DM.GetAvailableCombatSessions()
+		end
+
+		function Details222.B.GetSegmentIdFromCurrent()
+			local s = Details222.B.GetAllSegments()
+			if s[#s] then
+				return s[#s].sessionID
+			end
+			return 1
+		end
+
+		function Details222.B.GetCombatTime(id)
+			return Details222.B.GetSegment("ID", id, 0).durationSeconds
+		end
+
+		function Details222.B.GetCurrentTime(segmentType)
+			return Details222.B.GetSegment("Type", segmentType, 0).durationSeconds
+		end
+
+		function Details:BleachFontString(fontString)
+			fontString:SetToDefaults()
+			fontString:SetFontObject("GameFontHighlight")
+			fontString:SetText("")
+		end
+
 		---@type instancedifficulty
 		Details222.InstanceDifficulty = {
 			["DungeonNormal"] = 1,
@@ -263,6 +458,9 @@
 		---@field CheckContextInterest function
 		---@field FinishContext function
 		---@field GetContext function
+
+		DAMAGE_METER_SESSIONPARAMETER_TYPE = "type"
+		DAMAGE_METER_SESSIONPARAMETER_ID = "id"
 
 		--tells what is the activity the player is doing
 		Details222.ContextManager = {
@@ -392,11 +590,13 @@
 						--will ba called when the context finishes, in this case when the SCENARIO_COMPLETED event is triggered
 						local fOnContextFinished = function()
 							--check if this is not a mythic+ run
-							if (C_ChallengeMode.GetActiveChallengeMapID() or C_ChallengeMode.GetActiveKeystoneInfo() or C_ChallengeMode.IsChallengeModeActive()) then
-								print("did not start as this is a m+ run")
-								return
-							else
-								print("this is not a m+ run")
+							if (C_ChallengeMode) then
+								if (C_ChallengeMode.GetActiveChallengeMapID() or C_ChallengeMode.GetActiveKeystoneInfo() or C_ChallengeMode.IsChallengeModeActive()) then
+									print("did not start as this is a m+ run")
+									return
+								else
+									print("this is not a m+ run")
+								end
 							end
 
 							---@type combat[]
@@ -498,6 +698,9 @@
 
 		local UnitDebuff = C_UnitAuras and C_UnitAuras.GetDebuffDataByIndex or UnitDebuff
 		Details222.UnitDebuff = UnitDebuff
+
+		local dr = C_DeathRecap
+		Details.DR = dr
 
         if (C_Spell and C_Spell.GetSpellInfo) then
             Details222.GetSpellInfo = function(...)
@@ -1001,6 +1204,10 @@ do
 				}
 		end
 
+		Details.HealingPotions = {
+			[1262857] = true
+		}
+
 		--[[global]] DETAILS_MODE_GROUP = 2
 		--[[global]] DETAILS_MODE_ALL = 3
 
@@ -1093,6 +1300,23 @@ do
 			current_standard = Loc ["STRING_CURRENTFIGHT"],
 			past = Loc ["STRING_FIGHTNUMBER"]
 		}
+
+		if DetailsFramework.IsAddonApocalypseWow() then
+			Details.ApocalypseAttributeNames = {
+				[Enum.DamageMeterType.DamageDone] = DAMAGE_METER_TYPE_DAMAGE_DONE,
+				[Enum.DamageMeterType.Dps] = DAMAGE_METER_TYPE_DPS,
+				[Enum.DamageMeterType.HealingDone] = DAMAGE_METER_TYPE_HEALING_DONE,
+				[Enum.DamageMeterType.Hps] = DAMAGE_METER_TYPE_HPS,
+				[Enum.DamageMeterType.Absorbs] = DAMAGE_METER_TYPE_ABSORBS,
+				[Enum.DamageMeterType.Interrupts] = DAMAGE_METER_TYPE_INTERRUPTS,
+				[Enum.DamageMeterType.Dispels] = DAMAGE_METER_TYPE_DISPELS,
+				[Enum.DamageMeterType.DamageTaken] = DAMAGE_METER_TYPE_DAMAGE_TAKEN,
+				[Enum.DamageMeterType.AvoidableDamageTaken] = DAMAGE_METER_TYPE_AVOIDABLE_DAMAGE_TAKEN,
+				[Enum.DamageMeterType.Deaths] = DAMAGE_METER_TYPE_DEATHS,
+				[Enum.DamageMeterType.EnemyDamageTaken] = DAMAGE_METER_TYPE_ENEMY_DAMAGE_TAKEN,
+			};
+		end
+
 
 		Details._detalhes_props["modo_nome"] = {
 				[_detalhes._detalhes_props["MODO_ALONE"]] = Loc ["STRING_MODE_SELF"],
@@ -1230,6 +1454,7 @@ do
 		SharedMedia:Register("statusbar", "BantoBar", [[Interface\AddOns\Details\images\BantoBar]])
 		SharedMedia:Register("statusbar", "Skyline Compact", [[Interface\AddOns\Details\images\bar_textures\bar_skyline_compact.png]])
 		SharedMedia:Register("statusbar", "WorldState Score", [[Interface\WorldStateFrame\WORLDSTATEFINALSCORE-HIGHLIGHT]])
+		SharedMedia:Register("statusbar", "AlwaysWork", [[Interface\WorldStateFrame\WORLDSTATEFINALSCORE-HIGHLIGHT]])
 		SharedMedia:Register("statusbar", "DGround", [[Interface\AddOns\Details\images\bar_background]])
 		SharedMedia:Register("statusbar", "Details Flat", [[Interface\AddOns\Details\images\bar_background]])
 		SharedMedia:Register("statusbar", "Splitbar", [[Interface\AddOns\Details\images\bar_textures\split_bar]])
@@ -1339,7 +1564,7 @@ do
                                 if (tooltipData.hyperlink) then
                                     local itemName, itemLink, itemQuality, itemLevel, itemMinLevel, itemType, itemSubType,
                                     itemStackCount, itemEquipLoc, itemTexture, sellPrice, classID, subclassID, bindType,
-                                    expacID, setID, isCraftingReagent = GetItemInfo(tooltipData.hyperlink)
+                                    expacID, setID, isCraftingReagent = C_Item.GetItemInfo(tooltipData.hyperlink)
 
                                     local itemInfo = {
                                         itemName = itemName,
@@ -1440,11 +1665,11 @@ do
 		end
 
 	--print messages
-		function _detalhes:Msg(str, arg1, arg2, arg3, arg4)
+		function _detalhes:Msg(str, arg1, arg2, arg3, arg4, arg5)
 			if (self.__name) then
-				print("|cffffaeae" .. self.__name .. "|r |cffcc7c7c(plugin)|r: " .. (str or ""), arg1 or "", arg2 or "", arg3 or "", arg4 or "")
+				print("|cffffaeae" .. self.__name .. "|r |cffcc7c7c(plugin)|r: " .. (str or ""), arg1 or "", arg2 or "", arg3 or "", arg4 or "", arg5 or "")
 			else
-				print(Loc ["STRING_DETAILS1"] .. (str or ""), arg1 or "", arg2 or "", arg3 or "", arg4 or "")
+				print(Loc ["STRING_DETAILS1"] .. (str or ""), arg1 or "", arg2 or "", arg3 or "", arg4 or "", arg5 or "")
 			end
 		end
 
@@ -1467,7 +1692,7 @@ do
 			Details.Schedules.After(5, _detalhes.wipe_combat_after_failed_load)
 		end
 
-		Details.failed_to_load = C_Timer.NewTimer(1, function() Details.Schedules.NewTimer(20, _detalhes.WelcomeMsgLogon) end)
+		--Details.failed_to_load = C_Timer.NewTimer(1, function() Details.Schedules.NewTimer(20, _detalhes.WelcomeMsgLogon) end)
 
 	--key binds
 	--[=
@@ -1744,10 +1969,10 @@ function Details:DestroyActor(actorObject, actorContainer, combatObject, callSta
 
 	--remove the actor from the parser cache
 	local c1, c2, c3, c4 = Details222.Cache.GetParserCacheTables()
-	c1[actorObject.serial] = nil
-	c2[actorObject.serial] = nil
-	c3[actorObject.serial] = nil
-	c4[actorObject.serial] = nil
+	c1[actorObject.serial or "a"] = nil
+	c2[actorObject.serial or "a"] = nil
+	c3[actorObject.serial or "a"] = nil
+	c4[actorObject.serial or "a"] = nil
 
 	if (not actorObject.ownerName) then --not a pet
 		if (containerType == 1 or containerType == 2) then --damage|healing done

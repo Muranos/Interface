@@ -4,7 +4,7 @@
 
 local mod, CL = BigWigs:NewBoss("Atal'Dazar Trash", 1763)
 if not mod then return end
-mod.displayName = CL.trash
+mod:SetTrashModule(true)
 mod:RegisterEnableMob(
 	128434, -- Feasting Skyscreamer
 	128455, -- T'lonja
@@ -148,7 +148,7 @@ end
 -- RP Timers
 
 function mod:CHAT_MSG_MONSTER_SAY(event, msg)
-	if msg == L.stairs_open_trigger then
+	if not self:IsSecret(msg) and msg == L.stairs_open_trigger then
 		self:UnregisterEvent(event)
 		self:Bar("stairs_open", 12.3, L.stairs_open, L.stairs_open_icon)
 	end

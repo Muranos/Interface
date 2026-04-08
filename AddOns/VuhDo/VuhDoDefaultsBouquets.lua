@@ -342,7 +342,7 @@ VUHDO_DEFAULT_BACKGROUND_BOUQUETS = {
 			["name"] = "DEBUFF_BAR_COLOR",
 			["mine"] = true, ["icon"] = 1,
 			["color"] = VUHDO_makeFullColorForBouquet(1, 1, 1, 1,   1, 1, 1, 1),
-			["custom"] = { [1] = 1, ["radio"] = 1, ["bright"] = 1.0 },
+			["custom"] = { [1] = 1, ["radio"] = 1, ["bright"] = 0.4 },
 		},
 		{
 			["name"] = "CLASS_COLOR",
@@ -1056,6 +1056,7 @@ VUHDO_DEFAULT_INDICATOR_CONFIG_PER_PANEL = {
 			["TEXTURE"] = "VuhDo - Pipe, light",
 			["invertGrowth"] = false,
 			["turnAxis"] = false,
+			["smooth"] = false,
 		},
 		["MOUSEOVER_HIGHLIGHT"] = {
 			["TEXTURE"] = "VuhDo - Aluminium",
@@ -1069,6 +1070,7 @@ VUHDO_DEFAULT_INDICATOR_CONFIG_PER_PANEL = {
 			["TEXTURE"] = "VuhDo - Polished Wood",
 			["invertGrowth"] = false,
 			["turnAxis"] = false,
+			["smooth"] = false,
 		},
 		["HEALTH_BAR"] = {
 			["invertGrowth"] = false,
@@ -1076,18 +1078,24 @@ VUHDO_DEFAULT_INDICATOR_CONFIG_PER_PANEL = {
 			["turnAxis"] = false,
 			["turnAxisOvershield"] = false,
 			["turnAxisHealAbsorb"] = false,
+			["smooth"] = false,
+			["smoothShield"] = false,
+			["smoothOvershield"] = false,
+			["smoothHealAbsorb"] = false,
 		},
 		["SIDE_LEFT"] = {
 			["TEXTURE"] = "VuhDo - Plain White",
 			["invertGrowth"] = false,
 			["vertical"] = true,
 			["turnAxis"] = false,
+			["smooth"] = false,
 		},
 		["SIDE_RIGHT"] = {
 			["TEXTURE"] = "VuhDo - Plain White",
 			["invertGrowth"] = false,
 			["vertical"] = true,
 			["turnAxis"] = false,
+			["smooth"] = false,
 		},
 		["HOT_BARS"] = {
 			["invertGrowth"] = false,
@@ -1270,9 +1278,13 @@ local function _VUHDO_buildGenericHealthBarBouquet(aType, aName)
 		tBouquet[#tBouquet + 1] = tItem;
 	end
 
-	if VUHDO_CONFIG["MODE"] == VUHDO_MODE_NEUTRAL then
+	-- FIXME: operation modes other than neutral with 100% trigger are bugged
+	--if VUHDO_CONFIG["MODE"] == VUHDO_MODE_NEUTRAL then
+	if true then
 		-- Irrelevant
-		if VUHDO_CONFIG["EMERGENCY_TRIGGER"] < 100 then
+		-- FIXME: operation modes other than neutral with 100% trigger are bugged
+		--if VUHDO_CONFIG["EMERGENCY_TRIGGER"] < 100 then
+		if false then
 			tItem = VUHDO_createBouquetItem("HEALTH_ABOVE", VUHDO_PANEL_SETUP["BAR_COLORS"]["IRRELEVANT"]);
 			tItem["custom"][1] = VUHDO_CONFIG["EMERGENCY_TRIGGER"];
 			tBouquet[#tBouquet + 1] = tItem;
@@ -1334,7 +1346,9 @@ local function _VUHDO_buildGenericHealthBarBouquet(aType, aName)
 
 		-- Emergency
 		tItem = VUHDO_createBouquetItem("EMERGENCY_COLOR", VUHDO_PANEL_SETUP["BAR_COLORS"]["EMERGENCY"]);
-		tItem["custom"][1] = VUHDO_CONFIG["EMERGENCY_TRIGGER"];
+		-- FIXME: operation modes other than neutral with 100% trigger are bugged
+		--tItem["custom"][1] = VUHDO_CONFIG["EMERGENCY_TRIGGER"];
+		tItem["custom"][1] = 100;
 		tBouquet[#tBouquet + 1] = tItem;
 
 		-- No Emergency Bar
@@ -1512,24 +1526,36 @@ end
 
 
 --
+local tKeysToRemove;
 function VUHDO_ensureAllBouquetItemsSanity()
+
 	VUHDO_decompressAllBouquets();
 
 	for tName, tAllInfos in pairs(VUHDO_BOUQUETS["STORED"]) do
-
 		if (tAllInfos == nil or "table" ~= type(tAllInfos)) then
 			VUHDO_BOUQUETS["STORED"][tName] = { };
 		end
 
+		tKeysToRemove = { };
+
 		for tIndex, tInfo in pairs(VUHDO_BOUQUETS["STORED"][tName]) do
 			tInfo["name"] = strtrim(tInfo["name"] or "");
 			if (tInfo["name"] == "") then
-				tremove(tAllInfos, tIndex);
+				tinsert(tKeysToRemove, tIndex);
 			else
 				VUHDO_ensureBouquetItemSanity(tName, tIndex);
 			end
 		end
+
+		table.sort(tKeysToRemove, function(a, b) return a > b; end);
+
+		for _, tIndex in ipairs(tKeysToRemove) do
+			tremove(tAllInfos, tIndex);
+		end
 	end
+
+	return;
+
 end
 
 
@@ -1958,6 +1984,25 @@ function VUHDO_loadDefaultBouquets()
 	end
 	VUHDO_DEFAULT_CHI_HARMONY_ICON_BOTH_BOUQUET = nil;
 
+	if VUHDO_BOUQUETS["VERSION"] < 37 then
+		VUHDO_BOUQUETS["VERSION"] = 37;
+
+		VUHDO_BOUQUETS["STORED"][VUHDO_I18N_DEF_BAR_BACKGROUND_CLASS_COLOR] =
+			VUHDO_decompressIfCompressed(VUHDO_BOUQUETS["STORED"][VUHDO_I18N_DEF_BAR_BACKGROUND_CLASS_COLOR]);
+
+		local tBouquet = VUHDO_BOUQUETS["STORED"][VUHDO_I18N_DEF_BAR_BACKGROUND_CLASS_COLOR];
+
+		if tBouquet then
+			for _, tEntry in pairs(tBouquet) do
+				if tEntry["name"] == "DEBUFF_BAR_COLOR" and tEntry["custom"] and tEntry["custom"]["bright"] == 1 then
+					tEntry["custom"]["bright"] = 0.4;
+
+					break;
+				end
+			end
+		end
+	end
+
 	VUHDO_buildGenericHealthBarBouquet();
 	VUHDO_buildGenericTargetHealthBouquet();
 
@@ -1985,33 +2030,35 @@ function VUHDO_loadDefaultBouquets()
 							tPanelIndicatorConfig["CUSTOM"]["HEALTH_BAR"]["invertGrowth"])
 				};
 			end
+		else
+			tPanelIndicatorConfig = VUHDO_INDICATOR_CONFIG[tPanelNum];
+		end
 
-			-- old profiles will have no indicator config version and need a one time migration to the per panel model
-			-- final model sanity check will ensure version is present moving forward
-			if not VUHDO_INDICATOR_CONFIG["VERSION"] and
-				VUHDO_INDICATOR_CONFIG["BOUQUETS"] and VUHDO_INDICATOR_CONFIG["CUSTOM"] and VUHDO_INDICATOR_CONFIG["TEXT_INDICATORS"] then
-				tPanelIndicatorConfig["BOUQUETS"] = VUHDO_decompressOrCopy(VUHDO_INDICATOR_CONFIG["BOUQUETS"]);
+		-- old profiles will have no indicator config version and need a one time migration to the per panel model
+		-- final model sanity check will ensure version is present moving forward
+		if not VUHDO_INDICATOR_CONFIG["VERSION"] and
+			VUHDO_INDICATOR_CONFIG["BOUQUETS"] and VUHDO_INDICATOR_CONFIG["CUSTOM"] and VUHDO_INDICATOR_CONFIG["TEXT_INDICATORS"] then
+			tPanelIndicatorConfig["BOUQUETS"] = VUHDO_decompressOrCopy(VUHDO_INDICATOR_CONFIG["BOUQUETS"]);
 
-				-- the old model supported per panel bouquets only for the Health Bar indicator
-				if tPanelIndicatorConfig["BOUQUETS"]["HEALTH_BAR_PANEL"][tPanelNum] and
-					tPanelIndicatorConfig["BOUQUETS"]["HEALTH_BAR_PANEL"][tPanelNum] ~= "" then
-					tPanelIndicatorConfig["BOUQUETS"]["HEALTH_BAR"] = tPanelIndicatorConfig["BOUQUETS"]["HEALTH_BAR_PANEL"][tPanelNum];
-				end
-
-				tPanelIndicatorConfig["BOUQUETS"]["HEALTH_BAR_PANEL"] = nil;
-
-				tPanelIndicatorConfig["TEXT_INDICATORS"] = VUHDO_decompressOrCopy(VUHDO_INDICATOR_CONFIG["TEXT_INDICATORS"]);
-
-				for _, tTextIndicatorConfig in pairs(tPanelIndicatorConfig["TEXT_INDICATORS"]) do
-					if type(tTextIndicatorConfig["TEXT_PROVIDER"]) == "table" then
-						tTextIndicatorConfig["TEXT_PROVIDER"] = tTextIndicatorConfig["TEXT_PROVIDER"][tPanelNum] or "";
-
-						break;
-					end
-				end
-
-				tPanelIndicatorConfig["CUSTOM"] = VUHDO_decompressOrCopy(VUHDO_INDICATOR_CONFIG["CUSTOM"]);
+			-- the old model supported per panel bouquets only for the Health Bar indicator
+			if tPanelIndicatorConfig["BOUQUETS"]["HEALTH_BAR_PANEL"][tPanelNum] and
+				tPanelIndicatorConfig["BOUQUETS"]["HEALTH_BAR_PANEL"][tPanelNum] ~= "" then
+				tPanelIndicatorConfig["BOUQUETS"]["HEALTH_BAR"] = tPanelIndicatorConfig["BOUQUETS"]["HEALTH_BAR_PANEL"][tPanelNum];
 			end
+
+			tPanelIndicatorConfig["BOUQUETS"]["HEALTH_BAR_PANEL"] = nil;
+
+			tPanelIndicatorConfig["TEXT_INDICATORS"] = VUHDO_decompressOrCopy(VUHDO_INDICATOR_CONFIG["TEXT_INDICATORS"]);
+
+			for _, tTextIndicatorConfig in pairs(tPanelIndicatorConfig["TEXT_INDICATORS"]) do
+				if type(tTextIndicatorConfig["TEXT_PROVIDER"]) == "table" then
+					tTextIndicatorConfig["TEXT_PROVIDER"] = tTextIndicatorConfig["TEXT_PROVIDER"][tPanelNum] or "";
+
+					break;
+				end
+			end
+
+			tPanelIndicatorConfig["CUSTOM"] = VUHDO_decompressOrCopy(VUHDO_INDICATOR_CONFIG["CUSTOM"]);
 		end
 
 		VUHDO_INDICATOR_CONFIG[tPanelNum] = VUHDO_ensureSanity("VUHDO_INDICATOR_CONFIG[" .. tPanelNum .. "]", VUHDO_INDICATOR_CONFIG[tPanelNum], VUHDO_DEFAULT_INDICATOR_CONFIG_PER_PANEL);

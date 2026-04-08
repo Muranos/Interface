@@ -2,8 +2,6 @@
 local PitBull4 = _G.PitBull4
 local L = PitBull4.L
 
-local wow_cata = PitBull4.wow_cata
-
 local player_class = UnitClassBase("player")
 local is_rogue = player_class == "ROGUE"
 local is_druid = player_class == "DRUID"
@@ -13,6 +11,7 @@ local is_druid = player_class == "DRUID"
 local BASE_TEXTURE_PATH = [[Interface\AddOns\PitBull4\Modules\ComboPoints\]]
 
 local SPELL_POWER_COMBO_POINTS = Enum.PowerType.ComboPoints
+local OVERFLOWING_POWER_SPELL_ID = 405189 -- Overflowing Power
 
 local TEXTURES = {
 	default = L["Default"],
@@ -35,17 +34,23 @@ PitBull4_ComboPoints:SetDefaults({
 	vertical = false,
 	size = 0.75,
 	color = { 0.7, 0.7, 0 },
+	overflow_color = { 0.0, 0.5, 1 },
 	spacing = 5,
 	texture = "default",
 	has_background_color = false,
 	background_color = { 0, 0, 0, 0.5 }
 })
 
+local overflowing_power_aura_id = nil
+
 function PitBull4_ComboPoints:OnEnable()
 	self:RegisterEvent("UNIT_POWER_FREQUENT")
-	if not wow_cata then
+	if ClassicExpansionAtLeast(LE_EXPANSION_WARLORDS_OF_DRAENOR) then
 		self:RegisterEvent("UNIT_DISPLAYPOWER")
 		self:RegisterEvent("UNIT_EXITED_VEHICLE", "UNIT_DISPLAYPOWER")
+		if is_druid and ClassicExpansionAtLeast(LE_EXPANSION_DRAGONFLIGHT) then
+			self:RegisterUnitEvent("UNIT_AURA", nil, "player")
+		end
 	else
 		self:RegisterEvent("UNIT_MAXPOWER")
 		self:RegisterUnitEvent("UNIT_EXITED_VEHICLE", nil, "player")
@@ -59,7 +64,7 @@ function PitBull4_ComboPoints:UNIT_POWER_FREQUENT(_, unit, power_type)
 	if unit ~= "player" and unit ~= "pet" then return end
 	if power_type ~= "COMBO_POINTS" then return end
 
-	if not wow_cata then
+	if ClassicExpansionAtLeast(LE_EXPANSION_WARLORDS_OF_DRAENOR) then
 		for frame in PitBull4:IterateFramesForUnitIDs("player", "pet", "target") do
 			self:Update(frame)
 		end
@@ -73,6 +78,52 @@ function PitBull4_ComboPoints:UNIT_DISPLAYPOWER(event, unit)
 
 	for frame in PitBull4:IterateFramesForUnitIDs("player", "pet", "target") do
 		self:Update(frame)
+	end
+end
+
+function PitBull4_ComboPoints:UNIT_AURA(_, unit, update_info)
+	if unit ~= "player" or not update_info then return end
+
+	local changed = false
+	local removed = false
+
+	if update_info.addedAuras then
+		for _, aura in next, update_info.addedAuras do
+			if aura.spellId == OVERFLOWING_POWER_SPELL_ID then
+				changed = true
+				overflowing_power_aura_id = aura.auraInstanceID
+				break
+			end
+		end
+	end
+
+	if overflowing_power_aura_id and not changed and update_info.updatedAuraInstanceIDs then
+		for _, aura_id in next, update_info.updatedAuraInstanceIDs do
+			if overflowing_power_aura_id == aura_id then
+				changed = true
+				break
+			end
+		end
+	end
+
+	if overflowing_power_aura_id and not changed and update_info.removedAuraInstanceIDs then
+		for _, aura_id in next, update_info.removedAuraInstanceIDs do
+			if overflowing_power_aura_id == aura_id then
+				changed = true
+				removed = true
+				break
+			end
+		end
+	end
+
+	if changed then
+		for frame in PitBull4:IterateFramesForUnitIDs("player", "pet", "target") do
+			self:Update(frame)
+		end
+	end
+	if removed then
+		-- Unset after update so frames still get updated at max power
+		overflowing_power_aura_id = nil
 	end
 end
 
@@ -107,7 +158,7 @@ end
 function PitBull4_ComboPoints:UpdateFrame(frame)
 	if frame.unit ~= "target" and frame.unit ~= "player" and frame.unit ~= "pet" then
 		return self:ClearFrame(frame)
-	elseif wow_cata and frame.unit ~= "target" then
+	elseif not ClassicExpansionAtLeast(LE_EXPANSION_WARLORDS_OF_DRAENOR) and frame.unit ~= "target" then
 		return self:ClearFrame(frame)
 	end
 
@@ -117,7 +168,7 @@ function PitBull4_ComboPoints:UpdateFrame(frame)
 	end
 
 	local num_combos
-	if not wow_cata then
+	if ClassicExpansionAtLeast(LE_EXPANSION_WARLORDS_OF_DRAENOR) then
 		num_combos = has_vehicle and GetComboPoints("vehicle", "target") or UnitPower("player", SPELL_POWER_COMBO_POINTS)
 	else
 		num_combos = GetComboPoints(has_vehicle and "vehicle" or "player", "target")
@@ -150,7 +201,8 @@ function PitBull4_ComboPoints:UpdateFrame(frame)
 	end
 	local combos = frame.ComboPoints
 
-	if combos and #combos == num_combos then
+	-- Only update at max power if you have Overflowing Power
+	if combos and #combos == num_combos and not overflowing_power_aura_id then
 		combos:Show()
 		return false
 	end
@@ -207,7 +259,6 @@ function PitBull4_ComboPoints:UpdateFrame(frame)
 		combos[i] = combo
 
 		combo:SetTexture(BASE_TEXTURE_PATH .. db.texture)
-		combo:SetVertexColor(unpack(db.color))
 		combo:SetWidth(ICON_SIZE)
 		combo:SetHeight(ICON_SIZE)
 		local border_size = db.has_background_color and BORDER_SIZE or 0
@@ -215,6 +266,21 @@ function PitBull4_ComboPoints:UpdateFrame(frame)
 			combo:SetPoint("LEFT", combos, "LEFT", border_size + (i - 1) * (ICON_SIZE + spacing), 0)
 		else
 			combo:SetPoint("BOTTOM", combos, "BOTTOM", 0, border_size + (i - 1) * (ICON_SIZE + spacing))
+		end
+	end
+
+	-- Druid Overflowing Power
+	local num_overflowing = 0
+	if overflowing_power_aura_id then
+		local aura = C_UnitAuras.GetAuraDataByAuraInstanceID("player", overflowing_power_aura_id)
+		num_overflowing = aura and aura.applications or 0
+	end
+
+	for i = 1, num_combos do
+		if i > num_overflowing then
+			combos[i]:SetVertexColor(unpack(db.color))
+		else
+			combos[i]:SetVertexColor(unpack(db.overflow_color))
 		end
 	end
 
@@ -284,6 +350,25 @@ PitBull4_ComboPoints:SetLayoutOptionsFunction(function(self)
 				self:Update(frame)
 			end
 		end,
+	}, 'overflow_color', {
+		type = 'color',
+		name = L["Overflow Color"],
+		desc = L["What color the combo points should be."],
+		get = function(info)
+			return unpack(PitBull4.Options.GetLayoutDB(self).overflow_color)
+		end,
+		set = function(info, r, g, b)
+			local color = PitBull4.Options.GetLayoutDB(self).overflow_color
+			color[1], color[2], color[3] = r, g, b
+
+			for frame in PitBull4:IterateFramesForUnitIDs("player", "pet", "target") do
+				self:Clear(frame)
+				self:Update(frame)
+			end
+		end,
+		hidden = function(info)
+			return not is_druid or not ClassicExpansionAtLeast(LE_EXPANSION_DRAGONFLIGHT)
+		end
 	}, 'has_background_color', {
 		type = 'toggle',
 		name = L["Has background color"],

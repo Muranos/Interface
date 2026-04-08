@@ -1,9 +1,10 @@
 ## Author: Potdisc
-## Interface: 110100
-## Notes: Interface for running a Loot Council v3.15.4
+## Interface: 120001
+## Notes: Interface for running a Loot Council v3.20.4
 ## Title: RCLootCouncil
-## Version: 3.15.4
+## Version: 3.20.4
 ## SavedVariables: RCLootCouncilDB, RCLootCouncilLootDB
+## AllowLoadGameType: standard
 ## OptionalDeps: LibStub, CallbackHandler-1.0, Ace3, lib-st, LibWindow-1.1, LibDialog-1.0
 ## X-Curse-Project-ID: 39928
 ## X-Wago-ID: 4N2m8ZGL
@@ -41,6 +42,7 @@ Classes\Utils\GroupLoot.lua
 Classes\Data\Player.lua
 Classes\Data\Council.lua
 
+Classes\Services\CommsRestrictions.lua
 Classes\Services\Comms.lua
 # Classes\Services\SlashCommands.lua # NYI
 Classes\Data\MLDB.lua
@@ -55,7 +57,8 @@ Modules\Modules.xml
 
 Utils\BackwardsCompat.lua
 Utils\Utils.lua
-Utils\TrinketData.lua
+Utils\Dump.lua
+Utils\EncounterJournalData.lua
 Utils\tokenData.lua
 Utils\ItemStorage.lua
 Utils\transmog.lua

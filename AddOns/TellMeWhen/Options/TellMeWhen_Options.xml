@@ -22,6 +22,13 @@
 						<Anchor point="RIGHT" x="-1" />
 					</Anchors>
 				</FontString>
+				<Texture parentKey="RestrictedIcon" file="Interface\AddOns\TellMeWhen\Textures\restricted.png" hidden="true">
+					<Size x="12" y="12"/>
+					<Anchors>
+						<Anchor point="RIGHT" relativeKey="$parent.Header" relativePoint="RIGHT" x="-2" y="0"/>
+					</Anchors>
+					<Color r="1" g="0.82" b="0"/>
+				</Texture>
 			</Layer>
 		</Layers>
 	</Frame>
@@ -900,9 +907,10 @@
 		<Scripts>
 			<OnLoad>
 				TMW:CInit(self)
-				self:SetLabel("")
+				self:SetLabel(TMW.L["IMPORT_EXPORT_LABEL"])
 				self:SetTexts(TMW.L["IMPORT_EXPORT"], TMW.L["IMPORT_EXPORT_DESC"])
 
+				self.BackgroundText:SetPoint("RIGHT", self.Button, "LEFT")
 				self:SetTextInsets(3, self.Button:GetWidth() + 5, 0, 0)
 
 				function self.callback(nAndMaxN, soFar, total)
@@ -2567,7 +2575,3 @@
 
 
 </Ui>
-
-
-
-

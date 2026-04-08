@@ -31,6 +31,8 @@ LibDBIcon = LibStub("LibDBIcon-1.0")
 
 local SimcFrame = nil
 local OptionsDB = nil
+local SpellCache = {}
+local SpellCacheLoaded = false
 
 local OFFSET_ITEM_ID = 1
 local OFFSET_ENCHANT_ID = 2
@@ -45,6 +47,8 @@ local OFFSET_SUFFIX_ID = 7
 local OFFSET_BONUS_ID = 13
 
 local OFFSET_GEM_BONUS_FROM_MODS = 2
+
+-- Item Modifiers: https://warcraft.wiki.gg/wiki/ItemLink#Item_Modifiers
 
 local ITEM_MOD_TYPE_DROP_LEVEL = 9
 -- 28 shows frequently but is currently unknown
@@ -187,10 +191,14 @@ local function GetItemSplit(itemLink)
   return itemSplit
 end
 
+local function Trim(str)
+  return string.match(str, '^%s*(.-)%s*$')
+end
+
 local function GetItemName(itemLink)
   local name = string.match(itemLink, '|h%[(.*)%]|')
   local removeIcons = gsub(name, '|%a.+|%a', '')
-  local trimmed = string.match(removeIcons, '^%s*(.*)%s*$')
+  local trimmed = Trim(removeIcons)
   -- check for empty string or only spaces
   if string.match(trimmed, '^%s*$') then
     return nil
@@ -430,6 +438,7 @@ local function GetItemStringFromItemLink(slotNum, itemLink, debugOutput)
   local simcItemOptions = {}
   local gems = {}
   local gemBonuses = {}
+  local debugLines = {}
 
   -- Item id
   local itemId = itemSplit[OFFSET_ITEM_ID]
@@ -516,10 +525,26 @@ local function GetItemStringFromItemLink(slotNum, itemLink, debugOutput)
     simcItemOptions[#simcItemOptions + 1] = 'crafting_quality=' .. craftingQuality
   end
 
+  -- 11.1.7 Belt
+  if itemId == 242664 or itemId == 245964 or itemId == 245965 or itemId == 245966 then
+    local titanDiscId, tooltipStrings = Simulationcraft:GetTitanDiscBeltSpell()
+    if titanDiscId then
+      simcItemOptions[#simcItemOptions + 1] = 'titan_disc_id=' .. titanDiscId
+    end
+    debugLines[#debugLines + 1] = 'Spell Descriptions:'
+    for i = 1, #tooltipStrings do
+      debugLines[#debugLines + 1] = tooltipStrings[i]
+    end
+  end
+
   local itemStr = ''
   itemStr = itemStr .. (simcSlotNames[slotNum] or 'unknown') .. "=" .. table.concat(simcItemOptions, ',')
   if debugOutput then
-    itemStr = itemStr .. '\n# ' .. gsub(itemLink, "\124", "\124\124") .. '\n'
+    debugLines[#debugLines + 1] = gsub(itemLink, "\124", "\124\124")
+    for line = 1, #debugLines do
+      itemStr = itemStr .. '\n# ' .. debugLines[line]
+    end
+    itemStr = itemStr .. '\n'
   end
 
   return itemStr
@@ -560,9 +585,34 @@ end
 function Simulationcraft:GetBagItemStrings(debugOutput)
   local bagItems = {}
 
-  -- https://wowpedia.fandom.com/wiki/BagID
-  -- Bag indexes are a pain, need to start in the negatives to check everything (like the default bank container)
-  for bag=BACKPACK_CONTAINER - ITEM_INVENTORY_BANK_BAG_OFFSET, NUM_TOTAL_EQUIPPED_BAG_SLOTS + NUM_BANKBAGSLOTS do
+  -- https://warcraft.wiki.gg/wiki/InventorySlotID#Bags
+  -- https://warcraft.wiki.gg/wiki/BagID
+  -- 11.2 unifies character, reagent, and void banks and reorganizes the container IDs
+  -- Before 11.2, the addon basically needed to iteration from index -5 to 11 or so
+  -- After 11.2, it's a much more sane 0 to 17
+  -- The bound of the iteration can mostly be gleaned from various constants (that have shifted around between patches)
+  -- with the addition of the built-in backpack slot
+  -- This should work for a while if they add any more containers and if the container sizes change as it's all pretty
+  -- dynamic now
+
+  local invConstants = Constants.InventoryConstants
+  local startSlot = nil
+  local totalSlots = nil
+  if invConstants.NumCharacterBankSlots then
+    -- 11.2 and after
+    startSlot = 0
+    -- add 1 for the backpack
+    local numBagSlots = 1 + invConstants.NumBagSlots + invConstants.NumReagentBagSlots
+    local numBankSlots = invConstants.NumCharacterBankSlots
+    local numWarbandBankSlots = invConstants.NumAccountBankSlots
+    endSlot = numBagSlots + numBankSlots + numWarbandBankSlots
+  else
+    -- 11.1.7 and before
+    startSlot = BACKPACK_CONTAINER - ITEM_INVENTORY_BANK_BAG_OFFSET
+    endSlot = NUM_TOTAL_EQUIPPED_BAG_SLOTS + NUM_BANKBAGSLOTS
+  end
+
+  for bag=startSlot, endSlot do
     for slot=1, C_Container.GetContainerNumSlots(bag) do
       local itemId = C_Container.GetContainerItemID(bag, slot)
 
@@ -604,6 +654,9 @@ function Simulationcraft:GetZandalariLoa()
     if spellId == nil then
       break
     end
+    if issecretvalue(spellId) then
+      break
+    end
     if zandalariLoaBuffs[spellId] then
       zandalariLoa = zandalariLoaBuffs[spellId]
       break
@@ -624,6 +677,18 @@ function Simulationcraft:GetSlotHighWatermarks()
     end
     return table.concat(slots, '/')
   end
+end
+
+function Simulationcraft:GetCatalystCurrencies()
+  local catalystCurrencies = {}
+  for currencyId, currencyName in pairs(Simulationcraft.catalystCurrencies) do
+    local currencyInfo = C_CurrencyInfo.GetCurrencyInfo(currencyId)
+    if currencyInfo then
+      catalystCurrencies[#catalystCurrencies + 1] = table.concat({ currencyId, currencyInfo.quantity }, ':')
+    end
+  end
+
+  return table.concat(catalystCurrencies, '/')
 end
 
 function Simulationcraft:GetUpgradeCurrencies()
@@ -651,12 +716,66 @@ function Simulationcraft:GetItemUpgradeAchievements()
   local achieves = {}
   for i=1, #Simulationcraft.upgradeAchievements do
     local achId = Simulationcraft.upgradeAchievements[i]
-    _, name, points, complete = GetAchievementInfo(achId)
+    local _, name, points, complete = GetAchievementInfo(achId)
     if complete then
       achieves[#achieves + 1] = achId
     end
   end
   return table.concat(achieves, '/')
+end
+
+local function LoadSpellsAsync(callback)
+  local spellIds = Simulationcraft.preloadSpellIds
+
+  -- Build up the SpellCache asynchronously
+  local numLoaded = 0
+  local function onLoad()
+    numLoaded = numLoaded + 1
+
+    if numLoaded == #spellIds then
+      SpellCacheLoaded = true
+      if callback then
+        callback(SpellCache)
+      end
+    end
+  end
+
+  for index=1, #spellIds do
+    local spellId = spellIds[index]
+    local spell = Spell:CreateFromSpellID(spellId)
+    if not spell:IsSpellEmpty() then
+      spell:ContinueOnSpellLoad(function()
+        -- It's possible that in some cases, ContinueOnSpellLoad may not fire. If that happens,
+        -- will need to look into ContinueWithCancelOnSpellLoad which can apparently be used with
+        -- timeouts
+        SpellCache[spellId] = spell
+        onLoad()
+      end)
+    else
+      onLoad()
+    end
+  end
+end
+
+-- This requires the SpellCache with the right spell IDs to be loaded
+function Simulationcraft:GetTitanDiscBeltSpell()
+  local activeSpell = nil
+  local debugTooltipStrings = {}
+  local beltDescription = Trim(SpellCache[Simulationcraft.discBeltSpell]:GetSpellDescription())
+  debugTooltipStrings[#debugTooltipStrings + 1] = beltDescription
+  if not beltDescription then
+    error('Unable to get spell description for DISC Belt spell')
+  end
+  for k, v in pairs(Simulationcraft.discBeltEffectSpells) do
+    local effectDesc = Trim(SpellCache[k]:GetSpellDescription())
+    debugTooltipStrings[#debugTooltipStrings + 1] = effectDesc
+    -- disable pattern matching with the last argument
+    if beltDescription:find(effectDesc, 1, true) then
+      activeSpell = v
+    end
+  end
+
+  return activeSpell, debugTooltipStrings
 end
 
 function Simulationcraft:GetMainFrame(text)
@@ -853,11 +972,18 @@ function Simulationcraft:GetSimcProfile(debugOutput, noBags, showMerchant, links
 
   -- Spec info
   local role, globalSpecID, playerRole
-  local specId = GetSpecialization()
+  local specId = C_SpecializationInfo.GetSpecialization()
   if specId then
-    globalSpecID,_,_,_,_,role = GetSpecializationInfo(specId)
+    globalSpecID,_,_,_,_,role = C_SpecializationInfo.GetSpecializationInfo(specId)
   end
   local playerSpec = specNames[ globalSpecID ] or 'unknown'
+
+  -- Loot spec
+  local lootSpecId = GetLootSpecialization()
+  if lootSpecId == 0 then
+    lootSpecId = globalSpecID
+  end
+  local playerLootSpec = specNames[ lootSpecId ]
 
   -- Professions
   local pid1, pid2 = GetProfessions()
@@ -890,8 +1016,7 @@ function Simulationcraft:GetSimcProfile(debugOutput, noBags, showMerchant, links
     "# " .. playerName .. ' - ' .. playerSpec
     .. ' - ' .. date('%Y-%m-%d %H:%M') .. ' - '
     .. playerRegion .. '/' .. playerRealm
- )
-
+  )
 
   -- Construct SimC-compatible strings from the basic information
   local player = Tokenize(playerClass) .. '="' .. playerName .. '"'
@@ -901,6 +1026,7 @@ function Simulationcraft:GetSimcProfile(debugOutput, noBags, showMerchant, links
   local playerSpecStr = 'spec=' .. Tokenize(playerSpec)
   playerRealm = 'server=' .. Tokenize(playerRealm)
   playerRegion = 'region=' .. Tokenize(playerRegion)
+  local playerLootSpecStr = 'loot_spec=' .. Tokenize(playerLootSpec)
 
   -- Build the output string for the player (not including gear)
   local simcPrintError = nil
@@ -926,6 +1052,7 @@ function Simulationcraft:GetSimcProfile(debugOutput, noBags, showMerchant, links
   simulationcraftProfile = simulationcraftProfile .. playerRole .. '\n'
   simulationcraftProfile = simulationcraftProfile .. playerProfessions .. '\n'
   simulationcraftProfile = simulationcraftProfile .. playerSpecStr .. '\n'
+  simulationcraftProfile = simulationcraftProfile .. '# ' .. playerLootSpecStr .. '\n'
   simulationcraftProfile = simulationcraftProfile .. '\n'
 
   if playerSpec == 'unknown' then -- luacheck: ignore
@@ -1014,7 +1141,7 @@ function Simulationcraft:GetSimcProfile(debugOutput, noBags, showMerchant, links
             local level, _, _ = GetDetailedItemLevelInfo(itemLink)
             simulationcraftProfile = simulationcraftProfile .. '#\n'
             if itemName and level then
-              itemNameComment = itemName .. ' ' .. '(' .. level .. ')'
+              local itemNameComment = itemName .. ' ' .. '(' .. level .. ')'
               simulationcraftProfile = simulationcraftProfile .. '# ' .. itemNameComment .. '\n'
             end
             simulationcraftProfile = simulationcraftProfile .. '# ' .. itemStr .. "\n"
@@ -1071,6 +1198,10 @@ function Simulationcraft:GetSimcProfile(debugOutput, noBags, showMerchant, links
   simulationcraftProfile = simulationcraftProfile .. '\n'
   simulationcraftProfile = simulationcraftProfile .. '### Additional Character Info\n'
 
+  local catalystCurrenciesStr = Simulationcraft:GetCatalystCurrencies()
+  simulationcraftProfile = simulationcraftProfile .. '#\n'
+  simulationcraftProfile = simulationcraftProfile .. '# catalyst_currencies=' .. catalystCurrenciesStr .. '\n'
+
   local upgradeCurrenciesStr = Simulationcraft:GetUpgradeCurrencies()
   simulationcraftProfile = simulationcraftProfile .. '#\n'
   simulationcraftProfile = simulationcraftProfile .. '# upgrade_currencies=' .. upgradeCurrenciesStr .. '\n'
@@ -1102,8 +1233,17 @@ end
 
 -- This is the workhorse function that constructs the profile
 function Simulationcraft:PrintSimcProfile(debugOutput, noBags, showMerchant, links)
-  local simulationcraftProfile, simcPrintError = Simulationcraft:GetSimcProfile(debugOutput, noBags, showMerchant, links)
+  LoadSpellsAsync(function()
+    local simulationcraftProfile, simcPrintError = Simulationcraft:GetSimcProfile(debugOutput, noBags, showMerchant, links)
 
-  local f = Simulationcraft:GetMainFrame(simcPrintError or simulationcraftProfile)
-  f:Show()
+    local f = Simulationcraft:GetMainFrame(simcPrintError or simulationcraftProfile)
+    f:Show()
+  end)
 end
+
+LoadSpellsAsync()
+
+-- Expose GetSimcProfile so addons can fetch the profile without goin through awkward wordarounds, added inside a global table so its easier to add more things under it later on if needed
+SimulationcraftAPI = {
+  GetSimcProfile =  Simulationcraft.GetSimcProfile
+}

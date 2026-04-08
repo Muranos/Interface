@@ -13,9 +13,17 @@ local _;
 local format = format;
 
 local VUHDO_RAID;
+
+local VUHDO_getOrCreateUnitInfo;
+local VUHDO_unregisterAllUnitEventFrames;
+
 function VUHDO_dcShieldInitLocalOverrides()
 	VUHDO_RAID = _G["VUHDO_RAID"];
+
+	VUHDO_getOrCreateUnitInfo = _G["VUHDO_getOrCreateUnitInfo"];
+	VUHDO_unregisterAllUnitEventFrames = _G["VUHDO_unregisterAllUnitEventFrames"];
 end
+
 -----------------------------------------------------------------------------------
 
 
@@ -162,11 +170,9 @@ local function VUHDO_buildInfoFromSnippet(aUnit, aSnippet, aName)
 	local tInfo;
 	local tClassId;
 
-	if not VUHDO_RAID[aUnit] then VUHDO_RAID[aUnit] = { }; end
+	tInfo = VUHDO_getOrCreateUnitInfo(aUnit);
 
 	tClassId = VUHDO_MACRO_TO_CLASS[strsub(aSnippet, 2, 2)] or VUHDO_ID_PETS;
-
-	tInfo = VUHDO_RAID[aUnit];
 	tInfo["healthmax"] = 100;
 	tInfo["health"] = 100;
 	tInfo["name"] = aName or VUHDO_I18N_NOT_AVAILABLE;
@@ -222,6 +228,9 @@ function VUHDO_buildRaidFromMacro()
 	if (tIndexGroups or 0) == 0 or (tIndexNames or 0) == 0 then return false; end
 
 	twipe(VUHDO_RAID);
+
+	VUHDO_unregisterAllUnitEventFrames();
+
 	tMacroGroups = GetMacroBody(tIndexGroups);
 	tMacroNames = GetMacroBody(tIndexNames);
 

@@ -2,8 +2,6 @@
 local PitBull4 = _G.PitBull4
 local L = PitBull4.L
 
-local wow_cata = PitBull4.wow_cata
-
 local PitBull4_PhaseIcon = PitBull4:NewModule("PhaseIcon")
 
 PitBull4_PhaseIcon:SetModuleType("indicator")
@@ -31,7 +29,7 @@ end
 
 function PitBull4_PhaseIcon:OnEnter()
 	local tooltip = _G.PARTY_PHASED_MESSAGE
-	if not wow_cata then
+	if ClassicExpansionAtLeast(LE_EXPANSION_SHADOWLANDS) then
 		local unit = self:GetParent().unit
 		local phaseReason = UnitPhaseReason(unit)
 		local tooltip = PartyUtil.GetPhasedReasonString(phaseReason, unit) or _G.PARTY_PHASED_MESSAGE
@@ -52,11 +50,11 @@ function PitBull4_PhaseIcon:GetTexture(frame)
 		return nil
 	end
 
-	if wow_cata then
-		if UnitInPhase(unit) then
+	if ClassicExpansionAtLeast(LE_EXPANSION_SHADOWLANDS) then
+		if not UnitPhaseReason(unit) then
 			return nil
 		end
-	elseif not UnitPhaseReason(unit) then
+	elseif UnitInPhase(unit) then
 		return nil
 	end
 

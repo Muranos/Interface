@@ -27,13 +27,13 @@ local GetSpellLink = C_Spell and C_Spell.GetSpellLink or GetSpellLink
 local GetItemIcon = C_Item and C_Item.GetItemIconByID or GetItemIcon
 
 local pGUID = nil -- This can't be defined at load.
-local clientVersion = select(4, GetBuildInfo())
 local strlowerCache = TMW.strlowerCache
 
 local COMBATLOG_OBJECT_NONE, ACTION_SWING =
 	  COMBATLOG_OBJECT_NONE, ACTION_SWING
 
 local Type = TMW.Classes.IconType:New("cleu")
+Type.obsolete = not CombatLogGetCurrentEventInfo
 Type.name = L["ICONMENU_CLEU"]
 Type.desc = L["ICONMENU_CLEU_DESC"]
 Type.menuIcon = GetSpellTexture(20066)

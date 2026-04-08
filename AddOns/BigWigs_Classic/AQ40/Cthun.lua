@@ -58,7 +58,6 @@ if L then
 
 	L.dark_glare_message = "%s: %s (Group %s)" -- Dark Glare: PLAYER_NAME (Group 1)
 	L.stomach = "Stomach"
-	L.tentacle = "Tentacle (%d)"
 end
 
 --------------------------------------------------------------------------------
@@ -140,7 +139,7 @@ do
 			self:Message("eye_tentacles", "red", L.eye_tentacles, L.eye_tentacles_icon)
 			self:PlaySound("eye_tentacles", "alarm")
 		elseif npcId == 15728 then -- Giant Claw Tentacle
-			self:Bar("giant_claw_tentacle", self:GetSeason() == 2 and 45 or 60, L.giant_claw_tentacle, L.giant_claw_tentacle_icon)
+			self:Bar("giant_claw_tentacle", self:GetSeason() == 2 and 50 or 60, L.giant_claw_tentacle, L.giant_claw_tentacle_icon)
 			self:Message("giant_claw_tentacle", "red", L.giant_claw_tentacle, L.giant_claw_tentacle_icon)
 			self:PlaySound("giant_claw_tentacle", "alert")
 		elseif npcId == 15334 then -- Giant Eye Tentacle
@@ -178,7 +177,7 @@ function mod:EyeOfCThunKilled()
 
 	local darkGlare = self:SpellName(26029)
 	self:StopBar(darkGlare) -- Dark Glare
-	self:StopBar(CL.cast:format(darkGlare)) -- Cast: Dark Glare
+	self:StopCastBar(darkGlare) -- Cast: Dark Glare
 	self:CancelDelayedMessage(darkGlare) -- Dark Glare
 	self:CancelDelayedMessage(CL.custom_sec:format(darkGlare, 5)) -- Dark Glare in 5 sec
 	self:CancelDelayedMessage(CL.over:format(darkGlare)) -- Dark Glare Over
@@ -190,13 +189,13 @@ function mod:EyeOfCThunKilled()
 	self:Message("stages", "cyan", CL.stage:format(2), false)
 	self:Bar("giant_claw_tentacle", self:GetSeason() == 2 and 11 or 12.3, L.giant_claw_tentacle, L.giant_claw_tentacle_icon)
 	self:Bar("eye_tentacles", 41.3, L.eye_tentacles, L.eye_tentacles_icon)
-	self:Bar("giant_eye_tentacle", self:GetSeason() == 2 and 32 or 43.1, L.giant_eye_tentacle, L.giant_eye_tentacle_icon)
+	self:Bar("giant_eye_tentacle", 43.1, L.giant_eye_tentacle, L.giant_eye_tentacle_icon)
 
-	self:OpenInfo("infobox", CL.other:format("BigWigs", L.stomach))
-	self:SetInfo("infobox", 1, L.tentacle:format(1))
+	self:OpenInfo("infobox", L.stomach)
+	self:SetInfo("infobox", 1, CL.count:format(CL.tentacle, 1))
 	self:SetInfoBar("infobox", 1, 1)
 	self:SetInfo("infobox", 2, "100%")
-	self:SetInfo("infobox", 3, L.tentacle:format(2))
+	self:SetInfo("infobox", 3, CL.count:format(CL.tentacle, 2))
 	self:SetInfoBar("infobox", 3, 1)
 	self:SetInfo("infobox", 4, "100%")
 	self:SimpleTimer(UpdateInfoBoxList, 0.5)
@@ -222,13 +221,9 @@ do
 		self:Message("weakened", "green", CL.weakened, L.weakened_icon)
 		self:Bar("weakened", 45, CL.weakened, L.weakened_icon)
 
-		if self:GetSeason() == 2 then
-			self:Bar("giant_claw_tentacle", 90, L.giant_claw_tentacle, L.giant_claw_tentacle_icon)
-		else
-			self:Bar("giant_claw_tentacle", 51, L.giant_claw_tentacle, L.giant_claw_tentacle_icon)
-			self:Bar("eye_tentacles", 81, L.eye_tentacles, L.eye_tentacles_icon)
-			self:Bar("giant_eye_tentacle", 82, L.giant_eye_tentacle, L.giant_eye_tentacle_icon)
-		end
+		self:Bar("giant_claw_tentacle", 51, L.giant_claw_tentacle, L.giant_claw_tentacle_icon)
+		self:Bar("eye_tentacles", 81, L.eye_tentacles, L.eye_tentacles_icon)
+		self:Bar("giant_eye_tentacle", 82, L.giant_eye_tentacle, L.giant_eye_tentacle_icon)
 
 		self:SetInfoBar("infobox", 1, 0)
 		self:SetInfo("infobox", 2, CL.dead)

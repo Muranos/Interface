@@ -1,9 +1,13 @@
 local GlobalAddonName, ExRT = ...
 
-local IsEncounterInProgress, GetTime = IsEncounterInProgress, GetTime
+local GetTime = GetTime
 local IsAddOnLoaded = C_AddOns and C_AddOns.IsAddOnLoaded or IsAddOnLoaded
 local GetSpellInfo = ExRT.F.GetSpellInfo or GetSpellInfo
 local GetItemInfo, GetItemInfoInstant, GetItemCount  = C_Item and C_Item.GetItemInfo or GetItemInfo, C_Item and C_Item.GetItemInfoInstant or GetItemInfoInstant, C_Item and C_Item.GetItemCount or GetItemCount
+local SendChatMessage = C_ChatInfo and C_ChatInfo.SendChatMessage or SendChatMessage
+local IsEncounterInProgress = C_InstanceEncounter and C_InstanceEncounter.IsEncounterInProgress or IsEncounterInProgress
+local issecretvalue = issecretvalue or function()end
+local issecrettable = issecrettable or function()end
 
 local VMRT = nil
 
@@ -46,14 +50,24 @@ module.db.tableFood = not ExRT.isClassic and {
 	[87558]=true,	[87559]=true,	[87697]=true,	[87560]=true,	[100368]=true,	[100373]=true,	[100375]=true,	[100377]=true,	[87565]=true,	
 	[87546]=true,	[87547]=true,	[87545]=true,
 
+	--mop
+	[104283]=true,	[104280]=true,	[104277]=true,	[104275]=true,	[104272]=true,
+	[146808]=true,	[146807]=true,	[146806]=true,	[146805]=true,	[146804]=true,	[146809]=true,--5.4 food
+	[104282]=true,	[104279]=true,	[104276]=true,	[104274]=true,	[104271]=true,
+	[104281]=true,	[104278]=true,	[104264]=true,	[104273]=true,	[104267]=true,
+
 }
 module.db.StaminaFood = {[201638]=true,[259457]=true,[288075]=true,[288074]=true,[297119]=true,[297040]=true,}
 
 module.db.tableFood_headers = ExRT.isClassic and {0,375} or {0,5,10,14}
-module.db.tableFlask = not ExRT.isClassic and {
-	--Stamina,	Int,		Agi,		Str 
-	[251838]=25,	[251837]=25,	[251836]=25,	[251839]=25,
-	[298839]=38,	[298837]=38,	[298836]=38,	[298841]=38,
+module.db.tableFlask = not ExRT.isClassic and {	--overwritten later on for retail
+	[1236763]=90,	[1239355]=90,	[1235057]=90,	[1239755]=90,	[1236767]=90,
+	[1235111]=90,	[1235110]=90,	[1235108]=90,
+
+	[307187]=70,	[307185]=70,	[307166]=70,
+	[371339]=70,	[374000]=70,	[371354]=70,	[371204]=70,	[370662]=70,	[373257]=70,	[371386]=70,	[370652]=70,	[371172]=70,	[371186]=70,
+
+	[432021]=70,	[432473]=70,	[431971]=70,	[431972]=70,	[431974]=70,	[431973]=70,
 } or {
 	[17629]=true,	[17627]=true,	[17628]=true,	[17626]=true,
 	[17538]=true,	[11474]=true,	[17539]=true,	[26276]=true,
@@ -94,9 +108,23 @@ module.db.tableFlask = not ExRT.isClassic and {
 	--sod
 	[1213886]=true,	[1213892]=true,	[1213901]=true,	[1213897]=true,
 	[1213904]=true,	[1213914]=true,
+
+	--mop
+	[105694]=true,	[105693]=true,	[105691]=true,	[105689]=true,	[105696]=true,
 }
-module.db.tableFlask_headers = ExRT.isClassic and {0,1} or {0,25,38}
-module.db.tablePotion = {
+module.db.tableFlask_headers = ExRT.isClassic and {0,1} or {0,70,90}
+module.db.tablePotion = ExRT.isMoP and {
+	[105702]=true,	--Int
+	[105697]=true,	--Agi	
+	[105706]=true,	--Str
+	[105709]=true,	--Mana 30k
+	[105701]=true,	--Mana 45k
+	[105707]=true,	--Run haste
+	[105698]=true,	--Armor
+	[105708]=true,	--Health
+	[105704]=true,	--Mana + Health [alchim]
+	[125282]=true,	--Kafa Boost
+} or {
 	[188024]=true,	--Run haste
 	[250871]=true,	--Mana
 	[252753]=true,	--Mana channel
@@ -171,6 +199,8 @@ module.db.tablePotion = {
 	[453040]=true,
 	[453162]=true,
 	[453205]=true,
+
+	[1247091]=true,
 }
 module.db.hsSpells = {
 	[6262] = true,
@@ -187,6 +217,8 @@ module.db.hsSpells = {
 
 	[431419] = true,
 	[431416] = true,
+
+	[1238009]=true,
 }
 module.db.raidBuffs = {
 	{ATTACK_POWER_TOOLTIP or "AP","WARRIOR",6673,264761},
@@ -325,28 +357,36 @@ if not ExRT.isClassic and UnitLevel'player' > 50 then
 	module.db.tableFood_headers = {0,70,90}
 
 	module.db.tableFlask = {
-	--Stamina,	Main stat,
-	[307187]=70,	[307185]=70,	[307166]=70,
-	[371339]=70,	[374000]=70,	[371354]=70,	[371204]=70,	[370662]=70,	[373257]=70,	[371386]=70,	[370652]=70,	[371172]=70,	[371186]=70,
-
-	[432021]=70,	[432473]=70,	[431971]=70,	[431972]=70,	[431974]=70,	[431973]=70,
+	[1236763]=165,	[1239355]=165,	[1235057]=165,	[1239755]=165,	[1236767]=165,
+	[1235111]=165,	[1235110]=165,	[1235108]=165,
 	}
-	module.db.tableFlask_headers = {0,70}
+	module.db.tableFlask_headers = {0,152,165}
 
 	for i=1,#module.db.raidBuffs do
 		module.db.raidBuffs[i][4] = nil
 	end
 
 	module.db.minFoodLevelToActual = {
-		[100] = 70,
-		[125] = 90,
+		[100] = 50,
+		[125] = 64,
 	}
 	module.db.tableInt = {[1459]=true,}
 	module.db.tableStamina = {[21562]=true,}
 	module.db.tableAP = {[6673]=true,}
 end
 
-if ExRT.isCata then
+if ExRT.isMoP then
+	module.db.classicBuffs = {
+		{"druid","5% Stats",136078,{[1126]=true,[115921]=true,[90363]=true,[20217]=true,[117666]=true,[117667]=true}},
+		{"spd","SPD",135932,{[1459]=true,[126309]=true,[77747]=true,[109773]=true,[61316]=true,}},
+		{"hastecast","Spell haste",136057,{[24907]=true,[49868]=true,[15473]=true,[51470]=true}},
+		{"str","AP",132333,{[57330]=true,[19506]=true,[6673]=true}},
+		{"hasteatk","Atk speed",133076,{[55610]=true,[128432]=true,[128433]=true,[113742]=true,[30809]=true}},
+		{"crit","Crit",136112,{[17007]=true,[90309]=true,[126309]=true,[24604]=true,[1459]=true,[116781]=true,[24932]=true,[61316]=true,[24597]=true,}},
+		{"mastery","Mastery",135908,{[93435]=true,[128997]=true,[19740]=true,[116956]=true,[127830]=true,}},
+		{"stamina","Stamina",135987,{[90364]=true,[21562]=true,[109773]=true,[469]=true}},
+	}
+elseif ExRT.isCata then
 	module.db.classicBuffs = {
 		{"druid","5% Stats",136078,{[79061]=true,[90363]=true,[79063]=true}},	--Gift of the Wild
 		{"int","Int",135932,{[79058]=true,[61316]=true,[54424]=true,[79038]=true}},	--Arcane Intellect
@@ -433,7 +473,7 @@ module.db.RaidCheckReadyCheckTable = {}
 module.db.RaidCheckReadyPPLNum = 0
 module.db.RaidCheckReadyCheckHideSchedule = nil
 
-module.db.tableRunes = {[224001]=5,[270058]=6,[317065]=6,[347901]=18,[367405]=18,[393438]=87,[453250]=87}
+module.db.tableRunes = {[224001]=5,[270058]=6,[317065]=6,[347901]=18,[367405]=18,[393438]=87,[453250]=87,[1234969]=733,[1242347]=733,[1264426]=25,}
 
 module.db.durability = {}
 module.db.oil = {}
@@ -450,6 +490,17 @@ local function GetRaidRosterInfo(raidUnitID)
 	elseif raidUnitID <= 5 then
 		local unit = raidUnitID <= 4 and "party"..raidUnitID or "player"
 		return ExRT.F.UnitCombatlogname(unit),nil,1,nil,nil,select(2,UnitClass(unit))
+	else
+		return nil
+	end
+end
+
+local function GetRaidRosterInfoWithUnit(raidUnitID)
+	if IsInRaid() then
+		return "raid"..raidUnitID, _GetRaidRosterInfo(raidUnitID)
+	elseif raidUnitID <= 5 then
+		local unit = raidUnitID <= 4 and "party"..raidUnitID or "player"
+		return unit, ExRT.F.UnitCombatlogname(unit),nil,1,nil,nil,select(2,UnitClass(unit))
 	else
 		return nil
 	end
@@ -520,6 +571,7 @@ local function PublicResults(msg,chat_type)
 		msg = msg:gsub("|r","")
 
 		chat_type = ExRT.F.chatType(true)
+		if C_ChatInfo and C_ChatInfo.InChatMessagingLockdown and C_ChatInfo.InChatMessagingLockdown() then return end
 		SendChatMessage(msg,chat_type)
 	else
 		print(msg)
@@ -528,16 +580,21 @@ end
 
 local function GetRunes(checkType)
 	if ExRT.isClassic then return end
+	if C_Secrets and C_Secrets.ShouldAurasBeSecret() then
+		return
+	end
 	local f = {[0]={}}
 	local gMax = ExRT.F.GetRaidDiffMaxGroup()
 	for j=1,40 do
-		local name,_,subgroup = GetRaidRosterInfo(j)
+		local unit,name,_,subgroup = GetRaidRosterInfoWithUnit(j)
 		if name and subgroup <= gMax then
 			local isAnyBuff = nil
 			for i=1,60 do
-				local auraData = C_UnitAuras.GetAuraDataByIndex(name, i,"HELPFUL")
+				local auraData = C_UnitAuras.GetAuraDataByIndex(unit, i,"HELPFUL")
 				if not auraData then
 					break
+				elseif issecretvalue(auraData.spellId) then
+
 				else
 					local isRune = module.db.tableRunes[auraData.spellId]
 					if isRune then
@@ -600,6 +657,9 @@ end
 local vruneName
 local function GetVRunes(checkType)
 	if ExRT.isClassic then return end
+	if C_Secrets and C_Secrets.ShouldAurasBeSecret() then
+		return
+	end
 	if not vruneName then
 		local kjrunename = GetSpellInfo(237825)
 		if kjrunename then
@@ -612,13 +672,15 @@ local function GetVRunes(checkType)
 	local f = {[0]={},[1]={}}
 	local gMax = ExRT.F.GetRaidDiffMaxGroup()
 	for j=1,40 do
-		local name,_,subgroup = GetRaidRosterInfo(j)
+		local unit,name,_,subgroup = GetRaidRosterInfoWithUnit(j)
 		if name and subgroup <= gMax then
 			local isAnyBuff = nil
 			for i=1,60 do
-				local auraData = C_UnitAuras.GetAuraDataByIndex(name, i,"HELPFUL")
+				local auraData = C_UnitAuras.GetAuraDataByIndex(unit, i,"HELPFUL")
 				if not auraData then
 					break
+				elseif issecretvalue(auraData.spellId) then
+
 				elseif type(auraData.name)~='string' then
 
 				elseif vruneName then
@@ -654,19 +716,24 @@ end
 
 
 local function GetFood(checkType)
+	if C_Secrets and C_Secrets.ShouldAurasBeSecret() then
+		return
+	end
 	local f = {[0]={}}
 	local gMax = ExRT.F.GetRaidDiffMaxGroup()
 	for j=1,40 do
-		local name,_,subgroup = GetRaidRosterInfo(j)
+		local unit,name,_,subgroup = GetRaidRosterInfoWithUnit(j)
 		if name and subgroup <= gMax then
 			local isAnyBuff = nil
 			for i=1,40 do
-				local auraData = C_UnitAuras.GetAuraDataByIndex(name, i,"HELPFUL")
+				local auraData = C_UnitAuras.GetAuraDataByIndex(unit, i,"HELPFUL")
 				if not auraData then
 					break
+				elseif issecretvalue(auraData.spellId) then
+
 				else
 					local spellId = auraData.spellId
-					local stats = auraData.points and auraData.points[1]
+					local stats = auraData.points and (issecrettable(auraData.points) and 1 or auraData.points[1])
 					local foodType = module.db.tableFood[spellId]
 					if foodType or auraData.icon == 136000 or auraData.icon == 132805 or auraData.icon == 133950 then
 						local _,unitRace = UnitRace(name)
@@ -761,19 +828,27 @@ local function GetFood(checkType)
 end
 
 local function GetFlask(checkType)
+	if C_Secrets and C_Secrets.ShouldAurasBeSecret() then
+		return
+	end
 	local f = {[0]={}}
 	local gMax = ExRT.F.GetRaidDiffMaxGroup()
 	local _time = GetTime()
 	for j=1,40 do
-		local name,_,subgroup = GetRaidRosterInfo(j)
+		local unit,name,_,subgroup = GetRaidRosterInfoWithUnit(j)
 		if name and subgroup <= gMax then
 			local isAnyBuff = nil
 			for i=1,40 do
-				local auraData = C_UnitAuras.GetAuraDataByIndex(name, i,"HELPFUL")
+				local auraData = C_UnitAuras.GetAuraDataByIndex(unit, i,"HELPFUL")
 				if not auraData then
 					break
+				elseif issecretvalue(auraData.spellId) then
+
 				else
 					local flaskType = module.db.tableFlask[auraData.spellId]
+					if type(flaskType) == "boolean" then
+						flaskType = auraData.points and auraData.points[1] or 1
+					end
 					if flaskType then
 						if ExRT.isClassic then
 							flaskType = 1
@@ -864,6 +939,9 @@ local function GetFlask(checkType)
 end
 
 local function GetRaidBuffs(checkType)
+	if C_Secrets and C_Secrets.ShouldAurasBeSecret() then
+		return
+	end
 	local buffsList,buffsListLen = module.db.raidBuffs,#module.db.raidBuffs
 	local classicBuffsList
 	if ExRT.isClassic then
@@ -882,7 +960,7 @@ local function GetRaidBuffs(checkType)
 	local gMax = ExRT.F.GetRaidDiffMaxGroup()
 	local isAnyBuff = {}
 	for j=1,40 do
-		local name,_,subgroup, _, _, class = GetRaidRosterInfo(j)
+		local unit,name,_,subgroup, _, _, class = GetRaidRosterInfoWithUnit(j)
 		if name and subgroup <= gMax then
 			for k=1,buffsListLen * 2 do
 				isAnyBuff[k] = false
@@ -892,10 +970,12 @@ local function GetRaidBuffs(checkType)
 					f[-k] = true
 				end
 			end
-			for i=1,40 do
-				local auraData = C_UnitAuras.GetAuraDataByIndex(name, i,"HELPFUL")
+			for i=1,60 do
+				local auraData = C_UnitAuras.GetAuraDataByIndex(unit, i,"HELPFUL")
 				if not auraData then
 					break
+				elseif issecretvalue(auraData.spellId) then
+
 				else
 					if ExRT.isClassic then
 						local k = classicBuffsList[auraData.spellId]
@@ -1078,15 +1158,20 @@ end
 
 --SCROLLS
 local function GetScrolls(checkType)
+	if C_Secrets and C_Secrets.ShouldAurasBeSecret() then
+		return
+	end
 	local f = {[0]={}}
 	local gMax = ExRT.F.GetRaidDiffMaxGroup()
 	for j=1,40 do
-		local name,_,subgroup = GetRaidRosterInfo(j)
+		local unit,name,_,subgroup = GetRaidRosterInfoWithUnit(j)
 		if name and subgroup <= gMax then
-			for i=1,40 do
-				local auraData = C_UnitAuras.GetAuraDataByIndex(name, i,"HELPFUL")
+			for i=1,60 do
+				local auraData = C_UnitAuras.GetAuraDataByIndex(unit, i,"HELPFUL")
 				if not auraData then
 					break
+				elseif issecretvalue(auraData.spellId) then
+
 				else
 					local scrollType = module.db.tableScrolls[auraData.spellId]
 					if scrollType then
@@ -1571,13 +1656,15 @@ local function CheckPotionsOnPull()
 	table.wipe(module.db.potionList)
 	local gMax = ExRT.F.GetRaidDiffMaxGroup()
 	for j=1,40 do
-		local name,_,subgroup = GetRaidRosterInfo(j)
+		local name,_,subgroup = GetRaidRosterInfoWithUnit(j)
 		if name and subgroup <= gMax then
 			local b = nil
 			for i=1,60 do
 				local auraData = C_UnitAuras.GetAuraDataByIndex(name, i,"HELPFUL")
 				if not auraData then
 					break
+				elseif issecretvalue(auraData.spellId) then
+
 				elseif module.db.tablePotion[auraData.spellId] then
 					module.db.potionList[name] = 1
 					b = true
@@ -1741,6 +1828,7 @@ do
 end
 
 function module.main:ENCOUNTER_START()
+	if ExRT.isMN then return end
 	ExRT.F.ScheduleTimer(CheckPotionsOnPull,1.5)
 
 	table.wipe(module.db.hsList)
@@ -2133,9 +2221,11 @@ function module.frame:UpdateCols()
 
 		local prevPointer = line[ RCW_iconsList[RCW_iconsList_ORIGIN].."pointer" ]
 
+		local colsAdd = 0
 		if VMRT.RaidCheck.ReadyCheckSoulstone then
+			colsAdd = colsAdd + 1
 			if not line["ss"] then
-				CreateCol(line,"ss",RCW_iconsList_ORIGIN+1)
+				CreateCol(line,"ss",RCW_iconsList_ORIGIN+colsAdd)
 			end
 			prevPointer = line["ss"]:UpdatePos(prevPointer)
 			line["ss"]:Show()
@@ -2144,8 +2234,9 @@ function module.frame:UpdateCols()
 		end
 
 		if VMRT.RaidCheck.ReadyCheckIlvl then
+			colsAdd = colsAdd + 1
 			if not line["ilvl"] then
-				CreateCol(line,"ilvl",RCW_iconsList_ORIGIN+2)
+				CreateCol(line,"ilvl",RCW_iconsList_ORIGIN+colsAdd)
 			end
 			prevPointer = line["ilvl"]:UpdatePos(prevPointer)
 			line["ilvl"]:Show()
@@ -2659,6 +2750,10 @@ function module.frame:UpdateData(onlyLine)
 					local auraData = C_UnitAuras.GetAuraDataByIndex(line.unit, i,"HELPFUL")
 					if not auraData then
 						break
+					elseif C_Secrets and C_Secrets.ShouldAurasBeSecret() then
+						break
+					elseif canaccessvalue and not canaccessvalue(auraData.spellId) then
+
 					elseif module.db.tableFood[auraData.spellId] then
 						local val = module.db.tableFood[auraData.spellId]
 
@@ -3067,6 +3162,39 @@ module.frame:SetScript("OnEvent",function(self,event,unit)
 end)
 
 
+local isLibDurabilityRegistered
+local function LibDurabilityCallback(percent, broken, pName, channel)
+	if not percent or not pName then
+		return
+	end
+	percent = tonumber(percent or "100") or 100
+	module.db.durability[pName] = {
+		time = time(),
+		dur = percent,
+	}
+	local shortName = ExRT.F.delUnitNameServer(pName)
+	module.db.durability[shortName] = module.db.durability[pName]
+
+	local line = RCW_UnitToLine[shortName]
+	if line and module.frame:IsShown() then
+		module.frame:UpdateData(line)
+	end
+end
+function module:LibDurability(onlyReg)
+	local LD = LibStub("LibDurability",true)
+	if LD then
+		if not isLibDurabilityRegistered then
+			LD:Register(GlobalAddonName, LibDurabilityCallback)
+			isLibDurabilityRegistered = true
+		end
+		if onlyReg then
+			return
+		end
+		LD:RequestDurability()
+	end
+end
+
+
 function module:ReadyCheckWindow(starter,isTest,manual)
 	if manual and self.frame:IsShown() then
 		self.frame:Hide()
@@ -3103,8 +3231,10 @@ function module:ReadyCheckWindow(starter,isTest,manual)
 		for i=1,#self.frame.lines do 
 			self.frame.lines[i].rc_status = 4
 		end
-		if UnitLevel'player' >= 50 and not ExRT.isClassic then
+		if UnitLevel'player' >= 50 and (not ExRT.isClassic or ExRT.isMoP) then
 			ExRT.F.SendExMsg("raidcheckreq","REQ\t1")
+
+			module:LibDurability()
 		end
 	end
 	self.frame:UpdateData()
@@ -3293,6 +3423,7 @@ do
 		if not (isTest == "TEST") then 
 			isTest = nil 
 		end
+		if issecretvalue and issecretvalue(timer) then return end
 		if VMRT.RaidCheck.ReadyCheck and not isTest and not ExRT.isClassic then
 			PrepareDataToChat(VMRT.RaidCheck.SendSelf)
 		end
@@ -3307,6 +3438,7 @@ do
 			module.main:READY_CHECK_CONFIRM(ExRT.F.delUnitNameServer(starter),true,isTest)
 		end
 		if not isTest then
+			module:LibDurability(true)
 			module:SendConsumeData()
 		end
 	end
@@ -3327,6 +3459,7 @@ function module.main:READY_CHECK_FINISHED()
 end
 
 function module.main:READY_CHECK_CONFIRM(unit,response,isTest)
+	if issecretvalue and issecretvalue(unit) then return end
 	if not (isTest == "TEST") then 
 		unit = UnitName(unit) 
 		isTest = nil 
@@ -3478,14 +3611,22 @@ addonMsgFrame:RegisterEvent("CHAT_MSG_ADDON")
 if (not ExRT.isClassic) and UnitLevel'player' >= 60 then
 	local IS_DF = true
 	local IS_TWW = true	--UnitLevel'player' > 70
+	local IS_MN = true	--UnitLevel'player' > 80
 
 	local consumables_size = 44
 
-	local rune_item_id = IS_TWW and 224572 or IS_DF and 201325 or 181468
-	local rune_texture = IS_TWW and 4549102 or IS_DF and 4644002 or 134078
+	local rune_item_id = IS_MN and 259085 or IS_TWW and 224572 or IS_DF and 201325 or 181468
+	local rune_texture = IS_MN and 4549099 or IS_TWW and 4549102 or IS_DF and 4644002 or 134078
+	local rune_item_id2 = 246492
+	local rune_texture2 = 1345086
+	local rune_unlim_item_id = IS_TWW and 243191 or IS_DF and 211495 or 190384
+	local rune_unlim_texture = IS_TWW and 3566863 or IS_DF and 348535 or 4224736
+	local rune_second_docheck = false
 
-	--[432021]=70,	[432473]=70,	[431971]=70,	[431972]=70,	[431974]=70,	[431973]=70,
-	local flasks_list = {
+	local flasks_list = IS_MN and {
+		-245926,-245927,	-245933,-245932,	-245931,-245930,	-245929,-245928,
+		241320,241321,		241322,241323,		241324,241325,		241326,241327,
+	} or {
 		-212741,-212740,-212739,	-212747,-212746,-212745,	-212728,-212727,-212725,	-212731,-212730,-212729,	-212738,-212736,-212735,	-212734,-212733,-212732,
 		212283,212282,212281,		212301,212300,212299,		212271,212270,212269,		212274,212273,212272,		212280,212279,212278,		212277,212276,212275,		
 	}
@@ -3594,6 +3735,37 @@ if (not ExRT.isClassic) and UnitLevel'player' >= 60 then
 		[6904] = {ench=6904,item=205039,icon=4559225,q=3},
 		[7501] = {ench=7501,item=224109,icon=609896,q=2},
 		[7052] = {ench=7052,item=210494,icon=1045108},
+
+		[7935] = {ench=7935,item=240133,icon=5931426,q=3},
+		[7936] = {ench=7936,item=240154,icon=5931153,q=2},
+		[7937] = {ench=7937,item=240155,icon=5931153,q=3},
+		[7938] = {ench=7938,item=240156,icon=5931150,q=2},
+		[7939] = {ench=7939,item=240157,icon=5931150,q=3},
+		[8051] = {ench=8051,item=243733,icon=7548987,q=2},
+		[8052] = {ench=8052,item=243734,icon=7548987,q=3},
+		[8053] = {ench=8053,item=243735,icon=7548985,q=2},
+		[8054] = {ench=8054,item=243736,icon=7548985,q=3},
+		[8055] = {ench=8055,item=243737,icon=7548986,q=2},
+		[8056] = {ench=8056,item=243738,icon=7548986,q=3},
+		[8158] = {ench=8158,item=244640,icon=7549196,q=2},
+		[8159] = {ench=8159,item=244641,icon=7549196,q=3},
+		[7905] = {ench=7905,item=237371,icon=7548942,q=3},
+		[7906] = {ench=7906,item=237370,icon=7548941,q=2},
+		[7907] = {ench=7907,item=237367,icon=7548938,q=2},
+		[7908] = {ench=7908,item=237369,icon=7548939,q=3},
+		[8615] = {ench=8615,item=257746,icon=4548899,q=3},
+		[8614] = {ench=8614,item=257745,icon=4548899,q=2},
+		[8613] = {ench=8613,item=257748,icon=4548897,q=3},
+		[8612] = {ench=8612,item=257747,icon=4548897,q=2},
+		[8611] = {ench=8611,item=257752,icon=249175,q=3},
+		[8610] = {ench=8610,item=257751,icon=249175,q=2},
+		[8609] = {ench=8609,item=257750,icon=249176,q=3},
+		[8608] = {ench=8608,item=257749,icon=249176,q=2},
+		[8163] = {ench=8163,item=244643,icon=7549219,q=3},
+		[8162] = {ench=8162,item=244642,icon=7549219,q=2},
+		[8161] = {ench=8161,item=244645,icon=7549218,q=3},
+		[7934] = {ench=7934,item=240094,icon=5931426,q=2},
+		[8160] = {ench=8160,item=244644,icon=7549218,q=2},
 	}
 	local wenchants_items = {}
 	for k,v in pairs(wenchants) do
@@ -3729,6 +3901,15 @@ if (not ExRT.isClassic) and UnitLevel'player' >= 60 then
 	local isElvUIFix
 
 	function module.consumables:Update()
+		if C_Secrets and C_Secrets.ShouldAurasBeSecret() then
+			return
+		elseif canaccessvalue then
+			local accessData = C_UnitAuras.GetAuraDataByIndex("player", 1, "HELPFUL")
+			if accessData and not canaccessvalue(accessData.spellId) then
+				return
+			end
+		end
+
 		if (IsAddOnLoaded("ElvUI") or IsAddOnLoaded("ShestakUI")) and not isElvUIFix then
 			self:SetParent(ReadyCheckFrame)
 			self:ClearAllPoints()
@@ -3778,6 +3959,8 @@ if (not ExRT.isClassic) and UnitLevel'player' >= 60 then
 			local auraData = C_UnitAuras.GetAuraDataByIndex("player", i, "HELPFUL")
 			if not auraData then
 				break
+			elseif issecretvalue(auraData.spellId) then
+				
 			elseif module.db.tableFood[auraData.spellId] or auraData.icon == 136000 then
 				self.buttons.food.statustexture:SetTexture("Interface\\RaidFrame\\ReadyCheck-Ready")
 				self.buttons.food.texture:SetDesaturated(false)
@@ -4059,15 +4242,22 @@ if (not ExRT.isClassic) and UnitLevel'player' >= 60 then
 		end
 
 		local runeCount = GetItemCount(rune_item_id,false,true)
-		local runeUnlim = IS_DF and GetItemCount(211495,false,true) or GetItemCount(190384,false,true)
+		local runeSecondItem
+		if runeCount == 0 and rune_second_docheck then
+			runeCount = GetItemCount(rune_item_id2,false,true)
+			if runeCount and runeCount > 0 then
+				runeSecondItem = true
+			end
+		end
+		local runeUnlim = GetItemCount(rune_unlim_item_id,false,true)
 		if VMRT.RaidCheck.OnlyUnlimRune then
 			runeCount = 0
 		end
-		if runeUnlim and runeUnlim > 0 and (not IS_TWW or VMRT.RaidCheck.OnlyUnlimRune) then	--no rune yet
+		if runeUnlim and runeUnlim > 0 and (IS_TWW or VMRT.RaidCheck.OnlyUnlimRune) then	--no rune yet
 			self.buttons.rune.count:SetText("")
 			if not InCombatLockdown() then
-				self.buttons.rune.texture:SetTexture(IS_DF and 348535 or 4224736)
-				local itemName = GetItemInfo(IS_DF and 211495 or 190384)
+				self.buttons.rune.texture:SetTexture(rune_unlim_texture)
+				local itemName = GetItemInfo(rune_unlim_item_id)
 				if itemName then
 					self.buttons.rune.click:SetAttribute("macrotext1", format("/stopmacro [combat]\n/use %s", itemName))
 					self.buttons.rune.click:Show()
@@ -4080,8 +4270,8 @@ if (not ExRT.isClassic) and UnitLevel'player' >= 60 then
 		elseif runeCount and runeCount > 0 then
 			self.buttons.rune.count:SetFormattedText("%d",runeCount)
 			if not InCombatLockdown() then
-				self.buttons.rune.texture:SetTexture(rune_texture)
-				local itemName = GetItemInfo(rune_item_id)
+				self.buttons.rune.texture:SetTexture(runeSecondItem and rune_texture2 or rune_texture)
+				local itemName = GetItemInfo(runeSecondItem and rune_item_id2 or rune_item_id)
 				if itemName then
 					self.buttons.rune.click:SetAttribute("macrotext1", format("/stopmacro [combat]\n/use %s", itemName))
 					self.buttons.rune.click:Show()
@@ -4198,6 +4388,7 @@ if (not ExRT.isClassic) and UnitLevel'player' >= 60 then
 			if self.cancelDelay then
 				self.cancelDelay:Cancel()
 			end
+			if issecretvalue and issecretvalue(arg2) then arg2 = 40 end
 			self.cancelDelay = C_Timer.NewTimer(arg2 or 40,function()
 				self:UnregisterEvent("UNIT_AURA")
 				self:UnregisterEvent("UNIT_INVENTORY_CHANGED")
@@ -4206,7 +4397,7 @@ if (not ExRT.isClassic) and UnitLevel'player' >= 60 then
 					self.rlpointer:Hide()
 				end
 			end)
-			if arg1 and UnitIsUnit(arg1,"player") and not VMRT.RaidCheck.ConsDisableForStarter then
+			if arg1 and (not issecretvalue or not issecretvalue(arg1)) and UnitIsUnit(arg1,"player") and not VMRT.RaidCheck.ConsDisableForStarter then
 				self:Repos(true)
 			else
 				self:Repos()

@@ -13,7 +13,9 @@ local Bar = Bartender4.Bar.prototype
 local WoW10 = select(4, GetBuildInfo()) >= 100000
 if WoW10 then return end
 
+local WoWBCC = (WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC)
 local WoWCata = (WOW_PROJECT_ID == WOW_PROJECT_CATACLYSM_CLASSIC)
+local WoWMists = (WOW_PROJECT_ID == WOW_PROJECT_MISTS_CLASSIC)
 
 local PresetsMod = Bartender4:NewModule("Presets")
 
@@ -76,17 +78,25 @@ local function BuildSingleProfile()
 	Bartender4:GetModule("StanceBar"):Disable()
 
 	if PresetsMod.showXPBar then
-		config = Bartender4.db:GetNamespace("XPBar").profile
-		config.enabled = true
-		config.scale = 0.5
-		Bartender4:GetModule("XPBar"):Enable()
-		SetBarLocation( config, "BOTTOM", -256, 48)
+		if MainMenuExpBar then
+			config = Bartender4.db:GetNamespace("XPBar").profile
+			config.enabled = true
+			config.scale = 0.5
+			Bartender4:GetModule("XPBar"):Enable()
+			SetBarLocation( config, "BOTTOM", -256, 48)
 
-		config = Bartender4.db:GetNamespace("RepBar").profile
-		config.enabled = true
-		config.scale = 0.5
-		Bartender4:GetModule("RepBar"):Enable()
-		SetBarLocation( config, "BOTTOM", -256, 51)
+			config = Bartender4.db:GetNamespace("RepBar").profile
+			config.enabled = true
+			config.scale = 0.5
+			Bartender4:GetModule("RepBar"):Enable()
+			SetBarLocation( config, "BOTTOM", -256, 51)
+		elseif StatusTrackingBarManager then -- BCC Anniversary
+			config = Bartender4.db:GetNamespace("StatusTrackingBar").profile
+			config.enabled = true
+			config.scale = 0.5
+			Bartender4:GetModule("StatusTrackingBar"):Enable()
+			SetBarLocation( config, "BOTTOM", -258, 58)
+		end
 	end
 
 	config = Bartender4.db:GetNamespace("BlizzardArt").profile
@@ -143,15 +153,23 @@ local function BuildDoubleProfile()
 	Bartender4:GetModule("MicroMenu"):Disable()
 
 	if PresetsMod.showXPBar then
-		config = Bartender4.db:GetNamespace("XPBar").profile
-		config.enabled = true
-		Bartender4:GetModule("XPBar"):Enable()
-		SetBarLocation( config, "BOTTOM", -514, 54)
+		if MainMenuExpBar then
+			config = Bartender4.db:GetNamespace("XPBar").profile
+			config.enabled = true
+			Bartender4:GetModule("XPBar"):Enable()
+			SetBarLocation( config, "BOTTOM", -514, 54)
 
-		config = Bartender4.db:GetNamespace("RepBar").profile
-		config.enabled = true
-		Bartender4:GetModule("RepBar"):Enable()
-		SetBarLocation( config, "BOTTOM", -514, 61)
+			config = Bartender4.db:GetNamespace("RepBar").profile
+			config.enabled = true
+			Bartender4:GetModule("RepBar"):Enable()
+			SetBarLocation( config, "BOTTOM", -514, 61)
+		elseif StatusTrackingBarManager then -- BCC Anniversary
+			config = Bartender4.db:GetNamespace("StatusTrackingBar").profile
+			config.enabled = true
+			config.scale = 1
+			Bartender4:GetModule("StatusTrackingBar"):Enable()
+			SetBarLocation( config, "BOTTOM", -519, 72)
+		end
 	end
 
 	config = Bartender4.db:GetNamespace("BlizzardArt").profile
@@ -210,11 +228,19 @@ local function BuildBlizzardProfile()
 	config.onebag = false
 	config.keyring = showKeyRing
 	config.verticalAlignment = "CENTER"
-	if WoWCata then
+	if WoWMists then
+		config.keyring = false
+		config.padding = 2
+		config.scale = 0.9
+		SetBarLocation( config, "BOTTOM", 346, 38)
+	elseif WoWCata then
 		config.keyring = false
 		config.padding = 4
 		config.scale = 0.9
 		SetBarLocation( config, "BOTTOM", 346, 38)
+	elseif WoWBCC then
+		config.padding = 5
+		SetBarLocation( config, "BOTTOM", 295, 42)
 	elseif GetClassicExpansionLevel() >= 2 --[[Wrath]] then
 		config.padding = 4
 		SetBarLocation( config, "BOTTOM", 304, 42)
@@ -225,19 +251,27 @@ local function BuildBlizzardProfile()
 
 	config = Bartender4.db:GetNamespace("MicroMenu").profile
 	config.position.scale = 1.0
-	config.padding = WoWCata and -3 or -2
+	config.padding = (WoWCata or WoWMists) and -3 or -2
 	SetBarLocation( config, "BOTTOM", 33, 42)
 
 	if PresetsMod.showXPBar then
-		config = Bartender4.db:GetNamespace("XPBar").profile
-		config.enabled = true
-		Bartender4:GetModule("XPBar"):Enable()
-		SetBarLocation( config, "BOTTOM", -514, 54)
+		if MainMenuExpBar then
+			config = Bartender4.db:GetNamespace("XPBar").profile
+			config.enabled = true
+			Bartender4:GetModule("XPBar"):Enable()
+			SetBarLocation( config, "BOTTOM", -514, 54)
 
-		config = Bartender4.db:GetNamespace("RepBar").profile
-		config.enabled = true
-		Bartender4:GetModule("RepBar"):Enable()
-		SetBarLocation( config, "BOTTOM", -514, 61)
+			config = Bartender4.db:GetNamespace("RepBar").profile
+			config.enabled = true
+			Bartender4:GetModule("RepBar"):Enable()
+			SetBarLocation( config, "BOTTOM", -514, 61)
+		elseif StatusTrackingBarManager then -- BCC Anniversary
+			config = Bartender4.db:GetNamespace("StatusTrackingBar").profile
+			config.enabled = true
+			config.scale = 1
+			Bartender4:GetModule("StatusTrackingBar"):Enable()
+			SetBarLocation( config, "BOTTOM", -519, 72)
+		end
 	end
 
 	if HasMultiCastActionBar and HasMultiCastActionBar() then

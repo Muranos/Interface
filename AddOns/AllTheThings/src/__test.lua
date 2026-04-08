@@ -5,6 +5,8 @@ local CreateObject = app.__CreateObject;
 local api = {}
 app.Modules.Test = api
 
+local Runner = app.CreateRunner("TestRunner")
+
 app.Testraw = function(count)
 
 	local a
@@ -489,8 +491,8 @@ function ATTtestsort()
 	local sort1 = app.SortDefaults.Global
 	local sort2 = app.SortDefaults.Accessibility
 
-	local rawdatasearch1 = app:BuildSearchResponse("u", 2)
-	local rawdatasearch2 = app:BuildSearchResponse("u", 2)
+	local rawdatasearch1 = app:BuildSearchResponseRetailStyle("u", 2)
+	local rawdatasearch2 = app:BuildSearchResponseRetailStyle("u", 2)
 
 	local function dosorts()
 		app.PrintDebug("doSorts")
@@ -591,4 +593,158 @@ function DumpAllGlobals()
 
 	local allkeys = table.concat(ks, "\n")
 	app:ShowPopupDialogWithMultiLineEditBox(allkeys)
+end
+
+function ATTlooptypes(count)
+
+	local ipairs,next,pairs
+		= ipairs,next,pairs
+	local z
+	local a = {}
+	for i=1,count do
+		a[i] = i
+	end
+	local function fillRandomKeys(t, count)
+		local c = 0
+		while c < count do
+			local key
+			if math.random() < 0.5 then
+				key = math.random(1, 1e9)                -- numeric key
+			else
+				key = string.char(
+					math.random(97,122),
+					math.random(97,122),
+					math.random(97,122)
+				)                                        -- 3‑letter string key
+			end
+			if not t[key] then
+				c = c + 1
+				t[key] = true
+			end
+		end
+		return t
+	end
+	local t = fillRandomKeys({}, count)
+
+	local function Benchmark(t, ty)
+		app.PrintDebug("Benchmark",ty)
+		-- 13,14,13ms @ 1M Array
+		-- N/A Table
+		app.PrintDebug("for i=1,#t",count)
+		for i=1,#t do
+			z = t[i]
+		end
+		app.PrintDebugPrior("---")
+		-- 79,80,82ms @ 1M Array
+		-- N/A Table
+		app.PrintDebug("for i,v in ipairs(t)",count)
+		for i,v in ipairs(t) do
+			z = v
+		end
+		app.PrintDebugPrior("---")
+		-- 79,83,80ms @ 1M Array
+		-- 152,145,144ms @ 1M Table
+		app.PrintDebug("for k,v in pairs(t)",count)
+		for k,v in pairs(t) do
+			z = v
+		end
+		app.PrintDebugPrior("---")
+		-- 87,81,80ms @ 1M Array
+		-- 157,149,142ms @ 1M Table
+		app.PrintDebug("for k,v in next(t)",count)
+		for k,v in next,t do
+			z = v
+		end
+		app.PrintDebugPrior("---")
+	end
+
+	Runner.Run(Benchmark, a, "Array")
+	Runner.Run(Benchmark, t, "Table")
+end
+
+function attestimate_memory_usage(tbl)
+	local seen = {}
+	local recursiveKeys = {
+		parent = true,
+		sourceParent = true,
+	}
+
+	print("est. size for",tbl)
+	local function get_size(val,indent,askey)
+		-- if we've seen this object before, then assume it's just being referenced as a pointer
+		if seen[val] then return 0 end
+
+		seen[val] = true
+		local t = type(val)
+		if t == "number" then
+			return 8  -- Approximate size of a number in bytes
+		elseif t == "boolean" then
+			return 1  -- Booleans take up minimal space
+		elseif t == "string" then
+			return #val + 24  -- Account for string overhead
+		elseif t == "function" or t == "userdata" or t == "thread" then
+			return askey or 32  -- Rough estimate for non-trivial types
+		elseif t == "table" then
+			if askey then
+				return askey	-- Only count pointer size for table keys
+			end
+			local size = 40  -- Base table overhead
+			local sub_size
+
+			print(indent,val,"===")
+			for k, v in pairs(val) do
+				local key = tostring(k)
+				sub_size = 4 + get_size(k,indent..key..".",8) + (recursiveKeys[val] and 4 or get_size(v,indent..key.."."))
+				print(indent,k,v," : ",sub_size)
+				size = size + sub_size
+			end
+			local mt = getmetatable(val)
+			if mt then
+				size = size + get_size(mt,indent.."__index.")  -- Include metatable size
+			end
+			return size
+		else
+			return 0  -- Unknown type, assume negligible
+		end
+	end
+
+	print(get_size(tbl,""))
+end
+
+
+local PerfCaptures = {}
+function app.CaptureForPerformance(name, func, paramGeneratorFunc)
+	PerfCaptures[name] = { func, paramGeneratorFunc }
+end
+
+function app.RunPerformanceCaptures()
+
+	local function Benchmark(count, func, ...)
+
+		app.PrintMemoryUsage()
+		app.PrintDebug("--Iterate:",count)
+		for i=1,count do
+			func(...)
+		end
+		app.PrintDebugPrior("---")
+		app.PrintMemoryUsage()
+	end
+
+	local Runner = app.CreateRunner("__benchmark")
+
+	for name,perfData in pairs(PerfCaptures) do
+		Runner.Run(function()
+			app.print("Benchmark:",name)
+			Benchmark(1, perfData[1], perfData[2]())
+		end)
+		Runner.Run(function()
+			app.print("Benchmark:",name)
+			Benchmark(1000, perfData[1], perfData[2]())
+		end)
+		Runner.Run(function()
+			app.print("Benchmark:",name)
+			Benchmark(100000, perfData[1], perfData[2]())
+		end)
+	end
+
 end

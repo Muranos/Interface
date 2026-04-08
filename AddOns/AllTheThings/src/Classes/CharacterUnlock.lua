@@ -9,6 +9,10 @@ local _, app = ...
 -- Module locals
 local OneTimeQuests
 local SETTING = "CharacterUnlocks"
+local CACHE_QUESTS = "Quests"
+local CACHE_SPELLS = "Spells"
+local KEY_QUEST = "questID"
+local KEY_SPELL = "spellID"
 
 app.AddEventHandler("OnSavedVariablesAvailable", function(currentCharacter, accountWideData)
 	OneTimeQuests = accountWideData.OneTimeQuests;
@@ -23,28 +27,17 @@ local function Collectible(t)
 			or (not OneTimeQuests[t.questID] or OneTimeQuests[t.questID] == app.GUID)
 		)
 end
--- TODO: Does not consider OPA Quests as Unlocked when not tracking Account-Wide
--- e.g. Garrison Shipyard Blueprints
--- https://discord.com/channels/242423099184775169/1233743089630314558
 local function CollectedAsQuest(t)
-	local id = t.questID;
-	-- character collected
-	if app.IsCached("Quests", id) then return 1; end
-	-- account-wide collected
-	if app.IsAccountTracked("Quests", id, SETTING) then return 2; end
+	return app.TypicalCharacterCollected(CACHE_QUESTS, t[KEY_QUEST], SETTING)
 end
 local function CollectedAsSpell(t)
-	local id = t.spellID;
-	-- character collected
-	if app.IsCached("Spells", id) then return 1; end
-	-- account-wide collected
-	if app.IsAccountTracked("Spells", id, SETTING) then return 2; end
+	return app.TypicalCharacterCollected(CACHE_SPELLS, t[KEY_SPELL], SETTING)
 end
 local function SavedAsQuest(t)
-	return app.IsCached("Quests", t.questID)
+	return app.IsCached(CACHE_QUESTS, t[KEY_QUEST])
 end
 local function SavedAsSpell(t)
-	return app.IsCached("Spells", t.spellID)
+	return app.IsCached(CACHE_SPELLS, t[KEY_SPELL])
 end
 
 -- CRIEVE NOTE:
@@ -56,15 +49,18 @@ end
 -- But when that project comes around I guess we will see what happens...
 
 local CreateCharacterUnlockQuestItem = app.ExtendClass("Item", "CharacterUnlockQuestItem", "questID", {
-	RefreshCollectionOnly = true,
+	CACHE = function() return CACHE_QUESTS end,
 	collectible = Collectible,
 	collected = CollectedAsQuest,
 	saved = SavedAsQuest,
 	characterUnlock = app.ReturnTrue,
 	IsClassIsolated = true,
+	variants = {
+		app.GlobalVariants.AndLockCriteria,
+	}
 })
 local CreateCharacterUnlockSpellItem = app.ExtendClass("Item", "CharacterUnlockSpellItem", "spellID", {
-	RefreshCollectionOnly = true,
+	CACHE = function() return CACHE_SPELLS end,
 	collectible = Collectible,
 	collected = CollectedAsSpell,
 	saved = SavedAsSpell,
@@ -78,7 +74,9 @@ local CreateCharacterUnlockQuest = app.ExtendClass("Quest", "CharacterUnlockQues
 	characterUnlock = app.ReturnTrue,
 	IsClassIsolated = true,
 	variants = {
-		app.GlobalVariants.WithAutoName
+		app.GlobalVariants.AndLockCriteriaWithAutoName,
+		app.GlobalVariants.AndLockCriteria,
+		app.GlobalVariants.WithAutoName,
 	}
 })
 local CreateCharacterUnlockSpell = app.ExtendClass("Spell", "CharacterUnlockSpell", "spellID", {

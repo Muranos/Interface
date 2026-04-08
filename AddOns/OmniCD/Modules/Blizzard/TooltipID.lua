@@ -30,7 +30,7 @@ local function AppendID(tooltip, id, strType)
 	tooltip:Show()
 end
 
-local AddAuraID = E.postDF and function(self, unit, slotNumber, auraType)
+local AddAuraID = C_UnitAuras_GetAuraDataByIndex and function(self, unit, slotNumber, auraType)
 	local auraData = C_UnitAuras_GetAuraDataByIndex(unit, slotNumber, auraType)
 	if auraData and auraData.spellId and auraData.name then
 	    AppendID(self, auraData.spellId, ID_TYPE[auraType])
@@ -38,45 +38,58 @@ local AddAuraID = E.postDF and function(self, unit, slotNumber, auraType)
 end or function(self, unit, slotNumber, auraType)
 	if auraType == "HELPFUL" or auraType == "HARMFUL" then
 		local _,_,_,_,_,_,_,_,_, id = UnitAura(unit, slotNumber, auraType)
-		if id then AppendID(self, id, ID_TYPE[auraType]) end
+		if id then
+			AppendID(self, id, ID_TYPE[auraType])
+		end
 	end
 end
 
-local AddBuffID = E.postDF and function(self, unitTokenString, auraInstanceID)
+local AddBuffID = C_TooltipInfo_GetUnitBuffByAuraInstanceID and function(self, unitTokenString, auraInstanceID)
 	local data = C_TooltipInfo_GetUnitBuffByAuraInstanceID(unitTokenString, auraInstanceID)
-	local id
-	if E.TocVersion >= 100100 then
-		id = data.id
-	else
-		id = data.args and data.args[2] and data.args[2].intVal
+	if data then
+		local id
+		if E.TocVersion >= 100100 then
+			id = data.id
+		else
+			id = data.args and data.args[2] and data.args[2].intVal
+		end
+		if id then
+			AppendID(self, id, ID_TYPE.HELPFUL)
+		end
 	end
-	if id then AppendID(self, id, ID_TYPE.HELPFUL) end
 end or function(self, ...)
 	local id = select(10, UnitBuff(...))
-	if id then AppendID(self, id, ID_TYPE.HELPFUL) end
+	if id then
+		AppendID(self, id, ID_TYPE.HELPFUL)
+	end
 end
 
-local AddDebuffID = E.postDF and function(self, unitTokenString, auraInstanceID)
+local AddDebuffID = C_TooltipInfo_GetUnitDebuffByAuraInstanceID and function(self, unitTokenString, auraInstanceID)
 	local data = C_TooltipInfo_GetUnitDebuffByAuraInstanceID(unitTokenString, auraInstanceID)
-	if not data then
-		return
+	if data then
+		local id
+		if E.TocVersion >= 100100 then
+			id = data.id
+		else
+			id = data.args and data.args[2] and data.args[2].intVal
+		end
+		if id then
+			AppendID(self, id, ID_TYPE.HARMFUL)
+		end
 	end
-	local id
-	if E.TocVersion >= 100100 then
-		id = data.id
-	else
-		id = data.args and data.args[2] and data.args[2].intVal
-	end
-	if id then AppendID(self, id, ID_TYPE.HARMFUL) end
 end or function(self, ...)
 	local id = select(10, UnitDebuff(...))
-	if id then AppendID(self, id, ID_TYPE.HARMFUL) end
+	if id then
+		AppendID(self, id, ID_TYPE.HARMFUL)
+	end
 end
 
 local function AddSpellID(tooltip)
 	if (tooltip == GameTooltip or tooltip == EmbeddedItemTooltip) then
 		local _, id = tooltip:GetSpell()
-		if id then AppendID(tooltip, id, ID_TYPE.SPELL) end
+		if id then
+			AppendID(tooltip, id, ID_TYPE.SPELL)
+		end
 	end
 end
 
@@ -85,7 +98,9 @@ local function AddItemID(tooltip)
 		local _, itemLink = tooltip:GetItem()
 		if itemLink then
 			local id = GetItemInfoInstant(itemLink)
-			if id then AppendID(tooltip, id, ID_TYPE.ITEM) end
+			if id then
+				AppendID(tooltip, id, ID_TYPE.ITEM)
+			end
 		end
 	end
 end
@@ -95,7 +110,8 @@ function TT:Enable()
 		return
 	end
 	hooksecurefunc(GameTooltip, "SetUnitAura", AddAuraID)
-	if E.postDF then
+	if TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall
+		and GameTooltip.SetUnitBuffByAuraInstanceID then
 		hooksecurefunc(GameTooltip, "SetUnitBuffByAuraInstanceID", AddBuffID)
 		hooksecurefunc(GameTooltip, "SetUnitDebuffByAuraInstanceID", AddDebuffID)
 		TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Spell, AddSpellID)
@@ -111,3 +127,7 @@ function TT:Enable()
 end
 
 E["TooltipID"] = TT
+
+--[==[@debug@
+TT:Enable()
+--@end-debug@]==]

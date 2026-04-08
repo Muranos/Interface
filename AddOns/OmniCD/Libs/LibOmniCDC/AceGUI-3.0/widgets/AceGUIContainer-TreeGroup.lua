@@ -15,7 +15,7 @@ Container that uses a tree control to switch between groups.
 --[[ s r
 local Type, Version = "TreeGroup", 47
 ]]
-local Type, Version = "TreeGroup-OmniCDC", 1
+local Type, Version = "TreeGroup-OmniCDC", 2
 -- e
 local AceGUI = LibStub and LibStub("AceGUI-3.0", true)
 if not AceGUI or (AceGUI:GetWidgetVersion(Type) or 0) >= Version then return end
@@ -300,7 +300,7 @@ local function Button_OnEnter(frame)
 		tooltip:SetOwner(frame, "ANCHOR_NONE")
 		tooltip:ClearAllPoints()
 		tooltip:SetPoint("LEFT",frame,"RIGHT")
-		tooltip:SetText(frame.text:GetText() or "", 1, .82, 0, true)
+		tooltip:SetText(frame.text:GetText() or "", 1, .82, 0, 1, true)
 
 		tooltip:Show()
 	end
@@ -503,7 +503,7 @@ local methods = {
 		]]
 		local icon
 		if USE_ICON_BACKDROP then
-			icon = CreateFrame("Frame", nil, button, BackdropTemplateMixin and "BackdropTemplate" or nil)
+			icon = CreateFrame("Frame", nil, button, "BackdropTemplate")
 			icon:SetHeight(DEFAULT_ICON_SIZE) -- 24 is frames full height
 			icon:SetWidth(DEFAULT_ICON_SIZE)
 			--[[ s r v46

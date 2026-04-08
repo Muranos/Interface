@@ -4,7 +4,7 @@
 
 local mod, CL = BigWigs:NewBoss("Trial of the Champion Trash", 650)
 if not mod then return end
-mod.displayName = CL.trash
+mod:SetTrashModule(true)
 mod:RegisterEnableMob(
 	35005, -- Arelas Brightstar (Alliance)
 	35004 -- Jaeren Sunsworn (Horde)
@@ -16,9 +16,9 @@ mod:RegisterEnableMob(
 
 local L = mod:GetLocale()
 if L then
-	L.custom_on_autotalk = "Autotalk"
+	L.custom_on_autotalk = CL.autotalk
 	L.custom_on_autotalk_desc = "Instantly select gossip option to start encounters."
-	L.custom_on_autotalk_icon = "ui_chat"
+	L.custom_on_autotalk_icon = mod:GetMenuIcon("SAY")
 end
 
 --------------------------------------------------------------------------------

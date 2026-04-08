@@ -1,5 +1,4 @@
-# 12.1.0 (2025-03-07)
+# 13.0.6 (2026-03-22)
 
-* Fixed a bug that caused widgets to not update when transparency settings were changed.
-* Improved performance of Healer Tracker widget by limiting combat log parsing for spell detection to battlegrounds and world PvP (during combat only).
-* Added FrameSort support to the Arena widget [PR GH-560].
+* Fixed a Lua error that could occur when the player's faction changed, for example in arenas [GH-668].
+* The Quest widget now does work again in WoW Midnight.

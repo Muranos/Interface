@@ -1,10 +1,4 @@
-# [Full Changelog](https://github.com/enderneko/Cell/compare/r251-release...be06bd183a5fd9676ff6d96cdf04e1f4b0ce076a)
+[View Full Changelog](https://github.com/enderneko/Cell/compare/r273-release...c376c32494926a90b93cc63bfc564234fb6e5cd6)
 
-Okami:
-
-- Import fix due to powerfilter expected values (#367)
-
-enderneko:
-
-- Remove global names for custom indicators
-- Update locales
+- Update Molten Core debuffs
+- Fix boss unit button mapping

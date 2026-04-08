@@ -2,7 +2,7 @@
 --  Module Declaration
 --
 
-local mod, CL = BigWigs:NewBoss("Mekgineer Steamrigger", 545, 574)
+local mod, CL = BigWigs:NewBoss("Mekgineer Steamrigger", {545, 2849}, 574)
 if not mod then return end
 mod:RegisterEnableMob(17796)
 mod.engageId = 1943
@@ -59,7 +59,6 @@ end
 -------------------------------------------------------------------------------
 --  Event Handlers
 
-
 do
 	local playerList = mod:NewTargetList()
 	function mod:SuperShrinkRay(args)
@@ -71,7 +70,7 @@ do
 end
 
 function mod:CHAT_MSG_MONSTER_YELL(_, msg)
-	if msg == L.mech_trigger or msg:find(L.mech_trigger, nil, true) then
+	if not self:IsSecret(msg) and (msg == L.mech_trigger or msg:find(L.mech_trigger, nil, true)) then
 		self:Message("mechanics", "yellow", CL.incoming:format(self:SpellName(-5999)), L.mechanics_icon) -- Steamrigger Mechanics
 	end
 end

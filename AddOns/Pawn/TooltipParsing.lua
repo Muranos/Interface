@@ -1,7 +1,7 @@
 ﻿-- Pawn by Vger-Azjol-Nerub
 -- www.vgermods.com
--- © 2006-2025 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
--- See Readme.htm for more information.
+-- © 2006-2026 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
+-- See Readme.md for more information.
 --
 -- Tooltip parsing strings
 ------------------------------------------------------------
@@ -108,10 +108,11 @@ PawnRegexes =
 	{PawnGameConstant(ITEM_BIND_ON_EQUIP)}, -- Binds when equipped
 	{PawnGameConstant(ITEM_BIND_ON_PICKUP)}, -- Binds when picked up
 	{PawnGameConstant(ITEM_BIND_ON_USE)}, -- Binds when used
-	{PawnGameConstant(ITEM_BIND_TO_ACCOUNT)}, -- Binds to account
+	{PawnGameConstant(ITEM_BIND_TO_ACCOUNT)}, -- Binds to account / Binds to Warband
 	{PawnGameConstant(ITEM_ACCOUNTBOUND)}, -- Account Bound
-	{PawnGameConstant(ITEM_BIND_TO_BNETACCOUNT)}, -- Binds to Battle.net account (Polished Spaulders of Valor)
+	{PawnGameConstant(ITEM_BIND_TO_BNETACCOUNT)}, -- Binds to Battle.net account / Binds to Warband (Polished Spaulders of Valor)
 	{PawnGameConstant(ITEM_BNETACCOUNTBOUND)}, -- Battle.net Account Bound (Polished Spaulders of Valor)
+	{PawnGameConstant(ITEM_BIND_TO_ACCOUNT_UNTIL_EQUIP)}, -- Binds to Warband until equipped
 	{"^" .. PawnGameConstantUnwrapped(ITEM_UNIQUE)}, -- Unique; leave off the $ for Unique (20)
 	{"^" .. PawnGameConstantUnwrapped(ITEM_UNIQUE_EQUIPPABLE)}, -- Unique-Equipped; leave off the $ for Unique-Equipped: Curios of the Shado-Pan Assault (1)
 	{"^" .. PawnGameConstantUnwrapped(ITEM_BIND_QUEST)}, -- Leave off the $ for MonkeyQuest mod compatibility
@@ -249,10 +250,12 @@ PawnRegexes =
 	{L.HitRating2, "HitRating"}, -- Burning Crusade, /pawn compare 18500
 	{L.HitRating3, "HitRating"}, -- Burning Crusade in Spanish, /pawn compare 32570
 	{L.HitRatingShort, "HitRating"}, -- Burning Crusade, https://tbc.wowhead.com/item=24051/rigid-dawnstone
+	{L.HitRatingShorter, "HitRating"}, -- Mists of Pandaria, /pawn compare 77108
 	{L.SpellHit, "SpellHitRating"}, -- /pawn compare 16795
 	{L.SpellHitRating, "SpellHitRating"}, -- Burning Crusade, /pawn compare 16795
 	{L.SpellHitRating2, "SpellHitRating"}, -- Burning Crusade, /pawn compare 24266
 	{L.SpellHitRatingShort, "SpellHitRating"}, -- Burning Crusade, https://tbc.wowhead.com/item=31861/great-dawnstone
+	{L.Expertise, "ExpertiseRating"}, -- Mists of Pandaria, /pawn compare 19351
 	{L.ExpertiseRating, "ExpertiseRating"}, -- Burning Crusade, /pawn compare 19351
 	{L.ExpertiseRatingShort, "ExpertiseRating"}, -- Wrath, Precise Bloodstone
 	{L.ExpertiseClassic, "ExpertiseRating"}, -- Classic SoD, /pawn compare 236019
@@ -264,7 +267,7 @@ PawnRegexes =
 	{L.Resilience2, "ResilienceRating"}, -- unused in English
 	{L.ResilienceRating, "ResilienceRating"}, -- /pawn compare 29181
 	{L.ResilienceRatingShort, "ResilienceRating"}, -- Burning Crusade, https://tbc.wowhead.com/item=24053/mystic-dawnstone
-	{L.PvPPower, "Stamina"}, -- Stormy Chalcedony
+	{L.PvPPower, "SpellPenetration"}, -- Stormy Chalcedony, /pawn tooltip 39932
 	{L.EnchantmentCounterweight, "HasteRating"}, -- won't work on classic since the live string includes the word "haste" and it's worded differently in classic
 	{L.Haste, "HasteRating"}, -- Leggings of the Betrayed
 	{L.Haste2, "HasteRating"}, -- unused in English
@@ -280,6 +283,7 @@ PawnRegexes =
 	{L.SpellPenetrationShort, "SpellPenetration"}, -- Burning Crusade, https://tbc.wowhead.com/item=24039/stormy-star-of-elune
 	{L.Mastery, "MasteryRating"}, -- Zen Dream Emerald
 	{L.Mastery2, "MasteryRating"}, -- unused in English
+	{L.Multistrike, "Multistrike"},
 	{L.Versatility, "Versatility"}, -- http://wod.wowhead.com/item=100945
 	{L.Leech, "Leech"}, -- http://wod.wowhead.com/item=100945
 	{L.Avoidance, "Avoidance"}, -- http://wod.wowhead.com/item=100945
@@ -354,8 +358,9 @@ PawnRegexes =
 	{PawnGameConstant(EMPTY_SOCKET_BLUE), "BlueSocket", 1, PawnMultipleStatsFixed},
 	{PawnGameConstant(EMPTY_SOCKET_META), "MetaSocket", 1, PawnMultipleStatsFixed},
 	{PawnGameConstant(EMPTY_SOCKET_COGWHEEL), "CogwheelSocket", 1, PawnMultipleStatsFixed},
+	{PawnGameConstant(EMPTY_SOCKET_HYDRAULIC), "ShaTouchedSocket", 1, PawnMultipleStatsFixed}, -- /pawn tooltip 86227
 	{PawnGameConstant(EMPTY_SOCKET_PRISMATIC), "PrismaticSocket", 1, PawnMultipleStatsFixed},
-	{PawnGameConstant(EMPTY_SOCKET_DOMINATION or "UNUSED")}, -- domination sockets are now ignored
+	{PawnGameConstant(EMPTY_SOCKET_DOMINATION)}, -- only relevant in Shadowlands
 
 	-- In WoW Classic, crossbows, guns, and wands don't show "Ranged" and instead show the weapon type on the left.
 	{L.Bow, "IsBow", 1, PawnMultipleStatsFixed, "IsRanged", 1, PawnMultipleStatsFixed},

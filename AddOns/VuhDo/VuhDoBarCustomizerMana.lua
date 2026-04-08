@@ -1,26 +1,37 @@
-
--- BURST CACHE ---------------------------------------------------
-
+local _;
 
 local VUHDO_RAID;
-local VUHDO_getUnitButtonsSafe;
 local VUHDO_IN_RAID_TARGET_BUTTONS;
 local VUHDO_PANEL_SETUP;
 local VUHDO_BUTTON_CACHE;
+local VUHDO_IMMEDIATE = Enum.StatusBarInterpolation.Immediate;
+
+local pairs = pairs;
+
 local UnitPowerType = UnitPowerType;
 local UnitPower = UnitPower;
 local UnitPowerMax = UnitPowerMax;
 local InCombatLockdown = InCombatLockdown;
-local pairs = pairs;
-local _;
 
+local VUHDO_getUnitButtonsSafe;
 local VUHDO_getHealthBar;
+local VUHDO_getRealParent;
 local VUHDO_isConfigDemoUsers;
 local VUHDO_updateBouquetsForEvent;
 local VUHDO_indicatorTextCallback;
+local VUHDO_setStatusBarVuhDoColor;
+local VUHDO_applyAllLayersToBar;
 
+local sSecretsEnabled = VUHDO_SECRETS_ENABLED;
 local sIsInverted;
 local sIsHealthBarVertical;
+local sManaInterpolation = { };
+local sSideLeftInterpolation = { };
+local sSideRightInterpolation = { };
+
+
+
+--
 function VUHDO_customManaInitLocalOverrides()
 
 	VUHDO_RAID = _G["VUHDO_RAID"];
@@ -30,9 +41,12 @@ function VUHDO_customManaInitLocalOverrides()
 	VUHDO_BUTTON_CACHE = _G["VUHDO_BUTTON_CACHE"];
 
 	VUHDO_getHealthBar = _G["VUHDO_getHealthBar"];
+	VUHDO_getRealParent = _G["VUHDO_getRealParent"];
 	VUHDO_isConfigDemoUsers = _G["VUHDO_isConfigDemoUsers"];
 	VUHDO_updateBouquetsForEvent = _G["VUHDO_updateBouquetsForEvent"];
 	VUHDO_indicatorTextCallback = _G["VUHDO_indicatorTextCallback"];
+	VUHDO_setStatusBarVuhDoColor = _G["VUHDO_setStatusBarVuhDoColor"];
+	VUHDO_applyAllLayersToBar = _G["VUHDO_applyAllLayersToBar"];
 
 	sIsInverted = { };
 	sIsHealthBarVertical = { };
@@ -40,6 +54,13 @@ function VUHDO_customManaInitLocalOverrides()
 	for tPanelNum = 1, 10 do -- VUHDO_MAX_PANELS
 		sIsInverted[tPanelNum] = VUHDO_INDICATOR_CONFIG[tPanelNum]["CUSTOM"]["MANA_BAR"]["invertGrowth"];
 		sIsHealthBarVertical[tPanelNum] = VUHDO_INDICATOR_CONFIG[tPanelNum]["CUSTOM"]["HEALTH_BAR"]["vertical"];
+
+		sManaInterpolation[tPanelNum] = VUHDO_INDICATOR_CONFIG[tPanelNum]["CUSTOM"]["MANA_BAR"]["smooth"]
+			and Enum.StatusBarInterpolation.ExponentialEaseOut or Enum.StatusBarInterpolation.Immediate;
+		sSideLeftInterpolation[tPanelNum] = VUHDO_INDICATOR_CONFIG[tPanelNum]["CUSTOM"]["SIDE_LEFT"]["smooth"]
+			and Enum.StatusBarInterpolation.ExponentialEaseOut or Enum.StatusBarInterpolation.Immediate;
+		sSideRightInterpolation[tPanelNum] = VUHDO_INDICATOR_CONFIG[tPanelNum]["CUSTOM"]["SIDE_RIGHT"]["smooth"]
+			and Enum.StatusBarInterpolation.ExponentialEaseOut or Enum.StatusBarInterpolation.Immediate;
 	end
 
 end
@@ -77,6 +98,12 @@ function VUHDO_updateManaBars(aUnit, aChange)
 			tInfo["powermax"] = UnitPowerMax(aUnit);
 			tInfo["power"] = UnitPower(aUnit);
 		end
+
+		if sSecretsEnabled then
+			tInfo["hasSecretPower"] = issecretvalue(tInfo["power"]) or issecretvalue(tInfo["powermax"]);
+		else
+			tInfo["hasSecretPower"] = false;
+		end
 	end
 
 	if tInfo["powertype"] == 0 then -- VUHDO_UNIT_POWER_MANA
@@ -98,21 +125,19 @@ end
 
 
 --
-local tAllButtons, tManaBar, tQuota;
+local tAllButtons, tManaBar;
 local tManaBarHeight;
 local tRegularHeight;
 local tPanelNum;
-function VUHDO_manaBarBouquetCallback(aUnit, anIsActive, anIcon, aCurrValue, aCounter, aMaxValue, aColor, aBuffName, aBouquetName)
+local tInfo;
+local tHealthBar;
+function VUHDO_manaBarBouquetCallback(aUnit, anIsActive, anIcon, aCurrValue, aCounter, aMaxValue, aColor, aBuffName, aBouquetName, aLevel, aCurrValue2, aClipL, aClipR, aClipT, aClipB, aMaxColor, aLayerTemplate)
 
 	aMaxValue = aMaxValue or 0;
 	aCurrValue = aCurrValue or 0;
-
-	if aMaxValue + aCurrValue == 0 then
-		anIsActive = false;
-	end
+	aCurrValue2 = aCurrValue2 or 0;
 
 	tManaBarHeight = 0;
-	tQuota = (aCurrValue == 0 and aMaxValue == 0) and 0 or aMaxValue > 1 and aCurrValue / aMaxValue or 0;
 
 	for _, tButton in pairs(VUHDO_getUnitButtonsSafe(aUnit)) do
 		tPanelNum = VUHDO_BUTTON_CACHE[tButton];
@@ -124,36 +149,56 @@ function VUHDO_manaBarBouquetCallback(aUnit, anIsActive, anIcon, aCurrValue, aCo
 
 			tManaBar = VUHDO_getHealthBar(tButton, 2);
 
-			if tQuota > 0 and tManaBarHeight > 0 then
-				if aColor then
-					tManaBar:SetVuhDoColor(aColor);
+			if anIsActive and tManaBarHeight > 0 then
+				tManaBar:SetMinMaxValues(0, aMaxValue);
+
+				if tManaBar["isInverted"] then
+					tManaBar:SetValue(sSecretsEnabled and aCurrValue2 or (aMaxValue - aCurrValue), VUHDO_FORCE_IMMEDIATE_INTERPOLATION and VUHDO_IMMEDIATE or sManaInterpolation[tPanelNum]);
+				else
+					tManaBar:SetValue(aCurrValue, VUHDO_FORCE_IMMEDIATE_INTERPOLATION and VUHDO_IMMEDIATE or sManaInterpolation[tPanelNum]);
 				end
 
-				tManaBar:SetValue(tQuota);
+				if aLayerTemplate then
+					VUHDO_applyAllLayersToBar(tButton, tManaBar, aLayerTemplate);
+				elseif aColor then
+					VUHDO_setStatusBarVuhDoColor(tManaBar, aColor);
+				end
 			else
-				tManaBar:SetValue((not anIsActive and sIsInverted[tPanelNum]) and 1 or 0);
+				tManaBar:SetMinMaxValues(0, 1, Enum.StatusBarInterpolation.Immediate);
+				tManaBar:SetValue((not anIsActive and tManaBar["isInverted"]) and 1 or 0);
 			end
 
 			if not InCombatLockdown() then
 				if tManaBarHeight > 0 then
-					tManaBar:SetHeight(tManaBarHeight);
+					VUHDO_PixelUtil.SetHeight(tManaBar, tManaBarHeight);
 				end
 
 				tRegularHeight = tButton["regularHeight"];
 
 				if tRegularHeight then
-					VUHDO_getHealthBar(tButton, 1):SetHeight(tRegularHeight - tManaBarHeight);
+					tHealthBar = VUHDO_getHealthBar(tButton, 1);
+					tHealthBar:ClearAllPoints();
+					tHealthBar:SetPoint("TOPLEFT", VUHDO_getRealParent(tHealthBar), "TOPLEFT", 0, 0);
+					VUHDO_PixelUtil.SetSize(tHealthBar, tButton:GetWidth(), tRegularHeight - tManaBarHeight);
 
 					if not sIsHealthBarVertical[tPanelNum] then
-						VUHDO_getHealthBar(tButton, 6):SetHeight(tRegularHeight - tManaBarHeight);
-						VUHDO_getHealthBar(tButton, 19):SetHeight(tRegularHeight - tManaBarHeight);
+						VUHDO_PixelUtil.SetHeight(VUHDO_getHealthBar(tButton, 6), tRegularHeight - tManaBarHeight);
+						VUHDO_PixelUtil.SetHeight(VUHDO_getHealthBar(tButton, 19), tRegularHeight - tManaBarHeight);
 					end
 				end
+			end
+
+			if sSecretsEnabled then
+				VUHDO_updateIndicatorAlphaChain(tButton, "MANA_BAR", VUHDO_RAID[aUnit]);
 			end
 		end
 	end
 
 	if not VUHDO_RAID[aUnit] then
+		return;
+	end
+
+	if VUHDO_RAID[aUnit]["hasSecretName"] then
 		return;
 	end
 
@@ -168,29 +213,52 @@ function VUHDO_manaBarBouquetCallback(aUnit, anIsActive, anIcon, aCurrValue, aCo
 		tPanelNum = VUHDO_BUTTON_CACHE[tButton];
 
 		if aBouquetName == nil or VUHDO_INDICATOR_CONFIG[tPanelNum]["BOUQUETS"]["MANA_BAR"] == aBouquetName then
+			tManaBarHeight = VUHDO_PANEL_SETUP[tPanelNum]["SCALING"]["manaBarHeight"];
+
 			tManaBar = VUHDO_getHealthBar(tButton, 2);
 
-			if tQuota > 0 then
-				if aColor then
-					tManaBar:SetVuhDoColor(aColor);
+			if anIsActive and tManaBarHeight > 0 then
+				tManaBar:SetMinMaxValues(0, aMaxValue);
+
+				if tManaBar["isInverted"] then
+					tManaBar:SetValue(sSecretsEnabled and aCurrValue2 or (aMaxValue - aCurrValue), VUHDO_FORCE_IMMEDIATE_INTERPOLATION and VUHDO_IMMEDIATE or sManaInterpolation[tPanelNum]);
+				else
+					tManaBar:SetValue(aCurrValue, VUHDO_FORCE_IMMEDIATE_INTERPOLATION and VUHDO_IMMEDIATE or sManaInterpolation[tPanelNum]);
 				end
 
-				tManaBar:SetValue(tQuota);
+				if aLayerTemplate then
+					VUHDO_applyAllLayersToBar(tButton, tManaBar, aLayerTemplate);
+				elseif aColor then
+					VUHDO_setStatusBarVuhDoColor(tManaBar, aColor);
+				end
 			else
-				tManaBar:SetValue(0);
+				tManaBar:SetMinMaxValues(0, 1, Enum.StatusBarInterpolation.Immediate);
+				tManaBar:SetValue((not anIsActive and tManaBar["isInverted"]) and 1 or 0);
 			end
 
 			if not InCombatLockdown() then
-				tManaBarHeight = VUHDO_PANEL_SETUP[tPanelNum]["SCALING"]["manaBarHeight"];
-				tManaBar:SetHeight(tManaBarHeight);
+				if tManaBarHeight > 0 then
+					VUHDO_PixelUtil.SetHeight(tManaBar, tManaBarHeight);
+				end
 
 				tRegularHeight = tButton["regularHeight"];
 
 				if tRegularHeight then
-					VUHDO_getHealthBar(tButton, 1):SetHeight(tRegularHeight - tManaBarHeight);
-					VUHDO_getHealthBar(tButton, 6):SetHeight(tRegularHeight - tManaBarHeight);
-					VUHDO_getHealthBar(tButton, 19):SetHeight(tRegularHeight - tManaBarHeight);
+					tHealthBar = VUHDO_getHealthBar(tButton, 1);
+
+					tHealthBar:ClearAllPoints();
+					tHealthBar:SetPoint("TOPLEFT", VUHDO_getRealParent(tHealthBar), "TOPLEFT", 0, 0);
+					VUHDO_PixelUtil.SetSize(tHealthBar, tButton:GetWidth(), tRegularHeight - tManaBarHeight);
+
+					if not sIsHealthBarVertical[tPanelNum] then
+						VUHDO_PixelUtil.SetHeight(VUHDO_getHealthBar(tButton, 6), tRegularHeight - tManaBarHeight);
+						VUHDO_PixelUtil.SetHeight(VUHDO_getHealthBar(tButton, 19), tRegularHeight - tManaBarHeight);
+					end
 				end
+			end
+
+			if sSecretsEnabled then
+				VUHDO_updateIndicatorAlphaChain(tButton, "MANA_BAR", VUHDO_RAID[aUnit]);
 			end
 		end
 	end
@@ -207,12 +275,16 @@ end
 
 
 --
-local tQuota, tBar;
+local tQuota;
+local tBar;
 local tBouquetName;
 local tPanelNum;
-local function VUHDO_sideBarBouquetCallback(aBarNum, aUnit, anIsActive, anIcon, aCurrValue, aCounter, aMaxValue, aColor, aBuffName, aBouquetName)
+local tIndicatorName;
+local tSideInterpolation;
+local function VUHDO_sideBarBouquetCallback(aBarNum, aUnit, anIsActive, anIcon, aCurrValue, aCounter, aMaxValue, aColor, aBuffName, aBouquetName, aLevel, aCurrValue2, aClipL, aClipR, aClipT, aClipB, aMaxColor, aLayerTemplate)
 
-	tQuota = (aCurrValue == 0 and aMaxValue == 0) and 0 or (aMaxValue or 0) > 1 and aCurrValue / aMaxValue or 0;
+	aMaxValue = aMaxValue or 1;
+	aCurrValue = aCurrValue or 0;
 
 	for _, tButton in pairs(VUHDO_getUnitButtonsSafe(aUnit)) do
 		tPanelNum = VUHDO_BUTTON_CACHE[tButton];
@@ -224,13 +296,30 @@ local function VUHDO_sideBarBouquetCallback(aBarNum, aUnit, anIsActive, anIcon, 
 		end
 
 		if tBouquetName == aBouquetName then
-			if tQuota > 0 then
-				tBar = VUHDO_getHealthBar(tButton, aBarNum);
+			tBar = VUHDO_getHealthBar(tButton, aBarNum);
 
-				tBar:SetValue(tQuota);
-				tBar:SetVuhDoColor(aColor);
+			tSideInterpolation = (17 == aBarNum) and sSideLeftInterpolation[tPanelNum] or sSideRightInterpolation[tPanelNum];
+
+			tBar:SetMinMaxValues(0, aMaxValue);
+
+			if tBar["isInverted"] then
+				tBar:SetValue(sSecretsEnabled and aCurrValue2 or (aMaxValue - aCurrValue), VUHDO_FORCE_IMMEDIATE_INTERPOLATION and VUHDO_IMMEDIATE or tSideInterpolation);
 			else
-				VUHDO_getHealthBar(tButton, aBarNum):SetValue(0);
+				tBar:SetValue(aCurrValue, VUHDO_FORCE_IMMEDIATE_INTERPOLATION and VUHDO_IMMEDIATE or tSideInterpolation);
+			end
+
+			if anIsActive then
+				if aLayerTemplate then
+					VUHDO_applyAllLayersToBar(tButton, tBar, aLayerTemplate);
+				elseif aColor then
+					VUHDO_setStatusBarVuhDoColor(tBar, aColor);
+				end
+			end
+
+			if sSecretsEnabled then
+				tIndicatorName = (aBarNum == 17) and "SIDE_LEFT" or "SIDE_RIGHT";
+
+				VUHDO_updateIndicatorAlphaChain(tButton, tIndicatorName, VUHDO_RAID[aUnit]);
 			end
 		end
 	end

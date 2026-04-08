@@ -162,6 +162,19 @@ local _specialQuests = {
   [83734] = { lid = 222649 }, -- Algari Treatise on Skinning
   [83735] = { lid = 222547 }, -- Algari Treatise on Tailoring
 
+  -- Midnight Thalassian Treatise
+  [95127] = { lid = 245755 }, -- Thalassian Treatise on Alchemy
+  [95128] = { lid = 245763 }, -- Thalassian Treatise on Blacksmithing
+  [95129] = { lid = 245759 }, -- Thalassian Treatise on Enchanting
+  [95138] = { lid = 245809 }, -- Thalassian Treatise on Engineering
+  [95130] = { lid = 245761 }, -- Thalassian Treatise on Herbalism
+  [95131] = { lid = 245757 }, -- Thalassian Treatise on Inscription
+  [95133] = { lid = 245760 }, -- Thalassian Treatise on Jewelcrafting
+  [95134] = { lid = 245758 }, -- Thalassian Treatise on Leatherworking
+  [95135] = { lid = 245762 }, -- Thalassian Treatise on Mining
+  [95136] = { lid = 245828 }, -- Thalassian Treatise on Skinning
+  [95137] = { lid = 245756 }, -- Thalassian Treatise on Tailoring
+
   -- Old Vanilla Bosses during Anniversary Event
   [47461] = { daily = true, name = L["Lord Kazzak"] }, -- Lord Kazzak
   [47462] = { daily = true, name = L["Azuregos"] }, -- Azuregos
@@ -466,7 +479,9 @@ local QuestExceptions = {
   [70211] = "Weekly", -- Stomping Explorers
   [70567] = "Weekly", -- When You Give Bakar a Bone
   [70615] = "Weekly", -- The Case of the Missing Herbs
+  [70539] = "Weekly", -- And You Thought They Did Nothing
   [70545] = "Weekly", -- Blingtron 8000...?
+  [77935] = "Weekly", -- A-Sword-ed Needs
   [72155] = "Weekly", -- Spread the Enchantment
   -- Primalist Invasions
   [70723] = "Weekly", -- Shattering the Earth Primalists
@@ -525,16 +540,17 @@ local QuestExceptions = {
   [80188] = "Weekly", -- Preserving in Arenas
   [80189] = "Weekly", -- Preserving Teamwork
   -- World PvP
-  [81793] = "Weekly", -- Sparks of War: Isle of Dorn
-  [81794] = "Weekly", -- Sparks of War: The Ringing Deeps
-  [81795] = "Weekly", -- Sparks of War: Hallowfall
-  [81796] = "Weekly", -- Sparks of War: Azj-Kahet
+  [81793] = "Regular", -- Sparks of War: Isle of Dorn
+  [81794] = "Regular", -- Sparks of War: The Ringing Deeps
+  [81795] = "Regular", -- Sparks of War: Hallowfall
+  [81796] = "Regular", -- Sparks of War: Azj-Kahet
+  [90781] = "Regular", -- Sparks of War: K'aresh?
   -- The Severed Threads
   [80592] = "AccountWeekly", -- Forge a Pact
   [80670] = "Weekly", -- Eyes of the Weaver
   [80671] = "Weekly", -- Blade of the General
   [80672] = "Weekly", -- Hand of the Vizier
-    -- Hallowfall Fishing Derby
+  -- Hallowfall Fishing Derby
   [83529] = "Weekly", -- Hallowfall Fishing Derby
   [83530] = "Weekly", -- Hallowfall Fishing Derby
   [83531] = "Weekly", -- Hallowfall Fishing Derby
@@ -549,22 +565,31 @@ local QuestExceptions = {
   [82787] = "Weekly", -- Special Assignment: Rise of the Colossals (Completing)
   [82414] = "Weekly", -- Special Assignment: A Pound of Cure (Completing)
   [82531] = "Weekly", -- Special Assignment: Bombs from Behind (Completing)
+  [85487] = "Weekly", -- Special Assignment: Boom! Headshot! (Completing)
+  [85488] = "Weekly", -- Special Assignment: Security Detail (Completing)
+  [89294] = "Weekly", -- Special Assignment: Aligned Views (Completing)
+  [89293] = "Weekly", -- Special Assignment: Overshadowed (Completing)
   -- Other Weeklies
   [82449] = "Weekly", -- The Call of the Worldsoul
   [83240] = "Weekly", -- The Theater Troupe
   [84370] = "AccountWeekly", -- The Key to Success
   [83333] = "Weekly", -- Gearing Up for Trouble
   [82946] = "Weekly", -- Rollin' Down in the Deeps
+  [86775] = "Weekly", -- Urge to Surge
+  [85869] = "Weekly", -- Many Jobs, Handle It!
+  [85879] = "Weekly", -- Reduce, Reuse, Resell
+  [91093] = "Weekly", -- More Than Just a Phase
+  [85460] = "Weekly", -- Ecological Succession
   -- Worldsoul Weeklies
-  [82458] = "Weekly", -- Worldsoul: Renown
   [82482] = "Weekly", -- Worldsoul: Snuffling
   [82516] = "Weekly", -- Worldsoul: Forging a Pact
   [82483] = "Weekly", -- Worldsoul: Spreading the Light
   [82453] = "Weekly", -- Worldsoul: Encore!
   [82489] = "Weekly", -- Worldsoul: The Dawnbreaker
   [82659] = "Weekly", -- Worldsoul: Nerub-ar Palace
-  [82678] = "Weekly", -- Archives: The First Disc
-  [82679] = "Weekly", -- Archives: Seeking History
+  [87417] = "Weekly", -- Worldsoul: Dungeons
+  [91052] = "Weekly", -- Worldsoul: Overcharged Delves
+  [87419] = "Weekly", -- Worldsoul: Delves
   [82490] = "Weekly", -- Worldsoul: Priory of the Sacred Flame
   [82491] = "Weekly", -- Worldsoul: Ara-Kara, City of Echoes
   [82492] = "Weekly", -- Worldsoul: City of Threads
@@ -585,17 +610,28 @@ local QuestExceptions = {
   [82508] = "Weekly", -- Worldsoul: The Rookery
   [82509] = "Weekly", -- Worldsoul: Nerub-ar Palace
   [82510] = "Weekly", -- Worldsoul: Nerub-ar Palace
+  [89514] = "Weekly", -- Worldsoul: Horrific Visions Revisited
+  [87424] = "Weekly", -- Worldsoul: World Bosses
   [82511] = "Weekly", -- Worldsoul: Awakening Machine
   [82512] = "Weekly", -- Worldsoul: World Boss
+  [89492] = "Weekly", -- Worldsoul: Dastardly Duos in the Dome!
+  [87423] = "Weekly", -- Worldsoul: Undermine Explorer
   [82488] = "Weekly", -- Worldsoul: Darkflame Cleft
+  [91855] = "Weekly", -- Worldsoul: K'aresh World Quests
   [82487] = "Weekly", -- Worldsoul: The Stonevault
   [82486] = "Weekly", -- Worldsoul: The Rookery
   [82485] = "Weekly", -- Worldsoul: Cinderbrew Meadery
   [82452] = "Weekly", -- Worldsoul: World Quests
+  [87422] = "Weekly", -- Worldsoul: Undermine World Quests
   [82495] = "Weekly", -- Worldsoul: Cinderbrew Meadery
-  [82706] = "Weekly", -- Delves: Khaz Algar Research
+  [89502] = "Weekly", -- Worldsoul: Nightfall
+  [82679] = "Weekly", -- Archives: Seeking History
+  [82678] = "Weekly", -- Archives: The First Disc
+  [82708] = "Weekly", -- Delves: Nerubian Menace
   [82707] = "Weekly", -- Delves: Earthen Defense
+  [82706] = "Weekly", -- Delves: Worldwide Research
   [82709] = "Weekly", -- Delves: Percussive Archaeology
+  [82710] = "Weekly", -- Delves: Empire-ical Exploration
   [82711] = "Weekly", -- Delves: Lost and Found
   [82712] = "Weekly", -- Delves: Trouble Up and Down Khaz Algar
   [82746] = "Weekly", -- Delves: Breaking Tough to Loot Stuff
@@ -607,6 +643,67 @@ local QuestExceptions = {
   [84130] = "Weekly", -- Jewelcrafting Services Requested
   [84131] = "Weekly", -- Leatherworking Services Requested
   [84132] = "Weekly", -- Tailoring Services Requested
+
+  -- MN
+  -- Meta Quest
+  [93766] = "Weekly", -- Midnight: World Quests
+  [93767] = "Weekly", -- Midnight: Arcantina
+  [93769] = "Weekly", -- Midnight: Housing
+  [93889] = "Weekly", -- Midnight: Saltheril's Soiree
+  [93890] = "Weekly", -- Midnight: Abundance
+  [93891] = "Weekly", -- Midnight: Legends of the Haranir
+  [93892] = "Weekly", -- Midnight: Stormarion Assault
+  [93909] = "Weekly", -- Midnight: Delves
+  [93910] = "Weekly", -- Midnight: Prey
+  [93911] = "Weekly", -- Midnight: Dungeons
+  [93912] = "Weekly", -- Midnight: Raid
+  [93913] = "Weekly", -- Midnight: World Boss
+  [94457] = "Weekly", -- Midnight: Battlegrounds
+  [95842] = "Weekly", -- Midnight: Void Assaults
+  [95843] = "Weekly", -- Midnight: Ritual Sites
+  -- Special Assignments
+  [91390] = "Weekly", -- Special Assignment: What Remains of a Temple Broken
+  [91796] = "Weekly", -- Special Assignment: Ours Once More!
+  [92063] = "Weekly", -- Special Assignment: A Hunter's Regret
+  [92139] = "Weekly", -- Special Assignment: Shade and Claw
+  [92145] = "Weekly", -- Special Assignment: The Grand Magister's Drink
+  [93013] = "Weekly", -- Special Assignment: Push Back the Light
+  [93244] = "Weekly", -- Special Assignment: Agents of the Shield
+  [93438] = "Weekly", -- Special Assignment: Precision Excision
+  -- Dungeon Weekly
+  [93751] = "Weekly", -- Windrunner Spire
+  [93752] = "Weekly", -- Murder Row
+  [93753] = "Weekly", -- Magisters' Terrace
+  [93754] = "Weekly", -- Maisara Caverns
+  [93755] = "Weekly", -- Den of Nalorakk
+  [93756] = "Weekly", -- The Blinding Vale
+  [93757] = "Weekly", -- Voidscar Arena
+  [93758] = "Weekly", -- Nexus-Point Xenas
+  -- Legends of the Haranir
+  [88993] = "Weekly", -- Wey'nan's Ward
+  [88994] = "Weekly", -- The Cauldron of Echoes
+  [88995] = "Weekly", -- Aln'hara's Bloom
+  [88996] = "Weekly", -- The Echoless Flame
+  [88997] = "Weekly", -- Russula's Outreach
+  [88998] = "Weekly", -- Root of the World
+  [88999] = "Weekly", -- Sky's Hope
+  -- Harandar Daily Wanted
+  [91970] = "Daily", -- WANTED: Gelatonius
+  [91980] = "Daily", -- WANTED: Hellebora's Thorn
+  [91982] = "Daily", -- WANTED: Toadshade's Petals
+  [91998] = "Daily", -- WANTED: Muckmire's Choking Vines
+  [92010] = "Daily", -- WANTED: Slewstalk's Stalks
+  [92012] = "Daily", -- WANTED: Gorebarb's Pincers
+  [92013] = "Daily", -- WANTED: Dionaea's Thorntusks
+  -- Sparks of War
+  [93423] = "Weekly", -- Sparks of War: Eversong Woods
+  [93424] = "Weekly", -- Sparks of War: Zul'Aman
+  [93425] = "Weekly", -- Sparks of War: Harandar
+  [93426] = "Weekly", -- Sparks of War: Voidstorm
+  -- Other
+  [89268] = "AccountWeekly", -- Lost Legends
+  [90962] = "Daily", -- Stormarion Assault
+  [91966] = "Daily", -- Saltheril's Soiree
 
   -- General
   -- Darkmoon Faire
@@ -637,6 +734,8 @@ local QuestExceptions = {
   [83364] = "Weekly", -- A Savage Path Through Time - WOD Timewalking
   [83360] = "Weekly", -- A Fel Path Through Time - LEG Timewalking
   [86731] = "Weekly", -- An Original Path Through Time - CLA Timewalking
+  [88805] = "Weekly", -- A Scarred Path Through Time - BFA Timewalking
+  [92649] = "Weekly", -- A Shadowed Path Through Time - SL Timewalking
   [83345] = "Weekly", -- A Call to Battle - Battlegrounds
   [83347] = "Weekly", -- Emissary of War - Mythic Dungeons
   [83357] = "AccountWeekly", -- The Very Best - PvP Pet Battles
@@ -658,6 +757,9 @@ local TimewalkingItemQuest = {
   [55499] = 1971, -- The Shimmering Crystal - WOD Timewalking - Horde
   [64710] = 2274, -- Whispering Felflame Crystal - LEG Timewalking
   [83285] = 2634, -- The Ancient Scroll - CLA Timewalking
+  [89222] = 2874, -- Remnant of Azeroth - BFA Timewalking - Alliance
+  [89223] = 2874, -- Remnant of Azeroth - BFA Timewalking - Horde
+  [92650] = 3076, -- The Flickering Anima - SL Timewalking
 }
 
 for questID, tbl in pairs(TimewalkingItemQuest) do

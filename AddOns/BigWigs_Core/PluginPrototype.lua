@@ -15,7 +15,7 @@ do
 end
 
 function plugin:Initialize()
-	core:RegisterPlugin(self)
+	core:RegisterPlugin(self.moduleName)
 end
 
 --- Module enabled check.
@@ -83,6 +83,13 @@ do
 end
 
 do
+	local issecretvalue = issecretvalue or function() return false end -- XXX 12.0 compat
+	function plugin:IsSecret(value)
+		return issecretvalue(value)
+	end
+end
+
+do
 	local raidList = {
 		"raid1", "raid2", "raid3", "raid4", "raid5", "raid6", "raid7", "raid8", "raid9", "raid10",
 		"raid11", "raid12", "raid13", "raid14", "raid15", "raid16", "raid17", "raid18", "raid19", "raid20",
@@ -134,7 +141,7 @@ do
 	-- @param sound Either a FileID (number), or the path to a sound file (string)
 	-- @string[opt] channel the channel the sound should play on, defaults to "Master"
 	function plugin:PlaySoundFile(sound, channel)
-		PlaySoundFile(sound, channel or "Master")
+		return PlaySoundFile(sound, channel or "Master")
 	end
 end
 
@@ -150,31 +157,19 @@ end
 
 do
 	local Timer = BigWigsLoader.CTimerNewTimer
-	function plugin:ScheduleTimer(func, delay, one, two, three, four, five, six, seven, eight)
-		if type(func) == "function" then
-			local timerId = Timer(delay, function() func(one, two, three, four, five, six, seven, eight) end)
-			scheduledEvents[self][timerId] = true
-			return timerId
-		else
-			local timerId = Timer(delay, function() self[func](self, one, two, three, four, five, six, seven, eight) end)
-			scheduledEvents[self][timerId] = true
-			return timerId
-		end
+	function plugin:ScheduleTimer(func, delay)
+		local timerId = Timer(delay, func)
+		scheduledEvents[self][timerId] = true
+		return timerId
 	end
 end
 
 do
 	local Ticker = BigWigsLoader.CTimerNewTicker
-	function plugin:ScheduleRepeatingTimer(func, delay, one, two, three, four, five, six, seven, eight)
-		if type(func) == "function" then
-			local timerId = Ticker(delay, function() func(one, two, three, four, five, six, seven, eight) end)
-			scheduledEvents[self][timerId] = true
-			return timerId
-		else
-			local timerId = Ticker(delay, function() self[func](self, one, two, three, four, five, six, seven, eight) end)
-			scheduledEvents[self][timerId] = true
-			return timerId
-		end
+	function plugin:ScheduleRepeatingTimer(func, delay)
+		local timerId = Ticker(delay, func)
+		scheduledEvents[self][timerId] = true
+		return timerId
 	end
 end
 
@@ -236,20 +231,32 @@ do
 	--- Send an addon sync to other players.
 	-- @param msg the sync message/prefix
 	-- @param[opt] extra other optional value you want to send
+	-- @bool[opt] noResend if true, no re-send will be attempted if the message fails to send
 	-- @usage self:Sync("pluginName", data)
-	function plugin:Sync(msg, extra)
-		if msg then
-			self:SendMessage("BigWigs_PluginComm", msg, extra, pName)
+	function plugin:Sync(msg, extra, noResend)
+		if msg and self:IsEnabled() then
 			if IsInGroup() then
-				msg = "P^".. msg
+				local messageToTransmit
 				if extra then
-					msg = msg .."^".. extra
+					messageToTransmit = "P^".. msg .."^".. extra
+				else
+					messageToTransmit = "P^".. msg
 				end
-				local result = SendAddonMessage("BigWigs", msg, IsInGroup(2) and "INSTANCE_CHAT" or "RAID")
-				if type(result) == "number" and result ~= 0 then
-					local errorMsg = format("Failed to send plugin comm %q. Error code: %d", msg, result)
-					core:Error(errorMsg)
+				local result = SendAddonMessage("BigWigs", messageToTransmit, IsInGroup(2) and "INSTANCE_CHAT" or "RAID")
+				if type(result) == "number" and result > 0 then
+					if result == 3 or result == 8 or result == 9 then -- AddonMessageThrottle, ChannelThrottle, GeneralError
+						if not noResend then
+							self:SimpleTimer(function() self:Sync(msg, extra) end, 1)
+							return
+						end
+					elseif result ~= 11 then -- AddOnMessageLockdown
+						local errorMsg = format("Failed to send plugin comm %q. Error code: %d", messageToTransmit, result)
+						core:Error(errorMsg)
+					end
 				end
+				self:SendMessage("BigWigs_PluginComm", msg, extra, pName)
+			else
+				self:SendMessage("BigWigs_PluginComm", msg, extra, pName)
 			end
 		end
 	end
@@ -276,4 +283,18 @@ do
 			return fontName
 		end
 	end
+end
+
+--- Create a log entry in the Transcriptor addon if it is running
+-- @param ... any number of values to concatenate into the log entry
+function plugin:Debug(...)
+	if Transcriptor then
+		Transcriptor:AddCustomEvent("BigWigs_Debug", "BigWigs", self.moduleName, ...)
+	end
+end
+
+--- Print a message to the chat frame with the BigWigs prefix
+-- @string msg the message to print to the chat frame
+function plugin:Print(msg)
+	core:Print(msg)
 end

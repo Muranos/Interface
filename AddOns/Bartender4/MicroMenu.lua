@@ -15,13 +15,32 @@ local pairs, setmetatable, table_insert = pairs, setmetatable, table.insert
 
 local WoWClassic = (WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE)
 local WoWClassicEra = (WOW_PROJECT_ID == WOW_PROJECT_CLASSIC)
+local WoWClassicBCC = (WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC)
+local WoWClassicMists = (WOW_PROJECT_ID == WOW_PROJECT_MISTS_CLASSIC)
 
 -- GLOBALS: CharacterMicroButton, SpellbookMicroButton, TalentMicroButton, AchievementMicroButton, QuestLogMicroButton, GuildMicroButton
 -- GLOBALS: LFDMicroButton, CollectionsMicroButton, EJMicroButton, MainMenuMicroButton
 -- GLOBALS: HasVehicleActionBar, UnitVehicleSkin, HasOverrideActionBar, GetOverrideBarSkin
 
 local BT_MICRO_BUTTONS
-if WoWClassic then
+if WoWClassicMists then
+	BT_MICRO_BUTTONS = {
+		"CharacterMicroButton",
+		"SpellbookMicroButton",
+		"TalentMicroButton",
+		"AchievementMicroButton",
+		"QuestLogMicroButton",
+		"SocialsMicroButton",
+		"GuildMicroButton",
+		"PVPMicroButton",
+		"LFGMicroButton",
+		"CollectionsMicroButton",
+		"EJMicroButton",
+		--"HelpMicroButton",
+		"StoreMicroButton",
+		"MainMenuMicroButton",
+	}
+elseif WoWClassic then
 	BT_MICRO_BUTTONS = CopyTable(MICRO_BUTTONS)
 else
 	BT_MICRO_BUTTONS = {
@@ -30,6 +49,7 @@ else
 		"PlayerSpellsMicroButton",
 		"AchievementMicroButton",
 		"QuestLogMicroButton",
+		"HousingMicroButton",
 		"GuildMicroButton",
 		"LFDMicroButton",
 		"CollectionsMicroButton",
@@ -48,7 +68,7 @@ local defaults = { profile = Bartender4.Util:Merge({
 	visibility = {
 		possess = false,
 	},
-	padding = WoWClassicEra and -3 or (WoWClassic and -4 or 1),
+	padding = (WoWClassicEra or WoWClassicMists) and -3 or (WoWClassic and -4 or 1),
 	position = {
 		scale = WoWClassic and 0.8 or 1.0,
 	},
@@ -72,6 +92,11 @@ function MicroMenuMod:OnEnable()
 		-- guild and social share a spot
 		if WoWClassic then
 			tDeleteItem(BT_MICRO_BUTTONS, "GuildMicroButton")
+		end
+
+		-- these are handled below, if both are in here it'll error
+		if HelpMicroButton and StoreMicroButton then
+			tDeleteItem(BT_MICRO_BUTTONS, "HelpMicroButton")
 		end
 
 		for i=1, #BT_MICRO_BUTTONS do
@@ -198,7 +223,7 @@ function MicroMenuMod:MicroMenuBarShow()
 end
 
 function MicroMenuMod:BlizzardBarShow()
-	if WoWClassicEra then
+	if WoWClassic then
 		-- Only reset button positions not set in MoveMicroButtons()
 		for i,v in pairs(self.bar.buttons) do
 			if v ~= CharacterMicroButton and v ~= PVPMicroButton then
@@ -208,8 +233,11 @@ function MicroMenuMod:BlizzardBarShow()
 	end
 end
 
-
-if WoWClassic then
+if WoWClassicBCC then
+	MicroMenuBar.button_width = 32
+	MicroMenuBar.button_height = 40
+	MicroMenuBar.vpad_offset = 0
+elseif WoWClassic then
 	MicroMenuBar.button_width = 29
 	MicroMenuBar.button_height = 58
 	MicroMenuBar.vpad_offset = -20
@@ -234,18 +262,18 @@ function MicroMenuBar:UpdateButtonLayout()
 	ButtonBar.UpdateButtonLayout(self)
 
 	if HelpMicroButton and StoreMicroButton then
+		HelpMicroButton:ClearAllPoints()
+		HelpMicroButton:SetAllPoints(StoreMicroButton)
 		-- If the StoreButton is hidden we want to replace it with the Help button
 		if not StoreMicroButton:IsShown() then
 			HelpMicroButton:Show()
-			HelpMicroButton:ClearAllPoints()
-			HelpMicroButton:SetAllPoints(StoreMicroButton)
 		else
 			HelpMicroButton:Hide()
-			HelpMicroButton:ClearAllPoints()
 		end
 	end
 
 	if WoWClassic and GuildMicroButton then
+		GuildMicroButton:SetParent(self)
 		GuildMicroButton:ClearAllPoints()
 		GuildMicroButton:SetAllPoints(SocialsMicroButton)
 	end

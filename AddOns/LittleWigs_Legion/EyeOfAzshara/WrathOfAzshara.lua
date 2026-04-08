@@ -54,7 +54,7 @@ end
 --
 
 function mod:CHAT_MSG_RAID_BOSS_EMOTE(_, msg, _, _, _, unit) -- Arcane Bomb
-	if msg:find("192708", nil, true) then -- Fires with _START, target scanning doesn't work.
+	if not self:IsSecret(msg) and msg:find("192708", nil, true) then -- Fires with _START, target scanning doesn't work.
 		self:TargetMessageOld(192706, unit, "red", "alarm")
 		self:CDBar(192706, p2 and 23 or 30) -- pull:23.1, 30.4, 23.1 / hc pull:39.7 / hc pull:26.7, 31.2, 23.1 / m pull:26.4, 30.4, 30.4, 36.5 XXX
 	end
@@ -88,9 +88,8 @@ do
 end
 
 function mod:UNIT_SPELLCAST_SUCCEEDED(_, _, _, spellId)
-	if spellId == 192680 then -- Mystic Tornado
+	if not self:IsSecret(spellId) and spellId == 192680 then -- Mystic Tornado
 		self:MessageOld(192675, "orange", "alert", CL.near:format(self:SpellName(192675)))
 		self:CDBar(192675, p2 and 15 or 25) -- hc pull:8.5, 26.3, 15.8 / m pull:8.6, 25.1, 34.0, 18.2, 15.8, 20.7, 15.8
 	end
 end
-

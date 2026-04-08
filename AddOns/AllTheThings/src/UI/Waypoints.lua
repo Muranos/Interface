@@ -13,16 +13,8 @@ local ResolveSymbolicLink = app.ResolveSymbolicLink;
 local SearchForField = app.SearchForField
 local SearchForObject = app.SearchForObject;
 local WaypointRunner = app.CreateRunner("waypoint");
-local __TomTomWaypointCacheIndexX = { __index = function(t, x)
-	local o = setmetatable({}, app.MetaTable.AutoTable);
-	t[x] = o;
-	return o;
-end };
-local __TomTomWaypointCache = setmetatable({}, { __index = function(t, mapID)
-	local o = setmetatable({}, __TomTomWaypointCacheIndexX);
-	t[mapID] = o;
-	return o;
-end });
+WaypointRunner.SetPerFrameDefault(5)
+local __TomTomWaypointCache = setmetatable({}, app.MetaTable.AutoTableOfTablesOfTables);
 local __TomTomWaypointCount, __PlottedGroup;
 local function PlotCachedCoords()
 	if TomTom then
@@ -37,8 +29,8 @@ local function PlotCachedCoords()
 					local root,rootByCreatureID,rootByObjectID = {},{},{};
 					for key,group in pairs(datas) do
 						local creatureID, objectID;
-						if group.npcID or group.creatureID then
-							creatureID = group.npcID or group.creatureID;
+						if group.npcID then
+							creatureID = group.npcID
 						elseif group.objectID then
 							objectID = group.objectID;
 						else
@@ -56,38 +48,10 @@ local function PlotCachedCoords()
 								end
 							end
 							if group.qgs then
-								local count = #group.qgs;
-								if count > 1 and group.coords and #group.coords == count then
-									for i=count,1,-1 do
-										local coord = group.coords[i];
-										if coord[3] == mapID and math_floor(coord[1] * 10) == x and math_floor(coord[2] * 10) == y then
-											creatureID = group.qgs[i];
-											break;
-										end
-									end
-									if not creatureID then
-										creatureID = group.qgs[1];
-									end
-								else
-									creatureID = group.qgs[1];
-								end
+								creatureID = group.qgs[1];
 							end
 							if group.crs then
-								local count = #group.crs;
-								if count > 1 and group.coords and #group.coords == count then
-									for i=count,1,-1 do
-										local coord = group.coords[i];
-										if coord[3] == mapID and math_floor(coord[1] * 10) == x and math_floor(coord[2] * 10) == y then
-											creatureID = group.crs[i];
-											break;
-										end
-									end
-									if not creatureID then
-										creatureID = group.crs[1];
-									end
-								else
-									creatureID = group.crs[1];
-								end
+								creatureID = group.crs[1];
 							end
 						end
 						if creatureID then
@@ -98,6 +62,8 @@ local function PlotCachedCoords()
 						elseif objectID then
 							if not rootByObjectID[objectID] then
 								rootByObjectID[objectID] = group;
+								-- TODO: doing this drops the icon for some objects that reference their content to provide a
+								-- suitable .icon
 								tinsert(root, app.CreateObject(objectID));
 							end
 						else
@@ -154,32 +120,21 @@ local function PlotCachedCoords()
 		app.print(L.NO_COORDINATES_FORMAT:format(__PlottedGroup.text));
 	end
 end
-local function AddTomTomWaypointCache(coord, group)
-	local mapID = coord[3];
-	if mapID then
-		-- app.PrintDebug("WP:Cache",__TomTomWaypointCount,group.hash)
-		__TomTomWaypointCache[mapID][math_floor(coord[1] * 10)][math_floor(coord[2] * 10)][group.key .. ":" .. group[group.key]] = group;
-	else
-		-- coord[3] not existing is checked by Parser and shouldn't ever happen
-		print("Missing mapID for", group.text, coord[1], coord[2], mapID);
-	end
-end
 -- Tracks attempted addition of coordinates. Sometimes we want to 'know' that coords exist but don't actually want to plot them
 local function TryAddGroupWaypoints(group)
-	local c = group.coords;
-	if c then
-		for _,coord in ipairs(c) do
-			__TomTomWaypointCount = __TomTomWaypointCount + 1;
-			AddTomTomWaypointCache(coord, group);
+	local coords = group.coords;
+	if coords then
+		for mapID,coordsForMap in pairs(coords) do
+			local cache = __TomTomWaypointCache[mapID];
+			for _,coord in ipairs(coordsForMap) do
+				cache[math_floor(coord[1] * 10)][math_floor(coord[2] * 10)][group.key .. ":" .. group.keyval] = group;
+				__TomTomWaypointCount = __TomTomWaypointCount + 1;
+				-- app.PrintDebug("WP:Cache",__TomTomWaypointCount,math_floor(coord[1] * 10),math_floor(coord[2] * 10),mapID,app:SearchLink(group))
+			end
 		end
 	end
-	c = group.coord;
-	if c then
-		__TomTomWaypointCount = __TomTomWaypointCount + 1;
-		AddTomTomWaypointCache(c, group);
-	end
 end
-local function AddTomTomParentCoord(group)
+local function AddTomTomParentCoords(group)
 	-- app.PrintDebug("WP:ParentChain")
 	local parent = group.sourceParent or group.parent;
 	while parent do
@@ -191,30 +146,33 @@ local function AddTomTomParentCoord(group)
 		parent = parent.sourceParent or parent.parent;
 	end
 end
+local AddTomTomProviderResults
 -- Attempt to add TomTom waypoints for all directly nested/symlinked content from the group
-local function AddNestedTomTomWaypoints(group, depth)
-	if group.visible then
+local function AddNestedTomTomWaypoints(group, depth, rootOnly)
+	if group.visible or depth == 0 then
 		if group.plotting then return false; end
 		group.plotting = true;
-		-- app.PrintDebug("WP:depth",depth)
+		-- app.PrintDebug("WP:depth",depth,app:SearchLink(group))
 		-- always plot directly clicked otherwise don't plot saved or inaccessible groups
 		if depth == 0 or (not group.saved and not group.missingSourceQuests) then
-			-- app.PrintDebug("WP:Group",group.hash)
+			-- app.PrintDebug("WP:Group",app:SearchLink(group))
 			TryAddGroupWaypoints(group);
 		end
 		-- sub-groups coords?
-		if group.g then
-			-- app.PrintDebug("WP:SubGroups",group.hash)
-			for _,o in ipairs(group.g) do
-				AddNestedTomTomWaypoints(o, depth + 1);
+		if not rootOnly then
+			if group.g then
+				-- app.PrintDebug("WP:SubGroups",app:SearchLink(group))
+				for _,o in ipairs(group.g) do
+					AddNestedTomTomWaypoints(o, depth + 1);
+				end
 			end
-		end
-		-- symlink of the group coords?
-		local searchResults = ResolveSymbolicLink(group);
-		if searchResults then
-			-- app.PrintDebug("WP:Sym",group.hash)
-			for _,o in ipairs(searchResults) do
-				AddNestedTomTomWaypoints(o, depth + 1);
+			-- symlink of the group coords?
+			local searchResults = ResolveSymbolicLink(group);
+			if searchResults then
+				-- app.PrintDebug("WP:Sym",app:SearchLink(group))
+				for _,o in ipairs(searchResults) do
+					AddNestedTomTomWaypoints(o, depth + 1);
+				end
 			end
 		end
 		-- if the Thing is specifically NOT a Quest
@@ -223,15 +181,18 @@ local function AddNestedTomTomWaypoints(group, depth)
 		if group.key ~= "questID" then
 			if group.sourceQuests then
 				for _,questID in ipairs(group.sourceQuests) do
-					for _,o in ipairs(SearchForField("questID", questID, "field")) do
+					for _,o in ipairs(SearchForObject("questID", questID, "field", true)) do
 						-- app.PrintDebug("WP:sq-Search:",o.hash)
-						AddNestedTomTomWaypoints(o, 0);
-						AddTomTomParentCoord(o);
+						AddNestedTomTomWaypoints(o, depth + 1)
 					end
 				end
 			end
 		end
 		group.plotting = nil;
+		-- no waypoints added yet, then try adding waypoints via the providers afterwards
+		if __TomTomWaypointCount == 0 then
+			AddTomTomProviderResults(group, 0)
+		end
 	end
 end
 local function AddTomTomParentChainWaypoint(group, depth)
@@ -240,46 +201,76 @@ local function AddTomTomParentChainWaypoint(group, depth)
 		group.plotting = true;
 		-- also check for first coord(s) on parent chain of plotted group if no coords at or below the plotted group
 		if depth == 0 and __TomTomWaypointCount == 0 then
-			AddTomTomParentCoord(group);
+			AddTomTomParentCoords(group);
 		end
 		group.plotting = nil;
 	end
 end
-local function AddTomTomSearchResultWaypoints(group)
-	if group.visible then
-		local key = group.key;
-		if not key then return end
-		for _,o in ipairs(SearchForField(key, group[key], "field")) do
-			-- app.PrintDebug("WP:Search:",o.hash)
-			AddNestedTomTomWaypoints(o, 0);
-			AddTomTomParentCoord(o);
-		end
+local function AddTomTomRawSearchResultWaypoints(field, value)
+	if not field or not app.ThingKeys[field] or not tonumber(value) or tonumber(value) < 1 then return end
+
+	for _,o in ipairs(SearchForObject(field, value, "field", true)) do
+		-- app.PrintDebug("WP:Search:",o,field,value,app:RawSearchLink(field, value))
+		AddNestedTomTomWaypoints(o, 0, true);
+		AddTomTomParentCoords(o);
 	end
 end
+local function AddTomTomSearchResultWaypoints(group)
+	if not group.visible then return end
+
+	local key = group.key;
+	if not key then return end
+
+	AddTomTomRawSearchResultWaypoints(key, group[key])
+end
 local function AddTomTomAlternateDirectResults(group, depth)
-	if group.visible then
-		-- also check for first coord(s) on alternate search results/parents of the group if it's a Thing and no other coords found
-		if __TomTomWaypointCount == 0 and app.ThingKeys[group.key or 0] then
-			-- app.PrintDebug("WP:Search",group.hash)
-			AddTomTomSearchResultWaypoints(group);
-		end
-		-- if STILL nothing was found to plot (plotting meta-achievements whose achievements are under other groups)
-		-- pop off the first/second layer of groups under the plotted group to plot their possible waypoints via the various means (nested & search)
-		if __TomTomWaypointCount == 0 and depth == 0 then
-			-- app.PrintDebug("WP:NestedSearchScan",group.hash)
-			-- queue searches for 2 layers of groups
-			local e = app.EmptyTable;
-			for _,o in ipairs(group.g or e) do
-				WaypointRunner.Run(AddTomTomSearchResultWaypoints, o);
-				for _,p in ipairs(o.g or e) do
-					WaypointRunner.Run(AddTomTomSearchResultWaypoints, p);
-				end
+	if not group.visible then return end
+
+	-- also check for first coord(s) on alternate search results/parents of the group if it's a Thing and no other coords found
+	if __TomTomWaypointCount == 0 and app.ThingKeys[group.key or 0] then
+		-- app.PrintDebug("WP:Search",group.hash)
+		AddTomTomSearchResultWaypoints(group);
+	end
+	-- if STILL nothing was found to plot (plotting meta-achievements whose achievements are under other groups)
+	-- pop off the first/second layer of groups under the plotted group to plot their possible waypoints via the various means (nested & search)
+	if __TomTomWaypointCount == 0 and depth == 0 then
+		-- app.PrintDebug("WP:NestedSearchScan",group.hash)
+		-- queue searches for 2 layers of groups
+		local e = app.EmptyTable;
+		for _,o in ipairs(group.g or e) do
+			WaypointRunner.Run(AddTomTomSearchResultWaypoints, o);
+			for _,p in ipairs(o.g or e) do
+				WaypointRunner.Run(AddTomTomSearchResultWaypoints, p);
 			end
 		end
 	end
 end
+local ProviderToField = {
+	o = "objectID",
+	i = "itemID",
+	n = "npcID",
+	s = "spellID",
+	c = "currencyID",
+}
+AddTomTomProviderResults = function(group, depth)
+	if not group.visible then return end
+
+	-- app.PrintDebug("WP:Providers",app:SearchLink(group))
+	-- grab providers from this group and try to plot their waypoints...
+	if group.providers then
+		for _,p in ipairs(group.providers) do
+			WaypointRunner.Run(AddTomTomRawSearchResultWaypoints, ProviderToField[p[1]], p[2])
+		end
+	end
+	if group.crs then
+		for _,npcID in ipairs(group.crs) do
+			WaypointRunner.Run(AddTomTomRawSearchResultWaypoints, "npcID", npcID)
+		end
+	end
+	-- is Cost really something that we'd plot for a waypoint? Probably not...
+end
 app.AddTomTomWaypoint = function(group)
-	-- app.PrintDebug("WP:Global",group.hash)
+	-- app.PrintDebug("WP:Global",app:SearchLink(group))
 	wipe(__TomTomWaypointCache);
 	__TomTomWaypointCount = 0;
 	__PlottedGroup = group;
@@ -287,8 +278,6 @@ app.AddTomTomWaypoint = function(group)
 	WaypointRunner.Run(AddNestedTomTomWaypoints, group, 0);
 	WaypointRunner.Run(AddTomTomParentChainWaypoint, group, 0);
 	WaypointRunner.Run(AddTomTomAlternateDirectResults, group, 0);
-	-- TODO: if still no coords (Achievement Criteria with Providers/Cost)
-	-- further Search Providers/Cost/crs/etc to find coords
 	-- actually send the coords now that every coord has been cached
 	WaypointRunner.OnEnd(PlotCachedCoords);
 end
@@ -307,7 +296,7 @@ app.AddEventHandler("OnReady", function()
 						for i,sourcePath in ipairs(sourceStrings) do
 							---@diagnostic disable-next-line: undefined-field
 							local hashes = { (">"):split(sourcePath) };
-							local ref = app.SearchForSourcePath(app:GetDataCache().g, hashes, 2, #hashes);
+							local ref = app.SearchForSourcePath(app:GetDatabaseRoot().g, hashes, 2, #hashes);
 							if ref then
 								tinsert(root, ref);
 							else
@@ -351,8 +340,8 @@ app.AddEventHandler("OnReady", function()
 										local achGroup = SearchForObject("achievementID", o.achievementID, "key")
 										tooltip:AddDoubleLine(L.CRITERIA_FOR, achGroup.text or GetAchievementLink(o.achievementID));
 									else
-										if key == "npcID" then key = "creatureID"; end
-										AttachTooltipSearchResults(tooltip, SearchForField, key, o[o.key]);
+										if key == "creatureID" then key = "npcID"; end
+										AttachTooltipSearchResults(tooltip, SearchForField, key, o.keyval);
 									end
 								end
 								tooltip:Show();

@@ -5,15 +5,19 @@ local VMRT = nil
 local module = MRT:New("Note",MRT.L.message)
 local ELib,L = MRT.lib,MRT.L
 
-local GetTime, GetSpecializationInfo = GetTime, GetSpecializationInfo
+local GetTime = GetTime
 local string_gsub, strsplit, tonumber, format, string_match, floor, string_find, type, string_gmatch = string.gsub, strsplit, tonumber, format, string.match, floor, string.find, type, string.gmatch
 local GetSpellInfo = MRT.F.GetSpellInfo or GetSpellInfo
 local GetSpellTexture = C_Spell and C_Spell.GetSpellTexture or GetSpellTexture
 local GetSpellName = C_Spell and C_Spell.GetSpellName or GetSpellInfo
+local GetSpecializationInfo = C_SpecializationInfo and C_SpecializationInfo.GetSpecializationInfo or GetSpecializationInfo
+local GetSpecialization = GetSpecialization or C_SpecializationInfo and C_SpecializationInfo.GetSpecialization
 local NewVMRTTableData
+local SendChatMessage = C_ChatInfo and C_ChatInfo.SendChatMessage or SendChatMessage
 
-local GetSpecialization = GetSpecialization
-if MRT.isCata then
+if MRT.isMoP then
+
+elseif MRT.isCata then
 	GetSpecialization = function()
 		local n,m = 1,1
 		for spec=1,3 do
@@ -84,7 +88,7 @@ module.db.otherIconsList = {
 if MRT.isClassic then
 	tremove(module.db.otherIconsList,13)
 	tremove(module.db.otherIconsList,12)
-	tremove(module.db.otherIconsList,10)
+	if not MRT.isMoP then tremove(module.db.otherIconsList,10) end
 	if not MRT.isLK then tremove(module.db.otherIconsList,6) end
 end
 
@@ -106,11 +110,13 @@ module.db.msgindex = -1
 module.db.lasttext = ""
 
 module.db.encounter_time_p = {}	--phases
+module.db.encounter_pd = {}	--phases done
 module.db.encounter_time_c = {}	--custom
 module.db.encounter_time_wa_uids = {}	--wa custom events
 module.db.encounter_id = {}
 
 local encounter_time_p = module.db.encounter_time_p
+local encounter_pd = module.db.encounter_pd
 local encounter_time_c = module.db.encounter_time_c
 local encounter_time_wa_uids = module.db.encounter_time_wa_uids
 local encounter_id = module.db.encounter_id
@@ -357,6 +363,14 @@ formats:
 {time:2:30,wa:nzoth_hs1}	--run weakauras custom event MRT_NOTE_TIME_EVENT with arg1 = nzoth_hs1, arg2 = time left (event runs every second when timer has 5 seconds or lower), arg3 = note line text
 ]]
 
+local mynamelowered = MRT.SDB.charName:lower()
+local function GSUB_Time_hideOtherNames(name)
+	local namefound = name:gsub("|c........",""):gsub("|r",""):lower()
+	if namefound ~= mynamelowered and strsplit("@",namefound) ~= mynamelowered then
+		return ""
+	end
+end
+
 local function GSUB_Time(preText,t,msg,newlinesym)
 	local timeText, opts = strsplit(",", t, 2)
 
@@ -407,6 +421,8 @@ local function GSUB_Time(preText,t,msg,newlinesym)
 				if phaseStart then
 					time = phaseStart + time - now
 					anyType = 1
+				elseif encounter_pd[(isGlobalPhase == "g" and "g" or "")..phase] then
+					anyType = 3
 				else
 					anyType = 2
 				end			
@@ -455,11 +471,18 @@ local function GSUB_Time(preText,t,msg,newlinesym)
 		end
 	end
 
-	if not msg:find(MRT.SDB.charName) and not msg:find("{everyone}") and VMRT.Note.TimerOnlyMy and not isAllParam then
+	if VMRT.Note.TimerOnlyMy and not isAllParam and not msg:find(MRT.SDB.charName) and not msg:find("{everyone}") then
 		return ""
 	end
 
-	if time > 10 or not module.db.encounter_time or anyType == 2 then
+	--remove all names in line format: 0:00 - Name1 {spell:0}  Name2 {spell:0}
+	if VMRT.Note.TimerOnlyMy and not VMRT.Note.TimerOnlyMyEnableAllNames and msg:find("^%d+:%d+.-%- ") then
+		msg = msg:gsub("([^ %-]+) |T.-|t *",GSUB_Time_hideOtherNames)
+	end
+
+	if anyType == 3 and VMRT.Note.TimerPassedHide then
+		return ""
+	elseif time > 10 or not module.db.encounter_time or anyType == 2 or anyType == 3 then
 		return preText.."|cffffed88"..(prefixText or "")..format("%d:%02d|r ",floor(time/60),time % 60)..msg..newlinesym
 	elseif time < 0 then
 		if VMRT.Note.TimerPassedHide then
@@ -521,8 +544,8 @@ end
 local GSUB_AutoColor_Data = {}
 local function GSUB_AutoColorCreate()
 	wipe(GSUB_AutoColor_Data)
-	for _, name, subgroup, class, guid, rank, level, online, isDead, combatRole in MRT.F.IterateRoster, MRT.F.GetRaidDiffMaxGroup() do
-		if class and name then
+	for _, name, subgroup, class, guid, rank, level, online, isDead, combatRole, unitID in MRT.F.IterateRoster, MRT.F.GetRaidDiffMaxGroup() do
+		if (not canaccessvalue or canaccessvalue(name)) and class and name then
 			class = MRT.F.classColor(class)
 			GSUB_AutoColor_Data[ name ] = "|c"..class..name.."|r"
 			name = strsplit("-",name)
@@ -592,25 +615,68 @@ function module.options:Load()
 		106898,192077,46968,119381,179057,192058,30283,0,
 		29166,32375,114018,108199,49576,116844,0,
 		0,
-		1216731,459943,460153,460386,473507,459627,459666,468207,468147,460116,471403,459974,459453,459994,473636,460603,466615,459679,460625,0,
-		1214190,465446,472220,1221826,473951,472223,472231,471557,473983,473650,463800,1218088,466178,463925,463840,471660,1213994,1214039,465833,0,
-		468119,466128,465795,1214164,472306,466866,464518,464488,1217120,466093,1214829,472294,466722,473655,467606,467991,1213817,473748,467297,466961,1214598,0,
-		464399,467135,466748,1217975,465741,473066,467117,465611,473227,1217954,1218706,464248,461536,1219384,472893,473115,1218343,464854,464149,1218708,1220752,467149,464865,1217685,465747,464112,466742,0,
-		1214872,1217261,1216674,1218319,1216802,1218344,1217083,1217673,473276,1214265,465232,1216406,1216965,466860,466765,1216525,471308,1219047,1216508,1216414,1216911,1215858,465917,466235,1216934,1216699,1218342,0,
-		465309,465587,465322,461083,461091,461068,465580,465432,460472,461060,460474,461395,472718,461101,460582,460181,460164,460430,461389,474665,460847,460444,472178,473178,464705,472197,467870,474731,460973,473009,461176,0,
-		1216142,467381,1222948,470910,468658,467225,472659,469715,466518,1215591,472631,468694,468663,474554,469043,466539,1216495,1215488,469076,466509,463967,1215953,1214991,466516,469375,466385,469391,466480,466476,466545,1219283,466376,1214623,472057,469490,472782,1216202,470089,1220551,467202,0,
-		466751,466153,471225,466154,466753,1216845,1215209,1217290,1217292,1216852,465952,1220761,1219313,466158,467182,1219319,469404,1218504,469767,1219041,469327,1214226,1219039,1217987,1214229,474447,469297,1220784,466958,466834,1219333,466342,1214755,1219278,469362,466165,1214369,1220290,469363,1220846,467064,471352,466340,466338,466246,469286,466341,1223126,0,
+		1249251,1280035,1251361,1255702,1267205,1280075,1249262,1280015,1262036,1265540,1255683,1275059,1253918,1255749,1274846,1260712,1258883,1249714,1264164,0,
+		1241844,1243270,1259186,1280101,1272527,1260052,1244419,1256855,1272937,1241692,1273067,0,
+		1247738,1248697,1254081,1275056,1271577,1254088,1250828,1245960,1250686,1253032,1251213,1248709,1246175,1250991,1245592,1260015,0,
+		1248847,1249748,1255763,1244917,1265131,1244672,1262623,1270250,1245420,1272867,1245391,1245175,1251686,1265152,1263623,1280458,1266570,1270189,1244221,1245645,1270852,1264467,1270513,1245554,1244413,1252157,0,
+		1256133,1280159,1251857,1249130,1246155,1246745,1248451,1248674,1255738,1272324,1258514,1246162,1272699,1249047,1248710,1258659,1246384,1246385,1251859,1251812,1272700,1248644,1276243,1246391,1246485,1246765,1248449,1246736,1276982,1246749,1272471,0,
+		1233689,1237038,1245874,1238708,1261531,1233787,1233602,1234564,1238843,1239080,1255368,1235622,1234569,1239089,1243753,1238672,1260000,1237729,1232467,1237614,1255378,1233865,1238206,1246918,1246461,1237837,1243743,1233778,1237251,1242553,1233470,0,
 		0,
-		435136,438012,440849,462472,435138,438657,439037,434705,435341,449268,434776,440177,439419,443842,436255,455870,438324,434697,441451,440904,0,
-		445570,444363,443042,461876,442530,445174,445016,445257,445936,443305,445518,451288,443612,438696,452237,0,
-		434860,439559,442428,458272,435401,456420,439511,461401,459785,432969,435410,459273,461797,433475,0,
-		439785,439778,452806,460789,439787,439795,439811,457877,444687,440193,439784,444094,439780,454989,439776,439815,439792,455287,458067,439789,0,
-		443274,446351,446700,442430,450661,441362,452802,442526,442251,441612,442257,442660,438847,442263,458212,446349,446690,446694,0,
-		435414,439576,440576,436950,436749,435486,440377,447174,436867,437620,442278,434645,439409,437343,437786,448364,438245,0,
-		455080,449993,439992,460357,450483,460359,438656,460281,460360,438200,441634,450045,456235,438706,438218,438801,460600,440504,440158,438773,450129,441782,455863,455849,443092,455850,443063,450980,438677,451277,455363,443598,449857,0,
-		437078,439299,451600,440607,438481,443915,445268,444829,443396,451832,451366,438976,460218,443325,447965,438846,443667,447950,443720,441556,443336,441084,448660,448046,447999,460366,441872,448488,445021,451607,445013,448300,437417,448458,445152,446012,451278,440899,447411,449940,455374,445877,444507,445623,439814,443888,444502,447170,445422,447076,460133,448147,441958,460315,449235,437592,441692,448176,441865,437093,443403,447983,0,
+		1257093,1267201,1245844,1264756,1246653,1272726,1245698,1249017,1245919,1245486,1249207,1245396,1246132,1245406,1262020,1257087,1282001,1250953,1261997,1258610,1253744,1252863,0,
+		0,
+		1262573,1242981,1241282,1243866,1241162,1241163,1246709,1241292,1260763,1283067,1263412,1242815,1243320,1261217,1261218,1242260,1242515,1244344,1264696,1244348,1241640,1266404,1243852,1242803,1243854,1243021,1243026,1242093,1242094,1241339,1264698,1241845,1241838,0,
+		1273158,1254262,1279463,1285827,1263970,1249796,1284699,1249609,1254398,1282246,1282373,1260261,1282249,1282441,1266622,1279420,1251386,1284525,1266113,1266897,1282008,1281184,1251392,1274455,1266388,1253915,1276062,1251649,1276529,1282458,1266898,1284980,1250898,1253104,1263253,1244412,1254642,1281194,1262055,1249582,1284638,1251789,1282412,1285685,1287702,1265842,1282034,1284931,1284934,1252974,1282027,1254256,1249584,0,
 	}
-	if MRT.isCata then
+	if MRT.isMoP then
+		module.db.otherIconsAdditionalList = {
+			"576312","237222","237195","236924","237219","237223","132141","237220","134397","135805","135794","133018","135777","135234","134396","134398","429386","134457","425951","134399",0,
+			"135789","135733","135990","237587","135126","136116","458971","132291","135734","136214","237468","136025","237570",0,
+			"538565","237542","236226","136197","237557","132886","537079","458256","132117",0,
+			"132345","136224","236296","236304","136190","132350","461116","136206","236313","458971","132305","236272","236226","132291","132360","132381","136197",0,
+			"254117","135887","537022","136050","525026","237587","135791","465875","135734","136048","538565","135781","135980","571558","610472","135735","135739","135728","538571",0,
+			"133522","135939","376833","463282","136050","132340","132368","323416","463280","132719","135995","132354","463281","132740",0,
+			0,
+			"615339","135740","135867","463283","136184","589118","460958","132333",0,
+			"236154","236317","572029","132369","135863","136088","458737",0,
+			"451165","136044","538768","132141","136043","575589","615303","460686","132295",0,
+			"132352","537253","615302","615361","535593","576313","535291","236303","624009","463565","463563","615303","135732","132845","237297",0,
+			"132847","135279","135791","136035","463485","132109","525023","236305","429590","463444","576313",0,
+			"136189","136131","525026","236188","252188","136202","615303","651094","651085","237546","237298","134437","463485","133016","237566","132108","136204","132333","538441",0,
+			0,
+			"237567","136194","136211","237568","136050","237587","237589","136221","237557","136131","237537","237006","538567","136158","462651","136140",0,
+			"236302","136181","136183","236295","607852","135981","136214","236296","535045",0,
+			"132331","462651","135861","136163","136213","512902",0,
+			"628268","252997","627684","135788","132323","135954","136206","133730","136198","135855","461846","343641","136199","132852","538565","425957","136184","236272","538567","135948","461120","348536","135973","651090",0,
+			0,
+			"463570","252174","136050","237587","463444","136116","136075","132852","136014","136111","237589","458976","136099",0,
+			"252997","294481","135860","629077","575587","135810","132345","136066","236189","136043","132358","134333","132335","463566","237402","443397","132166","132355","236271","631503","135470","136049","237298","236216","132104","132108","132143","132302","132270",0,
+			"135972","458976","237587","796634","796635","609814","775463","134075","796638","460699","615100","625907","460700","631519","132309","537026","796637","236295","796636","538770","135805","527836",0,
+			"839982","839976","132347","252184","132182","132775","798557","839980","132109","136025","463521","463281",0,
+			"132331","429383","610679","610471","429386","236271","135739","463493","135818","576309","135833","132839","132166","132108","612394","800829",0,
+			"236272","236154","236158","134430","607852","648840","132188","648726","132927","642580","132158","655706","236225","134437",0,
+			"517161","134139","429385","135728","629526","629527","136124","132284","236208","136082","460954","236158","613397","463280","425958","463521","237297","136138","252996","646670","463282","136169","610679","464484","135265",0,
+			"134438","132272","236258","538040","801131","534175","838813","236255","838812","136133","136168","237299","237298","135777","538039","576309","370770","463282","463280","576311","135805","132334",0,
+			"132997","838813","132178","838814","460687","136054","132996","136050","236305","524305","133859","460957","838812","538744","531507",0,
+			"135840","132345","132845","636332","135845","135830","135838","237003","525024","136224","236154","136025","135130","135728","135788","615339","132123","252268","136022","134922",0,
+			"654237","135861","608954","429385","237514","135786","135788","340336","451164","236279","535593","135981","134210","516863",0,
+			"839975","839983","136018","236154","237587","132314","839977","839974","839979","136105","136049","136111","133833","462651","136075",0,
+			0,
+			"651087","651095","136037","135861","656551","651084","237012","651085","651093","236302","651091",0,
+			"458726","132155","651085","651086","136050","651088","628134","132106","463566","632353","236170","132297","135990","132863","136211","237565","236271","651098","651095","612969","651092",0,
+			"897132","897133","897134","897135","897136","604450","651090","627608","897138","897140","895885","897141","897142","897137","897143","651098","651097","651082","237539","897130","607854","636332",0,
+			"651084","237555","614257","254117","135887","897134","651088","651090","135939","895885","136199","895886","895887","651096","895888","460856","897130","651083","651097","775460",0,
+			"524795","135628","135822","136067","132358","538569","132152","136105","132222","451164","840198","132318","458736","463560",0,
+			"451165","657936","133710","538042","576309","134427","135809","538041","252172","136025","252185",0,
+			"136012","135849","607513","644388","134385","132839","132104","651093","132143","575589","649816","840190","237586","576311","132155","462327",0,
+			"135871","132341","132442","135736","626008","874582","132090","135783","841383","136043","236182","136090","132320","132349","135358","136089","841382","132363","136025","133580","429383","132352","236171","460686","132275","538569","875814",0,
+			"451165","136194","607513","607852","236314","135726","460857","589119","136025","132344","236296","236298","633004","571320",0,
+			"838812","132096","135136","136160","135239","136224","646669","132838","609815","236300","537021","133713","135863","606543","646675","525023","136116","606549","132140","615339","458241","840409","463282","136110","463566","134226","627606","620828","236154","135867","839407","237237","646670","606544","237476",0,
+			"132847","135809","236188","538440","132107","132109","135844","252188","236305","237567","464484","136231","252185","839974","132334",0,
+			"839983","136224","252184","896469","892827","133621","892828","892829","892830","892831","892832","892833","892834","653221","648208","237587","134427",0,
+			"878217","878218","878219","620833","878220","237393","878221","237031","878222","878223","132357","878224","236197","132208","646670","252184","237513","236277","878230","350570","615301","538536","132155","236641","236216","132274","457636","878215","135358","132369","237524","133708","236154","624010","878211","463485","252188","252996","878213","615987","878214","132334","237557","132105","878216","646377","516338",0,
+			"135945","136015","538558","651089","136043","796637","876354","135726","538767","879998","237532","895887","892446","651092","892447","651097","892448","135939","892449","237571","132316",0,
+		}
+	elseif MRT.isCata then
 		module.db.otherIconsAdditionalList = {
 			"136224","135821","135808","135981","136209","135807","135813","463567","237588","237395","135822",0,
 			"237582","133598","135790","236216","252172","524793","510756","132847",0,
@@ -707,6 +773,11 @@ function module.options:Load()
 		tinsert(module.db.encountersList,MRT.F.table_find(module.db.encountersList,909,1) or #module.db.encountersList,{EXPANSION_NAME7..": "..DUNGEONS,-1012,-968,-1041,-1022,-1030,-1023,-1002,-1001,-1036,-1021})
 	else
 		module.db.encountersList = {}
+		tinsert(module.db.encountersList,MRT.F.table_copy2(MRT.F.table_find3(MRT.GDB.EncountersList,508,1)))
+		tinsert(module.db.encountersList,MRT.F.table_copy2(MRT.F.table_find3(MRT.GDB.EncountersList,456,1)))
+		tinsert(module.db.encountersList,MRT.F.table_copy2(MRT.F.table_find3(MRT.GDB.EncountersList,474,1)))
+		tinsert(module.db.encountersList,MRT.F.table_copy2(MRT.F.table_find3(MRT.GDB.EncountersList,471,1)))
+		tinsert(module.db.encountersList,MRT.F.table_copy2(MRT.F.table_find3(MRT.GDB.EncountersList,409,1)))
 		tinsert(module.db.encountersList,MRT.F.table_copy2(MRT.F.table_find3(MRT.GDB.EncountersList,367,1)))
 	end
 
@@ -812,6 +883,12 @@ function module.options:Load()
 		[2408] = 3014,
 		[2411] = 3015,
 		[2409] = 3016,
+
+		[2533] = 3182,
+		[2534] = 3183,
+		[2532] = 3306,
+		[2529] = {3176,3177,3178,3179,3180,3181},
+		[2530] = 3181,
 	}
 
 
@@ -2119,21 +2196,23 @@ function module.options:Load()
 		local rosterType = module.options.rosterType or 1
 		for i=1,8 do gruevent[i] = 0 end
 		if rosterType == 1 then
-			for _,name, subgroup, class, guid, rank, level, online, isDead, combatRole in MRT.F.IterateRoster do
-				gruevent[subgroup] = gruevent[subgroup] + 1
-		
-				local POS = gruevent[subgroup] + (subgroup - 1) * 5
-				local obj = module.options.raidnames[POS]
-		
-				if obj then
-					local cR,cG,cB = MRT.F.classColorNum(class)
-					name = MRT.F.delUnitNameServer(name)
-					local colorCode = MRT.F.classColor(class)
-					obj.iconText = "||c"..colorCode..name.."||r "
-					obj.iconTextShift = name
-					local roleicon = combatRole and roleToIcon[combatRole]
-					obj.html:SetText((roleicon or "")..name)
-					obj.html:SetTextColor(cR, cG, cB, 1)
+			for _,name, subgroup, class, guid, rank, level, online, isDead, combatRole, unitID in MRT.F.IterateRoster do
+				if not canaccessvalue or canaccessvalue(name) then
+					gruevent[subgroup] = gruevent[subgroup] + 1
+			
+					local POS = gruevent[subgroup] + (subgroup - 1) * 5
+					local obj = module.options.raidnames[POS]
+			
+					if obj then
+						local cR,cG,cB = MRT.F.classColorNum(class)
+						name = MRT.F.delUnitNameServer(name)
+						local colorCode = MRT.F.classColor(class)
+						obj.iconText = "||c"..colorCode..name.."||r "
+						obj.iconTextShift = name
+						local roleicon = combatRole and roleToIcon[combatRole]
+						obj.html:SetText((roleicon or "")..name)
+						obj.html:SetTextColor(cR, cG, cB, 1)
+					end
 				end
 			end
 			module.options.rosterPage:Hide()
@@ -2418,7 +2497,7 @@ function module.options:Load()
 		self:tooltipReload(self)
 	end)
 
-	self.sliderscale = ELib:Slider(self.tab.tabs[2],L.messagebutscale):Size(300):Point("TOPLEFT",self.slideralphaback,"BOTTOMLEFT",0,-20):Range(5,200):SetTo(VMRT.Note.Scale or 100):OnChange(function(self,event) 
+	self.sliderscale = ELib:Slider(self.tab.tabs[2],L.messagebutscale):Size(300):Point("TOP",self.slideralpha,"TOP",0,0):Point("LEFT",self.slideralpha,"RIGHT",50,0):Range(5,200):SetTo(VMRT.Note.Scale or 100):OnChange(function(self,event) 
 		event = event - event%1
 		VMRT.Note.Scale = event
 		module.allframes:ScaleFix(event/100)
@@ -2426,7 +2505,7 @@ function module.options:Load()
 		self:tooltipReload(self)
 	end)
 
-	self.moreOptionsDropDown = ELib:DropDown(self.tab.tabs[2],275,#frameStrataList+1):Point("TOPLEFT",self.sliderscale,"BOTTOMLEFT",0,-15):Size(300):SetText(L.NoteFrameStrata)
+	self.moreOptionsDropDown = ELib:DropDown(self.tab.tabs[2],275,#frameStrataList+1):Point("TOPLEFT",self.slideralphaback,"BOTTOMLEFT",0,-15):Size(300):SetText(L.NoteFrameStrata)
 
 	local function moreOptionsDropDown_SetVaule(_,arg)
 		VMRT.Note.Strata = arg
@@ -2482,6 +2561,15 @@ function module.options:Load()
 			VMRT.Note.TimerOnlyMy = true
 		else
 			VMRT.Note.TimerOnlyMy = nil
+		end
+		module.allframes:UpdateText()
+	end)
+
+	self.chkTimersOnlyMyEnableAllNames = ELib:Check(self.tab.tabs[2],L.NoteTimersOnlyMyEnableAllNames,not VMRT.Note.TimerOnlyMyEnableAllNames):Point("TOPLEFT",self.chkTimersOnlyMy,"BOTTOMLEFT",25,-5):OnClick(function(self) 
+		if self:GetChecked() then
+			VMRT.Note.TimerOnlyMyEnableAllNames = nil
+		else
+			VMRT.Note.TimerOnlyMyEnableAllNames = true
 		end
 		module.allframes:UpdateText()
 	end)
@@ -2989,7 +3077,8 @@ function module.options:Load()
 		(MRT.isClassic and "|n|cffffff00{race:|r|cff00ff00troll,orc|r|cffffff00}|r...|cffffff00{/race}|r - "..L.NoteHelp11 or "")..
 		(MRT.isClassic and "|n|cffffff00{!race:|r|cff00ff00dwarf|r|cffffff00}|r...|cffffff00{/race}|r - "..L.NoteHelp11b or "")..
 		("|n|cffffff00{time:|r|cff00ff002:45|r|cffffff00}|r - "..L.NoteHelp7 or "")..
-		(not MRT.isClassic and "|n|cffffff00{p|r|cff00ff002|r|cffffff00}|r...|cffffff00{/p}|r - "..L.NoteHelp9 or "")
+		(not MRT.isClassic and "|n|cffffff00{p|r|cff00ff002|r|cffffff00}|r...|cffffff00{/p}|r - "..L.NoteHelp9 or "")..
+		"|n|cffffff00{0}|r...|cffffff00{/0}|r - "..L.NoteHelp12
 	):Point("TOPLEFT",10,-20):Point("TOPRIGHT",-10,-20):Color()
 
 	self.advancedHelp = ELib:Button(self.tab.tabs[4],L.NoteHelpAdvanced):Size(400,20):Point("TOP",self.textHelp,"BOTTOM",0,-20):OnClick(function() 
@@ -3004,15 +3093,16 @@ function module.options:Load()
 
 	self.textHelpAdv = ELib:Text(self.advancedScroll.C,
 		"|cffffff00{time:|r|cff00ff001:06,p2|r|cffffff00}|r - "..L.NoteHelpAdv1..
-		"|n|cffffff00{time:|r|cff00ff000:30,SCC:17:2|r|cffffff00}|r - "..L.NoteHelpAdv2..
-		"|n   "..(HUD_EDIT_MODE_ENABLE_ADVANCED_OPTIONS or "Advanced Options")..": |cffffff00{time:|cff00ff00TIME|r,|cff00ff00SCC/SCS/SAA/SAR|r:|cff00ff00SPELL_ID|r:|cff00ff00SPELL_COUNT|r:|cff00ffffSOURCE_NAME|r:|cff00ffffPHASE|r}|r"..
+		"|n|cffffff00{time:|r|cff00ff002:15,pg4|r|cffffff00}|r - global phase 4. Global phase is number of phases since beginning of the fight. For bosses with 1-2-1-2-... phases. (Will works only for second time of second phase in current example)"..
+		(not MRT.isMN and "|n|cffffff00{time:|r|cff00ff000:30,SCC:17:2|r|cffffff00}|r - "..L.NoteHelpAdv2 or "")..
+		(not MRT.isMN and "|n   "..(HUD_EDIT_MODE_ENABLE_ADVANCED_OPTIONS or "Advanced Options")..": |cffffff00{time:|cff00ff00TIME|r,|cff00ff00SCC/SCS/SAA/SAR|r:|cff00ff00SPELL_ID|r:|cff00ff00SPELL_COUNT|r:|cff00ffffSOURCE_NAME|r:|cff00ffffPHASE|r}|r" or "")..
 		"|n|cffffff00{time:|r|cff00ff002:00,e,customevent|r|cffffff00}|r - "..L.NoteHelpAdv3..
 		"|n|cffffff00{time:|r|cff00ff003:40,glowall|r|cffffff00}|r - "..L.NoteHelpAdv6..
 		"|n|cffffff00{time:|r|cff00ff004:15,glow|r|cffffff00}|r - "..L.NoteHelpAdv7..
-		"|n|cffffff00{time:|r|cff00ff000:45,wa:nzoth_hs1|r|cffffff00}|r - "..L.NoteHelpAdv4..
-		"|n   WA Function example:|n   Events: |cffffff00MRT_NOTE_TIME_EVENT|r|n   |cffff8bf3function(event,...)|n     if event == \"MRT_NOTE_TIME_EVENT\" then|n       local timerName, timeLeft, noteText = ...|n       if timerName == \"nzoth_hs1\" and timeLeft == 3 then|n         return true|n       end|n     end|n   end|r|n"..
-		"|n"..L.NoteHelpAdv5.."|n |cffe6ff15{time:0:30,SCC:17:2,wa:eventName1,wa:eventName2}|r|n |cffff9f05{time:1:40,p1.5}First intermission|r|n |cffe6ff15{p,SCC:17:2}Until end of the fight{/p}|r|n |cffff9f05{p,SCC:17:2,SCC:17:3}Until second condition{/p}|r|n|n |cffe6ff15{time:0:20,p2,wa:use_hs,glowall}|r"..
-		"|n |cffff9f05{time:65,SCC:17:2:"..UnitName'player'.."} Count casts only for player "..UnitName'player'.." |r|n |cffe6ff15{time:1:05,SCC:17:2::p3} Count casts only on phase 3 |r"
+		(MRT.isClassic and "|n|cffffff00{time:|r|cff00ff000:45,wa:nzoth_hs1|r|cffffff00}|r - "..L.NoteHelpAdv4 or "")..
+		(MRT.isClassic and "|n   WA Function example:|n   Events: |cffffff00MRT_NOTE_TIME_EVENT|r|n   |cffff8bf3function(event,...)|n     if event == \"MRT_NOTE_TIME_EVENT\" then|n       local timerName, timeLeft, noteText = ...|n       if timerName == \"nzoth_hs1\" and timeLeft == 3 then|n         return true|n       end|n     end|n   end|r|n" or "")..
+		(MRT.isClassic and "|n"..L.NoteHelpAdv5.."|n |cffe6ff15{time:0:30,SCC:17:2,wa:eventName1,wa:eventName2}|r|n |cffff9f05{time:1:40,p1.5}First intermission|r|n |cffe6ff15{p,SCC:17:2}Until end of the fight{/p}|r|n |cffff9f05{p,SCC:17:2,SCC:17:3}Until second condition{/p}|r|n|n |cffe6ff15{time:0:20,p2,wa:use_hs,glowall}|r" or "")..
+		(MRT.isClassic and "|n |cffff9f05{time:65,SCC:17:2:"..UnitName'player'.."} Count casts only for player "..UnitName'player'.." |r|n |cffe6ff15{time:1:05,SCC:17:2::p3} Count casts only on phase 3 |r" or "")
 	):Point("LEFT",10,0):Point("RIGHT",-10,0):Point("TOP",0,-5):Color()
 
 	local height = self.textHelpAdv:GetHeight()
@@ -3090,14 +3180,27 @@ local function NoteWindow_OnDragStop(self)
 	VMRT.Note[self.Name.."Top"] = self:GetTop()
 end
 
+local function NoteWindow_UpdateMaxSymbolsLimit(self)
+	local width_, height_ = self:GetSize()
+
+	local fontSize = VMRT and VMRT.Note and VMRT.Note.FontSize or 12
+
+	local maxPerLine = ceil(width_ / (fontSize / 4))
+	local maxLines = ceil(height_ / (fontSize / 4))
+
+	self.maxSymbols = (maxLines + 1) * (maxPerLine + 5)
+end
+
 local function NoteWindow_OnSizeChanged(self, width, height)
 	local width_, height_ = self:GetSize()
+	self:UpdateMaxSymbolsLimit()
 	if VMRT and VMRT.Note then
 		VMRT.Note[self.Name.."Width"] = width
 		VMRT.Note[self.Name.."Height"] = height
 
 		self:UpdateText()
 	end
+
 	self.sf.C:SetWidth( width_ )
 end
 
@@ -3125,6 +3228,8 @@ local function NoteWindow_UpdateFont(self)
 			c = c + 1
 		end
 	end
+
+	self:UpdateMaxSymbolsLimit()
 end
 
 local function NoteWindow_UpdateText(self,onlyTimerUpdate)
@@ -3136,6 +3241,10 @@ local function NoteWindow_UpdateText(self,onlyTimerUpdate)
 	while self["text"..c] do
 		self["text"..c]:SetText(" ")
 		c = c + 1
+	end
+
+	if self.maxSymbols and #text > self.maxSymbols then
+		text = text:sub(1,self.maxSymbols)
 	end
 	
 	if #text > 8192 then
@@ -3357,6 +3466,7 @@ function module:CreateNoteWindow(windowName,isCustomWindow)
 	frame.Enable = NoteWindow_Enable
 	frame.Disable = NoteWindow_Disable
 	frame.ScaleFix = NoteWindow_ScaleFix
+	frame.UpdateMaxSymbolsLimit = NoteWindow_UpdateMaxSymbolsLimit
 
 	frame.GetRawText = NoteWindow_RawNull
 	
@@ -3987,9 +4097,9 @@ local function CheckSubZone()
 	
 	if zoneText then
 		local bossID = SubzoneTextToBossID[zoneText]
-		if not bossID and locale == "enUS" then
-			bossID = SubzoneTextToBossID["The "..zoneText]
-		end
+		--if not bossID and locale == "enUS" then
+		--	bossID = SubzoneTextToBossID["The "..zoneText]
+		--end
 		if bossID then
 			if SubzoneBossIDInctanceReq[bossID] and select(8,GetInstanceInfo()) ~= SubzoneBossIDInctanceReq[bossID] then
 				return
@@ -4063,14 +4173,18 @@ do
 		local t = GetTime()
 		encounter_time_p[stage] = t
 		encounter_time_p[tostring(stage)] = t
+		encounter_pd[stage] = true
+		encounter_pd[tostring(stage)] = true
 		currPhase = stage
 		ResetCLEUData(true)
 		if globalStage then
 			encounter_time_p["g"..tostring(globalStage)] = t
+			encounter_pd["g"..tostring(globalStage)] = true
 			currGlobalPhase = globalStage
 		else
 			currGlobalPhase = currGlobalPhase + 1
 			encounter_time_p["g"..tostring(currGlobalPhase)] = t
+			encounter_pd["g"..tostring(currGlobalPhase)] = true
 		end
 		if module.frame:IsShown() then
 			module.allframes:UpdateText()
@@ -4116,9 +4230,14 @@ do
 		if timeInText or (phaseInText and ((type(BigWigsLoader)=='table') or (type(DBM)=='table'))) then
 			wipe(encounter_time_c)
 			wipe(encounter_time_wa_uids)
+			wipe(encounter_pd)
 			module.db.encounter_time = GetTime()
 			encounter_time_p[1] = module.db.encounter_time
 			encounter_time_p["1"] = module.db.encounter_time
+			encounter_time_p["g1"] = module.db.encounter_time
+			encounter_pd[1] = true
+			encounter_pd["1"] = true
+			encounter_pd["g1"] = true
 			currPhase = 1
 			currGlobalPhase = 1
 			BossPhasesBossmod()
@@ -4172,6 +4291,7 @@ do
 		wipe(encounter_time_p)
 		wipe(encounter_time_c)
 		wipe(encounter_time_wa_uids)
+		wipe(encounter_pd)
 
 		module:UnregisterEvents("COMBAT_LOG_EVENT_UNFILTERED")
 

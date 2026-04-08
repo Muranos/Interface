@@ -1,7 +1,7 @@
 ﻿-- Pawn by Vger-Azjol-Nerub
 -- www.vgermods.com
--- © 2006-2025 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
--- See Readme.htm for more information.
+-- © 2006-2026 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
+-- See Readme.md for more information.
 
 --
 -- Brazilian Portuguese resources
@@ -72,7 +72,7 @@ www.vgermods.com
 /pawn debug [ on | off ] -- mostra mensagens de debug no console do chat
 /pawn backup -- backup todas as suas tags de escala
  
-Para mais informações sobre personalizar o Pawn, favor veja o arquivo de ajuda (Readme.htm) que vem com o mod.]=],
+Para mais informações sobre personalizar o Pawn, favor veja o arquivo de ajuda (Readme.md) que vem com o mod.]=],
 	["ValueCalculationMessage"] = "   %g %s x %g cada = %g",
 	["VisibleScalesHeader"] = "Escalas de %s",
 	["Stats"] = {
@@ -127,12 +127,14 @@ Para mais informações sobre personalizar o Pawn, favor veja o arquivo de ajuda
 		["MovementSpeedInfo"] = "Velocidade de movimento. Faz com que o seu personagem corra mais rápido.",
 		["Mp5"] = "Mana a cada 5",
 		["Mp5Info"] = "Mana regeneration per 5 seconds.  Affects your mana regeneration even when in combat.",
+		["MultistrikeInfo"] = "Multistrike. Increases the chance that your attacks and healing spells will hit your target two extra times at reduced potency.",
 		["NatureResistInfo"] = "Nature Resistance.  Reduces the damage taken from nature-based attacks.",
 		["NatureSpellDamage"] = "Dano de Natureza",
 		["NatureSpellDamageInfo"] = "Nature damage.  Increases the damage dealt by your nature spells.",
 		["ParryInfo"] = "Parry.  Increases the chance that you'll parry enemy attacks.",
 		["Plate"] = "Placas",
 		["PlateInfo"] = "Pontos para distribuir se o item for de placas.",
+		["PvPPowerInfo"] = "Poder JxJ. Faz com que suas habilidades causem mais dano para outros jogadores (mas não para criaturas), e suas habilidades de cura curem outros jogadores para mais em algumas situações JxJ.",
 		["RapInfo"] = "Ranged Attack Power.  Increases the damage of ranged physical attacks.  Does not include attack power gained from agility.",
 		--[[Translation missing --]]
 		["ResilienceInfo"] = "Resilience. Reduces the chance that you'll be critically hit, and decreases the damage of critical hits that you do take.",
@@ -321,9 +323,7 @@ Quando você ganhar recompensas de missões ou saques de masmorras que possam se
 		["OptionsBagUpgradeAdvisor"] = "Mostrar assessor de melhorias de inventário",
 		["OptionsBagUpgradeAdvisorTooltip"] = [=[Ative esta opção para que o Pawn assuma a flecha de melhoria do inventário.
 
-Se estiver marcada, o Pawn vai encontrar melhorias no seu inventário e irá marcar itens que são melhorias para qualquer uma das escalas ativas com uma flecha verde.
-
-Se não estiver marcada, o WoW irá marcar itens com o nível de item maior do que o que estiver equipado, e o Pawn não vai interferir com a funcionalidade interna.]=],
+Se estiver marcada, o Pawn vai encontrar melhorias no seu inventário e irá marcar itens que são melhorias para qualquer uma das escalas ativas com uma flecha verde.]=],
 		["OptionsBlankLine"] = "Adiciona uma linha em branco antes dos valores",
 		["OptionsBlankLineTooltip"] = "Mantém a dica de ferramenta dos items bem arrumada habilitando essa opção, que adiciona uma linha em branco antes dos valores do Pawn.",
 		["OptionsButtonHidden"] = "Esconder",
@@ -528,7 +528,7 @@ PawnLocal.TooltipParsing = {
 	["Crit"] = "^%+?# Acerto Crítico%.?$",
 	["Crit2"] = "^%+?# de Acerto Crítico%.?$",
 	["CritPercent"] = "^Equipado: Aumenta em #%% a chance de realizar acertos críticos%.$",
-	["CritPercentCombined"] = "^Aumenta em #%% sua chance de obter acerto crítico com todos os feitiços e ataques%.$",
+	["CritPercentCombined"] = "^Equipado: Aumenta em #%% sua chance de obter acerto crítico com todos os feitiços e ataques%.$",
 	["CritRating"] = "^Equipado: Aumenta em # a taxa de acerto crítico%.$",
 	["CritRating2"] = "^UNUSED$",
 	["CritRating3"] = "^UNUSED$",
@@ -561,6 +561,7 @@ PawnLocal.TooltipParsing = {
 	["EnchantmentPyriumWeaponChain"] = "^Corrente de Arma de Pírio$",
 	["EnchantmentTitaniumWeaponChain"] = "^Corrente de Arma de Titânico$",
 	["Equip"] = "Equipado:",
+	["Expertise"] = "^%+?# Aptidão$",
 	["ExpertiseClassic"] = "^Equipado: Reduz em #%% a chance de os seus ataques serem esquivados ou aparados%.$",
 	["ExpertiseRating"] = "^Equipado: Aumenta em # a taxa de aptidão%.$",
 	["ExpertiseRatingShort"] = "^%+?# Taxa de Aptidão$",
@@ -602,6 +603,7 @@ PawnLocal.TooltipParsing = {
 	["HitRating2"] = "^Equipado: Aumenta em # a sua taxa de acerto%.$",
 	["HitRating3"] = "^UNUSED$",
 	["HitRatingShort"] = "^%+?# Taxa de Acerto$",
+	["HitRatingShorter"] = "^%+?# Acerto$",
 	["HolySpellDamage"] = "^%+# Dano Mágico Sagrados$",
 	["HolySpellDamage2"] = "^Equipado: Aumenta em até # o dano causado por feitiços e efeitos Sagrados%.$",
 	["HolySpellDamage3"] = "^UNUSED$",
@@ -676,7 +678,7 @@ PawnLocal.TooltipParsing = {
 	["SpellDamageAndHealingEnchant"] = "^%+# Cura e %+# Dano Mágico$",
 	["SpellDamageAndHealingShort"] = "^%+# Feitiços de Cura e %+# Feitiços de Dano$",
 	["SpellDamageAndHealingShort2"] = "^UNUSED$",
-	["SpellHasteClassic"] = "^Equipado: Aumenta em #%% sua velocidade de lançamento de feitiços não canalizados%.$",
+	["SpellHasteClassic"] = "^Equipado: Aumenta em #%% sua velocidade de lançamento%.$",
 	["SpellHasteRating"] = "^Equipado: Aumenta em # a taxa de aceleração de feitiço%.$",
 	["SpellHasteRatingShort"] = "^%+?# Taxa de Aceleração de Feitiço$",
 	["SpellHit"] = "^Equipado: Aumenta em #%% sua chance de acertar com feitiços%.$",
@@ -726,71 +728,77 @@ PawnLocal.TooltipParsing = {
 
 PawnLocal.Specs =
 {
-	[1] = {
-		{ Name="Armas", Icon=132355, Role="DAMAGER" },
-		{ Name="Fúria", Icon=132347, Role="DAMAGER" },
-		{ Name="Proteção", Icon=132341, Role="TANK" },
-	},
-	[2] = {
-		{ Name="Sagrado", Icon=135920, Role="HEALER" },
-		{ Name="Proteção", Icon=236264, Role="TANK" },
-		{ Name="Retribuição", Icon=135873, Role="DAMAGER" },
-	},
-	[3] = {
-		{ Name="Domínio das Feras", Icon=461112, Role="DAMAGER" },
-		{ Name="Precisão", Icon=236179, Role="DAMAGER" },
-		{ Name="Sobrevivência", Icon=461113, Role="DAMAGER" },
-	},
-	[4] = {
-		{ Name="Assassinato", Icon=236270, Role="DAMAGER" },
-		{ Name="Fora da Lei", Icon=236286, Role="DAMAGER" },
-		{ Name="Subterfúgio", Icon=132320, Role="DAMAGER" },
-	},
-	[5] = {
-		{ Name="Disciplina", Icon=135940, Role="HEALER" },
-		{ Name="Sagrado", Icon=237542, Role="HEALER" },
-		{ Name="Sombra", Icon=136207, Role="DAMAGER" },
-	},
-	[6] = {
-		{ Name="Sangue", Icon=135770, Role="TANK" },
-		{ Name="Gélido", Icon=135773, Role="DAMAGER" },
-		{ Name="Profano", Icon=135775, Role="DAMAGER" },
-	},
-	[7] = {
-		{ Name="Elemental", Icon=136048, Role="DAMAGER" },
-		{ Name="Aperfeiçoamento", Icon=237581, Role="DAMAGER" },
-		{ Name="Restauração", Icon=136052, Role="HEALER" },
-	},
-	[8] = {
-		{ Name="Arcano", Icon=135932, Role="DAMAGER" },
-		{ Name="Fogo", Icon=135810, Role="DAMAGER" },
-		{ Name="Gélido", Icon=135846, Role="DAMAGER" },
-	},
-	[9] = {
-		{ Name="Suplício", Icon=136145, Role="DAMAGER" },
-		{ Name="Demonologia", Icon=136172, Role="DAMAGER" },
-		{ Name="Destruição", Icon=136186, Role="DAMAGER" },
-	},
-	[10] = {
-		{ Name="Mestre Cervejeiro", Icon=608951, Role="TANK" },
-		{ Name="Tecelão da Névoa", Icon=608952, Role="HEALER" },
-		{ Name="Andarilho do Vento", Icon=608953, Role="DAMAGER" },
-	},
-	[11] = {
-		{ Name="Equilíbrio", Icon=136096, Role="DAMAGER" },
-		{ Name="Feral", Icon=132115, Role="DAMAGER" },
-		{ Name="Guardião", Icon=132276, Role="TANK" },
-		{ Name="Restauração", Icon=136041, Role="HEALER" },
-	},
-	[12] = {
-		{ Name="Devastação", Icon=1247264, Role="DAMAGER" },
-		{ Name="Vingança", Icon=1247265, Role="TANK" },
-	},
+    [1] = {
+        { Name="Armas", Icon=132355, Role="DAMAGER" },
+        { Name="Fúria", Icon=132347, Role="DAMAGER" },
+        { Name="Proteção", Icon=132341, Role="TANK" },
+    },
+    [2] = {
+        { Name="Sagrado", Icon=135920, Role="HEALER" },
+        { Name="Proteção", Icon=236264, Role="TANK" },
+        { Name="Retribuição", Icon=135873, Role="DAMAGER" },
+    },
+    [3] = {
+        { Name="Domínio das Feras", Icon=461112, Role="DAMAGER" },
+        { Name="Precisão", Icon=236179, Role="DAMAGER" },
+        { Name="Sobrevivência", Icon=461113, Role="DAMAGER" },
+    },
+    [4] = {
+        { Name="Assassinato", Icon=236270, Role="DAMAGER" },
+        { Name="Fora da Lei", Icon=236286, Role="DAMAGER" },
+        { Name="Subterfúgio", Icon=132320, Role="DAMAGER" },
+    },
+    [5] = {
+        { Name="Disciplina", Icon=135940, Role="HEALER" },
+        { Name="Sagrado", Icon=237542, Role="HEALER" },
+        { Name="Sombra", Icon=136207, Role="DAMAGER" },
+    },
+    [6] = {
+        { Name="Sangue", Icon=135770, Role="TANK" },
+        { Name="Gélido", Icon=135773, Role="DAMAGER" },
+        { Name="Profano", Icon=135775, Role="DAMAGER" },
+    },
+    [7] = {
+        { Name="Elemental", Icon=136048, Role="DAMAGER" },
+        { Name="Aperfeiçoamento", Icon=237581, Role="DAMAGER" },
+        { Name="Restauração", Icon=136052, Role="HEALER" },
+    },
+    [8] = {
+        { Name="Arcano", Icon=135932, Role="DAMAGER" },
+        { Name="Fogo", Icon=135810, Role="DAMAGER" },
+        { Name="Gélido", Icon=135846, Role="DAMAGER" },
+    },
+    [9] = {
+        { Name="Suplício", Icon=136145, Role="DAMAGER" },
+        { Name="Demonologia", Icon=136172, Role="DAMAGER" },
+        { Name="Destruição", Icon=136186, Role="DAMAGER" },
+    },
+    [10] = {
+        { Name="Mestre Cervejeiro", Icon=608951, Role="TANK" },
+        { Name="Tecelão da Névoa", Icon=608952, Role="HEALER" },
+        { Name="Andarilho do Vento", Icon=608953, Role="DAMAGER" },
+    },
+    [11] = {
+        { Name="Equilíbrio", Icon=136096, Role="DAMAGER" },
+        { Name="Feral", Icon=132115, Role="DAMAGER" },
+        { Name="Guardião", Icon=132276, Role="TANK" },
+        { Name="Restauração", Icon=136041, Role="HEALER" },
+    },
+    [12] = {
+        { Name="Devastação", Icon=1247264, Role="DAMAGER" },
+        { Name="Vingança", Icon=1247265, Role="TANK" },
+        { Name="Devorador", Icon=7455385, Role="DAMAGER" },
+    },
+    [13] = {
+        { Name="Devastação", Icon=4511811, Role="DAMAGER" },
+        { Name="Preservação", Icon=4511812, Role="HEALER" },
+        { Name="Aprimoramento", Icon=5198700, Role="DAMAGER" },
+    },
 }
 
 -- Special case: wands actually use different text on live versus classic.
 -- So, patch things up here.
-if VgerCore.IsClassic or VgerCore.IsBurningCrusade or VgerCore.IsWrath or VgerCore.IsCataclysm then
+if VgerCore.IsClassic or VgerCore.IsBurningCrusade or VgerCore.IsWrath or VgerCore.IsCataclysm or VgerCore.IsMists then
 
 	local TooltipParsing_Classic =
 	{
@@ -816,9 +824,6 @@ end
 
 end
 
-if GetLocale() == "ptBR" then
-	PawnUseThisLocalization()
-end
-
--- After using this localization or deciding that we don't need it, remove it from memory.
+-- Initiate self-destruct sequence.
+PawnUseThisLocalization()
 PawnUseThisLocalization = nil

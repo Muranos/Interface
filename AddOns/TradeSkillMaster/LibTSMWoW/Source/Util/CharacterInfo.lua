@@ -33,8 +33,10 @@ end
 ---Gets the max player level.
 ---@return number
 function CharacterInfo.GetMaxLevel()
-	if ClientInfo.IsCataClassic() then
-		return 85
+	if ClientInfo.IsPandaClassic() then
+		return 90
+	elseif ClientInfo.IsBCClassic() then
+		return 70
 	elseif ClientInfo.IsVanillaClassic() then
 		return 60
 	elseif ClientInfo.IsRetail() then

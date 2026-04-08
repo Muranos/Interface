@@ -9,12 +9,14 @@ function addon:initSystemFrames()
     for _, frame in ipairs(EditModeManagerFrame.registeredSystemFrames) do
         local name = frame:GetName()
         if not db[name] then db[name] = {} end
-        lib:RegisterFrame(frame, "", db[name])
+        addon:registerFrame(frame, "", db[name])
     end
     
     -- The earlier RegisterFrame will :SetShown(true) the TalkingHeadFrame if it was set to Hide then unset.
     -- Since its actually not normally shown on login, we will immediately re-hide it again.
-    TalkingHeadFrame:Hide()
+    if TalkingHeadFrame then
+        TalkingHeadFrame:Hide()
+    end
 end
 
 local function getToggleInCombatText(hidden)
@@ -25,7 +27,7 @@ local function getToggleInCombatText(hidden)
     end
 end
     
-local actionbars = {[MainMenuBar]=true, [MultiBarBottomLeft]=true, [MultiBarBottomRight]=true, [MultiBarRight]=true, [MultiBarLeft]=true, [MultiBar5]=true, [MultiBar6]=true, [MultiBar7]=true}
+local actionbars = {[MainActionBar]=true, [MultiBarBottomLeft]=true, [MultiBarBottomRight]=true, [MultiBarRight]=true, [MultiBarLeft]=true, [MultiBar5]=true, [MultiBar6]=true, [MultiBar7]=true}
 function addon:registerSecureFrameHideable(frame, usePoint, onHide, onShow)
     local hidden, toggleInCombat, x, y, point, parent, relativePoint
     local override
@@ -116,6 +118,14 @@ function addon:registerSecureFrameHideable(frame, usePoint, onHide, onShow)
             show()
         end,
         "HidePermanently")
+    
+    RunNextFrame(function()
+        if InCombatLockdown() then return end
+        if hidden then
+            show()
+            hide()
+        end
+    end)
     
     local onResetFunctionToggle = lib:RegisterCustomCheckbox(frame, function() return getToggleInCombatText(hidden) end,
         function()

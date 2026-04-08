@@ -74,6 +74,7 @@ L['elite'] = 'Elite'
 L['quest'] = 'Quest'
 L['quest_repeatable'] = 'Repeatable Quest'
 L['achievement'] = 'Achievement'
+L['decor_owned'] = 'Owned: %s'
 
 ---------------------------------- LOCATION -----------------------------------
 L['in_cave'] = 'In a cave.'
@@ -93,6 +94,7 @@ L['time_format_12hrs'] = '%B %d - %I:%M %p local time'
 L['time_format_24hrs'] = '%B %d - %H:%M local time'
 
 ----------------------------------- REWARDS -----------------------------------
+L['decor'] = 'Housing Decor'
 L['heirloom'] = 'Heirloom'
 L['item'] = 'Item'
 L['mount'] = 'Mount'
@@ -118,23 +120,23 @@ L['rep_revered'] = 'Revered'
 L['rep_exalted'] = 'Exalted'
 
 -------------------------------------------------------------------------------
---------------------------------- DRAGONRACES ---------------------------------
+------------------------------- SKYRIDING RACES -------------------------------
 -------------------------------------------------------------------------------
 
-L['dr_your_best_time'] = 'Your best time:'
-L['dr_your_target_time'] = 'Target time:'
-L['dr_best_time'] = ' - %s: %.3fs'
-L['dr_target_time'] = ' - %s: %ss / %ss'
-L['dr_normal'] = 'Normal'
-L['dr_advanced'] = 'Advanced'
-L['dr_reverse'] = 'Reverse'
-L['dr_challenge'] = 'Challenge'
-L['dr_reverse_challenge'] = 'Reverse Challenge'
-L['dr_storm_race'] = 'Storm Race'
-L['dr_bronze'] = 'Finish the race to get ' .. ns.color.Bronze('Bronze') .. '.'
-L['dr_vendor_note'] = 'Exchange {currency:2588} for drakewatcher manuscripts and transmog.'
-L['options_icons_dragonrace'] = 'Dragonriding Races'
-L['options_icons_dragonrace_desc'] = 'Display all race locations for the zone.'
+L['sr_your_best_time'] = 'Your best time:'
+L['sr_your_target_time'] = 'Target time:'
+L['sr_best_time'] = ' - %s: %.3fs'
+L['sr_target_time'] = ' - %s: %ss / %ss'
+L['sr_normal'] = 'Normal'
+L['sr_advanced'] = 'Advanced'
+L['sr_reverse'] = 'Reverse'
+L['sr_challenge'] = 'Challenge'
+L['sr_reverse_challenge'] = 'Reverse Challenge'
+L['sr_storm_race'] = 'Storm Race'
+L['sr_bronze'] = 'Finish the race to get ' .. ns.color.Bronze('Bronze') .. '.'
+L['sr_vendor_note'] = 'Exchange {currency:2588} for drakewatcher manuscripts and transmog.'
+L['options_icons_skyriding_race'] = 'Skyriding Races'
+L['options_icons_skyriding_race_desc'] = 'Display all race locations for the zone.'
 
 -------------------------------------------------------------------------------
 --------------------------------- CONTEXT MENU --------------------------------
@@ -204,6 +206,8 @@ L['ignore_faction_restrictions_desc'] = 'Show groups, nodes and rewards that req
 L['options_rewards_settings'] = 'Rewards'
 L['options_reward_behaviors_settings'] = 'Reward Behaviors'
 L['options_reward_types'] = 'Show reward types'
+L['options_decor_rewards'] = 'Show decor rewards'
+L['options_decor_rewards_desc'] = 'Display housing decor rewards in tooltips.'
 L['options_manuscript_rewards'] = 'Show drakewatcher manuscript rewards'
 L['options_manuscript_rewards_desc'] = 'Display drakewatcher manuscript rewards in tooltips and track their collected status.'
 L['options_mount_rewards'] = 'Show mount rewards'

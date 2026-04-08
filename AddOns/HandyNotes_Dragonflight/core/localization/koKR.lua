@@ -74,6 +74,7 @@ L['elite'] = '정예'
 L['quest'] = nil
 L['quest_repeatable'] = nil
 L['achievement'] = nil
+L['decor_owned'] = nil
 
 ---------------------------------- LOCATION -----------------------------------
 L['in_cave'] = '동굴 안에 있음.'
@@ -93,6 +94,7 @@ L['time_format_12hrs'] = nil
 L['time_format_24hrs'] = nil
 
 ----------------------------------- REWARDS -----------------------------------
+L['decor'] = '하우징 장식'
 L['heirloom'] = '유산'
 L['item'] = nil
 L['mount'] = '탈것'
@@ -118,23 +120,23 @@ L['rep_revered'] = nil
 L['rep_exalted'] = nil
 
 -------------------------------------------------------------------------------
---------------------------------- DRAGONRACES ---------------------------------
+------------------------------- SKYRIDING RACES -------------------------------
 -------------------------------------------------------------------------------
 
-L['dr_your_best_time'] = nil
-L['dr_your_target_time'] = nil
-L['dr_best_time'] = ' - %s: %.3fs'
-L['dr_target_time'] = ' - %s: %ss / %ss'
-L['dr_normal'] = nil
-L['dr_advanced'] = nil
-L['dr_reverse'] = nil
-L['dr_challenge'] = nil
-L['dr_reverse_challenge'] = nil
-L['dr_storm_race'] = nil
-L['dr_bronze'] = '경주를 완주하고 ' .. ns.color.Bronze('동메달') .. '을 획득하세요.'
-L['dr_vendor_note'] = nil
-L['options_icons_dragonrace'] = '용 조련술 경주'
-L['options_icons_dragonrace_desc'] = '용 조련술 경주 위치를 표시합니다.'
+L['sr_your_best_time'] = nil
+L['sr_your_target_time'] = nil
+L['sr_best_time'] = ' - %s: %.3fs'
+L['sr_target_time'] = ' - %s: %ss / %ss'
+L['sr_normal'] = nil
+L['sr_advanced'] = nil
+L['sr_reverse'] = nil
+L['sr_challenge'] = nil
+L['sr_reverse_challenge'] = nil
+L['sr_storm_race'] = nil
+L['sr_bronze'] = '경주를 완주하고 ' .. ns.color.Bronze('동메달') .. '을 획득하세요.'
+L['sr_vendor_note'] = nil
+L['options_icons_skyriding_race'] = '용 조련술 경주'
+L['options_icons_skyriding_race_desc'] = '용 조련술 경주 위치를 표시합니다.'
 
 -------------------------------------------------------------------------------
 --------------------------------- CONTEXT MENU --------------------------------
@@ -204,6 +206,8 @@ L['ignore_faction_restrictions_desc'] = nil
 L['options_rewards_settings'] = '보상'
 L['options_reward_behaviors_settings'] = nil
 L['options_reward_types'] = '보상 종류 표시'
+L['options_decor_rewards'] = nil
+L['options_decor_rewards_desc'] = nil
 L['options_manuscript_rewards'] = nil
 L['options_manuscript_rewards_desc'] = nil
 L['options_mount_rewards'] = '탈것 보상 표시'

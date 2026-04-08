@@ -3,6 +3,10 @@ local P = E.Party
 local BarFrameIconMixin = P.BarFrameIconMixin
 
 function BarFrameIconMixin:SetCooldownElements()
+	if self.isUserSyncOnly then
+		return
+	end
+
 	local noSwipe = self.isHighlighted or self.active ~= 0 or (self.statusBar and not E.db.extraBars[self.statusBar.key].nameBar)
 	local noCount = noSwipe or not E.db.icons.showCounter
 	self.cooldown:SetDrawEdge(not self.isHighlighted and self.maxcharges)
@@ -22,6 +26,8 @@ function BarFrameIconMixin:ResetCooldown(resetAllCharges)
 	if not info then
 		return
 	end
+
+
 
 	local active = info.active[self.spellID]
 	if not active then
@@ -59,6 +65,10 @@ function BarFrameIconMixin:ResetCooldown(resetAllCharges)
 		active.charges = currCharges
 		self.count:SetText(currCharges)
 		self.active = currCharges
+
+		if self.isUserSyncOnly then
+			return
+		end
 
 		self:SetCooldownElements()
 		self:SetOpacity()
@@ -259,6 +269,10 @@ function BarFrameIconMixin:StartCooldown(cd, isRecharge, noGlow, reducedStartTim
 
 	self.active = currCharges or 0
 
+	if self.isUserSyncOnly then
+		return
+	end
+
 	local frame = self:GetParent():GetParent()
 	local key = frame.key
 	if type(key) == "number" then
@@ -283,7 +297,7 @@ function BarFrameIconMixin:StartCooldown(cd, isRecharge, noGlow, reducedStartTim
 	end
 end
 
-local MIN_RESET_DURATION = ((E.isWOTLKC or E.isCata) or E.TocVersion > 90100) and 120 or 180
+local MIN_RESET_DURATION = (E.isWOTLKC or E.isCata or E.TocVersion > 90100) and 120 or 180
 function P:ResetAllIcons(reason, clearSession)
 	local notEncounterEnd = reason ~= "encounterEnd"
 	for guid, info in pairs(self.groupInfo) do

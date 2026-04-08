@@ -1,5 +1,9 @@
 local GlobalAddonName, ExRT = ...
 
+if ExRT.isMN then
+	return
+end
+
 local max = max
 local ceil = ceil
 local UnitCombatlogname = ExRT.F.UnitCombatlogname
@@ -26,6 +30,9 @@ local tremove = tremove
 local strsplit = strsplit
 local type = type
 local GetSpellTexture = C_Spell and C_Spell.GetSpellTexture or GetSpellTexture
+local COMBATLOG_OBJECT_RAIDTARGET_MASK = COMBATLOG_OBJECT_RAIDTARGET_MASK
+local SendChatMessage = C_ChatInfo and C_ChatInfo.SendChatMessage or SendChatMessage
+local IsEncounterInProgress = C_InstanceEncounter and C_InstanceEncounter.IsEncounterInProgress or IsEncounterInProgress
 
 local VMRT = nil
 
@@ -958,7 +965,7 @@ function _BW_End(encounterID)
 	local maxFights = (VMRT.BossWatcher.fightsNum or 5)
 	for i=25,1,-1 do
 		local data = module.db.data[i]
-		if data and data.encounterStart and data.encounterEnd and data.encounterID and (data.encounterEnd - data.encounterStart) < 20 then
+		if data and data.encounterStart and data.encounterEnd and data.encounterID and (data.encounterEnd - data.encounterStart) < 20 and not (not ExRT.isClassic and PlayerGetTimerunningSeasonID and PlayerGetTimerunningSeasonID()) then
 			local c = 0
 			for k,v in pairs(data.raidguids) do 
 				c = c + 1 
@@ -2448,6 +2455,9 @@ CLEUParser = function(timestamp,event,hideCaster,sourceGUID,sourceName,sourceFla
 	reactionData[sourceGUID] = sourceFlags
 	reactionData[destGUID] = destFlags
 
+	sourceFlags2 = bit_band(sourceFlags2, COMBATLOG_OBJECT_RAIDTARGET_MASK)
+	destFlags2 = bit_band(destFlags2, COMBATLOG_OBJECT_RAIDTARGET_MASK)
+
 	local func = CLEU[event]
 	if func then
 		return func(timestamp,event,hideCaster,sourceGUID,sourceName,sourceFlags,sourceFlags2,destGUID,destName,destFlags,destFlags2,val1,val2,val3,val4,val5,val6,val7,val8,val9,val10,val11,val12,val13)
@@ -2475,6 +2485,9 @@ if ExRT.isClassic and not ExRT.isCata then
 	
 		reactionData[sourceGUID] = sourceFlags
 		reactionData[destGUID] = destFlags
+
+		sourceFlags2 = bit_band(sourceFlags2, COMBATLOG_OBJECT_RAIDTARGET_MASK)
+		destFlags2 = bit_band(destFlags2, COMBATLOG_OBJECT_RAIDTARGET_MASK)
 	
 		local func = CLEU[event]
 		if func then
@@ -2928,11 +2941,11 @@ function BWInterfaceFrameLoad()
 	---- Bugfix functions
 	local _GetSpellLink = C_Spell and C_Spell.GetSpellLink or GetSpellLink
 	local function GetSpellLink(spellID)
-		local link = _GetSpellLink(spellID)
+		local link = _GetSpellLink(spellID or 0)
 		if link then
 			return link
 		end
-		local spellName = GetSpellInfo(spellID)
+		local spellName = GetSpellInfo(spellID or 0)
 		return spellName or "Unk"
 	end
 
@@ -5294,7 +5307,11 @@ function BWInterfaceFrameLoad()
 		line.total:SetText(total and ExRT.F.shortNumber(total) or "")
 		do
 			dps = dps or 0
-			line.dps:SetFormattedText("%s.%s",FormatLargeNumber(floor(dps)),format("%.2f",dps % 1):gsub("^.-%.",""))
+			if PlayerGetTimerunningSeasonID and PlayerGetTimerunningSeasonID() == 2 then
+				line.dps:SetFormattedText("%.1f%s",dps / (dps >= 1000000 and 1000000 or 1000),dps > 1000000 and "m" or "k")
+			else
+				line.dps:SetFormattedText("%s.%s",FormatLargeNumber(floor(dps)),format("%.2f",dps % 1):gsub("^.-%.",""))
+			end
 		end
 		line.overall:SetGradient("HORIZONTAL",CreateColor(0,0,0,0), CreateColor(0,0,0,0))
 		line.overall_black:SetGradient("HORIZONTAL",CreateColor(0,0,0,0), CreateColor(0,0,0,0))

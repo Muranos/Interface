@@ -1,22 +1,21 @@
 local _, app = ...;
-if app.IsClassic then return; end	-- Disable this in Classic
-local L, settings = app.L.SETTINGS_MENU, app.Settings;
+local L, settings = app.L, app.Settings;
 
 -- Settings: Commands Page
-local child = settings:CreateOptionsPage("Commands", L.FEATURES_PAGE)
+local child = settings:CreateOptionsPage(L.COMMANDS_PAGE, L.FEATURES_PAGE)
 
 -- CONTENT
-local headerCommands = child:CreateHeaderLabel("Chat commands to view any thing")
+local headerCommands = child:CreateHeaderLabel(L.COMMANDS_HEADER_LABEL)
 if child.separator then
 	headerCommands:SetPoint("TOPLEFT", child.separator, "BOTTOMLEFT", 8, -8);
 else
 	headerCommands:SetPoint("TOPLEFT", child, "TOPLEFT", 8, -8);
 end
 
-local textCommands1 = child:CreateTextLabel("|cffFFFFFFIDs can be found by looking at the WoWHead address, or turning on the various IDs in the ATT settings.")
+local textCommands1 = child:CreateTextLabel(L.COMMANDS_PART_1)
 textCommands1:SetPoint("TOPLEFT", headerCommands, "BOTTOMLEFT", 0, -8)
 textCommands1:SetWidth(textCommands1:GetUnboundedStringWidth())
-local textCommands2 = child:CreateTextLabel("|cffFFFFFFAs an example, using |r|cff00FF98/att achievement:9547|r|cffFFFFFF will show you something awesome!")
+local textCommands2 = child:CreateTextLabel(L.COMMANDS_PART_2)
 textCommands2:SetPoint("TOPLEFT", headerCommands, "BOTTOMLEFT", 0, -28)
 textCommands2:SetWidth(textCommands2:GetUnboundedStringWidth())
 
@@ -55,41 +54,42 @@ end
 
 -- TODO: Localize this
 CreateText1(L.ACHIEVEMENT)
-CreateText1("Artifact")
-CreateText1("Azerite Essence")
-CreateText1("Battle Pet")
-CreateText1("Category")
-CreateText1("Class")
-CreateText1("Conduit")
-CreateText1("Creature")
-CreateText1("Criteria")
-CreateText1("Currency")
-CreateText1("Difficulty")
-CreateText1("Encounter")
+CreateText1(L.ARTIFACT)
+CreateText1(L.AZERITE_ESSENCE)
+CreateText1(L.BATTLE_PET)
+CreateText1(L.CATEGORY)
+CreateText1(L.CLASSES)
+CreateText1(L.CONDUIT)
+CreateText1(L.CREATURE)
+CreateText1(L.CRITERIA)
+CreateText1(L.CURRENCY)
+CreateText1(L.DECOR)
+CreateText1(L.DIFFICULTY)
+CreateText1(L.ENCOUNTER)
 --CreateText1("Event")	-- TODO: Does not work currently
-CreateText1("Expansion")
-CreateText1("Exploration")
-CreateText1("Faction")
-CreateText1("Flight Path")
-CreateText1("Follower")
+CreateText1(L.EXPANSION)
+CreateText1(L.EXPLORATION)
+CreateText1(L.FACTION)
+CreateText1(L.FLIGHT_PATHS)
 
-CreateText2("Header")
-CreateText2("Heirloom (item)")
-CreateText2("Illusion")
+CreateText2(L.FOLLOWER)
+CreateText2(L.HEADER)
+CreateText2(L.HEIRLOOM)
+CreateText2(L.ILLUSION)
 --CreateText2("Instance")	-- TODO: Does not work currently
 CreateText2(L.ITEM)
-CreateText2("Map")
-CreateText2("Mount (spell)")
+CreateText2(L.MAP)
+CreateText2(L.MOUNT_SPELL)
 CreateText2("Npc")
-CreateText2("Object")
-CreateText2("Profession")
+CreateText2(L.OBJECT)
+CreateText2(L.PROFESSION)
 CreateText2(L.QUEST)
-CreateText2("Recipe (spell)")
-CreateText2("Runecarving Power")
-CreateText2("Source")
-CreateText2("Spell")
-CreateText2("Title")
-CreateText2("Toy (item)")
+CreateText2(L.RECIPE_SPELL)
+CreateText2(L.RUNECARVING_POWER)
+CreateText2(L.SOURCES)
+CreateText2(L.SPELL)
+CreateText2(L.TITLE_COMMANDS_UI)
+CreateText2(L.TOY_ITEM)
 
 CreateText3("/att achievement:ID")
 CreateText3("/att artifact:ID")
@@ -101,6 +101,7 @@ CreateText3("/att conduit:ID")
 CreateText3("/att creature:ID")
 CreateText3("/att criteriaid:ID")	-- TODO: Change once the non-ID version works
 CreateText3("/att currency:ID")
+CreateText3("/att decor:ID")
 CreateText3("/att difficulty:ID")
 CreateText3("/att encounter:ID")
 --CreateText3("/att event:ID")	-- TODO: Does not work currently
@@ -108,8 +109,8 @@ CreateText3("/att expansion:ID")
 CreateText3("/att exploration:ID")
 CreateText3("/att faction:ID")
 CreateText3("/att flightpath:ID")
-CreateText3("/att follower:ID")
 
+CreateText4("/att follower:ID")
 CreateText4("/att header:ID")
 CreateText4("/att heirloomid:ID")	-- TODO: Change once the non-ID version works
 CreateText4("/att illusion:ID")

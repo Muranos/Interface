@@ -4,7 +4,7 @@
 
 local mod, CL = BigWigs:NewBoss("Underrot Trash", 1841)
 if not mod then return end
-mod.displayName = CL.trash
+mod:SetTrashModule(true)
 mod:RegisterEnableMob(
 	133685, -- Befouled Spirit
 	131492, -- Devout Blood Priest
@@ -350,7 +350,6 @@ do
 		end
 	end
 end
-
 
 function mod:WickedEmbraceApplied(args)
 	if self:Me(args.destGUID) or self:Healer() or self:Dispeller("magic") then

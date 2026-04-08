@@ -19,6 +19,7 @@ local print = TMW.print
 
 local format = format
 local isNumber = TMW.isNumber
+local issecretvalue = TMW.issecretvalue
 
 local GetSpellInfo = TMW.GetSpellInfo
 local GetSpellLink = C_Spell and C_Spell.GetSpellLink or GetSpellLink
@@ -142,11 +143,13 @@ do
 		category = L["EVENT_CATEGORY_VISIBILITY"],
 		text = L["SOUND_EVENT_ONSHOW"],
 		desc = L["SOUND_EVENT_ONSHOW_DESC"],
+		maybeSecret = true,
 	})
 	Processor:RegisterIconEvent(12, "OnHide", {
 		category = L["EVENT_CATEGORY_VISIBILITY"],
 		text = L["SOUND_EVENT_ONHIDE"],
 		desc = L["SOUND_EVENT_ONHIDE_DESC"],
+		maybeSecret = true,
 		settings = {
 			OnlyShown = false,
 		},
@@ -158,6 +161,7 @@ do
 		category = L["EVENT_CATEGORY_VISIBILITY"],
 		text = L["SOUND_EVENT_ONALPHAINC"],
 		desc = L["SOUND_EVENT_ONALPHAINC_DESC"],
+		maybeSecret = true,
 		settings = {
 			Operator = true,
 			Value = true,
@@ -174,6 +178,7 @@ do
 		category = L["EVENT_CATEGORY_VISIBILITY"],
 		text = L["SOUND_EVENT_ONALPHADEC"],
 		desc = L["SOUND_EVENT_ONALPHADEC_DESC"],
+		maybeSecret = true,
 		settings = {
 			Operator = true,
 			Value = true,
@@ -226,6 +231,7 @@ do
 		if IconPosition_Sortable then
 			IconPosition_Sortable:RegisterIconSorter("alpha", {
 				DefaultOrder = -1,
+				maybeSecret = true,
 				[1] = L["UIPANEL_GROUPSORT_alpha_1"],
 				[-1] = L["UIPANEL_GROUPSORT_alpha_-1"],
 			}, function(iconA, iconB, attributesA, attributesB, order)
@@ -237,6 +243,7 @@ do
 
 			IconPosition_Sortable:RegisterIconSorter("shown", {
 				DefaultOrder = -1,
+				maybeSecret = true,
 				[1] = L["UIPANEL_GROUPSORT_shown_1"],
 				[-1] = L["UIPANEL_GROUPSORT_shown_-1"],
 			}, function(iconA, iconB, attributesA, attributesB, order)
@@ -316,7 +323,7 @@ end
 
 -- DURATION: "start, duration"
 do
-	local Processor = TMW.Classes.IconDataProcessor:New("DURATION", "start, duration, modRate", {"start, duration"})
+	local Processor = TMW.Classes.IconDataProcessor:New("DURATION", "start, duration, modRate, durObj", {"start, duration", "start, duration, modRate"})
 	Processor:DeclareUpValue("OnGCD", TMW.OnGCD)
 
 	TMW.Classes.Icon.attributes.start = 0
@@ -328,12 +335,14 @@ do
 		category = L["EVENT_CATEGORY_TIMER"],
 		text = L["SOUND_EVENT_ONSTART"],
 		desc = L["SOUND_EVENT_ONSTART_DESC"],
+		maybeSecret = true,
 	})
 
 	Processor:RegisterIconEvent(22, "OnFinish", {
 		category = L["EVENT_CATEGORY_TIMER"],
 		text = L["SOUND_EVENT_ONFINISH"],
 		desc = L["SOUND_EVENT_ONFINISH_DESC"],
+		maybeSecret = true,
 	})
 
 	Processor:RegisterIconEvent(23, "OnDuration", {
@@ -359,6 +368,9 @@ do
 		valueName = L["DURATION"],
 		conditionChecker = function(icon, eventSettings)
 			local attributes = icon.attributes
+			if issecretvalue(attributes.start) or issecretvalue(attributes.duration) then
+				return false
+			end
 			local d = (attributes.duration - (TMW.time - attributes.start)) / attributes.modRate
 			d = d > 0 and d or 0
 
@@ -368,6 +380,7 @@ do
 			EventSettings.CndtJustPassed = true
 			EventSettings.PassingCndt = true
 		end,
+		maybeSecret = true,
 	})
 
 	function Processor:CompileFunctionSegment(t)
@@ -376,42 +389,53 @@ do
 		duration = duration or 0
 		start = start or 0
 		modRate = modRate or 1
-		
-		if duration == 0.001 then duration = 0 end -- hardcode fix for tricks of the trade. nice hardcoding on your part too, blizzard
-
-		if EventHandlersSet.OnDuration then
-			local d = (duration - (TMW.time - start)) / modRate
-			d = d > 0 and d or 0
-			
-			if d ~= icon.__lastDur then
-				icon:QueueEvent("OnDuration")
-				icon.__lastDur = d
-			end
-		end
-
-		if attributes.start ~= start or attributes.duration ~= duration or attributes.modRate ~= modRate then
-
-			local realDuration = icon:OnGCD(duration) and 0 or duration -- the duration of the cooldown, ignoring the GCD
-			if icon.__realDuration ~= realDuration then
-				-- detect events that occured, and handle them if they did
-				if realDuration == 0 then
-					if EventHandlersSet.OnFinish then
-						icon:QueueEvent("OnFinish")
-					end
-				else
-					if EventHandlersSet.OnStart then
-						icon:QueueEvent("OnStart")
-					end
-				end
-				icon.__realDuration = realDuration
-			end
-
+		if issecretvalue(duration) or issecretvalue(attributes.duration)
+		or issecretvalue(start) or issecretvalue(attributes.start) then
 			attributes.start = start
 			attributes.duration = duration
 			attributes.modRate = modRate
+			attributes.durObj = durObj
 
-			TMW:Fire(DURATION.changedEvent, icon, start, duration, modRate)
+			TMW:Fire(DURATION.changedEvent, icon, start, duration, modRate, durObj)
 			doFireIconUpdated = true
+		else
+			
+			if duration == 0.001 then duration = 0 end -- hardcode fix for tricks of the trade. nice hardcoding on your part too, blizzard
+
+			if EventHandlersSet.OnDuration then
+				local d = (duration - (TMW.time - start)) / modRate
+				d = d > 0 and d or 0
+				
+				if d ~= icon.__lastDur then
+					icon:QueueEvent("OnDuration")
+					icon.__lastDur = d
+				end
+			end
+
+			if attributes.start ~= start or attributes.duration ~= duration or attributes.modRate ~= modRate then
+				local realDuration = icon:OnGCD(duration) and 0 or duration -- the duration of the cooldown, ignoring the GCD
+				if icon.__realDuration ~= realDuration then
+					-- detect events that occured, and handle them if they did
+					if realDuration == 0 then
+						if EventHandlersSet.OnFinish then
+							icon:QueueEvent("OnFinish")
+						end
+					else
+						if EventHandlersSet.OnStart then
+							icon:QueueEvent("OnStart")
+						end
+					end
+					icon.__realDuration = realDuration
+				end
+
+				attributes.start = start
+				attributes.duration = duration
+				attributes.modRate = modRate
+				attributes.durObj = durObj
+
+				TMW:Fire(DURATION.changedEvent, icon, start, duration, modRate, durObj)
+				doFireIconUpdated = true
+			end
 		end
 		--]]
 	end
@@ -459,11 +483,15 @@ do
 	TMW:RegisterCallback("TMW_ONUPDATE_TIMECONSTRAINED_PRE", function(event, time, Locked)
 		for icon, durations in pairs(DurationTriggers) do
 			if #durations > 0 then
+				local start, duration = icon.attributes.start, icon.attributes.duration
 				local lastCheckedDuration = durations.last or 0
 
-				local currentIconDuration = (icon.attributes.duration - (time - icon.attributes.start)) / icon.attributes.modRate
+				local currentIconDuration = 
+					((issecretvalue(start) or issecretvalue(duration)) and 0)
+					or (duration - (time - start)) / icon.attributes.modRate
+
 				if currentIconDuration < 0 then currentIconDuration = 0 end
-				
+			
 				-- If the duration didn't change (i.e. it is 0) then don't even try.
 				if currentIconDuration ~= lastCheckedDuration then
 
@@ -499,14 +527,24 @@ do
 				DefaultOrder = 1,
 				[1] = L["UIPANEL_GROUPSORT_duration_1"],
 				[-1] = L["UIPANEL_GROUPSORT_duration_-1"],
+				maybeSecret = true,
 			}, function(iconA, iconB, attributesA, attributesB, order)
 				local time = TMW.time
 				
 				local durationA = attributesA.duration
 				local durationB = attributesB.duration
 
-				durationA = iconA:OnGCD(durationA) and 0 or ((durationA - (time - attributesA.start)) / attributesA.modRate)
-				durationB = iconB:OnGCD(durationB) and 0 or ((durationB - (time - attributesB.start)) / attributesA.modRate)
+				if issecretvalue(durationA) then
+					durationA = 0
+				else
+					durationA = iconA:OnGCD(durationA) and 0 or ((durationA - (time - attributesA.start)) / attributesA.modRate)
+				end
+				
+				if issecretvalue(durationB) then
+					durationB = 0
+				else
+					durationB = iconB:OnGCD(durationB) and 0 or ((durationB - (time - attributesB.start)) / attributesB.modRate)
+				end
 
 				if durationA ~= durationB then
 					return durationA*order < durationB*order
@@ -517,12 +555,22 @@ do
 				DefaultOrder = 1,
 				[1] = L["UIPANEL_GROUPSORT_start_1"],
 				[-1] = L["UIPANEL_GROUPSORT_start_-1"],
+				maybeSecret = true,
 			}, function(iconA, iconB, attributesA, attributesB, order)
 				local startA = attributesA.start
 				local startB = attributesB.start
 
-				startA = iconA:OnGCD(attributesA.duration) and 0 or startA
-				startB = iconB:OnGCD(attributesB.duration) and 0 or startB
+				if issecretvalue(startA) then
+					startA = 0
+				else
+					startA = iconA:OnGCD(attributesA.duration) and 0 or startA
+				end
+				
+				if issecretvalue(startB) then
+					startB = 0
+				else
+					startB = iconB:OnGCD(attributesB.duration) and 0 or startB
+				end
 
 				if startA ~= startB then
 					return startA*order < startB*order
@@ -573,7 +621,12 @@ do
 	function Processor:CompileFunctionSegment(t)
 		-- GLOBALS: spell
 		t[#t+1] = [[
-		if attributes.spell ~= spell then
+		if issecretvalue(spell) or issecretvalue(attributes.spell) then
+			attributes.spell = spell
+			TMW:Fire(SPELL.changedEvent, icon, spell)
+			doFireIconUpdated = true
+
+		elseif attributes.spell ~= spell then
 			attributes.spell = spell
 			
 			if EventHandlersSet.OnSpell then
@@ -599,7 +652,7 @@ do
 			if icon then
 				local name, checkcase = icon.typeData:FormatSpellForOutput(icon, icon.attributes.spell, link)
 				name = name or ""
-				if checkcase and name ~= "" then
+				if checkcase and not issecretvalue(name) and name ~= "" then
 					name = TMW:RestoreCase(name)
 				end
 				return name
@@ -630,53 +683,69 @@ end
 
 -- SPELLCHARGES: "charges, maxCharges, chargeStart, chargeDur"
 do
-	local Processor = TMW.Classes.IconDataProcessor:New("SPELLCHARGES", "charges, maxCharges, chargeStart, chargeDur")
+	local Processor = TMW.Classes.IconDataProcessor:New("SPELLCHARGES", 
+	"charges, maxCharges, chargeStart, chargeDur, chargeDurObj", {
+	"charges, maxCharges, chargeStart, chargeDur"
+	})
 
 	Processor:RegisterIconEvent(26, "OnChargeGained", {
 		category = L["EVENT_CATEGORY_CHARGES"],
 		text = L["SOUND_EVENT_ONCHARGEGAINED"],
 		desc = L["SOUND_EVENT_ONCHARGEGAINED_DESC"],
+		maybeSecret = true,
 	})
 
 	Processor:RegisterIconEvent(27, "OnChargeLost", {
 		category = L["EVENT_CATEGORY_CHARGES"],
 		text = L["SOUND_EVENT_ONCHARGELOST"],
 		desc = L["SOUND_EVENT_ONCHARGELOST_DESC"],
+		maybeSecret = true,
 	})
 
 	function Processor:CompileFunctionSegment(t)
 		-- GLOBALS: charges, maxCharges, chargeStart, chargeDur
 		t[#t+1] = [[
-		
-		if charges == maxCharges then
-			chargeStart, chargeDur = 0, 0
-		end
-			
-		if attributes.charges ~= charges
-		or attributes.maxCharges ~= maxCharges
-		or attributes.chargeStart ~= chargeStart
-		or attributes.chargeDur ~= chargeDur then
-
-			local oldCharges = attributes.charges
-			if charges and oldCharges then
-				if oldCharges > charges then
-					if EventHandlersSet.OnChargeLost then
-						icon:QueueEvent("OnChargeLost")
-					end
-				elseif oldCharges < charges then
-					if EventHandlersSet.OnChargeGained then
-						icon:QueueEvent("OnChargeGained")
-					end
-				end
-			end
-
+		if issecretvalue(charges) or issecretvalue(attributes.charges) then
 			attributes.charges = charges
 			attributes.maxCharges = maxCharges
 			attributes.chargeStart = chargeStart
 			attributes.chargeDur = chargeDur
+			attributes.chargeDurObj = chargeDurObj
 			
-			TMW:Fire(SPELLCHARGES.changedEvent, icon, charges, maxCharges, chargeStart, chargeDur)
+			TMW:Fire(SPELLCHARGES.changedEvent, icon, charges, maxCharges, chargeStart, chargeDur, chargeDurObj)
 			doFireIconUpdated = true
+		else
+			if charges == maxCharges then
+				chargeStart, chargeDur = 0, 0
+			end
+				
+			if attributes.charges ~= charges
+			or attributes.maxCharges ~= maxCharges
+			or attributes.chargeStart ~= chargeStart
+			or attributes.chargeDur ~= chargeDur then
+
+				local oldCharges = attributes.charges
+				if charges and oldCharges then
+					if oldCharges > charges then
+						if EventHandlersSet.OnChargeLost then
+							icon:QueueEvent("OnChargeLost")
+						end
+					elseif oldCharges < charges then
+						if EventHandlersSet.OnChargeGained then
+							icon:QueueEvent("OnChargeGained")
+						end
+					end
+				end
+
+				attributes.charges = charges
+				attributes.maxCharges = maxCharges
+				attributes.chargeStart = chargeStart
+				attributes.chargeDur = chargeDur
+				attributes.chargeDurObj = chargeDurObj
+				
+				TMW:Fire(SPELLCHARGES.changedEvent, icon, charges, maxCharges, chargeStart, chargeDur, chargeDurObj)
+				doFireIconUpdated = true
+			end
 		end
 		--]]
 	end
@@ -705,10 +774,17 @@ do
 
 			if icon then
 				local attributes = icon.attributes
+
+				if attributes.durObj then
+					if not gcd and attributes.durObj.isOnGCD then return 0 end
+					return attributes.durObj:GetRemainingDuration()
+				end
+
 				local modRate = attributes.modRate
+				if issecretvalue(modRate) then return 0 end
 
 				local chargeDur = attributes.chargeDur
-				if not ignoreCharges and chargeDur and chargeDur > 0 then
+				if not ignoreCharges and chargeDur and not issecretvalue(chargeDur) and chargeDur > 0 then
 
 					local remaining = (chargeDur - (TMW.time - attributes.chargeStart)) / modRate
 					if remaining > 0 then
@@ -717,6 +793,8 @@ do
 				end
 
 				local duration = attributes.duration
+				if issecretvalue(duration) then return 0 end
+				
 				local remaining = (duration - (TMW.time - attributes.start)) / modRate
 				if remaining <= 0 or (not gcd and icon:OnGCD(duration)) then
 					return 0
@@ -747,10 +825,14 @@ do
 			if icon then
 				local attributes = icon.attributes
 
+				if attributes.durObj then
+					return attributes.durObj:GetTotalDuration()
+				end
+
 				local duration = attributes.duration
 				
 				local chargeDur = attributes.chargeDur
-				if not ignoreCharges and chargeDur and chargeDur > 0 then
+				if not ignoreCharges and chargeDur and not issecretvalue(chargeDur) and chargeDur > 0 then
 					duration = chargeDur;
 				end
 
@@ -783,19 +865,27 @@ end
 
 -- VALUE: "value, maxValue, valueColor"
 do
-	local Processor = TMW.Classes.IconDataProcessor:New("VALUE", "value, maxValue, valueColor")
+	local Processor = TMW.Classes.IconDataProcessor:New("VALUE", "value, maxValue, valueColor, valueCurveFunc", { "value, maxValue, valueColor" })
 
 	function Processor:CompileFunctionSegment(t)
-		-- GLOBALS: value, maxValue, valueColor
+		-- GLOBALS: value, maxValue, valueColor, valueCurveFunc
 		t[#t+1] = [[
 		
-		if attributes.value ~= value or attributes.maxValue ~= maxValue or attributes.valueColor ~= valueColor then
+		if 
+			issecretvalue(value) or 
+			issecretvalue(attributes.value) or 
+			attributes.value ~= value or 
+			attributes.maxValue ~= maxValue or 
+			attributes.valueColor ~= valueColor or
+			attributes.valueCurveFunc ~= valueCurveFunc
+		then
 
 			attributes.value = value
 			attributes.maxValue = maxValue
 			attributes.valueColor = valueColor
+			attributes.valueCurveFunc = valueCurveFunc
 			
-			TMW:Fire(VALUE.changedEvent, icon, value, maxValue, valueColor)
+			TMW:Fire(VALUE.changedEvent, icon, value, maxValue, valueColor, valueCurveFunc)
 			doFireIconUpdated = true
 		end
 		--]]
@@ -813,8 +903,11 @@ do
 				DefaultOrder = -1,
 				[1] = L["UIPANEL_GROUPSORT_value_1"],
 				[-1] = L["UIPANEL_GROUPSORT_value_-1"],
+				maybeSecret = true,
 			}, function(iconA, iconB, attributesA, attributesB, order)
 				local a, b = attributesA.value, attributesB.value
+				if issecretvalue(a) then a = 0 end
+				if issecretvalue(b) then b = 0 end
 				if a ~= b then
 					return (a or 0)*order < (b or 0)*order
 				end
@@ -824,10 +917,20 @@ do
 				DefaultOrder = -1,
 				[1] = L["UIPANEL_GROUPSORT_valuep_1"],
 				[-1] = L["UIPANEL_GROUPSORT_valuep_-1"],
+				maybeSecret = true,
 			}, function(iconA, iconB, attributesA, attributesB, order)
 				
-				local a, b = attributesA.maxValue == 0 and 0 or attributesA.value / attributesA.maxValue,
-				             attributesB.maxValue == 0 and 0 or attributesB.value / attributesB.maxValue
+				local a, b
+				if issecretvalue(attributesA.value) then
+					a = 0
+				else
+					a = attributesA.maxValue == 0 and 0 or attributesA.value / attributesA.maxValue
+				end
+				if issecretvalue(attributesB.value) then
+					b = 0
+				else
+					b = attributesB.maxValue == 0 and 0 or attributesB.value / attributesB.maxValue
+				end
 				if a ~= b then
 					return (a or 0)*order < (b or 0)*order
 				end
@@ -838,10 +941,16 @@ do
 	Processor:RegisterDogTag("TMW", "Value", {
 		code = function(icon)
 			icon = TMW.GUIDToOwner[icon]
+			if not icon then return 0 end
 			
-			local value = icon and icon.attributes.value or 0
-			
-			return isNumber[value] or value
+			local value = icon.attributes.value
+
+			if issecretvalue(value) then 
+				if value == nil then return 0 end
+				return value 
+			end
+
+			return isNumber[value] or value or 0
 		end,
 		arg = {
 			'icon', 'string', '@req',
@@ -856,10 +965,16 @@ do
 	Processor:RegisterDogTag("TMW", "ValueMax", {
 		code = function(icon)
 			icon = TMW.GUIDToOwner[icon]
+			if not icon then return 0 end
 			
-			local maxValue = icon and icon.attributes.maxValue or 0
-			
-			return isNumber[maxValue] or maxValue
+			local value = icon.attributes.maxValue
+
+			if issecretvalue(value) then 
+				if value == nil then return 0 end
+				return value 
+			end
+
+			return isNumber[value] or value or 0
 		end,
 		arg = {
 			'icon', 'string', '@req',
@@ -868,6 +983,41 @@ do
 		ret = "number",
 		doc = L["DT_DOC_ValueMax"] .. "\r\n \r\n" .. L["DT_INSERTGUID_GENERIC_DESC"],
 		example = '[ValueMax] => "312856"; [ValueMax(icon="TMW:icon:1I7MnrXDCz8T")] => "3"',
+		category = L["ICON"],
+	})
+
+	Processor:RegisterDogTag("TMW", "ValuePercent", {
+		code = function(icon)
+			icon = TMW.GUIDToOwner[icon]
+			if not icon then return 0 end
+			
+			local valueCurveFunc = icon.attributes.valueCurveFunc
+			if valueCurveFunc then
+				return valueCurveFunc(CurveConstants.ScaleTo100)
+			end
+
+			local value = icon.attributes.value
+			local maxValue = icon.attributes.maxValue
+
+			if 
+				issecretvalue(value) or
+				issecretvalue(maxValue) or
+				not value or
+				not maxValue or
+				maxValue == 0
+			then
+				return 0
+			end
+
+			return value / maxValue * 100
+		end,
+		arg = {
+			'icon', 'string', '@req',
+		},
+		events = TMW:CreateDogTagEventString("VALUE"),
+		ret = "number",
+		doc = L["DT_DOC_ValuePercent"] .. "\r\n \r\n" .. L["DT_INSERTGUID_GENERIC_DESC"],
+		example = '[ValuePercent] => "82.5"; [ValuePercent(icon="TMW:icon:1I7MnrXDCz8T")] => "66.7"',
 		category = L["ICON"],
 	})
 end
@@ -884,7 +1034,13 @@ do
 	function Processor:CompileFunctionSegment(t)
 		--GLOBALS: stack, stackText
 		t[#t+1] = [[
-		if attributes.stack ~= stack or attributes.stackText ~= stackText then
+		if issecretvalue(stack) or issecretvalue(attributes.stack) then
+			attributes.stack = stack
+			attributes.stackText = stackText
+			TMW:Fire(STACK.changedEvent, icon, stack, stackText)
+			doFireIconUpdated = true
+
+		elseif attributes.stack ~= stack or attributes.stackText ~= stackText then
 			local old = attributes.stack
 			attributes.stack = stack
 			attributes.stackText = stackText
@@ -919,6 +1075,7 @@ do
 			local count = icon.attributes.stack or 0
 			return TMW.CompareFuncs[eventSettings.Operator](count, eventSettings.Value)
 		end,
+		maybeSecret = true,
 	})
 
 	Processor:RegisterIconEvent(51.1, "OnStackIncrease", {
@@ -936,6 +1093,7 @@ do
 			local count = icon.attributes.stack or 0
 			return TMW.CompareFuncs[eventSettings.Operator](count, eventSettings.Value)
 		end,
+		maybeSecret = true,
 	})
 
 	Processor:RegisterIconEvent(51.2, "OnStackDecrease", {
@@ -953,15 +1111,22 @@ do
 			local count = icon.attributes.stack or 0
 			return TMW.CompareFuncs[eventSettings.Operator](count, eventSettings.Value)
 		end,
+		maybeSecret = true,
 	})
 		
 	Processor:RegisterDogTag("TMW", "Stacks", {
 		code = function(icon)
 			icon = TMW.GUIDToOwner[icon]
+			if not icon then return 0 end
 			
-			local stacks = icon and icon.attributes.stackText or 0
-			
-			return isNumber[stacks] or stacks
+			local stack = icon.attributes.stackText
+
+			if issecretvalue(stack) then
+				if stack == nil then return 0 end
+				return stack
+			end
+
+			return isNumber[stack] or stack or 0
 		end,
 		arg = {
 			'icon', 'string', '@req',
@@ -980,8 +1145,13 @@ do
 				DefaultOrder = -1,
 				[1] = L["UIPANEL_GROUPSORT_stacks_1"],
 				[-1] = L["UIPANEL_GROUPSORT_stacks_-1"],
+				maybeSecret = true,
 			}, function(iconA, iconB, attributesA, attributesB, order)
-				local a, b = attributesA.stack or 0, attributesB.stack or 0
+				local a, b = attributesA.stack, attributesB.stack
+				if issecretvalue(a) then a = 0 end
+				if issecretvalue(b) then b = 0 end
+				a = a or 0
+				b = b or 0
 				if a ~= b then
 					return a*order < b*order
 				end
@@ -1012,7 +1182,14 @@ do
 	function Processor:CompileFunctionSegment(t)
 		-- GLOBALS: texture
 		t[#t+1] = [[
-		if texture ~= nil and attributes.texture ~= texture then
+		if texture == nil then
+			-- do nothing
+		elseif issecretvalue(texture) or issecretvalue(attributes.texture) then
+			attributes.texture = texture
+			TMW:Fire(TEXTURE.changedEvent, icon, texture)
+			doFireIconUpdated = true
+
+		elseif attributes.texture ~= texture then
 			attributes.texture = texture
 
 			TMW:Fire(TEXTURE.changedEvent, icon, texture)
@@ -1035,24 +1212,50 @@ do
 
 	function Processor:CompileFunctionSegment(t)
 		-- GLOBALS: unit, GUID
-		t[#t+1] = [[
-		
-		GUID = GUID or (unit and (unit == "player" and playerGUID or UnitGUID(unit)))
-		
-		if attributes.unit ~= unit or attributes.GUID ~= GUID then
-			local previousUnit = attributes.unit
-			attributes.previousUnit = previousUnit
-			attributes.unit = unit
-			attributes.GUID = GUID
 
-			if EventHandlersSet.OnUnit then
-				icon:QueueEvent("OnUnit")
+		-- Note on "not GUID": Any other case of missing GUID is useless to handle because
+		-- we can't do any logic against it.
+		if TMW.clientHasSecrets then
+			t[#t+1] = [[
+			
+			if not GUID and unit == "player" then
+				GUID = playerGUID
 			end
 			
-			TMW:Fire(UNIT.changedEvent, icon, unit, previousUnit, GUID)
-			doFireIconUpdated = true
+			if attributes.unit ~= unit then
+				local previousUnit = attributes.unit
+				attributes.previousUnit = previousUnit
+				attributes.unit = unit
+				attributes.GUID = GUID
+
+				if EventHandlersSet.OnUnit then
+					icon:QueueEvent("OnUnit")
+				end
+				
+				TMW:Fire(UNIT.changedEvent, icon, unit, previousUnit, GUID)
+				doFireIconUpdated = true
+			end
+			--]]
+		else
+			t[#t+1] = [[
+			
+			GUID = GUID or (unit and (unit == "player" and playerGUID or UnitGUID(unit)))
+			
+			if attributes.unit ~= unit or attributes.GUID ~= GUID then
+				local previousUnit = attributes.unit
+				attributes.previousUnit = previousUnit
+				attributes.unit = unit
+				attributes.GUID = GUID
+
+				if EventHandlersSet.OnUnit then
+					icon:QueueEvent("OnUnit")
+				end
+				
+				TMW:Fire(UNIT.changedEvent, icon, unit, previousUnit, GUID)
+				doFireIconUpdated = true
+			end
+			--]]
 		end
-		--]]
 	end
 
 	Processor:RegisterIconEvent(41, "OnUnit", {
@@ -1109,54 +1312,52 @@ end
 
 
 
-
--- DOGTAGUNIT: "dogTagUnit"
-do
-	local DogTag_Unit = LibStub("LibDogTag-Unit-3.0")
-
-		
+do 
+	
 	local Processor = TMW.Classes.IconDataProcessor:New("DOGTAGUNIT", "dogTagUnit")
 	Processor:AssertDependency("UNIT")
 
+	-- DOGTAGUNIT: "dogTagUnit"
+	local DogTag_Unit = LibStub("LibDogTag-Unit-3.0", true)
+	if DogTag_Unit then
+		--Here's the hook (the whole point of this thing)
+		local Hook = TMW.Classes.IconDataProcessorHook:New("UNIT_DOGTAGUNIT", "UNIT")
 
-	--Here's the hook (the whole point of this thing)
+		Hook:DeclareUpValue("DogTag_Unit", DogTag_Unit)
+		Hook:DeclareUpValue("TMW_UNITS", TMW.UNITS)
 
-	local Hook = TMW.Classes.IconDataProcessorHook:New("UNIT_DOGTAGUNIT", "UNIT")
+		Hook:RegisterCompileFunctionSegmentHook("post", function(Processor, t)
+			-- GLOBALS: unit
 
-	Hook:DeclareUpValue("DogTag_Unit", DogTag_Unit)
-	Hook:DeclareUpValue("TMW_UNITS", TMW.UNITS)
+			-- We shouldn't do this for meta icons.
+			-- If we do, the typeData.unitType will be wrong.
+			-- Instead, just let this be inherited normally from the DOGTAGUNIT processor.
+			-- I don't like coupling meta icons to this, but I can't see any other way that won't require
+			-- sweeping changes to the way that attribute inheriting works.
+			t[#t+1] = [[
+			if icon.Type ~= "meta" then
+				local dogTagUnit
+				local typeData = icon.typeData
 
-	Hook:RegisterCompileFunctionSegmentHook("post", function(Processor, t)
-		-- GLOBALS: unit
-
-		-- We shouldn't do this for meta icons.
-		-- If we do, the typeData.unitType will be wrong.
-		-- Instead, just let this be inherited normally from the DOGTAGUNIT processor.
-		-- I don't like coupling meta icons to this, but I can't see any other way that won't require
-		-- sweeping changes to the way that attribute inheriting works.
-		t[#t+1] = [[
-		if icon.Type ~= "meta" then
-			local dogTagUnit
-			local typeData = icon.typeData
-
-			if not typeData or typeData.unitType == "unitid" then
-				dogTagUnit = unit
-				if not DogTag_Unit.IsLegitimateUnit[dogTagUnit] then
-					dogTagUnit = dogTagUnit and TMW_UNITS:TestUnit(dogTagUnit)
+				if not typeData or typeData.unitType == "unitid" then
+					dogTagUnit = unit
 					if not DogTag_Unit.IsLegitimateUnit[dogTagUnit] then
-						dogTagUnit = "player"
+						dogTagUnit = dogTagUnit and TMW_UNITS:TestUnit(dogTagUnit)
+						if not DogTag_Unit.IsLegitimateUnit[dogTagUnit] then
+							dogTagUnit = "player"
+						end
 					end
+				else
+					dogTagUnit = "player"
 				end
-			else
-				dogTagUnit = "player"
+				
+				if attributes.dogTagUnit ~= dogTagUnit then
+					doFireIconUpdated = icon:SetInfo_INTERNAL("dogTagUnit", dogTagUnit) or doFireIconUpdated
+				end
 			end
-			
-			if attributes.dogTagUnit ~= dogTagUnit then
-				doFireIconUpdated = icon:SetInfo_INTERNAL("dogTagUnit", dogTagUnit) or doFireIconUpdated
-			end
-		end
-		--]]
-	end)
+			--]]
+		end)
+	end
 end
 
 

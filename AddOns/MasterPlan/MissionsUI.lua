@@ -507,14 +507,6 @@ local activeUI = CreateFrame("Frame", nil, missionList) do
 		b:SetPoint("BOTTOM", -64, 5)
 		b:SetText(L"Complete All")
 		b:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-		local function DissmissHelp(self)
-			if self.ShowingHelp then
-				HelpPlate_TooltipHide()
-				self.ShowingHelp = nil
-			end
-		end
-		b:SetScript("OnLeave", DissmissHelp)
-		b:SetScript("OnHide", DissmissHelp)
 		b:SetScript("OnKeyDown", function(self, key)
 			self:SetPropagateKeyboardInput(key ~= "SPACE")
 			if key == "SPACE" then
@@ -526,103 +518,7 @@ local activeUI = CreateFrame("Frame", nil, missionList) do
 		activeUI.orders:SetSize(28, 28)
 		activeUI.orders:SetPoint("BOTTOMRIGHT", -308, 3)
 	end
-	local ctl = CreateFrame("Frame") do
-		ctl:SetSize(29, 22)
-		activeUI.waste = CreateFrame("Button", nil, ctl) do
-			local popup = CreateFrame("Frame", nil, UIParent) do
-				local f = popup
-				f:SetFrameStrata("DIALOG")
-				f:SetSize(260, 68)
-				T.CreateEdge(f, {edgeFile="Interface/Tooltips/UI-Tooltip-Border", bgFile="Interface/DialogFrame/UI-DialogBox-Background-Dark", tile=true, edgeSize=16, tileSize=16, insets={left=4,right=4,bottom=4,top=4}}, 0xf2000000, 0xffbfbfbf)
-				f:SetHitRectInsets(-4, -4, 0, -4)
-				f:EnableMouse(true)
-				f:Hide()
-				local t = f:CreateFontString(nil, "ARTWORK", "GameTooltipHeaderText")
-				t:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)
-				t:SetText(L"Require Currency Reward")
-				t:SetPoint("TOPLEFT", 10, -10)
-				local s = CreateFrame("Slider", nil, popup)
-				s:SetSize(236, 17)
-				s:SetPoint("TOP", 0, -42)
-				s:SetHitRectInsets(0,0,-10,-10)
-				T.CreateEdge(s, {bgFile="Interface\\Buttons\\UI-SliderBar-Background", edgeFile="Interface\\Buttons\\UI-SliderBar-Border", tile=true, edgeSize=8, tileSize=8, insets={left=3,right=3,top=6,bottom=6}})
-				s:SetThumbTexture("Interface\\Buttons\\UI-SliderBar-Button-Horizontal")
-				local tt = s:GetThumbTexture()
-				tt:SetSize(24,32)
-				tt:SetTexCoord(4/32, 28/32, 0, 1)
-				s:SetOrientation("HORIZONTAL")
-				s:SetValue(110)
-				s:SetMinMaxValues(0, 100)
-				s:SetValueStep(10)
-				s:SetObeyStepOnDrag(true)
-				t = s:CreateTexture(nil, "BACKGROUND")
-				t:SetHeight(10)
-				t:SetColorTexture(0, 1, 0)
-				t:SetAlpha(0.25)
-				t:SetPoint("LEFT", 3, 0)
-				t:SetPoint("RIGHT", tt, "CENTER", 0, 0)
-				t = s:CreateTexture(nil, "BACKGROUND")
-				t:SetHeight(10)
-				t:SetColorTexture(1, 0, 0)
-				t:SetAlpha(0.25)
-				t:SetPoint("RIGHT", -3, 0)
-				t:SetPoint("LEFT", tt, "CENTER", 0, 0)
-				local lo = s:CreateFontString(nil, "ARTWORK", "GameFontDisableSmallLeft")
-				lo:SetPoint("BOTTOMLEFT", s, "TOPLEFT", 0, 0)
-				lo:SetText("0%")
-				local hi = s:CreateFontString(nil, "ARTWORK", "GameFontDisableSmallLeft")
-				hi:SetPoint("BOTTOMRIGHT", s, "TOPRIGHT", 4, 0)
-				hi:SetText("100%")
-				local vt = s:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-				vt:SetPoint("BOTTOM", tt, "TOP", 0, -6)
-				s:SetScript("OnValueChanged", function(_self, v, user)
-					if user then
-						T.config.currencyWasteThreshold = 1-v/100
-					end
-					vt:SetText(v .. "%")
-					hi:SetAlpha(v < 90 and 1 or 0)
-					lo:SetAlpha(v > 10 and 1 or 0)
-				end)
-				s:SetScript("OnShow", function(self)
-					self:SetValue((1-T.config.currencyWasteThreshold)*100)
-				end)
-				s:SetValue(0)
-			end
-			local b = activeUI.waste
-			b:SetSize(20, 20)
-			b:SetPoint("LEFT", 4, 0)
-			b:SetNormalTexture("Interface\\Minimap\\ObjectIcons")
-			b:SetDisabledTexture("Interface\\Minimap\\ObjectIcons")
-			b:SetHighlightTexture("Interface\\Minimap\\ObjectIcons")
-			local nt = b:GetNormalTexture()
-			nt:SetTexCoord(0, 32/256, 64/256, 96/256)
-			nt:SetVertexColor(0.8, 0.8, 0.8)
-			local dt = b:GetDisabledTexture()
-			dt:SetTexCoord(0, 32/256, 64/256, 96/256)
-			dt:SetDesaturated(true)
-			dt:SetVertexColor(0.8, 0.8, 0.8)
-			local ht = b:GetHighlightTexture()
-			ht:SetTexCoord(0, 32/256, 64/256, 96/256)
-			ht:SetAlpha(0.25)
-			local function hidePopup()
-				popup:Hide()
-			end
-			b:SetScript("OnClick", function(self)
-				if hoverFocus:CheckToggle(self) then
-					hoverFocus:Open(self, popup, nil, hidePopup)
-					popup:SetPoint("TOPLEFT", self, "BOTTOMLEFT", -34, -2)
-					popup:Show()
-				end
-			end)
-			b:SetScript("OnEnter", function(self)
-				hoverFocus:DelayOpenClick(self)
-			end)
-		end
-	end
-	activeUI:SetScript("OnShow", function(self)
-		missionList.ctlContainer:Steal(self, ctl)
-		RefreshActiveMissionsView(true)
-	end)
+	activeUI:SetScript("OnShow", function() RefreshActiveMissionsView(true) end)
 	local lootFrame = CreateFrame("Frame", nil, activeUI) do
 		local lf = lootFrame
 		activeUI.lootFrame = lf
@@ -817,7 +713,7 @@ local activeUI = CreateFrame("Frame", nil, missionList) do
 			local function FollowerButton_OnClick(self)
 				local id = self.info and self.info.followerID
 				if id and IsModifiedClick("CHATLINK") then
-					ChatEdit_InsertLink(C_Garrison.GetFollowerLink(id))
+					ChatFrameUtil.InsertLink(C_Garrison.GetFollowerLink(id))
 				end
 			end
 			local function LevelPulse_OnStop(self)
@@ -894,7 +790,7 @@ local activeUI = CreateFrame("Frame", nil, missionList) do
 					link = C_CurrencyInfo.GetCurrencyLink(self.currencyID, tonumber(self.Quantity:GetText() or 1) or 1)
 				end
 				if link then
-					ChatEdit_InsertLink(link)
+					ChatFrameUtil.InsertLink(link)
 				end
 			end
 			local function SetIcon(self, texture)
@@ -991,9 +887,13 @@ local availUI = CreateFrame("Frame", nil, missionList) do
 	availUI:Hide()
 	local ctl = CreateFrame("Frame") do
 		ctl:SetSize(56, 22)
+		local function handlesLeftClicks(self, button)
+			return button == "LeftButton"
+		end
 		local sortIndicator = CreateFrame("Button", nil, ctl) do
 			sortIndicator:SetPoint("LEFT", 4, 0)
 			sortIndicator:SetSize(20, 20)
+			sortIndicator.HandlesGlobalMouseEvent = handlesLeftClicks
 			for i=1, 2 do
 				local t = sortIndicator:CreateTexture(nil, i == 1 and "BACKGROUND" or "HIGHLIGHT")
 				t:SetTexture("Interface\\Buttons\\SquareButtonTextures")
@@ -1058,6 +958,7 @@ local availUI = CreateFrame("Frame", nil, missionList) do
 		local horizon = CreateFrame("Button", nil, ctl) do
 			horizon:SetPoint("LEFT", 30, 0)
 			horizon:SetSize(20, 20)
+			horizon.HandlesGlobalMouseEvent = handlesLeftClicks
 			for i=1, 2 do
 				local t = horizon:CreateTexture(nil, i == 1 and "BACKGROUND" or "HIGHLIGHT")
 				t:SetTexture("Interface\\FriendsFrame\\StatusIcon-Away")
@@ -1232,6 +1133,9 @@ local availUI = CreateFrame("Frame", nil, missionList) do
 		local function Roamer_OnClick(self, button)
 			T.HideOwnedGameTooltip(self)
 			if button == "RightButton" then
+				if easyDrop:IsOpen(self) then
+					CloseDropDownMenus()
+				end
 				Roamer_SetFollower(nil, self:GetID(), nil)
 				GarrisonFollowerTooltip:Hide()
 				self:GetScript("OnEnter")(self)
@@ -1257,9 +1161,13 @@ local availUI = CreateFrame("Frame", nil, missionList) do
 				easyDrop:Open(self, mn, "TOP", self, "BOTTOM", 0, -2)
 			end
 		end
+		local function handlesLeftRightClicks(self, button)
+			return button == "LeftButton" or button == "RightButton"
+		end
 		for i=1,1 do
 			local x = CreateFrame("Button", nil, roamingParty, nil, i)
 			x:SetSize(36, 36)	x:SetPoint("LEFT", 40*i-38, 0) x:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+			x.HandlesGlobalMouseEvent = handlesLeftRightClicks
 			local v = x:CreateTexture(nil, "ARTWORK", nil, 1) v:SetPoint("TOPLEFT", 3, -3) v:SetPoint("BOTTOMRIGHT", -3, 3) v:SetTexture("Interface\\Garrison\\Portraits\\FollowerPortrait_NoPortrait")
 			slots[i], x.portrait = x, v
 			local v = x:CreateTexture(nil, "ARTWORK", nil, 2) v:SetAllPoints() v:SetAtlas("Garr_FollowerPortrait_Ring", true)
@@ -1735,14 +1643,6 @@ local GetActiveMissions, StartCompleteAll, CompleteMission, ClearCompletionState
 			activeUI.completionState = state == "DONE" and "DONE" or nil
 			if next(rew) or next(fol) then
 				activeUI:SetCompletionRewards(rew, fol, #stack, not not substate)
-			elseif state == "DONE" then
-				activeUI.CompleteAll.ShowingHelp = true
-				HelpPlate_TooltipHide()
-				HelpPlateTooltip.ArrowDOWN:Show()
-				HelpPlateTooltip.ArrowGlowDOWN:Show()
-				HelpPlateTooltip:SetPoint("TOP", activeUI.CompleteAll, "BOTTOM", 0, -14)
-				HelpPlateTooltip.Text:SetText((L"No missions could be completed without exceeding currency caps, violating the %s setting."):format("|cffffd100" .. L"Require Currency Reward" .. "|r") .. "\n\n" .. L"To temporarily ignore wasted currency and complete the skipped missions, right-click this button, or left-click individual missions below.")
-				HelpPlateTooltip:Show()
 			end
 		end
 		if (substate == "FAIL" or substate == "COMPLETE") and mid then
@@ -1989,7 +1889,7 @@ do -- CreateMissionButton
 					text = qt .. " " .. text
 				end
 				if text then
-					ChatEdit_InsertLink(text)
+					ChatFrameUtil.InsertLink(text)
 				end
 			end
 		end
@@ -2349,7 +2249,7 @@ do -- activeMissionsHandle
 		if IsModifiedClick("CHATLINK") then
 			local missionLink = C_Garrison.GetMissionLink(mi.missionID)
 			if (missionLink) then
-				ChatEdit_InsertLink(missionLink)
+				ChatFrameUtil.InsertLink(missionLink)
 			end
 		elseif mi.readyTime and mi.readyTime < time() and not (mi.succeeded or mi.failed) and activeUI.completionState ~= "RUNNING" then
 			CompleteMission(mi)
@@ -2643,7 +2543,7 @@ do -- availMissionsHandle
 		if IsModifiedClick("CHATLINK") then
 			local missionLink = C_Garrison.GetMissionLink(mi.missionID)
 			if (missionLink) then
-				ChatEdit_InsertLink(missionLink)
+				ChatFrameUtil.InsertLink(missionLink)
 			end
 		elseif mi.missionID then
 			OpenToMission(mi)
@@ -2784,7 +2684,7 @@ do -- availMissionsHandle
 			tt[i]:Hide()
 		end
 
-		local sg, p1, p2, p3 = d.groups, api.roamingParty:GetFollowers()
+		local sg, p1, p2, p3 = d.groups or {}, api.roamingParty:GetFollowers()
 		p1 = not (p2 and p3) and p1
 		local minGroupButtonWidth = GetLocale():match("zh") and 125 or 110
 		for i=1,#sg do
@@ -3410,7 +3310,7 @@ do -- Ships
 	end
 	local function ShipMission_OnClick(self, button)
 		if IsModifiedClick("CHATLINK") and self.info then
-			ChatEdit_InsertLink(C_Garrison.GetMissionLink(self.info.missionID))
+			ChatFrameUtil.InsertLink(C_Garrison.GetMissionLink(self.info.missionID))
 		elseif self.info.canStart then
 			local f1, f2, f3
 			if button == "RightButton" then

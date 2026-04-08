@@ -1,6 +1,6 @@
 # World Quest Tracker
 
-## [v11.1.0.528](https://github.com/Tercioo/World-Quest-Tracker/tree/v11.1.0.528) (2025-02-26)
-[Full Changelog](https://github.com/Tercioo/World-Quest-Tracker/compare/v11.1.0.527...v11.1.0.528) 
+## [v12.0.1.554](https://github.com/Tercioo/World-Quest-Tracker/tree/v12.0.1.554) (2026-03-27)
+[Full Changelog](https://github.com/Tercioo/World-Quest-Tracker/compare/v12.0.1.553...v12.0.1.554) 
 
-- Fixed an issue with undermine not having a parent map for some reason.  
+- Big major addon update  

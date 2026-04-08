@@ -4,7 +4,7 @@
 
 local mod, CL = BigWigs:NewBoss("Karazhan Trash", 1651)
 if not mod then return end
-mod.displayName = CL.trash
+mod:SetTrashModule(true)
 mod:RegisterEnableMob(
 	-- Return to Karazhan: Lower
 	114544, -- Skeletal Usher
@@ -32,9 +32,9 @@ mod:RegisterEnableMob(
 local L = mod:GetLocale()
 if L then
 	-- Opera Event
-	L.custom_on_autotalk = "Autotalk"
+	L.custom_on_autotalk = CL.autotalk
 	L.custom_on_autotalk_desc = "Instantly selects Barnes' gossip option to start the Opera Hall encounter."
-	L.custom_on_autotalk_icon = "ui_chat"
+	L.custom_on_autotalk_icon = mod:GetMenuIcon("SAY")
 	L.opera_hall_wikket_story_text = "Opera Hall: Wikket"
 	L.opera_hall_wikket_story_trigger = "Shut your jabber" -- Shut your jabber, drama man! The Monkey King got another plan!
 	L.opera_hall_westfall_story_text = "Opera Hall: Westfall Story"
@@ -144,6 +144,7 @@ function mod:GOSSIP_SHOW()
 end
 
 function mod:Warmup(_, msg)
+	if self:IsSecret(msg) then return end
 	if msg:find(L.opera_hall_wikket_story_trigger, nil, true) then
 		self:Bar("warmup", 70, L.opera_hall_wikket_story_text, "achievement_raid_karazhan")
 	elseif msg:find(L.opera_hall_westfall_story_trigger, nil, true) then

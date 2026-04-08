@@ -1,9 +1,24 @@
-## Interface: 110100
+## Interface: 120001, 120000, 50503, 40402, 30405, 38000, 20504, 20505, 11508
 ## Title: |cFF00FF00MoveSpeed
 ## Author: Darganon
-## Version: v1.1.6
+## Version: 2.0.1
 ## Notes: Click to drag the frame around.
+## SavedVariables: MoveSpeedDB
 ## OptionalDeps: LibDataBroker-1.1
 ## IconTexture: Interface\AddOns\MoveSpeed\movesmall
+## Category: Other
+## Category-deDE: Anderes
+## Category-esES: Otros
+## Category-esMX: Otros
+## Category-frFR: Autre
+## Category-itIT: Altro
+## Category-ptBR: Outro
+## X-Curse-Project-ID: 412676
 
+# Libraries
+Libs\LibStub\LibStub.lua
+Libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
+Libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
+
+# Core
 movespeed.lua

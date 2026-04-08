@@ -4,12 +4,13 @@
 
 local mod, CL = BigWigs:NewBoss("The Slave Pens Trash", 547)
 if not mod then return end
-mod.displayName = CL.trash
+mod:SetTrashModule(true)
 mod:RegisterEnableMob(
 	17958, -- Coilfang Defender
 	17961, -- Coilfang Enchantress
 	21126, -- Coilfang Scale-Healer
 	17962, -- Coilfang Collaborator
+	17960, -- Coilfang Soothsayer
 	21128 -- Coilfang Ray
 )
 
@@ -23,6 +24,7 @@ if L then
 	L.enchantress = "Coilfang Enchantress"
 	L.healer = "Coilfang Scale-Healer"
 	L.collaborator = "Coilfang Collaborator"
+	L.soothsayer = "Coilfang Soothsayer"
 	L.ray = "Coilfang Ray"
 end
 
@@ -39,8 +41,10 @@ function mod:GetOptions()
 		32173, -- Entangling Roots
 		--[[ Coilfang Scale-Healer ]]--
 		39378, -- Heal
-		--[[ Coilfang Coilfang Collaborator ]]--
+		--[[ Coilfang Collaborator ]]--
 		33787, -- Cripple
+		--[[ Coilfang Soothsayer ]]--
+		{30923, "SAY"}, -- Domination
 		--[[ Coilfang Ray ]]--
 		{34984, "SAY"}, -- Psychic Horror
 	},{
@@ -48,9 +52,11 @@ function mod:GetOptions()
 		[32173] = L.enchantress,
 		[39378] = L.healer,
 		[33787] = L.collaborator,
+		[30923] = L.soothsayer,
 		[34984] = L.ray,
 	},{
 		[34984] = CL.fear, -- Psychic Horror (Fear)
+		[30923] = CL.mind_control, -- Domination (Mind Control)
 	}
 end
 
@@ -70,6 +76,9 @@ function mod:OnBossEnable()
 
 	self:Log("SPELL_AURA_APPLIED", "PsychicHorror", 34984)
 	self:Log("SPELL_AURA_REMOVED", "PsychicHorrorRemoved", 34984)
+
+	self:Log("SPELL_AURA_APPLIED", "DominationApplied", 30923)
+	self:Log("SPELL_AURA_REMOVED", "DominationRemoved", 30923)
 end
 
 --------------------------------------------------------------------------------
@@ -145,4 +154,17 @@ end
 
 function mod:PsychicHorrorRemoved(args)
 	self:StopBar(CL.fear, args.destName)
+end
+
+function mod:DominationApplied(args)
+	if self:Me(args.destGUID) then
+		self:Say(args.spellId, CL.mind_control, nil, "Mind Control")
+	end
+	self:TargetMessage(args.spellId, "orange", args.destName, CL.mind_control)
+	self:TargetBar(args.spellId, 10, args.destName, CL.mind_control_short)
+	self:PlaySound(args.spellId, "alert", nil, args.destName)
+end
+
+function mod:DominationRemoved(args)
+	self:StopBar(CL.mind_control_short, args.destName)
 end

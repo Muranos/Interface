@@ -4,7 +4,7 @@
 
 local mod, CL = BigWigs:NewBoss("The Hour of Twilight Trash", 940)
 if not mod then return end
-mod.displayName = CL.trash
+mod:SetTrashModule(true)
 mod:RegisterEnableMob(
 	54548, -- Thrall (before first boss trash)
 	55779, -- Thrall (first boss arena)
@@ -18,9 +18,9 @@ mod:RegisterEnableMob(
 
 local L = mod:GetLocale()
 if L then
-	L.custom_on_autotalk = "Autotalk"
+	L.custom_on_autotalk = CL.autotalk
 	L.custom_on_autotalk_desc = "Instantly select Thrall's gossip options."
-	L.custom_on_autotalk_icon = "ui_chat"
+	L.custom_on_autotalk_icon = mod:GetMenuIcon("SAY")
 end
 
 --------------------------------------------------------------------------------

@@ -18,12 +18,16 @@ local print = TMW.print
 local tonumber, pairs =
 	  tonumber, pairs
 local UnitIsDeadOrGhost = UnitIsDeadOrGhost
+local GetAuraDuration = C_UnitAuras.GetAuraDuration
 local GetAuraDataByIndex = C_UnitAuras.GetAuraDataByIndex
 
 local GetSpellTexture = TMW.GetSpellTexture
 local strlowerCache = TMW.strlowerCache
 local isNumber = TMW.isNumber
 local empty = {}
+
+local issecretvalue = TMW.issecretvalue
+local clientHasSecrets = TMW.clientHasSecrets
 
 local Type = TMW.Classes.IconType:New("buffcheck")
 Type.name = L["ICONMENU_BUFFCHECK"]
@@ -63,8 +67,18 @@ Type:RegisterIconDefaults{
 
 	-- Only check auras casted by the player. Appends "|PLAYER" to the UnitAura filter.
 	OnlyMine				= false,
+
+	-- Hide the icon while auras are secret.
+	HideWhileSecret			= false,
 }
 
+
+
+if clientHasSecrets then
+	Type:RegisterConfigPanel_XMLTemplate(90, "TellMeWhen_SecretsWarning", {
+		text = L["UIPANEL_SECRETS_AURAS_DISALLOWED_DESC"]
+	})
+end
 
 Type:RegisterConfigPanel_XMLTemplate(100, "TellMeWhen_ChooseName", {
 	SUGType = "buffNoDS",
@@ -95,6 +109,11 @@ Type:RegisterConfigPanel_ConstructorFunc(125, "TellMeWhen_BuffCheckSettings", fu
 		function(check)
 			check:SetTexts(L["ICONMENU_ONLYMINE"], L["ICONMENU_ONLYMINE_DESC"])
 			check:SetSetting("OnlyMine")
+		end,
+		function(check)
+			check:SetTexts(L["ICONMENU_HIDEWHILESECRET"], L["ICONMENU_HIDEWHILESECRET_DESC"])
+			check:SetSetting("HideWhileSecret")
+			check:SetShown(clientHasSecrets)
 		end,
 	})
 end)
@@ -130,6 +149,11 @@ end
 
 local huge = math.huge
 local function BuffCheck_OnUpdate(icon, time)
+	if icon.HideWhileSecret and C_Secrets.ShouldAurasBeSecret() then
+		-- Force hide icon
+		icon:YieldInfo(false, nil)
+		return
+	end
 
 	-- Upvalue things that will be referenced a lot in our loops.
 	local Units, Hash, Filter
@@ -156,6 +180,8 @@ local function BuffCheck_OnUpdate(icon, time)
 				if not instance then
 					-- No more auras on the unit. Break spell loop.
 					break
+				elseif issecretvalue(instance.spellId) then
+					-- Skip secret auras
 				elseif Hash[instance.spellId] or Hash[strlowerCache[instance.name]] then
 					foundOnUnit = true
 					local remaining = (instance.expirationTime == 0 and huge) or ((instance.expirationTime - time) / instance.timeMod)
@@ -192,6 +218,11 @@ end
 
 local GetAuras = TMW.COMMON.Auras.GetAuras
 local function BuffCheck_OnUpdate_Packed(icon, time)
+	if icon.HideWhileSecret and C_Secrets.ShouldAurasBeSecret() then
+		-- Force hide icon
+		icon:YieldInfo(false, nil)
+		return
+	end
 
 	-- Upvalue things that will be referenced a lot in our loops.
 	local Units, SpellsArray, KindKey
@@ -219,7 +250,7 @@ local function BuffCheck_OnUpdate_Packed(icon, time)
 			
 			for i = 1, #SpellsArray do
 				local spell = SpellsArray[i]
-				for auraInstanceID, isMine in next, auras.lookup[spell] or empty do
+				for auraInstanceID, isMine in next, lookup[spell] do
 					local instance = instances[auraInstanceID]
 
 					if 
@@ -227,7 +258,10 @@ local function BuffCheck_OnUpdate_Packed(icon, time)
 					and	(NotOnlyMine or isMine)
 					then
 						foundOnUnit = true
-						local remaining = (instance.expirationTime == 0 and huge) or ((instance.expirationTime - time) / instance.timeMod)
+						local remaining = 
+							(issecretvalue(instance.expirationTime) and huge) or
+							(instance.expirationTime == 0 and huge) or
+							((instance.expirationTime - time) / instance.timeMod)
 	
 						-- If we haven't found anything yet, or if this aura beats the previous by sort order, then use it.
 						if not foundInstance or remaining < curSortDur then
@@ -293,12 +327,29 @@ function Type:HandleYieldedInfo(icon, iconToSet, unit, instance)
 			nil, nil
 		)
 	elseif instance then
+
+		local start, durObj
+		if clientHasSecrets then
+			durObj = GetAuraDuration(unit, instance.auraInstanceID)
+			if durObj then
+				start = durObj:GetStartTime()
+			else
+				start = 0
+				if issecretvalue(instance.duration) then
+					-- Match secret state of unknown start so secret tests don't mismatch between start + duration
+					start = secretwrap(start)
+				end
+			end
+		else
+			start = instance.expirationTime - instance.duration
+		end
+
 		-- ID is defined if we didn't find any units that are missing all the auras being checked for.
 		-- In this case, the data is for the first matching aura found on the first unit checked.
-		iconToSet:SetInfo("state; texture; start, duration, modRate; stack, stackText; spell; unit, GUID; auraSourceUnit, auraSourceGUID",
+		iconToSet:SetInfo("state; texture; start, duration, modRate, durObj; stack, stackText; spell; unit, GUID; auraSourceUnit, auraSourceGUID",
 			STATE_PRESENT,
 			instance.icon,
-			instance.expirationTime - instance.duration, instance.duration, instance.timeMod,
+			start, instance.duration, instance.timeMod, durObj,
 			instance.applications, instance.applications,
 			instance.spellId,
 			unit, nil,
@@ -307,9 +358,11 @@ function Type:HandleYieldedInfo(icon, iconToSet, unit, instance)
 	end
 end
 
-
 function Type:Setup(icon)
 	icon.Spells = TMW:GetSpells(icon.Name, false)
+	if not clientHasSecrets then
+		icon.HideWhileSecret = false
+	end
 	
 	icon.Units, icon.UnitSet = TMW:GetUnits(icon, icon.Unit, icon:GetSettings().UnitConditions)
 
@@ -338,7 +391,7 @@ function Type:Setup(icon)
 
 	-- Setup events and update functions.
 	icon:SetUpdateFunction(BuffCheck_OnUpdate)
-	if icon.UnitSet.allUnitsChangeOnEvent then
+	if icon.UnitSet.allUnitsChangeOnEvent and icon.Enabled then
 		icon:SetUpdateMethod("manual")
 		icon:SetScript("OnEvent", Buff_OnEvent)
 		icon:RegisterEvent(icon.UnitSet.event)

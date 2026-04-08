@@ -1,6 +1,6 @@
 # BugSack
 
-## [v11.1.0](https://github.com/funkydude/BugSack/tree/v11.1.0) (2025-03-22)
-[Full Changelog](https://github.com/funkydude/BugSack/compare/v11.0.3...v11.1.0) [Previous Releases](https://github.com/funkydude/BugSack/releases)
+## [v12.0.7](https://github.com/funkydude/BugSack/tree/v12.0.7) (2026-03-27)
+[Full Changelog](https://github.com/funkydude/BugSack/compare/v12.0.6...v12.0.7) [Previous Releases](https://github.com/funkydude/BugSack/releases)
 
-- Bump toc  
+- Fix close button frame level  

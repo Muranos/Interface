@@ -7,7 +7,7 @@ end
 local L = WeakAuras.L
 
 -- WeakAuras/Options
-	L[" and |cFFFF0000mirrored|r"] = "и |cFFFF0000mirrored|r"
+	L[" and |cFFFF0000mirrored|r"] = "и |cFFFF0000отражать|r"
 	L["-- Do not remove this comment, it is part of this aura: "] = "-- Не удаляйте этот комментарий! Он является частью кода индикации "
 	L[" rotated |cFFFF0000%s|r degrees"] = "; Поворот %.4g"
 	L["% - To show a percent sign"] = "% — отображение знака процента"
@@ -37,6 +37,10 @@ local L = WeakAuras.L
 	L["%s - Finish Custom Text"] = "%s - Сообщение в чат при скрытии"
 	L["%s - Init Action"] = "%s - Действие при инициализации"
 	L["%s - Main"] = "%s - Основная"
+	--[[Translation missing --]]
+	L["%s - OnLoad"] = "%s - OnLoad"
+	--[[Translation missing --]]
+	L["%s - OnUnload"] = "%s - OnUnload"
 	L["%s - Option #%i has the key %s. Please choose a different option key."] = "%s — опция #%i имеет ключ %s. Пожалуйста, выберите другой ключ опции."
 	L["%s - Rotate Animation"] = "%s анимация вращения"
 	L["%s - Scale Animation"] = "%s анимация масштаба"
@@ -186,7 +190,6 @@ Off Screen]=] ] = [=[Индикация за
 	L["Aura: '%s'"] = "Индикация: %s"
 	L["Auto-Clone (Show All Matches)"] = "Показать все совпадения (Автоклонирование)"
 	L["Automatic length"] = "Автоматическая длина"
-	L["Available Voices are system specific"] = "Доступность голоса зависит от вашей системы"
 	L["Backdrop Color"] = "Цвет фона"
 	L["Backdrop in Front"] = "Фон спереди"
 	L["Backdrop Style"] = "Стиль фона"
@@ -227,6 +230,8 @@ Off Screen]=] ] = [=[Индикация за
 	L["Circular Texture %s"] = "Круглая текстура %s"
 	L["Clear Debug Logs"] = "Очистить записи"
 	L["Clear Saved Data"] = "Очистить данные"
+	--[[Translation missing --]]
+	L["Click to replace the name with %s."] = "Click to replace the name with %s."
 	L["Clip Overlays"] = "Обрезать наложения"
 	--[[Translation missing --]]
 	L["Clipped by Foreground"] = "Clipped by Foreground"
@@ -267,7 +272,15 @@ Off Screen]=] ] = [=[Индикация за
 	L["Custom Code"] = "Свой код"
 	L["Custom Code Viewer"] = "Средство просмотра кода"
 	L["Custom Frames"] = "Свои кадры"
+	--[[Translation missing --]]
+	L["Custom Functions"] = "Custom Functions"
+	--[[Translation missing --]]
+	L["Custom Init"] = "Custom Init"
+	--[[Translation missing --]]
+	L["Custom Load"] = "Custom Load"
 	L["Custom Options"] = "Свои параметры"
+	--[[Translation missing --]]
+	L["Custom Text Update Throttle"] = "Custom Text Update Throttle"
 	L["Custom Trigger"] = "Свой триггер"
 	L["Custom trigger event tooltip"] = [=[Напишите события, которые будут вызывать проверку вашего триггера. Несколько событий должны быть разделены запятыми или пробелами.
 
@@ -278,8 +291,12 @@ UNIT_POWER  UNIT_AURA, PLAYER_TARGET_CHANGED]=]
 
 |cFF4444FFПример:|r
 UNIT_POWER  UNIT_AURA, PLAYER_TARGET_CHANGED]=]
+	--[[Translation missing --]]
+	L["Custom trigger Update Throttle"] = "Custom trigger Update Throttle"
 	L["Custom Trigger: Ignore Lua Errors on OPTIONS event"] = "Свой триггер: игнорировать ошибки Lua при событии OPTIONS"
 	L["Custom Trigger: Send fake events instead of STATUS event"] = "Свой триггер: отправлять фиктивные события вместо события STATUS"
+	--[[Translation missing --]]
+	L["Custom Unload"] = "Custom Unload"
 	L["Custom Untrigger"] = "Свой детриггер"
 	L["Debug Log"] = "Журнал отладки"
 	L["Debug Log:"] = "Журнал отладки:"
@@ -295,6 +312,7 @@ UNIT_POWER  UNIT_AURA, PLAYER_TARGET_CHANGED]=]
 	L["Determines how many entries can be in the table."] = "Определяет, сколько записей может быть в таблице."
 	L["Differences"] = "Различия"
 	L["Disallow Entry Reordering"] = "Запретить изменение порядка записей"
+	L["Discord"] = "Discord"
 	L["Display Name"] = "Отображаемое имя"
 	L["Display Text"] = "Отображаемый текст"
 	L["Displays a text, works best in combination with other displays"] = "Отображает текст, лучше всего работает в сочетании с другими индикациями"
@@ -446,6 +464,8 @@ Bleed classification via LibDispel]=] ] = "Фильтровать только �
 	L["Group Settings"] = "Настройки группы"
 	L["Hawk"] = "Ястреб"
 	L["Help"] = "Справка"
+	--[[Translation missing --]]
+	L["Hide After"] = "Hide After"
 	L["Hide Background"] = "Скрыть задний план"
 	L["Hide Glows applied by this aura"] = "Скрыть свечения, применённые этой индикацией"
 	L["Hide on"] = "Скрыть на"
@@ -509,7 +529,6 @@ Bleed classification via LibDispel]=] ] = "Фильтровать только �
 	L["Is Boss Debuff"] = "Применён боссом"
 	L["Is Stealable"] = "Может быть украден"
 	L["Is Unit"] = "Использовать как единицу"
-	L["Join Discord"] = "Присоединяйтесь к Discord"
 	L["Justify"] = "Выравнивание"
 	L["Keep Aspect Ratio"] = "Сохранять пропорции"
 	L["Keep your Wago imports up to date with the Companion App."] = "Поддерживайте ваши индикации с Wago в актуальном состоянии при помощи приложения Companion."
@@ -538,6 +557,8 @@ Bleed classification via LibDispel]=] ] = "Фильтровать только �
 	L["Magnetically Align"] = "Привязка к направляющим"
 	L["Main"] = "Основная"
 	L["Manual with %i/%i"] = "Вручную с %i/%i"
+	--[[Translation missing --]]
+	L["Matches %s spells"] = "Matches %s spells"
 	L["Matches the height setting of a horizontal bar or width for a vertical bar."] = "Совпадает с высотой горизонтальной полосы или с шириной вертикальной полосы"
 	L["Max"] = "Макс. значение"
 	L["Max Length"] = "Максимальная длина"
@@ -605,7 +626,6 @@ every 3 events starting from 2nd and ending at 11th: 2-11/3]=] ] = "Время �
 	L["Okay"] = "Ок"
 	L["ON"] = "ВКЛ."
 	L["On Hide"] = "При скрытии"
-	L["On Init"] = "При инициализации"
 	L["On Show"] = "При появлении"
 	L["Only Match auras cast by a player (not an npc)"] = "Эффект применён каким-либо игроком, а не NPC"
 	L["Only match auras cast by people other than the player or their pet"] = "Эффекты, применённые другими людьми, но не игроком или его питомцем"
@@ -637,6 +657,8 @@ every 3 events starting from 2nd and ending at 11th: 2-11/3]=] ] = "Время �
 	L["Paste Trigger Settings"] = "Вставить настройки триггера"
 	L["Places a tick on the bar"] = "Размещает такт (деление) на полосе"
 	L["Play Sound"] = "Воспроизвести звук"
+	--[[Translation missing --]]
+	L["Player Spells found:"] = "Player Spells found:"
 	L["Portrait Zoom"] = "Увеличить портрет"
 	L["Position and Size Settings"] = "Настройки положения и размера"
 	L["Preferred Match"] = "Предпочтительный результат"
@@ -660,6 +682,8 @@ every 3 events starting from 2nd and ending at 11th: 2-11/3]=] ] = "Время �
 	L["Re-center X"] = "Рецентрировать по X"
 	L["Re-center Y"] = "Рецентрировать по Y"
 	L["Reciprocal TRIGGER:# requests will be ignored!"] = "Ответный TRIGGER:# запрос будет проигнорирован!"
+	--[[Translation missing --]]
+	L["Redo"] = "Redo"
 	L["Regions of type \"%s\" are not supported."] = "Регионы типа \"%s\" не поддерживаются."
 	L["Remove"] = "Удалить"
 	L["Remove All Sounds"] = "Удалить все звуки"
@@ -776,9 +800,10 @@ every 3 events starting from 2nd and ending at 11th: 2-11/3]=] ] = "Время �
 	L["Spark Texture"] = "Текстура искры"
 	L["Specific Currency ID"] = "ID валюты"
 	L["Spell Selection Filters"] = "Фильтры выбора заклинания"
+	--[[Translation missing --]]
+	L["Spells found:"] = "Spells found:"
 	L["Stack Info"] = "Информация о стаках"
 	L["Stacks - The number of stacks of an aura (usually)"] = "Стаки - количество стаков ауры (обычно)"
-	L["Stagger"] = "Выступ (смещение уровня)"
 	L["Standby"] = "Ожидает"
 	L["Star"] = "Звезда"
 	L["Start"] = "Начальная"
@@ -789,6 +814,8 @@ every 3 events starting from 2nd and ending at 11th: 2-11/3]=] ] = "Время �
 	L["Stop Motion %s"] = "Стоп-кадр %s"
 	L["Stop Motion Settings"] = "Настройки анимации Stop motion"
 	L["Stop Sound"] = "Остановить вопроизведение звука"
+	--[[Translation missing --]]
+	L["Stretched by Foreground"] = "Stretched by Foreground"
 	L["Sub Elements"] = "Внутренние элементы"
 	L["Sub Option %i"] = "Внутренний параметр %i"
 	L["Subevent"] = "Подсобытие"
@@ -813,6 +840,10 @@ every 3 events starting from 2nd and ending at 11th: 2-11/3]=] ] = "Время �
 	L["The duration of the animation in seconds. The finish animation does not start playing until after the display would normally be hidden."] = [=[Длительность анимации в секундах.
 Конечная анимация не начнет отображаться, пока индикация не будет нормально скрыта  (должен сработать детриггер).]=]
 	L["The group and all direct children will share the same base frame level."] = "Группа и все её прямые дочерние элементы будут иметь один и тот же базовый уровень фрейма."
+	--[[Translation missing --]]
+	L["The Multi Target mode is less reliable and not recommended."] = "The Multi Target mode is less reliable and not recommended."
+	--[[Translation missing --]]
+	L["The Multi Target mode requires a name or spell id filter"] = "The Multi Target mode requires a name or spell id filter"
 	L["The trigger number is optional. When no trigger number is specified, the trigger selected via dynamic information will be used."] = "Номер триггера является необязательным. Если номер триггера не указан, будет использоваться триггер, выбранный через динамическую информацию."
 	L["The type of trigger"] = "Тип триггера"
 	L["The WeakAuras Options Addon version %s doesn't match the WeakAuras version %s. If you updated the addon while the game was running, try restarting World of Warcraft. Otherwise try reinstalling WeakAuras"] = "Версия %s дополнения WeakAuras Options не соответствует версии %s WeakAuras. Если вы обновили дополнение во время игры, попробуйте перезапустить World of Warcraft. В противном случае попробуйте переустановить WeakAuras"
@@ -873,6 +904,8 @@ Upgrade your version of WeakAuras or wait for next release before installing thi
 	L["Trigger %i: %s"] = "Триггер %i: %s"
 	L["Trigger Combination"] = "Комбинация триггеров"
 	L["Type 'select' for '%s' requires a values member'"] = "Для переменной %s типа select необходимо свойство values."
+	--[[Translation missing --]]
+	L["Undo"] = "Undo"
 	L["Ungroup"] = "Разгруппировать"
 	L["Unit %s is not a valid unit for RegisterUnitEvent"] = "%s не является допустимой единицей для метода RegisterUnitEvent"
 	L["Unit Count"] = "Количество единиц"
@@ -905,9 +938,16 @@ Upgrade your version of WeakAuras or wait for next release before installing thi
 	L["Vertical Bar"] = "Вертикальная полоса"
 	L["View"] = "Вид"
 	L["View custom code"] = "Просмотреть код"
-	L["Voice"] = "Голос"
+	--[[Translation missing --]]
+	L["Voice Settings"] = "Voice Settings"
 	L["We thank"] = "Мы благодарим"
 	L["WeakAuras %s on WoW %s"] = "WeakAuras: %s. Интерфейс: %s"
+	--[[Translation missing --]]
+	L["WeakAuras recommends using spell ids instead of names. Spell ids are automatically localized."] = "WeakAuras recommends using spell ids instead of names. Spell ids are automatically localized."
+	--[[Translation missing --]]
+	L[ [=[WeakAuras will not support Midnight. On release of the prepatch, WeakAuras will be disabled.
+Read more on our Patreon page https://patreon.com/WeakAuras]=] ] = [=[WeakAuras will not support Midnight. On release of the prepatch, WeakAuras will be disabled.
+Read more on our Patreon page https://patreon.com/WeakAuras]=]
 	L["What do you want to do?"] = "Что вы хотите сделать?"
 	L["Whole Area"] = "Вся область"
 	L["wrapping"] = "Перенос слов при переполнении"
@@ -925,6 +965,16 @@ Upgrade your version of WeakAuras or wait for next release before installing thi
 |cFFFF0000Это действие необратимо!|r Продолжить?]=]
 	L["You are about to delete a trigger. |cFFFF0000This cannot be undone!|r Would you like to continue?"] = [=[Вы собираетесь удалить триггер.
 |cFFFF0000Это действие необратимо!|r Продолжить?]=]
+	--[[Translation missing --]]
+	L[ [=[You are about to Import an Aura with custom Lua code on a Hardcore server.
+
+|cFFFF0000There is a risk the custom code could be used to kill your hardcore character!|r
+
+Would you like to continue?]=] ] = [=[You are about to Import an Aura with custom Lua code on a Hardcore server.
+
+|cFFFF0000There is a risk the custom code could be used to kill your hardcore character!|r
+
+Would you like to continue?]=]
 	L[ [=[You can add a comma-separated list of state values here that (when changed) WeakAuras should also run the Anchor Code on.
 
 WeakAuras will always run custom anchor code if you include 'changed' in this list, or when a region is added, removed, or re-ordered.]=] ] = "Вы можете добавить сюда список значений состояния, разделенных запятыми, при изменении которых WeakAuras также выполнит код привязки. WeakAuras всегда выполнит пользовательский код привязки, если вы включите 'изменен' в этот список, или когда регион будет добавлен, удален или переупорядочен."

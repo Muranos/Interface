@@ -80,20 +80,27 @@ function GUI:UpdateBar()
 	else
 		self.barGroup:Show()
 	end
-	if not self.db.profile.bar.anchor then
-		self.barGroup:HideAnchor()
-	else
-		self.barGroup:ShowAnchor()
-	end
+
 	if not self.db.profile.bar.locked then
 		self.barGroup:Unlock()
+		self.barGroup:ShowAnchor()
 	else
 		self.barGroup:Lock()
+		self.barGroup:HideAnchor()
 	end
+
+	GUI:UpdateSparks()
 end
 
 function GUI:ToggleProgressBar()
 	Rarity.db.profile.bar.visible = not Rarity.db.profile.bar.visible
 	Rarity.GUI:UpdateBar()
 	Rarity.GUI:UpdateText()
+end
+
+-- NOTE: LibBars doesn't support disabling these properly (remove this later)
+function GUI:UpdateSparks()
+	for index, bar in Rarity.barGroup:IterateBars() do
+		bar.spark:SetShown(Rarity.db.profile.bar.showSpark)
+	end
 end

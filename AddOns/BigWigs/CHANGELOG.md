@@ -1,8 +1,9 @@
 # BigWigs
 
-## [v380.2](https://github.com/BigWigsMods/BigWigs/tree/v380.2) (2025-04-04)
-[Full Changelog](https://github.com/BigWigsMods/BigWigs/compare/v380.1...v380.2) [Previous Releases](https://github.com/BigWigsMods/BigWigs/releases)
+## [v412.8](https://github.com/BigWigsMods/BigWigs/tree/v412.8) (2026-04-07)
+[Full Changelog](https://github.com/BigWigsMods/BigWigs/compare/v412.7...v412.8) [Previous Releases](https://github.com/BigWigsMods/BigWigs/releases)
 
-- Move the break timer code from the Bars plugin to its own plugin  
-- Loader: Tweaks  
 - Bump version  
+- Update deDE (#2482)  
+- Tools/Keystones: Rename from SOTT to SEAT, as that's what people tend to call it  
+- Tools/Keystones: Request a map update after a run ends so the history tab is accurate  

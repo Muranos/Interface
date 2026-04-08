@@ -10,10 +10,10 @@ function addon:initTargetFrame()
             local targetBuffsFrame = CreateFrame("Frame", "TargetFrameBuffs", TargetFrame)
             targetBuffsFrame:SetPoint("TOPLEFT", TargetFrame, "BOTTOMLEFT", 5, -10)
             targetBuffsFrame:SetSize(100, 10)
-            lib:RegisterFrame(targetBuffsFrame, "Target Buffs", db.TargetBuffs)
+            addon:registerFrame(targetBuffsFrame, "Target Buffs", db.TargetBuffs)
             lib:SetDontResize(targetBuffsFrame)
             
-            hooksecurefunc("TargetFrame_UpdateDebuffAnchor", function(self, buff, index, numBuffs, anchorBuff, anchorIndex, size, offsetX, offsetY, mirrorVertically)
+            hooksecurefunc("TargetFrame_UpdateDebuffAnchor", function(self, buff)
                 if self ~= TargetFrame then return end
                 
                 local point, relativeTo, relativePoint, offsetX, offsetY = buff:GetPoint()
@@ -23,7 +23,7 @@ function addon:initTargetFrame()
                 end
             end)
             
-            hooksecurefunc("TargetFrame_UpdateBuffAnchor", function(self, buff, index, numDebuffs, anchorBuff, anchorIndex, size, offsetX, offsetY, mirrorVertically)
+            hooksecurefunc("TargetFrame_UpdateBuffAnchor", function(self, buff)
                 if self ~= TargetFrame then return end
                 
                 local point, relativeTo, relativePoint, offsetX, offsetY = buff:GetPoint()
@@ -48,5 +48,9 @@ function addon:initTargetFrame()
             end,
             "HideName"
         )
+        
+        if db.EMEOptions.targetFrameResize then
+            lib:RegisterResizable(TargetFrame)
+        end
     end
 end

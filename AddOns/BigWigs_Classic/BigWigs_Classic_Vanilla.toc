@@ -1,8 +1,8 @@
-## Interface: 11506, 11507
+## Interface: 11508, 11507
 
 ## Title: BigWigs [|cffeda55fClassic|r]
 ## Title-zhCN: BigWigs [|cffeda55f经典旧世|r]
-## Title-zhTW: BigWigs [|cffeda55fClassic|r]
+## Title-zhTW: BigWigs [|cffeda55f艾澤拉斯|r]
 ## Title-deDE: BigWigs [|cffeda55fClassic|r]
 ## Title-frFR: BigWigs [|cffeda55fClassique|r]
 ## Title-itIT: BigWigs [|cffeda55fClassic|r]
@@ -13,7 +13,7 @@
 ## Title-esMX: BigWigs [|cffeda55fClásico|r]
 ## Notes: A collection of BigWigs modules from the Classic era.
 ## Notes-zhCN: BigWigs 经典旧世模块。
-## Notes-zhTW: A collection of BigWigs modules from the Classic era.
+## Notes-zhTW: BigWigs 艾澤拉斯模組。
 ## Notes-deDE: Eine Sammlung von BigWigs-Modulen aus der Ära Classic.
 ## Notes-frFR: Une collection de modules BigWigs de l'ère Classique.
 ## Notes-itIT: A collection of BigWigs modules from the Classic era.
@@ -25,7 +25,7 @@
 
 ## LoadOnDemand: 1
 ## Dependencies: BigWigs
-## Version: v11.1.2
+## Version: v12.0.13
 ## IconTexture: Interface\AddOns\BigWigs\Media\Icons\minimap_raid.tga
 
 ## X-Category: Raid
@@ -34,10 +34,10 @@
 ## X-Curse-Project-ID: 50625
 ## X-WoWI-ID: 22095
 ## X-Wago-ID: rNkPgm6a
-## X-BigWigs-LoadOn-InstanceId: 409, 469, 509, 531, 533, 309, 249, 48, 90, 109, 2789, 2791, 2804, 2832
+## X-BigWigs-LoadOn-InstanceId: 409, 469, 509, 531, 533, 309, 249, 48, 90, 109, 2789, 2791, 2804, 2832, 2856
 ## X-BigWigs-ExtraMenu: -947
 ## X-BigWigs-LoadOn-WorldBoss: -1447, 6109, -1419, 12397, -1440, 14889, -1425, 14888, -1431, 14890, -1444, 14887
-## X-BigWigs-Minimum: 378
+## X-BigWigs-Minimum: 412
 
 MoltenCore\modules.xml
 BlackwingLair\modules.xml
@@ -54,3 +54,4 @@ TheTaintedScar_Classic\modules.xml
 StormCliffs_Classic\modules.xml
 CrystalVale_Classic\modules.xml
 NightmareGrove_Classic\modules.xml
+ScarletEnclave_Classic\modules.xml

@@ -14,6 +14,7 @@ local UnitHealthMax = UnitHealthMax;
 local UnitIsConnected = UnitIsConnected;
 local UnitIsAFK = UnitIsAFK;
 local UnitIsDND = UnitIsDND;
+local InChatMessagingLockdown = C_ChatInfo and C_ChatInfo.InChatMessagingLockdown;
 local GetRealZoneText = GetRealZoneText;
 local UnitExists = UnitExists;
 local UnitClass = UnitClass;
@@ -23,6 +24,10 @@ local pairs = pairs;
 local ipairs = ipairs;
 local twipe = table.wipe;
 local format = format;
+local issecretvalue = issecretvalue;
+local AbbreviateNumbers = AbbreviateNumbers;
+
+local sSecretsEnabled = VUHDO_SECRETS_ENABLED;
 local sEmpty = { };
 
 
@@ -71,14 +76,14 @@ local function VUHDO_setTooltipLine(aText, anIsLeft, aLineNum, aColor, aTextSize
 	end
 
 	if anIsLeft then
-		VUHDO_TEXT_SIZE_LEFT[aLineNum] = (aTextSize or 8) + 0.7;
-		tLabel:SetHeight(VUHDO_TEXT_SIZE_LEFT[aLineNum]);
+		VUHDO_TEXT_SIZE_LEFT[aLineNum] = aTextSize or 8;
+		VUHDO_PixelUtil.SetHeight(tLabel, VUHDO_TEXT_SIZE_LEFT[aLineNum]);
 	else
-		tLabel:SetHeight(VUHDO_TEXT_SIZE_LEFT[aLineNum] or 8.7);
+		VUHDO_PixelUtil.SetHeight(tLabel, VUHDO_TEXT_SIZE_LEFT[aLineNum] or 8);
 	end
 
 	tLabel:SetJustifyH(anIsLeft and "LEFT" or "RIGHT");
-	tLabel:SetWidth(186);
+	VUHDO_PixelUtil.SetWidth(tLabel, 186);
 	tLabel:Show();
 	tLabel:SetNonSpaceWrap(false);
 end
@@ -139,15 +144,15 @@ local function VUHDO_initTooltip()
 	if VUHDO_TT_RESET or tFixPos then
 		VUHDO_TT_RESET = false;
 
-		VuhDoTooltip:SetScale(tConfig["SCALE"]);
+		VUHDO_PixelUtil.SetScale(VuhDoTooltip, tConfig["SCALE"]);
 		VuhDoTooltip:SetBackdropColor(VUHDO_backColor(tConfig["BACKGROUND"]));
 		VuhDoTooltip:SetBackdropBorderColor(VUHDO_backColor(tConfig["BORDER"]));
 
 		VuhDoTooltip:ClearAllPoints();
 		if tFixPos then
-			VuhDoTooltip:SetPoint(tFixPos[1], VUHDO_getActionPanel(VUHDO_TT_PANEL_NUM):GetName(), tFixPos[2], 0, 0);
+			VUHDO_PixelUtil.SetPoint(VuhDoTooltip, tFixPos[1], VUHDO_getActionPanel(VUHDO_TT_PANEL_NUM):GetName(), tFixPos[2], 0, 0);
 		elseif VUHDO_TOOLTIP_POS_CUSTOM == tPos then
-			VuhDoTooltip:SetPoint(tConfig["point"], "UIParent", tConfig["relativePoint"], tConfig["x"], tConfig["y"]);
+			VUHDO_PixelUtil.SetPoint(VuhDoTooltip, tConfig["point"], "UIParent", tConfig["relativePoint"], tConfig["x"], tConfig["y"]);
 		elseif VUHDO_TOOLTIP_POS_STANDARD == tPos then
 			if (not VUHDO_CONFIG["STANDARD_TOOLTIP"]) then
 				if not GameTooltip:IsForbidden() then	
@@ -155,16 +160,16 @@ local function VUHDO_initTooltip()
 				end
 			end
 
-			VuhDoTooltip:SetPoint("BOTTOMRIGHT", "UIParent", "BOTTOMRIGHT", -CONTAINER_OFFSET_X - 13, CONTAINER_OFFSET_Y);
+			VUHDO_PixelUtil.SetPoint(VuhDoTooltip, "BOTTOMRIGHT", "UIParent", "BOTTOMRIGHT", -CONTAINER_OFFSET_X - 13, CONTAINER_OFFSET_Y);
 		end
 
-		VuhDoTooltip:SetWidth(200);
+		VUHDO_PixelUtil.SetWidth(VuhDoTooltip, 200);
 	end
 
 	if VUHDO_TOOLTIP_POS_MOUSE == tPos then
 		if VUHDO_TT_BUTTON then
 			VuhDoTooltip:ClearAllPoints();
-			VuhDoTooltip:SetPoint("TOPLEFT", VUHDO_TT_BUTTON:GetName(), "BOTTOMRIGHT", 0, 0);
+			VUHDO_PixelUtil.SetPoint(VuhDoTooltip, "TOPLEFT", VUHDO_TT_BUTTON:GetName(), "BOTTOMRIGHT", 0, 0);
 		else
 			VuhDoTooltip:Hide();
 			return;
@@ -198,7 +203,7 @@ local function VUHDO_finishTooltip()
 		tHeight = tHeight + tTextHeight + 1;
 	end
 
-	VuhDoTooltip:SetHeight(tHeight);
+	VUHDO_PixelUtil.SetHeight(VuhDoTooltip, tHeight);
 end
 
 
@@ -243,6 +248,10 @@ end
 --
 local function VUHDO_getKiloText(aNumber)
 
+	if sSecretsEnabled and issecretvalue(aNumber) then
+		return AbbreviateNumbers(aNumber);
+	end
+
 	return aNumber >= 1000000 and format("%.2fM", aNumber * 0.000001) 
 		or aNumber > 99500 and format("%dk", aNumber * 0.001)
 		or aNumber > 9500 and format("%.1fk", aNumber * 0.001)
@@ -253,18 +262,33 @@ end
 
 
 --
-local tUnit, tInfo;
+local tUnit;
+local tInfo;
+local tName;
 local tClassColor;
 local tLeftText;
 local tRightText;
+local tInChatLockdown;
+local tIsAfk;
+local tIsDnd;
 local tModifier;
 local tGuildName, tGuildRank;
 local tBinding;
 local tClassName, tClassNameLoc;
 function VUHDO_updateTooltip()
-	if not UnitExists(VUHDO_TT_UNIT) then	return;	end
 
-	tInfo = VUHDO_RAID[VUHDO_RAID_NAMES[UnitName(VUHDO_TT_UNIT)]] or VUHDO_RAID[VUHDO_TT_UNIT];
+	if not UnitExists(VUHDO_TT_UNIT) then
+		return;
+	end
+
+	tName = UnitName(VUHDO_TT_UNIT);
+
+	if sSecretsEnabled and issecretvalue(tName) then
+		tInfo = VUHDO_RAID[VUHDO_TT_UNIT];
+	else
+		tInfo = VUHDO_RAID[VUHDO_RAID_NAMES[tName]] or VUHDO_RAID[VUHDO_TT_UNIT];
+	end
+
 	if not tInfo then
 		tUnit = VUHDO_TT_UNIT;
 		tInfo = sEmpty;
@@ -277,6 +301,7 @@ function VUHDO_updateTooltip()
 	-- Name, Role
 	tClassNameLoc, tClassName = UnitClass(tUnit);
 	tClassColor = VUHDO_getClassColorByModelId(VUHDO_CLASS_IDS[tClassName] or "*");
+
 	if not tClassColor then
 		-- FIXME: bar text color is not per panel
 		tClassColor = VUHDO_PANEL_SETUP["PANEL_COLOR"]["TEXT"];
@@ -307,10 +332,15 @@ function VUHDO_updateTooltip()
 		UnitIsGhost(tUnit) and VUHDO_I18N_TT_GHOST
 		or UnitIsDead(tUnit) and VUHDO_I18N_TT_DEAD or " ";
 
+	tInChatLockdown = InChatMessagingLockdown();
+
+	tIsAfk = not tInChatLockdown and UnitIsAFK(tUnit);
+	tIsDnd = not tInChatLockdown and UnitIsDND(tUnit);
+
 	tRightText =
 		not UnitIsConnected(tUnit) and VUHDO_getDurationTextSince(VUHDO_getAfkDcTime(tUnit))
-		or UnitIsAFK(tUnit) and format("%s %s", VUHDO_I18N_TT_AFK, VUHDO_getDurationTextSince(VUHDO_getAfkDcTime(tUnit)))
-		or UnitIsDND(tUnit) and VUHDO_I18N_TT_DND or " ";
+		or tIsAfk and format("%s %s", VUHDO_I18N_TT_AFK, VUHDO_getDurationTextSince(VUHDO_getAfkDcTime(tUnit)))
+		or tIsDnd and VUHDO_I18N_TT_DND or " ";
 
 	if tLeftText ~= " " or tRightText ~= " " then
 		VUHDO_addTooltipLineLeft(tLeftText, VUHDO_VALUE_COLOR);
@@ -332,6 +362,7 @@ function VUHDO_updateTooltip()
 
 		for tIndex, tButtonName in ipairs(VUHDO_MOUSE_BUTTONS) do
 			tBinding = VUHDO_getSpellTooltip(tModifier, tIndex, tUnit);
+
 			if #tBinding ~= 0 then
 				VUHDO_addTooltipLineLeft(format("%s%s%s", tModifier, tButtonName, tBinding), VUHDO_VALUE_COLOR, 8);
 			end
@@ -339,6 +370,9 @@ function VUHDO_updateTooltip()
 	end
 
 	VUHDO_finishTooltip();
+
+	return;
+
 end
 
 
@@ -411,7 +445,7 @@ end
 
 --
 function VuhDoTooltipOnMouseUp(aTooltip)
-	aTooltip:StopMovingOrSizing();
+	VUHDO_PixelUtil.StopMovingOrSizing(aTooltip);
 
 	local tX, tY, tRelative, tOrientation;
 	local tPosition = VUHDO_PANEL_SETUP[DESIGN_MISC_PANEL_NUM]["TOOLTIP"];

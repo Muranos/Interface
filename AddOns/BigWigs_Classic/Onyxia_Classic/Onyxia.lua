@@ -32,6 +32,11 @@ end
 -- Initialization
 --
 
+function mod:OnRegister()
+	self:SetSpellRename(17086, L.deep_breath) -- Breath (Deep Breath)
+	self:SetSpellRename(18431, CL.fear) -- Bellowing Roar (Fear)
+end
+
 function mod:GetOptions()
 	return {
 		"stages",
@@ -223,7 +228,7 @@ function mod:UNIT_HEALTH(event, unit)
 end
 
 function mod:FlameLashApplied(args)
-	local unit, targetUnit = self:GetUnitIdByGUID(args.sourceGUID), self:UnitTokenFromGUID(args.destGUID, true)
+	local unit, targetUnit = self:GetUnitIdByGUID(args.sourceGUID), self:UnitTokenFromGUID(args.destGUID)
 	if unit and targetUnit and self:Tanking(unit, targetUnit) then
 		self:StackMessage(args.spellId, "purple", args.destName, args.amount, 2)
 	end

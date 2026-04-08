@@ -4,6 +4,12 @@ local _G = _G;
 local table = table;
 local ipairs = ipairs;
 local twipe = table.wipe;
+local min = math.min;
+local InCombatLockdown = InCombatLockdown;
+
+local RemovePrivateAuraAnchor = C_UnitAuras and C_UnitAuras.RemovePrivateAuraAnchor;
+local AddPrivateAuraAnchor = C_UnitAuras and C_UnitAuras.AddPrivateAuraAnchor;
+local TriggerPrivateAuraShowDispelType = C_UnitAuras and C_UnitAuras.TriggerPrivateAuraShowDispelType;
 
 local VUHDO_CONFIG;
 local VUHDO_PANEL_SETUP;
@@ -29,9 +35,10 @@ local VUHDO_reloadRaidMembers;
 local VUHDO_isPanelVisible;
 local VUHDO_positionHealButton;
 local VUHDO_positionTableHeaders;
+local VUHDO_refreshAllUnitAuras;
 
-local sLastDebuffIcon;
 local sShowPanels;
+local sDurationAnchor = { };
 
 function VUHDO_panelRefreshInitLocalOverrides()
 
@@ -59,9 +66,10 @@ function VUHDO_panelRefreshInitLocalOverrides()
 	VUHDO_isPanelVisible = _G["VUHDO_isPanelVisible"];
 	VUHDO_positionHealButton = _G["VUHDO_positionHealButton"];
 	VUHDO_positionTableHeaders = _G["VUHDO_positionTableHeaders"];
+	VUHDO_refreshAllUnitAuras = _G["VUHDO_refreshAllUnitAuras"];
 
-	sLastDebuffIcon = VUHDO_CONFIG["CUSTOM_DEBUFF"]["max_num"] + 39;
 	sShowPanels = VUHDO_CONFIG["SHOW_PANELS"];
+
 end
 -- BURST CACHE ---------------------------------------------------
 
@@ -90,6 +98,7 @@ local tButton;
 local tGroupArray;
 local tDebuffFrame;
 local function VUHDO_refreshPositionAllHealButtons(aPanel, aPanelNum)
+
 	tSetup = VUHDO_PANEL_SETUP[aPanelNum];
 	tModels = VUHDO_getDynamicModelArray(aPanelNum);
 	tSortBy = tSetup["MODEL"]["sort"];
@@ -109,28 +118,28 @@ local function VUHDO_refreshPositionAllHealButtons(aPanel, aPanelNum)
 			if tButton["raidid"] ~= tUnit then
 				VUHDO_setupAllHealButtonAttributes(tButton, tUnit, false, 70 == tModelId, false, false); -- VUHDO_ID_VEHICLES
 
-				for tCnt = 40, sLastDebuffIcon do
-					tDebuffFrame = VUHDO_getBarIconFrame(tButton, tCnt);
-					if tDebuffFrame then
-						VUHDO_setupAllHealButtonAttributes(tDebuffFrame, tUnit, false, 70 == tModelId, false, true); -- VUHDO_ID_VEHICLES
-					end
+				if VUHDO_PANEL_SETUP and VUHDO_PANEL_SETUP[aPanelNum] and VUHDO_PANEL_SETUP[aPanelNum]["SCALING"]["showTarget"] then
+					VUHDO_setupAllTargetButtonAttributes(VUHDO_getTargetButton(tButton), tUnit);
 				end
-				
-				VUHDO_setupAllTargetButtonAttributes(VUHDO_getTargetButton(tButton), tUnit);
-				VUHDO_setupAllTotButtonAttributes(VUHDO_getTotButton(tButton), tUnit);
+
+				if VUHDO_PANEL_SETUP and VUHDO_PANEL_SETUP[aPanelNum] and VUHDO_PANEL_SETUP[aPanelNum]["SCALING"]["showTot"] then
+					VUHDO_setupAllTotButtonAttributes(VUHDO_getTotButton(tButton), tUnit);
+				end
 			end
 
 			tX, tY = VUHDO_getHealButtonPos(tColIdx, tGroupIdx, aPanelNum);
 			if VUHDO_isDifferentButtonPoint(tButton, tX, -tY) then
 				tButton:Hide();-- for clearing secure handler mouse wheel bindings
-				tButton:SetPoint("TOPLEFT", tPanelName, "TOPLEFT", tX, -tY);
+				VUHDO_PixelUtil.SetPoint(tButton, "TOPLEFT", tPanelName, "TOPLEFT", tX, -tY);
 			end
 
 			VUHDO_addUnitButton(tButton, aPanelNum);
 			if not tButton:IsShown() then tButton:Show(); end -- Wg. Secure handlers?
 
-			-- Bei Profil-Wechseln existiert der Button schon, hat aber die falsche Größe
-			VUHDO_positionHealButton(tButton, tSetup["SCALING"]);
+			-- Bei Profil-Wechseln existiert der Button schon, hat aber die falsche Grÿÿe
+			VUHDO_initLocalVars(aPanelNum);
+			VUHDO_initHealButton(tButton, aPanelNum);
+			VUHDO_positionHealButton(tButton, aPanelNum);
 		end
 
 		tColIdx = tColIdx + 1;
@@ -138,11 +147,26 @@ local function VUHDO_refreshPositionAllHealButtons(aPanel, aPanelNum)
 
 	while true do
 		tButton = VUHDO_getHealButton(tButtonIdx, aPanelNum);
-		if not tButton then break; end
+
+		if not tButton then
+			break;
+		end
 
 		tButton["raidid"] = nil;
-		tButton:SetAttribute("unit", nil);
-		tButton:Hide();
+		VUHDO_safeSetAttribute(tButton, "unit", nil);
+
+		for tDebuffCnt = 40, VUHDO_CONFIG["CUSTOM_DEBUFF"]["max_num"] + 39 do
+			tDebuffFrame = VUHDO_getBarIconFrame(tButton, tDebuffCnt);
+
+			if tDebuffFrame then
+				VUHDO_safeSetAttribute(tDebuffFrame, "unit", nil);
+				tDebuffFrame["raidid"] = nil;
+			end
+		end
+
+		VUHDO_clearUnitAuraFrames(tButton);
+
+		VUHDO_PixelUtil.Hide(tButton);
 		tButtonIdx = tButtonIdx + 1;
 	end
 end
@@ -151,9 +175,9 @@ end
 
 --
 local function VUHDO_refreshInitPanel(aPanel, aPanelNum)
-	aPanel:SetHeight(VUHDO_getHealPanelHeight(aPanelNum));
-	aPanel:SetWidth(VUHDO_getHealPanelWidth(aPanelNum));
-	aPanel:StopMovingOrSizing();
+	VUHDO_PixelUtil.SetHeight(aPanel, VUHDO_getHealPanelHeight(aPanelNum));
+	VUHDO_PixelUtil.SetWidth(aPanel, VUHDO_getHealPanelWidth(aPanelNum));
+	VUHDO_PixelUtil.StopMovingOrSizing(aPanel);
 	aPanel["isMoving"] = false;
 end
 
@@ -165,7 +189,7 @@ local function VUHDO_refreshPanel(aPanelNum)
 	tPanel = VUHDO_getOrCreateActionPanel(aPanelNum);
 
 	if VUHDO_hasPanelButtons(aPanelNum) then
-		tPanel:Show();
+		VUHDO_PixelUtil.Show(tPanel);
 
 		VUHDO_refreshInitPanel(tPanel, aPanelNum);
 		VUHDO_positionTableHeaders(tPanel, aPanelNum);
@@ -186,28 +210,39 @@ local function VUHDO_refreshAllPanels()
 		if VUHDO_isPanelVisible(tCnt) then
 			VUHDO_refreshPanel(tCnt);
 		else
-			VUHDO_getActionPanelOrStub(tCnt):Hide();
+			VUHDO_PixelUtil.Hide(VUHDO_getActionPanelOrStub(tCnt));
 		end
 	end
 
 	VUHDO_updateAllRaidBars();
 	VUHDO_updatePanelVisibility();
-	VuhDoGcdStatusBar:Hide();
+	VUHDO_PixelUtil.Hide(VuhDoGcdStatusBar);
 end
 
 
 
 --
 function VUHDO_refreshUiNoMembers()
+
 	VUHDO_resetNameTextCache();
+
 	twipe(VUHDO_UNIT_BUTTONS);
 	twipe(VUHDO_UNIT_BUTTONS_PANEL);
+
 	VUHDO_refreshAllPanels();
+
 	VUHDO_updateAllCustomDebuffs(true);
+
+	VUHDO_refreshAllUnitAuras();
+
 	if VUHDO_INTERNAL_TOGGLES[22] then -- VUHDO_UPDATE_UNIT_TARGET
 		VUHDO_rebuildTargets();
 	end
+
 	VUHDO_initAllEventBouquets();
+
+	return;
+
 end
 local VUHDO_refreshUiNoMembers = VUHDO_refreshUiNoMembers;
 
@@ -215,12 +250,40 @@ local VUHDO_refreshUiNoMembers = VUHDO_refreshUiNoMembers;
 
 --
 function VUHDO_refreshUI()
+
 	VUHDO_IS_RELOADING = true;
 
 	VUHDO_reloadRaidMembers();
 	VUHDO_refreshUiNoMembers();
 
 	VUHDO_IS_RELOADING = false;
+
+	return;
+
+end
+
+
+
+--
+local tPanelNum;
+function VUHDO_refreshAllPrivateAuras()
+
+	if not VUHDO_UNIT_BUTTONS then
+		return;
+	end
+
+	for tUnit, tButtons in pairs(VUHDO_UNIT_BUTTONS) do
+		for _, tButton in pairs(tButtons) do
+			tPanelNum = VUHDO_BUTTON_CACHE[tButton];
+
+			if tPanelNum then
+				VUHDO_refreshPrivateAuras(tPanelNum, tButton, tUnit);
+			end
+		end
+	end
+
+	return;
+
 end
 
 
@@ -229,44 +292,103 @@ end
 local tPrivateAura;
 local tPrivateAuraAnchor;
 local tPanelSetup;
-local tBarScaling;
 local tPrivateAuraSetup;
+local tNumAuras;
+local tIconSize;
+local tDurationAnchor;
+local tDurationPos;
+local tPoint;
+local tRelativePoint;
+local tIconSizePercent;
+local tBarHeight;
+local tVisualSize;
+local tDurationFrame;
 function VUHDO_refreshPrivateAuras(aPanelNum, aButton, aUnit)
 
-	if not C_UnitAuras or not aPanelNum or not aButton or not aUnit then
+	if not aPanelNum or not aButton or not aUnit then
+		return;
+	end
+
+	if InCombatLockdown() then
+		VUHDO_deferTask(VUHDO_DEFER_REFRESH_PRIVATE_AURAS, VUHDO_DEFERRED_TASK_PRIORITY_NORMAL, aPanelNum, aButton, aUnit);
+
 		return;
 	end
 
 	tPanelSetup = VUHDO_PANEL_SETUP[aPanelNum];
-	tBarScaling = tPanelSetup["SCALING"];
+
+	if not tPanelSetup then
+		return;
+	end
+
 	tPrivateAuraSetup = tPanelSetup["PRIVATE_AURA"];
+
+	if not tPrivateAuraSetup then
+		return;
+	end
 
 	if not tPrivateAuraSetup["show"] then
 		return;
 	end
 
-	for tAuraIndex = 1, VUHDO_MAX_PRIVATE_AURAS do
-		tPrivateAura = VUHDO_getBarPrivateAura(aButton, tAuraIndex);
+	TriggerPrivateAuraShowDispelType(VUHDO_PANEL_SETUP["PRIVATE_AURA_SHOW_DISPEL_TYPE"] or true);
+
+	tNumAuras = tPrivateAuraSetup["numAuras"] or 3;
+
+	if tPrivateAuraSetup["showDuration"] and tPrivateAuraSetup["durationPosition"] then
+		tDurationPos = tPrivateAuraSetup["durationPosition"];
+
+		if "BOTTOM" == tDurationPos then
+			tPoint = "TOP";
+			tRelativePoint = "BOTTOM";
+		elseif "TOP" == tDurationPos then
+			tPoint = "BOTTOM";
+			tRelativePoint = "TOP";
+		elseif "LEFT" == tDurationPos then
+			tPoint = "RIGHT";
+			tRelativePoint = "LEFT";
+		else
+			tPoint = "LEFT";
+			tRelativePoint = "RIGHT";
+		end
+
+		twipe(sDurationAnchor);
+
+		sDurationAnchor["point"] = tPoint;
+		sDurationAnchor["relativeTo"] = nil;
+		sDurationAnchor["relativePoint"] = tRelativePoint;
+		sDurationAnchor["offsetX"] = tPrivateAuraSetup["durationOffsetX"] or 0;
+		sDurationAnchor["offsetY"] = tPrivateAuraSetup["durationOffsetY"] or 0;
+
+		tDurationAnchor = sDurationAnchor;
+	else
+		tDurationAnchor = nil;
+	end
+
+	for tAuraIndex = 1, tNumAuras do
+		tPrivateAura = VUHDO_getPrivateAuraIcon(aButton, tAuraIndex);
 
 		if not tPrivateAura then
 			return;
 		end
 
 		if tPrivateAura["anchorId"] then
-			C_UnitAuras.RemovePrivateAuraAnchor(tPrivateAura["anchorId"]);
+			RemovePrivateAuraAnchor(tPrivateAura["anchorId"]);
 
 			tPrivateAura["anchorId"] = nil;
 		end
+
+		tIconSize = 32;
 
 		tPrivateAuraAnchor = {
 			unitToken = aUnit,
 			auraIndex = tAuraIndex,
 			parent = tPrivateAura,
-			showCountdownFrame = true,
-			showCountdownNumbers = true,
+			showCountdownFrame = tPrivateAuraSetup["showCooldown"] ~= false,
+			showCountdownNumbers = tPrivateAuraSetup["showCooldownNumbers"] ~= false,
 			iconInfo = {
-				iconWidth = tBarScaling["barHeight"],
-				iconHeight = tBarScaling["barHeight"],
+				iconWidth = tIconSize,
+				iconHeight = tIconSize,
 				iconAnchor = {
 					point = "CENTER",
 					relativeTo = tPrivateAura,
@@ -275,17 +397,73 @@ function VUHDO_refreshPrivateAuras(aPanelNum, aButton, aUnit)
 					offsetY = 0,
 				},
 			},
-			durationAnchor = {
-				point = "TOP",
-				relativeTo = tPrivateAura,
-				relativePoint = "BOTTOM",
-				offsetX = 0,
-				offsetY = 0,
-			},
 		};
 
-		tPrivateAura["anchorId"] = C_UnitAuras.AddPrivateAuraAnchor(tPrivateAuraAnchor);
+		if tPrivateAuraSetup["showBorder"] then
+			tIconSizePercent = tPrivateAuraSetup["iconSize"] or 40;
+
+			tBarHeight = tPanelSetup["SCALING"]["barHeight"];
+
+			if tIconSizePercent > 100 then
+				tVisualSize = min(tBarHeight, tIconSizePercent);
+			else
+				tVisualSize = tBarHeight * (tIconSizePercent == 0 and 100 or tIconSizePercent) * 0.01;
+			end
+
+			tPrivateAuraAnchor["iconInfo"]["borderScale"] = tVisualSize / 32;
+		else
+			tPrivateAuraAnchor["iconInfo"]["borderScale"] = -10000;
+		end
+
+		if tDurationAnchor then
+			tDurationFrame = nil;
+
+			if not tPrivateAuraSetup["showTooltip"] then
+				tDurationFrame = VUHDO_getPrivateAuraDuration(aButton, tAuraIndex);
+			end
+
+			tPrivateAuraAnchor["durationAnchor"] = {
+				["point"] = tDurationAnchor["point"],
+				["relativeTo"] = tDurationFrame or tPrivateAura,
+				["relativePoint"] = tDurationAnchor["relativePoint"],
+				["offsetX"] = tDurationAnchor["offsetX"],
+				["offsetY"] = tDurationAnchor["offsetY"],
+			};
+		end
+
+		tPrivateAura["anchorId"] = AddPrivateAuraAnchor(tPrivateAuraAnchor);
 	end
 
+	return;
+
 end
-	
+
+
+
+--
+local tPrivateAura;
+function VUHDO_removePrivateAuras(aButton)
+
+	if InCombatLockdown() then
+		return;
+	end
+
+	for tAuraIndex = 1, VUHDO_MAX_PRIVATE_AURAS do
+		tPrivateAura = VUHDO_getPrivateAuraIcon(aButton, tAuraIndex);
+
+		if not tPrivateAura then
+			return;
+		end
+
+		if tPrivateAura["anchorId"] then
+			RemovePrivateAuraAnchor(tPrivateAura["anchorId"]);
+
+			tPrivateAura["anchorId"] = nil;
+		end
+
+		tPrivateAura:Hide();
+	end
+
+	return;
+
+end

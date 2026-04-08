@@ -1,3 +1,143 @@
+## v12.0.11
+* Fix #2401 - Lua Value icon type to not break when the user code returns secrets.
+* Fix #2381 - Icon sometimes has a delay in showing as ready.
+* Fix #2405 - Errors when totems expire.
+* Fix CooldownSweep.lua:215: attempt to compare number with nil
+
+## v12.0.10
+* Support timer bars for totems once Blizzard releases GetTotemDuration
+* Fix #2378 - cast.lua compound unit tokens are not allowed for this call
+* Fix #2398 - Auras.lua:303: attempt to index a nil value
+* Fix #2380 - PlayerNames.lua:112: table index is secret
+* Fix #2385 - Mounted condition doesn't update if no other icon is tracking player auras.
+* Fix #2386 - attempt to compare local 'start' a secret number value tainted by ForceTaint_Strong
+* Fix #2379 - Deleting groups temporarily clobbers some icons from the GUID lookup
+
+## v12.0.9
+* Fix #2371 - Corruption treated as Immolate
+* Fix #2375 - cast.lua:153: bad argument #1 to 'UnitGUID'
+* Fix #2373 - IconType.lua:121: attempt to call global 'issecretvalue' (a nil value)
+
+## v12.0.8
+* Fix assorted errors
+
+## v12.0.7
+* Fix assorted errors
+* Adjusted mana bar color on Resource Display icons
+* Added "Raid" aura filter
+
+## v12.0.6
+* Added "Class or Primary Resource" as an option to Resource Display icons.
+* Added new WoW 12.0.1 filters to the Buff/Debuff icon type.
+* Added native integration with TullaCTC for styling timer text.
+* Specialization settings are now available to global groups.
+* Fix aura events not getting registered when tracking auras on many different units across all TMW icons.
+* Fix items sometimes showing with a ? texture.
+* Workaround a Blizzard bug where secret recharge durations for a max-charge ability are ignored.
+* Masque settings are now stored against TMW groups' unique identifiers instead of against group IDs. Masque will absorb any per-group customizations into the first TMW profile you log in with.
+* The Edit Mode "TMW: Always Hide" CDM setting has been deprecated in favor of new settings on TMW groups that allow greater flexibility.
+
+## v12.0.5
+* Fixed an issue that could cause some edit mode dialogs to be really wide.
+
+## v12.0.4
+
+### Midnight Aura Improvements
+* Buff/Debuff icons can now filter auras by name/id if those auras are displayed by the Blizzard Cooldown Manager. This requires the CDM to be enabled, shown, and have the spell tracked by at least one of the CDM's icon or bar groups.
+* Buff/Debuff icons can now have a blank spell filter without having to be a Group Controller.
+* Buff and debuff duration conditions can also check for specific spell names. If the aura is detectable by name via CDM data and is present, its duration will be assumed to be infinite.
+* A setting has been added on the Cooldown Manager frames in edit mode called "TMW: Always Hide" that can hide a CDM group while still allowing aura extraction.
+
+### Other
+* Resource Display now have secret-compatible percentage threshold settings for applying custom Opacity & Color above or below certain values.
+* Workaround broken Blizzard spell override behavior for Voidform/Void Volley.
+* Fixed numerous secret errors.
+* Handle (avoid) secrets in Totem checking.
+
+## v12.0.3
+* Groups can now inherit their opacity from an icon. This allows an entire group to take on opacity that is driven by a secret aspect, like cooldown readiness or spell casting state. This also allows using an icon's conditions to drive group opacity.
+* The Spell Cast condition can detect secret casts if the spell filter is empty and the "Casting" checkbox is chosen.
+* Fix: Prevent secrets in the import/export menu, which would break scrolling.
+* Fix: Incorrect stack text shown on item cooldown icons.
+
+## v12.0.2
+* Midnight: Restored spell cast conditions since they still work against `player`.
+* Midnight: Fully obsolete health and power conditions that are always secret.
+
+## v12.0.1
+* Midnight: Minor clarifications of secret behavior
+* Midnight: Add cooldown numbers on charge CDs
+* Midnight: Fix error in cast icon type
+
+## v12.0.0
+* WoW Midnight support. 
+* TBC Classic Anniversary support.
+* Timer bars now choose their start/completion color based on the default shading style of the cooldown sweep for the icon type. This means that buff/debuff and similar icons start at the Completion Color (default green) and move towards the Start Color (default red) as they expire.
+* Bar icons can now have smoothing enabled (most useful on Resource Display icons). Midnight only.
+* Fix: #2311 error caused by IconModule_IconEventConditionHandler enabling unconditionally
+
+## v11.2.8
+* Fix #2310 spec checking broken below level 10 on Classic Era.
+
+## v11.2.7
+* Fix #2309 Additional assorted talent/spec errors on Classic Era.
+
+## v11.2.6
+* Fix #2307 C_SpecializationInfo.GetTalent: query.specializationIndex must be specified.
+
+## v11.2.5
+* New condition: Armor Repair Level - Checks the lowest durability percentage of any equipped gear.
+* Meta Icons and Icon Shown conditions now use pure event-driven updates. This is made possible by dynamic, dependency-aware ordering of icon update checks. If you have circular dependencies between icons, you may find that some updates may be delayed by at least one update interval. 
+* While Condition Set Passing and On Condition Set Passing triggers for notifications no longer evaluate while their icon's group is not shown/active. This now matches the behavior of all other notification triggers.
+* Unit Conditions no longer evaluate while the icon that requested them is not shown/active.
+
+## v11.2.4
+* Fix Spells.lua:27: attempt to index field "SpellBookSpellBank" (a nil value)
+
+## v11.2.3
+* Fix missing Spell Activation Overlay condition in MoP.
+
+## v11.2.2
+* Add detection and warning of malfunctioning code in MetaTracker addon that breaks TMW.
+* #2297: Shapeshift condition can now check by spellID.
+* #2294: Add Delves to instance type condition
+* Fix: #2298 Missing entry for 'DR-KidneyShot'
+* Fix: #2293 Rune icon type config not loading in MoP
+
+
+## v11.2.1
+* Fix missing font in WoW 11.2
+
+## v11.2.0
+* Version Bump for WoW 11.2
+
+## v11.1.9
+* Fix: #2286 - Incorrect DR categories for MoP Classic
+* Fix: #2285 - Perform extra spell cost calculations for monks to workaround bad data from Blizzard APIs while rolling.
+
+## v11.1.8
+* Fix: #2284 "Single-Button Assistant" cooldown tracking only worked after performing a `/reload`.
+* Improve "Single-Button Assistant" to include abilities not on the action bar.
+* New condition: Spell is Assistant Button action
+
+## v11.1.5
+* Added support for tracking "Single-Button Assistant" (1229376) as a cooldown. Note that all suggestible abilities should be on your action bars for proper functioning.
+* Add missing localizations for some MoP spell equivalency groups
+
+## v11.1.4
+* Fix: #2276, #2277 broken Rune Cooldown configuration for Cata Classic
+
+## v11.1.3
+* Basic support for MoP Classic.
+* New Condition: Spell is Assistant Suggestion (integration with 11.1.7 Combat Assist feature)
+* Fix: #2274 Unit Class condition missing/incorrect classes in Classic/SoD.
+* Fix: #2275 Activation Border animation not working in WoW 11.1.7
+* Fix: The missing duration warning was sometimes showing at the wrong time.
+
+## v11.1.2
+* TOC bump for WoW 11.1.5
+* Fix #2269 - [string "*Help.xml:44_OnLoad"]:10: attempt to index field 'arrow' (a nil value)
+
 ## v11.1.1
 * Added support to new WoW 11.1.5 spell range events
 * Fix: Adjust some parameters to better handle the 7 digit spellIDs that Blizzard started adding in 11.0.7

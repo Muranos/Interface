@@ -54,7 +54,7 @@ end
 --
 
 function mod:CHAT_MSG_RAID_BOSS_EMOTE(_, msg)
-	if msg:find("329200") then -- Virulent Explosion
+	if not self:IsSecret(msg) and msg:find("329200") then -- Virulent Explosion
 		leapCount = leapCount + 1
 		-- Ickus leaps at 66% and 33% health
 		self:Message(67382, "yellow", CL.percent:format(leapCount == 1 and 66 or 33, self:SpellName(67382))) -- 'Leap'
@@ -75,7 +75,7 @@ end
 
 do
 	local function printTarget(self, name, guid)
-		 -- cast on tank in an organized group, but use :Me() instead for soloers
+		-- cast on tank in an organized group, but use :Me() instead for soloers
 		if self:Me(guid) then
 			self:Message(329110, "purple", CL.casting:format(self:SpellName(329110)))
 			self:PlaySound(329110, "alert")

@@ -17,6 +17,7 @@ local TMW = TMW
 local L = TMW.L
 local print = TMW.print
 
+local issecretvalue = TMW.issecretvalue
 local CNDT = TMW.CNDT
 local Env = CNDT.Env
 local isNumber = TMW.isNumber
@@ -34,7 +35,7 @@ function Env.AuraStacks(unit, name, filter)
 
 		if not data then
 			return 0
-		elseif data.spellId == name or strlowerCache[data.name] == name then
+		elseif not issecretvalue(data.spellId) and (data.spellId == name or strlowerCache[data.name] == name) then
 			if data.applications == 0 then
 				return 1
 			else
@@ -48,12 +49,12 @@ function Env.AuraStacksPacked(unit, name, kindKey, onlyMine)
 	local auras = GetAuras(unit)
 	local instances = auras.instances
 	
-	for auraInstanceID, isMine in next, auras.lookup[name] or empty do
+	for auraInstanceID, isMine in next, auras.lookup[name] do
 		if (isMine or not onlyMine) then
 			local instance = instances[auraInstanceID]
 			if instance[kindKey] then
 				local count = instance.applications
-				return count == 0 and 1 or count
+				return (issecretvalue(count) or count == 0) and 1 or count
 			end
 		end
 	end
@@ -67,10 +68,10 @@ function Env.AuraCount(units, spells, filter)
 
 	for u = 1, #units do
 		for i = 1, huge do
-			local data = GetAuraDataByIndex(units[u], i, filter)
-			if not data then
+			local instance = GetAuraDataByIndex(units[u], i, filter)
+			if not instance then
 				break
-			elseif names[data.spellId] or names[strlowerCache[data.name]] then
+			elseif not issecretvalue(instance.spellId) and (names[instance.spellId] or names[strlowerCache[instance.name]]) then
 				n = n + 1
 			end
 		end
@@ -88,7 +89,7 @@ function Env.AuraCountPacked(units, spells, kindKey, onlyMine)
 		local lookup = auras.lookup
 		
 		for i = 1, #SpellsArray do
-			for auraInstanceID, isMine in next, lookup[SpellsArray[i]] or empty do
+			for auraInstanceID, isMine in next, lookup[SpellsArray[i]] do
 				if (isMine or not onlyMine) then
 					if instances[auraInstanceID][kindKey] then
 						n = n + 1
@@ -104,7 +105,7 @@ function Env.AuraDur(unit, name, filter)
 	local instance
 	for i = 1, huge do
 		instance = GetAuraDataByIndex(unit, i, filter)
-		if not instance or instance.spellId == name or strlowerCache[instance.name] == name then
+		if not instance or (not issecretvalue(instance.spellId) and (instance.spellId == name or strlowerCache[instance.name] == name)) then
 			break
 		end
 	end
@@ -126,36 +127,40 @@ function Env.AuraDurPacked(unit, name, kindKey, onlyMine)
 	local auras = GetAuras(unit)
 	local instances = auras.instances
 	
-	for auraInstanceID, isMine in next, auras.lookup[name] or empty do
+	for auraInstanceID, isMine in next, auras.lookup[name] do
 		if (isMine or not onlyMine) then
 			local instance = instances[auraInstanceID]
 			if instance[kindKey] then
 				local expirationTime = instance.expirationTime
-				local timeMod = instance.timeMod
-				return 
-					expirationTime == 0 and huge or ((expirationTime - TMW.time) / timeMod), 
-					instance.duration, 
-					expirationTime,
-					timeMod
+				if issecretvalue(expirationTime) then
+					return huge, 0, 0, 1
+				else
+					local timeMod = instance.timeMod
+					return
+						expirationTime == 0 and huge or ((expirationTime - TMW.time) / timeMod), 
+						instance.duration,
+						expirationTime,
+						timeMod
+				end
 			end
 		end
 	end
-	return 0, 0, 0
+	return 0, 0, 0, 1
 end
 
 function Env.AuraPercent(unit, name, filter)
-	local data
+	local instance
 	for i = 1, huge do
-		data = GetAuraDataByIndex(unit, i, filter)
-		if not data or data.spellId == name or strlowerCache[data.name] == name then
+		instance = GetAuraDataByIndex(unit, i, filter)
+		if not instance or (not issecretvalue(instance.spellId) and (instance.spellId == name or strlowerCache[instance.name] == name)) then
 			break
 		end
 	end
 	
-	if not data then
+	if not instance then
 		return 0
 	else
-		return data.expirationTime == 0 and 1 or ((data.expirationTime - TMW.time) / data.duration)
+		return instance.expirationTime == 0 and 1 or ((instance.expirationTime - TMW.time) / instance.duration)
 	end
 end
 
@@ -163,12 +168,14 @@ function Env.AuraPercentPacked(unit, name, kindKey, onlyMine)
 	local auras = GetAuras(unit)
 	local instances = auras.instances
 	
-	for auraInstanceID, isMine in next, auras.lookup[name] or empty do
+	for auraInstanceID, isMine in next, auras.lookup[name] do
 		if (isMine or not onlyMine) then
 			local instance = instances[auraInstanceID]
 			if instance[kindKey] then
 				local expirationTime = instance.expirationTime
-				return expirationTime == 0 and 1 or ((expirationTime - TMW.time) / instance.duration)
+				if not issecretvalue(expirationTime) then
+					return expirationTime == 0 and 1 or ((expirationTime - TMW.time) / instance.duration)
+				end
 			end
 		end
 	end
@@ -176,16 +183,16 @@ function Env.AuraPercentPacked(unit, name, kindKey, onlyMine)
 end
 
 function Env.AuraVariableNumber(unit, name, filter)
-	local data
+	local instance
 	for i = 1, huge do
-		data = GetAuraDataByIndex(unit, i, filter)
-		if not data or data.spellId == name or strlowerCache[data.name] == name then
+		instance = GetAuraDataByIndex(unit, i, filter)
+		if not instance or (not issecretvalue(instance.spellId) and (instance.spellId == name or strlowerCache[instance.name] == name)) then
 			break
 		end
 	end
 	
-	for i = 1, #data.points do
-		local v = data.points[i]
+	for i = 1, #instance.points do
+		local v = instance.points[i]
 		if v and v > 0 then return v end
 	end
 		
@@ -196,14 +203,16 @@ function Env.AuraVariableNumberPacked(unit, name, kindKey, onlyMine)
 	local auras = GetAuras(unit)
 	local instances = auras.instances
 	
-	for auraInstanceID, isMine in next, auras.lookup[name] or empty do
+	for auraInstanceID, isMine in next, auras.lookup[name] do
 		if (isMine or not onlyMine) then
 			local instance = instances[auraInstanceID]
 			if instance[kindKey] then
 				local points = instance.points
-				for i = 1, #points do
-					local v = points[i]
-					if v and v > 0 then return v end
+				if not issecretvalue(points) then
+					for i = 1, #points do
+						local v = points[i]
+						if v and v > 0 then return v end
+					end
 				end
 			end
 		end
@@ -216,10 +225,10 @@ function Env.AuraTooltipNumber(unit, name, filter, requestedIndex)
 	requestedIndex = requestedIndex or 1
 
 	for i = 1, 100 do
-		local data = GetAuraDataByIndex(unit, i, filter)
-		if not data then 
+		local instance = GetAuraDataByIndex(unit, i, filter)
+		if not instance then 
 			break
-		elseif data.spellId == name or strlowerCache[data.name] == name then
+		elseif not issecretvalue(instance.spellId) and (instance.spellId == name or strlowerCache[instance.name] == name) then
 			
 			local tooltipNumbers = Auras.ParseTooltip(unit, instance, i)
 			return tooltipNumbers[requestedIndex] or 0
@@ -233,7 +242,7 @@ function Env.AuraTooltipNumberPacked(unit, name, kindKey, onlyMine, requestedInd
 	local auras = GetAuras(unit)
 	local instances = auras.instances
 	
-	for auraInstanceID, isMine in next, auras.lookup[name] or empty do
+	for auraInstanceID, isMine in next, auras.lookup[name] do
 		if (isMine or not onlyMine) then
 			local instance = instances[auraInstanceID]
 			if instance[kindKey] then
@@ -268,6 +277,7 @@ ConditionCategory:RegisterCondition(1,	 "BUFFDUR", {
 	formatter = TMW.C.Formatter.TIME_0ABSENT,
 	icon = "Interface\\Icons\\spell_nature_rejuvenation",
 	tcoords = CNDT.COMMON.standardtcoords,
+	maybeSecret = true,
 	funcstr = function(c)
 		if CanUsePackedAuras(c) then
 			return [[AuraDurPacked(c.Unit, c.Spells.First, "isHelpful", ]] .. (tostring(c.Checked)) .. [[) c.Operator c.Level]]
@@ -285,7 +295,6 @@ ConditionCategory:RegisterCondition(1,	 "BUFFDUR", {
 			or [[AuraDur(c.Unit, c.Spells.First, "HELPFUL]] .. (c.Checked and " PLAYER" or "") .. [[")]]
 			
 		return [[local dur, duration, expirationTime, timeMod = ]] .. getAura .. [[
-		local VALUE
 		if dur and dur > 0 then
 			VALUE = expirationTime and expirationTime - (c.Level * timeMod) or 0
 		else
@@ -328,6 +337,7 @@ ConditionCategory:RegisterCondition(2.5, "BUFFPERC", {
 	formatter = TMW.C.Formatter.PERCENT,
 	icon = "Interface\\Icons\\spell_holy_circleofrenewal",
 	tcoords = CNDT.COMMON.standardtcoords,
+	maybeSecret = true,
 	funcstr = function(c)
 		if CanUsePackedAuras(c) then
 			return [[AuraPercentPacked(c.Unit, c.Spells.First, "isHelpful", ]] .. (tostring(c.Checked)) .. [[) c.Operator c.Level]]
@@ -345,7 +355,6 @@ ConditionCategory:RegisterCondition(2.5, "BUFFPERC", {
 			or [[AuraDur(c.Unit, c.Spells.First, "HELPFUL]] .. (c.Checked and " PLAYER" or "") .. [[")]]
 			
 		return [[local dur, duration, expirationTime, timeMod = ]] .. getAura .. [[
-		local VALUE
 		if dur and dur > 0 then
 			VALUE = expirationTime and (expirationTime - c.Level*duration*timeMod) or 0
 		else
@@ -371,6 +380,7 @@ ConditionCategory:RegisterCondition(2,	 "BUFFDURCOMP", {
 	useSUG = true,
 	icon = "Interface\\Icons\\spell_nature_rejuvenation",
 	tcoords = CNDT.COMMON.standardtcoords,
+	maybeSecret = true,
 	funcstr = function(c)
 		if CanUsePackedAuras(c) then
 			return [[AuraDurPacked(c.Unit, c.Spells.First, "isHelpful", ]] .. (tostring(c.Checked)) .. [[) c.Operator AuraDurPacked(c.Unit, c.Spells2.First, "isHelpful", ]] .. (tostring(c.Checked2)) .. [[)]]
@@ -394,9 +404,10 @@ ConditionCategory:RegisterCondition(3,	 "BUFFSTACKS", {
 	check = function(check)
 		check:SetTexts(L["ONLYCHECKMINE"], L["ONLYCHECKMINE_DESC"])
 	end,
-	texttable = setmetatable({[0] = format(STACKS, 0).." ("..L["ICONMENU_ABSENT"]..")"}, {__index = function(tbl, k) return format(STACKS, k) end}),
+	texttable = setmetatable({[0] = format(STACKS, 0).." ("..L["ICONMENU_ABSENT"]..")"},  {__index = function(tbl, k) return format(STACKS, k) end}),
 	icon = "Interface\\Icons\\inv_misc_herb_felblossom",
 	tcoords = CNDT.COMMON.standardtcoords,
+	maybeSecret = true,
 	funcstr = function(c)
 		if CanUsePackedAuras(c) then
 			return [[AuraStacksPacked(c.Unit, c.Spells.First, "isHelpful", ]] .. (tostring(c.Checked)) .. [[) c.Operator c.Level]]
@@ -423,6 +434,7 @@ ConditionCategory:RegisterCondition(4,	 "BUFFTOOLTIP", {
 	end,
 	icon = "Interface\\Icons\\inv_elemental_primal_mana",
 	tcoords = CNDT.COMMON.standardtcoords,
+	maybeSecret = true,
 	funcstr = function(c)
 		if CanUsePackedAuras(c) then
 			return [[AuraVariableNumberPacked(c.Unit, c.Spells.First, "isHelpful", ]] .. (tostring(c.Checked)) .. [[) c.Operator c.Level]]
@@ -448,8 +460,9 @@ for i = 1, 3 do -- BUFFTOOLTIPSCAN
 		check = function(check)
 			check:SetTexts(L["ONLYCHECKMINE"], L["ONLYCHECKMINE_DESC"])
 		end,
-		icon = not TMW.isRetail and "Interface\\Icons\\spell_ice_lament" or "Interface\\Icons\\ability_priest_clarityofwill",
+		icon = ClassicExpansionAtLeast(LE_EXPANSION_WARLORDS_OF_DRAENOR) and "Interface\\Icons\\ability_priest_clarityofwill" or "Interface\\Icons\\spell_ice_lament",
 		tcoords = CNDT.COMMON.standardtcoords,
+		maybeSecret = true,
 		funcstr = function(c)
 			if CanUsePackedAuras(c) then
 				return [[AuraTooltipNumberPacked(c.Unit, c.Spells.First, "isHelpful", ]] .. (tostring(c.Checked)) .. [[, ]] .. i .. [[) c.Operator c.Level]]
@@ -479,6 +492,7 @@ ConditionCategory:RegisterCondition(5,	 "BUFFNUMBER", {
 	texttable = function(k) return format(L["ACTIVE"], k) end,
 	icon = "Interface\\Icons\\ability_paladin_sacredcleansing",
 	tcoords = CNDT.COMMON.standardtcoords,
+	maybeSecret = true,
 	funcstr = function(c)
 		if CanUsePackedAuras(c) then
 			return [[AuraCountPacked(c.Units, c.Spells, "isHelpful", ]] .. (tostring(c.Checked)) .. [[) c.Operator c.Level]]
@@ -503,8 +517,12 @@ if UnitGetTotalAbsorbs then
 		icon = "Interface\\Icons\\spell_holy_powerwordshield",
 		formatter = TMW.C.Formatter.COMMANUMBER,
 		tcoords = CNDT.COMMON.standardtcoords,
+		maybeSecret = true,
 		Env = {
-			UnitGetTotalAbsorbs = UnitGetTotalAbsorbs,
+			UnitGetTotalAbsorbs = not TMW.clientHasSecrets and UnitGetTotalAbsorbs or function(unit)
+				local absorbs = UnitGetTotalAbsorbs(unit)
+				return issecretvalue(absorbs) and 0 or absorbs
+			end,
 		},
 		funcstr = function(c)
 			return [[UnitGetTotalAbsorbs(c.Unit) c.Operator c.Level]]
@@ -533,6 +551,7 @@ ConditionCategory:RegisterCondition(11,	 "DEBUFFDUR", {
 	formatter = TMW.C.Formatter.TIME_0ABSENT,
 	icon = "Interface\\Icons\\spell_shadow_abominationexplosion",
 	tcoords = CNDT.COMMON.standardtcoords,
+	maybeSecret = true,
 	funcstr = function(c)
 		if CanUsePackedAuras(c) then
 			return [[AuraDurPacked(c.Unit, c.Spells.First, "isHarmful", ]] .. (tostring(c.Checked)) .. [[) c.Operator c.Level]]
@@ -550,7 +569,6 @@ ConditionCategory:RegisterCondition(11,	 "DEBUFFDUR", {
 			or [[AuraDur(c.Unit, c.Spells.First, "HARMFUL]] .. (c.Checked and " PLAYER" or "") .. [[")]]
 			
 		return [[local dur, duration, expirationTime, timeMod = ]] .. getAura .. [[
-		local VALUE
 		if dur and dur > 0 then
 			VALUE = expirationTime and expirationTime - (c.Level*timeMod) or 0
 		else
@@ -591,8 +609,9 @@ ConditionCategory:RegisterCondition(12.5,"DEBUFFPERC", {
 		check:SetTexts(L["ONLYCHECKMINE"], L["ONLYCHECKMINE_DESC"])
 	end,
 	formatter = TMW.C.Formatter.PERCENT,
-	icon = not TMW.isRetail and "Interface\\Icons\\ability_rogue_dualweild" or "Interface\\Icons\\spell_priest_voidshift",
+	icon = ClassicExpansionAtLeast(LE_EXPANSION_MISTS_OF_PANDARIA) and "Interface\\Icons\\spell_priest_voidshift" or "Interface\\Icons\\ability_rogue_dualweild",
 	tcoords = CNDT.COMMON.standardtcoords,
+	maybeSecret = true,
 	funcstr = function(c)
 		if CanUsePackedAuras(c) then
 			return [[AuraPercentPacked(c.Unit, c.Spells.First, "isHarmful", ]] .. (tostring(c.Checked)) .. [[) c.Operator c.Level]]
@@ -610,7 +629,6 @@ ConditionCategory:RegisterCondition(12.5,"DEBUFFPERC", {
 			or [[AuraDur(c.Unit, c.Spells.First, "HARMFUL]] .. (c.Checked and " PLAYER" or "") .. [[")]]
 			
 		return [[local dur, duration, expirationTime, timeMod = ]] .. getAura .. [[
-		local VALUE
 		if dur and dur > 0 then
 			VALUE = expirationTime and (expirationTime - c.Level*duration*timeMod) or 0
 		else
@@ -636,6 +654,7 @@ ConditionCategory:RegisterCondition(12,	 "DEBUFFDURCOMP", {
 	useSUG = true,
 	icon = "Interface\\Icons\\spell_shadow_abominationexplosion",
 	tcoords = CNDT.COMMON.standardtcoords,
+	maybeSecret = true,
 	funcstr = function(c)
 		if CanUsePackedAuras(c) then
 			return [[AuraDurPacked(c.Unit, c.Spells.First, "isHarmful", ]] .. (tostring(c.Checked)) .. [[) c.Operator AuraDurPacked(c.Unit, c.Spells2.First, "isHarmful", ]] .. (tostring(c.Checked2)) .. [[)]]
@@ -663,6 +682,7 @@ ConditionCategory:RegisterCondition(13,	 "DEBUFFSTACKS", {
 	texttable = setmetatable({[0] = format(STACKS, 0).." ("..L["ICONMENU_ABSENT"]..")"}, {__index = function(tbl, k) return format(STACKS, k) end}),
 	icon = "Interface\\Icons\\ability_warrior_sunder",
 	tcoords = CNDT.COMMON.standardtcoords,
+	maybeSecret = true,
 	funcstr = function(c)
 		if CanUsePackedAuras(c) then
 			return [[AuraStacksPacked(c.Unit, c.Spells.First, "isHarmful", ]] .. (tostring(c.Checked)) .. [[) c.Operator c.Level]]
@@ -689,6 +709,7 @@ ConditionCategory:RegisterCondition(14,	 "DEBUFFTOOLTIP", {
 	end,
 	icon = "Interface\\Icons\\spell_shadow_lifedrain",
 	tcoords = CNDT.COMMON.standardtcoords,
+	maybeSecret = true,
 	funcstr = function(c)
 		if CanUsePackedAuras(c) then
 			return [[AuraVariableNumberPacked(c.Unit, c.Spells.First, "isHarmful", ]] .. (tostring(c.Checked)) .. [[) c.Operator c.Level]]
@@ -716,6 +737,7 @@ for i = 1, 3 do -- DEBUFFTOOLTIPSCAN
 		end,
 		icon = "Interface\\Icons\\spell_fire_flameshock",
 		tcoords = CNDT.COMMON.standardtcoords,
+		maybeSecret = true,
 		funcstr = function(c)
 			if CanUsePackedAuras(c) then
 				return [[AuraTooltipNumberPacked(c.Unit, c.Spells.First, "isHarmful", ]] .. (tostring(c.Checked)) .. [[, ]] .. i .. [[) c.Operator c.Level]]
@@ -745,6 +767,7 @@ ConditionCategory:RegisterCondition(15,	 "DEBUFFNUMBER", {
 	texttable = function(k) return format(L["ACTIVE"], k) end,
 	icon = "Interface\\Icons\\spell_deathknight_frostfever",
 	tcoords = CNDT.COMMON.standardtcoords,
+	maybeSecret = true,
 	funcstr = function(c)
 		if CanUsePackedAuras(c) then
 			return [[AuraCountPacked(c.Units, c.Spells, "isHarmful", ]] .. (tostring(c.Checked)) .. [[) c.Operator c.Level]]
@@ -777,7 +800,7 @@ ConditionCategory:RegisterCondition(21,	 "MAINHAND", {
 			ConditionObject:GenerateNormalEventString("UNIT_PORTRAIT_UPDATE", "player")
 	end,
 	anticipate = [[local _, dur = GetWeaponEnchantInfo()
-		local VALUE = time + ((dur or 0)/1000) - c.Level]],
+		VALUE = time + ((dur or 0)/1000) - c.Level]],
 })
 ConditionCategory:RegisterCondition(22,	 "OFFHAND", {
 	text = L["ICONMENU_WPNENCHANT"] .. " - " .. INVTYPE_WEAPONOFFHAND,
@@ -793,5 +816,5 @@ ConditionCategory:RegisterCondition(22,	 "OFFHAND", {
 			ConditionObject:GenerateNormalEventString("UNIT_PORTRAIT_UPDATE", "player")
 	end,
 	anticipate = [[local _, _, _, _, _, dur = GetWeaponEnchantInfo()
-		local VALUE = time + ((dur or 0)/1000) - c.Level]],
+		VALUE = time + ((dur or 0)/1000) - c.Level]],
 })

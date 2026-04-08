@@ -59,7 +59,9 @@ end
 function mod:OnWin()
 	local odynMod = BigWigs:GetBossModule("Odyn", true)
 	if odynMod then
-		odynMod:Enable() -- Making sure to pickup Odyn's yell to start the RP bar
+		-- Make sure to pickup Odyn's yell to start the RP bar.
+		-- delay a frame to avoid registering ENCOUNTER_END during ENCOUNTER_END.
+		self:SimpleTimer(function() odynMod:Enable() end, 0)
 	end
 end
 
@@ -68,6 +70,7 @@ end
 --
 
 function mod:Warmup(event, msg)
+	if self:IsSecret(msg) then return end
 	if msg == L.warmup_trigger then
 		self:UnregisterEvent(event)
 		self:Bar("warmup", 20, L.warmup_text, "achievement_dungeon_hallsofvalor")

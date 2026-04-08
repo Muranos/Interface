@@ -42,6 +42,7 @@ L["DR-DeathCoil"] = GetSpellInfo(6789)
 L["DR-FreezingTrap"] = GetSpellInfo(3355)
 L["DR-Sleep"] = GetSpellInfo(700)
 L["DR-UnstableAffliction"] = GetSpellInfo(30108)
+L["DR-KidneyShot"] = GetSpellInfo(408) or "Kidney Shot"
 
 -- Blizzard has a typo in the English string ("Ecplise")
 L["ECLIPSE"] = (locale == "enUS" or locale == "enGB") and "Eclipse" or ECLIPSE
@@ -175,6 +176,11 @@ L["CONDITIONALPHA_METAICON_DESC"] = L["CONDITIONALPHA_METAICON_DESC"]:format(L["
 L["DURATIONALPHA_DESC"] = L["DURATIONALPHA_DESC"]:format(L["ICONMENU_SHOWWHEN"])
 L["STACKALPHA_DESC"] = L["STACKALPHA_DESC"]:format(L["ICONMENU_SHOWWHEN"])
 L["VALUEALPHA_DESC"] = L["VALUEALPHA_DESC"]:format(L["ICONMENU_SHOWWHEN"])
+
+L["UIPANEL_SECRETS_AURAS_DISALLOWED_EXCEPT_DESC"] = L["UIPANEL_SECRETS_AURAS_DISALLOWED_EXCEPT_DESC"]:format(
+	L["ICONMENU_CTRLGROUP"],
+	L["ICONMENU_CHOOSENAME3"]
+)
 
 
 --L["CNDT_SLIDER_DESC_CLICKSWAP_TOMANUAL"] = L["CNDT_SLIDER_DESC_BASE"] .. "\r\n\r\n" .. L["CNDT_SLIDER_DESC_CLICKSWAP_TOMANUAL"]

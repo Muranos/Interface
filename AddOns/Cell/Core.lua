@@ -31,12 +31,12 @@ local P = Cell.pixelPerfectFuncs
 local L = Cell.L
 
 -- sharing version check
-Cell.MIN_VERSION = 239
-Cell.MIN_CLICKCASTINGS_VERSION = 239
-Cell.MIN_LAYOUTS_VERSION = 245
-Cell.MIN_INDICATORS_VERSION = 245
-Cell.MIN_DEBUFFS_VERSION = 239
-Cell.MIN_QUICKASSIST_VERSION = 239
+Cell.MIN_VERSION = 246
+Cell.MIN_CLICKCASTINGS_VERSION = 246
+Cell.MIN_LAYOUTS_VERSION = 246
+Cell.MIN_INDICATORS_VERSION = 246
+Cell.MIN_DEBUFFS_VERSION = 246
+Cell.MIN_QUICKASSIST_VERSION = 246
 
 --[==[@debug@
 local debugMode = true
@@ -93,12 +93,15 @@ function F.UpdateLayout(layoutGroupType)
         end
 
         local layout = Cell.vars.layoutAutoSwitch[layoutGroupType]
-        Cell.vars.currentLayout = layout
         Cell.vars.layoutGroupType = layoutGroupType
 
         if layout == "hide" then
+            Cell.vars.isHidden = true
+            Cell.vars.currentLayout = "default"
             Cell.vars.currentLayoutTable = CellDB["layouts"]["default"]
         else
+            Cell.vars.isHidden = false
+            Cell.vars.currentLayout = layout
             Cell.vars.currentLayoutTable = CellDB["layouts"][layout]
         end
 
@@ -125,31 +128,31 @@ local function PreUpdateLayout()
         if bgMaxPlayers[id] then
             if bgMaxPlayers[id] <= 15 then
                 Cell.vars.inBattleground = 15
-                F.UpdateLayout("battleground15", true)
+                F.UpdateLayout("battleground15")
             else
                 Cell.vars.inBattleground = 40
-                F.UpdateLayout("battleground40", true)
+                F.UpdateLayout("battleground40")
             end
         else
             Cell.vars.inBattleground = 15
-            F.UpdateLayout("battleground15", true)
+            F.UpdateLayout("battleground15")
         end
     elseif instanceType == "arena" then
         Cell.vars.inBattleground = 5 -- treat as bg 5
-        F.UpdateLayout("arena", true)
+        F.UpdateLayout("arena")
     else
         Cell.vars.inBattleground = false
         if Cell.vars.groupType == "solo" then
-            F.UpdateLayout("solo", true)
+            F.UpdateLayout("solo")
         elseif Cell.vars.groupType == "party" then
-            F.UpdateLayout("party", true)
+            F.UpdateLayout("party")
         else -- raid
             if Cell.vars.inMythic then
-                F.UpdateLayout("raid_mythic", true)
+                F.UpdateLayout("raid_mythic")
             elseif Cell.vars.inInstance then
-                F.UpdateLayout("raid_instance", true)
+                F.UpdateLayout("raid_instance")
             else
-                F.UpdateLayout("raid_outdoor", true)
+                F.UpdateLayout("raid_outdoor")
             end
         end
     end
@@ -219,10 +222,11 @@ function eventFrame:ADDON_LOADED(arg1)
                 ["tooltipsPosition"] = {"BOTTOMLEFT", "Default", "TOPLEFT", 0, 15},
                 ["hideBlizzardParty"] = true,
                 ["hideBlizzardRaid"] = true,
+                ["hideBlizzardRaidManager"] = true,
                 ["locked"] = false,
                 ["fadeOut"] = false,
                 ["menuPosition"] = "top_bottom",
-                ["alwaysUpdateAuras"] = true,
+                ["alwaysUpdateAuras"] = false,
                 ["framePriority"] = {
                     {"Main", true},
                     {"Spotlight", false},
@@ -232,6 +236,7 @@ function eventFrame:ADDON_LOADED(arg1)
                 ["translit"] = false,
             }
         end
+        Cell.vars.alwaysUpdateAuras = CellDB["general"]["alwaysUpdateAuras"]
 
         -- nicknames ------------------------------------------------------------------------------
         if type(CellDB["nicknames"]) ~= "table" then
@@ -248,7 +253,7 @@ function eventFrame:ADDON_LOADED(arg1)
         if type(CellDB["tools"]) ~= "table" then
             CellDB["tools"] = {
                 ["battleResTimer"] = {true, false, {}},
-                ["buffTracker"] = {false, "left-to-right", 32, {}},
+                ["buffTracker"] = {false, "left-to-right", 32, {}, {}},
                 ["deathReport"] = {false, 10},
                 ["readyAndPull"] = {false, "text_button", {"default", 7}, {}},
                 ["marks"] = {false, false, "both_h", {}},
@@ -586,7 +591,7 @@ Cell.vars.raidSetup = {
     ["DAMAGER"]={["ALL"]=0},
 }
 
-function eventFrame:GROUP_ROSTER_UPDATE()
+function eventFrame:GROUP_ROSTER_UPDATE(skipFallbackUpdate)
     if IsInRaid() then
         if Cell.vars.groupType ~= "raid" then
             Cell.vars.groupType = "raid"
@@ -684,10 +689,31 @@ function eventFrame:GROUP_ROSTER_UPDATE()
         Cell.Fire("PermissionChanged")
         F.Debug("|cffbb00bbPermissionChanged")
     end
+
+    if not skipFallbackUpdate then
+        CellDB.fallbackGroupType = Cell.vars.groupType
+    end
 end
 
 local inInstance
-function eventFrame:PLAYER_ENTERING_WORLD()
+
+local function UpdateFallbackGroupType()
+    if IsInRaid() then
+        CellDB.fallbackGroupType = "raid"
+    elseif IsInGroup() then
+        CellDB.fallbackGroupType = "party"
+    else
+        CellDB.fallbackGroupType = "solo"
+    end
+
+    if Cell.vars.groupType ~= CellDB.fallbackGroupType then
+        Cell.vars.groupType = CellDB.fallbackGroupType
+        F.Debug("|cffffbb77GroupTypeChanged:|r", Cell.vars.groupType, "(fallback validation)")
+        Cell.Fire("GroupTypeChanged", Cell.vars.groupType)
+    end
+end
+
+function eventFrame:PLAYER_ENTERING_WORLD(isInitialLogin, isReloadingUi)
     -- eventFrame:UnregisterEvent("PLAYER_ENTERING_WORLD")
     F.Debug("|cffbbbbbb=== PLAYER_ENTERING_WORLD ===")
     Cell.vars.inMythic = false
@@ -697,23 +723,40 @@ function eventFrame:PLAYER_ENTERING_WORLD()
     Cell.vars.inInstance = isIn
     Cell.vars.instanceType = iType
 
+    C_Timer.After(1, UpdateFallbackGroupType)
+
     if isIn then
         F.Debug("|cffff1111*** Entered Instance:|r", iType)
         Cell.Fire("EnterInstance", iType)
-        PreUpdateLayout()
+
+        --! NOTE: for PLAYER_LOGIN/PLAYER_ENTERING_WORLD(initial) event, IsInRaid/IsInGroup always return false
+        if (isInitialLogin or isReloadingUi) and CellDB.fallbackGroupType then
+            F.Debug("|cffff1111*** Fallback:|r", Cell.vars.groupType, "->", CellDB.fallbackGroupType, CellDB.fallbackInMythic)
+            Cell.vars.groupType = CellDB.fallbackGroupType
+            Cell.vars.inMythic = CellDB.fallbackInMythic
+            CellDB.fallbackGroupType = nil
+            CellDB.fallbackInMythic = nil
+            Cell.Fire("GroupTypeChanged", Cell.vars.groupType)
+        else
+            PreUpdateLayout()
+        end
         inInstance = true
 
         -- NOTE: delayed check mythic raid
-        if iType == "raid" then
+        if iType == "raid" and Cell.vars.groupType == "raid" then
             C_Timer.After(0.5, function()
                 local difficultyID, difficultyName = select(3, GetInstanceInfo()) --! can't get difficultyID, difficultyName immediately after entering an instance
                 Cell.vars.inMythic = difficultyID == 16
-                if Cell.vars.inMythic then
-                    F.Debug("|cffff1111*** Entered Instance:|r", "raid-mythic")
+                CellDB.fallbackInMythic = Cell.vars.inMythic
+
+                if Cell.vars.inMythic and Cell.vars.layoutGroupType ~= "raid_mythic" then
+                    F.Debug("|cffff1111*** Switch to Mythic Raid layout|r")
                     Cell.Fire("EnterInstance", iType)
                     PreUpdateLayout()
                 end
             end)
+        else
+            Cell.vars.inMythic = nil
         end
 
     elseif inInstance then -- left insntance
@@ -786,7 +829,7 @@ function eventFrame:PLAYER_LOGIN()
     UpdateSpecVars()
 
     --! init Cell.vars.currentLayout and Cell.vars.currentLayoutTable
-    eventFrame:GROUP_ROSTER_UPDATE()
+    eventFrame:GROUP_ROSTER_UPDATE(true)
     -- REVIEW: register unitframes for click casting
     -- RegisterGlobalClickCastings()
     -- update click-castings
@@ -810,6 +853,7 @@ function eventFrame:PLAYER_LOGIN()
     -- hide blizzard
     if CellDB["general"]["hideBlizzardParty"] then F.HideBlizzardParty() end
     if CellDB["general"]["hideBlizzardRaid"] then F.HideBlizzardRaid() end
+    if CellDB["general"]["hideBlizzardRaidManager"] then F.HideBlizzardRaidManager() end
     -- lock & menu
     Cell.Fire("UpdateMenu")
     -- update CLEU health
@@ -825,7 +869,7 @@ function eventFrame:PLAYER_LOGIN()
     F.UpdateFramePriority()
 end
 
-function eventFrame:UI_SCALE_CHANGED()
+local function UpdatePixels()
     if not InCombatLockdown() then
         F.Debug("UI_SCALE_CHANGED: ", UIParent:GetScale(), CellParent:GetEffectiveScale())
         Cell.Fire("UpdatePixelPerfect")
@@ -833,13 +877,19 @@ function eventFrame:UI_SCALE_CHANGED()
     end
 end
 
-hooksecurefunc(UIParent, "SetScale", function()
-    if not InCombatLockdown() then
-        F.Debug("UIParent:SetScale: ", UIParent:GetScale(), CellParent:GetEffectiveScale())
-        Cell.Fire("UpdatePixelPerfect")
-        Cell.Fire("UpdateAppearance", "scale")
+local updatePixelsTimer
+local function DelayedUpdatePixels()
+    if updatePixelsTimer then
+        updatePixelsTimer:Cancel()
     end
-end)
+    updatePixelsTimer = C_Timer.NewTimer(1, UpdatePixels)
+end
+
+function eventFrame:UI_SCALE_CHANGED()
+    DelayedUpdatePixels()
+end
+
+hooksecurefunc(UIParent, "SetScale", DelayedUpdatePixels)
 
 -------------------------------------------------
 -- ACTIVE_TALENT_GROUP_CHANGED
@@ -870,7 +920,7 @@ function eventFrame:ACTIVE_TALENT_GROUP_CHANGED()
         -- update spec vars
         UpdateSpecVars()
 
-        if not Cell.vars.playerSpecID then
+        if not Cell.vars.playerSpecID or Cell.vars.playerSpecID == 0 then
             -- NOTE: when join in battleground, spec auto switched, during loading, can't get info from GetSpecializationInfo, until PLAYER_ENTERING_WORLD
             prevSpec = nil
             checkSpecFrame:RegisterEvent("PLAYER_ENTERING_WORLD")

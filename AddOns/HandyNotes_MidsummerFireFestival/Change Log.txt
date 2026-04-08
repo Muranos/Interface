@@ -1,0 +1,236 @@
+== v3.20 - 18th February 2026
+* TOC update to 12.0.1
+
+== v3.19 - 24th January 2026
+* TOC update to 12.0.0
+
+== v3.18 - 6th January 2026
+* TOC update to 5.5.3
+
+== v3.17 - 17th December 2025
+* TOC update to 11.2.7
+
+== v3.16 - 12th November 2025
+* TOC update to 5.5.2
+
+== v3.15 - 5th November 2025
+* TOC Update to 1.15.8
+
+== v3.14 - 3rd October 2025
+* TOC update to 11.2.5
+
+== v3.13 - 26th September 2025
+* TOC update to 5.5.1
+
+== v3.12 - 2nd August 2025
+* TOC update to 11.2.0
+
+== v3.11 - 27th July 2025
+* Dragons Tread Lightly now has increased accuracy for
+  Classic Mists: What you will see will be a very small increase
+  in precision on the continent maps and bigger improvement on
+  the Azeroth map. DTL v1.03
+
+== v3.10 - 22th July 2025
+* Ensure that DB is correctly saved across AddOns
+* AddOn compartment menus. This is Retail only
+* Now using the modular event handling for pins
+* More pin texture options
+
+== v3.09 - 12th July 2025
+* New fire pin. Nature colour, i.e. green
+* Improvements to modularity
+  (about to begin rolling out the latest improvements
+  across all event AddOns)
+
+== v3.08 - 30th June 2025
+* Reworked pin sizes. A 25% default size increase in zones,
+  continents get 75% of that and Azeroth 60% of that/ This
+  seems good across all game versions. I still retain the
+  upwards boost of x 1.3 for all Classic pins in all
+  versions of Classic to be consistent with Blizzard's
+  bigger icon approach
+* Translations
+  
+== v3.07 - 29th June 2025
+* Thief's reward now live for all game versions
+* Internal move of code from Localisations_event into _Common
+* Moved Azeroth check into Common_Functions
+* Added a translation for "Show pins on the Azeroth map"
+* Moved Mechagon off the Azeroth map. It looked weird
+  (even if technically correctly located)
+* Using new version of Dragons Tread Lightly v1.02
+
+== v3.06 - 28th June 2025
+* Arathi Highlands now warns you if you are in the wrong phase.
+  Please note the the game is WRONG to show the fire quest
+  question mark on the World Map. They ain't there in the
+  present time. The reason the game is wrong is likely due to
+  the programmer not realising that there are TWO buffs to
+  test! The buff you get upon flying into the zone and the
+  buff you get after switching with Zidormi. Maybe that in
+  itself is a bug. Dunno. Took me a while to realise. My
+  previous attempts to code Arathi never worked reliably
+  which was why it was missing lol!
+  
+== v3.05 - 26th June 2025
+* Quests now appear in the continent summary pins for
+  Vanilla
+* Dragons Tread Lightly is now at v1.01. Pandaria coordinates
+  are based off actual calculations rather than vision
+
+== v3.04 - 25th June 2025
+* Classic Vanilla
+
+== v3.03 - 25th June 2025
+* "Got Khaz Algar done properly" famous last words. Sigh
+
+== v3.02 - 24th June 2025
+* Got Khaz Algar done properly
+* Maelstrom/Deepholm improved slightly by bypassing HN/HBD
+  and using my own DTL
+* Altered the colour scheme sligthly. One of the heading
+  colours is much redder now
+* Classic Mists of Pandaria. Yeah I know it's only beta
+* Classic Cataclysm
+* I had to add my "hack" to work around the HandyNotes module
+  Here Be Dragons not working in Classic Cata. Used the same hack
+  as in my APLT AddOn - actually it is a ton more economical.
+  For safety in case HN/HBD is ever updated I continue using it
+  for Cata and Retail as the programmer in charge of HBD is much
+  better than me and can decrypt/datamine the game files whereas
+  all I do is provide visual based translations of coordinates
+* Altered show/not show logic for Azeroth pins: allows for the
+  noAzeroth flag in the data file
+
+== v3.01 - 23rd June 2025
+* More textures to choose from for display
+* Mapping file is now used (Preparation for Cata/Mists)
+* Summary pin clusters as I typically do in other AddOns
+* Logic improvements. Had to place a few achievements into
+  an exception table (anticipated problem)
+* Data coding error in Khaz Algar prevented Horde players
+  from seeing pins
+* Added translations
+
+== v3.00 - 22nd June 2025
+* New coding for 2025
+* More to come. This version only mimics the old 2024 version
+  (with corrections for Warbanding etc etc)
+
+== v2.08 - 18th June 2025
+* TOC update to 11.1.7
+
+== v2.07 - 20th April 2025
+* TOC update to 11.1.5
+
+== v2.06 - 20th February 2025
+* TOC update to 11.1.0
+
+== v2.05 - 2nd February 2025
+* Better Refresh delay to prevent that annoying GetAchievementCriteriaInfo abend
+
+== v2.04 - 7th January 2025
+* Added another HandyNotes Refresh() delay for logins (both new and character swap),
+  reloads, and loading screen situations (various - enter/exit instances or Mage
+  teleport, etc). This will assist players with slow internet, unusual Blizzard
+  server glitches, too many AddOns, potato PCs
+  Note: This is a preemptive change due to a report for another of my AddOns
+	
+== v2.03 - 24th December 2024
+* The Refresh() timer now checks every 7 seconds to avoid server issues when the
+  API is unreliable during loading screens.
+  Note: This is a preemptive change due to a report for another of my AddOns
+
+== v2.02 - 10th December 2024
+* TOC update to 11.0.7
+
+== v2.01 - 26th November 2024
+* Minimap pins now disappear/appear around the same time as they do on the World Map
+  I arbitrarily set the timer to checking every 3 seconds - to avoid FPS / DPS hits
+  If show/hide via the options panel then that's instant
+  If in combat then I rely wholly on the HandyNotes engine to avoid taint errors
+  (a main reason I moved to the HN ecosystem years ago)
+* Maladath added to the OCE server list
+
+== v2.00 - 29th October 2024
+* Slash/chat commands added
+* Lots of helpful text added to the Options panel
+* Added Curse and Wago Project IDs
+* Title text now improved
+
+== v1.20 - 17th October 2024
+* TOC update to 11.0.5
+
+== v1.19 - 21st August 2024
+* TOC update to 11.0.2
+
+== v1.18 - 23rd July 2024
+* TOC update to 11.0.0
+
+== v1.17 - 27th June 2024
+* Translation for Thief's Reward added
+* Colourising the description text while I was at it
+
+== v1.16 - 20th April 2024
+* TOC update to 10.2.7
+* Remove old X- lines from the TOC file
+
+== v1.15 - 18th March 2024
+* TOC update to 10.2.6
+
+== v1.14 - 12th January 2024
+* TOC update to 10.2.5
+
+== v1.13 - 1st December 2023
+* Neighbouring zones data added for Northrend
+* Felstriker server added
+* Penance and Shadowstrike added (SoD)
+
+== v1.12 - 2nd November 2023
+* TOC update to 10.2.0
+* Updated data structure and pin scaling
+
+== v1.11 - 18th September 2023
+* TOC update to 10.1.7
+
+== v1.10 - 18th September 2023
+* TOC update to 10.1.7
+(short lived. I immediately noticed an omission)
+
+== v1.09 - 4th July 2023
+* TOC update to 10.1.5
+
+== v1.08 - 1st July 2023
+* Zidormi suggestions and help throughout
+* Improved colour scheme for text. Now an Orange/Yellow theme instead of teh difficult to read red
+
+== v1.07 - 27th June 2023
+* Suramar bug found and fixed
+* While there accuracy of the other locations was boosted to double precision
+
+== v1.06 - 27th June 2023
+* Updates to Cataclysm, Northrend, Outland, King/Thief achievement, Draenor, Zandalar, Kul Tiras
+
+== v1.05 - 25th June 2023
+* I've added all the Extinguish in Eastern Kingdoms and Kalimdor so both continents are complete and checked
+* Dragon Isles has one mapID fix
+
+== v1.04 - 25th June 2023
+* More updates
+
+== v1.03 - 24th June 2023
+* Various bug fixes.
+  In particular Dragon Isles and Pandaria fixed - these attract Traveler's Log rewards this month!
+  
+== v1.02 - 23rd June 2023
+* Fix for pins not appearing
+
+== v1.01 - 23rd June 2023
+* Kalimdor sweep:
+* Adding in Horde desecration.
+* Double precision coordinates
+* A few miscellaneous bug fixes
+
+== v1.00 - 22nd June 2023
+* Initial release

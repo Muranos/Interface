@@ -4,7 +4,7 @@
 
 local mod, CL = BigWigs:NewBoss("Throne of the Tides Trash", 643)
 if not mod then return end
-mod.displayName = CL.trash
+mod:SetTrashModule(true)
 mod:RegisterEnableMob(
 	41096,  -- Naz'jar Oracle
 	41139,  -- Naz'jar Spiritmender
@@ -149,7 +149,7 @@ end
 -- Warmups
 
 function mod:CHAT_MSG_MONSTER_SAY(_, msg)
-	if msg == L.ozumat_warmup_trigger then
+	if not self:IsSecret(msg) and msg == L.ozumat_warmup_trigger then
 		-- Ozumat warmup
 		local ozumatModule = BigWigs:GetBossModule("Ozumat", true)
 		if ozumatModule then

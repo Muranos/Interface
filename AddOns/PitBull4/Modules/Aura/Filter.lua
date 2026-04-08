@@ -5,9 +5,7 @@ local L = PitBull4.L
 
 local PitBull4_Aura = PitBull4:GetModule("Aura")
 
-local wow_cata = PitBull4.wow_cata
-
-local GetSpellName = C_Spell.GetSpellName or _G.GetSpellInfo -- XXX Classic
+local wow_retail = PitBull4.wow_retail
 
 local player_class = UnitClassBase("player")
 local _, player_race = UnitRace("player")
@@ -63,7 +61,7 @@ PitBull4_Aura.can_purge = can_purge
 
 -- Rescan spells that can change what we can dispel and purge.
 function PitBull4_Aura:PLAYER_TALENT_UPDATE()
-	if not wow_cata then
+	if wow_retail then
 		-- Retail
 		if player_class == "DEMONHUNTER" then
 			can_purge.DEMONHUNTER.Magic = IsPlayerSpell(278326) -- Consume Magic
@@ -135,7 +133,7 @@ function PitBull4_Aura:PLAYER_TALENT_UPDATE()
 			can_dispel.SHAMAN.Curse = IsPlayerSpell(51886) or IsPlayerSpell(383016) -- Cleanse Spirit / Improved Purify Spirit
 			self:GetFilterDB('23').aura_type_list.Curse = can_dispel.SHAMAN.Curse
 			can_dispel.SHAMAN.Poison = IsPlayerSpell(383013) -- Poison Cleansing Totem
-			self:GetFilterDB('23').aura_type_list.Poison = can_dispel.DRUID.SHAMAN
+			self:GetFilterDB('23').aura_type_list.Poison = can_dispel.SHAMAN.Poison
 			can_dispel.SHAMAN.Magic = IsPlayerSpell(77130) -- Purify Spirit
 			self:GetFilterDB('23').aura_type_list.Magic = can_dispel.SHAMAN.Magic
 
@@ -243,7 +241,7 @@ end
 -- Build the class filters
 do
 	-- some shenanigans to only load LPS if the module is enabled (for nolib installs)
-	local LibPlayerSpells = not PitBull4.wow_cata and LibStub("LibPlayerSpells-1.0", true)
+	local LibPlayerSpells = wow_retail and LibStub("LibPlayerSpells-1.0", true)
 	if LibPlayerSpells then
 		local AURA = LibPlayerSpells.constants.AURA
 		local INVERT_AURA = LibPlayerSpells.constants.INVERT_AURA
@@ -296,7 +294,8 @@ friend_buffs.Dwarf = {
 }
 friend_debuffs.Dwarf = {}
 self_buffs.Dwarf = {
-	[65116] = true, -- Stoneform
+	[20594] = ClassicExpansionAtMost(LE_EXPANSION_BURNING_CRUSADE) or nil, -- Stoneform
+	[65116] = ClassicExpansionAtLeast(LE_EXPANSION_WRATH_OF_THE_LICH_KING) or nil, -- Stoneform (3.4+)
 }
 self_debuffs.Dwarf = {}
 pet_buffs.Dwarf = {}
@@ -308,7 +307,8 @@ friend_buffs.NightElf = {
 }
 friend_debuffs.NightElf = {}
 self_buffs.NightElf = {
-	[58984] = true, -- Shadowmeld
+	[20580] = ClassicExpansionAtMost(LE_EXPANSION_BURNING_CRUSADE) or nil, -- Shadowmeld
+	[58984] = ClassicExpansionAtLeast(LE_EXPANSION_WRATH_OF_THE_LICH_KING) or nil, -- Shadowmeld (3.4+)
 }
 self_debuffs.NightElf = {}
 pet_buffs.NightElf = {}
@@ -338,12 +338,12 @@ enemy_debuffs.Draenei = {}
 
 -- Worgen
 friend_buffs.Worgen = {
-	[23333] = true -- Warsong Flag
+	[23333] = ClassicExpansionAtLeast(LE_EXPANSION_CATACLYSM) or nil -- Warsong Flag
 }
 friend_debuffs.Worgen = {}
 self_buffs.Worgen = {
-	[68992] = true, -- Darkflight
-	[87840] = true, -- Running Wild
+	[68992] = ClassicExpansionAtLeast(LE_EXPANSION_CATACLYSM) or nil, -- Darkflight
+	[87840] = ClassicExpansionAtLeast(LE_EXPANSION_CATACLYSM) or nil, -- Running Wild
 }
 self_debuffs.Worgen = {}
 pet_buffs.Worgen = {}
@@ -351,11 +351,11 @@ enemy_debuffs.Worgen = {}
 
 -- Dark Iron Dwarf
 friend_buffs.DarkIronDwarf = {
-	[23333] = true -- Warsong Flag
+	[23333] = ClassicExpansionAtLeast(LE_EXPANSION_BATTLE_FOR_AZEROTH) or nil -- Warsong Flag
 }
 friend_debuffs.DarkIronDwarf = {}
 self_buffs.DarkIronDwarf = {
-	[273104] = not wow_cata, -- Fireblood
+	[273104] = ClassicExpansionAtLeast(LE_EXPANSION_BATTLE_FOR_AZEROTH) or nil, -- Fireblood
 }
 self_debuffs.DarkIronDwarf = {}
 pet_buffs.DarkIronDwarf = {}
@@ -363,7 +363,7 @@ enemy_debuffs.DarkIronDwarf = {}
 
 -- Lightforged Draenei
 friend_buffs.LightforgedDraenei = {
-	[23333] = true -- Warsong Flag
+	[23333] = ClassicExpansionAtLeast(LE_EXPANSION_LEGION) or nil -- Warsong Flag
 }
 friend_debuffs.LightforgedDraenei = {}
 self_buffs.LightforgedDraenei = {}
@@ -373,11 +373,11 @@ enemy_debuffs.LightforgedDraenei = {}
 
 -- Void Elf
 friend_buffs.VoidElf = {
-	[23333] = true -- Warsong Flag
+	[23333] = ClassicExpansionAtLeast(LE_EXPANSION_BATTLE_FOR_AZEROTH) or nil -- Warsong Flag
 }
 friend_debuffs.VoidElf = {}
 self_buffs.VoidElf = {
-	[256948] = not wow_cata, -- Spatial Rift
+	[256948] = ClassicExpansionAtLeast(LE_EXPANSION_BATTLE_FOR_AZEROTH) or nil, -- Spatial Rift
 }
 self_debuffs.VoidElf = {}
 pet_buffs.VoidElf = {}
@@ -385,7 +385,7 @@ enemy_debuffs.VoidElf = {}
 
 -- Kul Tiran Human
 friend_buffs.KulTiranHuman = {
-	[23333] = true -- Warsong Flag
+	[23333] = ClassicExpansionAtLeast(LE_EXPANSION_BATTLE_FOR_AZEROTH) or nil -- Warsong Flag
 }
 friend_debuffs.KulTiranHuman = {}
 self_buffs.KulTiranHuman = {}
@@ -395,7 +395,7 @@ enemy_debuffs.KulTiranHuman = {}
 
 -- Mechagnome
 friend_buffs.Mechagnome = {
-	[23333] = true -- Warsong Flag
+	[23333] = ClassicExpansionAtLeast(LE_EXPANSION_BATTLE_FOR_AZEROTH) or nil -- Warsong Flag
 }
 friend_debuffs.Mechagnome = {}
 self_buffs.Mechagnome = {}
@@ -464,7 +464,7 @@ enemy_debuffs.BloodElf = {}
 
 -- Goblin
 friend_buffs.Goblin = {
-	[23335] = true -- Silverwing Flag
+	[23335] = ClassicExpansionAtLeast(LE_EXPANSION_CATACLYSM) or nil -- Silverwing Flag
 }
 friend_debuffs.Goblin = {}
 self_buffs.Goblin = {}
@@ -474,15 +474,15 @@ enemy_debuffs.Goblin = {}
 
 -- Mag'har Orc
 friend_buffs.MagharOrc = {
-	[23335] = true -- Silverwing Flag
+	[23335] = ClassicExpansionAtLeast(LE_EXPANSION_BATTLE_FOR_AZEROTH) or nil -- Silverwing Flag
 }
 friend_debuffs.MagharOrc = {}
 self_buffs.MagharOrc = {
 	-- Ancestral Call
-	[274739] = not wow_cata, -- Rictus of the Laughing Skull
-	[274740] = not wow_cata, -- Zeal of the Burning Blade
-	[274741] = not wow_cata, -- Ferocity of the Frostwolf
-	[274742] = not wow_cata, -- Might of the Blackrock
+	[274739] = ClassicExpansionAtLeast(LE_EXPANSION_BATTLE_FOR_AZEROTH) or nil, -- Rictus of the Laughing Skull
+	[274740] = ClassicExpansionAtLeast(LE_EXPANSION_BATTLE_FOR_AZEROTH) or nil, -- Zeal of the Burning Blade
+	[274741] = ClassicExpansionAtLeast(LE_EXPANSION_BATTLE_FOR_AZEROTH) or nil, -- Ferocity of the Frostwolf
+	[274742] = ClassicExpansionAtLeast(LE_EXPANSION_BATTLE_FOR_AZEROTH) or nil, -- Might of the Blackrock
 }
 self_debuffs.MagharOrc = {}
 pet_buffs.MagharOrc = {}
@@ -490,31 +490,31 @@ enemy_debuffs.MagharOrc = {}
 
 -- Highmountain Tauren
 friend_buffs.HighmountainTauren = {
-	[23335] = true -- Silverwing Flag
+	[23335] = ClassicExpansionAtLeast(LE_EXPANSION_LEGION) or nil -- Silverwing Flag
 }
 friend_debuffs.HighmountainTauren = {}
 self_buffs.HighmountainTauren = {}
 self_debuffs.HighmountainTauren = {}
 pet_buffs.HighmountainTauren = {}
 enemy_debuffs.HighmountainTauren = {
-	[255723] = not wow_cata, -- Bull Rush
+	[255723] = ClassicExpansionAtLeast(LE_EXPANSION_LEGION) or nil, -- Bull Rush
 }
 
 -- Nightborne
 friend_buffs.Nightborne = {
-	[23335] = true -- Silverwing Flag
+	[23335] = ClassicExpansionAtLeast(LE_EXPANSION_LEGION) or nil -- Silverwing Flag
 }
 friend_debuffs.Nightborne = {}
 self_buffs.Nightborne = {}
 self_debuffs.Nightborne = {}
 pet_buffs.Nightborne = {}
 enemy_debuffs.Nightborne = {
-	[260369] = not wow_cata, -- Arcane Pulse
+	[260369] = ClassicExpansionAtLeast(LE_EXPANSION_LEGION) or nil, -- Arcane Pulse
 }
 
 -- Zandalari Troll
 friend_buffs.ZandalariTroll = {
-	[23335] = true -- Silverwing Flag
+	[23335] = ClassicExpansionAtLeast(LE_EXPANSION_BATTLE_FOR_AZEROTH) or nil -- Silverwing Flag
 }
 friend_debuffs.ZandalariTroll = {}
 self_buffs.ZandalariTroll = {}
@@ -524,7 +524,7 @@ enemy_debuffs.ZandalariTroll = {}
 
 -- Vulpera
 friend_buffs.Vulpera = {
-	[23335] = true -- Silverwing Flag
+	[23335] = ClassicExpansionAtLeast(LE_EXPANSION_BATTLE_FOR_AZEROTH) or nil -- Silverwing Flag
 }
 friend_debuffs.Vulpera = {}
 self_buffs.Vulpera = {}
@@ -534,21 +534,21 @@ enemy_debuffs.Vulpera = {}
 
 -- Pandaren
 friend_buffs.Pandaren = {
-	[23335] = UnitFactionGroup("player") == "Horde", -- Silverwing Flag
-	[23333] = UnitFactionGroup("player") == "Alliance", -- Warsong Flag
+	[23335] = UnitFactionGroup("player") == "Horde" and ClassicExpansionAtLeast(LE_EXPANSION_MISTS_OF_PANDARIA) or nil, -- Silverwing Flag
+	[23333] = UnitFactionGroup("player") == "Alliance" and ClassicExpansionAtLeast(LE_EXPANSION_MISTS_OF_PANDARIA) or nil, -- Warsong Flag
 }
 friend_debuffs.Pandaren = {}
 self_buffs.Pandaren = {}
 self_debuffs.Pandaren = {}
 pet_buffs.Pandaren = {}
 enemy_debuffs.Pandaren = {
-	[107079] = not wow_cata, -- Quaking Palm
+	[107079] = ClassicExpansionAtLeast(LE_EXPANSION_MISTS_OF_PANDARIA) or nil, -- Quaking Palm
 }
 
 -- Dracthyr
 friend_buffs.Dracthyr = {
-	[23335] = UnitFactionGroup("player") == "Horde", -- Silverwing Flag
-	[23333] = UnitFactionGroup("player") == "Alliance", -- Warsong Flag
+	[23335] = UnitFactionGroup("player") == "Horde" and ClassicExpansionAtLeast(LE_EXPANSION_DRAGONFLIGHT) or nil, -- Silverwing Flag
+	[23333] = UnitFactionGroup("player") == "Alliance" and ClassicExpansionAtLeast(LE_EXPANSION_DRAGONFLIGHT) or nil, -- Warsong Flag
 }
 friend_debuffs.Dracthyr = {}
 self_buffs.Dracthyr = {}
@@ -566,7 +566,7 @@ local function turn(t, shallow)
 	local tmp = {}
 	local function turn(entry) -- luacheck: ignore
 		for id, v in next, entry do
-			local spell = GetSpellName(id)
+			local spell = C_Spell.GetSpellName(id)
 			if spell and v then
 				tmp[spell] = v
 			elseif v and PitBull4.DEBUG then
@@ -622,7 +622,7 @@ PitBull4_Aura.OnProfileChanged_funcs[#PitBull4_Aura.OnProfileChanged_funcs + 1] 
 			for id, v in next, name_list do
 				if type(id) == "number" then
 					name_list[id] = nil
-					local spell = GetSpellName(id)
+					local spell = C_Spell.GetSpellName(id)
 					if spell then
 						name_list[spell] = v
 					end

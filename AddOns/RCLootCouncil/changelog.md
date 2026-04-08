@@ -1,3 +1,279 @@
+# 3.20.4
+
+## Changes
+
+More data sync improvements.
+
+### Cosmic Ritual Stone
+
+When the group leader acquires this toy it becomes unwinnable for them, which causes it to be destroyed when everyone else passes, thus it will now be completely ignored.
+
+
+# 3.20.3
+
+## Bugfixes
+
+- *Fixed issue with transmog autopass (#273) - thanks to peti446 for PR.*
+- *Fixed secret error introduced with weekly reset.*
+
+# 3.20.2
+
+## Bugfixes
+
+- *Demon Hunters no longer auto passes on intellect weapons they can equip (Devourer).*
+
+# 3.20.1
+
+## Changes
+
+### Decor/Housing items
+
+Decor items have been confirmed tradeable personal loot, so removed the option for group loot to ignore them.
+
+By default decor items are now ignored, but added an option to revert that if you so desire.
+
+### Data sync
+
+Added additional code that should help with data syncing after player reloads or joins after RCLootCouncil is enabled for the raid.
+
+# 3.20.0
+
+## Changes
+
+### Decor/Housing items
+
+Decor items are now ignored until confirmed tradeable.
+
+Added an option to enable group looting them - disabled by default.
+
+### Ignore options
+
+Removed ignore options for retail version as it haven't served a real purpose since the introduction of group loot. Let me know if you really require a group loot ignore option.
+
+# 3.19.6
+
+## Bugfixes
+
+- *More secret variable fixes - should be the last one.*
+
+# 3.19.5
+
+## Bugfixes
+
+- *More secret variable fixes - hopefully the last one.*
+
+# 3.19.4
+
+## Bugfixes
+
+- *More secret variable fixes.*
+
+# 3.19.3
+
+## Bugfixes
+
+- *Another secret variable fix.*
+
+# 3.19.2
+
+Fixed toc issue making v3.19.1 incompatible.
+
+## Changes
+
+Added Midnight trinkets and tokens data.
+
+### Auto pass
+
+Clarified Auto Pass options and descriptions.
+
+Disabling auto passing now disables the related options.
+
+## Bugfixes
+
+- *Fixed Session Frame item sorting being broken for 5 years.*
+- *No longer allows alt-click awarding when comms are restricted.*
+- *Fixed issues related to secret variables.*
+
+# 3.19.0
+
+Updated for Midnight pre-patch.
+
+## Changes
+
+### Restrictions
+
+Due to the restrictions added with Midnight, you can no longer do anything that results in sending addon messages during boss encounters. Everything *should* work as normal though.
+
+### Loot History Export
+
+The selected export option now defaults to the last selected option.
+
+# 3.18.2
+
+Updated for patch 11.2.7.
+
+## Changes
+
+### Trade Blocker
+
+Added an option for the group leader to block trade requests while their voting frame is open. When enabled, any trade attempts will be cancelled.
+
+## Bugfixes
+
+- *v3.18.1 didn't include the fix for `escapePatternSymbols`.*
+
+### Button group
+
+Added new button group for housing decor.
+
+# 3.18.0
+
+Updated for patch 11.2.5.
+
+## Changes
+
+- Trade time remaining checks are no longer performed in combat as they would be easy to overlook.
+
+## Bugfixes
+
+- *Fixed issue with running `/rc add` commands after having declined usage could lead to errors.*
+- *Leaving a group will now properly disable the voting frame fixing certain errors that could happen with it being enabled.*
+
+# 3.17.6
+
+## Bugfixes
+
+- *Changing realms, name, or class should now properly be reflected.*
+- *Final fix for various issues of late.*
+
+# 3.17.5
+
+## Bugfixes
+
+- *(Hopefully) fixed various issues regarding missing player info.*
+- *Fixed issue with reloads at specific moments causing missing data (#271).*
+- *Send player info to everyone in the group all the time instead of at specific intervals to prevent missing guild ranks etc (#270).*
+- *Prevent cached player info on council members from expiring, which could cause errors if said player info isn't readily available, such as a council member not being in the guild or from a different realm.*
+
+# 3.17.4
+
+## Bugfixes
+
+- *Fixed potential error when joining a group (#269).*
+- *Fixed caching issue that deleted things such as guild ranks causing them to show up inconsistently.*
+- *Trade time remaining show now be more accurate.*
+
+# 3.17.3
+
+## Bugfixes
+
+- *Fixed broken Auto Award.*
+- *Fixed issue with the usage pop-up not working when changing group leaders.*
+
+# 3.17.2
+
+## Bugfixes
+
+- *Soulbinder's Nethermantle is no longer group looted.*
+- *Loombeast Silk and Ethereal Essence Silver (MFO transmog currency) are now ignored, and existing history entries removed.*
+
+# 3.17.1
+
+## Bugfixes
+
+- *Added warning when enabling AutoLoot without setting recipients.*
+- *Fixed issues with certain items not being registered as special.*
+- *Fixed issue with the addon not always disabling properly when leaving a group.*
+
+# 3.17.0
+
+## Changes
+
+### Patch 11.2
+
+Added tokens, trinkets and rare items from new raid and dungeons.
+
+### Announce awards
+
+Added option to whisper the winner when announcing awards.
+
+### Chat Commands
+
+Added `/rc sv` for exporting the addons raw saved variables ingame.
+
+- `sv` can be replaced with `saved`/`savedvariables`.
+- `/rc sv history` (or `his`) to also add the loot history to the export.
+- `/rc sv history only` to only export the history. *Note: this format cannot be reimported!* .
+
+### New button groups
+
+#### Items /w special effects
+
+This group will match all equippable items that have special effects listed in their tooltip, such as "Use:", "Equip:", "Chance on hit:" etc.
+
+This group is considered more specific than "Catalyst" items, and less specific than weapons and individual equip location item groups.
+
+#### Rare Items
+
+This group matches all items marked as "Very Rare" or higher in the Encounter Journal (only The War Within items are recorded).
+
+This group is considered *most* specific, and is always used for those items when enabled.
+
+## Bugfixes
+
+- *Most specific button group is now again chosen.*
+
+# v3.16.1
+
+## Changes
+
+### Chat commands
+
+Added chat command to directly open the Master Looter options menu:
+
+`/rc ml`
+
+## Bugfixes
+
+- *Reduced voting frame row jumping.*
+- *Switching characters will no longer apply cached state.*
+- *Removing an item from the session frame mid session now actually removes it, i.e. the voting frame no longer thinks there's still items to award.*
+
+# v3.16.0
+
+## Changes
+
+### Awarded response
+
+Added a tooltip to any response changed to "Awarded" showing the original response.
+
+### More info raids
+
+It's now possible to select specific raids to be included in the VotingFrame More Info tooltip. By default no raids are chosen, which is equivelent to showing all raids.
+
+For your convenience, if you're filtering the raids, any time an award from a new raid is registered, this raid is also added to the filter.
+
+*Note: The filter does not apply to the **Winners of [item]** section*
+
+### Misc
+
+Added icons to items, and colors to responses, when printed to chat - does not include announcements (can't be done).
+
+### Request Votes
+
+The Master Looter can now request votes from council members on any individual item in session. Doing so will print a message for any council members that have yet to vote for the item.
+
+This can be done either through the right-click menu, or by alt-clicking any vote/unvote button.
+
+# v3.15.5
+
+Updated for patch 11.1.5.
+
+## Bugfixes
+
+- *Fixed issue with trade timers being reset.*
+- *Fixed issue with non-cached council members causing errors.*
+
 # v3.15.4
 
 ## Changes

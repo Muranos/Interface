@@ -3,6 +3,7 @@ local select = select;
 local type = type;
 
 local UnitGetTotalAbsorbs = UnitGetTotalAbsorbs;
+local sSecretsEnabled = VUHDO_SECRETS_ENABLED;
 
 local VUHDO_SHIELDS = {
 	[17] = 15, -- VUHDO_SPELL_ID.POWERWORD_SHIELD -- ok
@@ -14,7 +15,6 @@ local VUHDO_SHIELDS = {
 	[1463] = 8, -- Incanter's Ward (mage talent)
 	[114893] = 10, -- Stone Bulwark Totem (shaman talent)
 	[187805] = 15, -- VUHDO_SPELL_ID.BUFF_ETHERALUS
-	[114908] = 10, -- VUHDO_SPELL_ID.SPIRIT_SHELL
 	[47753] = 17, -- VUHDO_SPELL_ID.DIVINE_AEGIS
 	[414133] = 8, -- VUHDO_SPELL_ID.OVERFLOWING_LIGHT
 	[271466] = 10, -- VUHDO_SPELL_ID.LUMINOUS_BARRIER
@@ -106,6 +106,11 @@ local VUHDO_ABSORB_DEBUFFS = {
 	--[347704] = function(aUnit) return select(17, VUHDO_unitDebuff(aUnit, VUHDO_SPELL_ID.DEBUFF_VEIL_OF_DARKNESS)), 10 * 60; end, -- Sylvanas Veil of Darkness
 	--[351091] = function(aUnit) return select(16, VUHDO_unitDebuff(aUnit, VUHDO_SPELL_ID.DEBUFF_DESTABILIZE)), 6; end, -- Mawsworn Hopebreaker Destabilize
 
+	-- Patch 11.2.0 - The War Within - Ghosts of K'aresh
+	[1250008] = function(aUnit) return select(17, VUHDO_unitDebuff(aUnit, VUHDO_SPELL_ID.DEBUFF_SHATTERPULSE)), 1 * 60; end, -- Shatterpulse
+	[1246775] = function(aUnit) return select(17, VUHDO_unitDebuff(aUnit, VUHDO_SPELL_ID.DEBUFF_SHATTERPULSE)), 1 * 60; end, -- Shatterpulse
+	[1242284] = function(aUnit) return select(17, VUHDO_unitDebuff(aUnit, VUHDO_SPELL_ID.DEBUFF_SOULCRUSH)), 1 * 60; end, -- Soulcrush
+
 	--[79105] = function(aUnit) return 280000, 60 * 60; end, -- @TESTING PW:F
 };
 
@@ -153,7 +158,7 @@ local sIsPumpAegis = false;
 local sShowAbsorb = false;
 function VUHDO_shieldAbsorbInitLocalOverrides()
 
-	VUHDO_updateBouquetsForEvent = _G["VUHDO_deferUpdateBouquets"];
+	VUHDO_updateBouquetsForEvent = _G["VUHDO_deferUpdateBouquetsForEvent"];
 	VUHDO_updateShieldBar = _G["VUHDO_deferUpdateShieldBar"];
 	VUHDO_updateHealAbsorbBar = _G["VUHDO_deferUpdateHealAbsorbBar"];
 
@@ -174,10 +179,11 @@ local function VUHDO_initShieldValue(aUnit, aShieldName, anAmount, aDuration)
 	VUHDO_SHIELD_LEFT[aUnit][aShieldName] = anAmount;
 
 	if sIsPumpAegis and VUHDO_PUMP_SHIELDS[aShieldName] then
-		VUHDO_SHIELD_SIZE[aUnit][aShieldName] = VUHDO_RAID["player"]["healthmax"] * VUHDO_PUMP_SHIELDS[aShieldName];
-	elseif aShieldName == VUHDO_SPELL_ID.SPIRIT_SHELL then
-		-- as of 9.0.5 Priest 'Spirit Shell' cap is 11 times the caster's current intellect
-		VUHDO_SHIELD_SIZE[aUnit][aShieldName] = select(1, UnitStat("player", 4)) * 11;
+		if sSecretsEnabled and VUHDO_RAID["player"] and VUHDO_RAID["player"]["hasSecretHealthMax"] then
+			VUHDO_SHIELD_SIZE[aUnit][aShieldName] = 0;
+		else
+			VUHDO_SHIELD_SIZE[aUnit][aShieldName] = VUHDO_RAID["player"]["healthmax"] * VUHDO_PUMP_SHIELDS[aShieldName];
+		end
 	else
 		VUHDO_SHIELD_SIZE[aUnit][aShieldName] = anAmount;
 	end
@@ -250,18 +256,27 @@ end
 --
 local tInit, tValue, tSourceGuid;
 function VUHDO_getShieldLeftCount(aUnit, aShield, aMode)
+
+	if not aUnit or not aShield or not aMode then
+		return;
+	end
+
 	tInit = sShowAbsorb and VUHDO_SHIELD_SIZE[aUnit][aShield] or 0;
 
 	if tInit > 0 then
 		tSourceGuid = VUHDO_SHIELD_LAST_SOURCE_GUID[aUnit][aShield];
+
 		if aMode == 3 or aMode == 0
 		or (aMode == 1 and tSourceGuid == VUHDO_PLAYER_GUID)
 		or (aMode == 2 and tSourceGuid ~= VUHDO_PLAYER_GUID) then
 			tValue = floor(4 * (VUHDO_SHIELD_LEFT[aUnit][aShield] or 0) / tInit);
+
 			return tValue > 4 and 4 or (tValue < 1 and 1 or tValue);
 		end
 	end
+
 	return 0;
+
 end
 
 
@@ -432,8 +447,13 @@ function VUHDO_parseCombatLogShieldAbsorb(aMessage, aSrcGuid, aDstGuid, aShieldN
 	if tDoUpdate then
 		VUHDO_updateBouquetsForEvent(tUnit, 36); -- VUHDO_UPDATE_SHIELD
 
-		VUHDO_updateShieldBar(tUnit);
-		VUHDO_updateHealAbsorbBar(tUnit);
+		if VUHDO_CONFIG["SHOW_SHIELD_BAR"] then
+			VUHDO_updateShieldBar(tUnit);
+		end
+
+		if VUHDO_CONFIG["SHOW_HEAL_ABSORB_BAR"] then
+			VUHDO_updateHealAbsorbBar(tUnit);
+		end
 	end
 
 end

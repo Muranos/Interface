@@ -297,8 +297,8 @@ function mod:Transitions(_, _, _, spellId)
 			-- Phase 2 - Berserk in 15 min!
 			self:MessageOld("berserk", "yellow", nil, CL["phase"]:format(2).." - "..CL["custom_min"]:format(self:SpellName(spellId), 15), 26662)
 			-- start Submerge timer using the current power and the new regen rate
-			local left = 1 - (UnitPower("boss1") / UnitPowerMax("boss1")) * 52
-			self:Bar(120455, left, CL["count"]:format(self:SpellName(120455), 1))
+			local duration = (1 - (UnitPower("boss1") / UnitPowerMax("boss1"))) * 52
+			self:Bar(120455, duration, CL["count"]:format(self:SpellName(120455), 1))
 		end
 	end
 end
@@ -379,7 +379,7 @@ do
 			if swingCounter > 0 then -- normal swing
 				self:MessageOld("swing", "green", nil, CL["count"]:format(L["swing"], swingCounter), 5547) -- ability_thunderbolt / Swing / icon 132325
 			elseif swingCounter == 0 then -- last extra swing
-				self:MessageOld("swing", "green", nil, CL["other"]:format(CL["count"]:format(L["swing"], thrashSwing), self:SpellName(131996)), 158176) -- "Swing (4): Thrash" / ability_ghoulfrenzy / Thrash / icon 132152
+				self:MessageOld("swing", "green", nil, CL["other"]:format(CL["count"]:format(L["swing"], thrashSwing), self:SpellName(131996)), "ability_ghoulfrenzy") -- "Swing (4): Thrash" / ability_ghoulfrenzy / Thrash / icon 132152
 			end
 		end
 	end

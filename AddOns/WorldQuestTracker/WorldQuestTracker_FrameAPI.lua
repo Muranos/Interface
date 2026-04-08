@@ -318,6 +318,59 @@ function WorldQuestTracker.UpdateBorder(self)
 	local rarity, worldQuestType, mapID, isCriteria, isElite, conduitType, borderColor = questData.rarity, questData.worldQuestType, questData.mapID, questData.isCriteria, questData.isElite, questData.conduitType, questData.borderColor
 	borderColor = borderColor or {1, 1, 1, 1} --border color is used on conduit type
 
+--[=[
+	dumpt(questData)
+["artifactPower"] = 0,
+["order"] = 10,
+["isNew"] = false,
+["isCriteria"] = false,
+["worldQuestType"] = 2,
+["selected"] = false,
+["inProgress"] = false,
+["questCounter"] = 1,
+["rarity"] = 0,
+["questID"] = 86305,
+["isUsable"] = true,
+["tagName"] = "World Quest",
+["y"] = 0.61991685628891,
+["x"] = 0.47944581508636,
+["numObjectives"] = 1,
+["isElite"] = false,
+["mapID"] = 2371,
+["isWarband"] = true,
+["gold"] = 86400,
+["timeLeft"] = 1971,
+["isSpellTarget"] = false,
+["quality"] = 3,
+["isArtifact"] = false,
+["stackAmount"] = 1,
+["itemLevel"] = 655,
+["title"] = "Watch me Make these Bugs Expire",
+["tagID"] = 109,
+["warbandRep"] = true,
+["factionID"] = 2658,
+["itemName"] = "Wastelander's Gilded Loop",
+["quantity"] = 1,
+["itemID"] = 243498,
+["filter"] = "equipment",
+["itemTexture"] = "Interface\ICONS\INV_Jewelry_Ring_22",
+["goldFormated"] = 8,
+["isStackable"] = false,
+--]=]
+
+	--ethereal quests on K'aresh map
+	local isV1120EtherealQuest = false
+	if (questData.mapID == 2371 and questData.title) then
+		--ethereal quests has a prefix on their names
+		local toFindInQuestName = WorldQuestTracker.MapData.KareshDividingQuests[GetLocale()]
+		if (toFindInQuestName) then
+			local isDividingQuest = questData.title:find(toFindInQuestName)
+			if (isDividingQuest) then
+				isV1120EtherealQuest = true
+			end
+		end
+	end
+
 	if (self.isWorldMapWidget) then
 		rarity = rarity or self.Rarity
 		worldQuestType = worldQuestType or self.WorldQuestType
@@ -331,6 +384,8 @@ function WorldQuestTracker.UpdateBorder(self)
 
 		self.overlayBorder:Hide()
 		self.overlayBorder2:Hide()
+
+		self.miscBorder:Hide()
 
 		if (conduitType) then
 			self.overlayBorder:Show()
@@ -410,8 +465,14 @@ function WorldQuestTracker.UpdateBorder(self)
 			end
 		end
 
-		self:SetBackdropColor(.3, .3, .3, 1)
+		if (isV1120EtherealQuest) then
+			self.miscBorder:SetTexture([[Interface\AddOns\WorldQuestTracker\media\border_whiteT]])
+			self.miscBorder:SetAlpha(1)
+			self.miscBorder:Show()
+		end
+
 		self.commonBorder:Hide()
+		self:SetBackdropColor(.3, .3, .3, 1)
 	else
 		if (not isCriteria) then
 			local borderTextureFile = WorldQuestTracker.GetBorderByQuestType (self, rarity, worldQuestType)
@@ -425,6 +486,7 @@ function WorldQuestTracker.UpdateBorder(self)
 
 		self.overlayBorder:Hide()
 		self.overlayBorder2:Hide()
+		self.miscBorder:Hide()
 
 		if (conduitType) then
 			self.overlayBorder:Show()
@@ -484,6 +546,17 @@ function WorldQuestTracker.UpdateBorder(self)
 
 			self.bgFlag:Show()
 			self.flagText:SetPoint("top", self.bgFlag, "top", 0, -3)
+		end
+
+		if (isV1120EtherealQuest) then
+			self.miscBorder:Show()
+			self.miscBorder:SetTexture([[Interface\AddOns\WorldQuestTracker\media\korthia_portal_icon]])
+			self.miscBorder:SetAlpha(0.8)
+			self.miscBorder:SetBlendMode("ADD")
+			self.miscBorder:ClearAllPoints()
+			self.miscBorder:SetPoint("center", self, "center", 2, 2)
+			self.miscBorder:SetSize(48*1.2, 52*1.2)
+			self.circleBorder:SetTexture([[Interface\AddOns\WorldQuestTracker\media\border_zone_whiteT.png]])
 		end
 
 	end
@@ -605,7 +678,7 @@ function WorldQuestTracker.CheckAddToTracker (self, button, onlyTrack)
 	else
 		--adicionar a quest ao track
 		WorldQuestTracker.AddQuestToTracker (self, questID, mapID)
-		if (not self.AddedToTrackerAnimation:IsPlaying()) then
+		if (self.AddedToTrackerAnimation and not self.AddedToTrackerAnimation:IsPlaying()) then
 			self.AddedToTrackerAnimation:Play()
 		end
 
@@ -626,7 +699,7 @@ function WorldQuestTracker.CheckAddToTracker (self, button, onlyTrack)
 		for _, widget in ipairs (WorldQuestTracker.Cache_ShownWidgetsOnZoneMap) do
 			if (widget.questID == self.questID) then
 				if (WorldQuestTracker.IsQuestBeingTracked (self.questID)) then
-					if (not widget.AddedToTrackerAnimation:IsPlaying()) then
+					if (widget.AddedToTrackerAnimation and not widget.AddedToTrackerAnimation:IsPlaying()) then
 						widget.AddedToTrackerAnimation:Play()
 					end
 				end
@@ -651,13 +724,20 @@ function WorldQuestTracker.CreateStartTrackingAnimation (button, speed, offset)
 	DF:CreateAnimation (button.AddedToTrackerAnimation, "translation", 2, speed, 0, -offset)
 end
 
+function WorldQuestTracker.FindZoneWidget(questID)
+	for _, widget in ipairs (WorldQuestTracker.Cache_ShownWidgetsOnZoneMap) do
+		if (widget.questID == questID) then
+			return widget
+		end
+	end
+end
+
 --when the user clicks on a quest button -- �nclick ~onclick ~click
 function WorldQuestTracker.OnQuestButtonClick (self, button)
 
 	if (not self.questID) then
 		return
 	end
-
 	if (not HaveQuestData (self.questID)) then
 		WorldQuestTracker:Msg (L["S_ERROR_NOTLOADEDYET"])
 		return
@@ -707,21 +787,33 @@ function WorldQuestTracker.OnQuestButtonClick (self, button)
 		--widget in the world map
 		if (self.trackingGlowBorder) then
 			self.trackingGlowBorder:Show()
+		else
+			local widget = WorldQuestTracker.FindZoneWidget(self.questID)
+			if (widget and widget.trackingGlowBorder) then
+				widget.trackingGlowBorder:Show()
+			end
 		end
 	else
 		--widget in the world map
 		if (self.trackingGlowBorder) then
 			self.trackingGlowBorder:Hide()
+		else
+			local widget = WorldQuestTracker.FindZoneWidget(self.questID)
+			if (widget and widget.trackingGlowBorder) then
+				widget.trackingGlowBorder:Hide()
+			end
 		end
 	end
 
 	if (WorldQuestTracker.IsQuestBeingTracked (self.questID)) then
 		--zone and world widgets have
-		if (self.onEndTrackAnimation:IsPlaying()) then
+		if (self.onEndTrackAnimation and self.onEndTrackAnimation:IsPlaying()) then
 			self.onEndTrackAnimation:Stop()
 		end
 
-		self.onStartTrackAnimation:Play()
+		if self.onStartTrackAnimation then
+			self.onStartTrackAnimation:Play()
+		end
 
 		if (self.OnClickAnimation) then
 			self.OnClickAnimation:Play()
@@ -747,7 +839,9 @@ function WorldQuestTracker.OnQuestButtonClick (self, button)
 			if (self.onStartTrackAnimation:IsPlaying()) then
 				self.onStartTrackAnimation:Stop()
 			end
-			self.onEndTrackAnimation:Play()
+			if (self.onEndTrackAnimation) then
+				self.onEndTrackAnimation:Play()
+			end
 		end
 
 		--if have a anchor frame is a zone widget

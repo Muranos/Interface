@@ -27,15 +27,13 @@ local math, max, ceil, floor, random, abs =
 local _G, coroutine, table, GetTime, CopyTable, tostringall, geterrorhandler, C_Timer =
 	  _G, coroutine, table, GetTime, CopyTable, tostringall, geterrorhandler, C_Timer
 
-local GetRuneCooldown, GetSpecialization, GetSpecializationInfo, GetFramerate =
-	  GetRuneCooldown, GetSpecialization, GetSpecializationInfo, GetFramerate
+local GetRuneCooldown =
+	  GetRuneCooldown
 
+local GetSpecialization = C_SpecializationInfo and C_SpecializationInfo.GetSpecialization or _G.GetSpecialization
+local GetSpecializationInfo = C_SpecializationInfo and C_SpecializationInfo.GetSpecializationInfo or _G.GetSpecializationInfo
 local IsUsableSpell = C_Spell.IsSpellUsable or _G.IsUsableSpell
 local GetSpellPowerCost = C_Spell.GetSpellPowerCost or _G.GetSpellPowerCost
-
-local debugprofilestop = debugprofilestop_SAFE
-
-
 
 
 ---------------------------------
@@ -89,6 +87,13 @@ Formatter{
 
 	D_SECONDS = Formatter:New(D_SECONDS),
 	S_SECONDS = Formatter:New(L["ANIM_SECONDS"]),
+	S_SECONDS_UPS = Formatter:New(function(value)
+		if value == 0 then
+			return L["UIPANEL_UPDATEINTERVAL_UPS"]:format(0.001, 1000)
+		else
+			return L["UIPANEL_UPDATEINTERVAL_UPS"]:format(value, ("%d"):format(1/value))
+		end
+	end),
 
 	PIXELS = Formatter:New(L["ANIM_PIXELS"]),
 
@@ -601,6 +606,9 @@ function TMW:FormatSeconds(seconds, skipSmall, keepTrailing)
 	return ret
 end
 
+function TMW:GetRestrictedTString() 
+	return "|TInterface\\AddOns\\TellMeWhen\\Textures\\restricted.png:14:14:0:0:64:64:4:60:4:60:255:209:0|t"
+end
 
 
 
@@ -670,20 +678,28 @@ function TMW:RGBAToString(r, g, b, a, flags)
 end
 
 function TMW:StringToRGBA(str)
+	if type(str) == "table" then
+		return str.r, str.g, str.b, str.a, str.flags
+	end
+
 	local a, r, g, b, flagString = str:match("(%x%x)(%x%x)(%x%x)(%x%x)(.*)")
 
 	return tonumber(r, 0x10) / 0xFF, tonumber(g, 0x10) / 0xFF, tonumber(b, 0x10) / 0xFF, tonumber(a, 0x10) / 0xFF, parseFlagString(flagString)
 end
 
 function TMW:StringToCachedRGBATable(str)
-	if type(str) == "table" then
-		return str
-	end
-
 	local r, g, b, a, flags = TMW:StringToRGBA(str)
 	return {r=r,g=g,b=b,a=a, flags=flags}
 end
 TMW:MakeSingleArgFunctionCached(TMW, "StringToCachedRGBATable")
+
+function TMW:StringToCachedColorMixin(str)
+	local r, g, b, a, flags = TMW:StringToRGBA(str)
+	local ret = CreateColor(r, g, b, a)
+	ret.flags = flags or {}
+	return ret
+end
+TMW:MakeSingleArgFunctionCached(TMW, "StringToCachedColorMixin")
 
 
 -- Adapted from https://github.com/mjackson/mjijackson.github.com/blob/master/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript.txt
@@ -830,8 +846,11 @@ end
 function TMW.tDeleteItem(table, item, onlyOne)
 	local i = 1
 	local removed
-	while table[i] do
-		if item == table[i] then
+	while true do
+		local tItem = table[i]
+		if not tItem then return removed end
+		
+		if item == tItem then
 			tremove(table, i)
 			if onlyOne then
 				return true
@@ -894,8 +913,16 @@ function TMW.binaryInsert(table, value, comp)
 	-- http://lua-users.org/wiki/BinaryInsert
 	comp = comp or comp_default
 
+	local tableSize = #table
+	
+	-- Check if we can insert at the end first (common case optimization)
+	if tableSize == 0 or not comp(value, table[tableSize]) then
+		table[tableSize + 1] = value
+		return tableSize + 1
+	end
+
 	local iStart, iEnd, iMid, iState =
-		  1, #table, 1, 0
+		  1, tableSize, 1, 0
 
 	while iStart <= iEnd do
 		iMid = floor((iStart+iEnd) / 2)
@@ -1352,6 +1379,18 @@ end
 ---------------------------------
 -- WoW API Helpers
 ---------------------------------
+---
+local UnitGUID, UnitExists = UnitGUID, UnitExists
+TMW.UnitGUID = not TMW.clientHasSecrets and UnitGUID or function(unit)
+	-- Workaround https://github.com/ascott18/TellMeWhen/issues/2375,
+	-- https://github.com/parnic/LibDogTag-Unit-3.0/issues/25,
+	-- and other similar issues
+	if not UnitExists(unit) then return nil end
+
+	local success, guid = pcall(UnitGUID, unit)
+	if not success then return nil end
+	return guid
+end
 
 local GetMouseFoci = GetMouseFoci
 TMW.GetMouseFocus = GetMouseFocus or function()
@@ -1492,11 +1531,16 @@ else
 	end
 end
 
-if GetSpecializationInfoForClassID then
+if GetSpecializationInfoForClassID 
+-- in MOP classic beta, it just returns nothing for a lot of classes.
+and GetSpecializationInfoForClassID(1,1) 
+then
 	-- Blizzard added GetSpecializationInfoForClassID in classic era/sod,
 	-- but it has an off-by-1 error with the spec index parameter,
 	-- using zero-based indexes instead of 1-based indexes
-	if not GetSpecializationInfoForClassID(9, 3) and TMW.isClassic then
+
+
+	if not GetSpecializationInfoForClassID(9, 3) and ClassicExpansionAtMost(LE_EXPANSION_CLASSIC) then
 		function TMW.GetSpecializationInfoForClassID(classID, i)
 			if not i then
 				return GetSpecializationInfoForClassID(classID, i)
@@ -1509,7 +1553,7 @@ if GetSpecializationInfoForClassID then
 	end
 else
 	local classSpecIds = {
-		DRUID = {102,103,105},
+		DRUID = ClassicExpansionAtLeast(LE_EXPANSION_MISTS_OF_PANDARIA) and {102,103,104,105} or {102,103,105},
 		HUNTER = {253,254,255},
 		MAGE = {62,63,64},
 		PALADIN = {65,66,70},
@@ -1519,33 +1563,29 @@ else
 		WARLOCK = {265,266,267},
 		WARRIOR = {71,72,73},
 		DEATHKNIGHT = {250,251,252},
+		MONK = {268,270,269},
 	}
 
 	function TMW.GetSpecializationInfoForClassID(classID, i) 
 		local _, slug = GetClassInfo(classID)
+		local specID = classSpecIds[slug][i]
+		if not specID then return end
 		return TMW.GetSpecializationInfoByID(classSpecIds[slug][i])
 	end
 end
 
-if GetClassInfo then
-	TMW.GetClassInfo = GetClassInfo
-	TMW.GetMaxClassID = GetNumClasses
-else
-	local classInfo = {
-		[1] = C_CreatureInfo.GetClassInfo(1),
-		[2] = C_CreatureInfo.GetClassInfo(2),
-		[3] = C_CreatureInfo.GetClassInfo(3),
-		[4] = C_CreatureInfo.GetClassInfo(4),
-		[5] = C_CreatureInfo.GetClassInfo(5),
-		[6] = C_CreatureInfo.GetClassInfo(6), -- Death Knight
-		[7] = C_CreatureInfo.GetClassInfo(7),
-		[8] = C_CreatureInfo.GetClassInfo(8),
-		[9] = C_CreatureInfo.GetClassInfo(9),
-		[11] = C_CreatureInfo.GetClassInfo(11),
-	}
+if C_CreatureInfo and C_CreatureInfo.GetClassInfo then
+	local classInfo = {}
 
 	function TMW.GetMaxClassID()
-		return 11
+		-- This is hardcoded to 13 (evoker is the 13th class) because
+		-- e.g. in classic there are 9 classes but their IDs go to 11.
+		-- Everywhere we use this guards against non-existant classes, so its fine.
+		return 13
+	end
+	
+	for i = 1, TMW.GetMaxClassID() do
+		classInfo[i] = C_CreatureInfo.GetClassInfo(i)
 	end
 
 	function TMW.GetClassInfo(classID)
@@ -1553,9 +1593,14 @@ else
 		if not info then return end
 		return info.className, info.classFile, info.classID
 	end
+else
+	TMW.GetClassInfo = GetClassInfo
+	TMW.GetMaxClassID = GetNumClasses
 end
 
-if not GetSpecialization then
+
+
+if ClassicExpansionAtMost(LE_EXPANSION_CATACLYSM) then
 	-- Cata-and-earlier style specs (pick and choose talents, dual spec):
 
 	local GetTalentTreeRoles = GetTalentTreeRoles
@@ -1569,6 +1614,21 @@ if not GetSpecialization then
 	
 	function TMW.GetNumSpecializationsForClassID(classID)
 		return 3
+	end
+
+	function TMW.GetTalentQueries(specFilter)
+		local ret = {}
+		for spec = 1, TMW.GetNumSpecializations() do
+			if not specFilter or specFilter == spec then
+				for i = 1, MAX_NUM_TALENTS do
+					local talentInfoQuery = {};
+					talentInfoQuery.specializationIndex = spec;
+					talentInfoQuery.talentIndex = i;
+					ret[#ret + 1] = talentInfoQuery
+				end
+			end
+		end
+		return pairs(ret)
 	end
 	
 	function TMW.GetCurrentSpecialization()
@@ -1603,6 +1663,7 @@ if not GetSpecialization then
 	function TMW.GetCurrentSpecializationID()
 		local _, pclass, classID = UnitClass("player")
 		local spec = TMW.GetCurrentSpecialization()
+		if not spec then return end
 		return TMW.GetSpecializationInfoForClassID(classID, spec)
 	end
 	
@@ -1628,10 +1689,12 @@ if not GetSpecialization then
 	end
 else
 	-- MOP+ style specs (pick a talent tree):
+	local GetSpecialization = C_SpecializationInfo and C_SpecializationInfo.GetSpecialization or _G.GetSpecialization
+	local GetNumSpecializationsForClassID = C_SpecializationInfo and C_SpecializationInfo.GetNumSpecializationsForClassID or _G.GetNumSpecializationsForClassID
 
 	TMW.GetNumSpecializations = GetNumSpecializations
 	TMW.GetNumSpecializationsForClassID = GetNumSpecializationsForClassID
-	TMW.GetCurrentSpecialization = GetCurrentSpecialization
+	TMW.GetCurrentSpecialization = GetSpecialization
 	TMW.GetSpecializationInfo = GetSpecializationInfo
 	function TMW.GetCurrentSpecializationID() 
 		return GetSpecializationInfo(GetSpecialization())
@@ -1647,6 +1710,34 @@ else
 		local _, _, _, _, role = GetSpecializationInfo(currentSpec)
 		return role
 	end
+
+	if ClassicExpansionAtMost(LE_EXPANSION_SHADOWLANDS) then
+		-- Mop-shadowlands style talents
+		function TMW.GetTalentQueries(specFilter)
+			local ret = {}
+			for spec = 1, TMW.GetNumSpecializations() do
+				if not specFilter or spec == specFilter then
+					for tier = 1, MAX_NUM_TALENT_TIERS do
+						for column = 1, NUM_TALENT_COLUMNS do
+							local talentInfoQuery = {};
+							talentInfoQuery.tier = tier;
+							talentInfoQuery.column = column;
+							talentInfoQuery.specializationIndex = spec;
+							ret[#ret + 1] = talentInfoQuery
+						end
+					end
+				end
+			end
+			return pairs(ret)
+		end
+	else
+		-- Dragonflight+
+		function TMW.GetTalentQueries(specFilter)
+			local ret = {}
+			
+			return pairs(ret)
+		end
+	end
 end
 
 
@@ -1661,6 +1752,12 @@ do	-- TMW:GetParser()
 				-- because somehow for some reason they need GetUnit?
 				Mixin(Parser, GameTooltipDataMixin)
 			end
+
+			-- Ensure all lines get eagerly created.
+			Parser:SetOwner(UIParent, "ANCHOR_NONE")
+			Parser:AddLine("lt1", "rt1")
+			Parser:AddLine("lt2", "rt2")
+			Parser:AddLine("lt3", "rt3")
 		end
 		return 
 			Parser, 
@@ -1685,17 +1782,27 @@ function TMW:GetRaceIconInfo(race)
 	race = race:lower()
 	race = fixedRaceAtlasNames[race] or race
 	local gender = UnitSex('player') == 2 and "male" or "female"
-	return ("raceicon-%s-%s"):format(race, gender)
+	-- TODO: new races only get raceicon128 (haranir). Do 128 icons exist in classic?
+	return ("raceicon128-%s-%s"):format(race, gender)
 end
 TMW:MakeSingleArgFunctionCached(TMW, "GetRaceIconInfo")
 
-function TMW:TryGetNPCName(id)
-	-- TODO: Replace GetParser with direct usage of C_TooltipInfo when available
-    local tooltip, LT1 = TMW:GetParser()
-    tooltip:SetOwner(UIParent, "ANCHOR_NONE")
-    tooltip:SetHyperlink( string.format( "unit:Creature-0-0-0-0-%d:0000000000", id))
-    
-    return LT1:GetText()
+if C_TooltipInfo and C_TooltipInfo.GetHyperlink then
+	function TMW:TryGetNPCName(id)
+		local hyperlink = string.format("unit:Creature-0-0-0-0-%d:0000000000", id)
+		local tooltipData = C_TooltipInfo.GetHyperlink(hyperlink)
+		if tooltipData and tooltipData.lines and tooltipData.lines[1] then
+			return tooltipData.lines[1].leftText
+		end
+		return nil
+	end
+else
+	function TMW:TryGetNPCName(id)
+		local tooltip, LT1 = TMW:GetParser()
+		tooltip:SetOwner(UIParent, "ANCHOR_NONE")
+		tooltip:SetHyperlink(string.format("unit:Creature-0-0-0-0-%d:0000000000", id))
+		return LT1:GetText()
+	end
 end
 
 -- From Blizzard_TutorialLogic.lua

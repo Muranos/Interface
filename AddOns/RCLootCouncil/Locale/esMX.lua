@@ -29,7 +29,7 @@ L["All items"] = "Todos los objetos"
 L["All items have been awarded and the loot session concluded"] = "Todos los objetos han sido adjudicados y la sesión de botín ha finalizado"
 L["All items usable by the candidate"] = "Todos los objetos utilizables por el candidato"
 L["All unawarded items"] = "Todos los objetos sin adjudicar"
-L["Alternatively, flag the loot as award later."] = "Alternativamente, marca el botín para ser repartido más tarde."
+L["Alternatively, flag the loot as award later."] = "Alternativamente, marca el botín para ser adjudicado posteriormente."
 L["Always show owner"] = "Siempre muestre el dueño"
 L["Always use RCLootCouncil with Personal Loot"] = "Siempre usar RCLootCouncil con Botín Personal"
 L["always_show_tooltip_howto"] = "Doble clic para activar descripción"
@@ -55,7 +55,7 @@ L["anonymous_voting_desc"] = "Habilita la votación anónima (las personas no pu
 L["Append realm names"] = "Añadir nombres de reino"
 L["Are you sure you want to abort?"] = "¿Seguro que desea abortar?"
 L["Are you sure you want to give #item to #player?"] = "¿Estás seguro de que quieres dar %s a %s?"
-L["Are you sure you want to reannounce all unawarded items to %s?"] = "¿Estás seguro de que quieres volver a anunciar todos los objetos a %s?"
+L["Are you sure you want to reannounce all unawarded items to %s?"] = "¿Estás seguro de que quieres volver a anunciar todos los objetos sin adjudicar a %s?"
 L["Are you sure you want to request rolls for all unawarded items from %s?"] = "¿Estás seguro de que quieres solicitarle a %s tirar dados por todos los objetos sin adjudicar?"
 L["Armor Token"] = "Ficha de armadura"
 L["Ask me every time Personal Loot is enabled"] = "Pregúntame cada vez que botín personal está habilitado"
@@ -91,9 +91,9 @@ L["award"] = "adjudicar"
 L["Award"] = "Adjudicar"
 L["Award Announcement"] = "Anunciar adjudicación"
 L["Award for ..."] = "Adjudicar por ..."
-L["Award later"] = "Adjudicar más tarde"
-L["Award later isn't supported when testing."] = "Adjudicar más tarde no está disponible en modo de prueba"
-L["Award later?"] = "¿Adjudicar más tarde?"
+L["Award later"] = "Adjudicar posteriormente"
+L["Award later isn't supported when testing."] = "Adjudicar posteriormente no está disponible en modo de prueba."
+L["Award later?"] = "¿Adjudicar posteriormente?"
 L["Award Reasons"] = "Motivos para adjudicar"
 L["award_reasons_desc"] = "Motivos para adjudicar que no pueden ser elegidos durante la selección. Se usa cuando se cambia una respuesta con el menú de clic derecho y para adjudicaciones automáticas."
 L["Awarded"] = "Adjudicado"
@@ -153,6 +153,8 @@ L["chat_commands_test"] = "Emula una sesión de botín con # objetos, 1 si se om
 L["chat_commands_trade"] = "Abre la interfaz de transferencias"
 L["chat_commands_version"] = "Abre el verificador de versión (alt. 'v' o 'ver')"
 L["chat_commands_whisper"] = "Muestra la ayuda de los comandos por susurro"
+--[[Translation missing --]]
+L["chat_restrictions_enabled"] = "Not currently possible due to Addon Restrictions."
 L["chatCommand_stop_error_notHandlingLoot"] = "No se puede detener: no se está administrando el botín."
 L["Check this to loot the items and distribute them later."] = "Marca esto para despojar los objetos y repartirlos más tarde."
 L["Check to append the realmname of a player from another realm"] = "Marca esto para añadir el nombre del reino de un jugador de otro reino"
@@ -167,11 +169,10 @@ L["Click to change your note."] = "Clic para cambiar tu nota."
 L["Click to expand/collapse more info"] = "Clic para expandir/colapsar más información"
 L["Click to switch to 'item'"] = "Clic para cambiar a %s"
 L["config"] = "configurar"
-L["confirm_award_later_text"] = "¿Estás seguro de querer adjudicar %s más tarde? Los objetos serán anotados en la lista de adjudicar más tarde y vas a despojar los objetos si puedes recogerlos. Usted puede usar '/rc award' para repartirlos los objetos después."
+L["confirm_award_later_text"] = "¿Estás seguro de querer adjudicar %s posteriormente? Los objetos serán anotados en la lista de adjudicar posterior y vas a despojar los objetos si puedes recogerlos. Usted puede usar '/rc award' para repartir los objetos posteriormente."
 L["confirm_usage_text"] = "|cFF87CEFA RCLootCouncil |r ¿Quieres usar RCLootCouncil con este grupo?"
 L["Conqueror Token"] = "Ficha de conquistador"
---[[Translation missing --]]
-L["Corruption if awarded:"] = "Corruption if awarded:"
+L["Corruption if awarded:"] = "Corrupción si es adjudicado:"
 L["Could not Auto Award i because the Loot Threshold is too high!"] = "¡No se pudo adjudicar automáticamente %s debido a que el umbral de botín está muy alto!"
 L["Could not find 'player' in the group."] = "No se encuentra jugador %s en el grupo."
 L["Couldn't find any councilmembers in the group"] = "No se encuentra ningún miembro del concilio en el grupo"
@@ -183,789 +184,422 @@ L["Customize appearance"] = "Personalizar apariencia"
 L["customize_appearance_desc"] = "Aquí puedes personalizar la apariencia de 'RCLootCouncil'. Use la opción de guardar para rápidamente cambiar de apariencias."
 L["Data Received"] = "Datos recibidos"
 L["Date"] = "Fecha"
-L["days and x months"] = "%s y %d meses"
-L["days, x months, y years"] = "%s, %d meses  %d años"
 L["Delete Skin"] = "Borrar apariencia"
 L["delete_skin_desc"] = "Elimina la apariencia seleccionada que no sea por defecto de la lista."
---[[Translation missing --]]
-L["Deselect responses to filter them"] = "Deselect responses to filter them"
+L["Deselect responses to filter them"] = "Desmarca respuestas para filtrarlas"
 L["Diff"] = "Dif."
---[[Translation missing --]]
-L["Discord friendly output."] = "Discord friendly output."
---[[Translation missing --]]
-L["disenchant_desc"] = "Select to use this reason when awarding an item via the 'Disenchant' button"
---[[Translation missing --]]
-L["Do you want to keep %s for yourself or trade?"] = "Do you want to keep %s for yourself or trade?"
---[[Translation missing --]]
-L["Done syncing"] = "Done syncing"
---[[Translation missing --]]
-L["Double click to delete this entry."] = "Double click to delete this entry."
---[[Translation missing --]]
-L["Dropped by:"] = "Dropped by:"
---[[Translation missing --]]
-L["Edit Entry"] = "Edit Entry"
---[[Translation missing --]]
-L["Enable Loot History"] = "Enable Loot History"
---[[Translation missing --]]
-L["Enable Timeout"] = "Enable Timeout"
---[[Translation missing --]]
-L["enable_loot_history_desc"] = "Enables the history. RCLootCouncil won't log anything if disabled."
---[[Translation missing --]]
-L["enable_timeout_desc"] = "Check to enable timeout on the Loot Frame"
---[[Translation missing --]]
-L["Enter your note:"] = "Enter your note:"
---[[Translation missing --]]
-L["EQdkp-Plus XML output, tailored for Enjin import."] = "EQdkp-Plus XML output, tailored for Enjin import."
---[[Translation missing --]]
-L["error_test_as_non_leader"] = "You cannot initiate a test while in a group without being the group leader."
---[[Translation missing --]]
-L["Everybody is up to date."] = "Everybody is up to date."
---[[Translation missing --]]
-L["Everyone have voted"] = "Everyone have voted"
---[[Translation missing --]]
-L["Export"] = "Export"
---[[Translation missing --]]
-L["Fake Loot"] = "Fake Loot"
---[[Translation missing --]]
-L["Following items were registered in the award later list:"] = "Following items were registered in the award later list:"
---[[Translation missing --]]
-L["Following winners was registered:"] = "Following winners was registered:"
---[[Translation missing --]]
-L["Found the following outdated versions"] = "Found the following outdated versions"
---[[Translation missing --]]
-L["Frame options"] = "Frame options"
---[[Translation missing --]]
-L["Free"] = "Free"
---[[Translation missing --]]
-L["Full Bags"] = "Full Bags"
---[[Translation missing --]]
-L["g1"] = "g1"
---[[Translation missing --]]
-L["g2"] = "g2"
---[[Translation missing --]]
-L["Gave the item to you for distribution."] = "Gave the item to you for distribution."
---[[Translation missing --]]
-L["General options"] = "General options"
---[[Translation missing --]]
-L["Group Council Members"] = "Group Council Members"
---[[Translation missing --]]
-L["group_council_members_desc"] = "Use this to add council members from another realm or guild."
---[[Translation missing --]]
-L["group_council_members_head"] = "Add council members from your current group."
---[[Translation missing --]]
-L["Guild Council Members"] = "Guild Council Members"
---[[Translation missing --]]
-L["Hide Votes"] = "Hide Votes"
---[[Translation missing --]]
-L["hide_votes_desc"] = "Only players that have already voted will be able to see votes."
---[[Translation missing --]]
-L["history_export_excel_international_tip"] = "Tab delimited export for international version of Excel that uses ',' as formula delimiter."
---[[Translation missing --]]
-L["history_export_sheets_tip"] = "Tab delimited export for Google Sheets and English version of Excel that uses ';' as formula delimiter."
---[[Translation missing --]]
-L["How to sync"] = "How to sync"
---[[Translation missing --]]
-L["huge_export_desc"] = "Huge Export. Only show first line to avoid freezing the game. Ctrl+C to copy full content."
---[[Translation missing --]]
-L["Ignore List"] = "Ignore List"
---[[Translation missing --]]
-L["Ignore Options"] = "Ignore Options"
---[[Translation missing --]]
-L["ignore_input_desc"] = "Enter an itemID to add to the ignore list causing RCLootCouncil to never add the item to a session"
---[[Translation missing --]]
-L["ignore_input_usage"] = "This function only accepts itemIDs (number), itemName or itemLink."
---[[Translation missing --]]
-L["ignore_list_desc"] = "Items RCLootCouncil is ignoring. Click on a item to remove it."
---[[Translation missing --]]
-L["ignore_options_desc"] = "Control which items RCLootCouncil should ignore. If you add an item that isn't cached, you need switch to another tab and back before you'll see it in the list."
---[[Translation missing --]]
-L["Import"] = "Import"
---[[Translation missing --]]
-L["Import aborted"] = "Import aborted"
---[[Translation missing --]]
-L["import_desc"] = "Paste data here. Only show first 2500 characters to avoid freezing the game."
---[[Translation missing --]]
-L["import_malformed"] = "The import was malformed (not a string)"
---[[Translation missing --]]
-L["import_malformed_header"] = "Malformed header"
---[[Translation missing --]]
-L["import_not_supported"] = "The import type is either very malformed or not supported."
---[[Translation missing --]]
-L["Invalid selection"] = "Invalid selection"
---[[Translation missing --]]
-L["Item"] = "Item"
---[[Translation missing --]]
-L["'Item' is added to the award later list."] = "%s is added to the award later list."
---[[Translation missing --]]
-L["Item quality is below the loot threshold"] = "Item quality is below the loot threshold"
---[[Translation missing --]]
-L["Item received and added from 'player'"] = "Item received and added from %s."
---[[Translation missing --]]
-L["Item was awarded to"] = "Item was awarded to"
---[[Translation missing --]]
-L["Item(s) replaced:"] = "Item(s) replaced:"
---[[Translation missing --]]
-L["item_in_bags_low_trade_time_remaining_reminder"] = "The following bind on pick up items in your inventory are in the award later list and have less than %s trade time remaining. To avoid this reminder, trade the item, or '/rc remove [index]' to remove the item from the list, or '/rc clear' to clear the award later list, or equip the item to make the item untradable."
---[[Translation missing --]]
-L["Items stored in the loot master's bag for award later cannot be awarded later."] = "Items stored in the loot master's bag for award later cannot be awarded later."
---[[Translation missing --]]
-L["Items under consideration:"] = "Items under consideration:"
---[[Translation missing --]]
-L["Keep"] = "Keep"
---[[Translation missing --]]
-L["Latest item(s) won"] = "Latest item(s) won"
---[[Translation missing --]]
-L["Length"] = "Length"
---[[Translation missing --]]
-L["Log"] = "Log"
---[[Translation missing --]]
-L["log_desc"] = "Enables logging in Loot History."
---[[Translation missing --]]
-L["Loot announced, waiting for answer"] = "Loot announced, waiting for answer"
---[[Translation missing --]]
-L["Loot History"] = "Loot History"
---[[Translation missing --]]
-L["Loot Status"] = "Loot Status"
---[[Translation missing --]]
-L["Loot won:"] = "Loot won:"
---[[Translation missing --]]
-L["loot_history_desc"] = [=[RCLootCouncil automatically records relevant information from sessions.
-The raw data is stored in ".../SavedVariables/RCLootCouncil.lua".
+L["Discord friendly output."] = "Datos compatibles con Discord"
+L["disenchant_desc"] = "Selecciona para usar este motivo cuando otorgas un objeto a través del botón 'Desencantar'"
+L["Do you want to keep %s for yourself or trade?"] = "¿Deseas quedarte con %s o intercambiarlo?"
+L["Done syncing"] = "Sincronización terminada"
+L["Double click to delete this entry."] = "Doble clic para borrar esta entrada."
+L["Dropped by:"] = "Despojado de:"
+L["Edit Entry"] = "Editar entrada"
+L["Enable Loot History"] = "Habilitar historial del botín"
+L["Enable Timeout"] = "Habilitar límite de tiempo"
+L["enable_loot_history_desc"] = "Habilita el historial. RCLootCouncil no guardará historial si se deshabilita."
+L["enable_timeout_desc"] = "Habilita un límite de tiempo en el marco de despojos."
+L["Enter your note:"] = "Ingresa tu nota:"
+L["EQdkp-Plus XML output, tailored for Enjin import."] = "Salida de datos EQdkp-Plus XML para importar en Enjin."
+L["error_no_autoAward_candidates"] = "Has habilitado adjudicar objetos automáticamente, pero no has seleccionado ningún candidato(s) para adjudicar objetos."
+L["error_no_autoAwardBoE_candidates"] = "Has habilitado adjudicar objetos BoE automáticamente, pero no has seleccionado ningún candidato(s) para adjudicar objetos."
+L["error_test_as_non_leader"] = "No puedes iniciar una prueba sin ser el líder de grupo."
+L["Everybody is up to date."] = "Todos están en la última versión."
+L["Everyone have voted"] = "Todos han votado"
+L["Export"] = "Exportar"
+L["Fake Loot"] = "Botín falso"
+L["Following items were registered in the award later list:"] = "Los siguientes objetos fueron registrados en la lista de adjudicación posterior:"
+L["Following winners was registered:"] = "Se registraron los siguientes ganadores:"
+L["Found the following outdated versions"] = "Se encontraron estas versiones desactualizadas"
+L["Frame options"] = "Opciones de marcos"
+L["Free"] = "Gratis"
+L["Full Bags"] = "Bolsas llenas"
+L["g1"] = true
+L["g2"] = true
+L["Gave the item to you for distribution."] = "Tomar el objeto para ser repartido"
+L["General options"] = "Opciones generales"
+L["Group Council Members"] = "Miembros del consejo de grupo"
+L["group_council_members_desc"] = "Usa esto para agregar miembros al concejo desde otro reino o hermandad."
+L["group_council_members_head"] = "Agrega miembros del grupo actual al concejo."
+L["Guild Council Members"] = "Miembros del concejo de la hermandad"
+L["Hide Votes"] = "Ocultar votos"
+L["hide_votes_desc"] = "Solamente jugadores que ya hayan votado podrán ver los votos."
+L["history_export_excel_international_tip"] = "Exportación delimitada por tabulaciones para la versión internacional de Excel que usa ',' como delimitador de fórmula."
+L["history_export_sheets_tip"] = "Exportación delimitada por tabulaciones para Google Sheets y la versión en inglés de Excel que usa ';' como delimitador de fórmula."
+L["How to sync"] = "Metodo para sincronizar"
+L["huge_export_desc"] = "Gran exportación. Solo muestra la primera línea para evitar congelar el juego. Ctrl+C para copiar el contenido completo."
+L["Ignore List"] = "Lista de ignorados"
+L["Ignore Options"] = "Opciones de ignorados"
+L["ignore_input_desc"] = "Escriba un itemID para agregarlo a la lista de ignorados, lo que hace que RCLootCouncil nunca agregue el elemento a una sesión"
+L["ignore_input_usage"] = "Esta función solo acepta itemIDs (número), itemName o itemLink."
+L["ignore_list_desc"] = "Elementos que RCLootCouncil está ignorando. Haga clic en un elemento para eliminarlo."
+L["ignore_options_desc"] = "Controle qué elementos debe ignorar RCLootCouncil. Si agrega un elemento que no está almacenado en caché, debe cambiar a otra pestaña y volver a verlo antes de verlo en la lista."
+L["Import"] = "Importar"
+L["Import aborted"] = "Importación anulada"
+L["import_desc"] = "Pegue los datos aquí. Solo muestra los primeros 2500 caracteres para evitar congelar el juego."
+L["import_malformed"] = "La importación estaba mal formada (no era una cadena)"
+L["import_malformed_header"] = "Encabezado con formato incorrecto"
+L["import_not_supported"] = "El tipo de importación tiene un formato muy incorrecto o no se admite."
+L["Invalid selection"] = "Selección no válida"
+L["Item"] = "Objeto"
+L["'Item' is added to the award later list."] = "%s se agrega a la lista de adjudicación posterior."
+L["Item quality is below the loot threshold"] = "La calidad del objeto está por debajo del umbral de botín"
+L["Item received and added from 'player'"] = "Objeto recibido y agregado de %s."
+L["Item was awarded to"] = "El objeto fue adjudicado a"
+L["Item(s) replaced:"] = "Objeto(s) reemplazado(s):"
+L["item_in_bags_low_trade_time_remaining_reminder"] = "Los siguientes objetos que se ligan al recoger en su inventario están en la lista de adjudicación posterior y les queda menos de %s de tiempo de intercambio. Para evitar este recordatorio, haz una de lo siguiente: intercambia el objeto, usa \"/rc remove [índice]\" para eliminar el objeto de la lista, usa \"/rc clear\" para borrar la lista de adjudicación posterior o equipa el objeto para que no se pueda intercambiar."
+L["Items stored in the loot master's bag for award later cannot be awarded later."] = "Los objetos almacenados en el inventario del maestro despojador no se pueden adjudicar posteriormente."
+L["Items under consideration:"] = "Objetos en consideración:"
+L["Keep"] = "Mantener"
+L["Latest item(s) won"] = "Último(s) objeto(s) ganado(s)"
+L["Length"] = "Largo"
+L["Log"] = "Registro"
+L["log_desc"] = "Habilita el registro del historial del botín."
+L["Loot announced, waiting for answer"] = "Botín anunciado, esperando respuestas"
+L["Loot History"] = "Historial del botín"
+L["Loot Status"] = "Estado de botín"
+L["Loot won:"] = "Botín ganado:"
+L["loot_history_desc"] = "RCLootCouncil registra automáticamente la información relevante de las sesiones. Los datos sin procesar se almacenan en \".../SavedVariables/RCLootCouncil.lua\". Nota: Los que no son Maestro despojador solo pueden almacenar datos enviados desde el Maestro despojador."
+L["Looted"] = "Despojado"
+L["Looted by:"] = "Despojado por:"
+L["lootFrame_error_note_required"] = "Debe agregar una nota antes de enviar su respuesta: %s"
+L["lootHistory_moreInfo_winnersOfItem"] = "Ganadores de %s:"
+L["Looting options"] = "Opciones de saqueo"
+L["Lower Quality Limit"] = "Límite de calidad inferior"
+L["lower_quality_limit_desc"] = "Seleccione el límite de calidad más bajo de los objetos para otorgar automáticamente (¡esta calidad incluida!). Nota: Esto anula el umbral de botín normal."
+L["Mainspec/Need"] = "EspecPrimaria/Necesidad"
+L["Mass deletion of history entries."] = "Borrado masivo de historial"
+L["Master Looter"] = "Maestro despojador"
+L["master_looter_desc"] = "Nota: Esta configuración solo se usará cuando seas el Maestro despojador."
+L["Message"] = "Mensaje"
+L["Message for each item"] = "Mensaje para cada objeto"
+L["message_desc"] = "El mensaje que se va a enviar al canal seleccionado."
+L["Minimize in combat"] = "Minimizar en combate"
+L["Minor Upgrade"] = "Mejora menor"
+L["Missing votes from:"] = "Faltan votos de:"
+L["ML sees voting"] = "MD puede ver la votación"
+L["ML_ADD_INVALID_ITEM"] = "itemLink o itemID no válidos: %s"
+L["ML_ADD_ITEM_MAX_ATTEMPTS"] = "No se pudo obtener la información del objeto para %s, probablemente no sea un objeto real."
+L["ML_REQUEST_VOTES"] = "%s te ha pedido que votes por el objeto #%d: %s"
+L["ml_sees_voting_desc"] = "Permite al Maestro despojador ver quién vota por quién."
+L["module_tVersion_outdated_msg"] = "La versión de prueba más reciente del módulo %s es: %s"
+L["module_version_outdated_msg"] = "La versión %s del módulo %s está desactualizada. La versión más reciente es %s."
+L["Modules"] = "Módulos"
+L["More Info"] = "Más información"
+L["more_info_desc"] = "Selecciona para cuántas de tus respuestas quieres ver los últimos objetos adjudicados. Por ejemplo, al seleccionar 2 (con la configuración predeterminada) se mostrarán los últimos elementos EspecPrimaria y EspecSecundaria adjudicados, junto con cuánto tiempo hace que se adjudicaron."
+L["Multi Vote"] = "Voto múltiple"
+L["multi_vote_desc"] = "Permite la votación múltiple, es decir, los votantes pueden votar por varios candidatos."
+L["'n days' ago"] = "%d días atrás"
+L["Never use RCLootCouncil"] = "Nunca use RCLootCouncil"
+L["new_ml_bagged_items_reminder"] = "Hay elementos recientes en su lista de adjudicación posterior. '/rc list' para ver la lista, '/rc clear' para borrar la lista, '/rc remove [index]' para eliminar la entrada seleccionada de la lista. '/rc award' para iniciar una sesión desde la lista de adjudicación posterior, '/rc add' con adjudicar posteriormente marcado para agregar el elemento a la lista."
+L["No (dis)enchanters found"] = "No se han encontrado (des)encantadores"
+L["No entries in the Loot History"] = "No hay entradas en el historial de botín"
+L["No entry in the award later list is removed."] = "No se eliminará ninguna entrada en la lista de adjudicación posterior."
+L["No items to award later registered"] = "No se registran objetos para otorgar más tarde"
+L["No recipients available"] = "No hay destinatarios disponibles"
+L["No session running"] = "No hay sesión en ejecución"
+L["No winners registered"] = "No hay ganadores registrados"
+L["non_tradeable_reason_nil"] = "Desconocido"
+L["non_tradeable_reason_not_tradeable"] = "No intercambiable"
+L["non_tradeable_reason_rejected_trade"] = "Quería conservar el objeto"
+L["Non-tradeable reason:"] = "Motivo por el cual no se puede intercambiar:"
+L["Not announced"] = "No anunciado"
+L["Not cached, please reopen."] = "No almacenado en caché, vuelva a abrir."
+L["Not Found"] = "No encontrado"
+L["Not in your guild"] = "No pertenece a tu hermandad"
+L["Not installed"] = "No instalado"
+L["Notes"] = "Notas"
+L["Now handles looting"] = "Ahora maneja el botín"
+L["Number of buttons"] = "Número de botones"
+L["Number of raids received loot from:"] = "Número de bandas de las que se ha recibido botín:"
+L["Number of reasons"] = "Número de razones"
+L["Number of responses"] = "Número de respuestas"
+L["number_of_buttons_desc"] = "Desliza para cambiar el número de botones."
+L["number_of_reasons_desc"] = "Deslice para cambiar el número de razones."
+L["Observe"] = "Observar"
+L["observe_desc"] = "Permite que los miembros que no son miembros del consejo vean el marco de votación. Sin embargo, no se les permite votar."
+L["Offline or RCLootCouncil not installed"] = "Desactivado o RCLootCouncil no instalado"
+L["Offspec/Greed"] = "EspecSecundaria/Codicia"
+L["Only use in raids"] = "Solo usar en bandas"
+L["onlyUseInRaids_desc"] = "Marque para deshabilitar automáticamente RCLootCouncil en grupos de 5 jugadores."
+L["open"] = "abrir"
+L["Open the Loot History"] = "Abre el historial de botín"
+L["open_the_loot_history_desc"] = [=[Haz clic para abrir el historial de botín.
 
-Note: Non-MasterLooters can only store data sent from the MasterLooter.
 ]=]
---[[Translation missing --]]
-L["Looted"] = "Looted"
---[[Translation missing --]]
-L["Looted by:"] = "Looted by:"
---[[Translation missing --]]
-L["lootFrame_error_note_required"] = "You must add a note before submitting your response - %s"
---[[Translation missing --]]
-L["lootHistory_moreInfo_winnersOfItem"] = "Winners of %s:"
---[[Translation missing --]]
-L["Looting options"] = "Looting options"
---[[Translation missing --]]
-L["Lower Quality Limit"] = "Lower Quality Limit"
---[[Translation missing --]]
-L["lower_quality_limit_desc"] = [=[Select the lower quality limit of items to auto award (this quality included!).
-Note: This overrides the normal loot treshhold.]=]
---[[Translation missing --]]
-L["Mainspec/Need"] = "Mainspec/Need"
---[[Translation missing --]]
-L["Mass deletion of history entries."] = "Mass deletion of history entries."
---[[Translation missing --]]
-L["Master Looter"] = "Master Looter"
---[[Translation missing --]]
-L["master_looter_desc"] = "Note: These settings will only be used when you're the Master Looter."
---[[Translation missing --]]
-L["Message"] = "Message"
---[[Translation missing --]]
-L["Message for each item"] = "Message for each item"
---[[Translation missing --]]
-L["message_desc"] = "The message to send to the selected channel."
---[[Translation missing --]]
-L["Minimize in combat"] = "Minimize in combat"
---[[Translation missing --]]
-L["Minor Upgrade"] = "Minor Upgrade"
---[[Translation missing --]]
-L["Missing votes from:"] = "Missing votes from:"
---[[Translation missing --]]
-L["ML sees voting"] = "ML sees voting"
---[[Translation missing --]]
-L["ML_ADD_INVALID_ITEM"] = "Invalid itemLink or itemID: %s"
---[[Translation missing --]]
-L["ML_ADD_ITEM_MAX_ATTEMPTS"] = "Couldn't fetch item info for %s - probably not a real item."
---[[Translation missing --]]
-L["ml_sees_voting_desc"] = "Allows the Master Looter to see who's voting for whom."
---[[Translation missing --]]
-L["module_tVersion_outdated_msg"] = "Newest module %s test version is: %s"
---[[Translation missing --]]
-L["module_version_outdated_msg"] = "The module %s version %s is outdated. Newer version is %s."
---[[Translation missing --]]
-L["Modules"] = "Modules"
---[[Translation missing --]]
-L["More Info"] = "More Info"
---[[Translation missing --]]
-L["more_info_desc"] = "Select how many of your responses you want to see the latest awarded items for. E.g. selecting 2 will (with default settings) show the latest awarded Mainspec and Offspec items, along with how long ago they were awarded."
---[[Translation missing --]]
-L["Multi Vote"] = "Multi Vote"
---[[Translation missing --]]
-L["multi_vote_desc"] = "Enables multi voting, i.e. voters can vote for several candidates."
---[[Translation missing --]]
-L["'n days' ago"] = "%d days ago"
---[[Translation missing --]]
-L["Never use RCLootCouncil"] = "Never use RCLootCouncil"
---[[Translation missing --]]
-L["new_ml_bagged_items_reminder"] = "There are recent items in your award later list. '/rc list' to view the list, '/rc clear' to clear the list, '/rc remove [index]' to remove selected entry from the list. '/rc award' to start a session from the award later list, '/rc add' with award later checked to add the item into the list."
---[[Translation missing --]]
-L["No (dis)enchanters found"] = "No (dis)enchanters found"
---[[Translation missing --]]
-L["No entries in the Loot History"] = "No entries in the Loot History"
---[[Translation missing --]]
-L["No entry in the award later list is removed."] = "No entry in the award later list is removed."
---[[Translation missing --]]
-L["No items to award later registered"] = "No items to award later registered"
---[[Translation missing --]]
-L["No recipients available"] = "No recipients available"
---[[Translation missing --]]
-L["No session running"] = "No session running"
---[[Translation missing --]]
-L["No winners registered"] = "No winners registered"
---[[Translation missing --]]
-L["non_tradeable_reason_nil"] = "Unknown"
---[[Translation missing --]]
-L["non_tradeable_reason_not_tradeable"] = "Not Tradeable"
---[[Translation missing --]]
-L["non_tradeable_reason_rejected_trade"] = "Wanted to keep item"
---[[Translation missing --]]
-L["Non-tradeable reason:"] = "Non-tradeable reason:"
---[[Translation missing --]]
-L["Not announced"] = "Not announced"
---[[Translation missing --]]
-L["Not cached, please reopen."] = "Not cached, please reopen."
---[[Translation missing --]]
-L["Not Found"] = "Not Found"
---[[Translation missing --]]
-L["Not in your guild"] = "Not in your guild"
---[[Translation missing --]]
-L["Not installed"] = "Not installed"
---[[Translation missing --]]
-L["Notes"] = "Notes"
---[[Translation missing --]]
-L["Now handles looting"] = "Now handles looting"
---[[Translation missing --]]
-L["Number of buttons"] = "Number of buttons"
---[[Translation missing --]]
-L["Number of raids received loot from:"] = "Number of raids received loot from:"
---[[Translation missing --]]
-L["Number of reasons"] = "Number of reasons"
---[[Translation missing --]]
-L["Number of responses"] = "Number of responses"
---[[Translation missing --]]
-L["number_of_buttons_desc"] = "Slide to change the number of buttons."
---[[Translation missing --]]
-L["number_of_reasons_desc"] = "Slide to change the number of reasons."
---[[Translation missing --]]
-L["Observe"] = "Observe"
---[[Translation missing --]]
-L["observe_desc"] = "Allows non-council members to see the voting frame. They are not allowed to vote however."
---[[Translation missing --]]
-L["Offline or RCLootCouncil not installed"] = "Offline or RCLootCouncil not installed"
---[[Translation missing --]]
-L["Offspec/Greed"] = "Offspec/Greed"
---[[Translation missing --]]
-L["Only use in raids"] = "Only use in raids"
---[[Translation missing --]]
-L["onlyUseInRaids_desc"] = "Check to automatically disable RCLootCouncil in parties."
---[[Translation missing --]]
-L["open"] = "open"
---[[Translation missing --]]
-L["Open the Loot History"] = "Open the Loot History"
---[[Translation missing --]]
-L["open_the_loot_history_desc"] = "Click to open the Loot History."
---[[Translation missing --]]
-L["Opens the synchronizer"] = "Opens the synchronizer"
---[[Translation missing --]]
-L["opt_addButton_desc"] = "Add a new button group for the selected slot."
---[[Translation missing --]]
-L["opt_autoAddBoEs_desc"] = "Automatically add all BoE (Bind on Equip) items to a session."
---[[Translation missing --]]
-L["opt_autoAddBoEs_name"] = "Auto Add BoEs"
---[[Translation missing --]]
-L["opt_autoAddItems_desc"] = "Automatically add all eligible items to a session."
---[[Translation missing --]]
-L["opt_autoAddItems_name"] = "Auto Add Items"
---[[Translation missing --]]
-L["opt_autoAddPets_desc"] = "Automatically add all Companion Pets to a session."
---[[Translation missing --]]
-L["opt_autoAddPets_name"] = "Add Pets"
---[[Translation missing --]]
-L["opt_autoAwardPrioList_desc"] = "Items are awarded to the first candidate found in your group according to this priority list."
---[[Translation missing --]]
-L["opt_autoGroupLoot_desc"] = "When enabled, RCLootCouncil will automatically click the pass and greed buttons so that all items lands in your inventory."
---[[Translation missing --]]
-L["opt_autoGroupLoot_name"] = "Auto Group Loot"
---[[Translation missing --]]
-L["opt_autoGroupLootGuildGroupOnly_desc"] = "When enabled, RCLootCouncil will only do group loot auto pass when you're in a guild group."
---[[Translation missing --]]
-L["opt_autoGroupLootGuildGroupOnly_name"] = "Guild Groups Only"
---[[Translation missing --]]
-L["opt_autoPassWeapons_desc"] = "Check to enable auto passing of weapons your class can't equip."
---[[Translation missing --]]
-L["opt_autoPassWeapons_name"] = "Auto Pass Weapons"
---[[Translation missing --]]
-L["opt_autoTrade_desc"] = "Check to automatically add awarded items to the trade window when trading with the winner. If disabled, you'll see a popup before items are added."
---[[Translation missing --]]
-L["opt_award_later_desc"] = "Check to automatically check the 'Award Later' option in the Session Frame."
---[[Translation missing --]]
-L["opt_buttonsGroup_desc"] = [=[Options group for %s buttons and responses.
-See above for a detailed explanation.]=]
---[[Translation missing --]]
-L["opt_chatFrameName_desc"] = "Select which chat frame you want RCLootCouncil to output information to."
---[[Translation missing --]]
-L["opt_chatFrameName_name"] = "Chat Frame"
---[[Translation missing --]]
-L["opt_closeWithEscape_desc"] = "When enabled, all non-critical RCLootCouncil frames can be closed by pressing 'Escape'. (Requires reload to take effect on already created frames)"
---[[Translation missing --]]
-L["opt_closeWithEscape_name"] = "Escape Close"
---[[Translation missing --]]
-L["opt_deleteDate_confirm"] = [=[Are you sure you want to delete everything older than the selected?
-This cannot be undone.]=]
---[[Translation missing --]]
-L["opt_deleteDate_desc"] = "Delete anything older than the selected number of days."
---[[Translation missing --]]
-L["opt_deleteName_confirm"] = [=[Are you sure you want to delete all entries from %s?
-This cannot be undone.]=]
---[[Translation missing --]]
-L["opt_deleteName_desc"] = "Delete all entries from the selected candidate."
---[[Translation missing --]]
-L["opt_deletePatch_confirm"] = [=[Are you sure you want to delete everything older than the selected patch?
- This cannot be undone.]=]
---[[Translation missing --]]
-L["opt_deletePatch_desc"] = "Delete all entries added before the selected patch."
---[[Translation missing --]]
-L["opt_deleteRaid_confirm"] = [=[Are you sure you want to delete all entries from the selected instance?
-This cannot be undone.]=]
---[[Translation missing --]]
-L["opt_deleteRaid_desc"] = "Delete all entries from a specific instance."
---[[Translation missing --]]
-L["opt_moreButtons_desc"] = "Add a new set of buttons for a specific gear slot. The most specific type is used, i.e. adding buttons for 'Head' and 'Catalyst Items' will make head type armor use the head buttons instead of catalyst."
---[[Translation missing --]]
-L["opt_printCompletedTrade_Desc"] = "Check to enable a message every time a candidate trades an awarded item to the winner."
---[[Translation missing --]]
-L["opt_printCompletedTrade_Name"] = "Trade Messages"
---[[Translation missing --]]
-L["opt_profileSharing_export_desc"] = "Export your current profile."
---[[Translation missing --]]
-L["opt_profileSharing_fail_noProfileData"] = "Data is not profile data. Ensure imported data originates from profile export."
---[[Translation missing --]]
-L["opt_profileSharing_import_desc"] = "Import a new RCLootCouncil profile. Imports are non-destructive, unless you're overwriting an existing profile."
---[[Translation missing --]]
-L["opt_profileSharing_profileExistsWarning"] = "A profile named \"%s\" already exists - do you want to overwrite it?"
---[[Translation missing --]]
-L["opt_rejectTrade_Desc"] = "Check to enable candidates to choose whether they want to 'give' the item to the council or not. If unchecked, all tradeable PL items are added automatically."
---[[Translation missing --]]
-L["opt_rejectTrade_Name"] = "Allow Keeping"
---[[Translation missing --]]
-L["opt_savePersonalLoot_desc"] = "If disabled, personal loot will not be added to the history."
---[[Translation missing --]]
-L["opt_savePersonalLoot_name"] = "Record Personal Loot"
---[[Translation missing --]]
-L["opt_sharingProfile_success"] = "Succesfully imported profile: \"%s\""
---[[Translation missing --]]
-L["opt_skipSessionFrame_desc"] = "Skips the Session Frame. NOTE: This causes the addon to start a session with all eligble items without you having a chance to edit the list!"
---[[Translation missing --]]
-L["opt_skipSessionFrame_name"] = "Skip Session Frame"
---[[Translation missing --]]
-L["opt_timeoutFlash_desc"] = "When enabled, the loot frame will flash when there's 5 seconds left to the item timeouts."
---[[Translation missing --]]
-L["opt_timeoutFlash_name"] = "Timeout Flash"
---[[Translation missing --]]
-L["opt_usage_AskGroupLoot"] = "Ask me every time Group Loot is enabled"
---[[Translation missing --]]
-L["opt_usage_GroupLoot"] = "Always use RCLootCouncil with Group Loot"
---[[Translation missing --]]
-L["opt_useSlashRC_desc"] = "Disable this if you want to restore '/rc' to ready check. RCLootCouncil commands are still available with '/rclc'. A '/reload' is required for this to take effect."
---[[Translation missing --]]
-L["opt_useSlashRC_name"] = "Use /rc"
---[[Translation missing --]]
-L["options_autoAwardBoE_desc"] = "Enable to automatically award all epic BoE (Bind on Equip) items to a specific person for the selected reason."
---[[Translation missing --]]
-L["options_autoAwardBoE_name"] = "Auto Award BoE's"
---[[Translation missing --]]
-L["options_ml_outOfRaid_desc"] = "When enabled, while in a group of 8 or more members, anyone that isn't in an instance when a session starts will automatically send an 'Out of Raid' response."
---[[Translation missing --]]
-L["options_ml_outOfRaid_name"] = "Out of Raid Support"
---[[Translation missing --]]
-L["options_requireNotes_desc"] = "If enabled, candidates cannot submit their response without having entered a note."
---[[Translation missing --]]
-L["Original Owner"] = "Original Owner"
---[[Translation missing --]]
-L["Out of instance"] = "Out of instance"
---[[Translation missing --]]
-L["Patch"] = "Patch"
---[[Translation missing --]]
-L["Personal Loot - Non tradeable"] = "Personal Loot - Non tradeable"
---[[Translation missing --]]
-L["Personal Loot - Rejected Trade"] = "Personal Loot - Rejected Trade"
---[[Translation missing --]]
-L["'player' can't receive 'type'"] = "%s can't receive %s - version mismatch?"
---[[Translation missing --]]
-L["'player' declined your sync request"] = "%s declined your sync request"
---[[Translation missing --]]
-L["'player' has asked you to reroll"] = "%s has asked you to reroll"
---[[Translation missing --]]
-L["'player' has ended the session"] = "%s has ended the session"
---[[Translation missing --]]
-L["'player' has rolled 'roll' for: 'item'"] = "%s has rolled %d for: %s"
---[[Translation missing --]]
-L["'player' hasn't opened the sync window"] = "%s hasn't opened the sync window (/rc sync)"
---[[Translation missing --]]
-L["Player is ineligible for this item"] = "Player is ineligible for this item"
---[[Translation missing --]]
-L["Player is not in the group"] = "Player is not in the group"
---[[Translation missing --]]
-L["Player is not in this instance"] = "Player is not in this instance"
---[[Translation missing --]]
-L["Player is offline"] = "Player is offline"
---[[Translation missing --]]
-L["Please wait a few seconds until all data has been synchronized."] = "Please wait a few seconds until all data has been synchronized."
---[[Translation missing --]]
-L["Please wait before trying to sync again."] = "Please wait before trying to sync again."
---[[Translation missing --]]
-L["Print Responses"] = "Print Responses"
---[[Translation missing --]]
-L["print_response_desc"] = "Print your response in the chat window"
---[[Translation missing --]]
-L["Protector Token"] = "Protector Token"
---[[Translation missing --]]
-L["Raw lua output. Doesn't work well with date selection."] = "Raw lua output. Doesn't work well with date selection."
---[[Translation missing --]]
-L["rcframe_help"] = [=[Double click here to minimize
-Click and drag to move
-Ctrl+scroll to change scale]=]
---[[Translation missing --]]
-L["RCLootCouncil - Synchronizer"] = "RCLootCouncil - Synchronizer"
---[[Translation missing --]]
-L["RCLootCouncil Loot Frame"] = "RCLootCouncil Loot Frame"
---[[Translation missing --]]
-L["RCLootCouncil Loot History"] = "RCLootCouncil Loot History"
---[[Translation missing --]]
-L["RCLootCouncil Session Setup"] = "RCLootCouncil Session Setup"
---[[Translation missing --]]
-L["RCLootCouncil Version Checker"] = "RCLootCouncil Version Checker"
---[[Translation missing --]]
-L["RCLootCouncil Voting Frame"] = "RCLootCouncil Voting Frame"
---[[Translation missing --]]
-L["rclootcouncil_trade_add_item_confirm"] = "RCLootCouncil detects %d tradable items in your bags are awarded to %s. Do you want to add the items to the trade window?"
---[[Translation missing --]]
-L["Reannounce ..."] = "Reannounce ..."
---[[Translation missing --]]
-L["Reannounced 'item' to 'target'"] = "Reannounced %s to %s"
---[[Translation missing --]]
-L["Reason"] = "Reason"
---[[Translation missing --]]
-L["reason_desc"] = "The award reason to add to the Loot History when auto awarding."
---[[Translation missing --]]
-L["Remove All"] = "Remove All"
---[[Translation missing --]]
-L["Remove from consideration"] = "Remove from consideration"
---[[Translation missing --]]
-L["remove_all_desc"] = "Remove all council members"
---[[Translation missing --]]
-L["Requested rolls for 'item' from 'target'"] = "Requested rolls for %s from %s"
---[[Translation missing --]]
-L["Require Notes"] = "Require Notes"
---[[Translation missing --]]
-L["Reset Skin"] = "Reset Skin"
---[[Translation missing --]]
-L["Reset skins"] = "Reset skins"
---[[Translation missing --]]
-L["reset_announce_to_default_desc"] = "Resets all the announcement options to default"
---[[Translation missing --]]
-L["reset_buttons_to_default_desc"] = "Resets all the buttons, colors and responses to default"
---[[Translation missing --]]
-L["reset_skin_desc"] = "Resets all colors and background to the current skin."
---[[Translation missing --]]
-L["reset_skins_desc"] = "Reset the default skins."
---[[Translation missing --]]
-L["reset_to_default_desc"] = "Resets the award reasons to default."
---[[Translation missing --]]
-L["Response"] = "Response"
---[[Translation missing --]]
-L["Response color"] = "Response color"
---[[Translation missing --]]
-L["Response isn't available. Please upgrade RCLootCouncil."] = "Response isn't available. Please upgrade RCLootCouncil."
---[[Translation missing --]]
-L["Response options"] = "Response options"
---[[Translation missing --]]
-L["Response to 'item'"] = "Response to %s"
---[[Translation missing --]]
-L["Response to 'item' acknowledged as 'response'"] = "Response to %s acknowledged as \" %s \""
---[[Translation missing --]]
-L["response_color_desc"] = "Set a color for the response."
---[[Translation missing --]]
-L["response_NOTELIGIBLE"] = "Not eligible for this item"
---[[Translation missing --]]
-L["Responses"] = "Responses"
---[[Translation missing --]]
-L["Responses from Chat"] = "Responses from Chat"
---[[Translation missing --]]
-L["responses_from_chat_desc"] = [=[In case someone haven't installed the addon (Button 1 is used if no keyword is specified).
-Example: "/w ML_NAME 1 greed [ITEM]" would by default show up as you greeding on the first item in the session.
-Below you can choose keywords for the individual buttons. Only A-Z, a-z and 0-9 is accepted for keywords, everything else is considered a seperation.
-Players can recieve the keyword list by messaging 'rchelp' to the Master Looter once the addon is enabled (i.e. in a raid).]=]
---[[Translation missing --]]
-L["Save Skin"] = "Save Skin"
---[[Translation missing --]]
-L["save_skin_desc"] = "Enter a name for your skin and hit 'okay' to save it. Note you can overwrite any non default skin."
---[[Translation missing --]]
-L["Self Vote"] = "Self Vote"
---[[Translation missing --]]
-L["self_vote_desc"] = "Enables voters to vote for themselves."
---[[Translation missing --]]
-L["Send History"] = "Send History"
---[[Translation missing --]]
-L["Send to Guild"] = "Send to Guild"
---[[Translation missing --]]
-L["send_history_desc"] = "Send data to everyone in the raid, regardless if you log it yourself. RCLootCouncil will only send data if you're the MasterLooter."
---[[Translation missing --]]
-L["send_to_guild_desc"] = "Send history to guild members instead of your group. Useful if you're running multiple raid groups and want a combined history for your guild. The downside is non-guild members in your group won't register your history entries."
---[[Translation missing --]]
-L["Sending 'type' to 'player'..."] = "Sending %s to %s..."
---[[Translation missing --]]
-L["Sent whisper help to 'player'"] = "Sent whisper help to %s"
---[[Translation missing --]]
-L["session_error"] = "Something went wrong - please restart the session"
---[[Translation missing --]]
-L["session_help_from_bag"] = "After the session ends, you can use '/rc winners' to see who you should trade the items to."
---[[Translation missing --]]
-L["session_help_not_direct"] = "Items in this session are not given to the candidates directly. Items needs to be traded."
---[[Translation missing --]]
-L["Set the text for button i's response."] = "Set the text for button %d's response'"
---[[Translation missing --]]
-L["Set the text on button 'number'"] = "Set the text on button %i"
---[[Translation missing --]]
-L["Set the whisper keys for button i."] = "Set the whisper keys for button %d."
---[[Translation missing --]]
-L["Show Spec Icon"] = "Show Spec Icon"
---[[Translation missing --]]
-L["show_spec_icon_desc"] = "Check to replace candidates' class icons with their spec icon, if available."
---[[Translation missing --]]
-L["Silent Auto Pass"] = "Silent Auto Pass"
---[[Translation missing --]]
-L["silent_auto_pass_desc"] = "Check to hide autopass messages"
---[[Translation missing --]]
-L["Simple BBCode output."] = "Simple BBCode output."
---[[Translation missing --]]
-L["Skins"] = "Skins"
---[[Translation missing --]]
-L["skins_description"] = "Select one of the default skins or create your own. Note this is purely aesthetic. Open the version checker to see the results right away ('/rc version')."
---[[Translation missing --]]
-L["Slot"] = "Slot"
---[[Translation missing --]]
-L["Socket"] = "Socket"
---[[Translation missing --]]
-L["Something went wrong :'("] = "Something went wrong :'("
---[[Translation missing --]]
-L["Something went wrong during syncing, please try again."] = "Something went wrong during syncing, please try again."
---[[Translation missing --]]
-L["Sort Items"] = "Sort Items"
---[[Translation missing --]]
-L["sort_items_desc"] = "Sort sessions by item type and item level."
---[[Translation missing --]]
-L["Standard .csv output."] = "Standard CSV export that can be edited and reimported."
---[[Translation missing --]]
-L["Standard JSON output."] = "JSON array containing one JSON object per history entry."
---[[Translation missing --]]
-L["Status texts"] = "Status texts"
---[[Translation missing --]]
-L["Stop"] = "Stop"
---[[Translation missing --]]
-L["Store in bag and award later"] = "Store in bag and award later"
---[[Translation missing --]]
-L["Succesfully deleted %d entries"] = "Succesfully deleted %d entries"
---[[Translation missing --]]
-L["Succesfully deleted %d entries from %s"] = "Succesfully deleted %d entries from %s"
---[[Translation missing --]]
-L["Successfully imported 'number' entries."] = "Successfully imported %d entries."
---[[Translation missing --]]
-L["Successfully received 'type' from 'player'"] = "Successfully received %s from %s."
---[[Translation missing --]]
-L["Sync"] = "Sync"
---[[Translation missing --]]
-L["sync_detailed_description"] = [=[
-1. Both of you should have the sync frame open (/rc sync).
-2. Select the type of data you want to send.
-3. Select the player you want to receive the data.
-4. Hit 'Sync' - you'll now see a statusbar with the data being sent.
+L["Opens the synchronizer"] = "Abre el sincronizador"
+L["opt_addButton_desc"] = "Agregue un nuevo grupo de botones para la ranura seleccionada."
+L["opt_announceAward_WHISPER_WINNER"] = "/w ganador"
+L["opt_autoAddBoEs_desc"] = "Agrega automáticamente todos los elementos BoE (Ligados al equipar) a una sesión."
+L["opt_autoAddBoEs_name"] = "Adición automática de BoE"
+L["opt_autoAddItems_desc"] = "Agregue automáticamente todos los elementos elegibles a una sesión."
+L["opt_autoAddItems_name"] = "Agregar objetos automáticamente"
+L["opt_autoAddPets_desc"] = "Agrega automáticamente todas las mascotas de compañía a una sesión."
+L["opt_autoAddPets_name"] = "Agregar mascotas"
+L["opt_autoAwardPrioList_desc"] = "Los objetos se otorgan al primer candidato que se encuentre en su grupo de acuerdo con esta lista de prioridades."
+L["opt_autoGroupLoot_desc"] = "Cuando está habilitado, RCLootCouncil hará clic automáticamente en los botones de pase y codicia para que todos los elementos lleguen a su inventario."
+L["opt_autoGroupLoot_name"] = "Botín de grupo automático"
+--[[Translation missing --]]
+L["opt_autoGroupLootDecor_desc"] = "Caution: Only enable this if you're certain decor items are tradeable."
+--[[Translation missing --]]
+L["opt_autoGroupLootDecor_name"] = "Loot Decor"
+L["opt_autoGroupLootGuildGroupOnly_desc"] = "Cuando está habilitado, RCLootCouncil solo hará un pase automático de botín grupal cuando estés en un grupo de hermandad."
+L["opt_autoGroupLootGuildGroupOnly_name"] = "Solo grupos de hermandad"
+--[[Translation missing --]]
+L["opt_autoPass_name"] = "Enable Auto Pass"
+L["opt_autoPassWeapons_desc"] = "Marque para habilitar el paso automático de armas que no tienen la estadística principal de tu clase."
+L["opt_autoPassWeapons_name"] = "Pasar automáticamente armas"
+L["opt_autoTrade_desc"] = "Marque para agregar automáticamente los objetos otorgados a la ventana de intercambio cuando intercambie con el ganador. Si está deshabilitado, verá una ventana emergente antes de agregar elementos."
+L["opt_award_later_desc"] = "Marque para marcar automáticamente la opción 'Adjudicación posterior' en el marco de la sesión."
+--[[Translation missing --]]
+L["opt_blockTradesInVoting_desc"] = "When enabled, any trade attempts will be cancelled while the voting frame is active."
+--[[Translation missing --]]
+L["opt_blockTradesInVoting_message"] = "Trade from %s blocked"
+--[[Translation missing --]]
+L["opt_blockTradesInVoting_name"] = "Block Trades"
+L["opt_buttonsGroup_desc"] = "Grupo de opciones para los botones %s y las respuestas. Consulte más arriba para obtener una explicación detallada."
+L["opt_chatFrameName_desc"] = "Seleccione el marco de chat al que desea que RCLootCouncil genere información."
+L["opt_chatFrameName_name"] = "Marco de chat"
+L["opt_closeWithEscape_desc"] = "Cuando está habilitado, todos los marcos RCLootCouncil no críticos se pueden cerrar presionando 'Escape'. (Requiere recarga para que surta efecto en fotogramas ya creados)"
+L["opt_closeWithEscape_name"] = "Escape Cerrar"
+L["opt_deleteDate_confirm"] = "¿Estás seguro de que quieres eliminar todo lo que sea anterior a lo seleccionado? Esto no se puede deshacer."
+L["opt_deleteDate_desc"] = "Elimine todo lo que tenga más de la cantidad de días seleccionada."
+L["opt_deleteName_confirm"] = "¿Estás seguro de que quieres eliminar todas las entradas de %s? Esto no se puede deshacer."
+L["opt_deleteName_desc"] = "Elimine todas las entradas del candidato seleccionado."
+L["opt_deletePatch_confirm"] = "¿Estás seguro de que quieres eliminar todo lo anterior al parche seleccionado? Esto no se puede deshacer."
+L["opt_deletePatch_desc"] = "Elimine todas las entradas agregadas antes del parche seleccionado."
+L["opt_deleteRaid_confirm"] = "¿Está seguro de que desea eliminar todas las entradas de la instancia seleccionada? Esto no se puede deshacer."
+L["opt_deleteRaid_desc"] = "Eliminar todas las entradas de una instancia específica."
+--[[Translation missing --]]
+L["opt_lootDecor_desc"] = "Automatically add tradeable decor items to a session."
+--[[Translation missing --]]
+L["opt_lootDecor_name"] = "Add Decor"
+L["opt_moreButtons_desc"] = "Agrega un nuevo conjunto de botones para una ranura de equipo específica. Se usa el tipo más específico, es decir, agregar botones para 'Cabeza' y 'Elementos catalizadores' hará que la armadura de tipo cabeza use los botones de cabeza en lugar del catalizador."
+L["opt_moreInfo_onlyShowRaids_desc"] = "Si se selecciona alguna banda, la ventana \"Más información\" solo mostrará las recompensas de esas bandas. Si no hay nada seleccionado, se mostrarán todas las bandas. Nota: Esto no se aplica a la sección \"Ganadores de [objeto]\"."
+L["opt_moreInfo_onlyShowRaids_name"] = [=[Solo bandas específicas
 
-This window needs to be open to initiate a sync,
-but closing it won't stop a sync in progress.
+]=]
+L["opt_printCompletedTrade_Desc"] = "Marque esta opción para habilitar un mensaje cada vez que un candidato intercambie un objeto adjudicado con el ganador."
+L["opt_printCompletedTrade_Name"] = "Mensajes al comerciar"
+L["opt_profileSharing_export_desc"] = "Exporta tu perfil actual."
+L["opt_profileSharing_fail_noProfileData"] = "Los datos no son datos de perfil. Asegúrese de que los datos importados se originan en la exportación de perfiles."
+L["opt_profileSharing_import_desc"] = "Importar un nuevo perfil de RCLootCouncil. Las importaciones no son destructivas, a menos que esté sobrescribiendo un perfil existente."
+L["opt_profileSharing_profileExistsWarning"] = "Ya existe un perfil llamado \"%s\", ¿desea sobrescribirlo?"
+L["opt_rejectTrade_Desc"] = "Marque para permitir que los candidatos elijan si quieren \"dar\" el objeto al consejo o no. Si no está marcado, todos los artículos de BP intercambiables se agregan automáticamente."
+L["opt_rejectTrade_Name"] = "Permitir mantener"
+L["opt_savePersonalLoot_desc"] = "Si está deshabilitado, el botín personal no se agregará al historial."
+L["opt_savePersonalLoot_name"] = "Registrar botín personal"
+L["opt_sharingProfile_success"] = "Perfil importado con éxito: \"%s\""
+L["opt_skipSessionFrame_desc"] = "Omite el marco de sesión. NOTA: ¡Esto hace que el complemento inicie una sesión con todos los elementos elegibles sin que tengas la oportunidad de editar la lista!"
+L["opt_skipSessionFrame_name"] = "Omitir marco de sesión"
+L["opt_timeoutFlash_desc"] = "Cuando está habilitado, el marco de botín parpadeará cuando queden 5 segundos para que se agote el tiempo de espera del elemento."
+L["opt_timeoutFlash_name"] = "Parpadeo de tiempo de espera"
+L["opt_usage_AskGroupLoot"] = "Pregúntame cada vez que se habilite el botín de grupo"
+L["opt_usage_GroupLoot"] = "Utilice siempre RCLootCouncil con botín de grupo"
+L["opt_useSlashRC_desc"] = "Deshabilite esto si desea restaurar '/rc' a la verificación lista. Los comandos RCLootCouncil todavía están disponibles con '/rclc'. Se requiere un '/reload' para que esto surta efecto."
+L["opt_useSlashRC_name"] = "Usar /rc"
+L["options_autoAwardBoE_desc"] = "Habilite para otorgar automáticamente todos los objetos épicos de BoE (Ligado al equipar) a una persona específica por el motivo seleccionado."
+L["options_autoAwardBoE_name"] = "Adjudicación automática de BoE"
+L["options_ml_outOfRaid_desc"] = "Cuando está habilitado, mientras estés en un grupo de 8 o más miembros, cualquier persona que no esté en una instancia cuando se inicie una sesión enviará automáticamente una respuesta \"Fuera de la banda\"."
+L["options_ml_outOfRaid_name"] = "Soporte fuera de la banda"
+L["options_requireNotes_desc"] = "Si está habilitado, los candidatos no pueden enviar su respuesta sin haber ingresado una nota."
+L["Original Owner"] = "Propietario original"
+L["Out of instance"] = "Fuera de instancia"
+L["Patch"] = "Parche"
+--[[Translation missing --]]
+L["PAUSED"] = "Paused"
+L["Personal Loot - Non tradeable"] = "Botín personal: no intercambiable"
+L["Personal Loot - Rejected Trade"] = "Botín personal - Comercio rechazado"
+L["'player' can't receive 'type'"] = "%s no puede recibir %s - ¿discrepancia de versión?"
+L["'player' declined your sync request"] = "%s rechazó su solicitud de sincronización"
+L["'player' has asked you to reroll"] = "%s te ha pedido que vuelvas a tirar"
+L["'player' has ended the session"] = "%s ha finalizado la sesión"
+L["'player' has rolled 'roll' for: 'item'"] = "%s ha tirado %d para: %s"
+L["'player' hasn't opened the sync window"] = "%s no ha abierto la ventana de sincronización (/rc sync)"
+L["Player is ineligible for this item"] = "El jugador no es elegible para este objeto"
+L["Player is not in the group"] = "El jugador no está en el grupo"
+L["Player is not in this instance"] = "El jugador no está en esta estancia"
+L["Player is offline"] = "El jugador está desconectado"
+L["Please wait a few seconds until all data has been synchronized."] = "Espere unos segundos hasta que se hayan sincronizado todos los datos."
+L["Please wait before trying to sync again."] = "Espere antes de intentar sincronizar nuevamente."
+L["Print Responses"] = "Respuestas impresas"
+L["print_response_desc"] = "Imprime tu respuesta en la ventana de chat"
+L["Protector Token"] = "Ficha de protector"
+L["Rare_Items"] = "Objetos raros"
+L["Raw lua output. Doesn't work well with date selection."] = "Datos de lua sin procesar. No funciona bien con la selección de fechas."
+L["rcframe_help"] = "Haga doble clic aquí para minimizar Haz clic y arrastra para moverte Ctrl+desplazarse para cambiar la escala"
+L["RCLootCouncil - Synchronizer"] = "RCLootCouncil - Sincronizador"
+L["RCLootCouncil Loot Frame"] = "Marco de botín RCLootCouncil"
+L["RCLootCouncil Loot History"] = "Historia del botín de RCLootCouncil"
+L["RCLootCouncil Session Setup"] = "Configuración de la sesión del RCLootCouncil"
+L["RCLootCouncil Version Checker"] = "Comprobador de versiones de RCLootCouncil"
+L["RCLootCouncil Voting Frame"] = "Marco de votación de RCLootCouncil"
+L["rclootcouncil_trade_add_item_confirm"] = "RCLootCouncil detecta %d objetos intercambiables en tus bolsas adjudicados a %s. ¿Quieres agregar los objetos a la ventana de intercambio?"
+L["Reannounce ..."] = "Volver a anunciar ..."
+L["Reannounced 'item' to 'target'"] = "Se ha vuelto a anunciar %s a %s"
+L["Reason"] = "Motivo"
+L["reason_desc"] = "El motivo de la adjudicación para agregar al historial de botín cuando se adjudica automáticamente."
+L["Remove All"] = "Borrar todo"
+L["Remove from consideration"] = "Borrar de la consideración"
+L["remove_all_desc"] = "Quitar a todos los miembros del concejo"
+L["Requested rolls for 'item' from 'target'"] = "Tiradas requeridas para %s de %s"
+L["Require Notes"] = "Notas requeridas"
+L["Reset Skin"] = "Restablecer apariencia"
+L["Reset skins"] = "Restablecer apariencias"
+L["reset_announce_to_default_desc"] = [=[Restablece todas las opciones de anuncio a los valores predeterminados
 
-Targets include online guild- and groupmembers, friends and your current friendly target.]=]
---[[Translation missing --]]
-L["sync_warning1"] = "Note: Syncing large amounts of data in game can be very slow (especially the loot history)."
---[[Translation missing --]]
-L["sync_warning2"] = "Settings and loot history can both be exported/imported as an alternative - see '/rc profile' and/or '/rc history' respectively."
---[[Translation missing --]]
-L["test"] = "test"
---[[Translation missing --]]
-L["Test"] = "Test"
---[[Translation missing --]]
-L["test_desc"] = "Click to emulate master looting items for yourself and anyone in your raid."
---[[Translation missing --]]
-L["Text color"] = "Text color"
---[[Translation missing --]]
-L["Text for reason #i"] = "Text for reason #"
---[[Translation missing --]]
-L["text_color_desc"] = "Color of the text when displayed."
---[[Translation missing --]]
-L["The award later list has been cleared."] = "The award later list has been cleared."
---[[Translation missing --]]
-L["The award later list is empty."] = "The award later list is empty."
---[[Translation missing --]]
-L["The following council members have voted"] = "The following council members have voted"
---[[Translation missing --]]
-L["The following entries are removed from the award later list:"] = "The following entries are removed from the award later list:"
---[[Translation missing --]]
-L["The following items are removed from the award later list and traded to 'player'"] = "The following items are removed from the award later list and are traded to %s"
---[[Translation missing --]]
-L["The item can only be looted by you but it is not bind on pick up"] = "The item can only be looted by you but it is not bind on pick up"
---[[Translation missing --]]
-L["The item will be awarded later"] = "The item will be awarded later"
---[[Translation missing --]]
-L["The item would now be awarded to 'player'"] = "The item would now be awarded to %s"
---[[Translation missing --]]
-L["The loot is already on the list"] = "The loot is already on the list"
---[[Translation missing --]]
-L["The loot master"] = "The loot master"
---[[Translation missing --]]
-L["The Master Looter doesn't allow multiple votes."] = "The Master Looter doesn't allow multiple votes."
---[[Translation missing --]]
-L["The Master Looter doesn't allow votes for yourself."] = "The Master Looter doesn't allow votes for yourself."
---[[Translation missing --]]
-L["The session has ended."] = "The session has ended."
---[[Translation missing --]]
-L["This item"] = "This item"
---[[Translation missing --]]
-L["This item has been awarded"] = "This item has been awarded"
---[[Translation missing --]]
-L["Tier 19"] = "Tier 19"
---[[Translation missing --]]
-L["Tier 20"] = "Tier 20"
---[[Translation missing --]]
-L["Tier 21"] = "Tier 21"
---[[Translation missing --]]
-L["Tier Tokens ..."] = "Tier Tokens ..."
---[[Translation missing --]]
-L["Tier tokens received from here:"] = "Tier tokens received from here:"
---[[Translation missing --]]
-L["tier_token_heroic"] = "Heroic"
---[[Translation missing --]]
-L["tier_token_mythic"] = "Mythic"
---[[Translation missing --]]
+]=]
+L["reset_buttons_to_default_desc"] = "Restablece todos los botones, colores y respuestas a los valores predeterminados"
+L["reset_skin_desc"] = "Restablece todos los colores y el fondo de la máscara actual."
+L["reset_skins_desc"] = "Restablece las máscaras predeterminadas."
+L["reset_to_default_desc"] = "Restablece los motivos de adjudicación al defecto."
+L["Response"] = "Respuesta"
+L["Response color"] = "Color de respuesta"
+L["Response isn't available. Please upgrade RCLootCouncil."] = "La respuesta no está disponible. Por favor, actualice RCLootCouncil."
+L["Response options"] = "Opciones de respuesta"
+L["Response to 'item'"] = "Respuesta a %s"
+L["Response to 'item' acknowledged as 'response'"] = "Respuesta a %s reconocida como \" %s \""
+L["response_color_desc"] = [=[Establezca un color para la respuesta.
+
+]=]
+L["response_NOTELIGIBLE"] = "No elegible para este objeto"
+L["Responses"] = "Respuestas"
+L["Responses from Chat"] = "Respuestas del chat"
+L["responses_from_chat_desc"] = "En caso de que alguien no haya instalado el complemento (se usa el botón 1 si no se especifica ninguna palabra clave). Ejemplo: \"/w NOMBRE_MD 1 codicia [OBJETO]\" aparecería de forma predeterminada como codicia en el primer elemento de la sesión. A continuación, puede elegir palabras clave para los botones individuales. Solo se aceptan A-Z, a-z y 0-9 para palabras clave, todo lo demás se considera una separación. Los jugadores pueden recibir la lista de palabras clave enviando un mensaje 'rchelp' al Maestro despojador una vez que el complemento esté habilitado (es decir, en una banda)."
+L["Save Skin"] = "Guardar mascará"
+L["save_skin_desc"] = "Ingrese un nombre para su máscara y presione 'aceptar' para guardarla. Tenga en cuenta que puede sobrescribir cualquier máscara no predeterminada."
+L["Self Vote"] = "Autovoto"
+L["self_vote_desc"] = "Permite a los votantes votar por sí mismos."
+L["Send History"] = "Enviar historial"
+L["Send to Guild"] = "Enviar a hermandad"
+L["send_history_desc"] = "Envía datos a todos en la banda, independientemente de si los registras tú mismo. RCLootCouncil solo enviará datos si eres el Maestro despojador,"
+L["send_to_guild_desc"] = "Envía el historial a los miembros de la hermandad en lugar de a tu grupo. Útil si estás dirigiendo varios grupos de bandas y quieres un historial combinado para tu hermandad. La desventaja es que los miembros que no son de la hermandad en tu grupo no registrarán sus entradas de historial."
+L["Sending 'type' to 'player'..."] = "Enviar %s a %s..."
+L["Sent whisper help to 'player'"] = "Susurro de ayuda enviado a %s"
+L["session_error"] = "Algo salió mal, reinicie la sesión"
+L["session_help_from_bag"] = "Una vez finalizada la sesión, puedes usar '/rc winners' para ver con quién debes intercambiar los objetos."
+L["session_help_not_direct"] = "Los objetos de esta sesión no se entregan directamente a los candidatos. Los objetos necesitan ser intercambiados."
+L["Set the text for button i's response."] = "Establecer el texto para la respuesta del botón %d'"
+L["Set the text on button 'number'"] = "Establecer el texto en el botón %i"
+L["Set the whisper keys for button i."] = "Establezca las teclas de susurro para el botón %d."
+L["Show Spec Icon"] = "Mostrar icono de especialización"
+L["show_spec_icon_desc"] = "Marque para reemplazar los íconos de clase de los candidatos con su ícono de especialización, si está disponible."
+L["Silent Auto Pass"] = "Pase automático silencioso"
+L["silent_auto_pass_desc"] = "Marque para ocultar mensajes de paso automático"
+L["Simple BBCode output."] = "Datos BBCode simple."
+L["Skins"] = "Mascarás"
+L["skins_description"] = "Seleccione una de las máscaras predeterminadas o cree la suya propia. Tenga en cuenta que esto es puramente estético. Abra el verificador de versiones para ver los resultados de inmediato ('/rc version')."
+L["Slot"] = "Ranura"
+L["Socket"] = "Engarce"
+L["Something went wrong :'("] = "Algo salió mal :'("
+L["Something went wrong during syncing, please try again."] = "Algo salió mal durante la sincronización, inténtelo de nuevo."
+L["Sort Items"] = "Ordenar elementos"
+L["sort_items_desc"] = "Ordene las sesiones por tipo de objeto y nivel de objeto."
+L["Special_Effects_Items"] = "Objetos con efectos especiales"
+L["Standard .csv output."] = "Exportación CSV estándar que se puede editar y volver a importar."
+L["Standard JSON output."] = "Matriz JSON que contiene un objeto JSON por entrada de historial."
+L["Status texts"] = "Textos de estado"
+L["Stop"] = "Parar"
+L["Store in bag and award later"] = "Guárdalo en la bolsa y adjudícalo posteriormente"
+L["Succesfully deleted %d entries"] = "Entradas %d eliminadas con éxito"
+L["Succesfully deleted %d entries from %s"] = "Eliminadas con éxito las entradas %d de %s"
+L["Successfully imported 'number' entries."] = "Importó con éxito %d entradas."
+L["Successfully received 'type' from 'player'"] = "Se ha recibido correctamente %s de %s."
+L["Sync"] = "Sincronizar"
+L["sync_detailed_description"] = [=[1. Ambos deben tener abierto el marco de sincronización (/rc sync). 2. Seleccione el tipo de datos que desea enviar. 3. Seleccione el jugador que desea que reciba los datos. 4. Presione 'Sincronizar': ahora verá una barra de estado con los datos que se envían. Esta ventana debe estar abierta para iniciar una sincronización, Pero cerrarlo no detendrá una sincronización en curso. Los objetivos incluyen miembros de la hermandad y del grupo en línea, amigos y su objetivo amistoso actual.
+
+]=]
+L["sync_warning1"] = "Nota: La sincronización de grandes cantidades de datos en el juego puede ser muy lenta (especialmente el historial de botín)."
+L["sync_warning2"] = "La configuración y el historial de botín se pueden exportar/importar como alternativa: consulte '/rc profile' y/o '/rc history' respectivamente."
+L["test"] = "prueba"
+L["Test"] = "Prueba"
+L["test_desc"] = "Haz clic para emular ser maestro despojador  y adjudicar objetos para ti y para cualquiera en tu banda."
+L["Text color"] = "Color del texto"
+L["Text for reason #i"] = "Texto para el motivo #"
+L["text_color_desc"] = "Color del texto mostrado."
+L["The award later list has been cleared."] = "La lista de adjudicación posterior ha sido borrada."
+L["The award later list is empty."] = "La lista de adjudicación posterior está vacía."
+L["The following council members have voted"] = "Los siguientes miembros del consejo han votado"
+L["The following entries are removed from the award later list:"] = "Las siguientes entradas se eliminan de la lista de adjudicación posterior."
+L["The following items are removed from the award later list and traded to 'player'"] = "Los siguientes objetos se eliminan de la lista de adjudicación posterior y se intercambian a %s"
+L["The item can only be looted by you but it is not bind on pick up"] = "Solo tú puedes despojar el objeto, pero no se liga al recogerlo"
+L["The item will be awarded later"] = "El objeto será adjudicado posteriormente"
+L["The item would now be awarded to 'player'"] = "Ahora el objeto será adjudicado a %s"
+L["The loot is already on the list"] = "El botín ya está en la lista"
+L["The loot master"] = "El Maestro despojador"
+L["The Master Looter doesn't allow multiple votes."] = "El Maestro despojador no permite voto múltiple."
+L["The Master Looter doesn't allow votes for yourself."] = "El Maestro despojador no permite autovoto."
+L["The session has ended."] = "La sesión ha finalizado."
+L["This item"] = "Este objeto"
+L["This item has been awarded"] = "Este objeto ha sido adjudicado"
+L["Tier 19"] = true
+L["Tier 20"] = true
+L["Tier 21"] = true
+L["Tier Tokens ..."] = "Ficha de tier ..."
+L["Tier tokens received from here:"] = "Fichas de tier recibidas de aquí:"
+L["tier_token_heroic"] = "Heroico"
+L["tier_token_mythic"] = "Mítico"
 L["tier_token_normal"] = "Normal"
---[[Translation missing --]]
-L["Time"] = "Time"
---[[Translation missing --]]
-L["time_remaining_warning"] = "Warning - The following items in your bags cannot be traded in less than %d minutes:"
---[[Translation missing --]]
-L["Timeout"] = "Timeout"
---[[Translation missing --]]
-L["Timeout when giving 'item' to 'player'"] = "Timeout when giving %s to %s"
---[[Translation missing --]]
-L["To target"] = "To target"
---[[Translation missing --]]
-L["Tokens received"] = "Tokens received"
---[[Translation missing --]]
-L["Total awards"] = "Total awards"
---[[Translation missing --]]
-L["Total items received:"] = "Total items received:"
---[[Translation missing --]]
-L["Total items won:"] = "Total items won:"
---[[Translation missing --]]
-L["trade_complete_message"] = "%s traded %s to %s."
---[[Translation missing --]]
-L["trade_item_to_trade_not_found"] = "WARNING: Item to trade: %s couldn't be found in your inventory!"
---[[Translation missing --]]
-L["trade_wrongwinner_message"] = "WARNING: %s traded %s to %s instead of %s!"
---[[Translation missing --]]
-L["tVersion_outdated_msg"] = "Newest RCLootCouncil test version is: %s"
---[[Translation missing --]]
-L["Unable to give 'item' to 'player'"] = "Unable to give %s to %s"
---[[Translation missing --]]
-L["Unable to give 'item' to 'player' - (player offline, left group or instance?)"] = "Unable to give %s to %s - (player offline, left group or instance?)"
---[[Translation missing --]]
-L["Unable to give out loot without the loot window open."] = "Unable to give out loot without the loot window open."
---[[Translation missing --]]
-L["Unawarded"] = "Unawarded"
---[[Translation missing --]]
-L["Unguilded"] = "Unguilded"
---[[Translation missing --]]
-L["Unknown date"] = "Unknown date"
---[[Translation missing --]]
-L["Unknown/Chest"] = "Unknown/Chest"
---[[Translation missing --]]
-L["Unlooted"] = "Unlooted"
---[[Translation missing --]]
-L["Unvote"] = "Unvote"
---[[Translation missing --]]
-L["Upper Quality Limit"] = "Upper Quality Limit"
---[[Translation missing --]]
-L["upper_quality_limit_desc"] = [=[Select the upper quality limit of items to auto award (this quality included!).
-Note: This overrides the normal loot treshhold.]=]
+L["Time"] = "Hora"
+L["time_remaining_warning"] = "Advertencia: los siguientes artículos en sus bolsas no se pueden intercambiar en menos de %d minutos:"
+L["Timeout"] = "Tiempo límite"
+L["Timeout when giving 'item' to 'player'"] = "Tiempo límite al dar %s a %s"
+L["To target"] = "al objetivo"
+L["Tokens received"] = "Fichas recibidas"
+L["Total awards"] = "Adjudicaciones totales"
+L["Total items received:"] = "Total de objetos recibidos:"
+L["Total items won:"] = "Total de objetos ganados:"
+L["trade_complete_message"] = "%s intercambió %s con %s."
+L["trade_item_to_trade_not_found"] = "ADVERTENCIA: ¡objeto para intercambiar: %s no se encuentra en su inventario!"
+L["trade_wrongwinner_message"] = "ADVERTENCIA: ¡%s intercambió %s a %s en lugar de %s!"
+L["tVersion_outdated_msg"] = "La versión de prueba más reciente de RCLootCouncil es: %s"
+L["Unable to give 'item' to 'player'"] = "No se puede dar %s a %s"
+L["Unable to give 'item' to 'player' - (player offline, left group or instance?)"] = "No se puede dar %s a %s - (¿el jugador se desconectó, dejó el gupo o la estancia?)"
+L["Unable to give out loot without the loot window open."] = "No se puede dar botín sin la ventana de botín abierta."
+L["Unawarded"] = "Sin adjudicar"
+L["Unguilded"] = "Sin hermandad"
+L["Unknown date"] = "Fecha desconocida"
+L["Unknown/Chest"] = "Desconocido/cofre"
+L["Unlooted"] = "Sin despojar"
+L["Unvote"] = "Anular voto"
+L["Upper Quality Limit"] = "Límite superior de calidad"
+L["upper_quality_limit_desc"] = "Seleccione el límite superior de calidad de los objetos para adjudicar automáticamente (¡esta calidad incluida!). Nota: Esto anula el umbral de botín normal."
 L["Usage"] = "Uso"
 L["Usage Options"] = "Opciones de uso"
---[[Translation missing --]]
-L["Vanquisher Token"] = "Vanquisher Token"
---[[Translation missing --]]
-L["version"] = "version"
---[[Translation missing --]]
-L["Version"] = "Version"
---[[Translation missing --]]
-L["Version Check"] = "Version Check"
---[[Translation missing --]]
-L["version_check_desc"] = "Opens the version checker module."
---[[Translation missing --]]
-L["version_outdated_msg"] = "Your version %s is outdated. Newer version is %s, please update RCLootCouncil."
---[[Translation missing --]]
-L["Vote"] = "Vote"
---[[Translation missing --]]
-L["Voters"] = "Voters"
---[[Translation missing --]]
-L["Votes"] = "Votes"
---[[Translation missing --]]
-L["Voting options"] = "Voting options"
---[[Translation missing --]]
-L["Waiting for response"] = "Waiting for response"
---[[Translation missing --]]
-L["whisper_guide"] = "[RCLootCouncil]: number response [item1] [item2]. Link your item(s) that item (number) would replace, (response) being of the keywords below: Ex. '1 Greed [item1]' would greed on item #1"
---[[Translation missing --]]
-L["whisper_guide2"] = "[RCLootCouncil]: You'll get a confirmation message if you were successfully added."
---[[Translation missing --]]
-L["whisper_help"] = [=[Raiders can use the whisper system in case someone haven't installed the addon.
-Whispering 'rchelp' to the Master Looter will get them a guide along with the list of keywords, which can be edited at the 'Buttons and Responses' optiontab.
-It's recommended for the ML to turn on 'Announce Considerations' as each item's number is required to use the whisper system.
-NOTE: People should still get the addon installed, otherwise all player information won't be available.]=]
---[[Translation missing --]]
-L["whisperKey_greed"] = "greed, offspec, os, 2"
---[[Translation missing --]]
-L["whisperKey_minor"] = "minorupgrade, minor, 3"
---[[Translation missing --]]
-L["whisperKey_need"] = "need, mainspec, ms, 1"
---[[Translation missing --]]
-L["Windows reset"] = "Windows reset"
---[[Translation missing --]]
-L["winners"] = "winners"
---[[Translation missing --]]
-L["x days"] = "%d days"
---[[Translation missing --]]
-L["x out of x have voted"] = "%d out of %d have voted"
---[[Translation missing --]]
-L["You are not allowed to see the Voting Frame right now."] = "You are not allowed to see the Voting Frame right now."
---[[Translation missing --]]
-L["You are not in an instance"] = "You are not in an instance"
---[[Translation missing --]]
-L["You can only auto award items with a quality lower than 'quality' to yourself due to Blizaard restrictions"] = "You can only auto award items with a quality lower than %s to yourself due to Blizzard restrictions"
---[[Translation missing --]]
-L["You cannot start an empty session."] = "You cannot start an empty session."
---[[Translation missing --]]
-L["You cannot use the menu when the session has ended."] = "You cannot use the menu when the session has ended."
---[[Translation missing --]]
-L["You cannot use this command without being the Master Looter"] = "You cannot use this command without being the Master Looter"
---[[Translation missing --]]
-L["You can't start a loot session while in combat."] = "You can't start a loot session while in combat."
---[[Translation missing --]]
-L["You can't start a session before all items are loaded!"] = "You can't start a session before all items are loaded!"
---[[Translation missing --]]
-L["You haven't selected an award reason to use for disenchanting!"] = "You haven't selected an award reason to use for disenchanting!"
---[[Translation missing --]]
-L["You haven't set a council! You can edit your council by typing '/rc council'"] = "You haven't set a council! You can edit your council by typing '/rc council'"
---[[Translation missing --]]
-L["You must select a target"] = "You must select a target"
---[[Translation missing --]]
-L["Your note:"] = "Your note:"
---[[Translation missing --]]
-L["You're already running a session."] = "You're already running a session."
+L["Vanquisher Token"] = "Ficha de vencedor"
+L["version"] = "versión"
+L["Version"] = "Versión"
+L["Version Check"] = "Comprobación de versiones"
+L["version_check_desc"] = "Abre el módulo de comprobación de versiones."
+L["version_outdated_msg"] = "Su versión %s está desactualizada. La versión más reciente es %s, actualice RCLootCouncil."
+L["VF_REQUEST_VOTES"] = "Solicitar votos"
+L["VF_REQUEST_VOTES_SENT"] = "Solicitud de voto enviada"
+L["Vote"] = "Votar"
+L["Voters"] = "Votantes"
+L["Votes"] = "Votos"
+L["Voting options"] = "Opciones de votación"
+L["Waiting for response"] = "Esperando respuesta"
+L["whisper_guide"] = "[RCLootCouncil]: número de respuesta [objeto1] [objeto2]. Vincule su(s) objeto(s) que el objeto (número) reemplazaría, (respuesta) siendo de las palabras clave anteriores: Ej. '1 Codicia [objeto1]' sería codicia en el objeto #1"
+L["whisper_guide2"] = "[RCLootCouncil]: Recibirá un mensaje de confirmación si se agregó correctamente."
+L["whisper_help"] = "Los asaltantes pueden usar el sistema de susurros en caso de que alguien no haya instalado el complemento. Susurrar 'rchelp' al Maestro despojador le dará una guía junto con la lista de palabras clave, que se puede editar en la pestaña de opciones 'Botones y respuestas'. Se recomienda que el MD active \"Anunciar consideraciones\", ya que se requiere el número de cada elemento para usar el sistema de susurro. NOTA: Las personas aún deben instalar el complemento, de lo contrario, toda la información del jugador no estará disponible."
+L["whisperKey_greed"] = "codicia, offspec, os, 2"
+L["whisperKey_minor"] = "mejoramenor, menor, 3"
+L["whisperKey_need"] = "necesidad, especPrimaria, ms, 1"
+L["Windows reset"] = "Restablecer ventanas"
+L["winners"] = "ganadores"
+L["x days"] = "%d días"
+L["x out of x have voted"] = "%d de %d han votado"
+L["You are not allowed to see the Voting Frame right now."] = "No tienes permitido ver la ventana de votación en este momento."
+L["You are not in an instance"] = "No estás en una estancia"
+L["You can only auto award items with a quality lower than 'quality' to yourself due to Blizaard restrictions"] = "Debido a las restricciones de Blizzard, solo puedes adjudicarte automáticamente objetos con una calidad inferior a %s "
+L["You cannot start an empty session."] = "No puedes iniciar una sesión vacía."
+L["You cannot use the menu when the session has ended."] = "No puedes utilizar el menú cuando la sesión ha finalizado."
+L["You cannot use this command without being the Master Looter"] = "No puedes usar este comando sin ser el Maestro despojador"
+L["You can't start a loot session while in combat."] = "No puedes iniciar una sesión de botín mientras estás en combate."
+L["You can't start a session before all items are loaded!"] = "¡No puedes iniciar una sesión antes de que se carguen todos los objetos!"
+L["You haven't selected an award reason to use for disenchanting!"] = "¡No has seleccionado una razón de adjudicación para usar para desencantar!"
+L["You haven't set a council! You can edit your council by typing '/rc council'"] = "¡No has establecido un consejo! Puede editar su consejo escribiendo '/rc council'"
+L["You must select a target"] = "Debes seleccionar un objetivo"
+L["Your note:"] = "Tu nota:"
+L["You're already running a session."] = "Ya estás ejecutando una sesión."
 

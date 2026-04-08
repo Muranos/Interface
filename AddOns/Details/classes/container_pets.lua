@@ -144,6 +144,11 @@ end
 ---@param petGuid guid
 ---@return boolean
 function petContainer.IsPetInCache(petGuid)
+	if detailsFramework.IsAddonApocalypseWow() then
+		if issecretvalue(petGuid) then
+			return false
+		end
+	end
 	return petContainer.Pets[petGuid] ~= nil
 end
 
@@ -189,6 +194,16 @@ function petContainer.AddPet(petGuid, petName, petFlags, ownerGuid, ownerName, o
 	--print(petName)
 	--print(debugstack())
 
+	--[=[ the event spell_summon triggered a summon event without passing the pet name.
+		2x Details/classes/container_pets.lua:204: attempt to concatenate local 'petName' (a nil value)
+		[Details/classes/container_pets.lua]:204: in function 'AddPet'
+		[Details/core/parser.lua]:2354: in function <Details/core/parser.lua:2298> --spell_summon
+	--]=]
+
+	if (not petName) then
+		petName = UNKNOWN --global for "Unknown"
+	end
+
 	---@type petdata
 	local petData = {
 		ownerName = ownerName,
@@ -213,6 +228,9 @@ end
 
 function petContainer.PetScan(from)
 	Details222.Profiling.ProfileStart("petContainer.PetScan." .. from)
+	if detailsFramework.IsAddonApocalypseWow() then
+		return
+	end
 	if (IsInRaid()) then
 		local unitIds = Details222.UnitIdCache.Raid
 		for i = 1, #unitIds do
@@ -480,6 +498,9 @@ end
 
 local bHasSchedule = false
 function Details:UpdatePets()
+	if detailsFramework.IsAddonApocalypseWow() then
+		return
+	end
 	Details222.Profiling.ProfileStart("Details:UpdatePets")
 	bHasSchedule = false
 	petContainer.PetScan("UpdatePets")

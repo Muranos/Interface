@@ -24,7 +24,7 @@ end
 
 function NPCTime:OnEvent(e,...)
   if e == "ADDON_LOADED" and ... == addonName then
-    NPCTimeDB = NPCTimeDB or {}
+    NPCTimeDB = NPCTimeDB or {} ---@diagnostic disable-line
     Settings = NPCTimeDB
   elseif e == "CONSOLE_MESSAGE" then
     if not Settings.ShowPhasing then return end
@@ -40,15 +40,20 @@ end
 function NPCTime:ShowTime(self)
   if Settings.UsingMod and not IsModifierKeyDown() then return end
   local _, unit = self:GetUnit()
-  local guid = UnitGUID(unit or "none")
+  if issecretvalue then
+    if issecretvalue(unit) then return end
+  end
+  if not unit then return end
+  local guid = UnitGUID(unit) --[[@as string]]
   if not guid then return end
 
-  local unitType, _, serverID, _, layerUID, unitID, uuid = strsplit("-", guid)
-  local id = tonumber(strsub(guid, -6), 16)
-  if id and (unitType == "Creature" or unitType == "Vehicle") then
-    local serverTime = GetServerTime()
-    local spawnTime  = ( serverTime - (serverTime % 2^23) ) + band(id, 0x7fffff)
-    local spawnIndex = bit.rshift(bit.band(tonumber(string.sub(uuid, 1, 5), 16), 0xffff8), 3)
+  local unitType, _, serverID, _, layerUID, unitID = strsplit("-", guid)
+  local timeRaw = tonumber(strsub(guid, -6), 16)
+  if timeRaw and (unitType == "Creature" or unitType == "Vehicle") then
+    local serverTime = GetServerTime() --[[@as integer]]
+    local spawnTime = ( serverTime - (serverTime % 2^23) ) + bit.band(timeRaw, 0x7fffff)
+
+    local spawnIndex = bit.rshift(band(tonumber(strsub(guid, -10, -6), 16) --[[@as integer]], 0xffff8), 3)
 
     if Settings.ShowCurrentTime then
       AddColoredDoubleLine(self, "Current Time", date(timeFormat, serverTime))
@@ -58,7 +63,7 @@ function NPCTime:ShowTime(self)
       spawnTime = spawnTime - ((2^23) - 1)
     end
 
-    AddColoredDoubleLine(self, "Alive", timeFormatter:Format((serverTime-spawnTime), false, false).." ("..date(timeFormat, spawnTime)..")")
+    AddColoredDoubleLine(self, "Alive", timeFormatter:Format((serverTime-spawnTime), false).." ("..date(timeFormat, spawnTime)..")")
 
     if Settings.ShowLayer then
       AddColoredDoubleLine(self, "Layer", serverID.."-"..layerUID)
@@ -79,7 +84,7 @@ function NPCTime:OnLoad()
   self:RegisterEvent("ADDON_LOADED")
   self:RegisterEvent("CONSOLE_MESSAGE")
   C_Timer.After(1, function() dontShowPhaseOnInit = false end)
-  if C_TooltipInfo and TooltipDataProcessor then
+  if C_TooltipInfo and TooltipDataProcessor then ---@diagnostic disable-line
     TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, function(tooltip, tooltipData)
       if tooltip ~= GameTooltip then return end
       self:ShowTime(tooltip)
@@ -89,7 +94,7 @@ function NPCTime:OnLoad()
   end
   self:SetScript("OnEvent", self.OnEvent)
 
-  SLASH_NPCTIME1  = "/npctime"
+  SLASH_NPCTIME1  = "/npctime" ---@diagnostic disable-line
   function SlashCmdList.NPCTIME(...)
     self:Help(...)
   end
@@ -144,4 +149,3 @@ function NPCTime:Help(msg)
     Settings.ShowPhasing = not Settings.ShowPhasing
   end
 end
-

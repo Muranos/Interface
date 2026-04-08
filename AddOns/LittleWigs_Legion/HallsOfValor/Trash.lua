@@ -4,7 +4,7 @@
 
 local mod, CL = BigWigs:NewBoss("Halls of Valor Trash", 1477)
 if not mod then return end
-mod.displayName = CL.trash
+mod:SetTrashModule(true)
 mod:RegisterEnableMob(
 	95842,  -- Valarjar Thundercaller
 	97068,  -- Storm Drake
@@ -319,9 +319,15 @@ end
 
 -- Stormforged Sentinel
 
-function mod:ChargedPulse(args)
-	self:Message(args.spellId, "red")
-	self:PlaySound(args.spellId, "alarm")
+do
+	local prev = 0
+	function mod:ChargedPulse(args)
+		if args.time - prev > 2 then
+			prev = args.time
+			self:Message(args.spellId, "red")
+			self:PlaySound(args.spellId, "alarm")
+		end
+	end
 end
 
 function mod:ProtectiveLight(args)
@@ -334,8 +340,11 @@ function mod:ProtectiveLight(args)
 end
 
 do
+	local prev = 0
 	local function printTarget(self, _, guid)
-		if self:Me(guid) then
+		local t = GetTime()
+		if self:Me(guid) and t - prev > 1.5 then
+			prev = t
 			self:PersonalMessage(199805)
 			self:PlaySound(199805, "alarm")
 			self:Say(199805, nil, nil, "Crackle")
@@ -450,9 +459,15 @@ end
 
 -- Valarjar Trapper
 
-function mod:BearTrap(args)
-	self:Message(args.spellId, "red")
-	self:PlaySound(args.spellId, "alarm")
+do
+	local prev = 0
+	function mod:BearTrap(args)
+		if args.time - prev > 1.5 then
+			prev = args.time
+			self:Message(args.spellId, "red")
+			self:PlaySound(args.spellId, "alarm")
+		end
+	end
 end
 
 -- The Four Kings

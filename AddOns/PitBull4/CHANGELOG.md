@@ -1,8 +1,8 @@
 # PitBull Unit Frames 4.0
 
-## [v4.2.41](https://github.com/nebularg/PitBull4/tree/v4.2.41) (2024-08-20)
-[Full Changelog](https://github.com/nebularg/PitBull4/compare/v4.2.40...v4.2.41) [Previous Releases](https://github.com/nebularg/PitBull4/releases)
+## [v4.2.49](https://github.com/nebularg/PitBull4/tree/v4.2.49) (2026-02-12)
+[Full Changelog](https://github.com/nebularg/PitBull4/compare/v4.2.48...v4.2.49) [Previous Releases](https://github.com/nebularg/PitBull4/releases)
 
-- CastBarLatency: Fix GetSpellCooldown usage  
-- Update C\_Spell comments  
-- Classic is still on the old GetSpellInfo  
+- Add default boss group and focus units to existing profiles in TBC  
+    This is for people coming from classic releases.  
+    Resolves #94  

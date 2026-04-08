@@ -438,7 +438,7 @@ end
 local function VUHDO_getRandomDebuff()
 	local tRandom = random(1, 30 + VUHDO_DEBUFF_TYPE_CUSTOM - 1);
 	if (tRandom <= 30) then
-		return VUHDO_DEBUFF_TYPE_NONE;
+		return nil;
 	else
 		if (tRandom == 35) then
 			tRandom = 36;
@@ -495,7 +495,13 @@ local function VUHDO_createTestUser()
 		tIsCreatePet = true;
 		VUHDO_TEST_USERS_LEFT[VUHDO_ID_PETS] = VUHDO_TEST_USERS_LEFT[VUHDO_ID_PETS] - 1;
 		tUnit = "raidpet" .. tPetDemoIdx;
-		tClassId = VUHDO_ID_WARRIORS;
+
+		if VUHDO_USER_CLASS_COLORS and VUHDO_USER_CLASS_COLORS["petClassColor"] then
+			tClassId = random(VUHDO_ID_WARRIORS, VUHDO_ID_EVOKERS);
+		else
+			tClassId = VUHDO_ID_PETS;
+		end
+
 		tGroup = 0;
 		tNumber = tPetDemoIdx;
 		tRole = nil;
@@ -514,10 +520,8 @@ local function VUHDO_createTestUser()
 		end
 	end
 
-	if (VUHDO_RAID[tUnit] == nil) then
-		VUHDO_RAID[tUnit] = { };
-	end
-	tInfo = VUHDO_RAID[tUnit];
+	tInfo = VUHDO_getOrCreateUnitInfo(tUnit);
+
 	tInfo["healthmax"] = tHealthMax;
 	tInfo["health"] = VUHDO_getRandomHealth(tHealthMax);
 	tInfo["name"] = VUHDO_generateLeetName();
@@ -570,11 +574,16 @@ end
 
 --
 function VUHDO_reloadRaidDemoUsers()
+
 	if (tHasLoaded) then
 		return;
 	end
+
 	tHasLoaded = true;
 	twipe(VUHDO_RAID);
+
+	VUHDO_unregisterAllUnitEventFrames();
+
 	VUHDO_TEST_USERS_LEFT = VUHDO_deepCopyTable(VUHDO_DEMO_SETUP[VUHDO_CONFIG_TEST_USERS]);
 	tPetDemoIdx = 1;
 	tRaidDemoIdx = 1;
@@ -583,13 +592,18 @@ function VUHDO_reloadRaidDemoUsers()
 	end
 
 	twipe(VUHDO_MAINTANK_NAMES);
+
 	for tCnt = 1, VUHDO_TEST_USERS_LEFT[VUHDO_ID_MAINTANKS] do
 		VUHDO_MAINTANK_NAMES[tCnt] = VUHDO_RAID["raid" .. tCnt]["name"];
 	end
 
 	twipe(VUHDO_PLAYER_TARGETS);
+
 	for tCnt = 1, VUHDO_TEST_USERS_LEFT[VUHDO_ID_PRIVATE_TANKS] do
 		VUHDO_PLAYER_TARGETS[VUHDO_RAID["raid" .. (VUHDO_CONFIG_TEST_USERS - tCnt)]["name"] ] = true;
 	end
+
+	return;
+
 end
 

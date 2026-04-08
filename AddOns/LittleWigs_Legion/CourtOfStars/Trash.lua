@@ -6,7 +6,7 @@
 
 local mod, CL = BigWigs:NewBoss("Court of Stars Trash", 1571)
 if not mod then return end
-mod.displayName = CL.trash
+mod:SetTrashModule(true)
 mod:RegisterEnableMob(
 	104251, -- Duskwatch Sentry
 	107073, -- Duskwatch Reinforcement
@@ -264,7 +264,8 @@ function mod:OnBossEnable()
 	self:Log("SPELL_CAST_SUCCESS", "PickingUpSuccess", 214697)
 
 	self:RegisterEvent("CHAT_MSG_MONSTER_SAY")
-	self:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
+	-- If this module enables via mouseover, we don't want to register the same event during dispatch
+	self:SimpleTimer(function() self:RegisterEvent("UPDATE_MOUSEOVER_UNIT") end, 0)
 	self:RegisterMessage("BigWigs_BossComm")
 	self:RegisterMessage("DBM_AddonMessage") -- Catch DBM clues
 
@@ -547,7 +548,7 @@ do
 	end
 
 	function mod:CHAT_MSG_MONSTER_SAY(_, msg, _, _, _, target)
-		if msg:find(L.spyFoundPattern) and self:GetOption("spy_helper") > 0 then
+		if not self:IsSecret(msg) and msg:find(L.spyFoundPattern) and self:GetOption("spy_helper") > 0 then
 			self:Message("spy_helper", "green", L.spyFound:format(self:ColorName(target)), false)
 			self:PlaySound("spy_helper", "info")
 			self:CloseInfo("spy_helper")

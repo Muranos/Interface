@@ -14,6 +14,15 @@ WarpDeplete.Util = Util
 WarpDeplete.LSM = LibStub("LibSharedMedia-3.0")
 WarpDeplete.Glow = LibStub("LibCustomGlow-1.0")
 
+WarpDeplete.Midnight = select(4, GetBuildInfo()) >= 120000
+
+local ruRU, western = WarpDeplete.LSM.LOCALE_BIT_ruRU, WarpDeplete.LSM.LOCALE_BIT_western
+
+-- Register media
+WarpDeplete.LSM:Register("border", "WarpDeplete Blank", [[Interface\AddOns\WarpDeplete\Media\Textures\white.tga]])
+WarpDeplete.LSM:Register("statusbar", "WarpDeplete Blank", [[Interface\AddOns\WarpDeplete\Media\Textures\white.tga]])
+WarpDeplete.LSM:Register("font", "Expressway", [[Interface\AddOns\WarpDeplete\Media\Fonts\Expressway.ttf]], ruRU + western)
+
 function WarpDeplete:OnInitialize()
 	local frames = {}
 
@@ -37,13 +46,25 @@ function WarpDeplete:OnEnable()
 	self:RegisterGlobalEvents()
 	self:Hide()
 
-	if not self.db.global.mdtAlertShown and not MDT then
+	if not self.Midnight and not self.db.global.mdtAlertShown and ((PlayerGetTimerunningSeasonID() and not C_AddOns.IsAddOnLoaded("MDT Legacy")) or not MDT) then
 		self.db.global.mdtAlertShown = true
 		self:ShowMDTAlert()
 	end
 end
 
 function WarpDeplete:ShowMDTAlert()
+	if PlayerGetTimerunningSeasonID() then
+		Util.showAlert(
+			"MDT_LEGACY_NOT_FOUND",
+			L["Mythic Dungeon Tools (MDT) Legacy is not installed."]
+				.. "\n\n"
+				.. L["WarpDeplete will not display the count for your current pull."]
+				.. " \n\n"
+				.. L["Install MDT Legacy to enable this functionality."]
+		)
+		return
+	end
+
 	Util.showAlert(
 		"MDT_NOT_FOUND",
 		L["Mythic Dungeon Tools (MDT) is not installed."]
@@ -81,9 +102,9 @@ function WarpDeplete:EnableDemoMode()
 	self.state.objectives = objectives
 	self:RenderObjectives()
 
+	self:SetTimeLimit(35 * 60)
 	self:SetKeyDetails(30, true, { L["Ascendance"], L["Tyrannical"], L["Fortified"], L["Peril"] }, { 9, 7, 123, 152 }, 1)
 
-	self:SetTimeLimit(35 * 60)
 	self:SetTimer(20 * 60)
 	self:SetDeathCount(3, 45)
 

@@ -6,7 +6,7 @@ local mod, CL = BigWigs:NewBoss("Strunraan, The Sky's Misery", -2023, 2515)
 if not mod then return end
 mod:RegisterEnableMob(193534) -- Strunraan
 mod.otherMenu = -1978
-mod.worldBoss = 193534
+mod:SetWorldModule(true)
 
 --------------------------------------------------------------------------------
 -- Locals

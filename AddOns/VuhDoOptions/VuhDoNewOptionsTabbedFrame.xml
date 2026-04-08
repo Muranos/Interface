@@ -44,7 +44,7 @@
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset>
-							<AbsDimension x="590" y="17" />
+							<AbsDimension x="305" y="17" />
 						</Offset>
 					</Anchor>
 				</Anchors>
@@ -61,9 +61,9 @@
 					<AbsDimension x="160" y="32" />
 				</Size>
 				<Anchors>
-					<Anchor point="TOP">
+					<Anchor point="TOPLEFT">
 						<Offset>
-							<AbsDimension x="0" y="28" />
+							<AbsDimension x="483" y="28" />
 						</Offset>
 					</Anchor>
 				</Anchors>
@@ -219,7 +219,7 @@
 						</Scripts>
 					</CheckButton>
 
-					<CheckButton name="$parentDebuffsRadioButton" text="VUHDO_I18N_DEBUFFS" inherits="VuhDoTabStopButtonTemplate">
+					<CheckButton name="$parentAurasRadioButton" text="VUHDO_I18N_AURAS" inherits="VuhDoTabStopButtonTemplate">
 						<Anchors>
 							<Anchor point="TOPLEFT">
 								<Offset>
@@ -229,7 +229,7 @@
 						</Anchors>
 						<Scripts>
 							<OnLoad inherit="prepend">
-								self.tabPanel = "VuhDoNewOptionsDebuffs";
+								self.tabPanel = "VuhDoNewOptionsAura";
 							</OnLoad>
 							<OnClick>VUHDO_newOptionsTabbedClickedClicked(self); VUHDO_lnfRadioButtonClicked(self)</OnClick>
 						</Scripts>
@@ -252,7 +252,7 @@
 					</Frame>
 					<Frame name="VuhDoNewOptionsBuffs" hidden="true" setAllPoints="true" inherits="VuhDoNewOptionsBuffsTemplate">
 					</Frame>
-					<Frame name="VuhDoNewOptionsDebuffs" hidden="true" setAllPoints="true" inherits="VuhDoNewOptionsDebuffsTemplate">
+					<Frame name="VuhDoNewOptionsAura" hidden="true" setAllPoints="true" inherits="VuhDoNewOptionsAuraTemplate">
 					</Frame>
 					<Frame name="VuhDoNewOptionsTools" hidden="true" setAllPoints="true" inherits="VuhDoNewOptionsToolsTemplate">
 					</Frame>
@@ -316,8 +316,8 @@
 			<OnShow>
 				self:SetScale(VUHDO_OPTIONS_SETTINGS.scale);
 				VuhDoNewOptionsScaleSlider:Show();
-				VuhDoNewOptionsPanelBarsTexturePanelTextureSliderSlider:SetMinMaxValues(1, #VUHDO_STATUS_BARS);
-				VuhDoNewOptionsPanelHeaderHeaderBgPanelTextureSliderSlider:SetMinMaxValues(1, #VUHDO_STATUS_BARS);
+				VuhDoNewOptionsPanelBarsTexturePanelTextureSliderSlider:SetMinMaxValues(1, math.max(1, #VUHDO_STATUS_BARS));
+				VuhDoNewOptionsPanelHeaderHeaderBgPanelTextureSliderSlider:SetMinMaxValues(1, math.max(1, #VUHDO_STATUS_BARS));
 
 				VUHDO_IS_CONFIG = true;
 				if (DESIGN_MISC_PANEL_NUM == nil) then
@@ -336,6 +336,9 @@
 				VUHDO_IS_CONFIG = false;
 				VUHDO_IS_PANEL_CONFIG = false;
 				VUHDO_CONFIG_SHOW_RAID = false;
+
+				VUHDO_incrementAuraAnchorConfigVersion();
+
 				VUHDO_reloadUI(false);
 
 				collectgarbage("collect");

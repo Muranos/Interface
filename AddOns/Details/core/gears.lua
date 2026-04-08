@@ -33,7 +33,7 @@ end
 
 ------------------------------------------------------------------------------------------------------------
 
-function Details:SetDeathLogLimit(limitAmount)
+function Details:SetDeathLogLimit(limitAmount) --the temporary limit function is inside the parser as it need to deal with upvalues
 	if (limitAmount and type(limitAmount) == "number" and limitAmount >= 8) then
 		Details.deadlog_events = limitAmount
 
@@ -145,15 +145,19 @@ function Details:ResetSpecCache(forced)
 		Details:Destroy(Details.cached_specs)
 
 		if (Details.track_specs) then
-			local playerSpec = DetailsFramework.GetSpecialization()
-			if (type(playerSpec) == "number") then
-				local specId = DetailsFramework.GetSpecializationInfo(playerSpec)
-				if (type(specId) == "number") then
-					local playerGuid = UnitGUID(Details.playername)
-					if (playerGuid) then
-						Details.cached_specs[playerGuid] = specId
-					end
-				end
+            if (DetailsFramework.IsTBCWow()) then
+                Details.GetOldSchoolTalentInformation()
+            else
+                local playerSpec = DetailsFramework.GetSpecialization()
+                if (type(playerSpec) == "number") then
+                    local specId = DetailsFramework.GetSpecializationInfo(playerSpec)
+                    if (type(specId) == "number") then
+                        local playerGuid = UnitGUID(Details.playername)
+                        if (playerGuid) then
+                            Details.cached_specs[playerGuid] = specId
+                        end
+                    end
+                end
 			end
 		end
 
@@ -573,7 +577,10 @@ function ilvl_core:HasQueuedInspec(unitName)
 end
 
 local inspect_frame = CreateFrame("frame")
-inspect_frame:RegisterEvent("INSPECT_READY")
+
+if not detailsFramework.IsAddonApocalypseWow() then
+	inspect_frame:RegisterEvent("INSPECT_READY")
+end
 
 local two_hand = {
 	["INVTYPE_2HWEAPON"] = true,
@@ -705,6 +712,7 @@ function ilvl_core:CalcItemLevel(unitid, guid, shout)
 
 			--------------------------------------------------------------------------------------------------------
 
+			--[=[
 			for i = 1, 7 do
 				for o = 1, 3 do
 					--need to review this in classic
@@ -720,6 +728,7 @@ function ilvl_core:CalcItemLevel(unitid, guid, shout)
 				Details.cached_talents [guid] = talents
 				Details:SendEvent("UNIT_TALENTS", nil, unitid, talents, guid)
 			end
+			--]=]
 		end
 
 		--------------------------------------------------------------------------------------------------------
@@ -743,6 +752,12 @@ Details.ilevel.CalcItemLevel = ilvl_core.CalcItemLevel
 
 inspect_frame:SetScript("OnEvent", function(self, event, ...)
 	local guid = select(1, ...)
+
+	if detailsFramework.IsAddonApocalypseWow() then
+		if issecretvalue(guid) then
+			return
+		end
+	end
 
 	if (inspecting [guid]) then
 		local unitid, cancel_tread = inspecting [guid] [1], inspecting [guid] [2]
@@ -1195,7 +1210,7 @@ Details.specToRole = {
 }
 
 --oldschool talent tree
-if (DetailsFramework.IsWotLKWow() or DetailsFramework.IsCataWow()) then
+if (DetailsFramework.IsWotLKWow() or DetailsFramework.IsCataWow() or DetailsFramework.IsClassicWow() or DetailsFramework.IsTBCWow()) then
 	local talentWatchClassic = CreateFrame("frame")
 	talentWatchClassic:RegisterEvent("CHARACTER_POINTS_CHANGED")
 	talentWatchClassic:RegisterEvent("SPELLS_CHANGED")
@@ -1901,6 +1916,7 @@ function Details.GetPlayTimeOnClassString()
     return "|cffffff00Time played this class(" .. expansionName .. "): " .. days .. " " .. hours .. " " .. minutes
 end
 
+--[=[
 hooksecurefunc("ChatFrame_DisplayTimePlayed", function()
 	if (Details.played_class_time) then
 		C_Timer.After(0, function()
@@ -1921,6 +1937,7 @@ hooksecurefunc("ChatFrame_DisplayTimePlayed", function()
 		end)
 	end
 end)
+--]=]
 
 --game freeze prevention, there are people calling UpdateAddOnMemoryUsage() making the game client on the end user to freeze, this is bad, really bad.
 --Details! replace the function call with one that do the same thing, but warns the player if the function freezes the client too many times.

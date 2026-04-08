@@ -30,15 +30,14 @@ if L then
 	L.warmup_trigger2 = "Even now, my sayaad tempt your weak-willed mages. Your allies will surrender willingly to the Legion!" -- 16
 	L.warmup_trigger3 = "But first, you must be punished for taking away my little pet." -- 3
 
-	-- L.servant_trigger = "Kill the Imp Servants before they energize Agatha!"
-	-- L.umbral_trigger = "Protect me, my children! I will give you the power!"
+	--L.servant_trigger = "Kill the Imp Servants before they energize Agatha!"
+	--L.umbral_trigger = "Protect me, my children! I will give you the power!"
 
 	L.imp_servant = "Imp Servant"
 	L.imp_servant_desc = 229928 -- Funnel Energy
 	L.fuming_imp = "Fuming Imp"
 	L.fuming_imp_desc = 236163 -- Plague Zone
 
-	L.absorb = "Absorb"
 	L.stacks = "Stacks"
 end
 
@@ -181,6 +180,7 @@ end
 
 function mod:Warmup(event, msg)
 	self:UnregisterEvent(event)
+	if self:IsSecret(msg) then return end
 	if msg:find(L.warmup_trigger1, nil, true) or msg:find(L.levia, nil, true) then
 		self:Bar("warmup", 35, CL.active, "sha_spell_shaman_lavaburst_nightborne")
 	elseif msg:find(L.warmup_trigger2, nil, true) then
@@ -214,7 +214,7 @@ do
 			maxAbsorb = UnitGetTotalAbsorbs("boss1")
 			self:OpenInfo(243111, args.spellName)
 			self:SetInfoBar(243111, 1, 1)
-			self:SetInfo(243111, 1, L.absorb)
+			self:SetInfo(243111, 1, CL.absorb)
 			self:SetInfo(243111, 2, ("%s (%d%%)"):format(self:AbbreviateNumber(maxAbsorb), 100))
 			self:SetInfo(243111, 3, L.stacks)
 			self:SetInfo(243111, 4, 1)
@@ -249,7 +249,7 @@ function mod:Translocate(args)
 end
 
 function mod:UNIT_SPELLCAST_SUCCEEDED(_, unit, _, spellId)
-	if spellId == 242987 then -- Translocate
+	if not self:IsSecret(spellId) and spellId == 242987 then -- Translocate
 		if phase == 1 then
 			phase = 2
 			self:MessageOld(242989, "cyan", nil, CL.percent:format(50, self:SpellName(spellId)), false)

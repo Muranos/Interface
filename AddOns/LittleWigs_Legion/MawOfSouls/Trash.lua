@@ -5,7 +5,7 @@
 
 local mod, CL = BigWigs:NewBoss("Maw of Souls Trash", 1492)
 if not mod then return end
-mod.displayName = CL.trash
+mod:SetTrashModule(true)
 mod:RegisterEnableMob(
 	99188, -- Waterlogged Soul Guard
 	97097, -- Helarjar Champion
@@ -106,7 +106,6 @@ do
 		if t - (prevTable[args.spellId] or 0) > 1.5 then
 			prevTable[args.spellId] = t
 			self:MessageOld(198405, "yellow", "info", CL.soon:format(self:SpellName(5782))) -- Bone Chilling Scream, 5782 = "Fear"
-			self:CDBar(198405, 6)
 		end
 	end
 
@@ -117,7 +116,6 @@ do
 			self:MessageOld(args.spellId, "red", "warning")
 		end
 	end
-
 
 	function mod:SeaLegs(args)
 		if self:MobId(args.destGUID) ~= 98919 then return end -- mages can spellsteal it

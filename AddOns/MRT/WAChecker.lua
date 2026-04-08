@@ -1,9 +1,15 @@
 local GlobalAddonName, ExRT = ...
 
+if ExRT.isMN then
+	return
+end
+
 local module = ExRT:New("WAChecker",ExRT.L.WAChecker)
 local ELib,L = ExRT.lib,ExRT.L
 
 local LibDeflate = LibStub:GetLibrary("LibDeflate")
+
+local IsEncounterInProgress = C_InstanceEncounter and C_InstanceEncounter.IsEncounterInProgress or IsEncounterInProgress
 
 module.db.responces = {}
 module.db.responces2 = {}
@@ -1420,5 +1426,6 @@ function module:SendWA(id)
 		end
 		ExRT.F.SendExMsgExt(opt,"wac3","D\t"..newIndex.."\t"..msg)
 	end
-	ExRT.F.SendExMsg("wachk", "SWA\t"..id.."\t"..fullName)
+	ExRT.F.SendExMsgExt({maxPer5Sec=50},"wachk", "SWA\t"..id.."\t"..fullName)
+	
 end

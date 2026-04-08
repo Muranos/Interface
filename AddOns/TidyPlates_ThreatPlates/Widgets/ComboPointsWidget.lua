@@ -14,22 +14,22 @@ local Widget = Addon.Widgets:NewTargetWidget("ComboPoints")
 
 -- Lua APIs
 local unpack, type, sort = unpack, type, sort
-local floor, min = floor, min
+local floor = floor
 local tostring, string_format = tostring, string.format
 
 -- WoW APIs
 local GetTime, tContains = GetTime, tContains
-local UnitCanAttack = UnitCanAttack
+local UnitCanAttack, UnitIsUnit = UnitCanAttack, UnitIsUnit
 local UnitPower, UnitPowerMax, GetComboPoints, GetRuneCooldown, GetRuneType = UnitPower, UnitPowerMax, GetComboPoints, GetRuneCooldown, GetRuneType
 local GetUnitChargedPowerPoints, GetPowerRegenForPowerType = GetUnitChargedPowerPoints, GetPowerRegenForPowerType
-local GetSpellInfo, IsSpellUsable = Addon.GetSpellInfo, C_Spell and C_Spell.IsSpellUsable
+local IsSpellUsable = C_Spell and C_Spell.IsSpellUsable
 local GetShapeshiftFormID = GetShapeshiftFormID
-local GetNamePlateForUnit = C_NamePlate.GetNamePlateForUnit
 local InCombatLockdown = InCombatLockdown
+local GetSpecialization = C_SpecializationInfo and C_SpecializationInfo.GetSpecialization or _G.GetSpecialization
 
 -- ThreatPlates APIs
-local RGB = Addon.ThreatPlates.RGB
-local Font = Addon.Font
+local RGB = Addon.RGB
+local FontUpdateText = Addon.Font.UpdateText
 local PlayerClass = Addon.PlayerClass
 
 local _G =_G
@@ -69,7 +69,19 @@ local UNIT_POWER = {
     },
   },
   MONK = {
+    [1] = Addon.ExpansionIsBetween(LE_EXPANSION_MISTS_OF_PANDARIA, LE_EXPANSION_LEGION) and {
+      PowerType = Enum.PowerType.Chi,
+      Name = "CHI",
+    },
+    [2] = Addon.ExpansionIsBetween(LE_EXPANSION_MISTS_OF_PANDARIA, LE_EXPANSION_LEGION) and {
+      PowerType = Enum.PowerType.Chi,
+      Name = "CHI",
+    },
     [3] = {
+      PowerType = Enum.PowerType.Chi,
+      Name = "CHI",
+    },
+    [5] = Addon.ExpansionIsBetween(LE_EXPANSION_MISTS_OF_PANDARIA, LE_EXPANSION_LEGION) and {
       PowerType = Enum.PowerType.Chi,
       Name = "CHI",
     }
@@ -189,7 +201,8 @@ local TEXTURE_INFO = {
       IconHeight = 16,
       TexCoord = { 0, 1, 0, 1 }
     },
-  }
+  },
+  Script = {}
 }
 
 local DEATHKNIGHT_COLORS = {
@@ -213,6 +226,7 @@ Widget.Colors = {
 }
 Widget.ShowInShapeshiftForm = true
 
+local WidgetFrame
 -- WoW Clasic only knows one spec, so set default to 1 which is never changed as ACTIVE_TALENT_GROUP_CHANGED is never fired
 local ActiveSpec = 1
 local RuneCooldowns = { 0, 0, 0, 0, 0, 0 }
@@ -227,47 +241,43 @@ local SettingsCooldown, ShowCooldownDuration, OnUpdateCooldownDuration
 -- Combo Points Widget Functions
 ---------------------------------------------------------------------------------------------------
 
--- GetSpecialization: Mists - Patch 5.0.4 (2012-08-28): Replaced GetPrimaryTalentTree.
-if Addon.IS_MAINLINE then
-    function Widget:DetermineUnitPower()
-      local power_type = UNIT_POWER[PlayerClass]
-      if power_type then
-        power_type = power_type[_G.GetSpecialization()] or power_type
-      end
-  
-      if power_type and power_type.Name then
-        self.PowerType = power_type.PowerType
-        self.UnitPowerMax = UnitPowerMax("player", self.PowerType)
-      else
-        self.PowerType = nil
-        self.UnitPowerMax = 0
-      end
-    end  
-else
-  -- This should not be necessary as in Classic only Rogues and Druids had combo points
-  if PlayerClass == "ROGUE" or PlayerClass == "DRUID" then
-    UnitPower = function(unitToken , powerType)
-      return GetComboPoints("player", "anyenemy")
-    end
-  elseif PlayerClass == "DEATHKNIGHT" then
-    -- Deathknight is only available after Wrath, so no check for this version necessary
-    UnitPowerMax = function(unitToken , powerType)
-      return 6
-    end
-
-    -- Fix the wrong ordering of GetRuneCooldown (blood/unholy/frost) compared to UI display (blood/frost/unholy)
-    local GET_RUNE_COOLDOWN_MAPPING = { 1, 2, 5, 6, 3, 4 }
-
-    GetRuneCooldown = function(rune_id)
-      return _G.GetRuneCooldown(GET_RUNE_COOLDOWN_MAPPING[rune_id])
-    end
-
-    -- GetRuneType: This API only exists in Wrath Classic and Classic Era.
-    GetRuneType = function(rune_id)
-      return _G.GetRuneType(GET_RUNE_COOLDOWN_MAPPING[rune_id])
-    end
+-- Deathknight is only available after Wrath, so no check for this version necessary
+if PlayerClass == "DEATHKNIGHT" and Addon.ExpansionIsBetween(LE_EXPANSION_WRATH_OF_THE_LICH_KING, LE_EXPANSION_LEGION) then
+  -- Deathknight is only available after Wrath, so no check for this version necessary
+  UnitPowerMax = function(unitToken , powerType)
+    return 6
   end
 
+  -- Fix the wrong ordering of GetRuneCooldown (blood/unholy/frost) compared to UI display (blood/frost/unholy)
+  local GET_RUNE_COOLDOWN_MAPPING = { 1, 2, 5, 6, 3, 4 }
+
+  GetRuneCooldown = function(rune_id)
+    return _G.GetRuneCooldown(GET_RUNE_COOLDOWN_MAPPING[rune_id])
+  end
+
+  -- GetRuneType: This API only exists until Legion
+  GetRuneType = function(rune_id)
+    return _G.GetRuneType(GET_RUNE_COOLDOWN_MAPPING[rune_id])
+  end
+end
+
+-- GetSpecialization: Mists - Patch 5.0.4 (2012-08-28): Replaced GetPrimaryTalentTree.
+if Addon.ExpansionIsAtLeastMists then
+  function Widget:DetermineUnitPower()
+    local power_type = UNIT_POWER[PlayerClass]
+    if power_type then
+      power_type = power_type[GetSpecialization()] or power_type
+    end
+
+    if power_type and power_type.Name then
+      self.PowerType = power_type.PowerType
+      self.UnitPowerMax = UnitPowerMax("player", self.PowerType)
+    else
+      self.PowerType = nil
+      self.UnitPowerMax = 0
+    end
+  end  
+else
   function Widget:DetermineUnitPower()
     local power_type = UNIT_POWER[PlayerClass]
 
@@ -277,6 +287,16 @@ else
     else
       self.PowerType = nil
       self.UnitPowerMax = 0
+    end
+  end
+end
+
+-- WoD Patch 6.0.2 (2014-10-14): Combo Points for Feral Druids and Rogues are now shared across all targets, and are no longer lost when switching targets.
+if not Addon.ExpansionIsAtLeastWoD then
+  -- This should not be necessary as in Classic only Rogues and Druids had combo points
+  if PlayerClass == "ROGUE" or PlayerClass == "DRUID" then
+    UnitPower = function(unitToken , powerType)
+      return GetComboPoints("player", "anyenemy")
     end
   end
 end
@@ -325,6 +345,10 @@ local function UpdateComboPointsFunctionForRogues()
   -- Check for spell Echoing Reprimand: 323547
   if IsPlayerSpell(470347) or IsSpellUsable(323547) then
     Widget.UpdateUnitResource = Widget.UpdateComboPointsRogueWithAnimacharge
+
+    TEXTURE_INFO.Script["ComboPoint.Charged.On"]  = Addon:GetIconTexture("ComboPoint.Charged.On")
+    TEXTURE_INFO.Script["ComboPoint.Charged.Off"] = Addon:GetIconTexture("ComboPoint.Charged.Off")
+    TEXTURE_INFO.Script.IsEnabled = TEXTURE_INFO.Script.IsEnabled and TEXTURE_INFO.Script["ComboPoint.Charged.On"] ~= nil and TEXTURE_INFO.Script["ComboPoint.Charged.Off"] ~= nil
   else
     Widget.UpdateUnitResource = Widget.UpdateComboPoints
   end
@@ -345,9 +369,6 @@ function Widget:UpdateComboPointsRogueWithAnimacharge(widget_frame)
     local cp_texture, cp_texture_off, cp_color
 
     local charged_points = GetUnitChargedPowerPoints("player")
-    -- for i = 1, #charged_points do
-    --   widget_frame.ComboPoints[charged_points[i].MarkAsCharged = true
-    -- end
 
     for i = 1, self.UnitPowerMax do
       cp_texture = widget_frame.ComboPoints[i]
@@ -356,7 +377,10 @@ function Widget:UpdateComboPointsRogueWithAnimacharge(widget_frame)
       local point_is_chared = charged_points and tContains(charged_points, i)
       if point_is_chared then
         cp_texture.IsCharged = true
-        if self.db.Style == "Blizzard" then
+        if TEXTURE_INFO.Script.IsEnabled then
+          Addon:UpdateIconTexture(cp_texture, TEXTURE_INFO.Script["ComboPoint.Charged.On"])
+          Addon:UpdateIconTexture(cp_texture_off, TEXTURE_INFO.Script["ComboPoint.Charged.Off"])
+        elseif self.db.Style == "Blizzard" then
           cp_texture:SetAtlas("ClassOverlay-ComboPoint-Kyrian")
           cp_texture_off:SetAtlas("ClassOverlay-ComboPoint-Off-Kyrian")
         else
@@ -365,7 +389,10 @@ function Widget:UpdateComboPointsRogueWithAnimacharge(widget_frame)
         end
       elseif cp_texture.IsCharged then
         cp_texture.IsCharged = false
-        if self.db.Style == "Blizzard" then
+        if TEXTURE_INFO.Script.IsEnabled then
+          Addon:UpdateIconTexture(cp_texture, TEXTURE_INFO.Script["ComboPoint." .. tostring(i) .. ".On"])
+          Addon:UpdateIconTexture(cp_texture_off, TEXTURE_INFO.Script["ComboPoint." .. tostring(i) .. ".Off"])
+        elseif self.db.Style == "Blizzard" then
           cp_texture:SetAtlas("ClassOverlay-ComboPoint")
           cp_texture_off:SetAtlas("ClassOverlay-ComboPoint-Off")
         else
@@ -392,8 +419,6 @@ function Widget:UpdateComboPointsRogueWithAnimacharge(widget_frame)
       end
     end
   end
-
-  --cp_texture.MarkAsCharged = false
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -444,13 +469,13 @@ local RUNE_TEXTURES = TEXTURE_INFO.Blizzard.DEATHKNIGHT
 
 local function UpdateRuneStatusActiveWrath(cp_texture, cp_texture_off, rune_id)
   local rune_type = GetRuneType(rune_id)
-  if Widget.db.Style == "Blizzard" then
-    cp_texture:SetTexture(RUNE_TEXTURES.Texture.RuneType[rune_type])
-    cp_texture_off:SetTexture(RUNE_TEXTURES.TextureOff.RuneType[rune_type])
-  else
+  if Widget.db.Style ~= "Blizzard" or TEXTURE_INFO.Script.IsEnabled then
     local cp_color = (rune_type == RUNETYPE_DEATH and Widget.Colors.DeathRune) or Widget.Colors[rune_id][rune_id]
     cp_texture:SetVertexColor(cp_color.r, cp_color.g, cp_color.b)
     cp_texture_off:SetVertexColor(cp_color.r, cp_color.g, cp_color.b)
+  else
+    cp_texture:SetTexture(RUNE_TEXTURES.Texture.RuneType[rune_type])
+    cp_texture_off:SetTexture(RUNE_TEXTURES.TextureOff.RuneType[rune_type])
   end
 end
 
@@ -789,14 +814,14 @@ local function EventHandler(event, unitid, power_type)
   -- UNIT_POWER_FREQUENT is only registred for Evoker, so no need to check here
   -- if event == "UNIT_POWER_FREQUENT" and not WATCH_POWER_TYPES[power_type] then return end
 
-  local widget_frame = Widget.WidgetFrame
+  local widget_frame = WidgetFrame
   if widget_frame:IsShown() then
     Widget:UpdateUnitResource(widget_frame)
   end
 end
 
 local function EventHandlerEvoker(event, unitid, power_type)
-  local widget_frame = Widget.WidgetFrame
+  local widget_frame = WidgetFrame
   if widget_frame:IsShown() then
     Widget:UpdateUnitResource(widget_frame)
   else
@@ -811,14 +836,14 @@ local function UpdateWidgetAfterTalentChange()
   if not Widget.PowerType then return end
 
   -- GetSpecialization: Mists - Patch 5.0.4 (2012-08-28): Replaced GetPrimaryTalentTree.
-  if Addon.IS_MAINLINE then
-    ActiveSpec = _G.GetSpecialization()
+  if Addon.ExpansionIsAtLeastMists then
+    ActiveSpec = GetSpecialization()
     UpdateComboPointsFunctionForRogues()
   end
 
   -- Update the widget if it was already created (not true for immediately after Reload UI or if it was never enabled
   -- in this since last Reload UI)
-  if Widget.WidgetFrame then
+  if WidgetFrame then
     Widget:PLAYER_TARGET_CHANGED()
   end
 end
@@ -831,7 +856,7 @@ end
 -- Arguments of ACTIVE_TALENT_GROUP_CHANGED (curr, prev) always seem to be 1, 1
 function Widget:ACTIVE_TALENT_GROUP_CHANGED(...)
   -- GetSpecialization: Mists - Patch 5.0.4 (2012-08-28): Replaced GetPrimaryTalentTree.
-  local current_spec = _G.GetSpecialization()
+  local current_spec = GetSpecialization()
   if ActiveSpec ~= current_spec or PlayerClass == "ROGUE" then
     -- Player switched to a spec that has combo points
     ActiveSpec = current_spec
@@ -853,7 +878,7 @@ function Widget:UNIT_MAXPOWER(unitid, power_type)
     self:UpdateLayout()
 
     -- remove excessive CP frames (when called after talent change)
-    local widget_frame = self.WidgetFrame
+    local widget_frame = WidgetFrame
     for i = self.UnitPowerMax + 1, #widget_frame.ComboPoints do
       widget_frame.ComboPoints[i]:Hide()
       widget_frame.ComboPoints[i] = nil
@@ -868,7 +893,7 @@ end
 
 local function PlayerTargetChanged(tp_frame, unit)
   local widget = Widget
-  local widget_frame = widget.WidgetFrame
+  local widget_frame = WidgetFrame
 
   -- If this is an update because nameplate style switched from healthbar to headline view, 
   -- the widget might be needed to be shown/hidden depending on settings
@@ -898,11 +923,11 @@ end
 -- ! So, don't check for WidgetFrame:IsShown() here
 function Widget:PLAYER_TARGET_CHANGED()
   local target_unitid = GetCurrentTargetUnitID()
-  local tp_frame = target_unitid and Widget:GetThreatPlateForUnit(target_unitid)
+  local tp_frame = target_unitid and Addon:GetThreatPlateForUnit(target_unitid)
   if tp_frame then
     PlayerTargetChanged(tp_frame, tp_frame.unit)
   else
-    HideWidgetFrame(self.WidgetFrame)
+    HideWidgetFrame(WidgetFrame)
   end
 end
 
@@ -924,7 +949,7 @@ function Widget:UPDATE_SHAPESHIFT_FORM()
   if self.ShowInShapeshiftForm then
     self:PLAYER_TARGET_CHANGED()
   else
-    HideWidgetFrame(self.WidgetFrame)
+    HideWidgetFrame(WidgetFrame)
   end
 end
 
@@ -940,16 +965,19 @@ function Widget:IsEnabled()
   -- Other possibility for Classic: PLAYER_TALENT_UPDATE, CHARACTER_POINTS_CHANGED
   -- No need to use it for Classic, as GetSpecialization is not available there and CPs don't change between first 
   -- and second spec.
-  if enabled and Addon.IS_MAINLINE then
+  if enabled then
     -- Register ACTIVE_TALENT_GROUP_CHANGED here otherwise it won't be registered when an spec is active that does not have combo points.
     -- If you then switch to a spec with talent points, the widget won't be enabled.
-    self:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
-    self:RegisterEvent("TRAIT_CONFIG_UPDATED")    
+    -- ACTIVE_TALENT_GROUP_CHANGED requires dual spec which was added with Wrath
+    -- TRAIT_CONFIG_UPDATED is only required for detecting enabling/disabling Rogue talent Supercharger
+    self:SubscribeEvent("ACTIVE_TALENT_GROUP_CHANGED", Addon.ExpansionIsAtLeastMists)  -- Added in patch 3.2.0 / 1.14.4
+    self:SubscribeEvent("TRAIT_CONFIG_UPDATED", Addon.ExpansionIsAtLeastMists) -- Added in patch 10.0.0 / 1.14.4
   end
 
-  self:DetermineUnitPower()
+  -- TODO: Better write a dedicated function to test if the player/spec used combo points and move DetermineUnitPower to OnEnable
+  self:DetermineUnitPower() -- must be done here, not in the if-part, so that PowerType is set to nil correctly (?)
 
-  return self.PowerType and enabled
+  return self.PowerType ~= nil and enabled
 end
 
 -- EVENTS:
@@ -961,60 +989,57 @@ end
 -- UNIT_FLAGS: unitID
 -- UNIT_POWER_FREQUENT: unitToken, powerToken
 function Widget:OnEnable()
-  self:RegisterEvent("PLAYER_ENTERING_WORLD")
-  self:RegisterEvent("PLAYER_TARGET_CHANGED")
-  self:RegisterEvent("PLAYER_SOFT_ENEMY_CHANGED")
-  self:RegisterUnitEvent("UNIT_MAXPOWER", "player")
+  self:SubscribeEvent("PLAYER_ENTERING_WORLD")
+  self:SubscribeEvent("PLAYER_TARGET_CHANGED")
+  self:SubscribeEvent("PLAYER_SOFT_ENEMY_CHANGED")
+  self:SubscribeUnitEvent("UNIT_MAXPOWER", "player")
   
 
   if PlayerClass == "EVOKER" then
     -- Using UNIT_POWER_FREQUENT seems to reduce some lags with essence updates that are 
     -- otherwise happening compared to Blizzard essences (Blizzard_ClassNameplateBar uses this also)
-    self:RegisterUnitEvent("UNIT_POWER_FREQUENT", "player", EventHandlerEvoker)
+    self:SubscribeUnitEvent("UNIT_POWER_FREQUENT", "player", EventHandlerEvoker)
   else
-    self:RegisterUnitEvent("UNIT_POWER_UPDATE", "player", EventHandler)
-    self:RegisterUnitEvent("UNIT_DISPLAYPOWER", "player", EventHandler)
-    -- UNIT_POWER_POINT_CHARGE: Shadowlands Patch 9.0.1 (2020-10-13): Added.
-    if Addon.IS_MAINLINE then
-      self:RegisterUnitEvent("UNIT_POWER_POINT_CHARGE", "player", EventHandler)
-    end
+    self:SubscribeUnitEvent("UNIT_POWER_UPDATE", "player", EventHandler)
+    self:SubscribeUnitEvent("UNIT_DISPLAYPOWER", "player", EventHandler)
+    self:SubscribeUnitEvent("UNIT_POWER_POINT_CHARGE", "player", EventHandler)
 
     if PlayerClass == "DRUID" then
-      self:RegisterEvent("UPDATE_SHAPESHIFT_FORM")
+      self:SubscribeEvent("UPDATE_SHAPESHIFT_FORM")
       self.ShowInShapeshiftForm = (GetShapeshiftFormID() == 1)
     elseif PlayerClass == "DEATHKNIGHT" then
       -- Never registered for Classic, as there is no Death Knight class
-      self:RegisterEvent("RUNE_POWER_UPDATE", EventHandler)
-      if Addon.ExpansionIsClassicAndAtLeast(LE_EXPANSION_WRATH_OF_THE_LICH_KING) then
-        self:RegisterEvent("RUNE_TYPE_UPDATE", EventHandler)
-      end
+      self:SubscribeEvent("RUNE_POWER_UPDATE", EventHandler)
+      self:SubscribeEvent("RUNE_TYPE_UPDATE", EventHandler)
     end
   end
 
-  -- self:RegisterUnitEvent("UNIT_FLAGS", "player", EventHandler)
+  -- self:SubscribeUnitEvent("UNIT_FLAGS", "player", EventHandler)
 end
 
 function Widget:OnDisable()
-  self:UnregisterEvent("PLAYER_ENTERING_WORLD")
-  self:UnregisterEvent("PLAYER_TARGET_CHANGED")
-  self:UnregisterEvent("PLAYER_SOFT_ENEMY_CHANGED")
-  self:UnregisterEvent("UNIT_MAXPOWER")
+  self:UnsubscribeEvent("PLAYER_ENTERING_WORLD")
+  self:UnsubscribeEvent("PLAYER_TARGET_CHANGED")
+  self:UnsubscribeEvent("PLAYER_SOFT_ENEMY_CHANGED")
+  self:UnsubscribeEvent("UNIT_MAXPOWER")
 
   
-  self:UnregisterEvent("UNIT_POWER_FREQUENT")
-  self:UnregisterEvent("UNIT_POWER_UPDATE")
-  self:UnregisterEvent("UNIT_DISPLAYPOWER")
-  if Addon.IS_MAINLINE then
-    self:UnregisterEvent("UNIT_POWER_POINT_CHARGE")
-  end
+  self:UnsubscribeEvent("UNIT_POWER_FREQUENT")
+  self:UnsubscribeEvent("UNIT_POWER_UPDATE")
+  self:UnsubscribeEvent("UNIT_DISPLAYPOWER")
+  self:UnsubscribeEvent("UNIT_POWER_POINT_CHARGE")
   
-  self:UnregisterEvent("UPDATE_SHAPESHIFT_FORM")
-  self:UnregisterEvent("RUNE_POWER_UPDATE")
-  if Addon.ExpansionIsAtLeast(LE_EXPANSION_WRATH_OF_THE_LICH_KING) then
-    self:UnregisterEvent("RUNE_TYPE_UPDATE")
+  self:UnsubscribeEvent("UPDATE_SHAPESHIFT_FORM")
+  self:UnsubscribeEvent("RUNE_POWER_UPDATE")
+  self:UnsubscribeEvent("RUNE_TYPE_UPDATE")
+
+  -- Disable ACTIVE_TALENT_GROUP_CHANGED only if the widget is completely disabled, not if just the
+  -- curent spec does not support combo points
+  if not self.db.ON and not self.db.ShowInHeadlineView then
+    self:UnsubscribeEvent("ACTIVE_TALENT_GROUP_CHANGED")
   end
 
-  HideWidgetFrame(self.WidgetFrame)
+  HideWidgetFrame(WidgetFrame)
 end
 
 function Widget:EnabledForStyle(style, unit)
@@ -1029,11 +1054,11 @@ function Widget:EnabledForStyle(style, unit)
 end
 
 function Widget:Create()
-  if not self.WidgetFrame then
+  if not WidgetFrame then
     local widget_frame = _G.CreateFrame("Frame", nil)
     widget_frame:Hide()
 
-    self.WidgetFrame = widget_frame
+    WidgetFrame = widget_frame
     widget_frame.ComboPoints = {}
     widget_frame.ComboPointsOff = {}
 
@@ -1068,9 +1093,9 @@ end
 function Widget:OnTargetUnitRemoved(tp_frame, unit)
   -- OnTargetUnitAdded and OnTargetUnitRemoved are called for all target units including soft-target units. 
   -- Only hide the widget if the nameplate for the unit is removed that shows the widget
-  if tp_frame ~= self.WidgetFrame:GetParent() then return end
+  if tp_frame ~= WidgetFrame:GetParent() then return end
   
-  HideWidgetFrame(self.WidgetFrame)
+  HideWidgetFrame(WidgetFrame)
 end
 
 local function UpdateTexturePosition(texture, resource_index)
@@ -1080,12 +1105,14 @@ local function UpdateTexturePosition(texture, resource_index)
   local scaled_spacing = scale * Widget.db.HorizontalSpacing
 
   texture:SetSize(scaled_icon_width, scaled_icon_height)
-  texture:SetPoint("LEFT", Widget.WidgetFrame, "LEFT", (Widget.WidgetFrame:GetWidth() / Widget.UnitPowerMax) * (resource_index-1) + (scaled_spacing / 2), 0)
+  texture:SetPoint("LEFT", WidgetFrame, "LEFT", (WidgetFrame:GetWidth() / Widget.UnitPowerMax) * (resource_index-1) + (scaled_spacing / 2), 0)
 end
 
-local function UpdateTexture(texture, texture_path, resource_index)
-  if Widget.db.Style == "Blizzard" then
-    if Addon.ExpansionIsClassicAndAtLeast(LE_EXPANSION_WRATH_OF_THE_LICH_KING) and PlayerClass == "DEATHKNIGHT" then
+local function UpdateTexture(cp_status, texture, texture_path, resource_index)
+  if TEXTURE_INFO.Script.IsEnabled then
+    Addon:UpdateIconTexture(texture, TEXTURE_INFO.Script["ComboPoint." .. tostring(resource_index) .. "." .. cp_status])
+  elseif Widget.db.Style == "Blizzard" then
+    if Addon.ExpansionIsBetween(LE_EXPANSION_WRATH_OF_THE_LICH_KING, LE_EXPANSION_LEGION) and PlayerClass == "DEATHKNIGHT" then
       local texture_data = texture_path.RuneType
       texture:SetTexture(texture_data[resource_index])
       texture:SetAlpha(texture_data.Alpha or 1)
@@ -1100,11 +1127,13 @@ local function UpdateTexture(texture, texture_path, resource_index)
     else
       texture:SetAtlas(texture_path)
     end
+    texture:SetTexCoord(unpack(Widget.TexCoord)) -- obj:SetTexCoord(left,right,top,bottom)
   else
     texture:SetTexture(texture_path)
+    texture:SetTexCoord(unpack(Widget.TexCoord)) -- obj:SetTexCoord(left,right,top,bottom)
+    --Addon:UpdateIconTexture(texture, texture_path, unpack(Widget.TexCoord))   
   end
 
-  texture:SetTexCoord(unpack(Widget.TexCoord)) -- obj:SetTexCoord(left,right,top,bottom)
   UpdateTexturePosition(texture, resource_index)
 end
 
@@ -1135,8 +1164,8 @@ local function CreateResourceTextureStandard(widget_frame, resource_index)
     widget_frame.ComboPointsOff[resource_index] = resource_off_texture
   end
 
-  UpdateTexture(resource_texture, Widget.Texture, resource_index)
-  UpdateTexture(resource_off_texture, Widget.TextureOff, resource_index)
+  UpdateTexture("On", resource_texture, Widget.Texture, resource_index)
+  UpdateTexture("Off", resource_off_texture, Widget.TextureOff, resource_index)
 end
 
 local function CreateResourceTextureEssence(widget_frame, resource_index)
@@ -1174,7 +1203,7 @@ local function CreateResourceTextureEssence(widget_frame, resource_index)
 end
 
 function Widget:UpdateLayout()
-  local widget_frame = self.WidgetFrame
+  local widget_frame = WidgetFrame
 
   -- Updates based on settings
   local db = self.db
@@ -1206,9 +1235,20 @@ function Widget:UpdateLayout()
     end
 
     if ShowCooldownDuration then
-      Font:UpdateText(widget_frame.ComboPoints[resource_index],  widget_frame.ComboPointsOff[resource_index].Time, SettingsCooldown)
+      FontUpdateText(widget_frame.ComboPoints[resource_index],  widget_frame.ComboPointsOff[resource_index].Time, SettingsCooldown)
     end
   end
+end
+
+-- Do this here, not in UpdateSettings as it does not change with settings, but only with player class and WoW version
+if PlayerClass == "DEATHKNIGHT" and Addon.IS_WRATH_CLASSIC then
+  GetRuneStatus = GetRuneStateWrath
+  UpdateRuneStatusActive = UpdateRuneStatusActiveWrath
+  UpdateRuneStatusInactive = UpdateRuneStatusInactiveWrath
+else
+  GetRuneStatus = GetRuneStateMainline
+  UpdateRuneStatusActive = UpdateRuneStatusActiveMainline
+  UpdateRuneStatusInactive = UpdateRuneStatusInactiveMainline
 end
 
 function Widget:UpdateSettings()
@@ -1227,10 +1267,23 @@ function Widget:UpdateSettings()
   self.Texture = texture_info.Texture
   self.TextureOff = texture_info.TextureOff
 
+  local script_texture_info = TEXTURE_INFO.Script
+  
+  script_texture_info.IsEnabled = true
+  local texture_cp_on = Addon:GetIconTexture("ComboPoint.On")
+  local texture_cp_off = Addon:GetIconTexture("ComboPoint.Off")  
+  
   local colors = self.db.ColorBySpec[PlayerClass]
   for current_cp = 1, #colors do
-    for cp_no = 1, #colors do
+    local icon_id_cp_on = "ComboPoint." .. tostring(current_cp) .. ".On"
+    local icon_id_cp_off = "ComboPoint." .. tostring(current_cp) .. ".Off"
+    
+    script_texture_info[icon_id_cp_on]  = Addon:GetIconTexture(icon_id_cp_on) or texture_cp_on
+    script_texture_info[icon_id_cp_off] = Addon:GetIconTexture(icon_id_cp_off) or texture_cp_off
 
+    script_texture_info.IsEnabled = script_texture_info.IsEnabled and script_texture_info[icon_id_cp_on] ~= nil and script_texture_info[icon_id_cp_off] ~= nil
+
+    for cp_no = 1, #colors do
       self.Colors[current_cp] = self.Colors[current_cp] or {}
       if self.db.Style == "Blizzard" then
         self.Colors[current_cp][cp_no] = self.Colors.Neutral
@@ -1244,14 +1297,14 @@ function Widget:UpdateSettings()
   end
 
   -- GetSpecialization: Mists - Patch 5.0.4 (2012-08-28): Replaced GetPrimaryTalentTree.
-  if Addon.IS_MAINLINE then
-    ActiveSpec = _G.GetSpecialization()
+  if Addon.ExpansionIsAtLeastMists then
+    ActiveSpec = GetSpecialization()
   end
 
   -- Some of this could be configured outside of UpdateSettings, as it does not change based on settings, but for easier maintenance
   -- I am configuring everything here
   if PlayerClass == "DEATHKNIGHT" then
-    if Addon.ExpansionIsClassicAndAtLeast(LE_EXPANSION_WRATH_OF_THE_LICH_KING) then
+    if Addon.ExpansionIsBetween(LE_EXPANSION_WRATH_OF_THE_LICH_KING, LE_EXPANSION_LEGION) then
       GetRuneStatus = GetRuneStateWrath
       UpdateRuneStatusActive = UpdateRuneStatusActiveWrath
       UpdateRuneStatusInactive = UpdateRuneStatusInactiveWrath
@@ -1284,10 +1337,31 @@ function Widget:UpdateSettings()
     self.UpdateUnitResource = self.UpdateComboPoints
   end
 
+  self:UpdateAllFramesAfterSettingsUpdate()
+end
+
+function Widget:UpdateAllFramesAfterSettingsUpdate()
   -- Update the widget if it was already created (not true for immediately after Reload UI or if it was never enabled
   -- in this since last Reload UI)
-  if self.WidgetFrame then
+  if WidgetFrame then
     self:UpdateLayout()
     self:PLAYER_TARGET_CHANGED()
   end
 end 
+
+function Widget:PrintDebug()
+  Addon.Logging.Debug("    Active Spec:", ActiveSpec)
+  Addon.Logging.Debug("    Power Type:", self.PowerType, "( Max:", self.UnitPowerMax, ")")
+  Addon.Logging.Debug("    Textures:", TEXTURE_INFO.Script.IsEnabled and "ENABLED" or "DISABLED")
+  local lines = {}
+  for icon_id, texture_info in pairs(TEXTURE_INFO.Script) do
+    if icon_id ~= "IsEnabled" then
+      local texture = (type(texture_info) == "table" and texture_info.Texture) or texture_info
+      lines[#lines + 1] = "      " .. icon_id .. " =>" .. tostring(texture)
+    end
+  end
+  sort(lines)
+  for _, line in ipairs(lines) do
+    Addon.Logging.Debug(line)
+  end
+end

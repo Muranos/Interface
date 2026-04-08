@@ -1,6 +1,6 @@
 if not WeakAuras.IsLibsOK() then return end
 
-if ((GAME_LOCALE or GetLocale()) ~= "enUS") or ((GAME_LOCALE or GetLocale()) ~= "enGB") then
+if ((GAME_LOCALE or GetLocale()) ~= "enUS") and ((GAME_LOCALE or GetLocale()) ~= "enGB") then
   return
 end
 
@@ -37,6 +37,8 @@ local L = WeakAuras.L
 	L["%s - Finish Custom Text"] = "%s - Finish Custom Text"
 	L["%s - Init Action"] = "%s - Init Action"
 	L["%s - Main"] = "%s - Main"
+	L["%s - OnLoad"] = "%s - OnLoad"
+	L["%s - OnUnload"] = "%s - OnUnload"
 	L["%s - Option #%i has the key %s. Please choose a different option key."] = "%s - Option #%i has the key %s. Please choose a different option key."
 	L["%s - Rotate Animation"] = "%s - Rotate Animation"
 	L["%s - Scale Animation"] = "%s - Scale Animation"
@@ -166,7 +168,13 @@ Enable this setting if you want this timer to be hidden, or when using a WeakAur
 	L["Animates progress changes"] = "Animates progress changes"
 	L["Animation End"] = "Animation End"
 	L["Animation Mode"] = "Animation Mode"
-	L["Animation relative duration description"] = "Animation relative duration description"
+	L["Animation relative duration description"] = [=[The duration of the animation relative to the duration of the display, expressed as a fraction (1/2), percentage (50%), or decimal (0.5).
+|cFFFF0000Note:|r if a display does not have progress (it has a non-timed event trigger, is an aura with no duration, etc.), the animation will not play.
+
+|cFF4444FFFor Example:|r
+If the animation's duration is set to |cFF00CC0010%|r, and the display's trigger is a buff that lasts 20 seconds, the start animation will play for 2 seconds.
+If the animation's duration is set to |cFF00CC0010%|r, and the display's trigger is a buff that has no set duration, no start animation will play (although it would if you specified a duration in seconds)."
+]=]
 	L["Animation Sequence"] = "Animation Sequence"
 	L["Animation Start"] = "Animation Start"
 	L["Any of"] = "Any of"
@@ -186,7 +194,6 @@ Off Screen]=]
 	L["Aura: '%s'"] = "Aura: '%s'"
 	L["Auto-Clone (Show All Matches)"] = "Auto-Clone (Show All Matches)"
 	L["Automatic length"] = "Automatic length"
-	L["Available Voices are system specific"] = "Available Voices are system specific"
 	L["Backdrop Color"] = "Backdrop Color"
 	L["Backdrop in Front"] = "Backdrop in Front"
 	L["Backdrop Style"] = "Backdrop Style"
@@ -226,6 +233,7 @@ Off Screen]=]
 	L["Circular Texture %s"] = "Circular Texture %s"
 	L["Clear Debug Logs"] = "Clear Debug Logs"
 	L["Clear Saved Data"] = "Clear Saved Data"
+	L["Click to replace the name with %s."] = "Click to replace the name with %s."
 	L["Clip Overlays"] = "Clip Overlays"
 	L["Clipped by Foreground"] = "Clipped by Foreground"
 	L["Close"] = "Close"
@@ -265,12 +273,35 @@ Off Screen]=]
 	L["Custom Code"] = "Custom Code"
 	L["Custom Code Viewer"] = "Custom Code Viewer"
 	L["Custom Frames"] = "Custom Frames"
+	L["Custom Functions"] = "Custom Functions"
+	L["Custom Init"] = "Custom Init"
+	L["Custom Load"] = "Custom Load"
 	L["Custom Options"] = "Custom Options"
+	L["Custom Text Update Throttle"] = "Custom Text Update Throttle"
 	L["Custom Trigger"] = "Custom Trigger"
-	L["Custom trigger event tooltip"] = "Custom trigger event tooltip"
-	L["Custom trigger status tooltip"] = "Custom trigger status tooltip"
+	L["Custom trigger event tooltip"] = [=[Choose which events cause the custom trigger to be checked. Multiple events can be specified using commas or spaces.
+• "UNIT" events can use colons to define which unitIDs will be registered. In addition to UnitIDs Unit types can be used, they include "nameplate", "group", "raid", "party", "arena", "boss".
+• "CLEU" can be used instead of COMBAT_LOG_EVENT_UNFILTERED and colons can be used to separate specific "subEvents" you want to receive.
+• The keyword "TRIGGER" can be used, with colons separating trigger numbers, to have the custom trigger get updated when the specified trigger(s) update.
+
+|cFF4444FFFor example:|r
+UNIT_POWER_UPDATE:player, UNIT_AURA:nameplate:group PLAYER_TARGET_CHANGED CLEU:SPELL_CAST_SUCCESS TRIGGER:3:1
+]=]
+	L["Custom trigger status tooltip"] = [=[Choose which events cause the custom trigger to be checked. Multiple events can be specified using commas or spaces.
+
+• "UNIT" events can use colons to define which unitIDs will be registered. In addition to UnitIDs Unit types can be used, they include "nameplate", "group", "raid", "party", "arena", "boss".
+• "CLEU" can be used instead of COMBAT_LOG_EVENT_UNFILTERED and colons can be used to separate specific "subEvents" you want to receive.
+• The keyword "TRIGGER" can be used, with colons separating trigger numbers, to have the custom trigger get updated when the specified trigger(s) update.
+
+Since this is a status-type trigger, the specified events may be called by WeakAuras without the expected arguments.
+
+|cFF4444FFFor example:|r
+UNIT_POWER_UPDATE:player, UNIT_AURA:nameplate:group PLAYER_TARGET_CHANGED CLEU:SPELL_CAST_SUCCESS TRIGGER:3:1
+]=]
+	L["Custom trigger Update Throttle"] = "Custom trigger Update Throttle"
 	L["Custom Trigger: Ignore Lua Errors on OPTIONS event"] = "Custom Trigger: Ignore Lua Errors on OPTIONS event"
 	L["Custom Trigger: Send fake events instead of STATUS event"] = "Custom Trigger: Send fake events instead of STATUS event"
+	L["Custom Unload"] = "Custom Unload"
 	L["Custom Untrigger"] = "Custom Untrigger"
 	L["Debug Log"] = "Debug Log"
 	L["Debug Log:"] = "Debug Log:"
@@ -286,6 +317,7 @@ Off Screen]=]
 	L["Determines how many entries can be in the table."] = "Determines how many entries can be in the table."
 	L["Differences"] = "Differences"
 	L["Disallow Entry Reordering"] = "Disallow Entry Reordering"
+	L["Discord"] = "Discord"
 	L["Display Name"] = "Display Name"
 	L["Display Text"] = "Display Text"
 	L["Displays a text, works best in combination with other displays"] = "Displays a text, works best in combination with other displays"
@@ -403,7 +435,7 @@ Bleed classification via LibDispel]=]
 	L["Glow Type"] = "Glow Type"
 	L["Green Rune"] = "Green Rune"
 	L["Grid direction"] = "Grid direction"
-	L["Group (verb)"] = "Group (verb)"
+	L["Group (verb)"] = "Group"
 	L["Group Alpha"] = "Group Alpha"
 	L[ [=[Group and anchor each auras by frame.
 
@@ -414,7 +446,17 @@ Bleed classification via LibDispel]=]
 - Nameplates: attach to nameplates per unit.
 - Unit Frames: attach to unit frame buttons per unit.
 - Custom Frames: choose which frame each region should be anchored to.]=]
-	L["Group aura count description"] = "Group aura count description"
+	L["Group aura count description"] = [=[The amount of units of type '%s' which must be affected by one or more of the given auras for the display to trigger.
+If the entered number is a whole number (e.g. 5), the number of affected units will be compared with the entered number.
+If the entered number is a decimal (e.g. 0.5), fraction (e.g. 1/2), or percentage (e.g. 50%%), then that fraction of the %s must be affected.
+
+|cFF4444FFFor example:|r
+|cFF00CC00> 0|r will trigger when any unit of type '%s' is affected
+|cFF00CC00= 100%%|r will trigger when every unit of type '%s' is affected
+|cFF00CC00!= 2|r will trigger when the number of units of type '%s' affected is not exactly 2
+|cFF00CC00<= 0.8|r will trigger when less than 80%% of the units of type '%s' is affected (4 of 5 party members, 8 of 10 or 20 of 25 raid members)
+|cFF00CC00> 1/2|r will trigger when more than half of the units of type '%s' is affected
+]=]
 	L["Group by Frame"] = "Group by Frame"
 	L["Group Description"] = "Group Description"
 	L["Group Icon"] = "Group Icon"
@@ -426,6 +468,7 @@ Bleed classification via LibDispel]=]
 	L["Group Settings"] = "Group Settings"
 	L["Hawk"] = "Hawk"
 	L["Help"] = "Help"
+	L["Hide After"] = "Hide After"
 	L["Hide Background"] = "Hide Background"
 	L["Hide Glows applied by this aura"] = "Hide Glows applied by this aura"
 	L["Hide on"] = "Hide on"
@@ -489,7 +532,6 @@ Bleed classification via LibDispel]=]
 	L["Is Boss Debuff"] = "Is Boss Debuff"
 	L["Is Stealable"] = "Is Stealable"
 	L["Is Unit"] = "Is Unit"
-	L["Join Discord"] = "Join Discord"
 	L["Justify"] = "Justify"
 	L["Keep Aspect Ratio"] = "Keep Aspect Ratio"
 	L["Keep your Wago imports up to date with the Companion App."] = "Keep your Wago imports up to date with the Companion App."
@@ -517,6 +559,7 @@ Bleed classification via LibDispel]=]
 	L["Magnetically Align"] = "Magnetically Align"
 	L["Main"] = "Main"
 	L["Manual with %i/%i"] = "Manual with %i/%i"
+	L["Matches %s spells"] = "Matches %s spells"
 	L["Matches the height setting of a horizontal bar or width for a vertical bar."] = "Matches the height setting of a horizontal bar or width for a vertical bar."
 	L["Max"] = "Max"
 	L["Max Length"] = "Max Length"
@@ -541,15 +584,18 @@ Bleed classification via LibDispel]=]
 	L["Move Up"] = "Move Up"
 	L["Moving auras: "] = "Moving auras: "
 	L["Multiple Displays"] = "Multiple Displays"
-	L["Multiselect ignored tooltip"] = "Multiselect ignored tooltip"
-	L["Multiselect multiple tooltip"] = "Multiselect multiple tooltip"
-	L["Multiselect single tooltip"] = "Multiselect single tooltip"
+	L["Multiselect ignored tooltip"] = [=[|cFFFF0000Ignored|r - |cFF777777Single|r - |cFF777777Multiple|r
+This option will not be used to determine when this display should load]=]
+	L["Multiselect multiple tooltip"] = [=[|cFF777777Ignored|r - |cFF777777Single|r - |cFF00FF00Multiple|r
+Any number of matching values can be picked]=]
+	L["Multiselect single tooltip"] = [=[|cFF777777Ignored|r - |cFF00FF00Single|r - |cFF777777Multiple|r
+Only a single matching value can be picked]=]
 	L["Must be a power of 2"] = "Must be a power of 2"
 	L["Name - The name of the display (usually an aura name), or the display's ID if there is no dynamic name"] = "Name - The name of the display (usually an aura name), or the display's ID if there is no dynamic name"
 	L["Name Info"] = "Name Info"
 	L["Name Pattern Match"] = "Name Pattern Match"
 	L["Name:"] = "Name:"
-	L["Negator"] = "Negator"
+	L["Negator"] = "Not"
 	L["New Aura"] = "New Aura"
 	L["New Template"] = "New Template"
 	L["New Value"] = "New Value"
@@ -587,7 +633,6 @@ every 3 events starting from 2nd and ending at 11th: 2-11/3]=]
 	L["Okay"] = "Okay"
 	L["ON"] = "ON"
 	L["On Hide"] = "On Hide"
-	L["On Init"] = "On Init"
 	L["On Show"] = "On Show"
 	L["Only Match auras cast by a player (not an npc)"] = "Only Match auras cast by a player (not an npc)"
 	L["Only match auras cast by people other than the player or their pet"] = "Only match auras cast by people other than the player or their pet"
@@ -619,6 +664,7 @@ every 3 events starting from 2nd and ending at 11th: 2-11/3]=]
 	L["Paste Trigger Settings"] = "Paste Trigger Settings"
 	L["Places a tick on the bar"] = "Places a tick on the bar"
 	L["Play Sound"] = "Play Sound"
+	L["Player Spells found:"] = "Player Spells found:"
 	L["Portrait Zoom"] = "Portrait Zoom"
 	L["Position and Size Settings"] = "Position and Size Settings"
 	L["Preferred Match"] = "Preferred Match"
@@ -642,6 +688,7 @@ every 3 events starting from 2nd and ending at 11th: 2-11/3]=]
 	L["Re-center X"] = "Re-center X"
 	L["Re-center Y"] = "Re-center Y"
 	L["Reciprocal TRIGGER:# requests will be ignored!"] = "Reciprocal TRIGGER:# requests will be ignored!"
+	L["Redo"] = "Redo"
 	L["Regions of type \"%s\" are not supported."] = "Regions of type \"%s\" are not supported."
 	L["Remove"] = "Remove"
 	L["Remove All Sounds"] = "Remove All Sounds"
@@ -690,7 +737,7 @@ every 3 events starting from 2nd and ending at 11th: 2-11/3]=]
 	L["Shadow Color"] = "Shadow Color"
 	L["Shadow X Offset"] = "Shadow X Offset"
 	L["Shadow Y Offset"] = "Shadow Y Offset"
-	L["Shift-click to create chat link"] = "Shift-click to create chat link"
+	L["Shift-click to create chat link"] = "Shift-click to create a |cFF8800FF[Chat Link]"
 	L["Show \"Edge\""] = "Show \"Edge\""
 	L["Show \"Swipe\""] = "Show \"Swipe\""
 	L["Show and Clone Settings"] = "Show and Clone Settings"
@@ -751,9 +798,9 @@ every 3 events starting from 2nd and ending at 11th: 2-11/3]=]
 	L["Spark Texture"] = "Spark Texture"
 	L["Specific Currency ID"] = "Specific Currency ID"
 	L["Spell Selection Filters"] = "Spell Selection Filters"
+	L["Spells found:"] = "Spells found:"
 	L["Stack Info"] = "Stack Info"
 	L["Stacks - The number of stacks of an aura (usually)"] = "Stacks - The number of stacks of an aura (usually)"
-	L["Stagger"] = "Stagger"
 	L["Standby"] = "Standby"
 	L["Star"] = "Star"
 	L["Start"] = "Start"
@@ -764,6 +811,7 @@ every 3 events starting from 2nd and ending at 11th: 2-11/3]=]
 	L["Stop Motion %s"] = "Stop Motion %s"
 	L["Stop Motion Settings"] = "Stop Motion Settings"
 	L["Stop Sound"] = "Stop Sound"
+	L["Stretched by Foreground"] = "Stretched by Foreground"
 	L["Sub Elements"] = "Sub Elements"
 	L["Sub Option %i"] = "Sub Option %i"
 	L["Subevent"] = "Subevent"
@@ -787,6 +835,8 @@ every 3 events starting from 2nd and ending at 11th: 2-11/3]=]
 	L["The duration of the animation in seconds."] = "The duration of the animation in seconds."
 	L["The duration of the animation in seconds. The finish animation does not start playing until after the display would normally be hidden."] = "The duration of the animation in seconds. The finish animation does not start playing until after the display would normally be hidden."
 	L["The group and all direct children will share the same base frame level."] = "The group and all direct children will share the same base frame level."
+	L["The Multi Target mode is less reliable and not recommended."] = "The Multi Target mode is less reliable and not recommended."
+	L["The Multi Target mode requires a name or spell id filter"] = "The Multi Target mode requires a name or spell id filter"
 	L["The trigger number is optional. When no trigger number is specified, the trigger selected via dynamic information will be used."] = "The trigger number is optional. When no trigger number is specified, the trigger selected via dynamic information will be used."
 	L["The type of trigger"] = "The type of trigger"
 	L["The WeakAuras Options Addon version %s doesn't match the WeakAuras version %s. If you updated the addon while the game was running, try restarting World of Warcraft. Otherwise try reinstalling WeakAuras"] = "The WeakAuras Options Addon version %s doesn't match the WeakAuras version %s. If you updated the addon while the game was running, try restarting World of Warcraft. Otherwise try reinstalling WeakAuras"
@@ -844,6 +894,7 @@ Upgrade your version of WeakAuras or wait for next release before installing thi
 	L["Trigger %i: %s"] = "Trigger %i: %s"
 	L["Trigger Combination"] = "Trigger Combination"
 	L["Type 'select' for '%s' requires a values member'"] = "Type 'select' for '%s' requires a values member'"
+	L["Undo"] = "Undo"
 	L["Ungroup"] = "Ungroup"
 	L["Unit %s is not a valid unit for RegisterUnitEvent"] = "Unit %s is not a valid unit for RegisterUnitEvent"
 	L["Unit Count"] = "Unit Count"
@@ -875,9 +926,13 @@ Upgrade your version of WeakAuras or wait for next release before installing thi
 	L["Vertical Bar"] = "Vertical Bar"
 	L["View"] = "View"
 	L["View custom code"] = "View custom code"
-	L["Voice"] = "Voice"
+	L["Voice Settings"] = "Voice Settings"
 	L["We thank"] = "We thank"
 	L["WeakAuras %s on WoW %s"] = "WeakAuras %s on WoW %s"
+	L["WeakAuras recommends using spell ids instead of names. Spell ids are automatically localized."] = "WeakAuras recommends using spell ids instead of names. Spell ids are automatically localized."
+	L[ [=[WeakAuras will not support Midnight. On release of the prepatch, WeakAuras will be disabled.
+Read more on our Patreon page https://patreon.com/WeakAuras]=] ] = [=[WeakAuras will not support Midnight. On release of the prepatch, WeakAuras will be disabled.
+Read more on our Patreon page https://patreon.com/WeakAuras]=]
 	L["What do you want to do?"] = "What do you want to do?"
 	L["Whole Area"] = "Whole Area"
 	L["wrapping"] = "wrapping"
@@ -893,6 +948,15 @@ Upgrade your version of WeakAuras or wait for next release before installing thi
 	L["You already have this group/aura. Importing will create a duplicate."] = "You already have this group/aura. Importing will create a duplicate."
 	L["You are about to delete %d aura(s). |cFFFF0000This cannot be undone!|r Would you like to continue?"] = "You are about to delete %d aura(s). |cFFFF0000This cannot be undone!|r Would you like to continue?"
 	L["You are about to delete a trigger. |cFFFF0000This cannot be undone!|r Would you like to continue?"] = "You are about to delete a trigger. |cFFFF0000This cannot be undone!|r Would you like to continue?"
+	L[ [=[You are about to Import an Aura with custom Lua code on a Hardcore server.
+
+|cFFFF0000There is a risk the custom code could be used to kill your hardcore character!|r
+
+Would you like to continue?]=] ] = [=[You are about to Import an Aura with custom Lua code on a Hardcore server.
+
+|cFFFF0000There is a risk the custom code could be used to kill your hardcore character!|r
+
+Would you like to continue?]=]
 	L[ [=[You can add a comma-separated list of state values here that (when changed) WeakAuras should also run the Anchor Code on.
 
 WeakAuras will always run custom anchor code if you include 'changed' in this list, or when a region is added, removed, or re-ordered.]=] ] = [=[You can add a comma-separated list of state values here that (when changed) WeakAuras should also run the Anchor Code on.

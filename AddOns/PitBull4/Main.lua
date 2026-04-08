@@ -5,8 +5,9 @@ local _G = _G
 
 local L = LibStub("AceLocale-3.0"):GetLocale("PitBull4")
 
-
-local wow_cata = WOW_PROJECT_ID == WOW_PROJECT_CATACLYSM_CLASSIC or nil
+local wow_retail = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
+local wow_classic = WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE
+local wow_expansion = GetClassicExpansionLevel()
 
 local SINGLETON_CLASSIFICATIONS = {
 	"player",
@@ -81,7 +82,7 @@ if LibSharedMedia and not LibSharedMedia:IsValid("font", DEFAULT_LSM_FONT) then 
 	DEFAULT_LSM_FONT = LibSharedMedia:GetDefault("font")
 end
 
-local CURRENT_CONFIG_VERSION = 7
+local CURRENT_CONFIG_VERSION = 8
 
 local DATABASE_DEFAULTS = {
 	profile = {
@@ -320,8 +321,10 @@ local DEFAULT_UNITS =  {
 
 local LOCALIZED_NAMES = {}
 do
-	local num_classes = wow_cata and 11 or GetNumClasses()
-	for i = 1, num_classes do
+	for i = 1, GetNumClasses() do
+		if i == 10 and wow_expansion < LE_EXPANSION_MISTS_OF_PANDARIA then -- Skip Monk in Classic pre-Mists
+			i = 11
+		end
 		local info = C_CreatureInfo.GetClassInfo(i)
 		if info then
 			LOCALIZED_NAMES[info.classFile] = info.className
@@ -352,12 +355,14 @@ _G.PitBull4 = PitBull4
 local DEBUG = PitBull4.DEBUG
 local expect = PitBull4.expect
 
-PitBull4.version = "v4.2.41"
+PitBull4.version = "v4.2.49"
 if PitBull4.version:match("@") then
 	PitBull4.version = "Development"
 end
 
-PitBull4.wow_cata = wow_cata
+PitBull4.wow_retail = wow_retail
+PitBull4.wow_classic = wow_classic
+PitBull4.wow_expansion = wow_expansion
 
 PitBull4.L = L
 
@@ -1216,6 +1221,34 @@ local upgrade_functions = {
 	end,
 	-- [5] = classic
 	-- [6] = classic
+	[7] = function(sv)
+		-- Add the boss group and focus units for those coming from the classic release to TBC.
+		if not sv.profiles or wow_expansion ~= 1 then return true end
+
+		local boss_group = L["Boss"]
+		local focus_units = {
+			L["Focus"],
+			format(L["%s's target"],L["Focus"]),
+			format(L["%s's target"],format(L["%s's target"],L["Focus"])),
+		}
+
+		for profile, profile_db in next, sv.profiles do
+			if profile_db.made_groups then
+				if not profile_db.groups[boss_group] then
+					profile_db.groups[boss_group] = CopyTable(DEFAULT_GROUPS[boss_group])
+				end
+			end
+			if profile_db.made_units then
+				for _, name in next, focus_units do
+					if not profile_db.units[name] then
+						profile_db.units[name] = CopyTable(DEFAULT_UNITS[name])
+					end
+				end
+			end
+		end
+
+		return true
+	end,
 }
 
 local function check_config_version(sv)
@@ -1663,7 +1696,7 @@ function PitBull4:OnEnable()
 	self:RegisterEvent("PLAYER_ENTERING_WORLD")
 	self:RegisterEvent("PLAYER_LEAVING_WORLD")
 
-	if not wow_cata then
+	if wow_expansion >= LE_EXPANSION_MISTS_OF_PANDARIA then
 		self:RegisterEvent("PET_BATTLE_OPENING_START")
 	end
 

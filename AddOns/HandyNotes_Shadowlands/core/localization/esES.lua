@@ -74,6 +74,7 @@ L['elite'] = 'Élite'
 L['quest'] = 'Misión'
 L['quest_repeatable'] = 'Misión repetible'
 L['achievement'] = 'Logro'
+L['decor_owned'] = 'Conseguido: %s'
 
 ---------------------------------- LOCATION -----------------------------------
 L['in_cave'] = 'En una cueva.'
@@ -93,6 +94,7 @@ L['time_format_12hrs'] = '%I:%M %p - %d/%m hora local'
 L['time_format_24hrs'] = '%H:%M - %d/%m hora local'
 
 ----------------------------------- REWARDS -----------------------------------
+L['decor'] = 'Adorno para los hogares'
 L['heirloom'] = 'Reliquia'
 L['item'] = 'Objeto'
 L['mount'] = 'Montura'
@@ -118,23 +120,23 @@ L['rep_revered'] = 'Reverenciado'
 L['rep_exalted'] = 'Exaltado'
 
 -------------------------------------------------------------------------------
---------------------------------- DRAGONRACES ---------------------------------
+------------------------------- SKYRIDING RACES -------------------------------
 -------------------------------------------------------------------------------
 
-L['dr_your_best_time'] = 'Tu mejor tiempo:'
-L['dr_your_target_time'] = 'Tu mejor tiempo:'
-L['dr_best_time'] = ' - %s: %.3fs'
-L['dr_target_time'] = ' - %s: %ss / %ss'
-L['dr_normal'] = 'Normal'
-L['dr_advanced'] = 'Avanzado'
-L['dr_reverse'] = 'Inverso'
-L['dr_challenge'] = 'Desafío'
-L['dr_reverse_challenge'] = 'Desafío inverso'
-L['dr_storm_race'] = 'Carrera de la tormenta'
-L['dr_bronze'] = 'Acaba la carrera para conseguir el ' .. ns.color.Bronze('Bronce') .. '.'
-L['dr_vendor_note'] = 'Intercambia {currency:2588} por manuscritos de dracovigía y transfiguraciones.'
-L['options_icons_dragonrace'] = 'Carreras de dragones'
-L['options_icons_dragonrace_desc'] = 'Muestra dónde están todas las Carreras de dragones de la zona.'
+L['sr_your_best_time'] = 'Tu mejor tiempo:'
+L['sr_your_target_time'] = 'Tu mejor tiempo:'
+L['sr_best_time'] = ' - %s: %.3fs'
+L['sr_target_time'] = ' - %s: %ss / %ss'
+L['sr_normal'] = 'Normal'
+L['sr_advanced'] = 'Avanzado'
+L['sr_reverse'] = 'Inverso'
+L['sr_challenge'] = 'Desafío'
+L['sr_reverse_challenge'] = 'Desafío inverso'
+L['sr_storm_race'] = 'Carrera de la tormenta'
+L['sr_bronze'] = 'Acaba la carrera para conseguir el ' .. ns.color.Bronze('Bronce') .. '.'
+L['sr_vendor_note'] = 'Intercambia {currency:2588} por manuscritos de dracovigía y transfiguraciones.'
+L['options_icons_skyriding_race'] = 'Carreras de surcacielos'
+L['options_icons_skyriding_race_desc'] = 'Muestra dónde están todas las Carreras de surcacielos de la zona.'
 
 -------------------------------------------------------------------------------
 --------------------------------- CONTEXT MENU --------------------------------
@@ -204,6 +206,8 @@ L['ignore_faction_restrictions_desc'] = 'Mostrar grupos, nodos y recompensas que
 L['options_rewards_settings'] = 'Recompensas'
 L['options_reward_behaviors_settings'] = 'Comportamiento de las recompensas'
 L['options_reward_types'] = 'Mostrar tipos de recompensas'
+L['options_decor_rewards'] = 'Muestra artículos decorativos de las recompensas'
+L['options_decor_rewards_desc'] = 'Muestra los elementos decorativos del las recompensas para los hogares en las descripciones.'
 L['options_manuscript_rewards'] = 'Mostrar las recompensas de los manuscritos de dracovigía'
 L['options_manuscript_rewards_desc'] = 'Muestra las recompensas de los manuscritos de dracovigía en las descripciones y rastrea si ya lo has coleccionado.'
 L['options_mount_rewards'] = 'Mostrar recompensas de monturas'

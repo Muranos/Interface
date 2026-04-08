@@ -4,7 +4,7 @@
 
 local mod, CL = BigWigs:NewBoss("Neltharus Trash", 2519)
 if not mod then return end
-mod.displayName = CL.trash
+mod:SetTrashModule(true)
 mod:RegisterEnableMob(
 	189342, -- Burning Chain
 	193293, -- Qalashi Warden
@@ -33,9 +33,9 @@ mod:RegisterEnableMob(
 
 local L = mod:GetLocale()
 if L then
-	L.custom_on_autotalk = "Autotalk"
+	L.custom_on_autotalk = CL.autotalk
 	L.custom_on_autotalk_desc = "Instantly selects the gossip options to get profession buffs."
-	L.custom_on_autotalk_icon = "ui_chat"
+	L.custom_on_autotalk_icon = mod:GetMenuIcon("SAY")
 
 	L.burning_chain = "Burning Chain"
 	L.qalashi_warden = "Qalashi Warden"
@@ -407,7 +407,6 @@ do
 end
 
 -- Irontorch Commander
-
 
 do
 	local timer

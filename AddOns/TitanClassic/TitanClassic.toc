@@ -1,0 +1,24 @@
+## Interface: 20505, 11508, 50503
+## Title: Titan Panel [|cffeda55f_Classic_|r] |cff00aa009.1.6|r
+## Author: Titan Panel Dev Team
+## Version: 9.1.6
+## IconTexture: Interface\Icons\Achievement_Dungeon_UlduarRaid_Titan_01
+## Notes: Adds display bars to show and control information/launcher plugins.
+## Category-enUS: User Interface
+## Category-deDE: Benutzerinterface
+## Category-esES: Interfaz de usuario
+## Category-esMX: Interfaz de usuario
+## Category-frFR: Interface utilisateur
+## Category-itIT: Interfaccia utente
+## Category-koKR: 사용자 인터페이스
+## Category-ptBR: Interface do usuário
+## Category-ruRU: Интерфейс пользователя
+## Category-zhCN: 用户界面
+## Category-zhTW: 使用者介面
+## X-Credits: TitanMod, Dark Imakuni, Adsertor, Titan Dev Team
+## X-Category: Interface Enhancements
+## X-Email: honorgog@gmail.com
+## X-Localizations: enUS, ptBR, zhCN, deDE, esES, frFR, itIT, koKR, esMX, ruRU, zhTW
+## X-License: All rights reserved (See license.txt)
+## Dependencies: Titan
+## X-WoWI-ID: 8092

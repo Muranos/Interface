@@ -6,7 +6,7 @@ local mod, CL = BigWigs:NewBoss("Bazual, The Dreaded Flame", -2024, 2517)
 if not mod then return end
 mod:RegisterEnableMob(193532) -- Bazual
 mod.otherMenu = -1978
-mod.worldBoss = 193532
+mod:SetWorldModule(true)
 
 --------------------------------------------------------------------------------
 -- Locals

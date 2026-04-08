@@ -1,14 +1,14 @@
 ﻿-- Pawn by Vger-Azjol-Nerub
 -- www.vgermods.com
--- © 2006-2025 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
--- See Readme.htm for more information.
+-- © 2006-2026 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
+-- See Readme.md for more information.
 
 --
 -- German resources
 ------------------------------------------------------------
 
 local function PawnUseThisLocalization()
-PawnLocal = 
+PawnLocal =
 {
 	["AverageItemLevelIgnoringRarityTooltipLine"] = "Durchschnittliche Gegenstandsstufe",
 	["BaseValueWord"] = "Basis",
@@ -71,7 +71,7 @@ www.vgermods.com
 /pawn debug [ an | aus ] -- Debug Infos in der Konsole anzeigen
 /pawn backup -- alle Bewertungsprofile sichern
  
-Weitere Informationen zur Anpassung von Pawn findet ihr in der Hilfedatei (Readme.htm) die mit dieser Installation ausgeliefert wird.]=],
+Weitere Informationen zur Anpassung von Pawn findet ihr in der Hilfedatei (Readme.md) die mit dieser Installation ausgeliefert wird.]=],
 	["ValueCalculationMessage"] = "   %g %s x %g pro = %g",
 	["VisibleScalesHeader"] = "%s's Wertungen",
 	["Stats"] = {
@@ -123,12 +123,14 @@ Weitere Informationen zur Anpassung von Pawn findet ihr in der Hilfedatei (Readm
 		["MovementSpeedInfo"] = "Bewegungsgeschwindigkeit. Bewirkt, dass euer Charakter schneller läuft.",
 		["Mp5"] = "Mana alle 5",
 		["Mp5Info"] = "Manaregeneration pro 5 Sekunden. Beeinflusst deine Manaregeneration auch im Kampf.",
+		["MultistrikeInfo"] = "Bereitschaft. Erhöht die Chance, dass Ihre Angriffe und Heilzauber Ihr Ziel extra zweimal bei reduzierter Wirksamkeit getroffen werden.",
 		["NatureResistInfo"] = "Naturwiderstand. Reduziert den Schaden durch naturbasierte Angriffe.",
 		["NatureSpellDamage"] = "Naturzauberschaden",
 		["NatureSpellDamageInfo"] = "Naturzauberschaden. Erhöht den durch deine Naturzauber verursachten Schaden.",
 		["ParryInfo"] = "Parieren. Erhöht die Wahrscheinlichkeit, dass du feindliche Angriffe abwehrst.",
 		["Plate"] = "Platte",
 		["PlateInfo"] = "Punkte, die zugewiesen werden sollen, wenn der Gegenstand Platte ist.",
+		["PvPPowerInfo"] = "PvP Macht. Erhöht die Fähigkeit um bei anderen Spielern (keine NPCs) in bestimmten PvP Situationen mehr Schaden oder Heilung zu verursachen.",
 		["RapInfo"] = "Distanzangriffskraft. Erhöht den Schaden von physischen Distanzangriffen. Beinhaltet keine Angriffskraft, die durch Beweglichkeit gewonnen wird.",
 		["ResilienceInfo"] = "Elastizität. Verringert die Wahrscheinlichkeit, dass du kritisch getroffen wirst, und verringert den Schaden kritischer Treffer, die du erleidest.",
 		["ShadowResistInfo"] = "Schattenwiderstand. Reduziert den Schaden durch schattenbasierte Angriffe.",
@@ -313,9 +315,7 @@ Wenn du Quest-Belohnungen oder Dungeon-Beute erwirbst, die besser als deine aktu
 		["OptionsBagUpgradeAdvisor"] = "Zeige Ratgeber für Verbesserungen in den Taschen",
 		["OptionsBagUpgradeAdvisorTooltip"] = [=[Aktiviere diese Option, wenn Pawn die Verbesserungs-Pfeile in den Taschen übernehmen soll. 
 
-Wenn aktiviert, findet Pawn Verbesserungen in deinen Taschen und markiert die Gegenstände, die eine Verbesserung für deine aktive Waage sind, mit grünen Pfeilen.
-
-Wenn deaktiviert, markiert WoW Gegenstände mit einem höheren Gegenstandswert als dem, was du gerade trägst und Pawn wird die eingebaute Funktion nicht stören.]=],
+Wenn aktiviert, findet Pawn Verbesserungen in deinen Taschen und markiert die Gegenstände, die eine Verbesserung für deine aktive Waage sind, mit grünen Pfeilen.]=],
 		["OptionsBlankLine"] = "Fügt vor den Werten eine leere Zeile ein",
 		["OptionsBlankLineTooltip"] = "Halte die Tooltips für Gegenstände besonders ordentlich, indem du diese Option aktivierst, bei der vor den Pawn-Werten eine Leerzeile eingefügt wird.",
 		["OptionsButtonHidden"] = "Verstecke ihn",
@@ -535,6 +535,7 @@ PawnLocal.TooltipParsing = {
 	["EnchantmentPyriumWeaponChain"] = "^Pyriumwaffenkette$",
 	["EnchantmentTitaniumWeaponChain"] = "^Titanwaffenkette$",
 	["Equip"] = "Anlegen:",
+	["Expertise"] = "^%+?# Waffenkunde$",
 	["ExpertiseClassic"] = "^Anlegen: Verringert die Chance, dass Eure Angriffe pariert werden oder ihnen ausgewichen wird, um #%%%.$",
 	["ExpertiseRating"] = "^Anlegen: Erhöht Eure Waffenkundewertung um #%.$",
 	["ExpertiseRatingShort"] = "^%+?# Waffenkundewertung$",
@@ -558,7 +559,7 @@ PawnLocal.TooltipParsing = {
 	["HasteRating"] = "^Anlegen: Erhöht die Tempowertung um #%.$",
 	["HasteRating2"] = "^UNUSED$",
 	["HasteRatingShort"] = "^%+?# Tempowertung$",
-	["HaventCollectedAppearance"] = "^Ihr habt diese Vorlage noch nicht gesammelt$",
+	["HaventCollectedAppearance"] = "^Ihr habt diese Vorlage noch nicht gesammelt%.?$",
 	["Healing"] = "^%+# Heilzauber$",
 	["Healing2"] = "^Anlegen: Erhöht durch Zauber und Effekte verursachte Heilung um bis zu #%.$",
 	["Healing3"] = "^%+# Heilung$",
@@ -576,6 +577,7 @@ PawnLocal.TooltipParsing = {
 	["HitRating2"] = "^Anlegen: Erhöht Eure Trefferwertung um #%.$",
 	["HitRating3"] = "^UNUSED$",
 	["HitRatingShort"] = "^%+?# Trefferwertung$",
+	["HitRatingShorter"] = "^%+?# Trefferwert$",
 	["HolySpellDamage"] = "^%+# Heiligzauberschaden$",
 	["HolySpellDamage2"] = "^Anlegen: Erhöht durch Heiligzauber und Heiligeffekte zugefügten Schaden um bis zu #%.$",
 	["HolySpellDamage3"] = "^UNUSED$",
@@ -650,7 +652,7 @@ PawnLocal.TooltipParsing = {
 	["SpellDamageAndHealingEnchant"] = "^%+# Heilung %+# Zauberschaden$",
 	["SpellDamageAndHealingShort"] = "^%+# Heilzauber und %+# Schadenszauber$",
 	["SpellDamageAndHealingShort2"] = "^UNUSED$",
-	["SpellHasteClassic"] = "^Anlegen: Erhöht das Zaubertempo Eurer nicht kanalisierten Zauber um #%%%.$",
+	["SpellHasteClassic"] = "^Anlegen: Erhöht Euer Zaubertempo um #%%%.$",
 	["SpellHasteRating"] = "^Anlegen: Erhöht d?i?e?E?u?r?e? Zaubertempowertung um #%.$",
 	["SpellHasteRatingShort"] = "^%+?# Zaubertempowertung$",
 	["SpellHit"] = "^Anlegen: Erhöht Eure Chance mit Zaubern zu treffen um #%%%.$",
@@ -704,78 +706,82 @@ if VgerCore.IsClassic or VgerCore.IsBurningCrusade or VgerCore.IsWrath or VgerCo
 	PawnLocal.Mail = "Schwere Rüstung"
 	PawnLocal.MailInfo = "Punkte, die zugewiesen werden sollen, wenn der Gegenstand Schwere Rüstung ist."
 	PawnLocal.TooltipParsing.Mail = "^Schwere Rüstung$"
+end
+if VgerCore.IsClassic or VgerCore.IsBurningCrusade or VgerCore.IsWrath or VgerCore.IsCataclysm or VgerCore.IsMists then
 	PawnLocal.TooltipParsing.Speed = "^Tempo #$"
 end
-
 PawnLocal.Specs =
 {
-	[1] = {
-		{ Name="Waffen", Icon=132355, Role="DAMAGER" },
-		{ Name="Furor", Icon=132347, Role="DAMAGER" },
-		{ Name="Schutz", Icon=132341, Role="TANK" },
-	},
-	[2] = {
-		{ Name="Heilig", Icon=135920, Role="HEALER" },
-		{ Name="Schutz", Icon=236264, Role="TANK" },
-		{ Name="Vergeltung", Icon=135873, Role="DAMAGER" },
-	},
-	[3] = {
-		{ Name="Tierherrschaft", Icon=461112, Role="DAMAGER" },
-		{ Name="Treffsicherheit", Icon=236179, Role="DAMAGER" },
-		{ Name="Überleben", Icon=461113, Role="DAMAGER" },
-	},
-	[4] = {
-		{ Name="Meucheln", Icon=236270, Role="DAMAGER" },
-		{ Name="Gesetzlosigkeit", Icon=236286, Role="DAMAGER" },
-		{ Name="Täuschung", Icon=132320, Role="DAMAGER" },
-	},
-	[5] = {
-		{ Name="Disziplin", Icon=135940, Role="HEALER" },
-		{ Name="Heilig", Icon=237542, Role="HEALER" },
-		{ Name="Schatten", Icon=136207, Role="DAMAGER" },
-	},
-	[6] = {
-		{ Name="Blut", Icon=135770, Role="TANK" },
-		{ Name="Frost", Icon=135773, Role="DAMAGER" },
-		{ Name="Unheilig", Icon=135775, Role="DAMAGER" },
-	},
-	[7] = {
-		{ Name="Elementar", Icon=136048, Role="DAMAGER" },
-		{ Name="Verstärkung", Icon=237581, Role="DAMAGER" },
-		{ Name="Wiederherstellung", Icon=136052, Role="HEALER" },
-	},
-	[8] = {
-		{ Name="Arkan", Icon=135932, Role="DAMAGER" },
-		{ Name="Feuer", Icon=135810, Role="DAMAGER" },
-		{ Name="Frost", Icon=135846, Role="DAMAGER" },
-	},
-	[9] = {
-		{ Name="Gebrechen", Icon=136145, Role="DAMAGER" },
-		{ Name="Dämonologie", Icon=136172, Role="DAMAGER" },
-		{ Name="Zerstörung", Icon=136186, Role="DAMAGER" },
-	},
-	[10] = {
-		{ Name="Braumeister", Icon=608951, Role="TANK" },
-		{ Name="Nebelwirker", Icon=608952, Role="HEALER" },
-		{ Name="Windläufer", Icon=608953, Role="DAMAGER" },
-	},
-	[11] = {
-		{ Name="Gleichgewicht", Icon=136096, Role="DAMAGER" },
-		{ Name="Wildheit", Icon=132115, Role="DAMAGER" },
-		{ Name="Wächter", Icon=132276, Role="TANK" },
-		{ Name="Wiederherstellung", Icon=136041, Role="HEALER" },
-	},
-	[12] = {
-		{ Name="Verwüstung", Icon=1247264, Role="DAMAGER" },
-		{ Name="Rachsucht", Icon=1247265, Role="TANK" },
-	},
+    [1] = {
+        { Name="Waffen", Icon=132355, Role="DAMAGER" },
+        { Name="Furor", Icon=132347, Role="DAMAGER" },
+        { Name="Schutz", Icon=132341, Role="TANK" },
+    },
+    [2] = {
+        { Name="Heilig", Icon=135920, Role="HEALER" },
+        { Name="Schutz", Icon=236264, Role="TANK" },
+        { Name="Vergeltung", Icon=135873, Role="DAMAGER" },
+    },
+    [3] = {
+        { Name="Tierherrschaft", Icon=461112, Role="DAMAGER" },
+        { Name="Treffsicherheit", Icon=236179, Role="DAMAGER" },
+        { Name="Überleben", Icon=461113, Role="DAMAGER" },
+    },
+    [4] = {
+        { Name="Meucheln", Icon=236270, Role="DAMAGER" },
+        { Name="Gesetzlosigkeit", Icon=236286, Role="DAMAGER" },
+        { Name="Täuschung", Icon=132320, Role="DAMAGER" },
+    },
+    [5] = {
+        { Name="Disziplin", Icon=135940, Role="HEALER" },
+        { Name="Heilig", Icon=237542, Role="HEALER" },
+        { Name="Schatten", Icon=136207, Role="DAMAGER" },
+    },
+    [6] = {
+        { Name="Blut", Icon=135770, Role="TANK" },
+        { Name="Frost", Icon=135773, Role="DAMAGER" },
+        { Name="Unheilig", Icon=135775, Role="DAMAGER" },
+    },
+    [7] = {
+        { Name="Elementar", Icon=136048, Role="DAMAGER" },
+        { Name="Verstärkung", Icon=237581, Role="DAMAGER" },
+        { Name="Wiederherstellung", Icon=136052, Role="HEALER" },
+    },
+    [8] = {
+        { Name="Arkan", Icon=135932, Role="DAMAGER" },
+        { Name="Feuer", Icon=135810, Role="DAMAGER" },
+        { Name="Frost", Icon=135846, Role="DAMAGER" },
+    },
+    [9] = {
+        { Name="Gebrechen", Icon=136145, Role="DAMAGER" },
+        { Name="Dämonologie", Icon=136172, Role="DAMAGER" },
+        { Name="Zerstörung", Icon=136186, Role="DAMAGER" },
+    },
+    [10] = {
+        { Name="Braumeister", Icon=608951, Role="TANK" },
+        { Name="Nebelwirker", Icon=608952, Role="HEALER" },
+        { Name="Windläufer", Icon=608953, Role="DAMAGER" },
+    },
+    [11] = {
+        { Name="Gleichgewicht", Icon=136096, Role="DAMAGER" },
+        { Name="Wildheit", Icon=132115, Role="DAMAGER" },
+        { Name="Wächter", Icon=132276, Role="TANK" },
+        { Name="Wiederherstellung", Icon=136041, Role="HEALER" },
+    },
+    [12] = {
+        { Name="Verwüstung", Icon=1247264, Role="DAMAGER" },
+        { Name="Rachsucht", Icon=1247265, Role="TANK" },
+        { Name="Verschlinger", Icon=7455385, Role="DAMAGER" },
+    },
+    [13] = {
+        { Name="Verheerung", Icon=4511811, Role="DAMAGER" },
+        { Name="Bewahrung", Icon=4511812, Role="HEALER" },
+        { Name="Verstärkung", Icon=5198700, Role="DAMAGER" },
+    },
 }
 
 end
 
-if GetLocale() == "deDE" then
-	PawnUseThisLocalization()
-end
-
--- After using this localization or deciding that we don't need it, remove it from memory.
+-- Initiate self-destruct sequence.
+PawnUseThisLocalization()
 PawnUseThisLocalization = nil

@@ -184,6 +184,7 @@ function platerInternal.CreateDataTables(Plater)
         [205265] = true, -- Time-Displaced Trooper
         [213751] = true, -- Dynamite Mine Cart in Darkflame Cleft
         [233623] = true, -- Pyrotechnics add on Rik Reverb
+        [237967] = true, -- Discharged Giga Bomb on Gallywix myhtic
 	}
 
     --textures used in the cooldown animation, scripts can add more values to it, profile holds only the path to it
@@ -780,7 +781,6 @@ function platerInternal.CreateDataTables(Plater)
         UpdatePersonalBar = true, --update the personal bar
         UpdateResourceFrame = true, --anchors the resource frame (soul shards, combo points, etc)
         UpdateCastbarTargetText = true, --update the settings of the cast target (font color, size, etc)
-        UpdateSpellNameSize = true, --receive a fontString and set the length of the spell name size in the cast bar
         QuickHealthUpdate = true, --update the health bar during NAMEPLATE_ADDED
         OnUpdateHealth = true, --when the healthbar get a new health value
         OnUpdateHealthMax = true, --when the maxhealth of the healthbar get updated
@@ -805,8 +805,6 @@ function platerInternal.CreateDataTables(Plater)
         UpdateLifePercentVisibility = true, --control when the life percent text is shown
         UpdateLifePercentText = true, --update the health shown in the nameplate
         AddGuildNameToPlayerName = true, --adds the guild name into the player name
-        UpdateUnitName = true, --update the unit name
-        UpdateUnitNameTextSize = true, --controls the length of the unit name text
         UpdateBorderColor = true, --update the color of the border
         UpdatePlateBorderThickness = true, --adjust how thick is the border around the health bar
         UpdatePlateRaidMarker = true, --update the raid marker in the nameplate

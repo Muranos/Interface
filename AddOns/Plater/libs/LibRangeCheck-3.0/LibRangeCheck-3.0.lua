@@ -40,7 +40,7 @@ License: MIT
 -- @class file
 -- @name LibRangeCheck-3.0
 local MAJOR_VERSION = "LibRangeCheck-3.0"
-local MINOR_VERSION = 28
+local MINOR_VERSION = 33
 
 ---@class lib
 local lib, oldminor = LibStub:NewLibrary(MAJOR_VERSION, MINOR_VERSION)
@@ -48,9 +48,13 @@ if not lib then
   return
 end
 
+local interfaceVersion = select(4, GetBuildInfo())
+
 local isRetail = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
 local isEra = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
+local isTBC = WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC
 local isCata = WOW_PROJECT_ID == WOW_PROJECT_CATACLYSM_CLASSIC
+local isMidnight = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE and interfaceVersion >= 120000
 
 local InCombatLockdownRestriction = function(unit) return InCombatLockdown() and not UnitCanAttack("player", unit) end
 
@@ -224,6 +228,7 @@ if not isRetail then
 end
 
 tinsert(HarmSpells.MAGE, 44614) -- Flurry (40 yards)
+tinsert(HarmSpells.MAGE, 11366) -- Pyroblast (40 yards)
 tinsert(HarmSpells.MAGE, 5019) -- Shoot (30 yards)
 tinsert(HarmSpells.MAGE, 118) -- Polymorph (30 yards)
 tinsert(HarmSpells.MAGE, 116) -- Frostbolt (40 yards)
@@ -2194,7 +2199,6 @@ if isEra then
       233226, -- Ancient Zandalarian Rope
     },
     [35] = {
-      996,    -- Ring of Righteous Flame (TEST)
       1258,   -- Bind On Use Test Item
       1399,   -- Magic Candle
       1402,   -- Brimstone
@@ -4055,8 +4059,9 @@ local function getCachedRange(unit, noItems, maxCacheAge)
 
   -- compose cache key out of unit guid and noItems
   local guid = UnitGUID(unit)
-  local cacheKey = guid .. (noItems and "-1" or "-0")
-  local cacheItem = rangeCache[cacheKey]
+  -- unfortunately, caching on GUID is not possible due to secrets, using unit instead
+  local cacheKey = (isMidnight and issecretvalue(guid) and unit or guid) .. (noItems and "-1" or "-0")
+  local cacheItem = rangeCache[cacheKey] or nil
 
   local currentTime = GetTime()
 
@@ -4590,7 +4595,9 @@ function lib:activate()
     local frame = CreateFrame("Frame")
     self.frame = frame
 
-    frame:RegisterEvent("LEARNED_SPELL_IN_TAB")
+    if not (isMidnight or isTBC) then
+      frame:RegisterEvent("LEARNED_SPELL_IN_TAB")
+    end
     frame:RegisterEvent("CHARACTER_POINTS_CHANGED")
     frame:RegisterEvent("SPELLS_CHANGED")
 

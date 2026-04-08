@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Premade Groups Filter
 -------------------------------------------------------------------------------
--- Copyright (C) 2024 Bernhard Saumweber
+-- Copyright (C) 2026 Bernhard Saumweber
 --
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@ C.SPECIALIZATIONS = {
 
     [ 577] = { class = "DEMONHUNTER", spec = "HAVOC",         range = false, melee = true  },
     [ 581] = { class = "DEMONHUNTER", spec = "VENGEANCE",     range = false, melee = true  },
+    [1480] = { class = "DEMONHUNTER", spec = "DEVOURER",      range = true,  melee = true  }, -- /dump GetSpecializationInfoByID(1480)
 
     [ 102] = { class = "DRUID",       spec = "BALANCE",       range = true,  melee = false },
     [ 103] = { class = "DRUID",       spec = "FERAL",         range = false, melee = true  },
@@ -82,25 +83,27 @@ local specs = {}
 function PGF.InitSpecializations()
     for specID, specInfo in pairs(C.SPECIALIZATIONS) do
         local id, specLocalized, description, icon, role, class, classLocalized = GetSpecializationInfoByID(specID)
-        specs[specID] = {
-            specID = specID,
-            class = class, -- should be the same as specInfo.class
-            classLocalized = classLocalized,
-            classKeyword = string.format("%ss", class:lower()), -- "warriors"
-            spec = specInfo.spec,
-            specLocalized = specLocalized,
-            specKeyword = string.format("%s_%ss", specInfo.spec:lower(), class:lower()), -- "arms_warriors"
-            specIcon = icon,
-            role = role,
-            roleClassKeyword = string.format("%s_%ss", C.ROLE_PREFIX[role], class:lower()), -- "tank_warriors"
-            classRoleKeyword = string.format("%s_%s", class:lower(), C.ROLE_SUFFIX[role]), -- "warrior_tanks"
-            armor = C.DPS_CLASS_TYPE[class].armor,
-            range = specInfo.range or false,
-            melee = specInfo.melee or false,
-            classColor = RAID_CLASS_COLORS[class] or NORMAL_FONT_COLOR,
-            roleAtlas = C.ROLE_ATLAS_BORDERLESS[role],
-            roleMarkup = string.format("|A:%s:0:0:0:0|a", C.ROLE_ATLAS[role]),
-        }
+        if id then
+            specs[specID] = {
+                specID = specID,
+                class = class, -- should be the same as specInfo.class
+                classLocalized = classLocalized,
+                classKeyword = string.format("%ss", class:lower()), -- "warriors"
+                spec = specInfo.spec,
+                specLocalized = specLocalized,
+                specKeyword = string.format("%s_%ss", specInfo.spec:lower(), class:lower()), -- "arms_warriors"
+                specIcon = icon,
+                role = role,
+                roleClassKeyword = string.format("%s_%ss", C.ROLE_PREFIX[role], class:lower()), -- "tank_warriors"
+                classRoleKeyword = string.format("%s_%s", class:lower(), C.ROLE_SUFFIX[role]), -- "warrior_tanks"
+                armor = C.DPS_CLASS_TYPE[class].armor,
+                range = specInfo.range or false,
+                melee = specInfo.melee or false,
+                classColor = RAID_CLASS_COLORS[class] or NORMAL_FONT_COLOR,
+                roleAtlas = C.ROLE_ATLAS_BORDERLESS[role],
+                roleMarkup = string.format("|A:%s:0:0:0:0|a", C.ROLE_ATLAS[role]),
+            }
+        end
     end
 end
 
@@ -119,7 +122,13 @@ function PGF.GetSpecializationInfoByLocalizedName(class, specLocalized)
     return nil
 end
 
-function PGF.GetSpecializationInfoForUnit(unit)
-    local specID = GetInspectSpecialization(unit)
-    return specs[specID]
+function PGF.GetSpecializationInfoForPlayer()
+    local playerSpec = GetSpecialization() -- returns a number 0-4
+    if playerSpec then
+        local specID, localizedName, description, icon, role, primaryStat = GetSpecializationInfo(playerSpec)
+        -- role: "DAMAGER", "TANK", "HEALER"
+        -- primaryStat: 1=Strength, 2=Agility, 4=Intellect
+        return specs[specID]
+    end
+    return nil
 end

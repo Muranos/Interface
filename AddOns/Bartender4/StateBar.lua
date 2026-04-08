@@ -12,10 +12,12 @@ local table_insert, table_concat, fmt = table.insert, table.concat, string.forma
 -- GLOBALS: InCombatLockdown, GetNumShapeshiftForms
 -- GLOBALS: MainMenuBarArtFrame, OverrideActionBar, RegisterStateDriver, UnregisterStateDriver
 
+local GetSpecialization = C_SpecializationInfo and C_SpecializationInfo.GetSpecialization or GetSpecialization
+
 local WoWRetail = (WOW_PROJECT_ID == WOW_PROJECT_MAINLINE)
-local WoWBC = (WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC)
-local WoWWrath = (WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC)
-local WoWCata = (WOW_PROJECT_ID == WOW_PROJECT_CATACLYSM_CLASSIC)
+local WoWClassicEra = (WOW_PROJECT_ID == WOW_PROJECT_CLASSIC)
+local WoWBCC = (WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC)
+local WoWClassicMists = (WOW_PROJECT_ID == WOW_PROJECT_MISTS_CLASSIC)
 
 local StateBar = setmetatable({}, {__index = ButtonBar})
 local StateBar_MT = {__index = StateBar}
@@ -47,7 +49,7 @@ function Bartender4.StateBar:Create(id, config, name)
 	local bar = setmetatable(Bartender4.ButtonBar:Create(id, config, name), StateBar_MT)
 
 	if playerclass == "DRUID" then
-		if WoWRetail or WoWCata then
+		if not WoWClassicEra then
 			bar:RegisterEvent("PLAYER_TALENT_UPDATE")
 			bar:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
 		end
@@ -97,22 +99,28 @@ DefaultStanceMap = setmetatable({}, { __index = function(t,k)
 				-- prowl is virtual, no real stance
 			{ id = "prowl", name = ("%s (%s)"):format((Bartender4.Compat.GetSpellName(768)), (Bartender4.Compat.GetSpellName(5215))), index = false},
 			{ id = "moonkin", name = Bartender4.Compat.GetSpellName(24858), index = 4 },
-			(WoWBC or WoWWrath or WoWCata) and { id = "treeoflife", name = Bartender4.Compat.GetSpellName(33891), index = 2 } or nil,
+			(not WoWClassicEra and not WoWRetail) and { id = "treeoflife", name = Bartender4.Compat.GetSpellName(33891), index = 2 } or nil,
 		}
 	elseif k == "ROGUE" then
 		newT = {
 			{ id = "stealth", name = Bartender4.Compat.GetSpellName(1784), index = 1 },
-			(WoWWrath or WoWCata) and { id = "shadowdance", name = Bartender4.Compat.GetSpellName(51713), index = 2 } or nil,
+			(not WoWClassicEra and not WoWBCC and not WoWRetail) and { id = "shadowdance", name = Bartender4.Compat.GetSpellName(51713), index = 2 } or nil,
 		}
-	elseif k ==  "WARRIOR" then
+	elseif k ==  "WARRIOR" and not WoWClassicMists then
 		newT = {
 			{ id = "battle", name = Bartender4.Compat.GetSpellName(2457), index = 1 },
 			{ id = "def", name = Bartender4.Compat.GetSpellName(71), index = 2 },
 			{ id = "berserker", name = Bartender4.Compat.GetSpellName(2458), index = 3 },
 		}
-	elseif k == "PRIEST" and (WoWBC or WoWWrath or WoWCata) then
+	elseif k == "PRIEST" and (not WoWClassicEra and not WoWRetail) then
 		newT = {
 			{ id = "shadowform", name = Bartender4.Compat.GetSpellName(15473), index = 1 },
+		}
+	elseif k == "MONK" then
+		newT = {
+			{ id = "tiger", name = Bartender4.Compat.GetSpellName(103985), index = 1 },
+			{ id = "ox", name = Bartender4.Compat.GetSpellName(115069), index = 2 },
+			{ id = "serpent", name = Bartender4.Compat.GetSpellName(115070), index = 3 },
 		}
 	end
 	rawset(t, k, newT)

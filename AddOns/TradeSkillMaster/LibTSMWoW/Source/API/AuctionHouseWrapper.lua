@@ -432,6 +432,8 @@ function AuctionHouseWrapper.SendSearchQuery(itemKey, isSell)
 	end
 	assert(type(isSell) == "boolean")
 	if isSell then
+		-- FIX for 9.0.1 bug where MakeItemKey randomly adds an itemLevel which breaks scanning
+		itemKey.itemLevel = 0
 		return private.wrappers.SendSellSearchQuery:Start(itemKey, EMPTY_SORTS_TABLE, true)
 	else
 		return private.wrappers.SendSearchQuery:Start(itemKey, EMPTY_SORTS_TABLE, true)
@@ -591,7 +593,7 @@ end
 ---@param useEmptySorts boolean Use an empty sorts list
 ---@return boolean
 function AuctionHouseWrapper.SetSort(useEmptySorts)
-	if not LibTSMWoW.IsVanillaClassic() then
+	if not LibTSMWoW.IsVanillaClassic() and not LibTSMWoW.IsBCClassic() then
 		return true
 	end
 
@@ -750,7 +752,7 @@ function APIWrapper:_HandleAPICall(...)
 	local timeout = nil
 	if not DefaultUI.IsAuctionHouseVisible() then
 		timeout = 0
-	elseif self._name == "QueryAuctionItems" and select(7, ...) then
+	elseif (self._name == "QueryAuctionItems" and select(7, ...)) or self._name == "ReplicateItems" then
 		timeout = GET_ALL_TIMEOUT
 	else
 		timeout = API_TIMEOUT
@@ -981,7 +983,7 @@ function private.EventHandler(eventName, ...)
 		local genericEventArg = select(GENERIC_EVENTS[eventName], ...)
 		assert(genericEventArg)
 		genericEventArg = tostring(genericEventArg)
-		if not private.events[eventName][genericEventArg] then
+		if (ClientInfo.IsRetail() and issecretvalue(genericEventArg)) or not private.events[eventName][genericEventArg] then
 			return
 		end
 		private.EventHandlerHelper(private.events[eventName][genericEventArg], eventName, genericEventArg)

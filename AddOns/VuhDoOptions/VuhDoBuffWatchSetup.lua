@@ -119,13 +119,13 @@ local function VUHDO_addGenericBuffFrame(aBuffVariant, aFrameTemplateName, aCate
 		if (tGenericFrame == nil) then
 			tGenericFrame = CreateFrame("Frame", "$parentGenericPanel", tBuffPanel, aFrameTemplateName);
 		end
-		tGenericFrame:SetPoint("TOPLEFT", tBuffPanel:GetName(), "TOPLEFT", 0, -tInFrameY);
+		VUHDO_PixelUtil.SetPoint(tGenericFrame, "TOPLEFT", tBuffPanel:GetName(), "TOPLEFT", 0, -tInFrameY);
 		tInFrameY = tInFrameY + tGenericFrame:GetHeight() + 5;
 	end
 
 	VUHDO_buffSetupNewRowCheck(tBuffPanel:GetWidth(), tInFrameY);
-	tBuffPanel:SetPoint("TOPLEFT", "VuhDoNewOptionsBuffsGeneric", "TOPLEFT", VUHDO_BUFF_PANEL_X, -VUHDO_BUFF_PANEL_Y);
-	tBuffPanel:SetHeight(tInFrameY);
+	VUHDO_PixelUtil.SetPoint(tBuffPanel, "TOPLEFT", "VuhDoNewOptionsBuffsGeneric", "TOPLEFT", VUHDO_BUFF_PANEL_X, -VUHDO_BUFF_PANEL_Y);
+	VUHDO_PixelUtil.SetHeight(tBuffPanel, tInFrameY);
 	tBuffPanel:Show();
 
 	VUHDO_BUFF_PANEL_Y = VUHDO_BUFF_PANEL_Y + tInFrameY;
@@ -137,6 +137,7 @@ end
 
 --
 local function VUHDO_setupStaticBuffPanel(aCategoryName, aBuffPanel, anIsPresent)
+
 	local tBuffSettings;
 
 	if (VUHDO_BUFF_SETTINGS[aCategoryName] == nil) then
@@ -163,13 +164,14 @@ local function VUHDO_setupStaticBuffPanel(aCategoryName, aBuffPanel, anIsPresent
 	VUHDO_lnfSetModel(tMissButton, "VUHDO_BUFF_SETTINGS." .. aCategoryName .. ".missingColor.show");
 	VUHDO_lnfSetTooltip(tMissButton, VUHDO_I18N_TT.K386);
 	tMissButton:Hide();
-	tMissButton:Show();
 
 	local tMissTexture = _G[aBuffPanel:GetName() .. "MissingTexture"];
 	VUHDO_lnfSetModel(tMissTexture, "VUHDO_BUFF_SETTINGS." .. aCategoryName .. ".missingColor");
 	VUHDO_lnfSetTooltip(tMissTexture, VUHDO_I18N_TT.K385);
 	tMissTexture:Hide();
-	tMissTexture:Show();
+
+	return;
+
 end
 
 

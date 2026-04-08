@@ -928,6 +928,13 @@ local targetedSpells = {
     272571, -- 窒息之水
     257063, -- 盐渍飞弹
     256709, -- 钢刃之歌
+    -- 暴富矿区！！
+    263628, -- 充能护盾
+    -- 麦卡贡行动
+    1215411, -- 刺破
+    291928, -- 巨力震击
+    292264, -- 巨力震击
+    285152, -- 索敌击飞
 
     -- Shadowlands -----------------
     -- 通灵战潮 - Necrotic Wake
@@ -938,15 +945,21 @@ local targetedSpells = {
     333479, -- 吐疫
     -- 奈萨里奥的巢穴 - Castle Nathria
     344496, -- 震荡爆发 - Reverberating Eruption
-    -- Halls of Atonement
+    -- 赎罪大厅 - Halls of Atonement
     319941, -- 碎石之跃 - Stone Shattering Leap
+    325535, -- 射击
+    326829, -- 邪恶箭矢
+    338003, -- 邪恶箭矢
+    1235766, -- 致死打击
+    1237071, -- 石拳
+    322936, -- 粉碎砸击
     -- Mists of Tirna Scithe
     323057, -- 灵魂之箭
     321828, -- 拍手手
     322614, -- 心灵连接 - Mind Link
     463248, -- 排斥
     463217, -- 心能挥砍
-    -- De Other Side
+    -- 彼界 - De Other Side
     320132, -- 暗影之怒 - Shadowfury
     332234, -- 挥发精油 - Essential Oil
     -- Spires of Ascenscion
@@ -965,6 +978,19 @@ local targetedSpells = {
     -- 328429, -- 窒息勒压
     356924, -- 屠戮 - Carnage
     356666, -- 刺骨之寒 - Biting Cold
+    -- 塔扎维什：琳彩天街
+    352796, -- 代理打击
+    357512, -- 狂暴冲锋
+    347903, -- 垃圾邮件
+    354297, -- 凌光箭
+    353836, -- 凌光箭
+    1240912, -- 穿刺
+    350916, -- 安保猛击
+    350101, -- 诅咒锁链
+    355477, -- 强力脚踢
+    -- 塔扎维什：索·莉亚的宏图
+    355225, -- 水箭
+    356843, -- 盐渍飞弹
 
     -- Dragonflight ----------------
     -- 化身巨龙牢窟 - Vault of the Incarnates
@@ -1009,9 +1035,14 @@ local targetedSpells = {
     427583, -- 忏悔
     447270, -- 掷矛
     448515, -- 神圣审判
+    424421, -- 火球术
+    444743, -- 连珠火球
+    427357, -- 神圣惩击
+    462859, -- 随意射击
     -- 艾拉-卡拉，回响之城
     439506, -- 钻地冲击
     434786, -- 蛛网箭
+    438471, -- 贪食撕咬
     -- 矶石宝库
     429545, -- 噤声齿轮
     424888, -- 震地猛击
@@ -1021,6 +1052,8 @@ local targetedSpells = {
     431491, -- 污邪斩击
     451119, -- 深渊轰击
     431303, -- 暗夜箭
+    431333, -- 折磨射线
+    451107, -- 迸发虫茧
     -- 尼鲁巴尔王宫
     459524, -- 致命之箭
     -- 暗焰裂口
@@ -1033,6 +1066,31 @@ local targetedSpells = {
     439031, -- 干杯勾拳
     436592, -- 点钞大炮
     440134, -- 蜂蜜料汁
+    -- 驭雷栖巢
+    445457, -- 湮灭波
+    430109, -- 闪电箭
+    430238, -- 虚空箭
+    474031, -- 虚空碾压
+    430805, -- 弧形虚空
+    -- 水闸行动
+    1213805, -- 射钉枪
+    465595, -- 闪电箭
+    468631, -- 鱼叉
+    459779, -- 滚桶冲锋
+    459799, -- 重击
+    473690, -- 动能胶质炸药
+    473351, -- 电气重碾
+    469478, -- 淤泥之爪
+    466190, -- 雷霆重拳
+    1214468, -- 特技射击
+    -- 奥尔达尼生态圆顶
+    1229474, -- 啃噬
+    1235368, -- 奥术猛袭
+    1229510, -- 弧光震击
+    1222815, -- 奥术箭
+    1221483, -- 电弧能量
+    1219482, -- 裂隙利爪
+    1226111, -- 不稳定的喷发
 }
 
 function I.GetDefaultTargetedSpellsList()
@@ -1072,57 +1130,6 @@ function I.ConvertActions(db)
         temp[t[1]] = t[2]
     end
     return temp
-end
-
--------------------------------------------------
--- missing buffs, for indicator settings only
--------------------------------------------------
-local buffsOrder = {"PWF", "MotW", "AB", "BS", "BotB", "SF"}
-
-local missingBuffs = {
-    ["PWF"] = 21562,
-    ["MotW"] = 1126,
-    ["AB"] = 1459,
-    ["BS"] = 6673,
-    ["BotB"] = 364342,
-    ["SF"] = 462854
-}
-
-do
-    local temp = {}
-    for _, k in pairs(buffsOrder) do
-        local id = missingBuffs[k]
-        local name, icon = F.GetSpellInfo(id)
-        if name then
-            tinsert(temp, {
-                ["id"] = id,
-                ["name"] = name,
-                ["icon"] = icon,
-                ["index"] = k,
-            })
-        end
-    end
-    missingBuffs = temp
-end
-
-function I.GetDefaultMissingBuffs()
-    return missingBuffs
-end
-
-function I.GetMissingBuffsString()
-    local s = ""
-    for _, t in pairs(missingBuffs) do
-        s = s.."|T"..t["icon"]..":14:14:0:0:14:14:1:13:1:13|t".." "
-    end
-    return s
-end
-
-function I.GetMissingBuffsFilters()
-    local ret = {}
-    for _, t in pairs(missingBuffs) do
-        tinsert(ret, {"|T"..t["icon"]..":14:14:0:0:14:14:1:13:1:13|t "..t["name"], t["index"]})
-    end
-    return ret
 end
 
 -------------------------------------------------

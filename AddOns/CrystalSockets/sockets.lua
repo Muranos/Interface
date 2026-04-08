@@ -1,5 +1,5 @@
---     Crystal Sockets - A convenient way to display all your gem sockets.
---     Copyright (C) 2020  Nivix
+--     Crystal Sockets - A lightweight solution to show sockets and enchantments on your character sheet.
+--     Copyright (C) 2026  Nivix
 -- 
 --     This program is free software: you can redistribute it and/or modify
 --     it under the terms of the GNU General Public License as published by
@@ -17,56 +17,81 @@
 local Crystal = CrystalSocketsAddon;
 local sockets = Crystal.sockets;
 
-function sockets:isEmpty(itemLink)
-    local stats = GetItemStats(itemLink);
+local function numSockets(itemLink)
+    local stats = C_Item.GetItemStats(itemLink);
+	local num = 0;
     if stats ~= nil then
         for key, val in pairs(stats) do
-            if (string.find(key, "EMPTY_SOCKET_")) then
-                return true;
+            if key:find("EMPTY_SOCKET") then
+                num = num + val;
             end
         end
     end
-    return false;
+    return num;
 end
 
-function sockets.showGameTooltip(self, motion)
-    if self.link then
-        GameTooltip:SetOwner(self, "ANCHOR_TOPRIGHT");
-        GameTooltip:SetHyperlink(self.link);
-        GameTooltip:Show();
-    end
+local function showGameTooltip(frame, link)
+	if link then
+		GameTooltip:SetOwner(frame, "ANCHOR_TOPRIGHT");
+		GameTooltip:SetHyperlink(link);
+		GameTooltip:Show();
+	end
 end
 
-function sockets.hideGameTooltip(self, motion)
+local function hideGameTooltip()
     GameTooltip:Hide();
 end
 
-function sockets.setTooltip(slotID, gemLink)
-    Crystal.slots.info[slotID].socketFrame.link = gemLink;
-    Crystal.slots.info[slotID].socketFrame:SetScript("OnEnter", sockets.showGameTooltip);
-    Crystal.slots.info[slotID].socketFrame:SetScript("OnLeave", sockets.hideGameTooltip);
+local function setTooltip(frame, gemLink)
+    frame:SetScript("OnEnter", function() showGameTooltip(frame, gemLink); end);
+    frame:SetScript("OnLeave", function() hideGameTooltip(); end);
 end
 
-
-function sockets:setIcon(slotID, iconID, gemLink)
-    Crystal.slots.info[slotID].socketFrame.texture:SetTexture(iconID);
-    sockets.setTooltip(slotID, gemLink);
+local function setIcon(frame, iconID, gemLink)
+    frame.texture:SetTexture(iconID);
+    setTooltip(frame, gemLink);
 end
 
-function sockets:updateSocket(itemLink, slotID)
-    local _, gemLink = GetItemGem(itemLink, 1);
-    if gemLink ~= nil then
-        local gem = Item:CreateFromItemLink(gemLink);
-        gem:ContinueOnItemLoad(function() sockets:setIcon(slotID, gem:GetItemIcon(), gemLink); end);
+local function clear(frame)
+	setIcon(frame, nil, nil);
+end
+
+local function clearAll(frames)
+	for _, frame in ipairs(frames) do
+		clear(frame);
+	end
+end
+
+local function update(frames, itemLink)
+	local num = numSockets(itemLink);
+	for index, frame in ipairs(frames) do
+		if index > num then
+			clear(frame);
+		else
+			local _, gemLink = GetItemGem(itemLink, index);
+			if gemLink ~= nil then
+				local gem = Item:CreateFromItemLink(gemLink);
+				gem:ContinueOnItemLoad(function() setIcon(frame, gem:GetItemIcon(), gemLink); end);
+			else 
+				setIcon(frame, 458977, nil);
+			end
+		end
+	end
+end
+
+function sockets:update(slotID)
+	local frames = Crystal.slots.info[slotID].socketFrames;
+	local location = ItemLocation:CreateFromEquipmentSlot(slotID);
+    if not C_Item.DoesItemExist(location) then
+        clearAll(frames);
         return;
     end
-    if sockets:isEmpty(itemLink) then
-        sockets:setIcon(slotID, 458977, nil);
-        return;
-    end
-    sockets:setIcon(slotID, nil, nil);
+	local item = Item:CreateFromItemLocation(location);
+    item:ContinueOnItemLoad(function() update(frames, item:GetItemLink()); end);
 end
 
 function sockets:init()
     -- NOPE
 end
+
+

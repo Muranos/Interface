@@ -20,7 +20,7 @@ function AllTheThings_MinimapButtonOnClick(self, button)
 		-- Left Button
 		if IsShiftKeyDown() then
 			app.RefreshCollections();
-		elseif app.ToggleMiniListForCurrentZone and (IsAltKeyDown() or IsControlKeyDown()) then
+		elseif IsAltKeyDown() or IsControlKeyDown() then
 			app.ToggleMiniListForCurrentZone();
 		else
 			app.ToggleMainList();
@@ -31,16 +31,16 @@ function AllTheThings_MinimapButtonOnEnter(self, button)
 	GameTooltip:SetOwner(type(self) ~= "string" and self or button, "ANCHOR_LEFT");
 	GameTooltip:ClearLines();
 	GameTooltip:ClearATTReferenceTexture();
-	local reference = app:GetDataCache();
+	local reference = app:GetDatabaseRoot();
 	if reference then
 		GameTooltip:SetATTReferenceForTexture(reference);
-		
+
 		local left, right = DESCRIPTION_SEPARATOR:split(reference.title);
-		GameTooltip:AddDoubleLine(reference.text, reference.progressText, 1, 1, 1);
+		GameTooltip:AddDoubleLine(reference.text, reference.summaryText, 1, 1, 1);
 		GameTooltip:AddDoubleLine(left, right, 1, 1, 1);
 
 		local prime = app:GetWindow("Prime");
-		if prime and (prime.forceFullDataRefresh or (app.IsRetail and (not prime.data or not prime.data.TLUG))) then	-- NOTE: Retail uses TLUG.
+		if prime and (prime.HasPendingUpdate or (not prime.data or not prime.data.TLUG)) then
 			GameTooltip:AddDoubleLine(L["UPDATES_PAUSED"], L["MAIN_LIST_REQUIRES_REFRESH"], 1, 0.4, 0.4);
 		else
 			GameTooltip:AddLine(reference.description, 0.4, 0.8, 1, 1);
@@ -155,7 +155,12 @@ end
 
 -- Register with the Data Broker
 app.AddEventHandler("OnStartup", function()
-	LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject(L["TITLE"], {
+	if not LibStub then return end
+
+	local LDB = LibStub:GetLibrary("LibDataBroker-1.1", true)
+	if not LDB then return end
+
+	LDB:NewDataObject(L["TITLE"], {
 		type = "launcher",
 		icon = app.asset("logo_32x32"),
 		OnClick = AllTheThings_MinimapButtonOnClick,

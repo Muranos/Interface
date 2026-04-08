@@ -1,7 +1,7 @@
 ﻿-- Pawn by Vger-Azjol-Nerub
 -- www.vgermods.com
--- © 2006-2025 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
--- See Readme.htm for more information.
+-- © 2006-2026 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
+-- See Readme.md for more information.
 
 --
 -- Russian resources
@@ -71,7 +71,7 @@ www.vgermods.com
 /pawn debug [ on | off ] -- писать информацию отладки в консоль
 /pawn backup -- сделать резервную копию всех ваших шкал
  
-For more information on customizing Pawn, please see the help file (Readme.htm) that comes with the mod.
+For more information on customizing Pawn, please see the help file (Readme.md) that comes with the mod.
 ]=],
 	["ValueCalculationMessage"] = "   %g %s x %g каждый = %g",
 	["VisibleScalesHeader"] = "Шкалы %s",
@@ -124,12 +124,14 @@ For more information on customizing Pawn, please see the help file (Readme.htm) 
 		["MovementSpeedInfo"] = "Скорость передвижения. Увеличивает скорость передвижения вашего персонажа.",
 		["Mp5"] = "Маны в 5 сек",
 		["Mp5Info"] = "Восполнение маны за 5 секунд.  Влияет на восстановление маны даже в бою.",
+		["MultistrikeInfo"] = "Multistrike. Increases the chance that your attacks and healing spells will hit your target two extra times at reduced potency.",
 		["NatureResistInfo"] = "Сопротивление силам природы.  Понижает урон от атак и заклинаний в которых используются силы природы.",
 		["NatureSpellDamage"] = "Урон силами природы",
 		["NatureSpellDamageInfo"] = "Nature damage.  Increases the damage dealt by your nature spells.",
 		["ParryInfo"] = "Парирование.  Увеличивает шанс парирования атак противников.",
 		["Plate"] = "Латы",
 		["PlateInfo"] = "Очки присваиваются только если вещь - латные доспехи.",
+		["PvPPowerInfo"] = "PvP-сила. Усиливает ваши способности для нанесения урона другим игрокам (но не существам).",
 		["RapInfo"] = "Сила атаки дальнего боя.  Увеличивает урон физических атак дальнего боя.  Не включает в себя силу атаки полученную от Ловкости.",
 		["ResilienceInfo"] = "Resilience. Reduces the chance that you'll be critically hit, and decreases the damage of critical hits that you do take.",
 		["ShadowResistInfo"] = "Сопротивление темной магии.   Понижает урон от атак и заклинаний в которых используется темная магия.",
@@ -318,9 +320,7 @@ Pawn поставляется со шкалами с сайта Wowhead для �
 		["OptionsBagUpgradeAdvisor"] = "Отображать советника для сумок.",
 		["OptionsBagUpgradeAdvisorTooltip"] = [=[Включите данную опцию для того чтобы Pawn отображал стрелочки улучшений в сумках.
 
-Если включено, Pawn будет искать улучшения вещей в ваших сумках и отображать с помощью зеленой стрелочки.
-
-Если выключено, WoW сам будет отображать вещи с более высшим уровнем чем те которые на вас надеты и Pawn не будет вмешиваться в этот процесс.]=],
+Если включено, Pawn будет искать улучшения вещей в ваших сумках и отображать с помощью зеленой стрелочки.]=],
 		["OptionsBlankLine"] = "Добавить пустую строку перед значениями",
 		["OptionsBlankLineTooltip"] = "Позволяет добавить пустую строку перед значениями Pawn. Это позволяет сделать сообщения более читаемыми.",
 		["OptionsButtonHidden"] = "не отображать",
@@ -550,6 +550,7 @@ PawnLocal.TooltipParsing = {
 	["EnchantmentPyriumWeaponChain"] = "^Колчедановая цепь для оружия$",
 	["EnchantmentTitaniumWeaponChain"] = "^Титановая цепь для оружия$",
 	["Equip"] = "Если на персонаже:",
+	["Expertise"] = "^%+?# к мастерству$",
 	["ExpertiseClassic"] = "^Если на персонаже: Снижает вероятность того, что цель парирует ваши атаки или уклонится от них, на #%%%.$",
 	["ExpertiseRating"] = "^Если на персонаже: Повышает рейтинг мастерства на #%.$",
 	["ExpertiseRatingShort"] = "^%+?# к рейтингу мастерства$",
@@ -571,7 +572,7 @@ PawnLocal.TooltipParsing = {
 	["Haste2"] = "^%+?# к показателю скорости$",
 	["HasteClassic"] = "^Если на персонаже: Повышает скорость атаки на #%%%.$",
 	["HasteRating"] = "^Если на персонаже: Повышает рейтинг скорости боя на #%.$",
-	["HasteRating2"] = "^UNUSED$",
+	["HasteRating2"] = "^%+?# Скорость",
 	["HasteRatingShort"] = "^%+?# .?.?рейтингу? скорости$",
 	["HaventCollectedAppearance"] = "^У вас еще нет такой модели.$",
 	["Healing"] = "^%+# к исцеляющим заклинаниям$",
@@ -591,6 +592,7 @@ PawnLocal.TooltipParsing = {
 	["HitRating2"] = "^Если на персонаже: Увеличение рейтинга меткости на # ед%.$",
 	["HitRating3"] = "^UNUSED$",
 	["HitRatingShort"] = "^%+?# к рейтингу меткости$",
+	["HitRatingShorter"] = "^%+?# Меткость$",
 	["HolySpellDamage"] = "^%+# к урону от заклинаний светлой магии$",
 	["HolySpellDamage2"] = "^Если на персонаже: Увеличение урона, наносимого заклинаниями и эффектами светлой магии, на # ед%.$",
 	["HolySpellDamage3"] = "^Если на персонаже: Увеличение урона от светлой магии, действие до # ед%.$",
@@ -665,7 +667,7 @@ PawnLocal.TooltipParsing = {
 	["SpellDamageAndHealingEnchant"] = "^BUG IN GAME$",
 	["SpellDamageAndHealingShort"] = "^%+# к лечению и %+# к урону от заклинаний$",
 	["SpellDamageAndHealingShort2"] = "^UNUSED$",
-	["SpellHasteClassic"] = "^Если на персонаже: Повышает скорость применения заклинаний, не требующих поддержания, на #%%%.$",
+	["SpellHasteClassic"] = "^Если на персонаже: Скорость применения заклинаний повышается на #%%%.$",
 	["SpellHasteRating"] = "^Если на персонаже: Повышает рейтинг скорости заклинаний на #%.$",
 	["SpellHasteRatingShort"] = "^%+?# к рейтингу скорости заклинаний$",
 	["SpellHit"] = "^Если на персонаже: Повышение на #%% рейтинга меткости заклинаний%.$",
@@ -715,66 +717,72 @@ PawnLocal.TooltipParsing = {
 
 PawnLocal.Specs =
 {
-	[1] = {
-		{ Name="Оружие", Icon=132355, Role="DAMAGER" },
-		{ Name="Неистовство", Icon=132347, Role="DAMAGER" },
-		{ Name="Защита", Icon=132341, Role="TANK" },
-	},
-	[2] = {
-		{ Name="Свет", Icon=135920, Role="HEALER" },
-		{ Name="Защита", Icon=236264, Role="TANK" },
-		{ Name="Воздаяние", Icon=135873, Role="DAMAGER" },
-	},
-	[3] = {
-		{ Name="Повелитель зверей", Icon=461112, Role="DAMAGER" },
-		{ Name="Стрельба", Icon=236179, Role="DAMAGER" },
-		{ Name="Выживание", Icon=461113, Role="DAMAGER" },
-	},
-	[4] = {
-		{ Name="Ликвидация", Icon=236270, Role="DAMAGER" },
-		{ Name="Головорез", Icon=236286, Role="DAMAGER" },
-		{ Name="Скрытность", Icon=132320, Role="DAMAGER" },
-	},
-	[5] = {
-		{ Name="Послушание", Icon=135940, Role="HEALER" },
-		{ Name="Свет", Icon=237542, Role="HEALER" },
-		{ Name="Тьма", Icon=136207, Role="DAMAGER" },
-	},
-	[6] = {
-		{ Name="Кровь", Icon=135770, Role="TANK" },
-		{ Name="Лед", Icon=135773, Role="DAMAGER" },
-		{ Name="Нечестивость", Icon=135775, Role="DAMAGER" },
-	},
-	[7] = {
-		{ Name="Стихии", Icon=136048, Role="DAMAGER" },
-		{ Name="Совершенствование", Icon=237581, Role="DAMAGER" },
-		{ Name="Исцеление", Icon=136052, Role="HEALER" },
-	},
-	[8] = {
-		{ Name="Тайная магия", Icon=135932, Role="DAMAGER" },
-		{ Name="Огонь", Icon=135810, Role="DAMAGER" },
-		{ Name="Лед", Icon=135846, Role="DAMAGER" },
-	},
-	[9] = {
-		{ Name="Колдовство", Icon=136145, Role="DAMAGER" },
-		{ Name="Демонология", Icon=136172, Role="DAMAGER" },
-		{ Name="Разрушение", Icon=136186, Role="DAMAGER" },
-	},
-	[10] = {
-		{ Name="Хмелевар", Icon=608951, Role="TANK" },
-		{ Name="Ткач туманов", Icon=608952, Role="HEALER" },
-		{ Name="Танцующий с ветром", Icon=608953, Role="DAMAGER" },
-	},
-	[11] = {
-		{ Name="Баланс", Icon=136096, Role="DAMAGER" },
-		{ Name="Сила зверя", Icon=132115, Role="DAMAGER" },
-		{ Name="Страж", Icon=132276, Role="TANK" },
-		{ Name="Исцеление", Icon=136041, Role="HEALER" },
-	},
-	[12] = {
-		{ Name="Истребление", Icon=1247264, Role="DAMAGER" },
-		{ Name="Месть", Icon=1247265, Role="TANK" },
-	},
+    [1] = {
+        { Name="Оружие", Icon=132355, Role="DAMAGER" },
+        { Name="Неистовство", Icon=132347, Role="DAMAGER" },
+        { Name="Защита", Icon=132341, Role="TANK" },
+    },
+    [2] = {
+        { Name="Свет", Icon=135920, Role="HEALER" },
+        { Name="Защита", Icon=236264, Role="TANK" },
+        { Name="Воздаяние", Icon=135873, Role="DAMAGER" },
+    },
+    [3] = {
+        { Name="Повелитель зверей", Icon=461112, Role="DAMAGER" },
+        { Name="Стрельба", Icon=236179, Role="DAMAGER" },
+        { Name="Выживание", Icon=461113, Role="DAMAGER" },
+    },
+    [4] = {
+        { Name="Ликвидация", Icon=236270, Role="DAMAGER" },
+        { Name="Головорез", Icon=236286, Role="DAMAGER" },
+        { Name="Скрытность", Icon=132320, Role="DAMAGER" },
+    },
+    [5] = {
+        { Name="Послушание", Icon=135940, Role="HEALER" },
+        { Name="Свет", Icon=237542, Role="HEALER" },
+        { Name="Тьма", Icon=136207, Role="DAMAGER" },
+    },
+    [6] = {
+        { Name="Кровь", Icon=135770, Role="TANK" },
+        { Name="Лед", Icon=135773, Role="DAMAGER" },
+        { Name="Нечестивость", Icon=135775, Role="DAMAGER" },
+    },
+    [7] = {
+        { Name="Стихии", Icon=136048, Role="DAMAGER" },
+        { Name="Совершенствование", Icon=237581, Role="DAMAGER" },
+        { Name="Исцеление", Icon=136052, Role="HEALER" },
+    },
+    [8] = {
+        { Name="Тайная магия", Icon=135932, Role="DAMAGER" },
+        { Name="Огонь", Icon=135810, Role="DAMAGER" },
+        { Name="Лед", Icon=135846, Role="DAMAGER" },
+    },
+    [9] = {
+        { Name="Колдовство", Icon=136145, Role="DAMAGER" },
+        { Name="Демонология", Icon=136172, Role="DAMAGER" },
+        { Name="Разрушение", Icon=136186, Role="DAMAGER" },
+    },
+    [10] = {
+        { Name="Хмелевар", Icon=608951, Role="TANK" },
+        { Name="Ткач туманов", Icon=608952, Role="HEALER" },
+        { Name="Танцующий с ветром", Icon=608953, Role="DAMAGER" },
+    },
+    [11] = {
+        { Name="Баланс", Icon=136096, Role="DAMAGER" },
+        { Name="Сила зверя", Icon=132115, Role="DAMAGER" },
+        { Name="Страж", Icon=132276, Role="TANK" },
+        { Name="Исцеление", Icon=136041, Role="HEALER" },
+    },
+    [12] = {
+        { Name="Истребление", Icon=1247264, Role="DAMAGER" },
+        { Name="Месть", Icon=1247265, Role="TANK" },
+        { Name="Пожиратель", Icon=7455385, Role="DAMAGER" },
+    },
+    [13] = {
+        { Name="Опустошитель", Icon=4511811, Role="DAMAGER" },
+        { Name="Хранитель", Icon=4511812, Role="HEALER" },
+        { Name="Насыщатель", Icon=5198700, Role="DAMAGER" },
+    },
 }
 
 if VgerCore.IsBurningCrusade or VgerCore.IsWrath or VgerCore.IsCataclysm then
@@ -784,9 +792,6 @@ end
 
 end
 
-if GetLocale() == "ruRU" then
-	PawnUseThisLocalization()
-end
-
--- After using this localization or deciding that we don't need it, remove it from memory.
+-- Initiate self-destruct sequence.
+PawnUseThisLocalization()
 PawnUseThisLocalization = nil

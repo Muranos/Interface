@@ -4,7 +4,7 @@
 
 local mod, CL = BigWigs:NewBoss("Eye of Azshara Trash", 1456)
 if not mod then return end
-mod.displayName = CL.trash
+mod:SetTrashModule(true)
 mod:RegisterEnableMob(
 	100216, -- Hatecoil Wrangler
 	91783, -- Hatecoil Stormweaver
@@ -95,7 +95,8 @@ end
 
 -- Hatecoil Stormweaver
 function mod:Storm(args)
-	self:MessageOld(args.spellId, "yellow", "long", CL.casting:format(args.spellName))
+	self:Message(args.spellId, "yellow")
+	self:PlaySound(args.spellId, "info")
 end
 
 function mod:ArcLightning(args)
@@ -114,12 +115,21 @@ end
 
 -- Mak'rana Siltwalker
 function mod:SpraySand(args)
-	self:MessageOld(args.spellId, "yellow", "long", CL.casting:format(args.spellName))
+	self:Message(args.spellId, "yellow")
+	self:PlaySound(args.spellId, "alarm")
 end
 
 -- Restless Tides
-function mod:Undertow(args)
-	self:MessageOld(args.spellId, "yellow", "long", CL.casting:format(args.spellName))
+do
+	local prev = 0
+	function mod:Undertow(args)
+		local unit = self:UnitTokenFromGUID(args.sourceGUID)
+		if unit and UnitAffectingCombat(unit) and args.time - prev > 2 then -- filter RP casts
+			prev = args.time
+			self:Message(args.spellId, "yellow")
+			self:PlaySound(args.spellId, "long")
+		end
+	end
 end
 
 -- Hatecoil Arcanist

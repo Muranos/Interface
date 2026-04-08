@@ -8,7 +8,7 @@
 EditBox Widget
 -------------------------------------------------------------------------------]]
 --[[ s r
-local Type, Version = "EditBox", 28
+local Type, Version = "EditBox", 29
 ]]
 local Type, Version = "EditBox-OmniCDC", 1
 -- e
@@ -31,7 +31,11 @@ Support functions
 --[==[ s -r 31
 if not AceGUIEditBoxInsertLink then
 	-- upgradeable hook
-	hooksecurefunc("ChatEdit_InsertLink", function(...) return _G.AceGUIEditBoxInsertLink(...) end)
+	if ChatFrameUtil and ChatFrameUtil.InsertLink then
+		hooksecurefunc(ChatFrameUtil, "InsertLink", function(...) return _G.AceGUIEditBoxInsertLink(...) end)
+	elseif ChatEdit_InsertLink then
+		hooksecurefunc("ChatEdit_InsertLink", function(...) return _G.AceGUIEditBoxInsertLink(...) end)
+	end
 end
 
 function _G.AceGUIEditBoxInsertLink(text)
@@ -278,7 +282,7 @@ local function Constructor()
 	--[[ s r
 	local editbox = CreateFrame("EditBox", "AceGUI-3.0EditBox"..num, frame, "InputBoxTemplate")
 	]]
-	local editbox = CreateFrame("EditBox", "AceGUI-3.0EditBox-OmniCDC"..num, frame, BackdropTemplateMixin and "InputBoxTemplate, BackdropTemplate" or "InputBoxTemplate")
+	local editbox = CreateFrame("EditBox", "AceGUI-3.0EditBox-OmniCDC"..num, frame, "InputBoxTemplate, BackdropTemplate")
 	-- e
 	editbox:SetAutoFocus(false)
 	--[[ s r
@@ -327,7 +331,7 @@ local function Constructor()
 	--[[ s r
 	local button = CreateFrame("Button", nil, editbox, "UIPanelButtonTemplate")
 	]]
-	local button = CreateFrame("Button", nil, editbox, BackdropTemplateMixin and "UIPanelButtonTemplate, BackdropTemplate" or "UIPanelButtonTemplate")
+	local button = CreateFrame("Button", nil, editbox, "UIPanelButtonTemplate, BackdropTemplate")
 	-- e
 	button:SetWidth(40)
 	--[[ s r

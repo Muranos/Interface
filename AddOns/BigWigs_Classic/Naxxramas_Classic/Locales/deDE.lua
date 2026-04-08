@@ -4,8 +4,6 @@ if L then
 	L.add_death = "Tod eines Adds"
 	L.add_death_desc = "Warnt, wenn ein Add stirbt."
 
-	L.wave = "%d/22: %s"
-
 	L.trainee = "Lehrling" -- Unrelenting Trainee NPC 16124
 	L.deathKnight = "Todesritter" -- Unrelenting Death Knight NPC 16125
 	L.rider = "Reiter" -- Unrelenting Rider NPC 16126
@@ -39,7 +37,7 @@ if L then
 	L.stage2_yell_trigger1 = "Betet um Gnade!"
 	L.stage2_yell_trigger2 = "Schreiend werdet ihr diese Welt verlassen!"
 	L.stage2_yell_trigger3 = "Euer Ende ist gekommen!"
-	L.stage3_yell_trigger = "Meister, ich benötige Beistand."
+	L.stage3_yell_trigger = "Meister, helft mir!"
 	L.adds_yell_trigger = "Wohlan, Krieger der Eisigen Weiten, erhebt euch! Ich befehle euch für euren Meister zu kämpfen, zu töten und zu sterben! Keiner darf überleben!"
 end
 

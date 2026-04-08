@@ -19,7 +19,6 @@ L["After disabling the Extra Action Bar, you should reload your UI to fully rese
 L["Alignment of the text"] = "Allineamento del testo"
 L["Alpha"] = "Opacità"
 L["ALT"] = "ALT"
-L["Alternatively, you can also find us on the |cffffff78WoWUIDev Discord|r"] = "Oppure, puoi trovarci anche sul server Discord |cffffff78WoWUIDev Discord|r"
 L["Always Hide"] = "Sempre Nascosto"
 L["Anchor"] = "Ancoraggio"
 L["Anchor point"] = "Punto Ancoraggio"

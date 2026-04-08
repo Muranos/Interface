@@ -12,8 +12,6 @@ if not C_Garrison then
 end
 
 -- WoW API Cache
-local GetItemInfo = app.WOWAPI.GetItemInfo;
-local GetItemIcon = app.WOWAPI.GetItemIcon;
 
 local select, setmetatable, pairs
 	= select, setmetatable, pairs
@@ -52,25 +50,11 @@ do
 			return t.info.lore;
 		end,
 	},
-	"Recipe", {
+	"RecipeItem", {
+		ImportFrom = "Item",
+		ImportFields = { "name", "link", "icon", "specs", "tsm", "costCollectibles", "AsyncRefreshFunc" },
 		description = function()
 			return L.GARRISON_BUILDINGS_REQUIRE_GARRISON
-		end,
-		icon = function(t)
-			return GetItemIcon(t.itemID) or t.info.icon;
-		end,
-		link = function(t)
-			return select(2, GetItemInfo(t.itemID)) or RETRIEVING_DATA;
-		end,
-		name = function(t)
-			return GetItemInfo(t.itemID) or t.info.name;
-		end,
-		tsm = function(t)
-			---@diagnostic disable-next-line: undefined-field
-			return ("i:%d"):format(t.itemID);
-		end,
-		f = function(t)
-			return app.FilterConstants.RECIPES;
 		end,
 		-- we collect the "Recipes" to know how to build the buildings
 		collectible = function(t) return app.Settings.Collectibles.Recipes; end,
@@ -78,7 +62,8 @@ do
 			return app.TypicalCharacterCollected(CACHE, t[KEY])
 		end,
 	}, (function(t) return t.itemID; end));
-
+	
+	app.AddGenericFieldConverter(KEY);
 	app.AddEventHandler("OnRefreshCollections", function()
 		local state
 		local saved, none = {}, {}
@@ -209,28 +194,33 @@ do
 			-- character collected
 			if app.IsCached(CACHE, id) then return 1; end
 		end,
-
-		app.AddEventHandler("OnRefreshCollections", function()
-			local state
-			local saved = {}
-			for id,_ in pairs(app.GetRawFieldContainer(KEY)) do
-				-- this returns false when wrong SL covenant, so we can't clear followers once cached for a character
-				state = C_Garrison_IsFollowerCollected(id)
-				if state then
-					saved[id] = true
-				end
-			end
-			-- Character Cache
-			app.SetBatchCached(CACHE, saved, 1)
-			-- Account Cache (removals handled by Sync)
-			app.SetBatchAccountCached(CACHE, saved, 1)
-		end);
-		app.AddEventHandler("OnSavedVariablesAvailable", function(currentCharacter, accountWideData)
-			if not currentCharacter[CACHE] then currentCharacter[CACHE] = {} end
-			if not accountWideData[CACHE] then accountWideData[CACHE] = {} end
-		end);
-		app.AddSimpleCollectibleSwap(CLASSNAME, CACHE)
 	});
+	
+	app.AddGenericFieldConverter(KEY);
+	app.AddEventHandler("OnRefreshCollections", function()
+		local state
+		local saved = {}
+		for id,_ in pairs(app.GetRawFieldContainer(KEY)) do
+			-- this returns false when wrong SL covenant, so we can't clear followers once cached for a character
+			state = C_Garrison_IsFollowerCollected(id)
+			if state then
+				saved[id] = true
+			end
+		end
+		-- Character Cache
+		app.SetBatchCached(CACHE, saved, 1)
+		-- Account Cache (removals handled by Sync)
+		app.SetBatchAccountCached(CACHE, saved, 1)
+	end);
+	app.AddEventHandler("OnSavedVariablesAvailable", function(currentCharacter, accountWideData)
+		if not currentCharacter[CACHE] then currentCharacter[CACHE] = {} end
+		if not accountWideData[CACHE] then accountWideData[CACHE] = {} end
+	end);
+	app.AddSimpleCollectibleSwap(CLASSNAME, CACHE)
+	app.AddEventHandler("OnLoad", function()
+		app.AddDynamicCategoryHeader({ id = "followerID", name = GARRISON_FOLLOWERS, icon = app.asset("Category_Followers") });
+		app.AddRandomSearchCategory("Followers", "followerID", L.FOLLOWERS, L.FOLLOWER_DESC, app.asset("Category_Followers"));
+	end);
 end
 
 -- Subroutines
@@ -248,7 +238,8 @@ local function common_wod_dungeon_drop_tw(ResolveFunctions)
 	local select, pop, where = ResolveFunctions.select, ResolveFunctions.pop, ResolveFunctions.where;
 	return function(finalized, searchResults, o, cmd, difficultyID, headerID)
 		select(finalized, searchResults, o, "select", "headerID", app.HeaderConstants.COMMON_DUNGEON_DROPS);	-- Common Dungeon Drops
-		where(finalized, searchResults, o, "where", "e", 1271);	-- only the Common Dungeon Drops which is marked as TIMEWALKING
+		pop(finalized, searchResults);	-- Discard the Header and acquire all of their children.
+		where(finalized, searchResults, o, "where", "difficultyID", difficultyID);
 		pop(finalized, searchResults);	-- Discard the Header and acquire all of their children.
 		where(finalized, searchResults, o, "where", "headerID", headerID);	-- Head/Shoulder/Chest/Legs/Feet/Wrist/Hands/Waist
 	end

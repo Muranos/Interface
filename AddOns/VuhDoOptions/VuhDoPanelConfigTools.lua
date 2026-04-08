@@ -1,19 +1,30 @@
 local _;
 VUHDO_GLOBAL_ICONS = { };
 
-local GI_SCAN_MAX = 200001;
-VUHDO_GI_SCAN_IDX = GI_SCAN_MAX;
+local VUHDO_GI_SCAN_MAX = 1600001;
+VUHDO_GI_SCAN_IDX = VUHDO_GI_SCAN_MAX;
+
+local VUHDO_GI_SCAN_SKIPS = {
+	[1213133] = 1049296,
+	[1049295] = 936051,
+	[936050] = 556606,
+	[556604] = 474771,
+};
 
 local GetSpellInfo = GetSpellInfo or VUHDO_getSpellInfo;
-local GetSpellName = C_Spell.GetSpellName;
 local GetSpellBookItemTexture = GetSpellBookItemTexture or VUHDO_getSpellBookItemTexture;
 local pairs = pairs;
 
 
+
 --
 function VUHDO_removeFromModel(aPanelNum, anOrderNum)
+
 	tremove(VUHDO_PANEL_MODELS[aPanelNum], anOrderNum);
 	VUHDO_initDynamicPanelModels();
+
+	return;
+
 end
 
 
@@ -106,20 +117,6 @@ end
 
 
 --
-local tSpellNameById;
-function VUHDO_resolveSpellId(aSpellName)
-	if tonumber(aSpellName or "x") then
-		tSpellNameById = GetSpellName(tonumber(aSpellName));
-		if tSpellNameById then
-			return tSpellNameById;
-		end
-	end
-	return aSpellName;
-end
-
-
-
---
 local tText, tTextById, tLabel;
 function VUHDO_newOptionsSpellEditBoxCheckId(anEditBox)
 	tLabel = _G[anEditBox:GetName() .. "Hint"];
@@ -138,18 +135,22 @@ end
 
 --
 local VUHDO_USED_BUFFS = { };
+local tSpell;
+local tSpellId;
+local tIcon;
 function VUHDO_updateGlobalIconList()
+
 	table.wipe(VUHDO_USED_BUFFS);
 
 	-- Add custom debuffs
-	for _, tName in pairs(VUHDO_CONFIG["CUSTOM_DEBUFF"]["STORED"]) do
-		VUHDO_USED_BUFFS[tName] = true;
-	end
+	--for _, tName in pairs(VUHDO_CONFIG["CUSTOM_DEBUFF"]["STORED"]) do
+	--	VUHDO_USED_BUFFS[tName] = true;
+	--end
 
 	-- Add spell traces
-	for _, tName in pairs(VUHDO_CONFIG["SPELL_TRACE"]["STORED"]) do
-		VUHDO_USED_BUFFS[tName] = true;
-	end
+	--for _, tName in pairs(VUHDO_CONFIG["SPELL_TRACE"]["STORED"]) do
+	--	VUHDO_USED_BUFFS[tName] = true;
+	--end
 
 	-- Add bouquet item buffs
 	for _, tItems in pairs(VUHDO_BOUQUETS["STORED"]) do
@@ -170,9 +171,53 @@ function VUHDO_updateGlobalIconList()
 		end
 	end
 
-	-- Add standard ignore debuffs
-	for tName, _  in pairs(VUHDO_DEBUFF_BLACKLIST) do
-		VUHDO_USED_BUFFS[tName] = true;
+	-- Add global aura ignores
+	for tName, _  in pairs(VUHDO_AURA_IGNORE_LIST) do
+		tSpell = tostring(tName);
+
+		VUHDO_USED_BUFFS[tSpell] = true;
+	end
+
+	-- Add spell entries from list type aura groups (defaults)
+	-- Add auras from filter type aura group ignore lists
+	for _, tGroup in pairs(VUHDO_DEFAULT_AURA_GROUPS) do
+		if (tGroup["type"] or 1) == VUHDO_AURA_GROUP_TYPE_LIST and tGroup["entries"] then
+			for _, tEntry in ipairs(tGroup["entries"]) do
+				if tEntry["entryType"] == VUHDO_AURA_LIST_ENTRY_SPELL then
+					tSpell = tostring(tEntry["value"]);
+
+					VUHDO_USED_BUFFS[tSpell] = true;
+				end
+			end
+		elseif (tGroup["type"] or 1) == VUHDO_AURA_GROUP_TYPE_FILTER and tGroup["ignoreList"] then
+			for tName, _ in pairs(tGroup["ignoreList"]) do
+				tSpell = tostring(tName);
+
+				VUHDO_USED_BUFFS[tSpell] = true;
+			end
+		end
+	end
+
+	-- Add spell entries from list type aura groups (custom)
+	-- Add auras from filter type aura group ignore lists (custom)
+	if VUHDO_CONFIG["AURA_GROUPS"] then
+		for _, tGroup in pairs(VUHDO_CONFIG["AURA_GROUPS"]) do
+			if (tGroup["type"] or 1) == VUHDO_AURA_GROUP_TYPE_LIST and tGroup["entries"] then
+				for _, tEntry in ipairs(tGroup["entries"]) do
+					if tEntry["entryType"] == VUHDO_AURA_LIST_ENTRY_SPELL then
+						tSpell = tostring(tEntry["value"]);
+
+						VUHDO_USED_BUFFS[tSpell] = true;
+					end
+				end
+			elseif (tGroup["type"] or 1) == VUHDO_AURA_GROUP_TYPE_FILTER and tGroup["ignoreList"] then
+				for tName, _ in pairs(tGroup["ignoreList"]) do
+					tSpell = tostring(tName);
+
+					VUHDO_USED_BUFFS[tSpell] = true;
+				end
+			end
+		end
 	end
 
 	-- Remove obsolete
@@ -185,14 +230,20 @@ function VUHDO_updateGlobalIconList()
 	-- Add new
 	for tName, _ in pairs(VUHDO_USED_BUFFS) do
 		if (VUHDO_GLOBAL_ICONS[tName] == nil) then
-			if tonumber(tName) then
-				local _, _, tIcon = GetSpellInfo(tonumber(tName));
+			tSpellId = tonumber(tName);
+
+			if tSpellId then
+				_, _, tIcon = GetSpellInfo(tSpellId);
+
 				VUHDO_GLOBAL_ICONS[tName] = tIcon;
 			else
 				VUHDO_GLOBAL_ICONS[tName] = "";
 			end
 		end
 	end
+
+	return;
+
 end
 
 
@@ -211,20 +262,32 @@ end
 --
 local tStep = 50;
 local tRef;
-local tName, _, tIcon;
+local tName;
+local tIcon;
 local function VUHDO_scanNextGlobalIcons()
+
 	if not VUHDO_tableContains(VUHDO_GLOBAL_ICONS, "") then
 		return;
 	end
+
 	tRef = VUHDO_GLOBAL_ICONS;
-	for tCnt = VUHDO_GI_SCAN_IDX + tStep , VUHDO_GI_SCAN_IDX, -1 do
+
+	for tCnt = VUHDO_GI_SCAN_IDX + tStep, VUHDO_GI_SCAN_IDX, -1 do
 		tName, _, tIcon = GetSpellInfo(tCnt);
-		if tRef[tName] == "" then tRef[tName] = tIcon; end
+
+		if tRef[tName] == "" then
+			tRef[tName] = tIcon;
+		end
+
+		tCnt = VUHDO_GI_SCAN_SKIPS[tCnt] or tCnt;
 	end
 
 	VUHDO_GI_SCAN_IDX = VUHDO_GI_SCAN_IDX - tStep;
 
-	if VUHDO_GI_SCAN_IDX < 1 then VUHDO_GI_SCAN_IDX = GI_SCAN_MAX; end
+	if VUHDO_GI_SCAN_IDX < 1 then
+		VUHDO_GI_SCAN_IDX = VUHDO_GI_SCAN_MAX;
+	end
+
 end
 
 

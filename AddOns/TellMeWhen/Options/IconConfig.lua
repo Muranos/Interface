@@ -19,6 +19,7 @@ local print = TMW.print
 local IE = TMW.IE
 local CI = TMW.CI
 
+local issecretvalue = TMW.issecretvalue
 local GetSpellInfo = TMW.GetSpellInfo
 
 
@@ -57,7 +58,12 @@ local TabGroup = TMW.IE:RegisterTabGroup("ICON", L["ICON"], 1, function(tabGroup
 			end
 		end
 
-		IE.icontexture:SetTexture(icon.attributes.texture)
+		local texture = icon.attributes.texture
+		if issecretvalue(texture) then
+			-- Don't taint the icon editor with secrets
+			texture = nil
+		end
+		IE.icontexture:SetTexture(texture)
 	end
 end)
 TabGroup:SetTexts(L["ICON"], L["TABGROUP_ICON_DESC"])
@@ -215,7 +221,7 @@ end
 ----------------------
 function IE:IconType_DropDown()
 	for _, typeData in ipairs(TMW.OrderedTypes) do
-		if CI.ics.Type == typeData.type or not TMW.get(typeData.hidden) then
+		if CI.ics.Type == typeData.type or (not TMW.get(typeData.hidden) and not typeData.obsolete) then
 			if typeData.menuSpaceBefore then
 				TMW.DD:AddSpacer()
 			end
@@ -389,8 +395,17 @@ function IE:TooltipAddSpellBreakdown(tbl)
 	local i = 1
 	
 	while i <= #tbl do
-		while _G["GameTooltipTextLeft" .. numLines]:GetStringWidth() < longest and i <= #tbl do
-			local fs = _G["GameTooltipTextLeft" .. numLines]
+		local fs = _G["GameTooltipTextLeft" .. numLines]
+
+		-- Clear lingering secret aspect that might be present from combat state
+		fs:SetText("")
+
+		if issecretvalue(fs:GetStringWidth()) then
+			GameTooltip:AddLine("<secret tooltip error>", NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b, nil)
+			break
+		end
+
+		while fs:GetStringWidth() < longest and i <= #tbl do
 			local s = tostring(tbl[i]):trim(" ")
 			if fs:GetText() == nil then
 				GameTooltip:AddLine(s, NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b, nil)

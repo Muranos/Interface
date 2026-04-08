@@ -351,7 +351,7 @@ L["OPTIONS_THREAT_PULL_FROM_ANOTHER_TANK"] = "Pulling From Another Tank"
 L["OPTIONS_THREAT_PULL_FROM_ANOTHER_TANK_TANK"] = "The unit has aggro on another tank and you're about to pull it."
 L["OPTIONS_THREAT_USE_AGGRO_FLASH"] = "Enable aggro flash"
 L["OPTIONS_THREAT_USE_AGGRO_FLASH_DESC"] = "Enables the -AGGRO- flash animation on the nameplates when gaining aggro as dps."
-L["OPTIONS_THREAT_USE_AGGRO_GLOW"] = "Enable aggro glow"
+L["OPTIONS_THREAT_USE_AGGRO_GLOW"] = "Enable health bar aggro glow"
 L["OPTIONS_THREAT_USE_AGGRO_GLOW_DESC"] = "Enables the healthbar glow on the nameplates when gaining aggro as dps or losing aggro as tank."
 L["OPTIONS_THREAT_USE_SOLO_COLOR"] = "Solo Color"
 L["OPTIONS_THREAT_USE_SOLO_COLOR_DESC"] = "Use the 'Solo' color when not in a group."
@@ -404,6 +404,8 @@ L["TARGET_OVERLAY_TEXTURE_DESC"] = "Used above the health bar when it is the cur
 ------------------------------------------------------------
 L["A /reload may be required to take effect."] = "A /reload may be required to take effect."
 L["CVar, saved within Plater profile and restored when loading the profile."] = "CVar, saved within Plater profile and restored when loading the profile."
+--[[Translation missing --]]
+L["DISABLE_TESTING_AURAS"] = ""
 L["EXPORT"] = "Export"
 L["EXPORT_CAST_COLORS"] = "Share Colors"
 L["EXPORT_CAST_SOUNDS"] = "Share Sounds"
@@ -744,7 +746,7 @@ L["OPTIONS_THREAT_PULL_FROM_ANOTHER_TANK"] = "Pulling From Another Tank"
 L["OPTIONS_THREAT_PULL_FROM_ANOTHER_TANK_TANK"] = "The unit has aggro on another tank and you're about to pull it."
 L["OPTIONS_THREAT_USE_AGGRO_FLASH"] = "Enable aggro flash"
 L["OPTIONS_THREAT_USE_AGGRO_FLASH_DESC"] = "Enables the -AGGRO- flash animation on the nameplates when gaining aggro as dps."
-L["OPTIONS_THREAT_USE_AGGRO_GLOW"] = "Enable aggro glow"
+L["OPTIONS_THREAT_USE_AGGRO_GLOW"] = "Enable health bar aggro glow"
 L["OPTIONS_THREAT_USE_AGGRO_GLOW_DESC"] = "Enables the healthbar glow on the nameplates when gaining aggro as dps or losing aggro as tank."
 L["OPTIONS_THREAT_USE_SOLO_COLOR"] = "Solo Color"
 L["OPTIONS_THREAT_USE_SOLO_COLOR_DESC"] = "Use the 'Solo' color when not in a group."
@@ -768,6 +770,12 @@ L[ [=[Show nameplate for friendly npcs.
 |cFFFFFF00 Important |r: This option is dependent on the client`s nameplate state (on/off).
 
 |cFFFFFF00 Important |r: when disabled but enabled on the client through (%s), the healthbar isn't visible but the nameplate is still clickable.]=]
+--[[Translation missing --]]
+L[ [=[Show nameplate for friendly npcs.
+
+|cFFFFFF00 Important |r: This option is dependent on the client`s nameplate state (on/off).
+
+|cFFFFFF00 Important |r: when disabled but enabled on the client through (%s), the healthbar isn't visible but the nameplate is still clickable.]=] ] = ""
 L["TARGET_CVAR_ALWAYSONSCREEN"] = "Target Always on the Screen|cFFFF7700*|r"
 L["TARGET_CVAR_ALWAYSONSCREEN_DESC"] = [=[When enabled, the nameplate of your target is always shown even when the enemy isn't in the screen.
 

@@ -25,14 +25,14 @@ local function createNewButtonSet(path, name, order)
 	-- Create the group
 	path[name] = {
 		order = order,
-		name = addon.OPT_MORE_BUTTONS_VALUES[name],
+		name = addon.OPT_MORE_BUTTONS_VALUES[name] or name,
 		desc = "",
 		type = "group",
 		inline = true,
 		args = {
 			optionsDesc = {
 				order = 0,
-				name = format(L["opt_buttonsGroup_desc"], addon.OPT_MORE_BUTTONS_VALUES[name]),
+				name = format(L["opt_buttonsGroup_desc"], addon.OPT_MORE_BUTTONS_VALUES[name] or "error"),
 				type = "description",
 				width = "double",
 			},
@@ -254,6 +254,8 @@ local function processAndSortPlayerTable(names,keyToGUID, textColorOnly)
 	return names
 end
 
+local function autopassDisabled() return not addon.db.profile.autoPass end
+
 local selections = {}
 function addon:OptionsTable()
 	---@type AceConfigOptionsTable
@@ -375,7 +377,7 @@ function addon:OptionsTable()
 								args = {
 									autoPass = {
 										order = 1,
-										name = L["Auto Pass"],
+										name = L.opt_autoPass_name,
 										desc = L["auto_pass_desc"],
 										type = "toggle",
 									},
@@ -384,37 +386,42 @@ function addon:OptionsTable()
 										name = L["Auto Pass Trinkets"],
 										desc = L["auto_pass_trinket_desc"],
 										type = "toggle",
+										disabled = autopassDisabled,
 									},
 									silentAutoPass = {
 										order = 3,
 										name = L["Silent Auto Pass"],
 										desc = L["silent_auto_pass_desc"],
 										type = "toggle",
+										disabled = autopassDisabled,
 									},
 									autoPassBoE = {
 										order = 4,
 										name = L["Auto pass BoE"],
 										desc = L["auto_pass_boe_desc"],
 										type = "toggle",
+										disabled = autopassDisabled,
 									},
 									autoPassTransmog = {
 										order = 5,
 										name = L["Auto Pass Transmog"],
 										desc = L["auto_pass_transmog_desc"],
 										type = "toggle",
+										disabled = autopassDisabled,
 									},
 									autoPassTransmogSource = {
 										order = 6,
 										name = L["Auto Pass Transmog Source"],
 										desc = L["auto_pass_transmog_source_desc"],
 										type = "toggle",
-										disabled = function() return self.db.profile.autoPassTransmog end
+										disabled = function() return autopassDisabled() or self.db.profile.autoPassTransmog end
 									},
 									autoPassWeapons = {
 										order = 7,
 										name = L.opt_autoPassWeapons_name,
 										desc = L.opt_autoPassWeapons_desc,
 										type = "toggle",
+										disabled = autopassDisabled,
 									},
 									printResponse = {
 										order = 8,
@@ -477,6 +484,12 @@ function addon:OptionsTable()
 										name = L.opt_timeoutFlash_name,
 										desc = L.opt_timeoutFlash_desc,
 										type = "toggle"
+									},
+									blockTradesInVoting = {
+										order = 7.5,
+										name = L.opt_blockTradesInVoting_name,
+										desc = L.opt_blockTradesInVoting_desc,
+										type = "toggle",
 									},
 									chatFrameName = {
 										order = 8,
@@ -648,47 +661,47 @@ function addon:OptionsTable()
 											selections.deleteDate = "" -- Barrow: Needs to be reset.
 										end,
 									},
-									deletePatch = {
-										order = 16,
-										name = L["Patch"],
-										desc = L["opt_deletePatch_desc"],
-										type = "select",
-										width = "double",
-										values = {
-											[1607385600] = "Castle Nathria Release",
-											[1606176000] = "Shadowlands Launch",
-											[1602547200] = "Patch 9.0.1 (Shadowlands)",
-											[1579593600] = "Ny'alotha the Waking City raid",
-											[1578988800] = "Patch 8.3.0 (Visions of N'Zoth)",
-											-- [1562644800] = "Azshara's Eternal Palace raid",
-											-- [1561521600] = "Patch 8.2.0 (Rise of Azshara)",
-											-- [1544515200] = "Patch 8.1.0",
-											-- [1534154400] = "Patch 8.0.1 (Battle for Azeroth)",
-											-- [1510225200] = "Patch 7.3.2 (Tier 21)",
-											-- [1497348000] = "Patch 7.2.5 (Tier 20)",
-											-- [1484650800] = "Patch 7.1.5 (Tier 19)",
-										},
-										get = function(info)
-											return selections[info[#info]] or ""
-										end,
-										set = function(info, val)
-											selections[info[#info]] = val
-										end,
-									},
-									deletePatchBtn = {
-										order = 17,
-										name = _G.DELETE,
-										type = "execute",
-										confirm = function() return L["opt_deletePatch_confirm"] end,
-										func = function(info)
-											if not selections.deletePatch then
-												addon:Print(L["Invalid selection"])
-												return
-											end
-											self:GetActiveModule("history"):DeleteEntriesOlderThanEpoch(selections.deletePatch)
-											selections.deletePatch = "" -- Barrow: Needs to be reset.
-										end,
-									},
+									-- deletePatch = {
+									-- 	order = 16,
+									-- 	name = L["Patch"],
+									-- 	desc = L["opt_deletePatch_desc"],
+									-- 	type = "select",
+									-- 	width = "double",
+									-- 	values = {
+									-- 		[1607385600] = "Castle Nathria Release",
+									-- 		[1606176000] = "Shadowlands Launch",
+									-- 		[1602547200] = "Patch 9.0.1 (Shadowlands)",
+									-- 		[1579593600] = "Ny'alotha the Waking City raid",
+									-- 		[1578988800] = "Patch 8.3.0 (Visions of N'Zoth)",
+									-- 		-- [1562644800] = "Azshara's Eternal Palace raid",
+									-- 		-- [1561521600] = "Patch 8.2.0 (Rise of Azshara)",
+									-- 		-- [1544515200] = "Patch 8.1.0",
+									-- 		-- [1534154400] = "Patch 8.0.1 (Battle for Azeroth)",
+									-- 		-- [1510225200] = "Patch 7.3.2 (Tier 21)",
+									-- 		-- [1497348000] = "Patch 7.2.5 (Tier 20)",
+									-- 		-- [1484650800] = "Patch 7.1.5 (Tier 19)",
+									-- 	},
+									-- 	get = function(info)
+									-- 		return selections[info[#info]] or ""
+									-- 	end,
+									-- 	set = function(info, val)
+									-- 		selections[info[#info]] = val
+									-- 	end,
+									-- },
+									-- deletePatchBtn = {
+									-- 	order = 17,
+									-- 	name = _G.DELETE,
+									-- 	type = "execute",
+									-- 	confirm = function() return L["opt_deletePatch_confirm"] end,
+									-- 	func = function(info)
+									-- 		if not selections.deletePatch then
+									-- 			addon:Print(L["Invalid selection"])
+									-- 			return
+									-- 		end
+									-- 		self:GetActiveModule("history"):DeleteEntriesOlderThanEpoch(selections.deletePatch)
+									-- 		selections.deletePatch = "" -- Barrow: Needs to be reset.
+									-- 	end,
+									-- },
 									deleteRaid = {
 										order = 20,
 										name = _G.INSTANCE,
@@ -1046,17 +1059,24 @@ function addon:OptionsTable()
 										desc = L["opt_autoAddPets_desc"],
 										type = "toggle",
 										get = function()
-											return not
-												addon.blacklistedItemClasses[Enum.ItemClass.Miscellaneous][Enum.ItemMiscellaneousSubclass.CompanionPet]
-
-
+											return not addon.blacklistedItemClasses[Enum.ItemClass.Miscellaneous][Enum.ItemMiscellaneousSubclass.CompanionPet]
 										end,
 										set = function(_, val)
-											addon.blacklistedItemClasses[Enum.ItemClass.Miscellaneous][Enum.ItemMiscellaneousSubclass.CompanionPet] = not
-
-												val
-
+											addon.blacklistedItemClasses[Enum.ItemClass.Miscellaneous][Enum.ItemMiscellaneousSubclass.CompanionPet] = not val
 										end
+									},
+									lootDecor = {
+										order = 6.6,
+										name = L.opt_lootDecor_name,
+										desc = L.opt_lootDecor_desc,
+										type = "toggle",
+										get = function()
+											return not addon.blacklistedItemClasses[Enum.ItemClass.Housing].all
+										end,
+										set = function(_, val)
+											addon.blacklistedItemClasses[Enum.ItemClass.Housing].all = not val
+										end,
+										hidden = function() return WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE end,
 									},
 									printCompletedTrades = {
 										order = 7,
@@ -1081,7 +1101,7 @@ function addon:OptionsTable()
 										name = L.opt_autoGroupLoot_name,
 										desc = L.opt_autoGroupLoot_desc,
 										type = "toggle"
-									}
+									},									
 								},
 							},
 							voteOptions = {
@@ -1140,6 +1160,7 @@ function addon:OptionsTable()
 								name = L["Ignore Options"],
 								type = "group",
 								inline = true,
+								hidden = function() return WOW_PROJECT_ID == WOW_PROJECT_MAINLINE end,
 								args = {
 									desc = {
 										order = 1,
@@ -1663,7 +1684,47 @@ function addon:OptionsTable()
 										min = 0,
 										max = self.db.profile.maxButtons,
 										step = 1,
-									}
+									},
+									moreInfoRaidDesc = {
+										order = 3,
+										type = "description",
+										name = L.opt_moreInfo_onlyShowRaids_desc,
+										disabled = function() return self.db.profile.numMoreInfoButtons == 0 end,
+									},
+									moreInfoRaids = {
+										order = 3.1,
+										name = L.opt_moreInfo_onlyShowRaids_name,
+										type = "multiselect",
+										control = "Dropdown",
+										width = "full",
+										values = function()
+											local registeredInstances = addon:GetActiveModule "history":GetAllRegisteredInstances()
+											-- Check for new registered instances that should be enabled if we're already filtering by raids
+											if next(self.db.profile.registeredInstances) then
+												for k in pairs(registeredInstances) do
+													if not self.db.profile.registeredInstances[k] then
+														-- A new instance was logged! Enable it by default
+														self.db.profile.moreInfoRaids[k] = true
+													end
+												end
+											end
+											-- Also remove instances that no longer exist in history
+											for k in pairs(self.db.profile.moreInfoRaids) do
+												if not registeredInstances[k] then
+													self.db.profile.moreInfoRaids[k] = nil
+												end
+											end
+											self.db.profile.registeredInstances = registeredInstances
+
+											return registeredInstances
+										end,
+										get = function(info, val) return self.db.profile.moreInfoRaids[val] end,
+										set = function(info, key, val)
+											self.db.profile.moreInfoRaids[key] = val or nil
+											self:ConfigTableChanged(info[#info])
+										end,
+										disabled = function() return self.db.profile.numMoreInfoButtons == 0 end,
+									},
 								},
 							},
 							responseFromChat = {
@@ -2074,6 +2135,7 @@ function addon:OptionsTable()
 				RAID_WARNING = _G.CHAT_MSG_RAID_WARNING,
 				group = _G.GROUP,
 				chat = L["Chat print"],
+				WHISPER = L.opt_announceAward_WHISPER_WINNER,
 			},
 			set = function(j,v) self.db.profile.awardText[i].channel = v	end,
 			get = function() return self.db.profile.awardText[i].channel end,

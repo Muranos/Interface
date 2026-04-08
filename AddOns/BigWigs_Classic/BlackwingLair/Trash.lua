@@ -4,7 +4,7 @@
 
 local mod, CL = BigWigs:NewBoss("Blackwing Lair Trash", 469)
 if not mod then return end
-mod.displayName = CL.trash
+mod:SetTrashModule(true)
 if mod:GetSeason() == 2 then
 	mod:RegisterEnableMob(
 		12460, -- Death Talon Wyrmguard
@@ -33,6 +33,7 @@ end
 --
 
 local buffList = {}
+local vulnerabilityThrottle = {}
 local arcaneBombMarker
 local naturesFuryMarker
 
@@ -82,7 +83,7 @@ if mod:GetSeason() == 2 then
 			369330, -- Rain of Fire
 			{466357, "SAY", "SAY_COUNTDOWN", "ME_ONLY_EMPHASIZE"}, -- Arcane Bomb
 			arcaneBombMarker,
-			{466435, "SAY", "SAY_COUNTDOWN", "ME_ONLY_EMPHASIZE"}, -- Nature's Fury
+			{466435, "SAY", "SAY_COUNTDOWN", "ME_ONLY_EMPHASIZE", "ME_ONLY"}, -- Nature's Fury
 			naturesFuryMarker,
 		},{
 			[22291] = L.wyrmguard_overseer,
@@ -90,6 +91,7 @@ if mod:GetSeason() == 2 then
 			[466357] = CL.general,
 		},{
 			[22291] = L.sandstorm, -- Brood Power: Bronze (Sandstorm)
+			[466357] = CL.soak, -- Arcane Bomb (Soak)
 		}
 	end
 elseif mod:Vanilla() then
@@ -118,6 +120,7 @@ function mod:OnRegister()
 end
 
 function mod:OnBossEnable()
+	vulnerabilityThrottle = {}
 	self:Log("SPELL_AURA_APPLIED", "BroodPowerBronzeApplied", 22291)
 	self:Log("SPELL_AURA_REFRESH", "BroodPowerBronzeApplied", 22291)
 	self:Log("SPELL_AURA_REMOVED", "BroodPowerBronzeRemoved", 22291)
@@ -148,30 +151,43 @@ end
 
 --[[ Death Talon Wyrmguard / Death Talon Overseer ]]--
 
-function mod:BroodPowerBronzeApplied(args)
-	self:TargetBar(args.spellId, 5, args.destName, L.sandstorm)
-	if self:Me(args.destGUID) then
-		self:PersonalMessage(args.spellId, nil, L.sandstorm)
-		self:Say(args.spellId, L.sandstorm, nil, "Sandstorm")
-		self:CancelSayCountdown(args.spellId)
-		self:SayCountdown(args.spellId, 5)
-		self:PlaySound(args.spellId, "warning", nil, args.destName)
-	else
-		local unit = self:GetUnitIdByGUID(args.sourceGUID)
-		if unit and self:UnitWithinRange(unit, 10) then
-			self:PersonalMessage(args.spellId, "near", L.sandstorm)
-			self:PlaySound(args.spellId, "warning")
+do
+	local playerList = {}
+	function mod:BroodPowerBronzeApplied(args)
+		local throttle = false
+		if playerList[args.destGUID] and args.time - playerList[args.destGUID] < 3 then
+			throttle = true
 		else
-			self:TargetMessage(args.spellId, "orange", args.destName, L.sandstorm)
+			playerList[args.destGUID] = args.time
+		end
+
+		self:TargetBar(args.spellId, 5, args.destName, L.sandstorm)
+		if self:Me(args.destGUID) then
+			self:CancelSayCountdown(args.spellId)
+			self:SayCountdown(args.spellId, 5)
+			if not throttle then
+				self:PersonalMessage(args.spellId, nil, L.sandstorm)
+				self:Say(args.spellId, L.sandstorm, nil, "Sandstorm")
+				self:PlaySound(args.spellId, "warning", nil, args.destName)
+			end
+		elseif not throttle then
+			local unit = self:GetUnitIdByGUID(args.sourceGUID)
+			if unit and self:UnitWithinRange(unit, 10) then
+				self:PersonalMessage(args.spellId, "near", L.sandstorm)
+				self:PlaySound(args.spellId, "warning")
+			else
+				self:TargetMessage(args.spellId, "orange", args.destName, L.sandstorm)
+			end
 		end
 	end
-end
 
-function mod:BroodPowerBronzeRemoved(args)
-	if self:Me(args.destGUID) then
-		self:CancelSayCountdown(args.spellId)
+	function mod:BroodPowerBronzeRemoved(args)
+		playerList[args.destGUID] = nil
+		if self:Me(args.destGUID) then
+			self:CancelSayCountdown(args.spellId)
+		end
+		self:StopBar(L.sandstorm, args.destName)
 	end
-	self:StopBar(L.sandstorm, args.destName)
 end
 
 do
@@ -183,13 +199,14 @@ do
 		if guid ~= prevGUID then
 			local npcId = self:MobId(guid)
 			if npcId == 12460 or npcId == 12461 then -- Death Talon Wyrmguard, Death Talon Overseer
-				if self:Vanilla() and not self:UnitDebuff("target", 2855) then
+				if self:Vanilla() and not self:GetPlayerAura(2855, "target") then
 					if not printed then
 						printed = true
 						BigWigs:Print(L.detect_magic_warning)
 					end
-					if GetTime() - prevMsg > 40 and self:GetHealth("target") > 5 then
-						prevMsg = GetTime()
+					local t = GetTime()
+					if t - prevMsg > 40 and self:GetHealth("target") > 5 then
+						prevMsg = t
 						local icon = self:GetIconTexture(self:GetIcon("target"))
 						if icon then
 							self:Message("target_vulnerability", "red", icon.. L.detect_magic_missing_message, 2855)
@@ -200,13 +217,19 @@ do
 					return
 				end
 				for buffId, message in next, buffList do
-					if self:UnitBuff("target", buffId) then
+					if self:GetPlayerAura(buffId, "target") then
 						prevGUID = guid
 						local icon = self:GetIconTexture(self:GetIcon("target"))
+						local msg
 						if icon then
-							self:Message("target_vulnerability", "yellow", icon.. message, 22277)
+							msg = icon.. message
 						else
-							self:Message("target_vulnerability", "yellow", message, 22277)
+							msg = message
+						end
+						local t = GetTime()
+						if not vulnerabilityThrottle[guid] or msg ~= vulnerabilityThrottle[guid][1] or (t - vulnerabilityThrottle[guid][2]) > 4 then
+							vulnerabilityThrottle[guid] = {msg, t}
+							self:Message("target_vulnerability", "yellow", msg, 22277)
 						end
 						return
 					end
@@ -230,7 +253,7 @@ end
 do
 	local prev = 0
 	function mod:RainOfFireDamage(args)
-		if self:Me(args.destGUID) and args.time - prev > 2 then
+		if self:Me(args.destGUID) and args.time - prev > 3 then
 			prev = args.time
 			self:PersonalMessage(args.spellId, "aboveyou")
 			self:PlaySound(args.spellId, "underyou")
@@ -241,21 +264,21 @@ end
 --[[ Season of Discovery ]]--
 
 function mod:ArcaneBombApplied(args)
-	self:TargetMessage(args.spellId, "orange", args.destName)
-	self:TargetBar(args.spellId, 8, args.destName)
+	self:TargetMessage(args.spellId, "orange", args.destName, CL.soak)
+	self:TargetBar(args.spellId, 8, args.destName, CL.soak)
 	self:CustomIcon(arcaneBombMarker, args.destName, 6)
 	if self:Me(args.destGUID) then
-		self:Yell(args.spellId, CL.rticon:format(args.spellName, 6), nil, "Arcane Bomb ({rt6})")
-		self:YellCountdown(args.spellId, 8, 6, 6)
+		self:Yell(args.spellId, CL.rticon:format(CL.soak, 6), nil, "Soak ({rt6})")
+		self:YellCountdown(args.spellId, 8, 6, 5)
+		self:PlaySound(args.spellId, "warning", nil, args.destName)
 	end
-	self:PlaySound(args.spellId, "warning", nil, args.destName)
 end
 
 function mod:ArcaneBombRemoved(args)
 	if self:Me(args.destGUID) then
 		self:CancelYellCountdown(args.spellId)
 	end
-	self:StopBar(args.spellName, args.destName)
+	self:StopBar(CL.soak, args.destName)
 	self:CustomIcon(arcaneBombMarker, args.destName)
 end
 

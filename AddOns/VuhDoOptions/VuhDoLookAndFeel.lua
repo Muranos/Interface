@@ -10,6 +10,8 @@ local pairs = pairs;
 local ipairs = ipairs;
 local GetSpellName = C_Spell.GetSpellName;
 local GetMouseFocus = GetMouseFocus or VUHDO_getMouseFocus;
+local GetSpellIDForSpellIdentifier = C_Spell and C_Spell.GetSpellIDForSpellIdentifier;
+local GetSpellAuraSecrecy = C_Secrets and C_Secrets.GetSpellAuraSecrecy;
 
 
 
@@ -109,6 +111,64 @@ BACKDROP_VUHDO_PANEL_APPEND_BOTTOM_16_16_1111 = {
 };
 
 local tIsInCustomFunction = false;
+
+
+
+--
+local tSpellId;
+local tSecrecy;
+function VUHDO_checkSpellSecrecy(aSpellText)
+
+	if not GetSpellAuraSecrecy then
+		return 0;
+	end
+
+	tSpellId = GetSpellIDForSpellIdentifier and GetSpellIDForSpellIdentifier(aSpellText) or tonumber(aSpellText);
+
+	if not tSpellId then
+		return 0;
+	end
+
+	tSecrecy = GetSpellAuraSecrecy(tSpellId);
+
+	if tSecrecy == 1 then
+		VUHDO_Msg(VUHDO_I18N_AURA_GROUP_SPELL_ALWAYS_SECRET, 1, 0.3, 0.3);
+
+		return 1;
+	end
+
+	if tSecrecy == 2 then
+		VUHDO_Msg(VUHDO_I18N_AURA_GROUP_SPELL_CONTEXT_SECRET, 1, 0.3, 0.3);
+	end
+
+	return 0;
+
+end
+
+
+
+--
+local tSpellId;
+local tSecrecy;
+function VUHDO_getSpellAuraSecrecy(aSpellText)
+
+	if not GetSpellAuraSecrecy then
+		return 0;
+	end
+
+	tSpellId = GetSpellIDForSpellIdentifier and GetSpellIDForSpellIdentifier(aSpellText) or tonumber(aSpellText);
+
+	if not tSpellId then
+		return 0;
+	end
+
+	tSecrecy = GetSpellAuraSecrecy(tSpellId);
+
+	return tSecrecy or 0;
+
+end
+
+
 
 --
 function VUHDO_lnfCheckButtonOnLoad(aCheckButton)
@@ -348,31 +408,61 @@ end
 
 
 --
+local tComboBox;
+local tTooltip;
 function VUHDO_lnfComboItemOnEnter(aComboItem)
-	local tComboBox = aComboItem.parentCombo;
+
+	tComboBox = aComboItem["parentCombo"];
+
 	if IsMouseButtonDown() and not tComboBox["isMulti"] then
 		VUHDO_lnfComboSetSelectedValue(tComboBox, aComboItem:GetAttribute("value"));
 	end
+
 	aComboItem:SetBackdropColor(0.8, 0.8, 1, 1);
 
 	if not tComboBox["isMulti"] then
 		_G[aComboItem:GetName() .. "Icon"]:SetScale(2);
-		_G[aComboItem:GetName() .. "Icon"]:SetPoint("RIGHT", aComboItem:GetName(), "RIGHT", -10, 0);
+
+		VUHDO_PixelUtil.SetPoint(_G[aComboItem:GetName() .. "Icon"], "RIGHT", aComboItem:GetName(), "RIGHT", -10, 0);
 	end
+
+	tTooltip = aComboItem:GetAttribute("tooltip");
+
+	if tTooltip then
+		VuhDoOptionsTooltipTextText:SetText(tTooltip);
+
+		VUHDO_PixelUtil.SetHeight(VuhDoOptionsTooltip, VuhDoOptionsTooltipTextText:GetHeight() + 10);
+		VuhDoOptionsTooltip:ClearAllPoints();
+		VUHDO_PixelUtil.SetPoint(VuhDoOptionsTooltip, "TOPLEFT", aComboItem:GetName(), "TOPRIGHT", 3, 0);
+		VuhDoOptionsTooltip:Show();
+	end
+
+	return;
+
 end
 
 
 
 --
+local tComboBox;
 function VUHDO_lnfComboItemOnLeave(aComboItem)
-	if aComboItem.parentCombo["isScrollable"] then aComboItem:SetBackdropColor(0, 0, 0, 0);
-	else aComboItem:SetBackdropColor(1, 1, 1, 1); end
 
-	local tComboBox = aComboItem.parentCombo;
+	if aComboItem["parentCombo"]["isScrollable"] then
+		aComboItem:SetBackdropColor(0, 0, 0, 0);
+	else
+		aComboItem:SetBackdropColor(1, 1, 1, 1);
+	end
+
+	tComboBox = aComboItem["parentCombo"];
 	if not tComboBox["isMulti"] then
 		_G[aComboItem:GetName() .. "Icon"]:SetScale(1);
-		_G[aComboItem:GetName() .. "Icon"]:SetPoint("RIGHT", aComboItem:GetName(), "RIGHT", -6, 0);
+		VUHDO_PixelUtil.SetPoint(_G[aComboItem:GetName() .. "Icon"], "RIGHT", aComboItem:GetName(), "RIGHT", -6, 0);
 	end
+
+	VuhDoOptionsTooltip:Hide();
+
+	return;
+
 end
 
 
@@ -485,10 +575,16 @@ do
 			tTableIndices = VUHDO_splitString(aModel, ".");
 			tGlobal = _G[tTableIndices[1]];
 			tLastField = tGlobal;
+
+			if not tGlobal and #tTableIndices > 1 then
+				return;
+			end
+
 			tEnd = #tTableIndices - 1;
 
 			for tCnt = 2, tEnd do
 				tIndex = tTableIndices[tCnt];
+
 				if VUHDO_NUM_TEMPLATE == tIndex then
 					tIndex = aPanelNum;
 					tPanelNum = aPanelNum;
@@ -497,8 +593,14 @@ do
 				end
 
 				tLastField = tLastField[tIndex];
+
+				if not tLastField then
+					return;
+				end
 			end
+
 			tLastIndex = tTableIndices[#tTableIndices];
+
 			if VUHDO_NUM_TEMPLATE == tLastIndex then
 				tLastIndex = aPanelNum;
 				tPanelNum = aPanelNum;
@@ -514,6 +616,10 @@ do
 
 			if not InCombatLockdown() then
 				if VUHDO_RESET_SIZES then VUHDO_resetSizeCalcCaches(); end
+
+				if strfind(aModel, "AURA_ANCHORS", 1, true) then
+					VUHDO_incrementAuraAnchorConfigVersion();
+				end
 
 				if strfind(aModel, "VUHDO_OPTIONS_SETTINGS.", 1, true)
 					or strfind(aModel, "INTERNAL_MODEL_", 1, true) then
@@ -614,6 +720,10 @@ do
 			tGlobal = _G[tTableIndices[1]];
 			tLastField = tGlobal;
 
+			if not tGlobal then
+				return nil;
+			end
+
 			for tCnt = 2, #tTableIndices - 1 do
 				tIndex = tTableIndices[tCnt];
 
@@ -625,6 +735,10 @@ do
 				end
 
 				tLastField = tLastField[tIndex];
+
+				if not tLastField then
+					return nil;
+				end
 			end
 
 			tLastIndex = tTableIndices[#tTableIndices];
@@ -770,25 +884,29 @@ local function VUHDO_triStateSetSelected(aCheckButton)
 	local tTexture = _G[aCheckButton:GetName() .. "TextureCheckMark"];
 	local tLabel = _G[aCheckButton:GetName() .. "Label2"];
 
+	if not tValue then
+		tValue = 2;
+	end
+
 	tTexture:ClearAllPoints();
 
 	if 3 == tValue then
-		tTexture:SetPoint("BOTTOMLEFT", aCheckButton:GetName(), "BOTTOMLEFT", 5, 0);
+		VUHDO_PixelUtil.SetPoint(tTexture, "BOTTOMLEFT", aCheckButton:GetName(), "BOTTOMLEFT", 5, 0);
 		_G[tTexture:GetName() .. "Texture"]:SetVertexColor(1, 0.4, 0.4, 1);
 		tLabel:SetTextColor(0.6, 0, 0, 1);
 
 	elseif 2 == tValue then
-		tTexture:SetPoint("LEFT", aCheckButton:GetName(), "LEFT", 5, 0);
+		VUHDO_PixelUtil.SetPoint(tTexture, "LEFT", aCheckButton:GetName(), "LEFT", 5, 0);
 		_G[tTexture:GetName() .. "Texture"]:SetVertexColor(1, 1, 0.4, 1);
 		tLabel:SetTextColor(0, 0, 0.6, 1);
 
 	else
-		tTexture:SetPoint("TOPLEFT", aCheckButton:GetName(), "TOPLEFT", 5, 0);
+		VUHDO_PixelUtil.SetPoint(tTexture, "TOPLEFT", aCheckButton:GetName(), "TOPLEFT", 5, 0);
 		_G[tTexture:GetName() .. "Texture"]:SetVertexColor(0.4, 1, 0.4, 1);
 		tLabel:SetTextColor(0, 0.6, 0, 1);
 	end
 
-	tLabel:SetText(aCheckButton:GetAttribute("radio_value")[tValue]);
+	tLabel:SetText((aCheckButton:GetAttribute("radio_value") or { "", "", "" })[tValue] or "");
 end
 
 
@@ -891,7 +1009,12 @@ end
 
 -- ComboBox
 --
--- tInfo = { Value, Text/Texture }
+-- combo_table entry position meanings:
+-- 1: value (required) - the data value stored when this item is selected
+-- 2: label (required) - display text shown in the dropdown
+-- 3: (reserved/unused)
+-- 4: iconSource (optional) - icon texture source, falls back to label if not provided
+-- 5: tooltip (optional) - tooltip text shown when hovering over this item
 local VUHDO_COMBO_ITEM_WIDTH;
 local VUHDO_COMBO_ITEM_HEIGHT;
 local VUHDO_COMBO_ITEMS_PER_COL;
@@ -906,10 +1029,14 @@ local tYIdx;
 local tMaxY;
 local tHeight;
 local tSpellId;
+local tIconSource;
 function VUHDO_lnfComboInitItems(aComboBox)
+
 	tTable = aComboBox:GetAttribute("combo_table");
 
-	if not tTable then return; end
+	if not tTable then
+		return;
+	end
 
 	tXIdx = 0;
 	tYIdx = 0;
@@ -924,6 +1051,7 @@ function VUHDO_lnfComboInitItems(aComboBox)
 	end
 
 	tCnt = 1;
+
 	for tIndex, tInfo in ipairs(tTable) do
 		if aComboBox["isScrollable"] then
 			tItemName = aComboBox:GetName() .. "ScrollPanelSelectPanelItem" .. tIndex;
@@ -933,6 +1061,7 @@ function VUHDO_lnfComboInitItems(aComboBox)
 
 		if not _G[tItemName] then
 			tItemPanel = CreateFrame("Frame", tItemName, tItemContainer, "VuhdoComboItemTemplate");
+
 			if aComboBox["isMulti"] then
 				_G[tItemName .. "CheckTextureTexture"]:SetTexture("Interface\\AddOns\\VuhDoOptions\\Images\\icon_check");
 			else
@@ -946,42 +1075,73 @@ function VUHDO_lnfComboInitItems(aComboBox)
 		end
 
 		tItemPanel:ClearAllPoints();
-		if (type(tInfo[2]) == "string") then
-			tSpellId = VUHDO_getNumbersFromString(tInfo[2], 1)[1];
-			if tSpellId then tSpellId = tostring(tSpellId); end
 
-			_G[tItemPanel:GetName() .. "IconTexture"]:SetTexture(VUHDO_getGlobalIcon(tSpellId or tInfo[2]));
+		if (type(tInfo[2]) == "string") then
+			tIconSource = tInfo[4] or tInfo[2];
+			tSpellId = VUHDO_getNumbersFromString(tIconSource, 1)[1];
+
+			if tSpellId then
+				tSpellId = tostring(tSpellId);
+			end
+
+			_G[tItemPanel:GetName() .. "IconTexture"]:SetTexture(VUHDO_getGlobalIcon(tSpellId or tIconSource));
 			_G[tItemPanel:GetName() .. "IconTexture"]:SetTexCoord(0, 1, 0, 1);
 			_G[tItemPanel:GetName() .. "LabelLabel"]:SetText(tInfo[2]);
+
 			VUHDO_COMBO_ITEM_HEIGHT = 16;
-			VUHDO_COMBO_ITEM_WIDTH = 220;
+
+			if aComboBox["isScrollable"] and aComboBox["isResizeable"] then
+				VUHDO_COMBO_ITEM_WIDTH = math.max(100, aComboBox:GetWidth() - 30);
+			else
+				VUHDO_COMBO_ITEM_WIDTH = 220;
+			end
+
+			if aComboBox["isScrollable"] and aComboBox["isResizeable"] then
+				VUHDO_PixelUtil.SetWidth(_G[tItemPanel:GetName() .. "Label"], VUHDO_COMBO_ITEM_WIDTH - 41);
+			end
+
 			VUHDO_COMBO_ITEMS_PER_COL = 25;
 		else
 			_G[tItemPanel:GetName() .. "IconTexture"]:SetTexture(_G[tInfo[2]:GetName() .. "I"]:GetTexture());
 			_G[tItemPanel:GetName() .. "IconTexture"]:SetTexCoord(_G[tInfo[2]:GetName() .. "I"]:GetTexCoord());
-			_G[tItemPanel:GetName() .. "Icon"]:SetWidth(30);
-			_G[tItemPanel:GetName() .. "Icon"]:SetHeight(30);
+
+			VUHDO_PixelUtil.SetWidth(_G[tItemPanel:GetName() .. "Icon"], 30);
+			VUHDO_PixelUtil.SetHeight(_G[tItemPanel:GetName() .. "Icon"], 30);
+
 			VUHDO_COMBO_ITEM_HEIGHT = 34;
 			VUHDO_COMBO_ITEM_WIDTH = 50;
 			VUHDO_COMBO_ITEMS_PER_COL = 3;
 		end
 
-		tItemPanel:SetPoint("TOPLEFT", tItemContainer:GetName(), "TOPLEFT", 3 + tXIdx * VUHDO_COMBO_ITEM_WIDTH, - (3 + tYIdx * VUHDO_COMBO_ITEM_HEIGHT));
-		tItemPanel:SetWidth(VUHDO_COMBO_ITEM_WIDTH);
-		tItemPanel:SetHeight(VUHDO_COMBO_ITEM_HEIGHT);
+		VUHDO_PixelUtil.SetPoint(tItemPanel, "TOPLEFT", tItemContainer:GetName(), "TOPLEFT", 3 + tXIdx * VUHDO_COMBO_ITEM_WIDTH, - (3 + tYIdx * VUHDO_COMBO_ITEM_HEIGHT));
+		VUHDO_PixelUtil.SetWidth(tItemPanel, VUHDO_COMBO_ITEM_WIDTH);
+		VUHDO_PixelUtil.SetHeight(tItemPanel, VUHDO_COMBO_ITEM_HEIGHT);
+
 		tItemPanel:Show();
+
 		tItemPanel:SetAttribute("value", tInfo[1]);
-		if (aComboBox.isScrollable) then
+
+		if tInfo[5] and "string" == type(tInfo[5]) then
+			tItemPanel:SetAttribute("tooltip", tInfo[5]);
+		else
+			tItemPanel:SetAttribute("tooltip", nil);
+		end
+
+		if aComboBox["isScrollable"] then
 			tItemPanel:SetBackdropColor(0, 0, 0, 0);
 		end
 
 		tCnt = tCnt + 1;
+
 		if tCnt > VUHDO_COMBO_MAX_ENTRIES and not aComboBox["isScrollable"] then
 			break;
 		end
 
 		tYIdx = tYIdx + 1;
-		if tYIdx > tMaxY then tMaxY = tYIdx; end
+
+		if tYIdx > tMaxY then
+			tMaxY = tYIdx;
+		end
 
 		if tYIdx > VUHDO_COMBO_ITEMS_PER_COL and not aComboBox["isScrollable"] then
 			tYIdx = 0;
@@ -1000,24 +1160,110 @@ function VUHDO_lnfComboInitItems(aComboBox)
 			tItemName = aComboBox:GetName() .. "SelectPanelItem" .. tCnt2;
 		end
 
-		if _G[tItemName] then _G[tItemName]:Hide();
-		else break; end
+		if _G[tItemName] then
+			_G[tItemName]:Hide();
+		else
+			break;
+		end
 	end
 
-	if tMaxY == 0 then tMaxY = 1; end
+	if tMaxY == 0 then
+		tMaxY = 1;
+	end
 
-	tDropdownBox:SetWidth((tXIdx + 1) * VUHDO_COMBO_ITEM_WIDTH + 6);
-	tItemContainer:SetHeight(tMaxY * VUHDO_COMBO_ITEM_HEIGHT + 6);
+	VUHDO_PixelUtil.SetWidth(tDropdownBox, (tXIdx + 1) * VUHDO_COMBO_ITEM_WIDTH + 6);
+	VUHDO_PixelUtil.SetHeight(tItemContainer, tMaxY * VUHDO_COMBO_ITEM_HEIGHT + 6);
 
 	if aComboBox["isScrollable"] then
-		tItemContainer:SetWidth(10); -- Doesn't matter
+		if aComboBox["isResizeable"] then
+			VUHDO_PixelUtil.SetWidth(tDropdownBox, aComboBox:GetWidth());
+		end
+
+		VUHDO_PixelUtil.SetWidth(tItemContainer, math.max(100, tDropdownBox:GetWidth() - 24));
 
 		tHeight = tMaxY * VUHDO_COMBO_ITEM_HEIGHT + 6;
-		if tHeight > 300 then tHeight = 300; end
 
-		tDropdownBox:SetHeight(tHeight);
+		if tHeight > 300 then
+			tHeight = 300;
+		end
+
+		VUHDO_PixelUtil.SetHeight(tDropdownBox, tHeight);
+
 		tItemContainer:SetBackdropColor(0, 0, 0, 0);
 	end
+
+	return;
+
+end
+
+
+
+--
+local tRight;
+local tMiddle;
+local tText;
+local tLeft;
+function VUHDO_initResizeableScrollCombo(aComboBox)
+
+	aComboBox["isResizeable"] = true;
+	aComboBox["isScrollable"] = true;
+
+	tRight = _G[aComboBox:GetName() .. "Right"];
+	tMiddle = _G[aComboBox:GetName() .. "Middle"];
+	tText = _G[aComboBox:GetName() .. "Text"];
+	tLeft = _G[aComboBox:GetName() .. "Left"];
+
+	tLeft:ClearAllPoints();
+	tLeft:SetPoint("TOPLEFT", aComboBox, "TOPLEFT", 0, 0);
+
+	tRight:ClearAllPoints();
+	tRight:SetPoint("TOPRIGHT", aComboBox, "TOPRIGHT", 0, 0);
+
+	tMiddle:ClearAllPoints();
+	tMiddle:SetPoint("TOPLEFT", tLeft, "TOPRIGHT", 0, 0);
+	tMiddle:SetPoint("BOTTOMRIGHT", tRight, "BOTTOMLEFT", 0, 0);
+
+	tText:ClearAllPoints();
+	tText:SetPoint("LEFT", tLeft, "LEFT", 0, 0);
+	tText:SetPoint("RIGHT", tRight, "RIGHT", -32, 0);
+
+	return;
+
+end
+
+
+
+--
+local tRight;
+local tMiddle;
+local tEditBox;
+local tLeft;
+function VUHDO_initResizeableEditCombo(aComboBox)
+
+	aComboBox["isResizeable"] = true;
+	aComboBox["isScrollable"] = true;
+
+	tRight = _G[aComboBox:GetName() .. "Right"];
+	tMiddle = _G[aComboBox:GetName() .. "Middle"];
+	tEditBox = _G[aComboBox:GetName() .. "EditBox"];
+	tLeft = _G[aComboBox:GetName() .. "Left"];
+
+	tLeft:ClearAllPoints();
+	tLeft:SetPoint("TOPLEFT", aComboBox, "TOPLEFT", 0, 0);
+
+	tRight:ClearAllPoints();
+	tRight:SetPoint("TOPRIGHT", aComboBox, "TOPRIGHT", 0, 0);
+
+	tMiddle:ClearAllPoints();
+	tMiddle:SetPoint("TOPLEFT", tLeft, "TOPRIGHT", 0, 0);
+	tMiddle:SetPoint("BOTTOMRIGHT", tRight, "BOTTOMLEFT", 0, 0);
+
+	tEditBox:ClearAllPoints();
+	tEditBox:SetPoint("LEFT", tLeft, "LEFT", 7, 0);
+	tEditBox:SetPoint("RIGHT", tRight, "RIGHT", -32, 0);
+
+	return;
+
 end
 
 
@@ -1132,7 +1378,7 @@ do
 
 		if not tValue then return; end
 
-		if tValue.R and tValue.useBackground then
+		if tValue.R and (tValue.useBackground or aColorSwatch:GetAttribute("forceShowColors")) then
 			_G[aColorSwatch:GetName() .. "Texture"]:SetVertexColor(tValue["R"], tValue["G"], tValue["B"]);
 		else
 			_G[aColorSwatch:GetName() .. "Texture"]:SetVertexColor(1, 1, 1);
@@ -1144,7 +1390,7 @@ do
 			_G[aColorSwatch:GetName() .. "Texture"]:SetAlpha(1);
 		end
 
-		if tValue.TR and tValue.useText then
+		if tValue.TR and (tValue.useText or aColorSwatch:GetAttribute("forceShowColors")) then
 			_G[aColorSwatch:GetName() .. "TitleString"]:SetTextColor(tValue["TR"], tValue["TG"], tValue["TB"]);
 		else
 			_G[aColorSwatch:GetName() .. "TitleString"]:SetTextColor(1, 1, 1);
@@ -1194,10 +1440,20 @@ end
 
 --
 function VUHDO_lnfColorSwatchShowColorPicker(aColorSwatch, aMouseButton)
-	if not aColorSwatch:GetAttribute("model") then return; end
+
+	if not aColorSwatch:GetAttribute("model") then
+		return;
+	end
+
+	if aColorSwatch:GetAttribute("disabled") then
+		return;
+	end
 
 	VuhDoNewColorPicker:SetAttribute("swatch", aColorSwatch);
 	VuhDoNewColorPicker:Show();
+
+	return;
+
 end
 
 
@@ -1212,15 +1468,30 @@ end
 --
 do
 	local tTooltip;
+	local tAnchor;
 	function VUHDO_lnfShowTooltip(aComponent)
-		tTooltip = aComponent:GetAttribute("tooltip");
-		if (tTooltip ~= nil) then
+
+		tAnchor = aComponent;
+		tTooltip = tAnchor:GetAttribute("tooltip");
+
+		while tTooltip == nil and tAnchor:GetParent() do
+			tAnchor = tAnchor:GetParent();
+			tTooltip = tAnchor:GetAttribute("tooltip");
+		end
+
+		if tTooltip ~= nil then
 			VuhDoOptionsTooltipTextText:SetText(tTooltip);
-			VuhDoOptionsTooltip:SetHeight(VuhDoOptionsTooltipTextText:GetHeight() + 10);
+
+			VUHDO_PixelUtil.SetHeight(VuhDoOptionsTooltip, VuhDoOptionsTooltipTextText:GetHeight() + 10);
+
 			VuhDoOptionsTooltip:ClearAllPoints();
-			VuhDoOptionsTooltip:SetPoint("LEFT", aComponent:GetName(), "RIGHT", 3, 0);
+			VUHDO_PixelUtil.SetPoint(VuhDoOptionsTooltip, "LEFT", aComponent:GetName(), "RIGHT", 3, 0);
+
 			VuhDoOptionsTooltip:Show();
 		end
+
+		return;
+
 	end
 end
 
@@ -1259,8 +1530,8 @@ function VUHDO_lnfScrollFrameOnLoad(aFrame)
 	_G[tScrollBar:GetName() .. "ScrollDownButton"]:Hide();
 	local tThumbTexture = _G[tScrollBar:GetName() .. "ThumbTexture"];
 	tThumbTexture:SetTexture("Interface\\AddOns\\VuhDoOptions\\Images\\slider_thumb_v");
-	tThumbTexture:SetWidth(18);
-	tThumbTexture:SetHeight(18);
+	VUHDO_PixelUtil.SetWidth(tThumbTexture, 18);
+	VUHDO_PixelUtil.SetHeight(tThumbTexture, 18);
 	tThumbTexture:SetTexCoord(0, 1, 0, 1);
 end
 
@@ -1467,8 +1738,8 @@ do
 		["VuhDoNewOptionsColors"] = "VuhDoNewOptionsColorsStates",
 		["VuhDoNewOptionsMove"] = "",
 		["VuhDoNewOptionsBuffs"] = "VuhDoNewOptionsBuffsGeneric",
-		["VuhDoNewOptionsDebuffs"] = "VuhDoNewOptionsDebuffsStandard",
 		["VuhDoNewOptionsTools"] = "VuhDoNewOptionsToolsSkins",
+		["VuhDoNewOptionsAura"] = "VuhDoNewOptionsAuraGroups",
 	};
 	local tSearchPattern;
 	local tIndex;
@@ -1658,6 +1929,7 @@ do
 
 	local tModel;
 	local tConstraintsModel;
+	local tInnerSlider;
 	function VUHDO_lnfUpdateComponentsByConstraints(aChangedComponent)
 
 		if not VUHDO_lnfIsVisibleBySearch(aChangedComponent) then
@@ -1682,8 +1954,22 @@ do
 
 				if VUHDO_lnfIsDisabledByConstraint(tConstraint["COMPONENT"]) then
 					tConstraint["COMPONENT"]:SetAlpha(0.5);
+					tConstraint["COMPONENT"]:SetAttribute("disabled", true);
+
+					tInnerSlider = _G[tConstraint["COMPONENT"]:GetName() .. "Slider"];
+
+					if tInnerSlider then
+						tInnerSlider:Disable();
+					end
 				else
 					tConstraint["COMPONENT"]:SetAlpha(1);
+					tConstraint["COMPONENT"]:SetAttribute("disabled", nil);
+
+					tInnerSlider = _G[tConstraint["COMPONENT"]:GetName() .. "Slider"];
+
+					if tInnerSlider then
+						tInnerSlider:Enable();
+					end
 				end
 			end
 		end

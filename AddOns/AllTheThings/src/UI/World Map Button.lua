@@ -4,13 +4,24 @@ local L, GameTooltip = app.L, GameTooltip;
 local C_Map_GetMapInfo = C_Map.GetMapInfo;
 
 -- World Map Button
+local XShift = app.IsRetail and -1 or 0
+local YShift = app.IsRetail and -65 or -32
 local WorldMapButton;
 local function CreateWorldMapButton()
-	local button = CreateFrame("BUTTON", appName .. "-WorldMap", WorldMapFrame:GetCanvasContainer());
-	button:SetHighlightTexture(app.asset("MinimapHighlight_64x64"));
-	button:SetPoint("TOPRIGHT", 0, -36);
-	button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+	-- wonder if there's other special world map button addons we need to worry about... thanks Blizzard for no common API for a feature you added
+	local KrowiWorldMapButtons = LibStub and LibStub("Krowi_WorldMapButtons-1.4", true)
+	local button
+	if KrowiWorldMapButtons then
+		button = KrowiWorldMapButtons:Add(nil, "BUTTON")
+		-- this is a non-standard function that Krowi uses when the world map changes to sync updates to the button. it errors if not existing
+		button.Refresh = app.EmptyFunction
+	else
+		button = CreateFrame("BUTTON", appName .. "-WorldMap", WorldMapFrame:GetCanvasContainer());
+		button:SetPoint("TOPRIGHT", XShift, YShift);
+	end
 	button:SetFrameStrata("HIGH");
+	button:SetHighlightTexture(app.asset("MinimapHighlight_64x64"));
+	button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
 	button:EnableMouse(true);
 	button:SetSize(36, 36);
 	WorldMapButton = button;
@@ -21,8 +32,7 @@ local function CreateWorldMapButton()
 	texture:SetAllPoints();
 	texture:Show();
 	button.texture = texture;
-	
-	local minilist = app:GetWindow(app.IsClassic and "MiniList" or "CurrentInstance");
+
 	button:SetScript("OnEnter", function(self)
 		local mapID = WorldMapFrame:GetMapID();
 		self.mapID = mapID;
@@ -48,16 +58,24 @@ local function CreateWorldMapButton()
 	button:SetScript("OnClick", function(self)
 		local mapID = self.mapID;
 		if mapID and mapID > 0 then
-			minilist:SetMapID(mapID, true);
+			app.ToggleMiniListForCurrentZone(mapID);
 		end
 	end);
 	return button;
 end
 
-app.SetWorldMapButtonSettings = function(visible)
+local function SetWorldMapButtonSettings(visible)
 	if visible then
 		(WorldMapButton or CreateWorldMapButton()):Show();
 	elseif WorldMapButton then
 		WorldMapButton:Hide();
 	end
 end
+app.AddEventHandler("Settings.OnSet", function(context, setting, value)
+	if context == "Tooltips" and setting == "WorldMapButton" then
+		SetWorldMapButtonSettings(value);
+	end
+end)
+app.AddEventHandler("OnStartup", function()
+	SetWorldMapButtonSettings(app.Settings:GetTooltipSetting("WorldMapButton"));
+end)

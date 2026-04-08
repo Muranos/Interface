@@ -1,7 +1,7 @@
 ﻿-- Pawn by Vger-Azjol-Nerub
 -- www.vgermods.com
--- © 2006-2025 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
--- See Readme.htm for more information.
+-- © 2006-2026 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
+-- See Readme.md for more information.
 
 -- 
 -- Italian resources
@@ -71,7 +71,7 @@ www.vgermods.com
 /pawn debug [ on | off ] -- spamma messaggi di debug nella console
 /pawn backup -- fa il backup delle tue formule in etichette di formula
  
-Per maggiori informazioni su come personalizzare Pawn, per favore leggere il file (Readme.htm) inclusa con l'addon.
+Per maggiori informazioni su come personalizzare Pawn, per favore leggere il file (Readme.md) inclusa con l'addon.
 ]=],
 	["ValueCalculationMessage"] = "   %g %s x %g ognuno = %g",
 	["VisibleScalesHeader"] = "Formule di %s",
@@ -126,12 +126,14 @@ Per maggiori informazioni su come personalizzare Pawn, per favore leggere il fil
 		["MovementSpeedInfo"] = "Velocità di movimento. Fà si che il tuo personaggio corra più veloce.",
 		["Mp5"] = "Mana per 5",
 		["Mp5Info"] = "Mana regeneration per 5 seconds.  Affects your mana regeneration even when in combat.",
+		["MultistrikeInfo"] = "Multistrike. Increases the chance that your attacks and healing spells will hit your target two extra times at reduced potency.",
 		["NatureResistInfo"] = "Nature Resistance.  Reduces the damage taken from nature-based attacks.",
 		["NatureSpellDamage"] = "Nature Damage",
 		["NatureSpellDamageInfo"] = "Nature damage.  Increases the damage dealt by your nature spells.",
 		["ParryInfo"] = "Parry.  Increases the chance that you'll parry enemy attacks.",
 		["Plate"] = "Piastre",
 		["PlateInfo"] = "Punti da assegnare se l'oggetto è in piastre",
+		["PvPPowerInfo"] = "PvP power. Causes your abilities to deal more damage to other players (but not creatures), and your healing spells to heal other players for more in some PvP situations.",
 		["RapInfo"] = "Ranged Attack Power.  Increases the damage of ranged physical attacks.  Does not include attack power gained from agility.",
 		--[[Translation missing --]]
 		["ResilienceInfo"] = "Resilience. Reduces the chance that you'll be critically hit, and decreases the damage of critical hits that you do take.",
@@ -320,9 +322,7 @@ Quando ricevi ricompense da una missione o bottino da una spedizione che può es
 		["OptionsBagUpgradeAdvisor"] = "Mostra avviso di miglioramento nelle borse",
 		["OptionsBagUpgradeAdvisorTooltip"] = [=[Abilita questa opzione per far sì che Pawn possa applicare le freccie di miglioramento nelle borse.
 
-Se abilitata, Pawn cercherà i miglioramenti nelle tue borse e marcherà con una freccia verde gli oggetti che costituiscono un miglioramento per una qualsiasi delle tue formule attive.
-
-Se disabilitata, WoW marcherà gli oggetti di livello superiore a quelli che indossi attualmente. Pawn non interferirà con questa funzionalità integrata.]=],
+Se abilitata, Pawn cercherà i miglioramenti nelle tue borse e marcherà con una freccia verde gli oggetti che costituiscono un miglioramento per una qualsiasi delle tue formule attive.]=],
 		["OptionsBlankLine"] = "Aggiungi una riga vuota prima dei valori",
 		["OptionsBlankLineTooltip"] = "Mantieni la tooltip dei tuoi oggetti estremamente ordinata abilitando questa opzione. Essa aggiungerà una riga vuota prima dei valori di Pawn.",
 		["OptionsButtonHidden"] = "Nascondilo",
@@ -552,6 +552,7 @@ PawnLocal.TooltipParsing = {
 	["EnchantmentPyriumWeaponChain"] = "^Catena per [Aa]rma di [Pp]irio$",
 	["EnchantmentTitaniumWeaponChain"] = "^Catena per [Aa]rma di [Tt]itanio$",
 	["Equip"] = "Equipaggia:",
+	["Expertise"] = "^UNUSED$",
 	["ExpertiseClassic"] = "^UNUSED$",
 	["ExpertiseRating"] = "^UNUSED$",
 	["ExpertiseRatingShort"] = "^UNUSED$",
@@ -591,6 +592,7 @@ PawnLocal.TooltipParsing = {
 	["HitPercentCombined"] = "^UNUSED$",
 	["HitRating"] = "^UNUSED$",
 	["HitRatingShort"] = "^UNUSED$",
+	["HitRatingShorter"] = "^UNUSED$",
 	["HitRating2"] = "^UNUSED$",
 	["HitRating3"] = "^UNUSED$",
 	["HolySpellDamage"] = "^UNUSED$",
@@ -717,73 +719,76 @@ PawnLocal.TooltipParsing = {
 
 PawnLocal.Specs =
 {
-	[1] = {
-		{ Name="Armi", Icon=132355, Role="DAMAGER" },
-		{ Name="Furia", Icon=132347, Role="DAMAGER" },
-		{ Name="Protezione", Icon=132341, Role="TANK" },
-	},
-	[2] = {
-		{ Name="Sacro", Icon=135920, Role="HEALER" },
-		{ Name="Protezione", Icon=236264, Role="TANK" },
-		{ Name="Castigo", Icon=135873, Role="DAMAGER" },
-	},
-	[3] = {
-		{ Name="Affinità Animale", Icon=461112, Role="DAMAGER" },
-		{ Name="Precisione di Tiro", Icon=236179, Role="DAMAGER" },
-		{ Name="Sopravvivenza", Icon=461113, Role="DAMAGER" },
-	},
-	[4] = {
-		{ Name="Assassinio", Icon=236270, Role="DAMAGER" },
-		{ Name="Fuorilegge", Icon=236286, Role="DAMAGER" },
-		{ Name="Scaltrezza", Icon=132320, Role="DAMAGER" },
-	},
-	[5] = {
-		{ Name="Disciplina", Icon=135940, Role="HEALER" },
-		{ Name="Sacro", Icon=237542, Role="HEALER" },
-		{ Name="Ombra", Icon=136207, Role="DAMAGER" },
-	},
-	[6] = {
-		{ Name="Sangue", Icon=135770, Role="TANK" },
-		{ Name="Gelo", Icon=135773, Role="DAMAGER" },
-		{ Name="Empietà", Icon=135775, Role="DAMAGER" },
-	},
-	[7] = {
-		{ Name="Elementale", Icon=136048, Role="DAMAGER" },
-		{ Name="Potenziamento", Icon=237581, Role="DAMAGER" },
-		{ Name="Rigenerazione", Icon=136052, Role="HEALER" },
-	},
-	[8] = {
-		{ Name="Arcano", Icon=135932, Role="DAMAGER" },
-		{ Name="Fuoco", Icon=135810, Role="DAMAGER" },
-		{ Name="Gelo", Icon=135846, Role="DAMAGER" },
-	},
-	[9] = {
-		{ Name="Afflizione", Icon=136145, Role="DAMAGER" },
-		{ Name="Demonologia", Icon=136172, Role="DAMAGER" },
-		{ Name="Distruzione", Icon=136186, Role="DAMAGER" },
-	},
-	[10] = {
-		{ Name="Mastro Birraio", Icon=608951, Role="TANK" },
-		{ Name="Misticismo", Icon=608952, Role="HEALER" },
-		{ Name="Impeto", Icon=608953, Role="DAMAGER" },
-	},
-	[11] = {
-		{ Name="Equilibrio", Icon=136096, Role="DAMAGER" },
-		{ Name="Aggressore Ferino", Icon=132115, Role="DAMAGER" },
-		{ Name="Guardiano Ferino", Icon=132276, Role="TANK" },
-		{ Name="Rigenerazione", Icon=136041, Role="HEALER" },
-	},
-	[12] = {
-		{ Name="Rovina", Icon=1247264, Role="DAMAGER" },
-		{ Name="Vendetta", Icon=1247265, Role="TANK" },
-	},
+    [1] = {
+        { Name="Armi", Icon=132355, Role="DAMAGER" },
+        { Name="Furia", Icon=132347, Role="DAMAGER" },
+        { Name="Protezione", Icon=132341, Role="TANK" },
+    },
+    [2] = {
+        { Name="Sacro", Icon=135920, Role="HEALER" },
+        { Name="Protezione", Icon=236264, Role="TANK" },
+        { Name="Castigo", Icon=135873, Role="DAMAGER" },
+    },
+    [3] = {
+        { Name="Affinità Animale", Icon=461112, Role="DAMAGER" },
+        { Name="Precisione di Tiro", Icon=236179, Role="DAMAGER" },
+        { Name="Sopravvivenza", Icon=461113, Role="DAMAGER" },
+    },
+    [4] = {
+        { Name="Assassinio", Icon=236270, Role="DAMAGER" },
+        { Name="Fuorilegge", Icon=236286, Role="DAMAGER" },
+        { Name="Scaltrezza", Icon=132320, Role="DAMAGER" },
+    },
+    [5] = {
+        { Name="Disciplina", Icon=135940, Role="HEALER" },
+        { Name="Sacro", Icon=237542, Role="HEALER" },
+        { Name="Ombra", Icon=136207, Role="DAMAGER" },
+    },
+    [6] = {
+        { Name="Sangue", Icon=135770, Role="TANK" },
+        { Name="Gelo", Icon=135773, Role="DAMAGER" },
+        { Name="Empietà", Icon=135775, Role="DAMAGER" },
+    },
+    [7] = {
+        { Name="Elementale", Icon=136048, Role="DAMAGER" },
+        { Name="Potenziamento", Icon=237581, Role="DAMAGER" },
+        { Name="Rigenerazione", Icon=136052, Role="HEALER" },
+    },
+    [8] = {
+        { Name="Arcano", Icon=135932, Role="DAMAGER" },
+        { Name="Fuoco", Icon=135810, Role="DAMAGER" },
+        { Name="Gelo", Icon=135846, Role="DAMAGER" },
+    },
+    [9] = {
+        { Name="Afflizione", Icon=136145, Role="DAMAGER" },
+        { Name="Demonologia", Icon=136172, Role="DAMAGER" },
+        { Name="Distruzione", Icon=136186, Role="DAMAGER" },
+    },
+    [10] = {
+        { Name="Mastro Birraio", Icon=608951, Role="TANK" },
+        { Name="Misticismo", Icon=608952, Role="HEALER" },
+        { Name="Impeto", Icon=608953, Role="DAMAGER" },
+    },
+    [11] = {
+        { Name="Equilibrio", Icon=136096, Role="DAMAGER" },
+        { Name="Aggressore Ferino", Icon=132115, Role="DAMAGER" },
+        { Name="Guardiano Ferino", Icon=132276, Role="TANK" },
+        { Name="Rigenerazione", Icon=136041, Role="HEALER" },
+    },
+    [12] = {
+        { Name="Rovina", Icon=1247264, Role="DAMAGER" },
+        { Name="Vendetta", Icon=1247265, Role="TANK" },
+        { Name="Divoratore", Icon=7455385, Role="DAMAGER" },
+    },
+    [13] = {
+        { Name="Devastazione", Icon=4511811, Role="DAMAGER" },
+        { Name="Conservazione", Icon=4511812, Role="HEALER" },
+        { Name="Fortificazione", Icon=5198700, Role="DAMAGER" },
+    },
 }
 
 end
 
-if GetLocale() == "itIT" then
-	PawnUseThisLocalization()
-end
-
--- After using this localization or deciding that we don't need it, remove it from memory.
+-- Initiate self-destruct sequence.
+PawnUseThisLocalization()
 PawnUseThisLocalization = nil

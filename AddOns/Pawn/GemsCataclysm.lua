@@ -1,13 +1,10 @@
 -- Pawn by Vger-Azjol-Nerub
 -- www.vgermods.com
--- © 2006-2025 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
--- See Readme.htm for more information.
+-- © 2006-2026 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
+-- See Readme.md for more information.
 --
 -- Gem information (Cataclysm Classic)
 ------------------------------------------------------------
-
-
-if VgerCore.IsCataclysm then
 
 
 --========================================
@@ -999,6 +996,6 @@ PawnCogwheelQualityLevels =
 	{ 0, PawnCogwheelData85Rare },
 }
 
-PawnMinimumItemLevelToConsiderGems = 187 -- 187 during pre-patch; 315 at launch
+PawnCrystalOfFearQualityLevels = nil
 
-end -- if VgerCore.IsCataclysm
+PawnMinimumItemLevelToConsiderGems = 315 -- 187 during pre-patch; 315 at launch

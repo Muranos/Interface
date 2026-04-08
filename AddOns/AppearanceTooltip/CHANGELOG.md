@@ -1,7 +1,6 @@
 # AppearanceTooltip
 
-## [v57](https://github.com/kemayo/wow-appearancetooltip/tree/v57) (2025-02-28)
-[Full Changelog](https://github.com/kemayo/wow-appearancetooltip/compare/v56...v57) [Previous Releases](https://github.com/kemayo/wow-appearancetooltip/releases)
+## [v81](https://github.com/kemayo/wow-appearancetooltip/tree/v81) (2026-02-28)
+[Full Changelog](https://github.com/kemayo/wow-appearancetooltip/compare/v80...v81) [Previous Releases](https://github.com/kemayo/wow-appearancetooltip/releases)
 
-- Bump TOC and add a category  
-- Add Earthen race id  
+- Remove 11.2.7 from the TOC, and rebuild with new LibArmorToken data  

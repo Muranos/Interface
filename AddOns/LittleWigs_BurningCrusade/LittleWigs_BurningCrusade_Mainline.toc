@@ -1,4 +1,4 @@
-## Interface: 110105, 110007, 110100
+## Interface: 120001, 120005, 120000
 
 ## Title: LittleWigs [|cffeda55fBurning Crusade|r]
 ## Title-deDE: LittleWigs [|cffeda55fBurning Crusade|r]
@@ -17,6 +17,7 @@
 ## Dependencies: BigWigs
 
 ## X-Category: Party
-## X-BigWigs-LoadOn-InstanceId: 269, 540, 542, 543, 545, 546, 547, 552, 553, 554, 555, 556, 557, 558, 560, 585
+## X-BigWigs-LoadOn-InstanceId: 269, 540, 542, 543, 545, 546, 547, 552, 553, 554, 555, 556, 557, 558, 560, 585, 2849
 
 modules.xml
+!Locales\[TextLocale].lua [AllowLoadTextLocale deDE, esES, esMX, frFR, itIT, koKR, ptBR, ruRU, zhCN, zhTW]

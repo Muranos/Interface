@@ -74,6 +74,7 @@ L['elite'] = '菁英'
 L['quest'] = '任務'
 L['quest_repeatable'] = '可重複任務'
 L['achievement'] = '成就'
+L['decor_owned'] = '已擁有：%s'
 
 ---------------------------------- LOCATION -----------------------------------
 L['in_cave'] = '在洞穴.'
@@ -93,6 +94,7 @@ L['time_format_12hrs'] = '%m/%d - %I:%M %p 本地時間'
 L['time_format_24hrs'] = '%m/%d - %H:%M 本地時間'
 
 ----------------------------------- REWARDS -----------------------------------
+L['decor'] = '房屋裝飾'
 L['heirloom'] = '傳家寶'
 L['item'] = '物品'
 L['mount'] = '坐騎'
@@ -105,7 +107,7 @@ L['currency'] = '通貨'
 L['rep'] = '聲望'
 L['buff'] = '增益'
 L['transmog'] = '塑型'
-L['hunter_pet'] = nil
+L['hunter_pet'] = '獵人寵物'
 
 ---------------------------------- FOLLOWERS ----------------------------------
 L['follower_type_follower'] = '追隨者'
@@ -118,23 +120,23 @@ L['rep_revered'] = '崇敬'
 L['rep_exalted'] = '崇拜'
 
 -------------------------------------------------------------------------------
---------------------------------- DRAGONRACES ---------------------------------
+------------------------------- SKYRIDING RACES -------------------------------
 -------------------------------------------------------------------------------
 
-L['dr_your_best_time'] = '你的最快時間：'
-L['dr_your_target_time'] = '目標時間：'
-L['dr_best_time'] = ' - %s: %.3fs'
-L['dr_target_time'] = ' - %s: %ss / %ss'
-L['dr_normal'] = '普通'
-L['dr_advanced'] = '進階'
-L['dr_reverse'] = '逆向'
-L['dr_challenge'] = '挑戰'
-L['dr_reverse_challenge'] = '逆向挑戰'
-L['dr_storm_race'] = '風暴競速'
-L['dr_bronze'] = '完成賽事來取得 ' .. ns.color.Bronze('銅牌') .. '.'
-L['dr_vendor_note'] = '使用 {currency:2588} 交換飛龍觀察者手稿和塑型.'
-L['options_icons_dragonrace'] = '飛龍競速'
-L['options_icons_dragonrace_desc'] = '顯示區域內所有飛龍競速的位置.'
+L['sr_your_best_time'] = '你的最快時間：'
+L['sr_your_target_time'] = '目標時間：'
+L['sr_best_time'] = ' - %s: %.3fs'
+L['sr_target_time'] = ' - %s: %ss / %ss'
+L['sr_normal'] = '普通'
+L['sr_advanced'] = '進階'
+L['sr_reverse'] = '逆向'
+L['sr_challenge'] = '挑戰'
+L['sr_reverse_challenge'] = '逆向挑戰'
+L['sr_storm_race'] = '風暴競速'
+L['sr_bronze'] = '完成賽事來取得 ' .. ns.color.Bronze('銅牌') .. '.'
+L['sr_vendor_note'] = '使用 {currency:2588} 交換飛龍觀察者手稿和塑型.'
+L['options_icons_skyriding_race'] = '天空騎術競速'
+L['options_icons_skyriding_race_desc'] = '顯示區域內所有天空騎術競速的位置.'
 
 -------------------------------------------------------------------------------
 --------------------------------- CONTEXT MENU --------------------------------
@@ -204,8 +206,10 @@ L['ignore_faction_restrictions_desc'] = '顯示需要對方陣營的群組, 節�
 L['options_rewards_settings'] = '獎勵'
 L['options_reward_behaviors_settings'] = '獎勵行為'
 L['options_reward_types'] = '顯示獎勵類型'
+L['options_decor_rewards'] = '顯示房屋裝飾獎勵'
+L['options_decor_rewards_desc'] = '在提示顯示房屋裝飾獎勵並追蹤收集狀態。'
 L['options_manuscript_rewards'] = '顯示飛龍觀察者手稿獎勵'
-L['options_manuscript_rewards_desc'] = '在提示顯示飛龍觀察者手稿並追蹤收集狀態.'
+L['options_manuscript_rewards_desc'] = '在提示顯示飛龍觀察者手稿並追蹤收集狀態。'
 L['options_mount_rewards'] = '顯示坐騎獎勵'
 L['options_mount_rewards_desc'] = '在提示顯示坐騎獎勵並追蹤收集狀態.'
 L['options_pet_rewards'] = '顯示戰寵獎勵'

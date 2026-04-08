@@ -381,8 +381,8 @@ WeakAuras.normalWidth = 1.3
 WeakAuras.halfWidth = WeakAuras.normalWidth / 2
 WeakAuras.doubleWidth = WeakAuras.normalWidth * 2
 local versionStringFromToc = C_AddOns.GetAddOnMetadata("WeakAuras", "Version")
-local versionString = "5.19.7"
-local buildTime = "20250404060053"
+local versionString = "5.21.1"
+local buildTime = "20260118203340"
 
 local flavorFromToc = C_AddOns.GetAddOnMetadata("WeakAuras", "X-Flavor")
 local flavorFromTocToNumber = {
@@ -390,10 +390,10 @@ local flavorFromTocToNumber = {
   TBC = 2,
   Wrath = 3,
   Cata = 4,
+  Mists = 5,
   Mainline = 10
 }
 local flavor = flavorFromTocToNumber[flavorFromToc]
-
 
 if not versionString:find("beta", 1, true) then
   WeakAuras.buildType = "release"
@@ -410,7 +410,7 @@ WeakAuras.buildType = "pr"
 --@end-experimental@]=====]
 
 --[==[@debug@
-if versionStringFromToc == "5.19.7" then
+if versionStringFromToc == "5.21.1" then
   versionStringFromToc = "Dev"
   buildTime = "Dev"
   WeakAuras.buildType = "dev"
@@ -429,9 +429,23 @@ end
 -- save compatibility with old auras
 WeakAuras.IsClassic = WeakAuras.IsClassicEra
 
+function WeakAuras.IsTBC()
+  return flavor == 2
+end
+
+---@return boolean result
+function WeakAuras.IsWrathClassic()
+  return flavor == 3
+end
+
 ---@return boolean result
 function WeakAuras.IsCataClassic()
   return flavor == 4
+end
+
+---@return boolean result
+function WeakAuras.IsMists()
+  return flavor == 5
 end
 
 ---@return boolean result
@@ -440,18 +454,118 @@ function WeakAuras.IsRetail()
 end
 
 ---@return boolean result
+function WeakAuras.IsTWW()
+  return WeakAuras.BuildInfo >= 110000
+end
+
+---@return boolean result
+function WeakAuras.IsMidnight()
+  return WeakAuras.BuildInfo >= 120000
+end
+
+---@return boolean result
+function WeakAuras.IsClassicOrTBC()
+  return WeakAuras.IsClassicEra() or WeakAuras.IsTBC()
+end
+
+---@return boolean result
+function WeakAuras.IsClassicOrWrath()
+  return WeakAuras.IsClassicEra() or WeakAuras.IsWrathClassic()
+end
+
+---@return boolean result
+function WeakAuras.IsClassicOrTBCOrWrath()
+  return WeakAuras.IsClassicEra() or WeakAuras.IsTBC() or WeakAuras.IsWrathClassic()
+end
+
+---@return boolean result
+function WeakAuras.IsTBCOrWrath()
+  return WeakAuras.IsTBC() or WeakAuras.IsWrathClassic()
+end
+
+---@return boolean result
 function WeakAuras.IsClassicOrCata()
   return WeakAuras.IsClassicEra() or WeakAuras.IsCataClassic()
 end
 
 ---@return boolean result
-function WeakAuras.IsCataOrRetail()
-  return WeakAuras.IsCataClassic() or WeakAuras.IsRetail()
+function WeakAuras.IsClassicOrTBCOrWrathOrCata()
+  return WeakAuras.IsClassicEra() or WeakAuras.IsTBC() or WeakAuras.IsWrathClassic() or WeakAuras.IsCataClassic()
 end
 
 ---@return boolean result
-function WeakAuras.IsTWW()
-  return WeakAuras.BuildInfo >= 110000
+function WeakAuras.IsClassicOrTBCOrWrathOrCataOrMists()
+  return WeakAuras.IsClassicEra() or WeakAuras.IsTBC() or WeakAuras.IsWrathClassic() or WeakAuras.IsCataClassic() or WeakAuras.IsMists()
+end
+
+---@return boolean result
+function WeakAuras.IsTBCOrWrathOrCata()
+  return WeakAuras.IsTBC() or WeakAuras.IsWrathClassic() or WeakAuras.IsCataClassic()
+end
+
+---@return boolean result
+function WeakAuras.IsWrathOrCata()
+  return WeakAuras.IsWrathClassic() or WeakAuras.IsCataClassic()
+end
+
+---@return boolean result
+function WeakAuras.IsWrathOrCataOrMists()
+  return WeakAuras.IsWrathClassic() or WeakAuras.IsCataClassic() or WeakAuras.IsMists()
+end
+
+---@return boolean result
+function WeakAuras.IsWrathOrCataOrMistsOrRetail()
+  return WeakAuras.IsWrathClassic() or WeakAuras.IsCataClassic() or WeakAuras.IsMists() or WeakAuras.IsRetail()
+end
+
+---@return boolean result
+function WeakAuras.IsTBCOrWrathOrCataOrMists()
+  return WeakAuras.IsTBC() or WeakAuras.IsWrathClassic() or WeakAuras.IsCataClassic() or WeakAuras.IsMists()
+end
+
+---@return boolean result
+function WeakAuras.IsWrathOrMists()
+  return WeakAuras.IsWrathClassic() or WeakAuras.IsMists()
+end
+
+---@return boolean result
+function WeakAuras.IsTBCOrWrathOrMists()
+  return WeakAuras.IsTBC() or WeakAuras.IsWrathClassic() or WeakAuras.IsMists()
+end
+
+---@return boolean result
+function WeakAuras.IsMistsOrRetail()
+  return WeakAuras.IsMists() or WeakAuras.IsRetail()
+end
+
+---@return boolean result
+function WeakAuras.IsWrathOrMistsOrRetail()
+  return WeakAuras.IsWrathClassic() or WeakAuras.IsMists() or WeakAuras.IsRetail()
+end
+
+---@return boolean result
+function WeakAuras.IsTBCOrWrathOrMistsOrRetail()
+  return WeakAuras.IsTBC() or WeakAuras.IsWrathClassic() or WeakAuras.IsMists() or WeakAuras.IsRetail()
+end
+
+---@return boolean result
+function WeakAuras.IsCataOrMists()
+  return WeakAuras.IsCataClassic() or WeakAuras.IsMists()
+end
+
+---@return boolean result
+function WeakAuras.IsCataOrMistsOrRetail()
+  return WeakAuras.IsCataClassic() or WeakAuras.IsMists() or WeakAuras.IsRetail()
+end
+
+---@return boolean result
+function WeakAuras.IsTBCOrWrathOrCataOrMistsOrRetail()
+  return WeakAuras.IsTBC() or WeakAuras.IsWrathClassic() or WeakAuras.IsCataClassic() or WeakAuras.IsMists() or WeakAuras.IsRetail()
+end
+
+---@return boolean result
+function WeakAuras.IsWrathOrRetail()
+  return WeakAuras.IsWrathClassic() or WeakAuras.IsRetail()
 end
 
 ---@param ... string
@@ -541,6 +655,21 @@ end
 if not libsAreOk then
   C_Timer.After(1, function()
     WeakAuras.prettyPrint("WeakAuras is missing necessary libraries. Please reinstall a proper package.")
+  end)
+end
+
+if WeakAuras.IsWrathClassic() then
+  C_Timer.After(1, function()
+    WeakAuras.prettyPrint("This version of WeakAuras is provided as is. We are unable to test it ourselves on CN Servers.")
+  end)
+elseif WeakAuras.IsMidnight() then
+  C_Timer.After(1, function()
+    WeakAuras.prettyPrint("WeakAuras does not support Midnight due to Blizzard restricting addons. Read more at https://patreon.com/WeakAuras")
+  end)
+  libsAreOk = false
+elseif WeakAuras.IsTWW() then
+  C_Timer.After(1, function()
+    WeakAuras.prettyPrint("WeakAuras does not support Midnight due to Blizzard's new addon restrictions. Read more at https://patreon.com/WeakAuras")
   end)
 end
 

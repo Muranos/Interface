@@ -175,6 +175,7 @@ local shockingBurstMarker = mod:AddMarkerOption(false, "player", 4, 390920, 4, 5
 function mod:GetOptions()
 	return {
 		"stages",
+		"berserk",
 		371981, -- Elemental Surge
 		{372158, "TANK"}, -- Sundering Strike
 		"avoid",
@@ -381,7 +382,9 @@ function mod:OnEngage()
 	self:Bar("stages", 125, CL.stage:format(2), 374779) -- Primal Barrier
 
 	if self:Mythic() then
-		self:ScheduleTimer("Berserk", 540, 60, true) -- 10min, only on Mythic and rarely encountered, so delay starting it
+		self:ScheduleTimer(function()
+			self:Berserk(70, true) -- 10min, only on Mythic and rarely encountered, so delay starting it
+		end, 530)
 	end
 end
 

@@ -5,6 +5,8 @@ if (not detailsFramework or not DetailsFrameworkCanLoad) then
 	return
 end
 
+if detailsFramework.IsMidnightWow() then return end
+
 local _
 --lua locals
 local rawset = rawset --lua local
@@ -44,6 +46,7 @@ local GetSpellInfo = GetSpellInfo or function(spellID) if not spellID then retur
 local IS_WOW_PROJECT_MAINLINE = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
 local IS_WOW_PROJECT_NOT_MAINLINE = WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE
 local IS_WOW_PROJECT_CLASSIC_ERA = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
+local IS_WOW_PROJECT_AT_LEAST_CLASSIC_MOP = IS_WOW_PROJECT_MAINLINE or (ClassicExpansionAtLeast and LE_EXPANSION_MISTS_OF_PANDARIA and ClassicExpansionAtLeast(LE_EXPANSION_MISTS_OF_PANDARIA))
 
 local CastInfo = detailsFramework.CastInfo
 
@@ -171,13 +174,13 @@ local cleanfunction = function() end
 		{"UNIT_MAXHEALTH", true},
 		{(IS_WOW_PROJECT_NOT_MAINLINE) and "UNIT_HEALTH_FREQUENT", true}, -- this one is classic-only...
 		{"UNIT_HEAL_PREDICTION", true},
-		{(IS_WOW_PROJECT_MAINLINE) and "UNIT_ABSORB_AMOUNT_CHANGED", true},
-		{(IS_WOW_PROJECT_MAINLINE) and "UNIT_HEAL_ABSORB_AMOUNT_CHANGED", true},
+		{(IS_WOW_PROJECT_AT_LEAST_CLASSIC_MOP) and "UNIT_ABSORB_AMOUNT_CHANGED", true},
+		{(IS_WOW_PROJECT_AT_LEAST_CLASSIC_MOP) and "UNIT_HEAL_ABSORB_AMOUNT_CHANGED", true},
 	}
 
 	--setup the castbar to be used by another unit
 	healthBarMetaFunctions.SetUnit = function(self, unit, displayedUnit)
-		if (self.unit ~= unit or self.displayedUnit ~= displayedUnit or unit == nil) then
+		if (self.unit ~= unit or self.displayedUnit ~= displayedUnit or unit == nil) then --1x Details/Libs/DF/unitframe.lua:180: script ran too long
 			self.unit = unit
 			self.displayedUnit = displayedUnit or unit
 
@@ -285,6 +288,9 @@ local cleanfunction = function() end
 		local maxHealth = UnitHealthMax(self.displayedUnit)
 		self:SetMinMaxValues(0, maxHealth)
 		self.currentHealthMax = maxHealth
+		self.currentHealthMissing = maxHealth - (self.currentHealth or 0)
+		self.currentHealthPercent = (self.currentHealth or maxHealth) / maxHealth * 100
+		self.currentHealthPercentMissing = 100 - self.currentHealthPercent
 
 		if (self.OnHealthMaxChange) then --direct call
 			self.OnHealthMaxChange(self, self.displayedUnit)
@@ -302,6 +308,8 @@ local cleanfunction = function() end
 		self.oldHealth = self.currentHealth
 		local health = UnitHealth(self.displayedUnit)
 		self.currentHealth = health
+		self.currentHealthMissing = (self.currentHealthMax or health) - (health or 0)
+		self.currentHealthPercent = (health or self.currentHealthMax) / (self.currentHealthMax or health)  * 100
 		PixelUtil.SetStatusBarValue(self, health)
 
 		if (self.OnHealthChange) then --direct call
@@ -327,9 +335,9 @@ local cleanfunction = function() end
 
 		if (self.Settings.ShowHealingPrediction) then
 			--incoming heal on the unit from all sources
-			local unitHealIncoming = self.displayedUnit and UnitGetIncomingHeals(self.displayedUnit) or 0
+			local unitHealIncoming = UnitGetIncomingHeals and self.displayedUnit and UnitGetIncomingHeals(self.displayedUnit) or 0
 			--heal absorbs
-			local unitHealAbsorb = IS_WOW_PROJECT_MAINLINE and self.displayedUnit and UnitGetTotalHealAbsorbs(self.displayedUnit) or 0
+			local unitHealAbsorb = UnitGetTotalHealAbsorbs and self.displayedUnit and UnitGetTotalHealAbsorbs(self.displayedUnit) or 0
 
 			if (unitHealIncoming > 0) then
 				--calculate what is the percent of health incoming based on the max health the player has
@@ -353,7 +361,7 @@ local cleanfunction = function() end
 			end
 		end
 
-		if (self.Settings.ShowShields and IS_WOW_PROJECT_MAINLINE) then
+		if (self.Settings.ShowShields and UnitGetTotalAbsorbs) then
 			--damage absorbs
 			local unitDamageAbsorb = self.displayedUnit and UnitGetTotalAbsorbs (self.displayedUnit) or 0
 
@@ -938,7 +946,7 @@ detailsFramework.CastFrameFunctions = {
 		FadeOutTime = 0.5, --amount of time in seconds to go from 100% to zero alpha when the cast finishes
 		CanLazyTick = true, --if true, it'll execute the lazy tick function, it ticks in a much slower pace comparece with the regular tick
 		LazyUpdateCooldown = 0.2, --amount of time to wait for the next lazy update, this updates non critical things like the cast timer
-
+		DontUpdateAlpha = false,
 		ShowEmpoweredDuration = true, --full hold time for empowered spells
 
 		FillOnInterrupt = true,
@@ -952,6 +960,7 @@ detailsFramework.CastFrameFunctions = {
 		Colors = {
 			Casting = detailsFramework:CreateColorTable (1, 0.73, .1, 1),
 			Channeling = detailsFramework:CreateColorTable (1, 0.73, .1, 1),
+			Empowered = detailsFramework:CreateColorTable (1, 0.73, .1, 1),
 			Finished = detailsFramework:CreateColorTable (0, 1, 0, 1),
 			NonInterruptible = detailsFramework:CreateColorTable (.7, .7, .7, 1),
 			Failed = detailsFramework:CreateColorTable (.4, .4, .4, 1),
@@ -1002,6 +1011,7 @@ detailsFramework.CastFrameFunctions = {
 
 		self.Spark:SetTexture(self.Settings.SparkTexture)
 		self.Spark:SetSize(self.Settings.SparkWidth, self.Settings.SparkHeight)
+		self.Spark:SetPoint("CENTER", self.barTexture, "RIGHT", self.Settings.SparkOffset, 0)
 
 		self.percentText:SetPoint("right", self, "right", -2, 0)
 		self.percentText:SetJustifyH("right")
@@ -1019,6 +1029,9 @@ detailsFramework.CastFrameFunctions = {
 	GetCastColor = function(self)
 		if (not self.canInterrupt) then
 			return self.Colors.NonInterruptible
+			
+		elseif (self.empowered) then
+			return self.Colors.Empowered
 
 		elseif (self.channeling) then
 			return self.Colors.Channeling
@@ -1315,11 +1328,6 @@ detailsFramework.CastFrameFunctions = {
 			self:SetValue(self.value)
 		end
 
-		--update spark position
-		local sparkPosition = self.value / self.maxValue * self:GetWidth()
-		self.Spark:SetPoint("center", self, "left", sparkPosition + self.Settings.SparkOffset, 0)
-
-
 		--in order to allow the lazy tick run, it must return true, it tell that the cast didn't finished
 		return true
 	end,
@@ -1333,10 +1341,6 @@ detailsFramework.CastFrameFunctions = {
 		else
 			self:SetValue(self.value)
 		end
-
-		--update spark position
-		local sparkPosition = self.value / self.maxValue * self:GetWidth()
-		self.Spark:SetPoint("center", self, "left", sparkPosition + self.Settings.SparkOffset, 0)
 
 		self:CreateOrUpdateEmpoweredPips()
 
@@ -1512,7 +1516,9 @@ detailsFramework.CastFrameFunctions = {
 
 			self:SetMinMaxValues(0, self.maxValue)
 			self:SetValue(self.value)
-			self:SetAlpha(1)
+			if (not self.Settings.DontUpdateAlpha) then
+				self:SetAlpha(1)
+			end
 			self.Icon:SetTexture(texture)
 			self.Icon:Show()
 			self.Text:SetText(text or name)
@@ -1524,7 +1530,9 @@ detailsFramework.CastFrameFunctions = {
 			self.flashTexture:Hide()
 			self:Animation_StopAllAnimations()
 
-			self:SetAlpha(1)
+			if (not self.Settings.DontUpdateAlpha) then
+				self:SetAlpha(1)
+			end
 
 			--set the statusbar color
 			self:UpdateCastColor()
@@ -1534,6 +1542,7 @@ detailsFramework.CastFrameFunctions = {
 			end
 
 			self.Spark:Show()
+			self.Spark:SetPoint("CENTER", self.barTexture, "RIGHT", self.Settings.SparkOffset, 0)
 			self:Show()
 
 		--update the interrupt cast border
@@ -1669,7 +1678,9 @@ detailsFramework.CastFrameFunctions = {
 			self:SetMinMaxValues(0, self.maxValue)
 			self:SetValue(self.value)
 
-			self:SetAlpha(1)
+			if (not self.Settings.DontUpdateAlpha) then
+				self:SetAlpha(1)
+			end
 			self.Icon:SetTexture(texture)
 			self.Icon:Show()
 			self.Text:SetText(text)
@@ -1681,7 +1692,9 @@ detailsFramework.CastFrameFunctions = {
 			self.flashTexture:Hide()
 			self:Animation_StopAllAnimations()
 
-			self:SetAlpha(1)
+			if (not self.Settings.DontUpdateAlpha) then
+				self:SetAlpha(1)
+			end
 
 			--set the statusbar color
 			self:UpdateCastColor()
@@ -1691,6 +1704,7 @@ detailsFramework.CastFrameFunctions = {
 			end
 
 			self.Spark:Show()
+			self.Spark:SetPoint("CENTER", self.barTexture, "RIGHT", self.Settings.SparkOffset, 0)
 			self:Show()
 
 		--update the interrupt cast border
@@ -1985,6 +1999,8 @@ function detailsFramework:CreateCastBar(parent, name, settingsOverride)
 		detailsFramework.table.copy(settings, settingsOverride)
 	end
 	castBar.Settings = settings
+	
+	castBar.Spark:SetPoint("CENTER", castBar.barTexture, "RIGHT", castBar.Settings.SparkOffset, 0)
 
 	local hookList = detailsFramework.table.copy({}, detailsFramework.CastFrameFunctions.HookList)
 	castBar.HookList = hookList

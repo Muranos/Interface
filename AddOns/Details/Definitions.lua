@@ -40,6 +40,7 @@
 ---| "COMBAT_ARENA_END"
 ---| "COMBAT_MYTHICDUNGEON_START"
 ---| "COMBAT_MYTHICDUNGEON_END"
+---| "COMBAT_MYTHICDUNGEON_CONTINUE"
 ---| "GROUP_ONENTER"
 ---| "GROUP_ONLEAVE"
 ---| "ZONE_TYPE_CHANGED"
@@ -154,8 +155,8 @@ DETAILS_SUBATTRIBUTE_DEBUFFUPTIME = 8
 ---| "DETAILS_SEGMENTTYPE_TRAININGDUMMY"
 
 DETAILS_TOTALS_ONLYGROUP = true
-DETAILS_SEGMENTID_OVERALL = true
-DETAILS_SEGMENTID_CURRENT = true
+DETAILS_SEGMENTID_OVERALL = -1
+DETAILS_SEGMENTID_CURRENT = 0
 DETAILS_COMBAT_AMOUNT_CONTAINERS = true
 DETAILS_SEGMENTTYPE_GENERIC = true
 DETAILS_SEGMENTTYPE_OVERALL = true
@@ -176,6 +177,15 @@ DETAILS_SEGMENTTYPE_PVP_ARENA = true
 DETAILS_SEGMENTTYPE_PVP_BATTLEGROUND = true
 DETAILS_SEGMENTTYPE_EVENT_VALENTINEDAY = true
 DETAILS_SEGMENTTYPE_TRAININGDUMMY = true
+
+---@class interrupt_overlap : table
+---@field time number
+---@field sourceName string
+---@field spellId number
+---@field targetName string
+---@field extraSpellID number
+---@field used boolean
+---@field interrupted boolean
 
 ---@class mythicdungeontrashinfo
 ---@field ZoneName string
@@ -256,7 +266,19 @@ DETAILS_SEGMENTTYPE_TRAININGDUMMY = true
 ---@field killed boolean?
 ---@field bossimage texturepath|number?
 
----@class details
+---@class details_encounter_table
+---@field start number gettime() when the encounter started
+---@field end number gettime() when the encounter ended
+---@field id number the encounter id from encounter_start
+---@field name string the encounter name
+---@field diff number the difficulty id from encounter_start
+---@field size number the raid size from encounter_start
+---@field zone string the zone name from getinstanceinfo()
+---@field mapid number the zone map id from getinstanceinfo()
+---@field phase number the current phase of the encounter
+---@field kill boolean if the encounter was a kill or a wipe
+
+---@class details 
 ---@field encounter_table table store the encounter data for the current encounter
 ---@field boss1_health_percent number store the health percentage (one to zero) of the boss1
 ---@field pets table<guid, petinfo> store the pet guid as the key and the petinfo as the value
@@ -266,13 +288,21 @@ DETAILS_SEGMENTTYPE_TRAININGDUMMY = true
 ---@field container_type table<containertype, string> [containertype] = "damage" or "heal" or "energy" or "utility"
 ---@field TextureAtlas table<atlasname, df_atlasinfo>
 ---@field playername string
+---@field damage_meter_type number
 ---@field breakdown_general profile_breakdown_settings
 ---@field DefaultTooltipIconSize number default size of the icons in the tooltip, this also dictates the size of each line in the tooltip
 ---@field Format fun(self: details, number: number) : string
 ---@field OpenSpecificBreakdownWindow fun(self: details, combatObject: combat, actorName: string, mainAttribute: number, subAttribute: number)
 ---@field GetInstanceInfo fun(self: details, id: instanceid|instancename|mapid) : details_instanceinfo
 ---@field CreatePlayerPortrait fun(self: details, parent: frame, name: string) : frame
+---@field GetCurrentEncounterInfo fun(self: details) : details_encounter_table
+---@field GetAllInstances fun(self: details) : instance[] return a table with all the instances
+---@field GetCoreVersion fun(self: details) : number return the core version, this is used to check API version for scripts and plugins
+---@field RefreshMainWindow fun(self: details, instance:instance|number?, forceUpdate:boolean?) refresh a window or all main windows if -1 is passed into instance
 ---@field 
+---@field GetCombatWithSessionId fun(self: details, combatSessionId: string) : combat|nil
+---@field HasCombatWithSessionId fun(self: details, combatSessionId: string) : boolean
+---@field InstanceCallDetailsFunc fun(self: details, func:fun(object:nil, instance:instance, ...), ...) call a function on all opened instances
 ---@field GetItemLevelFromGuid fun(self: details, guid: guid) : number return the item level of the player, if the player is not found, return 0
 ---@field GenerateActorInfo fun(self: details, actor: actor, errorText:string, bIncludeStack:boolean) : table<string, boolean|string|number> generates a table with the main attributes of the actor, this is mainly for debug purposes
 ---@field DumpActorInfo fun(self: details, actor: actor) open a window showig the main attributes of an actor, this is mainly for debug purposes
@@ -287,6 +317,7 @@ DETAILS_SEGMENTTYPE_TRAININGDUMMY = true
 ---@field GetOverallCombat fun(self: details) : combat return the overall combat
 ---@field SetCurrentCombat fun(self: details, combatObject: combat) set the current active combat
 ---@field GetCurrentCombat fun(self: details) : combat return the current active combat
+---@field GetTwinCombat fun(self: details, twinIdentifier:number) : combat?
 ---@field ResetSegmentData fun(self: details) reset all segments inclusing overall data
 ---@field ResetSegmentOverallData fun(self: details) reset only the overall data
 ---@field UpdateBreakdownPlayerList fun(self: details) update the player list in the breakdown window
@@ -297,7 +328,7 @@ DETAILS_SEGMENTTYPE_TRAININGDUMMY = true
 ---@field GetRoleIcon fun(self: details, role: role) : string, number, number, number, number return the path to a texture file and the texture coordinates for the given role
 ---@field GetSpecIcon fun(self: details, spec: number, useAlpha: boolean) : string, number, number, number, number return the path to a texture file and the texture coordinates for the given spec
 ---@field GetActiveWindowFromBreakdownWindow fun(self: details) : instance return the window (instance) that requested to open the player breakdown window
----@field OpenBreakdownWindow fun(self: details, instanceObject: instance, actorObject: actor, bFromAttributeChange: boolean?, bIsRefresh: boolean?, bIsShiftKeyDown: boolean?, bIsControlKeyDown: boolean?)
+---@field OpenBreakdownWindow fun(self: details, instanceObject: instance, actorObject: actor, bFromAttributeChange: boolean?, bIsRefresh: boolean?, bIsShiftKeyDown: boolean?, bIsControlKeyDown: boolean?, bIgnoreOverrides:boolean?, mainAttributeOverride:number?, subAttributeOverride:number?)
 ---@field GetActorObjectFromBreakdownWindow fun(self: details) : actor return the actor object that is currently shown in the breakdown window
 ---@field GetDisplayTypeFromBreakdownWindow fun(self: details) : number, number return the attribute and subattribute display type of the breakdown window
 ---@field GetCombatFromBreakdownWindow fun(self: details) : combat return the combat beaing used in the breakdown window
@@ -314,10 +345,9 @@ DETAILS_SEGMENTTYPE_TRAININGDUMMY = true
 ---@field UnpackMythicDungeonInfo fun(self: details, mythicDungeonInfo: mythicdungeoninfo) : boolean, segmentid, number, number, number, string, number, string, number, number, number unpack the mythic dungeon info and return the values
 ---@field CreateRightClickToCloseLabel fun(self: details, parent: frame) : df_label return a df_label with the text "Right click to close", need to set point
 ---@field IsValidActor fun(self: details, actor: actor) : boolean return true if the actor is valid
----@field GetCrowdControlSpells fun(self: details) : table<spellname, boolean> return a table of crowd control spells
----@field 
----@field 
-
+---@field GetCrowdControlSpells fun(self: details) : table<spellid, boolean> return a table of crowd control spells
+---@field UnpackDeathTable fun(self: details, deathTable: deathtable) : actorname, actorclass, unixtime, combattime, timestring, number, table, {key1: unixtime, key2: spellid}, specializationid unpack values inside a deathTable, deathEvents is in order or first event in the first index and last event on latest index
+---@field UnpackDeathEvent fun(self: details, deathEvent: table) : any, spellid, number, number, number, string, number?, number, boolean, number, boolean, boolean evType, spellId, amount, eventTime, heathPercent, sourceName, absorbed, spellSchool, friendlyFire, overkill, criticalHit, crushing.
 
 ---@class detailseventlistener : table
 ---@field RegisterEvent fun(self: detailseventlistener, event: detailsevent, callback: function)
@@ -387,6 +417,9 @@ DETAILS_SEGMENTTYPE_TRAININGDUMMY = true
 ---@field timeEnd number time() when the combat ended
 ---@field bloodlust number[]? combat time of when the player received a bloodlust/heroism
 ---@field bloodlust_overall number[]? exists only in segments that received a merge, uses time()
+---@field compressed_charts table store chart data
+---@field combatSessionId string
+---@field twinIdentifier number
 ---@field 
 ---@field __call table
 ---@field __index table
@@ -427,7 +460,9 @@ DETAILS_SEGMENTTYPE_TRAININGDUMMY = true
 ---@field PhaseData table
 ---@field player_last_events table<string, table[]> record the latest events of each player, latter used to build the death log
 ---@field
----@field GetCrowdControlSpells fun(self: combat, actorName: string) : table<string, number> return the amount of casts of crowd control spell by an actor
+---@field GetTwinCombat fun(self: combat, twinIdentifier:number) : combat?
+---@field GetPlayerDeaths fun(self: combat, actorName: string) : table[] return a table with subtable containing the death information of the specified actor
+---@field GetCrowdControlSpells fun(self: combat, actorName: string) : table<spellid, number> return the amount of casts of crowd control spell by an actor
 ---@field GetCCCastAmount fun(self: combat, actorName: string) : number returns the number of crowd control casts made by the specified actor
 ---@field GetInterruptCastAmount fun(self: combat, actorName: string) : number
 ---@field LockActivityTime fun(self: combat)
@@ -574,6 +609,7 @@ DETAILS_SEGMENTTYPE_TRAININGDUMMY = true
 ---@field isTank boolean if true the player had the spec TANK during the combat
 ---@field serial string
 ---@field spec number
+---@field specIcon any
 ---@field grupo boolean
 ---@field classe string
 ---@field fight_component boolean
@@ -611,14 +647,18 @@ DETAILS_SEGMENTTYPE_TRAININGDUMMY = true
 ---@field friendlyfire_total number
 ---@field friendlyfire table<actorname, friendlyfiretable>
 ---@field damage_taken number amount of damage the actor took during the segment
+---@field damage_taken_ps number
 ---@field damage_from table<actorname, boolean> store the name of the actors which damaged the actor, format: [actorName] = true
 ---@field totalabsorbed number amount of damage dealt by the actor by got absorbed by the target, this is a "ABSORB" type of miss but still counts as damage done
 ---@field augmentedSpellsContainer spellcontainer
+---@field last_dps number
+---@field last_dps_realtime number
 
 ---@class actorheal : actor
 ---@field healing_taken number amount of healing the actor took during the segment
 ---@field totalover number amount of healing that was overhealed
 ---@field totalabsorb number amount of healing that was absorbed
+---@field totalabsorb_ps number amount of healing that was absorbed
 ---@field heal_enemy_amt number amount of healing done to enemies this included enemy to enemy heals
 ---@field totaldenied number amount of healing that was denied by the target - from cleu event SPELL_HEAL_ABSORBED
 ---@field totalover_without_pet number amount of healing that was overhealed without the pet healing
@@ -626,6 +666,8 @@ DETAILS_SEGMENTTYPE_TRAININGDUMMY = true
 ---@field heal_enemy table<number, number> store the amount of healing done by each spell that landed into an enemy, format: [spellId] = healing done
 ---@field targets_overheal table<string, number> [targetName] = overheal
 ---@field targets_absorbs table<string, number> [targetName] = absorbs
+---@field last_hps number
+---@field last_hps_realtime number
 
 ---@class actorresource : actor
 ---@field powertype number power type of the actor
@@ -634,6 +676,9 @@ DETAILS_SEGMENTTYPE_TRAININGDUMMY = true
 ---@class actorutility : actor
 ---@field cc_break number amount of times the actor broke a cc
 ---@field interrupt number amount of times the actor interrupted a spell
+---@field interrupt_cast_overlap number
+---@field interrupt_targets table
+---@field interrupt_spells spellcontainer
 ---@field ress number amount of times the actor ressed a player
 ---@field dead number amount of times the actor died
 ---@field cooldowns_defensive number amount of times the actor used a defensive cooldown
@@ -656,7 +701,7 @@ DETAILS_SEGMENTTYPE_TRAININGDUMMY = true
 ---@class attributeid : number
 ---@class modeid : number
 
----@class instance : table
+---@class instance : details --~i ~instance
 ---@field segmento segmentid
 ---@field showing combat
 ---@field meu_id instanceid
@@ -668,9 +713,29 @@ DETAILS_SEGMENTTYPE_TRAININGDUMMY = true
 ---@field freezed boolean
 ---@field sub_atributo_last table
 ---@field row_info table
+---@field blzWindow blzwindow
 ---@field show_interrupt_casts boolean
+---@field baseframe frame
+---@field use_multi_fontstrings boolean
+---@field sessionId number the sessionId to use with C_DamageMeter API
+---@field sessionType number the sessionType to use with C_DamageMeter API
+---@field _postponing_switch boolean?
+---@field last_interaction number?
+---@field auto_current boolean?
+---@field tempId number
+---@field apocalypseSourceType number
+---@field overallByUser boolean
+---@field sessionType_user number
+---@field sessionId_user number
+---@field segmento_user number
+---@field lastEventTime number
 ---@field
----@field
+---@field GetApocalypseSourceType fun(instance: instance) : number
+---@field SetApocalypseSourceType fun(instance: instance, sourceType: number)
+---@field SwapToUserSegment_Apocalypse fun(instance: instance)
+---@field IsShowingDeathLog fun(instance: instance) : boolean
+---@field GetCombatTime fun(instance: instance) : number get the combat time of the currently showing combat segment
+---@field CheckForSecretsAndAspects fun(self: instance)
 ---@field GetActorBySubDisplayAndRank fun(self: instance, displayid: attributeid, subDisplay: attributeid, rank: number) : actor
 ---@field GetSize fun(instance: instance) : width, height
 ---@field GetInstanceGroup fun() : table
@@ -683,16 +748,43 @@ DETAILS_SEGMENTTYPE_TRAININGDUMMY = true
 ---@field IsLowerInstance fun(instance: instance) : boolean
 ---@field IsEnabled fun(instance: instance) : boolean
 ---@field GetId fun(instance: instance) : instanceid
----@field SetSegmentId fun(instance: instance, segment: segmentid) set the segmentId for the instance and nothing else, use 'SetSegment' for a full update
+---@field SetSegmentId fun(instance: instance, segment: segmentid, bByUser: boolean?) set the segmentId for the instance and nothing else, use 'SetSegment' for a full update
 ---@field GetSegmentId fun(instance: instance) : segmentid
 ---@field RefreshCombat fun(instance: instance)
 ---@field Freeze fun(instance: instance)
 ---@field UnFreeze fun(instance: instance)
+---@field DoAutomation fun(instance: instance, event:string)
+---@field GetAttributeType fun(instance: instance) : number
+---@field GetSources fun(instance: instance) : damagemeter_combat_source[]
 ---@field SetSegment fun(instance: instance, segment: segmentid, force: boolean|nil)
+---@field SetDisplay fun(instance: instance, segmentId: segmentid?, attributeId: attributeid?, subAttributeId: attributeid?, modeId: modeid?, quickMode:boolean?)
 ---@field GetDisplay fun(instance: instance) : attributeid, attributeid
+---@field IsShowing fun(instance: instance, segmentId: segmentid, displayId: attributeid, subDisplayId: attributeid) : boolean
 ---@field ResetWindow fun(instance: instance, resetType: number|nil, segmentId: segmentid|nil)
 ---@field RefreshData fun(instance: instance, force: boolean|nil)
 ---@field RefreshWindow fun(instance: instance, force: boolean|nil)
+---@field GetNewSegmentId fun(instance: instance) : number
+---@field SetNewSegmentId fun(instance: instance, sessionId: number, bForceRefresh: boolean?, bByUser: boolean?)
+---@field GetSegmentType fun(instance: instance) : number
+---@field SetSegmentType fun(instance: instance, sessionType: number, bForceRefresh: boolean?, bByUser: boolean?)
+---@field GetSegmentObject fun(instance: instance) : damagemeter_combat_session
+---@field GetSourceActorFromName fun(instance: instance, name: string) : actor
+
+---@class sessioncache : table
+---@field startTime number
+---@field endTime number?
+---@field startUnixTime number
+---@field endUnixTime number?
+---@field startDate string
+---@field endDate string?
+---@field sessionId number
+---@field added boolean?
+---@field detailsId string?
+---@field sessionName string?
+---@field encounterId number?
+---@field encounterName string?
+---@field encounterData encounterdata?
+---@field alreadyAdded boolean
 
 ---@class trinketdata : table
 ---@field itemName string
@@ -794,9 +886,12 @@ DETAILS_SEGMENTTYPE_TRAININGDUMMY = true
 ---@field amount number
 ---@field total number
 ---@field actorName string
+---@field spellId number?
 ---@field Icon texture
+---@field IconFrame frame
 ---@field InLineTexts fontstring[]
 ---@field statusBar breakdownspellbarstatusbar
+---@field overlayTexture texture
 ---@field bIsFromLeftScroll boolean
 ---@field bIsFromRightScroll boolean
 
@@ -1023,6 +1118,16 @@ DETAILS_SEGMENTTYPE_TRAININGDUMMY = true
 ---@field PetContainer petcontainer
 ---@field InstanceDifficulty instancedifficulty
 ---@field ContextManager contextmanager
+---@field AllInOneWindow details_allinonewindow
+---@field BParser bparser
+---@field Apocalypse addon_apocalypse
+
+---@class addon_apocalypse:table
+---@field TypeDetails number
+---@field TypeGame number
+---@field segmentType number
+---@field GetType fun() : number
+---@field SetType fun(newType: number)
 
 ---@class profile_breakdown_settings : table
 ---@field font_size number

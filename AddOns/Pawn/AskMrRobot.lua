@@ -1,14 +1,14 @@
 ﻿-- Pawn by Vger-Azjol-Nerub
 -- www.vgermods.com
--- © 2006-2025 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
--- See Readme.htm for more information.
+-- © 2006-2026 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
+-- See Readme.md for more information.
 --
 -- Ask Mr. Robot scales
 ------------------------------------------------------------
 
 local ScaleProviderName = "MrRobot"
 
-PawnMrRobotLastUpdatedVersion = 2.1003
+PawnMrRobotLastUpdatedVersion = 2.1306
 
 
 function PawnMrRobotScaleProvider_AddScales()
@@ -47,6 +47,13 @@ PawnAddPluginScaleFromTemplate(
 	12, -- Demon Hunter
 	2, -- Vengeance
 	{ Armor=20.96, Agility=16.69, MaxDamage=7.46, MinDamage=7.46, Stamina=5.22, HasteRating=15.47, CritRating=15.36, Versatility=14.51, MasteryRating=10.31, Leech=3.71, Avoidance=0.02, Indestructible=0.01, MovementSpeed=0.01 }
+)
+
+PawnAddPluginScaleFromTemplate(
+	ScaleProviderName,
+	12, -- Demon Hunter
+	3, -- Devourer
+	{ Intellect=29.27, HasteRating=29.16, MasteryRating=26.37, CritRating=21.09, Versatility=16.64, Avoidance=0.03, MovementSpeed=0.02, Indestructible=0.01, Leech=0.01 }
 )
 
 PawnAddPluginScaleFromTemplate(
@@ -312,9 +319,6 @@ end -- PawnMrRobotScaleProvider_AddScales
 
 ------------------------------------------------------------
 
-if VgerCore.IsMainline then
-	PawnAddPluginScaleProvider(ScaleProviderName, PawnLocal.UI.AskMrRobotProvider, PawnMrRobotScaleProvider_AddScales)
-else
-	-- These scales aren't useful on WoW Classic versions, so skip them.
-	PawnMrRobotScaleProvider_AddScales = nil
-end
+-- Initiate self-destruct sequence.
+PawnAddPluginScaleProvider(ScaleProviderName, PawnLocal.UI.AskMrRobotProvider, PawnMrRobotScaleProvider_AddScales)
+PawnMrRobotScaleProvider_AddScales = nil

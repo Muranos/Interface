@@ -4,8 +4,6 @@ if L then
 	L.add_death = "Aviso de morte do lacaio"
 	L.add_death_desc = "Avisa quando um lacaio morre."
 
-	L.wave = "%d/22: %s"
-
 	L.trainee = "Aprendiz" -- Unrelenting Trainee NPC 16124
 	L.deathKnight = "Cavaleiro da Morte" -- Unrelenting Death Knight NPC 16125
 	L.rider = "Cavalgante" -- Unrelenting Rider NPC 16126
@@ -18,7 +16,7 @@ end
 
 L = BigWigs:NewBossLocale("Heigan the Unclean", "ptBR")
 if L then
-	--L.teleport_yell_trigger = "The end is upon you."
+	L.teleport_yell_trigger = "Seu fim se aproxima."
 end
 
 L = BigWigs:NewBossLocale("The Four Horsemen", "ptBR")
@@ -35,17 +33,17 @@ L = BigWigs:NewBossLocale("Kel'Thuzad", "ptBR")
 if L then
 	L.KELTHUZADCHAMBERLOCALIZEDLOLHAX = "Câmara de Kel'Thuzad"
 
-	--L.engage_yell_trigger = "Minions, servants, soldiers of the cold dark! Obey the call of Kel'Thuzad!"
-	--L.stage2_yell_trigger1 = "Pray for mercy!"
+	L.engage_yell_trigger = "Lacaios, serviçais, soldados das gélidas trevas! Atendam ao chamado de Kel'Thuzad!"
+	L.stage2_yell_trigger1 = "Supliquem por misericórdia!"
 	--L.stage2_yell_trigger2 = "Scream your dying breath!"
-	--L.stage2_yell_trigger3 = "The end is upon you!"
-	--L.stage3_yell_trigger = "Master, I require aid!"
-	--L.adds_yell_trigger = "Very well. Warriors of the frozen wastes, rise up! I command you to fight, kill and die for your master! Let none survive!"
+	L.stage2_yell_trigger3 = "O fim está próximo!"
+	L.stage3_yell_trigger = "Meu senhor, preciso de ajuda!"
+	L.adds_yell_trigger = "Muito bem. Guerreiros dos ermos gélidos, ergam-se! Ordeno que lutem, matem e morram por seu senhor! Não deixem sobreviventes!"
 end
 
 L = BigWigs:NewBossLocale("Noth the Plaguebringer", "ptBR")
 if L then
-	--L.adds_yell_trigger = "Rise, my soldiers" -- Rise, my soldiers! Rise and fight once more!
+	L.adds_yell_trigger = "Ergam-se, meus soldados!" -- Ergam-se, meus soldados! Ergam-se e lutem uma vez mais!
 end
 
 L = BigWigs:NewBossLocale("Instructor Razuvious", "ptBR")
@@ -58,12 +56,12 @@ if L then
 	L[15929] = "Stalagg"
 	L[15930] = "Feugen"
 
-	--L.stage2_yell_trigger1 = "Eat... your... bones..."
+	L.stage2_yell_trigger1 = "Comer... seus... osso..."
 	--L.stage2_yell_trigger2 = "Break... you!!"
-	--L.stage2_yell_trigger3 = "Kill..."
+	L.stage2_yell_trigger3 = "Matar... Vocês...!"
 
-	--L.add_death_emote_trigger = "%s dies."
-	--L.overload_emote_trigger = "%s overloads!"
+	L.add_death_emote_trigger = "%s morre."
+	L.overload_emote_trigger = "%s se sobrecarrega!"
 	--L.add_revive_emote_trigger = "%s is jolted back to life!"
 
 	L.polarity_extras = "Avisos adicionais para posicionamento da mudança de polaridade"

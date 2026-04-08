@@ -1,5 +1,5 @@
 --[[
-Copyright 2008-2025 João Cardoso
+Copyright 2008-2026 João Cardoso
 All Rights Reserved
 --]]
 
@@ -154,7 +154,7 @@ function Visualizer.Scroll:update()
 			button.item, button.link = id, link
 			button:SetHighlightLocked(id == self.item.id)
 			button.Text:SetTextColor(ITEM_QUALITY_COLORS[quality].color:GetRGB())
-			button.Icon:SetTexture(GetItemIcon(id))
+			button.Icon:SetTexture(C.Item.GetItemIconByID(id))
 			button.Text:SetText(name)
 			button:SetWidth(width)
 			button:Show()

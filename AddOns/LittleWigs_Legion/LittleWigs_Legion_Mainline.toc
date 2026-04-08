@@ -1,4 +1,4 @@
-## Interface: 110105, 110007, 110100
+## Interface: 120001, 120005, 120000
 
 ## Title: LittleWigs [|cffeda55fLegion|r]
 ## Title-deDE: LittleWigs [|cffeda55fLegion|r]
@@ -22,3 +22,4 @@
 ## X-BigWigs-LoadOn-InstanceId: 1456, 1466, 1477, 1458, 1492, 1493, 1501, 1516, 1544, 1571, 1616, 1651, 1673, 1677, 1684, 1698, 1702, 1703, 1710, 1753
 
 modules.xml
+!Locales\[TextLocale].lua [AllowLoadTextLocale deDE, esES, esMX, frFR, itIT, koKR, ptBR, ruRU, zhCN, zhTW]

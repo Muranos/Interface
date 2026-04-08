@@ -142,18 +142,27 @@ mainFrame.edge:SetBackdropColor(0,0,0,0)
 mainFrame.edge:SetBackdropBorderColor(0.6,0.6,0.6,1)
 
 local function MainFrameMarkButtonOnEnter(self)
+	if not ExRT.A.Marks then 
+		module.frame.markbuts[self._i]:SetBackdropBorderColor(0.7,0.7,0.7,1)
+		return 
+	end
 	local name = ExRT.A.Marks:GetName(self._i)
 	if not (name and ExRT.A.Marks.Enabled) then
 		module.frame.markbuts[self._i]:SetBackdropBorderColor(0.7,0.7,0.7,1)
 	end
 end
 local function MainFrameMarkButtonOnLeave(self)
+	if not ExRT.A.Marks then 
+		module.frame.markbuts[self._i]:SetBackdropBorderColor(0.4,0.4,0.4,1)
+		return 
+	end
 	local name = ExRT.A.Marks:GetName(self._i)
 	if not (name and ExRT.A.Marks.Enabled) then
 		module.frame.markbuts[self._i]:SetBackdropBorderColor(0.4,0.4,0.4,1)
 	end
 end
 local function MainFrameMarkButtonOnClick(self, button)
+	if not ExRT.A.Marks then return end
 	local i = self._i
 	if button == "RightButton" then
 		local name = ExRT.A.Marks:GetName(i)
@@ -198,7 +207,8 @@ do
 		frame:SetBackdropColor(0,0,0,0)
 		frame:SetBackdropBorderColor(0.4,0.4,0.4,1)
 	
-		frame.but = CreateFrame("Button",nil,frame)
+		local button_type = ExRT.isMN and "SecureActionButtonTemplate" or nil
+		frame.but = CreateFrame("Button",nil,frame,button_type)
 		frame.but:SetSize(20,20)
 		frame.but:SetPoint("TOPLEFT",  3, -3)
 		frame.but.t = frame.but:CreateTexture(nil, "BACKGROUND")
@@ -210,9 +220,16 @@ do
 	
 		frame.but:SetScript("OnEnter",MainFrameMarkButtonOnEnter)
 		frame.but:SetScript("OnLeave", MainFrameMarkButtonOnLeave)
-	
-		frame.but:RegisterForClicks("RightButtonDown","LeftButtonDown")
-		frame.but:SetScript("OnClick", MainFrameMarkButtonOnClick)
+
+		if ExRT.isMN then
+			frame.but:RegisterForClicks("AnyDown", "AnyUp")
+			frame.but:SetAttribute("type", "macro")
+			frame.but:SetAttribute("macrotext1", format(SLASH_TARGET_MARKER1.." !%d", i))
+			frame.but:SetAttribute("macrotext2", format(SLASH_TARGET_MARKER1.." %d", 0))
+		else
+			frame.but:RegisterForClicks("RightButtonDown","LeftButtonDown")
+			frame.but:SetScript("OnClick", MainFrameMarkButtonOnClick)
+		end
 	end
 end
 
@@ -271,7 +288,7 @@ end
 
 mainFrame.edges[2] = CreateEdge(2,228)
 
-mainFrame.start = CreateFrame("Button",nil,mainFrame, BackdropTemplateMixin and "BackdropTemplate")
+mainFrame.start = CreateFrame("Button",nil,mainFrame, BackdropTemplateMixin and "SecureActionButtonTemplate,BackdropTemplate" or "SecureActionButtonTemplate")
 mainFrame.start:SetBackdrop({bgFile = ExRT.F.barImg,edgeFile = ExRT.F.defBorder,tile = false,edgeSize = 6})
 mainFrame.start:SetBackdropColor(0,0,0,0)
 mainFrame.start:SetBackdropBorderColor(0.4,0.4,0.4,1)
@@ -281,13 +298,24 @@ end)
 mainFrame.start:SetScript("OnLeave", function(self)    
 	self:SetBackdropBorderColor(0.4,0.4,0.4,1)
 end)
-mainFrame.start:SetScript("OnClick", function(self)    
-	module.db.clearnum = GetTime()
-	for i=1,8 do
-		SetRaidTarget("player", i) 
-	end
-end)
 
+if ExRT.isMN then
+	mainFrame.start:RegisterForClicks("AnyDown", "AnyUp")
+	mainFrame.start:SetAttribute("type", "macro")
+	local macrotext = ""
+	for i=1,9 do
+	--	macrotext = macrotext .. format(SLASH_TARGET_MARKER1.." %d", i < 9 and i or 0) .. (i < 9 and "\n" or "")
+	end
+	mainFrame.start:SetAttribute("macrotext", format(SLASH_TARGET_MARKER1.." %d", 0))
+	--mainFrame.start:SetAttribute("macrotext", macrotext)
+else
+	mainFrame.start:SetScript("OnClick", function(self)    
+		module.db.clearnum = GetTime()
+		for i=1,8 do
+			SetRaidTarget("player", i) 
+		end
+	end)
+end
 mainFrame.start.html = mainFrame.start:CreateFontString(nil,"ARTWORK","GameFontWhite")
 mainFrame.start.html:SetFont(ExRT.F.defFont, 10, "")
 mainFrame.start.html:SetAllPoints()
@@ -297,7 +325,8 @@ mainFrame.start.html:SetShadowOffset(1,-1)
 
 ELib:FixPreloadFont(mainFrame.start,mainFrame.start.html,ExRT.F.defFont, 10)
 
-mainFrame.del = CreateFrame("Button",nil,mainFrame, BackdropTemplateMixin and "BackdropTemplate")
+
+mainFrame.del = CreateFrame("Button",nil,mainFrame, BackdropTemplateMixin and "SecureActionButtonTemplate,BackdropTemplate" or "SecureActionButtonTemplate")
 mainFrame.del:SetBackdrop({bgFile = ExRT.F.barImg,edgeFile = ExRT.F.defBorder,tile = false,edgeSize = 6})
 mainFrame.del:SetBackdropColor(0,0,0,0)
 mainFrame.del:SetBackdropBorderColor(0.4,0.4,0.4,1)
@@ -307,17 +336,23 @@ end)
 mainFrame.del:SetScript("OnLeave", function(self)    
 	self:SetBackdropBorderColor(0.4,0.4,0.4,1)
 end)
-mainFrame.del:SetScript("OnClick", function(self)    
-	for i=1,8 do
-		local name = ExRT.A.Marks:GetName(i)
-		if name and UnitName(name) then
-			SetRaidTargetIcon(name, 0)
+if ExRT.isMN then
+	mainFrame.del:RegisterForClicks("AnyDown", "AnyUp")
+	mainFrame.del:SetAttribute("type", "macro")
+	mainFrame.del:SetAttribute("macrotext", format(SLASH_TARGET_MARKER1.." %d", 0))
+else
+	mainFrame.del:SetScript("OnClick", function(self)    
+		for i=1,8 do
+			local name = ExRT.A.Marks:GetName(i)
+			if name and UnitName(name) then
+				SetRaidTargetIcon(name, 0)
+			end
+			module.frame.markbuts[i]:SetBackdropBorderColor(0.4,0.4,0.4,1)
 		end
-		module.frame.markbuts[i]:SetBackdropBorderColor(0.4,0.4,0.4,1)
-	end
-	ExRT.A.Marks:ClearNames()
-	ExRT.A.Marks:Disable()
-end)
+		ExRT.A.Marks:ClearNames()
+		ExRT.A.Marks:Disable()
+	end)
+end
 
 mainFrame.del.html = mainFrame.del:CreateFontString(nil,"ARTWORK","GameFontWhite")
 mainFrame.del.html:SetFont(ExRT.F.defFont, 10, "")
@@ -367,7 +402,7 @@ do
 		
 		if i < MAX_WM_BUTTONS then
 			frame:RegisterForClicks("AnyDown", "AnyUp")
-			if true then
+			if ExRT.isMN then
 				frame:SetAttribute("type", "worldmarker")
 				frame:SetAttribute("marker", tostring(i))
 				frame:SetAttribute("action1", "set")
@@ -383,9 +418,15 @@ do
 			end
 			frame:SetScript('OnEvent', MainFrameWMOnEvent)
 		else
-			frame:SetScript("OnClick",  function()
-				ClearRaidMarker()
-			end)
+			if ExRT.isMN then
+				frame:RegisterForClicks("AnyDown", "AnyUp")
+				frame:SetAttribute("type", "macro")
+				frame:SetAttribute("macrotext", format("%s %s", SLASH_CLEAR_WORLD_MARKER1 or "/cwm",ALL or "All"))
+			else
+				frame:SetScript("OnClick",  function()
+					ClearRaidMarker()
+				end)
+			end
 		end
 	
 		frame.t = frame:CreateTexture(nil, "BACKGROUND")
@@ -443,7 +484,7 @@ for i=1,MAX_WM_BUTTONS do
 
 	if i < MAX_WM_BUTTONS then
 		frame:RegisterForClicks("AnyDown", "AnyUp")
-		if true then
+		if ExRT.isMN then
 			frame:SetAttribute("type", "worldmarker")
 			frame:SetAttribute("marker", tostring(i))
 			frame:SetAttribute("action1", "set")
@@ -459,9 +500,15 @@ for i=1,MAX_WM_BUTTONS do
 		end
 		frame:SetScript('OnEvent', MainFrameWMOnEvent)
 	else
-		frame:SetScript("OnClick", function()
-			ClearRaidMarker()
-		end)
+		if ExRT.isMN then
+			frame:RegisterForClicks("AnyDown", "AnyUp")
+			frame:SetAttribute("type", "macro")
+			frame:SetAttribute("macrotext", format("%s %s", SLASH_CLEAR_WORLD_MARKER1 or "/cwm",ALL or "All"))
+		else
+			frame:SetScript("OnClick", function()
+				ClearRaidMarker()
+			end)
+		end
 	end
 end
 
@@ -480,6 +527,10 @@ mainFrame.readyCheck:SetScript("OnLeave", function(self)
 	self:SetBackdropBorderColor(0.4,0.4,0.4,1)
 end)
 mainFrame.readyCheck:SetScript("OnClick", function(self)    
+	if ExRT.isMN and C_ChatInfo.InChatMessagingLockdown() then
+		print("Not possible to do ready check during combat.")
+		return
+	end
 	DoReadyCheck()
 end)
 
@@ -855,7 +906,9 @@ module.modifymarkbars = modifymarkbars
 function module:Enable()
 	VMRT.MarksBar.enabled = true
 	module.frame:Show()
-	module:RegisterEvents('RAID_TARGET_UPDATE')
+	if not ExRT.isMN then 
+		module:RegisterEvents('RAID_TARGET_UPDATE')
+	end
 	module:RegisterEvents('GROUP_ROSTER_UPDATE')
 	if VMRT.MarksBar.DisableOutsideRaid or VMRT.MarksBar.DisableWithoutAssist then
 		module:GroupRosterUpdate()

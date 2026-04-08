@@ -12,6 +12,8 @@ local P = Cell.pixelPerfectFuncs
 local LCG = LibStub("LibCustomGlow-1.0")
 local LibTranslit = LibStub("LibTranslit-1.0")
 
+local function noop() end
+
 -------------------------------------------------
 -- shared functions
 -------------------------------------------------
@@ -426,7 +428,11 @@ local function Debuffs_ShowTooltip(debuffs, show)
     for i = 1, 10 do
         if show then
             debuffs[i]:SetScript("OnEnter", function(self)
-                F.ShowTooltips(debuffs.parent, "spell", debuffs.parent.states.displayedUnit, self.index, "HARMFUL")
+                if self.index then
+                    F.ShowTooltips(debuffs.parent, "spell", debuffs.parent.states.displayedUnit, self.index, "HARMFUL")
+                elseif self.auraInstanceID then
+                    F.ShowTooltips(debuffs.parent, "aura", debuffs.parent.states.displayedUnit, self.auraInstanceID, "HARMFUL")
+                end
             end)
 
             debuffs[i]:SetScript("OnLeave", function()
@@ -888,8 +894,12 @@ end
 local function RaidDebuffs_ShowTooltip(raidDebuffs, show)
     for i = 1, 3 do
         if show then
-            raidDebuffs[i]:SetScript("OnEnter", function()
-                F.ShowTooltips(raidDebuffs.parent, "spell", raidDebuffs.parent.states.displayedUnit, raidDebuffs[i].index, "HARMFUL")
+            raidDebuffs[i]:SetScript("OnEnter", function(self)
+                if self.index then
+                    F.ShowTooltips(raidDebuffs.parent, "spell", raidDebuffs.parent.states.displayedUnit, self.index, "HARMFUL")
+                elseif self.auraInstanceID then
+                    F.ShowTooltips(raidDebuffs.parent, "aura", raidDebuffs.parent.states.displayedUnit, self.auraInstanceID, "HARMFUL")
+                end
             end)
             raidDebuffs[i]:SetScript("OnLeave", function()
                 GameTooltip:Hide()
@@ -908,7 +918,8 @@ function I.CreateRaidDebuffs(parent)
     raidDebuffs:Hide()
     raidDebuffs.parent = parent
 
-    raidDebuffs:SetScript("OnHide", RaidDebuffs_HideGlow)
+    hooksecurefunc(raidDebuffs, "Hide", RaidDebuffs_HideGlow)
+    -- raidDebuffs:SetScript("OnHide", RaidDebuffs_HideGlow)
 
     raidDebuffs._SetSize = raidDebuffs.SetSize
     raidDebuffs.SetSize = I.Cooldowns_SetSize
@@ -1290,7 +1301,7 @@ end
 local function StatusText_SetStatus(self, status)
     -- print("status: " .. (status or "nil"))
     self.status = status
-    if status then
+    if status and self.colors then
         self.text:SetText(L[status])
         self.text:SetTextColor(unpack(self.colors[status]))
         self.timer:SetTextColor(unpack(self.colors[status]))
@@ -1516,7 +1527,7 @@ end
 local function HealthText_SetFormat(self, format)
     self.GetHealth1 = formatter[format.health1.format:gsub("_no_sign$", "")]
     self.GetHealth2 = formatter[format.health2.format:gsub("_no_sign$", "")]
-    self.GetAbsorbs = formatter[format.shields.format:gsub("_no_sign$", "")]
+    self.GetShields = formatter[format.shields.format:gsub("_no_sign$", "")]
     self.GetHealAbsorbs = formatter[format.healAbsorbs.format:gsub("_no_sign$", "")]
 
     self.health1 = BuildPattern(format.health1)
@@ -1533,7 +1544,7 @@ local function HealthText_SetValue(self, health, maxHealth, shields, healAbsorbs
     self.text:SetFormattedText("%s%s%s%s",
         self.GetHealth1(self.health1, self.health1_hideIfEmptyOrFull, health, maxHealth, shields, healAbsorbs),
         self.GetHealth2(self.health2, self.health2_hideIfEmptyOrFull, health, maxHealth, shields, healAbsorbs),
-        self.GetAbsorbs(self.shields, health, maxHealth, shields, healAbsorbs),
+        self.GetShields(self.shields, health, maxHealth, shields, healAbsorbs),
         self.GetHealAbsorbs(self.healAbsorbs, health, maxHealth, shields, healAbsorbs))
     self:SetWidth(self.text:GetStringWidth())
 end
@@ -1596,7 +1607,8 @@ function I.CreateHealthText(parent)
     local text = healthText:CreateFontString(nil, "OVERLAY", "CELL_FONT_STATUS")
     healthText.text = text
 
-    healthText.GetHealth = formatter.none
+    healthText.GetHealth1 = formatter.none
+    healthText.GetHealth2 = formatter.none
     healthText.GetShields = formatter.none
     healthText.GetHealAbsorbs = formatter.none
 
@@ -1724,8 +1736,7 @@ function I.CreatePowerText(parent)
     powerText.SetColor = PowerText_SetColor
     powerText.SetHideIfEmptyOrFull = PowerText_SetHideIfEmptyOrFull
     powerText.UpdatePreviewColor = PowerText_UpdatePreviewColor
-
-    function powerText:SetValue() end
+    powerText.SetValue = noop
 end
 
 -------------------------------------------------
@@ -2034,7 +2045,7 @@ local function ShieldBar_SetHorizontalValue(bar, percent)
     else
         barWidth = maxWidth * percent
     end
-    bar:SetWidth(barWidth)
+    bar:SetWidth(max(barWidth, 3))
 end
 
 local function ShieldBar_SetVerticalValue(bar, percent)
@@ -2045,7 +2056,7 @@ local function ShieldBar_SetVerticalValue(bar, percent)
     else
         barHeight = maxHeight * percent
     end
-    bar:SetHeight(barHeight)
+    bar:SetHeight(max(barHeight, 3))
 end
 
 local function ShieldBar_SetPoint(bar, point, anchorTo, anchorPoint, x, y)
@@ -2182,102 +2193,6 @@ function I.UpdateHealthThresholds()
 end
 
 -------------------------------------------------
--- missing buffs
--------------------------------------------------
-function I.CreateMissingBuffs(parent)
-    local missingBuffs = CreateFrame("Frame", parent:GetName().."MissingBuffParent", parent.widgets.indicatorFrame)
-    parent.indicators.missingBuffs = missingBuffs
-    missingBuffs:Hide()
-
-    missingBuffs._SetSize = missingBuffs.SetSize
-    missingBuffs.SetSize = I.Cooldowns_SetSize
-    missingBuffs.UpdateSize = I.Cooldowns_UpdateSize
-    missingBuffs.SetOrientation = I.Cooldowns_SetOrientation
-    missingBuffs.UpdatePixelPerfect = I.Cooldowns_UpdatePixelPerfect
-
-    for i = 1, 5 do
-        local name = parent:GetName().."MissingBuff"..i
-        local frame = I.CreateAura_BarIcon(name, missingBuffs)
-        tinsert(missingBuffs, frame)
-        frame:HookScript("OnSizeChanged", function()
-            if frame.glow then
-                LCG.ButtonGlow_Start(frame)
-            else
-                LCG.ButtonGlow_Stop(frame)
-            end
-        end)
-    end
-end
-
-local missingBuffsEnabled, missingBuffsNum, missingBuffsFilters = false, 0, {}
-function I.EnableMissingBuffs(enabled)
-    missingBuffsEnabled = enabled
-
-    if enabled and CellDB["tools"]["buffTracker"][1] then
-        CellBuffTrackerFrame:GROUP_ROSTER_UPDATE(true)
-    end
-end
-
-function I.UpdateMissingBuffsNum(num, noUpdate)
-    missingBuffsNum = num
-
-    if not noUpdate and missingBuffsEnabled and CellDB["tools"]["buffTracker"][1] then
-        CellBuffTrackerFrame:GROUP_ROSTER_UPDATE(true)
-    end
-end
-
-function I.UpdateMissingBuffsFilters(filters, noUpdate)
-    if filters then missingBuffsFilters = filters end
-
-    if not noUpdate and missingBuffsEnabled and CellDB["tools"]["buffTracker"][1] then
-        CellBuffTrackerFrame:GROUP_ROSTER_UPDATE(true)
-    end
-end
-
-local function HideMissingBuffs(b)
-    for i = 1, 5 do
-        b.indicators.missingBuffs[i]:Hide()
-    end
-end
-
-local missingBuffsCounter = {}
-function I.HideMissingBuffs(unit, force)
-    if not (missingBuffsEnabled or force) then return end
-
-    missingBuffsCounter[unit] = nil
-
-    F.HandleUnitButton("unit", unit, HideMissingBuffs)
-end
-
-local function ShowMissingBuff(b, index, icon, buffByMe)
-    b.indicators.missingBuffs:UpdateSize(index)
-
-    local f = b.indicators.missingBuffs[index]
-
-    f:SetCooldown(0, 0, nil, icon, 0)
-
-    if buffByMe then
-        LCG.ButtonGlow_Start(f)
-        f.glow = true
-    else
-        LCG.ButtonGlow_Stop(f)
-        f.glow = nil
-    end
-end
-
-function I.ShowMissingBuff(unit, buff, icon, buffByMe)
-    if not missingBuffsEnabled then return end
-    if missingBuffsFilters["buffByMe"] and not buffByMe then return end
-    if not missingBuffsFilters[buff] then return end
-
-    missingBuffsCounter[unit] = (missingBuffsCounter[unit] or 0) + 1
-
-    if missingBuffsCounter[unit] > missingBuffsNum then return end
-
-    F.HandleUnitButton("unit", unit, ShowMissingBuff, missingBuffsCounter[unit], icon, buffByMe)
-end
-
--------------------------------------------------
 -- power word : shield 怀旧服API太落后，蛋疼！
 -------------------------------------------------
 function I.CreatePowerWordShield(parent)
@@ -2375,7 +2290,9 @@ function I.CreatePowerWordShield(parent)
         weakendedSoulCooldown:ClearAllPoints()
 
         if value > 0 and powerWordShield.max then
-            shieldAmount:SetCooldown(GetTime()-(powerWordShield.max-value), powerWordShield.max)
+            local progress = (powerWordShield.max - value) / powerWordShield.max
+            local start = GetTime() - (progress * 100)
+            shieldAmount:SetCooldown(start, 100)
             shieldAmount:Pause()
             shieldCooldown:SetPoint("CENTER")
             weakendedSoulCooldown:SetPoint("CENTER")
@@ -2474,4 +2391,75 @@ function I.CreateCombatIcon(parent)
     combatIcon.UpdatePixelPerfect = CombatIcon_UpdatePixelPerfect
 
     return combatIcon
+end
+
+-------------------------------------------------
+-- missing buffs
+-------------------------------------------------
+function I.CreateMissingBuffs(parent)
+    local missingBuffs = CreateFrame("Frame", parent:GetName().."MissingBuffParent", parent.widgets.indicatorFrame)
+    parent.indicators.missingBuffs = missingBuffs
+    missingBuffs:Hide()
+
+    missingBuffs._SetSize = missingBuffs.SetSize
+    missingBuffs.SetSize = I.Cooldowns_SetSize
+    missingBuffs.UpdateSize = I.Cooldowns_UpdateSize
+    missingBuffs.SetOrientation = I.Cooldowns_SetOrientation
+    missingBuffs.UpdatePixelPerfect = I.Cooldowns_UpdatePixelPerfect
+
+    for i = 1, 3 do
+        local name = parent:GetName().."MissingBuff"..i
+        local frame = I.CreateAura_BarIcon(name, missingBuffs)
+        tinsert(missingBuffs, frame)
+        frame:HookScript("OnSizeChanged", function()
+            LCG.ButtonGlow_Start(frame)
+        end)
+    end
+end
+
+local missingBuffsEnabled = false
+function I.EnableMissingBuffs(enabled)
+    missingBuffsEnabled = enabled
+
+    if enabled and CellDB["tools"]["buffTracker"][1] then
+        CellBuffTrackerFrame:GROUP_ROSTER_UPDATE(true)
+    end
+end
+
+function I.UpdateMissingBuffsFilters(filters, noUpdate)
+    if filters then missingBuffsFilters = filters end
+
+    if not noUpdate and missingBuffsEnabled and CellDB["tools"]["buffTracker"][1] then
+        CellBuffTrackerFrame:GROUP_ROSTER_UPDATE(true)
+    end
+end
+
+local function HideMissingBuffs(b)
+    for i = 1, 3 do
+        b.indicators.missingBuffs[i]:Hide()
+    end
+end
+
+local missingBuffsCounter = {}
+function I.HideMissingBuffs(unit, force)
+    if not (missingBuffsEnabled or force) then return end
+    missingBuffsCounter[unit] = nil
+    F.HandleUnitButton("unit", unit, HideMissingBuffs)
+end
+
+local function ShowMissingBuff(b, index, icon)
+    b.indicators.missingBuffs:UpdateSize(index)
+
+    local f = b.indicators.missingBuffs[index]
+    f:SetCooldown(0, 0, nil, icon, 0)
+    LCG.ButtonGlow_Start(f)
+end
+
+function I.ShowMissingBuff(unit, icon)
+    if not missingBuffsEnabled then return end
+
+    missingBuffsCounter[unit] = (missingBuffsCounter[unit] or 0) + 1
+    if missingBuffsCounter[unit] > 3 then return end
+
+    F.HandleUnitButton("unit", unit, ShowMissingBuff, missingBuffsCounter[unit], icon)
 end

@@ -2,7 +2,7 @@
 Contains the routines of AutoHide Titan plugin to auto hide a Titan bar.
 
 Auto hide uses a data driven approach. Rather than seperate routines for each bar, auto hide is implemented in a general manner. 
-The table TitanBarData hold relevant data needed to control auto hide. 
+The table TitanBarData holds relevant data needed to control auto hide. 
 
 If auto hide is turned on these routines will show / hide the proper bar (and plugins on the bar).
 These routines control the 'push pin' on each bar, if shown.
@@ -13,8 +13,9 @@ For documentation, this is treated as a Titan plugin
 --]===]
 local AceTimer = LibStub("AceTimer-3.0")
 local L = LibStub("AceLocale-3.0"):GetLocale(TITAN_ID, true)
-local Dewdrop = nil
-if AceLibrary and AceLibrary:HasInstance("Dewdrop-2.0") then Dewdrop = AceLibrary("Dewdrop-2.0") end
+
+-- Dropped Ace Dewdrop lib as of 2025 Sep; last updated 2008 Sep
+-- Dropped Ace Tablet lib as of 2025 Sep; last updated 2009 Jan
 
 -- local routines
 
@@ -134,8 +135,7 @@ end
 ---@param frame string Titan bar name
 function Handle_OnUpdateAutoHide(frame)
 	if TitanPanelRightClickMenu_IsVisible()
-	or (Tablet20Frame and Tablet20Frame:IsVisible())
-	or (Dewdrop and Dewdrop:IsOpen())then
+	then
 		return
 	end
 

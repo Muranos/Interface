@@ -21,14 +21,12 @@ local strfind, strlower, pairs
     = strfind, strlower, pairs
 local InCombatLockdown, C_TradeSkillUI
     = InCombatLockdown, C_TradeSkillUI
+local debugprofilestop = debugprofilestop
 
 local GetSpellTexturePlain = C_Spell and C_Spell.GetSpellTexture or GetSpellTexture
 local GetSpellInfo = TMW.GetSpellInfo
 local GetSpellName = TMW.GetSpellName
 
-local debugprofilestop = debugprofilestop_SAFE
-
-local clientVersion = select(4, GetBuildInfo())
 local clientBuild = select(2, GetBuildInfo())
 
 local SpellCache = TMW:NewModule("SpellCache", "AceEvent-3.0", "AceTimer-3.0")
@@ -47,7 +45,7 @@ SpellCache.CONST = {
 	-- after retail spells, in the IDs around 430000.
 	-- Since we save ranges of invalid IDs to skip, this won't matter for perf at all
 	-- in any spell scan where SpellCacheInvalidRanges has nonstale data.
-	MAX_SPELLID_GUESS = 1232790,
+	MAX_SPELLID_GUESS = 1732790,
 	
 	-- Maximum number of non-existant spellIDs that will be checked before the cache is declared complete.
 	-- This used to be a much smaller number, but Blizzard went off the rails around 11.0.7 and put huge gaps in the SpellIDs.
@@ -76,6 +74,8 @@ SpellCache.CONST = {
 	INVALID_SPELLS = {
 		[1852] = true, -- GM spell named silenced
 	  [250168] = true, -- Crashes the 9.0 PTR
+	  [255616] = TMW.wowMajor == 12, -- Crashes the 12.0 Alpha
+	 [1249911] = TMW.wowMajor == 12, -- Crashes the 12.0 Alpha
 	},
 
 	BLACKLIST_TRADESKILL_TEXTURES = {
@@ -259,6 +259,8 @@ TMW:RegisterCallback("TMW_OPTIONS_LOADED", function()
 	-- The most recent failed spellID that was seen after a success.
 	-- nil if the last spellID was a success.
 	local lastFail = nil
+	local excludeEffect = ClassicExpansionAtLeast(LE_EXPANSION_MISTS_OF_PANDARIA)
+	local INVALID_SPELLS = CONST.INVALID_SPELLS
 
 	local function SpellCacher()
 		local numToCheck = InCombatLockdown() and 10 or NumCachePerFrame
@@ -271,7 +273,8 @@ TMW:RegisterCallback("TMW_OPTIONS_LOADED", function()
 				spellID = spellID + skip
 			end
 
-			local name = GetSpellName(spellID)
+			local name = not INVALID_SPELLS[spellID] and GetSpellName(spellID)
+
 			local fail = false
 			if name then
 				local icon = GetSpellTexturePlain(spellID)
@@ -331,9 +334,8 @@ TMW:RegisterCallback("TMW_OPTIONS_LOADED", function()
 								(strfind(name, "vehicle") and strfind(name, "%f[%a]vehicle%f[%A]")) or
 								(strfind(name, "credit") and strfind(name, "%f[%a]credit%f[%A]")) or
 								
-								-- 'effect' is used quite bit in classic for lots of real things. Don't blacklist it.
-								-- (note: not sure if this is still true in wrath classic.)
-								(TMW.isRetail and strfind(name, "effect") and strfind(name, "%f[%a]effect%f[%A]")) or
+								-- 'effect' is used quite bit in older expansions for lots of real things.
+								(excludeEffect and strfind(name, "effect") and strfind(name, "%f[%a]effect%f[%A]")) or
 
 								(strfind(name, "camera") and strfind(name, "%f[%a]camera%f[%A]")) or
 								-- "ph" was removed because it is so short and non-specific
@@ -391,7 +393,13 @@ TMW:RegisterCallback("TMW_OPTIONS_LOADED", function()
 	f:SetScript("OnUpdate", function()
 		local start = debugprofilestop()
 
-		local success = TMW.safecall(SpellCacher)
+		local success = TMW.safecall(SpellCacher)		
+		
+		-- if TMW.wowMajor == 12 and spellID >= 1230000 and TELLMEWHEN_VERSION_MINOR == "dev" then
+		-- 	print("cache skip due to crash")
+		-- 	success = false
+		-- end
+		
 		if success and (spellsFailed < MAX_FAILED_SPELLS or spellID < CONST.MAX_SPELLID_GUESS) then
 			-- Carry on. Keep iterating.
 		else
@@ -403,7 +411,7 @@ TMW:RegisterCallback("TMW_OPTIONS_LOADED", function()
 			end
 
 			-- We're done, or we errored.
-			print("Cache complete in " .. totalTime)
+			--print("Cache complete in " .. totalTime)
 
 			f:SetScript("OnUpdate", nil)
 

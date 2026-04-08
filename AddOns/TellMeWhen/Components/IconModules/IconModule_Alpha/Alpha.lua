@@ -16,6 +16,7 @@ if not TMW then return end
 local TMW = TMW
 local L = TMW.L
 local print = TMW.print
+local issecretvalue = TMW.issecretvalue
 
 local huge = math.huge
 
@@ -209,21 +210,39 @@ end
 function Alpha:SetupForIcon(icon)
 	self.FakeHidden = icon.FakeHidden
 	
-	local attributes = icon.attributes
-	
-	self:REALALPHA(icon, icon.attributes.realAlpha)
+	self:CALCULATEDSTATE(icon, icon.attributes.calculatedState)
 end
 
-function Alpha:REALALPHA(icon, realAlpha)
-	if TMW.Locked then
+function Alpha:CALCULATEDSTATE(icon, state)
+	if not TMW.Locked then
+		icon:SetAlpha(state.Alpha or 1)
+		return
+	end
+
+	local currentAlpha = icon:GetAlpha()
+	if not issecretvalue(currentAlpha) then
 		self.actualAlphaAtLastChange = icon:GetAlpha()
-		
-		if not self.FadeHandlers[1] then
-			icon:SetAlpha(self.FakeHidden and 0 or realAlpha)
-		end
-	else
-		icon:SetAlpha(realAlpha)
+	end
+
+	if self.FakeHidden then
+		icon:SetAlpha(0)
+		return
+	end
+
+	if icon.group.AlphaInherit == icon:GetGUID() then
+		-- Prevent double-applying alpha when the group inherits 
+		-- one of its own icon's alpha
+		return
+	end
+
+	if state.secretBool ~= nil then
+		icon:SetAlphaFromBoolean(state.secretBool, state.trueState.Alpha, state.falseState.Alpha)
+		return
+	end
+	
+	if not self.FadeHandlers[1] then
+		icon:SetAlpha(state.Alpha)
 	end
 end
 
-Alpha:SetDataListener("REALALPHA")
+Alpha:SetDataListener("CALCULATEDSTATE")

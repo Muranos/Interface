@@ -13,8 +13,6 @@
 
 if not TMW then return end
 
-local clientVersion = select(4, GetBuildInfo())
-
 ---------- Libraries ----------
 local LSM = LibStub("LibSharedMedia-3.0")
 local LMB = LibStub("Masque", true) or (LibMasque and LibMasque("Button"))
@@ -200,10 +198,11 @@ local function hook_ChatEdit_InsertLink(text)
 	return false
 end
 
-hooksecurefunc("ChatEdit_InsertLink", function(...)
-	TMW.safecall(hook_ChatEdit_InsertLink, ...)
-end)
-
+if ChatFrameUtil and ChatFrameUtil.InsertLink then
+	hooksecurefunc(ChatFrameUtil, "InsertLink", function(...) TMW.safecall(hook_ChatEdit_InsertLink, ...) end)
+elseif ChatEdit_InsertLink then
+	hooksecurefunc("ChatEdit_InsertLink", function(...) TMW.safecall(hook_ChatEdit_InsertLink, ...) end)
+end
 
 
 
@@ -764,9 +763,10 @@ function IE:Load(isRefresh)
 		-- Users aren't going to care about their FPS so much when it gets opened.
 		-- It doesn't do much good to increase this too far - the more cached per frame,
 		-- the slower each frame will be.
-		TMW:GetModule("SpellCache"):SetNumCachePerFrame(3000)
+		TMW:GetModule("SpellCache"):SetNumCachePerFrame(5000)
 
 		IE:Show()
+		TMW.DD:CloseDropDownMenus()
 	end
 	
 	if IE:GetBottom() <= 0 then
@@ -790,7 +790,6 @@ function IE:Load(isRefresh)
 end
 
 
--- TODO: integrate this with history sets
 function IE:Reset()	
 	IE:SaveSettings() -- this is here just to clear the focus of editboxes, not to actually save things
 	
@@ -1358,12 +1357,12 @@ TMW:NewClass("Config_Frame", "Frame", "CScriptProvider"){
 
 		-- Find child frames.
 		for _, child in TMW:Vararg(self:GetChildren()) do
-			if not child:GetBottom() then
+			if child:IsShown() and not child:GetBottom() then
 				-- If there are children that we can't get the edges of,
 				-- don't try to resize anything, because it will almost certainly be wrong.
 				return -1
 			end
-
+			
 			if child:IsShown()
 			and (not exclusions or not TMW.tContains(exclusions, child))
 			then
@@ -1485,48 +1484,24 @@ TMW:NewClass("Config_Panel", "Config_Frame"){
 		self.Background:SetColorTexture(.66, .66, .66, 0.09)
 	end,
 
-	Flash = function(self, dur)
-		local start = GetTime()
-		local duration = 0
-		local period = 0.2
-
-		while duration < dur do
-			duration = duration + (period * 2)
-		end
-		local ticker
-		ticker = C_Timer.NewTicker(0.01, function() 
-			local bg = TellMeWhen_DotwatchSettings.Background
-
-			local timePassed = GetTime() - start
-			local fadingIn = FlashPeriod == 0 or floor(timePassed/period) % 2 == 1
-
-			if FlashPeriod ~= 0 then
-				local remainingFlash = timePassed % period
-				local offs
-				if fadingIn then
-					offs = (period-remainingFlash)/period
-				else
-					offs = (remainingFlash/period)
-				end
-				offs = offs*0.3
-				bg:SetColorTexture(.66, .66, .66, 0.08 + offs)
-			end
-
-			if timePassed > duration then
-				bg:SetColorTexture(.66, .66, .66, 0.08)
-				ticker:Cancel()
-			end	
-		end)
-	end,
-
-	SetTitle = function(self, text)
+	SetTitle = function(self, text, showRestricted)
 		self.Header:SetText(text)
+
+		if not TMW.clientHasSecrets then showRestricted = false end
+
+		if showRestricted then
+			self.RestrictedIcon:Show()
+			TMW:TT(self.Header, text, "UIPANEL_SECRETS_DISALLOWED_DESC", 1, nil)
+		else
+			self.RestrictedIcon:Hide()
+		end
 
 		local font, size, flags = self.Header:GetFont()
 		size = 12
 		self.Header:SetFont(font, size, flags)
 
-		while size > 6 and self.Header:GetStringWidth() > self:GetWidth() - 10 do
+		local iconWidth = showRestricted and (self.RestrictedIcon:GetWidth() + 2) or 0
+		while size > 6 and self.Header:GetStringWidth() > self:GetWidth() - 10 - iconWidth do
 			size = size - 1
 			self.Header:SetFont(font, size, flags)
 		end
@@ -1584,6 +1559,10 @@ TMW:NewClass("Config_Panel", "Config_Frame"){
 		local lastCheckButton
 		local numFrames = 0
 		local numPerRow = allData.numPerRow or min(#allData, 2)
+		if numPerRow == 0 then
+			return
+		end
+		
 		self.checks = {}
 		for i, data in ipairs(allData) do
 			if data then -- skip over falses (dont freak out about them, they are probably intentional)
@@ -1643,7 +1622,7 @@ TMW:NewClass("Config_Panel", "Config_Frame"){
 
 	OnSizeChanged = function(self)
 		-- This method does resizing of the header to make it fit without truncation.
-		self:SetTitle(self.Header:GetText())
+		self:SetTitle(self.Header:GetText(), self.RestrictedIcon:IsShown())
 	end,
 }
 
@@ -1866,6 +1845,9 @@ TMW:NewClass("Config_Button", "Button", "Config_Frame"){
 }
 
 TMW:NewClass("Config_CheckButton", "CheckButton", "Config_Frame"){
+	checkedValue = true,
+	uncheckedValue = false,
+
 	-- Constructor
 	OnNewInstance_CheckButton = function(self)
 		self:SetMotionScriptsWhileDisabled(true)
@@ -1888,6 +1870,10 @@ TMW:NewClass("Config_CheckButton", "CheckButton", "Config_Frame"){
 		self.text:SetText(label)
 	end,
 
+	SetCheckedValues = function(self, checkedValue, uncheckedValue)
+		self.checkedValue = checkedValue
+		self.uncheckedValue = uncheckedValue
+	end,
 
 	SetSetting = function(self, key, value)
 		self.setting = key
@@ -1903,7 +1889,7 @@ TMW:NewClass("Config_CheckButton", "CheckButton", "Config_Frame"){
 
 		if settings and self.setting then
 			if self.value == nil then
-				settings[self.setting] = checked
+				settings[self.setting] = checked and self.checkedValue or self.uncheckedValue
 			else
 				settings[self.setting] = self.value
 				self:SetChecked(true)
@@ -1920,7 +1906,7 @@ TMW:NewClass("Config_CheckButton", "CheckButton", "Config_Frame"){
 			if self.value ~= nil then
 				self:SetChecked(settings[self.setting] == self.value)
 			else
-				self:SetChecked(settings[self.setting])
+				self:SetChecked(settings[self.setting] == self.checkedValue)
 			end
 		end
 	end,
@@ -2748,13 +2734,6 @@ TMW:NewClass("Config_Slider_Alpha", "Config_Slider"){
 
 		self:UpdateTexts()
 	end,
-
-	METHOD_EXTENSIONS = {
-		OnDisable = function(self)
-			self:SetValue(0)
-			self:UpdateTexts()
-		end,
-	},
 	
 	Formatter = TMW.C.Formatter:New(function(value)
 		if value == 0 then
@@ -2846,10 +2825,13 @@ TMW:NewClass("Config_Frame_IconStateSet", "Config_Frame"){
 	-- Methods
 
 	SetConfigData = function(self, configData)
-		self.Alpha:SetTexts(configData.text)
+		local text = TMW.get(configData.text)
+		local tooltipText = TMW.get(configData.tooltipText)
+
+		self.Alpha:SetTexts(text)
 		self.Alpha:SetTooltip(
-			L["ICONMENU_SHOWWHEN_OPACITYWHEN_WRAP"]:format(configData.text),
-			configData.tooltipText or L["ICONMENU_SHOWWHEN_OPACITY_GENERIC_DESC"]
+			L["ICONMENU_SHOWWHEN_OPACITYWHEN_WRAP"]:format(text),
+			tooltipText or L["ICONMENU_SHOWWHEN_OPACITY_GENERIC_DESC"]
 		)
 	end,
 
@@ -2979,7 +2961,7 @@ TMW:NewClass("Config_ColorButton", "Button", "Config_Frame"){
 	end,
 }
 
-if TMW.isCata or TMW.isWrath then 
+if ClassicExpansionAtLeast(LE_EXPANSION_WRATH_OF_THE_LICH_KING) and ClassicExpansionAtMost(LE_EXPANSION_WARLORDS_OF_DRAENOR) then 
 	TMW:NewClass("Config_Button_Rune", "Button", "Config_BitflagBase", "Config_Frame"){
 		-- Constructor
 		Runes = {
@@ -3020,7 +3002,7 @@ if TMW.isCata or TMW.isWrath then
 			end
 		end,
 	}
-elseif TMW.isRetail then
+elseif ClassicExpansionAtLeast(LE_EXPANSION_LEGION) then
 	TMW:NewClass("Config_Button_Rune", "Button", "Config_BitflagBase", "Config_Frame"){
 		-- Constructor
 
@@ -3263,7 +3245,6 @@ TMW:NewClass("Config_ColorPicker", "Config_Frame"){
 			return
 		end
 
-		-- TODO: HANDLE ALPHA
 		local h = self.HueSlider:GetValue()
 		local s = self.SaturationSlider:GetValue()
 		local v = self.ValueSlider:GetValue()
@@ -3830,20 +3811,102 @@ function TMW:ImportPendingConfirmation(SettingsItem, luaDetections, callArgsAfte
 end
 
 ---------- Serialization ----------
+local USE_CBOR_SERIALIZATION = true
+local CBOR_PREFIX = "!TMW1!"
+
 function TMW:SerializeData(data, type, ...)
-	-- nothing more than a wrapper for AceSerializer-3.0
 	assert(data, "No data to serialize!")
 	assert(type, "No data type specified!")
+
+	if USE_CBOR_SERIALIZATION then
+		-- New format: CBOR + Deflate + Base64
+		local payload = {
+			data = data,
+			version = TELLMEWHEN_VERSIONNUMBER,
+			type = type,
+			...
+		}
+		local serialized = C_EncodingUtil.SerializeCBOR(payload)
+		assert(serialized ~= nil, "Unable to serialize data")
+
+		local compressed = C_EncodingUtil.CompressString(serialized, Enum.CompressionMethod.Deflate)
+		local encoded = C_EncodingUtil.EncodeBase64(compressed)
+		assert(encoded ~= nil, "Unable to encode data")
+
+		return CBOR_PREFIX .. encoded .. "!"
+	end
+
+	-- Legacy format: AceSerializer
 	return TMW:Serialize(data, TELLMEWHEN_VERSIONNUMBER, " ~", type, ...)
 end
 
 function TMW:MakeSerializedDataPretty(string)
+	if string:sub(1, #CBOR_PREFIX) == CBOR_PREFIX then
+		-- CBOR format
+		return string
+	end
+
 	return string:
-	gsub("(^[^tT%d][^^]*^[^^]*)", "%1 "): -- add spaces between tables to clean it up a little
-	gsub("~J", "~J "): -- ~J is the escape for a newline
-	gsub("%^ ^", "^^") -- remove double space at the end
+		gsub("(^[^tT%d][^^]*^[^^]*)", "%1 "): -- add spaces between tables to clean it up a little
+		gsub("~J", "~J "): -- ~J is the escape for a newline
+		gsub("%^ ^", "^^") -- remove double space at the end
 end
 
+--- Deserializes a single CBOR-encoded datum.
+-- Example format: !TMW1!<base64 encoded data>!
+function TMW:DeserializeCborDatum(encoded, silent)
+	local success, decoded = pcall(C_EncodingUtil.DecodeBase64, encoded)
+	if not success or not decoded then
+		if not silent then
+			TMW:Warn("Unable to decode base64 data")
+		end
+		return nil
+	end
+
+	local success, decompressed = pcall(C_EncodingUtil.DecompressString, decoded, Enum.CompressionMethod.Deflate)
+	if not success or not decompressed then
+		if not silent then
+			TMW:Warn("Unable to decompress data")
+		end
+		return nil
+	end
+
+	local success, payload = pcall(C_EncodingUtil.DeserializeCBOR, decompressed)
+	if not success or not payload then
+		if not silent then
+			TMW:Warn("Unable to deserialize CBOR data")
+		end
+		return nil
+	end
+
+	local data = payload.data
+	local version = payload.version
+	local type = payload.type
+
+	if not version then
+		version = TELLMEWHEN_VERSIONNUMBER
+	end
+
+	if not TMW.Classes.SharableDataType.types[type] then
+		-- unknown data type
+		return nil
+	end
+
+	local result = {
+		data = data,
+		type = type,
+		version = version,
+	}
+	-- Append any extra args from payload (indices 4+)
+	for i = 1, #payload do
+		tinsert(result, payload[i])
+	end
+
+	return result
+end
+
+--- Deserializes a single serialized string (legacy AceSerializer format).
+-- Example format: ^1...^Sgroup^N1 ^^
 function TMW:DeserializeDatum(string, silent)
 	local success, data, version, spaceControl, type = TMW:Deserialize(string)
 	if not success or not data then
@@ -3903,6 +3966,15 @@ function TMW:DeserializeDatum(string, silent)
 	return result
 end
 
+--- Deserializes a string that contains one or more serialized strings.
+-- Supports two formats:
+-- 1. Legacy format (AceSerializer): ^1...^Sgroup^N1 ^^
+-- 2. CBOR format: !TMW1!<base64 encoded data>!
+-- 
+-- Example legacy format:
+-- ^1...^Sgroup^N1 ^^
+-- 
+-- ^1...^Stextlayout^STMW:textlayout:,?yX(oV%h9(+ ^^
 function TMW:DeserializeData(str, silent)
 	if not str then
 		return
@@ -3910,8 +3982,21 @@ function TMW:DeserializeData(str, silent)
 
 	local results
 
+	-- Check for CBOR format (!TMW1!...!) BEFORE stripping whitespace,
+	-- since whitespace separates multiple strings.
+	for encoded in gmatch(str, "!TMW1!([^!]+)!") do
+		results = results or {}
+
+		local result = TMW:DeserializeCborDatum(encoded, silent)
+		if result then
+			tinsert(results, result)
+		end
+	end
+
+	-- Strip whitespace for legacy format parsing
 	str = gsub(str, "[%c ]", "")
 
+	-- Check for legacy format (^...^^)
 	for string in gmatch(str, "(^%d+.-^^)") do
 		results = results or {}
 
@@ -4050,7 +4135,6 @@ IE.RapidSettings = {
 	-- settings that can be changed very rapidly, i.e. via mouse wheel or in a color picker
 	-- consecutive changes of these settings will be ignored by the undo/redo module
 
-	-- TODO: auto register these when they are used by a slider, and kill this table.
 	Size = true,
 	Level = true,
 	Alpha = true,

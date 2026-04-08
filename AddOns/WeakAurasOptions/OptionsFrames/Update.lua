@@ -76,7 +76,10 @@ local function scamCheck(codes, data)
   if (data.actions) then
     if data.actions.init then
       addCode(codes, L["%s - Init Action"]:format(data.id), data.actions.init.custom, data.actions.init.do_custom)
+      addCode(codes, L["%s - OnLoad"]:format(data.id), data.actions.init.customOnLoad, data.actions.init.do_custom_load)
+      addCode(codes, L["%s - OnUnload"]:format(data.id), data.actions.init.customOnUnload, data.actions.init.do_custom_unload)
     end
+
     if data.actions.start then
       addCode(codes, L["%s - Start Action"]:format(data.id), data.actions.start.custom, data.actions.start.do_custom)
       addCode(codes, L["%s - Start Custom Text"]:format(data.id), data.actions.start.message_custom, data.actions.start.do_message)
@@ -1624,6 +1627,26 @@ local methods = {
     end
   end,
   Import = function(self)
+    if WeakAuras.IsClassicEra() and C_GameRules.IsHardcoreActive() then
+      StaticPopupDialogs["WEAKAURAS_CONFIRM_IMPORT_HARDCORE"] = {
+        text = L["You are about to Import an Aura with custom Lua code on a Hardcore server.\n\n|cFFFF0000There is a risk the custom code could be used to kill your hardcore character!|r\n\nWould you like to continue?"],
+        button1 = L["Import"],
+        button2 = L["Cancel"],
+        OnShow = function(self)
+          self.text:SetFontObject(GameFontNormalLarge)
+        end,
+        OnHide = function(self)
+          self.text:SetFontObject(GameFontNormal)
+        end,
+        OnAccept = function()
+          OptionsPrivate.Private.Threads:Add("import", coroutine.create(function()
+            self:ImportImpl()
+          end))
+        end,
+      }
+      StaticPopup_Show("WEAKAURAS_CONFIRM_IMPORT_HARDCORE")
+      return
+    end
     OptionsPrivate.Private.Threads:Add("import", coroutine.create(function()
       self:ImportImpl()
     end))

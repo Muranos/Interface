@@ -11,7 +11,6 @@ end
 L = BigWigs:NewBossLocale("Vaelastrasz the Corrupt", "esMX")
 if L then
 	L.warmup_trigger = "¡Demasiado tarde, amigos!"
-	L.tank_bomb = "Bomba de tanque"
 end
 
 L = BigWigs:NewBossLocale("Chromaggus", "esMX")
@@ -41,12 +40,12 @@ if L then
 	L.hunter_class_call_yell_trigger = "Cazadores"
 
 	L.warnshaman = "¡Chamanes - aparecen tótems!"
-	L.warndruid = "¡Druidas - atrapado en forma felina!"
+	L.warndruid = "¡Druidas - atrapados en forma felina!"
 	L.warnwarlock = "¡Brujos - infernales entrantes!"
-	L.warnpriest = "¡Sacerdotes - sanaciones hacen daño!"
-	L.warnhunter = "¡Cazadores - armas están rotos!"
-	L.warnwarrior = "¡Guerreros - atrapado en actitud rabiosa!"
-	L.warnrogue = "¡Pícaros - teletransportado y enredado!"
+	L.warnpriest = "¡Sacerdotes - las sanaciones hacen daño!"
+	L.warnhunter = "¡Cazadores - armas rotas!"
+	L.warnwarrior = "¡Guerreros - atrapados en actitud rabiosa!"
+	L.warnrogue = "¡Pícaros - teletransportados y enredados!"
 	L.warnpaladin = "¡Paladines - bendición de protección!"
 	L.warnmage = "¡Magos - polimorfias entrantes!"
 	--L.warndeathknight = "Death Knights - Death Grip"

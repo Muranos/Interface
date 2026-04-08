@@ -2,7 +2,7 @@
 This file contains the global variables and constants used throughout Titan Panel.
 
 Titan_Global is intended to reduce the global namespace through out Titan over time.
-All variables in Global_Titan should be declared here even if set elsewhere.
+All variables in Titan_Global should be declared here even if set elsewhere.
 --]===]
 
 ---@meta
@@ -10,10 +10,60 @@ local L = LibStub("AceLocale-3.0"):GetLocale(TITAN_ID, true)
 
 -- Global variables
 
-Titan_Global = {}                -- begin the slow journey to a smaller _G footprint
+Titan_Global = {}      -- begin the slow journey to a smaller _G footprint
+Titan_Menu = {}        -- Hold API routines for new menu scheme
+Titan_Config = {}      -- Hold API routines for config
 
 Titan_Global.recent_changes = "" -- Titan_History.lua
-Titan_Global.config_notes = ""   -- Titan_History.lua
+
+Titan_Global.wowversion  = select(4, GetBuildInfo())
+
+Titan_Global.switch = {} -- reserved for flags needed because feature / function changed over WoW versions
+-- As much as possible, use something in the API to determine feature, not API version.
+-- Set defaults to retail feature / function
+
+Titan_Global.switch.has_secrets  = true -- if UI is using secret values
+if C_Secrets then
+	Titan_Global.switch.has_secrets  = true -- 
+else
+	Titan_Global.switch.has_secrets  = false -- 
+end
+
+Titan_Global.switch.can_edit_ui  = true -- if user can modify UI
+if C_EditMode then
+	Titan_Global.switch.can_edit_ui  = true -- User changes UI
+else
+	Titan_Global.switch.can_edit_ui  = false -- Have Titan adjust UI frame(s)
+end
+
+Titan_Global.switch.game_ammo  = false -- if bows and guns use actual ammo
+if Titan_Global.wowversion < 40000 then -- before Cata
+	Titan_Global.switch.game_ammo  = true
+else
+	Titan_Global.switch.game_ammo  = false
+end
+
+Titan_Global.switch.classic_era  = false -- Classic Era only
+if Titan_Global.wowversion < 20000 then 
+	Titan_Global.switch.classic_era  = true
+else
+	Titan_Global.switch.classic_era  = false
+end
+
+Titan_Global.switch.midnight  = false -- Midnight
+if Titan_Global.wowversion >= 120000 then
+	Titan_Global.switch.midnight  = true
+else
+	Titan_Global.switch.midnight  = false
+end
+
+Titan_Global.switch.chat_class  = true -- if chat routines moved into ChatFrameUtil
+if ChatFrameUtil and ChatFrameUtil.DisplayTimePlayed then
+	Titan_Global.switch.chat_class  = true -- started in 11.* somewhere
+else
+	Titan_Global.switch.chat_class  = false -- older version
+end
+
 
 Titan_Global.AdjList = {         -- TODO : localize
 	["UIWidgetTopCenterContainerFrame"] = {
@@ -42,7 +92,7 @@ TitanPlayerSettings = nil
 TitanPluginSettings = nil; -- Used by plugins
 TitanPanelSettings = nil;
 
-Titan_Global.players = ""
+Titan_Global.players = {}
 
 TITAN_PANEL_UPDATE_BUTTON = 1;
 TITAN_PANEL_UPDATE_TOOLTIP = 2;
@@ -135,21 +185,21 @@ L["TITAN_PANEL_MENU_CATEGORIES"] = {
 	L["TITAN_PANEL_MENU_CATEGORIES_06"],
 }
 
+-- Intended for Titan only for internal 'plugins' such as Bars
+Titan_Global.categories = {}
+Titan_Global.categories.TitanBar = "Titan-bar"
+
 -- Bar background types
 Titan_Global.SKIN = "skin"
 Titan_Global.COLOR = "color"
 Titan_Global.NONE = "none"
 
--- For debug across Titan Panel
-Titan_Global.debug = {}
-Titan_Global.debug.events = false
-Titan_Global.debug.ldb_setup = false
-Titan_Global.debug.menu = false
-Titan_Global.debug.tool_tips = false
-Titan_Global.debug.plugin_text = false
-Titan_Global.debug.plugin_register = false
-Titan_Global.debug.plugin_register_deep = false
-Titan_Global.debug.movable = false
+-- Profile types
+Titan_Global.profile = {}
+Titan_Global.profile.GLOBAL = "global"
+Titan_Global.profile.SYNC = "sync"
+Titan_Global.profile.TOON = "toon"
+Titan_Global.profile.NONE = "<>"
 
 -- For WoW localized strings / literals we are using
 Titan_Global.literals = {
@@ -160,6 +210,11 @@ Titan_Global.literals = {
 	help = HELP_LABEL,
 	mute = MUTE,
 	muted = MUTED,
+	pvp = PVP,
+	use = USE,
+	note = LABEL_NOTE,
+	all = ALL,
+	none = NONE,
 }
 
 Titan_Global.colors = {
@@ -191,7 +246,8 @@ Titan_Global.colors = {
 ---@field category? string The Titan menu category where this plugin will be placed
 ---@field version? string Plugin version
 ---@field menuText? string Localized string for the menu (right click)
----@field menuTextFunction? string | function Plugin function to call on right click
+---@field menuTextFunction? string | function Plugin function to call on right click NEW Jan 2026
+---@field menuContextFunction? string | function Plugin function to call on right click
 ---@field buttonTextFunction? string | function Function to call when updating button display
 ---@field tooltipTitle? string Localized string for the menu
 ---@field tooltipTextFunction? string | function Function to call for a simple tooltip (OnEnter)
@@ -211,12 +267,3 @@ function Titan_Global.NewRegistry(id)
 	local reg = { id = id } ---@type PluginRegistryType
 	return reg
 end
-
--- Set the debug topics for Titan itself - not any plugins
-Titan_Global.dbg = Titan_Debug:New("Titan")
-Titan_Global.dbg:AddTopic("Startup")
-Titan_Global.dbg:AddTopic("Vars")
-
-Titan_Global.dbg:EnableDebug(false)
-Titan_Global.dbg:EnableTopic("Tooltip", false)
-Titan_Global.dbg:EnableTopic("Menu", false)

@@ -2,7 +2,8 @@ local COMPAT, _, T = select(4,GetBuildInfo()), ...
 if T.SkipLocalActionBook then return end
 if T.TenEnv then T.TenEnv() end
 
-local MODERN, CF_WRATH, CF_CATA, CI_ERA = COMPAT > 10e4, COMPAT < 10e4 and COMPAT >= 3e4, COMPAT < 10e4 and COMPAT >= 4e4, COMPAT < 2e4
+local MODERN, CF_WRATH, CF_CATA, CF_MISTS, CI_ERA = COMPAT > 10e4, COMPAT < 10e4 and COMPAT >= 3e4, COMPAT < 10e4 and COMPAT >= 4e4, COMPAT < 10e4 and COMPAT > 5e4, COMPAT < 2e4
+local MODERN_BATTLEPETS = MODERN or CF_MISTS
 local AB = T.ActionBook:compatible(2,21)
 local RW = T.ActionBook:compatible("Rewire", 1,27)
 local IM = T.ActionBook:compatible("Imp", 1,8)
@@ -176,7 +177,7 @@ if MODERN or CF_WRATH then -- Battle pets/Companions
 		end
 		return petID
 	end
-	AB:AugmentCategory(not MODERN and COMPANIONS or L"Battle pets", function(_, add)
+	AB:AugmentCategory(not MODERN_BATTLEPETS and COMPANIONS or L"Battle pets", function(_, add)
 		assert(not running, "Battle pets enumerator is not reentrant")
 		running = true
 		for i=1, C_PetJournal.GetNumPetSources() do
@@ -255,6 +256,14 @@ if COMPAT >= 3e4 then -- equipmentset
 	AB:AugmentCategory(L"Equipment sets", function(_, add)
 		for _,id in pairs(C_EquipmentSet.GetEquipmentSetIDs()) do
 			add("equipmentset", (C_EquipmentSet.GetEquipmentSetInfo(id)))
+		end
+	end)
+end
+if MODERN then
+	AB:AugmentCategory(L"Outfits", function(_, add)
+		add("outfit", 0)
+		for _, i in pairs(C_TransmogOutfitInfo.GetOutfitsInfo()) do
+			add("outfit", i.outfitID)
 		end
 	end)
 end

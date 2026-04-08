@@ -321,6 +321,7 @@
 						TMW:CInit(self)
 
 						self:SetTexts(TMW.L["PROFILES_SET"], TMW.L["PROFILES_SET_DESC"])
+						self:SetTextPrefix(TMW.L["PROFILES_SET_LABEL"])
 
 						self:SetEasyFunctions(
 							function()
@@ -340,7 +341,7 @@
 						)
 
 						self:CScriptAdd("ReloadRequested", function()
-							self:SetText("|cff666666" .. TMW.L["PROFILES_SET_LABEL"] .. ": |r" .. TMW.db:GetCurrentProfile())
+							self:SetText(TMW.db:GetCurrentProfile())
 						end)
 
 						self:SetScrollable(true)
@@ -421,7 +422,7 @@
 
 						self:SetMinMaxValues(0, 0.5)
 						self:SetValueStep(0.01)
-						self:SetTextFormatter(TMW.C.Formatter.S_SECONDS, TMW.C.Formatter.F_1)
+						self:SetTextFormatter(TMW.C.Formatter.S_SECONDS_UPS, TMW.C.Formatter.F_1)
 					</OnLoad>
 				</Scripts>
 			</Slider>
@@ -517,7 +518,7 @@
 						self:SetLabel(TMW.L["SOUND_CHANNEL"])
 
 						local values = {
-							SFX = SOUND_VOLUME,
+							SFX = SOUND_VOLUME or FX_VOLUME,
 							Music = MUSIC_VOLUME,
 							Ambience = AMBIENCE_VOLUME,
 							Dialog = DIALOG_VOLUME,

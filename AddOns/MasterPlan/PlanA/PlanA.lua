@@ -3,6 +3,13 @@ local E, api, cdata = T.Evie, {}
 local C = C_Garrison
 local GarrisonLandingPageMinimapButton = ExpansionLandingPageMinimapButton
 
+SLASH_MASTERPLAN1, SlashCmdList.MASTERPLAN = "/masterplan", function(msg)
+	if msg == "report" then
+		ShowGarrisonLandingPage(2)
+	else
+		print("|cff0080ffMasterPlan|r v" .. (C_AddOns.GetAddOnMetadata("MasterPlan", "Version") or "?") .. " (" .. (C_AddOns.IsAddOnLoaded("Blizzard_GarrisonUI") and "G" or "N") .. (C_AddOns.IsAddOnLoaded("MasterPlan") and "O" or "A") .. ")")
+	end
+end
 
 local function gett(t, k, ...)
 	if not k then
@@ -102,7 +109,13 @@ local function EasyMenu(menuList, menuFrame, anchor, x, y, displayMode, autoHide
 	UIDropDownMenu_Initialize(menuFrame, EasyMenu_Initialize, displayMode, nil, menuList)
 	ToggleDropDownMenu(1, nil, menuFrame, anchor, x, y, menuList, nil, autoHideDelay)
 end
-do
+local function hookLandingMenu()
+	if GarrisonLandingPageMinimapButton.altMenuManager == nil then
+		GarrisonLandingPageMinimapButton:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+		GarrisonLandingPageMinimapButton.altMenuManager = addonName
+	else
+		return
+	end
 	local followerTabNames = {[2]=GARRISON_FOLLOWERS, [3]=FOLLOWERLIST_LABEL_CHAMPIONS, [9]=FOLLOWERLIST_LABEL_CHAMPIONS, [111]=COVENANT_MISSIONS_FOLLOWERS}
 	local function ShowLanding(_, page)
 		HideUIPanel(GarrisonLandingPage)
@@ -119,12 +132,18 @@ do
 	local function IsLandingPageVisible()
 		return GarrisonLandingPage and GarrisonLandingPage:IsVisible()
 	end
+	local function GetExpansionLandingPage()
+		return ExpansionLandingPage and ExpansionLandingPage.replacementLandingPage or PlumberExpansionLandingPage or ExpansionLandingPage or nil
+	end
 	local function IsExpansionPageVisible()
+		local ExpansionLandingPage = GetExpansionLandingPage()
 		return ExpansionLandingPage and ExpansionLandingPage:IsVisible()
 	end
 	local landingChoiceMenu, landingChoices
-	GarrisonLandingPageMinimapButton:RegisterForClicks("LeftButtonUp", "RightButtonUp")
 	GarrisonLandingPageMinimapButton:HookScript("PreClick", function(self, b)
+		if self.altMenuManager ~= addonName then
+			return
+		end
 		self.landingVisiblePriorToClick = IsLandingPageVisible() and GarrisonLandingPage and GarrisonLandingPage.garrTypeID
 		self.expansionPageVisiblePriorToClick = IsExpansionPageVisible()
 		if b == "RightButton" then
@@ -133,19 +152,29 @@ do
 		end
 	end)
 	GarrisonLandingPageMinimapButton:HookScript("OnClick", function(self, b)
-		if b == "LeftButton" then
-			if IsLandingPageVisible() and not (IsExpansionPageVisible() or self.expansionPageVisiblePriorToClick) and GarrisonLandingPage and GarrisonLandingPage.garrTypeID ~= C.GetLandingPageGarrisonType() then
-				ShowLanding(nil, C.GetLandingPageGarrisonType())
+		if self.altMenuManager ~= addonName then
+			return
+		elseif b == "LeftButton" then
+			local goalLanding = IsLandingPageVisible() and not (IsExpansionPageVisible() or self.expansionPageVisiblePriorToClick) and C.GetLandingPageGarrisonType()
+			if goalLanding and GarrisonLandingPage.garrTypeID ~= goalLanding then
+				ShowLanding(nil, goalLanding)
 			end
 			return
 		elseif b == "RightButton" then
 			if (C.GetLandingPageGarrisonType() or 0) > 3 then
 				if self.landingVisiblePriorToClick then
 					ShowLanding(nil, self.landingVisiblePriorToClick)
-				else
+				elseif GarrisonLandingPage and GarrisonLandingPage:IsVisible() then
+					if type(GarrisonLandingPage.OnInstantHide) == "function" then
+						securecall(GarrisonLandingPage.OnInstantHide, GarrisonLandingPage)
+					end
 					HideUIPanel(GarrisonLandingPage)
 				end
+				local ExpansionLandingPage = GetExpansionLandingPage()
 				if ExpansionLandingPage and ExpansionLandingPage:IsVisible() and not self.expansionPageVisiblePriorToClick then
+					if type(ExpansionLandingPage.OnInstantHide) == "function" then
+						securecall(ExpansionLandingPage.OnInstantHide, ExpansionLandingPage)
+					end
 					HideUIPanel(ExpansionLandingPage)
 				end
 				if self.startSoundID then
@@ -164,7 +193,7 @@ do
 				landingChoices[#landingChoices+1] = C.GetNumFollowers(1) > 0 and {text=GARRISON_LANDING_PAGE_TITLE, func=ShowLanding, arg1=2, notCheckable=true} or nil
 				landingChoices[#landingChoices+1] = C.GetNumFollowers(4) > 0 and {text=ORDER_HALL_LANDING_PAGE_TITLE, func=ShowLanding, arg1=3, notCheckable=true} or nil
 				landingChoices[#landingChoices+1] = C.GetNumFollowers(22) > 0 and {text=WAR_CAMPAIGN, func=ShowLanding, arg1=9, notCheckable=true} or nil
-				landingChoices[#landingChoices+1] = C.GetNumFollowers(123) > 0 and {text=COVENANT_MISSIONS_TITLE, func=ShowLanding, arg1=111, notCheckable=true} or nil
+				landingChoices[#landingChoices+1] = C.GetNumFollowers(123) > 0 and {text=GARRISON_TYPE_9_0_LANDING_PAGE_TITLE, func=ShowLanding, arg1=111, notCheckable=true} or nil
 				GameTooltip:Hide()
 				EasyMenu(landingChoices, landingChoiceMenu, "cursor", 0, 0, "MENU", 4)
 				DropDownList1:ClearAllPoints()
@@ -181,16 +210,17 @@ do
 		self.startSoundID = nil
 	end)
 end
+securecall(hookLandingMenu)
 hooksecurefunc("ShowGarrisonLandingPage", function(pg)
 	pg = (pg or C_Garrison.GetLandingPageGarrisonType() or 0)
 	if pg < 3 and pg > 0 then
 		LoadMP()
 	end
 end)
-if (GARRISON_LANDING_COVIEW_PATCH_VERSION or 0) < 3 then
-	GARRISON_LANDING_COVIEW_PATCH_VERSION = 3
+if (GARRISON_LANDING_COVIEW_PATCH_VERSION or 0) < 5 then
+	GARRISON_LANDING_COVIEW_PATCH_VERSION = 5
 	hooksecurefunc("ShowGarrisonLandingPage", function(pg)
-		if GARRISON_LANDING_COVIEW_PATCH_VERSION ~= 3 then
+		if GARRISON_LANDING_COVIEW_PATCH_VERSION ~= 5 or not GarrisonLandingPage then
 			return
 		end
 		pg = (pg or C_Garrison.GetLandingPageGarrisonType() or 0)
@@ -258,7 +288,3 @@ end
 E.ZONE_CHANGED = CheckCacheWarning
 
 MasterPlanA = api
-
-SLASH_MASTERPLAN1, SlashCmdList.MASTERPLAN = "/masterplan", function()
-	print("|cff0080ffMasterPlan|r v" .. C_AddOns.GetAddOnMetadata("MasterPlan", "Version") .. " (" .. (C_AddOns.IsAddOnLoaded("Blizzard_GarrisonUI") and "G" or "N") .. (C_AddOns.IsAddOnLoaded("MasterPlan") and "O" or "A") .. ")")
-end

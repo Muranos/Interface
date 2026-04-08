@@ -1,0 +1,81 @@
+## Interface: 120001, 120005, 120000
+
+## Title: BigWigs [|cffeda55fThe War Within|r]
+## Title-zhCN: BigWigs [|cffeda55f地心之战|r]
+## Title-zhTW: BigWigs [|cffeda55f地心之戰|r]
+## Title-deDE: BigWigs [|cffeda55fThe War Within|r]
+## Title-frFR: BigWigs [|cffeda55fThe War Within|r]
+## Title-itIT: BigWigs [|cffeda55fThe War Within|r]
+## Title-koKR: BigWigs [|cffeda55fThe War Within|r]
+## Title-ruRU: BigWigs [|cffeda55fThe War Within|r]
+## Title-ptBR: BigWigs [|cffeda55fThe War Within|r]
+## Title-esES: BigWigs [|cffeda55fThe War Within|r]
+## Title-esMX: BigWigs [|cffeda55fThe War Within|r]
+## Notes: A collection of BigWigs modules from The War Within era.
+## Notes-zhCN: A collection of BigWigs 地心之战模块。
+## Notes-zhTW: A collection of BigWigs 地心之戰模組。
+## Notes-deDE: A collection of BigWigs modules from The War Within era.
+## Notes-frFR: A collection of BigWigs modules from The War Within era.
+## Notes-itIT: A collection of BigWigs modules from The War Within era.
+## Notes-koKR: A collection of BigWigs modules from The War Within era.
+## Notes-ruRU: A collection of BigWigs modules from The War Within era.
+## Notes-ptBR: A collection of BigWigs modules from The War Within era.
+## Notes-esES: A collection of BigWigs modules from The War Within era.
+## Notes-esMX: A collection of BigWigs modules from The War Within era.
+
+## LoadOnDemand: 1
+## Dependencies: BigWigs
+## Version: v12.0.2
+## IconTexture: Interface\AddOns\BigWigs\Media\Icons\minimap_legacy.tga
+
+## X-Category: Raid
+## X-License: All Rights Reserved: You are free to fork and modify on GitHub, please ask us about anything else.
+## X-Website: https://github.com/BigWigsMods/BigWigs_Dragonflight
+## X-Curse-Project-ID: 1466611
+## X-Wago-ID: bGoy9B60
+## X-BigWigs-LoadOn-InstanceId: 2657, 2769, 2810
+## X-BigWigs-ExtraMenu: -2274
+## X-BigWigs-LoadOn-WorldBoss: -2214, 220999, -2215, 221224, -2213, 221067, -2248, 221084, -2346, 231821, -2371, 238319
+## X-BigWigs-Minimum: 412
+
+NerubarPalace\Ulgrax.lua
+NerubarPalace\TheBloodboundHorror.lua
+NerubarPalace\Sikran.lua
+NerubarPalace\Rashanan.lua
+NerubarPalace\Ovinax.lua
+NerubarPalace\Kyveza.lua
+NerubarPalace\TheSilkenCourt.lua
+NerubarPalace\Ansurek.lua
+NerubarPalace\Locales\[TextLocale].lua [AllowLoadTextLocale deDE, esES, esMX, frFR, itIT, koKR, ptBR, ruRU, zhCN, zhTW]
+NerubarPalace\!Options.lua
+
+LiberationOfUndermine\Vexie.lua
+LiberationOfUndermine\Cauldron.lua
+LiberationOfUndermine\Rik.lua
+LiberationOfUndermine\Stix.lua
+LiberationOfUndermine\Lockenstock.lua
+LiberationOfUndermine\Bandit.lua
+LiberationOfUndermine\MugZee.lua
+LiberationOfUndermine\Gallywix.lua
+LiberationOfUndermine\Locales\[TextLocale].lua [AllowLoadTextLocale deDE, esES, esMX, frFR, itIT, koKR, ptBR, ruRU, zhCN, zhTW]
+LiberationOfUndermine\!Options.lua
+
+ManaforgeOmega\Sentinel.lua
+ManaforgeOmega\Loomithar.lua
+ManaforgeOmega\Naazindhri.lua
+ManaforgeOmega\Araz.lua
+ManaforgeOmega\Hunters.lua
+ManaforgeOmega\Fractillus.lua
+ManaforgeOmega\Salhadaar.lua
+ManaforgeOmega\Dimensius.lua
+ManaforgeOmega\Locales\[TextLocale].lua [AllowLoadTextLocale deDE, esES, esMX, frFR, itIT, koKR, ptBR, ruRU, zhCN, zhTW]
+ManaforgeOmega\!Options.lua
+
+KhazAlgar\AggregationOfHorrors.lua
+KhazAlgar\Shurrai.lua
+KhazAlgar\Orta.lua
+KhazAlgar\Kordac.lua
+KhazAlgar\Gobfather.lua
+KhazAlgar\Reshanor.lua
+KhazAlgar\Locales\[TextLocale].lua [AllowLoadTextLocale deDE, esES, esMX, frFR, itIT, koKR, ptBR, ruRU, zhCN, zhTW]
+KhazAlgar\!Options.lua

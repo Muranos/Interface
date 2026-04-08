@@ -1,5 +1,5 @@
 --[[
-Copyright 2013-2025 João Cardoso
+Copyright 2013-2026 João Cardoso
 SecureTabs is distributed under the terms of the GNU General Public License (or the Lesser GPL).
 This file is part of SecureTabs.
 
@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with SecureTabs. If not, see <http://www.gnu.org/licenses/>.
 --]]
 
-local Lib, old = LibStub:NewLibrary('SecureTabs-2.0', 10)
+local Lib, old = LibStub:NewLibrary('SecureTabs-2.0', 15)
 if not Lib then
 	return
 elseif not old then
@@ -39,15 +39,17 @@ function Lib:Add(panel, frame, label)
 	local anchor = id > 0 and 'SecureTab' .. (id-1) or 'Tab' .. panel.numTabs
 
 	local tab = CreateFrame('Button', '$parentSecureTab' .. id, panel, self.template)
-	tab:SetPoint('LEFT', panel:GetName() .. anchor, 'RIGHT', WOW_PROJECT_ID == WOW_PROJECT_MAINLINE and 3 or -16, 0)
-	tab:SetScript('OnClick', function(tab) self:Select(tab) end)
-	tab:SetText(label)
 	tab.frame = frame
+	tab.Select = function(tab) self:Select(tab) end
+	tab:SetPoint('LEFT', panel:GetName() .. anchor, 'RIGHT', WOW_PROJECT_ID == WOW_PROJECT_MAINLINE and 3 or -16, 0)
+	tab:SetFrameLevel(panel:GetFrameLevel() + 610)
+	tab:SetScript('OnClick', tab.Select)
+	tab:SetText(label)
 	tinsert(secureTabs, tab)
 	PanelTemplates_DeselectTab(tab)
 
 	local cover = self.covers[panel] or CreateFrame('Button', '$parentCoverTab', panel, self.template)
-	cover:SetScript('OnClick', function(tab) self:Uncover(panel) end)
+	cover:SetScript('OnClick', function() self:Update(panel) end)
 	PanelTemplates_DeselectTab(cover)
 
 	self.tabs[panel] = secureTabs
@@ -57,21 +59,11 @@ function Lib:Add(panel, frame, label)
 end
 
 function Lib:Select(tab)
-	if tab.OnSelect then
-		tab:OnSelect()
-	end
-
-	PlaySound(SOUNDKIT.IG_CHARACTER_INFO_TAB)
 	self:Update(tab:GetParent(), tab)
 end
 
 
 --[[ Advanced Methods ]]--
-
-function Lib:Uncover(panel)
-	PlaySound(SOUNDKIT.IG_CHARACTER_INFO_TAB)
-	self:Update(panel)
-end
 
 function Lib:Update(panel, selection)
 	local secureTabs = self.tabs[panel]
@@ -82,9 +74,13 @@ function Lib:Update(panel, selection)
 	for i, tab in ipairs(secureTabs) do
 		local selected = tab == selection
 		if selected then
-			PanelTemplates_SelectTab(tab)
+			if tab:IsEnabled() and tab.OnSelect then
+				xpcall(tab.OnSelect, CallErrorHandler, tab)
+			end
 		else
-			PanelTemplates_DeselectTab(tab)
+			if not tab:IsEnabled() and tab.OnDeselect then
+				xpcall(tab.OnDeselect, CallErrorHandler, tab)
+			end
 		end
 
 		local frame = tab.frame
@@ -95,20 +91,15 @@ function Lib:Update(panel, selection)
 				frame:SetParent(panel)
 				frame:EnableMouse(true)
 				frame:SetAllPoints(true)
-				frame:SetFrameLevel(panel:GetFrameLevel() + 20)
+				frame:SetFrameLevel(panel:GetFrameLevel() + 600)
 
-				if frame.CloseButton then
-					frame.CloseButton:SetScript('OnClick', function()
-						local original = frame:GetParent() and frame:GetParent().CloseButton
-						if original then
-							ExecuteFrameScript(original, 'OnClick') -- make sure any additional behaviour is replicated
-						end
-
-						HideUIPanel(frame) -- safest hiding method
-					end)
+				if frame.CloseButton and panel.CloseButton then
+					panel.CloseButton:SetFrameLevel(frame.CloseButton:GetFrameLevel() + 10)
 				end
 			end
 		end
+
+		(tab == selection and PanelTemplates_SelectTab or PanelTemplates_DeselectTab)(tab)
 	end
 
 	if panel.selectedTab then
@@ -132,4 +123,6 @@ function Lib:Update(panel, selection)
 			PanelTemplates_TabResize(cover, 0, nil, 36, panel.maxTabWidth or 88)
 		end
 	end
+
+	PlaySound(SOUNDKIT.IG_CHARACTER_INFO_TAB)
 end

@@ -37,6 +37,8 @@ local L = WeakAuras.L
 	L["%s - Finish Custom Text"] = "%s - 结束自定义文本"
 	L["%s - Init Action"] = "%s - 初始动作"
 	L["%s - Main"] = "%s - 主要"
+	L["%s - OnLoad"] = "%s - 载入时"
+	L["%s - OnUnload"] = "%s - 卸载时"
 	L["%s - Option #%i has the key %s. Please choose a different option key."] = "%s - 选项#%i已经使用了键%s，请选择一个其他的键。"
 	L["%s - Rotate Animation"] = "%s - 旋转动画"
 	L["%s - Scale Animation"] = "%s - 缩放动画"
@@ -56,7 +58,7 @@ local L = WeakAuras.L
 	L["%s Duration Function"] = "%s 持续时间函数"
 	L["%s Icon Function"] = "%s 图标函数"
 	L["%s Inset: %d%%"] = "%s 内嵌：%d%%"
-	L["%s is not a valid SubEvent for COMBAT_LOG_EVENT_UNFILTERED"] = "%s不是COMBAT_LOG_EVENT_UNFILTERED的有效子事件"
+	L["%s is not a valid SubEvent for COMBAT_LOG_EVENT_UNFILTERED"] = "%s 不是 COMBAT_LOG_EVENT_UNFILTERED 的有效子事件"
 	L["%s Keep Aspect Ratio"] = "%s 保持宽高比"
 	L["%s Name Function"] = "%s 名称函数"
 	L["%s Stacks Function"] = "%s 层数函数"
@@ -135,7 +137,7 @@ Enable this setting if you want this timer to be hidden, or when using a WeakAur
 	L["Add Sub Option"] = "添加子选项"
 	L["Add to group %s"] = "添加到组％s"
 	L["Add to new Dynamic Group"] = "添加到新的动态群组"
-	L["Add to new Group"] = "添加到新的群组"
+	L["Add to new Group"] = "添加到新的组"
 	L["Add Trigger"] = "添加触发器"
 	L["Additional Events"] = "额外事件"
 	L["Advanced"] = "高级"
@@ -165,10 +167,10 @@ Enable this setting if you want this timer to be hidden, or when using a WeakAur
 	L["Animates progress changes"] = "进度变化动画"
 	L["Animation End"] = "动画结束"
 	L["Animation Mode"] = "动画模式"
-	L["Animation relative duration description"] = [=[动画的相对持续时间，表示为 分数(1/2)，百分比(50％)，或数字(0.5)。
-|cFFFF0000注意：|r 如果没有进度(没有时间事件的触发器,没有持续时间的光环,或其他)，动画将不会播放。
+	L["Animation relative duration description"] = [=[动画相对于显示的持续时间，表示为 分数(1/2)，百分比(50％)，或小数(0.5)。
+|cFFFF0000注意：|r 如果没有进度信息（触发器没有时间时间、光环没有持续时间等），动画将不会播放。
 |cFF4444FF举例：|r
-如果动画的持续时间设定为 |cFF00CC0010%|r，然后触发的增益时间为20秒，入场动画会播放2秒。
+如果动画的持续时间设定为 |cFF00CC0010%|r，触发触发的增益时间为20秒，入场动画会播放2秒。
 如果动画的持续时间设定为 |cFF00CC0010%|r，然后触发的增益没有持续时间，将不会播放开始动画.]=]
 	L["Animation Sequence"] = "动画序列"
 	L["Animation Start"] = "动画开始"
@@ -188,7 +190,6 @@ Off Screen]=] ] = "光环在屏幕外"
 	L["Aura: '%s'"] = "光环：'%s'"
 	L["Auto-Clone (Show All Matches)"] = "自动克隆（显示所有符合项）"
 	L["Automatic length"] = "自动长度"
-	L["Available Voices are system specific"] = "可用的声音由系统决定"
 	L["Backdrop Color"] = "背景颜色"
 	L["Backdrop in Front"] = "背景在前"
 	L["Backdrop Style"] = "背景图案类型 "
@@ -228,6 +229,7 @@ Off Screen]=] ] = "光环在屏幕外"
 	L["Circular Texture %s"] = "圆形材质%s"
 	L["Clear Debug Logs"] = "清除调试日志"
 	L["Clear Saved Data"] = "清空已储存数据"
+	L["Click to replace the name with %s."] = "点击将名称替换为%s"
 	L["Clip Overlays"] = "裁剪覆盖层"
 	L["Clipped by Foreground"] = "被前景裁切"
 	L["Close"] = "关闭"
@@ -267,21 +269,31 @@ Off Screen]=] ] = "光环在屏幕外"
 	L["Custom Code"] = "自定义代码"
 	L["Custom Code Viewer"] = "自定义代码查看器"
 	L["Custom Frames"] = "自定义框架"
+	L["Custom Functions"] = "自定义函数"
+	L["Custom Init"] = "自定义初始化"
+	L["Custom Load"] = "自定义载入"
 	L["Custom Options"] = "自定义选项"
+	L["Custom Text Update Throttle"] = "自定义文本更新间隔"
 	L["Custom Trigger"] = "自定义触发器"
-	L["Custom trigger event tooltip"] = [=[选择用于检查自定义触发器的事件。
-如果有多个事件,可以用逗号或空白分隔。
+	L["Custom trigger event tooltip"] = [=[选择用于检查自定义触发器的事件。如果有多个事件，可以用英文逗号或空格分隔。
+• "UNIT" 事件后可用英文冒号指定要注册的 unitID，也可以指定单位的类型，包括 "nameplate", "group", "raid", "part", "arena" 和 "boss"。
+• "COMBAT_LOG_EVENT_UNFILTERED" 可简写为 "CLEU"，事件后可用英文冒号指定特定的子事件。
+• 可使用关键词 "TRIGGER" 后接英文逗号分隔的触发器编号，用于在指定触发器更新时触发此自定义触发器的更新。
 
 |cFF4444FF例：|r
-UNIT_POWER, UNIT_AURA PLAYER_TARGET_CHANGED]=]
+UNIT_POWER_UPDATE:player, UNIT_AURA:nameplate:group PLAYER_TARGET_CHANGED CLEU:SPELL_CAST_SUCCESS TRIGGER:3:1
+
+]=]
 	L["Custom trigger status tooltip"] = [=[选择用于检查自定义触发器的事件。
 因为这一个是状态触发器, 指定的事件 可以被 WeakAuras 调用, 而不需指定参数.
 如果有多个事件,可以用逗号或空白分隔。
 
 |cFF4444FF例：|r
 UNIT_POWER, UNIT_AURA PLAYER_TARGET_CHANGED]=]
-	L["Custom Trigger: Ignore Lua Errors on OPTIONS event"] = "自定义触发器：忽略OPTIONS事件的Lua错误"
-	L["Custom Trigger: Send fake events instead of STATUS event"] = "自定义触发器：发送虚假事件而不是STATUS事件"
+	L["Custom trigger Update Throttle"] = "自定义触发器更新间隔"
+	L["Custom Trigger: Ignore Lua Errors on OPTIONS event"] = "自定义触发器：忽略 OPTIONS 事件中的Lua错误"
+	L["Custom Trigger: Send fake events instead of STATUS event"] = "自定义触发器：发送虚假事件而不是 STATUS 事件"
+	L["Custom Unload"] = "自定义卸载"
 	L["Custom Untrigger"] = "自定义取消触发器"
 	L["Debug Log"] = "调试日志"
 	L["Debug Log:"] = "调试日志："
@@ -297,6 +309,7 @@ UNIT_POWER, UNIT_AURA PLAYER_TARGET_CHANGED]=]
 	L["Determines how many entries can be in the table."] = "决定表格中可以有多少条目"
 	L["Differences"] = "差异"
 	L["Disallow Entry Reordering"] = "不允许重新排列条目"
+	L["Discord"] = "Discord"
 	L["Display Name"] = "图示名称"
 	L["Display Text"] = "图示文本"
 	L["Displays a text, works best in combination with other displays"] = "显示一条文本，最好与其他显示效果结合运用"
@@ -445,6 +458,7 @@ Bleed classification via LibDispel]=] ] = "仅过滤给定类型的可驱散的�
 	L["Group Settings"] = "组设置"
 	L["Hawk"] = "鹰"
 	L["Help"] = "帮助"
+	L["Hide After"] = "结束后隐藏"
 	L["Hide Background"] = "隐藏背景"
 	L["Hide Glows applied by this aura"] = "隐藏由此光环应用的发光"
 	L["Hide on"] = "隐藏于"
@@ -508,7 +522,6 @@ Bleed classification via LibDispel]=] ] = "仅过滤给定类型的可驱散的�
 	L["Is Boss Debuff"] = "首领施放的减益效果"
 	L["Is Stealable"] = "可偷取"
 	L["Is Unit"] = "是单位"
-	L["Join Discord"] = "加入 Discord"
 	L["Justify"] = "对齐"
 	L["Keep Aspect Ratio"] = "保持比例不变"
 	L["Keep your Wago imports up to date with the Companion App."] = "利用Companion应用程序保持你的Wago导入最新。"
@@ -536,6 +549,7 @@ Bleed classification via LibDispel]=] ] = "仅过滤给定类型的可驱散的�
 	L["Magnetically Align"] = "磁力对齐"
 	L["Main"] = "主要的"
 	L["Manual with %i/%i"] = "手动：%i/%i"
+	L["Matches %s spells"] = "匹配 %s 法术"
 	L["Matches the height setting of a horizontal bar or width for a vertical bar."] = "符合水平进度条的高度设置，或者垂直进度条的宽度设置。"
 	L["Max"] = "最大"
 	L["Max Length"] = "最大长度"
@@ -571,7 +585,7 @@ Bleed classification via LibDispel]=] ] = "仅过滤给定类型的可驱散的�
 	L["Name Info"] = "名称讯息"
 	L["Name Pattern Match"] = "名称规则匹配"
 	L["Name:"] = "名称："
-	L["Negator"] = "不"
+	L["Negator"] = "非"
 	L["New Aura"] = "新建"
 	L["New Template"] = "新模版"
 	L["New Value"] = "新值"
@@ -609,7 +623,6 @@ every 3 events starting from 2nd and ending at 11th: 2-11/3]=] ] = [=[事件发�
 	L["Okay"] = "好"
 	L["ON"] = "开启"
 	L["On Hide"] = "图示隐藏时"
-	L["On Init"] = "初始化时"
 	L["On Show"] = "图示显示时"
 	L["Only Match auras cast by a player (not an npc)"] = "只匹配由玩家（而不是NPC）施放的光环"
 	L["Only match auras cast by people other than the player or their pet"] = "只匹配由不是玩家自身或宠物施放的光环"
@@ -641,6 +654,7 @@ every 3 events starting from 2nd and ending at 11th: 2-11/3]=] ] = [=[事件发�
 	L["Paste Trigger Settings"] = "粘贴触发器设置"
 	L["Places a tick on the bar"] = "在进度条上放置进度指示"
 	L["Play Sound"] = "播放声音"
+	L["Player Spells found:"] = "发现玩家法术:"
 	L["Portrait Zoom"] = "肖像缩放"
 	L["Position and Size Settings"] = "位置和尺寸设置"
 	L["Preferred Match"] = "匹配偏好"
@@ -664,6 +678,7 @@ every 3 events starting from 2nd and ending at 11th: 2-11/3]=] ] = [=[事件发�
 	L["Re-center X"] = "到中心 X 偏移"
 	L["Re-center Y"] = "到中心 Y 偏移"
 	L["Reciprocal TRIGGER:# requests will be ignored!"] = "相互的TRIGGER:#请求将被忽略！"
+	L["Redo"] = "恢复"
 	L["Regions of type \"%s\" are not supported."] = "%s 区域类型不被支持。"
 	L["Remove"] = "移除"
 	L["Remove All Sounds"] = "移除所有音效"
@@ -749,7 +764,7 @@ every 3 events starting from 2nd and ending at 11th: 2-11/3]=] ] = [=[事件发�
 	L["Shows a Texture"] = "显示材质"
 	L["Shows a texture that changes based on duration"] = "显示一个随持续时间而变的材质"
 	L["Shows nothing, except sub elements"] = "除子元素外，不显示任何内容"
-	L["Shows one or more lines of text, which can include dynamic information such as progress or stacks"] = "显示一行或多行文字, 它们包换动态信息, 如进度和叠加层数"
+	L["Shows one or more lines of text, which can include dynamic information such as progress or stacks"] = "显示一行或多行文字，可包含动态信息，如进度和层数等"
 	L["Size"] = "大小"
 	L["Slant Amount"] = "倾斜程度"
 	L["Slant Mode"] = "倾斜模式"
@@ -773,9 +788,9 @@ every 3 events starting from 2nd and ending at 11th: 2-11/3]=] ] = [=[事件发�
 	L["Spark Texture"] = "闪光材质"
 	L["Specific Currency ID"] = "特定货币ID"
 	L["Spell Selection Filters"] = "法术选择过滤器"
+	L["Spells found:"] = "找到法术:"
 	L["Stack Info"] = "层数信息"
 	L["Stacks - The number of stacks of an aura (usually)"] = "堆叠 - 光环的堆叠层数（通常是）"
-	L["Stagger"] = "交错"
 	L["Standby"] = "已就绪"
 	L["Star"] = "星星"
 	L["Start"] = "开始"
@@ -786,6 +801,7 @@ every 3 events starting from 2nd and ending at 11th: 2-11/3]=] ] = [=[事件发�
 	L["Stop Motion %s"] = "定格动画%s"
 	L["Stop Motion Settings"] = "定格动画设置"
 	L["Stop Sound"] = "停止播放声音"
+	L["Stretched by Foreground"] = "前景拉伸"
 	L["Sub Elements"] = "子元素"
 	L["Sub Option %i"] = "子选项 %i"
 	L["Subevent"] = "子事件"
@@ -809,6 +825,8 @@ every 3 events starting from 2nd and ending at 11th: 2-11/3]=] ] = [=[事件发�
 	L["The duration of the animation in seconds."] = "动画持续秒数"
 	L["The duration of the animation in seconds. The finish animation does not start playing until after the display would normally be hidden."] = "动画时长秒时。直到图示可以被正常隐藏之后，结束动画才会播放。"
 	L["The group and all direct children will share the same base frame level."] = "此组与直接子元素将共享同一个框体层级。"
+	L["The Multi Target mode is less reliable and not recommended."] = "多目标模式可靠性较差并不推荐"
+	L["The Multi Target mode requires a name or spell id filter"] = "多目标模式需要名称或法术id过滤器"
 	L["The trigger number is optional. When no trigger number is specified, the trigger selected via dynamic information will be used."] = "触发器编号为可选。当不指定触发器编号时，将使用通过动态信息选择的触发器。"
 	L["The type of trigger"] = "触发器类型"
 	L["The WeakAuras Options Addon version %s doesn't match the WeakAuras version %s. If you updated the addon while the game was running, try restarting World of Warcraft. Otherwise try reinstalling WeakAuras"] = "WeakAuras 选项插件版本 %s 与 WeakAuras 本体版本 %s 不匹配。如果您在游戏运行时更新了插件，请尝试重新启动《魔兽世界》。否则请尝试重新安装 WeakAuras"
@@ -864,6 +882,7 @@ Upgrade your version of WeakAuras or wait for next release before installing thi
 	L["Trigger %i: %s"] = "触发器%i：%s"
 	L["Trigger Combination"] = "触发器组合"
 	L["Type 'select' for '%s' requires a values member'"] = "'%s'的类型'select'需要至少一个'values'成员。"
+	L["Undo"] = "撤销"
 	L["Ungroup"] = "不分组"
 	L["Unit %s is not a valid unit for RegisterUnitEvent"] = "单位 %s 并不是 RegisterUnitEvent 的有效单位"
 	L["Unit Count"] = "单位计数"
@@ -895,9 +914,14 @@ Upgrade your version of WeakAuras or wait for next release before installing thi
 	L["Vertical Bar"] = "垂直条"
 	L["View"] = "显示"
 	L["View custom code"] = "查看自定义代码"
-	L["Voice"] = "声音"
+	L["Voice Settings"] = "语音设置"
 	L["We thank"] = "我们感谢"
 	L["WeakAuras %s on WoW %s"] = "WeakAuras %s + WoW %s"
+	L["WeakAuras recommends using spell ids instead of names. Spell ids are automatically localized."] = "WA建议使用法术id而不是法术名称。法术id会自动本地化。"
+	--[[Translation missing --]]
+	L[ [=[WeakAuras will not support Midnight. On release of the prepatch, WeakAuras will be disabled.
+Read more on our Patreon page https://patreon.com/WeakAuras]=] ] = [=[WeakAuras will not support Midnight. On release of the prepatch, WeakAuras will be disabled.
+Read more on our Patreon page https://patreon.com/WeakAuras]=]
 	L["What do you want to do?"] = "你想要做什么？"
 	L["Whole Area"] = "整个区域"
 	L["wrapping"] = "折叠"
@@ -913,19 +937,24 @@ Upgrade your version of WeakAuras or wait for next release before installing thi
 	L["You already have this group/aura. Importing will create a duplicate."] = "此组/光环已经存在，继续导入将会创建副本。"
 	L["You are about to delete %d aura(s). |cFFFF0000This cannot be undone!|r Would you like to continue?"] = "正在删除 %d 个光环，|cFFFF0000此操作无法被撤销！|r真的要删除吗?"
 	L["You are about to delete a trigger. |cFFFF0000This cannot be undone!|r Would you like to continue?"] = "你正在删除一个触发器。|cFFFF0000这个操作无法撤销！|r你要继续吗？"
+	L[ [=[You are about to Import an Aura with custom Lua code on a Hardcore server.
+
+|cFFFF0000There is a risk the custom code could be used to kill your hardcore character!|r
+
+Would you like to continue?]=] ] = "您将在硬核服务器上导入带有自定义Lua代码的Aura。|cFFFF0000这有风险，自定义代码可以用来杀死你的硬核角色！你想继续吗？"
 	L[ [=[You can add a comma-separated list of state values here that (when changed) WeakAuras should also run the Anchor Code on.
 
-WeakAuras will always run custom anchor code if you include 'changed' in this list, or when a region is added, removed, or re-ordered.]=] ] = [=[你可以添加一个由英文逗号分隔的状态键列表，当它对应的值被改变时，WeakAuras将运行自定义锚点代码。
+WeakAuras will always run custom anchor code if you include 'changed' in this list, or when a region is added, removed, or re-ordered.]=] ] = [=[你可以添加一个由英文逗号分隔的状态键列表，当它对应的值被改变时，WeakAuras 将运行自定义锚点代码。
 
-WeakAuras总是在状态被标记为已改变，或者一个框体被添加、删除、重新排序时运行自定义发光代码。]=]
+如果你在此列表中包含 'changed'，或者一个框体被添加、移除、重新排序，WeakAuras 始终会运行自定义锚点代码。]=]
 	L[ [=[You can add a comma-separated list of state values here that (when changed) WeakAuras should also run the Grow Code on.
 
-WeakAuras will always run custom grow code if you include 'changed' in this list, or when a region is added, removed, or re-ordered.]=] ] = [=[你可以添加一个由英文逗号分隔的状态键列表，当它对应的值被改变时，WeakAuras将运行自定义发光代码。
+WeakAuras will always run custom grow code if you include 'changed' in this list, or when a region is added, removed, or re-ordered.]=] ] = [=[你可以添加一个由英文逗号分隔的状态键列表，当它对应的值被改变时，WeakAuras 将运行自定义生长代码。
 
-WeakAuras总是在状态被标记为已改变，或者一个框体被添加、删除、重新排序时运行自定义发光代码。]=]
-	L["You can add a comma-separated list of state values here that (when changed) WeakAuras should also run the sort code on.WeakAuras will always run custom sort code if you include 'changed' in this list, or when a region is added, removed."] = [=[你可以添加一个由英文逗号分隔的状态键列表，当它对应的值被改变时，WeakAuras将运行自定义排序代码。
+如果你在此列表中包含 'changed'，或者一个框体被添加、移除、重新排序，WeakAuras 始终会运行自定义生长代码。]=]
+	L["You can add a comma-separated list of state values here that (when changed) WeakAuras should also run the sort code on.WeakAuras will always run custom sort code if you include 'changed' in this list, or when a region is added, removed."] = [=[你可以添加一个由英文逗号分隔的状态键列表，当它对应的值被改变时，WeakAuras 将运行自定义排序代码。
 
-WeakAuras总是在状态被标记为已改变，或者一个框体被添加、删除时运行自定义排序代码。]=]
+如果你在此列表中包含 'changed'，或者一个框体被添加、移除、重新排序，WeakAuras 始终会运行自定义排序代码。]=]
 	L["Your Saved Snippets"] = "已保存片段"
 	L["Z Offset"] = "Z 偏移"
 	L["Z Rotation"] = "Z轴旋转"

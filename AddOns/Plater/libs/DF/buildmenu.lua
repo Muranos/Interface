@@ -1,4 +1,5 @@
 
+---@type detailsframework
 local detailsFramework = _G["DetailsFramework"]
 if (not detailsFramework or not DetailsFrameworkCanLoad) then
 	return
@@ -15,13 +16,21 @@ local _
 ---@field RefreshOptions fun()
 ---@field widget_list table
 ---@field widget_list_by_type table
+---@field widget_to_disable_check table
 ---@field widgetids table
 ---@field GetWidgetById fun(optionsFrame: df_menu, id: string): table this should return a widget from the widgetids table
 
 ---@class df_menu_table : table
+---@field type string the type of widget to create
 ---@field text_template table
 ---@field id string an unique string or number to identify the button, from parent.widgetids[id], parent is the first argument of BuildMenu and BuildMenuVolatile
 ---@field namePhraseId string the phrase id (from language localization) to use on the button
+---@field hasLabel any
+---@field hidden boolean?
+---@field inline boolean?
+---@field widget table?
+---@field disableif function? a function that returns true or nil, if true the widget get :Disable(), :Enabled() otherwise
+---@field tags string[] optional tags that help the search bar to find the option
 
 ---@class df_menu_label : df_menu_table
 ---@field get function
@@ -101,9 +110,52 @@ local _
 ---@field nocombat boolean can't edit when in combat
 ---@field spacement boolean gives a little of more space from the next widget
 
+---@class df_menu_texture : df_menu_table
+---@field texture any
+---@field texture_width number
+---@field texture_height number
+
 detailsFramework.OptionsFrameMixin = {
 
 }
+
+detailsFramework.ValidBuildMenuWidgetTypes = {
+    ["label"] = true,
+    ["select"] = true,
+    ["toggle"] = true,
+    ["range"] = true,
+    ["color"] = true,
+    ["execute"] = true,
+    ["textentry"] = true,
+    ["image"] = true,
+    ["space"] = true,
+    ["blank"] = true,
+    ["fontdropdown"] = true,
+    ["texturedropdown"] = true,
+    ["colordropdown"] = true,
+    ["outlinedropdown"] = true,
+    ["anchordropdown"] = true,
+    ["audiodropdown"] = true,
+    ["dropdown"] = true,
+    ["switch"] = true,
+    ["slider"] = true,
+    ["button"] = true,
+    ["selectfont"] = true,
+    ["selectstatusbartexture"] = true,
+    ["selectcolor"] = true,
+    ["selectoutline"] = true,
+    ["selectanchor"] = true,
+    ["selectaudio"] = true,
+    ["selectframestrata"] = true,
+    ["backgrounddropdown"] = true,
+    ["selectbackgroundtexture"] = true,
+    ["borderdropdown"] = true,
+    ["selectbordertexture"] = true
+}
+
+function detailsFramework:IsValidWidgetForBuildMenu(widgetType)
+    return detailsFramework.ValidBuildMenuWidgetTypes[widgetType] or false
+end
 
 local onWidgetSetInUse = function(widget, widgetTable)
     if (widgetTable.childrenids) then
@@ -139,6 +191,123 @@ local onLeaveHighlight = function(self)
     if (self.parent:GetScript("OnLeave")) then
         self.parent:GetScript("OnLeave")(self.parent)
     end
+end
+
+local processTexture = function(widget, widgetTable)
+    widget = widget.widget or widget
+
+    if (widgetTable.texture) then
+        local texture = widget.IconTexture
+        if (not texture) then
+            texture = widget:CreateTexture(nil, "overlay")
+            texture:SetPoint("left", widget, "right", 2, 0)
+            widget.IconTexture = texture
+        end
+
+        local textureToSet = widgetTable.texture
+        if (type(textureToSet) == "string" or type(textureToSet) == "number") then
+            texture:SetTexture(textureToSet)
+            texture:SetSize(widgetTable.texture_width or (widget:GetHeight()-2), widgetTable.texture_height or (widget:GetHeight()-2))
+        end
+
+        if (widget.hasLabel and widget.hasLabel.widget) then
+            widget.hasLabel.widget.originalPoint = widget.hasLabel.widget.originalPoint or {widget.hasLabel.widget:GetPoint(1)}
+            widget.hasLabel.widget:ClearAllPoints()
+            widget.hasLabel.widget:SetPoint("left", texture, "right", 2, 0)
+        end
+    else
+        if (widget.IconTexture and widget.IconTexture:IsShown()) then
+            widget.IconTexture:Hide()
+
+            if (widget.hasLabel and widget.hasLabel.widget and widget.hasLabel.widget.originalPoint) then
+                widget.hasLabel.widget:ClearAllPoints()
+                widget.hasLabel.widget:SetPoint(unpack(widget.hasLabel.widget.originalPoint))
+            end
+        end
+    end
+end
+
+local getNamePhraseID = function(widgetTable, languageAddonId, languageTable, bIgnoreEmbed)
+    if (widgetTable.namePhraseId) then
+        return widgetTable.namePhraseId
+    end
+
+    if (not languageTable) then
+        return
+    end
+
+    local keyName = widgetTable.name
+
+    if (widgetTable.type == "label" and widgetTable.get) then
+        local key = widgetTable.get()
+        if (key and type(key) == "string") then
+            keyName = key
+        end
+    end
+
+    --embed key is when the phraseId is inside a string surounded by @
+    local embedPhraseId = keyName:match("@(.-)@")
+
+    local hasValue = detailsFramework.Language.DoesPhraseIDExistsInDefaultLanguage(languageAddonId, embedPhraseId or keyName)
+    if (not hasValue) then
+        return
+    end
+
+    if (embedPhraseId and not bIgnoreEmbed) then
+        return embedPhraseId, true
+    else
+        return keyName
+    end
+end
+
+local formatOptionNameWithColon = function(text, useColon)
+    if (text) then
+        if (useColon) then
+            text = text .. ":"
+            return text
+        else
+            return text
+        end
+    end
+end
+
+local getNamePhraseText = function(languageTable, widgetTable, useColon, languageAddonId)
+    local namePhraseId, bWasEmbed = getNamePhraseID(widgetTable, languageAddonId, languageTable)
+    local namePhrase = languageTable and (languageTable[namePhraseId] or languageTable[widgetTable.namePhraseId] or languageTable[widgetTable.name])
+
+    if (bWasEmbed and widgetTable.name) then
+        namePhrase = widgetTable.name:gsub("@" .. namePhraseId .. "@", namePhrase)
+    end
+
+    return namePhrase or formatOptionNameWithColon(widgetTable.name, useColon) or widgetTable.namePhraseId or widgetTable.name or "-?-"
+end
+
+---if the widgetTable has a key named 'icontexture' with a valid number or string, it add the texture in the left side of the label using escape sequence.
+local processLabelIcon = function(label, widgetTable, languageTable, textTemplate, useColon, languageAddonId)
+    --icontexture: texture
+    --iconcoords: table with 4 numbers, left, right, top and bottom coords of the icontexture
+    --iconsize: table with 2 numbers, width and height of the icon to show, if not set, it will be the same size as the font height of the label
+    --iconfilesize: table with 2 numbers, width and height of the icontexture, this is used to calculate the correct coords if the file has a different size than the default 64x64
+    --its size will be the same as the font size of the label
+    if textTemplate then
+        label:SetTemplate(textTemplate)
+    end
+
+    local namePhrase = getNamePhraseText(languageTable, widgetTable, useColon, languageAddonId)
+
+    if widgetTable.icontexture then
+        local tc = widgetTable.iconcoords or {.1, .9, .1, .9}
+        local fileSize = widgetTable.iconfilesize or {64, 64}
+        local font, height, flags = label:GetFont()
+        local iconSize = widgetTable.iconsize or {height, height}
+
+        local bAddSpace = true
+        local bAddAfterText = false
+
+        namePhrase = detailsFramework:AddTextureToText(namePhrase, detailsFramework:CreateTextureInfo(widgetTable.icontexture, iconSize[1], iconSize[2], tc[1], tc[2], tc[3], tc[4], fileSize[1], fileSize[2]), bAddSpace, bAddAfterText)
+    end
+
+    label.text = namePhrase
 end
 
 --control the highlight color, if true, use color one, if false, use color two
@@ -302,7 +471,8 @@ local setToggleProperties = function(parent, widget, widgetTable, currentXOffset
     end
 
     if (widgetTable.children_follow_enabled) then
-        widget.SetValueOriginal = widget.SetValue --perhaps widgetTable.set()  --perhaps setscrip OnClick
+        --widget.SetValueOriginal = widget.SetValue --perhaps widgetTable.set()  --perhaps setscrip OnClick
+        widget.SetValueOriginal = widget.SetValueOriginal or widget.SetValue
         widget._name = widgetTable.name
 
         local newSetFunc = function(thisWidget, value)
@@ -413,6 +583,8 @@ local setToggleProperties = function(parent, widget, widgetTable, currentXOffset
     if (widget:GetWidth() > maxWidgetWidth) then
         maxWidgetWidth = widget:GetWidth()
     end
+
+    processTexture(widget, widgetTable)
 
     onWidgetSetInUse(widget, widgetTable)
 
@@ -621,7 +793,7 @@ local setExecuteProperties = function(parent, widget, widgetTable, currentXOffse
     if (bAlignAsPairs) then
         PixelUtil.SetPoint(label, "topleft", widget:GetParent(), "topleft", currentXOffset, currentYOffset)
         PixelUtil.SetPoint(widget.widget, "left", label, "left", nAlignAsPairsLength, 0)
-
+        label:SetText(">")
         if (not widget.highlightFrame) then
             local highlightFrame = createOptionHighlightFrame(widget, label, (widgetWidth or 140) + nAlignAsPairsLength + 5)
             widget.highlightFrame = highlightFrame
@@ -754,6 +926,21 @@ local setTextEntryProperties = function(parent, widget, widgetTable, currentXOff
     return maxColumnWidth, maxWidgetWidth
 end
 
+---disableif is a key which widgetTable can have, if the function assigned to this key returns true, the widget will be disabled, if it returns false, the widget will be enabled, this is checked on menu build and on options refresh
+local checkForDisableIF = function(parent)
+    for _, widgetTable in ipairs(parent.widget_to_disable_check) do
+        if widgetTable.disableif then
+            if widgetTable.disableif() == true and widgetTable.widget.Disable then
+                widgetTable.widget:Disable()
+            else
+                if rawget(widgetTable.widget, "lockdown") or (widgetTable.widget.IsEnabled and not widgetTable.widget:IsEnabled()) then
+                    widgetTable.widget:Enable()
+                end
+            end
+        end
+    end
+end
+
 local onMenuBuilt = function(parent)
     --refresh the options to find children to disable or enable
     if (parent.build_menu_options) then
@@ -785,9 +972,11 @@ local onMenuBuilt = function(parent)
             end
         end
     end
+
+    checkForDisableIF(parent)
 end
 
-local refreshOptions = function(self)
+local refreshOptions = function(self) --~refresh
     for _, widget in ipairs(self.widget_list) do
         if (widget._get) then
             if (widget.widget_type == "label") then
@@ -816,6 +1005,8 @@ local refreshOptions = function(self)
         end
     end
 
+    checkForDisableIF(self)
+
     onMenuBuilt(self)
 end
 
@@ -829,6 +1020,12 @@ local parseOptionsTypes = function(menuOptions)
 
         elseif (widgetTable.type == "fontdropdown") then
             widgetTable.type = "selectfont"
+        elseif (widgetTable.type == "texturedropdown") then
+            widgetTable.type = "selectstatusbartexture"
+        elseif (widgetTable.type == "backgrounddropdown") then
+            widgetTable.type = "selectbackgroundtexture"
+        elseif (widgetTable.type == "borderdropdown") then
+            widgetTable.type = "selectbordertexture"
         elseif (widgetTable.type == "colordropdown") then
             widgetTable.type = "selectcolor"
         elseif (widgetTable.type == "outlinedropdown") then
@@ -922,18 +1119,9 @@ function detailsFramework:SetAsOptionsPanel(frame)
         ["image"] = {},
     }
     frame.widgetids = {}
+    --store widgets which has a disable function (widgetTable.disableif)
+    frame.widget_to_disable_check = {}
     frame.GetWidgetById = getFrameById
-end
-
-local formatOptionNameWithColon = function(text, useColon)
-    if (text) then
-        if (useColon) then
-            text = text .. ":"
-            return text
-        else
-            return text
-        end
-    end
 end
 
 local widgetsToDisableOnCombat = {}
@@ -1062,55 +1250,35 @@ local getDescPhraseText = function(languageTable, widgetTable)
     return descPhraseId or widgetTable.descPhraseId or widgetTable.desc or widgetTable.name or "-?-"
 end
 
-local getNamePhraseID = function(widgetTable, languageAddonId, languageTable, bIgnoreEmbed)
-    if (widgetTable.namePhraseId) then
-        return widgetTable.namePhraseId
-    end
-
-    if (not languageTable) then
-        return
-    end
-
-    local keyName = widgetTable.name
-
-    if (widgetTable.type == "label" and widgetTable.get) then
-        local key = widgetTable.get()
-        if (key and type(key) == "string") then
-            keyName = key
-        end
-    end
-
-    --embed key is when the phraseId is inside a string surounded by @
-    local embedPhraseId = keyName:match("@(.-)@")
-
-    local hasValue = detailsFramework.Language.DoesPhraseIDExistsInDefaultLanguage(languageAddonId, embedPhraseId or keyName)
-    if (not hasValue) then
-        return
-    end
-
-    if (embedPhraseId and not bIgnoreEmbed) then
-        return embedPhraseId, true
-    else
-        return keyName
-    end
-end
-
-local getNamePhraseText = function(languageTable, widgetTable, useColon, languageAddonId)
-    local namePhraseId, bWasEmbed = getNamePhraseID(widgetTable, languageAddonId, languageTable)
-    local namePhrase = languageTable and (languageTable[namePhraseId] or languageTable[widgetTable.namePhraseId] or languageTable[widgetTable.name])
-
-    if (bWasEmbed and widgetTable.name) then
-        namePhrase = widgetTable.name:gsub("@" .. namePhraseId .. "@", namePhrase)
-    end
-
-    return namePhrase or formatOptionNameWithColon(widgetTable.name, useColon) or widgetTable.namePhraseId or widgetTable.name or "-?-"
-end
-
 --volatile menu can be called several times, each time all settings are reset and a new menu is built reusing the widgets
 function detailsFramework:BuildMenuVolatile(parent, menuOptions, xOffset, yOffset, height, useColon, textTemplate, dropdownTemplate, switchTemplate, switchIsCheckbox, sliderTemplate, buttonTemplate, valueChangeHook)
     if (not parent.widget_list) then
         detailsFramework:SetAsOptionsPanel(parent)
     end
+
+    table.wipe(parent.widget_to_disable_check)
+
+    local userValueChangeHook = valueChangeHook
+    local refreshTimer
+    valueChangeHook = function()
+        if userValueChangeHook then
+            userValueChangeHook()
+        end
+
+        if menuOptions.no_refresh_on_change then
+            return
+        end
+
+        if refreshTimer then
+            return
+        else
+            refreshTimer = C_Timer.NewTimer(0.05, function()
+                refreshTimer = nil
+                parent:RefreshOptions()
+            end)
+        end
+    end
+
     detailsFramework:ClearOptionsPanel(parent)
 
     bHighlightColorOne = true
@@ -1161,6 +1329,7 @@ function detailsFramework:BuildMenuVolatile(parent, menuOptions, xOffset, yOffse
                     --do nothing
 
                 elseif (widgetTable.type == "label" or widgetTable.type == "text") then
+                    ---@cast widgetTable df_menu_label
                     local label = getMenuWidgetVolative(parent, "label", widgetIndexes)
                     label:ClearAllPoints()
                     widgetCreated = label
@@ -1176,14 +1345,25 @@ function detailsFramework:BuildMenuVolatile(parent, menuOptions, xOffset, yOffse
 
                 --dropdowns
                 elseif (widgetTable.type:find("select")) then
+                    ---@cast widgetTable df_menu_dropdown
                     assert(widgetTable.get, "DetailsFramework:BuildMenu: .get() not found in the widget table for 'select'")
                     local dropdown = getMenuWidgetVolative(parent, "dropdown", widgetIndexes)
+                    dropdown:SetTemplate(dropdownTemplate)
                     widgetCreated = dropdown
                     local defaultHeight = 18
 
                     do
                         if (widgetTable.type == "selectfont") then
                             local func = detailsFramework:CreateFontListGenerator(widgetTable.set, widgetTable.include_default)
+                            dropdown:SetFunction(func)
+
+                        elseif (widgetTable.type == "selectstatusbartexture") then
+                            local func = detailsFramework:CreateStatusbarTextureListGenerator(widgetTable.set)
+                            dropdown:SetFunction(func)
+
+                        --frame strata
+                        elseif (widgetTable.type == "selectframestrata") then
+                            local func = detailsFramework:CreateFrameStrataListGenerator(widgetTable.set)
                             dropdown:SetFunction(func)
 
                         elseif (widgetTable.type == "selectcolor") then
@@ -1209,61 +1389,57 @@ function detailsFramework:BuildMenuVolatile(parent, menuOptions, xOffset, yOffse
                     local descPhrase = getDescPhraseText(languageTable, widgetTable)
                     dropdown:SetTooltip(descPhrase)
 
-                    local namePhrase = getNamePhraseText(languageTable, widgetTable, useColon, languageAddonId)
-                    dropdown.hasLabel.text = namePhrase
-                    dropdown.hasLabel:SetTemplate(widgetTable.text_template or textTemplate)
+                    processLabelIcon(dropdown.hasLabel, widgetTable, languageTable, widgetTable.text_template or textTemplate, useColon, languageAddonId)
 
                     maxColumnWidth, maxWidgetWidth = setDropdownProperties(parent, dropdown, widgetTable, currentXOffset, currentYOffset, textTemplate, widgetWidth, widgetHeight, bAlignAsPairs, nAlignAsPairsLength, valueChangeHook, maxColumnWidth, maxWidgetWidth)
                     amountLineWidgetAdded = amountLineWidgetAdded + 1
 
                 --switchs
                 elseif (widgetTable.type == "toggle" or widgetTable.type == "switch") then
+                    ---@cast widgetTable df_menu_toggle
                     local switch = getMenuWidgetVolative(parent, "switch", widgetIndexes)
                     widgetCreated = switch
 
                     local descPhrase = getDescPhraseText(languageTable, widgetTable)
                     switch:SetTooltip(descPhrase)
 
-                    local namePhrase = getNamePhraseText(languageTable, widgetTable, useColon, languageAddonId)
-                    switch.hasLabel.text = namePhrase
-                    switch.hasLabel:SetTemplate(widgetTable.text_template or textTemplate)
+                    processLabelIcon(switch.hasLabel, widgetTable, languageTable, widgetTable.text_template or textTemplate, useColon, languageAddonId)
 
                     maxColumnWidth, maxWidgetWidth, extraPaddingY = setToggleProperties(parent, switch, widgetTable, currentXOffset, currentYOffset, switchTemplate, widgetWidth, widgetHeight, bAlignAsPairs, nAlignAsPairsLength, valueChangeHook, maxColumnWidth, true,             bUseBoxFirstOnAllWidgets, menuOptions, index, maxWidgetWidth)
                     amountLineWidgetAdded = amountLineWidgetAdded + 1
 
                 --slider
                 elseif (widgetTable.type == "range") then
+                    ---@cast widgetTable df_menu_range
                     local slider = getMenuWidgetVolative(parent, "slider", widgetIndexes)
                     widgetCreated = slider
 
                     local descPhrase = getDescPhraseText(languageTable, widgetTable)
                     slider:SetTooltip(descPhrase)
 
-                    local namePhrase = getNamePhraseText(languageTable, widgetTable, useColon, languageAddonId)
-                    slider.hasLabel.text = namePhrase
-                    slider.hasLabel:SetTemplate(widgetTable.text_template or textTemplate)
+                    processLabelIcon(slider.hasLabel, widgetTable, languageTable, widgetTable.text_template or textTemplate, useColon, languageAddonId)
 
                     maxColumnWidth, maxWidgetWidth = setRangeProperties(parent, slider, widgetTable, currentXOffset, currentYOffset, sliderTemplate, widgetWidth, widgetHeight, bAlignAsPairs, nAlignAsPairsLength, valueChangeHook, maxColumnWidth, maxWidgetWidth, widgetTable.usedecimals, bAttachSliderButtonsToLeft)
+                    slider:SetTemplate(sliderTemplate)
                     amountLineWidgetAdded = amountLineWidgetAdded + 1
 
                 --color
                 elseif (widgetTable.type == "color") then
+                    ---@cast widgetTable df_menu_color
                     local colorpick = getMenuWidgetVolative(parent, "color", widgetIndexes)
                     widgetCreated = colorpick
 
                     local descPhrase = getDescPhraseText(languageTable, widgetTable)
                     colorpick:SetTooltip(descPhrase)
 
-                    local label = colorpick.hasLabel
-                    local namePhrase = getNamePhraseText(languageTable, widgetTable, useColon, languageAddonId)
-                    label.text = namePhrase
-                    label:SetTemplate(widgetTable.text_template or textTemplate)
+                    processLabelIcon(colorpick.hasLabel, widgetTable, languageTable, widgetTable.text_template or textTemplate, useColon, languageAddonId)
 
                     maxColumnWidth, maxWidgetWidth, extraPaddingY = setColorProperties(parent, colorpick, widgetTable, currentXOffset, currentYOffset, switchTemplate, widgetWidth, widgetHeight, bAlignAsPairs, nAlignAsPairsLength, valueChangeHook, maxColumnWidth, maxWidgetWidth, bUseBoxFirstOnAllWidgets, extraPaddingY)
                     amountLineWidgetAdded = amountLineWidgetAdded + 1
 
                 --button
                 elseif (widgetTable.type == "execute" or widgetTable.type == "button") then
+                    ---@cast widgetTable df_menu_button
                     local button = getMenuWidgetVolative(parent, "button", widgetIndexes)
                     button.widget_type = "execute"
                     widgetCreated = button
@@ -1279,21 +1455,21 @@ function detailsFramework:BuildMenuVolatile(parent, menuOptions, xOffset, yOffse
 
                 --textentry
                 elseif (widgetTable.type == "textentry") then
+                    ---@cast widgetTable df_menu_textentry
                     local textentry = getMenuWidgetVolative(parent, "textentry", widgetIndexes)
                     widgetCreated = textentry
 
                     local descPhrase = getDescPhraseText(languageTable, widgetTable)
                     textentry:SetTooltip(descPhrase)
 
-                    local namePhrase = getNamePhraseText(languageTable, widgetTable, useColon, languageAddonId)
-                    textentry.hasLabel.text = namePhrase
-                    textentry.hasLabel:SetTemplate(widgetTable.text_template or textTemplate)
+                    processLabelIcon(textentry.hasLabel, widgetTable, languageTable, widgetTable.text_template or textTemplate, useColon, languageAddonId)
 
                     maxColumnWidth, maxWidgetWidth = setTextEntryProperties(parent, textentry, widgetTable, currentXOffset, currentYOffset, buttonTemplate, widgetWidth, widgetHeight, bAlignAsPairs, nAlignAsPairsLength, valueChangeHook, maxColumnWidth, maxWidgetWidth, textTemplate)
                     amountLineWidgetAdded = amountLineWidgetAdded + 1
 
                 --image
                 elseif (widgetTable.type == "image") then
+                    ---@cast widgetTable df_menu_texture
                     local image = getMenuWidgetVolative(parent, "image", widgetIndexes)
                     widgetCreated = image
 
@@ -1312,6 +1488,11 @@ function detailsFramework:BuildMenuVolatile(parent, menuOptions, xOffset, yOffse
                     else
                         currentYOffset = currentYOffset - 20
                     end
+                end
+
+                widgetTable.widget = widgetCreated
+                if widgetTable.disableif then
+                    table.insert(parent.widget_to_disable_check, widgetTable)
                 end
 
                 if (extraPaddingY > 0) then
@@ -1348,7 +1529,7 @@ function detailsFramework:BuildMenuVolatile(parent, menuOptions, xOffset, yOffse
             end
         end
     end
-    
+
     if (bUseScrollFrame) then
         canvasFrame:GetParent().RefreshOptions = function()
             parent:RefreshOptions()
@@ -1357,6 +1538,8 @@ function detailsFramework:BuildMenuVolatile(parent, menuOptions, xOffset, yOffse
 
     detailsFramework.RefreshUnsafeOptionsWidgets()
     onMenuBuilt(parent)
+
+    parent:RefreshOptions()
 end
 
 local getDescripttionPhraseID = function(widgetTable, languageAddonId, languageTable)
@@ -1415,6 +1598,27 @@ function detailsFramework:BuildMenu(parent, menuOptions, xOffset, yOffset, heigh
         detailsFramework:SetAsOptionsPanel(parent)
     end
 
+    local userValueChangeHook = valueChangeHook
+    local refreshTimer
+    valueChangeHook = function()
+        if userValueChangeHook then
+            userValueChangeHook()
+        end
+
+        if menuOptions.no_refresh_on_change then
+            return
+        end
+
+        if refreshTimer then
+            return
+        else
+            refreshTimer = C_Timer.NewTimer(0.1, function()
+                refreshTimer = nil
+                parent:RefreshOptions()
+            end)
+        end
+    end
+
     for index, widgetTable in ipairs(menuOptions) do
         if (not widgetTable.hidden) then
             local widgetCreated
@@ -1461,6 +1665,12 @@ function detailsFramework:BuildMenu(parent, menuOptions, xOffset, yOffset, heigh
                     if (widgetTable.type == "selectfont") then
                         dropdown = detailsFramework:CreateFontDropDown(parent, widgetTable.set, widgetTable.get(), widgetWidth or 140, widgetHeight or defaultHeight, nil, "$parentWidget" .. index, dropdownTemplate, widgetTable.include_default)
 
+                    elseif (widgetTable.type == "selectstatusbartexture") then
+                        dropdown = detailsFramework:CreateStatusbarTextureDropDown(parent, widgetTable.set, widgetTable.get(), widgetWidth or 140, widgetHeight or defaultHeight, nil, "$parentWidget" .. index, dropdownTemplate)
+
+                    elseif (widgetTable.type == "selectframestrata") then
+                        dropdown = detailsFramework:CreateFrameStrataDropDown(parent, widgetTable.set, widgetTable.get(), widgetWidth or 140, widgetHeight or defaultHeight, nil, "$parentWidget" .. index, dropdownTemplate)
+
                     elseif (widgetTable.type == "selectcolor") then
                         dropdown = detailsFramework:CreateColorDropDown(parent, widgetTable.set, widgetTable.get(), widgetWidth or 140, widgetHeight or defaultHeight, nil, "$parentWidget" .. index, dropdownTemplate)
 
@@ -1485,6 +1695,8 @@ function detailsFramework:BuildMenu(parent, menuOptions, xOffset, yOffset, heigh
                 local namePhraseId = getNamePhraseID(widgetTable, languageAddonId, languageTable, true)
                 DetailsFramework.Language.RegisterObjectWithDefault(languageAddonId, label.widget, namePhraseId, formatOptionNameWithColon(widgetTable.name, useColon))
                 dropdown.addonId = languageAddonId
+
+                processLabelIcon(dropdown.hasLabel, widgetTable, languageTable, widgetTable.text_template or textTemplate, useColon, languageAddonId)
 
                 if (languageAddonId) then
                     detailsFramework.Language.RegisterCallback(languageAddonId, function(addonId, languageId, ...) dropdown:Select(dropdown:GetValue()) end)
@@ -1514,6 +1726,8 @@ function detailsFramework:BuildMenu(parent, menuOptions, xOffset, yOffset, heigh
                 local namePhraseId = getNamePhraseID(widgetTable, languageAddonId, languageTable, true)
                 DetailsFramework.Language.RegisterObjectWithDefault(languageAddonId, label.widget, namePhraseId, formatOptionNameWithColon(widgetTable.name, useColon))
 
+                processLabelIcon(switch.hasLabel, widgetTable, languageTable, widgetTable.text_template or textTemplate, useColon, languageAddonId)
+
                 maxColumnWidth, maxWidgetWidth, extraPaddingY = setToggleProperties(parent, switch, widgetTable, currentXOffset, currentYOffset, switchTemplate, widgetWidth, widgetHeight, bAlignAsPairs, nAlignAsPairsLength, valueChangeHook, maxColumnWidth, switchIsCheckbox, bUseBoxFirstOnAllWidgets, menuOptions, index, maxWidgetWidth)
 
                 --store the widget created into the overall table and the widget by type
@@ -1539,6 +1753,8 @@ function detailsFramework:BuildMenu(parent, menuOptions, xOffset, yOffset, heigh
                 local namePhraseId = getNamePhraseID(widgetTable, languageAddonId, languageTable, true)
                 DetailsFramework.Language.RegisterObjectWithDefault(languageAddonId, label.widget, namePhraseId, formatOptionNameWithColon(widgetTable.name, useColon))
 
+                processLabelIcon(slider.hasLabel, widgetTable, languageTable, widgetTable.text_template or textTemplate, useColon, languageAddonId)
+
                 maxColumnWidth, maxWidgetWidth = setRangeProperties(parent, slider, widgetTable, currentXOffset, currentYOffset, sliderTemplate, widgetWidth, widgetHeight, bAlignAsPairs, nAlignAsPairsLength, valueChangeHook, maxColumnWidth, maxWidgetWidth, bIsDecimals, bAttachSliderButtonsToLeft)
                 --store the widget created into the overall table and the widget by type
                 table.insert(parent.widget_list, slider)
@@ -1560,6 +1776,8 @@ function detailsFramework:BuildMenu(parent, menuOptions, xOffset, yOffset, heigh
 
                 local namePhraseId = getNamePhraseID(widgetTable, languageAddonId, languageTable, true)
                 DetailsFramework.Language.RegisterObjectWithDefault(languageAddonId, label.widget, namePhraseId, formatOptionNameWithColon(widgetTable.name, useColon))
+
+                processLabelIcon(colorpick.hasLabel, widgetTable, languageTable, widgetTable.text_template or textTemplate, useColon, languageAddonId)
 
                 maxColumnWidth, maxWidgetWidth, extraPaddingY = setColorProperties(parent, colorpick, widgetTable, currentXOffset, currentYOffset, buttonTemplate, widgetWidth, widgetHeight, bAlignAsPairs, nAlignAsPairsLength, valueChangeHook, maxColumnWidth, maxWidgetWidth, bUseBoxFirstOnAllWidgets, extraPaddingY)
 
@@ -1606,6 +1824,8 @@ function detailsFramework:BuildMenu(parent, menuOptions, xOffset, yOffset, heigh
                 local namePhraseId = getNamePhraseID(widgetTable, languageAddonId, languageTable, true)
                 DetailsFramework.Language.RegisterObjectWithDefault(languageAddonId, label.widget, namePhraseId, formatOptionNameWithColon(widgetTable.name, useColon))
 
+                processLabelIcon(textentry.hasLabel, widgetTable, languageTable, widgetTable.text_template or textTemplate, useColon, languageAddonId)
+
                 maxColumnWidth, maxWidgetWidth = setTextEntryProperties(parent, textentry, widgetTable, currentXOffset, currentYOffset, buttonTemplate, widgetWidth, widgetHeight, bAlignAsPairs, nAlignAsPairsLength, valueChangeHook, maxColumnWidth, maxWidgetWidth, textTemplate)
 
                 --store the widget created into the overall table and the widget by type
@@ -1642,6 +1862,11 @@ function detailsFramework:BuildMenu(parent, menuOptions, xOffset, yOffset, heigh
                 end
             end
 
+            widgetTable.widget = widgetCreated
+            if widgetTable.disableif then
+                table.insert(parent.widget_to_disable_check, widgetTable)
+            end
+
             if (extraPaddingY > 0) then
                 currentYOffset = currentYOffset - extraPaddingY
             end
@@ -1673,6 +1898,10 @@ function detailsFramework:BuildMenu(parent, menuOptions, xOffset, yOffset, heigh
     end --end loop
 
     if (bUseScrollFrame) then
+        if (biggestColumnHeight == 0) then
+            biggestColumnHeight = currentYOffset
+        end
+
         parent:SetHeight(biggestColumnHeight * -1)
         canvasFrame:GetParent().RefreshOptions = function()
             parent:RefreshOptions()
@@ -1681,6 +1910,8 @@ function detailsFramework:BuildMenu(parent, menuOptions, xOffset, yOffset, heigh
 
     detailsFramework.RefreshUnsafeOptionsWidgets()
     onMenuBuilt(parent)
+
+    parent:RefreshOptions()
 end
 
 

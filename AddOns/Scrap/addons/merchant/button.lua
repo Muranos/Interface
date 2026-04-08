@@ -1,9 +1,9 @@
 --[[
-Copyright 2008-2025 João Cardoso
+Copyright 2008-2026 João Cardoso
 All Rights Reserved
 --]]
 
-local Button = Scrap:NewModule('Merchant', CreateFrame('Button', nil, MerchantBuyBackItem), 'MutexDelay-1.0')
+local Button = Scrap:NewModule('Merchant', CreateFrame('Button', nil, MerchantBuyBackItem))
 local L = LibStub('AceLocale-3.0'):GetLocale('Scrap')
 local C = LibStub('C_Everywhere')
 
@@ -59,23 +59,23 @@ function Button:OnMerchant()
 		Scrap.Tutorials:Start()
 	end
 
+	self:RegisterEvent('BAG_UPDATE_DELAYED', 'OnBagUpdate')
 	self:RegisterSignal('LIST_CHANGED', 'UpdateState')
-	self:RegisterEvent('BAG_UPDATE', 'OnBagUpdate')
 	self:UpdatePosition()
 	self:UpdateState()
 end
 
 function Button:OnBagUpdate()
 	if self.saleTotal then
-		self:Delay(0.5, 'Sell')
+		self:Sell()
 	else
-		self:Delay(0, 'UpdateState')
+		self:UpdateState()
 	end
 end
 
 function Button:OnClose()
+	self:UnregisterEvent('BAG_UPDATE_DELAYED')
 	self:UnregisterSignal('LIST_CHANGED')
-	self:UnregisterEvent('BAG_UPDATE')
 end
 
 
@@ -95,7 +95,7 @@ function Button:OnClick(button)
 				{ text = 'Scrap', isTitle = 1 },
 				{
 					text = OPTIONS ..'  |A:worldquest-icon-engineering:12:12|a',
-					func = function() Scrap.Options:Open() end,
+					func = function() Scrap.Options.Main:Open() end,
 					notCheckable = 1
 				},
 				{
@@ -160,9 +160,9 @@ if MerchantSellAllJunkButton then
 	function Button:UpdatePosition() end
 else
 	function Button:UpdatePosition()
-		if CanMerchantRepair() then
+		if MerchantRepairAllButton:IsShown() then
 			local off, scale
-			if CanGuildBankRepair and CanGuildBankRepair() then
+			if MerchantGuildBankRepairButton:IsShown() then
 				off, scale = -3.5, 0.9
 				MerchantRepairAllButton:SetPoint('BOTTOMRIGHT', MerchantFrame, 'BOTTOMLEFT', 120, 35)
 			else
@@ -239,7 +239,7 @@ function Button:Repair()
 	if cost > 0 then
 		local guild = self:CanGuildRepair(cost)
 		if guild or GetMoney() >= cost then
-			Scrap:PrintMoney(L.Repaired, cost)
+			Scrap:PrintMoney(guild and L.GuildRepaired or L.Repaired, cost)
 			RepairAllItems(guild)
 		end
 	end

@@ -5,7 +5,7 @@
 
 local mod, CL = BigWigs:NewBoss("Cathedral of Eternal Night Trash", 1677)
 if not mod then return end
-mod.displayName = CL.trash
+mod:SetTrashModule(true)
 mod:RegisterEnableMob(
 	118704, -- Dul'zak
 	118690, -- Wrathguard Invader
@@ -109,7 +109,7 @@ end
 do
 	local prev = nil
 	function mod:ShadowWave(_, _, castGUID, spellId)
-		if spellId == 238653 and castGUID ~= prev then -- Shadow Wave
+		if not self:IsSecret(spellId) and spellId == 238653 and castGUID ~= prev then -- Shadow Wave
 			prev = castGUID
 			self:MessageOld(spellId, "orange", "alarm", CL.incoming:format(self:SpellName(spellId)))
 			self:Bar(spellId, 23.2)

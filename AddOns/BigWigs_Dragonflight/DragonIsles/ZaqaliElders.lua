@@ -6,7 +6,7 @@ local mod, CL = BigWigs:NewBoss("The Zaqali Elders", -2133, 2531)
 if not mod then return end
 mod:RegisterEnableMob(199853, 199855) -- Gholna, Vakan
 mod.otherMenu = -1978
-mod.worldBoss = {199853, 199855}
+mod:SetWorldModule(true)
 
 --------------------------------------------------------------------------------
 -- Initialization

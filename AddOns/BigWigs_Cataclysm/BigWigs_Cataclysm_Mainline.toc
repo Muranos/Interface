@@ -1,8 +1,8 @@
-## Interface: 110105, 110007, 110100
+## Interface: 120001, 120005, 120000
 
 ## Title: BigWigs [|cffeda55fCataclysm|r]
 ## Title-zhCN: BigWigs [|cffeda55f大地的裂变|r]
-## Title-zhTW: BigWigs [|cffeda55fCataclysm|r]
+## Title-zhTW: BigWigs [|cffeda55f浩劫與重生|r]
 ## Title-deDE: BigWigs [|cffeda55fCataclysm|r]
 ## Title-frFR: BigWigs [|cffeda55fCataclysm|r]
 ## Title-itIT: BigWigs [|cffeda55fCataclysm|r]
@@ -13,7 +13,7 @@
 ## Title-esMX: BigWigs [|cffeda55fCataclysm|r]
 ## Notes: A collection of BigWigs modules from the Cataclysm era.
 ## Notes-zhCN: BigWigs 大地的裂变模块。
-## Notes-zhTW: A collection of BigWigs modules from the Cataclysm era.
+## Notes-zhTW: BigWigs 浩劫與重生模組。
 ## Notes-deDE: Eine Sammlung von BigWigs-Modulen aus der Ära Cataclysm.
 ## Notes-frFR: A collection of BigWigs modules from the Cataclysm era.
 ## Notes-itIT: Una collezione di moduli BigWigs dell'era di Cataclysm.
@@ -25,7 +25,7 @@
 
 ## LoadOnDemand: 1
 ## Dependencies: BigWigs
-## Version: v11.1.2
+## Version: v12.0.1
 ## IconTexture: Interface\AddOns\BigWigs\Media\Icons\minimap_legacy.tga
 
 ## X-Category: Raid
@@ -34,6 +34,6 @@
 ## X-WoWI-ID: 21755
 ## X-Wago-ID: kGr0z76y
 ## X-BigWigs-LoadOn-InstanceId: 669, 671, 720, 754, 757, 967
-## X-BigWigs-Minimum: 378
+## X-BigWigs-Minimum: 412
 
 modules.xml

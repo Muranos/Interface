@@ -6,6 +6,9 @@ local Plater = Plater
 local DF = DetailsFramework
 local _
 
+local IS_WOW_PROJECT_MAINLINE = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
+local IS_WOW_PROJECT_MIDNIGHT = DF.IsAddonApocalypseWow()
+
 function platerInternal.CreateCastBarOptions()
     if platerInternal.LoadOnDemand_IsLoaded.CastOptions then return end
 
@@ -226,18 +229,6 @@ function platerInternal.CreateCastBarOptions()
 
         {
             type = "toggle",
-            get = function() return Plater.db.profile.no_spellname_length_limit end,
-            set = function (self, fixedparam, value)
-                Plater.db.profile.no_spellname_length_limit = value
-                Plater.UpdateMaxCastbarTextLength()
-                Plater.UpdateAllPlates()
-            end,
-            name = "OPTIONS_CASTBAR_NO_SPELLNAME_LIMIT",
-            desc = "OPTIONS_CASTBAR_NO_SPELLNAME_LIMIT_DESC",
-        },
-
-        {
-            type = "toggle",
             get = function() return Plater.db.profile.show_interrupt_author end,
             set = function (self, fixedparam, value)
                 Plater.db.profile.show_interrupt_author = value
@@ -383,8 +374,6 @@ function platerInternal.CreateCastBarOptions()
             set = function (self, fixedparam, value)
                 Plater.db.profile.cast_statusbar_spark_half = value
                 Plater.UpdateAllPlates()
-
-                print("hald spark", value)
             end,
             name = "OPTIONS_CASTBAR_SPARK_HALF",
             desc = "OPTIONS_CASTBAR_SPARK_HALF_DESC",
@@ -481,6 +470,38 @@ function platerInternal.CreateCastBarOptions()
         {
             type = "color",
             get = function()
+                local color = Plater.db.profile.cast_statusbar_color_empowered
+                return {color[1], color[2], color[3], color[4]}
+            end,
+            set = function (self, r, g, b, a)
+                local color = Plater.db.profile.cast_statusbar_color_empowered
+                color[1], color[2], color[3], color[4] = r, g, b, a
+                Plater.UpdateAllPlates()
+                Plater.DoCastBarTest()
+            end,
+            name = "Empowered",
+            desc = "Empowered",
+            hidden = not IS_WOW_PROJECT_MIDNIGHT,
+        },
+        {
+            type = "color",
+            get = function()
+                local color = Plater.db.profile.cast_statusbar_color_important
+                return {color[1], color[2], color[3], color[4]}
+            end,
+            set = function (self, r, g, b, a)
+                local color = Plater.db.profile.cast_statusbar_color_important
+                color[1], color[2], color[3], color[4] = r, g, b, a
+                Plater.UpdateAllPlates()
+                Plater.DoCastBarTest (true)
+            end,
+            name = "Important",
+            desc = "Important",
+            hidden = not IS_WOW_PROJECT_MIDNIGHT,
+        },
+        {
+            type = "color",
+            get = function()
                 local color = Plater.db.profile.cast_statusbar_color_nointerrupt
                 return {color[1], color[2], color[3], color[4]}
             end,
@@ -563,6 +584,7 @@ function platerInternal.CreateCastBarOptions()
             end,
             name = "OPTIONS_CAST_SHOW_TARGETNAME_TANK",
             desc = "OPTIONS_CAST_SHOW_TARGETNAME_TANK_DESC",
+            hidden = IS_WOW_PROJECT_MIDNIGHT,
         },
 
         {
@@ -578,6 +600,21 @@ function platerInternal.CreateCastBarOptions()
             name = "OPTIONS_SIZE",
             desc = "OPTIONS_SIZE",
         },
+        --target text length
+		{
+			type = "range",
+			get = function() return Plater.db.profile.castbar_target_text_max_width end,
+			set = function (self, fixedparam, value) 
+				Plater.db.profile.castbar_target_text_max_width = value
+				Plater.UpdateAllPlates()
+			end,
+			min = 0,
+			max = 300,
+			step = 1,
+			usedecimals = false,
+			name = "Max width",
+			desc = "Target text width limitation.\n 0 = no limitation",
+		},
         --text font
         {
             type = "select",
@@ -716,6 +753,16 @@ function platerInternal.CreateCastBarOptions()
             step = 1,
             name = "OPTIONS_XOFFSET",
             desc = "OPTIONS_XOFFSET",
+        },
+        {
+            type = "toggle",
+            get = function() return Plater.db.profile.castbar_icon_showshield end,
+            set = function (self, fixedparam, value)
+                Plater.db.profile.castbar_icon_showshield = value
+                Plater.RefreshDBUpvalues()
+            end,
+            name = "Show Shield",
+            desc = "Shows or hides the shield icon for not interruptible casts.",
         },
 
         {type = "blank"},

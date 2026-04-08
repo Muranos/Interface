@@ -4,7 +4,7 @@
 
 local mod, CL = BigWigs:NewBoss("The Everbloom Trash", 1279)
 if not mod then return end
-mod.displayName = CL.trash
+mod:SetTrashModule(true)
 mod:RegisterEnableMob(
 	81864, -- Dreadpetal
 	81819, -- Everbloom Naturalist
@@ -148,7 +148,7 @@ function mod:ArchmageSolDefeated()
 end
 
 function mod:CHAT_MSG_MONSTER_YELL(_, msg)
-	if msg == L.yalnu_warmup_trigger then
+	if not self:IsSecret(msg) and msg == L.yalnu_warmup_trigger then
 		-- The portal is lost! We must stop this beast before it can escape!#Lady Baihu
 		local yalnuMod = BigWigs:GetBossModule("Yalnu", true)
 		if yalnuMod then

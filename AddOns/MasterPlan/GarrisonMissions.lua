@@ -664,7 +664,7 @@ do -- Mission page rewards
 				text = q .. self.title
 			end
 			if text then
-				ChatEdit_InsertLink(text)
+				ChatFrameUtil.InsertLink(text)
 			end
 		end
 	end
@@ -926,7 +926,8 @@ do -- Ship re-fitting
 				b:SetScript("OnLeave", T.HideOwnedGameTooltip)
 				b:SetScript("PreClick", SetUpEquipmentRefit)
 				b:SetScript("PostClick", CompleteEquipmentRefit)
-				T.TenSABT(b)
+				b:SetAttribute("useOnKeyDown", false)
+				b:RegisterForClicks("LeftButtonUp")
 				b:Disable()
 				b:Hide()
 				slots[i] = b

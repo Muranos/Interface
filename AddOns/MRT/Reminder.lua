@@ -8,15 +8,20 @@ local LibDeflate = LibStub:GetLibrary("LibDeflate")
 
 local VMRT = nil
 
-local UnitPowerMax, tonumber, tostring, UnitGUID, PlaySoundFile, RAID_CLASS_COLORS, floor, ceil = UnitPowerMax, tonumber, tostring, UnitGUID, PlaySoundFile, RAID_CLASS_COLORS, floor, ceil
+local UnitPowerMax, tonumber, tostring, UnitGUID, PlaySoundFile, RAID_CLASS_COLORS, floor, ceil, COMBATLOG_OBJECT_RAIDTARGET_MASK = UnitPowerMax, tonumber, tostring, UnitGUID, PlaySoundFile, RAID_CLASS_COLORS, floor, ceil, COMBATLOG_OBJECT_RAIDTARGET_MASK
 local UnitHealthMax, UnitHealth, ScheduleTimer, UnitName, GetRaidTargetIndex, UnitCastingInfo, UnitChannelInfo, UnitIsUnit, UnitIsDead = UnitHealthMax, UnitHealth, ExRT.F.ScheduleTimer, UnitName, GetRaidTargetIndex, UnitCastingInfo, UnitChannelInfo, UnitIsUnit, UnitIsDead
 local GetSpellInfo, strsplit, GetTime, UnitPower, UnitGetTotalAbsorbs, UnitClass, GetSpellCooldown, UnitGroupRolesAssigned = ExRT.F.GetSpellInfo or GetSpellInfo, strsplit, GetTime, UnitPower, UnitGetTotalAbsorbs, UnitClass, ExRT.F.GetSpellCooldown or GetSpellCooldown, UnitGroupRolesAssigned
 local pairs, ipairs, bit, string_gmatch, tremove, pcall, format, wipe, type, select, loadstring, next, max, bit_band, unpack = pairs, ipairs, bit, string.gmatch, tremove, pcall, format, wipe, type, select, loadstring, next, math.max, bit.band, unpack
 local GetSpellName = C_Spell and C_Spell.GetSpellName or GetSpellInfo
 local GetSpellTexture = C_Spell and C_Spell.GetSpellTexture or GetSpellTexture
+local GetNumSpecializationsForClassID = C_SpecializationInfo and C_SpecializationInfo.GetNumSpecializationsForClassID or GetNumSpecializationsForClassID
+local GetSpecializationInfo = C_SpecializationInfo and C_SpecializationInfo.GetSpecializationInfo or GetSpecializationInfo
+local SendChatMessage = C_ChatInfo and C_ChatInfo.SendChatMessage or SendChatMessage
+local GetSpecialization = GetSpecialization or C_SpecializationInfo and C_SpecializationInfo.GetSpecialization
+local IsEncounterInProgress = C_InstanceEncounter and C_InstanceEncounter.IsEncounterInProgress or IsEncounterInProgress
 
 local senderVersion = 4
-local addonVersion = 65
+local addonVersion = 71
 
 local options = module.options
 
@@ -153,8 +158,12 @@ function frame:UpdateTextStyle(obj)
 
 	for o,t in pairs(obj and {{obj}} or {self.textBigD,self.textD,self.textSmallD}) do
 		for ci,text in pairs(t) do
-			text:SetFont(font, fontSize*text.tss, outline)
-			text.tmr:SetFont(font, fontSize*text.tss, outline)
+			if not text:SetFont(font, fontSize*text.tss, outline) then
+				text:SetFont(ExRT.F.defFont, fontSize*text.tss, outline)
+			end
+			if not text.tmr:SetFont(font, fontSize*text.tss, outline) then
+				text.tmr:SetFont(ExRT.F.defFont, fontSize*text.tss, outline)
+			end
 
 			text.te = te
 
@@ -1366,7 +1375,7 @@ do
 		elseif word == "playerClass" then
 			return (select(2,UnitClass'player'):lower())..rest
 		elseif word == "playerSpec" then
-			local specid,specname = GetSpecializationInfo and GetSpecializationInfo(GetSpecialization() or 1)
+			local specid,specname = GetSpecializationInfo and GetSpecializationInfo(GetSpecialization and GetSpecialization() or 1)
 			return (defSpecName[specid or 0] or specname and specname:lower() or "")..rest
 		elseif word == "defCDIcon" then
 			local icon = defCDList[select(2,UnitClass'player') or ""]
@@ -1378,11 +1387,11 @@ do
 			local icon = sprintCDList[select(2,UnitClass'player') or ""]
 			return (icon and "{spell:"..icon.."}" or "")..rest
 		elseif word == "healCDIcon" then
-			local specid,specname = GetSpecializationInfo and GetSpecializationInfo(GetSpecialization() or 1)
+			local specid,specname = GetSpecializationInfo and GetSpecializationInfo(GetSpecialization and GetSpecialization() or 1)
 			local icon = healCDList[specid or 0]
 			return (icon and "{spell:"..icon.."}" or "")..rest
 		elseif word == "raidCDIcon" then
-			local specid,specname = GetSpecializationInfo and GetSpecializationInfo(GetSpecialization() or 1)
+			local specid,specname = GetSpecializationInfo and GetSpecializationInfo(GetSpecialization and GetSpecialization() or 1)
 			local icon = raidCDList[specid or 0]
 			return (icon and "{spell:"..icon.."}" or "")..rest
 		elseif word == "notePlayer" or word == "notePlayerRight" then
@@ -1977,6 +1986,7 @@ module.C = {
 		},
 		triggerFields = {"eventCLEU"},
 		alertFields = {"eventCLEU"},
+		legacy = ExRT.isMN,
 	},
 	["SPELL_CAST_START"] = {
 		main_id = 1,
@@ -1986,6 +1996,7 @@ module.C = {
 		triggerFields = {"eventCLEU","spellID","spellName","sourceName","sourceID","sourceUnit","sourceMark","counter","cbehavior","delayTime","activeTime","invert"},
 		triggerSynqFields = {"eventCLEU","spellID","counter","cbehavior","delayTime","activeTime","sourceName","sourceUnit","sourceID","sourceMark","spellName","invert"},
 		replaceres = {"sourceName","sourceMark","sourceGUID","spellName","spellID","counter","guid"},
+		legacy = ExRT.isMN,
 	},
 	["SPELL_CAST_SUCCESS"] = {
 		main_id = 1,
@@ -1995,6 +2006,7 @@ module.C = {
 		triggerFields = {"eventCLEU","spellID","spellName","sourceName","sourceID","sourceUnit","sourceMark","targetName","targetID","targetUnit","targetMark","targetRole","guidunit","onlyPlayer","counter","cbehavior","delayTime","activeTime","invert"},
 		triggerSynqFields = {"eventCLEU","spellID","counter","cbehavior","delayTime","activeTime","sourceName","sourceUnit","targetName","targetUnit","sourceID","sourceMark","targetID","targetMark","spellName","invert","guidunit","onlyPlayer","targetRole"},
 		replaceres = {"sourceName","sourceMark","sourceGUID","targetName","targetMark","targetGUID","spellName","spellID","counter","guid"},
+		legacy = ExRT.isMN,
 	},
 	["SPELL_AURA_APPLIED"] = {
 		main_id = 1,
@@ -2004,6 +2016,7 @@ module.C = {
 		triggerFields = {"eventCLEU","spellID","spellName","sourceName","sourceID","sourceUnit","sourceMark","targetName","targetID","targetUnit","targetMark","targetRole","guidunit","stacks","onlyPlayer","counter","cbehavior","delayTime","activeTime","invert"},
 		triggerSynqFields = {"eventCLEU","spellID","counter","cbehavior","delayTime","activeTime","sourceName","sourceUnit","targetName","targetUnit","sourceID","sourceMark","targetID","targetMark","spellName","stacks","invert","guidunit","onlyPlayer","targetRole"},
 		replaceres = {"sourceName","sourceMark","sourceGUID","targetName","targetMark","targetGUID","spellName","spellID","stacks","counter","guid"},
+		legacy = ExRT.isMN,
 	},
 	["SPELL_AURA_REMOVED"] = {
 		main_id = 1,
@@ -2013,6 +2026,7 @@ module.C = {
 		triggerFields = {"eventCLEU","spellID","spellName","sourceName","sourceID","sourceUnit","sourceMark","targetName","targetID","targetUnit","targetMark","targetRole","guidunit","stacks","onlyPlayer","counter","cbehavior","delayTime","activeTime","invert"},
 		triggerSynqFields = {"eventCLEU","spellID","counter","cbehavior","delayTime","activeTime","sourceName","sourceUnit","targetName","targetUnit","sourceID","sourceMark","targetID","targetMark","spellName","stacks","invert","guidunit","onlyPlayer","targetRole"},
 		replaceres = {"sourceName","sourceMark","sourceGUID","targetName","targetMark","targetGUID","spellName","spellID","stacks","counter","guid"},
+		legacy = ExRT.isMN,
 	},
 	["SPELL_DAMAGE"] = {
 		main_id = 1,
@@ -2022,6 +2036,7 @@ module.C = {
 		triggerFields = {"eventCLEU","spellID","spellName","sourceName","sourceID","sourceUnit","sourceMark","targetName","targetID","targetUnit","targetMark","guidunit","counter","cbehavior","delayTime","activeTime","invert"},
 		triggerSynqFields = {"eventCLEU","spellID","counter","cbehavior","delayTime","activeTime","sourceName","sourceUnit","targetName","targetUnit","sourceID","sourceMark","targetID","targetMark","spellName","invert","guidunit"},
 		replaceres = {"sourceName","sourceMark","sourceGUID","targetName","targetMark","targetGUID","spellName","spellID","extraSpellID",extraSpellID=L.ReminderReplacerextraSpellIDSpellDmg,"counter","guid"},
+		legacy = ExRT.isMN,
 	},
 	["SPELL_PERIODIC_DAMAGE"] = {
 		main_id = 1,
@@ -2031,6 +2046,7 @@ module.C = {
 		triggerFields = {"eventCLEU","spellID","spellName","sourceName","sourceID","sourceUnit","sourceMark","targetName","targetID","targetUnit","targetMark","guidunit","counter","cbehavior","delayTime","activeTime","invert"},
 		triggerSynqFields = {"eventCLEU","spellID","counter","cbehavior","delayTime","activeTime","sourceName","sourceUnit","targetName","targetUnit","sourceID","sourceMark","targetID","targetMark","spellName","invert","guidunit"},
 		replaceres = {"sourceName","sourceMark","sourceGUID","targetName","targetMark","targetGUID","spellName","spellID","extraSpellID",extraSpellID=L.ReminderReplacerextraSpellIDSpellDmg,"counter","guid"},
+		legacy = ExRT.isMN,
 	},
 	["SWING_DAMAGE"] = {
 		main_id = 1,
@@ -2040,6 +2056,7 @@ module.C = {
 		triggerFields = {"eventCLEU","sourceName","sourceID","sourceUnit","sourceMark","targetName","targetID","targetUnit","targetMark","guidunit","counter","cbehavior","delayTime","activeTime","invert"},
 		triggerSynqFields = {"eventCLEU","counter","cbehavior","delayTime","activeTime","sourceName","sourceUnit","targetName","targetUnit","sourceID","sourceMark","targetID","targetMark","invert","guidunit"},
 		replaceres = {"sourceName","sourceMark","sourceGUID","targetName","targetMark","targetGUID","spellID",spellID=L.ReminderReplacerspellIDSwing,"counter","guid"},
+		legacy = ExRT.isMN,
 	},
 	["SPELL_HEAL"] = {
 		main_id = 1,
@@ -2049,6 +2066,7 @@ module.C = {
 		triggerFields = {"eventCLEU","spellID","spellName","sourceName","sourceID","sourceUnit","sourceMark","targetName","targetID","targetUnit","targetMark","guidunit","counter","cbehavior","delayTime","activeTime","invert"},
 		triggerSynqFields = {"eventCLEU","spellID","counter","cbehavior","delayTime","activeTime","sourceName","sourceUnit","targetName","targetUnit","sourceID","sourceMark","targetID","targetMark","spellName","invert","guidunit"},
 		replaceres = {"sourceName","sourceMark","sourceGUID","targetName","targetMark","targetGUID","spellName","spellID","extraSpellID",extraSpellID=L.ReminderReplacerextraSpellIDSpellDmg,"counter","guid"},
+		legacy = ExRT.isMN,
 	},
 	["SPELL_PERIODIC_HEAL"] = {
 		main_id = 1,
@@ -2058,6 +2076,7 @@ module.C = {
 		triggerFields = {"eventCLEU","spellID","spellName","sourceName","sourceID","sourceUnit","sourceMark","targetName","targetID","targetUnit","targetMark","guidunit","counter","cbehavior","delayTime","activeTime","invert"},
 		triggerSynqFields = {"eventCLEU","spellID","counter","cbehavior","delayTime","activeTime","sourceName","sourceUnit","targetName","targetUnit","sourceID","sourceMark","targetID","targetMark","spellName","invert","guidunit"},
 		replaceres = {"sourceName","sourceMark","sourceGUID","targetName","targetMark","targetGUID","spellName","spellID","extraSpellID",extraSpellID=L.ReminderReplacerextraSpellIDSpellDmg,"counter","guid"},
+		legacy = ExRT.isMN,
 	},
 	["SPELL_ABSORBED"] = {
 		main_id = 1,
@@ -2067,6 +2086,7 @@ module.C = {
 		triggerFields = {"eventCLEU","spellID","spellName","sourceName","sourceID","sourceUnit","sourceMark","targetName","targetID","targetUnit","targetMark","guidunit","counter","cbehavior","delayTime","activeTime","invert"},
 		triggerSynqFields = {"eventCLEU","spellID","counter","cbehavior","delayTime","activeTime","sourceName","sourceUnit","targetName","targetUnit","sourceID","sourceMark","targetID","targetMark","spellName","invert","guidunit"},
 		replaceres = {"sourceName","sourceMark","sourceGUID","targetName","targetMark","targetGUID","spellName","spellID","extraSpellID",extraSpellID=L.ReminderReplacerextraSpellIDSpellDmg,"counter","guid"},
+		legacy = ExRT.isMN,
 	},
 	["SPELL_ENERGIZE"] = {
 		main_id = 1,
@@ -2076,6 +2096,7 @@ module.C = {
 		triggerFields = {"eventCLEU","spellID","spellName","sourceName","sourceID","sourceUnit","sourceMark","targetName","targetID","targetUnit","targetMark","guidunit","counter","cbehavior","delayTime","activeTime","invert"},
 		triggerSynqFields = {"eventCLEU","spellID","counter","cbehavior","delayTime","activeTime","sourceName","sourceUnit","targetName","targetUnit","sourceID","sourceMark","targetID","targetMark","spellName","invert","guidunit"},
 		replaceres = {"sourceName","sourceMark","sourceGUID","targetName","targetMark","targetGUID","spellName","spellID","extraSpellID",extraSpellID=L.ReminderReplacerextraSpellIDSpellDmg,"counter","guid"},
+		legacy = ExRT.isMN,
 	},
 	["SPELL_MISSED"] = {
 		main_id = 1,
@@ -2086,6 +2107,7 @@ module.C = {
 		fieldNames = {["pattFind"]=L.ReminderMissType},
 		triggerSynqFields = {"eventCLEU","spellID","counter","cbehavior","delayTime","activeTime","sourceName","sourceUnit","targetName","targetUnit","pattFind","sourceID","sourceMark","targetID","targetMark","spellName","invert","guidunit"},
 		replaceres = {"sourceName","sourceMark","sourceGUID","targetName","targetMark","targetGUID","spellName","spellID","counter","guid"},
+		legacy = ExRT.isMN,
 	},
 	["UNIT_DIED"] = {
 		main_id = 1,
@@ -2095,6 +2117,7 @@ module.C = {
 		triggerFields = {"eventCLEU","targetName","targetID","targetUnit","targetMark","counter","cbehavior","delayTime","activeTime","invert"},
 		triggerSynqFields = {"eventCLEU","counter","cbehavior","delayTime","activeTime","targetName","targetUnit","targetID","targetMark","invert"},
 		replaceres = {"targetName","targetMark","targetGUID","counter","guid"},
+		legacy = ExRT.isMN,
 	},
 	["SPELL_SUMMON"] = {
 		main_id = 1,
@@ -2104,6 +2127,7 @@ module.C = {
 		triggerFields = {"eventCLEU","spellID","spellName","sourceName","sourceID","sourceUnit","sourceMark","targetName","targetID","targetUnit","targetMark","guidunit","counter","cbehavior","delayTime","activeTime","invert"},
 		triggerSynqFields = {"eventCLEU","spellID","counter","cbehavior","delayTime","activeTime","sourceName","sourceUnit","targetName","targetUnit","sourceID","sourceMark","targetID","targetMark","spellName","invert","guidunit"},
 		replaceres = {"sourceName","sourceMark","sourceGUID","targetName","targetMark","targetGUID","spellName","spellID","counter","guid"},
+		legacy = ExRT.isMN,
 	},
 	["SPELL_DISPEL"] = {
 		main_id = 1,
@@ -2113,6 +2137,7 @@ module.C = {
 		triggerFields = {"eventCLEU","spellID","spellName","sourceName","sourceID","sourceUnit","sourceMark","targetName","targetID","targetUnit","targetMark","guidunit","extraSpellID","counter","cbehavior","delayTime","activeTime","invert"},
 		triggerSynqFields = {"eventCLEU","spellID","counter","cbehavior","delayTime","activeTime","sourceName","sourceUnit","targetName","targetUnit","sourceID","sourceMark","targetID","targetMark","spellName","extraSpellID","invert","guidunit"},
 		replaceres = {"sourceName","sourceMark","sourceGUID","targetName","targetMark","targetGUID","spellName","spellID","extraSpellID","counter","guid"},
+		legacy = ExRT.isMN,
 	},
 	["SPELL_AURA_BROKEN_SPELL"] = {
 		main_id = 1,
@@ -2122,6 +2147,7 @@ module.C = {
 		triggerFields = {"eventCLEU","spellID","spellName","sourceName","sourceID","sourceUnit","sourceMark","targetName","targetID","targetUnit","targetMark","guidunit","extraSpellID","counter","cbehavior","delayTime","activeTime","invert"},
 		triggerSynqFields = {"eventCLEU","spellID","counter","cbehavior","delayTime","activeTime","sourceName","sourceUnit","targetName","targetUnit","sourceID","sourceMark","targetID","targetMark","spellName","extraSpellID","invert","guidunit"},
 		replaceres = {"sourceName","sourceMark","sourceGUID","targetName","targetMark","targetGUID","spellName","spellID","extraSpellID",extraSpellID=L.ReminderReplacerextraSpellID,"counter","guid"},
+		legacy = ExRT.isMN,
 	},
 	["ENVIRONMENTAL_DAMAGE"] = {
 		main_id = 1,
@@ -2131,6 +2157,7 @@ module.C = {
 		triggerFields = {"eventCLEU","spellID","targetName","targetID","targetUnit","targetMark","counter","cbehavior","delayTime","activeTime","invert"},
 		triggerSynqFields = {"eventCLEU","spellID","counter","cbehavior","delayTime","activeTime","targetName","targetUnit","targetID","targetMark","invert"},
 		replaceres = {"targetName","targetMark","targetGUID","spellName","counter","guid"},
+		legacy = ExRT.isMN,
 	},
 	["SPELL_INTERRUPT"] = {
 		main_id = 1,
@@ -2140,6 +2167,7 @@ module.C = {
 		triggerFields = {"eventCLEU","spellID","spellName","sourceName","sourceID","sourceUnit","sourceMark","targetName","targetID","targetUnit","targetMark","guidunit","extraSpellID","counter","cbehavior","delayTime","activeTime","invert"},
 		triggerSynqFields = {"eventCLEU","spellID","counter","cbehavior","delayTime","activeTime","sourceName","sourceUnit","targetName","targetUnit","sourceID","sourceMark","targetID","targetMark","spellName","extraSpellID","invert","guidunit"},
 		replaceres = {"sourceName","sourceMark","sourceGUID","targetName","targetMark","targetGUID","spellName","spellID","extraSpellID","counter","guid"},
+		legacy = ExRT.isMN,
 	},
 	[2] = {
 		id = 2,
@@ -2177,6 +2205,7 @@ module.C = {
 		triggerSynqFields = {"numberPercent","targetUnit","counter","cbehavior","delayTime","activeTime","targetName","targetID","targetMark","invert"},
 		help = L.ReminderHealthTip,
 		replaceres = {"targetName","targetMark","guid",guid=L.ReminderReplacertargetGUID,"health","value","counter"},
+		legacy = ExRT.isMN,
 	},
 	[5] = {
 		id = 5,
@@ -2191,6 +2220,7 @@ module.C = {
 		triggerSynqFields = {"numberPercent","targetUnit","counter","cbehavior","delayTime","activeTime","targetName","targetID","targetMark","invert"},
 		help = L.ReminderManaTip,
 		replaceres = {"targetName","targetMark","guid",guid=L.ReminderReplacertargetGUID,"health",health=L.ReminderReplacerhealthenergy,"value",value=L.ReminderReplacervalueenergy,"counter"},
+		legacy = ExRT.isMN,
 	},
 	[6] = {
 		id = 6,
@@ -2230,6 +2260,7 @@ module.C = {
 		alertFields = {"pattFind"},
 		triggerSynqFields = {"pattFind","counter","cbehavior","delayTime","activeTime","sourceName","sourceUnit","targetName","targetUnit","sourceID","invert"},
 		replaceres = {"sourceName","targetName","text","counter"},
+		legacy = ExRT.isMN,
 	},
 	[9] = {
 		id = 9,
@@ -2241,6 +2272,7 @@ module.C = {
 		triggerFields = {"targetName","targetID","targetUnit","counter","cbehavior","delayTime","activeTime","invert"},
 		triggerSynqFields = {"counter","cbehavior","delayTime","activeTime","targetName","targetUnit","targetID","invert"},
 		replaceres = {"targetName","guid",guid=L.ReminderReplacertargetGUID,"counter"},
+		legacy = ExRT.isMN,
 	},
 	[10] = {
 		id = 10,
@@ -2256,6 +2288,7 @@ module.C = {
 		triggerSynqFields = {"targetUnit","spellID","counter","cbehavior","delayTime","activeTime","sourceName","sourceUnit","targetName","sourceID","sourceMark","targetID","targetMark","spellName","stacks","bwtimeleft","invert","onlyPlayer","targetRole"},
 		help = L.ReminderAuraTip,
 		replaceres = {"sourceName","sourceMark","sourceGUID","targetName","targetMark","targetGUID","spellName","spellID","stacks","timeLeft","counter","guid","auraValA","auraValB","auraValC"},
+		legacy = ExRT.isMN,
 	},
 	[11] = {
 		id = 11,
@@ -2271,6 +2304,7 @@ module.C = {
 		triggerSynqFields = {"numberPercent","targetUnit","counter","cbehavior","delayTime","activeTime","targetName","targetID","targetMark","invert"},
 		help = L.ReminderAbsorbTip,
 		replaceres = {"targetName","targetMark","guid",guid=L.ReminderReplacertargetGUID,"value",value=L.ReminderReplacervalueabsorb,"counter"},
+		legacy = ExRT.isMN,
 	},
 	[12] = {
 		id = 12,
@@ -2285,6 +2319,7 @@ module.C = {
 		triggerSynqFields = {"sourceUnit","counter","cbehavior","delayTime","activeTime","sourceName","targetName","targetUnit","sourceID","sourceMark","targetID","targetMark","invert","guidunit"},
 		help = L.ReminderCurTargetTip,
 		replaceres = {"sourceName","sourceMark","sourceGUID","targetName","targetMark","targetGUID","counter","guid"},
+		legacy = ExRT.isMN,
 	},
 	[13] = {
 		id = 13,
@@ -2299,6 +2334,7 @@ module.C = {
 		triggerSynqFields = {"spellID","counter","cbehavior","delayTime","activeTime","spellName","bwtimeleft","invert"},
 		help = L.ReminderSpellCDTip,
 		replaceres = {"spellName","spellID","counter","timeLeft"},
+		legacy = ExRT.isMN,
 	},
 	[14] = {
 		id = 14,
@@ -2313,6 +2349,7 @@ module.C = {
 		alertFields = {"sourceUnit"},
 		triggerSynqFields = {"sourceUnit","spellID","counter","cbehavior","delayTime","activeTime","sourceName","sourceID","sourceMark","spellName","invert"},
 		replaceres = {"sourceName","sourceMark","guid",guid=L.ReminderReplacersourceGUID,"spellID","spellName","counter"},
+		legacy = ExRT.isMN,
 	},
 	[15] = {
 		id = 15,
@@ -2327,6 +2364,7 @@ module.C = {
 		triggerSynqFields = {"numberPercent","spellID","counter","cbehavior","delayTime","activeTime","spellName","invert"},
 		help = L.ReminderWidgetTip,
 		replaceres = {"spellID",spellID=L.ReminderReplacerspellIDwigdet,"spellName",spellName=L.ReminderReplacerspellNamewigdet,"value",value=L.ReminderReplacervaluewigdet,"counter"},
+		legacy = ExRT.isMN,
 	},
 	[16] = {
 		id = 16,
@@ -2355,6 +2393,7 @@ module.C = {
 		triggerSynqFields = {"bwtimeleft","stacks","invert"},
 		help = L.ReminderPlayersInRangeTip,
 		replaceres = {"value",value=L.ReminderReplacervaluerange,"list"},
+		legacy = ExRT.isMN,
 	},
 	[18] = {
 		id = 18,
@@ -2369,6 +2408,7 @@ module.C = {
 		triggerSynqFields = {"spellID","sourceUnit","counter","cbehavior","delayTime","activeTime","sourceName","spellName","sourceID","sourceMark","invert"},
 		help = L.ReminderUnitCastTip,
 		replaceres = {"sourceName","sourceMark","guid",guid=L.ReminderReplacersourceGUID,"spellID","spellName","timeLeft"},
+		legacy = ExRT.isMN,
 	},
 	[19] = {
 		id = 19,
@@ -2396,6 +2436,7 @@ module.C = {
 		triggerSynqFields = {"bwtimeleft","stacks","targetName","targetID","targetUnit","targetMark","invert"},
 		help = L.ReminderPlayersInRangeTip,
 		replaceres = {"value",value=L.ReminderReplacervaluemobrange,"list",value=L.ReminderReplacerlistmobrange,"targetName","targetMark","guid",guid=L.ReminderReplacertargetGUID},
+		legacy = ExRT.isMN,	
 	},
 	[21] = {
 		id = 21,
@@ -2794,13 +2835,15 @@ function options:Load()
 
 		FILTER_AURA = true,
 
-		spell_status = {},
+		spell_status = type(VMRT.Reminder2.OptTLSpellDisabled) == "table" and VMRT.Reminder2.OptTLSpellDisabled or {},
 		spell_dur = {},
 		custom_phase = {},
 		reminder_hide = {},
 
 		saved_colors = {}
 	}
+
+	VMRT.Reminder2.OptTLSpellDisabled = options.timeLine.spell_status
 
 	function options.timeLine.util_sort_by2(a,b) return a[2]<b[2] end
 
@@ -3061,6 +3104,24 @@ function options:Load()
 		end
 	end
 
+	local function CheckReminderFilterByPlayerName(data,names)
+		for p in pairs(data.players) do
+			for name in pairs(names) do
+				if p:lower():find(name,1,true) then
+					return true
+				end
+			end
+		end
+
+		for name in pairs(names) do
+			local class = select(2,UnitClass(name))
+	
+			if class and data["class"..class] then
+				return true
+			end
+		end
+	end
+
 	function options.timeLine:GetRemindersList()
 		local timeLineData = self.timeLineData
 
@@ -3106,7 +3167,8 @@ function options:Load()
 							data.triggers[1].eventCLEU == "SPELL_AURA_APPLIED"
 						))
 					) and
-					(not self.FILTER_REM_ONLYMY or module:CheckPlayerCondition(data))
+					(not self.FILTER_REM_ONLYMY or module:CheckPlayerCondition(data)) and
+					(not self.FILTER_BYPLAYERNAME or CheckReminderFilterByPlayerName(data,self.FILTER_BYPLAYERNAME))
 				then
 					local time = module:ConvertMinuteStrToNum(data.triggers[1].delayTime)
 					time = time and time[1] or 0
@@ -3418,168 +3480,277 @@ function options:Load()
 		local subMenu = {}
 		local res
 
-		for _, h_key in pairs({"history","historySession"}) do
-			local sepAdded
-			for i=1,#module.db[h_key] do
-				local fight = module.db[h_key][i]
-				local fightLen = #fight > 1 and fight[#fight][1] - fight[1][1]
-				local text = (#fight > 0 and fight[1][4] or L.ReminderFight.." "..i)..(fightLen and format(" %d:%02d",fightLen/60,fightLen%60) or "")
-				local boss_list = {
-					text = text,
-					arg1 = fight,
-					arg2 = text,
-					arg3 = 2,
-					func = self.SetValue,
-				}
-				if #fight > 0 and fight[1][2] == 22 then
-					boss_list.arg3 = 5
-					boss_list.text = boss_list.text:gsub(" %d+:"," +"..(fight[1][5] or 0).."%1")
-					local mplusSubMenu
-					local start = nil
-					for j=1,#fight do
-						if fight[j][2] == 3 then
-							start = j
-						elseif start and fight[j][2] == 0 then
-							local newFight = {}
-							for k=start,j do
-								newFight[#newFight+1] = fight[k]
+		do
+			for _, h_key in pairs({"history","historySession"}) do
+				local sepAdded
+				for i=1,#module.db[h_key] do
+					local fight = module.db[h_key][i]
+					local fightLen = #fight > 1 and fight[#fight][1] - fight[1][1]
+					local text = (#fight > 0 and fight[1][4] or L.ReminderFight.." "..i)..(fightLen and format(" %d:%02d",fightLen/60,fightLen%60) or "")
+					local boss_list = {
+						text = text,
+						arg1 = fight,
+						arg2 = text,
+						arg3 = 2,
+						func = self.SetValue,
+					}
+					if #fight > 0 and fight[1][2] == 22 then
+						boss_list.arg3 = 5
+						boss_list.text = boss_list.text:gsub(" %d+:"," +"..(fight[1][5] or 0).."%1")
+						local mplusSubMenu
+						local start = nil
+						for j=1,#fight do
+							if fight[j][2] == 3 then
+								start = j
+							elseif start and fight[j][2] == 0 then
+								local newFight = {}
+								for k=start,j do
+									newFight[#newFight+1] = fight[k]
+								end
+								start = nil
+								if not mplusSubMenu then
+									mplusSubMenu = {}
+								end
+								local nf_fightLen = newFight[#newFight][1] - newFight[1][1]
+								local nf_text = (newFight[1][4] or L.ReminderFight.." "..i)..format(" %d:%02d",nf_fightLen/60,nf_fightLen%60)
+								local ej = ExRT.GDB.encounterIDtoEJ[ newFight[1][3] ]
+								local nf_icon,nf_iconsize
+								if ej and EJ_GetCreatureInfo then
+									nf_icon = select(5, EJ_GetCreatureInfo(1, ej))
+									nf_iconsize = 32
+								end
+								mplusSubMenu[#mplusSubMenu+1] = {
+									text = nf_text,
+									arg1 = newFight,
+									arg2 = nf_text,
+									arg3 = 2,
+									func = self.SetValue,
+									icon = nf_icon,
+									iconsize = nf_iconsize,
+								}
 							end
-							start = nil
-							if not mplusSubMenu then
-								mplusSubMenu = {}
-							end
-							local nf_fightLen = newFight[#newFight][1] - newFight[1][1]
-							local nf_text = (newFight[1][4] or L.ReminderFight.." "..i)..format(" %d:%02d",nf_fightLen/60,nf_fightLen%60)
-							local ej = ExRT.GDB.encounterIDtoEJ[ newFight[1][3] ]
-							local nf_icon,nf_iconsize
-							if ej and EJ_GetCreatureInfo then
-								nf_icon = select(5, EJ_GetCreatureInfo(1, ej))
-								nf_iconsize = 32
-							end
-							mplusSubMenu[#mplusSubMenu+1] = {
-								text = nf_text,
-								arg1 = newFight,
-								arg2 = nf_text,
-								arg3 = 2,
-								func = self.SetValue,
-								icon = nf_icon,
-								iconsize = nf_iconsize,
-							}
 						end
-					end
-					if mplusSubMenu then
-						boss_list.subMenu = mplusSubMenu
-					end
-				elseif #fight > 0 and fight[1][2] == 3 then
-					local ej = ExRT.GDB.encounterIDtoEJ[ fight[1][3] ]
-					if ej and EJ_GetCreatureInfo then
-						boss_list.icon = select(5, EJ_GetCreatureInfo(1, ej))
-						boss_list.iconsize = 32
-					end
-				elseif #fight > 0 and fight[1][2] == 0 then
-					boss_list.arg1 = ExRT.F.table_copy2(fight)
-					boss_list.arg1[1][3] = select(8,GetInstanceInfo())
-					boss_list.arg3 = 5
-				end
-				if fightLen then
-					if not sepAdded then
-						sepAdded = true
-						if #subMenu > 0 then
-							subMenu[#subMenu+1] = {
-								text = " ",
-								isTitle = true,
-							}
+						if mplusSubMenu then
+							boss_list.subMenu = mplusSubMenu
 						end
+					elseif #fight > 0 and fight[1][2] == 3 then
+						local ej = ExRT.GDB.encounterIDtoEJ[ fight[1][3] ]
+						if ej and EJ_GetCreatureInfo then
+							boss_list.icon = select(5, EJ_GetCreatureInfo(1, ej))
+							boss_list.iconsize = 32
+						end
+					elseif #fight > 0 and fight[1][2] == 0 then
+						boss_list.arg1 = ExRT.F.table_copy2(fight)
+						boss_list.arg1[1][3] = select(8,GetInstanceInfo())
+						boss_list.arg3 = 5
 					end
-
-					subMenu[#subMenu+1] = boss_list
+					if fightLen then
+						if not sepAdded then
+							sepAdded = true
+							if #subMenu > 0 then
+								subMenu[#subMenu+1] = {
+									text = " ",
+									isTitle = true,
+								}
+							end
+						end
+	
+						subMenu[#subMenu+1] = boss_list
+					end
 				end
 			end
-		end
 
-		if module.db.historyTL then
-			if #subMenu > 0 then
+			if module.db.historyTL then
+				if #subMenu > 0 then
+					subMenu[#subMenu+1] = {
+						text = " ",
+						isTitle = true,
+					}
+				end
+				local syncSubMenu = {}
 				subMenu[#subMenu+1] = {
-					text = " ",
+					text = "Synced history",
+					subMenu = syncSubMenu,
+				}
+				for i=1,#module.db.historyTL do
+					local data = module.db.historyTL[i]
+					local bossID = data.bossID or 0
+					local text = ExRT.L:bossName2(bossID)..(data.len and format(" %d:%02d",data.len/60,data.len%60) or "")
+					local boss_list = {
+						text = text,
+						arg1 = bossID,
+						arg2 = text,
+						arg3 = 3,
+						arg4 = {tl = data[1],id = bossID},
+						tooltip = data.player,
+						func = self.SetValue,
+					}
+					syncSubMenu[#syncSubMenu+1] = boss_list
+				end
+			end
+	
+			if #subMenu == 0 then
+				subMenu[#subMenu+1] = {
+					text = L.ReminderRecordsYet,
 					isTitle = true,
 				}
 			end
-			local syncSubMenu = {}
-			subMenu[#subMenu+1] = {
-				text = "Synced history",
-				subMenu = syncSubMenu,
-			}
-			for i=1,#module.db.historyTL do
-				local data = module.db.historyTL[i]
-				local bossID = data.bossID or 0
-				local text = ExRT.L.bossName[bossID]..(data.len and format(" %d:%02d",data.len/60,data.len%60) or "")
-				local boss_list = {
-					text = text,
-					arg1 = bossID,
-					arg2 = text,
-					arg3 = 3,
-					arg4 = {tl = data[1],id = bossID},
-					tooltip = data.player,
-					func = self.SetValue,
-				}
-				syncSubMenu[#syncSubMenu+1] = boss_list
-			end
-		end
 
-		if #subMenu == 0 then
 			subMenu[#subMenu+1] = {
-				text = L.ReminderRecordsYet,
+				text = " ",
 				isTitle = true,
 			}
-		end
 
-		subMenu[#subMenu+1] = {
-			text = " ",
-			isTitle = true,
-		}
-		subMenu[#subMenu+1] = {
-			text = L.ReminderFightExport,
-			func = function()
-				ELib:DropDownClose()
+			subMenu[#subMenu+1] = {
+				text = L.ReminderFightExport,
+				func = function()
+					ELib:DropDownClose()
+	
+					local str = options:GetHistoryString()
+					--local str = options:GetHistoryTimelineString()
+	
+					local compressed
+					if #str < 1000000 then
+						compressed = LibDeflate:CompressDeflate(str,{level = 5})
+					end
+					local encoded = "MRTREMH"..(compressed and "1" or "0")..LibDeflate:EncodeForPrint(compressed or str)
+	
+					options.timeLine.historyExportWindow.Edit:SetText(encoded)
+					options.timeLine.historyExportWindow:Show()
+				end,
+			}
+			subMenu[#subMenu+1] = {
+				text = L.ReminderFightImport,
+				func = function()
+					ELib:DropDownClose()
+	
+					options.timeLine.historyImportWindow:NewPoint("CENTER",UIParent,0,0)
+					options.timeLine.historyImportWindow:Show()
+				end,
+			}
+			subMenu[#subMenu+1] = {
+				text = L.ReminderLogNextFight,
+				tooltip = L.ReminderLogNextFightTip,
+				func = function()
+					ELib:DropDownClose()
+	
+					module:HistoryLogNextFight()
+				end,
+				isTitle = module.db.historyNextFight and true or false,
+			}
+	
+			self.List[ #self.List+1 ] = {
+				text = L.ReminderFightSaved,
+				subMenu = subMenu,
+				prio = 100001,
+			}
 
-				local str = options:GetHistoryString()
-				--local str = options:GetHistoryTimelineString()
-
-				local compressed
-				if #str < 1000000 then
-					compressed = LibDeflate:CompressDeflate(str,{level = 5})
+			if VMRT.Reminder2.TLHistory then
+				local tlSubMenu = {}
+				self.List[#self.List+1] = {
+					text = "Per boss saved history",
+					subMenu = tlSubMenu,
+					Lines=15,
+					prio = 100000,
+				}
+				for diffID,diffData in pairs(VMRT.Reminder2.TLHistory) do
+					for bossID,bossData in pairs(diffData) do
+						if type(bossID) == "number" then	--unk error fix
+							local toadd
+		
+							local zone, bossNum
+							for i=1,#ExRT.GDB.EncountersList do
+								local z = ExRT.GDB.EncountersList[i]
+								for j=2,#z do
+									if z[j] == bossID then
+										zone = z
+										bossNum = j
+										break
+									end
+								end
+							end
+							if zone then
+								toadd = ExRT.F.table_find3(tlSubMenu,zone[1],"arg3")
+								if not toadd then
+									local text = GetMapNameByID(zone[1])
+			
+									local zoneImg
+									local zoneMapID
+									local ej_bossID = ExRT.GDB.encounterIDtoEJ[bossID]
+									if ej_bossID and EJ_GetEncounterInfo then
+										local name, description, journalEncounterID, rootSectionID, link, journalInstanceID, dungeonEncounterID, instanceID = EJ_GetEncounterInfo(ej_bossID)
+										if journalInstanceID then
+											local name, description, bgImage, buttonImage1, loreImage, buttonImage2, dungeonAreaMapID, link, shouldDisplayDifficulty, mapID = EJ_GetInstanceInfo(journalInstanceID)
+											zoneImg = buttonImage1
+											text = name or text
+											zoneMapID = mapID
+										end
+									end
+			
+									toadd = {text = text, arg3 = zone[1], subMenu = {}, zonemd = zone, prio = 40000+zone[1]+(zoneMapID and SORT_DUNG_LIST[ zoneMapID ] and SORT_DUNG_LIST[ zoneMapID ]*5000 or 0), icon = zoneImg}
+									tlSubMenu[#tlSubMenu+1] = toadd
+								end
+								toadd = toadd.subMenu
+							end
+							if not toadd then
+								toadd = tlSubMenu
+							end
+		
+							local bossImg
+							if ExRT.GDB.encounterIDtoEJ[bossID] and EJ_GetCreatureInfo then
+								bossImg = select(5, EJ_GetCreatureInfo(1, ExRT.GDB.encounterIDtoEJ[bossID]))
+							end
+							local bossName = ExRT.L:bossName2(bossID)
+		
+							local toadd2 = ExRT.F.table_find3(toadd,bossID,"arg3")
+							if not toadd2 then
+								toadd2 = {
+									text = bossName,
+									arg3 = bossID,
+									subMenu = {},
+									icon = bossImg,
+									iconsize = 32,
+									prio = bossNum or 1+(bossID/100000),
+								}
+								toadd[#toadd+1] = toadd2
+							end
+							toadd2 = toadd2.subMenu
+		
+							for _,fightData in pairs(bossData) do
+								local data = fightData
+								local text = (GetDifficultyInfo and GetDifficultyInfo(diffID) or "diff ID: "..diffID)..(fightData.d and fightData.d[2] and format(" %d:%02d",fightData.d[2]/60,fightData.d[2]%60) or "")
+								local boss_list = {
+									text = text,
+									arg1 = bossID,
+									arg2 = bossName.." "..text,
+									arg3 = 3,
+									arg4 = {tl = data,id = bossID},
+									func = self.SetValue,
+								}
+								toadd2[#toadd2+1] = boss_list
+							end
+						end
+					end
 				end
-				local encoded = "MRTREMH"..(compressed and "1" or "0")..LibDeflate:EncodeForPrint(compressed or str)
-
-				options.timeLine.historyExportWindow.Edit:SetText(encoded)
-				options.timeLine.historyExportWindow:Show()
-			end,
-		}
-		subMenu[#subMenu+1] = {
-			text = L.ReminderFightImport,
-			func = function()
-				ELib:DropDownClose()
-
-				options.timeLine.historyImportWindow:NewPoint("CENTER",UIParent,0,0)
-				options.timeLine.historyImportWindow:Show()
-			end,
-		}
-		subMenu[#subMenu+1] = {
-			text = L.ReminderLogNextFight,
-			tooltip = L.ReminderLogNextFightTip,
-			func = function()
-				ELib:DropDownClose()
-
-				module:HistoryLogNextFight()
-			end,
-			isTitle = module.db.historyNextFight and true or false,
-		}
-
-		self.List[ #self.List+1 ] = {
-			text = L.ReminderFightSaved,
-			subMenu = subMenu,
-			prio = 100000,
-		}
+	
+				for i=1,#tlSubMenu do
+					local list = tlSubMenu[i]
+					if list.zonemd then
+						sort(list.subMenu,function(a,b) return (a.prio or 0) > (b.prio or 0) end)
+					end
+				end
+				sort(tlSubMenu,function(a,b)
+					return (a.prio or 0) > (b.prio or 0) 
+				end)
+	
+				if #tlSubMenu == 0 then
+					tlSubMenu[#tlSubMenu+1] = {
+						isTitle = true,
+						text = "No fight saved yet",
+					}
+				end
+			end
+		end
 
 		local dungBossList = ExRT.F.GetEncountersList(false,false,false,true)
 		local dungIDs = {}
@@ -3625,7 +3796,7 @@ function options:Load()
 							end
 						end
 
-						toadd = {text = text, arg3 = zone[1], subMenu = {}, zonemd = zone, prio = 40000+zone[1]+(zoneMapID and SORT_DUNG_LIST[ zoneMapID ] and SORT_DUNG_LIST[ zoneMapID ]*5000 or 0), icon = zoneImg}
+						toadd = {text = text, arg3 = zone[1], subMenu = {}, zonemd = zone, prio = 40000+zone[1]+(zoneMapID and SORT_DUNG_LIST[ zoneMapID ] and SORT_DUNG_LIST[ zoneMapID ]*5000 or 0), icon = zoneImg, isHidden = ExRT.isClassic and text and text:find("^Map ID")}
 						if not isDung then
 							self.List[#self.List+1] = toadd
 						else
@@ -3654,13 +3825,14 @@ function options:Load()
 
 			local boss_list = {
 				arg1 = bossID,
-				arg2 = ExRT.L.bossName[bossID],
-				text = ExRT.L.bossName[bossID],
+				arg2 = ExRT.L:bossName2(bossID),
+				text = ExRT.L:bossName2(bossID),
 				func = self.SetValue,
 				prio = bossID,
 				icon = bossImg,
 				iconsize = 32,
 			}
+
 			if isZone then
 				boss_list.arg1 = -bossID
 				boss_list.arg3 = 4
@@ -3717,13 +3889,13 @@ function options:Load()
 			end
 	
 			if module.db.lastEncounterID == bossID then
-	 			res = function() self:SetValue(bossID,ExRT.L.bossName[bossID]) end
+	 			res = function() self:SetValue(bossID,ExRT.L:bossName2(bossID)) end
 			elseif not module.db.lastEncounterID and VMRT.Reminder2.TLBoss and (VMRT.Reminder2.TLBoss == bossID or (type(VMRT.Reminder2.TLBoss == "number") and floor(VMRT.Reminder2.TLBoss) == bossID)) then
 				if VMRT.Reminder2.TLBoss % 1 ~= 0 then
 					local n = floor( (VMRT.Reminder2.TLBoss % 1) * 100 + 0.5 )
-					res = function() self:SetValue(bossID,ExRT.L.bossName[bossID],3,{id = VMRT.Reminder2.TLBoss, tl = bossData.m and (bossData[n] or bossData[1]) or bossData}) end
+					res = function() self:SetValue(bossID,ExRT.L:bossName2(bossID),3,{id = VMRT.Reminder2.TLBoss, tl = bossData.m and (bossData[n] or bossData[1]) or bossData}) end
 				else
-					res = function() self:SetValue(bossID,ExRT.L.bossName[bossID]) end
+					res = function() self:SetValue(bossID,ExRT.L:bossName2(bossID)) end
 				end
 			end
 		end
@@ -3744,13 +3916,13 @@ function options:Load()
 		end)
 		self.List[#self.List+1] = {
 			text = L.ReminderCustom.." encounter ID",
-			func = function() ELib:DropDownClose() ExRT.F.ShowInput(L.ReminderEncounterID,function(_,id) id=tonumber(id) if not id then return end self:SetValue(id,L.bossName[id]) end,nil,true) end,
+			func = function() ELib:DropDownClose() ExRT.F.ShowInput(L.ReminderEncounterID,function(_,id) id=tonumber(id) if not id then return end self:SetValue(id,L:bossName2(id)) end,nil,true) end,
 			prio = -990000,
 		}
 		local customSubMenu = {}
 		if VMRT.Reminder2.CustomTLData then
 			for bossID,data in pairs(VMRT.Reminder2.CustomTLData) do
-				local name = bossID < 0 and options:GetZoneName(-bossID) or ExRT.L.bossName[bossID]
+				local name = bossID < 0 and options:GetZoneName(-bossID) or ExRT.L:bossName2(bossID)
 				customSubMenu[#customSubMenu+1] = {
 					text = name .. " ".. module:FormatTime(data.d and data.d[2] or 0),
 					arg1 = bossID,
@@ -3787,7 +3959,7 @@ function options:Load()
 
 
 		if self.mainframe.frame.bigBossButtons:IsShown() then
-			local list = self.List[2]	--most recent tier
+			local list = self.List[3]	--most recent tier
 			if list.zonemd then
 				self.mainframe.frame.bigBossButtons:Reset()
 				for i=2,#list.zonemd do
@@ -4657,7 +4829,7 @@ function options:Load()
 			bossImg = select(5, EJ_GetCreatureInfo(1, ExRT.GDB.encounterIDtoEJ[encounterID]))
 		end
 
-		button.text:SetText(ExRT.L.bossName[encounterID])
+		button.text:SetText(ExRT.L:bossName2(encounterID))
 
 		button.bg:SetTexture(bossImg)
 		button.click = clickFunc
@@ -4725,7 +4897,7 @@ function options:Load()
 				data.specialTarget = nil
 			end
 			removeTrigger2 = false
-		elseif data.tmp_tl_cd then
+		elseif data.tmp_tl_cd and not ExRT.isMN then
 			if options:AddSpellCDCheckTrigger(data) then
 				removeTrigger2 = false
 			end
@@ -5020,7 +5192,7 @@ function options:Load()
 		options.quickSetupFrame.msgEdit:UpdateColorBorder()
 		ELib:DropDownClose()
 	end
-	self.quickSetupFrame.cooldownCheck = ELib:Check(self.quickSetupFrame,""):Tooltip(L.ReminderHideMsgCheck):Point("LEFT",self.quickSetupFrame.spellDD,"RIGHT",5,0):OnClick(function(self)
+	self.quickSetupFrame.cooldownCheck = ELib:Check(self.quickSetupFrame,""):Tooltip(L.ReminderHideMsgCheck):Point("LEFT",self.quickSetupFrame.spellDD,"RIGHT",5,0):Shown(not ExRT.isMN):OnClick(function(self)
 		if self:GetChecked() then
 			options.quickSetupFrame.data.tmp_tl_cd = true
 		else
@@ -6204,7 +6376,7 @@ function options:Load()
 				if type(spell) == "number" and self:IsPassFilterSpellType(spell_times,spell) then
 					spells_sorted[#spells_sorted+1] = {
 						id = spell, 
-						name = GetSpellName(spell) or "spell"..spell,
+						name = spell_times.name or GetSpellName(spell) or "spell"..spell,
 						isOff = self.spell_status[spell],
 						prio = self.spell_status[spell] and 0 or 1,
 						first = type(spell_times[1])=="table" and spell_times[1][1] or spell_times[1] or 0,
@@ -6216,6 +6388,23 @@ function options:Load()
 					if t > max_delay then
 						max_delay = t
 					end
+				end
+			end
+			if timeLineData.secrets then
+				for i=1,#timeLineData.secrets do
+					local secret = timeLineData.secrets[i]
+					spells_sorted[#spells_sorted+1] = {
+						id = -100000 - i, 
+						id_secret = secret[3],
+						name = "Secret",
+						name_secret = secret[2],
+						isOff = false,
+						prio = 1,
+						first = secret[1],
+						times = {secret[1]},
+						isCompare = true,
+						isSecret = true,
+					}
 				end
 			end
 			local cmpTimeLineData = self:GetCompareTimeLineData()
@@ -6338,8 +6527,8 @@ function options:Load()
 					t.l:Hide()
 				end
 				local name = GetSpellName(spell)
-				local texture = GetSpellTexture(spell)
-				line.header.name:SetText(spell_data.name or name or "spell"..spell)
+				local texture = GetSpellTexture(spell_data.isSecret and spell_data.id_secret or spell)
+				line.header.name:SetText(spell_data.isSecret and spell_data.name_secret or spell_data.name or name or "spell"..spell)
 				line.header.icon:SetTexture(texture)
 				if isOff then
 					line.header.isOff = true
@@ -6390,7 +6579,7 @@ function options:Load()
 					elseif pn == 0 then
 						text = ""
 					elseif pn and type(pn)=="number" and pn < 0 and pn > -10000 then
-						text = L.bossName[ -pn ]
+						text = L:bossName2( -pn )
 					end
 					pcursor.text:SetText(text)
 					pcursor:Show()
@@ -6581,7 +6770,7 @@ function options:Load()
 					bossImg = select(5, EJ_GetCreatureInfo(1, ExRT.GDB.encounterIDtoEJ[bossID]))
 				end
 				raidSubMenu[#raidSubMenu+1] = {
-					text = L.bossName[ bossID ],
+					text = L:bossName2( bossID ),
 					arg1 = bossID,
 					func = bossList_SetValue,
 					icon = bossImg,
@@ -6602,7 +6791,7 @@ function options:Load()
 					bossImg = select(5, EJ_GetCreatureInfo(1, ExRT.GDB.encounterIDtoEJ[bossID]))
 				end
 				dungSubMenu[#dungSubMenu+1] = {
-					text = L.bossName[ bossID ],
+					text = L:bossName2( bossID ),
 					arg1 = bossID,
 					func = bossList_SetValue,
 					icon = bossImg,
@@ -6619,7 +6808,7 @@ function options:Load()
 			bossImg = select(5, EJ_GetCreatureInfo(1, ExRT.GDB.encounterIDtoEJ[bossID]))
 		end
 
-		local name = L.bossName[ bossID ] or ("boss id"..bossID)
+		local name = L:bossName2( bossID ) or ("boss id"..bossID)
 
 		if bossID < 0 then
 			name = GetRealZoneText(zoneID) or VMRT.Reminder2.zoneNames[-bossID] or "Zone ID "..(-bossID)
@@ -7173,7 +7362,7 @@ function options:Load()
 
 		gluerange = 2,
 
-		spell_status = {},
+		spell_status = type(VMRT.Reminder2.OptAssigSpellDisabled) == "table" and VMRT.Reminder2.OptAssigSpellDisabled or {},
 		spell_dur = {},
 		custom_phase = {},
 		reminder_hide = {},
@@ -7212,12 +7401,14 @@ function options:Load()
 		OPTS_MARKSHARED = VMRT.Reminder2.OptAssigMarkShared,
 		OPTS_SOUNDDELAY = VMRT.Reminder2.OptAssigSoundDelay,
 		OPTS_DURDEF = VMRT.Reminder2.OptAssigDur,
+		OPTS_NOSPELLCD = VMRT.Reminder2.OptAssigNospellcd,
 	}
 
 	VMRT.Reminder2.OptAssigQFClass = self.assign.QFILTER_CLASS
 	VMRT.Reminder2.OptAssigQFRole = self.assign.QFILTER_ROLE
 	VMRT.Reminder2.OptAssigQFSpell = self.assign.QFILTER_SPELL
 	VMRT.Reminder2.OptAssigCustomCD = self.assign.custom_cd
+	VMRT.Reminder2.OptAssigSpellDisabled = self.assign.spell_status
 
 	options.assign.GetTimeLineData = options.timeLine.GetTimeLineData
 
@@ -7312,6 +7503,7 @@ function options:Load()
 	end
 
 	function options.assign:GetSpellsCDListClass(class)
+		class = class or ""
 		if not self.spellsCDListClass then
 			self.spellsCDListClass = {}
 		end
@@ -7493,6 +7685,34 @@ function options:Load()
 			arg2 = "OptAssigMarkShared",
 			alter = false,
 		},{
+			text = "Filter by player names:",
+		},{
+			text = " ", 
+			isTitle = true, 
+			edit = "",
+			editFunc = function(this)
+				local search = this:GetText()
+				if search and search:trim() == "" then
+					search = nil
+				end
+				search = search and search:lower()
+				if search then
+					local t = {}
+					for name in search:gmatch("[^ ,]+") do
+						t[name] = true
+					end
+					search = t
+				end
+				options.assign.FILTER_BYPLAYERNAME = search
+				if not options.assign.tmp_resetpage then
+					options.assign.tmp_resetpage = C_Timer.NewTimer(.5,function()
+						options.assign.tmp_resetpage = nil
+						options.assign:Update()
+					end)
+				end
+			end,
+			tmpID = 1,
+		},{
 			text = " ",
 			isTitle = true,
 		},{
@@ -7531,6 +7751,13 @@ function options:Load()
 			arg1 = "OPTS_NOSPELLNAME",
 			arg2 = "OptAssigNospellname",
 			alter = false,
+		},{
+			text = "Don't check on spell CD",
+			checkable = true,
+			func = self.assignSettingsButton.SetFilterValue,
+			arg1 = "OPTS_NOSPELLCD",
+			arg2 = "OptAssigNospellcd",
+			alter = false,
 		},
 	}
 	function self.assignSettingsButton:PreUpdate()
@@ -7541,6 +7768,8 @@ function options:Load()
 				if line.hidF then
 					line.isHidden = not line.hidF()
 				end
+			elseif line.editFunc and line.tmpID == 1 then
+				line.edit = options.assign.FILTER_BYPLAYERNAME and ExRT.F.table_keys_to_string(options.assign.FILTER_BYPLAYERNAME) or ""
 			end
 		end
 	end
@@ -7915,7 +8144,7 @@ function options:Load()
 
 	options.assign.Util_HeaderOnClick = function(self,button)
 		local x,y = ExRT.F.GetCursorPos(self)
-		local iconPos = self.icon:GetLeft() - self:GetLeft()
+		local iconPos = self.icon.IsAnchoringSecret and self.icon:IsAnchoringSecret() and 40 or self.icon:GetLeft() - self:GetLeft()
 		if x < iconPos then
 			ExRT.F.ShowInput("Add custom line at +X seconds",function(timestamp,t) 
 				t = module:ConvertMinuteStrToNum(t)
@@ -8108,6 +8337,10 @@ function options:Load()
 			GameTooltip:AddLine("From start: "..module:FormatTime2(pd))
 		end
 		GameTooltip:AddLine(module:FormatMsg(data.msg or ""))
+		GameTooltip:AddLine(" ")
+		GameTooltip:AddLine("Left click - config")
+		GameTooltip:AddLine("Shift+Left click - advanced config")
+		GameTooltip:AddLine("Right click - remove")
 		GameTooltip:Show()
 	end
 	options.assign.Util_LineAssignOnLeave = function(self)
@@ -8755,6 +8988,9 @@ function options:Load()
 				end
 				data.msg = data.msg:gsub("^({spell:%d+}).-$","%1")
 			end
+			if self.OPTS_NOSPELLCD then
+				data.triggers[2] = nil
+			end
 			if self.OPTS_DURDEF then
 				data.dur = self.OPTS_DURDEF
 			end
@@ -9016,9 +9252,9 @@ function options:Load()
 				local line = AllSpells[i]
 				for j=4,8 do
 					local spell_role
-					if j > 4 and ExRT.GDB.ClassSpecializationList[class] then
+					if j > 4 and ExRT.GDB.ClassSpecializationList[class or ""] then
 						spell_role = ROLE_TO_ROLE[ ExRT.GDB.ClassSpecializationRole[ ExRT.GDB.ClassSpecializationList[class][j-4] or 0 ] or 0 ]
-					elseif ExRT.GDB.ClassSpecializationList[class] then
+					elseif ExRT.GDB.ClassSpecializationList[class or ""] then
 						local l = ExRT.GDB.ClassSpecializationList[class]
 						spell_role = {}
 						for k=1,#l do
@@ -10692,7 +10928,7 @@ function options:Load()
 
 							spells_sorted[#spells_sorted+1] = {
 								id = spell, 
-								name = (GetSpellName(spell) or "spell"..spell),
+								name = spell_times.name or GetSpellName(spell) or "spell"..spell,
 								isOff = self.spell_status[spell],
 								prio = self.spell_status[spell] and 0 or 1,
 								time = t,
@@ -10702,6 +10938,33 @@ function options:Load()
 								cuid = #spells_sorted+1,
 							}
 						end
+					end
+				end
+			end
+
+			if timeLineData.secrets then
+				for i=1,#timeLineData.secrets do
+					local secret = timeLineData.secrets[i]
+
+					local t = secret[1]
+
+					if not self:IsRemovedByTimeAdjust(t) then
+						t = self:GetTimeAdjust(t)
+						local pname,ptime,pcount,pnum = self:GetPhaseFromTime(t)
+
+						spells_sorted[#spells_sorted+1] = {
+							id = -100000 - i, 
+							id_secret = secret[3],
+							name = "Secret",
+							name_secret = secret[2],
+							isOff = false,
+							prio = 1,
+							time = t,
+							main = {secret[1]},
+							phase = pname,
+							cuid = #spells_sorted+1,
+							isSecret = true,
+						}
 					end
 				end
 			end
@@ -10799,8 +11062,8 @@ function options:Load()
 				end
 			else
 				local name = GetSpellName(spell)
-				local texture = GetSpellTexture(spell)
-				spell_data.line_name = (name or "spell"..spell).." ("..spell_data.counter..")"
+				local texture = GetSpellTexture(spell_data.isSecret and spell_data.id_secret or spell)
+				spell_data.line_name = spell_data.isSecret and spell_data.name_secret or ((name or "spell"..spell).." ("..spell_data.counter..")")
 				spell_data.line_icon = texture
 				spell_data.line_time = module:FormatTime(spell_data.time)
 				spell_data.line_trigger = true
@@ -10809,7 +11072,7 @@ function options:Load()
 			if spell_data.phase and spell_data.phase ~= 0 then
 				if type(spell_data.phase)=="number" and spell_data.phase < 0 and spell_data.phase > -10000 then
 					spell_data.line_trigger_text = "E"
-					spell_data.line_trigger_text2 = ExRT.F.utf8sub(ExRT.L.bossName[-spell_data.phase] or "",1,5)
+					spell_data.line_trigger_text2 = ExRT.F.utf8sub(ExRT.L:bossName2(-spell_data.phase) or "",1,5)
 				else
 					spell_data.line_trigger_text = "P"
 					spell_data.line_trigger_text2 = spell_data.phase
@@ -10938,6 +11201,9 @@ function options:Load()
 	self.profileDropDown.leftText:SetFontObject("GameFontNormalSmall")
 	self.profileDropDown.leftText:SetTextColor(1,.82,0)
 	self.profileDropDown.leftText:SetFont(self.profileDropDown.leftText:GetFont(),10)
+
+	self.profileDropDown.rightIcon = ELib:Icon(self.profileDropDown,nil,20,true):Atlas("Ping_Chat_Warning"):Tooltip("No personal profile selected.\nAll newly created reminders will not be saved."):Point("LEFT",self.profileDropDown,"RIGHT",3,0)
+	self.profileDropDown.rightIcon:SetShown(VMRT.Reminder2.Profile == -1)
 
 	local function SetProfile(_,arg1)
 		module:SetProfile(arg1,VMRT.Reminder2.ProfileShared)
@@ -11661,7 +11927,7 @@ function options:Load()
 								break
 							end
 						end
-						local encounterName = ExRT.L.bossName[bossID]
+						local encounterName = ExRT.L:bossName2(bossID)
 						if encounterName == "" then
 							encounterName = nil
 						end
@@ -11827,6 +12093,7 @@ function options:Load()
 		[2232] = 2549,	--adh
 		[2292] = 2657,	--n
 		[2406] = 2769,	--lod
+		[2460] = 2810,	--mo
 	}
 
 	self.SyncButton = ELib:Button(self.tab.tabs[1],L.ReminderSend):Point("TOPLEFT",self.AddButton,"BOTTOMLEFT",0,-5):Size(100,20):OnClick(function(self)
@@ -13334,7 +13601,7 @@ function options:Load()
 		local function bossList_SetValue(_,encounterID)
 			if encounterID and encounterID ~= 0 and ExRT.F.table_find(List,encounterID,"arg1") then
 				self.setupFrame.bossCustom:Shown(false):Point("TOPLEFT",self.setupFrame.bossList,"TOPLEFT",0,0)
-				self.setupFrame.bossList:SetText(L.bossName[ encounterID ])
+				self.setupFrame.bossList:SetText(L:bossName2( encounterID ))
 			elseif not encounterID then
 				self.setupFrame.bossCustom:Shown(false):Point("TOPLEFT",self.setupFrame.bossList,"TOPLEFT",0,0)
 				self.setupFrame.bossList:SetText("-")
@@ -13373,7 +13640,7 @@ function options:Load()
 					bossImg = select(5, EJ_GetCreatureInfo(1, ExRT.GDB.encounterIDtoEJ[bossID]))
 				end
 				List[#List+1] = {
-					text = L.bossName[ bossID ],
+					text = L:bossName2( bossID ),
 					arg1 = bossID,
 					func = bossList_SetValue,
 					icon = bossImg,
@@ -13394,7 +13661,7 @@ function options:Load()
 					bossImg = select(5, EJ_GetCreatureInfo(1, ExRT.GDB.encounterIDtoEJ[bossID]))
 				end
 				dungSubMenu[#dungSubMenu+1] = {
-					text = L.bossName[ bossID ],
+					text = L:bossName2( bossID ),
 					arg1 = bossID,
 					func = bossList_SetValue,
 					icon = bossImg,
@@ -13418,7 +13685,7 @@ function options:Load()
 		if isUser then
 			options.setupFrame.data.bossID = tonumber(self:GetText())
 		end
-		self:ExtraText(L.bossName[options.setupFrame.data.bossID or 0] or "")
+		self:ExtraText(L:bossName2(options.setupFrame.data.bossID or 0) or "")
 		if isUser then
 			options.setupFrame.tab.tabs[3].button.alert:Update()
 		end
@@ -14217,7 +14484,9 @@ function options:Load()
 					l.leaveFunc = events_Tooltip_Hide
 					l.hoverArg = eventDB.tooltip
 				end
-				List[#List+1] = l
+				if not eventDB.legacy then
+					List[#List+1] = l
+				end
 			end
 		end
 		button.eventDropDown.Background:SetColorTexture(1,1,1,1)
@@ -14235,11 +14504,13 @@ function options:Load()
 			local List = button.eventCLEU.List
 			for i=1,#module.C[1].subEvents do
 				local event = module.C[1].subEvents[i]
-				List[#List+1] = {
-					text = module.C[event] and module.C[event].lname or event,
-					arg1 = event,
-					func = events_CLEU_SetValue,
-				}
+				if not event.legacy then
+					List[#List+1] = {
+						text = module.C[event] and module.C[event].lname or event,
+						arg1 = event,
+						func = events_CLEU_SetValue,
+					}
+				end
 			end
 		end
 		button.eventCLEU.Background:SetColorTexture(1,1,1,1)
@@ -16097,13 +16368,13 @@ function options:Load()
 			if UnitClass(name) then
 				name = "|c" .. RAID_CLASS_COLORS[select(2,UnitClass(name))].colorStr .. name
 			end
-			local mark = module.datas.markToIndex[flags]
+			local mark = module.datas.markToIndex[bit.band(flags, COMBATLOG_OBJECT_RAIDTARGET_MASK)]
 			if mark and mark > 0 then
 				name = ExRT.F.GetRaidTargetText(mark).." " .. name
 			end
 			return name
 		elseif flags then
-			local mark = module.datas.markToIndex[flags]
+			local mark = module.datas.markToIndex[bit.band(flags, COMBATLOG_OBJECT_RAIDTARGET_MASK)]
 			if mark and mark > 0 then
 				return ExRT.F.GetRaidTargetText(mark)
 			end
@@ -16926,6 +17197,14 @@ function options:Load()
 	end)
 	ELib:Text(self.options_tab.tabs[1],L.ReminderSpellsHistoryCount..":",11):Point("RIGHT",self.sliderHistoryNumSaved,"LEFT",-5,0):Color(1,.82,0,1):Right()
 
+	self.chkSyncOnlyPersonal = ELib:Check(self.options_tab.tabs[1],"\"Send\" only personal"..":",VMRT.Reminder2.SyncOnlyPersonal):Point("TOPLEFT",self.chkHistorySync,"BOTTOMLEFT",0,-50):Left(5):OnClick(function(self) 
+		if self:GetChecked() then
+			VMRT.Reminder2.SyncOnlyPersonal = true
+		else
+			VMRT.Reminder2.SyncOnlyPersonal = nil
+		end
+	end):Tooltip("Syncing reminders will only send your personal reminders.\nAny shared reminders will not be removed for receivers.")
+
 	local function dropDownGenSoundSetValue(_,arg1,arg2)
 		ELib:DropDownClose()
 		VMRT.Reminder2["generalSound"..arg1] = arg2
@@ -17004,13 +17283,23 @@ function options:Load()
 			self.voicesList:Update()
 			ELib:DropDownClose()
 
-			C_VoiceChat.SpeakText(
-				arg1 or TextToSpeech_GetSelectedVoice(Enum.TtsVoiceType.Standard).voiceID,
-				TEXT_TO_SPEECH_SAMPLE_TEXT,
-				Enum.VoiceTtsDestination.QueuedLocalPlayback,
-				VMRT.Reminder2.ttsSpeechRate or C_TTSSettings.GetSpeechRate() or 0,
-				VMRT.Reminder2.ttsVolume or C_TTSSettings.GetSpeechVolume() or 100
-			)
+			if ExRT.isMN then
+				C_VoiceChat.SpeakText(
+					arg1 or TextToSpeech_GetSelectedVoice(Enum.TtsVoiceType.Standard).voiceID,
+					TEXT_TO_SPEECH_SAMPLE_TEXT,
+					VMRT.Reminder2.ttsSpeechRate or C_TTSSettings.GetSpeechRate() or 0,
+					VMRT.Reminder2.ttsVolume or C_TTSSettings.GetSpeechVolume() or 100,
+					true
+				)
+			else
+				C_VoiceChat.SpeakText(
+					arg1 or TextToSpeech_GetSelectedVoice(Enum.TtsVoiceType.Standard).voiceID,
+					TEXT_TO_SPEECH_SAMPLE_TEXT,
+					Enum.VoiceTtsDestination.QueuedLocalPlayback,
+					VMRT.Reminder2.ttsSpeechRate or C_TTSSettings.GetSpeechRate() or 0,
+					VMRT.Reminder2.ttsVolume or C_TTSSettings.GetSpeechVolume() or 100
+				)
+			end
 		end
 		function self.voicesList:PreUpdate()
 			local List = self.List
@@ -17034,13 +17323,23 @@ function options:Load()
 		self.voicesList.playButton = ELib:Icon(self.voicesList,"Interface\\AddOns\\MRT\\media\\DiesalGUIcons16x256x128",20,true):Point("LEFT",'x',"RIGHT",5,0)
 		self.voicesList.playButton.texture:SetTexCoord(0.375,0.4375,0.5,0.625)
 		self.voicesList.playButton:SetScript("OnClick",function()
-			C_VoiceChat.SpeakText(
-				module:GetTTSVoiceID() or 0,
-				"This is an example of text to speech",
-				Enum.VoiceTtsDestination.QueuedLocalPlayback,
-				VMRT.Reminder2.ttsSpeechRate or C_TTSSettings.GetSpeechRate() or 0,
-				VMRT.Reminder2.ttsVolume or C_TTSSettings.GetSpeechVolume() or 100
-			)
+			if ExRT.isMN then
+				C_VoiceChat.SpeakText(
+					module:GetTTSVoiceID() or 0,
+					"This is an example of text to speech",
+					VMRT.Reminder2.ttsSpeechRate or C_TTSSettings.GetSpeechRate() or 0,
+					VMRT.Reminder2.ttsVolume or C_TTSSettings.GetSpeechVolume() or 100,
+					true
+				)
+			else
+				C_VoiceChat.SpeakText(
+					module:GetTTSVoiceID() or 0,
+					"This is an example of text to speech",
+					Enum.VoiceTtsDestination.QueuedLocalPlayback,
+					VMRT.Reminder2.ttsSpeechRate or C_TTSSettings.GetSpeechRate() or 0,
+					VMRT.Reminder2.ttsVolume or C_TTSSettings.GetSpeechVolume() or 100
+				)
+			end
 		end)
 
 		self.ttsSpeechRate = ELib:Slider(self.options_tab.tabs[2],""):Size(320):Point("TOPLEFT",self.voicesList,"BOTTOMLEFT",0,-15):Range(-10,10):SetTo(VMRT.Reminder2.ttsSpeechRate or 0):SetObey(true):OnChange(function(self,event) 
@@ -17161,7 +17460,7 @@ end
 function module:Enable()
 	module.IsEnabled = true
 
-	module:RegisterEvents('ENCOUNTER_START','ENCOUNTER_END','ZONE_CHANGED_NEW_AREA','CHALLENGE_MODE_START','CHALLENGE_MODE_COMPLETED','CHALLENGE_MODE_RESET')
+	module:RegisterEvents('ENCOUNTER_START','ENCOUNTER_END','ZONE_CHANGED_NEW_AREA','CHALLENGE_MODE_START','CHALLENGE_MODE_COMPLETED','CHALLENGE_MODE_RESET','ENCOUNTER_TIMELINE_EVENT_STATE_CHANGED')
 
 	module:RegisterBigWigsCallback("BigWigs_OnBossEngage")
 	module:RegisterDBMCallback("DBM_Pull")
@@ -17187,7 +17486,7 @@ end
 function module:Disable()
 	module.IsEnabled = false
 
-	module:UnregisterEvents('ENCOUNTER_START','ENCOUNTER_END','ZONE_CHANGED_NEW_AREA','CHALLENGE_MODE_START','CHALLENGE_MODE_COMPLETED','CHALLENGE_MODE_RESET')
+	module:UnregisterEvents('ENCOUNTER_START','ENCOUNTER_END','ZONE_CHANGED_NEW_AREA','CHALLENGE_MODE_START','CHALLENGE_MODE_COMPLETED','CHALLENGE_MODE_RESET','ENCOUNTER_TIMELINE_EVENT_STATE_CHANGED')
 
 	module:UnregisterTimer()
 	module:UnloadAll()
@@ -17195,6 +17494,7 @@ function module:Disable()
 	module:UnregisterBigWigsCallback("BigWigs_OnBossEngage")
 	module:UnregisterDBMCallback("DBM_Pull")
 end
+
 
 function module:timer(elapsed)
 	local triggers = module.db.eventsToTriggers.PLAYERS_IN_RANGE
@@ -17494,7 +17794,7 @@ function module:CheckAllTriggers(trigger, printLog)
 	if remType == REM.TYPE_TEXT and not check and data.hideTextChanged then
 		for j=#module.db.showedReminders,1,-1 do
 			local showed = module.db.showedReminders[j]
-			if showed.data == data then
+			if showed.data == data or showed.data.uid == data.uid then
 				if showed.voice then
 					showed.voice:Cancel()
 				end
@@ -17921,7 +18221,7 @@ do
 		if not data.copy then
 			for j=#module.db.showedReminders,1,-1 do
 				local showed = module.db.showedReminders[j]
-				if showed.data == data then
+				if showed.data.uid == data.uid then
 					if data.norewrite then
 						return
 					end
@@ -18187,17 +18487,55 @@ do
 			if sound == "TTS" or isCustomTTS then
 				if C_VoiceChat and C_VoiceChat.SpeakText and reminder then
 					local msg = module:FormatMsgForChat( module:FormatMsg(isCustomTTS and sound:gsub("^TTS:","") or reminder.data.msg or "",reminder.params) )
-					C_Timer.After(0.01,function()	--Try to fix lag
-						--C_VoiceChat.StopSpeakingText()
-						C_VoiceChat.SpeakText(
-							--VMRT.Reminder2.ttsVoice or TextToSpeech_GetSelectedVoice(Enum.TtsVoiceType.Standard).voiceID or 1, 
-							module:GetTTSVoiceID(), 
-							FormatMsgForSound( msg ), 
-							Enum.VoiceTtsDestination.QueuedLocalPlayback, 
-							VMRT.Reminder2.ttsSpeechRate or C_TTSSettings.GetSpeechRate() or 0, 
-							VMRT.Reminder2.ttsVolume or C_TTSSettings.GetSpeechVolume() or 100
-						)
-					end)
+					local isPass = true
+
+					if reminder.data.msg and reminder.data.msg:find("^{spell:%d+}") and msg:trim() == "" and sound:find("^TTS:") then
+						local sound_msg = sound:gsub("^TTS:","")
+						local spellID = reminder.data.msg:match("^{spell:(%d+)}")
+						if module:TTSPrerecorded(spellID) and sound_msg:trim() == GetSpellName(tonumber(spellID)) then
+							sound = module:TTSPrerecorded(spellID)
+							isPass = false
+						end
+					elseif reminder.data.msg and reminder.data.msg:find("^{spell:%d+}") and msg:trim() == "" then
+						local spellID = reminder.data.msg:match("^{spell:(%d+)}")
+						if module:TTSPrerecorded(spellID) then
+							sound = module:TTSPrerecorded(spellID)
+							isPass = false
+						end
+					elseif reminder.data.msg and reminder.data.msg:find("^{spell:%d+}") then
+						local spellID = reminder.data.msg:match("^{spell:(%d+)}")
+						if module:TTSPrerecorded(spellID) and msg:trim() == GetSpellName(tonumber(spellID)) then
+							sound = module:TTSPrerecorded(spellID)
+							isPass = false
+						end
+					end
+			
+					if isPass then
+						C_Timer.After(0.01,function()	--Try to fix lag
+							--C_VoiceChat.StopSpeakingText()
+							if ExRT.isMN then
+								C_VoiceChat.SpeakText(
+									--VMRT.Reminder2.ttsVoice or TextToSpeech_GetSelectedVoice(Enum.TtsVoiceType.Standard).voiceID or 1, 
+									module:GetTTSVoiceID(), 
+									FormatMsgForSound( msg ), 
+									VMRT.Reminder2.ttsSpeechRate or C_TTSSettings.GetSpeechRate() or 0, 
+									VMRT.Reminder2.ttsVolume or C_TTSSettings.GetSpeechVolume() or 100,
+									true
+								)
+							else
+								C_VoiceChat.SpeakText(
+									--VMRT.Reminder2.ttsVoice or TextToSpeech_GetSelectedVoice(Enum.TtsVoiceType.Standard).voiceID or 1, 
+									module:GetTTSVoiceID(), 
+									FormatMsgForSound( msg ), 
+									Enum.VoiceTtsDestination.QueuedLocalPlayback, 
+									VMRT.Reminder2.ttsSpeechRate or C_TTSSettings.GetSpeechRate() or 0, 
+									VMRT.Reminder2.ttsVolume or C_TTSSettings.GetSpeechVolume() or 100
+								)
+							end
+						end)
+					else
+						pcall(PlaySoundFile, sound, "Master")
+					end
 				end
 			else
 				pcall(PlaySoundFile, sound, "Master")
@@ -18210,13 +18548,23 @@ do
 	function module:PlayTTS(msg)
 		C_Timer.After(0.01,function()	--Try to fix lag
 			--C_VoiceChat.StopSpeakingText()
-			C_VoiceChat.SpeakText(
-				module:GetTTSVoiceID(), 
-				tostring( msg or "" ), 
-				Enum.VoiceTtsDestination.QueuedLocalPlayback, 
-				VMRT.Reminder2.ttsSpeechRate or C_TTSSettings.GetSpeechRate() or 0, 
-				VMRT.Reminder2.ttsVolume or C_TTSSettings.GetSpeechVolume() or 100
-			)
+			if ExRT.isMN then
+				C_VoiceChat.SpeakText(
+					module:GetTTSVoiceID(), 
+					tostring( msg or "" ), 
+					VMRT.Reminder2.ttsSpeechRate or C_TTSSettings.GetSpeechRate() or 0, 
+					VMRT.Reminder2.ttsVolume or C_TTSSettings.GetSpeechVolume() or 100,
+					true
+				)
+			else
+				C_VoiceChat.SpeakText(
+					module:GetTTSVoiceID(), 
+					tostring( msg or "" ), 
+					Enum.VoiceTtsDestination.QueuedLocalPlayback, 
+					VMRT.Reminder2.ttsSpeechRate or C_TTSSettings.GetSpeechRate() or 0, 
+					VMRT.Reminder2.ttsVolume or C_TTSSettings.GetSpeechVolume() or 100
+				)
+			end
 		end)
 	end
 end
@@ -18279,6 +18627,7 @@ do
 			self:Update()
 			if total_c == 0 then
 				self:Hide()
+				tmr = 1
 			end
 		end
 	end)
@@ -18340,11 +18689,11 @@ function module.main.COMBAT_LOG_EVENT_UNFILTERED(timestamp,event,hideCaster,sour
 				(not triggerData.spellName or triggerData.spellName == spellName) and
 				(not trigger.DsourceName or sourceName and trigger.DsourceName[sourceName]) and
 				(not trigger.DsourceID or trigger.DsourceID(sourceGUID)) and
-				(not triggerData.sourceMark or module.datas.markToIndex[sourceFlags2] == triggerData.sourceMark) and
+				(not triggerData.sourceMark or module.datas.markToIndex[bit_band(sourceFlags2, COMBATLOG_OBJECT_RAIDTARGET_MASK)] == triggerData.sourceMark) and
 				(not triggerData.sourceUnit or module:CheckUnit(triggerData.sourceUnit,sourceGUID,trigger)) and
 				(not trigger.DtargetName or destName and trigger.DtargetName[destName]) and
 				(not trigger.DtargetID or trigger.DtargetID(destGUID)) and
-				(not triggerData.targetMark or module.datas.markToIndex[destFlags2] == triggerData.targetMark) and
+				(not triggerData.targetMark or module.datas.markToIndex[bit_band(destFlags2, COMBATLOG_OBJECT_RAIDTARGET_MASK)] == triggerData.targetMark) and
 				(not triggerData.targetUnit or module:CheckUnit(triggerData.targetUnit,destGUID,trigger)) and
 				(not triggerData.extraSpellID or triggerData.extraSpellID == arg1) and
 				(not trigger.Dstacks or module:CheckNumber(trigger.Dstacks,(event == "SPELL_AURA_APPLIED_DOSE" or event == "SPELL_AURA_REMOVED_DOSE") and arg2 or 1)) and
@@ -18360,9 +18709,9 @@ function module.main.COMBAT_LOG_EVENT_UNFILTERED(timestamp,event,hideCaster,sour
 				then
 					local vars = {
 						sourceName = sourceName,
-						sourceMark = module.datas.markToIndex[sourceFlags2],
+						sourceMark = module.datas.markToIndex[bit_band(sourceFlags2, COMBATLOG_OBJECT_RAIDTARGET_MASK)],
 						targetName = destName,
-						targetMark = module.datas.markToIndex[destFlags2],
+						targetMark = module.datas.markToIndex[bit_band(destFlags2, COMBATLOG_OBJECT_RAIDTARGET_MASK)],
 						spellName = spellName,
 						spellID = spellID,
 						extraSpellID = arg1,
@@ -18383,6 +18732,7 @@ function module.main.COMBAT_LOG_EVENT_UNFILTERED(timestamp,event,hideCaster,sour
 		module:AddHistoryRecord(1,event,sourceGUID,sourceName,sourceFlags,sourceFlags2,destGUID,destName,destFlags,destFlags2,spellID)
 	end
 end
+
 
 function module:TriggerHPLookup(unit,triggers,hp,hpValue)
 	local guid = UnitGUID(unit)
@@ -18669,8 +19019,15 @@ function module:ParseNoteTimers(phaseNum,doCLEU,globalPhaseNum,ignoreName)
 	return data
 end
 
+local bossPhaseAntispam = {}
 function module:TriggerBossPhase(phaseText,globalPhaseNum)
 	local phaseNum = phaseText:match("%d+%.?%d*")
+
+	local t = GetTime()
+	if phaseNum and bossPhaseAntispam[phaseNum] and t - bossPhaseAntispam[phaseNum] < 2 then
+		return
+	end
+	bossPhaseAntispam[phaseNum] = t
 
 	if module.db.eventsToTriggers.BOSS_PHASE then
 		local triggers = module.db.eventsToTriggers.BOSS_PHASE
@@ -18681,7 +19038,7 @@ function module:TriggerBossPhase(phaseText,globalPhaseNum)
 				triggerData.pattFind
 			then
 				local phaseCheck = (phaseNum == triggerData.pattFind or (not tonumber(triggerData.pattFind) and phaseText:find(triggerData.pattFind,1,true)))
-				--print(phaseCheck,phaseText,(not trigger.statuses[1] and phaseCheck) or (trigger.statuses[1] and phaseCheck),trigger.statuses[1] and not phaseCheck)
+				--print(debugprofilestop(),phaseCheck,phaseText,(not trigger.statuses[1] and phaseCheck) or (trigger.statuses[1] and phaseCheck),trigger.statuses[1] and not phaseCheck)
 
 				if (not trigger.statuses[1] and phaseCheck) or (trigger.statuses[1] and phaseCheck) then
 					module:AddTriggerCounter(trigger)
@@ -18693,6 +19050,7 @@ function module:TriggerBossPhase(phaseText,globalPhaseNum)
 					if not trigger.Dcounter or module:CheckNumber(trigger.Dcounter,trigger.count) then
 						module:RunTrigger(trigger, vars)
 					end
+					--print(phaseNum,'trigger.count',trigger.count,debugstack())
 				elseif trigger.statuses[1] and not phaseCheck then
 					trigger.statuses[1] = nil
 					module:DeactivateTrigger(trigger)
@@ -18853,6 +19211,9 @@ do
 		if module.db.encounterBossmod and module.db.encounterBossmod ~= "BW" and event ~= "BigWigs_OnBossEngage" and DBM then
 			return
 		end
+		if issecretvalue and (issecretvalue(select(2,...) or 0) or issecretvalue(select(3,...) or 0)) then
+			return
+		end
 		if (event == "BigWigs_Message") then
 			local bwModule, key, text, color, icon = ...
 
@@ -18977,6 +19338,9 @@ do
 			return
 		end
 		if module.db.encounterBossmod and module.db.encounterBossmod ~= "DBM" and BigWigsLoader then
+			return
+		end
+		if issecretvalue and (issecretvalue(select(1,...) or 0) or issecretvalue(select(2,...) or 0) or issecretvalue(select(3,...) or 0)) then
 			return
 		end
 		if (event == "DBM_Announce") then
@@ -19627,7 +19991,7 @@ function module:TriggerSpellCD(triggers)
 				if not enabled then
 					duration = 3600
 				end
-				local cdCheck = duration > gduration and duration > 0
+				local cdCheck = duration > gduration and duration > 1.5
 
 				if not trigger.statuses[1] and cdCheck then
 					module:AddTriggerCounter(trigger)
@@ -20259,7 +20623,7 @@ do
 	end
 	function module.main:RAID_TARGET_UPDATE()
 		if not scheduled then
-			scheduled = ExRT.F.After(0.05,scheduleFunc)
+			scheduled = ExRT.F.Timer(scheduleFunc,0.05)
 		end
 	end
 end
@@ -21084,6 +21448,8 @@ function module:SetProfile(profile,sharedProfile)
 	if options.profileDropDown then
 		options.profileDropDown:AutoText(VMRT.Reminder2.Profile)
 		options.sharedProfileDropDown:AutoText(VMRT.Reminder2.ProfileShared)
+
+		options.profileDropDown.rightIcon:SetShown(profile == -1)
 	end
 	CURRENT_DATA = VMRT.Reminder2.data[VMRT.Reminder2.Profile or -1] or {}
 	CURRENT_DATA_SHARED = VMRT.Reminder2.data[VMRT.Reminder2.ProfileShared or -1] or {}
@@ -21117,7 +21483,7 @@ function module.main:ADDON_LOADED()
 	}
 	VMRT.Reminder2.data = VMRT.Reminder2.data or {}
 	VMRT.Reminder2.options = VMRT.Reminder2.options or {}
-	VMRT.Reminder2.removed = nil
+	VMRT.Reminder2.removed = VMRT.Reminder2.removed or {}
 	VMRT.Reminder2.zoneNames = VMRT.Reminder2.zoneNames or {}
 
 	if VMRT.Reminder2.HistorySession then
@@ -21127,6 +21493,7 @@ function module.main:ADDON_LOADED()
 		module.db.history = {{}}
 		VMRT.Reminder2.history = nil
 	end
+	VMRT.Reminder2.TLHistory = VMRT.Reminder2.TLHistory or {}
 
 	if not VMRT.Reminder2.v21 then
 		local new = {}
@@ -21190,6 +21557,35 @@ function module.main:ADDON_LOADED()
 	if addNewIcon then
 		--"NewCharacter-Horde" for classic
 		ExRT.Options:AddIcon(module.name,{"CharacterCreate-NewLabel",40,isAtlas=true})
+	end
+
+	C_Timer.After(1,module.ScanForTTS)
+end
+
+local TTSSpellsList = {}
+function module:ScanForTTS()
+	for key,soundPath in ExRT.F.IterateMediaData("sound") do
+		local spellID = type(soundPath) == "string" and soundPath:match("[\\/](%d+)%.ogg$")
+		if spellID then
+			TTSSpellsList[spellID] = soundPath
+		end
+	end
+end
+function module:TTSPrerecorded(spellID)
+	return TTSSpellsList[spellID] or TTSSpellsList[tostring(spellID)]
+end
+
+function module.main:ENCOUNTER_TIMELINE_EVENT_STATE_CHANGED(eventID)
+	if not IsHistoryEnabled then return end
+
+	local state = C_EncounterTimeline.GetEventState(eventID)
+	if state == Enum.EncounterTimelineEventState.Finished then
+		local info = C_EncounterTimeline.GetEventInfo(eventID)
+		if info then
+			module:AddHistoryRecord(-5,info.spellName,info.spellID,info.iconFileID)
+			--module:AddHistoryRecord(-5,secretwrap(info.spellName),secretwrap(info.spellID),secretwrap(info.iconFileID))
+			
+		end
 	end
 end
 
@@ -21328,7 +21724,17 @@ function module:StartHistoryRecord(mode)
 		IsHistoryEnabled = false
 	end
 end
-function module:SaveHistorySegment(ignoreFightLen)
+
+function module:SaveHistorySegmentIsMatchDiff(difficultyID)
+	if not difficultyID then
+		return
+	end
+	if difficultyID == 16 or difficultyID == 15 or difficultyID == 14 or difficultyID == 194 or difficultyID == 193 or difficultyID == 175 or difficultyID == 176 then
+		return true
+	end
+end
+
+function module:SaveHistorySegment(ignoreFightLen, difficultyID, isKill)
 	if IsHistoryEnabled then
 		module:AddHistoryRecord(0)
 
@@ -21336,8 +21742,15 @@ function module:SaveHistorySegment(ignoreFightLen)
 		if #module.db.historyNow > 1 and (ignoreFightLen or ((module.db.historyNow[#module.db.historyNow][1] - module.db.historyNow[1][1]) >= 30)) then
 			enoughLength = true
 		end
+		local isAnySecret
+		for i=1,#module.db.historyNow do
+			if module.db.historyNow[i][2] == -5 then
+				isAnySecret = true
+				break
+			end
+		end
 		if enoughLength then
-			if not VMRT.Reminder2.HistoryMPlusSessionEnabled and module.db.historyNow[1][2] == 22 then
+			if (not VMRT.Reminder2.HistoryMPlusSessionEnabled and module.db.historyNow[1][2] == 22) or isAnySecret then
 				tinsert(module.db.historySession,1,module.db.historyNow)
 			else
 				tinsert(module.db.history,1,module.db.historyNow)
@@ -21352,12 +21765,74 @@ function module:SaveHistorySegment(ignoreFightLen)
 			module.db.historySession[i] = nil
 		end
 
-		if enoughLength and tosend and VMRT.Reminder2.HistorySync and IsInRaid() then
+		if enoughLength and not isAnySecret and tosend and VMRT.Reminder2.HistorySync and IsInRaid() then
 			C_Timer.After(2,function()
 				module:SendLastHistory(tosend)
 			end)
 		end
+
+		if enoughLength and not isAnySecret and tosend and module:SaveHistorySegmentIsMatchDiff(difficultyID) then
+			C_Timer.After(2,function()
+				module:SaveLastHistory(tosend, difficultyID, isKill)
+			end)
+		end
 	end
+end
+function module:SaveLastHistory(history, difficultyID, isKill)
+	history = history or module.db.history[1]
+	if not history then
+		return
+	end
+	local customtl,bossID,len = module:CreateCustomTimelineFromHistory(history)
+
+	local diffConverted = 3
+	if difficultyID == 16 or difficultyID == 194 or difficultyID == 193 then
+		diffConverted = 4
+	elseif difficultyID == 14 then
+		diffConverted = 2
+	end
+
+	customtl.d = {
+		diffConverted,
+		len,
+	}
+
+	if not VMRT.Reminder2.TLHistory then
+		print('VMRT.Reminder2.TLHistory error')
+		return
+	end
+
+	if type(bossID) ~= "number" then
+		return
+	end
+
+	local diffData = VMRT.Reminder2.TLHistory[ difficultyID ]
+	if not diffData then
+		diffData = {}
+		VMRT.Reminder2.TLHistory[ difficultyID ] = diffData
+	end
+
+	local bossData = diffData[ bossID ]
+	if not bossData then
+		bossData = {}
+		diffData[ bossID ] = bossData
+	end
+
+	local long = bossData.l
+	if not long or not long.d or long.d[2] < len then
+		bossData.l = customtl
+		return
+	end
+
+	if isKill then
+		local kill = bossData.k
+		if not kill or not kill.d or kill.d[2] > len then
+			bossData.k = customtl
+			return
+		end
+	end
+
+	bossData.r = customtl
 end
 function module:SendLastHistory(history)
 	history = history or module.db.history[1]
@@ -21472,6 +21947,13 @@ function module:CreateCustomTimelineFromHistory(fight)
 			if not data.p then data.p = {n={}} end
 			data.p[ #data.p+1 ] = hline[1] - start
 			data.p.n[ #data.p ] = 0
+		elseif hline[2] == -5 then
+			data.secrets = data.secrets or {}
+			data.secrets[#data.secrets+1] = {
+				hline[1]-start,
+				hline[3],
+				hline[4]
+			}
 		end
 	end
 	--for i=1,#var.spell do add(var.spell[i][12],1,var.spell[i][1] - start) end
@@ -21492,13 +21974,13 @@ function module:CreateCustomTimelineFromHistory(fight)
 	return data, fight[1] and fight[1][3], #fight > 1 and fight[#fight][1] - fight[1][1]
 end
 
-function module.main:ENCOUNTER_END(encounterID, encounterName, difficultyID, groupSize)
+function module.main:ENCOUNTER_END(encounterID, encounterName, difficultyID, groupSize, success)
 	module.db.encounterID = nil
 	module.db.encounterDiff = nil
 	module.db.encounterBossmod = nil
 
 	if not module.db.InChallengeMode then
-		module:SaveHistorySegment()
+		module:SaveHistorySegment(nil, difficultyID, success == 1)
 		IsHistoryEnabled = false
 	else
 		module:AddHistoryRecord(0)		
@@ -21660,6 +22142,21 @@ function module:FindNumberInString(num,str)
 	num = tostring(num)
 	for n in string_gmatch(str,"[^, ]+") do
 		if n == num then
+			return true
+		end
+	end
+end
+
+function module:FindArrayNumberInString(arr,str)
+	if type(str) == "number" then
+		if arr[str] then
+			return true
+		end
+	elseif type(str) ~= "string" then
+		return
+	end
+	for n in string_gmatch(str,"[^, ]+") do
+		if arr[n] then
 			return true
 		end
 	end
@@ -22009,7 +22506,7 @@ function module:LoadReminders(encounterID,encounterDiff,zoneID,zoneName)
 				}
 				reminder.triggers[i] = triggerNow
 
-				if trigger.event and module.C[trigger.event] then
+				if trigger.event and module.C[trigger.event] and not module.C[trigger.event].legacy then
 					local eventDB = module.C[trigger.event]
 
 					eventsUsed[trigger.event] = true
@@ -22136,26 +22633,28 @@ function module:LoadReminders(encounterID,encounterDiff,zoneID,zoneName)
 		end
 	end
 	local anyUnit
-	for unit in pairs(unitsUsed) do
-		if unit == "target" then
-			module:RegisterEvents("PLAYER_TARGET_CHANGED")
-		elseif unit == "focus" then
-			module:RegisterEvents("PLAYER_FOCUS_CHANGED")
-		elseif unit == "mouseover" then
-			module:RegisterEvents("UPDATE_MOUSEOVER_UNIT")
-		elseif (type(unit) == "string" and unit:find("^boss")) or unit == 1 then
-			module:RegisterEvents("INSTANCE_ENCOUNTER_ENGAGE_UNIT")
-		elseif unit == 2 then
-			nameplateUsed = true
+	if not ExRT.isMN then
+		for unit in pairs(unitsUsed) do
+			if unit == "target" then
+				module:RegisterEvents("PLAYER_TARGET_CHANGED")
+			elseif unit == "focus" then
+				module:RegisterEvents("PLAYER_FOCUS_CHANGED")
+			elseif unit == "mouseover" then
+				module:RegisterEvents("UPDATE_MOUSEOVER_UNIT")
+			elseif (type(unit) == "string" and unit:find("^boss")) or unit == 1 then
+				module:RegisterEvents("INSTANCE_ENCOUNTER_ENGAGE_UNIT")
+			elseif unit == 2 then
+				nameplateUsed = true
+			end
+	
+			anyUnit = true
 		end
-
-		anyUnit = true
-	end
-	if anyUnit then
-		module:RegisterEvents("RAID_TARGET_UPDATE")
-	end
-	if nameplateUsed then
-		module:RegisterEvents("NAME_PLATE_UNIT_ADDED","NAME_PLATE_UNIT_REMOVED")
+		if anyUnit then
+			module:RegisterEvents("RAID_TARGET_UPDATE")
+		end
+		if nameplateUsed then
+			module:RegisterEvents("NAME_PLATE_UNIT_ADDED","NAME_PLATE_UNIT_REMOVED")
+		end
 	end
 
 	if encounterID then
@@ -22200,7 +22699,7 @@ function module:PrepeareForHistoryRecording()
 	if not VMRT.Reminder2.HistoryEnabled then
 		return
 	end
-	if not module.db.eventsToTriggers.COMBAT_LOG_EVENT_UNFILTERED then 
+	if not module.db.eventsToTriggers.COMBAT_LOG_EVENT_UNFILTERED and not ExRT.isMN then 
 		module.db.eventsToTriggers.COMBAT_LOG_EVENT_UNFILTERED = {} 
 		module:RegisterEvents("COMBAT_LOG_EVENT_UNFILTERED")
 
@@ -22215,11 +22714,11 @@ function module:PrepeareForHistoryRecording()
 		module:RegisterBigWigsCallback("BigWigs_SetStage")
 		module:RegisterDBMCallback("DBM_SetStage")
 	end
-	if not module.db.eventsToTriggers.CHAT_MSG then 
+	if not module.db.eventsToTriggers.CHAT_MSG and not ExRT.isMN then 
 		module.db.eventsToTriggers.CHAT_MSG = {} 
 		module:RegisterEvents(unpack(module.C[8].events))
 	end
-	if not module.db.eventsToTriggers.INSTANCE_ENCOUNTER_ENGAGE_UNIT then 
+	if not module.db.eventsToTriggers.INSTANCE_ENCOUNTER_ENGAGE_UNIT and not ExRT.isMN then 
 		module.db.eventsToTriggers.INSTANCE_ENCOUNTER_ENGAGE_UNIT = {} 
 		module:RegisterEvents("INSTANCE_ENCOUNTER_ENGAGE_UNIT")
 	end
@@ -22390,11 +22889,45 @@ do
 			return
 		end
 
-		local _,_,profileName = strsplit(DELIMITER_1,data[1])
+		local _,_,profileName,options_str = strsplit(DELIMITER_1,data[1])
 		if profileName and profileName ~= "" then
 			profileName = profileName:gsub(STRING_CONVERT.decodePatt,STRING_CONVERT.decodeFunc):sub(1,100)
 		else
 			profileName = nil
+		end
+
+		local o_notReset
+		local o_resetBoss
+		local o_resetZone
+
+		if options_str then
+			repeat
+				local opt_str,rest = strsplit(";",options_str,2)
+				options_str = rest
+
+				local opt_name,opt_data = strsplit(":",opt_str,2)
+				if opt_name == "NR" then
+					o_notReset = true
+				elseif opt_name == "RB" then
+					local list = {strsplit(",",opt_data)}
+					o_resetBoss = {}
+					for i=1,#list do
+						local bossID = tonumber(list[i])
+						if bossID then
+							o_resetBoss[bossID] = true
+						end
+					end
+				elseif opt_name == "RZ" then
+					local list = {strsplit(",",opt_data)}
+					o_resetZone = {}
+					for i=1,#list do
+						local zoneID = tonumber(list[i])
+						if zoneID then
+							o_resetZone[zoneID] = true
+						end
+					end
+				end
+			until (not options_str)
 		end
 
 		local time_now = time()
@@ -22404,9 +22937,35 @@ do
 			workingArray = CURRENT_DATA
 		else
 			workingArray, sharedProfileNum = module:GetSharedProfileByName(profileName,true)
-			if #data > 2 and not isLiveSession then
+			local updInfo
+			if #data > 2 and not isLiveSession and not o_notReset then
 				wipe(workingArray)
 
+				updInfo = true
+			end
+			if o_resetBoss and not isLiveSession then
+				for uid_key,data in pairs(workingArray) do
+					if 
+						data.bossID and o_resetBoss[data.bossID]
+					then
+						workingArray[uid_key] = nil
+					end
+				end
+
+				updInfo = true
+			end
+			if o_resetZone and not isLiveSession then
+				for uid_key,data in pairs(workingArray) do
+					if 
+						data.zoneID and module:FindArrayNumberInString(o_resetZone,data.zoneID)
+					then
+						workingArray[uid_key] = nil
+					end
+				end
+
+				updInfo = true
+			end
+			if updInfo then
 				if not VMRT.Reminder2.profilesinfo[sharedProfileNum] then
 					VMRT.Reminder2.profilesinfo[sharedProfileNum] = {}
 				end
@@ -22556,7 +23115,7 @@ do
 
 					if isStringImport and name then
 						local instanceName = GetInstanceName(new.bossID)
-						print("Imported ",name,"("..(new.bossID and ExRT.GDB.encounterIDtoEJ[new.bossID] and L.bossName[new.bossID] or zoneID and zoneID ~= "" and "Zone "..zoneID or "none")..(instanceName and " <"..instanceName..">" or "")..")")
+						print("Imported ",name,"("..(new.bossID and ExRT.GDB.encounterIDtoEJ[new.bossID] and L:bossName2(new.bossID) or zoneID and zoneID ~= "" and "Zone "..zoneID or "none")..(instanceName and " <"..instanceName..">" or "")..")")
 					end
 					rc = rc + 1
 				else
@@ -22589,7 +23148,18 @@ do
 		local t = {}
 		for _, h_key in pairs({"history","historySession"}) do	
 			for i=1,#module.db[h_key] do
-				t[#t+1] = module.db[h_key][i]
+
+				local isAnySecret
+				for j=1,#module.db[h_key][i] do
+					if module.db[h_key][i][j][2] == -5 then
+						isAnySecret = true
+						break
+					end
+				end
+
+				if not isAnySecret then
+					t[#t+1] = module.db[h_key][i]
+				end
 			end
 		end
 		if minimized then
@@ -22738,6 +23308,9 @@ function module:RemGetSource(uid)
 end
 function module:RemRem(uid)
 	if not uid then return end
+	if not isLiveSession and VMRT.Reminder2.SyncOnlyPersonal and module:RemGetSource(uid) ~= 0 then
+		VMRT.Reminder2.removed[uid] = time()
+	end
 	CURRENT_DATA[uid] = nil
 	CURRENT_DATA_SHARED[uid] = nil
 	if isLiveSession then
@@ -22799,13 +23372,27 @@ function module:GetCurrentProfileInfo()
 	return {}
 end
 
+local function ArrayKeysOrNumToStr(arr)
+	if type(arr) == "number" then
+		return arr
+	elseif type(arr) ~= "table" then
+		return ""
+	else
+		local str = ""
+		for k in pairs(arr) do
+			str = str .. (str ~= "" and "," or "") .. k
+		end
+		return str
+	end
+end
+
 do
 	local antiSpam = 0
 	local nextSyncGuild, nextSyncGuildTmr
 	function module:SyncGuild()
 		nextSyncGuild = true
 	end
-	function module:Sync(isExport,bossID,zoneID,oneUID,liveSession,customList)
+	function module:Sync(isExport,bossID,zoneID,oneUID,liveSession,customList,customFilterFunc)
 		local isGuild = nextSyncGuild
 		nextSyncGuild = nil
 
@@ -22816,7 +23403,32 @@ do
 			profileName = ""
 		end
 
-		local r = senderVersion..DELIMITER_1..addonVersion..DELIMITER_1..profileName.."\n"
+		local options_str = ""
+
+		if not liveSession and not customList and not oneUID and not isExport then
+			if VMRT.Reminder2.SyncOnlyPersonal then
+				options_str = options_str .. (options_str ~= "" and ";" or "") .. "NR"
+			else
+				if bossID then
+					options_str = options_str .. (options_str ~= "" and ";" or "") .. "NR;RB:" .. ArrayKeysOrNumToStr(bossID)
+				end
+				if zoneID then
+					options_str = options_str .. (options_str ~= "" and ";" or "") .. "NR;RZ:" .. zoneID
+				end
+			end
+		end
+
+		if VMRT.Reminder2.SyncOnlyPersonal and not liveSession and not oneUID and not isExport then
+			customFilterFunc = function(uid)
+				if module:RemGetSource(uid) ~= 0 then
+					return true
+				else
+					return false
+				end
+			end
+		end
+
+		local r = senderVersion..DELIMITER_1..addonVersion..DELIMITER_1..profileName..DELIMITER_1..options_str.."\n"
 		local rc = 0
 		local reminders
 		if customList then
@@ -22835,9 +23447,10 @@ do
 				  (bossID and ((type(bossID) == "table" and data.bossID and bossID[data.bossID]) or (type(bossID) ~= "table" and data.bossID == bossID))) or
 				  (zoneID and module:FindNumberInString(zoneID,data.zoneID)) or
 				  (oneUID and uid == oneUID)
-				 ) and
-				 (not oneUID or uid == oneUID)
-				)
+				 ) or
+				 (not bossID and not zoneID and not oneUID)
+				) and
+				(not customFilterFunc or customFilterFunc(uid,data))
 			then
 				local players,roles,classes,checks = "",0,0,0
 				for k in pairs(data.players) do
@@ -22896,6 +23509,15 @@ do
 				end
 			end
 		end
+		local now = time()
+		if VMRT.Reminder2.SyncOnlyPersonal and not liveSession and not oneUID then
+			for uid,time in pairs(VMRT.Reminder2.removed) do
+				r = r .. uid .. DELIMITER_1.."\n"
+				if now - time > 7776000 then --90*24*60*60
+					VMRT.Reminder2.removed[uid] = nil
+				end
+			end
+		end
 		if oneUID and rc == 0 and liveSession then
 			r = r .. oneUID .. DELIMITER_1.."\n"
 			rc = rc + 1
@@ -22940,11 +23562,11 @@ do
 			local msg = encoded:sub( (i-1)*247+1 , i*247 )
 			local progress = i
 			if liveSession then
-				ExRT.F.SendExMsgExt({ondone=function() options:SyncProgress(progress,parts) end},"rmd","L\t"..newIndex.."\t"..msg)
+				ExRT.F.SendExMsgExt({ondone=function() options:SyncProgress(progress,parts) end,maxPer5Sec = 50},"rmd","L\t"..newIndex.."\t"..msg)
 			elseif not isGuild then
-				ExRT.F.SendExMsgExt({ondone=function() options:SyncProgress(progress,parts) end},"rmd","D\t"..newIndex.."\t"..msg)
+				ExRT.F.SendExMsgExt({ondone=function() options:SyncProgress(progress,parts) end,maxPer5Sec = 50},"rmd","D\t"..newIndex.."\t"..msg)
 			else
-				ExRT.F.SendExMsgExt({ondone=function() options:SyncProgress(progress,parts) end},"rmd","d\t"..newIndex.."\t"..msg,"GUILD")
+				ExRT.F.SendExMsgExt({ondone=function() options:SyncProgress(progress,parts) end,maxPer5Sec = 50},"rmd","d\t"..newIndex.."\t"..msg,"GUILD")
 			end
 		end
 	end
@@ -23371,12 +23993,12 @@ function module:Test_BW(phase)
 		LibDBIcon10_BigWigs:GetScript("OnClick")(LibDBIcon10_BigWigs,"RightButton")--sorry
 		BigWigsOptions:Close()
 	end
-	BigWigsLoader:LoadZone(2769)
+	BigWigsLoader:LoadZone(2810)
 
-	local bossID = boss == 2 and 2902 or 3016
-	local bossName = boss == 2 and "Ulgrax the Devourer" or "Chrome King Gallywix"
+	local bossID = boss == 2 and 2902 or 3132
+	local bossName = boss == 2 and "Ulgrax the Devourer" or "Forgeweaver Araz"
 
-	local mod = BigWigs:GetBossModule("Chrome King Gallywix")
+	local mod = BigWigs:GetBossModule(bossName)
 	mod.Mythic = function() return true end
 
 	if phase == -1 then
@@ -23387,13 +24009,15 @@ function module:Test_BW(phase)
 	elseif phase == -2 then
 		return mod
 	elseif phase == 1 then
-		mod:TotalDestructionRemoved()
+		mod:ManaSacrifice()
 		return
 	elseif phase == 1.5 then
-		mod:CircuitRebootApplied({amount = 0, spellId = 450980, spellName = GetSpellName(450980), time = GetTime()})
+		--mod:CircuitRebootApplied({amount = 0, spellId = 450980, spellName = GetSpellName(450980), time = GetTime()})
+		mod:IntermissionStart()
 		return
 	elseif phase == 2 then
-		mod:CircuitRebootRemoved({amount = 0, spellId = 450980, spellName = GetSpellName(450980), time = GetTime()})
+		mod:Stage2Start()
+		--mod:CircuitRebootRemoved({amount = 0, spellId = 450980, spellName = GetSpellName(450980), time = GetTime()})
 		return
 	elseif phase == 2.5 then
 		mod:BurrowTransition()
@@ -23413,6 +24037,7 @@ function module:Test_BW(phase)
 	module:BigWigsRecallEncounterStartEvents()
 end
 --/run GMRT.A.Reminder2:Test_BW()
+
 
 function module:Test_DBM(phase,boss)
 	local mod

@@ -1,5 +1,5 @@
---     Crystal Sockets - A convenient way to display all your gem sockets.
---     Copyright (C) 2020  Nivix
+--     Crystal Sockets - A lightweight solution to show sockets and enchantments on your character sheet.
+--     Copyright (C) 2026  Nivix
 -- 
 --     This program is free software: you can redistribute it and/or modify
 --     it under the terms of the GNU General Public License as published by
@@ -49,11 +49,15 @@ local function sign(side)
     return signMap[side];
 end
 
-local function createSocketFrame(slotID, name, parent, side)
-    local frame = CreateFrame("Frame", name .. "Frame", parent);
-    frame:SetWidth(parent:GetWidth()*0.4);
-    frame:SetHeight(parent:GetHeight()*0.4);
-    frame:SetPoint("TOP" .. side, parent, "TOP" .. direction(side), 10 * sign(side), - parent:GetHeight() * 0.05);
+local function createSocketFrame(slotID, index, name, parent, side)
+    local frame = CreateFrame("Frame", name .. index .. "Frame", parent);
+    frame:SetWidth(parent:GetWidth()*0.5);
+    frame:SetHeight(parent:GetHeight()*0.5);
+	if slotID == 16 or slotID == 17 then
+		frame:SetPoint("BOTTOM" .. side, parent, "TOP" .. side, sign(side) * (2 + 0.5 * parent:GetWidth() * (index - 1)), 0);
+	else
+		frame:SetPoint("TOP" .. side, parent, "TOP" .. direction(side), sign(side) * (8 + 0.5 * parent:GetWidth() * (index - 1)), 0);
+	end
     frame.texture = frame:CreateTexture(name .. "Texture");
     frame.texture:SetAllPoints();
     return frame;
@@ -65,17 +69,12 @@ local function createEnchantFrame(slotID, name, parent, side)
     frame:SetHeight(parent:GetHeight()*0.4);
     frame:SetPoint("BOTTOM" .. side, parent, "BOTTOM" .. direction(side), 10 * sign(side), parent:GetHeight() * 0.05);
     frame.fontString = frame:CreateFontString(name .. "String");
-    frame.fontString:SetFontObject("GameFontGreen");
+    frame.fontString:SetFontObject("GameFontNormal");
     frame.fontString:SetJustifyV("MIDDLE");
     frame.fontString:SetJustifyH(side);
     frame.fontString:SetAllPoints();
     local font, height, flags = frame.fontString:GetFont();
     frame.fontString:SetFont(font, parent:GetHeight()*0.3, flags);
-    
-    frame.texture = frame:CreateTexture(name .. "Texture");
-    frame.texture:SetAllPoints();
-    frame.texture:SetWidth(parent:GetWidth()*0.4);
-    frame.texture:SetHeight(parent:GetHeight()*0.4);
     return frame;
 end
 
@@ -84,29 +83,25 @@ function slots:update(slotID)
     if not slots.info[slotID] then
         return;
     end
-    
-    Crystal.enchants:updateEnchant(slotID);
-    if not C_Item.DoesItemExist(slots.info[slotID].location) then
-        Crystal.sockets:setIcon(slotID, nil, nil);
-        return;
-    end
-    local item = Item:CreateFromItemLocation(slots.info[slotID].location);
-    item:ContinueOnItemLoad(function() Crystal.sockets:updateSocket(item:GetItemLink(), slotID); end);
+	Crystal.sockets:update(slotID);
+    Crystal.enchants:update(slotID);
 end
 
 function slots:updateAll()
-    for slotID, info in pairs(slots.info) do
-        slots:update(slotID);
+    for slotID, _ in ipairs(slots.info) do
+		slots:update(slotID);
     end
 end
 
 function slots:init()
     for slotID, slotInfo in pairs(slots.info) do
-       slotInfo.location = ItemLocation:CreateFromEquipmentSlot(slotID);
-       local prefix = "Character" .. slotInfo.name;
-       slotInfo.frame = _G[prefix .. "Slot"];
-       slotInfo.socketFrame = createSocketFrame(slotID, prefix .. "Socket", slotInfo.frame, slotInfo.side);
-       slotInfo.enchantFrame = createEnchantFrame(slotID, prefix .. "Enchant", slotInfo.frame, slotInfo.side);
+		local prefix = "Character" .. slotInfo.name;
+		slotInfo.frame = _G[prefix .. "Slot"];
+		slotInfo.socketFrames = {};
+		for index = 1, 4 do
+			slotInfo.socketFrames[index] = createSocketFrame(slotID, index, prefix .. "Socket", slotInfo.frame, slotInfo.side);
+		end
+		slotInfo.enchantFrame = createEnchantFrame(slotID, prefix .. "Enchant", slotInfo.frame, slotInfo.side);
     end
 end
 

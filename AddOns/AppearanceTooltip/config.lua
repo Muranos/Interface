@@ -20,7 +20,7 @@ local function checkboxOnEnter(self)
 end
 
 local function newCheckbox(parent, key, label, description, getValue, setValue)
-    local check = CreateFrame("CheckButton", "AppearanceTooltipOptionsCheck" .. key, parent, "InterfaceOptionsCheckButtonTemplate")
+    local check = CreateFrame("CheckButton", "AppearanceTooltipOptionsCheck" .. key, parent, "OptionsBaseCheckButtonTemplate")
 
     check.key = key
     check.GetValue = getValue or checkboxGetValue
@@ -97,7 +97,54 @@ local function newBox(parent, title, height)
     return box
 end
 
+local function button_onenter(self)
+    GameTooltip:SetOwner(self, "ANCHOR_NONE")
+    ContainerFrameItemButton_CalculateItemTooltipAnchors(self, GameTooltip)
+
+    local link = self:GetItemLink()
+    if link then
+        GameTooltip:SetHyperlink(self:GetItemLink())
+    else
+        GameTooltip:AddLine(RETRIEVING_ITEM_INFO, 1, 0, 0)
+    end
+
+    GameTooltip:Show()
+end
+local function makeItemButton(parent)
+    local button = CreateFrame(ns.CLASSIC and "BUTTON" or "ItemButton", nil, parent, ns.CLASSIC and "ItemButtonTemplate" or nil)
+    -- classic
+    if not button.SetItem then
+        function button:SetItem(item)
+            local itemID, itemType, itemSubType, itemEquipLoc, icon, classID, subclassID = C_Item.GetItemInfoInstant(item)
+            if itemID then
+                self.itemID = itemID
+                SetItemButtonTexture(button, icon)
+            end
+        end
+        function button:GetItemID()
+            return self.itemID
+        end
+        function button:GetItemLink()
+            return select(2, C_Item.GetItemInfo(self.itemID))
+        end
+    end
+    button:SetScript("OnEnter", button_onenter)
+    button:SetScript("OnLeave", GameTooltip_Hide)
+    return button
+end
+
 -- and the actual config now
+
+local categoryID
+
+-- local demoButtons = {}
+local function refresh(_, value)
+    ns.RefreshOverlayFrames()
+    -- for itemID, button in pairs(demoButtons) do
+    --     ns.CleanButton(button)
+    --     ns.UpdateButtonFromItem(button, Item:CreateFromItemID(itemID), "character")
+    -- end
+end
 
 do
     local panel = CreateFrame("Frame", nil, InterfaceOptionsFramePanelContainer)
@@ -119,6 +166,7 @@ do
     subText:SetText("These options let you control how the appearance tooltip is shown")
 
     local dressed = newCheckbox(panel, 'dressed', 'Wear your clothes', "Show the model wearing your current outfit, apart from the previewed item")
+    local dressed_ensemble = newCheckbox(panel, 'dressed_ensemble', 'Wear your clothes (ensembles)', "As above, but specifically for ensembles")
     local uncover = newCheckbox(panel, 'uncover', 'Uncover previewed item', "Remove clothes that would hide the item you're trying to preview")
     local mousescroll = newCheckbox(panel, 'mousescroll', 'Rotate with mousewheel', "Use the mousewheel to rotate the model in the tooltip")
     local spin = newCheckbox(panel, 'spin', 'Spin model', "Constantly spin the model while it's displayed")
@@ -131,6 +179,12 @@ do
     local zoomWorn = newCheckbox(panel, 'zoomWorn', 'Zoom on worn items', "Zoom in on the part of your model which wears the item")
     local zoomHeld = newCheckbox(panel, 'zoomHeld', 'Zoom on held items', "Zoom in on the held item being previewed, without seeing your character")
     local zoomMasked = newCheckbox(panel, 'zoomMasked', 'Mask out model while zoomed', "Hide the details of your player model while you're zoomed (like the transmog wardrobe does)")
+
+    if WOW_PROJECT_ID == WOW_PROJECT_CLASSIC then
+        -- C_TransmogCollection.GetAppearanceCameraID doesn't return anything useful in Classic Era
+        zoomWorn:SetEnabled(false)
+        zoomMasked:SetEnabled(false)
+    end
 
     local modifier = newDropdown(panel, 'modifier', "Show preview with modifier key", {
         Alt = "Alt",
@@ -187,7 +241,8 @@ do
     zoomMasked:SetPoint("TOPLEFT", zoomHeld, "BOTTOMLEFT", 0, -4)
 
     dressed:SetPoint("TOPLEFT", zoomMasked, "BOTTOMLEFT", 0, -4)
-    uncover:SetPoint("TOPLEFT", dressed, "BOTTOMLEFT", 0, -4)
+    dressed_ensemble:SetPoint("TOPLEFT", dressed, "BOTTOMLEFT", 0, -4)
+    uncover:SetPoint("TOPLEFT", dressed_ensemble, "BOTTOMLEFT", 0, -4)
     tokens:SetPoint("TOPLEFT", uncover, "BOTTOMLEFT", 0, -4)
     notifyKnown:SetPoint("TOPLEFT", tokens, "BOTTOMLEFT", 0, -4)
     alerts:SetPoint("TOPLEFT", notifyKnown, "BOTTOMLEFT", 0, -4)
@@ -208,10 +263,36 @@ do
     -- customRaceDropdown:SetPoint("LEFT", customModel.Text, "RIGHT", 12, -2)
     -- customGenderDropdown:SetPoint("TOPLEFT", customRaceDropdown, "TOPRIGHT", 4, 0)
 
-    -- InterfaceOptions_AddCategory(panel)
+    local demo = CreateFrame("Frame", nil, panel)
+    demo:SetPoint("TOPRIGHT", panel, 0, -20)
+    demo:SetPoint("RIGHT", panel)
+    demo:SetWidth(43)
+    demo:SetScript("OnShow", function(self)
+        local previousButton
+        for _, itemLinkOrID in ipairs(ns.CLASSIC and {19019, 19364, 10328, 11122, 23192, 7997, 14047} or {120978, 185060, 253346, 260411, 86079, 244145, 44168, 93031, 248934}) do
+            local button = makeItemButton(self)
+            if not previousButton then
+                button:SetPoint("TOPRIGHT")
+            else
+                button:SetPoint("TOPRIGHT", previousButton, "BOTTOMRIGHT", 0, 2)
+            end
+            button:SetItem(itemLinkOrID)
+            local item
+            if type(itemLinkOrID) == "string" then
+                item = Item:CreateFromItemLink(itemLinkOrID)
+            else
+                item = Item:CreateFromItemID(itemLinkOrID)
+            end
+            ns.UpdateButtonFromItem(button, item)
+            -- demoButtons[itemLinkOrID] = button
+            previousButton = button
+        end
+        self:SetScript("OnShow", nil)
+    end)
+
     local category, layout = Settings.RegisterCanvasLayoutCategory(panel, panel.name, panel.name)
-    category.ID = panel.name
     Settings.RegisterAddOnCategory(category)
+    categoryID = category:GetID()
 end
 
 -- Overlay config
@@ -221,7 +302,7 @@ do
     panel:Hide()
     panel:SetAllPoints()
     panel.name = "Overlays"
-    panel.parent = myname
+    panel.parent = categoryID
 
     local title = panel:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
     title:SetPoint("TOPLEFT", 16, -16)
@@ -258,13 +339,14 @@ do
     setjournal:SetPoint("TOPLEFT", encounterjournal, "BOTTOMLEFT", 0, -4)
 
     local category = Settings.GetCategory(panel.parent)
-    local subcategory, layout = Settings.RegisterCanvasLayoutSubcategory(category, panel, panel.name, panel.name)
-    subcategory.ID = panel.name
+    local subcategory, layout = Settings.RegisterCanvasLayoutSubcategory(category, panel, panel.name)
 end
 
 -- Slash handler
 SlashCmdList.APPEARANCETOOLTIP = function(msg)
-    Settings.OpenToCategory(myname)
+    if categoryID then
+        Settings.OpenToCategory(categoryID)
+    end
 end
 SLASH_APPEARANCETOOLTIP1 = "/appearancetooltip"
 SLASH_APPEARANCETOOLTIP2 = "/aptip"

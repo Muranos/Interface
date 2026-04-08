@@ -37,7 +37,7 @@ function mod:OnBossEnable()
 	end
 	self:RegisterEvent("CHAT_MSG_MONSTER_EMOTE")
 	self:Log("SPELL_CAST_START", "ShadowBomb", 17434)
-	if self:Heroic() or (self:Classic() and not self:Vanilla()) then -- no encounter events in Timewalking or Cataclysm Classic
+	if self:Classic() and not self:Vanilla() then -- no encounter events in Cataclysm Classic
 		self:RegisterEvent("INSTANCE_ENCOUNTER_ENGAGE_UNIT", "CheckBossStatus")
 		self:Death("Win", 45412)
 	end
@@ -65,7 +65,7 @@ function mod:RaiseDead(args)
 end
 
 function mod:CHAT_MSG_MONSTER_EMOTE(_, msg)
-	if msg:find(L.death_pact_trigger, nil, true) then
+	if not self:IsSecret(msg) and msg:find(L.death_pact_trigger, nil, true) then
 		self:Message(17471, "yellow") -- Death Pact
 		self:StopBar(17471) -- Death Pact
 	end

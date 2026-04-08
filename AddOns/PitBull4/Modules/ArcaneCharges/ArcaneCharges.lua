@@ -5,10 +5,12 @@ end
 local PitBull4 = _G.PitBull4
 local L = PitBull4.L
 
+local GetSpecialization = C_SpecializationInfo.GetSpecialization or _G.GetSpecialization -- XXX wow_compat
+
 -- CONSTANTS ----------------------------------------------------------------
 
-local SPELL_POWER_ARCANE_CHARGES = _G.Enum.PowerType.ArcaneCharges -- 16
-local SPEC_MAGE_ARCANE = _G.SPEC_MAGE_ARCANE
+local SPELL_POWER_ARCANE_CHARGES = Enum.PowerType.ArcaneCharges -- 16
+local SPEC_MAGE_ARCANE = 1
 
 local NUM_CHARGES = 4
 

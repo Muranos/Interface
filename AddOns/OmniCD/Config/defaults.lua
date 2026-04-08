@@ -5,6 +5,8 @@ G.notifyNew = false
 G.optionPanelScale = 1
 
 C.tooltipID = false
+
+
 C.Party = {
 	["visibility"] = {
 		["arena"] = true,
@@ -25,13 +27,21 @@ C.Party = {
 	},
 	["noneZoneSetting"] = "arena",
 	["scenarioZoneSetting"] = "arena",
+	["raidGroup"] = {
+		["arena"] = true,
+		["pvp"] = true,
+		["party"] = true,
+		["raid"] = true,
+		["scenario"] = false,
+		["none"] = false,
+	},
 }
 
 C.Party.arena = {
 	["general"] = {
 		["showAnchor"] = false,
 		["showPlayer"] = false,
-		["showPlayerEx"] = true,
+		--["showPlayerEx"] = true,
 		["showRange"] = false,
 		--["zoneSelected"] = false,
 	},
@@ -54,6 +64,8 @@ C.Party.arena = {
 		["displayInactive"] = true,
 		["growUpward"] = false,
 		["maxNumIcons"] = 0,
+		["detached"] = false,
+		["locked"] = false,
 	},
 	["icons"] = {
 		["showTooltip"] = false,
@@ -169,6 +181,7 @@ for i = 1, 8 do
 		["redirect"] = true,
 		["unitBar"] = false,
 		["locked"] = false,
+		["showPlayer"] = true,
 		["uf"] = "auto",
 		["anchor"] = "TOPRIGHT",
 		["attach"] = "TOPLEFT",
@@ -267,6 +280,8 @@ end
 if not E.isRetail then
 	return
 end
+
+
 
 C.Party.arena.spells = {
 	["*"] = false,
@@ -515,7 +530,7 @@ C.Party.party.spells = {
 	["207289"] = true,
 	["42650"] = true,
 	["51271"] = true,
-	["152279"] = true,
+	["1249658"] = true,
 	["191427"] = true,
 	["258860"] = true,
 	["50334"] = true,

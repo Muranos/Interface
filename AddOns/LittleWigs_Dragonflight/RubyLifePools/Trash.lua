@@ -4,7 +4,7 @@
 
 local mod, CL = BigWigs:NewBoss("Ruby Life Pools Trash", 2521)
 if not mod then return end
-mod.displayName = CL.trash
+mod:SetTrashModule(true)
 mod:RegisterEnableMob(
 	188244, -- Primal Juggernaut
 	187969, -- Flashfrost Earthshaper
@@ -157,7 +157,7 @@ end
 -- Warmups
 
 function mod:CHAT_MSG_MONSTER_YELL(event, msg)
-	if msg == L.kyrakka_and_erkhart_warmup_trigger then
+	if not self:IsSecret(msg) and msg == L.kyrakka_and_erkhart_warmup_trigger then
 		-- Kyrakka and Erkhart Stormvein warmup
 		local kyrakkaAndErkhartModule = BigWigs:GetBossModule("Kyrakka and Erkhart Stormvein", true)
 		if kyrakkaAndErkhartModule then

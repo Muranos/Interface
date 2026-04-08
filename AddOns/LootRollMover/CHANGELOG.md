@@ -1,7 +1,9 @@
 # LootRollMover
 
-## [v6.2](https://github.com/Xruptor/LootRollMover/tree/v6.2) (2024-08-09)
-[Full Changelog](https://github.com/Xruptor/LootRollMover/compare/v6.1...v6.2) [Previous Releases](https://github.com/Xruptor/LootRollMover/releases)
+## [v7.8](https://github.com/Xruptor/LootRollMover/tree/v7.8) (2026-02-23)
+[Full Changelog](https://github.com/Xruptor/LootRollMover/compare/v7.7...v7.8) [Previous Releases](https://github.com/Xruptor/LootRollMover/releases)
 
-- Added option to remove addon loaded announcement  
-    * Config now has option to disable the addon loaded login announcement.  (Fixes #11)  
+- Positon Fixes and XAM Checks  
+    * Added more position checks for Alert Frame anchors.  
+    * Added more checks for XAM (XanAchievementMover) so that alert frames anchoring in LRM is disabled.  
+    * Krowi's Achievement Filter addon uses a custom Alert Frame SubSystem, however LRM should be able to move it to the Alert Anchor if enabled.  Otherwise it will use xanAchievementMover anchor.  (Fixes #18)  

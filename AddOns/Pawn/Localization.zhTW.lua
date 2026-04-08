@@ -1,7 +1,7 @@
 ﻿-- Pawn by Vger-Azjol-Nerub
 -- www.vgermods.com
--- © 2006-2025 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
--- See Readme.htm for more information.
+-- © 2006-2026 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
+-- See Readme.md for more information.
 
 --
 -- Chinese (Traditional) resources
@@ -72,7 +72,7 @@ PawnLocal =
 /pawn debug [ on | off ] -- 在對話欄中顯示除錯訊息
 /pawn backup -- 備份您所有的權重設定
 
-若需要進一步說明，請參閱插件附帶的 Readme.htm]=],
+若需要進一步說明，請參閱插件附帶的 Readme.md]=],
 	["ValueCalculationMessage"] = "   %g %s x %g each = %g",
 	["VisibleScalesHeader"] = "%s的權重",
 	["Stats"] = {
@@ -127,12 +127,14 @@ PawnLocal =
 		["MovementSpeedInfo"] = "移動速度: 提高你角色的移動速度",
 		["Mp5"] = "法力每5秒",
 		["Mp5Info"] = "Mana regeneration per 5 seconds.  Affects your mana regeneration even when in combat.",
+		["MultistrikeInfo"] = "Multistrike. Increases the chance that your attacks and healing spells will hit your target two extra times at reduced potency.",
 		["NatureResistInfo"] = "Nature Resistance.  Reduces the damage taken from nature-based attacks.",
 		["NatureSpellDamage"] = "自然法術傷害",
 		["NatureSpellDamageInfo"] = "Nature damage.  Increases the damage dealt by your nature spells.",
 		["ParryInfo"] = "Parry.  Increases the chance that you'll parry enemy attacks.",
 		["Plate"] = "鎧甲",
 		["PlateInfo"] = "此物若為鎧甲，則增計多少分數。",
+		["PvPPowerInfo"] = "PvP能量. 使你的能力，給其他玩家（但不包括生物）造成更多的傷害，並在某些PVP的情況下，你的治療法術治療其他玩家。",
 		["RapInfo"] = "Ranged Attack Power.  Increases the damage of ranged physical attacks.  Does not include attack power gained from agility.",
 		--[[Translation missing --]]
 		["ResilienceInfo"] = "Resilience. Reduces the chance that you'll be critically hit, and decreases the damage of critical hits that you do take.",
@@ -316,9 +318,7 @@ Pawn會與你身上的裝備比較]=],
 		["OptionsBagUpgradeAdvisor"] = "顯示背包升級建議",
 		["OptionsBagUpgradeAdvisorTooltip"] = [=[啟用此選項讓Pawn接管背包內升級箭頭。
 
-勾選後，Pawn會在你的背包中找到升級物品，並用綠色箭頭標記任何啟用權值的升級物品。
-
-如果不勾選，WoW會標記比你目前穿著物品等級更高的物品，Pawn不會干擾內置功能。]=],
+勾選後，Pawn會在你的背包中找到升級物品，並用綠色箭頭標記任何啟用權值的升級物品。]=],
 		["OptionsBlankLine"] = "數值前加一個空白行",
 		["OptionsBlankLineTooltip"] = "在 Pawn 數值前加入空白行，讓你的提示訊息更整齊",
 		["OptionsButtonHidden"] = "不顯示",
@@ -571,6 +571,7 @@ PawnLocal.TooltipParsing = {
 	["EnchantmentPyriumWeaponChain"] = "^黃鐵武器鍊$",
 	["EnchantmentTitaniumWeaponChain"] = "^泰坦鋼武器鍊$",
 	["Equip"] = "裝備: ",
+	["Expertise"] = "^%+?#熟練$",
 	["ExpertiseClassic"] = "^裝備： 使你的攻擊被閃躲或招架的機率降低#%%。$",
 	["ExpertiseRating"] = "^裝備: 提高#點熟練。$",
 	["ExpertiseRatingShort"] = "^%+?#熟練等級$",
@@ -613,6 +614,7 @@ PawnLocal.TooltipParsing = {
 	["HitRating2"] = "^裝備: 使你的命中等級提高#點。$",
 	["HitRating3"] = "^UNUSED$",
 	["HitRatingShort"] = "^%+?#命中等級$",
+	["HitRatingShorter"] = "^%+?#命中$",
 	["HolySpellDamage"] = "^%+# Holy Spell Damage$",
 	["HolySpellDamage2"] = "^裝備： 提高神聖法術和效果所造成的傷害，最多#點。$",
 	["HolySpellDamage3"] = "^裝備: 使神聖法術和效果所造成的傷害提高最多#點。$",
@@ -677,7 +679,7 @@ PawnLocal.TooltipParsing = {
 	["SpellCritRatingShort"] = "^%+?#法術致命一擊等級$",
 	["SpellCritRatingShort2"] = "^UNUSED$",
 	["SpellDamage"] = "^%+# 傷害及治療法術$",
-	["SpellDamage2"] = "^裝備： 提高法術和魔法效果所造成的傷害和治療效果，最多#點。$",
+	["SpellDamage2"] = "^裝備： 提高魔法法術和效果所造成的傷害和治療效果，最多#點。$",
 	["SpellDamage3"] = "^裝備: 使所有法術和魔法效果所造成的傷害和治療效果提高最多#點。$",
 	["SpellDamage4"] = "^UNUSED$",
 	["SpellDamage5"] = "^%+#法術傷害和治療$",
@@ -687,7 +689,7 @@ PawnLocal.TooltipParsing = {
 	["SpellDamageAndHealingEnchant"] = "^%+#治療和%+#法術傷害",
 	["SpellDamageAndHealingShort"] = "^%+#治療法術和%+#傷害法術",
 	["SpellDamageAndHealingShort2"] = "^UNUSED$",
-	["SpellHasteClassic"] = "^裝備： 使你非引導法術的施法速度提高#%%。$",
+	["SpellHasteClassic"] = "^裝備： 你的施法速度提高#%%。$",
 	["SpellHasteRating"] = "^裝備: 提高#點法術加速。$",
 	["SpellHasteRatingShort"] = "^%+?#法術加速等級$",
 	["SpellHit"] = "^裝備： 使你的法術擊中敵人的機率提高#%%。$",
@@ -743,8 +745,8 @@ if VgerCore.IsClassic then
 	{
 		["Dps"] = "^%（每秒傷害#%）$",
 		["WeaponDamage"] = "^# %- #傷害$",
-		["WeaponDamageArcane"] = "^# %- #祕法傷害$",
-		["WeaponDamageArcaneExact"] = "^#祕法傷害$",
+		["WeaponDamageArcane"] = "^# %- #秘法傷害$", -- changed in 1.15.7
+		["WeaponDamageArcaneExact"] = "^#秘法傷害$",
 		["WeaponDamageEquip"] = "^裝備: %+?#武器傷害。$",
 		["WeaponDamageExact"] = "^#傷害$",
 		["WeaponDamageFire"] = "^# %- #火焰傷害$",
@@ -765,7 +767,7 @@ if VgerCore.IsClassic then
 	end
 end
 
-if VgerCore.IsBurningCrusade or VgerCore.IsWrath or VgerCore.IsCataclysm then
+if VgerCore.IsBurningCrusade or VgerCore.IsWrath or VgerCore.IsCataclysm or VgerCore.IsMists then
 
 	local TooltipParsing_BurningCrusade =
 	{
@@ -794,7 +796,7 @@ if VgerCore.IsBurningCrusade or VgerCore.IsWrath or VgerCore.IsCataclysm then
 	end
 end
 
-if VgerCore.IsWrath or VgerCore.IsCataclysm then
+if VgerCore.IsWrath or VgerCore.IsCataclysm or VgerCore.IsMists then
 
 	local TooltipParsing_Wrath =
 	{
@@ -822,73 +824,76 @@ end
 
 PawnLocal.Specs =
 {
-	[1] = {
-		{ Name="武器", Icon=132355, Role="DAMAGER" },
-		{ Name="狂怒", Icon=132347, Role="DAMAGER" },
-		{ Name="防護", Icon=132341, Role="TANK" },
-	},
-	[2] = {
-		{ Name="神聖", Icon=135920, Role="HEALER" },
-		{ Name="防護", Icon=236264, Role="TANK" },
-		{ Name="懲戒", Icon=135873, Role="DAMAGER" },
-	},
-	[3] = {
-		{ Name="野獸控制", Icon=461112, Role="DAMAGER" },
-		{ Name="射擊", Icon=236179, Role="DAMAGER" },
-		{ Name="生存", Icon=461113, Role="DAMAGER" },
-	},
-	[4] = {
-		{ Name="刺殺", Icon=236270, Role="DAMAGER" },
-		{ Name="暴徒", Icon=236286, Role="DAMAGER" },
-		{ Name="敏銳", Icon=132320, Role="DAMAGER" },
-	},
-	[5] = {
-		{ Name="戒律", Icon=135940, Role="HEALER" },
-		{ Name="神聖", Icon=237542, Role="HEALER" },
-		{ Name="暗影", Icon=136207, Role="DAMAGER" },
-	},
-	[6] = {
-		{ Name="血魄", Icon=135770, Role="TANK" },
-		{ Name="冰霜", Icon=135773, Role="DAMAGER" },
-		{ Name="穢邪", Icon=135775, Role="DAMAGER" },
-	},
-	[7] = {
-		{ Name="元素", Icon=136048, Role="DAMAGER" },
-		{ Name="增強", Icon=237581, Role="DAMAGER" },
-		{ Name="恢復", Icon=136052, Role="HEALER" },
-	},
-	[8] = {
-		{ Name="秘法", Icon=135932, Role="DAMAGER" },
-		{ Name="火焰", Icon=135810, Role="DAMAGER" },
-		{ Name="冰霜", Icon=135846, Role="DAMAGER" },
-	},
-	[9] = {
-		{ Name="痛苦", Icon=136145, Role="DAMAGER" },
-		{ Name="惡魔學識", Icon=136172, Role="DAMAGER" },
-		{ Name="毀滅", Icon=136186, Role="DAMAGER" },
-	},
-	[10] = {
-		{ Name="釀酒", Icon=608951, Role="TANK" },
-		{ Name="織霧", Icon=608952, Role="HEALER" },
-		{ Name="御風", Icon=608953, Role="DAMAGER" },
-	},
-	[11] = {
-		{ Name="平衡", Icon=136096, Role="DAMAGER" },
-		{ Name="野性戰鬥", Icon=132115, Role="DAMAGER" },
-		{ Name="守護者", Icon=132276, Role="TANK" },
-		{ Name="恢復", Icon=136041, Role="HEALER" },
-	},
-	[12] = {
-		{ Name="災虐", Icon=1247264, Role="DAMAGER" },
-		{ Name="復仇", Icon=1247265, Role="TANK" },
-	},
+    [1] = {
+        { Name="武器", Icon=132355, Role="DAMAGER" },
+        { Name="狂怒", Icon=132347, Role="DAMAGER" },
+        { Name="防護", Icon=132341, Role="TANK" },
+    },
+    [2] = {
+        { Name="神聖", Icon=135920, Role="HEALER" },
+        { Name="防護", Icon=236264, Role="TANK" },
+        { Name="懲戒", Icon=135873, Role="DAMAGER" },
+    },
+    [3] = {
+        { Name="野獸控制", Icon=461112, Role="DAMAGER" },
+        { Name="射擊", Icon=236179, Role="DAMAGER" },
+        { Name="生存", Icon=461113, Role="DAMAGER" },
+    },
+    [4] = {
+        { Name="刺殺", Icon=236270, Role="DAMAGER" },
+        { Name="暴徒", Icon=236286, Role="DAMAGER" },
+        { Name="敏銳", Icon=132320, Role="DAMAGER" },
+    },
+    [5] = {
+        { Name="戒律", Icon=135940, Role="HEALER" },
+        { Name="神聖", Icon=237542, Role="HEALER" },
+        { Name="暗影", Icon=136207, Role="DAMAGER" },
+    },
+    [6] = {
+        { Name="血魄", Icon=135770, Role="TANK" },
+        { Name="冰霜", Icon=135773, Role="DAMAGER" },
+        { Name="穢邪", Icon=135775, Role="DAMAGER" },
+    },
+    [7] = {
+        { Name="元素", Icon=136048, Role="DAMAGER" },
+        { Name="增強", Icon=237581, Role="DAMAGER" },
+        { Name="恢復", Icon=136052, Role="HEALER" },
+    },
+    [8] = {
+        { Name="秘法", Icon=135932, Role="DAMAGER" },
+        { Name="火焰", Icon=135810, Role="DAMAGER" },
+        { Name="冰霜", Icon=135846, Role="DAMAGER" },
+    },
+    [9] = {
+        { Name="痛苦", Icon=136145, Role="DAMAGER" },
+        { Name="惡魔學識", Icon=136172, Role="DAMAGER" },
+        { Name="毀滅", Icon=136186, Role="DAMAGER" },
+    },
+    [10] = {
+        { Name="釀酒", Icon=608951, Role="TANK" },
+        { Name="織霧", Icon=608952, Role="HEALER" },
+        { Name="御風", Icon=608953, Role="DAMAGER" },
+    },
+    [11] = {
+        { Name="平衡", Icon=136096, Role="DAMAGER" },
+        { Name="野性戰鬥", Icon=132115, Role="DAMAGER" },
+        { Name="守護者", Icon=132276, Role="TANK" },
+        { Name="恢復", Icon=136041, Role="HEALER" },
+    },
+    [12] = {
+        { Name="災虐", Icon=1247264, Role="DAMAGER" },
+        { Name="復仇", Icon=1247265, Role="TANK" },
+        { Name="噬滅", Icon=7455385, Role="DAMAGER" },
+    },
+    [13] = {
+        { Name="破滅", Icon=4511811, Role="DAMAGER" },
+        { Name="護存", Icon=4511812, Role="HEALER" },
+        { Name="強化", Icon=5198700, Role="DAMAGER" },
+    },
 }
 
 end
 
-if GetLocale() == "zhTW" then
-	PawnUseThisLocalization()
-end
-
--- After using this localization or deciding that we don't need it, remove it from memory.
+-- Initiate self-destruct sequence.
+PawnUseThisLocalization()
 PawnUseThisLocalization = nil

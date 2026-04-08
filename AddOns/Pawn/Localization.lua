@@ -1,7 +1,7 @@
 ﻿-- Pawn by Vger-Azjol-Nerub
 -- www.vgermods.com
--- © 2006-2025 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
--- See Readme.htm for more information.
+-- © 2006-2026 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
+-- See Readme.md for more information.
 
 --
 -- English resources
@@ -74,7 +74,7 @@ www.vgermods.com
 /pawn backup -- backup all of your scales to scale tags
 /pawn compare [ left | right ] ItemID | ItemLink -- compare items
  
-For more information on customizing Pawn, please see the help file (Readme.htm) that comes with the mod.
+For more information on customizing Pawn, please see the help file (Readme.md) that comes with the mod.
 ]=],
 	["ValueCalculationMessage"] = "   %g %s x %g each = %g",
 	["VisibleScalesHeader"] = "%s's scales",
@@ -128,12 +128,14 @@ For more information on customizing Pawn, please see the help file (Readme.htm) 
 		["MovementSpeedInfo"] = "Movement speed.  Causes your character to run faster.",
 		["Mp5"] = "Mana per 5",
 		["Mp5Info"] = "Mana regeneration per 5 seconds.  Affects your mana regeneration even when in combat.",
+		["MultistrikeInfo"] = "Multistrike. Increases the chance that your attacks and healing spells will hit your target two extra times at reduced potency.",
 		["NatureResistInfo"] = "Nature Resistance.  Reduces the damage taken from nature-based attacks.",
 		["NatureSpellDamage"] = "Nature Damage",
 		["NatureSpellDamageInfo"] = "Nature damage.  Increases the damage dealt by your nature spells.",
 		["ParryInfo"] = "Parry.  Increases the chance that you'll parry enemy attacks.",
 		["Plate"] = "Plate",
 		["PlateInfo"] = "Points to be assigned if the item is plate.",
+		["PvPPowerInfo"] = "PvP power. Causes your abilities to deal more damage to other players (but not creatures), and your healing spells to heal other players for more in some PvP situations.",
 		["RapInfo"] = "Ranged Attack Power.  Increases the damage of ranged physical attacks.  Does not include attack power gained from agility.",
 		["ResilienceInfo"] = "Resilience. Reduces the chance that you'll be critically hit, and decreases the damage of critical hits that you do take.",
 		["ShadowResistInfo"] = "Shadow Resistance.  Reduces the damage taken from shadow-based attacks.",
@@ -318,11 +320,9 @@ When you earn quest rewards or dungeon loot that may be better than your current
 		["OptionsAlignRight"] = "Align values to right edge of tooltip",
 		["OptionsAlignRightTooltip"] = "Enable this option to align your Pawn values and upgrade information to the right edge of the tooltip instead of the left.",
 		["OptionsBagUpgradeAdvisor"] = "Show bag upgrade advisor",
-		["OptionsBagUpgradeAdvisorTooltip"] = [=[Enable this option to have Pawn take over the in-bag upgrade arrows.
+		["OptionsBagUpgradeAdvisorTooltip"] = [=[Show green arrows on items in your bag that are an upgrade for any of your active scales.
 
-If checked, Pawn will find upgrades in your bags and mark items that are an upgrade for any of your active scales with green arrows. 
-
-If unchecked, WoW will mark items with a higher item level than what you're currently wearing, and Pawn will not interfere with the built-in feature.]=],
+This feature works with the game's default bags and may not affect all bag addons.]=],
 		["OptionsBlankLine"] = "Add a blank line before values",
 		["OptionsBlankLineTooltip"] = "Keep your item tooltips extra tidy by enabling this option, which adds a blank line before the Pawn values.",
 		["OptionsButtonHidden"] = "Hide it",
@@ -552,6 +552,7 @@ PawnLocal.TooltipParsing = {
 	["EnchantmentPyriumWeaponChain"] = "^Pyrium Weapon Chain$",
 	["EnchantmentTitaniumWeaponChain"] = "^Titanium Weapon Chain$",
 	["Equip"] = "Equip:",
+	["Expertise"] = "^%+?# Expertise$",
 	["ExpertiseClassic"] = "^Equip: Reduces the chance for your attacks to be dodged or parried by #%%%.$",
 	["ExpertiseRating"] = "^Equip: Increases your expertise rating by #%.$",
 	["ExpertiseRatingShort"] = "^%+?# Expertise Rating$",
@@ -593,6 +594,7 @@ PawnLocal.TooltipParsing = {
 	["HitRating2"] = "^Equip: Increases your hit rating by #%.$",
 	["HitRating3"] = "^UNUSED$",
 	["HitRatingShort"] = "^%+?# Hit Rating$",
+	["HitRatingShorter"] = "^%+?# Hit$",
 	["HolySpellDamage"] = "^%+# Holy Spell Damage$",
 	["HolySpellDamage2"] = "^Equip: Increases damage done by Holy spells and effects by up to #%.$",
 	["HolySpellDamage3"] = "^Equip: Increases the damage done by Holy spells and effects by up to #%.$",
@@ -668,7 +670,7 @@ PawnLocal.TooltipParsing = {
 	["SpellDamageAndHealingEnchant"] = "^%+# Healing and %+# Spell Damage$",
 	["SpellDamageAndHealingShort"] = "^%+# Healing Spells and %+# Damage Spells$",
 	["SpellDamageAndHealingShort2"] = "^%+# Healing %+# Spell Damage$",
-	["SpellHasteClassic"] = "^Equip: Increases your casting speed of non%-channeled spells by #%%%.$",
+	["SpellHasteClassic"] = "^Equip: Increases your casting speed by #%%%.$",
 	["SpellHasteRating"] = "^Equip: Improves spell haste rating by #%.$",
 	["SpellHasteRatingShort"] = "^%+?# Spell Haste Rating$",
 	["SpellHit"] = "^Equip: Improves your chance to hit with spells by #%%%.$",
@@ -777,15 +779,12 @@ PawnLocal.Specs =
     [12] = {
         { Name="Havoc", Icon=1247264, Role="DAMAGER" },
         { Name="Vengeance", Icon=1247265, Role="TANK" },
+		{ Name="Devourer", Icon=7455385, Role="DAMAGER" },
     },
 }
 
 end
 
-local Locale = GetLocale()
-if Locale ~= "deDE" and Locale ~= "esES" and Locale ~= "esMX" and Locale ~= "frFR" and Locale ~= "itIT" and Locale ~= "koKR" and Locale ~= "ptBR" and Locale ~= "ruRU" and Locale ~= "zhCN" and Locale ~= "zhTW" then
-	PawnUseThisLocalization()
-end
-
--- After using this localization or deciding that we don't need it, remove it from memory.
+-- Initiate self-destruct sequence.
+PawnUseThisLocalization()
 PawnUseThisLocalization = nil

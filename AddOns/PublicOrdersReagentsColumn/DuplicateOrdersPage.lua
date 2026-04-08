@@ -1,4 +1,5 @@
 local addonName, addon = ...
+local L = LibStub("AceLocale-3.0"):GetLocale(addonName)
 
 local OrderBrowseType = EnumUtil.MakeEnum("Flat", "Bucketed", "None");
 local orderTypeTabTitles =
@@ -69,7 +70,7 @@ function PublicOrdersReagentsColumnProfessionsCraftingOrderPageMixin:OnLoad()
 	self:InitOrderList();
 	self:SetCraftingOrderType(Enum.CraftingOrderType.Npc);
     
-    self.OfflineWarningDisplay.Text:SetText("Last known crafting orders")
+    self.OfflineWarningDisplay.Text:SetText(L["OFFLINE_WARNING_DISPLAY_TEXT"])
     
     self.BrowseFrame.OrderList:SetPoint("TOPLEFT", ProfessionsFrame.OrdersPage.BrowseFrame.RecipeList, "TOPRIGHT")
     self.BrowseFrame.OrderList:SetPoint("BOTTOMLEFT", ProfessionsFrame.OrdersPage.BrowseFrame.RecipeList, "BOTTOMRIGHT")
@@ -114,7 +115,7 @@ function PublicOrdersReagentsColumnProfessionsCraftingOrderPageMixin:ShowOrders(
 	self:ShowGeneric(addon.cache[getProfessionID()][self.orderType], OrderBrowseType.Flat, offset, isSorted);
 end
 
-hooksecurefunc(ProfessionsFrame.OrdersPage, "ShowOrders", function(self, offset, isSorted)
+hooksecurefunc(ProfessionsFrame.OrdersPage, "ShowOrders", function(self)
     if self.orderType == Enum.CraftingOrderType.Public then return end
     if not addon.cache then addon.cache = {} end
     local professionID = getProfessionID()

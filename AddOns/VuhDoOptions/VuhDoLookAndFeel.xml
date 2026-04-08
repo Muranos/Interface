@@ -326,6 +326,16 @@
 	<TexCoords left="0" right="1" top="0" bottom="1" />
 </Texture>
 
+<Texture name="VuhDoButtonIconTemplateTiny" virtual="true">
+	<Size>
+		<AbsDimension x="20" y="20" />
+	</Size>
+	<Anchors>
+		<Anchor point="CENTER" relativePoint="CENTER" />
+	</Anchors>
+	<TexCoords left="0" right="1" top="0" bottom="1" />
+</Texture>
+
 <Texture name="VuhDoCheckBoxIconTemplate" virtual="true">
 	<Size>
 		<AbsDimension x="32" y="32" />
@@ -1169,6 +1179,15 @@
 	</Layers>
 </Button>
 
+<Button name="VuhDoRemoveItemButtonTemplateSmall" text="" inherits="VuhDoIconButtonTemplate" virtual="true">
+	<Layers>
+		<Layer level="OVERLAY">
+			<Texture name="$parentIcon" inherits="VuhDoButtonIconTemplateTiny" file="Interface\AddOns\VuhDo\Images\icon_x_round">
+			</Texture>
+		</Layer>
+	</Layers>
+</Button>
+
 <Button name="VuhDoBackButtonTemplate" text="VUHDO_I18N_BACK" inherits="VuhDoIconButtonTemplate" virtual="true">
 	<Layers>
 		<Layer level="OVERLAY">
@@ -1940,8 +1959,8 @@
 				</Anchors>
 			</HighlightTexture>
 			<Scripts>
-				<OnEnter>VUHDO_lnfShowTooltip(self:GetParent())</OnEnter>
-				<OnLeave>VUHDO_lnfHideTooltip(self:GetParent())</OnLeave>
+				<OnEnter>VUHDO_lnfShowTooltip(self)</OnEnter>
+				<OnLeave>VUHDO_lnfHideTooltip(self)</OnLeave>
 			</Scripts>
 		</Button>
 		<ScrollFrame name="$parentScrollPanel" frameStrata="TOOLTIP" hidden="true" clampedToScreen="true" inherits="VuhDoScrollPanelTemplate2">
@@ -2079,8 +2098,8 @@
 				</Anchors>
 			</HighlightTexture>
 			<Scripts>
-				<OnEnter>VUHDO_lnfShowTooltip(self:GetParent())</OnEnter>
-				<OnLeave>VUHDO_lnfHideTooltip(self:GetParent())</OnLeave>
+				<OnEnter>VUHDO_lnfShowTooltip(self)</OnEnter>
+				<OnLeave>VUHDO_lnfHideTooltip(self)</OnLeave>
 			</Scripts>
 		</Button>
 		<ScrollFrame name="$parentScrollPanel" frameStrata="TOOLTIP" hidden="true" clampedToScreen="true" inherits="VuhDoScrollPanelTemplate2">
@@ -2435,6 +2454,24 @@
 </Button>
 
 
+<Button name="VuhDoScrollComboBoxResizeableTemplate" enableMouse="false" virtual="true" inherits="VuhDoScrollComboBoxTemplate">
+	<Scripts>
+		<OnLoad>
+			VUHDO_initResizeableScrollCombo(self);
+		</OnLoad>
+	</Scripts>
+</Button>
+
+
+<Button name="VuhDoEditComboBoxResizeableTemplate" enableMouse="false" virtual="true" inherits="VuhDoEditComboBoxTemplate">
+	<Scripts>
+		<OnLoad>
+			VUHDO_initResizeableEditCombo(self);
+		</OnLoad>
+	</Scripts>
+</Button>
+
+
 <Frame name="VuhDoPanelAppendBottomTemplate" virtual="true" inherits="BackdropTemplate" mixin="BackdropTemplateMixin">
 	<KeyValues>
 		<KeyValue key="backdropInfo" value="BACKDROP_VUHDO_PANEL_APPEND_BOTTOM_16_16_1111" type="global" />
@@ -2669,7 +2706,7 @@
 </Frame>
 
 
-<Frame name="VuhDoProgressBar" virtual="true" inherits="VuhDoStatusBar">
+<StatusBar name="VuhDoProgressBar" virtual="true" inherits="VuhDoStatusBar">
 	<Layers>
 		<Layer>
 			<FontString name="$parentText" text="Please wait" inherits="VuDoDarkTitleFontTemplate">
@@ -2678,7 +2715,7 @@
 	</Layers>
 	<Scripts>
 		<OnLoad>
-			VUHDO_refactorStatusbar(self);
+			self.statusTexture = self:GetStatusBarTexture();
 			self:SetStatusBarTexture("Interface\\AddOns\\VuhDoOptions\\Images\\blue_lt_square_16_16");
 			self:SetStatusBarColor(1, 1, 1, 1);
 			self["SetProgress"] = function(self, aValue, aMaxValue)
@@ -2688,7 +2725,7 @@
 			end
 		</OnLoad>
 	</Scripts>
-</Frame>
+</StatusBar>
 
 
 </Ui>

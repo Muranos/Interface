@@ -50,10 +50,13 @@ local searchCache, working = {}, nil;
 app.GetCachedData = function(cacheKey, method, ...)
 	if IsRetrieving(cacheKey) then return; end
 	local cache = searchCache[cacheKey];
+	-- app.PrintDebug("GetCachedData",cacheKey,cache and "CACHE-HIT" or "CACHE-MISS")
 	if not cache then
 		cache, working = method(...);
 		if not working then
 			-- Only cache if the tooltip if no additional work is needed.
+			-- app.PrintDebug("CACHED-DATA",cache.hash,cache.working)
+			cache.working = nil
 			searchCache[cacheKey] = cache;
 		end
 		return cache, working;
@@ -65,8 +68,9 @@ local function WipeSearchCache()
 	app.WipeTooltipInfoCache()
 end
 app.WipeSearchCache = WipeSearchCache;
-app.AddEventRegistration("PLAYER_DIFFICULTY_CHANGED", WipeSearchCache);
+app.AddEventHandler("OnCurrentDifficultiesChanged", WipeSearchCache);
 app.AddEventHandler("OnRefreshComplete", WipeSearchCache);
 app.AddEventHandler("OnThingCollected", WipeSearchCache);
 app.AddEventHandler("OnThingRemoved", WipeSearchCache);
 app.AddEventHandler("OnSettingsRefreshed", WipeSearchCache);
+app.AddEventHandler("Fill.RefreshFillers", WipeSearchCache)

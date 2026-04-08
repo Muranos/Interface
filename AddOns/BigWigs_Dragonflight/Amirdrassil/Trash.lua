@@ -4,7 +4,7 @@
 
 local mod, CL = BigWigs:NewBoss("Amirdrassil, the Dream's Hope Trash", 2549)
 if not mod then return end
-mod.displayName = CL.trash
+mod:SetTrashModule(true)
 mod:RegisterEnableMob()
 
 --------------------------------------------------------------------------------

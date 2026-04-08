@@ -1,5 +1,5 @@
 --[[
-Copyright 2008-2025 João Cardoso
+Copyright 2008-2026 João Cardoso
 Sushi is distributed under the terms of the GNU General Public License (or the Lesser GPL).
 This file is part of Sushi.
 
@@ -26,7 +26,7 @@ if not Editable then return end
 function Editable:Construct()
 	local f = self:Super(Editable):Construct()
 	f.Label = f:CreateFontString(nil, nil, self.LabelFont)
-	f:SetScript('OnEditFocusLost', f.OnEditFocusLost)
+	f:SetScript('OnEscapePressed', f.OnEscapePressed)
 	f:SetScript('OnEnterPressed', f.OnEnterPressed)
 	f:SetFontObject(f.NormalFont)
 	f:SetAltArrowKeyMode(false)
@@ -51,16 +51,16 @@ end
 
 --[[ Events ]]--
 
-function Editable:OnEditFocusLost()
-	self:SetText(self:GetValue())
-	self:HighlightText(0, 0)
-end
-
 function Editable:OnEnterPressed()
 	self:SetValue(self:GetText())
 	self:FireCalls('OnText', self:GetValue())
 	self:FireCalls('OnInput', self:GetValue())
 	self:FireCalls('OnUpdate')
+	self:ClearFocus()
+end
+
+function Editable:OnEscapePressed()
+	self:SetText(self:GetValue())
 	self:ClearFocus()
 end
 

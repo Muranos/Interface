@@ -2,25 +2,25 @@
 -- Module Declaration
 --
 
-local plugin = BigWigs:NewPlugin("Countdown")
+local plugin, L = BigWigs:NewPlugin("Countdown")
 if not plugin then return end
 
-local voiceMap = {
-	enUS = {"English: Default (%s)", "Male", "Female"},
-	deDE = {"Deutsch: Standard (%s)", "Männlich", "Weiblich"},
-	esES = {"Español (es): Predeterminado (%s)", "Masculino", "Femenino"},
-	esMX = {"Español (mx): Predeterminado (%s)", "Masculino", "Femenino"},
-	frFR = {"Français : Défaut (%s)", "Homme", "Femme"},
-	itIT = {"Italiano: Predefinito (%s)", "Maschio", "Femmina"},
-	koKR = {"한국어 : 기본 (%s)", "남성", "여성"},
-	ptBR = {"Português: Padrão (%s)", "Masculino", "Feminino"},
-	ruRU = {"Русский: По умолчанию (%s)", "Мужской", "Женский"},
-	zhCN = {"简体中文:默认(%s)", "男性", "女性"},
-	zhTW = {"繁體中文:預設值(%s)", "男性", "女性"},
-}
 local defaultVoice = "English: Amy"
 do
 	local locale = GetLocale()
+	local voiceMap = {
+		enUS = {"English: Default (%s)", "Male", "Female"},
+		deDE = {"Deutsch: Standard (%s)", "Männlich", "Weiblich"},
+		esES = {"Español (es): Predeterminado (%s)", "Masculino", "Femenino"},
+		esMX = {"Español (mx): Predeterminado (%s)", "Masculino", "Femenino"},
+		frFR = {"Français : Défaut (%s)", "Homme", "Femme"},
+		itIT = {"Italiano: Predefinito (%s)", "Maschio", "Femmina"},
+		koKR = {"한국어 : 기본 (%s)", "남성", "여성"},
+		ptBR = {"Português: Padrão (%s)", "Masculino", "Feminino"},
+		ruRU = {"Русский: По умолчанию (%s)", "Мужской", "Женский"},
+		zhCN = {"简体中文:默认(%s)", "男性", "女性"},
+		zhTW = {"繁體中文:預設值(%s)", "男性", "女性"},
+	}
 	if locale ~= "enUS" and voiceMap[locale] then
 		defaultVoice = ("%s: Default (Female)"):format(locale)
 	end
@@ -30,21 +30,15 @@ end
 -- Locals
 --
 
-local media = LibStub("LibSharedMedia-3.0")
-local FONT = media.MediaType and media.MediaType.FONT or "font"
+local LibSharedMedia = LibStub("LibSharedMedia-3.0")
+local FONT = LibSharedMedia.MediaType and LibSharedMedia.MediaType.FONT or "font"
 local BigWigsAPI = BigWigsAPI
-local L = BigWigsAPI:GetLocale("BigWigs")
 plugin.displayName = L.countdown
 
 local countdownAnchor = nil
 local countdownFrame = nil
 local countdownText = nil
 local inConfigMode = false
-
-local validFramePoints = {
-	["TOPLEFT"] = L.TOPLEFT, ["TOPRIGHT"] = L.TOPRIGHT, ["BOTTOMLEFT"] = L.BOTTOMLEFT, ["BOTTOMRIGHT"] = L.BOTTOMRIGHT,
-	["TOP"] = L.TOP, ["BOTTOM"] = L.BOTTOM, ["LEFT"] = L.LEFT, ["RIGHT"] = L.RIGHT, ["CENTER"] = L.CENTER,
-}
 
 --------------------------------------------------------------------------------
 -- Profile
@@ -72,7 +66,7 @@ local function UpdateFont()
 	elseif plugin.db.profile.outline ~= "NONE" then
 		flags = plugin.db.profile.outline
 	end
-	countdownText:SetFont(media:Fetch(FONT, plugin.db.profile.fontName), plugin.db.profile.fontSize, flags)
+	countdownText:SetFont(LibSharedMedia:Fetch(FONT, plugin.db.profile.fontName), plugin.db.profile.fontSize, flags)
 	countdownText:SetTextColor(plugin.db.profile.fontColor.r, plugin.db.profile.fontColor.g, plugin.db.profile.fontColor.b)
 end
 
@@ -88,8 +82,8 @@ local function updateProfile()
 		end
 	end
 
-	if not media:IsValid(FONT, db.fontName) then
-		db.fontName = plugin:GetDefaultFont()
+	if not LibSharedMedia:IsValid(FONT, db.fontName) then
+		db.fontName = plugin.defaultDB.fontName
 	end
 	if db.outline ~= "NONE" and db.outline ~= "OUTLINE" and db.outline ~= "THICKOUTLINE" then
 		db.outline = plugin.defaultDB.outline
@@ -100,7 +94,9 @@ local function updateProfile()
 	if type(db.fontColor.r) ~= "number" or db.fontColor.r < 0 or db.fontColor.r > 1
 	or type(db.fontColor.g) ~= "number" or db.fontColor.g < 0 or db.fontColor.g > 1
 	or type(db.fontColor.b) ~= "number" or db.fontColor.b < 0 or db.fontColor.b > 1 then
-		db.fontColor = plugin.defaultDB.fontColor
+		db.fontColor.r = plugin.defaultDB.fontColor.r
+		db.fontColor.g = plugin.defaultDB.fontColor.g
+		db.fontColor.b = plugin.defaultDB.fontColor.b
 	end
 	if db.countdownTime < 3 or db.countdownTime > 10 then
 		db.countdownTime = plugin.defaultDB.countdownTime
@@ -111,8 +107,11 @@ local function updateProfile()
 	end
 	if type(db.position[1]) ~= "string" or type(db.position[2]) ~= "string"
 	or type(db.position[3]) ~= "number" or type(db.position[4]) ~= "number"
-	or not validFramePoints[db.position[1]] or not validFramePoints[db.position[2]] then
-		db.position = plugin.defaultDB.position
+	or not BigWigsAPI.IsValidFramePoint(db.position[1]) or not BigWigsAPI.IsValidFramePoint(db.position[2]) then
+		db.position[1] = plugin.defaultDB.position[1]
+		db.position[2] = plugin.defaultDB.position[2]
+		db.position[3] = plugin.defaultDB.position[3]
+		db.position[4] = plugin.defaultDB.position[4]
 	else
 		local x = math.floor(db.position[3]+0.5)
 		if x ~= db.position[3] then
@@ -138,73 +137,6 @@ local function updateProfile()
 			end
 		end
 	end
-end
-
--------------------------------------------------------------------------------
--- Countdown Registration
---
-
-BigWigsAPI:RegisterCountdown(L.none, { false, false, false, false, false })
-BigWigsAPI:RegisterCountdown("English: Amy", {
-	"Interface\\AddOns\\BigWigs\\Media\\Sounds\\Amy\\1.ogg",
-	"Interface\\AddOns\\BigWigs\\Media\\Sounds\\Amy\\2.ogg",
-	"Interface\\AddOns\\BigWigs\\Media\\Sounds\\Amy\\3.ogg",
-	"Interface\\AddOns\\BigWigs\\Media\\Sounds\\Amy\\4.ogg",
-	"Interface\\AddOns\\BigWigs\\Media\\Sounds\\Amy\\5.ogg",
-	"Interface\\AddOns\\BigWigs\\Media\\Sounds\\Amy\\6.ogg",
-	"Interface\\AddOns\\BigWigs\\Media\\Sounds\\Amy\\7.ogg",
-	"Interface\\AddOns\\BigWigs\\Media\\Sounds\\Amy\\8.ogg",
-	"Interface\\AddOns\\BigWigs\\Media\\Sounds\\Amy\\9.ogg",
-	"Interface\\AddOns\\BigWigs\\Media\\Sounds\\Amy\\10.ogg",
-})
-BigWigsAPI:RegisterCountdown("English: David", {
-	"Interface\\AddOns\\BigWigs\\Media\\Sounds\\David\\1.ogg",
-	"Interface\\AddOns\\BigWigs\\Media\\Sounds\\David\\2.ogg",
-	"Interface\\AddOns\\BigWigs\\Media\\Sounds\\David\\3.ogg",
-	"Interface\\AddOns\\BigWigs\\Media\\Sounds\\David\\4.ogg",
-	"Interface\\AddOns\\BigWigs\\Media\\Sounds\\David\\5.ogg",
-	"Interface\\AddOns\\BigWigs\\Media\\Sounds\\David\\6.ogg",
-	"Interface\\AddOns\\BigWigs\\Media\\Sounds\\David\\7.ogg",
-	"Interface\\AddOns\\BigWigs\\Media\\Sounds\\David\\8.ogg",
-	"Interface\\AddOns\\BigWigs\\Media\\Sounds\\David\\9.ogg",
-	"Interface\\AddOns\\BigWigs\\Media\\Sounds\\David\\10.ogg",
-})
-BigWigsAPI:RegisterCountdown("English: Jim", {
-	"Interface\\AddOns\\BigWigs\\Media\\Sounds\\Jim\\1.ogg",
-	"Interface\\AddOns\\BigWigs\\Media\\Sounds\\Jim\\2.ogg",
-	"Interface\\AddOns\\BigWigs\\Media\\Sounds\\Jim\\3.ogg",
-	"Interface\\AddOns\\BigWigs\\Media\\Sounds\\Jim\\4.ogg",
-	"Interface\\AddOns\\BigWigs\\Media\\Sounds\\Jim\\5.ogg",
-	"Interface\\AddOns\\BigWigs\\Media\\Sounds\\Jim\\6.ogg",
-	"Interface\\AddOns\\BigWigs\\Media\\Sounds\\Jim\\7.ogg",
-	"Interface\\AddOns\\BigWigs\\Media\\Sounds\\Jim\\8.ogg",
-	"Interface\\AddOns\\BigWigs\\Media\\Sounds\\Jim\\9.ogg",
-	"Interface\\AddOns\\BigWigs\\Media\\Sounds\\Jim\\10.ogg",
-})
-
-for locale, info in next, voiceMap do
-	local name, male, female = unpack(info)
-
-	BigWigsAPI:RegisterCountdown(("%s: Default (Male)"):format(locale), name:format(male), {
-		"Interface\\AddOns\\BigWigs\\Media\\Sounds\\Heroes\\"..locale.."\\male\\1.ogg",
-		"Interface\\AddOns\\BigWigs\\Media\\Sounds\\Heroes\\"..locale.."\\male\\2.ogg",
-		"Interface\\AddOns\\BigWigs\\Media\\Sounds\\Heroes\\"..locale.."\\male\\3.ogg",
-		"Interface\\AddOns\\BigWigs\\Media\\Sounds\\Heroes\\"..locale.."\\male\\4.ogg",
-		"Interface\\AddOns\\BigWigs\\Media\\Sounds\\Heroes\\"..locale.."\\male\\5.ogg",
-	})
-
-	local id = ("%s: Default (Female)"):format(locale)
-	if locale == "esMX" then
-		-- never extracted the esMX female announcer and it's gone now, so just use esES
-		locale = "esES"
-	end
-	BigWigsAPI:RegisterCountdown(id, name:format(female), {
-		"Interface\\AddOns\\BigWigs\\Media\\Sounds\\Heroes\\"..locale.."\\female\\1.ogg",
-		"Interface\\AddOns\\BigWigs\\Media\\Sounds\\Heroes\\"..locale.."\\female\\2.ogg",
-		"Interface\\AddOns\\BigWigs\\Media\\Sounds\\Heroes\\"..locale.."\\female\\3.ogg",
-		"Interface\\AddOns\\BigWigs\\Media\\Sounds\\Heroes\\"..locale.."\\female\\4.ogg",
-		"Interface\\AddOns\\BigWigs\\Media\\Sounds\\Heroes\\"..locale.."\\female\\5.ogg",
-	})
 end
 
 --------------------------------------------------------------------------------
@@ -237,7 +169,10 @@ do
 		local point, _, relPoint, x, y = self:GetPoint()
 		x = math.floor(x+0.5)
 		y = math.floor(y+0.5)
-		plugin.db.profile.position = {point, relPoint, x, y}
+		plugin.db.profile.position[1] = point
+		plugin.db.profile.position[2] = relPoint
+		plugin.db.profile.position[3] = x
+		plugin.db.profile.position[4] = y
 		self:RefixPosition()
 		if BigWigsOptions and BigWigsOptions:IsOpen() then
 			plugin:UpdateGUI() -- Update X/Y if GUI is open
@@ -289,12 +224,13 @@ local function voiceSorting()
 	local list = BigWigsAPI:GetCountdownList()
 	local sorted = {}
 	for k in next, list do
-		if k ~= L.none then
+		if k ~= "none" and k ~= "simple" then
 			sorted[#sorted + 1] = k
 		end
 	end
-	sort(sorted, function(a, b) return list[a] < list[b] end)
-	tinsert(sorted, 1, L.none)
+	table.sort(sorted, function(a, b) return list[a] < list[b] end)
+	table.insert(sorted, 1, "none")
+	table.insert(sorted, 2, "simple")
 	return sorted
 end
 
@@ -309,7 +245,7 @@ do
 			plugin.db.profile[info[#info]] = value
 			UpdateFont()
 		end,
-		order = 5,
+		order = 8,
 		args = {
 			general = {
 				type = "group",
@@ -381,15 +317,15 @@ do
 						type = "select",
 						name = L.font,
 						order = 10,
-						values = media:List(FONT),
+						values = LibSharedMedia:List(FONT),
 						itemControl = "DDI-Font",
 						get = function()
-							for i, v in next, media:List(FONT) do
+							for i, v in next, LibSharedMedia:List(FONT) do
 								if v == plugin.db.profile.fontName then return i end
 							end
 						end,
 						set = function(_, value)
-							local list = media:List(FONT)
+							local list = LibSharedMedia:List(FONT)
 							plugin.db.profile.fontName = list[value]
 							UpdateFont()
 						end,
@@ -410,10 +346,10 @@ do
 					fontColor = {
 						type = "color",
 						name = L.countdownColor,
-						get = function(info)
+						get = function()
 							return plugin.db.profile.fontColor.r, plugin.db.profile.fontColor.g, plugin.db.profile.fontColor.b
 						end,
-						set = function(info, r, g, b)
+						set = function(_, r, g, b)
 							plugin.db.profile.fontColor.r, plugin.db.profile.fontColor.g, plugin.db.profile.fontColor.b = r, g, b
 							UpdateFont()
 						end,
@@ -517,7 +453,7 @@ local function createOptions()
 			order = 3,
 		}
 		sModule.soundOptions.args.countdown = {
-			name = "Countdown",
+			name = L.countdown,
 			type = "select",
 			values = BigWigsAPI.GetCountdownList,
 			sorting = voiceSorting,
@@ -551,6 +487,30 @@ end
 
 function plugin:OnPluginEnable()
 	updateProfile()
+	local soundsPlayedTable = {}
+	if BigWigsAPI:HasCountdown(plugin.db.profile.voice) then
+		soundsPlayedTable[plugin.db.profile.voice] = true
+		for i = plugin.db.profile.countdownTime, 1, -1 do
+			local sound = BigWigsAPI:GetCountdownSound(plugin.db.profile.voice, i)
+			if sound then
+				self:SimpleTimer(function() local played, id = self:PlaySoundFile(sound) if played then StopSound(id) end end, 0)
+			end
+		end
+	end
+	for _, countdownTbl in next, plugin.db.profile.bossCountdowns do
+		for _, voiceID in next, countdownTbl do
+			if not soundsPlayedTable[voiceID] and BigWigsAPI:HasCountdown(voiceID) then
+				soundsPlayedTable[voiceID] = true
+				for i = plugin.db.profile.countdownTime, 1, -1 do
+					local sound = BigWigsAPI:GetCountdownSound(voiceID, i)
+					if sound then
+						self:SimpleTimer(function() local played, id = self:PlaySoundFile(sound) if played then StopSound(id) end end, 0)
+					end
+				end
+			end
+		end
+	end
+
 	createOptions()
 
 	self:RegisterMessage("BigWigs_StartCountdown")
@@ -630,7 +590,7 @@ do
 			return lowestCountdownTable == tableToMatch
 		end
 
-		function plugin:BigWigs_StartCountdown(_, module, key, text, time, guid, customVoice, customStart, audioOnly)
+		function plugin:BigWigs_StartCountdown(_, module, key, text, time, guid, customVoice, customStart, audioOnly, customAudioStart)
 			if module and time >= 1 then
 				local countdownTable = {GetTime()+time}
 				if guid then
@@ -670,7 +630,7 @@ do
 								plugin:SetText(textCount, countdownTable)
 							end
 							local voice = customVoice or plugin.db.profile.bossCountdowns[module.name] and plugin.db.profile.bossCountdowns[module.name][key] or plugin.db.profile.voice
-							local sound = BigWigsAPI:GetCountdownSound(voice, textCount)
+							local sound = textCount <= (customAudioStart or textCount) and BigWigsAPI:GetCountdownSound(voice, textCount)
 							if sound then
 								self:PlaySoundFile(sound)
 							end

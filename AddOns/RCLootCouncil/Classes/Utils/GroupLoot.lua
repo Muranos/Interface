@@ -20,6 +20,22 @@ GroupLoot.OnLootRoll = Subject.create()
 GroupLoot.IgnoreList = {
 	[209035] = true, -- Hearthstone of the Flame, Larodar, Amirdrassil
 	[236687] = true, -- Explosive Hearthstone, Liberation of Undermine
+	[246565] = true, -- Cosmic Hearthstone, Manaforge Omega
+	[250104] = true, -- Soulbinder's Nethermantle
+	[264672] = true, -- Cosmic Ritual Stone, Voidspire (toy, becomes unwinnable for ML when learned)
+}
+
+---@alias GroupLootPredicate fun(rollID: integer, itemID: integer, status: integer, quality: Enum.ItemQuality): boolean
+
+--- Each of these should return true for an item to be group looted
+--- @type table<string, GroupLootPredicate>
+GroupLoot.Predicates = {
+	--- Items must not be on the ignore list.
+	ignored = function(_, itemID) return itemID and not GroupLoot.IgnoreList[itemID] end,
+	--- Not legendary quality or above.
+	qualityUpperBound = function (_, _, _, quality)
+		return not quality or quality < Enum.ItemQuality.Legendary
+	end,
 }
 
 function GroupLoot:OnInitialize()
@@ -44,17 +60,16 @@ function GroupLoot:OnStartLootRoll(_, rollID)
 		self.Log:d("No link!", rollID)
 		return
 	end
-	if quality and quality >= Enum.ItemQuality.Legendary then
-		self.Log:d("Ignoring legendary quality:", quality)
-		return
-	end
-	local id = ItemUtils:GetItemIDFromLink(link)
-	if self.IgnoreList[id] then
-		self.Log:d(link, "is ignored, bailing.")
-		return
-	end
+	local itemId = ItemUtils:GetItemIDFromLink(link)
 	local status = self:GetStatus()
-	self.Log:D("Status:", status)
+	self.Log:D("Status:", status, self:GetStatusHex(status), self:GetStatusBinary(status))
+	-- Predicate check
+	for name, predicate in pairs(GroupLoot.Predicates) do
+		if not predicate(rollID, itemId, status, quality) then
+			self.Log:d("Predicate failed:", name, rollID, itemId, status, quality)
+			return
+		end
+	end
 	if self:ShouldPassOnLoot(status) then
 		self.Log:d("Passing on loot", link)
 		self:RollOnLoot(rollID, 0)
@@ -144,10 +159,18 @@ function GroupLoot:GetStatus()
 	return result
 end
 
----Generates the binary version of [GroupLoot:GetStatus()](lua://Utils.GroupLoot.GetStatus)
+---Generates the binary version of the status.
+---@param status? integer|string Integer status. Defaults to [`GroupLoot:GetStatus()`](lua://Utils.GroupLoot.GetStatus).
 ---@return string #The binary representation of the status.
-function GroupLoot:GetStatusBinary()
-	return addon.Utils:Int2Bin(self:GetStatus())
+function GroupLoot:GetStatusBinary(status)
+	return addon.Utils:Int2Bin(status or self:GetStatus())
+end
+
+--- Converts the status to a hexadecimal string.
+---@param status? integer|string Integer status. Defaults to [`GroupLoot:GetStatus()`](lua://Utils.GroupLoot.GetStatus).
+---@return string #The hexadecimal representation of the status.
+function GroupLoot:GetStatusHex(status)
+	return string.format("%x", status or self:GetStatus())
 end
 
 ---@return enum Status The status table as-is.
@@ -210,6 +233,11 @@ function GroupLoot:StatusToDescription(status, target)
 	end
 	return res
 end
+
+local targetStatusML = tonumber("110111111", 2)
+local targetStatus   = tonumber("110101111", 2)
+function GroupLoot:GetTargetedStatus() return targetStatus end
+function GroupLoot:GetTargetedMLStatus() return targetStatusML end
 
 local NUM_LOOT_FRAMES = 4
 --- Hides any visible default group loot frames

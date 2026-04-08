@@ -19,11 +19,12 @@ local print = TMW.print
 
 local format, type, tonumber, wipe, bit =
 	  format, type, tonumber, wipe, bit
-local GetTotemInfo =
-	  GetTotemInfo
+local GetTotemInfo = GetTotemInfo
+local GetTotemDuration = GetTotemDuration
 
 local GetSpellTexture = TMW.GetSpellTexture
 local strlowerCache = TMW.strlowerCache
+local issecretvalue = TMW.issecretvalue
 
 local _, pclass = UnitClass("Player")
 
@@ -81,6 +82,12 @@ if hasNameConfig then
 	})
 end
 
+if TMW.clientHasSecrets then
+	Type:RegisterConfigPanel_XMLTemplate(90, "TellMeWhen_SecretsWarning", {
+		text = L["UIPANEL_SECRETS_TOTEM_DESC"]
+	})
+end
+
 if numSlots > 1 then
 	Type:RegisterConfigPanel_ConstructorFunc(120, "TellMeWhen_TotemSlots", function(self)
 		self:SetTitle(L["ICONMENU_CHOOSENAME3"])
@@ -126,37 +133,58 @@ local function Totem_OnUpdate(icon, time)
 	-- Slots that are disabled internally are set nil (which could change table length).
 	for iSlot = 1, 5 do
 		if Slots[iSlot] then
-			local _, totemName, start, duration, totemIcon = GetTotemInfo(iSlot)
-			local totemNameLower = strlowerCache[totemName]
-			local totemInfo = totemRanks[totemNameLower]
-			local remaining = duration - (time - start)
+			local active, totemName, start, duration, totemIcon = GetTotemInfo(iSlot)
 			
-			if
-				start ~= 0 and
-				totemName and
-				-- Remaining check fixes #2019
-				remaining > 0 and
-				(
-					NameFirst == "" or
-					NameHash[totemNameLower] or
-					(totemInfo and (
-						-- By totem name, (e.g. "Searing Totem III")
-						NameHash[totemInfo.totemNameLower] or 
-						-- or by spellID,
-						NameHash[totemInfo.spellID] or 
-						-- Or by the spell name (which is the same as the rank 1 totem name) (e.g. "Searing Totem")
-						NameHash[totemInfo.spellNameLower])
+			if issecretvalue(totemName) then
+				-- If totems are secret, return data if not filtering by name.
+				if NameFirst == "" then
+					local durObj = GetTotemDuration and GetTotemDuration(iSlot)
+					if durObj then
+						icon:SetInfo("state; texture; start, duration, modRate, durObj; spell",
+							{
+								secretBool = active,
+								trueState = icon.States[STATE_PRESENT],
+								falseState = icon.States[STATE_ABSENT]
+							},
+							totemIcon,
+							start, duration, 1, durObj,
+							totemName
+						)
+						return
+					end
+				end
+			else
+				local totemNameLower = strlowerCache[totemName]
+				local totemInfo = totemRanks[totemNameLower]
+				local remaining = duration - (time - start)
+				
+				if
+					start ~= 0 and
+					totemName and
+					-- Remaining check fixes #2019
+					remaining > 0 and
+					(
+						NameFirst == "" or
+						NameHash[totemNameLower] or
+						(totemInfo and (
+							-- By totem name, (e.g. "Searing Totem III")
+							NameHash[totemInfo.totemNameLower] or 
+							-- or by spellID,
+							NameHash[totemInfo.spellID] or 
+							-- Or by the spell name (which is the same as the rank 1 totem name) (e.g. "Searing Totem")
+							NameHash[totemInfo.spellNameLower])
+						)
 					)
-				)
-			then
-				-- The totem is present. Display it and stop.
-				icon:SetInfo("state; texture; start, duration; spell",
-					STATE_PRESENT,
-					totemIcon,
-					start, duration,
-					totemName
-				)
-				return
+				then
+					-- The totem is present. Display it and stop.
+					icon:SetInfo("state; texture; start, duration; spell",
+						STATE_PRESENT,
+						totemIcon,
+						start, duration,
+						totemName
+					)
+					return
+				end
 			end
 		end
 	end

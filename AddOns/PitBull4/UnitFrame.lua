@@ -72,6 +72,10 @@ function PitBull4:MakeSingletonFrame(classification)
 
 	if not frame then
 		frame = CreateFrame("Button", frame_name, UIParent, "SecureUnitButtonTemplate,SecureHandlerBaseTemplate")
+		if _G.PingableType_UnitFrameMixin then
+			Mixin(frame, _G.PingableType_UnitFrameMixin)
+			frame:SetAttribute("ping-receiver", true)
+		end
 
 		frame:WrapScript(frame, "OnAttributeChanged", Singleton_OnAttributeChanged)
 		frame.is_singleton = true
@@ -537,6 +541,7 @@ function SingletonUnitFrame:SetClickThroughState(state)
 	if (not state) ~= mouse_state then
 		_G.ClickCastFrames[self] = not mouse_state
 		self:EnableMouse(not mouse_state)
+		self:SetAttribute("ping-receiver", not mouse_state or nil)
 	end
 end
 SingletonUnitFrame.SetClickThroughState= PitBull4:OutOfCombatWrapper(SingletonUnitFrame.SetClickThroughState)

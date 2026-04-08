@@ -1,29 +1,11 @@
 local app = select(2, ...);
-local L = app.L
 
 -- WoW API Cache
-local GetItemInfo = app.WOWAPI.GetItemInfo;
+local IsRetrieving = app.Modules.RetrievingData.IsRetrieving
+local Colorize = app.Modules.Color.Colorize
 
 -- Illusion Class
 local AccountWideIllusionData = {};
-
-local function GetIllusionItemInfo(t, field)
-	local name, link = GetItemInfo(t.itemID);
-	if link then
-		t.name = name;
-		t.link = link;
-		return t[field];
-	end
-end
-local function GetDefaultItemInfo(t, field)
-	local id = t.itemID
-	local itemName = L.ITEM_NAMES[id] or (t.sourceID and L.SOURCE_NAMES and L.SOURCE_NAMES[t.sourceID])
-		or "Item #" .. tostring(id) .. "*";
-	t.title = L.FAILED_ITEM_INFO;
-	t.link = "|cffff80ff[" .. itemName .. "]|r";
-	t.name = itemName;
-	return t[field]
-end
 
 local CLASSNAME, KEY, CACHE = "Illusion", "illusionID", "Illusions"
 local illusionFields = {
@@ -49,7 +31,11 @@ if C_TransmogCollection then
 	local GetIllusionStrings = C_TransmogCollection.GetIllusionStrings;
 	if GetIllusionStrings then
 		illusionFields.link = function(t)
-			return select(2, GetIllusionStrings(t[KEY]));
+			local name, link = GetIllusionStrings(t[KEY])
+			if not IsRetrieving(link) then
+				return link
+			end
+			return name
 		end
 	elseif GetIllusionLink then
 		illusionFields.link = function(t)
@@ -76,14 +62,10 @@ if C_TransmogCollection then
 end
 app.CreateIllusion = app.CreateClass(CLASSNAME, KEY, illusionFields,
 "WithItem", {
-	link = function(t)
-		return app.TryGetField(t, "link", GetIllusionItemInfo, GetDefaultItemInfo)
-	end,
-	name = function(t)
-		return app.TryGetField(t, "name", GetIllusionItemInfo, GetDefaultItemInfo) or RETRIEVING_DATA
-	end,
+	ImportFrom = "Item",
+	ImportFields = { "name", "link", "icon", "tsm", "costCollectibles", "AsyncRefreshFunc" },
 	text = function(t)
-		return "|cffff80ff[" .. t.name .. "]|r";
+		return Colorize("["..(t.name or RETRIEVING_DATA).."]", app.Colors.Illusion)
 	end
 }, function(t) return t.itemID; end);
 
@@ -93,6 +75,12 @@ app.AddEventHandler("OnSavedVariablesAvailable", function(currentCharacter, acco
 		AccountWideIllusionData = accountWide;
 	else
 		accountWideData.Illusions = AccountWideIllusionData;
+	end
+end);
+app.AddEventHandler("OnLoad", function()
+	if app.L.FILTER_ID_TYPES[103] then
+		app.AddDynamicCategoryHeader({ id = "illusionID", name = app.L.FILTER_ID_TYPES[103], icon = app.asset("Category_Illusions") });
+		app.AddRandomSearchCategory("Illusions", "illusionID", app.L.FILTER_ID_TYPES[103], nil, app.asset("Category_Illusions"));
 	end
 end);
 

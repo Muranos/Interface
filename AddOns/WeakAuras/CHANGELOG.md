@@ -1,16 +1,20 @@
-# [5.19.7](https://github.com/WeakAuras/WeakAuras2/tree/5.19.7) (2025-04-04)
+# [5.21.1](https://github.com/WeakAuras/WeakAuras2/tree/5.21.1) (2026-01-11)
 
-[Full Changelog](https://github.com/WeakAuras/WeakAuras2/compare/5.19.6...5.19.7)
+[Full Changelog](https://github.com/WeakAuras/WeakAuras2/compare/5.21.0...5.21.1)
 
 ## Highlights
 
-This release reverts a change to item equipped load & triggers which was causing unacceptable performance characteristics.
-Also, the pending updates section of options has some minor cosmetic improvements.
+- Classic bug fixes
 
 ## Commits
 
-mrbuds (2):
+Barney (1):
 
-- Revert "Item Equipped: Add exact match to load options/fix name matching"
-- Don't overlap PendingUpdateButton's text with update icon
+- Update talent data for Mage based on the latest Titan patch (#6132)
+
+NoM0Re (3):
+
+- Classic/TBC/Wrath: add groupRole and fetchRole to BuffTrigger2
+- Fix: Regression in talent load
+- Fix: Add missing difficulty entry
 

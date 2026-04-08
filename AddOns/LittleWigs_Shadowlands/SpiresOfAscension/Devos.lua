@@ -63,7 +63,7 @@ function mod:Activate(args)
 end
 
 function mod:UNIT_SPELLCAST_SUCCEEDED(event, unit, _, spellId)
-	if spellId == 330433 then -- Shut Down
+	if not self:IsSecret(spellId) and spellId == 330433 then -- Shut Down
 		self:UnregisterUnitEvent(event, unit)
 		runThroughCount = 1
 		lostConfidenceCount = 1
@@ -120,7 +120,7 @@ function mod:RunThroughSuccess()
 end
 
 function mod:CHAT_MSG_MONSTER_YELL(event, _, _, _, _, target)
-	if target then
+	if not self:IsSecret(target) and target then
 		self:UnregisterEvent(event)
 
 		self:TargetMessage(323943, "orange", target) -- Run Through

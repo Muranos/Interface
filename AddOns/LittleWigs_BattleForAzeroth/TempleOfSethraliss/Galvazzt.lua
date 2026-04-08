@@ -15,16 +15,6 @@ mod.respawnTime = 25
 
 local galvanizeList = {}
 
-
---------------------------------------------------------------------------------
--- Localization
---
-
-local L = mod:GetLocale()
-if L then
-	L.percent = "%s (%d%%)"
-end
-
 --------------------------------------------------------------------------------
 -- Initialization
 --
@@ -63,8 +53,8 @@ do
 			if t-prev > (self:Normal() and 3 or 0.5) then
 				prev = t
 				local power = UnitPower(unit, 10) -- Alternate power, max 100
-				if power > 0 then
-					self:Message(266512, "orange", L.percent:format(self:SpellName(266512), power)) -- Consume Charge
+				if not self:IsSecret(power) and power > 0 then
+					self:Message(266512, "orange", CL.percent:format(power, self:SpellName(266512))) -- Consume Charge
 					self:PlaySound(266512, "alarm") -- Consume Charge
 				end
 			end

@@ -1,4 +1,4 @@
-local addonName, addon = ...
+local addonName = ...
 local L = LibStub("AceLocale-3.0"):NewLocale(addonName, "enUS", true)
 if not L then return end
 
@@ -25,7 +25,7 @@ L["LFG Button"] = true
 L["Buffs"] = true
 L["Debuffs"] = true
 L["Bonus Roll"] = true
-L["ACTIONBARS_DESCRIPTION"] = "Allows the action bars to have their padding set to zero. WARNING: you MUST move all your action bars from their default position AND disable 'magnetism', or you will get addon errors. You can even move the bars back to where they were originally!"
+L["ACTIONBARS_DESCRIPTION"] = "Adds additional options to the Action Bars, including reducing padding, and hiding until mouseover. You MUST move all your action bars from their default position AND disable 'magnetism', or you may get addon errors."
 L["Group Loot Container"] = true
 L["Chat Buttons"] = true
 L["Alert"] = true
@@ -52,3 +52,16 @@ L["Hide Level"] = true
 L["Raid Manager"] = true
 L["Hide Names"] = true
 L["UNLINK_CLASS_RESOURCE_DESCRIPTION"] = "Unlink from Player Frame (may require reload)"
+L["Reset Cooldown Manager DB"] = true
+L["TARGET_CAST_BAR"] = TARGET.." "..HUD_EDIT_MODE_CAST_BAR_LABEL
+L["Solo"] = true
+L["Party"] = true
+L["Raid (5)"] = true
+L["Raid (10)"] = true
+L["Raid (25)"] = true
+L["Raid (40)"] = true
+L["AUTO_LAYOUT_CHANGE_DESCRIPTION"] = "Allows you to automatically change Edit Mode Layouts based on your group size"
+L["HIDE_WHEN_NOT_MOUSEOVER_DESCRIPTION"] = "Hide until mouseover"
+L["Vigor Bar"] = true
+L["Resize Target Frame"] = true
+L["RESIZE_TARGET_FRAME_DESCRIPTION"] = "Allows the Player Frame to be resized to a smaller size than the default UI allows. NOTE: You may get unexpected results if you use both sliders."

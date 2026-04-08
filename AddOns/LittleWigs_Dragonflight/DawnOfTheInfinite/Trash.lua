@@ -4,7 +4,7 @@
 
 local mod, CL = BigWigs:NewBoss("Dawn of the Infinite Trash", 2579)
 if not mod then return end
-mod.displayName = CL.trash
+mod:SetTrashModule(true)
 mod:RegisterEnableMob(
 	------ Galakrond's Fall ------
 	205384, -- Infinite Chronoweaver
@@ -78,9 +78,9 @@ if L then
 	L.horde_raider_alliance_knight = "Horde Raider / Alliance Knight"
 	L.infinite_timebender = "Infinite Timebender"
 
-	L.custom_on_rift_autotalk = "Autotalk"
+	L.custom_on_rift_autotalk = CL.autotalk
 	L.custom_on_rift_autotalk_desc = "Instantly start channeling to open the Temporal Rift."
-	L.custom_on_rift_autotalk_icon = "ui_chat"
+	L.custom_on_rift_autotalk_icon = mod:GetMenuIcon("SAY")
 	L.rift_opening = CL.casting:format(mod:SpellName(416882)) -- Open Rift
 	L.rift_opened = "Temporal Rift Opened"
 	L.rift_stability = "Rift Stability"
@@ -333,6 +333,7 @@ end
 -- Warmups
 
 function mod:CHAT_MSG_MONSTER_YELL(_, msg)
+	if self:IsSecret(msg) then return end
 	if msg:find(L.iridikron_warmup_trigger, nil, true) then
 		-- Iridikron warmup
 		local iridikronModule = BigWigs:GetBossModule("Iridikron the Stonescaled", true)

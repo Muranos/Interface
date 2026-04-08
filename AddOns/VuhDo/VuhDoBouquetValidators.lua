@@ -1,22 +1,28 @@
-VUHDO_BOUQUET_CUSTOM_TYPE_PERCENT = 1;
-VUHDO_BOUQUET_CUSTOM_TYPE_PLAYERS = 2;
-VUHDO_BOUQUET_CUSTOM_TYPE_STATUSBAR = 3;
-VUHDO_BOUQUET_CUSTOM_TYPE_BRIGHTNESS = 4;
-VUHDO_BOUQUET_CUSTOM_TYPE_HEALTH = 5;
-VUHDO_BOUQUET_CUSTOM_TYPE_HOLY_POWER = 6;
-VUHDO_BOUQUET_CUSTOM_TYPE_SECONDS = 7;
-VUHDO_BOUQUET_CUSTOM_TYPE_STACKS = 8;
-VUHDO_BOUQUET_CUSTOM_TYPE_CUSTOM_FLAG = 9;
-VUHDO_BOUQUET_CUSTOM_TYPE_SPELL_TRACE = 10;
-
 VUHDO_FORCE_RESET = false;
 
 local GetTexCoordsForRole = GetTexCoordsForRole or VUHDO_getTexCoordsForRole;
+local GetRaidTargetIndex = GetRaidTargetIndex;
+local UnitExists = UnitExists;
+local UnitIsPVP = UnitIsPVP;
+local UnitFactionGroup = UnitFactionGroup;
+local UnitIsFriend = UnitIsFriend;
+local UnitIsEnemy = UnitIsEnemy;
+local UnitIsPlayer = UnitIsPlayer;
+local UnitIsTapDenied = UnitIsTapDenied;
+local GetTime = GetTime;
+local floor = floor;
 local _;
 
 local VUHDO_RAID = { };
 local VUHDO_USER_CLASS_COLORS;
 local VUHDO_PANEL_SETUP;
+local VUHDO_CONFIG;
+
+local VUHDO_UNIT_HOT_TYPE_MINE;
+local VUHDO_UNIT_HOT_TYPE_OTHERS;
+local VUHDO_UNIT_HOT_TYPE_BOTH;
+
+local VUHDO_EMERGENCIES;
 
 local VUHDO_getChosenDebuffInfo;
 local VUHDO_getCurrentPlayerTarget;
@@ -25,19 +31,77 @@ local VUHDO_getCurrentMouseOver;
 local VUHDO_isUnitSwiftmendable;
 local VUHDO_getDebuffColor;
 local VUHDO_getIsCurrentBouquetActive;
-local VUHDO_getCurrentBouquetColor;
-local VUHDO_getIncHealOnUnit;
 local VUHDO_getUnitDebuffSchoolInfos;
-local VUHDO_getCurrentBouquetStacks;
-local VUHDO_getSpellTraceForUnit;
-local VUHDO_getCurrentBouquetTimer;
-local VUHDO_getRaidTargetIconTexture;
+local VUHDO_getDebuffTypeAuraInstanceId;
 local VUHDO_getUnitGroupPrivileges;
 local VUHDO_getLatestCustomDebuff;
-local VUHDO_getUnitOverallShieldRemain;
+local VUHDO_getUnitHot;
+local VUHDO_getUnitHotInfo;
+local VUHDO_getDispelCurveForUnit;
+local VUHDO_getAuraBarColor;
+local VUHDO_getAuraTextColor;
+local VUHDO_getAuraCanColorBar;
+local VUHDO_getAuraCanColorText;
+local VUHDO_getDispelTypeCurve;
+local VUHDO_getDispelTypeTextCurve;
+local VUHDO_getOrBuildBrightnessCurve;
+local VUHDO_getOrBuildTextBrightnessCurve;
 
 local sBarColors;
 local sIsDistance;
+
+local sCustomFlagCache = { };
+local sCustomFlagErrorHandler;
+local sMergedAuraColorBuffer = { };
+
+local GetAuraDispelTypeColor = C_UnitAuras and C_UnitAuras.GetAuraDispelTypeColor;
+local sSecretsEnabled = VUHDO_SECRETS_ENABLED;
+local tSecretColor;
+local tCurve;
+
+
+
+--
+local tHash;
+local tLen;
+local function VUHDO_getCustomCodeHash(aCustomCodeString)
+
+	tHash = 0;
+	tLen = #aCustomCodeString;
+
+	for tCnt = 1, tLen do
+		tHash = ((tHash * 31) + string.byte(aCustomCodeString, tCnt)) % 0x7FFFFFFF;
+	end
+
+	return tHash;
+
+end
+
+
+
+--
+local function VUHDO_customFlagErrorHandler()
+
+	DEFAULT_CHAT_FRAME:AddMessage(VUHDO_I18N_ERROR_CUSTOM_FLAG_EXECUTE, 1.0, 0.0, 0.0);
+	DEFAULT_CHAT_FRAME:AddMessage(debugstack(1, 2, 0), 1.0, 0.0, 0.0);
+	DEFAULT_CHAT_FRAME:AddMessage(VUHDO_I18N_ERROR_INVALID_VALIDATOR, 1.0, 0.0, 0.0);
+
+	return false, nil, -1, -1, -1;
+
+end
+
+
+
+--
+function VUHDO_clearCustomFlagCache()
+
+	table.wipe(sCustomFlagCache);
+
+	return;
+
+end
+
+
 
 ----------------------------------------------------------
 
@@ -48,6 +112,13 @@ function VUHDO_bouquetValidatorsInitLocalOverrides()
 	VUHDO_RAID = _G["VUHDO_RAID"];
 	VUHDO_USER_CLASS_COLORS = _G["VUHDO_USER_CLASS_COLORS"];
 	VUHDO_PANEL_SETUP = _G["VUHDO_PANEL_SETUP"];
+	VUHDO_CONFIG = _G["VUHDO_CONFIG"];
+
+	VUHDO_UNIT_HOT_TYPE_MINE = _G["VUHDO_UNIT_HOT_TYPE_MINE"];
+	VUHDO_UNIT_HOT_TYPE_OTHERS = _G["VUHDO_UNIT_HOT_TYPE_OTHERS"];
+	VUHDO_UNIT_HOT_TYPE_BOTH = _G["VUHDO_UNIT_HOT_TYPE_BOTH"];
+
+	VUHDO_EMERGENCIES = _G["VUHDO_EMERGENCIES"];
 
 	VUHDO_getChosenDebuffInfo = _G["VUHDO_getChosenDebuffInfo"];
 	VUHDO_getCurrentPlayerTarget = _G["VUHDO_getCurrentPlayerTarget"];
@@ -55,32 +126,126 @@ function VUHDO_bouquetValidatorsInitLocalOverrides()
 	VUHDO_getCurrentMouseOver = _G["VUHDO_getCurrentMouseOver"];
 	VUHDO_isUnitSwiftmendable = _G["VUHDO_isUnitSwiftmendable"];
 	VUHDO_getDebuffColor = _G["VUHDO_getDebuffColor"];
-	VUHDO_getCurrentBouquetColor = _G["VUHDO_getCurrentBouquetColor"];
-	VUHDO_getIncHealOnUnit = _G["VUHDO_getIncHealOnUnit"];
 	VUHDO_getUnitDebuffSchoolInfos = _G["VUHDO_getUnitDebuffSchoolInfos"];
-	VUHDO_getCurrentBouquetStacks = _G["VUHDO_getCurrentBouquetStacks"];
+	VUHDO_getDebuffTypeAuraInstanceId = _G["VUHDO_getDebuffTypeAuraInstanceId"];
 	VUHDO_getIsCurrentBouquetActive = _G["VUHDO_getIsCurrentBouquetActive"];
-	VUHDO_getSpellTraceForUnit = _G["VUHDO_getSpellTraceForUnit"];
-	VUHDO_getCurrentBouquetTimer = _G["VUHDO_getCurrentBouquetTimer"];
-	VUHDO_getRaidTargetIconTexture = _G["VUHDO_getRaidTargetIconTexture"];
+
 	VUHDO_getUnitGroupPrivileges = _G["VUHDO_getUnitGroupPrivileges"];
 	VUHDO_getLatestCustomDebuff = _G["VUHDO_getLatestCustomDebuff"];
-	VUHDO_getUnitOverallShieldRemain = _G["VUHDO_getUnitOverallShieldRemain"];
+	VUHDO_getDispelCurveForUnit = _G["VUHDO_getDispelCurveForUnit"];
+	VUHDO_getAuraBarColor = _G["VUHDO_getAuraBarColor"];
+	VUHDO_getAuraTextColor = _G["VUHDO_getAuraTextColor"];
+	VUHDO_getAuraCanColorBar = _G["VUHDO_getAuraCanColorBar"];
+	VUHDO_getAuraCanColorText = _G["VUHDO_getAuraCanColorText"];
+	VUHDO_getUnitHot = _G["VUHDO_getUnitHot"];
+	VUHDO_getUnitHotInfo = _G["VUHDO_getUnitHotInfo"];
+	VUHDO_getDispelTypeCurve = _G["VUHDO_getDispelTypeCurve"];
+	VUHDO_getDispelTypeTextCurve = _G["VUHDO_getDispelTypeTextCurve"];
+	VUHDO_getOrBuildBrightnessCurve = _G["VUHDO_getOrBuildBrightnessCurve"];
+	VUHDO_getOrBuildTextBrightnessCurve = _G["VUHDO_getOrBuildTextBrightnessCurve"];
 
 	sBarColors = VUHDO_PANEL_SETUP["BAR_COLORS"];
 	sIsDistance = VUHDO_CONFIG["DIRECTION"]["isDistanceText"];
+
+	sCustomFlagErrorHandler = VUHDO_customFlagErrorHandler;
+
+	if VUHDO_mergeSpellTraceValidators then
+		VUHDO_mergeSpellTraceValidators();
+	end
+
+	if VUHDO_mergeStatusValidators then
+		VUHDO_mergeStatusValidators();
+	end
+
+	return;
+
+end
+
+
+
+--
+local tBrightCurves;
+function VUHDO_buildDispelBrightnessCurves(aBrightness)
+
+	tBrightCurves = {
+		["friendly"] = VUHDO_getOrBuildBrightnessCurve(VUHDO_getDispelTypeCurve(), aBrightness, "friendly"),
+		["hostile"] = VUHDO_getOrBuildBrightnessCurve(VUHDO_getDispelTypeCurve(), aBrightness, "hostile"),
+	};
+
+	return tBrightCurves;
+
+end
+
+
+
+--
+local tInfo;
+local tCanAttack;
+function VUHDO_getDispelBrightnessCurve(aCurves, aUnit, anIsHarmful)
+
+	tInfo = VUHDO_RAID[aUnit];
+
+	if not tInfo then
+		return nil;
+	end
+
+	tCanAttack = tInfo["canAttack"];
+
+	if not tCanAttack and anIsHarmful then
+		return aCurves["friendly"];
+	end
+
+	if tCanAttack and not anIsHarmful then
+		return aCurves["hostile"];
+	end
+
+	return nil;
+
+end
+
+
+
+--
+local tTextBrightCurves;
+function VUHDO_buildDispelTextBrightnessCurves(aBrightness)
+
+	tTextBrightCurves = {
+		["friendly"] = VUHDO_getOrBuildTextBrightnessCurve(VUHDO_getDispelTypeTextCurve(), aBrightness, "friendly"),
+		["hostile"] = VUHDO_getOrBuildTextBrightnessCurve(VUHDO_getDispelTypeTextCurve(), aBrightness, "hostile"),
+	};
+
+	return tTextBrightCurves;
+
+end
+
+
+
+--
+function VUHDO_getDispelTextBrightnessCurve(aCurves, aUnit, anIsHarmful)
+
+	tInfo = VUHDO_RAID[aUnit];
+
+	if not tInfo then
+		return nil;
+	end
+
+	tCanAttack = tInfo["canAttack"];
+
+	if not tCanAttack and anIsHarmful then
+		return aCurves["friendly"];
+	end
+
+	if tCanAttack and not anIsHarmful then
+		return aCurves["hostile"];
+	end
+
+	return nil;
 
 end
 
 
 
 local tEmptyInfo = { };
-local VUHDO_CHARGE_COLORS = {
-	"HOT_CHARGE_1",
-	"HOT_CHARGE_2",
-	"HOT_CHARGE_3",
-	"HOT_CHARGE_4",
-};
 
 
 
@@ -92,108 +257,31 @@ local VUHDO_CHARGE_COLORS = {
 
 
 
---
-local tInfo;
-local function VUHDO_spellTraceValidator(anInfo, _)
-
-	tInfo = VUHDO_getSpellTraceForUnit(anInfo["unit"]);
-
-	if tInfo then
-		return true, tInfo["icon"], -1, -1, -1;
-	else
-		return false, nil, -1, -1, -1;
-	end
-
-end
 
 
 
---
-local tInfo;
-local function VUHDO_spellTraceIncomingValidator(anInfo, _)
-
-	tInfo = VUHDO_getSpellTraceIncomingForUnit(anInfo["unit"]);
-
-	if tInfo then
-		return true, tInfo["icon"], -1, -1, -1;
-	else
-		return false, nil, -1, -1, -1;
-	end
-
-end
 
 
 
---
-local tInfo;
-local function VUHDO_spellTraceHealValidator(anInfo, _)
-
-	tInfo = VUHDO_getSpellTraceHealForUnit(anInfo["unit"]);
-
-	if tInfo then
-		return true, tInfo["icon"], -1, -1, -1;
-	else
-		return false, nil, -1, -1, -1;
-	end
-
-end
 
 
 
---
-local tInfo;
-local function VUHDO_spellTraceSingleValidator(anInfo, aCustom)
-
-	if aCustom and aCustom["custom"] and aCustom["custom"]["spellTrace"] and aCustom["custom"]["spellTrace"] ~= "" then
-		tInfo = VUHDO_getSpellTraceForUnit(anInfo["unit"], aCustom["custom"]["spellTrace"]);
-
-		if tInfo then
-			return true, tInfo["icon"], -1, -1, -1;
-		end
-	end
-
-	return false, nil, -1, -1, -1;
-
-end
 
 
 
---
-local tInfo;
-local function VUHDO_trailOfLightValidator(anInfo, _)
-
-	tInfo = VUHDO_getSpellTraceTrailOfLightForUnit(anInfo["unit"]);
-
-	if tInfo then
-		return true, tInfo["icon"], -1, -1, -1;
-	else
-		return false, nil, -1, -1, -1;
-	end
-
-end
 
 
 
---
-local function VUHDO_trailOfLightNextValidator(anInfo, _)
-
-	return VUHDO_isSpellTraceTrailOfLightNextUnit(anInfo["unit"]), nil, -1, -1, -1;
-
-end
 
 
 
---
-local tInfo;
-local function VUHDO_aoeAdviceValidator(anInfo, _)
-	tInfo = VUHDO_getAoeAdviceForUnit(anInfo["unit"]);
 
-	if tInfo then
-		return true, tInfo["icon"], -1, -1, -1;
-	else
-		return false, nil, -1, -1, -1;
-	end
-end
+
+
+
+
+
+
 
 
 
@@ -219,15 +307,27 @@ end
 
 
 --
-local function VUHDO_outOfRangeValidator(anInfo, _)
+local function VUHDO_outOfRangeValidator(anInfo, anItem)
+
+	if anInfo["hasSecretRange"] then
+		return true, nil, -1, -1, -1, nil, nil, nil, nil, nil, nil, anInfo["range"];
+	end
+
 	return not anInfo["range"], nil, -1, -1, -1;
+
 end
 
 
 
 --
-local function VUHDO_inRangeValidator(anInfo, _)
+local function VUHDO_inRangeValidator(anInfo, anItem)
+
+	if anInfo["hasSecretRange"] then
+		return true, nil, -1, -1, -1, nil, nil, nil, nil, nil, nil, anInfo["range"];
+	end
+
 	return anInfo["range"], nil, -1, -1, -1;
+
 end
 
 
@@ -287,67 +387,173 @@ end
 
 --
 local tDebuffInfo;
-local function VUHDO_debuffMagicValidator(anInfo, _)
+local tAuraInstanceId;
+local function VUHDO_debuffMagicValidator(anInfo, _, aSecretContext)
+
 	tDebuffInfo = VUHDO_getUnitDebuffSchoolInfos(anInfo["unit"], VUHDO_DEBUFF_TYPE_MAGIC);
-	if tDebuffInfo[2] then
-		return true, tDebuffInfo[1], floor(tDebuffInfo[2] - GetTime()), tDebuffInfo[3], tDebuffInfo[4];
-	else
+
+	if not tDebuffInfo[2] then
 		return false, nil, -1, -1, -1;
 	end
+
+	if not aSecretContext then
+		return true, tDebuffInfo[1], floor(tDebuffInfo[2] - GetTime()), tDebuffInfo[3], tDebuffInfo[4];
+	end
+
+	tAuraInstanceId = VUHDO_getDebuffTypeAuraInstanceId(anInfo["unit"], VUHDO_DEBUFF_TYPE_MAGIC);
+	tSecretColor = nil;
+	tCurve = aSecretContext["dispelCurve"] or VUHDO_getDispelCurveForUnit(anInfo["unit"], true);
+
+	if tAuraInstanceId and tCurve then
+		tSecretColor = GetAuraDispelTypeColor(anInfo["unit"], tAuraInstanceId, tCurve);
+	end
+
+	return true, tDebuffInfo[1], -1, tDebuffInfo[3], tDebuffInfo[4], nil, nil, nil, nil, nil, nil, tAuraInstanceId, tSecretColor;
+
 end
 
 
 
 --
 local tDebuffInfo;
-local function VUHDO_debuffDiseaseValidator(anInfo, _)
+local tAuraInstanceId;
+local function VUHDO_debuffDiseaseValidator(anInfo, _, aSecretContext)
+
 	tDebuffInfo = VUHDO_getUnitDebuffSchoolInfos(anInfo["unit"], VUHDO_DEBUFF_TYPE_DISEASE);
-	if tDebuffInfo[2] then
-		return true, tDebuffInfo[1], floor(tDebuffInfo[2] - GetTime()), tDebuffInfo[3], tDebuffInfo[4];
-	else
+
+	if not tDebuffInfo[2] then
 		return false, nil, -1, -1, -1;
 	end
+
+	if not aSecretContext then
+		return true, tDebuffInfo[1], floor(tDebuffInfo[2] - GetTime()), tDebuffInfo[3], tDebuffInfo[4];
+	end
+
+	tAuraInstanceId = VUHDO_getDebuffTypeAuraInstanceId(anInfo["unit"], VUHDO_DEBUFF_TYPE_DISEASE);
+	tSecretColor = nil;
+	tCurve = aSecretContext["dispelCurve"] or VUHDO_getDispelCurveForUnit(anInfo["unit"], true);
+
+	if tAuraInstanceId and tCurve then
+		tSecretColor = GetAuraDispelTypeColor(anInfo["unit"], tAuraInstanceId, tCurve);
+	end
+
+	return true, tDebuffInfo[1], -1, tDebuffInfo[3], tDebuffInfo[4], nil, nil, nil, nil, nil, nil, tAuraInstanceId, tSecretColor;
+
 end
 
 
 
 --
 local tDebuffInfo;
-local function VUHDO_debuffPoisonValidator(anInfo, _)
+local tAuraInstanceId;
+local function VUHDO_debuffPoisonValidator(anInfo, _, aSecretContext)
+
 	tDebuffInfo = VUHDO_getUnitDebuffSchoolInfos(anInfo["unit"], VUHDO_DEBUFF_TYPE_POISON);
-	if tDebuffInfo[2] then
-		return true, tDebuffInfo[1], floor(tDebuffInfo[2] - GetTime()), tDebuffInfo[3], tDebuffInfo[4];
-	else
+
+	if not tDebuffInfo[2] then
 		return false, nil, -1, -1, -1;
 	end
+
+	if not aSecretContext then
+		return true, tDebuffInfo[1], floor(tDebuffInfo[2] - GetTime()), tDebuffInfo[3], tDebuffInfo[4];
+	end
+
+	tAuraInstanceId = VUHDO_getDebuffTypeAuraInstanceId(anInfo["unit"], VUHDO_DEBUFF_TYPE_POISON);
+	tSecretColor = nil;
+	tCurve = aSecretContext["dispelCurve"] or VUHDO_getDispelCurveForUnit(anInfo["unit"], true);
+
+	if tAuraInstanceId and tCurve then
+		tSecretColor = GetAuraDispelTypeColor(anInfo["unit"], tAuraInstanceId, tCurve);
+	end
+
+	return true, tDebuffInfo[1], -1, tDebuffInfo[3], tDebuffInfo[4], nil, nil, nil, nil, nil, nil, tAuraInstanceId, tSecretColor;
+
 end
 
 
 
 --
 local tDebuffInfo;
-local function VUHDO_debuffCurseValidator(anInfo, _)
+local tAuraInstanceId;
+local function VUHDO_debuffCurseValidator(anInfo, _, aSecretContext)
+
 	tDebuffInfo = VUHDO_getUnitDebuffSchoolInfos(anInfo["unit"], VUHDO_DEBUFF_TYPE_CURSE);
-	if tDebuffInfo[2] then
-		return true, tDebuffInfo[1], floor(tDebuffInfo[2] - GetTime()), tDebuffInfo[3], tDebuffInfo[4];
-	else
+
+	if not tDebuffInfo[2] then
 		return false, nil, -1, -1, -1;
 	end
+
+	if not aSecretContext then
+		return true, tDebuffInfo[1], floor(tDebuffInfo[2] - GetTime()), tDebuffInfo[3], tDebuffInfo[4];
+	end
+
+	tAuraInstanceId = VUHDO_getDebuffTypeAuraInstanceId(anInfo["unit"], VUHDO_DEBUFF_TYPE_CURSE);
+	tSecretColor = nil;
+	tCurve = aSecretContext["dispelCurve"] or VUHDO_getDispelCurveForUnit(anInfo["unit"], true);
+
+	if tAuraInstanceId and tCurve then
+		tSecretColor = GetAuraDispelTypeColor(anInfo["unit"], tAuraInstanceId, tCurve);
+	end
+
+	return true, tDebuffInfo[1], -1, tDebuffInfo[3], tDebuffInfo[4], nil, nil, nil, nil, nil, nil, tAuraInstanceId, tSecretColor;
+
 end
 
 
 
 --
 local tDebuffInfo;
-local function VUHDO_debuffBleedValidator(anInfo, _)
+local tAuraInstanceId;
+local function VUHDO_debuffBleedValidator(anInfo, _, aSecretContext)
 
 	tDebuffInfo = VUHDO_getUnitDebuffSchoolInfos(anInfo["unit"], VUHDO_DEBUFF_TYPE_BLEED);
 
-	if tDebuffInfo[2] then
-		return true, tDebuffInfo[1], floor(tDebuffInfo[2] - GetTime()), tDebuffInfo[3], tDebuffInfo[4];
-	else
+	if not tDebuffInfo[2] then
 		return false, nil, -1, -1, -1;
 	end
+
+	if not aSecretContext then
+		return true, tDebuffInfo[1], floor(tDebuffInfo[2] - GetTime()), tDebuffInfo[3], tDebuffInfo[4];
+	end
+
+	tAuraInstanceId = VUHDO_getDebuffTypeAuraInstanceId(anInfo["unit"], VUHDO_DEBUFF_TYPE_BLEED);
+	tSecretColor = nil;
+	tCurve = aSecretContext["dispelCurve"] or VUHDO_getDispelCurveForUnit(anInfo["unit"], true);
+
+	if tAuraInstanceId and tCurve then
+		tSecretColor = GetAuraDispelTypeColor(anInfo["unit"], tAuraInstanceId, tCurve);
+	end
+
+	return true, tDebuffInfo[1], -1, tDebuffInfo[3], tDebuffInfo[4], nil, nil, nil, nil, nil, nil, tAuraInstanceId, tSecretColor;
+
+end
+
+
+
+--
+local tDebuffInfo;
+local tAuraInstanceId;
+local function VUHDO_debuffEnrageValidator(anInfo, _, aSecretContext)
+
+	tDebuffInfo = VUHDO_getUnitDebuffSchoolInfos(anInfo["unit"], VUHDO_DEBUFF_TYPE_ENRAGE);
+
+	if not tDebuffInfo[2] then
+		return false, nil, -1, -1, -1;
+	end
+
+	if not aSecretContext then
+		return true, tDebuffInfo[1], floor(tDebuffInfo[2] - GetTime()), tDebuffInfo[3], tDebuffInfo[4];
+	end
+
+	tAuraInstanceId = VUHDO_getDebuffTypeAuraInstanceId(anInfo["unit"], VUHDO_DEBUFF_TYPE_ENRAGE);
+	tSecretColor = nil;
+	tCurve = aSecretContext["dispelCurve"] or VUHDO_getDispelCurveForUnit(anInfo["unit"], true);
+
+	if tAuraInstanceId and tCurve then
+		tSecretColor = GetAuraDispelTypeColor(anInfo["unit"], tAuraInstanceId, tCurve);
+	end
+
+	return true, tDebuffInfo[1], -1, tDebuffInfo[3], tDebuffInfo[4], nil, nil, nil, nil, nil, nil, tAuraInstanceId, tSecretColor;
 
 end
 
@@ -355,15 +561,138 @@ end
 
 -- return tIsActive, tIcon, tTimer, tCounter, tDuration, tColor, tTimer2, clipLeft, clipRight, clipTop, clipBottom
 local tDebuffInfo;
-local function VUHDO_debuffBarColorValidator(anInfo, _)
+local tBarColor;
+local tTextColor;
+local tCurve;
+local tCanColorBar;
+local tCanColorText;
+local function VUHDO_debuffBarColorValidator(anInfo, _, aSecretContext)
+
+	if not sSecretsEnabled or VUHDO_isConfigDemoUsers() then
+		if anInfo["charmed"] then
+			return true, nil, -1, -1, -1, VUHDO_PANEL_SETUP["BAR_COLORS"]["CHARMED"];
+		elseif anInfo["debuff"] then
+			if VUHDO_isConfigDemoUsers() then
+				tBarColor = VUHDO_PANEL_SETUP["BAR_COLORS"]["DEBUFF" .. anInfo["debuff"]];
+
+				if tBarColor then
+					return true, nil, -1, -1, -1, tBarColor;
+				end
+			end
+
+			tCanColorBar = VUHDO_getAuraCanColorBar(anInfo["unit"]);
+			tCanColorText = VUHDO_getAuraCanColorText(anInfo["unit"]);
+
+			if tCanColorBar or tCanColorText then
+				tBarColor = tCanColorBar and VUHDO_getAuraBarColor(anInfo["unit"]) or nil;
+
+				if tBarColor then
+					sMergedAuraColorBuffer["R"] = tBarColor["R"];
+					sMergedAuraColorBuffer["G"] = tBarColor["G"];
+					sMergedAuraColorBuffer["B"] = tBarColor["B"];
+					sMergedAuraColorBuffer["O"] = tBarColor["O"];
+
+					sMergedAuraColorBuffer["useBackground"] = true;
+				else
+					sMergedAuraColorBuffer["R"] = nil;
+					sMergedAuraColorBuffer["G"] = nil;
+					sMergedAuraColorBuffer["B"] = nil;
+					sMergedAuraColorBuffer["O"] = nil;
+
+					sMergedAuraColorBuffer["useBackground"] = nil;
+				end
+
+				tTextColor = tCanColorText and VUHDO_getAuraTextColor(anInfo["unit"]) or nil;
+
+				if tTextColor then
+					sMergedAuraColorBuffer["TR"] = tTextColor["TR"];
+					sMergedAuraColorBuffer["TG"] = tTextColor["TG"];
+					sMergedAuraColorBuffer["TB"] = tTextColor["TB"];
+					sMergedAuraColorBuffer["TO"] = tTextColor["TO"];
+
+					sMergedAuraColorBuffer["useText"] = true;
+				else
+					sMergedAuraColorBuffer["TR"] = nil;
+					sMergedAuraColorBuffer["TG"] = nil;
+					sMergedAuraColorBuffer["TB"] = nil;
+					sMergedAuraColorBuffer["TO"] = nil;
+
+					sMergedAuraColorBuffer["useText"] = nil;
+				end
+
+				return true, nil, -1, -1, -1, sMergedAuraColorBuffer;
+			end
+
+			tDebuffInfo = VUHDO_getChosenDebuffInfo(anInfo["unit"]);
+
+			return true, tDebuffInfo[1], -1, tDebuffInfo[3], -1, VUHDO_getDebuffColor(anInfo);
+		else
+			return false, nil, -1, -1, -1;
+		end
+	end
+
+	if not aSecretContext then
+		if anInfo["charmed"] then
+			return true, nil, -1, -1, -1, VUHDO_PANEL_SETUP["BAR_COLORS"]["CHARMED"];
+		elseif anInfo["debuff"] then
+			return true, nil, -1, -1, -1, nil, nil, nil, nil, nil, nil, anInfo["debuff"];
+		else
+			return false, nil, -1, -1, -1;
+		end
+	end
+
 	if anInfo["charmed"] then
-		return true, nil, -1, -1, -1, VUHDO_getDebuffColor(anInfo);
-	elseif anInfo["debuff"] and anInfo["debuff"] > 0 then -- VUHDO_DEBUFF_TYPE_NONE
-		tDebuffInfo = VUHDO_getChosenDebuffInfo(anInfo["unit"]);
-		return true, tDebuffInfo[1], -1, tDebuffInfo[3], -1, VUHDO_getDebuffColor(anInfo);
+		return true, nil, -1, -1, -1, VUHDO_PANEL_SETUP["BAR_COLORS"]["CHARMED"];
+	elseif anInfo["debuff"] then
+		tCurve = aSecretContext["dispelCurve"];
+		tCanColorBar = VUHDO_getAuraCanColorBar(anInfo["unit"]);
+		tCanColorText = VUHDO_getAuraCanColorText(anInfo["unit"]);
+
+		if tCanColorBar or tCanColorText then
+			tBarColor = tCanColorBar and VUHDO_getAuraBarColor(anInfo["unit"], tCurve) or nil;
+
+			if tBarColor then
+				sMergedAuraColorBuffer["R"] = tBarColor["R"];
+				sMergedAuraColorBuffer["G"] = tBarColor["G"];
+				sMergedAuraColorBuffer["B"] = tBarColor["B"];
+				sMergedAuraColorBuffer["O"] = tBarColor["O"];
+
+				sMergedAuraColorBuffer["useBackground"] = true;
+			else
+				sMergedAuraColorBuffer["R"] = nil;
+				sMergedAuraColorBuffer["G"] = nil;
+				sMergedAuraColorBuffer["B"] = nil;
+				sMergedAuraColorBuffer["O"] = nil;
+
+				sMergedAuraColorBuffer["useBackground"] = nil;
+			end
+
+			tTextColor = tCanColorText and VUHDO_getAuraTextColor(anInfo["unit"], aSecretContext["dispelTextCurve"]) or nil;
+
+			if tTextColor then
+				sMergedAuraColorBuffer["TR"] = tTextColor["TR"];
+				sMergedAuraColorBuffer["TG"] = tTextColor["TG"];
+				sMergedAuraColorBuffer["TB"] = tTextColor["TB"];
+				sMergedAuraColorBuffer["TO"] = tTextColor["TO"];
+
+				sMergedAuraColorBuffer["useText"] = true;
+			else
+				sMergedAuraColorBuffer["TR"] = nil;
+				sMergedAuraColorBuffer["TG"] = nil;
+				sMergedAuraColorBuffer["TB"] = nil;
+				sMergedAuraColorBuffer["TO"] = nil;
+
+				sMergedAuraColorBuffer["useText"] = nil;
+			end
+
+			return true, nil, -1, -1, -1, sMergedAuraColorBuffer, nil, nil, nil, nil, nil, nil, nil;
+		end
+
+		return false, nil, -1, -1, -1;
 	else
 		return false, nil, -1, -1, -1;
 	end
+
 end
 
 
@@ -440,203 +769,7 @@ end
 
 
 
---
-local function VUHDO_healthBelowValidator(anInfo, aSomeCustom)
-	if anInfo["healthmax"] > 0 then
-		return 100 * anInfo["health"] / anInfo["healthmax"] < aSomeCustom["custom"][1],
-			nil, -1, -1, -1;
-	else
-		return false, nil, -1, -1, -1;
-	end
-end
 
-
-
---
-local function VUHDO_healthAboveValidator(anInfo, aSomeCustom)
-	if anInfo["healthmax"] > 0 then
-		return 100 * anInfo["health"] / anInfo["healthmax"] >= aSomeCustom["custom"][1],
-			nil, -1, -1, -1;
-	else
-		return false, nil, -1, -1, -1;
-	end
-end
-
-
-
---
-local function VUHDO_healthBelowAbsValidator(anInfo, aSomeCustom)
-	return anInfo["health"] * 0.001 < aSomeCustom["custom"][1], nil, -1, -1, -1;
-end
-
-
-
---
-local function VUHDO_healthAboveAbsValidator(anInfo, aSomeCustom)
-	return anInfo["health"] * 0.001 >= aSomeCustom["custom"][1], nil, -1, -1, -1;
-end
-
-
-
---
-local function VUHDO_manaBelowValidator(anInfo, aSomeCustom)
-	if anInfo["powermax"] > 0 then
-		return anInfo["powertype"] == 0 and 100 * anInfo["power"] / anInfo["powermax"] < aSomeCustom["custom"][1],
-			nil, -1, -1, -1;
-	else
-		return false, nil, -1, -1, -1;
-	end
-end
-
-
-
---
-local function VUHDO_threatAboveValidator(anInfo, aSomeCustom)
-	return anInfo["threatPerc"] > aSomeCustom["custom"][1], nil, -1, -1, -1;
-end
-
-
-
---
-local tPerc;
-local function VUHDO_alternatePowersAboveValidator(anInfo, aSomeCustom)
-	if anInfo["connected"] and anInfo["isAltPower"] and not anInfo["dead"] then
-		tPerc = 100 * (UnitPower(anInfo["unit"], ALTERNATE_POWER_INDEX) or 0) / (UnitPowerMax(anInfo["unit"], ALTERNATE_POWER_INDEX) or 100);
-		return tPerc > aSomeCustom["custom"][1], nil, -1, -1, -1;
-	else
-		return false, nil, -1, -1, -1;
-	end
-
-end
-
-
-
---
-local tPower;
-local function VUHDO_holyPowersEqualsValidator(anInfo, aSomeCustom)
-	if anInfo["connected"] and not anInfo["dead"] then
-		tPower = UnitPower(anInfo["unit"], VUHDO_UNIT_POWER_HOLY_POWER);
-		if tPower == aSomeCustom["custom"][1] then
-			return true, nil, tPower, -1, UnitPowerMax(anInfo["unit"], VUHDO_UNIT_POWER_HOLY_POWER);
-		else
-			return false, nil, -1, -1, -1;
-		end
-	else
-		return false, nil, tPower, -1, -1;
-	end
-end
-
-
-
---
-local function VUHDO_chiEqualsValidator(anInfo, aSomeCustom)
-	if anInfo["connected"] and not anInfo["dead"] then
-		tPower = UnitPower(anInfo["unit"], VUHDO_UNIT_POWER_CHI);
-		if tPower == aSomeCustom["custom"][1] then
-			return true, nil, tPower, -1, UnitPowerMax(anInfo["unit"], VUHDO_UNIT_POWER_CHI);
-		else
-			return false, nil, -1, -1, -1;
-		end
-	else
-		return false, nil, tPower, -1, -1;
-	end
-end
-
-
-
---
-local function VUHDO_comboPointsEqualsValidator(anInfo, aSomeCustom)
-	if anInfo["connected"] and not anInfo["dead"] then
-		tPower = UnitPower(anInfo["unit"], VUHDO_UNIT_POWER_COMBO_POINTS);
-		if tPower == aSomeCustom["custom"][1] then
-			return true, nil, tPower, -1, UnitPowerMax(anInfo["unit"], VUHDO_UNIT_POWER_COMBO_POINTS);
-		else
-			return false, nil, -1, -1, -1;
-		end
-	else
-		return false, nil, tPower, -1, -1;
-	end
-end
-
-
-
---
-local function VUHDO_soulShardsEqualsValidator(anInfo, aSomeCustom)
-	if anInfo["connected"] and not anInfo["dead"] then
-		tPower = UnitPower(anInfo["unit"], VUHDO_UNIT_POWER_SOUL_SHARDS);
-		if tPower == aSomeCustom["custom"][1] then
-			return true, nil, tPower, -1, UnitPowerMax(anInfo["unit"], VUHDO_UNIT_POWER_SOUL_SHARDS);
-		else
-			return false, nil, -1, -1, -1;
-		end
-	else
-		return false, nil, tPower, -1, -1;
-	end
-end
-
-
-
---
-local tIsRuneReady;
-local function VUHDO_runesEqualsValidator(anInfo, aSomeCustom)
-	if anInfo["unit"] ~= "player" then
-		return false, nil, -1, -1, -1;
-	elseif anInfo["connected"] and not anInfo["dead"] then
-		tPower = 0;
-
-		for i = 1, 6 do
-			_, _, tIsRuneReady = GetRuneCooldown(i);
-
-			tPower = tPower + (tIsRuneReady and 1 or 0);
-		end
-
-		if tPower == aSomeCustom["custom"][1] then
-			return true, nil, tPower, -1, UnitPowerMax(anInfo["unit"], VUHDO_UNIT_POWER_RUNES);
-		else
-			return false, nil, -1, -1, -1;
-		end
-	else
-		return false, nil, tPower, -1, -1;
-	end
-end
-
-
-
---
-local function VUHDO_arcaneChargesEqualsValidator(anInfo, aSomeCustom)
-	if anInfo["connected"] and not anInfo["dead"] then
-		tPower = UnitPower(anInfo["unit"], VUHDO_UNIT_POWER_ARCANE_CHARGES);
-		if tPower == aSomeCustom["custom"][1] then
-			return true, nil, tPower, -1, UnitPowerMax(anInfo["unit"], VUHDO_UNIT_POWER_ARCANE_CHARGES);
-		else
-			return false, nil, -1, -1, -1;
-		end
-	else
-		return false, nil, tPower, -1, -1;
-	end
-end
-
-
-
---
-local function VUHDO_durationAboveValidator(anInfo, aSomeCustom)
-	if VUHDO_getIsCurrentBouquetActive() then
-		return VUHDO_getCurrentBouquetTimer() > aSomeCustom["custom"][1], nil, -1, -1, -1;
-	else
-		return false, nil, -1, -1, -1;
-	end
-end
-
-
-
---
-local function VUHDO_durationBelowValidator(anInfo, aSomeCustom)
-	if VUHDO_getIsCurrentBouquetActive() then
-		return VUHDO_getCurrentBouquetTimer() < aSomeCustom["custom"][1], nil, -1, -1, -1;
-	else
-		return false, nil, -1, -1, -1;
-	end
-end
 
 
 
@@ -673,7 +806,12 @@ end
 local tIsRaidIconColor;
 local tColor, tIcon;
 local function VUHDO_raidTargetValidator(anInfo, _)
+
 	if anInfo["raidIcon"] then
+		if anInfo["hasSecretRaidIcon"] then
+			return true, nil, -1, -1, -1, sBarColors["RAID_ICONS"]["1"];
+		end
+
 		tIcon = tostring(anInfo["raidIcon"]);
 		tIsRaidIconColor = not sBarColors["RAID_ICONS"]["filterOnly"] or VUHDO_PANEL_SETUP["RAID_ICON_FILTER"][tIcon];
 
@@ -690,45 +828,7 @@ end
 
 
 
---
-local tOverheal;
-local function VUHDO_overhealHighlightValidator(anInfo, _)
-	tOverheal = VUHDO_getIncHealOnUnit(anInfo["unit"]) + anInfo["health"];
-	if tOverheal > anInfo["healthmax"] and anInfo["healthmax"] > 0 then
-		VUHDO_brightenColor(VUHDO_getCurrentBouquetColor(), tOverheal / anInfo["healthmax"]);
-	end
-	return false, nil, -1, -1, -1;
-end
 
-
-
-
---
-local tStacks;
-local function VUHDO_stacksColorValidator(anInfo, _)
-	tStacks = VUHDO_getCurrentBouquetStacks() or 0;
-	if tStacks > 4 then	tStacks = 4; end
-
-	if tStacks > 1 then
-		return true, nil, -1, -1, -1, VUHDO_copyColor(sBarColors[VUHDO_CHARGE_COLORS[tStacks]]);
-	else
-		return false, nil, -1, -1, -1;
-	end
-end
-
-
-
---
-local tStacks;
-local function VUHDO_stacksValidator(anInfo, aSomeCustom)
-	tStacks = VUHDO_getCurrentBouquetStacks() or 0;
-
-	if tStacks > aSomeCustom["custom"][1] then
-		return true, nil, -1, -1, -1;
-	else
-		return false, nil, -1, -1, -1;
-	end
-end
 
 
 
@@ -768,123 +868,7 @@ end
 
 -- return tIsActive, tIcon, tTimer, tCounter, tDuration, tColor, tTimer2, clipLeft, clipRight, clipTop, clipBottom
 
---
-local function VUHDO_statusHealthValidator(anInfo, _)
 
-	return true, nil, anInfo["health"], -1, anInfo["healthmax"], nil, anInfo["health"];
-
-end
-
-
-
---
-local function VUHDO_statusManaValidator(anInfo, _)
-	return anInfo["powertype"] == 0, nil, anInfo["power"], -1,
-		anInfo["powermax"], VUHDO_copyColor(VUHDO_POWER_TYPE_COLORS[0]);
-end
-
-
-
---
-local function VUHDO_statusManaHealerOnlyValidator(anInfo, _)
-	return (anInfo["powertype"] == 0 and anInfo["role"] == VUHDO_ID_RANGED_HEAL), nil, anInfo["power"], -1,
-		anInfo["powermax"], VUHDO_copyColor(VUHDO_POWER_TYPE_COLORS[0]);
-end
-
-
-
---
-local function VUHDO_statusPowerTankOnlyValidator(anInfo, _)
-	return (anInfo["powertype"] ~= 0 and anInfo["role"] == VUHDO_ID_MELEE_TANK), nil, anInfo["power"], -1,
-		anInfo["powermax"], VUHDO_copyColor(VUHDO_POWER_TYPE_COLORS[anInfo["powertype"] or 0]);
-end
-
-
-
---
-local function VUHDO_statusOtherPowersValidator(anInfo, _)
-	return anInfo["powertype"] ~= 0, nil, anInfo["power"], -1,
-		anInfo["powermax"], VUHDO_copyColor(VUHDO_POWER_TYPE_COLORS[anInfo["powertype"] or 0]);
-end
-
-
-
---
-local function VUHDO_statusAlternatePowersValidator(anInfo, _)
-	if anInfo["connected"] and anInfo["isAltPower"] and not anInfo["dead"] then
-		return true, nil, UnitPower(anInfo["unit"], ALTERNATE_POWER_INDEX) or 0, -1,
-			UnitPowerMax(anInfo["unit"], ALTERNATE_POWER_INDEX) or 100;
-	else
-		return false, nil, -1, -1, -1;
-	end
-end
-
-
-
---
-local function VUHDO_statusIncomingValidator(anInfo, _)
-	return true, nil, VUHDO_getIncHealOnUnit(anInfo["unit"]), -1, anInfo["healthmax"];
-end
-
-
-
---
-local function VUHDO_statusExcessAbsorbValidator(anInfo, _)
-	local healthmax = anInfo["healthmax"];
-
-	local excessAbsorb = (UnitGetTotalAbsorbs(anInfo["unit"]) or 0) + anInfo["health"] - healthmax;
-
-	if excessAbsorb < 0 then
-		return true, nil, 0, -1, healthmax;
-	end
-
-	return true, nil, excessAbsorb, -1, healthmax;
-end
-
-
-
---
-local function VUHDO_statusTotalAbsorbValidator(anInfo, _)
-	return true, nil, UnitGetTotalAbsorbs(anInfo["unit"]) or 0, -1, anInfo["healthmax"];
-end
-
-
-
---
-local function VUHDO_statusThreatValidator(anInfo, _)
-	return true, nil, anInfo["threatPerc"], -1, 100;
-end
-
-
-
---
-local function VUHDO_statusAlwaysFullValidator(_, _)
-	return true, nil, 100, -1, 100, nil, 100;
-end
-
--- return tIsActive, tIcon, tTimer, tCounter, tDuration, tColor, tTimer2, clipLeft, clipRight, clipTop, clipBottom
-
---
-local function VUHDO_statusFullIfActiveValidator(_, _)
-	if VUHDO_getIsCurrentBouquetActive() then
-		return true, nil, 100, -1, 100, VUHDO_getCurrentBouquetColor(), 100;
-	else
-		return false, nil, -1, -1, -1;
-	end
-end
-
-
-
---
-local function VUHDO_statusHealthIfActiveValidator(anInfo, _)
-
-	if VUHDO_getIsCurrentBouquetActive() then
-		return true, nil, anInfo["health"], -1, anInfo["healthmax"], VUHDO_getCurrentBouquetColor(), anInfo["health"];
-	else
-		return false, nil, -1, -1, -1;
-	end
-
-end
 
 
 
@@ -894,11 +878,11 @@ local function VUHDO_hasSummonIconValidator(anInfo, _)
 		local status = C_IncomingSummon.IncomingSummonStatus(anInfo["unit"]);
 
 		if (status == Enum.SummonStatus.Pending) then
-			return true, "Raid-Icon-SummonPending", -1, -1, -1, nil, nil, 0, 1, 0, 1;
+			return true, "RaidFrame-Icon-SummonPending", -1, -1, -1, nil, nil, 0, 1, 0, 1;
 		elseif (status == Enum.SummonStatus.Accepted) then
-			return true, "Raid-Icon-SummonAccepted", -1, -1, -1, nil, nil, 0, 1, 0, 1;
+			return true, "RaidFrame-Icon-SummonAccepted", -1, -1, -1, nil, nil, 0, 1, 0, 1;
 		elseif (status == Enum.SummonStatus.Declined) then
-			return true, "Raid-Icon-SummonDeclined", -1, -1, -1, nil, nil, 0, 1, 0, 1;
+			return true, "RaidFrame-Icon-SummonDeclined", -1, -1, -1, nil, nil, 0, 1, 0, 1;
 		else
 			return false, nil, -1, -1, -1;
 		end
@@ -923,13 +907,15 @@ end
 --
 local tIndex;
 local function VUHDO_raidIconValidator(anInfo, _)
+
 	tIndex = GetRaidTargetIndex(anInfo["unit"]);
 
 	if tIndex then
-		return true, "interface\\targetingframe\\ui-raidtargetingicons", -1, -1, -1, nil, nil, VUHDO_getRaidTargetIconTexture(tIndex);
-	else
-		return false, nil, -1, -1, -1;
+		return true, "interface\\targetingframe\\ui-raidtargetingicons", -1, -1, -1, nil, nil, nil, nil, nil, nil, tIndex;
 	end
+
+	return false, nil, -1, -1, -1;
+
 end
 
 
@@ -937,13 +923,15 @@ end
 --
 local tIndex;
 local function VUHDO_raidIconTargetValidator(anInfo, _)
+
 	tIndex = UnitExists(anInfo["targetUnit"] or "foo") and GetRaidTargetIndex(anInfo["targetUnit"]);
 
 	if tIndex then
-		return true, "interface\\targetingframe\\ui-raidtargetingicons", -1, -1, -1, nil, nil, VUHDO_getRaidTargetIconTexture(tIndex);
-	else
-		return false, nil, -1, -1, -1;
+		return true, "interface\\targetingframe\\ui-raidtargetingicons", -1, -1, -1, nil, nil, nil, nil, nil, nil, tIndex;
 	end
+
+	return false, nil, -1, -1, -1;
+
 end
 
 
@@ -1193,20 +1181,40 @@ end
 
 --
 local function VUHDO_classColorIfActiveValidator(anInfo, _)
+
+	if not VUHDO_USER_CLASS_COLORS then
+		VUHDO_initClassColors();
+	end
+
 	if VUHDO_getIsCurrentBouquetActive() then
-		return true, nil, -1, -1, -1,
-			VUHDO_copyColor(VUHDO_USER_CLASS_COLORS[anInfo["classId"]]);
+		if VUHDO_USER_CLASS_COLORS and VUHDO_USER_CLASS_COLORS[anInfo["classId"]] then
+			return true, nil, -1, -1, -1,
+				VUHDO_copyColor(VUHDO_USER_CLASS_COLORS[anInfo["classId"]]);
+		else
+			return true, nil, -1, -1, -1, nil;
+		end
 	else
 		return false, nil, -1, -1, -1;
 	end
+
 end
 
 
 
 --
 local function VUHDO_classColorValidator(anInfo, _)
-	return true, nil, -1, -1, -1,
-		VUHDO_copyColor(VUHDO_USER_CLASS_COLORS[anInfo["classId"]]);
+
+	if not VUHDO_USER_CLASS_COLORS then
+		VUHDO_initClassColors();
+	end
+
+	if VUHDO_USER_CLASS_COLORS and VUHDO_USER_CLASS_COLORS[anInfo["classId"]] then
+		return true, nil, -1, -1, -1,
+			VUHDO_copyColor(VUHDO_USER_CLASS_COLORS[anInfo["classId"]]);
+	else
+		return true, nil, -1, -1, -1, nil;
+	end
+
 end
 
 
@@ -1331,49 +1339,63 @@ local exec_env = setmetatable({}, {
 
 --
 function env_getglobal(k)
+
 	return exec_env[k];
+
 end
 
 
 
 --
+local tCustomCodeString;
+local tCodeHash;
+local tCachedFunction;
+local tLoadedFunction
+local tErrorString;
 local function VUHDO_customFlagValidator(anInfo, aCustom)
+
 	if aCustom and aCustom["custom"] and aCustom["custom"]["function"] then
-		local customCodeString = "return true;";
+		tCustomCodeString = "return true;";
 
 		-- compatibility with prior alphas where default code string was '1'
 		if aCustom["custom"]["function"] ~= "1" then
-			customCodeString = aCustom["custom"]["function"];
+			tCustomCodeString = aCustom["custom"]["function"];
 		end
 
-		local loadedFunction, errorString = loadstring("local VUHDO_unitInfo = _G[\"VUHDO_anInfo\"]; " .. customCodeString);
+		tCodeHash = VUHDO_getCustomCodeHash(tCustomCodeString);
+		tCachedFunction = sCustomFlagCache[tCodeHash];
 
-		if loadedFunction then
+		if not tCachedFunction then
+			tLoadedFunction, tErrorString = loadstring("local VUHDO_unitInfo = _G[\"VUHDO_anInfo\"]; " .. tCustomCodeString);
+
+			if tLoadedFunction then
+				setfenv(tLoadedFunction, exec_env);
+
+				sCustomFlagCache[tCodeHash] = tLoadedFunction;
+				tCachedFunction = tLoadedFunction;
+			else
+				DEFAULT_CHAT_FRAME:AddMessage(VUHDO_I18N_ERROR_CUSTOM_FLAG_LOAD, 1.0, 0.0, 0.0);
+				DEFAULT_CHAT_FRAME:AddMessage(tErrorString, 1.0, 0.0, 0.0);
+				DEFAULT_CHAT_FRAME:AddMessage(VUHDO_I18N_ERROR_INVALID_VALIDATOR, 1.0, 0.0, 0.0);
+				DEFAULT_CHAT_FRAME:AddMessage(aCustom["custom"]["function"], 1.0, 0.0, 0.0);
+
+				return false, nil, -1, -1, -1;
+			end
+		end
+
+		if tCachedFunction then
 			_G["VUHDO_anInfo"] = anInfo;
-			setfenv(loadedFunction, exec_env);
-			local _, ret, ret2, ret3, ret4, ret5 = xpcall(loadedFunction, 
-				function() 
-					DEFAULT_CHAT_FRAME:AddMessage(VUHDO_I18N_ERROR_CUSTOM_FLAG_EXECUTE, 1.0, 0.0, 0.0);
-					DEFAULT_CHAT_FRAME:AddMessage(debugstack(1, 2, 0), 1.0, 0.0, 0.0);
-					DEFAULT_CHAT_FRAME:AddMessage(VUHDO_I18N_ERROR_INVALID_VALIDATOR, 1.0, 0.0, 0.0);
-					DEFAULT_CHAT_FRAME:AddMessage(aCustom["custom"]["function"], 1.0, 0.0, 0.0);
 
-					return false, nil, -1, -1, -1; 
-				end
-			);
+			local _, ret, ret2, ret3, ret4, ret5 = xpcall(tCachedFunction, sCustomFlagErrorHandler);
 
 			if ret and ret == true then
 				return true, nil, -1, -1, -1;
 			end
-		else
-			DEFAULT_CHAT_FRAME:AddMessage(VUHDO_I18N_ERROR_CUSTOM_FLAG_LOAD, 1.0, 0.0, 0.0);
-			DEFAULT_CHAT_FRAME:AddMessage(errorString, 1.0, 0.0, 0.0);
-			DEFAULT_CHAT_FRAME:AddMessage(VUHDO_I18N_ERROR_INVALID_VALIDATOR, 1.0, 0.0, 0.0);
-			DEFAULT_CHAT_FRAME:AddMessage(aCustom["custom"]["function"], 1.0, 0.0, 0.0);
 		end
 	end
 
 	return false, nil, -1, -1, -1;
+
 end
 
 
@@ -1398,72 +1420,7 @@ end
 
 
 
---
-local tShieldLeft;
-local function VUHDO_overflowCountValidator(anInfo, _)
-	tShieldLeft = select(16, VUHDO_unitDebuff(anInfo["unit"], VUHDO_SPELL_ID.DEBUFF_OVERFLOW)) or 0;
-	return tShieldLeft >= 1000, nil, -1, floor(tShieldLeft * 0.001 + 0.5), -1;
-end
 
-
-
---
-local tShieldLeft;
-local function VUHDO_shieldCountValidator(anInfo, _)
-	tShieldLeft = VUHDO_getUnitOverallShieldRemain(anInfo["unit"]);
-	return tShieldLeft >= 1000, nil, -1, floor(tShieldLeft * 0.001 + 0.5), -1;
-end
-
-
-
---
-local tActiveAuras;
-local function VUHDO_activeAurasCountValidator(anInfo, _)
-
-	tActiveAuras = VUHDO_getCurrentBouquetActiveAuras(anInfo["unit"]) or 0;
-	return tActiveAuras > 0, nil, -1, tActiveAuras, -1;
-
-end
-
-
-
---
-local tShieldLeft, tHealthMax;
-local function VUHDO_statusShieldFromHealthValidator(anInfo, _)
-	tHealthMax = anInfo["healthmax"];
-	tShieldLeft = VUHDO_getUnitOverallShieldRemain(anInfo["unit"]);
-	return true, nil, tShieldLeft < tHealthMax and tShieldLeft or tHealthMax, -1, tHealthMax;
-end
-
-
-
---
-local tShieldLeft;
-local function VUHDO_healAbsorbCountValidator(anInfo, _)
-	tShieldLeft = UnitGetTotalHealAbsorbs(anInfo["unit"]) or 0;
-	return tShieldLeft >= 1000, nil, -1, floor(tShieldLeft * 0.001 + 0.5), -1;
-end
-
-
-
---
-local tShieldLeft, tHealthMax;
-local function VUHDO_statusHealAbsorbFromHealthValidator(anInfo, _)
-	tHealthMax = anInfo["healthmax"];
-	tShieldLeft = UnitGetTotalHealAbsorbs(anInfo["unit"]) or 0;
-	return true, nil, tShieldLeft < tHealthMax and tShieldLeft or tHealthMax, -1, tHealthMax;
-end
-
-
-
---
-local tShieldLeft, tHealthMax, tHealth;
-local function VUHDO_statusShieldOvershieldValidator(anInfo, _)
-	tHealthMax = anInfo["healthmax"];
-	tHealth = anInfo["health"];
-	tShieldLeft = VUHDO_getUnitOverallShieldRemain(anInfo["unit"]);
-	return tHealth + tShieldLeft > tHealthMax, nil, tShieldLeft - tHealthMax + tHealth, -1, tHealthMax;
-end
 
 
 
@@ -1548,42 +1505,64 @@ VUHDO_BOUQUET_BUFFS_SPECIAL = {
 		["displayName"] = VUHDO_I18N_BOUQUET_AGGRO,
 		["validator"] = VUHDO_aggroValidator,
 		["interests"] = { VUHDO_UPDATE_AGGRO },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["OUTSIDE_ZONE"] = {
 		["displayName"] = VUHDO_I18N_BOUQUET_OUTSIDE_ZONE,
 		["validator"] = VUHDO_outsideZoneValidator,
 		["interests"] = { },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = true,
 	},
 
 	["INSIDE_ZONE"] = {
 		["displayName"] = VUHDO_I18N_BOUQUET_INSIDE_ZONE,
 		["validator"] = VUHDO_insideZoneValidator,
 		["interests"] = { },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = true,
 	},
 
 	["NO_RANGE"] = {
 		["displayName"] = VUHDO_I18N_BOUQUET_OUT_OF_RANGE,
 		["validator"] = VUHDO_outOfRangeValidator,
 		["interests"] = { VUHDO_UPDATE_RANGE },
+		["secretType"] = VUHDO_SECRET_TYPE_BOOLEAN,
+		["hasValue"] = false,
+		["isGlobal"] = true,
+		["isInverted"] = true,
 	},
 
 	["IN_RANGE"] = {
 		["displayName"] = VUHDO_I18N_BOUQUET_IN_RANGE,
 		["validator"] = VUHDO_inRangeValidator,
 		["interests"] = { VUHDO_UPDATE_RANGE },
+		["secretType"] = VUHDO_SECRET_TYPE_BOOLEAN,
+		["hasValue"] = false,
+		["isGlobal"] = true,
 	},
 
 	["IS_PHASED_ICON"] = {
 		["displayName"] = VUHDO_I18N_BOUQUET_IS_PHASED,
 		["validator"] = VUHDO_isPhasedValidator,
 		["interests"] = { VUHDO_UPDATE_RANGE, VUHDO_UPDATE_PHASE },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = true,
 	},
 
 	["IS_WAR_MODE_PHASED_ICON"] = {
 		["displayName"] = VUHDO_I18N_BOUQUET_IS_WAR_MODE_PHASED,
 		["validator"] = VUHDO_isWarModePhasedValidator,
 		["interests"] = { VUHDO_UPDATE_RANGE, VUHDO_UPDATE_PHASE },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = true,
 	},
 
 	["YARDS_RANGE"] = {
@@ -1592,6 +1571,9 @@ VUHDO_BOUQUET_BUFFS_SPECIAL = {
 		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_PERCENT,
 		["updateCyclic"] = true,
 		["interests"] = { },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["OTHER"] = {
@@ -1599,6 +1581,9 @@ VUHDO_BOUQUET_BUFFS_SPECIAL = {
 		["validator"] = VUHDO_otherPlayersHotsValidator,
 		["updateCyclic"] = true,
 		["interests"] = { },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["SWIFTMEND"] = {
@@ -1606,6 +1591,9 @@ VUHDO_BOUQUET_BUFFS_SPECIAL = {
 		["validator"] = VUHDO_swiftmendValidator,
 		["updateCyclic"] = true,
 		["interests"] = { },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["DEBUFF_MAGIC"] = {
@@ -1613,6 +1601,13 @@ VUHDO_BOUQUET_BUFFS_SPECIAL = {
 		["validator"] = VUHDO_debuffMagicValidator,
 		["updateCyclic"] = true,
 		["interests"] = { VUHDO_UPDATE_DEBUFF },
+		["secretType"] = VUHDO_SECRET_TYPE_DISPEL,
+		["debuffType"] = VUHDO_DEBUFF_TYPE_MAGIC,
+		["hasValue"] = false,
+		["isGlobal"] = false,
+		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_BRIGHTNESS,
+		["buildCurves"] = VUHDO_buildDispelBrightnessCurves,
+		["getCurve"] = VUHDO_getDispelBrightnessCurve,
 	},
 
 	["DEBUFF_DISEASE"] = {
@@ -1620,6 +1615,13 @@ VUHDO_BOUQUET_BUFFS_SPECIAL = {
 		["validator"] = VUHDO_debuffDiseaseValidator,
 		["updateCyclic"] = true,
 		["interests"] = { VUHDO_UPDATE_DEBUFF },
+		["secretType"] = VUHDO_SECRET_TYPE_DISPEL,
+		["debuffType"] = VUHDO_DEBUFF_TYPE_DISEASE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
+		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_BRIGHTNESS,
+		["buildCurves"] = VUHDO_buildDispelBrightnessCurves,
+		["getCurve"] = VUHDO_getDispelBrightnessCurve,
 	},
 
 	["DEBUFF_POISON"] = {
@@ -1627,6 +1629,13 @@ VUHDO_BOUQUET_BUFFS_SPECIAL = {
 		["validator"] = VUHDO_debuffPoisonValidator,
 		["updateCyclic"] = true,
 		["interests"] = { VUHDO_UPDATE_DEBUFF },
+		["secretType"] = VUHDO_SECRET_TYPE_DISPEL,
+		["debuffType"] = VUHDO_DEBUFF_TYPE_POISON,
+		["hasValue"] = false,
+		["isGlobal"] = false,
+		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_BRIGHTNESS,
+		["buildCurves"] = VUHDO_buildDispelBrightnessCurves,
+		["getCurve"] = VUHDO_getDispelBrightnessCurve,
 	},
 
 	["DEBUFF_CURSE"] = {
@@ -1634,6 +1643,13 @@ VUHDO_BOUQUET_BUFFS_SPECIAL = {
 		["validator"] = VUHDO_debuffCurseValidator,
 		["updateCyclic"] = true,
 		["interests"] = { VUHDO_UPDATE_DEBUFF },
+		["secretType"] = VUHDO_SECRET_TYPE_DISPEL,
+		["debuffType"] = VUHDO_DEBUFF_TYPE_CURSE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
+		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_BRIGHTNESS,
+		["buildCurves"] = VUHDO_buildDispelBrightnessCurves,
+		["getCurve"] = VUHDO_getDispelBrightnessCurve,
 	},
 
 	["DEBUFF_BLEED"] = {
@@ -1641,12 +1657,36 @@ VUHDO_BOUQUET_BUFFS_SPECIAL = {
 		["validator"] = VUHDO_debuffBleedValidator,
 		["updateCyclic"] = true,
 		["interests"] = { VUHDO_UPDATE_DEBUFF },
+		["secretType"] = VUHDO_SECRET_TYPE_DISPEL,
+		["debuffType"] = VUHDO_DEBUFF_TYPE_BLEED,
+		["hasValue"] = false,
+		["isGlobal"] = false,
+		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_BRIGHTNESS,
+		["buildCurves"] = VUHDO_buildDispelBrightnessCurves,
+		["getCurve"] = VUHDO_getDispelBrightnessCurve,
+	},
+
+	["DEBUFF_ENRAGE"] = {
+		["displayName"] = VUHDO_I18N_BOUQUET_DEBUFF_ENRAGE,
+		["validator"] = VUHDO_debuffEnrageValidator,
+		["updateCyclic"] = true,
+		["interests"] = { VUHDO_UPDATE_DEBUFF },
+		["secretType"] = VUHDO_SECRET_TYPE_DISPEL,
+		["debuffType"] = VUHDO_DEBUFF_TYPE_ENRAGE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
+		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_BRIGHTNESS,
+		["buildCurves"] = VUHDO_buildDispelBrightnessCurves,
+		["getCurve"] = VUHDO_getDispelBrightnessCurve,
 	},
 
 	["DEBUFF_CHARMED"] = {
 		["displayName"] = VUHDO_I18N_BOUQUET_CHARMED,
 		["validator"] = VUHDO_debuffCharmedValidator,
 		["interests"] = { VUHDO_UPDATE_DEBUFF },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = true,
 	},
 
 	["DEBUFF_BAR_COLOR"] = {
@@ -1655,155 +1695,76 @@ VUHDO_BOUQUET_BUFFS_SPECIAL = {
 		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_BRIGHTNESS,
 		["no_color"] = true,
 		["interests"] = { VUHDO_UPDATE_DEBUFF },
+		["secretType"] = VUHDO_SECRET_TYPE_DISPEL,
+		["hasValue"] = false,
+		["isGlobal"] = false,
+		["buildCurves"] = VUHDO_buildDispelBrightnessCurves,
+		["getCurve"] = VUHDO_getDispelBrightnessCurve,
+		["buildTextCurves"] = VUHDO_buildDispelTextBrightnessCurves,
+		["getTextCurve"] = VUHDO_getDispelTextBrightnessCurve,
 	},
 
 	["DEAD"] = {
 		["displayName"] = VUHDO_I18N_BOUQUET_DEAD,
 		["validator"] = VUHDO_deadValidator,
 		["interests"] = { VUHDO_UPDATE_ALIVE },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = true,
 	},
 
 	["DISCONNECTED"] = {
 		["displayName"] = VUHDO_I18N_BOUQUET_DISCONNECTED,
 		["validator"] = VUHDO_disconnectedValidator,
 		["interests"] = { VUHDO_UPDATE_DC },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = true,
 	},
 
 	["AFK"] = {
 		["displayName"] = VUHDO_I18N_BOUQUET_AFK,
 		["validator"] = VUHDO_afkValidator,
 		["interests"] = { VUHDO_UPDATE_AFK },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = true,
 	},
 
 	["PLAYER_TARGET"] = {
 		["displayName"] = VUHDO_I18N_BOUQUET_PLAYER_TARGET,
 		["validator"] = VUHDO_playerTargetValidator,
 		["interests"] = { VUHDO_UPDATE_TARGET },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["PLAYER_FOCUS"] = {
 		["displayName"] = VUHDO_I18N_BOUQUET_PLAYER_FOCUS,
 		["validator"] = VUHDO_playerFocusValidator,
 		["interests"] = { VUHDO_UPDATE_PLAYER_FOCUS },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["MOUSE_TARGET"] = {
 		["displayName"] = VUHDO_I18N_BOUQUET_MOUSEOVER_TARGET,
 		["validator"] = VUHDO_mouseOverTargetValidator,
 		["interests"] = { VUHDO_UPDATE_MOUSEOVER },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["MOUSE_GROUP"] = {
 		["displayName"] = VUHDO_I18N_BOUQUET_MOUSEOVER_GROUP,
 		["validator"] = VUHDO_mouseOverGroupValidator,
 		["interests"] = { VUHDO_UPDATE_MOUSEOVER_GROUP },
-	},
-
-	["HEALTH_BELOW"] = {
-		["displayName"] = VUHDO_I18N_BOUQUET_HEALTH_BELOW,
-		["validator"] = VUHDO_healthBelowValidator,
-		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_PERCENT,
-		["interests"] = { VUHDO_UPDATE_HEALTH, VUHDO_UPDATE_HEALTH_MAX },
-	},
-
-	["HEALTH_ABOVE"] = {
-		["displayName"] = VUHDO_I18N_BOUQUET_HEALTH_ABOVE,
-		["validator"] = VUHDO_healthAboveValidator,
-		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_PERCENT,
-		["interests"] = { VUHDO_UPDATE_HEALTH, VUHDO_UPDATE_HEALTH_MAX },
-	},
-
-	["HEALTH_BELOW_ABS"] = {
-		["displayName"] = VUHDO_I18N_BOUQUET_HEALTH_BELOW_ABS,
-		["validator"] = VUHDO_healthBelowAbsValidator,
-		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_HEALTH,
-		["interests"] = { VUHDO_UPDATE_HEALTH, VUHDO_UPDATE_HEALTH_MAX },
-	},
-
-	["HEALTH_ABOVE_ABS"] = {
-		["displayName"] = VUHDO_I18N_BOUQUET_HEALTH_ABOVE_ABS,
-		["validator"] = VUHDO_healthAboveAbsValidator,
-		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_HEALTH,
-		["interests"] = { VUHDO_UPDATE_HEALTH, VUHDO_UPDATE_HEALTH_MAX },
-	},
-
-	["MANA_BELOW"] = {
-		["displayName"] = VUHDO_I18N_BOUQUET_MANA_BELOW,
-		["validator"] = VUHDO_manaBelowValidator,
-		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_PERCENT,
-		["interests"] = { VUHDO_UPDATE_MANA },
-	},
-
-	["THREAT_ABOVE"] = {
-		["displayName"] = VUHDO_I18N_BOUQUET_THREAT_ABOVE,
-		["validator"] = VUHDO_threatAboveValidator,
-		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_PERCENT,
-		["interests"] = { VUHDO_UPDATE_THREAT_PERC },
-	},
-
-	["ALTERNATE_POWERS_ABOVE"] = {
-		["displayName"] = VUHDO_I18N_BOUQUET_ALTERNATE_POWERS_ABOVE,
-		["validator"] = VUHDO_alternatePowersAboveValidator,
-		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_PERCENT,
-		["interests"] = { VUHDO_UPDATE_ALT_POWER, VUHDO_UPDATE_DC, VUHDO_UPDATE_ALIVE },
-	},
-
-	["OWN_HOLY_POWER_EQUALS"] = {
-		["displayName"] = VUHDO_I18N_BOUQUET_HOLY_POWER_EQUALS,
-		["validator"] = VUHDO_holyPowersEqualsValidator,
-		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_HOLY_POWER,
-		["interests"] = { VUHDO_UPDATE_OWN_HOLY_POWER, VUHDO_UPDATE_DC, VUHDO_UPDATE_ALIVE },
-	},
-
-	["OWN_CHI_EQUALS"] = {
-		["displayName"] = VUHDO_I18N_BOUQUET_OWN_CHI_EQUALS,
-		["validator"] = VUHDO_chiEqualsValidator,
-		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_HOLY_POWER,
-		["interests"] = { VUHDO_UPDATE_CHI, VUHDO_UPDATE_DC, VUHDO_UPDATE_ALIVE },
-	},
-
-	["OWN_COMBO_POINTS_EQUALS"] = {
-		["displayName"] = VUHDO_I18N_BOUQUET_OWN_COMBO_POINTS_EQUALS,
-		["validator"] = VUHDO_comboPointsEqualsValidator,
-		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_HOLY_POWER,
-		["interests"] = { VUHDO_UPDATE_COMBO_POINTS, VUHDO_UPDATE_DC, VUHDO_UPDATE_ALIVE },
-	},
-
-	["OWN_SOUL_SHARDS_EQUALS"] = {
-		["displayName"] = VUHDO_I18N_BOUQUET_OWN_SOUL_SHARDS_EQUALS,
-		["validator"] = VUHDO_soulShardsEqualsValidator,
-		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_HOLY_POWER,
-		["interests"] = { VUHDO_UPDATE_SOUL_SHARDS, VUHDO_UPDATE_DC, VUHDO_UPDATE_ALIVE },
-	},
-
-	["OWN_RUNES_EQUALS"] = {
-		["displayName"] = VUHDO_I18N_BOUQUET_OWN_RUNES_EQUALS,
-		["validator"] = VUHDO_runesEqualsValidator,
-		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_HOLY_POWER,
-		["interests"] = { VUHDO_UPDATE_RUNES, VUHDO_UPDATE_DC, VUHDO_UPDATE_ALIVE },
-	},
-
-	["OWN_ARCANE_CHARGES_EQUALS"] = {
-		["displayName"] = VUHDO_I18N_BOUQUET_OWN_ARCANE_CHARGES_EQUALS,
-		["validator"] = VUHDO_arcaneChargesEqualsValidator,
-		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_HOLY_POWER,
-		["interests"] = { VUHDO_UPDATE_ARCANE_CHARGES, VUHDO_UPDATE_DC, VUHDO_UPDATE_ALIVE },
-	},
-
-	["DURATION_ABOVE"] = {
-		["displayName"] = VUHDO_I18N_BOUQUET_DURATION_ABOVE,
-		["validator"] = VUHDO_durationAboveValidator,
-		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_SECONDS,
-		["updateCyclic"] = true,
-		["interests"] = { },
-	},
-
-	["DURATION_BELOW"] = {
-		["displayName"] = VUHDO_I18N_BOUQUET_DURATION_BELOW,
-		["validator"] = VUHDO_durationBelowValidator,
-		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_SECONDS,
-		["updateCyclic"] = true,
-		["interests"] = { },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["NUM_CLUSTER"] = {
@@ -1811,6 +1772,9 @@ VUHDO_BOUQUET_BUFFS_SPECIAL = {
 		["validator"] = VUHDO_numInClusterValidator,
 		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_PLAYERS,
 		["interests"] = { VUHDO_UPDATE_NUM_CLUSTER },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["MOUSE_CLUSTER"] = {
@@ -1818,18 +1782,27 @@ VUHDO_BOUQUET_BUFFS_SPECIAL = {
 		["validator"] = VUHDO_mouseClusterValidator,
 		["updateCyclic"] = true,
 		["interests"] = { VUHDO_UPDATE_MOUSEOVER_CLUSTER },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["THREAT_LEVEL_MEDIUM"] = {
 		["displayName"] = VUHDO_I18N_THREAT_LEVEL_MEDIUM,
 		["validator"] = VUHDO_threatMediumValidator,
 		["interests"] = { VUHDO_UPDATE_THREAT_LEVEL },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["THREAT_LEVEL_HIGH"] = {
 		["displayName"] = VUHDO_I18N_THREAT_LEVEL_HIGH,
 		["validator"] = VUHDO_threatHighValidator,
 		["interests"] = { VUHDO_UPDATE_THREAT_LEVEL },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["RAID_ICON_COLOR"] = {
@@ -1837,6 +1810,9 @@ VUHDO_BOUQUET_BUFFS_SPECIAL = {
 		["validator"] = VUHDO_raidTargetValidator,
 		["no_color"] = true,
 		["interests"] = { VUHDO_UPDATE_RAID_TARGET },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["OVERHEAL_HIGHLIGHT"] = {
@@ -1844,115 +1820,27 @@ VUHDO_BOUQUET_BUFFS_SPECIAL = {
 		["validator"] = VUHDO_overhealHighlightValidator,
 		["no_color"] = true,
 		["interests"] = { VUHDO_UPDATE_INC },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["EMERGENCY_COLOR"] = {
 		["displayName"] = VUHDO_I18N_BOUQUET_EMERGENCY_COLOR,
 		["validator"] = VUHDO_emergencyColorValidator,
 		["interests"] = { VUHDO_UPDATE_EMERGENCY },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["RESURRECTION"] = {
 		["displayName"] = VUHDO_I18N_BOUQUET_RESURRECTION,
 		["validator"] = VUHDO_resurrectionValidator,
 		["interests"] = { VUHDO_UPDATE_RESURRECTION },
-	},
-
-	["STATUS_HEALTH"] = {
-		["displayName"] = VUHDO_I18N_BOUQUET_STATUS_HEALTH,
-		["validator"] = VUHDO_statusHealthValidator,
-		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_STATUSBAR,
-		["interests"] = { VUHDO_UPDATE_HEALTH, VUHDO_UPDATE_HEALTH_MAX, VUHDO_UPDATE_INC, VUHDO_UPDATE_SHIELD },
-	},
-
-	["STATUS_MANA"] = {
-		["displayName"] = VUHDO_I18N_BOUQUET_STATUS_MANA,
-		["validator"] = VUHDO_statusManaValidator,
-		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_STATUSBAR,
-		["no_color"] = true,
-		["interests"] = { VUHDO_UPDATE_MANA, VUHDO_UPDATE_DC },
-	},
-
-	["STATUS_MANA_HEALER_ONLY"] = {
-		["displayName"] = VUHDO_I18N_BOUQUET_STATUS_MANA_HEALER_ONLY,
-		["validator"] = VUHDO_statusManaHealerOnlyValidator,
-		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_STATUSBAR,
-		["no_color"] = true,
-		["interests"] = { VUHDO_UPDATE_MANA, VUHDO_UPDATE_DC },
-	},
-
-	["STATUS_POWER_TANK_ONLY"] = {
-		["displayName"] = VUHDO_I18N_BOUQUET_STATUS_POWER_TANK_ONLY,
-		["validator"] = VUHDO_statusPowerTankOnlyValidator,
-		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_STATUSBAR,
-		["no_color"] = true,
-		["interests"] = { VUHDO_UPDATE_OTHER_POWERS, VUHDO_UPDATE_DC },
-	},
-
-	["STATUS_OTHER_POWERS"] = {
-		["displayName"] = VUHDO_I18N_BOUQUET_STATUS_OTHER_POWERS,
-		["validator"] = VUHDO_statusOtherPowersValidator,
-		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_STATUSBAR,
-		["no_color"] = true,
-		["interests"] = { VUHDO_UPDATE_OTHER_POWERS, VUHDO_UPDATE_DC },
-	},
-
-	["STATUS_ALTERNATE_POWERS"] = {
-		["displayName"] = VUHDO_I18N_BOUQUET_STATUS_ALTERNATE_POWERS,
-		["validator"] = VUHDO_statusAlternatePowersValidator,
-		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_STATUSBAR,
-		["interests"] = { VUHDO_UPDATE_ALT_POWER, VUHDO_UPDATE_DC, VUHDO_UPDATE_ALIVE },
-	},
-
-	["STATUS_INCOMING"] = {
-		["displayName"] = VUHDO_I18N_BOUQUET_STATUS_INCOMING,
-		["validator"] = VUHDO_statusIncomingValidator,
-		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_STATUSBAR,
-		["interests"] = { VUHDO_UPDATE_INC },
-	},
-
-	["STATUS_EXCESS_ABSORB"] = {
-		["displayName"] = VUHDO_I18N_BOUQUET_STATUS_EXCESS_ABSORB,
-		["validator"] = VUHDO_statusExcessAbsorbValidator,
-		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_STATUSBAR,
-		["interests"] = { VUHDO_UPDATE_HEALTH, VUHDO_UPDATE_HEALTH_MAX, VUHDO_UPDATE_SHIELD },
-	},
-
-	["STATUS_TOTAL_ABSORB"] = {
-		["displayName"] = VUHDO_I18N_BOUQUET_STATUS_TOTAL_ABSORB,
-		["validator"] = VUHDO_statusTotalAbsorbValidator,
-		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_STATUSBAR,
-		["interests"] = { VUHDO_UPDATE_HEALTH_MAX, VUHDO_UPDATE_SHIELD },
-	},
-
-	["STATUS_THREAT"] = {
-		["displayName"] = VUHDO_I18N_BOUQUET_STATUS_THREAT,
-		["validator"] = VUHDO_statusThreatValidator,
-		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_STATUSBAR,
-		["interests"] = { VUHDO_UPDATE_THREAT_PERC },
-	},
-
-	["STATUS_FULL"] = {
-		["displayName"] = VUHDO_I18N_BOUQUET_STATUS_ALWAYS_FULL,
-		["validator"] = VUHDO_statusAlwaysFullValidator,
-		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_STATUSBAR,
-		["interests"] = { },
-	},
-
-	["STATUS_ACTIVE"] = {
-		["displayName"] = VUHDO_I18N_BOUQUET_STATUS_FULL_IF_ACTIVE,
-		["validator"] = VUHDO_statusFullIfActiveValidator,
-		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_STATUSBAR,
-		["no_color"] = true,
-		["interests"] = { },
-	},
-
-	["STATUS_HEALTH_ACTIVE"] = {
-		["displayName"] = VUHDO_I18N_BOUQUET_STATUS_HEALTH_IF_ACTIVE,
-		["validator"] = VUHDO_statusHealthIfActiveValidator,
-		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_STATUSBAR,
-		["no_color"] = true,
-		["interests"] = { VUHDO_UPDATE_HEALTH, VUHDO_UPDATE_HEALTH_MAX, VUHDO_UPDATE_INC, VUHDO_UPDATE_SHIELD },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["STATUS_CC_ACTIVE"] = {
@@ -1961,22 +1849,9 @@ VUHDO_BOUQUET_BUFFS_SPECIAL = {
 		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_BRIGHTNESS,
 		["no_color"] = true,
 		["interests"] = { },
-	},
-
-	["STACKS_COLOR"] = {
-		["displayName"] = VUHDO_I18N_BOUQUET_STACKS_COLOR,
-		["validator"] = VUHDO_stacksColorValidator,
-		["updateCyclic"] = true,
-		["no_color"] = true,
-		["interests"] = { },
-	},
-
-	["STACKS"] = {
-		["displayName"] = VUHDO_I18N_BOUQUET_STACKS,
-		["validator"] = VUHDO_stacksValidator,
-		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_STACKS,
-		["updateCyclic"] = true,
-		["interests"] = { },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["HAS_SUMMON_ICON"] = {
@@ -1984,6 +1859,9 @@ VUHDO_BOUQUET_BUFFS_SPECIAL = {
 		["validator"] = VUHDO_hasSummonIconValidator,
 		["no_color"] = true,
 		["interests"] = { VUHDO_UPDATE_SUMMON },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["CLASS_ICON"] = {
@@ -1991,6 +1869,9 @@ VUHDO_BOUQUET_BUFFS_SPECIAL = {
 		["validator"] = VUHDO_classIconValidator,
 		["no_color"] = true,
 		["interests"] = { },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["RAID_ICON"] = {
@@ -1998,6 +1879,9 @@ VUHDO_BOUQUET_BUFFS_SPECIAL = {
 		["validator"] = VUHDO_raidIconValidator,
 		["no_color"] = true,
 		["interests"] = { },
+		["secretType"] = VUHDO_SECRET_TYPE_SPRITE_CELL,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["RAID_ICON_TARGET"] = {
@@ -2005,6 +1889,9 @@ VUHDO_BOUQUET_BUFFS_SPECIAL = {
 		["validator"] = VUHDO_raidIconTargetValidator,
 		["no_color"] = true,
 		["interests"] = { },
+		["secretType"] = VUHDO_SECRET_TYPE_SPRITE_CELL,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["ROLE_ICON"] = {
@@ -2012,60 +1899,90 @@ VUHDO_BOUQUET_BUFFS_SPECIAL = {
 		["validator"] = VUHDO_roleIconValidator,
 		["no_color"] = true,
 		["interests"] = { },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["ROLE_TANK"] = {
 		["displayName"] = VUHDO_I18N_BOUQUET_ROLE_TANK,
 		["validator"] = VUHDO_roleTankValidator,
 		["interests"] = { },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["ROLE_DAMAGE"] = {
 		["displayName"] = VUHDO_I18N_BOUQUET_ROLE_DAMAGE,
 		["validator"] = VUHDO_roleDamageValidator,
 		["interests"] = { },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["ROLE_HEALER"] = {
 		["displayName"] = VUHDO_I18N_BOUQUET_ROLE_HEALER,
 		["validator"] = VUHDO_roleHealerValidator,
 		["interests"] = { },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
-        ["WARRIOR_TANK"] = {
+	["WARRIOR_TANK"] = {
 		["displayName"] = VUHDO_I18N_BOUQUET_WARRIOR_TANK,
 		["validator"] = VUHDO_warriorTankValidator,
 		["interests"] = { },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
-        ["PALADIN_TANK"] = {
+	["PALADIN_TANK"] = {
 		["displayName"] = VUHDO_I18N_BOUQUET_PALADIN_TANK,
 		["validator"] = VUHDO_paladinTankValidator,
 		["interests"] = { },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
-        ["DK_TANK"] = {
+	["DK_TANK"] = {
 		["displayName"] = VUHDO_I18N_BOUQUET_DK_TANK,
 		["validator"] = VUHDO_dkTankValidator,
 		["interests"] = { },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
-        ["MONK_TANK"] = {
+	["MONK_TANK"] = {
 		["displayName"] = VUHDO_I18N_BOUQUET_MONK_TANK,
 		["validator"] = VUHDO_monkTankValidator,
 		["interests"] = { },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
-        ["DRUID_TANK"] = {
+	["DRUID_TANK"] = {
 		["displayName"] = VUHDO_I18N_BOUQUET_DRUID_TANK,
 		["validator"] = VUHDO_druidTankValidator,
 		["interests"] = { },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
-        ["DEMON_HUNTER_TANK"] = {
+	["DEMON_HUNTER_TANK"] = {
 		["displayName"] = VUHDO_I18N_BOUQUET_DEMON_HUNTER_TANK,
 		["validator"] = VUHDO_demonHunterTankValidator,
 		["interests"] = { },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["DIRECTION"] = {
@@ -2074,6 +1991,9 @@ VUHDO_BOUQUET_BUFFS_SPECIAL = {
 		--["no_color"] = true,
 		["updateCyclic"] = true,
 		["interests"] = { VUHDO_UPDATE_RANGE, VUHDO_UPDATE_ALIVE },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["CUSTOM_DEBUFF"] = {
@@ -2082,6 +2002,9 @@ VUHDO_BOUQUET_BUFFS_SPECIAL = {
 		["updateCyclic"] = true,
 		["no_color"] = true,
 		["interests"] = { VUHDO_UPDATE_CUSTOM_DEBUFF },
+		["secretType"] = VUHDO_SECRET_TYPE_DURATION,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["TAPPED"] = {
@@ -2090,6 +2013,9 @@ VUHDO_BOUQUET_BUFFS_SPECIAL = {
 		["no_color"] = true,
 		["updateCyclic"] = true,
 		["interests"] = { },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["ENEMY_STATE"] = {
@@ -2097,131 +2023,63 @@ VUHDO_BOUQUET_BUFFS_SPECIAL = {
 		["validator"] = VUHDO_enemyStateValidator,
 		["no_color"] = true,
 		["interests"] = { VUHDO_UPDATE_UNIT_TARGET },
-	},
-
-	["SPELL_TRACE"] = {
-		["displayName"] = VUHDO_I18N_SPELL_TRACE,
-		["validator"] = VUHDO_spellTraceValidator,
-		["interests"] = { VUHDO_UPDATE_SPELL_TRACE },
-	},
-
-	["SPELL_TRACE_INCOMING"] = {
-		["displayName"] = VUHDO_I18N_SPELL_TRACE_INCOMING,
-		["validator"] = VUHDO_spellTraceIncomingValidator,
-		["interests"] = { VUHDO_UPDATE_SPELL_TRACE },
-	},
-
-	["SPELL_TRACE_HEAL"] = {
-		["displayName"] = VUHDO_I18N_SPELL_TRACE_HEAL,
-		["validator"] = VUHDO_spellTraceHealValidator,
-		["interests"] = { VUHDO_UPDATE_SPELL_TRACE },
-	},
-
-	["SPELL_TRACE_SINGLE"] = {
-		["displayName"] = VUHDO_I18N_SPELL_TRACE_SINGLE,
-		["validator"] = VUHDO_spellTraceSingleValidator,
-		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_SPELL_TRACE,
-		["interests"] = { VUHDO_UPDATE_SPELL_TRACE },
-	},
-
-	["TRAIL_OF_LIGHT"] = {
-		["displayName"] = VUHDO_I18N_TRAIL_OF_LIGHT,
-		["validator"] = VUHDO_trailOfLightValidator,
-		["interests"] = { VUHDO_UPDATE_SPELL_TRACE },
-	},
-
-	["TRAIL_OF_LIGHT_NEXT"] = {
-		["displayName"] = VUHDO_I18N_TRAIL_OF_LIGHT_NEXT,
-		["validator"] = VUHDO_trailOfLightNextValidator,
-		["interests"] = { VUHDO_UPDATE_SPELL_TRACE },
-	},
-
-	["AOE_ADVICE"] = {
-		["displayName"] = VUHDO_I18N_AOE_ADVICE,
-		["validator"] = VUHDO_aoeAdviceValidator,
-		["interests"] = { VUHDO_UPDATE_AOE_ADVICE },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["LEADER"] = {
 		["displayName"] = VUHDO_I18N_DEF_RAID_LEADER,
 		["validator"] = VUHDO_leaderIconValidator,
 		["interests"] = { VUHDO_UPDATE_MINOR_FLAGS },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["ASSISTANT"] = {
 		["displayName"] = VUHDO_I18N_DEF_RAID_ASSIST,
 		["validator"] = VUHDO_assistantIconValidator,
 		["interests"] = { VUHDO_UPDATE_MINOR_FLAGS },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["LOOT_MASTER"] = {
 		["displayName"] = VUHDO_I18N_DEF_MASTER_LOOTER,
 		["validator"] = VUHDO_masterLooterIconValidator,
 		["interests"] = { VUHDO_UPDATE_MINOR_FLAGS },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["PVP_FLAG"] = {
 		["displayName"] = VUHDO_I18N_DEF_PVP_STATUS,
 		["validator"] = VUHDO_pvpIconValidator,
 		["interests"] = { VUHDO_UPDATE_MINOR_FLAGS },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["FRIEND"] = {
 		["displayName"] = VUHDO_I18N_FRIEND_STATUS,
 		["validator"] = VUHDO_friendValidator,
 		["interests"] = { },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["FOE"] = {
 		["displayName"] = VUHDO_I18N_FOE_STATUS,
 		["validator"] = VUHDO_foeValidator,
 		["interests"] = { },
-	},
-
-	["OVERFLOW_COUNTER"] = {
-		["displayName"] = VUHDO_I18N_DEF_COUNTER_OVERFLOW_ABSORB,
-		["validator"] = VUHDO_overflowCountValidator,
-		["interests"] = { VUHDO_UPDATE_SHIELD },
-	},
-
-	["SHIELDS_COUNTER"] = {
-		["displayName"] = VUHDO_I18N_DEF_COUNTER_SHIELD_ABSORB,
-		["validator"] = VUHDO_shieldCountValidator,
-		["interests"] = { VUHDO_UPDATE_SHIELD },
-	},
-
-	["ACTIVE_AURAS_COUNTER"] = {
-		["displayName"] = VUHDO_I18N_DEF_COUNTER_ACTIVE_AURAS,
-		["validator"] = VUHDO_activeAurasCountValidator,
-		["updateCyclic"] = true,
-		["interests"] = { },
-	},
-
-	["SHIELD_STATUS"] = {
-		["displayName"] = VUHDO_I18N_DEF_STATUS_SHIELD,
-		["validator"] = VUHDO_statusShieldFromHealthValidator,
-		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_STATUSBAR,
-		["interests"] = { VUHDO_UPDATE_SHIELD },
-	},
-
-	["SHIELD_OVERSHIELD"] = {
-		["displayName"] = VUHDO_I18N_DEF_STATUS_OVERSHIELDED,
-		["validator"] = VUHDO_statusShieldOvershieldValidator,
-		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_STATUSBAR,
-		["interests"] = { VUHDO_UPDATE_SHIELD },
-	},
-
-	["HEAL_ABSORB_COUNTER"] = {
-		["displayName"] = VUHDO_I18N_DEF_COUNTER_HEAL_ABSORB,
-		["validator"] = VUHDO_healAbsorbCountValidator,
-		["interests"] = { VUHDO_UPDATE_SHIELD },
-	},
-
-	["HEAL_ABSORB_STATUS"] = {
-		["displayName"] = VUHDO_I18N_DEF_STATUS_HEAL_ABSORB,
-		["validator"] = VUHDO_statusHealAbsorbFromHealthValidator,
-		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_STATUSBAR,
-		["interests"] = { VUHDO_UPDATE_SHIELD },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["CLASS_COLOR"] = {
@@ -2230,12 +2088,18 @@ VUHDO_BOUQUET_BUFFS_SPECIAL = {
 		["no_color"] = true,
 		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_BRIGHTNESS,
 		["interests"] = { },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["ALWAYS"] = {
 		["displayName"] = VUHDO_I18N_BOUQUET_ALWAYS,
 		["validator"] = VUHDO_alwaysTrueValidator,
 		["interests"] = { },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["CHI_HARMONY_ICON_MINE"] = {
@@ -2243,6 +2107,9 @@ VUHDO_BOUQUET_BUFFS_SPECIAL = {
 		["validator"] = VUHDO_chiHarmonyIconMineValidator,
 		["updateCyclic"] = true,
 		["interests"] = { },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["CHI_HARMONY_ICON_OTHERS"] = {
@@ -2250,6 +2117,9 @@ VUHDO_BOUQUET_BUFFS_SPECIAL = {
 		["validator"] = VUHDO_chiHarmonyIconOthersValidator,
 		["updateCyclic"] = true,
 		["interests"] = { },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["CHI_HARMONY_ICON_BOTH"] = {
@@ -2257,15 +2127,20 @@ VUHDO_BOUQUET_BUFFS_SPECIAL = {
 		["validator"] = VUHDO_chiHarmonyIconBothValidator,
 		["updateCyclic"] = true,
 		["interests"] = { },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 	["CUSTOM_FLAG"] = {
 		["displayName"] = VUHDO_I18N_BOUQUET_CUSTOM_FLAG,
-		["validator"] = VUHDO_customFlagValidator, 
+		["validator"] = VUHDO_customFlagValidator,
 		["custom_type"] = VUHDO_BOUQUET_CUSTOM_TYPE_CUSTOM_FLAG,
 		["updateCyclic"] = true,
-		["interests"] = { VUHDO_UPDATE_HEALTH, VUHDO_UPDATE_HEALTH_MAX, VUHDO_UPDATE_RANGE, VUHDO_UPDATE_ALIVE }, --ignoring some for now (eg. VUHDO_UPDATE_INC, VUHDO_UPDATE_NUM_CLUSTER, VUHDO_UPDATE_MANA, VUHDO_UPDATE_DC, etc.)
+		["interests"] = { VUHDO_UPDATE_HEALTH, VUHDO_UPDATE_HEALTH_MAX, VUHDO_UPDATE_RANGE, VUHDO_UPDATE_ALIVE, VUHDO_UPDATE_DC, VUHDO_UPDATE_SPELL_TRACE },
+		["secretType"] = VUHDO_SECRET_TYPE_NONE,
+		["hasValue"] = false,
+		["isGlobal"] = false,
 	},
 
 };
-

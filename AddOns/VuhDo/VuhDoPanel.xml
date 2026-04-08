@@ -4,7 +4,9 @@
 	<Script file="VuhDoBarCustomizerClusters.lua" />
 	<Script file="VuhDoBarCustomizerDebuffIcon.lua" />
 	<Script file="VuhDoBarCustomizerHealth.lua" />
+	<Script file="VuhDoBarCustomizerHealthText.lua" />
 	<Script file="VuhDoBarCustomizerHots.lua" />
+	<Script file="VuhDoBarCustomizerAuras.lua" />
 	<Script file="VuhDoBarCustomizerMana.lua" />
 	<Script file="VuhDoBarCustomizerTarget.lua" />
 	<Script file="VuhDoBarCustomizerThreat.lua" />
@@ -15,8 +17,17 @@
 	<Script file="VuhDoPanelRedrawHoTs.lua" />
 	<Script file="VuhDoPanelRedraw.lua" />
 	<Script file="VuhDoKeySetup.lua" />
+	<Script file="VuhDoBindingGenerator.lua" />
 	<Script file="VuhDoActionEventHandler.lua" />
 
+
+	<Frame name="VuhDoHealButtonSecureHeaderFrame" hidden="true" inherits="SecureHandlerBaseTemplate,SecureHandlerAttributeTemplate">
+		<Scripts>
+			<OnLoad inherit="append">
+				VUHDO_setupHealButtonSecureHeader(self);
+			</OnLoad>
+		</Scripts>
+	</Frame>
 
 	<StatusBar name="VuhDoDummyStatusBar" hidden="true" inherits="VuhDoStatusBar"> </StatusBar>
 	<StatusBar name="VuhDoGcdStatusBar" frameLevel="220" hidden="true" inherits="VuhDoStatusBar">	</StatusBar>
@@ -34,7 +45,7 @@
 
 	<Cooldown name="VuhDoHotCooldown" inherits="CooldownFrameTemplate" virtual="true">	</Cooldown>
 
-	<Frame name="VuhDoHotIconTemplate" virtual="true">
+	<Frame name="VuhDoAuraIconTemplate" virtual="true">
 		<Layers>
 			<Layer level="BACKGROUND">
 				<Texture name="$parentI"></Texture>
@@ -47,6 +58,7 @@
 			<Layer level="OVERLAY">
 				<FontString name="$parentT" inherits="NumberFontNormalSmall"></FontString>
 				<FontString name="$parentC" inherits="NumberFontNormalSmall"></FontString>
+				<FontString name="$parentN" inherits="GameFontNormalSmall"></FontString>
 			</Layer>
 		</Layers>
 
@@ -57,18 +69,9 @@
 		</Scripts>
 	</Frame>
 
-	<Frame name="VuhDoRaidTargetIconTemplate" virtual="true">
-		<Layers>
-			<Layer level="OVERLAY">
-				<Texture name="$parentI" file="interface\targetingframe\ui-raidtargetingicons">
-				</Texture>
-			</Layer>
-		</Layers>
-	</Frame>
-
-	<Button name="VuhDoDebuffIconTemplate" virtual="true" inherits="SecureUnitButtonTemplate,SecureHandlerEnterLeaveTemplate,SecureHandlerShowHideTemplate,SecureHandlerMouseUpDownTemplate">
+	<Frame name="VuhDoDebuffIconTemplate" virtual="true" inherits="SecureHandlerEnterLeaveTemplate">
 		<Frames>
-			<Frame name="$parentB" enableMouse="false">
+			<Frame name="$parentB" enableMouse="false" inherits="BackdropTemplate">
 				<Layers>
 					<Layer level="BACKGROUND">
 						<Texture name="$parentI">
@@ -85,47 +88,92 @@
 		<Scripts>
 			<OnLoad>
 				self.addLevel = 9;
-				self:SetScript("PreClick", VuhDoActionPreClick);
-				self:SetScript("PostClick", function(self, aButton) 
-					if aButton == "RightButton" then
-						local blacklistModi = VUHDO_CONFIG["CUSTOM_DEBUFF"].blacklistModi or "ALT-CTRL-SHIFT";
-
-						if blacklistModi ~= "OFF" then
-							if blacklistModi == "ALT-CTRL-SHIFT" and 
-								IsAltKeyDown() and IsControlKeyDown() and IsShiftKeyDown() then
-								VUHDO_addDebuffToBlacklist(self);	
-							elseif blacklistModi == "ALT-SHIFT" and IsAltKeyDown() and 
-								IsShiftKeyDown() and not IsControlKeyDown() then
-								VUHDO_addDebuffToBlacklist(self);
-							elseif blacklistModi == "ALT-CTRL" and IsAltKeyDown() and 
-								IsControlKeyDown() and not IsShiftKeyDown() then
-								VUHDO_addDebuffToBlacklist(self);
-							elseif blacklistModi == "CTRL-SHIFT" and IsControlKeyDown() and 
-								IsShiftKeyDown() and not IsAltKeyDown() then
-								VUHDO_addDebuffToBlacklist(self);
-							elseif blacklistModi == "SHIFT" and IsShiftKeyDown() and 
-								not IsAltKeyDown() and not IsControlKeyDown() then
-								VUHDO_addDebuffToBlacklist(self);
-							elseif blacklistModi == "CTRL" and IsControlKeyDown() and 
-								not IsAltKeyDown() and not IsShiftKeyDown() then
-								VUHDO_addDebuffToBlacklist(self);
-							elseif blacklistModi == "ALT" and IsAltKeyDown() and 
-								not IsControlKeyDown() and not IsShiftKeyDown() then
-								VUHDO_addDebuffToBlacklist(self);
-							end
-						end
-					end
-				
-					VuhDoActionPostClick(self);
-				end)
 			</OnLoad>
 		</Scripts>
-	</Button>
+	</Frame>
+
+	<Frame name="VuhDoAuraIconContentTemplate" virtual="true" enableMouse="false" inherits="BackdropTemplate">
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture name="$parentI" setAllPoints="true"></Texture>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Cooldown name="$parentCd" inherits="CooldownFrameTemplate">
+			</Cooldown>
+			<Frame name="$parentChgFr" setAllPoints="true">
+				<Layers>
+					<Layer level="ARTWORK">
+						<Texture name="$parentTex" hidden="true" setAllPoints="true"></Texture>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnLoad>
+						self.addLevel = 1;
+					</OnLoad>
+				</Scripts>
+			</Frame>
+			<Frame name="$parentTxtOv" setAllPoints="true">
+				<Layers>
+					<Layer level="OVERLAY">
+						<FontString name="$parentT" inherits="NumberFontNormalSmall"></FontString>
+						<FontString name="$parentC" inherits="NumberFontNormalSmall"></FontString>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnLoad>
+						self.addLevel = 2;
+					</OnLoad>
+				</Scripts>
+			</Frame>
+		</Frames>
+	</Frame>
+
+	<Frame name="VuhDoAuraAnchorIconTemplate" virtual="true">
+		<Frames>
+			<Frame name="$parentB" inherits="VuhDoAuraIconContentTemplate">
+			</Frame>
+		</Frames>
+		<Scripts>
+			<OnLoad>
+				self.addLevel = 10;
+			</OnLoad>
+		</Scripts>
+	</Frame>
+
+	<Frame name="VuhDoAuraAnchorBarTemplate" virtual="true">
+		<Frames>
+			<Frame name="$parentIcFr" inherits="VuhDoAuraIconContentTemplate">
+			</Frame>
+			<StatusBar name="$parentAuBar" inherits="VuhDoStatusBar" enableMouse="false">
+				<Scripts>
+					<OnLoad>
+						self.statusTexture = self:GetStatusBarTexture();
+						self.addLevel = 10;
+					</OnLoad>
+				</Scripts>
+			</StatusBar>
+		</Frames>
+		<Scripts>
+			<OnLoad>
+				self.addLevel = 10;
+			</OnLoad>
+		</Scripts>
+	</Frame>
+
+	<Frame name="VuhDoRaidTargetIconTemplate" virtual="true">
+		<Layers>
+			<Layer level="OVERLAY">
+				<Texture name="$parentI" file="interface\targetingframe\ui-raidtargetingicons">
+				</Texture>
+			</Layer>
+		</Layers>
+	</Frame>
 
 	<StatusBar name="VuhDoHotBarTemplate" setAllPoints="true" hidden="false" inherits="VuhDoStatusBar" virtual="true">
 		<Scripts>
 			<OnLoad>
-				VUHDO_refactorStatusbar(self);
+				self.statusTexture = self:GetStatusBarTexture();
 				self.addLevel = 6;
 			</OnLoad>
 		</Scripts>
@@ -138,7 +186,7 @@
 		</KeyValues>
 	</Frame>
 
-	<Button name="VuhDoButtonSecureTargetTemplate" virtual="true" inherits="SecureUnitButtonTemplate,SecureHandlerEnterLeaveTemplate,SecureHandlerShowHideTemplate,SecureHandlerMouseUpDownTemplate">
+	<Button name="VuhDoButtonSecureTargetTemplate" virtual="true" inherits="SecureUnitButtonTemplate,SecureHandlerEnterLeaveTemplate,SecureHandlerShowHideTemplate">
 		<Size>
 			<AbsDimension x="95" y="18" />
 		</Size>
@@ -164,7 +212,7 @@
 								</Anchors>
 								<Scripts>
 									<OnLoad>
-										VUHDO_refactorStatusbar(self);
+										self.statusTexture = self:GetStatusBarTexture();
 										self.addLevel = 1;
 									</OnLoad>
 								</Scripts>
@@ -183,6 +231,12 @@
 									<Layer>
 
 										<FontString name="$parentUnN" inherits="GameFontNormalSmall">
+											<FontHeight>
+												<AbsValue val="9" />
+											</FontHeight>
+										</FontString>
+
+										<FontString name="$parentUnNSolo" inherits="GameFontNormalSmall">
 											<FontHeight>
 												<AbsValue val="9" />
 											</FontHeight>
@@ -246,7 +300,7 @@
 	</Button>
 
 
-	<Button name="VuhDoButtonSecureTemplate" virtual="true" inherits="SecureUnitButtonTemplate,SecureHandlerEnterLeaveTemplate,SecureHandlerShowHideTemplate,SecureHandlerMouseUpDownTemplate">
+	<Button name="VuhDoButtonSecureTemplate" virtual="true" inherits="SecureUnitButtonTemplate,SecureHandlerEnterLeaveTemplate,SecureHandlerShowHideTemplate">
 		<Size>
 			<AbsDimension x="95" y="18" />
 		</Size>
@@ -270,219 +324,323 @@
 				</Anchors>
 			</Frame>
 
-			<StatusBar name="$parentBgBar" inherits="VuhDoStatusBar">
-				<Anchors>
-					<Anchor point="TOPLEFT" relativePoint="TOPLEFT">
-						<Offset>
-							<AbsDimension x="0" y="0"/>
-						</Offset>
-					</Anchor>
-					<Anchor point="TOPRIGHT" relativePoint="TOPRIGHT">
-						<Offset>
-							<AbsDimension x="0" y="0"/>
-						</Offset>
-					</Anchor>
-				</Anchors>
-				<Frames>
-					<StatusBar name="$parentShBar" inherits="VuhDoStatusBar"> </StatusBar>
+		<StatusBar name="$parentBgBar" inherits="VuhDoStatusBar">
+			<Layers>
+				<Layer level="BACKGROUND">
+					<Texture name="$parentBgTex" setAllPoints="true">
+						<Color r="0" g="0" b="0" a="0"/>
+					</Texture>
+				</Layer>
+			</Layers>
+			<Anchors>
+				<Anchor point="TOPLEFT" relativePoint="TOPLEFT">
+					<Offset>
+						<AbsDimension x="0" y="0"/>
+					</Offset>
+				</Anchor>
+				<Anchor point="TOPRIGHT" relativePoint="TOPRIGHT">
+					<Offset>
+						<AbsDimension x="0" y="0"/>
+					</Offset>
+				</Anchor>
+			</Anchors>
+			<Frames>
+				
+				<StatusBar name="$parentHlBar" inherits="VuhDoStatusBar">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeTo="$parent" relativePoint="TOPLEFT">
+							<Offset>
+								<AbsDimension x="0" y="0"/>
+							</Offset>
+						</Anchor>
+						<Anchor point="BOTTOMRIGHT" relativeTo="$parent" relativePoint="BOTTOMRIGHT">
+							<Offset>
+								<AbsDimension x="0" y="0"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<Frames>
 
-					<StatusBar name="$parentIcBar" inherits="VuhDoStatusBar">
-						<Frames>
+						<StatusBar name="$parentMaBar" hidden="true" inherits="VuhDoStatusBar">
+							<Anchors>
+								<Anchor point="BOTTOMLEFT" relativePoint="BOTTOMLEFT">
+									<Offset>
+										<AbsDimension x="0" y="0"/>
+									</Offset>
+								</Anchor>
+							</Anchors>
+							<Scripts>
+								<OnLoad>
+									self.statusTexture = self:GetStatusBarTexture();
+									self.addLevel = 1;
+								</OnLoad>
+							</Scripts>
+						</StatusBar>
 
-							<StatusBar name="$parentHlBar" inherits="VuhDoStatusBar">
-								<Frames>
+						<StatusBar name="$parentLsBar" hidden="true" inherits="VuhDoStatusBar">
+							<Scripts>
+								<OnLoad>
+									self.statusTexture = self:GetStatusBarTexture();
+									self.addLevel = 1;
+								</OnLoad>
+							</Scripts>
+						</StatusBar>
 
-									<StatusBar name="$parentMaBar" hidden="true" inherits="VuhDoStatusBar">
-										<Anchors>
-											<Anchor point="BOTTOMLEFT" relativePoint="BOTTOMLEFT">
-												<Offset>
-													<AbsDimension x="0" y="0"/>
-												</Offset>
-											</Anchor>
-										</Anchors>
-										<Scripts>
-											<OnLoad>
-												VUHDO_refactorStatusbar(self);
-												self.addLevel = 1;
-											</OnLoad>
-										</Scripts>
-									</StatusBar>
+						<StatusBar name="$parentRsBar" hidden="true" inherits="VuhDoStatusBar">
+							<Scripts>
+								<OnLoad>
+									self.statusTexture = self:GetStatusBarTexture();
+									self.addLevel = 1;
+								</OnLoad>
+							</Scripts>
+						</StatusBar>
 
-									<StatusBar name="$parentLsBar" hidden="true" inherits="VuhDoStatusBar">
-										<Scripts>
-											<OnLoad>
-												VUHDO_refactorStatusbar(self);
-												self.addLevel = 1;
-											</OnLoad>
-										</Scripts>
-									</StatusBar>
+						<Frame name="$parentPlTg" setAllPoints="true" hidden="true" inherits="VuhDoPlayerTargetFrameTemplate">
+							<Scripts>
+								<OnLoad inherit="prepend">
+									self.addLevel = 2;
+								</OnLoad>
+							</Scripts>
+						</Frame>
 
-									<StatusBar name="$parentRsBar" hidden="true" inherits="VuhDoStatusBar">
-										<Scripts>
-											<OnLoad>
-												VUHDO_refactorStatusbar(self);
-												self.addLevel = 1;
-											</OnLoad>
-										</Scripts>
-									</StatusBar>
+						<Frame name="$parentClu" setAllPoints="true" hidden="true" inherits="VuhDoPlayerTargetFrameTemplate">
+							<Scripts>
+								<OnLoad inherit="prepend">
+									self.addLevel = 2;
+								</OnLoad>
+							</Scripts>
+						</Frame>
 
-									<Frame name="$parentPlTg" setAllPoints="true" hidden="true" inherits="VuhDoPlayerTargetFrameTemplate">
-										<Scripts>
-											<OnLoad inherit="prepend">
-												self.addLevel = 2;
-											</OnLoad>
-										</Scripts>
-									</Frame>
+						<StatusBar name="$parentHiBar" setAllPoints="true" hidden="true" inherits="VuhDoStatusBar">
+							<Scripts>
+								<OnLoad>
+									self.statusTexture = self:GetStatusBarTexture();
+									self.addLevel = 3;
+								</OnLoad>
+							</Scripts>
+						</StatusBar>
 
-									<Frame name="$parentClu" setAllPoints="true" hidden="true" inherits="VuhDoPlayerTargetFrameTemplate">
-										<Scripts>
-											<OnLoad inherit="prepend">
-												self.addLevel = 2;
-											</OnLoad>
-										</Scripts>
-									</Frame>
+						<StatusBar name="$parentAgBar" inherits="VuhDoStatusBar">
+							<Scripts>
+								<OnLoad>
+									self.statusTexture = self:GetStatusBarTexture();
+									self.addLevel = 4;
+								</OnLoad>
+							</Scripts>
+						</StatusBar>
 
-									<StatusBar name="$parentHiBar" setAllPoints="true" hidden="true" inherits="VuhDoStatusBar">
-										<Scripts>
-											<OnLoad>
-												VUHDO_refactorStatusbar(self);
-												self.addLevel = 3;
-											</OnLoad>
-										</Scripts>
-									</StatusBar>
+						<Frame name="$parentTxPnl">
 
-									<StatusBar name="$parentAgBar" inherits="VuhDoStatusBar">
-										<Scripts>
-											<OnLoad>
-												VUHDO_refactorStatusbar(self);
-												self.addLevel = 4;
-											</OnLoad>
-										</Scripts>
-									</StatusBar>
+							<Layers>
+								<Layer>
 
-									<Frame name="$parentTxPnl">
+									<FontString name="$parentUnN">
+										<Shadow>
+											<Offset>
+												<AbsDimension x="1" y="-1" />
+											</Offset>
+										</Shadow>
+									</FontString>
 
-										<Layers>
-											<Layer>
+									<FontString name="$parentUnNSolo">
+										<Shadow>
+											<Offset>
+												<AbsDimension x="1" y="-1" />
+											</Offset>
+										</Shadow>
+									</FontString>
 
-												<FontString name="$parentUnN">
-													<Shadow>
-														<Offset>
-															<AbsDimension x="1" y="-1" />
-														</Offset>
-													</Shadow>
-												</FontString>
+									<FontString name="$parentLife">
+										<Shadow>
+											<Offset>
+												<AbsDimension x="1" y="-1" />
+											</Offset>
+										</Shadow>
+									</FontString>
 
-												<FontString name="$parentLife">
-													<Shadow>
-														<Offset>
-															<AbsDimension x="1" y="-1" />
-														</Offset>
-													</Shadow>
-												</FontString>
+								</Layer>
+							</Layers>
+							<Scripts>
+								<OnLoad>
+									self.addLevel = 5;
+								</OnLoad>
+							</Scripts>
+						</Frame>
 
-											</Layer>
-										</Layers>
-										<Scripts>
-											<OnLoad>
-												self.addLevel = 5;
-											</OnLoad>
-										</Scripts>
-									</Frame>
+						<!-- HotBar 1-3						
+						<StatusBar name="$parentHotBar1" inherits="VuhDoHotBarTemplate"> </StatusBar>
+						<StatusBar name="$parentHotBar2" inherits="VuhDoHotBarTemplate"> </StatusBar>
+						<StatusBar name="$parentHotBar3" inherits="VuhDoHotBarTemplate"> </StatusBar>
+ 						-->
 
-									-- HotBar 1-3
-									<StatusBar name="$parentHotBar1" inherits="VuhDoHotBarTemplate"> </StatusBar>
-									<StatusBar name="$parentHotBar2" inherits="VuhDoHotBarTemplate"> </StatusBar>
-									<StatusBar name="$parentHotBar3" inherits="VuhDoHotBarTemplate"> </StatusBar>
+						-- HOTs Ic1-5, 9, 10 muss Button sein fuer Masque
+						-- Custom debuffs 40 - 44
 
-									-- HOTs Ic1-5, 9, 10 muss Button sein fuer Masque
-									-- Custom debuffs 40 - 44
+						<Frame name="$parentIc" setAllPoints="true">
+							<Layers>
+								<Layer>
+									-- Ready check
+									<Texture name="$parent20" hidden="true"> </Texture>
+									-- Raid Icon
+									<Texture name="$parent50" hidden="true" file="interface\targetingframe\ui-raidtargetingicons"> </Texture>
+									-- Swiftmend indicator
+									<Texture name="$parent51" hidden="true" file="Interface\AddOns\VuhDo\Images\icon_red"> </Texture>
+								</Layer>
+							</Layers>
+							<Scripts>
+								<OnLoad>
+									self.addLevel = 10;
+								</OnLoad>
+							</Scripts>
+						</Frame>
 
-									<Frame name="$parentIc" setAllPoints="true">
-										<Layers>
-											<Layer>
-												-- Ready check
-												<Texture name="$parent20" hidden="true"> </Texture>
-												-- Raid Icon
-												<Texture name="$parent50" hidden="true" file="interface\targetingframe\ui-raidtargetingicons"> </Texture>
-												-- Swiftmend indicator
-												<Texture name="$parent51" hidden="true" file="Interface\AddOns\VuhDo\Images\icon_red"> </Texture>
-											</Layer>
-										</Layers>
-										<Scripts>
-											<OnLoad>
-												self.addLevel = 10;
-											</OnLoad>
-										</Scripts>
-									</Frame>
+						<Frame name="$parentOvhPnl">
+							<Layers>
+								<Layer level="OVERLAY">
+									<FontString name="$parentT" inherits="SystemFont_Tiny">
+									<FontHeight>
+											<AbsValue val="9" />
+										</FontHeight>
+										<Shadow>
+											<Color r="0" g="0" b="0" />
+											<Offset>
+												<AbsDimension x="1" y="-1" />
+											</Offset>
+										</Shadow>
+									</FontString>
+								</Layer>
+							</Layers>
+							<Scripts>
+								<OnLoad>
+									self.addLevel = 11;
+								</OnLoad>
+							</Scripts>
+						</Frame>
 
-									<Frame name="$parentOvhPnl">
-										<Layers>
-											<Layer level="OVERLAY">
-												<FontString name="$parentT" inherits="SystemFont_Tiny">
-												<FontHeight>
-														<AbsValue val="9" />
-													</FontHeight>
-													<Shadow>
-														<Color r="0" g="0" b="0" />
-														<Offset>
-															<AbsDimension x="1" y="-1" />
-														</Offset>
-													</Shadow>
-												</FontString>
-											</Layer>
-										</Layers>
-										<Scripts>
-											<OnLoad>
-												self.addLevel = 11;
-											</OnLoad>
-										</Scripts>
-									</Frame>
+						<StatusBar name="$parentFlBar" setAllPoints="true" inherits="VuhDoStatusBar">
+							<Scripts>
+								<OnLoad>
+									self.statusTexture = self:GetStatusBarTexture();
+									self.addLevel = 12;
+								</OnLoad>
+							</Scripts>
+						</StatusBar>
 
-									<StatusBar name="$parentFlBar" setAllPoints="true" inherits="VuhDoStatusBar">
-										<Scripts>
-											<OnLoad>
-												VUHDO_refactorStatusbar(self);
-												self.addLevel = 12;
-											</OnLoad>
-										</Scripts>
-									</StatusBar>
+						<Frame name="$parentPaCn">
+							<Frames>
+								<Frame name="$parentPa1">
+									<Frames>
+										<Frame name="$parentDurFr" hidden="true"> </Frame>
+									</Frames>
+								</Frame>
+								<Frame name="$parentPa2">
+									<Frames>
+										<Frame name="$parentDurFr" hidden="true"> </Frame>
+									</Frames>
+								</Frame>
+								<Frame name="$parentPa3">
+									<Frames>
+										<Frame name="$parentDurFr" hidden="true"> </Frame>
+									</Frames>
+								</Frame>
+								<Frame name="$parentPa4">
+									<Frames>
+										<Frame name="$parentDurFr" hidden="true"> </Frame>
+									</Frames>
+								</Frame>
+								<Frame name="$parentPa5">
+									<Frames>
+										<Frame name="$parentDurFr" hidden="true"> </Frame>
+									</Frames>
+								</Frame>
+								<Frame name="$parentPa6">
+									<Frames>
+										<Frame name="$parentDurFr" hidden="true"> </Frame>
+									</Frames>
+								</Frame>
+							</Frames>
+						</Frame>
 
-									<!-- Private Aura anchor frames 1-3 -->
-									<Frame name="$parentPa1" setAllPoints="true"> </Frame>
-									<Frame name="$parentPa2" setAllPoints="true"> </Frame>
-									<Frame name="$parentPa3" setAllPoints="true"> </Frame>
+					</Frames>
+					<Layers>
+						<Layer level="OVERLAY" textureSubLevel="6">
+							<Texture name="$parentAggro" hidden="true" file="Interface\AddOns\VuhDo\Images\aggro">
+								<Size>
+									<AbsDimension x="10" y="20" />
+								</Size>
+								<Anchors>
+									<Anchor point="LEFT" relativePoint="RIGHT" />
+									<Anchor point="RIGHT" relativePoint="LEFT" />
+								</Anchors>
+								<TexCoords left="0" right="1" top="0" bottom="1" />
+							</Texture>
 
-								</Frames>
-								<Layers>
-									<Layer level="OVERLAY" textureSubLevel="4">
-										<Texture name="$parentOvsBar" hidden="true" file="Interface\AddOns\VuhDo\Images\overshield_bar" hWrapMode="REPEAT" vWrapMode="REPEAT"> </Texture>
-									</Layer>
-									<Layer level="OVERLAY" textureSubLevel="5">
-										<Texture name="$parentHeAbBar" hidden="true" file="Interface\AddOns\VuhDo\Images\healabsorb_bar" hWrapMode="REPEAT" vWrapMode="REPEAT"> </Texture>
-									</Layer>
-									<Layer level="OVERLAY" textureSubLevel="6">
-										<Texture name="$parentAggro" hidden="true" file="Interface\AddOns\VuhDo\Images\aggro">
-											<Size>
-												<AbsDimension x="10" y="20" />
-											</Size>
-											<Anchors>
-												<Anchor point="LEFT" relativePoint="RIGHT" />
-												<Anchor point="RIGHT" relativePoint="LEFT" />
-											</Anchors>
-											<TexCoords left="0" right="1" top="0" bottom="1" />
-										</Texture>
+						</Layer>
+					</Layers>
+				</StatusBar>
 
-									</Layer>
-								</Layers>
-							</StatusBar>
+				<Frame name="$parentClipBar" clipChildren="true">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeTo="$parentHlBar" relativePoint="TOPLEFT"/>
+						<Anchor point="BOTTOMRIGHT" relativeTo="$parentHlBar" relativePoint="BOTTOMRIGHT"/>
+					</Anchors>
+					<Frames>
 
-						</Frames>
+						<StatusBar name="$parentIcBar" inherits="VuhDoStatusBar">
+							<Scripts>
+								<OnLoad>
+									self.statusTexture = self:GetStatusBarTexture();
+								</OnLoad>
+							</Scripts>
+						</StatusBar>
 
-					</StatusBar>
+						<StatusBar name="$parentShBar" inherits="VuhDoStatusBar">
+							<Scripts>
+								<OnLoad>
+									self.statusTexture = self:GetStatusBarTexture();
+								</OnLoad>
+							</Scripts>
+						</StatusBar>
 
-				</Frames>
-			</StatusBar>
+					</Frames>
+				</Frame>
+
+				<StatusBar name="$parentOvsBar" hidden="true" inherits="VuhDoStatusBar">
+					<Scripts>
+						<OnLoad>
+							self.statusTexture = self:GetStatusBarTexture();
+							self:SetStatusBarTexture("Interface\\AddOns\\VuhDo\\Images\\overshield_bar");
+							self:GetStatusBarTexture():SetTexCoord(0, 1, 0, 1);
+							self:GetStatusBarTexture():SetTexture("Interface\\AddOns\\VuhDo\\Images\\overshield_bar", "REPEAT", "REPEAT");
+							self:GetStatusBarTexture():SetHorizTile(true);
+							self:GetStatusBarTexture():SetVertTile(true);
+							self:SetReverseFill(true);
+							self:SetMinMaxValues(0, 1);
+							self:SetValue(0);
+							self.addLevel = 1;
+						</OnLoad>
+					</Scripts>
+				</StatusBar>
+
+				<StatusBar name="$parentHeAbBar" hidden="true" inherits="VuhDoStatusBar">
+					<Scripts>
+						<OnLoad>
+							self.statusTexture = self:GetStatusBarTexture();
+							self:SetStatusBarTexture("Interface\\AddOns\\VuhDo\\Images\\healabsorb_bar");
+							self:GetStatusBarTexture():SetTexCoord(0, 1, 0, 1);
+							self:GetStatusBarTexture():SetTexture("Interface\\AddOns\\VuhDo\\Images\\healabsorb_bar", "REPEAT", "REPEAT");
+							self:GetStatusBarTexture():SetHorizTile(true);
+							self:GetStatusBarTexture():SetVertTile(true);
+							self:SetReverseFill(true);
+							self:SetMinMaxValues(0, 1);
+							self:SetValue(0);
+							self.addLevel = 1;
+						</OnLoad>
+					</Scripts>
+				</StatusBar>
+
+			</Frames>
+		</StatusBar>
 
 			<Button name="$parentTg" inherits="VuhDoButtonSecureTargetTemplate"> </Button>
 			<Button name="$parentTot" inherits="VuhDoButtonSecureTargetTemplate"> </Button>

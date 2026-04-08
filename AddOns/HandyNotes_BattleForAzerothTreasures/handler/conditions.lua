@@ -2,6 +2,9 @@ local myname, ns = ...
 local Class = ns.Class
 
 local GetPlayerAuraBySpellID = C_UnitAuras and C_UnitAuras.GetPlayerAuraBySpellID or _G.GetPlayerAuraBySpellID
+local issecretvalue = _G.issecretvalue or function() return false end
+local issecrettable = _G.issecrettable or function() return false end
+local InChatMessagingLockdown = _G.C_ChatInfo and C_ChatInfo.InChatMessagingLockdown or function() return false end
 
 ns.conditions = {}
 -- _G.COND = ns.conditions
@@ -16,7 +19,7 @@ condition:Label() -> string
 
 local Condition = ns.Class({classname = "Condition"})
 function Condition:init(id) self.id = id end
-function Condition:Label() return ('{%s:%d}'):format(self.type, self.id) end
+function Condition:Label() return ('{%s:%s}'):format(self.type, self.id) end
 function Condition:Matched() return false end
 
 local RankedCondition = Condition:extends{classname = "RankedCondition"}
@@ -70,7 +73,13 @@ end
 ns.conditions.AchievementIncomplete = Negated(ns.conditions.Achievement)
 
 ns.conditions.AuraActive = Condition:extends{classname = "AuraActive", type = "spell"}
-function ns.conditions.AuraActive:Matched() return GetPlayerAuraBySpellID(self.id) end
+function ns.conditions.AuraActive:Matched()
+    local aura = GetPlayerAuraBySpellID(self.id)
+    if issecretvalue(aura) then
+        return
+    end
+    return aura
+end
 
 ns.conditions.AuraInactive = Negated(ns.conditions.AuraActive)
 
@@ -129,14 +138,30 @@ function ns.conditions.Covenant:Matched()
     return true
 end
 
-ns.conditions.Faction = RankedCondition:extends{classname = "Faction", type = 'faction'}
+ns.conditions.Faction = RankedCondition:extends{classname = "Faction", type = 'faction',
+    RANKS = {
+        ["Unknown"] = 0,
+        ["Hated"] = 1,
+        ["Hostile"] = 2,
+        ["Unfriendly"] = 3,
+        ["Neutral"] = 4,
+        ["Friendly"] = 5,
+        ["Honored"] = 6,
+        ["Revered"] = 7,
+        ["Exalted"] = 8,
+    },
+}
+function ns.conditions.Faction:init(id, rank)
+    return self:super("init", id, self.RANKS[rank] or rank)
+end
 function ns.conditions.Faction:Matched()
     local name, standingid, _
     if C_Reputation and C_Reputation.GetFactionDataByID then
         local info = C_Reputation.GetFactionDataByID(self.id)
         if info and info.name then
             name = info.name
-            standingid = info.currentstanding
+            -- info.currentStanding exists but is your total rep with the faction
+            standingid = info.reaction
         end
     elseif GetFactionInfoByID then
         name, _, standingid = GetFactionInfoByID(self.id)
@@ -144,6 +169,12 @@ function ns.conditions.Faction:Matched()
     if name and standingid then
         return self.rank <= standingid
     end
+end
+function ns.conditions.Faction:Label()
+    if self.rank then
+        return ('{%s:%d.%d}'):format(self.type, self.id, self.rank)
+    end
+    return self:super("Label")
 end
 
 ns.conditions.MajorFaction = RankedCondition:extends{classname = "MajorFaction", type = 'majorfaction'}
@@ -157,22 +188,24 @@ function ns.conditions.MajorFaction:Matched()
     end
 end
 
-ns.conditions.GarrisonTalent = Condition:extends{classname = "GarrisonTalent", type = 'garrisontalent'}
-function ns.conditions.GarrisonTalent:init(id, rank)
-    self.id = id
-    self.rank = rank
-end
-function ns.conditions.GarrisonTalent:Label()
-    local info = C_Garrison.GetTalentInfo(self.id)
-    local name = info and info.name and ("{garrisontalent:%d}"):format(self.id) or UNKNOWN
-    if self.rank then
-        return AZERITE_ESSENCE_TOOLTIP_NAME_RANK:format(name, self.rank)
-    end
-    return name
-end
+ns.conditions.GarrisonTalent = RankedCondition:extends{classname = "GarrisonTalent", type = 'garrisontalent'}
 function ns.conditions.GarrisonTalent:Matched()
     local info = C_Garrison.GetTalentInfo(self.id)
     return info and info.researched and (not self.rank or info.talentRank >= self.rank)
+end
+
+ns.conditions.Trait = RankedCondition:extends{classname = "Trait", type = 'trait'}
+function ns.conditions.Trait:init(treeID, nodeID, rank)
+    self.treeID = treeID
+    self.nodeID = nodeID
+    self.rank = rank
+
+    self.id = ("%d.%d"):format(treeID, nodeID) -- for Label
+end
+function ns.conditions.Trait:Matched()
+    local configID = C_Traits.GetConfigIDByTreeID(self.treeID)
+    local nodeInfo = configID and C_Traits.GetNodeInfo(configID, self.nodeID)
+    return nodeInfo and nodeInfo.ID ~= 0 and nodeInfo.ranksPurchased > 0
 end
 
 ns.conditions.Item = Condition:extends{classname = "Item", type = 'item'}
@@ -255,6 +288,8 @@ function ns.conditions.CalendarEvent:Matched()
     end
 end
 function ns.conditions.CalendarEvent:getEvent()
+    -- C_Calendar.GetDayEvent returns secrets when in chat messaging lockdown
+    if InChatMessagingLockdown() then return end
     local offset, day = self:getOffsets()
     for i=1, C_Calendar.GetNumDayEvents(offset, day) do
         local event = C_Calendar.GetDayEvent(offset, day, i)
@@ -282,6 +317,8 @@ end
 
 ns.conditions.CalendarEventStartTexture = ns.conditions.CalendarEvent:extends{classname = "CalendarEventStartTexture", type = 'calendareventtexture'}
 function ns.conditions.CalendarEventStartTexture:getEvent()
+    -- C_Calendar.GetDayEvent returns secrets when in chat messaging lockdown
+    if InChatMessagingLockdown() then return end
     local offset, day = self:getOffsets()
     for i=1, C_Calendar.GetNumDayEvents(offset, day) do
         local event = C_Calendar.GetDayEvent(offset, day, i)
@@ -336,6 +373,11 @@ do
         end
         return tonumber(id)
     end
+end
+
+ns.conditions.Expansion = Condition:extends{classname = "Expansion", type = "expansion"}
+function ns.conditions.Expansion:Matched()
+    return self.id <= LE_EXPANSION_LEVEL_CURRENT
 end
 
 -- Helpers:

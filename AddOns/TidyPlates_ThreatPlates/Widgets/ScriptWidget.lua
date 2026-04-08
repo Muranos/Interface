@@ -2,7 +2,6 @@
 -- Quest Widget
 ---------------------------------------------------------------------------------------------------
 local ADDON_NAME, Addon = ...
-local ThreatPlates = Addon.ThreatPlates
 
 local Widget = Addon.Widgets:NewWidget("Script")
 
@@ -21,7 +20,7 @@ local CreateFrame = CreateFrame
 local loadstring, setfenv = loadstring, setfenv
 
 -- ThreatPlates APIs
-local L = ThreatPlates.L
+local L = Addon.L
 
 local _G =_G
 
@@ -328,6 +327,23 @@ local function GetScriptEnvironment(custom_style)
           Profile = Addon.db.profile
         },
         API = {
+          v1 = {
+            SetTextureForIcon = function(icon_id, icon_source)
+              --local allow_types = { string = true, number = true, table = true}
+              --if allow_types[type(icon_source)] then
+              -- if type(icon_source) ~= "string" and type(icon_source) ~= "number" and type(icon_source) ~= "table" then
+              --   Addon.Logging.Error(string_format(L["Error in custom style '%s': only numbers and strings are allowed as icon sources for function SetIcon."], Addon.CustomPlateGetHeaderName(custom_style)))
+              --   return
+              -- end
+
+              if icon_id and icon_source then
+                if type(icon_source) == "function" then
+                  setfenv(icon_source, setmetatable({}, ScriptEnvironment))
+                end
+                Addon.IconTextures[icon_id] = icon_source
+              end
+            end,
+          },          
           Data = {
             CrowdControlAuras = Addon.Widgets.Widgets.Auras.CROWD_CONTROL_SPELLS,
             StealthDetectionAuras = Addon.Data.StealthDetectionAuras,
@@ -346,12 +362,11 @@ local function GetScriptEnvironment(custom_style)
           Widgets = {
             CreateStatusBar = Addon.CreateStatusbar,
             -- CreateText = Addon.CreateText,
-          }
+          },
           --Util = {
             -- HEX2RGB
             -- CopyTable
             -- MergeIntoTable
-            -- ConcatTables
             -- PrintTable
           --},
           --Debug = {}
@@ -442,7 +457,7 @@ function Widget:OnDisable()
   for _, custom_style in ipairs(Addon.Cache.CustomPlateTriggers.Script) do
     for event, _ in pairs(custom_style.Scripts.Code.Events) do
       --print ("Unregistering:", event)
-      self:UnregisterEvent(event)
+      self:UnsubscribeEvent(event)
     end
   end
 
@@ -624,7 +639,7 @@ function Widget:UpdateSettings()
         if func then
           ScriptsForWoWEvents[event] = ScriptsForWoWEvents[event] or {}
           ScriptsForWoWEvents[event][custom_style] = func
-          if not pcall(self.RegisterEvent, self, event, HandleWoWEvent) then
+          if not pcall(self.SubscribeEvent, self, event, HandleWoWEvent) then
             Addon.Logging.Error(string_format(L["Attempt to register script for unknown WoW event \"%s\""], event))
           end
         end

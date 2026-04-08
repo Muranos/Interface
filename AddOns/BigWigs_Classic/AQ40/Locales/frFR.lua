@@ -2,7 +2,7 @@ local L = BigWigs:NewBossLocale("Viscidus", "frFR")
 if not L then return end
 if L then
 	L.freeze = "États de Gel"
-	L.freeze_desc = "Annoncer des différents états gelés."
+	L.freeze_desc = "Annonce des différents états de gel"
 
 	L.freeze_trigger1 = "%s commence à ralentir !"
 	L.freeze_trigger2 = "%s est gelé !"
@@ -19,16 +19,21 @@ if L then
 	L.freeze_warn_frost = "%d attaques de givre - %d de plus"
 end
 
+L = BigWigs:NewBossLocale("Silithid Royalty", "frFR")
+if L then
+	L[15543] = "Yauj"
+	L[15544] = "Vem"
+	L[15511] = "Kri"
+end
+
 L = BigWigs:NewBossLocale("Ouro", "frFR")
 if L then
-	L.engage_message = "Ouro engagé ! Submersion possible dans 90 secondes !"
-	L.possible_submerge_bar = "Submersion possible"
-
 	L.emerge_message = "Ouro a émergé"
 	L.emerge_bar = "Émergence"
 
 	L.submerge_message = "Ouro a submergé"
 	L.submerge_bar = "Submersion"
+	L.submerge_early_message = "Submersion précoce - Personne n'était à portée"
 
 	L.scarab = "Disparition des scarabées"
 	L.scarab_desc = "Avertissement pour la disparition des scarabées."
@@ -49,11 +54,10 @@ if L then
 	L.giant_eye_tentacle = "Tentacule oculaire géant"
 	L.giant_eye_tentacle_desc = "Chronomètres pour le tentacule oculaire géant."
 
-	L.weakened_desc = "Annoncer affaiblissement."
+	L.weakened_desc = "Annonce le affaiblissement."
 
 	L.dark_glare_message = "%s: %s (Groupe %s)" -- Dark Glare: PLAYER_NAME (Group 1)
-	--L.stomach = "Stomach"
-	--L.tentacle = "Tentacle (%d)"
+	L.stomach = "Estomac"
 end
 
 L = BigWigs:NewBossLocale("Ahn'Qiraj Trash", "frFR")

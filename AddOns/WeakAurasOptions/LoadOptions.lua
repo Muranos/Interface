@@ -703,6 +703,7 @@ function OptionsPrivate.ConstructOptions(prototype, data, startorder, triggernum
               local value = getValue(trigger, "use_"..realname, realname, multiEntry, entryNumber)
               if(arg.type == "item") then
                 local useExactSpellId = (arg.showExactOption and getValue(trigger, nil, "use_exact_"..realname, multiEntry, entryNumber))
+                                        or arg.only_exact
                 if value and value ~= "" then
                   if useExactSpellId then
                     local itemId = tonumber(value)
@@ -725,6 +726,7 @@ function OptionsPrivate.ConstructOptions(prototype, data, startorder, triggernum
                 end
               elseif(arg.type == "spell") then
                 local useExactSpellId = (arg.showExactOption and getValue(trigger, nil, "use_exact_"..realname, multiEntry, entryNumber))
+                                        or arg.only_exact
                 if value and value ~= "" and (type(value) == "number" or type(value) == "string") then
                   local spellID = WeakAuras.SafeToNumber(value)
                   if spellID then
@@ -1003,7 +1005,7 @@ function OptionsPrivate.ConstructOptions(prototype, data, startorder, triggernum
                 end
                 WeakAuras.Add(data);
                 if (reloadOptions) then
-                  -- Hack specifally for dragon flight mini talent
+                  -- Hack specifally for Mini talent widgets
                   -- That widget needs to be informed before and
                   -- after a reload
                   OptionsPrivate.Private.callbacks:Fire("BeforeReload")
@@ -1123,13 +1125,13 @@ function OptionsPrivate.ConstructOptions(prototype, data, startorder, triggernum
   end
   if prototype.timedrequired then
     options.unevent = {
-      type = "select",
+      type = "toggle",
+      disabled = true,
       width = WeakAuras.normalWidth,
-      name = L["Hide"],
+      name = L["Hide After"],
       order = order,
-      values = OptionsPrivate.Private.timedeventend_types,
       get = function()
-        return "timed"
+        return true
       end,
       set = function(info, v)
         -- unevent is no longer used

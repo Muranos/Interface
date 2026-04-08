@@ -74,6 +74,7 @@ L['elite'] = '精英'
 L['quest'] = '任务'
 L['quest_repeatable'] = '可重复任务'
 L['achievement'] = '成就'
+L['decor_owned'] = '已拥有：'
 
 ---------------------------------- LOCATION -----------------------------------
 L['in_cave'] = '在洞穴。'
@@ -93,6 +94,7 @@ L['time_format_12hrs'] = '%m/%d - %I:%M %p 本地时间'
 L['time_format_24hrs'] = '%m/%d - %H:%M 本地时间'
 
 ----------------------------------- REWARDS -----------------------------------
+L['decor'] = '装饰'
 L['heirloom'] = '传家宝'
 L['item'] = '物品'
 L['mount'] = '坐骑'
@@ -105,7 +107,7 @@ L['currency'] = '货币'
 L['rep'] = '声望'
 L['buff'] = '增益'
 L['transmog'] = '幻化'
-L['hunter_pet'] = nil
+L['hunter_pet'] = '猎人宠物'
 
 ---------------------------------- FOLLOWERS ----------------------------------
 L['follower_type_follower'] = '追随者'
@@ -118,23 +120,23 @@ L['rep_revered'] = '崇敬'
 L['rep_exalted'] = '崇拜'
 
 -------------------------------------------------------------------------------
---------------------------------- DRAGONRACES ---------------------------------
+------------------------------- SKYRIDING RACES -------------------------------
 -------------------------------------------------------------------------------
 
-L['dr_your_best_time'] = '最快时间：'
-L['dr_your_target_time'] = '目标时间：'
-L['dr_best_time'] = ' - %s：%.3f秒'
-L['dr_target_time'] = ' - %s：%s秒 / %s秒'
-L['dr_normal'] = '普通'
-L['dr_advanced'] = '进阶'
-L['dr_reverse'] = '反向'
-L['dr_challenge'] = '挑战'
-L['dr_reverse_challenge'] = '反向挑战'
-L['dr_storm_race'] = '风雷之速'
-L['dr_bronze'] = '完成竞速获得 ' .. ns.color.Bronze('青铜') .. '。'
-L['dr_vendor_note'] = '用 {currency:2588} 兑换观龙者手稿和幻化。'
-L['options_icons_dragonrace'] = '驭龙竞速'
-L['options_icons_dragonrace_desc'] = '显示区域内全部驭龙竞速的位置。'
+L['sr_your_best_time'] = '最快时间：'
+L['sr_your_target_time'] = '目标时间：'
+L['sr_best_time'] = ' - %s：%.3f秒'
+L['sr_target_time'] = ' - %s：%s秒 / %s秒'
+L['sr_normal'] = '普通'
+L['sr_advanced'] = '进阶'
+L['sr_reverse'] = '反向'
+L['sr_challenge'] = '挑战'
+L['sr_reverse_challenge'] = '反向挑战'
+L['sr_storm_race'] = '风雷之速'
+L['sr_bronze'] = '完成竞速获得 ' .. ns.color.Bronze('青铜') .. '。'
+L['sr_vendor_note'] = '用 {currency:2588} 兑换观龙者手稿和幻化。'
+L['options_icons_skyriding_race'] = '驭空术竞速'
+L['options_icons_skyriding_race_desc'] = '显示区域内全部驭空术竞速的位置。'
 
 -------------------------------------------------------------------------------
 --------------------------------- CONTEXT MENU --------------------------------
@@ -204,6 +206,8 @@ L['ignore_faction_restrictions_desc'] = '显示需要对立阵营的组、项和
 L['options_rewards_settings'] = '奖励'
 L['options_reward_behaviors_settings'] = '奖励行为'
 L['options_reward_types'] = '显示奖励类型'
+L['options_decor_rewards'] = '显示装饰奖励'
+L['options_decor_rewards_desc'] = '在提示中显示装饰奖励并跟踪其收集状态。'
 L['options_manuscript_rewards'] = '显示观龙者手稿奖励'
 L['options_manuscript_rewards_desc'] = '在提示中显示龙观察者手稿奖励并跟踪其收集状态。'
 L['options_mount_rewards'] = '显示坐骑奖励'

@@ -8,6 +8,8 @@ local module = ExRT:New("InviteTool",ExRT.L.invite)
 local ELib,L = ExRT.lib,ExRT.L
 
 local GetItemInfo, GetItemInfoInstant, GetItemQualityColor = C_Item and C_Item.GetItemInfo or GetItemInfo, C_Item and C_Item.GetItemInfoInstant or GetItemInfoInstant, C_Item and C_Item.GetItemQualityColor or GetItemQualityColor
+local SetLootMethod = C_PartyInfo and C_PartyInfo.SetLootMethod or SetLootMethod
+local GetLootMethod = C_PartyInfo and C_PartyInfo.GetLootMethod or GetLootMethod
 
 module.db.converttoraid = false
 module.db.massinv = false
@@ -134,13 +136,14 @@ local function InviteList(list,noNewList)
 	end
 end
 local function CreateInviteList(text)
+	local list = {}
 	if not text then 
-		return {}
+		return list
 	end
-	local list = {strsplit("\n",text)}
-	for i=#list,1,-1 do
-		if string.trim(list[i]) == "" then
-			tremove(list,i)
+	for c in text:gmatch("[^\n;,\t ]+") do
+		c = c:trim()
+		if c ~= "" then
+			list[#list+1] = c
 		end
 	end
 	return list
@@ -236,6 +239,10 @@ local function createPromoteArray()
 end
 
 local function demoteRaid()
+	if ExRT.isMN and InCombatLockdown() then
+		print("Not possible to demote in combat.")
+		return
+	end
 	for i = 1, GetNumGroupMembers() do
 		local name, rank = GetRaidRosterInfo(i)
 		if name and rank == 1 then
@@ -604,6 +611,7 @@ local promoteRosterUpdate
 do
 	local promotes,scheduledPromotes={},nil
 	local guildmembers = nil
+	local combatPromotes = {}
 
 	local function GuildReview()
 		guildmembers = {}
@@ -643,7 +651,19 @@ do
 				scheduledPromotes = nil
 				for name in pairs(promotes) do
 					if not module.db.demotedPlayers[ ExRT.F.delUnitNameServer(name) ] then
-						PromoteToAssistant(name, true)
+						if ExRT.isMN and InCombatLockdown() then
+							if not combatPromotes[name] then
+								local name1 = name
+								combatPromotes[name] = C_Timer.NewTicker(1,function(self)
+									if InCombatLockdown() then return end
+									PromoteToAssistant(name1, true)
+									combatPromotes[name1] = nil
+									self:Cancel()
+								end)
+							end
+						else
+							PromoteToAssistant(name, true)
+						end
 					end
 					promotes[name] = nil
 				end
@@ -696,13 +716,15 @@ function module.main:ADDON_LOADED()
 end
 
 function module.main:CHAT_MSG_WHISPER(msg, user, special)
-	if user == ExRT.SDB.charKey then
+	if (issecretvalue and issecretvalue(user)) or user == ExRT.SDB.charKey then
 		return
 	end
 	msg = string.lower(msg):trim()
 	if ((msg and module.db.invWordsArray[msg]) or (module.db.invWordsArray["ANYKEYWORD"] and not UnitName(user))) and (not VMRT.InviteTool.OnlyGuild or UnitInGuild(user)) then
-		if not IsInRaid() and GetNumGroupMembers() == 5 then 
-			C_PartyInfo_ConvertToRaid()
+		if not IsInRaid() and GetNumGroupMembers() == 5 then
+			if not ExRT.isMN or not InCombatLockdown() then
+				C_PartyInfo_ConvertToRaid()
+			end
 		end
 		InviteUnit(user)
 	elseif ((msg and module.db.invWordsArray[msg]) or (module.db.invWordsArray["ANYKEYWORD"] and not UnitName(user))) and VMRT.InviteTool.OnlyGuild and (GetNumGuildMembers() or 0) == 0 and special ~= -578 then
@@ -717,12 +739,17 @@ module.main.CHAT_MSG_YELL = module.main.CHAT_MSG_WHISPER
 
 
 function module.main:CHAT_MSG_BN_WHISPER(msg,sender,_,_,_,_,_,_,_,_,_,_,senderBnetIDAccount)
+	if (issecretvalue and issecretvalue(sender)) then
+		return
+	end
 	msg = string.lower(msg):trim()
 	if not ((msg and module.db.invWordsArray[msg]) or module.db.invWordsArray["ANYKEYWORD"]) then
 		return
 	end
 	if not IsInRaid() and GetNumGroupMembers() == 5 then 
-		C_PartyInfo_ConvertToRaid()
+		if not ExRT.isMN or not InCombatLockdown() then
+			C_PartyInfo_ConvertToRaid()
+		end
 	end
 
 	if not ExRT.isClassic then
@@ -765,6 +792,20 @@ local function IsRaidLeader()
 	end
 end
 
+
+local lootMethodToID = {
+	freeforall = 0,
+	group = 3,
+	master = 2,
+	needbeforegreed = 4,
+	roundrobin = 1,
+	personalloot = 5,
+}
+local function TransitionLootMethodFromOpt(opt)
+	return lootMethodToID[opt]
+end
+
+
 local scheludedRaidUpdate = nil
 local function AutoRaidSetup()
 	scheludedRaidUpdate = nil
@@ -783,7 +824,8 @@ local function AutoRaidSetup()
 					SetRaidDifficultyID(VMRT.InviteTool.RaidDiff)
 				end
 				if ExRT.isClassic and VMRT.InviteTool.LootMethodEnabled then
-					SetLootMethod(VMRT.InviteTool.LootMethod,UnitName("player"),nil)
+					local name = UnitName("player")
+					SetLootMethod(TransitionLootMethodFromOpt(VMRT.InviteTool.LootMethod),name)
 					--SetLootThreshold(VMRT.InviteTool.LootThreshold)	--http://us.battle.net/wow/en/forum/topic/14610481537
 					ExRT.F.ScheduleTimer(SetLootThreshold, 2, VMRT.InviteTool.LootThreshold)
 				end
@@ -795,7 +837,8 @@ local function AutoRaidSetup()
 		if inRaid and not module.db.sessionInRaidLoot then
 			module.db.sessionInRaidLoot = true
 			if RaidLeader and ExRT.isClassic and VMRT.InviteTool.LootMethodEnabled then
-				SetLootMethod(VMRT.InviteTool.LootMethod,UnitName("player"),nil)
+				local name = UnitName("player")
+				SetLootMethod(TransitionLootMethodFromOpt(VMRT.InviteTool.LootMethod),name)
 				ExRT.F.ScheduleTimer(SetLootThreshold, 2, VMRT.InviteTool.LootThreshold)
 			end
 		end
@@ -803,14 +846,14 @@ local function AutoRaidSetup()
 
 	if inRaid and RaidLeader and VMRT.InviteTool.LootMethod == "master" and VMRT.InviteTool.LootMethodEnabled and ExRT.isClassic then
 		local lootMethod,_,masterlooterRaidID = GetLootMethod()
-		if lootMethod == "master" then
+		if lootMethod == "master" or lootMethod == 2 then
 			local masterlooterName = UnitName("raid"..masterlooterRaidID)
 			for i=1,#module.db.masterlootersArray do
 				local name = module.db.masterlootersArray[i]
 				local nameNow = UnitName(name)
 				if nameNow then
 					if masterlooterName ~= nameNow then
-						SetLootMethod("master",name)
+						SetLootMethod(TransitionLootMethodFromOpt("master"),name)
 					end
 					break
 				end
@@ -824,7 +867,9 @@ function module.main:GROUP_ROSTER_UPDATE()
 	if inRaid then
 		module.db.converttoraid = false
 	elseif module.db.converttoraid then
-		C_PartyInfo_ConvertToRaid()
+		if not ExRT.isMN or not InCombatLockdown() then
+			C_PartyInfo_ConvertToRaid()
+		end
 	end
 	if module.db.reInviteR and inRaid then
 		module.db.reInviteR = nil

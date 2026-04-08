@@ -4,7 +4,7 @@
 
 local mod, CL = BigWigs:NewBoss("The Culling of Stratholme Trash", 595)
 if not mod then return end
-mod.displayName = CL.trash
+mod:SetTrashModule(true)
 mod:RegisterEnableMob(
 	26527, 27915, -- Chromie
 	26499, -- Arthas
@@ -18,9 +18,9 @@ mod:RegisterEnableMob(
 
 local L = mod:GetLocale()
 if L then
-	L.custom_on_autotalk = "Autotalk"
+	L.custom_on_autotalk = CL.autotalk
 	L.custom_on_autotalk_desc = "Instantly select Chromie's and Arthas's gossip options."
-	L.custom_on_autotalk_icon = "ui_chat"
+	L.custom_on_autotalk_icon = mod:GetMenuIcon("SAY")
 
 	L.gossip_available = "Gossip available"
 	L.gossip_timer_trigger = "Glad you could make it, Uther."
@@ -49,7 +49,7 @@ end
 
 -- Timer for the "Glad you could make it, Uther" roleplay
 function mod:CHAT_MSG_MONSTER_SAY(_, msg)
-	if msg == L.gossip_timer_trigger then
+	if not self:IsSecret(msg) and msg == L.gossip_timer_trigger then
 		self:UnregisterEvent("CHAT_MSG_MONSTER_SAY")
 		self:Bar("warmup", 155.6, L.gossip_available, "inv_sword_01")
 	end

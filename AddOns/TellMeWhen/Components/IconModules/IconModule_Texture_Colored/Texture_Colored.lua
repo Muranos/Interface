@@ -20,6 +20,7 @@ local print = TMW.print
 local LMB = LibStub("Masque", true) or (LibMasque and LibMasque("Button"))
 local type = type
 local bitband = bit.band
+local issecretvalue = TMW.issecretvalue
 
 local ColorMSQ, OnlyMSQ
 
@@ -70,12 +71,39 @@ local COLOR_UNLOCKED = {
 	Texture = "",
 	Gray = false,
 }
+
+local EvaluateColorValueFromBoolean = C_CurveUtil and C_CurveUtil.EvaluateColorValueFromBoolean
 function Texture_Colored:STATE(icon, stateData)
 	local color
-	if not TMW.Locked or not stateData then
+	if not TMW.Locked then
 		color = "ffffffff"
 	else
 		color = stateData.Color or "ffffffff"
+	end
+
+	if stateData.secretBool ~= nil then
+		local trueC = TMW:StringToCachedColorMixin(stateData.trueState.Color)
+		local falseC = TMW:StringToCachedColorMixin(stateData.falseState.Color)
+
+		self.texture:SetVertexColorFromBoolean(stateData.secretBool, trueC, falseC)
+		self.texture:SetDesaturation(EvaluateColorValueFromBoolean(
+			stateData.secretBool,
+			trueC.flags.desaturate and 1 or 0,
+			falseC.flags.desaturate and 1 or 0
+		))
+		
+		if LMB and ColorMSQ then
+			-- This gets set by IconModule_IconContainer_Masque
+			local normaltex = icon.normaltex
+			if normaltex then
+				normaltex:SetVertexColorFromBoolean(stateData.secretBool, trueC, falseC)
+			end
+		end
+
+		-- Can't evaluate texture overrides from secrets.
+		self.texture:SetTexture(icon.attributes.texture)
+
+		return
 	end
 
 	local texture = stateData.Texture
@@ -94,7 +122,12 @@ function Texture_Colored:STATE(icon, stateData)
 		self.texture:SetVertexColor(1, 1, 1, 1)
 	end
 
-	self.texture:SetDesaturated(c.flags and c.flags.desaturate or false)
+
+	if stateData.Desaturation then
+		self.texture:SetDesaturation(stateData.Desaturation)
+	else
+		self.texture:SetDesaturated(c.flags and c.flags.desaturate or false)
+	end
 	
 	if LMB and ColorMSQ then
 		-- This gets set by IconModule_IconContainer_Masque

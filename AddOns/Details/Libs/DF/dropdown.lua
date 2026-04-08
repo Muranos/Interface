@@ -1,5 +1,5 @@
 
---[=[ 
+--[=[
 	On selecting an option it calls the 'onclick' function of the option with the parameters: dropdownObject, fixedValue, option.value
 	Example:
 
@@ -15,31 +15,37 @@
 ---@field func function
 ---@field SetTemplate fun(self:df_dropdown, template:table|string)
 ---@field SetFixedParameter fun(self:df_dropdown, value:any) is sent as 2nd argument to the callback function, the value is the same no matter which option is selected
+---@field GetFixedParameter fun(self:df_dropdown):any
 ---@field BuildDropDownFontList fun(self:df_dropdown, onClick:function, icon:any, iconTexcoord:table?, iconSize:table?):table make a dropdown list with all fonts available, on select a font, call the function onClick
 ---@field SetFunction fun(self:df_dropdown, func:function)
 ---@field SetEmptyTextAndIcon fun(self:df_dropdown, text:string, icon:any)
 ---@field Select fun(self:df_dropdown, optionName:string|number, byOptionNumber:boolean?, bOnlyShown:boolean?, runCallback:boolean?):boolean
 ---@field SelectDelayed fun(self:df_dropdown, optionName:string|number, byOptionNumber:boolean?, bOnlyShown:boolean?, runCallback:boolean?) --call Select() after a random delay
+---@field UseSimpleHeader fun(self:df_dropdown, value:boolean) ignore text color, font, statusbar, in the main frame
 ---@field Open fun(self:df_dropdown)
+---@field IsOpen fun(self:df_dropdown):boolean
 ---@field Close fun(self:df_dropdown)
 ---@field Refresh fun(self:df_dropdown)
 ---@field GetValue fun(self:df_dropdown):any
 ---@field GetFunction fun(self:df_dropdown):function
 ---@field GetMenuSize fun(self:df_dropdown):number, number
----@field SetMenuSize fun(self:df_dropdown, width:number, height:number)
+---@field SetMenuSize fun(self:df_dropdown, width:number?, height:number?)
 ---@field Disable fun(self:df_dropdown)
 ---@field Enable fun(self:df_dropdown)
+---@field IsText fun(self:df_dropdown_text):boolean return true is the dropdown is a text dropdown
+---@field OnCreateOptionFrame function callback: fun(self:df_dropdown, optionFrame:button, optionTable:dropdownoption) assign a function to be called when creating an option frame
+---@field OnUpdateOptionFrame function callback: fun(self:df_dropdown, optionFrame:button, optionTable:dropdownoption) assign a function to be called when updating an option frame
 
 ---@class dropdownoption : table
 ---@field value any
 ---@field label string text shown in the dropdown option
 ---@field onclick fun(dropdownObject:table, fixedValue:any, value:any)? function to call when the option is selected
 ---@field icon string|number? texture
----@field color any any color format
----@field font string?
----@field texcoord number[]? left, right, top, bottom
 ---@field iconcolor any any color format
 ---@field iconsize number[]? width, height
+---@field texcoord number[]? left, right, top, bottom
+---@field color any any color format
+---@field font string?
 ---@field languageId string?
 ---@field rightbutton function? function to call on right click
 ---@field statusbar string|number? statusbar texture
@@ -95,50 +101,58 @@ DF:Mixin(DropDownMetaFunctions, DF.Language.LanguageMixin)
 		--unknown
 	end
 
+--[=[
+	set and get members using dot.
+	Example:
+		local myDropdown = DF:CreateDropdown(parent, func)
+		myDropdown.shown return true if the dropdown is shown
+		myDropdown.width adjust the width of the dropdown frame
+--]=]
+
 ------------------------------------------------------------------------------------------------------------
 --members
 	--selected value
-	local gmemberValue = function(object)
+	local gmemberValue = function(object) -- dropdown.value
 		return object:GetValue()
 	end
 
 	--tooltip
-	local gmemberTooltip = function(object)
+	local gmemberTooltip = function(object) -- dropdown.tooltip
 		return object:GetTooltip()
 	end
 
 	--shown
-	local gmemberShown = function(object)
+	local gmemberShown = function(object) -- dropdown.shown
 		return object:IsShown()
 	end
 
 	--frame width
-	local gmemberWidth = function(object)
+	local gmemberWidth = function(object) -- dropdown.width
 		return object.button:GetWidth()
 	end
 
 	--frame height
-	local gmemberHeight = function(object)
+	local gmemberHeight = function(object) -- dropdown.height
 		return object.button:GetHeight()
 	end
 
 	--current text
-	local gmemberText = function(object)
+	local gmemberText = function(object) -- dropdown.text
 		return object.label:GetText()
 	end
 
 	--menu creation function
-	local gmemberFunction = function(object)
+	local gmemberFunction = function(object) -- dropdown.func
 		return object:GetFunction()
 	end
 
 	--menu width
-	local gmemberMenuWidth = function(object)
+	local gmemberMenuWidth = function(object) -- dropdown.menuwidth
 		return rawget(object, "realsizeW")
 	end
 
 	--menu height
-	local gmemberMenuHeight = function(object)
+	local gmemberMenuHeight = function(object) -- dropdown.menuheight
 		return rawget(object, "realsizeH")
 	end
 
@@ -170,12 +184,12 @@ DF:Mixin(DropDownMetaFunctions, DF.Language.LanguageMixin)
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 	--tooltip
-	local smemberTooltip = function(object, value)
+	local smemberTooltip = function(object, value) -- dropdown.tooltip
 		return object:SetTooltip(value)
 	end
 
 	--show
-	local smemberShow = function(object, value)
+	local smemberShow = function(object, value) -- dropdown.show
 		if (value) then
 			return object:Show()
 		else
@@ -184,7 +198,7 @@ DF:Mixin(DropDownMetaFunctions, DF.Language.LanguageMixin)
 	end
 
 	--hide
-	local smemberHide = function(object, value)
+	local smemberHide = function(object, value) -- dropdown.hide
 		if (not value) then
 			return object:Show()
 		else
@@ -193,27 +207,27 @@ DF:Mixin(DropDownMetaFunctions, DF.Language.LanguageMixin)
 	end
 
 	--frame width
-	local smemberWidth = function(object, value)
+	local smemberWidth = function(object, value) -- dropdown.width
 		return object.dropdown:SetWidth(value)
 	end
 
 	--frame height
-	local smemberHeight = function(object, value)
+	local smemberHeight = function(object, value) -- dropdown.height
 		return object.dropdown:SetHeight(value)
 	end
 
 	--menu creation function
-	local smemberFunction = function(object, value)
+	local smemberFunction = function(object, value) -- dropdown.func
 		return object:SetFunction(value)
 	end
 
 	--menu width
-	local smemberMenuWidth = function(object, value)
+	local smemberMenuWidth = function(object, value) -- dropdown.menuwidth
 		object:SetMenuSize(value, nil)
 	end
 
 	--menu height
-	local smemberMenuHeight = function(object, value)
+	local smemberMenuHeight = function(object, value) -- dropdown.menuheight
 		object:SetMenuSize(nil, value)
 	end
 
@@ -238,7 +252,13 @@ DF:Mixin(DropDownMetaFunctions, DF.Language.LanguageMixin)
 
 ------------------------------------------------------------------------------------------------------------
 
+function DropDownMetaFunctions:IsText()
+	return self.isText or false
+end
+
+
 --menu width and height
+--example: Set the menu size to 451x500: dropdown:SetMenuSize(451, 500)
 	function DropDownMetaFunctions:SetMenuSize(width, height)
 		if (width) then
 			rawset(self, "realsizeW", width)
@@ -248,11 +268,13 @@ DF:Mixin(DropDownMetaFunctions, DF.Language.LanguageMixin)
 		end
 	end
 
+--get menu width and height
 	function DropDownMetaFunctions:GetMenuSize()
 		return rawget(self, "realsizeW"), rawget(self, "realsizeH")
 	end
 
 --function
+--the function that creates the menu options, example: dropdown:SetFunction(function(self) return {} end)
 	function DropDownMetaFunctions:SetFunction(func)
 		return rawset(self, "func", func)
 	end
@@ -261,7 +283,8 @@ DF:Mixin(DropDownMetaFunctions, DF.Language.LanguageMixin)
 		return rawget(self, "func")
 	end
 
---value
+--set the selected value in the dropdown
+--normally the value is set when selecting an option in the dropdown, use: dropdown:SetValue(value) to manually select
 	function DropDownMetaFunctions:GetValue()
 		return rawget(self, "myvalue")
 	end
@@ -271,6 +294,7 @@ DF:Mixin(DropDownMetaFunctions, DF.Language.LanguageMixin)
 	end
 
 --frame levels
+--usage: set the frame level to +3 relative to UIParent: dropdown:SetFrameLevel(3, UIParent)
 	function DropDownMetaFunctions:SetFrameLevel(level, frame)
 		if (not frame) then
 			return self.dropdown:SetFrameLevel(level)
@@ -281,33 +305,47 @@ DF:Mixin(DropDownMetaFunctions, DF.Language.LanguageMixin)
 	end
 
 --enabled
+--is the dropdown enabled?: dropdown:IsEnabled(); use dropdown:Disable() and dropdown:Enable() to change the state
 	function DropDownMetaFunctions:IsEnabled()
 		return self.dropdown:IsEnabled()
 	end
 
+--enabled the dropdown: dropdown:Enable()
 	function DropDownMetaFunctions:Enable()
 		self:SetAlpha(1)
 		rawset(self, "lockdown", false)
+
+		if (self:IsText()) then
+			self:GetTextEntry():Enable()
+		end
 
 		if (self.OnEnable) then
 			self.OnEnable(self)
 		end
 	end
 
+--disable the dropdown: dropdown:Disable()
 	function DropDownMetaFunctions:Disable()
 		self:SetAlpha(.4)
 		rawset(self, "lockdown", true)
+
+		if (self:IsText()) then
+			self:GetTextEntry():Disable()
+		end
 
 		if (self.OnDisable) then
 			self.OnDisable(self)
 		end
 	end
 
---fixed value
+--fixed value, is a value that is set by dropdown:SetFixedParameter(any) and is sent as 2nd argument to the callback function of the options, the value is the same no matter which option is selected
 	function DropDownMetaFunctions:SetFixedParameter(value)
 		rawset(self, "FixedValue", value)
 	end
 
+	function DropDownMetaFunctions:GetFixedParameter()
+		return rawget(self, "FixedValue")
+	end
 ------------------------------------------------------------------------------------------------------------
 --scripts
 
@@ -326,12 +364,14 @@ local isOptionVisible = function(self, thisOption)
 end
 
 --return a table containing all frames of options in the menu
+--get frames used in the menu of the dropdown: dropdown:GetMenuFrames()
 function DropDownMetaFunctions:GetMenuFrames() --not tested
 	if (self.MyObject) then
 		self = self.MyObject
 	end
 	return self.menus
 end
+
 
 function DropDownMetaFunctions:GetFrameForOption(optionsTable, value) --not tested
 	if (self.MyObject) then
@@ -351,7 +391,9 @@ function DropDownMetaFunctions:GetFrameForOption(optionsTable, value) --not test
 	end
 end
 
+--rebuild the options menu, options are dynamic and may change, example: refresh the dropdown: dropdown:Refresh()
 function DropDownMetaFunctions:Refresh()
+	assert(type(self.func) == "function", "Dropdown without options initializator function, check 2nd parameter (function) on CreateDropdown().")
 	local state, optionsTable = xpcall(self.func, geterrorhandler(), self)
 
 	if (#optionsTable == 0) then
@@ -369,6 +411,7 @@ function DropDownMetaFunctions:Refresh()
 	return true
 end
 
+--this is called internally and isn't a user api
 function DropDownMetaFunctions:NoOptionSelected()
 	if (self.no_options) then
 		return
@@ -389,6 +432,7 @@ function DropDownMetaFunctions:NoOptionSelected()
 	self.last_select = nil
 end
 
+--this is called internally and isn't a user api
 function DropDownMetaFunctions:NoOption(state)
 	if (state) then
 		self:Disable()
@@ -428,12 +472,15 @@ local canRunCallbackFunctionForOption = function(canRunCallback, optionTable, dr
 	end
 end
 
+--set the selected value in the dropdown after a short delay
+--example: select the option "option name" on the dropdown aftert a small delay: dropdown:SelectDelayed("option name", false, false, true)
 function DropDownMetaFunctions:SelectDelayed(optionName, byOptionNumber, bOnlyShown, runCallback)
 	DF.Schedules.After(DF.Math.RandomFraction(0.016, 0.3), function()
 		self:Select(optionName, byOptionNumber, bOnlyShown, runCallback)
 	end)
 end
 
+--set the selected value in the dropdown, example: select the option "option name" on the dropdown: dropdown:Select("option name", false, false, true)
 ---if bOnlyShown is true it'll first create a table with visible options that has .shown and then select in this table the index passed (if byOptionNumber)
 ---@param optionName string value or string shown in the name of the option
 ---@param byOptionNumber number the option name is considered a number and selects the index of the menu
@@ -446,6 +493,7 @@ function DropDownMetaFunctions:Select(optionName, byOptionNumber, bOnlyShown, ru
 		return false
 	end
 
+	assert(type(self.func) == "function", "Dropdown without options initializator function, check 2nd parameter (function) on CreateDropdown().")
 	local runOkay, optionsTable = xpcall(self.func, geterrorhandler(), self)
 
 	if (type(optionsTable) ~= "table") then
@@ -519,6 +567,9 @@ function DropDownMetaFunctions:Select(optionName, byOptionNumber, bOnlyShown, ru
 	return false
 end
 
+--when there is no option, an icon and text is shown in the dropdown
+--this function set a new text and a new icon
+--example: set the empty text and icon of the dropdown: dropdown:SetEmptyTextAndIcon("no options available", "Interface\\COMMON\\UI-ModelControlPanel")
 function DropDownMetaFunctions:SetEmptyTextAndIcon(text, icon)
 	if (text) then
 		self.empty_text = text
@@ -529,6 +580,10 @@ function DropDownMetaFunctions:SetEmptyTextAndIcon(text, icon)
 	end
 
 	self:Selected(self.last_select)
+end
+
+function DropDownMetaFunctions:UseSimpleHeader(value)
+	self.isSimpleHeader = value
 end
 
 function DropDownMetaFunctions:Selected(thisOption)
@@ -617,7 +672,7 @@ function DropDownMetaFunctions:Selected(thisOption)
 		self.dropdown.rightTexture:SetTexture("")
 	end
 
-	if (thisOption.statusbar) then
+	if (thisOption.statusbar and not self.isSimpleHeader) then
 		self.statusbar:SetTexture(thisOption.statusbar)
 		if (thisOption.statusbarcolor) then
 			self.statusbar:SetVertexColor(unpack(thisOption.statusbarcolor))
@@ -633,7 +688,7 @@ function DropDownMetaFunctions:Selected(thisOption)
 		self.statusbar:SetPoint("bottomright", self.widget, "bottomright", -2, 2)
 	end
 
-	if (thisOption.color) then
+	if (thisOption.color and not self.isSimpleHeader) then
 		local r, g, b, a = DF:ParseColors(thisOption.color)
 		self.label:SetTextColor(r, g, b, a)
 	else
@@ -643,11 +698,15 @@ function DropDownMetaFunctions:Selected(thisOption)
 	if (overrideFont) then
 		self.label:SetFont(overrideFont, 10)
 
-	elseif (thisOption.font) then
+	elseif (thisOption.font and not self.isSimpleHeader) then
 		self.label:SetFont(thisOption.font, 10)
 
 	else
-		self.label:SetFont("GameFontHighlightSmall", 10)
+		if select(4, GetBuildInfo()) >= 120005 then
+			self.label:SetFont(GameFontHighlightSmall:GetFont(), 10)
+		else
+			self.label:SetFont("GameFontHighlightSmall", 10)
+		end
 	end
 
 	self:SetValue(thisOption.value)
@@ -679,6 +738,10 @@ function DropDownMetaFunctions:Open()
 		lastOpened:Close()
 	end
 	lastOpened = self
+end
+
+function DropDownMetaFunctions:IsOpen()
+	return self.opened or self.dropdown.dropdownborder:IsShown()
 end
 
 --close the menu showing the options
@@ -805,6 +868,11 @@ function DetailsFrameworkDropDownOnMouseDown(button, buttontype)
 						thisOptionFrame:SetPoint("topright", parent, "topright", 0, (-optionIndex * 20))
 						thisOptionFrame.object = object
 						object.menus[i] = thisOptionFrame
+
+						if (object.OnCreateOptionFrame) then
+							--function(dropdown, optionFrame, optionTable)
+							xpcall(object.OnCreateOptionFrame, geterrorhandler(), object, thisOptionFrame, thisOption)
+						end
 					end
 
 					thisOptionFrame:SetFrameStrata(thisOptionFrame:GetParent():GetFrameStrata())
@@ -911,11 +979,24 @@ function DetailsFrameworkDropDownOnMouseDown(button, buttontype)
 						currentText = nil
 					end
 
-					if (thisOption.color) then
-						local r, g, b, a = DF:ParseColors(thisOption.color)
-						thisOptionFrame.label:SetTextColor(r, g, b, a)
-					else
-						thisOptionFrame.label:SetTextColor(1, 1, 1, 1)
+					if (not thisOptionFrame.fontStrings) then
+						thisOptionFrame.fontStrings = {}
+						local regions = {thisOptionFrame:GetRegions()}
+						for _, region in ipairs(regions) do
+							if (region:GetObjectType() == "FontString") then
+								table.insert(thisOptionFrame.fontStrings, region)
+							end
+						end
+					end
+
+					for j = 1, #thisOptionFrame.fontStrings do
+						local fontString = thisOptionFrame.fontStrings[j]
+						if (thisOption.color) then
+							local r, g, b, a = DF:ParseColors(thisOption.color)
+							fontString:SetTextColor(r, g, b, a)
+						else
+							fontString:SetTextColor(1, 1, 1, 1)
+						end
 					end
 
 					thisOptionFrame.table = thisOption
@@ -925,6 +1006,11 @@ function DetailsFrameworkDropDownOnMouseDown(button, buttontype)
 						frameWitdh = labelwitdh + 40
 					end
 					thisOptionFrame:Show()
+
+					if (object.OnUpdateOptionFrame) then
+						--function(dropdown, optionFrame, optionTable)
+						xpcall(object.OnUpdateOptionFrame, geterrorhandler(), object, thisOptionFrame, thisOption)
+					end
 
 					i = i + 1
 				end
@@ -1345,6 +1431,52 @@ function DF:CreateAudioListGenerator(callback)
 	return newGenerator
 end
 
+---function to create a dropdown with a list of status bar textures from SharedMedia library
+---@param callback function
+---@return function
+function DF:CreateStatusbarTextureListGenerator(callback)
+	local newGenerator = function()
+		local dropdownOptions = {}
+
+		local SharedMedia = LibStub:GetLibrary("LibSharedMedia-3.0")
+		for name, texturePath in pairs(SharedMedia:HashTable("statusbar")) do
+			dropdownOptions[#dropdownOptions+1] = {
+				value = name,
+				label = name,
+				onclick = callback,
+				statusbar = texturePath,
+			}
+		end
+
+		table.sort(dropdownOptions, function(t1, t2) return t1.label < t2.label end)
+
+		return dropdownOptions
+	end
+
+	return newGenerator
+end
+
+---create a list generator for frame strata
+---@param callback function
+---@return function
+function DF:CreateFrameStrataListGenerator(callback)
+	local newGenerator = function()
+		local dropdownOptions = {}
+
+		for strataIndex, strataValue in ipairs(DF.FrameStrataLevels) do
+			table.insert(dropdownOptions, {
+				label = strataValue,
+				value = strataValue,
+				onclick = callback
+			})
+		end
+
+		return dropdownOptions
+	end
+
+	return newGenerator
+end
+
 ---create a dropdown object with a list of fonts
 ---@param parent frame
 ---@param callback function
@@ -1357,6 +1489,37 @@ end
 ---@param bIncludeDefault boolean?
 function DF:CreateFontDropDown(parent, callback, default, width, height, member, name, template, bIncludeDefault)
 	local func = DF:CreateFontListGenerator(callback, bIncludeDefault)
+	local dropDownObject = DF:NewDropDown(parent, parent, name, member, width, height, func, default, template)
+	return dropDownObject
+end
+
+---create a dropdown object with a list of status bar textures from SharedMedia library
+---@param parent frame
+---@param callback function
+---@param default any
+---@param width number?
+---@param height number?
+---@param member string?
+---@param name string?
+---@param template table?
+---@return df_dropdown
+function DF:CreateStatusbarTextureDropDown(parent, callback, default, width, height, member, name, template)
+	local func = DF:CreateStatusbarTextureListGenerator(callback)
+	local dropDownObject = DF:NewDropDown(parent, parent, name, member, width, height, func, default, template)
+	return dropDownObject
+end
+
+---create a dropdown object with a list of frame strata
+---@param parent frame
+---@param callback function
+---@param default any
+---@param width number?
+---@param height number?
+---@param member string?
+---@param name string?
+---@param template table?
+function DF:CreateFrameStrataDropDown(parent, callback, default, width, height, member, name, template)
+	local func = DF:CreateFrameStrataListGenerator(callback)
 	local dropDownObject = DF:NewDropDown(parent, parent, name, member, width, height, func, default, template)
 	return dropDownObject
 end
@@ -1426,6 +1589,112 @@ function DF:CreateBossSelectorDroDown(parent, callback, instanceId, default, wid
 	dropdown.callbackFunc = callback
 
 	return dropdown
+end
+
+--functions to mixin the df_dropdown_text object
+local dropdownWithTextFunctions = {
+	---@param self df_dropdown_text
+	---@param left number
+	SetLeftMargin = function(self, left)
+		self.TextEntry:SetPoint("topleft", self.widget, "topleft", left, 0)
+	end,
+
+	---@param self df_dropdown_text
+	---@param right number
+	SetRightMargin = function(self, right)
+		self.TextEntry:SetPoint("bottomright", self.widget, "bottomright", -right, 0)
+	end,
+
+	---@param self df_dropdown_text
+	AdjustMargins = function(self)
+		local iconWidth = self.widget.icon:GetWidth()
+		self:SetLeftMargin(iconWidth + 2)
+		local arrow = self.widget.arrowTexture
+		if (arrow:IsShown()) then
+			self:SetRightMargin(arrow:GetWidth() + 2)
+		else
+			self:SetRightMargin(0)
+		end
+	end,
+
+	---@param self df_dropdown_text
+	---@param text string
+	SetText = function(self, text)
+		self.TextEntry:SetText(text)
+		self.widget.text:SetText("")
+	end,
+
+	SetOnPressEnterFunction = function(self, func)
+		self.TextEntry:SetScript("OnEnterPressed", function(textEntry)
+			func(self, self:GetFixedParameter(), textEntry:GetText())
+			textEntry:ClearFocus()
+		end)
+
+		self.TextEntry:SetScript("OnEditFocusLost", function()end)
+	end,
+
+	GetTextEntry = function(self)
+		return self.TextEntry
+	end,
+}
+
+---@class df_dropdown_text : df_dropdown
+---@field isText boolean regular dropdown don't have this field
+---@field TextEntry df_textentry
+---@field AdjustMargins fun(self:df_dropdown_text)
+---@field SetLeftMargin fun(self:df_dropdown_text, left:number)
+---@field SetRightMargin fun(self:df_dropdown_text, right:number)
+---@field SetText fun(self:df_dropdown_text, text:string)
+---@field SetOnPressEnterFunction fun(self:df_dropdown_text, func:function)
+---@field GetTextEntry fun(self:df_dropdown_text):df_textentry
+
+function DF:CreateDropDownWithText(parent, func, default, width, height, member, name, template)
+	---@type df_dropdown_text
+	local dropDownObject = DF:NewDropDown(parent, parent, name, member, width, height, func, default, template)
+	dropDownObject.isText = true
+
+	local textEntry = DF:CreateTextEntry(parent, parent, 100, 20, nil, nil, nil, template)
+	textEntry:SetBackdrop(nil)
+	textEntry:SetPoint("topleft", dropDownObject.widget, "topleft", 0, 0)
+	textEntry:SetPoint("bottomright", dropDownObject.widget, "bottomright", 0, 0)
+
+	textEntry:SetFrameLevel(dropDownObject.widget:GetFrameLevel() + 1)
+
+	DF:Mixin(dropDownObject, dropdownWithTextFunctions)
+
+	dropDownObject.TextEntry = textEntry
+
+	dropDownObject:SetRightMargin(30)
+
+	dropDownObject.TextEntry:SetHook("OnEnterPressed", function(self, text)
+		if (text and text ~= "") then
+			--need to get the callback function
+		end
+	end)
+
+	dropDownObject.TextEntry:SetHook("OnEscapePressed", function(self, text)
+		dropDownObject:Close()
+	end)
+
+	dropDownObject.label.SetTextOriginal = dropDownObject.label.SetText
+
+	dropDownObject.label.SetText = function(label, text)
+		--print(label, label:GetObjectType(), text) --calling twice and text is nil in the second time
+		if (not text) then
+			return
+		end
+
+		if (dropDownObject.isText) then
+			dropDownObject.TextEntry:SetText(text)
+			label:SetTextOriginal("")
+		else
+			label:SetTextOriginal(text)
+		end
+	end
+
+	dropDownObject.label:SetText(dropDownObject.label:GetText())
+
+	return dropDownObject
 end
 
 ---create a dropdown object

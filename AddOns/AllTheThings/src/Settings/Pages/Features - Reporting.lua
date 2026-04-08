@@ -1,5 +1,5 @@
 local _, app = ...;
-local L, settings, ipairs = app.L.SETTINGS_MENU, app.Settings, ipairs;
+local L, settings, ipairs = app.L, app.Settings, ipairs;
 
 -- Settings: Interface Page
 local child = settings:CreateOptionsPage(L.REPORTING_LABEL, L.FEATURES_PAGE)
@@ -21,6 +21,18 @@ end)
 checkboxReportCollectedThings:SetATTTooltip(L.REPORT_COLLECTED_THINGS_CHECKBOX_TOOLTIP)
 checkboxReportCollectedThings:SetPoint("TOPLEFT", headerReporting, "BOTTOMLEFT", -2, 0)
 
+
+local checkboxReportDeathTracker = child:CreateCheckBox(L.REPORT_DEATH_TRACKER_CHECKBOX,
+function(self)
+	self:SetChecked(settings:GetTooltipSetting("Report:DeathTracker"))
+end,
+function(self)
+	settings:SetTooltipSetting("Report:DeathTracker", self:GetChecked())
+	settings:UpdateMode(1)
+end)
+checkboxReportDeathTracker:SetATTTooltip(L.REPORT_DEATH_TRACKER_CHECKBOX_TOOLTIP)
+checkboxReportDeathTracker:AlignBelow(checkboxReportCollectedThings)
+
 local checkboxReportQuests = child:CreateCheckBox(L.REPORT_COMPLETED_QUESTS_CHECKBOX,
 function(self)
 	self:SetChecked(settings:GetTooltipSetting("Report:CompletedQuests"))
@@ -29,7 +41,7 @@ function(self)
 	settings:SetTooltipSetting("Report:CompletedQuests", self:GetChecked())
 end)
 checkboxReportQuests:SetATTTooltip(L.REPORT_COMPLETED_QUESTS_CHECKBOX_TOOLTIP)
-checkboxReportQuests:AlignBelow(checkboxReportCollectedThings)
+checkboxReportQuests:AlignBelow(checkboxReportDeathTracker)
 
 local checkboxReportUnsourced = child:CreateCheckBox(L.REPORT_UNSORTED_CHECKBOX,
 function(self)
@@ -56,7 +68,6 @@ if C_VignetteInfo then
 	end,
 	function(self)
 		settings:SetTooltipSetting("Nearby:ReportContent", self:GetChecked())
-		app.HandleEvent("OnReportNearbySettingsChanged");
 	end)
 	checkboxReportNearby:SetATTTooltip(L.REPORT_NEARBY_CONTENT_CHECKBOX_TOOLTIP)
 	checkboxReportNearby:AlignBelow(checkboxReportUnsourced, -1)
@@ -109,7 +120,6 @@ if C_VignetteInfo then
 	end,
 	function(self)
 		settings:SetTooltipSetting("Nearby:Type:npc", self:GetChecked())
-		app.HandleEvent("OnReportNearbySettingsChanged");
 	end)
 	checkboxNearbyIncludeCreatures:SetATTTooltip(L.REPORT_NEARBY_CONTENT_INCLUDE_CREATURES_CHECKBOX_TOOLTIP)
 	checkboxNearbyIncludeCreatures:AlignBelow(checkboxNearbyClearWaypoints, -1)
@@ -127,7 +137,6 @@ if C_VignetteInfo then
 	end,
 	function(self)
 		settings:SetTooltipSetting("Nearby:Type:object", self:GetChecked())
-		app.HandleEvent("OnReportNearbySettingsChanged");
 	end)
 	checkboxNearbyIncludeTreasures:SetATTTooltip(L.REPORT_NEARBY_CONTENT_INCLUDE_TREASURES_CHECKBOX_TOOLTIP)
 	checkboxNearbyIncludeTreasures:AlignBelow(checkboxNearbyIncludeCreatures)
@@ -145,7 +154,6 @@ if C_VignetteInfo then
 	end,
 	function(self)
 		settings:SetTooltipSetting("Nearby:IncludeCompleted", self:GetChecked())
-		app.HandleEvent("OnReportNearbySettingsChanged");
 	end)
 	checkboxNearbyIncludeCompleted:SetATTTooltip(L.REPORT_NEARBY_CONTENT_INCLUDE_COMPLETED_CHECKBOX_TOOLTIP)
 	checkboxNearbyIncludeCompleted:AlignBelow(checkboxNearbyIncludeTreasures)
@@ -163,7 +171,6 @@ if C_VignetteInfo then
 	end,
 	function(self)
 		settings:SetTooltipSetting("Nearby:IncludeUnknown", self:GetChecked())
-		app.HandleEvent("OnReportNearbySettingsChanged");
 	end)
 	checkboxNearbyIncludeUnknown:SetATTTooltip(L.REPORT_NEARBY_CONTENT_INCLUDE_UNKNOWN_CHECKBOX_TOOLTIP)
 	checkboxNearbyIncludeUnknown:AlignBelow(checkboxNearbyIncludeCompleted)

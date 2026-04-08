@@ -36,7 +36,9 @@ function WarpDeplete:RegisterGlobalEvents()
 	self:RegisterGlobalEvent("CHALLENGE_MODE_KEYSTONE_RECEPTABLE_OPEN")
 
 	-- Register tooltip count display
-	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, WarpDeplete.DisplayCountInTooltip)
+	if not self.Midnight then
+		TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, WarpDeplete.DisplayCountInTooltip)
+	end
 
 	-- Tooltip events
 	self.frames.deathsTooltip:SetScript("OnEnter", WarpDeplete.TooltipOnEnter)
@@ -57,8 +59,12 @@ function WarpDeplete:RegisterChallengeEvents()
 	self:RegisterChallengeEvent("ENCOUNTER_END")
 	self:RegisterChallengeEvent("PLAYER_REGEN_ENABLED")
 
-	self:RegisterChallengeEvent("COMBAT_LOG_EVENT_UNFILTERED")
-	self:RegisterChallengeEvent("UNIT_THREAT_LIST_UPDATE")
+	if not self.Midnight then
+		self:RegisterChallengeEvent("COMBAT_LOG_EVENT_UNFILTERED")
+		self:RegisterChallengeEvent("UNIT_THREAT_LIST_UPDATE")
+	end
+
+	self:RegisterChallengeEvent("UNIT_DIED")
 end
 
 function WarpDeplete:PLAYER_ENTERING_WORLD()
@@ -203,6 +209,20 @@ function WarpDeplete:UNIT_THREAT_LIST_UPDATE(_, unit)
 	self.state.currentPull[guid] = count
 	local pullCount = Util.calcPullCount(self.state.currentPull, self.state.totalCount)
 	self:SetForcesPull(pullCount)
+end
+
+function WarpDeplete:UNIT_DIED(_, guid)
+	if not guid or issecretvalue(guid) then
+		return
+	end
+
+	local name = UnitNameFromGUID(guid)
+	local class = UnitClassFromGUID(guid)
+
+	if UnitInParty(name) then
+		self:AddDeathDetails(self.state.timer, name, class)
+		return
+	end
 end
 
 function WarpDeplete.TooltipOnEnter()

@@ -310,7 +310,9 @@ local function UpgradeItem_OnEvent(self)
 	end
 end
 local upgradeItems = setmetatable({}, {__index=function(self, i)
-	local b = T.TenSABT(CreateFrame("Button", nil, UpgradesFrame, "GarrisonFollowerItemButtonTemplate,InsecureActionButtonTemplate"))
+	local b = CreateFrame("Button", nil, UpgradesFrame, "GarrisonFollowerItemButtonTemplate,InsecureActionButtonTemplate")
+	b:SetAttribute("useOnKeyDown", false)
+	b:RegisterForClicks("LeftButtonUp")
 	b.Count = b:CreateFontString(nil, "ARTWORK", "GameFontHighlightOutline")
 	b.Count:SetPoint("BOTTOMRIGHT", b.Icon, "BOTTOMRIGHT", -1, 2)
 	b:SetAttribute("type", "macro")
@@ -876,7 +878,7 @@ local function Recruiter_UpdatePickMenu()
 				local submenu = rootDescription:CreateButton(category);
 
 				for _, entry in pairs(categoryEntry.entries) do
-					local checkbox = submenu:CreateCheckbox(entry.name, Recruiter_IsChecked, Recruiter_SetChecked, entry);
+					local checkbox = submenu:CreateRadio(entry.name, Recruiter_IsChecked, Recruiter_SetChecked, entry);
 					checkbox:SetOnEnter(Recruiter_ShowTraitTooltip)
 					checkbox:SetOnLeave(Recruiter_HideTooltip)
 					checkbox:SetResponse(MenuResponse.CloseAll)
@@ -885,7 +887,7 @@ local function Recruiter_UpdatePickMenu()
 		end
 
 		for _, entry in pairs(GarrisonRecruiterFrame.Pick.entries) do
-			local checkbox = rootDescription:CreateCheckbox(entry.name, Recruiter_IsChecked, Recruiter_SetChecked, entry);
+			local checkbox = rootDescription:CreateRadio(entry.name, Recruiter_IsChecked, Recruiter_SetChecked, entry);
 			checkbox:SetOnEnter(Recruiter_ShowCounterTooltip)
 			checkbox:SetOnLeave(Recruiter_HideTooltip)
 			checkbox:SetResponse(MenuResponse.CloseAll)
@@ -1394,7 +1396,8 @@ do -- Equipment
 		pf:SetScript("OnHide", CP_Detach)
 		pf:SetScript("OnEnter", CP_OnEnter)
 		pf:SetScript("OnLeave", CP_OnLeave)
-		T.TenSABT(pf)
+		pf:SetAttribute("useOnKeyDown", false)
+		pf:RegisterForClicks("LeftButtonUp")
 		ef:HookScript("OnShow", CP_Attach)
 		ef:SetScript("OnReceiveDrag", nil)
 		pf:SetAttribute("type", "macro")

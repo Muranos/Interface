@@ -1,6 +1,7 @@
 # Simple Item Level
 
-## [v46](https://github.com/kemayo/wow-simpleitemlevel/tree/v46) (2025-03-01)
-[Full Changelog](https://github.com/kemayo/wow-simpleitemlevel/compare/v45...v46) [Previous Releases](https://github.com/kemayo/wow-simpleitemlevel/releases)
+## [v65](https://github.com/kemayo/wow-simpleitemlevel/tree/v65) (2026-03-23)
+[Full Changelog](https://github.com/kemayo/wow-simpleitemlevel/compare/v64...v65) [Previous Releases](https://github.com/kemayo/wow-simpleitemlevel/releases)
 
-- TOC for 11.1.0, 4.4.2, 1.15.6  
+- Baganator integration: respect display settings  
+- Update retail enchantable slots  

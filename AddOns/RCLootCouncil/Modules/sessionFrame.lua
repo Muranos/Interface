@@ -21,6 +21,7 @@ local waitingToEndSessions = false  -- need some time to confirm the result of a
 local scheduledToShowAgain = false       -- Have we scheduled to reshow the frame, due to a uncached item?
 
 local Council = addon.Require "Data.Council"
+local CommsRestrictions = addon.Require "Services.CommsRestrictions"
 
 --- Lua
 local getglobal, ipairs, tinsert =
@@ -193,10 +194,14 @@ function RCSessionFrame:GetFrame()
 	local b1 = addon:CreateButton(_G.START, f.content)
 	b1:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 10, 10)
 	b1:SetScript("OnClick", function()
+		if CommsRestrictions:IsRestricted() then
+			addon.Log:w("SessionFrame", "Cannot start session, addon is restricted.")
+			return addon:Print(L.chat_restrictions_enabled)
+		end
 		if loadingItems then
 			return addon:Print(L["You can't start a session before all items are loaded!"])
 		end
-			if not ml.lootTable or #ml.lootTable == 0 then
+		if not ml.lootTable or #ml.lootTable == 0 then
 			addon:Print(L["You cannot start an empty session."])
 			addon.Log:D("Player tried to start empty session.")
 			return
@@ -234,7 +239,13 @@ function RCSessionFrame:GetFrame()
 	b2:SetPoint("LEFT", b1, "RIGHT", 10, 0)
 	b2:SetScript("OnClick", function()
 		if not ml.running then -- Don't clear lootTable on a running session.
-			ml.lootTable = {}
+			wipe(ml.lootTable)
+		else
+			for i = #ml.lootTable, 1, -1 do
+				if not ml.lootTable[i].isSent then
+					ml:RemoveItem(i) -- remove the item from MLs lootTable
+				end
+			end
 		end
 		self:Disable()
 	end)

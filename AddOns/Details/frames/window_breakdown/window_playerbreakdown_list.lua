@@ -33,10 +33,20 @@ local lastSelectedPlayerPerSegment = {}
 local lastSelectedPlayerName = ""
 
 local onPlayerSelected = function(breakdownWindowFrame, playerObject)
+	local name = playerObject.nome --this is valid
 	local mainAttribute, subAttribute = Details:GetDisplayTypeFromBreakdownWindow()
 
 	---@type instance
 	local instanceObject = Details:GetActiveWindowFromBreakdownWindow()
+
+	if Details:IsUsingBlizzardAPI() then
+		local settingsTable = Details:MakeSettingsForAdapter(instanceObject, name)
+		local adapter = Details:MakeActorAdapter(settingsTable)
+		lastSelectedPlayerName = adapter.nome
+		Details:OpenBreakdownWindow(instanceObject, adapter, false, false, false, false, false, mainAttribute, subAttribute)
+		breakdownWindowFrame.playerScrollBox:Refresh()
+		return
+	end
 
 	--cache the latest selected player for this combat
 	---@type combat
@@ -46,6 +56,7 @@ local onPlayerSelected = function(breakdownWindowFrame, playerObject)
 	local playerName = playerObject:Name()
 
 	Details:OpenSpecificBreakdownWindow(combatObject, playerName, mainAttribute, subAttribute)
+
 	--Details:OpenBreakdownWindow(instanceObject, playerObject, false, true)
 
 	lastSelectedPlayerPerSegment[combatObject:GetCombatUID()] = playerName
@@ -146,8 +157,9 @@ local createPlayerScrollBox = function(breakdownWindowFrame, breakdownSideMenu, 
 
 		---@type combat
 		local combatObject = Details:GetCombatFromBreakdownWindow()
-		local encounterId = combatObject:GetEncounterCleuID()
-		local difficultyId = combatObject:GetDifficulty()
+
+		local encounterId = combatObject and combatObject:GetEncounterCleuID()
+		local difficultyId = combatObject and combatObject:GetDifficulty()
 
 		for i = 1, totalLines do --~refresh
 			local index = i + offset
@@ -264,7 +276,7 @@ local createPlayerScrollBox = function(breakdownWindowFrame, breakdownSideMenu, 
 		local combatObject = self.combatObject
 
 		--warcraftlogs percentile
-		if (self.playerObject.tipo == DETAILS_ATTRIBUTE_DAMAGE) then
+		if (self.playerObject.tipo == DETAILS_ATTRIBUTE_DAMAGE and combatObject and not Details:IsUsingBlizzardAPI()) then
 			local actorDPS = self.playerObject.total / combatObject:GetCombatTime()
 
 			local parsePercent = Details222.WarcraftLogs.GetDamageParsePercent(encounterId, difficultyId, actorSpecId, actorDPS)
@@ -474,6 +486,9 @@ local createSegmentsScrollBox = function(breakdownWindowFrame, breakdownSideMenu
 
 		--current breakdown combat
 		local currentBKCombat = Details:GetCombatFromBreakdownWindow()
+		if (not currentBKCombat) then
+			return
+		end
 		--unique combat id from the combat the breakdown window is using
 		local currentBKCombatUniqueID = currentBKCombat:GetCombatUID()
 
@@ -675,40 +690,52 @@ function breakdownWindowPlayerList.CreatePlayerListFrame()
 	---get the player list from the segment and build a table compatible with the scroll box
 	---@return actor[]
 	function breakdownWindowPlayerList.BuildPlayerList()
-		---@type combat
-		local combatObject = Details:GetCombatFromBreakdownWindow()
-		---@type {key1: actor, key2: number, key3: number}[]
-		local playerTable = {}
-
-		if (combatObject) then
-			local displayType = Details:GetDisplayTypeFromBreakdownWindow()
-			local containerType = displayType == 1 and DETAILS_ATTRIBUTE_DAMAGE or DETAILS_ATTRIBUTE_HEAL
-			---@type actorcontainer
-			local actorContainer = combatObject:GetContainer(containerType)
-
-			for index, actorObject in actorContainer:ListActors() do
-				---@cast actorObject actor
-				if (actorObject:IsPlayer() and actorObject:IsGroupPlayer()) then
-					local unitClassID = classIds[actorObject:Class()] or 13
-					local unitName = actorObject:Name()
-					--actor position calculation: if two actors has the same amount of a total number, the sort function would flip they around, so we need to add a unique number to the position based on the class and the two first letters of the name
-					local playerPosition = (((unitClassID or 0) + 128) ^ 4) + tonumber(string.byte(unitName, 1) .. "" .. string.byte(unitName, 2))
-
-					---@type {key1: actor, key2: number, key3: number}
-					local data = {actorObject, playerPosition, actorObject.total}
-					tinsert(playerTable, data)
-				end
-			end
-		end
-
-		table.sort(playerTable, detailsFramework.SortOrder3)
-
 		---@type actor[]
 		local resultTable = {}
-		for i = 1, #playerTable do
-			---@type actor
-			local actor = playerTable[i][1]
-			resultTable[#resultTable+1] = actor
+
+		if Details:IsUsingBlizzardAPI() then
+			local s = breakdownWindowFrame.instancia:GetSegmentObject()
+			for i = 1, #s.combatSources do
+				local a = s.combatSources[i]
+				local adapterSettings = Details:MakeSettingsForAdapter(breakdownWindowFrame.instancia, a.name)
+				local adapter = Details:MakeActorAdapter(adapterSettings)
+				resultTable[#resultTable+1] = adapter
+			end
+
+		else
+			---@type combat
+			local combatObject = Details:GetCombatFromBreakdownWindow()
+			---@type {key1: actor, key2: number, key3: number}[]
+			local playerTable = {}
+
+			if (combatObject) then
+				local displayType = Details:GetDisplayTypeFromBreakdownWindow()
+				local containerType = displayType == 1 and DETAILS_ATTRIBUTE_DAMAGE or DETAILS_ATTRIBUTE_HEAL
+				---@type actorcontainer
+				local actorContainer = combatObject:GetContainer(containerType)
+
+				for index, actorObject in actorContainer:ListActors() do
+					---@cast actorObject actor
+					if (actorObject:IsPlayer() and actorObject:IsGroupPlayer()) then
+						local unitClassID = classIds[actorObject:Class()] or 13
+						local unitName = actorObject:Name()
+						--actor position calculation: if two actors has the same amount of a total number, the sort function would flip they around, so we need to add a unique number to the position based on the class and the two first letters of the name
+						local playerPosition = (((unitClassID or 0) + 128) ^ 4) + tonumber(string.byte(unitName, 1) .. "" .. string.byte(unitName, 2))
+
+						---@type {key1: actor, key2: number, key3: number}
+						local data = {actorObject, playerPosition, actorObject.total}
+						tinsert(playerTable, data)
+					end
+				end
+			end
+
+			table.sort(playerTable, detailsFramework.SortOrder3)
+
+			for i = 1, #playerTable do
+				---@type actor
+				local actor = playerTable[i][1]
+				resultTable[#resultTable+1] = actor
+			end
 		end
 
 		return resultTable
@@ -742,7 +769,10 @@ function breakdownWindowPlayerList.CreatePlayerListFrame()
 		end
 
 		local selectedPlayerName = Details:GetActorObjectFromBreakdownWindow():Name()
-		lastSelectedPlayerPerSegment[Details:GetCombatFromBreakdownWindow():GetCombatUID()] = selectedPlayerName
+		local combatObject = Details:GetCombatFromBreakdownWindow()
+		if (combatObject) then
+			lastSelectedPlayerPerSegment[combatObject:GetCombatUID()] = selectedPlayerName
+		end
 		lastSelectedPlayerName = selectedPlayerName
 
 		local playerLineHeight = player_line_height+1 --the +1 is the space between the lines

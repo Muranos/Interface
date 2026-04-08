@@ -35,11 +35,6 @@ TMW.HELP:NewCode("CNDT_UNIT_ONLYONE", 20, false)
 local CNDT = TMW.CNDT -- created in TellMeWhen/conditions.lua
 
 
---TODO: there needs to be a way for condition config to intelligently run a setup on a parent object using the current ConditionSet.
---TODO: try to get rid of all manual calls to LoadConfig (on other TMW modules too), and have these functions only be called from ReloadRequsted.
-
-
-
 ---------- Interface/Data ----------
 function CNDT:LoadConfig(conditionSetName)
 	local ConditionSet
@@ -204,6 +199,10 @@ local function AddConditionToDropDown(dropdown, conditionData)
 
 	local append = TMW.debug and not conditionData:ShouldList() and "(DBG)" or ""
 	
+	if TMW.clientHasSecrets and conditionData.maybeSecret then
+		append = append .. " " .. TMW:GetRestrictedTString()
+	end
+	
 	local info = TMW.DD:CreateInfo()
 	
 	local text = get(conditionData.text)
@@ -211,7 +210,11 @@ local function AddConditionToDropDown(dropdown, conditionData)
 	info.text = (text or "??") .. append
 	
 	info.tooltipTitle = text
-	info.tooltipText = get(conditionData.tooltip)
+	local tooltip = get(conditionData.tooltip)
+	if TMW.clientHasSecrets and conditionData.maybeSecret then
+		tooltip = (tooltip and tooltip .. "\r\n\r\n" or "") .. L["UIPANEL_SECRETS_CNDT_DISALLOWED_DESC"]
+	end
+	info.tooltipText = tooltip
 	info.tooltipFunc = conditionData.tooltipFunc
 	
 	info.value = conditionData.identifier
@@ -305,62 +308,6 @@ function CNDT.TypeMenu_DropDown(dropdown)
 end
 
 
-
-local function IconMenu_DropDown_OnClick(button, dropdown)
-	local icon = button.value
-	local GUID = icon:GetGUID(true)
-
-	local conditionSettings = dropdown:GetSettingTable()
-	conditionSettings.Icon = GUID
-
-	dropdown:OnSettingSaved()
-
-	TMW.DD:CloseDropDownMenus()
-end
-function CNDT.IconMenu_DropDown(dropdown)
-	if TMW.DD.MENU_LEVEL == 2 then
-		local conditionSettings = dropdown:GetSettingTable()
-
-		for icon in TMW.DD.MENU_VALUE:InIcons() do
-			if icon:IsValid() then
-				local info = TMW.DD:CreateInfo()
-
-				local text, textshort, tooltip = icon:GetIconMenuText()
-				info.text = textshort
-				info.tooltipTitle = text
-				info.tooltipText = tooltip
-
-				info.arg1 = dropdown
-				info.value = icon
-				info.func = IconMenu_DropDown_OnClick
-
-				info.checked = conditionSettings.Icon == icon:GetGUID()
-
-				info.tCoordLeft = 0.07
-				info.tCoordRight = 0.93
-				info.tCoordTop = 0.07
-				info.tCoordBottom = 0.93
-				info.icon = icon.attributes.texture
-
-				TMW.DD:AddButton(info)
-			end
-		end
-
-	elseif TMW.DD.MENU_LEVEL == 1 then
-		for group in TMW:InGroups() do
-			if group:ShouldUpdateIcons() then
-				local info = TMW.DD:CreateInfo()
-
-				info.text = group:GetGroupName()
-				info.hasArrow = true
-				info.notCheckable = true
-				info.value = group
-
-				TMW.DD:AddButton(info)
-			end
-		end
-	end
-end
 
 local function OperatorMenu_DropDown_OnClick(button, dropdown)
 	local conditionSettings = dropdown:GetSettingTable()
@@ -866,6 +813,17 @@ TMW:RegisterCallback("TMW_CNDT_GROUP_DRAWGROUP", function(event, CndtGroup, cond
 
 	TMW:TT(CndtGroup.Type, text, tooltip, 1, 1)
 	TMW:TT(CndtGroup.Type.EditBox, text, tooltip, 1, 1)
+	
+	if TMW.clientHasSecrets and conditionData and conditionData.maybeSecret then
+		CndtGroup.Type.RestrictedIcon:Show()
+		CndtGroup.Type.RestrictedIcon:SetWidth(16)
+		CndtGroup.Type:SetWidth(176-16)
+		TMW:TT(CndtGroup.Type.RestrictedIcon, "UIPANEL_SECRETS_DISALLOWED", "UIPANEL_SECRETS_CNDT_DISALLOWED_DESC")
+	else
+		CndtGroup.Type.RestrictedIcon:Hide()
+		CndtGroup.Type.RestrictedIcon:SetWidth(0.1)
+		CndtGroup.Type:SetWidth(176)
+	end
 end)
 
 -- Operator
@@ -1137,7 +1095,7 @@ TMW:RegisterCallback("TMW_CNDT_GROUP_DRAWGROUP", function(event, CndtGroup, cond
 			CndtGroup.BitFlags:SetWidth(150)
 			CndtGroup.Unit:SetWidth(90)
 		else
-			CndtGroup.BitFlags:SetPoint("TOPLEFT", CndtGroup.Type, "TOPRIGHT", 15, 0)
+			CndtGroup.BitFlags:SetPoint("TOPLEFT", CndtGroup.Type.RestrictedIcon, "TOPRIGHT", 13, 0)
 			CndtGroup.BitFlags:SetWidth(190)
 		end
 
@@ -1202,7 +1160,7 @@ TMW:RegisterCallback("TMW_CNDT_GROUP_DRAWGROUP", function(event, CndtGroup, cond
 	if conditionData then
 		local text
 
-		if conditionData.funcstr == "DEPRECATED" then
+		if conditionData:IsDeprecated() then
 			if conditionData.customDeprecated then
 				text = get(conditionData.customDeprecated, conditionSettings)
 			else
@@ -1334,7 +1292,11 @@ end
 function Module:Entry_AddToList_1(f, identifier)
 	local conditionData = CNDT.ConditionsByType[identifier]
 
-	f.Name:SetText(get(conditionData.text))
+	local text = get(conditionData.text)
+	if TMW.clientHasSecrets and conditionData.maybeSecret then
+		text = text .. " " .. TMW:GetRestrictedTString()
+	end
+	f.Name:SetText(text)
 
 	f.insert = identifier
 
@@ -1342,6 +1304,9 @@ function Module:Entry_AddToList_1(f, identifier)
 	f.tooltiptext = conditionData.category.name
 	if conditionData.tooltip then
 		f.tooltiptext = f.tooltiptext .. "\r\n\r\n" .. get(conditionData.tooltip)
+	end
+	if TMW.clientHasSecrets and conditionData.maybeSecret then
+		f.tooltiptext = f.tooltiptext .. "\r\n\r\n" .. L["UIPANEL_SECRETS_CNDT_DISALLOWED_DESC"]
 	end
 
 	if conditionData.atlas then

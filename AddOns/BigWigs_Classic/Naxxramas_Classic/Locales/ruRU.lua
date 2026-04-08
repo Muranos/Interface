@@ -4,8 +4,6 @@ if L then
 	L.add_death = "Оповещать смерть помощников"
 	L.add_death_desc = "Сообщать о смерти помощников."
 
-	L.wave = "%d/22: %s"
-
 	L.trainee = "Новобранец" -- Unrelenting Trainee NPC 16124
 	L.deathKnight = "Рыцарь Смерти" -- Unrelenting Death Knight NPC 16125
 	L.rider = "Всадник" -- Unrelenting Rider NPC 16126
@@ -39,7 +37,7 @@ if L then
 	L.stage2_yell_trigger1 = "Молите о пощаде!"
 	L.stage2_yell_trigger2 = "Кричите! Кричите изо всех сил!"
 	L.stage2_yell_trigger3 = "Вы уже мертвы!"
-	L.stage3_yell_trigger = "Господин мне нужна помощь!"
+	L.stage3_yell_trigger = "Господин, мне необходима помощь!"
 	L.adds_yell_trigger = "Хорошо. Воины ледяных пустошей восстаньте! Повелеваю вам сражаться убивать и умирать во имя своего повелителя! Не щадить никого!"
 end
 

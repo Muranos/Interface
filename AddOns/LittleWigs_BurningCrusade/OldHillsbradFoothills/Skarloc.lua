@@ -22,7 +22,6 @@ if L then
 	L.warmup_trigger = "answer to Blackmoore"
 end
 
-
 -------------------------------------------------------------------------------
 --  Initialization
 
@@ -63,7 +62,7 @@ end
 --  Event Handlers
 
 function mod:CHAT_MSG_MONSTER_SAY(event, msg)
-	if msg:find(L.warmup_trigger, nil, true) then
+	if not self:IsSecret(msg) and msg:find(L.warmup_trigger, nil, true) then
 		self:UnregisterEvent(event)
 		self:Bar("warmup", 7.9, CL.active, "inv_sword_01")
 	end

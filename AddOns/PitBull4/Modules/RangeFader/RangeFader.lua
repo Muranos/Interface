@@ -2,9 +2,9 @@
 local PitBull4 = _G.PitBull4
 local L = PitBull4.L
 
-local wow_cata = PitBull4.wow_cata
-local GetSpellName = C_Spell.GetSpellName or _G.GetSpellInfo -- XXX Classic
-local IsSpellInRange = C_Spell.IsSpellInRange or _G.IsSpellInRange -- XXX Classic
+local wow_retail = PitBull4.wow_retail
+local GetSpellName = C_Spell.GetSpellName
+local IsSpellInRange = C_Spell.IsSpellInRange
 
 local PitBull4_RangeFader = PitBull4:NewModule("RangeFader")
 
@@ -27,7 +27,9 @@ local pet_spells = {}
 local friendly_spells = {}
 local res_spells = {}
 
-local function add_spell(t, id)
+local function add_spell(t, id, exp)
+	if exp == false then return end
+
 	local spell = GetSpellName(id)
 	if spell then
 		t[#t + 1] = spell
@@ -36,120 +38,80 @@ local function add_spell(t, id)
 	end
 end
 
-if wow_cata then
-	local class = UnitClassBase("player")
-	if class == "DEATHKNIGHT" then
-		add_spell(enemy_spells, 45524)   -- Chains of Ice (20)
-		add_spell(long_enemy_spells, 47541) -- Death Coil (30)
-		add_spell(friendly_spells, 49016) -- Unholy Frenzy (30)
-		add_spell(res_spells, 61999)     -- Raise Ally (30)
-	elseif class == "DRUID" then
-		add_spell(enemy_spells, 8921)    -- Moonfire (30)
-		add_spell(friendly_spells, 8936) -- Regrowth (40)
-		add_spell(res_spells, 20484)     -- Rebirth (30)
-	elseif class == "HUNTER" then
-		add_spell(enemy_spells, 75)      -- Auto Shot (5-35/35/35)
-		add_spell(pet_spells, 136)       -- Mend Pet (20)
-		-- add_spell(pet_spells, 2641) -- Dismiss Pet (10)
-	elseif class == "MAGE" then
-		add_spell(enemy_spells, 118)     -- Polymorph (30)
-		add_spell(long_enemy_spells, 133) -- Fireball (35)
-		-- add_spell(friendly_spells, 475) -- Remove Curse (40)
-		add_spell(friendly_spells, 1459) -- Arcane Intellect (30)
-	elseif class == "PALADIN" then
-		add_spell(enemy_spells, 853)     -- Hammer of Justice (10)
-		add_spell(long_enemy_spells, 879) -- Exorcism (30)
-		add_spell(friendly_spells, 1044) -- Hand of Freedom (30)
-		add_spell(friendly_spells, 635)  -- Holy Light (40)
-		add_spell(res_spells, 7328)      -- Redemption (30)
-	elseif class == "PRIEST" then
-		add_spell(enemy_spells, 585)     -- Smite (30)
-		add_spell(friendly_spells, 2061) -- Flash Heal (40)
-		add_spell(res_spells, 2006)      -- Resurrection (30)
-	elseif class == "ROGUE" then
-		add_spell(enemy_spells, 2094)    -- Blind (10)
-		add_spell(long_enemy_spells, 1725) -- Distract (30)
-		add_spell(long_enemy_spells, 36554) -- Shadowstep (25)
-		add_spell(friendly_spells, 57934) -- Tricks of the Trade (20)
-	elseif class == "SHAMAN" then
-		add_spell(enemy_spells, 8042)    -- Earth Shock (20/20/25)
-		add_spell(long_enemy_spells, 403) -- Lightning Bolt (30)
-		add_spell(friendly_spells, 1064) -- Chain Heal (40)
-		add_spell(res_spells, 2008)      -- Ancestral Spirit (30)
-	elseif class == "WARLOCK" then
-		add_spell(enemy_spells, 5782)    -- Fear (20)
-		add_spell(long_enemy_spells, 686) -- Shadow Bolt (30)
-		add_spell(pet_spells, 755)       -- Health Funnel (20/20/45)
-		add_spell(friendly_spells, 5697) -- Unending Breath (30)
-		add_spell(res_spells, 20707)     -- Soulstone (30)
-	elseif class == "WARRIOR" then
-		add_spell(enemy_spells, 5246)    -- Intimidating Shout (8)
-		-- add_spell(enemy_spells, 1161) -- Challenging Shout (10)
-		add_spell(long_enemy_spells, 355) -- Taunt (30)
-		add_spell(friendly_spells, 3411) -- Intervene (8-25)
-	end
-else
-	local class = UnitClassBase("player")
-	if class == "DEATHKNIGHT" then
-		add_spell(enemy_spells, 47541)    -- Death Coil (30)
-		add_spell(res_spells, 61999)      -- Raise Ally
-	elseif class == "DEMONHUNTER" then
-		add_spell(enemy_spells, 344862)   -- Chaos Strike (Melee)
-		add_spell(long_enemy_spells, 185245) -- Torment (30)
-	elseif class == "DRUID" then
-		add_spell(enemy_spells, 5176)     -- Wrath (40)
-		add_spell(friendly_spells, 8936)  -- Regrowth
-		add_spell(res_spells, 50769)      -- Revive
-	elseif class == "EVOKER" then
-		add_spell(enemy_spells, 361469)   -- Living Flame (25)
-		add_spell(friendly_spells, 355913) -- Emerald Blossom (25)
-		add_spell(res_spells, 361227)     -- Return
-	elseif class == "HUNTER" then
-		add_spell(enemy_spells, 185358)   -- Arcane Shot (40)
-		add_spell(pet_spells, 136)        -- Mend Pet
-	elseif class == "MAGE" then
-		-- add_spell(enemy_spells, 118) -- Polymorph (35)
-		add_spell(enemy_spells, 116)      -- Frostbolt (40)
-		add_spell(friendly_spells, 130)   -- Slow Fall
-	elseif class == "MONK" then
-		add_spell(enemy_spells, 115546)   -- Provoke (30)
-		add_spell(long_enemy_spells, 117952) -- Crackling Jade Lightning (40)
-		add_spell(friendly_spells, 116670) -- Vivify
-		add_spell(res_spells, 115178)     -- Resuscitate
-	elseif class == "PALADIN" then
-		add_spell(enemy_spells, 62124)    -- Hand of Reckoning (30)
-		add_spell(friendly_spells, 1044)  -- Hand of Freedom
-		add_spell(res_spells, 7328)       -- Redemption
-	elseif class == "PRIEST" then
-		-- add_spell(enemy_spells, 528) -- Dispel Magic (30)
-		add_spell(enemy_spells, 585)   -- Smite (40)
-		add_spell(friendly_spells, 2061) -- Flash Heal
-		add_spell(res_spells, 2006)    -- Resurrection
-	elseif class == "ROGUE" then
-		add_spell(enemy_spells, 185763) -- Pistol Shot (20 - Outlaw)
-		add_spell(enemy_spells, 36554) -- Shadowstep (25)
-		add_spell(enemy_spells, 1752)  -- Sinister Strike (Melee)
-		add_spell(friendly_spells, 57934) -- Tricks of the Trade
-	elseif class == "SHAMAN" then
-		-- add_spell(enemy_spells, 57994) -- Wind Shear (30)
-		add_spell(enemy_spells, 188196) -- Lightning Bolt (40)
-		add_spell(friendly_spells, 8004) -- Healing Surge
-		add_spell(res_spells, 2008)   -- Ancestral Spirit
-	elseif class == "WARLOCK" then
-		-- add_spell(enemy_spells, 5782) -- Fear (35)
-		add_spell(enemy_spells, 686)   -- Shadow Bolt (40)
-		add_spell(pet_spells, 755)     -- Health Funnel
-		add_spell(friendly_spells, 5697) -- Unending Breath
-		add_spell(res_spells, 20707)   -- Soulstone
-	elseif class == "WARRIOR" then
-		add_spell(enemy_spells, 100)   -- Charge (8-25)
-		add_spell(enemy_spells, 1464)  -- Slam (Melee)
-		add_spell(long_enemy_spells, 355) -- Taunt (30)
-		add_spell(friendly_spells, 3411) -- Intervene
-	end
+local class = UnitClassBase("player")
+if class == "DEATHKNIGHT" then
+	add_spell(enemy_spells, 47541) -- Death Coil (30)
+	add_spell(res_spells, 61999) -- Raise Ally
+	add_spell(friendly_spells, 49016, ClassicExpansionAtMost(LE_EXPANSION_CATACLYSM)) -- Unholy Frenzy (30)
+elseif class == "DEMONHUNTER" then
+	add_spell(enemy_spells, 344862) -- Chaos Strike (Melee)
+	add_spell(long_enemy_spells, 185245) -- Torment (30)
+elseif class == "DRUID" then
+	add_spell(enemy_spells, 5176) -- Wrath (30/40/40)
+	add_spell(friendly_spells, 8936) -- Regrowth (40)
+	add_spell(res_spells, 20484) -- Rebirth (30)
+	-- add_spell(res_spells, 50769, ClassicExpansionAtLeast(LE_EXPANSION_WRATH_OF_THE_LICH_KING)) -- Revive (30)
+elseif class == "EVOKER" then
+	add_spell(enemy_spells, 361469) -- Living Flame (25)
+	add_spell(friendly_spells, 355913) -- Emerald Blossom (25)
+	add_spell(res_spells, 361227) -- Return (30)
+elseif class == "HUNTER" then
+	add_spell(enemy_spells, 75) -- Auto Shot (35/40)
+	add_spell(friendly_spells, 53480, ClassicExpansionAtLeast(LE_EXPANSION_WRATH_OF_THE_LICH_KING)) -- Roar of Sacrifice (40)
+	add_spell(pet_spells, 136) -- Mend Pet (45)
+elseif class == "MAGE" then
+	-- add_spell(enemy_spells, 118) -- Polymorph (30)
+	add_spell(enemy_spells, 116) -- Frostbolt (30/40/40)
+	-- add_spell(long_enemy_spells, 133) -- Fireball (35/40/40)
+	add_spell(friendly_spells, 130) -- Slow Fall (?/40/40)
+	add_spell(friendly_spells, 1459) -- Arcane Intellect (30/30/40)
+elseif class == "MONK" then
+	add_spell(enemy_spells, 115546) -- Provoke (40/30)
+	add_spell(long_enemy_spells, 117952) -- Crackling Jade Lightning (40)
+	add_spell(friendly_spells, 116670) -- Vivify (40)
+	add_spell(res_spells, 115178) -- Resuscitate (30)
+elseif class == "PALADIN" then
+	-- add_spell(enemy_spells, 853) -- Hammer of Justice (10)
+	add_spell(enemy_spells, 20271) -- Judgement (10/30/30)
+	add_spell(friendly_spells, 1044) -- Hand of Freedom (30/40/40)
+	add_spell(res_spells, 7328) -- Redemption (30)
+elseif class == "PRIEST" then
+	-- add_spell(enemy_spells, 528) -- Dispel Magic (40/30/30)
+	add_spell(enemy_spells, 585) -- Smite (30/30/40)
+	add_spell(friendly_spells, 2061) -- Flash Heal (40)
+	add_spell(res_spells, 2006) -- Resurrection (30)
+elseif class == "ROGUE" then
+	add_spell(enemy_spells, 185763, ClassicExpansionAtLeast(LE_EXPANSION_LEGION)) -- Pistol Shot (20 - Outlaw)
+	add_spell(enemy_spells, 36554) -- Shadowstep (25)
+	add_spell(enemy_spells, 2094) -- Blind (10)
+	add_spell(enemy_spells, 1752) -- Sinister Strike (Melee)
+	add_spell(friendly_spells, 57934, ClassicExpansionAtLeast(LE_EXPANSION_WRATH_OF_THE_LICH_KING)) -- Tricks of the Trade (20)
+	add_spell(long_enemy_spells, 1725) -- Distract (30)
+elseif class == "SHAMAN" then
+	add_spell(enemy_spells, 188196, ClassicExpansionAtLeast(LE_EXPANSION_LEGION)) -- Lightning Bolt (40)
+	add_spell(enemy_spells, 8042) -- Earth Shock (20/25/40)
+	-- add_spell(enemy_spells, 57994, ClassicExpansionAtLeast(LE_EXPANSION_WRATH_OF_THE_LICH_KING)) -- Wind Shear (x/25/30)
+	add_spell(long_enemy_spells, 403, ClassicExpansionAtMost(LE_EXPANSION_WARLORDS_OF_DRAENOR)) -- Lightning Bolt (30)
+	add_spell(friendly_spells, 8004) -- Healing Surge (40)
+	add_spell(res_spells, 2008) -- Ancestral Spirit (30)
+elseif class == "WARLOCK" then
+	add_spell(enemy_spells, 5782) -- Fear (20/30/30)
+	add_spell(long_enemy_spells, 686) -- Shadow Bolt (30/40/40)
+	add_spell(pet_spells, 755) -- Health Funnel (20/45/45)
+	add_spell(friendly_spells, 5697) -- Unending Breath (30)
+	add_spell(res_spells, 20707) -- Soulstone (30)
+elseif class == "WARRIOR" then
+	add_spell(enemy_spells, 100) -- Charge (8-25)
+	add_spell(enemy_spells, 1464) -- Slam (Melee)
+	add_spell(long_enemy_spells, 355) -- Taunt (30)
+	add_spell(friendly_spells, 3411) -- Intervene (8-25/25/25)
 end
 
 local function friendly_is_in_range(unit)
+	if not InCombatLockdown() and CheckInteractDistance(unit, 1) then
+		return true
+	end
+
 	if UnitIsDeadOrGhost(unit) then
 		for _, name in ipairs(res_spells) do
 			if IsSpellInRange(name, unit) then
@@ -161,16 +123,24 @@ local function friendly_is_in_range(unit)
 		return false
 	end
 
-	for _, name in ipairs(friendly_spells) do
-		if IsSpellInRange(name, unit) then
-			return true
+	if next(friendly_spells) then
+		for _, name in ipairs(friendly_spells) do
+			if IsSpellInRange(name, unit) then
+				return true
+			end
 		end
+	elseif not InCombatLockdown() and CheckInteractDistance(unit, 4) then -- ~28 yds
+		return true
 	end
 
 	return false
 end
 
 local function pet_is_in_range(unit)
+	if not InCombatLockdown() and CheckInteractDistance(unit, 2) then
+		return true
+	end
+
 	for _, name in ipairs(friendly_spells) do
 		if IsSpellInRange(name, unit) then
 			return true
@@ -266,7 +236,7 @@ end
 PitBull4_RangeFader:SetLayoutOptionsFunction(function(self)
 	local get_spell_range
 	local range_pattern = _G.SPELL_RANGE:gsub("%%s", ".-")
-	if not wow_cata then
+	if C_TooltipInfo then -- XXX wow_retail
 		function get_spell_range(spell_id)
 			local data = C_TooltipInfo.GetSpellByID(spell_id, true)
 			if not data then return end
@@ -284,7 +254,7 @@ PitBull4_RangeFader:SetLayoutOptionsFunction(function(self)
 		end
 	else
 		local tooltip = CreateFrame("GameTooltip", "PitBull4RangeFinderTooltip", nil, "GameTooltipTemplate")
-		tooltip:SetOwner(UIParent, "ANCHOR_NONE")
+		tooltip:SetOwner(_G.WorldFrame, "ANCHOR_NONE")
 		function get_spell_range(spell_id)
 			tooltip:SetSpellByID(spell_id)
 			for i = 1, tooltip:NumLines(), 1 do
@@ -302,14 +272,8 @@ PitBull4_RangeFader:SetLayoutOptionsFunction(function(self)
 	end
 
 	local function get_spell_info(spell)
-		-- XXX wow_tww
-		local spell_id, icon, _
-		if _G.GetSpellInfo then
-			_, _, icon, _, _, _, spell_id = _G.GetSpellInfo(spell)
-		else
-			icon = C_Spell.GetSpellTexture(spell)
-			spell_id = C_Spell.GetSpellIDForSpellIdentifier(spell)
-		end
+		local spell_id = C_Spell.GetSpellIDForSpellIdentifier(spell)
+		local icon = C_Spell.GetSpellTexture(spell_id or spell)
 		return spell_id, icon
 	end
 

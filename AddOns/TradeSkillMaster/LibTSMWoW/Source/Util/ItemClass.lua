@@ -36,11 +36,12 @@ local RETAIL_ITEM_CLASS_IDS = {
 	Enum.ItemClass.Tradegoods,
 	Enum.ItemClass.Recipe,
 	Enum.ItemClass.Profession,
+	Enum.ItemClass.Housing,
 	Enum.ItemClass.Battlepet,
 	Enum.ItemClass.Questitem,
 	Enum.ItemClass.Miscellaneous,
 }
-local WRATH_ITEM_CLASS_IDS = {
+local PANDA_ITEM_CLASS_IDS = {
 	Enum.ItemClass.Weapon,
 	Enum.ItemClass.Armor,
 	Enum.ItemClass.Container,
@@ -51,6 +52,21 @@ local WRATH_ITEM_CLASS_IDS = {
 	Enum.ItemClass.Quiver,
 	Enum.ItemClass.Recipe,
 	Enum.ItemClass.Gem,
+	Enum.ItemClass.Miscellaneous,
+	Enum.ItemClass.Questitem,
+	Enum.ItemClass.Battlepet,
+}
+local BCC_ITEM_CLASS_IDS = {
+	Enum.ItemClass.Weapon,
+	Enum.ItemClass.Armor,
+	Enum.ItemClass.Container,
+	Enum.ItemClass.Consumable,
+	Enum.ItemClass.Tradegoods,
+	Enum.ItemClass.Projectile,
+	Enum.ItemClass.Quiver,
+	Enum.ItemClass.Recipe,
+	Enum.ItemClass.Gem,
+	Enum.ItemClass.Reagent,
 	Enum.ItemClass.Miscellaneous,
 	Enum.ItemClass.Questitem,
 }
@@ -101,8 +117,10 @@ ItemClass:OnModuleLoad(function()
 	local data = nil
 	if LibTSMWoW.IsRetail() then
 		data = RETAIL_ITEM_CLASS_IDS
-	elseif LibTSMWoW.IsCataClassic() then
-		data = WRATH_ITEM_CLASS_IDS
+	elseif LibTSMWoW.IsPandaClassic() then
+		data = PANDA_ITEM_CLASS_IDS
+	elseif LibTSMWoW.IsBCClassic() then
+		data = BCC_ITEM_CLASS_IDS
 	elseif LibTSMWoW.IsVanillaClassic() then
 		data = VANILLA_ITEM_CLASS_IDS
 	else
@@ -122,9 +140,12 @@ ItemClass:OnModuleLoad(function()
 				subClasses = {GetAuctionItemSubClasses(classId)}
 			end
 			for _, subClassId in pairs(subClasses) do
-				local subClassName = ItemClass.GetSubClassInfo(classId, subClassId)
-				if not strfind(subClassName, "(OBSOLETE)") then
-					private.classLookup[class][subClassName] = subClassId
+				-- In 1.5.8, Blizzard added an invalid classId=0, subClassId=1
+				if classId ~= 0 and subClassId ~= -1 then
+					local subClassName = ItemClass.GetSubClassInfo(classId, subClassId)
+					if subClassName and not strfind(subClassName, "(OBSOLETE)") then
+						private.classLookup[class][subClassName] = subClassId
+					end
 				end
 			end
 		end
@@ -171,31 +192,19 @@ end)
 ---Gets the name of the item type.
 ---@return string
 function ItemClass.GetClassInfo(classId)
-	if ClientInfo.HasFeature(ClientInfo.FEATURES.C_ITEM) then
-		return C_Item.GetItemClassInfo(classId)
-	else
-		return GetItemClassInfo(classId)
-	end
+	return C_Item.GetItemClassInfo(classId)
 end
 
 ---Gets the name of the item subtype.
 ---@return string
 function ItemClass.GetSubClassInfo(classId, subClassId)
-	if ClientInfo.HasFeature(ClientInfo.FEATURES.C_ITEM) then
-		return C_Item.GetItemSubClassInfo(classId, subClassId)
-	else
-		return GetItemSubClassInfo(classId, subClassId)
-	end
+	return C_Item.GetItemSubClassInfo(classId, subClassId)
 end
 
 ---Gets the name of the item subtype.
 ---@return string
 function ItemClass.GetInventorySlotInfo(inventorySlot)
-	if ClientInfo.HasFeature(ClientInfo.FEATURES.C_ITEM) then
-		return C_Item.GetItemInventorySlotInfo(inventorySlot)
-	else
-		return GetItemInventorySlotInfo(inventorySlot)
-	end
+	return C_Item.GetItemInventorySlotInfo(inventorySlot)
 end
 
 ---Gets the pet class ID.

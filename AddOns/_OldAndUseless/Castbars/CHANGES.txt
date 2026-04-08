@@ -1,0 +1,15 @@
+------------------------------------------------------------------------
+r238 | xbeeps | 2020-10-19 21:37:46 +0000 (Mon, 19 Oct 2020) | 1 line
+Changed paths:
+   M /trunk/Castbars.toc
+
+Bump TOC
+------------------------------------------------------------------------
+r237 | xbeeps | 2020-10-19 21:34:53 +0000 (Mon, 19 Oct 2020) | 2 lines
+Changed paths:
+   M /trunk/Castbars.lua
+
+Fix Loading Errors due to SetBackdrop usage
+Fix GCD Spark texture
+------------------------------------------------------------------------
+

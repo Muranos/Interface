@@ -3,21 +3,110 @@
 --- Dependencies: Runner, Callback
 ---
 
-local appName, app = ...
+local _, app = ...
 
-local ipairs,pairs,rawget,tonumber,GetTimePreciseSec
-	= ipairs,pairs,rawget,tonumber,GetTimePreciseSec
+local pairs,rawget,tinsert,tonumber,GetTimePreciseSec,tremove,select,setmetatable,getmetatable,type
+	= pairs,rawget,tinsert,tonumber,GetTimePreciseSec,tremove,select,setmetatable,getmetatable,type
 
 local DelayedCallback = app.CallbackHandlers.DelayedCallback
+local Callback = app.CallbackHandlers.Callback
 local Runner = app.CreateRunner("update")
 app.UpdateRunner = Runner
 
--- Update Group Data
+-- Module Locals
+local L,Colorize
+app.AddEventHandler("OnLoad", function()
+	L = app.L
+	if app.Modules.Color then
+		Colorize = app.Modules.Color.Colorize
+	else
+		Colorize = function(text) return text end
+	end
+end)
+
+---- Update Group Data ----
+
 local DefaultGroupVisibility, DefaultThingVisibility
 local UpdateGroups
 local RecursiveGroupRequirementsFilter, GroupFilter, GroupVisibilityFilter, ThingVisibilityFilter, TrackableFilter
 local FilterSet, FilterGet, Filters_ItemUnbound, ItemUnboundSetting
--- local debug
+local SetGroupVisibility, SetThingVisibility, BaseSetGroupVisibility, BaseSetThingVisibility
+local function SetDefaultVisibility(parent, group)
+	group.visible = true
+end
+-- Visibilty Checks
+-- nil - the check doesn't result in a visible outcome
+-- true - the check resulted in a visible outcome
+-- 2 - the check resulted in a visible outcome and should force the parent to also persist visibility
+local function Visibility_ForceShow(group)
+	if group.forceShow then
+		group.forceShow = nil
+		-- Continue the forceShow visibility outward
+		return 2
+	end
+end
+local function Visibility_Total_Group(group)
+	local total = group.total
+	if total > 0 then
+		return group.progress < total or GroupVisibilityFilter(group)
+	end
+end
+local function Visibility_Total_Thing(group)
+	local total = group.total
+	if total > 0 then
+		return group.progress < total or ThingVisibilityFilter(group)
+	end
+end
+local function Visibility_Cost(group)
+	if group.costTotal > 0 then
+		-- app.PrintDebug("SGV.cost",group.hash,visible,group.costTotal)
+		return true
+	end
+end
+local function Visibility_Upgrade(group)
+	if (group.upgradeTotal or 0) > 0 then
+		-- if debug then print("SGV.hasUpgrade",group.hash,visible) end
+		return true
+	end
+end
+local function Visibility_Trackable_Group(group)
+	if TrackableFilter(group) then
+		local visible = not group.saved or GroupVisibilityFilter(group)
+		return visible and 2 or nil
+	end
+end
+local function Visibility_Trackable_Thing(group)
+	if TrackableFilter(group) then
+		local visible = not group.saved or ThingVisibilityFilter(group)
+		return visible and 2 or nil
+	end
+end
+local function Visibility_Custom(group)
+	if group.OnSetVisibility then
+		return group:OnSetVisibility()
+	end
+end
+local function Visibility_LootMode(group)
+	if ((group.itemID and group.f) or group.sym) then
+		return 2
+	end
+end
+local GroupVisibilityChecks = {
+	Visibility_ForceShow,
+	Visibility_Total_Group,
+	Visibility_Cost,
+	Visibility_Upgrade,
+	Visibility_Trackable_Group,
+	Visibility_Custom,
+}
+local ThingVisibilityChecks = {
+	Visibility_ForceShow,
+	Visibility_Total_Thing,
+	Visibility_Cost,
+	Visibility_Upgrade,
+	Visibility_Trackable_Thing,
+	Visibility_Custom,
+}
 -- Local caches for some heavily used functions within updates
 local function CacheFilterFunctions()
 	local FilterApi = app.Modules.Filter
@@ -32,136 +121,82 @@ local function CacheFilterFunctions()
 	DefaultGroupVisibility, DefaultThingVisibility = app.DefaultGroupFilter(), app.DefaultThingFilter()
 	-- app.PrintDebug("CacheFilterFunctions","DG",DefaultGroupVisibility,"DT",DefaultThingVisibility)
 	-- app.PrintDebug("ItemUnboundSetting",ItemUnboundSetting)
+	SetGroupVisibility = DefaultGroupVisibility and SetDefaultVisibility or BaseSetGroupVisibility
+	SetThingVisibility = DefaultThingVisibility and SetDefaultVisibility or BaseSetThingVisibility
+	-- Add Loot Visibility if in Settings
+	if app.Settings.Collectibles.Loot then
+		ThingVisibilityChecks[#ThingVisibilityChecks + 1] = Visibility_LootMode
+	else
+		for i=#ThingVisibilityChecks,1,-1 do
+			if ThingVisibilityChecks[i] == Visibility_LootMode then
+				tremove(ThingVisibilityChecks, i)
+				break
+			end
+		end
+	end
 end
--- TODO: test perf when instead using an array of ordered visibility checkers which is defined via settings changes
--- similar to information types
-local function SetGroupVisibility(parent, group)
-	local forceShowParent
+app.AddEventHandler("OnStartup", function()
+	CacheFilterFunctions()
+	app.AddEventHandler("OnSettingsRefreshed", CacheFilterFunctions)
+end)
+BaseSetGroupVisibility = function(parent, group)
 	-- Set visible initially based on the global 'default' visibility, or whether the group should inherently be shown
-	local visible = DefaultGroupVisibility
-	-- Need to check all possible reasons a group could be visible, from simplest to more complex
-	-- Force show
-	if not visible and group.forceShow then
-		visible = true
-		group.forceShow = nil
-		-- Continue the forceShow visibility outward
-		forceShowParent = true
-	end
-	-- Total
-	if not visible and group.total > 0 then
-		visible = group.progress < group.total or GroupVisibilityFilter(group)
-	end
-	-- Cost
-	if not visible and ((group.costTotal or 0) > 0) then
-		visible = true
-		-- app.PrintDebug("SGV.cost",group.hash,visible,group.costTotal)
-	end
-	-- Upgrade
-	if not visible and ((group.upgradeTotal or 0) > 0) then
-		visible = true
-		-- if debug then print("SGV.hasUpgrade",group.hash,visible) end
-	end
-	-- Trackable
-	if not visible and TrackableFilter(group) then
-		visible = not group.saved or GroupVisibilityFilter(group)
-		forceShowParent = visible
-	end
-	-- Custom Visibility
-	if not visible and group.OnSetVisibility then
-		visible = group:OnSetVisibility()
-	end
-	-- Apply the visibility to the group
-	if visible then
-		group.visible = true
-		-- source ignored group which is determined to be visible should ensure the parent is also visible
-		if not forceShowParent and group.sourceIgnored then
-			forceShowParent = true
-			-- app.PrintDebug("SGV:ForceParent",parent.text,"via Source Ignored",group.text)
+	local visible
+	for i=1,#GroupVisibilityChecks do
+		visible = GroupVisibilityChecks[i](group)
+		-- Apply the visibility to the group
+		if visible then
+			group.visible = true
+			if not parent then return end
+
+			-- source ignored group which is determined to be visible should ensure the parent is also visible
+			if visible == 2 or group.sourceIgnored then
+				parent.forceShow = true
+				-- app.PrintDebug("SGV:ForceParent",parent.text,group.sourceIgnored and "via Source Ignored" or "via Hierarchy",group.text)
+			end
+			return
 		end
-	end
-	if parent and forceShowParent then
-		parent.forceShow = forceShowParent
 	end
 end
-local function SetThingVisibility(parent, group)
-	local forceShowParent
-	local visible = DefaultThingVisibility
-	-- Need to check all possible reasons a group could be visible, from simplest to more complex
-	-- Force show
-	if not visible and group.forceShow then
-		visible = true
-		group.forceShow = nil
-		-- Continue the forceShow visibility outward
-		forceShowParent = true
-		-- if debug then print("forceshow",visible) end
-	end
-	-- Total
-	if not visible and group.total > 0 then
-		visible = group.progress < group.total or ThingVisibilityFilter(group)
-		-- app.PrintDebug("STV.total",group.hash,visible,group.progress,group.total,ThingVisibilityFilter(group))
-	end
-	-- Cost
-	if not visible and ((group.costTotal or 0) > 0) then
-		visible = true
-		-- app.PrintDebug("STV.cost",group.hash,visible,group.costTotal)
-	end
-	-- Upgrade
-	if not visible and ((group.upgradeTotal or 0) > 0) then
-		visible = true
-		-- if debug then print("STV.hasUpgrade",group.hash,visible) end
-	end
-	-- Trackable
-	if not visible and TrackableFilter(group) then
-		visible = not group.saved or ThingVisibilityFilter(group)
-		forceShowParent = visible
-		-- if debug then print("trackable",visible) end
-	end
-	-- Custom Visibility
-	if not visible and group.OnSetVisibility then
-		visible = group:OnSetVisibility()
-	end
-	-- Loot Mode
-	if not visible then
-		if ((group.itemID and group.f) or group.sym) and app.Settings.Collectibles.Loot then
-			visible = true
+BaseSetThingVisibility = function(parent, group)
+	local visible
+	for i=1,#ThingVisibilityChecks do
+		visible = ThingVisibilityChecks[i](group)
+		-- Apply the visibility to the group
+		if visible then
+			group.visible = true
+			if not parent then return end
+
+			-- source ignored group which is determined to be visible should ensure the parent is also visible
+			if visible == 2 or group.sourceIgnored then
+				parent.forceShow = true
+				-- app.PrintDebug("STV:ForceParent",parent.text,"via Source Ignored",group.text)
+			end
+			return
 		end
-		forceShowParent = visible
-	end
-	-- Apply the visibility to the group
-	if visible then
-		group.visible = true
-		-- source ignored group which is determined to be visible should ensure the parent is also visible
-		if not forceShowParent and group.sourceIgnored then
-			forceShowParent = true
-			-- app.PrintDebug("STV:ForceParent",parent.text,"via Source Ignored",group.text)
-		end
-	end
-	if parent and forceShowParent then
-		parent.forceShow = forceShowParent
 	end
 end
 local function UpdateGroup(group, parent)
 	group.visible = nil
 
-	-- debug = group.itemID and group.factionID == 2045
-	-- if debug then print("UG",group.hash,parent and parent.hash) end
+	-- local debug = group.itemID == 202183
+	-- if debug then app.PrintDebug("UG",group.hash,parent and parent.hash) end
 
 	-- Determine if this user can enter the instance or acquire the item and item is equippable/usable
 	-- Things which are determined to be a cost for something else which meets user filters will
 	-- be shown anyway, so don't need to undergo a filtering pass
-	local valid = group.isCost or group.forceShow
-	-- if valid then
-		-- app.PrintDebug("Pre-valid group as from cost/upgrade",group.isCost,group.isUpgrade,app:SearchLink(group))
-	-- end
+	local isCost = group.isCost
+	local valid = isCost or group.forceShow or group.wasFilled
+	-- if valid and debug then app.PrintDebug("Pre-valid group as from cost/forceShow/wasFilled/upgrade",group.isCost,group.forceShow,group.wasFilled,group.isUpgrade,app:SearchLink(group)) end
 	-- A group with a source parent means it has a different 'real' heirarchy than in the current window
 	-- so need to verify filtering based on that instead of only itself
 	if not valid then
 		if group.sourceParent then
 			valid = RecursiveGroupRequirementsFilter(group)
-			-- if debug then print("UG.RGRF",valid,"=>",group.sourceParent.hash) end
+			-- if debug then app.PrintDebug("UG.RGRF",valid,"=>",group.sourceParent.hash) end
 		else
 			valid = GroupFilter(group)
-			-- if debug then print("UG.GF",valid) end
+			-- if debug then app.PrintDebug("UG.GF",valid) end
 		end
 	end
 
@@ -171,7 +206,7 @@ local function UpdateGroup(group, parent)
 		local customProgress = customTotal > 0 and group.customProgress or 0
 		local total, progress = customTotal, customProgress
 
-		-- if debug then print("UG.Init","custom",customProgress,customTotal,"=>",progress,total) end
+		-- if debug then app.PrintDebug("UG.Init","custom",customProgress,customTotal,"=>",progress,total) end
 
 		-- If this item is collectible, then mark it as such.
 		if group.collectible then
@@ -185,13 +220,13 @@ local function UpdateGroup(group, parent)
 		-- if debug then print("UG.prog",progress,total,group.collectible) end
 		group.progress = progress
 		group.total = total
-		group.costTotal = group.isCost and 1 or 0
+		group.costTotal = isCost and 1 or 0
 		group.upgradeTotal = group.isUpgrade and 1 or 0
 
 		-- Check if this is a group
 		local g = group.g
 		if g then
-			-- if debug then print("UpdateGroup.g",group.progress,group.total,group.__type) end
+			-- if debug then app.PrintDebug("UpdateGroup.g",group.progress,group.total,group.__type) end
 
 			-- skip Character filtering for sub-groups if this Item meets the Ignore BoE filter logic, since it can be moved to the designated character
 			-- local ItemBindFilter, NoFilter = app.ItemBindFilter, app.NoFilter
@@ -212,7 +247,7 @@ local function UpdateGroup(group, parent)
 				UpdateGroups(group, g)
 			end
 
-			-- app.PrintDebug("UpdateGroup.g.Updated",group.progress,group.total,group.__type)
+			-- if debug then app.PrintDebug("UpdateGroup.g.Updated",group.progress,group.total,group.__type) end
 			SetGroupVisibility(parent, group)
 		else
 			SetThingVisibility(parent, group)
@@ -220,28 +255,28 @@ local function UpdateGroup(group, parent)
 
 		-- Increment the parent group's totals if the group is not ignored for sources
 		if parent and not group.sourceIgnored then
-			parent.total = (parent.total or 0) + group.total
-			parent.progress = (parent.progress or 0) + group.progress
-			parent.costTotal = (parent.costTotal or 0) + (group.costTotal or 0)
-			parent.upgradeTotal = (parent.upgradeTotal or 0) + (group.upgradeTotal or 0)
+			parent.total = parent.total + group.total
+			parent.progress = parent.progress + group.progress
+			parent.costTotal = parent.costTotal + group.costTotal
+			parent.upgradeTotal = parent.upgradeTotal + group.upgradeTotal
 		-- else
 			-- print("Ignoring progress/total",group.progress,"/",group.total,"for group",group.text)
 		end
 	end
 
-	-- if debug then print("UpdateGroup.Done",group.progress,group.total,group.visible,group.__type) end
+	-- if debug then app.PrintDebug("UpdateGroup.Done",group.progress,group.total,group.visible,group.__type) end
 	-- debug = nil
 	-- return group.visible
 end
 UpdateGroups = function(parent, g)
 	if g then
-		for _,group in ipairs(g) do
+		local group
+		for i=1,#g do
+			group = g[i]
 			if group.OnUpdate then
 				if not group:OnUpdate(parent, UpdateGroup) then
 					UpdateGroup(group, parent)
 				elseif group.visible then
-					group.total = nil
-					group.progress = nil
 					UpdateGroups(group, group.g)
 				end
 			else
@@ -251,56 +286,190 @@ UpdateGroups = function(parent, g)
 	end
 end
 app.UpdateGroups = UpdateGroups
+
+--[[
+-- CRIEVE NOTE: This was Classic's UpdateGroups.
+-- Keeping this here to do a deep dive later
+local UpdateGroups;
+local function UpdateGroup(group, parent)
+	local visible = false;
+
+	-- Determine if this user can enter the instance or acquire the item.
+	if app.GroupFilter(group) then
+		-- Check if this is a group
+		if group.g then
+			-- If this item is collectible, then mark it as such.
+			if group.collectible then
+				-- An item is a special case where it may have both an appearance and a set of items
+				group.progress = group.collected and 1 or 0;
+				group.total = 1;
+			else
+				-- Default to 0 for both
+				group.progress = 0;
+				group.total = 0;
+			end
+
+			-- Update the subgroups recursively...
+			visible = UpdateGroups(group, group.g);
+
+			-- If the 'can equip' filter says true
+			if app.GroupFilter(group) then
+				if not group.sourceIgnored then
+					-- Increment the parent group's totals.
+					parent.total = (parent.total or 0) + group.total;
+					parent.progress = (parent.progress or 0) + group.progress;
+				end
+
+				-- If this group is trackable, then we should show it.
+				if group.total > 0 and app.GroupVisibilityFilter(group) then
+					visible = true;
+				elseif app.ShowTrackableThings(group) and not group.saved then
+					visible = true;
+				elseif ((group.itemID and group.f) or group.sym) and app.Settings.Collectibles.Loot then
+					visible = true;
+				end
+			else
+				visible = false;
+			end
+		else
+			-- If the 'can equip' filter says true
+			if app.GroupFilter(group) then
+				if group.collectible then
+					-- Increment the parent group's totals.
+					parent.total = (parent.total or 0) + 1;
+
+					-- If we've collected the item, use the "Show Collected Items" filter.
+					if group.collected then
+						parent.progress = (parent.progress or 0) + 1;
+						if app.CollectedItemVisibilityFilter(group) then
+							visible = true;
+						end
+					else
+						visible = true;
+					end
+				elseif app.ShowTrackableThings(group) and not group.saved then
+					-- If this group is trackable, then we should show it.
+					visible = true;
+				elseif ((group.itemID and group.f) or group.sym) and app.Settings.Collectibles.Loot then
+					visible = true;
+				elseif app.MODE_DEBUG then
+					visible = true;
+				end
+			elseif app.MODE_DEBUG then
+				visible = true;
+			else
+				visible = false;
+			end
+		end
+	end
+
+	-- Set the visibility
+	group.visible = visible;
+	return visible;
+end
+UpdateGroups = function(parent, g)
+	if g then
+		local visible = false;
+		for i=1,#g,1 do
+			local group = g[i];
+			if group.OnUpdate then
+				if not group:OnUpdate(parent, UpdateGroup) then
+					if UpdateGroup(group, parent) then
+						visible = true;
+					end
+				elseif group.visible then
+					visible = true;
+				end
+			elseif UpdateGroup(group, parent) then
+				visible = true;
+			end
+		end
+		return visible;
+	end
+end
+app.UpdateGroups = UpdateGroups;
+local GetTimePreciseSec = GetTimePreciseSec;
+local TopLevelUpdateGroup = function(group, forceShow)
+	-- TODO: Switch to using the DataHandling function "TopLevelUpdateGroup"
+	group.TLUG = GetTimePreciseSec()
+	group.progress = 0;
+	group.total = 0;
+	group.costTotal = nil
+	group.upgradeTotal = nil
+	-- app.PrintDebug("TLUG",group.hash)
+	-- Root data in Windows should ALWAYS be visible
+	-- Data can also be force-shown externally (i.e. when as a search result)
+	if group.window or forceShow then
+		-- app.PrintDebug("Root Group",group.text)
+		group.forceShow = true
+	end
+	if not (group.OnUpdate and group:OnUpdate()) then
+		UpdateGroups(group, group.g);
+	end
+end
+app.TopLevelUpdateGroup = TopLevelUpdateGroup;
+]]--
+
 -- Adjusts the progress/total of the group's parent chain, and refreshes visibility based on the new values
 local function AdjustParentProgress(group, progChange, totalChange, costChange, upgradeChange)
 	-- rawget, .parent will default to sourceParent in some cases
 	local parent = group and not group.sourceIgnored and rawget(group, "parent")
-	if parent then
-		-- app.PrintDebug("APP:",parent.text)
-		-- app.PrintDebug("CUR:",parent.progress,parent.total)
-		-- app.PrintDebug("CHG:",progChange,totalChange)
-		parent.total = (parent.total or 0) + totalChange
-		parent.progress = (parent.progress or 0) + progChange
-		parent.costTotal = (parent.costTotal or 0) + costChange
-		parent.upgradeTotal = (parent.upgradeTotal or 0) + upgradeChange
-		-- Assign cost cache
-		-- app.PrintDebug("END:",parent.progress,parent.total)
-		-- verify visibility of the group, always a 'group' since it is already a parent of another group, as long as it's not the root window data
-		if not parent.window then
-			parent.visible = nil
-			SetGroupVisibility(rawget(parent, "parent"), parent)
-		end
-		AdjustParentProgress(parent, progChange, totalChange, costChange, upgradeChange)
+	if not parent then return end
+
+	-- app.PrintDebug("APP:",parent.progress,progChange,parent.total,totalChange,costChange,upgradeChange,app:SearchLink(parent))
+	parent.total = parent.total + totalChange
+	parent.progress = parent.progress + progChange
+	parent.costTotal = parent.costTotal + costChange
+	parent.upgradeTotal = parent.upgradeTotal + upgradeChange
+	-- Assign cost cache
+	-- app.PrintDebug("END:",parent.progress,parent.total)
+	-- verify visibility of the group, always a 'group' since it is already a parent of another group, as long as it's not the root window data
+	if not parent.window then
+		parent.visible = nil
+		SetGroupVisibility(rawget(parent, "parent"), parent)
 	end
+	AdjustParentProgress(parent, progChange, totalChange, costChange, upgradeChange)
+end
+local function AdjustParentVisibility(group)
+	local parent = group and rawget(group, "parent")
+	if not parent then return end
+
+	if not parent.window then
+		group.visible = nil
+	end
+	if not group.window then
+		SetGroupVisibility(parent, group)
+	end
+	-- app.PrintDebug("APV:",app:SearchLink(group),group.visible,"->",app:SearchLink(parent))
+	AdjustParentVisibility(parent)
 end
 
-
 -- For directly applying the full Update operation for the top-level data group within a window
-local function TopLevelUpdateGroup(group)
+local function TopLevelUpdateGroup(group, forceShow)
 	group.TLUG = GetTimePreciseSec()
-	group.total = nil
-	group.progress = nil
+	group.progress = 0;
+	group.total = 0;
 	group.costTotal = nil
 	group.upgradeTotal = nil
-	CacheFilterFunctions()
 	-- app.PrintDebug("TLUG",group.hash)
 	-- Root data in Windows should ALWAYS be visible
-	if group.window then
+	-- Data can also be force-shown externally (i.e. when as a search result)
+	if group.window or forceShow then
 		-- app.PrintDebug("Root Group",group.text)
 		group.forceShow = true
 	end
+	-- OnUpdate returns "whether it handled the update for itself"
+	-- Recursion to .g should always persist if the group is visible
 	if group.OnUpdate then
 		if not group:OnUpdate(nil, UpdateGroup) then
 			UpdateGroup(group)
 		elseif group.visible then
-			group.total = nil
-			group.progress = nil
 			UpdateGroups(group, group.g)
 		end
 	else
 		UpdateGroup(group)
 	end
-	-- app.PrintDebugPrior("TLUG",group.hash)
+	-- app.PrintDebugPrior("TLUG",group.hash,group.visible)
 end
 app.TopLevelUpdateGroup = TopLevelUpdateGroup
 local DGUDelay = 0.5
@@ -327,7 +496,7 @@ local function DirectGroupUpdate(group, got)
 		return
 	end
 	local prevTotal, prevProg, prevCost, prevUpgrade
-		= group.total or 0, group.progress or 0, group.costTotal or 0, group.upgradeTotal or 0
+		= group.total, group.progress, group.costTotal, group.upgradeTotal
 	TopLevelUpdateGroup(group)
 	local progChange, totalChange, costChange, upgradeChange
 		= group.progress - prevProg, group.total - prevTotal, group.costTotal - prevCost, group.upgradeTotal - prevUpgrade
@@ -351,7 +520,7 @@ local function DirectGroupUpdate(group, got)
 			-- app.PrintDebug("DGU_Fill",app:SearchLink(group))
 			app.FillGroups(group)
 		end
-		-- app.PrintDebug("DGU:Update",group.hash,">",window.Suffix,window.Update,window.isQuestChain)
+		-- app.PrintDebug("DGU:Update",app:SearchLink(group),">",DGUDelay,window.Suffix,window.Update,window.isQuestChain)
 		DelayedCallback(window.Update, DGUDelay, window, window.isQuestChain, got)
 		window:ToggleExtraFilters()
 	elseif group.DGU_Fill then
@@ -373,11 +542,32 @@ local function DirectGroupUpdate(group, got)
 end
 app.DirectGroupUpdate = DirectGroupUpdate
 -- Trigger a soft-Update of the window containing the specific group, regardless of Filtering/Visibility of the group
-local function DirectGroupRefresh(group)
+local function DirectGroupRefresh(group, immediate)
+	local isForceShown = group.forceShow
+	-- Allow adjusting visibility only if needed
+	if isForceShown then
+		AdjustParentVisibility(group)
+	end
 	local window = app.GetRelativeRawWithField(group, "window")
 	if window then
-		-- app.PrintDebug("DGR:Refresh",group.hash,">",window.Suffix,window.Refresh)
-		DelayedCallback(window.Update, DGUDelay, window)
+		if immediate then
+			-- app.PrintDebug("DGR:Refresh:Now",group.hash,window.Suffix)
+			Callback(window.Update, window)
+		else
+			-- app.PrintDebug("DGR:Refresh:Delay",group.hash,window.Suffix)
+			DelayedCallback(window.Update, DGUDelay, window)
+		end
+	else
+		-- app.PrintDebug("DGR:Refresh",group.hash,">",DGUDelay,"No window!")
+		-- app.PrintTable(group)
+		-- this scenario happens when the meta-group of a DLO used in /att list triggers a DGR on itself
+		-- due to it being completely detached from the actual 'list' window
+		-- perhaps this is niche enough of an occurrence that we can just try to refresh the 'list' window
+		-- in this situation
+		local window = app.Windows.list
+		if window then
+			DelayedCallback(window.Update, DGUDelay, window)
+		end
 	end
 end
 app.DirectGroupRefresh = DirectGroupRefresh
@@ -389,8 +579,8 @@ local function UpdateSearchResults(searchResults)
 	-- in extreme cases of tons of search results to update all at once, we will split up the updates to remove the apparent stutter
 	if #searchResults > LIMIT_UPDATE_SEARCH_RESULTS then
 		local subresults = {}
-		for i,result in ipairs(searchResults) do
-			subresults[#subresults + 1] = result
+		for i=1,#searchResults do
+			subresults[#subresults + 1] = searchResults[i]
 			if i % LIMIT_UPDATE_SEARCH_RESULTS == 0 then
 				Runner.Run(UpdateSearchResults, subresults)
 				subresults = {}
@@ -404,7 +594,9 @@ local function UpdateSearchResults(searchResults)
 	local found = {}
 	local HandleEvent = app.HandleEvent
 	-- Directly update the Source groups of the search results, and collect their hashes for updates in other windows
-	for _,result in ipairs(searchResults) do
+	local result
+	for i=1,#searchResults do
+		result = searchResults[i]
 		hashes[result.hash] = true
 		found[#found + 1] = result
 		-- Make sure any update events are handled for this Thing
@@ -418,20 +610,18 @@ local function UpdateSearchResults(searchResults)
 		-- Collect matching groups from the updating groups from visible windows other than Main list
 		if window.Suffix ~= "Prime" and window:IsVisible() then
 			-- app.PrintDebug(window.Suffix)
-			for _,result in ipairs(searchResults) do
-				SearchForSpecificGroups(found, window.data, hashes)
-			end
+			SearchForSpecificGroups(found, window.data, hashes)
 		end
 	end
 
 	-- apply direct updates to all found groups
 	-- app.PrintDebug("Updating",#found,"groups")
-	for _,o in ipairs(found) do
-		DirectGroupUpdate(o, true)
+	for i=1,#found do
+		DirectGroupUpdate(found[i], true)
 	end
 	-- TODO: use event
 	app.WipeSearchCache()
-	-- app.PrintDebug("UpdateSearchResults Done")
+	-- app.PrintDebug("UpdateSearchResults Done",#searchResults,"=>",#found)
 end
 -- Pulls all cached fields for the field/id and passes the results into UpdateSearchResults
 local function UpdateRawID(field, id)
@@ -449,3 +639,480 @@ local function UpdateRawIDs(field, ids)
 	end
 end
 app.UpdateRawIDs = UpdateRawIDs
+
+
+---- Group Handling Functionality (creation/merging/nesting) ----
+
+
+-- Fields which are dynamic or pertain only to the specific ATT window and should never merge automatically
+-- Maybe build/add from /base.lua:DefaultFields since those always are able to be dynamic
+local MergeSkipFields = {
+	-- true -> never
+	expanded = true,
+	indent = true,
+	g = true,
+	nmr = true,
+	nmc = true,
+	progress = true,
+	total = true,
+	visible = true,
+	modItemID = true,
+	rawlink = true,
+	sourceIgnored = true,
+	isCost = true,
+	costTotal = true,
+	isUpgrade = true,
+	upgradeTotal = true,
+	iconPath = true,
+	hash = true,
+	sharedDescription = true,
+	-- fields added to a group from GetSearchResults
+	tooltipInfo = true,
+	working = true,
+	-- update cached info
+	TLUG = true,
+	-- 1 -> only when cloning
+	e = 1,
+	u = 1,
+	c = 1,
+	up = 1,
+	pb = 1,
+	pvp = 1,
+	races = 1,
+	isDaily = 1,
+	isWeekly = 1,
+	isMonthly = 1,
+	isYearly = 1,
+	OnUpdate = 1,
+	requireSkill = 1,
+	modID = 1,
+	bonusID = 1,
+}
+-- Fields on a Thing which are specific to where the Thing is Sourced or displayed in a ATT window
+local SourceSpecificFields = {
+-- Returns the 'most obtainable' event value from the provided set of event values
+	["e"] = function(...)
+		-- print("GetMostObtainableValue:")
+		-- app.PrintTable(vals)
+		local e
+		local vals = select("#", ...)
+		for i=1,vals do
+			e = select(i, ...)
+			-- missing e value means NOT requiring an event
+			if not e then return end
+		end
+		return e
+	end,
+-- Returns the 'most obtainable' unobtainable value from the provided set of unobtainable values
+	["u"] = function(...)
+		-- app.PrintDebug("GetMostObtainableValue:",...)
+		local max, check, new = -1, nil, nil
+		local phases = L.PHASES
+		local phase, u
+		local vals = select("#", ...)
+		for i=1,vals do
+			u = select(i, ...)
+			-- missing u value means NOT unobtainable
+			if not u then return end
+			phase = phases[u]
+			if phase then
+				check = phase.state or 0
+			else
+				-- otherwise it's an invalid unobtainable filter
+				app.print("Invalid Unobtainable Filter:",u)
+				return
+			end
+			-- track the highest unobtainable value, which is the most obtainable (according to PHASES)
+			if check > max then
+				new = u
+				max = check
+			elseif u > new then
+				new = u
+			end
+		end
+		-- app.PrintDebug("new:",new)
+		return new
+	end,
+-- Returns the 'earliest' Added with Patch value from the provided set of `awp` values
+	["awp"] = function(...)
+		local min, awp
+		local vals = select("#", ...)
+		for i=1,vals do
+			awp = select(i, ...)
+			-- ignore missing awp...
+			-- track the lowest awp value, which is the furthest-future patch
+			if awp and (not min or awp < min) then
+				min = awp
+			end
+		end
+		return min
+	end,
+-- Returns the 'highest' Removed with Patch value from the provided set of `rwp` values
+	["rwp"] = function(...)
+		local max, rwp = -1,nil
+		local vals = select("#", ...)
+		for i=1,vals do
+			rwp = select(i, ...)
+			-- missing rwp value means NOT removed
+			if not rwp then return end
+			-- track the highest rwp value, which is the furthest-future patch
+			if rwp > max then
+				max = rwp
+			end
+		end
+		return max
+	end,
+-- Simple boolean
+	["pvp"] = true,
+	["pb"] = true,
+	["requireSkill"] = true,
+	-- could be more complex, but for now just prevent showing when not true for all sources
+	["minReputation"] = true,
+	["maxReputation"] = true,
+}
+-- Group Merge Handling
+local function Assign_Direct(g, k, v)
+	g[k] = v
+end
+local function Assign_Missing(g, k, v)
+	if rawget(g, k) == nil then g[k] = v end
+end
+local function Assign_sourceParent(g, k, v)
+	g.sourceParent = v
+end
+local MergeFuncByKey = setmetatable({
+	parent = Assign_sourceParent,
+
+}, { __index = function(t,key)
+	return Assign_Direct
+end})
+local MergeFuncByKeyNoReplace = setmetatable({
+	parent = Assign_sourceParent,
+
+}, { __index = function(t,key)
+	return Assign_Missing
+end})
+local MergeFuncByKeyClone = setmetatable({
+	parent = Assign_sourceParent,
+
+}, { __index = function(t,key)
+	return Assign_Direct
+end})
+-- have merge skip fields do nothing
+for k,v in pairs(MergeSkipFields) do
+	MergeFuncByKey[k] = app.EmptyFunction
+	MergeFuncByKeyNoReplace[k] = app.EmptyFunction
+	if v == true then
+		MergeFuncByKeyClone[k] = app.EmptyFunction
+	end
+end
+-- have source specific fields do nothing
+for k,v in pairs(SourceSpecificFields) do
+	MergeFuncByKey[k] = app.EmptyFunction
+	MergeFuncByKeyNoReplace[k] = app.EmptyFunction
+	MergeFuncByKeyClone[k] = app.EmptyFunction
+end
+-- Merges the properties of the t group into the g group, making sure not to alter the filterability of the group.
+-- Additionally can specify that the object is being cloned so as to skip special merge restrictions
+local function MergeProperties(g, t, noReplace, clone)
+	if not g or not t then return end
+	if g ~= t then
+		g.__merge = t.__merge or t
+	end
+	if noReplace then
+		for k,v in pairs(t) do
+			MergeFuncByKeyNoReplace[k](g,k,v)
+		end
+	elseif clone then
+		for k,v in pairs(t) do
+			MergeFuncByKeyClone[k](g,k,v)
+		end
+	else
+		for k,v in pairs(t) do
+			MergeFuncByKey[k](g,k,v)
+		end
+	end
+	-- custom special logic for fields which need to represent the commonality between all Sources of a group
+	-- loop through specific fields for custom logic
+	-- initial creation of a g object, has no key
+	if not g.key then
+		for k,_ in pairs(SourceSpecificFields) do
+			g[k] = t[k]
+		end
+	else
+		local gk, tk
+		for k,f in pairs(SourceSpecificFields) do
+			-- existing is set
+			gk = rawget(g, k)
+			-- app.PrintDebug("SSF",k,g,t,gk,rawget(t, k))
+			if gk then
+				tk = rawget(t, k)
+				-- no value on merger
+				if tk == nil then
+					-- app.PrintDebug(g.hash,"remove",k,gk,tk)
+					g[k] = nil
+				elseif f and type(f) == "function" then
+					-- two different values with a compare function
+					-- app.PrintDebug(g.hash,"compare",k,gk,tk)
+					g[k] = f(gk, tk)
+					-- app.PrintDebug(g.hash,"result",g[k])
+				end
+			end
+		end
+	end
+	-- only copy metatable to g if another hasn't been set already
+	if not getmetatable(g) then
+		local tmeta = getmetatable(t)
+		if tmeta then
+			setmetatable(g, tmeta)
+		end
+	end
+end
+app.MergeProperties = MergeProperties
+
+-- The base logic for turning a Table of data into an 'object' that provides dynamic information concerning the type of object which was identified
+-- based on the priority of possible key values
+-- TODO: this priority-based object creation will move to Classes/base.lua -- CloneClassInstance does not suffice in its current state
+local function CreateObject(t, rootOnly)
+	-- app.PrintDebug("CO",t);
+	-- Commented this part out because there aren't enough class definitions exposed to the logic yet
+	-- Retail class design is still wildin' and doesn't use the CreateClass functionality
+	--local object = app.CloneClassInstance(t, rootOnly);
+	--if object and getmetatable(object) then return object; end
+	if not t then return {}; end
+	-- already an object, so need to create a new instance of the same data
+	if t.key then
+		local result = {};
+		-- app.PrintDebug("CO.key",t.key,t[t.key],"=>",result);
+		MergeProperties(result, t, nil, true);
+		-- include the raw g since it will be replaced at the end with new objects
+		result.g = t.g;
+		t = result;
+		-- if not getmetatable(t) then
+		-- 	app.PrintDebug(Colorize("Bad CreateObject (key without metatable) used:",app.Colors.ChatLinkError))
+		-- 	app.PrintTable(t)
+		-- end
+		-- app.PrintDebug("Merge done",result.key,result[result.key], t, result);
+	-- is it an array of raw datas which needs to be turned into an array of usable objects
+	elseif t[1] then
+		local result = {};
+		-- array
+		-- app.PrintDebug("CO.[]","=>",result);
+		for i=1,#t do
+			result[i] = CreateObject(t[i], rootOnly);
+		end
+		return result;
+	-- use the highest-priority piece of data which exists in the table to turn it into an object
+	else
+		t = app.CreateClassInstance(nil, nil, t)
+	end
+
+	-- allows for copying an object without all of the sub-groups
+	if rootOnly then
+		t.g = nil;
+	else
+		-- app.PrintDebug("CreateObject key/value",t.key,t[t.key]);
+		-- if g, then replace each object in all sub groups with an object version of the table
+		local g = t.g;
+		if g then
+			local gNew = {};
+			for i=1,#g do
+				gNew[i] = CreateObject(g[i])
+			end
+			t.g = gNew;
+		end
+	end
+
+	return t;
+end
+app.__CreateObject = CreateObject;
+
+local function GetHash(t)
+	local hash = app.CreateHash(t);
+	app.PrintDebug(Colorize("No base .hash for t:",app.Colors.ChatLinkError),hash,t.text,t.__type);
+	app.PrintTable(t)
+	return hash;
+end
+local NestObjects
+-- Merges an Object into an existing set of Objects so as to not duplicate any incoming Objects
+local function MergeObject(g, t, index, newCreate)
+	if g and t then
+		local hash = t.hash or GetHash(t);
+		local o
+		for i=1,#g do
+			o = g[i]
+			if (o.hash or GetHash(o)) == hash then
+				MergeProperties(o, t, true);
+				NestObjects(o, t.g, newCreate);
+				return
+			end
+		end
+		if newCreate then t = CreateObject(t); end
+		if index then
+			tinsert(g, index, t);
+		else
+			g[#g + 1] = t
+		end
+	end
+end
+-- Nests an Object under another Object, only creating the 'g' group if necessary
+-- ex. NestObject(parent, new, newCreate, index)
+local function NestObject(p, t, newCreate, index)
+	if not p or not t then return end
+	local g = p.g;
+	if g then
+		MergeObject(g, t, index, newCreate);
+	elseif newCreate then
+		p.g = { CreateObject(t) };
+	else
+		p.g = { t };
+	end
+end
+-- Merges multiple Objects into an existing set of Objects so as to not duplicate any incoming Objects
+-- ex. MergeObjects(group, group2, newCreate)
+local function MergeObjects(g, g2, newCreate)
+	if not g or not g2 then return end
+	if #g2 > 25 then
+		local t, hash, hashObj
+		local hashTable = {}
+		local o
+		for i=1,#g do
+			o = g[i]
+			local hash = o.hash or GetHash(o);
+			if hash then
+				-- are we merging the same object multiple times from one group?
+				hashObj = hashTable[hash]
+				if hashObj then
+					-- don't replace existing properties
+					MergeProperties(hashObj, o, true);
+				else
+					hashTable[hash] = o;
+				end
+			end
+		end
+		if newCreate then
+			for i=1,#g2 do
+				o = g2[i]
+				hash = o.hash or GetHash(o);
+				-- print("_",hash);
+				if hash then
+					t = hashTable[hash];
+					if t then
+						MergeProperties(t, o, true);
+						NestObjects(t, o.g, newCreate);
+					else
+						t = CreateObject(o);
+						hashTable[hash] = t;
+						g[#g + 1] = t
+					end
+				else
+					g[#g + 1] = CreateObject(o)
+				end
+			end
+		else
+			for i=1,#g2 do
+				o = g2[i]
+				hash = o.hash or GetHash(o);
+				-- print("_",hash);
+				if hash then
+					t = hashTable[hash];
+					if t then
+						MergeProperties(t, o, true);
+						NestObjects(t, o.g);
+					else
+						hashTable[hash] = o;
+						g[#g + 1] = o
+					end
+				else
+					g[#g + 1] = CreateObject(o)
+				end
+			end
+		end
+	else
+		for i=1,#g2 do
+			MergeObject(g, g2[i], nil, newCreate)
+		end
+	end
+end
+-- Nests multiple Objects under another Object, only creating the 'g' group if necessary
+-- ex. NestObjects(parent, groups, newCreate)
+NestObjects = function(p, g, newCreate)
+	if not g then return; end
+	local pg = p.g;
+	if pg then
+		MergeObjects(pg, g, newCreate);
+	elseif #g > 0 then
+		p.g = {};
+		MergeObjects(p.g, g, newCreate);
+	end
+end
+-- Nests multiple Objects under another Object using an optional set of functions to determine priority on the adding of objects, only creating the 'g' group if necessary
+-- ex. PriorityNestObjects(parent, groups, newCreate, function1, function2, ...)
+local function PriorityNestObjects(p, g, newCreate, ...)
+	if not g or #g == 0 then return; end
+	local pFuncs = {...};
+	if pFuncs[1] then
+		-- app.PrintDebug("PriorityNestObjects",#pFuncs,"Priorities",#g,"Objects")
+		-- setup containers for the priority buckets
+		local pBuckets, pBucket, skipped = {}, nil, nil;
+		for i=1,#pFuncs do
+			pBuckets[i] = {}
+		end
+		-- check each object
+		local o
+		for i=1,#g do
+			o = g[i]
+			-- check each priority function
+			for i=1,#pFuncs do
+				-- if the function matches, put the object in the bucket
+				if pFuncs[i](o) then
+					-- app.PrintDebug("Matched Priority Function",i,o.hash)
+					pBucket = pBuckets[i];
+					pBucket[#pBucket + 1] = o
+					break;
+				end
+			end
+			-- no bucket was found, put in skipped
+			if not pBucket then
+				-- app.PrintDebug("No Priority",o.hash)
+				if skipped then skipped[#skipped + 1] = o
+				else skipped = { o }; end
+			end
+			-- reset bucket
+			pBucket = nil;
+		end
+		-- then nest each bucket in order of priority
+		for i=1,#pBuckets do
+			-- app.PrintDebug("Nesting Priority Bucket",i,#pBucket)
+			NestObjects(p, pBuckets[i], newCreate);
+			-- app.PrintDebug(".g",p.g and #p.g)
+		end
+		-- and nest anything skipped
+		-- app.PrintDebug("Nesting Skipped",skipped and #skipped)
+		NestObjects(p, skipped, newCreate);
+		-- app.PrintDebug(".g",p.g and #p.g)
+	else
+		NestObjects(p, g, newCreate);
+	end
+	-- app.PrintDebug("PNO-Done",#pFuncs,"Priorities",#g,"Objects",p.g and #p.g)
+end
+-- Merges multiple sources of an object into a single object. Can specify to clean out all sub-groups of the result
+app.MergedObject = function(group, rootOnly)
+	if not group or not group[1] then return group; end
+	local merged = CreateObject(group[1], rootOnly);
+	for i=2,#group do
+		MergeProperties(merged, group[i]);
+	end
+	-- for a merged object, clean any other references it might still have
+	merged.sourceParent = nil;
+	merged.parent = nil;
+	if rootOnly then
+		merged.g = nil;
+	end
+	return merged;
+end
+app.MergeObject = MergeObject
+app.MergeObjects = MergeObjects
+app.NestObject = NestObject
+app.NestObjects = NestObjects
+app.PriorityNestObjects = PriorityNestObjects

@@ -1,8 +1,8 @@
 
-local appName, app = ...;
+local _, app = ...;
 
-local rawget, ipairs, pairs, rawset, setmetatable, print, type, pcall, tinsert
-	= rawget, ipairs, pairs, rawset, setmetatable, print, type, pcall, tinsert
+local rawget, pairs, rawset, setmetatable, print, type, pcall, tinsert
+	= rawget, pairs, rawset, setmetatable, print, type, pcall, tinsert
 
 -- Declare Custom Event Handlers
 local EventHandlers = setmetatable({
@@ -10,6 +10,10 @@ local EventHandlers = setmetatable({
 	OnRecalculate = {},
 	OnRefreshCollections = {},
 }, app.MetaTable.AutoTable)
+-- Performance Tracking for Caching
+if app.__perf then
+	app.__perf.AutoCaptureTable(EventHandlers, "Events.EventHandlers");
+end
 app.AddEventHandler = function(eventName, handler, forceStart)
 	if type(handler) ~= "function" then
 		app.print("AddEventHandler was provided a non-function",handler)
@@ -22,6 +26,9 @@ app.AddEventHandler = function(eventName, handler, forceStart)
 		handlers[#handlers + 1] = handler;
 	end
 	-- app.PrintDebug("Added Handler",handler,"@",#handlers,"in Event",eventName)
+end
+app.RemoveAllEventHandlers = function(eventName)
+	wipe(EventHandlers[eventName]);
 end
 app.RemoveEventHandler = function(handler)
 	if type(handler) ~= "function" then
@@ -62,9 +69,17 @@ app.AddEventRegistration = function(event, func, doNotPreRegister)
 		app.events[event] = func
 	else
 		-- app.PrintDebug("Event Func Registered",event,func)
+		if OnReadyEventRegistrations[event] then
+			app.PrintDebug(app.Modules.Color.Colorize("Replaced Event Registration!",app.Colors.Horde),event)
+		end
 		OnReadyEventRegistrations[event] = func
 	end
 end
+-- Allows adding an EventRegistry callback handler for Custom Events which are not considered part of the global event system
+app.AddEventRegistryCallback = EventRegistry and function(event, func)
+	EventRegistry:RegisterCallback(event, func)
+end
+or function(event) app.print("EventRegistry not available, cannot add callback for",event) end
 app.AddEventHandler("OnReady", function()
 	local Register = app.RegisterFuncEvent
 	for event,func in pairs(OnReadyEventRegistrations) do
@@ -84,10 +99,9 @@ end)
 
 -- Represents Events whose individual handlers should be processed over multiple frames to reduce potential stutter
 local RunnerEvents = {
-	OnRefreshCollections = app.IsRetail,
-	OnRecalculate = app.IsRetail,
-	OnUpdateWindows = app.IsRetail,
-	-- OnRefreshWindows = true,
+	OnRefreshCollections = true,
+	OnRecalculate = true,
+	OnUpdateWindows = true,
 }
 -- Represents Events which must always be run synchronously in the same frame as when they are triggered. These should be user-based triggers
 -- typically where their execution must be handled ASAP, even if other Events are running through the Runner
@@ -95,7 +109,42 @@ local ImmediateEvents = {
 	RowOnEnter = true,
 	RowOnLeave = true,
 	RowOnClick = true,
+	OnWindowCreated = true,
+	OnWindowUpdated = true,
+	OnWindowRefreshed = true,
+	OnWindowFillComplete = true,
+	OnLoad = true,
+	OnStartup = true,
+	OnStartupDone = true,
+	OnInit = true,
+	OnReady = true,
+	OnRefreshSettings = true,
+	OnNewPopoutGroup = true,
+	OnBuildDataCache = true,
+	OnBuildHiddenDataCache = true,
+	OnDataCached = true,
+	OnHiddenDataCached = true,
+	["OnAddExtraMainCategories"] = true,
+	["Fill.OnAddFiller"] = true,
+	["Fill.DefinedSettings"] = true,
+	["Settings.OnApplyProfile"] = true,
+	["Settings.OnSet"] = true,
+	["OnSavedVariablesAvailable"] = true,
+	["OnAfterSavedVariablesAvailable"] = true,
 }
+
+-- Allows non-hardcoded assignment of Events which should ignore Runners and simply process immediately when fired
+-- This is helpful when an Event has an Event Sequence defined but also may occur during a Runner, which would lead to the
+-- Event Sequence processing multiple times in succession, whereas when running immediately we assign the Event Sequence
+-- to fire as CallbackEvents instead of being queued on the Runner
+app.DesignateImmediateEvent = function(event)
+	if not event then
+		app.print("DesignateImmediateEvent needs an event",event)
+		return
+	end
+
+	ImmediateEvents[event] = true
+end
 -- Represents Events which should always fire upon completion of a prior Event. These cannot be passed arguments currently
 local EventSequence = {
 	OnLoad = {
@@ -104,8 +153,20 @@ local EventSequence = {
 	OnStartup = {
 		"OnStartupDone"
 	},
+	OnStartupDone = {
+		"OnInit"
+	},
+	OnInit = {
+		"OnReady"
+	},
 	OnRefreshSettings = {
 		"OnSettingsRefreshed"
+	},
+	OnRefreshCollections = {
+		"OnBeforeRecalculate",
+	},
+	OnBeforeRecalculate = {
+		"OnRecalculate",
 	},
 	OnRecalculate = {
 		"OnRecalculateDone",
@@ -113,68 +174,134 @@ local EventSequence = {
 	OnRecalculateDone = {
 		"OnRefreshComplete",
 	},
-	OnRenderDirty = {
-		"OnRefreshWindows"
+	OnRefreshComplete = {
+		"OnRefreshCollectionsDone",
 	},
 	OnSavesUpdated = {
+		"OnRedrawWindows"
+	},
+	OnSettingsRefreshed = {
 		"OnRefreshWindows"
 	},
 	OnCurrentMapIDChanged = {
 		"OnRefreshWindows"
 	},
 }
--- Classic has some convoluted refresh sequence handling with coroutines and manual calls to events and data refreshes, so
--- I don't wanna mess with all that. We just won't link the OnRecalculate to the OnRefreshCollections for Classic --Runaway
-if app.IsRetail then
-	EventSequence.OnRefreshCollections = {
-		"OnBeforeRecalculate",
-		"OnRecalculate",
-		"OnRefreshCollectionsDone",
-	}
-else
-	EventSequence.OnRefreshCollections = {
-		"OnRefreshCollectionsDone",
-	}
+-- Allows adding an EventSequence entry, preventing any duplication
+app.LinkEventSequence = function(event, followupEvent)
+	if not (event and followupEvent) then
+		app.print("LinkEventSequence needs both event and followupEvent",event,followupEvent)
+		return
+	end
+
+	local triggerEventSequence = EventSequence[event]
+	if not triggerEventSequence then
+		triggerEventSequence = {}
+		EventSequence[event] = triggerEventSequence
+	end
+
+	for i=1,#triggerEventSequence do
+		if triggerEventSequence[i] == followupEvent then
+			app.print("LinkEventSequence duplicate followupEvent defined",event,followupEvent)
+			return
+		end
+	end
+
+	triggerEventSequence[#triggerEventSequence + 1] = followupEvent
 end
 
 local Runner = app.CreateRunner("events")
--- Runner.SetPerFrameDefault(5)
+local Run = Runner.Run
+local IsRunning = Runner.IsRunning
+-- Runner.ToggleDebugFrameTime()
 local Callback = app.CallbackHandlers.Callback
-local IgnoredDebugEvents = {
+local IgnoredDebugEvents = setmetatable({
 	RowOnEnter = true,
 	RowOnLeave = true,
 	RowOnClick = true,
-}
+	OnWindowUpdated = true,
+	OnWindowRefreshed = true,
+	-- OnSearchResultUpdate = true,
+}, { __index = function()
+	return true
+end})
 local function DebugEventTriggered(eventName,...)
 	if IgnoredDebugEvents[eventName] then return end
 	app.PrintDebug(app.Modules.Color.Colorize(eventName,app.Colors.Renown),...)
 end
 local function DebugEventStart(eventName,...)
 	if IgnoredDebugEvents[eventName] then return end
-	app.PrintDebug(app.Modules.Color.Colorize(eventName,Runner.IsRunning() and app.Colors.Time or app.Colors.AddedWithPatch),...)
+	app.PrintDebug(app.Modules.Color.Colorize(eventName,app.Colors.AddedWithPatch),...)
 end
 local function DebugEventDone(eventName,...)
 	if IgnoredDebugEvents[eventName] then return end
-	app.PrintDebug(app.Modules.Color.Colorize(eventName,Runner.IsRunning() and app.Colors.Horde or app.Colors.RemovedWithPatch),...)
+	app.PrintDebugPrior(app.Modules.Color.Colorize(eventName,app.Colors.RemovedWithPatch),...)
 end
+local function DebugRunnerEventStart(eventName,...)
+	if IgnoredDebugEvents[eventName] then return end
+	app.PrintDebug(app.Modules.Color.Colorize(eventName,app.Colors.Time),...)
+end
+local function DebugRunnerEventDone(eventName,...)
+	if IgnoredDebugEvents[eventName] then return end
+	app.PrintDebug(app.Modules.Color.Colorize(eventName,app.Colors.Horde),...)
+end
+local function DebugNextSequenceEvent(eventName,...)
+	if IgnoredDebugEvents[eventName] then return end
+	app.PrintDebug(app.Modules.Color.Colorize(eventName,app.Colors.Mount),...)
+end
+local function DebugQueueSequencedEvents(eventName,...)
+	if IgnoredDebugEvents[eventName] then return end
+	app.PrintDebug(app.Modules.Color.Colorize(eventName,app.Colors.Alliance),...)
+end
+local function DebugQueuedSequenceEvent(eventName,...)
+	if IgnoredDebugEvents[eventName] then return end
+	app.PrintDebug(app.Modules.Color.Colorize(eventName,app.Colors.Default),...)
+end
+local function DebugStartRunnerEvent(eventName,...)
+	if IgnoredDebugEvents[eventName] then return end
+	app.PrintDebug(app.Modules.Color.Colorize(eventName,app.Colors.LockedWarning),...)
+end
+local function DebugStartRunnerFunc(eventName,...)
+	if IgnoredDebugEvents[eventName] then return end
+	app.PrintDebug(app.Modules.Color.Colorize(eventName,app.Colors.Time),...)
+end
+local function DebugEndRunnerFunc(eventName,...)
+	if IgnoredDebugEvents[eventName] then return end
+	app.PrintDebugPrior(app.Modules.Color.Colorize(eventName,app.Colors.TimeUnder2Hr),...)
+end
+local function DebugCallbackEvent(eventName)
+	if IgnoredDebugEvents[eventName] then return end
+	app.PrintDebug(app.Modules.Color.Colorize(eventName,app.Colors.Insane))
+end
+
+-- Event Handling Logic
+
+local CallbackEvent
 local SequenceEventsStack = {}
 local function OnEndSequenceEvents()
 	local sequenceEventCount = #SequenceEventsStack
 	if sequenceEventCount > 0 then
-		-- app.PrintDebug(app.Modules.Color.Colorize(SequenceEventsStack[sequenceEventCount],app.Colors.Mount))
+		-- DebugNextSequenceEvent(SequenceEventsStack[sequenceEventCount],sequenceEventCount)
 		-- callback the top event in the SequenceEventsStack (Runner is reset after OnEnd in the same frame)
-		app.CallbackEvent(SequenceEventsStack[sequenceEventCount])
+		local nextSequenceEvent = SequenceEventsStack[sequenceEventCount]
 		SequenceEventsStack[sequenceEventCount] = nil
+		CallbackEvent(nextSequenceEvent)
+		if ImmediateEvents[nextSequenceEvent] then
+			-- if the next sequence event is immediate, then make sure to continue the sequence events next frame
+			Callback(OnEndSequenceEvents)
+		end
 	end
 end
+-- Whenever the Event Runner is Reset, make sure to queue up any Sequence Events that need to be processed
+Runner.DefaultOnReset(OnEndSequenceEvents)
 local function QueueSequenceEvents(eventName)
 	local sequenceEvents = EventSequence[eventName]
 	if sequenceEvents then
-		-- app.PrintDebug(app.Modules.Color.Colorize(eventName,app.Colors.Alliance))
-		if #SequenceEventsStack > 0 or Runner.IsRunning() then
+		-- DebugQueueSequencedEvents(eventName,#SequenceEventsStack,"+",#sequenceEvents)
+		if not ImmediateEvents[eventName] and (#SequenceEventsStack > 0 or IsRunning()) then
 			-- add sequence events to the SequenceEventsStack if there's a Runner running
 			for i=#sequenceEvents,1,-1 do
-				-- app.PrintDebug(app.Modules.Color.Colorize(sequenceEvents[i],app.Colors.Default))
+				-- DebugQueuedSequenceEvent(sequenceEvents[i],i)
 				SequenceEventsStack[#SequenceEventsStack + 1] = sequenceEvents[i]
 			end
 		else
@@ -182,51 +309,57 @@ local function QueueSequenceEvents(eventName)
 			-- NOTE: Multiple Callbacks in the same frame are not guaranteed to process in the same order in which they
 			-- were registered. This might just be a nuance of how C_Timer.After() handles the set of functions registered
 			-- for the same delay...
-			for _,event in ipairs(sequenceEvents) do
-				app.CallbackEvent(event)
+			for i=1,#sequenceEvents do
+				CallbackEvent(sequenceEvents[i])
 			end
 		end
 	end
-	if #SequenceEventsStack > 0 then
-		Runner.OnEnd(OnEndSequenceEvents)
-	end
 end
 
-app.HandleEvent = function(eventName, ...)
+-- Performs the logic needed to integrate the Handlers of a given Event into the current Event flow such that they
+-- are processed in the proper sequence and timing in conjunction with other events
+local function HandleEvent(eventName, ...)
 	-- getting to the point where there's noticeable stutter again during refresh due to the amount of handlers added
 	-- to the refresh event. would rather spread that out over multiple frames so it remains unnoticeable
 	-- additionally, since some events can process on a Runner, then following Events need to also be pushed onto
 	-- the Event Runner so that they execute in the expected sequence
-	if not ImmediateEvents[eventName] and (#SequenceEventsStack > 0 or RunnerEvents[eventName] or Runner.IsRunning()) then
-		-- app.PrintDebug(app.Modules.Color.Colorize(eventName,app.Colors.LockedWarning),...)
-		-- Runner.Run(DebugEventStart, eventName, ...)
-		for i,handler in ipairs(EventHandlers[eventName]) do
-			-- Runner.Run(app.PrintDebug,app.Modules.Color.Colorize(eventName,app.Colors.Time),"Handler #",i)
-			Runner.Run(handler, ...)
-			-- Runner.Run(app.PrintDebugPrior,app.Modules.Color.Colorize(eventName,app.Colors.Horde),"Handler Done")
+	local handlers = EventHandlers[eventName]
+	if not ImmediateEvents[eventName] and (#SequenceEventsStack > 0 or RunnerEvents[eventName] or IsRunning()) then
+		-- DebugStartRunnerEvent(eventName,...)
+		-- Run(DebugRunnerEventStart, eventName, ...)
+		for i=1,#handlers do
+			-- Debug ONLY
+			-- Run(function(...)DebugStartRunnerFunc("Handler #",i) handlers[i](...) DebugEndRunnerFunc("Handler Done") end, ...)
+			-- Live
+			Run(handlers[i], ...)
+			-- Run(DebugEndRunnerFunc,"Handler Done")
 		end
-		-- Runner.Run(DebugEventDone, eventName)
+		-- Run(DebugRunnerEventDone, eventName)
 	else
 		-- DebugEventTriggered(eventName, ...)
 		-- DebugEventStart(eventName, ...)
-		for i,handler in ipairs(EventHandlers[eventName]) do
-			handler(...);
+		for i=1,#handlers do
+			-- DebugStartRunnerFunc("Handler #",i)
+			handlers[i](...)
+			-- DebugEndRunnerFunc("Handler Done")
 		end
 		-- DebugEventDone(eventName)
 	end
 	QueueSequenceEvents(eventName)
 end
+app.HandleEvent = HandleEvent
 -- Provides a unique function per EventName which can be used in a Callback without interfering with other Callback Events
 local CallbackEventFunctions = setmetatable({}, { __index = function(t, eventName)
 	local callback = function(eventName)
-		app.HandleEvent(eventName)
+		HandleEvent(eventName)
 	end
 	t[eventName] = callback
 	return callback
 end})
 -- Allows performing an Event on the next frame instead of immediately.
 -- Also enforces that a single handle of that Event is performed that frame, thus for clarity, parameters are NOT supported
-app.CallbackEvent = function(eventName)
-	-- app.PrintDebug(app.Modules.Color.Colorize(eventName,app.Colors.Insane))
+CallbackEvent = function(eventName)
+	-- DebugCallbackEvent(eventName)
 	Callback(CallbackEventFunctions[eventName], eventName)
 end
+app.CallbackEvent = CallbackEvent

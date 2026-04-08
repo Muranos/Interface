@@ -1,8 +1,9 @@
-## Interface: 110002
+## Interface: 110207,120000
 ## Title: Global Ignore List
 ## Notes: Maintain ignore list across all characters, filter chat spam and more
 ## Author: IceyPop
-## Version: 11.0.2.5
+## Version: 12.0.0
+## Category: Chat & Communication
 ## IconTexture: Interface\Icons\ui_chat
 ## SavedVariables: GlobalIgnoreDB
 ## SavedVariablesPerCharacter: GlobalIgnoreImported

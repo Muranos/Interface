@@ -1,19 +1,20 @@
+if BigWigsLoader.isRetail then return end -- XXX needs updating for 12.0
+
 --------------------------------------------------------------------------------
 -- Module Declaration
 --
 
-if BigWigsLoader.isVanilla then return end
+if BigWigsLoader.isVanilla or BigWigsLoader.isTBC or BigWigsLoader.isWrath then return end -- Cataclysm+
 
-local plugin = BigWigs:NewPlugin("AltPower")
+local plugin, L = BigWigs:NewPlugin("AltPower")
 if not plugin then return end
 
 --------------------------------------------------------------------------------
 -- Locals
 --
 
-local L = BigWigsAPI:GetLocale("BigWigs")
-local media = LibStub("LibSharedMedia-3.0")
-local FONT = media.MediaType and media.MediaType.FONT or "font"
+local LibSharedMedia = LibStub("LibSharedMedia-3.0")
+local FONT = LibSharedMedia.MediaType and LibSharedMedia.MediaType.FONT or "font"
 plugin.displayName = L.altPowerTitle
 
 local powerList, powerMaxList, sortedUnitList, roleColoredList = nil, nil, nil, nil
@@ -67,7 +68,7 @@ function plugin:RestyleWindow()
 		display:SetMovable(true)
 	end
 
-	local font = media:Fetch(FONT, db.fontName)
+	local font = LibSharedMedia:Fetch(FONT, db.fontName)
 	local flags = nil
 	if db.monochrome and db.outline ~= "NONE" then
 		flags = "MONOCHROME," .. db.outline
@@ -116,53 +117,90 @@ do
 	}
 end
 
-local function updateProfile()
-	db = plugin.db.profile
-
-	for k, v in next, db do
-		local defaultType = type(plugin.defaultDB[k])
-		if defaultType == "nil" then
-			db[k] = nil
-		elseif type(v) ~= defaultType then
-			db[k] = plugin.defaultDB[k]
+local updateProfile
+do
+	local function ValidateColor(current, default, alphaLimit)
+		for i = 1, 3 do
+			local n = current[i]
+			if type(n) ~= "number" or n < 0 or n > 1 then
+				current[1] = default[1] -- If 1 entry is bad, reset the whole table
+				current[2] = default[2]
+				current[3] = default[3]
+				current[4] = default[4]
+				return
+			end
+		end
+		if alphaLimit then
+			if type(current[4]) ~= "number" or current[4] < alphaLimit or current[4] > 1 then
+				current[4] = default[4]
+			end
+		elseif current[4] then
+			current[4] = nil
 		end
 	end
 
-	if db.fontSize < 10 or db.fontSize > 200 then
-		db.fontSize = plugin.defaultDB.fontSize
-	end
-	if db.outline ~= "NONE" and db.outline ~= "OUTLINE" and db.outline ~= "THICKOUTLINE" then
-		db.outline = plugin.defaultDB.outline
-	end
-	if db.additionalWidth < 0 or db.additionalWidth > 100 then
-		db.additionalWidth = plugin.defaultDB.additionalWidth
-	end
-	if db.additionalHeight < 0 or db.additionalHeight > 100 then
-		db.additionalHeight = plugin.defaultDB.additionalHeight
-	end
-	for i = 1, 3 do
-		local n = db.barTextColor[i]
-		if type(n) ~= "number" or n < 0 or n > 1 then
-			db.barTextColor = plugin.defaultDB.barTextColor
-			break -- If 1 entry is bad, reset the whole table
-		end
-	end
-	for i = 1, 4 do
-		local n = db.barColor[i]
-		if type(n) ~= "number" or n < 0 or n > 1 then
-			db.barColor = plugin.defaultDB.barColor
-			break -- If 1 entry is bad, reset the whole table
-		end
-	end
-	for i = 1, 4 do
-		local n = db.backgroundColor[i]
-		if type(n) ~= "number" or n < 0 or n > 1 then
-			db.backgroundColor = plugin.defaultDB.backgroundColor
-			break -- If 1 entry is bad, reset the whole table
-		end
-	end
+	function updateProfile()
+		db = plugin.db.profile
 
-	plugin:RestyleWindow()
+		for k, v in next, db do
+			local defaultType = type(plugin.defaultDB[k])
+			if defaultType == "nil" then
+				db[k] = nil
+			elseif type(v) ~= defaultType then
+				db[k] = plugin.defaultDB[k]
+			end
+		end
+
+		if type(plugin.db.profile.position[1]) ~= "string" or type(plugin.db.profile.position[2]) ~= "string"
+		or type(plugin.db.profile.position[3]) ~= "number" or type(plugin.db.profile.position[4]) ~= "number"
+		or not BigWigsAPI.IsValidFramePoint(plugin.db.profile.position[1]) or not BigWigsAPI.IsValidFramePoint(plugin.db.profile.position[2]) then
+			plugin.db.profile.position[1] = plugin.defaultDB.position[1]
+			plugin.db.profile.position[2] = plugin.defaultDB.position[2]
+			plugin.db.profile.position[3] = plugin.defaultDB.position[3]
+			plugin.db.profile.position[4] = plugin.defaultDB.position[4]
+			plugin.db.profile.position[5] = plugin.defaultDB.position[5]
+		else
+			local x = math.floor(plugin.db.profile.position[3]+0.5)
+			if x ~= plugin.db.profile.position[3] then
+				plugin.db.profile.position[3] = x
+			end
+			local y = math.floor(plugin.db.profile.position[4]+0.5)
+			if y ~= plugin.db.profile.position[4] then
+				plugin.db.profile.position[4] = y
+			end
+		end
+		if plugin.db.profile.position[5] ~= plugin.defaultDB.position[5] then
+			local frame = _G[plugin.db.profile.position[5]]
+			if type(frame) ~= "table" or type(frame.GetObjectType) ~= "function" or type(frame.IsForbidden) ~= "function" or frame:IsForbidden() then
+				plugin.db.profile.position[1] = plugin.defaultDB.position[1]
+				plugin.db.profile.position[2] = plugin.defaultDB.position[2]
+				plugin.db.profile.position[3] = plugin.defaultDB.position[3]
+				plugin.db.profile.position[4] = plugin.defaultDB.position[4]
+				plugin.db.profile.position[5] = plugin.defaultDB.position[5]
+			end
+		end
+
+		if not LibSharedMedia:IsValid("font", plugin.db.profile.fontName) then
+			plugin.db.profile.fontName = plugin.defaultDB.fontName
+		end
+		if db.fontSize < 10 or db.fontSize > 200 then
+			db.fontSize = plugin.defaultDB.fontSize
+		end
+		if db.outline ~= "NONE" and db.outline ~= "OUTLINE" and db.outline ~= "THICKOUTLINE" then
+			db.outline = plugin.defaultDB.outline
+		end
+		if db.additionalWidth < 0 or db.additionalWidth > 100 then
+			db.additionalWidth = plugin.defaultDB.additionalWidth
+		end
+		if db.additionalHeight < 0 or db.additionalHeight > 100 then
+			db.additionalHeight = plugin.defaultDB.additionalHeight
+		end
+		ValidateColor(db.barTextColor, plugin.defaultDB.barTextColor)
+		ValidateColor(db.barColor, plugin.defaultDB.barColor, 0)
+		ValidateColor(db.backgroundColor, plugin.defaultDB.backgroundColor, 0)
+
+		plugin:RestyleWindow()
+	end
 end
 
 -------------------------------------------------------------------------------
@@ -175,7 +213,7 @@ do
 		name = "|TInterface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\AltPower:20|t ".. L.altPowerTitle,
 		type = "group",
 		childGroups = "tab",
-		order = 14,
+		order = 17,
 		get = function(info)
 			return db[info[#info]]
 		end,
@@ -199,10 +237,20 @@ do
 					},
 					test = {
 						type = "execute",
-						name = L.test,
+						name = function()
+							if inTestMode then
+								return L.stopTest
+							else
+								return L.startTest
+							end
+						end,
 						desc = L.altPowerTestDesc,
 						func = function()
-							plugin:Test()
+							if inTestMode then
+								plugin:Close()
+							else
+								plugin:Test()
+							end
 						end,
 						width = 1.5,
 						order = 2,
@@ -223,10 +271,10 @@ do
 					barColor = {
 						type = "color",
 						name = L.barColor,
-						get = function(info)
+						get = function()
 							return db.barColor[1], db.barColor[2], db.barColor[3], db.barColor[4]
 						end,
-						set = function(info, r, g, b, a)
+						set = function(_, r, g, b, a)
 							db.barColor = {r, g, b, a}
 							plugin:RestyleWindow()
 						end,
@@ -238,10 +286,10 @@ do
 					barTextColor = {
 						type = "color",
 						name = L.barTextColor,
-						get = function(info)
+						get = function()
 							return db.barTextColor[1], db.barTextColor[2], db.barTextColor[3]
 						end,
-						set = function(info, r, g, b)
+						set = function(_, r, g, b)
 							db.barTextColor = {r, g, b}
 							plugin:RestyleWindow()
 						end,
@@ -257,10 +305,10 @@ do
 					backgroundColor = {
 						type = "color",
 						name = L.background,
-						get = function(info)
+						get = function()
 							return db.backgroundColor[1], db.backgroundColor[2], db.backgroundColor[3], db.backgroundColor[4]
 						end,
-						set = function(info, r, g, b, a)
+						set = function(_, r, g, b, a)
 							db.backgroundColor = {r, g, b, a}
 							plugin:RestyleWindow()
 						end,
@@ -272,15 +320,15 @@ do
 						type = "select",
 						name = L.font,
 						order = 9,
-						values = media:List(FONT),
+						values = LibSharedMedia:List(FONT),
 						itemControl = "DDI-Font",
 						get = function()
-							for i, v in next, media:List(FONT) do
+							for i, v in next, LibSharedMedia:List(FONT) do
 								if v == db.fontName then return i end
 							end
 						end,
 						set = function(_, value)
-							db.fontName = media:List(FONT)[value]
+							db.fontName = LibSharedMedia:List(FONT)[value]
 							plugin:RestyleWindow()
 						end,
 						width = 2,
@@ -505,7 +553,10 @@ do
 		display:SetScript("OnDragStop", function(self)
 			self:StopMovingOrSizing()
 			local point, _, relPoint, x, y = self:GetPoint()
-			db.position = {point, relPoint, x, y}
+			db.position[1] = point
+			db.position[2] = relPoint
+			db.position[3] = x
+			db.position[4] = y
 			plugin:UpdateGUI() -- Update X/Y if GUI is open.
 		end)
 		display:Hide()
@@ -557,7 +608,10 @@ do
 		barDrag:SetScript("OnDragStop", function()
 			display:StopMovingOrSizing()
 			local point, _, relPoint, x, y = display:GetPoint()
-			db.position = {point, relPoint, x, y}
+			db.position[1] = point
+			db.position[2] = relPoint
+			db.position[3] = x
+			db.position[4] = y
 			plugin:UpdateGUI() -- Update X/Y if GUI is open.
 		end)
 		barDrag:SetPoint("TOPLEFT", expand, "TOPRIGHT", 4, 0)
@@ -599,7 +653,7 @@ do
 
 	-- This module is rarely used, and opened once during an encounter where it is.
 	-- We will prefer on-demand variables over permanent ones.
-	function plugin:BigWigs_ShowAltPower(event, module, title, sorting, sync)
+	function plugin:BigWigs_ShowAltPower(_, module, title, sorting, sync)
 		if db.disabled then return end
 
 		self:RestyleWindow()
@@ -637,8 +691,8 @@ do
 
 		local colorTbl = CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS
 		local sortedUnitListTest, powerListTest = {}, {}
-		local amount = db.expanded and 26 or 10
-		for i = 1, amount do
+		local count = db.expanded and 26 or 10
+		for i = 1, count do
 			sortedUnitListTest[i] = i
 			powerListTest[i] = math.random(1, 99)
 		end
@@ -650,7 +704,7 @@ do
 				return px > py
 			end
 		end)
-		for i = 1, amount do
+		for i = 1, count do
 			local unitNumber = sortedUnitListTest[i]
 			local tableSize = #classList
 			local tableEntry = unitNumber % tableSize
@@ -774,7 +828,7 @@ do
 		local newPowerMax = UnitPowerMax("player", 10) -- Enum.PowerType.Alternate = 10
 		if newPower ~= power then
 			power = newPower
-			plugin:Sync("AltPower", newPower)
+			plugin:Sync("AltPower", newPower, true)
 		end
 		if newPowerMax ~= powerMax then
 			powerMax = newPowerMax

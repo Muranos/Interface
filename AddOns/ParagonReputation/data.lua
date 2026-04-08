@@ -1,5 +1,5 @@
 		-------------------------------------------------
-		-- Paragon Reputation 1.62 by Fail US-Ragnaros --
+		-- Paragon Reputation 1.75 by Fail US-Ragnaros --
 		-------------------------------------------------
 
 		  --[[	  Special thanks to Ammako for
@@ -543,6 +543,10 @@ PR.PARAGON_DATA = {
 			factionID = 2590,
 			cache = 225239,
 		}, 
+		[89515] = { -- Flame's Radiance
+			factionID = 2688,
+			cache = 239489,
+		},
 		[79218] = { -- Hallowfall Arathi
 			factionID = 2570,
 			cache = 225246,
@@ -550,6 +554,10 @@ PR.PARAGON_DATA = {
 		[79220] = { -- The Assembly of the Deep
 			factionID = 2594,
 			cache = 225245,
+		},
+		[85109] = { -- The K'aresh Trust
+			factionID = 2658,
+			cache = 230032,
 		},
 		[85805] = { -- The Cartels of Undermine
 			factionID = 2653,
@@ -630,4 +638,37 @@ PR.PARAGON_DATA = {
 				factionID = 2601,
 				cache = 226103,
 			},
+			
+	--Midnight
+		[93566] = { -- Amani Tribe
+			factionID = 2696,
+			cache = 251970,
+		}, 
+		[89035] = { -- Hara'ti
+			factionID = 2704,
+			cache = 256055,
+		}, 
+		[93811] = { -- Silvermoon Court
+			factionID = 2710,
+			cache = 263433,
+		}, 
+		[94492] = { -- Slayer's Duellum
+			factionID = 2770,
+			cache = 267299,
+			rewards = {
+				{ 
+					type = MOUNT,
+					itemID = 257176,
+					mountID = 2764,
+				},
+				{ 
+					type = PET,
+					itemID = 264892,
+				},
+			},
+		}, 
+		[89032] = { -- The Singularity
+			factionID = 2699,
+			cache = 259334,
+		}, 
 }

@@ -20,6 +20,7 @@ local print = TMW.print
 local OnGCD = TMW.OnGCD
 
 local IsAddOnLoaded = C_AddOns and C_AddOns.IsAddOnLoaded or IsAddOnLoaded
+local issecretvalue = TMW.issecretvalue
 local pairs, wipe = 
       pairs, wipe
 
@@ -164,9 +165,12 @@ CooldownSweep:RegisterAnchorableFrame("Cooldown")
 
 function CooldownSweep:OnNewInstance(icon)
 	self.cooldown = CreateFrame("Cooldown", self:GetChildNameBase() .. "Cooldown", icon, "CooldownFrameTemplate")
+	self.cooldown.tmwMainCd = true
 
 	-- cooldown2 displays charges.
 	self.cooldown2 = CreateFrame("Cooldown", self:GetChildNameBase() .. "Cooldown2", icon, "CooldownFrameTemplate")
+	self.cooldown2.tmwChargeCd = true
+	self.cooldown2:SetCountdownFont("SystemFont_Shadow_Small2_Outline")
 	self.cooldown2:SetDrawSwipe(false)
 	self.cooldown2:SetDrawBling(false)
 	self.cooldown2.SetDrawBling = TMW.NULLFUNC -- Prevent Masque from messing with this
@@ -186,7 +190,7 @@ function CooldownSweep:OnNewInstance(icon)
 	-- We have to override the function entirely to prevent Masque from
 	-- showing it when it shouldn't be shown.
 	local blingShown = self.cooldown:GetDrawBling()
-	local iconShown = icon:GetAlpha() > 0
+	local iconShown = issecretvalue(icon:GetAlpha()) or icon:GetAlpha() > 0
 	local SetDrawBling_old = self.cooldown.SetDrawBling
 	self.cooldown.SetDrawBling = function(cd, shown)
 		local shouldShowBling = self.shouldShowBling
@@ -207,7 +211,8 @@ function CooldownSweep:OnNewInstance(icon)
 		end
 	end
 	hooksecurefunc(icon, "SetAlpha", function(icon, alpha)
-		iconShown = alpha > 0 and icon:GetEffectiveAlpha() > 0
+		local groupAlpha = icon.group:GetEffectiveAlpha() or 1
+		iconShown = (issecretvalue(alpha) or alpha > 0) and (issecretvalue(groupAlpha) or groupAlpha > 0)
 		if not iconShown and blingShown then
 			self.cooldown:SetDrawBling(false)
 		elseif iconShown and not blingShown and self.shouldShowBling then
@@ -218,22 +223,38 @@ function CooldownSweep:OnNewInstance(icon)
 end
 
 local NeedsUpdate = {}
+local zeroDuration = C_DurationUtil and C_DurationUtil.CreateDuration()
+local omnicc_loaded = IsAddOnLoaded("OmniCC")
+local tullacc_loaded = IsAddOnLoaded("tullaCC")
 
+if tullaCTC then
+	tullaCTC:RegisterRule {
+		id = "tmw_main",
+		priority = 1,
+		displayName = "TellMeWhen - Cooldown",
+		match = function(cooldown) return cooldown.tmwMainCd end
+	}
+	tullaCTC:RegisterRule {
+		id = "tmw_charge",
+		priority = 2,
+		displayName = "TellMeWhen - Charges",
+		match = function(cooldown) return cooldown.tmwChargeCd end
+	}
+end
 
 function CooldownSweep:OnDisable()
 	self.start = 0
 	self.duration = 0
+	self.durObj = zeroDuration
 	self.modRate = 1
 	self.charges = 0
 	self.maxCharges = 0
 	self.chargeStart = 0
 	self.chargeDur = 0
+	self.chargeDurObj = zeroDuration
 	
 	self:UpdateCooldown()
 end
-
-local omnicc_loaded = IsAddOnLoaded("OmniCC")
-local tullacc_loaded = IsAddOnLoaded("tullaCC")
 
 function CooldownSweep:SetupForIcon(icon)
 	self.ShowTimer = icon.ShowTimer
@@ -278,8 +299,9 @@ function CooldownSweep:SetupForIcon(icon)
 		and not self.icon.FakeHidden
 	self.cooldown:SetDrawBling(self.shouldShowBling)
 
-	self.cooldown2:SetHideCountdownNumbers(hideNumbers)
+
 	self.cooldown2:SetDrawEdge(self.ShowTimer)
+	self.cooldown2:SetHideCountdownNumbers(hideNumbers)
 
 	-- https://github.com/ascott18/TellMeWhen/issues/1914:
 	-- If a meta icon switches between hidden/shown timer text
@@ -294,56 +316,106 @@ function CooldownSweep:SetupForIcon(icon)
 
 	local attributes = icon.attributes
 	
-	self:DURATION(icon, attributes.start, attributes.duration, attributes.modRate)
-	self:SPELLCHARGES(icon, attributes.charges, attributes.maxCharges, attributes.chargeStart, attributes.chargeDur)
+	self:DURATION(icon, attributes.start, attributes.duration, attributes.modRate, attributes.durObj)
+	self:SPELLCHARGES(icon, attributes.charges, attributes.maxCharges, attributes.chargeStart, attributes.chargeDur, attributes.chargeDurObj)
 	self:REVERSE(icon, attributes.reverse)
 end
 
-function CooldownSweep:UpdateCooldown()
-	local cd = self.cooldown
-	local icon = self.icon
+if TMW.clientHasSecrets then
+	function CooldownSweep:UpdateCooldown()
+		local cd = self.cooldown
+		local cd2 = self.cooldown2
 
-	local duration = self.duration
+		local mainStart, mainDuration = self.start, self.duration
+		local otherStart, otherDuration = self.chargeStart, self.chargeDur
 
-
-	local mainStart, mainDuration
-	local otherStart, otherDuration = 0, 0
-
-	if self.maxCharges ~= 0 and self.charges == 0 then
-		mainStart, mainDuration = self.chargeStart, self.chargeDur
-	else
-		mainStart, mainDuration = self.start, duration
-		if self.charges ~= self.maxCharges then
-			otherStart, otherDuration = self.chargeStart, self.chargeDur
-		end
-	end
-
-	if mainDuration > 0 then
-		if self.ShowTimer then
-			cd:SetDrawEdge(TMW.db.profile.DrawEdge)
-			cd:SetDrawSwipe(true)
+		if self.durObj then
+			cd:SetCooldownFromDurationObject(self.durObj)
 		else
-			cd:SetDrawEdge(false)
-			cd:SetDrawSwipe(false)
+			if issecretvalue(mainStart) or issecretvalue(mainDuration) or issecretvalue(self.modRate) then
+				error(("TMW %s: Unexpected secret to SetCooldown. %s, %s, %s, %s, %s"):format(TELLMEWHEN_VERSIONNUMBER, tostring(self.icon), self.icon.Type, tostring(issecretvalue(mainStart)), tostring(issecretvalue(mainDuration)), tostring(issecretvalue(self.modRate))))
+			end
+			cd:SetCooldown(mainStart, mainDuration, self.modRate)
 		end
 
-		cd:SetCooldown(mainStart, mainDuration, self.modRate)
-		cd:Show()
-	else
-		cd:SetCooldown(0, 0)
-	end
+		-- Handle charges of spells that aren't completely depleted.
+		if otherStart == nil or otherDuration == nil or not self.charges then
+			cd2:SetCooldown(0, 0)
+		else
+			-- When charges aren't charging, start will be zero but duration will be non-zero (???)
+			-- and SetCooldown ignores calls when that's the case, keeping the existing values ticking.
+			-- So, annoyingly, we have to reset the sweep on every call.
+			-- https://github.com/ascott18/TellMeWhen/issues/2340
+			cd2:SetCooldown(0, 0)
 
-	-- Handle charges of spells that aren't completely depleted.
-	local cd2 = self.cooldown2
-	if otherDuration > 0 then
-		cd2:SetCooldown(otherStart, otherDuration, self.modRate)
-		cd2:Show()
-	else
-		cd2:SetCooldown(0, 0)
+			if self.chargeDurObj then
+				cd2:SetCooldownFromDurationObject(self.chargeDurObj)
+			else
+				cd2:SetCooldown(otherStart, otherDuration, self.modRate)
+			end
+			
+			if not issecretvalue(mainStart) and mainStart == 0 then
+				-- When the main duration is forced to a non-secret zero
+				-- due to GCD ignoring, always allow charges to show if there are any.
+				-- This avoids a missing sweep if you deplete charges of an ability 
+				-- just before its about to gain a second charge.
+				cd2:SetAlpha(1)
+			else
+				-- Show if we have charges, hide if fully on cooldown
+				cd2:SetAlpha(self.charges)
+			end
+		end
+	end
+else
+	function CooldownSweep:UpdateCooldown()
+		local cd = self.cooldown
+		local cd2 = self.cooldown2
+
+		local duration = self.duration
+
+		local mainStart, mainDuration
+		local otherStart, otherDuration = 0, 0
+
+		if self.maxCharges ~= 0 and self.charges == 0 then
+			mainStart, mainDuration = self.chargeStart, self.chargeDur
+		else
+			mainStart, mainDuration = self.start, duration
+			if self.charges ~= self.maxCharges then
+				otherStart, otherDuration = self.chargeStart, self.chargeDur
+			end
+		end
+
+		if mainDuration > 0 then
+			cd:SetCooldown(mainStart, mainDuration, self.modRate)
+		else
+			cd:SetCooldown(0, 0)
+		end
+
+		-- Handle charges of spells that aren't completely depleted.
+		if otherDuration > 0 then
+			cd2:SetCooldown(otherStart, otherDuration, self.modRate)
+		else
+			cd2:SetCooldown(0, 0)
+		end
 	end
 end
 
-function CooldownSweep:DURATION(icon, start, duration, modRate)
+function CooldownSweep:DURATION(icon, start, duration, modRate, durObj)
+	if issecretvalue(duration) or issecretvalue(self.duration) or issecretvalue(self.modRate) then
+		if durObj and durObj.isOnGCD and not self.ClockGCD then
+			start, duration = 0, 0
+			durObj = zeroDuration
+		end
+
+		self.start = start
+		self.duration = duration
+		self.modRate = modRate
+		self.durObj = durObj
+		
+		NeedsUpdate[self] = true
+		return
+	end
+	
 	if (not self.ClockGCD and OnGCD(duration)) or (duration - (TMW.time - start)) <= 0 or duration <= 0 then
 		start, duration = 0, 0
 	end
@@ -352,17 +424,19 @@ function CooldownSweep:DURATION(icon, start, duration, modRate)
 		self.start = start
 		self.duration = duration
 		self.modRate = modRate
+		self.durObj = durObj
 		
 		NeedsUpdate[self] = true
 	end
 end
 CooldownSweep:SetDataListener("DURATION")
 
-function CooldownSweep:SPELLCHARGES(icon, charges, maxCharges, chargeStart, chargeDur)
-	self.charges = charges or 0
-	self.maxCharges = maxCharges or 0
-	self.chargeStart = chargeStart or 0
-	self.chargeDur = chargeDur or 0
+function CooldownSweep:SPELLCHARGES(icon, charges, maxCharges, chargeStart, chargeDur, chargeDurObj)
+	self.charges = charges
+	self.maxCharges = maxCharges
+	self.chargeStart = chargeStart
+	self.chargeDur = chargeDur
+	self.chargeDurObj = chargeDurObj
 	
 	NeedsUpdate[self] = true
 end

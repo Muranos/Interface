@@ -2,16 +2,15 @@
 -- Module Declaration
 --
 
-local plugin = BigWigs:NewPlugin("Wipe")
+local plugin, L = BigWigs:NewPlugin("Wipe")
 if not plugin then return end
 
 -------------------------------------------------------------------------------
 -- Locals
 --
 
-local L = BigWigsAPI:GetLocale("BigWigs")
-local media = LibStub("LibSharedMedia-3.0")
-local SOUND = media.MediaType and media.MediaType.SOUND or "sound"
+local LibSharedMedia = LibStub("LibSharedMedia-3.0")
+local SOUND = LibSharedMedia.MediaType and LibSharedMedia.MediaType.SOUND or "sound"
 
 -------------------------------------------------------------------------------
 -- Options
@@ -26,7 +25,7 @@ plugin.pluginOptions = {
 	name = "|TInterface\\AddOns\\BigWigs\\Media\\Icons\\Menus\\Wipe:20|t ".. L.wipe,
 	type = "group",
 	childGroups = "tab",
-	order = 8,
+	order = 12,
 	get = function(i) return plugin.db.profile[i[#i]] end,
 	set = function(i, value)
 		local n = i[#i]
@@ -38,16 +37,16 @@ plugin.pluginOptions = {
 			name = L.wipeSoundTitle,
 			order = 1,
 			get = function(info)
-				for i, v in next, media:List(SOUND) do
+				for i, v in next, LibSharedMedia:List(SOUND) do
 					if v == plugin.db.profile[info[#info]] then
 						return i
 					end
 				end
 			end,
 			set = function(info, value)
-				plugin.db.profile[info[#info]] = media:List(SOUND)[value]
+				plugin.db.profile[info[#info]] = LibSharedMedia:List(SOUND)[value]
 			end,
-			values = media:List(SOUND),
+			values = LibSharedMedia:List(SOUND),
 			width = 2,
 			itemControl = "DDI-Sound",
 		},
@@ -83,6 +82,10 @@ do
 				db[k] = plugin.defaultDB[k]
 			end
 		end
+
+		if not LibSharedMedia:IsValid("sound", db.wipeSound) then
+			db.wipeSound = plugin.defaultDB.wipeSound
+		end
 	end
 
 	function plugin:OnPluginEnable()
@@ -100,12 +103,14 @@ end
 function plugin:BigWigs_EncounterEnd(_, module, _, _, _, _, status)
 	if status == 0 and module then
 		if module:GetRespawnTime() and self.db.profile.respawnBar then
-			self:SendMessage("BigWigs_StartBar", self, nil, L.respawn, module:GetRespawnTime(), 236372) -- 236372 = "Interface\\Icons\\achievement_bg_returnxflags_def_wsg"
+			local time = module:GetRespawnTime()
+			self:SendMessage("BigWigs_StartBar", self, nil, L.respawn, time, module:TBC() and 136001 or 236372) -- 236372 = "Interface\\Icons\\achievement_bg_returnxflags_def_wsg" -- TBC is lacking icons vanilla has
+			self:SendMessage("BigWigs_Timer", self, nil, time, time, L.respawn, 0, 236372, false, true)
 		end
 		if module:GetJournalID() or module:GetAllowWin() then
 			local soundName = self.db.profile.wipeSound
 			if soundName ~= "None" then
-				local sound = media:Fetch(SOUND, soundName, true)
+				local sound = LibSharedMedia:Fetch(SOUND, soundName, true)
 				if sound then
 					self:PlaySoundFile(sound)
 				end

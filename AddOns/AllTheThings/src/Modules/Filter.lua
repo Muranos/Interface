@@ -9,8 +9,8 @@ local _, app = ...;
 -- Encapsulates the functionality for all filtering logic which is used to check if a given Object meets the applicable filters via User Settings
 
 -- Global locals
-local ipairs, select, pairs, type, rawget, wipe
-	= ipairs, select, pairs, type, rawget, wipe;
+local select, pairs, type, rawget, wipe,math_floor
+	= select, pairs, type, rawget, wipe,math.floor
 
 -- WoW API Cache
 local GetFactionCurrentReputation = app.WOWAPI.GetFactionCurrentReputation;
@@ -101,7 +101,8 @@ local function FilterBind(group)
 end
 api.Filters.Bind = FilterBind;
 local function FilterInGame(item)
-	return not item.u or item.u > 2;
+	local u = item.u
+	return not u or u > 2
 end
 api.Filters.InGame = FilterInGame;
 -- manually track InGame in CurrentCharacterFilters
@@ -118,6 +119,12 @@ end);
 DefineToggleFilter("PvP", AccountFilters,
 function(item)
 	return not item.pvp or false
+end);
+
+-- Challenge Master
+DefineToggleFilter("ChallengeMaster", AccountFilters,
+function(item)
+	return not item.cm or false
 end);
 
 -- PetBattles
@@ -147,7 +154,7 @@ function(item)
 		return true;
 	end
 
-	local specs = app.GetFixedItemSpecInfo(item.itemID);
+	local specs = item.specs
 	return specs and #specs > 0;
 end);
 
@@ -233,6 +240,16 @@ function(item)
 		if FilterFilterID_IgnoredTypes[item.__type or 0] then
 			return true;
 		end
+		local itemg = item.g
+		if itemg then
+			for i=1,#itemg do
+				if itemg[i].visible then
+					-- app.PrintDebug("filterID ignored",f,app:SearchLink(item))
+					return true
+				end
+			end
+			-- app.PrintDebug("filterID included after",#itemg,f,app:SearchLink(item))
+		end
 	else
 		return true;
 	end
@@ -260,15 +277,15 @@ app.IsRetail and function(item)
 end or function(item)
 	local requireSkill = item.requireSkill;
 	if requireSkill and (not item.professionID or not GetRelativeValue(item, "DontEnforceSkillRequirements") or FilterBind(item)) then
-		requireSkill = app.SkillIDToSpellID[requireSkill];
+		requireSkill = app.SkillDB.SkillToSpell[requireSkill];
 		return requireSkill and ActiveSkills[requireSkill];
 	else
 		return true;
 	end
 end);
-app.AddEventHandler("OnStartup", function()
-	Professions = app.CurrentCharacter.Professions
-	ActiveSkills = app.CurrentCharacter.ActiveSkills
+app.AddEventHandler("OnAfterSavedVariablesAvailable", function(currentCharacter)
+	Professions = currentCharacter.Professions
+	ActiveSkills = currentCharacter.ActiveSkills
 end)
 
 -- Class
@@ -329,10 +346,8 @@ DefineToggleFilter("CustomCollect", CharacterFilters,
 function(item)
 	local customCollect = item.customCollect;
 	if customCollect then
-		for _,c in ipairs(customCollect) do
-			if not ActiveCustomCollects[c] then
-				return;
-			end
+		for i=1,#customCollect do
+			if not ActiveCustomCollects[customCollect[i]] then return end
 		end
 	end
 	return true;
@@ -367,18 +382,20 @@ end);
 -- we actually don't "really" care to have level filter in the RawCharacterFilters... just causes more inaccurate quest reports since level req on every expac changes all the time
 RawCharacterFilters.Level = nil;
 
--- SkillLevel
+-- SkillLevel (Classic only)
+if app.IsClassic then
 app.MaximumSkillLevel = 99999;
 DefineToggleFilter("SkillLevel", CharacterFilters,
 function(group)
 	if group.learnedAt then
-        return app.MaximumSkillLevel >= group.learnedAt;
-    end
-    -- no skill level requirement on the group, have to include it
-    return true;
+		return app.MaximumSkillLevel >= group.learnedAt;
+	end
+	-- no skill level requirement on the group, have to include it
+	return true;
 end);
 -- SkillLevel doesn't really exclude a character from seeing a given Thing
 RawCharacterFilters.SkillLevel = nil;
+end
 
 -- Trackable
 -- Whether this group can be 'tracked'
@@ -388,6 +405,55 @@ end
 api.Filters.Trackable = FilterTrackable
 api.Set.Trackable = function(active)
 	app.ShowTrackableThings = active and api.Filters.Trackable or Filter;
+end
+
+-- Expansion Filters (Retail Only)
+if app.IsRetail then
+	-- Cache for expansion filter settings (indexed by expansion ID for fast lookup)
+	local ExpansionFilters = {}
+
+	DefineToggleFilter("ExpansionContent", AccountFilters,
+	function(item)
+		-- Check if item has awp (added with patch) field
+		local awp = GetRelativeValue(item, "awp")
+		if awp then
+			-- awp field uses patch format like 10205 for patch 1.2.5
+			-- Extract expansion ID from patch value (e.g., 10205 -> 1)
+			local expansionID = math_floor(awp / 10000)
+			-- Direct lookup: if ExpansionFilters[expansionID] is false, filter it out
+			return ExpansionFilters[expansionID]
+		end
+
+		return true
+	end)
+
+	-- Update expansion filter cache when settings change
+	app.AddEventHandler("OnRecalculate_NewSettings", function()
+		-- Build cache indexed by expansion ID (1-11) for O(1) lookup
+		ExpansionFilters[1] = app.Settings:Get("ExpansionFilter:Classic")
+		ExpansionFilters[2] = app.Settings:Get("ExpansionFilter:TBC")
+		ExpansionFilters[3] = app.Settings:Get("ExpansionFilter:Wrath")
+		ExpansionFilters[4] = app.Settings:Get("ExpansionFilter:Cata")
+		ExpansionFilters[5] = app.Settings:Get("ExpansionFilter:MoP")
+		ExpansionFilters[6] = app.Settings:Get("ExpansionFilter:WoD")
+		ExpansionFilters[7] = app.Settings:Get("ExpansionFilter:Legion")
+		ExpansionFilters[8] = app.Settings:Get("ExpansionFilter:BfA")
+		ExpansionFilters[9] = app.Settings:Get("ExpansionFilter:SL")
+		ExpansionFilters[10] = app.Settings:Get("ExpansionFilter:DF")
+		ExpansionFilters[11] = app.Settings:Get("ExpansionFilter:TWW")
+		ExpansionFilters[12] = app.Settings:Get("ExpansionFilter:MID")
+		ExpansionFilters[13] = app.Settings:Get("ExpansionFilter:TLT")
+
+		-- Enable the filter if any expansion is disabled
+		local anyDisabled = false
+		for i = 1, 12 do
+			if ExpansionFilters[i] == false then
+				anyDisabled = true
+				break
+			end
+		end
+		api.Set.ExpansionContent(anyDisabled)
+	end)
 end
 
 -- Visible
@@ -610,9 +676,7 @@ app.AddEventHandler("OnStartup", function()
 	CacheSettingsData();
 end)
 -- Cache filter-related content from Settings here instead of checking in every function call
-app.AddEventHandler("OnRecalculate_NewSettings", function()
-	CacheSettingsData();
-end)
+app.AddEventHandler("OnRecalculate_NewSettings", CacheSettingsData)
 
 -- Maybe need something like this eventually? This hasn't been tested or utilized much
 -- local PreviousFilters = {}

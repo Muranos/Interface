@@ -53,14 +53,14 @@ end
 --  Event Handlers
 
 function mod:CHAT_MSG_MONSTER_YELL(_, msg)
-	if msg == L.troll_trigger then
+	if not self:IsSecret(msg) and msg == L.troll_trigger then
 		self:MessageOld("stages", "red", nil, L.troll_message, "achievement_character_troll_male")
 		self:Bar("stages", 30, 7090, "ability_hunter_pet_bear") -- 7090 = Bear Form
 	end
 end
 
 function mod:UNIT_SPELLCAST_SUCCEEDED(_, _, _, spellId)
-	if spellId == 42377 then -- Shape of the Bear
+	if not self:IsSecret(spellId) and spellId == 42377 then -- Shape of the Bear
 		self:StopBar(42402) -- Surge's CD
 		self:MessageOld("stages", "red", nil, 7090, "ability_hunter_pet_bear") -- 7090 = Bear Form
 		self:Bar("stages", 30, L.troll_message, "achievement_character_troll_male")

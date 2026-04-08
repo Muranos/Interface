@@ -69,17 +69,18 @@ TMW:RegisterCallback("TMW_CONFIG_ICON_TYPE_CHANGED", function(event, icon)
 	end
 end)
 
-function SUG:TMW_SPELLCACHE_STARTED()
-	SUG.SuggestionList.Caching:Show()
+local function ModuleUsesSpellCache()
+	local currentModule = SUG.CurrentModule
+	if not currentModule then return false end
+	return currentModule:Table_Get() == SpellCache:GetCache()
 end
-TMW:RegisterCallback("TMW_SPELLCACHE_STARTED", SUG)
 
 function SUG:TMW_SPELLCACHE_COMPLETED()
 	SUG.SuggestionList.Caching:Hide()
 	
 	if SUG.onCompleteCache and SUG.SuggestionList:IsVisible() then
 		SUG.redoIfSame = 1
-		SUG:NameOnCursor()
+		SUG:NameOnCursor(1)
 	end
 end
 TMW:RegisterCallback("TMW_SPELLCACHE_COMPLETED", SUG)
@@ -295,12 +296,18 @@ local letterMatch, shouldLetterMatch, shouldWordMatch, wordMatch, wordMatch2
 local strfindsugMatches = {}
 
 function SUG:NameOnCursor(isClick)
-	if SpellCache:IsCaching() then
+	if SpellCache:IsCaching() and ModuleUsesSpellCache() then
 		-- Wait for the spell cache to complete.
 		-- SUG.onCompleteCache will cause this method to be called when the cache completes.
 		SUG.onCompleteCache = 1
 		SUG.SuggestionList:Show()
+		SUG.SuggestionList.Caching:Show()
+		for i = 1, #SUG do
+			SUG[i]:Hide()
+		end
 		return
+	else
+		SUG.SuggestionList.Caching:Hide()
 	end
 
 	-- This method gets a whole shitload of info about the words around the cursor in the editbox.
@@ -502,7 +509,7 @@ local EditBoxHooks = {
 			SUG.SuggestionList.Header:SetText(SUG.CurrentModule.headerText)
 			SUG:SetInline(self.SUG_inline)
 			SUG.SuggestionList:SetParent(self.SUG_parent or TellMeWhen_IconEditor)
-			SUG:NameOnCursor()
+			SUG:NameOnCursor(1)
 		end
 	end,
 	OnTextChanged = function(self, userInput)
@@ -1209,7 +1216,7 @@ function Module:OnSuggest()
 	EquivFirstIDLookup = TMW.EquivFirstIDLookup
 end
 function Module:Table_Get()
-	return SpellCache_Cache
+	return SpellCache:GetCache()
 end
 
 local function spellSort(a, b)
@@ -1509,7 +1516,12 @@ end
 
 local Module = SUG:NewModule("buff", SUG:GetModule("spell"))
 function Module:Table_Get()
-	return SpellCache:GetCache(), TMW.BE.buffs, TMW.BE.debuffs
+	if TMW.clientHasSecrets then
+		-- Equivalencies are effectively useless in secret world
+		return SpellCache:GetCache()
+	else
+		return SpellCache:GetCache(), TMW.BE.buffs, TMW.BE.debuffs
+	end
 end
 function Module:Entry_Colorize_2(f, id)
 	if TMW.DS[id] then

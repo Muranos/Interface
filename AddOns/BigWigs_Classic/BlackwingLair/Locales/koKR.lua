@@ -11,7 +11,6 @@ end
 L = BigWigs:NewBossLocale("Vaelastrasz the Corrupt", "koKR")
 if L then
 	--L.warmup_trigger = "Too late, friends!"
-	--L.tank_bomb = "Tank Bomb"
 end
 
 L = BigWigs:NewBossLocale("Chromaggus", "koKR")
@@ -32,7 +31,7 @@ end
 
 L = BigWigs:NewBossLocale("Nefarian Classic", "koKR")
 if L then
-	--L.engage_yell_trigger = "Let the games begin"
+	L.engage_yell_trigger = "게임을 시작하자"
 	L.stage3_yell_trigger = "말도 안 돼! 일어나라!"
 
 	L.shaman_class_call_yell_trigger = "주술사"

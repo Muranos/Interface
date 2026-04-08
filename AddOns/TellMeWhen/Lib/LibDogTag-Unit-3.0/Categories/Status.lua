@@ -1,5 +1,5 @@
 local MAJOR_VERSION = "LibDogTag-Unit-3.0"
-local MINOR_VERSION = tonumber(("20250223200331"):match("%d+")) or 33333333333333
+local MINOR_VERSION = tonumber(("20260313130322"):match("%d+")) or 33333333333333
 
 if MINOR_VERSION > _G.DogTag_Unit_MINOR_VERSION then
 	_G.DogTag_Unit_MINOR_VERSION = MINOR_VERSION
@@ -8,8 +8,8 @@ end
 local _G, table, next, pairs, ipairs, unpack, select, GetTime = _G, table, next, pairs, ipairs, unpack, select, GetTime
 local UnitIsPartyLeader, UnitIsFeignDeath, UnitIsTappedByPlayer, UnitIsUnit, UnitIsCharmed, UnitIsVisible, UnitHasVehicleUI, UnitIsConnected =
 	  UnitIsPartyLeader, UnitIsFeignDeath, UnitIsTappedByPlayer, UnitIsUnit, UnitIsCharmed, UnitIsVisible, UnitHasVehicleUI, UnitIsConnected
-local UnitExists, UnitGUID, UnitAffectingCombat, UnitIsAFK, UnitIsDeadOrGhost, UnitIsGhost, UnitIsDead, UnitIsDND, UnitIsPVP, UnitIsPVPFreeForAll =
-	  UnitExists, UnitGUID, UnitAffectingCombat, UnitIsAFK, UnitIsDeadOrGhost, UnitIsGhost, UnitIsDead, UnitIsDND, UnitIsPVP, UnitIsPVPFreeForAll
+local UnitExists, UnitAffectingCombat, UnitIsAFK, UnitIsDeadOrGhost, UnitIsGhost, UnitIsDead, UnitIsDND, UnitIsPVP, UnitIsPVPFreeForAll =
+	  UnitExists, UnitAffectingCombat, UnitIsAFK, UnitIsDeadOrGhost, UnitIsGhost, UnitIsDead, UnitIsDND, UnitIsPVP, UnitIsPVPFreeForAll
 local GetNumRaidMembers, GetNumPartyMembers, GetPetHappiness, GetRaidTargetIndex, UnitIsTapped, GetBindingText, GetBindingKey, GetRaidRosterInfo =
 	  GetNumRaidMembers, GetNumPartyMembers, GetPetHappiness, GetRaidTargetIndex, UnitIsTapped, GetBindingText, GetBindingKey, GetRaidRosterInfo
 local UnitIsGroupLeader, GetNumGroupMembers =
@@ -19,8 +19,10 @@ local UnitName, UnitInRaid, UnitFactionGroup, GetPVPTimer, IsPVPTimerRunning, Ge
 
 DogTag_Unit_funcs[#DogTag_Unit_funcs+1] = function(DogTag_Unit, DogTag)
 
+local issecretvalue = DogTag.issecretvalue
 local L = DogTag_Unit.L
 local GetNameServer = DogTag_Unit.GetNameServer
+local UnitGUID = DogTag_Unit.UnitGUIDSafe
 
 local offlineTimes = {}
 local afkTimes = {}
@@ -92,7 +94,8 @@ local function PARTY_MEMBERS_CHANGED(event)
 			afkTimes[guid] = nil
 		else
 			offlineTimes[guid] = nil
-			if UnitIsAFK(unit) then
+			local afk = UnitIsAFK(unit)
+			if not issecretvalue(afk) and afk then
 				if not afkTimes[guid] then
 					afkTimes[guid] = GetTime()
 				end
@@ -179,7 +182,8 @@ DogTag:AddEventHandler("Unit", "EventRequested", function(_, event)
 				end
 			end
 
-			if UnitIsAFK(unit) then
+			local afk = UnitIsAFK(unit)
+			if not issecretvalue(afk) and afk then
 				if not afkTimes[guid] then
 					afkTimes[guid] = GetTime()
 				end
@@ -308,7 +312,8 @@ DogTag:AddTag("Unit", "AFK", {
 
 DogTag:AddTag("Unit", "DND", {
 	code = function(unit)
-		if UnitIsDND(unit) then
+		local dnd = UnitIsDND(unit)
+		if not issecretvalue(dnd) and dnd then
 			return L["DND"]
 		else
 			return nil

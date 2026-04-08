@@ -50,13 +50,60 @@ app.CreateFlightPath = app.CreateClass(CLASSNAME, KEY, {
 	end,
 })
 
+if app.IsGit then
+-- CRIEVE NOTE: Comment this out after you've finished sourcing flight masters
+-- use /att check-fps if you want to run this
+app.ChatCommands.Add("check-fps", function()
+	local missingByMapID, any = {}, false;
+	for flightpathID,flightPaths in pairs(app.GetFieldContainer("flightpathID")) do
+		for i,o in ipairs(flightPaths) do
+			if not (o.crs or o.npcID or o.objectID or o.providers) and (not o.u or o.u >= 11) then
+				local mapID = app.GetRelativeValue(o, "mapID");
+				if mapID then
+					local missingOnMap = missingByMapID[mapID];
+					if not missingOnMap then
+						missingOnMap = {};
+						missingByMapID[mapID] = missingOnMap;
+					end
+					missingOnMap[flightpathID] = (","):split(o.name);
+					any = true;
+					break;
+				end
+			end
+		end
+	end
+
+	if any then
+		-- Create an information object.
+		local info = {
+			"### Missing Flight Master Summary",
+			"```lua",
+		};
+		for mapID,missing in pairs(missingByMapID) do
+			tinsert(info, app.GetMapName(mapID) .. " (" .. mapID .. ")");
+			for flightpathID,text in pairs(missing) do
+				tinsert(info, " " .. flightpathID .. " -- " .. text);
+			end
+		end
+		tinsert(info, "```");	-- discord fancy box end
+
+		local popupID, text = "flight-master-summary", "Summary";
+		app:SetupReportDialog(popupID, text, info);
+		app.print("Found Missing Flight Masters:", app:Linkify(text, app.Colors.ChatLinkError, "dialog:" .. popupID));
+	end
+end, {
+	"Usage : /att check-fps",
+	"Allows scanning all sourced FPs to find Flight Masters which have no NPC linked to them.",
+});
+end
+
 local function CacheFlightPathDataForTarget(nodes)
 	local guid = UnitGUID("npc") or UnitGUID("target");
-	if guid then
+	if guid and not app.WOWAPI.issecretvalue(guid) then
 		---@diagnostic disable-next-line: undefined-field
 		local type, _, _, _, _, npcID = ("-"):split(guid);
 		if type == "Creature" and npcID then
-			local searchResults = SearchForField("creatureID", tonumber(npcID));
+			local searchResults = SearchForField("npcID", tonumber(npcID));
 			if searchResults and #searchResults > 0 then
 				local count = 0;
 				for i,group in ipairs(searchResults) do
@@ -71,12 +118,21 @@ local function CacheFlightPathDataForTarget(nodes)
 	end
 	return 0;
 end
--- TODO: this is scary. literally any NPC interaction i do in the game ATT will check if there's FlightPaths on that NPC
--- and then mark them completed based on arbitrary field data...
--- really needs to be revised that only entering the specific mapID triggers the event registration, and then only the specific npcIDs with
--- 'fake' flightpaths are accepted prior to running searches on that npcID
--- something similar to the zone-art caching stuff perhaps to link which mapIDs contain 'fake' FPs, and likewise which NPCs
--- or even have Parser capture this data for a separate DB container
+local GOSSIP_SHOW_REGISTERED;
+app.AddEventHandler("OnCurrentMapIDChanged", function()
+	local flightPathsInMap = app.GetRawField("flightPathsByMapID", app.CurrentMapID);
+	if flightPathsInMap then
+		if not GOSSIP_SHOW_REGISTERED then
+			app:RegisterEvent("GOSSIP_SHOW");
+			GOSSIP_SHOW_REGISTERED = true;
+		end
+	else
+		if GOSSIP_SHOW_REGISTERED then
+			app:UnregisterEvent("GOSSIP_SHOW");
+			GOSSIP_SHOW_REGISTERED = false;
+		end
+	end
+end);
 app.AddEventRegistration("GOSSIP_SHOW", function()
 	local knownNodeIDs = {};
 	if CacheFlightPathDataForTarget(knownNodeIDs) > 0 then
@@ -84,7 +140,7 @@ app.AddEventRegistration("GOSSIP_SHOW", function()
 			app.SetThingCollected(KEY, nodeID, false, true)
 		end
 	end
-end)
+end, true)
 app.AddEventRegistration("TAXIMAP_OPENED", function()
 	local mapID = GetTaxiMapID() or -1
 	-- app.PrintDebug("TAXIMAP_OPENED",mapID)

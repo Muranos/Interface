@@ -1,5 +1,5 @@
---     Crystal Sockets - A convenient way to display all your gem sockets.
---     Copyright (C) 2020  Nivix
+--     Crystal Sockets - A lightweight solution to show sockets and enchantments on your character sheet.
+--     Copyright (C) 2026  Nivix
 -- 
 --     This program is free software: you can redistribute it and/or modify
 --     it under the terms of the GNU General Public License as published by
@@ -45,8 +45,13 @@ function events:onHide()
     events.frame:UnregisterEvent("UNIT_INVENTORY_CHANGED");
 end
 
+function events:PLAYER_LOGIN()
+	Crystal.slots:updateAll(); 
+end
+
 function events:init()
     events.frame = CreateFrame("Frame");
+	events.frame:RegisterEvent("PLAYER_LOGIN");
     events.frame:SetScript("OnEvent", events.handler);
     PaperDollFrame:HookScript("OnShow", function(self) events:onShow(); end);
     PaperDollFrame:HookScript("OnHide", function(self) events:onHide(); end);

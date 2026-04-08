@@ -4,7 +4,7 @@
 
 local mod, CL = BigWigs:NewBoss("Halls of Infusion Trash", 2527)
 if not mod then return end
-mod.displayName = CL.trash
+mod:SetTrashModule(true)
 mod:RegisterEnableMob(
 	190348, -- Primalist Ravager
 	190345, -- Primalist Geomancer
@@ -33,9 +33,9 @@ mod:RegisterEnableMob(
 
 local L = mod:GetLocale()
 if L then
-	L.custom_on_autotalk = "Autotalk"
+	L.custom_on_autotalk = CL.autotalk
 	L.custom_on_autotalk_desc = "Instantly selects the gossip options to get profession buffs."
-	L.custom_on_autotalk_icon = "ui_chat"
+	L.custom_on_autotalk_icon = mod:GetMenuIcon("SAY")
 
 	L.primalist_ravager = "Primalist Ravager"
 	L.primalist_geomancer = "Primalist Geomancer"

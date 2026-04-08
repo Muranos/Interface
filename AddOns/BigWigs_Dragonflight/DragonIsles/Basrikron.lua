@@ -6,7 +6,7 @@ local mod, CL = BigWigs:NewBoss("Basrikron, The Shale Wing", -2022, 2506)
 if not mod then return end
 mod:RegisterEnableMob(193535) -- Basrikron
 mod.otherMenu = -1978
-mod.worldBoss = 193535
+mod:SetWorldModule(true)
 
 --------------------------------------------------------------------------------
 -- Initialization
@@ -49,6 +49,7 @@ end
 do
 	local prev = ""
 	function mod:UNIT_SPELLCAST_SUCCEEDED(_, _, castId, spellId)
+		if self:IsSecret(spellId) then return end
 		if spellId == 385270 and prev ~= castId then
 			prev = castId
 			self:Message(385270, "orange")

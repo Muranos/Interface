@@ -71,6 +71,7 @@ end
 --
 
 function mod:Warmup(event, msg)
+	if self:IsSecret(msg) then return end
 	if msg:find(L.first_cell_trigger, nil, true) then
 		self:Bar("warmup", 37.7, CL.count:format(L.prison_cell, 1), "achievement_boss_harbinger_skyriss")
 	elseif msg:find(L.second_and_third_cells_trigger, nil, true) then
@@ -121,9 +122,9 @@ end
 
 do
 	local prev
-	function mod:UNIT_SPELLCAST_SUCCEEDED(event, unit, castId, spellId)
-		if (spellId == 36931 or spellId == 36932) and castId ~= prev then -- 66% / 33% illusions
-			prev = castId
+	function mod:UNIT_SPELLCAST_SUCCEEDED(event, unit, castGUID, spellId)
+		if not self:IsSecret(spellId) and (spellId == 36931 or spellId == 36932) and castGUID ~= prev then -- 66% / 33% illusions
+			prev = castGUID
 			if spellId == 36932 then
 				if self:Classic() then
 					self:UnregisterEvent(event)

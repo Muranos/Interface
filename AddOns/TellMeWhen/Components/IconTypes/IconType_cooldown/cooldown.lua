@@ -41,6 +41,7 @@ LibStub("AceEvent-3.0"):Embed(Type)
 Type.name = L["ICONMENU_SPELLCOOLDOWN"]
 Type.desc = L["ICONMENU_SPELLCOOLDOWN_DESC"]
 Type.menuIcon = "Interface\\Icons\\spell_holy_divineintervention"
+Type.hasNoDurationEndEvent = true
 
 local STATE_USABLE           = TMW.CONST.STATE.DEFAULT_SHOW
 local STATE_UNUSABLE         = TMW.CONST.STATE.DEFAULT_HIDE
@@ -100,10 +101,10 @@ Type:RegisterConfigPanel_XMLTemplate(100, "TellMeWhen_ChooseName", {
 })
 
 Type:RegisterConfigPanel_XMLTemplate(165, "TellMeWhen_IconStates", {
-	[STATE_USABLE]           = { text = "|cFF00FF00" .. L["ICONMENU_USABLE"], order = 3, },
-	[STATE_UNUSABLE]         = { text = "|cFFFF0000" .. L["ICONMENU_UNUSABLE"], order = 4, },
 	[STATE_UNUSABLE_NORANGE] = { text = "|cFFFFff00" .. L["ICONMENU_OORANGE"], requires = "RangeCheck", order = 1 },
 	[STATE_UNUSABLE_NOMANA]  = { text = "|cFFFFff00" .. L["ICONMENU_OOPOWER"], requires = "ManaCheck", order = 2 },
+	[STATE_USABLE]           = { text = "|cFF00FF00" .. L["ICONMENU_USABLE"], order = 3, },
+	[STATE_UNUSABLE]         = { text = "|cFFFF0000" .. L["ICONMENU_UNUSABLE"], order = 4, },
 })
 
 Type:RegisterConfigPanel_ConstructorFunc(150, "TellMeWhen_CooldownSettings", function(self)
@@ -121,7 +122,7 @@ Type:RegisterConfigPanel_ConstructorFunc(150, "TellMeWhen_CooldownSettings", fun
 			check:SetTexts(L["ICONMENU_GCDASUNUSABLE"], L["ICONMENU_GCDASUNUSABLE_DESC"])
 			check:SetSetting("GCDAsUnusable")
 		end,
-		pclass == "DEATHKNIGHT" and function(check)
+		not TMW.clientHasSecrets and pclass == "DEATHKNIGHT" and function(check)
 			check:SetTexts(L["ICONMENU_IGNORERUNES"], L["ICONMENU_IGNORERUNES_DESC"])
 			check:SetSetting("IgnoreRunes")
 		end,
@@ -193,118 +194,233 @@ local offCooldown = { startTime = 0, duration = 0 }
 local usableData = {}
 local unusableData = {}
 local mindfreeze = GetSpellName(47528) and strlower(GetSpellName(47528))
-local function SpellCooldown_OnUpdate(icon, time)    
-	-- Upvalue things that will be referenced a lot in our loops.
-	local IgnoreRunes, RangeCheck, ManaCheck, GCDAsUnusable, NameArray =
-	icon.IgnoreRunes, icon.RangeCheck, icon.ManaCheck, icon.GCDAsUnusable, icon.Spells.Array
+local SpellCooldown_OnUpdate
 
-	local usableAlpha = icon.States[STATE_USABLE].Alpha
-	local runeCD = IgnoreRunes and GetRuneCooldownDuration()
+if TMW.clientHasSecrets then
+	function SpellCooldown_OnUpdate(icon, time)
+		-- Upvalue things that will be referenced a lot in our loops.
+		local RangeCheck, ManaCheck, GCDAsUnusable, NameArray =
+		icon.RangeCheck, icon.ManaCheck, icon.GCDAsUnusable, icon.Spells.Array
 
-	local usableFound, unusableFound
+		local usableAlpha = icon.States[STATE_USABLE].Alpha
 
-	for i = 1, #NameArray do
-		local iName = NameArray[i]
-		
-		local cooldown = GetSpellCooldown(iName)
-		local charges = GetSpellCharges(iName)
-		local stack = charges and charges.currentCharges or GetSpellCastCount(iName)
+		local usableFound, unusableFound
 
-		
-		if cooldown then
-			local duration = cooldown.duration
-			if IgnoreRunes and duration == runeCD and iName ~= mindfreeze and iName ~= 47528  then
-				-- DK abilities that are on cooldown because of runes are always reported
-				-- as having a cooldown duration of 10 seconds. We use this fact to filter out rune cooldowns.
-				
-				-- In Wrath, mind Freeze has an actual CD of 10 seconds though, and doesn't cost runes,
-				-- so it is excluded from this logic.
-				cooldown = offCooldown
-				duration = 0
-			end
+		for i = 1, #NameArray do
+			local iName = NameArray[i]
+			local cooldown = GetSpellCooldown(iName)
 
-			local inrange, noMana = true, nil
-			if RangeCheck then
-				inrange = IsSpellInRange(iName, "target")
-				if inrange == nil then
-					inrange = true
+			if cooldown then
+				local charges = GetSpellCharges(iName)
+				local stack
+				if charges then
+					stack = charges.currentCharges
+				else
+					stack = GetSpellCastCount(iName)
 				end
-			end
-			if ManaCheck then
-				_, noMana = IsUsableSpell(iName)
-			end
-			
+				
+				local inrange, noMana = true, nil
+				if RangeCheck then
+					inrange = IsSpellInRange(iName, "target")
+					if inrange == nil then
+						inrange = true
+					end
+				end
+				if ManaCheck then
+					_, noMana = IsUsableSpell(iName)
+				end
 
-			-- We store all our data in tables here because we need to keep track of both the first
-			-- usable cooldown and the first unusable cooldown found. We can't always determine which we will
-			-- use until we've found one of each. 
-			if
-				inrange and not noMana and (
-					-- If the cooldown duration is 0 and there arent charges, then its usable
-					(duration == 0 and not charges)
-					-- If the spell has charges and they aren't all depeleted, its usable
-					or (charges and charges.currentCharges > 0)
-					-- If we're just on a GCD, its usable
-					or (not GCDAsUnusable and OnGCD(duration))
-				)
-			then --usable
-				if not usableFound then
-					--wipe(usableData)
-					usableData.state = STATE_USABLE
-					usableData.iName = iName
-					usableData.stack = stack
-					usableData.charges = charges or emptyTable
-					usableData.cooldown = cooldown
+				-- We store all our data in tables here because we need to keep track of both the first
+				-- usable cooldown and the first unusable cooldown found. We can't always determine which we will
+				-- use until we've found one of each. 
+				if
+					inrange and not noMana and (not GCDAsUnusable or not cooldown.isOnGCD)
+				then --usable
+					if not usableFound then
+						--wipe(usableData)
+						usableData.state = STATE_USABLE
+						usableData.iName = iName
+						usableData.stack = stack
+						usableData.charges = charges or emptyTable
+						usableData.cooldown = cooldown
+						
+						usableFound = true
+						
+						if usableAlpha > 0 then
+							break
+						end
+					end
+				elseif not unusableFound then
+					--wipe(unusableData)
+					unusableData.state = 
+						not inrange and STATE_UNUSABLE_NORANGE or 
+						noMana and STATE_UNUSABLE_NOMANA or 
+						STATE_UNUSABLE
+					unusableData.iName = iName
+					unusableData.stack = stack
+					unusableData.charges = charges or emptyTable
+					unusableData.cooldown = cooldown
 					
-					usableFound = true
+					unusableFound = true
 					
-					if usableAlpha > 0 then
+					if usableAlpha == 0 then
 						break
 					end
 				end
-			elseif not unusableFound then
-				--wipe(unusableData)
-				unusableData.state = 
-					not inrange and STATE_UNUSABLE_NORANGE or 
-					noMana and STATE_UNUSABLE_NOMANA or 
-					STATE_UNUSABLE
-				unusableData.iName = iName
-				unusableData.stack = stack
-				unusableData.charges = charges or emptyTable
-				unusableData.cooldown = cooldown
+			end
+		end
+		
+		local dataToUse
+		if usableFound and usableAlpha > 0 then
+			dataToUse = usableData
+		elseif unusableFound then
+			dataToUse = unusableData
+		elseif usableFound then
+			dataToUse = usableData
+		end
+		
+		if dataToUse then
+			local cooldown = dataToUse.cooldown
+			local charges = dataToUse.charges
+
+			local durObj = C_Spell.GetSpellCooldownDuration(dataToUse.iName)
+			durObj.isOnGCD = cooldown.isOnGCD
+
+			local state = dataToUse.state
+			if state == STATE_USABLE and not cooldown.isOnGCD then
+				state = {
+					secretBool = durObj:IsZero(),
+					trueState = icon.States[STATE_USABLE],
+					falseState = icon.States[STATE_UNUSABLE]
+				}
+			end
+
+			icon:SetInfo(
+				"state; texture; start, duration, modRate, durObj; charges, maxCharges, chargeStart, chargeDur, chargeDurObj; stack, stackText; spell",
+				state,
+				spellTextureCache[dataToUse.iName],
+				cooldown.startTime, cooldown.duration, cooldown.modRate, durObj,
+				charges.currentCharges, charges.maxCharges, charges.cooldownStartTime, charges.cooldownDuration, C_Spell.GetSpellChargeDuration(dataToUse.iName),
+				dataToUse.stack, dataToUse.stack,
+				dataToUse.iName
+			)
+		else
+			icon:SetInfo("state", 0)
+		end
+	end
+else
+	function SpellCooldown_OnUpdate(icon, time)
+		-- Upvalue things that will be referenced a lot in our loops.
+		local IgnoreRunes, RangeCheck, ManaCheck, GCDAsUnusable, NameArray =
+		icon.IgnoreRunes, icon.RangeCheck, icon.ManaCheck, icon.GCDAsUnusable, icon.Spells.Array
+
+		local usableAlpha = icon.States[STATE_USABLE].Alpha
+		local runeCD = IgnoreRunes and GetRuneCooldownDuration()
+
+		local usableFound, unusableFound
+
+		for i = 1, #NameArray do
+			local iName = NameArray[i]
+			local cooldown = GetSpellCooldown(iName)
+			
+			if cooldown then
+				local charges = GetSpellCharges(iName)
+				local stack = charges and charges.currentCharges or GetSpellCastCount(iName)
+
+				local duration = cooldown.duration
+				if IgnoreRunes and duration == runeCD and iName ~= mindfreeze and iName ~= 47528  then
+					-- DK abilities that are on cooldown because of runes are always reported
+					-- as having a cooldown duration of 10 seconds. We use this fact to filter out rune cooldowns.
+					
+					-- In Wrath, mind Freeze has an actual CD of 10 seconds though, and doesn't cost runes,
+					-- so it is excluded from this logic.
+					cooldown = offCooldown
+					duration = 0
+				end
+
+				local inrange, noMana = true, nil
+				if RangeCheck then
+					inrange = IsSpellInRange(iName, "target")
+					if inrange == nil then
+						inrange = true
+					end
+				end
+				if ManaCheck then
+					_, noMana = IsUsableSpell(iName)
+				end
 				
-				unusableFound = true
-				
-				if usableAlpha == 0 then
-					break
+
+				-- We store all our data in tables here because we need to keep track of both the first
+				-- usable cooldown and the first unusable cooldown found. We can't always determine which we will
+				-- use until we've found one of each. 
+				if
+					inrange and not noMana and (
+						-- If the cooldown duration is 0 and there arent charges, then its usable
+						(duration == 0 and not charges)
+						-- If the spell has charges and they aren't all depeleted, its usable
+						or (charges and charges.currentCharges > 0)
+						-- If we're just on a GCD, its usable
+						or (not GCDAsUnusable and OnGCD(duration))
+					)
+				then --usable
+					if not usableFound then
+						--wipe(usableData)
+						usableData.state = STATE_USABLE
+						usableData.iName = iName
+						usableData.stack = stack
+						usableData.charges = charges or emptyTable
+						usableData.cooldown = cooldown
+						
+						usableFound = true
+						
+						if usableAlpha > 0 then
+							break
+						end
+					end
+				elseif not unusableFound then
+					--wipe(unusableData)
+					unusableData.state = 
+						not inrange and STATE_UNUSABLE_NORANGE or 
+						noMana and STATE_UNUSABLE_NOMANA or 
+						STATE_UNUSABLE
+					unusableData.iName = iName
+					unusableData.stack = stack
+					unusableData.charges = charges or emptyTable
+					unusableData.cooldown = cooldown
+					
+					unusableFound = true
+					
+					if usableAlpha == 0 then
+						break
+					end
 				end
 			end
 		end
-	end
-	
-	local dataToUse
-	if usableFound and usableAlpha > 0 then
-		dataToUse = usableData
-	elseif unusableFound then
-		dataToUse = unusableData
-	elseif usableFound then
-		dataToUse = usableData
-	end
-	
-	if dataToUse then
-		local cooldown = dataToUse.cooldown
-		local charges = dataToUse.charges
-		icon:SetInfo(
-			"state; texture; start, duration, modRate; charges, maxCharges, chargeStart, chargeDur; stack, stackText; spell",
-			dataToUse.state,
-			spellTextureCache[dataToUse.iName],
-			cooldown.startTime, cooldown.duration, cooldown.modRate,
-			charges.currentCharges, charges.maxCharges, charges.cooldownStartTime, charges.cooldownDuration,
-			dataToUse.stack, dataToUse.stack,
-			dataToUse.iName
-		)
-	else
-		icon:SetInfo("state", 0)
+		
+		local dataToUse
+		if usableFound and usableAlpha > 0 then
+			dataToUse = usableData
+		elseif unusableFound then
+			dataToUse = unusableData
+		elseif usableFound then
+			dataToUse = usableData
+		end
+		
+		if dataToUse then
+			local cooldown = dataToUse.cooldown
+			local charges = dataToUse.charges
+			icon:SetInfo(
+				"state; texture; start, duration, modRate; charges, maxCharges, chargeStart, chargeDur; stack, stackText; spell",
+				dataToUse.state,
+				spellTextureCache[dataToUse.iName],
+				cooldown.startTime, cooldown.duration, cooldown.modRate,
+				charges.currentCharges, charges.maxCharges, charges.cooldownStartTime, charges.cooldownDuration,
+				dataToUse.stack, dataToUse.stack,
+				dataToUse.iName
+			)
+		else
+			icon:SetInfo("state", 0)
+		end
 	end
 end
 

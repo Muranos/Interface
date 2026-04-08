@@ -4,11 +4,11 @@ if L then
 	L.freeze = "Замораживающие состояния"
 	L.freeze_desc = "Предупреждать о различных замороженных состояниях."
 
-	L.freeze_trigger1 = "%s замедлен!"
-	L.freeze_trigger2 = "%s замерзает!"
-	L.freeze_trigger3 = "%s заморожен!"
-	L.freeze_trigger4 = "%s Начинает трескаться!"
-	L.freeze_trigger5 = "%s Скоро разобьётся на части!"
+	L.freeze_trigger1 = "%s начинает замедляться!"
+	L.freeze_trigger2 = "%s замораживается!"
+	L.freeze_trigger3 = "%s застывает!"
+	L.freeze_trigger4 = "%s начинает раскалываться!"
+	L.freeze_trigger5 = "%s едва держится!"
 
 	L.freeze_warn1 = "Первая фаза заморозки!"
 	L.freeze_warn2 = "Вторая фаза заморозки!"
@@ -19,16 +19,21 @@ if L then
 	L.freeze_warn_frost = "%d морозных атак - осталось еще %d"
 end
 
+L = BigWigs:NewBossLocale("Silithid Royalty", "ruRU")
+if L then
+	L[15543] = "Яудж"
+	L[15544] = "Вем"
+	L[15511] = "Кри"
+end
+
 L = BigWigs:NewBossLocale("Ouro", "ruRU")
 if L then
-	L.engage_message = "Оуро занят! Возможное погружение через 90 секунд!"
-	L.possible_submerge_bar = "Возможное погружение"
-
 	L.emerge_message = "Оуро появился"
 	L.emerge_bar = "Появление"
 
 	L.submerge_message = "Оуро погрузился"
 	L.submerge_bar = "Погружение"
+	--L.submerge_early_message = "Early Submerge - No one was in range"
 
 	L.scarab = "Скарабей исчез"
 	L.scarab_desc = "Предупреждать об исчезновении скарабея."
@@ -53,7 +58,6 @@ if L then
 
 	--L.dark_glare_message = "%s: %s (Group %s)" -- Dark Glare: PLAYER_NAME (Group 1)
 	L.stomach = "Желудок"
-	L.tentacle = "Щупальце (%d)"
 end
 
 L = BigWigs:NewBossLocale("Ahn'Qiraj Trash", "ruRU")

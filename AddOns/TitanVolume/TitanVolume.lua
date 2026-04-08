@@ -20,41 +20,47 @@ local L = LibStub("AceLocale-3.0"):GetLocale(TITAN_ID, true)
 local ALL_SOUND = "Sound_EnableAllSound"
 
 -- The slider controls are nearly identical so set the data for them using the slider frame name
+local slider_y = -40
 local sliders = {
 	["TitanPanelMasterVolumeControlSlider"] = {
 		short = "master",
 		cvar = "Sound_MasterVolume",
 		gtext = OPTION_TOOLTIP_MASTER_VOLUME,
+		ltext = L["TITAN_VOLUME_MASTER_CONTROL_TITLE"],
 		titan_var = "VolumeMaster",
-		off_x = -160, off_y = -60,
+		off_x = -160, off_y = slider_y,
 	},
 	["TitanPanelSoundVolumeControlSlider"] = {
 		short = "sound",
 		cvar = "Sound_SFXVolume",
 		gtext = OPTION_TOOLTIP_FX_VOLUME,
+		ltext = L["TITAN_VOLUME_SOUND_CONTROL_TITLE"],
 		titan_var = "VolumeSFX",
-		off_x = -90, off_y = -60,
+		off_x = -90, off_y = slider_y,
 	},
 	["TitanPanelMusicVolumeControlSlider"] = {
 		short = "music",
 		cvar = "Sound_MusicVolume",
 		gtext = OPTION_TOOLTIP_MUSIC_VOLUME,
+		ltext = L["TITAN_VOLUME_MUSIC_CONTROL_TITLE"],
 		titan_var = "VolumeMusic",
-		off_x = -20, off_y = -60,
+		off_x = -20, off_y = slider_y,
 	},
 	["TitanPanelAmbienceVolumeControlSlider"] = {
 		short = "ambience",
 		cvar = "Sound_AmbienceVolume",
 		gtext = OPTION_TOOLTIP_AMBIENCE_VOLUME,
+		ltext = L["TITAN_VOLUME_AMBIENCE_CONTROL_TITLE"],
 		titan_var = "VolumeAmbience",
-		off_x = 50, off_y = -60,
+		off_x = 50, off_y = slider_y,
 	},
 	["TitanPanelDialogVolumeControlSlider"] = {
 		short = "dialog",
 		cvar = "Sound_DialogVolume",
 		gtext = OPTION_TOOLTIP_DIALOG_VOLUME,
+		ltext = L["TITAN_VOLUME_DIALOG_CONTROL_TITLE"],
 		titan_var = "VolumeDialog",
-		off_x = 130, off_y = -60,
+		off_x = 120, off_y = slider_y,
 	},
 }
 --C_CVar.GetCVar("Sound_MusicVolume")
@@ -123,7 +129,7 @@ local function OnEvent(self, event, a1, ...)
 end
 
 ---local Set plugin icon and update plugin.
-local function OnShow()
+local function OnShow(self)
 	if TitanGetVar(TITAN_VOLUME_ID, "OverrideBlizzSettings") then
 		-- Override Blizzard's volume CVar settings
 		if TitanGetVar(TITAN_VOLUME_ID, "VolumeMaster") then
@@ -160,6 +166,7 @@ local function Slider_OnEnter(self)
 	local tooltipText = ""
 	tooltipText = TitanOptionSlider_TooltipText(slider.gtext, GetVolumeText(GetCVolume(slider.cvar)));
 	GameTooltip:SetOwner(self, "ANCHOR_BOTTOMLEFT");
+---@diagnostic disable-next-line: param-type-mismatch
 	GameTooltip:SetText(tooltipText, nil, nil, nil, nil, 1);
 	TitanUtils_StopFrameCounting(self:GetParent());
 end
@@ -188,8 +195,8 @@ local function Slider_OnShow(self)
 	local slider = sliders[self:GetName()]
 
 	_G[self:GetName() .. "Text"]:SetText(GetVolumeText(GetCVolume(slider.cvar)));
-	_G[self:GetName() .. "High"]:SetText(Titan_Global.literals.low);
-	_G[self:GetName() .. "Low"]:SetText(Titan_Global.literals.high);
+--	_G[self:GetName() .. "High"]:SetText(Titan_Global.literals.low);
+--	_G[self:GetName() .. "Low"]:SetText(Titan_Global.literals.high);
 	self:SetMinMaxValues(0, 1);
 	self:SetValueStep(0.01);
 	self:SetObeyStepOnDrag(true) -- since 5.4.2 (Mists of Pandaria)
@@ -213,6 +220,7 @@ local function Slider_OnValueChanged(self, a1)
 
 	-- Update GameTooltip
 	local tooltipText = TitanOptionSlider_TooltipText(slider.gtext, GetVolumeText(1 - self:GetValue()));
+---@diagnostic disable-next-line: param-type-mismatch
 	GameTooltip:SetText(tooltipText, nil, nil, nil, nil, 1);
 end
 
@@ -229,20 +237,6 @@ local function OnMouseWheel(self, a1)
 	if a1 > 0 then
 		self:SetValue(tempval - 0.01);
 	end
-end
-
----local Inititalize custom left click menu
----@param self Frame
-local function ControlFrame_OnLoad(self)
-	_G[self:GetName() .. "Title"]:SetText(L["TITAN_VOLUME_CONTROL_TITLE"]);         -- VOLUME
-	_G[self:GetName() .. "MasterTitle"]:SetText(L["TITAN_VOLUME_MASTER_CONTROL_TITLE"]); --MASTER_VOLUME
-	_G[self:GetName() .. "MusicTitle"]:SetText(L["TITAN_VOLUME_MUSIC_CONTROL_TITLE"]);
-	_G[self:GetName() .. "SoundTitle"]:SetText(L["TITAN_VOLUME_SOUND_CONTROL_TITLE"]); -- FX_VOLUME
-	_G[self:GetName() .. "AmbienceTitle"]:SetText(L["TITAN_VOLUME_AMBIENCE_CONTROL_TITLE"]);
-	_G[self:GetName() .. "DialogTitle"]:SetText(L["TITAN_VOLUME_DIALOG_CONTROL_TITLE"]);
-	--	_G[self:GetName().."MicrophoneTitle"]:SetText(L["TITAN_VOLUME_MICROPHONE_CONTROL_TITLE"]);
-	--	_G[self:GetName().."SpeakerTitle"]:SetText(L["TITAN_VOLUME_SPEAKER_CONTROL_TITLE"]);
-	TitanPanelRightClickMenu_SetCustomBackdrop(self)
 end
 
 ---local Generate tooltip text
@@ -281,34 +275,7 @@ local function GetTooltipText()
 	return text
 end
 
----local Generate the right click menu
-local function CreateMenu()
-	TitanPanelRightClickMenu_AddTitle(TitanPlugins[TITAN_VOLUME_ID].menuText);
-
-	local info = {};
-	info.notCheckable = true
-	info.text = L["TITAN_VOLUME_MENU_AUDIO_OPTIONS_LABEL"];
-	info.func = function()
-		ShowUIPanel(VideoOptionsFrame);
-	end
-	TitanPanelRightClickMenu_AddButton(info, TitanPanelRightClickMenu_GetDropdownLevel());
-
-	info.text = L["TITAN_VOLUME_MENU_OVERRIDE_BLIZZ_SETTINGS"];
-	info.notCheckable = false
-	info.func = function()
-		TitanToggleVar(TITAN_VOLUME_ID, "OverrideBlizzSettings");
-	end
-	info.checked = TitanGetVar(TITAN_VOLUME_ID, "OverrideBlizzSettings");
-	TitanPanelRightClickMenu_AddButton(info, TitanPanelRightClickMenu_GetDropdownLevel());
-
-	TitanPanelRightClickMenu_AddControlVars(TITAN_VOLUME_ID)
-end
-
----local On double click toggle the all sound mute; will flash the slider frame...
----@param self Button
----@param button string
-local function OnDoubleClick(self, button)
-	if button == "LeftButton" then
+local function ToggleMute()
 		-- Toggle mute value
 		if IsMuted() then
 			SetCVar(ALL_SOUND,"1")
@@ -316,11 +283,33 @@ local function OnDoubleClick(self, button)
 			SetCVar(ALL_SOUND,"0")
 		end
 		SetVolumeIcon()
-		_G[cname]:Hide()
-		TitanPanelButton_UpdateButton(TITAN_VOLUME_ID);
+--		_G[cname]:Hide()
+		TitanPanelButton_UpdateButton(TITAN_VOLUME_ID)
+end
+
+---local On double click toggle the all sound mute; will flash the slider frame...
+---@param self Button
+---@param button string
+local function OnDoubleClick(self, button)
+	if button == "LeftButton" then
+		ToggleMute()
 	else
 		-- No action
 	end
+end
+
+---Generate and display right click menu options for user.
+---@param owner table Plugin frame
+---@param rootDescription table Menu context root
+local function GeneratorFunction(owner, rootDescription)
+	local id = TITAN_VOLUME_ID
+	local root = rootDescription -- menu widget to start with
+
+-- This does not seem to work in any WoW version...
+	--	Titan_Menu.AddCommand(root, id, L["TITAN_VOLUME_MENU_AUDIO_OPTIONS_LABEL"], ShowUIPanel, VideoOptionsFrame)
+
+	-- Moved to the control frame (left click)
+	--Titan_Menu.AddSelector(root, id, L["TITAN_VOLUME_MENU_OVERRIDE_BLIZZ_SETTINGS"], "OverrideBlizzSettings")
 end
 
 ---local Create plugin .registry and and register for first events
@@ -328,6 +317,7 @@ end
 local function OnLoad(self)
 	local notes = ""
 	.. "Adds a volume control icon on your Titan Bar.\n"
+	.. "Needs updates for new menu scheme!\n"
 	.. L["TITAN_VOLUME_TOOLTIP_HINT1"] .. "\n"
 	.. L["TITAN_VOLUME_TOOLTIP_HINT2"] .. "\n"
 	--		.."- xxx.\n"
@@ -336,7 +326,7 @@ local function OnLoad(self)
 		category = "Built-ins",
 		version = TITAN_VERSION,
 		menuText = L["TITAN_VOLUME_MENU_TEXT"],
-		menuTextFunction = CreateMenu,
+		menuContextFunction = GeneratorFunction, -- NEW scheme
 		tooltipTitle = VOLUME, --L["TITAN_VOLUME_TOOLTIP"],
 		tooltipTextFunction = GetTooltipText,
 		iconWidth = 32,
@@ -377,7 +367,7 @@ local function Create_Frames()
 	window:SetFrameStrata("FULLSCREEN")
 	-- Using SetScript("OnLoad",   does not work
 	OnLoad(window);
-	--	TitanPanelButton_OnLoad(window); -- Titan XML template calls this...w
+	--	TitanPanelButton_OnLoad(window); -- Titan XML template calls this...
 
 	window:SetScript("OnShow", function(self)
 		OnShow()
@@ -390,9 +380,16 @@ local function Create_Frames()
 	window:SetScript("OnEvent", function(self, event, ...)
 		OnEvent(self, event, ...)
 	end)
+	window:SetScript("OnDoubleClick", function(self, button)
+		OnDoubleClick(self, button)
+		TitanPanelButton_OnClick(self, button)
+	end)
 
+	window:SetPropagateMouseMotion(true)
 
 	---[===[
+	local mname = cname.."Mute"
+	local bname = cname.."Blizz"
 	-- Config screen
 	local config = CreateFrame("Frame", cname, f, BackdropTemplateMixin and "BackdropTemplate")
 	config:SetFrameStrata("FULLSCREEN") --
@@ -400,6 +397,10 @@ local function Create_Frames()
 	config:SetWidth(400)
 	config:SetHeight(200)
 
+	config:SetScript("OnShow", function(self)
+		_G[mname]:SetChecked(IsMuted())
+		_G[bname]:SetChecked(TitanGetVar(TITAN_VOLUME_ID, "OverrideBlizzSettings"))
+	end)
 	config:SetScript("OnEnter", function(self)
 		TitanUtils_StopFrameCounting(self)
 	end)
@@ -409,37 +410,39 @@ local function Create_Frames()
 	config:SetScript("OnUpdate", function(self, elapsed)
 		TitanUtils_CheckFrameCounting(self, elapsed)
 	end)
-	window:SetScript("OnDoubleClick", function(self, button)
-		OnDoubleClick(self, button)
---		TitanPanelButton_OnClick(self, button)
+
+	local mute_button = CreateFrame("CheckButton", mname, config, "UICheckButtonTemplate")
+	mute_button:SetPoint("BOTTOMLEFT", config, "BOTTOMLEFT", 5, 5)
+	mute_button.text = _G[mname .. "Text"]
+	mute_button.text:SetText(MUTE)
+
+	mute_button:SetChecked(IsMuted())
+	mute_button:SetScript("OnClick", function(self, event, arg1)
+--		if self:GetChecked() then
+		ToggleMute()
 	end)
+	mute_button:SetPropagateMouseMotion(true)
 
-	-- Config font sections
-	local str = nil
-	local style = "GameFontNormalSmall"
-	str = config:CreateFontString(cname .. "Title", "ARTWORK", style)
-	str:SetPoint("TOP", config, 0, -10)
+	local checkButton = CreateFrame("CheckButton", bname, config, "UICheckButtonTemplate")
+	checkButton:SetPoint("BOTTOM", config, "BOTTOM", -10, 5)
+	checkButton.text = _G[bname .. "Text"]
+	checkButton.text:SetText(L["TITAN_VOLUME_MENU_OVERRIDE_BLIZZ_SETTINGS"])
 
-	str = config:CreateFontString(cname .. "MasterTitle", "ARTWORK", style)
-	str:SetPoint("TOP", config, -160, -30)
+	checkButton:SetChecked(TitanGetVar(TITAN_VOLUME_ID, "OverrideBlizzSettings"))
+	checkButton:SetScript("OnClick", function(self, event, arg1)
+		TitanToggleVar(TITAN_VOLUME_ID, "OverrideBlizzSettings")
+	end)
+	checkButton:SetPropagateMouseMotion(true)
 
-	str = config:CreateFontString(cname .. "SoundTitle", "ARTWORK", style)
-	str:SetPoint("TOP", config, -90, -30)
-
-	str = config:CreateFontString(cname .. "MusicTitle", "ARTWORK", style)
-	str:SetPoint("TOP", config, -20, -30)
-
-	str = config:CreateFontString(cname .. "AmbienceTitle", "ARTWORK", style)
-	str:SetPoint("TOP", config, 50, -30)
-
-	str = config:CreateFontString(cname .. "DialogTitle", "ARTWORK", style)
-	str:SetPoint("TOP", config, 130, -30)
-
-	-- ====== Config slider sections
+-- ====== Config slider sections
 
 	local inherit = "TitanOptionsSliderTemplate"
 	for idx, slider in pairs (sliders) do
 		local s = CreateFrame("Slider", idx, config, inherit)
+		local s_name = s:GetName()
+		_G[s_name .. "Title"]:SetText(slider.ltext)
+		_G[s_name .. "Low"]:SetText("100%")
+		_G[s_name .. "High"]:SetText("0%")
 		s:SetPoint("TOP", config, slider.off_x, slider.off_y)
 		s:SetScript("OnShow", function(self)
 			Slider_OnShow(self)
@@ -459,7 +462,8 @@ local function Create_Frames()
 	end
 
 	-- Now that the parts exist, initialize
-	ControlFrame_OnLoad(config)
+		TitanPanelRightClickMenu_SetCustomBackdrop(config)
+
 
 	--]===]
 end

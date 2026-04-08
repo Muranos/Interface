@@ -76,7 +76,7 @@ function mod:DismountedApplied(args)
 	self:StopBar(227363) -- Mighty Stomp
 	self:StopBar(227365) -- Spectral Charge
 	-- Midnight is unattackable and recovers 2% HP per second, phase ends when Midnight reaches 100% HP
-	self:Bar("stages", ceil((100 - self:GetHealth("boss2")) / 2), args.spellName, 164558) -- Dismounted
+	self:Bar("stages", math.ceil((100 - self:GetHealth("boss2")) / 2), args.spellName, 164558) -- Dismounted
 end
 
 function mod:DismountedRemoved(args)
@@ -96,11 +96,11 @@ function mod:DismountedRemoved(args)
 end
 
 function mod:UNIT_SPELLCAST_SUCCEEDED(_, _, _, spellId)
-	if spellId == 227601 then -- Intermission, starts Spectral Charges
+	if not self:IsSecret(spellId) and spellId == 227601 then -- Intermission, starts Spectral Charges
 		inIntermission = true
 		self:Message("stages", "cyan", CL.intermission, 227365) -- Spectral Charge icon
 		self:CDBar("stages", 13.3, CL.intermission, 227365) -- Spectral Charge icon
-	elseif spellId == 227603 then -- Intermission End
+	elseif not self:IsSecret(spellId) and spellId == 227603 then -- Intermission End
 		intermissionOver = true
 		-- if you push Attumen really fast in the first phase he will never enter an Intermission
 		-- but the Intermission End spell will still be cast

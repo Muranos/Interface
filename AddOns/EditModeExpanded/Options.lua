@@ -6,6 +6,21 @@ local AceConfigRegistry = LibStub("AceConfigRegistry-3.0")
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName)
 
 local defaults = {
+    char = {
+        EssentialCooldownViewerSpellIDs = {
+            ["*"] = {},
+        },
+        UtilityCooldownViewerSpellIDs = {
+            ["*"] = {},
+        },
+        BuffIconCooldownViewerSpellIDs = {
+            ["*"] = {},
+        },
+        BuffBarCooldownViewerSpellIDs = {
+            ["*"] = {},
+        },
+        AutoLayoutSwitching = {},
+    },
     global = {
         EMEOptions = {
             lfg = true,
@@ -49,11 +64,22 @@ local defaults = {
             debuffFrame = true,
             objectiveTrackerFrame = true,
             targetFrameBuffs = false,
+            focusFrameBuffs = false,
             gameMenu = true,
             gameTooltip = true,
             lossOfControl = true,
             pet = true,
             extraActionButton = true,
+            cooldownManager = true,
+            durationBars = true,
+            allowSetCoordinates = false,
+            raidSizeLayoutSwitching = false,
+            vigorBar = false,
+            housingControlsFrame = true,
+            personalResourceDisplay = false,
+            targetFrameResize = false,
+            chatFrame = false,
+            battlefieldMap = false,
         },
         QueueStatusButton = {},
         TotemFrame = {},
@@ -78,7 +104,7 @@ local defaults = {
         MicroMenu = {},
         ComboPoints = {},
         BonusRoll = {},
-        MainMenuBar = {},
+        MainActionBar = {},
         MultiBarBottomLeft = {},
         MultiBarBottomRight = {},
         MultiBarRight = {},
@@ -99,10 +125,25 @@ local defaults = {
         MinimapSeparated = {},
         TargetDebuffs = {},
         TargetBuffs = {},
+        FocusBuffs = {},
         GameMenuFrame = {},
         LOC = {},
         PetFrame = {},
         ExtraActionButton = {},
+        EssentialCooldownViewer = {},
+        UtilityCooldownViewer = {},
+        BuffIconCooldownViewer = {},
+        BuffBarCooldownViewer = {},
+        MirrorTimerContainer = {},
+        VigorBar = {},
+        HousingControlsFrame = {},
+        PersonalResourceDisplayHealth = {},
+        PersonalResourceDisplayPower = {},
+        PersonalResourceDisplayClass = {},
+        ChatFrame1 = {},
+        ChatFrame1EditBox = {},
+        GeneralDockManager = {},
+        BattlefieldMapFrame = {},
     }
 }
 
@@ -197,6 +238,16 @@ local options = {
                     desc = string.format(L["TOGGLE_ADDITIONAL_OPTIONS_SUPPORT_STRING"], FOCUS),
                     type = "toggle",
                 },
+                focusFrameBuffs = {
+                    name = FOCUS.." "..BUFFOPTIONS_LABEL,
+                    desc = string.format(L["TOGGLE_SUPPORT_STRING"], FOCUS.." "..BUFFOPTIONS_LABEL),
+                    type = "toggle",
+                },
+                targetFrameResize = {
+                    name = L["Resize Target Frame"],
+                    desc = L["RESIZE_TARGET_FRAME_DESCRIPTION"],
+                    type = "toggle",
+                },
             },
         },
         totem = {
@@ -258,6 +309,11 @@ local options = {
         showCoordinates = {
             name = L["Show Coordinates"],
             desc = L["SHOW_COORDINATES_DESCRIPTION"],
+            type = "toggle",
+        },
+        allowSetCoordinates = {
+            name = "Allow custom coordinates",
+            desc = "Allows frames to be positioned using screen coordinates entered into text fields",
             type = "toggle",
         },
         playerFrame = {
@@ -359,6 +415,46 @@ local options = {
         extraActionButton = {
             name = BINDING_NAME_EXTRAACTIONBUTTON1,
             desc = string.format(L["TOGGLE_ADDITIONAL_OPTIONS_SUPPORT_STRING"], BINDING_NAME_EXTRAACTIONBUTTON1),
+            type = "toggle",
+        },
+        cooldownManager = {
+            name = COOLDOWN_VIEWER_LABEL,
+            desc = string.format(L["TOGGLE_ADDITIONAL_OPTIONS_SUPPORT_STRING"], COOLDOWN_VIEWER_LABEL),
+            type = "toggle",
+        },
+        durationBars = {
+            name = HUD_EDIT_MODE_TIMER_BARS_LABEL,
+            desc = string.format(L["TOGGLE_ADDITIONAL_OPTIONS_SUPPORT_STRING"], HUD_EDIT_MODE_TIMER_BARS_LABEL),
+            type = "toggle",
+        },
+        raidSizeLayoutSwitching = {
+            name = "Layout Switching",
+            type = "group",
+            args = addon.GetLayoutChangeOptions(),
+        },
+        vigorBar = {
+            name = "Vigor Bar",
+            type = "toggle",
+            desc = "Add the pre-11.2.7 Dragonriding Vigor bar"
+        },
+        housingControlsFrame = {
+            name = BINDING_HEADER_HOUSING_SYSTEM,
+            type = "toggle",
+            desc = string.format(L["TOGGLE_ADDITIONAL_OPTIONS_SUPPORT_STRING"], BINDING_HEADER_HOUSING_SYSTEM),
+        },
+        personalResourceDisplay = {
+            name = DISPLAY_PERSONAL_RESOURCE,
+            type = "toggle",
+            desc = "Splits the Personal Resource Display into 3 separate frames: HP, Power (mana/energy/etc), and Class (holy power, etc). That way you can move them separately, or shove one of them off screen if you want.",
+        },
+        chatFrame = {
+            name = HUD_EDIT_MODE_CHAT_FRAME_LABEL,
+            type = "toggle",
+            desc = string.format(L["TOGGLE_ADDITIONAL_OPTIONS_SUPPORT_STRING"], HUD_EDIT_MODE_CHAT_FRAME_LABEL),
+        },
+        battlefieldMap = {
+            name = BATTLEFIELD_MINIMAP,
+            desc = string.format(L["TOGGLE_SUPPORT_STRING"], BATTLEFIELD_MINIMAP),
             type = "toggle",
         },
     },

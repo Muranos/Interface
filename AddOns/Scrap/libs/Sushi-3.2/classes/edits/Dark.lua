@@ -1,5 +1,5 @@
 --[[
-Copyright 2008-2025 João Cardoso
+Copyright 2008-2026 João Cardoso
 Sushi is distributed under the terms of the GNU General Public License (or the Lesser GPL).
 This file is part of Sushi.
 
@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with Sushi. If not, see <http://www.gnu.org/licenses/>.
 --]]
 
-local Dark = LibStub('Sushi-3.2').Editable:NewSushi('DarkEdit', 1, 'EditBox', 'InputBoxScriptTemplate')
+local Dark = LibStub('Sushi-3.2').Editable:NewSushi('DarkEdit', 2, 'EditBox', 'InputBoxScriptTemplate')
 if not Dark then return end
 
 
@@ -40,6 +40,8 @@ function Dark:Construct()
   f:SetHeight(18)
   f:SetJustifyH('CENTER')
   f:SetScript('OnTextChanged', f.OnTextChanged)
+  f:SetScript('OnEditFocusLost', EditBox_ClearHighlight)
+
   f.Label:SetPoint('BOTTOMLEFT', f, 'TOPLEFT', 5, 0)
   f.Bg, f.Left, f.Right = bg, left, right
   return f

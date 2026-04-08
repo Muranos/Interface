@@ -29,6 +29,7 @@ local GetSpellTexture = TMW.GetSpellTexture
 local tContains = TMW.tContains
 local tDeleteItem = TMW.tDeleteItem
 local OnGCD = TMW.OnGCD
+local issecretvalue = TMW.issecretvalue
 
 local RelevantToAll = {
 	__index = {
@@ -118,7 +119,11 @@ function IconType:FormatSpellForOutput(icon, data, doInsertLink)
 	
 	if data then
 		local name
-		if doInsertLink then
+		if issecretvalue(data) and type(data) == "string" then
+			-- Neither of these functions accept secret strings.
+			-- They do accept secret numbers though.
+			name = data
+		elseif doInsertLink then
 			name = GetSpellLink(data)
 		else
 			name = GetSpellName(data)
@@ -339,7 +344,8 @@ function IconType:UpdateUsedProcessors()
 end
 
 -- [INTERNAL]
-function IconType:OnImplementIntoIcon(icon)	
+function IconType:OnImplementIntoIcon(icon)
+
 	self.Icons[#self.Icons + 1] = icon
 
 	-- Implement all of the Processors that the Icon Type uses into the icon.
@@ -490,6 +496,12 @@ IconType:RegisterConfigPanel_ConstructorFunc(1, "TellMeWhen_IsViewAllowed", func
 		end
 	end)
 end)
+
+IconType:RegisterConfigPanel_XMLTemplate(2, "TellMeWhen_IsObsoleteWarning", {
+	OnSetup = function(self)
+		self:SetShown(TMW.CI.icon.typeData.obsolete)
+	end
+})
 
 
 -- [REQUIRED IF USED, FALLBACK]

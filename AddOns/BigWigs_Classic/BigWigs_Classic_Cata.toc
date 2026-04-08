@@ -1,31 +1,31 @@
-## Interface: 40402, 40401
+## Interface: 40402
 
 ## Title: BigWigs [|cffeda55fClassic|r]
 ## Title-zhCN: BigWigs [|cffeda55f经典旧世|r]
-## Title-zhTW: BigWigs [|cffeda55fClassic|r]
+## Title-zhTW: BigWigs [|cffeda55f艾澤拉斯|r]
 ## Title-deDE: BigWigs [|cffeda55fClassic|r]
 ## Title-frFR: BigWigs [|cffeda55fClassique|r]
 ## Title-itIT: BigWigs [|cffeda55fClassic|r]
 ## Title-koKR: BigWigs [|cffeda55f오리지널|r]
 ## Title-ruRU: BigWigs [|cffeda55fClassic|r]
-## Title-ptBR: BigWigs [|cffeda55fClassic|r]
-## Title-esES: BigWigs [|cffeda55fClassic|r]
-## Title-esMX: BigWigs [|cffeda55fClassic|r]
+## Title-ptBR: BigWigs [|cffeda55fClássico|r]
+## Title-esES: BigWigs [|cffeda55fClásico|r]
+## Title-esMX: BigWigs [|cffeda55fClásico|r]
 ## Notes: A collection of BigWigs modules from the Classic era.
 ## Notes-zhCN: BigWigs 经典旧世模块。
-## Notes-zhTW: A collection of BigWigs modules from the Classic era.
+## Notes-zhTW: BigWigs 艾澤拉斯模組。
 ## Notes-deDE: Eine Sammlung von BigWigs-Modulen aus der Ära Classic.
 ## Notes-frFR: Une collection de modules BigWigs de l'ère Classique.
 ## Notes-itIT: A collection of BigWigs modules from the Classic era.
 ## Notes-koKR: 오리지널 BigWigs 모듈 모음집입니다.
 ## Notes-ruRU: A collection of BigWigs modules from the Classic era.
-## Notes-ptBR: A collection of BigWigs modules from the Classic era.
-## Notes-esES: A collection of BigWigs modules from the Classic era.
-## Notes-esMX: A collection of BigWigs modules from the Classic era.
+## Notes-ptBR: Uma coleção de módulos BigWigs da era clássica.
+## Notes-esES: Una colección de módulos BigWigs de la era clásica.
+## Notes-esMX: Una colección de módulos BigWigs de la era clásica.
 
 ## LoadOnDemand: 1
 ## Dependencies: BigWigs
-## Version: v11.1.2
+## Version: v12.0.13
 ## IconTexture: Interface\AddOns\BigWigs\Media\Icons\minimap_legacy.tga
 
 ## X-Category: Raid
@@ -34,8 +34,8 @@
 ## X-Curse-Project-ID: 50625
 ## X-WoWI-ID: 22095
 ## X-Wago-ID: rNkPgm6a
-## X-BigWigs-LoadOn-InstanceId: 409, 469, 509, 531, 309
-## X-BigWigs-Minimum: 378
+## X-BigWigs-LoadOn-InstanceId: 409, 469, 509, 531
+## X-BigWigs-Minimum: 412
 
 MoltenCore\modules.xml
 BlackwingLair\modules.xml

@@ -2,7 +2,7 @@
 local PitBull4 = _G.PitBull4
 local L = PitBull4.L
 
-local wow_cata = PitBull4.wow_cata
+local UnitGetTotalAbsorbs = _G.UnitGetTotalAbsorbs or nil  -- XXX UnitGetTotalAbsorbs was added in MoP but classic doesn't have the API?
 
 local EPSILON = 1e-5
 
@@ -43,7 +43,7 @@ function PitBull4_VisualHeal:OnEnable()
 	self:RegisterEvent("UNIT_HEAL_PREDICTION")
 	self:RegisterEvent("UNIT_HEALTH", "UNIT_HEAL_PREDICTION")
 	self:RegisterEvent("UNIT_MAXHEALTH", "UNIT_HEAL_PREDICTION")
-	if not wow_cata then
+	if UnitGetTotalAbsorbs then
 		self:RegisterEvent("UNIT_ABSORB_AMOUNT_CHANGED", "UNIT_HEAL_PREDICTION")
 	end
 end
@@ -58,7 +58,7 @@ function PitBull4_VisualHeal:UpdateFrame(frame)
 
 	local player_healing = UnitGetIncomingHeals(unit, "player")
 	local all_healing = UnitGetIncomingHeals(unit)
-	local all_absorbs = not wow_cata and UnitGetTotalAbsorbs(unit) or nil
+	local all_absorbs = UnitGetTotalAbsorbs and UnitGetTotalAbsorbs(unit) or nil
 	-- Bail out early if nothing going on for this unit
 	if not player_healing and not all_healing and not all_absorbs then
 		return self:ClearFrame(frame)
@@ -300,7 +300,7 @@ PitBull4_VisualHeal:SetLayoutOptionsFunction(function(self)
 		set = function(info, value)
 			PitBull4.Options.GetLayoutDB(self).show_overabsorb = value
 		end,
-		hidden = not wow_cata,
+		hidden = not UnitGetTotalAbsorbs,
 		disabled = disabled,
 	}
 

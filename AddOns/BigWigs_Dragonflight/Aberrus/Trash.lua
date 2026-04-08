@@ -4,7 +4,7 @@
 
 local mod, CL = BigWigs:NewBoss("Aberrus, the Shadowed Crucible Trash", 2569)
 if not mod then return end
-mod.displayName = CL.trash
+mod:SetTrashModule(true)
 mod:RegisterEnableMob(
 	198873, -- Sundered Edgelord
 	201746, -- Sundered Naturalist

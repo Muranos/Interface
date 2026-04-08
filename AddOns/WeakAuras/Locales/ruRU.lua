@@ -60,6 +60,8 @@ L["25 Man Raid"] = "Рейд на 25 игроков"
 L["25 Player Raid"] = "Рейд на 25 игроков"
 L["25 Player Raid (Heroic)"] = "Рейд на 25 игроков (героический)"
 L["25 Player Raid (Normal)"] = "Рейд на 25 игроков (обычный)"
+--[[Translation missing --]]
+L["25 Player Raid (Titan Reforged)"] = "25 Player Raid (Titan Reforged)"
 L["40 Man Raid"] = "Рейд на 40 игроков"
 L["40 Player Raid"] = "Рейд на 40 игроков"
 L["5 Man Dungeon"] = "Подземелье"
@@ -92,6 +94,10 @@ L["Afk"] = "Отсутствует (AFK)"
 L["Aggro"] = "Агро"
 L["Agility"] = "Ловкость"
 L["Ahn'Qiraj"] = "Ан'Кираж"
+--[[Translation missing --]]
+L["Akil'zon"] = "Akil'zon"
+--[[Translation missing --]]
+L["Al'ar"] = "Al'ar"
 L["Alert Type"] = "Тип предупреждения"
 L["Alive"] = "Живой"
 L["All"] = "Все"
@@ -109,6 +115,8 @@ L["Always True"] = "Истина"
 L["Amount"] = "Количество"
 L["Anchoring"] = "Закрепление"
 L["And Talent"] = "И талант"
+--[[Translation missing --]]
+L["Anetheron"] = "Anetheron"
 L["Angle and Radius"] = "Угол и радиус"
 L["Animations"] = "Анимация"
 L["Anticlockwise"] = "Против часовой стрелки"
@@ -117,6 +125,10 @@ L["Any"] = "Любая"
 L["Any Triggers"] = "Любые триггеры"
 L["AOE"] = "Урон по области (AOE)"
 L["Arcane Resistance"] = "Сопротивление тайной магии"
+--[[Translation missing --]]
+L["Archavon the Stone Watcher"] = "Archavon the Stone Watcher"
+--[[Translation missing --]]
+L["Archimonde"] = "Archimonde"
 L[ [=[Are you sure you want to run the |cffff0000EXPERIMENTAL|r repair tool?
 This will overwrite any changes you have made since the last database upgrade.
 Last upgrade: %s]=] ] = [=[Вы уверены, что хотите запустить |cFFFF0000ЭКСПЕРИМЕНТАЛЬНОЕ|r средство восстановления данных?
@@ -127,12 +139,18 @@ Last upgrade: %s]=] ] = [=[Вы уверены, что хотите запуст
 L["Arena"] = "Арена"
 L["Armor (%)"] = "Броня (%)"
 L["Armor against Target (%)"] = "Броня против текущей цели (%)"
+--[[Translation missing --]]
+L["Armor Peneration Percent"] = "Armor Peneration Percent"
+--[[Translation missing --]]
+L["Armor Peneration Rating"] = "Armor Peneration Rating"
 L["Armor Rating"] = "Показатель брони"
 L["Array"] = "Массив"
 L["Ascending"] = "По возрастанию"
 L["Assigned Role"] = "Выбранная роль"
 L["Assigned Role Icon"] = "Иконка выбранной роли"
 L["Assist"] = "Помощник"
+--[[Translation missing --]]
+L["Assisted Combat Next Cast"] = "Assisted Combat Next Cast"
 L["At Least One Enemy"] = "Хотя бы один противник"
 L["At missing Value"] = "От недостающего значения"
 L["At Percent"] = "В процентах"
@@ -146,6 +164,8 @@ L["Attach to Start"] = "Прикрепить к началу"
 L["Attack Power"] = "Сила атаки"
 L["Attackable"] = "Может быть атакована"
 L["Attackable Target"] = "Цель можно атаковать"
+--[[Translation missing --]]
+L["Attumen the Huntsman"] = "Attumen the Huntsman"
 L["Aura"] = "Аура"
 L["Aura '%s': %s"] = "Индикация %s - %s"
 L["Aura Applied"] = "Эффект применен"
@@ -177,10 +197,13 @@ L["Available features: %s"] = "Доступные функции: %s"
 L["Avoidance (%)"] = "Избегание (%)"
 L["Avoidance Rating"] = "Показатель избегания"
 L["Ayamiss the Hunter"] = "Аямисса Охотница"
+--[[Translation missing --]]
+L["Azgalor"] = "Azgalor"
 L["Azuregos"] = "Азурегос"
 L["Back and Forth"] = "Назад и вперед"
 L["Background"] = "Задний план"
 L["Background Color"] = "Цвет заднего плана"
+L["Balnazzar"] = "Балназзар"
 L["Bar Color/Gradient Start"] = "Цвет полосы / Начало градиента"
 --[[Translation missing --]]
 L["Bar enabled in BigWigs settings"] = "Bar enabled in BigWigs settings"
@@ -189,11 +212,15 @@ L["Bar enabled in Boss Mod addon settings"] = "Bar enabled in Boss Mod addon set
 --[[Translation missing --]]
 L["Bar enabled in DBM settings"] = "Bar enabled in DBM settings"
 L["Bar Texture"] = "Текстура полосы"
+--[[Translation missing --]]
+L["Bar Type"] = "Bar Type"
 L["Baron Geddon"] = "Барон Геддон"
 L["Battle for Azeroth"] = "Battle for Azeroth"
 L["Battle.net Whisper"] = "Шепот в сети Battle.net"
 L["Battleground"] = "Поле боя"
 L["Battleguard Sartura"] = "Боевой страж Сартура"
+L["Beastmaster"] = "Повелитель зверей"
+L["Beatrix"] = "Беатриса"
 L["BG>Raid>Party>Say"] = "Поле боя > Рейд > Группа > Сказать"
 L["BG-System Alliance"] = "Поле боя: Альянс"
 L["BG-System Horde"] = "Поле боя: Орда"
@@ -203,6 +230,8 @@ L["BigWigs Addon"] = "Аддон BigWigs"
 L["BigWigs Message"] = "Сообщение BigWigs"
 L["BigWigs Stage"] = "Фаза сражения с боссом BigWigs"
 L["BigWigs Timer"] = "Таймер BigWigs"
+--[[Translation missing --]]
+L["Black Temple"] = "Black Temple"
 L["Black Wing Lair"] = "Логово Крыла Тьмы"
 L["Bleed"] = "Кровотечение"
 L["Blizzard Combat Text"] = "Текст боя Blizzard"
@@ -231,13 +260,17 @@ L["Bottom Right"] = "Снизу справа"
 L["Bottom to Top"] = "Снизу вверх"
 L["Bounce"] = "Отскок"
 L["Bounce with Decay"] = "Отскок с затуханием"
+L["Break"] = "Перерыв"
 L["BreakUpLargeNumbers (Blizzard)"] = "РазделениеБольшихЧисел (Blizzard)"
 L["Broodlord Lashlayer"] = "Предводитель драконов Разящий Бич"
+--[[Translation missing --]]
+L["Brutallus"] = "Brutallus"
 L["Buff"] = "Бафф"
 L["Buff/Debuff"] = "Бафф / Дебафф"
 L["Buffed/Debuffed"] = "Есть бафф / дебафф"
 L["Burning Crusade"] = "Burning Crusade"
 L["Buru the Gorger"] = "Буру Ненасытный"
+L["Caldoran"] = "Калдоран"
 L["Callback function"] = "Функция обратного вызова"
 L["Can be used for e.g. checking if \"boss1target\" is the same as \"player\"."] = [=[Используется для проверки того факта, что две единицы - одна и та же сущность, объект.
 Например: выбрав в качестве единицы игрока и указав для данного параметра значение "boss1target", можно определить, являетесь ли вы целью босса.]=]
@@ -295,6 +328,8 @@ L["Chat Frame"] = "Окно чата"
 L["Chat Message"] = "Сообщение в чат"
 L["Check if a single talent match a Rank"] = "Проверьте, соответствует ли отдельный талант рангу"
 L["Check nameplate's target every 0.2s"] = "Проверять цель индикаторов здоровья каждые 0.2 секунды"
+--[[Translation missing --]]
+L["Chess Event"] = "Chess Event"
 L["Chromaggus"] = "Хроммагус"
 L["Circle"] = "Круг"
 L["Circular Texture"] = "Круглая текстура"
@@ -308,6 +343,8 @@ L["Clockwise"] = "По часовой стрелке"
 L["Clone per Character"] = "Clone per Character"
 L["Clone per Event"] = "Клонировать для каждого события"
 L["Clone per Match"] = "Клонировать для каждого совпадения"
+--[[Translation missing --]]
+L["Coilfang: Serpentshrine Cavern"] = "Coilfang: Serpentshrine Cavern"
 --[[Translation missing --]]
 L["Coin Precision"] = "Coin Precision"
 L["Color"] = "Цвет"
@@ -333,6 +370,14 @@ L["Could not load WeakAuras Archive, the addon is %s"] = "Не удалось з
 L["Count"] = "Количество"
 L["Counter Clockwise"] = "Против часовой стрелки"
 L["Create"] = "Создание"
+--[[Translation missing --]]
+L["Creature Family"] = "Creature Family"
+--[[Translation missing --]]
+L["Creature Family Name"] = "Creature Family Name"
+--[[Translation missing --]]
+L["Creature Type"] = "Creature Type"
+--[[Translation missing --]]
+L["Creature Type Name"] = "Creature Type Name"
 L["Critical"] = "Критический эффект"
 L["Critical (%)"] = "Критический удар (%)"
 L["Critical Rating"] = "Показатель критического удара"
@@ -365,6 +410,8 @@ L["Custom Sort"] = "Свой критерий сортировки"
 L["Custom Text Function"] = "Пользовательская текстовая функция"
 L["Custom Trigger Combination"] = "Комбинация триггеров"
 L["Custom Variables"] = "Свои переменные"
+--[[Translation missing --]]
+L["Daakara"] = "Daakara"
 L["Damage"] = "Урон"
 L["Damage Shield"] = "Урон от щита"
 L["Damage Shield Missed"] = "Урон от щита (промах)"
@@ -382,6 +429,8 @@ L["Debuff Type"] = "Тип дебаффа"
 L["Debug Log contains more than 1000 entries"] = "Журнал отладки содержит более 1000 записей."
 L["Debug Logging enabled"] = "Ведение журнала отладки включено"
 L["Debug Logging enabled for '%s'"] = "Ведение журнала отладки включено для индикации %s."
+--[[Translation missing --]]
+L["Defense"] = "Defense"
 L["Defensive Stats"] = "Защитная характеристика"
 L["Deflect"] = "Отклонение"
 L["Delve"] = "Вылазка"
@@ -425,6 +474,8 @@ L["Dragonflight"] = "Dragonflight"
 L["Drain"] = "Вытягивание"
 L["Dropdown Menu"] = "Выпадающее меню"
 L["Dumping table"] = "Дамп таблицы"
+--[[Translation missing --]]
+L["Dungeon (Celestial)"] = "Dungeon (Celestial)"
 L["Dungeon (Heroic)"] = "Подземелье (героическое)"
 L["Dungeon (Mythic)"] = "Подземелье (эпохальное)"
 L["Dungeon (Mythic+)"] = "Подземелье (М+)"
@@ -440,7 +491,6 @@ L["Ease In"] = "Плавное начало"
 L["Ease In and Out"] = "Плавное начало и окончание"
 L["Ease Out"] = "Плавное окончание"
 L["Ebonroc"] = "Черноскал"
-L["Eclipse"] = "Затмение"
 L["Eclipse Direction"] = "Направление затмения"
 L["Edge"] = "Эффект Edge (кромка)"
 L["Edge of Madness"] = "Грань Безумия"
@@ -486,6 +536,8 @@ L["Equipment Set"] = "Комплект экипировки"
 L["Equipment Set Equipped"] = "Комплект экипировки надет"
 L["Equipment Slot"] = "Ячейка экипировки"
 L["Equipped"] = "Надето"
+--[[Translation missing --]]
+L["Eredar Twins"] = "Eredar Twins"
 L["Error"] = "Ошибка"
 L[ [=[Error '%s' created a secure clone. We advise deleting the aura. For more information:
 https://github.com/WeakAuras/WeakAuras2/wiki/Protected-Frames]=] ] = "Ошибка при возвращении в пул клона индикации %s, поскольку кадр защищён. Советуем удалить эту индикацию. Подробная информация на странице: https://github.com/WeakAuras/WeakAuras2/wiki/Protected-Frames"
@@ -495,6 +547,8 @@ L["Error decompressing. This doesn't look like a WeakAuras import."] = "Ошиб
 L["Error deserializing"] = "Ошибка десериализации"
 L["Error Frame"] = "Область вывода ошибок"
 L["ERROR in '%s' unknown or incompatible sub element type '%s'"] = "Ошибка в индикации %s. Внутренний элемент неизвестного или несовместимого типа %s."
+--[[Translation missing --]]
+L["Error in Aura '%s'"] = "Error in Aura '%s'"
 L["Error not receiving display information from %s"] = [=[Ошибка при получении информации об индикации 
 от %s]=]
 L["Essence"] = "Сущность"
@@ -530,8 +584,12 @@ L["Fade Out"] = "Исчезновение"
 L["Fail Alert"] = "Неудача"
 L["False"] = "Ложь"
 L["Fankriss the Unyielding"] = "Фанкрисс Непреклонный"
+--[[Translation missing --]]
+L["Fathom-Lord Karathress"] = "Fathom-Lord Karathress"
 L["Feature %q is already disabled"] = "Функция %q уже отключена"
 L["Feature %q is already enabled"] = "Функция %q уже включена"
+--[[Translation missing --]]
+L["Felmyst"] = "Felmyst"
 L["Fetch Absorb"] = "Получить поглощение"
 L["Fetch Heal Absorb"] = "Получить поглащение исцеления"
 L["Fetch Legendary Power"] = "Получить информацию о легендарной способности"
@@ -593,6 +651,8 @@ L["Global Cooldown"] = "Общее время восстановления (GCD)
 L["Glow"] = "Свечение"
 L["Glow External Element"] = "Свечение внешнего элемента"
 L["Gluth"] = "Глут"
+--[[Translation missing --]]
+L["Glyph"] = "Glyph"
 L["Gold"] = "Золото"
 L["Golemagg the Incinerator"] = "Големагг Испепелитель"
 L["Gothik the Harvester"] = "Готик Жнец"
@@ -610,10 +670,18 @@ L["Group Leader/Assist"] = "Лидер / Помощник группы"
 L["Group Size"] = "Размер группы"
 L["Group Type"] = "Тип группы"
 L["Grow"] = "Рост"
+--[[Translation missing --]]
+L["Gruul the Dragonkiller"] = "Gruul the Dragonkiller"
+--[[Translation missing --]]
+L["Gruul's Lair"] = "Gruul's Lair"
 L["GTFO Alert"] = "Предупреждение GTFO"
 L["Guardian"] = "Страж"
 L["Guild"] = "Гильдия"
+--[[Translation missing --]]
+L["Gurtogg Bloodboil"] = "Gurtogg Bloodboil"
 L["Hakkar"] = "Хаккар"
+--[[Translation missing --]]
+L["Halazzi"] = "Halazzi"
 L["Hardcore"] = "Хардкор"
 L["Has Target"] = "Есть цель"
 L["Has Vehicle UI"] = "Имеет UI транспорта"
@@ -630,15 +698,23 @@ L["Heigan the Unclean"] = "Хейган Нечестивый"
 L["Height"] = "Высота"
 L["Hero Talent"] = "Героический талант"
 L["Heroic Party"] = "Группа (героическая)"
+--[[Translation missing --]]
+L["Hex Lord Malacrass"] = "Hex Lord Malacrass"
 L["Hide"] = "Скрыть"
 L["Hide 0 cooldowns"] = "Скрыть 0"
 L["Hide Timer Text"] = "Скрыть отсчет времени"
+--[[Translation missing --]]
+L["High Astromancer Solarian"] = "High Astromancer Solarian"
 L["High Damage"] = "Большой урон"
+--[[Translation missing --]]
+L["High King Maulgar"] = "High King Maulgar"
 L["High Priest Thekal"] = "Верховный жрец Текал"
 L["High Priest Venoxis"] = "Верховный жрец Веноксис"
 L["High Priestess Arlokk"] = "Верховная жрица Арлокк"
 L["High Priestess Jeklik"] = "Верховная жрица Джеклик"
 L["High Priestess Mar'li"] = "Верховная жрица Мар'ли"
+--[[Translation missing --]]
+L["High Warlord Naj'entus"] = "High Warlord Naj'entus"
 L["Higher Than Tank"] = "Больше чем у основной цели"
 --[[Translation missing --]]
 L["Highest Spell Id"] = "Highest Spell Id"
@@ -651,6 +727,8 @@ L["Hostile"] = "Враждебный"
 L["Hostility"] = "Враждебность"
 L["Humanoid"] = "Гуманоид"
 L["Hybrid"] = "Гибридная"
+--[[Translation missing --]]
+L["Hydross the Unstable"] = "Hydross the Unstable"
 L["Icon"] = "Иконка"
 L["Icon Function"] = "Функция иконки"
 L["Icon Function (fallback state)"] = "Функция иконки (резервное состояние)"
@@ -665,6 +743,8 @@ L["Ignore Self"] = "Не учитывать себя"
 --[[Translation missing --]]
 L["Ignore Spell Cooldown/Charges"] = "Ignore Spell Cooldown/Charges"
 L["Ignore Spell Override"] = "Игнорировать переопределение заклинания"
+--[[Translation missing --]]
+L["Illidan Stormrage"] = "Illidan Stormrage"
 L["Immune"] = "Невосприимчивость"
 L["Important"] = "Важно"
 L["Importing will start after combat ends."] = "Импорт начнется после окончания боя."
@@ -681,7 +761,6 @@ L["Include Bank"] = "Учитывать банк"
 L["Include Charges"] = "Учитывать заряды"
 L["Include Death Runes"] = "Учитывать руны смерти"
 L["Include Pets"] = "Учитывать питомцев"
-L["Include Reagent Bank"] = "Включить банк реагентов"
 L["Include War Band Bank"] = "Включить банк отряда"
 L["Incoming Heal"] = "Поступающее исцеление"
 L["Increase Precision Below"] = "Увеличить точность, если меньше"
@@ -737,12 +816,26 @@ L["Item Type"] = "Тип предмета"
 L["Item Type Equipped"] = "Тип надетого предмета"
 --[[Translation missing --]]
 L["ItemId"] = "ItemId"
+--[[Translation missing --]]
+L["Jan'alai"] = "Jan'alai"
 L["Jin'do the Hexxer"] = "Джин'до Проклинатель"
 L["Journal Stage"] = "Фаза"
+--[[Translation missing --]]
+L["Kael'thas Sunstrider"] = "Kael'thas Sunstrider"
+--[[Translation missing --]]
+L["Kalecgos"] = "Kalecgos"
+--[[Translation missing --]]
+L["Karazhan"] = "Karazhan"
+--[[Translation missing --]]
+L["Kaz'rogal"] = "Kaz'rogal"
 L["Kazzak"] = "Каззак"
 L["Keep Inside"] = "Только внутри"
 L["Kel'Thuzad"] = "Кел'Тузад"
+--[[Translation missing --]]
+L["Kil'jaeden"] = "Kil'jaeden"
 L["Kurinnaxx"] = "Куриннакс"
+--[[Translation missing --]]
+L["Lady Vashj"] = "Lady Vashj"
 L["Large"] = "Крупный"
 L["Latency"] = "Задержка"
 L["Leader"] = "Лидер"
@@ -761,8 +854,11 @@ L["Legacy RGB Gradient"] = "Градиент RGB"
 L["Legacy RGB Gradient Pulse"] = "Градиентная пульсация RGB"
 L["Legion"] = "Legion"
 L["Length"] = "Длина"
+--[[Translation missing --]]
+L["Leotheras the Blind"] = "Leotheras the Blind"
 L["Level"] = "Уровень"
 L["LibSharedMedia"] = "LibSharedMedia"
+L["Lillian Voss"] = "Лилиан Восс"
 L["Limited"] = "Ограниченное"
 L["Linear Texture"] = "Линейная текстура"
 L["Lines & Particles"] = "Линии или частицы"
@@ -775,17 +871,28 @@ L["Loot"] = "Добыча"
 L["Loot Specialization"] = "Специализация добычи"
 L["Loot Specialization Id"] = "Идентификатор специализации добычи"
 L["Loot Specialization Name"] = "Название специализации добычи"
+--[[Translation missing --]]
+L["Lord Kazzak"] = "Lord Kazzak"
+--[[Translation missing --]]
+L["Lorewalking"] = "Lorewalking"
 L["Lost"] = "Израсходован"
 L["Low Damage"] = "Незначительный урон"
 L["Lower Than Tank"] = "Меньше чем у основной цели"
 --[[Translation missing --]]
 L["Lowest Spell Id"] = "Lowest Spell Id"
 L["Lua error"] = "Ошибка Lua"
-L["Lua error in aura '%s': %s"] = "Ошибка Lua в индикации '%s': %s"
+--[[Translation missing --]]
+L["Lua error in Aura '%s': %s"] = "Lua error in Aura '%s': %s"
 L["Lucifron"] = "Люцифрон"
 L["Maexxna"] = "Мексна"
 L["Magic"] = "Магия"
 L["Magmadar"] = "Магмадар"
+--[[Translation missing --]]
+L["Magtheridon"] = "Magtheridon"
+--[[Translation missing --]]
+L["Magtheridon's Lair"] = "Magtheridon's Lair"
+--[[Translation missing --]]
+L["Maiden of Virtue"] = "Maiden of Virtue"
 L["Main Character"] = "Главный персонаж"
 L["Main Stat"] = "Основная характеристика"
 L["Majordomo Executus"] = "Мажордом Экзекутус"
@@ -795,6 +902,8 @@ L["Manual Icon"] = "Ручная иконка"
 L["Manual Rotation"] = "Ручной поворот"
 L["Marked First"] = "В начале списка"
 L["Marked Last"] = "В конце списка"
+--[[Translation missing --]]
+L["Mason"] = "Mason"
 L["Master"] = "Основной"
 L["Mastery (%)"] = "Искусность (%)"
 L["Mastery Rating"] = "Показатель искусности"
@@ -849,13 +958,23 @@ L["Monster Say"] = "Речь существа"
 L["Monster Whisper"] = "Шепот существа"
 L["Monster Yell"] = "Крик существа"
 L["Moon"] = "Луна"
+--[[Translation missing --]]
+L["Moroes"] = "Moroes"
+--[[Translation missing --]]
+L["Morogrim Tidewalker"] = "Morogrim Tidewalker"
 L["Most remaining time"] = "Наибольшее оставшееся время"
+--[[Translation missing --]]
+L["Mother Shahraz"] = "Mother Shahraz"
 L["Mounted"] = "Верхом"
 L["Mouse Cursor"] = "Курсор мыши"
 L["Movement Speed Rating"] = "Показатель скорости передвижения"
 L["Multi-target"] = "Несколько целей"
+--[[Translation missing --]]
+L["M'uru"] = "M'uru"
 L["Mythic Keystone"] = "Эпохальный ключ"
 L["Mythic+ Affix"] = "Свойство эпохального ключа"
+--[[Translation missing --]]
+L["Nalorakk"] = "Nalorakk"
 L["Name"] = "Название"
 L["Name Function"] = "Функция названия"
 L["Name Function (fallback state)"] = "Функция названия (резервное состояние)"
@@ -864,17 +983,20 @@ L["Name of the (sub-)zone currently shown above the minimap."] = "Названи
 L["Name(s)"] = "Название"
 L["Name/Realm of Caster's Target"] = "Имя / Игр. мир цели заклинателя"
 L["Nameplate"] = "Индикатор здоровья"
-L["Nameplate Type"] = "Тип индикатора здоровья"
 L["Nameplates"] = "Индикаторы здоровья"
 L["Names of affected Players"] = "Имена задействованных игроков"
 L["Names of unaffected Players"] = "Имена незадействованных игроков"
 L["Nature Resistance"] = "Сопротивление силам природы"
 L["Naxxramas"] = "Наксрамас"
 L["Nefarian"] = "Нефариан"
+--[[Translation missing --]]
+L["Netherspite"] = "Netherspite"
 L["Neutral"] = "Нейтральный"
 L["Never"] = "Никогда"
 L["Next Combat"] = "Режим боя"
 L["Next Encounter"] = "Сражение с боссом"
+--[[Translation missing --]]
+L["Nightbane"] = "Nightbane"
 L[ [=[No active boss mod addon detected.
 
 Note: This trigger will use BigWigs or DBM, in that order if both are installed.]=] ] = "Активный мод босса не обнаружен. Примечание. Этот триггер будет использовать BigWigs или DBM (в том порядке, если оба они установлены)."
@@ -949,6 +1071,8 @@ L["Only if on a different realm"] = "Только если из другого �
 L["Only if Primary"] = "Только если основной"
 L["Onyxia"] = "Ониксия"
 L["Opaque"] = "Непрозрачность"
+--[[Translation missing --]]
+L["Opera Hall"] = "Opera Hall"
 L["Option Group"] = "Группа параметров"
 L["Options could not be loaded, the addon is %s"] = "Не удалось загрузить WeakAuras Options. Причина - %s"
 L["Options will finish loading after combat ends."] = "Параметры загрузятся после окончания боя."
@@ -962,6 +1086,8 @@ L["Other Addons"] = "Другие аддоны"
 L["Other Events"] = "Другие события"
 L["Ouro"] = "Оуро"
 L["Outline"] = "Контур"
+--[[Translation missing --]]
+L["Over Energize"] = "Over Energize"
 L["Overhealing"] = "Избыточное исцеление"
 L["Overkill"] = "Избыточный урон"
 L["Overlay %s"] = "Наложение %s"
@@ -1025,6 +1151,8 @@ L["Power Type"] = "Тип энергии"
 L["Precision"] = "Точность"
 L["Preset"] = "Набор эффектов"
 L["Primary Stats"] = "Основная характеристика"
+--[[Translation missing --]]
+L["Prince Malchezaar"] = "Prince Malchezaar"
 L["Princess Huhuran"] = "Принцесса Хухуран"
 L["Print Profiling Results"] = "Вывести результаты профилирования"
 L["Proc Glow"] = "Свечение при активации"
@@ -1039,8 +1167,12 @@ L["Progress"] = "Прогресс"
 L["Progress Source"] = "Источник прогресса"
 L["Progress Total"] = "Общее значение"
 L["Progress Value"] = "Текущее значение"
+--[[Translation missing --]]
+L["Pull"] = "Pull"
 L["Pulse"] = "Пульсация"
 L["PvP Flagged"] = "В режиме PvP"
+--[[Translation missing --]]
+L["PvP Mode Active"] = "PvP Mode Active"
 L["PvP Talent selected"] = "PvP талант выбран"
 L["PvP Talent Selected"] = "PvP талант выбран"
 L["Quality Id"] = "ID качества"
@@ -1049,6 +1181,8 @@ L["Quantity earned this week"] = "Заработано на этой недел�
 L["Quest Party"] = "Групповое задание"
 L["Queued Action"] = "Действие в очереди"
 L["Radius"] = "Радиус"
+--[[Translation missing --]]
+L["Rage Winterchill"] = "Rage Winterchill"
 L["Ragnaros"] = "Рагнарос"
 L["Raid"] = "Рейд"
 L["Raid (Heroic)"] = "Рейд (героический)"
@@ -1077,6 +1211,8 @@ L["Realm"] = "Игровой мир"
 L["Realm Name"] = "Название игрового мира"
 L["Realm of Caster's Target"] = "Игровой мир цели заклинателя"
 --[[Translation missing --]]
+L["Reborn Council"] = "Reborn Council"
+--[[Translation missing --]]
 L["Receiving %s Bytes"] = "Receiving %s Bytes"
 L["Receiving display information"] = "Получение информации об индикации от %s ..."
 L["Reflect"] = "Отражение"
@@ -1084,6 +1220,8 @@ L["Region type %s not supported"] = "Тип региона \"%s\" не подд�
 L["Relative"] = "Относительно"
 L["Relative X-Offset"] = "Относительное смещение по X"
 L["Relative Y-Offset"] = "Относительное смещение по Y"
+--[[Translation missing --]]
+L["Reliquary of Souls"] = "Reliquary of Souls"
 L["Remaining Duration"] = "Оставшееся время"
 L["Remaining Time"] = "Оставшееся время"
 L["Remove Obsolete Auras"] = "Удалить устаревшие индикации"
@@ -1142,6 +1280,7 @@ L["Rune Count - Unholy"] = "Количество рун нечестивости
 L["Sapphiron"] = "Сапфирон"
 L["Say"] = "Сказать"
 L["Scale"] = "Масштаб"
+L["Scarlet Enclave"] = "Анклав Алого Ордена"
 L["Scenario"] = "Сценарий"
 L["Scenario (Heroic)"] = "Сценарий (героический)"
 L["Scenario (Normal)"] = "Сценарий (обычный)"
@@ -1156,11 +1295,24 @@ L[ [=[Secure frame detected. Find more information:
 https://github.com/WeakAuras/WeakAuras2/wiki/Protected-Frames]=] ] = [=[Обнаружен защищённый кадр. Подробная информация на странице:
 https://github.com/WeakAuras/WeakAuras2/wiki/Protected-Frames]=]
 L["Select Frame"] = "Выбрать кадр"
+--[[Translation missing --]]
+L["Select the type of timer to filter"] = "Select the type of timer to filter"
 L["Selection Mode"] = "Режим выбора"
 L["Separator"] = "Разделитель"
-L["Set IDs can be found on websites such as classic.wowhead.com/item-sets"] = "ID комплектов можно найти на ru.classic.wowhead.com/item-sets"
 L["Set IDs can be found on websites such as wowhead.com/cata/item-sets"] = "Идентификаторы комплектов можно найти здесь - wowhead.com/cata/item-sets"
+--[[Translation missing --]]
+L["Set IDs can be found on websites such as wowhead.com/classic/item-sets"] = "Set IDs can be found on websites such as wowhead.com/classic/item-sets"
 L["Set IDs can be found on websites such as wowhead.com/item-sets"] = "ID комплектов можно найти на ru.wowhead.com/item-sets"
+--[[Translation missing --]]
+L["Set IDs can be found on websites such as wowhead.com/mop-classic/item-sets"] = "Set IDs can be found on websites such as wowhead.com/mop-classic/item-sets"
+--[[Translation missing --]]
+L["Set IDs can be found on websites such as wowhead.com/tbc/item-sets"] = "Set IDs can be found on websites such as wowhead.com/tbc/item-sets"
+--[[Translation missing --]]
+L["Set IDs can be found on websites such as wowhead.com/wotlk/item-sets"] = "Set IDs can be found on websites such as wowhead.com/wotlk/item-sets"
+--[[Translation missing --]]
+L["Shade of Akama"] = "Shade of Akama"
+--[[Translation missing --]]
+L["Shade of Aran"] = "Shade of Aran"
 L["Shadow Resistance"] = "Сопротивление темной магии"
 L["Shadowlands"] = "Shadowlands"
 L["Shake"] = "Дрожь"
@@ -1204,6 +1356,7 @@ L["Small"] = "Мелкий"
 L["Smart Group"] = "Рейд > Группа > Игрок"
 L["Soft Enemy"] = "Противник при динам. выделении"
 L["Soft Friend"] = "Союзник при динам. выделении"
+L["Solistrasza"] = "Солистраза"
 L["Sound"] = "Звук"
 L["Sound by Kit ID"] = "Звук по ID набора"
 L["Source"] = "Источник"
@@ -1258,6 +1411,8 @@ L["Stacks Function"] = "Функция стаков"
 L["Stacks Function (fallback state)"] = "Функция стаков (резервное состояние)"
 L["Stage"] = "Фаза"
 L["Stage Counter"] = "Счетчик фаз"
+--[[Translation missing --]]
+L["Stagger"] = "Stagger"
 L["Stagger (%)"] = "Пошатывание (%)"
 L["Stagger against Target (%)"] = "Пошатывание против текущей цели (%)"
 L["Stagger Scale"] = [=[Масштаб пошатывания
@@ -1301,6 +1456,8 @@ Group Zone IDs must be prefixed with 'g', e.g. 'g277'.
 Supports Area IDs from https://wago.tools/db2/AreaTable prefixed with 'a'. 
 Supports Instance IDs prefixed with 'i'.
 Entries can be prefixed with '-' to negate.]=] ] = "Поддерживает несколько записей, разделённых запятыми. Чтобы включить идентификаторы дочерних зон, используйте префикс 'c', например, 'c2022'. IDs групп зон должны начинаться с 'g', например, 'g277'. Поддерживает IDs областей из https://wago.tools/db2/AreaTable с префиксом 'a'. Поддерживает IDs экземпляров с префиксом 'i'. Записи могут иметь префикс '-' для отрицания."
+--[[Translation missing --]]
+L["Supremus"] = "Supremus"
 L["Swing"] = "Ближний бой"
 L["Swing Timer"] = "Таймер Swing (время между атаками)"
 L["Swipe"] = "Эффект Swipe (затемнение)"
@@ -1319,6 +1476,12 @@ L["Tanking And Highest"] = "Вы основная цель; макс. угроз
 L["Tanking But Not Highest"] = "Вы основная цель; не макс. угроза"
 L["Target"] = "Цель"
 L["Targeted"] = "Цель"
+--[[Translation missing --]]
+L["Tempest Keep"] = "Tempest Keep"
+--[[Translation missing --]]
+L["Terestian Illhoof"] = "Terestian Illhoof"
+--[[Translation missing --]]
+L["Teron Gorefiend"] = "Teron Gorefiend"
 L["Tertiary Stats"] = "Третичная характеристика"
 --[[Translation missing --]]
 L["Test if bar is enabled in BigWigs settings"] = "Test if bar is enabled in BigWigs settings"
@@ -1336,10 +1499,22 @@ L["Texture Picker"] = "Выбор текстуры"
 L["Texture Rotation"] = "Поворот текстуры"
 L["Thaddius"] = "Таддиус"
 L["The aura has overwritten the global '%s', this might affect other auras."] = "Индикация перезаписала значение глобальной переменной %s. Это может повлиять как на другие индикации, так и на ваш интерфейс!"
+--[[Translation missing --]]
+L["The aura tried to overwrite the aura_env global, which is not allowed."] = "The aura tried to overwrite the aura_env global, which is not allowed."
+--[[Translation missing --]]
+L["The Battle for Mount Hyjal"] = "The Battle for Mount Hyjal"
+--[[Translation missing --]]
+L["The Curator"] = "The Curator"
 L["The effective level differs from the level in e.g. Time Walking dungeons."] = "Масштабированное значение уровня игрока в ходе события (Путешествие во времени) или использования функции (Синхронизация групп)"
 L["The Four Horsemen"] = "Четыре всадника"
 L["The 'ID' value can be found in the BigWigs options of a specific spell"] = "Значение ID можно найти в параметрах BigWigs для конкретного заклинания"
+--[[Translation missing --]]
+L["The Illidari Council"] = "The Illidari Council"
+--[[Translation missing --]]
+L["The Lurker Below"] = "The Lurker Below"
 L["The Prophet Skeram"] = "Пророк Скерам"
+--[[Translation missing --]]
+L["The Sunwell Plateau"] = "The Sunwell Plateau"
 --[[Translation missing --]]
 L["The total quantity a warband character can transfer after paying the transfer cost"] = "The total quantity a warband character can transfer after paying the transfer cost"
 --[[Translation missing --]]
@@ -1371,7 +1546,11 @@ L["Time since stack gain"] = "Время с момента увеличения 
 L["Time since stack lost"] = "Время с момента потери стака"
 L["Timed"] = "По истечении времени"
 L["Timed Progress"] = "Прогресс по времени"
+--[[Translation missing --]]
+L["Timer"] = "Timer"
 L["Timer Id"] = "ID таймера"
+--[[Translation missing --]]
+L["Titan Reforged"] = "Titan Reforged"
 L["Toggle"] = "Переключатель (флажок)"
 L["Toggle List"] = "Список переключателей (флажков)"
 L["Toggle Options Window"] = "Переключение окна параметров"
@@ -1462,12 +1641,16 @@ L["Uses UnitInRange() to check if in range. Matches default raid frames out of r
 L["Using WeakAuras.clones is deprecated. Use WeakAuras.GetRegion(id, cloneId) instead."] = "WeakAuras.clones объявлено устаревшим. Используйте функцию WeakAuras.GetRegion(id, cloneId)."
 L["Using WeakAuras.regions is deprecated. Use WeakAuras.GetRegion(id) instead."] = "WeakAuras.regions объявлено устаревшим. Используйте функцию WeakAuras.GetRegion(id)."
 L["Vaelastrasz the Corrupt"] = "Валестраз Порочный"
+--[[Translation missing --]]
+L["Vault of Archavon"] = "Vault of Archavon"
 L["Versatility (%)"] = "Универсальность (%)"
 L["Versatility Rating"] = "Показатель универсальности"
 L["Vertical"] = "Вертикальная"
 L["Viscidus"] = "Нечистотон"
 L["Visibility"] = "Видимость"
 L["Visions of N'Zoth"] = "Видения Н'Зота"
+--[[Translation missing --]]
+L["Void Reaver"] = "Void Reaver"
 --[[Translation missing --]]
 L["Warband Quantity Total"] = "Warband Quantity Total"
 --[[Translation missing --]]
@@ -1527,5 +1710,7 @@ L["Zone ID"] = "Идентификатор зоны"
 L["Zone Name"] = "Название игровой зоны"
 L["Zoom"] = "Масштаб"
 L["Zoom Animation"] = "Анимация масштаба"
+--[[Translation missing --]]
+L["Zul'Aman"] = "Zul'Aman"
 L["Zul'Gurub"] = "Зул'Гуруб"
 

@@ -18,10 +18,14 @@ local print = TMW.print
 local L = TMW.L
 local LSM = LibStub("LibSharedMedia-3.0")
 local _, pclass = UnitClass("Player")
-local UnitPower =
-	  UnitPower
-local GetSpellInfo = TMW.GetSpellInfo
-local GetSpellLink = C_Spell and C_Spell.GetSpellLink or GetSpellLink
+local UnitPower, UnitPowerMax =
+	  UnitPower, UnitPowerMax
+
+local UnitPowerMissing = UnitPowerMissing or function(unit, powerType)
+	return UnitPowerMax(unit, powerType) - UnitPower(unit, powerType)
+end
+
+local issecretvalue = TMW.issecretvalue
 local pairs, wipe, _G =
 	  pairs, wipe, _G
 local PowerBarColor = PowerBarColor
@@ -65,10 +69,11 @@ function PowerBar:OnNewInstance(icon)
 	bar:SetStatusBarColor(colorinfo.r, colorinfo.g, colorinfo.b, 0.9)
 	self.powerType = defaultPowerType
 	
+	self.Min = 0
 	self.Max = 1
-	bar:SetMinMaxValues(0, self.Max)
+	bar:SetMinMaxValues(self.Min, self.Max)
 	
-	self.PBarOffs = 0
+	self.Offset = 0
 end
 
 function PowerBar:OnEnable()
@@ -120,6 +125,8 @@ function PowerBar:SetSpell(spell)
 	end
 end
 
+local wowMajor = TMW.wowMajor
+
 function PowerBar:UpdateCost()
 	local bar = self.bar
 	local spell = self.spell
@@ -129,11 +136,29 @@ function PowerBar:UpdateCost()
 		
 		if cost then
 			local powerType = costData.type
-			cost = powerType == (Enum.PowerType.HolyPower) and 3 or cost or 0 -- holy power hack: always use a max of 3
-			self.Max = cost
-			bar:SetMinMaxValues(0, cost)
+
+			if wowMajor <= 9 then
+				-- holy power hack: always use a max of 3 to account for variable cost spenders.
+				-- This version check might not be right. Not sure when this was added, nor when it was removed.
+				cost = powerType == (Enum.PowerType.HolyPower) and 3 or cost or 0 
+			end
+
 			self.__value = nil -- the displayed value might change when we change the max, so force an update
 			
+			if not self.Invert then
+				local max = UnitPowerMax("player", powerType) - self.Offset
+				local min = max - cost
+				self.Min = min
+				self.Max = max
+				bar:SetMinMaxValues(min, max)
+			else
+				local min = 0
+				local max = cost - self.Offset
+				self.Min = min
+				self.Max = max
+				bar:SetMinMaxValues(min, max)
+			end
+		
 			powerType = powerType or defaultPowerType
 			if powerType ~= self.powerType then
 				local colorinfo = PowerBarColor[powerType] or PowerBarColor[defaultPowerType]
@@ -141,38 +166,42 @@ function PowerBar:UpdateCost()
 				bar:SetStatusBarColor(colorinfo.r, colorinfo.g, colorinfo.b, 0.9)
 				self.powerType = powerType
 			end
+
+			self:Update()
 		end
 	end
 end
 
-function PowerBar:Update(power, powerTypeNum)
-
+function PowerBar:Update(power, missing, powerTypeNum)
 	local bar = self.bar
-	if not powerTypeNum then
-		powerTypeNum = self.powerType
-		power = UnitPower("player", powerTypeNum)
-	end
+
+	powerTypeNum = powerTypeNum or self.powerType
 	
 	if powerTypeNum == self.powerType then
-	
-		local Max = self.Max
 		local value
 
 		if not self.Invert then
-			value = Max - power + self.PBarOffs
+			value = missing or UnitPowerMissing("player", powerTypeNum)
 		else
-			value = power + self.PBarOffs
+			value = power or UnitPower("player", powerTypeNum)
 		end
 
-		if value > Max then
-			value = Max
-		elseif value < 0 then
-			value = 0
-		end
-
-		if self.__value ~= value then
+		if issecretvalue(value) then
 			bar:SetValue(value)
-			self.__value = value
+		else
+			local Max = self.Max
+			local Min = self.Min
+
+			if value > Max then
+				value = Max
+			elseif value < Min then
+				value = Min
+			end
+
+			if self.__value ~= value then
+				bar:SetValue(value)
+				self.__value = value
+			end
 		end
 	end
 end
@@ -191,10 +220,11 @@ function PowerBar:UNIT_POWER_FREQUENT(event, unit, powerType)
 	if unit == "player" then
 		local powerTypeNum = powerType and _G["SPELL_POWER_" .. powerType]
 		local power = powerTypeNum and UnitPower("player", powerTypeNum)
+		local missing = powerTypeNum and UnitPowerMissing("player", powerTypeNum)
 		
 		for i = 1, #PBarsToUpdate do
 			local Module = PBarsToUpdate[i]
-			Module:Update(power, powerTypeNum)
+			Module:Update(power, missing, powerTypeNum)
 		end
 	end
 end

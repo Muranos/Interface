@@ -1,3 +1,7 @@
+--[===[ File
+This file contains the TitanAmmo plugin.
+--]===]
+
 --[[
 -- **************************************************************************
 -- * TitanAmmo.lua
@@ -15,6 +19,7 @@
 --
 -- Note: Thrown has no durability. Not sure when Blizz implemented this
 --]]
+
 -- ******************************** Constants *******************************
 local _G = getfenv(0);
 local TITAN_AMMO_ID = "Ammo";
@@ -60,7 +65,7 @@ local display = {
 	mismatch_text = "",
 	}
 
-local L = LibStub("AceLocale-3.0"):GetLocale("TitanClassic", true)
+local L = LibStub("AceLocale-3.0"):GetLocale("Titan", true)
 
 local debug_flow = false
 

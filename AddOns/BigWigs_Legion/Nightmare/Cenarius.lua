@@ -264,9 +264,8 @@ do
 				self:StackMessageOld(args.spellId, args.destName, amount, "orange", "warning")
 			end
 		end
-		local t = GetTime()
-		if t-prev > 2 then
-			prev = t
+		if args.time-prev > 2 then
+			prev = args.time
 			self:SetInfoByTable(args.spellId, nightmareStacks)
 		end
 	end
@@ -322,7 +321,7 @@ do
 					if self:GetOption("custom_off_multiple_breath_bar") or (mobCount[105494]-drakeDeaths == 1) or (drakeDeaths+1 == getMobNumber(105494, guid)) then
 						self:Bar(211192, 20, CL.count:format(self:SpellName(211192), getMobNumber(mobId, guid))) -- Rotten Breath
 					end
-					self:ScheduleTimer("RegisterUnitEvent", 15, "UNIT_TARGET", "BreathTarget", unit)
+					self:SimpleTimer(function() if self:IsEngaged() then self:RegisterUnitEvent("UNIT_TARGET", "BreathTarget", unit) end end, 15)
 				elseif mobId == 105495 then -- Twisted Sister
 					self:CDBar(211471, 5, CL.count:format(self:SpellName(211471), getMobNumber(mobId, guid))) -- Scorned Touch
 					self:CDBar(211368, 6, CL.count:format(self:SpellName(211368), getMobNumber(mobId, guid))) -- Twisted Touch of Life
@@ -350,12 +349,13 @@ function mod:EntanglingNightmares(args)
 end
 
 -- untested
-local prev = 0
-function mod:CorruptAlliesOfNature(args)
-	local t = GetTime()
-	if t-prev > 10 then
-		prev = t
-		self:MessageOld(args.spellId, "yellow", "info", CL.other:format(args.spellName, args.destName))
+do
+	local prev = 0
+	function mod:CorruptAlliesOfNature(args)
+		if args.time-prev > 10 then
+			prev = args.time
+			self:MessageOld(args.spellId, "yellow", "info", CL.other:format(args.spellName, args.destName))
+		end
 	end
 end
 
@@ -401,9 +401,8 @@ do
 	function mod:DesiccatingStomp(args)
 		self:StopBar(CL.count:format(args.spellName, getMobNumber(105468, args.sourceGUID))) -- Desiccating Stomp
 		self:MessageOld(226821, "orange", "long", CL.casting:format(args.spellName))
-		local t = GetTime()
-		if t-prev > 4 then
-			prev = t
+		if args.time-prev > 4 then
+			prev = args.time
 			local spellText = CL.count:format(args.spellName, getMobNumber(105468, args.sourceGUID))
 			self:CastBar(226821, self:Mythic() and 6.1 or 3, spellText)
 			self:ScheduleTimer("Bar", 6.1, 226821, 27, spellText)
@@ -470,9 +469,8 @@ do
 			self:OpenProximity(args.spellId, 8, proxList)
 		end
 
-		local t = GetTime()
-		if t-prev > 19 and (not scheduled) then -- prevent debuff spread to reset timer
-			prev = t
+		if args.time-prev > 19 and (not scheduled) then -- prevent debuff spread to reset timer
+			prev = args.time
 			scheduled = self:ScheduleTimer(warn, 0.1, self, args.spellId, args.spellName, args.sourceGUID)
 			self:Bar(args.spellId, 20.6, CL.count:format(args.spellName, getMobNumber(105495, args.sourceGUID)))
 		end

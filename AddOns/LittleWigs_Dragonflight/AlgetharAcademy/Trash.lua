@@ -4,7 +4,7 @@
 
 local mod, CL = BigWigs:NewBoss("Algeth'ar Academy Trash", 2526)
 if not mod then return end
-mod.displayName = CL.trash
+mod:SetTrashModule(true)
 mod:RegisterEnableMob(
 	196974, -- Black Dragonflight Recruiter
 	196977, -- Bronze Dragonflight Recruiter
@@ -30,14 +30,14 @@ mod:RegisterEnableMob(
 
 local L = mod:GetLocale()
 if L then
-	L.custom_on_recruiter_autotalk = "Autotalk"
+	L.custom_on_recruiter_autotalk = CL.autotalk
 	L.custom_on_recruiter_autotalk_desc = "Instantly pledge to the Dragonflight Recruiters for a buff."
-	L.custom_on_recruiter_autotalk_icon = "ui_chat"
-	L.critical_strike = "+5% Critical Strike"
-	L.haste = "+5% Haste"
-	L.mastery = "+Mastery"
-	L.versatility = "+5% Versatility"
-	L.healing_taken = "+10% Healing taken"
+	L.custom_on_recruiter_autotalk_icon = mod:GetMenuIcon("SAY")
+	L.critical_strike = "Critical Strike"
+	L.haste = "Haste"
+	L.mastery = "Mastery"
+	L.versatility = "Versatility"
+	L.healing_taken = "Healing taken"
 
 	-- Ah! Here we are! Ahem--long ago, members of the blue dragonflight accidentally overloaded an arcane elemental and created a powerful construct named Vexamus that quickly started to wreak havoc!
 	L.vexamus_warmup_trigger = "created a powerful construct named Vexamus"
@@ -168,12 +168,37 @@ function mod:OnBossEnable()
 end
 
 --------------------------------------------------------------------------------
+-- Midnight Initialization
+--
+
+if mod:Retail() then -- Midnight+
+	function mod:GetOptions()
+		return {
+			-- General
+			"custom_on_recruiter_autotalk",
+			389516, -- Black Dragonflight Pledge Pin
+			389512, -- Bronze Dragonflight Pledge Pin
+			389521, -- Blue Dragonflight Pledge Pin
+			389536, -- Green Dragonflight Pledge Pin
+			389501, -- Red Dragonflight Pledge Pin
+		}
+	end
+
+	function mod:OnBossEnable()
+		-- General
+		self:RegisterEvent("CHAT_MSG_MONSTER_SAY")
+		self:RegisterEvent("GOSSIP_SHOW")
+	end
+end
+
+--------------------------------------------------------------------------------
 -- Event Handlers
 --
 
 -- Warmup timers
 
 function mod:CHAT_MSG_MONSTER_SAY(_, msg)
+	if self:IsSecret(msg) then return end
 	if msg:find(L.vexamus_warmup_trigger, nil, true) then
 		-- Vexamus warmup
 		local vexamusModule = BigWigs:GetBossModule("Vexamus", true)
@@ -205,18 +230,38 @@ function mod:GOSSIP_SHOW(event)
 		if self:GetGossipID(107065) then
 			-- Black Dragonflight Recruiter (+Critical Strike)
 			self:SelectGossipID(107065)
+			if self:Retail() then
+				self:Message(389516, "green", L.critical_strike)
+				self:PlaySound(389516, "info")
+			end
 		elseif self:GetGossipID(107081) then
 			-- Bronze Dragonflight Recruiter (+Haste)
 			self:SelectGossipID(107081)
+			if self:Retail() then
+				self:Message(389512, "green", L.haste)
+				self:PlaySound(389512, "info")
+			end
 		elseif self:GetGossipID(107082) then
 			-- Blue Dragonflight Recruiter (+Mastery)
 			self:SelectGossipID(107082)
+			if self:Retail() then
+				self:Message(389521, "green", L.mastery)
+				self:PlaySound(389521, "info")
+			end
 		elseif self:GetGossipID(107083) then
 			-- Green Dragonflight Recruiter (+Healing Taken)
 			self:SelectGossipID(107083)
+			if self:Retail() then
+				self:Message(389536, "green", L.healing_taken)
+				self:PlaySound(389536, "info")
+			end
 		elseif self:GetGossipID(107088) then
 			-- Red Dragonflight Recruiter (+Versatility)
 			self:SelectGossipID(107088)
+			if self:Retail() then
+				self:Message(389501, "green", L.versatility)
+				self:PlaySound(389501, "info")
+			end
 		end
 	end
 end

@@ -764,6 +764,7 @@ end
 	ff:RegisterEvent ("PLAYER_ENTERING_WORLD")
 	ff:RegisterEvent ("PLAYER_LOGIN")
 
+	--[=[
 	ChatFrame_AddMessageEventFilter("CHAT_MSG_WHISPER", function (_, _, msg)
 		if (not WorldQuestTracker.db.profile.groupfinder.send_whispers) then
 			if (msg:find ("World Quest Tracker")) then
@@ -773,11 +774,16 @@ end
 			end
 		end
 	end)
+	--]=]
 
 local playerEnteredWorldQuestZone = function(questID, npcID, npcName)
 
 	if (true) then
 		--return
+	end
+
+	if not QuestObjectiveFindGroup_AcquireButton then
+		return
 	end
 
 	if (ff.buttonAcquired) then
@@ -931,7 +937,9 @@ local playerEnteredWorldQuestZone = function(questID, npcID, npcName)
 		wipe(ff.PlayersNearby)
 		wipe(ff.PlayersInvited)
 
-		ff:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+		if not DF.IsAddonApocalypseWow() then
+			ff:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+		end
 
 		--> check for active timers and disable them
 		if (ff.QuestCompletedHidingTimer and not ff.QuestCompletedHidingTimer._cancelled) then
@@ -1048,7 +1056,10 @@ function ff:PlayerLeftWorldQuestZone (questID, questCompleted)
 		end
 	end
 
-	ff:UnregisterEvent ("COMBAT_LOG_EVENT_UNFILTERED")
+	--add appocalypse
+	if not DF.IsAddonApocalypseWow() then
+		ff:UnregisterEvent ("COMBAT_LOG_EVENT_UNFILTERED")
+	end
 
 	--> check to left the group
 

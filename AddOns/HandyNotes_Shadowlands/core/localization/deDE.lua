@@ -74,6 +74,7 @@ L['elite'] = 'Elite'
 L['quest'] = 'Quest'
 L['quest_repeatable'] = 'Wiederholbare Quest'
 L['achievement'] = 'Erfolg'
+L['decor_owned'] = 'Im Besitz: %s'
 
 ---------------------------------- LOCATION -----------------------------------
 L['in_cave'] = 'In einer Höhle.'
@@ -93,6 +94,7 @@ L['time_format_12hrs'] = '%d.%m - %I:%M %p'
 L['time_format_24hrs'] = '%d.%m - %H:%M'
 
 ----------------------------------- REWARDS -----------------------------------
+L['decor'] = 'Behausungsdekoration'
 L['heirloom'] = 'Erbstück'
 L['item'] = 'Gegenstand'
 L['mount'] = 'Reittier'
@@ -118,23 +120,23 @@ L['rep_revered'] = 'Respektvoll'
 L['rep_exalted'] = 'Erfürchtig'
 
 -------------------------------------------------------------------------------
---------------------------------- DRAGONRACES ---------------------------------
+------------------------------- SKYRIDING RACES -------------------------------
 -------------------------------------------------------------------------------
 
-L['dr_your_best_time'] = 'Deine beste Zeit:'
-L['dr_your_target_time'] = 'Vorgabezeit:'
-L['dr_best_time'] = ' - %s: %.3fs'
-L['dr_target_time'] = ' - %s: %ss / %ss'
-L['dr_normal'] = 'Normal'
-L['dr_advanced'] = 'Fortgeschritten'
-L['dr_reverse'] = 'Umgekehrt'
-L['dr_challenge'] = 'Herausforderung'
-L['dr_reverse_challenge'] = 'Umgekehrte Herausforderung'
-L['dr_storm_race'] = 'Sturmrennen'
-L['dr_bronze'] = 'Beende das Rennen um ' .. ns.color.Bronze('Bronze') .. ' zu erhalten.'
-L['dr_vendor_note'] = 'Tausche {currency:2588} gegen Drachenwächtermanuskripte und Ausrüstungsvorlagen ein.'
-L['options_icons_dragonrace'] = 'Drachenrennen'
-L['options_icons_dragonrace_desc'] = 'Zeigt die Positionen der Drachenrennen an.'
+L['sr_your_best_time'] = 'Deine beste Zeit:'
+L['sr_your_target_time'] = 'Vorgabezeit:'
+L['sr_best_time'] = ' - %s: %.3fs'
+L['sr_target_time'] = ' - %s: %ss / %ss'
+L['sr_normal'] = 'Normal'
+L['sr_advanced'] = 'Fortgeschritten'
+L['sr_reverse'] = 'Umgekehrt'
+L['sr_challenge'] = 'Herausforderung'
+L['sr_reverse_challenge'] = 'Umgekehrte Herausforderung'
+L['sr_storm_race'] = 'Sturmrennen'
+L['sr_bronze'] = 'Beende das Rennen um ' .. ns.color.Bronze('Bronze') .. ' zu erhalten.'
+L['sr_vendor_note'] = 'Tausche {currency:2588} gegen Drachenwächtermanuskripte und Ausrüstungsvorlagen ein.'
+L['options_icons_skyriding_race'] = 'Himmelsreitenrennen'
+L['options_icons_skyriding_race_desc'] = 'Zeigt die Positionen der Himmelsreitenrennen an.'
 
 -------------------------------------------------------------------------------
 --------------------------------- CONTEXT MENU --------------------------------
@@ -204,6 +206,8 @@ L['ignore_faction_restrictions_desc'] = 'Zeigt Gruppen, Punkte und Belohnungen a
 L['options_rewards_settings'] = 'Belohnungen'
 L['options_reward_behaviors_settings'] = 'Verhalten von Belohnungen'
 L['options_reward_types'] = 'Zeige Belohnungstypen'
+L['options_decor_rewards'] = 'Zeige Dekorationsbelohnungen'
+L['options_decor_rewards_desc'] = 'Zeige Behausungsdekorationsbelohnungen in Tooltips an.'
 L['options_manuscript_rewards'] = 'Zeige Drachenwächtermanuskriptbelohnungen'
 L['options_manuscript_rewards_desc'] = 'Zeige Drachenwächtermanuskriptbelohnungen in Tooltips an und verfolge ihren Sammlungsstatus.'
 L['options_mount_rewards'] = 'Zeige Reittierbelohnungen'

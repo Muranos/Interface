@@ -850,11 +850,12 @@ function private.CraftStringToQualityBtnText(craftString)
 	if not craftString then
 		return ""
 	end
-	local quality = CraftString.GetQuality(craftString)
-	if not quality then
+	local craftQuality = CraftString.GetQuality(craftString)
+	local useMidnightIcon = TradeSkill.IsMidnightRecipe(CraftString.GetSpellId(craftString))
+	if not craftQuality then
 		return ""
 	end
-	return TradeSkill.GetCraftedQualityChatIcon(quality, true)..TextureAtlas.GetTextureLink("iconPack.18x18/Chevron/Down")
+	return TradeSkill.GetCraftedQualityChatIcon(craftQuality, useMidnightIcon, true)..TextureAtlas.GetTextureLink("iconPack.18x18/Chevron/Down")
 end
 
 function private.CraftStringToQualityBtnShown(craftString)
@@ -865,7 +866,7 @@ function private.CraftStringToCraftType(craftString)
 	if not craftString then
 		return "NONE"
 	elseif Profession.IsEnchant(craftString) then
-		return LibTSMUI.IsVanillaClassic() and "ENCHANT" or "ENCHANT_VELLUM"
+		return (LibTSMUI.IsVanillaClassic() or LibTSMUI.IsBCClassic()) and "ENCHANT" or "ENCHANT_VELLUM"
 	elseif Profession.IsSalvage(craftString) then
 		return "SALVAGE"
 	elseif Profession.IsTinker(craftString) then

@@ -4,7 +4,7 @@
 
 local mod, CL = BigWigs:NewBoss("Brackenhide Hollow Trash", 2520)
 if not mod then return end
-mod.displayName = CL.trash
+mod:SetTrashModule(true)
 mod:RegisterEnableMob(
 	194675, -- Decaying Cauldron
 	186766, -- Captive Tuskarr
@@ -40,9 +40,9 @@ mod:RegisterEnableMob(
 
 local L = mod:GetLocale()
 if L then
-	L.custom_on_cauldron_autotalk = "Autotalk"
+	L.custom_on_cauldron_autotalk = CL.autotalk
 	L.custom_on_cauldron_autotalk_desc = "[Alchemy] Instantly detoxify Decaying Cauldrons for a disease dispel buff."
-	L.custom_on_cauldron_autotalk_icon = "ui_chat"
+	L.custom_on_cauldron_autotalk_icon = mod:GetMenuIcon("SAY")
 	L.captive_tuskarr_freed = "Captive Tuskarr Freed"
 	L.captive_tuskarr_freed_desc = "Show an alert when a Captive Tuskarr has been freed."
 	L.captive_tuskarr_freed_icon = "inv_10_dungeonjewelry_primitive_trinket_tuskarrplushie_color1"
