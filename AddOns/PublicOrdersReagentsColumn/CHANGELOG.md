@@ -1,8 +1,7 @@
 # No Mats; No Make
 
-## [12.0-018](https://github.com/TLDRMissions/PublicOrdersReagentsColumn/tree/12.0-018) (2026-04-04)
-[Full Changelog](https://github.com/TLDRMissions/PublicOrdersReagentsColumn/compare/12.0-017...12.0-018) [Previous Releases](https://github.com/TLDRMissions/PublicOrdersReagentsColumn/releases)
+## [12.0-025](https://github.com/TLDRMissions/PublicOrdersReagentsColumn/tree/12.0-025) (2026-04-16)
+[Full Changelog](https://github.com/TLDRMissions/PublicOrdersReagentsColumn/compare/12.0-024...12.0-025) [Previous Releases](https://github.com/TLDRMissions/PublicOrdersReagentsColumn/releases)
 
-- Update MoxieIcon.xml  
-- Update MoxieIcon.lua  
-- Fix lua error  
+- Tidy up options panel  
+- Desaturate missing reagents now optional  

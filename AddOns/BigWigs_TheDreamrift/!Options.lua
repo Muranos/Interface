@@ -12,7 +12,7 @@ BigWigs:AddColors("Chimaerus the Undreamt God", {
 	[1264756] = "yellow",
 	[1272726] = "purple",
 	["berserk"] = {"orange","red"},
-	["stages"] = "red",
+	["stages"] = "cyan",
 })
 
 BigWigs:AddSounds("Chimaerus the Undreamt God", {

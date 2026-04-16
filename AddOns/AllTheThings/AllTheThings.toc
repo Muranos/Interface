@@ -2,8 +2,8 @@
 ## IconTexture: Interface/Addons/AllTheThings/assets/logo_32x32
 ## Name: AllTheThings
 ## Author: Crieve
-## Version: 5.0.24
-## Interface: 11508, 20505, 30403, 38000, 40402, 50503, 120001, 120005
+## Version: 5.0.26
+## Interface: 11508, 20505, 30403, 38001, 40402, 50503, 120001, 120005
 ## X-Wago-ID: yQKyY5K7
 ## X-Curse-Project-ID: 267285
 ## Category-enUS: Collections

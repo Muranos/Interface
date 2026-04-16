@@ -24,6 +24,11 @@ L["RECOLOR_MINIMAP_TREASURE_SHADE"] = "Shade"
 L["RECOLOR_MINIMAP_TREASURE_DESC"] = "Select a treasure from the dropdown to edit it, or type a treasure name into the edit box to add a new one. Changes are saved on selecting a new color"
 
 L["PROFILE"] = "Profile"
+L["TREASURES_GROUP_NAME"] = "Treasures"
+L["MOXIE_GROUP_NAME"] = "Moxie"
+L["TOOL_FLYOUT_GROUP_NAME"] = "Tool flyout"
+
+L["REAGENT_ERROR_SHADE"] = "Missing rank 1 reagents background colour for patron orders"
 
 -- Tool Selection Frame
 L["TOOLTIP_EMPTY_BUTTON"] = "Drag your %s profession tool here to have that tool swapped in when relevant."
@@ -45,3 +50,19 @@ L["MOXIE_ICON_CHARACTER_NAME"] = "Character-specific: enable moxie icon module"
 L["MOXIE_ICON_CHARACTER_DESC"] = "Same as the account-wide option, except overrides that choice for this character"
 L["MOXIE_ICON_OPTION_SHOW_AND_FLASH"] = "Show and flash while 600 or more"
 L["MOXIE_ICON_OPTION_USE_INHERITED"] = "Use selected account-wide option"
+
+-- Profit / loss module
+L["PROFIT_LOSS_HEADER"] = "Profit / Loss"
+L["PROFIT_LOSS_OPTION"] = "Enable the Profit / Loss column."
+L["PROFIT_LOSS_OPTION_DESC"] = "Will replace the Patron Name column, moving that name into a mouseover tooltip."
+
+-- Patron order patrial automation module
+L["START_CRAFT_SPEEDUP_GROUP_NAME"] = "Patron Order button skipping"
+L["SKIP_COMPLETE_ORDER_NAME"] = "Skip Complete Order button"
+L["SKIP_COMPLETE_ORDER_DESC"] = "Automatically clicks the Complete Order button when it appears for Patron Orders"
+L["SKIP_OWN_REAGENT_NAME"] = "Skip own reagent warning"
+L["SKIP_OWN_REAGENT_DESC"] = "Skip built-in warning about using your own reagents for patron orders"
+L["SKIP_START_ORDER_NAME"] = "Skip Start Order button"
+L["SKIP_START_ORDER_DESC"] = "Automatically clicks the Start Order button when it appears for Patron Orders"
+L["MOVE_CREATE_TO_CURSOR_NAME"] = "Make Create button follow your Cursor"
+L["MOVE_CREATE_TO_CURSOR_DESC"] = "The Create button will follow your mouse cursor around for a few seconds after opening a Patron Order"

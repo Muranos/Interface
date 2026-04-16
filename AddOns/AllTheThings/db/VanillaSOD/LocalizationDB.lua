@@ -992,7 +992,6 @@ _.HeaderConstants = {
 	HEAD = -94,
 	HOLIDAYS = -36,
 	HONOR_TITLES = -298,
-	HOUSING = -682,
 	LEGS = -95,
 	LOVE_IS_IN_THE_AIR_HEADER = -579,
 	LUNAR_FESTIVAL_HEADER = -580,
@@ -1174,7 +1173,6 @@ localize(L.HEADER_NAMES, {
 	[-645] = "Waylaid Supplies",
 	[-646] = "Crafted",
 	[-647] = "Gathering",
-	[-682] = BINDING_HEADER_HOUSING_SYSTEM,
 	[-688] = "Blood Moon",
 	[-697] = "Zul'Gurub Hakkar Hardmode",
 	[-698] = TRANSMOG_SOURCE_4,
@@ -1189,7 +1187,6 @@ localize(L.HEADER_NAMES, {
 	[-732] = BUG_CATEGORY2,
 	[-734] = BATTLE_PET_SOURCE_7,
 	[-736] = BATTLE_PET_SOURCE_8,
-	[-745] = "Mail Delivery Races",
 });
 localize(L.HEADER_DESCRIPTIONS, {
 	[-25] = "Warlocks can teach their demons new tricks. Some of the higher level grimoires can only be purchased from the Demon Trainer in your faction's capital cities.",
@@ -1381,7 +1378,6 @@ localize(L.HEADER_ICONS, {
 	[-645] = 132763,
 	[-646] = 131034,
 	[-647] = 131025,
-	[-682] = _.asset("category_housing"),
 	[-688] = 237513,
 	[-697] = 237211,
 	[-698] = _.asset("category_worlddrops"),
@@ -1396,7 +1392,6 @@ localize(L.HEADER_ICONS, {
 	[-732] = _.asset("category_zones"),
 	[-734] = _.asset("category_event"),
 	[-736] = _.asset("category_promo"),
-	[-745] = 413580,
 });
 localize(L.HEADER_EVENTS, {
 	[-37] = 1,
@@ -1470,7 +1465,6 @@ _.Modules.Events.SetEventInformation(13, {
 	_.Modules.Events.CreateSchedule({["hour"]=0,["minute"]=0,["month"]=5,["monthDay"]=1,["weekday"]=7,["year"]=2027},{["hour"]=23,["minute"]=59,["month"]=5,["monthDay"]=7,["weekday"]=6,["year"]=2027})
 });
 _.Modules.Events.SetEventInformation(1, {
-	_.Modules.Events.CreateSchedule({["hour"]=0,["minute"]=0,["month"]=3,["monthDay"]=23,["weekday"]=2,["year"]=2026},{["hour"]=0,["minute"]=0,["month"]=3,["monthDay"]=30,["weekday"]=2,["year"]=2026},{["remappedID"]=375}),
 	_.Modules.Events.CreateSchedule({["hour"]=0,["minute"]=0,["month"]=4,["monthDay"]=6,["weekday"]=2,["year"]=2026},{["hour"]=0,["minute"]=0,["month"]=4,["monthDay"]=13,["weekday"]=2,["year"]=2026},{["remappedID"]=374}),
 	_.Modules.Events.CreateSchedule({["hour"]=0,["minute"]=0,["month"]=4,["monthDay"]=20,["weekday"]=2,["year"]=2026},{["hour"]=0,["minute"]=0,["month"]=4,["monthDay"]=27,["weekday"]=2,["year"]=2026},{["remappedID"]=375}),
 	_.Modules.Events.CreateSchedule({["hour"]=0,["minute"]=0,["month"]=5,["monthDay"]=4,["weekday"]=2,["year"]=2026},{["hour"]=0,["minute"]=0,["month"]=5,["monthDay"]=11,["weekday"]=2,["year"]=2026},{["remappedID"]=374}),
@@ -1496,7 +1490,8 @@ _.Modules.Events.SetEventInformation(1, {
 	_.Modules.Events.CreateSchedule({["hour"]=0,["minute"]=0,["month"]=2,["monthDay"]=8,["weekday"]=2,["year"]=2027},{["hour"]=0,["minute"]=0,["month"]=2,["monthDay"]=15,["weekday"]=2,["year"]=2027},{["remappedID"]=374}),
 	_.Modules.Events.CreateSchedule({["hour"]=0,["minute"]=0,["month"]=2,["monthDay"]=22,["weekday"]=2,["year"]=2027},{["hour"]=0,["minute"]=0,["month"]=3,["monthDay"]=1,["weekday"]=2,["year"]=2027},{["remappedID"]=375}),
 	_.Modules.Events.CreateSchedule({["hour"]=0,["minute"]=0,["month"]=3,["monthDay"]=8,["weekday"]=2,["year"]=2027},{["hour"]=0,["minute"]=0,["month"]=3,["monthDay"]=15,["weekday"]=2,["year"]=2027},{["remappedID"]=374}),
-	_.Modules.Events.CreateSchedule({["hour"]=0,["minute"]=0,["month"]=3,["monthDay"]=22,["weekday"]=2,["year"]=2027},{["hour"]=0,["minute"]=0,["month"]=3,["monthDay"]=29,["weekday"]=2,["year"]=2027},{["remappedID"]=375})
+	_.Modules.Events.CreateSchedule({["hour"]=0,["minute"]=0,["month"]=3,["monthDay"]=22,["weekday"]=2,["year"]=2027},{["hour"]=0,["minute"]=0,["month"]=3,["monthDay"]=29,["weekday"]=2,["year"]=2027},{["remappedID"]=375}),
+	_.Modules.Events.CreateSchedule({["hour"]=0,["minute"]=0,["month"]=4,["monthDay"]=5,["weekday"]=2,["year"]=2027},{["hour"]=0,["minute"]=0,["month"]=4,["monthDay"]=12,["weekday"]=2,["year"]=2027},{["remappedID"]=374})
 });
 
 -- Filter Database Module
@@ -2157,6 +2152,8 @@ local ObjectNames = {
 	[152097] = "Belnistrasz's Brazier",
 	[152608] = "Kolkar's Booty",
 	[152618] = "Kolkar's Booty",
+	[152620] = "Azsharite Formation",
+	[152621] = "Azsharite Formation",
 	[152622] = "Azsharite Formation",
 	[153123] = "Kim'jael's Equipment",
 	[153205] = "Altar of the Defiler",
@@ -2452,6 +2449,10 @@ local ObjectNames = {
 	[179914] = "Pile of Bones",
 	[179915] = "Pile of Skulls",
 	[179922] = "Vessel of Tainted Blood",
+	[180024] = "Mysterious Deadmines Chest",
+	[180025] = "Mysterious Eastvale Haystack",
+	[180055] = "Mysterious Wailing Caverns Chest",
+	[180056] = "Mysterious Tree Stump",
 	[180164] = "Sungrass",
 	[180165] = "Purple Lotus",
 	[180166] = "Mountain Silversage",
@@ -3433,6 +3434,8 @@ local ObjectModels = {
 	[152097] = 198067,
 	[152608] = 196979,
 	[152618] = 196979,
+	[152620] = 190205,
+	[152621] = 190202,
 	[152622] = 190809,
 	[153123] = 198165,
 	[153205] = 219250,
@@ -3717,6 +3720,10 @@ local ObjectModels = {
 	[179914] = 200638,
 	[179915] = 200638,
 	[179922] = 198100,
+	[180024] = 199748,
+	[180025] = 190597,
+	[180055] = 199748,
+	[180056] = 203584,
 	[180164] = 219496,
 	[180165] = 219483,
 	[180166] = 219473,
@@ -12531,6 +12538,8 @@ localize(ObjectNames, {
 	[152097] = "Belnistrasz' Kohlenpfanne",
 	[152608] = "Beute der Kolkar",
 	[152618] = "Beute der Kolkar",
+	[152620] = "Azsharitformation",
+	[152621] = "Azsharitformation",
 	[152622] = "Azsharitformation",
 	[153123] = "Kim'jaels Ausrüstung",
 	[153205] = "Altar des Entweihers",
@@ -12817,6 +12826,9 @@ localize(ObjectNames, {
 	[179914] = "Knochenhaufen",
 	[179915] = "Schädelhaufen",
 	[179922] = "Gefäß mit besudeltem Blut",
+	[180025] = "Geheimnisvoller Heuhaufen des Osttals",
+	[180055] = "Geheimnisvolle Schatztruhe aus den Höhlen des Wehklagens",
+	[180056] = "Geheimnisvoller Baumstumpf",
 	[180164] = "Sonnengras",
 	[180165] = "Lila Lotus",
 	[180166] = "Bergsilbersalbei",
@@ -15277,6 +15289,8 @@ localize(ObjectNames, {
 	[152097] = "Brasero de Belnistrasz",
 	[152608] = "Butin des Kolkar",
 	[152618] = "Butin des Kolkar",
+	[152620] = "Formation d'azsharite",
+	[152621] = "Formation d'azsharite",
 	[152622] = "Formation d'azsharite",
 	[153123] = "Equipement de Kim'jael",
 	[153205] = "Autel du Souilleur",
@@ -15561,6 +15575,9 @@ localize(ObjectNames, {
 	[179914] = "Pile d'ossements",
 	[179915] = "Pile de crânes",
 	[179922] = "Calice de sang corrompu",
+	[180025] = "Meule de foin mystérieuse du Val d'est",
+	[180055] = "Coffre mystérieux des cavernes des Lamentations",
+	[180056] = "Souche mystérieuse",
 	[180164] = "Soleillette",
 	[180165] = "Lotus pourpre",
 	[180166] = "Sauge-argent des montagnes",
@@ -17455,6 +17472,8 @@ localize(ObjectNames, {
 	[150082] = "Vena Piccola di Torio",
 	[152097] = "Braciere di Belnistrasz",
 	[152618] = "Bottino dei Kolkar",
+	[152620] = "Formazione di Azsharite",
+	[152621] = "Formazione di Azsharite",
 	[152622] = "Formazione di Azsharite",
 	[153239] = "Penna di Silvagufo",
 	[154357] = "Fango Scintillante",
@@ -17613,6 +17632,8 @@ localize(ObjectNames, {
 	[179914] = "Pila d'Ossa",
 	[179915] = "Pila di Teschi",
 	[179922] = "Recipiente di Sangue Corrotto",
+	[180025] = "Misterioso Covone di Vallevante",
+	[180056] = "Ceppo Misterioso",
 	[180327] = "Braciere della Follia",
 	[180435] = "Sacca di Noggle",
 	[180436] = "Frammento di Tavoletta del Crepuscolo",
@@ -19316,6 +19337,8 @@ localize(ObjectNames, {
 	[152095] = "Lírio Lunapétala",
 	[152097] = "Braseiro de Belnistrasz",
 	[152618] = "Butim do Kolkar",
+	[152620] = "Formação de Azsharita",
+	[152621] = "Formação de Azsharita",
 	[152622] = "Formação de Azsharita",
 	[153123] = "Equipamento de Kam'arawn",
 	[153239] = "Pena de Coruscante",
@@ -19556,6 +19579,8 @@ localize(ObjectNames, {
 	[179914] = "Pilha de Ossos",
 	[179915] = "Pilha de Crânios",
 	[179922] = "Recipiente com Sangue Maculado",
+	[180025] = "Monte de Feno Misterioso de Vale do Leste",
+	[180056] = "Toco de Árvore Misterioso",
 	[180229] = "Amontoado de Mandingas Azarentas",
 	[180248] = "Cardume de Papas-finas",
 	[180327] = "Braseiro da Loucura",
@@ -22278,6 +22303,8 @@ localize(ObjectNames, {
 	[152097] = "Жаровня Белнистраза",
 	[152608] = "Добыча Колкара",
 	[152618] = "Добыча Колкара",
+	[152620] = "Отложение азшарита",
+	[152621] = "Отложение азшарита",
 	[152622] = "Отложение азшарита",
 	[153123] = "Оборудование Ким'джаеля",
 	[153205] = "Алтарь Осквернителя",
@@ -22565,6 +22592,10 @@ localize(ObjectNames, {
 	[179914] = "Груда костей",
 	[179915] = "Груда черепов",
 	[179922] = "Сосуд с порченой кровью",
+	[180024] = "Таинственный сундук с Мертвых копей",
+	[180025] = "Таинственный стог Восточной Долины",
+	[180055] = "Таинственный сундук Пещер Стенаний",
+	[180056] = "Таинственный пень",
 	[180164] = "Солнечник",
 	[180165] = "Лиловый лотос",
 	[180166] = "Горный серебряный шалфей",
@@ -24700,6 +24731,8 @@ localize(ObjectNames, {
 	[152095] = "달봉우리 백합",
 	[152097] = "벨리스트라즈의 화로",
 	[152618] = "콜카르 노획물 궤짝",
+	[152620] = "아즈샤리트 결정체",
+	[152621] = "아즈샤리트 결정체",
 	[152622] = "아즈샤리트 결정체",
 	[153123] = "킴야엘의 장비",
 	[153239] = "올빼미야수 깃털",
@@ -24952,6 +24985,8 @@ localize(ObjectNames, {
 	[179914] = "해골 더미",
 	[179915] = "해골 더미",
 	[179922] = "얼룩진 피가 담긴 용기",
+	[180025] = "신비의 동쪽계곡 건초더미",
+	[180056] = "신비의 그루터기",
 	[180229] = "불길한 흑마술 더미",
 	[180248] = "맛둥어 떼",
 	[180327] = "광기의 화로",
@@ -27861,6 +27896,8 @@ localize(ObjectNames, {
 	[152097] = "Blandón de Belnistrasz",
 	[152608] = "Botín de Kolkar",
 	[152618] = "Botín de Kolkar",
+	[152620] = "Formación de azsharita",
+	[152621] = "Formación de azsharita",
 	[152622] = "Formación de azsharita",
 	[153123] = "Equipo de Kim'jael",
 	[153205] = "Altar de los Rapiñadores",
@@ -28145,6 +28182,9 @@ localize(ObjectNames, {
 	[179914] = "Montón de huesos",
 	[179915] = "Montón de cráneos",
 	[179922] = "Vasija de sangre corrupta",
+	[180025] = "Misterioso fardo de heno de la Vega del Este",
+	[180055] = "Cofre misterioso de las Cuevas de los Lamentos",
+	[180056] = "Tocón misterioso",
 	[180164] = "Solea",
 	[180165] = "Loto cárdeno",
 	[180166] = "Salviargenta de montaña",
@@ -31201,6 +31241,7 @@ L.ACCOUNT_WIDE_DEATHS_TOOLTIP = "死亡追踪实际上只存在于巫妖王之�
 L.ACCOUNT_WIDE_EXPLORATION_TOOLTIP = "探索追踪仅对每个角色都非常有用，但你真的想在所有50个角色上收藏它们吗？";
 L.ACCOUNT_WIDE_FLIGHT_PATHS_TOOLTIP = "飞行路径追踪对每个角色都非常有用，但是你真的想要在所有50个角色上收藏它们吗？";
 L.ACCOUNT_WIDE_FOLLOWERS_TOOLTIP = "随从通常是每个角色的，但是你真的想以每周1个的速度在一个角色上收藏243个随从吗？\n\n我想不行，好好先生。";
+L.ACCOUNT_WIDE_PROFESSION_NODES_TOOLTIP = "专业节点通常不会在暴雪的数据库中进行账号范围的跟踪，但我们可以做到这一点。\n\n在一个角色上收集所有节点是不可能的，所以通过这个功能，你可以赋予你的小号和他们的专业意义。";
 L.ACCOUNT_WIDE_QUESTS_TOOLTIP = "任务完成通常是每个角色的，但是如果任何一个角色完成了特定的任务，这个任务就会被认为是完成了。";
 L.ACCOUNT_WIDE_RECIPES_TOOLTIP = "在暴雪的数据库中，图纸通常不会被账号通用追踪，但我们可以这样做。\n\n在一个角色上不可能收藏到所有的东西，所以有了这个，你就可以赋予你的小号和他们的专业以意义。";
 L.ACCOUNT_WIDE_REPUTATIONS_TOOLTIP = "声望的成就现在会在暴雪的数据库中追踪账号通用，所以开启这个功能可能是个好主意。";
@@ -31716,6 +31757,9 @@ L.PRESET_UPDATE_SUCCESS = "更新预设成功。";
 L.PROFESSION = "专业";
 L.PROFESSION_LIST = "专业列表";
 L.PROFESSION_LIST_DESC = "打开你的专业来缓存它们。";
+L.PROFESSION_NODE_ID = "专业节点 ID";
+L.PROFESSION_NODES_CHECKBOX = "专业节点";
+L.PROFESSION_NODES_CHECKBOX_TOOLTIP = "启用此选项以跟踪专业节点完成情况。";
 L.PROFILE = "配置文件";
 L.PROFILE_COPY_TOOLTIP = "复制已选配置文件到当前配置文件";
 L.PROFILE_DELETE_TOOLTIP = "删除已选配置文件";
@@ -32507,6 +32551,8 @@ localize(ObjectNames, {
 	[151286] = "卡多雷召唤宝典",
 	[152095] = "月牙百合花",
 	[152618] = "科卡尔的战利品",
+	[152620] = "艾萨莱特晶体",
+	[152621] = "艾萨莱特晶体",
 	[152622] = "艾萨莱特晶体",
 	[153123] = "基姆加尔的设备",
 	[153239] = "枭兽羽毛",
@@ -32741,6 +32787,7 @@ localize(ObjectNames, {
 	[179913] = "作战公告！",
 	[179914] = "白骨堆",
 	[179922] = "腐化之血",
+	[180025] = "神秘的东谷干草堆",
 	[180229] = "厄运巫毒堆",
 	[180248] = "可口鱼",
 	[180327] = "疯狂之缘的火盆",

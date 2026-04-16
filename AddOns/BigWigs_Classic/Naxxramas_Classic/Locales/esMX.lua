@@ -35,7 +35,7 @@ if L then
 
 	L.engage_yell_trigger = "¡Esbirros, sirvientes, soldados de la fría oscuridad! ¡Obedezcan la llamada de Kel'Thuzad!"
 	L.stage2_yell_trigger1 = "¡Pide misericordia!"
-	--L.stage2_yell_trigger2 = "Scream your dying breath!"
+	L.stage2_yell_trigger2 = "¡Grita antes de tu último suspiro!"
 	--L.stage2_yell_trigger3 = "The end is upon you!"
 	L.stage3_yell_trigger = "¡Amo, necesito ayuda!"
 	L.adds_yell_trigger = "Muy bien. Guerreros de los páramos helados, ¡levántense! ¡Les ordeno luchar, matar y morir por su amo! ¡Que nadie sobreviva!"
@@ -58,7 +58,7 @@ if L then
 
 	--L.stage2_yell_trigger1 = "Eat... your... bones..."
 	L.stage2_yell_trigger2 = "¡¡Yo Destrozarlos!!"
-	--L.stage2_yell_trigger3 = "Kill..."
+	L.stage2_yell_trigger3 = "Matar..."
 
 	L.add_death_emote_trigger = "%s muere."
 	L.overload_emote_trigger = "¡%s se sobrecarga!"
@@ -66,18 +66,18 @@ if L then
 
 	L.polarity_extras = "Avisos adicionales para el posicionamiento del cambio de polaridad"
 
-	L.custom_off_select_charge_position = "Primera posición"
-	L.custom_off_select_charge_position_desc = "Posicionamiento después del primer cambio de polaridad."
-	L.custom_off_select_charge_position_value1 = "|cffff2020Carga negativa (-)|r a la IZQUIERDA, |cff2020ffCarga positiva (+)|r a la DERECHA"
-	L.custom_off_select_charge_position_value2 = "|cff2020ffCarga positiva (+)|r a la IZQUIERDA, |cffff2020Carga negativa (-)|r a la DERECHA"
+	L.custom_select_charge_position = "Primera posición"
+	L.custom_select_charge_position_desc = "Posicionamiento después del primer cambio de polaridad."
+	L.custom_select_charge_position_value1 = "|cffff2020Carga negativa (-)|r a la IZQUIERDA, |cff2020ffCarga positiva (+)|r a la DERECHA"
+	L.custom_select_charge_position_value2 = "|cff2020ffCarga positiva (+)|r a la IZQUIERDA, |cffff2020Carga negativa (-)|r a la DERECHA"
 
-	L.custom_off_select_charge_movement = "Movimiento"
-	L.custom_off_select_charge_movement_desc = "La estrategia de movimiento que se utiliza tu grupo."
-	L.custom_off_select_charge_movement_value1 = "Corre |cff20ff20A TRAVÉS|r del jefe"
-	L.custom_off_select_charge_movement_value2 = "Corre |cff20ff20EN SENTIDO HORARIO|r alrededor del jefe."
-	L.custom_off_select_charge_movement_value3 = "Corre |cff20ff20EN SENTIDO ANTIHORARIO|r alrededor del jefe."
-	L.custom_off_select_charge_movement_value4 = "Cuatro grupos 1: Cambio de polaridad hacia la |cff20ff20DERECHA|r, misma polaridad hacia la |cff20ff20IZQUIERDA|r."
-	L.custom_off_select_charge_movement_value5 = "Cuatro grupos 2: Cambio de polaridad hacia la |cff20ff20IZQUIERDA|r, misma polaridad hacia la |cff20ff20DERECHA|r."
+	L.custom_select_charge_movement = "Movimiento"
+	L.custom_select_charge_movement_desc = "La estrategia de movimiento que se utiliza tu grupo."
+	L.custom_select_charge_movement_value1 = "Corre |cff20ff20A TRAVÉS|r del jefe"
+	L.custom_select_charge_movement_value2 = "Corre |cff20ff20EN SENTIDO HORARIO|r alrededor del jefe."
+	L.custom_select_charge_movement_value3 = "Corre |cff20ff20EN SENTIDO ANTIHORARIO|r alrededor del jefe."
+	L.custom_select_charge_movement_value4 = "Cuatro grupos 1: Cambio de polaridad hacia la |cff20ff20DERECHA|r, misma polaridad hacia la |cff20ff20IZQUIERDA|r."
+	L.custom_select_charge_movement_value5 = "Cuatro grupos 2: Cambio de polaridad hacia la |cff20ff20IZQUIERDA|r, misma polaridad hacia la |cff20ff20DERECHA|r."
 
 	L.custom_off_charge_graphic = "Flecha gráfica"
 	L.custom_off_charge_graphic_desc = "Muestra una flecha gráfica."

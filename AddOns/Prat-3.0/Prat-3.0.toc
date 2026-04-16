@@ -1,4 +1,4 @@
-## Interface: 110207, 120000, 120001
+## Interface: 120001, 120005
 
 ## X-Curse-Project-ID: 7473
 ## X-WoWI-ID: 10783
@@ -25,7 +25,7 @@
 ## Category-ruRU: Чат
 ## Category-zhCN: 聊天
 ## Category-zhTW: 對話
-## Version: 3.9.98
+## Version: 3.9.99
 ## Author: Sylvanaar (Sylvaann - Proudmoore/US-Alliance)
 ## eMail: sylvanaar@mindspring.com
 

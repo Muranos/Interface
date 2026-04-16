@@ -1,5 +1,5 @@
 --
--- RaiderIO Client Data. Generated on Wed Apr 08 2026 11:32:23 GMT+0000 (Coordinated Universal Time)
+-- RaiderIO Client Data. Generated on Thu Apr 16 2026 08:37:24 GMT+0000 (Coordinated Universal Time)
 --
 local _, ns = ...
 ns.CLIENT_CHARACTERS = {
@@ -13,8 +13,8 @@ ns.CLIENT_CHARACTERS = {
     },
     ["mythic_keystone"] = {
       ["all"] = {
-        ["score"] = 361.9,
-        ["color"] = "#f1ffea",
+        ["score"] = 362.4,
+        ["color"] = "#f3ffed",
         ["best"] = {
           ["zone_id"] = 16573,
           ["level"] = 4,
@@ -125,7 +125,7 @@ ns.CLIENT_CHARACTERS = {
     ["mythic_keystone"] = {
       ["all"] = {
         ["score"] = 675.1,
-        ["color"] = "#d0ffbe",
+        ["color"] = "#d6ffc6",
         ["best"] = {
           ["zone_id"] = 15829,
           ["level"] = 2,

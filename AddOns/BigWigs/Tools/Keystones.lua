@@ -1020,7 +1020,6 @@ do
 		mainPanel.CloseButton:RegisterEvent("CHALLENGE_MODE_START") -- Hide when starting Mythic+
 		mainPanel.CloseButton:RegisterEvent("PLAYER_REGEN_DISABLED") -- Hide when you enter combat
 
-		partyList = {}
 		LibSpec.RequestGuildSpecialization()
 		LibKeystoneRequest("PARTY")
 		C_Timer.After(0.2, function() LibKeystoneRequest("GUILD") end)
@@ -1551,10 +1550,21 @@ do
 		[209] = true,
 		[207] = true,
 	}
+	local InMyParty
+	do
+		local UnitInParty = UnitInParty
+		function InMyParty(playerName)
+			if playerName == BigWigsLoader.UnitName("player") then
+				return true
+			else
+				return UnitInParty(playerName)
+			end
+		end
+	end
 	local function UpdateCellsForOnlineTab(playerList, isGuildList)
 		local sortedplayerList = {}
 		for pName, pData in next, playerList do
-			if not isGuildList or (isGuildList and not partyList[pName]) then
+			if (not isGuildList and InMyParty(pName)) or (isGuildList and not InMyParty(pName)) then
 				local decoratedName = nil
 				local nameTooltip = pName
 				local specID = specializationPlayerList[pName]
@@ -1602,7 +1612,7 @@ do
 			cellName.text:SetText(sortedplayerList[i].decoratedName or playerName)
 			cellName.tooltip = sortedplayerList[i].nameTooltip
 			cellName:SetAttribute("type", "macro")
-			cellName:SetAttribute("macrotext", "/run ChatFrame_SendTell(\"".. playerName .."\")")
+			cellName:SetAttribute("macrotext", "/run ChatFrameUtil.SendTell(\"".. playerName .."\")")
 			cellLevel:SetWidth(WIDTH_LEVEL)
 			cellLevel.text:SetText(sortedplayerList[i].level == -1 and hiddenIcon or sortedplayerList[i].level)
 			cellLevel.tooltip = sortedplayerList[i].levelTooltip
@@ -1660,7 +1670,7 @@ do
 
 	local function LibKeystoneFunction(keyLevel, keyMap, playerRating, playerName, channel)
 		if channel == "PARTY" then
-			if not partyList[playerName] or partyList[playerName][1] ~= keyLevel or partyList[playerName][2] ~= keyMap or partyList[playerName][3] ~= playerRating then
+			if not partyList[playerName] or playerName == BigWigsLoader.UnitName("player") or partyList[playerName][1] ~= keyLevel or partyList[playerName][2] ~= keyMap or partyList[playerName][3] ~= playerRating then
 				partyList[playerName] = {keyLevel, keyMap, playerRating}
 
 				if not tab1:IsEnabled() then -- Only if tab 1 (online) is showing

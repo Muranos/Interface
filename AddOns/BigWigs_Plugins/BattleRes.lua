@@ -40,7 +40,9 @@ local bwTooltip = BigWigsAPI.GetTooltip()
 local LibSharedMedia = LibStub("LibSharedMedia-3.0")
 plugin.displayName = L.battleResTitle
 
-local ProfileUtils = {}
+local ProfileUtils = {
+	MinimumFontSize = 10,
+}
 local BigWigsLoader = BigWigsLoader
 local battleResFrame
 
@@ -49,6 +51,10 @@ local previousCharges = -1
 local resCollector = {}
 local fightStartTime = 0
 local GetTime = GetTime
+local floor = math.floor
+
+local cdTextFormat = "%d"
+local chargesTextFormat = "%d"
 
 --------------------------------------------------------------------------------
 -- Database
@@ -94,6 +100,8 @@ do
 		cooldownEdge = true,
 		cooldownSwipe = true,
 		cooldownInverse = false,
+		durationCustomText = "%s",
+		chargesCustomText = "%s",
 	}
 	plugin.defaultDB = defaultDB
 
@@ -142,11 +150,11 @@ do
 			plugin.db.profile.position[4] = defaultDB.position[4]
 			plugin.db.profile.position[5] = defaultDB.position[5]
 		else
-			local x = math.floor(plugin.db.profile.position[3]+0.5)
+			local x = floor(plugin.db.profile.position[3]+0.5)
 			if x ~= plugin.db.profile.position[3] then
 				plugin.db.profile.position[3] = x
 			end
-			local y = math.floor(plugin.db.profile.position[4]+0.5)
+			local y = floor(plugin.db.profile.position[4]+0.5)
 			if y ~= plugin.db.profile.position[4] then
 				plugin.db.profile.position[4] = y
 			end
@@ -165,7 +173,7 @@ do
 		if plugin.db.profile.textXPositionDuration < -100 or plugin.db.profile.textXPositionDuration > 100 then
 			plugin.db.profile.textXPositionDuration = defaultDB.textXPositionDuration
 		else
-			local x = math.floor(plugin.db.profile.textXPositionDuration+0.5)
+			local x = floor(plugin.db.profile.textXPositionDuration+0.5)
 			if x ~= plugin.db.profile.textXPositionDuration then
 				plugin.db.profile.textXPositionDuration = x
 			end
@@ -173,7 +181,7 @@ do
 		if plugin.db.profile.textYPositionDuration < -100 or plugin.db.profile.textYPositionDuration > 100 then
 			plugin.db.profile.textYPositionDuration = defaultDB.textYPositionDuration
 		else
-			local y = math.floor(plugin.db.profile.textYPositionDuration+0.5)
+			local y = floor(plugin.db.profile.textYPositionDuration+0.5)
 			if y ~= plugin.db.profile.textYPositionDuration then
 				plugin.db.profile.textYPositionDuration = y
 			end
@@ -181,7 +189,7 @@ do
 		if plugin.db.profile.textXPositionCharges < -100 or plugin.db.profile.textXPositionCharges > 100 then
 			plugin.db.profile.textXPositionCharges = defaultDB.textXPositionCharges
 		else
-			local x = math.floor(plugin.db.profile.textXPositionCharges+0.5)
+			local x = floor(plugin.db.profile.textXPositionCharges+0.5)
 			if x ~= plugin.db.profile.textXPositionCharges then
 				plugin.db.profile.textXPositionCharges = x
 			end
@@ -189,25 +197,45 @@ do
 		if plugin.db.profile.textYPositionCharges < -100 or plugin.db.profile.textYPositionCharges > 100 then
 			plugin.db.profile.textYPositionCharges = defaultDB.textYPositionCharges
 		else
-			local y = math.floor(plugin.db.profile.textYPositionCharges+0.5)
+			local y = floor(plugin.db.profile.textYPositionCharges+0.5)
 			if y ~= plugin.db.profile.textYPositionCharges then
 				plugin.db.profile.textYPositionCharges = y
 			end
 		end
-		if plugin.db.profile.durationFontSize < 12 or plugin.db.profile.durationFontSize > 200 then
+		if plugin.db.profile.durationFontSize < ProfileUtils.MinimumFontSize or plugin.db.profile.durationFontSize > 200 then
 			plugin.db.profile.durationFontSize = defaultDB.durationFontSize
 		end
-		if plugin.db.profile.durationEmphasizeFontSize < 12 or plugin.db.profile.durationEmphasizeFontSize > 200 then
+		if plugin.db.profile.durationEmphasizeFontSize < ProfileUtils.MinimumFontSize or plugin.db.profile.durationEmphasizeFontSize > 200 then
 			plugin.db.profile.durationEmphasizeFontSize = defaultDB.durationEmphasizeFontSize
 		end
-		if plugin.db.profile.chargesNoneFontSize < 12 or plugin.db.profile.chargesNoneFontSize > 200 then
+		if plugin.db.profile.chargesNoneFontSize < ProfileUtils.MinimumFontSize or plugin.db.profile.chargesNoneFontSize > 200 then
 			plugin.db.profile.chargesNoneFontSize = defaultDB.chargesNoneFontSize
 		end
-		if plugin.db.profile.chargesAvailableFontSize < 12 or plugin.db.profile.chargesAvailableFontSize > 200 then
+		if plugin.db.profile.chargesAvailableFontSize < ProfileUtils.MinimumFontSize or plugin.db.profile.chargesAvailableFontSize > 200 then
 			plugin.db.profile.chargesAvailableFontSize = defaultDB.chargesAvailableFontSize
 		end
 		if plugin.db.profile.outline ~= "NONE" and plugin.db.profile.outline ~= "OUTLINE" and plugin.db.profile.outline ~= "THICKOUTLINE" then
 			plugin.db.profile.outline = defaultDB.outline
+		end
+		if not plugin.db.profile.durationCustomText:find("%s", nil, true) or plugin.db.profile.durationCustomText:find("%%[^s]") then
+			plugin.db.profile.durationCustomText = defaultDB.durationCustomText
+		else
+			local success, newValue = xpcall(string.format, function() end, plugin.db.profile.durationCustomText, L.hide)
+			if not success then -- Must not produce errors
+				plugin.db.profile.durationCustomText = defaultDB.durationCustomText
+			elseif newValue:find("%s", nil, true) then -- Must not still contain %s after being formatted with text (shouldn't really happen)
+				plugin.db.profile.durationCustomText = defaultDB.durationCustomText
+			end
+		end
+		if not plugin.db.profile.chargesCustomText:find("%s", nil, true) or plugin.db.profile.chargesCustomText:find("%%[^s]") then
+			plugin.db.profile.chargesCustomText = defaultDB.chargesCustomText
+		else
+			local success, newValue = xpcall(string.format, function() end, plugin.db.profile.chargesCustomText, L.hide)
+			if not success then -- Must not produce errors
+				plugin.db.profile.chargesCustomText = defaultDB.chargesCustomText
+			elseif newValue:find("%s", nil, true) then -- Must not still contain %s after being formatted with text (shouldn't really happen)
+				plugin.db.profile.chargesCustomText = defaultDB.chargesCustomText
+			end
 		end
 
 		ValidateColor(plugin.db.profile.borderColor, defaultDB.borderColor, 0)
@@ -310,6 +338,7 @@ do
 		plugin.db.profile.durationEmphasizeTime = defaultDB.durationEmphasizeTime
 		ResetColor(plugin.db.profile.durationEmphasizeColor, defaultDB.durationEmphasizeColor)
 		plugin.db.profile.durationEmphasizeFontSize = defaultDB.durationEmphasizeFontSize
+		plugin.db.profile.durationCustomText = defaultDB.durationCustomText
 	end
 	ProfileUtils.ResetChargesSettings = function()
 		plugin.db.profile.textXPositionCharges = defaultDB.textXPositionCharges
@@ -319,6 +348,7 @@ do
 		plugin.db.profile.chargesAlign = defaultDB.chargesAlign
 		ResetColor(plugin.db.profile.chargesNoneColor, defaultDB.chargesNoneColor)
 		ResetColor(plugin.db.profile.chargesAvailableColor, defaultDB.chargesAvailableColor)
+		plugin.db.profile.chargesCustomText = defaultDB.chargesCustomText
 	end
 	ProfileUtils.ResetIconSettings = function()
 		plugin.db.profile.iconTextureFromSpellID = defaultDB.iconTextureFromSpellID
@@ -333,6 +363,12 @@ end
 -------------------------------------------------------------------------------
 -- Options
 --
+
+local function ConvertDuration(remainingSeconds)
+	local minutes = floor(remainingSeconds / 60)
+	local seconds = floor(remainingSeconds - (minutes*60))
+	return minutes, seconds
+end
 
 do
 	local function UpdateWidgets()
@@ -382,9 +418,9 @@ do
 				battleResFrame.cdText:SetPoint("TOP", battleResFrame, "TOP", plugin.db.profile.textXPositionDuration, plugin.db.profile.textYPositionDuration)
 			end
 		end
-		local currentCDText = battleResFrame.cdText:GetText()
-		local currentCDTextNumber = tonumber(currentCDText)
-		if currentCDTextNumber and plugin.db.profile.durationEmphasizeTime > 0 and currentCDTextNumber <= plugin.db.profile.durationEmphasizeTime then
+		cdTextFormat = plugin.db.profile.durationCustomText:format("%d:%02d")
+		local currentCDText = battleResFrame.cdTextRaw or 0
+		if plugin.db.profile.durationEmphasizeTime > 0 and currentCDText <= plugin.db.profile.durationEmphasizeTime then
 			battleResFrame.cdText:SetFont(LibSharedMedia:Fetch("font", plugin.db.profile.fontName), plugin.db.profile.durationEmphasizeFontSize, fontFlags)
 			battleResFrame.cdText:SetTextColor(plugin.db.profile.durationEmphasizeColor[1], plugin.db.profile.durationEmphasizeColor[2], plugin.db.profile.durationEmphasizeColor[3], plugin.db.profile.durationEmphasizeColor[4])
 		else
@@ -392,7 +428,7 @@ do
 			battleResFrame.cdText:SetTextColor(plugin.db.profile.durationColor[1], plugin.db.profile.durationColor[2], plugin.db.profile.durationColor[3], plugin.db.profile.durationColor[4])
 		end
 		battleResFrame.cdText:SetText("")
-		battleResFrame.cdText:SetText(currentCDText)
+		battleResFrame.cdText:SetFormattedText(cdTextFormat, ConvertDuration(currentCDText))
 
 		battleResFrame.chargesText:SetJustifyH(plugin.db.profile.chargesAlign)
 		battleResFrame.chargesText:ClearAllPoints()
@@ -407,7 +443,8 @@ do
 				battleResFrame.chargesText:SetPoint("BOTTOM", battleResFrame, "BOTTOM", plugin.db.profile.textXPositionCharges, plugin.db.profile.textYPositionCharges)
 			end
 		end
-		local currentChargesText = tonumber(battleResFrame.chargesText:GetText()) or 0
+		chargesTextFormat = plugin.db.profile.chargesCustomText:format("%d")
+		local currentChargesText = battleResFrame.chargesTextRaw or 0
 		if currentChargesText == 0 then
 			battleResFrame.chargesText:SetFont(LibSharedMedia:Fetch("font", plugin.db.profile.fontName), plugin.db.profile.chargesNoneFontSize, fontFlags)
 			battleResFrame.chargesText:SetTextColor(plugin.db.profile.chargesNoneColor[1], plugin.db.profile.chargesNoneColor[2], plugin.db.profile.chargesNoneColor[3], plugin.db.profile.chargesNoneColor[4])
@@ -416,7 +453,7 @@ do
 			battleResFrame.chargesText:SetTextColor(plugin.db.profile.chargesAvailableColor[1], plugin.db.profile.chargesAvailableColor[2], plugin.db.profile.chargesAvailableColor[3], plugin.db.profile.chargesAvailableColor[4])
 		end
 		battleResFrame.chargesText:SetText("")
-		battleResFrame.chargesText:SetText(currentChargesText)
+		battleResFrame.chargesText:SetFormattedText(chargesTextFormat, currentChargesText)
 
 		battleResFrame.cooldown:SetDrawEdge(plugin.db.profile.cooldownEdge)
 		battleResFrame.cooldown:SetDrawSwipe(plugin.db.profile.cooldownSwipe)
@@ -531,10 +568,10 @@ do
 				set = function(_, value)
 					if value then
 						ProfileUtils.SetPreset("text")
+						UpdateWidgets()
 						if isTesting then
 							BigWigsLoader.Print(L.battleResModeTextTooltip)
 						end
-						UpdateWidgets()
 					end
 				end,
 				disabled = IsDisabled,
@@ -557,12 +594,13 @@ do
 							if not isShowing then
 								if not isTesting then
 									battleResFrame:Show()
-									UpdateWidgets()
-									local testTable = {[0] = "6", [1]="24", [2] = "1:15", [3] = "2:30", [4] = "3:37"}
+									local testTable = {[0] = 6, [1] = 24, [2] = 75, [3] = 150, [4] = 217}
 									local i = 4
 									local function TestLoop()
-										battleResFrame.cdText:SetText(testTable[i])
-										battleResFrame.chargesText:SetText(i)
+										battleResFrame.cdText:SetFormattedText(cdTextFormat, ConvertDuration(testTable[i]))
+										battleResFrame.cdTextRaw = testTable[i]
+										battleResFrame.chargesText:SetFormattedText(chargesTextFormat, i)
+										battleResFrame.chargesTextRaw = i
 										if plugin.db.profile.durationEmphasizeTime ~= 0 then
 											local remainingSeconds = i < 3 and tonumber(testTable[i]) or 60
 											if remainingSeconds > plugin.db.profile.durationEmphasizeTime then
@@ -592,6 +630,7 @@ do
 										isTesting = BigWigsLoader.CTimerNewTimer(2, TestLoop)
 									end
 									isTesting = BigWigsLoader.CTimerNewTimer(0, TestLoop)
+									UpdateWidgets()
 									if plugin.db.profile.mode == 2 then
 										BigWigsLoader.Print(L.battleResModeTextTooltip)
 									end
@@ -770,7 +809,7 @@ do
 						desc = L.fontSizeDesc,
 						order = 1,
 						width = 2,
-						softMax = 100, max = 200, min = 12, step = 1,
+						softMax = 100, max = 200, min = ProfileUtils.MinimumFontSize, step = 1,
 						disabled = IsDisabled,
 					},
 					durationColor = {
@@ -804,6 +843,27 @@ do
 						width = 1,
 						disabled = IsDisabled,
 					},
+					durationCustomText = {
+						type = "input",
+						validate = function(_, value)
+							if not value:find("%s", nil, true) or value:find("%%[^s]") then -- Must contain %s and no other format characters
+								return false
+							else
+								local success, newValue = xpcall(string.format, function() end, value, L.hide)
+								if not success then -- Must not produce errors
+									return false
+								elseif newValue:find("%s", nil, true) then -- Must not still contain %s after being formatted with text (shouldn't really happen)
+									return false
+								else
+									return true
+								end
+							end
+						end,
+						name = L.customText,
+						width = 1.1,
+						order = 5,
+						disabled = IsDisabled,
+					},
 					durationAlign = {
 						type = "select",
 						name = L.align,
@@ -813,7 +873,7 @@ do
 							L.RIGHT,
 						},
 						style = "radio",
-						order = 5,
+						order = 6,
 						get = function() return plugin.db.profile.durationAlign == "LEFT" and 1 or plugin.db.profile.durationAlign == "RIGHT" and 3 or 2 end,
 						set = function(_, value)
 							plugin.db.profile.durationAlign = value == 1 and "LEFT" or value == 3 and "RIGHT" or "CENTER"
@@ -826,19 +886,19 @@ do
 					durationEmphasizeHeader = {
 						type = "header",
 						name = L.emphasize,
-						order = 6,
+						order = 7,
 					},
 					durationEmphasizeHeading = {
 						type = "description",
 						name = L.cooldownEmphasizeHeader,
-						order = 7,
+						order = 8,
 						width = "full",
 						fontSize = "medium",
 					},
 					durationEmphasizeTime = {
 						type = "range",
 						name = L.emphasizeAt,
-						order = 8,
+						order = 9,
 						min = 0,
 						max = 30,
 						step = 1,
@@ -851,21 +911,21 @@ do
 						hasAlpha = true,
 						get = GetColor,
 						set = UpdateColorAndWidgets,
-						order = 9,
+						order = 10,
 						disabled = function() return plugin.db.profile.durationEmphasizeTime == 0 or plugin.db.profile.disabled end,
 					},
 					durationEmphasizeFontSize = {
 						type = "range",
 						name = L.fontSize,
 						desc = L.fontSizeDesc,
-						order = 10,
-						softMax = 100, max = 200, min = 12, step = 1,
+						order = 11,
+						softMax = 100, max = 200, min = ProfileUtils.MinimumFontSize, step = 1,
 						disabled = function() return plugin.db.profile.durationEmphasizeTime == 0 or plugin.db.profile.disabled end,
 					},
 					resetHeader = {
 						type = "header",
 						name = "",
-						order = 11,
+						order = 12,
 					},
 					reset = {
 						type = "execute",
@@ -875,7 +935,7 @@ do
 							ProfileUtils.ResetDurationSettings()
 							UpdateWidgets()
 						end,
-						order = 12,
+						order = 13,
 						disabled = IsDisabled,
 					},
 				},
@@ -907,6 +967,27 @@ do
 						width = 1,
 						disabled = IsDisabled,
 					},
+					chargesCustomText = {
+						type = "input",
+						validate = function(_, value)
+							if not value:find("%s", nil, true) or value:find("%%[^s]") then -- Must contain %s and no other format characters
+								return false
+							else
+								local success, newValue = xpcall(string.format, function() end, value, L.hide)
+								if not success then -- Must not produce errors
+									return false
+								elseif newValue:find("%s", nil, true) then -- Must not still contain %s after being formatted with text (shouldn't really happen)
+									return false
+								else
+									return true
+								end
+							end
+						end,
+						name = L.customText,
+						width = 1.1,
+						order = 3,
+						disabled = IsDisabled,
+					},
 					chargesAlign = {
 						type = "select",
 						name = L.align,
@@ -916,7 +997,7 @@ do
 							L.RIGHT,
 						},
 						style = "radio",
-						order = 3,
+						order = 4,
 						get = function() return plugin.db.profile.chargesAlign == "LEFT" and 1 or plugin.db.profile.chargesAlign == "RIGHT" and 3 or 2 end,
 						set = function(_, value)
 							plugin.db.profile.chargesAlign = value == 1 and "LEFT" or value == 3 and "RIGHT" or "CENTER"
@@ -929,15 +1010,15 @@ do
 					chargesNoneHeader = {
 						type = "header",
 						name = L.battleResNoCharges,
-						order = 4,
+						order = 5,
 					},
 					chargesNoneFontSize = {
 						type = "range",
 						name = L.fontSize,
 						desc = L.fontSizeDesc,
-						order = 5,
+						order = 6,
 						width = 2,
-						softMax = 100, max = 200, min = 12, step = 1,
+						softMax = 100, max = 200, min = ProfileUtils.MinimumFontSize, step = 1,
 						disabled = IsDisabled,
 					},
 					chargesNoneColor = {
@@ -946,21 +1027,21 @@ do
 						get = GetColor,
 						set = UpdateColorAndWidgets,
 						hasAlpha = true,
-						order = 6,
+						order = 7,
 						disabled = IsDisabled,
 					},
 					chargesAvailableHeader = {
 						type = "header",
 						name = L.battleResHasCharges,
-						order = 7,
+						order = 8,
 					},
 					chargesAvailableFontSize = {
 						type = "range",
 						name = L.fontSize,
 						desc = L.fontSizeDesc,
-						order = 8,
+						order = 9,
 						width = 2,
-						softMax = 100, max = 200, min = 12, step = 1,
+						softMax = 100, max = 200, min = ProfileUtils.MinimumFontSize, step = 1,
 						disabled = IsDisabled,
 					},
 					chargesAvailableColor = {
@@ -969,13 +1050,13 @@ do
 						get = GetColor,
 						set = UpdateColorAndWidgets,
 						hasAlpha = true,
-						order = 9,
+						order = 10,
 						disabled = IsDisabled,
 					},
 					resetHeader = {
 						type = "header",
 						name = "",
-						order = 10,
+						order = 11,
 					},
 					reset = {
 						type = "execute",
@@ -985,7 +1066,7 @@ do
 							ProfileUtils.ResetChargesSettings()
 							UpdateWidgets()
 						end,
-						order = 11,
+						order = 12,
 						disabled = IsDisabled,
 					},
 				},
@@ -1237,7 +1318,7 @@ do
 	updater:SetLooping("REPEAT")
 	battleResFrame.updater = updater
 
-	local GetSpellCharges, floor, prevStartTime = C_Spell.GetSpellCharges, math.floor, 0
+	local GetSpellCharges, prevStartTime = C_Spell.GetSpellCharges, 0
 	updater:SetScript("OnLoop", function()
 		local chargesInfoTable = GetSpellCharges(20484) -- Rebirth
 		if chargesInfoTable then
@@ -1251,8 +1332,6 @@ do
 				end
 			end
 			local remainingSeconds = fullDuration - (GetTime() - startTime)
-			local minutes = floor(remainingSeconds / 60)
-			local seconds = floor(remainingSeconds - (minutes*60))
 			if plugin.db.profile.durationEmphasizeTime ~= 0 then
 				if remainingSeconds > plugin.db.profile.durationEmphasizeTime then
 					cdText:SetFontHeight(plugin.db.profile.durationFontSize)
@@ -1262,11 +1341,8 @@ do
 					cdText:SetTextColor(plugin.db.profile.durationEmphasizeColor[1], plugin.db.profile.durationEmphasizeColor[2], plugin.db.profile.durationEmphasizeColor[3], plugin.db.profile.durationEmphasizeColor[4])
 				end
 			end
-			if minutes == 0 then
-				cdText:SetText(seconds)
-			else
-				cdText:SetFormattedText("%d:%02d", minutes, seconds)
-			end
+			cdText:SetFormattedText(cdTextFormat, ConvertDuration(remainingSeconds))
+			battleResFrame.cdTextRaw = remainingSeconds
 			local currentCharges = chargesInfoTable.currentCharges
 			if currentCharges == 0 then
 				chargesText:SetFontHeight(plugin.db.profile.chargesNoneFontSize)
@@ -1281,7 +1357,8 @@ do
 					battleResFrame.icon:SetDesaturated(false)
 				end
 			end
-			chargesText:SetText(currentCharges)
+			chargesText:SetFormattedText(chargesTextFormat, currentCharges)
+			battleResFrame.chargesTextRaw = currentCharges
 			if currentCharges > previousCharges and previousCharges >= 0 then
 				local soundName = plugin.db.profile.newResAvailableSound
 				if soundName ~= "None" then
@@ -1293,8 +1370,10 @@ do
 			end
 			previousCharges = currentCharges
 		else
-			cdText:SetText("0:00")
-			chargesText:SetText(0)
+			cdText:SetFormattedText(cdTextFormat, ConvertDuration(0))
+			battleResFrame.cdTextRaw = 0
+			chargesText:SetFormattedText(chargesTextFormat, 0)
+			battleResFrame.chargesTextRaw = 0
 		end
 	end)
 
@@ -1318,8 +1397,8 @@ battleResFrame:SetScript("OnDragStop", function(self)
 	if not plugin.db.profile.lock and plugin.db.profile.position[5] == plugin.defaultDB.position[5] then
 		self:StopMovingOrSizing()
 		local point, _, relPoint, x, y = self:GetPoint()
-		x = math.floor(x+0.5)
-		y = math.floor(y+0.5)
+		x = floor(x+0.5)
+		y = floor(y+0.5)
 		plugin.db.profile.position[1] = point
 		plugin.db.profile.position[2] = relPoint
 		plugin.db.profile.position[3] = x
@@ -1335,8 +1414,8 @@ battleResFrame:SetScript("OnEnter", function(self)
 	for i = 1, #resCollector do
 		local time, sourceName, targetName = resCollector[i][1], resCollector[i][2], resCollector[i][3]
 		local secondsSinceFightBegan = time - fightStartTime
-		local minutes = math.floor(secondsSinceFightBegan / 60)
-		local seconds = math.floor(secondsSinceFightBegan - (minutes*60))
+		local minutes = floor(secondsSinceFightBegan / 60)
+		local seconds = floor(secondsSinceFightBegan - (minutes*60))
 		local timeToShow = ("[%d:%02d]"):format(minutes, seconds)
 		bwTooltip:AddDoubleLine(timeToShow, targetName and (sourceName .." >> ".. targetName) or sourceName, 1, 1, 1, 1, 1, 1)
 	end
@@ -1403,8 +1482,10 @@ do
 				isTesting = nil
 			end
 			battleResFrame:Show()
-			battleResFrame.cdText:SetText("0:00")
-			battleResFrame.chargesText:SetText(0)
+			battleResFrame.cdText:SetFormattedText(cdTextFormat, ConvertDuration(0))
+			battleResFrame.cdTextRaw = 0
+			battleResFrame.chargesText:SetFormattedText(chargesTextFormat, 0)
+			battleResFrame.chargesTextRaw = 0
 			if plugin.db.profile.iconDesaturate == 3 then
 				battleResFrame.icon:SetDesaturated(true)
 			end
@@ -1430,8 +1511,10 @@ do
 				isTesting = nil
 			end
 			battleResFrame:Show()
-			battleResFrame.cdText:SetText("0:00")
-			battleResFrame.chargesText:SetText(0)
+			battleResFrame.cdText:SetFormattedText(cdTextFormat, ConvertDuration(0))
+			battleResFrame.cdTextRaw = 0
+			battleResFrame.chargesText:SetFormattedText(chargesTextFormat, 0)
+			battleResFrame.chargesTextRaw = 0
 			previousCharges = -1
 			resCollector = {}
 			fightStartTime = GetTime()
@@ -1494,8 +1577,10 @@ function plugin:ENCOUNTER_START()
 	previousCharges = -1
 	resCollector = {}
 	fightStartTime = GetTime()
-	battleResFrame.cdText:SetText("0:00")
-	battleResFrame.chargesText:SetText(0)
+	battleResFrame.cdText:SetFormattedText(cdTextFormat, ConvertDuration(0))
+	battleResFrame.cdTextRaw = 0
+	battleResFrame.chargesText:SetFormattedText(chargesTextFormat, 0)
+	battleResFrame.chargesTextRaw = 0
 	battleResFrame.updater:Play()
 	if not BigWigsLoader.isRetail then
 		battleResFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
@@ -1505,8 +1590,10 @@ end
 function plugin:ENCOUNTER_END()
 	battleResFrame.updater:Stop()
 	battleResFrame.cooldown:Clear()
-	battleResFrame.cdText:SetText("0:00")
-	battleResFrame.chargesText:SetText(0)
+	battleResFrame.cdText:SetFormattedText(cdTextFormat, ConvertDuration(0))
+	battleResFrame.cdTextRaw = 0
+	battleResFrame.chargesText:SetFormattedText(chargesTextFormat, 0)
+	battleResFrame.chargesTextRaw = 0
 	if self.db.profile.iconDesaturate == 3 then
 		battleResFrame.icon:SetDesaturated(true)
 	end
@@ -1526,8 +1613,10 @@ function plugin:CHALLENGE_MODE_START()
 	end
 	fightStartTime = GetTime()+9
 	battleResFrame:Show()
-	battleResFrame.cdText:SetText("0:00")
-	battleResFrame.chargesText:SetText(0)
+	battleResFrame.cdText:SetFormattedText(cdTextFormat, ConvertDuration(0))
+	battleResFrame.cdTextRaw = 0
+	battleResFrame.chargesText:SetFormattedText(chargesTextFormat, 0)
+	battleResFrame.chargesTextRaw = 0
 	battleResFrame.updater:Play()
 	self:RegisterEvent("CHALLENGE_MODE_COMPLETED")
 	self:RegisterEvent("PLAYER_REGEN_DISABLED")

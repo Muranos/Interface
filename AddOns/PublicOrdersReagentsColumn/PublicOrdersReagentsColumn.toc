@@ -1,6 +1,6 @@
 ## Interface: 120001
 ## Title: No Mats; No Make
-## Version: 12.0-018
+## Version: 12.0-025
 ## Notes: NPC Orders - shows the reward icons without needing to mouse over
 ## Notes-zhCN: NPC 订单 - 无需鼠标悬停即可显示奖励图标
 ## Notes-zhTW: NPC 訂單 - 無需滑鼠懸停即可顯示獎勵圖示
@@ -73,6 +73,9 @@ FirstCraftIcon.lua
 # Moxie Icon module
 MoxieIcon.lua
 MoxieIcon.xml
+
+# All in one Start and Craft button module
+StartAndCraftButton.lua
 
 options.lua
 init.lua

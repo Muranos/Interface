@@ -216,6 +216,7 @@ BigWigs:AddColors("Muro'jin and Nekraxx", {
 BigWigs:AddSounds("Muro'jin and Nekraxx", {
 	[1243900] = "alarm",
 	[1246666] = "alert",
+	[1249479] = "alert",
 	[1249947] = "long",
 	[1260643] = "info",
 	[1260731] = "alarm",
@@ -386,13 +387,13 @@ BigWigs:AddSounds("Charonus", {
 })
 
 BigWigs:AddColors("Emberdawn", {
-	[465904] = "yellow",
+	[465904] = {"green","yellow"},
 	[466064] = "purple",
 	[466556] = "orange",
 })
 
 BigWigs:AddSounds("Emberdawn", {
-	[465904] = "long",
+	[465904] = {"info","long"},
 	[466064] = "alert",
 	[466556] = "alarm",
 })

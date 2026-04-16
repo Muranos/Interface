@@ -1,7 +1,7 @@
 ## Interface: 20505, 11508, 50503
-## Title: Titan Panel [|cffeda55f_Classic_|r] |cff00aa009.1.6|r
+## Title: Titan Panel [|cffeda55f_Classic_|r] |cff00aa009.1.7|r
 ## Author: Titan Panel Dev Team
-## Version: 9.1.6
+## Version: 9.1.7
 ## IconTexture: Interface\Icons\Achievement_Dungeon_UlduarRaid_Titan_01
 ## Notes: Adds display bars to show and control information/launcher plugins.
 ## Category-enUS: User Interface

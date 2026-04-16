@@ -1,4 +1,4 @@
--- Generated from CurseForge on Wed Apr  8 19:40:31 UTC 2026
+-- Generated from CurseForge on Wed Apr 15 07:41:11 UTC 2026
 local ns = select(2, ...) ---@class ns @The addon namespace.
 
 if ns:IsSameLocale("frFR") then
@@ -63,7 +63,7 @@ L["DISABLE_RWF_MODE_BUTTON"] = "Désactiver"
 L["DISABLE_RWF_MODE_BUTTON_TOOLTIP"] = "Cliquez pour désactiver le mode « Course au World First ». Cela entraînera le rechargement de votre interface."
 L["DISABLE_RWF_MODE_RELOAD"] = "Vous désactivez le mode « Course au World First ». En cliquant sur Confirmer, vous rechargerez votre interface."
 L["DPS"] = "DPS"
-L["DUNGEON_SHORT_NAME_AA"] = "AA"
+L["DUNGEON_SHORT_NAME_AA"] = "Académie"
 L["DUNGEON_SHORT_NAME_AD"] = "AD"
 L["DUNGEON_SHORT_NAME_ARAK"] = "AraK"
 --[[Translation missing --]]
@@ -104,24 +104,20 @@ L["DUNGEON_SHORT_NAME_HOV"] = "SdI"
 --[[ L["DUNGEON_SHORT_NAME_KR"] = ""--]] 
 --[[Translation missing --]]
 --[[ L["DUNGEON_SHORT_NAME_LOWR"] = ""--]] 
---[[Translation missing --]]
---[[ L["DUNGEON_SHORT_NAME_MC"] = ""--]] 
+L["DUNGEON_SHORT_NAME_MC"] = "Cavernes"
 L["DUNGEON_SHORT_NAME_MISTS"] = "Brumes"
 L["DUNGEON_SHORT_NAME_ML"] = "Filon"
 --[[Translation missing --]]
 --[[ L["DUNGEON_SHORT_NAME_MOS"] = ""--]] 
---[[Translation missing --]]
---[[ L["DUNGEON_SHORT_NAME_MT"] = ""--]] 
+L["DUNGEON_SHORT_NAME_MT"] = "Terrasse"
 L["DUNGEON_SHORT_NAME_NELT"] = "NELT"
 L["DUNGEON_SHORT_NAME_NL"] = "RdN"
 --[[Translation missing --]]
 --[[ L["DUNGEON_SHORT_NAME_NO"] = ""--]] 
---[[Translation missing --]]
---[[ L["DUNGEON_SHORT_NAME_NPX"] = ""--]] 
+L["DUNGEON_SHORT_NAME_NPX"] = "Nexus"
 L["DUNGEON_SHORT_NAME_NW"] = "SN"
 L["DUNGEON_SHORT_NAME_PF"] = "MP"
---[[Translation missing --]]
---[[ L["DUNGEON_SHORT_NAME_POS"] = ""--]] 
+L["DUNGEON_SHORT_NAME_POS"] = "Fosse"
 L["DUNGEON_SHORT_NAME_PSF"] = "Prieuré"
 L["DUNGEON_SHORT_NAME_RISE"] = "AdIcdM"
 --[[Translation missing --]]
@@ -130,14 +126,13 @@ L["DUNGEON_SHORT_NAME_ROOK"] = "Colonie"
 --[[Translation missing --]]
 --[[ L["DUNGEON_SHORT_NAME_SBG"] = ""--]] 
 L["DUNGEON_SHORT_NAME_SD"] = "PS"
---[[Translation missing --]]
---[[ L["DUNGEON_SHORT_NAME_SEAT"] = ""--]] 
+L["DUNGEON_SHORT_NAME_SEAT"] = [=[Siège
+]=]
 L["DUNGEON_SHORT_NAME_SIEGE"] = "SIEGE"
 L["DUNGEON_SHORT_NAME_SOA"] = "FdA"
 --[[Translation missing --]]
 --[[ L["DUNGEON_SHORT_NAME_SOTS"] = ""--]] 
---[[Translation missing --]]
---[[ L["DUNGEON_SHORT_NAME_SR"] = ""--]] 
+L["DUNGEON_SHORT_NAME_SR"] = "Orée"
 L["DUNGEON_SHORT_NAME_STRT"] = "Rues"
 L["DUNGEON_SHORT_NAME_SV"] = "CAVE"
 --[[Translation missing --]]
@@ -159,8 +154,7 @@ L["DUNGEON_SHORT_NAME_ULD"] = "ULD"
 --[[ L["DUNGEON_SHORT_NAME_VP"] = ""--]] 
 L["DUNGEON_SHORT_NAME_WM"] = "MM"
 L["DUNGEON_SHORT_NAME_WORK"] = "Mécagone"
---[[Translation missing --]]
---[[ L["DUNGEON_SHORT_NAME_WS"] = ""--]] 
+L["DUNGEON_SHORT_NAME_WS"] = "Flèche"
 --[[Translation missing --]]
 --[[ L["DUNGEON_SHORT_NAME_YARD"] = ""--]] 
 L["ENABLE_AUTO_FRAME_POSITION"] = "Positionner automatiquement le cadre de profil Raider.IO"
@@ -403,8 +397,7 @@ L["RAID_BOSS_MFO_5"] = "Chasseurs d’âmes"
 L["RAID_BOSS_MFO_6"] = "Fractillus"
 L["RAID_BOSS_MFO_7"] = "Roi-nexus Salhadaar"
 L["RAID_BOSS_MFO_8"] = "Dimensius l’Omni-dévoreur"
---[[Translation missing --]]
---[[ L["RAID_BOSS_MQD_1"] = ""--]] 
+L["RAID_BOSS_MQD_1"] = "Belo’ren, enfant d’Al’ar"
 --[[Translation missing --]]
 --[[ L["RAID_BOSS_MQD_2"] = ""--]] 
 L["RAID_BOSS_MSV_1"] = "La garde de pierre"

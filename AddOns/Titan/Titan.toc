@@ -1,7 +1,7 @@
 ## Interface: 120001, 50503, 20505, 11508
-## Title: Titan Panel [|cffeda55f_Core_|r] |cff00aa009.1.6|r
+## Title: Titan Panel [|cffeda55f_Core_|r] |cff00aa009.1.7|r
 ## Author: Titan Panel Dev Team
-## Version: 9.1.6
+## Version: 9.1.7
 ## IconTexture: Interface\AddOns\Titan\Artwork\Titan
 ## SavedVariables: TitanAll, TitanSettings, TitanSkins
 ## Notes: Adds display bars to show and control information/launcher plugins.

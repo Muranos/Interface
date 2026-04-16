@@ -1,10 +1,13 @@
 local addonName, addon = ...
 
+local L = LibStub("AceLocale-3.0"):GetLocale(addonName)
+
 local rewardIconsPrimary, rewardIconsDuplicate = {}, {}
 local reagentIconsPrimary, reagentIconsDuplicate = {}, {}
 local textFieldsPrimary, textFieldsDuplicate = {}, {}
 local errorTexturesPrimary, errorTexturesDuplicate = {}, {}
 local priorityTexturesPrimary, priorityTexturesDuplicate = {}, {}
+local missingReagentTexturesPrimary, missingReagentTexturesDuplicate = {}, {}
 local buttonRegistered = {}
 
 function addon.getOneTimeUniqueID(row)
@@ -43,10 +46,6 @@ function addon.getPermanentUniqueID(row, withCommission)
     local commission = ""
     if withCommission and data.npcOrderRewards then
         for _, rewardData in ipairs(data.npcOrderRewards) do
-            if not rewardData.itemLink then
-                zzzz = rewardData
-            end
-            
             if rewardData.currencyType then
                 commission = commission..rewardData.currencyType
             elseif rewardData.itemLink then
@@ -85,6 +84,7 @@ local function showGeneric(self, _, browseType)
     local textFields = textFieldsPrimary
     local errorTextures = errorTexturesPrimary
     local priorityTextures = priorityTexturesPrimary
+    local missingReagentTextures = missingReagentTexturesPrimary
     
     if self == ProfessionsFrame.OrdersPageOffline then
         rewardIcons = rewardIconsDuplicate
@@ -92,6 +92,7 @@ local function showGeneric(self, _, browseType)
         textFields = textFieldsDuplicate
         errorTextures = errorTexturesDuplicate
         priorityTextures = priorityTexturesDuplicate
+        missingReagentTextures = missingReagentTexturesDuplicate
     end
     
     for _, r in pairs(reagentIcons) do
@@ -116,6 +117,10 @@ local function showGeneric(self, _, browseType)
     end
     
     for t in pairs(priorityTextures) do
+        t:Hide()
+    end
+    
+    for t in pairs(missingReagentTextures) do
         t:Hide()
     end
     
@@ -148,13 +153,12 @@ local function showGeneric(self, _, browseType)
         end
     end
 
-    -- Listen for right clicks on the name cell
+    -- Listen for right clicks on the row
     for _, row in ipairs(rows) do
         if not buttonRegistered[row] then
             row:HookScript("OnClick", function(self, button)
                 if button ~= "RightButton" then return end
                 
-        		
                 -- Customized from Blizzard_ProfessionsCrafterOrderPage.lua, ProfessionsCrafterOrderListElementMixin:OnClick(button)
                 MenuUtil.CreateContextMenu(self, function(_, rootDescription)
         			rootDescription:SetTag("MENU_PROFESSIONS_CRAFTER_ORDER");
@@ -224,7 +228,12 @@ local function showGeneric(self, _, browseType)
 	
     for columnIndex, column in ipairs(columns) do
 		local header = column.headerFrame
-        if columnIndex == 3 then
+        if columnIndex == 2 then
+            -- name column
+            if C_AddOns.IsAddOnLoaded("Auctionator") and Auctionator and addon.db.global.profitLossColumn then
+                header:SetText(L["PROFIT_LOSS_HEADER"])
+            end
+        elseif columnIndex == 3 then
             -- commission column
             header:SetWidth(100)
             
@@ -243,6 +252,68 @@ local function showGeneric(self, _, browseType)
     
     local padding = addon.db.global.increasedPadding
     for rowID, row in ipairs(rows) do
+        if C_AddOns.IsAddOnLoaded("Auctionator") and Auctionator and addon.db.global.profitLossColumn then
+            -- usurp the name cell, converting it to a profit/loss column
+            local cell = row.cells[2]
+            local rowData = cell.rowData.option
+            local profit = rowData.tipAmount - rowData.consortiumCut
+            for _, reward in pairs(rowData.npcOrderRewards) do
+                if reward.itemLink then
+                    local auctionatorPrice = Auctionator.API.v1.GetAuctionPriceByItemLink(addonName, reward.itemLink) or 0
+                    profit = profit + (auctionatorPrice * reward.count)
+                end
+            end
+            
+            -- TODO: this is a duplicate code block from later on. Move and consolidate this.
+            local recipeSchematic = C_TradeSkillUI.GetRecipeSchematic(rowData.spellID, rowData.isRecraft)
+            local reagents = recipeSchematic.reagentSlotSchematics
+            for i = #reagents, 1, -1 do
+                local reagentData = reagents[i]
+                if not reagentData.required then
+                    table.remove(reagents, i)
+                else
+                    local found = false
+                    for _, reagentChoice in pairs(reagentData.reagents) do
+                        for _, providedReagentData in ipairs(rowData.reagents) do
+                            if providedReagentData.reagentInfo.reagent.itemID == reagentChoice.itemID then
+                                found = true
+                                break
+                            end
+                        end
+                        if found then break end
+                    end
+                    if found then
+                        table.remove(reagents, i)
+                    end
+                end
+            end
+            
+            for _, reagentData in ipairs(reagents) do
+                local auctionatorPrice = Auctionator.API.v1.GetAuctionPriceByItemID(addonName, reagentData.reagents[1].itemID) or 0
+                profit = profit - (auctionatorPrice * reagentData.quantityRequired)
+            end
+            
+            local npcName = cell.Text:GetText()
+            profit = math.floor(profit/100)*100
+            local isPositive = profit > 0
+            
+            profit = C_CurrencyInfo.GetCoinTextureString(math.abs(profit))
+            
+            if not isPositive then
+                profit = "|cffff0000-"..profit.."|r"
+            end
+            
+            cell.Text:SetText(profit)
+            cell.Text:SetScript("OnEnter", function()
+                GameTooltip:SetOwner(cell)
+                GameTooltip:AddLine(npcName)
+                GameTooltip:Show()
+                if not InCombatLockdown() then
+                    cell.Text:SetPassThroughButtons("LeftButton", "RightButton", "MiddleButton", "Button4", "Button5")
+                end
+            end)
+        end
+    
         if padding then
             row:SetHeight(row:GetHeight() + padding)
             if rowID > 1 then
@@ -300,6 +371,7 @@ local function showGeneric(self, _, browseType)
         end
         
         cell = row.cells[4]
+        cell:SetWidth(120)
         rowData = cell.rowData.option
         local textField = cell.Text
         textField:Hide()
@@ -328,10 +400,18 @@ local function showGeneric(self, _, browseType)
                 end
             end
             
+            local numUncollected = 0
+            for _, reagentData in ipairs(reagents) do
+                local numPossessed = ProfessionsUtil.GetReagentQuantityInPossession(reagentData.reagents[1], false)
+                if numPossessed == 0 then
+                    numUncollected = numUncollected + 1
+                end
+            end
+            
             for idx, reagentData in ipairs(reagents) do
                 local button = reagentIcons[rowID][idx]
                 if not button then
-                    button =  CreateFrame("ItemButton", nil, cell, "ProfessionsCrafterOrderRewardTemplate")
+                    button = CreateFrame("ItemButton", nil, cell, "ProfessionsCrafterOrderRewardTemplate")
                     reagentIcons[rowID][idx] = button
                     button:ClearNormalTexture()
                     button:ClearPushedTexture()
@@ -346,6 +426,34 @@ local function showGeneric(self, _, browseType)
                 button.Count:SetScale(1)
                 if reagentData.quantityRequired > 99 then
                     button.Count:SetScale(0.8)
+                end
+                
+                local numPossessed = ProfessionsUtil.GetReagentQuantityInPossession(reagentData.reagents[1], false)
+                if numPossessed >= reagentData.quantityRequired then
+                    button.Icon:SetDesaturated(false)
+                    button.Icon:SetAlpha(1)
+                    button.IconBorder:Show()
+                else
+                    if addon.db.global.desaturateMissingReagents then
+                        button.Icon:SetDesaturated(true)
+                        button.Icon:SetAlpha(0.5)
+                        button.IconBorder:Hide()
+                        RunNextFrame(function()
+                            button.IconBorder:Hide()
+                        end)
+                    end
+                    
+                    if not (row.ErrorTexture and row.ErrorTexture:IsShown()) then
+                        -- highlight the cell if player doesn't have all materials
+                        local missingReagentTexture = cell.missingReagentTexture or cell:CreateTexture(nil, "OVERLAY")
+                        cell.missingReagentTexture = missingReagentTexture
+                        missingReagentTexture:SetPoint("TOPLEFT", cell, "TOPLEFT", -5, 0)
+                        missingReagentTexture:SetPoint("BOTTOMRIGHT", cell, "BOTTOMRIGHT", -5, 0)
+                        missingReagentTextures[missingReagentTexture] = true
+                        missingReagentTexture:SetBlendMode("ADD")
+                        missingReagentTexture:SetColorTexture(addon.db.global.reagentErrorColor.r, addon.db.global.reagentErrorColor.g, addon.db.global.reagentErrorColor.b, addon.db.global.reagentErrorColor.a)
+                        missingReagentTexture:Show()
+                    end
                 end
                 
                 if idx == 1 then

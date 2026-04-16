@@ -1071,15 +1071,23 @@ Titan_Menu expects an object approach. The older scheme uses a table driven whic
 If Titan finds a tooltip function, Titan will assume it needs to position, show, and hide the tooltip.
 
 Titan looks for a function to create a tooltip, in order:
-1) .tooltipTemplateFunction : New 2026 Mar
+1) .tooltipDisplayFrame : New 2026 Mar
+   2026 Mar : Added from LDB (.tooltip) to take advantage of Titan processing.
+   It allows the plugin full control BUT the plugin must take nearly full responsibility.
+   Titan will position and show only!
+   Plugin must handle timeout and any other features.
+   Note: If using a frame of type GameTooltip, the plugin MUST set owner. 
+   If Titan does a set oener on display, it wipes the contents...
+
+2) .tooltipTemplateFunction : New 2026 Mar
 A game tooltip template is passed to plugin as an explicit agreement
    pcall(self.tooltipTemplateFunction, self, frame)
 
-2) .tooltipCustomFunction : Deprecated Midnight (12.0.0) / 2026 Mar : 
+3) .tooltipCustomFunction : Deprecated Midnight (12.0.0) / 2026 Mar : 
 Assumes GameTooltip as implicit agreement
    tmp_txt = pcall(self.tooltipCustomFunction, self)
 
-3) .tooltipTextFunction : Titan adds plugin name as Title; expects text in return to fill the tooltip.
+4) .tooltipTextFunction : Titan adds plugin name as Title; expects text in return to fill the tooltip.
 
 The tooltip function is called when the mouse enters the plugin frame - OnEnter.
 Titan templates set the OnEnter script for the plugin frame.

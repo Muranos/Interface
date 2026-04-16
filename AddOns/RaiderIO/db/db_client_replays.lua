@@ -2,13 +2,13 @@
 -- Copyright (c) 2026 by RaiderIO, Inc.
 -- All rights reserved.
 --
--- Generated on Wed Apr 08 2026 20:24:20 GMT+0000 (Coordinated Universal Time) - DO NOT EDIT
+-- Generated on Thu Apr 16 2026 10:27:57 GMT+0000 (Coordinated Universal Time) - DO NOT EDIT
 --
 local _, ns = ...
 ns.REPLAYS = {
   {
     ["format_version"] = 2,
-    ["title"] = "|cffffbd0aRecent Run|r: AA |cffffcf40++|r2 (17:48)",
+    ["title"] = "|cffffbd0aRecent Run|r: AA |cffffcf40+++|r2 (17:48)",
     ["sources"] = {
       "user_recent_replay"
     },
@@ -185,9 +185,19 @@ ns.REPLAYS = {
         16
       },
       {
+        53017,
+        2,
+        2
+      },
+      {
         54667,
         2,
         7
+      },
+      {
+        55083,
+        2,
+        2
       },
       {
         56476,
@@ -220,6 +230,21 @@ ns.REPLAYS = {
         5
       },
       {
+        105898,
+        2,
+        10
+      },
+      {
+        106797,
+        2,
+        4
+      },
+      {
+        109130,
+        2,
+        6
+      },
+      {
         113283,
         2,
         12
@@ -240,6 +265,11 @@ ns.REPLAYS = {
         5
       },
       {
+        155245,
+        2,
+        1
+      },
+      {
         167344,
         2,
         16
@@ -248,6 +278,11 @@ ns.REPLAYS = {
         173593,
         2,
         5
+      },
+      {
+        176982,
+        2,
+        1
       },
       {
         178233,
@@ -283,6 +318,11 @@ ns.REPLAYS = {
         208106,
         2,
         5
+      },
+      {
+        209019,
+        2,
+        2
       },
       {
         214220,
@@ -371,9 +411,19 @@ ns.REPLAYS = {
         5
       },
       {
+        368165,
+        2,
+        1
+      },
+      {
         369167,
         2,
         7
+      },
+      {
+        382387,
+        2,
+        1
       },
       {
         382678,

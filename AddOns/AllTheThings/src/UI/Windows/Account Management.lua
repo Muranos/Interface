@@ -221,6 +221,7 @@ local function ReceiveChunk(method, sender, uid, chunkIndex, chunkCount, chunk)
 			end
 		end
 		if not any then pendingReceiveChunksForUser[sender] = nil; end
+		app:GetWindow("Account Management"):Rebuild();
 		return message;
 	end
 end
@@ -314,6 +315,11 @@ local function SendCharacterMessage(character, detail, msg)
 			SendAddonMessage(character.name, detail, msg);
 		end
 	end
+end
+local function GetSyncIdentityToken()
+	local battleTag = CurrentCharacter and CurrentCharacter.battleTag;
+	if battleTag and battleTag ~= "" then return battleTag; end
+	return CurrentCharacter and CurrentCharacter.guid or UNKNOWN;
 end
 local function BroadcastMessage(detail, msg)
 	-- Update the last played timestamp. This ensures the sync process does NOT destroy unsaved progress on this character.
@@ -888,9 +894,11 @@ local function ReceiveCharacterSummary(self, sender, responses, guid, lastPlayed
 		if not lastPlayedForCharacter then
 			-- No timestamp? This character might be corrupted.
 			tinsert(responses, { detail = "Request " .. guid, msg = "request," .. guid });	-- Request Full Character Copy
+			app.print("Requesting full character copy for " .. character.text .. " since no timestamp was found.");
 		elseif lastPlayedForCharacter < lastPlayed then
 			-- The timestamp is newer than the copy we have. Send anything that is new.
 			tinsert(responses, { detail = "Update " .. character.text, msg = "request," .. guid .. "," .. lastPlayedForCharacter });	-- Request Diff
+			app.print("Requesting character update for " .. character.text .. " since we have an older version than them.");
 		elseif shouldPrint then
 			-- Inform them that we have a newer version of the character than they do.
 			tinsert(responses, { detail = "Up to Date " .. guid, msg = "uptodate," .. guid });
@@ -898,6 +906,7 @@ local function ReceiveCharacterSummary(self, sender, responses, guid, lastPlayed
 	else
 		-- We don't have the character in our character data table.
 		tinsert(responses, { detail = "Request " .. guid, msg = "request," .. guid });	-- Request Full Character Copy
+		app.print("Requesting full character copy for " .. guid .. " since we don't have any data on them.");
 	end
 end
 
@@ -918,10 +927,11 @@ MESSAGE_HANDLERS.ack = function(self, sender, content, responses)
 	pendingChunk.cooldown = 0;
 end
 MESSAGE_HANDLERS.check = function(self, sender, content, responses)
-	-- Validate inputs. Battle Tag MUST be supplied and the account must be linked!
-	local battleTag, isResponding = content[2], content[3];
-	if not battleTag then return false; end
-	if not LinkedCharacters[battleTag] then
+	-- Validate inputs. Sync identity token MUST be supplied and the account must be linked!
+	local token, isResponding = content[2], content[3];
+	if not token then return false; end
+	local senderWithoutServerName = sender and ("-"):split(sender);
+	if not LinkedCharacters[token] and not LinkedCharacters[senderWithoutServerName] then
 		return false;
 	else
 		-- White list any future communications with this sender for the rest of the session.
@@ -934,7 +944,7 @@ MESSAGE_HANDLERS.check = function(self, sender, content, responses)
 
 	-- If this wasn't sent as a response to a check request, send our own check request!
 	if not isResponding then
-		tinsert(responses, { detail = "Checking", msg = "check," .. CurrentCharacter.battleTag .. ",1" });
+		tinsert(responses, { detail = "Checking", msg = "check," .. GetSyncIdentityToken() .. ",1" });
 	end
 
 	-- Generate the sync string
@@ -949,22 +959,25 @@ MESSAGE_HANDLERS.check = function(self, sender, content, responses)
 	return true;
 end
 MESSAGE_HANDLERS.char = function(self, sender, content, responses)
-	if not LinkedCharacters[sender] then return false; end
+	local senderWithoutServerName = ("-"):split(sender);
+	if not LinkedCharacters[senderWithoutServerName] then return false; end
 	local guid, lastPlayed = (":"):split(content[2]);
 	ReceiveCharacterSummary(self, sender, responses, guid, tonumber(lastPlayed) or 0, true);
 end
 MESSAGE_HANDLERS.chars = function(self, sender, content, responses)
-	if not LinkedCharacters[sender] then return false; end
+	local senderWithoutServerName = ("-"):split(sender);
+	if not LinkedCharacters[senderWithoutServerName] then return false; end
 	for i=2,#content,1 do
 		local guid, lastPlayed = (":"):split(content[i]);
 		ReceiveCharacterSummary(self, sender, responses, guid, tonumber(lastPlayed) or 0, false);
 	end
 end
 MESSAGE_HANDLERS.link = function(self, sender, content, responses)
-	-- Validate inputs. Battle Tag MUST be supplied and the account must be linked!
-	local battleTag = content[2];
-	if not battleTag then return false; end
-	if not LinkedCharacters[battleTag] then
+	-- Validate inputs. Sync identity token MUST be supplied and the account must be linked!
+	local token = content[2];
+	if not token then return false; end
+	local senderWithoutServerName = sender and ("-"):split(sender);
+	if not LinkedCharacters[token] and not LinkedCharacters[senderWithoutServerName] then
 		return false;
 	else
 		-- White list any future communications with this sender for the rest of the session.
@@ -991,14 +1004,15 @@ MESSAGE_HANDLERS.linked = function(self, sender, content, responses)
 		-- Update Battle.net stuff.
 		UpdateBattleTags();
 		UpdateOnlineAccounts();
-		SendCharacterMessage(character, text, "check," .. CurrentCharacter.battleTag);
+		SendCharacterMessage(character, text, "check," .. GetSyncIdentityToken());
 	else
 		app.print("Already linked with " .. (character.text or guid) .. ".");
 	end
 	return true;
 end
 MESSAGE_HANDLERS.rawchar = function(self, sender, content, responses)
-	if not LinkedCharacters[sender] then return false; end
+	local senderWithoutServerName = ("-"):split(sender);
+	if not LinkedCharacters[senderWithoutServerName] then return false; end
 	local guid = content[2];
 	if not guid then return false; end
 	tremove(content, 1);
@@ -1039,9 +1053,11 @@ MESSAGE_HANDLERS.rawchar = function(self, sender, content, responses)
 	-- Update the Sync Window!
 	RecalculateAccountWideData(true);
 	self:Update(true);
+	self:Rebuild();
 end
 MESSAGE_HANDLERS.request = function(self, sender, content, responses)
-	if not LinkedCharacters[sender] then return false; end
+	local senderWithoutServerName = ("-"):split(sender);
+	if not LinkedCharacters[senderWithoutServerName] then return false; end
 	local guid, lastUpdated = content[2], content[3];
 	if lastUpdated then
 		lastUpdated = tonumber(lastUpdated);
@@ -1073,11 +1089,12 @@ MESSAGE_HANDLERS.request = function(self, sender, content, responses)
 	tinsert(responses, { detail = character.text, msg = rawData });
 end
 MESSAGE_HANDLERS.uptodate = function(self, sender, content, responses)
-	if not LinkedCharacters[sender] then return false; end
+	local senderWithoutServerName = ("-"):split(sender);
+	if not LinkedCharacters[senderWithoutServerName] then return false; end
 	local guid = content[2];
 	if guid then
 		local character = CharacterData[guid];
-		if character then print(character.text .. " is already up-to-date."); end
+		if character then app.print(character.text .. " is already up-to-date."); end
 	end
 end
 
@@ -1111,7 +1128,7 @@ local function MergeCharacterData(character, row)
 			end
 			if subtotal > 0 then
 				local t = character.TimeStamps[field];
-				message = message .. "\n " .. field .. " |cffaaaaaa(" .. (t and date("%Y-%m-%d", t) or "??" ) .. ")|r: " .. subtotal;
+				message = message .. "\n " .. field .. " |cffaaaaaa(" .. (t and date("%Y-%m-%d %H:%M:%S", t) or "??" ) .. ")|r: " .. subtotal;
 				tinsert(fields, field);
 			end
 		end
@@ -1287,10 +1304,11 @@ local function OnClickForLinkedAccount(row, button)
 		-- Now send to any explicitly linked accounts.
 		local character = characterByInfo[identifier];
 		if character then
-			SendCharacterMessage(character, character.text, "check," .. CurrentCharacter.battleTag);
+			SendCharacterMessage(character, character.text, "check," .. GetSyncIdentityToken());
 		else
-			SendAddonMessage(identifier, "Check " .. identifier, "check," .. CurrentCharacter.battleTag);
+			SendAddonMessage(identifier, "Check " .. identifier, "check," .. GetSyncIdentityToken());
 		end
+		row:GetParent():GetParent():Rebuild();
 	end
 	return true;
 end
@@ -1323,6 +1341,13 @@ local function OnTooltipForCharacter(t, tooltipInfo)
 			tinsert(tooltipInfo, {
 				left = TIME_PLAYED_MSG,
 				right = GetTimePlayedString(totalTimePlayed)
+			});
+		end
+		local battleTag = character.battleTag;
+		if battleTag then
+			tinsert(tooltipInfo, {
+				left = BATTLETAG,
+				right = battleTag
 			});
 		end
 		local primeData = character.PrimeData;
@@ -1377,7 +1402,7 @@ local function OnTooltipForCharacter(t, tooltipInfo)
 				total = total + subtotal;
 				local t = timestamps[field];
 				tinsert(tooltipInfo, {
-					left = field .. " |cffaaaaaa(" .. (t and date("%Y-%m-%d", t) or "??" ) .. ")|r",
+					left = field .. " |cffaaaaaa(" .. (t and date("%Y-%m-%d %H:%M:%S", t) or "??" ) .. ")|r",
 					right = tostring(subtotal),
 					r = 1, g = 1, b = 1
 				});
@@ -1580,7 +1605,7 @@ app:CreateWindow("Account Management", {
 							-- Prevent server names.
 							cmd = ("-"):split(cmd);
 							LinkedCharacters[cmd] = true;
-							SendAddonMessage(cmd, "Link " .. cmd, "link," .. CurrentCharacter.battleTag);
+							SendAddonMessage(cmd, "Link " .. cmd, "link," .. GetSyncIdentityToken());
 							self:Rebuild();
 						end
 					end);
@@ -1618,7 +1643,7 @@ app:CreateWindow("Account Management", {
 						row.ref.saved = self.Settings.AutoSync;
 						self:Redraw();
 					else
-						BroadcastMessage(row.ref.text, "check," .. CurrentCharacter.battleTag);
+						BroadcastMessage(row.ref.text, "check," .. GetSyncIdentityToken());
 					end
 					return true;
 				end,
@@ -1793,7 +1818,7 @@ app:CreateWindow("Account Management", {
 		pcall(self.RegisterEvent, self, "BN_CHAT_MSG_ADDON");
 		self:RegisterEvent("CHAT_MSG_ADDON");
 		if settings.AutoSync then
-			BroadcastMessage("AutoSync", "check," .. CurrentCharacter.battleTag);
+			BroadcastMessage("AutoSync", "check," .. GetSyncIdentityToken());
 		else
 			-- Cache some things related to BattleNet. (this happens in the BroadcastMessage function already)
 			UpdateBattleTags();

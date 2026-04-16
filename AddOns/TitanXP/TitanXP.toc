@@ -1,6 +1,6 @@
 ## Interface: 120001, 50503, 20505, 11508
-## Title: Titan Panel [|cffeda55fXP|r] |cff00aa009.1.6|r
-## Version: 9.1.6
+## Title: Titan Panel [|cffeda55fXP|r] |cff00aa009.1.7|r
+## Version: 9.1.7
 ## IconTexture: Interface\Icons\xp_icon
 ## Notes: Adds information to Titan Panel about XP earned and time to level
 ## Author: Titan Panel Development Team

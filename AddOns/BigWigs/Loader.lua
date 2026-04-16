@@ -12,18 +12,18 @@ local strfind = string.find
 -- Generate our version variables
 --
 
-local BIGWIGS_VERSION = 412
+local BIGWIGS_VERSION = 413
 local CONTENT_PACK_VERSIONS = {
-	["LittleWigs"] = {12, 0, 35},
-	["BigWigs_Classic"] = {12, 0, 13},
-	["BigWigs_BurningCrusade"] = {12, 0, 10},
-	["BigWigs_WrathOfTheLichKing"] = {12, 0, 4},
-	["BigWigs_Cataclysm"] = {12, 0, 1},
+	["LittleWigs"] = {12, 0, 40},
+	["BigWigs_Classic"] = {12, 0, 15},
+	["BigWigs_BurningCrusade"] = {12, 0, 11},
+	["BigWigs_WrathOfTheLichKing"] = {12, 0, 6},
+	["BigWigs_Cataclysm"] = {12, 0, 2},
 	["BigWigs_MistsOfPandaria"] = {12, 0, 4},
 	["BigWigs_WarlordsOfDraenor"] = {12, 0, 1},
 	["BigWigs_Legion"] = {12, 0, 1},
 	["BigWigs_BattleForAzeroth"] = {12, 0, 2},
-	["BigWigs_Shadowlands"] = {12, 0, 1},
+	["BigWigs_Shadowlands"] = {12, 0, 2},
 	["BigWigs_Dragonflight"] = {12, 0, 4},
 	["BigWigs_TheWarWithin"] = {12, 0, 2},
 }
@@ -57,7 +57,7 @@ do
 	local ALPHA = "ALPHA"
 
 	local releaseType
-	local myGitHash = "c05445f" -- The ZIP packager will replace this with the Git hash.
+	local myGitHash = "194a45b" -- The ZIP packager will replace this with the Git hash.
 	local releaseString
 	--[=[@alpha@
 	-- The following code will only be present in alpha ZIPs.
@@ -146,21 +146,22 @@ public.GetBestMapForUnit = GetBestMapForUnit
 public.GetInstanceInfo = GetInstanceInfoModified
 public.GetMapInfo = GetMapInfo
 public.GetPlayerAuraBySpellID = C_UnitAuras.GetPlayerAuraBySpellID
-public.GetUnitAuraBySpellID = C_UnitAuras.GetUnitAuraBySpellID -- XXX [Mainline:✓ MoP:✗ Wrath:✗ Vanilla:✓]
+public.GetUnitAuraBySpellID = C_UnitAuras.GetUnitAuraBySpellID -- XXX [Mainline:✓ MoP:✗ Wrath:✓ Vanilla:✓]
 public.GetSpellCooldown = C_Spell.GetSpellCooldown
 public.GetSpellDescription = C_Spell.GetSpellDescription
 public.GetSpellLink = C_Spell.GetSpellLink
 public.GetSpellName = C_Spell.GetSpellName
 public.GetSpellTexture = C_Spell.GetSpellTexture
 public.IsItemInRange = C_Item.IsItemInRange
-public.IsSpellKnownOrInSpellBook = C_SpellBook.IsSpellKnownOrInSpellBook -- XXX [Mainline:✓ MoP:✓ Wrath:✗ Vanilla:✓]
+public.IsSpellKnownOrInSpellBook = C_SpellBook.IsSpellKnownOrInSpellBook -- XXX [Mainline:✓ MoP:✓ Wrath:✓ Vanilla:✓]
 public.IsPlayerSpell = IsPlayerSpell or public.IsSpellKnownOrInSpellBook
 public.IsSpellKnown = IsSpellKnown or public.IsSpellKnownOrInSpellBook
 public.PlaySoundFile = PlaySoundFile
 public.RegisterAddonMessagePrefix = RegisterAddonMessagePrefix
 public.SendAddonMessage = SendAddonMessage
+public.SendBattleNetMessage = C_BattleNet and C_BattleNet.SendWhisper or BNSendWhisper -- XXX [Mainline:✓ MoP:✗ Wrath:✗ TBC:✗ Vanilla:✗]
+public.SendChatMessage = C_ChatInfo.SendChatMessage
 public.SetRaidTarget = SetRaidTarget
-public.SendChatMessage = C_ChatInfo and C_ChatInfo.SendChatMessage or SendChatMessage -- XXX [Mainline:✓ MoP:✓ Wrath:✗ Vanilla:✓]
 public.UnitCanAttack = UnitCanAttack
 public.UnitDetailedThreatSituation = UnitDetailedThreatSituation
 public.UnitThreatSituation = UnitThreatSituation
@@ -1616,9 +1617,9 @@ end
 --
 
 do
-	local DBMdotRevision = "20260407044947" -- The changing version of the local client, changes with every new zip using the project-date-integer packager replacement.
-	local DBMdotDisplayVersion = "12.0.37" -- "N.N.N" for a release and "N.N.N alpha" for the alpha duration.
-	local DBMdotReleaseRevision = "20260406000000" -- Hardcoded time, manually changed every release, they use it to track the highest release version, a new DBM release is the only time it will change.
+	local DBMdotRevision = "20260413102312" -- The changing version of the local client, changes with every new zip using the project-date-integer packager replacement.
+	local DBMdotDisplayVersion = "12.0.38" -- "N.N.N" for a release and "N.N.N alpha" for the alpha duration.
+	local DBMdotReleaseRevision = "20260413000000" -- Hardcoded time, manually changed every release, they use it to track the highest release version, a new DBM release is the only time it will change.
 	local protocol = 3
 	local versionPrefix = "V"
 	local PForceDisable = 23
